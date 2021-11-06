@@ -1,5 +1,4 @@
 import org.jetbrains.kotlin.gradle.plugin.KotlinJsCompilerType
-import org.jetbrains.kotlin.gradle.plugin.KotlinJsCompilerType.*
 import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
 
 plugins {

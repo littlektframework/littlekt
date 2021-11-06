@@ -6,7 +6,7 @@ import com.lehaine.littlekt.util.TimeSpan
  * @author Colton Daily
  * @date 11/6/2021
  */
-actual class PlatformGraphics : Graphics {
+class LwjglGraphics : Graphics {
     override val GL: GL = LwjglGL()
 
     override val width: Int

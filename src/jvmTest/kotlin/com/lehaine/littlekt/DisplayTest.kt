@@ -40,5 +40,5 @@ class DisplayTestScene : Scene() {
 fun main(args: Array<String>) {
     val game = DisplayTest()
 
-    ApplicationContext().start(game)
+    LwjglApplication().start(game)
 }

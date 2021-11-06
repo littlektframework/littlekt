@@ -13,7 +13,7 @@ import kotlin.math.min
  * @author Colton Daily
  * @date 10/4/2021
  */
-actual class ApplicationContext : Application {
+class LwjglApplication : Application {
 
     private var windowHandle: Long = 0
 
@@ -22,7 +22,7 @@ actual class ApplicationContext : Application {
 
     private var lastFrame: Long = getTime()
 
-    override val graphics: Graphics = PlatformGraphics()
+    override val graphics = LwjglGraphics()
 
     private fun getDelta(): Float {
         val time = getTime()
