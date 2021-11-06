@@ -1,5 +1,9 @@
+import org.jetbrains.kotlin.gradle.plugin.KotlinJsCompilerType
+import org.jetbrains.kotlin.gradle.plugin.KotlinJsCompilerType.*
+import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
+
 plugins {
-    kotlin("multiplatform") version "1.5.21"
+    kotlin("multiplatform") version "1.5.31"
 }
 
 group = "com.lehaine"
@@ -18,11 +22,23 @@ kotlin {
             useJUnit()
         }
     }
-    js(LEGACY) {
+    js(KotlinJsCompilerType.IR) {
         browser {
-            commonWebpackConfig {
-                cssSupport.enabled = true
+            binaries.executable()
+            testTask {
+                useKarma {
+                    useChromeHeadless()
+                }
             }
+        }
+
+        this.attributes.attribute(
+            KotlinPlatformType.attribute,
+            KotlinPlatformType.js
+        )
+
+        compilations.all {
+            kotlinOptions.sourceMap = true
         }
     }
     val hostOs = System.getProperty("os.name")
@@ -34,15 +50,42 @@ kotlin {
         else -> throw GradleException("Host OS is not supported in Kotlin/Native.")
     }
 
-    
+    val lwjglVersion: String by project
+
+
     sourceSets {
-        val commonMain by getting
+        val commonMain by getting {
+            dependencies {
+            }
+        }
         val commonTest by getting {
             dependencies {
                 implementation(kotlin("test"))
             }
         }
-        val jvmMain by getting
+        val jvmMain by getting {
+            dependencies {
+                implementation("org.lwjgl:lwjgl:$lwjglVersion")
+                implementation("org.lwjgl:lwjgl:$lwjglVersion:natives-windows")
+                implementation("org.lwjgl:lwjgl:$lwjglVersion:natives-linux")
+                implementation("org.lwjgl:lwjgl:$lwjglVersion:natives-macos")
+                implementation("org.lwjgl:lwjgl-glfw:$lwjglVersion")
+                implementation("org.lwjgl:lwjgl-glfw:$lwjglVersion:natives-windows")
+                implementation("org.lwjgl:lwjgl-glfw:$lwjglVersion:natives-linux")
+                implementation("org.lwjgl:lwjgl-glfw:$lwjglVersion:natives-macos")
+                implementation("org.lwjgl:lwjgl-opengl:$lwjglVersion")
+                implementation("org.lwjgl:lwjgl-opengl:$lwjglVersion:natives-windows")
+                implementation("org.lwjgl:lwjgl-opengl:$lwjglVersion:natives-linux")
+                implementation("org.lwjgl:lwjgl-opengl:$lwjglVersion:natives-macos")
+                implementation("org.lwjgl:lwjgl-openal:$lwjglVersion")
+                implementation("org.lwjgl:lwjgl-openal:$lwjglVersion:natives-linux")
+                implementation("org.lwjgl:lwjgl-openal:$lwjglVersion:natives-linux-arm32")
+                implementation("org.lwjgl:lwjgl-openal:$lwjglVersion:natives-linux-arm64")
+                implementation("org.lwjgl:lwjgl-openal:$lwjglVersion:natives-macos")
+                implementation("org.lwjgl:lwjgl-openal:$lwjglVersion:natives-windows")
+                implementation("org.lwjgl:lwjgl-openal:$lwjglVersion:natives-windows-x86")
+            }
+        }
         val jvmTest by getting
         val jsMain by getting
         val jsTest by getting
