@@ -2,6 +2,7 @@ package com.lehaine.littlekt.node.internal
 
 import com.lehaine.littlekt.Scene
 import com.lehaine.littlekt.Time
+import com.lehaine.littlekt.input.Input
 import com.lehaine.littlekt.node.Node
 
 /**
@@ -86,10 +87,10 @@ class NodeList(val scene: Scene) {
         nodeDict[node.tag]?.remove(node)
     }
 
-    internal fun update() {
+    internal fun update(input: Input) {
         nodes.forEach {
             if (it.enabled && (it.updateInterval == 1 || Time.frameCount % it.updateInterval == 0)) {
-                it.update()
+                it.update(input)
             }
         }
     }

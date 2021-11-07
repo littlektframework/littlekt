@@ -1,10 +1,15 @@
 package com.lehaine.littlekt
 
+import com.lehaine.littlekt.input.LwjglInput
+import com.lehaine.littlekt.io.AssetManager
+import com.lehaine.littlekt.log.JvmLogger
+import com.lehaine.littlekt.log.Logger
 import com.lehaine.littlekt.util.milliseconds
 import org.lwjgl.glfw.Callbacks.glfwFreeCallbacks
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.glfw.GLFWErrorCallback
-import org.lwjgl.opengl.GL30C.*
+import org.lwjgl.opengl.GL30C.GL_TRUE
+import org.lwjgl.opengl.GL30C.glClearColor
 import org.lwjgl.system.MemoryStack.stackPush
 import org.lwjgl.system.MemoryUtil.NULL
 import kotlin.math.min
@@ -13,7 +18,13 @@ import kotlin.math.min
  * @author Colton Daily
  * @date 10/4/2021
  */
-class LwjglApplication : Application {
+class LwjglApplication(
+    val title: String = "LittleKt Application",
+    val width: Int = 800,
+    val height: Int = 480,
+    val vSync: Boolean = true
+) :
+    Application {
 
     private var windowHandle: Long = 0
 
@@ -23,6 +34,13 @@ class LwjglApplication : Application {
     private var lastFrame: Long = getTime()
 
     override val graphics = LwjglGraphics()
+
+    override val logger: Logger = JvmLogger(title)
+
+    override val input = LwjglInput(logger, this)
+
+    override val assetManager: AssetManager
+        get() = TODO("Not yet implemented")
 
     private fun getDelta(): Float {
         val time = getTime()
@@ -50,9 +68,10 @@ class LwjglApplication : Application {
         glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 
         // Create the window
-        // TODO set width, height, and title
-        windowHandle = glfwCreateWindow(800, 480, "test", NULL, NULL)
+        windowHandle = glfwCreateWindow(800, 480, title, NULL, NULL)
         if (windowHandle == NULL) throw RuntimeException("Failed to create the GLFW window")
+
+        input.attachHandler(windowHandle)
 
         glfwSetFramebufferSizeCallback(windowHandle) { _, width, height ->
 
@@ -81,31 +100,38 @@ class LwjglApplication : Application {
         // Make the OpenGL context current
         glfwMakeContextCurrent(windowHandle)
 
-        //  if (vSync) {
-        // Enable v-sync
-        // glfwSwapInterval(1)
-        //}
+        if (vSync) {
+            // Enable v-sync
+            glfwSwapInterval(1)
+        }
         // Make the window visible
         glfwShowWindow(windowHandle)
 
         org.lwjgl.opengl.GL.createCapabilities()
 
         glClearColor(0f, 0f, 0f, 0f)
-        glEnable(GL_DEPTH_TEST)
+        //     glEnable(GL_DEPTH_TEST)
         //   glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
 
+        game._application = this
         game.create()
         while (!windowShouldClose) {
             val delta = getDelta()
-            game.render(delta.milliseconds)
+            input.record()
+            game.render(delta.milliseconds, input)
             glfwSwapBuffers(windowHandle)
+            input.reset()
             glfwPollEvents()
         }
+        close()
+        destroy()
     }
 
-    override fun exit() {
+    override fun close() {
         glfwSetWindowShouldClose(windowHandle, true)
+    }
 
+    override fun destroy() {
         // Free the window callbacks and destroy the window
         glfwFreeCallbacks(windowHandle)
         glfwDestroyWindow(windowHandle)

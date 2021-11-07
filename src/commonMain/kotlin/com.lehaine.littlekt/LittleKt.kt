@@ -1,5 +1,6 @@
 package com.lehaine.littlekt
 
+import com.lehaine.littlekt.input.Input
 import com.lehaine.littlekt.util.GlobalManager
 import com.lehaine.littlekt.util.TimeSpan
 
@@ -8,6 +9,9 @@ import com.lehaine.littlekt.util.TimeSpan
  * @date 9/29/2021
  */
 open class LittleKt {
+
+    @PublishedApi
+    internal var _application: Application? = null
 
     /**
      * The internally handled scene
@@ -24,6 +28,7 @@ open class LittleKt {
             check(value != null) { "Scene can not be set to null!" }
             if (_scene == null) {
                 _scene = value
+                _scene?.game = this
                 _scene?.apply { root.apply { initialize() } }
                 onSceneChanged()
                 value.begin()
@@ -43,7 +48,7 @@ open class LittleKt {
     }
 
     init {
-    //    registerGlobalManager(RenderTarget())
+        //    registerGlobalManager(RenderTarget())
     }
 
     open fun create() {
@@ -53,7 +58,7 @@ open class LittleKt {
         scene?.resize(width, height)
     }
 
-    fun render(dt: TimeSpan) {
+    fun render(dt: TimeSpan, input: Input) {
         Time.update(dt)
 
         scene?.let { _scene ->
@@ -61,7 +66,7 @@ open class LittleKt {
                 it.update()
             }
 
-            _scene.update()
+            _scene.update(input)
 
             nextScene?.let { _nextScene ->
                 _scene.end()
@@ -79,5 +84,12 @@ open class LittleKt {
      */
     fun onSceneChanged() {
         Time.sceneChanged()
+    }
+
+    /**
+     * Exit and destroy the current [LittleKt] process.
+     */
+    fun exit() {
+        _application?.close()
     }
 }

@@ -50,6 +50,8 @@ kotlin {
     }
 
     val lwjglVersion: String by project
+    val pngDecoderVersion: String by project
+    val mp3DecoderVersion:String by project
 
 
     sourceSets {
@@ -83,6 +85,9 @@ kotlin {
                 implementation("org.lwjgl:lwjgl-openal:$lwjglVersion:natives-macos")
                 implementation("org.lwjgl:lwjgl-openal:$lwjglVersion:natives-windows")
                 implementation("org.lwjgl:lwjgl-openal:$lwjglVersion:natives-windows-x86")
+
+                implementation("org.l33tlabs.twl:pngdecoder:$pngDecoderVersion")
+                implementation("fr.delthas:javamp3:$mp3DecoderVersion")
             }
         }
         val jvmTest by getting

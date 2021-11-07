@@ -1,5 +1,6 @@
 package com.lehaine.littlekt
 
+import com.lehaine.littlekt.input.Input
 import com.lehaine.littlekt.node.Node
 import com.lehaine.littlekt.node.internal.NodeList
 
@@ -9,10 +10,12 @@ import com.lehaine.littlekt.node.internal.NodeList
  */
 open class Scene {
 
+    internal var game: LittleKt? = null
+
     /**
      * The default scene [Camera].
      */
-   // var camera = Camera()
+    // var camera = Camera()
 
     /**
      * The default scene [com.badlogic.gdx.utils.viewport.Viewport]. Defaults to [ScreenViewport].
@@ -75,12 +78,12 @@ open class Scene {
     }
 
     fun resize(width: Int, height: Int) {
-   //     viewport.update(width, height)
+        //     viewport.update(width, height)
     }
 
-    open fun update() {
+    open fun update(input: Input) {
         nodes.updateLists()
-        nodes.update()
+        nodes.update(input)
     }
 
     internal fun render() {
@@ -119,6 +122,13 @@ open class Scene {
             addNode(it)
         }
         return node
+    }
+
+    /**
+     * Exit and destroy the current [LittleKt] process.
+     */
+    fun exit() {
+        game?.exit()
     }
 
 }

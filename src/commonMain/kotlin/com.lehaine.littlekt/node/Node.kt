@@ -1,6 +1,7 @@
 package com.lehaine.littlekt.node
 
 import com.lehaine.littlekt.Scene
+import com.lehaine.littlekt.input.Input
 import kotlin.native.concurrent.ThreadLocal
 
 /**
@@ -206,7 +207,7 @@ open class Node : Comparable<Node> {
     /**
      * Called each frame as long as the [Node] is [enabled].
      */
-    open fun update() {
+    open fun update(input: Input) {
     }
 
     /**

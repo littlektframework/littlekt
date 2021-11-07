@@ -11,7 +11,7 @@ class WebGLApplication : Application {
         TODO("Not yet implemented")
     }
 
-    override fun exit() {
+    override fun destroy() {
         TODO("Not yet implemented")
     }
 }

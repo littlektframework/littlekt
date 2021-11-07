@@ -1,5 +1,7 @@
 package com.lehaine.littlekt
 
+import com.lehaine.littlekt.input.Input
+import com.lehaine.littlekt.input.Key
 import com.lehaine.littlekt.node.Node
 import com.lehaine.littlekt.node.node
 
@@ -32,13 +34,21 @@ class DisplayTestScene : Scene() {
         println(root.treeString())
     }
 
-    override fun update() {
-        super.update()
+    override fun update(input: Input) {
+        super.update(input)
+
+        if (input.isKeyJustPressed(Key.ENTER)) {
+            println(root.treeString())
+        }
+
+        if (input.isKeyJustPressed(Key.ESCAPE)) {
+            exit()
+        }
     }
 }
 
 fun main(args: Array<String>) {
     val game = DisplayTest()
 
-    LwjglApplication().start(game)
+    LwjglApplication("Display Test").start(game)
 }
