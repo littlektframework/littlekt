@@ -309,6 +309,7 @@ data class Mat4(
         get() = Float3(length(x.xyz), length(y.xyz), length(z.xyz))
     inline val translation: Float3
         get() = w.xyz
+
     val rotation: Float3
         get() {
             val toEulerAngles = Quaternion.from(this).toEulerAngles()
@@ -348,6 +349,7 @@ data class Mat4(
         this[column][row] = v
     }
 
+
     operator fun unaryMinus() = Mat4(-x, -y, -z, -w)
     operator fun inc(): Mat4 {
         x++
@@ -383,6 +385,16 @@ data class Mat4(
     operator fun times(v: Float4): Float4 {
         val t = transpose(this)
         return Float4(dot(t.x, v), dot(t.y, v), dot(t.z, v), dot(t.w, v))
+    }
+
+
+    fun from(mat: Mat4): Mat4 {
+        x.xyzw = mat.x.xyzw
+        y.xyzw = mat.y.xyzw
+        z.xyzw = mat.z.xyzw
+        w.xyzw = mat.w.xyzw
+
+        return this
     }
 
     @Deprecated("Prefer asGLArray", ReplaceWith("asGLArray()"))
@@ -537,8 +549,8 @@ fun translation(m: Mat4) = translation(m.translation)
 fun rotation(m: Mat4) = Mat4(normalize(m.right), normalize(m.up), normalize(m.forward))
 fun rotation(d: Float3): Mat4 {
     val r = transform(d, ::radians)
-    val c = transform(r, { x -> cos(x) })
-    val s = transform(r, { x -> sin(x) })
+    val c = transform(r) { x -> cos(x) }
+    val s = transform(r) { x -> sin(x) }
 
     return Mat4.fromRowMajor(
         c.y * c.z, -c.x * s.z + s.x * s.y * c.z, s.x * s.z + c.x * s.y * c.z, 0.0f,

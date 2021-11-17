@@ -1,7 +1,8 @@
 package com.lehaine.littlekt
 
-import com.lehaine.littlekt.render.TextureImage
+import com.lehaine.littlekt.graphics.render.TextureImage
 import com.lehaine.littlekt.shader.*
+import org.lwjgl.opengl.GL30
 import org.lwjgl.opengl.GL30.*
 import java.nio.ByteBuffer
 

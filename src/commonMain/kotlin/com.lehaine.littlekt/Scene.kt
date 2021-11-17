@@ -8,9 +8,9 @@ import com.lehaine.littlekt.node.internal.NodeList
  * @author Colton Daily
  * @date 9/29/2021
  */
-open class Scene {
+open class Scene(val game: LittleKt) {
 
-    internal var game: LittleKt? = null
+    val fileHandler get() = game.fileHandler
 
     /**
      * The default scene [Camera].
@@ -57,7 +57,7 @@ open class Scene {
 //    }
 //
 //    fun removeRenderer(renderer: Renderer) {
-//        renderers.removeValue(renderer, false)
+//        renderers.remove(renderer)
 //        renderer.unload()
 //    }
 
@@ -128,7 +128,7 @@ open class Scene {
      * Exit and destroy the current [LittleKt] process.
      */
     fun exit() {
-        game?.exit()
+        game.exit()
     }
 
 }

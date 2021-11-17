@@ -8,10 +8,9 @@ import com.lehaine.littlekt.util.TimeSpan
  * @author Colton Daily
  * @date 9/29/2021
  */
-open class LittleKt {
+open class LittleKt(val application: Application) {
 
-    @PublishedApi
-    internal var _application: Application? = null
+    val fileHandler get() = application.fileHandler
 
     /**
      * The internally handled scene
@@ -28,7 +27,6 @@ open class LittleKt {
             check(value != null) { "Scene can not be set to null!" }
             if (_scene == null) {
                 _scene = value
-                _scene?.game = this
                 _scene?.apply { root.apply { initialize() } }
                 onSceneChanged()
                 value.begin()
@@ -90,6 +88,6 @@ open class LittleKt {
      * Exit and destroy the current [LittleKt] process.
      */
     fun exit() {
-        _application?.close()
+        application.close()
     }
 }

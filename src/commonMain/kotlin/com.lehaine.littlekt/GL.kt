@@ -1,7 +1,7 @@
 package com.lehaine.littlekt
 
+import com.lehaine.littlekt.graphics.render.TextureImage
 import com.lehaine.littlekt.math.Mat4
-import com.lehaine.littlekt.render.TextureImage
 import com.lehaine.littlekt.shader.*
 
 /**
@@ -125,6 +125,8 @@ interface GL {
         const val ONE_MINUS_DST_COLOR = 0x0307
         const val SRC_ALPHA_SATURATE = 0x0308
         const val FUNC_ADD = 0x8006
+        const val MIN = 0x8007
+        const val MAX = 0x8008
         const val BLEND_EQUATION = 0x8009
         const val BLEND_EQUATION_RGB = 0x8009
         const val BLEND_EQUATION_ALPHA = 0x883D

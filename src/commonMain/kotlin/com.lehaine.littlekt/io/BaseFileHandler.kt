@@ -2,9 +2,9 @@ package com.lehaine.littlekt.io
 
 import com.lehaine.littlekt.Application
 import com.lehaine.littlekt.Percent
+import com.lehaine.littlekt.graphics.render.Texture
+import com.lehaine.littlekt.graphics.render.TextureImage
 import com.lehaine.littlekt.log.Logger
-import com.lehaine.littlekt.render.Texture
-import com.lehaine.littlekt.render.TextureImage
 import kotlin.reflect.KClass
 
 /**
@@ -17,10 +17,9 @@ private fun createLoaders(): Map<KClass<*>, FileLoader<*>> = mapOf(
     Sound::class to SoundLoader(),
 )
 
-class FileHandlerCommon(
+abstract class BaseFileHandler(
     override val application: Application,
-    private val platformFileHandler: PlatformFileHandler,
-    private val logger: Logger,
+    val logger: Logger,
     private val loaders: Map<KClass<*>, FileLoader<*>> = createLoaders()
 ) : FileHandler {
 
@@ -43,14 +42,6 @@ class FileHandlerCommon(
         return assets.getOrPut(filename) { load(filename, clazz) } as Content<T>
     }
 
-    override fun read(filename: String): Content<String> = platformFileHandler.read(filename)
-
-    override fun readData(filename: String): Content<ByteArray> = platformFileHandler.readData(filename)
-
-    override fun readTextureImage(filename: String): Content<TextureImage> =
-        platformFileHandler.readTextureImage(filename)
-
-    override fun readSound(filename: String): Content<Sound> = platformFileHandler.readSound(filename)
 
     @Suppress("UNCHECKED_CAST")
     private fun <R : Any> load(filename: String, clazz: KClass<R>): Content<R> {

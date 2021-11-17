@@ -2,6 +2,7 @@ package com.lehaine.littlekt
 
 import com.lehaine.littlekt.input.Input
 import com.lehaine.littlekt.io.AssetManager
+import com.lehaine.littlekt.io.FileHandler
 import com.lehaine.littlekt.log.Logger
 
 /**
@@ -9,6 +10,7 @@ import com.lehaine.littlekt.log.Logger
  * @date 10/5/2021
  */
 interface Application {
+    val configuration: ApplicationConfiguration
 
     val graphics: Graphics
 
@@ -18,7 +20,9 @@ interface Application {
 
     val assetManager: AssetManager
 
-    fun start(game: LittleKt)
+    val fileHandler: FileHandler
+
+    fun start(gameBuilder: (app: Application) -> LittleKt)
 
     fun close()
 

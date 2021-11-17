@@ -1,6 +1,6 @@
 package com.lehaine.littlekt.io
 
-import com.lehaine.littlekt.render.TextureImage
+import com.lehaine.littlekt.graphics.render.TextureImage
 
 /**
  * @author Colton Daily

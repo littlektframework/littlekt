@@ -12,7 +12,7 @@ import java.nio.ShortBuffer
  * @author Colton Daily
  * @date 11/6/2021
  */
-actual class Sound(private val buffer: ShortBuffer, val channels: Int, val sampleRate: Int) {
+class JvmSound(private val buffer: ShortBuffer, val channels: Int, val sampleRate: Int) : Sound {
 
     var bufferID: Int = -1
     var volume = 1.0f
@@ -29,7 +29,7 @@ actual class Sound(private val buffer: ShortBuffer, val channels: Int, val sampl
         }
     }
 
-    actual fun play(loop: Int) = withDevice {
+    override fun play(loop: Int) = withDevice {
         val sourceID: Int = obtainSource()
 
         // In case it still didn't work

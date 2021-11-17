@@ -1,6 +1,6 @@
 package com.lehaine.littlekt
 
-import com.lehaine.littlekt.render.TextureImage
+import com.lehaine.littlekt.graphics.render.TextureImage
 import com.lehaine.littlekt.shader.*
 
 /**

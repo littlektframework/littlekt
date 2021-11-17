@@ -1,4 +1,4 @@
-package com.lehaine.littlekt.render
+package com.lehaine.littlekt.graphics.render
 
 /**
  * @author Colton Daily

@@ -1,7 +1,9 @@
 package com.lehaine.littlekt
 
+import com.lehaine.littlekt.graphics.render.Texture
 import com.lehaine.littlekt.input.Input
 import com.lehaine.littlekt.input.Key
+import com.lehaine.littlekt.io.get
 import com.lehaine.littlekt.node.Node
 import com.lehaine.littlekt.node.node
 
@@ -9,18 +11,19 @@ import com.lehaine.littlekt.node.node
  * @author Colton Daily
  * @date 11/6/2021
  */
-class DisplayTest : LittleKt() {
+class DisplayTest(application: Application) : LittleKt(application) {
 
     override fun create() {
         super.create()
 
-        scene = DisplayTestScene()
+        scene = DisplayTestScene(this)
     }
 }
 
-class DisplayTestScene : Scene() {
-    override fun Node.initialize() {
+class DisplayTestScene(game: LittleKt) : Scene(game) {
 
+    override fun Node.initialize() {
+        val person: Texture by fileHandler.get("person.png")
         node {
             name = "test"
 
@@ -48,7 +51,6 @@ class DisplayTestScene : Scene() {
 }
 
 fun main(args: Array<String>) {
-    val game = DisplayTest()
-
-    LwjglApplication("Display Test").start(game)
+    LittleKtAppBuilder(configBuilder = { ApplicationConfiguration("Display Test", 960, 540, true) },
+        gameBuilder = { DisplayTest(it) }).start()
 }
