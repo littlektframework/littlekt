@@ -1,6 +1,6 @@
 package com.lehaine.littlekt.graphics.state
 
-import com.lehaine.littlekt.graphics.render.Color
+import com.lehaine.littlekt.graphics.Color
 
 /**
  * @author Colton Daily

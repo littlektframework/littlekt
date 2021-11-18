@@ -4,7 +4,7 @@ import com.lehaine.littlekt.GL
 import com.lehaine.littlekt.math.Mat4
 import com.lehaine.littlekt.math.Vector2
 import com.lehaine.littlekt.math.Vector3
-import com.lehaine.littlekt.graphics.render.Color
+import com.lehaine.littlekt.graphics.Color
 import kotlin.jvm.JvmName
 
 /**
@@ -100,19 +100,19 @@ sealed class ShaderParameter(val name: String) {
 
         fun apply(program: ShaderProgram, color: Color) = apply(
             program,
-            color.red.toFloat(),
-            color.green.toFloat(),
-            color.blue.toFloat(),
-            color.alpha.toFloat()
+//            color.red.toFloat(),
+//            color.green.toFloat(),
+//            color.blue.toFloat(),
+//            color.alpha.toFloat()
         )
 
-        fun apply(program: ShaderProgram, color: Color, intensity: Float) = apply(
-            program,
-            color.red.toFloat() * intensity,
-            color.green.toFloat() * intensity,
-            color.blue.toFloat() * intensity,
-            color.alpha.toFloat() * intensity
-        )
+//        fun apply(program: ShaderProgram, color: Color, intensity: Float) = apply(
+//            program,
+//            color.red.toFloat() * intensity,
+//            color.green.toFloat() * intensity,
+//            color.blue.toFloat() * intensity,
+//            color.alpha.toFloat() * intensity
+//        )
 
         fun apply(program: ShaderProgram, vararg vec4: Float) {
             when (vec4.size) {

@@ -1,6 +1,6 @@
 package com.lehaine.littlekt
 
-import com.lehaine.littlekt.graphics.render.TextureImage
+import com.lehaine.littlekt.graphics.TextureData
 import com.lehaine.littlekt.math.Mat4
 import com.lehaine.littlekt.shader.*
 
@@ -80,8 +80,6 @@ interface GL {
     fun drawElements(mask: ByteMask, vertexCount: Int, type: Int, offset: Int)
 
     fun viewport(x: Pixel, y: Pixel, width: Pixel, height: Pixel)
-
-    fun texImage2D(target: Int, level: Int, internalformat: Int, format: Int, type: Int, source: TextureImage)
 
     fun texImage2D(
         target: Int,

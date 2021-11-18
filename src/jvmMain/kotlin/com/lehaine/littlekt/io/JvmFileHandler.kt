@@ -1,8 +1,9 @@
 package com.lehaine.littlekt.io
 
 import com.lehaine.littlekt.Application
-import com.lehaine.littlekt.GL
-import com.lehaine.littlekt.graphics.render.TextureImage
+import com.lehaine.littlekt.graphics.Pixmap
+import com.lehaine.littlekt.graphics.TextureData
+import com.lehaine.littlekt.graphics.gl.PixmapTextureData
 import com.lehaine.littlekt.log.Logger
 import de.matthiasmann.twl.utils.PNGDecoder
 import java.io.File
@@ -35,8 +36,8 @@ class JvmFileHandler(application: Application, logger: Logger) : BaseFileHandler
         return content
     }
 
-    override fun readTextureImage(filename: String): Content<TextureImage> {
-        val content = Content<TextureImage>(filename, logger)
+    override fun readTextureData(filename: String): Content<TextureData> {
+        val content = Content<TextureData>(filename, logger)
 
         // lock first in the jar before checking on the filesystem.
         val stream = JvmFileHandler::class.java.getResource("/$filename")?.openStream()
@@ -53,15 +54,12 @@ class JvmFileHandler(application: Application, logger: Logger) : BaseFileHandler
 
         // flip the buffer so its ready to read
         (buffer as Buffer).flip()
-
+        val pixels = ByteArray(buffer.remaining()).apply {
+            buffer.get(this)
+        }
+        val pixmap = Pixmap(decoder.width, decoder.height, pixels)
         content.load(
-            TextureImage(
-                width = decoder.width,
-                height = decoder.height,
-                glFormat = GL.RGBA,
-                glType = GL.UNSIGNED_BYTE,
-                pixels = buffer
-            )
+            PixmapTextureData(pixmap, true)
         )
         return content
     }

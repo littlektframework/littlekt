@@ -2,7 +2,7 @@ package com.lehaine.littlekt.io
 
 import com.lehaine.littlekt.Application
 import com.lehaine.littlekt.Percent
-import com.lehaine.littlekt.graphics.render.TextureImage
+import com.lehaine.littlekt.graphics.TextureData
 import kotlin.reflect.KClass
 
 /**
@@ -23,7 +23,7 @@ interface FileHandler {
 
     fun readData(filename: String): Content<ByteArray>
 
-    fun readTextureImage(filename: String): Content<TextureImage>
+    fun readTextureData(filename: String): Content<TextureData>
 
     fun readSound(filename: String): Content<Sound>
 

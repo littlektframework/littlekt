@@ -1,6 +1,6 @@
 package com.lehaine.littlekt
 
-import com.lehaine.littlekt.graphics.render.TextureImage
+import com.lehaine.littlekt.graphics.TextureData
 import com.lehaine.littlekt.shader.*
 
 /**
@@ -210,7 +210,7 @@ class WebGL : GL {
         internalformat: Int,
         format: Int,
         type: Int,
-        source: TextureImage
+        source: TextureData
     ) {
         TODO("Not yet implemented")
     }

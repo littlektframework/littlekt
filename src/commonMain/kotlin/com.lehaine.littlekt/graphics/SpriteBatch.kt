@@ -1,4 +1,4 @@
-package com.lehaine.littlekt.graphics.render
+package com.lehaine.littlekt.graphics
 
 import com.lehaine.littlekt.GL
 import com.lehaine.littlekt.math.Mat4

@@ -1,8 +1,10 @@
 package com.lehaine.littlekt
 
+import com.lehaine.littlekt.graphics.Texture
 import com.lehaine.littlekt.input.InputProcessor
 import com.lehaine.littlekt.input.Key
 import com.lehaine.littlekt.input.Pointer
+import com.lehaine.littlekt.io.get
 
 /**
  * @author Colton Daily
@@ -11,6 +13,8 @@ import com.lehaine.littlekt.input.Pointer
 class DisplayTest(application: Application) : LittleKt(application), InputProcessor {
 
     val input get() = application.input
+
+    val texture by application.fileHandler.get<Texture>("person.png")
 
     override fun create() {
         input.inputProcessor = this
@@ -46,11 +50,6 @@ class DisplayTest(application: Application) : LittleKt(application), InputProces
         return false
     }
 
-    override fun mouseMoved(screenX: Float, screenY: Float): Boolean {
-        println("Mouse moved to $screenX,$screenY")
-        return false
-    }
-
     override fun scrolled(amountX: Float, amountY: Float): Boolean {
         println("Scrolled $amountX,$amountY")
         return false
@@ -58,6 +57,8 @@ class DisplayTest(application: Application) : LittleKt(application), InputProces
 }
 
 fun main(args: Array<String>) {
-    LittleKtAppBuilder(configBuilder = { ApplicationConfiguration("Display Test", 960, 540, true) },
-        gameBuilder = { DisplayTest(it) }).start()
+    LittleKtAppBuilder(
+        configBuilder = { ApplicationConfiguration("Display Test", 960, 540, true) },
+        gameBuilder = { DisplayTest(it) })
+        .start()
 }

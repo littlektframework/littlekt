@@ -1,8 +1,7 @@
 package com.lehaine.littlekt
 
-import com.lehaine.littlekt.graphics.render.TextureImage
+import com.lehaine.littlekt.graphics.TextureData
 import com.lehaine.littlekt.shader.*
-import org.lwjgl.opengl.GL30
 import org.lwjgl.opengl.GL30.*
 import java.nio.ByteBuffer
 
@@ -215,27 +214,6 @@ class LwjglGL : GL {
 
     override fun bindTexture(target: Int, textureReference: TextureReference) {
         glBindTexture(target, textureReference.reference)
-    }
-
-    override fun texImage2D(
-        target: Int,
-        level: Int,
-        internalformat: Int,
-        format: Int,
-        type: Int,
-        source: TextureImage
-    ) {
-        glTexImage2D(
-            target,
-            level,
-            internalformat,
-            source.width,
-            source.height,
-            0,
-            source.glFormat,
-            source.glType,
-            source.pixels
-        )
     }
 
     override fun texImage2D(

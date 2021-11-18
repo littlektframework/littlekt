@@ -2,8 +2,8 @@ package com.lehaine.littlekt.io
 
 import com.lehaine.littlekt.Application
 import com.lehaine.littlekt.Percent
-import com.lehaine.littlekt.graphics.render.Texture
-import com.lehaine.littlekt.graphics.render.TextureImage
+import com.lehaine.littlekt.graphics.Texture
+import com.lehaine.littlekt.graphics.TextureData
 import com.lehaine.littlekt.log.Logger
 import kotlin.reflect.KClass
 
@@ -12,7 +12,7 @@ import kotlin.reflect.KClass
  * @date 11/6/2021
  */
 private fun createLoaders(): Map<KClass<*>, FileLoader<*>> = mapOf(
-    TextureImage::class to TextureImageLoader(),
+    TextureData::class to TextureDataLoader(),
     Texture::class to TextureLoader(),
     Sound::class to SoundLoader(),
 )

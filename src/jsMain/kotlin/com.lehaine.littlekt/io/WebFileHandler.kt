@@ -1,7 +1,7 @@
 package com.lehaine.littlekt.io
 
 import com.lehaine.littlekt.Application
-import com.lehaine.littlekt.graphics.render.TextureImage
+import com.lehaine.littlekt.graphics.TextureData
 import com.lehaine.littlekt.log.Logger
 
 /**
@@ -18,7 +18,7 @@ class WebFileHandler(application: Application, logger: Logger) : BaseFileHandler
         TODO("Not yet implemented")
     }
 
-    override fun readTextureImage(filename: String): Content<TextureImage> {
+    override fun readTextureData(filename: String): Content<TextureData> {
         TODO("Not yet implemented")
     }
 
