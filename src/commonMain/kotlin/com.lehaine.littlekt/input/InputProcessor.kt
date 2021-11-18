@@ -5,12 +5,35 @@ package com.lehaine.littlekt.input
  * @date 11/17/2021
  */
 interface InputProcessor {
-    fun keyDown(key: Key): Boolean
-    fun keyUp(key: Key): Boolean
-    fun keyTyped(character: Char): Boolean
-    fun touchDown(screenX: Float, screenY: Float, pointer: Pointer): Boolean
-    fun touchUp(screenX: Float, screenY: Float, pointer: Pointer): Boolean
-    fun touchDragged(screenX: Float, screenY: Float, pointer: Pointer): Boolean
-    fun mouseMoved(screenX: Float, screenY: Float)
-    fun scrolled(amountX: Float, amountY: Float): Boolean
+    fun keyDown(key: Key): Boolean {
+        return false
+    }
+
+    fun keyUp(key: Key): Boolean {
+        return false
+    }
+
+    fun keyTyped(character: Char): Boolean {
+        return false
+    }
+
+    fun touchDown(screenX: Float, screenY: Float, pointer: Pointer): Boolean {
+        return false
+    }
+
+    fun touchUp(screenX: Float, screenY: Float, pointer: Pointer): Boolean {
+        return false
+    }
+
+    fun touchDragged(screenX: Float, screenY: Float, pointer: Pointer): Boolean {
+        return false
+    }
+
+    fun mouseMoved(screenX: Float, screenY: Float): Boolean {
+        return false
+    }
+
+    fun scrolled(amountX: Float, amountY: Float): Boolean {
+        return false
+    }
 }

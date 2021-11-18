@@ -126,6 +126,8 @@ interface Input {
 
     val pressure: Float
 
+    var inputProcessor: InputProcessor?
+
     fun getX(pointer: Pointer): Int
     fun getY(pointer: Pointer): Int
 

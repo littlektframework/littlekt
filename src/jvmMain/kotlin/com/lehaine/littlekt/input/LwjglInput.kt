@@ -19,7 +19,7 @@ class LwjglInput(private val logger: Logger, private val application: Applicatio
     private var _deltaY = 0f
     private var lastChar: Char = 0.toChar()
 
-    var inputProcessor: InputProcessor? = null
+    override var inputProcessor: InputProcessor? = null
 
     fun attachHandler(windowHandle: Long) {
         glfwSetKeyCallback(

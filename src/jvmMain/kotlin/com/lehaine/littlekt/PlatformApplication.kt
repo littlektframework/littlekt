@@ -7,7 +7,6 @@ import com.lehaine.littlekt.io.FileHandler
 import com.lehaine.littlekt.io.JvmFileHandler
 import com.lehaine.littlekt.log.JvmLogger
 import com.lehaine.littlekt.log.Logger
-import com.lehaine.littlekt.util.milliseconds
 import org.lwjgl.glfw.Callbacks
 import org.lwjgl.glfw.GLFW
 import org.lwjgl.glfw.GLFWErrorCallback
@@ -128,7 +127,7 @@ actual class PlatformApplication actual constructor(actual override val configur
         while (!windowShouldClose) {
             val delta = getDelta()
             input.update()
-            game.render(delta.milliseconds, input)
+            game.render(delta)
             GLFW.glfwSwapBuffers(windowHandle)
             input.reset()
             GLFW.glfwPollEvents()

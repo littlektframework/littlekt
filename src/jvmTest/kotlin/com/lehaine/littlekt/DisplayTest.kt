@@ -1,54 +1,59 @@
 package com.lehaine.littlekt
 
-import com.lehaine.littlekt.graphics.render.Texture
-import com.lehaine.littlekt.input.Input
+import com.lehaine.littlekt.input.InputProcessor
 import com.lehaine.littlekt.input.Key
-import com.lehaine.littlekt.io.get
-import com.lehaine.littlekt.node.Node
-import com.lehaine.littlekt.node.node
+import com.lehaine.littlekt.input.Pointer
 
 /**
  * @author Colton Daily
  * @date 11/6/2021
  */
-class DisplayTest(application: Application) : LittleKt(application) {
+class DisplayTest(application: Application) : LittleKt(application), InputProcessor {
+
+    val input get() = application.input
 
     override fun create() {
-        super.create()
-
-        scene = DisplayTestScene(this)
-    }
-}
-
-class DisplayTestScene(game: LittleKt) : Scene(game) {
-    val person: Texture by fileHandler.get("person.png")
-
-    override fun Node.initialize() {
-        node {
-            name = "test"
-
-            node { name = "test 2" }
-        }
+        input.inputProcessor = this
     }
 
-    override fun onStart() {
-        super.onStart()
-
-        println(root.treeString())
+    override fun keyDown(key: Key): Boolean {
+        println("Key down: $key")
+        return false
     }
 
-    override fun update(input: Input) {
-        super.update(input)
+    override fun keyUp(key: Key): Boolean {
+        println("key up $key")
+        return false
+    }
 
+    override fun keyTyped(character: Char): Boolean {
+        println("Key typed $character")
+        return false
+    }
 
-        if (input.isKeyJustPressed(Key.ENTER)) {
-            println(root.treeString())
-        }
+    override fun touchDown(screenX: Float, screenY: Float, pointer: Pointer): Boolean {
+        println("Mouse button $pointer pressed $screenX,$screenY")
+        return false
+    }
 
-        if (input.isKeyJustPressed(Key.ESCAPE)) {
-            exit()
-        }
+    override fun touchUp(screenX: Float, screenY: Float, pointer: Pointer): Boolean {
+        println("Mouse button $pointer released $screenX,$screenY")
+        return false
+    }
 
+    override fun touchDragged(screenX: Float, screenY: Float, pointer: Pointer): Boolean {
+        println("Mouse button dragged to $screenX,$screenY")
+        return false
+    }
+
+    override fun mouseMoved(screenX: Float, screenY: Float): Boolean {
+        println("Mouse moved to $screenX,$screenY")
+        return false
+    }
+
+    override fun scrolled(amountX: Float, amountY: Float): Boolean {
+        println("Scrolled $amountX,$amountY")
+        return false
     }
 }
 
