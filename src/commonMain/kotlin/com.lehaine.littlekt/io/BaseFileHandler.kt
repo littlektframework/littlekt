@@ -27,7 +27,7 @@ abstract class BaseFileHandler(
 
     override fun <T> create(filename: String, value: T): Content<T> {
         val content = Content<T>(filename, logger)
-        assets.put(filename, content)
+        assets[filename] = content
         content.load(value)
         return content
     }

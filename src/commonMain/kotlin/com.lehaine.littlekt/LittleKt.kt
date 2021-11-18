@@ -1,7 +1,6 @@
 package com.lehaine.littlekt
 
 import com.lehaine.littlekt.input.Input
-import com.lehaine.littlekt.util.GlobalManager
 import com.lehaine.littlekt.util.TimeSpan
 
 /**
@@ -37,17 +36,6 @@ open class LittleKt(val application: Application) {
 
     private var nextScene: Scene? = null
 
-    private var globalManagers = mutableListOf<GlobalManager>()
-
-
-    fun registerGlobalManager(manager: GlobalManager) {
-        globalManagers.add(manager)
-        manager.enabled = true
-    }
-
-    init {
-        //    registerGlobalManager(RenderTarget())
-    }
 
     open fun create() {
     }
@@ -60,9 +48,6 @@ open class LittleKt(val application: Application) {
         Time.update(dt)
 
         scene?.let { _scene ->
-            globalManagers.forEach {
-                it.update()
-            }
 
             _scene.update(input)
 

@@ -61,15 +61,18 @@ actual class PlatformApplication actual constructor(actual override val configur
         GLFW.glfwWindowHint(GLFW.GLFW_OPENGL_FORWARD_COMPAT, GL30C.GL_TRUE);
 
         // Create the window
-        windowHandle = GLFW.glfwCreateWindow(800, 480, configuration.title, MemoryUtil.NULL, MemoryUtil.NULL)
+        windowHandle = GLFW.glfwCreateWindow(
+            configuration.width,
+            configuration.height,
+            configuration.title,
+            MemoryUtil.NULL,
+            MemoryUtil.NULL
+        )
         if (windowHandle == MemoryUtil.NULL) throw RuntimeException("Failed to create the GLFW window")
 
         val input = input as LwjglInput
-        input.attachHandler(windowHandle)
-
-        GLFW.glfwSetFramebufferSizeCallback(windowHandle) { _, width, height ->
-
-        }
+        val graphics = graphics as LwjglGraphics
+        val game = gameBuilder(this)
 
         MemoryStack.stackPush().use { stack ->
             val pWidth = stack.mallocInt(1) // int*
@@ -89,6 +92,9 @@ actual class PlatformApplication actual constructor(actual override val configur
                 (vidmode.width() - pWidth[0]) / 2,
                 (vidmode.height() - pHeight[0]) / 2
             )
+
+            graphics._backBufferWidth = pWidth[0]
+            graphics._backBufferHeight = pHeight[0]
         }
 
         // Make the OpenGL context current
@@ -101,19 +107,27 @@ actual class PlatformApplication actual constructor(actual override val configur
         // Make the window visible
         GLFW.glfwShowWindow(windowHandle)
 
+        input.attachHandler(windowHandle)
+
+        GLFW.glfwSetFramebufferSizeCallback(windowHandle) { _, width, height ->
+            graphics.GL.viewport(0, 0, width, height)
+            graphics._backBufferWidth = width
+            graphics._backBufferHeight = height
+            game.resize(width, height)
+        }
+
         org.lwjgl.opengl.GL.createCapabilities()
 
         GL30C.glClearColor(0f, 0f, 0f, 0f)
         //     glEnable(GL_DEPTH_TEST)
         //   glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
 
-        val game = gameBuilder(this)
         game.create()
         game.resize(configuration.width, configuration.height)
 
         while (!windowShouldClose) {
             val delta = getDelta()
-            input.record()
+            input.update()
             game.render(delta.milliseconds, input)
             GLFW.glfwSwapBuffers(windowHandle)
             input.reset()

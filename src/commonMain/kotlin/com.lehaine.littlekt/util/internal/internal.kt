@@ -59,3 +59,5 @@ internal infix fun Double.umod(that: Double): Double {
         else -> remainder
     }
 }
+
+internal expect fun epochMillis(): Long

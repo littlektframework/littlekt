@@ -2,132 +2,146 @@ package com.lehaine.littlekt.input
 
 import com.lehaine.littlekt.Application
 import com.lehaine.littlekt.log.Logger
-import com.lehaine.littlekt.math.Vector2
-import com.lehaine.littlekt.util.internal.convert
-import org.lwjgl.BufferUtils
+import org.lwjgl.glfw.*
 import org.lwjgl.glfw.GLFW.*
-import org.lwjgl.glfw.GLFWCursorEnterCallback
-import org.lwjgl.glfw.GLFWKeyCallback
-import java.nio.DoubleBuffer
 
 /**
  * @author Colton Daily
  * @date 11/7/2021
  */
-class LwjglInput(private val logger: Logger, private val application: Application) : Input, InputManager {
+class LwjglInput(private val logger: Logger, private val application: Application) : Input {
 
-    private val touchManager = TouchManager(GLFW_KEY_LAST)
+    private val inputManager = InputManager()
 
-    private var window: Long = 0
+    private var mouseX = 0f
+    private var mouseY = 0f
+    private var _deltaX = 0f
+    private var _deltaY = 0f
+    private var lastChar: Char = 0.toChar()
 
-    private val b1: DoubleBuffer = BufferUtils.createDoubleBuffer(1)
-    private val b2: DoubleBuffer = BufferUtils.createDoubleBuffer(1)
+    var inputProcessor: InputProcessor? = null
 
-    private var mousePosition: Vector2 = Vector2(0f, 0f)
-    private var isMouseInsideGameScreen: Boolean = false
-    private var isMouseInsideWindow: Boolean = false
-
-    private fun keyDown(event: Int) {
-        logger.debug("INPUT_HANDLER") { "${Thread.currentThread().name} Key pushed $event" }
-        touchManager.onKeyPressed(event)
-    }
-
-    private fun keyUp(event: Int) {
-        logger.debug("INPUT_HANDLER") { "Key release $event" }
-        touchManager.onKeyReleased(event)
-    }
-
-    fun attachHandler(windowAddress: Long) {
-        window = windowAddress
-        glfwSetInputMode(windowAddress, GLFW_STICKY_KEYS, GLFW_TRUE)
+    fun attachHandler(windowHandle: Long) {
         glfwSetKeyCallback(
-            windowAddress,
+            windowHandle,
             object : GLFWKeyCallback() {
                 override fun invoke(window: Long, key: Int, scancode: Int, action: Int, mods: Int) {
-                    if (action == GLFW_PRESS) {
-                        keyDown(key)
-                    } else if (action == GLFW_RELEASE) {
-                        keyUp(key)
+                    when (action) {
+                        GLFW_PRESS -> inputManager.onKeyDown(key.getKey)
+                        GLFW_RELEASE -> inputManager.onKeyUp(key.getKey)
+                        GLFW_REPEAT -> {
+                            if (lastChar != 0.toChar()) {
+                                inputManager.onKeyType(lastChar)
+                            }
+                        }
                     }
                 }
             }
         )
-        glfwSetCursorEnterCallback(
-            windowAddress,
-            object : GLFWCursorEnterCallback() {
-                override fun invoke(window: Long, entered: Boolean) {
-                    isMouseInsideWindow = entered
-                }
+        glfwSetCharCallback(windowHandle, object : GLFWCharCallback() {
+            override fun invoke(window: Long, codepoint: Int) {
+                if (codepoint and 0xff00 == 0xf700) return
+                lastChar = codepoint.toChar()
+                inputManager.onKeyType(lastChar)
             }
-        )
-    }
 
-    override fun record() {
-        fun touchStatus(glfwMouseButton: Int, touchSignal: TouchSignal) {
-            // see https://github.com/LWJGL/lwjgl3-wiki/wiki/2.6.3-Input-handling-with-GLFW
-            if (glfwGetMouseButton(window, glfwMouseButton) == GLFW_PRESS) {
-                glfwGetCursorPos(window, b1, b2)
-                if (touchManager.isTouched(touchSignal) != null) {
-                    val gamePosition = application.convert(b1[0].toFloat(), b2[0].toFloat())
-                    gamePosition?.let { (x, y) ->
-                        touchManager.onTouchMove(touchSignal, x, y)
-                    }
+        })
+
+        glfwSetScrollCallback(windowHandle, object : GLFWScrollCallback() {
+            override fun invoke(window: Long, xoffset: Double, yoffset: Double) {
+                inputManager.onScroll(-xoffset.toFloat(), -yoffset.toFloat())
+            }
+        })
+        glfwSetCursorPosCallback(windowHandle, object : GLFWCursorPosCallback() {
+            private var logicalMouseY = 0f
+            private var logicalMouseX = 0f
+
+            override fun invoke(window: Long, xpos: Double, ypos: Double) {
+                _deltaX = xpos.toFloat() - logicalMouseX
+                _deltaY = ypos.toFloat() - logicalMouseY
+                mouseX = xpos.toFloat()
+                mouseY = ypos.toFloat()
+                logicalMouseX = mouseX
+                logicalMouseY = mouseY
+
+                // todo handle hdpi mode pixels vs logical
+
+                inputManager.onMove(mouseX, mouseY, Pointer.POINTER1)
+            }
+
+        })
+
+        glfwSetMouseButtonCallback(windowHandle, object : GLFWMouseButtonCallback() {
+            override fun invoke(window: Long, button: Int, action: Int, mods: Int) {
+                if (action == GLFW_PRESS) {
+                    inputManager.onTouchDown(mouseX, mouseY, button.getPointer)
                 } else {
-                    val gamePosition = application.convert(b1[0].toFloat(), b2[0].toFloat())
-                    gamePosition?.let { (x, y) ->
-                        touchManager.onTouchDown(touchSignal, x, y)
-                    }
+                    inputManager.onTouchUp(mouseX, mouseY, button.getPointer)
                 }
-            } else if (glfwGetMouseButton(window, glfwMouseButton) == GLFW_RELEASE) {
-                touchManager.onTouchUp(touchSignal)
             }
-        }
-        // Update mouse position
-        // https://www.glfw.org/docs/3.3/input_guide.html#cursor_pos
-        if (isMouseInsideWindow) {
-            glfwGetCursorPos(window, b1, b2)
-            val gamePosition = application.convert(b1[0].toFloat(), b2[0].toFloat())
-            if (gamePosition == null) {
-                // the mouse is in the window but NOT in the game screen
-                isMouseInsideGameScreen = false
-            } else {
-                isMouseInsideGameScreen = true
-                mousePosition.x = gamePosition.first
-                mousePosition.y = gamePosition.second
-            }
-        } else {
-            isMouseInsideGameScreen = false
-        }
 
-        // Update touch status
-        touchStatus(GLFW_MOUSE_BUTTON_1, TouchSignal.TOUCH1)
-        touchStatus(GLFW_MOUSE_BUTTON_2, TouchSignal.TOUCH2)
-        touchStatus(GLFW_MOUSE_BUTTON_3, TouchSignal.TOUCH3)
+        })
     }
 
-    override fun reset() = touchManager.processReceivedEvent()
-
-    override fun isKeyJustPressed(key: Key): Boolean = if (key == Key.ANY_KEY) {
-        touchManager.isAnyKeyJustPressed
-    } else {
-        touchManager.isKeyJustPressed(key.keyCode)
+    fun update() {
+        inputManager.processEvents(inputProcessor)
     }
 
-    override fun isKeyPressed(key: Key): Boolean = if (key == Key.ANY_KEY) {
-        touchManager.isAnyKeyPressed
-    } else {
-        touchManager.isKeyPressed(key.keyCode)
+    fun reset() {
+        inputManager.reset()
+        _deltaX = 0f
+        _deltaY = 0f
     }
 
-    override fun isTouched(signal: TouchSignal): Vector2? = touchManager.isTouched(signal)
+    override val x: Int
+        get() = mouseX.toInt()
+    override val y: Int
+        get() = mouseY.toInt()
+    override val deltaX: Int
+        get() = _deltaX.toInt()
+    override val deltaY: Int
+        get() = _deltaY.toInt()
+    override val isTouching: Boolean
+        get() = inputManager.isTouching
+    override val justTouched: Boolean
+        get() = inputManager.justTouched
+    override val pressure: Float
+        get() = getPressure(Pointer.POINTER1)
 
-    override fun isJustTouched(signal: TouchSignal): Vector2? = touchManager.isJustTouched(signal)
-
-    override fun touchIdlePosition(): Vector2? {
-        return if (isMouseInsideGameScreen) {
-            mousePosition
-        } else {
-            null
-        }
+    override fun getX(pointer: Pointer): Int {
+        return if (pointer == Pointer.POINTER1) x else 0
     }
+
+    override fun getY(pointer: Pointer): Int {
+        return if (pointer == Pointer.POINTER1) y else 0
+    }
+
+    override fun getDeltaX(pointer: Pointer): Int {
+        return if (pointer == Pointer.POINTER1) deltaX else 0
+    }
+
+    override fun getDeltaY(pointer: Pointer): Int {
+        return if (pointer == Pointer.POINTER1) deltaY else 0
+    }
+
+    override fun isTouched(pointer: Pointer): Boolean {
+        return inputManager.isTouching(pointer)
+    }
+
+    override fun getPressure(pointer: Pointer): Float {
+        return if (isTouched(pointer)) 1f else 0f
+    }
+
+    override fun isKeyJustPressed(key: Key): Boolean {
+        return inputManager.isKeyJustPressed(key)
+    }
+
+    override fun isKeyPressed(key: Key): Boolean {
+        return inputManager.isKeyPressed(key)
+    }
+
+    override fun setCursorPosition(x: Int, y: Int) {
+        TODO("Not yet implemented")
+    }
+
 }

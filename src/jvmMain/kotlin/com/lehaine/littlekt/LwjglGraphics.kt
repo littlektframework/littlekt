@@ -9,14 +9,19 @@ import com.lehaine.littlekt.util.TimeSpan
 class LwjglGraphics : Graphics {
     override val GL: GL = LwjglGL()
 
+    internal var _width:Int = 0
+    internal var _height = 0
+    internal var _backBufferWidth = 0
+    internal var _backBufferHeight = 0
+
     override val width: Int
-        get() = TODO("Not yet implemented")
+        get() = _width
     override val height: Int
-        get() = TODO("Not yet implemented")
+        get() = _height
     override val backBufferWidth: Int
-        get() = TODO("Not yet implemented")
+        get() = _backBufferWidth
     override val backBufferHeight: Int
-        get() = TODO("Not yet implemented")
+        get() = _backBufferHeight
     override val safeInsetLeft: Int
         get() = TODO("Not yet implemented")
     override val safeInsetTop: Int

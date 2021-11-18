@@ -21,9 +21,9 @@ class DisplayTest(application: Application) : LittleKt(application) {
 }
 
 class DisplayTestScene(game: LittleKt) : Scene(game) {
+    val person: Texture by fileHandler.get("person.png")
 
     override fun Node.initialize() {
-        val person: Texture by fileHandler.get("person.png")
         node {
             name = "test"
 
@@ -40,6 +40,7 @@ class DisplayTestScene(game: LittleKt) : Scene(game) {
     override fun update(input: Input) {
         super.update(input)
 
+
         if (input.isKeyJustPressed(Key.ENTER)) {
             println(root.treeString())
         }
@@ -47,6 +48,7 @@ class DisplayTestScene(game: LittleKt) : Scene(game) {
         if (input.isKeyJustPressed(Key.ESCAPE)) {
             exit()
         }
+
     }
 }
 

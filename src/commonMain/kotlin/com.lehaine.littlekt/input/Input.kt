@@ -1,13 +1,11 @@
 package com.lehaine.littlekt.input
 
-import com.lehaine.littlekt.math.Vector2
-
 /**
  * @author Colton Daily
  * @date 11/6/2021
  */
-enum class TouchSignal {
-    TOUCH1, TOUCH2, TOUCH3
+enum class Pointer {
+    POINTER1, POINTER2, POINTER3
 }
 
 enum class Key {
@@ -116,91 +114,33 @@ enum class Key {
     DPAD_CENTER
 }
 
-interface InputManager {
-
-    fun record()
-    fun reset()
-}
-
 interface Input {
 
-    /**
-     * Is the [key] just pressed?
-     *
-     * It returns true once and will return true only if
-     * the key is released then pressed again.
-     *
-     * This method should be used to count action trigger only
-     * once (ie: starting an action like opening a door)
-     */
+    val x: Int
+    val y: Int
+    val deltaX: Int
+    val deltaY: Int
+
+    val isTouching: Boolean
+    val justTouched: Boolean
+
+    val pressure: Float
+
+    fun getX(pointer: Pointer): Int
+    fun getY(pointer: Pointer): Int
+
+    fun getDeltaX(pointer: Pointer): Int
+    fun getDeltaY(pointer: Pointer): Int
+
+    fun isTouched(pointer: Pointer): Boolean
+
+    fun getPressure(pointer: Pointer): Float
+
     fun isKeyJustPressed(key: Key): Boolean
-
-    /**
-     * Is the [key] currently actually pressed?
-     *
-     * This method should be used to know when the key is pressed
-     * and running an action until the key is not released.
-     * (ie: running while the key is pressed, stop when it's not)
-     */
     fun isKeyPressed(key: Key): Boolean
+    fun areAnyKeysPressed(vararg keys: Key): Boolean = keys.any { isKeyPressed(it) }
+    fun areAllKeysPressed(vararg keys: Key): Boolean = keys.all { isKeyPressed(it) }
+    fun areNoKeysPressed(vararg keys: Key): Boolean = keys.none { isKeyPressed(it) }
 
-    /**
-     * Is any of [keys] passed in parameter are actually pressed?
-     */
-    fun isAnyKeysPressed(vararg keys: Key): Boolean = keys.any { isKeyPressed(it) }
-
-    /**
-     * Is all of [keys] passed in parameter are been just pressed?
-     */
-    fun isAllKeysPressed(vararg keys: Key): Boolean = keys.all { isKeyPressed(it) }
-
-    /**
-     * Is none of [keys] passed in parameter has been pressed?
-     */
-    fun isNoneKeysPressed(vararg keys: Key): Boolean = keys.none { isKeyPressed(it) }
-
-    /**
-     * Is [signal] touched on the screen?
-     *
-     * @return null if not touched, coordinates otherwise.
-     */
-    fun isTouched(signal: TouchSignal): Vector2?
-
-    /**
-     * Is [signal] just touched on the screen?
-     *
-     * @return null if not touched, coordinates of the touch in game screen coordinate.
-     */
-    fun isJustTouched(signal: TouchSignal): Vector2?
-
-    /**
-     * Keys pressed by the user but rendered as text.
-     * Useful to capture text from the user.
-     */
-    fun textJustTyped(): String? = null
-
-    /**
-     * Position of the touch when there is no signal.
-     *
-     * It will be the mouse position on the web platform or the mouse
-     * position on the desktop platform.
-     *
-     * The position can be keep by the consumer as the position vector will be updated.
-     * If the cursor is outside of the game area, the position vector will not be updated,
-     * it will keep the last position value of the touch position.
-     *
-     * On mobile devise, as this information is not available, it returns null.
-     *
-     * The position of the upper left corner is (0, 0) while the
-     * bottom right corner will depends of the size of your game screen.
-     *
-     * Please note that the position will be regarding the game screen and not the device screen.
-     * Which mean that even if the window of your game is resized, the coordinate of the bottom right
-     * corner will NOT change.
-     *
-     * @return: position of the touch when idle.
-     *          or null if not available on the current platform
-     *          or null if outside of the game area.
-     */
-    fun touchIdlePosition(): Vector2? = null
+    fun setCursorPosition(x: Int, y: Int)
 }
