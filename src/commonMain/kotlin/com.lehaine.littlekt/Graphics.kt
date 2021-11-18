@@ -12,7 +12,7 @@ interface Graphics {
      * Enumeration describing different types of [Graphics] implementations.
      */
     enum class GraphicsType {
-        AndroidGL, LWJGL, WebGL, iOSGL, JGLFW, Mock, LWJGL3
+        AndroidGL, WebGL, iOSGL, Mock, LWJGL3
     }
 
     /**

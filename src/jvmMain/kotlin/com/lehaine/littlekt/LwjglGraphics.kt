@@ -11,9 +11,9 @@ class LwjglGraphics : Graphics {
     override val gl: GL = LwjglGL()
 
     internal var _width: Int = 0
-    internal var _height = 0
-    internal var _backBufferWidth = 0
-    internal var _backBufferHeight = 0
+    internal var _height: Int = 0
+    internal var _backBufferWidth: Int = 0
+    internal var _backBufferHeight: Int = 0
 
     override val width: Int
         get() = _width
@@ -44,9 +44,7 @@ class LwjglGraphics : Graphics {
         TODO("Not yet implemented")
     }
 
-    override fun getType(): Graphics.GraphicsType? {
-        TODO("Not yet implemented")
-    }
+    override fun getType(): Graphics.GraphicsType = Graphics.GraphicsType.LWJGL3
 
     override fun getPpiX(): Float {
         TODO("Not yet implemented")
