@@ -19,13 +19,13 @@ class Texture(
     private val onLoad = mutableListOf<(Asset) -> Unit>()
 
     override fun load(application: Application) {
-        val gl = application.graphics.GL
+        val gl = application.graphics.gl
         if (!textureData.isPrepared) {
             textureData.prepare()
         }
         val texture = textureReference ?: gl.createTexture()
 
-        textureData.uploadImageData(gl, GL.TEXTURE_2D, textureData)
+        textureData.uploadImageData(application, GL.TEXTURE_2D, textureData)
 
         // TODO - impl setting min/max filters
         gl.texParameteri(

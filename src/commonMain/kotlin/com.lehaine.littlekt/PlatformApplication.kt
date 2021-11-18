@@ -10,6 +10,7 @@ import com.lehaine.littlekt.log.Logger
  * @date 11/17/2021
  */
 expect class PlatformApplication(configuration: ApplicationConfiguration) : Application {
+    override val platform: Platform
     override val configuration: ApplicationConfiguration
     override val graphics: Graphics
     override val input: Input

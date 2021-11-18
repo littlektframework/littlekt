@@ -1,15 +1,16 @@
 package com.lehaine.littlekt
 
 import com.lehaine.littlekt.util.TimeSpan
+import org.lwjgl.glfw.GLFW
 
 /**
  * @author Colton Daily
  * @date 11/6/2021
  */
 class LwjglGraphics : Graphics {
-    override val GL: GL = LwjglGL()
+    override val gl: GL = LwjglGL()
 
-    internal var _width:Int = 0
+    internal var _width: Int = 0
     internal var _height = 0
     internal var _backBufferWidth = 0
     internal var _backBufferHeight = 0
@@ -127,8 +128,8 @@ class LwjglGraphics : Graphics {
         TODO("Not yet implemented")
     }
 
-    override fun supportsExtension(extension: String?): Boolean {
-        TODO("Not yet implemented")
+    override fun supportsExtension(extension: String): Boolean {
+        return GLFW.glfwExtensionSupported(extension)
     }
 
     override fun setContinuousRendering(isContinuous: Boolean) {

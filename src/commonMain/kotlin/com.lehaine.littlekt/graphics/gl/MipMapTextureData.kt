@@ -1,5 +1,6 @@
 package com.lehaine.littlekt.graphics.gl
 
+import com.lehaine.littlekt.Application
 import com.lehaine.littlekt.GL
 import com.lehaine.littlekt.graphics.Pixmap
 import com.lehaine.littlekt.graphics.TextureData
@@ -25,9 +26,9 @@ class MipMapTextureData(vararg mipMapData: TextureData) : TextureData {
         throw RuntimeException("It's compressed, use the compressed method")
     }
 
-    override fun consumeCustomData(gl: GL, target: Int) {
+    override fun consumeCustomData(application: Application, target: Int) {
         mips.forEachIndexed { index, mip ->
-            uploadImageData(gl, target, mip, index)
+            uploadImageData(application, target, mip, index)
         }
     }
 }

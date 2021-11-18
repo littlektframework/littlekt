@@ -7,7 +7,7 @@ import com.lehaine.littlekt.util.TimeSpan
  * @date 11/6/2021
  */
 class WebGLGraphics : Graphics {
-    override val GL = WebGL()
+    override val gl = WebGL()
 
     override val width: Int
         get() = TODO("Not yet implemented")

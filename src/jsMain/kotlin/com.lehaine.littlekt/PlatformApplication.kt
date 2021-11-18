@@ -22,6 +22,7 @@ actual class PlatformApplication actual constructor(configuration: ApplicationCo
         get() = TODO("Not yet implemented")
     actual override val fileHandler: FileHandler
         get() = TODO("Not yet implemented")
+    actual override val platform: Platform = Platform.JS
 
     actual override fun start(gameBuilder: (app: Application) -> LittleKt) {
         TODO("Not yet implemented")

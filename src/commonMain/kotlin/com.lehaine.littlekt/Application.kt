@@ -22,6 +22,8 @@ interface Application {
 
     val fileHandler: FileHandler
 
+    val platform: Platform
+
     fun start(gameBuilder: (app: Application) -> LittleKt)
 
     fun close()

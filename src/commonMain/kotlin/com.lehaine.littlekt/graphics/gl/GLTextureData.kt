@@ -1,6 +1,6 @@
 package com.lehaine.littlekt.graphics.gl
 
-import com.lehaine.littlekt.GL
+import com.lehaine.littlekt.Application
 import com.lehaine.littlekt.graphics.Pixmap
 import com.lehaine.littlekt.graphics.TextureData
 
@@ -32,7 +32,8 @@ class GLTextureData(
         throw RuntimeException("This TextureData implementation does not return a Pixmap")
     }
 
-    override fun consumeCustomData(gl: GL, target: Int) {
+    override fun consumeCustomData(application: Application, target: Int) {
+        val gl = application.graphics.gl
         gl.texImage2D(target, mipMapLevel, internalGlFormat, glFormat, type, width, height, byteArrayOf())
     }
 

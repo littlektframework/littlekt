@@ -46,7 +46,7 @@ interface Graphics {
         val coverageSampling: Boolean
     )
 
-    val GL: GL
+    val gl: GL
 
     /**
      * @return the width of the client area in logical pixels.
@@ -268,7 +268,7 @@ interface Graphics {
      * @param extension the extension name
      * @return whether the extension is supported
      */
-    fun supportsExtension(extension: String?): Boolean
+    fun supportsExtension(extension: String): Boolean
 
     /**
      * Sets whether to render continuously. In case rendering is performed non-continuously, the following events will trigger a

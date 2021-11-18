@@ -26,6 +26,7 @@ actual class PlatformApplication actual constructor(actual override val configur
     actual override val input: Input = LwjglInput(logger, this)
     actual override val assetManager: AssetManager = AssetManager(this)
     actual override val fileHandler: FileHandler = JvmFileHandler(this, logger)
+    actual override val platform: Platform = Platform.DESKTOP
 
     private var windowHandle: Long = 0
 
@@ -109,7 +110,7 @@ actual class PlatformApplication actual constructor(actual override val configur
         input.attachHandler(windowHandle)
 
         GLFW.glfwSetFramebufferSizeCallback(windowHandle) { _, width, height ->
-            graphics.GL.viewport(0, 0, width, height)
+            graphics.gl.viewport(0, 0, width, height)
             graphics._backBufferWidth = width
             graphics._backBufferHeight = height
             game.resize(width, height)
