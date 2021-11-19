@@ -2,9 +2,9 @@ package com.lehaine.littlekt.graphics
 
 import com.lehaine.littlekt.GL
 import com.lehaine.littlekt.math.Mat4
-import com.lehaine.littlekt.shader.ShaderProgram
-import com.lehaine.littlekt.shader.fragment.TexturedFragmentShader
-import com.lehaine.littlekt.shader.vertex.TexturedQuadShader
+import com.lehaine.littlekt.graphics.shader.ShaderProgram
+import com.lehaine.littlekt.graphics.shader.fragment.TexturedFragmentShader
+import com.lehaine.littlekt.graphics.shader.vertex.TexturedQuadShader
 
 /**
  * @author Colton Daily

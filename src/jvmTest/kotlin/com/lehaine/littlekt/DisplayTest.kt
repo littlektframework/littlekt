@@ -19,7 +19,12 @@ class DisplayTest(application: Application) : LittleKt(application), InputProces
     val texture by application.fileHandler.get<Texture>("person.png")
 
     override fun create() {
+        println("create")
         input.inputProcessor = this
+    }
+
+    override fun resize(width: Int, height: Int) {
+        println("resize to $width,$height")
     }
 
     override fun keyDown(key: Key): Boolean {

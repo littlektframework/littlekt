@@ -1,7 +1,7 @@
 package com.lehaine.littlekt
 
 import com.lehaine.littlekt.math.Mat4
-import com.lehaine.littlekt.shader.*
+import com.lehaine.littlekt.graphics.shader.*
 
 /**
  * @author Colton Daily
@@ -37,27 +37,27 @@ interface GL {
     fun getShaderInfoLog(shaderReference: ShaderReference): String
     fun deleteShader(shaderReference: ShaderReference)
     fun getProgramInfoLog(shader: ShaderProgramReference): String
-    fun createBuffer(): Buffer
-    fun createFrameBuffer(): FrameBufferReference
-    fun bindFrameBuffer(frameBufferReference: FrameBufferReference)
+    fun createBuffer(): com.lehaine.littlekt.graphics.Buffer
+    fun createFrameBuffer(): com.lehaine.littlekt.graphics.FrameBufferReference
+    fun bindFrameBuffer(frameBufferReference: com.lehaine.littlekt.graphics.FrameBufferReference)
     fun bindDefaultFrameBuffer()
 
-    fun createRenderBuffer(): RenderBufferReference
-    fun bindRenderBuffer(renderBufferReference: RenderBufferReference)
+    fun createRenderBuffer(): com.lehaine.littlekt.graphics.RenderBufferReference
+    fun bindRenderBuffer(renderBufferReference: com.lehaine.littlekt.graphics.RenderBufferReference)
     fun renderBufferStorage(internalformat: Int, width: Int, height: Int)
-    fun framebufferRenderbuffer(attachementType: Int, renderBufferReference: RenderBufferReference)
+    fun framebufferRenderbuffer(attachementType: Int, renderBufferReference: com.lehaine.littlekt.graphics.RenderBufferReference)
 
-    fun frameBufferTexture2D(attachmentPoint: Int, textureReference: TextureReference, level: Int)
-    fun bindBuffer(target: Int, buffer: Buffer)
+    fun frameBufferTexture2D(attachmentPoint: Int, textureReference: com.lehaine.littlekt.graphics.TextureReference, level: Int)
+    fun bindBuffer(target: Int, buffer: com.lehaine.littlekt.graphics.Buffer)
     fun bufferData(target: Int, data: DataSource, usage: Int)
     fun depthFunc(target: Int)
     fun vertexAttribPointer(index: Int, size: Int, type: Int, normalized: Boolean, stride: Int, offset: Int)
     fun enableVertexAttribArray(index: Int)
     fun useProgram(shaderProgram: ShaderProgramReference)
 
-    fun createTexture(): TextureReference
+    fun createTexture(): com.lehaine.littlekt.graphics.TextureReference
     fun activeTexture(Int: Int)
-    fun bindTexture(target: Int, textureReference: TextureReference)
+    fun bindTexture(target: Int, textureReference: com.lehaine.littlekt.graphics.TextureReference)
 
     fun uniformMatrix4fv(uniform: Uniform, transpose: Boolean, data: Mat4) =
         uniformMatrix4fv(uniform, transpose, data.asGLArray())

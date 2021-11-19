@@ -3,7 +3,6 @@ package com.lehaine.littlekt.graphics
 import com.lehaine.littlekt.Application
 import com.lehaine.littlekt.GL
 import com.lehaine.littlekt.io.Asset
-import com.lehaine.littlekt.shader.TextureReference
 
 /**
  * @author Colton Daily
@@ -14,7 +13,7 @@ class Texture(
 ) : Asset {
     val width: Int get() = textureData.width
     val height: Int get() = textureData.height
-    var textureReference: TextureReference? = null
+    var textureReference: com.lehaine.littlekt.graphics.TextureReference? = null
 
     private val onLoad = mutableListOf<(Asset) -> Unit>()
 

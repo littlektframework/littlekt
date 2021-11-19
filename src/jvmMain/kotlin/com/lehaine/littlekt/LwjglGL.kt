@@ -1,6 +1,6 @@
 package com.lehaine.littlekt
 
-import com.lehaine.littlekt.shader.*
+import com.lehaine.littlekt.graphics.shader.*
 import org.lwjgl.opengl.GL30.*
 import java.nio.ByteBuffer
 
@@ -97,15 +97,15 @@ class LwjglGL : GL {
         return glGetProgramInfoLog(shader.address)
     }
 
-    override fun createBuffer(): Buffer {
-        return Buffer(glGenBuffers())
+    override fun createBuffer(): com.lehaine.littlekt.graphics.Buffer {
+        return com.lehaine.littlekt.graphics.Buffer(glGenBuffers())
     }
 
-    override fun createFrameBuffer(): FrameBufferReference {
-        return FrameBufferReference(glGenFramebuffers())
+    override fun createFrameBuffer(): com.lehaine.littlekt.graphics.FrameBufferReference {
+        return com.lehaine.littlekt.graphics.FrameBufferReference(glGenFramebuffers())
     }
 
-    override fun bindFrameBuffer(frameBufferReference: FrameBufferReference) {
+    override fun bindFrameBuffer(frameBufferReference: com.lehaine.littlekt.graphics.FrameBufferReference) {
         glBindFramebuffer(GL.FRAMEBUFFER, frameBufferReference.reference)
     }
 
@@ -113,11 +113,11 @@ class LwjglGL : GL {
         glBindFramebuffer(GL.FRAMEBUFFER, 0)
     }
 
-    override fun createRenderBuffer(): RenderBufferReference {
-        return RenderBufferReference(glGenRenderbuffers())
+    override fun createRenderBuffer(): com.lehaine.littlekt.graphics.RenderBufferReference {
+        return com.lehaine.littlekt.graphics.RenderBufferReference(glGenRenderbuffers())
     }
 
-    override fun bindRenderBuffer(renderBufferReference: RenderBufferReference) {
+    override fun bindRenderBuffer(renderBufferReference: com.lehaine.littlekt.graphics.RenderBufferReference) {
         glBindRenderbuffer(GL.RENDERBUFFER, renderBufferReference.reference)
     }
 
@@ -125,15 +125,15 @@ class LwjglGL : GL {
         glRenderbufferStorage(GL.RENDERBUFFER, internalformat, width, height)
     }
 
-    override fun framebufferRenderbuffer(attachementType: Int, renderBufferReference: RenderBufferReference) {
+    override fun framebufferRenderbuffer(attachementType: Int, renderBufferReference: com.lehaine.littlekt.graphics.RenderBufferReference) {
         glFramebufferRenderbuffer(GL.FRAMEBUFFER, attachementType, GL.RENDERBUFFER, renderBufferReference.reference)
     }
 
-    override fun frameBufferTexture2D(attachmentPoint: Int, textureReference: TextureReference, level: Int) {
+    override fun frameBufferTexture2D(attachmentPoint: Int, textureReference: com.lehaine.littlekt.graphics.TextureReference, level: Int) {
         glFramebufferTexture2D(GL.FRAMEBUFFER, attachmentPoint, GL.TEXTURE_2D, textureReference.reference, level)
     }
 
-    override fun bindBuffer(target: Int, buffer: Buffer) {
+    override fun bindBuffer(target: Int, buffer: com.lehaine.littlekt.graphics.Buffer) {
         glBindBuffer(target, buffer.address)
     }
 
@@ -207,11 +207,11 @@ class LwjglGL : GL {
         glViewport(x, y, width, height)
     }
 
-    override fun createTexture(): TextureReference {
-        return TextureReference(glGenTextures())
+    override fun createTexture(): com.lehaine.littlekt.graphics.TextureReference {
+        return com.lehaine.littlekt.graphics.TextureReference(glGenTextures())
     }
 
-    override fun bindTexture(target: Int, textureReference: TextureReference) {
+    override fun bindTexture(target: Int, textureReference: com.lehaine.littlekt.graphics.TextureReference) {
         glBindTexture(target, textureReference.reference)
     }
 
