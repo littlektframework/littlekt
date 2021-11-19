@@ -15,26 +15,28 @@ interface GL {
     fun enable(mask: Int)
     fun disable(mask: Int)
     fun blendFunc(sfactor: Int, dfactor: Int)
-    fun createProgram(): ShaderProgram
-    fun getAttribLocation(shaderProgram: ShaderProgram, name: String): Int
-    fun getUniformLocation(shaderProgram: ShaderProgram, name: String): Uniform
-    fun attachShader(shaderProgram: ShaderProgram, shader: Shader)
-    fun linkProgram(shaderProgram: ShaderProgram)
+    fun createProgram(): ShaderProgramReference
+    fun getAttribLocation(shaderProgram: ShaderProgramReference, name: String): Int
+    fun getUniformLocation(shaderProgram: ShaderProgramReference, name: String): Uniform
+    fun attachShader(shaderProgram: ShaderProgramReference, shaderReference: ShaderReference)
+    fun linkProgram(shaderProgram: ShaderProgramReference)
 
     fun getString(parameterName: Int): String?
 
-    fun getProgramParameter(shaderProgram: ShaderProgram, mask: Int): Any
-    fun getProgramParameterB(shaderProgram: ShaderProgram, mask: Int): Boolean =
+    fun getProgramParameter(shaderProgram: ShaderProgramReference, mask: Int): Any
+    fun getProgramParameterB(shaderProgram: ShaderProgramReference, mask: Int): Boolean =
         getProgramParameter(shaderProgram, mask) as Boolean
 
-    fun getShaderParameter(shader: Shader, mask: Int): Any
-    fun getShaderParameterB(shader: Shader, mask: Int): Boolean = getShaderParameter(shader, mask) as Boolean
-    fun createShader(type: Int): Shader
-    fun shaderSource(shader: Shader, source: String)
-    fun compileShader(shader: Shader)
-    fun getShaderInfoLog(shader: Shader): String
-    fun deleteShader(shader: Shader)
-    fun getProgramInfoLog(shader: ShaderProgram): String
+    fun getShaderParameter(shaderReference: ShaderReference, mask: Int): Any
+    fun getShaderParameterB(shaderReference: ShaderReference, mask: Int): Boolean =
+        getShaderParameter(shaderReference, mask) as Boolean
+
+    fun createShader(type: Int): ShaderReference
+    fun shaderSource(shaderReference: ShaderReference, source: String)
+    fun compileShader(shaderReference: ShaderReference)
+    fun getShaderInfoLog(shaderReference: ShaderReference): String
+    fun deleteShader(shaderReference: ShaderReference)
+    fun getProgramInfoLog(shader: ShaderProgramReference): String
     fun createBuffer(): Buffer
     fun createFrameBuffer(): FrameBufferReference
     fun bindFrameBuffer(frameBufferReference: FrameBufferReference)
@@ -51,7 +53,7 @@ interface GL {
     fun depthFunc(target: Int)
     fun vertexAttribPointer(index: Int, size: Int, type: Int, normalized: Boolean, stride: Int, offset: Int)
     fun enableVertexAttribArray(index: Int)
-    fun useProgram(shaderProgram: ShaderProgram)
+    fun useProgram(shaderProgram: ShaderProgramReference)
 
     fun createTexture(): TextureReference
     fun activeTexture(Int: Int)

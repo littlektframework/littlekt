@@ -33,35 +33,35 @@ class LwjglGL : GL {
         glBlendFunc(sfactor, dfactor)
     }
 
-    override fun createProgram(): ShaderProgram {
-        return ShaderProgram(this, PlatformShaderProgram(glCreateProgram()))
+    override fun createProgram(): ShaderProgramReference {
+        return ShaderProgramReference(glCreateProgram())
     }
 
-    override fun getAttribLocation(shaderProgram: ShaderProgram, name: String): Int {
-        return glGetAttribLocation(shaderProgram.program.address, name)
+    override fun getAttribLocation(shaderProgram: ShaderProgramReference, name: String): Int {
+        return glGetAttribLocation(shaderProgram.address, name)
     }
 
-    override fun getUniformLocation(shaderProgram: ShaderProgram, name: String): Uniform {
-        return Uniform(glGetUniformLocation(shaderProgram.program.address, name))
+    override fun getUniformLocation(shaderProgram: ShaderProgramReference, name: String): Uniform {
+        return Uniform(glGetUniformLocation(shaderProgram.address, name))
     }
 
-    override fun attachShader(shaderProgram: ShaderProgram, shader: Shader) {
-        glAttachShader(shaderProgram.program.address, shader.address)
+    override fun attachShader(shaderProgram: ShaderProgramReference, shaderReference: ShaderReference) {
+        glAttachShader(shaderProgram.address, shaderReference.address)
     }
 
-    override fun linkProgram(shaderProgram: ShaderProgram) {
-        glLinkProgram(shaderProgram.program.address)
+    override fun linkProgram(shaderProgram: ShaderProgramReference) {
+        glLinkProgram(shaderProgram.address)
     }
 
-    override fun getProgramParameter(shaderProgram: ShaderProgram, mask: Int): Any {
-        return glGetProgrami(shaderProgram.program.address, mask)
+    override fun getProgramParameter(shaderProgram: ShaderProgramReference, mask: Int): Any {
+        return glGetProgrami(shaderProgram.address, mask)
     }
 
-    override fun getShaderParameter(shader: Shader, mask: Int): Any {
-        return glGetShaderi(shader.address, mask)
+    override fun getShaderParameter(shaderReference: ShaderReference, mask: Int): Any {
+        return glGetShaderi(shaderReference.address, mask)
     }
 
-    override fun getProgramParameterB(shaderProgram: ShaderProgram, mask: Int): Boolean {
+    override fun getProgramParameterB(shaderProgram: ShaderProgramReference, mask: Int): Boolean {
         return (getProgramParameter(shaderProgram, mask) as? Int) == 1
     }
 
@@ -69,32 +69,32 @@ class LwjglGL : GL {
         return glGetString(parameterName)
     }
 
-    override fun getShaderParameterB(shader: Shader, mask: Int): Boolean {
-        return (getShaderParameter(shader, mask) as? Int) == 1
+    override fun getShaderParameterB(shaderReference: ShaderReference, mask: Int): Boolean {
+        return (getShaderParameter(shaderReference, mask) as? Int) == 1
     }
 
-    override fun createShader(type: Int): Shader {
-        return Shader(glCreateShader(type))
+    override fun createShader(type: Int): ShaderReference {
+        return ShaderReference(glCreateShader(type))
     }
 
-    override fun shaderSource(shader: Shader, source: String) {
-        glShaderSource(shader.address, source)
+    override fun shaderSource(shaderReference: ShaderReference, source: String) {
+        glShaderSource(shaderReference.address, source)
     }
 
-    override fun compileShader(shader: Shader) {
-        glCompileShader(shader.address)
+    override fun compileShader(shaderReference: ShaderReference) {
+        glCompileShader(shaderReference.address)
     }
 
-    override fun getShaderInfoLog(shader: Shader): String {
-        return glGetShaderInfoLog(shader.address)
+    override fun getShaderInfoLog(shaderReference: ShaderReference): String {
+        return glGetShaderInfoLog(shaderReference.address)
     }
 
-    override fun deleteShader(shader: Shader) {
-        glDeleteShader(shader.address)
+    override fun deleteShader(shaderReference: ShaderReference) {
+        glDeleteShader(shaderReference.address)
     }
 
-    override fun getProgramInfoLog(shader: ShaderProgram): String {
-        return glGetProgramInfoLog(shader.program.address)
+    override fun getProgramInfoLog(shader: ShaderProgramReference): String {
+        return glGetProgramInfoLog(shader.address)
     }
 
     override fun createBuffer(): Buffer {
@@ -159,8 +159,8 @@ class LwjglGL : GL {
         glEnableVertexAttribArray(index)
     }
 
-    override fun useProgram(shaderProgram: ShaderProgram) {
-        glUseProgram(shaderProgram.program.address)
+    override fun useProgram(shaderProgram: ShaderProgramReference) {
+        glUseProgram(shaderProgram.address)
     }
 
     override fun uniformMatrix4fv(uniform: Uniform, transpose: Boolean, data: Array<Float>) {

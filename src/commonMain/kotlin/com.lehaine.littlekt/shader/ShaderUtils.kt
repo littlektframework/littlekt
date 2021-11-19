@@ -9,7 +9,7 @@ import kotlin.math.min
  */
 object ShaderUtils {
 
-    fun createShaderProgram(gl: GL, vertexShader: String, fragmentShader: String): ShaderProgram {
+    fun createShaderProgram(gl: GL, vertexShader: String, fragmentShader: String): ShaderProgramReference {
         val vertex = compileShader(gl, vertexShader, GL.VERTEX_SHADER)
         val fragment = compileShader(gl, fragmentShader, GL.FRAGMENT_SHADER)
 
@@ -25,9 +25,9 @@ object ShaderUtils {
         return shaderProgram
     }
 
-    fun compileShader(gl: GL, vertexShader: String, type: Int): Shader {
+    fun compileShader(gl: GL, shaderSrc: String, type: Int): ShaderReference {
         val shader = gl.createShader(type)
-        gl.shaderSource(shader, vertexShader)
+        gl.shaderSource(shader, shaderSrc)
         gl.compileShader(shader)
 
         if (!gl.getShaderParameterB(shader, GL.COMPILE_STATUS)) {
@@ -35,9 +35,9 @@ object ShaderUtils {
             gl.deleteShader(shader)
             throw RuntimeException(
                 "Shader compilation error: $log (${
-                    vertexShader.substring(
+                    shaderSrc.substring(
                         0,
-                        min(vertexShader.length, 128)
+                        min(shaderSrc.length, 128)
                     )
                 })"
             )

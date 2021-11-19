@@ -1,6 +1,5 @@
 package com.lehaine.littlekt
 
-import com.lehaine.littlekt.graphics.TextureData
 import com.lehaine.littlekt.shader.*
 
 /**
@@ -8,7 +7,7 @@ import com.lehaine.littlekt.shader.*
  * @date 9/28/2021
  */
 class WebGL : GL {
-    override fun clearColor(r: Percent, g: Percent, b: Percent, a: Percent) {
+    override fun clearColor(r: Float, g: Float, b: Float, a: Float) {
         TODO("Not yet implemented")
     }
 
@@ -32,23 +31,23 @@ class WebGL : GL {
         TODO("Not yet implemented")
     }
 
-    override fun createProgram(): ShaderProgram {
+    override fun createProgram(): ShaderProgramReference {
         TODO("Not yet implemented")
     }
 
-    override fun getAttribLocation(shaderProgram: ShaderProgram, name: String): Int {
+    override fun getAttribLocation(shaderProgram: ShaderProgramReference, name: String): Int {
         TODO("Not yet implemented")
     }
 
-    override fun getUniformLocation(shaderProgram: ShaderProgram, name: String): Uniform {
+    override fun getUniformLocation(shaderProgram: ShaderProgramReference, name: String): Uniform {
         TODO("Not yet implemented")
     }
 
-    override fun attachShader(shaderProgram: ShaderProgram, shader: Shader) {
+    override fun attachShader(shaderProgram: ShaderProgramReference, shaderReference: ShaderReference) {
         TODO("Not yet implemented")
     }
 
-    override fun linkProgram(shaderProgram: ShaderProgram) {
+    override fun linkProgram(shaderProgram: ShaderProgramReference) {
         TODO("Not yet implemented")
     }
 
@@ -56,35 +55,35 @@ class WebGL : GL {
         TODO("Not yet implemented")
     }
 
-    override fun getProgramParameter(shaderProgram: ShaderProgram, mask: Int): Any {
+    override fun getProgramParameter(shaderProgram: ShaderProgramReference, mask: Int): Any {
         TODO("Not yet implemented")
     }
 
-    override fun getShaderParameter(shader: Shader, mask: Int): Any {
+    override fun getShaderParameter(shaderReference: ShaderReference, mask: Int): Any {
         TODO("Not yet implemented")
     }
 
-    override fun createShader(type: Int): Shader {
+    override fun createShader(type: Int): ShaderReference {
         TODO("Not yet implemented")
     }
 
-    override fun shaderSource(shader: Shader, source: String) {
+    override fun shaderSource(shaderReference: ShaderReference, source: String) {
         TODO("Not yet implemented")
     }
 
-    override fun compileShader(shader: Shader) {
+    override fun compileShader(shaderReference: ShaderReference) {
         TODO("Not yet implemented")
     }
 
-    override fun getShaderInfoLog(shader: Shader): String {
+    override fun getShaderInfoLog(shaderReference: ShaderReference): String {
         TODO("Not yet implemented")
     }
 
-    override fun deleteShader(shader: Shader) {
+    override fun deleteShader(shaderReference: ShaderReference) {
         TODO("Not yet implemented")
     }
 
-    override fun getProgramInfoLog(shader: ShaderProgram): String {
+    override fun getProgramInfoLog(shader: ShaderProgramReference): String {
         TODO("Not yet implemented")
     }
 
@@ -144,7 +143,7 @@ class WebGL : GL {
         TODO("Not yet implemented")
     }
 
-    override fun useProgram(shaderProgram: ShaderProgram) {
+    override fun useProgram(shaderProgram: ShaderProgramReference) {
         TODO("Not yet implemented")
     }
 
@@ -200,18 +199,7 @@ class WebGL : GL {
         TODO("Not yet implemented")
     }
 
-    override fun viewport(x: Pixel, y: Pixel, width: Pixel, height: Pixel) {
-        TODO("Not yet implemented")
-    }
-
-    override fun texImage2D(
-        target: Int,
-        level: Int,
-        internalformat: Int,
-        format: Int,
-        type: Int,
-        source: TextureData
-    ) {
+    override fun viewport(x: Int, y: Int, width: Int, height: Int) {
         TODO("Not yet implemented")
     }
 
@@ -235,4 +223,5 @@ class WebGL : GL {
     override fun generateMipmap(target: Int) {
         TODO("Not yet implemented")
     }
+
 }
