@@ -1,5 +1,6 @@
 package com.lehaine.littlekt
 
+import com.lehaine.littlekt.graphics.SpriteBatch
 import com.lehaine.littlekt.graphics.Texture
 import com.lehaine.littlekt.input.InputProcessor
 import com.lehaine.littlekt.input.Key
@@ -12,6 +13,7 @@ import com.lehaine.littlekt.io.get
  */
 class DisplayTest(application: Application) : LittleKt(application), InputProcessor {
 
+    val batch = SpriteBatch(application.graphics.gl)
     val input get() = application.input
 
     val texture by application.fileHandler.get<Texture>("person.png")

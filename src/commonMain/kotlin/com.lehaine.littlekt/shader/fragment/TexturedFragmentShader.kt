@@ -29,7 +29,7 @@ private val simpleFragmentShader =
         }
     """.trimIndent()
 
-class TextureFragmentShader : FragmentShader(simpleFragmentShader) {
+class TexturedFragmentShader : FragmentShader(simpleFragmentShader) {
     val uTexture = ShaderParameter.UniformSample2D("u_texture")
 
     override val parameters: List<ShaderParameter> = listOf(uTexture)

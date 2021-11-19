@@ -72,7 +72,6 @@ actual class PlatformApplication actual constructor(actual override val configur
 
         val input = input as LwjglInput
         val graphics = graphics as LwjglGraphics
-        val game = gameBuilder(this)
 
         MemoryStack.stackPush().use { stack ->
             val pWidth = stack.mallocInt(1) // int*
@@ -106,8 +105,15 @@ actual class PlatformApplication actual constructor(actual override val configur
         }
         // Make the window visible
         GLFW.glfwShowWindow(windowHandle)
-
         input.attachHandler(windowHandle)
+
+        org.lwjgl.opengl.GL.createCapabilities()
+
+        GL30C.glClearColor(0f, 0f, 0f, 0f)
+        //     glEnable(GL_DEPTH_TEST)
+        //   glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
+
+        val game = gameBuilder(this)
 
         GLFW.glfwSetFramebufferSizeCallback(windowHandle) { _, width, height ->
             graphics.gl.viewport(0, 0, width, height)
@@ -115,12 +121,6 @@ actual class PlatformApplication actual constructor(actual override val configur
             graphics._backBufferHeight = height
             game.resize(width, height)
         }
-
-        org.lwjgl.opengl.GL.createCapabilities()
-
-        GL30C.glClearColor(0f, 0f, 0f, 0f)
-        //     glEnable(GL_DEPTH_TEST)
-        //   glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
 
         game.create()
         game.resize(configuration.width, configuration.height)
