@@ -39,7 +39,6 @@ class TexturedQuadShader : VertexShader(simpleVertexShader) {
     val aColor = ShaderParameter.AttributeVec4("a_color")
     val aTexCoord = ShaderParameter.AttributeVec2("a_texCoord0")
     val aMixColor = ShaderParameter.AttributeVec4("a_mix_color")
-    val uProjTrans = ShaderParameter.UniformMat4("u_projTrans")
 
     override val parameters: List<ShaderParameter> = listOf(aPosition, aColor, aTexCoord, aMixColor, uProjTrans)
 }

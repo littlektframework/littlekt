@@ -13,7 +13,7 @@ import com.lehaine.littlekt.io.get
  */
 class DisplayTest(application: Application) : LittleKt(application), InputProcessor {
 
-    val batch = SpriteBatch(application.graphics.gl)
+    val batch = SpriteBatch(application)
     val input get() = application.input
 
     val texture by application.fileHandler.get<Texture>("person.png")
@@ -21,6 +21,12 @@ class DisplayTest(application: Application) : LittleKt(application), InputProces
     override fun create() {
         println("create")
         input.inputProcessor = this
+    }
+
+    override fun render(dt: Float) {
+        batch.begin()
+        batch.draw(texture, 5f, 5f)
+        batch.end()
     }
 
     override fun resize(width: Int, height: Int) {

@@ -1,7 +1,14 @@
 package com.lehaine.littlekt
 
+import com.lehaine.littlekt.graphics.Buffer
+import com.lehaine.littlekt.graphics.FrameBufferReference
+import com.lehaine.littlekt.graphics.RenderBufferReference
+import com.lehaine.littlekt.graphics.TextureReference
+import com.lehaine.littlekt.graphics.shader.DataSource
+import com.lehaine.littlekt.graphics.shader.ShaderProgramReference
+import com.lehaine.littlekt.graphics.shader.ShaderReference
+import com.lehaine.littlekt.graphics.shader.Uniform
 import com.lehaine.littlekt.math.Mat4
-import com.lehaine.littlekt.graphics.shader.*
 
 /**
  * @author Colton Daily
@@ -15,11 +22,13 @@ interface GL {
     fun enable(mask: Int)
     fun disable(mask: Int)
     fun blendFunc(sfactor: Int, dfactor: Int)
+    fun blendFuncSeparate(srcRGB: Int, dstRGB: Int, srcAlpha: Int, dstAlpha: Int)
     fun createProgram(): ShaderProgramReference
     fun getAttribLocation(shaderProgram: ShaderProgramReference, name: String): Int
     fun getUniformLocation(shaderProgram: ShaderProgramReference, name: String): Uniform
     fun attachShader(shaderProgram: ShaderProgramReference, shaderReference: ShaderReference)
     fun linkProgram(shaderProgram: ShaderProgramReference)
+    fun deleteProgram(shaderProgram: ShaderProgramReference)
 
     fun getString(parameterName: Int): String?
 
@@ -37,27 +46,37 @@ interface GL {
     fun getShaderInfoLog(shaderReference: ShaderReference): String
     fun deleteShader(shaderReference: ShaderReference)
     fun getProgramInfoLog(shader: ShaderProgramReference): String
-    fun createBuffer(): com.lehaine.littlekt.graphics.Buffer
-    fun createFrameBuffer(): com.lehaine.littlekt.graphics.FrameBufferReference
-    fun bindFrameBuffer(frameBufferReference: com.lehaine.littlekt.graphics.FrameBufferReference)
+    fun createBuffer(): Buffer
+    fun createFrameBuffer(): FrameBufferReference
+    fun bindFrameBuffer(frameBufferReference: FrameBufferReference)
     fun bindDefaultFrameBuffer()
 
-    fun createRenderBuffer(): com.lehaine.littlekt.graphics.RenderBufferReference
-    fun bindRenderBuffer(renderBufferReference: com.lehaine.littlekt.graphics.RenderBufferReference)
+    fun createRenderBuffer(): RenderBufferReference
+    fun bindRenderBuffer(renderBufferReference: RenderBufferReference)
     fun renderBufferStorage(internalformat: Int, width: Int, height: Int)
-    fun framebufferRenderbuffer(attachementType: Int, renderBufferReference: com.lehaine.littlekt.graphics.RenderBufferReference)
+    fun framebufferRenderbuffer(attachementType: Int, renderBufferReference: RenderBufferReference)
 
-    fun frameBufferTexture2D(attachmentPoint: Int, textureReference: com.lehaine.littlekt.graphics.TextureReference, level: Int)
-    fun bindBuffer(target: Int, buffer: com.lehaine.littlekt.graphics.Buffer)
+    fun frameBufferTexture2D(
+        attachmentPoint: Int,
+        textureReference: TextureReference,
+        level: Int
+    )
+
+    fun bindBuffer(target: Int, buffer: Buffer)
+    fun bindDefaultBuffer(target: Int)
+    fun deleteBuffer(buffer: Buffer)
     fun bufferData(target: Int, data: DataSource, usage: Int)
     fun depthFunc(target: Int)
+    fun depthMask(flag: Boolean)
     fun vertexAttribPointer(index: Int, size: Int, type: Int, normalized: Boolean, stride: Int, offset: Int)
     fun enableVertexAttribArray(index: Int)
+    fun disableVertexAttribArray(index: Int)
     fun useProgram(shaderProgram: ShaderProgramReference)
+    fun useDefaultProgram()
 
-    fun createTexture(): com.lehaine.littlekt.graphics.TextureReference
+    fun createTexture(): TextureReference
     fun activeTexture(Int: Int)
-    fun bindTexture(target: Int, textureReference: com.lehaine.littlekt.graphics.TextureReference)
+    fun bindTexture(target: Int, textureReference: TextureReference)
 
     fun uniformMatrix4fv(uniform: Uniform, transpose: Boolean, data: Mat4) =
         uniformMatrix4fv(uniform, transpose, data.asGLArray())
@@ -77,7 +96,6 @@ interface GL {
     fun uniform4f(uniform: Uniform, first: Float, second: Float, third: Float, fourth: Float)
 
     fun drawArrays(mask: Int, offset: Int, vertexCount: Int)
-
     fun drawElements(mask: Int, vertexCount: Int, type: Int, offset: Int)
 
     fun viewport(x: Int, y: Int, width: Int, height: Int)

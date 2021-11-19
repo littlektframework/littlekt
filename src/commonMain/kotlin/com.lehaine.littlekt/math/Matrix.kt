@@ -397,22 +397,6 @@ data class Mat4(
         return this
     }
 
-    @Deprecated("Prefer asGLArray", ReplaceWith("asGLArray()"))
-    fun toFloatArray() = floatArrayOf(
-        x.x, x.y, x.z, x.w,
-        y.x, y.y, y.z, y.w,
-        z.x, z.y, z.z, z.w,
-        w.x, w.y, w.z, w.w
-    )
-
-    @Deprecated("Prefer asGLArray", ReplaceWith("asGLArray()"))
-    fun toArray() = arrayOf(
-        x.x, x.y, x.z, x.w,
-        y.x, y.y, y.z, y.w,
-        z.x, z.y, z.z, z.w,
-        w.x, w.y, w.z, w.w
-    )
-
     fun asGLArray() = arrayOf(
         x.x, x.y, x.z, x.w,
         y.x, y.y, y.z, y.w,

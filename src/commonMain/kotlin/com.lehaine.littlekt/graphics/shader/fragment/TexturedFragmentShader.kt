@@ -1,7 +1,5 @@
 package com.lehaine.littlekt.graphics.shader.fragment
 
-import com.lehaine.littlekt.graphics.shader.ShaderParameter
-
 /**
  * @author Colton Daily
  * @date 11/18/2021
@@ -29,8 +27,4 @@ private val simpleFragmentShader =
         }
     """.trimIndent()
 
-class TexturedFragmentShader : FragmentShader(simpleFragmentShader) {
-    val uTexture = ShaderParameter.UniformSample2D("u_texture")
-
-    override val parameters: List<ShaderParameter> = listOf(uTexture)
-}
+class TexturedFragmentShader : FragmentShader(simpleFragmentShader)

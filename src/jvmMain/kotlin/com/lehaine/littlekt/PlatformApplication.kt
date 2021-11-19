@@ -125,6 +125,7 @@ actual class PlatformApplication actual constructor(actual override val configur
         game.create()
         game.resize(configuration.width, configuration.height)
 
+
         while (!windowShouldClose) {
             val delta = getDelta()
             input.update()

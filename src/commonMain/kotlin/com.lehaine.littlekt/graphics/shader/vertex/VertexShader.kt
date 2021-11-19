@@ -9,7 +9,8 @@ import com.lehaine.littlekt.graphics.shader.ShaderParameter
 abstract class VertexShader(
     private val shader: String
 ) {
-    open val parameters: List<ShaderParameter> = emptyList()
+    val uProjTrans = ShaderParameter.UniformMat4("u_projTrans")
+    open val parameters: List<ShaderParameter> = listOf(uProjTrans)
 
     override fun toString(): String = shader
 }

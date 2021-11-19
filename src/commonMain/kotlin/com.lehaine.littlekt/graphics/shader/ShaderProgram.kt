@@ -1,5 +1,6 @@
 package com.lehaine.littlekt.graphics.shader
 
+import com.lehaine.littlekt.Disposable
 import com.lehaine.littlekt.GL
 import com.lehaine.littlekt.graphics.shader.fragment.FragmentShader
 import com.lehaine.littlekt.graphics.shader.vertex.VertexShader
@@ -9,7 +10,21 @@ class ShaderProgram(
     val gl: GL,
     val vertexShader: VertexShader,
     val fragmentShader: FragmentShader,
-) : GL by gl {
+) : Disposable {
+    companion object {
+        /** default name for position attributes  */
+        const val POSITION_ATTRIBUTE = "a_position"
+
+        /** default name for normal attributes  */
+        const val NORMAL_ATTRIBUTE = "a_normal"
+
+        /** default name for color attributes  */
+        const val COLOR_ATTRIBUTE = "a_color"
+
+        /** default name for texcoords attributes, append texture unit number  */
+        const val TEXCOORD_ATTRIBUTE = "a_texCoord"
+    }
+
     private val vertexShaderReference: ShaderReference
     private val fragmentShaderReference: ShaderReference
     private val programReference: ShaderProgramReference
@@ -55,6 +70,10 @@ class ShaderProgram(
         return uniforms[name] ?: throw IllegalStateException("Uniform '$name' not created!")
     }
 
+    fun bind() {
+        gl.useProgram(programReference)
+    }
+
     private fun compileShader(type: Int, shaderSrc: String): ShaderReference {
         val shader = gl.createShader(type)
         gl.shaderSource(shader, shaderSrc)
@@ -73,5 +92,12 @@ class ShaderProgram(
             )
         }
         return shader
+    }
+
+    override fun dispose() {
+        gl.useDefaultProgram()
+        gl.deleteShader(vertexShaderReference)
+        gl.deleteShader(fragmentShaderReference)
+        gl.deleteProgram(programReference)
     }
 }

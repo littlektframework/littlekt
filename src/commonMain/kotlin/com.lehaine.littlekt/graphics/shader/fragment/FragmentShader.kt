@@ -9,7 +9,8 @@ import com.lehaine.littlekt.graphics.shader.ShaderParameter
 abstract class FragmentShader(
     private val shader: String
 ) {
-    open val parameters: List<ShaderParameter> = emptyList()
+    val uTexture = ShaderParameter.UniformSample2D("u_texture")
+    open val parameters: List<ShaderParameter> = listOf(uTexture)
 
     override fun toString(): String = shader
 }

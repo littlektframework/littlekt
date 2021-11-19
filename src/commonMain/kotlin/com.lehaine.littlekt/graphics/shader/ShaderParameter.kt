@@ -1,7 +1,9 @@
 package com.lehaine.littlekt.graphics.shader
 
 import com.lehaine.littlekt.GL
+import com.lehaine.littlekt.graphics.Buffer
 import com.lehaine.littlekt.graphics.Color
+import com.lehaine.littlekt.graphics.TextureReference
 import com.lehaine.littlekt.math.Mat4
 import com.lehaine.littlekt.math.Vector2
 import com.lehaine.littlekt.math.Vector3
@@ -20,7 +22,7 @@ sealed class ShaderParameter(val name: String) {
         }
 
         fun apply(program: ShaderProgram, matrix: Mat4) {
-            program.uniformMatrix4fv(program.getUniform(name), false, matrix)
+            program.gl.uniformMatrix4fv(program.getUniform(name), false, matrix)
         }
     }
 
@@ -44,7 +46,7 @@ sealed class ShaderParameter(val name: String) {
                     tmpMatrix[x * 16 + y] = values[y]
                 }
             }
-            program.uniformMatrix4fv(program.getUniform(name), false, tmpMatrix)
+            program.gl.uniformMatrix4fv(program.getUniform(name), false, tmpMatrix)
         }
     }
 
@@ -56,9 +58,9 @@ sealed class ShaderParameter(val name: String) {
         fun apply(program: ShaderProgram, vararg value: Int) {
             when (value.size) {
                 0 -> throw IllegalArgumentException("At least one int is expected")
-                1 -> program.uniform1i(program.getUniform(name), value[0])
-                2 -> program.uniform2i(program.getUniform(name), value[0], value[1])
-                3 -> program.uniform3i(program.getUniform(name), value[0], value[1], value[2])
+                1 -> program.gl.uniform1i(program.getUniform(name), value[0])
+                2 -> program.gl.uniform2i(program.getUniform(name), value[0], value[1])
+                3 -> program.gl.uniform3i(program.getUniform(name), value[0], value[1], value[2])
             }
         }
     }
@@ -72,7 +74,7 @@ sealed class ShaderParameter(val name: String) {
 
         fun apply(program: ShaderProgram, vararg vec2: Float) {
             when (vec2.size) {
-                2 -> program.uniform2f(program.getUniform(name), vec2[0], vec2[1])
+                2 -> program.gl.uniform2f(program.getUniform(name), vec2[0], vec2[1])
                 else -> throw IllegalArgumentException("3 values are expected. ${vec2.size} received")
             }
         }
@@ -87,7 +89,7 @@ sealed class ShaderParameter(val name: String) {
 
         fun apply(program: ShaderProgram, vararg vec3: Float) {
             when (vec3.size) {
-                3 -> program.uniform3f(program.getUniform(name), vec3[0], vec3[1], vec3[2])
+                3 -> program.gl.uniform3f(program.getUniform(name), vec3[0], vec3[1], vec3[2])
                 else -> throw IllegalArgumentException("3 values are expected. ${vec3.size} received")
             }
         }
@@ -116,7 +118,7 @@ sealed class ShaderParameter(val name: String) {
 
         fun apply(program: ShaderProgram, vararg vec4: Float) {
             when (vec4.size) {
-                4 -> program.uniform4f(program.getUniform(name), vec4[0], vec4[1], vec4[2], vec4[3])
+                4 -> program.gl.uniform4f(program.getUniform(name), vec4[0], vec4[1], vec4[2], vec4[3])
                 else -> throw IllegalArgumentException("4 values are expected. ${vec4.size} received")
             }
         }
@@ -130,10 +132,10 @@ sealed class ShaderParameter(val name: String) {
         fun apply(program: ShaderProgram, vararg value: Float) {
             when (value.size) {
                 0 -> throw IllegalArgumentException("At least one int is expected")
-                1 -> program.uniform1f(program.getUniform(name), value[0])
-                2 -> program.uniform2f(program.getUniform(name), value[0], value[1])
-                3 -> program.uniform3f(program.getUniform(name), value[0], value[1], value[2])
-                4 -> program.uniform4f(program.getUniform(name), value[0], value[1], value[2], value[3])
+                1 -> program.gl.uniform1f(program.getUniform(name), value[0])
+                2 -> program.gl.uniform2f(program.getUniform(name), value[0], value[1])
+                3 -> program.gl.uniform3f(program.getUniform(name), value[0], value[1], value[2])
+                4 -> program.gl.uniform4f(program.getUniform(name), value[0], value[1], value[2], value[3])
             }
         }
     }
@@ -143,9 +145,9 @@ sealed class ShaderParameter(val name: String) {
             program.createAttrib(name)
         }
 
-        fun apply(program: ShaderProgram, source: com.lehaine.littlekt.graphics.Buffer) {
-            program.bindBuffer(GL.ARRAY_BUFFER, source)
-            program.vertexAttribPointer(
+        fun apply(program: ShaderProgram, source: Buffer) {
+            program.gl.bindBuffer(GL.ARRAY_BUFFER, source)
+            program.gl.vertexAttribPointer(
                 index = program.getAttrib(name),
                 size = 2,
                 type = GL.FLOAT,
@@ -153,7 +155,7 @@ sealed class ShaderParameter(val name: String) {
                 stride = 0,
                 offset = 0
             )
-            program.enableVertexAttribArray(program.getAttrib(name))
+            program.gl.enableVertexAttribArray(program.getAttrib(name))
         }
     }
 
@@ -162,9 +164,9 @@ sealed class ShaderParameter(val name: String) {
             program.createAttrib(name)
         }
 
-        fun apply(program: ShaderProgram, source: com.lehaine.littlekt.graphics.Buffer) {
-            program.bindBuffer(GL.ARRAY_BUFFER, source)
-            program.vertexAttribPointer(
+        fun apply(program: ShaderProgram, source: Buffer) {
+            program.gl.bindBuffer(GL.ARRAY_BUFFER, source)
+            program.gl.vertexAttribPointer(
                 index = program.getAttrib(name),
                 size = 3,
                 type = GL.FLOAT,
@@ -172,7 +174,7 @@ sealed class ShaderParameter(val name: String) {
                 stride = 0,
                 offset = 0
             )
-            program.enableVertexAttribArray(program.getAttrib(name))
+            program.gl.enableVertexAttribArray(program.getAttrib(name))
         }
     }
 
@@ -181,9 +183,9 @@ sealed class ShaderParameter(val name: String) {
             program.createAttrib(name)
         }
 
-        fun apply(program: ShaderProgram, source: com.lehaine.littlekt.graphics.Buffer) {
-            program.bindBuffer(GL.ARRAY_BUFFER, source)
-            program.vertexAttribPointer(
+        fun apply(program: ShaderProgram, source: Buffer) {
+            program.gl.bindBuffer(GL.ARRAY_BUFFER, source)
+            program.gl.vertexAttribPointer(
                 index = program.getAttrib(name),
                 size = 4,
                 type = GL.FLOAT,
@@ -191,7 +193,7 @@ sealed class ShaderParameter(val name: String) {
                 stride = 0,
                 offset = 0
             )
-            program.enableVertexAttribArray(program.getAttrib(name))
+            program.gl.enableVertexAttribArray(program.getAttrib(name))
         }
     }
 
@@ -200,10 +202,14 @@ sealed class ShaderParameter(val name: String) {
             program.createUniform(name)
         }
 
-        fun apply(program: ShaderProgram, texture: com.lehaine.littlekt.graphics.TextureReference, unit: Int = 0) {
-            program.activeTexture(GL.TEXTURE0 + unit)
-            program.bindTexture(GL.TEXTURE_2D, texture)
-            program.uniform1i(program.getUniform(name), unit)
+        fun apply(program: ShaderProgram, texture: TextureReference, unit: Int = 0) {
+            program.gl.activeTexture(GL.TEXTURE0 + unit)
+            program.gl.bindTexture(GL.TEXTURE_2D, texture)
+            program.gl.uniform1i(program.getUniform(name), unit)
+        }
+
+        fun apply(program: ShaderProgram, unit: Int = 0) {
+            program.gl.uniform1i(program.getUniform(name), unit)
         }
     }
 }

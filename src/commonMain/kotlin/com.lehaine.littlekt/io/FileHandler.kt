@@ -1,7 +1,6 @@
 package com.lehaine.littlekt.io
 
 import com.lehaine.littlekt.Application
-import com.lehaine.littlekt.Percent
 import com.lehaine.littlekt.graphics.TextureData
 import kotlin.reflect.KClass
 
@@ -29,7 +28,7 @@ interface FileHandler {
 
     fun isFullyLoaded(): Boolean
 
-    fun loadingProgress(): Percent
+    fun loadingProgress(): Float
 }
 
 inline fun <reified T : Any> FileHandler.get(filename: String): Content<T> = get(filename, T::class)

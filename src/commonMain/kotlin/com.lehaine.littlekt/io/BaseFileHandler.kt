@@ -1,7 +1,6 @@
 package com.lehaine.littlekt.io
 
 import com.lehaine.littlekt.Application
-import com.lehaine.littlekt.Percent
 import com.lehaine.littlekt.graphics.Texture
 import com.lehaine.littlekt.graphics.TextureData
 import com.lehaine.littlekt.log.Logger
@@ -58,7 +57,7 @@ abstract class BaseFileHandler(
         return assets.all { it.value.loaded() }
     }
 
-    override fun loadingProgress(): Percent {
+    override fun loadingProgress(): Float {
         val loaded = assets.count { it.value.loaded() }
         return loaded / assets.count().toFloat()
     }

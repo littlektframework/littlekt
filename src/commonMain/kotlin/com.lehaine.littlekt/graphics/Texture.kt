@@ -13,11 +13,13 @@ class Texture(
 ) : Asset {
     val width: Int get() = textureData.width
     val height: Int get() = textureData.height
-    var textureReference: com.lehaine.littlekt.graphics.TextureReference? = null
+    var textureReference: TextureReference? = null
+    private var gl: GL? = null
 
     private val onLoad = mutableListOf<(Asset) -> Unit>()
 
     override fun load(application: Application) {
+        this.gl = application.graphics.gl
         val gl = application.graphics.gl
         if (!textureData.isPrepared) {
             textureData.prepare()
@@ -48,6 +50,16 @@ class Texture(
 
         // Invoke all callbacks
         onLoad.forEach { it.invoke(this) }
+    }
+
+    fun bind() {
+        val gl = gl
+        val textureReference = textureReference
+        if (gl == null || textureReference == null) {
+            throw IllegalStateException("Texture has not been loaded yet! Unable to bind!")
+        }
+        gl.bindTexture(GL.TEXTURE_2D, textureReference)
+
     }
 
     override fun onLoad(callback: (Asset) -> Unit) {
