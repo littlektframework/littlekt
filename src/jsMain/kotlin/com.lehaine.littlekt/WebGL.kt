@@ -12,7 +12,7 @@ class WebGL : GL {
         TODO("Not yet implemented")
     }
 
-    override fun clear(mask: ByteMask) {
+    override fun clear(mask: Int) {
         TODO("Not yet implemented")
     }
 
@@ -20,15 +20,15 @@ class WebGL : GL {
         TODO("Not yet implemented")
     }
 
-    override fun enable(mask: ByteMask) {
+    override fun enable(mask: Int) {
         TODO("Not yet implemented")
     }
 
-    override fun disable(mask: ByteMask) {
+    override fun disable(mask: Int) {
         TODO("Not yet implemented")
     }
 
-    override fun blendFunc(sfactor: ByteMask, dfactor: ByteMask) {
+    override fun blendFunc(sfactor: Int, dfactor: Int) {
         TODO("Not yet implemented")
     }
 
@@ -56,15 +56,15 @@ class WebGL : GL {
         TODO("Not yet implemented")
     }
 
-    override fun getProgramParameter(shaderProgram: ShaderProgram, mask: ByteMask): Any {
+    override fun getProgramParameter(shaderProgram: ShaderProgram, mask: Int): Any {
         TODO("Not yet implemented")
     }
 
-    override fun getShaderParameter(shader: Shader, mask: ByteMask): Any {
+    override fun getShaderParameter(shader: Shader, mask: Int): Any {
         TODO("Not yet implemented")
     }
 
-    override fun createShader(type: ByteMask): Shader {
+    override fun createShader(type: Int): Shader {
         TODO("Not yet implemented")
     }
 
@@ -124,15 +124,15 @@ class WebGL : GL {
         TODO("Not yet implemented")
     }
 
-    override fun bindBuffer(target: ByteMask, buffer: Buffer) {
+    override fun bindBuffer(target: Int, buffer: Buffer) {
         TODO("Not yet implemented")
     }
 
-    override fun bufferData(target: ByteMask, data: DataSource, usage: Int) {
+    override fun bufferData(target: Int, data: DataSource, usage: Int) {
         TODO("Not yet implemented")
     }
 
-    override fun depthFunc(target: ByteMask) {
+    override fun depthFunc(target: Int) {
         TODO("Not yet implemented")
     }
 
@@ -152,7 +152,7 @@ class WebGL : GL {
         TODO("Not yet implemented")
     }
 
-    override fun activeTexture(byteMask: ByteMask) {
+    override fun activeTexture(Int: Int) {
         TODO("Not yet implemented")
     }
 
@@ -192,11 +192,11 @@ class WebGL : GL {
         TODO("Not yet implemented")
     }
 
-    override fun drawArrays(mask: ByteMask, offset: Int, vertexCount: Int) {
+    override fun drawArrays(mask: Int, offset: Int, vertexCount: Int) {
         TODO("Not yet implemented")
     }
 
-    override fun drawElements(mask: ByteMask, vertexCount: Int, type: Int, offset: Int) {
+    override fun drawElements(mask: Int, vertexCount: Int, type: Int, offset: Int) {
         TODO("Not yet implemented")
     }
 

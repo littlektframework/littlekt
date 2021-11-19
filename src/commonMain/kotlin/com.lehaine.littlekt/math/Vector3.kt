@@ -1,7 +1,5 @@
 package com.lehaine.littlekt.math
 
-import com.lehaine.littlekt.Percent
-import com.lehaine.littlekt.toPercent
 import kotlin.math.*
 
 /**
@@ -119,8 +117,8 @@ data class Vector3(var x: Float = 0f, var y: Float = 0f, var z: Float = 0f) {
     /**
      * Rotate the vector
      */
-    fun rotate(x: Percent, y: Percent, z: Percent, angle: Degrees): Vector3 {
-        val result = rotation(Float3(x.toPercent(), y.toPercent(), z.toPercent()), angle) * translation(this.toFloat3())
+    fun rotate(x: Float, y: Float, z: Float, angle: Degrees): Vector3 {
+        val result = rotation(Float3(x, y, z), angle) * translation(this.toFloat3())
         set(result.translation.x, result.translation.y, result.translation.z)
         return this
     }

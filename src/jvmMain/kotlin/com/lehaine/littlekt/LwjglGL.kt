@@ -1,6 +1,5 @@
 package com.lehaine.littlekt
 
-import com.lehaine.littlekt.graphics.TextureData
 import com.lehaine.littlekt.shader.*
 import org.lwjgl.opengl.GL30.*
 import java.nio.ByteBuffer
@@ -10,11 +9,11 @@ import java.nio.ByteBuffer
  * @date 9/28/2021
  */
 class LwjglGL : GL {
-    override fun clearColor(r: Percent, g: Percent, b: Percent, a: Percent) {
-        glClearColor(r.toPercent(), g.toPercent(), b.toPercent(), a.toPercent())
+    override fun clearColor(r: Float, g: Float, b: Float, a: Float) {
+        glClearColor(r, g, b, a)
     }
 
-    override fun clear(mask: ByteMask) {
+    override fun clear(mask: Int) {
         glClear(mask)
     }
 
@@ -22,15 +21,15 @@ class LwjglGL : GL {
         glClearDepth(depth.toDouble())
     }
 
-    override fun enable(mask: ByteMask) {
+    override fun enable(mask: Int) {
         glEnable(mask)
     }
 
-    override fun disable(mask: ByteMask) {
+    override fun disable(mask: Int) {
         glDisable(mask)
     }
 
-    override fun blendFunc(sfactor: ByteMask, dfactor: ByteMask) {
+    override fun blendFunc(sfactor: Int, dfactor: Int) {
         glBlendFunc(sfactor, dfactor)
     }
 
@@ -54,15 +53,15 @@ class LwjglGL : GL {
         glLinkProgram(shaderProgram.program.address)
     }
 
-    override fun getProgramParameter(shaderProgram: ShaderProgram, mask: ByteMask): Any {
+    override fun getProgramParameter(shaderProgram: ShaderProgram, mask: Int): Any {
         return glGetProgrami(shaderProgram.program.address, mask)
     }
 
-    override fun getShaderParameter(shader: Shader, mask: ByteMask): Any {
+    override fun getShaderParameter(shader: Shader, mask: Int): Any {
         return glGetShaderi(shader.address, mask)
     }
 
-    override fun getProgramParameterB(shaderProgram: ShaderProgram, mask: ByteMask): Boolean {
+    override fun getProgramParameterB(shaderProgram: ShaderProgram, mask: Int): Boolean {
         return (getProgramParameter(shaderProgram, mask) as? Int) == 1
     }
 
@@ -70,11 +69,11 @@ class LwjglGL : GL {
         return glGetString(parameterName)
     }
 
-    override fun getShaderParameterB(shader: Shader, mask: ByteMask): Boolean {
+    override fun getShaderParameterB(shader: Shader, mask: Int): Boolean {
         return (getShaderParameter(shader, mask) as? Int) == 1
     }
 
-    override fun createShader(type: ByteMask): Shader {
+    override fun createShader(type: Int): Shader {
         return Shader(glCreateShader(type))
     }
 
@@ -134,11 +133,11 @@ class LwjglGL : GL {
         glFramebufferTexture2D(GL.FRAMEBUFFER, attachmentPoint, GL.TEXTURE_2D, textureReference.reference, level)
     }
 
-    override fun bindBuffer(target: ByteMask, buffer: Buffer) {
+    override fun bindBuffer(target: Int, buffer: Buffer) {
         glBindBuffer(target, buffer.address)
     }
 
-    override fun bufferData(target: ByteMask, data: DataSource, usage: Int) {
+    override fun bufferData(target: Int, data: DataSource, usage: Int) {
         when (data) {
             is DataSource.FloatDataSource -> glBufferData(target, data.floats, usage)
             is DataSource.IntDataSource -> glBufferData(target, data.ints, usage)
@@ -148,7 +147,7 @@ class LwjglGL : GL {
         }
     }
 
-    override fun depthFunc(target: ByteMask) {
+    override fun depthFunc(target: Int) {
         glDepthFunc(target)
     }
 
@@ -196,11 +195,11 @@ class LwjglGL : GL {
         glUniform4f(uniform.address, first, second, third, fourth)
     }
 
-    override fun drawArrays(mask: ByteMask, offset: Int, vertexCount: Int) {
+    override fun drawArrays(mask: Int, offset: Int, vertexCount: Int) {
         glDrawArrays(mask, offset, vertexCount)
     }
 
-    override fun drawElements(mask: ByteMask, vertexCount: Int, type: Int, offset: Int) {
+    override fun drawElements(mask: Int, vertexCount: Int, type: Int, offset: Int) {
         glDrawElements(mask, vertexCount, type, offset.toLong())
     }
 
@@ -244,8 +243,8 @@ class LwjglGL : GL {
         )
     }
 
-    override fun activeTexture(byteMask: ByteMask) {
-        glActiveTexture(byteMask)
+    override fun activeTexture(Int: Int) {
+        glActiveTexture(Int)
     }
 
     override fun texParameteri(target: Int, paramName: Int, paramValue: Int) {

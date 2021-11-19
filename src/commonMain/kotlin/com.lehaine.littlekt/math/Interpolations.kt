@@ -1,7 +1,5 @@
 package com.lehaine.littlekt.math
 
-import com.lehaine.littlekt.Percent
-import com.lehaine.littlekt.Seconds
 import kotlin.math.acos
 import kotlin.math.pow
 import kotlin.math.sin
@@ -16,7 +14,7 @@ object Interpolations {
         return target + step * (current - target)
     }
 
-    fun lerp(target: Float, current: Float, step: Float = 0.9f, deltaTime: Seconds): Float {
+    fun lerp(target: Float, current: Float, step: Float = 0.9f, deltaTime: Float): Float {
         return lerp(target, current, 1 - step.pow(deltaTime))
     }
 
@@ -48,11 +46,11 @@ object Interpolations {
         return t * Mat4.from(r) * s
     }
 
-    fun lerp(target: Mat4, current: Mat4, step: Float = 0.9f, deltaTime: Seconds): Mat4 {
+    fun lerp(target: Mat4, current: Mat4, step: Float = 0.9f, deltaTime: Float): Mat4 {
         return lerp(target, current, 1 - step.pow(deltaTime))
     }
 
-    fun interpolate(target: Mat4, start: Mat4, blend: Percent): Mat4 {
+    fun interpolate(target: Mat4, start: Mat4, blend: Float): Mat4 {
         val blenderAsFloat = blend.toFloat()
         val trans = interpolate(start.translation, target.translation, blenderAsFloat)
         val rot = slerp(Quaternion.from(start), Quaternion.from(target), blenderAsFloat)
@@ -61,7 +59,7 @@ object Interpolations {
         return translation(Float3(trans.x, trans.y, trans.z)) * Mat4.from(rot) * scale(scale)
     }
 
-    fun interpolate(target: Float, start: Float, blend: Percent): Float {
+    fun interpolate(target: Float, start: Float, blend: Float): Float {
         return start + (target - start) * blend.toFloat()
     }
 

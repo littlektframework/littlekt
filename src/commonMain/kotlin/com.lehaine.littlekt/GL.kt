@@ -1,6 +1,5 @@
 package com.lehaine.littlekt
 
-import com.lehaine.littlekt.graphics.TextureData
 import com.lehaine.littlekt.math.Mat4
 import com.lehaine.littlekt.shader.*
 
@@ -10,12 +9,12 @@ import com.lehaine.littlekt.shader.*
  */
 interface GL {
 
-    fun clearColor(r: Percent, g: Percent, b: Percent, a: Percent)
-    fun clear(mask: ByteMask)
+    fun clearColor(r: Float, g: Float, b: Float, a: Float)
+    fun clear(mask: Int)
     fun clearDepth(depth: Number)
-    fun enable(mask: ByteMask)
-    fun disable(mask: ByteMask)
-    fun blendFunc(sfactor: ByteMask, dfactor: ByteMask)
+    fun enable(mask: Int)
+    fun disable(mask: Int)
+    fun blendFunc(sfactor: Int, dfactor: Int)
     fun createProgram(): ShaderProgram
     fun getAttribLocation(shaderProgram: ShaderProgram, name: String): Int
     fun getUniformLocation(shaderProgram: ShaderProgram, name: String): Uniform
@@ -24,13 +23,13 @@ interface GL {
 
     fun getString(parameterName: Int): String?
 
-    fun getProgramParameter(shaderProgram: ShaderProgram, mask: ByteMask): Any
-    fun getProgramParameterB(shaderProgram: ShaderProgram, mask: ByteMask): Boolean =
+    fun getProgramParameter(shaderProgram: ShaderProgram, mask: Int): Any
+    fun getProgramParameterB(shaderProgram: ShaderProgram, mask: Int): Boolean =
         getProgramParameter(shaderProgram, mask) as Boolean
 
-    fun getShaderParameter(shader: Shader, mask: ByteMask): Any
-    fun getShaderParameterB(shader: Shader, mask: ByteMask): Boolean = getShaderParameter(shader, mask) as Boolean
-    fun createShader(type: ByteMask): Shader
+    fun getShaderParameter(shader: Shader, mask: Int): Any
+    fun getShaderParameterB(shader: Shader, mask: Int): Boolean = getShaderParameter(shader, mask) as Boolean
+    fun createShader(type: Int): Shader
     fun shaderSource(shader: Shader, source: String)
     fun compileShader(shader: Shader)
     fun getShaderInfoLog(shader: Shader): String
@@ -47,15 +46,15 @@ interface GL {
     fun framebufferRenderbuffer(attachementType: Int, renderBufferReference: RenderBufferReference)
 
     fun frameBufferTexture2D(attachmentPoint: Int, textureReference: TextureReference, level: Int)
-    fun bindBuffer(target: ByteMask, buffer: Buffer)
-    fun bufferData(target: ByteMask, data: DataSource, usage: Int)
-    fun depthFunc(target: ByteMask)
+    fun bindBuffer(target: Int, buffer: Buffer)
+    fun bufferData(target: Int, data: DataSource, usage: Int)
+    fun depthFunc(target: Int)
     fun vertexAttribPointer(index: Int, size: Int, type: Int, normalized: Boolean, stride: Int, offset: Int)
     fun enableVertexAttribArray(index: Int)
     fun useProgram(shaderProgram: ShaderProgram)
 
     fun createTexture(): TextureReference
-    fun activeTexture(byteMask: ByteMask)
+    fun activeTexture(Int: Int)
     fun bindTexture(target: Int, textureReference: TextureReference)
 
     fun uniformMatrix4fv(uniform: Uniform, transpose: Boolean, data: Mat4) =
@@ -75,11 +74,11 @@ interface GL {
     fun uniform3f(uniform: Uniform, first: Float, second: Float, third: Float)
     fun uniform4f(uniform: Uniform, first: Float, second: Float, third: Float, fourth: Float)
 
-    fun drawArrays(mask: ByteMask, offset: Int, vertexCount: Int)
+    fun drawArrays(mask: Int, offset: Int, vertexCount: Int)
 
-    fun drawElements(mask: ByteMask, vertexCount: Int, type: Int, offset: Int)
+    fun drawElements(mask: Int, vertexCount: Int, type: Int, offset: Int)
 
-    fun viewport(x: Pixel, y: Pixel, width: Pixel, height: Pixel)
+    fun viewport(x: Int, y: Int, width: Int, height: Int)
 
     fun texImage2D(
         target: Int,
