@@ -1,6 +1,6 @@
 package com.lehaine.littlekt
 
-import com.lehaine.littlekt.graphics.Buffer
+import com.lehaine.littlekt.graphics.BufferReference
 import com.lehaine.littlekt.graphics.FrameBufferReference
 import com.lehaine.littlekt.graphics.RenderBufferReference
 import com.lehaine.littlekt.graphics.TextureReference
@@ -112,8 +112,8 @@ class LwjglGL : GL {
         return glGetProgramInfoLog(shader.address)
     }
 
-    override fun createBuffer(): Buffer {
-        return Buffer(glGenBuffers())
+    override fun createBuffer(): BufferReference {
+        return BufferReference(glGenBuffers())
     }
 
     override fun createFrameBuffer(): FrameBufferReference {
@@ -148,16 +148,16 @@ class LwjglGL : GL {
         glFramebufferTexture2D(GL.FRAMEBUFFER, attachmentPoint, GL.TEXTURE_2D, textureReference.reference, level)
     }
 
-    override fun bindBuffer(target: Int, buffer: Buffer) {
-        glBindBuffer(target, buffer.address)
+    override fun bindBuffer(target: Int, bufferReference: BufferReference) {
+        glBindBuffer(target, bufferReference.address)
     }
 
     override fun bindDefaultBuffer(target: Int) {
         glBindBuffer(target, 0)
     }
 
-    override fun deleteBuffer(buffer: Buffer) {
-        glDeleteBuffers(buffer.address)
+    override fun deleteBuffer(bufferReference: BufferReference) {
+        glDeleteBuffers(bufferReference.address)
     }
 
     override fun bufferData(target: Int, data: DataSource, usage: Int) {

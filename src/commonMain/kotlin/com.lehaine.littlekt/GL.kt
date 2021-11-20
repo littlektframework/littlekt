@@ -1,6 +1,6 @@
 package com.lehaine.littlekt
 
-import com.lehaine.littlekt.graphics.Buffer
+import com.lehaine.littlekt.graphics.BufferReference
 import com.lehaine.littlekt.graphics.FrameBufferReference
 import com.lehaine.littlekt.graphics.RenderBufferReference
 import com.lehaine.littlekt.graphics.TextureReference
@@ -46,7 +46,7 @@ interface GL {
     fun getShaderInfoLog(shaderReference: ShaderReference): String
     fun deleteShader(shaderReference: ShaderReference)
     fun getProgramInfoLog(shader: ShaderProgramReference): String
-    fun createBuffer(): Buffer
+    fun createBuffer(): BufferReference
     fun createFrameBuffer(): FrameBufferReference
     fun bindFrameBuffer(frameBufferReference: FrameBufferReference)
     fun bindDefaultFrameBuffer()
@@ -62,9 +62,9 @@ interface GL {
         level: Int
     )
 
-    fun bindBuffer(target: Int, buffer: Buffer)
+    fun bindBuffer(target: Int, bufferReference: BufferReference)
     fun bindDefaultBuffer(target: Int)
-    fun deleteBuffer(buffer: Buffer)
+    fun deleteBuffer(bufferReference: BufferReference)
     fun bufferData(target: Int, data: DataSource, usage: Int)
     fun depthFunc(target: Int)
     fun depthMask(flag: Boolean)

@@ -1,7 +1,7 @@
 package com.lehaine.littlekt.graphics.shader
 
 import com.lehaine.littlekt.GL
-import com.lehaine.littlekt.graphics.Buffer
+import com.lehaine.littlekt.graphics.BufferReference
 import com.lehaine.littlekt.graphics.Color
 import com.lehaine.littlekt.graphics.TextureReference
 import com.lehaine.littlekt.math.Mat4
@@ -145,7 +145,7 @@ sealed class ShaderParameter(val name: String) {
             program.createAttrib(name)
         }
 
-        fun apply(program: ShaderProgram, source: Buffer) {
+        fun apply(program: ShaderProgram, source: BufferReference) {
             program.gl.bindBuffer(GL.ARRAY_BUFFER, source)
             program.gl.vertexAttribPointer(
                 index = program.getAttrib(name),
@@ -164,7 +164,7 @@ sealed class ShaderParameter(val name: String) {
             program.createAttrib(name)
         }
 
-        fun apply(program: ShaderProgram, source: Buffer) {
+        fun apply(program: ShaderProgram, source: BufferReference) {
             program.gl.bindBuffer(GL.ARRAY_BUFFER, source)
             program.gl.vertexAttribPointer(
                 index = program.getAttrib(name),
@@ -183,7 +183,7 @@ sealed class ShaderParameter(val name: String) {
             program.createAttrib(name)
         }
 
-        fun apply(program: ShaderProgram, source: Buffer) {
+        fun apply(program: ShaderProgram, source: BufferReference) {
             program.gl.bindBuffer(GL.ARRAY_BUFFER, source)
             program.gl.vertexAttribPointer(
                 index = program.getAttrib(name),

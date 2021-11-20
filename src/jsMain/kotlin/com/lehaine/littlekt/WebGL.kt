@@ -1,5 +1,6 @@
 package com.lehaine.littlekt
 
+import com.lehaine.littlekt.graphics.BufferReference
 import com.lehaine.littlekt.graphics.shader.*
 
 /**
@@ -31,6 +32,10 @@ class WebGL : GL {
         TODO("Not yet implemented")
     }
 
+    override fun blendFuncSeparate(srcRGB: Int, dstRGB: Int, srcAlpha: Int, dstAlpha: Int) {
+        TODO("Not yet implemented")
+    }
+
     override fun createProgram(): ShaderProgramReference {
         TODO("Not yet implemented")
     }
@@ -48,6 +53,10 @@ class WebGL : GL {
     }
 
     override fun linkProgram(shaderProgram: ShaderProgramReference) {
+        TODO("Not yet implemented")
+    }
+
+    override fun deleteProgram(shaderProgram: ShaderProgramReference) {
         TODO("Not yet implemented")
     }
 
@@ -87,7 +96,7 @@ class WebGL : GL {
         TODO("Not yet implemented")
     }
 
-    override fun createBuffer(): com.lehaine.littlekt.graphics.Buffer {
+    override fun createBuffer(): com.lehaine.littlekt.graphics.BufferReference {
         TODO("Not yet implemented")
     }
 
@@ -123,7 +132,15 @@ class WebGL : GL {
         TODO("Not yet implemented")
     }
 
-    override fun bindBuffer(target: Int, buffer: com.lehaine.littlekt.graphics.Buffer) {
+    override fun bindBuffer(target: Int, bufferReference: com.lehaine.littlekt.graphics.BufferReference) {
+        TODO("Not yet implemented")
+    }
+
+    override fun bindDefaultBuffer(target: Int) {
+        TODO("Not yet implemented")
+    }
+
+    override fun deleteBuffer(bufferReference: BufferReference) {
         TODO("Not yet implemented")
     }
 
@@ -135,6 +152,10 @@ class WebGL : GL {
         TODO("Not yet implemented")
     }
 
+    override fun depthMask(flag: Boolean) {
+        TODO("Not yet implemented")
+    }
+
     override fun vertexAttribPointer(index: Int, size: Int, type: Int, normalized: Boolean, stride: Int, offset: Int) {
         TODO("Not yet implemented")
     }
@@ -143,7 +164,15 @@ class WebGL : GL {
         TODO("Not yet implemented")
     }
 
+    override fun disableVertexAttribArray(index: Int) {
+        TODO("Not yet implemented")
+    }
+
     override fun useProgram(shaderProgram: ShaderProgramReference) {
+        TODO("Not yet implemented")
+    }
+
+    override fun useDefaultProgram() {
         TODO("Not yet implemented")
     }
 

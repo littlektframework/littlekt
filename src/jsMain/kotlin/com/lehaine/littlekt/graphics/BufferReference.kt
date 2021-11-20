@@ -4,4 +4,4 @@ package com.lehaine.littlekt.graphics
  * @author Colton Daily
  * @date 9/28/2021
  */
-actual class Buffer(val address:Int)
+actual class BufferReference

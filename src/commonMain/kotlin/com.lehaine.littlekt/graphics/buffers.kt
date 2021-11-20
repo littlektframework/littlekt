@@ -11,7 +11,7 @@ import com.lehaine.littlekt.graphics.shader.ShaderProgram
  */
 class VertexBufferObject(val gl: GL, val isStatic: Boolean, numVertices: Int, val attributes: VertexAttributes) :
     Disposable {
-    private val bufferReference: Buffer = gl.createBuffer()
+    private val bufferReference: BufferReference = gl.createBuffer()
     private val buffer = FloatArray(attributes.vertexSize * numVertices)
     private val usage = if (isStatic) GL.STATIC_DRAW else GL.DYNAMIC_DRAW
     private var bound = false
@@ -71,7 +71,7 @@ class VertexBufferObject(val gl: GL, val isStatic: Boolean, numVertices: Int, va
 }
 
 class IndexBufferObject(val gl: GL, maxIndices: Int, val isStatic: Boolean = true) : Disposable {
-    private val bufferReference: Buffer = gl.createBuffer()
+    private val bufferReference: BufferReference = gl.createBuffer()
     private val buffer = ShortArray(maxIndices * 2)
     private val usage = if (isStatic) GL.STATIC_DRAW else GL.DYNAMIC_DRAW
     private var bound = false
