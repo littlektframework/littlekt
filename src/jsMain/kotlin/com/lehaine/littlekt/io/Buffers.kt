@@ -50,19 +50,19 @@ actual class ByteBuffer private constructor(actual override val capacity: Int) :
         return this
     }
 
-    actual override fun <T : Buffer> T.flip(): T {
+    actual fun flip(): ByteBuffer {
         limit = position
         position = 0
         mark = UNSET_MARK
         return this
     }
 
-    actual override fun <T : Buffer> T.mark(): T {
+    actual fun mark(): ByteBuffer {
         mark = position
         return this
     }
 
-    actual override fun <T : Buffer> T.reset(): T {
+    actual fun reset(): ByteBuffer {
         if (mark == UNSET_MARK) {
             throw InvalidMarkException()
         }
@@ -168,7 +168,7 @@ actual class ByteBuffer private constructor(actual override val capacity: Int) :
     actual fun putChar(value: Char) = putChar(value, -1)
     actual fun putChar(value: Char, index: Int): ByteBuffer {
         val i = idx(index, 2)
-        dw.setUint16(i, value.toShort(), order == ByteOrder.LITTLE_ENDIAN)
+        dw.setUint16(i, value.code.toShort(), order == ByteOrder.LITTLE_ENDIAN)
         return this
     }
 
@@ -223,6 +223,8 @@ actual class ByteBuffer private constructor(actual override val capacity: Int) :
         return out
     }
 
+    actual fun asFloatBuffer(): FloatBuffer = FloatBuffer.createFrom(dw)
+
     actual companion object {
         const val UNSET_MARK = -1
         actual fun allocate(capacity: Int) = ByteBuffer(capacity)
@@ -233,13 +235,15 @@ actual class ByteBuffer private constructor(actual override val capacity: Int) :
  * @author Colton Daily
  * @date 11/19/2021
  */
-actual class FloatBuffer private constructor(actual override val capacity: Int) : Buffer {
+actual class FloatBuffer private constructor(
+    actual override val capacity: Int,
+    private val dw: DataView = DataView(ArrayBuffer(capacity), 0, capacity)
+) : Buffer {
 
     init {
         require(capacity >= 0)
     }
 
-    private val dw = DataView(ArrayBuffer(capacity), 0, capacity)
     private var mark = UNSET_MARK
 
     actual override val hasRemaining: Boolean
@@ -276,19 +280,19 @@ actual class FloatBuffer private constructor(actual override val capacity: Int) 
         return this
     }
 
-    actual override fun <T : Buffer> T.flip(): T {
+    actual fun flip(): FloatBuffer {
         limit = position
         position = 0
         mark = UNSET_MARK
         return this
     }
 
-    actual override fun <T : Buffer> T.mark(): T {
+    actual fun mark(): FloatBuffer {
         mark = position
         return this
     }
 
-    actual override fun <T : Buffer> T.reset(): T {
+    actual fun reset(): FloatBuffer {
         if (mark == UNSET_MARK) {
             throw InvalidMarkException()
         }
@@ -352,7 +356,139 @@ actual class FloatBuffer private constructor(actual override val capacity: Int) 
 
     actual companion object {
         const val UNSET_MARK = -1
+        fun createFrom(dw: DataView) =
+            FloatBuffer(dw.byteLength, DataView(dw.buffer.slice(0, dw.buffer.byteLength), dw.byteOffset, dw.byteLength))
+
         actual fun allocate(capacity: Int) = FloatBuffer(capacity)
+    }
+}
+
+/**
+ * @author Colton Daily
+ * @date 11/19/2021
+ */
+actual class ShortBuffer private constructor(
+    actual override val capacity: Int,
+    private val dw: DataView = DataView(ArrayBuffer(capacity), 0, capacity)
+) : Buffer {
+
+    init {
+        require(capacity >= 0)
+    }
+
+    private var mark = UNSET_MARK
+
+    actual override val hasRemaining: Boolean
+        get() = position < limit
+
+    actual override val remaining: Int
+        get() = limit - position
+
+    actual override var limit: Int = capacity
+        set(value) {
+            require(value in 0..capacity)
+            field = value
+            if (position > value) {
+                position = value
+            }
+            if (mark != UNSET_MARK && mark > value) {
+                mark = UNSET_MARK
+            }
+        }
+
+    actual override var position: Int = 0
+        set(newPosition) {
+            require(newPosition in 0..limit)
+            field = newPosition
+            if (mark != UNSET_MARK && mark > position) {
+                mark = UNSET_MARK
+            }
+        }
+
+    actual fun clear(): ShortBuffer {
+        position = 0
+        limit = capacity
+        mark = UNSET_MARK
+        return this
+    }
+
+    actual fun flip(): ShortBuffer {
+        limit = position
+        position = 0
+        mark = UNSET_MARK
+        return this
+    }
+
+    actual fun mark(): ShortBuffer {
+        mark = position
+        return this
+    }
+
+    actual fun reset(): ShortBuffer {
+        if (mark == UNSET_MARK) {
+            throw InvalidMarkException()
+        }
+        position = mark
+        return this
+    }
+
+    fun rewind(): ShortBuffer {
+        position = 0
+        mark = UNSET_MARK
+        return this
+    }
+
+    private fun idx(index: Int, size: Int): Int {
+        val i = if (index == -1) {
+            position += size
+            position - size
+        } else index
+        if (i > limit) throw IllegalArgumentException()
+        return i
+    }
+
+    actual fun get(): Short = get(-1)
+    actual fun get(index: Int): Short {
+        val i = idx(index, 1)
+        return dw.getInt16(i)
+    }
+
+    actual fun get(dst: ShortArray, offset: Int, cnt: Int): ShortBuffer {
+        val pos = idx(-1, cnt)
+        for (i in 0 until cnt) {
+            dst[offset + i] = dw.getInt16(pos + i)
+        }
+        return this
+    }
+
+    actual fun put(value: Short): ShortBuffer = put(value, -1)
+    actual fun put(value: Short, index: Int): ShortBuffer {
+        val i = idx(index, 1)
+        dw.setInt16(i, value)
+        return this
+    }
+
+    actual fun put(src: ShortArray) = put(src, 0, src.size)
+
+    actual fun put(src: ShortArray, offset: Int, cnt: Int): ShortBuffer {
+        val pos = idx(-1, cnt)
+        for (i in 0 until cnt) {
+            dw.setUint16(pos + i, src[offset + i])
+        }
+        return this
+    }
+
+    actual fun array(): ShortArray {
+        val out = ShortArray(limit)
+        for (i in 0 until limit) {
+            out[i] = dw.getInt16(i)
+        }
+        return out
+    }
+
+    actual companion object {
+        const val UNSET_MARK = -1
+        actual fun allocate(capacity: Int) = ShortBuffer(capacity)
     }
 }
 

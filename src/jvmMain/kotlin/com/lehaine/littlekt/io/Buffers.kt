@@ -1,14 +1,17 @@
 package com.lehaine.littlekt.io
 
+import org.lwjgl.BufferUtils
+
 /**
  * @author Colton Daily
  * @date 11/19/2021
  */
 typealias JByteBuffer = java.nio.ByteBuffer
 typealias JFloatBuffer = java.nio.FloatBuffer
+typealias JShortBuffer = java.nio.ShortBuffer
 typealias JByteOrder = java.nio.ByteOrder
 
-actual class ByteBuffer private constructor(private val dw: JByteBuffer) : Buffer {
+actual class ByteBuffer private constructor(val dw: JByteBuffer) : Buffer {
 
     actual override var limit: Int
         set(value) {
@@ -25,17 +28,17 @@ actual class ByteBuffer private constructor(private val dw: JByteBuffer) : Buffe
 
     actual override val hasRemaining: Boolean get() = dw.hasRemaining()
 
-    actual override fun <T : Buffer> T.flip(): T {
+    actual fun flip(): ByteBuffer {
         dw.flip()
         return this
     }
 
-    actual override fun <T : Buffer> T.mark(): T {
+    actual fun mark(): ByteBuffer {
         dw.mark()
         return this
     }
 
-    actual override fun <T : Buffer> T.reset(): T {
+    actual fun reset(): ByteBuffer {
         dw.reset()
         return this
     }
@@ -151,13 +154,15 @@ actual class ByteBuffer private constructor(private val dw: JByteBuffer) : Buffe
 
     actual fun array(): ByteArray = dw.array()
 
+    actual fun asFloatBuffer(): FloatBuffer = FloatBuffer.createFrom(dw.asFloatBuffer())
+
     actual companion object {
-        actual fun allocate(capacity: Int) = ByteBuffer(JByteBuffer.allocate(capacity))
+        actual fun allocate(capacity: Int) = ByteBuffer(BufferUtils.createByteBuffer(capacity))
     }
 }
 
 
-actual class FloatBuffer private constructor(private val dw: JFloatBuffer) : Buffer {
+actual class FloatBuffer private constructor(val dw: JFloatBuffer) : Buffer {
     actual override var limit: Int
         set(value) {
             dw.limit(value)
@@ -173,17 +178,17 @@ actual class FloatBuffer private constructor(private val dw: JFloatBuffer) : Buf
 
     actual override val hasRemaining: Boolean get() = dw.hasRemaining()
 
-    actual override fun <T : Buffer> T.flip(): T {
+    actual fun flip(): FloatBuffer {
         dw.flip()
         return this
     }
 
-    actual override fun <T : Buffer> T.mark(): T {
+    actual fun mark(): FloatBuffer {
         dw.mark()
         return this
     }
 
-    actual override fun <T : Buffer> T.reset(): T {
+    actual fun reset(): FloatBuffer {
         dw.reset()
         return this
     }
@@ -191,10 +196,6 @@ actual class FloatBuffer private constructor(private val dw: JFloatBuffer) : Buf
     actual fun clear(): FloatBuffer {
         dw.clear()
         return this
-    }
-
-    actual companion object {
-        actual fun allocate(capacity: Int) = FloatBuffer(JFloatBuffer.allocate(capacity))
     }
 
     actual fun get(): Float {
@@ -232,5 +233,88 @@ actual class FloatBuffer private constructor(private val dw: JFloatBuffer) : Buf
 
     actual fun array(): FloatArray {
         return dw.array()
+    }
+
+    actual companion object {
+        fun createFrom(buffer: JFloatBuffer) = FloatBuffer(buffer)
+        actual fun allocate(capacity: Int) = FloatBuffer(BufferUtils.createFloatBuffer(capacity))
+    }
+}
+
+actual class ShortBuffer private constructor(val dw: JShortBuffer) : Buffer {
+    actual override var limit: Int
+        set(value) {
+            dw.limit(value)
+        }
+        get() = dw.limit()
+    actual override val remaining: Int get() = dw.remaining()
+    actual override val capacity: Int get() = dw.capacity()
+    actual override var position: Int
+        set(value) {
+            dw.position(value)
+        }
+        get() = dw.position()
+
+    actual override val hasRemaining: Boolean get() = dw.hasRemaining()
+
+    actual fun flip(): ShortBuffer {
+        dw.flip()
+        return this
+    }
+
+    actual fun mark(): ShortBuffer {
+        dw.mark()
+        return this
+    }
+
+    actual fun reset(): ShortBuffer {
+        dw.reset()
+        return this
+    }
+
+    actual fun clear(): ShortBuffer {
+        dw.clear()
+        return this
+    }
+
+    actual fun get(): Short {
+        return dw.get()
+    }
+
+    actual fun get(index: Int): Short {
+        return dw.get(index)
+    }
+
+    actual fun get(dst: ShortArray, offset: Int, cnt: Int): ShortBuffer {
+        dw.get(dst, offset, cnt)
+        return this
+    }
+
+    actual fun put(value: Short): ShortBuffer {
+        dw.put(value)
+        return this
+    }
+
+    actual fun put(value: Short, index: Int): ShortBuffer {
+        dw.put(index, value)
+        return this
+    }
+
+    actual fun put(src: ShortArray): ShortBuffer {
+        dw.put(src)
+        return this
+    }
+
+    actual fun put(src: ShortArray, offset: Int, cnt: Int): ShortBuffer {
+        dw.put(src, offset, cnt)
+        return this
+    }
+
+    actual fun array(): ShortArray {
+        return dw.array()
+    }
+
+    actual companion object {
+        actual fun allocate(capacity: Int) = ShortBuffer(BufferUtils.createShortBuffer(capacity))
     }
 }

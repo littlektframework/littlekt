@@ -167,6 +167,8 @@ class LwjglGL : GL {
             is DataSource.ShortDataSource -> glBufferData(target, data.shorts, usage)
             is DataSource.UIntDataSource -> glBufferData(target, data.ints, usage)
             is DataSource.DoubleDataSource -> glBufferData(target, data.double, usage)
+            is DataSource.FloatBufferDataSource -> glBufferData(target, data.buffer.dw, usage)
+            is DataSource.ShortBufferDataSource -> glBufferData(target, data.buffer.dw, usage)
         }
     }
 

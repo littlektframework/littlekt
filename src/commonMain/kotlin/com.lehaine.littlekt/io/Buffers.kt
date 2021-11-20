@@ -11,9 +11,6 @@ interface Buffer {
     val capacity: Int
     var position: Int
     val hasRemaining: Boolean
-    fun <T : Buffer> T.flip(): T
-    fun <T : Buffer> T.mark(): T
-    fun <T : Buffer> T.reset(): T
 }
 
 enum class ByteOrder {
@@ -28,9 +25,9 @@ expect class ByteBuffer : Buffer {
     override var position: Int
     override val hasRemaining: Boolean
 
-    override fun <T : Buffer> T.flip(): T
-    override fun <T : Buffer> T.mark(): T
-    override fun <T : Buffer> T.reset(): T
+    fun flip(): ByteBuffer
+    fun mark(): ByteBuffer
+    fun reset(): ByteBuffer
 
     fun order(order: ByteOrder): ByteBuffer
     fun clear(): ByteBuffer
@@ -70,6 +67,7 @@ expect class ByteBuffer : Buffer {
     fun putDouble(value: Double, index: Int): ByteBuffer
 
     fun array(): ByteArray
+    fun asFloatBuffer(): FloatBuffer
 
 
     companion object {
@@ -83,9 +81,10 @@ expect class FloatBuffer : Buffer {
     override val capacity: Int
     override var position: Int
     override val hasRemaining: Boolean
-    override fun <T : Buffer> T.flip(): T
-    override fun <T : Buffer> T.mark(): T
-    override fun <T : Buffer> T.reset(): T
+
+    fun flip(): FloatBuffer
+    fun mark(): FloatBuffer
+    fun reset(): FloatBuffer
 
     fun clear(): FloatBuffer
 
@@ -102,5 +101,34 @@ expect class FloatBuffer : Buffer {
 
     companion object {
         fun allocate(capacity: Int): FloatBuffer
+    }
+}
+
+expect class ShortBuffer : Buffer {
+    override var limit: Int
+    override val remaining: Int
+    override val capacity: Int
+    override var position: Int
+    override val hasRemaining: Boolean
+
+    fun flip(): ShortBuffer
+    fun mark(): ShortBuffer
+    fun reset(): ShortBuffer
+
+    fun clear(): ShortBuffer
+
+    fun get(): Short
+    fun get(index: Int): Short
+    fun get(dst: ShortArray, offset: Int = 0, cnt: Int = dst.size): ShortBuffer
+
+    fun put(value: Short): ShortBuffer
+    fun put(value: Short, index: Int): ShortBuffer
+    fun put(src: ShortArray): ShortBuffer
+    fun put(src: ShortArray, offset: Int = 0, cnt: Int = src.size): ShortBuffer
+
+    fun array(): ShortArray
+
+    companion object {
+        fun allocate(capacity: Int): ShortBuffer
     }
 }
