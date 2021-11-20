@@ -1,16 +1,14 @@
 package com.lehaine.littlekt
 
 import com.lehaine.littlekt.graphics.*
-import com.lehaine.littlekt.graphics.shader.DataSource
 import com.lehaine.littlekt.graphics.shader.ShaderProgram
-import com.lehaine.littlekt.graphics.shader.fragment.TexturedFragmentShader
+import com.lehaine.littlekt.graphics.shader.fragment.ColorFragmentShader
 import com.lehaine.littlekt.graphics.shader.vertex.TexturedQuadShader
 import com.lehaine.littlekt.input.InputProcessor
 import com.lehaine.littlekt.input.Key
 import com.lehaine.littlekt.input.Pointer
-import com.lehaine.littlekt.io.FloatBuffer
-import com.lehaine.littlekt.io.ShortBuffer
 import com.lehaine.littlekt.io.get
+import com.lehaine.littlekt.math.ortho
 
 /**
  * @author Colton Daily
@@ -23,57 +21,53 @@ class DisplayTest(application: Application) : LittleKt(application), InputProces
     val input get() = application.input
 
     val texture by application.fileHandler.get<Texture>("person.png")
-    val shader = ShaderProgram(gl, TexturedQuadShader(), TexturedFragmentShader())
-    val mesh = Mesh(gl, true, 15, 3, VertexAttribute.POSITION, VertexAttribute.COLOR_PACKED)
+    val shader = ShaderProgram(gl, TexturedQuadShader(), ColorFragmentShader())
+    val mesh = Mesh(gl, true, 4, 6, VertexAttribute.POSITION, VertexAttribute.COLOR_UNPACKED)
+
     val vertices = floatArrayOf(
-       -0.5f, -0.5f, 0f,
-        0.5f, -0.5f, 0f,
-        0f, 1f, 0f
+        -50f, -50f, 0f, 1f, 1f, 1f, 1f,
+        50f, -50f, 0f, 1f, 1f, 1f, 1f,
+        50f, 50f, 0f, 1f, 1f, 1f, 1f,
+        -50f, 50f, 0f, 1f, 1f, 1f, 1f,
     )
-    val indices = shortArrayOf(0, 1, 2)
-
-    val vbo: BufferReference
-    val ibo: BufferReference
-
-
-    init {
-        vbo = gl.createBuffer()
-        bindVbo()
-        ibo = gl.createBuffer()
-        bindIbo()
-    }
-
-    private fun bindVbo() {
-        gl.bindBuffer(GL.ARRAY_BUFFER, vbo)
-        val vboBuffer = FloatBuffer.allocate(vertices.size)
-        vboBuffer.put(vertices)
-        vboBuffer.flip()
-        gl.bufferData(GL.ARRAY_BUFFER, DataSource.FloatBufferDataSource(vboBuffer), GL.STATIC_DRAW)
-        gl.bindDefaultBuffer(GL.ARRAY_BUFFER)
-    }
-
-    private fun bindIbo() {
-        gl.bindBuffer(GL.ELEMENT_ARRAY_BUFFER, ibo)
-        val buffer = ShortBuffer.allocate(indices.size)
-        gl.bufferData(GL.ELEMENT_ARRAY_BUFFER, DataSource.ShortBufferDataSource(buffer), GL.STATIC_DRAW)
-    }
+    val indices = shortArrayOf(0, 1, 2, 2, 3, 0)
 
     override fun create() {
         println("create")
-        mesh.setVertices(vertices)
         mesh.setIndices(indices)
+        mesh.setVertices(vertices)
         input.inputProcessor = this
     }
 
+    var projection = ortho(
+        l = 0f,
+        r = application.graphics.width.toFloat(),
+        b = 0f,
+        t = application.graphics.height.toFloat(),
+        n = -1f,
+        f = 1f
+    )
+
     override fun render(dt: Float) {
         gl.clearColor(0f, 0f, 0f, 0f)
-        mesh.render(shader)
 //        batch.begin()
-//        batch.draw(texture, 5f, 5f)
+//        batch.draw(texture, 0f, 0f)
 //        batch.end()
+
+        shader.bind()
+        shader.vertexShader.uProjTrans.apply(shader, projection)
+        mesh.render(shader)
     }
 
     override fun resize(width: Int, height: Int) {
+        projection = ortho(
+            l = 0f,
+            r = application.graphics.width.toFloat(),
+            b = 0f,
+            t = application.graphics.height.toFloat(),
+            n = -1f,
+            f = 1f
+        )
         println("resize to $width,$height")
     }
 

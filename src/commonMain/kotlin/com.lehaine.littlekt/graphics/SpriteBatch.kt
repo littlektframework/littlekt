@@ -35,8 +35,14 @@ class SpriteBatch(
 
     private var drawing = false
     private var transformMatrix = Mat4()
-    private var projectionMatrix =
-        ortho(0f, 0f, application.graphics.width.toFloat(), application.graphics.height.toFloat(), 0f, 0f)
+    private var projectionMatrix = ortho(
+        l = 0f,
+        r = application.graphics.width.toFloat(),
+        b = 0f,
+        t = application.graphics.height.toFloat(),
+        n = -1f,
+        f = 1f
+    )
     private var combinedMatrix = Mat4()
 
     private val mesh = Mesh(
@@ -60,6 +66,8 @@ class SpriteBatch(
     private val colorPacked = color.toFloatBits()
 
     init {
+
+
         val len = size * 6
         val indices = ShortArray(len)
         var i = 0
@@ -210,7 +218,7 @@ class SpriteBatch(
         vertices[idx + 17] = colorPacked
         vertices[idx + 18] = u2
         vertices[idx + 19] = v
-        idx += 20
+        idx += SPRITE_SIZE
     }
 
     fun end() {
@@ -239,6 +247,10 @@ class SpriteBatch(
         val count = spritesInBatch * 6
         lastTexture?.bind()
         mesh.setVertices(vertices, 0, idx)
+        mesh.indicesBuffer.apply {
+            position = 0
+            limit = count
+        }
         gl.enable(GL.BLEND)
         gl.blendFuncSeparate(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA, GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
         mesh.render(shader, GL.TRIANGLES, 0, count)

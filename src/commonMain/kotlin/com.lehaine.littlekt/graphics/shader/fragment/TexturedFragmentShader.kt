@@ -8,22 +8,18 @@ package com.lehaine.littlekt.graphics.shader.fragment
 private val simpleFragmentShader =
     """
         #ifdef GL_ES
-        precision highp float;
-        precision mediump int;
+        #define LOWP lowp
+        precision mediump float;
         #else
-        #define lowp
-        #define mediump
-        #define highp
+        #define LOWP 
         #endif
         
-        varying lowp vec4 v_color;
-        varying lowp vec4 v_mix_color;
-        varying highp vec2 v_texCoords;
-        uniform highp sampler2D u_texture;
+        varying LOWP vec4 v_color;
+        varying vec2 v_texCoords;
+        uniform sampler2D u_texture;
         
         void main() {
-            vec4 c = texture2D(u_texture, v_texCoords);
-            gl_FragColor = v_color * mix(c, vec4(v_mix_color.rgb, c.a), v_mix_color.a);
+            gl_FragColor = v_color * texture2D(u_texture, v_texCoords);
         }
     """.trimIndent()
 

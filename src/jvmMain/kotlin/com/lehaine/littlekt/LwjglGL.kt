@@ -208,7 +208,7 @@ class LwjglGL : GL {
         glUniform1i(uniform.address, data)
     }
 
-    override fun uniform2i(uniform: Uniform, a: Int, b: Int) {
+    override fun uniform2i(uniform: Uniform, a: Int, b: Int) {1
         glUniform2i(uniform.address, a, b)
     }
 

@@ -16,9 +16,9 @@ class LwjglGraphics : Graphics {
     internal var _backBufferHeight: Int = 0
 
     override val width: Int
-        get() = _width
+        get() = _backBufferWidth
     override val height: Int
-        get() = _height
+        get() = _backBufferHeight
     override val backBufferWidth: Int
         get() = _backBufferWidth
     override val backBufferHeight: Int

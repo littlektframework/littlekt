@@ -25,4 +25,4 @@ fun Color.abgr(r: Int, g: Int, b: Int, a: Int) = (a shl 24) or (b shl 16) or (g 
 fun Color.rgba8888() = Color.rgba8888(r, g, b, a)
 fun Color.rgba() = rgba8888()
 fun Color.toFloatBits() =
-    Float.fromBits(((255 * a).toInt() shl 24) or ((255 * b).toInt() shl 16) or ((255 * g).toInt() shl 8) or (255 * r).toInt() and 0xfeffffff.toInt())
+    Float.fromBits((((255 * a).toInt() shl 24) or ((255 * b).toInt() shl 16) or ((255 * g).toInt() shl 8) or (255 * r).toInt()) and 0xfeffffff.toInt())

@@ -9,12 +9,17 @@ import com.lehaine.littlekt.log.JvmLogger
 import com.lehaine.littlekt.log.Logger
 import org.lwjgl.glfw.Callbacks
 import org.lwjgl.glfw.GLFW
+import org.lwjgl.glfw.GLFW.glfwDestroyWindow
+import org.lwjgl.glfw.GLFW.glfwMakeContextCurrent
 import org.lwjgl.glfw.GLFWErrorCallback
-import org.lwjgl.opengl.GL11.glClear
+import org.lwjgl.opengl.GL11.*
 import org.lwjgl.opengl.GL30C
+import org.lwjgl.opengl.GLCapabilities
 import org.lwjgl.system.MemoryStack
 import org.lwjgl.system.MemoryUtil
 import kotlin.math.min
+import org.lwjgl.opengl.GL as LWJGL
+
 
 /**
  * @author Colton Daily
@@ -51,15 +56,31 @@ actual class PlatformApplication actual constructor(actual override val configur
         // Initialize GLFW. Most GLFW functions will not work before doing this.
         check(GLFW.glfwInit()) { "Unable to initialize GLFW" }
 
+        // Create temporary window for getting OpenGL Version
+        GLFW.glfwDefaultWindowHints()
+        GLFW.glfwWindowHint(GLFW.GLFW_VISIBLE, GLFW.GLFW_FALSE)
+        val temp: Long = GLFW.glfwCreateWindow(1, 1, "", MemoryUtil.NULL, MemoryUtil.NULL)
+        glfwMakeContextCurrent(temp)
+        LWJGL.createCapabilities()
+        val caps: GLCapabilities = LWJGL.getCapabilities()
+        glfwDestroyWindow(temp)
+
+
         // Configure GLFW
         GLFW.glfwDefaultWindowHints() // optional, the current window hints are already the default
+
+        if (caps.OpenGL32) {
+            GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MAJOR, 3)
+            GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MINOR, 2)
+            GLFW.glfwWindowHint(GLFW.GLFW_OPENGL_PROFILE, GLFW.GLFW_OPENGL_CORE_PROFILE)
+            GLFW.glfwWindowHint(GLFW.GLFW_OPENGL_FORWARD_COMPAT, GL30C.GL_TRUE)
+        } else if (caps.OpenGL21) {
+            GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MAJOR, 2);
+            GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MINOR, 1);
+        }
+
         GLFW.glfwWindowHint(GLFW.GLFW_VISIBLE, GLFW.GLFW_FALSE) // the window will stay hidden after creation
         GLFW.glfwWindowHint(GLFW.GLFW_RESIZABLE, GLFW.GLFW_TRUE) // the window will be resizable
-
-//        GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MAJOR, 3)
-//        GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MINOR, 2)
-//        GLFW.glfwWindowHint(GLFW.GLFW_OPENGL_PROFILE, GLFW.GLFW_OPENGL_CORE_PROFILE)
-//        GLFW.glfwWindowHint(GLFW.GLFW_OPENGL_FORWARD_COMPAT, GL30C.GL_TRUE)
 
         // Create the window
         windowHandle = GLFW.glfwCreateWindow(
@@ -108,14 +129,13 @@ actual class PlatformApplication actual constructor(actual override val configur
         GLFW.glfwShowWindow(windowHandle)
         input.attachToWindow(windowHandle)
 
-        org.lwjgl.opengl.GL.createCapabilities()
+        LWJGL.createCapabilities()
 
         GL30C.glClearColor(0f, 0f, 0f, 0f)
         //     glEnable(GL_DEPTH_TEST)
-        //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
 
         val game = gameBuilder(this)
-
         GLFW.glfwSetFramebufferSizeCallback(windowHandle) { _, width, height ->
             graphics.gl.viewport(0, 0, width, height)
             graphics._backBufferWidth = width

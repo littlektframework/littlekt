@@ -1,18 +1,11 @@
 package com.lehaine.littlekt
 
-import com.lehaine.littlekt.graphics.Mesh
-import com.lehaine.littlekt.graphics.SpriteBatch
-import com.lehaine.littlekt.graphics.Texture
-import com.lehaine.littlekt.graphics.VertexAttribute
-import com.lehaine.littlekt.graphics.shader.ShaderProgram
-import com.lehaine.littlekt.graphics.shader.fragment.TexturedFragmentShader
-import com.lehaine.littlekt.graphics.shader.vertex.TexturedQuadShader
 import com.lehaine.littlekt.input.InputProcessor
 import com.lehaine.littlekt.input.Key
 import com.lehaine.littlekt.input.Pointer
-import com.lehaine.littlekt.io.get
 import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.GL11
+import org.lwjgl.opengl.GL11.*
 import org.lwjgl.opengl.GL15
 import org.lwjgl.opengl.GL20
 import org.lwjgl.opengl.GL30
@@ -21,56 +14,31 @@ import org.lwjgl.opengl.GL30
  * @author Colton Daily
  * @date 11/6/2021
  */
+
 class LWJGL3DisplayTest(application: Application) : LittleKt(application), InputProcessor {
 
-    val gl: GL get() = application.graphics.gl
-    val batch = SpriteBatch(application)
     val input get() = application.input
-
-    val texture by application.fileHandler.get<Texture>("person.png")
-    val shader = ShaderProgram(gl, TexturedQuadShader(), TexturedFragmentShader())
-    val mesh = Mesh(gl, true, 15, 3, VertexAttribute.POSITION)
     val vertices = floatArrayOf(
         0.5f, -0.5f, 0f,
         0.5f, -0.5f, 0f,
         0f, 0.5f, 0f
     )
-    val indices = shortArrayOf(0, 1, 2)
+    val indices = intArrayOf(0, 1, 2)
 
-    //    val vbo: BufferReference
-//    val ibo: BufferReference
     val vboLwjgl: Int
     val iboLwjgl: Int
     val vao: Int
 
+
     init {
-//        vbo = gl.createBuffer()
-//        bindVbo()
-//        ibo = gl.createBuffer()
-//        bindIbo()
         vao = GL30.glGenVertexArrays()
         GL30.glBindVertexArray(vao)
         vboLwjgl = GL15.glGenBuffers()
         bindLwjglVbo()
         iboLwjgl = GL15.glGenBuffers()
         bindLwjglIbo()
+        GL30.glBindVertexArray(0)
     }
-
-//    private fun bindVbo() {
-//        gl.bindBuffer(GL.ARRAY_BUFFER, vbo)
-//        val vboBuffer = FloatBuffer.allocate(vertices.size)
-//        vboBuffer.put(vertices)
-//        vboBuffer.flip()
-//        gl.bufferData(GL.ARRAY_BUFFER, DataSource.FloatBufferDataSource(vboBuffer), GL.STATIC_DRAW)
-//        gl.vertexAttribPointer(0, 3, GL.FLOAT, false, 0, 0)
-//        gl.bindDefaultBuffer(GL.ARRAY_BUFFER)
-//    }
-//
-//    private fun bindIbo() {
-//        gl.bindBuffer(GL.ELEMENT_ARRAY_BUFFER, ibo)
-//        val buffer = ShortBuffer.allocate(indices.size)
-//        gl.bufferData(GL.ELEMENT_ARRAY_BUFFER, DataSource.ShortBufferDataSource(buffer), GL.STATIC_DRAW)
-//    }
 
     private fun bindLwjglVbo() {
         GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, vboLwjgl)
@@ -84,7 +52,7 @@ class LWJGL3DisplayTest(application: Application) : LittleKt(application), Input
 
     private fun bindLwjglIbo() {
         GL15.glBindBuffer(GL15.GL_ELEMENT_ARRAY_BUFFER, iboLwjgl)
-        val buffer = BufferUtils.createShortBuffer(indices.size)
+        val buffer = BufferUtils.createIntBuffer(indices.size)
         buffer.put(indices)
         buffer.flip()
         GL15.glBufferData(GL15.GL_ELEMENT_ARRAY_BUFFER, buffer, GL15.GL_STATIC_DRAW)
@@ -92,25 +60,18 @@ class LWJGL3DisplayTest(application: Application) : LittleKt(application), Input
 
     override fun create() {
         println("create")
-//        mesh.setVertices(vertices)
-//        mesh.setIndices(indices)
         input.inputProcessor = this
+
     }
 
     override fun render(dt: Float) {
-        gl.clearColor(0f, 0f, 0f, 0f)
+        GL11.glClearColor(0f, 0f, 0f, 0f)
+
         GL30.glBindVertexArray(vao)
-//        gl.enableVertexAttribArray(0)
-//        gl.drawElements(GL.TRIANGLES, indices.size, GL.UNSIGNED_SHORT, 0)
-//        gl.disableVertexAttribArray(0)
         GL20.glEnableVertexAttribArray(0)
-        GL11.glDrawElements(GL11.GL_TRIANGLES, indices.size, GL15.GL_UNSIGNED_SHORT, 0)
+        GL11.glDrawElements(GL11.GL_TRIANGLES, indices.size, GL15.GL_UNSIGNED_INT, 0)
         GL20.glDisableVertexAttribArray(0)
         GL30.glBindVertexArray(0)
-        //      mesh.render()
-//        batch.begin()
-//        batch.draw(texture, 5f, 5f)
-//        batch.end()
     }
 
     override fun resize(width: Int, height: Int) {

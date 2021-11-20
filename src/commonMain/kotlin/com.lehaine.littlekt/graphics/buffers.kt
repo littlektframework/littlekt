@@ -13,7 +13,11 @@ import com.lehaine.littlekt.io.ShortBuffer
  */
 class VertexBufferObject(val gl: GL, val isStatic: Boolean, numVertices: Int, val attributes: VertexAttributes) :
     Disposable {
-    private val buffer: FloatBuffer = FloatBuffer.allocate(attributes.vertexSize / 4 * numVertices)
+    val buffer: FloatBuffer = FloatBuffer.allocate(attributes.vertexSize / 4 * numVertices)
+        get() {
+            isDirty = true
+            return field
+        }
     private val bufferReference: BufferReference = gl.createBuffer()
     private val usage = if (isStatic) GL.STATIC_DRAW else GL.DYNAMIC_DRAW
     private var bound = false
@@ -72,7 +76,7 @@ class VertexBufferObject(val gl: GL, val isStatic: Boolean, numVertices: Int, va
     }
 
     fun unbind(shader: ShaderProgram? = null, locations: IntArray? = null) {
-        if(shader != null) {
+        if (shader != null) {
             attributes.forEachIndexed { index, attribute ->
                 gl.disableVertexAttribArray(locations?.get(index) ?: shader.getAttrib(attribute.alias))
             }
@@ -96,8 +100,12 @@ class VertexBufferObject(val gl: GL, val isStatic: Boolean, numVertices: Int, va
 }
 
 class IndexBufferObject(val gl: GL, maxIndices: Int, val isStatic: Boolean = true) : Disposable {
+    val buffer = ShortBuffer.allocate(maxIndices * 2)
+        get() {
+            isDirty = true
+            return field
+        }
     private val bufferReference: BufferReference = gl.createBuffer()
-    private val buffer = ShortBuffer.allocate(maxIndices * 2)
     private val usage = if (isStatic) GL.STATIC_DRAW else GL.DYNAMIC_DRAW
     private var bound = false
 

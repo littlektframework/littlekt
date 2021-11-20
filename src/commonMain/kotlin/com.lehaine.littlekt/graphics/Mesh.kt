@@ -14,6 +14,9 @@ class Mesh(val gl: GL, isStatic: Boolean, maxVertices: Int, maxIndices: Int, var
     private val vertices = VertexBufferObject(gl, isStatic, maxVertices, VertexAttributes(*attributes))
     private val indices = IndexBufferObject(gl, maxIndices, isStatic)
 
+    val verticesBuffer get() = vertices.buffer
+    val indicesBuffer get() = indices.buffer
+
     val numIndices get() = indices.numIndices
     val numVertices get() = vertices.numVertices
 

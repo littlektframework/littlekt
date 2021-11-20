@@ -34,7 +34,9 @@ data class VertexAttribute(
 
     companion object {
         val POSITION get() = VertexAttribute(Usage.POSITION, 3, alias = ShaderProgram.POSITION_ATTRIBUTE)
-        fun TEX_COORDS(unit: Int) = VertexAttribute(Usage.TEX_COORDS, 2, ShaderProgram.TEXCOORD_ATTRIBUTE + unit, unit)
+        fun TEX_COORDS(unit: Int = 0) =
+            VertexAttribute(Usage.TEX_COORDS, 2, ShaderProgram.TEXCOORD_ATTRIBUTE + unit, unit)
+
         val NORMAL get() = VertexAttribute(Usage.NORMAL, 3, ShaderProgram.NORMAL_ATTRIBUTE)
         val COLOR_PACKED
             get() = VertexAttribute(
@@ -105,14 +107,14 @@ class VertexAttributes(private vararg val attributes: VertexAttribute) : Iterabl
         return attributes.iterator()
     }
 
-    override fun compareTo(o: VertexAttributes): Int {
-        if (attributes.size != o.attributes.size) return attributes.size - o.attributes.size
+    override fun compareTo(other: VertexAttributes): Int {
+        if (attributes.size != other.attributes.size) return attributes.size - other.attributes.size
         val m1: Long = mask
-        val m2: Long = o.mask
+        val m2: Long = other.mask
         if (m1 != m2) return if (m1 < m2) -1 else 1
         for (i in attributes.size - 1 downTo 0) {
             val (usage, numComponents, _, type, normalized, unit) = attributes[i]
-            val (usage1, numComponents1, _, type1, normalized1, unit1) = o.attributes[i]
+            val (usage1, numComponents1, _, type1, normalized1, unit1) = other.attributes[i]
             if (usage != usage1) return usage.usage - usage1.usage
             if (unit != unit1) return unit - unit1
             if (numComponents != numComponents1) return numComponents - numComponents1
