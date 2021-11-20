@@ -12,7 +12,7 @@ import com.lehaine.littlekt.graphics.shader.ShaderProgram
 class VertexBufferObject(val gl: GL, val isStatic: Boolean, numVertices: Int, val attributes: VertexAttributes) :
     Disposable {
     private val bufferReference: Buffer = gl.createBuffer()
-    private val buffer = FloatArray(attributes.size / 4 * numVertices)
+    private val buffer = FloatArray(attributes.vertexSize * numVertices)
     private val usage = if (isStatic) GL.STATIC_DRAW else GL.DYNAMIC_DRAW
     private var bound = false
 

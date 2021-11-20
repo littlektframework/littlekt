@@ -54,7 +54,7 @@ class SpriteBatch(
     private var lastTexture: Texture? = null
     private var idx = 0
     private var invTexWidth = 0f
-    private var inTexHeight = 0f
+    private var invTexHeight = 0f
 
     private val color = Color.WHITE
     private val colorPacked = color.toFloatBits()
@@ -249,7 +249,7 @@ class SpriteBatch(
         flush()
         lastTexture = texture
         invTexWidth = 1f / texture.width
-        invTexWidth = 1f / texture.height
+        invTexHeight = 1f / texture.height
     }
 
     private fun setupMatrices() {

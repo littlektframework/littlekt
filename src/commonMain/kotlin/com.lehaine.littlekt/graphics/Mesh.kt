@@ -64,6 +64,7 @@ class Mesh(val gl: GL, isStatic: Boolean, maxVertices: Int, maxIndices: Int, var
         } else {
             gl.drawArrays(primitiveType, offset, count)
         }
+        unbind(shader)
     }
 
     override fun dispose() {

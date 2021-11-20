@@ -10,6 +10,7 @@ import com.lehaine.littlekt.log.Logger
 import org.lwjgl.glfw.Callbacks
 import org.lwjgl.glfw.GLFW
 import org.lwjgl.glfw.GLFWErrorCallback
+import org.lwjgl.opengl.GL11.*
 import org.lwjgl.opengl.GL30C
 import org.lwjgl.system.MemoryStack
 import org.lwjgl.system.MemoryUtil
@@ -111,7 +112,7 @@ actual class PlatformApplication actual constructor(actual override val configur
 
         GL30C.glClearColor(0f, 0f, 0f, 0f)
         //     glEnable(GL_DEPTH_TEST)
-        //   glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
+           glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
 
         val game = gameBuilder(this)
 
@@ -122,6 +123,7 @@ actual class PlatformApplication actual constructor(actual override val configur
             game.resize(width, height)
         }
 
+        game.application.assetManager.update()
         game.create()
         game.resize(configuration.width, configuration.height)
 
