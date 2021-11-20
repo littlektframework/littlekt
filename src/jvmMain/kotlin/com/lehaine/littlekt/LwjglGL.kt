@@ -240,6 +240,10 @@ class LwjglGL : GL {
         glDrawElements(mask, vertexCount, type, offset.toLong())
     }
 
+    override fun vertex2f(x: Float, y: Float) {
+        glVertex2f(x, y)
+    }
+
     override fun viewport(x: Int, y: Int, width: Int, height: Int) {
         glViewport(x, y, width, height)
     }

@@ -98,6 +98,8 @@ interface GL {
     fun drawArrays(mask: Int, offset: Int, vertexCount: Int)
     fun drawElements(mask: Int, vertexCount: Int, type: Int, offset: Int)
 
+    fun vertex2f(x:Float, y:Float)
+
     fun viewport(x: Int, y: Int, width: Int, height: Int)
 
     fun texImage2D(
@@ -116,7 +118,6 @@ interface GL {
     fun generateMipmap(target: Int)
 
     companion object {
-
         const val ES_VERSION_2_0 = 1
         const val DEPTH_BUFFER_BIT = 0x00000100
         const val STENCIL_BUFFER_BIT = 0x00000400

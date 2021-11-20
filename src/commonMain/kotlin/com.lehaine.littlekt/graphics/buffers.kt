@@ -32,8 +32,7 @@ class VertexBufferObject(val gl: GL, val isStatic: Boolean, numVertices: Int, va
         isDirty = true
         buffer.clear()
         buffer.put(vertices, srcOffset, count)
-        buffer.position = 0
-        buffer.limit = count
+        buffer.flip()
         onBufferChanged()
     }
 
@@ -46,33 +45,37 @@ class VertexBufferObject(val gl: GL, val isStatic: Boolean, numVertices: Int, va
         onBufferChanged()
     }
 
-    fun bind(shader: ShaderProgram, locations: IntArray? = null) {
+    fun bind(shader: ShaderProgram? = null, locations: IntArray? = null) {
         gl.bindBuffer(GL.ARRAY_BUFFER, bufferReference)
         if (isDirty) {
             gl.bufferData(GL.ARRAY_BUFFER, DataSource.FloatBufferDataSource(buffer), usage)
             isDirty = false
         }
-        attributes.forEachIndexed { index, attribute ->
-            val location = locations?.get(index) ?: shader.getAttrib(attribute.alias)
-            if (location < 0) {
-                return@forEachIndexed
+        if (shader != null) {
+            attributes.forEachIndexed { index, attribute ->
+                val location = locations?.get(index) ?: shader.getAttrib(attribute.alias)
+                if (location < 0) {
+                    return@forEachIndexed
+                }
+                gl.enableVertexAttribArray(location)
+                gl.vertexAttribPointer(
+                    location,
+                    attribute.numComponents,
+                    attribute.type,
+                    attribute.normalized,
+                    attributes.vertexSize,
+                    attribute.offset
+                )
             }
-            gl.enableVertexAttribArray(location)
-            gl.vertexAttribPointer(
-                location,
-                attribute.numComponents,
-                attribute.type,
-                attribute.normalized,
-                attributes.vertexSize,
-                attribute.offset
-            )
         }
         bound = true
     }
 
-    fun unbind(shader: ShaderProgram, locations: IntArray?) {
-        attributes.forEachIndexed { index, attribute ->
-            gl.disableVertexAttribArray(locations?.get(index) ?: shader.getAttrib(attribute.alias))
+    fun unbind(shader: ShaderProgram? = null, locations: IntArray? = null) {
+        if(shader != null) {
+            attributes.forEachIndexed { index, attribute ->
+                gl.disableVertexAttribArray(locations?.get(index) ?: shader.getAttrib(attribute.alias))
+            }
         }
         gl.bindDefaultBuffer(GL.ARRAY_BUFFER)
         bound = false
@@ -108,6 +111,7 @@ class IndexBufferObject(val gl: GL, maxIndices: Int, val isStatic: Boolean = tru
     }
 
     fun setIndices(indices: ShortArray, srcOffset: Int, count: Int) {
+        isDirty = true
         buffer.clear()
         buffer.put(indices, srcOffset, count)
         buffer.flip()
@@ -115,6 +119,7 @@ class IndexBufferObject(val gl: GL, maxIndices: Int, val isStatic: Boolean = tru
     }
 
     fun updateVertices(destOffset: Int, indices: ShortArray, srcOffset: Int, count: Int) {
+        isDirty = true
         val pos = buffer.position
         buffer.position = destOffset
         buffer.put(indices, srcOffset, count)
@@ -124,6 +129,10 @@ class IndexBufferObject(val gl: GL, maxIndices: Int, val isStatic: Boolean = tru
 
     fun bind() {
         gl.bindBuffer(GL.ELEMENT_ARRAY_BUFFER, bufferReference)
+        if (isDirty) {
+            gl.bufferData(GL.ELEMENT_ARRAY_BUFFER, DataSource.ShortBufferDataSource(buffer), usage)
+            isDirty = false
+        }
         bound = true
     }
 

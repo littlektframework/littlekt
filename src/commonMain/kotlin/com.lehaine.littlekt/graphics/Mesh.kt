@@ -32,14 +32,14 @@ class Mesh(val gl: GL, isStatic: Boolean, maxVertices: Int, maxIndices: Int, var
         return this
     }
 
-    fun bind(shader: ShaderProgram, locations: IntArray? = null) {
+    fun bind(shader: ShaderProgram? = null, locations: IntArray? = null) {
         vertices.bind(shader, locations)
         if (numIndices > 0) {
             indices.bind()
         }
     }
 
-    fun unbind(shader: ShaderProgram, locations: IntArray? = null) {
+    fun unbind(shader: ShaderProgram? = null, locations: IntArray? = null) {
         vertices.unbind(shader, locations)
         if (numIndices > 0) {
             indices.unbind()
@@ -47,8 +47,8 @@ class Mesh(val gl: GL, isStatic: Boolean, maxVertices: Int, maxIndices: Int, var
     }
 
     fun render(
-        shader: ShaderProgram,
-        primitiveType: Int,
+        shader: ShaderProgram? = null,
+        primitiveType: Int = GL.TRIANGLES,
         offset: Int = 0,
         count: Int = if (numIndices > 0) numIndices else numVertices,
     ) {
@@ -57,7 +57,7 @@ class Mesh(val gl: GL, isStatic: Boolean, maxVertices: Int, maxIndices: Int, var
         }
         bind(shader)
         if (numIndices > 0) {
-            if (count + offset > numIndices) {
+            if (count + offset > indices.maxNumIndices) {
                 throw RuntimeException("Mesh attempting to access memory outside of the index buffer (count: $count, offset: $offset, max: $numIndices)")
             }
             gl.drawElements(primitiveType, count, GL.UNSIGNED_SHORT, offset * 2)

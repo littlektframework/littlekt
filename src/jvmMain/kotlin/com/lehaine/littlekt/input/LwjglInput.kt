@@ -21,7 +21,7 @@ class LwjglInput(private val logger: Logger, private val application: Applicatio
 
     override var inputProcessor: InputProcessor? = null
 
-    fun attachHandler(windowHandle: Long) {
+    fun attachToWindow(windowHandle: Long) {
         glfwSetKeyCallback(
             windowHandle,
             object : GLFWKeyCallback() {

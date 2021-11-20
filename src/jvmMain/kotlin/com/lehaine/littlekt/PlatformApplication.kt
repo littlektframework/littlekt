@@ -10,7 +10,7 @@ import com.lehaine.littlekt.log.Logger
 import org.lwjgl.glfw.Callbacks
 import org.lwjgl.glfw.GLFW
 import org.lwjgl.glfw.GLFWErrorCallback
-import org.lwjgl.opengl.GL11.*
+import org.lwjgl.opengl.GL11.glClear
 import org.lwjgl.opengl.GL30C
 import org.lwjgl.system.MemoryStack
 import org.lwjgl.system.MemoryUtil
@@ -56,10 +56,10 @@ actual class PlatformApplication actual constructor(actual override val configur
         GLFW.glfwWindowHint(GLFW.GLFW_VISIBLE, GLFW.GLFW_FALSE) // the window will stay hidden after creation
         GLFW.glfwWindowHint(GLFW.GLFW_RESIZABLE, GLFW.GLFW_TRUE) // the window will be resizable
 
-        GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MAJOR, 3);
-        GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MINOR, 2);
-        GLFW.glfwWindowHint(GLFW.GLFW_OPENGL_PROFILE, GLFW.GLFW_OPENGL_CORE_PROFILE);
-        GLFW.glfwWindowHint(GLFW.GLFW_OPENGL_FORWARD_COMPAT, GL30C.GL_TRUE);
+//        GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MAJOR, 3)
+//        GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MINOR, 2)
+//        GLFW.glfwWindowHint(GLFW.GLFW_OPENGL_PROFILE, GLFW.GLFW_OPENGL_CORE_PROFILE)
+//        GLFW.glfwWindowHint(GLFW.GLFW_OPENGL_FORWARD_COMPAT, GL30C.GL_TRUE)
 
         // Create the window
         windowHandle = GLFW.glfwCreateWindow(
@@ -106,13 +106,13 @@ actual class PlatformApplication actual constructor(actual override val configur
         }
         // Make the window visible
         GLFW.glfwShowWindow(windowHandle)
-        input.attachHandler(windowHandle)
+        input.attachToWindow(windowHandle)
 
         org.lwjgl.opengl.GL.createCapabilities()
 
         GL30C.glClearColor(0f, 0f, 0f, 0f)
         //     glEnable(GL_DEPTH_TEST)
-           glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
+        //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
 
         val game = gameBuilder(this)
 
@@ -129,6 +129,7 @@ actual class PlatformApplication actual constructor(actual override val configur
 
 
         while (!windowShouldClose) {
+            glClear(GL.COLOR_BUFFER_BIT or GL.DEPTH_BUFFER_BIT)
             val delta = getDelta()
             input.update()
             game.render(delta)
@@ -136,7 +137,6 @@ actual class PlatformApplication actual constructor(actual override val configur
             input.reset()
             GLFW.glfwPollEvents()
         }
-        close()
         destroy()
     }
 

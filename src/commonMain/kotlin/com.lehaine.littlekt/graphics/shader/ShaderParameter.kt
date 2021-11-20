@@ -144,56 +144,17 @@ sealed class ShaderParameter(val name: String) {
         override fun create(program: ShaderProgram) {
             program.createAttrib(name)
         }
-
-        fun apply(program: ShaderProgram, source: BufferReference) {
-            program.gl.bindBuffer(GL.ARRAY_BUFFER, source)
-            program.gl.vertexAttribPointer(
-                index = program.getAttrib(name),
-                size = 2,
-                type = GL.FLOAT,
-                normalized = false,
-                stride = 0,
-                offset = 0
-            )
-            program.gl.enableVertexAttribArray(program.getAttrib(name))
-        }
     }
 
     class AttributeVec3(name: String) : ShaderParameter(name) {
         override fun create(program: ShaderProgram) {
             program.createAttrib(name)
         }
-
-        fun apply(program: ShaderProgram, source: BufferReference) {
-            program.gl.bindBuffer(GL.ARRAY_BUFFER, source)
-            program.gl.vertexAttribPointer(
-                index = program.getAttrib(name),
-                size = 3,
-                type = GL.FLOAT,
-                normalized = false,
-                stride = 0,
-                offset = 0
-            )
-            program.gl.enableVertexAttribArray(program.getAttrib(name))
-        }
     }
 
     class AttributeVec4(name: String) : ShaderParameter(name) {
         override fun create(program: ShaderProgram) {
             program.createAttrib(name)
-        }
-
-        fun apply(program: ShaderProgram, source: BufferReference) {
-            program.gl.bindBuffer(GL.ARRAY_BUFFER, source)
-            program.gl.vertexAttribPointer(
-                index = program.getAttrib(name),
-                size = 4,
-                type = GL.FLOAT,
-                normalized = false,
-                stride = 0,
-                offset = 0
-            )
-            program.gl.enableVertexAttribArray(program.getAttrib(name))
         }
     }
 
