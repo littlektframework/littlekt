@@ -1,6 +1,7 @@
 package com.lehaine.littlekt
 
 import com.lehaine.littlekt.graphics.BufferReference
+import com.lehaine.littlekt.graphics.VertexArrayReference
 import com.lehaine.littlekt.graphics.shader.*
 
 /**
@@ -8,6 +9,10 @@ import com.lehaine.littlekt.graphics.shader.*
  * @date 9/28/2021
  */
 class WebGL : GL {
+    override fun getGLVersion(): GLVersion {
+        TODO("Not yet implemented")
+    }
+
     override fun clearColor(r: Float, g: Float, b: Float, a: Float) {
         TODO("Not yet implemented")
     }
@@ -101,6 +106,18 @@ class WebGL : GL {
     }
 
     override fun createFrameBuffer(): com.lehaine.littlekt.graphics.FrameBufferReference {
+        TODO("Not yet implemented")
+    }
+
+    override fun createVertexArray(): VertexArrayReference {
+        TODO("Not yet implemented")
+    }
+
+    override fun bindVertexArray(vertexArrayReference: VertexArrayReference) {
+        TODO("Not yet implemented")
+    }
+
+    override fun bindDefaultVertexArray() {
         TODO("Not yet implemented")
     }
 
@@ -225,6 +242,10 @@ class WebGL : GL {
     }
 
     override fun drawElements(mask: Int, vertexCount: Int, type: Int, offset: Int) {
+        TODO("Not yet implemented")
+    }
+
+    override fun vertex2f(x: Float, y: Float) {
         TODO("Not yet implemented")
     }
 

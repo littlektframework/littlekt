@@ -13,8 +13,10 @@ import org.lwjgl.glfw.GLFW.glfwDestroyWindow
 import org.lwjgl.glfw.GLFW.glfwMakeContextCurrent
 import org.lwjgl.glfw.GLFWErrorCallback
 import org.lwjgl.opengl.GL11.*
+import org.lwjgl.opengl.GL30
 import org.lwjgl.opengl.GL30C
 import org.lwjgl.opengl.GLCapabilities
+import org.lwjgl.opengl.GLUtil
 import org.lwjgl.system.MemoryStack
 import org.lwjgl.system.MemoryUtil
 import kotlin.math.min
@@ -49,6 +51,9 @@ actual class PlatformApplication actual constructor(actual override val configur
     }
 
     actual override fun start(gameBuilder: (app: Application) -> LittleKt) {
+        val graphics = graphics as LwjglGraphics
+        val input = input as LwjglInput
+
         // Setup an error callback. The default implementation
         // will print the error message in System.err.
         GLFWErrorCallback.createPrint(System.err).set()
@@ -73,10 +78,12 @@ actual class PlatformApplication actual constructor(actual override val configur
             GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MAJOR, 3)
             GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MINOR, 2)
             GLFW.glfwWindowHint(GLFW.GLFW_OPENGL_PROFILE, GLFW.GLFW_OPENGL_CORE_PROFILE)
-            GLFW.glfwWindowHint(GLFW.GLFW_OPENGL_FORWARD_COMPAT, GL30C.GL_TRUE)
+            GLFW.glfwWindowHint(GLFW.GLFW_OPENGL_FORWARD_COMPAT, GL30.GL_TRUE)
+            graphics._glVersion = GLVersion.GL_32
         } else if (caps.OpenGL21) {
-            GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MAJOR, 2);
-            GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MINOR, 1);
+            GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MAJOR, 2)
+            GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MINOR, 1)
+            graphics._glVersion = GLVersion.GL_21
         }
 
         GLFW.glfwWindowHint(GLFW.GLFW_VISIBLE, GLFW.GLFW_FALSE) // the window will stay hidden after creation
@@ -91,9 +98,6 @@ actual class PlatformApplication actual constructor(actual override val configur
             MemoryUtil.NULL
         )
         if (windowHandle == MemoryUtil.NULL) throw RuntimeException("Failed to create the GLFW window")
-
-        val input = input as LwjglInput
-        val graphics = graphics as LwjglGraphics
 
         MemoryStack.stackPush().use { stack ->
             val pWidth = stack.mallocInt(1) // int*
@@ -130,10 +134,11 @@ actual class PlatformApplication actual constructor(actual override val configur
         input.attachToWindow(windowHandle)
 
         LWJGL.createCapabilities()
+        GLUtil.setupDebugMessageCallback()
 
         GL30C.glClearColor(0f, 0f, 0f, 0f)
         //     glEnable(GL_DEPTH_TEST)
-        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
+     //   glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
 
         val game = gameBuilder(this)
         GLFW.glfwSetFramebufferSizeCallback(windowHandle) { _, width, height ->

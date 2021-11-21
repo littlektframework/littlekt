@@ -19,6 +19,7 @@ class VertexBufferObject(val gl: GL, val isStatic: Boolean, numVertices: Int, va
             return field
         }
     private val bufferReference: BufferReference = gl.createBuffer()
+    private val vaoReference: VertexArrayReference? = if (gl.isGL32()) gl.createVertexArray() else null
     private val usage = if (isStatic) GL.STATIC_DRAW else GL.DYNAMIC_DRAW
     private var bound = false
 
@@ -50,6 +51,9 @@ class VertexBufferObject(val gl: GL, val isStatic: Boolean, numVertices: Int, va
     }
 
     fun bind(shader: ShaderProgram? = null, locations: IntArray? = null) {
+        vaoReference?.let {
+            gl.bindVertexArray(it)
+        }
         gl.bindBuffer(GL.ARRAY_BUFFER, bufferReference)
         if (isDirty) {
             gl.bufferData(GL.ARRAY_BUFFER, DataSource.FloatBufferDataSource(buffer), usage)
@@ -82,6 +86,9 @@ class VertexBufferObject(val gl: GL, val isStatic: Boolean, numVertices: Int, va
             }
         }
         gl.bindDefaultBuffer(GL.ARRAY_BUFFER)
+        vaoReference?.let {
+            gl.bindDefaultVertexArray()
+        }
         bound = false
     }
 

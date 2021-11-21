@@ -1,9 +1,6 @@
 package com.lehaine.littlekt
 
-import com.lehaine.littlekt.graphics.BufferReference
-import com.lehaine.littlekt.graphics.FrameBufferReference
-import com.lehaine.littlekt.graphics.RenderBufferReference
-import com.lehaine.littlekt.graphics.TextureReference
+import com.lehaine.littlekt.graphics.*
 import com.lehaine.littlekt.graphics.shader.DataSource
 import com.lehaine.littlekt.graphics.shader.ShaderProgramReference
 import com.lehaine.littlekt.graphics.shader.ShaderReference
@@ -16,6 +13,10 @@ import java.nio.ByteBuffer
  * @date 9/28/2021
  */
 class LwjglGL : GL {
+    internal var _glVersion: GLVersion = GLVersion.GL_32
+
+    override fun getGLVersion(): GLVersion = _glVersion
+
     override fun clearColor(r: Float, g: Float, b: Float, a: Float) {
         glClearColor(r, g, b, a)
     }
@@ -120,6 +121,18 @@ class LwjglGL : GL {
         return FrameBufferReference(glGenFramebuffers())
     }
 
+    override fun createVertexArray(): VertexArrayReference {
+        return VertexArrayReference(glGenVertexArrays())
+    }
+
+    override fun bindVertexArray(vertexArrayReference: VertexArrayReference) {
+        glBindVertexArray(vertexArrayReference.address)
+    }
+
+    override fun bindDefaultVertexArray() {
+        glBindVertexArray(0)
+    }
+
     override fun bindFrameBuffer(frameBufferReference: FrameBufferReference) {
         glBindFramebuffer(GL.FRAMEBUFFER, frameBufferReference.reference)
     }
@@ -208,7 +221,8 @@ class LwjglGL : GL {
         glUniform1i(uniform.address, data)
     }
 
-    override fun uniform2i(uniform: Uniform, a: Int, b: Int) {1
+    override fun uniform2i(uniform: Uniform, a: Int, b: Int) {
+        1
         glUniform2i(uniform.address, a, b)
     }
 

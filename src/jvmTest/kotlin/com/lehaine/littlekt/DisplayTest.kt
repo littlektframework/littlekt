@@ -1,6 +1,9 @@
 package com.lehaine.littlekt
 
-import com.lehaine.littlekt.graphics.*
+import com.lehaine.littlekt.graphics.Mesh
+import com.lehaine.littlekt.graphics.SpriteBatch
+import com.lehaine.littlekt.graphics.Texture
+import com.lehaine.littlekt.graphics.VertexAttribute
 import com.lehaine.littlekt.graphics.shader.ShaderProgram
 import com.lehaine.littlekt.graphics.shader.fragment.ColorFragmentShader
 import com.lehaine.littlekt.graphics.shader.vertex.TexturedQuadShader
@@ -25,10 +28,10 @@ class DisplayTest(application: Application) : LittleKt(application), InputProces
     val mesh = Mesh(gl, true, 4, 6, VertexAttribute.POSITION, VertexAttribute.COLOR_UNPACKED)
 
     val vertices = floatArrayOf(
-        -50f, -50f, 0f, 1f, 1f, 1f, 1f,
-        50f, -50f, 0f, 1f, 1f, 1f, 1f,
-        50f, 50f, 0f, 1f, 1f, 1f, 1f,
-        -50f, 50f, 0f, 1f, 1f, 1f, 1f,
+        50f, 50f, 0f, 1f, 0f, 0f, 1f,
+        100f, 50f, 0f, 0f, 1f, 0f, 1f,
+        100f, 100f, 0f, 0f, 0f, 1f, 1f,
+        50f, 100f, 0f, 1f, 0f, 0f, 1f,
     )
     val indices = shortArrayOf(0, 1, 2, 2, 3, 0)
 

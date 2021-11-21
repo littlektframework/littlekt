@@ -1,20 +1,34 @@
 package com.lehaine.littlekt
 
-import com.lehaine.littlekt.graphics.BufferReference
-import com.lehaine.littlekt.graphics.FrameBufferReference
-import com.lehaine.littlekt.graphics.RenderBufferReference
-import com.lehaine.littlekt.graphics.TextureReference
+import com.lehaine.littlekt.graphics.*
 import com.lehaine.littlekt.graphics.shader.DataSource
 import com.lehaine.littlekt.graphics.shader.ShaderProgramReference
 import com.lehaine.littlekt.graphics.shader.ShaderReference
 import com.lehaine.littlekt.graphics.shader.Uniform
 import com.lehaine.littlekt.math.Mat4
 
+
+/**
+ * @author Colton Daily
+ * @date 11/20/2021
+ */
+enum class GLVersion {
+    GL_32,
+    GL_21
+}
+
 /**
  * @author Colton Daily
  * @date 9/28/2021
  */
 interface GL {
+
+    fun getGLVersion(): GLVersion
+
+    /**
+     * @return if the current GL version is 3.2 or higher
+     */
+    fun isGL32() = getGLVersion() == GLVersion.GL_32
 
     fun clearColor(r: Float, g: Float, b: Float, a: Float)
     fun clear(mask: Int)
@@ -48,6 +62,9 @@ interface GL {
     fun getProgramInfoLog(shader: ShaderProgramReference): String
     fun createBuffer(): BufferReference
     fun createFrameBuffer(): FrameBufferReference
+    fun createVertexArray(): VertexArrayReference
+    fun bindVertexArray(vertexArrayReference: VertexArrayReference)
+    fun bindDefaultVertexArray()
     fun bindFrameBuffer(frameBufferReference: FrameBufferReference)
     fun bindDefaultFrameBuffer()
 
@@ -98,7 +115,7 @@ interface GL {
     fun drawArrays(mask: Int, offset: Int, vertexCount: Int)
     fun drawElements(mask: Int, vertexCount: Int, type: Int, offset: Int)
 
-    fun vertex2f(x:Float, y:Float)
+    fun vertex2f(x: Float, y: Float)
 
     fun viewport(x: Int, y: Int, width: Int, height: Int)
 

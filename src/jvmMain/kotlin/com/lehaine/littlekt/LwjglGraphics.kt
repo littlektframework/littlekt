@@ -10,6 +10,11 @@ import org.lwjgl.glfw.GLFW
 class LwjglGraphics : Graphics {
     override val gl: GL = LwjglGL()
 
+    internal var _glVersion: GLVersion = GLVersion.GL_32
+        set(value) {
+            (gl as LwjglGL)._glVersion = value
+            field = value
+        }
     internal var _width: Int = 0
     internal var _height: Int = 0
     internal var _backBufferWidth: Int = 0
@@ -45,6 +50,8 @@ class LwjglGraphics : Graphics {
     }
 
     override fun getType(): Graphics.GraphicsType = Graphics.GraphicsType.LWJGL3
+
+    override fun getGLVersion(): GLVersion = _glVersion
 
     override fun getPpiX(): Float {
         TODO("Not yet implemented")
