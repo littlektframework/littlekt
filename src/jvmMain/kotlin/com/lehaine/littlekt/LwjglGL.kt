@@ -254,6 +254,10 @@ class LwjglGL : GL {
         glDrawElements(mask, vertexCount, type, offset.toLong())
     }
 
+    override fun pixelStorei(pname: Int, param: Int) {
+        glPixelStorei(pname, param)
+    }
+
     override fun vertex2f(x: Float, y: Float) {
         glVertex2f(x, y)
     }
@@ -280,7 +284,6 @@ class LwjglGL : GL {
         type: Int,
         source: ByteArray
     ) {
-        // glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
         val buffer = ByteBuffer.allocateDirect(source.size)
         buffer.put(source)
         (buffer as java.nio.Buffer).position(0)

@@ -1,7 +1,6 @@
 package com.lehaine.littlekt.graphics.shader
 
 import com.lehaine.littlekt.GL
-import com.lehaine.littlekt.graphics.BufferReference
 import com.lehaine.littlekt.graphics.Color
 import com.lehaine.littlekt.graphics.TextureReference
 import com.lehaine.littlekt.math.Mat4

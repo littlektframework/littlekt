@@ -1,6 +1,7 @@
 package com.lehaine.littlekt.graphics
 
 import com.lehaine.littlekt.Application
+import com.lehaine.littlekt.GL
 import com.lehaine.littlekt.Platform
 
 /**
@@ -116,6 +117,7 @@ private fun TextureData.generateMipMapDesktop(
 
     if (application.graphics.supportsExtension("GL_ARB_framebuffer_object")
         || application.graphics.supportsExtension("GL_EXT_framebuffer_object")
+        || gl.isGL32()
     ) {
         gl.texImage2D(
             target,
@@ -145,6 +147,7 @@ fun <T : TextureData> T.uploadImageData(application: Application, target: Int, d
         return
     }
 
+    gl.pixelStorei(GL.UNPACK_ALIGNMENT, 1)
     val pixmap = data.consumePixmap()
     if (data.useMipMaps) {
         generateMipMap(application, target, pixmap, data.width, data.height)

@@ -6,7 +6,7 @@ import com.lehaine.littlekt.graphics.Texture
 import com.lehaine.littlekt.graphics.VertexAttribute
 import com.lehaine.littlekt.graphics.shader.ShaderProgram
 import com.lehaine.littlekt.graphics.shader.fragment.ColorFragmentShader
-import com.lehaine.littlekt.graphics.shader.vertex.TexturedQuadShader
+import com.lehaine.littlekt.graphics.shader.vertex.ColoredQuadShader
 import com.lehaine.littlekt.input.InputProcessor
 import com.lehaine.littlekt.input.Key
 import com.lehaine.littlekt.input.Pointer
@@ -24,7 +24,7 @@ class DisplayTest(application: Application) : LittleKt(application), InputProces
     val input get() = application.input
 
     val texture by application.fileHandler.get<Texture>("person.png")
-    val shader = ShaderProgram(gl, TexturedQuadShader(), ColorFragmentShader())
+    val shader = ShaderProgram(gl, ColoredQuadShader(), ColorFragmentShader())
     val mesh = Mesh(gl, true, 4, 6, VertexAttribute.POSITION, VertexAttribute.COLOR_UNPACKED)
 
     val vertices = floatArrayOf(

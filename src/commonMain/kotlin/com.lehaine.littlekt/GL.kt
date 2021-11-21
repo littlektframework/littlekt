@@ -115,6 +115,8 @@ interface GL {
     fun drawArrays(mask: Int, offset: Int, vertexCount: Int)
     fun drawElements(mask: Int, vertexCount: Int, type: Int, offset: Int)
 
+    fun pixelStorei(pname:Int, param:Int)
+
     fun vertex2f(x: Float, y: Float)
 
     fun viewport(x: Int, y: Int, width: Int, height: Int)

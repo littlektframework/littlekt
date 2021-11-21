@@ -2,6 +2,7 @@ package com.lehaine.littlekt.graphics
 
 import com.lehaine.littlekt.Application
 import com.lehaine.littlekt.GL
+import com.lehaine.littlekt.graphics.gl.PixmapTextureData
 import com.lehaine.littlekt.io.Asset
 
 /**
@@ -26,7 +27,7 @@ class Texture(
         }
         val texture = textureReference ?: gl.createTexture()
 
-        textureData.uploadImageData(application, GL.TEXTURE_2D, textureData)
+        gl.bindTexture(GL.TEXTURE_2D, texture)
 
         // TODO - impl setting min/max filters
         gl.texParameteri(
@@ -44,7 +45,7 @@ class Texture(
         gl.texParameteri(GL.TEXTURE_2D, GL.TEXTURE_WRAP_S, GL.CLAMP_TO_EDGE)
         gl.texParameteri(GL.TEXTURE_2D, GL.TEXTURE_WRAP_T, GL.CLAMP_TO_EDGE)
 
-        gl.bindTexture(GL.TEXTURE_2D, texture)
+        textureData.uploadImageData(application, GL.TEXTURE_2D, textureData)
 
         textureReference = texture
 
@@ -58,11 +59,29 @@ class Texture(
         if (gl == null || textureReference == null) {
             throw IllegalStateException("Texture has not been loaded yet! Unable to bind!")
         }
+        //gl.activeTexture(GL.TEXTURE0 + 0)
         gl.bindTexture(GL.TEXTURE_2D, textureReference)
 
     }
 
     override fun onLoad(callback: (Asset) -> Unit) {
         onLoad.add(callback)
+    }
+
+    companion object {
+        val DEFAULT = Texture(
+            PixmapTextureData(
+                Pixmap(
+                    2, 2,
+                    byteArrayOf(
+                        0xFF.toByte(), 0x00.toByte(), 0x00.toByte(), 0xFF.toByte(),
+                        0x00.toByte(), 0xFF.toByte(), 0x00.toByte(), 0xFF.toByte(),
+                        0x00.toByte(), 0x00.toByte(), 0xFF.toByte(), 0xFF.toByte(),
+                        0xFF.toByte(), 0xFF.toByte(), 0x00.toByte(), 0xFF.toByte()
+                    )
+                ),
+                true
+            )
+        )
     }
 }
