@@ -35,7 +35,7 @@ data class VertexAttribute(
     companion object {
         val POSITION get() = VertexAttribute(Usage.POSITION, 3, alias = ShaderProgram.POSITION_ATTRIBUTE)
         fun TEX_COORDS(unit: Int = 0) =
-            VertexAttribute(Usage.TEX_COORDS, 2, ShaderProgram.TEXCOORD_ATTRIBUTE + unit, unit)
+            VertexAttribute(Usage.TEX_COORDS, 2, ShaderProgram.TEXCOORD_ATTRIBUTE + unit, unit = unit)
 
         val NORMAL get() = VertexAttribute(Usage.NORMAL, 3, ShaderProgram.NORMAL_ATTRIBUTE)
         val COLOR_PACKED

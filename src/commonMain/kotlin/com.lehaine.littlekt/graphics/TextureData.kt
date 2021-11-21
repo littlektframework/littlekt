@@ -120,14 +120,14 @@ private fun TextureData.generateMipMapDesktop(
         || gl.isGL32()
     ) {
         gl.texImage2D(
-            target,
-            0,
-            pixmap.glFormat,
-            pixmap.glFormat,
-            pixmap.width,
-            pixmap.height,
-            pixmap.glType,
-            pixmap.pixels
+            target = target,
+            level = 0,
+            internalformat = pixmap.glFormat,
+            format = pixmap.glFormat,
+            width = pixmap.width,
+            height = pixmap.height,
+            type = pixmap.glType,
+            source = pixmap.pixels
         )
         gl.generateMipmap(target)
     } else {
@@ -153,14 +153,14 @@ fun <T : TextureData> T.uploadImageData(application: Application, target: Int, d
         generateMipMap(application, target, pixmap, data.width, data.height)
     } else {
         gl.texImage2D(
-            target,
-            mipLevel,
-            pixmap.glFormat,
-            pixmap.glFormat,
-            pixmap.width,
-            pixmap.height,
-            pixmap.glType,
-            pixmap.pixels
+            target = target,
+            level = mipLevel,
+            internalformat = pixmap.glFormat,
+            format = pixmap.glFormat,
+            width = pixmap.width,
+            height = pixmap.height,
+            type = pixmap.glType,
+            source = pixmap.pixels
         )
     }
 }

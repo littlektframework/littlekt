@@ -53,13 +53,14 @@ class DisplayTest(application: Application) : LittleKt(application), InputProces
 
     override fun render(dt: Float) {
         gl.clearColor(0f, 0f, 0f, 0f)
-//        batch.begin()
-//        batch.draw(texture, 0f, 0f)
-//        batch.end()
+        batch.begin()
+        batch.draw(texture, 50f, 50f)
+        batch.draw(Texture.DEFAULT, 100f, 100f)
+        batch.end()
 
-        shader.bind()
-        shader.vertexShader.uProjTrans.apply(shader, projection)
-        mesh.render(shader)
+//        shader.bind()
+//        shader.vertexShader.uProjTrans.apply(shader, projection)
+//        mesh.render(shader)
     }
 
     override fun resize(width: Int, height: Int) {

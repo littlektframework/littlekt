@@ -5,6 +5,7 @@ import com.lehaine.littlekt.graphics.shader.DataSource
 import com.lehaine.littlekt.graphics.shader.ShaderProgramReference
 import com.lehaine.littlekt.graphics.shader.ShaderReference
 import com.lehaine.littlekt.graphics.shader.Uniform
+import org.lwjgl.opengl.GL30
 import org.lwjgl.opengl.GL30.*
 import java.nio.ByteBuffer
 

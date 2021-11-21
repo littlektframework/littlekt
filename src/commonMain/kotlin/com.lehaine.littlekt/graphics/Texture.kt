@@ -53,13 +53,13 @@ class Texture(
         onLoad.forEach { it.invoke(this) }
     }
 
-    fun bind() {
+    fun bind(unit: Int = 0) {
         val gl = gl
         val textureReference = textureReference
         if (gl == null || textureReference == null) {
             throw IllegalStateException("Texture has not been loaded yet! Unable to bind!")
         }
-        //gl.activeTexture(GL.TEXTURE0 + 0)
+        gl.activeTexture(GL.TEXTURE0 + unit)
         gl.bindTexture(GL.TEXTURE_2D, textureReference)
 
     }

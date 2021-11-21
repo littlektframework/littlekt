@@ -62,12 +62,10 @@ class SpriteBatch(
     private var invTexWidth = 0f
     private var invTexHeight = 0f
 
-    private val color = Color.WHITE
+    private val color = Color.GREEN
     private val colorPacked = color.toFloatBits()
 
     init {
-
-
         val len = size * 6
         val indices = ShortArray(len)
         var i = 0
@@ -267,6 +265,8 @@ class SpriteBatch(
     private fun setupMatrices() {
         combinedMatrix = projectionMatrix * transformMatrix
         shader.vertexShader.uProjTrans.apply(shader, combinedMatrix)
-        shader.fragmentShader.uTexture.apply(shader)
+//        lastTexture?.textureReference?.let {
+//            shader.fragmentShader.uTexture.apply(shader, it)
+//        }
     }
 }
