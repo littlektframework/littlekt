@@ -52,10 +52,10 @@ class DisplayTest(application: Application) : LittleKt(application), InputProces
 
     override fun render(dt: Float) {
         gl.clearColor(0f, 0f, 0f, 0f)
-        batch.begin(projection)
-        batch.draw(texture, 125f, 25f, scaleX = 10f, scaleY = 10f)
-        batch.draw(Texture.DEFAULT, 100f, 100f, scaleX = 5f, scaleY = 5f)
-        batch.end()
+        batch.use {
+            it.draw(texture, 125f, 25f, scaleX = 10f, scaleY = 10f)
+            it.draw(Texture.DEFAULT, 100f, 100f, scaleX = 5f, scaleY = 5f)
+        }
 
         shader.bind()
         shader.vertexShader.uProjTrans.apply(shader, projection)

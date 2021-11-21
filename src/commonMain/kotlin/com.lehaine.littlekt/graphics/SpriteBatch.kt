@@ -7,6 +7,9 @@ import com.lehaine.littlekt.graphics.shader.fragment.TexturedFragmentShader
 import com.lehaine.littlekt.graphics.shader.vertex.TexturedQuadShader
 import com.lehaine.littlekt.math.Mat4
 import com.lehaine.littlekt.math.ortho
+import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.InvocationKind
+import kotlin.contracts.contract
 import kotlin.math.cos
 import kotlin.math.sin
 
@@ -34,8 +37,17 @@ class SpriteBatch(
         private set
 
     private var drawing = false
-    private var transformMatrix = Mat4()
-    private var projectionMatrix = ortho(
+    var transformMatrix = Mat4()
+        set(value) {
+            if (drawing) {
+                flush()
+            }
+            field = value
+            if (drawing) {
+                setupMatrices()
+            }
+        }
+    var projectionMatrix = ortho(
         l = 0f,
         r = application.graphics.width.toFloat(),
         b = 0f,
@@ -43,6 +55,15 @@ class SpriteBatch(
         n = -1f,
         f = 1f
     )
+        set(value) {
+            if (drawing) {
+                flush()
+            }
+            field = value
+            if (drawing) {
+                setupMatrices()
+            }
+        }
     private var combinedMatrix = Mat4()
 
     private val mesh = Mesh(
@@ -83,7 +104,7 @@ class SpriteBatch(
         mesh.setIndices(indices)
     }
 
-    fun begin(projectionMatrix: Mat4 = this.projectionMatrix) {
+    fun begin(projectionMatrix: Mat4? = null) {
         if (drawing) {
             throw IllegalStateException("SpriteBatch.end must be called before begin.")
         }
@@ -91,7 +112,9 @@ class SpriteBatch(
 
         gl.depthMask(false)
 
-        this.projectionMatrix = projectionMatrix
+        projectionMatrix?.let {
+            this.projectionMatrix = it
+        }
         shader.bind()
         setupMatrices()
 
@@ -268,4 +291,12 @@ class SpriteBatch(
         shader.vertexShader.uProjTrans.apply(shader, combinedMatrix)
         shader.fragmentShader.uTexture.apply(shader)
     }
+}
+
+@OptIn(ExperimentalContracts::class)
+inline fun SpriteBatch.use(projectionMatrix: Mat4? = null, action: (SpriteBatch) -> Unit) {
+    contract { callsInPlace(action, InvocationKind.EXACTLY_ONCE) }
+    begin(projectionMatrix)
+    action(this)
+    end()
 }
