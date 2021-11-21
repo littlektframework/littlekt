@@ -17,7 +17,7 @@ import com.lehaine.littlekt.math.ortho
 class DisplayTest(application: Application) : LittleKt(application), InputProcessor {
 
     val gl: GL get() = application.graphics.gl
-    val batch = SpriteBatch(application, size = 1)
+    val batch = SpriteBatch(application)
     val input get() = application.input
 
     val texture by application.fileHandler.get<Texture>("person.png")
