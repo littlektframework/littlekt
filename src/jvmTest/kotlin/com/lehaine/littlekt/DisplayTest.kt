@@ -43,9 +43,9 @@ class DisplayTest(application: Application) : LittleKt(application), InputProces
 
     var projection = ortho(
         l = 0f,
-        r = 480f,
+        r = 480f * 2,
         b = 0f,
-        t = 270f,
+        t = 270f * 2,
         n = -1f,
         f = 1f
     )
@@ -53,8 +53,8 @@ class DisplayTest(application: Application) : LittleKt(application), InputProces
     override fun render(dt: Float) {
         gl.clearColor(0f, 0f, 0f, 0f)
         batch.begin(projection)
-        batch.draw(texture, 125f, 25f)
-        batch.draw(Texture.DEFAULT, 100f, 100f)
+        batch.draw(texture, 125f, 25f, scaleX = 10f, scaleY = 10f)
+        batch.draw(Texture.DEFAULT, 100f, 100f, scaleX = 5f, scaleY = 5f)
         batch.end()
 
         shader.bind()
