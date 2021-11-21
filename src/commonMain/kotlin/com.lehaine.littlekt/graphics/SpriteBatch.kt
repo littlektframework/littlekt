@@ -62,7 +62,7 @@ class SpriteBatch(
     private var invTexWidth = 0f
     private var invTexHeight = 0f
 
-    private val color = Color.GREEN
+    private val color = Color.WHITE
     private val colorPacked = color.toFloatBits()
 
     init {
@@ -83,7 +83,7 @@ class SpriteBatch(
         mesh.setIndices(indices)
     }
 
-    fun begin() {
+    fun begin(projectionMatrix: Mat4 = this.projectionMatrix) {
         if (drawing) {
             throw IllegalStateException("SpriteBatch.end must be called before begin.")
         }
@@ -91,6 +91,7 @@ class SpriteBatch(
 
         gl.depthMask(false)
 
+        this.projectionMatrix = projectionMatrix
         shader.bind()
         setupMatrices()
 
@@ -265,8 +266,6 @@ class SpriteBatch(
     private fun setupMatrices() {
         combinedMatrix = projectionMatrix * transformMatrix
         shader.vertexShader.uProjTrans.apply(shader, combinedMatrix)
-//        lastTexture?.textureReference?.let {
-//            shader.fragmentShader.uTexture.apply(shader, it)
-//        }
+        shader.fragmentShader.uTexture.apply(shader)
     }
 }

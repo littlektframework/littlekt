@@ -5,7 +5,6 @@ import com.lehaine.littlekt.graphics.shader.DataSource
 import com.lehaine.littlekt.graphics.shader.ShaderProgramReference
 import com.lehaine.littlekt.graphics.shader.ShaderReference
 import com.lehaine.littlekt.graphics.shader.Uniform
-import org.lwjgl.opengl.GL30
 import org.lwjgl.opengl.GL30.*
 import java.nio.ByteBuffer
 
@@ -223,7 +222,6 @@ class LwjglGL : GL {
     }
 
     override fun uniform2i(uniform: Uniform, a: Int, b: Int) {
-        1
         glUniform2i(uniform.address, a, b)
     }
 

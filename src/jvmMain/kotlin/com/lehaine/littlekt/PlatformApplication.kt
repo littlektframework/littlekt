@@ -13,7 +13,7 @@ import org.lwjgl.glfw.GLFW
 import org.lwjgl.glfw.GLFW.glfwDestroyWindow
 import org.lwjgl.glfw.GLFW.glfwMakeContextCurrent
 import org.lwjgl.glfw.GLFWErrorCallback
-import org.lwjgl.opengl.GL11.glClear
+import org.lwjgl.opengl.GL11.*
 import org.lwjgl.opengl.GL30
 import org.lwjgl.opengl.GL30C
 import org.lwjgl.opengl.GLCapabilities
@@ -139,7 +139,7 @@ actual class PlatformApplication actual constructor(actual override val configur
 
         GL30C.glClearColor(0f, 0f, 0f, 0f)
         //     glEnable(GL_DEPTH_TEST)
-     //   glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
+        //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
 
         val game = gameBuilder(this)
         GLFW.glfwSetFramebufferSizeCallback(windowHandle) { _, width, height ->

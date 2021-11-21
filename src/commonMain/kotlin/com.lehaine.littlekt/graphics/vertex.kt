@@ -33,26 +33,42 @@ data class VertexAttribute(
     private val usageIndex = usage.usage.countTrailingZeroBits()
 
     companion object {
-        val POSITION get() = VertexAttribute(Usage.POSITION, 3, alias = ShaderProgram.POSITION_ATTRIBUTE)
-        fun TEX_COORDS(unit: Int = 0) =
-            VertexAttribute(Usage.TEX_COORDS, 2, ShaderProgram.TEXCOORD_ATTRIBUTE + unit, unit = unit)
+        val POSITION
+            get() = VertexAttribute(
+                usage = Usage.POSITION,
+                numComponents = 2,
+                alias = ShaderProgram.POSITION_ATTRIBUTE
+            )
 
-        val NORMAL get() = VertexAttribute(Usage.NORMAL, 3, ShaderProgram.NORMAL_ATTRIBUTE)
+        fun TEX_COORDS(unit: Int = 0) =
+            VertexAttribute(
+                usage = Usage.TEX_COORDS,
+                numComponents = 2,
+                alias = ShaderProgram.TEXCOORD_ATTRIBUTE + unit,
+                unit = unit
+            )
+
+        val NORMAL
+            get() = VertexAttribute(
+                usage = Usage.NORMAL,
+                numComponents = 3,
+                alias = ShaderProgram.NORMAL_ATTRIBUTE
+            )
         val COLOR_PACKED
             get() = VertexAttribute(
-                Usage.COLOR_PACKED,
-                4,
-                ShaderProgram.COLOR_ATTRIBUTE,
-                GL.UNSIGNED_BYTE,
-                true
+                usage = Usage.COLOR_PACKED,
+                numComponents = 4,
+                alias = ShaderProgram.COLOR_ATTRIBUTE,
+                type = GL.UNSIGNED_BYTE,
+                normalized = true
             )
         val COLOR_UNPACKED
             get() = VertexAttribute(
-                Usage.COLOR_UNPACKED,
-                4,
-                ShaderProgram.COLOR_ATTRIBUTE,
-                GL.FLOAT,
-                false
+                usage = Usage.COLOR_UNPACKED,
+                numComponents = 4,
+                alias = ShaderProgram.COLOR_ATTRIBUTE,
+                type = GL.FLOAT,
+                normalized = false
             )
     }
 }

@@ -1,12 +1,9 @@
 package com.lehaine.littlekt
 
-import com.lehaine.littlekt.graphics.Mesh
-import com.lehaine.littlekt.graphics.SpriteBatch
-import com.lehaine.littlekt.graphics.Texture
-import com.lehaine.littlekt.graphics.VertexAttribute
+import com.lehaine.littlekt.graphics.*
 import com.lehaine.littlekt.graphics.shader.ShaderProgram
-import com.lehaine.littlekt.graphics.shader.fragment.ColorFragmentShader
-import com.lehaine.littlekt.graphics.shader.vertex.ColoredQuadShader
+import com.lehaine.littlekt.graphics.shader.fragment.TexturedFragmentShader
+import com.lehaine.littlekt.graphics.shader.vertex.TexturedQuadShader
 import com.lehaine.littlekt.input.InputProcessor
 import com.lehaine.littlekt.input.Key
 import com.lehaine.littlekt.input.Pointer
@@ -20,18 +17,20 @@ import com.lehaine.littlekt.math.ortho
 class DisplayTest(application: Application) : LittleKt(application), InputProcessor {
 
     val gl: GL get() = application.graphics.gl
-    val batch = SpriteBatch(application)
+    val batch = SpriteBatch(application, size = 1)
     val input get() = application.input
 
     val texture by application.fileHandler.get<Texture>("person.png")
-    val shader = ShaderProgram(gl, ColoredQuadShader(), ColorFragmentShader())
-    val mesh = Mesh(gl, true, 4, 6, VertexAttribute.POSITION, VertexAttribute.COLOR_UNPACKED)
+    val shader = ShaderProgram(gl, TexturedQuadShader(), TexturedFragmentShader())
+    val mesh =
+        Mesh(gl, true, 4, 6, VertexAttribute.POSITION, VertexAttribute.COLOR_PACKED)
+    val packedColor = Color.WHITE.toFloatBits()
 
     val vertices = floatArrayOf(
-        50f, 50f, 0f, 1f, 0f, 0f, 1f,
-        100f, 50f, 0f, 0f, 1f, 0f, 1f,
-        100f, 100f, 0f, 0f, 0f, 1f, 1f,
-        50f, 100f, 0f, 1f, 0f, 0f, 1f,
+        50f, 50f, packedColor,
+        66f, 50f, packedColor,
+        66f, 66f, packedColor,
+        50f, 66f, packedColor
     )
     val indices = shortArrayOf(0, 1, 2, 2, 3, 0)
 
@@ -44,34 +43,26 @@ class DisplayTest(application: Application) : LittleKt(application), InputProces
 
     var projection = ortho(
         l = 0f,
-        r = application.graphics.width.toFloat(),
+        r = 480f,
         b = 0f,
-        t = application.graphics.height.toFloat(),
+        t = 270f,
         n = -1f,
         f = 1f
     )
 
     override fun render(dt: Float) {
         gl.clearColor(0f, 0f, 0f, 0f)
-        batch.begin()
-        batch.draw(texture, 50f, 50f)
+        batch.begin(projection)
+        batch.draw(texture, 125f, 25f)
         batch.draw(Texture.DEFAULT, 100f, 100f)
         batch.end()
 
-//        shader.bind()
-//        shader.vertexShader.uProjTrans.apply(shader, projection)
-//        mesh.render(shader)
+        shader.bind()
+        shader.vertexShader.uProjTrans.apply(shader, projection)
+        mesh.render(shader)
     }
 
     override fun resize(width: Int, height: Int) {
-        projection = ortho(
-            l = 0f,
-            r = application.graphics.width.toFloat(),
-            b = 0f,
-            t = application.graphics.height.toFloat(),
-            n = -1f,
-            f = 1f
-        )
         println("resize to $width,$height")
     }
 

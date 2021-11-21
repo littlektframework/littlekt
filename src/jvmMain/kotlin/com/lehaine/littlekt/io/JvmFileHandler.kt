@@ -45,7 +45,6 @@ class JvmFileHandler(application: Application, logger: Logger) : BaseFileHandler
             ?: File(filename).inputStream()
 
         val decoder = PNGDecoder(stream)
-        println("${decoder.width},${decoder.height}")
 
         // create a byte buffer big enough to store RGBA values
         val buffer =
@@ -59,7 +58,6 @@ class JvmFileHandler(application: Application, logger: Logger) : BaseFileHandler
         val pixels = ByteArray(buffer.remaining()).apply {
             buffer.get(this)
         }
-        println(Base64.getEncoder().encodeToString(pixels))
         val pixmap = Pixmap(decoder.width, decoder.height, pixels)
         content.load(
             PixmapTextureData(pixmap, true)
