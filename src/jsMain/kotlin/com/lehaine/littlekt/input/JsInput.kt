@@ -133,7 +133,6 @@ class JsInput(val canvas: HTMLCanvasElement) : Input {
         _deltaY = 0f
     }
 
-
     override val x: Int
         get() = mouseX.toInt()
     override val y: Int
