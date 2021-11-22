@@ -9,6 +9,7 @@ import com.lehaine.littlekt.graphics.shader.vertex.TexturedQuadShader
 import com.lehaine.littlekt.graphics.shader.vertex.VertexShader
 
 /**
+ * A [LittleKt] is the base of an [Application] when it is created, resumed, rendering, paused, or destroyed.
  * @author Colton Daily
  * @date 9/29/2021
  */
