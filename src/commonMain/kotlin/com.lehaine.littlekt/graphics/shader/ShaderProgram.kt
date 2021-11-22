@@ -34,8 +34,8 @@ class ShaderProgram(
     private val uniforms = mutableMapOf<String, UniformLocation>()
 
     init {
-        vertexShaderReference = compileShader(GL.VERTEX_SHADER, vertexShader.toString())
-        fragmentShaderReference = compileShader(GL.FRAGMENT_SHADER, fragmentShader.toString())
+        vertexShaderReference = compileShader(ShaderType.VERTEX_SHADER, vertexShader.toString())
+        fragmentShaderReference = compileShader(ShaderType.FRAGMENT_SHADER, fragmentShader.toString())
 
         programGl = gl.createProgram()
         gl.attachShader(programGl, vertexShaderReference)
@@ -75,7 +75,7 @@ class ShaderProgram(
         gl.useProgram(programGl)
     }
 
-    private fun compileShader(type: Int, shaderSrc: String): GlShader {
+    private fun compileShader(type: ShaderType, shaderSrc: String): GlShader {
         val shader = gl.createShader(type)
         gl.shaderSource(shader, shaderSrc)
         gl.compileShader(shader)
