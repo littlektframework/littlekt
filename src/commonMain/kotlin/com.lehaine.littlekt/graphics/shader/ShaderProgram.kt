@@ -2,9 +2,7 @@ package com.lehaine.littlekt.graphics.shader
 
 import com.lehaine.littlekt.Disposable
 import com.lehaine.littlekt.graphics.GL
-import com.lehaine.littlekt.graphics.gl.GlShaderProgram
-import com.lehaine.littlekt.graphics.gl.GlShader
-import com.lehaine.littlekt.graphics.gl.UniformLocation
+import com.lehaine.littlekt.graphics.gl.*
 import com.lehaine.littlekt.graphics.shader.fragment.FragmentShader
 import com.lehaine.littlekt.graphics.shader.vertex.VertexShader
 import kotlin.math.min
@@ -44,7 +42,7 @@ class ShaderProgram(
         gl.attachShader(programGl, fragmentShaderReference)
         gl.linkProgram(programGl)
 
-        if (!gl.getProgramParameterB(programGl, GL.LINK_STATUS)) {
+        if (!gl.getProgramParameterB(programGl, GetProgram.LINK_STATUS)) {
             val log = gl.getProgramInfoLog(programGl)
             throw RuntimeException("Shader compilation error: $log")
         }
@@ -82,7 +80,7 @@ class ShaderProgram(
         gl.shaderSource(shader, shaderSrc)
         gl.compileShader(shader)
 
-        if (!gl.getShaderParameterB(shader, GL.COMPILE_STATUS)) {
+        if (!gl.getShaderParameterB(shader, GetShader.COMPILE_STATUS)) {
             val log = gl.getShaderInfoLog(shader)
             gl.deleteShader(shader)
             throw RuntimeException(

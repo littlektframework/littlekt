@@ -60,7 +60,7 @@ interface GL {
         getProgramParameter(glShaderProgram, mask.glFlag)
 
     fun getProgramParameterB(glShaderProgram: GlShaderProgram, mask: GetProgram): Boolean =
-        getProgramParameter(glShaderProgram, mask) as Boolean
+        getProgramParameterB(glShaderProgram, mask.glFlag)
 
     fun getShaderParameter(glShader: GlShader, mask: Int): Any
     fun getShaderParameterB(glShader: GlShader, mask: Int): Boolean =
@@ -68,7 +68,7 @@ interface GL {
 
     fun getShaderParameter(glShader: GlShader, mask: GetShader) = getShaderParameter(glShader, mask.glFlag)
     fun getShaderParameterB(glShader: GlShader, mask: GetShader): Boolean =
-        getShaderParameter(glShader, mask) as Boolean
+        getShaderParameterB(glShader, mask.glFlag)
 
     fun createShader(type: Int): GlShader
     fun createShader(type: ShaderType) = createShader(type.glFlag)
@@ -172,7 +172,7 @@ interface GL {
         texParameteri(target.glFlag, paramName.glFlag, paramValue)
 
     fun generateMipmap(target: Int)
-    fun generateMipmap(target:TextureTarget) = generateMipmap(target.glFlag)
+    fun generateMipmap(target: TextureTarget) = generateMipmap(target.glFlag)
 
     companion object {
         const val ES_VERSION_2_0: Int = 1
