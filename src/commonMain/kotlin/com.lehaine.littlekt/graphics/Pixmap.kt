@@ -9,7 +9,7 @@ import kotlin.math.round
  * @author Colton Daily
  * @date 11/18/2021
  */
-class Pixmap(val width: Int, val height: Int, val pixels: ByteArray = ByteArray(width * height * 4)) {
+open class Pixmap(val width: Int, val height: Int, val pixels: ByteArray = ByteArray(width * height * 4)) {
 
     enum class Format(val glType: DataType, val glFormat: TextureFormat) {
         ALPHA(DataType.UNSIGNED_BYTE, TextureFormat.ALPHA),
@@ -24,7 +24,7 @@ class Pixmap(val width: Int, val height: Int, val pixels: ByteArray = ByteArray(
     val glFormat = TextureFormat.RGBA
     val glType = DataType.UNSIGNED_BYTE
 
-    fun draw(
+    open fun draw(
         pixmap: Pixmap,
         x: Int = 0,
         y: Int = 0,
@@ -169,10 +169,10 @@ class Pixmap(val width: Int, val height: Int, val pixels: ByteArray = ByteArray(
 
     fun blend(src: Int, dst: Int): Int {
         val srcA = src and 0xff
-        if (srcA == 0) return dst
+        if (srcA == 0) return src
 
         var dstA = dst and 0xff
-        if (dstA == 0) return src
+        if (dstA == 0) return dst
 
         var dstB = (dst ushr 8) and 0xff
         var dstG = (dst ushr 16) and 0xff
@@ -186,14 +186,13 @@ class Pixmap(val width: Int, val height: Int, val pixels: ByteArray = ByteArray(
         return (dstR shl 24) or (dstG shl 16) or (dstB shl 8) or a
     }
 
-    fun fill(color: Int) {
+    open fun fill(color: Color) {
+        val rgba = color.rgba().toByte()
         val length = width * height * 4
         for (i in 0 until length) {
-            pixels[i] = color.toByte()
+            pixels[i] = rgba
         }
     }
-
-    fun fill(color: Color) = fill(color.rgba())
 
     fun drawLine(x: Int, y: Int, x2: Int, y2: Int, color: Int) {
         var tx = x
@@ -293,13 +292,14 @@ class Pixmap(val width: Int, val height: Int, val pixels: ByteArray = ByteArray(
         }
     }
 
-    fun set(x: Int, y: Int, color: Int, force: Boolean = false) {
+    open fun set(x: Int, y: Int, color: Int, force: Boolean = false) {
+        val rgba = color.toByte()
         if (force || contains(x, y)) {
-            pixels[(x + y * width) * 4] = color.toByte()
+            pixels[(x + y * width) * 4] = rgba
         }
     }
 
-    fun get(x: Int, y: Int, force: Boolean = false): Int {
+    open fun get(x: Int, y: Int, force: Boolean = false): Int {
         return if (force || contains(x, y)) {
             pixels[(x + y * width) * 4].toInt()
         } else {

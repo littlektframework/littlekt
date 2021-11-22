@@ -7,6 +7,12 @@ class Color(rgba8888: Int = 0) {
     var b: Float = ((rgba8888 and 0x0000ff00) ushr 8) / 255f
     var a: Float = (rgba8888 and 0x000000ff) / 255f
 
+    fun setRgba8888(rgba8888: Int) {
+        r = ((rgba8888 and 0xff000000.toInt()) ushr 24) / 255f
+        g = ((rgba8888 and 0x00ff0000) ushr 16) / 255f
+        b = ((rgba8888 and 0x0000ff00) ushr 8) / 255f
+        a = (rgba8888 and 0x000000ff) / 255f
+    }
 
     companion object {
         operator fun invoke(r: Float, g: Float, b: Float, a: Float): Color = Color(rgba8888(r, g, b, a))

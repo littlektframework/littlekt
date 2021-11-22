@@ -2,13 +2,14 @@ package com.lehaine.littlekt.io
 
 import com.lehaine.littlekt.Application
 import com.lehaine.littlekt.audio.AudioContext
-import com.lehaine.littlekt.graphics.Pixmap
 import com.lehaine.littlekt.graphics.TextureData
+import com.lehaine.littlekt.graphics.WebPixmap
 import com.lehaine.littlekt.graphics.gl.PixmapTextureData
 import com.lehaine.littlekt.log.Logger
 import kotlinx.browser.window
 import org.khronos.webgl.ArrayBuffer
 import org.khronos.webgl.Int8Array
+import org.w3c.dom.CanvasRenderingContext2D
 import org.w3c.dom.Image
 import org.w3c.dom.events.Event
 import org.w3c.dom.events.EventListener
@@ -20,9 +21,14 @@ import org.w3c.xhr.XMLHttpRequestResponseType
  * @author Colton Daily
  * @date 11/6/2021
  */
-class WebFileHandler(application: Application, logger: Logger, val audioContext: AudioContext) :
+class WebFileHandler(
+    application: Application,
+    logger: Logger,
+    val rootPath: String = window.location.protocol,
+    val context2D: CanvasRenderingContext2D,
+    val audioContext: AudioContext
+) :
     BaseFileHandler(application, logger) {
-    val rootPath: String = window.location.protocol
 
     override fun read(filename: String): Content<String> {
         return asyncContent(filename) { it.toByteArray().decodeToString() }
@@ -45,7 +51,7 @@ class WebFileHandler(application: Application, logger: Logger, val audioContext:
                 override fun handleEvent(event: Event) {
                     content.load(
                         PixmapTextureData(
-                            Pixmap(img.width, img.height), true
+                            WebPixmap(img.width, img.height, context2D, img), true
                         )
                     )
                 }

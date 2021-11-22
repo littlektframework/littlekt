@@ -2,11 +2,11 @@ package com.lehaine.littlekt
 
 /**
  * @author Colton Daily
- * @date 11/6/2021
+ * @date 11/22/2021
  */
-fun main(args: Array<String>) {
+fun main() {
     LittleKtAppBuilder(
-        configBuilder = { ApplicationConfiguration("JVM - Display Test", 960, 540, true) },
+        configBuilder = { ApplicationConfiguration("JS - Display Test") },
         gameBuilder = { DisplayTest(it) })
         .start()
 }
