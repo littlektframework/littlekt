@@ -127,6 +127,12 @@ class DisplayTest(application: Application) : LittleKt(application), InputProces
         println("Scrolled $amountX,$amountY")
         return false
     }
+
+    override fun dispose() {
+        mesh.dispose()
+        texture.dispose()
+        shader.dispose()
+    }
 }
 
 fun main(args: Array<String>) {

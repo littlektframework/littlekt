@@ -1,6 +1,7 @@
 package com.lehaine.littlekt.graphics
 
 import com.lehaine.littlekt.Application
+import com.lehaine.littlekt.Disposable
 import com.lehaine.littlekt.graphics.gl.BlendFactor
 import com.lehaine.littlekt.graphics.gl.DrawMode
 import com.lehaine.littlekt.graphics.gl.State
@@ -23,7 +24,7 @@ class SpriteBatch(
     val application: Application,
     val size: Int = 1000,
     val shader: ShaderProgram = ShaderProgram(application.graphics.gl, TexturedQuadShader(), TexturedFragmentShader())
-) {
+) : Disposable {
     companion object {
         private const val VERTEX_SIZE = 2 + 1 + 2
         private const val SPRITE_SIZE = 4 * VERTEX_SIZE
@@ -297,6 +298,11 @@ class SpriteBatch(
         combinedMatrix = projectionMatrix * transformMatrix
         shader.vertexShader.uProjTrans.apply(shader, combinedMatrix)
         shader.fragmentShader.uTexture.apply(shader)
+    }
+
+    override fun dispose() {
+        mesh.dispose()
+        shader.dispose()
     }
 }
 

@@ -15,7 +15,7 @@ import org.lwjgl.glfw.GLFW
 import org.lwjgl.glfw.GLFW.glfwDestroyWindow
 import org.lwjgl.glfw.GLFW.glfwMakeContextCurrent
 import org.lwjgl.glfw.GLFWErrorCallback
-import org.lwjgl.opengl.GL11.*
+import org.lwjgl.opengl.GL11.glClear
 import org.lwjgl.opengl.GL30
 import org.lwjgl.opengl.GL30C
 import org.lwjgl.opengl.GLCapabilities
@@ -156,7 +156,6 @@ actual class PlatformApplication actual constructor(actual override val configur
         game.create()
         game.resize(configuration.width, configuration.height)
 
-
         while (!windowShouldClose) {
             glClear(GL.COLOR_BUFFER_BIT or GL.DEPTH_BUFFER_BIT)
             val delta = getDelta()
@@ -166,6 +165,7 @@ actual class PlatformApplication actual constructor(actual override val configur
             input.reset()
             GLFW.glfwPollEvents()
         }
+        game.dispose()
         destroy()
     }
 

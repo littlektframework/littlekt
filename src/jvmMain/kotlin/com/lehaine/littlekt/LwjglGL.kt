@@ -275,6 +275,10 @@ class LwjglGL : GL {
         glBindTexture(target, glTexture.reference)
     }
 
+    override fun deleteTexture(glTexture: GlTexture) {
+        glDeleteTextures(glTexture.reference)
+    }
+
     override fun texImage2D(
         target: Int,
         level: Int,

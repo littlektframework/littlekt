@@ -125,6 +125,7 @@ interface GL {
     fun activeTexture(int: Int)
     fun bindTexture(target: Int, glTexture: GlTexture)
     fun bindTexture(target: TextureTarget, glTexture: GlTexture) = bindTexture(target.glFlag, glTexture)
+    fun deleteTexture(glTexture: GlTexture)
 
     fun uniformMatrix4fv(uniformLocation: UniformLocation, transpose: Boolean, data: Mat4) =
         uniformMatrix4fv(uniformLocation, transpose, data.asGLArray())
