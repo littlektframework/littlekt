@@ -15,12 +15,12 @@ class Color(val rgba8888: Int = 0) {
             ((r * 255).toInt() shl 24) or ((g * 255).toInt() shl 16) or ((b * 255).toInt() shl 8) or (a * 255).toInt()
 
         /** List of Colors **/
-        val WHITE get() = Color(1f, 1f, 1f, 1f)
-        val BLACK get() = Color(0f, 0f, 0f, 1f)
-        val RED get() = Color(1f, 0f, 0f, 1f)
-        val BLUE get() = Color(0f, 0f, 1f, 1f)
-        val GREEN get() = Color(0f, 1f, 0f, 1f)
-        val CLEAR get() = Color(0f, 0f, 0f, 0f)
+        val WHITE = Color(1f, 1f, 1f, 1f)
+        val BLACK = Color(0f, 0f, 0f, 1f)
+        val RED = Color(1f, 0f, 0f, 1f)
+        val BLUE = Color(0f, 0f, 1f, 1f)
+        val GREEN = Color(0f, 1f, 0f, 1f)
+        val CLEAR = Color(0f, 0f, 0f, 0f)
     }
 }
 
