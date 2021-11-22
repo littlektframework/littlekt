@@ -49,17 +49,41 @@ class DisplayTest(application: Application) : LittleKt(application), InputProces
         n = -1f,
         f = 1f
     )
+    private var x = 0f
+    private var y = 0f
+
+    private var xVel = 0f
+    private var yVel = 0f
 
     override fun render(dt: Float) {
+        xVel = 0f
+        yVel = 0f
+
+        if (input.isKeyPressed(Key.W)) {
+            yVel += 10f
+        }
+        if (input.isKeyPressed(Key.S)) {
+            yVel -= 10f
+        }
+        if (input.isKeyPressed(Key.A)) {
+            xVel -= 10f
+        }
+        if (input.isKeyPressed(Key.D)) {
+            xVel += 10f
+        }
+
         gl.clearColor(0f, 0f, 0f, 0f)
         batch.use {
-            it.draw(texture, 125f, 25f, scaleX = 10f, scaleY = 10f)
+            it.draw(texture, x, y, scaleX = 10f, scaleY = 10f)
             it.draw(Texture.DEFAULT, 100f, 100f, scaleX = 5f, scaleY = 5f)
         }
 
         shader.bind()
         shader.vertexShader.uProjTrans.apply(shader, projection)
         mesh.render(shader)
+
+        x += xVel
+        y += yVel
     }
 
     override fun resize(width: Int, height: Int) {
