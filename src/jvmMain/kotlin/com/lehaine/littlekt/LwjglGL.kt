@@ -191,8 +191,8 @@ class LwjglGL : GL {
         }
     }
 
-    override fun depthFunc(target: Int) {
-        glDepthFunc(target)
+    override fun depthFunc(func: Int) {
+        glDepthFunc(func)
     }
 
     override fun depthMask(flag: Boolean) {

@@ -1,5 +1,7 @@
 package com.lehaine.littlekt.graphics
 
+import com.lehaine.littlekt.graphics.gl.DataType
+import com.lehaine.littlekt.graphics.gl.TextureFormat
 import kotlin.math.max
 import kotlin.math.round
 
@@ -9,22 +11,18 @@ import kotlin.math.round
  */
 class Pixmap(val width: Int, val height: Int, val pixels: ByteArray = ByteArray(width * height * 4)) {
 
-    enum class Format(val glType: Int, val glFormat: Int) {
-        ALPHA(GL.UNSIGNED_BYTE, GL.ALPHA),
-        INTENSITY(GL.UNSIGNED_BYTE, GL.ALPHA),
-        LUMINANCE_ALPHA(GL.UNSIGNED_BYTE, GL.LUMINANCE_ALPHA),
-        RGB565(GL.UNSIGNED_SHORT_5_6_5, GL.RGB),
-        RGBA4444(GL.UNSIGNED_SHORT_4_4_4_4, GL.RGBA),
-        RGB8888(GL.UNSIGNED_BYTE, GL.RGB),
-        RGBA8888(GL.UNSIGNED_BYTE, GL.RGBA);
-
-        companion object {
-            val ALL = values()
-        }
+    enum class Format(val glType: DataType, val glFormat: TextureFormat) {
+        ALPHA(DataType.UNSIGNED_BYTE, TextureFormat.ALPHA),
+        INTENSITY(DataType.UNSIGNED_BYTE, TextureFormat.ALPHA),
+        LUMINANCE_ALPHA(DataType.UNSIGNED_BYTE, TextureFormat.LUMINANCE_ALPHA),
+        RGB565(DataType.UNSIGNED_SHORT_5_6_5, TextureFormat.RGB),
+        RGBA4444(DataType.UNSIGNED_SHORT_4_4_4_4, TextureFormat.RGBA),
+        RGB8888(DataType.UNSIGNED_BYTE, TextureFormat.RGB),
+        RGBA8888(DataType.UNSIGNED_BYTE, TextureFormat.RGBA);
     }
 
-    val glFormat = GL.RGBA
-    val glType = GL.UNSIGNED_BYTE
+    val glFormat = TextureFormat.RGBA
+    val glType = DataType.UNSIGNED_BYTE
 
     fun draw(
         pixmap: Pixmap,

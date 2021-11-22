@@ -2,6 +2,7 @@ package com.lehaine.littlekt.graphics
 
 import com.lehaine.littlekt.Application
 import com.lehaine.littlekt.graphics.gl.PixmapTextureData
+import com.lehaine.littlekt.graphics.gl.TextureTarget
 import com.lehaine.littlekt.io.Asset
 
 /**
@@ -44,7 +45,7 @@ class Texture(
         gl.texParameteri(GL.TEXTURE_2D, GL.TEXTURE_WRAP_S, GL.CLAMP_TO_EDGE)
         gl.texParameteri(GL.TEXTURE_2D, GL.TEXTURE_WRAP_T, GL.CLAMP_TO_EDGE)
 
-        textureData.uploadImageData(application, GL.TEXTURE_2D, textureData)
+        textureData.uploadImageData(application, TextureTarget._2D, textureData)
 
         glTexture = texture
 

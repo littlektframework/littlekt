@@ -198,6 +198,8 @@ value class DataType(val glFlag: Int) {
         val UNSIGNED_INT = DataType(GL.UNSIGNED_INT)
         val FLOAT = DataType(GL.FLOAT)
         val HALF_FLOAT = DataType(GL.HALF_FLOAT)
+        val UNSIGNED_SHORT_5_6_5 = DataType(GL.UNSIGNED_SHORT_5_6_5)
+        val UNSIGNED_SHORT_4_4_4_4 = DataType(GL.UNSIGNED_SHORT_4_4_4_4)
     }
 
     val size: Int
@@ -282,19 +284,6 @@ value class TextureTarget(val glFlag: Int) {
 }
 
 @JvmInline
-value class Tex2dTarget(val glFlag: Int) {
-    companion object {
-        val _2D = Tex2dTarget(GL.TEXTURE_2D)
-        val CUBE_MAP_POSITIVE_X = Tex2dTarget(GL.TEXTURE_CUBE_MAP_POSITIVE_X)
-        val CUBE_MAP_NEGATIVE_X = Tex2dTarget(GL.TEXTURE_CUBE_MAP_NEGATIVE_X)
-        val CUBE_MAP_POSITIVE_Y = Tex2dTarget(GL.TEXTURE_CUBE_MAP_POSITIVE_Y)
-        val CUBE_MAP_NEGATIVE_Y = Tex2dTarget(GL.TEXTURE_CUBE_MAP_NEGATIVE_Y)
-        val CUBE_MAP_POSITIVE_Z = Tex2dTarget(GL.TEXTURE_CUBE_MAP_POSITIVE_Z)
-        val CUBE_MAP_NEGATIVE_Z = Tex2dTarget(GL.TEXTURE_CUBE_MAP_NEGATIVE_Z)
-    }
-}
-
-@JvmInline
 value class TextureWrapMode(val glFlag: Int) {
     companion object {
         val CLAMP = TextureWrapMode(GL.CLAMP_TO_EDGE)
@@ -345,6 +334,8 @@ value class TextureFormat(val glFlag: Int) {
         val RG = TextureFormat(GL.RG)
         val RGB = TextureFormat(GL.RGB)
         val RGBA = TextureFormat(GL.RGBA)
+        val LUMINANCE_ALPHA = TextureFormat(GL.LUMINANCE_ALPHA)
+        val ALPHA = TextureFormat(GL.ALPHA)
         val RED_INTEGER = TextureFormat(GL.RED_INTEGER)
         val RG_INTEGER = TextureFormat(GL.RG_INTEGER)
         val RGB_INTEGER = TextureFormat(GL.RGB_INTEGER)

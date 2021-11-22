@@ -157,9 +157,9 @@ interface GL {
     )
 
     fun texImage2D(
-        target: Tex2dTarget,
+        target: TextureTarget,
         level: Int,
-        internalformat: InternalFormat,
+        internalformat: TextureFormat,
         format: TextureFormat,
         width: Int,
         height: Int,

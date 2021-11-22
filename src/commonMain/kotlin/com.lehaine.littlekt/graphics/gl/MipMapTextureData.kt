@@ -25,7 +25,7 @@ class MipMapTextureData(vararg mipMapData: TextureData) : TextureData {
         throw RuntimeException("It's compressed, use the compressed method")
     }
 
-    override fun consumeCustomData(application: Application, target: Int) {
+    override fun consumeCustomData(application: Application, target: TextureTarget) {
         mips.forEachIndexed { index, mip ->
             uploadImageData(application, target, mip, index)
         }

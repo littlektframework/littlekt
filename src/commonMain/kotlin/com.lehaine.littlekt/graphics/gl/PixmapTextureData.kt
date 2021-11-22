@@ -25,7 +25,7 @@ class PixmapTextureData(override val pixmap: Pixmap, override val useMipMaps: Bo
         return pixmap
     }
 
-    override fun consumeCustomData(application:Application, target: Int) {
+    override fun consumeCustomData(application:Application, target: TextureTarget) {
         throw RuntimeException("This TextureData implementation does not upload data itself")
     }
 }

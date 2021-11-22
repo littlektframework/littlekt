@@ -12,9 +12,9 @@ class GLTextureData(
     override val width: Int,
     override val height: Int,
     val mipMapLevel: Int,
-    val internalGlFormat: Int,
-    val glFormat: Int,
-    val type: Int
+    val internalGlFormat: TextureFormat,
+    val glFormat: TextureFormat,
+    val type: DataType
 ) : TextureData {
     override val format: Pixmap.Format = Pixmap.Format.RGBA8888
     override val useMipMaps: Boolean = false
@@ -32,10 +32,8 @@ class GLTextureData(
         throw RuntimeException("This TextureData implementation does not return a Pixmap")
     }
 
-    override fun consumeCustomData(application: Application, target: Int) {
+    override fun consumeCustomData(application: Application, target: TextureTarget) {
         val gl = application.graphics.gl
-        gl.texImage2D(target, mipMapLevel, internalGlFormat, glFormat, type, width, height, byteArrayOf())
+        gl.texImage2D(target, mipMapLevel, internalGlFormat, glFormat, width, height, type, byteArrayOf())
     }
-
-
 }

@@ -2,6 +2,7 @@ package com.lehaine.littlekt.graphics
 
 import com.lehaine.littlekt.Application
 import com.lehaine.littlekt.Platform
+import com.lehaine.littlekt.graphics.gl.TextureTarget
 
 /**
  * @author Colton Daily
@@ -30,13 +31,13 @@ interface TextureData {
 
     fun consumePixmap(): Pixmap
 
-    fun consumeCustomData(application: Application, target: Int)
+    fun consumeCustomData(application: Application, target: TextureTarget)
 
 }
 
 fun <T : TextureData> T.generateMipMap(
     application: Application,
-    target: Int,
+    target: TextureTarget,
     pixmap: Pixmap,
     width: Int,
     height: Int,
@@ -54,7 +55,7 @@ fun <T : TextureData> T.generateMipMap(
 
 }
 
-private fun TextureData.generateMipMapGLES20(application: Application, target: Int, pixmap: Pixmap) {
+private fun TextureData.generateMipMapGLES20(application: Application, target: TextureTarget, pixmap: Pixmap) {
     val gl = application.graphics.gl
     gl.texImage2D(
         target,
@@ -71,7 +72,7 @@ private fun TextureData.generateMipMapGLES20(application: Application, target: I
 
 private fun TextureData.generateMipMapCPU(
     application: Application,
-    target: Int,
+    target: TextureTarget,
     pixmap: Pixmap,
     width: Int,
     height: Int
@@ -107,7 +108,7 @@ private fun TextureData.generateMipMapCPU(
 
 private fun TextureData.generateMipMapDesktop(
     application: Application,
-    target: Int,
+    target: TextureTarget,
     pixmap: Pixmap,
     width: Int,
     height: Int
@@ -135,7 +136,12 @@ private fun TextureData.generateMipMapDesktop(
 }
 
 
-fun <T : TextureData> T.uploadImageData(application: Application, target: Int, data: TextureData, mipLevel: Int = 0) {
+fun <T : TextureData> T.uploadImageData(
+    application: Application,
+    target: TextureTarget,
+    data: TextureData,
+    mipLevel: Int = 0
+) {
     val gl = application.graphics.gl
     if (!data.isPrepared) {
         data.prepare()
