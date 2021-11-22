@@ -1,6 +1,9 @@
 package com.lehaine.littlekt.graphics
 
 import com.lehaine.littlekt.Application
+import com.lehaine.littlekt.graphics.gl.BlendFactor
+import com.lehaine.littlekt.graphics.gl.DrawMode
+import com.lehaine.littlekt.graphics.gl.State
 import com.lehaine.littlekt.graphics.shader.ShaderProgram
 import com.lehaine.littlekt.graphics.shader.fragment.TexturedFragmentShader
 import com.lehaine.littlekt.graphics.shader.vertex.TexturedQuadShader
@@ -252,7 +255,7 @@ class SpriteBatch(
         lastTexture = null
         drawing = false
         gl.depthMask(true)
-        gl.disable(GL.BLEND)
+        gl.disable(State.BLEND)
     }
 
     fun flush() {
@@ -272,9 +275,14 @@ class SpriteBatch(
             position = 0
             limit = count
         }
-        gl.enable(GL.BLEND)
-        gl.blendFuncSeparate(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA, GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
-        mesh.render(shader, GL.TRIANGLES, 0, count)
+        gl.enable(State.BLEND)
+        gl.blendFuncSeparate(
+            BlendFactor.SRC_ALPHA,
+            BlendFactor.ONE_MINUS_SRC_ALPHA,
+            BlendFactor.SRC_ALPHA,
+            BlendFactor.ONE_MINUS_SRC_ALPHA
+        )
+        mesh.render(shader, DrawMode.TRIANGLES, 0, count)
         idx = 0
     }
 

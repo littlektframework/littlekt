@@ -1,6 +1,8 @@
 package com.lehaine.littlekt.graphics
 
 import com.lehaine.littlekt.Disposable
+import com.lehaine.littlekt.graphics.gl.DrawMode
+import com.lehaine.littlekt.graphics.gl.IndexType
 import com.lehaine.littlekt.graphics.shader.ShaderProgram
 
 /**
@@ -50,7 +52,7 @@ class Mesh(val gl: GL, isStatic: Boolean, maxVertices: Int, maxIndices: Int, var
 
     fun render(
         shader: ShaderProgram? = null,
-        primitiveType: Int = GL.TRIANGLES,
+        drawMode: DrawMode = DrawMode.TRIANGLES,
         offset: Int = 0,
         count: Int = if (numIndices > 0) numIndices else numVertices,
     ) {
@@ -62,9 +64,9 @@ class Mesh(val gl: GL, isStatic: Boolean, maxVertices: Int, maxIndices: Int, var
             if (count + offset > indices.maxNumIndices) {
                 throw RuntimeException("Mesh attempting to access memory outside of the index buffer (count: $count, offset: $offset, max: $numIndices)")
             }
-            gl.drawElements(primitiveType, count, GL.UNSIGNED_SHORT, offset * 2)
+            gl.drawElements(drawMode, count, IndexType.UNSIGNED_SHORT, offset * 2)
         } else {
-            gl.drawArrays(primitiveType, offset, count)
+            gl.drawArrays(drawMode, offset, count)
         }
         unbind(shader)
     }
