@@ -22,6 +22,14 @@ open class Content<R>(val filename: String, val logger: Logger) {
         }
     }
 
+    fun get(): R {
+        if (isLoaded) {
+            return content!!
+        } else {
+            throw RuntimeException("$filename was accessed before being loaded.")
+        }
+    }
+
     open fun load(content: R?) {
         this.content = content!!
         isLoaded = true

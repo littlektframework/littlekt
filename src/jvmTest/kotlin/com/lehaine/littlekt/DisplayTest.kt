@@ -1,13 +1,9 @@
 package com.lehaine.littlekt
 
 import com.lehaine.littlekt.graphics.*
-import com.lehaine.littlekt.graphics.shader.ShaderProgram
-import com.lehaine.littlekt.graphics.shader.fragment.TexturedFragmentShader
-import com.lehaine.littlekt.graphics.shader.vertex.TexturedQuadShader
 import com.lehaine.littlekt.input.InputProcessor
 import com.lehaine.littlekt.input.Key
 import com.lehaine.littlekt.input.Pointer
-import com.lehaine.littlekt.io.get
 import com.lehaine.littlekt.math.ortho
 
 /**
@@ -16,12 +12,11 @@ import com.lehaine.littlekt.math.ortho
  */
 class DisplayTest(application: Application) : LittleKt(application), InputProcessor {
 
-    val gl: GL get() = application.graphics.gl
     val batch = SpriteBatch(application)
-    val input get() = application.input
 
-    val texture by application.fileHandler.get<Texture>("person.png")
-    val shader = ShaderProgram(gl, TexturedQuadShader(), TexturedFragmentShader())
+    //   val texture by application.fileHandler.get<Texture>("person.png")
+    val texture = readTexture("person.png")
+    val shader = createShader()
     val mesh =
         Mesh(gl, true, 4, 6, VertexAttribute.POSITION, VertexAttribute.COLOR_PACKED)
     val packedColor = Color.WHITE.toFloatBits()
