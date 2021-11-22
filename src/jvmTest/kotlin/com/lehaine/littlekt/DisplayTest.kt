@@ -72,7 +72,7 @@ class DisplayTest(application: Application) : LittleKt(application), InputProces
             xVel += 10f
         }
 
-        gl.clearColor(0f, 0f, 0f, 0f)
+        gl.clearColor(Color.CLEAR)
         batch.use {
             it.draw(texture, x, y, scaleX = 10f, scaleY = 10f)
             it.draw(Texture.DEFAULT, 100f, 100f, scaleX = 5f, scaleY = 5f)
