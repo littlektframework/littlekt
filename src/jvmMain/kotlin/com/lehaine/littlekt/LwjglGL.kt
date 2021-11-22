@@ -1,10 +1,9 @@
 package com.lehaine.littlekt
 
-import com.lehaine.littlekt.graphics.*
+import com.lehaine.littlekt.graphics.GL
+import com.lehaine.littlekt.graphics.GLVersion
+import com.lehaine.littlekt.graphics.gl.*
 import com.lehaine.littlekt.graphics.shader.DataSource
-import com.lehaine.littlekt.graphics.shader.ShaderProgramReference
-import com.lehaine.littlekt.graphics.shader.ShaderReference
-import com.lehaine.littlekt.graphics.shader.Uniform
 import org.lwjgl.opengl.GL30.*
 import java.nio.ByteBuffer
 
@@ -45,132 +44,139 @@ class LwjglGL : GL {
         glBlendFuncSeparate(srcRGB, dstRGB, srcAlpha, dstAlpha)
     }
 
-    override fun createProgram(): ShaderProgramReference {
-        return ShaderProgramReference(glCreateProgram())
+    override fun createProgram(): GlShaderProgram {
+        return GlShaderProgram(glCreateProgram())
     }
 
-    override fun getAttribLocation(shaderProgram: ShaderProgramReference, name: String): Int {
-        return glGetAttribLocation(shaderProgram.address, name)
+    override fun getAttribLocation(glShaderProgram: GlShaderProgram, name: String): Int {
+        return glGetAttribLocation(glShaderProgram.address, name)
     }
 
-    override fun getUniformLocation(shaderProgram: ShaderProgramReference, name: String): Uniform {
-        return Uniform(glGetUniformLocation(shaderProgram.address, name))
+    override fun getUniformLocation(glShaderProgram: GlShaderProgram, name: String): UniformLocation {
+        return UniformLocation(glGetUniformLocation(glShaderProgram.address, name))
     }
 
-    override fun attachShader(shaderProgram: ShaderProgramReference, shaderReference: ShaderReference) {
-        glAttachShader(shaderProgram.address, shaderReference.address)
+    override fun attachShader(glShaderProgram: GlShaderProgram, glShader: GlShader) {
+        glAttachShader(glShaderProgram.address, glShader.address)
     }
 
-    override fun linkProgram(shaderProgram: ShaderProgramReference) {
-        glLinkProgram(shaderProgram.address)
+    override fun linkProgram(glShaderProgram: GlShaderProgram) {
+        glLinkProgram(glShaderProgram.address)
     }
 
-    override fun deleteProgram(shaderProgram: ShaderProgramReference) {
-        glDeleteProgram(shaderProgram.address)
+    override fun deleteProgram(glShaderProgram: GlShaderProgram) {
+        glDeleteProgram(glShaderProgram.address)
     }
 
-    override fun getProgramParameter(shaderProgram: ShaderProgramReference, mask: Int): Any {
-        return glGetProgrami(shaderProgram.address, mask)
+    override fun getProgramParameter(glShaderProgram: GlShaderProgram, mask: Int): Any {
+        return glGetProgrami(glShaderProgram.address, mask)
     }
 
-    override fun getShaderParameter(shaderReference: ShaderReference, mask: Int): Any {
-        return glGetShaderi(shaderReference.address, mask)
+    override fun getShaderParameter(glShader: GlShader, mask: Int): Any {
+        return glGetShaderi(glShader.address, mask)
     }
 
-    override fun getProgramParameterB(shaderProgram: ShaderProgramReference, mask: Int): Boolean {
-        return (getProgramParameter(shaderProgram, mask) as? Int) == 1
+    override fun getProgramParameterB(glShaderProgram: GlShaderProgram, mask: Int): Boolean {
+        return (getProgramParameter(glShaderProgram, mask) as? Int) == 1
     }
 
     override fun getString(parameterName: Int): String? {
         return glGetString(parameterName)
     }
 
-    override fun getShaderParameterB(shaderReference: ShaderReference, mask: Int): Boolean {
-        return (getShaderParameter(shaderReference, mask) as? Int) == 1
+    override fun getShaderParameterB(glShader: GlShader, mask: Int): Boolean {
+        return (getShaderParameter(glShader, mask) as? Int) == 1
     }
 
-    override fun createShader(type: Int): ShaderReference {
-        return ShaderReference(glCreateShader(type))
+    override fun createShader(type: Int): GlShader {
+        return GlShader(glCreateShader(type))
     }
 
-    override fun shaderSource(shaderReference: ShaderReference, source: String) {
-        glShaderSource(shaderReference.address, source)
+    override fun shaderSource(glShader: GlShader, source: String) {
+        glShaderSource(glShader.address, source)
     }
 
-    override fun compileShader(shaderReference: ShaderReference) {
-        glCompileShader(shaderReference.address)
+    override fun compileShader(glShader: GlShader) {
+        glCompileShader(glShader.address)
     }
 
-    override fun getShaderInfoLog(shaderReference: ShaderReference): String {
-        return glGetShaderInfoLog(shaderReference.address)
+    override fun getShaderInfoLog(glShader: GlShader): String {
+        return glGetShaderInfoLog(glShader.address)
     }
 
-    override fun deleteShader(shaderReference: ShaderReference) {
-        glDeleteShader(shaderReference.address)
+    override fun deleteShader(glShader: GlShader) {
+        glDeleteShader(glShader.address)
     }
 
-    override fun getProgramInfoLog(shader: ShaderProgramReference): String {
-        return glGetProgramInfoLog(shader.address)
+    override fun getProgramInfoLog(glShader: GlShaderProgram): String {
+        return glGetProgramInfoLog(glShader.address)
     }
 
-    override fun createBuffer(): BufferReference {
-        return BufferReference(glGenBuffers())
+    override fun createBuffer(): GlBuffer {
+        return GlBuffer(glGenBuffers())
     }
 
-    override fun createFrameBuffer(): FrameBufferReference {
-        return FrameBufferReference(glGenFramebuffers())
+    override fun createFrameBuffer(): GlFrameBuffer {
+        return GlFrameBuffer(glGenFramebuffers())
     }
 
-    override fun createVertexArray(): VertexArrayReference {
-        return VertexArrayReference(glGenVertexArrays())
+    override fun createVertexArray(): GlVertexArray {
+        return GlVertexArray(glGenVertexArrays())
     }
 
-    override fun bindVertexArray(vertexArrayReference: VertexArrayReference) {
-        glBindVertexArray(vertexArrayReference.address)
+    override fun bindVertexArray(glVertexArray: GlVertexArray) {
+        glBindVertexArray(glVertexArray.address)
     }
 
     override fun bindDefaultVertexArray() {
         glBindVertexArray(0)
     }
 
-    override fun bindFrameBuffer(frameBufferReference: FrameBufferReference) {
-        glBindFramebuffer(GL.FRAMEBUFFER, frameBufferReference.reference)
+    override fun bindFrameBuffer(glFrameBuffer: GlFrameBuffer) {
+        glBindFramebuffer(GL.FRAMEBUFFER, glFrameBuffer.reference)
     }
 
     override fun bindDefaultFrameBuffer() {
         glBindFramebuffer(GL.FRAMEBUFFER, 0)
     }
 
-    override fun createRenderBuffer(): RenderBufferReference {
-        return RenderBufferReference(glGenRenderbuffers())
+    override fun createRenderBuffer(): GlRenderBuffer {
+        return GlRenderBuffer(glGenRenderbuffers())
     }
 
-    override fun bindRenderBuffer(renderBufferReference: RenderBufferReference) {
-        glBindRenderbuffer(GL.RENDERBUFFER, renderBufferReference.reference)
+    override fun bindRenderBuffer(glRenderBuffer: GlRenderBuffer) {
+        glBindRenderbuffer(GL.RENDERBUFFER, glRenderBuffer.reference)
     }
 
     override fun renderBufferStorage(internalformat: Int, width: Int, height: Int) {
         glRenderbufferStorage(GL.RENDERBUFFER, internalformat, width, height)
     }
 
-    override fun framebufferRenderbuffer(attachementType: Int, renderBufferReference: RenderBufferReference) {
-        glFramebufferRenderbuffer(GL.FRAMEBUFFER, attachementType, GL.RENDERBUFFER, renderBufferReference.reference)
+    override fun framebufferRenderbuffer(
+        attachementType: Int,
+        glRenderBuffer: GlRenderBuffer
+    ) {
+        glFramebufferRenderbuffer(GL.FRAMEBUFFER, attachementType, GL.RENDERBUFFER, glRenderBuffer.reference)
     }
 
-    override fun frameBufferTexture2D(attachmentPoint: Int, textureReference: TextureReference, level: Int) {
-        glFramebufferTexture2D(GL.FRAMEBUFFER, attachmentPoint, GL.TEXTURE_2D, textureReference.reference, level)
+    override fun frameBufferTexture2D(
+        attachmentPoint: Int,
+        glTexture: GlTexture,
+        level: Int
+    ) {
+        glFramebufferTexture2D(GL.FRAMEBUFFER, attachmentPoint, GL.TEXTURE_2D, glTexture.reference, level)
     }
 
-    override fun bindBuffer(target: Int, bufferReference: BufferReference) {
-        glBindBuffer(target, bufferReference.address)
+    override fun bindBuffer(target: Int, glBuffer: GlBuffer) {
+        glBindBuffer(target, glBuffer.address)
     }
 
     override fun bindDefaultBuffer(target: Int) {
         glBindBuffer(target, 0)
     }
 
-    override fun deleteBuffer(bufferReference: BufferReference) {
-        glDeleteBuffers(bufferReference.address)
+    override fun deleteBuffer(glBuffer: GlBuffer) {
+        glDeleteBuffers(glBuffer.address)
     }
 
     override fun bufferData(target: Int, data: DataSource, usage: Int) {
@@ -205,72 +211,68 @@ class LwjglGL : GL {
         glDisableVertexAttribArray(index)
     }
 
-    override fun useProgram(shaderProgram: ShaderProgramReference) {
-        glUseProgram(shaderProgram.address)
+    override fun useProgram(glShaderProgram: GlShaderProgram) {
+        glUseProgram(glShaderProgram.address)
     }
 
     override fun useDefaultProgram() {
         glUseProgram(0)
     }
 
-    override fun uniformMatrix4fv(uniform: Uniform, transpose: Boolean, data: Array<Float>) {
-        glUniformMatrix4fv(uniform.address, transpose, data.toFloatArray())
+    override fun uniformMatrix4fv(uniformLocation: UniformLocation, transpose: Boolean, data: Array<Float>) {
+        glUniformMatrix4fv(uniformLocation.address, transpose, data.toFloatArray())
     }
 
-    override fun uniform1i(uniform: Uniform, data: Int) {
-        glUniform1i(uniform.address, data)
+    override fun uniform1i(uniformLocation: UniformLocation, data: Int) {
+        glUniform1i(uniformLocation.address, data)
     }
 
-    override fun uniform2i(uniform: Uniform, a: Int, b: Int) {
-        glUniform2i(uniform.address, a, b)
+    override fun uniform2i(uniformLocation: UniformLocation, a: Int, b: Int) {
+        glUniform2i(uniformLocation.address, a, b)
     }
 
-    override fun uniform3i(uniform: Uniform, a: Int, b: Int, c: Int) {
-        glUniform3i(uniform.address, a, b, c)
+    override fun uniform3i(uniformLocation: UniformLocation, a: Int, b: Int, c: Int) {
+        glUniform3i(uniformLocation.address, a, b, c)
     }
 
-    override fun uniform1f(uniform: Uniform, first: Float) {
-        glUniform1f(uniform.address, first)
+    override fun uniform1f(uniformLocation: UniformLocation, first: Float) {
+        glUniform1f(uniformLocation.address, first)
     }
 
-    override fun uniform2f(uniform: Uniform, first: Float, second: Float) {
-        glUniform2f(uniform.address, first, second)
+    override fun uniform2f(uniformLocation: UniformLocation, first: Float, second: Float) {
+        glUniform2f(uniformLocation.address, first, second)
     }
 
-    override fun uniform3f(uniform: Uniform, first: Float, second: Float, third: Float) {
-        glUniform3f(uniform.address, first, second, third)
+    override fun uniform3f(uniformLocation: UniformLocation, first: Float, second: Float, third: Float) {
+        glUniform3f(uniformLocation.address, first, second, third)
     }
 
-    override fun uniform4f(uniform: Uniform, first: Float, second: Float, third: Float, fourth: Float) {
-        glUniform4f(uniform.address, first, second, third, fourth)
+    override fun uniform4f(uniformLocation: UniformLocation, first: Float, second: Float, third: Float, fourth: Float) {
+        glUniform4f(uniformLocation.address, first, second, third, fourth)
     }
 
-    override fun drawArrays(mask: Int, offset: Int, vertexCount: Int) {
-        glDrawArrays(mask, offset, vertexCount)
+    override fun drawArrays(mode: Int, offset: Int, vertexCount: Int) {
+        glDrawArrays(mode, offset, vertexCount)
     }
 
-    override fun drawElements(mask: Int, vertexCount: Int, type: Int, offset: Int) {
-        glDrawElements(mask, vertexCount, type, offset.toLong())
+    override fun drawElements(mode: Int, vertexCount: Int, type: Int, offset: Int) {
+        glDrawElements(mode, vertexCount, type, offset.toLong())
     }
 
     override fun pixelStorei(pname: Int, param: Int) {
         glPixelStorei(pname, param)
     }
 
-    override fun vertex2f(x: Float, y: Float) {
-        glVertex2f(x, y)
-    }
-
     override fun viewport(x: Int, y: Int, width: Int, height: Int) {
         glViewport(x, y, width, height)
     }
 
-    override fun createTexture(): TextureReference {
-        return TextureReference(glGenTextures())
+    override fun createTexture(): GlTexture {
+        return GlTexture(glGenTextures())
     }
 
-    override fun bindTexture(target: Int, textureReference: TextureReference) {
-        glBindTexture(target, textureReference.reference)
+    override fun bindTexture(target: Int, glTexture: GlTexture) {
+        glBindTexture(target, glTexture.reference)
     }
 
     override fun texImage2D(
@@ -300,8 +302,8 @@ class LwjglGL : GL {
         )
     }
 
-    override fun activeTexture(Int: Int) {
-        glActiveTexture(Int)
+    override fun activeTexture(int: Int) {
+        glActiveTexture(int)
     }
 
     override fun texParameteri(target: Int, paramName: Int, paramValue: Int) {

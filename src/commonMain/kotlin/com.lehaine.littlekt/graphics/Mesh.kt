@@ -1,7 +1,6 @@
 package com.lehaine.littlekt.graphics
 
 import com.lehaine.littlekt.Disposable
-import com.lehaine.littlekt.GL
 import com.lehaine.littlekt.graphics.shader.ShaderProgram
 
 /**

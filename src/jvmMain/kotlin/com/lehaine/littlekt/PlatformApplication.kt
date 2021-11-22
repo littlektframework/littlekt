@@ -1,5 +1,7 @@
 package com.lehaine.littlekt
 
+import com.lehaine.littlekt.graphics.GL
+import com.lehaine.littlekt.graphics.GLVersion
 import com.lehaine.littlekt.graphics.Texture
 import com.lehaine.littlekt.input.Input
 import com.lehaine.littlekt.input.LwjglInput

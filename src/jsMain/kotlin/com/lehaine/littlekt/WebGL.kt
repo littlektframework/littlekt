@@ -1,7 +1,10 @@
 package com.lehaine.littlekt
 
-import com.lehaine.littlekt.graphics.BufferReference
-import com.lehaine.littlekt.graphics.VertexArrayReference
+import com.lehaine.littlekt.graphics.GL
+import com.lehaine.littlekt.graphics.GLVersion
+import com.lehaine.littlekt.graphics.gl.GlShaderProgram
+import com.lehaine.littlekt.graphics.gl.GlShader
+import com.lehaine.littlekt.graphics.gl.UniformLocation
 import com.lehaine.littlekt.graphics.shader.*
 
 /**
@@ -41,27 +44,27 @@ class WebGL : GL {
         TODO("Not yet implemented")
     }
 
-    override fun createProgram(): ShaderProgramReference {
+    override fun createProgram(): GlShaderProgram {
         TODO("Not yet implemented")
     }
 
-    override fun getAttribLocation(shaderProgram: ShaderProgramReference, name: String): Int {
+    override fun getAttribLocation(glShaderProgram: GlShaderProgram, name: String): Int {
         TODO("Not yet implemented")
     }
 
-    override fun getUniformLocation(shaderProgram: ShaderProgramReference, name: String): Uniform {
+    override fun getUniformLocation(glShaderProgram: GlShaderProgram, name: String): UniformLocation {
         TODO("Not yet implemented")
     }
 
-    override fun attachShader(shaderProgram: ShaderProgramReference, shaderReference: ShaderReference) {
+    override fun attachShader(glShaderProgram: GlShaderProgram, glShader: GlShader) {
         TODO("Not yet implemented")
     }
 
-    override fun linkProgram(shaderProgram: ShaderProgramReference) {
+    override fun linkProgram(glShaderProgram: GlShaderProgram) {
         TODO("Not yet implemented")
     }
 
-    override fun deleteProgram(shaderProgram: ShaderProgramReference) {
+    override fun deleteProgram(glShaderProgram: GlShaderProgram) {
         TODO("Not yet implemented")
     }
 
@@ -69,51 +72,51 @@ class WebGL : GL {
         TODO("Not yet implemented")
     }
 
-    override fun getProgramParameter(shaderProgram: ShaderProgramReference, mask: Int): Any {
+    override fun getProgramParameter(glShaderProgram: GlShaderProgram, mask: Int): Any {
         TODO("Not yet implemented")
     }
 
-    override fun getShaderParameter(shaderReference: ShaderReference, mask: Int): Any {
+    override fun getShaderParameter(glShader: GlShader, mask: Int): Any {
         TODO("Not yet implemented")
     }
 
-    override fun createShader(type: Int): ShaderReference {
+    override fun createShader(type: Int): GlShader {
         TODO("Not yet implemented")
     }
 
-    override fun shaderSource(shaderReference: ShaderReference, source: String) {
+    override fun shaderSource(glShader: GlShader, source: String) {
         TODO("Not yet implemented")
     }
 
-    override fun compileShader(shaderReference: ShaderReference) {
+    override fun compileShader(glShader: GlShader) {
         TODO("Not yet implemented")
     }
 
-    override fun getShaderInfoLog(shaderReference: ShaderReference): String {
+    override fun getShaderInfoLog(glShader: GlShader): String {
         TODO("Not yet implemented")
     }
 
-    override fun deleteShader(shaderReference: ShaderReference) {
+    override fun deleteShader(glShader: GlShader) {
         TODO("Not yet implemented")
     }
 
-    override fun getProgramInfoLog(shader: ShaderProgramReference): String {
+    override fun getProgramInfoLog(glShader: GlShaderProgram): String {
         TODO("Not yet implemented")
     }
 
-    override fun createBuffer(): com.lehaine.littlekt.graphics.BufferReference {
+    override fun createBuffer(): com.lehaine.littlekt.graphics.gl.GlBuffer {
         TODO("Not yet implemented")
     }
 
-    override fun createFrameBuffer(): com.lehaine.littlekt.graphics.FrameBufferReference {
+    override fun createFrameBuffer(): com.lehaine.littlekt.graphics.gl.GlFrameBuffer {
         TODO("Not yet implemented")
     }
 
-    override fun createVertexArray(): VertexArrayReference {
+    override fun createVertexArray(): com.lehaine.littlekt.graphics.gl.GlVertexArray {
         TODO("Not yet implemented")
     }
 
-    override fun bindVertexArray(vertexArrayReference: VertexArrayReference) {
+    override fun bindVertexArray(glVertexArray: com.lehaine.littlekt.graphics.gl.GlVertexArray) {
         TODO("Not yet implemented")
     }
 
@@ -121,7 +124,7 @@ class WebGL : GL {
         TODO("Not yet implemented")
     }
 
-    override fun bindFrameBuffer(frameBufferReference: com.lehaine.littlekt.graphics.FrameBufferReference) {
+    override fun bindFrameBuffer(glFrameBuffer: com.lehaine.littlekt.graphics.gl.GlFrameBuffer) {
         TODO("Not yet implemented")
     }
 
@@ -129,11 +132,11 @@ class WebGL : GL {
         TODO("Not yet implemented")
     }
 
-    override fun createRenderBuffer(): com.lehaine.littlekt.graphics.RenderBufferReference {
+    override fun createRenderBuffer(): com.lehaine.littlekt.graphics.gl.GlRenderBuffer {
         TODO("Not yet implemented")
     }
 
-    override fun bindRenderBuffer(renderBufferReference: com.lehaine.littlekt.graphics.RenderBufferReference) {
+    override fun bindRenderBuffer(glRenderBuffer: com.lehaine.littlekt.graphics.gl.GlRenderBuffer) {
         TODO("Not yet implemented")
     }
 
@@ -141,15 +144,15 @@ class WebGL : GL {
         TODO("Not yet implemented")
     }
 
-    override fun framebufferRenderbuffer(attachementType: Int, renderBufferReference: com.lehaine.littlekt.graphics.RenderBufferReference) {
+    override fun framebufferRenderbuffer(attachementType: Int, glRenderBuffer: com.lehaine.littlekt.graphics.gl.GlRenderBuffer) {
         TODO("Not yet implemented")
     }
 
-    override fun frameBufferTexture2D(attachmentPoint: Int, textureReference: com.lehaine.littlekt.graphics.TextureReference, level: Int) {
+    override fun frameBufferTexture2D(attachmentPoint: Int, glTexture: com.lehaine.littlekt.graphics.gl.GlTexture, level: Int) {
         TODO("Not yet implemented")
     }
 
-    override fun bindBuffer(target: Int, bufferReference: com.lehaine.littlekt.graphics.BufferReference) {
+    override fun bindBuffer(target: Int, glBuffer: com.lehaine.littlekt.graphics.gl.GlBuffer) {
         TODO("Not yet implemented")
     }
 
@@ -157,7 +160,7 @@ class WebGL : GL {
         TODO("Not yet implemented")
     }
 
-    override fun deleteBuffer(bufferReference: BufferReference) {
+    override fun deleteBuffer(glBuffer: com.lehaine.littlekt.graphics.gl.GlBuffer) {
         TODO("Not yet implemented")
     }
 
@@ -185,7 +188,7 @@ class WebGL : GL {
         TODO("Not yet implemented")
     }
 
-    override fun useProgram(shaderProgram: ShaderProgramReference) {
+    override fun useProgram(glShaderProgram: GlShaderProgram) {
         TODO("Not yet implemented")
     }
 
@@ -193,55 +196,59 @@ class WebGL : GL {
         TODO("Not yet implemented")
     }
 
-    override fun createTexture(): com.lehaine.littlekt.graphics.TextureReference {
+    override fun createTexture(): com.lehaine.littlekt.graphics.gl.GlTexture {
         TODO("Not yet implemented")
     }
 
-    override fun activeTexture(Int: Int) {
+    override fun activeTexture(int: Int) {
         TODO("Not yet implemented")
     }
 
-    override fun bindTexture(target: Int, textureReference: com.lehaine.littlekt.graphics.TextureReference) {
+    override fun bindTexture(target: Int, glTexture: com.lehaine.littlekt.graphics.gl.GlTexture) {
         TODO("Not yet implemented")
     }
 
-    override fun uniformMatrix4fv(uniform: Uniform, transpose: Boolean, data: Array<Float>) {
+    override fun uniformMatrix4fv(uniformLocation: UniformLocation, transpose: Boolean, data: Array<Float>) {
         TODO("Not yet implemented")
     }
 
-    override fun uniform1i(uniform: Uniform, data: Int) {
+    override fun uniform1i(uniformLocation: UniformLocation, data: Int) {
         TODO("Not yet implemented")
     }
 
-    override fun uniform2i(uniform: Uniform, a: Int, b: Int) {
+    override fun uniform2i(uniformLocation: UniformLocation, a: Int, b: Int) {
         TODO("Not yet implemented")
     }
 
-    override fun uniform3i(uniform: Uniform, a: Int, b: Int, c: Int) {
+    override fun uniform3i(uniformLocation: UniformLocation, a: Int, b: Int, c: Int) {
         TODO("Not yet implemented")
     }
 
-    override fun uniform1f(uniform: Uniform, first: Float) {
+    override fun uniform1f(uniformLocation: UniformLocation, first: Float) {
         TODO("Not yet implemented")
     }
 
-    override fun uniform2f(uniform: Uniform, first: Float, second: Float) {
+    override fun uniform2f(uniformLocation: UniformLocation, first: Float, second: Float) {
         TODO("Not yet implemented")
     }
 
-    override fun uniform3f(uniform: Uniform, first: Float, second: Float, third: Float) {
+    override fun uniform3f(uniformLocation: UniformLocation, first: Float, second: Float, third: Float) {
         TODO("Not yet implemented")
     }
 
-    override fun uniform4f(uniform: Uniform, first: Float, second: Float, third: Float, fourth: Float) {
+    override fun uniform4f(uniformLocation: UniformLocation, first: Float, second: Float, third: Float, fourth: Float) {
         TODO("Not yet implemented")
     }
 
-    override fun drawArrays(mask: Int, offset: Int, vertexCount: Int) {
+    override fun drawArrays(mode: Int, offset: Int, vertexCount: Int) {
         TODO("Not yet implemented")
     }
 
-    override fun drawElements(mask: Int, vertexCount: Int, type: Int, offset: Int) {
+    override fun drawElements(mode: Int, vertexCount: Int, type: Int, offset: Int) {
+        TODO("Not yet implemented")
+    }
+
+    override fun pixelStorei(pname: Int, param: Int) {
         TODO("Not yet implemented")
     }
 

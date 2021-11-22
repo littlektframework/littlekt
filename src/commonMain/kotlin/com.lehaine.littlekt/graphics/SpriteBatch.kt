@@ -1,7 +1,6 @@
 package com.lehaine.littlekt.graphics
 
 import com.lehaine.littlekt.Application
-import com.lehaine.littlekt.GL
 import com.lehaine.littlekt.graphics.shader.ShaderProgram
 import com.lehaine.littlekt.graphics.shader.fragment.TexturedFragmentShader
 import com.lehaine.littlekt.graphics.shader.vertex.TexturedQuadShader

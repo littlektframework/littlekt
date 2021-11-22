@@ -1,7 +1,6 @@
 package com.lehaine.littlekt.graphics
 
 import com.lehaine.littlekt.Application
-import com.lehaine.littlekt.GL
 import com.lehaine.littlekt.graphics.gl.PixmapTextureData
 import com.lehaine.littlekt.io.Asset
 
@@ -14,7 +13,7 @@ class Texture(
 ) : Asset {
     val width: Int get() = textureData.width
     val height: Int get() = textureData.height
-    var textureReference: TextureReference? = null
+    var glTexture: com.lehaine.littlekt.graphics.gl.GlTexture? = null
     private var gl: GL? = null
 
     private val onLoad = mutableListOf<(Asset) -> Unit>()
@@ -25,7 +24,7 @@ class Texture(
         if (!textureData.isPrepared) {
             textureData.prepare()
         }
-        val texture = textureReference ?: gl.createTexture()
+        val texture = glTexture ?: gl.createTexture()
 
         gl.bindTexture(GL.TEXTURE_2D, texture)
 
@@ -47,7 +46,7 @@ class Texture(
 
         textureData.uploadImageData(application, GL.TEXTURE_2D, textureData)
 
-        textureReference = texture
+        glTexture = texture
 
         // Invoke all callbacks
         onLoad.forEach { it.invoke(this) }
@@ -55,7 +54,7 @@ class Texture(
 
     fun bind(unit: Int = 0) {
         val gl = gl
-        val textureReference = textureReference
+        val textureReference = glTexture
         if (gl == null || textureReference == null) {
             throw IllegalStateException("Texture has not been loaded yet! Unable to bind!")
         }

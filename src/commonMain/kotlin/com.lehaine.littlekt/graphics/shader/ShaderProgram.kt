@@ -1,7 +1,10 @@
 package com.lehaine.littlekt.graphics.shader
 
 import com.lehaine.littlekt.Disposable
-import com.lehaine.littlekt.GL
+import com.lehaine.littlekt.graphics.GL
+import com.lehaine.littlekt.graphics.gl.GlShaderProgram
+import com.lehaine.littlekt.graphics.gl.GlShader
+import com.lehaine.littlekt.graphics.gl.UniformLocation
 import com.lehaine.littlekt.graphics.shader.fragment.FragmentShader
 import com.lehaine.littlekt.graphics.shader.vertex.VertexShader
 import kotlin.math.min
@@ -25,24 +28,24 @@ class ShaderProgram(
         const val TEXCOORD_ATTRIBUTE = "a_texCoord"
     }
 
-    private val vertexShaderReference: ShaderReference
-    private val fragmentShaderReference: ShaderReference
-    private val programReference: ShaderProgramReference
+    private val vertexShaderReference: GlShader
+    private val fragmentShaderReference: GlShader
+    private val programGl: GlShaderProgram
 
     private val attributes = mutableMapOf<String, Int>()
-    private val uniforms = mutableMapOf<String, Uniform>()
+    private val uniforms = mutableMapOf<String, UniformLocation>()
 
     init {
         vertexShaderReference = compileShader(GL.VERTEX_SHADER, vertexShader.toString())
         fragmentShaderReference = compileShader(GL.FRAGMENT_SHADER, fragmentShader.toString())
 
-        programReference = gl.createProgram()
-        gl.attachShader(programReference, vertexShaderReference)
-        gl.attachShader(programReference, fragmentShaderReference)
-        gl.linkProgram(programReference)
+        programGl = gl.createProgram()
+        gl.attachShader(programGl, vertexShaderReference)
+        gl.attachShader(programGl, fragmentShaderReference)
+        gl.linkProgram(programGl)
 
-        if (!gl.getProgramParameterB(programReference, GL.LINK_STATUS)) {
-            val log = gl.getProgramInfoLog(programReference)
+        if (!gl.getProgramParameterB(programGl, GL.LINK_STATUS)) {
+            val log = gl.getProgramInfoLog(programGl)
             throw RuntimeException("Shader compilation error: $log")
         }
 
@@ -56,25 +59,25 @@ class ShaderProgram(
     }
 
     fun createAttrib(name: String) {
-        attributes[name] = gl.getAttribLocation(programReference, name)
+        attributes[name] = gl.getAttribLocation(programGl, name)
     }
 
     fun createUniform(name: String) {
-        uniforms[name] = gl.getUniformLocation(programReference, name)
+        uniforms[name] = gl.getUniformLocation(programGl, name)
     }
 
     fun getAttrib(name: String): Int =
         attributes[name] ?: throw IllegalStateException("Attributes '$name' not created!")
 
-    fun getUniform(name: String): Uniform {
+    fun getUniform(name: String): UniformLocation {
         return uniforms[name] ?: throw IllegalStateException("Uniform '$name' not created!")
     }
 
     fun bind() {
-        gl.useProgram(programReference)
+        gl.useProgram(programGl)
     }
 
-    private fun compileShader(type: Int, shaderSrc: String): ShaderReference {
+    private fun compileShader(type: Int, shaderSrc: String): GlShader {
         val shader = gl.createShader(type)
         gl.shaderSource(shader, shaderSrc)
         gl.compileShader(shader)
@@ -98,6 +101,6 @@ class ShaderProgram(
         gl.useDefaultProgram()
         gl.deleteShader(vertexShaderReference)
         gl.deleteShader(fragmentShaderReference)
-        gl.deleteProgram(programReference)
+        gl.deleteProgram(programGl)
     }
 }

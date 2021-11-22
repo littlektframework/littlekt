@@ -1,6 +1,5 @@
 package com.lehaine.littlekt.graphics
 
-import com.lehaine.littlekt.GL
 import com.lehaine.littlekt.graphics.shader.ShaderProgram
 import kotlin.jvm.JvmInline
 

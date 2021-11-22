@@ -1,5 +1,7 @@
 package com.lehaine.littlekt
 
+import com.lehaine.littlekt.graphics.GL
+import com.lehaine.littlekt.graphics.GLVersion
 import com.lehaine.littlekt.util.TimeSpan
 import org.lwjgl.glfw.GLFW
 

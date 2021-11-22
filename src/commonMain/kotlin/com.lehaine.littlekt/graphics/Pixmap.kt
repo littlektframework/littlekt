@@ -1,6 +1,5 @@
 package com.lehaine.littlekt.graphics
 
-import com.lehaine.littlekt.GL
 import kotlin.math.max
 import kotlin.math.round
 

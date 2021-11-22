@@ -1,7 +1,6 @@
 package com.lehaine.littlekt.graphics
 
 import com.lehaine.littlekt.Disposable
-import com.lehaine.littlekt.GL
 import com.lehaine.littlekt.graphics.shader.DataSource
 import com.lehaine.littlekt.graphics.shader.ShaderProgram
 import com.lehaine.littlekt.io.FloatBuffer
@@ -18,8 +17,8 @@ class VertexBufferObject(val gl: GL, val isStatic: Boolean, numVertices: Int, va
             isDirty = true
             return field
         }
-    private val bufferReference: BufferReference = gl.createBuffer()
-    private val vaoReference: VertexArrayReference? = if (gl.isGL32()) gl.createVertexArray() else null
+    private val glBuffer: com.lehaine.littlekt.graphics.gl.GlBuffer = gl.createBuffer()
+    private val vaoGl: com.lehaine.littlekt.graphics.gl.GlVertexArray? = if (gl.isGL32()) gl.createVertexArray() else null
     private val usage = if (isStatic) GL.STATIC_DRAW else GL.DYNAMIC_DRAW
     private var bound = false
 
@@ -51,10 +50,10 @@ class VertexBufferObject(val gl: GL, val isStatic: Boolean, numVertices: Int, va
     }
 
     fun bind(shader: ShaderProgram? = null, locations: IntArray? = null) {
-        vaoReference?.let {
+        vaoGl?.let {
             gl.bindVertexArray(it)
         }
-        gl.bindBuffer(GL.ARRAY_BUFFER, bufferReference)
+        gl.bindBuffer(GL.ARRAY_BUFFER, glBuffer)
         if (isDirty) {
             gl.bufferData(GL.ARRAY_BUFFER, DataSource.FloatBufferDataSource(buffer), usage)
             isDirty = false
@@ -86,7 +85,7 @@ class VertexBufferObject(val gl: GL, val isStatic: Boolean, numVertices: Int, va
             }
         }
         gl.bindDefaultBuffer(GL.ARRAY_BUFFER)
-        vaoReference?.let {
+        vaoGl?.let {
             gl.bindDefaultVertexArray()
         }
         bound = false
@@ -101,7 +100,7 @@ class VertexBufferObject(val gl: GL, val isStatic: Boolean, numVertices: Int, va
 
     override fun dispose() {
         gl.bindDefaultBuffer(GL.ARRAY_BUFFER)
-        gl.deleteBuffer(bufferReference)
+        gl.deleteBuffer(glBuffer)
     }
 
 }
@@ -112,7 +111,7 @@ class IndexBufferObject(val gl: GL, maxIndices: Int, val isStatic: Boolean = tru
             isDirty = true
             return field
         }
-    private val bufferReference: BufferReference = gl.createBuffer()
+    private val glBuffer: com.lehaine.littlekt.graphics.gl.GlBuffer = gl.createBuffer()
     private val usage = if (isStatic) GL.STATIC_DRAW else GL.DYNAMIC_DRAW
     private var bound = false
 
@@ -143,7 +142,7 @@ class IndexBufferObject(val gl: GL, maxIndices: Int, val isStatic: Boolean = tru
     }
 
     fun bind() {
-        gl.bindBuffer(GL.ELEMENT_ARRAY_BUFFER, bufferReference)
+        gl.bindBuffer(GL.ELEMENT_ARRAY_BUFFER, glBuffer)
         if (isDirty) {
             gl.bufferData(GL.ELEMENT_ARRAY_BUFFER, DataSource.ShortBufferDataSource(buffer), usage)
             isDirty = false
@@ -165,6 +164,6 @@ class IndexBufferObject(val gl: GL, maxIndices: Int, val isStatic: Boolean = tru
 
     override fun dispose() {
         gl.bindDefaultBuffer(GL.ELEMENT_ARRAY_BUFFER)
-        gl.deleteBuffer(bufferReference)
+        gl.deleteBuffer(glBuffer)
     }
 }

@@ -1,7 +1,6 @@
 package com.lehaine.littlekt.graphics.gl
 
 import com.lehaine.littlekt.Application
-import com.lehaine.littlekt.GL
 import com.lehaine.littlekt.graphics.Pixmap
 import com.lehaine.littlekt.graphics.TextureData
 import com.lehaine.littlekt.graphics.uploadImageData
