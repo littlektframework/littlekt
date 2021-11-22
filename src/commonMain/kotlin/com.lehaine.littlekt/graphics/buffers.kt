@@ -1,6 +1,10 @@
 package com.lehaine.littlekt.graphics
 
 import com.lehaine.littlekt.Disposable
+import com.lehaine.littlekt.graphics.gl.BufferTarget
+import com.lehaine.littlekt.graphics.gl.GlBuffer
+import com.lehaine.littlekt.graphics.gl.GlVertexArray
+import com.lehaine.littlekt.graphics.gl.Usage
 import com.lehaine.littlekt.graphics.shader.DataSource
 import com.lehaine.littlekt.graphics.shader.ShaderProgram
 import com.lehaine.littlekt.io.FloatBuffer
@@ -17,9 +21,10 @@ class VertexBufferObject(val gl: GL, val isStatic: Boolean, numVertices: Int, va
             isDirty = true
             return field
         }
-    private val glBuffer: com.lehaine.littlekt.graphics.gl.GlBuffer = gl.createBuffer()
-    private val vaoGl: com.lehaine.littlekt.graphics.gl.GlVertexArray? = if (gl.isGL32()) gl.createVertexArray() else null
-    private val usage = if (isStatic) GL.STATIC_DRAW else GL.DYNAMIC_DRAW
+    private val glBuffer: GlBuffer = gl.createBuffer()
+    private val vaoGl: GlVertexArray? =
+        if (gl.isGL32()) gl.createVertexArray() else null
+    private val usage = if (isStatic) Usage.STATIC_DRAW else Usage.DYNAMIC_DRAW
     private var bound = false
 
     val isBound get() = bound
@@ -53,9 +58,9 @@ class VertexBufferObject(val gl: GL, val isStatic: Boolean, numVertices: Int, va
         vaoGl?.let {
             gl.bindVertexArray(it)
         }
-        gl.bindBuffer(GL.ARRAY_BUFFER, glBuffer)
+        gl.bindBuffer(BufferTarget.ARRAY, glBuffer)
         if (isDirty) {
-            gl.bufferData(GL.ARRAY_BUFFER, DataSource.FloatBufferDataSource(buffer), usage)
+            gl.bufferData(BufferTarget.ARRAY, DataSource.FloatBufferDataSource(buffer), usage)
             isDirty = false
         }
         if (shader != null) {
@@ -93,7 +98,7 @@ class VertexBufferObject(val gl: GL, val isStatic: Boolean, numVertices: Int, va
 
     private fun onBufferChanged() {
         if (bound) {
-            gl.bufferData(GL.ARRAY_BUFFER, DataSource.FloatBufferDataSource(buffer), usage)
+            gl.bufferData(BufferTarget.ARRAY, DataSource.FloatBufferDataSource(buffer), usage)
             isDirty = false
         }
     }
@@ -111,8 +116,8 @@ class IndexBufferObject(val gl: GL, maxIndices: Int, val isStatic: Boolean = tru
             isDirty = true
             return field
         }
-    private val glBuffer: com.lehaine.littlekt.graphics.gl.GlBuffer = gl.createBuffer()
-    private val usage = if (isStatic) GL.STATIC_DRAW else GL.DYNAMIC_DRAW
+    private val glBuffer: GlBuffer = gl.createBuffer()
+    private val usage = if (isStatic) Usage.STATIC_DRAW else Usage.DYNAMIC_DRAW
     private var bound = false
 
     val isBound get() = bound
@@ -142,28 +147,28 @@ class IndexBufferObject(val gl: GL, maxIndices: Int, val isStatic: Boolean = tru
     }
 
     fun bind() {
-        gl.bindBuffer(GL.ELEMENT_ARRAY_BUFFER, glBuffer)
+        gl.bindBuffer(BufferTarget.ELEMENT_ARRAY, glBuffer)
         if (isDirty) {
-            gl.bufferData(GL.ELEMENT_ARRAY_BUFFER, DataSource.ShortBufferDataSource(buffer), usage)
+            gl.bufferData(BufferTarget.ELEMENT_ARRAY, DataSource.ShortBufferDataSource(buffer), usage)
             isDirty = false
         }
         bound = true
     }
 
     fun unbind() {
-        gl.bindDefaultBuffer(GL.ELEMENT_ARRAY_BUFFER)
+        gl.bindDefaultBuffer(BufferTarget.ELEMENT_ARRAY)
         bound = false
     }
 
     private fun onBufferChanged() {
         if (bound) {
-            gl.bufferData(GL.ELEMENT_ARRAY_BUFFER, DataSource.ShortBufferDataSource(buffer), usage)
+            gl.bufferData(BufferTarget.ELEMENT_ARRAY, DataSource.ShortBufferDataSource(buffer), usage)
             isDirty = false
         }
     }
 
     override fun dispose() {
-        gl.bindDefaultBuffer(GL.ELEMENT_ARRAY_BUFFER)
+        gl.bindDefaultBuffer(BufferTarget.ELEMENT_ARRAY)
         gl.deleteBuffer(glBuffer)
     }
 }
