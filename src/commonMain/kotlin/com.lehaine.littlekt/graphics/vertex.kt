@@ -1,5 +1,6 @@
 package com.lehaine.littlekt.graphics
 
+import com.lehaine.littlekt.graphics.gl.VertexAttrType
 import com.lehaine.littlekt.graphics.shader.ShaderProgram
 import kotlin.jvm.JvmInline
 
@@ -8,19 +9,19 @@ import kotlin.jvm.JvmInline
  * @date 11/19/2021
  */
 data class VertexAttribute(
-    val usage: Usage,
+    val usage: VertexAttrUsage,
     val numComponents: Int,
     val alias: String,
-    val type: Int = if (usage == Usage.COLOR_PACKED) GL.UNSIGNED_BYTE else GL.FLOAT,
-    val normalized: Boolean = usage == Usage.COLOR_PACKED,
+    val type: VertexAttrType = if (usage == VertexAttrUsage.COLOR_PACKED) VertexAttrType.UNSIGNED_BYTE else VertexAttrType.FLOAT,
+    val normalized: Boolean = usage == VertexAttrUsage.COLOR_PACKED,
     val unit: Int = 0,
 ) {
     val sizeInBytes: Int
         get() {
             return when (type) {
-                GL.FLOAT, GL.FIXED -> 4 * numComponents
-                GL.UNSIGNED_BYTE, GL.BYTE -> numComponents
-                GL.UNSIGNED_SHORT, GL.SHORT -> 2 * numComponents
+                VertexAttrType.FLOAT, VertexAttrType.FIXED -> 4 * numComponents
+                VertexAttrType.UNSIGNED_BYTE, VertexAttrType.BYTE -> numComponents
+                VertexAttrType.UNSIGNED_SHORT, VertexAttrType.SHORT -> 2 * numComponents
                 else -> 0
             }
         }
@@ -34,14 +35,14 @@ data class VertexAttribute(
     companion object {
         val POSITION
             get() = VertexAttribute(
-                usage = Usage.POSITION,
+                usage = VertexAttrUsage.POSITION,
                 numComponents = 2,
                 alias = ShaderProgram.POSITION_ATTRIBUTE
             )
 
         fun TEX_COORDS(unit: Int = 0) =
             VertexAttribute(
-                usage = Usage.TEX_COORDS,
+                usage = VertexAttrUsage.TEX_COORDS,
                 numComponents = 2,
                 alias = ShaderProgram.TEXCOORD_ATTRIBUTE + unit,
                 unit = unit
@@ -49,24 +50,24 @@ data class VertexAttribute(
 
         val NORMAL
             get() = VertexAttribute(
-                usage = Usage.NORMAL,
+                usage = VertexAttrUsage.NORMAL,
                 numComponents = 3,
                 alias = ShaderProgram.NORMAL_ATTRIBUTE
             )
         val COLOR_PACKED
             get() = VertexAttribute(
-                usage = Usage.COLOR_PACKED,
+                usage = VertexAttrUsage.COLOR_PACKED,
                 numComponents = 4,
                 alias = ShaderProgram.COLOR_ATTRIBUTE,
-                type = GL.UNSIGNED_BYTE,
+                type = VertexAttrType.UNSIGNED_BYTE,
                 normalized = true
             )
         val COLOR_UNPACKED
             get() = VertexAttribute(
-                usage = Usage.COLOR_UNPACKED,
+                usage = VertexAttrUsage.COLOR_UNPACKED,
                 numComponents = 4,
                 alias = ShaderProgram.COLOR_ATTRIBUTE,
-                type = GL.FLOAT,
+                type = VertexAttrType.FLOAT,
                 normalized = false
             )
     }
@@ -93,11 +94,11 @@ class VertexAttributes(private vararg val attributes: VertexAttribute) : Iterabl
 
     val maskWithSizePacked get() = mask or ((attributes.size shl 32).toLong())
 
-    fun getOffsetOrDefault(usage: Usage, defaultOffsetIfNotFound: Int = 0): Int {
+    fun getOffsetOrDefault(usage: VertexAttrUsage, defaultOffsetIfNotFound: Int = 0): Int {
         return findByUsage(usage)?.offset?.div(4) ?: defaultOffsetIfNotFound
     }
 
-    fun findByUsage(usage: Usage): VertexAttribute? {
+    fun findByUsage(usage: VertexAttrUsage): VertexAttribute? {
         for (i in 0 until size) {
             if (attributes[i].usage == usage) {
                 return attributes[i]
@@ -134,7 +135,7 @@ class VertexAttributes(private vararg val attributes: VertexAttribute) : Iterabl
             if (unit != unit1) return unit - unit1
             if (numComponents != numComponents1) return numComponents - numComponents1
             if (normalized != normalized1) return if (normalized) 1 else -1
-            if (type != type1) return type - type1
+            if (type != type1) return type.glFlag - type1.glFlag
         }
         return 0
     }
@@ -145,13 +146,13 @@ class VertexAttributes(private vararg val attributes: VertexAttribute) : Iterabl
  * @date 11/19/2021
  */
 @JvmInline
-value class Usage(val usage: Int) {
+value class VertexAttrUsage(val usage: Int) {
     companion object {
-        val POSITION = Usage(1)
-        val COLOR_UNPACKED = Usage(2)
-        val COLOR_PACKED = Usage(4)
-        val NORMAL = Usage(8)
-        val TEX_COORDS = Usage(16)
-        val GENERIC = Usage(32)
+        val POSITION = VertexAttrUsage(1)
+        val COLOR_UNPACKED = VertexAttrUsage(2)
+        val COLOR_PACKED = VertexAttrUsage(4)
+        val NORMAL = VertexAttrUsage(8)
+        val TEX_COORDS = VertexAttrUsage(16)
+        val GENERIC = VertexAttrUsage(32)
     }
 }

@@ -1,7 +1,6 @@
 package com.lehaine.littlekt.graphics
 
 import com.lehaine.littlekt.graphics.gl.*
-import com.lehaine.littlekt.graphics.gl.Usage
 import com.lehaine.littlekt.graphics.shader.DataSource
 import com.lehaine.littlekt.math.Mat4
 
@@ -107,6 +106,16 @@ interface GL {
     fun depthFunc(func: CompareFunction) = depthFunc(func.glFlag)
     fun depthMask(flag: Boolean)
     fun vertexAttribPointer(index: Int, size: Int, type: Int, normalized: Boolean, stride: Int, offset: Int)
+    fun vertexAttribPointer(
+        index: Int,
+        size: Int,
+        type: VertexAttrType,
+        normalized: Boolean,
+        stride: Int,
+        offset: Int
+    ) =
+        vertexAttribPointer(index, size, type.glFlag, normalized, stride, offset)
+
     fun enableVertexAttribArray(index: Int)
     fun disableVertexAttribArray(index: Int)
     fun useProgram(glShaderProgram: GlShaderProgram)
