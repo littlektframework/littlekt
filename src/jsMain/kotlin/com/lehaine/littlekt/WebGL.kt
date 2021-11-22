@@ -12,7 +12,7 @@ import org.khronos.webgl.*
  */
 class WebGL(private val gl: WebGLRenderingContextBase) : GL {
     override fun getGLVersion(): GLVersion {
-        TODO("Not yet implemented")
+        return GLVersion.WEBGL_2
     }
 
     override fun clearColor(r: Float, g: Float, b: Float, a: Float) {

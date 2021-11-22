@@ -12,6 +12,7 @@ import com.lehaine.littlekt.math.Mat4
 enum class GLVersion {
     GL_30,
     GL_20,
+    WEBGL_2
 }
 
 /**

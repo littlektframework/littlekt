@@ -17,9 +17,12 @@ internal val Key.keyCode: Int
             Key.BACKSPACE -> GLFW.GLFW_KEY_BACKSPACE
             Key.TAB -> GLFW.GLFW_KEY_TAB
             Key.ENTER -> GLFW.GLFW_KEY_ENTER
-            Key.SHIFT -> GLFW.GLFW_KEY_LEFT_SHIFT // FIXME: how to handle right/left ?
-            Key.CTRL -> GLFW.GLFW_KEY_LEFT_CONTROL // FIXME: how to handle right/left ?
-            Key.ALT -> GLFW.GLFW_KEY_LEFT_ALT // FIXME
+            Key.SHIFT_LEFT -> GLFW.GLFW_KEY_LEFT_SHIFT
+            Key.CTRL_LEFT -> GLFW.GLFW_KEY_LEFT_CONTROL
+            Key.ALT_LEFT -> GLFW.GLFW_KEY_LEFT_ALT
+            Key.SHIFT_RIGHT -> GLFW.GLFW_KEY_RIGHT_SHIFT
+            Key.CTRL_RIGHT -> GLFW.GLFW_KEY_RIGHT_CONTROL
+            Key.ALT_RIGHT -> GLFW.GLFW_KEY_RIGHT_ALT
             Key.PAUSE_BREAK -> GLFW.GLFW_KEY_PAUSE
             Key.CAPS_LOCK -> GLFW.GLFW_KEY_CAPS_LOCK
             Key.ESCAPE -> GLFW.GLFW_KEY_ESCAPE
@@ -71,9 +74,8 @@ internal val Key.keyCode: Int
             Key.X -> GLFW.GLFW_KEY_X
             Key.Y -> GLFW.GLFW_KEY_Y
             Key.Z -> GLFW.GLFW_KEY_Z
-            Key.LEFT_WINDOW_KEY -> GLFW.GLFW_KEY_WORLD_1
-            Key.RIGHT_WINDOW_KEY -> GLFW.GLFW_KEY_WORLD_2
-            Key.SELECT_KEY -> UNKNOWN_KEY
+            Key.LEFT_OS -> GLFW.GLFW_KEY_WORLD_1
+            Key.RIGHT_OS -> GLFW.GLFW_KEY_WORLD_2
             Key.NUMPAD0 -> GLFW.GLFW_KEY_KP_0
             Key.NUMPAD1 -> GLFW.GLFW_KEY_KP_1
             Key.NUMPAD2 -> GLFW.GLFW_KEY_KP_2
@@ -103,19 +105,16 @@ internal val Key.keyCode: Int
             Key.F12 -> GLFW.GLFW_KEY_F12
             Key.NUM_LOCK -> GLFW.GLFW_KEY_NUM_LOCK
             Key.SCROLL_LOCK -> GLFW.GLFW_KEY_SCROLL_LOCK
-            Key.MY_COMPUTER -> UNKNOWN_KEY
-            Key.MY_CALCULATOR -> UNKNOWN_KEY
             Key.SEMI_COLON -> GLFW.GLFW_KEY_SEMICOLON
             Key.EQUAL_SIGN -> GLFW.GLFW_KEY_EQUAL
             Key.COMMA -> GLFW.GLFW_KEY_COMMA
             Key.DASH -> GLFW.GLFW_KEY_MINUS
             Key.PERIOD -> GLFW.GLFW_KEY_PERIOD
             Key.FORWARD_SLASH -> GLFW.GLFW_KEY_SLASH
-            Key.OPEN_BRACKET -> GLFW.GLFW_KEY_LEFT_BRACKET
+            Key.BRACKET_LEFT -> GLFW.GLFW_KEY_LEFT_BRACKET
             Key.BACK_SLASH -> GLFW.GLFW_KEY_BACKSLASH
-            Key.CLOSE_BRACKET -> GLFW.GLFW_KEY_RIGHT_BRACKET
+            Key.BRACKET_RIGHT -> GLFW.GLFW_KEY_RIGHT_BRACKET
             Key.SINGLE_QUOTE -> GLFW.GLFW_KEY_APOSTROPHE
-            Key.DPAD_CENTER -> UNKNOWN_KEY
         }
     }
 
@@ -127,9 +126,12 @@ internal val Int.getKey: Key
             GLFW.GLFW_KEY_BACKSPACE -> Key.BACKSPACE
             GLFW.GLFW_KEY_TAB -> Key.TAB
             GLFW.GLFW_KEY_ENTER -> Key.ENTER
-            GLFW.GLFW_KEY_LEFT_SHIFT -> Key.SHIFT
-            GLFW.GLFW_KEY_LEFT_CONTROL -> Key.CTRL
-            GLFW.GLFW_KEY_LEFT_ALT -> Key.ALT
+            GLFW.GLFW_KEY_LEFT_SHIFT -> Key.SHIFT_LEFT
+            GLFW.GLFW_KEY_LEFT_CONTROL -> Key.CTRL_LEFT
+            GLFW.GLFW_KEY_LEFT_ALT -> Key.ALT_LEFT
+            GLFW.GLFW_KEY_RIGHT_SHIFT -> Key.SHIFT_RIGHT
+            GLFW.GLFW_KEY_RIGHT_CONTROL -> Key.CTRL_RIGHT
+            GLFW.GLFW_KEY_RIGHT_ALT -> Key.ALT_RIGHT
             GLFW.GLFW_KEY_PAUSE -> Key.PAUSE_BREAK
             GLFW.GLFW_KEY_CAPS_LOCK -> Key.CAPS_LOCK
             GLFW.GLFW_KEY_ESCAPE -> Key.ESCAPE
@@ -181,8 +183,8 @@ internal val Int.getKey: Key
             GLFW.GLFW_KEY_X -> Key.X
             GLFW.GLFW_KEY_Y -> Key.Y
             GLFW.GLFW_KEY_Z -> Key.Z
-            GLFW.GLFW_KEY_WORLD_1 -> Key.LEFT_WINDOW_KEY
-            GLFW.GLFW_KEY_WORLD_2 -> Key.RIGHT_WINDOW_KEY
+            GLFW.GLFW_KEY_WORLD_1 -> Key.LEFT_OS
+            GLFW.GLFW_KEY_WORLD_2 -> Key.RIGHT_OS
             GLFW.GLFW_KEY_KP_0 -> Key.NUMPAD0
             GLFW.GLFW_KEY_KP_1 -> Key.NUMPAD1
             GLFW.GLFW_KEY_KP_2 -> Key.NUMPAD2
@@ -218,9 +220,9 @@ internal val Int.getKey: Key
             GLFW.GLFW_KEY_MINUS -> Key.DASH
             GLFW.GLFW_KEY_PERIOD -> Key.PERIOD
             GLFW.GLFW_KEY_SLASH -> Key.FORWARD_SLASH
-            GLFW.GLFW_KEY_LEFT_BRACKET -> Key.OPEN_BRACKET
+            GLFW.GLFW_KEY_LEFT_BRACKET -> Key.BRACKET_LEFT
             GLFW.GLFW_KEY_BACKSLASH -> Key.BACK_SLASH
-            GLFW.GLFW_KEY_RIGHT_BRACKET -> Key.CLOSE_BRACKET
+            GLFW.GLFW_KEY_RIGHT_BRACKET -> Key.BRACKET_RIGHT
             GLFW.GLFW_KEY_APOSTROPHE -> Key.SINGLE_QUOTE
             else -> Key.ANY_KEY
         }
