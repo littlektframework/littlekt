@@ -21,14 +21,6 @@ class WebGLGraphics(val canvas: HTMLCanvasElement) : Graphics {
     @Suppress("UNCHECKED_CAST_TO_EXTERNAL_INTERFACE")
     private fun oldWebGL(): WebGLRenderingContextBase {
         console.warn("WebGL 2 not detected! Falling back to WebGL 1.")
-        console.warn(
-            "MiniGDX might not work as expected as the game is run from a browser" +
-                    "that might not support all features required (like Web GL 2, Audio API, ...)"
-        )
-        console.warn(
-            "Please warn your user to update their browser or switch to another browser " +
-                    "like Firefox, Chrome or Opera."
-        )
         return canvas.getContext("webgl") as WebGLRenderingContextBase
     }
 
