@@ -10,8 +10,8 @@ import com.lehaine.littlekt.math.Mat4
  * @date 11/20/2021
  */
 enum class GLVersion {
-    GL_32,
-    GL_21
+    GL_30,
+    GL_20,
 }
 
 /**
@@ -25,17 +25,17 @@ interface GL {
     /**
      * @return if the current GL version is 3.2 or higher
      */
-    fun isGL32() = getGLVersion() == GLVersion.GL_32
+    fun isGL32() = getGLVersion() == GLVersion.GL_30
 
     fun clearColor(r: Float, g: Float, b: Float, a: Float)
     fun clearColor(color: Color) = clearColor(color.r, color.g, color.b, color.a)
     fun clear(mask: Int)
     fun clear(mask: ClearBufferMask) = clear(mask.glFlag)
     fun clearDepth(depth: Number)
-    fun enable(mask: Int)
-    fun enable(mask: State) = enable(mask.glFlag)
-    fun disable(mask: Int)
-    fun disable(mask: State) = disable(mask.glFlag)
+    fun enable(cap: Int)
+    fun enable(cap: State) = enable(cap.glFlag)
+    fun disable(cap: Int)
+    fun disable(cap: State) = disable(cap.glFlag)
     fun blendFunc(sfactor: Int, dfactor: Int)
     fun blendFunc(sfactor: BlendFactor, dfactor: BlendFactor) = blendFunc(sfactor.glFlag, dfactor.glFlag)
     fun blendFuncSeparate(srcRGB: Int, dstRGB: Int, srcAlpha: Int, dstAlpha: Int)
@@ -49,25 +49,25 @@ interface GL {
     fun linkProgram(glShaderProgram: GlShaderProgram)
     fun deleteProgram(glShaderProgram: GlShaderProgram)
 
-    fun getString(parameterName: Int): String?
+    fun getString(pname: Int): String?
 
-    fun getProgramParameter(glShaderProgram: GlShaderProgram, mask: Int): Any
-    fun getProgramParameterB(glShaderProgram: GlShaderProgram, mask: Int): Boolean =
-        getProgramParameter(glShaderProgram, mask) as Boolean
+    fun getProgramParameter(glShaderProgram: GlShaderProgram, pname: Int): Any
+    fun getProgramParameterB(glShaderProgram: GlShaderProgram, pname: Int): Boolean =
+        getProgramParameter(glShaderProgram, pname) as Boolean
 
-    fun getProgramParameter(glShaderProgram: GlShaderProgram, mask: GetProgram): Any =
-        getProgramParameter(glShaderProgram, mask.glFlag)
+    fun getProgramParameter(glShaderProgram: GlShaderProgram, pname: GetProgram): Any =
+        getProgramParameter(glShaderProgram, pname.glFlag)
 
-    fun getProgramParameterB(glShaderProgram: GlShaderProgram, mask: GetProgram): Boolean =
-        getProgramParameterB(glShaderProgram, mask.glFlag)
+    fun getProgramParameterB(glShaderProgram: GlShaderProgram, pname: GetProgram): Boolean =
+        getProgramParameterB(glShaderProgram, pname.glFlag)
 
-    fun getShaderParameter(glShader: GlShader, mask: Int): Any
-    fun getShaderParameterB(glShader: GlShader, mask: Int): Boolean =
-        getShaderParameter(glShader, mask) as Boolean
+    fun getShaderParameter(glShader: GlShader, pname: Int): Any
+    fun getShaderParameterB(glShader: GlShader, pname: Int): Boolean =
+        getShaderParameter(glShader, pname) as Boolean
 
-    fun getShaderParameter(glShader: GlShader, mask: GetShader) = getShaderParameter(glShader, mask.glFlag)
-    fun getShaderParameterB(glShader: GlShader, mask: GetShader): Boolean =
-        getShaderParameterB(glShader, mask.glFlag)
+    fun getShaderParameter(glShader: GlShader, pname: GetShader) = getShaderParameter(glShader, pname.glFlag)
+    fun getShaderParameterB(glShader: GlShader, pname: GetShader): Boolean =
+        getShaderParameterB(glShader, pname.glFlag)
 
     fun createShader(type: Int): GlShader
     fun createShader(type: ShaderType) = createShader(type.glFlag)
@@ -122,7 +122,7 @@ interface GL {
     fun useDefaultProgram()
 
     fun createTexture(): GlTexture
-    fun activeTexture(int: Int)
+    fun activeTexture(texture: Int)
     fun bindTexture(target: Int, glTexture: GlTexture)
     fun bindTexture(target: TextureTarget, glTexture: GlTexture) = bindTexture(target.glFlag, glTexture)
     fun deleteTexture(glTexture: GlTexture)
@@ -136,19 +136,19 @@ interface GL {
     fun uniformMatrix4fv(uniformLocation: UniformLocation, transpose: Boolean, data: Array<Float>)
 
     fun uniform1i(uniformLocation: UniformLocation, data: Int)
-    fun uniform2i(uniformLocation: UniformLocation, a: Int, b: Int)
-    fun uniform3i(uniformLocation: UniformLocation, a: Int, b: Int, c: Int)
+    fun uniform2i(uniformLocation: UniformLocation, x: Int, y: Int)
+    fun uniform3i(uniformLocation: UniformLocation, x: Int, y: Int, z: Int)
 
-    fun uniform1f(uniformLocation: UniformLocation, first: Float)
-    fun uniform2f(uniformLocation: UniformLocation, first: Float, second: Float)
-    fun uniform3f(uniformLocation: UniformLocation, first: Float, second: Float, third: Float)
-    fun uniform4f(uniformLocation: UniformLocation, first: Float, second: Float, third: Float, fourth: Float)
+    fun uniform1f(uniformLocation: UniformLocation, x: Float)
+    fun uniform2f(uniformLocation: UniformLocation, x: Float, y: Float)
+    fun uniform3f(uniformLocation: UniformLocation, x: Float, y: Float, z: Float)
+    fun uniform4f(uniformLocation: UniformLocation, x: Float, y: Float, z: Float, w: Float)
 
-    fun drawArrays(mode: Int, offset: Int, vertexCount: Int)
-    fun drawArrays(mode: DrawMode, offset: Int, vertexCount: Int) = drawArrays(mode.glFlag, offset, vertexCount)
-    fun drawElements(mode: Int, vertexCount: Int, type: Int, offset: Int)
-    fun drawElements(mode: DrawMode, vertexCount: Int, type: IndexType, offset: Int) =
-        drawElements(mode.glFlag, vertexCount, type.glFlag, offset)
+    fun drawArrays(mode: Int, offset: Int, count: Int)
+    fun drawArrays(mode: DrawMode, offset: Int, count: Int) = drawArrays(mode.glFlag, offset, count)
+    fun drawElements(mode: Int, count: Int, type: Int, offset: Int)
+    fun drawElements(mode: DrawMode, count: Int, type: IndexType, offset: Int) =
+        drawElements(mode.glFlag, count, type.glFlag, offset)
 
     fun pixelStorei(pname: Int, param: Int)
     fun pixelStorei(pname: PixelStoreParameter, param: Int) = pixelStorei(pname.glFlag, param)
@@ -158,7 +158,7 @@ interface GL {
     fun texImage2D(
         target: Int,
         level: Int,
-        internalformat: Int,
+        internalFormat: Int,
         format: Int,
         width: Int,
         height: Int,
@@ -169,15 +169,15 @@ interface GL {
     fun texImage2D(
         target: TextureTarget,
         level: Int,
-        internalformat: TextureFormat,
+        internalFormat: TextureFormat,
         format: TextureFormat,
         width: Int,
         height: Int,
         type: DataType,
         source: ByteArray
-    ) = texImage2D(target.glFlag, level, internalformat.glFlag, format.glFlag, width, height, type.glFlag, source)
+    ) = texImage2D(target.glFlag, level, internalFormat.glFlag, format.glFlag, width, height, type.glFlag, source)
 
-    fun texParameteri(target: Int, paramName: Int, paramValue: Int)
+    fun texParameteri(target: Int, pname: Int, param: Int)
     fun texParameteri(target: TextureTarget, paramName: TexParameter, paramValue: Int) =
         texParameteri(target.glFlag, paramName.glFlag, paramValue)
 

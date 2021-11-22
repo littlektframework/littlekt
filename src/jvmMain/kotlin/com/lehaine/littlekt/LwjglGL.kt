@@ -12,7 +12,7 @@ import java.nio.ByteBuffer
  * @date 9/28/2021
  */
 class LwjglGL : GL {
-    internal var _glVersion: GLVersion = GLVersion.GL_32
+    internal var _glVersion: GLVersion = GLVersion.GL_30
 
     override fun getGLVersion(): GLVersion = _glVersion
 
@@ -28,12 +28,12 @@ class LwjglGL : GL {
         glClearDepth(depth.toDouble())
     }
 
-    override fun enable(mask: Int) {
-        glEnable(mask)
+    override fun enable(cap: Int) {
+        glEnable(cap)
     }
 
-    override fun disable(mask: Int) {
-        glDisable(mask)
+    override fun disable(cap: Int) {
+        glDisable(cap)
     }
 
     override fun blendFunc(sfactor: Int, dfactor: Int) {
@@ -68,24 +68,24 @@ class LwjglGL : GL {
         glDeleteProgram(glShaderProgram.address)
     }
 
-    override fun getProgramParameter(glShaderProgram: GlShaderProgram, mask: Int): Any {
-        return glGetProgrami(glShaderProgram.address, mask)
+    override fun getProgramParameter(glShaderProgram: GlShaderProgram, pname: Int): Any {
+        return glGetProgrami(glShaderProgram.address, pname)
     }
 
-    override fun getShaderParameter(glShader: GlShader, mask: Int): Any {
-        return glGetShaderi(glShader.address, mask)
+    override fun getShaderParameter(glShader: GlShader, pname: Int): Any {
+        return glGetShaderi(glShader.address, pname)
     }
 
-    override fun getProgramParameterB(glShaderProgram: GlShaderProgram, mask: Int): Boolean {
-        return (getProgramParameter(glShaderProgram, mask) as? Int) == 1
+    override fun getProgramParameterB(glShaderProgram: GlShaderProgram, pname: Int): Boolean {
+        return (getProgramParameter(glShaderProgram, pname) as? Int) == 1
     }
 
-    override fun getString(parameterName: Int): String? {
-        return glGetString(parameterName)
+    override fun getString(pname: Int): String? {
+        return glGetString(pname)
     }
 
-    override fun getShaderParameterB(glShader: GlShader, mask: Int): Boolean {
-        return (getShaderParameter(glShader, mask) as? Int) == 1
+    override fun getShaderParameterB(glShader: GlShader, pname: Int): Boolean {
+        return (getShaderParameter(glShader, pname) as? Int) == 1
     }
 
     override fun createShader(type: Int): GlShader {
@@ -227,36 +227,36 @@ class LwjglGL : GL {
         glUniform1i(uniformLocation.address, data)
     }
 
-    override fun uniform2i(uniformLocation: UniformLocation, a: Int, b: Int) {
-        glUniform2i(uniformLocation.address, a, b)
+    override fun uniform2i(uniformLocation: UniformLocation, x: Int, y: Int) {
+        glUniform2i(uniformLocation.address, x, y)
     }
 
-    override fun uniform3i(uniformLocation: UniformLocation, a: Int, b: Int, c: Int) {
-        glUniform3i(uniformLocation.address, a, b, c)
+    override fun uniform3i(uniformLocation: UniformLocation, x: Int, y: Int, z: Int) {
+        glUniform3i(uniformLocation.address, x, y, z)
     }
 
-    override fun uniform1f(uniformLocation: UniformLocation, first: Float) {
-        glUniform1f(uniformLocation.address, first)
+    override fun uniform1f(uniformLocation: UniformLocation, x: Float) {
+        glUniform1f(uniformLocation.address, x)
     }
 
-    override fun uniform2f(uniformLocation: UniformLocation, first: Float, second: Float) {
-        glUniform2f(uniformLocation.address, first, second)
+    override fun uniform2f(uniformLocation: UniformLocation, x: Float, y: Float) {
+        glUniform2f(uniformLocation.address, x, y)
     }
 
-    override fun uniform3f(uniformLocation: UniformLocation, first: Float, second: Float, third: Float) {
-        glUniform3f(uniformLocation.address, first, second, third)
+    override fun uniform3f(uniformLocation: UniformLocation, x: Float, y: Float, z: Float) {
+        glUniform3f(uniformLocation.address, x, y, z)
     }
 
-    override fun uniform4f(uniformLocation: UniformLocation, first: Float, second: Float, third: Float, fourth: Float) {
-        glUniform4f(uniformLocation.address, first, second, third, fourth)
+    override fun uniform4f(uniformLocation: UniformLocation, x: Float, y: Float, z: Float, w: Float) {
+        glUniform4f(uniformLocation.address, x, y, z, w)
     }
 
-    override fun drawArrays(mode: Int, offset: Int, vertexCount: Int) {
-        glDrawArrays(mode, offset, vertexCount)
+    override fun drawArrays(mode: Int, offset: Int, count: Int) {
+        glDrawArrays(mode, offset, count)
     }
 
-    override fun drawElements(mode: Int, vertexCount: Int, type: Int, offset: Int) {
-        glDrawElements(mode, vertexCount, type, offset.toLong())
+    override fun drawElements(mode: Int, count: Int, type: Int, offset: Int) {
+        glDrawElements(mode, count, type, offset.toLong())
     }
 
     override fun pixelStorei(pname: Int, param: Int) {
@@ -282,7 +282,7 @@ class LwjglGL : GL {
     override fun texImage2D(
         target: Int,
         level: Int,
-        internalformat: Int,
+        internalFormat: Int,
         format: Int,
         width: Int,
         height: Int,
@@ -296,7 +296,7 @@ class LwjglGL : GL {
         glTexImage2D(
             target,
             level,
-            internalformat,
+            internalFormat,
             width,
             height,
             0,
@@ -306,12 +306,12 @@ class LwjglGL : GL {
         )
     }
 
-    override fun activeTexture(int: Int) {
-        glActiveTexture(int)
+    override fun activeTexture(texture: Int) {
+        glActiveTexture(texture)
     }
 
-    override fun texParameteri(target: Int, paramName: Int, paramValue: Int) {
-        glTexParameteri(target, paramName, paramValue)
+    override fun texParameteri(target: Int, pname: Int, param: Int) {
+        glTexParameteri(target, pname, param)
     }
 
     override fun generateMipmap(target: Int) {

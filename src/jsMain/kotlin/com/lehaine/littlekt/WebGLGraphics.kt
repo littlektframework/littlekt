@@ -1,29 +1,67 @@
 package com.lehaine.littlekt
 
+import com.lehaine.littlekt.graphics.GLVersion
 import com.lehaine.littlekt.util.TimeSpan
+import org.khronos.webgl.WebGLRenderingContextBase
+import org.w3c.dom.HTMLCanvasElement
 
 /**
  * @author Colton Daily
  * @date 11/6/2021
  */
-class WebGLGraphics : Graphics {
-    override val gl = WebGL()
+class WebGLGraphics(val canvas: HTMLCanvasElement) : Graphics {
 
-    override val width: Int
+    @Suppress("UNCHECKED_CAST_TO_EXTERNAL_INTERFACE")
+    override val gl = WebGL(
+        canvas.getContext("webgl2") as? WebGLRenderingContextBase // Most browsers
+            ?: oldWebGL()// Safari)
+    )
+
+
+    @Suppress("UNCHECKED_CAST_TO_EXTERNAL_INTERFACE")
+    private fun oldWebGL(): WebGLRenderingContextBase {
+        console.warn("WebGL 2 not detected! Falling back to WebGL 1.")
+        console.warn(
+            "MiniGDX might not work as expected as the game is run from a browser" +
+                    "that might not support all features required (like Web GL 2, Audio API, ...)"
+        )
+        console.warn(
+            "Please warn your user to update their browser or switch to another browser " +
+                    "like Firefox, Chrome or Opera."
+        )
+        return canvas.getContext("webgl") as WebGLRenderingContextBase
+    }
+
+    override
+    val width: Int
         get() = TODO("Not yet implemented")
-    override val height: Int
+
+    override
+    val height: Int
         get() = TODO("Not yet implemented")
-    override val backBufferWidth: Int
+
+    override
+    val backBufferWidth: Int
         get() = TODO("Not yet implemented")
-    override val backBufferHeight: Int
+
+    override
+    val backBufferHeight: Int
         get() = TODO("Not yet implemented")
-    override val safeInsetLeft: Int
+
+    override
+    val safeInsetLeft: Int
         get() = TODO("Not yet implemented")
-    override val safeInsetTop: Int
+
+    override
+    val safeInsetTop: Int
         get() = TODO("Not yet implemented")
-    override val safeInsetBottom: Int
+
+    override
+    val safeInsetBottom: Int
         get() = TODO("Not yet implemented")
-    override val safeInsetRight: Int
+
+    override
+    val safeInsetRight: Int
         get() = TODO("Not yet implemented")
 
     override fun getFrameId(): Long {
@@ -39,6 +77,10 @@ class WebGLGraphics : Graphics {
     }
 
     override fun getType(): Graphics.GraphicsType? {
+        TODO("Not yet implemented")
+    }
+
+    override fun getGLVersion(): GLVersion {
         TODO("Not yet implemented")
     }
 

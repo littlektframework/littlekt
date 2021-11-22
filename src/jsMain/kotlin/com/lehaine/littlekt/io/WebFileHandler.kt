@@ -22,7 +22,7 @@ class WebFileHandler(application: Application, logger: Logger) : BaseFileHandler
         TODO("Not yet implemented")
     }
 
-    override fun readSound(filename: String): Content<WebSound> {
+    override fun readSound(filename: String): Content<Sound> {
         TODO("Not yet implemented")
     }
 

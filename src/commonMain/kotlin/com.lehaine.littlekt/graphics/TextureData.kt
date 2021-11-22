@@ -122,7 +122,7 @@ private fun TextureData.generateMipMapDesktop(
         gl.texImage2D(
             target = target,
             level = 0,
-            internalformat = pixmap.glFormat,
+            internalFormat = pixmap.glFormat,
             format = pixmap.glFormat,
             width = pixmap.width,
             height = pixmap.height,
@@ -160,7 +160,7 @@ fun <T : TextureData> T.uploadImageData(
         gl.texImage2D(
             target = target,
             level = mipLevel,
-            internalformat = pixmap.glFormat,
+            internalFormat = pixmap.glFormat,
             format = pixmap.glFormat,
             width = pixmap.width,
             height = pixmap.height,

@@ -12,7 +12,7 @@ import org.lwjgl.glfw.GLFW
 class LwjglGraphics : Graphics {
     override val gl: GL = LwjglGL()
 
-    internal var _glVersion: GLVersion = GLVersion.GL_32
+    internal var _glVersion: GLVersion = GLVersion.GL_30
         set(value) {
             (gl as LwjglGL)._glVersion = value
             field = value

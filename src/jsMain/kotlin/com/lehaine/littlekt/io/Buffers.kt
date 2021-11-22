@@ -7,13 +7,15 @@ import org.khronos.webgl.DataView
  * @author Colton Daily
  * @date 11/19/2021
  */
-actual class ByteBuffer private constructor(actual override val capacity: Int) : Buffer {
+actual class ByteBuffer private constructor(
+    actual override val capacity: Int,
+    val dw: DataView = DataView(ArrayBuffer(capacity), 0, capacity)
+) : Buffer {
 
     init {
         require(capacity >= 0)
     }
 
-    private val dw = DataView(ArrayBuffer(capacity), 0, capacity)
     private var mark = UNSET_MARK
 
     actual override val hasRemaining: Boolean
@@ -237,7 +239,7 @@ actual class ByteBuffer private constructor(actual override val capacity: Int) :
  */
 actual class FloatBuffer private constructor(
     actual override val capacity: Int,
-    private val dw: DataView = DataView(ArrayBuffer(capacity), 0, capacity)
+    val dw: DataView = DataView(ArrayBuffer(capacity), 0, capacity)
 ) : Buffer {
 
     init {
@@ -369,7 +371,7 @@ actual class FloatBuffer private constructor(
  */
 actual class ShortBuffer private constructor(
     actual override val capacity: Int,
-    private val dw: DataView = DataView(ArrayBuffer(capacity), 0, capacity)
+    val dw: DataView = DataView(ArrayBuffer(capacity), 0, capacity)
 ) : Buffer {
 
     init {

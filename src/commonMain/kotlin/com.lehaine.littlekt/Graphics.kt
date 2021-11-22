@@ -127,7 +127,7 @@ interface Graphics {
     /**
      * @return if the current GL version is 3.2 or higher
      */
-    fun isGL32() = getGLVersion() == GLVersion.GL_32
+    fun isGL32() = getGLVersion() == GLVersion.GL_30
 
     /** @return the pixels per inch on the x-axis
      */
