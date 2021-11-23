@@ -7,8 +7,9 @@ import com.lehaine.littlekt.graphics.gl.GlVertexArray
 import com.lehaine.littlekt.graphics.gl.Usage
 import com.lehaine.littlekt.graphics.shader.DataSource
 import com.lehaine.littlekt.graphics.shader.ShaderProgram
-import com.lehaine.littlekt.io.FloatBuffer
-import com.lehaine.littlekt.io.ShortBuffer
+import com.lehaine.littlekt.io.Float32Buffer
+import com.lehaine.littlekt.io.createFloat32Buffer
+import com.lehaine.littlekt.io.createUint16Buffer
 
 /**
  * @author Colton Daily
@@ -16,7 +17,7 @@ import com.lehaine.littlekt.io.ShortBuffer
  */
 class VertexBufferObject(val gl: GL, val isStatic: Boolean, numVertices: Int, val attributes: VertexAttributes) :
     Disposable {
-    val buffer: FloatBuffer = FloatBuffer.allocate(attributes.vertexSize / 4 * numVertices)
+    val buffer: Float32Buffer = createFloat32Buffer(attributes.vertexSize / 4 * numVertices)
         get() {
             isDirty = true
             return field
@@ -60,7 +61,7 @@ class VertexBufferObject(val gl: GL, val isStatic: Boolean, numVertices: Int, va
         }
         gl.bindBuffer(BufferTarget.ARRAY, glBuffer)
         if (isDirty) {
-            gl.bufferData(BufferTarget.ARRAY, DataSource.FloatBufferDataSource(buffer), usage)
+            gl.bufferData(BufferTarget.ARRAY, DataSource.Float32BufferDataSource(buffer), usage)
             isDirty = false
         }
         if (shader != null) {
@@ -98,7 +99,7 @@ class VertexBufferObject(val gl: GL, val isStatic: Boolean, numVertices: Int, va
 
     private fun onBufferChanged() {
         if (bound) {
-            gl.bufferData(BufferTarget.ARRAY, DataSource.FloatBufferDataSource(buffer), usage)
+            gl.bufferData(BufferTarget.ARRAY, DataSource.Float32BufferDataSource(buffer), usage)
             isDirty = false
         }
     }
@@ -111,7 +112,7 @@ class VertexBufferObject(val gl: GL, val isStatic: Boolean, numVertices: Int, va
 }
 
 class IndexBufferObject(val gl: GL, maxIndices: Int, val isStatic: Boolean = true) : Disposable {
-    val buffer = ShortBuffer.allocate(maxIndices * 2)
+    val buffer = createUint16Buffer(maxIndices * 2)
         get() {
             isDirty = true
             return field
@@ -149,7 +150,7 @@ class IndexBufferObject(val gl: GL, maxIndices: Int, val isStatic: Boolean = tru
     fun bind() {
         gl.bindBuffer(BufferTarget.ELEMENT_ARRAY, glBuffer)
         if (isDirty) {
-            gl.bufferData(BufferTarget.ELEMENT_ARRAY, DataSource.ShortBufferDataSource(buffer), usage)
+            gl.bufferData(BufferTarget.ELEMENT_ARRAY, DataSource.Uint16BufferDataSource(buffer), usage)
             isDirty = false
         }
         bound = true
@@ -162,7 +163,7 @@ class IndexBufferObject(val gl: GL, maxIndices: Int, val isStatic: Boolean = tru
 
     private fun onBufferChanged() {
         if (bound) {
-            gl.bufferData(BufferTarget.ELEMENT_ARRAY, DataSource.ShortBufferDataSource(buffer), usage)
+            gl.bufferData(BufferTarget.ELEMENT_ARRAY, DataSource.Uint16BufferDataSource(buffer), usage)
             isDirty = false
         }
     }

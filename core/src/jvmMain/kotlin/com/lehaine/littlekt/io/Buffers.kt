@@ -1,320 +1,336 @@
 package com.lehaine.littlekt.io
 
-import org.lwjgl.BufferUtils
+import java.nio.*
+import java.nio.Buffer
+
+
+abstract class GenericBuffer<out B : Buffer>(override val capacity: Int, val buffer: B) :
+    com.lehaine.littlekt.io.Buffer {
+    override var limit: Int
+        get() = buffer.limit()
+        set(value) {
+            buffer.limit(value)
+        }
+
+    override var position: Int
+        get() = buffer.position()
+        set(value) {
+            buffer.position(value)
+        }
+
+    override val remaining: Int
+        get() = buffer.remaining()
+
+    override fun flip() {
+        buffer.flip()
+    }
+
+    override fun clear() {
+        buffer.clear()
+    }
+}
 
 /**
- * @author Colton Daily
- * @date 11/19/2021
+ * ByteBuffer buffer implementation
  */
-typealias JByteBuffer = java.nio.ByteBuffer
-typealias JFloatBuffer = java.nio.FloatBuffer
-typealias JShortBuffer = java.nio.ShortBuffer
-typealias JByteOrder = java.nio.ByteOrder
+class Uint8BufferImpl(buffer: ByteBuffer) : Uint8Buffer, GenericBuffer<ByteBuffer>(buffer.capacity(), buffer) {
 
-actual class ByteBuffer private constructor(val dw: JByteBuffer) : Buffer {
+    constructor(capacity: Int) : this(ByteBuffer.allocateDirect(capacity).order(ByteOrder.nativeOrder()))
 
-    actual override var limit: Int
-        set(value) {
-            dw.limit(value)
+    constructor(data: ByteArray) : this(ByteBuffer.allocateDirect(data.size).order(ByteOrder.nativeOrder())) {
+        put(data)
+    }
+
+    override fun get(i: Int): Byte {
+        return buffer[i]
+    }
+
+    override fun set(i: Int, value: Byte) {
+        buffer.put(i, value)
+    }
+
+    override fun put(data: ByteArray, offset: Int, len: Int): Uint8Buffer {
+        buffer.put(data, offset, len)
+        return this
+    }
+
+    override fun put(value: Byte): Uint8Buffer {
+        buffer.put(value)
+        return this
+    }
+
+    override fun put(data: Uint8Buffer): Uint8Buffer {
+        if (data is Uint8BufferImpl) {
+            val dataPos = data.position
+            buffer.put(data.buffer)
+            data.position = dataPos
+        } else {
+            for (i in data.position until data.limit) {
+                buffer.put(data[i])
+            }
         }
-        get() = dw.limit()
-    actual override val remaining: Int get() = dw.remaining()
-    actual override val capacity: Int get() = dw.capacity()
-    actual override var position: Int
-        set(value) {
-            dw.position(value)
-        }
-        get() = dw.position()
-
-    actual override val hasRemaining: Boolean get() = dw.hasRemaining()
-
-    actual fun flip(): ByteBuffer {
-        dw.flip()
         return this
-    }
-
-    actual fun mark(): ByteBuffer {
-        dw.mark()
-        return this
-    }
-
-    actual fun reset(): ByteBuffer {
-        dw.reset()
-        return this
-    }
-
-    actual fun order(order: ByteOrder): ByteBuffer {
-        dw.order(if (order == ByteOrder.LITTLE_ENDIAN) JByteOrder.LITTLE_ENDIAN else JByteOrder.BIG_ENDIAN)
-        return this
-    }
-
-    actual fun clear(): ByteBuffer {
-        dw.clear()
-        return this
-    }
-
-    actual fun get(): Byte = dw.get()
-    actual fun get(index: Int): Byte = dw.get(index)
-    actual fun get(dst: ByteArray, offset: Int, cnt: Int): Unit {
-        dw.get(dst, offset, cnt)
-    }
-
-    actual fun getChar(): Char = dw.char
-    actual fun getChar(index: Int): Char = dw.getChar(index)
-    actual fun getShort(): Short = dw.short
-    actual fun getShort(index: Int): Short = dw.getShort(index)
-    actual fun getInt(): Int = dw.int
-    actual fun getInt(index: Int): Int = dw.getInt(index)
-    actual fun getLong(): Long = dw.long
-    actual fun getLong(index: Int): Long = dw.getLong(index)
-    actual fun getFloat(): Float = dw.float
-    actual fun getFloat(index: Int): Float = dw.getFloat(index)
-    actual fun getDouble(): Double = dw.double
-    actual fun getDouble(index: Int): Double = dw.getDouble(index)
-
-    actual fun put(value: Byte): ByteBuffer {
-        dw.put(value)
-        return this
-    }
-
-    actual fun put(value: Byte, index: Int): ByteBuffer {
-        dw.put(index, value)
-        return this
-    }
-
-    actual fun put(src: ByteArray): ByteBuffer {
-        dw.put(src)
-        return this
-    }
-
-    actual fun put(src: ByteArray, offset: Int, cnt: Int): ByteBuffer {
-        dw.put(src, offset, cnt)
-        return this
-    }
-
-    actual fun putChar(value: Char): ByteBuffer {
-        dw.putChar(value)
-        return this
-    }
-
-    actual fun putChar(value: Char, index: Int): ByteBuffer {
-        dw.putChar(index, value)
-        return this
-    }
-
-    actual fun putShort(value: Short): ByteBuffer {
-        dw.putShort(value)
-        return this
-    }
-
-    actual fun putShort(value: Short, index: Int): ByteBuffer {
-        dw.putShort(index, value)
-        return this
-    }
-
-    actual fun putInt(value: Int): ByteBuffer {
-        dw.putInt(value)
-        return this
-    }
-
-    actual fun putInt(value: Int, index: Int): ByteBuffer {
-        dw.putInt(index, value)
-        return this
-    }
-
-    actual fun putLong(value: Long): ByteBuffer {
-        dw.putLong(value)
-        return this
-    }
-
-    actual fun putLong(value: Long, index: Int): ByteBuffer {
-        dw.putLong(index, value)
-        return this
-    }
-
-    actual fun putFloat(value: Float): ByteBuffer {
-        dw.putFloat(value)
-        return this
-    }
-
-    actual fun putFloat(value: Float, index: Int): ByteBuffer {
-        dw.putFloat(index, value)
-        return this
-    }
-
-    actual fun putDouble(value: Double): ByteBuffer {
-        dw.putDouble(value)
-        return this
-    }
-
-    actual fun putDouble(value: Double, index: Int): ByteBuffer {
-        dw.putDouble(index, value)
-        return this
-    }
-
-    actual fun array(): ByteArray = dw.array()
-
-    actual fun asFloatBuffer(): FloatBuffer = FloatBuffer.createFrom(dw.asFloatBuffer())
-
-    actual companion object {
-        actual fun allocate(capacity: Int) = ByteBuffer(BufferUtils.createByteBuffer(capacity))
     }
 }
 
+/**
+ * ShortBuffer buffer implementation
+ */
+class Uint16BufferImpl(buffer: ShortBuffer) : Uint16Buffer, GenericBuffer<ShortBuffer>(buffer.capacity(), buffer) {
 
-actual class FloatBuffer private constructor(val dw: JFloatBuffer) : Buffer {
-    actual override var limit: Int
-        set(value) {
-            dw.limit(value)
+    constructor(capacity: Int) : this(
+        ByteBuffer.allocateDirect(capacity * 2).order(ByteOrder.nativeOrder()).asShortBuffer()
+    )
+
+    override fun get(i: Int): Short {
+        return buffer[i]
+    }
+
+    override fun set(i: Int, value: Short) {
+        buffer.put(i, value)
+    }
+
+    override fun put(data: ShortArray, offset: Int, len: Int): Uint16Buffer {
+        buffer.put(data, offset, len)
+        return this
+    }
+
+    override fun put(value: Short): Uint16Buffer {
+        buffer.put(value)
+        return this
+    }
+
+    override fun put(data: Uint16Buffer): Uint16Buffer {
+        if (data is Uint16BufferImpl) {
+            val dataPos = data.position
+            buffer.put(data.buffer)
+            data.position = dataPos
+        } else {
+            for (i in data.position until data.limit) {
+                buffer.put(data[i])
+            }
         }
-        get() = dw.limit()
-    actual override val remaining: Int get() = dw.remaining()
-    actual override val capacity: Int get() = dw.capacity()
-    actual override var position: Int
-        set(value) {
-            dw.position(value)
-        }
-        get() = dw.position()
-
-    actual override val hasRemaining: Boolean get() = dw.hasRemaining()
-
-    actual fun flip(): FloatBuffer {
-        dw.flip()
         return this
-    }
-
-    actual fun mark(): FloatBuffer {
-        dw.mark()
-        return this
-    }
-
-    actual fun reset(): FloatBuffer {
-        dw.reset()
-        return this
-    }
-
-    actual fun clear(): FloatBuffer {
-        dw.clear()
-        return this
-    }
-
-    actual fun get(): Float {
-        return dw.get()
-    }
-
-    actual fun get(index: Int): Float {
-        return dw.get(index)
-    }
-
-    actual fun get(dst: FloatArray, offset: Int, cnt: Int): FloatBuffer {
-        dw.get(dst, offset, cnt)
-        return this
-    }
-
-    actual fun put(value: Float): FloatBuffer {
-        dw.put(value)
-        return this
-    }
-
-    actual fun put(value: Float, index: Int): FloatBuffer {
-        dw.put(index, value)
-        return this
-    }
-
-    actual fun put(src: FloatArray): FloatBuffer {
-        dw.put(src)
-        return this
-    }
-
-    actual fun put(src: FloatArray, offset: Int, cnt: Int): FloatBuffer {
-        dw.put(src, offset, cnt)
-        return this
-    }
-
-    actual fun array(): FloatArray {
-        return dw.array()
-    }
-
-    actual companion object {
-        fun createFrom(buffer: JFloatBuffer) = FloatBuffer(buffer)
-        actual fun allocate(capacity: Int) = FloatBuffer(BufferUtils.createFloatBuffer(capacity))
     }
 }
 
-actual class ShortBuffer private constructor(val dw: JShortBuffer) : Buffer {
-    actual override var limit: Int
-        set(value) {
-            dw.limit(value)
+/**
+ * IntBuffer buffer implementation
+ */
+class Uint32BufferImpl(buffer: IntBuffer) : Uint32Buffer, GenericBuffer<IntBuffer>(buffer.capacity(), buffer) {
+
+    constructor(capacity: Int) : this(
+        ByteBuffer.allocateDirect(capacity * 4).order(ByteOrder.nativeOrder()).asIntBuffer()
+    )
+
+    override fun get(i: Int): Int {
+        return buffer[i]
+    }
+
+    override fun set(i: Int, value: Int) {
+        buffer.put(i, value)
+    }
+
+    override fun put(data: IntArray, offset: Int, len: Int): Uint32Buffer {
+        buffer.put(data, offset, len)
+        return this
+    }
+
+    override fun put(value: Int): Uint32Buffer {
+        buffer.put(value)
+        return this
+    }
+
+    override fun put(data: Uint32Buffer): Uint32Buffer {
+        if (data is Uint32BufferImpl) {
+            val dataPos = data.position
+            buffer.put(data.buffer)
+            data.position = dataPos
+        } else {
+            for (i in data.position until data.limit) {
+                buffer.put(data[i])
+            }
         }
-        get() = dw.limit()
-    actual override val remaining: Int get() = dw.remaining()
-    actual override val capacity: Int get() = dw.capacity()
-    actual override var position: Int
-        set(value) {
-            dw.position(value)
-        }
-        get() = dw.position()
-
-    actual override val hasRemaining: Boolean get() = dw.hasRemaining()
-
-    actual fun flip(): ShortBuffer {
-        dw.flip()
         return this
-    }
-
-    actual fun mark(): ShortBuffer {
-        dw.mark()
-        return this
-    }
-
-    actual fun reset(): ShortBuffer {
-        dw.reset()
-        return this
-    }
-
-    actual fun clear(): ShortBuffer {
-        dw.clear()
-        return this
-    }
-
-    actual fun get(): Short {
-        return dw.get()
-    }
-
-    actual fun get(index: Int): Short {
-        return dw.get(index)
-    }
-
-    actual fun get(dst: ShortArray, offset: Int, cnt: Int): ShortBuffer {
-        dw.get(dst, offset, cnt)
-        return this
-    }
-
-    actual fun put(value: Short): ShortBuffer {
-        dw.put(value)
-        return this
-    }
-
-    actual fun put(value: Short, index: Int): ShortBuffer {
-        dw.put(index, value)
-        return this
-    }
-
-    actual fun put(src: ShortArray): ShortBuffer {
-        dw.put(src)
-        return this
-    }
-
-    actual fun put(src: ShortArray, offset: Int, cnt: Int): ShortBuffer {
-        dw.put(src, offset, cnt)
-        return this
-    }
-
-    actual fun array(): ShortArray {
-        return dw.array()
-    }
-
-    actual companion object {
-        actual fun allocate(capacity: Int) = ShortBuffer(BufferUtils.createShortBuffer(capacity))
     }
 }
+
+/**
+ * FloatBuffer buffer implementation
+ */
+class Float32BufferImpl(buffer: FloatBuffer) : Float32Buffer, GenericBuffer<FloatBuffer>(buffer.capacity(), buffer) {
+
+    constructor(capacity: Int) : this(
+        ByteBuffer.allocateDirect(capacity * 4).order(ByteOrder.nativeOrder()).asFloatBuffer()
+    )
+
+    override fun get(i: Int): Float {
+        return buffer[i]
+    }
+
+    override fun set(i: Int, value: Float) {
+        buffer.put(i, value)
+    }
+
+    override fun put(data: FloatArray, offset: Int, len: Int): Float32Buffer {
+        buffer.put(data, offset, len)
+        return this
+    }
+
+    override fun put(value: Float): Float32Buffer {
+        buffer.put(value)
+        return this
+    }
+
+    override fun put(data: Float32Buffer): Float32Buffer {
+        if (data is Float32BufferImpl) {
+            val dataPos = data.position
+            buffer.put(data.buffer)
+            data.position = dataPos
+        } else {
+            for (i in data.position until data.limit) {
+                buffer.put(data[i])
+            }
+        }
+        return this
+    }
+}
+
+class MixedBufferImpl(buffer: ByteBuffer) : MixedBuffer, GenericBuffer<ByteBuffer>(buffer.capacity(), buffer) {
+
+    constructor(capacity: Int) : this(ByteBuffer.allocateDirect(capacity).order(ByteOrder.nativeOrder()))
+
+    override fun putUint8(value: Byte): MixedBuffer {
+        buffer.put(value)
+        return this
+    }
+
+    override fun putUint8(data: ByteArray, offset: Int, len: Int): MixedBuffer {
+        buffer.put(data, offset, len)
+        return this
+    }
+
+    override fun putUint8(data: Uint8Buffer): MixedBuffer {
+        if (data is Uint8BufferImpl) {
+            val dataPos = data.position
+            buffer.put(data.buffer)
+            data.position = dataPos
+        } else {
+            for (i in data.position until data.limit) {
+                buffer.put(data[i])
+            }
+        }
+        return this
+    }
+
+    override fun putUint16(value: Short): MixedBuffer {
+        buffer.putShort(value)
+        return this
+    }
+
+    override fun putUint16(data: ShortArray, offset: Int, len: Int): MixedBuffer {
+        if (len <= BUFFER_CONV_THRESH) {
+            for (i in 0 until len) {
+                buffer.putShort(data[offset + i])
+            }
+        } else {
+            buffer.asShortBuffer().put(data, offset, len)
+            position += len * 2
+        }
+        return this
+    }
+
+    override fun putUint16(data: Uint16Buffer): MixedBuffer {
+        val len = data.limit - data.position
+        if (data !is Uint16BufferImpl || len <= BUFFER_CONV_THRESH) {
+            for (i in data.position until data.limit) {
+                buffer.putShort(data[i])
+            }
+        } else {
+            val dataPos = data.position
+            buffer.asShortBuffer().put(data.buffer)
+            data.position = dataPos
+            position += len * 2
+        }
+        return this
+    }
+
+    override fun putUint32(value: Int): MixedBuffer {
+        buffer.putInt(value)
+        return this
+    }
+
+    override fun putUint32(data: IntArray, offset: Int, len: Int): MixedBuffer {
+        if (len <= BUFFER_CONV_THRESH) {
+            for (i in 0 until len) {
+                buffer.putInt(data[offset + i])
+            }
+        } else {
+            buffer.asIntBuffer().put(data, offset, len)
+            position += len * 4
+        }
+        return this
+    }
+
+    override fun putUint32(data: Uint32Buffer): MixedBuffer {
+        val len = data.limit - data.position
+        if (data !is Uint32BufferImpl || len <= BUFFER_CONV_THRESH) {
+            for (i in data.position until data.limit) {
+                buffer.putInt(data[i])
+            }
+        } else {
+            val dataPos = data.position
+            buffer.asIntBuffer().put(data.buffer)
+            data.position = dataPos
+            position += len * 4
+        }
+        return this
+    }
+
+    override fun putFloat32(value: Float): MixedBuffer {
+        buffer.putFloat(value)
+        return this
+    }
+
+    override fun putFloat32(data: FloatArray, offset: Int, len: Int): MixedBuffer {
+        if (len <= BUFFER_CONV_THRESH) {
+            for (i in 0 until len) {
+                buffer.putFloat(data[offset + i])
+            }
+        } else {
+            buffer.asFloatBuffer().put(data, offset, len)
+            position += len * 4
+        }
+        return this
+    }
+
+    override fun putFloat32(data: Float32Buffer): MixedBuffer {
+        val len = data.limit - data.position
+        if (data !is Float32BufferImpl || len <= BUFFER_CONV_THRESH) {
+            for (i in data.position until data.limit) {
+                buffer.putFloat(data[i])
+            }
+        } else {
+            val dataPos = data.position
+            buffer.asFloatBuffer().put(data.buffer)
+            data.position = dataPos
+            position += len * 4
+        }
+        return this
+    }
+
+    companion object {
+        // todo: find a good value / always / never convert buffer type
+        private const val BUFFER_CONV_THRESH = 4
+    }
+}
+
+actual fun createUint8Buffer(capacity: Int): Uint8Buffer = Uint8BufferImpl(capacity)
+
+actual fun createUint16Buffer(capacity: Int): Uint16Buffer = Uint16BufferImpl(capacity)
+
+actual fun createUint32Buffer(capacity: Int): Uint32Buffer = Uint32BufferImpl(capacity)
+
+actual fun createFloat32Buffer(capacity: Int): Float32Buffer = Float32BufferImpl(capacity)
+
+actual fun createMixedBuffer(capacity: Int): MixedBuffer = MixedBufferImpl(capacity)

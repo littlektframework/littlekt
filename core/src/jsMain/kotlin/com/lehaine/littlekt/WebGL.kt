@@ -169,10 +169,10 @@ class WebGL(val gl: WebGLRenderingContextBase) : GL {
     override fun bufferData(target: Int, data: DataSource, usage: Int) {
         val source = when (data) {
             is DataSource.DoubleDataSource -> TODO("Not supported")
-            is DataSource.FloatBufferDataSource -> Float32Array(data.buffer.array().toTypedArray())
+            is DataSource.Float32BufferDataSource -> Float32Array(data.buffer.toArray().toTypedArray())
             is DataSource.FloatDataSource -> Float32Array(data.floats.toTypedArray())
             is DataSource.IntDataSource -> Uint32Array(data.ints.toTypedArray())
-            is DataSource.ShortBufferDataSource -> Uint16Array(data.buffer.array().toTypedArray())
+            is DataSource.Uint16BufferDataSource -> Uint16Array(data.buffer.toArray().toTypedArray())
             is DataSource.ShortDataSource -> Uint16Array(data.shorts.toTypedArray())
             is DataSource.UIntDataSource -> Uint32Array(data.ints.toTypedArray())
         }

@@ -1,134 +1,216 @@
 package com.lehaine.littlekt.io
 
 /**
- * @author Colton Daily
- * @date 11/19/2021
+ * Super class for platform-dependent buffers. In the JVM these buffers directly map to the corresponding NIO buffers.
+ * However, not all operations of NIO buffers are supported.
+ *
+ * Notice that Buffer is not generic, so that concrete types remain primitive.
+ *
+ * @author fabmax
  */
-
 interface Buffer {
     var limit: Int
+    var position: Int
     val remaining: Int
     val capacity: Int
-    var position: Int
-    val hasRemaining: Boolean
-}
 
-enum class ByteOrder {
-    LITTLE_ENDIAN, BIG_ENDIAN
-}
+    fun flip()
+    fun clear()
 
-expect class ByteBuffer : Buffer {
-
-    override var limit: Int
-    override val remaining: Int
-    override val capacity: Int
-    override var position: Int
-    override val hasRemaining: Boolean
-
-    fun flip(): ByteBuffer
-    fun mark(): ByteBuffer
-    fun reset(): ByteBuffer
-
-    fun order(order: ByteOrder): ByteBuffer
-    fun clear(): ByteBuffer
-
-    fun get(): Byte
-    fun get(index: Int): Byte
-    fun get(dst: ByteArray, offset: Int, cnt: Int): Unit
-    fun getChar(): Char
-    fun getChar(index: Int): Char
-    fun getShort(): Short
-    fun getShort(index: Int): Short
-    fun getInt(): Int
-    fun getInt(index: Int): Int
-    fun getLong(): Long
-    fun getLong(index: Int): Long
-    fun getFloat(): Float
-    fun getFloat(index: Int): Float
-    fun getDouble(): Double
-    fun getDouble(index: Int): Double
-
-    fun put(value: Byte): ByteBuffer
-    fun put(value: Byte, index: Int): ByteBuffer
-    fun put(src: ByteArray): ByteBuffer
-    fun put(src: ByteArray, offset: Int, cnt: Int): ByteBuffer
-
-    fun putChar(value: Char): ByteBuffer
-    fun putChar(value: Char, index: Int): ByteBuffer
-    fun putShort(value: Short): ByteBuffer
-    fun putShort(value: Short, index: Int): ByteBuffer
-    fun putInt(value: Int): ByteBuffer
-    fun putInt(value: Int, index: Int): ByteBuffer
-    fun putLong(value: Long): ByteBuffer
-    fun putLong(value: Long, index: Int): ByteBuffer
-    fun putFloat(value: Float): ByteBuffer
-    fun putFloat(value: Float, index: Int): ByteBuffer
-    fun putDouble(value: Double): ByteBuffer
-    fun putDouble(value: Double, index: Int): ByteBuffer
-
-    fun array(): ByteArray
-    fun asFloatBuffer(): FloatBuffer
-
-
-    companion object {
-        fun allocate(capacity: Int): ByteBuffer
+    fun removeAt(index: Int) {
+        if (position > index) {
+            position--
+        }
+        if (limit > index) {
+            limit--
+        }
     }
 }
 
-expect class FloatBuffer : Buffer {
-    override var limit: Int
-    override val remaining: Int
-    override val capacity: Int
-    override var position: Int
-    override val hasRemaining: Boolean
+/**
+ * Represents a buffer for bytes.
+ *
+ * @author fabmax
+ */
+interface Uint8Buffer : Buffer {
+    operator fun get(i: Int): Byte
+    operator fun set(i: Int, value: Byte)
+    operator fun plusAssign(value: Byte) {
+        put(value)
+    }
 
-    fun flip(): FloatBuffer
-    fun mark(): FloatBuffer
-    fun reset(): FloatBuffer
+    fun put(value: Byte): Uint8Buffer
+    fun put(data: ByteArray): Uint8Buffer = put(data, 0, data.size)
+    fun put(data: ByteArray, offset: Int, len: Int): Uint8Buffer
+    fun put(data: Uint8Buffer): Uint8Buffer
 
-    fun clear(): FloatBuffer
+    fun toArray(): ByteArray {
+        val array = ByteArray(capacity)
+        for (i in 0 until capacity) {
+            array[i] = get(i)
+        }
+        return array
+    }
 
-    fun get(): Float
-    fun get(index: Int): Float
-    fun get(dst: FloatArray, offset: Int = 0, cnt: Int = dst.size): FloatBuffer
-
-    fun put(value: Float): FloatBuffer
-    fun put(value: Float, index: Int): FloatBuffer
-    fun put(src: FloatArray): FloatBuffer
-    fun put(src: FloatArray, offset: Int = 0, cnt: Int = src.size): FloatBuffer
-
-    fun array(): FloatArray
-
-    companion object {
-        fun allocate(capacity: Int): FloatBuffer
+    override fun removeAt(index: Int) {
+        for (i in index until position) {
+            this[i] = this[i + 1]
+        }
+        super.removeAt(index)
     }
 }
 
-expect class ShortBuffer : Buffer {
-    override var limit: Int
-    override val remaining: Int
-    override val capacity: Int
-    override var position: Int
-    override val hasRemaining: Boolean
+/**
+ * Represents a buffer for shorts.
+ *
+ * @author fabmax
+ */
+interface Uint16Buffer : Buffer {
+    operator fun get(i: Int): Short
+    operator fun set(i: Int, value: Short)
+    operator fun plusAssign(value: Short) {
+        put(value)
+    }
 
-    fun flip(): ShortBuffer
-    fun mark(): ShortBuffer
-    fun reset(): ShortBuffer
+    fun put(value: Short): Uint16Buffer
+    fun put(data: ShortArray): Uint16Buffer = put(data, 0, data.size)
+    fun put(data: ShortArray, offset: Int, len: Int): Uint16Buffer
+    fun put(data: Uint16Buffer): Uint16Buffer
 
-    fun clear(): ShortBuffer
+    fun toArray(): ShortArray {
+        val array = ShortArray(capacity)
+        for (i in 0 until capacity) {
+            array[i] = get(i)
+        }
+        return array
+    }
 
-    fun get(): Short
-    fun get(index: Int): Short
-    fun get(dst: ShortArray, offset: Int = 0, cnt: Int = dst.size): ShortBuffer
-
-    fun put(value: Short): ShortBuffer
-    fun put(value: Short, index: Int): ShortBuffer
-    fun put(src: ShortArray): ShortBuffer
-    fun put(src: ShortArray, offset: Int = 0, cnt: Int = src.size): ShortBuffer
-
-    fun array(): ShortArray
-
-    companion object {
-        fun allocate(capacity: Int): ShortBuffer
+    override fun removeAt(index: Int) {
+        for (i in index until position) {
+            this[i] = this[i + 1]
+        }
+        super.removeAt(index)
     }
 }
+
+/**
+ * Represents a buffer for ints.
+ *
+ * @author fabmax
+ */
+interface Uint32Buffer : Buffer {
+    operator fun get(i: Int): Int
+    operator fun set(i: Int, value: Int)
+    operator fun plusAssign(value: Int) {
+        put(value)
+    }
+
+    fun put(value: Int): Uint32Buffer
+    fun put(data: IntArray): Uint32Buffer = put(data, 0, data.size)
+    fun put(data: IntArray, offset: Int, len: Int): Uint32Buffer
+    fun put(data: Uint32Buffer): Uint32Buffer
+
+    fun toArray(): IntArray {
+        val array = IntArray(capacity)
+        for (i in 0 until capacity) {
+            array[i] = get(i)
+        }
+        return array
+    }
+
+    override fun removeAt(index: Int) {
+        for (i in index until position) {
+            this[i] = this[i + 1]
+        }
+        super.removeAt(index)
+    }
+}
+
+/**
+ * Represents a buffer for floats.
+ *
+ * @author fabmax
+ */
+interface Float32Buffer : Buffer {
+    operator fun get(i: Int): Float
+    operator fun set(i: Int, value: Float)
+    operator fun plusAssign(value: Float) {
+        put(value)
+    }
+
+    fun put(value: Float): Float32Buffer
+    fun put(data: FloatArray): Float32Buffer = put(data, 0, data.size)
+    fun put(data: FloatArray, offset: Int, len: Int): Float32Buffer
+    fun put(data: Float32Buffer): Float32Buffer
+
+    fun toArray(): FloatArray {
+        val array = FloatArray(capacity)
+        for (i in 0 until capacity) {
+            array[i] = get(i)
+        }
+        return array
+    }
+
+    override fun removeAt(index: Int) {
+        for (i in index until position) {
+            this[i] = this[i + 1]
+        }
+        super.removeAt(index)
+    }
+}
+
+/**
+ * Represents a buffer containing mixed type data. All buffer positions are in bytes.
+ *
+ * @author fabmax
+ */
+interface MixedBuffer : Buffer {
+    fun putInt8(value: Byte) = putUint8(value)
+    fun putInt8(data: ByteArray) = putUint8(data)
+    fun putInt8(data: ByteArray, offset: Int, len: Int) = putUint8(data, offset, len)
+    fun putInt8(data: Uint8Buffer) = putUint8(data)
+
+    fun putInt16(value: Short) = putUint16(value)
+    fun putInt16(data: ShortArray) = putUint16(data)
+    fun putInt16(data: ShortArray, offset: Int, len: Int) = putUint16(data, offset, len)
+    fun putInt16(data: Uint16Buffer) = putUint16(data)
+
+    fun putInt32(value: Int) = putUint32(value)
+    fun putInt32(data: IntArray) = putUint32(data)
+    fun putInt32(data: IntArray, offset: Int, len: Int) = putUint32(data, offset, len)
+    fun putInt32(data: Uint32Buffer) = putUint32(data)
+
+    fun putUint8(value: Byte): MixedBuffer
+    fun putUint8(data: ByteArray): MixedBuffer = putUint8(data, 0, data.size)
+    fun putUint8(data: ByteArray, offset: Int, len: Int): MixedBuffer
+    fun putUint8(data: Uint8Buffer): MixedBuffer
+
+    fun putUint16(value: Short): MixedBuffer
+    fun putUint16(data: ShortArray): MixedBuffer = putUint16(data, 0, data.size)
+    fun putUint16(data: ShortArray, offset: Int, len: Int): MixedBuffer
+    fun putUint16(data: Uint16Buffer): MixedBuffer
+
+    fun putUint32(value: Int): MixedBuffer
+    fun putUint32(data: IntArray): MixedBuffer = putUint32(data, 0, data.size)
+    fun putUint32(data: IntArray, offset: Int, len: Int): MixedBuffer
+    fun putUint32(data: Uint32Buffer): MixedBuffer
+
+    fun putFloat32(value: Float): MixedBuffer
+    fun putFloat32(data: FloatArray): MixedBuffer = putFloat32(data, 0, data.size)
+    fun putFloat32(data: FloatArray, offset: Int, len: Int): MixedBuffer
+    fun putFloat32(data: Float32Buffer): MixedBuffer
+
+    override fun removeAt(index: Int) {
+        throw RuntimeException("MixedBuffer does not support element removal")
+    }
+}
+
+expect fun createUint8Buffer(capacity: Int): Uint8Buffer
+
+expect fun createUint16Buffer(capacity: Int): Uint16Buffer
+
+expect fun createUint32Buffer(capacity: Int): Uint32Buffer
+
+expect fun createFloat32Buffer(capacity: Int): Float32Buffer
+
+expect fun createMixedBuffer(capacity: Int): MixedBuffer
