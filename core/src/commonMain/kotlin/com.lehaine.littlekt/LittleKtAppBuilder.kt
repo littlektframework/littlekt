@@ -14,3 +14,4 @@ class LittleKtAppBuilder(
         app.start(gameBuilder)
     }
 }
+

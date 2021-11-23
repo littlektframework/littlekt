@@ -154,7 +154,6 @@ actual class PlatformApplication actual constructor(actual override val configur
         }
 
         Texture.DEFAULT.prepare(this)
-        game.create()
         game.resize(configuration.width, configuration.height)
 
         while (!windowShouldClose) {

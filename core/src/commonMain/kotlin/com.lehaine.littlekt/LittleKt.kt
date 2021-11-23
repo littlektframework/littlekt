@@ -1,7 +1,6 @@
 package com.lehaine.littlekt
 
 import com.lehaine.littlekt.graphics.Texture
-import com.lehaine.littlekt.graphics.TextureData
 import com.lehaine.littlekt.graphics.shader.ShaderProgram
 import com.lehaine.littlekt.graphics.shader.fragment.FragmentShader
 import com.lehaine.littlekt.graphics.shader.fragment.TexturedFragmentShader
@@ -15,8 +14,6 @@ import com.lehaine.littlekt.graphics.shader.vertex.VertexShader
  */
 open class LittleKt(val application: Application) : Application by application {
 
-    open fun create() {}
-
     open fun render(dt: Float) {}
 
     open fun resize(width: Int, height: Int) {}
@@ -26,6 +23,15 @@ open class LittleKt(val application: Application) : Application by application {
     open fun pause() {}
 
     open fun dispose() {}
+}
+
+/**
+ * Creates a new [ShaderProgram] for the specified shaders.
+ * @param vertexShader the vertex shader to use. Defaults to [TexturedQuadShader].
+ * @param fragmentShader the fragment shader to use. Defaults to [TexturedFragmentShader].
+ */
+fun <T : Application> T.loadTexture(assetPath: String, onLoad: (Texture) -> Unit) = fileHandler.launch {
+    onLoad(loadTexture(assetPath))
 }
 
 

@@ -34,20 +34,6 @@ class DisplayTest(application: Application) : LittleKt(application), InputProces
     )
     val indices = shortArrayOf(0, 1, 2, 2, 3, 0)
 
-    init {
-        fileHandler.launch {
-            texture = loadTexture("person.png")
-            loading = false
-        }
-    }
-
-    override fun create() {
-        logger.info { "Create" }
-        mesh.setIndices(indices)
-        mesh.setVertices(vertices)
-        input.inputProcessor = this
-    }
-
     var projection = ortho(
         l = 0f,
         r = 480f * 2,
@@ -61,6 +47,17 @@ class DisplayTest(application: Application) : LittleKt(application), InputProces
 
     private var xVel = 0f
     private var yVel = 0f
+
+    init {
+        fileHandler.launch {
+            texture = loadTexture("person.png")
+            loading = false
+        }
+
+        mesh.setIndices(indices)
+        mesh.setVertices(vertices)
+        input.inputProcessor = this
+    }
 
     override fun render(dt: Float) {
         if (loading) {
