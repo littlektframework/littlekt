@@ -1,4 +1,7 @@
-package com.lehaine.littlekt
+package com.lehaine.littlekt.samples
+
+import com.lehaine.littlekt.ApplicationConfiguration
+import com.lehaine.littlekt.LittleKtAppBuilder
 
 /**
  * @author Colton Daily
