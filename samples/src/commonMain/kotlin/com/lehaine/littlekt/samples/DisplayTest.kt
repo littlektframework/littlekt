@@ -37,13 +37,12 @@ class DisplayTest(application: Application) : LittleKt(application), InputProces
     init {
         fileHandler.launch {
             texture = loadTexture("person.png")
-            println("we got a texture loaded ${texture.width},${texture.height}")
             loading = false
         }
     }
 
     override fun create() {
-        println("create")
+        logger.info { "Create" }
         mesh.setIndices(indices)
         mesh.setVertices(vertices)
         input.inputProcessor = this
@@ -98,7 +97,7 @@ class DisplayTest(application: Application) : LittleKt(application), InputProces
     }
 
     override fun resize(width: Int, height: Int) {
-        println("resize to $width,$height")
+        logger.debug { "Resize to $width,$height" }
     }
 
     override fun keyDown(key: Key): Boolean {
