@@ -1,6 +1,7 @@
 package com.lehaine.littlekt
 
 import com.lehaine.littlekt.audio.AudioContext
+import com.lehaine.littlekt.graphics.Texture
 import com.lehaine.littlekt.input.Input
 import com.lehaine.littlekt.input.JsInput
 import com.lehaine.littlekt.io.AssetManager
@@ -43,6 +44,8 @@ actual class PlatformApplication actual constructor(actual override val configur
 
         game = gameBuilder(this)
 
+        Texture.DEFAULT.load(game.application)
+        assetManager.update()
         window.requestAnimationFrame(::load)
     }
 

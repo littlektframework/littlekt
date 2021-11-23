@@ -56,6 +56,7 @@ class DisplayTest(application: Application) : LittleKt(application), InputProces
     private var yVel = 0f
 
     override fun render(dt: Float) {
+        println("render")
         xVel = 0f
         yVel = 0f
 

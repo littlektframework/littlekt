@@ -15,7 +15,7 @@ class TextureLoader : FileLoader<Texture> {
         textureImageLoader.load(filename, handler).onLoaded {
             val texture = Texture(it)
             content.load(texture)
-            handler.application.assetManager.add(texture)
+            texture.load(handler.application)
         }
         return content
     }
