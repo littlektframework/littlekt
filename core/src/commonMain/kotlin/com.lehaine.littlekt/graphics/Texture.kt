@@ -134,16 +134,14 @@ class Texture(
             PixmapTextureData(
                 Pixmap(
                     2, 2,
-                    createUint8Buffer(16).apply {
-                        put(
-                            byteArrayOf(
-                                0xFF.toByte(), 0x00.toByte(), 0x00.toByte(), 0xFF.toByte(),
-                                0x00.toByte(), 0xFF.toByte(), 0x00.toByte(), 0xFF.toByte(),
-                                0x00.toByte(), 0x00.toByte(), 0xFF.toByte(), 0xFF.toByte(),
-                                0xFF.toByte(), 0xFF.toByte(), 0x00.toByte(), 0xFF.toByte()
-                            )
+                    createUint8Buffer(
+                        byteArrayOf(
+                            0xFF.toByte(), 0x00.toByte(), 0x00.toByte(), 0xFF.toByte(),
+                            0x00.toByte(), 0xFF.toByte(), 0x00.toByte(), 0xFF.toByte(),
+                            0x00.toByte(), 0x00.toByte(), 0xFF.toByte(), 0xFF.toByte(),
+                            0xFF.toByte(), 0xFF.toByte(), 0x00.toByte(), 0xFF.toByte()
                         )
-                    }
+                    )
                 ),
                 true
             )

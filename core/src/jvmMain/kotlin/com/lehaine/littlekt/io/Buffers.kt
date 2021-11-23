@@ -326,6 +326,7 @@ class MixedBufferImpl(buffer: ByteBuffer) : MixedBuffer, GenericBuffer<ByteBuffe
 }
 
 actual fun createUint8Buffer(capacity: Int): Uint8Buffer = Uint8BufferImpl(capacity)
+actual fun createUint8Buffer(array: ByteArray): Uint8Buffer = Uint8BufferImpl(array)
 
 actual fun createUint16Buffer(capacity: Int): Uint16Buffer = Uint16BufferImpl(capacity)
 

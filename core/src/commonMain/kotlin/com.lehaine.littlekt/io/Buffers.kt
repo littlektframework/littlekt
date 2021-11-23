@@ -206,6 +206,7 @@ interface MixedBuffer : Buffer {
 }
 
 expect fun createUint8Buffer(capacity: Int): Uint8Buffer
+expect fun createUint8Buffer(array: ByteArray): Uint8Buffer
 
 expect fun createUint16Buffer(capacity: Int): Uint16Buffer
 

@@ -263,6 +263,8 @@ actual fun createUint8Buffer(capacity: Int): Uint8Buffer {
     return Uint8BufferImpl(capacity)
 }
 
+actual fun createUint8Buffer(array: ByteArray): Uint8Buffer = Uint8BufferImpl(Uint8Array(array.toTypedArray()))
+
 actual fun createUint16Buffer(capacity: Int): Uint16Buffer {
     return Uint16BufferImpl(capacity)
 }
