@@ -4,8 +4,9 @@ import com.lehaine.littlekt.graphics.GL
 import com.lehaine.littlekt.graphics.GLVersion
 import com.lehaine.littlekt.graphics.gl.*
 import com.lehaine.littlekt.graphics.shader.DataSource
+import com.lehaine.littlekt.io.Uint8Buffer
+import com.lehaine.littlekt.io.Uint8BufferImpl
 import org.lwjgl.opengl.GL30.*
-import java.nio.ByteBuffer
 
 /**
  * @author Colton Daily
@@ -295,12 +296,9 @@ class LwjglGL : GL {
         width: Int,
         height: Int,
         type: Int,
-        source: ByteArray
+        source: Uint8Buffer
     ) {
-        val buffer = ByteBuffer.allocateDirect(source.size)
-        buffer.put(source)
-        (buffer as java.nio.Buffer).position(0)
-
+        source as Uint8BufferImpl
         glTexImage2D(
             target,
             level,
@@ -310,7 +308,7 @@ class LwjglGL : GL {
             0,
             format,
             type,
-            buffer
+            source.buffer
         )
     }
 

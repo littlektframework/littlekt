@@ -5,7 +5,6 @@ import com.lehaine.littlekt.graphics.GLVersion
 import com.lehaine.littlekt.graphics.Texture
 import com.lehaine.littlekt.input.Input
 import com.lehaine.littlekt.input.LwjglInput
-import com.lehaine.littlekt.io.AssetManager
 import com.lehaine.littlekt.io.FileHandler
 import com.lehaine.littlekt.io.JvmFileHandler
 import com.lehaine.littlekt.log.JvmLogger
@@ -22,6 +21,7 @@ import org.lwjgl.opengl.GLCapabilities
 import org.lwjgl.opengl.GLUtil
 import org.lwjgl.system.MemoryStack
 import org.lwjgl.system.MemoryUtil
+import java.util.concurrent.CompletableFuture
 import kotlin.math.min
 import org.lwjgl.opengl.GL as LWJGL
 
@@ -32,12 +32,14 @@ import org.lwjgl.opengl.GL as LWJGL
  */
 actual class PlatformApplication actual constructor(actual override val configuration: ApplicationConfiguration) :
     Application {
+
     actual override val graphics: Graphics = LwjglGraphics()
     actual override val logger: Logger = JvmLogger(configuration.title)
     actual override val input: Input = LwjglInput(logger, this)
-    actual override val assetManager: AssetManager = AssetManager(this)
-    actual override val fileHandler: FileHandler = JvmFileHandler(this, logger)
+    actual override val fileHandler: FileHandler = JvmFileHandler(this, logger, ".")
     actual override val platform: Platform = Platform.DESKTOP
+
+    private val mainThreadRunnables = mutableListOf<GpuThreadRunnable>()
 
     private var windowHandle: Long = 0
 
@@ -151,12 +153,21 @@ actual class PlatformApplication actual constructor(actual override val configur
             game.resize(width, height)
         }
 
-        Texture.DEFAULT.load(game.application)
-        game.application.assetManager.update()
+        Texture.DEFAULT.prepare(this)
         game.create()
         game.resize(configuration.width, configuration.height)
 
         while (!windowShouldClose) {
+            synchronized(mainThreadRunnables) {
+                if (mainThreadRunnables.isNotEmpty()) {
+                    for (r in mainThreadRunnables) {
+                        r.r()
+                        r.future.complete(null)
+                    }
+                    mainThreadRunnables.clear()
+                }
+            }
+
             glClear(GL.COLOR_BUFFER_BIT or GL.DEPTH_BUFFER_BIT)
             val delta = getDelta()
             input.update()
@@ -183,7 +194,19 @@ actual class PlatformApplication actual constructor(actual override val configur
         GLFW.glfwSetErrorCallback(null)?.free()
     }
 
+    fun runOnMainThread(action: () -> Unit): CompletableFuture<Void> {
+        synchronized(mainThreadRunnables) {
+            val r = GpuThreadRunnable(action)
+            mainThreadRunnables += r
+            return r.future
+        }
+    }
+
     private fun getTime(): Long {
         return System.nanoTime() / 1_000_000
+    }
+
+    private class GpuThreadRunnable(val r: () -> Unit) {
+        val future = CompletableFuture<Void>()
     }
 }

@@ -61,3 +61,7 @@ internal infix fun Double.umod(that: Double): Double {
 }
 
 internal expect fun epochMillis(): Long
+
+internal expect fun Double.toString(precision: Int): String
+
+internal fun Float.toString(precision: Int): String = this.toDouble().toString(precision)

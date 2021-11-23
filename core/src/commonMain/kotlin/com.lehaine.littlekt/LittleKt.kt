@@ -28,18 +28,6 @@ open class LittleKt(val application: Application) : Application by application {
     open fun dispose() {}
 }
 
-/**
- * Creates and loads a new [Texture].
- * @param filename the name of the image file to load
- */
-fun <T : Application> T.readTexture(filename: String) =
-    Texture(fileHandler.readTextureData(filename).get()).also { it.load(this) }
-
-/**
- * Creates and loads a new [TextureData].
- * @param filename the name of the image file to load
- */
-fun <T : Application> T.readTextureData(filename: String): TextureData = fileHandler.readTextureData(filename).get()
 
 /**
  * Creates a new [ShaderProgram] for the specified shaders.

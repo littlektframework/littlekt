@@ -3,7 +3,7 @@ package com.lehaine.littlekt.graphics
 import com.lehaine.littlekt.Application
 import com.lehaine.littlekt.Disposable
 import com.lehaine.littlekt.graphics.gl.*
-import com.lehaine.littlekt.io.Asset
+import com.lehaine.littlekt.io.createUint8Buffer
 
 /**
  * @author Colton Daily
@@ -11,7 +11,7 @@ import com.lehaine.littlekt.io.Asset
  */
 class Texture(
     val textureData: TextureData
-) : Asset, Disposable {
+) : Preparable, Disposable {
     val width: Int get() = textureData.width
     val height: Int get() = textureData.height
     var glTexture: GlTexture? = null
@@ -72,13 +72,12 @@ class Texture(
                 it.texParameteri(TextureTarget._2D, TexParameter.WRAP_T, value.glFlag)
             }
         }
-    private val onLoad = mutableListOf<(Asset) -> Unit>()
 
     /**
-     * Loads the texture for the [Application]. Sets this Textures [GL] context to the passed in application.
+     * Prepares the texture for the [Application]. Sets this Textures [GL] context to the passed in application.
      * @param application the application that will be used as the [GL] context for this texture.
      */
-    override fun load(application: Application) {
+    override fun prepare(application: Application) {
         this.gl = application.graphics.gl
         val gl = application.graphics.gl
         if (!textureData.isPrepared) {
@@ -105,9 +104,6 @@ class Texture(
         textureData.uploadImageData(application, TextureTarget._2D, textureData)
 
         glTexture = texture
-
-        // Invoke all callbacks
-        onLoad.forEach { it.invoke(this) }
     }
 
     /**
@@ -125,14 +121,10 @@ class Texture(
 
     }
 
-    override fun onLoad(callback: (Asset) -> Unit) {
-        onLoad.add(callback)
-    }
-
     override fun dispose() {
         val gl = gl
         val glTexture = glTexture
-        if(gl == null || glTexture == null) return
+        if (gl == null || glTexture == null) return
 
         gl.deleteTexture(glTexture)
     }
@@ -142,12 +134,16 @@ class Texture(
             PixmapTextureData(
                 Pixmap(
                     2, 2,
-                    byteArrayOf(
-                        0xFF.toByte(), 0x00.toByte(), 0x00.toByte(), 0xFF.toByte(),
-                        0x00.toByte(), 0xFF.toByte(), 0x00.toByte(), 0xFF.toByte(),
-                        0x00.toByte(), 0x00.toByte(), 0xFF.toByte(), 0xFF.toByte(),
-                        0xFF.toByte(), 0xFF.toByte(), 0x00.toByte(), 0xFF.toByte()
-                    )
+                    createUint8Buffer(16).apply {
+                        put(
+                            byteArrayOf(
+                                0xFF.toByte(), 0x00.toByte(), 0x00.toByte(), 0xFF.toByte(),
+                                0x00.toByte(), 0xFF.toByte(), 0x00.toByte(), 0xFF.toByte(),
+                                0x00.toByte(), 0x00.toByte(), 0xFF.toByte(), 0xFF.toByte(),
+                                0xFF.toByte(), 0xFF.toByte(), 0x00.toByte(), 0xFF.toByte()
+                            )
+                        )
+                    }
                 ),
                 true
             )

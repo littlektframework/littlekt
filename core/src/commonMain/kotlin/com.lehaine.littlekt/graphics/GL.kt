@@ -2,6 +2,7 @@ package com.lehaine.littlekt.graphics
 
 import com.lehaine.littlekt.graphics.gl.*
 import com.lehaine.littlekt.graphics.shader.DataSource
+import com.lehaine.littlekt.io.Uint8Buffer
 import com.lehaine.littlekt.math.Mat4
 
 
@@ -164,7 +165,7 @@ interface GL {
         width: Int,
         height: Int,
         type: Int,
-        source: ByteArray
+        source: Uint8Buffer
     )
 
     fun texImage2D(
@@ -175,7 +176,7 @@ interface GL {
         width: Int,
         height: Int,
         type: DataType,
-        source: ByteArray
+        source: Uint8Buffer
     ) = texImage2D(target.glFlag, level, internalFormat.glFlag, format.glFlag, width, height, type.glFlag, source)
 
     fun texParameteri(target: Int, pname: Int, param: Int)

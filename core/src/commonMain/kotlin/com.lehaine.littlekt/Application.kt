@@ -2,7 +2,6 @@ package com.lehaine.littlekt
 
 import com.lehaine.littlekt.graphics.GL
 import com.lehaine.littlekt.input.Input
-import com.lehaine.littlekt.io.AssetManager
 import com.lehaine.littlekt.io.FileHandler
 import com.lehaine.littlekt.log.Logger
 
@@ -20,8 +19,6 @@ interface Application {
     val input: Input
 
     val logger: Logger
-
-    val assetManager: AssetManager
 
     val fileHandler: FileHandler
 

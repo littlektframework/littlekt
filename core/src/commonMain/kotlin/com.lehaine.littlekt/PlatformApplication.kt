@@ -1,7 +1,6 @@
 package com.lehaine.littlekt
 
 import com.lehaine.littlekt.input.Input
-import com.lehaine.littlekt.io.AssetManager
 import com.lehaine.littlekt.io.FileHandler
 import com.lehaine.littlekt.log.Logger
 
@@ -15,7 +14,6 @@ expect class PlatformApplication(configuration: ApplicationConfiguration) : Appl
     override val graphics: Graphics
     override val input: Input
     override val logger: Logger
-    override val assetManager: AssetManager
     override val fileHandler: FileHandler
     override fun start(gameBuilder: (app: Application) -> LittleKt)
     override fun close()

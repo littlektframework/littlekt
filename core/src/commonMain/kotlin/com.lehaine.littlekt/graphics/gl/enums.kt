@@ -329,6 +329,21 @@ value class InternalFormat(val glFlag: Int) {
 
 @JvmInline
 value class TextureFormat(val glFlag: Int) {
+    val hasAlpha: Boolean
+        get() = when (glFlag) {
+            GL.RGBA, GL.LUMINANCE_ALPHA, GL.ALPHA, GL.RGBA_INTEGER -> true
+            else -> false
+        }
+
+    val channels: Int
+        get() = when (glFlag) {
+            GL.RED, GL.RED_INTEGER -> 1
+            GL.RG, GL.RG_INTEGER -> 2
+            GL.RGB, GL.RGB_INTEGER -> 3
+            GL.RGBA, GL.RGBA_INTEGER -> 4
+            else -> 0
+        }
+
     companion object {
         val RED = TextureFormat(GL.RED)
         val RG = TextureFormat(GL.RG)

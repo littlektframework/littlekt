@@ -4,7 +4,6 @@ import com.lehaine.littlekt.audio.AudioContext
 import com.lehaine.littlekt.graphics.Texture
 import com.lehaine.littlekt.input.Input
 import com.lehaine.littlekt.input.JsInput
-import com.lehaine.littlekt.io.AssetManager
 import com.lehaine.littlekt.io.FileHandler
 import com.lehaine.littlekt.io.WebFileHandler
 import com.lehaine.littlekt.log.JsLogger
@@ -35,7 +34,6 @@ actual class PlatformApplication actual constructor(actual override val configur
     private var lastFrame = 0.0
 
     actual override fun start(gameBuilder: (app: Application) -> LittleKt) {
-        console.log("Starting")
         graphics as WebGLGraphics
         input as JsInput
 

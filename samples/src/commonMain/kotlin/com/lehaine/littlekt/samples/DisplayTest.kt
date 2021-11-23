@@ -7,9 +7,7 @@ import com.lehaine.littlekt.graphics.*
 import com.lehaine.littlekt.input.InputProcessor
 import com.lehaine.littlekt.input.Key
 import com.lehaine.littlekt.input.Pointer
-import com.lehaine.littlekt.io.get
 import com.lehaine.littlekt.math.ortho
-import com.lehaine.littlekt.readTexture
 
 /**
  * @author Colton Daily
@@ -19,8 +17,10 @@ class DisplayTest(application: Application) : LittleKt(application), InputProces
 
     val batch = SpriteBatch(application)
 
+    var loading = true
+
     //   val texture by application.fileHandler.get<Texture>("person.png")
-    val texture by fileHandler.get<Texture>("person.png")
+    lateinit var texture: Texture
     val shader = createShader()
     val mesh =
         Mesh(gl, true, 4, 6, VertexAttribute.POSITION, VertexAttribute.COLOR_PACKED)
@@ -33,6 +33,14 @@ class DisplayTest(application: Application) : LittleKt(application), InputProces
         50f, 66f, packedColor
     )
     val indices = shortArrayOf(0, 1, 2, 2, 3, 0)
+
+    init {
+        fileHandler.launch {
+            texture = loadTexture("person.png")
+            println("we got a texture loaded ${texture.width},${texture.height}")
+            loading = false
+        }
+    }
 
     override fun create() {
         println("create")
@@ -56,7 +64,9 @@ class DisplayTest(application: Application) : LittleKt(application), InputProces
     private var yVel = 0f
 
     override fun render(dt: Float) {
-        println("render")
+        if (loading) {
+            return
+        }
         xVel = 0f
         yVel = 0f
 

@@ -49,11 +49,12 @@ kotlin {
     val lwjglVersion: String by project
     val pngDecoderVersion: String by project
     val mp3DecoderVersion: String by project
-
+    val kotlinCoroutinesVersion: String by project
 
     sourceSets {
         val commonMain by getting {
             dependencies {
+                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinCoroutinesVersion")
             }
         }
         val commonTest by getting {

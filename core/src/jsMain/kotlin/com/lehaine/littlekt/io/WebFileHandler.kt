@@ -10,7 +10,6 @@ import kotlinx.browser.document
 import kotlinx.browser.window
 import org.khronos.webgl.ArrayBuffer
 import org.khronos.webgl.Int8Array
-import org.khronos.webgl.WebGLRenderingContextBase
 import org.w3c.dom.CanvasRenderingContext2D
 import org.w3c.dom.HTMLCanvasElement
 import org.w3c.dom.Image
@@ -29,7 +28,7 @@ class WebFileHandler(
     logger: Logger,
     val rootPath: String = window.location.protocol,
     val audioContext: AudioContext
-) : BaseFileHandler(application, logger) {
+) : FileHandler(application, logger) {
 
     override fun read(filename: String): Content<String> {
         return asyncContent(filename) { it.toByteArray().decodeToString() }

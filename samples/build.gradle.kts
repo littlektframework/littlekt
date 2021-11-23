@@ -37,11 +37,13 @@ kotlin {
             kotlinOptions.sourceMap = true
         }
     }
+    val kotlinCoroutinesVersion: String by project
 
     sourceSets {
         val commonMain by getting {
             dependencies {
                 implementation(project(":core"))
+                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinCoroutinesVersion")
             }
         }
         val commonTest by getting {

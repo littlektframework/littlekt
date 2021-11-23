@@ -2,6 +2,8 @@ package com.lehaine.littlekt.graphics
 
 import com.lehaine.littlekt.graphics.gl.DataType
 import com.lehaine.littlekt.graphics.gl.TextureFormat
+import com.lehaine.littlekt.io.Uint8Buffer
+import com.lehaine.littlekt.io.createUint8Buffer
 import kotlin.math.max
 import kotlin.math.round
 
@@ -9,7 +11,7 @@ import kotlin.math.round
  * @author Colton Daily
  * @date 11/18/2021
  */
-class Pixmap(val width: Int, val height: Int, val pixels: ByteArray = ByteArray(width * height * 4)) {
+class Pixmap(val width: Int, val height: Int, val pixels: Uint8Buffer = createUint8Buffer(width * height * 4)) {
 
     enum class Format(val glType: DataType, val glFormat: TextureFormat) {
         ALPHA(DataType.UNSIGNED_BYTE, TextureFormat.ALPHA),

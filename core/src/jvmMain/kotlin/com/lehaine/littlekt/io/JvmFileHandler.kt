@@ -1,88 +1,151 @@
 package com.lehaine.littlekt.io
 
 import com.lehaine.littlekt.Application
+import com.lehaine.littlekt.PlatformApplication
+import com.lehaine.littlekt.audio.AudioClip
 import com.lehaine.littlekt.graphics.Pixmap
+import com.lehaine.littlekt.graphics.Texture
 import com.lehaine.littlekt.graphics.TextureData
 import com.lehaine.littlekt.graphics.gl.PixmapTextureData
+import com.lehaine.littlekt.graphics.gl.TextureFormat
 import com.lehaine.littlekt.log.Logger
-import de.matthiasmann.twl.utils.PNGDecoder
-import java.io.File
-import java.nio.Buffer
-import java.nio.ByteBuffer
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import java.io.FileInputStream
+import java.io.IOException
+import java.io.InputStream
 import java.util.*
-import fr.delthas.javamp3.Sound as Mp3Sound
+import javax.imageio.ImageIO
 
 /**
  * @author Colton Daily
  * @date 11/6/2021
  */
-class JvmFileHandler(application: Application, logger: Logger) : BaseFileHandler(application, logger) {
+class JvmFileHandler(application: Application, logger: Logger, assetsBaseDir: String) :
+    FileHandler(application, logger, assetsBaseDir) {
 
-    override fun read(filename: String): Content<String> {
-        val content = Content<String>(filename, logger)
+    private val imageIoLock = Any()
 
-        // Check if the resource is embedded in the jar
-        val fromJar = JvmFileHandler::class.java.getResourceAsStream("/$filename")
-        val text = fromJar?.readBytes()?.let { String(it) } ?: File(filename).readText()
-        content.load(text)
-        return content
-    }
-
-    override fun readData(filename: String): Content<ByteArray> {
-        val content = Content<ByteArray>(filename, logger)
-        // Check if the resource is embedded in the jar
-        val fromJar = JvmFileHandler::class.java.getResource("/$filename")
-        val bytes = fromJar?.readBytes() ?: File(filename).readBytes()
-        content.load(bytes)
-        return content
-    }
-
-    override fun readTextureData(filename: String): Content<TextureData> {
-        val content = Content<TextureData>(filename, logger)
-
-        // lock first in the jar before checking on the filesystem.
-        val stream = JvmFileHandler::class.java.getResource("/$filename")?.openStream()
-            ?: File(filename).inputStream()
-
-        val decoder = PNGDecoder(stream)
-
-        // create a byte buffer big enough to store RGBA values
-        val buffer =
-            ByteBuffer.allocateDirect(4 * decoder.width * decoder.height)
-
-        // decode
-        decoder.decode(buffer, decoder.width * 4, PNGDecoder.Format.RGBA)
-
-        // flip the buffer so its ready to read
-        (buffer as Buffer).flip()
-        val pixels = ByteArray(buffer.remaining()).apply {
-            buffer.get(this)
-        }
-        val pixmap = Pixmap(decoder.width, decoder.height, pixels)
-        content.load(
-            PixmapTextureData(pixmap, true)
-        )
-        return content
-    }
-
-    override fun readSound(filename: String): Content<Sound> {
-        val (source, channels, frequency) = if (filename.endsWith(".mp3")) {
-            val mp3Stream = Mp3Sound(File(filename).inputStream())
-            val source = mp3Stream.readBytes().also { mp3Stream.close() }
-            val channels = if (mp3Stream.isStereo) {
-                2
-            } else {
-                1
-            }
-            Triple(source, channels, mp3Stream.samplingFrequency)
+    override suspend fun loadRaw(rawRef: RawAssetRef): LoadedRawAsset {
+        return if (rawRef.isLocal) {
+            loadLocalRaw(rawRef)
         } else {
-            TODO("NON MP3 SOUNDS NOT YET IMPLEMENTED")
+            loadHttpRaw(rawRef)
         }
-        val buffer = ByteBuffer.allocateDirect(source.size)
-        buffer.put(source)
-        (buffer as Buffer).position(0)
-        val content = Content<Sound>(filename, logger)
-        content.load(JvmSound(buffer.asShortBuffer(), channels, frequency))
-        return content
     }
+
+    private suspend fun loadLocalRaw(localRawRef: RawAssetRef): LoadedRawAsset {
+        var data: Uint8BufferImpl? = null
+        withContext(Dispatchers.IO) {
+            try {
+                openLocalStream(localRawRef.url).use { data = Uint8BufferImpl(it.readBytes()) }
+            } catch (e: Exception) {
+                logger.error { "Failed loading asset ${localRawRef.url}: $e" }
+            }
+        }
+        return LoadedRawAsset(localRawRef, data)
+    }
+
+    private suspend fun loadHttpRaw(httpRawRef: RawAssetRef): LoadedRawAsset {
+        var data: Uint8BufferImpl? = null
+
+        if (httpRawRef.url.startsWith("data:", true)) {
+            data = decodeDataUrl(httpRawRef.url)
+        } else {
+            withContext(Dispatchers.IO) {
+                try {
+                    val f = HttpCache.loadHttpResource(httpRawRef.url)
+                        ?: throw IOException("Failed downloading ${httpRawRef.url}")
+                    FileInputStream(f).use { data = Uint8BufferImpl(it.readBytes()) }
+                } catch (e: Exception) {
+                    logger.error { "Failed loading asset ${httpRawRef.url}: $e" }
+                }
+            }
+        }
+        return LoadedRawAsset(httpRawRef, data)
+    }
+
+    private fun decodeDataUrl(dataUrl: String): Uint8BufferImpl {
+        val dataIdx = dataUrl.indexOf(";base64,") + 8
+        return Uint8BufferImpl(Base64.getDecoder().decode(dataUrl.substring(dataIdx)))
+    }
+
+    internal fun openLocalStream(assetPath: String): InputStream {
+        var inStream = ClassLoader.getSystemResourceAsStream(assetPath)
+        if (inStream == null) {
+            // if asset wasn't found in resources try to load it from file system
+            inStream = FileInputStream(assetPath)
+        }
+        return inStream
+    }
+
+    override suspend fun loadTexture(assetPath: String): Texture {
+        val data = loadTextureData(assetPath)
+        val deferred = CompletableDeferred<Texture>(job)
+        Texture(data).also {
+            application as PlatformApplication
+            application.runOnMainThread {
+                it.prepare(application)
+                deferred.complete(it)
+            }
+
+        }
+        return deferred.await()
+    }
+
+    override suspend fun loadTexture(textureRef: TextureAssetRef): LoadedTextureAsset {
+        var data: TextureData? = null
+        withContext(Dispatchers.IO) {
+            try {
+                data = if (textureRef.isLocal) {
+                    loadLocalTexture(textureRef)
+                } else {
+                    loadHttpTexture(textureRef)
+                }
+            } catch (e: Exception) {
+                logger.error { "Failed loading texture ${textureRef.url}: $e" }
+            }
+        }
+        return LoadedTextureAsset(textureRef, data)
+
+    }
+
+
+    private fun loadLocalTexture(localTextureRef: TextureAssetRef): TextureData {
+        return openLocalStream(localTextureRef.url).use {
+            // ImageIO.read is not thread safe!
+            val img = synchronized(imageIoLock) {
+                ImageIO.read(it)
+            }
+            val pixmap = Pixmap(
+                img.width,
+                img.height,
+                ImageUtils.bufferedImageToBuffer(img, TextureFormat.RGBA, img.width, img.height)
+            )
+            PixmapTextureData(pixmap, true)
+        }
+    }
+
+    private fun loadHttpTexture(httpTextureRef: TextureAssetRef): TextureData {
+        val f = HttpCache.loadHttpResource(httpTextureRef.url)!!
+        return FileInputStream(f).use {
+            // ImageIO.read is not thread safe!
+            val img = synchronized(imageIoLock) {
+                ImageIO.read(it)
+            }
+            val pixmap = Pixmap(
+                img.width,
+                img.height,
+                ImageUtils.bufferedImageToBuffer(img, TextureFormat.RGBA, img.width, img.height)
+            )
+            PixmapTextureData(pixmap, true)
+        }
+    }
+
+
+    override suspend fun loadAudioClip(assetPath: String): AudioClip {
+        TODO("Not yet implemented")
+    }
+
 }
