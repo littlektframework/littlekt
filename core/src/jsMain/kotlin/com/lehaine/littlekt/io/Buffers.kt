@@ -38,6 +38,7 @@ internal abstract class GenericBuffer<out B : ArrayBufferView>(override val capa
 internal class Uint8BufferImpl(array: Uint8Array) : Uint8Buffer, GenericBuffer<Uint8Array>(array.length, { array }) {
 
     constructor(capacity: Int) : this(Uint8Array(capacity))
+    constructor(array: Uint8ClampedArray) : this(Uint8Array(array.buffer))
 
     override fun get(i: Int): Byte {
         return buffer[i]

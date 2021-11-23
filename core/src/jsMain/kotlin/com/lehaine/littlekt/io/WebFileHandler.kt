@@ -1,20 +1,19 @@
 package com.lehaine.littlekt.io
 
 import com.lehaine.littlekt.Application
-import com.lehaine.littlekt.audio.AudioContext
+import com.lehaine.littlekt.audio.AudioClip
 import com.lehaine.littlekt.graphics.Pixmap
+import com.lehaine.littlekt.graphics.Texture
 import com.lehaine.littlekt.graphics.TextureData
 import com.lehaine.littlekt.graphics.gl.PixmapTextureData
 import com.lehaine.littlekt.log.Logger
 import kotlinx.browser.document
-import kotlinx.browser.window
+import kotlinx.coroutines.CompletableDeferred
 import org.khronos.webgl.ArrayBuffer
-import org.khronos.webgl.Int8Array
+import org.khronos.webgl.Uint8Array
 import org.w3c.dom.CanvasRenderingContext2D
 import org.w3c.dom.HTMLCanvasElement
 import org.w3c.dom.Image
-import org.w3c.dom.events.Event
-import org.w3c.dom.events.EventListener
 import org.w3c.xhr.ARRAYBUFFER
 import org.w3c.xhr.XMLHttpRequest
 import org.w3c.xhr.XMLHttpRequestResponseType
@@ -26,84 +25,73 @@ import org.w3c.xhr.XMLHttpRequestResponseType
 class WebFileHandler(
     application: Application,
     logger: Logger,
-    val rootPath: String = window.location.protocol,
-    val audioContext: AudioContext
-) : FileHandler(application, logger) {
+    assetsBaseDir: String
+) : FileHandler(application, logger, assetsBaseDir) {
 
-    override fun read(filename: String): Content<String> {
-        return asyncContent(filename) { it.toByteArray().decodeToString() }
+    override suspend fun loadRaw(rawRef: RawAssetRef) = LoadedRawAsset(rawRef, loadRaw(rawRef.url))
+
+    override suspend fun loadTexture(textureRef: TextureAssetRef) =
+        LoadedTextureAsset(textureRef, loadImage(textureRef))
+
+    private suspend fun loadRaw(url: String): Uint8Buffer? {
+        val data = CompletableDeferred<Uint8Buffer?>(job)
+        val req = XMLHttpRequest()
+        req.responseType = XMLHttpRequestResponseType.ARRAYBUFFER
+        req.onload = {
+            val array = Uint8Array(req.response as ArrayBuffer)
+            data.complete(Uint8BufferImpl(array))
+        }
+        req.onerror = {
+            data.complete(null)
+            logger.error { "Failed loading resource $url: $it" }
+        }
+        req.open("GET", url)
+        req.send()
+
+        return data.await()
     }
 
-    override fun readData(filename: String): Content<ByteArray> {
-        return asyncContent(filename) { it.toByteArray() }
-    }
+    private suspend fun loadImage(ref: TextureAssetRef): TextureData {
+        val deferred = CompletableDeferred<Image>()
 
-    override fun readTextureData(filename: String): Content<TextureData> {
         val img = Image()
-        img.src = computeUrl(filename)
-        val content = Content<TextureData>(filename, logger)
-
-        img.addEventListener(
-            "load",
-            object : EventListener {
-                override fun handleEvent(event: Event) {
-                    val width = img.width
-                    val height = img.height
-                    
-                    val canvas = document.createElement("canvas") as HTMLCanvasElement
-                    canvas.width = width
-                    canvas.height = height
-                    val canvasCtx = canvas.getContext("2d") as CanvasRenderingContext2D
-
-                    val w = width.toDouble()
-                    val h = height.toDouble()
-                    canvasCtx.drawImage(img, 0.0, 0.0, w, h, 0.0, 0.0, w, h)
-                    val pixels = canvasCtx.getImageData(0.0, 0.0, w, h).data.buffer.toByteArray()
-
-                    content.load(
-                        PixmapTextureData(
-                            Pixmap(img.width, img.height, pixels), true
-                        )
-                    )
-                }
-            }
-        )
-        return content
-    }
-
-    override fun readSound(filename: String): Content<Sound> {
-        return asyncContent(filename) { it }.flatMap { bytes ->
-            val content = Content<Sound>(filename, logger)
-            audioContext.decodeAudioData(bytes) { buffer ->
-                content.load(WebSound(buffer, audioContext))
-            }
-            content
+        img.onload = {
+            deferred.complete(img)
         }
-    }
-
-    // https://youtrack.jetbrains.com/issue/KT-30098
-    fun ArrayBuffer.toByteArray(): ByteArray = Int8Array(this).unsafeCast<ByteArray>()
-
-    private fun <T> asyncContent(filename: String, enc: (ArrayBuffer) -> T): Content<T> {
-        val url = computeUrl(filename)
-
-        val jsonFile = XMLHttpRequest()
-        jsonFile.responseType = XMLHttpRequestResponseType.Companion.ARRAYBUFFER
-        jsonFile.open("GET", url, true)
-
-        val content = Content<T>(filename, logger)
-
-        jsonFile.onload = { _ ->
-            if (jsonFile.readyState == 4.toShort() && jsonFile.status == 200.toShort()) {
-                val element = enc(jsonFile.response as ArrayBuffer)
-                content.load(element)
+        img.onerror = { _, _, _, _, _ ->
+            if (ref.url.startsWith("data:")) {
+                deferred.completeExceptionally(RuntimeException("Failed loading tex from data URL"))
+            } else {
+                deferred.completeExceptionally(RuntimeException("Failed loading tex from ${ref.url}"))
             }
         }
+        img.crossOrigin = ""
+        img.src = ref.url
 
-        jsonFile.send()
-        return content
+        val loadedImg = deferred.await()
+        val canvas = document.createElement("canvas") as HTMLCanvasElement
+        canvas.width = loadedImg.width
+        canvas.height = loadedImg.height
+        val canvasCtx = canvas.getContext("2d") as CanvasRenderingContext2D
+
+        val w = loadedImg.width.toDouble()
+        val h = loadedImg.height.toDouble()
+        canvasCtx.drawImage(img, 0.0, 0.0, w, h, 0.0, 0.0, w, h)
+        val pixels = Uint8BufferImpl(canvasCtx.getImageData(0.0, 0.0, w, h).data)
+
+        val pixmap = Pixmap(loadedImg.width, loadedImg.height, pixels)
+        return PixmapTextureData(pixmap, true)
+
     }
 
-    private fun computeUrl(filename: String): String = rootPath + filename
+    override suspend fun loadTexture(assetPath: String): Texture {
+        val data = loadTextureData(assetPath)
+        return Texture(data).also { it.prepare(application) }
+    }
+
+    override suspend fun loadAudioClip(assetPath: String): AudioClip {
+        TODO("Not yet implemented")
+    }
+
 
 }

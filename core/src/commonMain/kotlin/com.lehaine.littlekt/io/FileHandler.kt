@@ -97,6 +97,12 @@ abstract class FileHandler(
         }
     }
 
+    fun launchBlocking(block: FileHandler.() -> Unit) {
+        (this as CoroutineScope).launch {
+            block.invoke(this@FileHandler)
+        }
+    }
+
     suspend fun loadAsset(assetPath: String): Uint8Buffer? {
         val ref = if (isHttpAsset(assetPath)) {
             RawAssetRef(assetPath, false)

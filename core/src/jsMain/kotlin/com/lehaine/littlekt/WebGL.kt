@@ -4,7 +4,12 @@ import com.lehaine.littlekt.graphics.GL
 import com.lehaine.littlekt.graphics.GLVersion
 import com.lehaine.littlekt.graphics.gl.*
 import com.lehaine.littlekt.graphics.shader.DataSource
-import org.khronos.webgl.*
+import com.lehaine.littlekt.io.Uint8Buffer
+import com.lehaine.littlekt.io.Uint8BufferImpl
+import org.khronos.webgl.Float32Array
+import org.khronos.webgl.Uint16Array
+import org.khronos.webgl.Uint32Array
+import org.khronos.webgl.WebGLRenderingContextBase
 
 /**
  * @author Colton Daily
@@ -279,9 +284,10 @@ class WebGL(val gl: WebGLRenderingContextBase) : GL {
         width: Int,
         height: Int,
         type: Int,
-        source: ByteArray
+        source: Uint8Buffer
     ) {
-        gl.texImage2D(target, level, internalFormat, width, height, 0, format, type, Uint8Array(source.toTypedArray()))
+        source as Uint8BufferImpl
+        gl.texImage2D(target, level, internalFormat, width, height, 0, format, type, source.buffer)
     }
 
     override fun texParameteri(target: Int, pname: Int, param: Int) {
