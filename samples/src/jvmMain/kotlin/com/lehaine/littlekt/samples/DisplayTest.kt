@@ -1,15 +1,17 @@
 package com.lehaine.littlekt.samples
 
-import com.lehaine.littlekt.ApplicationConfiguration
-import com.lehaine.littlekt.LittleKtAppBuilder
+import com.lehaine.littlekt.createLittleKtApp
 
 /**
  * @author Colton Daily
  * @date 11/6/2021
  */
 fun main(args: Array<String>) {
-    LittleKtAppBuilder(
-        configBuilder = { ApplicationConfiguration("JVM - Display Test", 960, 540, true) },
-        gameBuilder = { DisplayTest(it) })
-        .start()
+    createLittleKtApp {
+        width = 960
+        height = 540
+        vSync = true
+        title = "JVM - Display Test"
+        { DisplayTest(it) }
+    }.start()
 }

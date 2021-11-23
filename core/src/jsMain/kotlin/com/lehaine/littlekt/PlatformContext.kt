@@ -15,7 +15,7 @@ import org.w3c.dom.HTMLCanvasElement
  * @author Colton Daily
  * @date 10/4/2021
  */
-actual class PlatformApplication actual constructor(actual override val configuration: ApplicationConfiguration) :
+actual class PlatformContext actual constructor(actual override val configuration: ApplicationConfiguration) :
     Application {
 
     val canvas = document.getElementById(configuration.canvasId) as HTMLCanvasElement

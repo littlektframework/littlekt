@@ -1,7 +1,7 @@
 package com.lehaine.littlekt.io
 
 import com.lehaine.littlekt.Application
-import com.lehaine.littlekt.PlatformApplication
+import com.lehaine.littlekt.PlatformContext
 import com.lehaine.littlekt.audio.AudioClip
 import com.lehaine.littlekt.graphics.Pixmap
 import com.lehaine.littlekt.graphics.Texture
@@ -84,7 +84,7 @@ class JvmFileHandler(application: Application, logger: Logger, assetsBaseDir: St
         val data = loadTextureData(assetPath)
         val deferred = CompletableDeferred<Texture>(job)
         Texture(data).also {
-            application as PlatformApplication
+            application as PlatformContext
             application.runOnMainThread {
                 it.prepare(application)
                 deferred.complete(it)

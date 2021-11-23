@@ -30,7 +30,7 @@ import org.lwjgl.opengl.GL as LWJGL
  * @author Colton Daily
  * @date 11/17/2021
  */
-actual class PlatformApplication actual constructor(actual override val configuration: ApplicationConfiguration) :
+actual class PlatformContext actual constructor(actual override val configuration: ApplicationConfiguration) :
     Application {
 
     actual override val graphics: Graphics = LwjglGraphics()

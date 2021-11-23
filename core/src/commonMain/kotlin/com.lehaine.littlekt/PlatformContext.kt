@@ -8,7 +8,7 @@ import com.lehaine.littlekt.log.Logger
  * @author Colton Daily
  * @date 11/17/2021
  */
-expect class PlatformApplication(configuration: ApplicationConfiguration) : Application {
+expect class PlatformContext(configuration: ApplicationConfiguration) : Application {
     override val platform: Platform
     override val configuration: ApplicationConfiguration
     override val graphics: Graphics
