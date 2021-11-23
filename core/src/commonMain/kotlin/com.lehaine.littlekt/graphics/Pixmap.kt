@@ -9,7 +9,7 @@ import kotlin.math.round
  * @author Colton Daily
  * @date 11/18/2021
  */
-open class Pixmap(val width: Int, val height: Int, val pixels: ByteArray = ByteArray(width * height * 4)) {
+class Pixmap(val width: Int, val height: Int, val pixels: ByteArray = ByteArray(width * height * 4)) {
 
     enum class Format(val glType: DataType, val glFormat: TextureFormat) {
         ALPHA(DataType.UNSIGNED_BYTE, TextureFormat.ALPHA),
@@ -24,7 +24,7 @@ open class Pixmap(val width: Int, val height: Int, val pixels: ByteArray = ByteA
     val glFormat = TextureFormat.RGBA
     val glType = DataType.UNSIGNED_BYTE
 
-    open fun draw(
+    fun draw(
         pixmap: Pixmap,
         x: Int = 0,
         y: Int = 0,
@@ -186,7 +186,7 @@ open class Pixmap(val width: Int, val height: Int, val pixels: ByteArray = ByteA
         return (dstR shl 24) or (dstG shl 16) or (dstB shl 8) or a
     }
 
-    open fun fill(color: Color) {
+    fun fill(color: Color) {
         val rgba = color.rgba().toByte()
         val length = width * height * 4
         for (i in 0 until length) {
@@ -292,14 +292,14 @@ open class Pixmap(val width: Int, val height: Int, val pixels: ByteArray = ByteA
         }
     }
 
-    open fun set(x: Int, y: Int, color: Int, force: Boolean = false) {
+    fun set(x: Int, y: Int, color: Int, force: Boolean = false) {
         val rgba = color.toByte()
         if (force || contains(x, y)) {
             pixels[(x + y * width) * 4] = rgba
         }
     }
 
-    open fun get(x: Int, y: Int, force: Boolean = false): Int {
+    fun get(x: Int, y: Int, force: Boolean = false): Int {
         return if (force || contains(x, y)) {
             pixels[(x + y * width) * 4].toInt()
         } else {

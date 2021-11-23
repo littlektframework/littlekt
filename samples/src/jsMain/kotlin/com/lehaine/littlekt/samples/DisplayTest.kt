@@ -9,6 +9,7 @@ import kotlinx.browser.window
  * @date 11/22/2021
  */
 fun main() {
+    console.log("main")
     val rootPath =
         (window.location.protocol + "//" + window.location.host + window.location.pathname).replace("index.html", "")
     LittleKtAppBuilder(

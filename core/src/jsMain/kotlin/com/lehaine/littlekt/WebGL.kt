@@ -10,7 +10,7 @@ import org.khronos.webgl.*
  * @author Colton Daily
  * @date 9/28/2021
  */
-class WebGL(private val gl: WebGLRenderingContextBase) : GL {
+class WebGL(val gl: WebGLRenderingContextBase) : GL {
     override fun getGLVersion(): GLVersion {
         return GLVersion.WEBGL_2
     }

@@ -11,9 +11,12 @@ class TextureLoader : FileLoader<Texture> {
     private val textureImageLoader = TextureDataLoader()
 
     override fun load(filename: String, handler: FileHandler): Content<Texture> {
-        val textureData by textureImageLoader.load(filename, handler)
-        val result = Texture(textureData)
-        handler.application.assetManager.add(result)
-        return handler.create(filename, result)
+        val content = handler.create<Texture>(filename)
+        textureImageLoader.load(filename, handler).onLoaded {
+            val texture = Texture(it)
+            content.load(texture)
+            handler.application.assetManager.add(texture)
+        }
+        return content
     }
 }

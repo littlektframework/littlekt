@@ -2,14 +2,17 @@ package com.lehaine.littlekt.io
 
 import com.lehaine.littlekt.Application
 import com.lehaine.littlekt.audio.AudioContext
+import com.lehaine.littlekt.graphics.Pixmap
 import com.lehaine.littlekt.graphics.TextureData
-import com.lehaine.littlekt.graphics.WebPixmap
 import com.lehaine.littlekt.graphics.gl.PixmapTextureData
 import com.lehaine.littlekt.log.Logger
+import kotlinx.browser.document
 import kotlinx.browser.window
 import org.khronos.webgl.ArrayBuffer
 import org.khronos.webgl.Int8Array
+import org.khronos.webgl.WebGLRenderingContextBase
 import org.w3c.dom.CanvasRenderingContext2D
+import org.w3c.dom.HTMLCanvasElement
 import org.w3c.dom.Image
 import org.w3c.dom.events.Event
 import org.w3c.dom.events.EventListener
@@ -25,10 +28,8 @@ class WebFileHandler(
     application: Application,
     logger: Logger,
     val rootPath: String = window.location.protocol,
-    val context2D: CanvasRenderingContext2D,
     val audioContext: AudioContext
-) :
-    BaseFileHandler(application, logger) {
+) : BaseFileHandler(application, logger) {
 
     override fun read(filename: String): Content<String> {
         return asyncContent(filename) { it.toByteArray().decodeToString() }
@@ -41,17 +42,28 @@ class WebFileHandler(
     override fun readTextureData(filename: String): Content<TextureData> {
         val img = Image()
         img.src = computeUrl(filename)
-
         val content = Content<TextureData>(filename, logger)
 
-        // TODO - fix loading image element into Pixmap!!
         img.addEventListener(
             "load",
             object : EventListener {
                 override fun handleEvent(event: Event) {
+                    val width = img.width
+                    val height = img.height
+                    
+                    val canvas = document.createElement("canvas") as HTMLCanvasElement
+                    canvas.width = width
+                    canvas.height = height
+                    val canvasCtx = canvas.getContext("2d") as CanvasRenderingContext2D
+
+                    val w = width.toDouble()
+                    val h = height.toDouble()
+                    canvasCtx.drawImage(img, 0.0, 0.0, w, h, 0.0, 0.0, w, h)
+                    val pixels = canvasCtx.getImageData(0.0, 0.0, w, h).data.buffer.toByteArray()
+
                     content.load(
                         PixmapTextureData(
-                            WebPixmap(img.width, img.height, context2D, img), true
+                            Pixmap(img.width, img.height, pixels), true
                         )
                     )
                 }

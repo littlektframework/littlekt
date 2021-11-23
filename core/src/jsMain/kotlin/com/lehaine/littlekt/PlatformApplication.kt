@@ -10,7 +10,6 @@ import com.lehaine.littlekt.log.JsLogger
 import com.lehaine.littlekt.log.Logger
 import kotlinx.browser.document
 import kotlinx.browser.window
-import org.w3c.dom.CanvasRenderingContext2D
 import org.w3c.dom.HTMLCanvasElement
 import kotlin.math.min
 
@@ -22,20 +21,20 @@ actual class PlatformApplication actual constructor(actual override val configur
     Application {
 
     val canvas = document.getElementById(configuration.canvasId) as HTMLCanvasElement
-    val context = canvas.getContext("2d") as CanvasRenderingContext2D
 
     actual override val graphics: Graphics = WebGLGraphics(canvas)
     actual override val input: Input = JsInput(canvas)
     actual override val logger: Logger = JsLogger(configuration.title)
     actual override val assetManager: AssetManager = AssetManager(this)
     actual override val fileHandler: FileHandler =
-        WebFileHandler(this, logger, configuration.rootPath, context, AudioContext())
+        WebFileHandler(this, logger, configuration.rootPath, AudioContext())
     actual override val platform: Platform = Platform.JS
 
     private lateinit var game: LittleKt
     private var lastFrame = 0.0
 
     actual override fun start(gameBuilder: (app: Application) -> LittleKt) {
+        console.log("Starting")
         graphics as WebGLGraphics
         input as JsInput
 

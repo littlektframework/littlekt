@@ -1,10 +1,15 @@
-package com.lehaine.littlekt
+package com.lehaine.littlekt.samples
 
+import com.lehaine.littlekt.Application
+import com.lehaine.littlekt.LittleKt
+import com.lehaine.littlekt.createShader
 import com.lehaine.littlekt.graphics.*
 import com.lehaine.littlekt.input.InputProcessor
 import com.lehaine.littlekt.input.Key
 import com.lehaine.littlekt.input.Pointer
+import com.lehaine.littlekt.io.get
 import com.lehaine.littlekt.math.ortho
+import com.lehaine.littlekt.readTexture
 
 /**
  * @author Colton Daily
@@ -15,7 +20,7 @@ class DisplayTest(application: Application) : LittleKt(application), InputProces
     val batch = SpriteBatch(application)
 
     //   val texture by application.fileHandler.get<Texture>("person.png")
-    val texture = readTexture("person.png")
+    val texture by fileHandler.get<Texture>("person.png")
     val shader = createShader()
     val mesh =
         Mesh(gl, true, 4, 6, VertexAttribute.POSITION, VertexAttribute.COLOR_PACKED)

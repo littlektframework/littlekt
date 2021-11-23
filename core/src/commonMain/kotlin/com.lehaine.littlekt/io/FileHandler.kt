@@ -12,7 +12,9 @@ interface FileHandler {
 
     val application: Application
 
-    fun <T> create(filename: String, value: T): Content<T>
+    fun <T> createAndLoad(filename: String, value: T): Content<T>
+
+    fun <T> create(filename: String): Content<T>
 
     fun <T, R : Any> get(filename: String, rClazz: KClass<R>, map: (R) -> Content<T>): Content<T>
 

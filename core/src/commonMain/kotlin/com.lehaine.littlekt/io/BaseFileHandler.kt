@@ -24,10 +24,16 @@ abstract class BaseFileHandler(
 
     private val assets = mutableMapOf<String, Content<*>>()
 
-    override fun <T> create(filename: String, value: T): Content<T> {
+    override fun <T> createAndLoad(filename: String, value: T): Content<T> {
         val content = Content<T>(filename, logger)
         assets[filename] = content
         content.load(value)
+        return content
+    }
+
+    override fun <T> create(filename: String): Content<T> {
+        val content = Content<T>(filename, logger)
+        assets[filename] = content
         return content
     }
 
