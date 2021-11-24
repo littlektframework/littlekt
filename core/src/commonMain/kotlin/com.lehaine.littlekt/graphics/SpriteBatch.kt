@@ -8,8 +8,8 @@ import com.lehaine.littlekt.graphics.gl.State
 import com.lehaine.littlekt.graphics.shader.ShaderProgram
 import com.lehaine.littlekt.graphics.shader.fragment.TexturedFragmentShader
 import com.lehaine.littlekt.graphics.shader.vertex.TexturedQuadShader
-import com.lehaine.littlekt.math.Mat4
-import com.lehaine.littlekt.math.ortho
+import com.lehaine.littlekt.math.old.Mat4
+import com.lehaine.littlekt.math.old.ortho
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
@@ -69,17 +69,13 @@ class SpriteBatch(
         }
     private var combinedMatrix = Mat4()
 
-    private val mesh = Mesh(
-        gl,
-        false,
-        size * 4,
-        size * 6,
-        VertexAttribute.POSITION,
-        VertexAttribute.COLOR_PACKED,
-        VertexAttribute.TEX_COORDS(0)
-    )
-
-    private val vertices = FloatArray(size * SPRITE_SIZE)
+    private val mesh = application.textureMesh {
+        isStatic = false
+        maxVertices = size * 4
+        maxIndices = size * 6
+    }.apply {
+        setIndicesAsTriangle()
+    }
 
     private var lastTexture: Texture? = null
     private var idx = 0
@@ -89,23 +85,6 @@ class SpriteBatch(
     private val color = Color.WHITE
     private val colorPacked = color.toFloatBits()
 
-    init {
-        val len = size * 6
-        val indices = ShortArray(len)
-        var i = 0
-        var j = 0
-        while (i < len) {
-            indices[i] = j.toShort()
-            indices[i + 1] = (j + 1).toShort()
-            indices[i + 2] = (j + 2).toShort()
-            indices[i + 3] = (j + 2).toShort()
-            indices[i + 4] = (j + 3).toShort()
-            indices[i + 5] = j.toShort()
-            i += 6
-            j += 4
-        }
-        mesh.setIndices(indices)
-    }
 
     fun begin(projectionMatrix: Mat4? = null) {
         if (drawing) {
@@ -141,7 +120,7 @@ class SpriteBatch(
         }
         if (texture != lastTexture) {
             switchTexture(texture)
-        } else if (idx == vertices.size) {
+        } else if (idx == mesh.maxVertices) {
             flush()
         }
 
@@ -220,29 +199,37 @@ class SpriteBatch(
         val u2 = 1f
         val v2 = 0f
 
-        vertices[idx] = x1
-        vertices[idx + 1] = y1
-        vertices[idx + 2] = colorPacked
-        vertices[idx + 3] = u
-        vertices[idx + 4] = v
+        mesh.setVertex {
+            this.x = x1
+            this.y = y1
+            this.colorPacked = this@SpriteBatch.colorPacked
+            this.u = u
+            this.v = v
+        }
+        mesh.setVertex {
+            this.x = x2
+            this.y = y2
+            this.colorPacked = this@SpriteBatch.colorPacked
+            this.u = u
+            this.v = v2
+        }
 
-        vertices[idx + 5] = x2
-        vertices[idx + 6] = y2
-        vertices[idx + 7] = colorPacked
-        vertices[idx + 8] = u
-        vertices[idx + 9] = v2
+        mesh.setVertex {
+            this.x = x3
+            this.y = y3
+            this.colorPacked = this@SpriteBatch.colorPacked
+            this.u = u2
+            this.v = v2
+        }
 
-        vertices[idx + 10] = x3
-        vertices[idx + 11] = y3
-        vertices[idx + 12] = colorPacked
-        vertices[idx + 13] = u2
-        vertices[idx + 14] = v2
+        mesh.setVertex {
+            this.x = x4
+            this.y = y4
+            this.colorPacked = this@SpriteBatch.colorPacked
+            this.u = u2
+            this.v = v
+        }
 
-        vertices[idx + 15] = x4
-        vertices[idx + 16] = y4
-        vertices[idx + 17] = colorPacked
-        vertices[idx + 18] = u2
-        vertices[idx + 19] = v
         idx += SPRITE_SIZE
     }
 
@@ -271,7 +258,6 @@ class SpriteBatch(
         }
         val count = spritesInBatch * 6
         lastTexture?.bind()
-        mesh.setVertices(vertices, 0, idx)
         mesh.indicesBuffer.apply {
             position = 0
             limit = count

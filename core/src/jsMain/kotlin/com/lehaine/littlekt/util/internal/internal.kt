@@ -33,3 +33,5 @@ internal actual fun Double.toString(precision: Int): String {
     }
     return "$s${a.toLong()}.$frac"
 }
+
+actual inline fun <R> lock(lock: Any, block: () -> R): R = block()

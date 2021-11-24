@@ -3,7 +3,7 @@ package com.lehaine.littlekt.graphics
 import com.lehaine.littlekt.graphics.gl.*
 import com.lehaine.littlekt.graphics.shader.DataSource
 import com.lehaine.littlekt.io.Uint8Buffer
-import com.lehaine.littlekt.math.Mat4
+import com.lehaine.littlekt.math.old.Mat4
 
 
 /**

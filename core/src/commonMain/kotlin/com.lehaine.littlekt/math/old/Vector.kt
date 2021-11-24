@@ -1,4 +1,4 @@
-package com.lehaine.littlekt.math
+package com.lehaine.littlekt.math.old
 
 import kotlin.math.abs
 import kotlin.math.max

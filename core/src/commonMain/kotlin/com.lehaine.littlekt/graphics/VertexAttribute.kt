@@ -33,9 +33,9 @@ data class VertexAttribute(
     private val usageIndex = usage.usage.countTrailingZeroBits()
 
     companion object {
-        val POSITION
+        val POSITION_2D
             get() = VertexAttribute(
-                usage = VertexAttrUsage.POSITION,
+                usage = VertexAttrUsage.POSITION_2D,
                 numComponents = 2,
                 alias = ShaderProgram.POSITION_ATTRIBUTE
             )
@@ -73,7 +73,7 @@ data class VertexAttribute(
     }
 }
 
-class VertexAttributes(private vararg val attributes: VertexAttribute) : Iterable<VertexAttribute>,
+class VertexAttributes(private val attributes: List<VertexAttribute>) : Iterable<VertexAttribute>,
     Comparable<VertexAttributes> {
     val vertexSize = calculateOffsets()
     val size get() = attributes.size
@@ -148,7 +148,7 @@ class VertexAttributes(private vararg val attributes: VertexAttribute) : Iterabl
 @JvmInline
 value class VertexAttrUsage(val usage: Int) {
     companion object {
-        val POSITION = VertexAttrUsage(1)
+        val POSITION_2D = VertexAttrUsage(1)
         val COLOR_UNPACKED = VertexAttrUsage(2)
         val COLOR_PACKED = VertexAttrUsage(4)
         val NORMAL = VertexAttrUsage(8)

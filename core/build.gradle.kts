@@ -92,15 +92,12 @@ kotlin {
         val jsMain by getting
         val jsTest by getting
 
-        sourceSets.all {
-            languageSettings.apply {
-                progressiveMode = true
-                optIn("kotlinx.coroutines.ExperimentalCoroutinesApi")
-                optIn("kotlin.contracts.ExperimentalContracts")
-                optIn("kotlin.ExperimentalUnsignedTypes")
-                optIn("kotlin.ExperimentalStdlibApi")
-                optIn("kotlinx.serialization.ExperimentalSerializationApi")
-            }
+    }
+
+    sourceSets.all {
+        languageSettings.apply {
+            progressiveMode = true
+            optIn("kotlin.contracts.ExperimentalContracts")
         }
     }
 }

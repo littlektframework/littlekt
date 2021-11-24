@@ -1,6 +1,5 @@
-package com.lehaine.littlekt.math
+package com.lehaine.littlekt.math.old
 
-import com.lehaine.littlekt.math.abs
 import kotlin.math.*
 
 /**

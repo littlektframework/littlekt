@@ -1,4 +1,4 @@
-package com.lehaine.littlekt.math
+package com.lehaine.littlekt.util.internal
 
 import kotlin.reflect.KMutableProperty0
 

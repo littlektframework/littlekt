@@ -7,7 +7,7 @@ import com.lehaine.littlekt.graphics.*
 import com.lehaine.littlekt.input.InputProcessor
 import com.lehaine.littlekt.input.Key
 import com.lehaine.littlekt.input.Pointer
-import com.lehaine.littlekt.math.ortho
+import com.lehaine.littlekt.math.old.ortho
 
 /**
  * @author Colton Daily
@@ -22,8 +22,10 @@ class DisplayTest(application: Application) : LittleKt(application), InputProces
     //   val texture by application.fileHandler.get<Texture>("person.png")
     lateinit var texture: Texture
     val shader = createShader()
-    val mesh =
-        Mesh(gl, true, 4, 6, VertexAttribute.POSITION, VertexAttribute.COLOR_PACKED)
+    val mesh = colorMesh {
+        maxVertices = 4
+        maxIndices = 6
+    }
     val packedColor = Color.WHITE.toFloatBits()
 
     val vertices = floatArrayOf(

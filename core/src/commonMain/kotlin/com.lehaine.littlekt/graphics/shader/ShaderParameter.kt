@@ -2,9 +2,9 @@ package com.lehaine.littlekt.graphics.shader
 
 import com.lehaine.littlekt.graphics.GL
 import com.lehaine.littlekt.graphics.Color
-import com.lehaine.littlekt.math.Mat4
-import com.lehaine.littlekt.math.Vector2
-import com.lehaine.littlekt.math.Vector3
+import com.lehaine.littlekt.math.old.Mat4
+import com.lehaine.littlekt.math.old.Vector2
+import com.lehaine.littlekt.math.old.Vector3
 import kotlin.jvm.JvmName
 
 /**

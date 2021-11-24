@@ -10,3 +10,5 @@ internal actual fun epochMillis(): Long = System.currentTimeMillis()
 
 internal actual fun Double.toString(precision: Int): String =
     java.lang.String.format(Locale.ENGLISH, "%.${precision.clamp(0, 12)}f", this)
+
+actual inline fun <R> lock(lock: Any, block: () -> R): R = synchronized(lock, block)
