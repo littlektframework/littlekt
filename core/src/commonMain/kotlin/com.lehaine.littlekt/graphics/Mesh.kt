@@ -13,7 +13,7 @@ import com.lehaine.littlekt.graphics.shader.ShaderProgram
 
 inline fun mesh(gl: GL, attributes: List<VertexAttribute>, block: MeshProps.() -> Unit): Mesh {
     val props = MeshProps().apply(block)
-    return Mesh(gl, props.isStatic, props.maxVertices, props.maxIndices, attributes)
+    return Mesh(gl, props.isStatic, props.maxVertices, props.maxIndices, props.useBatcher, attributes)
 }
 
 fun colorMesh(gl: GL, generate: MeshProps.() -> Unit): Mesh {
@@ -44,6 +44,7 @@ class MeshProps {
     var isStatic: Boolean = true
     var maxVertices = 1000
     var maxIndices = maxVertices * 6
+    var useBatcher = true
 }
 
 class MeshBatcher(size: Int, val attributes: VertexAttributes) {
@@ -95,6 +96,7 @@ class Mesh(
     isStatic: Boolean,
     val maxVertices: Int,
     val maxIndices: Int,
+    var useBatcher: Boolean = true,
     attributes: List<VertexAttribute>
 ) :
     Disposable {
@@ -114,10 +116,26 @@ class Mesh(
     val numVertices get() = vertices.numVertices
 
     fun setVertex(action: VertexProps.() -> Unit) {
+        if (!useBatcher) throw RuntimeException("This mesh isn't user the mesh batcher! You cannot use setVertex. You must pass in a FloatArray to setVertices.")
         tempVertexProps.action()
         batcher.setVertex(tempVertexProps)
         updateVertices = true
+        resetProps()
     }
+
+    private fun resetProps() {
+        tempVertexProps.apply {
+            x = 0f
+            y = 0f
+            z = 0f
+            colorPacked = 0f
+            color = Color.CLEAR
+            u = 0f
+            v = 0f
+
+        }
+    }
+
 
     fun setIndicesAsTriangle() {
         val indices = ShortArray(maxIndices)
@@ -174,7 +192,7 @@ class Mesh(
         if (count == 0) {
             return
         }
-        if (updateVertices) {
+        if (useBatcher && updateVertices) {
             setVertices(batcher.vertices)
             batcher.reset()
             updateVertices = false
@@ -189,19 +207,6 @@ class Mesh(
             gl.drawArrays(drawMode, offset, count)
         }
         unbind(shader)
-    }
-
-    private fun resetProps() {
-        tempVertexProps.apply {
-            x = 0f
-            y = 0f
-            z = 0f
-            colorPacked = 0f
-            color = Color.CLEAR
-            u = 0f
-            v = 0f
-
-        }
     }
 
     override fun dispose() {
