@@ -83,7 +83,7 @@ class SpriteBatch(
     private var invTexHeight = 0f
 
     private val color = Color.WHITE
-    private val colorPacked = color.toFloatBits()
+    private val colorBits = color.toFloatBits()
 
 
     fun begin(projectionMatrix: Mat4? = null) {
@@ -199,35 +199,38 @@ class SpriteBatch(
         val u2 = 1f
         val v2 = 0f
 
-        mesh.setVertex {
-            this.x = x1
-            this.y = y1
-            this.colorPacked = this@SpriteBatch.colorPacked
-            this.u = u
-            this.v = v
-        }
-        mesh.setVertex {
-            this.x = x2
-            this.y = y2
-            this.colorPacked = this@SpriteBatch.colorPacked
-            this.u = u
-            this.v = v2
-        }
+        mesh.run {
+            setVertex {
+                this.x = x1
+                this.y = y1
+                this.colorPacked = colorBits
+                this.u = u
+                this.v = v
+            }
+            setVertex {
+                this.x = x2
+                this.y = y2
+                this.colorPacked = colorBits
+                this.u = u
+                this.v = v2
+            }
 
-        mesh.setVertex {
-            this.x = x3
-            this.y = y3
-            this.colorPacked = this@SpriteBatch.colorPacked
-            this.u = u2
-            this.v = v2
-        }
+            setVertex {
+                this.x = x3
+                this.y = y3
+                this.colorPacked = colorBits
+                this.u = u2
+                this.v = v2
+            }
 
-        mesh.setVertex {
-            this.x = x4
-            this.y = y4
-            this.colorPacked = this@SpriteBatch.colorPacked
-            this.u = u2
-            this.v = v
+            setVertex {
+                this.x = x4
+                this.y = y4
+                this.colorPacked = colorBits
+                this.u = u2
+                this.v = v
+            }
+
         }
 
         idx += SPRITE_SIZE
