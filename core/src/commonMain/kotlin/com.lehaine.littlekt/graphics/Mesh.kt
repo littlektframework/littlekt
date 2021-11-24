@@ -5,6 +5,7 @@ import com.lehaine.littlekt.Disposable
 import com.lehaine.littlekt.graphics.gl.DrawMode
 import com.lehaine.littlekt.graphics.gl.IndexType
 import com.lehaine.littlekt.graphics.shader.ShaderProgram
+import kotlin.math.floor
 
 /**
  * @author Colton Daily
@@ -43,12 +44,13 @@ fun Application.textureMesh(generate: MeshProps.() -> Unit): Mesh {
 class MeshProps {
     var isStatic: Boolean = true
     var maxVertices = 1000
-    var maxIndices = maxVertices * 6
+    var maxIndices = floor(maxVertices * 0.5f).toInt() + maxVertices
     var useBatcher = true
 }
 
 class MeshBatcher(size: Int, val attributes: VertexAttributes) {
-    val vertices = FloatArray(size)
+    private val totalComponents = attributes.sumOf { if (it == VertexAttribute.COLOR_PACKED) 1 else it.numComponents }
+    val vertices = FloatArray(size * totalComponents)
 
     private var offset = 0
     fun setVertex(props: VertexProps) {
@@ -98,8 +100,7 @@ class Mesh(
     val maxIndices: Int,
     var useBatcher: Boolean = true,
     attributes: List<VertexAttribute>
-) :
-    Disposable {
+) : Disposable {
 
     private val vertexAttributes = VertexAttributes(attributes)
     private val vertices = VertexBufferObject(gl, isStatic, maxVertices, vertexAttributes)
@@ -107,7 +108,7 @@ class Mesh(
     private var updateVertices = false
     private val tempVertexProps = VertexProps()
 
-    val batcher = MeshBatcher(vertices.maxNumVertices, vertexAttributes)
+    val batcher = MeshBatcher(maxVertices, vertexAttributes)
 
     val verticesBuffer get() = vertices.buffer
     val indicesBuffer get() = indices.buffer
@@ -135,7 +136,6 @@ class Mesh(
 
         }
     }
-
 
     fun setIndicesAsTriangle() {
         val indices = ShortArray(maxIndices)
@@ -194,6 +194,10 @@ class Mesh(
         }
         if (useBatcher && updateVertices) {
             setVertices(batcher.vertices)
+            indicesBuffer.apply {
+                position = 0
+                limit = count
+            }
             batcher.reset()
             updateVertices = false
         }
@@ -207,6 +211,7 @@ class Mesh(
             gl.drawArrays(drawMode, offset, count)
         }
         unbind(shader)
+
     }
 
     override fun dispose() {

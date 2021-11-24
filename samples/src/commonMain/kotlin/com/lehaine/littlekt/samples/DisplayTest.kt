@@ -24,16 +24,35 @@ class DisplayTest(application: Application) : LittleKt(application), InputProces
     val shader = createShader()
     val mesh = colorMesh {
         maxVertices = 4
-        maxIndices = 6
-    }
-    val packedColor = Color.WHITE.toFloatBits()
+    }.apply {
+        setVertex {
+            x = 50f
+            y = 50f
+            colorPacked = whiteBits
+        }
 
-    val vertices = floatArrayOf(
-        50f, 50f, packedColor,
-        66f, 50f, packedColor,
-        66f, 66f, packedColor,
-        50f, 66f, packedColor
-    )
+        setVertex {
+            x = 66f
+            y = 50f
+            colorPacked = whiteBits
+        }
+
+        setVertex {
+            x = 66f
+            y = 66f
+            colorPacked = whiteBits
+        }
+
+        setVertex {
+            x = 50f
+            y = 66f
+            colorPacked = whiteBits
+        }
+
+        setIndicesAsTriangle()
+    }
+    val whiteBits = Color.WHITE.toFloatBits()
+
     val indices = shortArrayOf(0, 1, 2, 2, 3, 0)
 
     var projection = ortho(
@@ -55,9 +74,6 @@ class DisplayTest(application: Application) : LittleKt(application), InputProces
             texture = loadTexture("person.png")
             loading = false
         }
-
-        mesh.setIndices(indices)
-        mesh.setVertices(vertices)
         input.inputProcessor = this
     }
 

@@ -258,10 +258,6 @@ class SpriteBatch(
         }
         val count = spritesInBatch * 6
         lastTexture?.bind()
-        mesh.indicesBuffer.apply {
-            position = 0
-            limit = count
-        }
         gl.enable(State.BLEND)
         gl.blendFuncSeparate(
             BlendFactor.SRC_ALPHA,
