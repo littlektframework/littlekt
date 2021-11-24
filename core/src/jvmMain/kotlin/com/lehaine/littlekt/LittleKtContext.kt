@@ -11,15 +11,14 @@ actual class LittleKtProps {
     var vSync: Boolean = true
 }
 
-actual fun createLittleKtApp(action: LittleKtProps.() -> ((Application) -> LittleKt)): LittleKtContext {
-    val props = LittleKtProps()
-    val gameBuilder = props.action()
+actual fun createLittleKtApp(action: LittleKtProps.() -> Unit): LittleKtContext {
+    val props = LittleKtProps().apply(action)
     return LittleKtContext(
         ApplicationConfiguration(
             props.title,
             props.width,
             props.height,
             props.vSync
-        ), gameBuilder
+        )
     )
 }

@@ -11,8 +11,10 @@ fun main() {
     val rootPath =
         (window.location.protocol + "//" + window.location.host + window.location.pathname).replace("index.html", "")
     createLittleKtApp {
-        title = "JVM - Display Test"
+        title = "JS - Display Test"
         this.rootPath = rootPath
-        { DisplayTest(it) }
-    }.start()
+
+    }.start {
+        DisplayTest(it)
+    }
 }

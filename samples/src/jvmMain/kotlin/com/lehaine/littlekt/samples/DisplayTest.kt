@@ -12,6 +12,7 @@ fun main(args: Array<String>) {
         height = 540
         vSync = true
         title = "JVM - Display Test"
-        { DisplayTest(it) }
-    }.start()
+    }.start {
+        DisplayTest(it)
+    }
 }

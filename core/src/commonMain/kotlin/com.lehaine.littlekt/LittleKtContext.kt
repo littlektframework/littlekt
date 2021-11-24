@@ -5,11 +5,10 @@ package com.lehaine.littlekt
  * @date 11/17/2021
  */
 class LittleKtContext(
-    val applicationConfiguration: ApplicationConfiguration,
-    val gameBuilder: (app: Application) -> LittleKt
+    val applicationConfiguration: ApplicationConfiguration
 ) {
 
-    fun start() {
+    fun start(gameBuilder: (app: Application) -> LittleKt) {
         val app = PlatformContext(applicationConfiguration)
         app.start(gameBuilder)
     }
@@ -17,4 +16,4 @@ class LittleKtContext(
 
 expect class LittleKtProps
 
-expect fun createLittleKtApp(action: LittleKtProps.() -> ((Application) -> LittleKt)): LittleKtContext
+expect fun createLittleKtApp(action: LittleKtProps.() -> Unit): LittleKtContext

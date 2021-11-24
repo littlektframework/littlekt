@@ -14,14 +14,14 @@ actual class LittleKtProps {
     var rootPath: String = window.location.protocol
 }
 
-actual fun createLittleKtApp(action: LittleKtProps.() -> ((Application) -> LittleKt)): LittleKtContext {
-    val props = LittleKtProps()
-    val gameBuilder = props.action()
+actual fun createLittleKtApp(action: LittleKtProps.() -> Unit): LittleKtContext {
+    val props = LittleKtProps().apply(action)
+    props.action()
     return LittleKtContext(
         ApplicationConfiguration(
             props.title,
             props.canvasId,
             props.rootPath
-        ), gameBuilder
+        )
     )
 }
