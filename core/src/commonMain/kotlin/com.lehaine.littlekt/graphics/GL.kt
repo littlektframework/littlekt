@@ -2,8 +2,9 @@ package com.lehaine.littlekt.graphics
 
 import com.lehaine.littlekt.graphics.gl.*
 import com.lehaine.littlekt.graphics.shader.DataSource
+import com.lehaine.littlekt.io.Float32Buffer
 import com.lehaine.littlekt.io.Uint8Buffer
-import com.lehaine.littlekt.math.old.Mat4
+import com.lehaine.littlekt.math.Mat4
 
 
 /**
@@ -129,12 +130,8 @@ interface GL {
     fun bindTexture(target: TextureTarget, glTexture: GlTexture) = bindTexture(target.glFlag, glTexture)
     fun deleteTexture(glTexture: GlTexture)
 
-    fun uniformMatrix4fv(uniformLocation: UniformLocation, transpose: Boolean, data: Mat4) =
-        uniformMatrix4fv(uniformLocation, transpose, data.asGLArray())
-
-    fun uniformMatrix4fv(uniformLocation: UniformLocation, transpose: Boolean, data: FloatArray) =
-        uniformMatrix4fv(uniformLocation, transpose, data.toTypedArray())
-
+    fun uniformMatrix4fv(uniformLocation: UniformLocation, transpose: Boolean, data: Mat4)
+    fun uniformMatrix4fv(uniformLocation: UniformLocation, transpose: Boolean, data: Float32Buffer)
     fun uniformMatrix4fv(uniformLocation: UniformLocation, transpose: Boolean, data: Array<Float>)
 
     fun uniform1i(uniformLocation: UniformLocation, data: Int)

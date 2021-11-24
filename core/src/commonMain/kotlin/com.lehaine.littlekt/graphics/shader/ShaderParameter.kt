@@ -2,9 +2,9 @@ package com.lehaine.littlekt.graphics.shader
 
 import com.lehaine.littlekt.graphics.GL
 import com.lehaine.littlekt.graphics.Color
-import com.lehaine.littlekt.math.old.Mat4
-import com.lehaine.littlekt.math.old.Vector2
-import com.lehaine.littlekt.math.old.Vector3
+import com.lehaine.littlekt.math.Mat4
+import com.lehaine.littlekt.math.Vec2f
+import com.lehaine.littlekt.math.Vec3f
 import kotlin.jvm.JvmName
 
 /**
@@ -39,7 +39,7 @@ sealed class ShaderParameter(val name: String) {
 
             // Copy all matrix values, aligned
             matrix.forEachIndexed { x, mat ->
-                val values = mat.asGLArray()
+                val values = mat.toList()
                 (0 until 16).forEach { y ->
                     tmpMatrix[x * 16 + y] = values[y]
                 }
@@ -68,7 +68,7 @@ sealed class ShaderParameter(val name: String) {
             program.createUniform(name)
         }
 
-        fun apply(program: ShaderProgram, vec2: Vector2) = apply(program, vec2.x, vec2.y)
+        fun apply(program: ShaderProgram, vec2: Vec2f) = apply(program, vec2.x, vec2.y)
 
         fun apply(program: ShaderProgram, vararg vec2: Float) {
             when (vec2.size) {
@@ -83,7 +83,7 @@ sealed class ShaderParameter(val name: String) {
             program.createUniform(name)
         }
 
-        fun apply(program: ShaderProgram, vec3: Vector3) = apply(program, vec3.x, vec3.y, vec3.z)
+        fun apply(program: ShaderProgram, vec3: Vec3f) = apply(program, vec3.x, vec3.y, vec3.z)
 
         fun apply(program: ShaderProgram, vararg vec3: Float) {
             when (vec3.size) {

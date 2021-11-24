@@ -8,8 +8,7 @@ import com.lehaine.littlekt.graphics.gl.State
 import com.lehaine.littlekt.graphics.shader.ShaderProgram
 import com.lehaine.littlekt.graphics.shader.fragment.TexturedFragmentShader
 import com.lehaine.littlekt.graphics.shader.vertex.TexturedQuadShader
-import com.lehaine.littlekt.math.old.Mat4
-import com.lehaine.littlekt.math.old.ortho
+import com.lehaine.littlekt.math.Mat4
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
@@ -50,13 +49,13 @@ class SpriteBatch(
                 setupMatrices()
             }
         }
-    var projectionMatrix = ortho(
-        l = 0f,
-        r = application.graphics.width.toFloat(),
-        b = 0f,
-        t = application.graphics.height.toFloat(),
-        n = -1f,
-        f = 1f
+    var projectionMatrix = Mat4().setOrthographic(
+        left = 0f,
+        right = application.graphics.width.toFloat(),
+        bottom = 0f,
+        top = application.graphics.height.toFloat(),
+        near = -1f,
+        far = 1f
     )
         set(value) {
             if (drawing) {
@@ -72,7 +71,6 @@ class SpriteBatch(
     private val mesh = application.textureMesh {
         isStatic = false
         maxVertices = size * 4
-        maxIndices = size * 6
     }.apply {
         setIndicesAsTriangle()
     }
@@ -280,7 +278,7 @@ class SpriteBatch(
     }
 
     private fun setupMatrices() {
-        combinedMatrix = projectionMatrix * transformMatrix
+        combinedMatrix.set(projectionMatrix).mul(transformMatrix)
         shader.vertexShader.uProjTrans.apply(shader, combinedMatrix)
         shader.fragmentShader.uTexture.apply(shader)
     }

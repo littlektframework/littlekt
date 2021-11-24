@@ -7,7 +7,7 @@ import com.lehaine.littlekt.graphics.*
 import com.lehaine.littlekt.input.InputProcessor
 import com.lehaine.littlekt.input.Key
 import com.lehaine.littlekt.input.Pointer
-import com.lehaine.littlekt.math.old.ortho
+import com.lehaine.littlekt.math.Mat4
 
 /**
  * @author Colton Daily
@@ -53,13 +53,13 @@ class DisplayTest(application: Application) : LittleKt(application), InputProces
     }
     val whiteBits = Color.WHITE.toFloatBits()
 
-    var projection = ortho(
-        l = 0f,
-        r = 480f * 2,
-        b = 0f,
-        t = 270f * 2,
-        n = -1f,
-        f = 1f
+    var projection = Mat4().setOrthographic(
+        left = 0f,
+        right = 480f * 2,
+        bottom = 0f,
+        top = 270f * 2,
+        near = -1f,
+        far = 1f
     )
     private var x = 0f
     private var y = 0f

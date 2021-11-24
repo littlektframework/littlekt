@@ -4,8 +4,8 @@ import com.lehaine.littlekt.graphics.GL
 import com.lehaine.littlekt.graphics.GLVersion
 import com.lehaine.littlekt.graphics.gl.*
 import com.lehaine.littlekt.graphics.shader.DataSource
-import com.lehaine.littlekt.io.Uint8Buffer
-import com.lehaine.littlekt.io.Uint8BufferImpl
+import com.lehaine.littlekt.io.*
+import com.lehaine.littlekt.math.Mat4
 import org.lwjgl.opengl.GL30.*
 
 /**
@@ -228,10 +228,6 @@ class LwjglGL : GL {
         glUseProgram(0)
     }
 
-    override fun uniformMatrix4fv(uniformLocation: UniformLocation, transpose: Boolean, data: Array<Float>) {
-        glUniformMatrix4fv(uniformLocation.address, transpose, data.toFloatArray())
-    }
-
     override fun uniform1i(uniformLocation: UniformLocation, data: Int) {
         glUniform1i(uniformLocation.address, data)
     }
@@ -286,6 +282,22 @@ class LwjglGL : GL {
 
     override fun deleteTexture(glTexture: GlTexture) {
         glDeleteTextures(glTexture.reference)
+    }
+
+    override fun uniformMatrix4fv(uniformLocation: UniformLocation, transpose: Boolean, data: Array<Float>) {
+        glUniformMatrix4fv(uniformLocation.address, transpose, data.toFloatArray())
+    }
+
+
+    override fun uniformMatrix4fv(uniformLocation: UniformLocation, transpose: Boolean, data: Mat4) {
+        val buffer = createFloat32Buffer(16) as Float32BufferImpl
+        data.toBuffer(buffer)
+        glUniformMatrix4fv(uniformLocation.address, transpose, buffer.buffer)
+    }
+
+    override fun uniformMatrix4fv(uniformLocation: UniformLocation, transpose: Boolean, data: Float32Buffer) {
+        data as Float32BufferImpl
+        glUniformMatrix4fv(uniformLocation.address, transpose, data.buffer)
     }
 
     override fun texImage2D(
