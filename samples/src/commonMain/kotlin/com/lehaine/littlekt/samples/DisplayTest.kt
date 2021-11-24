@@ -53,8 +53,6 @@ class DisplayTest(application: Application) : LittleKt(application), InputProces
     }
     val whiteBits = Color.WHITE.toFloatBits()
 
-    val indices = shortArrayOf(0, 1, 2, 2, 3, 0)
-
     var projection = ortho(
         l = 0f,
         r = 480f * 2,
