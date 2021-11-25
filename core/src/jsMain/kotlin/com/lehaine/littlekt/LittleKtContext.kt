@@ -1,7 +1,5 @@
 package com.lehaine.littlekt
 
-import kotlinx.browser.window
-
 /**
  * @author Colton Daily
  * @date 11/17/2021
@@ -11,7 +9,7 @@ actual class LittleKtProps {
     var height: Int = 540
     var canvasId: String = "canvas"
     var title: String = "LitteKt"
-    var rootPath: String = window.location.protocol
+    var assetsDir: String = "./"
 }
 
 actual fun createLittleKtApp(action: LittleKtProps.() -> Unit): LittleKtContext {
@@ -21,7 +19,7 @@ actual fun createLittleKtApp(action: LittleKtProps.() -> Unit): LittleKtContext 
         ApplicationConfiguration(
             props.title,
             props.canvasId,
-            props.rootPath
+            props.assetsDir
         )
     )
 }

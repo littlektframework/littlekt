@@ -9,7 +9,7 @@ import kotlinx.browser.window
 actual class ApplicationConfiguration(
     actual val title: String = "LittleKt - JS",
     val canvasId: String = "canvas",
-    val rootPath: String = window.location.protocol
+    val rootPath: String = "./"
 ) {
 
 }
