@@ -9,8 +9,8 @@ import kotlin.math.min
 
 class ShaderProgram(
     val gl: GL,
-    val vertexShader: VertexShader,
-    val fragmentShader: FragmentShader,
+    val vertexShader: Shader,
+    val fragmentShader: Shader,
 ) : Disposable {
     companion object {
         /** default name for position attributes  */

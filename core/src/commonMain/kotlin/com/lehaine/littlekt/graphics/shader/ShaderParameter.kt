@@ -1,11 +1,11 @@
 package com.lehaine.littlekt.graphics.shader
 
-import com.lehaine.littlekt.graphics.GL
 import com.lehaine.littlekt.graphics.Color
+import com.lehaine.littlekt.graphics.GL
+import com.lehaine.littlekt.graphics.gl.GlTexture
 import com.lehaine.littlekt.math.Mat4
 import com.lehaine.littlekt.math.Vec2f
 import com.lehaine.littlekt.math.Vec3f
-import kotlin.jvm.JvmName
 
 /**
  * @author Colton Daily
@@ -21,30 +21,6 @@ sealed class ShaderParameter(val name: String) {
 
         fun apply(program: ShaderProgram, matrix: Mat4) {
             program.gl.uniformMatrix4fv(program.getUniform(name), false, matrix)
-        }
-    }
-
-    class UniformArrayMat4(name: String) : ShaderParameter(name) {
-        override fun create(program: ShaderProgram) {
-            program.createUniform(name)
-        }
-
-        @JvmName("applyArray")
-        fun apply(program: ShaderProgram, matrix: Array<Mat4>) = apply(program, *matrix)
-
-        fun apply(program: ShaderProgram, matrix: List<Mat4>) = apply(program, matrix.toTypedArray())
-
-        fun apply(program: ShaderProgram, vararg matrix: Mat4) {
-            val tmpMatrix = Array(matrix.size * 16) { 0f }
-
-            // Copy all matrix values, aligned
-            matrix.forEachIndexed { x, mat ->
-                val values = mat.toList()
-                (0 until 16).forEach { y ->
-                    tmpMatrix[x * 16 + y] = values[y]
-                }
-            }
-            program.gl.uniformMatrix4fv(program.getUniform(name), false, tmpMatrix)
         }
     }
 
@@ -138,6 +114,22 @@ sealed class ShaderParameter(val name: String) {
         }
     }
 
+    class UniformSample2D(name: String) : ShaderParameter(name) {
+        override fun create(program: ShaderProgram) {
+            program.createUniform(name)
+        }
+
+        fun apply(program: ShaderProgram, glTexture: GlTexture, unit: Int = 0) {
+            program.gl.activeTexture(GL.TEXTURE0 + unit)
+            program.gl.bindTexture(GL.TEXTURE_2D, glTexture)
+            program.gl.uniform1i(program.getUniform(name), unit)
+        }
+
+        fun apply(program: ShaderProgram, unit: Int = 0) {
+            program.gl.uniform1i(program.getUniform(name), unit)
+        }
+    }
+
     class AttributeVec2(name: String) : ShaderParameter(name) {
         override fun create(program: ShaderProgram) {
             program.createAttrib(name)
@@ -153,22 +145,6 @@ sealed class ShaderParameter(val name: String) {
     class AttributeVec4(name: String) : ShaderParameter(name) {
         override fun create(program: ShaderProgram) {
             program.createAttrib(name)
-        }
-    }
-
-    class UniformSample2D(name: String) : ShaderParameter(name) {
-        override fun create(program: ShaderProgram) {
-            program.createUniform(name)
-        }
-
-        fun apply(program: ShaderProgram, glTexture: com.lehaine.littlekt.graphics.gl.GlTexture, unit: Int = 0) {
-            program.gl.activeTexture(GL.TEXTURE0 + unit)
-            program.gl.bindTexture(GL.TEXTURE_2D, glTexture)
-            program.gl.uniform1i(program.getUniform(name), unit)
-        }
-
-        fun apply(program: ShaderProgram, unit: Int = 0) {
-            program.gl.uniform1i(program.getUniform(name), unit)
         }
     }
 }

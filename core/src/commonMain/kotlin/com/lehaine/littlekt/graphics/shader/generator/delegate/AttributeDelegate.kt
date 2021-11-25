@@ -11,8 +11,9 @@ import kotlin.reflect.KProperty
 class AttributeDelegate<T : Variable>(private val factory: (GlslGenerator) -> T) {
     private lateinit var v: T
 
-    operator fun provideDelegate(thisRef: GlslGenerator,
-                                 property: KProperty<*>
+    operator fun provideDelegate(
+        thisRef: GlslGenerator,
+        property: KProperty<*>
     ): AttributeDelegate<T> {
         v = factory(thisRef)
         v.value = property.name
