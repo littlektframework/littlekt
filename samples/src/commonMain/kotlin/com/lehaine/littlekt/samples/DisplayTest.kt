@@ -117,7 +117,7 @@ class DisplayTest(application: Application) : LittleKt(application), InputProces
 
 
         if (input.isKeyJustPressed(Key.P)) {
-            println(engineStats)
+            logger.debug { engineStats }
         }
 
     }
@@ -135,32 +135,32 @@ class DisplayTest(application: Application) : LittleKt(application), InputProces
     }
 
     override fun keyUp(key: Key): Boolean {
-        println("key up $key")
+        logger.debug { "Key up: $key" }
         return false
     }
 
     override fun keyTyped(character: Char): Boolean {
-        println("Key typed $character")
+        logger.debug { "Key typed: $character" }
         return false
     }
 
     override fun touchDown(screenX: Float, screenY: Float, pointer: Pointer): Boolean {
-        println("Mouse button $pointer pressed $screenX,$screenY")
+        logger.debug { "Mouse button $pointer pressed $screenX,$screenY" }
         return false
     }
 
     override fun touchUp(screenX: Float, screenY: Float, pointer: Pointer): Boolean {
-        println("Mouse button $pointer released $screenX,$screenY")
+        logger.debug { "Mouse button $pointer released $screenX,$screenY" }
         return false
     }
 
     override fun touchDragged(screenX: Float, screenY: Float, pointer: Pointer): Boolean {
-        println("Mouse button dragged to $screenX,$screenY")
+        logger.debug { "Mouse button dragged to $screenX,$screenY" }
         return false
     }
 
     override fun scrolled(amountX: Float, amountY: Float): Boolean {
-        println("Scrolled $amountX,$amountY")
+        logger.debug { "Scrolled $amountX,$amountY" }
         return false
     }
 
