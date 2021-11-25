@@ -1,14 +1,14 @@
-package com.lehaine.littlekt.graphics.shader.builder.type.vec
+package com.lehaine.littlekt.graphics.shader.generator.type.vec
 
-import com.lehaine.littlekt.graphics.shader.builder.ShaderBuilder
-import com.lehaine.littlekt.graphics.shader.builder.type.Variable
-import com.lehaine.littlekt.graphics.shader.builder.type.scalar.GLInt
+import com.lehaine.littlekt.graphics.shader.generator.GlslGenerator
+import com.lehaine.littlekt.graphics.shader.generator.type.Variable
+import com.lehaine.littlekt.graphics.shader.generator.type.scalar.GLInt
 
 /**
  * @author Colton Daily
  * @date 11/25/2021
  */
-class Vec2Array(override val builder: ShaderBuilder) : Variable {
+class Vec2Array(override val builder: GlslGenerator) : Variable {
     override val typeName: String = "vec2"
     override var value: String? = null
 
@@ -19,7 +19,7 @@ class Vec2Array(override val builder: ShaderBuilder) : Variable {
     }
 }
 
-class Vec3Array(override val builder: ShaderBuilder) : Variable {
+class Vec3Array(override val builder: GlslGenerator) : Variable {
     override val typeName: String = "vec3"
     override var value: String? = null
 
@@ -30,7 +30,7 @@ class Vec3Array(override val builder: ShaderBuilder) : Variable {
     }
 }
 
-class Vec4Array(override val builder: ShaderBuilder) : Variable {
+class Vec4Array(override val builder: GlslGenerator) : Variable {
     override val typeName: String = "vec4"
     override var value: String? = null
 

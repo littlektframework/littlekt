@@ -1,15 +1,15 @@
-package com.lehaine.littlekt.graphics.shader.builder.delegate
+package com.lehaine.littlekt.graphics.shader.generator.delegate
 
-import com.lehaine.littlekt.graphics.shader.builder.Instruction
-import com.lehaine.littlekt.graphics.shader.builder.ShaderBuilder
-import com.lehaine.littlekt.graphics.shader.builder.type.Variable
+import com.lehaine.littlekt.graphics.shader.generator.Instruction
+import com.lehaine.littlekt.graphics.shader.generator.GlslGenerator
+import com.lehaine.littlekt.graphics.shader.generator.type.Variable
 import kotlin.reflect.KProperty
 
 /**
  * @author Colton Daily
  * @date 11/25/2021
  */
-class ComponentDelegate<T : Variable>(private val factory: (ShaderBuilder) -> T) {
+class ComponentDelegate<T : Variable>(private val factory: (GlslGenerator) -> T) {
     private lateinit var v: T
 
     operator fun provideDelegate(thisRef: Variable, property: KProperty<*>): ComponentDelegate<T> {

@@ -1,21 +1,21 @@
-package com.lehaine.littlekt.graphics.shader.builder.type.scalar
+package com.lehaine.littlekt.graphics.shader.generator.type.scalar
 
-import com.lehaine.littlekt.graphics.shader.builder.ShaderBuilder
-import com.lehaine.littlekt.graphics.shader.builder.delegate.ComponentDelegate
-import com.lehaine.littlekt.graphics.shader.builder.str
-import com.lehaine.littlekt.graphics.shader.builder.type.BoolResult
-import com.lehaine.littlekt.graphics.shader.builder.type.GenType
+import com.lehaine.littlekt.graphics.shader.generator.GlslGenerator
+import com.lehaine.littlekt.graphics.shader.generator.delegate.ComponentDelegate
+import com.lehaine.littlekt.graphics.shader.generator.str
+import com.lehaine.littlekt.graphics.shader.generator.type.BoolResult
+import com.lehaine.littlekt.graphics.shader.generator.type.GenType
 
 /**
  * @author Colton Daily
  * @date 11/25/2021
  */
-class GLFloat(override val builder: ShaderBuilder) : GenType {
+class GLFloat(override val builder: GlslGenerator) : GenType {
 
     override val typeName: String = "float"
     override var value: String? = null
 
-    constructor(builder: ShaderBuilder, value: String) : this(builder) {
+    constructor(builder: GlslGenerator, value: String) : this(builder) {
         this.value = value
     }
 

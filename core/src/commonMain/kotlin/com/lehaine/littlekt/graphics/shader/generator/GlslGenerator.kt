@@ -1,20 +1,20 @@
-package com.lehaine.littlekt.graphics.shader.builder
+package com.lehaine.littlekt.graphics.shader.generator
 
-import com.lehaine.littlekt.graphics.shader.builder.InstructionType.*
-import com.lehaine.littlekt.graphics.shader.builder.delegate.*
-import com.lehaine.littlekt.graphics.shader.builder.type.BoolResult
-import com.lehaine.littlekt.graphics.shader.builder.type.GenType
-import com.lehaine.littlekt.graphics.shader.builder.type.Variable
-import com.lehaine.littlekt.graphics.shader.builder.type.mat.Mat3
-import com.lehaine.littlekt.graphics.shader.builder.type.mat.Mat4
-import com.lehaine.littlekt.graphics.shader.builder.type.sampler.Sampler2D
-import com.lehaine.littlekt.graphics.shader.builder.type.sampler.Sampler2DArray
-import com.lehaine.littlekt.graphics.shader.builder.type.sampler.ShadowTexture2D
-import com.lehaine.littlekt.graphics.shader.builder.type.scalar.GLFloat
-import com.lehaine.littlekt.graphics.shader.builder.type.scalar.GLInt
-import com.lehaine.littlekt.graphics.shader.builder.type.vec.Vec2
-import com.lehaine.littlekt.graphics.shader.builder.type.vec.Vec3
-import com.lehaine.littlekt.graphics.shader.builder.type.vec.Vec4
+import com.lehaine.littlekt.graphics.shader.generator.InstructionType.*
+import com.lehaine.littlekt.graphics.shader.generator.delegate.*
+import com.lehaine.littlekt.graphics.shader.generator.type.BoolResult
+import com.lehaine.littlekt.graphics.shader.generator.type.GenType
+import com.lehaine.littlekt.graphics.shader.generator.type.Variable
+import com.lehaine.littlekt.graphics.shader.generator.type.mat.Mat3
+import com.lehaine.littlekt.graphics.shader.generator.type.mat.Mat4
+import com.lehaine.littlekt.graphics.shader.generator.type.sampler.Sampler2D
+import com.lehaine.littlekt.graphics.shader.generator.type.sampler.Sampler2DArray
+import com.lehaine.littlekt.graphics.shader.generator.type.sampler.ShadowTexture2D
+import com.lehaine.littlekt.graphics.shader.generator.type.scalar.GLFloat
+import com.lehaine.littlekt.graphics.shader.generator.type.scalar.GLInt
+import com.lehaine.littlekt.graphics.shader.generator.type.vec.Vec2
+import com.lehaine.littlekt.graphics.shader.generator.type.vec.Vec3
+import com.lehaine.littlekt.graphics.shader.generator.type.vec.Vec4
 
 
 /**
@@ -39,7 +39,11 @@ data class Instruction(val type: InstructionType, var result: String = "") {
     }
 }
 
-abstract class ShaderBuilder : ShaderSourceProvider {
+interface GlslProvider {
+    fun getSource(): String
+}
+
+abstract class GlslGenerator : GlslProvider {
     val uniforms = mutableSetOf<String>()
     val attributes = mutableSetOf<String>()
     val varyings = mutableSetOf<String>()
@@ -85,7 +89,7 @@ abstract class ShaderBuilder : ShaderSourceProvider {
         return sb.toString()
     }
 
-    fun appendComponent(builder: ShaderBuilderComponent) {
+    fun appendComponent(builder: GlslGeneratorComponent) {
         uniforms.addAll(builder.uniforms)
         attributes.addAll(builder.attributes)
         varyings.addAll(builder.varyings)
@@ -96,10 +100,10 @@ abstract class ShaderBuilder : ShaderSourceProvider {
         instructions.removeAll { it.result.contains("{def}") }
     }
 
-    protected fun <T : Variable> varying(factory: (ShaderBuilder) -> T) = VaryingDelegate(factory)
-    protected fun <T : Variable> attribute(factory: (ShaderBuilder) -> T) = AttributeDelegate(factory)
-    protected fun <T : Variable> uniform(factory: (ShaderBuilder) -> T) = UniformDelegate(factory)
-    protected fun <T : Variable> uniformArray(size: Int, init: (builder: ShaderBuilder) -> T) =
+    protected fun <T : Variable> varying(factory: (GlslGenerator) -> T) = VaryingDelegate(factory)
+    protected fun <T : Variable> attribute(factory: (GlslGenerator) -> T) = AttributeDelegate(factory)
+    protected fun <T : Variable> uniform(factory: (GlslGenerator) -> T) = UniformDelegate(factory)
+    protected fun <T : Variable> uniformArray(size: Int, init: (builder: GlslGenerator) -> T) =
         UniformArrayDelegate(size, init)
 
     protected fun <T : Variable> samplersArray(size: Int) = UniformArrayDelegate(size, ::Sampler2DArray)
@@ -386,4 +390,4 @@ fun Float.str(): String {
     return if (r.contains(".")) r else "$r.0"
 }
 
-abstract class ShaderBuilderComponent : ShaderBuilder()
+abstract class GlslGeneratorComponent : GlslGenerator()

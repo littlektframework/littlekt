@@ -1,8 +1,8 @@
-package com.lehaine.littlekt.graphics.shader.builder.delegate
+package com.lehaine.littlekt.graphics.shader.generator.delegate
 
-import com.lehaine.littlekt.graphics.shader.builder.Instruction
-import com.lehaine.littlekt.graphics.shader.builder.InstructionType
-import com.lehaine.littlekt.graphics.shader.builder.type.Variable
+import com.lehaine.littlekt.graphics.shader.generator.Instruction
+import com.lehaine.littlekt.graphics.shader.generator.InstructionType
+import com.lehaine.littlekt.graphics.shader.generator.type.Variable
 import kotlin.reflect.KProperty
 
 /**

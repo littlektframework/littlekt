@@ -1,8 +1,8 @@
-package com.lehaine.littlekt.graphics.shader.builder.type.mat
+package com.lehaine.littlekt.graphics.shader.generator.type.mat
 
-import com.lehaine.littlekt.graphics.shader.builder.Instruction
-import com.lehaine.littlekt.graphics.shader.builder.ShaderBuilder
-import com.lehaine.littlekt.graphics.shader.builder.type.Variable
+import com.lehaine.littlekt.graphics.shader.generator.Instruction
+import com.lehaine.littlekt.graphics.shader.generator.GlslGenerator
+import com.lehaine.littlekt.graphics.shader.generator.type.Variable
 import kotlin.reflect.KProperty
 
 /**
@@ -11,7 +11,7 @@ import kotlin.reflect.KProperty
  */
 class MatrixColumnDelegate<T : Variable>(
     private val index: Int,
-    private val factory: (builder: ShaderBuilder) -> T
+    private val factory: (builder: GlslGenerator) -> T
 ) {
     private lateinit var v: T
 

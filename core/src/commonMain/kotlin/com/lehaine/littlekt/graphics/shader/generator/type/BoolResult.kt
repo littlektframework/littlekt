@@ -1,4 +1,4 @@
-package com.lehaine.littlekt.graphics.shader.builder.type
+package com.lehaine.littlekt.graphics.shader.generator.type
 
 /**
  * @author Colton Daily

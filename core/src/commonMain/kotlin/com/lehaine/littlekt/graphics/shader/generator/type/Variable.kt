@@ -1,13 +1,13 @@
-package com.lehaine.littlekt.graphics.shader.builder.type
+package com.lehaine.littlekt.graphics.shader.generator.type
 
-import com.lehaine.littlekt.graphics.shader.builder.ShaderBuilder
+import com.lehaine.littlekt.graphics.shader.generator.GlslGenerator
 
 /**
  * @author Colton Daily
  * @date 11/25/2021
  */
 interface Variable {
-    val builder: ShaderBuilder
+    val builder: GlslGenerator
     val typeName: String
     var value: String?
 }

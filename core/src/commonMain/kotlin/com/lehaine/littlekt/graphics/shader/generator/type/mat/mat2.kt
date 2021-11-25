@@ -1,16 +1,16 @@
-package com.lehaine.littlekt.graphics.shader.builder.type.mat
+package com.lehaine.littlekt.graphics.shader.generator.type.mat
 
-import com.lehaine.littlekt.graphics.shader.builder.ShaderBuilder
-import com.lehaine.littlekt.graphics.shader.builder.str
-import com.lehaine.littlekt.graphics.shader.builder.type.Matrix
-import com.lehaine.littlekt.graphics.shader.builder.type.vec.Vec2
+import com.lehaine.littlekt.graphics.shader.generator.GlslGenerator
+import com.lehaine.littlekt.graphics.shader.generator.str
+import com.lehaine.littlekt.graphics.shader.generator.type.Matrix
+import com.lehaine.littlekt.graphics.shader.generator.type.vec.Vec2
 
 /**
  * @author Colton Daily
  * @date 11/25/2021
  */
 
-class Mat2(override val builder: ShaderBuilder) : Matrix {
+class Mat2(override val builder: GlslGenerator) : Matrix {
 
     override val typeName: String = "mat2"
     override var value: String? = null
@@ -18,7 +18,7 @@ class Mat2(override val builder: ShaderBuilder) : Matrix {
     private var column1 by MatrixColumnDelegate(0, ::Vec2)
     private var column2 by MatrixColumnDelegate(1, ::Vec2)
 
-    constructor(builder: ShaderBuilder, value: String) : this(builder) {
+    constructor(builder: GlslGenerator, value: String) : this(builder) {
         this.value = value
     }
 

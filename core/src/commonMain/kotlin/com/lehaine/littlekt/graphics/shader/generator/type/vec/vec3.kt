@@ -1,17 +1,17 @@
-package com.lehaine.littlekt.graphics.shader.builder.type.vec
+package com.lehaine.littlekt.graphics.shader.generator.type.vec
 
-import com.lehaine.littlekt.graphics.shader.builder.ShaderBuilder
-import com.lehaine.littlekt.graphics.shader.builder.delegate.ComponentDelegate
-import com.lehaine.littlekt.graphics.shader.builder.str
-import com.lehaine.littlekt.graphics.shader.builder.type.Vector
-import com.lehaine.littlekt.graphics.shader.builder.type.scalar.GLFloat
-import com.lehaine.littlekt.graphics.shader.builder.type.scalar.floatComponent
+import com.lehaine.littlekt.graphics.shader.generator.GlslGenerator
+import com.lehaine.littlekt.graphics.shader.generator.delegate.ComponentDelegate
+import com.lehaine.littlekt.graphics.shader.generator.str
+import com.lehaine.littlekt.graphics.shader.generator.type.Vector
+import com.lehaine.littlekt.graphics.shader.generator.type.scalar.GLFloat
+import com.lehaine.littlekt.graphics.shader.generator.type.scalar.floatComponent
 
 /**
  * @author Colton Daily
  * @date 11/25/2021
  */
-class Vec3(override val builder: ShaderBuilder) : Vector {
+class Vec3(override val builder: GlslGenerator) : Vector {
 
     override val typeName: String = "vec3"
     override var value: String? = null
@@ -30,7 +30,7 @@ class Vec3(override val builder: ShaderBuilder) : Vector {
     var zy by vec2Component()
     var zz by vec2Component()
 
-    constructor(builder: ShaderBuilder, value: String) : this(builder) {
+    constructor(builder: GlslGenerator, value: String) : this(builder) {
         this.value = value
     }
 

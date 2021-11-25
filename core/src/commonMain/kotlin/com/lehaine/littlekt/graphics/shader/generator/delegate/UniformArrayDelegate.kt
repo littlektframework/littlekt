@@ -1,7 +1,7 @@
-package com.lehaine.littlekt.graphics.shader.builder.delegate
+package com.lehaine.littlekt.graphics.shader.generator.delegate
 
-import com.lehaine.littlekt.graphics.shader.builder.ShaderBuilder
-import com.lehaine.littlekt.graphics.shader.builder.type.Variable
+import com.lehaine.littlekt.graphics.shader.generator.GlslGenerator
+import com.lehaine.littlekt.graphics.shader.generator.type.Variable
 import kotlin.reflect.KProperty
 
 /**
@@ -10,12 +10,12 @@ import kotlin.reflect.KProperty
  */
 class UniformArrayDelegate<T : Variable>(
     val size: Int,
-    private val factory: (builder: ShaderBuilder) -> T
+    private val factory: (builder: GlslGenerator) -> T
 ) {
     private lateinit var v: T
 
     operator fun provideDelegate(
-        thisRef: ShaderBuilder,
+        thisRef: GlslGenerator,
         property: KProperty<*>
     ): UniformArrayDelegate<T> {
         v = factory(thisRef)
@@ -23,7 +23,7 @@ class UniformArrayDelegate<T : Variable>(
         return this
     }
 
-    operator fun getValue(thisRef: ShaderBuilder, property: KProperty<*>): T {
+    operator fun getValue(thisRef: GlslGenerator, property: KProperty<*>): T {
         thisRef.uniforms.add("${v.typeName} ${property.name}[$size]")
         return v
     }
