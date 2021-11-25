@@ -7,7 +7,6 @@ import com.lehaine.littlekt.input.Input
 import com.lehaine.littlekt.input.LwjglInput
 import com.lehaine.littlekt.io.FileHandler
 import com.lehaine.littlekt.io.JvmFileHandler
-import com.lehaine.littlekt.log.JvmLogger
 import com.lehaine.littlekt.log.Logger
 import org.lwjgl.glfw.Callbacks
 import org.lwjgl.glfw.GLFW
@@ -34,7 +33,7 @@ actual class PlatformContext actual constructor(actual override val configuratio
 
     actual override val engineStats: EngineStats = EngineStats()
     actual override val graphics: Graphics = LwjglGraphics(engineStats)
-    actual override val logger: Logger = JvmLogger(configuration.title)
+    actual override val logger: Logger = Logger(configuration.title)
     actual override val input: Input = LwjglInput(logger, this)
     actual override val fileHandler: FileHandler = JvmFileHandler(this, logger, ".")
     actual override val platform: Platform = Platform.DESKTOP

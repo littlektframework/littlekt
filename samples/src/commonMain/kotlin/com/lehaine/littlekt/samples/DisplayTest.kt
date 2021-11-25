@@ -9,6 +9,7 @@ import com.lehaine.littlekt.graphics.shader.vertex.SimpleColorVertexShader
 import com.lehaine.littlekt.input.InputProcessor
 import com.lehaine.littlekt.input.Key
 import com.lehaine.littlekt.input.Pointer
+import com.lehaine.littlekt.log.Logger
 import com.lehaine.littlekt.math.Mat4
 
 /**
@@ -69,6 +70,7 @@ class DisplayTest(application: Application) : LittleKt(application), InputProces
     private var yVel = 0f
 
     init {
+        logger.level = Logger.Level.DEBUG
         fileHandler.launch {
             texture = loadTexture("person.png")
             loading = false
@@ -125,7 +127,7 @@ class DisplayTest(application: Application) : LittleKt(application), InputProces
     }
 
     override fun keyDown(key: Key): Boolean {
-        println("Key down: $key")
+        logger.debug { "Key down: $key" }
         if (key == Key.ESCAPE) {
             application.close()
         }

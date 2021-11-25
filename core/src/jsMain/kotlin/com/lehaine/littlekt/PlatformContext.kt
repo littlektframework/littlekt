@@ -5,7 +5,6 @@ import com.lehaine.littlekt.input.Input
 import com.lehaine.littlekt.input.JsInput
 import com.lehaine.littlekt.io.FileHandler
 import com.lehaine.littlekt.io.WebFileHandler
-import com.lehaine.littlekt.log.JsLogger
 import com.lehaine.littlekt.log.Logger
 import kotlinx.browser.document
 import kotlinx.browser.window
@@ -23,7 +22,7 @@ actual class PlatformContext actual constructor(actual override val configuratio
     actual override val engineStats: EngineStats = EngineStats()
     actual override val graphics: Graphics = WebGLGraphics(canvas, engineStats)
     actual override val input: Input = JsInput(canvas)
-    actual override val logger: Logger = JsLogger(configuration.title)
+    actual override val logger: Logger = Logger(configuration.title)
     actual override val fileHandler: FileHandler =
         WebFileHandler(this, logger, configuration.rootPath)
     actual override val platform: Platform = Platform.JS
