@@ -1,6 +1,5 @@
 package com.lehaine.littlekt.math
 
-import com.lehaine.littlekt.graphics.Mesh
 import kotlin.math.sqrt
 
 /**

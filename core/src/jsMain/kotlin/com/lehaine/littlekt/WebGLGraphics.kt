@@ -2,7 +2,6 @@ package com.lehaine.littlekt
 
 import com.lehaine.littlekt.graphics.GL
 import com.lehaine.littlekt.graphics.GLVersion
-import com.lehaine.littlekt.util.TimeSpan
 import org.khronos.webgl.ArrayBufferView
 import org.khronos.webgl.Float32Array
 import org.khronos.webgl.WebGLRenderingContext

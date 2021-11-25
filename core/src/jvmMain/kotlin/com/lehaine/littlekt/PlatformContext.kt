@@ -18,7 +18,6 @@ import org.lwjgl.opengl.GL11.glClear
 import org.lwjgl.opengl.GL30
 import org.lwjgl.opengl.GL30C
 import org.lwjgl.opengl.GLCapabilities
-import org.lwjgl.opengl.GLUtil
 import org.lwjgl.system.MemoryStack
 import org.lwjgl.system.MemoryUtil
 import java.util.concurrent.CompletableFuture
