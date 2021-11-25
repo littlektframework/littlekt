@@ -1,12 +1,8 @@
 package com.lehaine.littlekt.io
 
 /**
- * Super class for platform-dependent buffers. In the JVM these buffers directly map to the corresponding NIO buffers.
- * However, not all operations of NIO buffers are supported.
- *
- * Notice that Buffer is not generic, so that concrete types remain primitive.
- *
- * @author fabmax
+ * Super class for platform-dependent buffers.
+ * On the JVM these buffers directly map to the corresponding NIO buffers.
  */
 interface Buffer {
     var limit: Int
@@ -28,9 +24,7 @@ interface Buffer {
 }
 
 /**
- * Represents a buffer for bytes.
- *
- * @author fabmax
+ * A [Byte] buffer.
  */
 interface Uint8Buffer : Buffer {
     operator fun get(i: Int): Byte
@@ -61,9 +55,7 @@ interface Uint8Buffer : Buffer {
 }
 
 /**
- * Represents a buffer for shorts.
- *
- * @author fabmax
+ * A [Short] buffer
  */
 interface Uint16Buffer : Buffer {
     operator fun get(i: Int): Short
@@ -94,9 +86,7 @@ interface Uint16Buffer : Buffer {
 }
 
 /**
- * Represents a buffer for ints.
- *
- * @author fabmax
+ * An [Int] buffer.
  */
 interface Uint32Buffer : Buffer {
     operator fun get(i: Int): Int
@@ -127,9 +117,7 @@ interface Uint32Buffer : Buffer {
 }
 
 /**
- * Represents a buffer for floats.
- *
- * @author fabmax
+ * A [Float] buffer.
  */
 interface Float32Buffer : Buffer {
     operator fun get(i: Int): Float
@@ -160,9 +148,7 @@ interface Float32Buffer : Buffer {
 }
 
 /**
- * Represents a buffer containing mixed type data. All buffer positions are in bytes.
- *
- * @author fabmax
+ * A [Byte] buffer for mixed types. All buffer positions are in bytes.
  */
 interface MixedBuffer : Buffer {
     fun putInt8(value: Byte) = putUint8(value)
