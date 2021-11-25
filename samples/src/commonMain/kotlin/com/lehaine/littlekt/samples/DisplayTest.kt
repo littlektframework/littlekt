@@ -4,6 +4,8 @@ import com.lehaine.littlekt.Application
 import com.lehaine.littlekt.LittleKt
 import com.lehaine.littlekt.createShader
 import com.lehaine.littlekt.graphics.*
+import com.lehaine.littlekt.graphics.shader.fragment.ColorFragmentShader
+import com.lehaine.littlekt.graphics.shader.vertex.ColoredQuadShader
 import com.lehaine.littlekt.input.InputProcessor
 import com.lehaine.littlekt.input.Key
 import com.lehaine.littlekt.input.Pointer
@@ -21,37 +23,37 @@ class DisplayTest(application: Application) : LittleKt(application), InputProces
 
     //   val texture by application.fileHandler.get<Texture>("person.png")
     lateinit var texture: Texture
-    val shader = createShader()
+    val shader = createShader(ColoredQuadShader(), ColorFragmentShader())
+    val colorBits = Color.WHITE.toFloatBits()
     val mesh = colorMesh {
         maxVertices = 4
     }.apply {
         setVertex {
             x = 50f
             y = 50f
-            colorPacked = whiteBits
+            colorPacked = colorBits
         }
 
         setVertex {
             x = 66f
             y = 50f
-            colorPacked = whiteBits
+            colorPacked = colorBits
         }
 
         setVertex {
             x = 66f
             y = 66f
-            colorPacked = whiteBits
+            colorPacked = colorBits
         }
 
         setVertex {
             x = 50f
             y = 66f
-            colorPacked = whiteBits
+            colorPacked = colorBits
         }
 
         setIndicesAsTriangle()
     }
-    val whiteBits = Color.WHITE.toFloatBits()
 
     var projection = Mat4().setOrthographic(
         left = 0f,
@@ -109,7 +111,7 @@ class DisplayTest(application: Application) : LittleKt(application), InputProces
         y += yVel
 
 
-        if(input.isKeyJustPressed(Key.P)) {
+        if (input.isKeyJustPressed(Key.P)) {
             println(engineStats)
         }
 

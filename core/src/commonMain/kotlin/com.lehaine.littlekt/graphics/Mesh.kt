@@ -17,10 +17,23 @@ inline fun mesh(gl: GL, attributes: List<VertexAttribute>, block: MeshProps.() -
     return Mesh(gl, props.isStatic, props.maxVertices, props.maxIndices, props.useBatcher, attributes)
 }
 
+/**
+ * Creates a mesh with [VertexAttribute.POSITION_2D] and [VertexAttribute.COLOR_PACKED] attributes.
+ */
 fun colorMesh(gl: GL, generate: MeshProps.() -> Unit): Mesh {
     return mesh(gl, listOf(VertexAttribute.POSITION_2D, VertexAttribute.COLOR_PACKED), generate)
 }
 
+/**
+ * Creates a mesh with [VertexAttribute.POSITION_2D] and [VertexAttribute.COLOR_UNPACKED] attributes.
+ */
+fun colorMeshUnpacked(gl: GL, generate: MeshProps.() -> Unit): Mesh {
+    return mesh(gl, listOf(VertexAttribute.POSITION_2D, VertexAttribute.COLOR_UNPACKED), generate)
+}
+
+/**
+ * Creates a mesh with [VertexAttribute.POSITION_2D], [VertexAttribute.COLOR_PACKED], and [VertexAttribute.TEX_COORDS] attributes.
+ */
 fun textureMesh(gl: GL, generate: MeshProps.() -> Unit): Mesh {
     return mesh(
         gl,
@@ -33,10 +46,23 @@ fun Application.mesh(attributes: List<VertexAttribute>, block: MeshProps.() -> U
     return mesh(gl, attributes, block)
 }
 
+/**
+ * Creates a mesh with [VertexAttribute.POSITION_2D] and [VertexAttribute.COLOR_UNPACKED] attributes.
+ */
 fun Application.colorMesh(generate: MeshProps.() -> Unit): Mesh {
     return colorMesh(gl, generate)
 }
 
+/**
+ * Creates a mesh with [VertexAttribute.POSITION_2D] and [VertexAttribute.COLOR_UNPACKED] attributes.
+ */
+fun Application.colorMeshUnpacked(generate: MeshProps.() -> Unit): Mesh {
+    return colorMeshUnpacked(gl, generate)
+}
+
+/**
+ * Creates a mesh with [VertexAttribute.POSITION_2D], [VertexAttribute.COLOR_PACKED], and [VertexAttribute.TEX_COORDS] attributes.
+ */
 fun Application.textureMesh(generate: MeshProps.() -> Unit): Mesh {
     return textureMesh(gl, generate)
 }

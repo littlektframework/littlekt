@@ -152,10 +152,17 @@ open class Color(r: Float, g: Float, b: Float, a: Float = 1f) : Vec4f(r, g, b, a
 fun Color.abgr(r: Int, g: Int, b: Int, a: Int) = (a shl 24) or (b shl 16) or (g shl 8) or r
 fun Color.toRgba8888() = Color.toRgba8888(r, g, b, a)
 fun Color.rgba() = toRgba8888()
+
+/**
+ * Packs the color components into a 32-bit integer with the format ABGR and then converts it to a float. Alpha is compressed
+ * from 0-255 to use only even numbers between 0-254 to avoid using float bits in the NaN range.
+ * Converting a color to a float and back can be lossy for alpha.
+ * @return the packed color as a 32-bit float
+ * */
 fun Color.toFloatBits(): Float {
-    val bits =
-        (((255 * a).toInt() shl 24) or ((255 * b).toInt() shl 16) or ((255 * g).toInt() shl 8) or (255 * r).toInt()) and 0xfeffffff.toInt()
-    return Float.fromBits(bits)
+    val abgr =
+        ((255 * a).toInt() shl 24) or ((255 * b).toInt() shl 16) or ((255 * g).toInt() shl 8) or (255 * r).toInt()
+    return Float.fromBits(abgr and 0xfeffffff.toInt())
 }
 
 
