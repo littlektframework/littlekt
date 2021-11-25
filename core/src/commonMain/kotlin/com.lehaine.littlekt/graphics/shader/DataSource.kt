@@ -1,19 +1,15 @@
 package com.lehaine.littlekt.graphics.shader
 
-import com.lehaine.littlekt.io.Float32Buffer
-import com.lehaine.littlekt.io.Uint16Buffer
+import com.lehaine.littlekt.io.*
 
 /**
  * @author Colton Daily
  * @date 9/28/2021
  */
-sealed class DataSource {
+sealed class DataSource(val buffer: Buffer) {
 
-    class FloatDataSource(val floats: FloatArray) : DataSource()
-    class IntDataSource(val ints: IntArray) : DataSource()
-    class ShortDataSource(val shorts: ShortArray) : DataSource()
-    class UIntDataSource(val ints: IntArray) : DataSource()
-    class DoubleDataSource(val double: DoubleArray) : DataSource()
-    class Float32BufferDataSource(val buffer: Float32Buffer) : DataSource()
-    class Uint16BufferDataSource(val buffer: Uint16Buffer) : DataSource()
+    class Float32BufferDataSource(buffer: Float32Buffer) : DataSource(buffer)
+    class Uint8BufferDataSource(buffer: Uint8Buffer) : DataSource(buffer)
+    class Uint16BufferDataSource(buffer: Uint16Buffer) : DataSource(buffer)
+    class Uint32BufferDataSource(buffer: Uint32Buffer) : DataSource(buffer)
 }

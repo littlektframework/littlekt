@@ -15,6 +15,7 @@ expect class PlatformContext(configuration: ApplicationConfiguration) : Applicat
     override val input: Input
     override val logger: Logger
     override val fileHandler: FileHandler
+    override val engineStats: EngineStats
     override fun start(gameBuilder: (app: Application) -> LittleKt)
     override fun close()
     override fun destroy()

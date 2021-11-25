@@ -107,6 +107,12 @@ class DisplayTest(application: Application) : LittleKt(application), InputProces
 
         x += xVel
         y += yVel
+
+
+        if(input.isKeyJustPressed(Key.P)) {
+            println(engineStats)
+        }
+
     }
 
     override fun resize(width: Int, height: Int) {

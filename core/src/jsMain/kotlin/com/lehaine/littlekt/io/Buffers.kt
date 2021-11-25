@@ -2,7 +2,7 @@ package com.lehaine.littlekt.io
 
 import org.khronos.webgl.*
 
-internal abstract class GenericBuffer<out B : ArrayBufferView>(override val capacity: Int, create: () -> B) : Buffer {
+internal abstract class GenericBuffer<out B : ArrayBufferView>(final override val capacity: Int, create: () -> B) : Buffer {
     val buffer = create()
 
     override var limit = capacity

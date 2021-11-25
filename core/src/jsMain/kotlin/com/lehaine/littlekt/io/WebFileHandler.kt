@@ -28,9 +28,9 @@ class WebFileHandler(
     assetsBaseDir: String
 ) : FileHandler(application, logger, assetsBaseDir) {
 
-    override suspend fun loadRaw(rawRef: RawAssetRef) = LoadedRawAsset(rawRef, loadRaw(rawRef.url))
+    override suspend fun loadRawAsset(rawRef: RawAssetRef) = LoadedRawAsset(rawRef, loadRaw(rawRef.url))
 
-    override suspend fun loadTexture(textureRef: TextureAssetRef) =
+    override suspend fun loadTextureAsset(textureRef: TextureAssetRef) =
         LoadedTextureAsset(textureRef, loadImage(textureRef))
 
     private suspend fun loadRaw(url: String): Uint8Buffer? {

@@ -20,7 +20,8 @@ actual class PlatformContext actual constructor(actual override val configuratio
 
     val canvas = document.getElementById(configuration.canvasId) as HTMLCanvasElement
 
-    actual override val graphics: Graphics = WebGLGraphics(canvas)
+    actual override val engineStats: EngineStats = EngineStats()
+    actual override val graphics: Graphics = WebGLGraphics(canvas, engineStats)
     actual override val input: Input = JsInput(canvas)
     actual override val logger: Logger = JsLogger(configuration.title)
     actual override val fileHandler: FileHandler =
@@ -54,6 +55,7 @@ actual class PlatformContext actual constructor(actual override val configuratio
             canvas.height = canvas.clientHeight
             game.resize(graphics.width, graphics.height)
         }
+        engineStats.resetPerFrameCounts()
         input as JsInput
         val dt = (now - lastFrame) / 1000.0
         lastFrame = now

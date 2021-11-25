@@ -73,15 +73,15 @@ abstract class FileHandler(
 
     private suspend fun loadAsset(ref: AssetRef): LoadedAsset {
         return when (ref) {
-            is RawAssetRef -> loadRaw(ref)
-            is TextureAssetRef -> loadTexture(ref)
+            is RawAssetRef -> loadRawAsset(ref)
+            is TextureAssetRef -> loadTextureAsset(ref)
         }
     }
 
 
-    protected abstract suspend fun loadRaw(rawRef: RawAssetRef): LoadedRawAsset
+    protected abstract suspend fun loadRawAsset(rawRef: RawAssetRef): LoadedRawAsset
 
-    protected abstract suspend fun loadTexture(textureRef: TextureAssetRef): LoadedTextureAsset
+    protected abstract suspend fun loadTextureAsset(textureRef: TextureAssetRef): LoadedTextureAsset
 
     abstract suspend fun loadAudioClip(assetPath: String): AudioClip
 

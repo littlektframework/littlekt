@@ -24,6 +24,8 @@ interface Application {
 
     val platform: Platform
 
+    val engineStats: EngineStats
+
     fun start(gameBuilder: (app: Application) -> LittleKt)
 
     fun close()

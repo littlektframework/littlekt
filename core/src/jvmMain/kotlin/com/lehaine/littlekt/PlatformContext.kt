@@ -33,7 +33,8 @@ import org.lwjgl.opengl.GL as LWJGL
 actual class PlatformContext actual constructor(actual override val configuration: ApplicationConfiguration) :
     Application {
 
-    actual override val graphics: Graphics = LwjglGraphics()
+    actual override val engineStats: EngineStats = EngineStats()
+    actual override val graphics: Graphics = LwjglGraphics(engineStats)
     actual override val logger: Logger = JvmLogger(configuration.title)
     actual override val input: Input = LwjglInput(logger, this)
     actual override val fileHandler: FileHandler = JvmFileHandler(this, logger, ".")
@@ -139,11 +140,9 @@ actual class PlatformContext actual constructor(actual override val configuratio
         input.attachToWindow(windowHandle)
 
         LWJGL.createCapabilities()
-        GLUtil.setupDebugMessageCallback()
+        // GLUtil.setupDebugMessageCallback()
 
         GL30C.glClearColor(0f, 0f, 0f, 0f)
-        //     glEnable(GL_DEPTH_TEST)
-        //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
 
         val game = gameBuilder(this)
         GLFW.glfwSetFramebufferSizeCallback(windowHandle) { _, width, height ->
@@ -166,7 +165,7 @@ actual class PlatformContext actual constructor(actual override val configuratio
                     mainThreadRunnables.clear()
                 }
             }
-
+            engineStats.resetPerFrameCounts()
             glClear(GL.COLOR_BUFFER_BIT or GL.DEPTH_BUFFER_BIT)
             val delta = getDelta()
             input.update()

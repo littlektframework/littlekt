@@ -27,7 +27,7 @@ class JvmFileHandler(application: Application, logger: Logger, assetsBaseDir: St
 
     private val imageIoLock = Any()
 
-    override suspend fun loadRaw(rawRef: RawAssetRef): LoadedRawAsset {
+    override suspend fun loadRawAsset(rawRef: RawAssetRef): LoadedRawAsset {
         return if (rawRef.isLocal) {
             loadLocalRaw(rawRef)
         } else {
@@ -57,7 +57,9 @@ class JvmFileHandler(application: Application, logger: Logger, assetsBaseDir: St
                 try {
                     val f = HttpCache.loadHttpResource(httpRawRef.url)
                         ?: throw IOException("Failed downloading ${httpRawRef.url}")
-                    FileInputStream(f).use { data = Uint8BufferImpl(it.readBytes()) }
+                    runCatching {
+                        FileInputStream(f).use { data = Uint8BufferImpl(it.readBytes()) }
+                    }
                 } catch (e: Exception) {
                     logger.error { "Failed loading asset ${httpRawRef.url}: $e" }
                 }
@@ -89,12 +91,11 @@ class JvmFileHandler(application: Application, logger: Logger, assetsBaseDir: St
                 it.prepare(application)
                 deferred.complete(it)
             }
-
         }
         return deferred.await()
     }
 
-    override suspend fun loadTexture(textureRef: TextureAssetRef): LoadedTextureAsset {
+    override suspend fun loadTextureAsset(textureRef: TextureAssetRef): LoadedTextureAsset {
         var data: TextureData? = null
         withContext(Dispatchers.IO) {
             try {
