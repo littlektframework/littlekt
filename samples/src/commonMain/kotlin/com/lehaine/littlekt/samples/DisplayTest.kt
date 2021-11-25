@@ -4,8 +4,8 @@ import com.lehaine.littlekt.Application
 import com.lehaine.littlekt.LittleKt
 import com.lehaine.littlekt.createShader
 import com.lehaine.littlekt.graphics.*
-import com.lehaine.littlekt.graphics.shader.fragment.ColorFragmentShader
-import com.lehaine.littlekt.graphics.shader.vertex.ColoredQuadShader
+import com.lehaine.littlekt.graphics.shader.fragment.SimpleColorFragmentShader
+import com.lehaine.littlekt.graphics.shader.vertex.SimpleColorVertexShader
 import com.lehaine.littlekt.input.InputProcessor
 import com.lehaine.littlekt.input.Key
 import com.lehaine.littlekt.input.Pointer
@@ -22,7 +22,7 @@ class DisplayTest(application: Application) : LittleKt(application), InputProces
     var loading = true
 
     lateinit var texture: Texture
-    val shader = createShader(ColoredQuadShader(), ColorFragmentShader())
+    val shader = createShader(SimpleColorVertexShader(), SimpleColorFragmentShader())
     val colorBits = Color.WHITE.toFloatBits()
     val mesh = colorMesh {
         maxVertices = 4
@@ -100,14 +100,14 @@ class DisplayTest(application: Application) : LittleKt(application), InputProces
         batch.use {
             it.draw(texture, x, y, scaleX = 10f, scaleY = 10f)
             it.draw(texture, 50f, 50f, scaleX = 5f, scaleY = 5f)
-            it.draw(texture, 750f,  175f, scaleX = 2f, scaleY = 2f)
+            it.draw(texture, 750f, 175f, scaleX = 2f, scaleY = 2f)
             it.draw(texture, 375f, 400f, scaleX = 3f, scaleY = 7f)
             it.draw(texture, 525f, 100f, scaleX = 7f, scaleY = 3f)
             it.draw(Texture.DEFAULT, 100f, 100f, scaleX = 5f, scaleY = 5f)
         }
 
         shader.bind()
-        shader.vertexShader.uProjTrans.apply(shader, projection)
+        shader.uProjTrans?.apply(shader, projection)
         mesh.render(shader)
 
         x += xVel

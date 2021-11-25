@@ -6,8 +6,8 @@ import com.lehaine.littlekt.graphics.gl.BlendFactor
 import com.lehaine.littlekt.graphics.gl.DrawMode
 import com.lehaine.littlekt.graphics.gl.State
 import com.lehaine.littlekt.graphics.shader.ShaderProgram
-import com.lehaine.littlekt.graphics.shader.fragment.TexturedFragmentShader
-import com.lehaine.littlekt.graphics.shader.vertex.TexturedQuadShader
+import com.lehaine.littlekt.graphics.shader.fragment.DefaultFragmentShader
+import com.lehaine.littlekt.graphics.shader.vertex.DefaultVertexShader
 import com.lehaine.littlekt.math.Mat4
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
@@ -22,7 +22,7 @@ import kotlin.math.sin
 class SpriteBatch(
     val application: Application,
     val size: Int = 1000,
-    val shader: ShaderProgram = ShaderProgram(application.graphics.gl, TexturedQuadShader(), TexturedFragmentShader())
+    val shader: ShaderProgram = ShaderProgram(application.graphics.gl, DefaultVertexShader(), DefaultFragmentShader())
 ) : Disposable {
     companion object {
         private const val VERTEX_SIZE = 2 + 1 + 2
@@ -279,8 +279,8 @@ class SpriteBatch(
 
     private fun setupMatrices() {
         combinedMatrix.set(projectionMatrix).mul(transformMatrix)
-        shader.vertexShader.uProjTrans.apply(shader, combinedMatrix)
-        shader.fragmentShader.uTexture.apply(shader)
+        shader.uProjTrans?.apply(shader, combinedMatrix)
+        shader.uTexture?.apply(shader)
     }
 
     override fun dispose() {

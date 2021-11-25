@@ -67,7 +67,7 @@ abstract class GlslGenerator : GlslProvider, Shader {
             sb.appendLine("attribute $it;")
         }
         varyings.forEach {
-            sb.appendLine("\nvarying $it;")
+            sb.appendLine("varying $it;")
         }
 
         sb.appendLine("void main(void) {")

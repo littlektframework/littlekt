@@ -3,14 +3,12 @@ package com.lehaine.littlekt.graphics.shader
 import com.lehaine.littlekt.Disposable
 import com.lehaine.littlekt.graphics.GL
 import com.lehaine.littlekt.graphics.gl.*
-import com.lehaine.littlekt.graphics.shader.fragment.FragmentShader
-import com.lehaine.littlekt.graphics.shader.vertex.VertexShader
 import kotlin.math.min
 
 class ShaderProgram(
     val gl: GL,
-    val vertexShader: Shader,
-    val fragmentShader: Shader,
+    vertexShader: VertexShader,
+    fragmentShader: FragmentShader,
 ) : Disposable {
     companion object {
         /** default name for position attributes  */
@@ -24,6 +22,9 @@ class ShaderProgram(
 
         /** default name for texcoords attributes, append texture unit number  */
         const val TEXCOORD_ATTRIBUTE = "a_texCoord"
+
+        const val U_PROJ_TRANS_UNIFORM = "u_projTrans"
+        const val U_TEXTURE = "u_texture"
     }
 
     private val vertexShaderReference: GlShader
@@ -33,9 +34,13 @@ class ShaderProgram(
     private val attributes = mutableMapOf<String, Int>()
     private val uniforms = mutableMapOf<String, UniformLocation>()
 
+    var uProjTrans: ShaderParameter.UniformMat4? = null
+        private set
+    var uTexture: ShaderParameter.UniformSample2D? = null
+
     init {
-        vertexShaderReference = compileShader(ShaderType.VERTEX_SHADER, vertexShader.toString())
-        fragmentShaderReference = compileShader(ShaderType.FRAGMENT_SHADER, fragmentShader.toString())
+        vertexShaderReference = compileShader(ShaderType.VERTEX_SHADER, vertexShader.source)
+        fragmentShaderReference = compileShader(ShaderType.FRAGMENT_SHADER, fragmentShader.source)
 
         programGl = gl.createProgram()
         gl.attachShader(programGl, vertexShaderReference)
@@ -48,10 +53,16 @@ class ShaderProgram(
         }
 
         vertexShader.parameters.forEach {
+            if (it.name == U_PROJ_TRANS_UNIFORM) {
+                uProjTrans = it as ShaderParameter.UniformMat4
+            }
             it.create(this)
         }
 
         fragmentShader.parameters.forEach {
+            if (it.name == U_TEXTURE) {
+                uTexture = it as ShaderParameter.UniformSample2D
+            }
             it.create(this)
         }
     }

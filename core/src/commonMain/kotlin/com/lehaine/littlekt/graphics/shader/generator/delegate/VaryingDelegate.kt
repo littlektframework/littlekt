@@ -1,7 +1,7 @@
 package com.lehaine.littlekt.graphics.shader.generator.delegate
 
-import com.lehaine.littlekt.graphics.shader.generator.Instruction
 import com.lehaine.littlekt.graphics.shader.generator.GlslGenerator
+import com.lehaine.littlekt.graphics.shader.generator.Instruction
 import com.lehaine.littlekt.graphics.shader.generator.type.Variable
 import kotlin.reflect.KProperty
 

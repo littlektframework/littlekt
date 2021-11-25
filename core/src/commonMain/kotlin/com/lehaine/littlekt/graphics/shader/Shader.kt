@@ -8,3 +8,6 @@ interface Shader {
     var source: String
     val parameters: List<ShaderParameter>
 }
+
+interface FragmentShader : Shader
+interface VertexShader : Shader
