@@ -5,7 +5,7 @@ import com.lehaine.littlekt.graphics.gl.BufferTarget
 import com.lehaine.littlekt.graphics.gl.GlBuffer
 import com.lehaine.littlekt.graphics.gl.GlVertexArray
 import com.lehaine.littlekt.graphics.gl.Usage
-import com.lehaine.littlekt.graphics.shader.DataSource
+import com.lehaine.littlekt.io.DataSource
 import com.lehaine.littlekt.graphics.shader.ShaderProgram
 import com.lehaine.littlekt.io.Float32Buffer
 import com.lehaine.littlekt.io.createFloat32Buffer

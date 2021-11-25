@@ -1,6 +1,4 @@
-package com.lehaine.littlekt.graphics.shader
-
-import com.lehaine.littlekt.io.*
+package com.lehaine.littlekt.io
 
 /**
  * @author Colton Daily
