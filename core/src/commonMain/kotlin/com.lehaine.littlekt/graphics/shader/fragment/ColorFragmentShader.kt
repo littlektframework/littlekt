@@ -1,5 +1,7 @@
 package com.lehaine.littlekt.graphics.shader.fragment
 
+import com.lehaine.littlekt.graphics.shader.ShaderParameter
+
 /**
  * @author Colton Daily
  * @date 9/28/2021
@@ -22,4 +24,6 @@ private val simpleFragmentShader =
         }
     """.trimIndent()
 
-class ColorFragmentShader : FragmentShader(simpleFragmentShader)
+class ColorFragmentShader : FragmentShader(simpleFragmentShader) {
+    override val parameters: List<ShaderParameter> = emptyList()
+}

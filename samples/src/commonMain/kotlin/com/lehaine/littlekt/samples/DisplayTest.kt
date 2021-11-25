@@ -21,7 +21,6 @@ class DisplayTest(application: Application) : LittleKt(application), InputProces
 
     var loading = true
 
-    //   val texture by application.fileHandler.get<Texture>("person.png")
     lateinit var texture: Texture
     val shader = createShader(ColoredQuadShader(), ColorFragmentShader())
     val colorBits = Color.WHITE.toFloatBits()
@@ -100,6 +99,10 @@ class DisplayTest(application: Application) : LittleKt(application), InputProces
         gl.clearColor(Color.CLEAR)
         batch.use {
             it.draw(texture, x, y, scaleX = 10f, scaleY = 10f)
+            it.draw(texture, 50f, 50f, scaleX = 5f, scaleY = 5f)
+            it.draw(texture, 750f,  175f, scaleX = 2f, scaleY = 2f)
+            it.draw(texture, 375f, 400f, scaleX = 3f, scaleY = 7f)
+            it.draw(texture, 525f, 100f, scaleX = 7f, scaleY = 3f)
             it.draw(Texture.DEFAULT, 100f, 100f, scaleX = 5f, scaleY = 5f)
         }
 

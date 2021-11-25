@@ -23,4 +23,6 @@ private val simpleFragmentShader =
         }
     """.trimIndent()
 
-class TexturedFragmentShader : FragmentShader(simpleFragmentShader)
+class TexturedFragmentShader : FragmentShader(simpleFragmentShader) {
+
+}
