@@ -111,7 +111,9 @@ class SpriteBatch(
         height: Float = texture.height.toFloat(),
         scaleX: Float = 1f,
         scaleY: Float = 1f,
-        rotation: Float = 0f
+        rotation: Float = 0f,
+        flipX:Boolean = false,
+        flipY:Boolean = false,
     ) {
         if (!drawing) {
             throw IllegalStateException("SpriteBatch.begin must be called before draw.")
@@ -192,10 +194,12 @@ class SpriteBatch(
         x4 += worldOriginX
         y4 += worldOriginY
 
-        val u = 0f
-        val v = 1f
-        val u2 = 1f
-        val v2 = 0f
+        val u = if(flipX) 1f else 0f
+        val v = if(flipY) 0f else 1f
+        val u2 = if(flipX) 0f else 1f
+        val v2 = if(flipY) 1f else 0f
+
+
 
         mesh.run {
             setVertex {

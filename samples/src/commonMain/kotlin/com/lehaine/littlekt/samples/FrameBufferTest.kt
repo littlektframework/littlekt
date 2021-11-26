@@ -1,0 +1,106 @@
+package com.lehaine.littlekt.samples
+
+import com.lehaine.littlekt.Application
+import com.lehaine.littlekt.LittleKt
+import com.lehaine.littlekt.graphics.*
+import com.lehaine.littlekt.graphics.gl.ClearBufferMask
+import com.lehaine.littlekt.input.Key
+import com.lehaine.littlekt.log.Logger
+import com.lehaine.littlekt.math.Mat4
+
+/**
+ * @author Colton Daily
+ * @date 11/6/2021
+ */
+class FrameBufferTest(application: Application) : LittleKt(application) {
+
+    val batch = SpriteBatch(application)
+    val fbo = FrameBuffer(960, 540).also { it.prepare(application) }
+    var loading = true
+
+    lateinit var texture: Texture
+
+    var projection = Mat4().setOrthographic(
+        left = 0f,
+        right = graphics.width.toFloat(),
+        bottom = 0f,
+        top = graphics.height.toFloat(),
+        near = -1f,
+        far = 1f
+    )
+    private var x = 0f
+    private var y = 0f
+
+    private var xVel = 0f
+    private var yVel = 0f
+
+    init {
+        logger.level = Logger.Level.DEBUG
+        fileHandler.launch {
+            texture = loadTexture("person.png")
+            loading = false
+        }
+    }
+
+    override fun render(dt: Float) {
+        if (loading) {
+            return
+        }
+        xVel = 0f
+        yVel = 0f
+
+        if (input.isKeyPressed(Key.W)) {
+            yVel += 10f
+        }
+        if (input.isKeyPressed(Key.S)) {
+            yVel -= 10f
+        }
+        if (input.isKeyPressed(Key.A)) {
+            xVel -= 10f
+        }
+        if (input.isKeyPressed(Key.D)) {
+            xVel += 10f
+        }
+
+        fbo.begin()
+        projection.setOrthographic(
+            left = 0f,
+            right = fbo.width.toFloat(),
+            bottom = 0f,
+            top = fbo.height.toFloat(),
+            near = -1f,
+            far = 1f
+        )
+        gl.clearColor(Color.CLEAR)
+        gl.clear(ClearBufferMask.COLOR_BUFFER_BIT)
+        batch.use(projection) {
+            it.draw(texture, x, y)
+        }
+        fbo.end()
+
+
+
+        batch.use(projection) {
+            batch.draw(fbo.colorBufferTexture, 0f, 0f, flipY = true)
+        }
+        x += xVel
+        y += yVel
+
+        if (input.isKeyJustPressed(Key.P)) {
+            logger.debug { engineStats }
+        }
+
+        if (input.isKeyJustPressed(Key.ESCAPE)) {
+            close()
+        }
+
+    }
+
+    override fun resize(width: Int, height: Int) {
+        logger.debug { "Resize to $width,$height" }
+    }
+
+    override fun dispose() {
+        texture.dispose()
+    }
+}

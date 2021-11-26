@@ -6,6 +6,7 @@ import com.lehaine.littlekt.graphics.gl.*
 import com.lehaine.littlekt.io.*
 import com.lehaine.littlekt.math.Mat4
 import org.lwjgl.opengl.GL30.*
+import java.nio.ByteBuffer
 
 /**
  * @author Colton Daily
@@ -429,22 +430,37 @@ class LwjglGL(private val engineStats: EngineStats) : GL {
         width: Int,
         height: Int,
         type: Int,
-        source: Uint8Buffer
+        source: Uint8Buffer?
     ) {
         engineStats.calls++
-        source as Uint8BufferImpl
-        glTexImage2D(
-            target,
-            level,
-            internalFormat,
-            width,
-            height,
-            0,
-            format,
-            type,
-            source.buffer
-        )
+        if (source != null) {
+            source as Uint8BufferImpl
+            glTexImage2D(
+                target,
+                level,
+                internalFormat,
+                width,
+                height,
+                0,
+                format,
+                type,
+                source.buffer
+            )
+        } else {
+            glTexImage2D(
+                target,
+                level,
+                internalFormat,
+                width,
+                height,
+                0,
+                format,
+                type,
+                null as ByteBuffer?
+            )
+        }
     }
+
 
     override fun activeTexture(texture: Int) {
         engineStats.calls++

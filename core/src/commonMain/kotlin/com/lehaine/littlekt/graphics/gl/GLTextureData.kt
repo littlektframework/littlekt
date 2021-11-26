@@ -3,7 +3,6 @@ package com.lehaine.littlekt.graphics.gl
 import com.lehaine.littlekt.Application
 import com.lehaine.littlekt.graphics.Pixmap
 import com.lehaine.littlekt.graphics.TextureData
-import com.lehaine.littlekt.io.createUint8Buffer
 
 /**
  * @author Colton Daily
@@ -23,7 +22,7 @@ class GLTextureData(
     override val isCustom: Boolean = true
 
     override fun prepare() {
-        if (!isPrepared) {
+        if (isPrepared) {
             throw RuntimeException("Already prepared!")
         }
         isPrepared = true
@@ -35,6 +34,6 @@ class GLTextureData(
 
     override fun consumeCustomData(application: Application, target: TextureTarget) {
         val gl = application.graphics.gl
-        gl.texImage2D(target, mipMapLevel, internalGlFormat, glFormat, width, height, type, createUint8Buffer(0))
+        gl.texImage2D(target, mipMapLevel, internalGlFormat, glFormat, width, height, type, null)
     }
 }

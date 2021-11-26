@@ -171,7 +171,7 @@ interface GL {
         width: Int,
         height: Int,
         type: Int,
-        source: Uint8Buffer
+        source: Uint8Buffer?
     )
 
     fun texImage2D(
@@ -182,7 +182,7 @@ interface GL {
         width: Int,
         height: Int,
         type: DataType,
-        source: Uint8Buffer
+        source: Uint8Buffer?
     ) = texImage2D(target.glFlag, level, internalFormat.glFlag, format.glFlag, width, height, type.glFlag, source)
 
     fun texParameteri(target: Int, pname: Int, param: Int)
