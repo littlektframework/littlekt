@@ -561,3 +561,39 @@ value class PrimitiveMode(val glFlag: Int) {
         val TRIANGLES = PrimitiveMode(GL.TRIANGLES)
     }
 }
+
+@JvmInline
+value class RenderBufferInternalFormat(val glFlag: Int) {
+    companion object {
+        val RGBA4 = RenderBufferInternalFormat(GL.RGBA4)
+        val RGB565 = RenderBufferInternalFormat(GL.RGB565)
+        val RGB5_A1 = RenderBufferInternalFormat(GL.RGB5_A1)
+        val DEPTH_COMPONENT16 = RenderBufferInternalFormat(GL.DEPTH_COMPONENT16)
+        val STENCIL_INDEX8 = RenderBufferInternalFormat(GL.STENCIL_INDEX8)
+        val DEPTH24_STENCIL8 = RenderBufferInternalFormat(GL.DEPTH24_STENCIL8)
+        val DEPTH24_STENCIL8_OES = RenderBufferInternalFormat(GL.DEPTH24_STENCIL8)
+    }
+}
+
+@JvmInline
+value class FrameBufferRenderBufferAttachment(val glFlag: Int) {
+    companion object {
+        fun COLOR_ATTACHMENT(unit: Int = 0) = FrameBufferRenderBufferAttachment(GL.COLOR_ATTACHMENT0 + unit)
+        val DEPTH_ATTACHMENT = FrameBufferRenderBufferAttachment(GL.DEPTH_ATTACHMENT)
+        val STENCIL_ATTACHMENT = FrameBufferRenderBufferAttachment(GL.STENCIL_ATTACHMENT)
+        val DEPTH_STENCIL_ATTACHMENT = FrameBufferRenderBufferAttachment(GL.DEPTH_STENCIL_ATTACHMENT)
+    }
+}
+
+@JvmInline
+value class FrameBufferStatus(val glFlag: Int) {
+    companion object {
+        val FRAMEBUFFER_UNDEFINED = FrameBufferStatus(GL.FRAMEBUFFER_UNDEFINED)
+        val FRAMEBUFFER_UNSUPPORTED = FrameBufferStatus(GL.FRAMEBUFFER_UNSUPPORTED)
+        val FRAMEBUFFER_INCOMPLETE_ATTACHMENT = FrameBufferStatus(GL.FRAMEBUFFER_INCOMPLETE_ATTACHMENT)
+        val FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT = FrameBufferStatus(GL.FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT)
+        val FRAMEBUFFER_INCOMPLETE_MULTISAMPLE = FrameBufferStatus(GL.FRAMEBUFFER_INCOMPLETE_MULTISAMPLE)
+        val FRAMEBUFFER_INCOMPLETE_DIMENSIONS = FrameBufferStatus(GL.FRAMEBUFFER_INCOMPLETE_DIMENSIONS)
+        val FRAMEBUFFER_COMPLETE = FrameBufferStatus(GL.FRAMEBUFFER_COMPLETE)
+    }
+}

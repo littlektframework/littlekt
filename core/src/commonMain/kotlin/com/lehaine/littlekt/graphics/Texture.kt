@@ -12,10 +12,15 @@ import com.lehaine.littlekt.io.createUint8Buffer
 class Texture(
     val textureData: TextureData
 ) : Preparable, Disposable {
+    private var gl: GL? = null
+    private var isPrepared = false
+
     val width: Int get() = textureData.width
     val height: Int get() = textureData.height
     var glTexture: GlTexture? = null
-    private var gl: GL? = null
+
+    override val prepared: Boolean
+        get() = isPrepared
 
     /**
      * Sets the [TexMagFilter] for this texture for magnification. This will bind the texture if the texture has been loaded.
@@ -104,6 +109,7 @@ class Texture(
         textureData.uploadImageData(application, TextureTarget._2D, textureData)
 
         glTexture = texture
+        isPrepared = true
     }
 
     /**
@@ -113,8 +119,8 @@ class Texture(
     fun bind(unit: Int = 0) {
         val gl = gl
         val textureReference = glTexture
-        if (gl == null || textureReference == null) {
-            throw IllegalStateException("Texture has not been loaded yet! Unable to bind!")
+        if (gl == null || textureReference == null || !isPrepared) {
+            throw IllegalStateException("Texture has not been prepared yet! Ensure you called the prepare() method.")
         }
         gl.activeTexture(GL.TEXTURE0 + unit)
         gl.bindTexture(TextureTarget._2D, textureReference)
@@ -122,9 +128,8 @@ class Texture(
     }
 
     override fun dispose() {
-        val gl = gl
-        val glTexture = glTexture
-        if (gl == null || glTexture == null) return
+        val gl = gl ?: return
+        val glTexture = glTexture ?: return
 
         gl.deleteTexture(glTexture)
     }

@@ -185,19 +185,46 @@ class WebGL(val gl: WebGL2RenderingContext, private val engineStats: EngineStats
         gl.bindRenderbuffer(GL.RENDERBUFFER, glRenderBuffer.delegate)
     }
 
-    override fun renderBufferStorage(internalFormat: Int, width: Int, height: Int) {
+    override fun bindDefaultRenderBuffer() {
         engineStats.calls++
-        gl.renderbufferStorage(GL.RENDERBUFFER, internalFormat, width, height)
+        gl.bindRenderbuffer(GL.RENDERBUFFER, null)
     }
 
-    override fun frameBufferRenderBuffer(attachementType: Int, glRenderBuffer: GlRenderBuffer) {
+    override fun renderBufferStorage(internalFormat: RenderBufferInternalFormat, width: Int, height: Int) {
         engineStats.calls++
-        gl.framebufferRenderbuffer(GL.FRAMEBUFFER, attachementType, GL.RENDERBUFFER, glRenderBuffer.delegate)
+        gl.renderbufferStorage(GL.RENDERBUFFER, internalFormat.glFlag, width, height)
     }
 
-    override fun frameBufferTexture2D(attachmentPoint: Int, glTexture: GlTexture, level: Int) {
+    override fun frameBufferRenderBuffer(
+        attachementType: FrameBufferRenderBufferAttachment,
+        glRenderBuffer: GlRenderBuffer
+    ) {
         engineStats.calls++
-        gl.framebufferTexture2D(GL.FRAMEBUFFER, attachmentPoint, GL.TEXTURE_2D, glTexture.delegate, level)
+        gl.framebufferRenderbuffer(GL.FRAMEBUFFER, attachementType.glFlag, GL.RENDERBUFFER, glRenderBuffer.delegate)
+    }
+
+    override fun deleteFrameBuffer(glFrameBuffer: GlFrameBuffer) {
+        engineStats.calls++
+        gl.deleteFramebuffer(glFrameBuffer.delegate)
+    }
+
+    override fun deleteRenderBuffer(glRenderBuffer: GlRenderBuffer) {
+        engineStats.calls++
+        gl.deleteRenderbuffer(glRenderBuffer.delegate)
+    }
+
+    override fun frameBufferTexture2D(
+        attachementType: FrameBufferRenderBufferAttachment,
+        glTexture: GlTexture,
+        level: Int
+    ) {
+        engineStats.calls++
+        gl.framebufferTexture2D(GL.FRAMEBUFFER, attachementType.glFlag, GL.TEXTURE_2D, glTexture.delegate, level)
+    }
+
+    override fun checkFrameBufferStatus(): FrameBufferStatus {
+        engineStats.calls++
+        return FrameBufferStatus(gl.checkFramebufferStatus(GL.FRAMEBUFFER))
     }
 
     override fun bindBuffer(target: Int, glBuffer: GlBuffer) {

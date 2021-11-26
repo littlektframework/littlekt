@@ -171,7 +171,7 @@ class LwjglGL(private val engineStats: EngineStats) : GL {
 
     override fun bindDefaultVertexArray() {
         engineStats.calls++
-        glBindVertexArray(0)
+        glBindVertexArray(GL.NONE)
     }
 
     override fun bindFrameBuffer(glFrameBuffer: GlFrameBuffer) {
@@ -181,7 +181,7 @@ class LwjglGL(private val engineStats: EngineStats) : GL {
 
     override fun bindDefaultFrameBuffer() {
         engineStats.calls++
-        glBindFramebuffer(GL.FRAMEBUFFER, 0)
+        glBindFramebuffer(GL.FRAMEBUFFER, GL.NONE)
     }
 
     override fun createRenderBuffer(): GlRenderBuffer {
@@ -194,26 +194,46 @@ class LwjglGL(private val engineStats: EngineStats) : GL {
         glBindRenderbuffer(GL.RENDERBUFFER, glRenderBuffer.reference)
     }
 
-    override fun renderBufferStorage(internalFormat: Int, width: Int, height: Int) {
+    override fun bindDefaultRenderBuffer() {
         engineStats.calls++
-        glRenderbufferStorage(GL.RENDERBUFFER, internalFormat, width, height)
+        glBindRenderbuffer(GL.RENDERBUFFER, GL.NONE)
+    }
+
+    override fun renderBufferStorage(internalFormat: RenderBufferInternalFormat, width: Int, height: Int) {
+        engineStats.calls++
+        glRenderbufferStorage(GL.RENDERBUFFER, internalFormat.glFlag, width, height)
     }
 
     override fun frameBufferRenderBuffer(
-        attachementType: Int,
+        attachementType: FrameBufferRenderBufferAttachment,
         glRenderBuffer: GlRenderBuffer
     ) {
         engineStats.calls++
-        glFramebufferRenderbuffer(GL.FRAMEBUFFER, attachementType, GL.RENDERBUFFER, glRenderBuffer.reference)
+        glFramebufferRenderbuffer(GL.FRAMEBUFFER, attachementType.glFlag, GL.RENDERBUFFER, glRenderBuffer.reference)
+    }
+
+    override fun deleteFrameBuffer(glFrameBuffer: GlFrameBuffer) {
+        engineStats.calls++
+        glDeleteFramebuffers(glFrameBuffer.reference)
+    }
+
+    override fun deleteRenderBuffer(glRenderBuffer: GlRenderBuffer) {
+        engineStats.calls++
+        glDeleteRenderbuffers(glRenderBuffer.reference)
     }
 
     override fun frameBufferTexture2D(
-        attachmentPoint: Int,
+        attachementType: FrameBufferRenderBufferAttachment,
         glTexture: GlTexture,
         level: Int
     ) {
         engineStats.calls++
-        glFramebufferTexture2D(GL.FRAMEBUFFER, attachmentPoint, GL.TEXTURE_2D, glTexture.reference, level)
+        glFramebufferTexture2D(GL.FRAMEBUFFER, attachementType.glFlag, GL.TEXTURE_2D, glTexture.reference, level)
+    }
+
+    override fun checkFrameBufferStatus(): FrameBufferStatus {
+        engineStats.calls++
+        return FrameBufferStatus(glCheckFramebufferStatus(GL.FRAMEBUFFER))
     }
 
     override fun bindBuffer(target: Int, glBuffer: GlBuffer) {

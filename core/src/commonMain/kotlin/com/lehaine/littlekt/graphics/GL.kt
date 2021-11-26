@@ -93,14 +93,19 @@ interface GL {
 
     fun createRenderBuffer(): GlRenderBuffer
     fun bindRenderBuffer(glRenderBuffer: GlRenderBuffer)
-    fun renderBufferStorage(internalFormat: Int, width: Int, height: Int)
-    fun frameBufferRenderBuffer(attachementType: Int, glRenderBuffer: GlRenderBuffer)
+    fun bindDefaultRenderBuffer()
+    fun renderBufferStorage(internalFormat: RenderBufferInternalFormat, width: Int, height: Int)
+    fun frameBufferRenderBuffer(attachementType: FrameBufferRenderBufferAttachment, glRenderBuffer: GlRenderBuffer)
+    fun deleteFrameBuffer(glFrameBuffer: GlFrameBuffer)
+    fun deleteRenderBuffer(glRenderBuffer: GlRenderBuffer)
 
     fun frameBufferTexture2D(
-        attachmentPoint: Int,
+        attachementType: FrameBufferRenderBufferAttachment,
         glTexture: GlTexture,
         level: Int
     )
+
+    fun checkFrameBufferStatus(): FrameBufferStatus
 
     fun bindBuffer(target: Int, glBuffer: GlBuffer)
     fun bindBuffer(target: BufferTarget, glBuffer: GlBuffer) = bindBuffer(target.glFlag, glBuffer)
