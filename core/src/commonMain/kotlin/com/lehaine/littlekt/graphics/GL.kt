@@ -3,6 +3,7 @@ package com.lehaine.littlekt.graphics
 import com.lehaine.littlekt.graphics.gl.*
 import com.lehaine.littlekt.io.DataSource
 import com.lehaine.littlekt.io.Float32Buffer
+import com.lehaine.littlekt.io.Uint32Buffer
 import com.lehaine.littlekt.io.Uint8Buffer
 import com.lehaine.littlekt.math.Mat4
 
@@ -54,6 +55,9 @@ interface GL {
 
     fun getString(pname: Int): String?
 
+    fun getIntegerv(pname: Int, data: Uint32Buffer)
+    fun getBoundFrameBuffer(data: Uint32Buffer): GlFrameBuffer
+
     fun getProgramParameter(glShaderProgram: GlShaderProgram, pname: Int): Any
     fun getProgramParameterB(glShaderProgram: GlShaderProgram, pname: Int): Boolean =
         getProgramParameter(glShaderProgram, pname) as Boolean
@@ -89,8 +93,8 @@ interface GL {
 
     fun createRenderBuffer(): GlRenderBuffer
     fun bindRenderBuffer(glRenderBuffer: GlRenderBuffer)
-    fun renderBufferStorage(internalformat: Int, width: Int, height: Int)
-    fun framebufferRenderbuffer(attachementType: Int, glRenderBuffer: GlRenderBuffer)
+    fun renderBufferStorage(internalFormat: Int, width: Int, height: Int)
+    fun frameBufferRenderBuffer(attachementType: Int, glRenderBuffer: GlRenderBuffer)
 
     fun frameBufferTexture2D(
         attachmentPoint: Int,

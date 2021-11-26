@@ -3,9 +3,9 @@ package com.lehaine.littlekt
 import com.lehaine.littlekt.graphics.GL
 import com.lehaine.littlekt.graphics.GLVersion
 import com.lehaine.littlekt.graphics.gl.*
-import com.lehaine.littlekt.io.DataSource
 import com.lehaine.littlekt.io.*
 import com.lehaine.littlekt.math.Mat4
+import org.khronos.webgl.WebGLFramebuffer
 
 /**
  * @author Colton Daily
@@ -91,6 +91,18 @@ class WebGL(val gl: WebGL2RenderingContext, private val engineStats: EngineStats
         return gl.getParameter(pname) as? String
     }
 
+    override fun getIntegerv(pname: Int, data: Uint32Buffer) {
+        engineStats.calls++
+        val result = gl.getParameter(pname) as Int
+        data.put(result)
+    }
+
+    override fun getBoundFrameBuffer(data: Uint32Buffer): GlFrameBuffer {
+        engineStats.calls++
+        val result = gl.getParameter(GL.FRAMEBUFFER_BINDING) as WebGLFramebuffer
+        return GlFrameBuffer(result)
+    }
+
     override fun getProgramParameter(glShaderProgram: GlShaderProgram, pname: Int): Any {
         engineStats.calls++
         return gl.getProgramParameter(glShaderProgram.delegate, pname)!!
@@ -173,12 +185,12 @@ class WebGL(val gl: WebGL2RenderingContext, private val engineStats: EngineStats
         gl.bindRenderbuffer(GL.RENDERBUFFER, glRenderBuffer.delegate)
     }
 
-    override fun renderBufferStorage(internalformat: Int, width: Int, height: Int) {
+    override fun renderBufferStorage(internalFormat: Int, width: Int, height: Int) {
         engineStats.calls++
-        gl.renderbufferStorage(GL.RENDERBUFFER, internalformat, width, height)
+        gl.renderbufferStorage(GL.RENDERBUFFER, internalFormat, width, height)
     }
 
-    override fun framebufferRenderbuffer(attachementType: Int, glRenderBuffer: GlRenderBuffer) {
+    override fun frameBufferRenderBuffer(attachementType: Int, glRenderBuffer: GlRenderBuffer) {
         engineStats.calls++
         gl.framebufferRenderbuffer(GL.FRAMEBUFFER, attachementType, GL.RENDERBUFFER, glRenderBuffer.delegate)
     }

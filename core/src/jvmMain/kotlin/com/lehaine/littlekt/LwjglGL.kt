@@ -3,7 +3,6 @@ package com.lehaine.littlekt
 import com.lehaine.littlekt.graphics.GL
 import com.lehaine.littlekt.graphics.GLVersion
 import com.lehaine.littlekt.graphics.gl.*
-import com.lehaine.littlekt.io.DataSource
 import com.lehaine.littlekt.io.*
 import com.lehaine.littlekt.math.Mat4
 import org.lwjgl.opengl.GL30.*
@@ -104,6 +103,17 @@ class LwjglGL(private val engineStats: EngineStats) : GL {
         return glGetString(pname)
     }
 
+    override fun getIntegerv(pname: Int, data: Uint32Buffer) {
+        engineStats.calls++
+        data as Uint32BufferImpl
+        glGetIntegerv(pname, data.buffer)
+    }
+
+    override fun getBoundFrameBuffer(data: Uint32Buffer): GlFrameBuffer {
+        getIntegerv(GL.FRAMEBUFFER_BINDING, data)
+        return GlFrameBuffer(data[0])
+    }
+
     override fun getShaderParameterB(glShader: GlShader, pname: Int): Boolean {
         engineStats.calls++
         return (getShaderParameter(glShader, pname) as? Int) == 1
@@ -184,12 +194,12 @@ class LwjglGL(private val engineStats: EngineStats) : GL {
         glBindRenderbuffer(GL.RENDERBUFFER, glRenderBuffer.reference)
     }
 
-    override fun renderBufferStorage(internalformat: Int, width: Int, height: Int) {
+    override fun renderBufferStorage(internalFormat: Int, width: Int, height: Int) {
         engineStats.calls++
-        glRenderbufferStorage(GL.RENDERBUFFER, internalformat, width, height)
+        glRenderbufferStorage(GL.RENDERBUFFER, internalFormat, width, height)
     }
 
-    override fun framebufferRenderbuffer(
+    override fun frameBufferRenderBuffer(
         attachementType: Int,
         glRenderBuffer: GlRenderBuffer
     ) {
