@@ -29,6 +29,7 @@ actual class PlatformContext actual constructor(actual override val configuratio
 
     private lateinit var game: LittleKt
     private var lastFrame = 0.0
+    private var closed = false
 
     actual override fun start(gameBuilder: (app: Application) -> LittleKt) {
         graphics as WebGLGraphics
@@ -62,15 +63,19 @@ actual class PlatformContext actual constructor(actual override val configuratio
         game.render(dt.toFloat())
         input.reset()
 
-        window.requestAnimationFrame(::render)
+        if(closed) {
+            destroy()
+        } else {
+            window.requestAnimationFrame(::render)
+        }
     }
 
     actual override fun close() {
-        // nothing to do - we don't want to close the browser window.
+        closed = true
     }
 
     actual override fun destroy() {
-        // nothing to do
+        game.dispose()
     }
 
 }

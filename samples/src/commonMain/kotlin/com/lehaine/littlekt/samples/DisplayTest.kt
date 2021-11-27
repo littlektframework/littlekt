@@ -170,5 +170,6 @@ class DisplayTest(application: Application) : LittleKt(application), InputProces
         mesh.dispose()
         texture.dispose()
         shader.dispose()
+        batch.dispose()
     }
 }

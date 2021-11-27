@@ -7,6 +7,7 @@ plugins {
 
 repositories {
     mavenCentral()
+    maven(url = "https://maven.pkg.jetbrains.space/public/p/kotlinx-html/maven")
 }
 
 kotlin {
@@ -59,7 +60,9 @@ kotlin {
         val jvmTest by getting
         val jsMain by getting {
             dependencies {
+                val kotlinxHtmlVersion = "0.7.2"
                 implementation(project(":core"))
+                implementation("org.jetbrains.kotlinx:kotlinx-html-js:$kotlinxHtmlVersion")
             }
 
         }
