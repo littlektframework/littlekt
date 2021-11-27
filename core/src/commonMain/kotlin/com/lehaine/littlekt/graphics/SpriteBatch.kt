@@ -80,8 +80,13 @@ class SpriteBatch(
     private var invTexWidth = 0f
     private var invTexHeight = 0f
 
-    private val color = Color.WHITE
-    private val colorBits = color.toFloatBits()
+    var color = Color.WHITE
+        set(value) {
+            if(field == value) return
+            field = value
+            colorBits = field.toFloatBits()
+        }
+    private var colorBits = color.toFloatBits()
 
 
     fun begin(projectionMatrix: Mat4? = null) {
@@ -112,8 +117,8 @@ class SpriteBatch(
         scaleX: Float = 1f,
         scaleY: Float = 1f,
         rotation: Float = 0f,
-        flipX:Boolean = false,
-        flipY:Boolean = false,
+        flipX: Boolean = false,
+        flipY: Boolean = false,
     ) {
         if (!drawing) {
             throw IllegalStateException("SpriteBatch.begin must be called before draw.")
@@ -194,10 +199,10 @@ class SpriteBatch(
         x4 += worldOriginX
         y4 += worldOriginY
 
-        val u = if(flipX) 1f else 0f
-        val v = if(flipY) 0f else 1f
-        val u2 = if(flipX) 0f else 1f
-        val v2 = if(flipY) 1f else 0f
+        val u = if (flipX) 1f else 0f
+        val v = if (flipY) 0f else 1f
+        val u2 = if (flipX) 0f else 1f
+        val v2 = if (flipY) 1f else 0f
 
 
 

@@ -74,12 +74,18 @@ class FrameBufferTest(application: Application) : LittleKt(application) {
         gl.clearColor(Color.CLEAR)
         gl.clear(ClearBufferMask.COLOR_BUFFER_BIT)
         batch.use(projection) {
+            it.color = Color.WHITE
             it.draw(texture, x, y)
+            it.draw(texture, x, y+5)
         }
         fbo.end()
 
         batch.use(projection) {
-            batch.draw(fbo.colorBufferTexture, 0f, 0f, flipY = true)
+            it.color = Color.WHITE.withAlpha(0.8f)
+            it.draw(fbo.colorBufferTexture, 0f, 0f, flipY = true)
+
+            it.color = Color.WHITE
+            it.draw(texture, 100f, 50f)
         }
         x += xVel
         y += yVel
