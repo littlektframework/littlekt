@@ -6,7 +6,7 @@ import org.khronos.webgl.WebGLFramebuffer
  * @author Colton Daily
  * @date 9/28/2021
  */
-actual class GlFrameBuffer(val delegate: WebGLFramebuffer) {
+actual class GlFrameBuffer(val delegate: WebGLFramebuffer?) {
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

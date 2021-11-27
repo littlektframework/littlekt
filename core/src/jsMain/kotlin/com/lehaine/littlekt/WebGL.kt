@@ -5,8 +5,10 @@ import com.lehaine.littlekt.graphics.GLVersion
 import com.lehaine.littlekt.graphics.gl.*
 import com.lehaine.littlekt.io.*
 import com.lehaine.littlekt.math.Mat4
+import org.khronos.webgl.Int32Array
 import org.khronos.webgl.Uint8Array
 import org.khronos.webgl.WebGLFramebuffer
+import org.khronos.webgl.get
 
 /**
  * @author Colton Daily
@@ -194,13 +196,46 @@ class WebGL(val gl: WebGL2RenderingContext, private val engineStats: EngineStats
 
     override fun getIntegerv(pname: Int, data: Uint32Buffer) {
         engineStats.calls++
-        val result = gl.getParameter(pname) as Int
-        data.put(result)
+        when (pname) {
+            GL.ACTIVE_TEXTURE, GL.ALPHA_BITS, GL.BLEND_DST_ALPHA, GL.BLEND_DST_RGB,
+            GL.BLEND_EQUATION_ALPHA, GL.BLEND_EQUATION_RGB, GL.BLEND_SRC_ALPHA,
+            GL.BLEND_SRC_RGB, GL.BLUE_BITS, GL.CULL_FACE_MODE, GL.DEPTH_BITS,
+            GL.DEPTH_FUNC, GL.FRONT_FACE, GL.GENERATE_MIPMAP_HINT, GL.GREEN_BITS,
+            GL.IMPLEMENTATION_COLOR_READ_FORMAT, GL.IMPLEMENTATION_COLOR_READ_TYPE,
+            GL.MAX_COMBINED_TEXTURE_IMAGE_UNITS, GL.MAX_CUBE_MAP_TEXTURE_SIZE,
+            GL.MAX_FRAGMENT_UNIFORM_VECTORS, GL.MAX_RENDERBUFFER_SIZE,
+            GL.MAX_TEXTURE_IMAGE_UNITS, GL.MAX_TEXTURE_SIZE, GL.MAX_VARYING_VECTORS,
+            GL.MAX_VERTEX_ATTRIBS, GL.MAX_VERTEX_TEXTURE_IMAGE_UNITS,
+            GL.MAX_VERTEX_UNIFORM_VECTORS, GL.NUM_COMPRESSED_TEXTURE_FORMATS,
+            GL.PACK_ALIGNMENT, GL.RED_BITS, GL.SAMPLE_BUFFERS,
+            GL.SAMPLES, GL.STENCIL_BACK_FAIL, GL.STENCIL_BACK_FUNC,
+            GL.STENCIL_BACK_PASS_DEPTH_FAIL, GL.STENCIL_BACK_PASS_DEPTH_PASS,
+            GL.STENCIL_BACK_REF, GL.STENCIL_BACK_VALUE_MASK,
+            GL.STENCIL_BACK_WRITEMASK, GL.STENCIL_BITS, GL.STENCIL_CLEAR_VALUE,
+            GL.STENCIL_FAIL, GL.STENCIL_FUNC, GL.STENCIL_PASS_DEPTH_FAIL,
+            GL.STENCIL_PASS_DEPTH_PASS, GL.STENCIL_REF, GL.STENCIL_VALUE_MASK,
+            GL.STENCIL_WRITEMASK, GL.SUBPIXEL_BITS, GL.UNPACK_ALIGNMENT -> {
+                data[0] = gl.getParameter(pname) as Int
+                data.flip()
+            }
+            GL.VIEWPORT -> {
+                val array = gl.getParameter(pname) as Int32Array
+                data[0] = array[0]
+                data[1] = array[1]
+                data[2] = array[2]
+                data[3] = array[3]
+                data.flip()
+            }
+            GL.FRAMEBUFFER_BINDING -> {
+                throw IllegalStateException("WebGL backend unable to return the framebuffer through getInteger. Use getBoundFrameBuffer(Uint32Buffer) method instead!")
+            }
+            else -> throw RuntimeException("getInteger for $pname is not supported by WebGL backend!")
+        }
     }
 
     override fun getBoundFrameBuffer(data: Uint32Buffer): GlFrameBuffer {
         engineStats.calls++
-        val result = gl.getParameter(GL.FRAMEBUFFER_BINDING) as WebGLFramebuffer
+        val result = gl.getParameter(GL.FRAMEBUFFER_BINDING) as WebGLFramebuffer?
         return GlFrameBuffer(result)
     }
 
