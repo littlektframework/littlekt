@@ -106,5 +106,7 @@ class FrameBufferTest(application: Application) : LittleKt(application) {
 
     override fun dispose() {
         texture.dispose()
+        batch.dispose()
+        fbo.dispose()
     }
 }
