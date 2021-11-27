@@ -2,6 +2,7 @@ package com.lehaine.littlekt.graphics.shader.generator.delegate
 
 import com.lehaine.littlekt.graphics.shader.generator.GlslGenerator
 import com.lehaine.littlekt.graphics.shader.generator.Instruction
+import com.lehaine.littlekt.graphics.shader.generator.Precision
 import com.lehaine.littlekt.graphics.shader.generator.type.Variable
 import kotlin.reflect.KProperty
 
@@ -9,7 +10,7 @@ import kotlin.reflect.KProperty
  * @author Colton Daily
  * @date 11/25/2021
  */
-class VaryingDelegate<T : Variable>(private val factory: (GlslGenerator) -> T) {
+class VaryingDelegate<T : Variable>(private val factory: (GlslGenerator) -> T, private val precision: Precision) {
 
     private lateinit var v: T
 
@@ -23,12 +24,12 @@ class VaryingDelegate<T : Variable>(private val factory: (GlslGenerator) -> T) {
     }
 
     operator fun getValue(thisRef: GlslGenerator, property: KProperty<*>): T {
-        thisRef.varyings.add("${v.typeName} ${property.name}")
+        thisRef.varyings.add("${precision.value}${v.typeName} ${property.name}")
         return v
     }
 
     operator fun setValue(thisRef: GlslGenerator, property: KProperty<*>, value: T) {
-        thisRef.varyings.add("${v.typeName} ${property.name}")
+        thisRef.varyings.add("${precision.value}${v.typeName} ${property.name}")
         thisRef.instructions.add(Instruction.assign(property.name, value.value))
     }
 }

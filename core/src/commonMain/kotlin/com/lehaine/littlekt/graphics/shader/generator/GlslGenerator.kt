@@ -1,5 +1,6 @@
 package com.lehaine.littlekt.graphics.shader.generator
 
+import com.lehaine.littlekt.graphics.shader.FragmentShader
 import com.lehaine.littlekt.graphics.shader.Shader
 import com.lehaine.littlekt.graphics.shader.ShaderParameter
 import com.lehaine.littlekt.graphics.shader.generator.InstructionType.*
@@ -17,6 +18,7 @@ import com.lehaine.littlekt.graphics.shader.generator.type.scalar.GLInt
 import com.lehaine.littlekt.graphics.shader.generator.type.vec.Vec2
 import com.lehaine.littlekt.graphics.shader.generator.type.vec.Vec3
 import com.lehaine.littlekt.graphics.shader.generator.type.vec.Vec4
+import kotlin.jvm.JvmInline
 
 
 /**
@@ -41,6 +43,16 @@ data class Instruction(val type: InstructionType, var result: String = "") {
     }
 }
 
+@JvmInline
+value class Precision(val value: String) {
+    companion object {
+        val DEFAULT = Precision("")
+        val LOW = Precision("lowp ")
+        val MEDIUM = Precision("mediump ")
+        val HIGH = Precision("highp ")
+    }
+}
+
 interface GlslProvider {
     fun generate(): String
 }
@@ -50,6 +62,7 @@ abstract class GlslGenerator : GlslProvider, Shader {
     val attributes = mutableSetOf<String>()
     val varyings = mutableSetOf<String>()
     override val parameters = mutableListOf<ShaderParameter>()
+
     val instructions = mutableListOf<Instruction>()
 
     var gl_Position by BuiltinVarDelegate()
@@ -58,8 +71,27 @@ abstract class GlslGenerator : GlslProvider, Shader {
 
     override fun generate(): String {
         removeUnusedDefinitions()
-
         val sb = StringBuilder()
+        if (this is FragmentShader) {
+            sb.run {
+                appendLine("#ifdef GL_ES")
+                appendLine("precision highp float;")
+                appendLine("precision mediump int;")
+                appendLine("#else")
+                appendLine("#define lowp ")
+                appendLine("#define mediump ")
+                appendLine("#define highp ")
+                appendLine("#endif")
+            }
+        } else {
+            sb.run {
+                appendLine("#ifndef GL_ES")
+                appendLine("#define lowp ")
+                appendLine("#define mediump ")
+                appendLine("#define highp ")
+                appendLine("#endif")
+            }
+        }
         uniforms.forEach {
             sb.appendLine("uniform $it;")
         }
@@ -103,13 +135,24 @@ abstract class GlslGenerator : GlslProvider, Shader {
         instructions.removeAll { it.result.contains("{def}") }
     }
 
-    fun <T : Variable> varying(factory: (GlslGenerator) -> T) = VaryingDelegate(factory)
-    fun <T : Variable> attribute(factory: (GlslGenerator) -> T) = AttributeDelegate(factory)
-    fun <T : Variable> uniform(factory: (GlslGenerator) -> T) = UniformDelegate(factory)
-    fun <T : Variable> uniformArray(size: Int, init: (builder: GlslGenerator) -> T) =
-        UniformArrayDelegate(size, init)
+    fun <T : Variable> varying(factory: (GlslGenerator) -> T, precision: Precision = Precision.DEFAULT) =
+        VaryingDelegate(factory, precision)
 
-    fun <T : Variable> samplersArray(size: Int) = UniformArrayDelegate(size, ::Sampler2DArray)
+    fun <T : Variable> attribute(factory: (GlslGenerator) -> T, precision: Precision = Precision.DEFAULT) =
+        AttributeDelegate(factory, precision)
+
+    fun <T : Variable> uniform(factory: (GlslGenerator) -> T, precision: Precision = Precision.DEFAULT) =
+        UniformDelegate(factory, precision)
+
+    fun <T : Variable> uniformArray(
+        size: Int,
+        init: (builder: GlslGenerator) -> T,
+        precision: Precision = Precision.DEFAULT
+    ) =
+        UniformArrayDelegate(size, init, precision)
+
+    fun <T : Variable> samplersArray(size: Int, precision: Precision = Precision.DEFAULT) =
+        UniformArrayDelegate(size, ::Sampler2DArray, precision)
 
     fun discard() = instructions.add(Instruction(DISCARD))
 
