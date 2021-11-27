@@ -82,7 +82,7 @@ class SpriteBatch(
 
     var color = Color.WHITE
         set(value) {
-            if(field == value) return
+            if (field == value) return
             field = value
             colorBits = field.toFloatBits()
         }
@@ -204,7 +204,137 @@ class SpriteBatch(
         val u2 = if (flipX) 0f else 1f
         val v2 = if (flipY) 1f else 0f
 
+        mesh.run {
+            setVertex {
+                this.x = x1
+                this.y = y1
+                this.colorPacked = colorBits
+                this.u = u
+                this.v = v
+            }
+            setVertex {
+                this.x = x2
+                this.y = y2
+                this.colorPacked = colorBits
+                this.u = u
+                this.v = v2
+            }
 
+            setVertex {
+                this.x = x3
+                this.y = y3
+                this.colorPacked = colorBits
+                this.u = u2
+                this.v = v2
+            }
+
+            setVertex {
+                this.x = x4
+                this.y = y4
+                this.colorPacked = colorBits
+                this.u = u2
+                this.v = v
+            }
+        }
+
+        idx += SPRITE_SIZE
+    }
+
+    fun draw(
+        slice: TextureSlice,
+        x: Float,
+        y: Float,
+        originX: Float = 0f,
+        originY: Float = 0f,
+        width: Float = slice.width.toFloat(),
+        height: Float = slice.height.toFloat(),
+        scaleX: Float = 1f,
+        scaleY: Float = 1f,
+        rotation: Float = 0f
+    ) {
+        if (!drawing) {
+            throw IllegalStateException("SpriteBatch.begin must be called before draw.")
+        }
+        if (slice.texture != lastTexture) {
+            switchTexture(slice.texture)
+        } else if (idx == mesh.maxVertices) {
+            flush()
+        }
+
+        val worldOriginX = x + originX
+        val worldOriginY = y + originY
+        var fx = -originX
+        var fy = -originY
+        var fx2 = width - originX
+        var fy2 = height - originY
+
+        if (scaleX != 1f || scaleY != 1f) {
+            fx *= scaleX
+            fy *= scaleY
+            fx2 *= scaleX
+            fy2 *= scaleY
+        }
+
+        val p1x = fx
+        val p1y = fy
+        val p2x = fx
+        val p2y = fy2
+        val p3x = fx2
+        val p3y = fy2
+        val p4x = fx2
+        val p4y = fy
+
+        var x1: Float
+        var y1: Float
+        var x2: Float
+        var y2: Float
+        var x3: Float
+        var y3: Float
+        var x4: Float
+        var y4: Float
+
+        if (rotation == 0f) {
+            x1 = p1x
+            y1 = p1y
+
+            x2 = p2x
+            y2 = p2y
+
+            x3 = p3x
+            y3 = p3y
+
+            x4 = p4x
+            y4 = p4y
+        } else {
+            val cos = cos(rotation)
+            val sin = sin(rotation)
+
+            x1 = cos * p1x - sin * p1y
+            y1 = sin * p1x + cos * p1y
+
+            x2 = cos * p2x - sin * p2y
+            y2 = sin * p2x + cos * p2y
+
+            x3 = cos * p3x - sin * p3y
+            y3 = sin * p3x + cos * p3y
+
+            x4 = x1 + (x3 - x2)
+            y4 = y3 - (y2 - y1)
+        }
+
+        x1 += worldOriginX
+        y1 += worldOriginY
+        x2 += worldOriginX
+        y2 += worldOriginY
+        x3 += worldOriginX
+        y3 += worldOriginY
+        x4 += worldOriginX
+        y4 += worldOriginY
+
+        val u = slice.u
+        val v = slice.v2
+        val u2 = slice.u2
+        val v2 = slice.v
 
         mesh.run {
             setVertex {
@@ -237,7 +367,6 @@ class SpriteBatch(
                 this.u = u2
                 this.v = v
             }
-
         }
 
         idx += SPRITE_SIZE

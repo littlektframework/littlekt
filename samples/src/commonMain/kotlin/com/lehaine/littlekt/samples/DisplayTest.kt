@@ -8,7 +8,6 @@ import com.lehaine.littlekt.graphics.shader.fragment.SimpleColorFragmentShader
 import com.lehaine.littlekt.graphics.shader.vertex.SimpleColorVertexShader
 import com.lehaine.littlekt.input.InputProcessor
 import com.lehaine.littlekt.input.Key
-import com.lehaine.littlekt.input.Pointer
 import com.lehaine.littlekt.log.Logger
 
 /**
@@ -22,6 +21,9 @@ class DisplayTest(application: Application) : LittleKt(application), InputProces
     var loading = true
 
     lateinit var texture: Texture
+    lateinit var slices: Array<Array<TextureSlice>>
+    lateinit var person: TextureSlice
+
     val shader = createShader(SimpleColorVertexShader(), SimpleColorFragmentShader())
     val colorBits = Color.WHITE.toFloatBits()
     val mesh = colorMesh {
@@ -69,7 +71,9 @@ class DisplayTest(application: Application) : LittleKt(application), InputProces
     init {
         logger.level = Logger.Level.DEBUG
         fileHandler.launch {
-            texture = loadTexture("person.png")
+            texture = loadTexture("atlas.png")
+            slices = texture.slice(16, 16)
+            person = slices[0][0]
             loading = false
         }
         input.inputProcessor = this
@@ -98,11 +102,12 @@ class DisplayTest(application: Application) : LittleKt(application), InputProces
         gl.clearColor(Color.CLEAR)
         camera.update()
         batch.use(camera.viewProjection) {
-            it.draw(texture, x, y, scaleX = 10f, scaleY = 10f)
-            it.draw(texture, 50f, 50f, scaleX = 5f, scaleY = 5f)
-            it.draw(texture, 750f, 175f, scaleX = 2f, scaleY = 2f)
-            it.draw(texture, 375f, 400f, scaleX = 3f, scaleY = 7f)
-            it.draw(texture, 525f, 100f, scaleX = 7f, scaleY = 3f)
+            it.draw(person, x, y, scaleX = 10f, scaleY = 10f)
+            slices.forEachIndexed { rowIdx, row ->
+                row.forEachIndexed { colIdx, slice ->
+                    it.draw(slice, 150f * (rowIdx * row.size + colIdx) + 50f, 50f, scaleX = 10f, scaleY = 10f)
+                }
+            }
             it.draw(Texture.DEFAULT, 100f, 100f, scaleX = 5f, scaleY = 5f)
         }
 
@@ -118,48 +123,13 @@ class DisplayTest(application: Application) : LittleKt(application), InputProces
             logger.debug { engineStats }
         }
 
+        if (input.isKeyJustPressed(Key.ESCAPE)) {
+            close()
+        }
     }
 
     override fun resize(width: Int, height: Int) {
         logger.debug { "Resize to $width,$height" }
-    }
-
-    override fun keyDown(key: Key): Boolean {
-        logger.debug { "Key down: $key" }
-        if (key == Key.ESCAPE) {
-            application.close()
-        }
-        return false
-    }
-
-    override fun keyUp(key: Key): Boolean {
-        logger.debug { "Key up: $key" }
-        return false
-    }
-
-    override fun keyTyped(character: Char): Boolean {
-        logger.debug { "Key typed: $character" }
-        return false
-    }
-
-    override fun touchDown(screenX: Float, screenY: Float, pointer: Pointer): Boolean {
-        logger.debug { "Mouse button $pointer pressed $screenX,$screenY" }
-        return false
-    }
-
-    override fun touchUp(screenX: Float, screenY: Float, pointer: Pointer): Boolean {
-        logger.debug { "Mouse button $pointer released $screenX,$screenY" }
-        return false
-    }
-
-    override fun touchDragged(screenX: Float, screenY: Float, pointer: Pointer): Boolean {
-        logger.debug { "Mouse button dragged to $screenX,$screenY" }
-        return false
-    }
-
-    override fun scrolled(amountX: Float, amountY: Float): Boolean {
-        logger.debug { "Scrolled $amountX,$amountY" }
-        return false
     }
 
     override fun dispose() {
