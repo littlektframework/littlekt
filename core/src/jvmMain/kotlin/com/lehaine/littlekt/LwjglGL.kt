@@ -6,6 +6,9 @@ import com.lehaine.littlekt.graphics.gl.*
 import com.lehaine.littlekt.io.*
 import com.lehaine.littlekt.math.Mat4
 import org.lwjgl.opengl.EXTFramebufferObject
+import org.lwjgl.opengl.GL11
+import org.lwjgl.opengl.GL13
+import org.lwjgl.opengl.GL15
 import org.lwjgl.opengl.GL30.*
 import java.nio.ByteBuffer
 
@@ -30,9 +33,24 @@ class LwjglGL(private val engineStats: EngineStats) : GL {
         glClear(mask)
     }
 
-    override fun clearDepth(depth: Number) {
+    override fun clearDepth(depth: Float) {
         engineStats.calls++
         glClearDepth(depth.toDouble())
+    }
+
+    override fun clearStencil(stencil: Int) {
+        engineStats.calls++
+        glClearStencil(stencil)
+    }
+
+    override fun colorMask(red: Boolean, green: Boolean, blue: Boolean, alpha: Boolean) {
+        engineStats.calls++
+        glColorMask(red, green, blue, alpha)
+    }
+
+    override fun cullFace(mode: Int) {
+        engineStats.calls++
+        glCullFace(mode)
     }
 
     override fun enable(cap: Int) {
@@ -45,6 +63,26 @@ class LwjglGL(private val engineStats: EngineStats) : GL {
         glDisable(cap)
     }
 
+    override fun finish() {
+        engineStats.calls++
+        glFinish()
+    }
+
+    override fun flush() {
+        engineStats.calls++
+        glFlush()
+    }
+
+    override fun frontFace(mode: Int) {
+        engineStats.calls++
+        glFrontFace(mode)
+    }
+
+    override fun getError(): Int {
+        engineStats.calls++
+        return glGetError()
+    }
+
     override fun blendFunc(sfactor: Int, dfactor: Int) {
         engineStats.calls++
         glBlendFunc(sfactor, dfactor)
@@ -53,6 +91,36 @@ class LwjglGL(private val engineStats: EngineStats) : GL {
     override fun blendFuncSeparate(srcRGB: Int, dstRGB: Int, srcAlpha: Int, dstAlpha: Int) {
         engineStats.calls++
         glBlendFuncSeparate(srcRGB, dstRGB, srcAlpha, dstAlpha)
+    }
+
+    override fun stencilFunc(func: Int, ref: Int, mask: Int) {
+        engineStats.calls++
+        glStencilFunc(func, ref, mask)
+    }
+
+    override fun stencilMask(mask: Int) {
+        engineStats.calls++
+        glStencilMask(mask)
+    }
+
+    override fun stencilOp(fail: Int, zfail: Int, zpass: Int) {
+        engineStats.calls++
+        glStencilOp(fail, zfail, zpass)
+    }
+
+    override fun stencilFuncSeparate(face: Int, func: Int, ref: Int, mask: Int) {
+        engineStats.calls++
+        glStencilFuncSeparate(face, func, ref, mask)
+    }
+
+    override fun stencilMaskSeparate(face: Int, mask: Int) {
+        engineStats.calls++
+        glStencilMaskSeparate(face, mask)
+    }
+
+    override fun stencilOpSeparate(face: Int, fail: Int, zfail: Int, zpass: Int) {
+        engineStats.calls++
+        glStencilOpSeparate(face, fail, zfail, zpass)
     }
 
     override fun createProgram(): GlShaderProgram {
@@ -73,6 +141,11 @@ class LwjglGL(private val engineStats: EngineStats) : GL {
     override fun attachShader(glShaderProgram: GlShaderProgram, glShader: GlShader) {
         engineStats.calls++
         glAttachShader(glShaderProgram.address, glShader.address)
+    }
+
+    override fun detachShader(glShaderProgram: GlShaderProgram, glShader: GlShader) {
+        engineStats.calls++
+        glDetachShader(glShaderProgram.address, glShader.address)
     }
 
     override fun linkProgram(glShaderProgram: GlShaderProgram) {
@@ -103,6 +176,36 @@ class LwjglGL(private val engineStats: EngineStats) : GL {
     override fun getString(pname: Int): String? {
         engineStats.calls++
         return glGetString(pname)
+    }
+
+    override fun hint(target: Int, mode: Int) {
+        engineStats.calls++
+        glHint(target, mode)
+    }
+
+    override fun lineWidth(width: Float) {
+        engineStats.calls++
+        glLineWidth(width)
+    }
+
+    override fun polygonOffset(factor: Float, units: Float) {
+        engineStats.calls++
+        glPolygonOffset(factor, units)
+    }
+
+    override fun blendColor(red: Float, green: Float, blue: Float, alpha: Float) {
+        engineStats.calls++
+        glBlendColor(red, green, blue, alpha)
+    }
+
+    override fun blendEquation(mode: Int) {
+        engineStats.calls++
+        glBlendEquation(mode)
+    }
+
+    override fun blendEquationSeparate(modeRGB: Int, modeAlpha: Int) {
+        engineStats.calls++
+        glBlendEquationSeparate(modeRGB, modeAlpha)
     }
 
     override fun getIntegerv(pname: Int, data: Uint32Buffer) {
@@ -303,6 +406,35 @@ class LwjglGL(private val engineStats: EngineStats) : GL {
         data.buffer.position = pos
     }
 
+    override fun bufferSubData(target: Int, offset: Int, data: DataSource) {
+        engineStats.calls++
+        val limit = data.buffer.limit
+        val pos = data.buffer.position
+        data.buffer.position = 0
+        data.buffer.limit = data.buffer.capacity
+        when (data) {
+            is DataSource.Float32BufferDataSource -> {
+                data.buffer as Float32BufferImpl
+                GL15.glBufferSubData(target, offset.toLong(), data.buffer.buffer)
+            }
+            is DataSource.Uint8BufferDataSource -> {
+                data.buffer as Uint16BufferImpl
+                GL15.glBufferSubData(target, offset.toLong(), data.buffer.buffer)
+            }
+            is DataSource.Uint16BufferDataSource -> {
+                data.buffer as Uint16BufferImpl
+                GL15.glBufferSubData(target, offset.toLong(), data.buffer.buffer)
+            }
+            is DataSource.Uint32BufferDataSource -> {
+                data.buffer as Uint32BufferImpl
+                GL15.glBufferSubData(target, offset.toLong(), data.buffer.buffer)
+            }
+        }
+
+        data.buffer.limit = limit
+        data.buffer.position = pos
+    }
+
     override fun depthFunc(func: Int) {
         engineStats.calls++
         glDepthFunc(func)
@@ -311,6 +443,11 @@ class LwjglGL(private val engineStats: EngineStats) : GL {
     override fun depthMask(flag: Boolean) {
         engineStats.calls++
         glDepthMask(flag)
+    }
+
+    override fun depthRangef(zNear: Float, zFar: Float) {
+        engineStats.calls++
+        glDepthRange(zNear.toDouble(), zFar.toDouble())
     }
 
     override fun vertexAttribPointer(index: Int, size: Int, type: Int, normalized: Boolean, stride: Int, offset: Int) {
@@ -332,6 +469,11 @@ class LwjglGL(private val engineStats: EngineStats) : GL {
         engineStats.calls++
         engineStats.shaderSwitches++
         glUseProgram(glShaderProgram.address)
+    }
+
+    override fun validateProgram(glShaderProgram: GlShaderProgram) {
+        engineStats.calls++
+        glValidateProgram(glShaderProgram.address)
     }
 
     override fun useDefaultProgram() {
@@ -420,6 +562,83 @@ class LwjglGL(private val engineStats: EngineStats) : GL {
         glDeleteTextures(glTexture.reference)
     }
 
+    override fun compressedTexImage2D(
+        target: Int,
+        level: Int,
+        internalFormat: Int,
+        width: Int,
+        height: Int,
+        source: Uint8Buffer?
+    ) {
+        engineStats.calls++
+        if (source != null) {
+            source as Uint8BufferImpl
+            GL13.glCompressedTexImage2D(target, level, internalFormat, width, height, 0, source.buffer)
+        } else {
+            GL13.glCompressedTexImage2D(target, level, internalFormat, width, height, 0, null)
+        }
+    }
+
+    override fun compressedTexSubImage2D(
+        target: Int,
+        level: Int,
+        xOffset: Int,
+        yOffset: Int,
+        width: Int,
+        height: Int,
+        format: Int,
+        source: Uint8Buffer
+    ) {
+        engineStats.calls++
+        source as Uint8BufferImpl
+        GL13.glCompressedTexSubImage2D(target, level, xOffset, yOffset, width, height, format, source.buffer)
+
+    }
+
+    override fun copyTexImage2D(
+        target: Int,
+        level: Int,
+        internalFormat: Int,
+        x: Int,
+        y: Int,
+        width: Int,
+        height: Int,
+        border: Int
+    ) {
+        engineStats.calls++
+        glCopyTexImage2D(target, level, internalFormat, x, y, width, height, border)
+    }
+
+    override fun copyTexSubImage2D(
+        target: Int,
+        level: Int,
+        xOffset: Int,
+        yOffset: Int,
+        x: Int,
+        y: Int,
+        width: Int,
+        height: Int,
+    ) {
+        engineStats.calls++
+        glCopyTexSubImage2D(target, level, xOffset, yOffset, x, y, width, height)
+    }
+
+    override fun texSubImage2D(
+        target: Int,
+        level: Int,
+        xOffset: Int,
+        yOffset: Int,
+        width: Int,
+        height: Int,
+        format: Int,
+        type: Int,
+        source: Uint8Buffer
+    ) {
+        engineStats.calls++
+        source as Uint8BufferImpl
+        GL11.glTexSubImage2D(target, level, xOffset, yOffset, width, height, format, type, source.buffer)
+    }
+
     override fun uniformMatrix4fv(uniformLocation: UniformLocation, transpose: Boolean, data: Array<Float>) {
         engineStats.calls++
         glUniformMatrix4fv(uniformLocation.address, transpose, data.toFloatArray())
@@ -477,7 +696,6 @@ class LwjglGL(private val engineStats: EngineStats) : GL {
         }
     }
 
-
     override fun activeTexture(texture: Int) {
         engineStats.calls++
         glActiveTexture(texture)
@@ -486,6 +704,11 @@ class LwjglGL(private val engineStats: EngineStats) : GL {
     override fun texParameteri(target: Int, pname: Int, param: Int) {
         engineStats.calls++
         glTexParameteri(target, pname, param)
+    }
+
+    override fun texParameterf(target: Int, pname: Int, param: Float) {
+        engineStats.calls++
+        glTexParameterf(target, pname, param)
     }
 
     override fun generateMipmap(target: Int) {

@@ -31,32 +31,74 @@ interface GL {
      */
     fun isGL32() = getGLVersion() == GLVersion.GL_30
 
+
     fun clearColor(r: Float, g: Float, b: Float, a: Float)
     fun clearColor(color: Color) = clearColor(color.r, color.g, color.b, color.a)
     fun clear(mask: Int)
     fun clear(mask: ClearBufferMask) = clear(mask.glFlag)
-    fun clearDepth(depth: Number)
+    fun clearDepth(depth: Float)
+    fun clearStencil(stencil: Int)
+    fun colorMask(red: Boolean, green: Boolean, blue: Boolean, alpha: Boolean)
+    fun cullFace(mode: Int)
+    fun cullFace(mode: CullFaceMode) = cullFace(mode.glFlag)
     fun enable(cap: Int)
     fun enable(cap: State) = enable(cap.glFlag)
     fun disable(cap: Int)
     fun disable(cap: State) = disable(cap.glFlag)
+    fun finish()
+    fun flush()
+    fun frontFace(mode: Int)
+    fun frontFace(mode: FrontFaceMode) = frontFace(mode.glFlag)
+    fun getError(): Int
+    fun getIntegerv(pname: Int, data: Uint32Buffer)
+    fun getString(pname: Int): String?
+    fun hint(target: Int, mode: Int)
+    fun hint(target: HintTarget, mode: HintMode) = hint(target.glFlag, mode.glFlag)
+    fun lineWidth(width: Float)
+    fun polygonOffset(factor: Float, units: Float)
+
+    fun blendColor(red: Float, green: Float, blue: Float, alpha: Float)
+    fun blendColor(color: Color) = blendColor(color.r, color.g, color.b, color.a)
+    fun blendEquation(mode: Int)
+    fun blendEquation(mode: BlendEquationMode) = blendEquation(mode.glFlag)
+    fun blendEquationSeparate(modeRGB: Int, modeAlpha: Int)
+    fun blendEquationSeparate(modeRGB: BlendEquationMode, modeAlpha: BlendEquationMode) =
+        blendEquationSeparate(modeRGB.glFlag, modeAlpha.glFlag)
+
     fun blendFunc(sfactor: Int, dfactor: Int)
     fun blendFunc(sfactor: BlendFactor, dfactor: BlendFactor) = blendFunc(sfactor.glFlag, dfactor.glFlag)
     fun blendFuncSeparate(srcRGB: Int, dstRGB: Int, srcAlpha: Int, dstAlpha: Int)
     fun blendFuncSeparate(srcRGB: BlendFactor, dstRGB: BlendFactor, srcAlpha: BlendFactor, dstAlpha: BlendFactor) =
         blendFuncSeparate(srcRGB.glFlag, dstRGB.glFlag, srcAlpha.glFlag, dstAlpha.glFlag)
 
+    fun stencilFunc(func: Int, ref: Int, mask: Int)
+    fun stencilFunc(func: CompareFunction, ref: Int, mask: Int) = stencilFunc(func.glFlag, ref, mask)
+    fun stencilMask(mask: Int)
+    fun stencilOp(fail: Int, zfail: Int, zpass: Int)
+    fun stencilOp(fail: StencilAction, zfail: StencilAction, zpass: StencilAction) =
+        stencilOp(fail.glFlag, zfail.glFlag, zpass.glFlag)
+
+    fun stencilFuncSeparate(face: Int, func: Int, ref: Int, mask: Int)
+    fun stencilFuncSeparate(face: FaceMode, func: CompareFunction, ref: Int, mask: Int) =
+        stencilFuncSeparate(face.glFlag, func.glFlag, ref, mask)
+
+    fun stencilMaskSeparate(face: Int, mask: Int)
+    fun stencilMaskSeparate(face: FaceMode, mask: Int) = stencilMaskSeparate(face.glFlag, mask)
+    fun stencilOpSeparate(face: Int, fail: Int, zfail: Int, zpass: Int)
+    fun stencilOpSeparate(face: FaceMode, fail: StencilAction, zfail: StencilAction, zpass: StencilAction) =
+        stencilOpSeparate(face.glFlag, fail.glFlag, zfail.glFlag, zpass.glFlag)
+
     fun createProgram(): GlShaderProgram
     fun getAttribLocation(glShaderProgram: GlShaderProgram, name: String): Int
     fun getUniformLocation(glShaderProgram: GlShaderProgram, name: String): UniformLocation
     fun attachShader(glShaderProgram: GlShaderProgram, glShader: GlShader)
+    fun detachShader(glShaderProgram: GlShaderProgram, glShader: GlShader)
+    fun useProgram(glShaderProgram: GlShaderProgram)
+    fun validateProgram(glShaderProgram: GlShaderProgram)
+    fun useDefaultProgram()
     fun linkProgram(glShaderProgram: GlShaderProgram)
     fun deleteProgram(glShaderProgram: GlShaderProgram)
 
-    fun getString(pname: Int): String?
-
-    fun getIntegerv(pname: Int, data: Uint32Buffer)
-    fun getBoundFrameBuffer(data: Uint32Buffer): GlFrameBuffer
 
     fun getProgramParameter(glShaderProgram: GlShaderProgram, pname: Int): Any
     fun getProgramParameterB(glShaderProgram: GlShaderProgram, pname: Int): Boolean =
@@ -69,12 +111,10 @@ interface GL {
         getProgramParameterB(glShaderProgram, pname.glFlag)
 
     fun getShaderParameter(glShader: GlShader, pname: Int): Any
-    fun getShaderParameterB(glShader: GlShader, pname: Int): Boolean =
-        getShaderParameter(glShader, pname) as Boolean
+    fun getShaderParameterB(glShader: GlShader, pname: Int): Boolean = getShaderParameter(glShader, pname) as Boolean
 
     fun getShaderParameter(glShader: GlShader, pname: GetShader) = getShaderParameter(glShader, pname.glFlag)
-    fun getShaderParameterB(glShader: GlShader, pname: GetShader): Boolean =
-        getShaderParameterB(glShader, pname.glFlag)
+    fun getShaderParameterB(glShader: GlShader, pname: GetShader): Boolean = getShaderParameterB(glShader, pname.glFlag)
 
     fun createShader(type: Int): GlShader
     fun createShader(type: ShaderType) = createShader(type.glFlag)
@@ -83,30 +123,25 @@ interface GL {
     fun getShaderInfoLog(glShader: GlShader): String
     fun deleteShader(glShader: GlShader)
     fun getProgramInfoLog(glShader: GlShaderProgram): String
-    fun createBuffer(): GlBuffer
-    fun createFrameBuffer(): GlFrameBuffer
     fun createVertexArray(): GlVertexArray
     fun bindVertexArray(glVertexArray: GlVertexArray)
     fun bindDefaultVertexArray()
+
+    fun createFrameBuffer(): GlFrameBuffer
     fun bindFrameBuffer(glFrameBuffer: GlFrameBuffer)
     fun bindDefaultFrameBuffer()
-
     fun createRenderBuffer(): GlRenderBuffer
     fun bindRenderBuffer(glRenderBuffer: GlRenderBuffer)
     fun bindDefaultRenderBuffer()
     fun renderBufferStorage(internalFormat: RenderBufferInternalFormat, width: Int, height: Int)
     fun frameBufferRenderBuffer(attachementType: FrameBufferRenderBufferAttachment, glRenderBuffer: GlRenderBuffer)
+    fun getBoundFrameBuffer(data: Uint32Buffer): GlFrameBuffer
     fun deleteFrameBuffer(glFrameBuffer: GlFrameBuffer)
     fun deleteRenderBuffer(glRenderBuffer: GlRenderBuffer)
-
-    fun frameBufferTexture2D(
-        attachementType: FrameBufferRenderBufferAttachment,
-        glTexture: GlTexture,
-        level: Int
-    )
-
+    fun frameBufferTexture2D(attachementType: FrameBufferRenderBufferAttachment, glTexture: GlTexture, level: Int)
     fun checkFrameBufferStatus(): FrameBufferStatus
 
+    fun createBuffer(): GlBuffer
     fun bindBuffer(target: Int, glBuffer: GlBuffer)
     fun bindBuffer(target: BufferTarget, glBuffer: GlBuffer) = bindBuffer(target.glFlag, glBuffer)
     fun bindDefaultBuffer(target: Int)
@@ -114,9 +149,15 @@ interface GL {
     fun deleteBuffer(glBuffer: GlBuffer)
     fun bufferData(target: Int, data: DataSource, usage: Int)
     fun bufferData(target: BufferTarget, data: DataSource, usage: Usage) = bufferData(target.glFlag, data, usage.glFlag)
+
+    fun bufferSubData(target: Int, offset: Int, data: DataSource)
+    fun bufferSubData(target: BufferTarget, offset: Int, data: DataSource) =
+        bufferSubData(target.glFlag, offset, data)
+
     fun depthFunc(func: Int)
     fun depthFunc(func: CompareFunction) = depthFunc(func.glFlag)
     fun depthMask(flag: Boolean)
+    fun depthRangef(zNear: Float, zFar: Float)
     fun vertexAttribPointer(index: Int, size: Int, type: Int, normalized: Boolean, stride: Int, offset: Int)
     fun vertexAttribPointer(
         index: Int,
@@ -125,21 +166,12 @@ interface GL {
         normalized: Boolean,
         stride: Int,
         offset: Int
-    ) =
-        vertexAttribPointer(index, size, type.glFlag, normalized, stride, offset)
+    ) = vertexAttribPointer(index, size, type.glFlag, normalized, stride, offset)
 
     fun enableVertexAttribArray(index: Int)
     fun disableVertexAttribArray(index: Int)
-    fun useProgram(glShaderProgram: GlShaderProgram)
-    fun useDefaultProgram()
 
     fun scissor(x: Int, y: Int, width: Int, height: Int)
-
-    fun createTexture(): GlTexture
-    fun activeTexture(texture: Int)
-    fun bindTexture(target: Int, glTexture: GlTexture)
-    fun bindTexture(target: TextureTarget, glTexture: GlTexture) = bindTexture(target.glFlag, glTexture)
-    fun deleteTexture(glTexture: GlTexture)
 
     fun uniformMatrix4fv(uniformLocation: UniformLocation, transpose: Boolean, data: Mat4)
     fun uniformMatrix4fv(uniformLocation: UniformLocation, transpose: Boolean, data: Float32Buffer)
@@ -164,6 +196,128 @@ interface GL {
     fun pixelStorei(pname: PixelStoreParameter, param: Int) = pixelStorei(pname.glFlag, param)
 
     fun viewport(x: Int, y: Int, width: Int, height: Int)
+
+    fun createTexture(): GlTexture
+    fun activeTexture(texture: Int)
+    fun bindTexture(target: Int, glTexture: GlTexture)
+    fun bindTexture(target: TextureTarget, glTexture: GlTexture) = bindTexture(target.glFlag, glTexture)
+    fun deleteTexture(glTexture: GlTexture)
+
+    fun compressedTexImage2D(
+        target: Int,
+        level: Int,
+        internalFormat: Int,
+        width: Int,
+        height: Int,
+        source: Uint8Buffer?
+    )
+
+    fun compressedTexImage2D(
+        target: TextureTarget,
+        level: Int,
+        internalFormat: TextureFormat,
+        width: Int,
+        height: Int,
+        source: Uint8Buffer?
+    ) = compressedTexImage2D(
+        target.glFlag,
+        level,
+        internalFormat.glFlag,
+        width,
+        height,
+        source
+    )
+
+    fun compressedTexSubImage2D(
+        target: Int,
+        level: Int,
+        xOffset: Int,
+        yOffset: Int,
+        width: Int,
+        height: Int,
+        format: Int,
+        source: Uint8Buffer
+    )
+
+    fun compressedTexSubImage2D(
+        target: TextureTarget,
+        level: Int,
+        xOffset: Int,
+        yOffset: Int,
+        width: Int,
+        height: Int,
+        format: TextureFormat,
+        source: Uint8Buffer
+    ) = compressedTexSubImage2D(target.glFlag, level, xOffset, yOffset, width, height, format.glFlag, source)
+
+    fun copyTexImage2D(
+        target: Int,
+        level: Int,
+        internalFormat: Int,
+        x: Int,
+        y: Int,
+        width: Int,
+        height: Int,
+        border: Int,
+    )
+
+    fun copyTexImage2D(
+        target: TextureTarget,
+        level: Int,
+        internalFormat: TextureFormat,
+        x: Int,
+        y: Int,
+        width: Int,
+        height: Int,
+        border: Int
+    ) = copyTexImage2D(target.glFlag, level, internalFormat.glFlag, x, y, width, height, border)
+
+    fun copyTexSubImage2D(
+        target: Int,
+        level: Int,
+        xOffset: Int,
+        yOffset: Int,
+        x: Int,
+        y: Int,
+        width: Int,
+        height: Int,
+    )
+
+    fun copyTexSubImage2D(
+        target: TextureTarget,
+        level: Int,
+        xOffset: Int,
+        yOffset: Int,
+        x: Int,
+        y: Int,
+        width: Int,
+        height: Int,
+    ) = copyTexSubImage2D(target.glFlag, level, xOffset, yOffset, x, y, width, height)
+
+
+    fun texSubImage2D(
+        target: Int,
+        level: Int,
+        xOffset: Int,
+        yOffset: Int,
+        width: Int,
+        height: Int,
+        format: Int,
+        type: Int,
+        source: Uint8Buffer
+    )
+
+    fun texSubImage2D(
+        target: TextureTarget,
+        level: Int,
+        xOffset: Int,
+        yOffset: Int,
+        width: Int,
+        height: Int,
+        format: TextureFormat,
+        type: DataType,
+        source: Uint8Buffer
+    ) = texSubImage2D(target.glFlag, level, xOffset, yOffset, width, height, format.glFlag, type.glFlag, source)
 
     fun texImage2D(
         target: Int,
@@ -190,6 +344,10 @@ interface GL {
     fun texParameteri(target: Int, pname: Int, param: Int)
     fun texParameteri(target: TextureTarget, paramName: TexParameter, paramValue: Int) =
         texParameteri(target.glFlag, paramName.glFlag, paramValue)
+
+    fun texParameterf(target: Int, pname: Int, param: Float)
+    fun texParameterf(target: TextureTarget, paramName: TexParameter, paramValue: Float) =
+        texParameterf(target.glFlag, paramName.glFlag, paramValue)
 
     fun generateMipmap(target: Int)
     fun generateMipmap(target: TextureTarget) = generateMipmap(target.glFlag)

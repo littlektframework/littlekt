@@ -130,7 +130,14 @@ value class CullFaceMode(val glFlag: Int) {
     }
 }
 
-//###############################################################################
+@JvmInline
+value class FrontFaceMode(val glFlag: Int) {
+
+    companion object {
+        val CW = FrontFaceMode(GL.CW)
+        val CCW = FrontFaceMode(GL.CCW)
+    }
+}
 
 /** Depth, Stencil and textureCompareMode func */
 @JvmInline
@@ -145,6 +152,21 @@ value class CompareFunction(val glFlag: Int) {
         val NOTEQUAL = CompareFunction(GL.NOTEQUAL)
         val GEQUAL = CompareFunction(GL.GEQUAL)
         val ALWAYS = CompareFunction(GL.ALWAYS)
+    }
+}
+
+@JvmInline
+value class StencilAction(val glFlag: Int) {
+
+    companion object {
+        val KEEP = StencilAction(GL.KEEP)
+        val ZERO = StencilAction(GL.ZERO)
+        val REPLACE = StencilAction(GL.REPLACE)
+        val INCR = StencilAction(GL.INCR)
+        val INCR_WRAP = StencilAction(GL.INCR_WRAP)
+        val DECR = StencilAction(GL.DECR)
+        val DECR_WRAP = StencilAction(GL.DECR_WRAP)
+        val INVERT = StencilAction(GL.INVERT)
     }
 }
 
@@ -595,5 +617,23 @@ value class FrameBufferStatus(val glFlag: Int) {
         val FRAMEBUFFER_INCOMPLETE_MULTISAMPLE = FrameBufferStatus(GL.FRAMEBUFFER_INCOMPLETE_MULTISAMPLE)
         val FRAMEBUFFER_INCOMPLETE_DIMENSIONS = FrameBufferStatus(GL.FRAMEBUFFER_INCOMPLETE_DIMENSIONS)
         val FRAMEBUFFER_COMPLETE = FrameBufferStatus(GL.FRAMEBUFFER_COMPLETE)
+    }
+}
+
+@JvmInline
+value class HintTarget(val glFlag: Int) {
+    companion object {
+        val GENERATE_MIPMAP_HINT = HintTarget(GL.GENERATE_MIPMAP_HINT)
+        val FRAGMENT_SHADER_DERIVATIVE_HINT = HintTarget(GL.FRAGMENT_SHADER_DERIVATIVE_HINT)
+    }
+
+}
+
+@JvmInline
+value class HintMode(val glFlag: Int) {
+    companion object {
+        val FASTEST = HintMode(GL.FASTEST)
+        val NICEST = HintMode(GL.NICEST)
+        val DONT_CARE = HintMode(GL.DONT_CARE)
     }
 }

@@ -5,6 +5,7 @@ import com.lehaine.littlekt.graphics.GLVersion
 import com.lehaine.littlekt.graphics.gl.*
 import com.lehaine.littlekt.io.*
 import com.lehaine.littlekt.math.Mat4
+import org.khronos.webgl.Uint8Array
 import org.khronos.webgl.WebGLFramebuffer
 
 /**
@@ -28,9 +29,24 @@ class WebGL(val gl: WebGL2RenderingContext, private val engineStats: EngineStats
         gl.clear(mask)
     }
 
-    override fun clearDepth(depth: Number) {
+    override fun clearDepth(depth: Float) {
         engineStats.calls++
-        gl.clearDepth(depth.toFloat())
+        gl.clearDepth(depth)
+    }
+
+    override fun clearStencil(stencil: Int) {
+        engineStats.calls++
+        gl.clearStencil(stencil)
+    }
+
+    override fun colorMask(red: Boolean, green: Boolean, blue: Boolean, alpha: Boolean) {
+        engineStats.calls++
+        gl.colorMask(red, green, blue, alpha)
+    }
+
+    override fun cullFace(mode: Int) {
+        engineStats.calls++
+        gl.cullFace(mode)
     }
 
     override fun enable(cap: Int) {
@@ -43,6 +59,26 @@ class WebGL(val gl: WebGL2RenderingContext, private val engineStats: EngineStats
         gl.disable(cap)
     }
 
+    override fun finish() {
+        engineStats.calls++
+        gl.finish()
+    }
+
+    override fun flush() {
+        engineStats.calls++
+        gl.flush()
+    }
+
+    override fun frontFace(mode: Int) {
+        engineStats.calls++
+        gl.frontFace(mode)
+    }
+
+    override fun getError(): Int {
+        engineStats.calls++
+        return gl.getError()
+    }
+
     override fun blendFunc(sfactor: Int, dfactor: Int) {
         engineStats.calls++
         gl.blendFunc(sfactor, dfactor)
@@ -51,6 +87,36 @@ class WebGL(val gl: WebGL2RenderingContext, private val engineStats: EngineStats
     override fun blendFuncSeparate(srcRGB: Int, dstRGB: Int, srcAlpha: Int, dstAlpha: Int) {
         engineStats.calls++
         gl.blendFuncSeparate(srcRGB, dstRGB, srcAlpha, dstAlpha)
+    }
+
+    override fun stencilFunc(func: Int, ref: Int, mask: Int) {
+        engineStats.calls++
+        gl.stencilFunc(func, ref, mask)
+    }
+
+    override fun stencilMask(mask: Int) {
+        engineStats.calls++
+        gl.stencilMask(mask)
+    }
+
+    override fun stencilOp(fail: Int, zfail: Int, zpass: Int) {
+        engineStats.calls++
+        gl.stencilOp(fail, zfail, zpass)
+    }
+
+    override fun stencilFuncSeparate(face: Int, func: Int, ref: Int, mask: Int) {
+        engineStats.calls++
+        gl.stencilFuncSeparate(face, func, ref, mask)
+    }
+
+    override fun stencilMaskSeparate(face: Int, mask: Int) {
+        engineStats.calls++
+        gl.stencilMaskSeparate(face, mask)
+    }
+
+    override fun stencilOpSeparate(face: Int, fail: Int, zfail: Int, zpass: Int) {
+        engineStats.calls++
+        gl.stencilOpSeparate(face, fail, zfail, zpass)
     }
 
     override fun createProgram(): GlShaderProgram {
@@ -76,6 +142,11 @@ class WebGL(val gl: WebGL2RenderingContext, private val engineStats: EngineStats
         gl.attachShader(glShaderProgram.delegate, glShader.delegate)
     }
 
+    override fun detachShader(glShaderProgram: GlShaderProgram, glShader: GlShader) {
+        engineStats.calls++
+        gl.detachShader(glShaderProgram.delegate, glShader.delegate)
+    }
+
     override fun linkProgram(glShaderProgram: GlShaderProgram) {
         engineStats.calls++
         gl.linkProgram(glShaderProgram.delegate)
@@ -89,6 +160,36 @@ class WebGL(val gl: WebGL2RenderingContext, private val engineStats: EngineStats
     override fun getString(pname: Int): String? {
         engineStats.calls++
         return gl.getParameter(pname) as? String
+    }
+
+    override fun hint(target: Int, mode: Int) {
+        engineStats.calls++
+        gl.hint(target, mode)
+    }
+
+    override fun lineWidth(width: Float) {
+        engineStats.calls++
+        gl.lineWidth(width)
+    }
+
+    override fun polygonOffset(factor: Float, units: Float) {
+        engineStats.calls++
+        gl.polygonOffset(factor, units)
+    }
+
+    override fun blendColor(red: Float, green: Float, blue: Float, alpha: Float) {
+        engineStats.calls++
+        gl.blendColor(red, green, blue, alpha)
+    }
+
+    override fun blendEquation(mode: Int) {
+        engineStats.calls++
+        gl.blendEquation(mode)
+    }
+
+    override fun blendEquationSeparate(modeRGB: Int, modeAlpha: Int) {
+        engineStats.calls++
+        gl.blendEquationSeparate(modeRGB, modeAlpha)
     }
 
     override fun getIntegerv(pname: Int, data: Uint32Buffer) {
@@ -279,6 +380,34 @@ class WebGL(val gl: WebGL2RenderingContext, private val engineStats: EngineStats
         data.buffer.position = pos
     }
 
+    override fun bufferSubData(target: Int, offset: Int, data: DataSource) {
+        engineStats.calls++
+        val limit = data.buffer.limit
+        val pos = data.buffer.position
+        data.buffer.position = 0
+        data.buffer.limit = data.buffer.capacity
+        when (data) {
+            is DataSource.Float32BufferDataSource -> {
+                data.buffer as Float32BufferImpl
+                gl.bufferSubData(target, offset, data.buffer.buffer)
+            }
+            is DataSource.Uint8BufferDataSource -> {
+                data.buffer as Uint8BufferImpl
+                gl.bufferSubData(target, offset, data.buffer.buffer)
+            }
+            is DataSource.Uint16BufferDataSource -> {
+                data.buffer as Uint16BufferImpl
+                gl.bufferSubData(target, offset, data.buffer.buffer)
+            }
+            is DataSource.Uint32BufferDataSource -> {
+                data.buffer as Uint32BufferImpl
+                gl.bufferSubData(target, offset, data.buffer.buffer)
+            }
+        }
+        data.buffer.limit = limit
+        data.buffer.position = pos
+    }
+
     override fun depthFunc(func: Int) {
         engineStats.calls++
         gl.depthFunc(func)
@@ -287,6 +416,11 @@ class WebGL(val gl: WebGL2RenderingContext, private val engineStats: EngineStats
     override fun depthMask(flag: Boolean) {
         engineStats.calls++
         gl.depthMask(flag)
+    }
+
+    override fun depthRangef(zNear: Float, zFar: Float) {
+        engineStats.calls++
+        gl.depthRange(zNear, zFar)
     }
 
     override fun vertexAttribPointer(index: Int, size: Int, type: Int, normalized: Boolean, stride: Int, offset: Int) {
@@ -308,6 +442,11 @@ class WebGL(val gl: WebGL2RenderingContext, private val engineStats: EngineStats
         engineStats.calls++
         engineStats.shaderSwitches++
         gl.useProgram(glShaderProgram.delegate)
+    }
+
+    override fun validateProgram(glShaderProgram: GlShaderProgram) {
+        engineStats.calls++
+        gl.validateProgram(glShaderProgram.delegate)
     }
 
     override fun useDefaultProgram() {
@@ -340,6 +479,78 @@ class WebGL(val gl: WebGL2RenderingContext, private val engineStats: EngineStats
     override fun deleteTexture(glTexture: GlTexture) {
         engineStats.calls++
         gl.deleteTexture(glTexture.delegate)
+    }
+
+    override fun compressedTexImage2D(
+        target: Int,
+        level: Int,
+        internalFormat: Int,
+        width: Int,
+        height: Int,
+        source: Uint8Buffer?
+    ) {
+        engineStats.calls++
+        val dataview = (source as? Uint8BufferImpl)?.buffer ?: Uint8Array(0)
+        gl.compressedTexImage2D(target, level, internalFormat, width, height, 0, dataview)
+    }
+
+    override fun compressedTexSubImage2D(
+        target: Int,
+        level: Int,
+        xOffset: Int,
+        yOffset: Int,
+        width: Int,
+        height: Int,
+        format: Int,
+        source: Uint8Buffer
+    ) {
+        engineStats.calls++
+        source as Uint8BufferImpl
+        gl.compressedTexSubImage2D(target, level, xOffset, yOffset, width, height, format, source.buffer)
+    }
+
+    override fun copyTexImage2D(
+        target: Int,
+        level: Int,
+        internalFormat: Int,
+        x: Int,
+        y: Int,
+        width: Int,
+        height: Int,
+        border: Int
+    ) {
+        engineStats.calls++
+        gl.copyTexImage2D(target, level, internalFormat, x, y, width, height, border)
+    }
+
+    override fun copyTexSubImage2D(
+        target: Int,
+        level: Int,
+        xOffset: Int,
+        yOffset: Int,
+        x: Int,
+        y: Int,
+        width: Int,
+        height: Int
+    ) {
+        engineStats.calls++
+        gl.copyTexSubImage2D(target, level, xOffset, yOffset, x, y, width, height)
+    }
+
+    override fun texSubImage2D(
+        target: Int,
+        level: Int,
+        xOffset: Int,
+        yOffset: Int,
+        width: Int,
+        height: Int,
+        format: Int,
+        type: Int,
+        source: Uint8Buffer
+    ) {
+        engineStats.calls++
+        source as Uint8BufferImpl
+        gl.texSubImage2D(target, level, xOffset, yOffset, width, height, format, type, source.buffer)
     }
 
     override fun uniformMatrix4fv(uniformLocation: UniformLocation, transpose: Boolean, data: Mat4) {
@@ -441,6 +652,11 @@ class WebGL(val gl: WebGL2RenderingContext, private val engineStats: EngineStats
     override fun texParameteri(target: Int, pname: Int, param: Int) {
         engineStats.calls++
         gl.texParameteri(target, pname, param)
+    }
+
+    override fun texParameterf(target: Int, pname: Int, param: Float) {
+        engineStats.calls++
+        gl.texParameterf(target, pname, param)
     }
 
     override fun generateMipmap(target: Int) {
