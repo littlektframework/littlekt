@@ -182,6 +182,13 @@ open class MutableVec3f(x: Float, y: Float, z: Float) : Vec3f(x, y, z) {
         return this
     }
 
+    fun add(x: Float, y: Float, z: Float): MutableVec3f {
+        this.x += x
+        this.y += y
+        this.z += z
+        return this
+    }
+
     fun mul(other: Vec3f): MutableVec3f {
         x *= other.x
         y *= other.y
@@ -436,6 +443,13 @@ open class MutableVec3d(x: Double, y: Double, z: Double) : Vec3d(x, y, z) {
         return this
     }
 
+    fun add(x: Double, y: Double, z: Double): MutableVec3d {
+        this.x += x
+        this.y += y
+        this.z += z
+        return this
+    }
+
     fun mul(other: Vec3d): MutableVec3d {
         x *= other.x
         y *= other.y
@@ -617,6 +631,13 @@ open class MutableVec3i(x: Int, y: Int, z: Int) : Vec3i(x, y, z) {
         x += other.x
         y += other.y
         z += other.z
+        return this
+    }
+
+    fun add(x: Int, y: Int, z: Int): MutableVec3i {
+        this.x += x
+        this.y += y
+        this.z += z
         return this
     }
 

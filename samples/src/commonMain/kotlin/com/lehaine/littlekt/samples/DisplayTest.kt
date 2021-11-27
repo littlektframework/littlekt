@@ -4,15 +4,12 @@ import com.lehaine.littlekt.Application
 import com.lehaine.littlekt.LittleKt
 import com.lehaine.littlekt.createShader
 import com.lehaine.littlekt.graphics.*
-import com.lehaine.littlekt.graphics.shader.fragment.DefaultFragmentShader
 import com.lehaine.littlekt.graphics.shader.fragment.SimpleColorFragmentShader
-import com.lehaine.littlekt.graphics.shader.vertex.DefaultVertexShader
 import com.lehaine.littlekt.graphics.shader.vertex.SimpleColorVertexShader
 import com.lehaine.littlekt.input.InputProcessor
 import com.lehaine.littlekt.input.Key
 import com.lehaine.littlekt.input.Pointer
 import com.lehaine.littlekt.log.Logger
-import com.lehaine.littlekt.math.Mat4
 
 /**
  * @author Colton Daily
@@ -57,14 +54,12 @@ class DisplayTest(application: Application) : LittleKt(application), InputProces
         setIndicesAsTriangle()
     }
 
-    var projection = Mat4().setOrthographic(
-        left = 0f,
-        right = 480f * 2,
-        bottom = 0f,
-        top = 270f * 2,
-        near = -1f,
-        far = 1f
-    )
+    val camera = OrthographicCamera().apply {
+        left = 0f
+        right = graphics.width.toFloat()
+        bottom = 0f
+        top = graphics.height.toFloat()
+    }
     private var x = 0f
     private var y = 0f
 
@@ -101,7 +96,8 @@ class DisplayTest(application: Application) : LittleKt(application), InputProces
         }
 
         gl.clearColor(Color.CLEAR)
-        batch.use {
+        camera.update()
+        batch.use(camera.viewProjection) {
             it.draw(texture, x, y, scaleX = 10f, scaleY = 10f)
             it.draw(texture, 50f, 50f, scaleX = 5f, scaleY = 5f)
             it.draw(texture, 750f, 175f, scaleX = 2f, scaleY = 2f)
@@ -111,7 +107,7 @@ class DisplayTest(application: Application) : LittleKt(application), InputProces
         }
 
         shader.bind()
-        shader.uProjTrans?.apply(shader, projection)
+        shader.uProjTrans?.apply(shader, camera.viewProjection)
         mesh.render(shader)
 
         x += xVel
