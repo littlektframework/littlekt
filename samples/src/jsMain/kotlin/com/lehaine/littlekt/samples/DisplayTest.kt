@@ -10,6 +10,6 @@ fun main() {
     createLittleKtApp {
         title = "JS - Display Test"
     }.start {
-        FrameBufferTest(it)
+        DisplayTest(it)
     }
 }

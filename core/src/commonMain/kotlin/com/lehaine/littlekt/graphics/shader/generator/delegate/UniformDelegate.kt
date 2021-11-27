@@ -2,6 +2,7 @@ package com.lehaine.littlekt.graphics.shader.generator.delegate
 
 import com.lehaine.littlekt.graphics.shader.ShaderParameter
 import com.lehaine.littlekt.graphics.shader.generator.GlslGenerator
+import com.lehaine.littlekt.graphics.shader.generator.Precision
 import com.lehaine.littlekt.graphics.shader.generator.type.Variable
 import kotlin.reflect.KProperty
 
@@ -9,7 +10,10 @@ import kotlin.reflect.KProperty
  * @author Colton Daily
  * @date 11/25/2021
  */
-class UniformDelegate<T : Variable>(private val factory: (GlslGenerator) -> T) {
+class UniformDelegate<T : Variable>(
+    private val factory: (GlslGenerator) -> T,
+    private val precision: Precision
+) {
     private lateinit var v: T
 
     operator fun provideDelegate(
@@ -31,7 +35,7 @@ class UniformDelegate<T : Variable>(private val factory: (GlslGenerator) -> T) {
             "sampler2D" -> thisRef.parameters.add(ShaderParameter.UniformSample2D(property.name))
             "mat4" -> thisRef.parameters.add(ShaderParameter.UniformMat4(property.name))
         }
-        thisRef.uniforms.add("${v.typeName} ${property.name}")
+        thisRef.uniforms.add("${precision.value}${v.typeName} ${property.name}")
         return v
     }
 }

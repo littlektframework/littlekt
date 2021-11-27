@@ -2,6 +2,7 @@ package com.lehaine.littlekt.graphics.shader.generator.delegate
 
 import com.lehaine.littlekt.graphics.shader.ShaderParameter
 import com.lehaine.littlekt.graphics.shader.generator.GlslGenerator
+import com.lehaine.littlekt.graphics.shader.generator.Precision
 import com.lehaine.littlekt.graphics.shader.generator.type.Variable
 import kotlin.reflect.KProperty
 
@@ -11,7 +12,8 @@ import kotlin.reflect.KProperty
  */
 class UniformArrayDelegate<T : Variable>(
     val size: Int,
-    private val factory: (builder: GlslGenerator) -> T
+    private val factory: (builder: GlslGenerator) -> T,
+    private val precision: Precision
 ) {
     private lateinit var v: T
 
@@ -28,7 +30,7 @@ class UniformArrayDelegate<T : Variable>(
         when (v.typeName) {
             "mat4" -> thisRef.parameters.add(ShaderParameter.UniformArrayMat4(property.name))
         }
-        thisRef.uniforms.add("${v.typeName} ${property.name}[$size]")
+        thisRef.uniforms.add("${precision.value}${v.typeName} ${property.name}[$size]")
         return v
     }
 }
