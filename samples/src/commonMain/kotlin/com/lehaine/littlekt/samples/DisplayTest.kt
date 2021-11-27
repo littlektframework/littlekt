@@ -23,6 +23,7 @@ class DisplayTest(application: Application) : LittleKt(application), InputProces
     lateinit var texture: Texture
     lateinit var slices: Array<Array<TextureSlice>>
     lateinit var person: TextureSlice
+    lateinit var atlas: TextureAtlas
 
     val shader = createShader(SimpleColorVertexShader(), SimpleColorFragmentShader())
     val colorBits = Color.WHITE.toFloatBits()
@@ -74,6 +75,8 @@ class DisplayTest(application: Application) : LittleKt(application), InputProces
             texture = loadTexture("atlas.png")
             slices = texture.slice(16, 16)
             person = slices[0][0]
+            atlas = loadAtlas("tiles.atlas.json")
+
             loading = false
         }
         input.inputProcessor = this
@@ -99,7 +102,7 @@ class DisplayTest(application: Application) : LittleKt(application), InputProces
             xVel += 10f
         }
 
-        gl.clearColor(Color.CLEAR)
+        gl.clearColor(Color.DARK_GRAY)
         camera.update()
         batch.use(camera.viewProjection) {
             it.draw(person, x, y, scaleX = 10f, scaleY = 10f)
@@ -108,7 +111,7 @@ class DisplayTest(application: Application) : LittleKt(application), InputProces
                     it.draw(slice, 150f * (rowIdx * row.size + colIdx) + 50f, 50f, scaleX = 10f, scaleY = 10f)
                 }
             }
-            it.draw(Texture.DEFAULT, 100f, 100f, scaleX = 5f, scaleY = 5f)
+            it.draw(atlas["bossAttack8.png"].slice, 250f, 250f, scaleX = 10f, scaleY = 10f)
         }
 
         shader.bind()

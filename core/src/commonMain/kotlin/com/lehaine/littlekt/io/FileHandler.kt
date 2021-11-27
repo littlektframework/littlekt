@@ -3,8 +3,11 @@ package com.lehaine.littlekt.io
 import com.lehaine.littlekt.Application
 import com.lehaine.littlekt.audio.AudioClip
 import com.lehaine.littlekt.graphics.Texture
+import com.lehaine.littlekt.graphics.TextureAtlas
 import com.lehaine.littlekt.graphics.TextureData
 import com.lehaine.littlekt.graphics.gl.TextureFormat
+import com.lehaine.littlekt.io.atlas.AtlasInfo
+import com.lehaine.littlekt.io.atlas.AtlasPage
 import com.lehaine.littlekt.log.Logger
 import com.lehaine.littlekt.util.internal.toString
 import kotlinx.coroutines.CompletableDeferred
@@ -15,6 +18,8 @@ import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.selects.select
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.json.Json
 import kotlin.coroutines.CoroutineContext
 
 /**
@@ -27,6 +32,8 @@ abstract class FileHandler(
     val logger: Logger,
     var assetsBaseDir: String
 ) : CoroutineScope {
+
+    protected val json = Json { ignoreUnknownKeys = true }
 
     protected val job = Job()
 
@@ -103,7 +110,7 @@ abstract class FileHandler(
         }
     }
 
-    suspend fun loadAsset(assetPath: String): Uint8Buffer? {
+    suspend fun loadAsset(assetPath: String): Uint8Buffer {
         val ref = if (isHttpAsset(assetPath)) {
             RawAssetRef(assetPath, false)
         } else {
@@ -115,7 +122,25 @@ abstract class FileHandler(
         loaded.data?.let {
             logger.debug { "Loaded ${assetPathToName(assetPath)} (${(it.capacity / 1024.0 / 1024.0).toString(1)} mb)" }
         }
-        return loaded.data
+        return loaded.data ?: throw RuntimeException("Failed loading $assetPath")
+    }
+
+    suspend fun loadAtlas(assetPath: String): TextureAtlas {
+        val data = loadAsset(assetPath).toArray().decodeToString()
+        val info = when {
+            data.startsWith("{") -> {
+                val page = json.decodeFromString<AtlasPage>(data)
+                AtlasInfo(page.meta, listOf(page))
+            }
+            data.startsWith('\n') -> TODO("Implement text atlas format")
+            data.startsWith("\r\n") -> TODO("Implement text atlas format")
+            else -> throw RuntimeException("Unsupported atlas format.")
+        }
+
+        val textures = info.pages.associate {
+            it.meta.image to loadTexture(it.meta.image)
+        }
+        return TextureAtlas(textures, info)
     }
 
     suspend fun loadTextureData(assetPath: String, format: TextureFormat? = TextureFormat.RGBA): TextureData {

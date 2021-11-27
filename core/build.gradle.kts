@@ -3,6 +3,7 @@ import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
 
 plugins {
     kotlin("multiplatform") version "1.6.0"
+    kotlin("plugin.serialization") version "1.6.0"
 }
 
 repositories {
@@ -50,11 +51,13 @@ kotlin {
     val pngDecoderVersion: String by project
     val mp3DecoderVersion: String by project
     val kotlinCoroutinesVersion: String by project
+    val kotlinSerializationVersion: String by project
 
     sourceSets {
         val commonMain by getting {
             dependencies {
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinCoroutinesVersion")
+                implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:$kotlinSerializationVersion")
             }
         }
         val commonTest by getting {
