@@ -5,6 +5,7 @@ import com.lehaine.littlekt.graphics.GLVersion
 import com.lehaine.littlekt.graphics.gl.*
 import com.lehaine.littlekt.io.*
 import com.lehaine.littlekt.math.Mat4
+import org.lwjgl.opengl.EXTFramebufferObject
 import org.lwjgl.opengl.GL30.*
 import java.nio.ByteBuffer
 
@@ -157,7 +158,7 @@ class LwjglGL(private val engineStats: EngineStats) : GL {
 
     override fun createFrameBuffer(): GlFrameBuffer {
         engineStats.calls++
-        return GlFrameBuffer(glGenFramebuffers())
+        return GlFrameBuffer(EXTFramebufferObject.glGenFramebuffersEXT())
     }
 
     override fun createVertexArray(): GlVertexArray {
@@ -177,32 +178,32 @@ class LwjglGL(private val engineStats: EngineStats) : GL {
 
     override fun bindFrameBuffer(glFrameBuffer: GlFrameBuffer) {
         engineStats.calls++
-        glBindFramebuffer(GL.FRAMEBUFFER, glFrameBuffer.reference)
+        EXTFramebufferObject.glBindFramebufferEXT(GL.FRAMEBUFFER, glFrameBuffer.reference)
     }
 
     override fun bindDefaultFrameBuffer() {
         engineStats.calls++
-        glBindFramebuffer(GL.FRAMEBUFFER, GL.NONE)
+        EXTFramebufferObject.glBindFramebufferEXT(GL.FRAMEBUFFER, GL.NONE)
     }
 
     override fun createRenderBuffer(): GlRenderBuffer {
         engineStats.calls++
-        return GlRenderBuffer(glGenRenderbuffers())
+        return GlRenderBuffer(EXTFramebufferObject.glGenRenderbuffersEXT())
     }
 
     override fun bindRenderBuffer(glRenderBuffer: GlRenderBuffer) {
         engineStats.calls++
-        glBindRenderbuffer(GL.RENDERBUFFER, glRenderBuffer.reference)
+        EXTFramebufferObject.glBindRenderbufferEXT(GL.RENDERBUFFER, glRenderBuffer.reference)
     }
 
     override fun bindDefaultRenderBuffer() {
         engineStats.calls++
-        glBindRenderbuffer(GL.RENDERBUFFER, GL.NONE)
+        EXTFramebufferObject.glBindRenderbufferEXT(GL.RENDERBUFFER, GL.NONE)
     }
 
     override fun renderBufferStorage(internalFormat: RenderBufferInternalFormat, width: Int, height: Int) {
         engineStats.calls++
-        glRenderbufferStorage(GL.RENDERBUFFER, internalFormat.glFlag, width, height)
+        EXTFramebufferObject.glRenderbufferStorageEXT(GL.RENDERBUFFER, internalFormat.glFlag, width, height)
     }
 
     override fun frameBufferRenderBuffer(
@@ -210,17 +211,22 @@ class LwjglGL(private val engineStats: EngineStats) : GL {
         glRenderBuffer: GlRenderBuffer
     ) {
         engineStats.calls++
-        glFramebufferRenderbuffer(GL.FRAMEBUFFER, attachementType.glFlag, GL.RENDERBUFFER, glRenderBuffer.reference)
+        EXTFramebufferObject.glFramebufferRenderbufferEXT(
+            GL.FRAMEBUFFER,
+            attachementType.glFlag,
+            GL.RENDERBUFFER,
+            glRenderBuffer.reference
+        )
     }
 
     override fun deleteFrameBuffer(glFrameBuffer: GlFrameBuffer) {
         engineStats.calls++
-        glDeleteFramebuffers(glFrameBuffer.reference)
+        EXTFramebufferObject.glDeleteFramebuffersEXT(glFrameBuffer.reference)
     }
 
     override fun deleteRenderBuffer(glRenderBuffer: GlRenderBuffer) {
         engineStats.calls++
-        glDeleteRenderbuffers(glRenderBuffer.reference)
+        EXTFramebufferObject.glDeleteFramebuffersEXT(glRenderBuffer.reference)
     }
 
     override fun frameBufferTexture2D(
@@ -229,12 +235,18 @@ class LwjglGL(private val engineStats: EngineStats) : GL {
         level: Int
     ) {
         engineStats.calls++
-        glFramebufferTexture2D(GL.FRAMEBUFFER, attachementType.glFlag, GL.TEXTURE_2D, glTexture.reference, level)
+        EXTFramebufferObject.glFramebufferTexture2DEXT(
+            GL.FRAMEBUFFER,
+            attachementType.glFlag,
+            GL.TEXTURE_2D,
+            glTexture.reference,
+            level
+        )
     }
 
     override fun checkFrameBufferStatus(): FrameBufferStatus {
         engineStats.calls++
-        return FrameBufferStatus(glCheckFramebufferStatus(GL.FRAMEBUFFER))
+        return FrameBufferStatus(EXTFramebufferObject.glCheckFramebufferStatusEXT(GL.FRAMEBUFFER))
     }
 
     override fun bindBuffer(target: Int, glBuffer: GlBuffer) {
@@ -328,6 +340,11 @@ class LwjglGL(private val engineStats: EngineStats) : GL {
         glUseProgram(0)
     }
 
+    override fun scissor(x: Int, y: Int, width: Int, height: Int) {
+        engineStats.calls++
+        glScissor(x, y, width, height)
+    }
+
     override fun uniform1i(uniformLocation: UniformLocation, data: Int) {
         engineStats.calls++
         glUniform1i(uniformLocation.address, data)
@@ -407,7 +424,6 @@ class LwjglGL(private val engineStats: EngineStats) : GL {
         engineStats.calls++
         glUniformMatrix4fv(uniformLocation.address, transpose, data.toFloatArray())
     }
-
 
     override fun uniformMatrix4fv(uniformLocation: UniformLocation, transpose: Boolean, data: Mat4) {
         engineStats.calls++

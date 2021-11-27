@@ -316,6 +316,11 @@ class WebGL(val gl: WebGL2RenderingContext, private val engineStats: EngineStats
         gl.useProgram(null)
     }
 
+    override fun scissor(x: Int, y: Int, width: Int, height: Int) {
+        engineStats.calls++
+        gl.scissor(x, y, width, height)
+    }
+
     override fun createTexture(): GlTexture {
         engineStats.calls++
         return GlTexture(gl.createTexture()!!)
@@ -422,11 +427,15 @@ class WebGL(val gl: WebGL2RenderingContext, private val engineStats: EngineStats
         width: Int,
         height: Int,
         type: Int,
-        source: Uint8Buffer
+        source: Uint8Buffer?
     ) {
         engineStats.calls++
-        source as Uint8BufferImpl
-        gl.texImage2D(target, level, internalFormat, width, height, 0, format, type, source.buffer)
+        if (source != null) {
+            source as Uint8BufferImpl
+            gl.texImage2D(target, level, internalFormat, width, height, 0, format, type, source.buffer)
+        } else {
+            gl.texImage2D(target, level, internalFormat, width, height, 0, format, type, null)
+        }
     }
 
     override fun texParameteri(target: Int, pname: Int, param: Int) {

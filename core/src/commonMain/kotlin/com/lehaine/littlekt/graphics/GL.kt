@@ -133,6 +133,8 @@ interface GL {
     fun useProgram(glShaderProgram: GlShaderProgram)
     fun useDefaultProgram()
 
+    fun scissor(x: Int, y: Int, width: Int, height: Int)
+
     fun createTexture(): GlTexture
     fun activeTexture(texture: Int)
     fun bindTexture(target: Int, glTexture: GlTexture)

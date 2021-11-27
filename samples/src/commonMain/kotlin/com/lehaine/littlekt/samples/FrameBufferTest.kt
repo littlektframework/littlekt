@@ -15,7 +15,7 @@ import com.lehaine.littlekt.math.Mat4
 class FrameBufferTest(application: Application) : LittleKt(application) {
 
     val batch = SpriteBatch(application)
-    val fbo = FrameBuffer(960, 540).also { it.prepare(application) }
+    val fbo = FrameBuffer(240, 135).also { it.prepare(application) }
     var loading = true
 
     lateinit var texture: Texture
@@ -50,16 +50,16 @@ class FrameBufferTest(application: Application) : LittleKt(application) {
         yVel = 0f
 
         if (input.isKeyPressed(Key.W)) {
-            yVel += 10f
+            yVel += 1f
         }
         if (input.isKeyPressed(Key.S)) {
-            yVel -= 10f
+            yVel -= 1f
         }
         if (input.isKeyPressed(Key.A)) {
-            xVel -= 10f
+            xVel -= 1f
         }
         if (input.isKeyPressed(Key.D)) {
-            xVel += 10f
+            xVel += 1f
         }
 
         fbo.begin()
@@ -77,8 +77,6 @@ class FrameBufferTest(application: Application) : LittleKt(application) {
             it.draw(texture, x, y)
         }
         fbo.end()
-
-
 
         batch.use(projection) {
             batch.draw(fbo.colorBufferTexture, 0f, 0f, flipY = true)
