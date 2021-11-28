@@ -10,6 +10,9 @@ import com.lehaine.littlekt.log.Logger
  * @date 10/5/2021
  */
 interface Application {
+
+    val stats: AppStats
+
     val configuration: ApplicationConfiguration
 
     val graphics: Graphics
@@ -23,8 +26,6 @@ interface Application {
     val fileHandler: FileHandler
 
     val platform: Platform
-
-    val engineStats: EngineStats
 
     fun start(gameBuilder: (app: Application) -> LittleKt)
 

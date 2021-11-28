@@ -1,5 +1,6 @@
 package com.lehaine.littlekt
 
+import com.lehaine.littlekt.graphics.GL
 import com.lehaine.littlekt.input.Input
 import com.lehaine.littlekt.io.FileHandler
 import com.lehaine.littlekt.log.Logger
@@ -9,13 +10,14 @@ import com.lehaine.littlekt.log.Logger
  * @date 11/17/2021
  */
 expect class PlatformContext(configuration: ApplicationConfiguration) : Application {
+    override val stats: AppStats
+    override val gl: GL
     override val platform: Platform
     override val configuration: ApplicationConfiguration
     override val graphics: Graphics
     override val input: Input
     override val logger: Logger
     override val fileHandler: FileHandler
-    override val engineStats: EngineStats
     override fun start(gameBuilder: (app: Application) -> LittleKt)
     override fun close()
     override fun destroy()

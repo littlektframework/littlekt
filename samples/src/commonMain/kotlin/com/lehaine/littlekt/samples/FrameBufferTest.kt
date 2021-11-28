@@ -77,7 +77,7 @@ class FrameBufferTest(application: Application) : LittleKt(application) {
         batch.use(projection) {
             it.color = Color.WHITE
             it.draw(texture, x, y)
-            it.draw(texture, x, y+5)
+            it.draw(texture, x, y + 5)
         }
         fbo.end()
 
@@ -92,7 +92,7 @@ class FrameBufferTest(application: Application) : LittleKt(application) {
         y += yVel
 
         if (input.isKeyJustPressed(Key.P)) {
-            logger.debug { engineStats }
+            logger.debug { stats }
         }
 
         if (input.isKeyJustPressed(Key.ESCAPE)) {

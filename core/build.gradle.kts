@@ -94,6 +94,7 @@ kotlin {
         val jvmTest by getting
         val jsMain by getting
         val jsTest by getting
+
         all {
             languageSettings.apply {
                 progressiveMode = true

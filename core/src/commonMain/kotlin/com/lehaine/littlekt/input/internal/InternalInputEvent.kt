@@ -7,7 +7,7 @@ import com.lehaine.littlekt.input.Pointer
  * @author Colton Daily
  * @date 11/7/2021
  */
-class InternalInputEvent(
+internal class InternalInputEvent(
     var key: Key = Key.ANY_KEY,
     var typedChar: Char = Char.MIN_VALUE,
     var pointer: Pointer = Pointer.POINTER1,

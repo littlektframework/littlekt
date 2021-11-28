@@ -127,7 +127,7 @@ class DisplayTest(application: Application) : LittleKt(application), InputProces
 
 
         if (input.isKeyJustPressed(Key.P)) {
-            logger.debug { engineStats }
+            logger.debug { stats }
         }
 
         if (input.isKeyJustPressed(Key.ESCAPE)) {

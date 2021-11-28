@@ -20,7 +20,6 @@ import org.lwjgl.opengl.GLCapabilities
 import org.lwjgl.system.MemoryStack
 import org.lwjgl.system.MemoryUtil
 import java.util.concurrent.CompletableFuture
-import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 import org.lwjgl.opengl.GL as LWJGL
 
@@ -32,8 +31,8 @@ import org.lwjgl.opengl.GL as LWJGL
 actual class PlatformContext actual constructor(actual override val configuration: ApplicationConfiguration) :
     Application {
 
-    actual override val engineStats: EngineStats = EngineStats()
-    actual override val graphics: Graphics = LwjglGraphics(engineStats)
+    actual override val stats: AppStats = AppStats()
+    actual override val graphics: Graphics = LwjglGraphics(stats.engineStats)
     actual override val logger: Logger = Logger(configuration.title)
     actual override val input: Input = LwjglInput(logger, this)
     actual override val fileHandler: FileHandler = JvmFileHandler(this, logger, ".")
@@ -156,13 +155,17 @@ actual class PlatformContext actual constructor(actual override val configuratio
                     mainThreadRunnables.clear()
                 }
             }
-            engineStats.resetPerFrameCounts()
+            stats.engineStats.resetPerFrameCounts()
             glClear(GL.COLOR_BUFFER_BIT or GL.DEPTH_BUFFER_BIT)
+
             val time = System.nanoTime()
-            val dt = (time - lastFrame) / 1e9
+            val dt = ((time - lastFrame) / 1e9).seconds
             lastFrame = time
+
             input.update()
-            game.render(dt.seconds)
+            stats.update(dt)
+            game.render(dt)
+
             GLFW.glfwSwapBuffers(windowHandle)
             input.reset()
             GLFW.glfwPollEvents()

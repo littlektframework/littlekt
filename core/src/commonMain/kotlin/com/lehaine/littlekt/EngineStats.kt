@@ -39,15 +39,24 @@ class EngineStats {
         shaderSwitches = 0
     }
 
+    internal fun statsString(): String {
+        return """GL calls: $calls
+           Draw calls: $drawCalls
+           Textures: $textureBindings
+           Shaders: $shaderSwitches
+           Buffers: ${bufferAllocations.size} with memory usage of ${
+            (totalBufferSize.toDouble() / (1024.0 * 1024.0)).toString(
+                1
+            )
+        }M
+       """
+    }
+
     override fun toString(): String {
         return """
            
            ***************** ENGINE STATS *****************
-           GL calls: $calls
-           Draw calls: $drawCalls
-           Textures: $textureBindings
-           Shaders: $shaderSwitches
-           Buffers: ${bufferAllocations.size} with memory usage of ${(totalBufferSize.toDouble() / (1024.0 * 1024.0)).toString(1)}M
+           ${statsString()}
            ***************** END ENGINE STATS *************
        """.trimIndent()
     }

@@ -20,8 +20,8 @@ actual class PlatformContext actual constructor(actual override val configuratio
 
     val canvas = document.getElementById(configuration.canvasId) as HTMLCanvasElement
 
-    actual override val engineStats: EngineStats = EngineStats()
-    actual override val graphics: Graphics = WebGLGraphics(canvas, engineStats)
+    actual override val stats: AppStats = AppStats()
+    actual override val graphics: Graphics = WebGLGraphics(canvas, stats.engineStats)
     actual override val input: Input = JsInput(canvas)
     actual override val logger: Logger = Logger(configuration.title)
     actual override val fileHandler: FileHandler =
@@ -29,6 +29,7 @@ actual class PlatformContext actual constructor(actual override val configuratio
     actual override val platform: Platform = Platform.JS
 
     private lateinit var game: LittleKt
+    private val frameTimes = DoubleArray(25) { 0.017 }
     private var lastFrame = 0.0
     private var closed = false
 
@@ -56,12 +57,14 @@ actual class PlatformContext actual constructor(actual override val configuratio
             canvas.height = canvas.clientHeight
             game.resize(graphics.width, graphics.height)
         }
-        engineStats.resetPerFrameCounts()
+        stats.engineStats.resetPerFrameCounts()
         input as JsInput
-        val dt = (now - lastFrame) / 1000.0
+        val dt = ((now - lastFrame) / 1000.0).seconds
         lastFrame = now
+
         input.update()
-        game.render(dt.seconds)
+        stats.update(dt)
+        game.render(dt)
         input.reset()
 
         if (closed) {
