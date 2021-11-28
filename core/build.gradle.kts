@@ -94,13 +94,14 @@ kotlin {
         val jvmTest by getting
         val jsMain by getting
         val jsTest by getting
-
-    }
-
-    sourceSets.all {
-        languageSettings.apply {
-            progressiveMode = true
-            optIn("kotlin.contracts.ExperimentalContracts")
+        all {
+            languageSettings.apply {
+                progressiveMode = true
+                optIn("kotlin.contracts.ExperimentalContracts")
+                optIn("kotlin.time.ExperimentalTime")
+            }
         }
     }
+
+
 }

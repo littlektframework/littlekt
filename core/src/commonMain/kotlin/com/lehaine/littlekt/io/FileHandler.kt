@@ -74,6 +74,9 @@ abstract class FileHandler(
         }
     }
 
+    /**
+     * Cancels this file handlers job.
+     */
     open fun close() {
         job.cancel()
     }
@@ -98,6 +101,9 @@ abstract class FileHandler(
                 assetPath.startsWith("https://", true) ||
                 assetPath.startsWith("data:", true)
 
+    /**
+     * Launches a new coroutine using the this file handlers coroutine context. Use this to load assets asynchronously.
+     */
     fun launch(block: suspend FileHandler.() -> Unit) {
         (this as CoroutineScope).launch {
             block.invoke(this@FileHandler)
@@ -110,6 +116,11 @@ abstract class FileHandler(
         }
     }
 
+    /**
+     * Loads a raw file into a [Uint8Buffer]
+     * @param assetPath the path to the file
+     * @return the raw byte buffer
+     */
     suspend fun loadAsset(assetPath: String): Uint8Buffer {
         val ref = if (isHttpAsset(assetPath)) {
             RawAssetRef(assetPath, false)
@@ -125,6 +136,11 @@ abstract class FileHandler(
         return loaded.data ?: throw RuntimeException("Failed loading $assetPath")
     }
 
+    /**
+     * Loads a [TextureAtlas] from the given path. Currently supports only JSON atlas files.
+     * @param assetPath the path to the atlas file to load
+     * @return the texture atlas
+     */
     suspend fun loadAtlas(assetPath: String): TextureAtlas {
         val data = loadAsset(assetPath).toArray().decodeToString()
         val info = when {
@@ -143,11 +159,17 @@ abstract class FileHandler(
         return TextureAtlas(textures, info)
     }
 
+    /**
+     * Loads an image from the path as [TextureData] to be used in creating a [Texture].
+     * @param assetPath the path to the image
+     * @param format the texture format. Defaults to [TextureFormat.RGBA]
+     * @return the loaded texture data
+     */
     suspend fun loadTextureData(assetPath: String, format: TextureFormat? = TextureFormat.RGBA): TextureData {
         val ref = if (isHttpAsset(assetPath)) {
-            TextureAssetRef(assetPath, false, format, false)
+            TextureAssetRef(assetPath, false, format)
         } else {
-            TextureAssetRef("$assetsBaseDir/$assetPath", true, format, false)
+            TextureAssetRef("$assetsBaseDir/$assetPath", true, format)
         }
         val awaitedAsset = AwaitedAsset(ref)
         awaitedAssetsChannel.send(awaitedAsset)
@@ -158,6 +180,10 @@ abstract class FileHandler(
         return loaded.data ?: throw RuntimeException("Failed loading texture")
     }
 
+    /**
+     * Loads an image from the path as a [Texture]. This will call [Texture.prepare] before returning!
+     * @return the loaded texture
+     */
     abstract suspend fun loadTexture(assetPath: String): Texture
 
     fun assetPathToName(assetPath: String): String {
@@ -185,11 +211,10 @@ data class TextureAssetRef(
     val url: String,
     val isLocal: Boolean,
     val fmt: TextureFormat?,
-    val isAtlas: Boolean,
     val tilesX: Int = 1,
     val tilesY: Int = 1
 ) : AssetRef()
 
-sealed class LoadedAsset(val ref: AssetRef, val successfull: Boolean)
+sealed class LoadedAsset(val ref: AssetRef, val successful: Boolean)
 class LoadedRawAsset(ref: AssetRef, val data: Uint8Buffer?) : LoadedAsset(ref, data != null)
 class LoadedTextureAsset(ref: AssetRef, val data: TextureData?) : LoadedAsset(ref, data != null)

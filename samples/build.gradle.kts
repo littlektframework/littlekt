@@ -69,7 +69,7 @@ kotlin {
         }
         val jsTest by getting
 
-        sourceSets.all {
+        all {
             languageSettings.apply {
                 progressiveMode = true
                 optIn("kotlinx.coroutines.ExperimentalCoroutinesApi")
@@ -77,6 +77,7 @@ kotlin {
                 optIn("kotlin.ExperimentalUnsignedTypes")
                 optIn("kotlin.ExperimentalStdlibApi")
                 optIn("kotlinx.serialization.ExperimentalSerializationApi")
+                optIn("kotlin.time.ExperimentalTime")
             }
         }
     }

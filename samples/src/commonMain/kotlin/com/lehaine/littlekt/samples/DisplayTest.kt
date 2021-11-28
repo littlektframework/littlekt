@@ -9,6 +9,8 @@ import com.lehaine.littlekt.graphics.shader.vertex.SimpleColorVertexShader
 import com.lehaine.littlekt.input.InputProcessor
 import com.lehaine.littlekt.input.Key
 import com.lehaine.littlekt.log.Logger
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 
 /**
  * @author Colton Daily
@@ -63,6 +65,7 @@ class DisplayTest(application: Application) : LittleKt(application), InputProces
         bottom = 0f
         top = graphics.height.toFloat()
     }
+    lateinit var bossAttack: Animation<TextureSlice>
     private var x = 0f
     private var y = 0f
 
@@ -76,7 +79,8 @@ class DisplayTest(application: Application) : LittleKt(application), InputProces
             slices = texture.slice(16, 16)
             person = slices[0][0]
             atlas = loadAtlas("tiles.atlas.json")
-
+            bossAttack = atlas.getAnimation("bossAttack")
+            bossAttack.playLooped()
             loading = false
         }
         input.inputProcessor = this
@@ -104,6 +108,7 @@ class DisplayTest(application: Application) : LittleKt(application), InputProces
 
         gl.clearColor(Color.DARK_GRAY)
         camera.update()
+        bossAttack.update(dt.toDouble().seconds)
         batch.use(camera.viewProjection) {
             it.draw(person, x, y, scaleX = 10f, scaleY = 10f)
             slices.forEachIndexed { rowIdx, row ->
@@ -111,7 +116,7 @@ class DisplayTest(application: Application) : LittleKt(application), InputProces
                     it.draw(slice, 150f * (rowIdx * row.size + colIdx) + 50f, 50f, scaleX = 10f, scaleY = 10f)
                 }
             }
-            it.draw(atlas["bossAttack8.png"].slice, 250f, 250f, scaleX = 10f, scaleY = 10f)
+            it.draw(bossAttack.currentFrame, 250f, 250f, scaleX = 10f, scaleY = 10f)
         }
 
         shader.bind()
