@@ -6,6 +6,7 @@ import com.lehaine.littlekt.graphics.shader.ShaderProgram
 import com.lehaine.littlekt.graphics.shader.VertexShader
 import com.lehaine.littlekt.graphics.shader.fragment.DefaultFragmentShader
 import com.lehaine.littlekt.graphics.shader.vertex.DefaultVertexShader
+import kotlin.time.Duration
 
 /**
  * A [LittleKt] is the base of an [Application] when it is created, resumed, rendering, paused, or destroyed.
@@ -14,7 +15,7 @@ import com.lehaine.littlekt.graphics.shader.vertex.DefaultVertexShader
  */
 open class LittleKt(val application: Application) : Application by application {
 
-    open fun render(dt: Float) {}
+    open fun render(dt: Duration) {}
 
     open fun resize(width: Int, height: Int) {}
 

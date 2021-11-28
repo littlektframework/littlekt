@@ -20,7 +20,8 @@ import org.lwjgl.opengl.GLCapabilities
 import org.lwjgl.system.MemoryStack
 import org.lwjgl.system.MemoryUtil
 import java.util.concurrent.CompletableFuture
-import kotlin.math.min
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 import org.lwjgl.opengl.GL as LWJGL
 
 
@@ -44,15 +45,6 @@ actual class PlatformContext actual constructor(actual override val configuratio
 
     private val windowShouldClose: Boolean
         get() = GLFW.glfwWindowShouldClose(windowHandle)
-
-    private var lastFrame: Long = getTime()
-
-    private fun getDelta(): Float {
-        val time = getTime()
-        val delta = (time - lastFrame)
-        lastFrame = time
-        return min(delta / 1000f, 1 / 60f)
-    }
 
     actual override fun start(gameBuilder: (app: Application) -> LittleKt) {
         val graphics = graphics as LwjglGraphics
@@ -153,6 +145,7 @@ actual class PlatformContext actual constructor(actual override val configuratio
         Texture.DEFAULT.prepare(this)
         game.resize(configuration.width, configuration.height)
 
+        var lastFrame = System.nanoTime()
         while (!windowShouldClose) {
             synchronized(mainThreadRunnables) {
                 if (mainThreadRunnables.isNotEmpty()) {
@@ -165,9 +158,11 @@ actual class PlatformContext actual constructor(actual override val configuratio
             }
             engineStats.resetPerFrameCounts()
             glClear(GL.COLOR_BUFFER_BIT or GL.DEPTH_BUFFER_BIT)
-            val delta = getDelta()
+            val time = System.nanoTime()
+            val dt = (time - lastFrame) / 1e9
+            lastFrame = time
             input.update()
-            game.render(delta)
+            game.render(dt.seconds)
             GLFW.glfwSwapBuffers(windowHandle)
             input.reset()
             GLFW.glfwPollEvents()
@@ -196,10 +191,6 @@ actual class PlatformContext actual constructor(actual override val configuratio
             mainThreadRunnables += r
             return r.future
         }
-    }
-
-    private fun getTime(): Long {
-        return System.nanoTime() / 1_000_000
     }
 
     private class GpuThreadRunnable(val r: () -> Unit) {

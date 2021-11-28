@@ -9,8 +9,7 @@ import com.lehaine.littlekt.graphics.shader.vertex.SimpleColorVertexShader
 import com.lehaine.littlekt.input.InputProcessor
 import com.lehaine.littlekt.input.Key
 import com.lehaine.littlekt.log.Logger
-import kotlin.time.Duration.Companion.milliseconds
-import kotlin.time.Duration.Companion.seconds
+import kotlin.time.Duration
 
 /**
  * @author Colton Daily
@@ -86,7 +85,7 @@ class DisplayTest(application: Application) : LittleKt(application), InputProces
         input.inputProcessor = this
     }
 
-    override fun render(dt: Float) {
+    override fun render(dt: Duration) {
         if (loading) {
             return
         }
@@ -108,7 +107,7 @@ class DisplayTest(application: Application) : LittleKt(application), InputProces
 
         gl.clearColor(Color.DARK_GRAY)
         camera.update()
-        bossAttack.update(dt.toDouble().seconds)
+        bossAttack.update(dt)
         batch.use(camera.viewProjection) {
             it.draw(person, x, y, scaleX = 10f, scaleY = 10f)
             slices.forEachIndexed { rowIdx, row ->

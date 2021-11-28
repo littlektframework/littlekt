@@ -9,6 +9,7 @@ import com.lehaine.littlekt.log.Logger
 import kotlinx.browser.document
 import kotlinx.browser.window
 import org.w3c.dom.HTMLCanvasElement
+import kotlin.time.Duration.Companion.milliseconds
 
 /**
  * @author Colton Daily
@@ -60,10 +61,10 @@ actual class PlatformContext actual constructor(actual override val configuratio
         val dt = (now - lastFrame) / 1000.0
         lastFrame = now
         input.update()
-        game.render(dt.toFloat())
+        game.render(dt.milliseconds)
         input.reset()
 
-        if(closed) {
+        if (closed) {
             destroy()
         } else {
             window.requestAnimationFrame(::render)

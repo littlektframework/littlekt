@@ -7,6 +7,7 @@ import com.lehaine.littlekt.graphics.gl.ClearBufferMask
 import com.lehaine.littlekt.input.Key
 import com.lehaine.littlekt.log.Logger
 import com.lehaine.littlekt.math.Mat4
+import kotlin.time.Duration
 
 /**
  * @author Colton Daily
@@ -42,7 +43,7 @@ class FrameBufferTest(application: Application) : LittleKt(application) {
         }
     }
 
-    override fun render(dt: Float) {
+    override fun render(dt: Duration) {
         if (loading) {
             return
         }
