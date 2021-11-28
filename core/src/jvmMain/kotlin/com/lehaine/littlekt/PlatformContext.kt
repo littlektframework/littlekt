@@ -10,8 +10,6 @@ import com.lehaine.littlekt.io.JvmFileHandler
 import com.lehaine.littlekt.log.Logger
 import org.lwjgl.glfw.Callbacks
 import org.lwjgl.glfw.GLFW
-import org.lwjgl.glfw.GLFW.glfwDestroyWindow
-import org.lwjgl.glfw.GLFW.glfwMakeContextCurrent
 import org.lwjgl.glfw.GLFWErrorCallback
 import org.lwjgl.opengl.GL11.glClear
 import org.lwjgl.opengl.GL30
@@ -21,6 +19,7 @@ import org.lwjgl.system.MemoryStack
 import org.lwjgl.system.MemoryUtil
 import java.util.concurrent.CompletableFuture
 import kotlin.time.Duration.Companion.seconds
+import kotlin.time.ExperimentalTime
 import org.lwjgl.opengl.GL as LWJGL
 
 
@@ -45,6 +44,8 @@ actual class PlatformContext actual constructor(actual override val configuratio
     private val windowShouldClose: Boolean
         get() = GLFW.glfwWindowShouldClose(windowHandle)
 
+    @Suppress("EXPERIMENTAL_IS_NOT_ENABLED")
+    @OptIn(ExperimentalTime::class)
     actual override fun start(gameBuilder: (app: Application) -> LittleKt) {
         val graphics = graphics as LwjglGraphics
         val input = input as LwjglInput
@@ -60,10 +61,10 @@ actual class PlatformContext actual constructor(actual override val configuratio
         GLFW.glfwDefaultWindowHints()
         GLFW.glfwWindowHint(GLFW.GLFW_VISIBLE, GLFW.GLFW_FALSE)
         val temp: Long = GLFW.glfwCreateWindow(1, 1, "", MemoryUtil.NULL, MemoryUtil.NULL)
-        glfwMakeContextCurrent(temp)
+        GLFW.glfwMakeContextCurrent(temp)
         LWJGL.createCapabilities()
         val caps: GLCapabilities = LWJGL.getCapabilities()
-        glfwDestroyWindow(temp)
+        GLFW.glfwDestroyWindow(temp)
 
 
         // Configure GLFW

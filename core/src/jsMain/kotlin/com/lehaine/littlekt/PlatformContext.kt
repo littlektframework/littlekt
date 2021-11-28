@@ -10,6 +10,7 @@ import kotlinx.browser.document
 import kotlinx.browser.window
 import org.w3c.dom.HTMLCanvasElement
 import kotlin.time.Duration.Companion.seconds
+import kotlin.time.ExperimentalTime
 
 /**
  * @author Colton Daily
@@ -29,7 +30,6 @@ actual class PlatformContext actual constructor(actual override val configuratio
     actual override val platform: Platform = Platform.JS
 
     private lateinit var game: LittleKt
-    private val frameTimes = DoubleArray(25) { 0.017 }
     private var lastFrame = 0.0
     private var closed = false
 
@@ -46,6 +46,8 @@ actual class PlatformContext actual constructor(actual override val configuratio
         window.requestAnimationFrame(::render)
     }
 
+    @Suppress("EXPERIMENTAL_IS_NOT_ENABLED")
+    @OptIn(ExperimentalTime::class)
     private fun render(now: Double) {
         if (canvas.clientWidth != graphics.width ||
             canvas.clientHeight != graphics.height
