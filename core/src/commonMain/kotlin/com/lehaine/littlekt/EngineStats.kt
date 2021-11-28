@@ -41,6 +41,7 @@ class EngineStats {
 
     override fun toString(): String {
         return """
+           
            ***************** ENGINE STATS *****************
            GL calls: $calls
            Draw calls: $drawCalls
