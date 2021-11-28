@@ -9,7 +9,9 @@ import com.lehaine.littlekt.io.atlas.AtlasPage
  * @author Colton Daily
  * @date 11/27/2021
  */
-class TextureAtlas(private val textures: Map<String, Texture>, info: AtlasInfo) {
+class TextureAtlas internal constructor(private val textures: Map<String, Texture>, info: AtlasInfo) {
+    constructor(textures: Map<String, Texture>) : this(textures, AtlasInfo(AtlasPage.Meta(), listOf()))
+
     /**
      * All the entries in this [TextureAtlas].
      */
@@ -32,7 +34,7 @@ class TextureAtlas(private val textures: Map<String, Texture>, info: AtlasInfo) 
     /**
      * Contains the name,[TextureSlice], and the [Texture] for this entry of the atlas.
      */
-    inner class Entry(info: AtlasPage.Frame, page: AtlasPage) {
+    inner class Entry internal constructor(info: AtlasPage.Frame, page: AtlasPage) {
         private val frame = info.applyRotation()
         val texture = textures[page.meta.image] ?: error("Can't find ${page.meta.image} in ${textures.keys}")
         val slice = TextureSlice(texture, frame.frame.x, frame.frame.y, frame.frame.w, frame.frame.h)

@@ -8,13 +8,13 @@ import kotlinx.serialization.Serializable
  * @date 11/27/2021
  */
 
-data class AtlasInfo(val meta: AtlasPage.Meta, val pages: List<AtlasPage>) {
+internal data class AtlasInfo(val meta: AtlasPage.Meta, val pages: List<AtlasPage>) {
     val frames = pages.flatMap { it.frames }
     val framesMap = frames.associateBy { it.name }
 }
 
 @Serializable
-data class AtlasPage(
+internal data class AtlasPage(
     val meta: Meta,
     var filterMin: Boolean = false,
     var filterMag: Boolean = false,
@@ -23,7 +23,7 @@ data class AtlasPage(
     val frames: List<Frame>
 ) {
     @Serializable
-    data class Frame(
+    internal data class Frame(
         @SerialName("filename")
         val name: String,
         val frame: Rect,
@@ -48,13 +48,13 @@ data class AtlasPage(
     }
 
     @Serializable
-    data class Rect(val x: Int, val y: Int, val w: Int, val h: Int)
+    internal data class Rect(val x: Int, val y: Int, val w: Int, val h: Int)
 
     @Serializable
-    data class Size(val w: Int, val h: Int)
+    internal data class Size(val w: Int, val h: Int)
 
     @Serializable
-    data class Meta(
+    internal data class Meta(
         val app: String = "",
         val version: String = "1.0.0",
         val image: String = "",
@@ -67,7 +67,7 @@ data class AtlasPage(
     )
 
     @Serializable
-    data class FrameTag(
+    internal data class FrameTag(
         val name: String,
         val from: Int,
         val to: Int,
@@ -75,21 +75,21 @@ data class AtlasPage(
     )
 
     @Serializable
-    data class Layer(
+    internal data class Layer(
         val name: String,
         val opacity: Int,
         val blendMode: String
     )
 
     @Serializable
-    data class Slice(
+    internal data class Slice(
         val name: String,
         val color: String,
         val key: List<Key>
     )
 
     @Serializable
-    data class Key(
+    internal data class Key(
         val frame: Int,
         val bound: Rect
     )
