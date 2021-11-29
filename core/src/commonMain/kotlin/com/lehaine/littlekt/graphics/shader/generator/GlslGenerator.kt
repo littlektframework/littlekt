@@ -3,13 +3,11 @@ package com.lehaine.littlekt.graphics.shader.generator
 import com.lehaine.littlekt.graphics.shader.FragmentShader
 import com.lehaine.littlekt.graphics.shader.ShaderParameter
 import com.lehaine.littlekt.graphics.shader.generator.InstructionType.*
-import com.lehaine.littlekt.graphics.shader.generator.delegate.ConstructorDelegate
-import com.lehaine.littlekt.graphics.shader.generator.delegate.UniformArrayDelegate
-import com.lehaine.littlekt.graphics.shader.generator.delegate.UniformConstructorDelegate
-import com.lehaine.littlekt.graphics.shader.generator.delegate.UniformDelegate
+import com.lehaine.littlekt.graphics.shader.generator.delegate.*
 import com.lehaine.littlekt.graphics.shader.generator.type.BoolResult
 import com.lehaine.littlekt.graphics.shader.generator.type.GenType
 import com.lehaine.littlekt.graphics.shader.generator.type.Variable
+import com.lehaine.littlekt.graphics.shader.generator.type.func.Void
 import com.lehaine.littlekt.graphics.shader.generator.type.mat.Mat3
 import com.lehaine.littlekt.graphics.shader.generator.type.mat.Mat4
 import com.lehaine.littlekt.graphics.shader.generator.type.sampler.Sampler2D
@@ -36,6 +34,9 @@ enum class InstructionType {
     ELSE,
     ENDIF,
     DISCARD,
+    FUNC_DEFINED,
+    INVOKE_FUNC,
+    END_FUNC
 }
 
 data class Instruction(val type: InstructionType, var result: String = "") {
@@ -65,11 +66,25 @@ abstract class GlslGenerator : GlslProvider {
     internal val attributes = mutableSetOf<String>()
     internal val varyings = mutableSetOf<String>()
 
+    internal var addAsFunctionInstruction = false
+
+    @PublishedApi
+    internal val functionInstructions = mutableListOf<Instruction>()
+
     @PublishedApi
     internal val instructions = mutableListOf<Instruction>()
 
     val parameters = mutableListOf<ShaderParameter>()
 
+
+    @PublishedApi
+    internal fun addInstruction(instruction: Instruction) {
+        if (addAsFunctionInstruction) {
+            functionInstructions.add(instruction)
+        } else {
+            instructions.add(instruction)
+        }
+    }
 
     override fun generate(): String {
         removeUnusedDefinitions()
@@ -104,8 +119,7 @@ abstract class GlslGenerator : GlslProvider {
             sb.appendLine("varying $it;")
         }
 
-        sb.appendLine("void main(void) {")
-        instructions.forEach {
+        functionInstructions.forEach {
             val instructionString = when (it.type) {
                 DEFINE, ASSIGN -> "${it.result};"
                 IF -> {
@@ -118,7 +132,29 @@ abstract class GlslGenerator : GlslProvider {
                     "else {"
                 }
                 ENDIF -> "}"
+                FUNC_DEFINED -> "${it.result} {"
+                END_FUNC -> "}"
+                else -> throw IllegalStateException("Instruction ${it.type} is not valid for the custom function instructions!")
+            }
+            sb.appendLine(instructionString)
+        }
+
+        sb.appendLine("void main(void) {")
+        instructions.forEach {
+            val instructionString = when (it.type) {
+                DEFINE, ASSIGN, INVOKE_FUNC -> "${it.result};"
+                IF -> {
+                    "if (${it.result}) {"
+                }
+                ELSEIF -> {
+                    "else if (${it.result}) {"
+                }
+                ELSE -> {
+                    "else {"
+                }
+                ENDIF -> "}"
                 DISCARD -> "discard;"
+                else -> throw IllegalStateException("Instruction ${it.type} is not valid for the main function instructions!")
             }
             sb.appendLine(instructionString)
         }
@@ -157,6 +193,22 @@ abstract class GlslGenerator : GlslProvider {
     fun <T : Variable> samplersArray(size: Int, precision: Precision = Precision.DEFAULT) =
         UniformArrayDelegate(size, ::Sampler2DArray, precision)
 
+    fun <T : Variable> Void(factory: (GlslGenerator) -> T, body: (p1: T) -> Unit): FunctionDelegate<Void, T> {
+        val delegate = FunctionDelegate({ Void(this) }, factory, body)
+        return delegate
+    }
+
+    fun Void(body: () -> Unit): () -> Unit {
+        addAsFunctionInstruction = true
+        functionInstructions.add(Instruction(FUNC_DEFINED))
+        body()
+        functionInstructions.add(Instruction(END_FUNC))
+        addAsFunctionInstruction = false
+        return {
+            addInstruction(Instruction(INVOKE_FUNC))
+        }
+    }
+
     internal fun <T : Variable> createVariable(clazz: KClass<T>) = when (clazz) {
         GLFloat::class -> GLFloat(this)
         GLInt::class -> GLInt(this)
@@ -170,22 +222,22 @@ abstract class GlslGenerator : GlslProvider {
 
     fun discard() = instructions.add(Instruction(DISCARD))
 
-    protected inline fun If(condition: BoolResult, body: () -> Unit) {
-        instructions.add(Instruction(IF, condition.value))
+    inline fun If(condition: BoolResult, body: () -> Unit) {
+        addInstruction(Instruction(IF, condition.value))
         body()
-        instructions.add(Instruction(ENDIF))
+        addInstruction(Instruction(ENDIF))
     }
 
-    protected inline fun ElseIf(condition: BoolResult, body: () -> Unit) {
-        instructions.add(Instruction(ELSEIF, condition.value))
+    inline fun ElseIf(condition: BoolResult, body: () -> Unit) {
+        addInstruction(Instruction(ELSEIF, condition.value))
         body()
-        instructions.add(Instruction(ENDIF))
+        addInstruction(Instruction(ENDIF))
     }
 
-    protected inline fun Else(body: () -> Unit) {
-        instructions.add(Instruction(ELSE))
+    inline fun Else(body: () -> Unit) {
+        addInstruction(Instruction(ELSE))
         body()
-        instructions.add(Instruction(ENDIF))
+        addInstruction(Instruction(ENDIF))
     }
 
     fun castMat3(m: Mat4) = Mat3(this, "mat3(${m.value})")

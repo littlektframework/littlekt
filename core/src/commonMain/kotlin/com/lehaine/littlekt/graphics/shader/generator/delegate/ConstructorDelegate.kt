@@ -17,7 +17,7 @@ class ConstructorDelegate<T : Variable>(private val v: T, initialValue: String? 
     init {
         val definitionString = "${v.typeName} {def} ${getInitializerExpr(initialValue)}"
         define = Instruction(InstructionType.DEFINE, definitionString)
-        v.builder.instructions.add(define)
+        v.builder.addInstruction(define)
     }
 
     operator fun provideDelegate(thisRef: Any?, property: KProperty<*>): ConstructorDelegate<T> {
@@ -38,7 +38,7 @@ class ConstructorDelegate<T : Variable>(private val v: T, initialValue: String? 
             define.result = define.result.replace("{def}", property.name)
             defined = true
         }
-        v.builder.instructions.add(Instruction.assign(property.name, value.value))
+        v.builder.addInstruction(Instruction.assign(property.name, value.value))
     }
 
     private fun getInitializerExpr(initialValue: String?): String {

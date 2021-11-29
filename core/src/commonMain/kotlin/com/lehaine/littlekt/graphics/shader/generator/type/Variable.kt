@@ -15,3 +15,9 @@ interface Variable {
 interface GenType : Variable
 interface Vector : GenType
 interface Matrix : Variable
+
+interface Func {
+    val builder: GlslGenerator
+    val typeName: String
+    var value: String?
+}

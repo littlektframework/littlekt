@@ -30,7 +30,7 @@ class VaryingDelegate<T : Variable>(private val factory: (GlslGenerator) -> T, p
 
     operator fun setValue(thisRef: GlslGenerator, property: KProperty<*>, value: T) {
         v.builder.varyings.add("${precision.value}${v.typeName} ${property.name}")
-        v.builder.instructions.add(Instruction.assign(property.name, value.value))
+        v.builder.addInstruction(Instruction.assign(property.name, value.value))
     }
 }
 

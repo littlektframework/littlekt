@@ -32,7 +32,6 @@ class GLFloat(override val builder: GlslGenerator) : GenType {
     operator fun plus(a: GLFloat) = GLFloat(builder, "(${this.value} + ${a.value})")
     operator fun minus(a: GLFloat) = GLFloat(builder, "(${this.value} - ${a.value})")
 
-
     operator fun minus(a: Vec2) = Vec2(builder, "(${this.value} - ${a.value})")
     operator fun minus(a: Vec3) = Vec3(builder, "(${this.value} - ${a.value})")
     operator fun minus(a: Vec4) = Vec4(builder, "(${this.value} - ${a.value})")
