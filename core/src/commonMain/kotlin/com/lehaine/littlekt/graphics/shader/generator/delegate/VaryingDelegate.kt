@@ -24,12 +24,28 @@ class VaryingDelegate<T : Variable>(private val factory: (GlslGenerator) -> T, p
     }
 
     operator fun getValue(thisRef: GlslGenerator, property: KProperty<*>): T {
-        thisRef.varyings.add("${precision.value}${v.typeName} ${property.name}")
+        v.builder.varyings.add("${precision.value}${v.typeName} ${property.name}")
         return v
     }
 
     operator fun setValue(thisRef: GlslGenerator, property: KProperty<*>, value: T) {
-        thisRef.varyings.add("${precision.value}${v.typeName} ${property.name}")
-        thisRef.instructions.add(Instruction.assign(property.name, value.value))
+        v.builder.varyings.add("${precision.value}${v.typeName} ${property.name}")
+        v.builder.instructions.add(Instruction.assign(property.name, value.value))
+    }
+}
+
+class VaryingConstructorDelegate<T : Variable>(private val v: T, private val precision: Precision) {
+
+    operator fun provideDelegate(
+        thisRef: Any?,
+        property: KProperty<*>
+    ): VaryingConstructorDelegate<T> {
+        v.value = property.name
+        return this
+    }
+
+    operator fun getValue(thisRef: Any?, property: KProperty<*>): T {
+        v.builder.varyings.add("${precision.value}${v.typeName} ${property.name}")
+        return v
     }
 }

@@ -3,6 +3,7 @@ package com.lehaine.littlekt.graphics.shader
 import com.lehaine.littlekt.graphics.shader.generator.GlslGenerator
 import com.lehaine.littlekt.graphics.shader.generator.delegate.BuiltinVarDelegate
 import com.lehaine.littlekt.graphics.shader.generator.type.BoolResult
+import com.lehaine.littlekt.graphics.shader.generator.type.vec.Vec2
 
 /**
  * @author Colton Daily
@@ -16,7 +17,7 @@ interface Shader {
 interface FragmentShader : Shader
 interface VertexShader : Shader
 
-open class FragmentShaderModel : GlslGenerator(), FragmentShader {
+abstract class FragmentShaderModel : GlslGenerator(), FragmentShader {
     var gl_FragCoord by BuiltinVarDelegate()
     var gl_FragColor by BuiltinVarDelegate()
 
@@ -31,7 +32,7 @@ open class FragmentShaderModel : GlslGenerator(), FragmentShader {
         }
 }
 
-open class VertexShaderModel : GlslGenerator(), VertexShader {
+abstract class VertexShaderModel : GlslGenerator(), VertexShader {
     var gl_Position by BuiltinVarDelegate()
 
     override var source: String = ""
@@ -41,4 +42,15 @@ open class VertexShaderModel : GlslGenerator(), VertexShader {
             }
             return field
         }
+}
+
+
+open class ShaderModel {
+    inline fun fragment(crossinline src: FragmentShaderModel.() -> Unit): FragmentShaderModel {
+        return object : FragmentShaderModel() {}.apply(src)
+    }
+
+    inline fun vertex(crossinline src: VertexShaderModel.() -> Unit): VertexShaderModel {
+        return object : VertexShaderModel() {}.apply(src)
+    }
 }

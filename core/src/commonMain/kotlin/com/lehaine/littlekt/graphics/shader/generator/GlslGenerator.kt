@@ -19,6 +19,7 @@ import com.lehaine.littlekt.graphics.shader.generator.type.vec.Vec2
 import com.lehaine.littlekt.graphics.shader.generator.type.vec.Vec3
 import com.lehaine.littlekt.graphics.shader.generator.type.vec.Vec4
 import kotlin.jvm.JvmInline
+import kotlin.reflect.KClass
 
 
 /**
@@ -134,11 +135,32 @@ abstract class GlslGenerator : GlslProvider, Shader {
     fun <T : Variable> varying(factory: (GlslGenerator) -> T, precision: Precision = Precision.DEFAULT) =
         VaryingDelegate(factory, precision)
 
+    @Suppress("UNCHECKED_CAST")
+    fun <T : Variable> varying(
+        clazz: KClass<T>,
+        precision: Precision = Precision.DEFAULT
+    ): VaryingConstructorDelegate<T> =
+        VaryingConstructorDelegate(createVariable(clazz), precision) as VaryingConstructorDelegate<T>
+
     fun <T : Variable> attribute(factory: (GlslGenerator) -> T, precision: Precision = Precision.DEFAULT) =
         AttributeDelegate(factory, precision)
 
+    @Suppress("UNCHECKED_CAST")
+    fun <T : Variable> attribute(
+        clazz: KClass<T>,
+        precision: Precision = Precision.DEFAULT
+    ): AttributeConstructorDelegate<T> =
+        AttributeConstructorDelegate(createVariable(clazz), precision) as AttributeConstructorDelegate<T>
+
     fun <T : Variable> uniform(factory: (GlslGenerator) -> T, precision: Precision = Precision.DEFAULT) =
         UniformDelegate(factory, precision)
+
+    @Suppress("UNCHECKED_CAST")
+    fun <T : Variable> uniform(
+        clazz: KClass<T>,
+        precision: Precision = Precision.DEFAULT
+    ): UniformConstructorDelegate<T> =
+        UniformConstructorDelegate(createVariable(clazz), precision) as UniformConstructorDelegate<T>
 
     fun <T : Variable> uniformArray(
         size: Int,
@@ -149,6 +171,17 @@ abstract class GlslGenerator : GlslProvider, Shader {
 
     fun <T : Variable> samplersArray(size: Int, precision: Precision = Precision.DEFAULT) =
         UniformArrayDelegate(size, ::Sampler2DArray, precision)
+
+    private fun <T : Variable> createVariable(clazz: KClass<T>) = when (clazz) {
+        GLFloat::class -> GLFloat(this)
+        GLInt::class -> GLInt(this)
+        Vec2::class -> Vec2(this)
+        Vec3::class -> Vec3(this)
+        Vec4::class -> Vec4(this)
+        Mat4::class -> Mat4(this)
+        Sampler2D::class -> Sampler2D(this)
+        else -> throw RuntimeException("${clazz.simpleName} is not supported!")
+    }
 
     fun discard() = instructions.add(Instruction(DISCARD))
 
