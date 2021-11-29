@@ -19,6 +19,11 @@ class Vec4(override val builder: GlslGenerator) : Vector {
     var z by floatComponent()
     var w by floatComponent()
 
+    var r by ::x
+    var g by ::y
+    var b by ::z
+    var a by ::w
+
     var xx by vec2Component()
     var xy by vec2Component()
     var xz by vec2Component()

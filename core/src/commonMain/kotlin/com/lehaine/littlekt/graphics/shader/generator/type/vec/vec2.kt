@@ -36,6 +36,7 @@ class Vec2(override val builder: GlslGenerator) : Vector {
     operator fun plus(a: Vec2) = Vec2(builder, "(${this.value} + ${a.value})")
     operator fun plus(a: Float) = Vec2(builder, "(${this.value} + ${a.str()})")
     operator fun minus(a: Vec2) = Vec2(builder, "(${this.value} - ${a.value})")
+    operator fun minus(a: Float) = Vec2(builder, "(${this.value} - ${a.str()})")
 
     operator fun unaryMinus() = Vec2(builder, "-(${this.value})")
 }

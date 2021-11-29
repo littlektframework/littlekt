@@ -5,6 +5,9 @@ import com.lehaine.littlekt.graphics.shader.generator.delegate.ComponentDelegate
 import com.lehaine.littlekt.graphics.shader.generator.str
 import com.lehaine.littlekt.graphics.shader.generator.type.BoolResult
 import com.lehaine.littlekt.graphics.shader.generator.type.GenType
+import com.lehaine.littlekt.graphics.shader.generator.type.vec.Vec2
+import com.lehaine.littlekt.graphics.shader.generator.type.vec.Vec3
+import com.lehaine.littlekt.graphics.shader.generator.type.vec.Vec4
 
 /**
  * @author Colton Daily
@@ -28,6 +31,11 @@ class GLFloat(override val builder: GlslGenerator) : GenType {
     operator fun div(a: GLFloat) = GLFloat(builder, "(${this.value} / ${a.value})")
     operator fun plus(a: GLFloat) = GLFloat(builder, "(${this.value} + ${a.value})")
     operator fun minus(a: GLFloat) = GLFloat(builder, "(${this.value} - ${a.value})")
+
+
+    operator fun minus(a: Vec2) = Vec2(builder, "(${this.value} - ${a.value})")
+    operator fun minus(a: Vec3) = Vec3(builder, "(${this.value} - ${a.value})")
+    operator fun minus(a: Vec4) = Vec4(builder, "(${this.value} - ${a.value})")
 
     operator fun unaryMinus() = GLFloat(builder, "-(${this.value})")
 

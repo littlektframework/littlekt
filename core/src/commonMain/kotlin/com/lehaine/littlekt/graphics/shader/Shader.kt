@@ -1,9 +1,11 @@
 package com.lehaine.littlekt.graphics.shader
 
 import com.lehaine.littlekt.graphics.shader.generator.GlslGenerator
-import com.lehaine.littlekt.graphics.shader.generator.delegate.BuiltinVarDelegate
+import com.lehaine.littlekt.graphics.shader.generator.Precision
+import com.lehaine.littlekt.graphics.shader.generator.delegate.*
 import com.lehaine.littlekt.graphics.shader.generator.type.BoolResult
-import com.lehaine.littlekt.graphics.shader.generator.type.vec.Vec2
+import com.lehaine.littlekt.graphics.shader.generator.type.Variable
+import kotlin.reflect.KClass
 
 /**
  * @author Colton Daily
@@ -30,6 +32,23 @@ abstract class FragmentShaderModel : GlslGenerator(), FragmentShader {
             }
             return field
         }
+
+
+    /**
+     * Data coming **IN** from the Vertex Shader.
+     */
+    fun <T : Variable> varying(factory: (GlslGenerator) -> T, precision: Precision = Precision.DEFAULT) =
+        VaryingDelegate(factory, precision)
+
+    /**
+     * Data coming **IN** from the Vertex Shader.
+     */
+    @Suppress("UNCHECKED_CAST")
+    fun <T : Variable> varyingCtr(
+        clazz: KClass<T>,
+        precision: Precision = Precision.DEFAULT
+    ): VaryingConstructorDelegate<T> =
+        VaryingConstructorDelegate(createVariable(clazz), precision) as VaryingConstructorDelegate<T>
 }
 
 abstract class VertexShaderModel : GlslGenerator(), VertexShader {
@@ -42,6 +61,39 @@ abstract class VertexShaderModel : GlslGenerator(), VertexShader {
             }
             return field
         }
+
+    /**
+     * Data that may change per vertex. Passed from the OpenGL context to the Vertex Shader.
+     */
+    fun <T : Variable> attribute(factory: (GlslGenerator) -> T, precision: Precision = Precision.DEFAULT) =
+        AttributeDelegate(factory, precision)
+
+    /**
+     * Data that may change per vertex. Passed from the OpenGL context to the Vertex Shader.
+     */
+    @Suppress("UNCHECKED_CAST")
+    fun <T : Variable> attributeCtr(
+        clazz: KClass<T>,
+        precision: Precision = Precision.DEFAULT
+    ): AttributeConstructorDelegate<T> =
+        AttributeConstructorDelegate(createVariable(clazz), precision) as AttributeConstructorDelegate<T>
+
+
+    /**
+     * Data going **OUT** to the Fragment Shader.
+     */
+    fun <T : Variable> varying(factory: (GlslGenerator) -> T, precision: Precision = Precision.DEFAULT) =
+        VaryingDelegate(factory, precision)
+
+    /**
+     * Data going **OUT** to the Fragment Shader.
+     */
+    @Suppress("UNCHECKED_CAST")
+    fun <T : Variable> varyingCtr(
+        clazz: KClass<T>,
+        precision: Precision = Precision.DEFAULT
+    ): VaryingConstructorDelegate<T> =
+        VaryingConstructorDelegate(createVariable(clazz), precision) as VaryingConstructorDelegate<T>
 }
 
 

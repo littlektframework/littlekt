@@ -4,7 +4,10 @@ import com.lehaine.littlekt.graphics.shader.FragmentShader
 import com.lehaine.littlekt.graphics.shader.Shader
 import com.lehaine.littlekt.graphics.shader.ShaderParameter
 import com.lehaine.littlekt.graphics.shader.generator.InstructionType.*
-import com.lehaine.littlekt.graphics.shader.generator.delegate.*
+import com.lehaine.littlekt.graphics.shader.generator.delegate.ConstructorDelegate
+import com.lehaine.littlekt.graphics.shader.generator.delegate.UniformArrayDelegate
+import com.lehaine.littlekt.graphics.shader.generator.delegate.UniformConstructorDelegate
+import com.lehaine.littlekt.graphics.shader.generator.delegate.UniformDelegate
 import com.lehaine.littlekt.graphics.shader.generator.type.BoolResult
 import com.lehaine.littlekt.graphics.shader.generator.type.GenType
 import com.lehaine.littlekt.graphics.shader.generator.type.Variable
@@ -33,7 +36,7 @@ enum class InstructionType {
     ELSEIF,
     ELSE,
     ENDIF,
-    DISCARD
+    DISCARD,
 }
 
 data class Instruction(val type: InstructionType, var result: String = "") {
@@ -58,13 +61,16 @@ interface GlslProvider {
     fun generate(): String
 }
 
-abstract class GlslGenerator : GlslProvider, Shader {
-    val uniforms = mutableSetOf<String>()
-    val attributes = mutableSetOf<String>()
-    val varyings = mutableSetOf<String>()
-    override val parameters = mutableListOf<ShaderParameter>()
+abstract class GlslGenerator : GlslProvider {
+    internal val uniforms = mutableSetOf<String>()
+    internal val attributes = mutableSetOf<String>()
+    internal val varyings = mutableSetOf<String>()
 
-    val instructions = mutableListOf<Instruction>()
+    @PublishedApi
+    internal val instructions = mutableListOf<Instruction>()
+
+    val parameters = mutableListOf<ShaderParameter>()
+
 
     override fun generate(): String {
         removeUnusedDefinitions()
@@ -132,31 +138,11 @@ abstract class GlslGenerator : GlslProvider, Shader {
         instructions.removeAll { it.result.contains("{def}") }
     }
 
-    fun <T : Variable> varying(factory: (GlslGenerator) -> T, precision: Precision = Precision.DEFAULT) =
-        VaryingDelegate(factory, precision)
-
-    @Suppress("UNCHECKED_CAST")
-    fun <T : Variable> varying(
-        clazz: KClass<T>,
-        precision: Precision = Precision.DEFAULT
-    ): VaryingConstructorDelegate<T> =
-        VaryingConstructorDelegate(createVariable(clazz), precision) as VaryingConstructorDelegate<T>
-
-    fun <T : Variable> attribute(factory: (GlslGenerator) -> T, precision: Precision = Precision.DEFAULT) =
-        AttributeDelegate(factory, precision)
-
-    @Suppress("UNCHECKED_CAST")
-    fun <T : Variable> attribute(
-        clazz: KClass<T>,
-        precision: Precision = Precision.DEFAULT
-    ): AttributeConstructorDelegate<T> =
-        AttributeConstructorDelegate(createVariable(clazz), precision) as AttributeConstructorDelegate<T>
-
     fun <T : Variable> uniform(factory: (GlslGenerator) -> T, precision: Precision = Precision.DEFAULT) =
         UniformDelegate(factory, precision)
 
     @Suppress("UNCHECKED_CAST")
-    fun <T : Variable> uniform(
+    fun <T : Variable> uniformCtr(
         clazz: KClass<T>,
         precision: Precision = Precision.DEFAULT
     ): UniformConstructorDelegate<T> =
@@ -172,7 +158,7 @@ abstract class GlslGenerator : GlslProvider, Shader {
     fun <T : Variable> samplersArray(size: Int, precision: Precision = Precision.DEFAULT) =
         UniformArrayDelegate(size, ::Sampler2DArray, precision)
 
-    private fun <T : Variable> createVariable(clazz: KClass<T>) = when (clazz) {
+    internal fun <T : Variable> createVariable(clazz: KClass<T>) = when (clazz) {
         GLFloat::class -> GLFloat(this)
         GLInt::class -> GLInt(this)
         Vec2::class -> Vec2(this)
@@ -382,6 +368,9 @@ abstract class GlslGenerator : GlslProvider, Shader {
     fun refract(i: GenType, n: GenType, eta: GLFloat) =
         Vec3(this, "refract(${i.value}, ${n.value}, ${eta.value})")
 
+    fun dFdx(v: GLFloat) = GLFloat(this, "dFdx(${v.value}")
+    fun dFdy(v: GLFloat) = GLFloat(this, "dFdy(${v.value}")
+
     fun shadow2D(sampler: ShadowTexture2D, v: Vec2) = Vec4(this, "shadow2D(${sampler.value}, ${v.value})")
     fun texture2D(sampler: Sampler2D, v: Vec2) = Vec4(this, "texture2D(${sampler.value}, ${v.value})")
 
@@ -400,7 +389,15 @@ abstract class GlslGenerator : GlslProvider, Shader {
     fun vec2(x: Float, y: GLFloat) = ConstructorDelegate(Vec2(this), "vec2(${x.str()}, ${y.value})")
     fun vec2(x: GLFloat, y: GLFloat) = ConstructorDelegate(Vec2(this), "vec2(${x.value}, ${y.value})")
 
+    fun vec2Lit() = Vec2(this)
+    fun vec2Lit(x: Vec2) = Vec2(this, "${x.value}")
+    fun vec2Lit(x: Float, y: Float) = Vec2(this, "vec2(${x.str()}, ${y.str()})")
+    fun vec2Lit(x: GLFloat, y: Float) = Vec2(this, "vec2(${x.value}, ${y.str()})")
+    fun vec2Lit(x: Float, y: GLFloat) = Vec2(this, "vec2(${x.str()}, ${y.value})")
+    fun vec2Lit(x: GLFloat, y: GLFloat) = Vec2(this, "vec2(${x.value}, ${y.value})")
+
     fun vec3() = ConstructorDelegate(Vec3(this))
+    fun vec3(v: Vec3) = ConstructorDelegate(Vec3(this), "${v.value}")
     fun vec3(x: GLFloat, y: GLFloat, z: GLFloat) =
         ConstructorDelegate(Vec3(this), ("vec3(${x.value}, ${y.value}, ${z.value})"))
 
@@ -431,6 +428,7 @@ abstract class GlslGenerator : GlslProvider, Shader {
     fun vec3(x: GLFloat, v2: Vec2) = ConstructorDelegate(Vec3(this), ("vec3(${x.value}, ${v2.value})"))
 
     fun vec3Lit() = Vec3(this)
+    fun vec3Lit(v: Vec3) = Vec3(this, "${v.value}")
     fun vec3Lit(x: GLFloat, y: GLFloat, z: GLFloat) =
         Vec3(this, "vec3(${x.value}, ${y.value}, ${z.value})")
 
@@ -510,8 +508,8 @@ abstract class GlslGenerator : GlslProvider, Shader {
 
     fun mat3() = ConstructorDelegate(Mat3(this))
 
-    val Float.gl get() = GLFloat(this@GlslGenerator, this.str())
-    val Int.gl get() = GLInt(this@GlslGenerator, this.toString())
+    val Float.lit get() = GLFloat(this@GlslGenerator, this.str())
+    val Int.lit get() = GLInt(this@GlslGenerator, this.toString())
 
     operator fun Float.minus(a: GLFloat) = GLFloat(a.builder, "(${this.str()} - ${a.value})")
     operator fun Float.plus(a: GLFloat) = GLFloat(a.builder, "(${this.str()} + ${a.value})")

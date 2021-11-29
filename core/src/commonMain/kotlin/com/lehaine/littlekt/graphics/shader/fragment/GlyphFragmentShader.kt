@@ -10,16 +10,16 @@ import com.lehaine.littlekt.graphics.shader.generator.type.vec.Vec4
  */
 class GlyphFragmentShader : FragmentShaderModel() {
     private val color by uniform(::Vec4)
-    private val coord2 by varying(::Vec2)
+    private val coord by varying(::Vec2)
 
     init {
-        If(coord2.x * coord2.x - coord2.y gt 0f) {
+        If(coord.x * coord.x - coord.y gt 0f) {
             discard()
         }
 
         var frontFaces by float(1f / 255f)
         If(gl_frontFacing) {
-            frontFaces = (16f / 255f).gl
+            frontFaces = (16f / 255f).lit
         }
         gl_FragColor = color * frontFaces
     }
