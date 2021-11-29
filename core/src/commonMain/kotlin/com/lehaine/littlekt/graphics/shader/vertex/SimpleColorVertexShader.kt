@@ -1,7 +1,6 @@
 package com.lehaine.littlekt.graphics.shader.vertex
 
-import com.lehaine.littlekt.graphics.shader.GeneratedShader
-import com.lehaine.littlekt.graphics.shader.VertexShader
+import com.lehaine.littlekt.graphics.shader.VertexShaderModel
 import com.lehaine.littlekt.graphics.shader.generator.type.mat.Mat4
 import com.lehaine.littlekt.graphics.shader.generator.type.vec.Vec4
 
@@ -10,7 +9,7 @@ import com.lehaine.littlekt.graphics.shader.generator.type.vec.Vec4
  * @date 9/28/2021
  */
 
-class SimpleColorVertexShader : GeneratedShader(), VertexShader {
+class SimpleColorVertexShader : VertexShaderModel() {
     private val a_position by attribute(::Vec4)
     private val a_color by attribute(::Vec4)
     private val u_projTrans by uniform(::Mat4)

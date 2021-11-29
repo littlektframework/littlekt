@@ -131,7 +131,7 @@ abstract class FileHandler(
         awaitedAssetsChannel.send(awaitedAsset)
         val loaded = awaitedAsset.awaiting.await() as LoadedRawAsset
         loaded.data?.let {
-            logger.debug { "Loaded ${assetPathToName(assetPath)} (${(it.capacity / 1024.0 / 1024.0).toString(1)} mb)" }
+            logger.debug { "Loaded ${assetPathToName(assetPath)} (${(it.capacity / 1024.0 / 1024.0).toString(2)} mb)" }
         }
         return loaded.data ?: throw RuntimeException("Failed loading $assetPath")
     }

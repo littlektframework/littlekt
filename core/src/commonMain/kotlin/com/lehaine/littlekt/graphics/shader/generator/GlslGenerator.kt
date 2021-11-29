@@ -401,6 +401,36 @@ abstract class GlslGenerator : GlslProvider, Shader {
     fun vec3(x: Float, v2: Vec2) = ConstructorDelegate(Vec3(this), ("vec3(${x.str()}, ${v2.value})"))
     fun vec3(x: GLFloat, v2: Vec2) = ConstructorDelegate(Vec3(this), ("vec3(${x.value}, ${v2.value})"))
 
+    fun vec3Lit() = Vec3(this)
+    fun vec3Lit(x: GLFloat, y: GLFloat, z: GLFloat) =
+        Vec3(this, "vec3(${x.value}, ${y.value}, ${z.value})")
+
+    fun vec3Lit(x: GLFloat, y: GLFloat, z: Float) =
+        Vec3(this, "vec3(${x.value}, ${y.value}, ${z.str()})")
+
+    fun vec3Lit(x: GLFloat, y: Float, z: GLFloat) =
+        Vec3(this, "vec3(${x.value}, ${y.str()}, ${z.value})")
+
+    fun vec3Lit(x: GLFloat, y: Float, z: Float) =
+        Vec3(this, "vec3(${x.value}, ${y.str()}, ${z.str()})")
+
+    fun vec3Lit(x: Float, y: GLFloat, z: GLFloat) =
+        Vec3(this, "vec3(${x.str()}, ${y.value}, ${z.value})")
+
+    fun vec3Lit(x: Float, y: GLFloat, z: Float) =
+        Vec3(this, "vec3(${x.str()}, ${y.value}, ${z.str()})")
+
+    fun vec3Lit(x: Float, y: Float, z: GLFloat) =
+        Vec3(this, "vec3(${x.str()}, ${y.str()}, ${z.value})")
+
+    fun vec3Lit(x: Float, y: Float, z: Float) =
+        Vec3(this, "vec3(${x.str()}, ${y.str()}, ${z.str()})")
+
+    fun vec3Lit(v2: Vec2, z: Float) = Vec3(this, "vec3(${v2.value}, ${z.str()})")
+    fun vec3Lit(v2: Vec2, z: GLFloat) = Vec3(this, "vec3(${v2.value}, ${z.value})")
+    fun vec3Lit(x: Float, v2: Vec2) = Vec3(this, "vec3(${x.str()}, ${v2.value})")
+    fun vec3Lit(x: GLFloat, v2: Vec2) = Vec3(this, "vec3(${x.value}, ${v2.value})")
+
     fun vec4() = ConstructorDelegate(Vec4(this))
     fun vec4(vec3: Vec3, w: Float) = ConstructorDelegate(Vec4(this), ("vec4(${vec3.value}, ${w.str()})"))
     fun vec4(vec3: Vec3, w: GLFloat) = ConstructorDelegate(Vec4(this), ("vec4(${vec3.value}, ${w.value})"))
@@ -425,7 +455,34 @@ abstract class GlslGenerator : GlslProvider, Shader {
     fun vec4(x: GLFloat, y: GLFloat, z: Float, w: Float) =
         ConstructorDelegate(Vec4(this), ("vec4(${x.value}, ${y.value}, ${z.str()}, ${w.str()})"))
 
+    fun vec4Lit() = Vec4(this)
+    fun vec4Lit(vec3: Vec3, w: Float) = Vec4(this, "vec4(${vec3.value}, ${w.str()})")
+    fun vec4Lit(vec3: Vec3, w: GLFloat) = Vec4(this, "vec4(${vec3.value}, ${w.value})")
+    fun vec4Lit(vec2: Vec2, z: Float, w: Float) =
+        Vec4(this, "vec4(${vec2.value}, ${z.str()}, ${w.str()})")
+
+    fun vec4Lit(x: GLFloat, y: GLFloat, zw: Vec2) =
+        Vec4(this, "vec4(${x.value}, ${y.value}, ${zw.value})")
+
+    fun vec4Lit(x: Float, y: Float, z: Float, w: Float) =
+        Vec4(this, "vec4(${x.str()}, ${y.str()}, ${z.str()}, ${w.str()})")
+
+    fun vec4Lit(x: Float, y: Float, z: Float, w: GLFloat) =
+        Vec4(this, "vec4(${x.str()}, ${y.str()}, ${z.str()}, ${w.value})")
+
+    fun vec4Lit(x: GLFloat, y: GLFloat, z: GLFloat, w: GLFloat) =
+        Vec4(this, "vec4(${x.value}, ${y.value}, ${z.value}, ${w.value})")
+
+    fun vec4Lit(x: GLFloat, y: GLFloat, z: GLFloat, w: Float) =
+        Vec4(this, "vec4(${x.value}, ${y.value}, ${z.value}, ${w.str()})")
+
+    fun vec4Lit(x: GLFloat, y: GLFloat, z: Float, w: Float) =
+        Vec4(this, "vec4(${x.value}, ${y.value}, ${z.str()}, ${w.str()})")
+
     fun mat3() = ConstructorDelegate(Mat3(this))
+
+    val gl_frontFacing = BoolResult("gl_frontFacing")
+    val Float.gl get() = GLFloat(this@GlslGenerator, this.str())
 
     operator fun Float.minus(a: GLFloat) = GLFloat(a.builder, "(${this.str()} - ${a.value})")
     operator fun Float.plus(a: GLFloat) = GLFloat(a.builder, "(${this.str()} + ${a.value})")

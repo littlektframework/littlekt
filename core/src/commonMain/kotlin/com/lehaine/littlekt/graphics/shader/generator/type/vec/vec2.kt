@@ -18,6 +18,9 @@ class Vec2(override val builder: GlslGenerator) : Vector {
     var x by floatComponent()
     var y by floatComponent()
 
+    val xy: Vec2 by lazy { Vec2(builder, "${this.value}.xy") }
+    val yx: Vec2 by lazy { Vec2(builder, "${this.value}.yx") }
+
     constructor(builder: GlslGenerator, value: String) : this(builder) {
         this.value = value
     }

@@ -30,6 +30,13 @@ class Vec3(override val builder: GlslGenerator) : Vector {
     var zy by vec2Component()
     var zz by vec2Component()
 
+    val xyz: Vec3 by lazy { Vec3(builder, "${this.value}.xyz") }
+    val xzy: Vec3 by lazy { Vec3(builder, "${this.value}.xzy") }
+    val yxz: Vec3 by lazy { Vec3(builder, "${this.value}.yxz") }
+    val yzx: Vec3 by lazy { Vec3(builder, "${this.value}.yzx") }
+    val zyx: Vec3 by lazy { Vec3(builder, "${this.value}.zyx") }
+    val zxy: Vec3 by lazy { Vec3(builder, "${this.value}.zxy") }
+
     constructor(builder: GlslGenerator, value: String) : this(builder) {
         this.value = value
     }

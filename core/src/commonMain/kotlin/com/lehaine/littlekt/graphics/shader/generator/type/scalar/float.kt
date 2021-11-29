@@ -31,6 +31,8 @@ class GLFloat(override val builder: GlslGenerator) : GenType {
 
     operator fun unaryMinus() = GLFloat(builder, "-(${this.value})")
 
+    infix fun setTo(a: Float) = GLFloat(builder, a.str())
+
     infix fun eq(a: GLFloat) = BoolResult("(${this.value} == ${a.value})")
     infix fun gte(a: GLFloat) = BoolResult("(${this.value} >= ${a.value})")
     infix fun gt(a: GLFloat) = BoolResult("(${this.value} > ${a.value})")
