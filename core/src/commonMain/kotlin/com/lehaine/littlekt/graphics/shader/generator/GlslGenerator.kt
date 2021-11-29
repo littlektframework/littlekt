@@ -65,10 +65,6 @@ abstract class GlslGenerator : GlslProvider, Shader {
 
     val instructions = mutableListOf<Instruction>()
 
-    var gl_Position by BuiltinVarDelegate()
-    var gl_FragCoord by BuiltinVarDelegate()
-    var gl_FragColor by BuiltinVarDelegate()
-
     override fun generate(): String {
         removeUnusedDefinitions()
         val sb = StringBuilder()
@@ -481,8 +477,8 @@ abstract class GlslGenerator : GlslProvider, Shader {
 
     fun mat3() = ConstructorDelegate(Mat3(this))
 
-    val gl_frontFacing = BoolResult("gl_frontFacing")
     val Float.gl get() = GLFloat(this@GlslGenerator, this.str())
+    val Int.gl get() = GLInt(this@GlslGenerator, this.toString())
 
     operator fun Float.minus(a: GLFloat) = GLFloat(a.builder, "(${this.str()} - ${a.value})")
     operator fun Float.plus(a: GLFloat) = GLFloat(a.builder, "(${this.str()} + ${a.value})")
