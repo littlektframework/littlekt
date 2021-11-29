@@ -36,11 +36,6 @@ class TextFragmentShader : FragmentShaderModel() {
         )
 
         // Optionally scale by a color
-        If(color.a eq 0f.lit) {
-            gl_FragColor = 1f.lit - rgba
-        }
-        Else {
-            gl_FragColor = color * rgba
-        }
+        gl_FragColor = ternary(color.a eq 0f.lit, left = 1f.lit - rgba, right = color * rgba)
     }
 }

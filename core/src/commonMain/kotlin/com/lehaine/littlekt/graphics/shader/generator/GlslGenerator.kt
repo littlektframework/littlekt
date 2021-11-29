@@ -1,7 +1,6 @@
 package com.lehaine.littlekt.graphics.shader.generator
 
 import com.lehaine.littlekt.graphics.shader.FragmentShader
-import com.lehaine.littlekt.graphics.shader.Shader
 import com.lehaine.littlekt.graphics.shader.ShaderParameter
 import com.lehaine.littlekt.graphics.shader.generator.InstructionType.*
 import com.lehaine.littlekt.graphics.shader.generator.delegate.ConstructorDelegate
@@ -191,6 +190,21 @@ abstract class GlslGenerator : GlslProvider {
 
     fun castMat3(m: Mat4) = Mat3(this, "mat3(${m.value})")
     fun int(v: GLFloat) = GLInt(this, "int(${v.value})")
+
+    fun ternary(condition: BoolResult, left: GLInt, right: GLInt): GLInt =
+        GLInt(this, "${condition.value} ? ${left.value} : ${right.value}")
+
+    fun ternary(condition: BoolResult, left: GLFloat, right: GLFloat): GLFloat =
+        GLFloat(this, "${condition.value} ? ${left.value} : ${right.value}")
+
+    fun ternary(condition: BoolResult, left: Vec2, right: Vec2): Vec2 =
+        Vec2(this, "${condition.value} ? ${left.value} : ${right.value}")
+
+    fun ternary(condition: BoolResult, left: Vec3, right: Vec3): Vec3 =
+        Vec3(this, "${condition.value} ? ${left.value} : ${right.value}")
+
+    fun ternary(condition: BoolResult, left: Vec4, right: Vec4): Vec4 =
+        Vec4(this, "${condition.value} ? ${left.value} : ${right.value}")
 
     fun radians(v: GLFloat) = GLFloat(this, "radians(${v.value})")
     fun radians(v: Vec2) = Vec2(this, "radians(${v.value})")

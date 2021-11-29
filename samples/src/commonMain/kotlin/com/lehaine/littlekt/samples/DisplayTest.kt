@@ -5,6 +5,7 @@ import com.lehaine.littlekt.LittleKt
 import com.lehaine.littlekt.createShader
 import com.lehaine.littlekt.graphics.*
 import com.lehaine.littlekt.graphics.shader.fragment.SimpleColorFragmentShader
+import com.lehaine.littlekt.graphics.shader.fragment.TextFragmentShader
 import com.lehaine.littlekt.graphics.shader.vertex.SimpleColorVertexShader
 import com.lehaine.littlekt.input.InputProcessor
 import com.lehaine.littlekt.input.Key
