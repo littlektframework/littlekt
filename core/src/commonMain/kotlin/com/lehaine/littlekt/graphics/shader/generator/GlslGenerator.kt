@@ -434,9 +434,6 @@ abstract class GlslGenerator : GlslProvider {
     fun refract(i: GenType, n: GenType, eta: GLFloat) =
         Vec3(this, "refract(${i.value}, ${n.value}, ${eta.value})")
 
-    fun dFdx(v: GLFloat) = GLFloat(this, "dFdx(${v.value}")
-    fun dFdy(v: GLFloat) = GLFloat(this, "dFdy(${v.value}")
-
     fun shadow2D(sampler: ShadowTexture2D, v: Vec2) = Vec4(this, "shadow2D(${sampler.value}, ${v.value})")
     fun texture2D(sampler: Sampler2D, v: Vec2) = Vec4(this, "texture2D(${sampler.value}, ${v.value})")
 

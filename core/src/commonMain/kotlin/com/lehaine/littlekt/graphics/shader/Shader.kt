@@ -5,6 +5,7 @@ import com.lehaine.littlekt.graphics.shader.generator.Precision
 import com.lehaine.littlekt.graphics.shader.generator.delegate.*
 import com.lehaine.littlekt.graphics.shader.generator.type.BoolResult
 import com.lehaine.littlekt.graphics.shader.generator.type.Variable
+import com.lehaine.littlekt.graphics.shader.generator.type.scalar.GLFloat
 import kotlin.reflect.KClass
 
 /**
@@ -20,11 +21,6 @@ interface FragmentShader : Shader
 interface VertexShader : Shader
 
 abstract class FragmentShaderModel : GlslGenerator(), FragmentShader {
-    var gl_FragCoord by BuiltinVarDelegate()
-    var gl_FragColor by BuiltinVarDelegate()
-
-    val gl_frontFacing = BoolResult("gl_frontFacing")
-
     override var source: String = ""
         get() {
             if (field.isBlank()) {
@@ -33,6 +29,10 @@ abstract class FragmentShaderModel : GlslGenerator(), FragmentShader {
             return field
         }
 
+    var gl_FragCoord by BuiltinVarDelegate()
+    var gl_FragColor by BuiltinVarDelegate()
+
+    val gl_frontFacing = BoolResult("gl_frontFacing")
 
     /**
      * Data coming **IN** from the Vertex Shader.
@@ -49,6 +49,10 @@ abstract class FragmentShaderModel : GlslGenerator(), FragmentShader {
         precision: Precision = Precision.DEFAULT
     ): VaryingConstructorDelegate<T> =
         VaryingConstructorDelegate(createVariable(clazz), precision) as VaryingConstructorDelegate<T>
+
+
+    fun dFdx(v: GLFloat) = GLFloat(this, "dFdx(${v.value}")
+    fun dFdy(v: GLFloat) = GLFloat(this, "dFdy(${v.value}")
 }
 
 abstract class VertexShaderModel : GlslGenerator(), VertexShader {
