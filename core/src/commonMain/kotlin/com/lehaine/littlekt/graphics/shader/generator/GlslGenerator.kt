@@ -5,9 +5,9 @@ import com.lehaine.littlekt.graphics.shader.ShaderParameter
 import com.lehaine.littlekt.graphics.shader.generator.InstructionType.*
 import com.lehaine.littlekt.graphics.shader.generator.delegate.*
 import com.lehaine.littlekt.graphics.shader.generator.type.BoolResult
+import com.lehaine.littlekt.graphics.shader.generator.type.Func
 import com.lehaine.littlekt.graphics.shader.generator.type.GenType
 import com.lehaine.littlekt.graphics.shader.generator.type.Variable
-import com.lehaine.littlekt.graphics.shader.generator.type.func.Void
 import com.lehaine.littlekt.graphics.shader.generator.type.mat.Mat3
 import com.lehaine.littlekt.graphics.shader.generator.type.mat.Mat4
 import com.lehaine.littlekt.graphics.shader.generator.type.sampler.Sampler2D
@@ -20,6 +20,7 @@ import com.lehaine.littlekt.graphics.shader.generator.type.vec.Vec3
 import com.lehaine.littlekt.graphics.shader.generator.type.vec.Vec4
 import kotlin.jvm.JvmInline
 import kotlin.reflect.KClass
+import com.lehaine.littlekt.graphics.shader.generator.type.func.Void as FuncVoid
 
 
 /**
@@ -193,21 +194,36 @@ abstract class GlslGenerator : GlslProvider {
     fun <T : Variable> samplersArray(size: Int, precision: Precision = Precision.DEFAULT) =
         UniformArrayDelegate(size, ::Sampler2DArray, precision)
 
-    fun <T : Variable> Void(factory: (GlslGenerator) -> T, body: (p1: T) -> Unit): FunctionDelegate<Void, T> {
-        val delegate = FunctionDelegate({ Void(this) }, factory, body)
-        return delegate
-    }
+    fun <RT : GenType, F : Func<RT>> Func(
+        funcFactory: (GlslGenerator) -> F,
+        body: () -> RT
+    ): FunctionDelegate<RT, F> = FunctionDelegate(funcFactory, body)
 
-    fun Void(body: () -> Unit): () -> Unit {
-        addAsFunctionInstruction = true
-        functionInstructions.add(Instruction(FUNC_DEFINED))
-        body()
-        functionInstructions.add(Instruction(END_FUNC))
-        addAsFunctionInstruction = false
-        return {
-            addInstruction(Instruction(INVOKE_FUNC))
-        }
-    }
+    fun <RT : GenType, F : Func<RT>, T : Variable> Func(
+        funcFactory: (GlslGenerator) -> F,
+        p1Factory: (GlslGenerator) -> T,
+        body: (p1: T) -> RT
+    ): FunctionDelegate1<RT, F, T> = FunctionDelegate1(funcFactory, p1Factory, body)
+
+    fun <RT : GenType, F : Func<RT>, A : Variable, B : Variable> Func(
+        funcFactory: (GlslGenerator) -> F,
+        p1Factory: (GlslGenerator) -> A,
+        p2Factory: (GlslGenerator) -> B,
+        body: (p1: A, p2: B) -> RT
+    ): FunctionDelegate2<RT, F, A, B> = FunctionDelegate2(funcFactory, p1Factory, p2Factory, body)
+
+    fun Void(body: () -> Unit): FunctionVoidDelegate =
+        FunctionVoidDelegate(FuncVoid(this), body)
+
+    fun <T : Variable> Void(p1Factory: (GlslGenerator) -> T, body: (p1: T) -> Unit): FunctionVoidDelegate1<T> =
+        FunctionVoidDelegate1(FuncVoid(this), p1Factory, body)
+
+    fun <A : Variable, B : Variable> Void(
+        p1Factory: (GlslGenerator) -> A,
+        p2Factory: (GlslGenerator) -> B,
+        body: (p1: A, p2: B) -> Unit
+    ): FunctionVoidDelegate2<A, B> = FunctionVoidDelegate2(FuncVoid(this), p1Factory, p2Factory, body)
+
 
     internal fun <T : Variable> createVariable(clazz: KClass<T>) = when (clazz) {
         GLFloat::class -> GLFloat(this)
