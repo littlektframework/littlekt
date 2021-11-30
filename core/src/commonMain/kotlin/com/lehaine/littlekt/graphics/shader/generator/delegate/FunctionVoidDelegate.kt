@@ -49,18 +49,18 @@ class FunctionVoidDelegate(
     }
 }
 
-class FunctionVoidDelegate1<T : Variable>(
+class FunctionVoidDelegate1<P1 : Variable>(
     private val func: Void,
-    private val param1: ((GlslGenerator) -> T),
-    private val body: (T) -> Unit
+    private val param1: ((GlslGenerator) -> P1),
+    private val body: (P1) -> Unit
 ) {
-    private lateinit var v: T
-    private lateinit var call: (T) -> Unit
+    private lateinit var v: P1
+    private lateinit var call: (P1) -> Unit
 
     operator fun provideDelegate(
         thisRef: GlslGenerator,
         property: KProperty<*>
-    ): FunctionVoidDelegate1<T> {
+    ): FunctionVoidDelegate1<P1> {
         func.value = property.name
         v = param1(thisRef)
         v.value = "p1"
@@ -85,25 +85,25 @@ class FunctionVoidDelegate1<T : Variable>(
         return this
     }
 
-    operator fun getValue(thisRef: GlslGenerator, property: KProperty<*>): (T) -> Unit {
+    operator fun getValue(thisRef: GlslGenerator, property: KProperty<*>): (P1) -> Unit {
         return call
     }
 }
 
-class FunctionVoidDelegate2<A : Variable, B : Variable>(
+class FunctionVoidDelegate2<P1 : Variable, P2 : Variable>(
     private val func: Void,
-    private val param1: ((GlslGenerator) -> A),
-    private val param2: ((GlslGenerator) -> B),
-    private val body: (A, B) -> Unit
+    private val param1: ((GlslGenerator) -> P1),
+    private val param2: ((GlslGenerator) -> P2),
+    private val body: (P1, P2) -> Unit
 ) {
-    private lateinit var p1: A
-    private lateinit var p2: B
-    private lateinit var call: (A, B) -> Unit
+    private lateinit var p1: P1
+    private lateinit var p2: P2
+    private lateinit var call: (P1, P2) -> Unit
 
     operator fun provideDelegate(
         thisRef: GlslGenerator,
         property: KProperty<*>
-    ): FunctionVoidDelegate2<A, B> {
+    ): FunctionVoidDelegate2<P1, P2> {
         func.value = property.name
         p1 = param1(thisRef)
         p1.value = "p1"
@@ -132,7 +132,7 @@ class FunctionVoidDelegate2<A : Variable, B : Variable>(
         return this
     }
 
-    operator fun getValue(thisRef: GlslGenerator, property: KProperty<*>): (A, B) -> Unit {
+    operator fun getValue(thisRef: GlslGenerator, property: KProperty<*>): (P1, P2) -> Unit {
         return call
     }
 }

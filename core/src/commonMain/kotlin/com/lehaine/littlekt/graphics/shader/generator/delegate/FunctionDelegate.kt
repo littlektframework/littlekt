@@ -53,19 +53,19 @@ class FunctionDelegate<RT : GenType, F : Func<RT>>(
     }
 }
 
-class FunctionDelegate1<RT : GenType, F : Func<RT>, T : Variable>(
+class FunctionDelegate1<RT : GenType, F : Func<RT>, P1 : Variable>(
     private val funcType: ((GlslGenerator) -> F),
-    private val param1: ((GlslGenerator) -> T),
-    private val body: (T) -> RT
+    private val param1: ((GlslGenerator) -> P1),
+    private val body: (P1) -> RT
 ) {
     private lateinit var func: F
-    private lateinit var v: T
-    private lateinit var call: (T) -> FunctionReturnDelegate<RT>
+    private lateinit var v: P1
+    private lateinit var call: (P1) -> FunctionReturnDelegate<RT>
 
     operator fun provideDelegate(
         thisRef: GlslGenerator,
         property: KProperty<*>
-    ): FunctionDelegate1<RT, F, T> {
+    ): FunctionDelegate1<RT, F, P1> {
         func = funcType(thisRef)
         func.value = property.name
         v = param1(thisRef)
@@ -93,26 +93,26 @@ class FunctionDelegate1<RT : GenType, F : Func<RT>, T : Variable>(
         return this
     }
 
-    operator fun getValue(thisRef: GlslGenerator, property: KProperty<*>): (T) -> FunctionReturnDelegate<RT> {
+    operator fun getValue(thisRef: GlslGenerator, property: KProperty<*>): (P1) -> FunctionReturnDelegate<RT> {
         return call
     }
 }
 
-class FunctionDelegate2<RT : GenType, F : Func<RT>, A : Variable, B : Variable>(
+class FunctionDelegate2<RT : GenType, F : Func<RT>, P1 : Variable, P2 : Variable>(
     private val funcType: ((GlslGenerator) -> F),
-    private val param1: ((GlslGenerator) -> A),
-    private val param2: ((GlslGenerator) -> B),
-    private val body: (A, B) -> RT
+    private val param1: ((GlslGenerator) -> P1),
+    private val param2: ((GlslGenerator) -> P2),
+    private val body: (P1, P2) -> RT
 ) {
     private lateinit var func: F
-    private lateinit var p1: A
-    private lateinit var p2: B
-    private lateinit var call: (A, B) -> RT
+    private lateinit var p1: P1
+    private lateinit var p2: P2
+    private lateinit var call: (P1, P2) -> RT
 
     operator fun provideDelegate(
         thisRef: GlslGenerator,
         property: KProperty<*>
-    ): FunctionDelegate2<RT, F, A, B> {
+    ): FunctionDelegate2<RT, F, P1, P2> {
         func = funcType(thisRef)
         func.value = property.name
         p1 = param1(thisRef)
@@ -143,7 +143,7 @@ class FunctionDelegate2<RT : GenType, F : Func<RT>, A : Variable, B : Variable>(
         return this
     }
 
-    operator fun getValue(thisRef: GlslGenerator, property: KProperty<*>): (A, B) -> RT {
+    operator fun getValue(thisRef: GlslGenerator, property: KProperty<*>): (P1, P2) -> RT {
         return call
     }
 }
