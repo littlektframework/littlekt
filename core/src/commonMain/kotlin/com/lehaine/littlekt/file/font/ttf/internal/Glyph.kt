@@ -43,4 +43,10 @@ internal class Glyph(
 
         unicodesMut.add(unicode)
     }
+
+    override fun toString(): String {
+        return "Glyph(name=$name, index=$index, xMin=$xMin, yMin=$yMin, xMax=$xMax, yMax=$yMax, advanceWidth=$advanceWidth, contors=$contors, codePoint=$codePoint, byteOffset=$byteOffset, byteLength=$byteLength, vertices=$vertices, bounds=$bounds, unicodesMut=$unicodesMut, unicode=$unicode, unicodes=$unicodes)"
+    }
+
+
 }

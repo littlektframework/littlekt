@@ -13,7 +13,7 @@ internal class LocaParser(val mixedBuffer: MixedBuffer, val start: Int, val numG
         val p = Parser(mixedBuffer, start)
         val parseFn = if (shortVersion) p::parseUint16 else p::parseUint32
 
-        val glyphOffsets = intArrayOf(numGlyphs + 1)
+        val glyphOffsets = IntArray(numGlyphs + 1)
         for (i in 0 until numGlyphs) {
             var glyphOffset = parseFn.get().toInt()
             if (shortVersion) {

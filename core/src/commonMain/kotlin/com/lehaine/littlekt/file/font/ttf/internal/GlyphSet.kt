@@ -54,4 +54,10 @@ internal class GlyphSet(val font: TtfFont) : Iterable<Glyph> {
         glyphLoader[index] = loader
         length++
     }
+
+    override fun toString(): String {
+        return "GlyphSet(glyphs=$glyphs, length=$length)"
+    }
+
+
 }

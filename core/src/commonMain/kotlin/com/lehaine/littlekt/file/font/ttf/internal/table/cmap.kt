@@ -119,7 +119,7 @@ private class MutableCmap {
     fun toCmap() = Cmap(version, numTables, format, length, language, groupCount, glyphIndexMap, segCount)
 }
 
-internal class Cmap(
+internal data class Cmap(
     val version: Int,
     val numTables: Int,
     val format: Int,

@@ -240,6 +240,12 @@ private class Tables {
     var os2: Os2? = null
     var post: Post? = null
     var prep: ByteArray? = null
+
+    override fun toString(): String {
+        return "Tables(head=$head, cmap=$cmap, hhea=$hhea, maxp=$maxp, os2=$os2, post=$post"
+    }
+
+
 }
 
 
