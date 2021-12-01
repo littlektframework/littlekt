@@ -73,7 +73,7 @@ class GPUFont(private val data: MixedBuffer) {
     }
 }
 
-data class Glyph(
+internal data class Glyph(
     var codePoint: Int = -1,
     var advanceWidth: Float = 0f,
     var byteOffset: Int = 0,
@@ -87,7 +87,7 @@ enum class TriangleType {
     QUADRATIC_CURVE
 }
 
-class GlyphCompiler {
+internal class GlyphCompiler {
     private val vertices = mutableListOf<Float>()
     private var firstX = 0f
     private var firstY = 0f

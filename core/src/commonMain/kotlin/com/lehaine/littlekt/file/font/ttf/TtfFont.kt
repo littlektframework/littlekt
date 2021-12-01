@@ -2,7 +2,7 @@ package com.lehaine.littlekt.file.font.ttf
 
 import com.lehaine.littlekt.file.MixedBuffer
 import com.lehaine.littlekt.file.font.ttf.internal.*
-import com.lehaine.littlekt.file.font.ttf.internal.tabke.*
+import com.lehaine.littlekt.file.font.ttf.internal.table.*
 
 /**
  * @author Colton Daily
@@ -23,7 +23,7 @@ class TtfFont(buffer: MixedBuffer? = null) {
     private var numberOfHMetrics: Int = 0
     private var numGlyphs: Int = 0
     private var glyphNames: GlyphNames? = null
-    internal val glyphs: List<Glyph> = listOf()
+    internal var glyphs: GlyphSet? = null
 
     private fun parse(buffer: MixedBuffer) {
         val numTables: Int
@@ -68,7 +68,7 @@ class TtfFont(buffer: MixedBuffer? = null) {
             throw IllegalStateException("Unsupported OpenType signature: $signature")
         }
 
-        var indexToLocFormat: Int
+        var indexToLocFormat = 0
         var ltagTable: List<String>
 
         var cffTableEntry: TableEntry? = null
@@ -161,10 +161,22 @@ class TtfFont(buffer: MixedBuffer? = null) {
                 "meta" -> metaTableEntry = tableEntry
             }
         }
-        val nameTable = uncompressTable(buffer, nameTableEntry!!)
+        // TODO Determine if name table is needed
 
-        TODO("Finish the rest of porting. line 317")
 
+        if (glyfTableEntry != null && locaTableEntry != null) {
+            val glyf = glyfTableEntry!!
+            val loca = locaTableEntry!!
+            val shortVersion = indexToLocFormat == 0
+            val locaTable = uncompressTable(buffer, loca)
+            val locaOffsets = LocaParser(locaTable.buffer, locaTable.offset, numGlyphs, shortVersion).parse()
+            val glyfTable = uncompressTable(buffer, glyf)
+            glyphs = GlyfParser(glyfTable.buffer, glyfTable.offset, locaOffsets, this).parse()
+        } else if (cffTableEntry != null) {
+            // TODO CFF table entry
+        } else {
+            throw RuntimeException("Font doesn't contain TrueType or CFF outlines.")
+        }
     }
 
     private fun parseOpenTypeTableEntries(buffer: MixedBuffer, numTables: Int): List<TableEntry> {
@@ -205,6 +217,4 @@ private class Tables {
     var prep: ByteArray? = null
 }
 
-internal class Glyph {
-    val unicodes: List<Int> = listOf()
-}
+

@@ -1,4 +1,4 @@
-package com.lehaine.littlekt.file.font.ttf.internal.tabke
+package com.lehaine.littlekt.file.font.ttf.internal.table
 
 import com.lehaine.littlekt.file.MixedBuffer
 import com.lehaine.littlekt.file.font.ttf.internal.Parser

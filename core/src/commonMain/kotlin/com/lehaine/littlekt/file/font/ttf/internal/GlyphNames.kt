@@ -1,6 +1,6 @@
 package com.lehaine.littlekt.file.font.ttf.internal
 
-import com.lehaine.littlekt.file.font.ttf.internal.tabke.Post
+import com.lehaine.littlekt.file.font.ttf.internal.table.Post
 
 /**
  * @author Colton Daily
