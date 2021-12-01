@@ -416,3 +416,4 @@ actual fun createFloat32Buffer(capacity: Int): Float32Buffer = Float32BufferImpl
 actual fun createFloat32Buffer(array: FloatArray): Float32Buffer = Float32BufferImpl(array)
 
 actual fun createMixedBuffer(capacity: Int): MixedBuffer = MixedBufferImpl(capacity)
+actual fun createMixedBuffer(array: ByteArray): MixedBuffer = MixedBufferImpl(ByteBuffer.wrap(array))

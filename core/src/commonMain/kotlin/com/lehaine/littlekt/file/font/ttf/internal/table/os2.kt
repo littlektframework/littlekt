@@ -1,6 +1,7 @@
 package com.lehaine.littlekt.file.font.ttf.internal.table
 
 import com.lehaine.littlekt.file.MixedBuffer
+import com.lehaine.littlekt.file.font.ttf.internal.Parser
 
 /**
  * @author Colton Daily
@@ -9,15 +10,66 @@ import com.lehaine.littlekt.file.MixedBuffer
 internal class Os2Parser(val buffer: MixedBuffer, val start: Int) {
 
     fun parse(): Os2 {
-        TODO()
+        val p = Parser(buffer, start)
+        val version = p.parseUint16.toInt()
+        return Os2(
+            version = version,
+            xAvgCharWidth = p.parseInt16.toInt(),
+            usWeightClass = p.parseUint16.toInt(),
+            usWidthClass = p.parseUint16.toInt(),
+            fsType = p.parseUint16.toInt(),
+            ySubscriptXSize = p.parseInt16.toInt(),
+            ySubscriptYSize = p.parseInt16.toInt(),
+            ySubscriptXOffset = p.parseInt16.toInt(),
+            ySubscriptYOffset = p.parseInt16.toInt(),
+            ySuperscriptXSize = p.parseInt16.toInt(),
+            ySuperscriptYSize = p.parseInt16.toInt(),
+            ySuperscriptXOffset = p.parseInt16.toInt(),
+            ySuperscriptYOffset = p.parseInt16.toInt(),
+            yStrikeoutSize = p.parseInt16.toInt(),
+            yStrikeoutPosition = p.parseInt16.toInt(),
+            sFamilyClass = p.parseInt16.toInt(),
+            panose = byteArrayOf(
+                p.parseByte,
+                p.parseByte,
+                p.parseByte,
+                p.parseByte,
+                p.parseByte,
+                p.parseByte,
+                p.parseByte,
+                p.parseByte,
+                p.parseByte,
+                p.parseByte
+            ),
+            ulUnicodeRange1 = p.parseUint32,
+            ulUnicodeRange2 = p.parseUint32,
+            ulUnicodeRange3 = p.parseUint32,
+            ulUnicodeRange4 = p.parseUint32,
+            achVendID = charArrayOf(p.parseChar, p.parseChar, p.parseChar, p.parseChar).concatToString(),
+            fsSelection = p.parseUint16.toInt(),
+            usFirstCharIndex = p.parseUint16.toInt(),
+            usLastCharIndex = p.parseUint16.toInt(),
+            sTypoAscender = p.parseInt16.toInt(),
+            sTypoDescender = p.parseInt16.toInt(),
+            sTypoLineGap = p.parseInt16.toInt(),
+            usWinAscent = p.parseUint16.toInt(),
+            usWinDescent = p.parseUint16.toInt(),
+            ulCodePageRange1 = if (version >= 1) p.parseUint32 else 0,
+            ulCodePageRange2 = if (version >= 1) p.parseUint32 else 0,
+            sxHeight = if (version >= 2) p.parseInt16.toInt() else 0,
+            sCapHeight = if (version >= 2) p.parseInt16.toInt() else 0,
+            usDefaultChar = if (version >= 2) p.parseUint16.toInt() else 0,
+            usBreakChar = if (version >= 2) p.parseUint16.toInt() else 0,
+            usMaxContent = if (version >= 2) p.parseUint16.toInt() else 0,
+        )
     }
 }
 
 internal data class Os2(
     val version: Int,
     val xAvgCharWidth: Int,
-    val useWeightClass: Int,
-    val useWidthClass: Int,
+    val usWeightClass: Int,
+    val usWidthClass: Int,
     val fsType: Int,
     val ySubscriptXSize: Int,
     val ySubscriptYSize: Int,
@@ -60,8 +112,8 @@ internal data class Os2(
 
         if (version != other.version) return false
         if (xAvgCharWidth != other.xAvgCharWidth) return false
-        if (useWeightClass != other.useWeightClass) return false
-        if (useWidthClass != other.useWidthClass) return false
+        if (usWeightClass != other.usWeightClass) return false
+        if (usWidthClass != other.usWidthClass) return false
         if (fsType != other.fsType) return false
         if (ySubscriptXSize != other.ySubscriptXSize) return false
         if (ySubscriptYSize != other.ySubscriptYSize) return false
@@ -102,8 +154,8 @@ internal data class Os2(
     override fun hashCode(): Int {
         var result = version
         result = 31 * result + xAvgCharWidth
-        result = 31 * result + useWeightClass
-        result = 31 * result + useWidthClass
+        result = 31 * result + usWeightClass
+        result = 31 * result + usWidthClass
         result = 31 * result + fsType
         result = 31 * result + ySubscriptXSize
         result = 31 * result + ySubscriptYSize

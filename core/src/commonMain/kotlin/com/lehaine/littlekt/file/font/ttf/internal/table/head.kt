@@ -35,7 +35,7 @@ internal class HeadParser(val buffer: MixedBuffer, val start: Int) {
 }
 
 internal class Head(
-    val version: Int,
+    val version: Float,
     val fontRevision: Int,
     val checkSumAdjustment: Int,
     val magicNumber: Int,

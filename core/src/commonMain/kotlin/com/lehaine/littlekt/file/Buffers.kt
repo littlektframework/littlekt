@@ -229,3 +229,4 @@ expect fun createFloat32Buffer(capacity: Int): Float32Buffer
 expect fun createFloat32Buffer(array: FloatArray): Float32Buffer
 
 expect fun createMixedBuffer(capacity: Int): MixedBuffer
+expect fun createMixedBuffer(array: ByteArray): MixedBuffer

@@ -1,6 +1,8 @@
 package com.lehaine.littlekt.file.font.ttf.internal.table
 
 import com.lehaine.littlekt.file.MixedBuffer
+import com.lehaine.littlekt.file.font.ttf.internal.Encoding
+import com.lehaine.littlekt.file.font.ttf.internal.Parser
 
 /**
  * @author Colton Daily
@@ -9,13 +11,79 @@ import com.lehaine.littlekt.file.MixedBuffer
 internal class PostParser(val buffer: MixedBuffer, val start: Int) {
 
     fun parse(): Post {
-        TODO()
+        val p = Parser(buffer, start)
+        val post = MutablePost().apply {
+            version = p.parseVersion()
+            italicAngle = p.parseFloat32
+            underlinePosition = p.parseInt16.toInt()
+            underlineThickness = p.parseInt16.toInt()
+            isFixedPitch = p.parseUint32
+            minMemType42 = p.parseUint32
+            maxMemType42 = p.parseUint32
+            minMemType1 = p.parseUint32
+            maxMemType1 = p.parseUint32
+            when (version) {
+                1f -> names = Encoding.STANDARD_NAMES.copyOf()
+                2f -> {
+                    numberOfGlyphs = p.parseUint16.toInt()
+                    glyphNameIndex = IntArray(numberOfGlyphs) { p.parseUint32 }
+
+                    val nameList = mutableListOf<String>()
+                    for (i in 0 until numberOfGlyphs) {
+                        if (glyphNameIndex[i] >= Encoding.STANDARD_NAMES.size) {
+                            val nameLength = p.parseByte.toInt()
+                            nameList += p.parseString(nameLength)
+                        }
+                    }
+                    names = nameList.toTypedArray()
+                }
+                2.5f -> {
+                    numberOfGlyphs = p.parseUint16.toInt()
+                    offset = CharArray(numberOfGlyphs) { p.parseChar }
+                }
+
+            }
+
+        }
+        return post.toPost()
     }
 
 }
 
+private class MutablePost {
+    var version: Float = 0f
+    var italicAngle: Float = 0f
+    var underlinePosition: Int = 0
+    var underlineThickness: Int = 0
+    var isFixedPitch: Int = 0
+    var minMemType42: Int = 0
+    var maxMemType42: Int = 0
+    var minMemType1: Int = 0
+    var maxMemType1: Int = 0
+    var names: Array<String> = arrayOf()
+    var numberOfGlyphs: Int = 0
+    var glyphNameIndex: IntArray = intArrayOf()
+    var offset: CharArray = charArrayOf()
+
+    fun toPost() = Post(
+        version,
+        italicAngle,
+        underlinePosition,
+        underlineThickness,
+        isFixedPitch,
+        minMemType42,
+        maxMemType42,
+        minMemType1,
+        maxMemType1,
+        names,
+        numberOfGlyphs,
+        glyphNameIndex,
+        offset
+    )
+}
+
 internal data class Post(
-    val version: Int,
+    val version: Float,
     val italicAngle: Float,
     val underlinePosition: Int,
     val underlineThickness: Int,
@@ -53,7 +121,7 @@ internal data class Post(
     }
 
     override fun hashCode(): Int {
-        var result = version
+        var result = version.toInt()
         result = 31 * result + italicAngle.hashCode()
         result = 31 * result + underlinePosition
         result = 31 * result + underlineThickness

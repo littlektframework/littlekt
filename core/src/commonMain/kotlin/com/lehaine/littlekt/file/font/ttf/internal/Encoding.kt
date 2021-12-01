@@ -12,7 +12,7 @@ internal interface Encoding {
     fun charToGlyphIndex(c: Char): Int?
 
     companion object {
-        val cffStandardStrings = arrayOf(
+        val CFF_STANDARD_STRINGS = arrayOf(
             ".notdef",
             "space",
             "exclam",
@@ -406,7 +406,7 @@ internal interface Encoding {
             "Semibold"
         )
 
-        val cffStandardEncoding = arrayOf(
+        val CFF_STANDARD_ENCODING = arrayOf(
             "",
             "",
             "",
@@ -661,7 +661,7 @@ internal interface Encoding {
             "germandbls"
         )
 
-        val cffExpertEncoding = arrayOf(
+        val CFF_EXPERT_ENCODING = arrayOf(
             "",
             "",
             "",
@@ -919,7 +919,7 @@ internal interface Encoding {
             "Ydieresissmall"
         )
 
-        val standardNames = arrayOf(
+        val STANDARD_NAMES = arrayOf(
             ".notdef",
             ".null",
             "nonmarkingreturn",
@@ -1186,7 +1186,7 @@ internal interface Encoding {
 internal class DefaultEncoding(val font: TtfFont) : Encoding {
     override fun charToGlyphIndex(c: Char): Int? {
         val code = c.code
-        font.glyphs.forEachIndexed { i, glyph ->
+        font.glyphs?.forEachIndexed { i, glyph ->
             glyph.unicodes.forEach {
                 if (it == code) {
                     return i

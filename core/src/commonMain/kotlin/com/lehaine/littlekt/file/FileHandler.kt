@@ -2,12 +2,13 @@ package com.lehaine.littlekt.file
 
 import com.lehaine.littlekt.Application
 import com.lehaine.littlekt.audio.AudioClip
+import com.lehaine.littlekt.file.atlas.AtlasInfo
+import com.lehaine.littlekt.file.atlas.AtlasPage
+import com.lehaine.littlekt.file.font.ttf.TtfFont
 import com.lehaine.littlekt.graphics.Texture
 import com.lehaine.littlekt.graphics.TextureAtlas
 import com.lehaine.littlekt.graphics.TextureData
 import com.lehaine.littlekt.graphics.gl.TextureFormat
-import com.lehaine.littlekt.file.atlas.AtlasInfo
-import com.lehaine.littlekt.file.atlas.AtlasPage
 import com.lehaine.littlekt.log.Logger
 import com.lehaine.littlekt.util.internal.toString
 import kotlinx.coroutines.CompletableDeferred
@@ -157,6 +158,11 @@ abstract class FileHandler(
             it.meta.image to loadTexture(it.meta.image)
         }
         return TextureAtlas(textures, info)
+    }
+
+    suspend fun loadTtfFont(assetPath: String): TtfFont {
+        val data = loadAsset(assetPath)
+        return TtfFont(createMixedBuffer(data.toArray()))
     }
 
     /**

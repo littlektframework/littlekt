@@ -10,10 +10,6 @@ import com.lehaine.littlekt.file.font.ttf.internal.table.*
  */
 class TtfFont(buffer: MixedBuffer? = null) {
 
-    init {
-        buffer?.let { parse(it) }
-    }
-
     private var outlinesFormat: String = ""
     private val tables = Tables()
     private var encoding: Encoding = DefaultEncoding(this)
@@ -24,6 +20,11 @@ class TtfFont(buffer: MixedBuffer? = null) {
     private var numGlyphs: Int = 0
     private var glyphNames: GlyphNames? = null
     internal var glyphs: GlyphSet? = null
+
+    init {
+        buffer?.let { parse(it) }
+    }
+
 
     private fun parse(buffer: MixedBuffer) {
         val numTables: Int
@@ -138,7 +139,8 @@ class TtfFont(buffer: MixedBuffer? = null) {
                 }
                 "OS/2" -> {
                     table = uncompressTable(buffer, tableEntry)
-                    tables.os2 = Os2Parser(table.buffer, table.offset).parse()
+                    val os2 = Os2Parser(table.buffer, table.offset).parse()
+                    tables.os2 = os2
                 }
                 "post" -> {
                     table = uncompressTable(buffer, tableEntry)
@@ -180,16 +182,39 @@ class TtfFont(buffer: MixedBuffer? = null) {
     }
 
     private fun parseOpenTypeTableEntries(buffer: MixedBuffer, numTables: Int): List<TableEntry> {
-        TODO("Not yet implemented")
+        val tableEntries = mutableListOf<TableEntry>()
+        var p = 12
+        for (i in 0 until numTables) {
+            val tag = buffer.getTag(p)
+            val checksum = buffer.getUint32(p + 4)
+            val offset = buffer.getUint32(p + 8)
+            val length = buffer.getUint32(p + 12)
+            tableEntries += TableEntry(tag, checksum, offset, length, Compression.NONE, 0)
+            p += 16
+        }
+        return tableEntries.toList()
     }
 
     private fun parseWOFFTableEntries(buffer: MixedBuffer, numTables: Int): List<TableEntry> {
-        TODO("Not yet implemented")
+        // TODO("Not yet implemented")
+        return listOf()
     }
 
     private fun uncompressTable(buffer: MixedBuffer, tableEntry: TableEntry): Table {
-        TODO("Not yet implemented")
+        if (tableEntry.compression == Compression.WOFF) {
+            // TODO impl inflating WOFF compression
+        }
+        return Table(buffer, tableEntry.offset)
     }
+
+    override fun toString(): String {
+        return "TtfFont(outlinesFormat='$outlinesFormat', tables=$tables, encoding=$encoding, unitsPerEm=$unitsPerEm, ascender=$ascender, descender=$descender, numberOfHMetrics=$numberOfHMetrics, numGlyphs=$numGlyphs, glyphNames=$glyphNames, glyphs=$glyphs)"
+    }
+}
+
+private enum class Compression {
+    WOFF,
+    NONE
 }
 
 private data class TableEntry(
@@ -197,7 +222,7 @@ private data class TableEntry(
     val checksum: Int,
     val offset: Int,
     val length: Int,
-    val compression: Boolean,
+    val compression: Compression,
     val compressedLength: Int
 )
 

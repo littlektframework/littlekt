@@ -1,6 +1,8 @@
 package com.lehaine.littlekt.file.font.ttf.internal
 
+import com.lehaine.littlekt.file.Float32Buffer
 import com.lehaine.littlekt.file.font.ttf.TtfFont
+import com.lehaine.littlekt.math.Rect
 
 /**
  * @author Colton Daily
@@ -16,8 +18,15 @@ internal class Glyph(
     var yMin: Int = 0,
     var xMax: Int = 0,
     var yMax: Int = 0,
-    var advanceWidth: Int = 0
+    var advanceWidth: Float = 0f
 ) {
+    var contors: Int = 0
+    var codePoint: Int = -1
+    var byteOffset: Int = 0
+    var byteLength: Int = 0
+    var vertices: Float32Buffer? = null
+    var bounds: Rect? = null
+
     private val unicodesMut = mutableListOf<Int>().also {
         if (unicodes != null) {
             it.addAll(unicodes)

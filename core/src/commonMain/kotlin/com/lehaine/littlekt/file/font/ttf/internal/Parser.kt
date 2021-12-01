@@ -22,7 +22,6 @@ internal class Parser(private val buffer: MixedBuffer, offset: Int) {
         private set
 
     var relativeOffset = 0
-        private set
 
     val parseByte get() = buffer.getUint8(offset + relativeOffset++)
     val parseChar get() = buffer.getInt8(offset + relativeOffset++).toInt().toChar()
@@ -54,10 +53,10 @@ internal class Parser(private val buffer: MixedBuffer, offset: Int) {
     val parseLongDateTime
         get() = buffer.getInt32(offset + relativeOffset + 4).run { this - 2082844800 }.also { relativeOffset += 8 }
 
-    fun parseVersion(minorBase: Int = 0x1000): Int {
+    fun parseVersion(minorBase: Int = 0x1000): Float {
         val major = buffer.getUint16(offset + relativeOffset)
         val minor = buffer.getUint16(offset + relativeOffset + 2).also { relativeOffset += 4 }
-        return major + minor / minorBase / 10
+        return major + minor / minorBase / 10f
     }
 
     fun skip(type: Type, amount: Int = 1) {

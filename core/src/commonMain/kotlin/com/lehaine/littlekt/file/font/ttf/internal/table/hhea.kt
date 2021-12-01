@@ -1,6 +1,7 @@
 package com.lehaine.littlekt.file.font.ttf.internal.table
 
 import com.lehaine.littlekt.file.MixedBuffer
+import com.lehaine.littlekt.file.font.ttf.internal.Parser
 
 /**
  * @author Colton Daily
@@ -9,13 +10,38 @@ import com.lehaine.littlekt.file.MixedBuffer
 internal class HheaParser(val buffer: MixedBuffer, val start: Int) {
 
     fun parse(): Hhea {
-        TODO()
+        val p = Parser(buffer, start)
+        return Hhea(
+            version = p.parseVersion(),
+            ascender = p.parseInt16.toInt(),
+            descender = p.parseInt16.toInt(),
+            lineGap = p.parseInt16.toInt(),
+            advanceWidthMax = p.parseUint16.toInt(),
+            minLeftSideBearing = p.parseInt16.toInt(),
+            minRightSideBearing = p.parseInt16.toInt(),
+            xMaxExtent = p.parseInt16.toInt(),
+            caretSlopeRise = p.parseInt16.toInt(),
+            caretSlopeRun = p.parseInt16.toInt(),
+            caretOffset = p.parseInt16.toInt().also { p.relativeOffset += 8 },
+            metricDataFormat = p.parseInt16.toInt(),
+            numberOfHMetrics = p.parseUint16.toInt(),
+        )
     }
 }
 
 
-internal class Hhea {
-    var ascender: Int = 0
-    var descender: Int = 0
-    var numberOfHMetrics: Int = 0
-}
+internal data class Hhea(
+    val version: Float,
+    val ascender: Int,
+    val descender: Int,
+    val lineGap: Int,
+    val advanceWidthMax: Int,
+    val minLeftSideBearing: Int,
+    val minRightSideBearing: Int,
+    val xMaxExtent: Int,
+    val caretSlopeRise: Int,
+    val caretSlopeRun: Int,
+    val caretOffset: Int,
+    val metricDataFormat: Int,
+    val numberOfHMetrics: Int
+)

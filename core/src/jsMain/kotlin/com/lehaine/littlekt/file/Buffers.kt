@@ -173,9 +173,12 @@ internal class Float32BufferImpl(array: Float32Array) : Float32Buffer,
     }
 }
 
-internal class MixedBufferImpl(capacity: Int) : MixedBuffer, GenericBuffer<DataView>(capacity, {
-    DataView(ArrayBuffer(capacity))
+
+internal class MixedBufferImpl(buffer: ArrayBuffer) : MixedBuffer, GenericBuffer<DataView>(buffer.byteLength, {
+    DataView(buffer)
 }) {
+    constructor(capacity: Int) : this(ArrayBuffer(capacity))
+
     override val readInt8: Byte
         get() = buffer.getInt8(position++)
 
@@ -393,4 +396,8 @@ actual fun createFloat32Buffer(array: FloatArray): Float32Buffer {
 
 actual fun createMixedBuffer(capacity: Int): MixedBuffer {
     return MixedBufferImpl(capacity)
+}
+
+actual fun createMixedBuffer(array: ByteArray): MixedBuffer {
+    return MixedBufferImpl(Uint8Array(array.toTypedArray()).buffer)
 }
