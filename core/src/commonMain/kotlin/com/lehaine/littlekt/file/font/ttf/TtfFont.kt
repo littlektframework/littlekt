@@ -1,10 +1,8 @@
 package com.lehaine.littlekt.file.font.ttf
 
 import com.lehaine.littlekt.file.MixedBuffer
-import com.lehaine.littlekt.file.font.ttf.tabke.Cmap
-import com.lehaine.littlekt.file.font.ttf.tabke.CmapParser
-import com.lehaine.littlekt.file.font.ttf.tabke.Head
-import com.lehaine.littlekt.file.font.ttf.tabke.HeadParser
+import com.lehaine.littlekt.file.font.ttf.internal.*
+import com.lehaine.littlekt.file.font.ttf.internal.tabke.*
 
 /**
  * @author Colton Daily
@@ -20,6 +18,11 @@ class TtfFont(buffer: MixedBuffer? = null) {
     private val tables = Tables()
     private var encoding: Encoding = DefaultEncoding(this)
     private var unitsPerEm: Int = 0
+    private var ascender: Int = 0
+    private var descender: Int = 0
+    private var numberOfHMetrics: Int = 0
+    private var numGlyphs: Int = 0
+    private var glyphNames: GlyphNames? = null
     internal val glyphs: List<Glyph> = listOf()
 
     private fun parse(buffer: MixedBuffer) {
@@ -66,23 +69,23 @@ class TtfFont(buffer: MixedBuffer? = null) {
         }
 
         var indexToLocFormat: Int
-        var ltagTable: Int
+        var ltagTable: List<String>
 
-        var cffTableEntry: TableEntry
-        var fvarTableEntry: TableEntry
-        var glyfTableEntry: TableEntry
-        var gdefTableEntry: TableEntry
-        var gposTableEntry: TableEntry
-        var gsubTableEntry: TableEntry
-        var hmtxTableEntry: TableEntry
-        var kernTableEntry: TableEntry
-        var locaTableEntry: TableEntry
-        var nameTableEntry: TableEntry
-        var metaTableEntry: TableEntry
+        var cffTableEntry: TableEntry? = null
+        var fvarTableEntry: TableEntry? = null
+        var glyfTableEntry: TableEntry? = null
+        var gdefTableEntry: TableEntry? = null
+        var gposTableEntry: TableEntry? = null
+        var gsubTableEntry: TableEntry? = null
+        var hmtxTableEntry: TableEntry? = null
+        var kernTableEntry: TableEntry? = null
+        var locaTableEntry: TableEntry? = null
+        var nameTableEntry: TableEntry? = null
+        var metaTableEntry: TableEntry? = null
         var parser: Parser
 
         tableEntries.forEach { tableEntry ->
-            var table: Table
+            val table: Table
             when (tableEntry.tag) {
                 "cmap" -> {
                     table = uncompressTable(buffer, tableEntry)
@@ -109,8 +112,59 @@ class TtfFont(buffer: MixedBuffer? = null) {
                         indexToLocFormat = it.indexToLocFormat
                     }
                 }
+                "hhea" -> {
+                    table = uncompressTable(buffer, tableEntry)
+                    tables.hhea = HheaParser(table.buffer, table.offset).parse().also {
+                        ascender = it.ascender
+                        descender = it.descender
+                        numberOfHMetrics = it.numberOfHMetrics
+                    }
+                }
+                "hmtx" -> {
+                    hmtxTableEntry = tableEntry
+                }
+                "ltag" -> {
+                    table = uncompressTable(buffer, tableEntry)
+                    ltagTable = LtagParser(table.buffer, table.offset).parse()
+                }
+                "maxp" -> {
+                    table = uncompressTable(buffer, tableEntry)
+                    tables.maxp = MaxpParser(table.buffer, table.offset).parse().also {
+                        numGlyphs = it.numGlyphs
+                    }
+                }
+                "name" -> {
+                    nameTableEntry = tableEntry
+                }
+                "OS/2" -> {
+                    table = uncompressTable(buffer, tableEntry)
+                    tables.os2 = Os2Parser(table.buffer, table.offset).parse()
+                }
+                "post" -> {
+                    table = uncompressTable(buffer, tableEntry)
+                    tables.post = PostParser(table.buffer, table.offset).parse().also {
+                        glyphNames = GlyphNames(it)
+                    }
+                }
+                "prep" -> {
+                    table = uncompressTable(buffer, tableEntry)
+                    parser = Parser(table.buffer, table.offset)
+                    tables.prep = parser.parseByteList(tableEntry.length)
+                }
+                "glyf" -> glyfTableEntry = tableEntry
+                "loca" -> locaTableEntry = tableEntry
+                "CFF " -> cffTableEntry = tableEntry
+                "kern" -> kernTableEntry = tableEntry
+                "GDEF" -> gdefTableEntry = tableEntry
+                "GPOS" -> gposTableEntry = tableEntry
+                "GSUB" -> gsubTableEntry = tableEntry
+                "meta" -> metaTableEntry = tableEntry
             }
         }
+        val nameTable = uncompressTable(buffer, nameTableEntry!!)
+
+        TODO("Finish the rest of porting. line 317")
+
     }
 
     private fun parseOpenTypeTableEntries(buffer: MixedBuffer, numTables: Int): List<TableEntry> {
@@ -144,6 +198,11 @@ private class Tables {
     var cmap: Cmap? = null
     var cvt: ShortArray? = null
     var fpgm: ByteArray? = null
+    var hhea: Hhea? = null
+    var maxp: Maxp? = null
+    var os2: Os2? = null
+    var post: Post? = null
+    var prep: ByteArray? = null
 }
 
 internal class Glyph {

@@ -1,6 +1,7 @@
-package com.lehaine.littlekt.file.font.ttf
+package com.lehaine.littlekt.file.font.ttf.internal
 
-import com.lehaine.littlekt.file.font.ttf.tabke.Cmap
+import com.lehaine.littlekt.file.font.ttf.TtfFont
+import com.lehaine.littlekt.file.font.ttf.internal.tabke.Cmap
 
 /**
  * @author Colton Daily

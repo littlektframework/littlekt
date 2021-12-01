@@ -1,7 +1,7 @@
-package com.lehaine.littlekt.file.font.ttf.tabke
+package com.lehaine.littlekt.file.font.ttf.internal.tabke
 
 import com.lehaine.littlekt.file.MixedBuffer
-import com.lehaine.littlekt.file.font.ttf.Parser
+import com.lehaine.littlekt.file.font.ttf.internal.Parser
 import kotlin.math.roundToInt
 
 /**

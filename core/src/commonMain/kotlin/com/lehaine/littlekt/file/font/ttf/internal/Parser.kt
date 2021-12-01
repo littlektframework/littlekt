@@ -1,4 +1,4 @@
-package com.lehaine.littlekt.file.font.ttf
+package com.lehaine.littlekt.file.font.ttf.internal
 
 import com.lehaine.littlekt.file.MixedBuffer
 
@@ -25,7 +25,7 @@ internal class Parser(private val buffer: MixedBuffer, offset: Int) {
         private set
 
     val parseByte get() = buffer.getUint8(offset + relativeOffset++)
-    val parseChar get() = buffer.getInt8(offset + relativeOffset++)
+    val parseChar get() = buffer.getInt8(offset + relativeOffset++).toInt().toChar()
     val parseCard8 get() = parseByte
 
     val parseUint16 get() = buffer.getUint16(offset + relativeOffset).also { relativeOffset += 2 }
