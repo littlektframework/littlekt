@@ -1,10 +1,10 @@
 package com.lehaine.littlekt.graphics
 
 import com.lehaine.littlekt.graphics.gl.*
-import com.lehaine.littlekt.io.DataSource
-import com.lehaine.littlekt.io.Float32Buffer
-import com.lehaine.littlekt.io.Uint32Buffer
-import com.lehaine.littlekt.io.Uint8Buffer
+import com.lehaine.littlekt.file.DataSource
+import com.lehaine.littlekt.file.Float32Buffer
+import com.lehaine.littlekt.file.Uint32Buffer
+import com.lehaine.littlekt.file.Uint8Buffer
 import com.lehaine.littlekt.math.Mat4
 
 

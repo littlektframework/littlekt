@@ -2,8 +2,8 @@ package com.lehaine.littlekt.graphics
 
 import com.lehaine.littlekt.graphics.gl.DataType
 import com.lehaine.littlekt.graphics.gl.TextureFormat
-import com.lehaine.littlekt.io.Uint8Buffer
-import com.lehaine.littlekt.io.createUint8Buffer
+import com.lehaine.littlekt.file.Uint8Buffer
+import com.lehaine.littlekt.file.createUint8Buffer
 import kotlin.math.max
 import kotlin.math.round
 

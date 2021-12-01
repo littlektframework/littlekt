@@ -1,11 +1,11 @@
 package com.lehaine.littlekt.graphics
 
-import com.lehaine.littlekt.io.atlas.AtlasInfo
-import com.lehaine.littlekt.io.atlas.AtlasPage
+import com.lehaine.littlekt.file.atlas.AtlasInfo
+import com.lehaine.littlekt.file.atlas.AtlasPage
 
 /**
  * Holds all the TextureSlice entries of the atlas that was read and loaded in.
- * @see [com.lehaine.littlekt.io.FileHandler.loadAtlas]
+ * @see [com.lehaine.littlekt.file.FileHandler.loadAtlas]
  * @author Colton Daily
  * @date 11/27/2021
  */

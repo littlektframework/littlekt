@@ -3,7 +3,7 @@ package com.lehaine.littlekt.graphics
 import com.lehaine.littlekt.Application
 import com.lehaine.littlekt.Disposable
 import com.lehaine.littlekt.graphics.gl.*
-import com.lehaine.littlekt.io.createUint8Buffer
+import com.lehaine.littlekt.file.createUint8Buffer
 
 /**
  * @author Colton Daily

@@ -1,4 +1,4 @@
-package com.lehaine.littlekt.io.atlas
+package com.lehaine.littlekt.file.atlas
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable

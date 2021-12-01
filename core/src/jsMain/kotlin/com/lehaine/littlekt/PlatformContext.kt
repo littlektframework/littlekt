@@ -3,8 +3,8 @@ package com.lehaine.littlekt
 import com.lehaine.littlekt.graphics.Texture
 import com.lehaine.littlekt.input.Input
 import com.lehaine.littlekt.input.JsInput
-import com.lehaine.littlekt.io.FileHandler
-import com.lehaine.littlekt.io.WebFileHandler
+import com.lehaine.littlekt.file.FileHandler
+import com.lehaine.littlekt.file.WebFileHandler
 import com.lehaine.littlekt.log.Logger
 import kotlinx.browser.document
 import kotlinx.browser.window

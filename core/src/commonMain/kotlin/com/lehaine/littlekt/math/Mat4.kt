@@ -1,6 +1,6 @@
 package com.lehaine.littlekt.math
 
-import com.lehaine.littlekt.io.Float32Buffer
+import com.lehaine.littlekt.file.Float32Buffer
 import com.lehaine.littlekt.util.internal.lock
 import kotlin.math.*
 

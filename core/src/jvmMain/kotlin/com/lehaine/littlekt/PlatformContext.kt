@@ -5,8 +5,8 @@ import com.lehaine.littlekt.graphics.GLVersion
 import com.lehaine.littlekt.graphics.Texture
 import com.lehaine.littlekt.input.Input
 import com.lehaine.littlekt.input.LwjglInput
-import com.lehaine.littlekt.io.FileHandler
-import com.lehaine.littlekt.io.JvmFileHandler
+import com.lehaine.littlekt.file.FileHandler
+import com.lehaine.littlekt.file.JvmFileHandler
 import com.lehaine.littlekt.log.Logger
 import org.lwjgl.glfw.Callbacks
 import org.lwjgl.glfw.GLFW

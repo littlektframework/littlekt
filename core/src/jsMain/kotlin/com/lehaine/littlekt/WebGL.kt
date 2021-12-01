@@ -3,7 +3,7 @@ package com.lehaine.littlekt
 import com.lehaine.littlekt.graphics.GL
 import com.lehaine.littlekt.graphics.GLVersion
 import com.lehaine.littlekt.graphics.gl.*
-import com.lehaine.littlekt.io.*
+import com.lehaine.littlekt.file.*
 import com.lehaine.littlekt.math.Mat4
 import org.khronos.webgl.Int32Array
 import org.khronos.webgl.Uint8Array

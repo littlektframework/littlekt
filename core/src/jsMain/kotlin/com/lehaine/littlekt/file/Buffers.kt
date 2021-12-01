@@ -1,8 +1,9 @@
-package com.lehaine.littlekt.io
+package com.lehaine.littlekt.file
 
 import org.khronos.webgl.*
 
-internal abstract class GenericBuffer<out B : ArrayBufferView>(final override val capacity: Int, create: () -> B) : Buffer {
+internal abstract class GenericBuffer<out B : ArrayBufferView>(final override val capacity: Int, create: () -> B) :
+    Buffer {
     val buffer = create()
 
     override var limit = capacity
@@ -139,9 +140,11 @@ internal class Uint32BufferImpl(capacity: Int) : Uint32Buffer, GenericBuffer<Uin
 /**
  * FloatBuffer buffer implementation
  */
-internal class Float32BufferImpl(capacity: Int) : Float32Buffer, GenericBuffer<Float32Array>(capacity, {
-    Float32Array(capacity)
-}) {
+internal class Float32BufferImpl(array: Float32Array) : Float32Buffer,
+    GenericBuffer<Float32Array>(array.length, { array }) {
+    constructor(capacity: Int) : this(Float32Array(capacity))
+
+
     override fun get(i: Int): Float {
         return buffer[i]
     }
@@ -173,6 +176,62 @@ internal class Float32BufferImpl(capacity: Int) : Float32Buffer, GenericBuffer<F
 internal class MixedBufferImpl(capacity: Int) : MixedBuffer, GenericBuffer<DataView>(capacity, {
     DataView(ArrayBuffer(capacity))
 }) {
+    override val readInt8: Byte
+        get() = buffer.getInt8(position++)
+
+    override fun getInt8(offset: Int): Byte {
+        return buffer.getInt8(offset)
+    }
+
+    override fun getInt8s(startOffset: Int, endOffset: Int): ByteArray {
+        check(endOffset >= endOffset) { "endOffset must be >= the startOffset!" }
+        val bytes = ByteArray(endOffset - startOffset)
+        for (i in startOffset until endOffset) {
+            bytes[i - startOffset] = buffer.getInt8(i)
+        }
+        position += endOffset - startOffset
+        return bytes
+    }
+
+    override val readInt16: Short
+        get() {
+            val result = buffer.getInt16(position)
+            position += 2
+            return result
+        }
+
+    override fun getInt16(offset: Int): Short {
+        return buffer.getInt16(offset)
+    }
+
+    override val readInt32: Int
+        get() {
+            val result = buffer.getInt32(position)
+            position += 4
+            return result
+        }
+
+    override fun getInt32(offset: Int): Int {
+        return buffer.getInt32(offset)
+    }
+
+    override val readUint8: Byte
+        get() = buffer.getUint8(position++)
+
+    override fun getUint8(offset: Int): Byte {
+        return buffer.getUint8(offset)
+    }
+
+    override fun getUint8s(startOffset: Int, endOffset: Int): ByteArray {
+        check(endOffset >= endOffset) { "endOffset must be >= the startOffset!" }
+        val bytes = ByteArray(endOffset - startOffset)
+        for (i in startOffset until endOffset) {
+            bytes[i - startOffset] = buffer.getUint8(i)
+        }
+        position += endOffset - startOffset
+        return bytes
+    }
+
     override fun putUint8(value: Byte): MixedBuffer {
         buffer.setUint8(position++, value)
         return this
@@ -190,6 +249,18 @@ internal class MixedBufferImpl(capacity: Int) : MixedBuffer, GenericBuffer<DataV
             buffer.setUint8(position++, data[i])
         }
         return this
+    }
+
+    override val readUin16: Short
+        get() {
+            val result = buffer.getUint16(position)
+            position += 2
+            return result
+
+        }
+
+    override fun getUint16(offset: Int): Short {
+        return buffer.getUint16(offset)
     }
 
     override fun putUint16(value: Short): MixedBuffer {
@@ -214,6 +285,17 @@ internal class MixedBufferImpl(capacity: Int) : MixedBuffer, GenericBuffer<DataV
         return this
     }
 
+    override val readUint32: Int
+        get() {
+            val result = buffer.getUint32(position)
+            position += 4
+            return result
+        }
+
+    override fun getUint32(offset: Int): Int {
+        return buffer.getUint32(offset)
+    }
+
     override fun putUint32(value: Int): MixedBuffer {
         buffer.setUint32(position, value)
         position += 4
@@ -234,6 +316,17 @@ internal class MixedBufferImpl(capacity: Int) : MixedBuffer, GenericBuffer<DataV
             position += 4
         }
         return this
+    }
+
+    override val readFloat32: Float
+        get() {
+            val result = buffer.getFloat32(position)
+            position += 4
+            return result
+        }
+
+    override fun getFloat32(offset: Int): Float {
+        return buffer.getFloat32(offset)
     }
 
     override fun putFloat32(value: Float): MixedBuffer {
@@ -257,6 +350,23 @@ internal class MixedBufferImpl(capacity: Int) : MixedBuffer, GenericBuffer<DataV
         }
         return this
     }
+
+    override fun getTag(offset: Int): String {
+        var tag = "";
+        for (i in offset until offset + 4) {
+            tag += buffer.getInt8(i).toInt().toChar()
+        }
+        return tag
+    }
+
+    override fun getOffset(offset: Int, offSize: Int): Int {
+        var v = 0
+        for (i in 0 until offSize) {
+            v = v shl 8
+            v += buffer.getUint8(offset + i)
+        }
+        return v
+    }
 }
 
 actual fun createUint8Buffer(capacity: Int): Uint8Buffer {
@@ -275,6 +385,10 @@ actual fun createUint32Buffer(capacity: Int): Uint32Buffer {
 
 actual fun createFloat32Buffer(capacity: Int): Float32Buffer {
     return Float32BufferImpl(capacity)
+}
+
+actual fun createFloat32Buffer(array: FloatArray): Float32Buffer {
+    return Float32BufferImpl(Float32Array(array.toTypedArray()))
 }
 
 actual fun createMixedBuffer(capacity: Int): MixedBuffer {

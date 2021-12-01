@@ -1,4 +1,4 @@
-package com.lehaine.littlekt.io
+package com.lehaine.littlekt.file
 
 /**
  * @author Colton Daily

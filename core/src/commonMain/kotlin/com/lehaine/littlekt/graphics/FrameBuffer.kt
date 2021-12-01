@@ -3,7 +3,7 @@ package com.lehaine.littlekt.graphics
 import com.lehaine.littlekt.Application
 import com.lehaine.littlekt.Disposable
 import com.lehaine.littlekt.graphics.gl.*
-import com.lehaine.littlekt.io.createUint32Buffer
+import com.lehaine.littlekt.file.createUint32Buffer
 import com.lehaine.littlekt.math.MutableVec4i
 
 /**

@@ -1,4 +1,4 @@
-package com.lehaine.littlekt.io
+package com.lehaine.littlekt.file
 
 import com.lehaine.littlekt.Application
 import com.lehaine.littlekt.audio.AudioClip
@@ -6,8 +6,8 @@ import com.lehaine.littlekt.graphics.Texture
 import com.lehaine.littlekt.graphics.TextureAtlas
 import com.lehaine.littlekt.graphics.TextureData
 import com.lehaine.littlekt.graphics.gl.TextureFormat
-import com.lehaine.littlekt.io.atlas.AtlasInfo
-import com.lehaine.littlekt.io.atlas.AtlasPage
+import com.lehaine.littlekt.file.atlas.AtlasInfo
+import com.lehaine.littlekt.file.atlas.AtlasPage
 import com.lehaine.littlekt.log.Logger
 import com.lehaine.littlekt.util.internal.toString
 import kotlinx.coroutines.CompletableDeferred

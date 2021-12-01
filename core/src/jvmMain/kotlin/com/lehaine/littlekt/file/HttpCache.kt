@@ -1,4 +1,4 @@
-package com.lehaine.littlekt.io
+package com.lehaine.littlekt.file
 
 import com.lehaine.littlekt.log.Logger
 import java.io.*

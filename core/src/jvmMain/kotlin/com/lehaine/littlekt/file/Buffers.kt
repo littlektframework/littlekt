@@ -1,11 +1,11 @@
-package com.lehaine.littlekt.io
+package com.lehaine.littlekt.file
 
 import java.nio.*
 import java.nio.Buffer
 
 
 abstract class GenericBuffer<out B : Buffer>(override val capacity: Int, val buffer: B) :
-    com.lehaine.littlekt.io.Buffer {
+    com.lehaine.littlekt.file.Buffer {
     override var limit: Int
         get() = buffer.limit()
         set(value) {
@@ -164,6 +164,12 @@ class Float32BufferImpl(buffer: FloatBuffer) : Float32Buffer, GenericBuffer<Floa
         ByteBuffer.allocateDirect(capacity * 4).order(ByteOrder.nativeOrder()).asFloatBuffer()
     )
 
+    constructor(data: FloatArray) : this(
+        ByteBuffer.allocateDirect(data.size * 4).order(ByteOrder.nativeOrder()).asFloatBuffer()
+    ) {
+        put(data)
+    }
+
     override fun get(i: Int): Float {
         return buffer[i]
     }
@@ -200,6 +206,42 @@ class MixedBufferImpl(buffer: ByteBuffer) : MixedBuffer, GenericBuffer<ByteBuffe
 
     constructor(capacity: Int) : this(ByteBuffer.allocateDirect(capacity).order(ByteOrder.nativeOrder()))
 
+    override val readInt8: Byte get() = readUint8
+
+    override fun getInt8(offset: Int): Byte {
+        return getUint8(offset)
+    }
+
+    override fun getInt8s(startOffset: Int, endOffset: Int): ByteArray {
+        return getUint8s(startOffset, endOffset)
+    }
+
+    override val readInt16: Short get() = readUin16
+
+    override fun getInt16(offset: Int): Short {
+        return getUint16(offset)
+    }
+
+    override val readInt32: Int
+        get() = readUint32
+
+    override fun getInt32(offset: Int): Int {
+        return getUint32(offset)
+    }
+
+    override val readUint8: Byte
+        get() = buffer.get()
+
+    override fun getUint8(offset: Int): Byte {
+        return buffer.get(offset)
+    }
+
+    override fun getUint8s(startOffset: Int, endOffset: Int): ByteArray {
+        val dest = ByteArray(endOffset - startOffset)
+        buffer.get(dest, startOffset, endOffset - startOffset)
+        return dest
+    }
+
     override fun putUint8(value: Byte): MixedBuffer {
         buffer.put(value)
         return this
@@ -221,6 +263,13 @@ class MixedBufferImpl(buffer: ByteBuffer) : MixedBuffer, GenericBuffer<ByteBuffe
             }
         }
         return this
+    }
+
+    override val readUin16: Short
+        get() = buffer.short
+
+    override fun getUint16(offset: Int): Short {
+        return buffer.getShort(offset)
     }
 
     override fun putUint16(value: Short): MixedBuffer {
@@ -255,6 +304,13 @@ class MixedBufferImpl(buffer: ByteBuffer) : MixedBuffer, GenericBuffer<ByteBuffe
         return this
     }
 
+    override val readUint32: Int
+        get() = buffer.int
+
+    override fun getUint32(offset: Int): Int {
+        return buffer.getInt(offset)
+    }
+
     override fun putUint32(value: Int): MixedBuffer {
         buffer.putInt(value)
         return this
@@ -285,6 +341,13 @@ class MixedBufferImpl(buffer: ByteBuffer) : MixedBuffer, GenericBuffer<ByteBuffe
             position += len * 4
         }
         return this
+    }
+
+    override val readFloat32: Float
+        get() = buffer.float
+
+    override fun getFloat32(offset: Int): Float {
+        return buffer.getFloat(offset)
     }
 
     override fun putFloat32(value: Float): MixedBuffer {
@@ -319,6 +382,23 @@ class MixedBufferImpl(buffer: ByteBuffer) : MixedBuffer, GenericBuffer<ByteBuffe
         return this
     }
 
+    override fun getTag(offset: Int): String {
+        var tag = ""
+        for (i in offset until offset + 4) {
+            tag += buffer.get(i).toInt().toChar()
+        }
+        return tag
+    }
+
+    override fun getOffset(offset: Int, offSize: Int): Int {
+        var v = 0
+        for (i in 0 until offSize) {
+            v = v shl 8
+            v += buffer.get(offset + i)
+        }
+        return v
+    }
+
     companion object {
         // todo: find a good value / always / never convert buffer type
         private const val BUFFER_CONV_THRESH = 4
@@ -333,5 +413,6 @@ actual fun createUint16Buffer(capacity: Int): Uint16Buffer = Uint16BufferImpl(ca
 actual fun createUint32Buffer(capacity: Int): Uint32Buffer = Uint32BufferImpl(capacity)
 
 actual fun createFloat32Buffer(capacity: Int): Float32Buffer = Float32BufferImpl(capacity)
+actual fun createFloat32Buffer(array: FloatArray): Float32Buffer = Float32BufferImpl(array)
 
 actual fun createMixedBuffer(capacity: Int): MixedBuffer = MixedBufferImpl(capacity)
