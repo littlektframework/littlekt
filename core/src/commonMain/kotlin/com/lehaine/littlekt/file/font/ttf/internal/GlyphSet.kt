@@ -45,8 +45,10 @@ internal class GlyphSet(val font: TtfFont) : Iterable<Glyph> {
     }
 
     operator fun get(index: Int): Glyph {
-        val glyph = glyphs[index] ?: glyphLoader[index]?.invoke()
-        check(glyph != null) { "Unable to retrieve or load glyph of index $index!" }
+
+        val glyph = glyphs.getOrPut(index) {
+            glyphLoader[index]?.invoke() ?: error("Unable to retrieve or load glyph of index $index")
+        }
         return glyph
     }
 

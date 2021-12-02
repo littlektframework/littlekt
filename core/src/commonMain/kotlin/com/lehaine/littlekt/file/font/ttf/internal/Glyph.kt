@@ -18,7 +18,8 @@ internal class Glyph(
     var yMin: Int = 0,
     var xMax: Int = 0,
     var yMax: Int = 0,
-    var advanceWidth: Float = 0f
+    var advanceWidth: Float = 0f,
+    var leftSideBearing: Int = 0
 ) {
     var contors: Int = 0
     var codePoint: Int = -1
@@ -45,7 +46,7 @@ internal class Glyph(
     }
 
     override fun toString(): String {
-        return "Glyph(name=$name, index=$index, xMin=$xMin, yMin=$yMin, xMax=$xMax, yMax=$yMax, advanceWidth=$advanceWidth, contors=$contors, codePoint=$codePoint, byteOffset=$byteOffset, byteLength=$byteLength, vertices=$vertices, bounds=$bounds, unicodesMut=$unicodesMut, unicode=$unicode, unicodes=$unicodes)"
+        return "Glyph(name=$name, index=$index, xMin=$xMin, yMin=$yMin, xMax=$xMax, yMax=$yMax, advanceWidth=$advanceWidth, leftSideBearing=$leftSideBearing, contors=$contors, codePoint=$codePoint, byteOffset=$byteOffset, byteLength=$byteLength, vertices=$vertices, bounds=$bounds, unicodesMut=$unicodesMut, unicode=$unicode, unicodes=$unicodes)"
     }
 
 

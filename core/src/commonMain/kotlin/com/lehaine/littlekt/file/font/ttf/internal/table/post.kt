@@ -136,4 +136,10 @@ internal data class Post(
         result = 31 * result + offset.contentHashCode()
         return result
     }
+
+    override fun toString(): String {
+        return "Post(version=$version, italicAngle=$italicAngle, underlinePosition=$underlinePosition, underlineThickness=$underlineThickness, isFixedPitch=$isFixedPitch, minMemType42=$minMemType42, maxMemType42=$maxMemType42, minMemType1=$minMemType1, maxMemType1=$maxMemType1, numberOfGlyphs=$numberOfGlyphs)"
+    }
+
+
 }

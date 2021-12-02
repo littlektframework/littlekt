@@ -19,7 +19,7 @@ class TtfFont(buffer: MixedBuffer? = null) {
     private var numberOfHMetrics: Int = 0
     private var numGlyphs: Int = 0
     private var glyphNames: GlyphNames? = null
-    internal var glyphs: GlyphSet? = null
+    internal lateinit var glyphs: GlyphSet
 
     init {
         buffer?.let { parse(it) }
@@ -179,6 +179,10 @@ class TtfFont(buffer: MixedBuffer? = null) {
         } else {
             throw RuntimeException("Font doesn't contain TrueType or CFF outlines.")
         }
+
+        val hmtxTable =
+            uncompressTable(buffer, hmtxTableEntry ?: throw RuntimeException("hmtx table entry was not found!"))
+        HmtxParser(hmtxTable.buffer, hmtxTable.offset, numberOfHMetrics, numGlyphs, glyphs).parse()
     }
 
     private fun parseOpenTypeTableEntries(buffer: MixedBuffer, numTables: Int): List<TableEntry> {

@@ -128,4 +128,8 @@ internal data class Cmap(
     val groupCount: Int,
     val glyphIndexMap: Map<Int, Int>,
     val segCount: Int
-)
+) {
+    override fun toString(): String {
+        return "Cmap(version=$version, numTables=$numTables, format=$format, length=$length, language=$language, groupCount=$groupCount, segCount=$segCount)"
+    }
+}
