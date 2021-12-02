@@ -15,7 +15,7 @@ class GPUFont(private val data: MixedBuffer) {
     var descender = 0f
 
     private var scale = 0f
-    private val glyphs = mutableMapOf<Int, Glyph>()
+    private val glyphs = mutableMapOf<Int, GPUGlyph>()
     private val glyphCompiler = GlyphCompiler()
 
     init {
@@ -24,7 +24,7 @@ class GPUFont(private val data: MixedBuffer) {
         descender = data.readInt16 * scale
 
         for (i in 0..data.readInt16) {
-            val glyph = Glyph()
+            val glyph = GPUGlyph()
             val codePoint = data.readInt16.toInt()
             glyph.apply {
                 this.codePoint = codePoint and 0x7FFF
@@ -73,7 +73,7 @@ class GPUFont(private val data: MixedBuffer) {
     }
 }
 
-internal data class Glyph(
+internal data class GPUGlyph(
     var codePoint: Int = -1,
     var advanceWidth: Float = 0f,
     var byteOffset: Int = 0,
@@ -94,10 +94,10 @@ internal class GlyphCompiler {
     private var currentX = 0f
     private var currentY = 0f
     private var contourCount = 0
-    private var glyph: Glyph? = null
+    private var glyph: GPUGlyph? = null
     private var rectBuilder = RectBuilder()
 
-    fun begin(glyph: Glyph) {
+    fun begin(glyph: GPUGlyph) {
         this.glyph = glyph
         rectBuilder.reset()
         vertices.clear()

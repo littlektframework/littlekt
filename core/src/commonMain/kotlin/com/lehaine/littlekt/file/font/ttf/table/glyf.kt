@@ -1,8 +1,7 @@
-package com.lehaine.littlekt.file.font.ttf.internal.table
+package com.lehaine.littlekt.file.font.ttf.table
 
 import com.lehaine.littlekt.file.MixedBuffer
-import com.lehaine.littlekt.file.font.ttf.TtfFont
-import com.lehaine.littlekt.file.font.ttf.internal.*
+import com.lehaine.littlekt.file.font.ttf.*
 
 /**
  * The `glyf` table describes the glyphs in TrueType outline format.
@@ -14,25 +13,25 @@ internal class GlyfParser(
     val buffer: MixedBuffer,
     val start: Int,
     val loca: IntArray,
-    val font: TtfFont
+    val fontReader: TtfFontReader
 ) {
 
     fun parse(): GlyphSet {
-        val glyphs = GlyphSet(font)
+        val glyphs = GlyphSet()
         for (i in 0 until loca.size - 1) {
             val offset = loca[i]
             val nextOffset = loca[i + 1]
 
             if (offset != nextOffset) {
-                glyphs[i] = TTfGlyphLoader(font, i, ::parseGlyph, buffer, start + offset, ::buildPath)
+                glyphs[i] = TTfGlyphLoader(fontReader, i, ::parseGlyph, buffer, start + offset, ::buildPath)
             } else {
-                glyphs[i] = SimpleGlyphLoader(font, i)
+                glyphs[i] = SimpleGlyphLoader(i)
             }
         }
         return glyphs
     }
 
-    private fun parseGlyph(glyph: Glyph, buffer: MixedBuffer, start: Int) {
+    private fun parseGlyph(glyph: MutableGlyph, buffer: MixedBuffer, start: Int) {
         val p = Parser(buffer, start)
         glyph.numberOfContours = p.parseInt16.toInt()
         glyph.xMin = p.parseInt16.toInt()
@@ -76,7 +75,7 @@ internal class GlyfParser(
                 if (numOfCoordinates > 0) {
                     for (i in 0 until numOfCoordinates) {
                         flag = flags[i]
-                        glyph.points += Point(
+                        glyph.points += MutablePoint(
                             onCurve = (flag and 1) != 0,
                             lastPointOfContour = glyph.endPointIndices.indexOf(i) >= 0
                         )
@@ -109,7 +108,7 @@ internal class GlyfParser(
             var flags = 0
             while (moreRefs) {
                 flags = p.parseUint16.toInt()
-                val ref = GlyphReference(p.parseUint16.toInt(), 0, 0, 1f, 0f, 0f, 1f)
+                val ref = MutableGlyphReference(p.parseUint16.toInt(), 0, 0, 1f, 0f, 0f, 1f)
                 if ((flags and 1) > 0) {
                     if ((flags and 2) > 0) {
                         ref.x = p.parseUint16.toInt()
@@ -179,7 +178,7 @@ internal class GlyfParser(
         return v
     }
 
-    fun buildPath(glyphSet: GlyphSet, glyph: Glyph) {
+    fun buildPath(glyphSet: GlyphSet, glyph: MutableGlyph) {
         if (glyph.isComposite) {
             // TODO impl building path for composite glyphs
         }
@@ -187,12 +186,12 @@ internal class GlyfParser(
         calcPath(glyph)
     }
 
-    fun calcPath(glyph: Glyph) {
+    fun calcPath(glyph: MutableGlyph) {
         if (glyph.points.isEmpty()) return
         val p = Path()
         val contours = getContours(glyph.points)
         contours.forEach { contour ->
-            var prev: Point? = null
+            var prev: MutablePoint? = null
             var curr = contour[contour.size - 1]
             var next = contour[0]
 
@@ -229,9 +228,9 @@ internal class GlyfParser(
         glyph.path = p
     }
 
-    fun getContours(points: List<Point>): List<List<Point>> {
-        val contours = mutableListOf<List<Point>>()
-        var current = mutableListOf<Point>()
+    fun getContours(points: List<MutablePoint>): List<List<MutablePoint>> {
+        val contours = mutableListOf<List<MutablePoint>>()
+        var current = mutableListOf<MutablePoint>()
         points.forEach {
             current += it
             if (it.lastPointOfContour) {

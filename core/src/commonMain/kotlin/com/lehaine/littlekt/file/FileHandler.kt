@@ -4,10 +4,11 @@ import com.lehaine.littlekt.Application
 import com.lehaine.littlekt.audio.AudioClip
 import com.lehaine.littlekt.file.atlas.AtlasInfo
 import com.lehaine.littlekt.file.atlas.AtlasPage
-import com.lehaine.littlekt.file.font.ttf.TtfFont
 import com.lehaine.littlekt.graphics.Texture
 import com.lehaine.littlekt.graphics.TextureAtlas
 import com.lehaine.littlekt.graphics.TextureData
+import com.lehaine.littlekt.graphics.font.CharacterSets
+import com.lehaine.littlekt.graphics.font.TtfFont
 import com.lehaine.littlekt.graphics.gl.TextureFormat
 import com.lehaine.littlekt.log.Logger
 import com.lehaine.littlekt.util.internal.toString
@@ -160,9 +161,9 @@ abstract class FileHandler(
         return TextureAtlas(textures, info)
     }
 
-    suspend fun loadTtfFont(assetPath: String): TtfFont {
+    suspend fun loadTtfFont(assetPath: String, chars: String = CharacterSets.LATIN_ALL): TtfFont {
         val data = loadAsset(assetPath)
-        return TtfFont(createMixedBuffer(data.toArray()))
+        return TtfFont(chars).also { it.load(data) }
     }
 
     /**

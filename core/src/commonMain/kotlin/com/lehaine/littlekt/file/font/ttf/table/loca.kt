@@ -1,7 +1,7 @@
-package com.lehaine.littlekt.file.font.ttf.internal.table
+package com.lehaine.littlekt.file.font.ttf.table
 
 import com.lehaine.littlekt.file.MixedBuffer
-import com.lehaine.littlekt.file.font.ttf.internal.Parser
+import com.lehaine.littlekt.file.font.ttf.Parser
 
 /**
  * The `loca` table stores the offsets to the locations of the glyphs in the font.

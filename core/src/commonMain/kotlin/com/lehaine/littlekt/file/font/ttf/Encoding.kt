@@ -1,7 +1,6 @@
-package com.lehaine.littlekt.file.font.ttf.internal
+package com.lehaine.littlekt.file.font.ttf
 
-import com.lehaine.littlekt.file.font.ttf.TtfFont
-import com.lehaine.littlekt.file.font.ttf.internal.table.Cmap
+import com.lehaine.littlekt.file.font.ttf.table.Cmap
 
 /**
  * @author Colton Daily
@@ -1182,10 +1181,10 @@ internal interface Encoding {
     }
 }
 
-internal class DefaultEncoding(val font: TtfFont) : Encoding {
+internal class DefaultEncoding(val fontReader: TtfFontReader) : Encoding {
     override fun charToGlyphIndex(c: Char): Int? {
         val code = c.code
-        font.glyphs?.forEachIndexed { i, glyph ->
+        fontReader.glyphs?.forEachIndexed { i, glyph ->
             glyph.unicodes.forEach {
                 if (it == code) {
                     return i

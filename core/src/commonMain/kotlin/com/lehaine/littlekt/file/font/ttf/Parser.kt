@@ -1,4 +1,4 @@
-package com.lehaine.littlekt.file.font.ttf.internal
+package com.lehaine.littlekt.file.font.ttf
 
 import com.lehaine.littlekt.file.MixedBuffer
 

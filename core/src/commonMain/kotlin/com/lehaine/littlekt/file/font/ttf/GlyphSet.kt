@@ -1,51 +1,50 @@
-package com.lehaine.littlekt.file.font.ttf.internal
+package com.lehaine.littlekt.file.font.ttf
 
 import com.lehaine.littlekt.file.MixedBuffer
-import com.lehaine.littlekt.file.font.ttf.TtfFont
 
 /**
  * @author Colton Daily
  * @date 12/1/2021
  */
 
-internal typealias GlyphLoader = () -> Glyph
+internal typealias GlyphLoader = () -> MutableGlyph
 
-internal fun SimpleGlyphLoader(font: TtfFont, index: Int): GlyphLoader {
+internal fun SimpleGlyphLoader(index: Int): GlyphLoader {
     return {
-        Glyph(index = index, font = font)
+        MutableGlyph(index = index)
     }
 }
 
 internal fun TTfGlyphLoader(
-    font: TtfFont,
+    fontReader: TtfFontReader,
     index: Int,
-    parseGlyph: (Glyph, MixedBuffer, Int) -> Unit,
+    parseGlyph: (MutableGlyph, MixedBuffer, Int) -> Unit,
     buffer: MixedBuffer,
     position: Int,
-    buildPath: (GlyphSet, Glyph) -> Unit,
+    buildPath: (GlyphSet, MutableGlyph) -> Unit,
 ): GlyphLoader {
     return {
-        val glyph = Glyph(index = index, font = font)
+        val glyph = MutableGlyph(index = index)
         glyph.calcPath = {
             parseGlyph.invoke(glyph, buffer, position)
-            buildPath(font.glyphs, glyph)
+            buildPath(fontReader.glyphs, glyph)
         }
         glyph
     }
 }
 
-internal class GlyphSet(val font: TtfFont) : Iterable<Glyph> {
+internal class GlyphSet : Iterable<MutableGlyph> {
     private val glyphLoader = mutableMapOf<Int, GlyphLoader>()
-    private val glyphs = mutableMapOf<Int, Glyph>()
+    private val glyphs = mutableMapOf<Int, MutableGlyph>()
     private var length = 0
 
     val size get() = length
 
-    override fun iterator(): Iterator<Glyph> {
+    override fun iterator(): Iterator<MutableGlyph> {
         return glyphs.values.iterator()
     }
 
-    operator fun get(index: Int): Glyph {
+    operator fun get(index: Int): MutableGlyph {
 
         val glyph = glyphs.getOrPut(index) {
             glyphLoader[index]?.invoke() ?: error("Unable to retrieve or load glyph of index $index")

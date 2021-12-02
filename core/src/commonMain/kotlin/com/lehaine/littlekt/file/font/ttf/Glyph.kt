@@ -1,80 +1,79 @@
-package com.lehaine.littlekt.file.font.ttf.internal
+package com.lehaine.littlekt.file.font.ttf
 
-import com.lehaine.littlekt.file.font.ttf.TtfFont
+import com.lehaine.littlekt.graphics.font.Glyph
+import com.lehaine.littlekt.graphics.font.GlyphReference
+import com.lehaine.littlekt.graphics.font.Point
 import com.lehaine.littlekt.math.Rect
 
 /**
  * @author Colton Daily
  * @date 12/1/2021
  */
-class Glyph(
-    var name: String? = null,
-    unicode: Int? = null,
-    unicodes: List<Int>? = null,
-    val font: TtfFont,
-    var index: Int,
-    var xMin: Int = 0,
-    var yMin: Int = 0,
-    var xMax: Int = 0,
-    var yMax: Int = 0,
-    var advanceWidth: Float = 0f,
+
+internal class MutableGlyph(var index: Int) {
+    var name: String? = null
+    var xMin: Int = 0
+    var yMin: Int = 0
+    var xMax: Int = 0
+    var yMax: Int = 0
+    var advanceWidth: Float = 0f
     var leftSideBearing: Int = 0
-) {
     var numberOfContours: Int = 0
     val endPointIndices = mutableListOf<Int>()
     var instructionLength: Int = 0
     val instructions = mutableListOf<Byte>()
-    val points = mutableListOf<Point>()
-    val refs = mutableListOf<GlyphReference>()
+    val points = mutableListOf<MutablePoint>()
+    val refs = mutableListOf<MutableGlyphReference>()
     var isComposite: Boolean = false
-
     var codePoint: Int = -1
     var bounds: Rect? = null
     var calcPath: () -> Unit = {}
-    private var pathCalculated = false
     var path: Path = Path()
-        get() {
-            if (!pathCalculated) {
-                pathCalculated = true
-                calcPath()
-            }
-            return field
-        }
-
-    private val unicodesMut = mutableListOf<Int>().also {
-        if (unicodes != null) {
-            it.addAll(unicodes)
-        }
-    }
-
-    var unicode: Int = unicode ?: 0
-    val unicodes: List<Int> get() = unicodesMut
+    val unicodes = mutableListOf<Int>()
+    var unicode: Int = 0
 
     fun addUnicode(unicode: Int) {
         if (unicodes.isEmpty()) {
             this.unicode = unicode
         }
 
-        unicodesMut.add(unicode)
+        unicodes.add(unicode)
     }
 
-    override fun toString(): String {
-        return "Glyph(name=$name, index=$index, xMin=$xMin, yMin=$yMin, xMax=$xMax, yMax=$yMax, advanceWidth=$advanceWidth, leftSideBearing=$leftSideBearing, numberOfContours=$numberOfContours, endPointIndices=$endPointIndices, instructionLength=$instructionLength, instructions=$instructions,\npoints=[\n${
-            points.joinToString(
-                separator = "\n"
-            )
-        }\n], refs=$refs, isComposite=$isComposite, unicode=$unicode, unicodes=$unicodes)"
-    }
+    fun toImmutable() = Glyph(
+        name,
+        index,
+        xMin,
+        yMin,
+        xMax,
+        yMax,
+        advanceWidth,
+        leftSideBearing,
+        numberOfContours,
+        unicode,
+        unicodes.toList(),
+        path,
+        endPointIndices.toList(),
+        instructionLength,
+        instructions.toList(),
+        points.map { it.toImmutable() },
+        refs.map { it.toImmutable() },
+        isComposite
+    )
 }
 
-data class Point(
+internal data class MutablePoint(
     var x: Int = 0,
     var y: Int = 0,
     var onCurve: Boolean = false,
     var lastPointOfContour: Boolean = false
-)
+) {
 
-data class GlyphReference(
+    fun toImmutable() = Point(x, y, onCurve, lastPointOfContour)
+}
+
+
+internal data class MutableGlyphReference(
     val glyphIndex: Int,
     var x: Int,
     var y: Int,
@@ -84,11 +83,13 @@ data class GlyphReference(
     var scaleY: Float,
     val matchedPoints: IntArray = IntArray(2)
 ) {
+    fun toImmutable() = GlyphReference(glyphIndex, x, y, scaleX, scale01, scale10, scaleY, matchedPoints)
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other == null || this::class != other::class) return false
 
-        other as GlyphReference
+        other as MutableGlyphReference
 
         if (glyphIndex != other.glyphIndex) return false
         if (x != other.x) return false
@@ -114,3 +115,4 @@ data class GlyphReference(
         return result
     }
 }
+

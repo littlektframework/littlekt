@@ -1,8 +1,8 @@
-package com.lehaine.littlekt.file.font.ttf.internal.table
+package com.lehaine.littlekt.file.font.ttf.table
 
 import com.lehaine.littlekt.file.MixedBuffer
-import com.lehaine.littlekt.file.font.ttf.internal.Parser
-import com.lehaine.littlekt.file.font.ttf.internal.Type
+import com.lehaine.littlekt.file.font.ttf.Parser
+import com.lehaine.littlekt.file.font.ttf.Type
 
 /**
  * The `ltag` table stores IETF BCP-47 language tags.
@@ -13,7 +13,7 @@ import com.lehaine.littlekt.file.font.ttf.internal.Type
  * @author Colton Daily
  * @date 11/30/2021
  */
-class LtagParser(val buffer: MixedBuffer, val start: Int) {
+internal class LtagParser(val buffer: MixedBuffer, val start: Int) {
 
     fun parse(): List<String> {
         val p = Parser(buffer, start)

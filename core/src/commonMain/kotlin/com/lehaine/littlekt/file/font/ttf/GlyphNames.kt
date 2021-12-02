@@ -1,6 +1,6 @@
-package com.lehaine.littlekt.file.font.ttf.internal
+package com.lehaine.littlekt.file.font.ttf
 
-import com.lehaine.littlekt.file.font.ttf.internal.table.Post
+import com.lehaine.littlekt.file.font.ttf.table.Post
 
 /**
  * @author Colton Daily

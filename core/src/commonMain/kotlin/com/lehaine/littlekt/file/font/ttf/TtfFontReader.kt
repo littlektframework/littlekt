@@ -1,14 +1,14 @@
 package com.lehaine.littlekt.file.font.ttf
 
 import com.lehaine.littlekt.file.MixedBuffer
-import com.lehaine.littlekt.file.font.ttf.internal.*
-import com.lehaine.littlekt.file.font.ttf.internal.table.*
+import com.lehaine.littlekt.file.font.ttf.table.*
+import com.lehaine.littlekt.graphics.font.Glyph
 
 /**
  * @author Colton Daily
  * @date 11/30/2021
  */
-class TtfFont(buffer: MixedBuffer? = null) {
+class TtfFontReader {
 
     private var isCIDFont: Boolean = false
     private var outlinesFormat: String = ""
@@ -19,20 +19,20 @@ class TtfFont(buffer: MixedBuffer? = null) {
     private var descender: Int = 0
     private var numberOfHMetrics: Int = 0
     private var numGlyphs: Int = 0
+    private lateinit var glyphNames: GlyphNames
 
     internal lateinit var glyphs: GlyphSet
-    internal lateinit var glyphNames: GlyphNames
 
-    init {
-        buffer?.let { parse(it) }
-    }
-
-    fun charToGlyph(char: Char): Glyph {
+    operator fun get(codePoint: Int): Glyph = this[codePoint.toChar()]
+    operator fun get(char: Char): Glyph {
         val glyphIndex = encoding.charToGlyphIndex(char) ?: 0
-        return glyphs[glyphIndex]
+        return glyphs[glyphIndex].let {
+            it.calcPath()
+            it.toImmutable()
+        }
     }
 
-    private fun parse(buffer: MixedBuffer) {
+    fun parse(buffer: MixedBuffer) {
         val numTables: Int
         val tableEntries: List<TableEntry>
         val signature = buffer.getTag(0)
@@ -278,8 +278,6 @@ internal class Tables {
     override fun toString(): String {
         return "Tables(head=$head, cmap=$cmap, hhea=$hhea, maxp=$maxp, os2=$os2, post=$post"
     }
-
-
 }
 
 
