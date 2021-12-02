@@ -71,7 +71,6 @@ internal class GlyfParser(
             check(flags.size == numOfCoordinates) { "Bad flags." }
 
             if (glyph.endPointIndices.isNotEmpty()) {
-
                 if (numOfCoordinates > 0) {
                     for (i in 0 until numOfCoordinates) {
                         flag = flags[i]

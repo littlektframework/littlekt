@@ -14,7 +14,7 @@ internal class HeadParser(val buffer: MixedBuffer, val start: Int) {
         val p = Parser(buffer, start)
         return Head(
             version = p.parseVersion(),
-            fontRevision = (p.parseFloat32 * 1000).roundToInt() / 1000,
+            fontRevision = (p.parseFixed * 1000).roundToInt() / 1000,
             checkSumAdjustment = p.parseUint32,
             magicNumber = p.parseUint32.also { check(it == 0x5F0F3CF5) { "Font header has wrong magic number." } },
             flags = p.parseUint16.toInt(),

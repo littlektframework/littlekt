@@ -14,7 +14,7 @@ internal class PostParser(val buffer: MixedBuffer, val start: Int) {
         val p = Parser(buffer, start)
         val post = MutablePost().apply {
             version = p.parseVersion()
-            italicAngle = p.parseFloat32
+            italicAngle = p.parseFixed
             underlinePosition = p.parseInt16.toInt()
             underlineThickness = p.parseInt16.toInt()
             isFixedPitch = p.parseUint32

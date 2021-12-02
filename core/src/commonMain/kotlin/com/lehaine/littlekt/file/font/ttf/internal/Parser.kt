@@ -38,7 +38,13 @@ internal class Parser(private val buffer: MixedBuffer, offset: Int) {
     val parseUint32 get() = buffer.getUint32(offset + relativeOffset).also { relativeOffset += 4 }
     val parseOffset32 get() = parseUint32
 
-    val parseFloat32 get() = buffer.getFloat32(offset + relativeOffset).also { relativeOffset += 4 }
+    val parseFixed: Float
+        get() {
+            val decimal = buffer.getInt16(offset)
+            val fraction = buffer.getUint16(offset + 2)
+            relativeOffset += 4
+            return (decimal + fraction / 65535).toFloat()
+        }
 
     fun parseString(length: Int): String {
         val offset = offset + relativeOffset
