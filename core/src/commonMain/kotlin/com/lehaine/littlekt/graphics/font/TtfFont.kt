@@ -12,15 +12,32 @@ class TtfFont(val chars: CharArray) {
     constructor(chars: String = CharacterSets.LATIN_ALL) : this(chars.map { it }.toCharArray())
 
     private val glyphCache = mutableMapOf<Int, Glyph>()
+
     val glyphs: Map<Int, Glyph> get() = glyphCache
+    val totalGlyphs get() = glyphs.size
+
+    var ascender = 0
+        private set
+    var descender = 0
+        private set
+
+    var fontSize = 72
+        set(value) {
+            field = value
+            glyphs.values.forEach {
+                it.path.recalculate(fontSize = field)
+            }
+        }
 
     fun load(data: Uint8Buffer) {
         val buffer = createMixedBuffer(data.toArray())
         val reader = TtfFontReader().also {
             it.parse(buffer)
+            ascender = it.ascender
+            descender = it.descender
         }
         chars.forEach { char ->
-            glyphCache[char.code] = reader[char]
+            glyphCache[char.code] = reader[char].also { it.path.recalculate(fontSize = fontSize) }
         }
     }
 }

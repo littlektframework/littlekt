@@ -2,6 +2,7 @@ package com.lehaine.littlekt.file.font.ttf.table
 
 import com.lehaine.littlekt.file.MixedBuffer
 import com.lehaine.littlekt.file.font.ttf.*
+import com.lehaine.littlekt.graphics.font.GlyphPath
 
 /**
  * The `glyf` table describes the glyphs in TrueType outline format.
@@ -23,9 +24,17 @@ internal class GlyfParser(
             val nextOffset = loca[i + 1]
 
             if (offset != nextOffset) {
-                glyphs[i] = TTfGlyphLoader(fontReader, i, ::parseGlyph, buffer, start + offset, ::buildPath)
+                glyphs[i] = TTfGlyphLoader(
+                    fontReader = fontReader,
+                    index = i,
+                    unitsPerEm = fontReader.unitsPerEm,
+                    parseGlyph = ::parseGlyph,
+                    buffer = buffer,
+                    position = start + offset,
+                    buildPath = ::buildPath
+                )
             } else {
-                glyphs[i] = SimpleGlyphLoader(i)
+                glyphs[i] = SimpleGlyphLoader(i, fontReader.unitsPerEm)
             }
         }
         return glyphs
@@ -188,10 +197,9 @@ internal class GlyfParser(
 
     fun calcPath(glyph: MutableGlyph) {
         if (glyph.points.isEmpty()) return
-        val p = Path()
+        val p = GlyphPath(glyph.unitsPerEm)
         val contours = getContours(glyph.points)
         contours.forEach { contour ->
-            var prev: MutablePoint? = null
             var curr = contour[contour.size - 1]
             var next = contour[0]
 
@@ -208,7 +216,6 @@ internal class GlyfParser(
             }
 
             for (i in contour.indices) {
-                prev = curr
                 curr = next
                 next = contour[(i + 1) % contour.size]
 

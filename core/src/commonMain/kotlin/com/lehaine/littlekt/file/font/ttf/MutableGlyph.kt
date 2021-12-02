@@ -1,6 +1,7 @@
 package com.lehaine.littlekt.file.font.ttf
 
 import com.lehaine.littlekt.graphics.font.Glyph
+import com.lehaine.littlekt.graphics.font.GlyphPath
 import com.lehaine.littlekt.graphics.font.GlyphReference
 import com.lehaine.littlekt.graphics.font.Point
 import com.lehaine.littlekt.math.Rect
@@ -10,7 +11,7 @@ import com.lehaine.littlekt.math.Rect
  * @date 12/1/2021
  */
 
-internal class MutableGlyph(var index: Int) {
+internal class MutableGlyph(var index: Int, var unitsPerEm: Int) {
     var name: String? = null
     var xMin: Int = 0
     var yMin: Int = 0
@@ -28,7 +29,7 @@ internal class MutableGlyph(var index: Int) {
     var codePoint: Int = -1
     var bounds: Rect? = null
     var calcPath: () -> Unit = {}
-    var path: Path = Path()
+    var path: GlyphPath = GlyphPath(unitsPerEm)
     val unicodes = mutableListOf<Int>()
     var unicode: Int = 0
 
@@ -52,13 +53,14 @@ internal class MutableGlyph(var index: Int) {
         numberOfContours,
         unicode,
         unicodes.toList(),
-        path,
+        path.copy(unitsPerEm = unitsPerEm),
         endPointIndices.toList(),
         instructionLength,
         instructions.toList(),
         points.map { it.toImmutable() },
         refs.map { it.toImmutable() },
-        isComposite
+        isComposite,
+        unitsPerEm
     )
 }
 

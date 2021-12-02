@@ -9,22 +9,23 @@ import com.lehaine.littlekt.file.MixedBuffer
 
 internal typealias GlyphLoader = () -> MutableGlyph
 
-internal fun SimpleGlyphLoader(index: Int): GlyphLoader {
+internal fun SimpleGlyphLoader(index: Int, unitsPerEm: Int): GlyphLoader {
     return {
-        MutableGlyph(index = index)
+        MutableGlyph(index = index, unitsPerEm)
     }
 }
 
 internal fun TTfGlyphLoader(
     fontReader: TtfFontReader,
     index: Int,
+    unitsPerEm: Int,
     parseGlyph: (MutableGlyph, MixedBuffer, Int) -> Unit,
     buffer: MixedBuffer,
     position: Int,
     buildPath: (GlyphSet, MutableGlyph) -> Unit,
 ): GlyphLoader {
     return {
-        val glyph = MutableGlyph(index = index)
+        val glyph = MutableGlyph(index, unitsPerEm)
         glyph.calcPath = {
             parseGlyph.invoke(glyph, buffer, position)
             buildPath(fontReader.glyphs, glyph)

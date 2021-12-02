@@ -10,18 +10,26 @@ import com.lehaine.littlekt.graphics.font.Glyph
  */
 class TtfFontReader {
 
-    private var isCIDFont: Boolean = false
-    private var outlinesFormat: String = ""
     private val tables = Tables()
     private var encoding: Encoding = DefaultEncoding(this)
-    private var unitsPerEm: Int = 0
-    private var ascender: Int = 0
-    private var descender: Int = 0
-    private var numberOfHMetrics: Int = 0
-    private var numGlyphs: Int = 0
     private lateinit var glyphNames: GlyphNames
 
     internal lateinit var glyphs: GlyphSet
+
+    var isCIDFont: Boolean = false
+        private set
+    var outlinesFormat: String = ""
+        private set
+    var unitsPerEm: Int = 0
+        private set
+    var ascender: Int = 0
+        private set
+    var descender: Int = 0
+        private set
+    var numberOfHMetrics: Int = 0
+        private set
+    var numGlyphs: Int = 0
+        private set
 
     operator fun get(codePoint: Int): Glyph = this[codePoint.toChar()]
     operator fun get(char: Char): Glyph {

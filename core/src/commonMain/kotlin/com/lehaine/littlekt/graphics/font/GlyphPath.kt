@@ -1,6 +1,6 @@
-package com.lehaine.littlekt.file.font.ttf
+package com.lehaine.littlekt.graphics.font
 
-import com.lehaine.littlekt.file.font.ttf.Path.CommandType.*
+import com.lehaine.littlekt.graphics.font.GlyphPath.CommandType.*
 import com.lehaine.littlekt.math.Rect
 import com.lehaine.littlekt.math.RectBuilder
 
@@ -8,7 +8,7 @@ import com.lehaine.littlekt.math.RectBuilder
  * @author Colton Daily
  * @date 12/1/2021
  */
-class Path {
+data class GlyphPath(val unitsPerEm: Int = 1000) {
     private val commands = mutableListOf<Command>()
     private var rectBuilder = RectBuilder()
 
@@ -36,7 +36,7 @@ class Path {
         commands += Command(CLOSE)
     }
 
-    fun extend(path: Path) {
+    fun extend(path: GlyphPath) {
         commands += path.commands
     }
 
@@ -48,6 +48,32 @@ class Path {
         lineTo(rect.x, rect.y2)
         close()
     }
+
+    fun recalculate(x: Int = 0, y: Int = 0, fontSize: Int = 72, scaleX: Float? = null, scaleY: Float? = null) {
+        val oldCommands = commands.toList()
+        val scale = 1f / unitsPerEm * fontSize
+        val xScale = scaleX ?: scale
+        val yScale = scaleY ?: scale
+        commands.clear()
+        oldCommands.forEach { cmd ->
+            when (cmd.type) {
+                MOVE_TO -> moveTo(x + (cmd.x * xScale), y + (-cmd.y * yScale))
+                LINE_TO -> lineTo(x + (cmd.x * xScale), y + (-cmd.y * yScale))
+                CURVE_TO -> curveTo(
+                    x + (cmd.x1 * xScale), y + (-cmd.y1 * yScale),
+                    x + (cmd.x2 * xScale), y + (-cmd.y2 * yScale),
+                    x + (cmd.x * xScale), y + (-cmd.y * yScale)
+                )
+                QUADRATIC_CURVE_TO -> quadTo(
+                    x + (cmd.x1 * xScale), y + (-cmd.y1 * yScale),
+                    x + (cmd.x * xScale), y + (-cmd.y * yScale)
+                )
+                CLOSE -> close()
+            }
+
+        }
+    }
+
 
     fun calculateBoundingBox(): Rect {
         var startX = 0f
