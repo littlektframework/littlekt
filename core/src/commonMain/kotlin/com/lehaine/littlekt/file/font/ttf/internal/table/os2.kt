@@ -4,6 +4,8 @@ import com.lehaine.littlekt.file.MixedBuffer
 import com.lehaine.littlekt.file.font.ttf.internal.Parser
 
 /**
+ * The `OS/2` table contains metrics required in OpenType fonts.
+ * https://www.microsoft.com/typography/OTSPEC/os2.htm
  * @author Colton Daily
  * @date 11/30/2021
  */
@@ -65,6 +67,12 @@ internal class Os2Parser(val buffer: MixedBuffer, val start: Int) {
     }
 }
 
+/**
+ * The `OS/2` table contains metrics required in OpenType fonts.
+ * https://www.microsoft.com/typography/OTSPEC/os2.htm
+ * @author Colton Daily
+ * @date 11/30/2021
+ */
 internal data class Os2(
     val version: Int,
     val xAvgCharWidth: Int,

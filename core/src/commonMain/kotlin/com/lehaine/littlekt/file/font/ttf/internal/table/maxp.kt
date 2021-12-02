@@ -4,6 +4,9 @@ import com.lehaine.littlekt.file.MixedBuffer
 import com.lehaine.littlekt.file.font.ttf.internal.Parser
 
 /**
+ * The `maxp` table establishes the memory requirements for the font.
+ * We need it just to get the number of glyphs in the font.
+ * https://www.microsoft.com/typography/OTSPEC/maxp.htm
  * @author Colton Daily
  * @date 11/30/2021
  */

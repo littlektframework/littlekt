@@ -5,6 +5,11 @@ import com.lehaine.littlekt.file.font.ttf.internal.Parser
 import com.lehaine.littlekt.file.font.ttf.internal.Type
 
 /**
+ * The `ltag` table stores IETF BCP-47 language tags.
+ * It allows supporting The `ltag` table stores IETF BCP-47 language tags. It allows supporting
+ * https://developer.apple.com/fonts/TrueType-Reference-Manual/RM06/Chap6ltag.html
+ * http://www.w3.org/International/articles/language-tags/
+ * http://www.iana.org/assignments/language-subtag-registry/language-subtag-registry
  * @author Colton Daily
  * @date 11/30/2021
  */

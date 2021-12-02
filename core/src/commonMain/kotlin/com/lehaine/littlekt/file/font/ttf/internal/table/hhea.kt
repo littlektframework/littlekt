@@ -29,7 +29,6 @@ internal class HheaParser(val buffer: MixedBuffer, val start: Int) {
     }
 }
 
-
 internal data class Hhea(
     val version: Float,
     val ascender: Int,

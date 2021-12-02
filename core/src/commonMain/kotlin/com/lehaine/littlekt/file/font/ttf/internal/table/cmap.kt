@@ -5,6 +5,8 @@ import com.lehaine.littlekt.file.font.ttf.internal.Parser
 import com.lehaine.littlekt.file.font.ttf.internal.Type
 
 /**
+ * The `cmap` table stores the mappings from characters to glyphs.
+ * https://www.microsoft.com/typography/OTSPEC/cmap.htm
  * @author Colton Daily
  * @date 11/30/2021
  */
@@ -119,6 +121,12 @@ private class MutableCmap {
     fun toCmap() = Cmap(version, numTables, format, length, language, groupCount, glyphIndexMap, segCount)
 }
 
+/**
+ * The `cmap` table stores the mappings from characters to glyphs.
+ * https://www.microsoft.com/typography/OTSPEC/cmap.htm
+ * @author Colton Daily
+ * @date 11/30/2021
+ */
 internal data class Cmap(
     val version: Int,
     val numTables: Int,

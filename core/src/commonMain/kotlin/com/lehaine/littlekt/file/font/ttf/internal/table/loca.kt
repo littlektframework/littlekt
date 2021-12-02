@@ -4,6 +4,8 @@ import com.lehaine.littlekt.file.MixedBuffer
 import com.lehaine.littlekt.file.font.ttf.internal.Parser
 
 /**
+ * The `loca` table stores the offsets to the locations of the glyphs in the font.
+ * https://www.microsoft.com/typography/OTSPEC/loca.htm
  * @author Colton Daily
  * @date 12/1/2021
  */

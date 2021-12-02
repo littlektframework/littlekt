@@ -5,6 +5,8 @@ import com.lehaine.littlekt.file.font.ttf.internal.Encoding
 import com.lehaine.littlekt.file.font.ttf.internal.Parser
 
 /**
+ * The `post` table stores additional PostScript information, such as glyph names.
+ * https://www.microsoft.com/typography/OTSPEC/post.htm
  * @author Colton Daily
  * @date 11/30/2021
  */
@@ -82,6 +84,12 @@ private class MutablePost {
     )
 }
 
+/**
+ * The `post` table stores additional PostScript information, such as glyph names.
+ * https://www.microsoft.com/typography/OTSPEC/post.htm
+ * @author Colton Daily
+ * @date 11/30/2021
+ */
 internal data class Post(
     val version: Float,
     val italicAngle: Float,

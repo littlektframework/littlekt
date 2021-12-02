@@ -5,6 +5,8 @@ import com.lehaine.littlekt.file.font.ttf.internal.Parser
 import kotlin.math.roundToInt
 
 /**
+ * The `head` table contains global information about the font.
+ * https://www.microsoft.com/typography/OTSPEC/head.htm
  * @author Colton Daily
  * @date 11/30/2021
  */
@@ -34,6 +36,12 @@ internal class HeadParser(val buffer: MixedBuffer, val start: Int) {
     }
 }
 
+/**
+ * The `head` table contains global information about the font.
+ * https://www.microsoft.com/typography/OTSPEC/head.htm
+ * @author Colton Daily
+ * @date 11/30/2021
+ */
 internal class Head(
     val version: Float,
     val fontRevision: Int,

@@ -5,6 +5,8 @@ import com.lehaine.littlekt.file.font.ttf.TtfFont
 import com.lehaine.littlekt.file.font.ttf.internal.*
 
 /**
+ * The `glyf` table describes the glyphs in TrueType outline format.
+ * http://www.microsoft.com/typography/otspec/glyf.htm
  * @author Colton Daily
  * @date 12/1/2021
  */
