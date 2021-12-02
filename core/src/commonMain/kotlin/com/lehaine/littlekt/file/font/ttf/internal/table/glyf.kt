@@ -83,7 +83,6 @@ internal class GlyfParser(
                     }
 
                     var px = 0
-                    println(flags)
                     for (i in 0 until numOfCoordinates) {
                         flag = flags[i]
                         glyph.points[i].apply {
