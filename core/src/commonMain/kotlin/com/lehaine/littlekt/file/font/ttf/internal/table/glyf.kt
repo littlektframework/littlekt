@@ -81,6 +81,7 @@ internal class GlyfParser(
                     }
 
                     var px = 0
+                    println(flags)
                     for (i in 0 until numOfCoordinates) {
                         flag = flags[i]
                         glyph.points[i].apply {
@@ -95,8 +96,6 @@ internal class GlyfParser(
                             y = parseGlyphCoord(p, flag, py, 4, 32)
                         }.also { py = it.y }
                     }
-
-
                 }
             }
         } else if (glyph.numberOfContours == 0) {
@@ -115,7 +114,7 @@ internal class GlyfParser(
                         ref.x = p.parseUint16.toInt()
                         ref.y = p.parseUint16.toInt()
                     } else {
-                        ref.machedPoints.apply {
+                        ref.matchedPoints.apply {
                             this[0] = p.parseUint16.toInt()
                             this[1] = p.parseUint16.toInt()
                         }
@@ -125,7 +124,7 @@ internal class GlyfParser(
                         ref.x = p.parseChar.code
                         ref.y = p.parseChar.code
                     } else {
-                        ref.machedPoints.apply {
+                        ref.matchedPoints.apply {
                             this[0] = p.parseByte.toInt()
                             this[1] = p.parseByte.toInt()
                         }
@@ -181,7 +180,64 @@ internal class GlyfParser(
 
     fun buildPath(glyphSet: GlyphSet, glyph: Glyph) {
         if (glyph.isComposite) {
-
+            // TODO impl building path for composite glyphs
         }
+
+        calcPath(glyph)
+    }
+
+    fun calcPath(glyph: Glyph) {
+        if (glyph.points.isEmpty()) return
+        val p = Path()
+        val contours = getContours(glyph.points)
+        contours.forEach { contour ->
+            var prev: Point? = null
+            var curr = contour[contour.size - 1]
+            var next = contour[0]
+
+            if (curr.onCurve) {
+                p.moveTo(curr.x.toFloat(), curr.y.toFloat())
+            } else {
+                if (next.onCurve) {
+                    p.moveTo(next.x.toFloat(), next.y.toFloat())
+                } else {
+                    val startX = (curr.x + next.x) * 0.5f
+                    val startY = (curr.y + next.y) * 0.5f
+                    p.moveTo(startX, startY)
+                }
+            }
+
+            for (i in contour.indices) {
+                prev = curr
+                curr = next
+                next = contour[(i + 1) % contour.size]
+
+                if (curr.onCurve) {
+                    p.lineTo(curr.x.toFloat(), curr.y.toFloat())
+                } else {
+                    var next2 = next.x.toFloat() to next.y.toFloat()
+
+                    if (!next.onCurve) {
+                        next2 = ((curr.x + next.x) * 0.5f) to ((curr.y + next.y) * 0.5f)
+                    }
+                    p.quadTo(curr.x.toFloat(), curr.y.toFloat(), next2.first, next2.second)
+                }
+            }
+            p.close()
+        }
+        glyph.path = p
+    }
+
+    fun getContours(points: List<Point>): List<List<Point>> {
+        val contours = mutableListOf<List<Point>>()
+        var current = mutableListOf<Point>()
+        points.forEach {
+            current += it
+            if (it.lastPointOfContour) {
+                contours += current
+                current = mutableListOf()
+            }
+        }
+        return contours
     }
 }

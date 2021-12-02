@@ -26,7 +26,7 @@ internal class PostParser(val buffer: MixedBuffer, val start: Int) {
                 1f -> names = Encoding.STANDARD_NAMES.copyOf()
                 2f -> {
                     numberOfGlyphs = p.parseUint16.toInt()
-                    glyphNameIndex = IntArray(numberOfGlyphs) { p.parseUint32 }
+                    glyphNameIndex = IntArray(numberOfGlyphs) { p.parseUint16.toInt() }
 
                     val nameList = mutableListOf<String>()
                     for (i in 0 until numberOfGlyphs) {

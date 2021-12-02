@@ -10,6 +10,7 @@ import com.lehaine.littlekt.file.font.ttf.internal.table.*
  */
 class TtfFont(buffer: MixedBuffer? = null) {
 
+    private var isCIDFont: Boolean = false
     private var outlinesFormat: String = ""
     private val tables = Tables()
     private var encoding: Encoding = DefaultEncoding(this)
@@ -18,8 +19,9 @@ class TtfFont(buffer: MixedBuffer? = null) {
     private var descender: Int = 0
     private var numberOfHMetrics: Int = 0
     private var numGlyphs: Int = 0
-    private var glyphNames: GlyphNames? = null
+
     internal lateinit var glyphs: GlyphSet
+    internal lateinit var glyphNames: GlyphNames
 
     init {
         buffer?.let { parse(it) }
@@ -187,6 +189,7 @@ class TtfFont(buffer: MixedBuffer? = null) {
         val hmtxTable =
             uncompressTable(buffer, hmtxTableEntry ?: throw RuntimeException("hmtx table entry was not found!"))
         HmtxParser(hmtxTable.buffer, hmtxTable.offset, numberOfHMetrics, numGlyphs, glyphs).parse()
+        addGlyphNames()
     }
 
     private fun parseOpenTypeTableEntries(buffer: MixedBuffer, numTables: Int): List<TableEntry> {
@@ -215,6 +218,29 @@ class TtfFont(buffer: MixedBuffer? = null) {
         return Table(buffer, tableEntry.offset)
     }
 
+    private fun addGlyphNames() {
+        val glyphIndexMap =
+            tables.cmap?.glyphIndexMap ?: error("Unable to add glyph name due to cmap table being null")
+        val codes = glyphIndexMap.keys
+        codes.forEach {
+            val glyphIndex = glyphIndexMap[it] ?: 0
+            glyphs[glyphIndex].apply {
+                addUnicode(it)
+            }
+        }
+        glyphs.forEachIndexed { i, glyph ->
+            if (encoding is CffEncoding) {
+                if (isCIDFont) {
+                    glyph.name = "gid$i"
+                } else {
+                    glyph.name = (encoding as CffEncoding).charset[i].toString()
+                }
+            } else if (glyphNames.names.isNotEmpty()) {
+                glyph.name = glyphNames.names[i]
+            }
+        }
+    }
+
     override fun toString(): String {
         return "TtfFont(outlinesFormat='$outlinesFormat', tables=$tables, encoding=$encoding, unitsPerEm=$unitsPerEm, ascender=$ascender, descender=$descender, numberOfHMetrics=$numberOfHMetrics, numGlyphs=$numGlyphs, glyphNames=$glyphNames, glyphs=$glyphs)"
     }
@@ -238,7 +264,7 @@ private data class Table(
     val buffer: MixedBuffer, val offset: Int
 )
 
-private class Tables {
+internal class Tables {
     var head: Head? = null
     var cmap: Cmap? = null
     var cvt: ShortArray? = null

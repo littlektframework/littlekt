@@ -1179,7 +1179,6 @@ internal interface Encoding {
             "ccaron",
             "dcroat"
         )
-
     }
 }
 

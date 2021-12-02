@@ -32,7 +32,7 @@ class Glyph(
     var bounds: Rect? = null
     var calcPath: () -> Unit = {}
     private var pathCalculated = false
-    val path: Path = Path()
+    var path: Path = Path()
         get() {
             if (!pathCalculated) {
                 pathCalculated = true
@@ -82,7 +82,7 @@ data class GlyphReference(
     var scale01: Float,
     var scale10: Float,
     var scaleY: Float,
-    val machedPoints: IntArray = IntArray(2)
+    val matchedPoints: IntArray = IntArray(2)
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -97,7 +97,7 @@ data class GlyphReference(
         if (scale01 != other.scale01) return false
         if (scale10 != other.scale10) return false
         if (scaleY != other.scaleY) return false
-        if (!machedPoints.contentEquals(other.machedPoints)) return false
+        if (!matchedPoints.contentEquals(other.matchedPoints)) return false
 
         return true
     }
@@ -110,7 +110,7 @@ data class GlyphReference(
         result = 31 * result + scale01.hashCode()
         result = 31 * result + scale10.hashCode()
         result = 31 * result + scaleY.hashCode()
-        result = 31 * result + machedPoints.contentHashCode()
+        result = 31 * result + matchedPoints.contentHashCode()
         return result
     }
 }
