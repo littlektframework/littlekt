@@ -11,7 +11,9 @@ class FontLoadTest(application: Application) : LittleKt(application) {
     init {
         fileHandler.launch {
             val font = loadTtfFont("FreeSerif.ttf")
-            println(font)
+            val glyph = font.charToGlyph('D').also { it.path }
+            println(glyph)
+            //println(font)
         }
     }
 }

@@ -2,7 +2,6 @@ package com.lehaine.littlekt.file.font.ttf.internal
 
 import com.lehaine.littlekt.file.MixedBuffer
 import com.lehaine.littlekt.file.font.ttf.TtfFont
-import kotlin.reflect.KFunction3
 
 /**
  * @author Colton Daily
@@ -20,15 +19,17 @@ internal fun SimpleGlyphLoader(font: TtfFont, index: Int): GlyphLoader {
 internal fun TTfGlyphLoader(
     font: TtfFont,
     index: Int,
-    parseGlyph: KFunction3<Glyph, MixedBuffer, Int, Unit>,
+    parseGlyph: (Glyph, MixedBuffer, Int) -> Unit,
     buffer: MixedBuffer,
     position: Int,
+    buildPath: (GlyphSet, Glyph) -> Unit,
 ): GlyphLoader {
     return {
         val glyph = Glyph(index = index, font = font)
-
-        // TODO impl glyph path?
-
+        glyph.calcPath = {
+            parseGlyph.invoke(glyph, buffer, position)
+            buildPath(font.glyphs, glyph)
+        }
         glyph
     }
 }

@@ -25,6 +25,10 @@ class TtfFont(buffer: MixedBuffer? = null) {
         buffer?.let { parse(it) }
     }
 
+    fun charToGlyph(char: Char): Glyph {
+        val glyphIndex = encoding.charToGlyphIndex(char) ?: 0
+        return glyphs[glyphIndex]
+    }
 
     private fun parse(buffer: MixedBuffer) {
         val numTables: Int
