@@ -14,7 +14,7 @@ import kotlin.math.floor
 
 inline fun mesh(gl: GL, attributes: List<VertexAttribute>, block: MeshProps.() -> Unit): Mesh {
     val props = MeshProps().apply(block)
-    return Mesh(gl, props.isStatic, props.maxVertices, props.maxIndices, props.useBatcher, attributes)
+    return Mesh(gl, props.isStatic, props.maxVertices, props.maxIndices, props.useBatcher, props.autoBind, attributes)
 }
 
 /**
@@ -81,9 +81,25 @@ fun Application.textureMesh(generate: MeshProps.() -> Unit): Mesh {
 
 class MeshProps {
     var isStatic: Boolean = true
+    private var indicesSpecificallySet = false
+
+    /**
+     * Updates [maxIndices] as well if it has not been set.
+     */
     var maxVertices = 1000
-    var maxIndices = floor(maxVertices * 0.5f).toInt() + maxVertices
+        set(value) {
+            field = value
+            _maxIndices = floor(maxVertices * 0.5f).toInt() + maxVertices
+        }
+    private var _maxIndices = floor(maxVertices * 0.5f).toInt() + maxVertices
+    var maxIndices
+        get() = _maxIndices
+        set(value) {
+            indicesSpecificallySet = true
+            _maxIndices = value
+        }
     var useBatcher = true
+    var autoBind = true
 }
 
 class MeshBatcher(size: Int, val attributes: VertexAttributes) {
@@ -144,6 +160,7 @@ class Mesh(
     val maxVertices: Int,
     val maxIndices: Int,
     var useBatcher: Boolean = true,
+    var autoBind: Boolean = true,
     attributes: List<VertexAttribute>
 ) : Disposable {
 
@@ -246,7 +263,9 @@ class Mesh(
             batcher.reset()
             updateVertices = false
         }
-        bind(shader)
+        if(autoBind) {
+            bind(shader)
+        }
         if (numIndices > 0) {
             if (count + offset > indices.maxNumIndices) {
                 throw RuntimeException("Mesh attempting to access memory outside of the index buffer (count: $count, offset: $offset, max: $numIndices)")
@@ -255,7 +274,9 @@ class Mesh(
         } else {
             gl.drawArrays(drawMode, offset, count)
         }
-        unbind(shader)
+        if(autoBind) {
+            unbind(shader)
+        }
 
     }
 

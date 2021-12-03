@@ -30,7 +30,7 @@ class VertexBufferObject(val gl: GL, val isStatic: Boolean, numVertices: Int, va
 
     val isBound get() = bound
     val numVertices get() = buffer.limit * 4 / attributes.vertexSize
-    val maxNumVertices get() = buffer.capacity / attributes.vertexSize
+    val maxNumVertices get() = buffer.capacity * 4 / attributes.vertexSize
 
     private var isDirty = false
 

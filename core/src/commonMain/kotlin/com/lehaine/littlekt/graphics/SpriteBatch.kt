@@ -110,7 +110,7 @@ class SpriteBatch(
         projectionMatrix?.let {
             this.projectionMatrix = it
         }
-        shader?.bind()
+        shader.bind()
         setupMatrices()
 
         drawing = true
