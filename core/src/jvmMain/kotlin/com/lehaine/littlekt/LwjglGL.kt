@@ -1,9 +1,10 @@
 package com.lehaine.littlekt
 
+import com.lehaine.littlekt.file.*
 import com.lehaine.littlekt.graphics.GL
 import com.lehaine.littlekt.graphics.GLVersion
 import com.lehaine.littlekt.graphics.gl.*
-import com.lehaine.littlekt.file.*
+import com.lehaine.littlekt.math.Mat3
 import com.lehaine.littlekt.math.Mat4
 import org.lwjgl.opengl.EXTFramebufferObject
 import org.lwjgl.opengl.GL11
@@ -487,6 +488,42 @@ class LwjglGL(private val engineStats: EngineStats) : GL {
         glScissor(x, y, width, height)
     }
 
+    override fun uniformMatrix3fv(uniformLocation: UniformLocation, transpose: Boolean, data: Mat3) {
+        engineStats.calls++
+        val buffer = createFloat32Buffer(19) as Float32BufferImpl
+        data.toBuffer(buffer)
+        glUniformMatrix3fv(uniformLocation.address, transpose, buffer.buffer)
+    }
+
+    override fun uniformMatrix3fv(uniformLocation: UniformLocation, transpose: Boolean, data: Float32Buffer) {
+        engineStats.calls++
+        data as Float32BufferImpl
+        glUniformMatrix3fv(uniformLocation.address, transpose, data.buffer)
+    }
+
+    override fun uniformMatrix3fv(uniformLocation: UniformLocation, transpose: Boolean, data: Array<Float>) {
+        engineStats.calls++
+        glUniformMatrix3fv(uniformLocation.address, transpose, data.toFloatArray())
+    }
+
+    override fun uniformMatrix4fv(uniformLocation: UniformLocation, transpose: Boolean, data: Mat4) {
+        engineStats.calls++
+        val buffer = createFloat32Buffer(16) as Float32BufferImpl
+        data.toBuffer(buffer)
+        glUniformMatrix4fv(uniformLocation.address, transpose, buffer.buffer)
+    }
+
+    override fun uniformMatrix4fv(uniformLocation: UniformLocation, transpose: Boolean, data: Float32Buffer) {
+        engineStats.calls++
+        data as Float32BufferImpl
+        glUniformMatrix4fv(uniformLocation.address, transpose, data.buffer)
+    }
+
+    override fun uniformMatrix4fv(uniformLocation: UniformLocation, transpose: Boolean, data: Array<Float>) {
+        engineStats.calls++
+        glUniformMatrix4fv(uniformLocation.address, transpose, data.toFloatArray())
+    }
+
     override fun uniform1i(uniformLocation: UniformLocation, data: Int) {
         engineStats.calls++
         glUniform1i(uniformLocation.address, data)
@@ -637,24 +674,6 @@ class LwjglGL(private val engineStats: EngineStats) : GL {
         engineStats.calls++
         source as Uint8BufferImpl
         GL11.glTexSubImage2D(target, level, xOffset, yOffset, width, height, format, type, source.buffer)
-    }
-
-    override fun uniformMatrix4fv(uniformLocation: UniformLocation, transpose: Boolean, data: Array<Float>) {
-        engineStats.calls++
-        glUniformMatrix4fv(uniformLocation.address, transpose, data.toFloatArray())
-    }
-
-    override fun uniformMatrix4fv(uniformLocation: UniformLocation, transpose: Boolean, data: Mat4) {
-        engineStats.calls++
-        val buffer = createFloat32Buffer(16) as Float32BufferImpl
-        data.toBuffer(buffer)
-        glUniformMatrix4fv(uniformLocation.address, transpose, buffer.buffer)
-    }
-
-    override fun uniformMatrix4fv(uniformLocation: UniformLocation, transpose: Boolean, data: Float32Buffer) {
-        engineStats.calls++
-        data as Float32BufferImpl
-        glUniformMatrix4fv(uniformLocation.address, transpose, data.buffer)
     }
 
     override fun texImage2D(

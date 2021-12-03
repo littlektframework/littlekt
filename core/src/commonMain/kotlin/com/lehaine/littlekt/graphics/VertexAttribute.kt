@@ -35,8 +35,22 @@ data class VertexAttribute(
     companion object {
         val POSITION_2D
             get() = VertexAttribute(
-                usage = VertexAttrUsage.POSITION_2D,
+                usage = VertexAttrUsage.POSITION,
                 numComponents = 2,
+                alias = ShaderProgram.POSITION_ATTRIBUTE
+            )
+
+        val POSITION_VEC3
+            get() = VertexAttribute(
+                usage = VertexAttrUsage.POSITION,
+                numComponents = 3,
+                alias = ShaderProgram.POSITION_ATTRIBUTE
+            )
+
+        val POSITION_VEC4
+            get() = VertexAttribute(
+                usage = VertexAttrUsage.POSITION,
+                numComponents = 4,
                 alias = ShaderProgram.POSITION_ATTRIBUTE
             )
 
@@ -148,7 +162,7 @@ class VertexAttributes(private val attributes: List<VertexAttribute>) : Iterable
 @JvmInline
 value class VertexAttrUsage(val usage: Int) {
     companion object {
-        val POSITION_2D = VertexAttrUsage(1)
+        val POSITION = VertexAttrUsage(1)
         val COLOR_UNPACKED = VertexAttrUsage(2)
         val COLOR_PACKED = VertexAttrUsage(4)
         val NORMAL = VertexAttrUsage(8)

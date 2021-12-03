@@ -11,7 +11,7 @@ import kotlin.math.sqrt
  * @author Colton Daily
  * @date 11/23/2021
  */
-class Mat3f {
+class Mat3 {
 
     val matrix = FloatArray(9)
 
@@ -19,7 +19,7 @@ class Mat3f {
         setIdentity()
     }
 
-    fun rotate(angleDeg: Float, axX: Float, axY: Float, axZ: Float): Mat3f {
+    fun rotate(angleDeg: Float, axX: Float, axY: Float, axZ: Float): Mat3 {
         return lock(tmpMatLock) {
             tmpMatA.setRotate(angleDeg, axX, axY, axZ)
             set(mul(tmpMatA, tmpMatB))
@@ -28,28 +28,28 @@ class Mat3f {
 
     fun rotate(angleDeg: Float, axis: Vec3f) = rotate(angleDeg, axis.x, axis.y, axis.z)
 
-    fun rotate(eulerX: Float, eulerY: Float, eulerZ: Float): Mat3f {
+    fun rotate(eulerX: Float, eulerY: Float, eulerZ: Float): Mat3 {
         return lock(tmpMatLock) {
             tmpMatA.setRotate(eulerX, eulerY, eulerZ)
             set(mul(tmpMatA, tmpMatB))
         }
     }
 
-    fun rotate(angleDeg: Float, axX: Float, axY: Float, axZ: Float, result: Mat3f): Mat3f {
+    fun rotate(angleDeg: Float, axX: Float, axY: Float, axZ: Float, result: Mat3): Mat3 {
         result.set(this)
         result.rotate(angleDeg, axX, axY, axZ)
         return result
     }
 
-    fun rotate(angleDeg: Float, axis: Vec3f, result: Mat3f) = rotate(angleDeg, axis.x, axis.y, axis.z, result)
+    fun rotate(angleDeg: Float, axis: Vec3f, result: Mat3) = rotate(angleDeg, axis.x, axis.y, axis.z, result)
 
-    fun rotate(eulerX: Float, eulerY: Float, eulerZ: Float, result: Mat3f): Mat3f {
+    fun rotate(eulerX: Float, eulerY: Float, eulerZ: Float, result: Mat3): Mat3 {
         result.set(this)
         result.rotate(eulerX, eulerY, eulerZ)
         return result
     }
 
-    fun transpose(): Mat3f {
+    fun transpose(): Mat3 {
         var d = this[1]
         this[1] = this[3]
         this[3] = d
@@ -62,7 +62,7 @@ class Mat3f {
         return this
     }
 
-    fun transpose(result: Mat3f): Mat3f {
+    fun transpose(result: Mat3): Mat3 {
         result[0] = this[0]
         result[1] = this[3]
         result[2] = this[6]
@@ -82,7 +82,7 @@ class Mat3f {
         return lock(tmpMatLock) { invert(tmpMatA).also { if (it) set(tmpMatA) } }
     }
 
-    fun invert(result: Mat3f): Boolean {
+    fun invert(result: Mat3): Boolean {
         var det = 0f
         for (i in 0..2) {
             det += (this[i] * (this[3 + (i + 1) % 3] * this[6 + (i + 2) % 3] - this[3 + (i + 2) % 3] * this[6 + (i + 1) % 3]))
@@ -117,14 +117,14 @@ class Mat3f {
         return result
     }
 
-    fun mul(other: Mat3f): Mat3f {
+    fun mul(other: Mat3): Mat3 {
         return lock(tmpMatLock) {
             mul(other, tmpMatA)
             set(tmpMatA)
         }
     }
 
-    fun mul(other: Mat3f, result: Mat3f): Mat3f {
+    fun mul(other: Mat3, result: Mat3): Mat3 {
         for (i in 0..2) {
             for (j in 0..2) {
                 var x = 0f
@@ -137,7 +137,7 @@ class Mat3f {
         return result
     }
 
-    fun scale(sx: Float, sy: Float, sz: Float): Mat3f {
+    fun scale(sx: Float, sy: Float, sz: Float): Mat3 {
         for (i in 0..2) {
             matrix[i] *= sx
             matrix[3 + i] *= sy
@@ -146,9 +146,9 @@ class Mat3f {
         return this
     }
 
-    fun scale(scale: Vec3f): Mat3f = scale(scale.x, scale.y, scale.z)
+    fun scale(scale: Vec3f): Mat3 = scale(scale.x, scale.y, scale.z)
 
-    fun scale(sx: Float, sy: Float, sz: Float, result: Mat3f): Mat3f {
+    fun scale(sx: Float, sy: Float, sz: Float, result: Mat3): Mat3 {
         for (i in 0..2) {
             result.matrix[i] = matrix[i] * sx
             result.matrix[3 + i] = matrix[3 + i] * sy
@@ -157,7 +157,7 @@ class Mat3f {
         return result
     }
 
-    fun set(other: Mat3f): Mat3f {
+    fun set(other: Mat3): Mat3 {
         for (i in 0..8) {
             this[i] = other[i]
         }
@@ -170,7 +170,7 @@ class Mat3f {
         }
     }
 
-    fun setIdentity(): Mat3f {
+    fun setIdentity(): Mat3 {
         for (i in 1..8) {
             this[i] = 0f
         }
@@ -180,7 +180,7 @@ class Mat3f {
         return this
     }
 
-    fun setRotate(eulerX: Float, eulerY: Float, eulerZ: Float): Mat3f {
+    fun setRotate(eulerX: Float, eulerY: Float, eulerZ: Float): Mat3 {
         val a = eulerX.toRad()
         val b = eulerY.toRad()
         val c = eulerZ.toRad()
@@ -211,7 +211,7 @@ class Mat3f {
         return this
     }
 
-    fun setRotate(angleDeg: Float, axX: Float, axY: Float, axZ: Float): Mat3f {
+    fun setRotate(angleDeg: Float, axX: Float, axY: Float, axZ: Float): Mat3 {
         var aX = axX
         var aY = axY
         var aZ = axZ
@@ -248,7 +248,7 @@ class Mat3f {
         return this
     }
 
-    fun setRotate(quaternion: Vec4f): Mat3f {
+    fun setRotate(quaternion: Vec4f): Mat3 {
         val r = quaternion.w
         val i = quaternion.x
         val j = quaternion.y
@@ -344,9 +344,17 @@ class Mat3f {
         return buffer
     }
 
+    fun toList(): List<Float> {
+        val list = mutableListOf<Float>()
+        for (i in 0..8) {
+            list += matrix[i]
+        }
+        return list
+    }
+
     companion object {
         private val tmpMatLock = Any()
-        private val tmpMatA = Mat3f()
-        private val tmpMatB = Mat3f()
+        private val tmpMatA = Mat3()
+        private val tmpMatB = Mat3()
     }
 }

@@ -4,6 +4,7 @@ import com.lehaine.littlekt.graphics.GL
 import com.lehaine.littlekt.graphics.GLVersion
 import com.lehaine.littlekt.graphics.gl.*
 import com.lehaine.littlekt.file.*
+import com.lehaine.littlekt.math.Mat3
 import com.lehaine.littlekt.math.Mat4
 import org.khronos.webgl.Int32Array
 import org.khronos.webgl.Uint8Array
@@ -586,6 +587,24 @@ class WebGL(val gl: WebGL2RenderingContext, private val engineStats: EngineStats
         engineStats.calls++
         source as Uint8BufferImpl
         gl.texSubImage2D(target, level, xOffset, yOffset, width, height, format, type, source.buffer)
+    }
+
+    override fun uniformMatrix3fv(uniformLocation: UniformLocation, transpose: Boolean, data: Mat3) {
+        engineStats.calls++
+        val buffer = createFloat32Buffer(9) as Float32BufferImpl
+        data.toBuffer(buffer)
+        gl.uniformMatrix3fv(uniformLocation.delegate, transpose, buffer.buffer)
+    }
+
+    override fun uniformMatrix3fv(uniformLocation: UniformLocation, transpose: Boolean, data: Float32Buffer) {
+        engineStats.calls++
+        data as Float32BufferImpl
+        gl.uniformMatrix3fv(uniformLocation.delegate, transpose, data.buffer)
+    }
+
+    override fun uniformMatrix3fv(uniformLocation: UniformLocation, transpose: Boolean, data: Array<Float>) {
+        engineStats.calls++
+        gl.uniformMatrix3fv(uniformLocation.delegate, transpose, data)
     }
 
     override fun uniformMatrix4fv(uniformLocation: UniformLocation, transpose: Boolean, data: Mat4) {

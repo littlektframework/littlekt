@@ -1,10 +1,11 @@
 package com.lehaine.littlekt.graphics
 
-import com.lehaine.littlekt.graphics.gl.*
 import com.lehaine.littlekt.file.DataSource
 import com.lehaine.littlekt.file.Float32Buffer
 import com.lehaine.littlekt.file.Uint32Buffer
 import com.lehaine.littlekt.file.Uint8Buffer
+import com.lehaine.littlekt.graphics.gl.*
+import com.lehaine.littlekt.math.Mat3
 import com.lehaine.littlekt.math.Mat4
 
 
@@ -172,6 +173,10 @@ interface GL {
     fun disableVertexAttribArray(index: Int)
 
     fun scissor(x: Int, y: Int, width: Int, height: Int)
+
+    fun uniformMatrix3fv(uniformLocation: UniformLocation, transpose: Boolean, data: Mat3)
+    fun uniformMatrix3fv(uniformLocation: UniformLocation, transpose: Boolean, data: Float32Buffer)
+    fun uniformMatrix3fv(uniformLocation: UniformLocation, transpose: Boolean, data: Array<Float>)
 
     fun uniformMatrix4fv(uniformLocation: UniformLocation, transpose: Boolean, data: Mat4)
     fun uniformMatrix4fv(uniformLocation: UniformLocation, transpose: Boolean, data: Float32Buffer)

@@ -22,7 +22,6 @@ import kotlin.math.sin
 class SpriteBatch(
     val application: Application,
     val size: Int = 1000,
-    val shader: ShaderProgram = ShaderProgram(application.graphics.gl, DefaultVertexShader(), DefaultFragmentShader())
 ) : Disposable {
     companion object {
         private const val VERTEX_SIZE = 2 + 1 + 2
@@ -30,7 +29,18 @@ class SpriteBatch(
     }
 
     private val gl get() = application.graphics.gl
-
+    val defaultShader = ShaderProgram(application.graphics.gl, DefaultVertexShader(), DefaultFragmentShader())
+    var shader: ShaderProgram = defaultShader
+        set(value) {
+            if (drawing) {
+                flush()
+            }
+            field = value
+            if (drawing) {
+                field.bind()
+                setupMatrices()
+            }
+        }
     var renderCalls = 0
         private set
     var totalRenderCalls = 0
@@ -100,7 +110,7 @@ class SpriteBatch(
         projectionMatrix?.let {
             this.projectionMatrix = it
         }
-        shader.bind()
+        shader?.bind()
         setupMatrices()
 
         drawing = true

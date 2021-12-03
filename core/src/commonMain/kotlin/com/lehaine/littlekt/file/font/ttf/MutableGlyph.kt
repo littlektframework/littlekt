@@ -53,7 +53,7 @@ internal class MutableGlyph(var index: Int, var unitsPerEm: Int) {
         numberOfContours,
         unicode,
         unicodes.toList(),
-        path.copy(unitsPerEm = unitsPerEm),
+        path,
         endPointIndices.toList(),
         instructionLength,
         instructions.toList(),

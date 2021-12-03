@@ -32,7 +32,7 @@ abstract class FragmentShaderModel : GlslGenerator(), FragmentShader {
     var gl_FragCoord by BuiltinVarDelegate()
     var gl_FragColor by BuiltinVarDelegate()
 
-    val gl_frontFacing = BoolResult("gl_frontFacing")
+    val gl_FrontFacing = BoolResult("gl_FrontFacing")
 
     /**
      * Data coming **IN** from the Vertex Shader.
@@ -51,8 +51,8 @@ abstract class FragmentShaderModel : GlslGenerator(), FragmentShader {
         VaryingConstructorDelegate(createVariable(clazz), precision) as VaryingConstructorDelegate<T>
 
 
-    fun dFdx(v: GLFloat) = GLFloat(this, "dFdx(${v.value}")
-    fun dFdy(v: GLFloat) = GLFloat(this, "dFdy(${v.value}")
+    fun dFdx(v: GLFloat) = GLFloat(this, "dFdx(${v.value})")
+    fun dFdy(v: GLFloat) = GLFloat(this, "dFdy(${v.value})")
 }
 
 abstract class VertexShaderModel : GlslGenerator(), VertexShader {

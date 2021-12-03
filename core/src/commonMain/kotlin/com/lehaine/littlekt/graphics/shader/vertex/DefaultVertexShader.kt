@@ -10,10 +10,10 @@ import com.lehaine.littlekt.graphics.shader.generator.type.vec.Vec4
  * @date 9/28/2021
  */
 class DefaultVertexShader : VertexShaderModel() {
+    private val u_projTrans by uniform(::Mat4)
     private val a_position by attribute(::Vec4)
     private val a_color by attribute(::Vec4)
     private val a_texCoord0 by attribute(::Vec2)
-    private val u_projTrans by uniform(::Mat4)
     private var v_color by varying(::Vec4)
     private var v_texCoords by varying(::Vec2)
 

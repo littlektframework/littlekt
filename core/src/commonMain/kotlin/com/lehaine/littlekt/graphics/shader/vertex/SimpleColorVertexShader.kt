@@ -10,9 +10,9 @@ import com.lehaine.littlekt.graphics.shader.generator.type.vec.Vec4
  */
 
 class SimpleColorVertexShader : VertexShaderModel() {
+    private val u_projTrans by uniform(::Mat4)
     private val a_position by attribute(::Vec4)
     private val a_color by attribute(::Vec4)
-    private val u_projTrans by uniform(::Mat4)
     private var v_color by varying(::Vec4)
 
     init {

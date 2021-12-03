@@ -170,7 +170,6 @@ open class OrthographicCamera : Camera() {
 
     override fun update() {
         super.update()
-        planes[0]
     }
 
     override fun updateProjectionMatrix() {

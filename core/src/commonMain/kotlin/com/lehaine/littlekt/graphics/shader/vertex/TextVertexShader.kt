@@ -9,12 +9,15 @@ import com.lehaine.littlekt.graphics.shader.generator.type.vec.Vec4
  * @date 11/29/2021
  */
 class TextVertexShader : VertexShaderModel() {
-    private val rect by uniform(::Vec4)
-    private val position by attribute(::Vec2)
-    private var coord by varying(::Vec2)
+    private val a_position by attribute(::Vec2)
+    private val a_texCoord0 by attribute(::Vec2)
+    private val a_color by attribute(::Vec4)
+    private var v_color by varying(::Vec4)
+    private var v_texCoords by varying(::Vec2)
 
     init {
-        coord = mix(rect.xy, rect.zw, position * 0.5f + 0.5f)
-        gl_Position = vec4Lit(coord * 2f - 1f, 0f, 1f)
+        v_texCoords = a_texCoord0
+        v_color = a_color
+        gl_Position = vec4Lit(a_position, 0f, 1f)
     }
 }

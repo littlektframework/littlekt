@@ -20,6 +20,8 @@ class TtfFont(val chars: CharArray) {
         private set
     var descender = 0
         private set
+    var unitsPerEm = 1000
+        private set
 
     var fontSize = 72
         set(value) {
@@ -35,6 +37,7 @@ class TtfFont(val chars: CharArray) {
             it.parse(buffer)
             ascender = it.ascender
             descender = it.descender
+            unitsPerEm = it.unitsPerEm
         }
         chars.forEach { char ->
             glyphCache[char.code] = reader[char].also { it.path.recalculate(fontSize = fontSize) }

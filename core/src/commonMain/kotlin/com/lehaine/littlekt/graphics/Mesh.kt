@@ -42,6 +42,18 @@ fun textureMesh(gl: GL, generate: MeshProps.() -> Unit): Mesh {
     )
 }
 
+fun positionMesh(gl: GL, generate: MeshProps.() -> Unit): Mesh {
+    return mesh(gl, listOf(VertexAttribute.POSITION_2D), generate)
+}
+
+fun position3Mesh(gl: GL, generate: MeshProps.() -> Unit): Mesh {
+    return mesh(gl, listOf(VertexAttribute.POSITION_VEC3), generate)
+}
+
+fun position4Mesh(gl: GL, generate: MeshProps.() -> Unit): Mesh {
+    return mesh(gl, listOf(VertexAttribute.POSITION_VEC4), generate)
+}
+
 fun Application.mesh(attributes: List<VertexAttribute>, block: MeshProps.() -> Unit): Mesh {
     return mesh(gl, attributes, block)
 }
@@ -82,9 +94,15 @@ class MeshBatcher(size: Int, val attributes: VertexAttributes) {
     fun setVertex(props: VertexProps) {
         attributes.forEach { vertexAttribute ->
             when (vertexAttribute.usage) {
-                VertexAttrUsage.POSITION_2D -> {
+                VertexAttrUsage.POSITION -> {
                     vertices[offset++] = props.x
                     vertices[offset++] = props.y
+                    if (vertexAttribute.numComponents >= 3) {
+                        vertices[offset++] = props.z
+                    }
+                    if (vertexAttribute.numComponents == 4) {
+                        vertices[offset++] = props.w
+                    }
                 }
                 VertexAttrUsage.COLOR_UNPACKED -> {
                     vertices[offset++] = props.color.r
@@ -113,6 +131,7 @@ class VertexProps {
     var x: Float = 0f
     var y: Float = 0f
     var z: Float = 0f
+    var w: Float = 0f
     var colorPacked: Float = 0f
     var color: Color = Color.CLEAR
     var u: Float = 0f

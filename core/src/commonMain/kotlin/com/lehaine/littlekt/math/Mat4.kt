@@ -66,7 +66,7 @@ open class Mat4 {
         return result
     }
 
-    fun rotate(rotationMat: Mat3f) {
+    fun rotate(rotationMat: Mat3) {
         return lock(tmpMatLock) {
             tmpMatA.setIdentity().setRotation(rotationMat)
             set(mul(tmpMatA, tmpMatB))
@@ -460,7 +460,7 @@ open class Mat4 {
         return this
     }
 
-    fun setRotation(mat3: Mat3f): Mat4 {
+    fun setRotation(mat3: Mat3): Mat4 {
         for (row in 0..2) {
             for (col in 0..2) {
                 this[row, col] = mat3[row, col]
@@ -668,7 +668,7 @@ open class Mat4 {
         return result
     }
 
-    fun getRotation(result: Mat3f): Mat3f {
+    fun getRotation(result: Mat3): Mat3 {
         result[0, 0] = this[0, 0]
         result[0, 1] = this[0, 1]
         result[0, 2] = this[0, 2]
@@ -684,7 +684,7 @@ open class Mat4 {
         return result
     }
 
-    fun getRotationTransposed(result: Mat3f): Mat3f {
+    fun getRotationTransposed(result: Mat3): Mat3 {
         result[0, 0] = this[0, 0]
         result[0, 1] = this[1, 0]
         result[0, 2] = this[2, 0]

@@ -9,35 +9,37 @@ import com.lehaine.littlekt.math.RectBuilder
  * @date 12/1/2021
  */
 data class GlyphPath(val unitsPerEm: Int = 1000) {
-    private val commands = mutableListOf<Command>()
+    private val commandsMut = mutableListOf<Command>()
     private var rectBuilder = RectBuilder()
 
-    fun isEmpty() = commands.isEmpty()
+    val commands: List<Command> get() = commandsMut
+
+    fun isEmpty() = commandsMut.isEmpty()
 
     fun moveTo(x: Float, y: Float) {
-        commands += Command(MOVE_TO, x, y)
+        commandsMut += Command(MOVE_TO, x, y)
     }
 
     fun lineTo(x: Float, y: Float) {
-        commands += Command(LINE_TO, x, y)
+        commandsMut += Command(LINE_TO, x, y)
     }
 
     fun curveTo(x1: Float, y1: Float, x2: Float, y2: Float, x: Float, y: Float) {
-        commands += Command(CURVE_TO, x, y, x1, y1, x2, y2)
+        commandsMut += Command(CURVE_TO, x, y, x1, y1, x2, y2)
     }
 
     fun bezierCurveTo(x1: Float, y1: Float, x2: Float, y2: Float, x: Float, y: Float) = curveTo(x1, y1, x2, y2, x, y)
 
     fun quadTo(x1: Float, y1: Float, x: Float, y: Float) {
-        commands += Command(QUADRATIC_CURVE_TO, x, y, x1, y1)
+        commandsMut += Command(QUADRATIC_CURVE_TO, x, y, x1, y1)
     }
 
     fun close() {
-        commands += Command(CLOSE)
+        commandsMut += Command(CLOSE)
     }
 
     fun extend(path: GlyphPath) {
-        commands += path.commands
+        commandsMut += path.commandsMut
     }
 
     fun extend(rect: Rect) {
@@ -50,11 +52,11 @@ data class GlyphPath(val unitsPerEm: Int = 1000) {
     }
 
     fun recalculate(x: Int = 0, y: Int = 0, fontSize: Int = 72, scaleX: Float? = null, scaleY: Float? = null) {
-        val oldCommands = commands.toList()
+        val oldCommands = commandsMut.toList()
         val scale = 1f / unitsPerEm * fontSize
         val xScale = scaleX ?: scale
         val yScale = scaleY ?: scale
-        commands.clear()
+        commandsMut.clear()
         oldCommands.forEach { cmd ->
             when (cmd.type) {
                 MOVE_TO -> moveTo(x + (cmd.x * xScale), y + (-cmd.y * yScale))
@@ -80,7 +82,7 @@ data class GlyphPath(val unitsPerEm: Int = 1000) {
         var startY = 0f
         var prevX = 0f
         var prevY = 0f
-        commands.forEach { cmd ->
+        commandsMut.forEach { cmd ->
             when (cmd.type) {
                 MOVE_TO -> {
                     rectBuilder.include(cmd.x, cmd.y)
@@ -115,6 +117,11 @@ data class GlyphPath(val unitsPerEm: Int = 1000) {
         }
         return rectBuilder.build()
     }
+
+    override fun toString(): String {
+        return "GlyphPath(unitsPerEm=$unitsPerEm, commands=$commands)"
+    }
+
 
     enum class CommandType {
         MOVE_TO,

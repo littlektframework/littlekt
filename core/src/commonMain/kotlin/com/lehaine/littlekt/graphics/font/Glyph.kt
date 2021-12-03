@@ -22,10 +22,6 @@ data class Glyph(
     val unitsPerEm:Int
 ) {
     override fun toString(): String {
-        return "Glyph(name=$name, index=$index, xMin=$xMin, yMin=$yMin, xMax=$xMax, yMax=$yMax, advanceWidth=$advanceWidth, leftSideBearing=$leftSideBearing, numberOfContours=$numberOfContours, endPointIndices=$endPointIndices, instructionLength=$instructionLength, instructions=$instructions,\npoints=[\n${
-            points.joinToString(
-                separator = "\n"
-            )
-        }\n], refs=$refs, isComposite=$isComposite, unicode=$unicode, unicodes=$unicodes)"
+        return "Glyph(name=$name, index=$index, xMin=$xMin, yMin=$yMin, xMax=$xMax, yMax=$yMax, advanceWidth=$advanceWidth, leftSideBearing=$leftSideBearing, numberOfContours=$numberOfContours, unicode=$unicode, unicodes=$unicodes, path=$path, endPointIndices=$endPointIndices, instructionLength=$instructionLength, instructions=$instructions, points=$points, refs=$refs, isComposite=$isComposite, unitsPerEm=$unitsPerEm)"
     }
 }

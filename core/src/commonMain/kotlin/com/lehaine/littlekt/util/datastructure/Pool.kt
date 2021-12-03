@@ -8,11 +8,6 @@ package com.lehaine.littlekt.util.datastructure
  * while the [free] method pushes back one element to the pool and resets it to reuse it.
  */
 class Pool<T>(private val reset: (T) -> Unit = {}, preallocate: Int = 0, private val gen: (Int) -> T) {
-    companion object {
-        fun <T : Poolable> fromPoolable(preallocate: Int = 0, gen: (Int) -> T): Pool<T> =
-            Pool(reset = { it.reset() }, preallocate = preallocate, gen = gen)
-    }
-
     constructor(preallocate: Int = 0, gen: (Int) -> T) : this({}, preallocate, gen)
 
     private val items = Stack<T>()
@@ -30,9 +25,6 @@ class Pool<T>(private val reset: (T) -> Unit = {}, preallocate: Int = 0, private
         return if (items.isNotEmpty()) items.pop() else gen(lastId++)
     }
 
-    interface Poolable {
-        fun reset()
-    }
 
     fun free(element: T) {
         reset(element)

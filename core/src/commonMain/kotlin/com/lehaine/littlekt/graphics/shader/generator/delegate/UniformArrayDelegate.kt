@@ -23,13 +23,13 @@ class UniformArrayDelegate<T : Variable>(
     ): UniformArrayDelegate<T> {
         v = factory(thisRef)
         v.value = property.name
+        when (v.typeName) {
+            "mat4" -> thisRef.parameters.add(ShaderParameter.UniformArrayMat4(property.name))
+        }
         return this
     }
 
     operator fun getValue(thisRef: GlslGenerator, property: KProperty<*>): T {
-        when (v.typeName) {
-            "mat4" -> thisRef.parameters.add(ShaderParameter.UniformArrayMat4(property.name))
-        }
         thisRef.uniforms.add("${precision.value}${v.typeName} ${property.name}[$size]")
         return v
     }
