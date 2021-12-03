@@ -56,9 +56,9 @@ internal class GlyfParser(
             glyph.instructions.clear()
 
             for (i in 0 until glyph.numberOfContours) {
-                glyph.endPointIndices += p.parseUint16.toInt()
+                glyph.endPointIndices += p.parseUint16
             }
-            glyph.instructionLength = p.parseUint16.toInt()
+            glyph.instructionLength = p.parseUint16
             for (i in 0 until glyph.instructionLength) {
                 glyph.instructions += p.parseByte
             }
@@ -66,11 +66,11 @@ internal class GlyfParser(
             val numOfCoordinates = glyph.endPointIndices[glyph.endPointIndices.size - 1] + 1
             var idx = 0
             while (idx in 0 until numOfCoordinates) {
-                flag = p.parseByte.toInt()
+                flag = p.parseUByte
                 flags += flag
 
                 if ((flag and 8) > 0) {
-                    val repeatCount = p.parseByte.toInt()
+                    val repeatCount = p.parseUByte
                     for (j in 0 until repeatCount) {
                         flags += flag
                         idx += 1
@@ -116,16 +116,16 @@ internal class GlyfParser(
             var moreRefs = true
             var flags = 0
             while (moreRefs) {
-                flags = p.parseUint16.toInt()
-                val ref = MutableGlyphReference(p.parseUint16.toInt(), 0, 0, 1f, 0f, 0f, 1f)
+                flags = p.parseUint16
+                val ref = MutableGlyphReference(p.parseUint16, 0, 0, 1f, 0f, 0f, 1f)
                 if ((flags and 1) > 0) {
                     if ((flags and 2) > 0) {
-                        ref.x = p.parseUint16.toInt()
-                        ref.y = p.parseUint16.toInt()
+                        ref.x = p.parseUint16
+                        ref.y = p.parseUint16
                     } else {
                         ref.matchedPoints.apply {
-                            this[0] = p.parseUint16.toInt()
-                            this[1] = p.parseUint16.toInt()
+                            this[0] = p.parseUint16
+                            this[1] = p.parseUint16
                         }
                     }
                 } else {
@@ -134,8 +134,8 @@ internal class GlyfParser(
                         ref.y = p.parseChar.code
                     } else {
                         ref.matchedPoints.apply {
-                            this[0] = p.parseByte.toInt()
-                            this[1] = p.parseByte.toInt()
+                            this[0] = p.parseUByte
+                            this[1] = p.parseUByte
                         }
                     }
                 }
@@ -159,7 +159,7 @@ internal class GlyfParser(
                 moreRefs = (flags and 32) != 0
             }
             if (flags and 0x100 != 0) {
-                glyph.instructionLength = p.parseUint16.toInt()
+                glyph.instructionLength = p.parseUint16
                 glyph.instructions.clear()
                 for (i in 0 until glyph.instructionLength) {
                     glyph.instructions += p.parseByte
@@ -171,11 +171,13 @@ internal class GlyfParser(
     private fun parseGlyphCoord(p: Parser, flag: Int, prevValue: Int, shortVectorBitMask: Int, sameBitMask: Int): Int {
         var v: Int
         if ((flag and shortVectorBitMask) > 0) {
-            v = p.parseByte.toInt()
+            val b = p.parseUByte
+            v = b
 
             if ((flag and sameBitMask) == 0) {
                 v = -v
             }
+
             v += prevValue
         } else {
             v = if ((flag and sameBitMask) > 0) {
@@ -245,6 +247,7 @@ internal class GlyfParser(
                 current = mutableListOf()
             }
         }
+        check(current.isEmpty()) { "There are still points left in the current contour." }
         return contours
     }
 }

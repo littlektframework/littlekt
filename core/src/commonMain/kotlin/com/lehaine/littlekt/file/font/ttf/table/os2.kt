@@ -13,13 +13,13 @@ internal class Os2Parser(val buffer: MixedBuffer, val start: Int) {
 
     fun parse(): Os2 {
         val p = Parser(buffer, start)
-        val version = p.parseUint16.toInt()
+        val version = p.parseUint16
         return Os2(
             version = version,
             xAvgCharWidth = p.parseInt16.toInt(),
-            usWeightClass = p.parseUint16.toInt(),
-            usWidthClass = p.parseUint16.toInt(),
-            fsType = p.parseUint16.toInt(),
+            usWeightClass = p.parseUint16,
+            usWidthClass = p.parseUint16,
+            fsType = p.parseUint16,
             ySubscriptXSize = p.parseInt16.toInt(),
             ySubscriptYSize = p.parseInt16.toInt(),
             ySubscriptXOffset = p.parseInt16.toInt(),
@@ -48,21 +48,21 @@ internal class Os2Parser(val buffer: MixedBuffer, val start: Int) {
             ulUnicodeRange3 = p.parseUint32,
             ulUnicodeRange4 = p.parseUint32,
             achVendID = charArrayOf(p.parseChar, p.parseChar, p.parseChar, p.parseChar).concatToString(),
-            fsSelection = p.parseUint16.toInt(),
-            usFirstCharIndex = p.parseUint16.toInt(),
-            usLastCharIndex = p.parseUint16.toInt(),
+            fsSelection = p.parseUint16,
+            usFirstCharIndex = p.parseUint16,
+            usLastCharIndex = p.parseUint16,
             sTypoAscender = p.parseInt16.toInt(),
             sTypoDescender = p.parseInt16.toInt(),
             sTypoLineGap = p.parseInt16.toInt(),
-            usWinAscent = p.parseUint16.toInt(),
-            usWinDescent = p.parseUint16.toInt(),
+            usWinAscent = p.parseUint16,
+            usWinDescent = p.parseUint16,
             ulCodePageRange1 = if (version >= 1) p.parseUint32 else 0,
             ulCodePageRange2 = if (version >= 1) p.parseUint32 else 0,
             sxHeight = if (version >= 2) p.parseInt16.toInt() else 0,
             sCapHeight = if (version >= 2) p.parseInt16.toInt() else 0,
-            usDefaultChar = if (version >= 2) p.parseUint16.toInt() else 0,
-            usBreakChar = if (version >= 2) p.parseUint16.toInt() else 0,
-            usMaxContent = if (version >= 2) p.parseUint16.toInt() else 0,
+            usDefaultChar = if (version >= 2) p.parseUint16 else 0,
+            usBreakChar = if (version >= 2) p.parseUint16 else 0,
+            usMaxContent = if (version >= 2) p.parseUint16 else 0,
         )
     }
 }

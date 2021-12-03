@@ -16,7 +16,7 @@ internal class HheaParser(val buffer: MixedBuffer, val start: Int) {
             ascender = p.parseInt16.toInt(),
             descender = p.parseInt16.toInt(),
             lineGap = p.parseInt16.toInt(),
-            advanceWidthMax = p.parseUint16.toInt(),
+            advanceWidthMax = p.parseUint16,
             minLeftSideBearing = p.parseInt16.toInt(),
             minRightSideBearing = p.parseInt16.toInt(),
             xMaxExtent = p.parseInt16.toInt(),
@@ -24,7 +24,7 @@ internal class HheaParser(val buffer: MixedBuffer, val start: Int) {
             caretSlopeRun = p.parseInt16.toInt(),
             caretOffset = p.parseInt16.toInt().also { p.relativeOffset += 8 },
             metricDataFormat = p.parseInt16.toInt(),
-            numberOfHMetrics = p.parseUint16.toInt(),
+            numberOfHMetrics = p.parseUint16,
         )
     }
 }

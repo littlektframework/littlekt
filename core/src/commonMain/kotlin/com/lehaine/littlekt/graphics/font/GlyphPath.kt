@@ -10,6 +10,7 @@ import com.lehaine.littlekt.math.RectBuilder
  */
 data class GlyphPath(val unitsPerEm: Int = 1000) {
     private val commandsMut = mutableListOf<Command>()
+    private val initialCommands = mutableListOf<Command>()
     private var rectBuilder = RectBuilder()
 
     val commands: List<Command> get() = commandsMut
@@ -52,12 +53,14 @@ data class GlyphPath(val unitsPerEm: Int = 1000) {
     }
 
     fun recalculate(x: Int = 0, y: Int = 0, fontSize: Int = 72, scaleX: Float? = null, scaleY: Float? = null) {
-        val oldCommands = commandsMut.toList()
+        if(initialCommands.isEmpty()) {
+            initialCommands += commandsMut
+        }
         val scale = 1f / unitsPerEm * fontSize
         val xScale = scaleX ?: scale
         val yScale = scaleY ?: scale
         commandsMut.clear()
-        oldCommands.forEach { cmd ->
+        initialCommands.forEach { cmd ->
             when (cmd.type) {
                 MOVE_TO -> moveTo(x + (cmd.x * xScale), y + (-cmd.y * yScale))
                 LINE_TO -> lineTo(x + (cmd.x * xScale), y + (-cmd.y * yScale))

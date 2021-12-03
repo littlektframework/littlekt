@@ -23,11 +23,12 @@ internal class Parser(private val buffer: MixedBuffer, offset: Int) {
 
     var relativeOffset = 0
 
+    val parseUByte get() = buffer.getUint8(offset + relativeOffset++).toUByte().toInt()
     val parseByte get() = buffer.getUint8(offset + relativeOffset++)
     val parseChar get() = buffer.getInt8(offset + relativeOffset++).toInt().toChar()
-    val parseCard8 get() = parseByte
+    val parseCard8 get() = parseUByte
 
-    val parseUint16 get() = buffer.getUint16(offset + relativeOffset).also { relativeOffset += 2 }
+    val parseUint16 get() = buffer.getUint16(offset + relativeOffset).also { relativeOffset += 2 }.toUShort().toInt()
     val parseCard16 get() = parseUint16
     val parseOffset16 get() = parseUint16
 

@@ -33,7 +33,7 @@ internal class CmapParser(private val buffer: MixedBuffer, private val start: In
             throw IllegalStateException("No valid cmap sub-tables found")
         }
         val p = Parser(buffer, start + offset)
-        cmap.format = p.parseUint16.toInt()
+        cmap.format = p.parseUint16
         when (cmap.format) {
             12 -> {
                 parseFormat12(cmap, p)
@@ -50,9 +50,9 @@ internal class CmapParser(private val buffer: MixedBuffer, private val start: In
     }
 
     private fun parseFormat4(cmap: MutableCmap, p: Parser, start: Int, offset: Int) {
-        cmap.length = p.parseUint16.toInt()
-        cmap.language = p.parseUint16.toInt()
-        val segCount = p.parseUint16.toInt() shr 1
+        cmap.length = p.parseUint16
+        cmap.language = p.parseUint16
+        val segCount = p.parseUint16 shr 1
         cmap.segCount = segCount
         p.skip(Type.SHORT, 3)
 
@@ -63,10 +63,10 @@ internal class CmapParser(private val buffer: MixedBuffer, private val start: In
         var glyphIndexOffset: Int
         for (i in 0 until segCount - 1) {
             var glyphIndex: Int
-            val endCount = endCountParser.parseUint16.toInt()
-            val startCount = startCountParser.parseUint16.toInt()
+            val endCount = endCountParser.parseUint16
+            val startCount = startCountParser.parseUint16
             val idDelta = idDeltaParser.parseInt16.toInt()
-            val idRangeOffset = idRangeOffsetParser.parseUint16.toInt()
+            val idRangeOffset = idRangeOffsetParser.parseUint16
             for (c in startCount..endCount) {
                 if (idRangeOffset != 0) {
                     glyphIndexOffset = (idRangeOffsetParser.offset + idRangeOffsetParser.relativeOffset - 2)

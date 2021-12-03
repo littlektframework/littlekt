@@ -26,7 +26,7 @@ internal class LtagParser(val buffer: MixedBuffer, val start: Int) {
         for (i in 0 until numTags) {
             var tag = ""
             val offset = start + p.parseUint16
-            val length = p.parseUint16.toInt()
+            val length = p.parseUint16
             for (j in offset + 1 until offset + length) {
                 tag += buffer.getInt8(j).toInt().toChar()
             }

@@ -28,16 +28,15 @@ class FontLoadTest(application: Application) : LittleKt(application) {
     init {
         logger.level = Logger.Level.DEBUG
         fileHandler.launch {
-            val font = loadTtfFont("FreeSerif.ttf", "D")
-          //  font.fontSize = 1
-        //    gpuFont = GPUFont(font)
+            val font = loadTtfFont("FreeSerif.ttf", "DZ")
+       //     font.fontSize = 1
+            gpuFont = GPUFont(font)
             val glyph = font.glyphs['D'.code]
-                println(glyph)
-            println(font)
-                //  loading = false
+            loading = false
         }
     }
 
+    var text = "D"
     override fun render(dt: Duration) {
         if (loading) return
         if (!loading && !gpuFont.prepared) {
@@ -46,9 +45,16 @@ class FontLoadTest(application: Application) : LittleKt(application) {
         camera.update()
         gl.clearColor(Color.DARK_GRAY)
 
-        gpuFont.text("D", 0f, 0f)
+        gpuFont.text(text, 0f, 0f)
         gpuFont.flush(batch, camera.viewProjection)
-        close()
+
+        if (input.isKeyJustPressed(Key.ENTER)) {
+            text = if (text == "D") {
+                "Z"
+            } else {
+                "D"
+            }
+        }
 
         if (input.isKeyJustPressed(Key.P)) {
             logger.debug { stats }

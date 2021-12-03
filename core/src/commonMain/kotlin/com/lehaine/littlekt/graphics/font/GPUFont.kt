@@ -2,7 +2,6 @@ package com.lehaine.littlekt.graphics.font
 
 import com.lehaine.littlekt.Application
 import com.lehaine.littlekt.graphics.*
-import com.lehaine.littlekt.graphics.gl.BlendEquationMode
 import com.lehaine.littlekt.graphics.gl.BlendFactor
 import com.lehaine.littlekt.graphics.gl.ClearBufferMask
 import com.lehaine.littlekt.graphics.gl.State
@@ -92,13 +91,13 @@ class GPUFont(font: TtfFont) : Preparable {
         fbo.end()
         gl.blendFunc(BlendFactor.ZERO, BlendFactor.SRC_COLOR)
         gl.disable(State.SCISSOR_TEST)
-        batch.shader = textShader
+    //    batch.shader = textShader
         textFragmentShader.uTex.apply(textShader, fbo.colorBufferTexture.glTexture!!)
         textFragmentShader.uColor.apply(textShader, Color.CLEAR)
         batch.use(viewProjection) {
-            it.draw(fbo.colorBufferTexture, 0f, 0f, flipY = true)
+            it.draw(fbo.colorBufferTexture, -1f, -1f, flipY = true)
         }
-     //   batch.shader = batch.defaultShader
+        //   batch.shader = batch.defaultShader
 
         pool.free(instances)
         instances.clear()
@@ -106,26 +105,27 @@ class GPUFont(font: TtfFont) : Preparable {
 
     private fun compileGlyphs(text: String, x: Float, y: Float) {
         var tx = x
+        val scale = 1f / unitsPerEm
         text.forEach { char ->
             val code = char.code
             val glyph = glyphs[code] ?: error("Unable to find glyph for '$char'!")
             val gpuGlyph = pool.alloc().also {
                 it.glyph = glyph
                 it.offset.set(tx, y)
-                tx += glyph.advanceWidth
+                tx += glyph.advanceWidth * scale
                 instances += it
             }
             if (char != ' ') {
                 glyphCompiler.begin(gpuGlyph)
                 gpuGlyph.glyph?.path?.commands?.forEach { cmd ->
                     when (cmd.type) {
-                        GlyphPath.CommandType.MOVE_TO -> glyphCompiler.moveTo(cmd.x + tx, cmd.y)
-                        GlyphPath.CommandType.LINE_TO -> glyphCompiler.lineTo(cmd.x + tx, cmd.y)
+                        GlyphPath.CommandType.MOVE_TO -> glyphCompiler.moveTo(cmd.x * scale, cmd.y * scale)
+                        GlyphPath.CommandType.LINE_TO -> glyphCompiler.lineTo(cmd.x * scale, cmd.y * scale)
                         GlyphPath.CommandType.QUADRATIC_CURVE_TO -> glyphCompiler.curveTo(
-                            cmd.x1,
-                            cmd.y1,
-                            cmd.x,
-                            cmd.y
+                            cmd.x1 * scale,
+                            cmd.y1 * scale,
+                            cmd.x * scale,
+                            cmd.y * scale
                         )
                         GlyphPath.CommandType.CLOSE -> glyphCompiler.close()
                         else -> {
@@ -184,7 +184,6 @@ internal class GlyphCompiler(val mesh: Mesh) {
     }
 
     fun moveTo(x: Float, y: Float) {
-        println("x:$x, y:$y")
         firstX = x
         currentX = x
         firstY = y
@@ -193,7 +192,6 @@ internal class GlyphCompiler(val mesh: Mesh) {
     }
 
     fun lineTo(x: Float, y: Float) {
-        println("x:$x, y:$y")
         if (++contourCount >= 2) {
             appendTriangle(firstX, firstY, currentX, currentY, x, y, TriangleType.SOLID)
         }
@@ -202,7 +200,6 @@ internal class GlyphCompiler(val mesh: Mesh) {
     }
 
     fun curveTo(cx: Float, cy: Float, x: Float, y: Float) {
-        println("cx:$cx, cy:$cy, x:$x, y:$y")
         if (++contourCount >= 2) {
             appendTriangle(firstX, firstY, currentX, currentX, x, y, TriangleType.SOLID)
         }
@@ -212,7 +209,6 @@ internal class GlyphCompiler(val mesh: Mesh) {
     }
 
     fun close() {
-        println("CLOSE")
         currentX = firstX
         currentY = firstY
         contourCount = 0
