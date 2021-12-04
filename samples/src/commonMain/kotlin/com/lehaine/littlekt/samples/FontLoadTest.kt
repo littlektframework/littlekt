@@ -49,7 +49,7 @@ class FontLoadTest(application: Application) : LittleKt(application) {
         camera.update()
         gl.clearColor(Color.DARK_GRAY)
 
-        gpuFont.text(if (usingText) text else text2, 250f, 230f)
+        gpuFont.text(if (usingText) text else text2, 50f, 230f)
         gpuFont.flush(batch, camera.viewProjection)
 
         if (input.isKeyJustPressed(Key.ENTER)) {

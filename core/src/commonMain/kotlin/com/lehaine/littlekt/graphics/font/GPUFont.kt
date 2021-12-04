@@ -3,6 +3,7 @@ package com.lehaine.littlekt.graphics.font
 import com.lehaine.littlekt.Application
 import com.lehaine.littlekt.graphics.*
 import com.lehaine.littlekt.graphics.gl.BlendFactor
+import com.lehaine.littlekt.graphics.gl.ClearBufferMask
 import com.lehaine.littlekt.graphics.gl.State
 import com.lehaine.littlekt.graphics.shader.ShaderProgram
 import com.lehaine.littlekt.graphics.shader.fragment.GlyphFragmentShader
@@ -30,7 +31,8 @@ class GPUFont(font: TtfFont) : Preparable {
     private lateinit var defaultShader: ShaderProgram<DefaultVertexShader, SimpleColorFragmentShader>
 
     private lateinit var textShader: ShaderProgram<TextVertexShader, TextFragmentShader>
-    private lateinit var mesh: Mesh
+    private lateinit var glyphMesh: Mesh
+    private lateinit var quadMesh: Mesh
     private lateinit var gl: GL
 
     private var isPrepared = false
@@ -53,13 +55,50 @@ class GPUFont(font: TtfFont) : Preparable {
         logger.debug {
             "Glyph Fragment Shader:\n${glyphShader.fragmentShader.source}"
         }
-        mesh = textureMesh(application.gl) {
+        glyphMesh = textureMesh(application.gl) {
             maxVertices = 15000
         }.also {
             it.indicesAsTri()
-
         }
-        glyphCompiler = GlyphCompiler(mesh)
+        quadMesh = textureMesh(application.gl) {
+            maxVertices = 4
+        }.also {
+            it.indicesAsQuad()
+            val u = 0f
+            val v = 0f
+            val u2 = 1f
+            val v2 = 1f
+            val bits = Color.WHITE.toFloatBits()
+            it.setVertex {
+                x = 0f
+                y = 0f
+                colorPacked = bits
+                this.u = u
+                this.v = v
+            }
+            it.setVertex {
+                x = 0f
+                y = application.graphics.height.toFloat()
+                colorPacked = bits
+                this.u = u
+                this.v = v2
+            }
+            it.setVertex {
+                x = application.graphics.width.toFloat()
+                y = application.graphics.height.toFloat()
+                colorPacked = bits
+                this.u = u2
+                this.v = v2
+            }
+            it.setVertex {
+                x = application.graphics.width.toFloat()
+                y = 0f
+                colorPacked = bits
+                this.u = u2
+                this.v = v
+            }
+        }
+        glyphCompiler = GlyphCompiler(glyphMesh)
         fbo.prepare(application)
         isPrepared = true
     }
@@ -74,51 +113,44 @@ class GPUFont(font: TtfFont) : Preparable {
     private val redBits = Color.RED.toFloatBits()
 
     fun flush(batch: SpriteBatch, viewProjection: Mat4) {
-        //  fbo.begin()
-//        gl.clear(ClearBufferMask.COLOR_BUFFER_BIT)
-//        gl.blendFunc(BlendFactor.ONE, BlendFactor.ONE)
-//        gl.enable(State.SCISSOR_TEST)
-//        glyphShader.bind()
-//        JITTER_PATTERN.forEachIndexed { idx, pattern ->
-//            temp.set(viewProjection)
-//            temp.translate(pattern.x, pattern.y, 0f)
-//            if (idx % 2 == 0) {
-//                glyphFragmentShader.uColor.apply(
-//                    glyphShader,
-//                    if (idx == 0) 1f else 0f,
-//                    if (idx == 2) 1f else 0f,
-//                    if (idx == 4) 1f else 0f,
-//                    0f
-//                )
-//            }
-//            glyphVertexShader.uProjTrans.apply(glyphShader, temp)
-//            mesh.render(glyphShader)
-//        }
-        //   fbo.end()
-//        gl.blendFunc(BlendFactor.ZERO, BlendFactor.SRC_COLOR)
-//        gl.disable(State.SCISSOR_TEST)
+        fbo.begin()
+        gl.clear(ClearBufferMask.COLOR_BUFFER_BIT)
+        gl.enable(State.BLEND)
+        gl.blendFunc(BlendFactor.ONE, BlendFactor.ONE)
+        //     gl.enable(State.SCISSOR_TEST)
+        glyphShader.bind()
+        JITTER_PATTERN.forEachIndexed { idx, pattern ->
+            temp.set(viewProjection)
+            temp.translate(pattern.x, pattern.y, 0f)
+            if (idx % 2 == 0) {
+                glyphShader.fragmentShader.uColor.apply(
+                    glyphShader,
+                    if (idx == 0) 1f else 0f,
+                    if (idx == 2) 1f else 0f,
+                    if (idx == 4) 1f else 0f,
+                    0f
+                )
+            }
+            glyphShader.vertexShader.uProjTrans.apply(glyphShader, temp)
+            glyphMesh.render(glyphShader)
+        }
+        fbo.end()
+        gl.blendFunc(BlendFactor.ZERO, BlendFactor.SRC_COLOR)
+        //   gl.disable(State.SCISSOR_TEST)
+
+        textShader.bind()
+        textShader.vertexShader.uProjTrans.apply(textShader, viewProjection)
+        textShader.fragmentShader.uTex.apply(textShader, fbo.colorBufferTexture.glTexture!!)
+        textShader.fragmentShader.uColor.apply(textShader, Color.CLEAR)
+        quadMesh.render(textShader)
 //        batch.shader = textShader
 //        batch.use(viewProjection) {
-//            textFragmentShader.uTex.apply(textShader, fbo.colorBufferTexture.glTexture!!)
-//            textFragmentShader.uColor.apply(textShader, Color.CLEAR)
-//            it.draw(fbo.colorBufferTexture, -1f, -1f, flipY = true)
+//            it.draw(fbo.colorBufferTexture, 0f, 0f, flipY = true)
 //        }
 //
 //        batch.shader = batch.defaultShader
-//        fbo.begin()
-        //      gl.clear(ClearBufferMask.COLOR_BUFFER_BIT)
-        gl.enable(State.BLEND)
-        gl.blendFunc(BlendFactor.ONE, BlendFactor.ONE)
-        glyphShader.bind()
-        glyphShader.vertexShader.uProjTrans.apply(defaultShader, viewProjection)
-        glyphShader.fragmentShader.uColor.apply(glyphShader, Color.WHITE)
-        //textFragmentShader.uColor.apply(textShader, Color.CLEAR)
-        //    val count = idx / 12 * 6
-//        defaultShader.bind()
-//        defaultShader.uProjTrans?.apply(defaultShader, viewProjection)
-        mesh.render(glyphShader)
-        //     gl.blendFunc(BlendFactor.ZERO, BlendFactor.SRC_COLOR)
 
+        gl.enable(State.BLEND)
         gl.blendFuncSeparate(
             BlendFactor.SRC_ALPHA,
             BlendFactor.ONE_MINUS_SRC_ALPHA,
@@ -127,11 +159,11 @@ class GPUFont(font: TtfFont) : Preparable {
         )
 
         temp.set(viewProjection)
-        temp.translate(250f, 0f, 0f)
+        temp.translate(450f, 0f, 0f)
         defaultShader.bind()
         defaultShader.uProjTrans?.apply(defaultShader, temp)
-        mesh.render(defaultShader)
-//        fbo.end()
+        glyphMesh.render(defaultShader)
+
 //        batch.use(viewProjection) {
 //            it.draw(fbo.colorBufferTexture, -300f, -1f, flipY = true)
 //        }
