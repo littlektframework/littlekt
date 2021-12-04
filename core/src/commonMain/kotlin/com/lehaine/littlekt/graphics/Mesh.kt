@@ -105,6 +105,8 @@ class MeshProps {
 class MeshBatcher(size: Int, val attributes: VertexAttributes) {
     val vertexSize = attributes.sumOf { if (it == VertexAttribute.COLOR_PACKED) 1 else it.numComponents }
     val vertices = FloatArray(size * vertexSize)
+    var lastCount = 0
+        private set
     var count = 0
         private set
     private var offset = 0
@@ -141,6 +143,7 @@ class MeshBatcher(size: Int, val attributes: VertexAttributes) {
     }
 
     fun reset() {
+        lastCount = count
         offset = 0
         count = 0
     }
@@ -181,6 +184,20 @@ class Mesh(
 
     val numIndices get() = indices.numIndices
     val numVertices get() = vertices.numVertices
+    val defaultCount: Int
+        get() {
+            return if (useBatcher) {
+                if (batcher.count > 0) {
+                    batcher.count
+                } else {
+                    batcher.lastCount
+                }
+            } else if (numIndices > 0) {
+                numIndices
+            } else {
+                numVertices
+            }
+        }
 
     fun setVertex(action: VertexProps.() -> Unit) {
         if (!useBatcher) throw RuntimeException("This mesh isn't user the mesh batcher! You cannot use setVertex. You must pass in a FloatArray to setVertices.")
@@ -263,7 +280,7 @@ class Mesh(
         shader: ShaderProgram<*, *>? = null,
         drawMode: DrawMode = DrawMode.TRIANGLES,
         offset: Int = 0,
-        count: Int = if (useBatcher) batcher.count else if (numIndices > 0) numIndices else numVertices,
+        count: Int = defaultCount,
     ) {
         if (useBatcher && updateVertices) {
             setVertices(batcher.vertices)

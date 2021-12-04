@@ -38,7 +38,7 @@ class FontLoadTest(application: Application) : LittleKt(application) {
         }
     }
 
-    var text = "Hello"
+    var text = "Hello World"
     var text2 = "e"
     var usingText = true
     override fun render(dt: Duration) {

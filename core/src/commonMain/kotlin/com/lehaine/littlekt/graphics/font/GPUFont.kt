@@ -113,10 +113,9 @@ class GPUFont(font: TtfFont) : Preparable {
         glyphShader.vertexShader.uProjTrans.apply(defaultShader, viewProjection)
         glyphShader.fragmentShader.uColor.apply(glyphShader, Color.WHITE)
         //textFragmentShader.uColor.apply(textShader, Color.CLEAR)
-    //    val count = idx / 12 * 6
+        //    val count = idx / 12 * 6
 //        defaultShader.bind()
 //        defaultShader.uProjTrans?.apply(defaultShader, viewProjection)
-        val count = mesh.batcher.count * 3
         mesh.render(glyphShader)
         //     gl.blendFunc(BlendFactor.ZERO, BlendFactor.SRC_COLOR)
 
@@ -131,59 +130,18 @@ class GPUFont(font: TtfFont) : Preparable {
         temp.translate(250f, 0f, 0f)
         defaultShader.bind()
         defaultShader.uProjTrans?.apply(defaultShader, temp)
-        mesh.render(defaultShader, count = count)
+        mesh.render(defaultShader)
 //        fbo.end()
 //        batch.use(viewProjection) {
 //            it.draw(fbo.colorBufferTexture, -300f, -1f, flipY = true)
 //        }
-        idx = 0
         pool.free(instances)
         instances.clear()
     }
 
-    private val bits = Color.WHITE.toFloatBits()
-    private var idx = 0
     private fun compileGlyphs(text: String, x: Float, y: Float) {
         var tx = x
-        val scale = 1f /// unitsPerEm * 500f
-//        val size = 50f * scale
-//        text.forEach { char ->
-//            val code = char.code
-//            val glyph = glyphs[code] ?: error("Unable to find glyph for '$char'!")
-//            val gpuGlyph = pool.alloc().also {
-//                it.glyph = glyph
-//                it.offset.set(tx, y)
-//                instances += it
-//            }
-//
-//            glyph.points.forEach {
-//                mesh.setVertex {
-//                    this.x = it.x.toFloat() * scale + tx
-//                    this.y = it.y.toFloat() * scale + y
-//                    this.colorPacked = bits
-//                }
-//
-//                mesh.setVertex {
-//                    this.x = it.x.toFloat() * scale + tx + size
-//                    this.y = it.y.toFloat() * scale + y
-//                    this.colorPacked = bits
-//                }
-//                mesh.setVertex {
-//                    this.x = it.x.toFloat() * scale + tx + size
-//                    this.y = it.y.toFloat() * scale + y + size
-//                    this.colorPacked = bits
-//                }
-//                mesh.setVertex {
-//                    this.x = it.x.toFloat() * scale + tx
-//                    this.y = it.y.toFloat() * scale + y + size
-//                    this.colorPacked = bits
-//                }
-//                idx += 12
-//            }
-//
-//            tx += glyph.advanceWidth * scale
-//
-//        }
+        val scale = 1f /// unitsPerEm * 72f
         text.forEach { char ->
             val code = char.code
             val glyph = glyphs[code] ?: error("Unable to find glyph for '$char'!")
@@ -196,14 +154,14 @@ class GPUFont(font: TtfFont) : Preparable {
                 glyphCompiler.begin(gpuGlyph)
                 gpuGlyph.glyph?.path?.commands?.forEach { cmd ->
                     when (cmd.type) {
-                        GlyphPath.CommandType.MOVE_TO -> glyphCompiler.moveTo(cmd.x * scale + tx, cmd.y * scale + y)
-                        GlyphPath.CommandType.LINE_TO -> glyphCompiler.lineTo(cmd.x * scale + tx, cmd.y * scale + y)
-//                        GlyphPath.CommandType.QUADRATIC_CURVE_TO -> glyphCompiler.curveTo(
-//                            cmd.x1 * scale + tx,
-//                            cmd.y1 * scale + y,
-//                            cmd.x * scale + tx,
-//                            cmd.y * scale + y
-//                        )
+                        GlyphPath.CommandType.MOVE_TO -> glyphCompiler.moveTo(cmd.x * scale + tx, -cmd.y * scale + y)
+                        GlyphPath.CommandType.LINE_TO -> glyphCompiler.lineTo(cmd.x * scale + tx, -cmd.y * scale + y)
+                        GlyphPath.CommandType.QUADRATIC_CURVE_TO -> glyphCompiler.curveTo(
+                            cmd.x1 * scale + tx,
+                            -cmd.y1 * scale + y,
+                            cmd.x * scale + tx,
+                            -cmd.y * scale + y
+                        )
                         GlyphPath.CommandType.CLOSE -> glyphCompiler.close()
                         else -> {
                             // do nothing with bezier curves - only want the quadratic curves
@@ -212,7 +170,7 @@ class GPUFont(font: TtfFont) : Preparable {
                 }
                 glyphCompiler.end()
             }
-            tx += glyph.advanceWidth * 0.1f
+            tx += glyph.advanceWidth * 0.075f
         }
     }
 
@@ -276,9 +234,9 @@ internal class GlyphCompiler(val mesh: Mesh) {
 
     fun curveTo(cx: Float, cy: Float, x: Float, y: Float) {
         if (++contourCount >= 2) {
-            appendTriangle(firstX, firstY, currentX, currentX, x, y, TriangleType.SOLID)
+            appendTriangle(firstX, firstY, currentX, currentY, x, y, TriangleType.SOLID)
         }
-        appendTriangle(currentX, currentX, cx, cy, x, y, TriangleType.QUADRATIC_CURVE)
+        appendTriangle(currentX, currentY, cx, cy, x, y, TriangleType.QUADRATIC_CURVE)
         currentX = x
         currentY = y
     }
@@ -302,7 +260,6 @@ internal class GlyphCompiler(val mesh: Mesh) {
         cy: Float,
         triangleType: TriangleType
     ) {
-        val size = 1f
         when (triangleType) {
             TriangleType.SOLID -> {
                 appendVertex(ax, ay, 0f, 1f)
@@ -315,7 +272,7 @@ internal class GlyphCompiler(val mesh: Mesh) {
                 appendVertex(cx, cy, 1f, 1f)
             }
         }
-
+//        val size = 1f
 //        when (triangleType) {
 //            TriangleType.SOLID -> {
 //                appendVertex(ax, ay, 0f, 1f)

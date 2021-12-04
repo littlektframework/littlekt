@@ -42,13 +42,10 @@ class EngineStats {
     internal fun statsString(): String {
         return """GL calls: $calls
            Draw calls: $drawCalls
+           Vertices: $vertices
            Textures: $textureBindings
            Shaders: $shaderSwitches
-           Buffers: ${bufferAllocations.size} with memory usage of ${
-            (totalBufferSize.toDouble() / (1024.0 * 1024.0)).toString(
-                1
-            )
-        }M
+           Buffers: ${bufferAllocations.size} with memory usage of ${(totalBufferSize.toDouble() / (1024.0 * 1024.0)).toString(1)}M
        """
     }
 
