@@ -25,6 +25,6 @@ class GlyphFragmentShader() : FragmentShaderModel() {
         If(gl_FrontFacing) {
             frontFaces = ("16.0 / 255.0").float
         }
-        gl_FragColor = u_color + v_color * frontFaces
+        gl_FragColor = u_color  * frontFaces
     }
 }

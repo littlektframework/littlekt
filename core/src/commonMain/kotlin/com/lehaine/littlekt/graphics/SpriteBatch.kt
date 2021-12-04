@@ -401,7 +401,7 @@ class SpriteBatch(
         }
         renderCalls++
         totalRenderCalls++
-        val spritesInBatch = idx / 20
+        val spritesInBatch = idx / SPRITE_SIZE
         if (spritesInBatch > maxSpritesInBatch) {
             maxSpritesInBatch = spritesInBatch
         }

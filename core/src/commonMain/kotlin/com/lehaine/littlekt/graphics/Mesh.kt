@@ -103,10 +103,12 @@ class MeshProps {
 }
 
 class MeshBatcher(size: Int, val attributes: VertexAttributes) {
-    private val totalComponents = attributes.sumOf { if (it == VertexAttribute.COLOR_PACKED) 1 else it.numComponents }
-    val vertices = FloatArray(size * totalComponents)
-
+    val vertexSize = attributes.sumOf { if (it == VertexAttribute.COLOR_PACKED) 1 else it.numComponents }
+    val vertices = FloatArray(size * vertexSize)
+    var count = 0
+        private set
     private var offset = 0
+
     fun setVertex(props: VertexProps) {
         attributes.forEach { vertexAttribute ->
             when (vertexAttribute.usage) {
@@ -135,10 +137,12 @@ class MeshBatcher(size: Int, val attributes: VertexAttributes) {
                 }
             }
         }
+        count++
     }
 
     fun reset() {
         offset = 0
+        count = 0
     }
 
 }
@@ -216,6 +220,16 @@ class Mesh(
         setIndices(indices)
     }
 
+    fun indicesAsTri() {
+        val indices = ShortArray(maxIndices)
+        for (i in 0 until maxIndices step 3) {
+            indices[i] = i.toShort()
+            indices[i + 1] = (i + 1).toShort()
+            indices[i + 2] = (i + 2).toShort()
+        }
+        setIndices(indices)
+    }
+
     fun setVertices(vertices: FloatArray, srcOffset: Int = 0, count: Int = vertices.size): Mesh {
         this.vertices.setVertices(vertices, srcOffset, count)
         return this
@@ -249,7 +263,7 @@ class Mesh(
         shader: ShaderProgram<*, *>? = null,
         drawMode: DrawMode = DrawMode.TRIANGLES,
         offset: Int = 0,
-        count: Int = if (numIndices > 0) numIndices else numVertices,
+        count: Int = if (useBatcher) batcher.count else if (numIndices > 0) numIndices else numVertices,
     ) {
         if (useBatcher && updateVertices) {
             setVertices(batcher.vertices)
@@ -279,7 +293,6 @@ class Mesh(
         if (autoBind) {
             unbind(shader)
         }
-
     }
 
     override fun dispose() {

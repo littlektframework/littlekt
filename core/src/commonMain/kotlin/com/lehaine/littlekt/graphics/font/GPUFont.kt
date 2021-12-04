@@ -56,13 +56,8 @@ class GPUFont(font: TtfFont) : Preparable {
         mesh = textureMesh(application.gl) {
             maxVertices = 15000
         }.also {
-            val indices = ShortArray(it.maxIndices)
-            for (i in 0 until it.maxIndices step 3) {
-                indices[i] = i.toShort()
-                indices[i + 1] = (i + 1).toShort()
-                indices[i + 2] = (i + 2).toShort()
-            }
-            it.setIndices(indices)
+            it.indicesAsTri()
+
         }
         glyphCompiler = GlyphCompiler(mesh)
         fbo.prepare(application)
@@ -115,18 +110,28 @@ class GPUFont(font: TtfFont) : Preparable {
         gl.enable(State.BLEND)
         gl.blendFunc(BlendFactor.ONE, BlendFactor.ONE)
         glyphShader.bind()
-        glyphShader.uProjTrans?.apply(defaultShader, viewProjection)
-        glyphShader.fragmentShader.uColor.apply(glyphShader, Color.RED)
+        glyphShader.vertexShader.uProjTrans.apply(defaultShader, viewProjection)
+        glyphShader.fragmentShader.uColor.apply(glyphShader, Color.WHITE)
         //textFragmentShader.uColor.apply(textShader, Color.CLEAR)
-        val count = idx / 12 * 6
+    //    val count = idx / 12 * 6
 //        defaultShader.bind()
 //        defaultShader.uProjTrans?.apply(defaultShader, viewProjection)
+        val count = mesh.batcher.count * 3
         mesh.render(glyphShader)
-        gl.blendFunc(BlendFactor.ZERO, BlendFactor.SRC_COLOR)
+        //     gl.blendFunc(BlendFactor.ZERO, BlendFactor.SRC_COLOR)
 
+        gl.blendFuncSeparate(
+            BlendFactor.SRC_ALPHA,
+            BlendFactor.ONE_MINUS_SRC_ALPHA,
+            BlendFactor.SRC_ALPHA,
+            BlendFactor.ONE_MINUS_SRC_ALPHA
+        )
+
+        temp.set(viewProjection)
+        temp.translate(250f, 0f, 0f)
         defaultShader.bind()
-        defaultShader.uProjTrans?.apply(defaultShader, viewProjection)
-        mesh.render(defaultShader)
+        defaultShader.uProjTrans?.apply(defaultShader, temp)
+        mesh.render(defaultShader, count = count)
 //        fbo.end()
 //        batch.use(viewProjection) {
 //            it.draw(fbo.colorBufferTexture, -300f, -1f, flipY = true)
@@ -140,7 +145,7 @@ class GPUFont(font: TtfFont) : Preparable {
     private var idx = 0
     private fun compileGlyphs(text: String, x: Float, y: Float) {
         var tx = x
-        val scale = 1f / unitsPerEm * 100f
+        val scale = 1f /// unitsPerEm * 500f
 //        val size = 50f * scale
 //        text.forEach { char ->
 //            val code = char.code
@@ -191,14 +196,14 @@ class GPUFont(font: TtfFont) : Preparable {
                 glyphCompiler.begin(gpuGlyph)
                 gpuGlyph.glyph?.path?.commands?.forEach { cmd ->
                     when (cmd.type) {
-                        GlyphPath.CommandType.MOVE_TO -> glyphCompiler.moveTo(cmd.x * scale + x, cmd.y * scale + y)
-                        GlyphPath.CommandType.LINE_TO -> glyphCompiler.lineTo(cmd.x * scale + x, cmd.y * scale + y)
-                        GlyphPath.CommandType.QUADRATIC_CURVE_TO -> glyphCompiler.curveTo(
-                            cmd.x1 * scale + x,
-                            cmd.y1 * scale + y,
-                            cmd.x * scale + x,
-                            cmd.y * scale + y
-                        )
+                        GlyphPath.CommandType.MOVE_TO -> glyphCompiler.moveTo(cmd.x * scale + tx, cmd.y * scale + y)
+                        GlyphPath.CommandType.LINE_TO -> glyphCompiler.lineTo(cmd.x * scale + tx, cmd.y * scale + y)
+//                        GlyphPath.CommandType.QUADRATIC_CURVE_TO -> glyphCompiler.curveTo(
+//                            cmd.x1 * scale + tx,
+//                            cmd.y1 * scale + y,
+//                            cmd.x * scale + tx,
+//                            cmd.y * scale + y
+//                        )
                         GlyphPath.CommandType.CLOSE -> glyphCompiler.close()
                         else -> {
                             // do nothing with bezier curves - only want the quadratic curves
@@ -207,7 +212,7 @@ class GPUFont(font: TtfFont) : Preparable {
                 }
                 glyphCompiler.end()
             }
-            tx += glyph.advanceWidth * scale
+            tx += glyph.advanceWidth * 0.1f
         }
     }
 
@@ -244,15 +249,11 @@ internal class GlyphCompiler(val mesh: Mesh) {
     private var contourCount = 0
     private var glyph: GPUGlyph? = null
     private var rectBuilder = RectBuilder()
-    private var color: Color = Color.WHITE.withAlpha(0.5f)
+    private var color: Color = Color.WHITE.withAlpha(0.1f)
     private var colorBits = color.toFloatBits()
 
-    fun begin(glyph: GPUGlyph, color: Color = Color.WHITE) {
+    fun begin(glyph: GPUGlyph) {
         this.glyph = glyph
-        if (this.color != color) {
-            this.color = color
-            colorBits = color.toFloatBits()
-        }
         rectBuilder.reset()
         vertices.clear()
     }
@@ -301,6 +302,7 @@ internal class GlyphCompiler(val mesh: Mesh) {
         cy: Float,
         triangleType: TriangleType
     ) {
+        val size = 1f
         when (triangleType) {
             TriangleType.SOLID -> {
                 appendVertex(ax, ay, 0f, 1f)
@@ -313,8 +315,40 @@ internal class GlyphCompiler(val mesh: Mesh) {
                 appendVertex(cx, cy, 1f, 1f)
             }
         }
+
+//        when (triangleType) {
+//            TriangleType.SOLID -> {
+//                appendVertex(ax, ay, 0f, 1f)
+//                appendVertex(ax + size, ay, 0f, 1f)
+//                appendVertex(ax + size, ay + size, 0f, 1f)
+//                appendVertex(ax, ay + size, 0f, 1f)
+//                appendVertex(bx, by, 0f, 1f)
+//                appendVertex(bx + size, by, 0f, 1f)
+//                appendVertex(bx + size, by + size, 0f, 1f)
+//                appendVertex(bx, by + size, 0f, 1f)
+//                appendVertex(cx, cy, 0f, 1f)
+//                appendVertex(cx + size, cy, 0f, 1f)
+//                appendVertex(cx + size, cy + size, 0f, 1f)
+//                appendVertex(cx, cy + size, 0f, 1f)
+//            }
+//            TriangleType.QUADRATIC_CURVE -> {
+//                appendVertex(ax, ay, 0f, 0f)
+//                appendVertex(ax + size, ay, 0f, 0f)
+//                appendVertex(ax + size, ay + size, 0f, 0f)
+//                appendVertex(ax, ay + size, 0f, 0f)
+//                appendVertex(bx, by, 0f, 1f)
+//                appendVertex(bx + size, by, 0.5f, 0f)
+//                appendVertex(bx + size, by + size, 0.5f, 0f)
+//                appendVertex(bx, by + size, 0.5f, 0f)
+//                appendVertex(cx, cy, 1f, 1f)
+//                appendVertex(cx + size, cy, 1f, 1f)
+//                appendVertex(cx + size, cy + size, 1f, 1f)
+//                appendVertex(cx, cy + size, 1f, 1f)
+//            }
+//        }
     }
 
+    var t = 0
     fun appendVertex(x: Float, y: Float, u: Float, v: Float) {
         rectBuilder.include(x, y)
         mesh.setVertex {
