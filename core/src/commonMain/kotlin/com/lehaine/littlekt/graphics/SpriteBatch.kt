@@ -30,7 +30,7 @@ class SpriteBatch(
 
     private val gl get() = application.graphics.gl
     val defaultShader = ShaderProgram(application.graphics.gl, DefaultVertexShader(), DefaultFragmentShader())
-    var shader: ShaderProgram = defaultShader
+    var shader: ShaderProgram<*,*> = defaultShader
         set(value) {
             if (drawing) {
                 flush()
@@ -82,7 +82,7 @@ class SpriteBatch(
         isStatic = false
         maxVertices = size * 4
     }.apply {
-        setIndicesAsTriangle()
+        indicesAsQuad()
     }
 
     private var lastTexture: Texture? = null

@@ -5,10 +5,10 @@ import com.lehaine.littlekt.graphics.GL
 import com.lehaine.littlekt.graphics.gl.*
 import kotlin.math.min
 
-class ShaderProgram(
+class ShaderProgram<V : VertexShader, F : FragmentShader>(
     val gl: GL,
-    vertexShader: VertexShader,
-    fragmentShader: FragmentShader,
+    val vertexShader: V,
+    val fragmentShader: F,
 ) : Disposable {
     companion object {
         /** default name for position attributes  */

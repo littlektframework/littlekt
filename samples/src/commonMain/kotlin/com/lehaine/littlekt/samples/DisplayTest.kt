@@ -55,7 +55,7 @@ class DisplayTest(application: Application) : LittleKt(application), InputProces
             colorPacked = colorBits
         }
 
-        setIndicesAsTriangle()
+        indicesAsQuad()
     }
 
     val camera = OrthographicCamera().apply {

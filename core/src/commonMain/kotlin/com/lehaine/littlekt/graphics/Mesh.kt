@@ -199,7 +199,7 @@ class Mesh(
         }
     }
 
-    fun setIndicesAsTriangle() {
+    fun indicesAsQuad() {
         val indices = ShortArray(maxIndices)
         var i = 0
         var j = 0
@@ -231,14 +231,14 @@ class Mesh(
         return this
     }
 
-    fun bind(shader: ShaderProgram? = null, locations: IntArray? = null) {
+    fun bind(shader: ShaderProgram<*, *>? = null, locations: IntArray? = null) {
         vertices.bind(shader, locations)
         if (numIndices > 0) {
             indices.bind()
         }
     }
 
-    fun unbind(shader: ShaderProgram? = null, locations: IntArray? = null) {
+    fun unbind(shader: ShaderProgram<*, *>? = null, locations: IntArray? = null) {
         vertices.unbind(shader, locations)
         if (numIndices > 0) {
             indices.unbind()
@@ -246,24 +246,26 @@ class Mesh(
     }
 
     fun render(
-        shader: ShaderProgram? = null,
+        shader: ShaderProgram<*, *>? = null,
         drawMode: DrawMode = DrawMode.TRIANGLES,
         offset: Int = 0,
         count: Int = if (numIndices > 0) numIndices else numVertices,
     ) {
-        if (count == 0) {
-            return
-        }
         if (useBatcher && updateVertices) {
             setVertices(batcher.vertices)
-            indicesBuffer.apply {
-                position = 0
-                limit = count
+            if (numIndices > 0) {
+                indicesBuffer.apply {
+                    position = 0
+                    limit = count
+                }
             }
             batcher.reset()
             updateVertices = false
+        } else if (count == 0) {
+            return
         }
-        if(autoBind) {
+
+        if (autoBind) {
             bind(shader)
         }
         if (numIndices > 0) {
@@ -274,7 +276,7 @@ class Mesh(
         } else {
             gl.drawArrays(drawMode, offset, count)
         }
-        if(autoBind) {
+        if (autoBind) {
             unbind(shader)
         }
 

@@ -55,7 +55,7 @@ class VertexBufferObject(val gl: GL, val isStatic: Boolean, numVertices: Int, va
         onBufferChanged()
     }
 
-    fun bind(shader: ShaderProgram? = null, locations: IntArray? = null) {
+    fun bind(shader: ShaderProgram<*,*>? = null, locations: IntArray? = null) {
         vaoGl?.let {
             gl.bindVertexArray(it)
         }
@@ -84,7 +84,7 @@ class VertexBufferObject(val gl: GL, val isStatic: Boolean, numVertices: Int, va
         bound = true
     }
 
-    fun unbind(shader: ShaderProgram? = null, locations: IntArray? = null) {
+    fun unbind(shader: ShaderProgram<*,*>? = null, locations: IntArray? = null) {
         if (shader != null) {
             attributes.forEachIndexed { index, attribute ->
                 gl.disableVertexAttribArray(locations?.get(index) ?: shader.getAttrib(attribute.alias))

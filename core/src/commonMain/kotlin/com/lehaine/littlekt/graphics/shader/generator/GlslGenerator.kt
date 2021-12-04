@@ -456,6 +456,7 @@ abstract class GlslGenerator : GlslProvider {
     fun float() = ConstructorDelegate(GLFloat(this))
     fun float(x: Float) = ConstructorDelegate(GLFloat(this), x.str())
     fun float(x: GLFloat) = ConstructorDelegate(GLFloat(this), x.value)
+    fun float(lit: String) = ConstructorDelegate(GLFloat(this), lit)
 
     fun intVal() = ConstructorDelegate(GLInt(this))
     fun intVal(x: GLInt) = ConstructorDelegate(GLInt(this), x.value)
@@ -587,6 +588,7 @@ abstract class GlslGenerator : GlslProvider {
 
     fun mat3() = ConstructorDelegate(Mat3(this))
 
+    val String.float get() = GLFloat(this@GlslGenerator, this)
     val Float.lit get() = GLFloat(this@GlslGenerator, this.str())
     val Int.lit get() = GLInt(this@GlslGenerator, this.toString())
 
