@@ -89,9 +89,11 @@ class MeshProps {
     var maxVertices = 1000
         set(value) {
             field = value
-            _maxIndices = floor(maxVertices * 0.5f).toInt() + maxVertices
+            if (!indicesSpecificallySet) {
+                _maxIndices = floor(field * 1.5f).toInt()
+            }
         }
-    private var _maxIndices = floor(maxVertices * 0.5f).toInt() + maxVertices
+    private var _maxIndices = floor(maxVertices * 1.5f).toInt()
     var maxIndices
         get() = _maxIndices
         set(value) {
@@ -150,6 +152,10 @@ class MeshBatcher(size: Int, val attributes: VertexAttributes) {
 
 }
 
+/**
+ * Vertex props that can be used when setting a vertex on a [Mesh].
+ * @see [Mesh.setVertex]
+ */
 class VertexProps {
     var x: Float = 0f
     var y: Float = 0f
@@ -177,20 +183,45 @@ class Mesh(
     private var updateVertices = false
     private val tempVertexProps = VertexProps()
 
+    /**
+     * The batcher allows you to [setVertex] without having to worry about creating the data array and positioning
+     * of the values yourself. The batcher will also keep count of each vertex for rendering purposes.
+     * @see [verticesPerIndex]
+     */
     val batcher = MeshBatcher(maxVertices, vertexAttributes)
+
+    /**
+     * The number of vertices shared per index. If you are drawing just a triangle, each vertex would only have 1 index.
+     * If you wanted to draw a quad (4 vertices), you would use 6 indices. Each index would share 1.5 vertices.
+     *
+     * If you are setting your own indices then you will want to change this value to match that data.
+     * **WARNING**: A call to [indicesAsTri] or [indicesAsQuad] will alter this value!
+     *
+     * Defaults to **1**.
+     */
+    var verticesPerIndex = 1f
 
     val verticesBuffer get() = vertices.buffer
     val indicesBuffer get() = indices.buffer
 
     val numIndices get() = indices.numIndices
     val numVertices get() = vertices.numVertices
+
+    /**
+     * The default total count for rendnering vertices.
+     * If using [batcher], this will default to the `batch.count * verticesPerIndex`
+     * If not using the [batcher], this will default to the [numIndices], if greater than 0, else the [numVertices]
+     *
+     * @see MeshBatcher.count
+     * @see verticesPerIndex
+     */
     val defaultCount: Int
         get() {
             return if (useBatcher) {
                 if (batcher.count > 0) {
-                    batcher.count
+                    floor(batcher.count * verticesPerIndex).toInt()
                 } else {
-                    batcher.lastCount
+                    floor(batcher.lastCount * verticesPerIndex).toInt()
                 }
             } else if (numIndices > 0) {
                 numIndices
@@ -199,6 +230,11 @@ class Mesh(
             }
         }
 
+    /**
+     * Sets a vertex based on the [VertexProps]. If the mesh created is missing a [VertexAttribute], setting the value
+     * of that attribute will do nothing. E.g. Creating a mesh with only a [VertexAttribute.POSITION_2D] and setting the
+     * [VertexProps.colorPacked] field will do nothing.
+     */
     fun setVertex(action: VertexProps.() -> Unit) {
         if (!useBatcher) throw RuntimeException("This mesh isn't user the mesh batcher! You cannot use setVertex. You must pass in a FloatArray to setVertices.")
         tempVertexProps.action()
@@ -220,6 +256,10 @@ class Mesh(
         }
     }
 
+    /**
+     * Creates an array of indices based on a quad and uploads the indices to the [IndexBufferObject].
+     * This will set [verticesPerIndex] to **1.5**.
+     */
     fun indicesAsQuad() {
         val indices = ShortArray(maxIndices)
         var i = 0
@@ -235,8 +275,13 @@ class Mesh(
             j += 4
         }
         setIndices(indices)
+        verticesPerIndex = 1.5f
     }
 
+    /**
+     * Creates an array of indices based on a triangle and uploads the indices to the [IndexBufferObject].
+     * This will set [verticesPerIndex] to **1**.
+     */
     fun indicesAsTri() {
         val indices = ShortArray(maxIndices)
         for (i in 0 until maxIndices step 3) {
@@ -245,23 +290,36 @@ class Mesh(
             indices[i + 2] = (i + 2).toShort()
         }
         setIndices(indices)
+        verticesPerIndex = 1f
     }
 
+    /**
+     * Sets the vertices of this mesh directly. Updates the [VertexBufferObject].
+     */
     fun setVertices(vertices: FloatArray, srcOffset: Int = 0, count: Int = vertices.size): Mesh {
         this.vertices.setVertices(vertices, srcOffset, count)
         return this
     }
 
+    /**
+     * Updates a portion of the [VertexBufferObject] vertices.
+     */
     fun updateVertices(destOffset: Int, source: FloatArray, srcOffset: Int = 0, count: Int = source.size): Mesh {
         this.vertices.updateVertices(destOffset, source, srcOffset, count)
         return this
     }
 
+    /**
+     * Sets indices of this mesh directly. Updtes the [IndexBufferObject].
+     */
     fun setIndices(indices: ShortArray, srcOffset: Int = 0, count: Int = indices.size): Mesh {
         this.indices.setIndices(indices, srcOffset, count)
         return this
     }
 
+    /**
+     * Binds the [VertexBufferObject] and will also bind the [IndexBufferObject] if the [numIndices] > 0.
+     */
     fun bind(shader: ShaderProgram<*, *>? = null, locations: IntArray? = null) {
         vertices.bind(shader, locations)
         if (numIndices > 0) {
@@ -269,6 +327,9 @@ class Mesh(
         }
     }
 
+    /**
+     * Unbinds the [VertexBufferObject] and the [IndexBufferObject] if applicable.
+     */
     fun unbind(shader: ShaderProgram<*, *>? = null, locations: IntArray? = null) {
         vertices.unbind(shader, locations)
         if (numIndices > 0) {
@@ -276,6 +337,13 @@ class Mesh(
         }
     }
 
+    /**
+     * Renders the mesh.
+     * @param shader the [ShaderProgram] to use with this mesh. Defaults to `null`.
+     * @param drawMode the [DrawMode] type. Defaults to [DrawMode.TRIANGLES]
+     * @param offset the offset of the current vertices indices to render. Defaults to `0`.
+     * @param count the total vertices to render. See [defaultCount]
+     */
     fun render(
         shader: ShaderProgram<*, *>? = null,
         drawMode: DrawMode = DrawMode.TRIANGLES,
@@ -312,6 +380,9 @@ class Mesh(
         }
     }
 
+    /**
+     * Disposes the mesh and any buffers.
+     */
     override fun dispose() {
         vertices.dispose()
         indices.dispose()

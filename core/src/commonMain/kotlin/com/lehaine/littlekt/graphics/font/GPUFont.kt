@@ -77,25 +77,25 @@ class GPUFont(font: TtfFont) : Preparable {
                 this.v = v
             }
             it.setVertex {
-                x = 0f
-                y = application.graphics.height.toFloat()
-                colorPacked = bits
-                this.u = u
-                this.v = v2
-            }
-            it.setVertex {
-                x = application.graphics.width.toFloat()
-                y = application.graphics.height.toFloat()
-                colorPacked = bits
-                this.u = u2
-                this.v = v2
-            }
-            it.setVertex {
                 x = application.graphics.width.toFloat()
                 y = 0f
                 colorPacked = bits
                 this.u = u2
                 this.v = v
+            }
+            it.setVertex {
+                x = application.graphics.width.toFloat()
+                y = application.graphics.height.toFloat()
+                colorPacked = bits
+                this.u = u2
+                this.v = v2
+            }
+            it.setVertex {
+                x = 0f
+                y = application.graphics.height.toFloat()
+                colorPacked = bits
+                this.u = u
+                this.v = v2
             }
         }
         glyphCompiler = GlyphCompiler(glyphMesh)
@@ -115,34 +115,36 @@ class GPUFont(font: TtfFont) : Preparable {
     fun flush(batch: SpriteBatch, viewProjection: Mat4) {
         fbo.begin()
         gl.clear(ClearBufferMask.COLOR_BUFFER_BIT)
+        gl.clearColor(Color.CLEAR)
         gl.enable(State.BLEND)
         gl.blendFunc(BlendFactor.ONE, BlendFactor.ONE)
-        //     gl.enable(State.SCISSOR_TEST)
+//        //     gl.enable(State.SCISSOR_TEST)
         glyphShader.bind()
-        JITTER_PATTERN.forEachIndexed { idx, pattern ->
-            temp.set(viewProjection)
-            temp.translate(pattern.x, pattern.y, 0f)
-            if (idx % 2 == 0) {
-                glyphShader.fragmentShader.uColor.apply(
-                    glyphShader,
-                    if (idx == 0) 1f else 0f,
-                    if (idx == 2) 1f else 0f,
-                    if (idx == 4) 1f else 0f,
-                    0f
-                )
-            }
-            glyphShader.vertexShader.uProjTrans.apply(glyphShader, temp)
-            glyphMesh.render(glyphShader)
-        }
+//        JITTER_PATTERN.forEachIndexed { idx, pattern ->
+        temp.set(viewProjection)
+//            temp.translate(pattern.x, pattern.y, 0f)
+//            if (idx % 2 == 0) {
+//                glyphShader.fragmentShader.uColor.apply(
+//                    glyphShader,
+//                    if (idx == 0) 1f else 0f,
+//                    if (idx == 2) 1f else 0f,
+//                    if (idx == 4) 1f else 0f,
+//                    0f
+//                )
+//            }
+        glyphShader.fragmentShader.uColor.apply(glyphShader, Color.CLEAR)
+        glyphShader.vertexShader.uProjTrans.apply(glyphShader, temp)
+        glyphMesh.render(glyphShader)
+        //    }
         fbo.end()
         gl.blendFunc(BlendFactor.ZERO, BlendFactor.SRC_COLOR)
-        //   gl.disable(State.SCISSOR_TEST)
-
+//        //   gl.disable(State.SCISSOR_TEST)
         textShader.bind()
         textShader.vertexShader.uProjTrans.apply(textShader, viewProjection)
         textShader.fragmentShader.uTex.apply(textShader, fbo.colorBufferTexture.glTexture!!)
         textShader.fragmentShader.uColor.apply(textShader, Color.CLEAR)
         quadMesh.render(textShader)
+
 //        batch.shader = textShader
 //        batch.use(viewProjection) {
 //            it.draw(fbo.colorBufferTexture, 0f, 0f, flipY = true)
