@@ -33,13 +33,13 @@ class FontLoadTest(application: Application) : LittleKt(application) {
             //  font.fontSize = 1
             gpuFont = GPUFont(font)
             val glyph = font.glyphs['D'.code]
-            println(glyph?.points)
+            println(glyph?.path?.commands)
             loading = false
         }
     }
 
-    var text = "Hello World"
-    var text2 = "e"
+    var text = "Hello World!!!"
+    var text2 = "Aa Bb Cc Dd Ee Ff Gg @#4@*@*#&()_!@#"
     var usingText = true
     override fun render(dt: Duration) {
         if (loading) return

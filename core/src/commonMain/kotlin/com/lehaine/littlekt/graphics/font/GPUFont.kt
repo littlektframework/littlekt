@@ -2,9 +2,7 @@ package com.lehaine.littlekt.graphics.font
 
 import com.lehaine.littlekt.Application
 import com.lehaine.littlekt.graphics.*
-import com.lehaine.littlekt.graphics.gl.BlendFactor
-import com.lehaine.littlekt.graphics.gl.ClearBufferMask
-import com.lehaine.littlekt.graphics.gl.State
+import com.lehaine.littlekt.graphics.gl.*
 import com.lehaine.littlekt.graphics.shader.ShaderProgram
 import com.lehaine.littlekt.graphics.shader.fragment.GlyphFragmentShader
 import com.lehaine.littlekt.graphics.shader.fragment.SimpleColorFragmentShader
@@ -57,8 +55,6 @@ class GPUFont(font: TtfFont) : Preparable {
         }
         glyphMesh = textureMesh(application.gl) {
             maxVertices = 15000
-        }.also {
-            it.indicesAsTri()
         }
         quadMesh = textureMesh(application.gl) {
             maxVertices = 4
@@ -76,26 +72,27 @@ class GPUFont(font: TtfFont) : Preparable {
                 this.u = u
                 this.v = v
             }
-            it.setVertex {
-                x = application.graphics.width.toFloat()
-                y = 0f
-                colorPacked = bits
-                this.u = u2
-                this.v = v
-            }
-            it.setVertex {
-                x = application.graphics.width.toFloat()
-                y = application.graphics.height.toFloat()
-                colorPacked = bits
-                this.u = u2
-                this.v = v2
-            }
+
             it.setVertex {
                 x = 0f
                 y = application.graphics.height.toFloat()
                 colorPacked = bits
                 this.u = u
                 this.v = v2
+            }
+            it.setVertex {
+                x = application.graphics.width.toFloat()
+                y = application.graphics.height.toFloat()
+                colorPacked = bits
+                this.u = u2
+                this.v = v2
+            }
+            it.setVertex {
+                x = application.graphics.width.toFloat()
+                y = 0f
+                colorPacked = bits
+                this.u = u2
+                this.v = v
             }
         }
         glyphCompiler = GlyphCompiler(glyphMesh)
@@ -113,15 +110,15 @@ class GPUFont(font: TtfFont) : Preparable {
     private val redBits = Color.RED.toFloatBits()
 
     fun flush(batch: SpriteBatch, viewProjection: Mat4) {
-        fbo.begin()
-        gl.clear(ClearBufferMask.COLOR_BUFFER_BIT)
-        gl.clearColor(Color.CLEAR)
-        gl.enable(State.BLEND)
-        gl.blendFunc(BlendFactor.ONE, BlendFactor.ONE)
-//        //     gl.enable(State.SCISSOR_TEST)
-        glyphShader.bind()
+//        fbo.begin()
+//        gl.clear(ClearBufferMask.COLOR_BUFFER_BIT)
+//        gl.clearColor(Color.CLEAR)
+//        gl.enable(State.BLEND)
+//        gl.blendFunc(BlendFactor.ONE, BlendFactor.ONE)
+////        //     gl.enable(State.SCISSOR_TEST)
+//        glyphShader.bind()
 //        JITTER_PATTERN.forEachIndexed { idx, pattern ->
-        temp.set(viewProjection)
+//            temp.set(viewProjection)
 //            temp.translate(pattern.x, pattern.y, 0f)
 //            if (idx % 2 == 0) {
 //                glyphShader.fragmentShader.uColor.apply(
@@ -132,43 +129,51 @@ class GPUFont(font: TtfFont) : Preparable {
 //                    0f
 //                )
 //            }
-        glyphShader.fragmentShader.uColor.apply(glyphShader, Color.CLEAR)
-        glyphShader.vertexShader.uProjTrans.apply(glyphShader, temp)
-        glyphMesh.render(glyphShader)
-        //    }
-        fbo.end()
-        gl.blendFunc(BlendFactor.ZERO, BlendFactor.SRC_COLOR)
-//        //   gl.disable(State.SCISSOR_TEST)
-        textShader.bind()
-        textShader.vertexShader.uProjTrans.apply(textShader, viewProjection)
-        textShader.fragmentShader.uTex.apply(textShader, fbo.colorBufferTexture.glTexture!!)
-        textShader.fragmentShader.uColor.apply(textShader, Color.CLEAR)
-        quadMesh.render(textShader)
-
-//        batch.shader = textShader
-//        batch.use(viewProjection) {
-//            it.draw(fbo.colorBufferTexture, 0f, 0f, flipY = true)
+//            glyphShader.vertexShader.uProjTrans.apply(glyphShader, temp)
+//            glyphMesh.render(glyphShader)
 //        }
+//        fbo.end()
+//    //    gl.blendFunc(BlendFactor.ZERO, BlendFactor.SRC_COLOR)
+////        //   gl.disable(State.SCISSOR_TEST)
+//        textShader.bind()
+//        textShader.vertexShader.uProjTrans.apply(textShader, viewProjection)
+//        textShader.fragmentShader.uTex.apply(textShader, fbo.colorBufferTexture.glTexture!!)
+//        textShader.fragmentShader.uColor.apply(textShader, Color.CLEAR)
+//        quadMesh.render(textShader)
 //
-//        batch.shader = batch.defaultShader
-
-        gl.enable(State.BLEND)
-        gl.blendFuncSeparate(
-            BlendFactor.SRC_ALPHA,
-            BlendFactor.ONE_MINUS_SRC_ALPHA,
-            BlendFactor.SRC_ALPHA,
-            BlendFactor.ONE_MINUS_SRC_ALPHA
-        )
+////        batch.shader = textShader
+////        batch.use(viewProjection) {
+////            it.draw(fbo.colorBufferTexture, 0f, 0f, flipY = true)
+////        }
+////
+////        batch.shader = batch.defaultShader
+//
+//        gl.enable(State.BLEND)
+//        gl.blendFuncSeparate(
+//            BlendFactor.SRC_ALPHA,
+//            BlendFactor.ONE_MINUS_SRC_ALPHA,
+//            BlendFactor.SRC_ALPHA,
+//            BlendFactor.ONE_MINUS_SRC_ALPHA
+//        )
 
         temp.set(viewProjection)
-        temp.translate(450f, 0f, 0f)
-        defaultShader.bind()
-        defaultShader.uProjTrans?.apply(defaultShader, temp)
-        glyphMesh.render(defaultShader)
+        gl.enable(State.STENCIL_TEST)
+        gl.colorMask(red = false, green = false, blue = false, alpha = false)
+        gl.stencilFunc(CompareFunction.ALWAYS, 1, 1)
+        gl.stencilOp(StencilAction.KEEP, StencilAction.KEEP, StencilAction.INVERT)
 
-//        batch.use(viewProjection) {
-//            it.draw(fbo.colorBufferTexture, -300f, -1f, flipY = true)
-//        }
+        glyphShader.bind()
+        glyphShader.uProjTrans?.apply(glyphShader, temp)
+        glyphMesh.render(glyphShader)
+
+        gl.colorMask(red = true, green = true, blue = true, alpha = true)
+        gl.stencilFunc(CompareFunction.EQUAL, 1, 1)
+        gl.stencilOp(StencilAction.KEEP, StencilAction.KEEP, StencilAction.INVERT)
+
+        glyphMesh.render(glyphShader)
+
+        gl.disable(State.STENCIL_TEST)
+
         pool.free(instances)
         instances.clear()
     }
@@ -296,9 +301,9 @@ internal class GlyphCompiler(val mesh: Mesh) {
     ) {
         when (triangleType) {
             TriangleType.SOLID -> {
-                appendVertex(ax, ay, 0f, 1f)
-                appendVertex(bx, by, 0f, 1f)
-                appendVertex(cx, cy, 0f, 1f)
+                appendVertex(ax, ay, 0f, 0f)
+                appendVertex(bx, by, 0f, 0f)
+                appendVertex(cx, cy, 0f, 0f)
             }
             TriangleType.QUADRATIC_CURVE -> {
                 appendVertex(ax, ay, 0f, 0f)
@@ -306,37 +311,6 @@ internal class GlyphCompiler(val mesh: Mesh) {
                 appendVertex(cx, cy, 1f, 1f)
             }
         }
-//        val size = 1f
-//        when (triangleType) {
-//            TriangleType.SOLID -> {
-//                appendVertex(ax, ay, 0f, 1f)
-//                appendVertex(ax + size, ay, 0f, 1f)
-//                appendVertex(ax + size, ay + size, 0f, 1f)
-//                appendVertex(ax, ay + size, 0f, 1f)
-//                appendVertex(bx, by, 0f, 1f)
-//                appendVertex(bx + size, by, 0f, 1f)
-//                appendVertex(bx + size, by + size, 0f, 1f)
-//                appendVertex(bx, by + size, 0f, 1f)
-//                appendVertex(cx, cy, 0f, 1f)
-//                appendVertex(cx + size, cy, 0f, 1f)
-//                appendVertex(cx + size, cy + size, 0f, 1f)
-//                appendVertex(cx, cy + size, 0f, 1f)
-//            }
-//            TriangleType.QUADRATIC_CURVE -> {
-//                appendVertex(ax, ay, 0f, 0f)
-//                appendVertex(ax + size, ay, 0f, 0f)
-//                appendVertex(ax + size, ay + size, 0f, 0f)
-//                appendVertex(ax, ay + size, 0f, 0f)
-//                appendVertex(bx, by, 0f, 1f)
-//                appendVertex(bx + size, by, 0.5f, 0f)
-//                appendVertex(bx + size, by + size, 0.5f, 0f)
-//                appendVertex(bx, by + size, 0.5f, 0f)
-//                appendVertex(cx, cy, 1f, 1f)
-//                appendVertex(cx + size, cy, 1f, 1f)
-//                appendVertex(cx + size, cy + size, 1f, 1f)
-//                appendVertex(cx, cy + size, 1f, 1f)
-//            }
-//        }
     }
 
     var t = 0

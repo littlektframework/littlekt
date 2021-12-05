@@ -14,7 +14,15 @@ import kotlin.math.floor
 
 inline fun mesh(gl: GL, attributes: List<VertexAttribute>, block: MeshProps.() -> Unit): Mesh {
     val props = MeshProps().apply(block)
-    return Mesh(gl, props.isStatic, props.maxVertices, props.maxIndices, props.useBatcher, props.autoBind, attributes)
+    return Mesh(
+        gl,
+        props.isStatic,
+        props.maxVertices,
+        props.maxIndices,
+        props.useBatcher,
+        props.autoBind,
+        attributes
+    ).also { it.indicesAsTri() }
 }
 
 /**
