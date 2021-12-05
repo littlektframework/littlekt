@@ -2,7 +2,9 @@ package com.lehaine.littlekt.graphics.font
 
 import com.lehaine.littlekt.Application
 import com.lehaine.littlekt.graphics.*
-import com.lehaine.littlekt.graphics.gl.*
+import com.lehaine.littlekt.graphics.gl.CompareFunction
+import com.lehaine.littlekt.graphics.gl.State
+import com.lehaine.littlekt.graphics.gl.StencilAction
 import com.lehaine.littlekt.graphics.shader.ShaderProgram
 import com.lehaine.littlekt.graphics.shader.fragment.GlyphFragmentShader
 import com.lehaine.littlekt.graphics.shader.fragment.SimpleColorFragmentShader
@@ -209,7 +211,7 @@ class GPUFont(font: TtfFont) : Preparable {
                 }
                 glyphCompiler.end()
             }
-            tx += glyph.advanceWidth * 0.075f
+            tx += glyph.advanceWidth * 0.075f * scale
         }
     }
 
