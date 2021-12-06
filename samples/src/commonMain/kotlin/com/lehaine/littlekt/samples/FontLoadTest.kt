@@ -6,7 +6,6 @@ import com.lehaine.littlekt.graphics.Color
 import com.lehaine.littlekt.graphics.OrthographicCamera
 import com.lehaine.littlekt.graphics.SpriteBatch
 import com.lehaine.littlekt.graphics.font.GPUFont
-import com.lehaine.littlekt.graphics.gl.ClearBufferMask
 import com.lehaine.littlekt.input.Key
 import com.lehaine.littlekt.log.Logger
 import kotlin.time.Duration
@@ -48,14 +47,16 @@ class FontLoadTest(application: Application) : LittleKt(application) {
         camera.update()
         gl.clearColor(Color.DARK_GRAY)
 
+        gpuFont.text(if (usingText) text else text2, 50f, 430f, Color.DARK_ORANGE)
+        gpuFont.flush(camera.viewProjection)
+
         gpuFont.text("Offscreen, with jitter", 50f, 230f)
-        gpuFont.flush(camera.viewProjection, useFBO = true)
+        gpuFont.flush(batch, camera.viewProjection, Color.GREEN)
 
         gpuFont.text("Offscreen, no jitter", 50f, 130f)
-        gpuFont.flush(camera.viewProjection, useFBO = true, useJitter = false)
+        gpuFont.flush(batch, camera.viewProjection, useJitter = false)
 
-        gpuFont.text(if (usingText) text else text2, 50f, 430f)
-        gpuFont.flush(camera.viewProjection)
+        gl.clearColor(Color.DARK_GRAY)
 
         if (input.isKeyJustPressed(Key.ENTER)) {
             usingText = !usingText

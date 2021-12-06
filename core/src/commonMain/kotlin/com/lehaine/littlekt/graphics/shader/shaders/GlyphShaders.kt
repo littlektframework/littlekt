@@ -62,7 +62,7 @@ class GlyphOffscreenFragmentShader : FragmentShaderModel() {
             discard()
         }
 
-        gl_FragColor =  u_color * ternary(
+        gl_FragColor = u_color * ternary(
             gl_FrontFacing,
             left = "16.0 / 255.0".float,
             right = "1.0 / 255.0".float

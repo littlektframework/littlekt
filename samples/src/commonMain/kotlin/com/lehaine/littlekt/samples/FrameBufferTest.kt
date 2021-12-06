@@ -62,6 +62,7 @@ class FrameBufferTest(application: Application) : LittleKt(application) {
         if (input.isKeyPressed(Key.D)) {
             xVel += 1f
         }
+        gl.clearColor(Color.DARK_GRAY)
 
         fbo.begin()
         projection.setOrthographic(

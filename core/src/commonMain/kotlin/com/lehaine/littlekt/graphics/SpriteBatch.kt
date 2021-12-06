@@ -30,7 +30,7 @@ class SpriteBatch(
 
     private val gl get() = application.graphics.gl
     val defaultShader = ShaderProgram(application.graphics.gl, DefaultVertexShader(), DefaultFragmentShader())
-    var shader: ShaderProgram<*,*> = defaultShader
+    var shader: ShaderProgram<*, *> = defaultShader
         set(value) {
             if (drawing) {
                 flush()
@@ -98,6 +98,14 @@ class SpriteBatch(
         }
     private var colorBits = color.toFloatBits()
 
+    private var prevBlendSrcFunc = BlendFactor.SRC_ALPHA
+    private var prevBlendDstFunc = BlendFactor.ONE_MINUS_SRC_ALPHA
+    private var prevBlendSrcFuncAlpha = BlendFactor.SRC_ALPHA
+    private var prevBlendDstFuncAlpha = BlendFactor.ONE_MINUS_SRC_ALPHA
+    private var blendSrcFunc = prevBlendSrcFunc
+    private var blendDstFunc = prevBlendDstFunc
+    private var blendSrcFuncAlpha = prevBlendSrcFuncAlpha
+    private var blendDstFuncAlpha = prevBlendDstFuncAlpha
 
     fun begin(projectionMatrix: Mat4? = null) {
         if (drawing) {
@@ -408,14 +416,49 @@ class SpriteBatch(
         val count = spritesInBatch * 6
         lastTexture?.bind()
         gl.enable(State.BLEND)
-        gl.blendFuncSeparate(
-            BlendFactor.SRC_ALPHA,
-            BlendFactor.ONE_MINUS_SRC_ALPHA,
-            BlendFactor.SRC_ALPHA,
-            BlendFactor.ONE_MINUS_SRC_ALPHA
-        )
+        gl.blendFuncSeparate(blendSrcFunc, blendDstFunc, blendSrcFuncAlpha, blendDstFuncAlpha)
         mesh.render(shader, DrawMode.TRIANGLES, 0, count)
         idx = 0
+    }
+
+    fun setBlendFunction(src: BlendFactor, dst: BlendFactor) {
+        setBlendFunctionSeparate(src, dst, src, dst)
+    }
+
+    fun setBlendFunctionSeparate(
+        srcFuncColor: BlendFactor,
+        dstFuncColor: BlendFactor,
+        srcFuncAlpha: BlendFactor,
+        dstFuncAlpha: BlendFactor
+    ) {
+        if (blendSrcFunc == srcFuncColor && blendDstFunc == dstFuncColor
+            && blendSrcFuncAlpha == srcFuncAlpha && blendDstFuncAlpha == dstFuncAlpha
+        ) {
+            return
+        }
+        flush()
+        prevBlendSrcFunc = blendSrcFunc
+        prevBlendDstFunc = blendDstFunc
+        prevBlendSrcFuncAlpha = blendSrcFuncAlpha
+        prevBlendDstFuncAlpha = blendDstFuncAlpha
+        blendSrcFunc = srcFuncColor
+        blendDstFunc = dstFuncColor
+        blendSrcFuncAlpha = srcFuncAlpha
+        blendDstFuncAlpha = dstFuncAlpha
+    }
+
+    fun setToPreviousBlendFunction() {
+        if (blendSrcFunc == prevBlendSrcFunc && blendDstFunc == prevBlendDstFunc
+            && blendSrcFuncAlpha == prevBlendSrcFuncAlpha && blendDstFuncAlpha == prevBlendDstFuncAlpha
+        ) {
+            return
+        }
+
+        flush()
+        blendSrcFunc = prevBlendSrcFunc
+        blendDstFunc = prevBlendDstFunc
+        blendSrcFuncAlpha = prevBlendSrcFuncAlpha
+        blendDstFuncAlpha = prevBlendDstFuncAlpha
     }
 
     private fun switchTexture(texture: Texture) {

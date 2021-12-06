@@ -52,6 +52,8 @@ value class ClearBufferMask(val glFlag: Int) {
         val COLOR_STENCIL_BUFFER_BIT = ClearBufferMask(GL.COLOR_BUFFER_BIT or GL.STENCIL_BUFFER_BIT)
         val COLOR_DEPTH_BUFFER_BIT = ClearBufferMask(GL.COLOR_BUFFER_BIT or GL.DEPTH_BUFFER_BIT)
         val DEPTH_STENCIL_BUFFER_BIT = ClearBufferMask(GL.DEPTH_BUFFER_BIT or GL.STENCIL_BUFFER_BIT)
+        val COLOR_DEPTH_STENCIL_BUFFER_BIT =
+            ClearBufferMask(GL.COLOR_BUFFER_BIT or GL.DEPTH_BUFFER_BIT or GL.STENCIL_BUFFER_BIT)
     }
 
     infix fun and(other: ClearBufferMask): ClearBufferMask = ClearBufferMask(glFlag and other.glFlag)
