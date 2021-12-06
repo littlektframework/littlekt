@@ -14,7 +14,7 @@ import com.lehaine.littlekt.math.Vec2f
  * @author Colton Daily
  * @date 11/30/2021
  */
-class GPUFont(val font: TtfFont) : Preparable {
+class GPUFont(private val font: TtfFont) : Preparable {
     private lateinit var glyphRenderer: GlyphRenderer
 
     private lateinit var glyphShader: ShaderProgram<GlyphVertexShader, GlyphFragmentShader>
@@ -29,8 +29,15 @@ class GPUFont(val font: TtfFont) : Preparable {
     private val temp = Mat4()
     private val textBuilder = TextBuilder()
 
+    var fontSize: Int = 72
+
     override val prepared: Boolean
         get() = isPrepared
+
+
+    init {
+        font.fontSize = 1
+    }
 
     override fun prepare(application: Application) {
         gl = application.gl
@@ -162,7 +169,8 @@ class GPUFont(val font: TtfFont) : Preparable {
 
     private fun renderText(text: String, x: Float, y: Float, color: Color) {
         var tx = x
-        val scale = 1f /// unitsPerEm * 72f
+        val pathScale = 1f * fontSize
+        val advanceWidthScale = 1f / font.unitsPerEm * fontSize
         text.forEach { char ->
             val code = char.code
             val glyph = font.glyphs[code] ?: error("Unable to find glyph for '$char'!")
@@ -170,13 +178,13 @@ class GPUFont(val font: TtfFont) : Preparable {
                 glyphRenderer.begin(glyph, color)
                 glyph.path.commands.forEach { cmd ->
                     when (cmd.type) {
-                        GlyphPath.CommandType.MOVE_TO -> glyphRenderer.moveTo(cmd.x * scale + tx, -cmd.y * scale + y)
-                        GlyphPath.CommandType.LINE_TO -> glyphRenderer.lineTo(cmd.x * scale + tx, -cmd.y * scale + y)
+                        GlyphPath.CommandType.MOVE_TO -> glyphRenderer.moveTo(cmd.x * pathScale + tx, -cmd.y * pathScale + y)
+                        GlyphPath.CommandType.LINE_TO -> glyphRenderer.lineTo(cmd.x * pathScale + tx, -cmd.y * pathScale + y)
                         GlyphPath.CommandType.QUADRATIC_CURVE_TO -> glyphRenderer.curveTo(
-                            cmd.x1 * scale + tx,
-                            -cmd.y1 * scale + y,
-                            cmd.x * scale + tx,
-                            -cmd.y * scale + y
+                            cmd.x1 * pathScale + tx,
+                            -cmd.y1 * pathScale + y,
+                            cmd.x * pathScale + tx,
+                            -cmd.y * pathScale + y
                         )
                         GlyphPath.CommandType.CLOSE -> glyphRenderer.close()
                         else -> {
@@ -186,13 +194,14 @@ class GPUFont(val font: TtfFont) : Preparable {
                 }
                 glyphRenderer.end()
             }
-            tx += glyph.advanceWidth * 0.075f * scale
+            tx += glyph.advanceWidth * advanceWidthScale
         }
     }
 
     private fun renderText(texts: List<String>, x: Float, y: Float, colors: List<Color>) {
         var tx = x
-        val scale = 1f /// unitsPerEm * 72f
+        val pathScale = 1f  * fontSize
+        val advanceWidthScale = 1f / font.unitsPerEm * fontSize
         texts.forEachIndexed { index, text ->
             text.forEach { char ->
                 val code = char.code
@@ -202,18 +211,18 @@ class GPUFont(val font: TtfFont) : Preparable {
                     glyph.path.commands.forEach { cmd ->
                         when (cmd.type) {
                             GlyphPath.CommandType.MOVE_TO -> glyphRenderer.moveTo(
-                                cmd.x * scale + tx,
-                                -cmd.y * scale + y
+                                cmd.x * pathScale + tx,
+                                -cmd.y * pathScale + y
                             )
                             GlyphPath.CommandType.LINE_TO -> glyphRenderer.lineTo(
-                                cmd.x * scale + tx,
-                                -cmd.y * scale + y
+                                cmd.x * pathScale + tx,
+                                -cmd.y * pathScale + y
                             )
                             GlyphPath.CommandType.QUADRATIC_CURVE_TO -> glyphRenderer.curveTo(
-                                cmd.x1 * scale + tx,
-                                -cmd.y1 * scale + y,
-                                cmd.x * scale + tx,
-                                -cmd.y * scale + y
+                                cmd.x1 * pathScale + tx,
+                                -cmd.y1 * pathScale + y,
+                                cmd.x * pathScale + tx,
+                                -cmd.y * pathScale + y
                             )
                             GlyphPath.CommandType.CLOSE -> glyphRenderer.close()
                             else -> {
@@ -223,7 +232,7 @@ class GPUFont(val font: TtfFont) : Preparable {
                     }
                     glyphRenderer.end()
                 }
-                tx += glyph.advanceWidth * 0.075f * scale
+                tx += glyph.advanceWidth * advanceWidthScale
             }
         }
     }

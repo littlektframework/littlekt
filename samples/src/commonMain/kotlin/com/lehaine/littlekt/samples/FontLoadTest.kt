@@ -30,7 +30,6 @@ class FontLoadTest(application: Application) : LittleKt(application) {
         logger.level = Logger.Level.DEBUG
         fileHandler.launch {
             val font = loadTtfFont("FreeSerif.ttf")
-            //  font.fontSize = 1
             gpuFont = GPUFont(font)
             loading = false
         }
@@ -47,21 +46,25 @@ class FontLoadTest(application: Application) : LittleKt(application) {
         camera.update()
         gl.clearColor(Color.DARK_GRAY)
 
+        gpuFont.fontSize = 36
         gpuFont.text(if (usingText) text else text2, 50f, 430f, Color.DARK_ORANGE)
         gpuFont.flush(camera.viewProjection)
 
+        gpuFont.fontSize = 100
         gpuFont.buildText(50f, 330f) {
             append(Color.WHITE) { "This" }
             append(Color.GREEN) { " is" }
             append(Color.BLUE) { " awesome!" }
-            append(Color.RED) {"!"}
+            append(Color.RED) { "!" }
             append(Color.YELLOW) { "!" }
         }
         gpuFont.flush(camera.viewProjection)
 
+        gpuFont.fontSize = 72
         gpuFont.text("Offscreen, with jitter", 50f, 230f)
         gpuFont.flush(batch, camera.viewProjection, Color.GREEN)
 
+        gpuFont.fontSize = 48
         gpuFont.text("Offscreen, no jitter", 50f, 130f)
         gpuFont.flush(batch, camera.viewProjection, useJitter = false)
 
