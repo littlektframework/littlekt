@@ -39,7 +39,7 @@ class GPUFont(val font: TtfFont) : Preparable {
         textShader = ShaderProgram(application.gl, TextVertexShader(), TextFragmentShader())
 
         glyphMesh = textureMesh(application.gl) {
-            maxVertices = 15000
+            maxVertices = 5000
         }
         glyphRenderer = GlyphRenderer(glyphMesh)
         fbo.prepare(application)
@@ -90,6 +90,7 @@ class GPUFont(val font: TtfFont) : Preparable {
         glyphMesh.render(glyphShader)
 
         gl.disable(State.STENCIL_TEST)
+        textBuilder.clear()
     }
 
     /**
@@ -156,6 +157,7 @@ class GPUFont(val font: TtfFont) : Preparable {
         }
         batch.shader = batch.defaultShader
         batch.setToPreviousBlendFunction()
+        textBuilder.clear()
     }
 
     private fun renderText(text: String, x: Float, y: Float, color: Color) {
