@@ -9,6 +9,8 @@ import com.lehaine.littlekt.graphics.font.GPUFont
 import com.lehaine.littlekt.input.Key
 import com.lehaine.littlekt.log.Logger
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 
 /**
  * @author Colton Daily
@@ -38,6 +40,9 @@ class FontLoadTest(application: Application) : LittleKt(application) {
     var text = "Hello World!!!"
     var text2 = "Aa Bb Cc Dd Ee Ff Gg @#4@*@*#&()_!@#"
     var usingText = true
+    var step = 1
+    var totalTime: Duration = 0.seconds
+    var startValue = 72
     override fun render(dt: Duration) {
         if (loading) return
         if (!loading && !gpuFont.prepared) {
@@ -46,7 +51,7 @@ class FontLoadTest(application: Application) : LittleKt(application) {
         camera.update()
         gl.clearColor(Color.DARK_GRAY)
 
-        gpuFont.fontSize = 36
+        gpuFont.fontSize = if (usingText) 36 else 72
         gpuFont.text(if (usingText) text else text2, 50f, 430f, Color.DARK_ORANGE)
         gpuFont.flush(camera.viewProjection)
 
@@ -60,7 +65,18 @@ class FontLoadTest(application: Application) : LittleKt(application) {
         }
         gpuFont.flush(camera.viewProjection)
 
-        gpuFont.fontSize = 72
+        totalTime += dt
+        if (totalTime >= 10.milliseconds) {
+            startValue += step
+            totalTime = 0.seconds
+            if (startValue >= 400) {
+                step = -step
+            }
+            if (startValue <= 1) {
+                step = -step
+            }
+        }
+        gpuFont.fontSize = startValue
         gpuFont.text("Offscreen, with jitter", 50f, 230f)
         gpuFont.flush(batch, camera.viewProjection, Color.GREEN)
 

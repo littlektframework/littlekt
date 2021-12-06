@@ -46,7 +46,8 @@ class GPUFont(private val font: TtfFont) : Preparable {
         textShader = ShaderProgram(application.gl, TextVertexShader(), TextFragmentShader())
 
         glyphMesh = textureMesh(application.gl) {
-            maxVertices = 5000
+            maxVertices = 50000
+            isStatic = false
         }
         glyphRenderer = GlyphRenderer(glyphMesh)
         fbo.prepare(application)
@@ -178,8 +179,14 @@ class GPUFont(private val font: TtfFont) : Preparable {
                 glyphRenderer.begin(glyph, color)
                 glyph.path.commands.forEach { cmd ->
                     when (cmd.type) {
-                        GlyphPath.CommandType.MOVE_TO -> glyphRenderer.moveTo(cmd.x * pathScale + tx, -cmd.y * pathScale + y)
-                        GlyphPath.CommandType.LINE_TO -> glyphRenderer.lineTo(cmd.x * pathScale + tx, -cmd.y * pathScale + y)
+                        GlyphPath.CommandType.MOVE_TO -> glyphRenderer.moveTo(
+                            cmd.x * pathScale + tx,
+                            -cmd.y * pathScale + y
+                        )
+                        GlyphPath.CommandType.LINE_TO -> glyphRenderer.lineTo(
+                            cmd.x * pathScale + tx,
+                            -cmd.y * pathScale + y
+                        )
                         GlyphPath.CommandType.QUADRATIC_CURVE_TO -> glyphRenderer.curveTo(
                             cmd.x1 * pathScale + tx,
                             -cmd.y1 * pathScale + y,
@@ -200,7 +207,7 @@ class GPUFont(private val font: TtfFont) : Preparable {
 
     private fun renderText(texts: List<String>, x: Float, y: Float, colors: List<Color>) {
         var tx = x
-        val pathScale = 1f  * fontSize
+        val pathScale = 1f * fontSize
         val advanceWidthScale = 1f / font.unitsPerEm * fontSize
         texts.forEachIndexed { index, text ->
             text.forEach { char ->
