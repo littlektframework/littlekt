@@ -27,6 +27,7 @@ class GPUFont(val font: TtfFont) : Preparable {
     private var isPrepared = false
     private val fbo = FrameBuffer(960, 540)
     private val temp = Mat4()
+    private val textBuilder = TextBuilder()
 
     override val prepared: Boolean
         get() = isPrepared
@@ -56,6 +57,12 @@ class GPUFont(val font: TtfFont) : Preparable {
     fun text(text: String, x: Float, y: Float, color: Color = Color.BLACK) {
         check(isPrepared) { "GPUFont has not been prepared yet! Please call prepare() before using!" }
         renderText(text, x, y, color)
+    }
+
+    fun buildText(x: Float, y: Float, build: TextBuilder.() -> Unit) {
+        check(isPrepared) { "GPUFont has not been prepared yet! Please call prepare() before using!" }
+        textBuilder.build()
+        renderText(textBuilder.text, x, y, textBuilder.colors)
     }
 
 
@@ -181,6 +188,44 @@ class GPUFont(val font: TtfFont) : Preparable {
         }
     }
 
+    private fun renderText(texts: List<String>, x: Float, y: Float, colors: List<Color>) {
+        var tx = x
+        val scale = 1f /// unitsPerEm * 72f
+        texts.forEachIndexed { index, text ->
+            text.forEach { char ->
+                val code = char.code
+                val glyph = font.glyphs[code] ?: error("Unable to find glyph for '$char'!")
+                if (char != ' ') {
+                    glyphRenderer.begin(glyph, colors[index])
+                    glyph.path.commands.forEach { cmd ->
+                        when (cmd.type) {
+                            GlyphPath.CommandType.MOVE_TO -> glyphRenderer.moveTo(
+                                cmd.x * scale + tx,
+                                -cmd.y * scale + y
+                            )
+                            GlyphPath.CommandType.LINE_TO -> glyphRenderer.lineTo(
+                                cmd.x * scale + tx,
+                                -cmd.y * scale + y
+                            )
+                            GlyphPath.CommandType.QUADRATIC_CURVE_TO -> glyphRenderer.curveTo(
+                                cmd.x1 * scale + tx,
+                                -cmd.y1 * scale + y,
+                                cmd.x * scale + tx,
+                                -cmd.y * scale + y
+                            )
+                            GlyphPath.CommandType.CLOSE -> glyphRenderer.close()
+                            else -> {
+                                // do nothing with bezier curves - only want the quadratic curves
+                            }
+                        }
+                    }
+                    glyphRenderer.end()
+                }
+                tx += glyph.advanceWidth * 0.075f * scale
+            }
+        }
+    }
+
     companion object {
         private val logger = Logger<GPUFont>()
         private val JITTER_PATTERN = listOf(
@@ -191,6 +236,21 @@ class GPUFont(val font: TtfFont) : Preparable {
             Vec2f(7f / 12f, -3f / 12f),
             Vec2f(9f / 12f, 3f / 12f)
         )
+    }
+}
+
+class TextBuilder() {
+    internal val text: MutableList<String> = mutableListOf()
+    internal val colors: MutableList<Color> = mutableListOf()
+
+    fun append(color: Color = Color.BLACK, action: () -> String) {
+        text += action()
+        colors += color
+    }
+
+    internal fun clear() {
+        text.clear()
+        colors.clear()
     }
 }
 

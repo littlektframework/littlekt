@@ -50,6 +50,15 @@ class FontLoadTest(application: Application) : LittleKt(application) {
         gpuFont.text(if (usingText) text else text2, 50f, 430f, Color.DARK_ORANGE)
         gpuFont.flush(camera.viewProjection)
 
+        gpuFont.buildText(50f, 330f) {
+            append(Color.WHITE) { "This" }
+            append(Color.GREEN) { " is" }
+            append(Color.BLUE) { " awesome!" }
+            append(Color.RED) {"!"}
+            append(Color.YELLOW) { "!" }
+        }
+        gpuFont.flush(camera.viewProjection)
+
         gpuFont.text("Offscreen, with jitter", 50f, 230f)
         gpuFont.flush(batch, camera.viewProjection, Color.GREEN)
 
