@@ -2,33 +2,23 @@ package com.lehaine.littlekt.graphics.font
 
 import com.lehaine.littlekt.Application
 import com.lehaine.littlekt.graphics.*
-import com.lehaine.littlekt.graphics.gl.CompareFunction
-import com.lehaine.littlekt.graphics.gl.State
-import com.lehaine.littlekt.graphics.gl.StencilAction
+import com.lehaine.littlekt.graphics.gl.*
 import com.lehaine.littlekt.graphics.shader.ShaderProgram
-import com.lehaine.littlekt.graphics.shader.fragment.GlyphFragmentShader
-import com.lehaine.littlekt.graphics.shader.fragment.SimpleColorFragmentShader
-import com.lehaine.littlekt.graphics.shader.fragment.TextFragmentShader
-import com.lehaine.littlekt.graphics.shader.vertex.DefaultVertexShader
-import com.lehaine.littlekt.graphics.shader.vertex.GlyphVertexShader
-import com.lehaine.littlekt.graphics.shader.vertex.TextVertexShader
+import com.lehaine.littlekt.graphics.shader.shaders.*
 import com.lehaine.littlekt.log.Logger
-import com.lehaine.littlekt.math.*
-import com.lehaine.littlekt.util.datastructure.Pool
+import com.lehaine.littlekt.math.Mat4
+import com.lehaine.littlekt.math.RectBuilder
+import com.lehaine.littlekt.math.Vec2f
 
 /**
  * @author Colton Daily
  * @date 11/30/2021
  */
-class GPUFont(font: TtfFont) : Preparable {
-    private lateinit var glyphCompiler: GlyphCompiler
-    private val glyphs = font.glyphs
-    private val pool = Pool(10) { GPUGlyph() }
-    private val instances = mutableListOf<GPUGlyph>()
+class GPUFont(val font: TtfFont) : Preparable {
+    private lateinit var glyphRenderer: GlyphRenderer
 
     private lateinit var glyphShader: ShaderProgram<GlyphVertexShader, GlyphFragmentShader>
-
-    private lateinit var defaultShader: ShaderProgram<DefaultVertexShader, SimpleColorFragmentShader>
+    private lateinit var glyphOffscreenShader: ShaderProgram<GlyphVertexShader, GlyphOffscreenFragmentShader>
 
     private lateinit var textShader: ShaderProgram<TextVertexShader, TextFragmentShader>
     private lateinit var glyphMesh: Mesh
@@ -37,9 +27,7 @@ class GPUFont(font: TtfFont) : Preparable {
 
     private var isPrepared = false
     private val fbo = FrameBuffer(960, 540)
-    val ascender = font.ascender
-    val descender = font.descender
-    val unitsPerEm = font.unitsPerEm
+    private val temp = Mat4()
 
     override val prepared: Boolean
         get() = isPrepared
@@ -47,14 +35,9 @@ class GPUFont(font: TtfFont) : Preparable {
     override fun prepare(application: Application) {
         gl = application.gl
         glyphShader = ShaderProgram(application.gl, GlyphVertexShader(), GlyphFragmentShader())
+        glyphOffscreenShader = ShaderProgram(application.gl, GlyphVertexShader(), GlyphOffscreenFragmentShader())
         textShader = ShaderProgram(application.gl, TextVertexShader(), TextFragmentShader())
-        defaultShader = ShaderProgram(application.gl, DefaultVertexShader(), SimpleColorFragmentShader())
-        logger.debug {
-            "Glyph Vertex Shader:\n${glyphShader.vertexShader.source}"
-        }
-        logger.debug {
-            "Glyph Fragment Shader:\n${glyphShader.fragmentShader.source}"
-        }
+
         glyphMesh = textureMesh(application.gl) {
             maxVertices = 15000
         }
@@ -97,7 +80,7 @@ class GPUFont(font: TtfFont) : Preparable {
                 this.v = v
             }
         }
-        glyphCompiler = GlyphCompiler(glyphMesh)
+        glyphRenderer = GlyphRenderer(glyphMesh)
         fbo.prepare(application)
         isPrepared = true
     }
@@ -105,67 +88,75 @@ class GPUFont(font: TtfFont) : Preparable {
 
     fun text(text: String, x: Float, y: Float) {
         check(isPrepared) { "GPUFont has not been prepared yet! Please call prepare() before using!" }
-        compileGlyphs(text, x, y)
+        renderText(text, x, y)
     }
 
-    private val temp = Mat4()
-    private val redBits = Color.RED.toFloatBits()
 
-    fun flush(batch: SpriteBatch, viewProjection: Mat4) {
-//        fbo.begin()
-//        gl.clear(ClearBufferMask.COLOR_BUFFER_BIT)
-//        gl.clearColor(Color.CLEAR)
-//        gl.enable(State.BLEND)
-//        gl.blendFunc(BlendFactor.ONE, BlendFactor.ONE)
-////        //     gl.enable(State.SCISSOR_TEST)
-//        glyphShader.bind()
-//        JITTER_PATTERN.forEachIndexed { idx, pattern ->
-//            temp.set(viewProjection)
-//            temp.translate(pattern.x, pattern.y, 0f)
-//            if (idx % 2 == 0) {
-//                glyphShader.fragmentShader.uColor.apply(
-//                    glyphShader,
-//                    if (idx == 0) 1f else 0f,
-//                    if (idx == 2) 1f else 0f,
-//                    if (idx == 4) 1f else 0f,
-//                    0f
-//                )
-//            }
-//            glyphShader.vertexShader.uProjTrans.apply(glyphShader, temp)
-//            glyphMesh.render(glyphShader)
-//        }
-//        fbo.end()
-//    //    gl.blendFunc(BlendFactor.ZERO, BlendFactor.SRC_COLOR)
-////        //   gl.disable(State.SCISSOR_TEST)
-//        textShader.bind()
-//        textShader.vertexShader.uProjTrans.apply(textShader, viewProjection)
-//        textShader.fragmentShader.uTex.apply(textShader, fbo.colorBufferTexture.glTexture!!)
-//        textShader.fragmentShader.uColor.apply(textShader, Color.CLEAR)
-//        quadMesh.render(textShader)
-//
-////        batch.shader = textShader
-////        batch.use(viewProjection) {
-////            it.draw(fbo.colorBufferTexture, 0f, 0f, flipY = true)
-////        }
-////
-////        batch.shader = batch.defaultShader
-//
-//        gl.enable(State.BLEND)
-//        gl.blendFuncSeparate(
-//            BlendFactor.SRC_ALPHA,
-//            BlendFactor.ONE_MINUS_SRC_ALPHA,
-//            BlendFactor.SRC_ALPHA,
-//            BlendFactor.ONE_MINUS_SRC_ALPHA
-//        )
+    fun flush(viewProjection: Mat4, useFBO: Boolean = false, useJitter: Boolean = true) {
+        if (useFBO) {
+            fbo.begin()
+            gl.clear(ClearBufferMask.COLOR_BUFFER_BIT)
+            gl.clearColor(Color.CLEAR)
+            gl.enable(State.BLEND)
+            gl.blendEquation(BlendEquationMode.FUNC_ADD)
+            gl.blendFunc(BlendFactor.ONE, BlendFactor.ONE)
 
-        temp.set(viewProjection)
+            glyphOffscreenShader.bind()
+            if (useJitter) {
+                JITTER_PATTERN.forEachIndexed { idx, pattern ->
+                    temp.set(viewProjection)
+                    temp.translate(pattern.x, pattern.y, 0f)
+                    if (idx % 2 == 0) {
+                        glyphOffscreenShader.fragmentShader.uColor.apply(
+                            glyphOffscreenShader,
+                            if (idx == 0) 1f else 0f,
+                            if (idx == 2) 1f else 0f,
+                            if (idx == 4) 1f else 0f,
+                            0f
+                        )
+                    }
+                    glyphOffscreenShader.vertexShader.uProjTrans.apply(glyphOffscreenShader, temp)
+                    glyphMesh.render(glyphOffscreenShader)
+                }
+            } else {
+                temp.set(viewProjection)
+                glyphOffscreenShader.fragmentShader.uColor.apply(
+                    glyphOffscreenShader,
+                    1f,
+                    1f,
+                    1f,
+                    0f
+                )
+                glyphOffscreenShader.vertexShader.uProjTrans.apply(glyphOffscreenShader, temp)
+                glyphMesh.render(glyphOffscreenShader)
+            }
+
+            fbo.end()
+            gl.blendFunc(BlendFactor.ZERO, BlendFactor.SRC_COLOR)
+            textShader.bind()
+            textShader.vertexShader.uProjTrans.apply(textShader, viewProjection)
+            textShader.fragmentShader.uTex.apply(textShader, fbo.colorBufferTexture.glTexture!!)
+            textShader.fragmentShader.uColor.apply(textShader, Color.CLEAR)
+//            quadMesh.render(textShader)
+
+            // TODO if color not black then do 2nd pass
+            gl.blendFunc(BlendFactor.ONE, BlendFactor.ONE)
+            textShader.fragmentShader.uColor.apply(textShader, Color.WHITE)
+            quadMesh.render(textShader)
+
+            return
+        }
+
+        gl.blendFuncSeparate(BlendFactor.ONE, BlendFactor.SRC_ALPHA, BlendFactor.ONE, BlendFactor.SRC_ALPHA)
+        // if not using FBO - then lets use the stencil buffer
         gl.enable(State.STENCIL_TEST)
         gl.colorMask(red = false, green = false, blue = false, alpha = false)
+        gl.clear(ClearBufferMask.STENCIL_BUFFER_BIT)
         gl.stencilFunc(CompareFunction.ALWAYS, 1, 1)
         gl.stencilOp(StencilAction.KEEP, StencilAction.KEEP, StencilAction.INVERT)
 
         glyphShader.bind()
-        glyphShader.uProjTrans?.apply(glyphShader, temp)
+        glyphShader.uProjTrans?.apply(glyphShader, viewProjection)
         glyphMesh.render(glyphShader)
 
         gl.colorMask(red = true, green = true, blue = true, alpha = true)
@@ -175,41 +166,33 @@ class GPUFont(font: TtfFont) : Preparable {
         glyphMesh.render(glyphShader)
 
         gl.disable(State.STENCIL_TEST)
-
-        pool.free(instances)
-        instances.clear()
     }
 
-    private fun compileGlyphs(text: String, x: Float, y: Float) {
+    private fun renderText(text: String, x: Float, y: Float) {
         var tx = x
         val scale = 1f /// unitsPerEm * 72f
         text.forEach { char ->
             val code = char.code
-            val glyph = glyphs[code] ?: error("Unable to find glyph for '$char'!")
-            val gpuGlyph = pool.alloc().also {
-                it.glyph = glyph
-                it.offset.set(tx, y)
-                instances += it
-            }
+            val glyph = font.glyphs[code] ?: error("Unable to find glyph for '$char'!")
             if (char != ' ') {
-                glyphCompiler.begin(gpuGlyph)
-                gpuGlyph.glyph?.path?.commands?.forEach { cmd ->
+                glyphRenderer.begin(glyph)
+                glyph.path.commands.forEach { cmd ->
                     when (cmd.type) {
-                        GlyphPath.CommandType.MOVE_TO -> glyphCompiler.moveTo(cmd.x * scale + tx, -cmd.y * scale + y)
-                        GlyphPath.CommandType.LINE_TO -> glyphCompiler.lineTo(cmd.x * scale + tx, -cmd.y * scale + y)
-                        GlyphPath.CommandType.QUADRATIC_CURVE_TO -> glyphCompiler.curveTo(
+                        GlyphPath.CommandType.MOVE_TO -> glyphRenderer.moveTo(cmd.x * scale + tx, -cmd.y * scale + y)
+                        GlyphPath.CommandType.LINE_TO -> glyphRenderer.lineTo(cmd.x * scale + tx, -cmd.y * scale + y)
+                        GlyphPath.CommandType.QUADRATIC_CURVE_TO -> glyphRenderer.curveTo(
                             cmd.x1 * scale + tx,
                             -cmd.y1 * scale + y,
                             cmd.x * scale + tx,
                             -cmd.y * scale + y
                         )
-                        GlyphPath.CommandType.CLOSE -> glyphCompiler.close()
+                        GlyphPath.CommandType.CLOSE -> glyphRenderer.close()
                         else -> {
                             // do nothing with bezier curves - only want the quadratic curves
                         }
                     }
                 }
-                glyphCompiler.end()
+                glyphRenderer.end()
             }
             tx += glyph.advanceWidth * 0.075f * scale
         }
@@ -223,35 +206,30 @@ class GPUFont(font: TtfFont) : Preparable {
             Vec2f(3f / 12f, -1f / 12f),
             Vec2f(5f / 12f, 5f / 12f),
             Vec2f(7f / 12f, -3f / 12f),
-            Vec2f(0f / 12f, 3f / 12f)
+            Vec2f(9f / 12f, 3f / 12f)
         )
     }
 }
 
-internal data class GPUGlyph(
-    var glyph: Glyph? = null,
-    var bounds: Rect = Rect(),
-    val offset: MutableVec2f = MutableVec2f(0f)
-)
+internal class GlyphRenderer(val mesh: Mesh) {
 
-enum class TriangleType {
-    SOLID,
-    QUADRATIC_CURVE
-}
+    private enum class TriangleType {
+        SOLID,
+        QUADRATIC_CURVE
+    }
 
-internal class GlyphCompiler(val mesh: Mesh) {
     private val vertices = mutableListOf<Float>()
     private var firstX = 0f
     private var firstY = 0f
     private var currentX = 0f
     private var currentY = 0f
     private var contourCount = 0
-    private var glyph: GPUGlyph? = null
+    private var glyph: Glyph? = null
     private var rectBuilder = RectBuilder()
     private var color: Color = Color.WHITE.withAlpha(0.1f)
     private var colorBits = color.toFloatBits()
 
-    fun begin(glyph: GPUGlyph) {
+    fun begin(glyph: Glyph) {
         this.glyph = glyph
         rectBuilder.reset()
         vertices.clear()
@@ -289,10 +267,10 @@ internal class GlyphCompiler(val mesh: Mesh) {
     }
 
     fun end() {
-        glyph?.bounds = rectBuilder.build()
+        // TODO - determine if we really need to keep track of the glyph bounds. If so build it here.
     }
 
-    fun appendTriangle(
+    private fun appendTriangle(
         ax: Float,
         ay: Float,
         bx: Float,
@@ -315,8 +293,7 @@ internal class GlyphCompiler(val mesh: Mesh) {
         }
     }
 
-    var t = 0
-    fun appendVertex(x: Float, y: Float, u: Float, v: Float) {
+    private fun appendVertex(x: Float, y: Float, u: Float, v: Float) {
         rectBuilder.include(x, y)
         mesh.setVertex {
             this.x = x

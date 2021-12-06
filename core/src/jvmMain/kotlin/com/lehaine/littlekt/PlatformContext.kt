@@ -1,17 +1,18 @@
 package com.lehaine.littlekt
 
+import com.lehaine.littlekt.file.FileHandler
+import com.lehaine.littlekt.file.JvmFileHandler
 import com.lehaine.littlekt.graphics.GL
 import com.lehaine.littlekt.graphics.GLVersion
 import com.lehaine.littlekt.graphics.Texture
 import com.lehaine.littlekt.input.Input
 import com.lehaine.littlekt.input.LwjglInput
-import com.lehaine.littlekt.file.FileHandler
-import com.lehaine.littlekt.file.JvmFileHandler
 import com.lehaine.littlekt.log.Logger
 import org.lwjgl.glfw.Callbacks
 import org.lwjgl.glfw.GLFW
 import org.lwjgl.glfw.GLFWErrorCallback
 import org.lwjgl.opengl.GL11.glClear
+import org.lwjgl.opengl.GL20
 import org.lwjgl.opengl.GL30
 import org.lwjgl.opengl.GL30C
 import org.lwjgl.opengl.GLCapabilities
@@ -65,7 +66,6 @@ actual class PlatformContext actual constructor(actual override val configuratio
         LWJGL.createCapabilities()
         val caps: GLCapabilities = LWJGL.getCapabilities()
         GLFW.glfwDestroyWindow(temp)
-
 
         // Configure GLFW
         GLFW.glfwDefaultWindowHints() // optional, the current window hints are already the default

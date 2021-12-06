@@ -4,8 +4,8 @@ import com.lehaine.littlekt.graphics.Texture
 import com.lehaine.littlekt.graphics.shader.FragmentShader
 import com.lehaine.littlekt.graphics.shader.ShaderProgram
 import com.lehaine.littlekt.graphics.shader.VertexShader
-import com.lehaine.littlekt.graphics.shader.fragment.DefaultFragmentShader
-import com.lehaine.littlekt.graphics.shader.vertex.DefaultVertexShader
+import com.lehaine.littlekt.graphics.shader.shaders.DefaultFragmentShader
+import com.lehaine.littlekt.graphics.shader.shaders.DefaultVertexShader
 import kotlin.time.Duration
 
 /**

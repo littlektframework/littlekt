@@ -32,6 +32,10 @@ class GLFloat(override val builder: GlslGenerator) : GenType {
     operator fun plus(a: GLFloat) = GLFloat(builder, "(${this.value} + ${a.value})")
     operator fun minus(a: GLFloat) = GLFloat(builder, "(${this.value} - ${a.value})")
 
+    operator fun times(a: Vec2) = Vec2(a.builder, "(${this.value} * ${a.value})")
+    operator fun times(a: Vec3) = Vec3(a.builder, "(${this.value} * ${a.value})")
+    operator fun times(a: Vec4) = Vec4(a.builder, "(${this.value} * ${a.value})")
+
     operator fun minus(a: Vec2) = Vec2(builder, "(${this.value} - ${a.value})")
     operator fun minus(a: Vec3) = Vec3(builder, "(${this.value} - ${a.value})")
     operator fun minus(a: Vec4) = Vec4(builder, "(${this.value} - ${a.value})")
@@ -46,8 +50,11 @@ class GLFloat(override val builder: GlslGenerator) : GenType {
     infix fun lte(a: GLFloat) = BoolResult("(${this.value} <= ${a.value})")
     infix fun lt(a: GLFloat) = BoolResult("(${this.value} < ${a.value})")
 
-    infix fun lt(a: Float) = BoolResult("(${this.value} < ${a.str()})")
+    infix fun eq(a: Float) = BoolResult("(${this.value} == ${a.str()})")
+    infix fun gte(a: Float) = BoolResult("(${this.value} >= ${a.str()})")
     infix fun gt(a: Float) = BoolResult("(${this.value} > ${a.str()})")
+    infix fun lte(a: Float) = BoolResult("(${this.value} <= ${a.str()})")
+    infix fun lt(a: Float) = BoolResult("(${this.value} < ${a.str()})")
 }
 
 fun floatComponent() = ComponentDelegate(::GLFloat)

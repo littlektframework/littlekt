@@ -6,8 +6,8 @@ import com.lehaine.littlekt.graphics.gl.BlendFactor
 import com.lehaine.littlekt.graphics.gl.DrawMode
 import com.lehaine.littlekt.graphics.gl.State
 import com.lehaine.littlekt.graphics.shader.ShaderProgram
-import com.lehaine.littlekt.graphics.shader.fragment.DefaultFragmentShader
-import com.lehaine.littlekt.graphics.shader.vertex.DefaultVertexShader
+import com.lehaine.littlekt.graphics.shader.shaders.DefaultFragmentShader
+import com.lehaine.littlekt.graphics.shader.shaders.DefaultVertexShader
 import com.lehaine.littlekt.math.Mat4
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind

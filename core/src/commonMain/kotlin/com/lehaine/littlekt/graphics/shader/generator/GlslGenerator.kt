@@ -260,19 +260,19 @@ abstract class GlslGenerator : GlslProvider {
     fun int(v: GLFloat) = GLInt(this, "int(${v.value})")
 
     fun ternary(condition: BoolResult, left: GLInt, right: GLInt): GLInt =
-        GLInt(this, "${condition.value} ? ${left.value} : ${right.value}")
+        GLInt(this, "(${condition.value} ? ${left.value} : ${right.value})")
 
     fun ternary(condition: BoolResult, left: GLFloat, right: GLFloat): GLFloat =
-        GLFloat(this, "${condition.value} ? ${left.value} : ${right.value}")
+        GLFloat(this, "(${condition.value} ? ${left.value} : ${right.value})")
 
     fun ternary(condition: BoolResult, left: Vec2, right: Vec2): Vec2 =
-        Vec2(this, "${condition.value} ? ${left.value} : ${right.value}")
+        Vec2(this, "(${condition.value} ? ${left.value} : ${right.value})")
 
     fun ternary(condition: BoolResult, left: Vec3, right: Vec3): Vec3 =
-        Vec3(this, "${condition.value} ? ${left.value} : ${right.value}")
+        Vec3(this, "(${condition.value} ? ${left.value} : ${right.value})")
 
     fun ternary(condition: BoolResult, left: Vec4, right: Vec4): Vec4 =
-        Vec4(this, "${condition.value} ? ${left.value} : ${right.value}")
+        Vec4(this, "(${condition.value} ? ${left.value} : ${right.value})")
 
     fun radians(v: GLFloat) = GLFloat(this, "radians(${v.value})")
     fun radians(v: Vec2) = Vec2(this, "radians(${v.value})")
@@ -371,6 +371,15 @@ abstract class GlslGenerator : GlslProvider {
     fun mod(v: Vec2, base: GLFloat) = Vec2(this, "mod(${v.value}, ${base.value})")
     fun mod(v: Vec3, base: GLFloat) = Vec3(this, "mod(${v.value}, ${base.value})")
     fun mod(v: Vec4, base: GLFloat) = Vec4(this, "mod(${v.value}, ${base.value})")
+    fun mod(v: Vec2, base: GLInt) = Vec2(this, "mod(${v.value}, ${base.value})")
+    fun mod(v: Vec3, base: GLInt) = Vec3(this, "mod(${v.value}, ${base.value})")
+    fun mod(v: Vec4, base: GLInt) = Vec4(this, "mod(${v.value}, ${base.value})")
+    fun mod(v: Vec2, base: Float) = Vec2(this, "mod(${v.value}, ${base.str()})")
+    fun mod(v: Vec3, base: Float) = Vec3(this, "mod(${v.value}, ${base.str()})")
+    fun mod(v: Vec4, base: Float) = Vec4(this, "mod(${v.value}, ${base.str()})")
+    fun mod(v: Vec2, base: Int) = Vec2(this, "mod(${v.value}, ${base})")
+    fun mod(v: Vec3, base: Int) = Vec3(this, "mod(${v.value}, ${base})")
+    fun mod(v: Vec4, base: Int) = Vec4(this, "mod(${v.value}, ${base})")
 
     fun min(v: GLFloat, base: GLFloat) = GLFloat(this, "min(${v.value}, ${base.value})")
     fun min(v: Vec2, base: Vec2) = Vec2(this, "min(${v.value}, ${base.value})")
@@ -379,6 +388,15 @@ abstract class GlslGenerator : GlslProvider {
     fun min(v: Vec2, base: GLFloat) = Vec2(this, "min(${v.value}, ${base.value})")
     fun min(v: Vec3, base: GLFloat) = Vec3(this, "min(${v.value}, ${base.value})")
     fun min(v: Vec4, base: GLFloat) = Vec4(this, "min(${v.value}, ${base.value})")
+    fun min(v: Vec2, base: GLInt) = Vec2(this, "min(${v.value}, ${base.value})")
+    fun min(v: Vec3, base: GLInt) = Vec3(this, "min(${v.value}, ${base.value})")
+    fun min(v: Vec4, base: GLInt) = Vec4(this, "min(${v.value}, ${base.value})")
+    fun min(v: Vec2, base: Float) = Vec2(this, "min(${v.value}, ${base.str()})")
+    fun min(v: Vec3, base: Float) = Vec3(this, "min(${v.value}, ${base.str()})")
+    fun min(v: Vec4, base: Float) = Vec4(this, "min(${v.value}, ${base.str()})")
+    fun min(v: Vec2, base: Int) = Vec2(this, "min(${v.value}, ${base})")
+    fun min(v: Vec3, base: Int) = Vec3(this, "min(${v.value}, ${base})")
+    fun min(v: Vec4, base: Int) = Vec4(this, "min(${v.value}, ${base})")
 
     fun max(v: GLFloat, v2: Float) = GLFloat(this, "max(${v.value}, ${v2.str()})")
     fun max(v: GLFloat, base: GLFloat) = GLFloat(this, "max(${v.value}, ${base.value})")
@@ -388,6 +406,15 @@ abstract class GlslGenerator : GlslProvider {
     fun max(v: Vec2, base: GLFloat) = Vec2(this, "max(${v.value}, ${base.value})")
     fun max(v: Vec3, base: GLFloat) = Vec3(this, "max(${v.value}, ${base.value})")
     fun max(v: Vec4, base: GLFloat) = Vec4(this, "max(${v.value}, ${base.value})")
+    fun max(v: Vec2, base: GLInt) = Vec2(this, "max(${v.value}, ${base.value})")
+    fun max(v: Vec3, base: GLInt) = Vec3(this, "max(${v.value}, ${base.value})")
+    fun max(v: Vec4, base: GLInt) = Vec4(this, "max(${v.value}, ${base.value})")
+    fun max(v: Vec2, base: Float) = Vec2(this, "max(${v.value}, ${base.str()})")
+    fun max(v: Vec3, base: Float) = Vec3(this, "max(${v.value}, ${base.str()})")
+    fun max(v: Vec4, base: Float) = Vec4(this, "max(${v.value}, ${base.str()})")
+    fun max(v: Vec2, base: Int) = Vec2(this, "max(${v.value}, ${base})")
+    fun max(v: Vec3, base: Int) = Vec3(this, "max(${v.value}, ${base})")
+    fun max(v: Vec4, base: Int) = Vec4(this, "max(${v.value}, ${base})")
 
     fun clamp(v: GLFloat, min: GLFloat, max: GLFloat) =
         GLFloat(this, "clamp(${v.value}, ${min.value}, ${max.value})")
@@ -592,8 +619,47 @@ abstract class GlslGenerator : GlslProvider {
     val Float.lit get() = GLFloat(this@GlslGenerator, this.str())
     val Int.lit get() = GLInt(this@GlslGenerator, this.toString())
 
+    operator fun Float.times(a: GLFloat) = GLFloat(a.builder, "(${this.str()} * ${a.value})")
+    operator fun Float.times(a: GLInt) = GLFloat(a.builder, "(${this.str()} * ${a.value})")
+    operator fun Float.times(a: Vec2) = Vec2(a.builder, "(${this.str()} * ${a.value})")
+    operator fun Float.times(a: Vec3) = Vec3(a.builder, "(${this.str()} * ${a.value})")
+    operator fun Float.times(a: Vec4) = Vec4(a.builder, "(${this.str()} * ${a.value})")
+    operator fun Float.div(a: GLFloat) = GLFloat(a.builder, "(${this.str()} / ${a.value})")
+    operator fun Float.div(a: GLInt) = GLFloat(a.builder, "(${this.str()} / ${a.value})")
+    operator fun Float.div(a: Vec2) = Vec2(a.builder, "(${this.str()} / ${a.value})")
+    operator fun Float.div(a: Vec3) = Vec3(a.builder, "(${this.str()} / ${a.value})")
+    operator fun Float.div(a: Vec4) = Vec4(a.builder, "(${this.str()} / ${a.value})")
     operator fun Float.minus(a: GLFloat) = GLFloat(a.builder, "(${this.str()} - ${a.value})")
+    operator fun Float.minus(a: GLInt) = GLFloat(a.builder, "(${this.str()} - ${a.value})")
+    operator fun Float.minus(a: Vec2) = Vec2(a.builder, "(${this.str()} - ${a.value})")
+    operator fun Float.minus(a: Vec3) = Vec3(a.builder, "(${this.str()} - ${a.value})")
+    operator fun Float.minus(a: Vec4) = Vec4(a.builder, "(${this.str()} - ${a.value})")
     operator fun Float.plus(a: GLFloat) = GLFloat(a.builder, "(${this.str()} + ${a.value})")
+    operator fun Float.plus(a: GLInt) = GLFloat(a.builder, "(${this.str()} + ${a.value})")
+    operator fun Float.plus(a: Vec2) = Vec2(a.builder, "(${this.str()} + ${a.value})")
+    operator fun Float.plus(a: Vec3) = Vec3(a.builder, "(${this.str()} + ${a.value})")
+    operator fun Float.plus(a: Vec4) = Vec4(a.builder, "(${this.str()} + ${a.value})")
+
+    operator fun Int.times(a: GLFloat) = GLFloat(a.builder, "(${this} * ${a.value})")
+    operator fun Int.times(a: GLInt) = GLInt(a.builder, "(${this} * ${a.value})")
+    operator fun Int.times(a: Vec2) = Vec2(a.builder, "(${this} * ${a.value})")
+    operator fun Int.times(a: Vec3) = Vec3(a.builder, "(${this} * ${a.value})")
+    operator fun Int.times(a: Vec4) = Vec4(a.builder, "(${this} * ${a.value})")
+    operator fun Int.div(a: GLFloat) = GLFloat(a.builder, "(${this} / ${a.value})")
+    operator fun Int.div(a: GLInt) = GLInt(a.builder, "(${this} / ${a.value})")
+    operator fun Int.div(a: Vec2) = Vec2(a.builder, "(${this} / ${a.value})")
+    operator fun Int.div(a: Vec3) = Vec3(a.builder, "(${this} / ${a.value})")
+    operator fun Int.div(a: Vec4) = Vec4(a.builder, "(${this} / ${a.value})")
+    operator fun Int.minus(a: GLFloat) = GLFloat(a.builder, "(${this} - ${a.value})")
+    operator fun Int.minus(a: GLInt) = GLInt(a.builder, "(${this} - ${a.value})")
+    operator fun Int.minus(a: Vec2) = Vec2(a.builder, "(${this} - ${a.value})")
+    operator fun Int.minus(a: Vec3) = Vec3(a.builder, "(${this} - ${a.value})")
+    operator fun Int.minus(a: Vec4) = Vec4(a.builder, "(${this} - ${a.value})")
+    operator fun Int.plus(a: GLFloat) = GLFloat(a.builder, "(${this} + ${a.value})")
+    operator fun Int.plus(a: GLInt) = GLInt(a.builder, "(${this} + ${a.value})")
+    operator fun Int.plus(a: Vec2) = Vec2(a.builder, "(${this} + ${a.value})")
+    operator fun Int.plus(a: Vec3) = Vec3(a.builder, "(${this} + ${a.value})")
+    operator fun Int.plus(a: Vec4) = Vec4(a.builder, "(${this} + ${a.value})")
 }
 
 fun Float.str(): String {

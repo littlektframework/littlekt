@@ -141,7 +141,3 @@ class Vec4(override val builder: GlslGenerator) : Vector {
 
     operator fun unaryMinus() = Vec4(builder, "-(${this.value})")
 }
-
-operator fun Float.times(a: Vec4) = Vec4(a.builder, "(${this.str()} * ${a.value})")
-operator fun Float.div(a: Vec4) = Vec4(a.builder, "(${this.str()} / ${a.value})")
-operator fun GLFloat.times(a: Vec4) = Vec4(a.builder, "(${this.value} * ${a.value})")

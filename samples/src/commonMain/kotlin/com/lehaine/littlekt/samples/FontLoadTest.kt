@@ -6,6 +6,7 @@ import com.lehaine.littlekt.graphics.Color
 import com.lehaine.littlekt.graphics.OrthographicCamera
 import com.lehaine.littlekt.graphics.SpriteBatch
 import com.lehaine.littlekt.graphics.font.GPUFont
+import com.lehaine.littlekt.graphics.gl.ClearBufferMask
 import com.lehaine.littlekt.input.Key
 import com.lehaine.littlekt.log.Logger
 import kotlin.time.Duration
@@ -32,8 +33,6 @@ class FontLoadTest(application: Application) : LittleKt(application) {
             val font = loadTtfFont("FreeSerif.ttf")
             //  font.fontSize = 1
             gpuFont = GPUFont(font)
-            val glyph = font.glyphs['D'.code]
-            println(glyph?.path?.commands)
             loading = false
         }
     }
@@ -49,8 +48,14 @@ class FontLoadTest(application: Application) : LittleKt(application) {
         camera.update()
         gl.clearColor(Color.DARK_GRAY)
 
-        gpuFont.text(if (usingText) text else text2, 50f, 230f)
-        gpuFont.flush(batch, camera.viewProjection)
+        gpuFont.text("Offscreen, with jitter", 50f, 230f)
+        gpuFont.flush(camera.viewProjection, useFBO = true)
+
+        gpuFont.text("Offscreen, no jitter", 50f, 130f)
+        gpuFont.flush(camera.viewProjection, useFBO = true, useJitter = false)
+
+        gpuFont.text(if (usingText) text else text2, 50f, 430f)
+        gpuFont.flush(camera.viewProjection)
 
         if (input.isKeyJustPressed(Key.ENTER)) {
             usingText = !usingText
