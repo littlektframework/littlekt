@@ -2,6 +2,7 @@ package com.lehaine.littlekt
 
 import com.lehaine.littlekt.graphics.GL
 import com.lehaine.littlekt.graphics.GLVersion
+import com.lehaine.littlekt.util.internal.jsObject
 import org.khronos.webgl.ArrayBufferView
 import org.khronos.webgl.Float32Array
 import org.khronos.webgl.WebGLRenderingContext
@@ -29,21 +30,24 @@ class WebGLGraphics(canvas: HTMLCanvasElement, engineStats: EngineStats) : Graph
             field = value
         }
 
+    private val ctxOptions: dynamic = jsObject { stencil = true }
+
     init {
-        var webGlCtx = canvas.getContext("webgl2")
+        var webGlCtx = canvas.getContext("webgl2", ctxOptions)
         var version = version
         if (webGlCtx == null) {
-            webGlCtx = canvas.getContext("experimental-webgl2")
+            webGlCtx = canvas.getContext("experimental-webgl2", ctxOptions)
         }
         if (webGlCtx == null) {
-            webGlCtx = canvas.getContext("webgl")
+            console.warn("WebGL2 not available. Attempting to fallback to WebGL.")
+            webGlCtx = canvas.getContext("webgl", ctxOptions)
             version = GLVersion.WEBGL
         }
 
         if (webGlCtx != null) {
             gl = WebGL(webGlCtx as WebGL2RenderingContext, engineStats)
         } else {
-            js("alert(\"Unable to initialize WebGL2 context. Your browser may not support it.\")")
+            js("alert(\"Unable to initialize WebGL or WebGL2 context. Your browser may not support it.\")")
             throw RuntimeException("WebGL2 context required")
         }
         this.version = version
