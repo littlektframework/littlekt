@@ -45,7 +45,7 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context {
 
     @Suppress("EXPERIMENTAL_IS_NOT_ENABLED")
     @OptIn(ExperimentalTime::class)
-    override fun start(gameBuilder: (app: Context) -> ContextListener) {
+    override fun start(build: (app: Context) -> ContextListener) {
         val graphics = graphics as LwjglGraphics
         val input = input as LwjglInput
 
@@ -112,8 +112,8 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context {
                 (vidmode.height() - pHeight[0]) / 2
             )
 
-            graphics._backBufferWidth = pWidth[0]
-            graphics._backBufferHeight = pHeight[0]
+            graphics._width = pWidth[0]
+            graphics._height = pHeight[0]
         }
 
         // Make the OpenGL context current
@@ -132,18 +132,20 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context {
 
         GL30C.glClearColor(0f, 0f, 0f, 0f)
 
-        val game = gameBuilder(this)
+        var lastFrame = System.nanoTime()
+
+        val listener = build(this)
         GLFW.glfwSetFramebufferSizeCallback(windowHandle) { _, width, height ->
             graphics.gl.viewport(0, 0, width, height)
-            graphics._backBufferWidth = width
-            graphics._backBufferHeight = height
-            game.resize(width, height)
+            graphics._width = width
+            graphics._height = height
+
+            listener.resize(width, height)
         }
 
         Texture.DEFAULT.prepare(this)
-        game.resize(configuration.width, configuration.height)
+        listener.resize(configuration.width, configuration.height)
 
-        var lastFrame = System.nanoTime()
         while (!windowShouldClose) {
             synchronized(mainThreadRunnables) {
                 if (mainThreadRunnables.isNotEmpty()) {
@@ -163,13 +165,13 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context {
 
             input.update()
             stats.update(dt)
-            game.render(dt)
+            listener.render(dt)
 
             GLFW.glfwSwapBuffers(windowHandle)
             input.reset()
             GLFW.glfwPollEvents()
         }
-        game.dispose()
+        listener.dispose()
         destroy()
     }
 

@@ -16,21 +16,14 @@ class LwjglGraphics(engineStats: EngineStats) : Graphics {
             (gl as LwjglGL)._glVersion = value
             field = value
         }
+
     internal var _width: Int = 0
     internal var _height: Int = 0
-    internal var _backBufferWidth: Int = 0
-    internal var _backBufferHeight: Int = 0
 
     override val width: Int
-        get() = _backBufferWidth
+        get() = _width
     override val height: Int
-        get() = _backBufferHeight
-    override val backBufferWidth: Int
-        get() = _backBufferWidth
-    override val backBufferHeight: Int
-        get() = _backBufferHeight
-
-    override fun getType(): Graphics.GraphicsType = Graphics.GraphicsType.LWJGL3
+        get() = _height
 
     override fun getGLVersion(): GLVersion = _glVersion
 

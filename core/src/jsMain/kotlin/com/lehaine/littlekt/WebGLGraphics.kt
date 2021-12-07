@@ -52,18 +52,6 @@ class WebGLGraphics(canvas: HTMLCanvasElement, engineStats: EngineStats) : Graph
     val height: Int
         get() = _height
 
-    override
-    val backBufferWidth: Int
-        get() = _width
-
-    override
-    val backBufferHeight: Int
-        get() = _height
-
-    override fun getType(): Graphics.GraphicsType? {
-        TODO("Not yet implemented")
-    }
-
     override fun getGLVersion(): GLVersion {
         TODO("Not yet implemented")
     }

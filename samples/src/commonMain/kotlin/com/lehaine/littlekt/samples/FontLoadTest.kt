@@ -43,6 +43,7 @@ class FontLoadTest(context: Context) : ContextListener(context) {
     var step = 1
     var totalTime: Duration = 0.seconds
     var startValue = 72
+
     override fun render(dt: Duration) {
         if (loading) return
         if (!loading && !gpuFont.prepared) {
@@ -97,5 +98,12 @@ class FontLoadTest(context: Context) : ContextListener(context) {
         if (input.isKeyJustPressed(Key.ESCAPE)) {
             close()
         }
+    }
+
+    override fun resize(width: Int, height: Int) {
+        if (loading) return
+        camera.right = width.toFloat()
+        camera.top = height.toFloat()
+        gpuFont.resize(width, height, this)
     }
 }

@@ -27,20 +27,20 @@ class WebGLContext(override val configuration: JsConfiguration) :
     override val logger: Logger = Logger(configuration.title)
     override val fileHandler: FileHandler =
         WebFileHandler(this, logger, configuration.rootPath)
-    override val platform: Platform = Platform.JS
+    override val platform: Context.Platform = Context.Platform.JS
 
     private lateinit var game: ContextListener
     private var lastFrame = 0.0
     private var closed = false
 
-    override fun start(gameBuilder: (app: Context) -> ContextListener) {
+    override fun start(build: (app: Context) -> ContextListener) {
         graphics as WebGLGraphics
         input as JsInput
 
         graphics._width = canvas.clientWidth
         graphics._height = canvas.clientHeight
 
-        game = gameBuilder(this)
+        game = build(this)
 
         Texture.DEFAULT.prepare(game.context)
         window.requestAnimationFrame(::render)

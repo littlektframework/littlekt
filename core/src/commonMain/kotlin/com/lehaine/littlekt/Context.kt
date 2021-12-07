@@ -34,7 +34,7 @@ interface Context {
 
     val platform: Platform
 
-    fun start(gameBuilder: (app: Context) -> ContextListener)
+    fun start(build: (app: Context) -> ContextListener)
 
     fun close()
 

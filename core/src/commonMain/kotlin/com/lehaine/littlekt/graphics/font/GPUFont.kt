@@ -54,6 +54,11 @@ class GPUFont(private val font: TtfFont) : Preparable {
         isPrepared = true
     }
 
+    fun resize(width: Int, height: Int, context: Context) {
+        if(!prepared) return
+        fbo.dispose()
+        fbo = FrameBuffer(width, height).apply { prepare(context) }
+    }
 
     /**
      * @param text the string of text to render

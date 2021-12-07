@@ -9,12 +9,6 @@ import com.lehaine.littlekt.graphics.GLVersion
  * @date 10/4/2021
  */
 interface Graphics {
-    /**
-     * Enumeration describing different types of [Graphics] implementations.
-     */
-    enum class GraphicsType {
-        AndroidGL, WebGL, iOSGL, Mock, LWJGL3
-    }
 
     val gl: GL
 
@@ -27,26 +21,6 @@ interface Graphics {
      *  @return the height of the client area in logical pixels
      */
     val height: Int
-
-    /**
-     * @return the width of the framebuffer in physical pixels
-     */
-    val backBufferWidth: Int
-
-    /**
-     * @return the height of the framebuffer in physical pixels
-     */
-    val backBufferHeight: Int
-
-    /**
-     * @return amount of pixels per logical pixel (point)
-     */
-    val backBufferScale: Float get() = backBufferWidth / width.toFloat()
-
-    /**
-     * @return the [GraphicsType] of this Graphics instance
-     */
-    fun getType(): GraphicsType?
 
     /**
      * @return the [GLVersion] of this Graphics instance
