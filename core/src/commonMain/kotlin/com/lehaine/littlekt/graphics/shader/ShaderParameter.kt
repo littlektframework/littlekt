@@ -3,6 +3,7 @@ package com.lehaine.littlekt.graphics.shader
 import com.lehaine.littlekt.graphics.Color
 import com.lehaine.littlekt.graphics.GL
 import com.lehaine.littlekt.graphics.gl.GlTexture
+import com.lehaine.littlekt.graphics.gl.TextureTarget
 import com.lehaine.littlekt.math.Mat3
 import com.lehaine.littlekt.math.Mat4
 import com.lehaine.littlekt.math.Vec2f
@@ -181,7 +182,7 @@ sealed class ShaderParameter(val name: String) {
 
         fun apply(program: ShaderProgram<*, *>, glTexture: GlTexture, unit: Int = 0) {
             program.gl?.activeTexture(GL.TEXTURE0 + unit)
-            program.gl?.bindTexture(GL.TEXTURE_2D, glTexture)
+            program.gl?.bindTexture(TextureTarget._2D, glTexture)
             program.gl?.uniform1i(program.getUniform(name), unit)
         }
 

@@ -90,7 +90,7 @@ class Texture(
         }
         val texture = glTexture ?: gl.createTexture()
 
-        gl.bindTexture(GL.TEXTURE_2D, texture)
+        gl.bindTexture(TextureTarget._2D, texture)
 
         gl.texParameteri(
             TextureTarget._2D,

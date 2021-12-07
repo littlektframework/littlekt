@@ -100,7 +100,7 @@ class FrameBuffer(
 
         gl.bindDefaultRenderBuffer()
         texture?.glTexture?.let {
-            gl.bindTexture(0, it)
+            gl.bindTexture(TextureTarget._2D, it)
         }
 
         var result = gl.checkFrameBufferStatus()
