@@ -23,9 +23,9 @@ class GPUFont(private val font: TtfFont) : Preparable {
     private lateinit var textShader: ShaderProgram<TextVertexShader, TextFragmentShader>
     private lateinit var glyphMesh: Mesh
     private lateinit var gl: GL
+    private lateinit var fbo: FrameBuffer
 
     private var isPrepared = false
-    private val fbo = FrameBuffer(960, 540)
     private val temp = Mat4()
     private val textBuilder = TextBuilder()
 
@@ -50,7 +50,7 @@ class GPUFont(private val font: TtfFont) : Preparable {
             isStatic = false
         }
         glyphRenderer = GlyphRenderer(glyphMesh)
-        fbo.prepare(application)
+        fbo = FrameBuffer(application.graphics.width, application.graphics.height).apply { prepare(application) }
         isPrepared = true
     }
 
@@ -199,7 +199,6 @@ class GPUFont(private val font: TtfFont) : Preparable {
                         }
                     }
                 }
-                glyphRenderer.end()
             }
             tx += glyph.advanceWidth * advanceWidthScale
         }
@@ -237,7 +236,6 @@ class GPUFont(private val font: TtfFont) : Preparable {
                             }
                         }
                     }
-                    glyphRenderer.end()
                 }
                 tx += glyph.advanceWidth * advanceWidthScale
             }
@@ -329,10 +327,6 @@ internal class GlyphRenderer(val mesh: Mesh) {
         currentX = firstX
         currentY = firstY
         contourCount = 0
-    }
-
-    fun end() {
-        // TODO - determine if we really need to keep track of the glyph bounds. If so build it here.
     }
 
     private fun appendTriangle(
