@@ -27,6 +27,8 @@ class GPUFont(private val font: TtfFont) : Preparable {
 
     private var isPrepared = false
     private val temp = Mat4()
+    private val tempStringList = mutableListOf<String>()
+    private val tempColorList = mutableListOf<Color>()
     private val textBuilder = TextBuilder()
 
     var fontSize: Int = 72
@@ -42,7 +44,8 @@ class GPUFont(private val font: TtfFont) : Preparable {
     override fun prepare(context: Context) {
         gl = context.gl
         glyphShader = ShaderProgram(GlyphVertexShader(), GlyphFragmentShader()).also { it.prepare(context) }
-        glyphOffscreenShader = ShaderProgram(GlyphVertexShader(), GlyphOffscreenFragmentShader()).also { it.prepare(context) }
+        glyphOffscreenShader =
+            ShaderProgram(GlyphVertexShader(), GlyphOffscreenFragmentShader()).also { it.prepare(context) }
         textShader = ShaderProgram(TextVertexShader(), TextFragmentShader()).also { it.prepare(context) }
 
         glyphMesh = textureMesh(context.gl) {
@@ -55,7 +58,7 @@ class GPUFont(private val font: TtfFont) : Preparable {
     }
 
     fun resize(width: Int, height: Int, context: Context) {
-        if(!prepared) return
+        if (!prepared) return
         fbo.dispose()
         fbo = FrameBuffer(width, height).apply { prepare(context) }
     }
@@ -69,7 +72,11 @@ class GPUFont(private val font: TtfFont) : Preparable {
      */
     fun text(text: String, x: Float, y: Float, color: Color = Color.BLACK) {
         check(isPrepared) { "GPUFont has not been prepared yet! Please call prepare() before using!" }
-        renderText(text, x, y, color)
+        tempStringList += text
+        tempColorList += color
+        renderText(tempStringList, x, y, tempColorList)
+        tempStringList.clear()
+        tempColorList.clear()
     }
 
     fun buildText(x: Float, y: Float, build: TextBuilder.() -> Unit) {
@@ -173,49 +180,19 @@ class GPUFont(private val font: TtfFont) : Preparable {
         textBuilder.clear()
     }
 
-    private fun renderText(text: String, x: Float, y: Float, color: Color) {
-        var tx = x
-        val pathScale = 1f * fontSize
-        val advanceWidthScale = 1f / font.unitsPerEm * fontSize
-        text.forEach { char ->
-            val code = char.code
-            val glyph = font.glyphs[code] ?: error("Unable to find glyph for '$char'!")
-            if (char != ' ') {
-                glyphRenderer.begin(glyph, color)
-                glyph.path.commands.forEach { cmd ->
-                    when (cmd.type) {
-                        GlyphPath.CommandType.MOVE_TO -> glyphRenderer.moveTo(
-                            cmd.x * pathScale + tx,
-                            -cmd.y * pathScale + y
-                        )
-                        GlyphPath.CommandType.LINE_TO -> glyphRenderer.lineTo(
-                            cmd.x * pathScale + tx,
-                            -cmd.y * pathScale + y
-                        )
-                        GlyphPath.CommandType.QUADRATIC_CURVE_TO -> glyphRenderer.curveTo(
-                            cmd.x1 * pathScale + tx,
-                            -cmd.y1 * pathScale + y,
-                            cmd.x * pathScale + tx,
-                            -cmd.y * pathScale + y
-                        )
-                        GlyphPath.CommandType.CLOSE -> glyphRenderer.close()
-                        else -> {
-                            // do nothing with bezier curves - only want the quadratic curves
-                        }
-                    }
-                }
-            }
-            tx += glyph.advanceWidth * advanceWidthScale
-        }
-    }
-
     private fun renderText(texts: List<String>, x: Float, y: Float, colors: List<Color>) {
         var tx = x
+        var ty = y
         val pathScale = 1f * fontSize
         val advanceWidthScale = 1f / font.unitsPerEm * fontSize
         texts.forEachIndexed { index, text ->
             text.forEach { char ->
                 val code = char.code
+                if (char == '\n') {
+                    ty -= font.ascender * advanceWidthScale
+                    tx = x
+                    return@forEach
+                }
                 val glyph = font.glyphs[code] ?: error("Unable to find glyph for '$char'!")
                 if (char != ' ') {
                     glyphRenderer.begin(glyph, colors[index])
@@ -223,17 +200,17 @@ class GPUFont(private val font: TtfFont) : Preparable {
                         when (cmd.type) {
                             GlyphPath.CommandType.MOVE_TO -> glyphRenderer.moveTo(
                                 cmd.x * pathScale + tx,
-                                -cmd.y * pathScale + y
+                                -cmd.y * pathScale + ty
                             )
                             GlyphPath.CommandType.LINE_TO -> glyphRenderer.lineTo(
                                 cmd.x * pathScale + tx,
-                                -cmd.y * pathScale + y
+                                -cmd.y * pathScale + ty
                             )
                             GlyphPath.CommandType.QUADRATIC_CURVE_TO -> glyphRenderer.curveTo(
                                 cmd.x1 * pathScale + tx,
-                                -cmd.y1 * pathScale + y,
+                                -cmd.y1 * pathScale + ty,
                                 cmd.x * pathScale + tx,
-                                -cmd.y * pathScale + y
+                                -cmd.y * pathScale + ty
                             )
                             GlyphPath.CommandType.CLOSE -> glyphRenderer.close()
                             else -> {
