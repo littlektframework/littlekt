@@ -29,7 +29,7 @@ class SpriteBatch(
     }
 
     private val gl get() = context.graphics.gl
-    val defaultShader = ShaderProgram(context.graphics.gl, DefaultVertexShader(), DefaultFragmentShader())
+    val defaultShader = ShaderProgram(DefaultVertexShader(), DefaultFragmentShader()).also { it.prepare(context) }
     var shader: ShaderProgram<*, *> = defaultShader
         set(value) {
             if (drawing) {

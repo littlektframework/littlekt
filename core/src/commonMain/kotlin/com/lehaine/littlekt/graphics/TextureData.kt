@@ -120,7 +120,7 @@ private fun TextureData.generateMipMapDesktop(
 
     if (context.graphics.supportsExtension("GL_ARB_framebuffer_object")
         || context.graphics.supportsExtension("GL_EXT_framebuffer_object")
-        || gl.isGL32()
+        || context.graphics.isGL30OrHigher()
     ) {
         gl.texImage2D(
             target = target,

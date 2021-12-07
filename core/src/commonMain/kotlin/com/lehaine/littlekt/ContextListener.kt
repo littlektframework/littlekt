@@ -39,4 +39,4 @@ fun <T : Context> T.createShader(
     vertexShader: VertexShader = DefaultVertexShader(),
     fragmentShader: FragmentShader = DefaultFragmentShader()
 ) =
-    ShaderProgram(gl, vertexShader, fragmentShader)
+    ShaderProgram(vertexShader, fragmentShader).also { it.prepare(this) }

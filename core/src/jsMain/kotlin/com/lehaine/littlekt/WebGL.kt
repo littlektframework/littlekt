@@ -1,9 +1,9 @@
 package com.lehaine.littlekt
 
+import com.lehaine.littlekt.file.*
 import com.lehaine.littlekt.graphics.GL
 import com.lehaine.littlekt.graphics.GLVersion
 import com.lehaine.littlekt.graphics.gl.*
-import com.lehaine.littlekt.file.*
 import com.lehaine.littlekt.math.Mat3
 import com.lehaine.littlekt.math.Mat4
 import org.khronos.webgl.Int32Array
@@ -17,9 +17,10 @@ import org.khronos.webgl.get
  */
 class WebGL(val gl: WebGL2RenderingContext, private val engineStats: EngineStats) : GL {
     private var lastBoundBuffer: GlBuffer? = null
+    internal var glVersion = GLVersion.WEBGL2
 
     override fun getGLVersion(): GLVersion {
-        return GLVersion.WEBGL_2
+        return glVersion
     }
 
     override fun clearColor(r: Float, g: Float, b: Float, a: Float) {

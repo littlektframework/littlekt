@@ -2,8 +2,8 @@ package com.lehaine.littlekt.graphics
 
 import com.lehaine.littlekt.Context
 import com.lehaine.littlekt.Disposable
-import com.lehaine.littlekt.graphics.gl.*
 import com.lehaine.littlekt.file.createUint8Buffer
+import com.lehaine.littlekt.graphics.gl.*
 
 /**
  * @author Colton Daily
@@ -119,9 +119,7 @@ class Texture(
     fun bind(unit: Int = 0) {
         val gl = gl
         val textureReference = glTexture
-        if (gl == null || textureReference == null || !isPrepared) {
-            throw IllegalStateException("Texture has not been prepared yet! Ensure you called the prepare() method.")
-        }
+        check(isPrepared && gl != null && textureReference != null) { "Texture has not been prepared yet! Ensure you called the prepare() method." }
         gl.activeTexture(GL.TEXTURE0 + unit)
         gl.bindTexture(TextureTarget._2D, textureReference)
 

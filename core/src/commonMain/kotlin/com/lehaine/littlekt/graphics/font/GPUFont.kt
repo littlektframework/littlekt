@@ -41,9 +41,9 @@ class GPUFont(private val font: TtfFont) : Preparable {
 
     override fun prepare(context: Context) {
         gl = context.gl
-        glyphShader = ShaderProgram(context.gl, GlyphVertexShader(), GlyphFragmentShader())
-        glyphOffscreenShader = ShaderProgram(context.gl, GlyphVertexShader(), GlyphOffscreenFragmentShader())
-        textShader = ShaderProgram(context.gl, TextVertexShader(), TextFragmentShader())
+        glyphShader = ShaderProgram(GlyphVertexShader(), GlyphFragmentShader()).also { it.prepare(context) }
+        glyphOffscreenShader = ShaderProgram(GlyphVertexShader(), GlyphOffscreenFragmentShader()).also { it.prepare(context) }
+        textShader = ShaderProgram(TextVertexShader(), TextFragmentShader()).also { it.prepare(context) }
 
         glyphMesh = textureMesh(context.gl) {
             maxVertices = 50000

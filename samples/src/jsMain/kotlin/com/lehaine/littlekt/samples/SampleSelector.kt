@@ -25,6 +25,7 @@ fun main() {
         div {
             addSample("Display Test") { DisplayTest(it) }
             addSample("Frame Buffer Test") { FrameBufferTest(it) }
+            addSample("Font Load Test") { FontLoadTest(it) }
         }
     }
 }

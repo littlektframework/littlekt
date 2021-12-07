@@ -23,20 +23,31 @@ class WebGLGraphics(canvas: HTMLCanvasElement, engineStats: EngineStats) : Graph
 
     internal var _width: Int = 0
     internal var _height: Int = 0
+    internal var version: GLVersion = GLVersion.WEBGL2
+        set(value) {
+            (gl as WebGL).glVersion = value
+            field = value
+        }
 
     init {
         var webGlCtx = canvas.getContext("webgl2")
+        var version = version
         if (webGlCtx == null) {
             webGlCtx = canvas.getContext("experimental-webgl2")
+        }
+        if (webGlCtx == null) {
+            webGlCtx = canvas.getContext("webgl")
+            version = GLVersion.WEBGL
         }
 
         if (webGlCtx != null) {
             gl = WebGL(webGlCtx as WebGL2RenderingContext, engineStats)
-
         } else {
             js("alert(\"Unable to initialize WebGL2 context. Your browser may not support it.\")")
             throw RuntimeException("WebGL2 context required")
         }
+        this.version = version
+        webGlCtx.getExtension("OES_standard_derivatives")
         // suppress context menu
         canvas.oncontextmenu = Event::preventDefault
 
@@ -52,12 +63,12 @@ class WebGLGraphics(canvas: HTMLCanvasElement, engineStats: EngineStats) : Graph
     val height: Int
         get() = _height
 
-    override fun getGLVersion(): GLVersion {
-        TODO("Not yet implemented")
-    }
+    override val glVersion: GLVersion
+        get() = version
 
     override fun supportsExtension(extension: String): Boolean {
-        TODO("Not yet implemented")
+        gl as WebGL
+        return gl.gl.getExtension("extension") != null
     }
 
 }

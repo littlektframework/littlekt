@@ -1,5 +1,6 @@
 package com.lehaine.littlekt.graphics.shader
 
+import com.lehaine.littlekt.Context
 import com.lehaine.littlekt.graphics.shader.generator.GlslGenerator
 import com.lehaine.littlekt.graphics.shader.generator.Precision
 import com.lehaine.littlekt.graphics.shader.generator.delegate.*
@@ -24,7 +25,7 @@ abstract class FragmentShaderModel : GlslGenerator(), FragmentShader {
     override var source: String = ""
         get() {
             if (field.isBlank()) {
-                field = generate()
+                throw IllegalStateException("The fragment shader has not been generated yet!")
             }
             return field
         }
@@ -33,6 +34,10 @@ abstract class FragmentShaderModel : GlslGenerator(), FragmentShader {
     var gl_FragColor by BuiltinVarDelegate()
 
     val gl_FrontFacing = BoolResult("gl_FrontFacing")
+
+    override fun generate(context: Context): String {
+        return super.generate(context).also { source = it }
+    }
 
     /**
      * Data coming **IN** from the Vertex Shader.
@@ -61,10 +66,14 @@ abstract class VertexShaderModel : GlslGenerator(), VertexShader {
     override var source: String = ""
         get() {
             if (field.isBlank()) {
-                field = generate()
+                throw IllegalStateException("The vertex shader has not been generated yet!")
             }
             return field
         }
+
+    override fun generate(context: Context): String {
+        return super.generate(context).also { source = it }
+    }
 
     /**
      * Data that may change per vertex. Passed from the OpenGL context to the Vertex Shader.

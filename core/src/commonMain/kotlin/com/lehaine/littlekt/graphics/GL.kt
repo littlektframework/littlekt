@@ -14,9 +14,11 @@ import com.lehaine.littlekt.math.Mat4
  * @date 11/20/2021
  */
 enum class GLVersion {
+    GL_32_PLUS,
     GL_30,
     GL_20,
-    WEBGL_2
+    WEBGL,
+    WEBGL2
 }
 
 /**
@@ -28,10 +30,10 @@ interface GL {
     fun getGLVersion(): GLVersion
 
     /**
-     * @return if the current GL version is 3.2 or higher
+     * @return if the current GL version is 3.0 or higher
      */
-    fun isGL32() = getGLVersion() == GLVersion.GL_30
-
+    fun isGL30OrHigher() =
+        getGLVersion() == GLVersion.GL_30 || getGLVersion() == GLVersion.GL_32_PLUS || getGLVersion() == GLVersion.WEBGL2
 
     fun clearColor(r: Float, g: Float, b: Float, a: Float)
     fun clearColor(color: Color) = clearColor(color.r, color.g, color.b, color.a)

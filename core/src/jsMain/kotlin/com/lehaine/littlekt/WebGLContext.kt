@@ -29,7 +29,7 @@ class WebGLContext(override val configuration: JsConfiguration) :
         WebFileHandler(this, logger, configuration.rootPath)
     override val platform: Context.Platform = Context.Platform.JS
 
-    private lateinit var game: ContextListener
+    private lateinit var listener: ContextListener
     private var lastFrame = 0.0
     private var closed = false
 
@@ -40,9 +40,9 @@ class WebGLContext(override val configuration: JsConfiguration) :
         graphics._width = canvas.clientWidth
         graphics._height = canvas.clientHeight
 
-        game = build(this)
+        listener = build(this)
 
-        Texture.DEFAULT.prepare(game.context)
+        Texture.DEFAULT.prepare(listener.context)
         window.requestAnimationFrame(::render)
     }
 
@@ -57,7 +57,7 @@ class WebGLContext(override val configuration: JsConfiguration) :
             graphics._height = canvas.clientHeight
             canvas.width = canvas.clientWidth
             canvas.height = canvas.clientHeight
-            game.resize(graphics.width, graphics.height)
+            listener.resize(graphics.width, graphics.height)
         }
         stats.engineStats.resetPerFrameCounts()
         input as JsInput
@@ -66,7 +66,7 @@ class WebGLContext(override val configuration: JsConfiguration) :
 
         input.update()
         stats.update(dt)
-        game.render(dt)
+        listener.render(dt)
         input.reset()
 
         if (closed) {
@@ -81,7 +81,7 @@ class WebGLContext(override val configuration: JsConfiguration) :
     }
 
     override fun destroy() {
-        game.dispose()
+        listener.dispose()
     }
 
 }

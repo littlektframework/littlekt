@@ -1,15 +1,16 @@
 package com.lehaine.littlekt.graphics.shader
 
+import com.lehaine.littlekt.Context
 import com.lehaine.littlekt.Disposable
 import com.lehaine.littlekt.graphics.GL
+import com.lehaine.littlekt.graphics.Preparable
 import com.lehaine.littlekt.graphics.gl.*
 import kotlin.math.min
 
 class ShaderProgram<V : VertexShader, F : FragmentShader>(
-    val gl: GL,
     val vertexShader: V,
     val fragmentShader: F,
-) : Disposable {
+) : Preparable, Disposable {
     companion object {
         /** default name for position attributes  */
         const val POSITION_ATTRIBUTE = "a_position"
@@ -27,22 +28,39 @@ class ShaderProgram<V : VertexShader, F : FragmentShader>(
         const val U_TEXTURE = "u_texture"
     }
 
-    private val vertexShaderReference: GlShader
-    private val fragmentShaderReference: GlShader
-    private val programGl: GlShaderProgram
-
-    private val attributes = mutableMapOf<String, Int>()
-    private val uniforms = mutableMapOf<String, UniformLocation>()
-
+    var gl: GL? = null
+        private set
     var uProjTrans: ShaderParameter.UniformMat4? = null
         private set
     var uTexture: ShaderParameter.UniformSample2D? = null
 
-    init {
-        vertexShaderReference = compileShader(ShaderType.VERTEX_SHADER, vertexShader.source)
-        fragmentShaderReference = compileShader(ShaderType.FRAGMENT_SHADER, fragmentShader.source)
+    override val prepared: Boolean
+        get() = isPrepared
 
-        programGl = gl.createProgram()
+    private var vertexShaderReference: GlShader? = null
+    private var fragmentShaderReference: GlShader? = null
+    private var programGl: GlShaderProgram? = null
+
+    private val attributes = mutableMapOf<String, Int>()
+    private val uniforms = mutableMapOf<String, UniformLocation>()
+
+    private var isPrepared = false
+
+
+    override fun prepare(context: Context) {
+        val gl = context.gl.also { gl = it }
+        if (vertexShader is VertexShaderModel) {
+            vertexShader.generate(context)
+        }
+        if (fragmentShader is FragmentShaderModel) {
+            fragmentShader.generate(context)
+        }
+        val vertexShaderReference =
+            compileShader(ShaderType.VERTEX_SHADER, vertexShader.source).also { vertexShaderReference = it }
+        val fragmentShaderReference =
+            compileShader(ShaderType.FRAGMENT_SHADER, fragmentShader.source).also { fragmentShaderReference = it }
+
+        val programGl = gl.createProgram().also { programGl = it }
         gl.attachShader(programGl, vertexShaderReference)
         gl.attachShader(programGl, fragmentShaderReference)
         gl.linkProgram(programGl)
@@ -52,6 +70,7 @@ class ShaderProgram<V : VertexShader, F : FragmentShader>(
             throw RuntimeException("Shader compilation error: $log")
         }
 
+        isPrepared = true
         vertexShader.parameters.forEach {
             if (it.name == U_PROJ_TRANS_UNIFORM) {
                 uProjTrans = it as ShaderParameter.UniformMat4
@@ -68,10 +87,16 @@ class ShaderProgram<V : VertexShader, F : FragmentShader>(
     }
 
     fun createAttrib(name: String) {
+        val gl = gl
+        val programGl = programGl
+        check(isPrepared && programGl != null && gl != null) { "ShaderProgram is not prepared! Make sure to call prepare(context)." }
         attributes[name] = gl.getAttribLocation(programGl, name)
     }
 
     fun createUniform(name: String) {
+        val gl = gl
+        val programGl = programGl
+        check(isPrepared && programGl != null && gl != null) { "ShaderProgram is not prepared! Make sure to call prepare(context)." }
         uniforms[name] = gl.getUniformLocation(programGl, name)
     }
 
@@ -83,10 +108,15 @@ class ShaderProgram<V : VertexShader, F : FragmentShader>(
     }
 
     fun bind() {
+        val gl = gl
+        val programGl = programGl
+        check(isPrepared && programGl != null && gl != null) { "ShaderProgram is not prepared! Make sure to call prepare(context)." }
         gl.useProgram(programGl)
     }
 
     private fun compileShader(type: ShaderType, shaderSrc: String): GlShader {
+        val gl = gl
+        check(gl != null) { "Unable to compile shaders due to gl not being setting!" }
         val shader = gl.createShader(type)
         gl.shaderSource(shader, shaderSrc)
         gl.compileShader(shader)
@@ -107,9 +137,12 @@ class ShaderProgram<V : VertexShader, F : FragmentShader>(
     }
 
     override fun dispose() {
+        val gl = gl
+        if (!prepared || gl == null) return
         gl.useDefaultProgram()
-        gl.deleteShader(vertexShaderReference)
-        gl.deleteShader(fragmentShaderReference)
-        gl.deleteProgram(programGl)
+        vertexShaderReference?.let { gl.deleteShader(it) }
+        fragmentShaderReference?.let { gl.deleteShader(it) }
+        programGl?.let { gl.deleteProgram(it) }
+
     }
 }

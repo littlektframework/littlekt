@@ -1,5 +1,7 @@
 package com.lehaine.littlekt.graphics.shader.generator
 
+import com.lehaine.littlekt.Context
+import com.lehaine.littlekt.graphics.GLVersion
 import com.lehaine.littlekt.graphics.shader.FragmentShader
 import com.lehaine.littlekt.graphics.shader.ShaderParameter
 import com.lehaine.littlekt.graphics.shader.generator.InstructionType.*
@@ -59,7 +61,7 @@ value class Precision(val value: String) {
 }
 
 interface GlslProvider {
-    fun generate(): String
+    fun generate(context: Context): String
 }
 
 abstract class GlslGenerator : GlslProvider {
@@ -87,9 +89,18 @@ abstract class GlslGenerator : GlslProvider {
         }
     }
 
-    override fun generate(): String {
+    override fun generate(context: Context): String {
         removeUnusedDefinitions()
         val sb = StringBuilder()
+        if (context.graphics.isGL30OrHigher()) {
+            val version = when (context.graphics.glVersion) {
+                GLVersion.GL_32_PLUS -> "150"
+                GLVersion.GL_30 -> "130"
+                GLVersion.WEBGL2 -> "300 es"
+                else -> throw IllegalStateException("${context.graphics.glVersion} isn't not considered at least GL 3.0+")
+            }
+            sb.appendLine("#version $version")
+        }
         if (this is FragmentShader) {
             sb.run {
                 appendLine("#ifdef GL_ES")
@@ -114,10 +125,26 @@ abstract class GlslGenerator : GlslProvider {
             sb.appendLine("uniform $it;")
         }
         attributes.forEach {
-            sb.appendLine("attribute $it;")
+            if (context.graphics.isGL30OrHigher()) {
+                sb.appendLine("in $it;")
+            } else {
+                sb.appendLine("attribute $it;")
+            }
         }
         varyings.forEach {
-            sb.appendLine("varying $it;")
+            if (context.graphics.isGL30OrHigher()) {
+                if (this is FragmentShader) {
+                    sb.appendLine("in $it;")
+                } else {
+                    sb.appendLine("out $it;")
+                }
+            } else {
+                sb.appendLine("varying $it;")
+            }
+        }
+
+        if (context.graphics.isGL30OrHigher() && this is FragmentShader) {
+            sb.appendLine("out lowp vec4 fragColor;")
         }
 
         functionInstructions.forEach {
@@ -160,7 +187,14 @@ abstract class GlslGenerator : GlslProvider {
             sb.appendLine(instructionString)
         }
         sb.appendLine("}")
-        return sb.toString()
+
+        var result = sb.toString()
+        if (context.graphics.isGL30OrHigher()) {
+            result = result.replace("texture2D\\(".toRegex(), "texture(")
+                .replace("textureCube\\(".toRegex(), "texture(")
+                .replace("gl_FragColor".toRegex(), "fragColor")
+        }
+        return result
     }
 
     fun appendComponent(builder: GlslGeneratorComponent) {

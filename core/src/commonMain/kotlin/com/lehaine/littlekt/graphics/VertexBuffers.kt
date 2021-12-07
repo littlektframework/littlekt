@@ -24,7 +24,7 @@ class VertexBufferObject(val gl: GL, val isStatic: Boolean, numVertices: Int, va
         }
     private val glBuffer: GlBuffer = gl.createBuffer()
     private val vaoGl: GlVertexArray? =
-        if (gl.isGL32()) gl.createVertexArray() else null
+        if (gl.isGL30OrHigher()) gl.createVertexArray() else null
     private val usage = if (isStatic) Usage.STATIC_DRAW else Usage.DYNAMIC_DRAW
     private var bound = false
 
