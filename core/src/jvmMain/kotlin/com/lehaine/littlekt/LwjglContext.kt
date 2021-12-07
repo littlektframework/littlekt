@@ -12,7 +12,6 @@ import org.lwjgl.glfw.Callbacks
 import org.lwjgl.glfw.GLFW
 import org.lwjgl.glfw.GLFWErrorCallback
 import org.lwjgl.opengl.GL11.glClear
-import org.lwjgl.opengl.GL20
 import org.lwjgl.opengl.GL30
 import org.lwjgl.opengl.GL30C
 import org.lwjgl.opengl.GLCapabilities
@@ -28,15 +27,14 @@ import org.lwjgl.opengl.GL as LWJGL
  * @author Colton Daily
  * @date 11/17/2021
  */
-actual class PlatformContext actual constructor(actual override val configuration: ApplicationConfiguration) :
-    Application {
+class LwjglContext(override val configuration: JvmConfiguration) : Context {
 
-    actual override val stats: AppStats = AppStats()
-    actual override val graphics: Graphics = LwjglGraphics(stats.engineStats)
-    actual override val logger: Logger = Logger(configuration.title)
-    actual override val input: Input = LwjglInput(logger, this)
-    actual override val fileHandler: FileHandler = JvmFileHandler(this, logger, ".")
-    actual override val platform: Platform = Platform.DESKTOP
+    override val stats: AppStats = AppStats()
+    override val graphics: Graphics = LwjglGraphics(stats.engineStats)
+    override val logger: Logger = Logger(configuration.title)
+    override val input: Input = LwjglInput(logger, this)
+    override val fileHandler: FileHandler = JvmFileHandler(this, logger, ".")
+    override val platform: Context.Platform = Context.Platform.DESKTOP
 
     private val mainThreadRunnables = mutableListOf<GpuThreadRunnable>()
 
@@ -47,7 +45,7 @@ actual class PlatformContext actual constructor(actual override val configuratio
 
     @Suppress("EXPERIMENTAL_IS_NOT_ENABLED")
     @OptIn(ExperimentalTime::class)
-    actual override fun start(gameBuilder: (app: Application) -> LittleKt) {
+    override fun start(gameBuilder: (app: Context) -> ContextListener) {
         val graphics = graphics as LwjglGraphics
         val input = input as LwjglInput
 
@@ -175,11 +173,11 @@ actual class PlatformContext actual constructor(actual override val configuratio
         destroy()
     }
 
-    actual override fun close() {
+    override fun close() {
         GLFW.glfwSetWindowShouldClose(windowHandle, true)
     }
 
-    actual override fun destroy() {
+    override fun destroy() {
         // Free the window callbacks and destroy the window
         Callbacks.glfwFreeCallbacks(windowHandle)
         GLFW.glfwDestroyWindow(windowHandle)

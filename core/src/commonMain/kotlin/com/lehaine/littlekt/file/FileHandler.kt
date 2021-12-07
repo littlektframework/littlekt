@@ -1,6 +1,6 @@
 package com.lehaine.littlekt.file
 
-import com.lehaine.littlekt.Application
+import com.lehaine.littlekt.Context
 import com.lehaine.littlekt.audio.AudioClip
 import com.lehaine.littlekt.file.atlas.AtlasInfo
 import com.lehaine.littlekt.file.atlas.AtlasPage
@@ -30,7 +30,7 @@ import kotlin.coroutines.CoroutineContext
  */
 
 abstract class FileHandler(
-    val application: Application,
+    val context: Context,
     val logger: Logger,
     var assetsBaseDir: String
 ) : CoroutineScope {

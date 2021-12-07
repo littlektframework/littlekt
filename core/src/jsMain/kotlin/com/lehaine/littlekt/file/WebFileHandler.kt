@@ -1,6 +1,6 @@
 package com.lehaine.littlekt.file
 
-import com.lehaine.littlekt.Application
+import com.lehaine.littlekt.Context
 import com.lehaine.littlekt.audio.AudioClip
 import com.lehaine.littlekt.graphics.Pixmap
 import com.lehaine.littlekt.graphics.Texture
@@ -23,10 +23,10 @@ import org.w3c.xhr.XMLHttpRequestResponseType
  * @date 11/6/2021
  */
 class WebFileHandler(
-    application: Application,
+    context: Context,
     logger: Logger,
     assetsBaseDir: String
-) : FileHandler(application, logger, assetsBaseDir) {
+) : FileHandler(context, logger, assetsBaseDir) {
 
     override suspend fun loadRawAsset(rawRef: RawAssetRef) = LoadedRawAsset(rawRef, loadRaw(rawRef.url))
 
@@ -86,7 +86,7 @@ class WebFileHandler(
 
     override suspend fun loadTexture(assetPath: String): Texture {
         val data = loadTextureData(assetPath)
-        return Texture(data).also { it.prepare(application) }
+        return Texture(data).also { it.prepare(context) }
     }
 
     override suspend fun loadAudioClip(assetPath: String): AudioClip {

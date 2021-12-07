@@ -1,8 +1,8 @@
 package com.lehaine.littlekt.samples
 
-import com.lehaine.littlekt.Application
-import com.lehaine.littlekt.LittleKt
-import com.lehaine.littlekt.LittleKtContext
+import com.lehaine.littlekt.Context
+import com.lehaine.littlekt.ContextListener
+import com.lehaine.littlekt.LittleKtApp
 import com.lehaine.littlekt.createLittleKtApp
 import kotlinx.browser.document
 import kotlinx.html.DIV
@@ -19,7 +19,7 @@ import kotlinx.html.style
  * @date 11/22/2021
  */
 
-var lastContext: LittleKtContext? = null
+var lastApp: LittleKtApp? = null
 fun main() {
     document.body!!.append {
         div {
@@ -29,11 +29,11 @@ fun main() {
     }
 }
 
-fun DIV.addSample(title: String, gameBuilder: (app: Application) -> LittleKt) {
+fun DIV.addSample(title: String, gameBuilder: (app: Context) -> ContextListener) {
     button {
         +title
         onClickFunction = {
-            lastContext?.close()
+            lastApp?.close()
             document.getElementById("canvas")?.remove()
             document.getElementById("canvas-container")!!.append {
                 canvas {
@@ -44,7 +44,7 @@ fun DIV.addSample(title: String, gameBuilder: (app: Application) -> LittleKt) {
                 }
             }
 
-            lastContext = createLittleKtApp {
+            lastApp = createLittleKtApp {
                 this.title = title
             }.start(gameBuilder)
         }

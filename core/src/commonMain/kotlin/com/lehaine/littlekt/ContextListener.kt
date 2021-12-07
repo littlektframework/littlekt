@@ -9,11 +9,11 @@ import com.lehaine.littlekt.graphics.shader.shaders.DefaultVertexShader
 import kotlin.time.Duration
 
 /**
- * A [LittleKt] is the base of an [Application] when it is created, resumed, rendering, paused, or destroyed.
+ * A [ContextListener] is the base of an [Context] when it is created, resumed, rendering, paused, or destroyed.
  * @author Colton Daily
  * @date 9/29/2021
  */
-open class LittleKt(val application: Application) : Application by application {
+abstract class ContextListener(val context: Context) : Context by context {
 
     open fun render(dt: Duration) {}
 
@@ -26,7 +26,7 @@ open class LittleKt(val application: Application) : Application by application {
     open fun dispose() {}
 }
 
-fun <T : Application> T.loadTexture(assetPath: String, onLoad: (Texture) -> Unit) = fileHandler.launch {
+fun <T : Context> T.loadTexture(assetPath: String, onLoad: (Texture) -> Unit) = fileHandler.launch {
     onLoad(loadTexture(assetPath))
 }
 
@@ -35,7 +35,7 @@ fun <T : Application> T.loadTexture(assetPath: String, onLoad: (Texture) -> Unit
  * @param vertexShader the vertex shader to use. Defaults to [DefaultVertexShader].
  * @param fragmentShader the fragment shader to use. Defaults to [DefaultFragmentShader].
  */
-fun <T : Application> T.createShader(
+fun <T : Context> T.createShader(
     vertexShader: VertexShader = DefaultVertexShader(),
     fragmentShader: FragmentShader = DefaultFragmentShader()
 ) =

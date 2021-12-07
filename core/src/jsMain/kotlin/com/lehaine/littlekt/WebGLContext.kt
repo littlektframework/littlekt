@@ -1,10 +1,10 @@
 package com.lehaine.littlekt
 
+import com.lehaine.littlekt.file.FileHandler
+import com.lehaine.littlekt.file.WebFileHandler
 import com.lehaine.littlekt.graphics.Texture
 import com.lehaine.littlekt.input.Input
 import com.lehaine.littlekt.input.JsInput
-import com.lehaine.littlekt.file.FileHandler
-import com.lehaine.littlekt.file.WebFileHandler
 import com.lehaine.littlekt.log.Logger
 import kotlinx.browser.document
 import kotlinx.browser.window
@@ -16,24 +16,24 @@ import kotlin.time.ExperimentalTime
  * @author Colton Daily
  * @date 10/4/2021
  */
-actual class PlatformContext actual constructor(actual override val configuration: ApplicationConfiguration) :
-    Application {
+class WebGLContext(override val configuration: JsConfiguration) :
+    Context {
 
     val canvas = document.getElementById(configuration.canvasId) as HTMLCanvasElement
 
-    actual override val stats: AppStats = AppStats()
-    actual override val graphics: Graphics = WebGLGraphics(canvas, stats.engineStats)
-    actual override val input: Input = JsInput(canvas)
-    actual override val logger: Logger = Logger(configuration.title)
-    actual override val fileHandler: FileHandler =
+    override val stats: AppStats = AppStats()
+    override val graphics: Graphics = WebGLGraphics(canvas, stats.engineStats)
+    override val input: Input = JsInput(canvas)
+    override val logger: Logger = Logger(configuration.title)
+    override val fileHandler: FileHandler =
         WebFileHandler(this, logger, configuration.rootPath)
-    actual override val platform: Platform = Platform.JS
+    override val platform: Platform = Platform.JS
 
-    private lateinit var game: LittleKt
+    private lateinit var game: ContextListener
     private var lastFrame = 0.0
     private var closed = false
 
-    actual override fun start(gameBuilder: (app: Application) -> LittleKt) {
+    override fun start(gameBuilder: (app: Context) -> ContextListener) {
         graphics as WebGLGraphics
         input as JsInput
 
@@ -42,7 +42,7 @@ actual class PlatformContext actual constructor(actual override val configuratio
 
         game = gameBuilder(this)
 
-        Texture.DEFAULT.prepare(game.application)
+        Texture.DEFAULT.prepare(game.context)
         window.requestAnimationFrame(::render)
     }
 
@@ -76,11 +76,11 @@ actual class PlatformContext actual constructor(actual override val configuratio
         }
     }
 
-    actual override fun close() {
+    override fun close() {
         closed = true
     }
 
-    actual override fun destroy() {
+    override fun destroy() {
         game.dispose()
     }
 

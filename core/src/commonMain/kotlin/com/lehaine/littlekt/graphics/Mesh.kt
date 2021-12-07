@@ -1,6 +1,6 @@
 package com.lehaine.littlekt.graphics
 
-import com.lehaine.littlekt.Application
+import com.lehaine.littlekt.Context
 import com.lehaine.littlekt.Disposable
 import com.lehaine.littlekt.graphics.gl.DrawMode
 import com.lehaine.littlekt.graphics.gl.IndexType
@@ -62,28 +62,28 @@ fun position4Mesh(gl: GL, generate: MeshProps.() -> Unit): Mesh {
     return mesh(gl, listOf(VertexAttribute.POSITION_VEC4), generate)
 }
 
-fun Application.mesh(attributes: List<VertexAttribute>, block: MeshProps.() -> Unit): Mesh {
+fun Context.mesh(attributes: List<VertexAttribute>, block: MeshProps.() -> Unit): Mesh {
     return mesh(gl, attributes, block)
 }
 
 /**
  * Creates a mesh with [VertexAttribute.POSITION_2D] and [VertexAttribute.COLOR_UNPACKED] attributes.
  */
-fun Application.colorMesh(generate: MeshProps.() -> Unit): Mesh {
+fun Context.colorMesh(generate: MeshProps.() -> Unit): Mesh {
     return colorMesh(gl, generate)
 }
 
 /**
  * Creates a mesh with [VertexAttribute.POSITION_2D] and [VertexAttribute.COLOR_UNPACKED] attributes.
  */
-fun Application.colorMeshUnpacked(generate: MeshProps.() -> Unit): Mesh {
+fun Context.colorMeshUnpacked(generate: MeshProps.() -> Unit): Mesh {
     return colorMeshUnpacked(gl, generate)
 }
 
 /**
  * Creates a mesh with [VertexAttribute.POSITION_2D], [VertexAttribute.COLOR_PACKED], and [VertexAttribute.TEX_COORDS] attributes.
  */
-fun Application.textureMesh(generate: MeshProps.() -> Unit): Mesh {
+fun Context.textureMesh(generate: MeshProps.() -> Unit): Mesh {
     return textureMesh(gl, generate)
 }
 

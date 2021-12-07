@@ -1,6 +1,6 @@
 package com.lehaine.littlekt.input
 
-import com.lehaine.littlekt.Application
+import com.lehaine.littlekt.Context
 import com.lehaine.littlekt.log.Logger
 import org.lwjgl.glfw.*
 import org.lwjgl.glfw.GLFW.*
@@ -9,7 +9,7 @@ import org.lwjgl.glfw.GLFW.*
  * @author Colton Daily
  * @date 11/7/2021
  */
-class LwjglInput(private val logger: Logger, private val application: Application) : Input {
+class LwjglInput(private val logger: Logger, private val context: Context) : Input {
 
     private val inputManager = InputManager()
 

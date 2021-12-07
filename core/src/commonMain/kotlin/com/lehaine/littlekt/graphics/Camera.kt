@@ -1,6 +1,6 @@
 package com.lehaine.littlekt.graphics
 
-import com.lehaine.littlekt.Application
+import com.lehaine.littlekt.Context
 import com.lehaine.littlekt.math.*
 import com.lehaine.littlekt.util.LazyMat4
 
@@ -118,20 +118,20 @@ abstract class Camera {
     fun project(world: Vec3f, result: MutableVec4f): MutableVec4f =
         viewProjection.transform(result.set(world.x, world.y, world.z, 1f))
 
-    fun projectScreen(world: Vec3f, viewport: Viewport, application: Application, result: MutableVec3f): Boolean {
+    fun projectScreen(world: Vec3f, viewport: Viewport, context: Context, result: MutableVec3f): Boolean {
         if (!project(world, result)) {
             return false
         }
         result.x = (1 + result.x) * 0.5f * viewport.width + viewport.x
-        result.y = application.graphics.height - (1 + result.y) * 0.5f * viewport.height + viewport.y
+        result.y = context.graphics.height - (1 + result.y) * 0.5f * viewport.height + viewport.y
         result.z = (1 + result.z) * 0.5f
 
         return true
     }
 
-    fun unProjectScreen(screen: Vec3f, viewport: Viewport, application: Application, result: MutableVec3f): Boolean {
+    fun unProjectScreen(screen: Vec3f, viewport: Viewport, context: Context, result: MutableVec3f): Boolean {
         val x = screen.x - viewport.x
-        val y = (application.graphics.height - screen.y) - viewport.y
+        val y = (context.graphics.height - screen.y) - viewport.y
 
         tempVec4.set(2f * x / viewport.width - 1f, 2f * y / viewport.height - 1f, 2f * screen.z - 1f, 1f)
         invViewProjection.transform(tempVec4)
@@ -145,10 +145,10 @@ abstract class Camera {
         screenX: Float,
         screenY: Float,
         viewport: Viewport,
-        application: Application
+        context: Context
     ): Boolean {
-        var valid = unProjectScreen(tempVec3.set(screenX, screenY, 0f), viewport, application, pickRay.origin)
-        valid = valid && unProjectScreen(tempVec3.set(screenX, screenY, 1f), viewport, application, pickRay.direction)
+        var valid = unProjectScreen(tempVec3.set(screenX, screenY, 0f), viewport, context, pickRay.origin)
+        valid = valid && unProjectScreen(tempVec3.set(screenX, screenY, 1f), viewport, context, pickRay.direction)
 
         if (valid) {
             pickRay.direction.subtract(pickRay.origin)

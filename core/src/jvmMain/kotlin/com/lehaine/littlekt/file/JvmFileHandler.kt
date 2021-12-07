@@ -1,7 +1,7 @@
 package com.lehaine.littlekt.file
 
-import com.lehaine.littlekt.Application
-import com.lehaine.littlekt.PlatformContext
+import com.lehaine.littlekt.Context
+import com.lehaine.littlekt.LwjglContext
 import com.lehaine.littlekt.audio.AudioClip
 import com.lehaine.littlekt.graphics.Pixmap
 import com.lehaine.littlekt.graphics.Texture
@@ -22,8 +22,8 @@ import javax.imageio.ImageIO
  * @author Colton Daily
  * @date 11/6/2021
  */
-class JvmFileHandler(application: Application, logger: Logger, assetsBaseDir: String) :
-    FileHandler(application, logger, assetsBaseDir) {
+class JvmFileHandler(context: Context, logger: Logger, assetsBaseDir: String) :
+    FileHandler(context, logger, assetsBaseDir) {
 
     private val imageIoLock = Any()
 
@@ -86,9 +86,9 @@ class JvmFileHandler(application: Application, logger: Logger, assetsBaseDir: St
         val data = loadTextureData(assetPath)
         val deferred = CompletableDeferred<Texture>(job)
         Texture(data).also {
-            application as PlatformContext
-            application.runOnMainThread {
-                it.prepare(application)
+            context as LwjglContext
+            context.runOnMainThread {
+                it.prepare(context)
                 deferred.complete(it)
             }
         }

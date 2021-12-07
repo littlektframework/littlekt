@@ -9,11 +9,18 @@ import com.lehaine.littlekt.log.Logger
  * @author Colton Daily
  * @date 10/5/2021
  */
-interface Application {
+interface Context {
+
+    enum class Platform {
+        DESKTOP,
+        JS,
+        ANDROID,
+        IOS
+    }
 
     val stats: AppStats
 
-    val configuration: ApplicationConfiguration
+    val configuration: ContextConfiguration
 
     val graphics: Graphics
 
@@ -27,7 +34,7 @@ interface Application {
 
     val platform: Platform
 
-    fun start(gameBuilder: (app: Application) -> LittleKt)
+    fun start(gameBuilder: (app: Context) -> ContextListener)
 
     fun close()
 

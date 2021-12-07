@@ -1,6 +1,6 @@
 package com.lehaine.littlekt.graphics
 
-import com.lehaine.littlekt.Application
+import com.lehaine.littlekt.Context
 import com.lehaine.littlekt.Disposable
 import com.lehaine.littlekt.graphics.gl.*
 import com.lehaine.littlekt.file.createUint8Buffer
@@ -79,12 +79,12 @@ class Texture(
         }
 
     /**
-     * Prepares the texture for the [Application]. Sets this Textures [GL] context to the passed in application.
-     * @param application the application that will be used as the [GL] context for this texture.
+     * Prepares the texture for the [Context]. Sets this Textures [GL] context to the passed in application.
+     * @param context the application that will be used as the [GL] context for this texture.
      */
-    override fun prepare(application: Application) {
-        this.gl = application.graphics.gl
-        val gl = application.graphics.gl
+    override fun prepare(context: Context) {
+        this.gl = context.graphics.gl
+        val gl = context.graphics.gl
         if (!textureData.isPrepared) {
             textureData.prepare()
         }
@@ -106,7 +106,7 @@ class Texture(
         gl.texParameteri(TextureTarget._2D, TexParameter.WRAP_S, uWrap.glFlag)
         gl.texParameteri(TextureTarget._2D, TexParameter.WRAP_T, vWrap.glFlag)
 
-        textureData.uploadImageData(application, TextureTarget._2D, textureData)
+        textureData.uploadImageData(context, TextureTarget._2D, textureData)
 
         glTexture = texture
         isPrepared = true

@@ -1,7 +1,7 @@
 package com.lehaine.littlekt.samples
 
-import com.lehaine.littlekt.Application
-import com.lehaine.littlekt.LittleKt
+import com.lehaine.littlekt.Context
+import com.lehaine.littlekt.ContextListener
 import com.lehaine.littlekt.graphics.*
 import com.lehaine.littlekt.graphics.gl.ClearBufferMask
 import com.lehaine.littlekt.input.Key
@@ -13,10 +13,10 @@ import kotlin.time.Duration
  * @author Colton Daily
  * @date 11/6/2021
  */
-class FrameBufferTest(application: Application) : LittleKt(application) {
+class FrameBufferTest(context: Context) : ContextListener(context) {
 
-    val batch = SpriteBatch(application)
-    val fbo = FrameBuffer(240, 135).also { it.prepare(application) }
+    val batch = SpriteBatch(context)
+    val fbo = FrameBuffer(240, 135).also { it.prepare(context) }
     var loading = true
 
     lateinit var texture: Texture

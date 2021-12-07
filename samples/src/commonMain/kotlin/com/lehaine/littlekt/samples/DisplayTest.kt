@@ -1,7 +1,7 @@
 package com.lehaine.littlekt.samples
 
-import com.lehaine.littlekt.Application
-import com.lehaine.littlekt.LittleKt
+import com.lehaine.littlekt.Context
+import com.lehaine.littlekt.ContextListener
 import com.lehaine.littlekt.createShader
 import com.lehaine.littlekt.graphics.*
 import com.lehaine.littlekt.graphics.shader.shaders.SimpleColorFragmentShader
@@ -15,9 +15,9 @@ import kotlin.time.Duration
  * @author Colton Daily
  * @date 11/6/2021
  */
-class DisplayTest(application: Application) : LittleKt(application), InputProcessor {
+class DisplayTest(context: Context) : ContextListener(context), InputProcessor {
 
-    val batch = SpriteBatch(application)
+    val batch = SpriteBatch(context)
 
     var loading = true
 

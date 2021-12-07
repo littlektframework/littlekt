@@ -1,6 +1,6 @@
 package com.lehaine.littlekt.graphics.gl
 
-import com.lehaine.littlekt.Application
+import com.lehaine.littlekt.Context
 import com.lehaine.littlekt.graphics.Pixmap
 import com.lehaine.littlekt.graphics.TextureData
 
@@ -25,7 +25,7 @@ class PixmapTextureData(override val pixmap: Pixmap, override val useMipMaps: Bo
         return pixmap
     }
 
-    override fun consumeCustomData(application:Application, target: TextureTarget) {
+    override fun consumeCustomData(context:Context, target: TextureTarget) {
         throw RuntimeException("This TextureData implementation does not upload data itself")
     }
 }

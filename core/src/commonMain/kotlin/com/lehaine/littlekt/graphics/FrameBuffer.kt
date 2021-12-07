@@ -1,6 +1,6 @@
 package com.lehaine.littlekt.graphics
 
-import com.lehaine.littlekt.Application
+import com.lehaine.littlekt.Context
 import com.lehaine.littlekt.Disposable
 import com.lehaine.littlekt.graphics.gl.*
 import com.lehaine.littlekt.file.createUint32Buffer
@@ -47,8 +47,8 @@ class FrameBuffer(
         get() = isPrepared
 
 
-    override fun prepare(application: Application) {
-        gl = application.gl
+    override fun prepare(context: Context) {
+        gl = context.gl
         val fboHandle = gl.createFrameBuffer()
         this.fboHandle = fboHandle
 
@@ -81,7 +81,7 @@ class FrameBuffer(
             magFilter = TexMagFilter.LINEAR
             uWrap = TexWrap.CLAMP_TO_EDGE
             vWrap = TexWrap.CLAMP_TO_EDGE
-        }.also { it.prepare(application) } // preparing the texture will also bind it
+        }.also { it.prepare(context) } // preparing the texture will also bind it
 
         texture?.glTexture?.let {
             gl.frameBufferTexture2D(FrameBufferRenderBufferAttachment.COLOR_ATTACHMENT(), it, 0)
@@ -105,8 +105,8 @@ class FrameBuffer(
 
         var result = gl.checkFrameBufferStatus()
         if (result == FrameBufferStatus.FRAMEBUFFER_UNSUPPORTED && hasDepth && hasStencil &&
-            (application.graphics.supportsExtension("GL_OES_packed_depth_stencil")
-                    || application.graphics.supportsExtension("GL_EXT_packed_depth_stencil"))
+            (context.graphics.supportsExtension("GL_OES_packed_depth_stencil")
+                    || context.graphics.supportsExtension("GL_EXT_packed_depth_stencil"))
         ) {
             if (hasDepth) {
                 depthBufferHandle?.let {

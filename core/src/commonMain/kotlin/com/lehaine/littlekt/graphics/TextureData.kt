@@ -1,7 +1,6 @@
 package com.lehaine.littlekt.graphics
 
-import com.lehaine.littlekt.Application
-import com.lehaine.littlekt.Platform
+import com.lehaine.littlekt.Context
 import com.lehaine.littlekt.graphics.gl.TextureTarget
 
 /**
@@ -31,12 +30,12 @@ interface TextureData {
 
     fun consumePixmap(): Pixmap
 
-    fun consumeCustomData(application: Application, target: TextureTarget)
+    fun consumeCustomData(context: Context, target: TextureTarget)
 
 }
 
 fun <T : TextureData> T.generateMipMap(
-    application: Application,
+    context: Context,
     target: TextureTarget,
     pixmap: Pixmap,
     width: Int,
@@ -44,19 +43,23 @@ fun <T : TextureData> T.generateMipMap(
     useHWMipMap: Boolean = true
 ) {
     if (!useHWMipMap) {
-        generateMipMapCPU(application, target, pixmap, width, height)
+        generateMipMapCPU(context, target, pixmap, width, height)
     }
 
 
-    when (application.platform) {
-        Platform.DESKTOP -> generateMipMapDesktop(application, target, pixmap, width, height)
-        Platform.JS, Platform.ANDROID, Platform.IOS -> generateMipMapGLES20(application, target, pixmap)
+    when (context.platform) {
+        Context.Platform.DESKTOP -> generateMipMapDesktop(context, target, pixmap, width, height)
+        Context.Platform.JS, Context.Platform.ANDROID, Context.Platform.IOS -> generateMipMapGLES20(
+            context,
+            target,
+            pixmap
+        )
     }
 
 }
 
-private fun TextureData.generateMipMapGLES20(application: Application, target: TextureTarget, pixmap: Pixmap) {
-    val gl = application.graphics.gl
+private fun TextureData.generateMipMapGLES20(context: Context, target: TextureTarget, pixmap: Pixmap) {
+    val gl = context.graphics.gl
     gl.texImage2D(
         target,
         0,
@@ -71,13 +74,13 @@ private fun TextureData.generateMipMapGLES20(application: Application, target: T
 }
 
 private fun TextureData.generateMipMapCPU(
-    application: Application,
+    context: Context,
     target: TextureTarget,
     pixmap: Pixmap,
     width: Int,
     height: Int
 ) {
-    val gl = application.graphics.gl
+    val gl = context.graphics.gl
 
     gl.texImage2D(
         target,
@@ -107,16 +110,16 @@ private fun TextureData.generateMipMapCPU(
 }
 
 private fun TextureData.generateMipMapDesktop(
-    application: Application,
+    context: Context,
     target: TextureTarget,
     pixmap: Pixmap,
     width: Int,
     height: Int
 ) {
-    val gl = application.graphics.gl
+    val gl = context.graphics.gl
 
-    if (application.graphics.supportsExtension("GL_ARB_framebuffer_object")
-        || application.graphics.supportsExtension("GL_EXT_framebuffer_object")
+    if (context.graphics.supportsExtension("GL_ARB_framebuffer_object")
+        || context.graphics.supportsExtension("GL_EXT_framebuffer_object")
         || gl.isGL32()
     ) {
         gl.texImage2D(
@@ -131,31 +134,31 @@ private fun TextureData.generateMipMapDesktop(
         )
         gl.generateMipmap(target)
     } else {
-        generateMipMapCPU(application, target, pixmap, width, height)
+        generateMipMapCPU(context, target, pixmap, width, height)
     }
 }
 
 
 fun <T : TextureData> T.uploadImageData(
-    application: Application,
+    context: Context,
     target: TextureTarget,
     data: TextureData,
     mipLevel: Int = 0
 ) {
-    val gl = application.graphics.gl
+    val gl = context.graphics.gl
     if (!data.isPrepared) {
         data.prepare()
     }
 
     if (data.isCustom) {
-        data.consumeCustomData(application, target)
+        data.consumeCustomData(context, target)
         return
     }
 
     gl.pixelStorei(GL.UNPACK_ALIGNMENT, 1)
     val pixmap = data.consumePixmap()
     if (data.useMipMaps) {
-        generateMipMap(application, target, pixmap, data.width, data.height)
+        generateMipMap(context, target, pixmap, data.width, data.height)
     } else {
         gl.texImage2D(
             target = target,

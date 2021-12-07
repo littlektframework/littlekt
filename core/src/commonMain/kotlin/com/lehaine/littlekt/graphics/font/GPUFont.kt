@@ -1,6 +1,6 @@
 package com.lehaine.littlekt.graphics.font
 
-import com.lehaine.littlekt.Application
+import com.lehaine.littlekt.Context
 import com.lehaine.littlekt.graphics.*
 import com.lehaine.littlekt.graphics.gl.*
 import com.lehaine.littlekt.graphics.shader.ShaderProgram
@@ -39,18 +39,18 @@ class GPUFont(private val font: TtfFont) : Preparable {
         font.fontSize = 1
     }
 
-    override fun prepare(application: Application) {
-        gl = application.gl
-        glyphShader = ShaderProgram(application.gl, GlyphVertexShader(), GlyphFragmentShader())
-        glyphOffscreenShader = ShaderProgram(application.gl, GlyphVertexShader(), GlyphOffscreenFragmentShader())
-        textShader = ShaderProgram(application.gl, TextVertexShader(), TextFragmentShader())
+    override fun prepare(context: Context) {
+        gl = context.gl
+        glyphShader = ShaderProgram(context.gl, GlyphVertexShader(), GlyphFragmentShader())
+        glyphOffscreenShader = ShaderProgram(context.gl, GlyphVertexShader(), GlyphOffscreenFragmentShader())
+        textShader = ShaderProgram(context.gl, TextVertexShader(), TextFragmentShader())
 
-        glyphMesh = textureMesh(application.gl) {
+        glyphMesh = textureMesh(context.gl) {
             maxVertices = 50000
             isStatic = false
         }
         glyphRenderer = GlyphRenderer(glyphMesh)
-        fbo = FrameBuffer(application.graphics.width, application.graphics.height).apply { prepare(application) }
+        fbo = FrameBuffer(context.graphics.width, context.graphics.height).apply { prepare(context) }
         isPrepared = true
     }
 

@@ -1,7 +1,7 @@
 package com.lehaine.littlekt.samples
 
-import com.lehaine.littlekt.Application
-import com.lehaine.littlekt.LittleKt
+import com.lehaine.littlekt.Context
+import com.lehaine.littlekt.ContextListener
 import com.lehaine.littlekt.graphics.Color
 import com.lehaine.littlekt.graphics.OrthographicCamera
 import com.lehaine.littlekt.graphics.SpriteBatch
@@ -16,7 +16,7 @@ import kotlin.time.Duration.Companion.seconds
  * @author Colton Daily
  * @date 12/1/2021
  */
-class FontLoadTest(application: Application) : LittleKt(application) {
+class FontLoadTest(context: Context) : ContextListener(context) {
     lateinit var gpuFont: GPUFont
     private var loading = true
     private val batch = SpriteBatch(this)

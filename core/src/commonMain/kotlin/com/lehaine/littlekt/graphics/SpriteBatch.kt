@@ -1,6 +1,6 @@
 package com.lehaine.littlekt.graphics
 
-import com.lehaine.littlekt.Application
+import com.lehaine.littlekt.Context
 import com.lehaine.littlekt.Disposable
 import com.lehaine.littlekt.graphics.gl.BlendFactor
 import com.lehaine.littlekt.graphics.gl.DrawMode
@@ -20,7 +20,7 @@ import kotlin.math.sin
  * @date 11/7/2021
  */
 class SpriteBatch(
-    val application: Application,
+    val context: Context,
     val size: Int = 1000,
 ) : Disposable {
     companion object {
@@ -28,8 +28,8 @@ class SpriteBatch(
         private const val SPRITE_SIZE = 4 * VERTEX_SIZE
     }
 
-    private val gl get() = application.graphics.gl
-    val defaultShader = ShaderProgram(application.graphics.gl, DefaultVertexShader(), DefaultFragmentShader())
+    private val gl get() = context.graphics.gl
+    val defaultShader = ShaderProgram(context.graphics.gl, DefaultVertexShader(), DefaultFragmentShader())
     var shader: ShaderProgram<*, *> = defaultShader
         set(value) {
             if (drawing) {
@@ -61,9 +61,9 @@ class SpriteBatch(
         }
     var projectionMatrix = Mat4().setOrthographic(
         left = 0f,
-        right = application.graphics.width.toFloat(),
+        right = context.graphics.width.toFloat(),
         bottom = 0f,
-        top = application.graphics.height.toFloat(),
+        top = context.graphics.height.toFloat(),
         near = -1f,
         far = 1f
     )
@@ -78,7 +78,7 @@ class SpriteBatch(
         }
     private var combinedMatrix = Mat4()
 
-    private val mesh = application.textureMesh {
+    private val mesh = context.textureMesh {
         isStatic = false
         maxVertices = size * 4
     }.apply {
