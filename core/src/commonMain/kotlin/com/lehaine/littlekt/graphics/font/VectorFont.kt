@@ -9,12 +9,13 @@ import com.lehaine.littlekt.log.Logger
 import com.lehaine.littlekt.math.Mat4
 import com.lehaine.littlekt.math.RectBuilder
 import com.lehaine.littlekt.math.Vec2f
+import kotlin.time.measureTime
 
 /**
  * @author Colton Daily
  * @date 11/30/2021
  */
-class GPUFont(private val font: TtfFont) : Preparable {
+class VectorFont(private val font: TtfFont) : Preparable {
     private lateinit var glyphRenderer: GlyphRenderer
 
     private lateinit var glyphShader: ShaderProgram<GlyphVertexShader, GlyphFragmentShader>
@@ -29,13 +30,15 @@ class GPUFont(private val font: TtfFont) : Preparable {
     private val temp = Mat4()
     private val tempStringList = mutableListOf<String>()
     private val tempColorList = mutableListOf<Color>()
+    private val cachedGlyphs = mutableMapOf<Char, MutableList<TextCacheData>>()
     private val textBuilder = TextBuilder()
+
+    private data class TextCacheData(var x: Float, var y: Float, var color: Color)
 
     var fontSize: Int = 72
 
     override val prepared: Boolean
         get() = isPrepared
-
 
     init {
         font.fontSize = 1
@@ -74,7 +77,9 @@ class GPUFont(private val font: TtfFont) : Preparable {
         check(isPrepared) { "GPUFont has not been prepared yet! Please call prepare() before using!" }
         tempStringList += text
         tempColorList += color
-        renderText(tempStringList, x, y, tempColorList)
+        measureTime {
+            renderText(tempStringList, x, y, tempColorList)
+        }
         tempStringList.clear()
         tempColorList.clear()
     }
@@ -186,11 +191,19 @@ class GPUFont(private val font: TtfFont) : Preparable {
         val pathScale = 1f * fontSize
         val advanceWidthScale = 1f / font.unitsPerEm * fontSize
         texts.forEachIndexed { index, text ->
+
             text.forEach { char ->
                 val code = char.code
                 if (char == '\n') {
                     ty -= font.ascender * advanceWidthScale
                     tx = x
+                    return@forEach
+                }
+                if (cachedGlyphs[char] == null) {
+                    cachedGlyphs[char] = mutableListOf()
+                }
+                val cachedChar = cachedGlyphs[char]?.firstOrNull { it.x == tx && it.y == ty && it.color == colors[index] }
+                if (cachedChar != null) {
                     return@forEach
                 }
                 val glyph = font.glyphs[code] ?: error("Unable to find glyph for '$char'!")
@@ -219,13 +232,14 @@ class GPUFont(private val font: TtfFont) : Preparable {
                         }
                     }
                 }
+                cachedGlyphs[char]?.let { it += TextCacheData(tx, ty, colors[index]) }
                 tx += glyph.advanceWidth * advanceWidthScale
             }
         }
     }
 
     companion object {
-        private val logger = Logger<GPUFont>()
+        private val logger = Logger<VectorFont>()
         private val JITTER_PATTERN = listOf(
             Vec2f(-1f / 12f, -5f / 12f),
             Vec2f(1f / 12f, 1f / 12f),

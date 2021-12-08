@@ -112,7 +112,7 @@ class VertexBufferObject(val gl: GL, val isStatic: Boolean, numVertices: Int, va
 
     private fun onBufferChanged() {
         if (bound) {
-            gl.bufferData(BufferTarget.ARRAY, DataSource.Float32BufferDataSource(buffer), usage)
+            gl.bufferSubData(BufferTarget.ARRAY, 0, DataSource.Float32BufferDataSource(buffer))
             isDirty = false
         }
     }
