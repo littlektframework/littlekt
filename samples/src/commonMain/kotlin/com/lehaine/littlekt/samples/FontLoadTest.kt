@@ -5,10 +5,13 @@ import com.lehaine.littlekt.ContextListener
 import com.lehaine.littlekt.graphics.Color
 import com.lehaine.littlekt.graphics.OrthographicCamera
 import com.lehaine.littlekt.graphics.SpriteBatch
+import com.lehaine.littlekt.graphics.font.Text
+import com.lehaine.littlekt.graphics.font.TextBlock
 import com.lehaine.littlekt.graphics.font.VectorFont
 import com.lehaine.littlekt.graphics.gl.ClearBufferMask
 import com.lehaine.littlekt.input.Key
 import com.lehaine.littlekt.log.Logger
+import com.lehaine.littlekt.util.toString
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
@@ -37,14 +40,17 @@ class FontLoadTest(context: Context) : ContextListener(context) {
         }
     }
 
-    var text = "Hello\nWorld!!!"
-    var text2 = "Aa Bb Cc Dd Ee Ff Gg @#4@*@*#&()_!@#"
+    var text = "Hello"
+    var text2 = "Hwllo"
     var usingText = true
     var step = 1
     var totalTime: Duration = 0.seconds
     var startValue = 72
 
     private var lastStats = "Loading..."
+    val staticText = Text("FPS: ", 36, Color.GREEN)
+    val fpsText = Text("TBD", 36, Color.RED)
+    val textBlock = TextBlock(50f, 430f, mutableListOf(staticText, fpsText))
     override fun render(dt: Duration) {
         if (loading) return
         if (!loading && !vectorFont.prepared) {
@@ -54,8 +60,8 @@ class FontLoadTest(context: Context) : ContextListener(context) {
         gl.clearColor(Color.DARK_GRAY)
         gl.clear(ClearBufferMask.COLOR_BUFFER_BIT)
 
-        vectorFont.fontSize = if (usingText) 36 else 72
-        vectorFont.text(lastStats, 50f, 430f, Color.DARK_ORANGE)
+        fpsText.text = stats.fps.toString(1)
+        vectorFont.queue(textBlock)
         vectorFont.flush(batch, camera.viewProjection, useJitter = false)
 //
 //        gpuFont.fontSize = 100

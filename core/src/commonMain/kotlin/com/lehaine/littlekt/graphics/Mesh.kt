@@ -112,7 +112,7 @@ class MeshProps {
     var autoBind = true
 }
 
-class MeshBatcher(size: Int, val attributes: VertexAttributes) {
+internal class MeshBatcher(size: Int, val attributes: VertexAttributes) {
     val vertexSize = attributes.sumOf { if (it == VertexAttribute.COLOR_PACKED) 1 else it.numComponents }
     val vertices = FloatArray(size * vertexSize)
     var lastCount = 0
@@ -121,7 +121,7 @@ class MeshBatcher(size: Int, val attributes: VertexAttributes) {
         private set
     private var offset = 0
 
-    fun setVertex(props: VertexProps) {
+    internal fun setVertex(props: VertexProps) {
         attributes.forEach { vertexAttribute ->
             when (vertexAttribute.usage) {
                 VertexAttrUsage.POSITION -> {
@@ -152,7 +152,12 @@ class MeshBatcher(size: Int, val attributes: VertexAttributes) {
         count++
     }
 
-    fun reset() {
+    internal fun skip(totalVertices: Int) {
+        offset += totalVertices * vertexSize
+        count += totalVertices
+    }
+
+    internal fun reset() {
         lastCount = count
         offset = 0
         count = 0
@@ -196,7 +201,7 @@ class Mesh(
      * of the values yourself. The batcher will also keep count of each vertex for rendering purposes.
      * @see [verticesPerIndex]
      */
-    val batcher = MeshBatcher(maxVertices, vertexAttributes)
+    private val batcher = MeshBatcher(maxVertices, vertexAttributes)
 
     /**
      * The number of vertices shared per index. If you are drawing just a triangle, each vertex would only have 1 index.
@@ -244,11 +249,22 @@ class Mesh(
      * [VertexProps.colorPacked] field will do nothing.
      */
     fun setVertex(action: VertexProps.() -> Unit) {
-        if (!useBatcher) throw RuntimeException("This mesh isn't user the mesh batcher! You cannot use setVertex. You must pass in a FloatArray to setVertices.")
+        if (!useBatcher) throw IllegalStateException("This mesh isn't user the mesh batcher! You cannot use setVertex. You must pass in a FloatArray to setVertices.")
         tempVertexProps.action()
         batcher.setVertex(tempVertexProps)
         updateVertices = true
         resetProps()
+    }
+
+    /**
+     * Offsets the [MeshBatcher] by the total amount.
+     * If you are using this, be sure you know what you are doing!!
+     * @param totalVertices the total vertices being skipped
+     */
+    fun skip(totalVertices: Int) {
+        if (!useBatcher) throw RuntimeException("This mesh isn't user the mesh batcher! You cannot use skip. You must pass in a FloatArray to setVertices.")
+        updateVertices = true
+        batcher.skip(totalVertices)
     }
 
     private fun resetProps() {

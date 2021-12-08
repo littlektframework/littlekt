@@ -9,6 +9,7 @@ import com.lehaine.littlekt.log.Logger
 import com.lehaine.littlekt.math.Mat4
 import com.lehaine.littlekt.math.RectBuilder
 import com.lehaine.littlekt.math.Vec2f
+import com.lehaine.littlekt.util.datastructure.FloatArrayList
 import kotlin.time.measureTime
 
 /**
@@ -28,14 +29,18 @@ class VectorFont(private val font: TtfFont) : Preparable {
 
     private var isPrepared = false
     private val temp = Mat4()
-    private val tempStringList = mutableListOf<String>()
-    private val tempColorList = mutableListOf<Color>()
-    private val cachedGlyphs = mutableMapOf<Char, MutableList<TextCacheData>>()
-    private val textBuilder = TextBuilder()
 
-    private data class TextCacheData(var x: Float, var y: Float, var color: Color)
+    // text block cache -  textBlock.id to textBlock.hashCode
+    private val textBlockCache = linkedMapOf<Int, Pair<Int, Pair<Float, Float>>>()
 
-    var fontSize: Int = 72
+    // text block text cache - textBlock.id to mapOf text.id to text.hashCode
+    private val textCache = mutableMapOf<Int, MutableMap<Int, Int>>()
+
+    // text data cache - text.id to TextData object
+    private val textDataCache = mutableMapOf<Int, TextData>()
+    private val vertices = FloatArrayList(50000)
+    private var offset = 0
+
 
     override val prepared: Boolean
         get() = isPrepared
@@ -52,10 +57,10 @@ class VectorFont(private val font: TtfFont) : Preparable {
         textShader = ShaderProgram(TextVertexShader(), TextFragmentShader()).also { it.prepare(context) }
 
         glyphMesh = textureMesh(context.gl) {
-            maxVertices = 50000
-            isStatic = false
+            maxVertices = vertices.capacity
+            useBatcher = false
         }
-        glyphRenderer = GlyphRenderer(glyphMesh)
+        glyphRenderer = GlyphRenderer()
         fbo = FrameBuffer(context.graphics.width, context.graphics.height).apply { prepare(context) }
         isPrepared = true
     }
@@ -73,27 +78,18 @@ class VectorFont(private val font: TtfFont) : Preparable {
      * @param color the color to render the text as. The color is only taken into account if [flush] is used.
      * This is due to able to render directly to the vertices vs having to use blending to get the desired results.
      */
-    fun text(text: String, x: Float, y: Float, color: Color = Color.BLACK) {
+    fun queue(text: TextBlock) {
         check(isPrepared) { "GPUFont has not been prepared yet! Please call prepare() before using!" }
-        tempStringList += text
-        tempColorList += color
-        measureTime {
-            renderText(tempStringList, x, y, tempColorList)
-        }
-        tempStringList.clear()
-        tempColorList.clear()
-    }
 
-    fun buildText(x: Float, y: Float, build: TextBuilder.() -> Unit) {
-        check(isPrepared) { "GPUFont has not been prepared yet! Please call prepare() before using!" }
-        textBuilder.build()
-        renderText(textBuilder.text, x, y, textBuilder.colors)
+        measureTime {
+            renderText(text)
+        }
     }
 
 
     /**
      * Renders the text to a stencil buffer in order to flip the pixels the correct way and then renders to the
-     * color buffer. This does not use any antialiasing. The color of the text passed in [text] will be rendered.
+     * color buffer. This does not use any antialiasing. The color of the text passed in [queue] will be rendered.
      * @param viewProjection the combined view projection matrix to render the text
      */
     fun flush(viewProjection: Mat4) {
@@ -112,10 +108,9 @@ class VectorFont(private val font: TtfFont) : Preparable {
         gl.stencilFunc(CompareFunction.EQUAL, 1, 1)
         gl.stencilOp(StencilAction.KEEP, StencilAction.KEEP, StencilAction.INVERT)
 
-        glyphMesh.render(glyphShader)
+        glyphMesh.render(glyphShader, count = offset / 5)
 
         gl.disable(State.STENCIL_TEST)
-        textBuilder.clear()
     }
 
     /**
@@ -136,6 +131,7 @@ class VectorFont(private val font: TtfFont) : Preparable {
         gl.blendEquation(BlendEquationMode.FUNC_ADD)
         gl.blendFunc(BlendFactor.ONE, BlendFactor.ONE)
 
+        glyphMesh.setVertices(vertices.toFloatArray())
         glyphOffscreenShader.bind()
         if (useJitter) {
             JITTER_PATTERN.forEachIndexed { idx, pattern ->
@@ -151,7 +147,7 @@ class VectorFont(private val font: TtfFont) : Preparable {
                     )
                 }
                 glyphOffscreenShader.vertexShader.uProjTrans.apply(glyphOffscreenShader, temp)
-                glyphMesh.render(glyphOffscreenShader)
+                glyphMesh.render(glyphOffscreenShader, count = offset / 5)
             }
         } else {
             temp.set(viewProjection)
@@ -163,7 +159,7 @@ class VectorFont(private val font: TtfFont) : Preparable {
                 0f
             )
             glyphOffscreenShader.vertexShader.uProjTrans.apply(glyphOffscreenShader, temp)
-            glyphMesh.render(glyphOffscreenShader)
+            glyphMesh.render(glyphOffscreenShader, count = offset / 5)
         }
 
         fbo.end()
@@ -182,60 +178,124 @@ class VectorFont(private val font: TtfFont) : Preparable {
         }
         batch.shader = batch.defaultShader
         batch.setToPreviousBlendFunction()
-        textBuilder.clear()
+        offset = 0
     }
 
-    private fun renderText(texts: List<String>, x: Float, y: Float, colors: List<Color>) {
-        var tx = x
-        var ty = y
-        val pathScale = 1f * fontSize
-        val advanceWidthScale = 1f / font.unitsPerEm * fontSize
-        texts.forEachIndexed { index, text ->
+    private fun renderText(textBlock: TextBlock) {
+        val cachedTextBlockHash = textBlockCache[textBlock.id]
 
-            text.forEach { char ->
-                val code = char.code
-                if (char == '\n') {
-                    ty -= font.ascender * advanceWidthScale
-                    tx = x
-                    return@forEach
-                }
-                if (cachedGlyphs[char] == null) {
-                    cachedGlyphs[char] = mutableListOf()
-                }
-                val cachedChar = cachedGlyphs[char]?.firstOrNull { it.x == tx && it.y == ty && it.color == colors[index] }
-                if (cachedChar != null) {
-                    return@forEach
-                }
-                val glyph = font.glyphs[code] ?: error("Unable to find glyph for '$char'!")
-                if (char != ' ') {
-                    glyphRenderer.begin(glyph, colors[index])
-                    glyph.path.commands.forEach { cmd ->
-                        when (cmd.type) {
-                            GlyphPath.CommandType.MOVE_TO -> glyphRenderer.moveTo(
-                                cmd.x * pathScale + tx,
-                                -cmd.y * pathScale + ty
-                            )
-                            GlyphPath.CommandType.LINE_TO -> glyphRenderer.lineTo(
-                                cmd.x * pathScale + tx,
-                                -cmd.y * pathScale + ty
-                            )
-                            GlyphPath.CommandType.QUADRATIC_CURVE_TO -> glyphRenderer.curveTo(
-                                cmd.x1 * pathScale + tx,
-                                -cmd.y1 * pathScale + ty,
-                                cmd.x * pathScale + tx,
-                                -cmd.y * pathScale + ty
-                            )
-                            GlyphPath.CommandType.CLOSE -> glyphRenderer.close()
-                            else -> {
-                                // do nothing with bezier curves - only want the quadratic curves
+        if (cachedTextBlockHash != null) {
+            if (cachedTextBlockHash.first != textBlock.hashCode()) {
+                if (textBlock.x != cachedTextBlockHash.second.first || textBlock.y != cachedTextBlockHash.second.second) {
+                    textBlockCache[textBlock.id] = textBlock.hashCode() to (textBlock.x to textBlock.y)
+                    var startX = textBlock.x
+                    var startY = textBlock.y
+                    textBlock.text.forEach { text ->
+                        val data = compileGlyphs(text, startX, startY)
+                        startX = data.endX
+                        startY = data.endY
+                        textCache[textBlock.id]?.let {
+                            it[text.id] = text.hashCode()
+                        }
+                        textDataCache[text.id] = data
+                    }
+                } else {
+                    var recalc = false
+                    var startX = textBlock.x
+                    var startY = textBlock.y
+                    textBlock.text.forEach { text ->
+                        if (!recalc) {
+                            val cachedTextHash = textCache[textBlock.id]?.get(text.id) ?: -1
+                            if (cachedTextHash != text.hashCode()) {
+                                recalc = true
+                            } else {
+                                startX = textDataCache[text.id]?.endX ?: startX
+                                startY = textDataCache[text.id]?.endY ?: startY
                             }
+                        }
+                        if (recalc) {
+                            val data = compileGlyphs(text, startX, startY)
+                            textCache[textBlock.id]?.let {
+                                it[text.id] = text.hashCode()
+                            }
+                            textDataCache[text.id] = data
                         }
                     }
                 }
-                cachedGlyphs[char]?.let { it += TextCacheData(tx, ty, colors[index]) }
-                tx += glyph.advanceWidth * advanceWidthScale
+            }
+        } else {
+            textBlockCache[textBlock.id] = textBlock.hashCode() to (textBlock.x to textBlock.y)
+            textCache[textBlock.id] = mutableMapOf()
+            var startX = textBlock.x
+            var startY = textBlock.y
+            textBlock.text.forEach { text ->
+                val data = compileGlyphs(text, startX, startY)
+                startX = data.endX
+                startY = data.endY
+                textCache[textBlock.id]?.let {
+                    it[text.id] = text.hashCode()
+                }
+                textDataCache[text.id] = data
             }
         }
+        uploadTextBlockVertices(textBlock)
+    }
+
+    private fun uploadTextBlockVertices(textBlock: TextBlock) {
+        textBlock.text.forEach { text ->
+            val data = textDataCache[text.id] ?: return@forEach
+            var j = 0
+            for (i in offset until offset + data.vertices.size) {
+                vertices[i] = data.vertices[j++]
+            }
+            offset += j
+        }
+    }
+
+    private val tempVerts = FloatArrayList(1000)
+    private fun compileGlyphs(text: Text, startX: Float, startY: Float): TextData {
+        tempVerts.clear()
+        var tx = startX
+        var ty = startY
+        val pathScale = 1f * text.pxScale
+        val advanceWidthScale = 1f / font.unitsPerEm * text.pxScale
+        text.text.forEach { char ->
+            val code = char.code
+            if (char == '\n') {
+                ty -= font.ascender * advanceWidthScale
+                tx = startX
+                return@forEach
+            }
+            val glyph = font.glyphs[code] ?: error("Unable to find glyph for '$char'!")
+            if (char != ' ') {
+                glyphRenderer.begin(glyph, text.color)
+                glyph.path.commands.forEach { cmd ->
+                    when (cmd.type) {
+                        GlyphPath.CommandType.MOVE_TO -> glyphRenderer.moveTo(
+                            cmd.x * pathScale + tx,
+                            -cmd.y * pathScale + ty
+                        )
+                        GlyphPath.CommandType.LINE_TO -> glyphRenderer.lineTo(
+                            cmd.x * pathScale + tx,
+                            -cmd.y * pathScale + ty
+                        )
+                        GlyphPath.CommandType.QUADRATIC_CURVE_TO -> glyphRenderer.curveTo(
+                            cmd.x1 * pathScale + tx,
+                            -cmd.y1 * pathScale + ty,
+                            cmd.x * pathScale + tx,
+                            -cmd.y * pathScale + ty
+                        )
+                        GlyphPath.CommandType.CLOSE -> glyphRenderer.close()
+                        else -> {
+                            // do nothing with bezier curves - only want the quadratic curves
+                        }
+                    }
+                }
+                tempVerts += glyphRenderer.end()
+            }
+            tx += glyph.advanceWidth * advanceWidthScale
+        }
+        return TextData(text, tx, ty, tempVerts.toFloatArray())
     }
 
     companion object {
@@ -251,29 +311,72 @@ class VectorFont(private val font: TtfFont) : Preparable {
     }
 }
 
-class TextBuilder() {
-    internal val text: MutableList<String> = mutableListOf()
-    internal val colors: MutableList<Color> = mutableListOf()
+private class TextData(val text: Text, val endX: Float, val endY: Float, val vertices: FloatArray) {
+    val id = genId
 
-    fun append(color: Color = Color.BLACK, action: () -> String) {
-        text += action()
-        colors += color
-    }
-
-    internal fun clear() {
-        text.clear()
-        colors.clear()
+    companion object {
+        private var genId = 1
+            get() = field++
     }
 }
 
-internal class GlyphRenderer(val mesh: Mesh) {
+data class TextBlock(
+    var x: Float = 0f,
+    var y: Float = 0f,
+    val text: MutableList<Text> = mutableListOf()
+) {
+    val id = genId
+
+    companion object {
+        private var genId = 1
+            get() = field++
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other == null || this::class != other::class) return false
+
+        other as TextBlock
+
+        if (x != other.x) return false
+        if (y != other.y) return false
+        if (text != other.text) return false
+        if (id != other.id) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = x.hashCode()
+        result = 31 * result + y.hashCode()
+        result = 31 * result + text.hashCode()
+        result = 31 * result + id
+        return result
+    }
+
+}
+
+data class Text(
+    var text: String = "",
+    var pxScale: Int = 16,
+    var color: Color = Color.BLACK
+) {
+    val id = genId
+
+    companion object {
+        private var genId = 1
+            get() = field++
+    }
+}
+
+
+internal class GlyphRenderer {
 
     private enum class TriangleType {
         SOLID,
         QUADRATIC_CURVE
     }
 
-    private val vertices = mutableListOf<Float>()
     private var firstX = 0f
     private var firstY = 0f
     private var currentX = 0f
@@ -283,6 +386,7 @@ internal class GlyphRenderer(val mesh: Mesh) {
     private var rectBuilder = RectBuilder()
     private var color: Color = Color.WHITE
     private var colorBits = color.toFloatBits()
+    private val vertices = FloatArrayList(100)
 
     fun begin(glyph: Glyph, color: Color) {
         if (this.color != color) {
@@ -325,6 +429,10 @@ internal class GlyphRenderer(val mesh: Mesh) {
         contourCount = 0
     }
 
+    fun end(): FloatArray {
+        return vertices.toFloatArray()
+    }
+
     private fun appendTriangle(
         ax: Float,
         ay: Float,
@@ -350,12 +458,12 @@ internal class GlyphRenderer(val mesh: Mesh) {
 
     private fun appendVertex(x: Float, y: Float, u: Float, v: Float) {
         rectBuilder.include(x, y)
-        mesh.setVertex {
-            this.x = x
-            this.y = y
-            this.u = u
-            this.v = v
-            this.colorPacked = colorBits
+        vertices.run {
+            add(x)
+            add(y)
+            add(colorBits)
+            add(u)
+            add(v)
         }
     }
 }

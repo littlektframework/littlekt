@@ -11,7 +11,7 @@ import com.lehaine.littlekt.graphics.font.CharacterSets
 import com.lehaine.littlekt.graphics.font.TtfFont
 import com.lehaine.littlekt.graphics.gl.TextureFormat
 import com.lehaine.littlekt.log.Logger
-import com.lehaine.littlekt.util.internal.toString
+import com.lehaine.littlekt.util.toString
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job

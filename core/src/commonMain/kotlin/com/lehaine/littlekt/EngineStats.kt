@@ -1,6 +1,6 @@
 package com.lehaine.littlekt
 
-import com.lehaine.littlekt.util.internal.toString
+import com.lehaine.littlekt.util.toString
 
 /**
  * @author Colton Daily

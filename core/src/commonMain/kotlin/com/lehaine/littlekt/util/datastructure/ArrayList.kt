@@ -422,7 +422,8 @@ fun doubleArrayListOf(vararg values: Double) = DoubleArrayList(*values)
 class FloatArrayList(capacity: Int = 7) : Collection<Float> {
     companion object
 
-    var data: FloatArray = FloatArray(capacity) as FloatArray; private set
+    var data: FloatArray = FloatArray(capacity)
+        private set
     internal val capacity: Int get() = data.size
     private var length: Int = 0
     override var size: Int
