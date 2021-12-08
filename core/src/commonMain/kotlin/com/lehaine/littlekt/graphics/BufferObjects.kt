@@ -1,15 +1,15 @@
 package com.lehaine.littlekt.graphics
 
 import com.lehaine.littlekt.Disposable
+import com.lehaine.littlekt.file.DataSource
+import com.lehaine.littlekt.file.Float32Buffer
+import com.lehaine.littlekt.file.createFloat32Buffer
+import com.lehaine.littlekt.file.createUint16Buffer
 import com.lehaine.littlekt.graphics.gl.BufferTarget
 import com.lehaine.littlekt.graphics.gl.GlBuffer
 import com.lehaine.littlekt.graphics.gl.GlVertexArray
 import com.lehaine.littlekt.graphics.gl.Usage
-import com.lehaine.littlekt.file.DataSource
 import com.lehaine.littlekt.graphics.shader.ShaderProgram
-import com.lehaine.littlekt.file.Float32Buffer
-import com.lehaine.littlekt.file.createFloat32Buffer
-import com.lehaine.littlekt.file.createUint16Buffer
 
 /**
  * @author Colton Daily
@@ -35,7 +35,20 @@ class VertexBufferObject(val gl: GL, val isStatic: Boolean, numVertices: Int, va
     private var isDirty = false
 
     init {
+        allocBuffer()
         buffer.flip()
+    }
+
+    private fun allocBuffer() {
+        vaoGl?.let {
+            gl.bindVertexArray(it)
+        }
+        gl.bindBuffer(BufferTarget.ARRAY, glBuffer)
+        gl.bufferData(BufferTarget.ARRAY, DataSource.Float32BufferDataSource(buffer), usage)
+        gl.bindDefaultBuffer(GL.ARRAY_BUFFER)
+        vaoGl?.let {
+            gl.bindDefaultVertexArray()
+        }
     }
 
     fun setVertices(vertices: FloatArray, srcOffset: Int, count: Int) {
@@ -55,13 +68,13 @@ class VertexBufferObject(val gl: GL, val isStatic: Boolean, numVertices: Int, va
         onBufferChanged()
     }
 
-    fun bind(shader: ShaderProgram<*,*>? = null, locations: IntArray? = null) {
+    fun bind(shader: ShaderProgram<*, *>? = null, locations: IntArray? = null) {
         vaoGl?.let {
             gl.bindVertexArray(it)
         }
         gl.bindBuffer(BufferTarget.ARRAY, glBuffer)
         if (isDirty) {
-            gl.bufferData(BufferTarget.ARRAY, DataSource.Float32BufferDataSource(buffer), usage)
+            gl.bufferSubData(BufferTarget.ARRAY, 0, DataSource.Float32BufferDataSource(buffer))
             isDirty = false
         }
         if (shader != null) {
@@ -84,7 +97,7 @@ class VertexBufferObject(val gl: GL, val isStatic: Boolean, numVertices: Int, va
         bound = true
     }
 
-    fun unbind(shader: ShaderProgram<*,*>? = null, locations: IntArray? = null) {
+    fun unbind(shader: ShaderProgram<*, *>? = null, locations: IntArray? = null) {
         if (shader != null) {
             attributes.forEachIndexed { index, attribute ->
                 gl.disableVertexAttribArray(locations?.get(index) ?: shader.getAttrib(attribute.alias))
@@ -127,7 +140,14 @@ class IndexBufferObject(val gl: GL, maxIndices: Int, val isStatic: Boolean = tru
     private var isDirty = false
 
     init {
+        allocBuffer()
         buffer.flip()
+    }
+
+    private fun allocBuffer() {
+        gl.bindBuffer(BufferTarget.ELEMENT_ARRAY, glBuffer)
+        gl.bufferData(BufferTarget.ELEMENT_ARRAY, DataSource.Uint16BufferDataSource(buffer), usage)
+        gl.bindDefaultBuffer(BufferTarget.ELEMENT_ARRAY)
     }
 
     fun setIndices(indices: ShortArray, srcOffset: Int, count: Int) {
@@ -150,7 +170,7 @@ class IndexBufferObject(val gl: GL, maxIndices: Int, val isStatic: Boolean = tru
     fun bind() {
         gl.bindBuffer(BufferTarget.ELEMENT_ARRAY, glBuffer)
         if (isDirty) {
-            gl.bufferData(BufferTarget.ELEMENT_ARRAY, DataSource.Uint16BufferDataSource(buffer), usage)
+            gl.bufferSubData(BufferTarget.ELEMENT_ARRAY, 0, DataSource.Uint16BufferDataSource(buffer))
             isDirty = false
         }
         bound = true
@@ -163,7 +183,7 @@ class IndexBufferObject(val gl: GL, maxIndices: Int, val isStatic: Boolean = tru
 
     private fun onBufferChanged() {
         if (bound) {
-            gl.bufferData(BufferTarget.ELEMENT_ARRAY, DataSource.Uint16BufferDataSource(buffer), usage)
+            gl.bufferSubData(BufferTarget.ELEMENT_ARRAY, 0, DataSource.Uint16BufferDataSource(buffer))
             isDirty = false
         }
     }
