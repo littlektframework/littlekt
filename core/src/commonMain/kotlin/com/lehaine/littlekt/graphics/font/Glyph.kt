@@ -19,7 +19,9 @@ data class Glyph(
     val points: List<Point>,
     val refs: List<GlyphReference>,
     val isComposite: Boolean,
-    val unitsPerEm:Int
+    val unitsPerEm: Int,
+    val width: Int = xMax - xMin,
+    val height: Int = yMax - yMin
 ) {
     override fun toString(): String {
         return "Glyph(name=$name, index=$index, xMin=$xMin, yMin=$yMin, xMax=$xMax, yMax=$yMax, advanceWidth=$advanceWidth, leftSideBearing=$leftSideBearing, numberOfContours=$numberOfContours, unicode=$unicode, unicodes=$unicodes, path=$path, endPointIndices=$endPointIndices, instructionLength=$instructionLength, instructions=$instructions, points=$points, refs=$refs, isComposite=$isComposite, unitsPerEm=$unitsPerEm)"
