@@ -8,12 +8,11 @@ import com.lehaine.littlekt.graphics.TextureData
 import com.lehaine.littlekt.graphics.gl.PixmapTextureData
 import com.lehaine.littlekt.log.Logger
 import kotlinx.browser.document
+import kotlinx.browser.localStorage
 import kotlinx.coroutines.CompletableDeferred
 import org.khronos.webgl.ArrayBuffer
 import org.khronos.webgl.Uint8Array
-import org.w3c.dom.CanvasRenderingContext2D
-import org.w3c.dom.HTMLCanvasElement
-import org.w3c.dom.Image
+import org.w3c.dom.*
 import org.w3c.xhr.ARRAYBUFFER
 import org.w3c.xhr.XMLHttpRequest
 import org.w3c.xhr.XMLHttpRequestResponseType
@@ -93,5 +92,59 @@ class WebFileHandler(
         TODO("Not yet implemented")
     }
 
+    override fun store(key: String, data: ByteArray): Boolean {
+        return try {
+            localStorage[key] = binToBase64((data as Uint8BufferImpl).buffer)
+            true
+        } catch (e: Exception) {
+            logger.error { "Failed storing data '$key' to localStorage: $e" }
+            false
+        }
+    }
 
+    override fun store(key: String, data: String): Boolean {
+        return try {
+            localStorage[key] = data
+            true
+        } catch (e: Exception) {
+            logger.error { "Failed storing string '$key' to localStorage: $e" }
+            false
+        }
+    }
+
+    override fun load(key: String): Uint8Buffer? {
+        return localStorage[key]?.let { Uint8BufferImpl(base64ToBin(it)) }
+    }
+
+    override fun loadString(key: String): String? {
+        return localStorage[key]
+    }
+
+    /**
+     * Cumbersome / ugly method to convert Uint8Array into a base64 string in javascript
+     */
+    @Suppress("UNUSED_PARAMETER")
+    private fun binToBase64(uint8Data: Uint8Array): String = js(
+        """
+        var chunkSize = 0x8000;
+        var c = [];
+        for (var i = 0; i < uint8Data.length; i += chunkSize) {
+            c.push(String.fromCharCode.apply(null, uint8Data.subarray(i, i+chunkSize)));
+        }
+        return window.btoa(c.join(""));
+    """
+    ) as String
+
+    @Suppress("UNUSED_PARAMETER")
+    private fun base64ToBin(base64: String): Uint8Array = js(
+        """
+        var binary_string = window.atob(base64);
+        var len = binary_string.length;
+        var bytes = new Uint8Array(len);
+        for (var i = 0; i < len; i++) {
+            bytes[i] = binary_string.charCodeAt(i);
+        }
+        return bytes;
+    """
+    ) as Uint8Array
 }

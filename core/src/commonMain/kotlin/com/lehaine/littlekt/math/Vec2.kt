@@ -56,10 +56,10 @@ open class Vec2f(x: Float, y: Float) {
     fun sqrDistance(other: Vec2f): Float {
         val dx = x - other.x
         val dy = y - other.y
-        return dx*dx + dy*dy
+        return dx * dx + dy * dy
     }
 
-    fun sqrLength(): Float = x*x + y*y
+    fun sqrLength(): Float = x * x + y * y
 
     fun subtract(other: Vec2f, result: MutableVec2f): MutableVec2f = result.set(this).subtract(other)
 
@@ -108,10 +108,14 @@ open class MutableVec2f(x: Float, y: Float) : Vec2f(x, y) {
 
     override var x
         get() = this[0]
-        set(value) { this[0] = value }
+        set(value) {
+            this[0] = value
+        }
     override var y
         get() = this[1]
-        set(value) { this[1] = value }
+        set(value) {
+            this[1] = value
+        }
 
     val array: FloatArray
         get() = fields
@@ -123,6 +127,12 @@ open class MutableVec2f(x: Float, y: Float) : Vec2f(x, y) {
     fun add(other: Vec2f): MutableVec2f {
         x += other.x
         y += other.y
+        return this
+    }
+
+    fun add(x: Float, y: Float): MutableVec2f {
+        this.x += x
+        this.y += y
         return this
     }
 
@@ -145,7 +155,7 @@ open class MutableVec2f(x: Float, y: Float) : Vec2f(x, y) {
         return this
     }
 
-    fun scale(factor : Float): MutableVec2f {
+    fun scale(factor: Float): MutableVec2f {
         x *= factor
         y *= factor
         return this
@@ -169,15 +179,31 @@ open class MutableVec2f(x: Float, y: Float) : Vec2f(x, y) {
         return this
     }
 
-    operator fun divAssign(div : Float) { scale(1f / div) }
+    fun subtract(x: Float, y: Float): MutableVec2f {
+        this.x -= x
+        this.y -= y
+        return this
+    }
 
-    operator fun minusAssign(other: Vec2f) { subtract(other) }
+    operator fun divAssign(div: Float) {
+        scale(1f / div)
+    }
 
-    operator fun plusAssign(other: Vec2f) { add(other) }
+    operator fun minusAssign(other: Vec2f) {
+        subtract(other)
+    }
 
-    open operator fun set(i: Int, v: Float) { fields[i] = v }
+    operator fun plusAssign(other: Vec2f) {
+        add(other)
+    }
 
-    operator fun timesAssign(factor : Float) { scale(factor) }
+    open operator fun set(i: Int, v: Float) {
+        fields[i] = v
+    }
+
+    operator fun timesAssign(factor: Float) {
+        scale(factor)
+    }
 }
 
 
@@ -228,10 +254,10 @@ open class Vec2d(x: Double, y: Double) {
     fun sqrDistance(other: Vec2d): Double {
         val dx = x - other.x
         val dy = y - other.y
-        return dx*dx + dy*dy
+        return dx * dx + dy * dy
     }
 
-    fun sqrLength(): Double = x*x + y*y
+    fun sqrLength(): Double = x * x + y * y
 
     fun subtract(other: Vec2d, result: MutableVec2d): MutableVec2d = result.set(this).subtract(other)
 
@@ -280,10 +306,14 @@ open class MutableVec2d(x: Double, y: Double) : Vec2d(x, y) {
 
     override var x
         get() = this[0]
-        set(value) { this[0] = value }
+        set(value) {
+            this[0] = value
+        }
     override var y
         get() = this[1]
-        set(value) { this[1] = value }
+        set(value) {
+            this[1] = value
+        }
 
     constructor() : this(0.0, 0.0)
     constructor(f: Double) : this(f, f)
@@ -314,7 +344,7 @@ open class MutableVec2d(x: Double, y: Double) : Vec2d(x, y) {
         return this
     }
 
-    fun scale(factor : Double): MutableVec2d {
+    fun scale(factor: Double): MutableVec2d {
         x *= factor
         y *= factor
         return this
@@ -338,15 +368,25 @@ open class MutableVec2d(x: Double, y: Double) : Vec2d(x, y) {
         return this
     }
 
-    operator fun divAssign(div : Double) { scale(1f / div) }
+    operator fun divAssign(div: Double) {
+        scale(1f / div)
+    }
 
-    operator fun minusAssign(other: Vec2d) { subtract(other) }
+    operator fun minusAssign(other: Vec2d) {
+        subtract(other)
+    }
 
-    operator fun plusAssign(other: Vec2d) { add(other) }
+    operator fun plusAssign(other: Vec2d) {
+        add(other)
+    }
 
-    open operator fun set(i: Int, v: Double) { fields[i] = v }
+    open operator fun set(i: Int, v: Double) {
+        fields[i] = v
+    }
 
-    operator fun timesAssign(factor : Double) { scale(factor) }
+    operator fun timesAssign(factor: Double) {
+        scale(factor)
+    }
 }
 
 open class Vec2i(x: Int, y: Int) {
@@ -397,10 +437,14 @@ open class MutableVec2i(x: Int, y: Int) : Vec2i(x, y) {
 
     override var x
         get() = this[0]
-        set(value) { fields[0] = value }
+        set(value) {
+            fields[0] = value
+        }
     override var y
         get() = this[1]
-        set(value) { fields[1] = value }
+        set(value) {
+            fields[1] = value
+        }
 
     val array: IntArray
         get() = fields
@@ -420,7 +464,9 @@ open class MutableVec2i(x: Int, y: Int) : Vec2i(x, y) {
         return this
     }
 
-    open operator fun set(i: Int, v: Int) { fields[i] = v }
+    open operator fun set(i: Int, v: Int) {
+        fields[i] = v
+    }
 
     fun add(other: Vec2i): MutableVec2i {
         x += other.x

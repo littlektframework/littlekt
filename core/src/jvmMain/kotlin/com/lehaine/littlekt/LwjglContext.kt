@@ -33,7 +33,7 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context {
     override val graphics: Graphics = LwjglGraphics(stats.engineStats)
     override val logger: Logger = Logger(configuration.title)
     override val input: Input = LwjglInput(logger, this)
-    override val fileHandler: FileHandler = JvmFileHandler(this, logger, ".")
+    override val fileHandler: FileHandler = JvmFileHandler(this, logger, "./.storage", ".")
     override val platform: Context.Platform = Context.Platform.DESKTOP
 
     private val mainThreadRunnables = mutableListOf<GpuThreadRunnable>()

@@ -57,3 +57,6 @@ libgdx-*.zip.MD5
 #gradle wrapper
 /local.properties
 *.hprof
+
+.storage
+.httpCache

@@ -118,6 +118,11 @@ abstract class FileHandler(
         }
     }
 
+    abstract fun store(key: String, data: ByteArray): Boolean
+    abstract fun store(key: String, data: String): Boolean
+    abstract fun load(key: String): Uint8Buffer?
+    abstract fun loadString(key: String): String?
+
     /**
      * Loads a raw file into a [Uint8Buffer]
      * @param assetPath the path to the file

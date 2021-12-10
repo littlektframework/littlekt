@@ -1,7 +1,9 @@
 package com.lehaine.littlekt.graphics.font
 
-import kotlin.math.abs
-import kotlin.math.sqrt
+import com.lehaine.littlekt.math.MutableVec2f
+import com.lehaine.littlekt.math.Vec2f
+import com.lehaine.littlekt.math.isFuzzyZero
+import kotlin.math.*
 
 /**
  * @author Colton Daily
@@ -35,13 +37,17 @@ private data class Coefficients(
     val cx: Float,
     val cy: Float,
     val dx: Float,
-    val dy: Float
-)
+    val dy: Float,
+) {
+    val a: Vec2f = Vec2f(ax, ay)
+    val b: Vec2f = Vec2f(bx, by)
+    val c: Vec2f = Vec2f(cx, cy)
+    val d: Vec2f = Vec2f(dx, dy)
+}
 
 private const val MAX_INFLECTIONS = 2
-private const val PRECISION = 1e-8
+private const val PRECISION = 1e-8f
 private const val MAX_SEGMENTS = 8
-
 
 /**
  * Converts the input cubic bezier into up to 24 quadratic beziers.
@@ -104,7 +110,7 @@ private fun CubicBezier.solveInflections(out: FloatArray): Int {
 
 private fun quadSolve(a: Float, b: Float, c: Float, out: FloatArray): Int {
     // a*x^2 + b*x + c = 0
-    if (abs(a) < PRECISION) {
+    if (a.isFuzzyZero(PRECISION)) {
         if (b == 0f) {
             out[0] = 0f
             out[1] = 0f
@@ -115,7 +121,7 @@ private fun quadSolve(a: Float, b: Float, c: Float, out: FloatArray): Int {
         }
     }
     val d = b * b - 4 * a * c
-    if (abs(d) < PRECISION) {
+    if (d.isFuzzyZero(PRECISION)) {
         out[0] = -b / (2 * a)
         out[1] = 0f
         return 1
@@ -185,7 +191,7 @@ private fun CubicBezier.calculatePowerCoefficients(): Coefficients {
 }
 
 
-private fun processSegment(coefficients: Coefficients, t: Float, fl: Float, quadraticBezier: QuadraticBezier) {
+private fun processSegment(coefficients: Coefficients, t: Float, t2: Float, result: QuadraticBezier) {
     // Find a single control point for given segment of cubic Bezier curve
     // These control point is an interception of tangent lines to the boundary points
     // Let's denote that f(t) is a vector function of parameter t that defines the cubic Bezier curve,
@@ -205,18 +211,95 @@ private fun processSegment(coefficients: Coefficients, t: Float, fl: Float, quad
     // cy = [fy'(t1)*(fy(t2)*fx'(t2) - fx(t2)*fy'(t2)) + fy'(t2)*(fx(t1)*fy'(t1) - fy(t1)*fx'(t1))]/D
     // where c = (cx, cy) is the control point of quadratic Bezier curve.
 
-    TODO("Not yet implemented")
+    val f1 = coefficients.calcPoint(t)
+    val f2 = coefficients.calcPoint(t2)
+    val df1 = coefficients.calcPointDerivative(t)
+    val df2 = coefficients.calcPointDerivative(t2)
+
+    result.p1x = f1.x
+    result.p1y = f1.y
+    result.p2x = f2.x
+    result.p2y = f2.y
+
+    val d = -df1.x * df2.y + df2.x * df1.y
+
+    if (d.isFuzzyZero(PRECISION)) {
+        result.c1x = (f1.x + f2.x) / 2f
+        result.c1y = (f1.y + f2.y) / 2f
+        return
+    }
+    val cx = (df1.x * (f2.y * df2.x - f2.x * df2.y) + df2.x * (f1.x * df1.y - f1.y * df1.x)) / d
+    val cy = (df1.y * (f2.y * df2.x - f2.x * df2.y) + df2.y * (f1.x * df1.y - f1.y * df1.x)) / d
+    result.c1x = cx
+    result.c1y = cy
 }
 
 
+private fun Coefficients.calcPoint(t: Float): Vec2f {
+    val result = MutableVec2f()
+    // a*t^3 + b*t^2 + c*t + d = ((a*t + b)*t + c)*t + d
+    return a.scale(t, result).add(b).scale(t).add(c).scale(t).add(d)
+}
+
+
+private fun Coefficients.calcPointDerivative(t: Float): Vec2f {
+    // d/dt[a*t^3 + b*t^2 + c*t + d] = 3*a*t^2 + 2*b*t + c = (3*a*t + 2*b)*t + c
+    val result = MutableVec2f()
+    val temp1 = MutableVec2f()
+    val temp2 = MutableVec2f()
+    a.scale(3 * t, temp1)
+    b.scale(2f, temp2)
+    return temp1.add(temp2, result).scale(t).add(c)
+}
+
 private fun isApproximationClose(
     coefficients: Coefficients,
-    approximation: Array<QuadraticBezier>,
-    segmentsCount: Int,
+    quadCurves: Array<QuadraticBezier>,
+    quadCurvesLength: Int,
+    errorBound: Int
+): Boolean {
+
+    val dt = 1f / quadCurvesLength
+    for (i in 0 until quadCurvesLength) {
+        val p1x = quadCurves[i].p1x
+        val p1y = quadCurves[i].p1y
+        val c1x = quadCurves[i].c1x
+        val c1y = quadCurves[i].c1y
+        val p2x = quadCurves[i].p2x
+        val p2y = quadCurves[i].p2y
+        if (!isSegmentApproximationClose(
+                coefficients,
+                i * dt,
+                (i + 1) * dt,
+                p1x,
+                p1y,
+                c1x,
+                c1y,
+                p2x,
+                p2y,
+                errorBound
+            )
+        ) {
+            return false
+        }
+    }
+    return true
+}
+
+private fun isSegmentApproximationClose(
+    coefficients: Coefficients,
+    tMin: Float,
+    tMax: Float,
+    p1x: Float,
+    p1y: Float,
+    c1x: Float,
+    c1y: Float,
+    p2x: Float,
+    p2y: Float,
     errorBound: Int
 ): Boolean {
     // a,b,c,d define cubic curve
-    // tmin, tmax are boundary points on cubic curve
+    // tMin, tMax are boundary points on cubic curve
     // p1, c1, p2 define quadratic curve
     // errorBound is maximum allowed distance
     // Try to find maximum distance between one of N points segment of given cubic
@@ -230,5 +313,123 @@ private fun isApproximationClose(
     //   the quadratic curve and looking for the closest points on the cubic curve
     // But this method allows easy estimation of approximation error, so it is enough
     // for practical purposes.
-    TODO("Not yet implemented")
+    val n = 10 // number of points  +1
+    val dt = (tMax - tMin) / n
+    var t = tMin + dt
+    while (t < tMax - dt) {
+        val point = coefficients.calcPoint(t)
+        if (minDistanceToQuad(point, p1x, p1y, c1x, c1y, p2x, p2y) > errorBound) {
+            return false
+        }
+        t += dt
+    }
+    return true
+}
+
+private val a = MutableVec2f()
+private val b = MutableVec2f()
+private val c = MutableVec2f()
+private val tempVec = MutableVec2f()
+private fun minDistanceToQuad(
+    point: Vec2f,
+    p1x: Float,
+    p1y: Float,
+    c1x: Float,
+    c1y: Float,
+    p2x: Float,
+    p2y: Float
+): Float {
+    // f(t) = (1-t)^2 * p1 + 2*t*(1 - t) * c1 + t^2 * p2 = a*t^2 + b*t + c, t in [0, 1],
+    // a = p1 + p2 - 2 * c1
+    // b = 2 * (c1 - p1)
+    // c = p1; a, b, c are vectors because p1, c1, p2 are vectors too
+    // The distance between given point and quadratic curve is equal to
+    // sqrt((f(t) - point)^2), so these expression has zero derivative by t at points where
+    // (f'(t), (f(t) - point)) = 0.
+    // Substituting quadratic curve as f(t) one could obtain a cubic equation
+    // e3*t^3 + e2*t^2 + e1*t + e0 = 0 with following coefficients:
+    // e3 = 2 * a^2
+    // e2 = 3 * a*b
+    // e1 = (b^2 + 2 * a*(c - point))
+    // e0 = (c - point)*b
+    // One of the roots of the equation from [0, 1], or t = 0 or t = 1 is a value of t
+    // at which the distance between given point and quadratic Bezier curve has minimum.
+    // So to find the minimal distance one have to just pick the minimum value of
+    // the distance on set {t = 0 | t = 1 | t is root of the equation from [0, 1] }.
+    a.set(p1x, p1y)
+        .add(p2x, p2y)
+        .subtract(c1x * 2, c1y * 2)
+    b.set(c1x, c1y)
+        .subtract(p1x, p1y)
+        .scale(2f)
+    c.set(p1x, p1y)
+    tempVec.set(c).subtract(point)
+    val e3 = 2 * a.sqrLength()
+    val e2 = 3 * a.dot(b)
+    val e1 = (b.sqrLength() + 2 * a.dot(tempVec))
+    val e0 = tempVec.dot(b)
+
+    val roots = FloatArray(3)
+    val numRoots = cubicSolve(e3, e2, e1, e0, roots)
+
+    val candidates = FloatArray(5)
+    var numCandidates = 0
+    for (i in 0 until numRoots) {
+        if (roots[i] > PRECISION && roots[i] < 1 - PRECISION) {
+            candidates[numCandidates++] = roots[i]
+        }
+    }
+    candidates[numCandidates++] = 0f
+    candidates[numCandidates++] = 1f
+    var minDistance = Float.POSITIVE_INFINITY
+    for (i in 0 until numCandidates) {
+        val distance = calcPointQuad(a, b, c, candidates[i]).subtract(point).length()
+        if (distance < minDistance) {
+            minDistance = distance
+        }
+    }
+    return minDistance
+}
+
+private fun cubicSolve(a: Float, b: Float, c: Float, d: Float, out: FloatArray): Int {
+    // a*x^3 + b*x^2 + c*x + d = 0
+    if (a.isFuzzyZero(PRECISION)) {
+        out[2] = 0f
+        return quadSolve(b, c, d, out)
+    }
+    // solve using Cardan's method, which is described in paper of R.W.D. Nickals
+    // http://www.nickalls.org/dick/papers/maths/cubic1993.pdf (doi:10.2307/3619777)
+    val xn = -b / (3 * a) // point of symmetry x coordinate
+    val yn = ((a * xn + b) * xn + c) * xn + d // point of symmetry y coordinate
+    val deltaSqr = (b * b - 3 * a * c) / (9 * a * a)  // delta^2
+    val hSqr = 4 * a * a * deltaSqr.pow(3)
+    val d3 = yn * yn - hSqr
+    if (d3.isFuzzyZero(PRECISION)) {
+        val delta1 = cubicRoot(yn / (2 * a))
+        out[0] = xn - 2 * delta1
+        out[1] = xn + delta1
+        out[2] = 0f
+        return 2
+    } else if (d3 > 0f) {
+        val d3Sqrt = sqrt(d3)
+        out[0] = xn + cubicRoot((-yn + d3Sqrt) / (2 * a)) + cubicRoot((-yn - d3Sqrt) / (2 * a))
+        out[1] = 0f
+        out[2] = 0f
+        return 1
+    }
+    // 3 real roots
+    val theta = acos(-yn / sqrt(hSqr)) / 3
+    val delta = sqrt(deltaSqr)
+    out[0] = xn + 2 * delta * cos(theta)
+    out[1] = xn + 2 * delta * cos(theta + PI.toFloat() * 2f / 3f)
+    out[2] = xn + 2 * delta * cos(theta + PI.toFloat() * 4f / 3f)
+    return 3
+}
+
+private fun cubicRoot(x: Float): Float {
+    return if (x < 0) -(-x.pow(1f / 3f)) else x.pow(1f / 3f)
+}
+
+private fun calcPointQuad(a: Vec2f, b: Vec2f, c: Vec2f, t: Float): MutableVec2f {
+    return MutableVec2f().set(a).scale(t).add(b).scale(t).add(c)
 }

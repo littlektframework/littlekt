@@ -28,7 +28,8 @@ class GPUFontTest(context: Context) : ContextListener(context) {
         logger.level = Logger.Level.DEBUG
         fileHandler.launch {
             val font = loadTtfFont("FreeSerif.ttf")
-            GpuFont(font).glyph('D')
+            val gpuFont = GpuFont(font, fileHandler)
+           gpuFont.glyph('A')
             loading = false
         }
     }

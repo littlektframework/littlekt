@@ -213,6 +213,14 @@ interface MixedBuffer : Buffer {
      */
     fun getOffset(offset: Int, offSize: Int): Int
 
+    fun toArray(): ByteArray {
+        val array = ByteArray(capacity)
+        for (i in 0 until capacity) {
+            array[i] = getInt8(i)
+        }
+        return array
+    }
+
     override fun removeAt(index: Int) {
         throw RuntimeException("MixedBuffer does not support element removal")
     }
