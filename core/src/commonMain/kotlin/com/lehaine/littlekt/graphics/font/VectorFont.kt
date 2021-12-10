@@ -38,7 +38,12 @@ class VectorFont(private val font: TtfFont) : Preparable {
 
     // text data cache - text.id to TextData object
     private val textDataCache = mutableMapOf<Int, TextData>()
-    private val vertices = FloatArrayList(50000)
+
+    private val instances = mutableListOf<TextBlock>()
+    private val instancesHash = linkedSetOf<Int>()
+    private val lastInstancesHash = linkedSetOf<Int>()
+
+    private val vertices = FloatArrayList(500000)
     private var offset = 0
 
 
@@ -83,6 +88,8 @@ class VectorFont(private val font: TtfFont) : Preparable {
 
         measureTime {
             renderText(text)
+            instancesHash += text.hashCode()
+            instances += text
         }
     }
 
@@ -131,7 +138,39 @@ class VectorFont(private val font: TtfFont) : Preparable {
         gl.blendEquation(BlendEquationMode.FUNC_ADD)
         gl.blendFunc(BlendFactor.ONE, BlendFactor.ONE)
 
-        glyphMesh.setVertices(vertices.toFloatArray())
+        if (instancesHash.size == lastInstancesHash.size && lastInstancesHash.containsAll(instancesHash)) {
+            instances.forEach { block ->
+                block.text.forEach {
+                    offset += textDataCache[it.id]?.vertices?.size ?: 0
+                }
+            }
+            // no need to upload vertices or set them again
+        } else {
+            val iterator = lastInstancesHash.iterator()
+
+            run checkInstances@{
+                instancesHash.forEachIndexed { index, hash ->
+                    if (iterator.hasNext()) {
+                        val last = iterator.next()
+                        if (last != hash) {
+                            uploadTextBlockVertices(instances.drop(index))
+                            return@checkInstances
+                        } else {
+                            instances[index].text.forEach {
+                                offset += textDataCache[it.id]?.vertices?.size ?: 0
+                            }
+                        }
+                    } else if (index < instances.size) {
+                        uploadTextBlockVertices(instances.drop(index))
+                        return@checkInstances
+                    }
+                }
+            }
+            lastInstancesHash.clear()
+            lastInstancesHash.addAll(instancesHash)
+            glyphMesh.setVertices(vertices.toFloatArray())
+        }
+
         glyphOffscreenShader.bind()
         if (useJitter) {
             JITTER_PATTERN.forEachIndexed { idx, pattern ->
@@ -161,7 +200,6 @@ class VectorFont(private val font: TtfFont) : Preparable {
             glyphOffscreenShader.vertexShader.uProjTrans.apply(glyphOffscreenShader, temp)
             glyphMesh.render(glyphOffscreenShader, count = offset / 5)
         }
-
         fbo.end()
         batch.shader = textShader
         batch.setBlendFunction(BlendFactor.ZERO, BlendFactor.SRC_COLOR)
@@ -179,6 +217,8 @@ class VectorFont(private val font: TtfFont) : Preparable {
         batch.shader = batch.defaultShader
         batch.setToPreviousBlendFunction()
         offset = 0
+        instances.clear()
+        instancesHash.clear()
     }
 
     private fun renderText(textBlock: TextBlock) {
@@ -238,17 +278,18 @@ class VectorFont(private val font: TtfFont) : Preparable {
                 textDataCache[text.id] = data
             }
         }
-        uploadTextBlockVertices(textBlock)
     }
 
-    private fun uploadTextBlockVertices(textBlock: TextBlock) {
-        textBlock.text.forEach { text ->
-            val data = textDataCache[text.id] ?: return@forEach
-            var j = 0
-            for (i in offset until offset + data.vertices.size) {
-                vertices[i] = data.vertices[j++]
+    private fun uploadTextBlockVertices(blocks: Collection<TextBlock>) {
+        blocks.forEach blocks@{ block ->
+            block.text.forEach text@{ text ->
+                val data = textDataCache[text.id] ?: return@text
+                var j = 0
+                for (i in offset until offset + data.vertices.size) {
+                    vertices[i] = data.vertices[j++]
+                }
+                offset += j
             }
-            offset += j
         }
     }
 
@@ -338,12 +379,7 @@ data class TextBlock(
 
         other as TextBlock
 
-        if (x != other.x) return false
-        if (y != other.y) return false
-        if (text != other.text) return false
-        if (id != other.id) return false
-
-        return true
+        return id == other.id
     }
 
     override fun hashCode(): Int {

@@ -50,7 +50,14 @@ class FontLoadTest(context: Context) : ContextListener(context) {
     private var lastStats = "Loading..."
     val staticText = Text("FPS: ", 36, Color.GREEN)
     val fpsText = Text("TBD", 36, Color.RED)
-    val textBlock = TextBlock(50f, 430f, mutableListOf(staticText, fpsText))
+    val textBlock =
+        TextBlock(50f, 430f, mutableListOf(staticText, fpsText, Text("\nHELLO!!!!!!!!!!!!!!!!!", pxScale = 36)))
+    val textBlock2 = TextBlock(
+        50f,
+        230f,
+        mutableListOf(Text("My name is colt and i am cool yeah test water and coffee and food and yum and wwwwwwwwww\nwwwwwwwwwwwwwwwwwwww\n testeststst\n and i am just writing nonsense to fill up the screen. this is what you do when you see it all. LOL!!\nhahdaufhasudfhu aosufoasdfasdfhuoa ssdfon d", pxScale = 36))
+    )
+
     override fun render(dt: Duration) {
         if (loading) return
         if (!loading && !vectorFont.prepared) {
@@ -61,6 +68,7 @@ class FontLoadTest(context: Context) : ContextListener(context) {
         gl.clear(ClearBufferMask.COLOR_BUFFER_BIT)
 
         fpsText.text = stats.fps.toString(1)
+        vectorFont.queue(textBlock2)
         vectorFont.queue(textBlock)
         vectorFont.flush(batch, camera.viewProjection, useJitter = false)
 //
