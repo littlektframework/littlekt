@@ -4,6 +4,7 @@ import com.lehaine.littlekt.Context
 import com.lehaine.littlekt.ContextListener
 import com.lehaine.littlekt.graphics.OrthographicCamera
 import com.lehaine.littlekt.graphics.SpriteBatch
+import com.lehaine.littlekt.graphics.font.CharacterSets
 import com.lehaine.littlekt.graphics.font.GpuFont
 import com.lehaine.littlekt.input.Key
 import com.lehaine.littlekt.log.Logger
@@ -29,7 +30,9 @@ class GPUFontTest(context: Context) : ContextListener(context) {
         fileHandler.launch {
             val font = loadTtfFont("FreeSerif.ttf")
             val gpuFont = GpuFont(font, fileHandler)
-           gpuFont.glyph('A')
+            CharacterSets.LATIN_ALL.forEach {
+                gpuFont.glyph(it)
+            }
             loading = false
         }
     }

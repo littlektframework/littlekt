@@ -181,7 +181,7 @@ class JvmFileHandler(context: Context, logger: Logger, storageBaseDir: String, a
         return try {
             val file = File(storageDir, key)
             FileOutputStream(file).use { it.write(data) }
-            logger.info { "Wrote to ${file.absolutePath}" }
+            logger.debug { "Wrote to ${file.absolutePath}" }
             true
         } catch (e: IOException) {
             e.printStackTrace()

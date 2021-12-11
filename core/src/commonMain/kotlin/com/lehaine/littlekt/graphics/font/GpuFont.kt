@@ -14,7 +14,13 @@ import kotlin.time.measureTimedValue
  * @author Colton Daily
  * @date 12/9/2021
  */
-class GpuFont(val font: TtfFont, val fileHandler: FileHandler) {
+
+class GpuFont(
+    private val font: TtfFont,
+    private val fileHandler: FileHandler,
+    private val gridAtlasSize: Int = 256, // fits exactly 1024 8x8 grids
+    private val bezierAtlasSize: Int = 256 // fits about 700-1k glyphs, depending on their curves
+) {
 
     private val compiler = GlyphCompiler()
     private val atlases = mutableListOf<AtlasGroup>()
@@ -24,7 +30,7 @@ class GpuFont(val font: TtfFont, val fileHandler: FileHandler) {
 
         val glyph = font.glyphs[char.code] ?: error("Glyph for $char doesn't exist!")
         val curves =
-            measureTimedValue { compiler.compile(glyph) }.also { println("Took ${it.duration} to compile $char glyph.") }.value
+            measureTimedValue { compiler.compile(glyph) }.also { logger.debug { "Took ${it.duration} to compile $char glyph." } }.value
         var atlas = getOpenAtlasGroup()
 
         // Although the data is represented as a 32bit texture, it's actually
@@ -33,7 +39,7 @@ class GpuFont(val font: TtfFont, val fileHandler: FileHandler) {
         // plus two pixels for grid position information
         val bezierPixelLength = 2 + curves.size * 3
 
-        val tooManyCurves = bezierPixelLength > BEZIER_ATLAS_SIZE * BEZIER_ATLAS_SIZE
+        val tooManyCurves = bezierPixelLength > bezierAtlasSize * bezierAtlasSize
 
         if (curves.isEmpty() || tooManyCurves) {
             if (tooManyCurves) {
@@ -42,29 +48,33 @@ class GpuFont(val font: TtfFont, val fileHandler: FileHandler) {
             // TODO do what then if its empty or too many curves?
         }
 
-        if (atlas.glyphDataBufOffset + bezierPixelLength > BEZIER_ATLAS_SIZE * BEZIER_ATLAS_SIZE) {
+        if (atlas.glyphDataBufOffset + bezierPixelLength > bezierAtlasSize * bezierAtlasSize) {
             atlas.full = true
             atlas.uploaded = true
             atlas = getOpenAtlasGroup()
         }
 
-        if (atlas.x + GRID_MAX_SIZE > GRID_ATLAS_SIZE) {
-            atlas.y += GRID_MAX_SIZE
-            atlas.x = 0
-            if (atlas.y >= GRID_ATLAS_SIZE) {
+        if (atlas.gridX + GRID_MAX_SIZE > gridAtlasSize) {
+            atlas.gridY += GRID_MAX_SIZE
+            atlas.gridX = 0
+            if (atlas.gridY >= gridAtlasSize) {
                 atlas.full = true
                 atlas.uploaded = false
                 atlas = getOpenAtlasGroup()
             }
         }
 
-        val buffer = createMixedBuffer(atlas.glyphDataBuf.size + (atlas.glyphDataBufOffset * ATLAS_CHANNELS))
+        val buffer = createMixedBuffer(atlas.glyphDataBuf)
+        buffer.position = atlas.glyphDataBufOffset * ATLAS_CHANNELS
         writeGlyphToBuffer(
-            buffer, curves, glyph.width, glyph.height, atlas.x.toShort(), atlas.y.toShort(),
+            buffer, curves, glyph.width, glyph.height, atlas.gridX.toShort(), atlas.gridY.toShort(),
             GRID_MAX_SIZE.toShort(), GRID_MAX_SIZE.toShort()
         )
+        atlas.glyphDataBufOffset += bezierPixelLength
+        atlas.gridX += GRID_MAX_SIZE
+        atlas.uploaded = false
 
-        writeBMP("bezierAtlas.bmp", BEZIER_ATLAS_SIZE, BEZIER_ATLAS_SIZE, 4, buffer)
+        writeBMP("bezierAtlas.bmp", bezierAtlasSize, bezierAtlasSize, 4, buffer)
     }
 
     private fun writeBMP(name: String, width: Int, height: Int, channels: Int, buffer: MixedBuffer) {
@@ -122,8 +132,8 @@ class GpuFont(val font: TtfFont, val fileHandler: FileHandler) {
     private fun getOpenAtlasGroup(): AtlasGroup {
         if (atlases.isEmpty() || atlases.last().full) {
             val atlas = AtlasGroup().apply {
-                glyphDataBuf = ByteArray(BEZIER_ATLAS_SIZE * BEZIER_ATLAS_SIZE * ATLAS_CHANNELS)
-                gridAtlas = ByteArray(GRID_ATLAS_SIZE * GRID_ATLAS_SIZE * ATLAS_CHANNELS)
+                glyphDataBuf = ByteArray(bezierAtlasSize * bezierAtlasSize * ATLAS_CHANNELS)
+                gridAtlas = ByteArray(gridAtlasSize * gridAtlasSize * ATLAS_CHANNELS)
                 uploaded = true
             }
             atlases += atlas
@@ -132,9 +142,7 @@ class GpuFont(val font: TtfFont, val fileHandler: FileHandler) {
     }
 
     companion object {
-        private const val GRID_MAX_SIZE = 20
-        private const val GRID_ATLAS_SIZE = 256 // fits exactly 1024 8x8 grids
-        private const val BEZIER_ATLAS_SIZE = 256 // fits about 700-1k glyphs, depending on their curves
+        private const val GRID_MAX_SIZE = 8 // should this be 20?
         private const val ATLAS_CHANNELS = 4 // Must be 4 (RGBA)
 
         private val logger = Logger<GpuFont>()
@@ -142,16 +150,17 @@ class GpuFont(val font: TtfFont, val fileHandler: FileHandler) {
 }
 
 private class AtlasGroup {
-    var x = 0
-    var y = 0
+    var gridAtlas = ByteArray(0)
+    var gridX = 0
+    var gridY = 0
     var full = false
     var uploaded = false
-    var gridAtlas = ByteArray(0)
+
     var glyphDataBuf = ByteArray(0)
     var glyphDataBufOffset = 0
 
     override fun toString(): String {
-        return "AtlasGroup(x=$x, y=$y, full=$full, uploaded=$uploaded, gridAtlas=$gridAtlas, glyphDataBuf=$glyphDataBuf, glyphDataBufOffset=$glyphDataBufOffset)"
+        return "AtlasGroup(x=$gridX, y=$gridY, full=$full, uploaded=$uploaded, gridAtlas=$gridAtlas, glyphDataBuf=$glyphDataBuf, glyphDataBufOffset=$glyphDataBufOffset)"
     }
 }
 
@@ -222,7 +231,6 @@ private class GlyphCompiler {
         // Too low and many quadratics are generated (slow), too high and not
         // enough are generated (looks bad). 5% works pretty well.
         val c2qResolution = max((((glyph.width + glyph.height) / 2) * 0.05f).toInt(), 1)
-        println(c2qResolution)
         val beziers = decompose(glyph, c2qResolution)
 
         if (glyph.xMin != 0 || glyph.yMin != 0) {
