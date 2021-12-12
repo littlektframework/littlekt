@@ -39,7 +39,6 @@ class Uint8BufferImpl(buffer: ByteBuffer) : Uint8Buffer, GenericBuffer<ByteBuffe
 
     constructor(data: ByteArray) : this(ByteBuffer.allocateDirect(data.size).order(ByteOrder.nativeOrder())) {
         put(data)
-        position = buffer.position()
     }
 
     override fun get(i: Int): Byte {
