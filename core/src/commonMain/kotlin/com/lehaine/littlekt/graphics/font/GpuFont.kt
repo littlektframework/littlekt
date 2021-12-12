@@ -118,20 +118,24 @@ class GpuFont(
         gridWidth: Short,
         gridHeight: Short
     ) {
-        buffer.putInt16(gridX).putInt16(gridY).putInt16(gridWidth).putInt16(gridHeight)
+        buffer.putUint16(gridX).putUint16(gridY).putUint16(gridWidth).putUint16(gridHeight)
         curves.forEach {
             writeBezierToBuffer(buffer, it, glyphWidth, glyphHeight)
         }
     }
 
+    /**
+     * A [Bezier] is written as 6 16-bit integers (12 bytes). Increments buffer by the number of bytes written (always 12).
+     * Coords are scaled from [0, glyphSize] to [o, UShort.MAX_VALUE]
+     */
     private fun writeBezierToBuffer(buffer: MixedBuffer, bezier: Bezier, glyphWidth: Int, glyphHeight: Int) {
         buffer.apply {
-            putFloat32(bezier.p0.x * (Short.MAX_VALUE * 2 + 1) / glyphWidth)
-            putFloat32(bezier.p0.y * (Short.MAX_VALUE * 2 + 1) / glyphHeight)
-            putFloat32(bezier.control.x * (Short.MAX_VALUE * 2 + 1) / glyphWidth)
-            putFloat32(bezier.control.y * (Short.MAX_VALUE * 2 + 1) / glyphHeight)
-            putFloat32(bezier.p1.x * (Short.MAX_VALUE * 2 + 1) / glyphWidth)
-            putFloat32(bezier.p1.y * (Short.MAX_VALUE * 2 + 1) / glyphHeight)
+            putUint16((bezier.p0.x * UShort.MAX_VALUE.toInt() / glyphWidth).toInt().toShort())
+            putUint16((bezier.p0.y * UShort.MAX_VALUE.toInt() / glyphHeight).toInt().toShort())
+            putUint16((bezier.control.x * UShort.MAX_VALUE.toInt() / glyphWidth).toInt().toShort())
+            putUint16((bezier.control.y * UShort.MAX_VALUE.toInt() / glyphHeight).toInt().toShort())
+            putUint16((bezier.p1.x * UShort.MAX_VALUE.toInt() / glyphWidth).toInt().toShort())
+            putUint16((bezier.p1.y * UShort.MAX_VALUE.toInt() / glyphHeight).toInt().toShort())
         }
     }
 

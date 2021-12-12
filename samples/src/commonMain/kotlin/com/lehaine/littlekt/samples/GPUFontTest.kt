@@ -32,7 +32,7 @@ class GPUFontTest(context: Context) : ContextListener(context) {
             val libSans = "LiberationSans-Regular.ttf"
             val font = loadTtfFont(libSans)
             val gpuFont = GpuFont(font, fileHandler)
-            CharacterSets.LATIN_ALL.forEach {
+            CharacterSets.LOWERCASE.forEach {
                 gpuFont.glyph(it)
             }
             loading = false
