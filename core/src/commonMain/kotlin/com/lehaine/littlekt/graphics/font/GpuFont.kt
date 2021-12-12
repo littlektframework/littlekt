@@ -1,9 +1,12 @@
 package com.lehaine.littlekt.graphics.font
 
+import com.lehaine.littlekt.Context
 import com.lehaine.littlekt.file.FileHandler
 import com.lehaine.littlekt.file.MixedBuffer
 import com.lehaine.littlekt.file.createMixedBuffer
+import com.lehaine.littlekt.graphics.*
 import com.lehaine.littlekt.log.Logger
+import com.lehaine.littlekt.util.datastructure.FloatArrayList
 import kotlin.math.max
 import kotlin.time.measureTimedValue
 
@@ -14,16 +17,77 @@ import kotlin.time.measureTimedValue
 
 class GpuFont(
     private val font: TtfFont,
-    private val fileHandler: FileHandler,
     private val atlasWidth: Int = 256,
     private val atlasHeight: Int = 512
 ) {
-
     private val compiler = GlyphCompiler()
     private val atlases = mutableListOf<AtlasGroup>()
+    private val instances = mutableListOf<GpuGlyph>()
+    private val compiledGlyphs = mutableMapOf<TtfFont, MutableMap<Int, GpuGlyph>>(font to mutableMapOf())
+    private val vertices = FloatArrayList(1000)
+    private var text = StringBuilder("")
 
-    fun glyph(char: Char) {
-        // TODO check if it is already in atlas before compiling
+    private lateinit var mesh: Mesh
+    private lateinit var context: Context
+
+    private val fileHandler: FileHandler get() = context.fileHandler
+    private val gl: GL get() = context.gl
+
+    fun prepare(context: Context) {
+        this.context = context
+        mesh = textureMesh(context.gl) {
+            maxVertices = 10000
+            useBatcher = false
+        }.also { it.indicesAsQuad() }
+    }
+
+    fun insertText(text: String, x: Float, y: Float, color: Color = Color.BLACK) {
+        val lastSize = vertices.size
+        this.text.append(text)
+        var tx = x
+        var ty = y
+        text.forEach {
+            val glyph = glyph(it)
+            vertices.run {
+                add(tx + glyph.offsetX)
+                add(ty + glyph.offsetY)
+                add(color.toFloatBits())
+            }
+            vertices.run {
+                add(glyph.width + tx + glyph.offsetX)
+                add(ty + glyph.offsetY)
+                add(color.toFloatBits())
+            }
+            vertices.run {
+                add(tx + glyph.offsetX)
+                add(ty + glyph.offsetY)
+                add(color.toFloatBits())
+            }
+            vertices.run {
+                add(glyph.width + tx + glyph.offsetX)
+                add(glyph.height + ty + glyph.offsetY)
+                add(color.toFloatBits())
+            }
+            vertices.run {
+                add(tx + glyph.offsetX)
+                add(glyph.height + ty + glyph.offsetY)
+                add(color.toFloatBits())
+            }
+            tx += glyph.advanceWidth
+            instances += glyph
+        }
+
+        mesh.setVertices(vertices.data, 0, vertices.size)
+    }
+
+    fun render() {
+        mesh.render()
+    }
+
+    private fun glyph(char: Char): GpuGlyph {
+        // if already compiled -- return the glyph
+        compiledGlyphs[font]?.get(char.code)?.also { return it }
+
         var atlas = getOpenAtlasGroup()
         val glyph = font.glyphs[char.code] ?: error("Glyph for $char doesn't exist!")
         val curves =
@@ -43,6 +107,17 @@ class GpuFont(
                 logger.warn { "Glyph '$char' has too many curves!" }
             }
             // TODO do what then if its empty or too many curves?
+            val gpuGlyph = GpuGlyph(
+                glyph.width,
+                glyph.height,
+                glyph.leftSideBearing,
+                glyph.yMax,
+                0,
+                -1,
+                glyph.advanceWidth.toInt()
+            )
+            compiledGlyphs[font]?.put(char.code, gpuGlyph)
+            return gpuGlyph
         }
 
         if (atlas.glyphDataBufOffset + bezierPixelLength > atlasWidth * atlasHeight) {
@@ -80,11 +155,24 @@ class GpuFont(
         buffer.position = atlasWidth * (atlasHeight / 2) * ATLAS_CHANNELS
         buffer.putInt8(atlas.gridAtlas)
 
+        val gpuGlyph = GpuGlyph(
+            glyph.width,
+            glyph.height,
+            glyph.leftSideBearing,
+            glyph.yMax,
+            atlas.glyphDataBufOffset,
+            atlases.size - 1,
+            glyph.advanceWidth.toInt()
+        )
+        compiledGlyphs[font]?.put(char.code, gpuGlyph)
+
         atlas.glyphDataBufOffset += bezierPixelLength
         atlas.gridX += GRID_MAX_SIZE
         atlas.uploaded = false
 
+        // TODO - unique atlas names
         writeBMP("atlas.bmp", atlasWidth, atlasHeight, ATLAS_CHANNELS, buffer)
+        return gpuGlyph
     }
 
     private fun writeBMP(name: String, width: Int, height: Int, channels: Int, buffer: MixedBuffer) {
@@ -162,6 +250,16 @@ class GpuFont(
         private val logger = Logger<GpuFont>()
     }
 }
+
+private data class GpuGlyph(
+    val width: Int,
+    val height: Int,
+    val offsetX: Int,
+    val offsetY: Int,
+    val bezierAtlasPosX: Int,
+    val bezierAtlasPosZ: Int,
+    val advanceWidth: Int
+)
 
 private class AtlasGroup {
     var gridAtlas = ByteArray(0)

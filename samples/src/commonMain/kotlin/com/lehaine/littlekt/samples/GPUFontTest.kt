@@ -4,8 +4,8 @@ import com.lehaine.littlekt.Context
 import com.lehaine.littlekt.ContextListener
 import com.lehaine.littlekt.graphics.OrthographicCamera
 import com.lehaine.littlekt.graphics.SpriteBatch
-import com.lehaine.littlekt.graphics.font.CharacterSets
 import com.lehaine.littlekt.graphics.font.GpuFont
+import com.lehaine.littlekt.graphics.font.TtfFont
 import com.lehaine.littlekt.input.Key
 import com.lehaine.littlekt.log.Logger
 import kotlin.time.Duration
@@ -23,24 +23,34 @@ class GPUFontTest(context: Context) : ContextListener(context) {
         bottom = 0f
         top = graphics.height.toFloat()
     }
+    private lateinit var freeSerif: TtfFont
+    private lateinit var libSans: TtfFont
+    private lateinit var gpuFont: GpuFont
+
+    private var init = false
 
     init {
         Logger.defaultLevel = Logger.Level.DEBUG
         logger.level = Logger.Level.DEBUG
         fileHandler.launch {
-            val freeSerif = "FreeSerif.ttf"
-            val libSans = "LiberationSans-Regular.ttf"
-            val font = loadTtfFont(libSans)
-            val gpuFont = GpuFont(font, fileHandler)
-            CharacterSets.LATIN_ALL.forEach {
-                gpuFont.glyph(it)
-            }
+            freeSerif = loadTtfFont("FreeSerif.ttf")
+            libSans = loadTtfFont("LiberationSans-Regular.ttf")
             loading = false
         }
     }
 
+    private fun init() {
+        gpuFont = GpuFont(libSans).also { it.prepare(this@GPUFontTest) }
+        gpuFont.insertText("Hi", 0f, 0f)
+    }
+
     override fun render(dt: Duration) {
         if (loading) return
+        if (!loading && !init) {
+            init()
+            init = true
+        }
+        gpuFont.render()
 
         if (input.isKeyJustPressed(Key.P)) {
             logger.debug { stats.toString() }

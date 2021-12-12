@@ -10,6 +10,8 @@ import com.lehaine.littlekt.graphics.shader.generator.type.BoolResult
 import com.lehaine.littlekt.graphics.shader.generator.type.Func
 import com.lehaine.littlekt.graphics.shader.generator.type.GenType
 import com.lehaine.littlekt.graphics.shader.generator.type.Variable
+import com.lehaine.littlekt.graphics.shader.generator.type.func.FloatFunc
+import com.lehaine.littlekt.graphics.shader.generator.type.func.Vec2Func
 import com.lehaine.littlekt.graphics.shader.generator.type.mat.Mat3
 import com.lehaine.littlekt.graphics.shader.generator.type.mat.Mat4
 import com.lehaine.littlekt.graphics.shader.generator.type.sampler.Sampler2D
@@ -149,7 +151,7 @@ abstract class GlslGenerator : GlslProvider {
 
         functionInstructions.forEach {
             val instructionString = when (it.type) {
-                DEFINE, ASSIGN -> "${it.result};"
+                DEFINE, ASSIGN, INVOKE_FUNC -> "${it.result};"
                 IF -> {
                     "if (${it.result}) {"
                 }
@@ -257,7 +259,6 @@ abstract class GlslGenerator : GlslProvider {
         p2Factory: (GlslGenerator) -> P2,
         body: (p1: P1, p2: P2) -> Unit
     ): FunctionVoidDelegate2<P1, P2> = FunctionVoidDelegate2(FuncVoid(this), p1Factory, p2Factory, body)
-
 
     internal fun <T : Variable> createVariable(clazz: KClass<T>) = when (clazz) {
         GLFloat::class -> GLFloat(this)
