@@ -401,3 +401,5 @@ actual fun createMixedBuffer(capacity: Int): MixedBuffer {
 actual fun createMixedBuffer(array: ByteArray): MixedBuffer {
     return MixedBufferImpl(Uint8Array(array.toTypedArray()).buffer)
 }
+
+actual fun createMixedBuffer(array: ByteArray, isBigEndian: Boolean): MixedBuffer = createMixedBuffer(array)

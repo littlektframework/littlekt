@@ -15,8 +15,8 @@ import kotlin.time.measureTimedValue
 class GpuFont(
     private val font: TtfFont,
     private val fileHandler: FileHandler,
-    private val gridAtlasSize: Int = 256, // fits exactly 1024 8x8 grids
-    private val bezierAtlasSize: Int = 256 // fits about 700-1k glyphs, depending on their curves
+    private val atlasWidth: Int = 256,
+    private val atlasHeight: Int = 512
 ) {
 
     private val compiler = GlyphCompiler()
@@ -36,7 +36,7 @@ class GpuFont(
         // plus two pixels for grid position information
         val bezierPixelLength = 2 + curves.size * 3
 
-        val tooManyCurves = bezierPixelLength > bezierAtlasSize * bezierAtlasSize
+        val tooManyCurves = bezierPixelLength > atlasWidth * atlasHeight
 
         if (curves.isEmpty() || tooManyCurves) {
             if (tooManyCurves) {
@@ -45,42 +45,46 @@ class GpuFont(
             // TODO do what then if its empty or too many curves?
         }
 
-        if (atlas.glyphDataBufOffset + bezierPixelLength > bezierAtlasSize * bezierAtlasSize) {
+        if (atlas.glyphDataBufOffset + bezierPixelLength > atlasWidth * atlasHeight) {
             atlas.full = true
             atlas.uploaded = true
             atlas = getOpenAtlasGroup()
         }
 
-        if (atlas.gridX + GRID_MAX_SIZE > gridAtlasSize) {
+        if (atlas.gridX + GRID_MAX_SIZE > atlasWidth) {
             atlas.gridY += GRID_MAX_SIZE
             atlas.gridX = 0
-            if (atlas.gridY >= gridAtlasSize) {
+            if (atlas.gridY >= atlasHeight) {
                 atlas.full = true
                 atlas.uploaded = false
                 atlas = getOpenAtlasGroup()
             }
         }
 
-        val bezierBuffer = createMixedBuffer(atlas.glyphDataBuf)
-        bezierBuffer.position = atlas.glyphDataBufOffset * ATLAS_CHANNELS
+        val buffer = createMixedBuffer(atlasWidth * atlasHeight * ATLAS_CHANNELS)
+        buffer.putInt8(atlas.glyphDataBuf)
+        buffer.position = atlas.glyphDataBufOffset * ATLAS_CHANNELS
         writeGlyphToBuffer(
-            bezierBuffer, curves, glyph.width, glyph.height, atlas.gridX.toShort(), atlas.gridY.toShort(),
+            buffer, curves, glyph.width, glyph.height, atlas.gridX.toShort(), atlas.gridY.toShort(),
             GRID_MAX_SIZE.toShort(), GRID_MAX_SIZE.toShort()
         )
-        val gridAtlas = VGridAtlas().apply {
+        atlas.glyphDataBuf = buffer.toArray()
+        VGridAtlas().apply {
             data = atlas.gridAtlas
-            width = gridAtlasSize
-            height = gridAtlasSize
+            width = atlasWidth
+            height = atlasHeight
             depth = ATLAS_CHANNELS
             writeVGridAt(grid, atlas.gridX, atlas.gridY)
         }
+        // write the grid atlas on the other half on the bmp
+        buffer.position = atlasWidth * (atlasHeight / 2) * ATLAS_CHANNELS
+        buffer.putInt8(atlas.gridAtlas)
 
         atlas.glyphDataBufOffset += bezierPixelLength
         atlas.gridX += GRID_MAX_SIZE
         atlas.uploaded = false
 
-        writeBMP("bezierAtlas.bmp", bezierAtlasSize, bezierAtlasSize, ATLAS_CHANNELS, bezierBuffer)
-        writeBMP("gridAtlas.bmp", gridAtlasSize, gridAtlasSize, ATLAS_CHANNELS, createMixedBuffer(atlas.gridAtlas))
+        writeBMP("atlas.bmp", atlasWidth, atlasHeight, ATLAS_CHANNELS, buffer)
     }
 
     private fun writeBMP(name: String, width: Int, height: Int, channels: Int, buffer: MixedBuffer) {
@@ -142,8 +146,8 @@ class GpuFont(
     private fun getOpenAtlasGroup(): AtlasGroup {
         if (atlases.isEmpty() || atlases.last().full) {
             val atlas = AtlasGroup().apply {
-                glyphDataBuf = ByteArray(bezierAtlasSize * bezierAtlasSize * ATLAS_CHANNELS)
-                gridAtlas = ByteArray(gridAtlasSize * gridAtlasSize * ATLAS_CHANNELS)
+                glyphDataBuf = ByteArray(atlasWidth * (atlasHeight / 2) * ATLAS_CHANNELS)
+                gridAtlas = ByteArray(atlasWidth * (atlasHeight / 2) * ATLAS_CHANNELS)
                 uploaded = true
             }
             atlases += atlas
@@ -152,7 +156,7 @@ class GpuFont(
     }
 
     companion object {
-        private const val GRID_MAX_SIZE = 16 // should this be 20?
+        private const val GRID_MAX_SIZE = 10 // should this be 20?
         private const val ATLAS_CHANNELS = 4 // Must be 4 (RGBA)
 
         private val logger = Logger<GpuFont>()

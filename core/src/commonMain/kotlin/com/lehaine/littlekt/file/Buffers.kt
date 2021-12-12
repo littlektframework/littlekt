@@ -242,3 +242,4 @@ expect fun createFloat32Buffer(array: FloatArray): Float32Buffer
 
 expect fun createMixedBuffer(capacity: Int): MixedBuffer
 expect fun createMixedBuffer(array: ByteArray): MixedBuffer
+expect fun createMixedBuffer(array: ByteArray, isBigEndian: Boolean): MixedBuffer

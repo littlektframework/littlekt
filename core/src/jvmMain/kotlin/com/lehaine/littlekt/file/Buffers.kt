@@ -39,6 +39,7 @@ class Uint8BufferImpl(buffer: ByteBuffer) : Uint8Buffer, GenericBuffer<ByteBuffe
 
     constructor(data: ByteArray) : this(ByteBuffer.allocateDirect(data.size).order(ByteOrder.nativeOrder())) {
         put(data)
+        position = buffer.position()
     }
 
     override fun get(i: Int): Byte {
@@ -168,6 +169,7 @@ class Float32BufferImpl(buffer: FloatBuffer) : Float32Buffer, GenericBuffer<Floa
         ByteBuffer.allocateDirect(data.size * 4).order(ByteOrder.nativeOrder()).asFloatBuffer()
     ) {
         put(data)
+        position = buffer.position()
     }
 
     override fun get(i: Int): Float {
@@ -205,6 +207,17 @@ class Float32BufferImpl(buffer: FloatBuffer) : Float32Buffer, GenericBuffer<Floa
 class MixedBufferImpl(buffer: ByteBuffer) : MixedBuffer, GenericBuffer<ByteBuffer>(buffer.capacity(), buffer) {
 
     constructor(capacity: Int) : this(ByteBuffer.allocateDirect(capacity).order(ByteOrder.nativeOrder()))
+    constructor(data: ByteArray) : this(
+        ByteBuffer.allocateDirect(data.size).order(ByteOrder.nativeOrder())
+    ) {
+        putInt8(data)
+    }
+
+    constructor(data: ByteArray, isBigEndian: Boolean) : this(
+        ByteBuffer.allocateDirect(data.size).order(if (isBigEndian) ByteOrder.BIG_ENDIAN else ByteOrder.nativeOrder())
+    ) {
+        putInt8(data)
+    }
 
     override val readInt8: Byte get() = readUint8
 
@@ -416,4 +429,5 @@ actual fun createFloat32Buffer(capacity: Int): Float32Buffer = Float32BufferImpl
 actual fun createFloat32Buffer(array: FloatArray): Float32Buffer = Float32BufferImpl(array)
 
 actual fun createMixedBuffer(capacity: Int): MixedBuffer = MixedBufferImpl(capacity)
-actual fun createMixedBuffer(array: ByteArray): MixedBuffer = MixedBufferImpl(ByteBuffer.wrap(array))
+actual fun createMixedBuffer(array: ByteArray): MixedBuffer = MixedBufferImpl(array)
+actual fun createMixedBuffer(array: ByteArray, isBigEndian: Boolean): MixedBuffer = MixedBufferImpl(array, isBigEndian)

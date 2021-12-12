@@ -32,7 +32,7 @@ class TtfFont(val chars: CharArray) {
         }
 
     fun load(data: Uint8Buffer) {
-        val buffer = createMixedBuffer(data.toArray())
+        val buffer = createMixedBuffer(data.toArray(), isBigEndian = true).also { it.flip() }
         val reader = TtfFontReader().also {
             it.parse(buffer)
             ascender = it.ascender
