@@ -220,7 +220,7 @@ private class GlyphCompiler {
                 GlyphPath.CommandType.LINE_TO -> {
                     curves += Bezier().apply {
                         p0.set(prevX, prevY)
-                        control.set(cmd.x, cmd.y)
+                        control.set(prevX, prevY)
                         p1.set(cmd.x, cmd.y)
                     }
                     prevX = cmd.x
@@ -229,8 +229,8 @@ private class GlyphCompiler {
                 GlyphPath.CommandType.CURVE_TO -> {
                     val cubicBezier = CubicBezier(prevX, prevY, cmd.x1, cmd.y1, cmd.x2, cmd.y2, cmd.x, cmd.y)
 
-                    val totalBeziers = cubicBezier.convertToQuadBezier(c2qResolution, quadBeziers)
-                    for (i in 0 until totalBeziers) {
+                    val totalBeziers = 6 * cubicBezier.convertToQuadBezier(c2qResolution, quadBeziers)
+                    for (i in 0 until totalBeziers step 6) {
                         val quadBezier = quadBeziers[i]
                         curves += Bezier().apply {
                             p0.set(quadBezier.p1x, quadBezier.p1y)
