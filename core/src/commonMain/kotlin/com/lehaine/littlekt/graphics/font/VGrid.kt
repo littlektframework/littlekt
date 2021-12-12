@@ -182,6 +182,7 @@ internal class VGridAtlas {
         // never referenced twice in one cell, metadata can be stored by
         // adjusting the order of the bezier indices. In this case, the
         // midInside bit is 1 if data[0] > data[1].
+        // Note: that bezier indices are already sorted in ascending order.
         if (midInside) {
             // If cell is empty, there's nothing to swap (both values 0).
             // So a fake "sort meta" value must be used to make data[0]

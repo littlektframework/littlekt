@@ -40,7 +40,7 @@ class TtfFont(val chars: CharArray) {
             unitsPerEm = it.unitsPerEm
         }
         chars.forEach { char ->
-            glyphCache[char.code] = reader[char].also { it.path.recalculate(fontSize = fontSize) }
+            glyphCache[char.code] = reader[char]//.also { it.path.recalculate(fontSize = fontSize) }
         }
     }
 }
