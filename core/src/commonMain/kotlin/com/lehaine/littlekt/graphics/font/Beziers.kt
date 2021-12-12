@@ -62,11 +62,10 @@ internal class Bezier {
      * with the vertical line x=X.
      */
     fun intersectVertical(x: Float, outY: FloatArray): Int {
-        val inverse = Bezier().apply {
-            this@Bezier.p0.set(p0.y, p0.x)
-            this@Bezier.p1.set(p1.y, p1.x)
-            this@Bezier.control.set(control.y, control.x)
-        }
+        val inverse = Bezier()
+        inverse.p0.set(p0.y, p0.x)
+        inverse.p1.set(p1.y, p1.x)
+        inverse.control.set(control.y, control.x)
         return inverse.intersectHorizontal(x, outY)
     }
 }

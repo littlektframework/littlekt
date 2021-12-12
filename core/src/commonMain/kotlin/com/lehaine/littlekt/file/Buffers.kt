@@ -151,6 +151,10 @@ interface Float32Buffer : Buffer {
  * A [Byte] buffer for mixed types. All buffer positions are in bytes.
  */
 interface MixedBuffer : Buffer {
+    operator fun plusAssign(value: Byte) {
+        putInt8(value)
+    }
+
     val readInt8: Byte
     fun getInt8(offset: Int): Byte
     fun getInt8s(startOffset: Int, endOffset: Int): ByteArray

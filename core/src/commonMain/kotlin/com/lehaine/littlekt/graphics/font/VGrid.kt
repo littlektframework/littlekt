@@ -1,7 +1,9 @@
 package com.lehaine.littlekt.graphics.font
 
 import com.lehaine.littlekt.log.Logger
+import com.lehaine.littlekt.math.clamp
 import kotlin.math.min
+import kotlin.math.roundToInt
 
 /**
  * Represents a grid that is "overlayed" on top of a glyph that stores properties of each grid cell.
@@ -33,7 +35,49 @@ internal data class VGrid(
         gridWidth: Int,
         gridHeight: Int
     ): List<Set<Int>> {
-        TODO()
+        val cellBeziers = MutableList(gridWidth * gridHeight) { mutableSetOf<Int>() }
+
+        fun setGrid(x: Float, y: Float, bezierIndex: Int) {
+            val tx = x.roundToInt().clamp(0, gridWidth - 1)
+            val ty = y.roundToInt().clamp(0, gridHeight - 1)
+            cellBeziers[ty * gridWidth + tx] += bezierIndex
+        }
+
+        beziers.forEachIndexed { i, bezier ->
+            var anyIntersections = false
+
+            // Every vertical grid line including edges
+            for (x in 0..gridWidth) {
+                val intY = FloatArray(2) { 0f }
+                val numInt = bezier.intersectVertical(x.toFloat() * glyphWidth / gridWidth, intY)
+                for (j in 0 until numInt) {
+                    val y = intY[j] * gridHeight / glyphHeight
+                    setGrid(x.toFloat(), y, i) // right
+                    setGrid(x - 1f, y, i) // left
+                    anyIntersections = true
+                }
+            }
+
+            for (y in 0..gridHeight) {
+                val intX = FloatArray(2) { 0f }
+                val numInt = bezier.intersectHorizontal(y.toFloat() * glyphHeight / gridHeight, intX)
+                for (j in 0 until numInt) {
+                    val x = intX[j] * gridWidth / glyphWidth
+                    setGrid(x, y.toFloat(), i) // up
+                    setGrid(x, y - 1f, i) // down
+                    anyIntersections = true
+                }
+            }
+
+            // If no grid line intersections, bezier is fully contained in
+            // one cell. Mark this bezier as intersecting that cell.
+            if (!anyIntersections) {
+                val x = bezier.p0.x * gridWidth / glyphWidth
+                val y = bezier.p0.y * gridHeight / glyphHeight
+                setGrid(x, y, i)
+            }
+        }
+        return cellBeziers
     }
 
     private fun findCellsMidsInside(
@@ -43,12 +87,48 @@ internal data class VGrid(
         gridWidth: Int,
         gridHeight: Int
     ): List<Boolean> {
-        TODO()
+        val cellMids = MutableList(gridWidth * gridHeight) { false }
+
+        // Find whether the center of each cell is inside the glyph
+        for (y in 0 until gridHeight) {
+            // Find all intersections with cells horizontal midpoint line
+            // and store them sorted from left to right
+            val intersections = mutableSetOf<Float>()
+            val yMid = y + 0.5f
+            beziers.forEachIndexed { i, bezier ->
+                val intX = FloatArray(2) { 0f }
+                val numInt = bezier.intersectHorizontal(yMid * glyphHeight / gridHeight, intX)
+                for (j in 0 until numInt) {
+                    val x = intX[j] * gridWidth / glyphWidth
+                    intersections += x
+                }
+            }
+
+            // Traverse intersections (whole grid row, left to right).
+            // Every 2nd crossing represents exiting an "inside" region.
+            // All properly formed glyphs should have an even number of
+            // crossings.
+            var outside = false
+            var start = 0f
+            intersections.forEach {
+                val end = it
+                if (outside) {
+                    val startCell = start.roundToInt().clamp(0, gridWidth)
+                    val endCell = end.roundToInt().clamp(0, gridWidth)
+                    for (x in startCell until endCell) {
+                        cellMids[y * gridWidth + x] = true
+                    }
+                }
+                outside = !outside
+                start = end
+            }
+        }
+        return cellMids
     }
 }
 
 internal class VGridAtlas {
-    var data = Array(0) { ByteArray(0) }
+    var data = ByteArray(0)
     var width = 0
     var height = 0
 
@@ -56,7 +136,7 @@ internal class VGridAtlas {
      * Bytes per pixel. AKA, how many bezier curves are allowed per grid cell. This should probably always be 4
      * since that's the limit of bytes per pixel that OpenGL supports (GL_RGBA8).
      */
-    val depth = 4
+    var depth = 4
 
     fun writeVGridAt(grid: VGrid, tx: Int, ty: Int) {
         check(tx + grid.width <= width) { "VGrid to wide to fit on atlas" }
@@ -71,8 +151,7 @@ internal class VGridAtlas {
                 if (beziers.size > depth) {
                     logger.error { "Too many beziers in one grid cell (max: $depth, need: ${beziers.size}, x: $x, y: $y)" }
                 }
-                val data = data[atlasIdx]
-                writeVGridCellToBuffer(grid, cellIdx, data, depth)
+                writeVGridCellToBuffer(grid, cellIdx, data, atlasIdx, depth)
             }
         }
     }
@@ -81,10 +160,10 @@ internal class VGridAtlas {
      * Writes the data of a single [VGrid] cell into a texel. At most [depth] bytes will be written,
      * even if there are more bezies.
      */
-    private fun writeVGridCellToBuffer(grid: VGrid, cellIdx: Int, data: ByteArray, depth: Int) {
+    private fun writeVGridCellToBuffer(grid: VGrid, cellIdx: Int, data: ByteArray, offset: Int, depth: Int) {
         val beziers = grid.cellBeziers[cellIdx]
         for (i in 0 until depth) {
-            data[i] = BEZIER_INDEX_UNUSED
+            data[offset + i] = BEZIER_INDEX_UNUSED
         }
 
         var i = 0
@@ -93,7 +172,7 @@ internal class VGridAtlas {
         beziers.forEachIndexed { index, it ->
             if (index < numBeziers) return@forEachIndexed
 
-            data[i] = (it + BEZIER_INDEX_FIRST_REAL).toByte()
+            data[offset + i] = (it + BEZIER_INDEX_FIRST_REAL).toByte()
             i++
         }
 
@@ -103,27 +182,25 @@ internal class VGridAtlas {
         // never referenced twice in one cell, metadata can be stored by
         // adjusting the order of the bezier indices. In this case, the
         // midInside bit is 1 if data[0] > data[1].
-        // Note that the bezier indices are already sorted from smallest to
-        // largest because of std::set.
         if (midInside) {
             // If cell is empty, there's nothing to swap (both values 0).
             // So a fake "sort meta" value must be used to make data[0]
             // be larger. This special value is treated as 0 by the shader.
             if (beziers.isEmpty()) {
-                data[0] = BEZIER_INDEX_SORT_META
+                data[offset] = BEZIER_INDEX_SORT_META
             }
             // If there's just one bezier, data[0] is always > data[1] so
             // nothing needs to be done. Otherwise, swap data[0] and [1].
             else if (beziers.size != 1) {
-                data[0] = data[1].also { data[1] = data[0] }
+                data[offset] = data[offset + 1].also { data[offset + 1] = data[offset] }
             }
         }
         // If midInside is 0, make sure that data[0] <= data[1]. This can only
         // not happen if there is only 1 bezier in this cell, for the reason
         // described above. Solve by moving the only bezier into data[1].
         else if (beziers.size == 1) {
-            data[1] = data[0]
-            data[0] = BEZIER_INDEX_UNUSED
+            data[offset + 1] = data[offset]
+            data[offset] = BEZIER_INDEX_UNUSED
         }
     }
 

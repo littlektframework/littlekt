@@ -28,7 +28,9 @@ class GPUFontTest(context: Context) : ContextListener(context) {
         Logger.defaultLevel = Logger.Level.DEBUG
         logger.level = Logger.Level.DEBUG
         fileHandler.launch {
-            val font = loadTtfFont("FreeSerif.ttf")
+            val freeSerif = "FreeSerif.ttf"
+            val libSans = "LiberationSans-Regular.ttf"
+            val font = loadTtfFont(libSans)
             val gpuFont = GpuFont(font, fileHandler)
             CharacterSets.LATIN_ALL.forEach {
                 gpuFont.glyph(it)

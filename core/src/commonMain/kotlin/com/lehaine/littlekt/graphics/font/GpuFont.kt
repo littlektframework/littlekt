@@ -4,10 +4,7 @@ import com.lehaine.littlekt.file.FileHandler
 import com.lehaine.littlekt.file.MixedBuffer
 import com.lehaine.littlekt.file.createMixedBuffer
 import com.lehaine.littlekt.log.Logger
-import com.lehaine.littlekt.math.MutableVec2f
-import com.lehaine.littlekt.math.isFuzzyEqual
 import kotlin.math.max
-import kotlin.math.sqrt
 import kotlin.time.measureTimedValue
 
 /**
@@ -27,11 +24,11 @@ class GpuFont(
 
     fun glyph(char: Char) {
         // TODO check if it is already in atlas before compiling
-
+        var atlas = getOpenAtlasGroup()
         val glyph = font.glyphs[char.code] ?: error("Glyph for $char doesn't exist!")
         val curves =
             measureTimedValue { compiler.compile(glyph) }.also { logger.debug { "Took ${it.duration} to compile $char glyph." } }.value
-        var atlas = getOpenAtlasGroup()
+        val grid = VGrid(curves, glyph.width, glyph.height, GRID_MAX_SIZE, GRID_MAX_SIZE)
 
         // Although the data is represented as a 32bit texture, it's actually
         // two 16bit ints per pixel, each with an x and y coordinate for
@@ -64,17 +61,26 @@ class GpuFont(
             }
         }
 
-        val buffer = createMixedBuffer(atlas.glyphDataBuf)
-        buffer.position = atlas.glyphDataBufOffset * ATLAS_CHANNELS
+        val bezierBuffer = createMixedBuffer(atlas.glyphDataBuf)
+        bezierBuffer.position = atlas.glyphDataBufOffset * ATLAS_CHANNELS
         writeGlyphToBuffer(
-            buffer, curves, glyph.width, glyph.height, atlas.gridX.toShort(), atlas.gridY.toShort(),
+            bezierBuffer, curves, glyph.width, glyph.height, atlas.gridX.toShort(), atlas.gridY.toShort(),
             GRID_MAX_SIZE.toShort(), GRID_MAX_SIZE.toShort()
         )
+        val gridAtlas = VGridAtlas().apply {
+            data = atlas.gridAtlas
+            width = gridAtlasSize
+            height = gridAtlasSize
+            depth = ATLAS_CHANNELS
+            writeVGridAt(grid, atlas.gridX, atlas.gridY)
+        }
+
         atlas.glyphDataBufOffset += bezierPixelLength
         atlas.gridX += GRID_MAX_SIZE
         atlas.uploaded = false
 
-        writeBMP("bezierAtlas.bmp", bezierAtlasSize, bezierAtlasSize, 4, buffer)
+        writeBMP("bezierAtlas.bmp", bezierAtlasSize, bezierAtlasSize, ATLAS_CHANNELS, bezierBuffer)
+        writeBMP("gridAtlas.bmp", gridAtlasSize, gridAtlasSize, ATLAS_CHANNELS, createMixedBuffer(atlas.gridAtlas))
     }
 
     private fun writeBMP(name: String, width: Int, height: Int, channels: Int, buffer: MixedBuffer) {
@@ -99,7 +105,7 @@ class GpuFont(
             putUint32(0) //clr important
             putInt8(buffer.toArray(), 0, buffer.capacity)
         }
-        fileHandler.store("bezierAtlas.bmp", bmpBuffer.toArray())
+        fileHandler.store(name, bmpBuffer.toArray())
     }
 
     private fun writeGlyphToBuffer(
@@ -142,7 +148,7 @@ class GpuFont(
     }
 
     companion object {
-        private const val GRID_MAX_SIZE = 8 // should this be 20?
+        private const val GRID_MAX_SIZE = 16 // should this be 20?
         private const val ATLAS_CHANNELS = 4 // Must be 4 (RGBA)
 
         private val logger = Logger<GpuFont>()
