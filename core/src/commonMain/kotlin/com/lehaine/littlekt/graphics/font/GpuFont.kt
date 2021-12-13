@@ -5,7 +5,12 @@ import com.lehaine.littlekt.file.FileHandler
 import com.lehaine.littlekt.file.MixedBuffer
 import com.lehaine.littlekt.file.createMixedBuffer
 import com.lehaine.littlekt.graphics.*
+import com.lehaine.littlekt.graphics.gl.PixmapTextureData
+import com.lehaine.littlekt.graphics.shader.ShaderProgram
+import com.lehaine.littlekt.graphics.shader.shaders.GpuTextFragmentShader
+import com.lehaine.littlekt.graphics.shader.shaders.GpuTextVertexShader
 import com.lehaine.littlekt.log.Logger
+import com.lehaine.littlekt.math.Mat4
 import com.lehaine.littlekt.util.datastructure.FloatArrayList
 import kotlin.math.max
 import kotlin.time.measureTimedValue
@@ -28,6 +33,7 @@ class GpuFont(
     private var text = StringBuilder("")
 
     private lateinit var mesh: Mesh
+    private lateinit var shader: ShaderProgram<GpuTextVertexShader, GpuTextFragmentShader>
     private lateinit var context: Context
 
     private val fileHandler: FileHandler get() = context.fileHandler
@@ -39,6 +45,7 @@ class GpuFont(
             maxVertices = 10000
             useBatcher = false
         }.also { it.indicesAsQuad() }
+        shader = ShaderProgram(GpuTextVertexShader(), GpuTextFragmentShader()).also { it.prepare(context) }
     }
 
     fun insertText(text: String, x: Float, y: Float, color: Color = Color.BLACK) {
@@ -48,30 +55,35 @@ class GpuFont(
         var ty = y
         text.forEach {
             val glyph = glyph(it)
+            val u = glyph.bezierAtlasPosX / atlasWidth.toFloat()
+            val v = glyph.bezierAtlasPosY / atlasHeight.toFloat()
             vertices.run {
-                add(tx + glyph.offsetX)
-                add(ty + glyph.offsetY)
+                add(tx)
+                add(ty)
                 add(color.toFloatBits())
+                add(u)
+                add(v)
             }
             vertices.run {
-                add(glyph.width + tx + glyph.offsetX)
-                add(ty + glyph.offsetY)
+                add(glyph.width + tx)
+                add(ty)
                 add(color.toFloatBits())
+                add(u)
+                add(v)
             }
             vertices.run {
-                add(tx + glyph.offsetX)
-                add(ty + glyph.offsetY)
+                add(glyph.width + tx)
+                add(glyph.height + ty)
                 add(color.toFloatBits())
+                add(u)
+                add(v)
             }
             vertices.run {
-                add(glyph.width + tx + glyph.offsetX)
-                add(glyph.height + ty + glyph.offsetY)
+                add(tx)
+                add(glyph.height + ty)
                 add(color.toFloatBits())
-            }
-            vertices.run {
-                add(tx + glyph.offsetX)
-                add(glyph.height + ty + glyph.offsetY)
-                add(color.toFloatBits())
+                add(u)
+                add(v)
             }
             tx += glyph.advanceWidth
             instances += glyph
@@ -80,8 +92,18 @@ class GpuFont(
         mesh.setVertices(vertices.data, 0, vertices.size)
     }
 
-    fun render() {
-        mesh.render()
+    fun render(viewProjection: Mat4? = null) {
+        atlases.forEach {
+            if (it.uploaded) return@forEach
+            it.texture.prepare(context)
+            it.uploaded = true
+
+        }
+        shader.bind()
+        viewProjection?.let {
+            shader.vertexShader.uProjTrans.apply(shader, viewProjection)
+        }
+        mesh.render(shader)
     }
 
     private fun glyph(char: Char): GpuGlyph {
@@ -113,6 +135,7 @@ class GpuFont(
                 glyph.leftSideBearing,
                 glyph.yMax,
                 0,
+                0,
                 -1,
                 glyph.advanceWidth.toInt()
             )
@@ -136,31 +159,30 @@ class GpuFont(
             }
         }
 
-        val buffer = createMixedBuffer(atlasWidth * atlasHeight * ATLAS_CHANNELS)
-        buffer.putInt8(atlas.glyphDataBuf)
+        val buffer = atlas.pixmap.pixels
         buffer.position = atlas.glyphDataBufOffset * ATLAS_CHANNELS
         writeGlyphToBuffer(
             buffer, curves, glyph.width, glyph.height, atlas.gridX.toShort(), atlas.gridY.toShort(),
             GRID_MAX_SIZE.toShort(), GRID_MAX_SIZE.toShort()
         )
-        atlas.glyphDataBuf = buffer.toArray()
-        VGridAtlas().apply {
-            data = atlas.gridAtlas
-            width = atlasWidth
-            height = atlasHeight
+        VGridAtlas.writeVGridAt(
+            grid = grid,
+            data = buffer,
+            offset = atlasWidth * (atlasHeight / 2) * ATLAS_CHANNELS,
+            tx = atlas.gridX,
+            ty = atlas.gridY,
+            width = atlasWidth,
+            height = atlasHeight,
             depth = ATLAS_CHANNELS
-            writeVGridAt(grid, atlas.gridX, atlas.gridY)
-        }
-        // write the grid atlas on the other half on the bmp
-        buffer.position = atlasWidth * (atlasHeight / 2) * ATLAS_CHANNELS
-        buffer.putInt8(atlas.gridAtlas)
+        )
 
         val gpuGlyph = GpuGlyph(
             glyph.width,
             glyph.height,
             glyph.leftSideBearing,
             glyph.yMax,
-            atlas.glyphDataBufOffset,
+            atlas.glyphDataBufOffset % atlasWidth,
+            atlas.glyphDataBufOffset / atlasWidth,
             atlases.size - 1,
             glyph.advanceWidth.toInt()
         )
@@ -234,9 +256,9 @@ class GpuFont(
     private fun getOpenAtlasGroup(): AtlasGroup {
         if (atlases.isEmpty() || atlases.last().full) {
             val atlas = AtlasGroup().apply {
-                glyphDataBuf = ByteArray(atlasWidth * (atlasHeight / 2) * ATLAS_CHANNELS)
-                gridAtlas = ByteArray(atlasWidth * (atlasHeight / 2) * ATLAS_CHANNELS)
+                pixmap = Pixmap(atlasWidth, atlasHeight, createMixedBuffer(atlasWidth * atlasHeight * ATLAS_CHANNELS))
                 uploaded = true
+                texture.prepare(context)
             }
             atlases += atlas
         }
@@ -257,22 +279,32 @@ private data class GpuGlyph(
     val offsetX: Int,
     val offsetY: Int,
     val bezierAtlasPosX: Int,
+    val bezierAtlasPosY: Int,
     val bezierAtlasPosZ: Int,
     val advanceWidth: Int
 )
 
 private class AtlasGroup {
-    var gridAtlas = ByteArray(0)
+    var pixmap = Pixmap(0, 0)
+        set(value) {
+            field = value
+            textureData = PixmapTextureData(field, false)
+        }
+    var textureData = PixmapTextureData(pixmap, false)
+        set(value) {
+            field = value
+            texture = Texture(field)
+        }
+    var texture = Texture(textureData)
     var gridX = 0
     var gridY = 0
     var full = false
     var uploaded = false
 
-    var glyphDataBuf = ByteArray(0)
     var glyphDataBufOffset = 0
 
     override fun toString(): String {
-        return "AtlasGroup(x=$gridX, y=$gridY, full=$full, uploaded=$uploaded, gridAtlas=$gridAtlas, glyphDataBuf=$glyphDataBuf, glyphDataBufOffset=$glyphDataBufOffset)"
+        return "AtlasGroup(x=$gridX, y=$gridY, full=$full, uploaded=$uploaded, glyphDataBufOffset=$glyphDataBufOffset)"
     }
 }
 

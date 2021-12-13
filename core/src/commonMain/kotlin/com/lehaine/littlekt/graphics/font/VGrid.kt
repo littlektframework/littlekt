@@ -1,5 +1,7 @@
 package com.lehaine.littlekt.graphics.font
 
+import com.lehaine.littlekt.file.MixedBuffer
+import com.lehaine.littlekt.graphics.font.VGridAtlas.writeVGridCellToBuffer
 import com.lehaine.littlekt.log.Logger
 import com.lehaine.littlekt.math.clamp
 import kotlin.math.min
@@ -127,18 +129,38 @@ internal data class VGrid(
     }
 }
 
-internal class VGridAtlas {
-    var data = ByteArray(0)
-    var width = 0
-    var height = 0
+internal object VGridAtlas {
+
+    private val logger = Logger<VGridAtlas>()
+
+    // Converts X,Y to index in a row-major 2D array
+    private fun xy2i(x: Int, y: Int, w: Int) = (y * w) + x
 
     /**
-     * Bytes per pixel. AKA, how many bezier curves are allowed per grid cell. This should probably always be 4
-     * since that's the limit of bytes per pixel that OpenGL supports (GL_RGBA8).
+     * Each bezier index is represented as one byte in the grid cell,
+     * and values 0 and 1 are reserved for special meaning.
+     * This leaves a limit of 254 beziers per grid/glyph.
+     * More on the meaning of values 1 and 0 in the VGridAtlas struct
+     * definition and in [writeVGridCellToBuffer].
      */
-    var depth = 4
+    private const val BEZIER_INDEX_UNUSED = 0.toByte()
+    private const val BEZIER_INDEX_SORT_META = 1.toByte()
+    private const val BEZIER_INDEX_FIRST_REAL = 2.toByte()
 
-    fun writeVGridAt(grid: VGrid, tx: Int, ty: Int) {
+    fun writeVGridAt(
+        grid: VGrid,
+        data: MixedBuffer,
+        offset: Int,
+        tx: Int,
+        ty: Int,
+        width: Int,
+        height: Int,
+        /**
+         * Bytes per pixel. AKA, how many bezier curves are allowed per grid cell. This should probably always be 4
+         * since that's the limit of bytes per pixel that OpenGL supports (GL_RGBA8).
+         */
+        depth: Int,
+    ) {
         check(tx + grid.width <= width) { "VGrid to wide to fit on atlas" }
         check(ty + grid.height <= height) { "VGrid to long to fit on atlas" }
 
@@ -151,7 +173,7 @@ internal class VGridAtlas {
                 if (beziers.size > depth) {
                     logger.error { "Too many beziers in one grid cell (max: $depth, need: ${beziers.size}, x: $x, y: $y)" }
                 }
-                writeVGridCellToBuffer(grid, cellIdx, data, atlasIdx, depth)
+                writeVGridCellToBuffer(grid, cellIdx, data, atlasIdx + offset, depth)
             }
         }
     }
@@ -160,7 +182,7 @@ internal class VGridAtlas {
      * Writes the data of a single [VGrid] cell into a texel. At most [depth] bytes will be written,
      * even if there are more bezies.
      */
-    private fun writeVGridCellToBuffer(grid: VGrid, cellIdx: Int, data: ByteArray, offset: Int, depth: Int) {
+    private fun writeVGridCellToBuffer(grid: VGrid, cellIdx: Int, data: MixedBuffer, offset: Int, depth: Int) {
         val beziers = grid.cellBeziers[cellIdx]
         for (i in 0 until depth) {
             data[offset + i] = BEZIER_INDEX_UNUSED
@@ -193,33 +215,15 @@ internal class VGridAtlas {
             // If there's just one bezier, data[0] is always > data[1] so
             // nothing needs to be done. Otherwise, swap data[0] and [1].
             else if (beziers.size != 1) {
-                data[offset] = data[offset + 1].also { data[offset + 1] = data[offset] }
+                data[offset] = data.getInt8(offset + 1).also { data[offset + 1] = data.getInt8(offset) }
             }
         }
         // If midInside is 0, make sure that data[0] <= data[1]. This can only
         // not happen if there is only 1 bezier in this cell, for the reason
         // described above. Solve by moving the only bezier into data[1].
         else if (beziers.size == 1) {
-            data[offset + 1] = data[offset]
+            data[offset + 1] = data.getInt8(offset)
             data[offset] = BEZIER_INDEX_UNUSED
         }
-    }
-
-    internal companion object {
-        private val logger = Logger<VGridAtlas>()
-
-        // Converts X,Y to index in a row-major 2D array
-        private fun xy2i(x: Int, y: Int, w: Int) = (y * w) + x
-
-        /**
-         * Each bezier index is represented as one byte in the grid cell,
-         * and values 0 and 1 are reserved for special meaning.
-         * This leaves a limit of 254 beziers per grid/glyph.
-         * More on the meaning of values 1 and 0 in the VGridAtlas struct
-         * definition and in [writeVGridCellToBuffer].
-         */
-        private const val BEZIER_INDEX_UNUSED = 0.toByte()
-        private const val BEZIER_INDEX_SORT_META = 1.toByte()
-        private const val BEZIER_INDEX_FIRST_REAL = 2.toByte()
     }
 }

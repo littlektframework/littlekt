@@ -151,8 +151,25 @@ interface Float32Buffer : Buffer {
  * A [Byte] buffer for mixed types. All buffer positions are in bytes.
  */
 interface MixedBuffer : Buffer {
+    operator fun set(i: Int, value: Byte)
+    operator fun set(i: Int, value: Int)
+    operator fun set(i: Int, value: Short)
+    operator fun set(i: Int, value: Float)
+
     operator fun plusAssign(value: Byte) {
         putInt8(value)
+    }
+
+    operator fun plusAssign(value: Short) {
+        putInt16(value)
+    }
+
+    operator fun plusAssign(value: Int) {
+        putInt32(value)
+    }
+
+    operator fun plusAssign(value: Float) {
+        putFloat32(value)
     }
 
     val readInt8: Byte
@@ -172,6 +189,7 @@ interface MixedBuffer : Buffer {
 
     val readInt32: Int
     fun getInt32(offset: Int): Int
+    fun putInt32(offset: Int, value: Int) = putUint32(offset, value)
     fun putInt32(value: Int) = putUint32(value)
     fun putInt32(data: IntArray) = putUint32(data)
     fun putInt32(data: IntArray, offset: Int, len: Int) = putUint32(data, offset, len)
@@ -195,6 +213,7 @@ interface MixedBuffer : Buffer {
     val readUint32: Int
     fun getUint32(offset: Int): Int
     fun putUint32(value: Int): MixedBuffer
+    fun putUint32(offset: Int, value: Int): MixedBuffer
     fun putUint32(data: IntArray): MixedBuffer = putUint32(data, 0, data.size)
     fun putUint32(data: IntArray, offset: Int, len: Int): MixedBuffer
     fun putUint32(data: Uint32Buffer): MixedBuffer

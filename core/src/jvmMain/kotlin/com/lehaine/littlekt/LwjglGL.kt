@@ -676,6 +676,44 @@ class LwjglGL(private val engineStats: EngineStats) : GL {
         GL11.glTexSubImage2D(target, level, xOffset, yOffset, width, height, format, type, source.buffer)
     }
 
+    override fun texSubImage2D(
+        target: Int,
+        level: Int,
+        xOffset: Int,
+        yOffset: Int,
+        width: Int,
+        height: Int,
+        format: Int,
+        type: Int,
+        source: MixedBuffer
+    ) {
+        engineStats.calls++
+        source as MixedBufferImpl
+        GL11.glTexSubImage2D(target, level, xOffset, yOffset, width, height, format, type, source.buffer)
+    }
+
+    override fun texImage2D(
+        target: Int,
+        level: Int,
+        internalFormat: Int,
+        format: Int,
+        width: Int,
+        height: Int,
+        type: Int
+    ) {
+        glTexImage2D(
+            target,
+            level,
+            internalFormat,
+            width,
+            height,
+            0,
+            format,
+            type,
+            null as ByteBuffer?
+        )
+    }
+
     override fun texImage2D(
         target: Int,
         level: Int,
@@ -684,10 +722,9 @@ class LwjglGL(private val engineStats: EngineStats) : GL {
         width: Int,
         height: Int,
         type: Int,
-        source: Uint8Buffer?
+        source: Uint8Buffer
     ) {
         engineStats.calls++
-        if (source != null) {
             source as Uint8BufferImpl
             glTexImage2D(
                 target,
@@ -700,19 +737,33 @@ class LwjglGL(private val engineStats: EngineStats) : GL {
                 type,
                 source.buffer
             )
-        } else {
-            glTexImage2D(
-                target,
-                level,
-                internalFormat,
-                width,
-                height,
-                0,
-                format,
-                type,
-                null as ByteBuffer?
-            )
-        }
+
+    }
+
+    override fun texImage2D(
+        target: Int,
+        level: Int,
+        internalFormat: Int,
+        format: Int,
+        width: Int,
+        height: Int,
+        type: Int,
+        source: MixedBuffer
+    ) {
+        engineStats.calls++
+        source as MixedBufferImpl
+        glTexImage2D(
+            target,
+            level,
+            internalFormat,
+            width,
+            height,
+            0,
+            format,
+            type,
+            source.buffer
+        )
+
     }
 
     override fun activeTexture(texture: Int) {

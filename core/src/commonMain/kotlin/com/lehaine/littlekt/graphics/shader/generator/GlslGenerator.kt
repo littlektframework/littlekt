@@ -10,8 +10,6 @@ import com.lehaine.littlekt.graphics.shader.generator.type.BoolResult
 import com.lehaine.littlekt.graphics.shader.generator.type.Func
 import com.lehaine.littlekt.graphics.shader.generator.type.GenType
 import com.lehaine.littlekt.graphics.shader.generator.type.Variable
-import com.lehaine.littlekt.graphics.shader.generator.type.func.FloatFunc
-import com.lehaine.littlekt.graphics.shader.generator.type.func.Vec2Func
 import com.lehaine.littlekt.graphics.shader.generator.type.mat.Mat3
 import com.lehaine.littlekt.graphics.shader.generator.type.mat.Mat4
 import com.lehaine.littlekt.graphics.shader.generator.type.sampler.Sampler2D
@@ -90,6 +88,16 @@ abstract class GlslGenerator : GlslProvider {
             instructions.add(instruction)
         }
     }
+
+    @PublishedApi
+    internal fun removeInstruction(instruction: Instruction) {
+        if (addAsFunctionInstruction) {
+            functionInstructions.remove(instruction)
+        } else {
+            instructions.remove(instruction)
+        }
+    }
+
 
     override fun generate(context: Context): String {
         removeUnusedDefinitions()
@@ -629,6 +637,9 @@ abstract class GlslGenerator : GlslProvider {
     fun vec4Lit(vec3: Vec3, w: GLFloat) = Vec4(this, "vec4(${vec3.value}, ${w.value})")
     fun vec4Lit(vec2: Vec2, z: Float, w: Float) =
         Vec4(this, "vec4(${vec2.value}, ${z.str()}, ${w.str()})")
+
+    fun vec4Lit(vec: Vec2, vec2: Vec2) =
+        Vec4(this, "vec4(${vec.value}, ${vec2.value})")
 
     fun vec4Lit(x: GLFloat, y: GLFloat, zw: Vec2) =
         Vec4(this, "vec4(${x.value}, ${y.value}, ${zw.value})")

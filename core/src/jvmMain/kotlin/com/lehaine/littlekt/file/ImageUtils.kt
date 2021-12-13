@@ -25,11 +25,11 @@ internal object ImageUtils {
     }
 
 
-    private fun BufferedImage.toBuffer(dstFormat: TextureFormat?): Uint8Buffer {
+    private fun BufferedImage.toBuffer(dstFormat: TextureFormat?): MixedBuffer {
         return bufferedImageToBuffer(this, dstFormat, 0, 0)
     }
 
-    fun bufferedImageToBuffer(image: BufferedImage, dstFmt: TextureFormat?, width: Int, height: Int): Uint8Buffer {
+    fun bufferedImageToBuffer(image: BufferedImage, dstFmt: TextureFormat?, width: Int, height: Int): MixedBuffer {
         val srcFormat = image.format
         val dstFormat = chooseDstFormat(srcFormat, dstFmt)
 
@@ -51,7 +51,7 @@ internal object ImageUtils {
             else -> throw RuntimeException("Invalid output format $srcFormat")
         }
 
-        val buffer = createUint8Buffer(w * h * stride)
+        val buffer = createMixedBuffer(w * h * stride)
 
         var copied = false
         if (w == image.width && h == image.height) {
@@ -78,7 +78,7 @@ internal object ImageUtils {
         return buffer
     }
 
-    private fun fastCopyImage(image: BufferedImage, target: Uint8Buffer, dstFormat: TextureFormat): Boolean {
+    private fun fastCopyImage(image: BufferedImage, target: MixedBuffer, dstFormat: TextureFormat): Boolean {
         val imgBuf = image.data.dataBuffer as? DataBufferByte ?: return false
         val bytes = imgBuf.bankData[0]
         val nPixels = image.width * image.height * dstFormat.channels
@@ -93,7 +93,7 @@ internal object ImageUtils {
                 bytes[i + 2] = b
                 bytes[i + 3] = a
             }
-            target.put(bytes)
+            target.putInt8(bytes)
             return true
 
         } else if (dstFormat == TextureFormat.RGB && bytes.size == nPixels) {
@@ -103,11 +103,11 @@ internal object ImageUtils {
                 bytes[i] = bytes[i + 2]
                 bytes[i + 2] = b
             }
-            target.put(bytes)
+            target.putInt8(bytes)
             return true
 
         } else if (dstFormat == TextureFormat.RED && bytes.size == nPixels) {
-            target.put(bytes)
+            target.putInt8(bytes)
             return true
         }
         return false
@@ -115,7 +115,7 @@ internal object ImageUtils {
 
     private fun slowCopyImage(
         image: BufferedImage,
-        target: Uint8Buffer,
+        target: MixedBuffer,
         dstFormat: TextureFormat,
         width: Int,
         height: Int
@@ -150,22 +150,22 @@ internal object ImageUtils {
                 // copy bytes to target buf
                 when (dstFormat) {
                     TextureFormat.RED -> {
-                        target.put((r * 255f).toInt().toByte())
+                        target.putInt8((r * 255f).toInt().toByte())
                     }
                     TextureFormat.RG -> {
-                        target.put((r * 255f).toInt().toByte())
-                        target.put((g * 255f).toInt().toByte())
+                        target.putInt8((r * 255f).toInt().toByte())
+                        target.putInt8((g * 255f).toInt().toByte())
                     }
                     TextureFormat.RGB -> {
-                        target.put((r * 255f).toInt().toByte())
-                        target.put((g * 255f).toInt().toByte())
-                        target.put((b * 255f).toInt().toByte())
+                        target.putInt8((r * 255f).toInt().toByte())
+                        target.putInt8((g * 255f).toInt().toByte())
+                        target.putInt8((b * 255f).toInt().toByte())
                     }
                     TextureFormat.RGBA -> {
-                        target.put((r * 255f).toInt().toByte())
-                        target.put((g * 255f).toInt().toByte())
-                        target.put((b * 255f).toInt().toByte())
-                        target.put((a * 255f).toInt().toByte())
+                        target.putInt8((r * 255f).toInt().toByte())
+                        target.putInt8((g * 255f).toInt().toByte())
+                        target.putInt8((b * 255f).toInt().toByte())
+                        target.putInt8((a * 255f).toInt().toByte())
                     }
                     else -> throw IllegalArgumentException("TexFormat not yet implemented: $dstFormat")
                 }

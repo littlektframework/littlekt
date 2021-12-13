@@ -84,7 +84,7 @@ internal class Uint16BufferImpl(capacity: Int) : Uint16Buffer, GenericBuffer<Uin
     }
 
     override fun put(data: ShortArray, offset: Int, len: Int): Uint16Buffer {
-        for (i in offset..(offset + len - 1)) {
+        for (i in offset until offset + len) {
             buffer[position++] = data[i]
         }
         return this
@@ -118,7 +118,7 @@ internal class Uint32BufferImpl(capacity: Int) : Uint32Buffer, GenericBuffer<Uin
     }
 
     override fun put(data: IntArray, offset: Int, len: Int): Uint32Buffer {
-        for (i in offset..(offset + len - 1)) {
+        for (i in offset until offset + len) {
             buffer[position++] = data[i]
         }
         return this
@@ -178,6 +178,22 @@ internal class MixedBufferImpl(buffer: ArrayBuffer) : MixedBuffer, GenericBuffer
     DataView(buffer)
 }) {
     constructor(capacity: Int) : this(ArrayBuffer(capacity))
+
+    override fun set(i: Int, value: Byte) {
+        buffer.setInt8(i, value)
+    }
+
+    override fun set(i: Int, value: Short) {
+        buffer.setInt16(i, value)
+    }
+
+    override fun set(i: Int, value: Int) {
+        buffer.setInt32(i, value)
+    }
+
+    override fun set(i: Int, value: Float) {
+        buffer.setFloat32(i, value)
+    }
 
     override val readInt8: Byte
         get() = buffer.getInt8(position++)
@@ -302,6 +318,11 @@ internal class MixedBufferImpl(buffer: ArrayBuffer) : MixedBuffer, GenericBuffer
     override fun putUint32(value: Int): MixedBuffer {
         buffer.setUint32(position, value)
         position += 4
+        return this
+    }
+
+    override fun putUint32(offset: Int, value: Int): MixedBuffer {
+        buffer.setUint32(offset, value)
         return this
     }
 

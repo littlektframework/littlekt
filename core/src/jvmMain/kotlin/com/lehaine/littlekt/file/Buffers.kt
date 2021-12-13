@@ -218,6 +218,22 @@ class MixedBufferImpl(buffer: ByteBuffer) : MixedBuffer, GenericBuffer<ByteBuffe
         putInt8(data)
     }
 
+    override fun set(i: Int, value: Byte) {
+        buffer.put(i, value)
+    }
+
+    override fun set(i: Int, value: Int) {
+        buffer.putInt(i, value)
+    }
+
+    override fun set(i: Int, value: Short) {
+        buffer.putShort(i, value)
+    }
+
+    override fun set(i: Int, value: Float) {
+        buffer.putFloat(i, value)
+    }
+
     override val readInt8: Byte get() = readUint8
 
     override fun getInt8(offset: Int): Byte {
@@ -325,6 +341,11 @@ class MixedBufferImpl(buffer: ByteBuffer) : MixedBuffer, GenericBuffer<ByteBuffe
 
     override fun putUint32(value: Int): MixedBuffer {
         buffer.putInt(value)
+        return this
+    }
+
+    override fun putUint32(offset: Int, value: Int): MixedBuffer {
+        buffer.putInt(offset, value)
         return this
     }
 

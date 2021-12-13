@@ -1,9 +1,6 @@
 package com.lehaine.littlekt.graphics
 
-import com.lehaine.littlekt.file.DataSource
-import com.lehaine.littlekt.file.Float32Buffer
-import com.lehaine.littlekt.file.Uint32Buffer
-import com.lehaine.littlekt.file.Uint8Buffer
+import com.lehaine.littlekt.file.*
 import com.lehaine.littlekt.graphics.gl.*
 import com.lehaine.littlekt.math.Mat3
 import com.lehaine.littlekt.math.Mat4
@@ -326,6 +323,50 @@ interface GL {
         source: Uint8Buffer
     ) = texSubImage2D(target.glFlag, level, xOffset, yOffset, width, height, format.glFlag, type.glFlag, source)
 
+    fun texSubImage2D(
+        target: Int,
+        level: Int,
+        xOffset: Int,
+        yOffset: Int,
+        width: Int,
+        height: Int,
+        format: Int,
+        type: Int,
+        source: MixedBuffer
+    )
+
+    fun texSubImage2D(
+        target: TextureTarget,
+        level: Int,
+        xOffset: Int,
+        yOffset: Int,
+        width: Int,
+        height: Int,
+        format: TextureFormat,
+        type: DataType,
+        source: MixedBuffer
+    ) = texSubImage2D(target.glFlag, level, xOffset, yOffset, width, height, format.glFlag, type.glFlag, source)
+
+    fun texImage2D(
+        target: Int,
+        level: Int,
+        internalFormat: Int,
+        format: Int,
+        width: Int,
+        height: Int,
+        type: Int
+    )
+
+    fun texImage2D(
+        target: TextureTarget,
+        level: Int,
+        internalFormat: TextureFormat,
+        format: TextureFormat,
+        width: Int,
+        height: Int,
+        type: DataType
+    ) = texImage2D(target.glFlag, level, internalFormat.glFlag, format.glFlag, width, height, type.glFlag)
+
     fun texImage2D(
         target: Int,
         level: Int,
@@ -334,7 +375,7 @@ interface GL {
         width: Int,
         height: Int,
         type: Int,
-        source: Uint8Buffer?
+        source: Uint8Buffer
     )
 
     fun texImage2D(
@@ -345,7 +386,29 @@ interface GL {
         width: Int,
         height: Int,
         type: DataType,
-        source: Uint8Buffer?
+        source: Uint8Buffer
+    ) = texImage2D(target.glFlag, level, internalFormat.glFlag, format.glFlag, width, height, type.glFlag, source)
+
+    fun texImage2D(
+        target: Int,
+        level: Int,
+        internalFormat: Int,
+        format: Int,
+        width: Int,
+        height: Int,
+        type: Int,
+        source: MixedBuffer
+    )
+
+    fun texImage2D(
+        target: TextureTarget,
+        level: Int,
+        internalFormat: TextureFormat,
+        format: TextureFormat,
+        width: Int,
+        height: Int,
+        type: DataType,
+        source: MixedBuffer
     ) = texImage2D(target.glFlag, level, internalFormat.glFlag, format.glFlag, width, height, type.glFlag, source)
 
     fun texParameteri(target: Int, pname: Int, param: Int)

@@ -590,6 +590,34 @@ class WebGL(val gl: WebGL2RenderingContext, private val engineStats: EngineStats
         gl.texSubImage2D(target, level, xOffset, yOffset, width, height, format, type, source.buffer)
     }
 
+    override fun texSubImage2D(
+        target: Int,
+        level: Int,
+        xOffset: Int,
+        yOffset: Int,
+        width: Int,
+        height: Int,
+        format: Int,
+        type: Int,
+        source: MixedBuffer
+    ) {
+        engineStats.calls++
+        source as MixedBufferImpl
+        gl.texSubImage2D(target, level, xOffset, yOffset, width, height, format, type, source.buffer)
+    }
+
+    override fun texImage2D(
+        target: Int,
+        level: Int,
+        internalFormat: Int,
+        format: Int,
+        width: Int,
+        height: Int,
+        type: Int
+    ) {
+        gl.texImage2D(target, level, internalFormat, width, height, 0, format, type, null)
+    }
+
     override fun uniformMatrix3fv(uniformLocation: UniformLocation, transpose: Boolean, data: Mat3) {
         engineStats.calls++
         val buffer = createFloat32Buffer(9) as Float32BufferImpl
@@ -693,15 +721,28 @@ class WebGL(val gl: WebGL2RenderingContext, private val engineStats: EngineStats
         width: Int,
         height: Int,
         type: Int,
-        source: Uint8Buffer?
+        source: Uint8Buffer
     ) {
         engineStats.calls++
-        if (source != null) {
-            source as Uint8BufferImpl
-            gl.texImage2D(target, level, internalFormat, width, height, 0, format, type, source.buffer)
-        } else {
-            gl.texImage2D(target, level, internalFormat, width, height, 0, format, type, null)
-        }
+        source as Uint8BufferImpl
+        gl.texImage2D(target, level, internalFormat, width, height, 0, format, type, source.buffer)
+
+    }
+
+    override fun texImage2D(
+        target: Int,
+        level: Int,
+        internalFormat: Int,
+        format: Int,
+        width: Int,
+        height: Int,
+        type: Int,
+        source: MixedBuffer
+    ) {
+        engineStats.calls++
+        source as MixedBufferImpl
+        gl.texImage2D(target, level, internalFormat, width, height, 0, format, type, source.buffer)
+
     }
 
     override fun texParameteri(target: Int, pname: Int, param: Int) {

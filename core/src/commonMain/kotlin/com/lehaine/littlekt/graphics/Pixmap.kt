@@ -1,9 +1,9 @@
 package com.lehaine.littlekt.graphics
 
+import com.lehaine.littlekt.file.MixedBuffer
+import com.lehaine.littlekt.file.createMixedBuffer
 import com.lehaine.littlekt.graphics.gl.DataType
 import com.lehaine.littlekt.graphics.gl.TextureFormat
-import com.lehaine.littlekt.file.Uint8Buffer
-import com.lehaine.littlekt.file.createUint8Buffer
 import kotlin.math.max
 import kotlin.math.round
 
@@ -11,7 +11,7 @@ import kotlin.math.round
  * @author Colton Daily
  * @date 11/18/2021
  */
-class Pixmap(val width: Int, val height: Int, val pixels: Uint8Buffer = createUint8Buffer(width * height * 4)) {
+class Pixmap(val width: Int, val height: Int, val pixels: MixedBuffer = createMixedBuffer(width * height * 4)) {
 
     enum class Format(val glType: DataType, val glFormat: TextureFormat) {
         ALPHA(DataType.UNSIGNED_BYTE, TextureFormat.ALPHA),
@@ -121,11 +121,11 @@ class Pixmap(val width: Int, val height: Int, val pixels: Uint8Buffer = createUi
                         if (sx < 0 || dx < 0) continue
                         if (sx >= pixmap.width || dx >= width) break
                         val srcp = (sx + sy * pixmap.width) * 4
-                        val c1 = spixels[srcp].toInt()
-                        val c2 = if (sx + rx < srcWidth) spixels[srcp + 4 * rx].toInt() else c1
-                        val c3 = if (sy + ry < srcHeight) spixels[srcp + spitch * ry].toInt() else c1
+                        val c1 = spixels.getInt32(srcp)
+                        val c2 = if (sx + rx < srcWidth) spixels.getInt32(srcp + 4 * rx) else c1
+                        val c3 = if (sy + ry < srcHeight) spixels.getInt32(srcp + spitch * ry) else c1
                         val c4 =
-                            if (sx + rx < srcWidth && sy + ry < srcHeight) spixels[srcHeight + 4 * rx + spitch * ry].toInt() else c1
+                            if (sx + rx < srcWidth && sy + ry < srcHeight) spixels.getInt32(srcHeight + 4 * rx + spitch * ry) else c1
                         val ta = (1 - xDiff) * (1 - yDiff)
                         val tb = (xDiff) * (1 - yDiff)
                         val tc = (1 - xDiff) * (yDiff)
@@ -189,10 +189,10 @@ class Pixmap(val width: Int, val height: Int, val pixels: Uint8Buffer = createUi
     }
 
     fun fill(color: Color) {
-        val rgba = color.rgba().toByte()
+        val rgba = color.rgba()
         val length = width * height * 4
         for (i in 0 until length) {
-            pixels[i] = rgba
+            pixels.putInt32(i, rgba)
         }
     }
 
@@ -295,15 +295,14 @@ class Pixmap(val width: Int, val height: Int, val pixels: Uint8Buffer = createUi
     }
 
     fun set(x: Int, y: Int, color: Int, force: Boolean = false) {
-        val rgba = color.toByte()
         if (force || contains(x, y)) {
-            pixels[(x + y * width) * 4] = rgba
+            pixels.putInt32((x + y * width) * 4, color)
         }
     }
 
     fun get(x: Int, y: Int, force: Boolean = false): Int {
         return if (force || contains(x, y)) {
-            pixels[(x + y * width) * 4].toInt()
+            pixels.getInt32((x + y * width) * 4)
         } else {
             0
         }

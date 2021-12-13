@@ -15,10 +15,13 @@ import com.lehaine.littlekt.graphics.shader.generator.type.vec.Vec4
  */
 class DefaultVertexShader : VertexShaderModel() {
     val uProjTrans get() = parameters[0] as ShaderParameter.UniformMat4
+
     private val u_projTrans by uniform(::Mat4)
+
     private val a_position by attribute(::Vec4)
     private val a_color by attribute(::Vec4)
     private val a_texCoord0 by attribute(::Vec2)
+
     private var v_color by varying(::Vec4)
     private var v_texCoords by varying(::Vec2)
 
@@ -40,6 +43,7 @@ class DefaultFragmentShader : FragmentShaderModel() {
     val uTexture get() = parameters[0] as ShaderParameter.UniformSample2D
 
     private val u_texture by uniform(::Sampler2D)
+
     private val v_color by varying(::Vec4, Precision.LOW)
     private val v_texCoords by varying(::Vec2)
 

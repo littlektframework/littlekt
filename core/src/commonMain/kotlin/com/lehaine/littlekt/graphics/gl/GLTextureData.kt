@@ -34,6 +34,6 @@ class GLTextureData(
 
     override fun consumeCustomData(context: Context, target: TextureTarget) {
         val gl = context.graphics.gl
-        gl.texImage2D(target, mipMapLevel, internalGlFormat, glFormat, width, height, type, null)
+        gl.texImage2D(target, mipMapLevel, internalGlFormat, glFormat, width, height, type)
     }
 }

@@ -9,7 +9,6 @@ import kotlin.reflect.KProperty
  * @author Colton Daily
  * @date 11/25/2021
  */
-
 class FunctionReturnDelegate<T : Variable>(private val v: T, private val inlineValue: String? = null) {
     private var define: Instruction
     private var defined: Boolean = false
@@ -20,17 +19,10 @@ class FunctionReturnDelegate<T : Variable>(private val v: T, private val inlineV
         v.builder.addInstruction(define)
     }
 
-//    fun lit() {
-//        if (!defined) {
-//            define.result = define.result.replace("{def}", property.name)
-//            defined = true
-//        }
-//        v.builder.addInstruction(Instruction(InstructionType.DEFINE, value.value))
-//    }
-
     val lit: T
         get() {
-            v.builder.addInstruction(Instruction(InstructionType.INVOKE_FUNC, "$inlineValue"))
+            v.builder.removeInstruction(define)
+            v.value = inlineValue
             return v
         }
 
