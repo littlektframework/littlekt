@@ -2,6 +2,7 @@ package com.lehaine.littlekt.samples
 
 import com.lehaine.littlekt.Context
 import com.lehaine.littlekt.ContextListener
+import com.lehaine.littlekt.graphics.shader.shaders.GpuTextFragmentShader
 import com.lehaine.littlekt.graphics.shader.shaders.GpuTextVertexShader
 
 /**
@@ -12,5 +13,6 @@ class ShaderTest(context: Context) : ContextListener(context) {
 
     init {
         println(GpuTextVertexShader().generate(context))
+        println(GpuTextFragmentShader().generate(context))
     }
 }

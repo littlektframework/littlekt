@@ -48,45 +48,61 @@ class GpuFont(
         shader = ShaderProgram(GpuTextVertexShader(), GpuTextFragmentShader()).also { it.prepare(context) }
     }
 
-    fun insertText(text: String, x: Float, y: Float, color: Color = Color.BLACK) {
+    fun insertText(text: String, x: Float, y: Float, pxSize: Int, color: Color = Color.BLACK) {
         val lastSize = vertices.size
         this.text.append(text)
+        val scale = 1f / font.unitsPerEm * pxSize
         var tx = x
         var ty = y
         text.forEach {
+            if (it == '\r') {
+                return@forEach
+            }
+            if (it == '\n') {
+                ty -= font.ascender
+                tx = x
+                return@forEach
+            }
+            if (it == '\t') {
+                tx += 2000 * scale
+                return@forEach
+            }
+
             val glyph = glyph(it)
-            val u = glyph.bezierAtlasPosX / atlasWidth.toFloat()
-            val v = glyph.bezierAtlasPosY / atlasHeight.toFloat()
-            vertices.run {
-                add(tx)
-                add(ty)
-                add(color.toFloatBits())
-                add(u)
-                add(v)
+            if (it != ' ') {
+                val u = glyph.bezierAtlasPosX / atlasWidth.toFloat()
+                val v = glyph.bezierAtlasPosY / atlasHeight.toFloat()
+                vertices.run {
+                    add(tx)
+                    add(ty)
+                    add(color.toFloatBits())
+                    add(u)
+                    add(v)
+                }
+                vertices.run {
+                    add(glyph.width * scale + tx)
+                    add(ty)
+                    add(color.toFloatBits())
+                    add(u)
+                    add(v)
+                }
+                vertices.run {
+                    add(glyph.width * scale + tx)
+                    add(glyph.height * scale + ty)
+                    add(color.toFloatBits())
+                    add(u)
+                    add(v)
+                }
+                vertices.run {
+                    add(tx)
+                    add(glyph.height * scale + ty)
+                    add(color.toFloatBits())
+                    add(u)
+                    add(v)
+                }
+                instances += glyph
             }
-            vertices.run {
-                add(glyph.width + tx)
-                add(ty)
-                add(color.toFloatBits())
-                add(u)
-                add(v)
-            }
-            vertices.run {
-                add(glyph.width + tx)
-                add(glyph.height + ty)
-                add(color.toFloatBits())
-                add(u)
-                add(v)
-            }
-            vertices.run {
-                add(tx)
-                add(glyph.height + ty)
-                add(color.toFloatBits())
-                add(u)
-                add(v)
-            }
-            tx += glyph.advanceWidth
-            instances += glyph
+            tx += glyph.advanceWidth * scale
         }
 
         mesh.setVertices(vertices.data, 0, vertices.size)

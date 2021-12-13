@@ -4,7 +4,6 @@ import com.lehaine.littlekt.Context
 import com.lehaine.littlekt.graphics.shader.generator.GlslGenerator
 import com.lehaine.littlekt.graphics.shader.generator.Precision
 import com.lehaine.littlekt.graphics.shader.generator.delegate.*
-import com.lehaine.littlekt.graphics.shader.generator.type.BoolResult
 import com.lehaine.littlekt.graphics.shader.generator.type.Variable
 import com.lehaine.littlekt.graphics.shader.generator.type.scalar.GLFloat
 import kotlin.reflect.KClass
@@ -33,7 +32,7 @@ abstract class FragmentShaderModel : GlslGenerator(), FragmentShader {
     var gl_FragCoord by BuiltinVarDelegate()
     var gl_FragColor by BuiltinVarDelegate()
 
-    val gl_FrontFacing = BoolResult("gl_FrontFacing")
+    val gl_FrontFacing = "gl_FrontFacing".bool
 
     override fun generate(context: Context): String {
         return super.generate(context).also { source = it }

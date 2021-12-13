@@ -6,7 +6,7 @@ import com.lehaine.littlekt.graphics.shader.FragmentShader
 import com.lehaine.littlekt.graphics.shader.ShaderParameter
 import com.lehaine.littlekt.graphics.shader.generator.InstructionType.*
 import com.lehaine.littlekt.graphics.shader.generator.delegate.*
-import com.lehaine.littlekt.graphics.shader.generator.type.BoolResult
+import com.lehaine.littlekt.graphics.shader.generator.type.Bool
 import com.lehaine.littlekt.graphics.shader.generator.type.Func
 import com.lehaine.littlekt.graphics.shader.generator.type.GenType
 import com.lehaine.littlekt.graphics.shader.generator.type.Variable
@@ -256,6 +256,25 @@ abstract class GlslGenerator : GlslProvider {
         body: (p1: P1, p2: P2) -> RT
     ): FunctionDelegate2<RT, F, P1, P2> = FunctionDelegate2(funcFactory, p1Factory, p2Factory, body)
 
+    fun <RT : GenType, F : Func<RT>, P1 : Variable, P2 : Variable, P3 : Variable> Func(
+        funcFactory: (GlslGenerator) -> F,
+        p1Factory: (GlslGenerator) -> P1,
+        p2Factory: (GlslGenerator) -> P2,
+        p3Factory: (GlslGenerator) -> P3,
+        body: (p1: P1, p2: P2, p3: P3) -> RT
+    ): FunctionDelegate3<RT, F, P1, P2, P3> = FunctionDelegate3(funcFactory, p1Factory, p2Factory, p3Factory, body)
+
+    fun <RT : GenType, F : Func<RT>, P1 : Variable, P2 : Variable, P3 : Variable, P4 : Variable> Func(
+        funcFactory: (GlslGenerator) -> F,
+        p1Factory: (GlslGenerator) -> P1,
+        p2Factory: (GlslGenerator) -> P2,
+        p3Factory: (GlslGenerator) -> P3,
+        p4Factory: (GlslGenerator) -> P4,
+        body: (p1: P1, p2: P2, p3: P3, p4: P4) -> RT
+    ): FunctionDelegate4<RT, F, P1, P2, P3, P4> =
+        FunctionDelegate4(funcFactory, p1Factory, p2Factory, p3Factory, p4Factory, body)
+
+
     fun Void(body: () -> Unit): FunctionVoidDelegate =
         FunctionVoidDelegate(FuncVoid(this), body)
 
@@ -281,14 +300,14 @@ abstract class GlslGenerator : GlslProvider {
 
     fun discard() = instructions.add(Instruction(DISCARD))
 
-    inline fun If(condition: BoolResult, body: () -> Unit) {
-        addInstruction(Instruction(IF, condition.value))
+    inline fun If(condition: Bool, body: () -> Unit) {
+        addInstruction(Instruction(IF, condition.value ?: "true"))
         body()
         addInstruction(Instruction(ENDIF))
     }
 
-    inline fun ElseIf(condition: BoolResult, body: () -> Unit) {
-        addInstruction(Instruction(ELSEIF, condition.value))
+    inline fun ElseIf(condition: Bool, body: () -> Unit) {
+        addInstruction(Instruction(ELSEIF, condition.value ?: "true"))
         body()
         addInstruction(Instruction(ENDIF))
     }
@@ -302,19 +321,19 @@ abstract class GlslGenerator : GlslProvider {
     fun castMat3(m: Mat4) = Mat3(this, "mat3(${m.value})")
     fun int(v: GLFloat) = GLInt(this, "int(${v.value})")
 
-    fun ternary(condition: BoolResult, left: GLInt, right: GLInt): GLInt =
+    fun ternary(condition: Bool, left: GLInt, right: GLInt): GLInt =
         GLInt(this, "(${condition.value} ? ${left.value} : ${right.value})")
 
-    fun ternary(condition: BoolResult, left: GLFloat, right: GLFloat): GLFloat =
+    fun ternary(condition: Bool, left: GLFloat, right: GLFloat): GLFloat =
         GLFloat(this, "(${condition.value} ? ${left.value} : ${right.value})")
 
-    fun ternary(condition: BoolResult, left: Vec2, right: Vec2): Vec2 =
+    fun ternary(condition: Bool, left: Vec2, right: Vec2): Vec2 =
         Vec2(this, "(${condition.value} ? ${left.value} : ${right.value})")
 
-    fun ternary(condition: BoolResult, left: Vec3, right: Vec3): Vec3 =
+    fun ternary(condition: Bool, left: Vec3, right: Vec3): Vec3 =
         Vec3(this, "(${condition.value} ? ${left.value} : ${right.value})")
 
-    fun ternary(condition: BoolResult, left: Vec4, right: Vec4): Vec4 =
+    fun ternary(condition: Bool, left: Vec4, right: Vec4): Vec4 =
         Vec4(this, "(${condition.value} ? ${left.value} : ${right.value})")
 
     fun radians(v: GLFloat) = GLFloat(this, "radians(${v.value})")
@@ -532,6 +551,10 @@ abstract class GlslGenerator : GlslProvider {
     fun intVal(x: GLInt) = ConstructorDelegate(GLInt(this), x.value)
     fun intVal(x: Int) = ConstructorDelegate(GLInt(this), "$x")
 
+    fun bool() = ConstructorDelegate(Bool(this))
+    fun bool(bool: Bool) = ConstructorDelegate(Bool(this), bool.value)
+    fun bool(lit: String) = ConstructorDelegate(Bool(this), lit)
+
     fun vec2() = ConstructorDelegate(Vec2(this))
     fun vec2(x: Vec2) = ConstructorDelegate(Vec2(this), "${x.value}")
     fun vec2(x: Float, y: Float) = ConstructorDelegate(Vec2(this), "vec2(${x.str()}, ${y.str()})")
@@ -662,6 +685,7 @@ abstract class GlslGenerator : GlslProvider {
     fun mat3() = ConstructorDelegate(Mat3(this))
 
     val String.float get() = GLFloat(this@GlslGenerator, this)
+    val String.bool get() = Bool(this@GlslGenerator, this)
     val Float.lit get() = GLFloat(this@GlslGenerator, this.str())
     val Int.lit get() = GLInt(this@GlslGenerator, this.toString())
 

@@ -3,7 +3,7 @@ package com.lehaine.littlekt.graphics.shader.generator.type.scalar
 import com.lehaine.littlekt.graphics.shader.generator.GlslGenerator
 import com.lehaine.littlekt.graphics.shader.generator.delegate.ComponentDelegate
 import com.lehaine.littlekt.graphics.shader.generator.str
-import com.lehaine.littlekt.graphics.shader.generator.type.BoolResult
+import com.lehaine.littlekt.graphics.shader.generator.type.Bool
 import com.lehaine.littlekt.graphics.shader.generator.type.GenType
 import com.lehaine.littlekt.graphics.shader.generator.type.vec.Vec2
 import com.lehaine.littlekt.graphics.shader.generator.type.vec.Vec3
@@ -44,17 +44,17 @@ class GLFloat(override val builder: GlslGenerator) : GenType {
 
     infix fun setTo(a: Float) = GLFloat(builder, a.str())
 
-    infix fun eq(a: GLFloat) = BoolResult("(${this.value} == ${a.value})")
-    infix fun gte(a: GLFloat) = BoolResult("(${this.value} >= ${a.value})")
-    infix fun gt(a: GLFloat) = BoolResult("(${this.value} > ${a.value})")
-    infix fun lte(a: GLFloat) = BoolResult("(${this.value} <= ${a.value})")
-    infix fun lt(a: GLFloat) = BoolResult("(${this.value} < ${a.value})")
+    infix fun eq(a: GLFloat) = Bool(builder, "(${this.value} == ${a.value})")
+    infix fun gte(a: GLFloat) = Bool(builder, "(${this.value} >= ${a.value})")
+    infix fun gt(a: GLFloat) = Bool(builder, "(${this.value} > ${a.value})")
+    infix fun lte(a: GLFloat) = Bool(builder, "(${this.value} <= ${a.value})")
+    infix fun lt(a: GLFloat) = Bool(builder, "(${this.value} < ${a.value})")
 
-    infix fun eq(a: Float) = BoolResult("(${this.value} == ${a.str()})")
-    infix fun gte(a: Float) = BoolResult("(${this.value} >= ${a.str()})")
-    infix fun gt(a: Float) = BoolResult("(${this.value} > ${a.str()})")
-    infix fun lte(a: Float) = BoolResult("(${this.value} <= ${a.str()})")
-    infix fun lt(a: Float) = BoolResult("(${this.value} < ${a.str()})")
+    infix fun eq(a: Float) = Bool(builder, "(${this.value} == ${a.str()})")
+    infix fun gte(a: Float) = Bool(builder, "(${this.value} >= ${a.str()})")
+    infix fun gt(a: Float) = Bool(builder, "(${this.value} > ${a.str()})")
+    infix fun lte(a: Float) = Bool(builder, "(${this.value} <= ${a.str()})")
+    infix fun lt(a: Float) = Bool(builder, "(${this.value} < ${a.str()})")
 }
 
 fun floatComponent() = ComponentDelegate(::GLFloat)

@@ -18,10 +18,10 @@ class GPUFontTest(context: Context) : ContextListener(context) {
     private var loading = true
     private val batch = SpriteBatch(this)
     private val camera = OrthographicCamera().apply {
-        left = -100f
-        right = 8000f
-        bottom = -100f
-        top = 8000f
+        left = 0f
+        bottom = 0f
+        right = graphics.width.toFloat()
+        top = graphics.height.toFloat()
     }
     private lateinit var freeSerif: TtfFont
     private lateinit var libSans: TtfFont
@@ -41,8 +41,7 @@ class GPUFontTest(context: Context) : ContextListener(context) {
 
     private fun init() {
         gpuFont = GpuFont(libSans).also { it.prepare(this@GPUFontTest) }
-        gpuFont.insertText("heythere", 0f, 0f)
-        camera.view.scale(1f / 2048f * 8f / 72f)
+        gpuFont.insertText("hey there!!", 150f, 250f, 72)
     }
 
     override fun render(dt: Duration) {

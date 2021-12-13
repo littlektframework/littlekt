@@ -3,10 +3,12 @@ package com.lehaine.littlekt.graphics.shader.shaders
 import com.lehaine.littlekt.graphics.shader.FragmentShaderModel
 import com.lehaine.littlekt.graphics.shader.ShaderParameter
 import com.lehaine.littlekt.graphics.shader.VertexShaderModel
+import com.lehaine.littlekt.graphics.shader.generator.type.func.BoolFunc
 import com.lehaine.littlekt.graphics.shader.generator.type.func.FloatFunc
 import com.lehaine.littlekt.graphics.shader.generator.type.func.Vec2Func
 import com.lehaine.littlekt.graphics.shader.generator.type.mat.Mat4
 import com.lehaine.littlekt.graphics.shader.generator.type.sampler.Sampler2D
+import com.lehaine.littlekt.graphics.shader.generator.type.scalar.GLFloat
 import com.lehaine.littlekt.graphics.shader.generator.type.vec.Vec2
 import com.lehaine.littlekt.graphics.shader.generator.type.vec.Vec4
 
@@ -52,11 +54,28 @@ class GpuTextVertexShader : VertexShaderModel() {
 class GpuTextFragmentShader : FragmentShaderModel() {
     val uAtlasSampler get() = parameters[0] as ShaderParameter.UniformSample2D
 
+    val pi = 3.1415926535897932384626433832795f
+    val numSS = 4
+    val pixelWindowSize = 1f
+
     val u_texture by uniform(::Sampler2D)
 
     val v_color by varying(::Vec4)
     val v_rect by varying(::Vec4)
     val v_coord by varying(::Vec2)
+
+    val positionAt by Func(::FloatFunc, ::GLFloat, ::GLFloat, ::GLFloat, ::GLFloat) { p0, p1, p2, t ->
+        val mt by float(1f - t)
+        mt * mt * p0 + 2f * t * mt * p1 + t * t * p2
+    }
+
+    val tangentAt by Func(::FloatFunc, ::GLFloat, ::GLFloat, ::GLFloat, ::GLFloat) { p0, p1, p2, t ->
+        2f * (1f - t) * (p1 - p0) + 2f * t * (p2 - p1)
+    }
+
+    val almostEqual by Func(::BoolFunc, ::GLFloat, ::GLFloat) { a, b ->
+        abs(a - b) lt 1e-5f
+    }
 
     init {
         gl_FragColor = vec4Lit(1f, 1f, 1f, 1f)
