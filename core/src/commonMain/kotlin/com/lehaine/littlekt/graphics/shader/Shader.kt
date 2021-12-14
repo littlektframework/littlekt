@@ -22,12 +22,6 @@ interface VertexShader : Shader
 
 abstract class FragmentShaderModel : GlslGenerator(), FragmentShader {
     override var source: String = ""
-        get() {
-            if (field.isBlank()) {
-                throw IllegalStateException("The fragment shader has not been generated yet!")
-            }
-            return field
-        }
 
     var gl_FragCoord by BuiltinVarDelegate()
     var gl_FragColor by BuiltinVarDelegate()
@@ -35,7 +29,12 @@ abstract class FragmentShaderModel : GlslGenerator(), FragmentShader {
     val gl_FrontFacing = "gl_FrontFacing".bool
 
     override fun generate(context: Context): String {
-        return super.generate(context).also { source = it }
+        return if (source.isBlank()) {
+            super.generate(context).also { source = it }
+        } else {
+            source = ensureShaderVersionChanges(context, source)
+            source
+        }
     }
 
     /**
@@ -63,15 +62,14 @@ abstract class VertexShaderModel : GlslGenerator(), VertexShader {
     var gl_Position by BuiltinVarDelegate()
 
     override var source: String = ""
-        get() {
-            if (field.isBlank()) {
-                throw IllegalStateException("The vertex shader has not been generated yet!")
-            }
-            return field
-        }
 
     override fun generate(context: Context): String {
-        return super.generate(context).also { source = it }
+        return if (source.isBlank()) {
+            super.generate(context).also { source = it }
+        } else {
+            source = ensureShaderVersionChanges(context, source)
+            source
+        }
     }
 
     /**

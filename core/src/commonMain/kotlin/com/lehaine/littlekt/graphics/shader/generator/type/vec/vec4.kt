@@ -140,4 +140,14 @@ class Vec4(override val builder: GlslGenerator) : Vector {
     operator fun minus(a: Vec4) = Vec4(builder, "(${this.value} - ${a.value})")
 
     operator fun unaryMinus() = Vec4(builder, "-(${this.value})")
+
+    operator fun get(i: Int): GLFloat {
+        return when (i) {
+            0 -> x
+            1 -> y
+            2 -> z
+            3 -> w
+            else -> throw Error("Index $i out of range [0..3]")
+        }
+    }
 }

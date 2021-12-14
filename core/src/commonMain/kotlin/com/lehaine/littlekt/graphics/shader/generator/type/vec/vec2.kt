@@ -39,6 +39,14 @@ class Vec2(override val builder: GlslGenerator) : Vector {
     operator fun minus(a: Float) = Vec2(builder, "(${this.value} - ${a.str()})")
 
     operator fun unaryMinus() = Vec2(builder, "-(${this.value})")
+
+    operator fun get(i: Int): GLFloat {
+        return when (i) {
+            0 -> x
+            1 -> y
+            else -> throw Error("Index $i out of range [0..1]")
+        }
+    }
 }
 
 operator fun Float.times(a: Vec2) = Vec2(a.builder, "(${this.str()} * ${a.value})")

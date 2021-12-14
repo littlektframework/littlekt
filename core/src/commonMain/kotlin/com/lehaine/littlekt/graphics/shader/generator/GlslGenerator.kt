@@ -10,6 +10,7 @@ import com.lehaine.littlekt.graphics.shader.generator.type.Bool
 import com.lehaine.littlekt.graphics.shader.generator.type.Func
 import com.lehaine.littlekt.graphics.shader.generator.type.GenType
 import com.lehaine.littlekt.graphics.shader.generator.type.Variable
+import com.lehaine.littlekt.graphics.shader.generator.type.mat.Mat2
 import com.lehaine.littlekt.graphics.shader.generator.type.mat.Mat3
 import com.lehaine.littlekt.graphics.shader.generator.type.mat.Mat4
 import com.lehaine.littlekt.graphics.shader.generator.type.sampler.Sampler2D
@@ -39,7 +40,9 @@ enum class InstructionType {
     DISCARD,
     FUNC_DEFINED,
     INVOKE_FUNC,
-    END_FUNC
+    END_FUNC,
+    FOR,
+    END_FOR
 }
 
 data class Instruction(val type: InstructionType, var result: String = "") {
@@ -77,7 +80,7 @@ abstract class GlslGenerator : GlslProvider {
     @PublishedApi
     internal val instructions = mutableListOf<Instruction>()
 
-    val parameters = mutableListOf<ShaderParameter>()
+    open val parameters = mutableListOf<ShaderParameter>()
 
 
     @PublishedApi
@@ -172,6 +175,10 @@ abstract class GlslGenerator : GlslProvider {
                 ENDIF -> "}"
                 FUNC_DEFINED -> "${it.result} {"
                 END_FUNC -> "}"
+                FOR -> {
+                    "for (${it.result}) {"
+                }
+                END_FOR -> "}"
                 else -> throw IllegalStateException("Instruction ${it.type} is not valid for the custom function instructions!")
             }
             sb.appendLine(instructionString)
@@ -191,6 +198,10 @@ abstract class GlslGenerator : GlslProvider {
                     "else {"
                 }
                 ENDIF -> "}"
+                FOR -> {
+                    "for (${it.result}) {"
+                }
+                END_FOR -> "}"
                 DISCARD -> "discard;"
                 else -> throw IllegalStateException("Instruction ${it.type} is not valid for the main function instructions!")
             }
@@ -201,6 +212,57 @@ abstract class GlslGenerator : GlslProvider {
         var result = sb.toString()
         if (context.graphics.isGL30OrHigher()) {
             result = result.replace("texture2D\\(".toRegex(), "texture(")
+                .replace("textureCube\\(".toRegex(), "texture(")
+                .replace("gl_FragColor".toRegex(), "fragColor")
+        }
+        return result
+    }
+
+    fun ensureShaderVersionChanges(context: Context, source: String): String {
+        val sb = StringBuilder()
+        if (context.graphics.isGL30OrHigher()) {
+            val version = when (context.graphics.glVersion) {
+                GLVersion.GL_32_PLUS -> "150"
+                GLVersion.GL_30 -> "130"
+                GLVersion.WEBGL2 -> "300 es"
+                else -> throw IllegalStateException("${context.graphics.glVersion} isn't not considered at least GL 3.0+")
+            }
+            sb.appendLine("#version $version")
+        }
+        if (this is FragmentShader) {
+            sb.run {
+                appendLine("#ifdef GL_ES")
+                appendLine("precision highp float;")
+                appendLine("precision mediump int;")
+                appendLine("#else")
+                appendLine("#define lowp ")
+                appendLine("#define mediump ")
+                appendLine("#define highp ")
+                appendLine("#endif")
+            }
+            if (context.graphics.isGL30OrHigher()) {
+                sb.appendLine("out lowp vec4 fragColor;")
+            }
+        } else {
+            sb.run {
+                appendLine("#ifndef GL_ES")
+                appendLine("#define lowp ")
+                appendLine("#define mediump ")
+                appendLine("#define highp ")
+                appendLine("#endif")
+            }
+        }
+        sb.appendLine(source)
+        var result = sb.toString()
+        if (context.graphics.isGL30OrHigher()) {
+            result = if (this is FragmentShader) {
+                result.replace("varying ".toRegex(), "in ")
+            } else {
+                result.replace("varying ".toRegex(), "out ")
+            }
+
+            result = result.replace("attribute ".toRegex(), "in ")
+                .replace("texture2D\\(".toRegex(), "texture(")
                 .replace("textureCube\\(".toRegex(), "texture(")
                 .replace("gl_FragColor".toRegex(), "fragColor")
         }
@@ -290,6 +352,7 @@ abstract class GlslGenerator : GlslProvider {
     internal fun <T : Variable> createVariable(clazz: KClass<T>) = when (clazz) {
         GLFloat::class -> GLFloat(this)
         GLInt::class -> GLInt(this)
+        Bool::class -> Bool(this)
         Vec2::class -> Vec2(this)
         Vec3::class -> Vec3(this)
         Vec4::class -> Vec4(this)
@@ -316,6 +379,46 @@ abstract class GlslGenerator : GlslProvider {
         addInstruction(Instruction(ELSE))
         body()
         addInstruction(Instruction(ENDIF))
+    }
+
+    inline fun For(start: Int, until: Int, step: Int = 1, body: (GLInt) -> Unit) {
+        if (step >= 1) {
+            addInstruction(
+                Instruction(
+                    FOR,
+                    "int loopIdx = $start; loopIdx < $until; ${if (step == 1) "loopIdx++" else "forIndex += step"}"
+                )
+            )
+        } else {
+            addInstruction(
+                Instruction(
+                    FOR,
+                    "int loopIdx = $start; loopIdx > $until; ${if (step == -1) "loopIdx--" else "forIndex -= step"}"
+                )
+            )
+        }
+        body(GLInt(this))
+        addInstruction(Instruction(END_FOR))
+    }
+
+    inline fun For(start: GLInt, until: GLInt, step: Int = 1, body: (GLInt) -> Unit) {
+        if (step >= 1) {
+            addInstruction(
+                Instruction(
+                    FOR,
+                    "int loopIdx = $start; loopIdx < $until; ${if (step == 1) "loopIdx++" else "forIndex += step"}"
+                )
+            )
+        } else {
+            addInstruction(
+                Instruction(
+                    FOR,
+                    "int loopIdx = $start; loopIdx > $until; ${if (step == -1) "loopIdx--" else "forIndex -= step"}"
+                )
+            )
+        }
+        body(GLInt(this))
+        addInstruction(Instruction(END_FOR))
     }
 
     fun castMat3(m: Mat4) = Mat3(this, "mat3(${m.value})")
@@ -683,6 +786,7 @@ abstract class GlslGenerator : GlslProvider {
         Vec4(this, "vec4(${x.value}, ${y.value}, ${z.str()}, ${w.str()})")
 
     fun mat3() = ConstructorDelegate(Mat3(this))
+    fun mat2() = ConstructorDelegate(Mat2(this))
 
     val String.float get() = GLFloat(this@GlslGenerator, this)
     val String.bool get() = Bool(this@GlslGenerator, this)

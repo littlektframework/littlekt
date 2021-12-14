@@ -30,6 +30,14 @@ class Mat2(override val builder: GlslGenerator) : Matrix {
         }
     }
 
+    operator fun set(i: Int, value:Vec2): Vec2 {
+        return when (i) {
+            0 -> column1
+            1 -> column2
+            else -> throw Error("Column index $i out of range [0..1]")
+        }
+    }
+
     operator fun times(a: Float) = Mat2(builder, "(${this.value} * ${a.str()})")
     operator fun div(a: Float) = Mat2(builder, "(${this.value} / ${a.str()})")
 

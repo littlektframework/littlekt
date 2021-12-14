@@ -2,6 +2,7 @@ package com.lehaine.littlekt.samples
 
 import com.lehaine.littlekt.Context
 import com.lehaine.littlekt.ContextListener
+import com.lehaine.littlekt.graphics.Color
 import com.lehaine.littlekt.graphics.OrthographicCamera
 import com.lehaine.littlekt.graphics.SpriteBatch
 import com.lehaine.littlekt.graphics.font.GpuFont
@@ -41,7 +42,7 @@ class GPUFontTest(context: Context) : ContextListener(context) {
 
     private fun init() {
         gpuFont = GpuFont(libSans).also { it.prepare(this@GPUFontTest) }
-        gpuFont.insertText("hey there!!", 150f, 250f, 72)
+        gpuFont.insertText("Hello World!", 450f, 450f, 36, Color.WHITE)
     }
 
     override fun render(dt: Duration) {

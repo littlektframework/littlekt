@@ -6,11 +6,13 @@ import com.lehaine.littlekt.file.MixedBuffer
 import com.lehaine.littlekt.file.createMixedBuffer
 import com.lehaine.littlekt.graphics.*
 import com.lehaine.littlekt.graphics.gl.PixmapTextureData
+import com.lehaine.littlekt.graphics.gl.VertexAttrType
 import com.lehaine.littlekt.graphics.shader.ShaderProgram
 import com.lehaine.littlekt.graphics.shader.shaders.GpuTextFragmentShader
 import com.lehaine.littlekt.graphics.shader.shaders.GpuTextVertexShader
 import com.lehaine.littlekt.log.Logger
 import com.lehaine.littlekt.math.Mat4
+import com.lehaine.littlekt.math.Vec2f
 import com.lehaine.littlekt.util.datastructure.FloatArrayList
 import kotlin.math.max
 import kotlin.time.measureTimedValue
@@ -39,13 +41,28 @@ class GpuFont(
     private val fileHandler: FileHandler get() = context.fileHandler
     private val gl: GL get() = context.gl
 
+
     fun prepare(context: Context) {
         this.context = context
-        mesh = textureMesh(context.gl) {
+        mesh = mesh(
+            context.gl, listOf(
+                VertexAttribute.POSITION_2D,
+                VertexAttribute.COLOR_PACKED,
+                VertexAttribute(
+                    usage = VertexAttrUsage.TEX_COORDS,
+                    numComponents = 2,
+                    alias = ShaderProgram.TEXCOORD_ATTRIBUTE + 0,
+                    type = VertexAttrType.FLOAT,
+                    unit = 0
+                )
+            )
+        ) {
             maxVertices = 10000
             useBatcher = false
         }.also { it.indicesAsQuad() }
         shader = ShaderProgram(GpuTextVertexShader(), GpuTextFragmentShader()).also { it.prepare(context) }
+        shader.bind()
+        shader.vertexShader.uTexelSize.apply(shader, Vec2f(1f / atlasWidth, 1f / atlasHeight))
     }
 
     fun insertText(text: String, x: Float, y: Float, pxSize: Int, color: Color = Color.BLACK) {
@@ -70,35 +87,35 @@ class GpuFont(
 
             val glyph = glyph(it)
             if (it != ' ') {
-                val u = glyph.bezierAtlasPosX / atlasWidth.toFloat()
-                val v = glyph.bezierAtlasPosY / atlasHeight.toFloat()
-                vertices.run {
+                val bx = glyph.bezierAtlasPosX * 2
+                val by = glyph.bezierAtlasPosY * 2
+                vertices.run { // bottom left
                     add(tx)
                     add(ty)
                     add(color.toFloatBits())
-                    add(u)
-                    add(v)
+                    add(0f + bx)
+                    add(0f + by)
                 }
-                vertices.run {
+                vertices.run { // bottom right
                     add(glyph.width * scale + tx)
                     add(ty)
                     add(color.toFloatBits())
-                    add(u)
-                    add(v)
+                    add(1f + bx)
+                    add(0f + by)
                 }
-                vertices.run {
+                vertices.run { // top right
                     add(glyph.width * scale + tx)
                     add(glyph.height * scale + ty)
                     add(color.toFloatBits())
-                    add(u)
-                    add(v)
+                    add(1f + bx)
+                    add(1f + by)
                 }
-                vertices.run {
+                vertices.run { // top left
                     add(tx)
                     add(glyph.height * scale + ty)
                     add(color.toFloatBits())
-                    add(u)
-                    add(v)
+                    add(0f + bx)
+                    add(1f + by)
                 }
                 instances += glyph
             }
@@ -113,13 +130,16 @@ class GpuFont(
             if (it.uploaded) return@forEach
             it.texture.prepare(context)
             it.uploaded = true
-
         }
-        shader.bind()
-        viewProjection?.let {
-            shader.vertexShader.uProjTrans.apply(shader, viewProjection)
+        if (atlases.isNotEmpty()) {
+            shader.bind()
+            atlases[0].texture.bind(0)
+            viewProjection?.let {
+                shader.vertexShader.uProjTrans.apply(shader, viewProjection)
+            }
+            shader.vertexShader.uTexture.apply(shader)
+            mesh.render(shader)
         }
-        mesh.render(shader)
     }
 
     private fun glyph(char: Char): GpuGlyph {
@@ -202,6 +222,7 @@ class GpuFont(
             atlases.size - 1,
             glyph.advanceWidth.toInt()
         )
+        println(gpuGlyph)
         compiledGlyphs[font]?.put(char.code, gpuGlyph)
 
         atlas.glyphDataBufOffset += bezierPixelLength

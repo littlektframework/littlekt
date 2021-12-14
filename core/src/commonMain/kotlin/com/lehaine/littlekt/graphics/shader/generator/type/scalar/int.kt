@@ -17,4 +17,6 @@ class GLInt(override val builder: GlslGenerator) : GenType {
 
     operator fun plus(a: GLInt) = GLInt(builder, "(${this.value} + ${a.value})")
     operator fun plus(a: Int) = GLInt(builder, "(${this.value} + $a)")
+
+    val float get() =  GLFloat(builder, "float(${this.value})")
 }
