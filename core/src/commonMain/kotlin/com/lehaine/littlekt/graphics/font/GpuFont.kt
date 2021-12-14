@@ -5,7 +5,9 @@ import com.lehaine.littlekt.file.FileHandler
 import com.lehaine.littlekt.file.MixedBuffer
 import com.lehaine.littlekt.file.createMixedBuffer
 import com.lehaine.littlekt.graphics.*
+import com.lehaine.littlekt.graphics.gl.BlendFactor
 import com.lehaine.littlekt.graphics.gl.PixmapTextureData
+import com.lehaine.littlekt.graphics.gl.State
 import com.lehaine.littlekt.graphics.gl.VertexAttrType
 import com.lehaine.littlekt.graphics.shader.ShaderProgram
 import com.lehaine.littlekt.graphics.shader.shaders.GpuTextFragmentShader
@@ -132,6 +134,8 @@ class GpuFont(
             it.uploaded = true
         }
         if (atlases.isNotEmpty()) {
+            gl.blendFunc(BlendFactor.SRC_ALPHA, BlendFactor.ONE_MINUS_SRC_ALPHA)
+            gl.enable(State.BLEND)
             shader.bind()
             atlases[0].texture.bind(0)
             viewProjection?.let {
@@ -139,6 +143,7 @@ class GpuFont(
             }
             shader.vertexShader.uTexture.apply(shader)
             mesh.render(shader)
+            gl.disable(State.BLEND)
         }
     }
 
