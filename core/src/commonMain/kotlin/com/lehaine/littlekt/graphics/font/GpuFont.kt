@@ -26,7 +26,7 @@ import kotlin.time.measureTimedValue
 
 class GpuFont(
     private val font: TtfFont,
-    private val atlasWidth: Int = 256,
+    private val atlasWidth: Int = 384,
     private val atlasHeight: Int = 512
 ) {
     private val compiler = GlyphCompiler()
@@ -59,7 +59,7 @@ class GpuFont(
                 )
             )
         ) {
-            maxVertices = 10000
+            maxVertices = 20000
             useBatcher = false
         }.also { it.indicesAsQuad() }
         shader = ShaderProgram(GpuTextVertexShader(), GpuTextFragmentShader()).also { it.prepare(context) }
@@ -78,7 +78,7 @@ class GpuFont(
                 return@forEach
             }
             if (it == '\n') {
-                ty -= font.ascender
+                ty -= font.ascender * scale
                 tx = x
                 return@forEach
             }
@@ -201,20 +201,22 @@ class GpuFont(
         }
 
         val buffer = atlas.pixmap.pixels
-        buffer.position = atlas.glyphDataBufOffset * ATLAS_CHANNELS
-        writeGlyphToBuffer(
-            buffer, curves, glyph.width, glyph.height, atlas.gridX.toShort(), atlas.gridY.toShort(),
-            GRID_MAX_SIZE.toShort(), GRID_MAX_SIZE.toShort()
-        )
+
         VGridAtlas.writeVGridAt(
             grid = grid,
             data = buffer,
-            offset = atlasWidth * (atlasHeight / 2) * ATLAS_CHANNELS,
+            offset = 0,
             tx = atlas.gridX,
             ty = atlas.gridY,
             width = atlasWidth,
             height = atlasHeight,
             depth = ATLAS_CHANNELS
+        )
+
+        buffer.position = atlas.glyphDataBufOffset * ATLAS_CHANNELS + atlasWidth * (atlasHeight / 2) * ATLAS_CHANNELS
+        writeGlyphToBuffer(
+            buffer, curves, glyph.width, glyph.height, atlas.gridX.toShort(), atlas.gridY.toShort(),
+            GRID_MAX_SIZE.toShort(), GRID_MAX_SIZE.toShort()
         )
 
         val gpuGlyph = GpuGlyph(
@@ -223,11 +225,10 @@ class GpuFont(
             glyph.leftSideBearing,
             glyph.yMax,
             atlas.glyphDataBufOffset % atlasWidth,
-            atlas.glyphDataBufOffset / atlasWidth,
+            atlas.glyphDataBufOffset / atlasWidth + atlasHeight / 2,
             atlases.size - 1,
             glyph.advanceWidth.toInt()
         )
-        println(gpuGlyph)
         compiledGlyphs[font]?.put(char.code, gpuGlyph)
 
         atlas.glyphDataBufOffset += bezierPixelLength
@@ -308,7 +309,7 @@ class GpuFont(
     }
 
     companion object {
-        private const val GRID_MAX_SIZE = 10 // should this be 20?
+        private const val GRID_MAX_SIZE = 20 // should this be 20?
         private const val ATLAS_CHANNELS = 4 // Must be 4 (RGBA)
 
         private val logger = Logger<GpuFont>()

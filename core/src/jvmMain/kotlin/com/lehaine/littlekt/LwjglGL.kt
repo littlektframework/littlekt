@@ -725,18 +725,21 @@ class LwjglGL(private val engineStats: EngineStats) : GL {
         source: Uint8Buffer
     ) {
         engineStats.calls++
-            source as Uint8BufferImpl
-            glTexImage2D(
-                target,
-                level,
-                internalFormat,
-                width,
-                height,
-                0,
-                format,
-                type,
-                source.buffer
-            )
+        source as Uint8BufferImpl
+        val pos = source.position
+        source.position = 0
+        glTexImage2D(
+            target,
+            level,
+            internalFormat,
+            width,
+            height,
+            0,
+            format,
+            type,
+            source.buffer
+        )
+        source.position = pos
 
     }
 
@@ -752,6 +755,8 @@ class LwjglGL(private val engineStats: EngineStats) : GL {
     ) {
         engineStats.calls++
         source as MixedBufferImpl
+        val pos = source.position
+        source.position = 0
         glTexImage2D(
             target,
             level,
@@ -763,6 +768,7 @@ class LwjglGL(private val engineStats: EngineStats) : GL {
             type,
             source.buffer
         )
+        source.position = pos
 
     }
 
