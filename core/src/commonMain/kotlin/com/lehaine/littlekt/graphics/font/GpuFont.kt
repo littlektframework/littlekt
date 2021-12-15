@@ -5,10 +5,7 @@ import com.lehaine.littlekt.file.FileHandler
 import com.lehaine.littlekt.file.MixedBuffer
 import com.lehaine.littlekt.file.createMixedBuffer
 import com.lehaine.littlekt.graphics.*
-import com.lehaine.littlekt.graphics.gl.BlendFactor
-import com.lehaine.littlekt.graphics.gl.PixmapTextureData
-import com.lehaine.littlekt.graphics.gl.State
-import com.lehaine.littlekt.graphics.gl.VertexAttrType
+import com.lehaine.littlekt.graphics.gl.*
 import com.lehaine.littlekt.graphics.shader.ShaderProgram
 import com.lehaine.littlekt.graphics.shader.shaders.GpuTextFragmentShader
 import com.lehaine.littlekt.graphics.shader.shaders.GpuTextVertexShader
@@ -46,20 +43,8 @@ class GpuFont(
 
     fun prepare(context: Context) {
         this.context = context
-        mesh = mesh(
-            context.gl, listOf(
-                VertexAttribute.POSITION_2D,
-                VertexAttribute.COLOR_PACKED,
-                VertexAttribute(
-                    usage = VertexAttrUsage.TEX_COORDS,
-                    numComponents = 2,
-                    alias = ShaderProgram.TEXCOORD_ATTRIBUTE + 0,
-                    type = VertexAttrType.FLOAT,
-                    unit = 0
-                )
-            )
-        ) {
-            maxVertices = 20000
+        mesh = textureMesh(context.gl) {
+            maxVertices = 5000
             useBatcher = false
         }.also { it.indicesAsQuad() }
         shader = ShaderProgram(GpuTextVertexShader(), GpuTextFragmentShader()).also { it.prepare(context) }
@@ -142,7 +127,7 @@ class GpuFont(
                 shader.vertexShader.uProjTrans.apply(shader, viewProjection)
             }
             shader.vertexShader.uTexture.apply(shader)
-            mesh.render(shader)
+            mesh.render(shader, count = vertices.size)
             gl.disable(State.BLEND)
         }
     }
@@ -205,12 +190,11 @@ class GpuFont(
         VGridAtlas.writeVGridAt(
             grid = grid,
             data = buffer,
-            offset = 0,
             tx = atlas.gridX,
             ty = atlas.gridY,
             width = atlasWidth,
             height = atlasHeight,
-            depth = ATLAS_CHANNELS
+            depth = 4
         )
 
         buffer.position = atlas.glyphDataBufOffset * ATLAS_CHANNELS + atlasWidth * (atlasHeight / 2) * ATLAS_CHANNELS
@@ -241,7 +225,7 @@ class GpuFont(
     }
 
     private fun writeBMP(name: String, width: Int, height: Int, channels: Int, buffer: MixedBuffer) {
-        val bmpBuffer = createMixedBuffer(60 + buffer.capacity)
+        val bmpBuffer = createMixedBuffer(54 + buffer.capacity)
         bmpBuffer.run {
             putInt8('B'.code.toByte())
             putInt8('M'.code.toByte())
@@ -258,8 +242,8 @@ class GpuFont(
             putUint32(width * height * channels) // image size bytes
             putUint32(0) // x pixels per meter
             putUint32(0) // y pixels per meter
-            putUint32(0) // clr used
-            putUint32(0) //clr important
+            putUint32(0) // colors used
+            putUint32(0) // important colors
             putInt8(buffer.toArray(), 0, buffer.capacity)
         }
         fileHandler.store(name, bmpBuffer.toArray())
@@ -338,7 +322,10 @@ private class AtlasGroup {
             field = value
             texture = Texture(field)
         }
-    var texture = Texture(textureData)
+    var texture = Texture(textureData).apply {
+        minFilter = TexMinFilter.LINEAR
+        magFilter = TexMagFilter.LINEAR
+    }
     var gridX = 0
     var gridY = 0
     var full = false
@@ -432,8 +419,8 @@ private class GlyphCompiler {
                     prevY = cmd.y
                 }
                 GlyphPath.CommandType.CLOSE -> {
-                    prevX = startX
-                    prevY = startY
+//                    prevX = startX
+//                    prevY = startY
                 }
             }
         }

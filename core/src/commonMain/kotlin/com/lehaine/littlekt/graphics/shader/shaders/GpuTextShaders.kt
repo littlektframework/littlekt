@@ -48,7 +48,7 @@ class GpuTextVertexShader : VertexShaderModel() {
         void main()  {
             v_color = a_color;
             v_bezierCoord = floor(a_texCoord0 * 0.5);
-            v_normCoord = mod(a_texCoord0, 2.0);
+            v_normCoord = mod(a_texCoord0, 2.0) * 1.1;
             v_gridRect = vec4(vec2FromPixel(v_bezierCoord), vec2FromPixel(v_bezierCoord + vec2(1,0)));
             gl_Position = u_projTrans*vec4(a_position, 0.0, 1.0);
         }

@@ -150,7 +150,6 @@ internal object VGridAtlas {
     fun writeVGridAt(
         grid: VGrid,
         data: MixedBuffer,
-        offset: Int,
         tx: Int,
         ty: Int,
         width: Int,
@@ -173,7 +172,7 @@ internal object VGridAtlas {
                 if (beziers.size > depth) {
                     logger.error { "Too many beziers in one grid cell (max: $depth, need: ${beziers.size}, x: $x, y: $y)" }
                 }
-                writeVGridCellToBuffer(grid, cellIdx, data, atlasIdx + offset, depth)
+                writeVGridCellToBuffer(grid, cellIdx, data, atlasIdx, depth)
             }
         }
     }

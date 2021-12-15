@@ -41,18 +41,18 @@ internal class Bezier {
         if (isFuzzyEqual(a, 0f)) {
             val t = (2 * B.y - C.y - y) / (2 * (B.y - C.y))
             if (t in 0.0..1.0) {
-                outX[i++] = ((1 - t) * (1 - t) * A.x + 2 * t * (1 - t) * B.x + t * t * C.x)
+                outX[i++] = (1 - t) * (1 - t) * A.x + 2 * t * (1 - t) * B.x + t * t * C.x
                 return i
             }
         }
         val sqrtTerm = sqrt(y * a + B.y * B.y - A.y * C.y)
         var t = (A.y - B.y + sqrtTerm) / a
         if (t in 0.0..1.0) {
-            outX[i++] = ((1 - t) * (1 - t) * A.x + 2 * t * (1 - t) * B.x + t * t * C.x)
+            outX[i++] = (1 - t) * (1 - t) * A.x + 2 * t * (1 - t) * B.x + t * t * C.x
         }
         t = (A.y - B.y - sqrtTerm) / a
         if (t in 0.0..1.0) {
-            outX[i++] = ((1 - t) * (1 - t) * A.x + 2 * t * (1 - t) * B.x + t * t * C.x)
+            outX[i++] = (1 - t) * (1 - t) * A.x + 2 * t * (1 - t) * B.x + t * t * C.x
         }
         return i
     }
