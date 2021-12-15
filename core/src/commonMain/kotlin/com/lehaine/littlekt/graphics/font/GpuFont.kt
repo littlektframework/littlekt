@@ -74,32 +74,34 @@ class GpuFont(
 
             val glyph = glyph(it)
             if (it != ' ') {
-                val bx = glyph.bezierAtlasPosX * 2
-                val by = glyph.bezierAtlasPosY * 2
+                val bx = glyph.bezierAtlasPosX shl 1
+                val by = glyph.bezierAtlasPosY shl 1
+                val offsetX = glyph.offsetX * scale
+                val offsetY =  glyph.offsetY * scale
                 vertices.run { // bottom left
-                    add(tx)
-                    add(ty)
+                    add(tx + offsetX)
+                    add(ty + offsetY)
                     add(color.toFloatBits())
                     add(0f + bx)
                     add(0f + by)
                 }
                 vertices.run { // bottom right
-                    add(glyph.width * scale + tx)
-                    add(ty)
+                    add(glyph.width * scale + tx + offsetX)
+                    add(ty+ offsetY)
                     add(color.toFloatBits())
                     add(1f + bx)
                     add(0f + by)
                 }
                 vertices.run { // top right
-                    add(glyph.width * scale + tx)
-                    add(glyph.height * scale + ty)
+                    add(glyph.width * scale + tx + offsetX)
+                    add(glyph.height * scale + ty+ offsetY)
                     add(color.toFloatBits())
                     add(1f + bx)
                     add(1f + by)
                 }
                 vertices.run { // top left
-                    add(tx)
-                    add(glyph.height * scale + ty)
+                    add(tx + offsetX)
+                    add(glyph.height * scale + ty+ offsetY)
                     add(color.toFloatBits())
                     add(0f + bx)
                     add(1f + by)
@@ -159,7 +161,7 @@ class GpuFont(
                 glyph.width,
                 glyph.height,
                 glyph.leftSideBearing,
-                glyph.yMax,
+                glyph.yMax - glyph.height,
                 0,
                 0,
                 -1,
@@ -207,7 +209,7 @@ class GpuFont(
             glyph.width,
             glyph.height,
             glyph.leftSideBearing,
-            glyph.yMax,
+            glyph.yMax - glyph.height,
             atlas.glyphDataBufOffset % atlasWidth,
             atlas.glyphDataBufOffset / atlasWidth + atlasHeight / 2,
             atlases.size - 1,
