@@ -47,7 +47,7 @@ class GPUFontTest(context: Context) : ContextListener(context) {
             50f,
             450f,
             36,
-            Color.WHITE
+            Color.DARK_BLUE
         )
     }
 

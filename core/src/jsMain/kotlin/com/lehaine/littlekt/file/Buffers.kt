@@ -178,6 +178,7 @@ internal class MixedBufferImpl(buffer: ArrayBuffer) : MixedBuffer, GenericBuffer
     DataView(buffer)
 }) {
     constructor(capacity: Int) : this(ArrayBuffer(capacity))
+    constructor(array: Uint8ClampedArray) : this(array.buffer)
 
     override fun set(i: Int, value: Byte) {
         buffer.setInt8(i, value)

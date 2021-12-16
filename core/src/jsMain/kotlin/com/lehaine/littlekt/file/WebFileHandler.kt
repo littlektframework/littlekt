@@ -76,7 +76,7 @@ class WebFileHandler(
         val w = loadedImg.width.toDouble()
         val h = loadedImg.height.toDouble()
         canvasCtx.drawImage(img, 0.0, 0.0, w, h, 0.0, 0.0, w, h)
-        val pixels = Uint8BufferImpl(canvasCtx.getImageData(0.0, 0.0, w, h).data)
+        val pixels = MixedBufferImpl(canvasCtx.getImageData(0.0, 0.0, w, h).data)
 
         val pixmap = Pixmap(loadedImg.width, loadedImg.height, pixels)
         return PixmapTextureData(pixmap, true)
@@ -94,7 +94,7 @@ class WebFileHandler(
 
     override fun store(key: String, data: ByteArray): Boolean {
         return try {
-            localStorage[key] = binToBase64((data as Uint8BufferImpl).buffer)
+            localStorage[key] = binToBase64(Uint8Array(data.toTypedArray()))
             true
         } catch (e: Exception) {
             logger.error { "Failed storing data '$key' to localStorage: $e" }
