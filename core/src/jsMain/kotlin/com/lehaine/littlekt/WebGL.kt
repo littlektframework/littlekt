@@ -741,7 +741,10 @@ class WebGL(val gl: WebGL2RenderingContext, private val engineStats: EngineStats
     ) {
         engineStats.calls++
         source as MixedBufferImpl
-        gl.texImage2D(target, level, internalFormat, width, height, 0, format, type, source.buffer)
+        gl.texImage2D(
+            target, level, internalFormat, width, height, 0, format, type,
+            Uint8Array(source.toArray().toTypedArray()) // convert it to a uint8array or else webgl fails to render
+        )
 
     }
 
