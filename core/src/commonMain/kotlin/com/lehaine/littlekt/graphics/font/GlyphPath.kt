@@ -79,7 +79,6 @@ data class GlyphPath(val unitsPerEm: Int = 1000) {
         }
     }
 
-
     fun calculateBoundingBox(): Rect {
         var startX = 0f
         var startY = 0f
@@ -124,7 +123,6 @@ data class GlyphPath(val unitsPerEm: Int = 1000) {
     override fun toString(): String {
         return "GlyphPath(unitsPerEm=$unitsPerEm, commands=$commands)"
     }
-
 
     enum class CommandType {
         MOVE_TO,

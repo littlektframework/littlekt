@@ -26,9 +26,9 @@ class TtfFont(val chars: CharArray) {
     var fontSize = 72
         set(value) {
             field = value
-            glyphs.values.forEach {
-                it.path.recalculate(fontSize = field)
-            }
+//            glyphs.values.forEach {
+//                it.path.recalculate(fontSize = field)
+//            }
         }
 
     fun load(data: Uint8Buffer) {

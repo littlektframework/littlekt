@@ -77,7 +77,7 @@ class GpuFont(
                 val bx = glyph.bezierAtlasPosX shl 1
                 val by = glyph.bezierAtlasPosY shl 1
                 val offsetX = glyph.offsetX * scale
-                val offsetY =  glyph.offsetY * scale
+                val offsetY = glyph.offsetY * scale
                 vertices.run { // bottom left
                     add(tx + offsetX)
                     add(ty + offsetY)
@@ -87,21 +87,21 @@ class GpuFont(
                 }
                 vertices.run { // bottom right
                     add(glyph.width * scale + tx + offsetX)
-                    add(ty+ offsetY)
+                    add(ty + offsetY)
                     add(color.toFloatBits())
                     add(1f + bx)
                     add(0f + by)
                 }
                 vertices.run { // top right
                     add(glyph.width * scale + tx + offsetX)
-                    add(glyph.height * scale + ty+ offsetY)
+                    add(glyph.height * scale + ty + offsetY)
                     add(color.toFloatBits())
                     add(1f + bx)
                     add(1f + by)
                 }
                 vertices.run { // top left
                     add(tx + offsetX)
-                    add(glyph.height * scale + ty+ offsetY)
+                    add(glyph.height * scale + ty + offsetY)
                     add(color.toFloatBits())
                     add(0f + bx)
                     add(1f + by)
@@ -200,6 +200,7 @@ class GpuFont(
         )
 
         buffer.position = atlas.glyphDataBufOffset * ATLAS_CHANNELS + atlasWidth * (atlasHeight / 2) * ATLAS_CHANNELS
+        println(curves)
         writeGlyphToBuffer(
             buffer, curves, glyph.width, glyph.height, atlas.gridX.toShort(), atlas.gridY.toShort(),
             GRID_MAX_SIZE.toShort(), GRID_MAX_SIZE.toShort()
@@ -386,6 +387,7 @@ private class GlyphCompiler {
                     startY = cmd.y
                     prevX = cmd.x
                     prevY = cmd.y
+                    println("Move to ${cmd.x}, ${cmd.y}")
                 }
                 GlyphPath.CommandType.LINE_TO -> {
                     curves += Bezier().apply {
@@ -395,6 +397,7 @@ private class GlyphCompiler {
                     }
                     prevX = cmd.x
                     prevY = cmd.y
+                    println("Line to ${cmd.x}, ${cmd.y}")
                 }
                 GlyphPath.CommandType.CURVE_TO -> {
                     val cubicBezier = CubicBezier(prevX, prevY, cmd.x1, cmd.y1, cmd.x2, cmd.y2, cmd.x, cmd.y)
@@ -417,12 +420,14 @@ private class GlyphCompiler {
                         control.set(cmd.x1, cmd.y1)
                         p1.set(cmd.x, cmd.y)
                     }
+                    println("Quad to p0: ${prevX}, ${prevY}, p1: ${cmd.x}, ${cmd.y}, c: ${cmd.x1}, ${cmd.y1}")
                     prevX = cmd.x
                     prevY = cmd.y
                 }
                 GlyphPath.CommandType.CLOSE -> {
-//                    prevX = startX
-//                    prevY = startY
+                    prevX = startX
+                    prevY = startY
+                    println("Close $prevX, $prevY")
                 }
             }
         }

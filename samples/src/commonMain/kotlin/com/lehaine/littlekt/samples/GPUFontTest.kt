@@ -34,15 +34,16 @@ class GPUFontTest(context: Context) : ContextListener(context) {
         Logger.defaultLevel = Logger.Level.DEBUG
         logger.level = Logger.Level.DEBUG
         fileHandler.launch {
-            freeSerif = loadTtfFont("FreeSerif.ttf")
-            libSans = loadTtfFont("LiberationSans-Regular.ttf")
+         //   freeSerif = loadTtfFont("FreeSerif.ttf", )
+            libSans = loadTtfFont("LiberationSans-Regular.ttf", "D")
             loading = false
         }
     }
 
     private fun init() {
         gpuFont = GpuFont(libSans).also { it.prepare(this@GPUFontTest) }
-        gpuFont.insertText("Welcome to vector-based GPU text rendering!\nType whatever you want!\n\nPress LEFT/RIGHT to move cursor.\nPress ESC to toggle rotate.\nScroll vertically/horizontally to move.\nScroll while holding shift to zoom.\nRight-shift for bold.\nHold ALT to type in rainbow!\nFPS: 1234567890", 50f, 450f, 36, Color.WHITE)
+        //      gpuFont.insertText("Welcome to vector-based GPU text rendering!\nType whatever you want!\n\nPress LEFT/RIGHT to move cursor.\nPress ESC to toggle rotate.\nScroll vertically/horizontally to move.\nScroll while holding shift to zoom.\nRight-shift for bold.\nHold ALT to type in rainbow!\nFPS: 1234567890", 50f, 450f, 36, Color.WHITE)
+        gpuFont.insertText("D", 50f, 250f, 72, Color.WHITE)
     }
 
     override fun render(dt: Duration) {

@@ -19,6 +19,8 @@ internal class GlyfParser(
 
     fun parse(): GlyphSet {
         val glyphs = GlyphSet()
+
+        // The last element of the loca table is invalid.
         for (i in 0 until loca.size - 1) {
             val offset = loca[i]
             val nextOffset = loca[i + 1]
@@ -47,7 +49,6 @@ internal class GlyfParser(
         glyph.yMin = p.parseInt16.toInt()
         glyph.xMax = p.parseInt16.toInt()
         glyph.yMax = p.parseInt16.toInt()
-
 
         if (glyph.numberOfContours > 0) {
             val flags = mutableListOf<Int>()
@@ -204,13 +205,15 @@ internal class GlyfParser(
         contours.forEach { contour ->
             var curr = contour[contour.size - 1]
             var next = contour[0]
-
+            var moved = false
             if (curr.onCurve) {
                 p.moveTo(curr.x.toFloat(), curr.y.toFloat())
             } else {
                 if (next.onCurve) {
                     p.moveTo(next.x.toFloat(), next.y.toFloat())
+                    moved = true
                 } else {
+                    // If both first and last points are off-curve, start at their middle.
                     val startX = (curr.x + next.x) * 0.5f
                     val startY = (curr.y + next.y) * 0.5f
                     p.moveTo(startX, startY)
@@ -221,15 +224,24 @@ internal class GlyfParser(
                 curr = next
                 next = contour[(i + 1) % contour.size]
 
+                if (moved) {
+                    moved = false
+                    continue
+                }
+
                 if (curr.onCurve) {
+                    // This is a straight line.
                     p.lineTo(curr.x.toFloat(), curr.y.toFloat())
                 } else {
                     var next2 = next.x.toFloat() to next.y.toFloat()
 
-                    if (!next.onCurve) {
+                    if (next.onCurve) {
+                        moved = true
+                    } else {
                         next2 = ((curr.x + next.x) * 0.5f) to ((curr.y + next.y) * 0.5f)
                     }
                     p.quadTo(curr.x.toFloat(), curr.y.toFloat(), next2.first, next2.second)
+
                 }
             }
             p.close()

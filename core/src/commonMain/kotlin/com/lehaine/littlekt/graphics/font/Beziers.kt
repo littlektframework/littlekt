@@ -11,10 +11,11 @@ import kotlin.math.*
  * @date 12/9/2021
  */
 
-internal class Bezier {
-    val p0 = MutableVec2f()
-    val p1 = MutableVec2f()
-    val control = MutableVec2f()
+internal data class Bezier(
+    val p0: MutableVec2f = MutableVec2f(),
+    val p1: MutableVec2f = MutableVec2f(),
+    val control: MutableVec2f = MutableVec2f()
+) {
 
     /**
      * Taking a quadratic bezier curve and a horizontal line y=Y, finds the x
