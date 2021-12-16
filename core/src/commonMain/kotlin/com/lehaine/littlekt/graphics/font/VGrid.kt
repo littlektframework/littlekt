@@ -166,10 +166,6 @@ internal object VGridAtlas {
         check(tx + grid.width <= width) { "VGrid to wide to fit on atlas" }
         check(ty + grid.height <= height) { "VGrid to long to fit on atlas" }
 
-        grid.cellMids.forEach {
-            println(it)
-        }
-
         for (y in 0 until grid.height) {
             for (x in 0 until grid.width) {
                 val cellIdx = xy2i(x, y, grid.width)
@@ -189,19 +185,15 @@ internal object VGridAtlas {
      * even if there are more bezies.
      */
     private fun writeVGridCellToBuffer(grid: VGrid, cellIdx: Int, data: MixedBuffer, offset: Int, depth: Int) {
-        val beziers = grid.cellBeziers[cellIdx]
+        val beziers = grid.cellBeziers[cellIdx].sorted()
         for (i in 0 until depth) {
             data[offset + i] = BEZIER_INDEX_UNUSED
         }
 
-        var i = 0
         val numBeziers = min(beziers.size, depth)
-
-        beziers.forEachIndexed { index, it ->
-            if (index < numBeziers) return@forEachIndexed
-
+        for(i in 0 until numBeziers) {
+            val it = beziers[i]
             data[offset + i] = (it + BEZIER_INDEX_FIRST_REAL).toByte()
-            i++
         }
 
         val midInside = grid.cellMids[cellIdx]
