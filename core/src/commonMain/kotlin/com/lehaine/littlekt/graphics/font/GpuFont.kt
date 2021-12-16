@@ -200,7 +200,6 @@ class GpuFont(
         )
 
         buffer.position = atlas.glyphDataBufOffset * ATLAS_CHANNELS + atlasWidth * (atlasHeight / 2) * ATLAS_CHANNELS
-        println(curves)
         writeGlyphToBuffer(
             buffer, curves, glyph.width, glyph.height, atlas.gridX.toShort(), atlas.gridY.toShort(),
             GRID_MAX_SIZE.toShort(), GRID_MAX_SIZE.toShort()
@@ -387,7 +386,6 @@ private class GlyphCompiler {
                     startY = cmd.y
                     prevX = cmd.x
                     prevY = cmd.y
-                    println("Move to ${cmd.x}, ${cmd.y}")
                 }
                 GlyphPath.CommandType.LINE_TO -> {
                     curves += Bezier().apply {
@@ -397,7 +395,6 @@ private class GlyphCompiler {
                     }
                     prevX = cmd.x
                     prevY = cmd.y
-                    println("Line to ${cmd.x}, ${cmd.y}")
                 }
                 GlyphPath.CommandType.CURVE_TO -> {
                     val cubicBezier = CubicBezier(prevX, prevY, cmd.x1, cmd.y1, cmd.x2, cmd.y2, cmd.x, cmd.y)
@@ -420,14 +417,12 @@ private class GlyphCompiler {
                         control.set(cmd.x1, cmd.y1)
                         p1.set(cmd.x, cmd.y)
                     }
-                    println("Quad to p0: ${prevX}, ${prevY}, p1: ${cmd.x}, ${cmd.y}, c: ${cmd.x1}, ${cmd.y1}")
                     prevX = cmd.x
                     prevY = cmd.y
                 }
                 GlyphPath.CommandType.CLOSE -> {
                     prevX = startX
                     prevY = startY
-                    println("Close $prevX, $prevY")
                 }
             }
         }
