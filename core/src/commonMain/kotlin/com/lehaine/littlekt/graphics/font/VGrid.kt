@@ -4,6 +4,8 @@ import com.lehaine.littlekt.file.MixedBuffer
 import com.lehaine.littlekt.graphics.font.VGridAtlas.writeVGridCellToBuffer
 import com.lehaine.littlekt.log.Logger
 import com.lehaine.littlekt.math.clamp
+import kotlin.math.ceil
+import kotlin.math.floor
 import kotlin.math.min
 import kotlin.math.roundToInt
 
@@ -40,8 +42,8 @@ internal data class VGrid(
         val cellBeziers = MutableList(gridWidth * gridHeight) { mutableSetOf<Int>() }
 
         fun setGrid(x: Float, y: Float, bezierIndex: Int) {
-            val tx = x.roundToInt().clamp(0, gridWidth - 1)
-            val ty = y.roundToInt().clamp(0, gridHeight - 1)
+            val tx = floor(x).toInt().clamp(0, gridWidth - 1)
+            val ty = floor(y).toInt().clamp(0, gridHeight - 1)
             cellBeziers[ty * gridWidth + tx] += bezierIndex
         }
 
@@ -162,6 +164,10 @@ internal object VGridAtlas {
     ) {
         check(tx + grid.width <= width) { "VGrid to wide to fit on atlas" }
         check(ty + grid.height <= height) { "VGrid to long to fit on atlas" }
+
+        grid.cellMids.forEach {
+            println(it)
+        }
 
         for (y in 0 until grid.height) {
             for (x in 0 until grid.width) {

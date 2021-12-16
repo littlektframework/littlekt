@@ -23,7 +23,7 @@ import kotlin.time.measureTimedValue
 
 class GpuFont(
     private val font: TtfFont,
-    private val atlasWidth: Int = 384,
+    private val atlasWidth: Int = 256,
     private val atlasHeight: Int = 512
 ) {
     private val compiler = GlyphCompiler()
