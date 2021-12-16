@@ -6,11 +6,9 @@ import com.lehaine.littlekt.file.MixedBuffer
 import com.lehaine.littlekt.file.createMixedBuffer
 import com.lehaine.littlekt.graphics.*
 import com.lehaine.littlekt.graphics.gl.*
-import com.lehaine.littlekt.graphics.shader.FragmentShader
 import com.lehaine.littlekt.graphics.shader.ShaderProgram
 import com.lehaine.littlekt.graphics.shader.shaders.GpuTextFragmentShader
 import com.lehaine.littlekt.graphics.shader.shaders.GpuTextVertexShader
-import com.lehaine.littlekt.graphics.shader.shaders.GpuWebGLTextFragmentShader
 import com.lehaine.littlekt.log.Logger
 import com.lehaine.littlekt.math.Mat4
 import com.lehaine.littlekt.math.Vec2f
@@ -36,7 +34,7 @@ class GpuFont(
     private var text = StringBuilder("")
 
     private lateinit var mesh: Mesh
-    private lateinit var shader: ShaderProgram<GpuTextVertexShader, FragmentShader>
+    private lateinit var shader: ShaderProgram<GpuTextVertexShader, GpuTextFragmentShader>
     private lateinit var context: Context
 
     private val fileHandler: FileHandler get() = context.fileHandler
@@ -49,11 +47,9 @@ class GpuFont(
             maxVertices = 5000
             useBatcher = false
         }.also { it.indicesAsQuad() }
-        val fragmentShader =
-            if (context.platform == Context.Platform.JS) GpuWebGLTextFragmentShader() else GpuTextFragmentShader()
-        shader = ShaderProgram<GpuTextVertexShader, FragmentShader>(
+        shader = ShaderProgram(
             GpuTextVertexShader(),
-            fragmentShader
+            GpuTextFragmentShader()
         ).also { it.prepare(context) }
         shader.bind()
         shader.vertexShader.uTexelSize.apply(shader, Vec2f(1f / atlasWidth, 1f / atlasHeight))

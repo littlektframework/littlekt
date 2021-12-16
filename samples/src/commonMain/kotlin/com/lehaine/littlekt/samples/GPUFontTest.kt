@@ -42,11 +42,18 @@ class GPUFontTest(context: Context) : ContextListener(context) {
 
     private fun init() {
         gpuFont = GpuFont(libSans).also { it.prepare(this@GPUFontTest) }
+//        gpuFont.insertText(
+//            "Welcome to vector-based GPU text rendering!\nType whatever you want!\n\nPress LEFT/RIGHT to move cursor.\nPress ESC to toggle rotate.\nScroll vertically/horizontally to move.\nScroll while holding shift to zoom.\nRight-shift for bold.\nHold ALT to type in rainbow!\nFPS: 1234567890",
+//            50f,
+//            450f,
+//            36,
+//            Color.DARK_BLUE
+//        )
         gpuFont.insertText(
-            "Welcome to vector-based GPU text rendering!\nType whatever you want!\n\nPress LEFT/RIGHT to move cursor.\nPress ESC to toggle rotate.\nScroll vertically/horizontally to move.\nScroll while holding shift to zoom.\nRight-shift for bold.\nHold ALT to type in rainbow!\nFPS: 1234567890",
+            "awelcome",
             50f,
-            450f,
-            36,
+            400f,
+            72,
             Color.DARK_BLUE
         )
     }
