@@ -9,13 +9,17 @@ import com.lehaine.littlekt.graphics.gl.PixmapTextureData
 import com.lehaine.littlekt.log.Logger
 import kotlinx.browser.document
 import kotlinx.browser.localStorage
+import kotlinx.browser.window
 import kotlinx.coroutines.CompletableDeferred
 import org.khronos.webgl.ArrayBuffer
 import org.khronos.webgl.Uint8Array
+import org.khronos.webgl.get
+import org.khronos.webgl.set
 import org.w3c.dom.*
 import org.w3c.xhr.ARRAYBUFFER
 import org.w3c.xhr.XMLHttpRequest
 import org.w3c.xhr.XMLHttpRequestResponseType
+
 
 /**
  * @author Colton Daily
@@ -120,31 +124,58 @@ class WebFileHandler(
         return localStorage[key]
     }
 
-    /**
-     * Cumbersome / ugly method to convert Uint8Array into a base64 string in javascript
-     */
-    @Suppress("UNUSED_PARAMETER")
-    private fun binToBase64(uint8Data: Uint8Array): String = js(
-        """
-        var chunkSize = 0x8000;
-        var c = [];
-        for (var i = 0; i < uint8Data.length; i += chunkSize) {
-            c.push(String.fromCharCode.apply(null, uint8Data.subarray(i, i+chunkSize)));
-        }
-        return window.btoa(c.join(""));
-    """
-    ) as String
+    private val base64abc = arrayOf(
+        "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M",
+        "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z",
+        "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m",
+        "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z",
+        "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "+", "/"
+    )
 
-    @Suppress("UNUSED_PARAMETER")
-    private fun base64ToBin(base64: String): Uint8Array = js(
-        """
-        var binary_string = window.atob(base64);
-        var len = binary_string.length;
-        var bytes = new Uint8Array(len);
-        for (var i = 0; i < len; i++) {
-            bytes[i] = binary_string.charCodeAt(i);
+    private fun binToBase64(data: Uint8Array): String {
+        var result = ""
+        val l = data.length
+        var j = 2
+        for (i in 2 until l step 3) {
+            j = i
+            result += base64abc[data[i - 2].toInt() shr 2]
+            result += base64abc[data[i - 2].toInt() and 0x03 shl 4 or (data[i - 1].toInt() shr 4)]
+            result += base64abc[data[i - 1].toInt() and 0x0F shl 2 or (data[i].toInt() shr 6)]
+            result += base64abc[data[i].toInt() and 0x3F]
         }
-        return bytes;
-    """
-    ) as Uint8Array
+        if (j == l + 1) { // 1 octet yet to write
+            result += base64abc[data[j - 2].toInt() shr 2]
+            result += base64abc[data[j - 2].toInt() and 0x03 shl 4]
+            result += "=="
+        }
+        if (j == l) {  // 2 octets yet to write
+            result += base64abc[data[j - 2].toInt() shr 2]
+            result += base64abc[data[j - 2].toInt() and 0x03 shl 4 or (data[j - 1].toInt() shr 4)]
+            result += base64abc[data[j - 1].toInt() and 0x0F shl 2]
+            result += "="
+        }
+        return result
+    }
+
+    private fun base64ToBin(base64: String): Uint8Array {
+        val binaryString = window.atob(base64)
+        val bytes = Uint8Array(binaryString.length)
+        for (i in binaryString.indices) {
+            bytes[i] = binaryString[i].digitToInt().toByte()
+        }
+        return bytes
+    }
+
+//    @Suppress("UNUSED_PARAMETER")
+//    private fun base64ToBin(base64: String): Uint8Array = js(
+//        """
+//        var binary_string = window.atob(base64);
+//        var len = binary_string.length;
+//        var bytes = new Uint8Array(len);
+//        for (var i = 0; i < len; i++) {
+//            bytes[i] = binary_string.charCodeAt(i);
+//        }
+//        return bytes;
+//    """
+//    ) as Uint8Array
 }
