@@ -114,7 +114,8 @@ internal data class VGrid(
             // crossings.
             var outside = false
             var start = 0f
-            intersections.forEach {
+
+            intersections.sortedBy { it }.forEach {
                 val end = it
                 if (outside) {
                     val startCell = start.roundToInt().clamp(0, gridWidth)
