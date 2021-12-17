@@ -4,9 +4,9 @@ import com.lehaine.littlekt.Context
 import com.lehaine.littlekt.ContextListener
 import com.lehaine.littlekt.graphics.Color
 import com.lehaine.littlekt.graphics.OrthographicCamera
-import com.lehaine.littlekt.graphics.SpriteBatch
 import com.lehaine.littlekt.graphics.font.GpuFont
 import com.lehaine.littlekt.graphics.font.TtfFont
+import com.lehaine.littlekt.graphics.font.use
 import com.lehaine.littlekt.graphics.gl.ClearBufferMask
 import com.lehaine.littlekt.input.Key
 import com.lehaine.littlekt.log.Logger
@@ -18,7 +18,6 @@ import kotlin.time.Duration
  */
 class GPUFontTest(context: Context) : ContextListener(context) {
     private var loading = true
-    private val batch = SpriteBatch(this)
     private val camera = OrthographicCamera().apply {
         left = 0f
         bottom = 0f
@@ -28,7 +27,7 @@ class GPUFontTest(context: Context) : ContextListener(context) {
     private lateinit var freeSerif: TtfFont
     private lateinit var libSans: TtfFont
     private lateinit var gpuFont: GpuFont
-    private var lastStats:String = "TBD"
+    private var lastStats: String = "TBD"
     private var init = false
 
     init {
@@ -42,9 +41,7 @@ class GPUFontTest(context: Context) : ContextListener(context) {
     }
 
     private fun init() {
-        gpuFont = GpuFont(libSans).also { it.prepare(this@GPUFontTest) }
-
-
+        gpuFont = GpuFont(this, libSans)
     }
 
     override fun render(dt: Duration) {
@@ -56,32 +53,32 @@ class GPUFontTest(context: Context) : ContextListener(context) {
         gl.clearColor(Color.DARK_GRAY)
         gl.clear(ClearBufferMask.COLOR_BUFFER_BIT)
         camera.update()
-        gpuFont.drawText(
-            "Check out my awesome font rendering!\nThis is a test with static text!!!\nSymbols: @#$!@%&(@*)(#$\nNumbers: 1234567890",
-            150f,
-            450f,
-            36,
-            -45f,
-            color = Color.BLACK
-        )
-        gpuFont.drawText(
-            "This is another insert!!",
-            50f,
-            200f,
-            72,
-            color = Color.RED
-        )
-        gpuFont.drawText(
-            "I am rotated!! gYnlqQp",
-            550f,
-            250f,
-            36,
-            45f,
-            color = Color.BLUE
-        )
-        gpuFont.drawText(lastStats, 50f, 175f, 16, color = Color.GREEN)
-        gpuFont.render(camera.viewProjection)
-        gpuFont.clear()
+        gpuFont.use(camera.viewProjection) {
+            it.drawText(
+                "Check out my awesome font rendering!\nThis is a test with static text!!!\nSymbols: @#$!@%&(@*)(#$\nNumbers: 1234567890",
+                150f,
+                450f,
+                36,
+                -45f,
+                color = Color.BLACK
+            )
+            it.drawText(
+                "This is another insert!!",
+                50f,
+                200f,
+                72,
+                color = Color.RED
+            )
+            it.drawText(
+                "I am rotated!! gYnlqQp",
+                550f,
+                250f,
+                36,
+                45f,
+                color = Color.BLUE
+            )
+            it.drawText(lastStats, 50f, 175f, 16, color = Color.GREEN)
+        }
         lastStats = stats.toString()
         if (input.isKeyJustPressed(Key.P)) {
             logger.debug { stats.toString() }
