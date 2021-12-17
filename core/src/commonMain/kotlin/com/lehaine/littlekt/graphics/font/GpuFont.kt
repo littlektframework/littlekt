@@ -54,6 +54,7 @@ class GpuFont(
         ).also { it.prepare(context) }
         shader.bind()
         shader.vertexShader.uTexelSize.apply(shader, Vec2f(1f / atlasWidth, 1f / atlasHeight))
+        shader.fragmentShader.uTextureWidth.apply(shader, atlasWidth)
     }
 
     fun insertText(text: String, x: Float, y: Float, pxSize: Int, color: Color = Color.BLACK) {

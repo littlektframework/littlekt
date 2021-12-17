@@ -65,14 +65,12 @@ class GpuTextVertexShader : VertexShaderModel() {
 }
 
 class GpuTextFragmentShader : FragmentShaderModel() {
-    val uTexture get() = parameters[0] as ShaderParameter.UniformSample2D
-    val uTexelSize get() = parameters[1] as ShaderParameter.UniformVec2
+    val uTexture = ShaderParameter.UniformSample2D("u_texture")
+    val uTextureWidth = ShaderParameter.UniformInt("u_textureWidth")
+    val uTexelSize = ShaderParameter.UniformVec2("u_texelSize")
 
     override val parameters: MutableList<ShaderParameter> =
-        mutableListOf(
-            ShaderParameter.UniformSample2D("u_texture"),
-            ShaderParameter.UniformVec2("u_texelSize")
-        )
+        mutableListOf(uTexture, uTextureWidth, uTexelSize)
 
     // language=GLSL
     override var source: String = """
@@ -86,6 +84,7 @@ class GpuTextFragmentShader : FragmentShaderModel() {
         #define kPixelWindowSize 1.0
         
         uniform sampler2D u_texture;
+        uniform int u_textureWidth;
         uniform vec2 u_texelSize;
 
         varying vec4 v_color;
@@ -120,29 +119,35 @@ class GpuTextFragmentShader : FragmentShaderModel() {
 
         void fetchBezier(int coordIndex, out vec2 p[3]) {
             for (int i = 0; i < 3; i++) {
-                vec4 pixel = getPixelByXY(vec2(v_bezierCoord.x + float(2 + coordIndex * 3 + i), v_bezierCoord.y));
+                vec2 coord = vec2(v_bezierCoord.x + float(2 + coordIndex * 3 + i), v_bezierCoord.y);
+                // bezier coord might wrap - so we need to account for that
+                if(coord.x > float(u_textureWidth)) {
+                    coord.x = coord.x - float(u_textureWidth);
+                    coord.y += 1.0;
+                }
+                vec4 pixel = getPixelByXY(coord);
                 p[i] = vec2(normalizedUshortFromVec2(pixel.xy), normalizedUshortFromVec2(pixel.zw)) - v_normCoord;
             }
         }
 
         int getAxisIntersections(float p0, float p1, float p2, out vec2 t) {
-            if (almostEqual(p0, 2.0*p1 - p2)) {
-                t[0] = 0.5 * (p2 - 2.0*p1) / (p2 - p1);
+            if (almostEqual(p0, 2.0 * p1 - p2)) {
+                t[0] = 0.5 * (p2 - 2.0 * p1) / (p2 - p1);
                 return 1;
             }
 
             float sqrtTerm = p1*p1 - p0*p2;
             if (sqrtTerm < 0.0) return 0;
             sqrtTerm = sqrt(sqrtTerm);
-            float denom = p0 - 2.0*p1 + p2;
+            float denom = p0 - 2.0 * p1 + p2;
             t[0] = (p0 - p1 + sqrtTerm) / denom;
             t[1] = (p0 - p1 - sqrtTerm) / denom;
             return 2;
         }
 
         float integrateWindow(float x) {
-            float xsq = x*x;
-            return sign(x) * (0.5 * xsq*xsq - xsq) + 0.5;           // parabolic window
+            float xsq = x * x;
+            return sign(x) * (0.5 * xsq * xsq - xsq) + 0.5;           // parabolic window
             //return 0.5 * (1.0 - sign(x) * xsq);                     // box window
         }
 
@@ -170,8 +175,8 @@ class GpuTextFragmentShader : FragmentShaderModel() {
                     vec2 op = vec2(positionAt(porig[0].x, porig[1].x, porig[2].x, t[i]),
                                    positionAt(porig[0].y, porig[1].y, porig[2].y, t[i]));
                     op += v_normCoord;
-                    bool sameCell = floor(clamp(op * v_gridRect.zw, vec2(0.5), vec2(v_gridRect.zw)-0.5)) == integerCell;
-                    //if (posx > 0.0 && posx < 1.0 && posx < abs(closest)) {
+                    bool sameCell = floor(clamp(op * v_gridRect.zw, vec2(0.5), vec2(v_gridRect.zw) - 0.5)) == integerCell;
+                  //  if (posx > 0.0 && posx < 1.0 && posx < abs(closest)) {
                     if (sameCell && abs(posx) < abs(closest)) {
                         float derivy = tangentAt(p[0].y, p[1].y, p[2].y, t[i]);
                         closest = (derivy < 0.0) ? -posx : posx;
@@ -185,7 +190,7 @@ class GpuTextFragmentShader : FragmentShaderModel() {
         }
 
         void main() {
-            vec2 integerCell = floor(clamp(v_normCoord * v_gridRect.zw, vec2(0.5), vec2(v_gridRect.zw)-0.5));
+            vec2 integerCell = floor(clamp(v_normCoord * v_gridRect.zw, vec2(0.5), vec2(v_gridRect.zw) - 0.5));
             vec2 indicesCoord = v_gridRect.xy + integerCell + 0.5;
             vec2 cellMid = (integerCell + 0.5) / v_gridRect.zw;
             
@@ -202,7 +207,7 @@ class GpuTextFragmentShader : FragmentShaderModel() {
             float midClosest = midInside ? -2.0 : 2.0;
             
             float firstIntersection[numSS];
-            for (int ss=0; ss<numSS; ss++) {
+            for (int ss = 0; ss < numSS; ss++) {
                 firstIntersection[ss] = 2.0;
             }
             
@@ -217,6 +222,7 @@ class GpuTextFragmentShader : FragmentShaderModel() {
                 if (coordIndex < 2) {
                     continue;
                 }
+                
                 vec2 p[3];
                 fetchBezier(coordIndex - 2, p);
                 
@@ -238,6 +244,7 @@ class GpuTextFragmentShader : FragmentShaderModel() {
                         if (t[tindex] > 0.0 && t[tindex] <= 1.0) {
                             float derivx = tangentAt(p[0].x, p[1].x, p[2].x, t[tindex]);
                             float posy = positionAt(p[0].y, p[1].y, p[2].y, t[tindex]);
+                            
                             if (posy > -1.0 && posy < 1.0) {
                                 // Note: whether to add or subtract in the next statement is determined
                                 // by which convention the path uses: moving from the bezier start to end,
@@ -245,6 +252,7 @@ class GpuTextFragmentShader : FragmentShaderModel() {
                                 // The wrong operation will give buggy looking results, not a simple inverse.
                                 float delta = integrateWindow(posy);
                                 percent = percent + (derivx < 0.0 ? delta : -delta);
+                                
                                 float intersectDist = posy + 1.0;
                                 if (intersectDist < abs(firstIntersection[ss])) {
                                     firstIntersection[ss] = derivx < 0.0 ? -intersectDist : intersectDist;
