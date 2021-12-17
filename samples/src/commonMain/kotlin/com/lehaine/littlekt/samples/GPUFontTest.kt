@@ -47,8 +47,8 @@ class GPUFontTest(context: Context) : ContextListener(context) {
             "Check out my awesome font rendering!\nThis is a test with static text!!!\nSymbols: @#$!@%&(@*)(#$\nNumbers: 1234567890",
             50f,
             450f,
-            36,
-            Color.DARK_BLUE
+            100,
+            Color.BLACK
         )
     }
 

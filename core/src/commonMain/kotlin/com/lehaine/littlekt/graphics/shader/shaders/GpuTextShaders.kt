@@ -58,7 +58,7 @@ class GpuTextVertexShader : VertexShaderModel() {
             v_color = a_color;
             v_bezierCoord = floor(a_texCoord0 * 0.5);
             v_normCoord = mod(a_texCoord0, 2.0);
-            v_gridRect = vec4(vec2FromPixel(v_bezierCoord), vec2FromPixel(v_bezierCoord + vec2(1,0)));
+            v_gridRect = vec4(floor(vec2FromPixel(v_bezierCoord)), floor(vec2FromPixel(v_bezierCoord + vec2(1,0))));
             gl_Position = u_projTrans * vec4(a_position, 0.0, 1.0);
         }
     """.trimIndent()
@@ -121,7 +121,7 @@ class GpuTextFragmentShader : FragmentShaderModel() {
             for (int i = 0; i < 3; i++) {
                 vec2 coord = vec2(v_bezierCoord.x + float(2 + coordIndex * 3 + i), v_bezierCoord.y);
                 // bezier coord might wrap - so we need to account for that
-                if(coord.x > float(u_textureWidth)) {
+                if(coord.x >= float(u_textureWidth)) {
                     coord.x = coord.x - float(u_textureWidth);
                     coord.y += 1.0;
                 }
@@ -175,8 +175,9 @@ class GpuTextFragmentShader : FragmentShaderModel() {
                     vec2 op = vec2(positionAt(porig[0].x, porig[1].x, porig[2].x, t[i]),
                                    positionAt(porig[0].y, porig[1].y, porig[2].y, t[i]));
                     op += v_normCoord;
-                    bool sameCell = floor(clamp(op * v_gridRect.zw, vec2(0.5), vec2(v_gridRect.zw) - 0.5)) == integerCell;
-                  //  if (posx > 0.0 && posx < 1.0 && posx < abs(closest)) {
+                    
+                    bool sameCell = floor(clamp(v_normCoord * v_gridRect.zw, vec2(0), vec2(v_gridRect.zw) - 1.0)) == integerCell;
+
                     if (sameCell && abs(posx) < abs(closest)) {
                         float derivy = tangentAt(p[0].y, p[1].y, p[2].y, t[i]);
                         closest = (derivy < 0.0) ? -posx : posx;
@@ -190,8 +191,8 @@ class GpuTextFragmentShader : FragmentShaderModel() {
         }
 
         void main() {
-            vec2 integerCell = floor(clamp(v_normCoord * v_gridRect.zw, vec2(0.5), vec2(v_gridRect.zw) - 0.5));
-            vec2 indicesCoord = v_gridRect.xy + integerCell + 0.5;
+            vec2 integerCell = floor(clamp(v_normCoord * v_gridRect.zw, vec2(0), vec2(v_gridRect.zw) - 1.0));
+            vec2 indicesCoord = floor(v_gridRect.xy + integerCell);
             vec2 cellMid = (integerCell + 0.5) / v_gridRect.zw;
             
             mat2 initrot = inverseMat(mat2(dFdx(v_normCoord) * kPixelWindowSize, dFdy(v_normCoord) * kPixelWindowSize));
@@ -199,7 +200,7 @@ class GpuTextFragmentShader : FragmentShaderModel() {
             float theta = pi / float(numSS);
             mat2 rotM = mat2(cos(theta), sin(theta), -sin(theta), cos(theta)); // note this is column major ordering
             
-            ivec4 indices1 = ivec4(texture2D(u_texture, indicesCoord * u_texelSize) * 255.0 + 0.5);
+            ivec4 indices1 = ivec4(texture2D(u_texture, indicesCoord * u_texelSize) * 255.0);
             
             // The mid-inside flag is encoded by the order of the beziers indices.
             bool midInside = indices1[0] > indices1[1];
