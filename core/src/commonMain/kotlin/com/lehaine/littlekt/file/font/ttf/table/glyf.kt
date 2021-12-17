@@ -3,6 +3,7 @@ package com.lehaine.littlekt.file.font.ttf.table
 import com.lehaine.littlekt.file.MixedBuffer
 import com.lehaine.littlekt.file.font.ttf.*
 import com.lehaine.littlekt.graphics.font.GlyphPath
+import kotlin.math.floor
 
 /**
  * The `glyf` table describes the glyphs in TrueType outline format.
@@ -214,8 +215,8 @@ internal class GlyfParser(
                     moved = true
                 } else {
                     // If both first and last points are off-curve, start at their middle.
-                    val startX = (curr.x + next.x) * 0.5f
-                    val startY = (curr.y + next.y) * 0.5f
+                    val startX = floor((curr.x + next.x) * 0.5f)
+                    val startY = floor((curr.y + next.y) * 0.5f)
                     p.moveTo(startX, startY)
                 }
             }
@@ -238,7 +239,7 @@ internal class GlyfParser(
                     if (next.onCurve) {
                         moved = true
                     } else {
-                        next2 = ((curr.x + next.x) * 0.5f) to ((curr.y + next.y) * 0.5f)
+                        next2 = floor((curr.x + next.x) * 0.5f) to floor((curr.y + next.y) * 0.5f)
                     }
                     p.quadTo(curr.x.toFloat(), curr.y.toFloat(), next2.first, next2.second)
 

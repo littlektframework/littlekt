@@ -144,7 +144,7 @@ class GpuFont(
         var atlas = getOpenAtlasGroup()
         val glyph = font.glyphs[char.code] ?: error("Glyph for $char doesn't exist!")
         val curves =
-            measureTimedValue { compiler.compile(glyph) }.also { logger.debug { "Took ${it.duration} to compile $char glyph." } }.value
+            measureTimedValue { compiler.compile(glyph) }.also { logger.debug { "Took ${it.duration} to compile $char (${char.code}) glyph." } }.value
         val grid = VGrid(curves, glyph.width, glyph.height, GRID_MAX_SIZE, GRID_MAX_SIZE)
 
         // Although the data is represented as a 32bit texture, it's actually
