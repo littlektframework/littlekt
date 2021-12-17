@@ -28,7 +28,7 @@ class GPUFontTest(context: Context) : ContextListener(context) {
     private lateinit var freeSerif: TtfFont
     private lateinit var libSans: TtfFont
     private lateinit var gpuFont: GpuFont
-
+    private var lastStats:String = "TBD"
     private var init = false
 
     init {
@@ -43,13 +43,8 @@ class GPUFontTest(context: Context) : ContextListener(context) {
 
     private fun init() {
         gpuFont = GpuFont(libSans).also { it.prepare(this@GPUFontTest) }
-        gpuFont.insertText(
-            "Check out my awesome font rendering!\nThis is a test with static text!!!\nSymbols: @#$!@%&(@*)(#$\nNumbers: 1234567890",
-            50f,
-            450f,
-            100,
-            Color.BLACK
-        )
+
+
     }
 
     override fun render(dt: Duration) {
@@ -61,8 +56,33 @@ class GPUFontTest(context: Context) : ContextListener(context) {
         gl.clearColor(Color.DARK_GRAY)
         gl.clear(ClearBufferMask.COLOR_BUFFER_BIT)
         camera.update()
+        gpuFont.drawText(
+            "Check out my awesome font rendering!\nThis is a test with static text!!!\nSymbols: @#$!@%&(@*)(#$\nNumbers: 1234567890",
+            150f,
+            450f,
+            36,
+            -45f,
+            color = Color.BLACK
+        )
+        gpuFont.drawText(
+            "This is another insert!!",
+            50f,
+            200f,
+            72,
+            color = Color.RED
+        )
+        gpuFont.drawText(
+            "I am rotated!! gYnlqQp",
+            550f,
+            250f,
+            36,
+            45f,
+            color = Color.BLUE
+        )
+        gpuFont.drawText(lastStats, 50f, 175f, 16, color = Color.GREEN)
         gpuFont.render(camera.viewProjection)
-
+        gpuFont.clear()
+        lastStats = stats.toString()
         if (input.isKeyJustPressed(Key.P)) {
             logger.debug { stats.toString() }
         }

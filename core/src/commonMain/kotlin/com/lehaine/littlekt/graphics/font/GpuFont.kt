@@ -14,8 +14,11 @@ import com.lehaine.littlekt.graphics.shader.shaders.GpuTextVertexShader
 import com.lehaine.littlekt.log.Logger
 import com.lehaine.littlekt.math.Mat4
 import com.lehaine.littlekt.math.Vec2f
+import com.lehaine.littlekt.math.toRad
 import com.lehaine.littlekt.util.datastructure.FloatArrayList
+import kotlin.math.cos
 import kotlin.math.max
+import kotlin.math.sin
 import kotlin.time.measureTimedValue
 
 /**
@@ -34,6 +37,8 @@ class GpuFont(
     private val compiledGlyphs = mutableMapOf<TtfFont, MutableMap<Int, GpuGlyph>>(font to mutableMapOf())
     private val vertices = FloatArrayList(1000)
     private var text = StringBuilder("")
+
+    private val temp4 = Mat4() // used for rotating text
 
     private lateinit var mesh: Mesh
     private lateinit var shader: ShaderProgram<GpuTextVertexShader, GpuTextFragmentShader>
@@ -57,11 +62,26 @@ class GpuFont(
         shader.fragmentShader.uTextureWidth.apply(shader, atlasWidth)
     }
 
-    fun insertText(text: String, x: Float, y: Float, pxSize: Int, color: Color = Color.BLACK) {
+
+    fun drawText(
+        text: String,
+        x: Float,
+        y: Float,
+        pxSize: Int,
+        rotationDegrees: Float = 0f,
+        color: Color = Color.BLACK
+    ) {
         this.text.append(text)
         val scale = 1f / font.unitsPerEm * pxSize
         var tx = x
         var ty = y
+        var lastX = tx
+        var lastY = ty
+        if (rotationDegrees != 0f) {
+            temp4.setIdentity()
+            temp4.translate(tx, ty, 0f)
+            temp4.rotate(0f, 0f, rotationDegrees)
+        }
         text.forEach {
             if (it == '\r') {
                 return@forEach
@@ -82,30 +102,78 @@ class GpuFont(
                 val by = glyph.bezierAtlasPosY shl 1
                 val offsetX = glyph.offsetX * scale
                 val offsetY = glyph.offsetY * scale
+                if (rotationDegrees != 0f) {
+                    temp4.translate(tx + offsetX - lastX, ty + offsetY - lastY, 0f)
+                }
+                lastX = tx + offsetX
+                lastY = ty + offsetY
+                val mx = (if (rotationDegrees == 0f) tx + offsetX else temp4[12])
+                val my = (if (rotationDegrees == 0f) ty + offsetY else temp4[13])
+                val p1x = 0f
+                val p1y = 0f
+                val p2x = glyph.width * scale
+                val p2y = p1y
+                val p3x = p2x
+                val p3y = glyph.height * scale
+                val p4x = p1x
+                val p4y = p3y
+                var x1: Float = p1x
+                var y1: Float = p1y
+                var x2: Float = p2x
+                var y2: Float = p2y
+                var x3: Float = p3x
+                var y3: Float = p3y
+                var x4: Float = p4x
+                var y4: Float = p4y
+                if (rotationDegrees != 0f) {
+                    val cos = cos(rotationDegrees.toRad())
+                    val sin = sin(rotationDegrees.toRad())
+
+                    x1 = cos * p1x - sin * p1y
+                    y1 = sin * p1x + cos * p1y
+
+                    x2 = cos * p2x - sin * p2y
+                    y2 = sin * p2x + cos * p2y
+
+                    x3 = cos * p3x - sin * p3y
+                    y3 = sin * p3x + cos * p3y
+
+                    x4 = x1 + (x3 - x2)
+                    y4 = y3 - (y2 - y1)
+                }
+                x1 += mx
+                y1 += my
+                x2 += mx
+                y2 += my
+                x3 += mx
+                y3 += my
+                x4 += mx
+                y4 += my
+
                 vertices.run { // bottom left
-                    add(tx + offsetX)
-                    add(ty + offsetY)
+                    add(x1)
+                    add(y1)
                     add(color.toFloatBits())
                     add(0f + bx)
                     add(0f + by)
                 }
                 vertices.run { // bottom right
-                    add(glyph.width * scale + tx + offsetX)
-                    add(ty + offsetY)
+                    add(x2)
+                    add(y2)
                     add(color.toFloatBits())
                     add(1f + bx)
                     add(0f + by)
                 }
                 vertices.run { // top right
-                    add(glyph.width * scale + tx + offsetX)
-                    add(glyph.height * scale + ty + offsetY)
+                    add(x3)
+                    add(y3)
                     add(color.toFloatBits())
                     add(1f + bx)
                     add(1f + by)
                 }
                 vertices.run { // top left
-                    add(tx + offsetX)
-                    add(glyph.height * scale + ty + offsetY)
+                    add(x4)
+                    add(y4)
                     add(color.toFloatBits())
                     add(0f + bx)
                     add(1f + by)
@@ -136,6 +204,12 @@ class GpuFont(
             mesh.render(shader, count = vertices.size)
             gl.disable(State.BLEND)
         }
+    }
+
+    fun clear() {
+        vertices.clear()
+        text.clear()
+        instances.clear()
     }
 
     private fun glyph(char: Char): GpuGlyph {

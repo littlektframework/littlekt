@@ -170,28 +170,16 @@ class SpriteBatch(
         val p4x = fx2
         val p4y = fy
 
-        var x1: Float
-        var y1: Float
-        var x2: Float
-        var y2: Float
-        var x3: Float
-        var y3: Float
-        var x4: Float
-        var y4: Float
+        var x1: Float = p1x
+        var y1: Float = p1y
+        var x2: Float = p2x
+        var y2: Float = p2y
+        var x3: Float = p3x
+        var y3: Float = p3y
+        var x4: Float = p4x
+        var y4: Float = p4y
 
-        if (rotation == 0f) {
-            x1 = p1x
-            y1 = p1y
-
-            x2 = p2x
-            y2 = p2y
-
-            x3 = p3x
-            y3 = p3y
-
-            x4 = p4x
-            y4 = p4y
-        } else {
+        if (rotation != 0f) {
             val cos = cos(rotation)
             val sin = sin(rotation)
 
