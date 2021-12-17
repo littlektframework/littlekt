@@ -5,7 +5,9 @@ import com.lehaine.littlekt.file.FileHandler
 import com.lehaine.littlekt.file.MixedBuffer
 import com.lehaine.littlekt.file.createMixedBuffer
 import com.lehaine.littlekt.graphics.*
-import com.lehaine.littlekt.graphics.gl.*
+import com.lehaine.littlekt.graphics.gl.BlendFactor
+import com.lehaine.littlekt.graphics.gl.PixmapTextureData
+import com.lehaine.littlekt.graphics.gl.State
 import com.lehaine.littlekt.graphics.shader.ShaderProgram
 import com.lehaine.littlekt.graphics.shader.shaders.GpuTextFragmentShader
 import com.lehaine.littlekt.graphics.shader.shaders.GpuTextVertexShader
@@ -40,7 +42,6 @@ class GpuFont(
     private val fileHandler: FileHandler get() = context.fileHandler
     private val gl: GL get() = context.gl
 
-
     fun prepare(context: Context) {
         this.context = context
         mesh = textureMesh(context.gl) {
@@ -56,7 +57,6 @@ class GpuFont(
     }
 
     fun insertText(text: String, x: Float, y: Float, pxSize: Int, color: Color = Color.BLACK) {
-        val lastSize = vertices.size
         this.text.append(text)
         val scale = 1f / font.unitsPerEm * pxSize
         var tx = x
@@ -127,7 +127,7 @@ class GpuFont(
             gl.blendFunc(BlendFactor.SRC_ALPHA, BlendFactor.ONE_MINUS_SRC_ALPHA)
             gl.enable(State.BLEND)
             shader.bind()
-            atlases[0].texture.bind(0)
+            atlases[0].texture.bind()
             viewProjection?.let {
                 shader.vertexShader.uProjTrans.apply(shader, viewProjection)
             }
@@ -218,6 +218,7 @@ class GpuFont(
             atlases.size - 1,
             glyph.advanceWidth.toInt()
         )
+
         compiledGlyphs[font]?.put(char.code, gpuGlyph)
 
         atlas.glyphDataBufOffset += bezierPixelLength
@@ -225,7 +226,7 @@ class GpuFont(
         atlas.uploaded = false
 
         // TODO - unique atlas names
-        writeBMP("atlas.bmp", atlasWidth, atlasHeight, ATLAS_CHANNELS, buffer)
+        //      writeBMP("atlas.bmp", atlasWidth, atlasHeight, ATLAS_CHANNELS, buffer)
         return gpuGlyph
     }
 
@@ -288,6 +289,7 @@ class GpuFont(
     private fun getOpenAtlasGroup(): AtlasGroup {
         if (atlases.isEmpty() || atlases.last().full) {
             val atlas = AtlasGroup().apply {
+
                 pixmap = Pixmap(atlasWidth, atlasHeight, createMixedBuffer(atlasWidth * atlasHeight * ATLAS_CHANNELS))
                 uploaded = true
                 texture.prepare(context)
@@ -327,10 +329,7 @@ private class AtlasGroup {
             field = value
             texture = Texture(field)
         }
-    var texture = Texture(textureData).apply {
-        minFilter = TexMinFilter.LINEAR
-        magFilter = TexMagFilter.LINEAR
-    }
+    var texture = Texture(textureData)
     var gridX = 0
     var gridY = 0
     var full = false

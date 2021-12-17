@@ -1,5 +1,6 @@
 package com.lehaine.littlekt.file
 
+import com.lehaine.littlekt.log.Logger
 import org.khronos.webgl.*
 
 internal abstract class GenericBuffer<out B : ArrayBufferView>(final override val capacity: Int, create: () -> B) :

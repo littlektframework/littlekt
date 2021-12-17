@@ -23,6 +23,11 @@ class GpuTextVertexShader : VertexShaderModel() {
 
     // language=GLSL
     override var source: String = """
+        #ifdef GL_ES
+            #define flipUshort true
+        #else
+            #define flipUshort false
+        #endif
         uniform sampler2D u_texture;
         uniform vec2 u_texelSize;
         uniform mat4 u_projTrans;
@@ -37,7 +42,11 @@ class GpuTextVertexShader : VertexShaderModel() {
         varying vec4 v_gridRect;
         
         float ushortFromVec2(vec2 v) {
-        	return (v.y * 65280.0 + v.x * 255.0);
+            if(flipUshort) {
+        	    return (v.x * 65280.0 + v.y * 255.0);
+            } else {
+        	    return (v.y * 65280.0 + v.x * 255.0);
+            }
         }
         
         vec2 vec2FromPixel(vec2 coord) {
@@ -50,7 +59,7 @@ class GpuTextVertexShader : VertexShaderModel() {
             v_bezierCoord = floor(a_texCoord0 * 0.5);
             v_normCoord = mod(a_texCoord0, 2.0) * 1.1;
             v_gridRect = vec4(vec2FromPixel(v_bezierCoord), vec2FromPixel(v_bezierCoord + vec2(1,0)));
-            gl_Position = u_projTrans*vec4(a_position, 0.0, 1.0);
+            gl_Position = u_projTrans * vec4(a_position, 0.0, 1.0);
         }
     """.trimIndent()
 }
@@ -67,6 +76,11 @@ class GpuTextFragmentShader : FragmentShaderModel() {
 
     // language=GLSL
     override var source: String = """
+        #ifdef GL_ES
+            #define flipUshort true
+        #else
+            #define flipUshort false
+        #endif
         #define numSS 4
         #define pi 3.1415926535897932384626433832795
         #define kPixelWindowSize 1.0
@@ -93,7 +107,11 @@ class GpuTextFragmentShader : FragmentShaderModel() {
         }
 
         float normalizedUshortFromVec2(vec2 v) {
-            return (v.y * 65280.0 + v.x * 255.0) / 65536.0;
+            if(flipUshort) {
+                return (256.0/257.0) * v.x + (1.0/257.0) * v.y;
+            } else {
+                return (256.0/257.0) * v.y + (1.0/257.0) * v.x;
+            }
         }    
         
         vec4 getPixelByXY(vec2 coord) {
@@ -143,18 +161,18 @@ class GpuTextFragmentShader : FragmentShaderModel() {
             }
             vec2 t;
             int numT = getAxisIntersections(p[0].y, p[1].y, p[2].y, t);
-            for (int i=0; i<2; i++) {
+            for (int i = 0; i < 2; i++) {
                 if (i == numT) {
                     break;
                 }
                 if (t[i] > 0.0 && t[i] < 1.0) {
                     float posx = positionAt(p[0].x, p[1].x, p[2].x, t[i]);
-//                    vec2 op = vec2(positionAt(porig[0].x, porig[1].x, porig[2].x, t[i]),
-//                                   positionAt(porig[0].y, porig[1].y, porig[2].y, t[i]));
-//                    op += v_normCoord;
-               //     bool sameCell = floor(clamp(op * v_gridRect.zw, vec2(0.5), vec2(v_gridRect.zw)-0.5)) == integerCell;
+                    vec2 op = vec2(positionAt(porig[0].x, porig[1].x, porig[2].x, t[i]),
+                                   positionAt(porig[0].y, porig[1].y, porig[2].y, t[i]));
+                    op += v_normCoord;
+                    bool sameCell = floor(clamp(op * v_gridRect.zw, vec2(0.5), vec2(v_gridRect.zw)-0.5)) == integerCell;
                     //if (posx > 0.0 && posx < 1.0 && posx < abs(closest)) {
-                    if (posx > 0.0 && abs(posx) < abs(closest)) {
+                    if (sameCell && abs(posx) < abs(closest)) {
                         float derivy = tangentAt(p[0].y, p[1].y, p[2].y, t[i]);
                         closest = (derivy < 0.0) ? -posx : posx;
                     }
@@ -176,9 +194,7 @@ class GpuTextFragmentShader : FragmentShaderModel() {
             float theta = pi / float(numSS);
             mat2 rotM = mat2(cos(theta), sin(theta), -sin(theta), cos(theta)); // note this is column major ordering
             
-            ivec4 indices1 = ivec4(texture2D(u_texture, indicesCoord*u_texelSize) * 255.0 + 0.5);
-            // indices2 = ivec4(texture2D(uAtlasSampler, vec2(indicesCoord.x + vGridSize.x, indicesCoord.y) * uTexelSize) * 255.0 + 0.5);
-            // bool moreThanFourIndices = indices1[0] < indices1[1];
+            ivec4 indices1 = ivec4(texture2D(u_texture, indicesCoord * u_texelSize) * 255.0 + 0.5);
             
             // The mid-inside flag is encoded by the order of the beziers indices.
             bool midInside = indices1[0] > indices1[1];
@@ -203,13 +219,16 @@ class GpuTextFragmentShader : FragmentShaderModel() {
                 }
                 vec2 p[3];
                 fetchBezier(coordIndex - 2, p);
+                
                 updateClosestCrossing(p, midTransform, midClosest, integerCell);
+                
                 // Transform p so fragment in glyph space is a unit circle
                 for (int i = 0; i < 3; i++) {
                     p[i] = initrot * p[i];
                 }
+                
                 // Iterate through angles
-                for (int ss=0; ss<numSS; ss++) {
+                for (int ss = 0; ss < numSS; ss++) {
                     vec2 t;
                     int numT = getAxisIntersections(p[0].x, p[1].x, p[2].x, t);
                     
@@ -233,6 +252,7 @@ class GpuTextFragmentShader : FragmentShaderModel() {
                             }
                         }
                     }
+                    
                     if (ss + 1 < numSS) {
                         for (int i = 0; i < 3; i++) {
                             p[i] = rotM * p[i];
@@ -240,7 +260,9 @@ class GpuTextFragmentShader : FragmentShaderModel() {
                     }
                 } // ss
             }
+            
             bool midVal = midClosest < 0.0;
+            
             // Add contribution from rays that started inside
             for (int ss = 0; ss < numSS; ss++) {
                 if ((firstIntersection[ss] >= 2.0 && midVal) || (firstIntersection[ss] > 0.0 && abs(firstIntersection[ss]) < 2.0)) {
@@ -249,6 +271,7 @@ class GpuTextFragmentShader : FragmentShaderModel() {
             }
             
             percent = percent / float(numSS);
+            
             gl_FragColor = v_color;
             gl_FragColor.a *= percent;
             

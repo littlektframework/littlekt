@@ -7,6 +7,7 @@ import com.lehaine.littlekt.graphics.OrthographicCamera
 import com.lehaine.littlekt.graphics.SpriteBatch
 import com.lehaine.littlekt.graphics.font.GpuFont
 import com.lehaine.littlekt.graphics.font.TtfFont
+import com.lehaine.littlekt.graphics.gl.ClearBufferMask
 import com.lehaine.littlekt.input.Key
 import com.lehaine.littlekt.log.Logger
 import kotlin.time.Duration
@@ -54,7 +55,7 @@ class GPUFontTest(context: Context) : ContextListener(context) {
             50f,
             400f,
             72,
-            Color.DARK_BLUE
+            Color.WHITE
         )
     }
 
@@ -65,6 +66,7 @@ class GPUFontTest(context: Context) : ContextListener(context) {
             init = true
         }
         gl.clearColor(Color.DARK_GRAY)
+        gl.clear(ClearBufferMask.COLOR_BUFFER_BIT)
         camera.update()
         gpuFont.render(camera.viewProjection)
 
