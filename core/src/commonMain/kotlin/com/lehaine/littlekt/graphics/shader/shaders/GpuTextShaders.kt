@@ -50,14 +50,14 @@ class GpuTextVertexShader : VertexShaderModel() {
         }
         
         vec2 vec2FromPixel(vec2 coord) {
-        	vec4 pixel = texture2D(u_texture, (coord+0.5)*u_texelSize);
-        	return vec2(ushortFromVec2(pixel.xy), ushortFromVec2(pixel.zw));
+        	vec4 pixel = texture2D(u_texture, (coord + 0.5) * u_texelSize);
+        	return vec2(floor(ushortFromVec2(pixel.xy)), floor(ushortFromVec2(pixel.zw)));
         }
         
         void main()  {
             v_color = a_color;
             v_bezierCoord = floor(a_texCoord0 * 0.5);
-            v_normCoord = mod(a_texCoord0, 2.0) * 1.1;
+            v_normCoord = mod(a_texCoord0, 2.0);
             v_gridRect = vec4(vec2FromPixel(v_bezierCoord), vec2FromPixel(v_bezierCoord + vec2(1,0)));
             gl_Position = u_projTrans * vec4(a_position, 0.0, 1.0);
         }
@@ -120,7 +120,7 @@ class GpuTextFragmentShader : FragmentShaderModel() {
 
         void fetchBezier(int coordIndex, out vec2 p[3]) {
             for (int i = 0; i < 3; i++) {
-                vec4 pixel = getPixelByXY(vec2(v_bezierCoord.x + float(2 + coordIndex*3 + i), v_bezierCoord.y));
+                vec4 pixel = getPixelByXY(vec2(v_bezierCoord.x + float(2 + coordIndex * 3 + i), v_bezierCoord.y));
                 p[i] = vec2(normalizedUshortFromVec2(pixel.xy), normalizedUshortFromVec2(pixel.zw)) - v_normCoord;
             }
         }

@@ -225,8 +225,7 @@ class GpuFont(
         atlas.gridX += GRID_MAX_SIZE
         atlas.uploaded = false
 
-        // TODO - unique atlas names
-        //      writeBMP("atlas.bmp", atlasWidth, atlasHeight, ATLAS_CHANNELS, buffer)
+        //writeBMP("atlas.bmp", atlasWidth, atlasHeight, ATLAS_CHANNELS, buffer)
         return gpuGlyph
     }
 
