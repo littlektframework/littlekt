@@ -63,6 +63,9 @@ class GpuFont(
                 setupMatrices()
             }
         }
+
+    var debug = false
+
     private val combinedMatrix = Mat4()
 
     private val compiler = GlyphCompiler()
@@ -358,7 +361,9 @@ class GpuFont(
         atlas.gridX += GRID_MAX_SIZE
         atlas.uploaded = false
 
-        //writeBMP("atlas.bmp", atlasWidth, atlasHeight, ATLAS_CHANNELS, buffer)
+        if (debug) {
+            writeBMP("atlas.bmp", atlasWidth, atlasHeight, ATLAS_CHANNELS, buffer)
+        }
         return gpuGlyph
     }
 

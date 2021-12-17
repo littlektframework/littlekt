@@ -34,7 +34,7 @@ class GPUFontTest(context: Context) : ContextListener(context) {
         Logger.defaultLevel = Logger.Level.DEBUG
         logger.level = Logger.Level.DEBUG
         fileHandler.launch {
-            //   freeSerif = loadTtfFont("FreeSerif.ttf", )
+            freeSerif = loadTtfFont("FreeSerif.ttf")
             libSans = loadTtfFont("LiberationSans-Regular.ttf")
             loading = false
         }
