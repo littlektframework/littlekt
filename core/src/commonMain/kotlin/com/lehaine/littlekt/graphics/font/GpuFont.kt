@@ -496,7 +496,7 @@ private data class GpuGlyph(
     val offsetY: Int,
     val bezierAtlasPosX: Int,
     val bezierAtlasPosY: Int,
-    val bezierAtlasPosZ: Int,
+    val atlasIdx: Int,
     val advanceWidth: Int
 )
 
