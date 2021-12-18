@@ -294,6 +294,7 @@ class GpuFont(
             it.uploaded = true
         }
         if (atlases.isNotEmpty()) {
+            // TODO handle multiple atlases
             gl.blendFunc(BlendFactor.SRC_ALPHA, BlendFactor.ONE_MINUS_SRC_ALPHA)
             gl.enable(State.BLEND)
             atlases[0].texture.bind()
