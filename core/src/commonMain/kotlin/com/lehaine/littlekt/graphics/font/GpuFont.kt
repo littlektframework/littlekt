@@ -31,9 +31,29 @@ import kotlin.time.measureTimedValue
 
 class GpuFont(
     private val context: Context,
-    private val font: TtfFont,
+    /**
+     * The default font to use if a font face isn't passed in during drawing of text.
+     */
+    private val defaultFont: TtfFont,
+    /**
+     * The width of the combined atlas that is generated for each GpuFont.
+     */
     private val atlasWidth: Int = 256,
+    /**
+     * The height of the combined atlast the is generated for each GpuFont. The bezier and the grid will each share
+     * half of this total. The grid will take the bottom half while the beziers will take the top.
+     */
     private val atlasHeight: Int = 512,
+    /**
+     * The size of the grid that is generated for each glyph. Try increasing this value if some glyphs are rendering
+     * badly. Beware that increasing this will impact the amount of space is taken up when saving to the atlas texture,
+     * which will require increasing either the [atlasWidth] or [atlasHeight] to accommodate the extra space.
+     */
+    private val gridSize: Int = 10,
+    /**
+     * The max amount of vertices to use for the text mesh. Increase or decrease this based on the amount of text
+     * that will be displayed.
+     */
     maxVertices: Int = 10000
 ) {
     var transformMatrix = Mat4()
@@ -71,7 +91,7 @@ class GpuFont(
     private val compiler = GlyphCompiler()
     private val atlases = mutableListOf<AtlasGroup>()
     private val instances = mutableListOf<GpuGlyph>()
-    private val compiledGlyphs = mutableMapOf<TtfFont, MutableMap<Int, GpuGlyph>>(font to mutableMapOf())
+    private val compiledGlyphs = mutableMapOf<TtfFont, MutableMap<Int, GpuGlyph>>(defaultFont to mutableMapOf())
     private val vertices = FloatArrayList(maxVertices)
     private var text = StringBuilder("")
 
@@ -97,6 +117,10 @@ class GpuFont(
         shader.fragmentShader.uTextureWidth.apply(shader, atlasWidth)
     }
 
+    /**
+     * Indicates to the GpuFont to start drawing. Binds the shader and prepares the matrices for drawing.
+     * @param projectionMatrix the projection matrix to use in the text vertex shader.
+     */
     fun begin(projectionMatrix: Mat4? = null) {
         check(!drawing) { "end() must be called before begin." }
 
@@ -112,6 +136,15 @@ class GpuFont(
         drawing = true
     }
 
+    /**
+     * Draws the specified string of text at the specified location and rotaion.
+     * @param text the string of text to draw
+     * @param x the x coord position
+     * @param y the y coord position
+     * @param pxSize the size of text in pixels
+     * @param rotationDegrees the rotation, in degrees, to draw the text
+     * @param color the color of the text
+     */
     fun drawText(
         text: String,
         x: Float,
@@ -123,7 +156,7 @@ class GpuFont(
         check(drawing) { "begin() must be called before drawText." }
 
         this.text.append(text)
-        val scale = 1f / font.unitsPerEm * pxSize
+        val scale = 1f / defaultFont.unitsPerEm * pxSize
         var tx = x
         var ty = y
         var lastX = tx
@@ -138,7 +171,7 @@ class GpuFont(
                 return@forEach
             }
             if (it == '\n') {
-                ty -= font.ascender * scale
+                ty -= defaultFont.ascender * scale
                 tx = x
                 return@forEach
             }
@@ -237,6 +270,9 @@ class GpuFont(
         mesh.setVertices(vertices.data, 0, vertices.size)
     }
 
+    /**
+     * Indicates to the GpuFont to finish drawing and will [flush] any draws.
+     */
     fun end() {
         check(drawing) { "begin() must be called before end." }
         if (instances.isNotEmpty()) {
@@ -250,6 +286,9 @@ class GpuFont(
         gl.disable(State.BLEND)
     }
 
+    /**
+     * Flushes the text mesh to be rendered.
+     */
     fun flush() {
         atlases.forEach {
             if (it.uploaded) return@forEach
@@ -275,13 +314,13 @@ class GpuFont(
 
     private fun glyph(char: Char): GpuGlyph {
         // if already compiled -- return the glyph
-        compiledGlyphs[font]?.get(char.code)?.also { return it }
+        compiledGlyphs[defaultFont]?.get(char.code)?.also { return it }
 
         var atlas = getOpenAtlasGroup()
-        val glyph = font.glyphs[char.code] ?: error("Glyph for $char doesn't exist!")
+        val glyph = defaultFont.glyphs[char.code] ?: error("Glyph for $char doesn't exist!")
         val curves =
             measureTimedValue { compiler.compile(glyph) }.also { logger.debug { "Took ${it.duration} to compile $char (${char.code}) glyph." } }.value
-        val grid = VGrid(curves, glyph.width, glyph.height, GRID_MAX_SIZE, GRID_MAX_SIZE)
+        val grid = VGrid(curves, glyph.width, glyph.height, gridSize, gridSize)
 
         // Although the data is represented as a 32bit texture, it's actually
         // two 16bit ints per pixel, each with an x and y coordinate for
@@ -306,7 +345,7 @@ class GpuFont(
                 -1,
                 glyph.advanceWidth.toInt()
             )
-            compiledGlyphs[font]?.put(char.code, gpuGlyph)
+            compiledGlyphs[defaultFont]?.put(char.code, gpuGlyph)
             return gpuGlyph
         }
 
@@ -316,8 +355,8 @@ class GpuFont(
             atlas = getOpenAtlasGroup()
         }
 
-        if (atlas.gridX + GRID_MAX_SIZE > atlasWidth) {
-            atlas.gridY += GRID_MAX_SIZE
+        if (atlas.gridX + gridSize > atlasWidth) {
+            atlas.gridY += gridSize
             atlas.gridX = 0
             if (atlas.gridY >= atlasHeight) {
                 atlas.full = true
@@ -341,7 +380,7 @@ class GpuFont(
         buffer.position = atlas.glyphDataBufOffset * ATLAS_CHANNELS + atlasWidth * (atlasHeight / 2) * ATLAS_CHANNELS
         writeGlyphToBuffer(
             buffer, curves, glyph.width, glyph.height, atlas.gridX.toShort(), atlas.gridY.toShort(),
-            GRID_MAX_SIZE.toShort(), GRID_MAX_SIZE.toShort()
+            gridSize.toShort(), gridSize.toShort()
         )
 
         val gpuGlyph = GpuGlyph(
@@ -355,10 +394,10 @@ class GpuFont(
             glyph.advanceWidth.toInt()
         )
 
-        compiledGlyphs[font]?.put(char.code, gpuGlyph)
+        compiledGlyphs[defaultFont]?.put(char.code, gpuGlyph)
 
         atlas.glyphDataBufOffset += bezierPixelLength
-        atlas.gridX += GRID_MAX_SIZE
+        atlas.gridX += gridSize
         atlas.uploaded = false
 
         if (debug) {
@@ -437,7 +476,6 @@ class GpuFont(
     }
 
     companion object {
-        private const val GRID_MAX_SIZE = 20 // should this be 20?
         private const val ATLAS_CHANNELS = 4 // Must be 4 (RGBA)
 
         private val logger = Logger<GpuFont>()

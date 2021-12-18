@@ -23,14 +23,6 @@ class TtfFont(val chars: CharArray) {
     var unitsPerEm = 1000
         private set
 
-    var fontSize = 72
-        set(value) {
-            field = value
-//            glyphs.values.forEach {
-//                it.path.recalculate(fontSize = field)
-//            }
-        }
-
     fun load(data: Uint8Buffer) {
         val buffer = createMixedBuffer(data.toArray(), isBigEndian = true).also { it.flip() }
         val reader = TtfFontReader().also {
@@ -40,7 +32,7 @@ class TtfFont(val chars: CharArray) {
             unitsPerEm = it.unitsPerEm
         }
         chars.forEach { char ->
-            glyphCache[char.code] = reader[char]//.also { it.path.recalculate(fontSize = fontSize) }
+            glyphCache[char.code] = reader[char]
         }
     }
 }
