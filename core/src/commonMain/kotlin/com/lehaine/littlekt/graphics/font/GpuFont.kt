@@ -93,7 +93,6 @@ class GpuFont(
     private val instances = mutableListOf<GpuGlyph>()
     private val compiledGlyphs = mutableMapOf<TtfFont, MutableMap<Int, GpuGlyph>>(defaultFont to mutableMapOf())
     private val vertices = FloatArrayList(maxVertices)
-    private var text = StringBuilder("")
 
     private var drawing = false
 
@@ -151,12 +150,12 @@ class GpuFont(
         y: Float,
         pxSize: Int,
         rotationDegrees: Float = 0f,
-        color: Color = Color.BLACK
+        color: Color = Color.BLACK,
+        font: TtfFont = defaultFont
     ) {
         check(drawing) { "begin() must be called before drawText." }
 
-        this.text.append(text)
-        val scale = 1f / defaultFont.unitsPerEm * pxSize
+        val scale = 1f / font.unitsPerEm * pxSize
         var tx = x
         var ty = y
         var lastX = tx
@@ -171,7 +170,7 @@ class GpuFont(
                 return@forEach
             }
             if (it == '\n') {
-                ty -= defaultFont.ascender * scale
+                ty -= font.ascender * scale
                 tx = x
                 return@forEach
             }
@@ -180,7 +179,7 @@ class GpuFont(
                 return@forEach
             }
 
-            val glyph = glyph(it)
+            val glyph = glyph(it, font)
             if (it != ' ') {
                 val bx = glyph.bezierAtlasPosX shl 1
                 val by = glyph.bezierAtlasPosY shl 1
@@ -278,7 +277,6 @@ class GpuFont(
         if (instances.isNotEmpty()) {
             flush()
             vertices.clear()
-            text.clear()
             instances.clear()
         }
         drawing = false
@@ -312,12 +310,12 @@ class GpuFont(
         shader.uTexture?.apply(shader)
     }
 
-    private fun glyph(char: Char): GpuGlyph {
+    private fun glyph(char: Char, font: TtfFont): GpuGlyph {
         // if already compiled -- return the glyph
-        compiledGlyphs[defaultFont]?.get(char.code)?.also { return it }
+        compiledGlyphs.getOrPut(font) { mutableMapOf() }[char.code]?.also { return it }
 
         var atlas = getOpenAtlasGroup()
-        val glyph = defaultFont.glyphs[char.code] ?: error("Glyph for $char doesn't exist!")
+        val glyph = font.glyphs[char.code] ?: error("Glyph for $char doesn't exist!")
         val curves =
             measureTimedValue { compiler.compile(glyph) }.also { logger.debug { "Took ${it.duration} to compile $char (${char.code}) glyph." } }.value
         val grid = VGrid(curves, glyph.width, glyph.height, gridSize, gridSize)
@@ -345,7 +343,7 @@ class GpuFont(
                 -1,
                 glyph.advanceWidth.toInt()
             )
-            compiledGlyphs[defaultFont]?.put(char.code, gpuGlyph)
+            compiledGlyphs[font]?.put(char.code, gpuGlyph)
             return gpuGlyph
         }
 
@@ -394,7 +392,7 @@ class GpuFont(
             glyph.advanceWidth.toInt()
         )
 
-        compiledGlyphs[defaultFont]?.put(char.code, gpuGlyph)
+        compiledGlyphs[font]?.put(char.code, gpuGlyph)
 
         atlas.glyphDataBufOffset += bezierPixelLength
         atlas.gridX += gridSize

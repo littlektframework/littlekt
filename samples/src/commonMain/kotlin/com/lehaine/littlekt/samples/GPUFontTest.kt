@@ -77,6 +77,7 @@ class GPUFontTest(context: Context) : ContextListener(context) {
                 45f,
                 color = Color.BLUE
             )
+            it.drawText("I am a different font!!!!", 250f, 450f, 44, color = Color.DARK_RED, font = freeSerif)
             it.drawText(lastStats, 50f, 175f, 16, color = Color.GREEN)
         }
         lastStats = stats.toString()
