@@ -8,7 +8,7 @@ data class GlyphReference(
     val scale01: Float,
     val scale10: Float,
     val scaleY: Float,
-    val matchedPoints: IntArray = IntArray(2)
+    var matchedPoints: IntArray? = null
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

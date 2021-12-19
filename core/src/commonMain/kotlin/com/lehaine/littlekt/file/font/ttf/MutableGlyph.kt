@@ -83,7 +83,7 @@ internal data class MutableGlyphReference(
     var scale01: Float,
     var scale10: Float,
     var scaleY: Float,
-    val matchedPoints: IntArray = IntArray(2)
+    var matchedPoints: IntArray? = null
 ) {
     fun toImmutable() = GlyphReference(glyphIndex, x, y, scaleX, scale01, scale10, scaleY, matchedPoints)
 

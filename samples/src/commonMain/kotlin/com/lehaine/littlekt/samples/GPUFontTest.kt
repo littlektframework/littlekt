@@ -41,7 +41,7 @@ class GPUFontTest(context: Context) : ContextListener(context) {
     }
 
     private fun init() {
-        gpuFont = GpuFont(this, libSans)
+        gpuFont = GpuFont(this, freeSerif)
     }
 
     override fun render(dt: Duration) {
@@ -55,7 +55,7 @@ class GPUFontTest(context: Context) : ContextListener(context) {
         camera.update()
         gpuFont.use(camera.viewProjection) {
             it.drawText(
-                "Check out my awesome font rendering!\nThis is a test with static text!!!\nSymbols: @#$!@%&(@*)(#$\nNumbers: 1234567890",
+                "Check out my awesome font rendering!\nThis is a test with static text!!!\nSymbols: @#$!@%&(@*)(#$\n\"<>,.'\"\nNumbers: 1234567890",
                 150f,
                 450f,
                 36,
@@ -77,7 +77,7 @@ class GPUFontTest(context: Context) : ContextListener(context) {
                 45f,
                 color = Color.BLUE
             )
-            it.drawText("I am a different font!!!!", 250f, 450f, 44, color = Color.DARK_RED, font = freeSerif)
+            it.drawText("I am a different font!!!!", 250f, 450f, 44, color = Color.DARK_RED, font = libSans)
             it.drawText(lastStats, 50f, 175f, 16, color = Color.GREEN)
         }
         lastStats = stats.toString()

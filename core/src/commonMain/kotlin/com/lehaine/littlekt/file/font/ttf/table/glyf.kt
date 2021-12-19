@@ -122,23 +122,17 @@ internal class GlyfParser(
                 val ref = MutableGlyphReference(p.parseUint16, 0, 0, 1f, 0f, 0f, 1f)
                 if ((flags and 1) > 0) {
                     if ((flags and 2) > 0) {
-                        ref.x = p.parseUint16
-                        ref.y = p.parseUint16
+                        ref.x = p.parseInt16.toInt()
+                        ref.y = p.parseInt16.toInt()
                     } else {
-                        ref.matchedPoints.apply {
-                            this[0] = p.parseUint16
-                            this[1] = p.parseUint16
-                        }
+                        ref.matchedPoints = intArrayOf(p.parseUint16, p.parseUint16)
                     }
                 } else {
                     if ((flags and 2) > 0) {
                         ref.x = p.parseChar.code
                         ref.y = p.parseChar.code
                     } else {
-                        ref.matchedPoints.apply {
-                            this[0] = p.parseUByte
-                            this[1] = p.parseUByte
-                        }
+                        ref.matchedPoints = intArrayOf(p.parseByte.toInt(), p.parseByte.toInt())
                     }
                 }
                 when {
@@ -193,10 +187,60 @@ internal class GlyfParser(
 
     fun buildPath(glyphSet: GlyphSet, glyph: MutableGlyph) {
         if (glyph.isComposite) {
-            // TODO impl building path for composite glyphs
+            println("building ocmpositve for ${glyph.name}")
+            glyph.refs.forEach { ref ->
+                val glyphRef = glyphSet[ref.glyphIndex].also { it.calcPath() }
+                if (glyphRef.points.isNotEmpty()) {
+                    val transformedPoints: MutableList<MutablePoint>
+                    val matchedPoints = ref.matchedPoints
+                    if (matchedPoints == null) {
+                        // ref positioned by offset
+                        transformedPoints = transformPoints(glyphRef.points, ref)
+                    } else {
+                        // ref positioned by matched points
+                        check(matchedPoints[0] <= glyph.points.size - 1 && matchedPoints[1] <= glyphRef.points.size - 1) {
+                            "Matched points out of range in ${glyph.name}"
+                        }
+
+                        val firstPt = glyph.points[matchedPoints[0]]
+                        var secondPt = glyphRef.points[matchedPoints[1]]
+                        val transformRef = MutableGlyphReference(
+                            glyphIndex = -1,
+                            x = 0,
+                            y = 0,
+                            scaleX = ref.scaleX,
+                            scale01 = ref.scale01,
+                            scale10 = ref.scale10,
+                            scaleY = ref.scaleY
+                        )
+                        secondPt = transformPoints(listOf(secondPt), transformRef)[0]
+                        transformRef.x = firstPt.x - secondPt.x
+                        transformRef.y = firstPt.y - secondPt.y
+                        transformedPoints = transformPoints(glyphRef.points, transformRef)
+                    }
+                    glyph.points.addAll(transformedPoints)
+                }
+                if (glyph.numberOfContours < 0) {
+                    glyph.numberOfContours = 0
+                }
+                glyph.numberOfContours += glyphRef.numberOfContours
+            }
         }
 
         calcPath(glyph)
+    }
+
+    fun transformPoints(points: List<MutablePoint>, ref: MutableGlyphReference): MutableList<MutablePoint> {
+        val newPoints = mutableListOf<MutablePoint>()
+        points.forEach {
+            newPoints += MutablePoint(
+                x = (ref.scaleX * it.x + ref.scale01 * it.y + ref.x).toInt(),
+                y = (ref.scale10 * it.x + ref.scaleY * it.y + ref.y).toInt(),
+                onCurve = it.onCurve,
+                lastPointOfContour = it.lastPointOfContour
+            )
+        }
+        return newPoints
     }
 
     fun calcPath(glyph: MutableGlyph) {
