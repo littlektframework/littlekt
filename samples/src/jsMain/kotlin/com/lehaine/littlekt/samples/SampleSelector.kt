@@ -26,6 +26,7 @@ fun main() {
             addSample("Display Test") { DisplayTest(it) }
             addSample("Frame Buffer Test") { FrameBufferTest(it) }
             addSample("GPU Font Load Test") { GPUFontTest(it) }
+            addSample("Audio Test") { AudioTest(it) }
         }
     }
 }

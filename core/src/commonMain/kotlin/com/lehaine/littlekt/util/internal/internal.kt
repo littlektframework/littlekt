@@ -62,5 +62,6 @@ internal infix fun Double.umod(that: Double): Double {
 
 internal expect fun epochMillis(): Long
 
+internal expect fun now(): Double
 
 internal expect inline fun <R> lock(lock: Any, block: () -> R): R

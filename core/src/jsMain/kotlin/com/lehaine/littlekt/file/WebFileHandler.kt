@@ -93,7 +93,11 @@ class WebFileHandler(
     }
 
     override suspend fun loadAudioClip(assetPath: String): AudioClip {
-        TODO("Not yet implemented")
+        return if (isHttpAsset(assetPath)) {
+            AudioClip(assetPath)
+        } else {
+            AudioClip("$assetsBaseDir/$assetPath")
+        }
     }
 
     override fun store(key: String, data: ByteArray): Boolean {

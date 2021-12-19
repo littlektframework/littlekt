@@ -172,9 +172,9 @@ class JvmFileHandler(context: Context, logger: Logger, storageBaseDir: String, a
         }
     }
 
-
     override suspend fun loadAudioClip(assetPath: String): AudioClip {
-        TODO("Not yet implemented")
+        val asset = loadAsset(assetPath)
+        return AudioClip(asset.toArray())
     }
 
     override fun store(key: String, data: ByteArray): Boolean {

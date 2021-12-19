@@ -6,6 +6,7 @@ package com.lehaine.littlekt.audio
  */
 expect class AudioClip {
 
+    var masterVolume: Float
     var volume: Float
     var currentTime: Float
     val duration: Float

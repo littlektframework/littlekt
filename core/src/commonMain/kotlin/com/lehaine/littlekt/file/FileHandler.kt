@@ -140,7 +140,8 @@ abstract class FileHandler(
         loaded.data?.let {
             logger.debug { "Loaded ${assetPathToName(assetPath)} (${(it.capacity / 1024.0 / 1024.0).toString(2)} mb)" }
         }
-        return loaded.data ?: throw RuntimeException("Failed loading $assetPath")
+        return loaded.data
+            ?: throw FileNotFoundException(assetPath)
     }
 
     /**
@@ -157,7 +158,7 @@ abstract class FileHandler(
             }
             data.startsWith('\n') -> TODO("Implement text atlas format")
             data.startsWith("\r\n") -> TODO("Implement text atlas format")
-            else -> throw RuntimeException("Unsupported atlas format.")
+            else -> throw UnsupportedFileTypeException("This atlas format is not supported! ($assetPath)")
         }
 
         val textures = info.pages.associate {
@@ -189,7 +190,7 @@ abstract class FileHandler(
         loaded.data?.let {
             logger.debug { "Loaded ${assetPathToName(assetPath)} (${it.format}, ${it.width}x${it.height})" }
         }
-        return loaded.data ?: throw RuntimeException("Failed loading texture")
+        return loaded.data ?: throw FileNotFoundException(assetPath)
     }
 
     /**
@@ -230,3 +231,8 @@ data class TextureAssetRef(
 sealed class LoadedAsset(val ref: AssetRef, val successful: Boolean)
 class LoadedRawAsset(ref: AssetRef, val data: Uint8Buffer?) : LoadedAsset(ref, data != null)
 class LoadedTextureAsset(ref: AssetRef, val data: TextureData?) : LoadedAsset(ref, data != null)
+
+class FileNotFoundException(path: String) :
+    Exception("File ($path) could not be found! Check to make sure it exists and is not corrupt.")
+
+class UnsupportedFileTypeException(message: String) : Exception("Unsupported file: $message")
