@@ -228,7 +228,7 @@ interface MixedBuffer : Buffer {
     /**
      * @return a 4-character tag
      */
-    fun getTag(offset: Int): String
+    fun getString(offset: Int, length: Int): String
 
     /**
      * Offsets are 1 to 4 bytes in length, depending on the [offSize] param.

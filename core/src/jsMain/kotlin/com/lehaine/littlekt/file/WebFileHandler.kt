@@ -1,7 +1,7 @@
 package com.lehaine.littlekt.file
 
 import com.lehaine.littlekt.Context
-import com.lehaine.littlekt.audio.AudioClip
+import com.lehaine.littlekt.audio.WebAudioClip
 import com.lehaine.littlekt.graphics.Pixmap
 import com.lehaine.littlekt.graphics.Texture
 import com.lehaine.littlekt.graphics.TextureData
@@ -92,11 +92,11 @@ class WebFileHandler(
         return Texture(data).also { it.prepare(context) }
     }
 
-    override suspend fun loadAudioClip(assetPath: String): AudioClip {
+    override suspend fun loadAudioClip(assetPath: String): WebAudioClip {
         return if (isHttpAsset(assetPath)) {
-            AudioClip(assetPath)
+            WebAudioClip(assetPath)
         } else {
-            AudioClip("$assetsBaseDir/$assetPath")
+            WebAudioClip("$assetsBaseDir/$assetPath")
         }
     }
 

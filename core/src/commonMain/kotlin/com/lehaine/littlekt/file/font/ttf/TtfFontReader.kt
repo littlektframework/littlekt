@@ -43,7 +43,7 @@ class TtfFontReader {
     fun parse(buffer: MixedBuffer) {
         val numTables: Int
         val tableEntries: List<TableEntry>
-        val signature = buffer.getTag(0)
+        val signature = buffer.getString(0, 4)
         if (signature == charArrayOf(
                 0.toChar(),
                 1.toChar(),
@@ -59,7 +59,7 @@ class TtfFontReader {
             numTables = buffer.getUint16(4).toInt()
             tableEntries = parseOpenTypeTableEntries(buffer, numTables)
         } else if (signature === "wOFF") {
-            val flavor = buffer.getTag(4)
+            val flavor = buffer.getString(4, 4)
             outlinesFormat = when {
                 flavor == charArrayOf(
                     0.toChar(),
@@ -204,7 +204,7 @@ class TtfFontReader {
         val tableEntries = mutableListOf<TableEntry>()
         var p = 12
         for (i in 0 until numTables) {
-            val tag = buffer.getTag(p)
+            val tag = buffer.getString(p, 4)
             val checksum = buffer.getUint32(p + 4)
             val offset = buffer.getUint32(p + 8)
             val length = buffer.getUint32(p + 12)

@@ -3,6 +3,7 @@ package com.lehaine.littlekt.file
 import com.lehaine.littlekt.Context
 import com.lehaine.littlekt.LwjglContext
 import com.lehaine.littlekt.audio.AudioClip
+import com.lehaine.littlekt.audio.OpenALAudioClip
 import com.lehaine.littlekt.graphics.Pixmap
 import com.lehaine.littlekt.graphics.Texture
 import com.lehaine.littlekt.graphics.TextureData
@@ -19,7 +20,9 @@ import kotlinx.serialization.json.Json
 import java.io.*
 import java.util.*
 import javax.imageio.ImageIO
+import javax.sound.sampled.AudioSystem
 import kotlin.concurrent.thread
+import fr.delthas.javamp3.Sound as MP3Decoder
 
 /**
  * @author Colton Daily
@@ -174,7 +177,23 @@ class JvmFileHandler(context: Context, logger: Logger, storageBaseDir: String, a
 
     override suspend fun loadAudioClip(assetPath: String): AudioClip {
         val asset = loadAsset(assetPath)
-        return AudioClip(asset.toArray())
+        // TODO refactor the sound handling to check the actual file headers
+        val (source, channels, sampleRate) = if (assetPath.endsWith(".mp3")) {
+            runCatching {
+                val decoder = MP3Decoder(ByteArrayInputStream(asset.toArray()))
+                val source = decoder.readBytes().also { decoder.close() }
+                val channels = if (decoder.isStereo) 2 else 1
+                Triple(source, channels, decoder.samplingFrequency.toFloat())
+            }.getOrThrow()
+        } else {
+            runCatching {
+                val source = asset.toArray()
+                val clip = AudioSystem.getAudioFileFormat(ByteArrayInputStream(asset.toArray()))
+                Triple(source, clip.format.channels, clip.format.sampleRate)
+            }.getOrThrow()
+        }
+
+        return OpenALAudioClip(source, channels, sampleRate.toInt())
     }
 
     override fun store(key: String, data: ByteArray): Boolean {

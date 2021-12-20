@@ -2,44 +2,18 @@ package com.lehaine.littlekt.audio
 
 import com.lehaine.littlekt.util.internal.now
 import org.w3c.dom.Audio
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 
 /**
  * @author Colton Daily
  * @date 11/23/2021
  */
-actual class AudioClip(val assetPath: String) {
+class WebAudioClip(val assetPath: String) : AudioClip {
 
-    actual var masterVolume = 1f
-        set(value) {
-            field = value
-            latestClip.volume = volume * value
-        }
-
-    actual var volume = 1f
-        set(value) {
-            field = value
-            latestClip.volume = value * masterVolume
-        }
-
-    actual var currentTime: Float
-        get() = latestClip.currentTime
-        set(value) {
-            latestClip.currentTime = value
-        }
-
-    actual val duration: Float
-        get() = latestClip.duration
-
-    actual val isEnded: Boolean
-        get() = latestClip.clipState == ClipState.STOPPED
-
-    actual var loop: Boolean
-        get() = latestClip.loop
-        set(value) {
-            latestClip.loop = value
-        }
-
-    actual var minIntervalMs: Float = MIN_PLAY_INTERVAL_MS
+    override var volume = 1f
+    override val duration: Duration
+        get() = latestClip.duration.toDouble().seconds
 
     private val clipPool = mutableListOf(ClipWrapper())
     private var latestClip = clipPool.first()
@@ -59,20 +33,35 @@ actual class AudioClip(val assetPath: String) {
         return clipPool.minByOrNull { it.startTime }!!
     }
 
-    actual fun play() {
+
+    override fun play(volume: Float, loop: Boolean) {
         val t = now()
-        if (t - lastPlay > minIntervalMs) {
-            lastPlay = t
-            latestClip = nextClip().apply { play() }
+        lastPlay = t
+        latestClip = nextClip().apply {
+            this.volume = volume
+            this.loop = loop
+            play()
         }
     }
 
-    actual fun stop() {
+    override fun stop() {
         latestClip.stop()
     }
 
+    override fun resume() {
+        latestClip.resume()
+    }
+
+    override fun pause() {
+        latestClip.pause()
+    }
+
+    override fun dispose() {
+        latestClip.stop()
+        clipPool.clear()
+    }
+
     companion object {
-        const val MIN_PLAY_INTERVAL_MS = 150f
         const val MAX_CLIP_POOL_SIZE = 5
     }
 
@@ -118,7 +107,6 @@ actual class AudioClip(val assetPath: String) {
         var startTime = 0.0
 
         init {
-            volume = this@AudioClip.volume * this@AudioClip.masterVolume
             audioElement.onended = {
                 clipState = ClipState.STOPPED
                 true.asDynamic()
@@ -134,6 +122,19 @@ actual class AudioClip(val assetPath: String) {
         }
 
         fun stop() {
+            isPaused = true
+            audioElement.pause()
+            clipState = ClipState.STOPPED
+        }
+
+        fun resume() {
+            audioElement.pause()
+            clipState = ClipState.PLAYING
+            isStarted = true
+            audioElement.play()
+        }
+
+        fun pause() {
             isPaused = true
             audioElement.pause()
             clipState = ClipState.STOPPED

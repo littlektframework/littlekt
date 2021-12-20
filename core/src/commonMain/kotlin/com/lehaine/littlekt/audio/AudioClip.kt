@@ -1,20 +1,21 @@
 package com.lehaine.littlekt.audio
 
+import com.lehaine.littlekt.Disposable
+import kotlin.time.Duration
+
 /**
  * @author Colton Daily
- * @date 11/23/2021
+ * @date 12/19/2021
  */
-expect class AudioClip {
-
-    var masterVolume: Float
+interface AudioClip : Disposable {
     var volume: Float
-    var currentTime: Float
-    val duration: Float
-    val isEnded: Boolean
-    var loop: Boolean
-    var minIntervalMs: Float
+    val duration: Duration
 
-    fun play()
+    fun play(volume: Float = this.volume, loop: Boolean = false)
+
     fun stop()
 
+    fun resume()
+
+    fun pause()
 }

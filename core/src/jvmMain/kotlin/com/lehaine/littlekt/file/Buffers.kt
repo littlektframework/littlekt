@@ -415,9 +415,9 @@ class MixedBufferImpl(buffer: ByteBuffer) : MixedBuffer, GenericBuffer<ByteBuffe
         return this
     }
 
-    override fun getTag(offset: Int): String {
+    override fun getString(offset: Int, length: Int): String {
         var tag = ""
-        for (i in offset until offset + 4) {
+        for (i in offset until offset + length) {
             tag += buffer.get(i).toInt().toChar()
         }
         return tag
