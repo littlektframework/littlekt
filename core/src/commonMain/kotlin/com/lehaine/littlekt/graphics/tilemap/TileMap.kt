@@ -13,7 +13,7 @@ import kotlin.math.abs
 abstract class TileMap {
     protected val viewBounds = Rect()
 
-    open fun render(batch: SpriteBatch, camera: Camera, viewport: Viewport, renderWithOffsets: Boolean = true) {
+    open fun render(batch: SpriteBatch, camera: Camera, viewport: Viewport, x:Float, y:Float) {
         viewBounds.calculateViewBounds(camera, viewport)
     }
 

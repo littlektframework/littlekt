@@ -50,8 +50,27 @@ class LDtkLevel(
         val topLeftY: Int,
         val scaleX: Float,
         val scaleY: Float,
-        val cropRect: CropRect
-    )
+        val cropRect: CropRect,
+        val slice: TextureSlice
+    ) {
+
+        fun render(batch: SpriteBatch, x: Float, y: Float) {
+            batch.draw(
+                slice,
+                topLeftX.toFloat() + x,
+                topLeftY.toFloat() + y,
+                0f,
+                0f,
+                slice.width.toFloat(),
+                slice.height.toFloat(),
+                scaleX,
+                scaleY,
+                0f,
+                flipX = false,
+                flipY = false
+            )
+        }
+    }
 
     var uid = json.uid
         private set
@@ -67,8 +86,13 @@ class LDtkLevel(
         private set
     val bgColorHex = json.bgColor
     val hasBgImage: Boolean
-        get() = bgImageInfos != null
-    var bgImageInfos: LevelBgImage? = if (json.bgRelPath.isNullOrEmpty() || json.bgPos == null) {
+        get() = levelBackgroundImage != null
+    val backgroundImageSlice: TextureSlice? = bgImageTexture?.let {
+        val crop =
+            json.bgPos?.cropRect ?: error("Unable to read background crop rectangle when it should be available.")
+        TextureSlice(it, crop[0].toInt(), crop[1].toInt(), crop[2].toInt(), crop[3].toInt())
+    }
+    var levelBackgroundImage: LevelBgImage? = if (json.bgRelPath.isNullOrEmpty() || json.bgPos == null) {
         null
     } else {
         LevelBgImage(
@@ -82,15 +106,12 @@ class LDtkLevel(
                 y = json.bgPos.cropRect[1],
                 w = json.bgPos.cropRect[2],
                 h = json.bgPos.cropRect[3]
-            )
+            ),
+            slice = backgroundImageSlice
+                ?: error("Unable to retrieve background TextureSlice when it should be available.")
         )
     }
         private set
-
-    val bgImage: TextureSlice? = bgImageTexture?.let {
-        val crop = bgImageInfos!!.cropRect
-        TextureSlice(it, crop.x.toInt(), crop.y.toInt(), crop.w.toInt(), crop.h.toInt())
-    }
 
     private val _allUntypedLayers = mutableListOf<LDtkLayer>()
     val layers: List<LDtkLayer>
@@ -115,41 +136,19 @@ class LDtkLevel(
 
     private val viewBounds = Rect()
 
-    fun render(batch: SpriteBatch, camera: Camera, viewport: Viewport, renderWithOffsets: Boolean = false) {
+    fun render(batch: SpriteBatch, camera: Camera, viewport: Viewport, x: Float, y: Float) {
         //  viewBounds.calculateViewBounds(camera, viewport)
-        viewBounds.x = 0f
-        viewBounds.y = 0f
-        viewBounds.width = 1920f
-        viewBounds.height = 1080f
-        render(batch, viewBounds, renderWithOffsets)
+        render(batch, viewBounds, x, y)
     }
 
-    fun render(batch: SpriteBatch, viewBounds: Rect, renderWithOffsets: Boolean = false) {
-        bgImageInfos?.let { bgImageInfo ->
-            bgImage?.let {
-                batch.draw(
-                    it,
-                    bgImageInfo.topLeftX.toFloat() + if(renderWithOffsets) worldX else 0,
-                    bgImageInfo.topLeftY.toFloat() + if(renderWithOffsets) worldY else 0,
-                    0f,
-                    0f,
-                    it.width.toFloat(),
-                    it.height.toFloat(),
-                    bgImageInfo.scaleX,
-                    bgImageInfo.scaleY,
-                    0f,
-                    flipX = false,
-                    flipY = false
-                )
-            }
-        }
+    fun render(batch: SpriteBatch, viewBounds: Rect, x: Float, y: Float) {
+        val offsetX = worldX
+        val offsetY = (viewBounds.height - worldY - pxHeight).toInt()
+        levelBackgroundImage?.render(batch, offsetX.toFloat(), offsetY.toFloat())
         // need to render back to front - layers last in the list need to render first
         for (i in layers.size - 1 downTo 0) {
-            if (renderWithOffsets) {
-                layers[i].render(batch, viewBounds, worldX, worldY)
-            } else {
-                layers[i].render(batch, viewBounds, 0, 0)
-            }
+            layers[i].render(batch, viewBounds, x, y)
+
         }
     }
 

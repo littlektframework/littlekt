@@ -13,12 +13,12 @@ import kotlin.math.abs
 abstract class TileLayer {
     protected val viewBounds = Rect()
 
-    fun render(batch: SpriteBatch, camera: Camera, viewport: Viewport) {
+    fun render(batch: SpriteBatch, camera: Camera, viewport: Viewport, x: Float, y: Float) {
         viewBounds.calculateViewBounds(camera, viewport)
-        render(batch, viewBounds)
+        render(batch, viewBounds, x, y)
     }
 
-    abstract fun render(batch: SpriteBatch, viewBounds: Rect, offsetX: Int = 0, offsetY: Int = 0)
+    abstract fun render(batch: SpriteBatch, viewBounds: Rect, x: Float, y: Float)
 
     private fun Rect.calculateViewBounds(camera: Camera, viewport: Viewport) {
         val width = viewport.width * camera.zoom

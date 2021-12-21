@@ -48,31 +48,31 @@ open class LDtkAutoLayer(
         return tileset.getLDtkTile(autoTile.tileId, autoTile.flips)
     }
 
-    override fun render(batch: SpriteBatch, viewBounds: Rect, offsetX: Int, offsetY: Int) {
+    override fun render(batch: SpriteBatch, viewBounds: Rect, x: Float, y: Float) {
         val minY = max(floor(-viewBounds.y / cellSize).toInt(), 0)
         val maxY = min(ceil((-viewBounds.y + viewBounds.height) / cellSize).toInt(), gridHeight)
         val minX = max(floor(viewBounds.x / cellSize).toInt(), 0)
         val maxX = min(ceil((viewBounds.x + viewBounds.width) / cellSize).toInt(), gridWidth)
         autoTiles.forEach { autoTile ->
-            val rx = (autoTile.renderX + pxTotalOffsetX + offsetX)
-            val ry = -(autoTile.renderY + pxTotalOffsetY - gridHeight * cellSize) + offsetY - cellSize
-           // if (rx / cellSize in minX..maxX && ry / cellSize in minY..maxY) {
-                getAutoLayerLDtkTile(autoTile)?.also {
-                    batch.draw(
-                        slice = it.slice,
-                        x = rx.toFloat(),
-                        y = ry.toFloat(), // LDtk is y-down, so invert it
-                        originX = 0f,
-                        originY = 0f,
-                        width = cellSize.toFloat(),
-                        height = cellSize.toFloat(),
-                        scaleX = 1f,
-                        scaleY = 1f,
-                        rotation = 0f,
-                        flipX = it.flipX,
-                        flipY = it.flipY
-                    )
-                }
+            val rx = (autoTile.renderX + pxTotalOffsetX + x)
+            val ry = -(autoTile.renderY + pxTotalOffsetY - gridHeight * cellSize) + y - cellSize
+            // if (rx / cellSize in minX..maxX && ry / cellSize in minY..maxY) {
+            getAutoLayerLDtkTile(autoTile)?.also {
+                batch.draw(
+                    slice = it.slice,
+                    x = rx,
+                    y = ry, // LDtk is y-down, so invert it
+                    originX = 0f,
+                    originY = 0f,
+                    width = cellSize.toFloat(),
+                    height = cellSize.toFloat(),
+                    scaleX = 1f,
+                    scaleY = 1f,
+                    rotation = 0f,
+                    flipX = it.flipX,
+                    flipY = it.flipY
+                )
+            }
             //}
         }
     }
