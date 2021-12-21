@@ -4,10 +4,9 @@ import com.lehaine.littlekt.file.ldtk.LayerDefinition
 import com.lehaine.littlekt.file.ldtk.LayerInstance
 import com.lehaine.littlekt.file.ldtk.LevelDefinition
 import com.lehaine.littlekt.file.ldtk.ProjectJson
-import com.lehaine.littlekt.graphics.SpriteBatch
-import com.lehaine.littlekt.graphics.Texture
-import com.lehaine.littlekt.graphics.TextureSlice
+import com.lehaine.littlekt.graphics.*
 import com.lehaine.littlekt.math.Rect
+import kotlin.math.abs
 
 /**
  * @author Colton Daily
@@ -114,13 +113,24 @@ class LDtkLevel(
         }
     }
 
-    fun render(batch: SpriteBatch, viewBounds: Rect) {
+    private val viewBounds = Rect()
+
+    fun render(batch: SpriteBatch, camera: Camera, viewport: Viewport, renderWithOffsets: Boolean = false) {
+        //  viewBounds.calculateViewBounds(camera, viewport)
+        viewBounds.x = 0f
+        viewBounds.y = 0f
+        viewBounds.width = 1920f
+        viewBounds.height = 1080f
+        render(batch, viewBounds, renderWithOffsets)
+    }
+
+    fun render(batch: SpriteBatch, viewBounds: Rect, renderWithOffsets: Boolean = false) {
         bgImageInfos?.let { bgImageInfo ->
             bgImage?.let {
                 batch.draw(
                     it,
-                    bgImageInfo.topLeftX.toFloat(),
-                    bgImageInfo.topLeftY.toFloat(),
+                    bgImageInfo.topLeftX.toFloat() + if(renderWithOffsets) worldX else 0,
+                    bgImageInfo.topLeftY.toFloat() + if(renderWithOffsets) worldY else 0,
                     0f,
                     0f,
                     it.width.toFloat(),
@@ -128,19 +138,30 @@ class LDtkLevel(
                     bgImageInfo.scaleX,
                     bgImageInfo.scaleY,
                     0f,
-                    false,
-                    false
+                    flipX = false,
+                    flipY = false
                 )
             }
         }
-        layers.forEach { it.render(batch, viewBounds) }
+        // need to render back to front - layers last in the list need to render first
+        for (i in layers.size - 1 downTo 0) {
+            if (renderWithOffsets) {
+                layers[i].render(batch, viewBounds, worldX, worldY)
+            } else {
+                layers[i].render(batch, viewBounds, 0, 0)
+            }
+        }
     }
 
     private fun instantiateLayer(json: LayerInstance): LDtkLayer {
         return when (json.type) { //IntGrid, Entities, Tiles or AutoLayer
             "IntGrid" -> {
-                val intGridValues = getLayerDef(json.layerDefUid)!!.intGridValues
-                LDtkIntGridLayer(intGridValues, json)
+                val intGridValues = getLayerDef(json.layerDefUid)?.intGridValues ?: listOf()
+                if (getLayerDef(json.layerDefUid)?.autoTilesetDefUid == null) {
+                    LDtkIntGridLayer(intGridValues, json)
+                } else {
+                    LDtkIntGridAutoLayer(tilesets, intGridValues, json)
+                }
             }
             "Entities" -> {
                 LDtkEntityLayer(json).apply {
@@ -162,6 +183,17 @@ class LDtkLevel(
             return null
         }
         return projectJson.defs.layers.find { it.uid == uid || it.identifier == identifier }
+    }
+
+    private fun Rect.calculateViewBounds(camera: Camera, viewport: Viewport) {
+        val width = viewport.width * camera.zoom
+        val height = viewport.height * camera.zoom
+        val w = width * abs(camera.up.y) + height * abs(camera.up.x)
+        val h = height * abs(camera.up.y) + width * abs(camera.up.x)
+        this.x = camera.position.x - w / 2
+        this.y = camera.position.y - h / 2
+        this.width = w
+        this.height = h
     }
 
     override fun toString(): String {

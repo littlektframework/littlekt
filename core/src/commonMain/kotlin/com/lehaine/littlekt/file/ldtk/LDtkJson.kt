@@ -55,13 +55,6 @@ data class ProjectJson(
     val defs: Definitions,
 
     /**
-     * If TRUE, all layers in all levels will also be exported as PNG along with the project
-     * file (default is FALSE)
-     */
-    @SerialName("exportPng")
-    val exportPNG: Boolean,
-
-    /**
      * If TRUE, a Tiled compatible file will also be generated along with the LDtk JSON file
      * (default is FALSE)
      */

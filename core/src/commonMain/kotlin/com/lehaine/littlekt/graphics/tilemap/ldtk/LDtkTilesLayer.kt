@@ -46,7 +46,7 @@ open class LDtkTilesLayer(
         return tiles.contains(getCoordId(cx, cy))
     }
 
-    override fun render(batch: SpriteBatch, viewBounds: Rect) {
+    override fun render(batch: SpriteBatch, viewBounds: Rect, offsetX: Int, offsetY: Int) {
         val minY = max(floor(-viewBounds.y / cellSize).toInt(), 0)
         val maxY = min(ceil((-viewBounds.y + viewBounds.height) / cellSize).toInt(), gridHeight)
         val minX = max(floor(viewBounds.x / cellSize).toInt(), 0)
@@ -59,18 +59,18 @@ open class LDtkTilesLayer(
                             tileInfo.tileId, tileInfo.flipBits
                         )?.also {
                             batch.draw(
-                                it.slice,
-                                (cx * cellSize + pxTotalOffsetX).toFloat(),
-                                -(cy * cellSize + pxTotalOffsetY - gridHeight * cellSize).toFloat(), // LDtk is y-down, so invert it
-                                0f,
-                                0f,
-                                cellSize.toFloat(),
-                                cellSize.toFloat(),
-                                1f,
-                                1f,
-                                0f,
-                                it.flipX,
-                                it.flipY
+                                slice = it.slice,
+                                x = (cx * cellSize + pxTotalOffsetX + offsetX).toFloat(),
+                                y = -(cy * cellSize + pxTotalOffsetY - gridHeight * cellSize).toFloat() + offsetY - cellSize, // LDtk is y-down, so invert it
+                                originX = 0f,
+                                originY = 0f,
+                                width = cellSize.toFloat(),
+                                height = cellSize.toFloat(),
+                                scaleX = 1f,
+                                scaleY = 1f,
+                                rotation = 0f,
+                                flipX = it.flipX,
+                                flipY = it.flipY
                             )
                         }
                     }

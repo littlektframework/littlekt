@@ -71,9 +71,13 @@ class LDtkTileset(json: TilesetDefinition, val texture: Texture) : TileSet {
         val region = tiles[ty][tx]
         temp.slice = region
         return when (flipBits) {
-            0 -> temp
+            0 -> temp.apply {
+                flipX = false
+                flipY = false
+            }
             1 -> temp.apply {
                 flipX = true
+                flipY = false
             }
             2 -> temp.apply {
                 flipX = false

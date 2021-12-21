@@ -17,7 +17,7 @@ enum class LayerType {
     Unknown
 }
 
-open class LDtkLayer(val json: LayerInstance) : TileLayer {
+open class LDtkLayer(val json: LayerInstance) : TileLayer() {
     val identifier: String = json.identifier
     val type: LayerType = LayerType.valueOf(json.type)
 
@@ -67,7 +67,7 @@ open class LDtkLayer(val json: LayerInstance) : TileLayer {
 
     fun getCoordId(cx: Int, cy: Int) = cx + cy * gridWidth
 
-    override fun render(batch: SpriteBatch, viewBounds: Rect) {}
+    override fun render(batch: SpriteBatch, viewBounds: Rect, offsetX: Int, offsetY: Int) {}
 
     override fun toString(): String {
         return "LDtkLayer(json=$json, identifier='$identifier', type=$type, cellSize=$cellSize, gridWidth=$gridWidth, gridHeight=$gridHeight, pxTotalOffsetX=$pxTotalOffsetX, pxTotalOffsetY=$pxTotalOffsetY, opacity=$opacity)"
