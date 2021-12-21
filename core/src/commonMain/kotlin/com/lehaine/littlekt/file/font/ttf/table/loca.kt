@@ -1,6 +1,6 @@
 package com.lehaine.littlekt.file.font.ttf.table
 
-import com.lehaine.littlekt.file.MixedBuffer
+import com.lehaine.littlekt.file.ByteBuffer
 import com.lehaine.littlekt.file.font.ttf.Parser
 
 /**
@@ -9,10 +9,10 @@ import com.lehaine.littlekt.file.font.ttf.Parser
  * @author Colton Daily
  * @date 12/1/2021
  */
-internal class LocaParser(val mixedBuffer: MixedBuffer, val start: Int, val numGlyphs: Int, val shortVersion: Boolean) {
+internal class LocaParser(val byteBuffer: ByteBuffer, val start: Int, val numGlyphs: Int, val shortVersion: Boolean) {
 
     fun parse(): IntArray {
-        val p = Parser(mixedBuffer, start)
+        val p = Parser(byteBuffer, start)
         val parseFn = if (shortVersion) p::parseUint16 else p::parseUint32
 
         val glyphOffsets = IntArray(numGlyphs + 1)

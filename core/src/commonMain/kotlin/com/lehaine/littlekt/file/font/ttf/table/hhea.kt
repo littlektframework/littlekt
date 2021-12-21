@@ -1,13 +1,13 @@
 package com.lehaine.littlekt.file.font.ttf.table
 
-import com.lehaine.littlekt.file.MixedBuffer
+import com.lehaine.littlekt.file.ByteBuffer
 import com.lehaine.littlekt.file.font.ttf.Parser
 
 /**
  * @author Colton Daily
  * @date 11/30/2021
  */
-internal class HheaParser(val buffer: MixedBuffer, val start: Int) {
+internal class HheaParser(val buffer: ByteBuffer, val start: Int) {
 
     fun parse(): Hhea {
         val p = Parser(buffer, start)

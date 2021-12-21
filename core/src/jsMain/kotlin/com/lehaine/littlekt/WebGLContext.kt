@@ -1,7 +1,7 @@
 package com.lehaine.littlekt
 
-import com.lehaine.littlekt.file.FileHandler
-import com.lehaine.littlekt.file.WebFileHandler
+import com.lehaine.littlekt.file.Vfs
+import com.lehaine.littlekt.file.WebVfs
 import com.lehaine.littlekt.graphics.Texture
 import com.lehaine.littlekt.input.Input
 import com.lehaine.littlekt.input.JsInput
@@ -25,8 +25,8 @@ class WebGLContext(override val configuration: JsConfiguration) :
     override val graphics: Graphics = WebGLGraphics(canvas, stats.engineStats)
     override val input: Input = JsInput(canvas)
     override val logger: Logger = Logger(configuration.title)
-    override val fileHandler: FileHandler =
-        WebFileHandler(this, logger, configuration.rootPath)
+    override val vfs: Vfs =
+        WebVfs(this, logger, configuration.rootPath)
     override val platform: Context.Platform = Context.Platform.JS
 
     private lateinit var listener: ContextListener

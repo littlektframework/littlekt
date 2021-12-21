@@ -1,6 +1,6 @@
 package com.lehaine.littlekt.file.font.ttf.table
 
-import com.lehaine.littlekt.file.MixedBuffer
+import com.lehaine.littlekt.file.ByteBuffer
 import com.lehaine.littlekt.file.font.ttf.Parser
 import com.lehaine.littlekt.file.font.ttf.Type
 
@@ -10,22 +10,22 @@ import com.lehaine.littlekt.file.font.ttf.Type
  * @author Colton Daily
  * @date 11/30/2021
  */
-internal class CmapParser(private val buffer: MixedBuffer, private val start: Int) {
+internal class CmapParser(private val buffer: ByteBuffer, private val start: Int) {
 
     fun parse(): Cmap {
         val cmap = MutableCmap()
-        cmap.version = buffer.getUint16(start).toInt()
+        cmap.version = buffer.getUShort(start).toInt()
         check(cmap.version == 0) { "cmap table version should be 0!" }
 
-        cmap.numTables = buffer.getUint16(start + 2).toInt()
+        cmap.numTables = buffer.getUShort(start + 2).toInt()
         var offset = -1
         for (i in cmap.numTables - 1 downTo 0) {
-            val platformId = buffer.getUint16(start + 4 + (i * 8)).toInt()
-            val encodingId = buffer.getUint16(start + 4 + (i * 8) + 2).toInt()
+            val platformId = buffer.getUShort(start + 4 + (i * 8)).toInt()
+            val encodingId = buffer.getUShort(start + 4 + (i * 8) + 2).toInt()
             if ((platformId == 3 && (encodingId == 0 || encodingId == 1 || encodingId == 10)) ||
                 (platformId == 0 && (encodingId == 0 || encodingId == 1 || encodingId == 2 || encodingId == 3 || encodingId == 4))
             ) {
-                offset = buffer.getUint32(start + 4 + (i * 8) + 4)
+                offset = buffer.getUInt(start + 4 + (i * 8) + 4)
                 break
             }
         }
@@ -72,7 +72,7 @@ internal class CmapParser(private val buffer: MixedBuffer, private val start: In
                     glyphIndexOffset = (idRangeOffsetParser.offset + idRangeOffsetParser.relativeOffset - 2)
                     glyphIndexOffset += idRangeOffset
                     glyphIndexOffset += (c - startCount) * 2
-                    glyphIndex = buffer.getUint16(glyphIndexOffset).toInt()
+                    glyphIndex = buffer.getUShort(glyphIndexOffset).toInt()
                     if (glyphIndex != 0) {
                         glyphIndex = (glyphIndex + idDelta) and 0xFFFF
                     }

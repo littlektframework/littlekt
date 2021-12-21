@@ -2,6 +2,7 @@ package com.lehaine.littlekt.samples
 
 import com.lehaine.littlekt.Context
 import com.lehaine.littlekt.ContextListener
+import com.lehaine.littlekt.file.vfs.readTtfFont
 import com.lehaine.littlekt.graphics.Color
 import com.lehaine.littlekt.graphics.OrthographicCamera
 import com.lehaine.littlekt.graphics.font.GpuFont
@@ -33,9 +34,9 @@ class GPUFontTest(context: Context) : ContextListener(context) {
     init {
         Logger.defaultLevel = Logger.Level.DEBUG
         logger.level = Logger.Level.DEBUG
-        fileHandler.launch {
-            freeSerif = loadTtfFont("FreeSerif.ttf")
-            libSans = loadTtfFont("LiberationSans-Regular.ttf")
+        vfs.launch {
+            freeSerif = get("FreeSerif.ttf").readTtfFont()
+            libSans = get("LiberationSans-Regular.ttf").readTtfFont()
             loading = false
         }
     }

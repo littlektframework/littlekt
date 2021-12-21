@@ -3,7 +3,7 @@ package com.lehaine.littlekt.graphics
 import com.lehaine.littlekt.Context
 import com.lehaine.littlekt.Disposable
 import com.lehaine.littlekt.graphics.gl.*
-import com.lehaine.littlekt.file.createUint32Buffer
+import com.lehaine.littlekt.file.createIntBuffer
 import com.lehaine.littlekt.math.MutableVec4i
 
 /**
@@ -214,7 +214,7 @@ class FrameBuffer(
          * Internal buffer used to handle checking for current bound frame buffer and viewports.
          * Max size of 64 bytes required as at most 16 integer elements can be returned.
          */
-        private val intBuffer = createUint32Buffer(16 * Int.SIZE_BYTES)
+        private val intBuffer = createIntBuffer(16 * Int.SIZE_BYTES)
 
         private fun getBoundFrameBuffer(gl: GL): GlFrameBuffer {
             return gl.getBoundFrameBuffer(intBuffer)

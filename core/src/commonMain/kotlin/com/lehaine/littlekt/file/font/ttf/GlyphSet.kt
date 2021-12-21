@@ -1,6 +1,6 @@
 package com.lehaine.littlekt.file.font.ttf
 
-import com.lehaine.littlekt.file.MixedBuffer
+import com.lehaine.littlekt.file.ByteBuffer
 
 /**
  * @author Colton Daily
@@ -19,8 +19,8 @@ internal fun TTfGlyphLoader(
     fontReader: TtfFontReader,
     index: Int,
     unitsPerEm: Int,
-    parseGlyph: (MutableGlyph, MixedBuffer, Int) -> Unit,
-    buffer: MixedBuffer,
+    parseGlyph: (MutableGlyph, ByteBuffer, Int) -> Unit,
+    buffer: ByteBuffer,
     position: Int,
     buildPath: (GlyphSet, MutableGlyph) -> Unit,
 ): GlyphLoader {

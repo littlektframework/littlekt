@@ -2,7 +2,7 @@ package com.lehaine.littlekt
 
 import com.lehaine.littlekt.graphics.GL
 import com.lehaine.littlekt.input.Input
-import com.lehaine.littlekt.file.FileHandler
+import com.lehaine.littlekt.file.Vfs
 import com.lehaine.littlekt.log.Logger
 
 /**
@@ -30,7 +30,7 @@ interface Context {
 
     val logger: Logger
 
-    val fileHandler: FileHandler
+    val vfs: Vfs
 
     val platform: Platform
 

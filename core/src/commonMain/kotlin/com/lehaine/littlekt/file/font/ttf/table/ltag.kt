@@ -1,6 +1,6 @@
 package com.lehaine.littlekt.file.font.ttf.table
 
-import com.lehaine.littlekt.file.MixedBuffer
+import com.lehaine.littlekt.file.ByteBuffer
 import com.lehaine.littlekt.file.font.ttf.Parser
 import com.lehaine.littlekt.file.font.ttf.Type
 
@@ -13,7 +13,7 @@ import com.lehaine.littlekt.file.font.ttf.Type
  * @author Colton Daily
  * @date 11/30/2021
  */
-internal class LtagParser(val buffer: MixedBuffer, val start: Int) {
+internal class LtagParser(val buffer: ByteBuffer, val start: Int) {
 
     fun parse(): List<String> {
         val p = Parser(buffer, start)
@@ -28,7 +28,7 @@ internal class LtagParser(val buffer: MixedBuffer, val start: Int) {
             val offset = start + p.parseUint16
             val length = p.parseUint16
             for (j in offset + 1 until offset + length) {
-                tag += buffer.getInt8(j).toInt().toChar()
+                tag += buffer.getByte(j).toInt().toChar()
             }
             tags += tag
         }

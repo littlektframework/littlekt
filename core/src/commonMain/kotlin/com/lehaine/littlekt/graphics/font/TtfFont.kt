@@ -1,7 +1,7 @@
 package com.lehaine.littlekt.graphics.font
 
-import com.lehaine.littlekt.file.Uint8Buffer
-import com.lehaine.littlekt.file.createMixedBuffer
+import com.lehaine.littlekt.file.ByteBuffer
+import com.lehaine.littlekt.file.createByteBuffer
 import com.lehaine.littlekt.file.font.ttf.TtfFontReader
 
 /**
@@ -23,8 +23,8 @@ class TtfFont(val chars: CharArray) {
     var unitsPerEm = 1000
         private set
 
-    fun load(data: Uint8Buffer) {
-        val buffer = createMixedBuffer(data.toArray(), isBigEndian = true).also { it.flip() }
+    fun load(data: ByteBuffer) {
+        val buffer = createByteBuffer(data.toArray(), isBigEndian = true).also { it.flip() }
         val reader = TtfFontReader().also {
             it.parse(buffer)
             ascender = it.ascender

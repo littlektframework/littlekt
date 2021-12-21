@@ -11,7 +11,7 @@ import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL13
 import org.lwjgl.opengl.GL15
 import org.lwjgl.opengl.GL30.*
-import java.nio.ByteBuffer
+import java.nio.ByteBuffer as NioByteBuffer
 
 /**
  * @author Colton Daily
@@ -209,13 +209,13 @@ class LwjglGL(private val engineStats: EngineStats) : GL {
         glBlendEquationSeparate(modeRGB, modeAlpha)
     }
 
-    override fun getIntegerv(pname: Int, data: Uint32Buffer) {
+    override fun getIntegerv(pname: Int, data: IntBuffer) {
         engineStats.calls++
-        data as Uint32BufferImpl
+        data as IntBufferImpl
         glGetIntegerv(pname, data.buffer)
     }
 
-    override fun getBoundFrameBuffer(data: Uint32Buffer): GlFrameBuffer {
+    override fun getBoundFrameBuffer(data: IntBuffer): GlFrameBuffer {
         getIntegerv(GL.FRAMEBUFFER_BINDING, data)
         return GlFrameBuffer(data[0])
     }
@@ -382,22 +382,22 @@ class LwjglGL(private val engineStats: EngineStats) : GL {
         engineStats.bufferDeleted(lastBoundBuffer!!.bufferId)
         when (data) {
             is DataSource.Float32BufferDataSource -> {
-                data.buffer as Float32BufferImpl
+                data.buffer as FLoatBufferImpl
                 glBufferData(target, data.buffer.buffer, usage)
                 engineStats.bufferAllocated(lastBoundBuffer!!.bufferId, data.buffer.capacity * 4)
             }
             is DataSource.Uint8BufferDataSource -> {
-                data.buffer as Uint16BufferImpl
+                data.buffer as ShortBufferImpl
                 glBufferData(target, data.buffer.buffer, usage)
                 engineStats.bufferAllocated(lastBoundBuffer!!.bufferId, data.buffer.capacity)
             }
             is DataSource.Uint16BufferDataSource -> {
-                data.buffer as Uint16BufferImpl
+                data.buffer as ShortBufferImpl
                 glBufferData(target, data.buffer.buffer, usage)
                 engineStats.bufferAllocated(lastBoundBuffer!!.bufferId, data.buffer.capacity * 2)
             }
             is DataSource.Uint32BufferDataSource -> {
-                data.buffer as Uint32BufferImpl
+                data.buffer as IntBufferImpl
                 glBufferData(target, data.buffer.buffer, usage)
                 engineStats.bufferAllocated(lastBoundBuffer!!.bufferId, data.buffer.capacity * 4)
             }
@@ -415,19 +415,19 @@ class LwjglGL(private val engineStats: EngineStats) : GL {
         data.buffer.limit = data.buffer.capacity
         when (data) {
             is DataSource.Float32BufferDataSource -> {
-                data.buffer as Float32BufferImpl
+                data.buffer as FLoatBufferImpl
                 GL15.glBufferSubData(target, offset.toLong(), data.buffer.buffer)
             }
             is DataSource.Uint8BufferDataSource -> {
-                data.buffer as Uint16BufferImpl
+                data.buffer as ShortBufferImpl
                 GL15.glBufferSubData(target, offset.toLong(), data.buffer.buffer)
             }
             is DataSource.Uint16BufferDataSource -> {
-                data.buffer as Uint16BufferImpl
+                data.buffer as ShortBufferImpl
                 GL15.glBufferSubData(target, offset.toLong(), data.buffer.buffer)
             }
             is DataSource.Uint32BufferDataSource -> {
-                data.buffer as Uint32BufferImpl
+                data.buffer as IntBufferImpl
                 GL15.glBufferSubData(target, offset.toLong(), data.buffer.buffer)
             }
         }
@@ -490,14 +490,14 @@ class LwjglGL(private val engineStats: EngineStats) : GL {
 
     override fun uniformMatrix3fv(uniformLocation: UniformLocation, transpose: Boolean, data: Mat3) {
         engineStats.calls++
-        val buffer = createFloat32Buffer(19) as Float32BufferImpl
+        val buffer = createFloatBuffer(19) as FLoatBufferImpl
         data.toBuffer(buffer)
         glUniformMatrix3fv(uniformLocation.address, transpose, buffer.buffer)
     }
 
-    override fun uniformMatrix3fv(uniformLocation: UniformLocation, transpose: Boolean, data: Float32Buffer) {
+    override fun uniformMatrix3fv(uniformLocation: UniformLocation, transpose: Boolean, data: FLoatBuffer) {
         engineStats.calls++
-        data as Float32BufferImpl
+        data as FLoatBufferImpl
         glUniformMatrix3fv(uniformLocation.address, transpose, data.buffer)
     }
 
@@ -508,14 +508,14 @@ class LwjglGL(private val engineStats: EngineStats) : GL {
 
     override fun uniformMatrix4fv(uniformLocation: UniformLocation, transpose: Boolean, data: Mat4) {
         engineStats.calls++
-        val buffer = createFloat32Buffer(16) as Float32BufferImpl
+        val buffer = createFloatBuffer(16) as FLoatBufferImpl
         data.toBuffer(buffer)
         glUniformMatrix4fv(uniformLocation.address, transpose, buffer.buffer)
     }
 
-    override fun uniformMatrix4fv(uniformLocation: UniformLocation, transpose: Boolean, data: Float32Buffer) {
+    override fun uniformMatrix4fv(uniformLocation: UniformLocation, transpose: Boolean, data: FLoatBuffer) {
         engineStats.calls++
-        data as Float32BufferImpl
+        data as FLoatBufferImpl
         glUniformMatrix4fv(uniformLocation.address, transpose, data.buffer)
     }
 
@@ -605,11 +605,11 @@ class LwjglGL(private val engineStats: EngineStats) : GL {
         internalFormat: Int,
         width: Int,
         height: Int,
-        source: Uint8Buffer?
+        source: com.lehaine.littlekt.file.ByteBuffer?
     ) {
         engineStats.calls++
         if (source != null) {
-            source as Uint8BufferImpl
+            source as ByteBufferImpl
             GL13.glCompressedTexImage2D(target, level, internalFormat, width, height, 0, source.buffer)
         } else {
             GL13.glCompressedTexImage2D(target, level, internalFormat, width, height, 0, null)
@@ -624,10 +624,10 @@ class LwjglGL(private val engineStats: EngineStats) : GL {
         width: Int,
         height: Int,
         format: Int,
-        source: Uint8Buffer
+        source: com.lehaine.littlekt.file.ByteBuffer
     ) {
         engineStats.calls++
-        source as Uint8BufferImpl
+        source as ByteBufferImpl
         GL13.glCompressedTexSubImage2D(target, level, xOffset, yOffset, width, height, format, source.buffer)
 
     }
@@ -669,26 +669,10 @@ class LwjglGL(private val engineStats: EngineStats) : GL {
         height: Int,
         format: Int,
         type: Int,
-        source: Uint8Buffer
+        source: com.lehaine.littlekt.file.ByteBuffer
     ) {
         engineStats.calls++
-        source as Uint8BufferImpl
-        GL11.glTexSubImage2D(target, level, xOffset, yOffset, width, height, format, type, source.buffer)
-    }
-
-    override fun texSubImage2D(
-        target: Int,
-        level: Int,
-        xOffset: Int,
-        yOffset: Int,
-        width: Int,
-        height: Int,
-        format: Int,
-        type: Int,
-        source: MixedBuffer
-    ) {
-        engineStats.calls++
-        source as MixedBufferImpl
+        source as ByteBufferImpl
         GL11.glTexSubImage2D(target, level, xOffset, yOffset, width, height, format, type, source.buffer)
     }
 
@@ -710,7 +694,7 @@ class LwjglGL(private val engineStats: EngineStats) : GL {
             0,
             format,
             type,
-            null as ByteBuffer?
+            null as NioByteBuffer?
         )
     }
 
@@ -722,39 +706,10 @@ class LwjglGL(private val engineStats: EngineStats) : GL {
         width: Int,
         height: Int,
         type: Int,
-        source: Uint8Buffer
+        source: com.lehaine.littlekt.file.ByteBuffer
     ) {
         engineStats.calls++
-        source as Uint8BufferImpl
-        val pos = source.position
-        source.position = 0
-        glTexImage2D(
-            target,
-            level,
-            internalFormat,
-            width,
-            height,
-            0,
-            format,
-            type,
-            source.buffer
-        )
-        source.position = pos
-
-    }
-
-    override fun texImage2D(
-        target: Int,
-        level: Int,
-        internalFormat: Int,
-        format: Int,
-        width: Int,
-        height: Int,
-        type: Int,
-        source: MixedBuffer
-    ) {
-        engineStats.calls++
-        source as MixedBufferImpl
+        source as ByteBufferImpl
         val pos = source.position
         source.position = 0
         glTexImage2D(

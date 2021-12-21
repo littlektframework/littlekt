@@ -5,7 +5,7 @@ import com.lehaine.littlekt.file.atlas.AtlasPage
 
 /**
  * Holds all the TextureSlice entries of the atlas that was read and loaded in.
- * @see [com.lehaine.littlekt.file.FileHandler.loadAtlas]
+ * @see [com.lehaine.littlekt.file.Vfs.loadAtlas]
  * @author Colton Daily
  * @date 11/27/2021
  */

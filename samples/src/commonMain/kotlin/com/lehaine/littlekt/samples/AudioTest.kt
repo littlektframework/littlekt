@@ -3,6 +3,7 @@ package com.lehaine.littlekt.samples
 import com.lehaine.littlekt.Context
 import com.lehaine.littlekt.ContextListener
 import com.lehaine.littlekt.audio.AudioClip
+import com.lehaine.littlekt.file.vfs.readAudioClip
 import com.lehaine.littlekt.input.Key
 import kotlin.time.Duration
 
@@ -19,9 +20,9 @@ class AudioTest(context: Context) : ContextListener(context) {
     private lateinit var music: AudioClip
 
     init {
-        fileHandler.launch {
-            sfx = loadAudioClip("random.wav")
-            music = loadAudioClip("music.mp3")
+        vfs.launch {
+            sfx = vfs["random.wav"].readAudioClip()
+            music = vfs["music.mp3"].readAudioClip()
             loading = false
         }
     }

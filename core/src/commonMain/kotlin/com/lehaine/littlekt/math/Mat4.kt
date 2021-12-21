@@ -1,6 +1,6 @@
 package com.lehaine.littlekt.math
 
-import com.lehaine.littlekt.file.Float32Buffer
+import com.lehaine.littlekt.file.FLoatBuffer
 import com.lehaine.littlekt.util.internal.lock
 import kotlin.math.*
 
@@ -740,7 +740,7 @@ open class Mat4 {
         return result
     }
 
-    fun toBuffer(buffer: Float32Buffer): Float32Buffer {
+    fun toBuffer(buffer: FLoatBuffer): FLoatBuffer {
         buffer.put(matrix, 0, 16)
         buffer.flip()
         return buffer

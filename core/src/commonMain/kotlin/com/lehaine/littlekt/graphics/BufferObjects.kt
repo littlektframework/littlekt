@@ -2,9 +2,9 @@ package com.lehaine.littlekt.graphics
 
 import com.lehaine.littlekt.Disposable
 import com.lehaine.littlekt.file.DataSource
-import com.lehaine.littlekt.file.Float32Buffer
-import com.lehaine.littlekt.file.createFloat32Buffer
-import com.lehaine.littlekt.file.createUint16Buffer
+import com.lehaine.littlekt.file.FLoatBuffer
+import com.lehaine.littlekt.file.createFloatBuffer
+import com.lehaine.littlekt.file.createShortBuffer
 import com.lehaine.littlekt.graphics.gl.BufferTarget
 import com.lehaine.littlekt.graphics.gl.GlBuffer
 import com.lehaine.littlekt.graphics.gl.GlVertexArray
@@ -17,7 +17,7 @@ import com.lehaine.littlekt.graphics.shader.ShaderProgram
  */
 class VertexBufferObject(val gl: GL, val isStatic: Boolean, numVertices: Int, val attributes: VertexAttributes) :
     Disposable {
-    val buffer: Float32Buffer = createFloat32Buffer(attributes.vertexSize / 4 * numVertices)
+    val buffer: FLoatBuffer = createFloatBuffer(attributes.vertexSize / 4 * numVertices)
         get() {
             isDirty = true
             return field
@@ -125,7 +125,7 @@ class VertexBufferObject(val gl: GL, val isStatic: Boolean, numVertices: Int, va
 }
 
 class IndexBufferObject(val gl: GL, maxIndices: Int, val isStatic: Boolean = true) : Disposable {
-    val buffer = createUint16Buffer(maxIndices * 2)
+    val buffer = createShortBuffer(maxIndices * 2)
         get() {
             isDirty = true
             return field

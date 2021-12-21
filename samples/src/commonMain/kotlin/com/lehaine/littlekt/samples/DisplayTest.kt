@@ -3,6 +3,8 @@ package com.lehaine.littlekt.samples
 import com.lehaine.littlekt.Context
 import com.lehaine.littlekt.ContextListener
 import com.lehaine.littlekt.createShader
+import com.lehaine.littlekt.file.vfs.readAtlas
+import com.lehaine.littlekt.file.vfs.readTexture
 import com.lehaine.littlekt.graphics.*
 import com.lehaine.littlekt.graphics.shader.shaders.SimpleColorFragmentShader
 import com.lehaine.littlekt.graphics.shader.shaders.SimpleColorVertexShader
@@ -73,11 +75,11 @@ class DisplayTest(context: Context) : ContextListener(context), InputProcessor {
 
     init {
         logger.level = Logger.Level.DEBUG
-        fileHandler.launch {
-            texture = loadTexture("atlas.png")
+        vfs.launch {
+            texture = get("atlas.png").readTexture()
             slices = texture.slice(16, 16)
             person = slices[0][0]
-            atlas = loadAtlas("tiles.atlas.json")
+            atlas = get("tiles.atlas.json").readAtlas()
             bossAttack = atlas.getAnimation("bossAttack")
             bossAttack.playLooped()
             loading = false
@@ -115,7 +117,8 @@ class DisplayTest(context: Context) : ContextListener(context), InputProcessor {
                     it.draw(slice, 150f * (rowIdx * row.size + colIdx) + 50f, 50f, scaleX = 10f, scaleY = 10f)
                 }
             }
-            it.draw(bossAttack.currentFrame, 250f, 250f, scaleX = 10f, scaleY = 10f)
+            it.draw(bossAttack.currentFrame, 450f, 250f, scaleX = 2f, scaleY = 2f, flipX = false)
+            it.draw(bossAttack.currentFrame, 150f, 250f, scaleX = 2f, scaleY = 2f, flipX = true)
         }
 
         shader.bind()

@@ -33,6 +33,8 @@ abstract class Camera {
 
     var near = -1f
     var far = 1f
+    
+    var zoom = 1f // TODO
 
     private val tempVec3 = MutableVec3f()
     private val tempVec4 = MutableVec4f()

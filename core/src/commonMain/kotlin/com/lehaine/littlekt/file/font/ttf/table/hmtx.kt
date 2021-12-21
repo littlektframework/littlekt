@@ -1,6 +1,6 @@
 package com.lehaine.littlekt.file.font.ttf.table
 
-import com.lehaine.littlekt.file.MixedBuffer
+import com.lehaine.littlekt.file.ByteBuffer
 import com.lehaine.littlekt.file.font.ttf.GlyphSet
 import com.lehaine.littlekt.file.font.ttf.Parser
 
@@ -11,7 +11,7 @@ import com.lehaine.littlekt.file.font.ttf.Parser
  * @date 12/1/2021
  */
 internal class HmtxParser(
-    val buffer: MixedBuffer,
+    val buffer: ByteBuffer,
     val start: Int,
     val numOfHMetrics: Int,
     val numGlyphs: Int,

@@ -1,11 +1,14 @@
 package com.lehaine.littlekt.file
 
-import java.nio.*
-import java.nio.Buffer
+import java.nio.ByteOrder
+import java.nio.Buffer as NioBuffer
+import java.nio.ByteBuffer as NioByteBuffer
+import java.nio.FloatBuffer as NioFloatBuffer
+import java.nio.IntBuffer as NioIntBuffer
+import java.nio.ShortBuffer as NioShortBuffer
 
 
-abstract class GenericBuffer<out B : Buffer>(override val capacity: Int, val buffer: B) :
-    com.lehaine.littlekt.file.Buffer {
+abstract class GenericBuffer<out B : NioBuffer>(override val capacity: Int, val buffer: B) : Buffer {
     override var limit: Int
         get() = buffer.limit()
         set(value) {
@@ -31,55 +34,12 @@ abstract class GenericBuffer<out B : Buffer>(override val capacity: Int, val buf
 }
 
 /**
- * ByteBuffer buffer implementation
- */
-class Uint8BufferImpl(buffer: ByteBuffer) : Uint8Buffer, GenericBuffer<ByteBuffer>(buffer.capacity(), buffer) {
-
-    constructor(capacity: Int) : this(ByteBuffer.allocateDirect(capacity).order(ByteOrder.nativeOrder()))
-
-    constructor(data: ByteArray) : this(ByteBuffer.allocateDirect(data.size).order(ByteOrder.nativeOrder())) {
-        put(data)
-    }
-
-    override fun get(i: Int): Byte {
-        return buffer[i]
-    }
-
-    override fun set(i: Int, value: Byte) {
-        buffer.put(i, value)
-    }
-
-    override fun put(data: ByteArray, offset: Int, len: Int): Uint8Buffer {
-        buffer.put(data, offset, len)
-        return this
-    }
-
-    override fun put(value: Byte): Uint8Buffer {
-        buffer.put(value)
-        return this
-    }
-
-    override fun put(data: Uint8Buffer): Uint8Buffer {
-        if (data is Uint8BufferImpl) {
-            val dataPos = data.position
-            buffer.put(data.buffer)
-            data.position = dataPos
-        } else {
-            for (i in data.position until data.limit) {
-                buffer.put(data[i])
-            }
-        }
-        return this
-    }
-}
-
-/**
  * ShortBuffer buffer implementation
  */
-class Uint16BufferImpl(buffer: ShortBuffer) : Uint16Buffer, GenericBuffer<ShortBuffer>(buffer.capacity(), buffer) {
+class ShortBufferImpl(buffer: NioShortBuffer) : ShortBuffer, GenericBuffer<NioShortBuffer>(buffer.capacity(), buffer) {
 
     constructor(capacity: Int) : this(
-        ByteBuffer.allocateDirect(capacity * 2).order(ByteOrder.nativeOrder()).asShortBuffer()
+        NioByteBuffer.allocateDirect(capacity * 2).order(ByteOrder.nativeOrder()).asShortBuffer()
     )
 
     override fun get(i: Int): Short {
@@ -90,18 +50,18 @@ class Uint16BufferImpl(buffer: ShortBuffer) : Uint16Buffer, GenericBuffer<ShortB
         buffer.put(i, value)
     }
 
-    override fun put(data: ShortArray, offset: Int, len: Int): Uint16Buffer {
+    override fun put(data: ShortArray, offset: Int, len: Int): ShortBuffer {
         buffer.put(data, offset, len)
         return this
     }
 
-    override fun put(value: Short): Uint16Buffer {
+    override fun put(value: Short): ShortBuffer {
         buffer.put(value)
         return this
     }
 
-    override fun put(data: Uint16Buffer): Uint16Buffer {
-        if (data is Uint16BufferImpl) {
+    override fun put(data: ShortBuffer): ShortBuffer {
+        if (data is ShortBufferImpl) {
             val dataPos = data.position
             buffer.put(data.buffer)
             data.position = dataPos
@@ -117,10 +77,10 @@ class Uint16BufferImpl(buffer: ShortBuffer) : Uint16Buffer, GenericBuffer<ShortB
 /**
  * IntBuffer buffer implementation
  */
-class Uint32BufferImpl(buffer: IntBuffer) : Uint32Buffer, GenericBuffer<IntBuffer>(buffer.capacity(), buffer) {
+class IntBufferImpl(buffer: NioIntBuffer) : IntBuffer, GenericBuffer<NioIntBuffer>(buffer.capacity(), buffer) {
 
     constructor(capacity: Int) : this(
-        ByteBuffer.allocateDirect(capacity * 4).order(ByteOrder.nativeOrder()).asIntBuffer()
+        NioByteBuffer.allocateDirect(capacity * 4).order(ByteOrder.nativeOrder()).asIntBuffer()
     )
 
     override fun get(i: Int): Int {
@@ -131,18 +91,18 @@ class Uint32BufferImpl(buffer: IntBuffer) : Uint32Buffer, GenericBuffer<IntBuffe
         buffer.put(i, value)
     }
 
-    override fun put(data: IntArray, offset: Int, len: Int): Uint32Buffer {
+    override fun put(data: IntArray, offset: Int, len: Int): IntBuffer {
         buffer.put(data, offset, len)
         return this
     }
 
-    override fun put(value: Int): Uint32Buffer {
+    override fun put(value: Int): IntBuffer {
         buffer.put(value)
         return this
     }
 
-    override fun put(data: Uint32Buffer): Uint32Buffer {
-        if (data is Uint32BufferImpl) {
+    override fun put(data: IntBuffer): IntBuffer {
+        if (data is IntBufferImpl) {
             val dataPos = data.position
             buffer.put(data.buffer)
             data.position = dataPos
@@ -158,14 +118,14 @@ class Uint32BufferImpl(buffer: IntBuffer) : Uint32Buffer, GenericBuffer<IntBuffe
 /**
  * FloatBuffer buffer implementation
  */
-class Float32BufferImpl(buffer: FloatBuffer) : Float32Buffer, GenericBuffer<FloatBuffer>(buffer.capacity(), buffer) {
+class FLoatBufferImpl(buffer: NioFloatBuffer) : FLoatBuffer, GenericBuffer<NioFloatBuffer>(buffer.capacity(), buffer) {
 
     constructor(capacity: Int) : this(
-        ByteBuffer.allocateDirect(capacity * 4).order(ByteOrder.nativeOrder()).asFloatBuffer()
+        NioByteBuffer.allocateDirect(capacity * 4).order(ByteOrder.nativeOrder()).asFloatBuffer()
     )
 
     constructor(data: FloatArray) : this(
-        ByteBuffer.allocateDirect(data.size * 4).order(ByteOrder.nativeOrder()).asFloatBuffer()
+        NioByteBuffer.allocateDirect(data.size * 4).order(ByteOrder.nativeOrder()).asFloatBuffer()
     ) {
         put(data)
         position = buffer.position()
@@ -179,18 +139,18 @@ class Float32BufferImpl(buffer: FloatBuffer) : Float32Buffer, GenericBuffer<Floa
         buffer.put(i, value)
     }
 
-    override fun put(data: FloatArray, offset: Int, len: Int): Float32Buffer {
+    override fun put(data: FloatArray, offset: Int, len: Int): FLoatBuffer {
         buffer.put(data, offset, len)
         return this
     }
 
-    override fun put(value: Float): Float32Buffer {
+    override fun put(value: Float): FLoatBuffer {
         buffer.put(value)
         return this
     }
 
-    override fun put(data: Float32Buffer): Float32Buffer {
-        if (data is Float32BufferImpl) {
+    override fun put(data: FLoatBuffer): FLoatBuffer {
+        if (data is FLoatBufferImpl) {
             val dataPos = data.position
             buffer.put(data.buffer)
             data.position = dataPos
@@ -203,19 +163,23 @@ class Float32BufferImpl(buffer: FloatBuffer) : Float32Buffer, GenericBuffer<Floa
     }
 }
 
-class MixedBufferImpl(buffer: ByteBuffer) : MixedBuffer, GenericBuffer<ByteBuffer>(buffer.capacity(), buffer) {
+/**
+ * ByteBuffer implementation.
+ */
+class ByteBufferImpl(buffer: NioByteBuffer) : ByteBuffer, GenericBuffer<NioByteBuffer>(buffer.capacity(), buffer) {
 
-    constructor(capacity: Int) : this(ByteBuffer.allocateDirect(capacity).order(ByteOrder.nativeOrder()))
+    constructor(capacity: Int) : this(NioByteBuffer.allocateDirect(capacity).order(ByteOrder.nativeOrder()))
     constructor(data: ByteArray) : this(
-        ByteBuffer.allocateDirect(data.size).order(ByteOrder.nativeOrder())
+        NioByteBuffer.allocateDirect(data.size).order(ByteOrder.nativeOrder())
     ) {
-        putInt8(data)
+        putByte(data)
     }
 
     constructor(data: ByteArray, isBigEndian: Boolean) : this(
-        ByteBuffer.allocateDirect(data.size).order(if (isBigEndian) ByteOrder.BIG_ENDIAN else ByteOrder.nativeOrder())
+        NioByteBuffer.allocateDirect(data.size)
+            .order(if (isBigEndian) ByteOrder.BIG_ENDIAN else ByteOrder.nativeOrder())
     ) {
-        putInt8(data)
+        putByte(data)
     }
 
     override fun set(i: Int, value: Byte) {
@@ -234,78 +198,78 @@ class MixedBufferImpl(buffer: ByteBuffer) : MixedBuffer, GenericBuffer<ByteBuffe
         buffer.putFloat(i, value)
     }
 
-    override val readInt8: Byte get() = readUint8
+    override val readByte: Byte get() = readUByte
 
-    override fun getInt8(offset: Int): Byte {
-        return getUint8(offset)
+    override fun getByte(offset: Int): Byte {
+        return getUByte(offset)
     }
 
-    override fun getInt8s(startOffset: Int, endOffset: Int): ByteArray {
-        return getUint8s(startOffset, endOffset)
+    override fun getByteArray(startOffset: Int, endOffset: Int): ByteArray {
+        return getUByteArray(startOffset, endOffset)
     }
 
-    override val readInt16: Short get() = readUin16
+    override val readShort: Short get() = readUShort
 
-    override fun getInt16(offset: Int): Short {
-        return getUint16(offset)
+    override fun getShort(offset: Int): Short {
+        return getUShort(offset)
     }
 
-    override val readInt32: Int
-        get() = readUint32
+    override val readInt: Int
+        get() = readUInt
 
-    override fun getInt32(offset: Int): Int {
-        return getUint32(offset)
+    override fun getInt(offset: Int): Int {
+        return getUInt(offset)
     }
 
-    override val readUint8: Byte
+    override val readUByte: Byte
         get() = buffer.get()
 
-    override fun getUint8(offset: Int): Byte {
+    override fun getUByte(offset: Int): Byte {
         return buffer.get(offset)
     }
 
-    override fun getUint8s(startOffset: Int, endOffset: Int): ByteArray {
+    override fun getUByteArray(startOffset: Int, endOffset: Int): ByteArray {
         val dest = ByteArray(endOffset - startOffset)
         buffer.get(dest, startOffset, endOffset - startOffset)
         return dest
     }
 
-    override fun putUint8(value: Byte): MixedBuffer {
+    override fun putUByte(value: Byte): ByteBuffer {
         buffer.put(value)
         return this
     }
 
-    override fun putUint8(data: ByteArray, offset: Int, len: Int): MixedBuffer {
+    override fun putUByte(data: ByteArray, offset: Int, len: Int): ByteBuffer {
         buffer.put(data, offset, len)
         return this
     }
 
-    override fun putUint8(data: Uint8Buffer): MixedBuffer {
-        if (data is Uint8BufferImpl) {
+    override fun putUByte(data: ByteBuffer): ByteBuffer {
+        if (data is ByteBufferImpl) {
             val dataPos = data.position
             buffer.put(data.buffer)
             data.position = dataPos
         } else {
             for (i in data.position until data.limit) {
-                buffer.put(data[i])
+                buffer.put(data.getByte(i))
             }
         }
         return this
     }
 
-    override val readUin16: Short
+    override val readUShort: Short
         get() = buffer.short
 
-    override fun getUint16(offset: Int): Short {
+    override fun getUShort(offset: Int): Short {
         return buffer.getShort(offset)
     }
 
-    override fun putUint16(value: Short): MixedBuffer {
+    override fun putUShort(value: Short): ByteBuffer {
         buffer.putShort(value)
         return this
     }
 
-    override fun putUint16(data: ShortArray, offset: Int, len: Int): MixedBuffer {
+    override fun putUShort(data: ShortArray, offset: Int, len: Int): ByteBuffer {
         if (len <= BUFFER_CONV_THRESH) {
             for (i in 0 until len) {
                 buffer.putShort(data[offset + i])
@@ -317,9 +281,9 @@ class MixedBufferImpl(buffer: ByteBuffer) : MixedBuffer, GenericBuffer<ByteBuffe
         return this
     }
 
-    override fun putUint16(data: Uint16Buffer): MixedBuffer {
+    override fun putUShort(data: ShortBuffer): ByteBuffer {
         val len = data.limit - data.position
-        if (data !is Uint16BufferImpl || len <= BUFFER_CONV_THRESH) {
+        if (data !is ShortBufferImpl || len <= BUFFER_CONV_THRESH) {
             for (i in data.position until data.limit) {
                 buffer.putShort(data[i])
             }
@@ -332,24 +296,24 @@ class MixedBufferImpl(buffer: ByteBuffer) : MixedBuffer, GenericBuffer<ByteBuffe
         return this
     }
 
-    override val readUint32: Int
+    override val readUInt: Int
         get() = buffer.int
 
-    override fun getUint32(offset: Int): Int {
+    override fun getUInt(offset: Int): Int {
         return buffer.getInt(offset)
     }
 
-    override fun putUint32(value: Int): MixedBuffer {
+    override fun putUInt(value: Int): ByteBuffer {
         buffer.putInt(value)
         return this
     }
 
-    override fun putUint32(offset: Int, value: Int): MixedBuffer {
+    override fun putUInt(offset: Int, value: Int): ByteBuffer {
         buffer.putInt(offset, value)
         return this
     }
 
-    override fun putUint32(data: IntArray, offset: Int, len: Int): MixedBuffer {
+    override fun putUInt(data: IntArray, offset: Int, len: Int): ByteBuffer {
         if (len <= BUFFER_CONV_THRESH) {
             for (i in 0 until len) {
                 buffer.putInt(data[offset + i])
@@ -361,9 +325,9 @@ class MixedBufferImpl(buffer: ByteBuffer) : MixedBuffer, GenericBuffer<ByteBuffe
         return this
     }
 
-    override fun putUint32(data: Uint32Buffer): MixedBuffer {
+    override fun putUInt(data: IntBuffer): ByteBuffer {
         val len = data.limit - data.position
-        if (data !is Uint32BufferImpl || len <= BUFFER_CONV_THRESH) {
+        if (data !is IntBufferImpl || len <= BUFFER_CONV_THRESH) {
             for (i in data.position until data.limit) {
                 buffer.putInt(data[i])
             }
@@ -376,19 +340,19 @@ class MixedBufferImpl(buffer: ByteBuffer) : MixedBuffer, GenericBuffer<ByteBuffe
         return this
     }
 
-    override val readFloat32: Float
+    override val readFloat: Float
         get() = buffer.float
 
-    override fun getFloat32(offset: Int): Float {
+    override fun getFloat(offset: Int): Float {
         return buffer.getFloat(offset)
     }
 
-    override fun putFloat32(value: Float): MixedBuffer {
+    override fun putFloat(value: Float): ByteBuffer {
         buffer.putFloat(value)
         return this
     }
 
-    override fun putFloat32(data: FloatArray, offset: Int, len: Int): MixedBuffer {
+    override fun putFloat(data: FloatArray, offset: Int, len: Int): ByteBuffer {
         if (len <= BUFFER_CONV_THRESH) {
             for (i in 0 until len) {
                 buffer.putFloat(data[offset + i])
@@ -400,9 +364,9 @@ class MixedBufferImpl(buffer: ByteBuffer) : MixedBuffer, GenericBuffer<ByteBuffe
         return this
     }
 
-    override fun putFloat32(data: Float32Buffer): MixedBuffer {
+    override fun putFloat(data: FLoatBuffer): ByteBuffer {
         val len = data.limit - data.position
-        if (data !is Float32BufferImpl || len <= BUFFER_CONV_THRESH) {
+        if (data !is FLoatBufferImpl || len <= BUFFER_CONV_THRESH) {
             for (i in data.position until data.limit) {
                 buffer.putFloat(data[i])
             }
@@ -438,16 +402,13 @@ class MixedBufferImpl(buffer: ByteBuffer) : MixedBuffer, GenericBuffer<ByteBuffe
     }
 }
 
-actual fun createUint8Buffer(capacity: Int): Uint8Buffer = Uint8BufferImpl(capacity)
-actual fun createUint8Buffer(array: ByteArray): Uint8Buffer = Uint8BufferImpl(array)
+actual fun createShortBuffer(capacity: Int): ShortBuffer = ShortBufferImpl(capacity)
 
-actual fun createUint16Buffer(capacity: Int): Uint16Buffer = Uint16BufferImpl(capacity)
+actual fun createIntBuffer(capacity: Int): IntBuffer = IntBufferImpl(capacity)
 
-actual fun createUint32Buffer(capacity: Int): Uint32Buffer = Uint32BufferImpl(capacity)
+actual fun createFloatBuffer(capacity: Int): FLoatBuffer = FLoatBufferImpl(capacity)
+actual fun createFloatBuffer(array: FloatArray): FLoatBuffer = FLoatBufferImpl(array)
 
-actual fun createFloat32Buffer(capacity: Int): Float32Buffer = Float32BufferImpl(capacity)
-actual fun createFloat32Buffer(array: FloatArray): Float32Buffer = Float32BufferImpl(array)
-
-actual fun createMixedBuffer(capacity: Int): MixedBuffer = MixedBufferImpl(capacity)
-actual fun createMixedBuffer(array: ByteArray): MixedBuffer = MixedBufferImpl(array)
-actual fun createMixedBuffer(array: ByteArray, isBigEndian: Boolean): MixedBuffer = MixedBufferImpl(array, isBigEndian)
+actual fun createByteBuffer(capacity: Int): ByteBuffer = ByteBufferImpl(capacity)
+actual fun createByteBuffer(array: ByteArray): ByteBuffer = ByteBufferImpl(array)
+actual fun createByteBuffer(array: ByteArray, isBigEndian: Boolean): ByteBuffer = ByteBufferImpl(array, isBigEndian)

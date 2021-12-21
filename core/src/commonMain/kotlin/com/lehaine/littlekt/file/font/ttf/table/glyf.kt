@@ -1,6 +1,6 @@
 package com.lehaine.littlekt.file.font.ttf.table
 
-import com.lehaine.littlekt.file.MixedBuffer
+import com.lehaine.littlekt.file.ByteBuffer
 import com.lehaine.littlekt.file.font.ttf.*
 import com.lehaine.littlekt.graphics.font.GlyphPath
 import kotlin.math.floor
@@ -12,7 +12,7 @@ import kotlin.math.floor
  * @date 12/1/2021
  */
 internal class GlyfParser(
-    val buffer: MixedBuffer,
+    val buffer: ByteBuffer,
     val start: Int,
     val loca: IntArray,
     val fontReader: TtfFontReader
@@ -43,7 +43,7 @@ internal class GlyfParser(
         return glyphs
     }
 
-    private fun parseGlyph(glyph: MutableGlyph, buffer: MixedBuffer, start: Int) {
+    private fun parseGlyph(glyph: MutableGlyph, buffer: ByteBuffer, start: Int) {
         val p = Parser(buffer, start)
         glyph.numberOfContours = p.parseInt16.toInt()
         glyph.xMin = p.parseInt16.toInt()
@@ -187,7 +187,6 @@ internal class GlyfParser(
 
     fun buildPath(glyphSet: GlyphSet, glyph: MutableGlyph) {
         if (glyph.isComposite) {
-            println("building ocmpositve for ${glyph.name}")
             glyph.refs.forEach { ref ->
                 val glyphRef = glyphSet[ref.glyphIndex].also { it.calcPath() }
                 if (glyphRef.points.isNotEmpty()) {

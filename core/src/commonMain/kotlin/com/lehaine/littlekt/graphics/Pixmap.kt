@@ -1,7 +1,7 @@
 package com.lehaine.littlekt.graphics
 
-import com.lehaine.littlekt.file.MixedBuffer
-import com.lehaine.littlekt.file.createMixedBuffer
+import com.lehaine.littlekt.file.ByteBuffer
+import com.lehaine.littlekt.file.createByteBuffer
 import com.lehaine.littlekt.graphics.gl.DataType
 import com.lehaine.littlekt.graphics.gl.TextureFormat
 import kotlin.math.max
@@ -11,7 +11,7 @@ import kotlin.math.round
  * @author Colton Daily
  * @date 11/18/2021
  */
-class Pixmap(val width: Int, val height: Int, val pixels: MixedBuffer = createMixedBuffer(width * height * 4)) {
+class Pixmap(val width: Int, val height: Int, val pixels: ByteBuffer = createByteBuffer(width * height * 4)) {
 
     enum class Format(val glType: DataType, val glFormat: TextureFormat) {
         ALPHA(DataType.UNSIGNED_BYTE, TextureFormat.ALPHA),
@@ -121,11 +121,11 @@ class Pixmap(val width: Int, val height: Int, val pixels: MixedBuffer = createMi
                         if (sx < 0 || dx < 0) continue
                         if (sx >= pixmap.width || dx >= width) break
                         val srcp = (sx + sy * pixmap.width) * 4
-                        val c1 = spixels.getInt32(srcp)
-                        val c2 = if (sx + rx < srcWidth) spixels.getInt32(srcp + 4 * rx) else c1
-                        val c3 = if (sy + ry < srcHeight) spixels.getInt32(srcp + spitch * ry) else c1
+                        val c1 = spixels.getInt(srcp)
+                        val c2 = if (sx + rx < srcWidth) spixels.getInt(srcp + 4 * rx) else c1
+                        val c3 = if (sy + ry < srcHeight) spixels.getInt(srcp + spitch * ry) else c1
                         val c4 =
-                            if (sx + rx < srcWidth && sy + ry < srcHeight) spixels.getInt32(srcHeight + 4 * rx + spitch * ry) else c1
+                            if (sx + rx < srcWidth && sy + ry < srcHeight) spixels.getInt(srcHeight + 4 * rx + spitch * ry) else c1
                         val ta = (1 - xDiff) * (1 - yDiff)
                         val tb = (xDiff) * (1 - yDiff)
                         val tc = (1 - xDiff) * (yDiff)
@@ -192,7 +192,7 @@ class Pixmap(val width: Int, val height: Int, val pixels: MixedBuffer = createMi
         val rgba = color.rgba()
         val length = width * height * 4
         for (i in 0 until length) {
-            pixels.putInt32(i, rgba)
+            pixels.putInt(i, rgba)
         }
     }
 
@@ -296,13 +296,13 @@ class Pixmap(val width: Int, val height: Int, val pixels: MixedBuffer = createMi
 
     fun set(x: Int, y: Int, color: Int, force: Boolean = false) {
         if (force || contains(x, y)) {
-            pixels.putInt32((x + y * width) * 4, color)
+            pixels.putInt((x + y * width) * 4, color)
         }
     }
 
     fun get(x: Int, y: Int, force: Boolean = false): Int {
         return if (force || contains(x, y)) {
-            pixels.getInt32((x + y * width) * 4)
+            pixels.getInt((x + y * width) * 4)
         } else {
             0
         }

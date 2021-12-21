@@ -256,7 +256,9 @@ class SpriteBatch(
         height: Float = slice.height.toFloat(),
         scaleX: Float = 1f,
         scaleY: Float = 1f,
-        rotation: Float = 0f
+        rotation: Float = 0f,
+        flipX: Boolean = false,
+        flipY: Boolean = false,
     ) {
         if (!drawing) {
             throw IllegalStateException("SpriteBatch.begin must be called before draw.")
@@ -337,10 +339,10 @@ class SpriteBatch(
         x4 += worldOriginX
         y4 += worldOriginY
 
-        val u = slice.u
-        val v = slice.v2
-        val u2 = slice.u2
-        val v2 = slice.v
+        val u = if (flipX) slice.u2 else slice.u
+        val v = if (flipY) slice.v else slice.v2
+        val u2 = if (flipX) slice.u else slice.u2
+        val v2 = if (flipY) slice.v2 else slice.v
 
         mesh.run {
             setVertex {

@@ -1,9 +1,9 @@
 package com.lehaine.littlekt.graphics.font
 
 import com.lehaine.littlekt.Context
-import com.lehaine.littlekt.file.FileHandler
-import com.lehaine.littlekt.file.MixedBuffer
-import com.lehaine.littlekt.file.createMixedBuffer
+import com.lehaine.littlekt.file.Vfs
+import com.lehaine.littlekt.file.ByteBuffer
+import com.lehaine.littlekt.file.createByteBuffer
 import com.lehaine.littlekt.graphics.*
 import com.lehaine.littlekt.graphics.gl.BlendFactor
 import com.lehaine.littlekt.graphics.gl.PixmapTextureData
@@ -107,7 +107,7 @@ class GpuFont(
         GpuTextFragmentShader()
     ).also { it.prepare(context) }
 
-    private val fileHandler: FileHandler get() = context.fileHandler
+    private val vfs: Vfs get() = context.vfs
     private val gl: GL get() = context.gl
 
     init {
@@ -405,33 +405,33 @@ class GpuFont(
         return gpuGlyph
     }
 
-    private fun writeBMP(name: String, width: Int, height: Int, channels: Int, buffer: MixedBuffer) {
-        val bmpBuffer = createMixedBuffer(54 + buffer.capacity)
+    private fun writeBMP(name: String, width: Int, height: Int, channels: Int, buffer: ByteBuffer) {
+        val bmpBuffer = createByteBuffer(54 + buffer.capacity)
         bmpBuffer.run {
-            putInt8('B'.code.toByte())
-            putInt8('M'.code.toByte())
-            putUint32(54 + width * height * channels) // size
-            putUint16(0) // res1
-            putUint16(0) // res2
-            putUint32(54) // offset
-            putUint32(40) // biSize
-            putUint32(width)
-            putUint32(height)
-            putUint16(1.toShort()) // planes
-            putUint16((8 * channels).toShort()) // bitCount
-            putUint32(0) // compression
-            putUint32(width * height * channels) // image size bytes
-            putUint32(0) // x pixels per meter
-            putUint32(0) // y pixels per meter
-            putUint32(0) // colors used
-            putUint32(0) // important colors
-            putInt8(buffer.toArray(), 0, buffer.capacity)
+            putByte('B'.code.toByte())
+            putByte('M'.code.toByte())
+            putUInt(54 + width * height * channels) // size
+            putUShort(0) // res1
+            putUShort(0) // res2
+            putUInt(54) // offset
+            putUInt(40) // biSize
+            putUInt(width)
+            putUInt(height)
+            putUShort(1.toShort()) // planes
+            putUShort((8 * channels).toShort()) // bitCount
+            putUInt(0) // compression
+            putUInt(width * height * channels) // image size bytes
+            putUInt(0) // x pixels per meter
+            putUInt(0) // y pixels per meter
+            putUInt(0) // colors used
+            putUInt(0) // important colors
+            putByte(buffer.toArray(), 0, buffer.capacity)
         }
-        fileHandler.store(name, bmpBuffer.toArray())
+        vfs.store(name, bmpBuffer.toArray())
     }
 
     private fun writeGlyphToBuffer(
-        buffer: MixedBuffer,
+        buffer: ByteBuffer,
         curves: List<Bezier>,
         glyphWidth: Int,
         glyphHeight: Int,
@@ -440,7 +440,7 @@ class GpuFont(
         gridWidth: Short,
         gridHeight: Short
     ) {
-        buffer.putUint16(gridX).putUint16(gridY).putUint16(gridWidth).putUint16(gridHeight)
+        buffer.putUShort(gridX).putUShort(gridY).putUShort(gridWidth).putUShort(gridHeight)
         curves.forEach {
             writeBezierToBuffer(buffer, it, glyphWidth, glyphHeight)
         }
@@ -450,14 +450,14 @@ class GpuFont(
      * A [Bezier] is written as 6 16-bit integers (12 bytes). Increments buffer by the number of bytes written (always 12).
      * Coords are scaled from [0, glyphSize] to [o, UShort.MAX_VALUE]
      */
-    private fun writeBezierToBuffer(buffer: MixedBuffer, bezier: Bezier, glyphWidth: Int, glyphHeight: Int) {
+    private fun writeBezierToBuffer(buffer: ByteBuffer, bezier: Bezier, glyphWidth: Int, glyphHeight: Int) {
         buffer.apply {
-            putUint16((bezier.p0.x * UShort.MAX_VALUE.toInt() / glyphWidth).toInt().toShort())
-            putUint16((bezier.p0.y * UShort.MAX_VALUE.toInt() / glyphHeight).toInt().toShort())
-            putUint16((bezier.control.x * UShort.MAX_VALUE.toInt() / glyphWidth).toInt().toShort())
-            putUint16((bezier.control.y * UShort.MAX_VALUE.toInt() / glyphHeight).toInt().toShort())
-            putUint16((bezier.p1.x * UShort.MAX_VALUE.toInt() / glyphWidth).toInt().toShort())
-            putUint16((bezier.p1.y * UShort.MAX_VALUE.toInt() / glyphHeight).toInt().toShort())
+            putUShort((bezier.p0.x * UShort.MAX_VALUE.toInt() / glyphWidth).toInt().toShort())
+            putUShort((bezier.p0.y * UShort.MAX_VALUE.toInt() / glyphHeight).toInt().toShort())
+            putUShort((bezier.control.x * UShort.MAX_VALUE.toInt() / glyphWidth).toInt().toShort())
+            putUShort((bezier.control.y * UShort.MAX_VALUE.toInt() / glyphHeight).toInt().toShort())
+            putUShort((bezier.p1.x * UShort.MAX_VALUE.toInt() / glyphWidth).toInt().toShort())
+            putUShort((bezier.p1.y * UShort.MAX_VALUE.toInt() / glyphHeight).toInt().toShort())
         }
     }
 
@@ -465,7 +465,7 @@ class GpuFont(
         if (atlases.isEmpty() || atlases.last().full) {
             val atlas = AtlasGroup().apply {
 
-                pixmap = Pixmap(atlasWidth, atlasHeight, createMixedBuffer(atlasWidth * atlasHeight * ATLAS_CHANNELS))
+                pixmap = Pixmap(atlasWidth, atlasHeight, createByteBuffer(atlasWidth * atlasHeight * ATLAS_CHANNELS))
                 uploaded = true
                 texture.prepare(context)
             }

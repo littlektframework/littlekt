@@ -196,7 +196,7 @@ class WebGL(val gl: WebGL2RenderingContext, private val engineStats: EngineStats
         gl.blendEquationSeparate(modeRGB, modeAlpha)
     }
 
-    override fun getIntegerv(pname: Int, data: Uint32Buffer) {
+    override fun getIntegerv(pname: Int, data: IntBuffer) {
         engineStats.calls++
         when (pname) {
             GL.ACTIVE_TEXTURE, GL.ALPHA_BITS, GL.BLEND_DST_ALPHA, GL.BLEND_DST_RGB,
@@ -235,7 +235,7 @@ class WebGL(val gl: WebGL2RenderingContext, private val engineStats: EngineStats
         }
     }
 
-    override fun getBoundFrameBuffer(data: Uint32Buffer): GlFrameBuffer {
+    override fun getBoundFrameBuffer(data: IntBuffer): GlFrameBuffer {
         engineStats.calls++
         val result = gl.getParameter(GL.FRAMEBUFFER_BINDING) as WebGLFramebuffer?
         return GlFrameBuffer(result)
@@ -393,22 +393,22 @@ class WebGL(val gl: WebGL2RenderingContext, private val engineStats: EngineStats
         data.buffer.limit = data.buffer.capacity
         when (data) {
             is DataSource.Float32BufferDataSource -> {
-                data.buffer as Float32BufferImpl
+                data.buffer as FLoatBufferImpl
                 gl.bufferData(target, data.buffer.buffer, usage, 0, data.buffer.limit)
                 engineStats.bufferAllocated(lastBoundBuffer!!.bufferId, data.buffer.capacity * 4)
             }
             is DataSource.Uint8BufferDataSource -> {
-                data.buffer as Uint8BufferImpl
+                data.buffer as ByteBufferImpl
                 gl.bufferData(target, data.buffer.buffer, usage, 0, data.buffer.limit)
                 engineStats.bufferAllocated(lastBoundBuffer!!.bufferId, data.buffer.capacity)
             }
             is DataSource.Uint16BufferDataSource -> {
-                data.buffer as Uint16BufferImpl
+                data.buffer as ShortBufferImpl
                 gl.bufferData(target, data.buffer.buffer, usage, 0, data.buffer.limit)
                 engineStats.bufferAllocated(lastBoundBuffer!!.bufferId, data.buffer.capacity * 2)
             }
             is DataSource.Uint32BufferDataSource -> {
-                data.buffer as Uint32BufferImpl
+                data.buffer as IntBufferImpl
                 gl.bufferData(target, data.buffer.buffer, usage, 0, data.buffer.limit)
                 engineStats.bufferAllocated(lastBoundBuffer!!.bufferId, data.buffer.capacity * 4)
             }
@@ -425,19 +425,19 @@ class WebGL(val gl: WebGL2RenderingContext, private val engineStats: EngineStats
         data.buffer.limit = data.buffer.capacity
         when (data) {
             is DataSource.Float32BufferDataSource -> {
-                data.buffer as Float32BufferImpl
+                data.buffer as FLoatBufferImpl
                 gl.bufferSubData(target, offset, data.buffer.buffer)
             }
             is DataSource.Uint8BufferDataSource -> {
-                data.buffer as Uint8BufferImpl
+                data.buffer as ByteBufferImpl
                 gl.bufferSubData(target, offset, data.buffer.buffer)
             }
             is DataSource.Uint16BufferDataSource -> {
-                data.buffer as Uint16BufferImpl
+                data.buffer as ShortBufferImpl
                 gl.bufferSubData(target, offset, data.buffer.buffer)
             }
             is DataSource.Uint32BufferDataSource -> {
-                data.buffer as Uint32BufferImpl
+                data.buffer as IntBufferImpl
                 gl.bufferSubData(target, offset, data.buffer.buffer)
             }
         }
@@ -524,10 +524,10 @@ class WebGL(val gl: WebGL2RenderingContext, private val engineStats: EngineStats
         internalFormat: Int,
         width: Int,
         height: Int,
-        source: Uint8Buffer?
+        source: ByteBuffer?
     ) {
         engineStats.calls++
-        val dataview = (source as? Uint8BufferImpl)?.buffer ?: Uint8Array(0)
+        val dataview = (source as? ByteBufferImpl)?.buffer ?: Uint8Array(0)
         gl.compressedTexImage2D(target, level, internalFormat, width, height, 0, dataview)
     }
 
@@ -539,10 +539,10 @@ class WebGL(val gl: WebGL2RenderingContext, private val engineStats: EngineStats
         width: Int,
         height: Int,
         format: Int,
-        source: Uint8Buffer
+        source: ByteBuffer
     ) {
         engineStats.calls++
-        source as Uint8BufferImpl
+        source as ByteBufferImpl
         gl.compressedTexSubImage2D(target, level, xOffset, yOffset, width, height, format, source.buffer)
     }
 
@@ -583,10 +583,10 @@ class WebGL(val gl: WebGL2RenderingContext, private val engineStats: EngineStats
         height: Int,
         format: Int,
         type: Int,
-        source: Uint8Buffer
+        source: ByteBuffer
     ) {
         engineStats.calls++
-        source as Uint8BufferImpl
+        source as ByteBufferImpl
         gl.texSubImage2D(target, level, xOffset, yOffset, width, height, format, type, source.buffer)
     }
 
@@ -599,7 +599,7 @@ class WebGL(val gl: WebGL2RenderingContext, private val engineStats: EngineStats
         height: Int,
         format: Int,
         type: Int,
-        source: MixedBuffer
+        source: ByteBuffer
     ) {
         engineStats.calls++
         source as MixedBufferImpl
@@ -620,14 +620,14 @@ class WebGL(val gl: WebGL2RenderingContext, private val engineStats: EngineStats
 
     override fun uniformMatrix3fv(uniformLocation: UniformLocation, transpose: Boolean, data: Mat3) {
         engineStats.calls++
-        val buffer = createFloat32Buffer(9) as Float32BufferImpl
+        val buffer = createFloatBuffer(9) as FLoatBufferImpl
         data.toBuffer(buffer)
         gl.uniformMatrix3fv(uniformLocation.delegate, transpose, buffer.buffer)
     }
 
-    override fun uniformMatrix3fv(uniformLocation: UniformLocation, transpose: Boolean, data: Float32Buffer) {
+    override fun uniformMatrix3fv(uniformLocation: UniformLocation, transpose: Boolean, data: FLoatBuffer) {
         engineStats.calls++
-        data as Float32BufferImpl
+        data as FLoatBufferImpl
         gl.uniformMatrix3fv(uniformLocation.delegate, transpose, data.buffer)
     }
 
@@ -638,14 +638,14 @@ class WebGL(val gl: WebGL2RenderingContext, private val engineStats: EngineStats
 
     override fun uniformMatrix4fv(uniformLocation: UniformLocation, transpose: Boolean, data: Mat4) {
         engineStats.calls++
-        val buffer = createFloat32Buffer(16) as Float32BufferImpl
+        val buffer = createFloatBuffer(16) as FLoatBufferImpl
         data.toBuffer(buffer)
         gl.uniformMatrix4fv(uniformLocation.delegate, transpose, buffer.buffer)
     }
 
-    override fun uniformMatrix4fv(uniformLocation: UniformLocation, transpose: Boolean, data: Float32Buffer) {
+    override fun uniformMatrix4fv(uniformLocation: UniformLocation, transpose: Boolean, data: FLoatBuffer) {
         engineStats.calls++
-        data as Float32BufferImpl
+        data as FLoatBufferImpl
         gl.uniformMatrix4fv(uniformLocation.delegate, transpose, data.buffer)
     }
 
@@ -721,10 +721,10 @@ class WebGL(val gl: WebGL2RenderingContext, private val engineStats: EngineStats
         width: Int,
         height: Int,
         type: Int,
-        source: Uint8Buffer
+        source: ByteBuffer
     ) {
         engineStats.calls++
-        source as Uint8BufferImpl
+        source as ByteBufferImpl
         gl.texImage2D(target, level, internalFormat, width, height, 0, format, type, source.buffer)
 
     }
@@ -737,7 +737,7 @@ class WebGL(val gl: WebGL2RenderingContext, private val engineStats: EngineStats
         width: Int,
         height: Int,
         type: Int,
-        source: MixedBuffer
+        source: ByteBuffer
     ) {
         engineStats.calls++
         source as MixedBufferImpl

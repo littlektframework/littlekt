@@ -1,6 +1,6 @@
 package com.lehaine.littlekt.file.font.ttf.table
 
-import com.lehaine.littlekt.file.MixedBuffer
+import com.lehaine.littlekt.file.ByteBuffer
 import com.lehaine.littlekt.file.font.ttf.Parser
 import kotlin.math.roundToInt
 
@@ -10,7 +10,7 @@ import kotlin.math.roundToInt
  * @author Colton Daily
  * @date 11/30/2021
  */
-internal class HeadParser(val buffer: MixedBuffer, val start: Int) {
+internal class HeadParser(val buffer: ByteBuffer, val start: Int) {
 
     fun parse(): Head {
         val p = Parser(buffer, start)

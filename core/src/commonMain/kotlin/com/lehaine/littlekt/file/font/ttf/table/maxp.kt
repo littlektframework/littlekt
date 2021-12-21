@@ -1,6 +1,6 @@
 package com.lehaine.littlekt.file.font.ttf.table
 
-import com.lehaine.littlekt.file.MixedBuffer
+import com.lehaine.littlekt.file.ByteBuffer
 import com.lehaine.littlekt.file.font.ttf.Parser
 
 /**
@@ -10,7 +10,7 @@ import com.lehaine.littlekt.file.font.ttf.Parser
  * @author Colton Daily
  * @date 11/30/2021
  */
-internal class MaxpParser(val buffer: MixedBuffer, val start: Int) {
+internal class MaxpParser(val buffer: ByteBuffer, val start: Int) {
 
     fun parse(): Maxp {
         val p = Parser(buffer, start)

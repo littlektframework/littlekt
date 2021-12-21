@@ -1,6 +1,6 @@
 package com.lehaine.littlekt.file.font.ttf
 
-import com.lehaine.littlekt.file.MixedBuffer
+import com.lehaine.littlekt.file.ByteBuffer
 import com.lehaine.littlekt.file.font.ttf.table.*
 import com.lehaine.littlekt.graphics.font.Glyph
 
@@ -40,7 +40,7 @@ class TtfFontReader {
         }
     }
 
-    fun parse(buffer: MixedBuffer) {
+    fun parse(buffer: ByteBuffer) {
         val numTables: Int
         val tableEntries: List<TableEntry>
         val signature = buffer.getString(0, 4)
@@ -52,11 +52,11 @@ class TtfFontReader {
             ).concatToString() || signature == "true" || signature == "typ1"
         ) {
             outlinesFormat = "truetype"
-            numTables = buffer.getUint16(4).toInt()
+            numTables = buffer.getUShort(4).toInt()
             tableEntries = parseOpenTypeTableEntries(buffer, numTables)
         } else if (signature == "OTTO") {
             outlinesFormat = "cff"
-            numTables = buffer.getUint16(4).toInt()
+            numTables = buffer.getUShort(4).toInt()
             tableEntries = parseOpenTypeTableEntries(buffer, numTables)
         } else if (signature === "wOFF") {
             val flavor = buffer.getString(4, 4)
@@ -77,7 +77,7 @@ class TtfFontReader {
                 }
             }
 
-            numTables = buffer.getUint16(12).toInt()
+            numTables = buffer.getUShort(12).toInt()
             tableEntries = parseWOFFTableEntries(buffer, numTables)
         } else {
             throw IllegalStateException("Unsupported OpenType signature: $signature")
@@ -200,26 +200,26 @@ class TtfFontReader {
         addGlyphNames()
     }
 
-    private fun parseOpenTypeTableEntries(buffer: MixedBuffer, numTables: Int): List<TableEntry> {
+    private fun parseOpenTypeTableEntries(buffer: ByteBuffer, numTables: Int): List<TableEntry> {
         val tableEntries = mutableListOf<TableEntry>()
         var p = 12
         for (i in 0 until numTables) {
             val tag = buffer.getString(p, 4)
-            val checksum = buffer.getUint32(p + 4)
-            val offset = buffer.getUint32(p + 8)
-            val length = buffer.getUint32(p + 12)
+            val checksum = buffer.getUInt(p + 4)
+            val offset = buffer.getUInt(p + 8)
+            val length = buffer.getUInt(p + 12)
             tableEntries += TableEntry(tag, checksum, offset, length, Compression.NONE, 0)
             p += 16
         }
         return tableEntries.toList()
     }
 
-    private fun parseWOFFTableEntries(buffer: MixedBuffer, numTables: Int): List<TableEntry> {
+    private fun parseWOFFTableEntries(buffer: ByteBuffer, numTables: Int): List<TableEntry> {
         // TODO("Not yet implemented")
         return listOf()
     }
 
-    private fun uncompressTable(buffer: MixedBuffer, tableEntry: TableEntry): Table {
+    private fun uncompressTable(buffer: ByteBuffer, tableEntry: TableEntry): Table {
         if (tableEntry.compression == Compression.WOFF) {
             // TODO impl inflating WOFF compression
         }
@@ -269,7 +269,7 @@ private data class TableEntry(
 )
 
 private data class Table(
-    val buffer: MixedBuffer, val offset: Int
+    val buffer: ByteBuffer, val offset: Int
 )
 
 internal class Tables {

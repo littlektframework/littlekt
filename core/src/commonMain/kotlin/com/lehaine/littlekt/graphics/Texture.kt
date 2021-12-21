@@ -2,7 +2,7 @@ package com.lehaine.littlekt.graphics
 
 import com.lehaine.littlekt.Context
 import com.lehaine.littlekt.Disposable
-import com.lehaine.littlekt.file.createMixedBuffer
+import com.lehaine.littlekt.file.createByteBuffer
 import com.lehaine.littlekt.graphics.gl.*
 
 /**
@@ -137,7 +137,7 @@ class Texture(
             PixmapTextureData(
                 Pixmap(
                     2, 2,
-                    createMixedBuffer(
+                    createByteBuffer(
                         byteArrayOf(
                             0xFF.toByte(), 0x00.toByte(), 0x00.toByte(), 0xFF.toByte(),
                             0x00.toByte(), 0xFF.toByte(), 0x00.toByte(), 0xFF.toByte(),

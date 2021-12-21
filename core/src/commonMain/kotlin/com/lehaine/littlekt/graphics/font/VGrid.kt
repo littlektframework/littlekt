@@ -1,10 +1,9 @@
 package com.lehaine.littlekt.graphics.font
 
-import com.lehaine.littlekt.file.MixedBuffer
+import com.lehaine.littlekt.file.ByteBuffer
 import com.lehaine.littlekt.graphics.font.VGridAtlas.writeVGridCellToBuffer
 import com.lehaine.littlekt.log.Logger
 import com.lehaine.littlekt.math.clamp
-import kotlin.math.ceil
 import kotlin.math.floor
 import kotlin.math.min
 import kotlin.math.roundToInt
@@ -152,7 +151,7 @@ internal object VGridAtlas {
 
     fun writeVGridAt(
         grid: VGrid,
-        data: MixedBuffer,
+        data: ByteBuffer,
         tx: Int,
         ty: Int,
         width: Int,
@@ -184,7 +183,7 @@ internal object VGridAtlas {
      * Writes the data of a single [VGrid] cell into a texel. At most [depth] bytes will be written,
      * even if there are more bezies.
      */
-    private fun writeVGridCellToBuffer(grid: VGrid, cellIdx: Int, data: MixedBuffer, offset: Int, depth: Int) {
+    private fun writeVGridCellToBuffer(grid: VGrid, cellIdx: Int, data: ByteBuffer, offset: Int, depth: Int) {
         val beziers = grid.cellBeziers[cellIdx].sorted()
         for (i in 0 until depth) {
             data[offset + i] = BEZIER_INDEX_UNUSED
@@ -213,14 +212,14 @@ internal object VGridAtlas {
             // If there's just one bezier, data[0] is always > data[1] so
             // nothing needs to be done. Otherwise, swap data[0] and [1].
             else if (beziers.size != 1) {
-                data[offset] = data.getInt8(offset + 1).also { data[offset + 1] = data.getInt8(offset) }
+                data[offset] = data.getByte(offset + 1).also { data[offset + 1] = data.getByte(offset) }
             }
         }
         // If midInside is 0, make sure that data[0] <= data[1]. This can only
         // not happen if there is only 1 bezier in this cell, for the reason
         // described above. Solve by moving the only bezier into data[1].
         else if (beziers.size == 1) {
-            data[offset + 1] = data.getInt8(offset)
+            data[offset + 1] = data.getByte(offset)
             data[offset] = BEZIER_INDEX_UNUSED
         }
     }

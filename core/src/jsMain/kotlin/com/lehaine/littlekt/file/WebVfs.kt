@@ -1,13 +1,7 @@
 package com.lehaine.littlekt.file
 
 import com.lehaine.littlekt.Context
-import com.lehaine.littlekt.audio.WebAudioClip
-import com.lehaine.littlekt.graphics.Pixmap
-import com.lehaine.littlekt.graphics.Texture
-import com.lehaine.littlekt.graphics.TextureData
-import com.lehaine.littlekt.graphics.gl.PixmapTextureData
 import com.lehaine.littlekt.log.Logger
-import kotlinx.browser.document
 import kotlinx.browser.localStorage
 import kotlinx.browser.window
 import kotlinx.coroutines.CompletableDeferred
@@ -25,24 +19,21 @@ import org.w3c.xhr.XMLHttpRequestResponseType
  * @author Colton Daily
  * @date 11/6/2021
  */
-class WebFileHandler(
+class WebVfs(
     context: Context,
     logger: Logger,
     assetsBaseDir: String
-) : FileHandler(context, logger, assetsBaseDir) {
+) : Vfs(context, logger, assetsBaseDir) {
 
     override suspend fun loadRawAsset(rawRef: RawAssetRef) = LoadedRawAsset(rawRef, loadRaw(rawRef.url))
 
-    override suspend fun loadTextureAsset(textureRef: TextureAssetRef) =
-        LoadedTextureAsset(textureRef, loadImage(textureRef))
-
-    private suspend fun loadRaw(url: String): Uint8Buffer? {
-        val data = CompletableDeferred<Uint8Buffer?>(job)
+    private suspend fun loadRaw(url: String): ByteBuffer? {
+        val data = CompletableDeferred<ByteBuffer?>(job)
         val req = XMLHttpRequest()
         req.responseType = XMLHttpRequestResponseType.ARRAYBUFFER
         req.onload = {
             val array = Uint8Array(req.response as ArrayBuffer)
-            data.complete(Uint8BufferImpl(array))
+            data.complete(ByteBufferImpl(array))
         }
         req.onerror = {
             data.complete(null)
@@ -52,52 +43,6 @@ class WebFileHandler(
         req.send()
 
         return data.await()
-    }
-
-    private suspend fun loadImage(ref: TextureAssetRef): TextureData {
-        val deferred = CompletableDeferred<Image>()
-
-        val img = Image()
-        img.onload = {
-            deferred.complete(img)
-        }
-        img.onerror = { _, _, _, _, _ ->
-            if (ref.url.startsWith("data:")) {
-                deferred.completeExceptionally(RuntimeException("Failed loading tex from data URL"))
-            } else {
-                deferred.completeExceptionally(RuntimeException("Failed loading tex from ${ref.url}"))
-            }
-        }
-        img.crossOrigin = ""
-        img.src = ref.url
-
-        val loadedImg = deferred.await()
-        val canvas = document.createElement("canvas") as HTMLCanvasElement
-        canvas.width = loadedImg.width
-        canvas.height = loadedImg.height
-        val canvasCtx = canvas.getContext("2d") as CanvasRenderingContext2D
-
-        val w = loadedImg.width.toDouble()
-        val h = loadedImg.height.toDouble()
-        canvasCtx.drawImage(img, 0.0, 0.0, w, h, 0.0, 0.0, w, h)
-        val pixels = MixedBufferImpl(canvasCtx.getImageData(0.0, 0.0, w, h).data)
-
-        val pixmap = Pixmap(loadedImg.width, loadedImg.height, pixels)
-        return PixmapTextureData(pixmap, true)
-
-    }
-
-    override suspend fun loadTexture(assetPath: String): Texture {
-        val data = loadTextureData(assetPath)
-        return Texture(data).also { it.prepare(context) }
-    }
-
-    override suspend fun loadAudioClip(assetPath: String): WebAudioClip {
-        return if (isHttpAsset(assetPath)) {
-            WebAudioClip(assetPath)
-        } else {
-            WebAudioClip("$assetsBaseDir/$assetPath")
-        }
     }
 
     override fun store(key: String, data: ByteArray): Boolean {
@@ -120,8 +65,8 @@ class WebFileHandler(
         }
     }
 
-    override fun load(key: String): Uint8Buffer? {
-        return localStorage[key]?.let { Uint8BufferImpl(base64ToBin(it)) }
+    override fun load(key: String): ByteBuffer? {
+        return localStorage[key]?.let { ByteBufferImpl(base64ToBin(it)) }
     }
 
     override fun loadString(key: String): String? {

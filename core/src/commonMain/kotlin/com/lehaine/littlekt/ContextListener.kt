@@ -26,10 +26,6 @@ abstract class ContextListener(val context: Context) : Context by context {
     open fun dispose() {}
 }
 
-fun <T : Context> T.loadTexture(assetPath: String, onLoad: (Texture) -> Unit) = fileHandler.launch {
-    onLoad(loadTexture(assetPath))
-}
-
 /**
  * Creates a new [ShaderProgram] for the specified shaders.
  * @param vertexShader the vertex shader to use. Defaults to [DefaultVertexShader].
