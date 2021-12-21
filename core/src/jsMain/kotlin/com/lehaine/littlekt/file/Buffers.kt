@@ -34,42 +34,6 @@ internal abstract class GenericBuffer<out B : ArrayBufferView>(final override va
 }
 
 /**
- * ByteBuffer buffer implementation
- */
-internal class ByteBufferImpl(array: Uint8Array) : ByteBuffer, GenericBuffer<Uint8Array>(array.length, { array }) {
-
-    constructor(capacity: Int) : this(Uint8Array(capacity))
-    constructor(array: Uint8ClampedArray) : this(Uint8Array(array.buffer))
-
-    override fun get(i: Int): Byte {
-        return buffer[i]
-    }
-
-    override fun set(i: Int, value: Byte) {
-        buffer[i] = value
-    }
-
-    override fun put(data: ByteArray, offset: Int, len: Int): ByteBuffer {
-        for (i in offset until offset + len) {
-            buffer[position++] = data[i]
-        }
-        return this
-    }
-
-    override fun put(value: Byte): ByteBuffer {
-        buffer[position++] = value
-        return this
-    }
-
-    override fun put(data: ByteBuffer): ByteBuffer {
-        for (i in data.position until data.limit) {
-            put(data[i])
-        }
-        return this
-    }
-}
-
-/**
  * ShortBuffer buffer implementation
  */
 internal class ShortBufferImpl(capacity: Int) : ShortBuffer, GenericBuffer<Uint16Array>(capacity, {
@@ -173,12 +137,16 @@ internal class FLoatBufferImpl(array: Float32Array) : FLoatBuffer,
     }
 }
 
-
-internal class MixedBufferImpl(buffer: ArrayBuffer) : ByteBuffer, GenericBuffer<DataView>(buffer.byteLength, {
+/**
+ * ByteBuffer buffer implementation
+ */
+internal class ByteBufferImpl(buffer: ArrayBuffer) : ByteBuffer, GenericBuffer<DataView>(buffer.byteLength, {
     DataView(buffer)
 }) {
     constructor(capacity: Int) : this(ArrayBuffer(capacity))
+    constructor(array: Uint8Array) : this(array.buffer)
     constructor(array: Uint8ClampedArray) : this(array.buffer)
+    constructor(array: ByteArray) : this(Uint8Array(array.toTypedArray()))
 
     override fun set(i: Int, value: Byte) {
         buffer.setInt8(i, value)
@@ -266,7 +234,7 @@ internal class MixedBufferImpl(buffer: ArrayBuffer) : ByteBuffer, GenericBuffer<
 
     override fun putUByte(data: ByteBuffer): ByteBuffer {
         for (i in data.position until data.limit) {
-            buffer.setUint8(position++, data[i])
+            buffer.setUint8(position++, data.getUByte(i))
         }
         return this
     }
@@ -394,12 +362,6 @@ internal class MixedBufferImpl(buffer: ArrayBuffer) : ByteBuffer, GenericBuffer<
     }
 }
 
-actual fun createUint8Buffer(capacity: Int): ByteBuffer {
-    return ByteBufferImpl(capacity)
-}
-
-actual fun createUint8Buffer(array: ByteArray): ByteBuffer = ByteBufferImpl(Uint8Array(array.toTypedArray()))
-
 actual fun createShortBuffer(capacity: Int): ShortBuffer {
     return ShortBufferImpl(capacity)
 }
@@ -417,11 +379,11 @@ actual fun createFloatBuffer(array: FloatArray): FLoatBuffer {
 }
 
 actual fun createByteBuffer(capacity: Int): ByteBuffer {
-    return MixedBufferImpl(capacity)
+    return ByteBufferImpl(capacity)
 }
 
 actual fun createByteBuffer(array: ByteArray): ByteBuffer {
-    return MixedBufferImpl(Uint8Array(array.toTypedArray()).buffer)
+    return ByteBufferImpl(Uint8Array(array.toTypedArray()).buffer)
 }
 
 actual fun createByteBuffer(array: ByteArray, isBigEndian: Boolean): ByteBuffer = createByteBuffer(array)

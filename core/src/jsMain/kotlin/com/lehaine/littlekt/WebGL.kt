@@ -590,22 +590,6 @@ class WebGL(val gl: WebGL2RenderingContext, private val engineStats: EngineStats
         gl.texSubImage2D(target, level, xOffset, yOffset, width, height, format, type, source.buffer)
     }
 
-    override fun texSubImage2D(
-        target: Int,
-        level: Int,
-        xOffset: Int,
-        yOffset: Int,
-        width: Int,
-        height: Int,
-        format: Int,
-        type: Int,
-        source: ByteBuffer
-    ) {
-        engineStats.calls++
-        source as MixedBufferImpl
-        gl.texSubImage2D(target, level, xOffset, yOffset, width, height, format, type, source.buffer)
-    }
-
     override fun texImage2D(
         target: Int,
         level: Int,
@@ -725,27 +709,10 @@ class WebGL(val gl: WebGL2RenderingContext, private val engineStats: EngineStats
     ) {
         engineStats.calls++
         source as ByteBufferImpl
-        gl.texImage2D(target, level, internalFormat, width, height, 0, format, type, source.buffer)
-
-    }
-
-    override fun texImage2D(
-        target: Int,
-        level: Int,
-        internalFormat: Int,
-        format: Int,
-        width: Int,
-        height: Int,
-        type: Int,
-        source: ByteBuffer
-    ) {
-        engineStats.calls++
-        source as MixedBufferImpl
         gl.texImage2D(
             target, level, internalFormat, width, height, 0, format, type,
             Uint8Array(source.toArray().toTypedArray()) // convert it to a uint8array or else webgl fails to render
         )
-
     }
 
     override fun texParameteri(target: Int, pname: Int, param: Int) {

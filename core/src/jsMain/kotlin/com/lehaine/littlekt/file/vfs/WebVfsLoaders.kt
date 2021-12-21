@@ -2,7 +2,7 @@ package com.lehaine.littlekt.file.vfs
 
 import com.lehaine.littlekt.audio.AudioClip
 import com.lehaine.littlekt.audio.WebAudioClip
-import com.lehaine.littlekt.file.MixedBufferImpl
+import com.lehaine.littlekt.file.ByteBufferImpl
 import com.lehaine.littlekt.graphics.Pixmap
 import com.lehaine.littlekt.graphics.Texture
 import com.lehaine.littlekt.graphics.gl.PixmapTextureData
@@ -47,7 +47,7 @@ actual suspend fun VfsFile.readTexture(): Texture {
     val w = loadedImg.width.toDouble()
     val h = loadedImg.height.toDouble()
     canvasCtx.drawImage(img, 0.0, 0.0, w, h, 0.0, 0.0, w, h)
-    val pixels = MixedBufferImpl(canvasCtx.getImageData(0.0, 0.0, w, h).data)
+    val pixels = ByteBufferImpl(canvasCtx.getImageData(0.0, 0.0, w, h).data)
 
     val pixmap = Pixmap(loadedImg.width, loadedImg.height, pixels)
     val data = PixmapTextureData(pixmap, true)
