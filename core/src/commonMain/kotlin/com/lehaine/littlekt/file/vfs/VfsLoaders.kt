@@ -6,7 +6,6 @@ import com.lehaine.littlekt.file.atlas.AtlasInfo
 import com.lehaine.littlekt.file.atlas.AtlasPage
 import com.lehaine.littlekt.file.ldtk.LDtkLevelLoader
 import com.lehaine.littlekt.file.ldtk.LDtkMapLoader
-import com.lehaine.littlekt.file.ldtk.ProjectJson
 import com.lehaine.littlekt.graphics.Texture
 import com.lehaine.littlekt.graphics.TextureAtlas
 import com.lehaine.littlekt.graphics.font.CharacterSets
@@ -47,15 +46,14 @@ suspend fun VfsFile.readTtfFont(chars: String = CharacterSets.LATIN_ALL): TtfFon
     return TtfFont(chars).also { it.load(data) }
 }
 
-suspend fun VfsFile.readLDtkMap(loadAllLevels: Boolean): LDtkTileMap {
-    val project = vfs.json.decodeFromString<ProjectJson>(readString())
-    val loader = LDtkMapLoader(project)
-    return loader.loadMap(vfs, loadAllLevels)
+suspend fun VfsFile.readLDtkMap(loadAllLevels: Boolean, levelIdx: Int = 0): LDtkTileMap {
+    val loader = LDtkMapLoader(this)
+    return loader.loadMap(loadAllLevels, levelIdx)
 }
 
 suspend fun VfsFile.readLDtkLevel(map: LDtkTileMap, levelIdx: Int): LDtkLevel {
     val loader = LDtkLevelLoader(map)
-    return loader.loadLevel(vfs, map.json.levelDefinitions[levelIdx], map)
+    return loader.loadLevel(this, map.json.levelDefinitions[levelIdx], map)
 }
 
 /**

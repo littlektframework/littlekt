@@ -1,7 +1,7 @@
 package com.lehaine.littlekt
 
-import com.lehaine.littlekt.file.Vfs
 import com.lehaine.littlekt.file.JvmVfs
+import com.lehaine.littlekt.file.vfs.VfsFile
 import com.lehaine.littlekt.graphics.GL
 import com.lehaine.littlekt.graphics.GLVersion
 import com.lehaine.littlekt.graphics.Texture
@@ -33,7 +33,10 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context {
     override val graphics: Graphics = LwjglGraphics(stats.engineStats)
     override val logger: Logger = Logger(configuration.title)
     override val input: Input = LwjglInput(logger, this)
-    override val vfs: Vfs = JvmVfs(this, logger, "./.storage", ".")
+    override val vfs = JvmVfs(this, logger, "./.storage", ".")
+    override val resourcesVfs: VfsFile get() = vfs.root
+    override val storageVfs: VfsFile get() = VfsFile(vfs, "./.storage")
+
     override val platform: Context.Platform = Context.Platform.DESKTOP
 
     private val mainThreadRunnables = mutableListOf<GpuThreadRunnable>()

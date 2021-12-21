@@ -12,7 +12,7 @@ class LDtkMapTest(context: Context) : ContextListener(context) {
 
     init {
         vfs.launch {
-            val map = get("ldtk/sample.ldtk").readLDtkMap(true)
+            val map = resourcesVfs["ldtk/sample.ldtk"].readLDtkMap(true)
         }
     }
 }

@@ -143,7 +143,7 @@ fun PathInfo.getPathComponents(): List<String> = fullPathNormalized.split('/')
  */
 fun PathInfo.getPathFullComponents(): List<String> {
     val out = arrayListOf<String>()
-    for (n in 0 until fullPathNormalized.length) {
+    for (n in fullPathNormalized.indices) {
         when (fullPathNormalized[n]) {
             '/', '\\' -> {
                 out += fullPathNormalized.substring(0, n)
@@ -230,7 +230,7 @@ fun PathInfo.isAbsolute(): Boolean {
     return false
 }
 
-private fun String.lastIndexOfOrNull(char: Char, startIndex: Int = 0): Int? =
+private fun String.lastIndexOfOrNull(char: Char, startIndex: Int = lastIndex): Int? =
     lastIndexOf(char, startIndex).takeIf { it >= 0 }
 
 private fun String.indexOfOrNull(char: Char, startIndex: Int = 0): Int? =

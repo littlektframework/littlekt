@@ -44,8 +44,8 @@ class LDtkTileset(json: TilesetDefinition, val texture: Texture) : TileSet {
             TextureSlice(
                 Texture(
                     GLTextureData(
-                        0,
-                        0,
+                        1,
+                        1,
                         0,
                         TextureFormat.RGBA,
                         TextureFormat.RGBA,

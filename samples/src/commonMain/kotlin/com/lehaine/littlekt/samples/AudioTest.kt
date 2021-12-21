@@ -21,8 +21,8 @@ class AudioTest(context: Context) : ContextListener(context) {
 
     init {
         vfs.launch {
-            sfx = vfs["random.wav"].readAudioClip()
-            music = vfs["music.mp3"].readAudioClip()
+            sfx = resourcesVfs["random.wav"].readAudioClip()
+            music = resourcesVfs["music.mp3"].readAudioClip()
             loading = false
         }
     }

@@ -39,7 +39,7 @@ class FrameBufferTest(context: Context) : ContextListener(context) {
     init {
         logger.level = Logger.Level.DEBUG
         vfs.launch {
-            texture = get("person.png").readTexture()
+            texture = resourcesVfs["person.png"].readTexture()
             loading = false
         }
     }

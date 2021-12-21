@@ -25,9 +25,9 @@ import kotlin.coroutines.CoroutineContext
 abstract class Vfs(
     val context: Context,
     val logger: Logger,
-    var assetsBaseDir: String
+    var baseDir: String
 ) : CoroutineScope {
-    val root get() = VfsFile(this, assetsBaseDir)
+    val root get() = VfsFile(this, baseDir)
 
     protected open val absolutePath: String get() = ""
 
@@ -120,7 +120,7 @@ abstract class Vfs(
         val ref = if (isHttpAsset(assetPath)) {
             RawAssetRef(assetPath, false)
         } else {
-            RawAssetRef("$assetsBaseDir/$assetPath", true)
+            RawAssetRef("$baseDir/$assetPath", true)
         }
         val awaitedAsset = AwaitedAsset(ref)
         awaitedAssetsChannel.send(awaitedAsset)

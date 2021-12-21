@@ -1,8 +1,9 @@
 package com.lehaine.littlekt
 
+import com.lehaine.littlekt.file.Vfs
+import com.lehaine.littlekt.file.vfs.VfsFile
 import com.lehaine.littlekt.graphics.GL
 import com.lehaine.littlekt.input.Input
-import com.lehaine.littlekt.file.Vfs
 import com.lehaine.littlekt.log.Logger
 
 /**
@@ -31,6 +32,10 @@ interface Context {
     val logger: Logger
 
     val vfs: Vfs
+
+    val resourcesVfs: VfsFile
+
+    val storageVfs: VfsFile
 
     val platform: Platform
 

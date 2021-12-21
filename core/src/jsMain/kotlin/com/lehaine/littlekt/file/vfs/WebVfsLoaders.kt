@@ -62,6 +62,6 @@ actual suspend fun VfsFile.readAudioClip(): AudioClip {
     return if (isHttpUrl()) {
         WebAudioClip(path)
     } else {
-        WebAudioClip("${vfs.assetsBaseDir}/$path")
+        WebAudioClip("${vfs.baseDir}/$path")
     }
 }

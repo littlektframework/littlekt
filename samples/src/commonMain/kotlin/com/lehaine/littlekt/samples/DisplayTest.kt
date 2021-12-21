@@ -76,10 +76,10 @@ class DisplayTest(context: Context) : ContextListener(context), InputProcessor {
     init {
         logger.level = Logger.Level.DEBUG
         vfs.launch {
-            texture = get("atlas.png").readTexture()
+            texture = resourcesVfs["atlas.png"].readTexture()
             slices = texture.slice(16, 16)
             person = slices[0][0]
-            atlas = get("tiles.atlas.json").readAtlas()
+            atlas = resourcesVfs["tiles.atlas.json"].readAtlas()
             bossAttack = atlas.getAnimation("bossAttack")
             bossAttack.playLooped()
             loading = false

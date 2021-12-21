@@ -1,9 +1,9 @@
 package com.lehaine.littlekt.graphics.font
 
 import com.lehaine.littlekt.Context
-import com.lehaine.littlekt.file.Vfs
 import com.lehaine.littlekt.file.ByteBuffer
 import com.lehaine.littlekt.file.createByteBuffer
+import com.lehaine.littlekt.file.vfs.VfsFile
 import com.lehaine.littlekt.graphics.*
 import com.lehaine.littlekt.graphics.gl.BlendFactor
 import com.lehaine.littlekt.graphics.gl.PixmapTextureData
@@ -107,7 +107,7 @@ class GpuFont(
         GpuTextFragmentShader()
     ).also { it.prepare(context) }
 
-    private val vfs: Vfs get() = context.vfs
+    private val vfs: VfsFile get() = context.storageVfs
     private val gl: GL get() = context.gl
 
     init {
@@ -427,7 +427,7 @@ class GpuFont(
             putUInt(0) // important colors
             putByte(buffer.toArray(), 0, buffer.capacity)
         }
-        vfs.store(name, bmpBuffer.toArray())
+        vfs[name].writeKeystore(bmpBuffer.toArray())
     }
 
     private fun writeGlyphToBuffer(
