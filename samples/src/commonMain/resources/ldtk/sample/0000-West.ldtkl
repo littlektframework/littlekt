@@ -372,7 +372,7 @@
 			"layerDefUid": 2,
 			"pxOffsetX": 0,
 			"pxOffsetY": 0,
-			"visible": false,
+			"visible": true,
 			"optionalRules": [],
 			"intGridCsv": [
 				1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
@@ -1382,7 +1382,7 @@
 			"layerDefUid": 48,
 			"pxOffsetX": 0,
 			"pxOffsetY": 0,
-			"visible": false,
+			"visible": true,
 			"optionalRules": [],
 			"intGridCsv": [
 				1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,

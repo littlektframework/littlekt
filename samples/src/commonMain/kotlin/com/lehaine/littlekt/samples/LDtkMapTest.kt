@@ -7,6 +7,7 @@ import com.lehaine.littlekt.file.vfs.readLDtkMap
 import com.lehaine.littlekt.graphics.*
 import com.lehaine.littlekt.graphics.tilemap.ldtk.LDtkTileMap
 import com.lehaine.littlekt.log.Logger
+import com.lehaine.littlekt.util.forEachReversed
 import kotlin.time.Duration
 
 /**
@@ -31,23 +32,19 @@ class LDtkMapTest(context: Context) : ContextListener(context) {
             person = atlas["heroIdle0.png"].slice
             loading = false
         }
-        camera.translate(0f, 0f, 0f)
+        camera.translate(240f, 135f, 0f)
     }
 
     override fun render(dt: Duration) {
         if (loading) return
         camera.update()
         batch.use(camera.viewProjection) {
-            val lastIdx = map.levels[0].layers.lastIndex
-            map.levels[0].levelBackgroundImage?.render(batch, 0f, 0f)
-            map.levels[0].layers[lastIdx].render(batch, camera, 0f, 0f)
-            map.levels[0].layers[lastIdx - 1].render(batch, camera, 0f, 0f)
+            val level = map.levels[0]
+            level.levelBackgroundImage?.render(batch, 0f, 0f)
+            level.layers.forEachReversed { layer ->
+                layer.render(batch, camera, 0f, 0f)
+            }
             it.draw(person, 100f, 50f)
         }
-    }
-
-    override fun resize(width: Int, height: Int) {
-    //    camera.viewport.update(width, height, this)
-        camera.update()
     }
 }

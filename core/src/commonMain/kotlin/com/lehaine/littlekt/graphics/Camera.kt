@@ -62,7 +62,7 @@ abstract class Camera {
     /**
      * The viewport height
      */
-    var viewportHeight by viewport::width
+    var viewportHeight by viewport::height
 
 
     /**
