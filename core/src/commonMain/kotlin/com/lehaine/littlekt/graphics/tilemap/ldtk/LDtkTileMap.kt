@@ -3,7 +3,6 @@ package com.lehaine.littlekt.graphics.tilemap.ldtk
 import com.lehaine.littlekt.file.ldtk.ProjectJson
 import com.lehaine.littlekt.graphics.Camera
 import com.lehaine.littlekt.graphics.SpriteBatch
-import com.lehaine.littlekt.graphics.Viewport
 import com.lehaine.littlekt.graphics.tilemap.TileMap
 
 /**
@@ -17,7 +16,7 @@ class LDtkTileMap(val json: ProjectJson) : TileMap() {
     val worldLayout = json.worldLayout
     val bgColorHex = json.bgColor
 
-    override fun render(batch: SpriteBatch, camera: Camera, viewport: Viewport, x: Float, y: Float) {
+    override fun render(batch: SpriteBatch, camera: Camera, x: Float, y: Float) {
 //       super.render(batch, camera, viewport)
         viewBounds.x = 0f
         viewBounds.y = 0f

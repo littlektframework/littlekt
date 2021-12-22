@@ -2,7 +2,6 @@ package com.lehaine.littlekt.graphics.tilemap
 
 import com.lehaine.littlekt.graphics.Camera
 import com.lehaine.littlekt.graphics.SpriteBatch
-import com.lehaine.littlekt.graphics.Viewport
 import com.lehaine.littlekt.math.Rect
 import kotlin.math.abs
 
@@ -13,11 +12,12 @@ import kotlin.math.abs
 abstract class TileMap {
     protected val viewBounds = Rect()
 
-    open fun render(batch: SpriteBatch, camera: Camera, viewport: Viewport, x:Float, y:Float) {
-        viewBounds.calculateViewBounds(camera, viewport)
+    open fun render(batch: SpriteBatch, camera: Camera, x: Float, y: Float) {
+        viewBounds.calculateViewBounds(camera)
     }
 
-    private fun Rect.calculateViewBounds(camera: Camera, viewport: Viewport) {
+    private fun Rect.calculateViewBounds(camera: Camera) {
+        val viewport = camera.viewport
         val width = viewport.width * camera.zoom
         val height = viewport.height * camera.zoom
         val w = width * abs(camera.up.y) + height * abs(camera.up.x)

@@ -19,12 +19,7 @@ import kotlin.time.Duration
  */
 class GPUFontTest(context: Context) : ContextListener(context) {
     private var loading = true
-    private val camera = OrthographicCamera().apply {
-        left = 0f
-        bottom = 0f
-        right = graphics.width.toFloat()
-        top = graphics.height.toFloat()
-    }
+    private val camera = OrthographicCamera(graphics.width, graphics.height)
     private lateinit var freeSerif: TtfFont
     private lateinit var libSans: TtfFont
     private lateinit var gpuFont: GpuFont

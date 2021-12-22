@@ -326,3 +326,6 @@ fun Vec3f.nearestPointOnEdge(edgeA: Vec3f, edgeB: Vec3f, result: MutableVec3f): 
         else -> result.scale(l).add(edgeA)
     }
 }
+
+fun map(inRangeStart: Float, inRangeEnd: Float, outRangeStart: Float, outRangeEnd: Float, value: Float) =
+    outRangeStart + (value - inRangeStart) * (outRangeEnd - outRangeStart) / (inRangeEnd - inRangeStart)

@@ -16,13 +16,7 @@ import kotlin.time.Duration
 class LDtkMapTest(context: Context) : ContextListener(context) {
 
     private val batch = SpriteBatch(this)
-    val camera = OrthographicCamera().apply {
-        left = 0f
-        right = graphics.width.toFloat()
-        bottom = 0f
-        top = graphics.height.toFloat()
-    }
-    private val viewport = Viewport(0, 0, 480, 270)
+    private val camera = OrthographicCamera(480, 270)
     private lateinit var map: LDtkTileMap
     private lateinit var atlas: TextureAtlas
     private lateinit var person: TextureSlice
@@ -37,17 +31,23 @@ class LDtkMapTest(context: Context) : ContextListener(context) {
             person = atlas["heroIdle0.png"].slice
             loading = false
         }
-        camera.translate(0f, -200f, 0f)
+        camera.translate(0f, 0f, 0f)
     }
 
     override fun render(dt: Duration) {
         if (loading) return
-        batch.use {
+        camera.update()
+        batch.use(camera.viewProjection) {
             val lastIdx = map.levels[0].layers.lastIndex
             map.levels[0].levelBackgroundImage?.render(batch, 0f, 0f)
-            map.levels[0].layers[lastIdx].render(batch, camera, viewport, 0f, 0f)
-            map.levels[0].layers[lastIdx - 1].render(batch, camera, viewport, 0f, 0f)
+            map.levels[0].layers[lastIdx].render(batch, camera, 0f, 0f)
+            map.levels[0].layers[lastIdx - 1].render(batch, camera, 0f, 0f)
             it.draw(person, 100f, 50f)
         }
+    }
+
+    override fun resize(width: Int, height: Int) {
+    //    camera.viewport.update(width, height, this)
+        camera.update()
     }
 }

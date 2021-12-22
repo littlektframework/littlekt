@@ -60,12 +60,8 @@ class DisplayTest(context: Context) : ContextListener(context), InputProcessor {
         indicesAsQuad()
     }
 
-    val camera = OrthographicCamera().apply {
-        left = 0f
-        right = graphics.width.toFloat()
-        bottom = 0f
-        top = graphics.height.toFloat()
-    }
+    val camera = OrthographicCamera(graphics.width, graphics.height)
+
     lateinit var bossAttack: Animation<TextureSlice>
     private var x = 0f
     private var y = 0f

@@ -5,6 +5,7 @@ import com.lehaine.littlekt.file.ldtk.LayerInstance
 import com.lehaine.littlekt.file.ldtk.LevelDefinition
 import com.lehaine.littlekt.file.ldtk.ProjectJson
 import com.lehaine.littlekt.graphics.*
+import com.lehaine.littlekt.graphics.viewport.Viewport
 import com.lehaine.littlekt.math.Rect
 import kotlin.math.abs
 
