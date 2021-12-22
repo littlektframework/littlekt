@@ -1,4 +1,4 @@
-package com.lehaine.littlekt.graphics.viewport
+package com.lehaine.littlekt.util.viewport
 
 import com.lehaine.littlekt.Context
 import com.lehaine.littlekt.util.Scaler

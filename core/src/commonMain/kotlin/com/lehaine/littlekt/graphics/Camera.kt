@@ -1,7 +1,7 @@
 package com.lehaine.littlekt.graphics
 
 import com.lehaine.littlekt.Context
-import com.lehaine.littlekt.graphics.viewport.Viewport
+import com.lehaine.littlekt.util.viewport.Viewport
 import com.lehaine.littlekt.math.*
 import com.lehaine.littlekt.util.LazyMat4
 
