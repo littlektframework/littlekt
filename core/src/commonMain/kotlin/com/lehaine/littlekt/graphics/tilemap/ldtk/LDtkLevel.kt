@@ -4,8 +4,10 @@ import com.lehaine.littlekt.file.ldtk.LayerDefinition
 import com.lehaine.littlekt.file.ldtk.LayerInstance
 import com.lehaine.littlekt.file.ldtk.LevelDefinition
 import com.lehaine.littlekt.file.ldtk.ProjectJson
-import com.lehaine.littlekt.graphics.*
-import com.lehaine.littlekt.util.viewport.Viewport
+import com.lehaine.littlekt.graphics.Camera
+import com.lehaine.littlekt.graphics.SpriteBatch
+import com.lehaine.littlekt.graphics.Texture
+import com.lehaine.littlekt.graphics.TextureSlice
 import com.lehaine.littlekt.math.Rect
 import kotlin.math.abs
 
@@ -137,18 +139,18 @@ class LDtkLevel(
 
     private val viewBounds = Rect()
 
-    fun render(batch: SpriteBatch, camera: Camera, viewport: Viewport, x: Float, y: Float) {
-        //  viewBounds.calculateViewBounds(camera, viewport)
+    fun render(batch: SpriteBatch, camera: Camera, x: Float, y: Float) {
+        viewBounds.calculateViewBounds(camera)
         render(batch, viewBounds, x, y)
     }
 
     fun render(batch: SpriteBatch, viewBounds: Rect, x: Float, y: Float) {
-        val offsetX = worldX
-        val offsetY = (viewBounds.height - worldY - pxHeight).toInt()
-        levelBackgroundImage?.render(batch, offsetX.toFloat(), offsetY.toFloat())
+        val offsetX = worldX + x
+        val offsetY = (viewBounds.height - worldY - pxHeight).toInt() + y
+        levelBackgroundImage?.render(batch, offsetX, offsetY)
         // need to render back to front - layers last in the list need to render first
         for (i in layers.size - 1 downTo 0) {
-            layers[i].render(batch, viewBounds, x, y)
+            layers[i].render(batch, viewBounds, offsetX, offsetY)
 
         }
     }
@@ -185,7 +187,8 @@ class LDtkLevel(
         return projectJson.defs.layers.find { it.uid == uid || it.identifier == identifier }
     }
 
-    private fun Rect.calculateViewBounds(camera: Camera, viewport: Viewport) {
+    private fun Rect.calculateViewBounds(camera: Camera) {
+        val viewport = camera.viewport
         val width = viewport.width * camera.zoom
         val height = viewport.height * camera.zoom
         val w = width * abs(camera.up.y) + height * abs(camera.up.x)

@@ -3,10 +3,8 @@ package com.lehaine.littlekt.graphics.tilemap.ldtk
 import com.lehaine.littlekt.file.ldtk.LayerInstance
 import com.lehaine.littlekt.graphics.SpriteBatch
 import com.lehaine.littlekt.math.Rect
-import kotlin.math.ceil
 import kotlin.math.floor
 import kotlin.math.max
-import kotlin.math.min
 
 /**
  * @author Colton Daily
@@ -48,9 +46,9 @@ open class LDtkTilesLayer(
 
     override fun render(batch: SpriteBatch, viewBounds: Rect, x: Float, y: Float) {
         val minY = max(floor(-viewBounds.y / cellSize).toInt(), 0)
-        val maxY = min(ceil((-viewBounds.y + viewBounds.height) / cellSize).toInt(), gridHeight)
+        val maxY = gridHeight //min(ceil((-viewBounds.y + viewBounds.height) / cellSize).toInt(), gridHeight)
         val minX = max(floor(viewBounds.x / cellSize).toInt(), 0)
-        val maxX = min(ceil((viewBounds.x + viewBounds.width) / cellSize).toInt(), gridWidth)
+        val maxX = gridWidth //min(ceil((viewBounds.x + viewBounds.width) / cellSize).toInt(), gridWidth)
         for (cy in minY..maxY) {
             for (cx in minX..maxX) {
                 if (hasAnyTileAt(cx, cy)) {
