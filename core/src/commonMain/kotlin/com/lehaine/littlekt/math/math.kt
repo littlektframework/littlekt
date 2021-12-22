@@ -329,3 +329,22 @@ fun Vec3f.nearestPointOnEdge(edgeA: Vec3f, edgeB: Vec3f, result: MutableVec3f): 
 
 fun map(inRangeStart: Float, inRangeEnd: Float, outRangeStart: Float, outRangeEnd: Float, value: Float) =
     outRangeStart + (value - inRangeStart) * (outRangeEnd - outRangeStart) / (inRangeEnd - inRangeStart)
+
+val Int.nextPowerOfTwo: Int
+    get() {
+        var v = this
+        v--
+        v = v or (v shr 1)
+        v = v or (v shr 2)
+        v = v or (v shr 4)
+        v = v or (v shr 8)
+        v = v or (v shr 16)
+        v++
+        return v
+    }
+
+/** Returns the previous power of two of [this] */
+val Int.prevPowerOfTwo: Int get() = if (isPowerOfTwo) this else (nextPowerOfTwo ushr 1)
+
+/** Checks if [this] value is power of two */
+val Int.isPowerOfTwo: Boolean get() = this.nextPowerOfTwo == this

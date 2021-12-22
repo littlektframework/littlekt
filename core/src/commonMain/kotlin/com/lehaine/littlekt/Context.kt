@@ -44,4 +44,6 @@ interface Context {
     fun close()
 
     fun destroy()
+
+    fun runOnMainThread(action: () -> Unit)
 }

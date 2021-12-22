@@ -4,7 +4,9 @@ import com.lehaine.littlekt.file.ByteBuffer
 import com.lehaine.littlekt.file.createByteBuffer
 import com.lehaine.littlekt.graphics.gl.DataType
 import com.lehaine.littlekt.graphics.gl.TextureFormat
+import com.lehaine.littlekt.math.clamp
 import kotlin.math.max
+import kotlin.math.min
 import kotlin.math.round
 
 /**
@@ -169,6 +171,50 @@ class Pixmap(val width: Int, val height: Int, val pixels: ByteBuffer = createByt
         }
     }
 
+    fun copy(srcX: Int, srcY: Int, dst: Pixmap, dstX: Int, dstY: Int, width: Int, height: Int) {
+        val src = this
+        val srcX0 = src.clampWidth(srcX)
+        val srcX1 = src.clampWidth(srcX + width)
+        val srcY0 = src.clampHeight(srcY)
+        val srcY1 = src.clampHeight(srcY + height)
+
+        val dstX0 = dst.clampWidth(dstX)
+        val dstX1 = dst.clampWidth(dstX + width)
+        val dstY0 = dst.clampHeight(dstY)
+        val dstY1 = dst.clampHeight(dstY + height)
+
+        val newWidth = min(srcX1 - srcX0, dstX1 - dstX0)
+        val newHeight = min(srcY1 - srcY0, dstY1 - dstY0)
+
+        for (y in 0 until newHeight) {
+            for (x in 0 until newWidth) {
+                dst.set(dstX0 + x, dstY0 + y, get(srcX0 + x, srcY0 + y))
+            }
+        }
+    }
+
+    fun drawSlice(x: Int, y: Int, slice: TextureSlice, border: Int = 0) {
+        val sliceWidth = slice.width
+        val sliceHeight = slice.height
+
+        slice.texture.textureData.pixmap.copy(slice.x, slice.y, this, x, y, sliceWidth, sliceHeight)
+
+        if (border == 0) return
+
+        // copy horizontally
+        for (n in 1..border) {
+            copy(x, y, this, x - n, y, 1, sliceHeight)
+            copy(x + sliceWidth - 1, y, this, x + sliceWidth - 1 + n, y, 1, sliceWidth)
+        }
+
+        // copy vertically
+        for (n in 1..border) {
+            val rWidth = sliceWidth + border * 2
+            copy(x, y, this, x, y - n, rWidth, 1)
+            copy(x, y + height - 1, this, x, y + height - 1 + n, rWidth, 1)
+        }
+    }
+
     fun blend(src: Int, dst: Int): Int {
         val srcA = src and 0xff
         if (srcA == 0) return src
@@ -311,4 +357,7 @@ class Pixmap(val width: Int, val height: Int, val pixels: ByteBuffer = createByt
     fun contains(x: Int, y: Int): Boolean {
         return x >= 0 && y >= 0 && x < width && y < width
     }
+
+    private fun clampWidth(x: Int) = x.clamp(0, width)
+    private fun clampHeight(y: Int) = y.clamp(0, height)
 }

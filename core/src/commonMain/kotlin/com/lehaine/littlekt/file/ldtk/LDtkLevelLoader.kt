@@ -3,6 +3,7 @@ package com.lehaine.littlekt.file.ldtk
 import com.lehaine.littlekt.file.vfs.VfsFile
 import com.lehaine.littlekt.file.vfs.readTexture
 import com.lehaine.littlekt.graphics.Texture
+import com.lehaine.littlekt.graphics.sliceWithBorder
 import com.lehaine.littlekt.graphics.tilemap.ldtk.LDtkLevel
 import com.lehaine.littlekt.graphics.tilemap.ldtk.LDtkTileMap
 import com.lehaine.littlekt.graphics.tilemap.ldtk.LDtkTileset
@@ -33,6 +34,8 @@ class LDtkLevelLoader(private val map: LDtkTileMap) {
 
     private suspend fun loadTileset(vfs: VfsFile, tilesetDefinition: TilesetDefinition) =
         LDtkTileset(
-            tilesetDefinition, vfs[tilesetDefinition.relPath].readTexture()
+            tilesetDefinition,
+            vfs[tilesetDefinition.relPath].readTexture()
+                .sliceWithBorder(vfs.vfs.context, tilesetDefinition.tileGridSize, tilesetDefinition.tileGridSize, 4)
         )
 }

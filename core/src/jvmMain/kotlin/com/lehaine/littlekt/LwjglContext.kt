@@ -163,7 +163,7 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context {
             synchronized(mainThreadRunnables) {
                 if (mainThreadRunnables.isNotEmpty()) {
                     for (r in mainThreadRunnables) {
-                        r.r()
+                        r.run()
                         r.future.complete(null)
                     }
                     mainThreadRunnables.clear()
@@ -202,15 +202,13 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context {
         GLFW.glfwSetErrorCallback(null)?.free()
     }
 
-    fun runOnMainThread(action: () -> Unit): CompletableFuture<Void> {
+    override fun runOnMainThread(action: () -> Unit) {
         synchronized(mainThreadRunnables) {
-            val r = GpuThreadRunnable(action)
-            mainThreadRunnables += r
-            return r.future
+            mainThreadRunnables += GpuThreadRunnable(action)
         }
     }
 
-    private class GpuThreadRunnable(val r: () -> Unit) {
+    private class GpuThreadRunnable(val run: () -> Unit) {
         val future = CompletableFuture<Void>()
     }
 }

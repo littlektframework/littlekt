@@ -34,6 +34,8 @@ class WebGLContext(override val configuration: JsConfiguration) :
     private var lastFrame = 0.0
     private var closed = false
 
+    private val mainThreadRunnables = mutableListOf<GpuThreadRunnable>()
+
     override fun start(build: (app: Context) -> ContextListener) {
         graphics as WebGLGraphics
         input as JsInput
@@ -60,6 +62,14 @@ class WebGLContext(override val configuration: JsConfiguration) :
             canvas.height = canvas.clientHeight
             listener.resize(graphics.width, graphics.height)
         }
+
+        if (mainThreadRunnables.isNotEmpty()) {
+            mainThreadRunnables.forEach {
+                it.run()
+            }
+            mainThreadRunnables.clear()
+        }
+
         stats.engineStats.resetPerFrameCounts()
         input as JsInput
         val dt = ((now - lastFrame) / 1000.0).seconds
@@ -85,4 +95,9 @@ class WebGLContext(override val configuration: JsConfiguration) :
         listener.dispose()
     }
 
+    override fun runOnMainThread(action: () -> Unit) {
+        mainThreadRunnables += GpuThreadRunnable(action)
+    }
+
+    private class GpuThreadRunnable(val run: () -> Unit)
 }

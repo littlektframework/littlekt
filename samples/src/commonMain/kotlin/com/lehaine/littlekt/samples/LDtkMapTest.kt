@@ -4,8 +4,11 @@ import com.lehaine.littlekt.Context
 import com.lehaine.littlekt.ContextListener
 import com.lehaine.littlekt.file.vfs.readAtlas
 import com.lehaine.littlekt.file.vfs.readLDtkMap
+import com.lehaine.littlekt.file.vfs.readTexture
 import com.lehaine.littlekt.graphics.*
 import com.lehaine.littlekt.graphics.tilemap.ldtk.LDtkTileMap
+import com.lehaine.littlekt.graphics.tilemap.ldtk.LDtkTileset
+import com.lehaine.littlekt.input.Key
 import com.lehaine.littlekt.log.Logger
 import com.lehaine.littlekt.util.forEachReversed
 import kotlin.time.Duration
@@ -23,6 +26,10 @@ class LDtkMapTest(context: Context) : ContextListener(context) {
     private lateinit var person: TextureSlice
     private var loading = true
 
+    private val speed = 0.1f
+    private var xVel = 0f
+    private var yVel = 0f
+
     init {
         logger.level = Logger.Level.DEBUG
         Logger.defaultLevel = Logger.Level.DEBUG
@@ -37,6 +44,25 @@ class LDtkMapTest(context: Context) : ContextListener(context) {
 
     override fun render(dt: Duration) {
         if (loading) return
+
+        xVel = 0f
+        yVel = 0f
+
+        if (input.isKeyPressed(Key.W)) {
+            yVel += speed
+        }
+        if (input.isKeyPressed(Key.S)) {
+            yVel -= speed
+        }
+        if (input.isKeyPressed(Key.A)) {
+            xVel -= speed
+        }
+        if (input.isKeyPressed(Key.D)) {
+            xVel += speed
+        }
+
+        camera.translate(xVel * dt.inWholeMilliseconds.toFloat(), yVel * dt.inWholeMilliseconds.toFloat(), 0f)
+
         camera.update()
         batch.use(camera.viewProjection) {
             val level = map.levels[0]
@@ -46,5 +72,6 @@ class LDtkMapTest(context: Context) : ContextListener(context) {
             }
             it.draw(person, 100f, 50f)
         }
+
     }
 }

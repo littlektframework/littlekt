@@ -4,6 +4,9 @@ import com.lehaine.littlekt.Context
 import com.lehaine.littlekt.Disposable
 import com.lehaine.littlekt.file.createByteBuffer
 import com.lehaine.littlekt.graphics.gl.*
+import com.lehaine.littlekt.math.nextPowerOfTwo
+import kotlin.math.ceil
+import kotlin.math.sqrt
 
 /**
  * @author Colton Daily
@@ -154,3 +157,53 @@ class Texture(
 
 
 fun Texture.slice(sliceWidth: Int, sliceHeight: Int) = TextureSlice(this).slice(sliceWidth, sliceHeight)
+
+/**
+ * Slice up the texture in a list of [TextureSlice] with the given size with an added border. This can be used to prevent atlas bleeding.
+ * @param context the current context - used to prepare the newly created Texture.
+ * @param sliceWidth the width of each slice
+ * @param sliceHeight the height of each slice
+ * @param border the thickness of the border for each slice
+ * @param mipmaps use mipmaps or not for the new texture
+ */
+fun Texture.sliceWithBorder(
+    context: Context,
+    sliceWidth: Int,
+    sliceHeight: Int,
+    border: Int = 1,
+    mipmaps: Boolean = false
+): List<TextureSlice> {
+    val slices = slice(sliceWidth, sliceHeight).flatten()
+    val newWidth = sliceWidth + border * 2
+    val newHeight = sliceHeight + border * 2
+    val area = newWidth * newHeight
+    val fullArea = slices.size.nextPowerOfTwo * area
+    val length = ceil(sqrt(fullArea.toDouble())).toInt().nextPowerOfTwo
+
+    val out = Pixmap(length, length)
+
+    val columns = (out.width / newWidth)
+
+    for (n in slices.indices) {
+        val y = n / columns
+        val x = n % columns
+        val px = x * newWidth + border
+        val py = y * newHeight + border
+        out.drawSlice(px, py, slices[n], border)
+    }
+
+    val newTex = Texture(PixmapTextureData(out, mipmaps)).also {
+        context.runOnMainThread {
+            it.prepare(context)
+        }
+    }
+    val newSlices = slices.mapIndexed { n, _ ->
+        val y = n / columns
+        val x = n % columns
+        val px = x * newWidth + border
+        val py = y * newHeight + border
+        TextureSlice(newTex, px, py, sliceWidth, sliceHeight)
+    }
+
+    return newSlices
+}
