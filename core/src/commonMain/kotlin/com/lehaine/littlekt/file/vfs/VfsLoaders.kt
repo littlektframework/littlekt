@@ -6,6 +6,7 @@ import com.lehaine.littlekt.file.atlas.AtlasInfo
 import com.lehaine.littlekt.file.atlas.AtlasPage
 import com.lehaine.littlekt.file.ldtk.LDtkLevelLoader
 import com.lehaine.littlekt.file.ldtk.LDtkMapLoader
+import com.lehaine.littlekt.graphics.Pixmap
 import com.lehaine.littlekt.graphics.Texture
 import com.lehaine.littlekt.graphics.TextureAtlas
 import com.lehaine.littlekt.graphics.font.CharacterSets
@@ -61,6 +62,12 @@ suspend fun VfsFile.readLDtkLevel(map: LDtkTileMap, levelIdx: Int): LDtkLevel {
  * @return the loaded texture
  */
 expect suspend fun VfsFile.readTexture(): Texture
+
+/**
+ * Loads an image from the path as a [Pixmap].
+ * @return the loaded texture
+ */
+expect suspend fun VfsFile.readPixmap(): Pixmap
 
 /**
  * Loads audio from the path as an [AudioClip].

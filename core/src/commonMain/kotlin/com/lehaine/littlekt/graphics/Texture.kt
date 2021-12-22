@@ -4,9 +4,6 @@ import com.lehaine.littlekt.Context
 import com.lehaine.littlekt.Disposable
 import com.lehaine.littlekt.file.createByteBuffer
 import com.lehaine.littlekt.graphics.gl.*
-import com.lehaine.littlekt.math.nextPowerOfTwo
-import kotlin.math.ceil
-import kotlin.math.sqrt
 
 /**
  * @author Colton Daily
@@ -172,38 +169,4 @@ fun Texture.sliceWithBorder(
     sliceHeight: Int,
     border: Int = 1,
     mipmaps: Boolean = false
-): List<TextureSlice> {
-    val slices = slice(sliceWidth, sliceHeight).flatten()
-    val newWidth = sliceWidth + border * 2
-    val newHeight = sliceHeight + border * 2
-    val area = newWidth * newHeight
-    val fullArea = slices.size.nextPowerOfTwo * area
-    val length = ceil(sqrt(fullArea.toDouble())).toInt().nextPowerOfTwo
-
-    val out = Pixmap(length, length)
-
-    val columns = (out.width / newWidth)
-
-    for (n in slices.indices) {
-        val y = n / columns
-        val x = n % columns
-        val px = x * newWidth + border
-        val py = y * newHeight + border
-        out.drawSlice(px, py, slices[n], border)
-    }
-
-    val newTex = Texture(PixmapTextureData(out, mipmaps)).also {
-        context.runOnMainThread {
-            it.prepare(context)
-        }
-    }
-    val newSlices = slices.mapIndexed { n, _ ->
-        val y = n / columns
-        val x = n % columns
-        val px = x * newWidth + border
-        val py = y * newHeight + border
-        TextureSlice(newTex, px, py, sliceWidth, sliceHeight)
-    }
-
-    return newSlices
-}
+): List<TextureSlice> = textureData.pixmap.sliceWithBorder(context, sliceWidth, sliceHeight, border, mipmaps)

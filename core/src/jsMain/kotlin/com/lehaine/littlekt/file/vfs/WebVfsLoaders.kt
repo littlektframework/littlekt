@@ -22,6 +22,15 @@ import org.w3c.dom.Image
  * @return the loaded texture
  */
 actual suspend fun VfsFile.readTexture(): Texture {
+    val data = PixmapTextureData(readPixmap(), true)
+    return Texture(data).also { it.prepare(vfs.context) }
+}
+
+/**
+ * Loads an image from the path as a [Pixmap].
+ * @return the loaded texture
+ */
+actual suspend fun VfsFile.readPixmap(): Pixmap {
     val deferred = CompletableDeferred<Image>()
 
     val img = Image()
@@ -49,9 +58,7 @@ actual suspend fun VfsFile.readTexture(): Texture {
     canvasCtx.drawImage(img, 0.0, 0.0, w, h, 0.0, 0.0, w, h)
     val pixels = ByteBufferImpl(canvasCtx.getImageData(0.0, 0.0, w, h).data)
 
-    val pixmap = Pixmap(loadedImg.width, loadedImg.height, pixels)
-    val data = PixmapTextureData(pixmap, true)
-    return Texture(data).also { it.prepare(vfs.context) }
+    return Pixmap(loadedImg.width, loadedImg.height, pixels)
 }
 
 /**

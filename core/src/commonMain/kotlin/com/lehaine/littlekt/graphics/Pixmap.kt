@@ -1,13 +1,14 @@
 package com.lehaine.littlekt.graphics
 
+import com.lehaine.littlekt.Context
 import com.lehaine.littlekt.file.ByteBuffer
 import com.lehaine.littlekt.file.createByteBuffer
 import com.lehaine.littlekt.graphics.gl.DataType
+import com.lehaine.littlekt.graphics.gl.PixmapTextureData
 import com.lehaine.littlekt.graphics.gl.TextureFormat
 import com.lehaine.littlekt.math.clamp
-import kotlin.math.max
-import kotlin.math.min
-import kotlin.math.round
+import com.lehaine.littlekt.math.nextPowerOfTwo
+import kotlin.math.*
 
 /**
  * @author Colton Daily
@@ -171,7 +172,7 @@ class Pixmap(val width: Int, val height: Int, val pixels: ByteBuffer = createByt
         }
     }
 
-    fun copy(srcX: Int, srcY: Int, dst: Pixmap, dstX: Int, dstY: Int, width: Int, height: Int) {
+    fun copyTo(srcX: Int, srcY: Int, dst: Pixmap, dstX: Int, dstY: Int, width: Int, height: Int) {
         val src = this
         val srcX0 = src.clampWidth(srcX)
         val srcX1 = src.clampWidth(srcX + width)
@@ -196,22 +197,34 @@ class Pixmap(val width: Int, val height: Int, val pixels: ByteBuffer = createByt
     fun drawSlice(x: Int, y: Int, slice: TextureSlice, border: Int = 0) {
         val sliceWidth = slice.width
         val sliceHeight = slice.height
+        drawSlice(x, y, slice.texture.textureData.pixmap, slice.x, slice.y, sliceWidth, sliceHeight, border)
+    }
 
-        slice.texture.textureData.pixmap.copy(slice.x, slice.y, this, x, y, sliceWidth, sliceHeight)
+    fun drawSlice(
+        x: Int,
+        y: Int,
+        src: Pixmap,
+        sliceX: Int,
+        sliceY: Int,
+        sliceWidth: Int,
+        sliceHeight: Int,
+        border: Int = 0
+    ) {
+        src.copyTo(sliceX, sliceY, this, x, y, sliceWidth, sliceHeight)
 
         if (border == 0) return
 
         // copy horizontally
         for (n in 1..border) {
-            copy(x, y, this, x - n, y, 1, sliceHeight)
-            copy(x + sliceWidth - 1, y, this, x + sliceWidth - 1 + n, y, 1, sliceWidth)
+            copyTo(x, y, this, x - n, y, 1, sliceHeight)
+            copyTo(x + sliceWidth - 1, y, this, x + sliceWidth - 1 + n, y, 1, sliceWidth)
         }
 
         // copy vertically
         for (n in 1..border) {
             val rWidth = sliceWidth + border * 2
-            copy(x, y, this, x, y - n, rWidth, 1)
-            copy(x, y + height - 1, this, x, y + height - 1 + n, rWidth, 1)
+            copyTo(x, y, this, x, y - n, rWidth, 1)
+            copyTo(x, y + height - 1, this, x, y + height - 1 + n, rWidth, 1)
         }
     }
 
@@ -361,3 +374,85 @@ class Pixmap(val width: Int, val height: Int, val pixels: ByteBuffer = createByt
     private fun clampWidth(x: Int) = x.clamp(0, width)
     private fun clampHeight(y: Int) = y.clamp(0, height)
 }
+
+/**
+ * Slice up the texture in a list of [TextureSlice] with the given size with an added border. This can be used to prevent atlas bleeding.
+ * @param context the current context - used to prepare the newly created Texture.
+ * @param sliceWidth the width of each slice
+ * @param sliceHeight the height of each slice
+ * @param border the thickness of the border for each slice
+ * @param mipmaps use mipmaps or not for the new texture
+ */
+fun Pixmap.sliceWithBorder(
+    context: Context,
+    sliceWidth: Int,
+    sliceHeight: Int,
+    border: Int = 1,
+    mipmaps: Boolean = false
+): List<TextureSlice> {
+    val slices = slice(sliceWidth, sliceHeight).flatten()
+    val newWidth = sliceWidth + border * 2
+    val newHeight = sliceHeight + border * 2
+    val area = newWidth * newHeight
+    val fullArea = slices.size.nextPowerOfTwo * area
+    val length = ceil(sqrt(fullArea.toDouble())).toInt().nextPowerOfTwo
+
+    val out = Pixmap(length, length)
+
+    val columns = (out.width / newWidth)
+
+    slices.forEachIndexed { n, slice ->
+        val y = n / columns
+        val x = n % columns
+        val px = x * newWidth + border
+        val py = y * newHeight + border
+        out.drawSlice(px, py, slice.pixmap, slice.x, slice.y, slice.width, slice.height, border)
+    }
+
+    val newTex = Texture(PixmapTextureData(out, mipmaps)).also {
+        context.runOnMainThread {
+            it.prepare(context)
+        }
+    }
+
+    val newSlices = List(slices.size) { n ->
+        val y = n / columns
+        val x = n % columns
+        val px = x * newWidth + border
+        val py = y * newHeight + border
+        TextureSlice(newTex, px, py, sliceWidth, sliceHeight)
+    }
+
+    return newSlices
+}
+
+fun Pixmap.slice(sliceWidth: Int, sliceHeight: Int): Array<Array<PixmapSlice>> {
+    val cols = width / sliceWidth
+    val rows = height / sliceHeight
+
+    var y = -sliceHeight
+    var x: Int
+    val startX = -sliceWidth
+
+    return Array(rows) {
+        x = startX
+        y += sliceHeight
+
+        Array(cols) {
+            x += sliceWidth
+            PixmapSlice(this, x, y, sliceWidth, sliceHeight)
+        }
+    }
+}
+
+/**
+ * A rectangular slice of a pixmap.
+ * @author Colt Daily 12/22/2021
+ */
+data class PixmapSlice(
+    val pixmap: Pixmap,
+    val x: Int = 0,
+    val y: Int = 0,
+    val width: Int = pixmap.width,
+    val height: Int = pixmap.height
+)

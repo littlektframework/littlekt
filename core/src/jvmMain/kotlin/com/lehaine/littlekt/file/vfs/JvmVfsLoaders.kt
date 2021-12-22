@@ -25,19 +25,7 @@ private val imageIoLock = Any()
  * @return the loaded texture
  */
 actual suspend fun VfsFile.readTexture(): Texture {
-    val bytes = readBytes()
-    // ImageIO.read is not thread safe!
-    val img = synchronized(imageIoLock) {
-        runCatching {
-            ImageIO.read(ByteArrayInputStream(bytes))
-        }.getOrThrow()
-    }
-    val pixmap = Pixmap(
-        img.width,
-        img.height,
-        ImageUtils.bufferedImageToBuffer(img, TextureFormat.RGBA, img.width, img.height)
-    )
-    val data = PixmapTextureData(pixmap, true)
+    val data = PixmapTextureData(readPixmap(), true)
 
     return Texture(data).also {
         vfs.context as LwjglContext
@@ -45,6 +33,21 @@ actual suspend fun VfsFile.readTexture(): Texture {
             it.prepare(vfs.context)
         }
     }
+}
+
+actual suspend fun VfsFile.readPixmap(): Pixmap {
+    val bytes = readBytes()
+    // ImageIO.read is not thread safe!
+    val img = synchronized(imageIoLock) {
+        runCatching {
+            ImageIO.read(ByteArrayInputStream(bytes))
+        }.getOrThrow()
+    }
+    return Pixmap(
+        img.width,
+        img.height,
+        ImageUtils.bufferedImageToBuffer(img, TextureFormat.RGBA, img.width, img.height)
+    )
 }
 
 /**

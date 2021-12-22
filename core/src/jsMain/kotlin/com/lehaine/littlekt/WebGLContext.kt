@@ -62,15 +62,9 @@ class WebGLContext(override val configuration: JsConfiguration) :
             canvas.height = canvas.clientHeight
             listener.resize(graphics.width, graphics.height)
         }
-
-        if (mainThreadRunnables.isNotEmpty()) {
-            mainThreadRunnables.forEach {
-                it.run()
-            }
-            mainThreadRunnables.clear()
-        }
-
         stats.engineStats.resetPerFrameCounts()
+        invokeAnyRunnable()
+
         input as JsInput
         val dt = ((now - lastFrame) / 1000.0).seconds
         lastFrame = now
@@ -80,10 +74,20 @@ class WebGLContext(override val configuration: JsConfiguration) :
         listener.render(dt)
         input.reset()
 
+        invokeAnyRunnable()
         if (closed) {
             destroy()
         } else {
             window.requestAnimationFrame(::render)
+        }
+    }
+
+    private fun invokeAnyRunnable() {
+        if (mainThreadRunnables.isNotEmpty()) {
+            mainThreadRunnables.forEach {
+                it.run()
+            }
+            mainThreadRunnables.clear()
         }
     }
 
