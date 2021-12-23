@@ -4,8 +4,8 @@ import com.lehaine.littlekt.audio.AudioClip
 import com.lehaine.littlekt.file.UnsupportedFileTypeException
 import com.lehaine.littlekt.file.atlas.AtlasInfo
 import com.lehaine.littlekt.file.atlas.AtlasPage
-import com.lehaine.littlekt.file.ldtk.LDtkLevelLoader
 import com.lehaine.littlekt.file.ldtk.LDtkMapLoader
+import com.lehaine.littlekt.file.ldtk.ProjectJson
 import com.lehaine.littlekt.graphics.Pixmap
 import com.lehaine.littlekt.graphics.Texture
 import com.lehaine.littlekt.graphics.TextureAtlas
@@ -47,15 +47,37 @@ suspend fun VfsFile.readTtfFont(chars: String = CharacterSets.LATIN_ALL): TtfFon
     return TtfFont(chars).also { it.load(data) }
 }
 
-suspend fun VfsFile.readLDtkMap(loadAllLevels: Boolean, levelIdx: Int = 0): LDtkTileMap {
-    val loader = LDtkMapLoader(this)
+private val mapCache = mutableMapOf<String, LDtkMapLoader>()
+
+/**
+ * Reads the [VfsFile] as a [LDtkTileMap]. Any loaders and assets will be cached for reuse/reloading.
+ * @param loadAllLevels if true this will load all the external levels and their dependencies. They then will all be available
+ * in [LDtkTileMap.levels]; if false it will load the specified [levelIdx] as the default and only level.
+ * @param levelIdx the index of the level to load if [loadAllLevels] is false.
+ * @return the loaded LDtk map
+ * @see [VfsFile.readLDtkLevel]
+ */
+suspend fun VfsFile.readLDtkMap(loadAllLevels: Boolean = true, levelIdx: Int = 0): LDtkTileMap {
+    val loader = mapCache.getOrPut(path) {
+        val project = decodeFromString<ProjectJson>()
+        LDtkMapLoader(this, project)
+    }
     return loader.loadMap(loadAllLevels, levelIdx)
 }
 
-//suspend fun VfsFile.readLDtkLevel(map: LDtkTileMap, levelIdx: Int): LDtkLevel {
-//    val loader = LDtkLevelLoader(map)
-//    return loader.loadLevel(this, map.levels[levelIdx], map)
-//}
+/**
+ * Reads the [VfsFile] as a [LDtkTileMap] and loads the level specified by [levelIdx].
+ * Any loaders and assets will be cached for reuse/reloading.
+ * @param levelIdx the index of the level to load
+ * @return the loaded LDtk level
+ */
+suspend fun VfsFile.readLDtkLevel(levelIdx: Int): LDtkLevel {
+    val loader = mapCache.getOrPut(path) {
+        val project = decodeFromString<ProjectJson>()
+        LDtkMapLoader(this, project)
+    }
+    return loader.loadLevel(levelIdx)
+}
 
 /**
  * Loads an image from the path as a [Texture]. This will call [Texture.prepare] before returning!

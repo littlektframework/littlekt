@@ -31,7 +31,7 @@ class LDtkMapTest(context: Context) : ContextListener(context) {
         logger.level = Logger.Level.DEBUG
         Logger.defaultLevel = Logger.Level.DEBUG
         vfs.launch {
-            map = resourcesVfs["ldtk/sample.ldtk"].readLDtkMap(true)
+            map = resourcesVfs["ldtk/sample.ldtk"].readLDtkMap()
             atlas = resourcesVfs["tiles.atlas.json"].readAtlas()
             person = atlas["heroIdle0.png"].slice
             loading = false
@@ -62,7 +62,7 @@ class LDtkMapTest(context: Context) : ContextListener(context) {
 
         camera.update()
         batch.use(camera.viewProjection) {
-             map.render(it, camera, 0f, 0f)
+            map.render(it, camera, 0f, 0f)
             it.draw(person, 100f, 170f)
         }
 
