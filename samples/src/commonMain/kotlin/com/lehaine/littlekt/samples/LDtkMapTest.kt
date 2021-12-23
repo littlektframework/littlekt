@@ -4,10 +4,10 @@ import com.lehaine.littlekt.Context
 import com.lehaine.littlekt.ContextListener
 import com.lehaine.littlekt.file.vfs.readAtlas
 import com.lehaine.littlekt.file.vfs.readLDtkMap
-import com.lehaine.littlekt.file.vfs.readTexture
+import com.lehaine.littlekt.file.vfs.readPixmap
+import com.lehaine.littlekt.file.vfs.writePixmap
 import com.lehaine.littlekt.graphics.*
 import com.lehaine.littlekt.graphics.tilemap.ldtk.LDtkTileMap
-import com.lehaine.littlekt.graphics.tilemap.ldtk.LDtkTileset
 import com.lehaine.littlekt.input.Key
 import com.lehaine.littlekt.log.Logger
 import com.lehaine.littlekt.util.forEachReversed

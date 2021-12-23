@@ -74,3 +74,8 @@ expect suspend fun VfsFile.readPixmap(): Pixmap
  * @return the loaded audio clip
  */
 expect suspend fun VfsFile.readAudioClip(): AudioClip
+
+/**
+ * Write pixmap to disk.
+ */
+expect suspend fun VfsFile.writePixmap(pixmap: Pixmap)

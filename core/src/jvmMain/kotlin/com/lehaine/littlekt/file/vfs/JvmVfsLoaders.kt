@@ -4,12 +4,15 @@ import com.lehaine.littlekt.LwjglContext
 import com.lehaine.littlekt.audio.AudioClip
 import com.lehaine.littlekt.audio.OpenALAudioClip
 import com.lehaine.littlekt.file.ImageUtils
+import com.lehaine.littlekt.file.createByteBuffer
 import com.lehaine.littlekt.graphics.Pixmap
 import com.lehaine.littlekt.graphics.Texture
 import com.lehaine.littlekt.graphics.gl.PixmapTextureData
 import com.lehaine.littlekt.graphics.gl.TextureFormat
 import fr.delthas.javamp3.Sound
 import java.io.ByteArrayInputStream
+import java.io.File
+import java.io.FileOutputStream
 import javax.imageio.ImageIO
 import javax.sound.sampled.AudioSystem
 
@@ -73,4 +76,35 @@ actual suspend fun VfsFile.readAudioClip(): AudioClip {
     }
 
     return OpenALAudioClip(source, channels, sampleRate.toInt())
+}
+
+actual suspend fun VfsFile.writePixmap(pixmap: Pixmap) {
+    // TODO write to an actual png vs bmp
+    val buffer = pixmap.pixels
+    val width = pixmap.width
+    val height = pixmap.height
+    val bmpBuffer = createByteBuffer(54 + buffer.capacity)
+    bmpBuffer.run {
+        putByte('B'.code.toByte())
+        putByte('M'.code.toByte())
+        putUInt(54 + width * height * 4) // size
+        putUShort(0) // res1
+        putUShort(0) // res2
+        putUInt(54) // offset
+        putUInt(40) // biSize
+        putUInt(width)
+        putUInt(height)
+        putUShort(1.toShort()) // planes
+        putUShort((8 * 4).toShort()) // bitCount
+        putUInt(0) // compression
+        putUInt(width * height * 4) // image size bytes
+        putUInt(0) // x pixels per meter
+        putUInt(0) // y pixels per meter
+        putUInt(0) // colors used
+        putUInt(0) // important colors
+        putByte(buffer.toArray(), 0, buffer.capacity)
+    }
+    runCatching {
+        FileOutputStream(File(path)).use { it.write(bmpBuffer.toArray()) }
+    }.getOrThrow()
 }

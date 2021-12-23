@@ -72,3 +72,8 @@ actual suspend fun VfsFile.readAudioClip(): AudioClip {
         WebAudioClip("${vfs.baseDir}/$path")
     }
 }
+
+
+actual suspend fun VfsFile.writePixmap(pixmap: Pixmap) {
+    TODO("IMPLEMENT ME")
+}

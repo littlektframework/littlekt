@@ -34,10 +34,13 @@ class GPUFontTest(context: Context) : ContextListener(context) {
             libSans = resourcesVfs["LiberationSans-Regular.ttf"].readTtfFont()
             loading = false
         }
+        camera.translate(graphics.width / 2f, graphics.height / 2f, 0f)
     }
 
     private fun init() {
-        gpuFont = GpuFont(this, freeSerif)
+        gpuFont = GpuFont(this, freeSerif).apply {
+            debug = true
+        }
     }
 
     override fun render(dt: Duration) {

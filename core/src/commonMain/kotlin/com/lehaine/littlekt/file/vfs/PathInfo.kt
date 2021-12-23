@@ -198,7 +198,7 @@ fun PathInfo.normalize(): String {
         val out = ArrayList<String>()
         path2.split("/").forEach { part ->
             when (part) {
-                "", "." -> if (out.isEmpty()) out += "" else Unit
+                "", -> if (out.isEmpty()) out += "" else Unit
                 ".." -> if (out.isNotEmpty()) out.removeAt(out.size - 1)
                 else -> out += part
             }
