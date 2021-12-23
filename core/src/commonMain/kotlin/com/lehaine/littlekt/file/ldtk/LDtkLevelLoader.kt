@@ -16,16 +16,18 @@ class LDtkLevelLoader(private val project: ProjectJson) {
     val assetCache = mutableMapOf<VfsFile, Texture>()
     val tilesets = mutableMapOf<Int, LDtkTileset>()
 
-    suspend fun loadLevel(root: VfsFile, levelDef: LevelDefinition): LDtkLevel {
-        val loadedLevelDefinition: LevelDefinition = root[levelDef.externalRelPath
-            ?: error("Unable to load ${levelDef.externalRelPath}")].decodeFromString()
+    suspend fun loadLevel(root: VfsFile, externalRelPath: String): LDtkLevel {
+        val levelDef: LevelDefinition = root[externalRelPath].decodeFromString()
+        return loadLevel(root, levelDef)
+    }
 
-        loadedLevelDefinition.layerInstances?.forEach { layerInstance ->
+    suspend fun loadLevel(root: VfsFile, levelDef: LevelDefinition): LDtkLevel {
+        levelDef.layerInstances?.forEach { layerInstance ->
             project.defs.tilesets.find { it.uid == layerInstance.tilesetDefUid }?.let {
                 tilesets.getOrPut(it.uid) { loadTileset(root, it) }
             }
         }
-        val bgImage = loadedLevelDefinition.bgRelPath?.let {
+        val bgImage = levelDef.bgRelPath?.let {
             val file = root[it]
             assetCache.getOrPut(file) { file.readTexture() }
         }

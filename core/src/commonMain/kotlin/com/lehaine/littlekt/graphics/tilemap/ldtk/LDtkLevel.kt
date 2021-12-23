@@ -30,13 +30,14 @@ class LDtkLevel(
 
     val hasBgImage: Boolean
         get() = levelBackgroundImage != null
+
     val backgroundImageSlice: TextureSlice? = bgImageTexture?.let {
         val crop =
             levelBackgroundPos?.cropRect
                 ?: error("Unable to read background crop rectangle when it should be available.")
         TextureSlice(it, crop[0].toInt(), crop[1].toInt(), crop[2].toInt(), crop[3].toInt())
     }
-    val levelBackgroundImage: LevelBgImage? = if (hasBgImage && levelBackgroundPos != null) {
+    val levelBackgroundImage: LevelBgImage? = if (levelBackgroundPos != null) {
         LevelBgImage(
             topLeftX = levelBackgroundPos.topLeftPx[0],
             topLeftY = levelBackgroundPos.topLeftPx[1],

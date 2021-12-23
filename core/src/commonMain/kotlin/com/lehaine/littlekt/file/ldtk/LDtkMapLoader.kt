@@ -15,15 +15,31 @@ class LDtkMapLoader(val root: VfsFile) {
         val parent = root.parent
         val levelLoader = LDtkLevelLoader(project)
         val levels = mutableListOf<LDtkLevel>()
-        if (loadAllLevels && project.externalLevels) {
-            project.levelDefinitions.forEach { levelDefinition ->
-                levels += levelLoader.loadLevel(parent, levelDefinition)
+        when {
+            loadAllLevels -> {
+                project.levelDefinitions.forEach {
+                    levels += if (project.externalLevels) {
+                        levelLoader.loadLevel(
+                            parent,
+                            it.externalRelPath ?: error("Unable to load external level: ${it.identifier}")
+                        )
+                    } else {
+                        levelLoader.loadLevel(parent, it)
+                    }
+
+                }
             }
-        } else if (project.externalLevels) {
-            levels += levelLoader.loadLevel(parent, project.levelDefinitions[loadLevelIdx])
-        } else {
-            project.defs.tilesets.forEach {
-                levelLoader.loadTileset(parent, it)
+            else -> {
+                val level = project.levelDefinitions[loadLevelIdx]
+                levels += if (project.externalLevels) {
+                    val path = level.externalRelPath
+                    levelLoader.loadLevel(
+                        parent,
+                        path ?: error("Unable to load external level: ${level.identifier}")
+                    )
+                } else {
+                    levelLoader.loadLevel(parent, level)
+                }
             }
         }
         return LDtkTileMap(project.worldLayout, project.bgColor, levels, levelLoader.tilesets)
