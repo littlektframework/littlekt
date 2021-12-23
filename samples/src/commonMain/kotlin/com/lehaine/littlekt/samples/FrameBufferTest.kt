@@ -5,6 +5,8 @@ import com.lehaine.littlekt.ContextListener
 import com.lehaine.littlekt.file.vfs.readTexture
 import com.lehaine.littlekt.graphics.*
 import com.lehaine.littlekt.graphics.gl.ClearBufferMask
+import com.lehaine.littlekt.graphics.gl.TexMagFilter
+import com.lehaine.littlekt.graphics.gl.TexMinFilter
 import com.lehaine.littlekt.input.Key
 import com.lehaine.littlekt.log.Logger
 import com.lehaine.littlekt.math.Mat4
@@ -17,19 +19,26 @@ import kotlin.time.Duration
 class FrameBufferTest(context: Context) : ContextListener(context) {
 
     val batch = SpriteBatch(context)
-    val fbo = FrameBuffer(240, 135).also { it.prepare(context) }
+    val fbo = FrameBuffer(240, 135).also {
+        it.prepare(context)
+        it.colorBufferTexture.apply {
+            magFilter = TexMagFilter.NEAREST
+            minFilter = TexMinFilter.NEAREST
+        }
+    }
     var loading = true
 
     lateinit var texture: Texture
 
     var projection = Mat4().setOrthographic(
         left = 0f,
-        right = graphics.width.toFloat(),
+        right = 240f,
         bottom = 0f,
-        top = graphics.height.toFloat(),
+        top = 135f,
         near = -1f,
         far = 1f
     )
+    val camera = OrthographicCamera(graphics.width, graphics.height)
     private var x = 0f
     private var y = 0f
 
@@ -42,6 +51,7 @@ class FrameBufferTest(context: Context) : ContextListener(context) {
             texture = resourcesVfs["person.png"].readTexture()
             loading = false
         }
+        camera.translate(graphics.width / 2f, graphics.height / 2f, 0f)
     }
 
     override fun render(dt: Duration) {
@@ -52,10 +62,10 @@ class FrameBufferTest(context: Context) : ContextListener(context) {
         yVel = 0f
 
         if (input.isKeyPressed(Key.W)) {
-            yVel += 1f
+            yVel -= 1f
         }
         if (input.isKeyPressed(Key.S)) {
-            yVel -= 1f
+            yVel += 1f
         }
         if (input.isKeyPressed(Key.A)) {
             xVel -= 1f
@@ -66,26 +76,19 @@ class FrameBufferTest(context: Context) : ContextListener(context) {
         gl.clearColor(Color.DARK_GRAY)
 
         fbo.begin()
-        projection.setOrthographic(
-            left = 0f,
-            right = fbo.width.toFloat(),
-            bottom = 0f,
-            top = fbo.height.toFloat(),
-            near = -1f,
-            far = 1f
-        )
         gl.clearColor(Color.CLEAR)
         gl.clear(ClearBufferMask.COLOR_BUFFER_BIT)
         batch.use(projection) {
             it.color = Color.WHITE
             it.draw(texture, x, y)
-            it.draw(texture, x, y + 5)
+            it.draw(texture, x, y + 25f)
         }
         fbo.end()
 
-        batch.use(projection) {
+        camera.update()
+        batch.use(camera.viewProjection) {
             it.color = Color.WHITE.withAlpha(0.8f)
-            it.draw(fbo.colorBufferTexture, 0f, 0f, flipY = true)
+            it.draw(fbo.colorBufferTexture, 0f, 0f, scaleX = 4f, scaleY = 4f)
 
             it.color = Color.WHITE
             it.draw(texture, 100f, 50f)

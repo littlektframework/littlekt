@@ -206,9 +206,9 @@ class SpriteBatch(
         y4 += worldOriginY
 
         val u = if (flipX) 1f else 0f
-        val v = if (flipY) 0f else 1f
+        val v = if (flipY) 0f else 0f
         val u2 = if (flipX) 0f else 1f
-        val v2 = if (flipY) 1f else 0f
+        val v2 = if (flipY) 1f else 1f
 
         mesh.run {
             setVertex {
