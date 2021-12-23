@@ -58,8 +58,8 @@ open class LDtkTilesLayer(
                         )?.also {
                             batch.draw(
                                 slice = it.slice,
-                                x = (cx * cellSize + pxTotalOffsetX + x),
-                                y = -(cy * cellSize + pxTotalOffsetY - gridHeight * cellSize).toFloat() + y - cellSize, // LDtk is y-down, so invert it
+                                x = cx * cellSize + pxTotalOffsetX + x,
+                                y = cy * cellSize + pxTotalOffsetY + y,
                                 originX = 0f,
                                 originY = 0f,
                                 width = cellSize.toFloat(),

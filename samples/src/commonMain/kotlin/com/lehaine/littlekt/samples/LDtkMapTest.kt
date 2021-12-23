@@ -46,10 +46,10 @@ class LDtkMapTest(context: Context) : ContextListener(context) {
         yVel = 0f
 
         if (input.isKeyPressed(Key.W)) {
-            yVel += speed
+            yVel -= speed
         }
         if (input.isKeyPressed(Key.S)) {
-            yVel -= speed
+            yVel += speed
         }
         if (input.isKeyPressed(Key.A)) {
             xVel -= speed
@@ -68,7 +68,11 @@ class LDtkMapTest(context: Context) : ContextListener(context) {
 //            level.layers.forEachReversed { layer ->
 //                layer.render(batch, camera, 0f, 0f)
 //            }
-            it.draw(person, 100f, 50f)
+            it.draw(person, 100f, 170f)
+        }
+
+        if (input.isKeyPressed(Key.ESCAPE)) {
+            close()
         }
 
     }

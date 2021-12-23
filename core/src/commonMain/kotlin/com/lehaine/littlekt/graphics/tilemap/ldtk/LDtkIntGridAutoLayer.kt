@@ -61,14 +61,14 @@ open class LDtkIntGridAutoLayer(
         val minX = max(floor(viewBounds.x / cellSize).toInt(), 0)
         val maxX = min(ceil((viewBounds.x + viewBounds.width) / cellSize).toInt(), gridWidth)
         autoTiles.forEach { autoTile ->
-            val rx = (autoTile.renderX + pxTotalOffsetX + x)
-            val ry = -(autoTile.renderY + pxTotalOffsetY - gridHeight * cellSize) + y - cellSize
+            val rx = autoTile.renderX + pxTotalOffsetX + x
+            val ry = autoTile.renderY + pxTotalOffsetY + y
             //      if (rx / cellSize in minX..maxX && ry / cellSize in minY..maxY) {
             getAutoLayerLDtkTile(autoTile)?.also {
                 batch.draw(
                     slice = it.slice,
-                    x = rx.toFloat(),
-                    y = ry.toFloat(), // LDtk is y-down, so invert it
+                    x = rx,
+                    y = ry,
                     originX = 0f,
                     originY = 0f,
                     width = cellSize.toFloat(),

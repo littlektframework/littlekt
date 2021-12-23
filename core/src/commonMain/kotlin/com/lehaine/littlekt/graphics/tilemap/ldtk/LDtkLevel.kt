@@ -146,7 +146,7 @@ class LDtkLevel(
 
     fun render(batch: SpriteBatch, viewBounds: Rect, x: Float, y: Float) {
         val offsetX = worldX + x
-        val offsetY = -(worldY - pxHeight + viewBounds.height).toInt() + y
+        val offsetY = worldY + y
         levelBackgroundImage?.render(batch, offsetX, offsetY)
         // need to render back to front - layers last in the list need to render first
         for (i in layers.size - 1 downTo 0) {
