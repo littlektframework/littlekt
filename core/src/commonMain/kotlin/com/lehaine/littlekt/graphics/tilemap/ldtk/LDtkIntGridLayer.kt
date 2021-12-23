@@ -34,6 +34,8 @@ open class LDtkIntGridLayer(
         }
     }
 
+    operator fun get(cx: Int, cy: Int): Int = getInt(cx, cy)
+
     /**
      * @param cx grid x coord
      * @param cy grid y coord

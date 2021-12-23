@@ -73,7 +73,12 @@ class LDtkLevel(
         }
     }
 
-    operator fun get(layer: String) = layersMap[layer] ?: error("Layer: '$layer' does not exist in this level!")
+    fun entities(name: String): List<LDtkEntity> =
+        entitiesMap[name] ?: error("Entities: '$name' do not exist in this level!")
+
+    fun layer(name: String): LDtkLayer = layersMap[name] ?: error("Layer: '$name' does not exist in this level!")
+
+    operator fun get(layer: String) = layer(layer)
 
     private fun Rect.calculateViewBounds(camera: Camera) {
         val viewport = camera.viewport

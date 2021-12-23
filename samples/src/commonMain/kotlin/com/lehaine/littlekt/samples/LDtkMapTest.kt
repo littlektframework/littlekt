@@ -64,7 +64,7 @@ class LDtkMapTest(context: Context) : ContextListener(context) {
         batch.use(camera.viewProjection) {
             val level = map["West"]
             map.render(it, camera)
-            val player = level.entitiesMap["Player"]!![0]
+            val player = level.entities("Player")[0]
             it.draw(
                 person,
                 player.x,

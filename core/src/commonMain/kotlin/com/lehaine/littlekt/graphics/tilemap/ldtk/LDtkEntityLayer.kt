@@ -29,7 +29,9 @@ open class LDtkEntityLayer(
         entitiesMap = map
     }
 
-    operator fun get(entity: String) = entitiesMap[entity]
+    fun entities(name: String) = entitiesMap[name] ?: error("Entities: '$name' does not exist in the Entity layer!")
+
+    operator fun get(entity: String) = entities(entity)
 
     override fun toString(): String {
         return "LayerEntities(entities=$entities)"
