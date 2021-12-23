@@ -148,7 +148,6 @@ class SpriteBatch(
         }
 
         val worldOriginX = x + originX
-        val worldOriginY = y + originY
         var fx = -originX
         var fy = -originY
         var fx2 = width - originX
@@ -197,13 +196,13 @@ class SpriteBatch(
         }
 
         x1 += worldOriginX
-        y1 += worldOriginY
+        y1 += y
         x2 += worldOriginX
-        y2 += worldOriginY
+        y2 += y
         x3 += worldOriginX
-        y3 += worldOriginY
+        y3 += y
         x4 += worldOriginX
-        y4 += worldOriginY
+        y4 += y
 
         val u = if (flipX) 1f else 0f
         val v = if (flipY) 0f else 0f
@@ -211,14 +210,15 @@ class SpriteBatch(
         val v2 = if (flipY) 1f else 1f
 
         mesh.run {
-            setVertex {
+            setVertex { // bottom left
                 this.x = x1
                 this.y = y1
                 this.colorPacked = colorBits
                 this.u = u
                 this.v = v
             }
-            setVertex {
+
+            setVertex { // top left
                 this.x = x2
                 this.y = y2
                 this.colorPacked = colorBits
@@ -226,7 +226,7 @@ class SpriteBatch(
                 this.v = v2
             }
 
-            setVertex {
+            setVertex { // top right
                 this.x = x3
                 this.y = y3
                 this.colorPacked = colorBits
@@ -234,7 +234,7 @@ class SpriteBatch(
                 this.v = v2
             }
 
-            setVertex {
+            setVertex { // bottom right
                 this.x = x4
                 this.y = y4
                 this.colorPacked = colorBits
@@ -270,7 +270,6 @@ class SpriteBatch(
         }
 
         val worldOriginX = x + originX
-        val worldOriginY = y + originY
         var fx = -originX
         var fy = -originY
         var fx2 = width - originX
@@ -331,13 +330,13 @@ class SpriteBatch(
         }
 
         x1 += worldOriginX
-        y1 += worldOriginY
+        y1 += y
         x2 += worldOriginX
-        y2 += worldOriginY
+        y2 += y
         x3 += worldOriginX
-        y3 += worldOriginY
+        y3 += y
         x4 += worldOriginX
-        y4 += worldOriginY
+        y4 += y
 
         val u = if (flipX) slice.u2 else slice.u
         val v = if (flipY) slice.v else slice.v2
@@ -345,30 +344,28 @@ class SpriteBatch(
         val v2 = if (flipY) slice.v2 else slice.v
 
         mesh.run {
-            setVertex {
+            setVertex { // bottom left
                 this.x = x1
                 this.y = y1
                 this.colorPacked = colorBits
                 this.u = u
                 this.v = v
             }
-            setVertex {
+            setVertex { // top left
                 this.x = x2
                 this.y = y2
                 this.colorPacked = colorBits
                 this.u = u
                 this.v = v2
             }
-
-            setVertex {
+            setVertex { // top right
                 this.x = x3
                 this.y = y3
                 this.colorPacked = colorBits
                 this.u = u2
                 this.v = v2
             }
-
-            setVertex {
+            setVertex { // bottom right
                 this.x = x4
                 this.y = y4
                 this.colorPacked = colorBits
