@@ -62,8 +62,16 @@ class LDtkMapTest(context: Context) : ContextListener(context) {
 
         camera.update()
         batch.use(camera.viewProjection) {
-            map.render(it, camera, 0f, 0f)
-            it.draw(person, 100f, 170f)
+            val level = map["West"]
+            level.render(it, camera)
+            val player = level.entitiesMap["Player"]!![0]
+            it.draw(
+                person,
+                player.x,
+                player.y + level.worldY,
+                player.pivotX * player.width,
+                player.pivotY * player.height
+            )
         }
 
         if (input.isKeyPressed(Key.ESCAPE)) {

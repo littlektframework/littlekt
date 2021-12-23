@@ -27,6 +27,7 @@ class LDtkLevel(
     bgImageTexture: Texture? = null
 ) {
     val layersMap = layers.associateBy { it.identifier }
+    val entitiesMap: Map<String, List<LDtkEntity>> = entities.groupBy { it.identifier }
 
     val hasBgImage: Boolean
         get() = levelBackgroundImage != null
@@ -72,7 +73,7 @@ class LDtkLevel(
         }
     }
 
-    operator fun get(layer: String) = layersMap[layer]
+    operator fun get(layer: String) = layersMap[layer] ?: error("Layer: '$layer' does not exist in this level!")
 
     private fun Rect.calculateViewBounds(camera: Camera) {
         val viewport = camera.viewport

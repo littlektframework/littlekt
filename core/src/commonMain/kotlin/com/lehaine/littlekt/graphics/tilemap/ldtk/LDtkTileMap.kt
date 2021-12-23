@@ -15,7 +15,7 @@ class LDtkTileMap(
     val levels: List<LDtkLevel>,
     val tilesets: Map<Int, LDtkTileset>
 ) : TileMap() {
-    val levelsMap: Map<String, List<LDtkLevel>> = levels.groupBy { it.identifier }
+    val levelsMap: Map<String, LDtkLevel> = levels.associateBy { it.identifier }
 
     override fun render(batch: SpriteBatch, camera: Camera, x: Float, y: Float) {
 //       super.render(batch, camera, viewport)
@@ -26,7 +26,7 @@ class LDtkTileMap(
         levels.forEach { it.render(batch, viewBounds, it.worldX + x, it.worldY + y) }
     }
 
-    operator fun get(level: String) = levelsMap[level]
+    operator fun get(level: String) = levelsMap[level] ?: error("Level: '$level' does not exist in this map!")
 
     override fun toString(): String {
         return "LDtkMap(levels=$levels, tilesets=$tilesets, worldLayout=$worldLayout, backgroundColor='$backgroundColor')"
