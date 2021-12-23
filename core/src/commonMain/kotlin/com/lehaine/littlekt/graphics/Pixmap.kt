@@ -368,7 +368,7 @@ class Pixmap(val width: Int, val height: Int, val pixels: ByteBuffer = createByt
     }
 
     fun contains(x: Int, y: Int): Boolean {
-        return x >= 0 && y >= 0 && x < width && y < width
+        return x >= 0 && y >= 0 && x < width && y < height
     }
 
     private fun clampWidth(x: Int) = x.clamp(0, width)

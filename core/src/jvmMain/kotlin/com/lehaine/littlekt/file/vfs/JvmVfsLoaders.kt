@@ -79,7 +79,7 @@ actual suspend fun VfsFile.readAudioClip(): AudioClip {
 }
 
 actual suspend fun VfsFile.writePixmap(pixmap: Pixmap) {
-    // TODO write to an actual png vs bmp
+    // TODO write to an actual png vs bmp - currently bmps write bottom to top while pixmaps pixels are top to bottom
     val buffer = pixmap.pixels
     val width = pixmap.width
     val height = pixmap.height
