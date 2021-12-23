@@ -21,7 +21,6 @@ import kotlinx.serialization.decodeFromString
  */
 /**
  * Loads a [TextureAtlas] from the given path. Currently supports only JSON atlas files.
- * @param assetPath the path to the atlas file to load
  * @return the texture atlas
  */
 suspend fun VfsFile.readAtlas(): TextureAtlas {
