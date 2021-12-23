@@ -62,12 +62,7 @@ class LDtkMapTest(context: Context) : ContextListener(context) {
 
         camera.update()
         batch.use(camera.viewProjection) {
-            val level = map.levels[0]
-            level.render(it, camera, 0f, 0f)
-//            level.levelBackgroundImage?.render(batch, 0f, 0f)
-//            level.layers.forEachReversed { layer ->
-//                layer.render(batch, camera, 0f, 0f)
-//            }
+             map.render(it, camera, 0f, 0f)
             it.draw(person, 100f, 170f)
         }
 

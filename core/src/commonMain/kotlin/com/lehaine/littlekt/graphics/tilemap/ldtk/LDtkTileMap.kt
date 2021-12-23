@@ -22,7 +22,7 @@ class LDtkTileMap(val json: ProjectJson) : TileMap() {
         viewBounds.y = 0f
         viewBounds.width = 960f
         viewBounds.height = 540f
-        levels.forEach { it.render(batch, viewBounds, x, y) }
+        levels.forEach { it.render(batch, viewBounds, it.worldX + x, it.worldY + y) }
     }
 
     override fun toString(): String {

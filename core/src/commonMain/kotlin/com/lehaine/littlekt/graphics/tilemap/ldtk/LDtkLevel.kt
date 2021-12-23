@@ -139,18 +139,16 @@ class LDtkLevel(
 
     private val viewBounds = Rect()
 
-    fun render(batch: SpriteBatch, camera: Camera, x: Float, y: Float) {
+    fun render(batch: SpriteBatch, camera: Camera, x: Float = worldX.toFloat(), y: Float = worldY.toFloat()) {
         viewBounds.calculateViewBounds(camera)
         render(batch, viewBounds, x, y)
     }
 
-    fun render(batch: SpriteBatch, viewBounds: Rect, x: Float, y: Float) {
-        val offsetX = worldX + x
-        val offsetY = worldY + y
-        levelBackgroundImage?.render(batch, offsetX, offsetY)
+    fun render(batch: SpriteBatch, viewBounds: Rect, x: Float = worldX.toFloat(), y: Float = worldY.toFloat()) {
+        levelBackgroundImage?.render(batch, x, y)
         // need to render back to front - layers last in the list need to render first
         for (i in layers.size - 1 downTo 0) {
-            layers[i].render(batch, viewBounds, offsetX, offsetY)
+            layers[i].render(batch, viewBounds, x, y)
 
         }
     }
