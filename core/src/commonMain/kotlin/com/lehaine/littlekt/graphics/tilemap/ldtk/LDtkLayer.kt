@@ -1,6 +1,5 @@
 package com.lehaine.littlekt.graphics.tilemap.ldtk
 
-import com.lehaine.littlekt.file.ldtk.LayerInstance
 import com.lehaine.littlekt.graphics.SpriteBatch
 import com.lehaine.littlekt.graphics.tilemap.TileLayer
 import com.lehaine.littlekt.math.Rect
@@ -17,37 +16,37 @@ enum class LayerType {
     Unknown
 }
 
-open class LDtkLayer(val json: LayerInstance) : TileLayer() {
-    val identifier: String = json.identifier
-    val type: LayerType = LayerType.valueOf(json.type)
-
+open class LDtkLayer(
+    val identifier: String,
+    val type: LayerType,
     /**
      * Grid size in pixels
      */
-    val cellSize: Int = json.gridSize
+    val cellSize: Int,
 
     /**
      * Grid-based layer width
      */
-    val gridWidth: Int = json.cWid
+    val gridWidth: Int,
 
     /**
      * Grid-based layer height
      */
-    val gridHeight: Int = json.cHei
+    val gridHeight: Int,
 
     /**
      * Pixel-based layer X offset (includes both instance and definition offsets)
      */
-    val pxTotalOffsetX: Int = json.pxTotalOffsetX
+    val pxTotalOffsetX: Int,
 
     /**
      * Pixel-based layer Y offset (includes both instance and definition offsets)
      */
-    val pxTotalOffsetY: Int = json.pxTotalOffsetY
+    val pxTotalOffsetY: Int,
 
     /** Layer opacity (0-1) **/
-    val opacity: Float = json.opacity
+    val opacity: Float
+) : TileLayer() {
 
     /**
      * @return TRUE if grid-based coordinates are within layer bounds.
@@ -70,7 +69,7 @@ open class LDtkLayer(val json: LayerInstance) : TileLayer() {
     override fun render(batch: SpriteBatch, viewBounds: Rect, x: Float, y: Float) {}
 
     override fun toString(): String {
-        return "LDtkLayer(json=$json, identifier='$identifier', type=$type, cellSize=$cellSize, gridWidth=$gridWidth, gridHeight=$gridHeight, pxTotalOffsetX=$pxTotalOffsetX, pxTotalOffsetY=$pxTotalOffsetY, opacity=$opacity)"
+        return "LDtkLayer(identifier='$identifier', type=$type, cellSize=$cellSize, gridWidth=$gridWidth, gridHeight=$gridHeight, pxTotalOffsetX=$pxTotalOffsetX, pxTotalOffsetY=$pxTotalOffsetY, opacity=$opacity)"
     }
 
 

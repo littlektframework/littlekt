@@ -1,6 +1,5 @@
 package com.lehaine.littlekt.graphics.tilemap.ldtk
 
-import com.lehaine.littlekt.file.ldtk.LayerInstance
 import com.lehaine.littlekt.graphics.SpriteBatch
 import com.lehaine.littlekt.math.Rect
 import kotlin.math.ceil
@@ -13,40 +12,35 @@ import kotlin.math.min
  * @date 12/20/2021
  */
 open class LDtkAutoLayer(
-    tilesets: Map<Int, LDtkTileset>,
-    json: LayerInstance
-) : LDtkLayer(json) {
-    val tileset = tilesets[json.tilesetDefUid]
-        ?: error("Unable to retrieve LDtk tileset: ${json.tilesetDefUid} at ${json.tilesetRelPath}")
+    val tileset: LDtkTileset,
+    val autoTiles: List<AutoTile>,
+    identifier: String,
+    type: LayerType,
+    cellSize: Int,
+    gridWidth: Int,
+    gridHeight: Int,
+    pxTotalOffsetX: Int,
+    pxTotalOffsetY: Int,
+    opacity: Float,
+) : LDtkLayer(
+    identifier, type, cellSize, gridWidth, gridHeight, pxTotalOffsetX, pxTotalOffsetY, opacity
+) {
 
-    val autoTiles = json.autoLayerTiles.map {
-        AutoTile(it.t, it.f, it.px[0], it.px[1])
+    val autoTilesCoordIdMap: Map<Int, AutoTile> = autoTiles.associateBy {
+        getCoordId(it.renderX / cellSize, it.renderY / cellSize)
     }
 
-    val autoTilesCoordIdMap = mutableMapOf<Int, AutoTile>()
-
-    init {
-        json.autoLayerTiles.forEach {
-            val autoTile = AutoTile(
-                tileId = it.t,
-                flips = it.f,
-                renderX = it.px[0],
-                renderY = it.px[1]
-            )
-            autoTilesCoordIdMap[getCoordId(autoTile.renderX / cellSize, autoTile.renderY / cellSize)] = autoTile
-        }
-    }
-
-    data class AutoTile(val tileId: Int, val flips: Int, val renderX: Int, val renderY: Int)
 
     internal fun getAutoLayerLDtkTile(
-        autoTile: LDtkAutoLayer.AutoTile,
+        autoTile: AutoTile,
     ): LDtkTileset.LDtkTile? {
         if (autoTile.tileId < 0) {
             return null
         }
         return tileset.getLDtkTile(autoTile.tileId, autoTile.flips)
     }
+
+    operator fun get(coordId: Int) = autoTilesCoordIdMap[coordId]
 
     override fun render(batch: SpriteBatch, viewBounds: Rect, x: Float, y: Float) {
         val minY = max(floor(-viewBounds.y / cellSize).toInt(), 0)
@@ -76,4 +70,6 @@ open class LDtkAutoLayer(
             //}
         }
     }
+
+    data class AutoTile(val tileId: Int, val flips: Int, val renderX: Int, val renderY: Int)
 }

@@ -52,10 +52,10 @@ suspend fun VfsFile.readLDtkMap(loadAllLevels: Boolean, levelIdx: Int = 0): LDtk
     return loader.loadMap(loadAllLevels, levelIdx)
 }
 
-suspend fun VfsFile.readLDtkLevel(map: LDtkTileMap, levelIdx: Int): LDtkLevel {
-    val loader = LDtkLevelLoader(map)
-    return loader.loadLevel(this, map.json.levelDefinitions[levelIdx], map)
-}
+//suspend fun VfsFile.readLDtkLevel(map: LDtkTileMap, levelIdx: Int): LDtkLevel {
+//    val loader = LDtkLevelLoader(map)
+//    return loader.loadLevel(this, map.levels[levelIdx], map)
+//}
 
 /**
  * Loads an image from the path as a [Texture]. This will call [Texture.prepare] before returning!

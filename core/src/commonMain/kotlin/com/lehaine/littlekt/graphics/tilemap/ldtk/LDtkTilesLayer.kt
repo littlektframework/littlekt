@@ -1,6 +1,5 @@
 package com.lehaine.littlekt.graphics.tilemap.ldtk
 
-import com.lehaine.littlekt.file.ldtk.LayerInstance
 import com.lehaine.littlekt.graphics.SpriteBatch
 import com.lehaine.littlekt.math.Rect
 import kotlin.math.floor
@@ -11,26 +10,19 @@ import kotlin.math.max
  * @date 12/20/2021
  */
 open class LDtkTilesLayer(
-    tilesets: Map<Int, LDtkTileset>,
-    json: LayerInstance
-) : LDtkLayer(json) {
-    data class TileInfo(val tileId: Int, val flipBits: Int)
-
-    val tileset = tilesets[json.tilesetDefUid]
-        ?: error("Unable to retrieve LDtk tileset: ${json.tilesetDefUid} at ${json.tilesetRelPath}")
-
-    val tiles = hashMapOf<Int, List<TileInfo>>()
-
-    init {
-        json.gridTiles.forEach {
-            if (!tiles.containsKey(it.d[0])) {
-                tiles[it.d[0]] = mutableListOf(TileInfo(it.t, it.f))
-            } else {
-                val mutList = tiles[it.d[0]] as MutableList
-                mutList.add(TileInfo(it.t, it.f))
-            }
-        }
-    }
+    val tileset: LDtkTileset,
+    val tiles: Map<Int, List<TileInfo>>,
+    identifier: String,
+    type: LayerType,
+    cellSize: Int,
+    gridWidth: Int,
+    gridHeight: Int,
+    pxTotalOffsetX: Int,
+    pxTotalOffsetY: Int,
+    opacity: Float,
+) : LDtkLayer(
+    identifier, type, cellSize, gridWidth, gridHeight, pxTotalOffsetX, pxTotalOffsetY, opacity
+) {
 
     fun getTileStackAt(cx: Int, cy: Int): List<TileInfo> {
         return if (isCoordValid(cx, cy) && tiles.contains(getCoordId(cx, cy))) {
@@ -76,4 +68,6 @@ open class LDtkTilesLayer(
             }
         }
     }
+
+    data class TileInfo(val tileId: Int, val flipBits: Int)
 }

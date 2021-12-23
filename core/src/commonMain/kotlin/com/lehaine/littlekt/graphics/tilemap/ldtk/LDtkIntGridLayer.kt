@@ -1,38 +1,26 @@
 package com.lehaine.littlekt.graphics.tilemap.ldtk
 
-import com.lehaine.littlekt.file.ldtk.IntGridValueDefinition
-import com.lehaine.littlekt.file.ldtk.LayerInstance
-
 /**
  * @author Colton Daily
  * @date 12/20/2021
  */
 open class LDtkIntGridLayer(
-    intGridValues: List<IntGridValueDefinition>,
-    json: LayerInstance
-) : LDtkLayer(json) {
-
-    data class ValueInfo(val identifier: String?, val color: Int)
-
-    private val valueInfos = intGridValues.map {
-        ValueInfo(it.identifier, it.color.substring(1).toInt(16))
-    }
-    private val _intGrid = mutableMapOf<Int, Int>().apply {
-        if (json.intGridCSV != null) {
-            json.intGridCSV.forEachIndexed { index, i ->
-                put(index, i)
-            }
-        } else {
-            json.intGrid?.forEach {
-                put(it.coordID, it.v)
-            }
-        }
-    }
-
+    private val intGridValueInfo: List<ValueInfo>,
     /**
      * IntGrid integer values, map is based on coordIds
      */
-    val intGrid = _intGrid.toMap()
+    val intGrid: Map<Int, Int>,
+    identifier: String,
+    type: LayerType,
+    cellSize: Int,
+    gridWidth: Int,
+    gridHeight: Int,
+    pxTotalOffsetX: Int,
+    pxTotalOffsetY: Int,
+    opacity: Float,
+) : LDtkLayer(
+    identifier, type, cellSize, gridWidth, gridHeight, pxTotalOffsetX, pxTotalOffsetY, opacity
+) {
 
     /**
      * Get the Integer value at selected coordinates
@@ -65,7 +53,7 @@ open class LDtkIntGridLayer(
         return if (!hasValue(cx, cy)) {
             null
         } else {
-            valueInfos[getInt(cx, cy) - 1].identifier
+            intGridValueInfo[getInt(cx, cy) - 1].identifier
         }
     }
 
@@ -77,7 +65,7 @@ open class LDtkIntGridLayer(
         return if (!hasValue(cx, cy)) {
             null
         } else {
-            valueInfos[getInt(cx, cy) - 1].color
+            intGridValueInfo[getInt(cx, cy) - 1].color
         }
     }
 
@@ -95,8 +83,8 @@ open class LDtkIntGridLayer(
     }
 
     override fun toString(): String {
-        return "LDtkIntGridLayer(valueInfos=$valueInfos)"
+        return "LDtkIntGridLayer(valueInfos=$intGridValueInfo)"
     }
 
-
+    data class ValueInfo(val identifier: String?, val color: Int)
 }

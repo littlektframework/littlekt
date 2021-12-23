@@ -1,6 +1,5 @@
 package com.lehaine.littlekt.graphics.tilemap.ldtk
 
-import com.lehaine.littlekt.file.ldtk.TilesetDefinition
 import com.lehaine.littlekt.graphics.Texture
 import com.lehaine.littlekt.graphics.TextureSlice
 import com.lehaine.littlekt.graphics.gl.DataType
@@ -13,11 +12,14 @@ import kotlin.math.ceil
  * @author Colton Daily
  * @date 12/20/2021
  */
-class LDtkTileset(json: TilesetDefinition, val tiles: List<TextureSlice>) : TileSet {
-    val identifier = json.identifier
-    val cellSize = json.tileGridSize
-    val pxWidth = json.pxWid
-    val pxHeight = json.pxHei
+class LDtkTileset(
+    val identifier: String,
+    val cellSize: Int,
+    val pxWidth: Int,
+    val pxHeight: Int,
+    val tiles: List<TextureSlice>
+) : TileSet {
+
     val gridWidth get() = ceil((pxWidth / cellSize).toFloat()).toInt()
 
     /**
@@ -33,8 +35,6 @@ class LDtkTileset(json: TilesetDefinition, val tiles: List<TextureSlice>) : Tile
     fun getAtlasY(tileId: Int): Int {
         return tileId / gridWidth
     }
-
-    internal data class LDtkTile(var slice: TextureSlice, var flipX: Boolean = false, var flipY: Boolean = false)
 
     private val temp =
         LDtkTile(
@@ -86,4 +86,6 @@ class LDtkTileset(json: TilesetDefinition, val tiles: List<TextureSlice>) : Tile
     override fun toString(): String {
         return "LDtkTileset(identifier='$identifier', cellSize=$cellSize, pxWidth=$pxWidth, pxHeight=$pxHeight, gridWidth=$gridWidth, tiles=${tiles})"
     }
+
+    internal data class LDtkTile(var slice: TextureSlice, var flipX: Boolean = false, var flipY: Boolean = false)
 }
