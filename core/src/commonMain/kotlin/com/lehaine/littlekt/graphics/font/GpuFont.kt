@@ -187,23 +187,21 @@ class GpuFont(
                 val offsetX = glyph.offsetX * scale
                 val offsetY = glyph.offsetY * scale
                 if (rotationDegrees != 0f) {
-                    temp4.translate(tx + offsetX - lastX, ty + offsetY - lastY, 0f)
+                    temp4.translate(tx + offsetX - lastX, ty - offsetY - lastY, 0f)
                 }
                 lastX = tx + offsetX
-                lastY = ty + offsetY
+                lastY = ty - offsetY
                 val mx = (if (rotationDegrees == 0f) tx + offsetX else temp4[12])
-                val my = (if (rotationDegrees == 0f) ty + offsetY else temp4[13])
+                val my = (if (rotationDegrees == 0f) ty - offsetY else temp4[13])
                 val p1x = 0f
-                val p1y = 0f
+                val p1y = -glyph.height * scale
                 val p2x = glyph.width * scale
-                val p2y = p1y
-                val p3x = p2x
-                val p3y = glyph.height * scale
+                val p3y = 0f
                 var x1: Float = p1x
                 var y1: Float = p1y
                 var x2: Float = p2x
-                var y2: Float = p2y
-                var x3: Float = p3x
+                var y2: Float = p1y
+                var x3: Float = p2x
                 var y3: Float = p3y
                 var x4: Float = p1x
                 var y4: Float = p3y
@@ -214,11 +212,11 @@ class GpuFont(
                     x1 = cos * p1x - sin * p1y
                     y1 = sin * p1x + cos * p1y
 
-                    x2 = cos * p2x - sin * p2y
-                    y2 = sin * p2x + cos * p2y
+                    x2 = cos * p2x - sin * p1y
+                    y2 = sin * p2x + cos * p1y
 
-                    x3 = cos * p3x - sin * p3y
-                    y3 = sin * p3x + cos * p3y
+                    x3 = cos * p2x - sin * p3y
+                    y3 = sin * p2x + cos * p3y
 
                     x4 = x1 + (x3 - x2)
                     y4 = y3 - (y2 - y1)
@@ -237,13 +235,14 @@ class GpuFont(
                     add(y1)
                     add(color.toFloatBits())
                     add(0f + bx)
-                    add(0f + by)
+                    add(1f + by)
                 }
-                vertices.run { // bottom right
-                    add(x2)
-                    add(y2)
+
+                vertices.run { // top left
+                    add(x4)
+                    add(y4)
                     add(color.toFloatBits())
-                    add(1f + bx)
+                    add(0f + bx)
                     add(0f + by)
                 }
                 vertices.run { // top right
@@ -251,13 +250,13 @@ class GpuFont(
                     add(y3)
                     add(color.toFloatBits())
                     add(1f + bx)
-                    add(1f + by)
+                    add(0f + by)
                 }
-                vertices.run { // top left
-                    add(x4)
-                    add(y4)
+                vertices.run { // bottom right
+                    add(x2)
+                    add(y2)
                     add(color.toFloatBits())
-                    add(0f + bx)
+                    add(1f + bx)
                     add(1f + by)
                 }
                 instances += glyph
