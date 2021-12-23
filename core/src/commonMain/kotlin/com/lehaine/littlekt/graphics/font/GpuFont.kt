@@ -171,7 +171,7 @@ class GpuFont(
                 return@forEach
             }
             if (it == '\n') {
-                ty -= font.ascender * scale
+                ty += font.ascender * scale
                 tx = x
                 return@forEach
             }
@@ -199,16 +199,14 @@ class GpuFont(
                 val p2y = p1y
                 val p3x = p2x
                 val p3y = glyph.height * scale
-                val p4x = p1x
-                val p4y = p3y
                 var x1: Float = p1x
                 var y1: Float = p1y
                 var x2: Float = p2x
                 var y2: Float = p2y
                 var x3: Float = p3x
                 var y3: Float = p3y
-                var x4: Float = p4x
-                var y4: Float = p4y
+                var x4: Float = p1x
+                var y4: Float = p3y
                 if (rotationDegrees != 0f) {
                     val cos = cos(rotationDegrees.toRad())
                     val sin = sin(rotationDegrees.toRad())

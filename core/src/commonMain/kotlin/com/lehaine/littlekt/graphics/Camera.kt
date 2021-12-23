@@ -10,9 +10,9 @@ import com.lehaine.littlekt.util.LazyMat4
  * @date 11/27/2021
  */
 abstract class Camera {
-    val position = MutableVec3f(Vec3f.Z_AXIS)
-    val direction = MutableVec3f(Vec3f.NEG_Z_AXIS)
-    val up = MutableVec3f(Vec3f.Y_AXIS)
+    val position = MutableVec3f(0f)
+    val direction = MutableVec3f(Vec3f.Z_AXIS)
+    val up = MutableVec3f(Vec3f.NEG_Y_AXIS)
     val rightDir: Vec3f get() = rightMut
 
     protected val rightMut = MutableVec3f()

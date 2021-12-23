@@ -4,13 +4,10 @@ import com.lehaine.littlekt.Context
 import com.lehaine.littlekt.ContextListener
 import com.lehaine.littlekt.file.vfs.readAtlas
 import com.lehaine.littlekt.file.vfs.readLDtkMap
-import com.lehaine.littlekt.file.vfs.readPixmap
-import com.lehaine.littlekt.file.vfs.writePixmap
 import com.lehaine.littlekt.graphics.*
 import com.lehaine.littlekt.graphics.tilemap.ldtk.LDtkTileMap
 import com.lehaine.littlekt.input.Key
 import com.lehaine.littlekt.log.Logger
-import com.lehaine.littlekt.util.forEachReversed
 import kotlin.time.Duration
 
 /**
@@ -66,10 +63,11 @@ class LDtkMapTest(context: Context) : ContextListener(context) {
         camera.update()
         batch.use(camera.viewProjection) {
             val level = map.levels[0]
-            level.levelBackgroundImage?.render(batch, 0f, 0f)
-            level.layers.forEachReversed { layer ->
-                layer.render(batch, camera, 0f, 0f)
-            }
+            level.render(it, camera, 0f, 0f)
+//            level.levelBackgroundImage?.render(batch, 0f, 0f)
+//            level.layers.forEachReversed { layer ->
+//                layer.render(batch, camera, 0f, 0f)
+//            }
             it.draw(person, 100f, 50f)
         }
 

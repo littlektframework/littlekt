@@ -81,6 +81,7 @@ class DisplayTest(context: Context) : ContextListener(context), InputProcessor {
             loading = false
         }
         input.inputProcessor = this
+        camera.translate(graphics.width/2f, graphics.height/2f, 0f)
     }
 
     override fun render(dt: Duration) {
@@ -91,10 +92,10 @@ class DisplayTest(context: Context) : ContextListener(context), InputProcessor {
         yVel = 0f
 
         if (input.isKeyPressed(Key.W)) {
-            yVel += 10f
+            yVel -= 10f
         }
         if (input.isKeyPressed(Key.S)) {
-            yVel -= 10f
+            yVel += 10f
         }
         if (input.isKeyPressed(Key.A)) {
             xVel -= 10f

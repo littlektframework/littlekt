@@ -70,9 +70,9 @@ open class TextureSlice(
             u = value / texture.width.toFloat()
         }
     var y: Int
-        get() = (v * texture.height).roundToInt()
+        get() = (v2 * texture.height).roundToInt()
         set(value) {
-            v = value / texture.height.toFloat()
+            v2 = value / texture.height.toFloat()
         }
 
     val isFlipH: Boolean get() = u > u2
@@ -85,7 +85,7 @@ open class TextureSlice(
     fun setSlice(x: Int, y: Int, width: Int, height: Int) {
         val invTexWidth = 1f / texture.width
         val invTexHeight = 1f / texture.height
-        setSlice(x * invTexWidth, y * invTexHeight, (x + width) * invTexWidth, (y + height) * invTexHeight)
+        setSlice(x * invTexWidth, (y + height) * invTexHeight, (x + width) * invTexWidth, y * invTexHeight)
         this.width = abs(width)
         this.height = abs(height)
     }
