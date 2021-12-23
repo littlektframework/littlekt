@@ -1,6 +1,5 @@
 package com.lehaine.littlekt
 
-import com.lehaine.littlekt.graphics.Texture
 import com.lehaine.littlekt.graphics.shader.FragmentShader
 import com.lehaine.littlekt.graphics.shader.ShaderProgram
 import com.lehaine.littlekt.graphics.shader.VertexShader

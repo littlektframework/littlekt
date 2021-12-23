@@ -1,7 +1,7 @@
 package com.lehaine.littlekt.samples
 
 import com.lehaine.littlekt.Context
-import com.lehaine.littlekt.ContextListener
+import com.lehaine.littlekt.ContextScene
 import com.lehaine.littlekt.createShader
 import com.lehaine.littlekt.file.vfs.readAtlas
 import com.lehaine.littlekt.file.vfs.readTexture
@@ -17,11 +17,9 @@ import kotlin.time.Duration
  * @author Colton Daily
  * @date 11/6/2021
  */
-class DisplayTest(context: Context) : ContextListener(context), InputProcessor {
+class DisplayTest(context: Context) : ContextScene(context), InputProcessor {
 
     val batch = SpriteBatch(context)
-
-    var loading = true
 
     lateinit var texture: Texture
     lateinit var slices: Array<Array<TextureSlice>>
@@ -71,23 +69,20 @@ class DisplayTest(context: Context) : ContextListener(context), InputProcessor {
 
     init {
         logger.level = Logger.Level.DEBUG
-        vfs.launch {
-            texture = resourcesVfs["atlas.png"].readTexture()
-            slices = texture.slice(16, 16)
-            person = slices[0][0]
-            atlas = resourcesVfs["tiles.atlas.json"].readAtlas()
-            bossAttack = atlas.getAnimation("bossAttack")
-            bossAttack.playLooped()
-            loading = false
-        }
         input.inputProcessor = this
-        camera.translate(graphics.width/2f, graphics.height/2f, 0f)
+        camera.translate(graphics.width / 2f, graphics.height / 2f, 0f)
     }
 
-    override fun render(dt: Duration) {
-        if (loading) {
-            return
-        }
+    override suspend fun loadAssets() {
+        texture = resourcesVfs["atlas.png"].readTexture()
+        slices = texture.slice(16, 16)
+        person = slices[0][0]
+        atlas = resourcesVfs["tiles.atlas.json"].readAtlas()
+        bossAttack = atlas.getAnimation("bossAttack")
+        bossAttack.playLooped()
+    }
+
+    override fun update(dt: Duration) {
         xVel = 0f
         yVel = 0f
 
