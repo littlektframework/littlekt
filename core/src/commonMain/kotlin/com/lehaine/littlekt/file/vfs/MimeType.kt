@@ -34,7 +34,7 @@ class MimeType(val mime: String, val exts: List<String>) {
             register(
                 MimeType(
                     mime,
-                    exsts.map(String::toLowerCase)
+                    exsts.map(String::lowercase)
                 )
             )
         }
