@@ -3,8 +3,6 @@ package com.lehaine.littlekt.samples
 import com.lehaine.littlekt.Context
 import com.lehaine.littlekt.ContextScene
 import com.lehaine.littlekt.createShader
-import com.lehaine.littlekt.file.vfs.readAtlas
-import com.lehaine.littlekt.file.vfs.readTexture
 import com.lehaine.littlekt.graphics.*
 import com.lehaine.littlekt.graphics.shader.shaders.SimpleColorFragmentShader
 import com.lehaine.littlekt.graphics.shader.shaders.SimpleColorVertexShader
@@ -21,10 +19,10 @@ class DisplayTest(context: Context) : ContextScene(context), InputProcessor {
 
     val batch = SpriteBatch(context)
 
-    lateinit var texture: Texture
+    val texture by load<Texture>(resourcesVfs["atlas.png"])
+    val atlas: TextureAtlas by load(resourcesVfs["tiles.atlas.json"])
     lateinit var slices: Array<Array<TextureSlice>>
     lateinit var person: TextureSlice
-    lateinit var atlas: TextureAtlas
 
     val shader = createShader(SimpleColorVertexShader(), SimpleColorFragmentShader())
     val colorBits = Color.WHITE.toFloatBits()
@@ -73,11 +71,9 @@ class DisplayTest(context: Context) : ContextScene(context), InputProcessor {
         camera.translate(graphics.width / 2f, graphics.height / 2f, 0f)
     }
 
-    override suspend fun loadAssets() {
-        texture = resourcesVfs["atlas.png"].readTexture()
+    override fun prepare() {
         slices = texture.slice(16, 16)
         person = slices[0][0]
-        atlas = resourcesVfs["tiles.atlas.json"].readAtlas()
         bossAttack = atlas.getAnimation("bossAttack")
         bossAttack.playLooped()
     }
