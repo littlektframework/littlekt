@@ -17,6 +17,7 @@ import kotlin.time.Duration
  */
 open class ContextScene(context: Context) : ContextListener(context) {
     private val loaders = createLoaders()
+    private val assetsToPrepare = mutableListOf<PreparableSceneAsset<*>>()
     var loading = true
     var prepared = false
     private var totalAssetsLoading = 0
@@ -45,6 +46,10 @@ open class ContextScene(context: Context) : ContextListener(context) {
     final override fun render(dt: Duration) {
         if (loading || totalAssetsLoading > 0) return
         if (!prepared) {
+            assetsToPrepare.forEach {
+                it.prepare()
+            }
+            assetsToPrepare.clear()
             prepare()
             prepared = true
         }
@@ -83,6 +88,13 @@ open class ContextScene(context: Context) : ContextListener(context) {
     ) = load(file, T::class, parameters)
 
 
+    /**
+     * Prepares a value once assets have finished loading. This acts the same as [lazy] except this will
+     * invoke the [action] once loading is finished to ensure everything is initialized before the first frame.
+     * @param action the action to initialize this value
+     */
+    fun <T : Any> prepare(action: () -> T) = PreparableSceneAsset(action).also { assetsToPrepare += it }
+
     companion object {
         private fun createLoaders() = mapOf<KClass<*>, suspend (VfsFile, SceneAssetParameters) -> Any>(
             Texture::class to { file, params ->
@@ -120,6 +132,24 @@ class SceneAsset<T>(val vfsFile: VfsFile) {
     fun load(content: T) {
         result = content
         isLoaded = true
+    }
+}
+
+class PreparableSceneAsset<T>(val action: () -> T) {
+    private var isPrepared = false
+    private var result: T? = null
+
+    operator fun getValue(thisRef: Any?, property: KProperty<*>): T {
+        if (isPrepared) {
+            return result!!
+        } else {
+            throw IllegalStateException("Asset not prepared yet!")
+        }
+    }
+
+    fun prepare() {
+        result = action.invoke()
+        isPrepared = true
     }
 }
 
