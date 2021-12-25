@@ -2,12 +2,10 @@ package com.lehaine.littlekt
 
 import com.lehaine.littlekt.audio.AudioClip
 import com.lehaine.littlekt.file.UnsupportedFileTypeException
-import com.lehaine.littlekt.file.vfs.VfsFile
-import com.lehaine.littlekt.file.vfs.readAtlas
-import com.lehaine.littlekt.file.vfs.readAudioClip
-import com.lehaine.littlekt.file.vfs.readTexture
+import com.lehaine.littlekt.file.vfs.*
 import com.lehaine.littlekt.graphics.Texture
 import com.lehaine.littlekt.graphics.TextureAtlas
+import com.lehaine.littlekt.graphics.tilemap.ldtk.LDtkTileMap
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
 import kotlin.time.Duration
@@ -23,7 +21,7 @@ open class ContextScene(context: Context) : ContextListener(context) {
 
     init {
         context.vfs.launch {
-//            loadAssets()
+            loadAssets()
             loading = false
         }
     }
@@ -55,29 +53,49 @@ open class ContextScene(context: Context) : ContextListener(context) {
     open fun update(dt: Duration) {}
 
     @Suppress("UNCHECKED_CAST")
-    fun <T : Any> load(file: VfsFile, clazz: KClass<T>): SceneAsset<T> {
+    fun <T : Any> load(
+        file: VfsFile,
+        clazz: KClass<T>,
+        parameters: SceneAssetParameters = SceneAssetParameters()
+    ): SceneAsset<T> {
         val sceneAsset = SceneAsset<T>(file)
         totalAssetsLoading++
         context.vfs.launch {
             val loader = loaders[clazz] ?: throw UnsupportedFileTypeException(file.path)
-            val result = loader.invoke(file) as T
+            val result = loader.invoke(file, parameters) as T
             sceneAsset.load(result)
             totalAssetsLoading--
         }
         return sceneAsset
     }
 
-    inline fun <reified T : Any> load(file: VfsFile) = load(file, T::class)
+    inline fun <reified T : Any> load(
+        file: VfsFile,
+        parameters: SceneAssetParameters = SceneAssetParameters()
+    ) = load(file, T::class, parameters)
+
 
     companion object {
-        private fun createLoaders() = mapOf<KClass<*>, suspend (VfsFile) -> Any>(
-            Texture::class to { it.readTexture() },
-            AudioClip::class to { it.readAudioClip() },
-            TextureAtlas::class to { it.readAtlas() },
+        private fun createLoaders() = mapOf<KClass<*>, suspend (VfsFile, SceneAssetParameters) -> Any>(
+            Texture::class to { file, params ->
+                file.readTexture()
+            },
+            AudioClip::class to { file, params ->
+                file.readAudioClip()
+            },
+            TextureAtlas::class to { file, params ->
+                file.readAtlas()
+            },
+            LDtkTileMap::class to { file, params ->
+                if (params is LDtkSceneAssetParameter) {
+                    file.readLDtkMap(params.loadAllLevels, params.levelIdx)
+                } else {
+                    file.readLDtkMap()
+                }
+            }
         )
     }
 }
-
 
 class SceneAsset<T>(val vfsFile: VfsFile) {
     private var result: T? = null
@@ -96,3 +114,7 @@ class SceneAsset<T>(val vfsFile: VfsFile) {
         isLoaded = true
     }
 }
+
+open class SceneAssetParameters
+
+class LDtkSceneAssetParameter(val loadAllLevels: Boolean = true, val levelIdx: Int = 0) : SceneAssetParameters()

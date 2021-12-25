@@ -21,8 +21,9 @@ class DisplayTest(context: Context) : ContextScene(context), InputProcessor {
 
     val texture by load<Texture>(resourcesVfs["atlas.png"])
     val atlas: TextureAtlas by load(resourcesVfs["tiles.atlas.json"])
-    lateinit var slices: Array<Array<TextureSlice>>
-    lateinit var person: TextureSlice
+    val slices: Array<Array<TextureSlice>> by lazy { texture.slice(16, 16) }
+    val person by lazy { slices[0][0] }
+    val bossAttack by lazy { atlas.getAnimation("bossAttack") }
 
     val shader = createShader(SimpleColorVertexShader(), SimpleColorFragmentShader())
     val colorBits = Color.WHITE.toFloatBits()
@@ -58,7 +59,6 @@ class DisplayTest(context: Context) : ContextScene(context), InputProcessor {
 
     val camera = OrthographicCamera(graphics.width, graphics.height)
 
-    lateinit var bossAttack: Animation<TextureSlice>
     private var x = 0f
     private var y = 0f
 
@@ -72,9 +72,6 @@ class DisplayTest(context: Context) : ContextScene(context), InputProcessor {
     }
 
     override fun prepare() {
-        slices = texture.slice(16, 16)
-        person = slices[0][0]
-        bossAttack = atlas.getAnimation("bossAttack")
         bossAttack.playLooped()
     }
 
