@@ -11,7 +11,9 @@ import kotlin.reflect.KProperty
 import kotlin.time.Duration
 
 /**
- * Created by Colt Daily 12/23/21
+ * A [ContextListener] that handles commonly loading assets and preparing them before a scene begins.
+ * @author Colt Daily
+ * @date 12/23/21
  */
 open class ContextScene(context: Context) : ContextListener(context) {
     private val loaders = createLoaders()
@@ -27,13 +29,13 @@ open class ContextScene(context: Context) : ContextListener(context) {
     }
 
     /**
-     * Runs in a separate thread. Load any assets here.
+     * This is triggered before anything else runs. Runs in a separate thread. Load any assets here.
      * If an asset needs to be prepared, then prepare it in the [prepare] function.
      */
     open suspend fun loadAssets() {}
 
     /**
-     * Runs on the ui thread. Prepare any asset here.
+     * This is triggered after all assets have been loaded. Runs on the ui thread. Prepare any asset here.
      */
     open fun prepare() {}
 
@@ -69,6 +71,12 @@ open class ContextScene(context: Context) : ContextListener(context) {
         return sceneAsset
     }
 
+    /**
+     * Loads an asset.
+     * @param file the file to load
+     * @param parameters any parameters that need setting when loading the asset
+     * @see LDtkSceneAssetParameter
+     */
     inline fun <reified T : Any> load(
         file: VfsFile,
         parameters: SceneAssetParameters = SceneAssetParameters()
