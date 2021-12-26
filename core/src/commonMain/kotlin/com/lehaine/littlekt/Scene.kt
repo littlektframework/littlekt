@@ -12,12 +12,11 @@ import kotlin.time.Duration
  * @date 12/26/2021
  */
 abstract class Scene(context: Context) : AssetProvider(context), Context by context, Disposable {
-    fun show() = Unit
-    fun render(dt: Duration) = Unit
-    fun resize(width: Int, height: Int) = Unit
-    fun pause() = Unit
-    fun resume() = Unit
-    fun hide() = Unit
+    open fun show() = Unit
+    open fun render(dt: Duration) = Unit
+    open fun resize(width: Int, height: Int) = Unit
+    open fun pause() = Unit
+    open fun resume() = Unit
+    open fun hide() = Unit
     override fun dispose() = Unit
-
 }
