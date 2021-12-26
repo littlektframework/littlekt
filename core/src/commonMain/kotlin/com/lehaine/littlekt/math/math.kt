@@ -367,8 +367,10 @@ fun IntRange.random() = Random.nextFloat() * (endInclusive - start) + start
 fun sparseListOf(vararg ranges: IntRange): List<Int> = ranges.flatMap { it }
 
 fun distSqr(ax: Double, ay: Double, bx: Double, by: Double) = (ax - bx) * (ax - bx) + (ay - by) * (ay - by)
+fun distSqr(ax: Float, ay: Float, bx: Float, by: Float) = (ax - bx) * (ax - bx) + (ay - by) * (ay - by)
 fun distSqr(ax: Int, ay: Int, bx: Int, by: Int) = distSqr(ax.toDouble(), ay.toDouble(), bx.toDouble(), by.toDouble())
 fun dist(ax: Double, ay: Double, bx: Double, by: Double) = sqrt(distSqr(ax, ay, bx, by))
+fun dist(ax: Float, ay: Float, bx: Float, by: Float) = sqrt(distSqr(ax, ay, bx, by))
 fun dist(ax: Int, ay: Int, bx: Int, by: Int) = dist(ax.toDouble(), ay.toDouble(), bx.toDouble(), by.toDouble())
 
 fun distRadians(a: Double, b: Double): Double = abs(subtractRadians(a, b))
