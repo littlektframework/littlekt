@@ -97,13 +97,13 @@ open class ContextScene(context: Context) : ContextListener(context) {
 
     companion object {
         private fun createLoaders() = mapOf<KClass<*>, suspend (VfsFile, SceneAssetParameters) -> Any>(
-            Texture::class to { file, params ->
+            Texture::class to { file, _ ->
                 file.readTexture()
             },
-            AudioClip::class to { file, params ->
+            AudioClip::class to { file, _ ->
                 file.readAudioClip()
             },
-            TextureAtlas::class to { file, params ->
+            TextureAtlas::class to { file, _ ->
                 file.readAtlas()
             },
             LDtkTileMap::class to { file, params ->

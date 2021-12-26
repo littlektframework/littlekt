@@ -1,4 +1,4 @@
 allprojects {
-    group = "com.lehaine"
+    group = "com.lehaine.littlekt"
     version = "0.0.1"
 }
