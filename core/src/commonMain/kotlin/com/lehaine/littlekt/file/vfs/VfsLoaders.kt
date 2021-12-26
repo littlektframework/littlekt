@@ -61,7 +61,12 @@ suspend fun VfsFile.readLDtkMap(loadAllLevels: Boolean = true, levelIdx: Int = 0
         val project = decodeFromString<ProjectJson>()
         LDtkMapLoader(this, project)
     }
-    return loader.loadMap(loadAllLevels, levelIdx)
+    return loader.loadMap(loadAllLevels, levelIdx).also {
+        it.onDispose = {
+            loader.dispose()
+            mapCache.remove(path)
+        }
+    }
 }
 
 /**

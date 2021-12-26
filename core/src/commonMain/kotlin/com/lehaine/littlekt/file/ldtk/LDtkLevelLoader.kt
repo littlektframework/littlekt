@@ -1,5 +1,6 @@
 package com.lehaine.littlekt.file.ldtk
 
+import com.lehaine.littlekt.Disposable
 import com.lehaine.littlekt.file.vfs.VfsFile
 import com.lehaine.littlekt.file.vfs.readPixmap
 import com.lehaine.littlekt.file.vfs.readTexture
@@ -11,7 +12,7 @@ import com.lehaine.littlekt.graphics.tilemap.ldtk.*
  * @author Colton Daily
  * @date 12/20/2021
  */
-class LDtkLevelLoader(private val project: ProjectJson) {
+class LDtkLevelLoader(private val project: ProjectJson) : Disposable {
 
     val assetCache = mutableMapOf<VfsFile, Texture>()
     val tilesets = mutableMapOf<Int, LDtkTileset>()
@@ -205,4 +206,8 @@ class LDtkLevelLoader(private val project: ProjectJson) {
             tiles = vfs[tilesetDef.relPath].readPixmap()
                 .sliceWithBorder(vfs.vfs.context, tilesetDef.tileGridSize, tilesetDef.tileGridSize, 4)
         )
+
+    override fun dispose() {
+        assetCache.values.forEach { it.dispose() }
+    }
 }

@@ -1,5 +1,6 @@
 package com.lehaine.littlekt.file.ldtk
 
+import com.lehaine.littlekt.Disposable
 import com.lehaine.littlekt.file.vfs.VfsFile
 import com.lehaine.littlekt.graphics.tilemap.ldtk.LDtkLevel
 import com.lehaine.littlekt.graphics.tilemap.ldtk.LDtkTileMap
@@ -8,7 +9,7 @@ import com.lehaine.littlekt.graphics.tilemap.ldtk.LDtkTileMap
  * @author Colton Daily
  * @date 12/20/2021
  */
-class LDtkMapLoader(val root: VfsFile, val project: ProjectJson) {
+class LDtkMapLoader(val root: VfsFile, val project: ProjectJson) : Disposable {
     val levelLoader = LDtkLevelLoader(project)
 
     suspend fun loadMap(loadAllLevels: Boolean, levelIdx: Int = 0): LDtkTileMap {
@@ -56,5 +57,9 @@ class LDtkMapLoader(val root: VfsFile, val project: ProjectJson) {
         } else {
             levelLoader.loadLevel(parent, level)
         }
+    }
+
+    override fun dispose() {
+        levelLoader.dispose()
     }
 }
