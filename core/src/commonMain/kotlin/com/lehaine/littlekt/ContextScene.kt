@@ -3,8 +3,12 @@ package com.lehaine.littlekt
 import com.lehaine.littlekt.audio.AudioClip
 import com.lehaine.littlekt.file.UnsupportedFileTypeException
 import com.lehaine.littlekt.file.vfs.*
+import com.lehaine.littlekt.graphics.Pixmap
 import com.lehaine.littlekt.graphics.Texture
 import com.lehaine.littlekt.graphics.TextureAtlas
+import com.lehaine.littlekt.graphics.font.CharacterSets
+import com.lehaine.littlekt.graphics.font.TtfFont
+import com.lehaine.littlekt.graphics.tilemap.ldtk.LDtkLevel
 import com.lehaine.littlekt.graphics.tilemap.ldtk.LDtkTileMap
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
@@ -100,17 +104,34 @@ open class ContextScene(context: Context) : ContextListener(context) {
             Texture::class to { file, _ ->
                 file.readTexture()
             },
+            Pixmap::class to { file, _ ->
+                file.readPixmap()
+            },
             AudioClip::class to { file, _ ->
                 file.readAudioClip()
             },
             TextureAtlas::class to { file, _ ->
                 file.readAtlas()
             },
+            TtfFont::class to { file, params ->
+                if (params is FontAssetParameter) {
+                    file.readTtfFont(params.chars)
+                } else {
+                    file.readTtfFont()
+                }
+            },
             LDtkTileMap::class to { file, params ->
                 if (params is LDtkSceneAssetParameter) {
                     file.readLDtkMap(params.loadAllLevels, params.levelIdx)
                 } else {
                     file.readLDtkMap()
+                }
+            },
+            LDtkLevel::class to { file, params ->
+                if (params is LDtkSceneAssetParameter) {
+                    file.readLDtkLevel(params.levelIdx)
+                } else {
+                    file.readLDtkLevel(0)
                 }
             }
         )
@@ -155,4 +176,15 @@ class PreparableSceneAsset<T>(val action: () -> T) {
 
 open class SceneAssetParameters
 
-class LDtkSceneAssetParameter(val loadAllLevels: Boolean = true, val levelIdx: Int = 0) : SceneAssetParameters()
+class LDtkSceneAssetParameter(
+    val loadAllLevels: Boolean = true,
+    val levelIdx: Int = 0
+) : SceneAssetParameters()
+
+class FontAssetParameter(
+    /**
+     * The chars to load a glyph for.
+     * @see CharacterSets
+     */
+    val chars: String = CharacterSets.LATIN_ALL
+) : SceneAssetParameters()
