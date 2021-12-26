@@ -1,6 +1,7 @@
 package com.lehaine.littlekt.math
 
 import kotlin.math.*
+import kotlin.random.Random
 
 /**
  * @author Colton Daily
@@ -348,3 +349,41 @@ val Int.prevPowerOfTwo: Int get() = if (isPowerOfTwo) this else (nextPowerOfTwo 
 
 /** Checks if [this] value is power of two */
 val Int.isPowerOfTwo: Boolean get() = this.nextPowerOfTwo == this
+
+fun Float.interpolate(l: Float, r: Float): Float = (l + (r - l) * this)
+fun Float.interpolate(l: Int, r: Int): Int = (l + (r - l) * this).toInt()
+fun Float.interpolate(l: Long, r: Long): Long = (l + (r - l) * this).toLong()
+fun Float.interpolate(l: Double, r: Double): Double = (l + (r - l) * this)
+
+fun Double.interpolate(l: Float, r: Float): Float = (l + (r - l) * this).toFloat()
+fun Double.interpolate(l: Double, r: Double): Double = (l + (r - l) * this)
+fun Double.interpolate(l: Int, r: Int): Int = (l + (r - l) * this).toInt()
+fun Double.interpolate(l: Long, r: Long): Long = (l + (r - l) * this).toLong()
+
+fun ClosedFloatingPointRange<Double>.random() = Random.nextDouble(start, endInclusive)
+fun ClosedFloatingPointRange<Float>.random() = Random.nextFloat() * (endInclusive - start) + start
+fun IntRange.random() = Random.nextFloat() * (endInclusive - start) + start
+
+fun sparseListOf(vararg ranges: IntRange): List<Int> = ranges.flatMap { it }
+
+fun distSqr(ax: Double, ay: Double, bx: Double, by: Double) = (ax - bx) * (ax - bx) + (ay - by) * (ay - by)
+fun distSqr(ax: Int, ay: Int, bx: Int, by: Int) = distSqr(ax.toDouble(), ay.toDouble(), bx.toDouble(), by.toDouble())
+fun dist(ax: Double, ay: Double, bx: Double, by: Double) = sqrt(distSqr(ax, ay, bx, by))
+fun dist(ax: Int, ay: Int, bx: Int, by: Int) = dist(ax.toDouble(), ay.toDouble(), bx.toDouble(), by.toDouble())
+
+fun distRadians(a: Double, b: Double): Double = abs(subtractRadians(a, b))
+fun distRadians(a: Int, b: Int): Double = distRadians(a.toDouble(), b.toDouble())
+
+fun subtractRadians(a: Double, b: Double): Double = normalizeRadian(normalizeRadian(a) - normalizeRadian(b))
+
+fun normalizeRadian(a: Double): Double {
+    var result = a
+    while (result < -PI) {
+        result += PI * 2
+    }
+    while (result > PI) {
+        result -= PI * 2
+    }
+
+    return result
+}
