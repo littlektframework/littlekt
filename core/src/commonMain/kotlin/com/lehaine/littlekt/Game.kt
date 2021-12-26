@@ -41,7 +41,7 @@ open class Game<SceneType : Scene>(context: Context, firstScene: SceneType? = nu
 
     /**
      * You must override [update]! Render handles asset loading logic for dealing with [AssetProvider].
-     * [update] is called once all assets are fully loaded.
+     * [update] is called once all assets are fully loaded. Note that [currentScene] is updated here. You do not need to call [Scene.update].
      * @see [update]
      * @see [AssetProvider.fullyLoaded]
      */
@@ -53,6 +53,7 @@ open class Game<SceneType : Scene>(context: Context, firstScene: SceneType? = nu
             create()
         }
         update(dt)
+        currentScene.update()
     }
 
     /**
