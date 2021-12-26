@@ -1,7 +1,8 @@
 package com.lehaine.littlekt.samples
 
 import com.lehaine.littlekt.Context
-import com.lehaine.littlekt.ContextScene
+import com.lehaine.littlekt.Game
+import com.lehaine.littlekt.Scene
 import com.lehaine.littlekt.createShader
 import com.lehaine.littlekt.graphics.*
 import com.lehaine.littlekt.graphics.shader.shaders.SimpleColorFragmentShader
@@ -15,7 +16,7 @@ import kotlin.time.Duration
  * @author Colton Daily
  * @date 11/6/2021
  */
-class DisplayTest(context: Context) : ContextScene(context), InputProcessor {
+class DisplayTest(context: Context) : Game<Scene>(context), InputProcessor {
 
     val batch = SpriteBatch(context)
 
@@ -71,7 +72,7 @@ class DisplayTest(context: Context) : ContextScene(context), InputProcessor {
         camera.translate(graphics.width / 2f, graphics.height / 2f, 0f)
     }
 
-    override fun prepare() {
+    override fun create() {
         bossAttack.playLooped()
     }
 
