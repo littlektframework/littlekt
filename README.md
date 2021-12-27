@@ -3,6 +3,8 @@
 
 A mutliplatform lower level game framework inspired by LibGDX. A few major components of LibGDX have been ported over and Kotlin-ized with lots of improvements and custom idiomatic builders to make it enjoyable.
 
+Check out the [samples](https://github.com/LeHaine/LittleKt-Samples) repository.
+
 Documentation to come at a later time.
 
 ### Cross-platform 
