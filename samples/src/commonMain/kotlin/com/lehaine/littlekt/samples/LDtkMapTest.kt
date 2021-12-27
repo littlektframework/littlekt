@@ -25,7 +25,7 @@ class LDtkMapTest(context: Context) : ContextListener(context) {
 
     private val batch = SpriteBatch(this)
     private val camera = OrthographicCamera(graphics.width, graphics.height).apply {
-        viewport = FillViewport(480, 270)
+        viewport = ExtendViewport(480, 270)
     }
     private val uiCam = OrthographicCamera(graphics.width, graphics.height).apply {
         viewport = ExtendViewport(480, 270)

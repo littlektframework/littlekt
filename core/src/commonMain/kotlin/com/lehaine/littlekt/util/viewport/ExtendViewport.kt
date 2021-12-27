@@ -8,17 +8,17 @@ import kotlin.math.roundToInt
  * @author Colton Daily
  * @date 12/27/2021
  */
-class ExtendViewport(virtualWidth: Int, virtualHeight: Int) : Viewport() {
+class ExtendViewport(val minWidth: Int, val minHeight: Int) : Viewport() {
     init {
-        this.virtualWidth = virtualWidth
-        this.virtualHeight = virtualHeight
+        this.virtualWidth = minWidth
+        this.virtualHeight = minHeight
     }
 
     override fun update(width: Int, height: Int, context: Context) {
-        var worldWidth = virtualWidth.toFloat()
-        var worldHeight = virtualHeight.toFloat()
+        var worldWidth = minWidth.toFloat()
+        var worldHeight = minHeight.toFloat()
 
-        val scaled = Scaler.Fit().apply(virtualWidth, virtualHeight, width, height)
+        val scaled = Scaler.Fit().apply(minWidth, minHeight, width, height)
         var viewportWidth = scaled.x.roundToInt()
         var viewportHeight = scaled.y.roundToInt()
         if (viewportWidth < width) {
