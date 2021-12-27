@@ -4,11 +4,17 @@ import com.lehaine.littlekt.Context
 import com.lehaine.littlekt.ContextListener
 import com.lehaine.littlekt.file.vfs.readAtlas
 import com.lehaine.littlekt.file.vfs.readLDtkMap
+import com.lehaine.littlekt.file.vfs.readTtfFont
 import com.lehaine.littlekt.graphics.*
+import com.lehaine.littlekt.graphics.font.GpuFont
+import com.lehaine.littlekt.graphics.font.TtfFont
+import com.lehaine.littlekt.graphics.font.use
 import com.lehaine.littlekt.graphics.tilemap.ldtk.LDtkTileMap
 import com.lehaine.littlekt.input.Key
 import com.lehaine.littlekt.log.Logger
 import com.lehaine.littlekt.util.milliseconds
+import com.lehaine.littlekt.util.viewport.ExtendViewport
+import com.lehaine.littlekt.util.viewport.FillViewport
 import kotlin.time.Duration
 
 /**
@@ -18,10 +24,17 @@ import kotlin.time.Duration
 class LDtkMapTest(context: Context) : ContextListener(context) {
 
     private val batch = SpriteBatch(this)
-    private val camera = OrthographicCamera(480, 270)
+    private val camera = OrthographicCamera(graphics.width, graphics.height).apply {
+        viewport = FillViewport(480, 270)
+    }
+    private val uiCam = OrthographicCamera(graphics.width, graphics.height).apply {
+        viewport = ExtendViewport(480, 270)
+    }
     private lateinit var map: LDtkTileMap
     private lateinit var atlas: TextureAtlas
     private lateinit var person: TextureSlice
+    private lateinit var font: TtfFont
+    private lateinit var gpuFontRenderer: GpuFont
     private var loading = true
 
     private val speed = 0.1f
@@ -35,9 +48,12 @@ class LDtkMapTest(context: Context) : ContextListener(context) {
             map = resourcesVfs["ldtk/sample.ldtk"].readLDtkMap()
             atlas = resourcesVfs["tiles.atlas.json"].readAtlas()
             person = atlas["heroIdle0.png"].slice
+            font = resourcesVfs["LiberationSans-Regular.ttf"].readTtfFont()
+            runOnMainThread {
+                gpuFontRenderer = GpuFont(this@LDtkMapTest, font)
+            }
             loading = false
         }
-        camera.translate(240f, 135f, 0f)
     }
 
     override fun render(dt: Duration) {
@@ -62,6 +78,7 @@ class LDtkMapTest(context: Context) : ContextListener(context) {
         camera.translate(xVel * dt.milliseconds, yVel * dt.milliseconds, 0f)
 
         camera.update()
+        camera.viewport.apply(this)
         batch.use(camera.viewProjection) {
             val level = map["West"]
             map.render(it, camera)
@@ -75,9 +92,19 @@ class LDtkMapTest(context: Context) : ContextListener(context) {
             )
         }
 
+        uiCam.update()
+        uiCam.viewport.apply(this)
+        gpuFontRenderer.use(uiCam.viewProjection) {
+            gpuFontRenderer.drawText("Vertices: ${stats.engineStats.vertices}", 0f, 15f, 16, color = Color.WHITE)
+        }
         if (input.isKeyPressed(Key.ESCAPE)) {
             close()
         }
 
+    }
+
+    override fun resize(width: Int, height: Int) {
+        camera.update(width, height, this)
+        uiCam.update(width, height, this)
     }
 }

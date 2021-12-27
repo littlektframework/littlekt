@@ -2,8 +2,8 @@ package com.lehaine.littlekt.graphics.tilemap.ldtk
 
 import com.lehaine.littlekt.graphics.SpriteBatch
 import com.lehaine.littlekt.math.Rect
-import kotlin.math.floor
 import kotlin.math.max
+import kotlin.math.min
 
 /**
  * @author Colton Daily
@@ -25,7 +25,7 @@ open class LDtkTilesLayer(
 ) {
 
     fun getTileStackAt(cx: Int, cy: Int): List<TileInfo> {
-        return if (isCoordValid(cx, cy) && tiles.contains(getCoordId(cx, cy))) {
+        return if (isCoordValid(cx, cy)) {
             tiles[getCoordId(cx, cy)] ?: emptyList()
         } else {
             emptyList()
@@ -37,10 +37,17 @@ open class LDtkTilesLayer(
     }
 
     override fun render(batch: SpriteBatch, viewBounds: Rect, x: Float, y: Float) {
-        val minY = max(floor(-viewBounds.y / cellSize).toInt(), 0)
-        val maxY = gridHeight //min(ceil((-viewBounds.y + viewBounds.height) / cellSize).toInt(), gridHeight)
-        val minX = max(floor(viewBounds.x / cellSize).toInt(), 0)
-        val maxX = gridWidth //min(ceil((viewBounds.x + viewBounds.width) / cellSize).toInt(), gridWidth)
+        val minX = max(0, ((viewBounds.x - x - pxTotalOffsetX) / cellSize).toInt())
+        val maxX = min(
+            gridWidth,
+            ((viewBounds.x + viewBounds.width - x - pxTotalOffsetX) / cellSize).toInt()
+        )
+        val minY = max(0, ((viewBounds.y - y - pxTotalOffsetY) / cellSize).toInt())
+        val maxY = min(
+            gridHeight,
+            ((viewBounds.y + viewBounds.height - y - pxTotalOffsetY) / cellSize).toInt()
+        )
+
         for (cy in minY..maxY) {
             for (cx in minX..maxX) {
                 if (hasAnyTileAt(cx, cy)) {

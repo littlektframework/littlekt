@@ -5,6 +5,7 @@ import com.lehaine.littlekt.file.ldtk.WorldLayout
 import com.lehaine.littlekt.graphics.Camera
 import com.lehaine.littlekt.graphics.SpriteBatch
 import com.lehaine.littlekt.graphics.tilemap.TileMap
+import com.lehaine.littlekt.util.calculateViewBounds
 
 /**
  * @author Colton Daily
@@ -21,11 +22,7 @@ class LDtkTileMap(
     internal var onDispose = {}
 
     override fun render(batch: SpriteBatch, camera: Camera, x: Float, y: Float) {
-//       super.render(batch, camera, viewport)
-        viewBounds.x = 0f
-        viewBounds.y = 0f
-        viewBounds.width = 960f
-        viewBounds.height = 540f
+        viewBounds.calculateViewBounds(camera)
         levels.forEach { it.render(batch, viewBounds, it.worldX + x, it.worldY + y) }
     }
 

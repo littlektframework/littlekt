@@ -1,9 +1,9 @@
 package com.lehaine.littlekt.graphics
 
 import com.lehaine.littlekt.Context
-import com.lehaine.littlekt.util.viewport.Viewport
 import com.lehaine.littlekt.math.*
 import com.lehaine.littlekt.util.LazyMat4
+import com.lehaine.littlekt.util.viewport.Viewport
 
 /**
  * @author Colton Daily
@@ -45,24 +45,52 @@ abstract class Camera {
     var fov = 67f
 
     var viewport = Viewport()
+        set(value) {
+            field = value
+            position.set(viewport.virtualWidth / 2f, viewport.virtualHeight / 2f, 0f)
+        }
 
-    var virtualWidth by viewport::virtualWidth
+    var virtualWidth: Int
+        get() = viewport.virtualWidth
+        set(value) {
+            viewport.virtualWidth = value
+        }
 
-    var virtualheight by viewport::virtualHeight
+    var virtualHeight: Int
+        get() = viewport.virtualHeight
+        set(value) {
+            viewport.virtualHeight = value
+        }
 
-    var viewportX by viewport::x
+    var screenX: Int
+        get() = viewport.x
+        set(value) {
+            viewport.x = value
+        }
 
-    var viewportY by viewport::y
+    var screenY: Int
+        get() = viewport.y
+        set(value) {
+            viewport.y = value
+        }
 
     /**
-     * The viewport width
+     * The screen width
      */
-    var viewportWidth by viewport::width
+    var screenWidth: Int
+        get() = viewport.width
+        set(value) {
+            viewport.width = value
+        }
 
     /**
-     * The viewport height
+     * The screen height
      */
-    var viewportHeight by viewport::height
+    var screenHeight: Int
+        get() = viewport.height
+        set(value) {
+            viewport.height = value
+        }
 
 
     /**
@@ -107,6 +135,11 @@ abstract class Camera {
         lazyInvProjection.isDirty = true
         lazyViewProjection.isDirty = true
         lazyInvViewProjection.isDirty = true
+    }
+
+    fun update(width: Int, height: Int, context: Context) {
+        viewport.update(width, height, context)
+        update()
     }
 
     protected open fun updateViewMatrix() {
@@ -272,22 +305,22 @@ abstract class Camera {
     }
 }
 
-open class OrthographicCamera(viewportWidth: Int = 0, viewportHeight: Int = 0) : Camera() {
+open class OrthographicCamera(virtualWidth: Int = 0, virtualHeight: Int = 0) : Camera() {
     private val planes = List(6) { FrustumPlane() }
 
     private val tempCenter = MutableVec3f()
 
     init {
-        this.viewportWidth = viewportWidth
-        this.viewportHeight = viewportHeight
+        this.virtualWidth = virtualWidth
+        this.virtualHeight = virtualHeight
         near = 0f
     }
 
     override fun updateProjectionMatrix() {
         if (near != far) {
             projection.setOrthographic(
-                zoom * -viewportWidth / 2, zoom * (viewportWidth / 2), zoom * -(viewportHeight / 2), zoom
-                        * viewportHeight / 2, near, far
+                zoom * -virtualWidth / 2, zoom * (virtualWidth / 2), zoom * -(virtualHeight / 2), zoom
+                        * virtualHeight / 2, near, far
             )
         }
     }
@@ -302,13 +335,13 @@ open class OrthographicCamera(viewportWidth: Int = 0, viewportHeight: Int = 0) :
         tempCenter.subtract(position)
 
         val x = tempCenter.dot(rightDir)
-        if (x > viewportWidth + radius || x < -radius) {
+        if (x > virtualWidth + radius || x < -radius) {
             // sphere is either left or right of frustum
             return false
         }
 
         val y = tempCenter.dot(up)
-        if (y > viewportHeight + radius || y < -radius) {
+        if (y > virtualHeight + radius || y < -radius) {
             // sphere is either above or below frustum
             return false
         }

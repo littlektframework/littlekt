@@ -2,8 +2,6 @@ package com.lehaine.littlekt.graphics.tilemap.ldtk
 
 import com.lehaine.littlekt.graphics.SpriteBatch
 import com.lehaine.littlekt.math.Rect
-import kotlin.math.ceil
-import kotlin.math.floor
 import kotlin.math.max
 import kotlin.math.min
 
@@ -43,31 +41,39 @@ open class LDtkAutoLayer(
     operator fun get(coordId: Int) = autoTilesCoordIdMap[coordId]
 
     override fun render(batch: SpriteBatch, viewBounds: Rect, x: Float, y: Float) {
-        val minY = max(floor(-viewBounds.y / cellSize).toInt(), 0)
-        val maxY = min(ceil((-viewBounds.y + viewBounds.height) / cellSize).toInt(), gridHeight)
-        val minX = max(floor(viewBounds.x / cellSize).toInt(), 0)
-        val maxX = min(ceil((viewBounds.x + viewBounds.width) / cellSize).toInt(), gridWidth)
+        val minX = max(0, ((viewBounds.x - x - pxTotalOffsetX) / cellSize).toInt())
+        val maxX = min(
+            gridWidth,
+            ((viewBounds.x + viewBounds.width - x - pxTotalOffsetX) / cellSize).toInt()
+        )
+        val minY = max(0, ((viewBounds.y - y - pxTotalOffsetY) / cellSize).toInt())
+        val maxY = min(
+            gridHeight,
+            ((viewBounds.y + viewBounds.height - y - pxTotalOffsetY) / cellSize).toInt()
+        )
         autoTiles.forEach { autoTile ->
-            val rx = autoTile.renderX + pxTotalOffsetX + x
-            val ry = autoTile.renderY + pxTotalOffsetY + y
-            // if (rx / cellSize in minX..maxX && ry / cellSize in minY..maxY) {
-            getAutoLayerLDtkTile(autoTile)?.also {
-                batch.draw(
-                    slice = it.slice,
-                    x = rx,
-                    y = ry,
-                    originX = 0f,
-                    originY = 0f,
-                    width = cellSize.toFloat(),
-                    height = cellSize.toFloat(),
-                    scaleX = 1f,
-                    scaleY = 1f,
-                    rotation = 0f,
-                    flipX = it.flipX,
-                    flipY = it.flipY
-                )
+            val rx = autoTile.renderX
+            val ry = autoTile.renderY
+            val tx = rx / cellSize
+            val ty = ry / cellSize
+            if (tx in minX..maxX && ty in minY..maxY) {
+                getAutoLayerLDtkTile(autoTile)?.also {
+                    batch.draw(
+                        slice = it.slice,
+                        x = rx + pxTotalOffsetX + x,
+                        y = ry + pxTotalOffsetY + y,
+                        originX = 0f,
+                        originY = 0f,
+                        width = cellSize.toFloat(),
+                        height = cellSize.toFloat(),
+                        scaleX = 1f,
+                        scaleY = 1f,
+                        rotation = 0f,
+                        flipX = it.flipX,
+                        flipY = it.flipY
+                    )
+                }
             }
-            //}
         }
     }
 

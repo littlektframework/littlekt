@@ -6,7 +6,7 @@ import com.lehaine.littlekt.graphics.SpriteBatch
 import com.lehaine.littlekt.graphics.Texture
 import com.lehaine.littlekt.graphics.TextureSlice
 import com.lehaine.littlekt.math.Rect
-import kotlin.math.abs
+import com.lehaine.littlekt.util.calculateViewBounds
 
 /**
  * @author Colton Daily
@@ -79,18 +79,6 @@ class LDtkLevel(
     fun layer(name: String): LDtkLayer = layersMap[name] ?: error("Layer: '$name' does not exist in this level!")
 
     operator fun get(layer: String) = layer(layer)
-
-    private fun Rect.calculateViewBounds(camera: Camera) {
-        val viewport = camera.viewport
-        val width = viewport.width * camera.zoom
-        val height = viewport.height * camera.zoom
-        val w = width * abs(camera.up.y) + height * abs(camera.up.x)
-        val h = height * abs(camera.up.y) + width * abs(camera.up.x)
-        this.x = camera.position.x - w / 2
-        this.y = camera.position.y - h / 2
-        this.width = w
-        this.height = h
-    }
 
     override fun toString(): String {
         return "Level(uid=$uid, identifier='$identifier', pxWidth=$pxWidth, pxHeight=$pxHeight, worldX=$worldX, worldY=$worldY, backgroundColor=$backgroundColor, layers=$layers, neighbors=$neighbors)"

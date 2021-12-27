@@ -5,7 +5,7 @@ package com.lehaine.littlekt.graphics.tilemap.ldtk
  * @date 12/20/2021
  */
 open class LDtkEntity(
-    val identifier: String,//= json.identifier
+    val identifier: String,
 
     /** Grid-based X coordinate **/
     val cx: Int,
@@ -40,10 +40,4 @@ open class LDtkEntity(
     override fun toString(): String {
         return "Entity(identifier='$identifier', cx=$cx, cy=$cy, pixelX=$x, pixelY=$y, tileInfosJson=$tileInfo)"
     }
-
-    protected fun entityInfoString(): String {
-        return "identifier='$identifier', cx=$cx, cy=$cy, pixelX=$x, pixelY=$y, tileInfosJson=$tileInfo"
-    }
-
-
 }
