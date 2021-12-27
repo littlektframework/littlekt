@@ -8,6 +8,7 @@ import com.lehaine.littlekt.graphics.*
 import com.lehaine.littlekt.graphics.tilemap.ldtk.LDtkTileMap
 import com.lehaine.littlekt.input.Key
 import com.lehaine.littlekt.log.Logger
+import com.lehaine.littlekt.util.milliseconds
 import kotlin.time.Duration
 
 /**
@@ -58,7 +59,7 @@ class LDtkMapTest(context: Context) : ContextListener(context) {
             xVel += speed
         }
 
-        camera.translate(xVel * dt.inWholeMilliseconds.toFloat(), yVel * dt.inWholeMilliseconds.toFloat(), 0f)
+        camera.translate(xVel * dt.milliseconds, yVel * dt.milliseconds, 0f)
 
         camera.update()
         batch.use(camera.viewProjection) {
