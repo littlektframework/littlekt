@@ -1,5 +1,6 @@
 package com.lehaine.littlekt
 
+import com.lehaine.littlekt.audio.OpenALContext
 import com.lehaine.littlekt.file.JvmVfs
 import com.lehaine.littlekt.file.vfs.VfsFile
 import com.lehaine.littlekt.graphics.GL
@@ -206,6 +207,8 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context {
         // Terminate GLFW and free the error callback
         GLFW.glfwTerminate()
         GLFW.glfwSetErrorCallback(null)?.free()
+
+        OpenALContext.destroy()
     }
 
     override fun runOnMainThread(action: () -> Unit) {

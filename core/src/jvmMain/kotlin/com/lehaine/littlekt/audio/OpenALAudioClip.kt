@@ -1,13 +1,11 @@
 package com.lehaine.littlekt.audio
 
-import org.lwjgl.openal.AL
+import com.lehaine.littlekt.audio.OpenALContext.NO_DEVICE
+import com.lehaine.littlekt.log.Logger
 import org.lwjgl.openal.AL10.*
-import org.lwjgl.openal.ALC
-import org.lwjgl.openal.ALC10.*
 import org.lwjgl.openal.SOFTDirectChannels
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
-import java.nio.IntBuffer
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
@@ -23,6 +21,9 @@ class OpenALAudioClip(pcm: ByteArray, val channels: Int, val sampleRate: Int) : 
     override val duration: Duration
 
     init {
+        if(NO_DEVICE) {
+            logger.error { "Unable to retrieve audio device!" }
+        }
         val bytes = pcm.size - (pcm.size % (if (channels > 1) 4 else 2))
         val samples = bytes / (2 * channels)
         duration = (samples / sampleRate.toDouble()).seconds
@@ -116,19 +117,7 @@ class OpenALAudioClip(pcm: ByteArray, val channels: Int, val sampleRate: Int) : 
     }
 
     companion object {
-        val NO_DEVICE = try {
-            val byteBuffer: ByteBuffer? = null
-            val device = alcOpenDevice(byteBuffer)
-            val deviceCaps = ALC.createCapabilities(device)
-            val context = alcCreateContext(device, null as IntBuffer?)
-            alcMakeContextCurrent(context)
-            AL.createCapabilities(deviceCaps)
-            false
-        } catch (ex: Exception) {
-            ex.printStackTrace()
-            true
-        }
-
+        private val logger = Logger<OpenALAudioClip>()
         private val sources by lazy {
             val result = mutableListOf<Int>()
             for (i in 0 until 4) { // total simultaneous sources
