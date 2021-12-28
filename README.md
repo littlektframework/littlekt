@@ -18,7 +18,7 @@ Documentation to come at a later time.
 | Desktop (Native) | Not started |
 
 ### Acknowledgements
-LittleKt was put together based on bits and pieces of features found across multiple engines/frameworks and languages that were enjoyable but flexible. If a piece a code looks familiar, feel free to open an issue with details, so that we can properly attribute the code.
+LittleKt was put together based on bits and pieces of features found across multiple engines/frameworks and languages that were very enjoyable to use and flexible. If a piece a code looks familiar, feel free to open an issue with details, so that we can properly attribute the code.
 
 Carlos Velasco's (soywiz) awesome Kotlin game engine [KorGE](https://github.com/korlibs/korge).
 
