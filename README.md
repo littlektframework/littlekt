@@ -7,6 +7,36 @@ Check out the [samples](https://github.com/LittleKtOrg/LittleKt-Samples) reposit
 
 Documentation to come at a later time.
 
+### Features
+* **Freedom and flexibiity**: Various useful tools and abstractions but still allow access to the underlying code.
+* **Kotlin**: 100% written in Kotlin which allows to take advantage of all the great features the language offers.
+* **Cross-platform**: Thanks to Kotlin - building for multiple platforms is easy. 
+* **Font**: Loaders and renders to make font's easy to use
+  * TTF file parser and loader
+  * GPU vector font rendering of TTF files on the fly based off of [Will Dobbie's article](https://wdobbie.com/post/gpu-text-rendering-with-vector-textures/)
+* **High-Level 2D APIs**:
+  * Orthographic camera and viewports
+  * Texture atlases, slicing, and pixmap editing 
+  * Shader GLSL generation DSL
+* **Low-Level OpenGL utilities**:
+  * Shaders 
+  * Meshes
+  * Textures
+  * Framebuffer objects
+  * Vertex arrays and vertex buffer objects
+* **Tile maps**:
+  * Full [LDtk](https://ldtk.io) map loading and rendering
+* **Virtual File System**:
+  * A file system abstraction that allows for easy access for reading and writing files
+  * A flexibile asynchronous asset provider system 
+* **Math**:
+  * Matrix and vector classes
+  * Bounding shapes and Bresenham implementations
+  * Interpolators
+* **Utilities**:
+  * Helper extensions and quality-of-life util functions to make writing code very enjoyable 
+* With lots more planned and to come. Check out some of the planned [features](https://github.com/LittleKtOrg/LittleKt/labels/enhancement)
+
 ### Cross-platform 
 
 | Platform | Implemented |
