@@ -35,7 +35,8 @@ Documentation to come at a later time.
   * Interpolators
 * **Utilities**:
   * Helper extensions and quality-of-life util functions to make writing code very enjoyable 
-* With lots more planned and to come. Check out some of the planned [features](https://github.com/LittleKtOrg/LittleKt/labels/enhancement)
+
+With lots more planned and to come. Check out some of the planned [features](https://github.com/LittleKtOrg/LittleKt/labels/enhancement)
 
 ### Cross-platform 
 
