@@ -10,6 +10,7 @@ import com.lehaine.littlekt.graphics.font.CharacterSets
 import com.lehaine.littlekt.graphics.font.TtfFont
 import com.lehaine.littlekt.graphics.tilemap.ldtk.LDtkLevel
 import com.lehaine.littlekt.graphics.tilemap.ldtk.LDtkTileMap
+import kotlinx.atomicfu.atomic
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
 
@@ -19,7 +20,7 @@ import kotlin.reflect.KProperty
 open class AssetProvider(val context: Context) {
     private val loaders = createLoaders()
     private val assetsToPrepare = mutableListOf<PreparableGameAsset<*>>()
-    private var totalAssetsLoading = 0
+    private var totalAssetsLoading = atomic(0)
 
     /**
      * Hold the current state of assets being loaded.
@@ -37,7 +38,7 @@ open class AssetProvider(val context: Context) {
     var prepared = false
         protected set
 
-    val fullyLoaded get() = !loading && totalAssetsLoading == 0 && prepared
+    val fullyLoaded get() = !loading && totalAssetsLoading.value == 0 && prepared
 
     init {
         context.vfs.launch {
@@ -62,7 +63,7 @@ open class AssetProvider(val context: Context) {
      * Handle any render / update logic here.
      */
     fun update() {
-        if (loading || totalAssetsLoading > 0) return
+        if (loading || totalAssetsLoading.value > 0) return
         if (!prepared) {
             assetsToPrepare.forEach {
                 it.prepare()
@@ -93,12 +94,12 @@ open class AssetProvider(val context: Context) {
         parameters: GameAssetParameters = GameAssetParameters()
     ): GameAsset<T> {
         val sceneAsset = GameAsset<T>(file)
-        totalAssetsLoading++
+        totalAssetsLoading.addAndGet(1)
         context.vfs.launch {
             val loader = loaders[clazz] ?: throw UnsupportedFileTypeException(file.path)
             val result = loader.invoke(file, parameters) as T
             sceneAsset.load(result)
-            totalAssetsLoading--
+            totalAssetsLoading.addAndGet(-1)
         }
         return sceneAsset
     }
