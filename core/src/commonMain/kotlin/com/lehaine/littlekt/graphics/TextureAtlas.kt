@@ -27,7 +27,7 @@ class TextureAtlas internal constructor(private val textures: Map<String, Textur
      * @param prefix the name prefix of the [TextureSlice]
      * @returns the first [Entry] that matches the supplied prefix
      */
-    fun getByPrefix(prefix: String): Entry = entries.first { it.name == prefix }
+    fun getByPrefix(prefix: String): Entry = entries.first { it.name.startsWith(prefix) }
 
     operator fun get(name: String): Entry = entriesMap[name] ?: error("Can't find $name in atlas.")
 
