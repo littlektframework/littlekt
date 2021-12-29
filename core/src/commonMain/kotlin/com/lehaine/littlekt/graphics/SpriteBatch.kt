@@ -149,7 +149,6 @@ class SpriteBatch(
             flush()
         }
 
-        val worldOriginX = x + originX
         var fx = -originX
         var fy = -originY
         var fx2 = width - originX
@@ -197,13 +196,13 @@ class SpriteBatch(
             y4 = y3 - (y2 - y1)
         }
 
-        x1 += worldOriginX
+        x1 += x
         y1 += y
-        x2 += worldOriginX
+        x2 += x
         y2 += y
-        x3 += worldOriginX
+        x3 += x
         y3 += y
-        x4 += worldOriginX
+        x4 += x
         y4 += y
 
         val u = if (flipX) 1f else 0f
@@ -272,7 +271,6 @@ class SpriteBatch(
             flush()
         }
 
-        val worldOriginX = x + originX
         var fx = -originX
         var fy = -originY
         var fx2 = width - originX
@@ -332,13 +330,13 @@ class SpriteBatch(
             y4 = y3 - (y2 - y1)
         }
 
-        x1 += worldOriginX
+        x1 += x
         y1 += y
-        x2 += worldOriginX
+        x2 += x
         y2 += y
-        x3 += worldOriginX
+        x3 += x
         y3 += y
-        x4 += worldOriginX
+        x4 += x
         y4 += y
 
         val u = if (flipX) slice.u2 else slice.u
