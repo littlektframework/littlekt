@@ -124,7 +124,7 @@ class ParticleSimulator(maxParticles: Int) {
 
         with(particle) {
             // gravity
-            xDelta += gravityX * dt.seconds
+            xDelta += gravityX * tmod
             yDelta += gravityY * tmod
 
             // movement
