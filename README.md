@@ -1,6 +1,8 @@
 # LittleKt - An OpenGL game framework written in Kotlin
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://github.com/LittleKtOrg/LittleKt/blob/master/LICENSE)
 
+**Currently in development.**
+
 A mutliplatform lower level game framework inspired by libGDX and KorGE. The goal of this project is to allow the freedom and flexibility that libGDX offers with enjoyable idiomatic features coded in Kotlin that KorGE has to offer.
 
 Check out the [samples](https://github.com/LittleKtOrg/LittleKt-Samples) repository.
