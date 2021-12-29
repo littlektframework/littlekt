@@ -11,7 +11,6 @@ import com.lehaine.littlekt.graphics.font.use
 import com.lehaine.littlekt.graphics.gl.ClearBufferMask
 import com.lehaine.littlekt.input.Key
 import com.lehaine.littlekt.log.Logger
-import com.lehaine.littlekt.math.geom.degrees
 import kotlin.time.Duration
 
 /**
@@ -54,31 +53,48 @@ class GPUFontTest(context: Context) : ContextListener(context) {
         gl.clear(ClearBufferMask.COLOR_BUFFER_BIT)
         camera.update()
         gpuFont.use(camera.viewProjection) {
-            it.drawText(
-                "Check out my awesome font rendering!\nThis is a test with static text!!!\nSymbols: @#$!@%&(@*)(#$\n\"<>,.'\"\nNumbers: 1234567890",
-                150f,
-                450f,
-                36,
-                (-45f).degrees,
-                color = Color.BLACK
-            )
-            it.drawText(
-                "This is another insert!!",
-                50f,
-                200f,
-                72,
-                color = Color.RED
-            )
-            it.drawText(
-                "I am rotated!! gYnlqQp",
-                550f,
-                250f,
-                36,
-                45f.degrees,
-                color = Color.BLUE
-            )
-            it.drawText("I am a different font!!!!", 250f, 450f, 44, color = Color.DARK_RED, font = libSans)
-            it.drawText(lastStats, 50f, 175f, 16, color = Color.GREEN)
+//            it.drawText(
+//                "Check out my awesome font rendering!\nThis is a test with static text!!!\nSymbols: @#$!@%&(@*)(#$\n\"<>,.'\"\nNumbers: 1234567890",
+//                150f,
+//                450f,
+//                36,
+//                (-45f).degrees,
+//                color = Color.BLACK
+//            )
+//            it.drawText(
+//                "This is another insert!!",
+//                50f,
+//                200f,
+//                72,
+//                color = Color.RED
+//            )
+//            it.drawText(
+//                "I am rotated!! gYnlqQp",
+//                550f,
+//                250f,
+//                36,
+//                45f.degrees,
+//                color = Color.BLUE
+//            )
+//            it.drawText("I am a different font!!!!", 250f, 450f, 44, color = Color.DARK_RED, font = libSans)
+//            it.drawText(lastStats, 50f, 175f, 16, color = Color.GREEN)
+            if (input.isKeyPressed(Key.ENTER)) {
+                it.drawText(
+                    "Check out my awesome font rendering!\nThis is a test with static text!!!\nSymbols: @#$!@%&(@*)(#$\n\"<>,.'\"\nNumbers: 1234567890",
+                    150f,
+                    450f,
+                    36,
+                    color = Color.BLACK
+                )
+            } else {
+                it.drawText(
+                    "My short text",
+                    150f,
+                    450f,
+                    36,
+                    color = Color.BLACK
+                )
+            }
         }
         lastStats = stats.toString()
         if (input.isKeyJustPressed(Key.P)) {

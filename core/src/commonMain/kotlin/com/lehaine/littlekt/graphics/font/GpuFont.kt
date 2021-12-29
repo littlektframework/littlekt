@@ -15,7 +15,10 @@ import com.lehaine.littlekt.graphics.shader.shaders.GpuTextVertexShader
 import com.lehaine.littlekt.log.Logger
 import com.lehaine.littlekt.math.Mat4
 import com.lehaine.littlekt.math.Vec2f
-import com.lehaine.littlekt.math.geom.*
+import com.lehaine.littlekt.math.geom.Angle
+import com.lehaine.littlekt.math.geom.cosine
+import com.lehaine.littlekt.math.geom.degrees
+import com.lehaine.littlekt.math.geom.sine
 import com.lehaine.littlekt.util.datastructure.FloatArrayList
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
@@ -295,7 +298,7 @@ class GpuFont(
             gl.enable(State.BLEND)
             atlases[0].texture.bind()
             shader.vertexShader.uTexture.apply(shader)
-            mesh.render(shader, count = vertices.size)
+            mesh.render(shader, count = vertices.size / 20 * 6)
             gl.disable(State.BLEND)
         }
     }
@@ -401,31 +404,6 @@ class GpuFont(
             }
         }
         return gpuGlyph
-    }
-
-    private fun writeBMP(name: String, width: Int, height: Int, channels: Int, buffer: ByteBuffer) {
-        val bmpBuffer = createByteBuffer(54 + buffer.capacity)
-        bmpBuffer.run {
-            putByte('B'.code.toByte())
-            putByte('M'.code.toByte())
-            putUInt(54 + width * height * channels) // size
-            putUShort(0) // res1
-            putUShort(0) // res2
-            putUInt(54) // offset
-            putUInt(40) // biSize
-            putUInt(width)
-            putUInt(height)
-            putUShort(1.toShort()) // planes
-            putUShort((8 * channels).toShort()) // bitCount
-            putUInt(0) // compression
-            putUInt(width * height * channels) // image size bytes
-            putUInt(0) // x pixels per meter
-            putUInt(0) // y pixels per meter
-            putUInt(0) // colors used
-            putUInt(0) // important colors
-            putByte(buffer.toArray(), 0, buffer.capacity)
-        }
-        store[name].writeKeystore(bmpBuffer.toArray())
     }
 
     private fun writeGlyphToBuffer(
