@@ -11,7 +11,6 @@ import com.lehaine.littlekt.graphics.shader.shaders.DefaultVertexShader
 import com.lehaine.littlekt.math.Mat4
 import com.lehaine.littlekt.math.geom.Angle
 import com.lehaine.littlekt.math.geom.cosine
-import com.lehaine.littlekt.math.geom.radians
 import com.lehaine.littlekt.math.geom.sine
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
@@ -137,6 +136,7 @@ class SpriteBatch(
         scaleX: Float = 1f,
         scaleY: Float = 1f,
         rotation: Angle = Angle.ZERO,
+        colorBits: Float = this.colorBits,
         flipX: Boolean = false,
         flipY: Boolean = false,
     ) {
@@ -259,6 +259,7 @@ class SpriteBatch(
         scaleX: Float = 1f,
         scaleY: Float = 1f,
         rotation: Angle = Angle.ZERO,
+        colorBits: Float = this.colorBits,
         flipX: Boolean = false,
         flipY: Boolean = false,
     ) {

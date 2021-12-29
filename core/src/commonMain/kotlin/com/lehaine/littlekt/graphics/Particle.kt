@@ -1,13 +1,12 @@
 package com.lehaine.littlekt.graphics
 
 import com.lehaine.littlekt.math.geom.Angle
-import com.lehaine.littlekt.math.geom.radians
 import com.lehaine.littlekt.util.milliseconds
-import com.lehaine.littlekt.util.seconds
 import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.ZERO
 import kotlin.time.Duration.Companion.seconds
 
 /**
@@ -22,7 +21,8 @@ class Particle(var slice: TextureSlice) {
     var scaleX: Float = 0f
     var scaleY: Float = 0f
     var rotation: Angle = Angle.ZERO
-    var color = Color.WHITE.toMutableColor()
+    var color = Color.WHITE.toMutableColor() // TODO - possible use a field delegate here so we can update the colorBits when using color.set()
+    var colorBits = color.toFloatBits()
     var alpha: Float
         get() = color.a
         set(value) {
@@ -73,12 +73,12 @@ class Particle(var slice: TextureSlice) {
     /**
      * Life remaining before being killed
      */
-    var remainingLife: Duration = Float.NaN.seconds
+    var remainingLife: Duration = ZERO
 
     /**
      * Time to delay the particle from starting updates
      */
-    var delay: Duration = Duration.ZERO
+    var delay: Duration = ZERO
 
     var killed = false
 
@@ -114,6 +114,21 @@ class Particle(var slice: TextureSlice) {
     override fun toString(): String {
         return "Particle(index=$index, xDelta=$xDelta, yDelta=$yDelta, scaleDelta=$scaleDelta, scaleDeltaX=$scaleDeltaX, scaleDeltaY=$scaleDeltaY, scaleFriction=$scaleFriction, scaleMultiplier=$scaleMultiplier, scaleXMultiplier=$scaleXMultiplier, scaleYMultiplier=$scaleYMultiplier, rotationDelta=$rotationDelta, rotationFriction=$rotationFriction, frictionX=$frictionX, frictionY=$frictionY, gravityX=$gravityX, gravityY=$gravityY, fadeOutSpeed=$fadeOutSpeed, life=$life, remainingLife=$remainingLife, delay=$delay, killed=$killed, onStart=$onStart, onUpdate=$onUpdate, onKill=$onKill, colorRdelta=$colorRdelta, colorGdelta=$colorGdelta, colorBdelta=$colorBdelta, alphaDelta=$alphaDelta, timeStamp=$timeStamp, data0=$data0, data1=$data1, data2=$data2, data3=$data3)"
     }
+}
 
 
+fun Particle.draw(batch: SpriteBatch) {
+    if (!visible || !alive) return
+
+    batch.draw(
+        slice,
+        x,
+        y,
+        anchorX * slice.width,
+        anchorY * slice.height,
+        scaleX = scaleX,
+        scaleY = scaleY,
+        rotation = rotation,
+        colorBits = colorBits
+    )
 }

@@ -6,6 +6,8 @@ import com.lehaine.littlekt.math.geom.radians
 import com.lehaine.littlekt.util.fastForEach
 import com.lehaine.littlekt.util.internal.now
 import com.lehaine.littlekt.util.seconds
+import kotlin.math.max
+import kotlin.math.min
 import kotlin.math.pow
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
@@ -19,7 +21,11 @@ class ParticleSimulator(maxParticles: Int) {
 
     val particles = List(maxParticles) { init(Particle(Textures.white).apply { index = it }) }
 
-    private var numAlloc = 0
+    var numAlloc = 0
+        private set
+
+    var totalAlive = 0
+        private set
 
     fun alloc(slice: TextureSlice, x: Float, y: Float): Particle {
         return if (numAlloc < particles.size - 1) {
@@ -44,6 +50,8 @@ class ParticleSimulator(maxParticles: Int) {
                 it.y = y
             }
             best!!
+        }.also {
+            totalAlive = min(totalAlive + 1, numAlloc + 1)
         }
     }
 
@@ -96,7 +104,6 @@ class ParticleSimulator(maxParticles: Int) {
     private fun reset(particle: Particle, slice: TextureSlice): Particle {
         val result = init(particle)
         result.slice = slice
-
         return result
     }
 
@@ -105,6 +112,7 @@ class ParticleSimulator(maxParticles: Int) {
         particle.life = Duration.ZERO
         particle.killed = true
         particle.visible = false
+        totalAlive = max(totalAlive - 1, 0)
     }
 
     private fun advance(particle: Particle, dt: Duration, tmod: Float) {
@@ -155,12 +163,15 @@ class ParticleSimulator(maxParticles: Int) {
             val colorG = color.g + particle.colorGdelta * tmod
             val colorB = color.b + particle.colorBdelta * tmod
             val colorA = color.a + particle.alphaDelta * tmod
-            color.set(colorR, colorG, colorB, colorA)
+            if (colorR != 0f || colorG != 0f || colorB != 0f || colorA != 0f) {
+                color.set(colorR, colorG, colorB, colorA)
+                colorBits = color.toFloatBits()
+            }
 
             // life
             remainingLife -= dt
             if (remainingLife <= 0.milliseconds) {
-                alpha -= (fadeOutSpeed * tmod).toFloat()
+                alpha -= (fadeOutSpeed * tmod)
             }
 
             if (remainingLife <= 0.milliseconds && alpha <= 0) {
@@ -172,7 +183,7 @@ class ParticleSimulator(maxParticles: Int) {
         }
     }
 
-    fun simulate(dt: Duration, optionalTmod: Float = -1f) {
+    fun update(dt: Duration, optionalTmod: Float = -1f) {
         val tmod = if (optionalTmod < 0) {
             dt.seconds * 60
         } else {
@@ -182,6 +193,12 @@ class ParticleSimulator(maxParticles: Int) {
             val particle = particles[i]
             advance(particle, dt, tmod)
         }
+    }
+}
+
+fun ParticleSimulator.draw(batch: SpriteBatch) {
+    for (i in 0..numAlloc) {
+        particles[i].draw(batch)
     }
 }
 
