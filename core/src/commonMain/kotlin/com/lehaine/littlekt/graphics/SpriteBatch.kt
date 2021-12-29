@@ -9,11 +9,13 @@ import com.lehaine.littlekt.graphics.shader.ShaderProgram
 import com.lehaine.littlekt.graphics.shader.shaders.DefaultFragmentShader
 import com.lehaine.littlekt.graphics.shader.shaders.DefaultVertexShader
 import com.lehaine.littlekt.math.Mat4
+import com.lehaine.littlekt.math.geom.Angle
+import com.lehaine.littlekt.math.geom.cosine
+import com.lehaine.littlekt.math.geom.radians
+import com.lehaine.littlekt.math.geom.sine
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
-import kotlin.math.cos
-import kotlin.math.sin
 
 /**
  * @author Colton Daily
@@ -134,7 +136,7 @@ class SpriteBatch(
         height: Float = texture.height.toFloat(),
         scaleX: Float = 1f,
         scaleY: Float = 1f,
-        rotation: Float = 0f,
+        rotation: Angle = 0f.radians,
         flipX: Boolean = false,
         flipY: Boolean = false,
     ) {
@@ -178,9 +180,9 @@ class SpriteBatch(
         var x4: Float = p4x
         var y4: Float = p4y
 
-        if (rotation != 0f) {
-            val cos = cos(rotation)
-            val sin = sin(rotation)
+        if (rotation != 0f.radians) {
+            val cos = rotation.cosine
+            val sin = rotation.sine
 
             x1 = cos * p1x - sin * p1y
             y1 = sin * p1x + cos * p1y
@@ -256,7 +258,7 @@ class SpriteBatch(
         height: Float = slice.height.toFloat(),
         scaleX: Float = 1f,
         scaleY: Float = 1f,
-        rotation: Float = 0f,
+        rotation: Angle = 0f.radians,
         flipX: Boolean = false,
         flipY: Boolean = false,
     ) {
@@ -300,7 +302,7 @@ class SpriteBatch(
         var x4: Float
         var y4: Float
 
-        if (rotation == 0f) {
+        if (rotation == 0f.radians) {
             x1 = p1x
             y1 = p1y
 
@@ -313,8 +315,8 @@ class SpriteBatch(
             x4 = p4x
             y4 = p4y
         } else {
-            val cos = cos(rotation)
-            val sin = sin(rotation)
+            val cos = rotation.cosine
+            val sin = rotation.sine
 
             x1 = cos * p1x - sin * p1y
             y1 = sin * p1x + cos * p1y

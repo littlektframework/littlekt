@@ -15,14 +15,12 @@ import com.lehaine.littlekt.graphics.shader.shaders.GpuTextVertexShader
 import com.lehaine.littlekt.log.Logger
 import com.lehaine.littlekt.math.Mat4
 import com.lehaine.littlekt.math.Vec2f
-import com.lehaine.littlekt.math.toRad
+import com.lehaine.littlekt.math.geom.*
 import com.lehaine.littlekt.util.datastructure.FloatArrayList
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
-import kotlin.math.cos
 import kotlin.math.max
-import kotlin.math.sin
 import kotlin.time.measureTimedValue
 
 /**
@@ -142,7 +140,7 @@ class GpuFont(
      * @param x the x coord position
      * @param y the y coord position
      * @param pxSize the size of text in pixels
-     * @param rotationDegrees the rotation, in degrees, to draw the text
+     * @param rotation the rotation to draw the text
      * @param color the color of the text
      */
     fun drawText(
@@ -150,7 +148,7 @@ class GpuFont(
         x: Float,
         y: Float,
         pxSize: Int,
-        rotationDegrees: Float = 0f,
+        rotation: Angle = 0f.radians,
         color: Color = Color.BLACK,
         font: TtfFont = defaultFont
     ) {
@@ -161,10 +159,10 @@ class GpuFont(
         var ty = y
         var lastX = tx
         var lastY = ty
-        if (rotationDegrees != 0f) {
+        if (rotation != 0f.radians) {
             temp4.setIdentity()
             temp4.translate(tx, ty, 0f)
-            temp4.rotate(0f, 0f, rotationDegrees)
+            temp4.rotate(0f, 0f, rotation.degrees)
         }
         text.forEach {
             if (it == '\r') {
@@ -186,13 +184,13 @@ class GpuFont(
                 val by = glyph.bezierAtlasPosY shl 1
                 val offsetX = glyph.offsetX * scale
                 val offsetY = glyph.offsetY * scale
-                if (rotationDegrees != 0f) {
+                if (rotation != 0f.radians) {
                     temp4.translate(tx + offsetX - lastX, ty - offsetY - lastY, 0f)
                 }
                 lastX = tx + offsetX
                 lastY = ty - offsetY
-                val mx = (if (rotationDegrees == 0f) tx + offsetX else temp4[12])
-                val my = (if (rotationDegrees == 0f) ty - offsetY else temp4[13])
+                val mx = (if (rotation == 0f.radians) tx + offsetX else temp4[12])
+                val my = (if (rotation == 0f.radians) ty - offsetY else temp4[13])
                 val p1x = 0f
                 val p1y = -glyph.height * scale
                 val p2x = glyph.width * scale
@@ -205,9 +203,9 @@ class GpuFont(
                 var y3: Float = p3y
                 var x4: Float = p1x
                 var y4: Float = p3y
-                if (rotationDegrees != 0f) {
-                    val cos = cos(rotationDegrees.toRad())
-                    val sin = sin(rotationDegrees.toRad())
+                if (rotation != 0f.radians) {
+                    val cos = rotation.cosine
+                    val sin = rotation.sine
 
                     x1 = cos * p1x - sin * p1y
                     y1 = sin * p1x + cos * p1y

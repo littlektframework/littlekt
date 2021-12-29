@@ -6,6 +6,7 @@ import com.lehaine.littlekt.graphics.SpriteBatch
 import com.lehaine.littlekt.graphics.Texture
 import com.lehaine.littlekt.graphics.TextureSlice
 import com.lehaine.littlekt.math.Rect
+import com.lehaine.littlekt.math.geom.radians
 import com.lehaine.littlekt.util.calculateViewBounds
 
 /**
@@ -130,7 +131,7 @@ class LDtkLevel(
                 slice.height.toFloat(),
                 scaleX,
                 scaleY,
-                0f,
+                0f.radians,
                 flipX = false,
                 flipY = false
             )

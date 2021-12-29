@@ -11,6 +11,7 @@ import com.lehaine.littlekt.graphics.font.use
 import com.lehaine.littlekt.graphics.gl.ClearBufferMask
 import com.lehaine.littlekt.input.Key
 import com.lehaine.littlekt.log.Logger
+import com.lehaine.littlekt.math.geom.degrees
 import kotlin.time.Duration
 
 /**
@@ -58,7 +59,7 @@ class GPUFontTest(context: Context) : ContextListener(context) {
                 150f,
                 450f,
                 36,
-                -45f,
+                (-45f).degrees,
                 color = Color.BLACK
             )
             it.drawText(
@@ -73,7 +74,7 @@ class GPUFontTest(context: Context) : ContextListener(context) {
                 550f,
                 250f,
                 36,
-                45f,
+                45f.degrees,
                 color = Color.BLUE
             )
             it.drawText("I am a different font!!!!", 250f, 450f, 44, color = Color.DARK_RED, font = libSans)

@@ -2,6 +2,7 @@ package com.lehaine.littlekt.graphics.tilemap.ldtk
 
 import com.lehaine.littlekt.graphics.SpriteBatch
 import com.lehaine.littlekt.math.Rect
+import com.lehaine.littlekt.math.geom.radians
 import kotlin.math.max
 import kotlin.math.min
 
@@ -69,7 +70,7 @@ open class LDtkIntGridAutoLayer(
                         height = cellSize.toFloat(),
                         scaleX = 1f,
                         scaleY = 1f,
-                        rotation = 0f,
+                        rotation = 0.radians,
                         flipX = it.flipX,
                         flipY = it.flipY
                     )

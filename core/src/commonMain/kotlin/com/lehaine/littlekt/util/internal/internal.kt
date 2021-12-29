@@ -52,6 +52,14 @@ internal infix fun Int.umod(that: Int): Int {
     }
 }
 
+internal infix fun Float.umod(that: Float): Float {
+    val remainder = this % that
+    return when {
+        remainder < 0 -> remainder + that
+        else -> remainder
+    }
+}
+
 internal infix fun Double.umod(that: Double): Double {
     val remainder = this % that
     return when {
