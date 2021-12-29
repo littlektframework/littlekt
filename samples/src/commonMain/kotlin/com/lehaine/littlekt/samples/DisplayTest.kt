@@ -105,6 +105,13 @@ class DisplayTest(context: Context) : Game<Scene>(context), InputProcessor {
             }
             it.draw(bossAttack.currentFrame, 450f, 250f, scaleX = 2f, scaleY = 2f, flipX = false)
             it.draw(bossAttack.currentFrame, 150f, 250f, scaleX = 2f, scaleY = 2f, flipX = true)
+            it.draw(Textures.default, 150f, 450f, scaleX = 5f, scaleY = 5f)
+            it.draw(Textures.white, 200f, 400f, scaleX = 5f, scaleY = 5f)
+            it.draw(Textures.transparent, 220f, 400f, scaleX = 5f, scaleY = 5f)
+            it.draw(Textures.red, 240f, 400f, scaleX = 5f, scaleY = 5f)
+            it.draw(Textures.green, 260f, 400f, scaleX = 5f, scaleY = 5f)
+            it.draw(Textures.blue, 280f, 400f, scaleX = 5f, scaleY = 5f)
+            it.draw(Textures.black, 300f, 400f, scaleX = 5f, scaleY = 5f)
         }
 
         shader.bind()

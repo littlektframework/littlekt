@@ -3,6 +3,7 @@ package com.lehaine.littlekt
 import com.lehaine.littlekt.file.WebVfs
 import com.lehaine.littlekt.file.vfs.VfsFile
 import com.lehaine.littlekt.graphics.Texture
+import com.lehaine.littlekt.graphics.Textures
 import com.lehaine.littlekt.input.Input
 import com.lehaine.littlekt.input.JsInput
 import com.lehaine.littlekt.log.Logger
@@ -45,7 +46,7 @@ class WebGLContext(override val configuration: JsConfiguration) :
 
         listener = build(this)
 
-        Texture.DEFAULT.prepare(listener.context)
+        Textures.default.prepare(listener.context)
         window.requestAnimationFrame(::render)
     }
 

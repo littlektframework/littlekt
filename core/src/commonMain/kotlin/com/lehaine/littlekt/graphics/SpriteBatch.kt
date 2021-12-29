@@ -136,7 +136,7 @@ class SpriteBatch(
         height: Float = texture.height.toFloat(),
         scaleX: Float = 1f,
         scaleY: Float = 1f,
-        rotation: Angle = 0f.radians,
+        rotation: Angle = Angle.ZERO,
         flipX: Boolean = false,
         flipY: Boolean = false,
     ) {
@@ -180,7 +180,7 @@ class SpriteBatch(
         var x4: Float = p4x
         var y4: Float = p4y
 
-        if (rotation != 0f.radians) {
+        if (rotation != Angle.ZERO) {
             val cos = rotation.cosine
             val sin = rotation.sine
 
@@ -258,7 +258,7 @@ class SpriteBatch(
         height: Float = slice.height.toFloat(),
         scaleX: Float = 1f,
         scaleY: Float = 1f,
-        rotation: Angle = 0f.radians,
+        rotation: Angle = Angle.ZERO,
         flipX: Boolean = false,
         flipY: Boolean = false,
     ) {
@@ -302,7 +302,7 @@ class SpriteBatch(
         var x4: Float
         var y4: Float
 
-        if (rotation == 0f.radians) {
+        if (rotation == Angle.ZERO) {
             x1 = p1x
             y1 = p1y
 

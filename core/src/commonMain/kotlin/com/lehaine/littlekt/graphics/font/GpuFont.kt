@@ -148,7 +148,7 @@ class GpuFont(
         x: Float,
         y: Float,
         pxSize: Int,
-        rotation: Angle = 0f.radians,
+        rotation: Angle = Angle.ZERO,
         color: Color = Color.BLACK,
         font: TtfFont = defaultFont
     ) {
@@ -159,7 +159,7 @@ class GpuFont(
         var ty = y
         var lastX = tx
         var lastY = ty
-        if (rotation != 0f.radians) {
+        if (rotation != Angle.ZERO) {
             temp4.setIdentity()
             temp4.translate(tx, ty, 0f)
             temp4.rotate(0f, 0f, rotation.degrees)
@@ -184,13 +184,13 @@ class GpuFont(
                 val by = glyph.bezierAtlasPosY shl 1
                 val offsetX = glyph.offsetX * scale
                 val offsetY = glyph.offsetY * scale
-                if (rotation != 0f.radians) {
+                if (rotation != Angle.ZERO) {
                     temp4.translate(tx + offsetX - lastX, ty - offsetY - lastY, 0f)
                 }
                 lastX = tx + offsetX
                 lastY = ty - offsetY
-                val mx = (if (rotation == 0f.radians) tx + offsetX else temp4[12])
-                val my = (if (rotation == 0f.radians) ty - offsetY else temp4[13])
+                val mx = (if (rotation == Angle.ZERO) tx + offsetX else temp4[12])
+                val my = (if (rotation == Angle.ZERO) ty - offsetY else temp4[13])
                 val p1x = 0f
                 val p1y = -glyph.height * scale
                 val p2x = glyph.width * scale
@@ -203,7 +203,7 @@ class GpuFont(
                 var y3: Float = p3y
                 var x4: Float = p1x
                 var y4: Float = p3y
-                if (rotation != 0f.radians) {
+                if (rotation != Angle.ZERO) {
                     val cos = rotation.cosine
                     val sin = rotation.sine
 

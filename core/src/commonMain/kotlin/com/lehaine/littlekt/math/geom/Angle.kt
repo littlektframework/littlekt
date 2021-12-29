@@ -42,8 +42,8 @@ internal fun Angle_shortDistanceTo(from: Angle, to: Angle): Angle {
 internal fun Angle_longDistanceTo(from: Angle, to: Angle): Angle {
     val short = Angle_shortDistanceTo(from, to)
     return when {
-        short == 0.radians -> 0.radians
-        short < 0.radians -> 360.degrees + short
+        short == Angle.ZERO -> Angle.ZERO
+        short < Angle.ZERO -> 360.degrees + short
         else -> (-360).degrees + short
     }
 }

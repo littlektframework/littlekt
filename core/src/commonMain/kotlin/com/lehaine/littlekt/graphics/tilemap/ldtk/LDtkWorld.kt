@@ -34,6 +34,6 @@ class LDtkWorld(
     }
 
     override fun toString(): String {
-        return "LDtkMap(levels=$levels, tilesets=$tilesets, worldLayout=$worldLayout, backgroundColor='$backgroundColor')"
+        return "LDtkMap(levels=$levels, tilesets=$tilesets, worldLayout=$worldLayout, backgroundColor='$backgroundColor', enums=$enums)"
     }
 }

@@ -53,6 +53,9 @@ open class Color(r: Float, g: Float, b: Float, a: Float = 1f) : Vec4f(r, g, b, a
         return ir.toString(16) + ig.toString(16) + ib.toString(16) + ia.toString(16)
     }
 
+    fun toMutableColor() = toMutableColor(MutableColor())
+    fun toMutableColor(result: MutableColor) = result.set(r, g, b, a)
+
     companion object {
         val CLEAR = Color(0f, 0f, 0f, 0f)
 

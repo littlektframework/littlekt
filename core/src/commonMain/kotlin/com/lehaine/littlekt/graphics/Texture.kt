@@ -2,7 +2,6 @@ package com.lehaine.littlekt.graphics
 
 import com.lehaine.littlekt.Context
 import com.lehaine.littlekt.Disposable
-import com.lehaine.littlekt.file.createByteBuffer
 import com.lehaine.littlekt.graphics.gl.*
 
 /**
@@ -131,27 +130,7 @@ class Texture(
 
         gl.deleteTexture(glTexture)
     }
-
-    companion object {
-        val DEFAULT = Texture(
-            PixmapTextureData(
-                Pixmap(
-                    2, 2,
-                    createByteBuffer(
-                        byteArrayOf(
-                            0xFF.toByte(), 0x00.toByte(), 0x00.toByte(), 0xFF.toByte(),
-                            0x00.toByte(), 0xFF.toByte(), 0x00.toByte(), 0xFF.toByte(),
-                            0x00.toByte(), 0x00.toByte(), 0xFF.toByte(), 0xFF.toByte(),
-                            0xFF.toByte(), 0xFF.toByte(), 0x00.toByte(), 0xFF.toByte()
-                        )
-                    )
-                ),
-                true
-            )
-        )
-    }
 }
-
 
 fun Texture.slice(sliceWidth: Int, sliceHeight: Int) = TextureSlice(this).slice(sliceWidth, sliceHeight)
 

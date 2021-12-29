@@ -5,7 +5,7 @@ import com.lehaine.littlekt.file.JvmVfs
 import com.lehaine.littlekt.file.vfs.VfsFile
 import com.lehaine.littlekt.graphics.GL
 import com.lehaine.littlekt.graphics.GLVersion
-import com.lehaine.littlekt.graphics.Texture
+import com.lehaine.littlekt.graphics.Textures
 import com.lehaine.littlekt.input.Input
 import com.lehaine.littlekt.input.LwjglInput
 import com.lehaine.littlekt.log.Logger
@@ -157,7 +157,7 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context {
             listener.resize(width, height)
         }
 
-        Texture.DEFAULT.prepare(this)
+        Textures.default.prepare(this)
         listener.resize(configuration.width, configuration.height)
 
         while (!windowShouldClose) {
