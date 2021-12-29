@@ -5,7 +5,7 @@ A mutliplatform lower level game framework inspired by libGDX and KorGE. The goa
 
 Check out the [samples](https://github.com/LittleKtOrg/LittleKt-Samples) repository.
 
-Documentation to come at a later time.
+Check out the [wiki](https://github.com/LittleKtOrg/LittleKt/wiki) for getting started!
 
 ### Features
 * **Freedom and flexibiity**: Various useful tools and abstractions but still allow access to the underlying code.
