@@ -366,7 +366,12 @@ data class EnumValueDefinition(
      * The optional ID of the tile
      */
     @SerialName("tileId")
-    val tileID: Int? = null
+    val tileID: Int? = null,
+
+    /**
+     * The color value of the enum value
+     */
+    val color: Int
 )
 
 @Serializable

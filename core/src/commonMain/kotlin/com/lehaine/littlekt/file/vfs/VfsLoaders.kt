@@ -12,7 +12,7 @@ import com.lehaine.littlekt.graphics.TextureAtlas
 import com.lehaine.littlekt.graphics.font.CharacterSets
 import com.lehaine.littlekt.graphics.font.TtfFont
 import com.lehaine.littlekt.graphics.tilemap.ldtk.LDtkLevel
-import com.lehaine.littlekt.graphics.tilemap.ldtk.LDtkTileMap
+import com.lehaine.littlekt.graphics.tilemap.ldtk.LDtkWorld
 import kotlinx.serialization.decodeFromString
 
 /**
@@ -49,14 +49,14 @@ suspend fun VfsFile.readTtfFont(chars: String = CharacterSets.LATIN_ALL): TtfFon
 private val mapCache = mutableMapOf<String, LDtkMapLoader>()
 
 /**
- * Reads the [VfsFile] as a [LDtkTileMap]. Any loaders and assets will be cached for reuse/reloading.
+ * Reads the [VfsFile] as a [LDtkWorld]. Any loaders and assets will be cached for reuse/reloading.
  * @param loadAllLevels if true this will load all the external levels and their dependencies. They then will all be available
- * in [LDtkTileMap.levels]; if false it will load the specified [levelIdx] as the default and only level.
+ * in [LDtkWorld.levels]; if false it will load the specified [levelIdx] as the default and only level.
  * @param levelIdx the index of the level to load if [loadAllLevels] is false.
  * @return the loaded LDtk map
  * @see [VfsFile.readLDtkLevel]
  */
-suspend fun VfsFile.readLDtkMap(loadAllLevels: Boolean = true, levelIdx: Int = 0): LDtkTileMap {
+suspend fun VfsFile.readLDtkMap(loadAllLevels: Boolean = true, levelIdx: Int = 0): LDtkWorld {
     val loader = mapCache.getOrPut(path) {
         val project = decodeFromString<ProjectJson>()
         LDtkMapLoader(this, project)
@@ -70,7 +70,7 @@ suspend fun VfsFile.readLDtkMap(loadAllLevels: Boolean = true, levelIdx: Int = 0
 }
 
 /**
- * Reads the [VfsFile] as a [LDtkTileMap] and loads the level specified by [levelIdx].
+ * Reads the [VfsFile] as a [LDtkWorld] and loads the level specified by [levelIdx].
  * Any loaders and assets will be cached for reuse/reloading.
  * @param levelIdx the index of the level to load
  * @return the loaded LDtk level

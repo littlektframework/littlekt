@@ -9,7 +9,7 @@ import com.lehaine.littlekt.graphics.TextureAtlas
 import com.lehaine.littlekt.graphics.font.CharacterSets
 import com.lehaine.littlekt.graphics.font.TtfFont
 import com.lehaine.littlekt.graphics.tilemap.ldtk.LDtkLevel
-import com.lehaine.littlekt.graphics.tilemap.ldtk.LDtkTileMap
+import com.lehaine.littlekt.graphics.tilemap.ldtk.LDtkWorld
 import kotlinx.atomicfu.atomic
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
@@ -148,7 +148,7 @@ open class AssetProvider(val context: Context) {
                     file.readTtfFont()
                 }
             },
-            LDtkTileMap::class to { file, params ->
+            LDtkWorld::class to { file, params ->
                 if (params is LDtkGameAssetParameter) {
                     file.readLDtkMap(params.loadAllLevels, params.levelIdx)
                 } else {

@@ -11,11 +11,12 @@ import com.lehaine.littlekt.util.calculateViewBounds
  * @author Colton Daily
  * @date 12/20/2021
  */
-class LDtkTileMap(
+class LDtkWorld(
     val worldLayout: WorldLayout,
     val backgroundColor: String,
     val levels: List<LDtkLevel>,
     val tilesets: Map<Int, LDtkTileset>,
+    val enums: Map<String, LDtkEnum>
 ) : TileMap(), Disposable {
     val levelsMap: Map<String, LDtkLevel> = levels.associateBy { it.identifier }
 

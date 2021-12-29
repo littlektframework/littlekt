@@ -57,7 +57,35 @@
 					"height": 10,
 					"defUid": 27,
 					"px": [84,192],
-					"fieldInstances": [{ "__identifier": "Color", "__value": "#000000", "__type": "Color", "defUid": 63, "realEditorValues": [] }]
+					"fieldInstances": [
+						{
+							"__identifier": "Equipped",
+							"__value": "Pickaxe",
+							"__type": "LocalEnum.Items",
+							"defUid": 74,
+							"realEditorValues": [{
+								"id": "V_String",
+								"params": ["Pickaxe"]
+							}]
+						},
+						{
+							"__identifier": "Backpack",
+							"__value": [ null, "Pickaxe", "Potion", null, "Potion" ],
+							"__type": "Array<LocalEnum.Items>",
+							"defUid": 75,
+							"realEditorValues": [ null, {
+								"id": "V_String",
+								"params": ["Pickaxe"]
+							}, {
+								"id": "V_String",
+								"params": ["Potion"]
+							}, null, {
+								"id": "V_String",
+								"params": ["Potion"]
+							} ]
+						},
+						{ "__identifier": "health", "__value": 10, "__type": "Int", "defUid": 76, "realEditorValues": [] }
+					]
 				},
 				{
 					"__identifier": "Item",
@@ -196,6 +224,26 @@
 							} ]
 						}
 					]
+				},
+				{
+					"__identifier": "Item",
+					"__grid": [7,12],
+					"__pivot": [0.5,1],
+					"__tile": { "tilesetUid": 31, "srcRect": [96,0,16,16] },
+					"width": 10,
+					"height": 10,
+					"defUid": 29,
+					"px": [60,104],
+					"fieldInstances": [{
+						"__identifier": "type",
+						"__value": "Potion",
+						"__type": "LocalEnum.Items",
+						"defUid": 32,
+						"realEditorValues": [{
+							"id": "V_String",
+							"params": ["Potion"]
+						}]
+					}]
 				}
 			]
 		},

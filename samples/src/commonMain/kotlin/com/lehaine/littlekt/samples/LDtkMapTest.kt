@@ -9,12 +9,12 @@ import com.lehaine.littlekt.graphics.*
 import com.lehaine.littlekt.graphics.font.GpuFont
 import com.lehaine.littlekt.graphics.font.TtfFont
 import com.lehaine.littlekt.graphics.font.use
-import com.lehaine.littlekt.graphics.tilemap.ldtk.LDtkTileMap
+import com.lehaine.littlekt.graphics.tilemap.ldtk.LDtkEnumValue
+import com.lehaine.littlekt.graphics.tilemap.ldtk.LDtkWorld
 import com.lehaine.littlekt.input.Key
 import com.lehaine.littlekt.log.Logger
 import com.lehaine.littlekt.util.milliseconds
 import com.lehaine.littlekt.util.viewport.ExtendViewport
-import com.lehaine.littlekt.util.viewport.FillViewport
 import kotlin.time.Duration
 
 /**
@@ -30,7 +30,7 @@ class LDtkMapTest(context: Context) : ContextListener(context) {
     private val uiCam = OrthographicCamera(graphics.width, graphics.height).apply {
         viewport = ExtendViewport(480, 270)
     }
-    private lateinit var map: LDtkTileMap
+    private lateinit var map: LDtkWorld
     private lateinit var atlas: TextureAtlas
     private lateinit var person: TextureSlice
     private lateinit var font: TtfFont
@@ -52,6 +52,11 @@ class LDtkMapTest(context: Context) : ContextListener(context) {
             runOnMainThread {
                 gpuFontRenderer = GpuFont(this@LDtkMapTest, font)
             }
+            val level = map["West"]
+            val player = level.entities("Player")[0]
+            println(level.entities)
+            println(player.field<LDtkEnumValue>("Equipped").value)
+            println(player.fieldArray<LDtkEnumValue>("Backpack").values)
             loading = false
         }
     }
