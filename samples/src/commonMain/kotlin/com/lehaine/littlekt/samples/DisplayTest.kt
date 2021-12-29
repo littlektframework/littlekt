@@ -25,6 +25,7 @@ class DisplayTest(context: Context) : Game<Scene>(context), InputProcessor {
     val slices: Array<Array<TextureSlice>> by prepare { texture.slice(16, 16) }
     val person by prepare { slices[0][0] }
     val bossAttack by prepare { atlas.getAnimation("bossAttack") }
+    val boss by prepare { AnimatedSprite(bossAttack.firstFrame) }
 
     val shader = createShader(SimpleColorVertexShader(), SimpleColorFragmentShader())
     val colorBits = Color.WHITE.toFloatBits()
@@ -73,7 +74,12 @@ class DisplayTest(context: Context) : Game<Scene>(context), InputProcessor {
     }
 
     override fun create() {
-        bossAttack.playLooped()
+        boss.currentAnimation = bossAttack
+        boss.playLooped()
+        boss.x = 450f
+        boss.y = 250f
+        boss.scaleX = 2f
+        boss.scaleY = 2f
     }
 
     override fun update(dt: Duration) {
@@ -95,7 +101,7 @@ class DisplayTest(context: Context) : Game<Scene>(context), InputProcessor {
 
         gl.clearColor(Color.DARK_GRAY)
         camera.update()
-        bossAttack.update(dt)
+        boss.update(dt)
         batch.use(camera.viewProjection) {
             it.draw(person, x, y, scaleX = 10f, scaleY = 10f)
             slices.forEachIndexed { rowIdx, row ->
@@ -103,8 +109,7 @@ class DisplayTest(context: Context) : Game<Scene>(context), InputProcessor {
                     it.draw(slice, 150f * (rowIdx * row.size + colIdx) + 50f, 50f, scaleX = 10f, scaleY = 10f)
                 }
             }
-            it.draw(bossAttack.currentFrame, 450f, 250f, scaleX = 2f, scaleY = 2f, flipX = false)
-            it.draw(bossAttack.currentFrame, 150f, 250f, scaleX = 2f, scaleY = 2f, flipX = true)
+            boss.render(it)
             it.draw(Textures.default, 150f, 450f, scaleX = 5f, scaleY = 5f)
             it.draw(Textures.white, 200f, 400f, scaleX = 5f, scaleY = 5f)
             it.draw(Textures.transparent, 220f, 400f, scaleX = 5f, scaleY = 5f)
