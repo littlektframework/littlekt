@@ -5,9 +5,9 @@
 
 A mutliplatform lower level game framework inspired by libGDX and KorGE. The goal of this project is to allow the freedom and flexibility that libGDX offers with enjoyable idiomatic features coded in Kotlin that KorGE has to offer.
 
-Check out the [samples](https://github.com/LittleKtOrg/LittleKt-Samples) repository.
+Check out the [samples](https://github.com/littlektframework/littlekt-samples) repository.
 
-Check out the [wiki](https://github.com/LittleKtOrg/LittleKt/wiki) for getting started!
+Check out the [wiki](https://github.com/littlektframework/littlekt/wiki) for getting started!
 
 ### Features
 * **Freedom and flexibiity**: Various useful tools and abstractions but still allow access to the underlying code.
