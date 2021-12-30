@@ -1,6 +1,5 @@
 package com.lehaine.littlekt.input
 
-import com.lehaine.littlekt.Context
 import com.lehaine.littlekt.log.Logger
 import com.lehaine.littlekt.math.geom.Point
 import com.lehaine.littlekt.util.fastForEachWithIndex
@@ -10,7 +9,7 @@ import org.lwjgl.glfw.GLFW.*
  * @author Colton Daily
  * @date 11/7/2021
  */
-class LwjglInput(private val logger: Logger, private val context: Context) : Input {
+class LwjglInput(private val logger: Logger) : Input {
 
     private val inputManager = InputManager()
 
@@ -19,7 +18,6 @@ class LwjglInput(private val logger: Logger, private val context: Context) : Inp
     private var _deltaX = 0f
     private var _deltaY = 0f
     private var lastChar: Char = 0.toChar()
-    private val zeroPoint = Point(0f, 0f)
 
     override var inputProcessor: InputProcessor? = null
     override val gamepads: Array<GamepadInfo> = Array(8) { GamepadInfo(it) }

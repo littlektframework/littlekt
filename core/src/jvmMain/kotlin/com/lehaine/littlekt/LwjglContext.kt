@@ -33,7 +33,7 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context {
     override val stats: AppStats = AppStats()
     override val graphics: Graphics = LwjglGraphics(stats.engineStats)
     override val logger: Logger = Logger(configuration.title)
-    override val input: Input = LwjglInput(logger, this)
+    override val input: Input = LwjglInput(logger)
     override val vfs = JvmVfs(this, logger, "./.storage", ".")
     override val resourcesVfs: VfsFile get() = vfs.root
     override val storageVfs: VfsFile get() = VfsFile(vfs, "./.storage")
