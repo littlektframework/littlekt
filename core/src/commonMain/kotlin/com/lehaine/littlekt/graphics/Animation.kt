@@ -6,25 +6,31 @@ import kotlin.time.Duration.Companion.milliseconds
 
 
 /**
+ * Animation based class that holds info on what frames to be animating. Recommended to be used with [AnimationPlayer]
+ * to assist in playing back the frames.
+ * @param KeyFrameType the type to be used as the key frame.
+ * @see [AnimationPlayer]
  * @author Colton Daily
  * @date 11/27/2021
  */
-enum class AnimationType {
-    STANDARD, LOOPED, DURATION
-}
-
-/**
- * @author Colton Daily
- * @date 11/27/2021
- */
-class Animation<T>(
-    val frames: List<T>,
+class Animation<KeyFrameType>(
+    /**
+     * All the key frames to animate
+     */
+    val frames: List<KeyFrameType>,
+    /**
+     * The order of each frame should be played based on the indices of [frames].
+     */
     val frameIndices: List<Int>,
+    /**
+     * The amount of time spent displaying each frame.
+     */
     val frameTimes: List<Duration>
 ) {
+    val id = nextAnimId++
     val frameStackSize: Int get() = frames.size
     val totalFrames: Int get() = frameIndices.size
-    val firstFrame: T get() = frames[0]
+    val firstFrame: KeyFrameType get() = frames[0]
 
     /**
      * The total duration of this animation
@@ -32,7 +38,7 @@ class Animation<T>(
     val duration = frameTimes.reduce { acc, ft -> acc + ft }
 
 
-    fun getFrame(time: Duration): T {
+    fun getFrame(time: Duration): KeyFrameType {
         var counter = time
         var index = 0
         while (counter > frameTimes[index] && index < frameIndices.size) {
@@ -42,7 +48,7 @@ class Animation<T>(
         return getFrame(index)
     }
 
-    fun getFrame(index: Int): T = frames[frameIndices[index umod frames.size]]
+    fun getFrame(index: Int): KeyFrameType = frames[frameIndices[index umod frames.size]]
 
     fun getFrameTime(index: Int): Duration = frameTimes[frameIndices[index umod frames.size]]
 
@@ -51,8 +57,33 @@ class Animation<T>(
      * @return the key frame at the specified index
      */
     operator fun get(index: Int) = frames[index]
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other == null || this::class != other::class) return false
+
+        other as Animation<*>
+
+        if (id != other.id) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        return id.hashCode()
+    }
+
+
+    companion object {
+        private var nextAnimId = 1L
+    }
 }
 
+/**
+ * An [Animation] builder to help create custom animations easily.
+ * @see [Animation]
+ * @see [AnimationPlayer]
+ */
 class AnimationBuilder<T>(private val frames: List<T>) {
 
     private val frameIndices = arrayListOf<Int>()
@@ -72,6 +103,11 @@ class AnimationBuilder<T>(private val frames: List<T>) {
 }
 
 
+/**
+ * Creates an animation from a prefix based on the names of the sprites in an [TextureAtlas].
+ * @param prefix the prefix to use to create the animation
+ * @param defaultTimePerFrame the amount of time each frame is displayed
+ */
 fun TextureAtlas.getAnimation(
     prefix: String = "",
     defaultTimePerFrame: Duration = 100.milliseconds

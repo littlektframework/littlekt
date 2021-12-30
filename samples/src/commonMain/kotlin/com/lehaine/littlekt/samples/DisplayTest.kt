@@ -74,8 +74,7 @@ class DisplayTest(context: Context) : Game<Scene>(context), InputProcessor {
     }
 
     override fun create() {
-        boss.currentAnimation = bossAttack
-        boss.playLooped()
+        boss.playLooped(bossAttack)
         boss.x = 450f
         boss.y = 250f
         boss.scaleX = 2f
