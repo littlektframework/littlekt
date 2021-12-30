@@ -17,6 +17,7 @@ import com.lehaine.littlekt.math.geom.Point
  */
 class LDtkLevelLoader(private val project: ProjectJson) : Disposable {
 
+    var sliceBorder = 2
     val assetCache = mutableMapOf<VfsFile, Texture>()
     val tilesets = mutableMapOf<Int, LDtkTileset>()
 
@@ -370,7 +371,7 @@ class LDtkLevelLoader(private val project: ProjectJson) : Disposable {
             pxWidth = tilesetDef.pxWid,
             pxHeight = tilesetDef.pxHei,
             tiles = vfs[tilesetDef.relPath].readPixmap()
-                .sliceWithBorder(vfs.vfs.context, tilesetDef.tileGridSize, tilesetDef.tileGridSize, 4)
+                .sliceWithBorder(vfs.vfs.context, tilesetDef.tileGridSize, tilesetDef.tileGridSize, sliceBorder)
         )
 
     override fun dispose() {

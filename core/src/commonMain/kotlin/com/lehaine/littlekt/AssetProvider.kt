@@ -150,7 +150,7 @@ open class AssetProvider(val context: Context) {
             },
             LDtkWorld::class to { file, params ->
                 if (params is LDtkGameAssetParameter) {
-                    file.readLDtkMap(params.loadAllLevels, params.levelIdx)
+                    file.readLDtkMap(params.loadAllLevels, params.levelIdx, params.tilesetBorderThickness)
                 } else {
                     file.readLDtkMap()
                 }
@@ -206,7 +206,8 @@ open class GameAssetParameters
 
 class LDtkGameAssetParameter(
     val loadAllLevels: Boolean = true,
-    val levelIdx: Int = 0
+    val levelIdx: Int = 0,
+    val tilesetBorderThickness: Int = 2
 ) : GameAssetParameters()
 
 class FontAssetParameter(

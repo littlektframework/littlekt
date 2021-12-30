@@ -224,7 +224,7 @@ class Pixmap(val width: Int, val height: Int, val pixels: ByteBuffer = createByt
         for (n in 1..border) {
             val rWidth = sliceWidth + border * 2
             copyTo(x, y, this, x, y - n, rWidth, 1)
-            copyTo(x, y + height - 1, this, x, y + height - 1 + n, rWidth, 1)
+            copyTo(x, y + sliceHeight - 1, this, x, y + sliceHeight - 1 + n, rWidth, 1)
         }
     }
 

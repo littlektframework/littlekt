@@ -53,13 +53,14 @@ private val mapCache = mutableMapOf<String, LDtkMapLoader>()
  * @param loadAllLevels if true this will load all the external levels and their dependencies. They then will all be available
  * in [LDtkWorld.levels]; if false it will load the specified [levelIdx] as the default and only level.
  * @param levelIdx the index of the level to load if [loadAllLevels] is false.
+ * @param tilesetBorder the border thickness of each slice when loading the tileset to prevent bleeding
  * @return the loaded LDtk map
  * @see [VfsFile.readLDtkLevel]
  */
-suspend fun VfsFile.readLDtkMap(loadAllLevels: Boolean = true, levelIdx: Int = 0): LDtkWorld {
+suspend fun VfsFile.readLDtkMap(loadAllLevels: Boolean = true, levelIdx: Int = 0, tilesetBorder: Int = 2): LDtkWorld {
     val loader = mapCache.getOrPut(path) {
         val project = decodeFromString<ProjectJson>()
-        LDtkMapLoader(this, project)
+        LDtkMapLoader(this, project).also { it.levelLoader.sliceBorder = tilesetBorder }
     }
     return loader.loadMap(loadAllLevels, levelIdx).also {
         it.onDispose = {
@@ -73,12 +74,13 @@ suspend fun VfsFile.readLDtkMap(loadAllLevels: Boolean = true, levelIdx: Int = 0
  * Reads the [VfsFile] as a [LDtkWorld] and loads the level specified by [levelIdx].
  * Any loaders and assets will be cached for reuse/reloading.
  * @param levelIdx the index of the level to load
+ * @param tilesetBorder the border thickness of each slice when loading the tileset to prevent bleeding
  * @return the loaded LDtk level
  */
-suspend fun VfsFile.readLDtkLevel(levelIdx: Int): LDtkLevel {
+suspend fun VfsFile.readLDtkLevel(levelIdx: Int, tilesetBorder: Int = 2): LDtkLevel {
     val loader = mapCache.getOrPut(path) {
         val project = decodeFromString<ProjectJson>()
-        LDtkMapLoader(this, project)
+        LDtkMapLoader(this, project).also { it.levelLoader.sliceBorder = tilesetBorder }
     }
     return loader.loadLevel(levelIdx)
 }

@@ -46,7 +46,6 @@ fun <T : TextureData> T.generateMipMap(
         generateMipMapCPU(context, target, pixmap, width, height)
     }
 
-
     when (context.platform) {
         Context.Platform.DESKTOP -> generateMipMapDesktop(context, target, pixmap, width, height)
         Context.Platform.JS, Context.Platform.ANDROID, Context.Platform.IOS -> generateMipMapGLES20(
