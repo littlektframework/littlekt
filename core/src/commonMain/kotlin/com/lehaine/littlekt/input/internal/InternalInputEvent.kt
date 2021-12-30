@@ -1,5 +1,7 @@
 package com.lehaine.littlekt.input.internal
 
+import com.lehaine.littlekt.input.GameButton
+import com.lehaine.littlekt.input.GameStick
 import com.lehaine.littlekt.input.Key
 import com.lehaine.littlekt.input.Pointer
 
@@ -11,6 +13,11 @@ internal class InternalInputEvent(
     var key: Key = Key.ANY_KEY,
     var typedChar: Char = Char.MIN_VALUE,
     var pointer: Pointer = Pointer.POINTER1,
+    var gamepadButton: GameButton = GameButton.BUTTON0,
+    var gamepadButtonPressure: Float = 0f,
+    var gamepadStick: GameStick = GameStick.LEFT,
+    var gamepadStickDistance: Float = 0f,
+    var gamepad: Int = 0,
     var queueTime: Long = 0,
     var x: Float = 0f,
     var y: Float = 0f,
@@ -20,4 +27,9 @@ internal class InternalInputEvent(
         get() = type == InternalInputEventType.TOUCH_DOWN
                 || type == InternalInputEventType.TOUCH_UP
                 || type == InternalInputEventType.TOUCH_DRAGGED
+
+    val isGamepadEvent: Boolean
+        get() = type == InternalInputEventType.GAMEPAD_BUTTON_DOWN
+                || type == InternalInputEventType.GAMEPAD_BUTTON_UP
+                || type == InternalInputEventType.GAMEPAD_JOYSTICK_MOVED
 }

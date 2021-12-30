@@ -37,6 +37,20 @@ class InputQueueManager {
                 InternalInputEventType.TOUCH_DRAGGED -> processor.touchDragged(it.x, it.y, it.pointer)
                 InternalInputEventType.MOUSE_MOVED -> processor.mouseMoved(it.x, it.y)
                 InternalInputEventType.SCROLLED -> processor.scrolled(it.x, it.y)
+                InternalInputEventType.GAMEPAD_BUTTON_DOWN -> processor.gamepadButtonPressed(
+                    it.gamepadButton,
+                    it.gamepadButtonPressure,
+                    it.gamepad
+                )
+                InternalInputEventType.GAMEPAD_BUTTON_UP -> processor.gamepadButtonReleased(
+                    it.gamepadButton,
+                    it.gamepad
+                )
+                InternalInputEventType.GAMEPAD_JOYSTICK_MOVED -> processor.gamepadJoystickMoved(
+                    it.gamepadStick,
+                    it.gamepadStickDistance,
+                    it.gamepad
+                )
             }
         }
         processingQueue.clear()
@@ -125,6 +139,42 @@ class InputQueueManager {
                 type = InternalInputEventType.SCROLLED
                 x = amountX
                 y = amountY
+                queueTime = time
+            }
+        }.also { queue.add(it) }
+    }
+
+    fun gamepadButtonDown(button: GameButton, pressure: Float, gamepad: Int, time: Long) {
+        eventsPool.alloc {
+            it.apply {
+                type = InternalInputEventType.GAMEPAD_BUTTON_DOWN
+                this.gamepadButton = button
+                this.gamepadButtonPressure = pressure
+                this.gamepad = gamepad
+                queueTime = time
+            }
+        }.also { queue.add(it) }
+    }
+
+    fun gamepadButtonUp(button: GameButton, gamepad: Int, time: Long) {
+        eventsPool.alloc {
+            it.apply {
+                type = InternalInputEventType.GAMEPAD_BUTTON_UP
+                this.gamepadButton = button
+                this.gamepadButtonPressure = 0f
+                this.gamepad = gamepad
+                queueTime = time
+            }
+        }.also { queue.add(it) }
+    }
+
+    fun gamepadJoystickMoved(stick: GameStick, distance: Float, gamepad: Int, time: Long) {
+        eventsPool.alloc {
+            it.apply {
+                type = InternalInputEventType.GAMEPAD_JOYSTICK_MOVED
+                this.gamepadStick = stick
+                this.gamepadStickDistance = distance
+                this.gamepad = gamepad
                 queueTime = time
             }
         }.also { queue.add(it) }

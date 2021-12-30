@@ -10,6 +10,7 @@ import com.lehaine.littlekt.graphics.shader.shaders.SimpleColorVertexShader
 import com.lehaine.littlekt.input.InputProcessor
 import com.lehaine.littlekt.input.Key
 import com.lehaine.littlekt.log.Logger
+import kotlin.math.absoluteValue
 import kotlin.time.Duration
 
 /**
@@ -85,6 +86,15 @@ class DisplayTest(context: Context) : Game<Scene>(context), InputProcessor {
         xVel = 0f
         yVel = 0f
 
+        val deadZone = 0.3f
+        val leftStickX = input.axisLeftX
+        val leftStickY = input.axisLeftY
+
+        if (leftStickX.absoluteValue > deadZone || leftStickY.absoluteValue > deadZone) {
+            xVel = leftStickX * 10f
+            yVel = leftStickY * 10f
+        }
+
         if (input.isKeyPressed(Key.W)) {
             yVel -= 10f
         }
@@ -97,6 +107,7 @@ class DisplayTest(context: Context) : Game<Scene>(context), InputProcessor {
         if (input.isKeyPressed(Key.D)) {
             xVel += 10f
         }
+
 
         gl.clearColor(Color.DARK_GRAY)
         camera.update()

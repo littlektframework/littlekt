@@ -36,4 +36,16 @@ interface InputProcessor {
     fun scrolled(amountX: Float, amountY: Float): Boolean {
         return false
     }
+
+    fun gamepadButtonPressed(button: GameButton, pressure: Float, gamepad: Int): Boolean {
+        return false
+    }
+
+    fun gamepadButtonReleased(button: GameButton, gamepad: Int): Boolean {
+        return false
+    }
+
+    fun gamepadJoystickMoved(stick: GameStick, distance: Float, gamepad: Int): Boolean {
+        return false
+    }
 }

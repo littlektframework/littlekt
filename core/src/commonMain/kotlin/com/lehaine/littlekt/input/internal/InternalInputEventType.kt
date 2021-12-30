@@ -12,5 +12,8 @@ internal enum class InternalInputEventType {
     TOUCH_UP,
     TOUCH_DRAGGED,
     MOUSE_MOVED,
-    SCROLLED
+    SCROLLED,
+    GAMEPAD_BUTTON_DOWN,
+    GAMEPAD_BUTTON_UP,
+    GAMEPAD_JOYSTICK_MOVED
 }

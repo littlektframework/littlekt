@@ -180,6 +180,10 @@ class JsInput(val canvas: HTMLCanvasElement) : Input {
         return inputManager.isKeyPressed(key)
     }
 
+    override fun isKeyJustReleased(key: Key): Boolean {
+        return inputManager.isKeyJustReleased(key)
+    }
+
     override fun setCursorPosition(x: Int, y: Int) {
         TODO("Not yet implemented")
     }
