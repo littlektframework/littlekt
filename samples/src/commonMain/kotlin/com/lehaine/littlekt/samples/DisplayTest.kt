@@ -7,6 +7,8 @@ import com.lehaine.littlekt.createShader
 import com.lehaine.littlekt.graphics.*
 import com.lehaine.littlekt.graphics.shader.shaders.SimpleColorFragmentShader
 import com.lehaine.littlekt.graphics.shader.shaders.SimpleColorVertexShader
+import com.lehaine.littlekt.input.GameButton
+import com.lehaine.littlekt.input.GameStick
 import com.lehaine.littlekt.input.InputProcessor
 import com.lehaine.littlekt.input.Key
 import com.lehaine.littlekt.log.Logger
@@ -144,6 +146,26 @@ class DisplayTest(context: Context) : Game<Scene>(context), InputProcessor {
         if (input.isKeyJustPressed(Key.ESCAPE)) {
             close()
         }
+    }
+
+    override fun gamepadButtonPressed(button: GameButton, pressure: Float, gamepad: Int): Boolean {
+        println("Gamepad $button pressed")
+        return false
+    }
+
+    override fun gamepadButtonReleased(button: GameButton, gamepad: Int): Boolean {
+        println("Gamepad $button released")
+        return false
+    }
+
+    override fun gamepadJoystickMoved(stick: GameStick, xAxis: Float, yAxis: Float, gamepad: Int): Boolean {
+     //   println("Gamepad joystick $stick moved to $xAxis,$yAxis")
+        return false
+    }
+
+    override fun gamepadTriggerChanged(button: GameButton, pressure: Float, gamepad: Int): Boolean {
+        println("Gamepad trigger $button changed to $")
+        return false
     }
 
     override fun resize(width: Int, height: Int) {

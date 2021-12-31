@@ -4,6 +4,8 @@ import com.lehaine.littlekt.log.Logger
 import com.lehaine.littlekt.math.geom.Point
 import com.lehaine.littlekt.util.fastForEachWithIndex
 import org.lwjgl.glfw.GLFW.*
+import org.lwjgl.glfw.GLFWGamepadState
+import java.nio.ByteBuffer
 
 /**
  * @author Colton Daily
@@ -117,33 +119,71 @@ class LwjglInput(private val logger: Logger) : Input {
         }
     }
 
+    val state = GLFWGamepadState(ByteBuffer.allocateDirect(64))
     private fun updateGamepads() {
         if (connectedGamepads.isEmpty()) return
 
         gamepads.fastForEachWithIndex { index, gamepad ->
             if (gamepad.connected) {
-                val axes = glfwGetJoystickAxes(index) ?: run {
-                    logger.warn { "Gamepad $index is unable to retrieve axes states! Considering this gamepad as disconnected." }
-                    gamepad.connected = false
-                    return@fastForEachWithIndex
+                glfwGetGamepadState(index, state)
+
+                gamepad.mapping.buttonListOrder.forEachIndexed { btnIdx, button ->
+                    val glfwIdx = button.glfwIndex
+                    if (glfwIdx != -1) {
+                        gamepad.rawButtonsPressed[btnIdx] = state.buttons(glfwIdx).toFloat()
+                    }
                 }
-                val buttons = glfwGetJoystickButtons(index) ?: run {
-                    logger.warn { "Gamepad $index is unable to retrieve button states! Considering this gamepad as disconnected." }
-                    gamepad.connected = false
-                    return@fastForEachWithIndex
+                gamepad.mapping.buttonToIndex[GameButton.L2]?.let {
+                    gamepad.rawButtonsPressed[it] = state.axes(GLFW_GAMEPAD_AXIS_LEFT_TRIGGER)
                 }
-                gamepad.rawButtonsPressed[GameButton.L2.index] = axes[GLFW_GAMEPAD_AXIS_LEFT_TRIGGER]
-                gamepad.rawButtonsPressed[GameButton.R2.index] = axes[GLFW_GAMEPAD_AXIS_RIGHT_TRIGGER]
-                while (buttons.hasRemaining()) {
-                    gamepad.rawButtonsPressed[buttons.position()] = buttons.get().toFloat()
+                gamepad.mapping.buttonToIndex[GameButton.R2]?.let {
+                    gamepad.rawButtonsPressed[it] = state.axes(GLFW_GAMEPAD_AXIS_RIGHT_TRIGGER)
                 }
-                gamepad.rawAxes[0] = axes[GLFW_GAMEPAD_AXIS_LEFT_X]
-                gamepad.rawAxes[1] = axes[GLFW_GAMEPAD_AXIS_LEFT_Y]
-                gamepad.rawAxes[2] = axes[GLFW_GAMEPAD_AXIS_RIGHT_X]
-                gamepad.rawAxes[3] = axes[GLFW_GAMEPAD_AXIS_RIGHT_Y]
+                inputManager.updateGamepadTrigger(
+                    GameButton.L2,
+                    gamepad
+                )
+                inputManager.updateGamepadTrigger(
+                    GameButton.R2,
+                    gamepad
+                )
+                inputManager.updateGamepadButtons(gamepad)
+
+                gamepad.rawAxes[0] = state.axes(GLFW_GAMEPAD_AXIS_LEFT_X)
+                gamepad.rawAxes[1] = state.axes(GLFW_GAMEPAD_AXIS_LEFT_Y)
+                gamepad.rawAxes[2] = state.axes(GLFW_GAMEPAD_AXIS_RIGHT_X)
+                gamepad.rawAxes[3] = state.axes(GLFW_GAMEPAD_AXIS_RIGHT_Y)
+                inputManager.updateGamepadStick(
+                    GameStick.LEFT,
+                    gamepad
+                )
+                inputManager.updateGamepadStick(
+                    GameStick.RIGHT,
+                    gamepad
+                )
             }
         }
     }
+
+    private val GameButton.glfwIndex
+        get() = when (this) {
+            GameButton.XBOX_A -> GLFW_GAMEPAD_BUTTON_A
+            GameButton.XBOX_B -> GLFW_GAMEPAD_BUTTON_B
+            GameButton.XBOX_X -> GLFW_GAMEPAD_BUTTON_X
+            GameButton.XBOX_Y -> GLFW_GAMEPAD_BUTTON_Y
+            GameButton.L1 -> GLFW_GAMEPAD_BUTTON_LEFT_BUMPER
+            GameButton.R1 -> GLFW_GAMEPAD_BUTTON_RIGHT_BUMPER
+            GameButton.SELECT -> GLFW_GAMEPAD_BUTTON_BACK
+            GameButton.START -> GLFW_GAMEPAD_BUTTON_START
+            GameButton.SYSTEM -> GLFW_GAMEPAD_BUTTON_GUIDE
+            GameButton.LEFT_THUMB -> GLFW_GAMEPAD_BUTTON_LEFT_THUMB
+            GameButton.RIGHT_THUMB -> GLFW_GAMEPAD_BUTTON_RIGHT_THUMB
+            GameButton.UP -> GLFW_GAMEPAD_BUTTON_DPAD_UP
+            GameButton.RIGHT -> GLFW_GAMEPAD_BUTTON_DPAD_RIGHT
+            GameButton.DOWN -> GLFW_GAMEPAD_BUTTON_DPAD_DOWN
+            GameButton.LEFT -> GLFW_GAMEPAD_BUTTON_DPAD_LEFT
+            else -> -1
+        }
 
     override val x: Int
         get() = mouseX.toInt()
@@ -206,15 +246,15 @@ class LwjglInput(private val logger: Logger) : Input {
     }
 
     override fun isGamepadButtonJustPressed(button: GameButton, gamepad: Int): Boolean {
-        return inputManager.isGamepadButtonJustPressed(button, gamepad)
+        return inputManager.isGamepadButtonJustPressed(button, gamepads[gamepad])
     }
 
     override fun isGamepadButtonPressed(button: GameButton, gamepad: Int): Boolean {
-        return inputManager.isGamepadButtonPressed(button, gamepad)
+        return inputManager.isGamepadButtonPressed(button, gamepads[gamepad])
     }
 
     override fun isGamepadButtonJustReleased(button: GameButton, gamepad: Int): Boolean {
-        return inputManager.isGamepadButtonJustReleased(button, gamepad)
+        return inputManager.isGamepadButtonJustReleased(button, gamepads[gamepad])
     }
 
     override fun getGamepadButtonPressure(button: GameButton, gamepad: Int): Float {

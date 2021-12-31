@@ -116,12 +116,13 @@ enum class Key {
     SINGLE_QUOTE,
 }
 
-enum class GameStick(val id: Int) {
+enum class GameStick(val index: Int) {
     LEFT(0), RIGHT(1);
+}
 
-    companion object {
-        val STICKS = values()
-    }
+enum class GameAxis(val index: Int) {
+    LX(0), LY(1),
+    RX(2), RY(3),
 }
 
 enum class GameButton(val index: Int) {
@@ -134,8 +135,6 @@ enum class GameButton(val index: Int) {
     L1(11), R1(12),
     L2(13), R2(14),
     L3(15), R3(16),
-    LX(17), LY(18),
-    RX(19), RY(20),
     BUTTON4(24), BUTTON5(25), BUTTON6(26), BUTTON7(27), BUTTON8(28);
 
     companion object {
@@ -162,7 +161,6 @@ enum class GameButton(val index: Int) {
     }
 }
 
-
 class GamepadInfo(
     val index: Int = 0,
     var connected: Boolean = false,
@@ -174,19 +172,20 @@ class GamepadInfo(
     private val axesData: Array<MutablePoint> = Array(2) { MutablePoint(0f, 0f) }
 
     operator fun get(button: GameButton): Float = mapping.get(button, this)
-    operator fun get(stick: GameStick): Point = axesData[stick.id].apply {
+    operator fun get(axis: GameAxis): Float = mapping.get(axis, this)
+    operator fun get(stick: GameStick): Point = axesData[stick.index].apply {
         this.x = getX(stick)
         this.y = getY(stick)
     }
 
     fun getX(stick: GameStick) = when (stick) {
-        GameStick.LEFT -> get(GameButton.LX)
-        GameStick.RIGHT -> get(GameButton.RX)
+        GameStick.LEFT -> get(GameAxis.LX)
+        GameStick.RIGHT -> get(GameAxis.RX)
     }
 
     fun getY(stick: GameStick) = when (stick) {
-        GameStick.LEFT -> get(GameButton.LY)
-        GameStick.RIGHT -> get(GameButton.RY)
+        GameStick.LEFT -> get(GameAxis.LY)
+        GameStick.RIGHT -> get(GameAxis.RY)
     }
 
     override fun toString(): String = "Gamepad[$index][$name]" + mapping.toString(this)
@@ -194,10 +193,20 @@ class GamepadInfo(
 
 abstract class GamepadMapping {
     abstract val id: String
-    abstract fun get(button: GameButton, info: GamepadInfo): Float
+    abstract val buttonListOrder: List<GameButton>
+    abstract val axisListOrder: List<GameAxis>
+
+    val buttonToIndex by lazy { buttonListOrder.mapIndexed { index, gameButton -> gameButton to index }.toMap() }
+    val indexToButton by lazy { buttonListOrder.mapIndexed { index, gameButton -> index to gameButton }.toMap() }
+    val axisToIndex by lazy { axisListOrder.mapIndexed { index, axis -> axis to index }.toMap() }
+    val indexToAxis by lazy { axisListOrder.mapIndexed { index, axis -> index to axis }.toMap() }
+
+    fun get(button: GameButton, info: GamepadInfo): Float =
+        buttonToIndex[button]?.let { info.getRawButton(it) } ?: 0f
+
+    fun get(axis: GameAxis, info: GamepadInfo): Float = axisToIndex[axis]?.let { info.getRawAxis(it) } ?: 0f
 
     fun GamepadInfo.getRawButton(index: Int): Float = this.rawButtonsPressed[index]
-    fun GamepadInfo.getRawPressureButton(index: Int) = getRawButton(index)
     fun GamepadInfo.getRawAxis(index: Int) = this.rawAxes.getOrElse(index) { 0f }
 
     fun toString(info: GamepadInfo) = "$id(" + GameButton.values().joinToString(", ") {
@@ -210,32 +219,32 @@ open class StandardGamepadMapping : GamepadMapping() {
 
     override val id = "Standard"
 
-    override fun get(button: GameButton, info: GamepadInfo): Float {
-        return when (button) {
-            GameButton.BUTTON0 -> info.getRawButton(0)
-            GameButton.BUTTON1 -> info.getRawButton(1)
-            GameButton.BUTTON2 -> info.getRawButton(2)
-            GameButton.BUTTON3 -> info.getRawButton(3)
-            GameButton.L1 -> info.getRawButton(4)
-            GameButton.R1 -> info.getRawButton(5)
-            GameButton.L2 -> info.getRawButton(6)
-            GameButton.R2 -> info.getRawButton(7)
-            GameButton.SELECT -> info.getRawButton(8)
-            GameButton.START -> info.getRawButton(9)
-            GameButton.L3 -> info.getRawButton(10)
-            GameButton.R3 -> info.getRawButton(11)
-            GameButton.UP -> info.getRawButton(12)
-            GameButton.DOWN -> info.getRawButton(13)
-            GameButton.LEFT -> info.getRawButton(14)
-            GameButton.RIGHT -> info.getRawButton(15)
-            GameButton.SYSTEM -> info.getRawButton(16)
-            GameButton.LX -> info.getRawAxis(0)
-            GameButton.LY -> info.getRawAxis(1)
-            GameButton.RX -> info.getRawAxis(2)
-            GameButton.RY -> info.getRawAxis(3)
-            else -> 0f
-        }
-    }
+    override val buttonListOrder: List<GameButton> = listOf(
+        GameButton.BUTTON0,
+        GameButton.BUTTON1,
+        GameButton.BUTTON2,
+        GameButton.BUTTON3,
+        GameButton.L1,
+        GameButton.R1,
+        GameButton.L2,
+        GameButton.R2,
+        GameButton.SELECT,
+        GameButton.START,
+        GameButton.L3,
+        GameButton.R3,
+        GameButton.UP,
+        GameButton.DOWN,
+        GameButton.LEFT,
+        GameButton.RIGHT,
+        GameButton.SYSTEM
+    )
+
+    override val axisListOrder: List<GameAxis> = listOf(
+        GameAxis.LX,
+        GameAxis.LY,
+        GameAxis.RX,
+        GameAxis.RY
+    )
 }
 
 interface Input {

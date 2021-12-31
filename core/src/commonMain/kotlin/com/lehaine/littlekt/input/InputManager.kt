@@ -1,5 +1,7 @@
 package com.lehaine.littlekt.input
 
+import com.lehaine.littlekt.math.isFuzzyEqual
+import com.lehaine.littlekt.util.fastForEach
 import com.lehaine.littlekt.util.internal.epochMillis
 import kotlin.math.max
 
@@ -11,8 +13,6 @@ class InputManager {
 
     private val pointerCache = Pointer.values()
     private val keyCache = Key.values()
-    private val gamepadButtonCache = GameButton.values()
-    private val gameStickCache = GameStick.values()
 
     private val justTouchedPointers = mutableMapOf<Pointer, Boolean>()
 
@@ -20,10 +20,11 @@ class InputManager {
     private val keysJustPressed = mutableMapOf<Key, Boolean>()
     private val keysJustReleased = mutableMapOf<Key, Boolean>()
 
-    private val gamepadButtonsPressed =
-        mutableMapOf<Int, MutableMap<GameButton, Boolean>>()
+    private val gamepadButtonsLastState =
+        mutableMapOf<Int, MutableMap<GameButton, Float>>()
     private val gamepadButtonsJustPressed = mutableMapOf<Int, MutableMap<GameButton, Boolean>>()
     private val gamepadButtonsJustReleased = mutableMapOf<Int, MutableMap<GameButton, Boolean>>()
+    private val gamepadStickLastPosition = mutableMapOf<Int, MutableMap<GameStick, FloatArray>>()
 
     private var totalKeysPressed = 0
     private var touches = 0
@@ -65,16 +66,16 @@ class InputManager {
         return keysJustReleased[key] ?: false
     }
 
-    fun isGamepadButtonJustPressed(button: GameButton, gamepad: Int): Boolean {
-        return gamepadButtonsJustPressed.getOrPut(gamepad) { mutableMapOf() }[button] ?: false
+    fun isGamepadButtonJustPressed(button: GameButton, gamepad: GamepadInfo): Boolean {
+        return gamepadButtonsJustPressed.getOrPut(gamepad.index) { mutableMapOf() }[button] ?: false
     }
 
-    fun isGamepadButtonPressed(button: GameButton, gamepad: Int): Boolean {
-        return gamepadButtonsPressed.getOrPut(gamepad) { mutableMapOf() }[button] ?: false
+    fun isGamepadButtonPressed(button: GameButton, gamepad: GamepadInfo): Boolean {
+        return gamepadButtonsLastState.getOrPut(gamepad.index) { mutableMapOf() }[button] != 0f
     }
 
-    fun isGamepadButtonJustReleased(button: GameButton, gamepad: Int): Boolean {
-        return gamepadButtonsJustReleased.getOrPut(gamepad) { mutableMapOf() }[button] ?: false
+    fun isGamepadButtonJustReleased(button: GameButton, gamepad: GamepadInfo): Boolean {
+        return gamepadButtonsJustReleased.getOrPut(gamepad.index) { mutableMapOf() }[button] ?: false
     }
 
     fun onTouchDown(x: Float, y: Float, pointer: Pointer) {
@@ -117,24 +118,63 @@ class InputManager {
         queueManager.keyTyped(char, epochMillis())
     }
 
-    fun onGamepadButtonDown(button: GameButton, pressure: Float, gamepad: Int) {
+    fun onGamepadButtonDown(button: GameButton, pressure: Float, gamepad: GamepadInfo) {
         queueManager.gamepadButtonDown(button, pressure, gamepad, epochMillis())
         totalGamepadButtonsPressed++
         anyGamepadButtonsJustPressed = true
-        gamepadButtonsPressed.getOrPut(gamepad) { mutableMapOf() }[button] = true
-        gamepadButtonsJustPressed.getOrPut(gamepad) { mutableMapOf() }[button] = true
+        gamepadButtonsLastState.getOrPut(gamepad.index) { mutableMapOf() }[button] = pressure
+        gamepadButtonsJustPressed.getOrPut(gamepad.index) { mutableMapOf() }[button] = true
     }
 
-    fun onGamepadButtonUp(button: GameButton, gamepad: Int) {
+    fun onGamepadButtonUp(button: GameButton, gamepad: GamepadInfo) {
         queueManager.gamepadButtonUp(button, gamepad, epochMillis())
         totalGamepadButtonsPressed--
         anyGamepadButtonsJustReleased = true
-        gamepadButtonsPressed.getOrPut(gamepad) { mutableMapOf() }[button] = false
-        gamepadButtonsJustReleased.getOrPut(gamepad) { mutableMapOf() }[button] = true
+        gamepadButtonsLastState.getOrPut(gamepad.index) { mutableMapOf() }[button] = 0f
+        gamepadButtonsJustReleased.getOrPut(gamepad.index) { mutableMapOf() }[button] = true
     }
 
-    fun onGamepadJoystickMoved(stick: GameStick, distance: Float, gamepad: Int) {
-        queueManager.gamepadJoystickMoved(stick, distance, gamepad, epochMillis())
+    fun onGamepadJoystickMoved(stick: GameStick, x: Float, y: Float, gamepad: GamepadInfo) {
+        val pos = gamepadStickLastPosition.getOrPut(gamepad.index) { mutableMapOf() }.getOrPut(stick) { FloatArray(2) }
+        pos[0] = x
+        pos[1] = y
+        queueManager.gamepadJoystickMoved(stick, x, y, gamepad, epochMillis())
+    }
+
+    fun onGamepadTriggerChanged(button: GameButton, pressure: Float, gamepad: GamepadInfo) {
+        gamepadButtonsLastState.getOrPut(gamepad.index) { mutableMapOf() }[button] = pressure
+        queueManager.gamepadTriggerMoved(button, pressure, gamepad, epochMillis())
+    }
+
+    fun updateGamepadButtons(gamepad: GamepadInfo) {
+        gamepad.mapping.buttonListOrder.forEach {
+            val state = gamepad[it]
+            val lastState = gamepadButtonsLastState.getOrPut(gamepad.index) { mutableMapOf() }[it] ?: 0f
+
+            if (state != 0f && !isFuzzyEqual(state, lastState)) {
+                onGamepadButtonDown(it, state, gamepad)
+            } else if (state == 0f && lastState != 0f) {
+                onGamepadButtonUp(it, gamepad)
+            }
+        }
+    }
+
+    fun updateGamepadStick(stick: GameStick, gamepad: GamepadInfo) {
+        val x = gamepad.getX(stick)
+        val y = gamepad.getY(stick)
+        val pos = gamepadStickLastPosition.getOrPut(gamepad.index) { mutableMapOf() }.getOrPut(stick) { FloatArray(2) }
+        if (!isFuzzyEqual(pos[0], x) || !isFuzzyEqual(pos[1], y)) {
+            onGamepadJoystickMoved(stick, x, y, gamepad)
+        }
+    }
+
+    fun updateGamepadTrigger(button: GameButton, gamepad: GamepadInfo) {
+        val state = gamepad[button]
+        val lastState = gamepadButtonsLastState.getOrPut(gamepad.index) { mutableMapOf() }[button] ?: 0f
+        if (state != lastState) {
+            println("trigger $button")
+            onGamepadTriggerChanged(button, state, gamepad)
+        }
     }
 
     fun onScroll(amountX: Float, amountY: Float) {
@@ -159,7 +199,7 @@ class InputManager {
             }
         }
         if (anyGamepadButtonsJustPressed || anyGamepadButtonsJustReleased) {
-            gamepadButtonCache.forEach { button ->
+            GameButton.BUTTONS.fastForEach { button ->
                 gamepadButtonsJustPressed.values.forEach {
                     it[button] = false
                 }

@@ -1,9 +1,6 @@
 package com.lehaine.littlekt.input.internal
 
-import com.lehaine.littlekt.input.GameButton
-import com.lehaine.littlekt.input.GameStick
-import com.lehaine.littlekt.input.Key
-import com.lehaine.littlekt.input.Pointer
+import com.lehaine.littlekt.input.*
 
 /**
  * @author Colton Daily
@@ -16,8 +13,7 @@ internal class InternalInputEvent(
     var gamepadButton: GameButton = GameButton.BUTTON0,
     var gamepadButtonPressure: Float = 0f,
     var gamepadStick: GameStick = GameStick.LEFT,
-    var gamepadStickDistance: Float = 0f,
-    var gamepad: Int = 0,
+    var gamepad: GamepadInfo = GamepadInfo(),
     var queueTime: Long = 0,
     var x: Float = 0f,
     var y: Float = 0f,

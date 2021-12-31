@@ -45,7 +45,11 @@ interface InputProcessor {
         return false
     }
 
-    fun gamepadJoystickMoved(stick: GameStick, distance: Float, gamepad: Int): Boolean {
+    fun gamepadJoystickMoved(stick: GameStick, xAxis: Float, yAxis: Float, gamepad: Int): Boolean {
+        return false
+    }
+
+    fun gamepadTriggerChanged(button: GameButton, pressure: Float, gamepad: Int): Boolean {
         return false
     }
 }
