@@ -16,7 +16,7 @@ import org.w3c.dom.events.WheelEvent
  * @date 11/22/2021
  */
 class JsInput(val canvas: HTMLCanvasElement) : Input {
-    private val inputManager = InputManager()
+    private val inputCache = InputCache()
     private var mouseX = 0f
     private var mouseY = 0f
     private var logicalMouseX = 0f
@@ -59,17 +59,17 @@ class JsInput(val canvas: HTMLCanvasElement) : Input {
 
     private fun keyDown(event: Event) {
         event as KeyboardEvent
-        inputManager.onKeyDown(event.jsKey)
+        inputCache.onKeyDown(event.jsKey)
     }
 
     private fun keyUp(event: Event) {
         event as KeyboardEvent
-        inputManager.onKeyUp(event.jsKey)
+        inputCache.onKeyUp(event.jsKey)
     }
 
     private fun keyPress(event: Event) {
         event as KeyboardEvent
-        inputManager.onKeyType(event.charCode.toChar())
+        inputCache.onKeyType(event.charCode.toChar())
     }
 
     private fun touchStart(event: Event) {
@@ -79,7 +79,7 @@ class JsInput(val canvas: HTMLCanvasElement) : Input {
             val rect = canvas.getBoundingClientRect()
             val x = touchEvent.clientX.toFloat() - rect.left.toFloat()
             val y = touchEvent.clientY.toFloat() - rect.top.toFloat()
-            inputManager.onTouchDown(x, y, it.getPointer)
+            inputCache.onTouchDown(x, y, it.getPointer)
         }
     }
 
@@ -90,7 +90,7 @@ class JsInput(val canvas: HTMLCanvasElement) : Input {
             val rect = canvas.getBoundingClientRect()
             val x = touchEvent.clientX.toFloat() - rect.left.toFloat()
             val y = touchEvent.clientY.toFloat() - rect.top.toFloat()
-            inputManager.onMove(x, y, it.getPointer)
+            inputCache.onMove(x, y, it.getPointer)
         }
     }
 
@@ -101,7 +101,7 @@ class JsInput(val canvas: HTMLCanvasElement) : Input {
             val rect = canvas.getBoundingClientRect()
             val x = touchEvent.clientX.toFloat() - rect.left.toFloat()
             val y = touchEvent.clientY.toFloat() - rect.top.toFloat()
-            inputManager.onTouchUp(x, y, it.getPointer)
+            inputCache.onTouchUp(x, y, it.getPointer)
         }
     }
 
@@ -110,7 +110,7 @@ class JsInput(val canvas: HTMLCanvasElement) : Input {
         val rect = canvas.getBoundingClientRect()
         val x = event.clientX.toFloat() - rect.left.toFloat()
         val y = event.clientY.toFloat() - rect.top.toFloat()
-        inputManager.onTouchDown(x, y, event.button.getPointer)
+        inputCache.onTouchDown(x, y, event.button.getPointer)
     }
 
     private fun mouseUp(event: Event) {
@@ -118,7 +118,7 @@ class JsInput(val canvas: HTMLCanvasElement) : Input {
         val rect = canvas.getBoundingClientRect()
         val x = event.clientX.toFloat() - rect.left.toFloat()
         val y = event.clientY.toFloat() - rect.top.toFloat()
-        inputManager.onTouchUp(x, y, event.button.getPointer)
+        inputCache.onTouchUp(x, y, event.button.getPointer)
     }
 
     private fun mouseMove(event: Event) {
@@ -135,7 +135,7 @@ class JsInput(val canvas: HTMLCanvasElement) : Input {
 
         // todo handle hdpi mode pixels vs logical
 
-        inputManager.onMove(mouseX, mouseY, Pointer.POINTER1)
+        inputCache.onMove(mouseX, mouseY, Pointer.POINTER1)
     }
 
 
@@ -145,11 +145,11 @@ class JsInput(val canvas: HTMLCanvasElement) : Input {
 
     fun update() {
         updateGamepads()
-        inputManager.processEvents(inputProcessor)
+        inputCache.processEvents(inputProcessor)
     }
 
     fun reset() {
-        inputManager.reset()
+        inputCache.reset()
         _deltaX = 0f
         _deltaY = 0f
     }
@@ -210,9 +210,9 @@ class JsInput(val canvas: HTMLCanvasElement) : Input {
     override val deltaY: Int
         get() = _deltaY.toInt()
     override val isTouching: Boolean
-        get() = inputManager.isTouching
+        get() = inputCache.isTouching
     override val justTouched: Boolean
-        get() = inputManager.justTouched
+        get() = inputCache.justTouched
     override val pressure: Float
         get() = getPressure(Pointer.POINTER1)
 
@@ -242,7 +242,7 @@ class JsInput(val canvas: HTMLCanvasElement) : Input {
     }
 
     override fun isTouched(pointer: Pointer): Boolean {
-        return inputManager.isTouching(pointer)
+        return inputCache.isTouching(pointer)
     }
 
     override fun getPressure(pointer: Pointer): Float {
@@ -250,27 +250,27 @@ class JsInput(val canvas: HTMLCanvasElement) : Input {
     }
 
     override fun isKeyJustPressed(key: Key): Boolean {
-        return inputManager.isKeyJustPressed(key)
+        return inputCache.isKeyJustPressed(key)
     }
 
     override fun isKeyPressed(key: Key): Boolean {
-        return inputManager.isKeyPressed(key)
+        return inputCache.isKeyPressed(key)
     }
 
     override fun isKeyJustReleased(key: Key): Boolean {
-        return inputManager.isKeyJustReleased(key)
+        return inputCache.isKeyJustReleased(key)
     }
 
     override fun isGamepadButtonJustPressed(button: GameButton, gamepad: Int): Boolean {
-        return inputManager.isGamepadButtonJustPressed(button, gamepad)
+        return inputCache.isGamepadButtonJustPressed(button, gamepad)
     }
 
     override fun isGamepadButtonPressed(button: GameButton, gamepad: Int): Boolean {
-        return inputManager.isGamepadButtonPressed(button, gamepad)
+        return inputCache.isGamepadButtonPressed(button, gamepad)
     }
 
     override fun isGamepadButtonJustReleased(button: GameButton, gamepad: Int): Boolean {
-        return inputManager.isGamepadButtonJustReleased(button, gamepad)
+        return inputCache.isGamepadButtonJustReleased(button, gamepad)
     }
 
     override fun getGamepadButtonPressure(button: GameButton, gamepad: Int): Float {

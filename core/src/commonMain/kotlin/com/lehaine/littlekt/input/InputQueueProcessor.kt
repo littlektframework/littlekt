@@ -8,7 +8,7 @@ import com.lehaine.littlekt.util.datastructure.Pool
  * @author Colton Daily
  * @date 11/17/2021
  */
-class InputQueueManager {
+class InputQueueProcessor {
 
     val currentEventTime get() = _currentEventTime
 

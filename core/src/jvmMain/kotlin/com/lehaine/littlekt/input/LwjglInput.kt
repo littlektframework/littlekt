@@ -13,7 +13,7 @@ import java.nio.ByteBuffer
  */
 class LwjglInput(private val logger: Logger) : Input {
 
-    private val inputManager = InputManager()
+    private val inputCache = InputCache()
 
     private var mouseX = 0f
     private var mouseY = 0f
@@ -31,11 +31,11 @@ class LwjglInput(private val logger: Logger) : Input {
     fun attachToWindow(windowHandle: Long) {
         glfwSetKeyCallback(windowHandle) { window, key, scancode, action, mods ->
             when (action) {
-                GLFW_PRESS -> inputManager.onKeyDown(key.getKey)
-                GLFW_RELEASE -> inputManager.onKeyUp(key.getKey)
+                GLFW_PRESS -> inputCache.onKeyDown(key.getKey)
+                GLFW_RELEASE -> inputCache.onKeyUp(key.getKey)
                 GLFW_REPEAT -> {
                     if (lastChar != 0.toChar()) {
-                        inputManager.onKeyType(lastChar)
+                        inputCache.onKeyType(lastChar)
                     }
                 }
             }
@@ -44,11 +44,11 @@ class LwjglInput(private val logger: Logger) : Input {
         glfwSetCharCallback(windowHandle) { window, codepoint ->
             if (codepoint and 0xff00 == 0xf700) return@glfwSetCharCallback
             lastChar = codepoint.toChar()
-            inputManager.onKeyType(lastChar)
+            inputCache.onKeyType(lastChar)
         }
 
         glfwSetScrollCallback(windowHandle) { window, xoffset, yoffset ->
-            inputManager.onScroll(-xoffset.toFloat(), -yoffset.toFloat())
+            inputCache.onScroll(-xoffset.toFloat(), -yoffset.toFloat())
         }
 
         var logicalMouseY = 0f
@@ -63,14 +63,14 @@ class LwjglInput(private val logger: Logger) : Input {
 
             // todo handle hdpi mode pixels vs logical
 
-            inputManager.onMove(mouseX, mouseY, Pointer.POINTER1)
+            inputCache.onMove(mouseX, mouseY, Pointer.POINTER1)
         }
 
         glfwSetMouseButtonCallback(windowHandle) { window, button, action, mods ->
             if (action == GLFW_PRESS) {
-                inputManager.onTouchDown(mouseX, mouseY, button.getPointer)
+                inputCache.onTouchDown(mouseX, mouseY, button.getPointer)
             } else {
-                inputManager.onTouchUp(mouseX, mouseY, button.getPointer)
+                inputCache.onTouchUp(mouseX, mouseY, button.getPointer)
             }
         }
 
@@ -93,11 +93,11 @@ class LwjglInput(private val logger: Logger) : Input {
 
     fun update() {
         updateGamepads()
-        inputManager.processEvents(inputProcessor)
+        inputCache.processEvents(inputProcessor)
     }
 
     fun reset() {
-        inputManager.reset()
+        inputCache.reset()
         _deltaX = 0f
         _deltaY = 0f
     }
@@ -139,25 +139,25 @@ class LwjglInput(private val logger: Logger) : Input {
                 gamepad.mapping.buttonToIndex[GameButton.R2]?.let {
                     gamepad.rawButtonsPressed[it] = state.axes(GLFW_GAMEPAD_AXIS_RIGHT_TRIGGER)
                 }
-                inputManager.updateGamepadTrigger(
+                inputCache.updateGamepadTrigger(
                     GameButton.L2,
                     gamepad
                 )
-                inputManager.updateGamepadTrigger(
+                inputCache.updateGamepadTrigger(
                     GameButton.R2,
                     gamepad
                 )
-                inputManager.updateGamepadButtons(gamepad)
+                inputCache.updateGamepadButtons(gamepad)
 
                 gamepad.rawAxes[0] = state.axes(GLFW_GAMEPAD_AXIS_LEFT_X)
                 gamepad.rawAxes[1] = state.axes(GLFW_GAMEPAD_AXIS_LEFT_Y)
                 gamepad.rawAxes[2] = state.axes(GLFW_GAMEPAD_AXIS_RIGHT_X)
                 gamepad.rawAxes[3] = state.axes(GLFW_GAMEPAD_AXIS_RIGHT_Y)
-                inputManager.updateGamepadStick(
+                inputCache.updateGamepadStick(
                     GameStick.LEFT,
                     gamepad
                 )
-                inputManager.updateGamepadStick(
+                inputCache.updateGamepadStick(
                     GameStick.RIGHT,
                     gamepad
                 )
@@ -194,9 +194,9 @@ class LwjglInput(private val logger: Logger) : Input {
     override val deltaY: Int
         get() = _deltaY.toInt()
     override val isTouching: Boolean
-        get() = inputManager.isTouching
+        get() = inputCache.isTouching
     override val justTouched: Boolean
-        get() = inputManager.justTouched
+        get() = inputCache.justTouched
     override val pressure: Float
         get() = getPressure(Pointer.POINTER1)
 
@@ -226,7 +226,7 @@ class LwjglInput(private val logger: Logger) : Input {
     }
 
     override fun isTouched(pointer: Pointer): Boolean {
-        return inputManager.isTouching(pointer)
+        return inputCache.isTouching(pointer)
     }
 
     override fun getPressure(pointer: Pointer): Float {
@@ -234,27 +234,27 @@ class LwjglInput(private val logger: Logger) : Input {
     }
 
     override fun isKeyJustPressed(key: Key): Boolean {
-        return inputManager.isKeyJustPressed(key)
+        return inputCache.isKeyJustPressed(key)
     }
 
     override fun isKeyPressed(key: Key): Boolean {
-        return inputManager.isKeyPressed(key)
+        return inputCache.isKeyPressed(key)
     }
 
     override fun isKeyJustReleased(key: Key): Boolean {
-        return inputManager.isKeyJustReleased(key)
+        return inputCache.isKeyJustReleased(key)
     }
 
     override fun isGamepadButtonJustPressed(button: GameButton, gamepad: Int): Boolean {
-        return inputManager.isGamepadButtonJustPressed(button, gamepad)
+        return inputCache.isGamepadButtonJustPressed(button, gamepad)
     }
 
     override fun isGamepadButtonPressed(button: GameButton, gamepad: Int): Boolean {
-        return inputManager.isGamepadButtonPressed(button, gamepad)
+        return inputCache.isGamepadButtonPressed(button, gamepad)
     }
 
     override fun isGamepadButtonJustReleased(button: GameButton, gamepad: Int): Boolean {
-        return inputManager.isGamepadButtonJustReleased(button, gamepad)
+        return inputCache.isGamepadButtonJustReleased(button, gamepad)
     }
 
     override fun getGamepadButtonPressure(button: GameButton, gamepad: Int): Float {

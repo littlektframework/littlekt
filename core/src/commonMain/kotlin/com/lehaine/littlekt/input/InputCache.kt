@@ -9,7 +9,7 @@ import kotlin.math.max
  * @author Colton Daily
  * @date 11/17/2021
  */
-class InputManager {
+class InputCache {
 
     private val pointerCache = Pointer.values()
     private val keyCache = Key.values()
@@ -48,7 +48,7 @@ class InputManager {
     var justTouched = false
         private set
 
-    private val queueManager = InputQueueManager()
+    private val queueManager = InputQueueProcessor()
 
     fun isTouching(pointer: Pointer): Boolean {
         return justTouchedPointers[pointer] ?: false
