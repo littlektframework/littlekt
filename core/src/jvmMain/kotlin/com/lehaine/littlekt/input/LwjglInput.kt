@@ -246,15 +246,15 @@ class LwjglInput(private val logger: Logger) : Input {
     }
 
     override fun isGamepadButtonJustPressed(button: GameButton, gamepad: Int): Boolean {
-        return inputManager.isGamepadButtonJustPressed(button, gamepads[gamepad])
+        return inputManager.isGamepadButtonJustPressed(button, gamepad)
     }
 
     override fun isGamepadButtonPressed(button: GameButton, gamepad: Int): Boolean {
-        return inputManager.isGamepadButtonPressed(button, gamepads[gamepad])
+        return inputManager.isGamepadButtonPressed(button, gamepad)
     }
 
     override fun isGamepadButtonJustReleased(button: GameButton, gamepad: Int): Boolean {
-        return inputManager.isGamepadButtonJustReleased(button, gamepads[gamepad])
+        return inputManager.isGamepadButtonJustReleased(button, gamepad)
     }
 
     override fun getGamepadButtonPressure(button: GameButton, gamepad: Int): Float {

@@ -66,16 +66,16 @@ class InputManager {
         return keysJustReleased[key] ?: false
     }
 
-    fun isGamepadButtonJustPressed(button: GameButton, gamepad: GamepadInfo): Boolean {
-        return gamepadButtonsJustPressed.getOrPut(gamepad.index) { mutableMapOf() }[button] ?: false
+    fun isGamepadButtonJustPressed(button: GameButton, gamepad: Int): Boolean {
+        return gamepadButtonsJustPressed.getOrPut(gamepad) { mutableMapOf() }[button] ?: false
     }
 
-    fun isGamepadButtonPressed(button: GameButton, gamepad: GamepadInfo): Boolean {
-        return gamepadButtonsLastState.getOrPut(gamepad.index) { mutableMapOf() }[button] != 0f
+    fun isGamepadButtonPressed(button: GameButton, gamepad: Int): Boolean {
+        return gamepadButtonsLastState.getOrPut(gamepad) { mutableMapOf() }[button] != 0f
     }
 
-    fun isGamepadButtonJustReleased(button: GameButton, gamepad: GamepadInfo): Boolean {
-        return gamepadButtonsJustReleased.getOrPut(gamepad.index) { mutableMapOf() }[button] ?: false
+    fun isGamepadButtonJustReleased(button: GameButton, gamepad: Int): Boolean {
+        return gamepadButtonsJustReleased.getOrPut(gamepad) { mutableMapOf() }[button] ?: false
     }
 
     fun onTouchDown(x: Float, y: Float, pointer: Pointer) {
