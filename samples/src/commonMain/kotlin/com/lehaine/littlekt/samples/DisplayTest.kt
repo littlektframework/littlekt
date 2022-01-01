@@ -7,10 +7,7 @@ import com.lehaine.littlekt.createShader
 import com.lehaine.littlekt.graphics.*
 import com.lehaine.littlekt.graphics.shader.shaders.SimpleColorFragmentShader
 import com.lehaine.littlekt.graphics.shader.shaders.SimpleColorVertexShader
-import com.lehaine.littlekt.input.GameAxis
-import com.lehaine.littlekt.input.GameButton
-import com.lehaine.littlekt.input.InputMultiplexer
-import com.lehaine.littlekt.input.Key
+import com.lehaine.littlekt.input.*
 import com.lehaine.littlekt.log.Logger
 import kotlin.time.Duration
 
@@ -18,7 +15,7 @@ import kotlin.time.Duration
  * @author Colton Daily
  * @date 11/6/2021
  */
-class DisplayTest(context: Context) : Game<Scene>(context) {
+class DisplayTest(context: Context) : Game<Scene>(context), InputProcessor {
 
     val batch = SpriteBatch(context)
 
@@ -83,7 +80,8 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
 
     init {
         logger.level = Logger.Level.DEBUG
-        input.inputProcessor = controller
+        input.addInputProcessor(controller)
+        input.addInputProcessor(this)
         camera.translate(graphics.width / 2f, graphics.height / 2f, 0f)
 
         controller.addBinding(GameInput.MOVE_LEFT, listOf(Key.A, Key.ARROW_LEFT), axes = listOf(GameAxis.LX))
@@ -161,6 +159,11 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
 
     override fun resize(width: Int, height: Int) {
         logger.debug { "Resize to $width,$height" }
+    }
+
+    override fun keyUp(key: Key): Boolean {
+        logger.debug { "Key up: $key" }
+        return false
     }
 
     override fun dispose() {
