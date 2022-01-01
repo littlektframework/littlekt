@@ -181,8 +181,8 @@ class InputCache {
         queueManager.scrolled(amountX, amountY, epochMillis())
     }
 
-    fun processEvents(inputProcessor: InputProcessor? = null) {
-        queueManager.drain(inputProcessor)
+    fun processEvents(processors: List<InputProcessor>) {
+        queueManager.drain(processors)
     }
 
     fun reset() {

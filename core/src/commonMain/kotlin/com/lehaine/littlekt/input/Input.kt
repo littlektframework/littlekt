@@ -259,7 +259,7 @@ interface Input {
 
     val pressure: Float
 
-    var inputProcessor: InputProcessor?
+    val inputProcessors: List<InputProcessor>
 
     val gamepads: Array<GamepadInfo>
     val connectedGamepads: List<GamepadInfo>
@@ -279,12 +279,40 @@ interface Input {
 
     fun getPressure(pointer: Pointer): Float
 
+    /**
+     * Determines if the key is was just pressed within the past frame.
+     * @return `true` if the [Key] was just pressed; `false` otherwise.
+     */
     fun isKeyJustPressed(key: Key): Boolean
+
+    /**
+     * Determines if the key is currently pressed down.
+     * @return `true` if the [Key] is currently pressed; `false` otherwise.
+     */
     fun isKeyPressed(key: Key): Boolean
+
+    /**
+     * Determines if the key was just released within the past frame.
+     * @return `true` if the [Key] was just released; `false` otherwise.
+     */
     fun isKeyJustReleased(key: Key): Boolean
 
+    /**
+     * Determines if any of the specified [keys] are currently pressed.
+     * @return `true` if any of the keys are pressed; `false` otherwise.
+     */
     fun areAnyKeysPressed(vararg keys: Key): Boolean = keys.any { isKeyPressed(it) }
+
+    /**
+     * Determines if all of the specified [keys] are currently pressed.
+     * @return `true` if all of the keys are pressed; `false` otherwise.
+     */
     fun areAllKeysPressed(vararg keys: Key): Boolean = keys.all { isKeyPressed(it) }
+
+    /**
+     * Determines if all of the specified [keys] are **NOT** currently pressed.
+     * @return `true` if no keys are pressed; `false` otherwise.
+     */
     fun areNoKeysPressed(vararg keys: Key): Boolean = keys.none { isKeyPressed(it) }
 
     fun isGamepadButtonJustPressed(button: GameButton, gamepad: Int = 0): Boolean
@@ -296,4 +324,14 @@ interface Input {
     fun getGamepadJoystickYDistance(stick: GameStick, gamepad: Int = 0): Float
 
     fun setCursorPosition(x: Int, y: Int)
+
+    /**
+     * Add a [InputProcessor] to receive input callbacks.
+     */
+    fun addInputProcessor(processor: InputProcessor)
+
+    /**
+     * Remove a [InputProcessor] to from receiving input callbacks.
+     */
+    fun removeInputProcessor(processor: InputProcessor)
 }

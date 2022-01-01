@@ -1,6 +1,5 @@
 package com.lehaine.littlekt.input
 
-import com.lehaine.littlekt.log.Logger
 import com.lehaine.littlekt.math.geom.Point
 import com.lehaine.littlekt.util.fastForEachWithIndex
 import org.lwjgl.glfw.GLFW.*
@@ -11,7 +10,7 @@ import java.nio.ByteBuffer
  * @author Colton Daily
  * @date 11/7/2021
  */
-class LwjglInput(private val logger: Logger) : Input {
+class LwjglInput : Input {
 
     private val inputCache = InputCache()
 
@@ -21,7 +20,10 @@ class LwjglInput(private val logger: Logger) : Input {
     private var _deltaY = 0f
     private var lastChar: Char = 0.toChar()
 
-    override var inputProcessor: InputProcessor? = null
+    private val _inputProcessors = mutableListOf<InputProcessor>()
+    override val inputProcessors: List<InputProcessor>
+        get() = _inputProcessors
+
     override val gamepads: Array<GamepadInfo> = Array(8) { GamepadInfo(it) }
 
     private val _connectedGamepads = mutableListOf<GamepadInfo>()
@@ -93,7 +95,7 @@ class LwjglInput(private val logger: Logger) : Input {
 
     fun update() {
         updateGamepads()
-        inputCache.processEvents(inputProcessor)
+        inputCache.processEvents(inputProcessors)
     }
 
     fun reset() {
@@ -275,6 +277,14 @@ class LwjglInput(private val logger: Logger) : Input {
 
     override fun setCursorPosition(x: Int, y: Int) {
         TODO("Not yet implemented")
+    }
+
+    override fun addInputProcessor(processor: InputProcessor) {
+        _inputProcessors += processor
+    }
+
+    override fun removeInputProcessor(processor: InputProcessor) {
+        _inputProcessors -= processor
     }
 
 }
