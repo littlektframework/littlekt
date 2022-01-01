@@ -14,7 +14,7 @@ class Logger private constructor(val name: String, val dummy: Boolean) {
     /** [Level] of this [Logger]. If not set, it will use the [Logger.defaultLevel] */
     var level: Level
         set(value) = run { Logger_levels[name] = value }
-        get() = Logger_levels[name] ?: defaultLevel ?: Level.WARN
+        get() = Logger_levels[name] ?: defaultLevel ?: Level.INFO
 
     /** [Output] of this [Logger]. If not set, it will use the [Logger.defaultOutput] */
     var output: Output
