@@ -154,7 +154,7 @@ class JsInput(val canvas: HTMLCanvasElement) : Input {
         _deltaY = 0f
     }
 
-    fun checkForGamepads() {
+    private fun checkForGamepads() {
         try {
             if (navigator.getGamepads != null) {
                 val jsGamepads = navigator.getGamepads().unsafeCast<JsArray<JsGamePad?>>()
@@ -180,7 +180,6 @@ class JsInput(val canvas: HTMLCanvasElement) : Input {
         try {
             if (navigator.getGamepads != null) {
                 val jsGamepads = navigator.getGamepads().unsafeCast<JsArray<JsGamePad?>>()
-                gamepads.fastForEach { it.connected = false }
 
                 for (gamepadId in 0 until jsGamepads.length) {
                     val controller = jsGamepads[gamepadId] ?: continue
@@ -190,9 +189,27 @@ class JsInput(val canvas: HTMLCanvasElement) : Input {
                             val button = controller.buttons[n]
                             this.rawButtonsPressed[n] = button.value
                         }
+                        inputCache.updateGamepadTrigger(
+                            GameButton.L2,
+                            gamepad
+                        )
+                        inputCache.updateGamepadTrigger(
+                            GameButton.R2,
+                            gamepad
+                        )
+                        inputCache.updateGamepadButtons(gamepad)
+
                         for (n in 0 until controller.axes.length) {
                             this.rawAxes[n] = controller.axes[n]
                         }
+                        inputCache.updateGamepadStick(
+                            GameStick.LEFT,
+                            gamepad
+                        )
+                        inputCache.updateGamepadStick(
+                            GameStick.RIGHT,
+                            gamepad
+                        )
                     }
                 }
             }
