@@ -4,9 +4,10 @@ import com.lehaine.littlekt.Context
 import com.lehaine.littlekt.Game
 import com.lehaine.littlekt.Scene
 import com.lehaine.littlekt.graphics.*
+import com.lehaine.littlekt.math.geom.degrees
 import com.lehaine.littlekt.util.viewport.ExtendViewport
-import scene.node.Node
 import scene.node.node
+import scene.node.node2d.Node2D
 import scene.sceneGraph
 import kotlin.time.Duration
 
@@ -30,6 +31,11 @@ class SceneGraphTest(context: Context) : Game<Scene>(context) {
             node(TextureNode(person)) {
                 x = 150f
                 y = 125f
+
+                node(TextureNode(person)) {
+                    x = 5f
+                    y = 5f
+                }
             }
         }
     }
@@ -49,11 +55,18 @@ class SceneGraphTest(context: Context) : Game<Scene>(context) {
     }
 }
 
-private class TextureNode(val slice: TextureSlice) : Node() {
-    var x = 0f
-    var y = 0f
+private class TextureNode(val slice: TextureSlice) : Node2D() {
 
     override fun render(batch: SpriteBatch, camera: Camera) {
-        batch.draw(slice, x, y)
+        batch.draw(
+            slice,
+            globalX,
+            globalY,
+            0f,
+            0f,
+            scaleX = globalScaleX,
+            scaleY = globalScaleY,
+            rotation = globalRotation
+        )
     }
 }

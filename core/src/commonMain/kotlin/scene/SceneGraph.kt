@@ -44,6 +44,10 @@ open class SceneGraph(
 
     private var frameCount = 0
 
+    init {
+        context.input.addInputProcessor(this)
+    }
+
     fun initialize() {
         root.initialize()
         onStart()
@@ -85,5 +89,6 @@ open class SceneGraph(
         if (ownsBatch) {
             batch.dispose()
         }
+        context.input.removeInputProcessor(this)
     }
 }

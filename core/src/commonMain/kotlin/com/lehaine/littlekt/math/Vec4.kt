@@ -92,13 +92,6 @@ open class Vec4f(x: Float, y: Float, z: Float, w: Float) {
 
     override fun toString(): String = "($x, $y, $z, $w)"
 
-    fun toVec4d(): Vec4d = Vec4d(x.toDouble(), y.toDouble(), z.toDouble(), w.toDouble())
-
-    fun toMutableVec4d(): MutableVec4d = toMutableVec4d(MutableVec4d())
-
-    fun toMutableVec4d(result: MutableVec4d): MutableVec4d =
-        result.set(x.toDouble(), y.toDouble(), z.toDouble(), w.toDouble())
-
     /**
      * Checks vector components for equality (using '==' operator). For better numeric stability consider using
      * [isFuzzyEqual].
@@ -246,6 +239,7 @@ open class MutableVec4f(x: Float, y: Float, z: Float, w: Float) : Vec4f(x, y, z,
         fields[i] = v
     }
 }
+
 
 open class Vec4d(x: Double, y: Double, z: Double, w: Double) {
 

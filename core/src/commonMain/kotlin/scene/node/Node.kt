@@ -15,11 +15,10 @@ inline fun Node.node(callback: @SceneGraphDslMarker Node.() -> Unit = {}) =
 inline fun <T : Node> Node.node(node: T, callback: @SceneGraphDslMarker T.() -> Unit = {}) =
     node.also(callback).addTo(this)
 
-inline fun SceneGraph.node(callback: @SceneGraphDslMarker Node.() -> Unit = {}) =
-    Node().also(callback).addTo(root)
+inline fun SceneGraph.node(callback: @SceneGraphDslMarker Node.() -> Unit = {}) = root.node(callback)
 
 inline fun <T : Node> SceneGraph.node(node: T, callback: @SceneGraphDslMarker T.() -> Unit = {}) =
-    node.also(callback).addTo(root)
+    root.node(node, callback)
 
 /**
  * @author Colton Daily
