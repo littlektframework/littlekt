@@ -1,11 +1,16 @@
 package com.lehaine.littlekt.input
 
+import com.lehaine.littlekt.math.MutableVec2f
+import com.lehaine.littlekt.math.Vec2f
 import com.lehaine.littlekt.util.fastForEach
 import kotlin.math.abs
 import kotlin.math.atan2
 import kotlin.math.max
 
 /**
+ * An [InputProcessor] that handles [Key], [GameButton], and [GameAxis] inputs and converts them into a single input signal
+ * to be used similarly as [Input] except with a custom [InputSignal] type.
+ * @param input the current input of the context
  * @author Colt Daily
  * @date 12/31/21
  */
@@ -21,6 +26,8 @@ class InputMultiplexer<InputSignal>(val input: Input) : InputProcessor {
     private val axes = mutableMapOf<InputSignal, InputAxis<InputSignal>>()
     private val vectors = mutableMapOf<InputSignal, InputVector<InputSignal>>()
 
+    private val tempVec2f = MutableVec2f()
+
     enum class InputMode {
         KEYBOARD, GAMEPAD
     }
@@ -35,10 +42,14 @@ class InputMultiplexer<InputSignal>(val input: Input) : InputProcessor {
      * @see [GameButton]
      */
     fun addBinding(
-        type: InputSignal, keys: List<Key> = emptyList(), buttons: List<GameButton> = emptyList(), axes: List<GameAxis>
+        type: InputSignal,
+        keys: List<Key> = emptyList(),
+        buttons: List<GameButton> = emptyList(),
+        axes: List<GameAxis> = emptyList()
     ) {
         keyBindings[type] = keys.toList()
         buttonBindings[type] = buttons.toList()
+        axisBindings[type] = axes.toList()
     }
 
     /**
@@ -78,43 +89,88 @@ class InputMultiplexer<InputSignal>(val input: Input) : InputProcessor {
         vectors[type] = InputVector(positiveX, positiveY, negativeX, negativeY)
     }
 
+    val isTouching get() = input.isTouching
+    val justTouched get() = input.justTouched
+
+    /**
+     * Checks to see if the [InputSignal] is currently down for all inputs. This does not trigger for [GameAxis].
+     * @return `true` if down; `false` otherwise
+     */
+    fun down(type: InputSignal): Boolean {
+        return if (mode == InputMode.GAMEPAD) {
+            getGamepadButtonEvent(type) { input.isGamepadButtonPressed(it) }
+        } else {
+            getKeyEvent(type) { input.isKeyPressed(it) }
+        }
+    }
+
+    /**
+     * Checks to see if the [InputSignal] is just pressed for all inputs. This does not trigger for [GameAxis].
+     * @return `true` if just pressed; `false` otherwise
+     */
+    fun pressed(type: InputSignal): Boolean {
+        return if (mode == InputMode.GAMEPAD) {
+            getGamepadButtonEvent(type) { input.isGamepadButtonJustPressed(it) }
+        } else {
+            getKeyEvent(type) { input.isKeyJustPressed(it) }
+        }
+    }
+
+    /**
+     * Checks to see if the [InputSignal] is just released for all inputs. This does not trigger for [GameAxis].
+     * @return `true` if just released; `false` otherwise
+     */
+    fun released(type: InputSignal): Boolean {
+        return if (mode == InputMode.GAMEPAD) {
+            getGamepadButtonEvent(type) { input.isGamepadButtonJustReleased(it) }
+        } else {
+            getKeyEvent(type) { input.isKeyJustPressed(it) }
+        }
+    }
+
+    override fun keyTyped(character: Char): Boolean {
+        mode = InputMode.KEYBOARD
+        return false
+    }
 
     override fun keyDown(key: Key): Boolean {
-        return super.keyDown(key)
+        mode = InputMode.KEYBOARD
+        return false
     }
 
     override fun keyUp(key: Key): Boolean {
-        return super.keyUp(key)
-    }
-
-    override fun touchDown(screenX: Float, screenY: Float, pointer: Pointer): Boolean {
-        return super.touchDown(screenX, screenY, pointer)
-    }
-
-    override fun touchUp(screenX: Float, screenY: Float, pointer: Pointer): Boolean {
-        return super.touchUp(screenX, screenY, pointer)
+        mode = InputMode.KEYBOARD
+        return false
     }
 
     override fun gamepadButtonPressed(button: GameButton, pressure: Float, gamepad: Int): Boolean {
-        return super.gamepadButtonPressed(button, pressure, gamepad)
+        mode = InputMode.GAMEPAD
+        return false
     }
 
     override fun gamepadButtonReleased(button: GameButton, gamepad: Int): Boolean {
-        return super.gamepadButtonReleased(button, gamepad)
+        mode = InputMode.GAMEPAD
+        return false
     }
 
-    private inline fun onButtonEvent(
-        type: InputSignal, predicate: (strength: Float, isAxis: Boolean) -> Boolean
+    override fun gamepadJoystickMoved(stick: GameStick, xAxis: Float, yAxis: Float, gamepad: Int): Boolean {
+        mode = InputMode.GAMEPAD
+        return false
+    }
+
+    override fun gamepadTriggerChanged(button: GameButton, pressure: Float, gamepad: Int): Boolean {
+        mode = InputMode.GAMEPAD
+        return false
+    }
+
+    private inline fun getGamepadButtonEvent(
+        type: InputSignal,
+        predicate: (button: GameButton) -> Boolean
     ): Boolean {
         if (input.connectedGamepads.isNotEmpty()) {
-            input.gamepads.fastForEach { gamepad ->
+            input.gamepads.fastForEach {
                 buttonBindings[type]?.fastForEach {
-                    if (predicate(gamepad[it], false)) {
-                        return true
-                    }
-                }
-                axisBindings[type]?.fastForEach {
-                    if (predicate(gamepad[it], true)) {
+                    if (predicate(it)) {
                         return true
                     }
                 }
@@ -147,6 +203,44 @@ class InputMultiplexer<InputSignal>(val input: Input) : InputProcessor {
         return 0f
     }
 
+    private inline fun getButtonAxisStrength(
+        type: InputSignal, positive: Boolean, predicate: (strength: Float, isAxis: Boolean) -> Boolean
+    ): Float {
+        if (input.connectedGamepads.isNotEmpty()) {
+            input.gamepads.fastForEach { gamepad ->
+                buttonBindings[type]?.fastForEach {
+                    if (predicate(gamepad[it], false)) {
+                        return gamepad[it]
+                    }
+                }
+                axisBindings[type]?.fastForEach {
+                    if (predicate(gamepad[it], true)) {
+                        return if (it == GameAxis.LY || it == GameAxis.RY) {
+                            val result = -gamepad[it]
+                            if (result > 0f && positive) {
+                                -result
+                            } else if (result < 0f && !positive) {
+                                result
+                            } else {
+                                0f
+                            }
+                        } else {
+                            val result = gamepad[it]
+                            if (result > 0f && positive) {
+                                result
+                            } else if (result < 0f && !positive) {
+                                -result
+                            } else {
+                                0f
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return 0f
+    }
+
     private inline fun getKeyStrength(type: InputSignal, predicate: (Key) -> Boolean): Float {
         keyBindings[type]?.fastForEach {
             if (predicate(it)) {
@@ -165,6 +259,28 @@ class InputMultiplexer<InputSignal>(val input: Input) : InputProcessor {
         return false
     }
 
+    private fun strengthAxis(positive: InputSignal, negative: InputSignal, deadZone: Float): Float {
+        return if (mode == InputMode.KEYBOARD) {
+            strength(positive, deadZone) - strength(negative, deadZone)
+        } else {
+            val predicate = { strength: Float, isAxis: Boolean ->
+                (isAxis && abs(strength) >= deadZone) || !isAxis && strength != 0f
+            }
+            getButtonAxisStrength(positive, true, predicate) - getButtonAxisStrength(positive, false, predicate)
+        }
+    }
+
+    /**
+     * Returns the strength of this [InputSignal]. [GameButton] and [Key] will return as either `-1`, `0`, or `1`.
+     * A [GameAxis] will return anything between `-1` to `1`.
+     * @param type the [InputSignal] strength to check
+     * @param deadZone the threshold a [GameAxis] needs to surpass in order to return a value other than `0`.
+     * @return a value between `-1` to `1`
+     * @see Key
+     * @see GameButton
+     * @see GameAxis
+     * @see axisDeadZone
+     */
     fun strength(type: InputSignal, deadZone: Float = axisDeadZone): Float {
         return if (mode == InputMode.KEYBOARD) {
             getKeyStrength(type) { input.isKeyPressed(it) }
@@ -175,13 +291,107 @@ class InputMultiplexer<InputSignal>(val input: Input) : InputProcessor {
         }
     }
 
-    fun dist(type: InputSignal, deadZone: Float = axisDeadZone) = abs(strength(type, deadZone))
+    /**
+     * Returns the strength of this [InputSignal] as an axis. This will take the positive axis and subtract it by
+     * the negative axis. This is the same as doing `strength(positive) - strength(negative)`.
+     * Requires an axis to have been added with the specified [type].
+     *
+     * **Note:** This does take into account that a single [GameAxis] can return negative and positive values
+     * which is no different than just using [strength] for the [GameAxis].
+     * @param type the [InputSignal] strength to check
+     * @param deadZone the threshold a [GameAxis] needs to surpass in order to return a value other than `0`.
+     * @return a value between `-1` to `1`
+     * @see addAxis
+     * @see strength
+     * @see Key
+     * @see GameButton
+     * @see GameAxis
+     * @see axisDeadZone
+     */
+    fun axis(type: InputSignal, deadZone: Float = axisDeadZone): Float {
+        return axes[type]?.let {
+            strengthAxis(it.positive, it.negative, deadZone)
+        } ?: 0f
+    }
 
-    fun angle(xAxes: InputSignal, yAxes: InputSignal, deadZone: Float = axisDeadZone) =
-        atan2(strength(yAxes, deadZone), strength(xAxes, deadZone))
+    /**
+     * Returns the strength of this [InputSignal] as a vector. This will take the positive **X** and **Y** axes and subtract it by
+     * the negative **X** and **Y** axes. Requires a vector to have been added with the specified [type].
+     *
+     * **Note:** This is the same as using [axis] for both **X** and **Y** axes and setting them to a vector.
+     * @param type the [InputSignal] strength to check
+     * @param deadZone the threshold a [GameAxis] needs to surpass in order to return a value other than `0`.
+     * @return a [Vec2f] with [Vec2f.x] and [Vec2f.y] set with values between `-1` to `1`
+     * @see addVector
+     * @see axis
+     * @see Key
+     * @see GameButton
+     * @see GameAxis
+     * @see axisDeadZone
+     */
+    fun vector(type: InputSignal, deadZone: Float = axisDeadZone): Vec2f {
+        return vectors[type]?.let {
+            tempVec2f.set(
+                strengthAxis(it.positiveX, it.negativeX, deadZone),
+                strengthAxis(it.positiveY, it.negativeY, deadZone)
+            )
+        } ?: tempVec2f.set(0f, 0f)
+    }
 
-    fun dist(xAxes: InputSignal, yAxes: InputSignal, deadZone: Float = axisDeadZone) =
-        max(abs(strength(xAxes, deadZone)), abs(strength(yAxes, deadZone)))
+    /**
+     * Takes the absolute value of the [strength] of this [InputSignal]
+     * @param type the input signal
+     * @param deadZone the threshold a [GameAxis] needs to surpass in order to return a value other than `0`.
+     * @return the calculated distance
+     */
+    fun dist(type: InputSignal, deadZone: Float = axisDeadZone): Float = abs(strength(type, deadZone))
+
+    /**
+     * Calculates the distance between each axes in this vector [InputSignal] and returns the highest distance.
+     * @param vector the vector input signal
+     * @param deadZone the threshold a [GameAxis] needs to surpass in order to return a value other than `0`.
+     * @return the highest distance calculated between both axes in the vector
+     * @see dist
+     */
+    fun distV(vector: InputSignal, deadZone: Float = axisDeadZone): Float =
+        vectors[vector]?.let {
+            val vec = vector(vector, deadZone)
+            max(abs(vec.x), abs(vec.y))
+        } ?: 0f
+
+    /**
+     * Calculates the distance between each axes [InputSignal] and returns the highest distance.
+     * @return the highest distance calculated between both axes
+     * @see dist
+     */
+    fun dist(xAxis: InputSignal, yAxis: InputSignal, deadZone: Float = axisDeadZone): Float =
+        max(abs(axis(xAxis, deadZone)), abs(axis(yAxis, deadZone)))
+
+    /**
+     * Calculates the angle of a vector [InputSignal]. Requires a vector to have been added with the specified [vector].
+     * @param vector the input signal
+     * @param deadZone the threshold a [GameAxis] needs to surpass in order to return a value other than `0`.
+     * @return the angle between both axes in the vector
+     * @see addVector
+     */
+    fun angle(vector: InputSignal, deadZone: Float = axisDeadZone): Float =
+        vectors[vector]?.let {
+            val vec = vector(vector, deadZone)
+            atan2(vec.y, vec.x)
+        } ?: 0f
+
+    /**
+     * Calculates the angle between both [InputSignal] axes. Requires the axes to have been added with the specified
+     * [axis] and [yAxis].
+     * @param xAxis the **X** axis input signal
+     * @param yAxis the **Y** axis input signal
+     * @param deadZone the threshold a [GameAxis] needs to surpass in order to return a value other than `0`.
+     * @return the angle between both axes in the vector
+     * @see addVector
+     */
+    fun angle(xAxis: InputSignal, yAxis: InputSignal, deadZone: Float = axisDeadZone) =
+        atan2(axis(yAxis, deadZone), axis(xAxis, deadZone))
+
 
 }
 

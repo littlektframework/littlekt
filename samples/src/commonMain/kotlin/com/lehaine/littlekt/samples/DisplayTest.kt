@@ -7,19 +7,18 @@ import com.lehaine.littlekt.createShader
 import com.lehaine.littlekt.graphics.*
 import com.lehaine.littlekt.graphics.shader.shaders.SimpleColorFragmentShader
 import com.lehaine.littlekt.graphics.shader.shaders.SimpleColorVertexShader
+import com.lehaine.littlekt.input.GameAxis
 import com.lehaine.littlekt.input.GameButton
-import com.lehaine.littlekt.input.GameStick
-import com.lehaine.littlekt.input.InputProcessor
+import com.lehaine.littlekt.input.InputMultiplexer
 import com.lehaine.littlekt.input.Key
 import com.lehaine.littlekt.log.Logger
-import kotlin.math.absoluteValue
 import kotlin.time.Duration
 
 /**
  * @author Colton Daily
  * @date 11/6/2021
  */
-class DisplayTest(context: Context) : Game<Scene>(context), InputProcessor {
+class DisplayTest(context: Context) : Game<Scene>(context) {
 
     val batch = SpriteBatch(context)
 
@@ -69,11 +68,38 @@ class DisplayTest(context: Context) : Game<Scene>(context), InputProcessor {
 
     private var xVel = 0f
     private var yVel = 0f
+    private val controller = InputMultiplexer<GameInput>(input)
+
+    enum class GameInput {
+        MOVE_LEFT,
+        MOVE_RIGHT,
+        MOVE_UP,
+        MOVE_DOWN,
+        HORIZONTAL,
+        VERTICAL,
+        MOVEMENT,
+        JUMP
+    }
 
     init {
         logger.level = Logger.Level.DEBUG
-        input.inputProcessor = this
+        input.inputProcessor = controller
         camera.translate(graphics.width / 2f, graphics.height / 2f, 0f)
+
+        controller.addBinding(GameInput.MOVE_LEFT, listOf(Key.A, Key.ARROW_LEFT), axes = listOf(GameAxis.LX))
+        controller.addBinding(GameInput.MOVE_RIGHT, listOf(Key.D, Key.ARROW_RIGHT), axes = listOf(GameAxis.LX))
+        controller.addBinding(GameInput.MOVE_UP, listOf(Key.W, Key.ARROW_UP), axes = listOf(GameAxis.LY))
+        controller.addBinding(GameInput.MOVE_DOWN, listOf(Key.S, Key.ARROW_DOWN), axes = listOf(GameAxis.LY))
+        controller.addBinding(GameInput.JUMP, listOf(Key.SPACE), listOf(GameButton.XBOX_A))
+        controller.addAxis(GameInput.HORIZONTAL, GameInput.MOVE_RIGHT, GameInput.MOVE_LEFT)
+        controller.addAxis(GameInput.VERTICAL, GameInput.MOVE_DOWN, GameInput.MOVE_UP)
+        controller.addVector(
+            GameInput.MOVEMENT,
+            GameInput.MOVE_RIGHT,
+            GameInput.MOVE_DOWN,
+            GameInput.MOVE_LEFT,
+            GameInput.MOVE_UP
+        )
     }
 
     override fun create() {
@@ -88,28 +114,13 @@ class DisplayTest(context: Context) : Game<Scene>(context), InputProcessor {
         xVel = 0f
         yVel = 0f
 
-        val deadZone = 0.3f
-        val leftStickX = input.axisLeftX
-        val leftStickY = input.axisLeftY
+        val velocity = controller.vector(GameInput.MOVEMENT)
+        xVel = velocity.x * 10f
+        yVel = velocity.y * 10f
 
-        if (leftStickX.absoluteValue > deadZone || leftStickY.absoluteValue > deadZone) {
-            xVel = leftStickX * 10f
-            yVel = leftStickY * 10f
+        if (controller.pressed(GameInput.JUMP)) {
+            yVel -= 25f
         }
-
-        if (input.isKeyPressed(Key.W)) {
-            yVel -= 10f
-        }
-        if (input.isKeyPressed(Key.S)) {
-            yVel += 10f
-        }
-        if (input.isKeyPressed(Key.A)) {
-            xVel -= 10f
-        }
-        if (input.isKeyPressed(Key.D)) {
-            xVel += 10f
-        }
-
 
         gl.clearColor(Color.DARK_GRAY)
         camera.update()
@@ -146,26 +157,6 @@ class DisplayTest(context: Context) : Game<Scene>(context), InputProcessor {
         if (input.isKeyJustPressed(Key.ESCAPE)) {
             close()
         }
-    }
-
-    override fun gamepadButtonPressed(button: GameButton, pressure: Float, gamepad: Int): Boolean {
-        println("Gamepad $button pressed")
-        return false
-    }
-
-    override fun gamepadButtonReleased(button: GameButton, gamepad: Int): Boolean {
-        println("Gamepad $button released")
-        return false
-    }
-
-    override fun gamepadJoystickMoved(stick: GameStick, xAxis: Float, yAxis: Float, gamepad: Int): Boolean {
-     //   println("Gamepad joystick $stick moved to $xAxis,$yAxis")
-        return false
-    }
-
-    override fun gamepadTriggerChanged(button: GameButton, pressure: Float, gamepad: Int): Boolean {
-        println("Gamepad trigger $button changed to $")
-        return false
     }
 
     override fun resize(width: Int, height: Int) {
