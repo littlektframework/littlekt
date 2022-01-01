@@ -10,7 +10,15 @@ import kotlin.math.max
 /**
  * An [InputProcessor] that handles [Key], [GameButton], and [GameAxis] inputs and converts them into a single input signal
  * to be used similarly as [Input] except with a custom [InputSignal] type.
+ *
+ * Bindings can be added to [addBinding] for multiple input sources. These bindings then can be added as an axis or a vector.
+ * The input signal can then be checked like [Input] normally would be using input methods this class provides.
+ * Additionally, the strength, distances, and angles of each input can be calculated.
+ *
  * @param input the current input of the context
+ * @see addBinding
+ * @see addAxis
+ * @see addVector
  * @author Colt Daily
  * @date 12/31/21
  */
