@@ -2,7 +2,7 @@ package com.lehaine.littlekt.graphics
 
 import com.lehaine.littlekt.Disposable
 import com.lehaine.littlekt.file.DataSource
-import com.lehaine.littlekt.file.FLoatBuffer
+import com.lehaine.littlekt.file.FloatBuffer
 import com.lehaine.littlekt.file.createFloatBuffer
 import com.lehaine.littlekt.file.createShortBuffer
 import com.lehaine.littlekt.graphics.gl.BufferTarget
@@ -17,7 +17,7 @@ import com.lehaine.littlekt.graphics.shader.ShaderProgram
  */
 class VertexBufferObject(val gl: GL, val isStatic: Boolean, numVertices: Int, val attributes: VertexAttributes) :
     Disposable {
-    val buffer: FLoatBuffer = createFloatBuffer(attributes.vertexSize / 4 * numVertices)
+    val buffer: FloatBuffer = createFloatBuffer(attributes.vertexSize / 4 * numVertices)
         get() {
             isDirty = true
             return field

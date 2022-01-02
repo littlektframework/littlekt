@@ -1,6 +1,6 @@
 package com.lehaine.littlekt.math
 
-import com.lehaine.littlekt.file.FLoatBuffer
+import com.lehaine.littlekt.file.FloatBuffer
 import com.lehaine.littlekt.math.geom.Angle
 import com.lehaine.littlekt.math.geom.degrees
 import com.lehaine.littlekt.math.geom.radians
@@ -8,7 +8,7 @@ import com.lehaine.littlekt.util.internal.lock
 import kotlin.math.*
 
 /**
- * Based on [libGDX's Matrix4](https://github.com/libgdx/libgdx/blob/master/gdx/src/com/badlogic/gdx/math/Matrix4.java).
+ * A 4x4 column major matrix.
  * @author Colton Daily
  * @date 11/23/2021
  */
@@ -307,32 +307,22 @@ open class Mat4 {
         sy: Float = 1f,
         sz: Float = 1f
     ): Mat4 {
-        val xs = qx * 2f
-        val ys = qy * 2f
-        val zs = qz * 2f
-        val wx = qw * xs
-        val wy = qw * ys
-        val wz = qw * zs
-        val xx = qx * xs
-        val xy = qx * ys
-        val xz = qx * zs
-        val yy = qy * ys
-        val yz = qy * zs
-        val zz = qz * zs
+        var s = sqrt(qw * qw + qx * qx + qy * qy + qz * qz)
+        s = 1f / (s * s)
 
-        m00 = sx * (1f - (yy + zz))
-        m01 = sy * (xy - wz)
-        m02 = sz * (xz + wy)
+        m00 = sx * (1 - 2 * s * (qy * qy + qz * qz))
+        m01 = sy * (2 * s * (qx * qy - qz * qw))
+        m02 = sz * (2 * s * (qx * qz + qy * qw))
         m03 = tx
 
-        m10 = sx * (xy + wz)
-        m11 = sy * (1f - (xx + zz))
-        m12 = sz * (yz - wx)
-        m13 = ty
+        m10 = sx * (2 * s * (qx * qy + qz * qw))
+        m11 = sy * (1 - 2 * s * (qx * qx + qz * qz))
+        m12 = sz * (2 * s * (qy * qz - qx * qw))
+        m12 = ty
 
-        m20 = sx * (xz - wy)
-        m21 = sy * (yz + wx)
-        m22 = sz * (1f - (xx + yy))
+        m20 = sx * (2 * s * (qx * qz - qy * qw))
+        m21 = sy * (2 * s * (qy * qz + qx * qw))
+        m22 = sz * (1 - 2 * s * (qx * qx + qy * qy))
         m23 = tz
 
         m30 = 0f
@@ -364,7 +354,7 @@ open class Mat4 {
     }
 
     /**
-     * Adds a translational component to the matrix in the 4th column. The other columns are untouched.
+     * Post-multiplies this matrix by a translation matrix.
      * @param x the X component of the translation vector
      * @param y the Y component of the translation vector
      * @param z the Z component of the translation vector
@@ -378,20 +368,37 @@ open class Mat4 {
     }
 
     /**
-     * Adds a translational component to the matrix in the 4th column. The other columns are untouched.
+     * Post-multiplies this matrix by a translation matrix.
      * @param offset the translation vector to add to the current matrix
      * @return this matrix
      */
     fun translate(offset: Vec3f) = translate(offset.x, offset.y, offset.z)
 
-    fun rotate(angleDeg: Float, axX: Float, axY: Float, axZ: Float): Mat4 {
+    /**
+     * Post-multiplies this matrix by a translation matrix and stores the result in the specified matrix
+     * @param x the X component of the translation vector
+     * @param y the Y component of the translation vector
+     * @param z the Z component of the translation vector
+     * @return the [result] matrix
+     */
+    fun translate(x: Float, y: Float, z: Float, result: Mat4): Mat4 {
+        for (i in 0..11) {
+            result.data[i] = data[i]
+        }
+        for (i in 0..3) {
+            result.data[12 + i] = data[i] * x + data[4 + i] * y + data[8 + i] * z + data[12 + i]
+        }
+        return result
+    }
+
+    fun rotate(ax: Float, ay: Float, az: Float, degrees: Float): Mat4 {
         return lock(tmpMatLock) {
-            tmpMatA.setToRotation(angleDeg, axX, axY, axZ)
+            tmpMatA.setToRotation(degrees, ax, ay, az)
             set(mul(tmpMatA, tmpMatB))
         }
     }
 
-    fun rotate(angleDeg: Float, axis: Vec3f) = rotate(angleDeg, axis.x, axis.y, axis.z)
+    fun rotate(axis: Vec3f, degrees: Float) = rotate(axis.x, axis.y, axis.z, degrees)
 
     fun rotate(eulerX: Float, eulerY: Float, eulerZ: Float): Mat4 {
         return lock(tmpMatLock) {
@@ -400,14 +407,14 @@ open class Mat4 {
         }
     }
 
-    fun rotate(angleDeg: Float, axX: Float, axY: Float, axZ: Float, result: Mat4): Mat4 {
+    fun rotate(ax: Float, ay: Float, az: Float, degrees: Float, result: Mat4): Mat4 {
         return lock(tmpMatLock) {
-            tmpMatA.setToRotation(angleDeg, axX, axY, axZ)
+            tmpMatA.setToRotation(degrees, ax, ay, az)
             mul(tmpMatA, result)
         }
     }
 
-    fun rotate(angleDeg: Float, axis: Vec3f, result: Mat4) = rotate(angleDeg, axis.x, axis.y, axis.z, result)
+    fun rotate(axis: Vec3f, degrees: Float, result: Mat4) = rotate(axis.x, axis.y, axis.z, degrees, result)
 
     fun rotate(eulerX: Float, eulerY: Float, eulerZ: Float, result: Mat4): Mat4 {
         result.set(this)
@@ -423,7 +430,7 @@ open class Mat4 {
     }
 
     /**
-     * Postmultiplies this matrix with the given matirx, storing the reuslt in this matrix.
+     * Post-multiplies this matrix with the given matrix, storing the result in this matrix.
      *
      * For example:
      * ```
@@ -862,12 +869,12 @@ open class Mat4 {
             data[9] = 0f
             data[10] = 1f
         } else {
-            val recipLen = 1.0f / sqrt(x * x + y * y + z * z)
+            val recipLen = 1f / sqrt(x * x + y * y + z * z)
             x *= recipLen
             y *= recipLen
             z *= recipLen
 
-            val nc = 1.0f - c
+            val nc = 1f - c
             val xy = x * y
             val yz = y * z
             val zx = z * x
@@ -984,7 +991,7 @@ open class Mat4 {
         var fz = lookAt.z - position.z
 
         // Normalize f
-        val rlf = 1.0f / sqrt(fx * fx + fy * fy + fz * fz)
+        val rlf = 1f / sqrt(fx * fx + fy * fy + fz * fz)
         fx *= rlf
         fy *= rlf
         fz *= rlf
@@ -995,7 +1002,7 @@ open class Mat4 {
         var sz = fx * up.y - fy * up.x
 
         // and normalize s
-        val rls = 1.0f / sqrt(sx * sx + sy * sy + sz * sz)
+        val rls = 1f / sqrt(sx * sx + sy * sy + sz * sz)
         sx *= rls
         sy *= rls
         sz *= rls
@@ -1008,22 +1015,22 @@ open class Mat4 {
         data[0] = sx
         data[1] = ux
         data[2] = -fx
-        data[3] = 0.0f
+        data[3] = 0f
 
         data[4] = sy
         data[5] = uy
         data[6] = -fy
-        data[7] = 0.0f
+        data[7] = 0f
 
         data[8] = sz
         data[9] = uz
         data[10] = -fz
-        data[11] = 0.0f
+        data[11] = 0f
 
-        data[12] = 0.0f
-        data[13] = 0.0f
-        data[14] = 0.0f
-        data[15] = 1.0f
+        data[12] = 0f
+        data[13] = 0f
+        data[14] = 0f
+        data[15] = 1f
 
         return translate(-position.x, -position.y, -position.z)
     }
@@ -1047,14 +1054,14 @@ open class Mat4 {
 
     fun scale(scale: Vec3f) = scale(scale.x, scale.y, scale.z)
 
-    fun getTranslation(out: MutableVec3f): Vec3f {
+    fun getTranslation(out: MutableVec3f): MutableVec3f {
         out.x = m03
         out.y = m13
         out.z = m23
         return out
     }
 
-    fun getScale(out: MutableVec3f): Vec3f {
+    fun getScale(out: MutableVec3f): MutableVec3f {
         return out.set(scaleX, scaleY, scaleZ)
     }
 
@@ -1179,7 +1186,7 @@ open class Mat4 {
         return result
     }
 
-    fun toBuffer(buffer: FLoatBuffer): FLoatBuffer {
+    fun toBuffer(buffer: FloatBuffer): FloatBuffer {
         buffer.put(data, 0, 16)
         buffer.flip()
         return buffer

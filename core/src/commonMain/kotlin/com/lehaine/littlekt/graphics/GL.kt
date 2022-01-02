@@ -174,11 +174,11 @@ interface GL {
     fun scissor(x: Int, y: Int, width: Int, height: Int)
 
     fun uniformMatrix3fv(uniformLocation: UniformLocation, transpose: Boolean, data: Mat3)
-    fun uniformMatrix3fv(uniformLocation: UniformLocation, transpose: Boolean, data: FLoatBuffer)
+    fun uniformMatrix3fv(uniformLocation: UniformLocation, transpose: Boolean, data: FloatBuffer)
     fun uniformMatrix3fv(uniformLocation: UniformLocation, transpose: Boolean, data: Array<Float>)
 
     fun uniformMatrix4fv(uniformLocation: UniformLocation, transpose: Boolean, data: Mat4)
-    fun uniformMatrix4fv(uniformLocation: UniformLocation, transpose: Boolean, data: FLoatBuffer)
+    fun uniformMatrix4fv(uniformLocation: UniformLocation, transpose: Boolean, data: FloatBuffer)
     fun uniformMatrix4fv(uniformLocation: UniformLocation, transpose: Boolean, data: Array<Float>)
 
     fun uniform1i(uniformLocation: UniformLocation, data: Int)

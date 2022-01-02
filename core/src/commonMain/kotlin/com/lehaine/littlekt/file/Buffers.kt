@@ -89,17 +89,17 @@ interface IntBuffer : Buffer {
 /**
  * A [Float] buffer.
  */
-interface FLoatBuffer : Buffer {
+interface FloatBuffer : Buffer {
     operator fun get(i: Int): Float
     operator fun set(i: Int, value: Float)
     operator fun plusAssign(value: Float) {
         put(value)
     }
 
-    fun put(value: Float): FLoatBuffer
-    fun put(data: FloatArray): FLoatBuffer = put(data, 0, data.size)
-    fun put(data: FloatArray, offset: Int, len: Int): FLoatBuffer
-    fun put(data: FLoatBuffer): FLoatBuffer
+    fun put(value: Float): FloatBuffer
+    fun put(data: FloatArray): FloatBuffer = put(data, 0, data.size)
+    fun put(data: FloatArray, offset: Int, len: Int): FloatBuffer
+    fun put(data: FloatBuffer): FloatBuffer
 
     fun toArray(): FloatArray {
         val array = FloatArray(capacity)
@@ -193,7 +193,7 @@ interface ByteBuffer : Buffer {
     fun putFloat(value: Float): ByteBuffer
     fun putFloat(data: FloatArray): ByteBuffer = putFloat(data, 0, data.size)
     fun putFloat(data: FloatArray, offset: Int, len: Int): ByteBuffer
-    fun putFloat(data: FLoatBuffer): ByteBuffer
+    fun putFloat(data: FloatBuffer): ByteBuffer
 
     /**
      * @return a 4-character tag
@@ -223,8 +223,8 @@ expect fun createShortBuffer(capacity: Int): ShortBuffer
 
 expect fun createIntBuffer(capacity: Int): IntBuffer
 
-expect fun createFloatBuffer(capacity: Int): FLoatBuffer
-expect fun createFloatBuffer(array: FloatArray): FLoatBuffer
+expect fun createFloatBuffer(capacity: Int): FloatBuffer
+expect fun createFloatBuffer(array: FloatArray): FloatBuffer
 
 expect fun createByteBuffer(capacity: Int): ByteBuffer
 expect fun createByteBuffer(array: ByteArray): ByteBuffer

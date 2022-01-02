@@ -104,7 +104,7 @@ internal class IntBufferImpl(capacity: Int) : IntBuffer, GenericBuffer<Uint32Arr
 /**
  * FloatBuffer buffer implementation
  */
-internal class FLoatBufferImpl(array: Float32Array) : FLoatBuffer,
+internal class FloatBufferImpl(array: Float32Array) : FloatBuffer,
     GenericBuffer<Float32Array>(array.length, { array }) {
     constructor(capacity: Int) : this(Float32Array(capacity))
 
@@ -117,19 +117,19 @@ internal class FLoatBufferImpl(array: Float32Array) : FLoatBuffer,
         buffer[i] = value
     }
 
-    override fun put(data: FloatArray, offset: Int, len: Int): FLoatBuffer {
+    override fun put(data: FloatArray, offset: Int, len: Int): FloatBuffer {
         for (i in offset until offset + len) {
             buffer[position++] = data[i]
         }
         return this
     }
 
-    override fun put(value: Float): FLoatBuffer {
+    override fun put(value: Float): FloatBuffer {
         buffer[position++] = value
         return this
     }
 
-    override fun put(data: FLoatBuffer): FLoatBuffer {
+    override fun put(data: FloatBuffer): FloatBuffer {
         for (i in data.position until data.limit) {
             put(data[i])
         }
@@ -336,7 +336,7 @@ internal class ByteBufferImpl(buffer: ArrayBuffer) : ByteBuffer, GenericBuffer<D
         return this
     }
 
-    override fun putFloat(data: FLoatBuffer): ByteBuffer {
+    override fun putFloat(data: FloatBuffer): ByteBuffer {
         for (i in data.position until data.limit) {
             buffer.setFloat32(position, data[i])
             position += 4
@@ -370,12 +370,12 @@ actual fun createIntBuffer(capacity: Int): IntBuffer {
     return IntBufferImpl(capacity)
 }
 
-actual fun createFloatBuffer(capacity: Int): FLoatBuffer {
-    return FLoatBufferImpl(capacity)
+actual fun createFloatBuffer(capacity: Int): FloatBuffer {
+    return FloatBufferImpl(capacity)
 }
 
-actual fun createFloatBuffer(array: FloatArray): FLoatBuffer {
-    return FLoatBufferImpl(Float32Array(array.toTypedArray()))
+actual fun createFloatBuffer(array: FloatArray): FloatBuffer {
+    return FloatBufferImpl(Float32Array(array.toTypedArray()))
 }
 
 actual fun createByteBuffer(capacity: Int): ByteBuffer {
