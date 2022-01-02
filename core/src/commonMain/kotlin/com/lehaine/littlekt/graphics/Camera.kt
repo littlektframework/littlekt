@@ -144,7 +144,7 @@ abstract class Camera {
 
     protected open fun updateViewMatrix() {
         direction.cross(up, rightMut).norm()
-        view.setLookAt(position, tempVec3.set(position).add(direction), up)
+        view.setToLookAt(position, tempVec3.set(position).add(direction), up)
         lazyInvView.isDirty = true
     }
 
@@ -318,7 +318,7 @@ open class OrthographicCamera(virtualWidth: Int = 0, virtualHeight: Int = 0) : C
 
     override fun updateProjectionMatrix() {
         if (near != far) {
-            projection.setOrthographic(
+            projection.setToOrthographic(
                 zoom * -virtualWidth / 2, zoom * (virtualWidth / 2), zoom * -(virtualHeight / 2), zoom
                         * virtualHeight / 2, near, far
             )

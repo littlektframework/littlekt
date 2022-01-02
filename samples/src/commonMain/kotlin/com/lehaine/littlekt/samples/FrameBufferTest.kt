@@ -30,7 +30,7 @@ class FrameBufferTest(context: Context) : ContextListener(context) {
 
     lateinit var texture: Texture
 
-    var projection = Mat4().setOrthographic(
+    var projection = Mat4().setToOrthographic(
         left = 0f,
         right = 240f,
         bottom = 0f,
