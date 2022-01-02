@@ -44,11 +44,8 @@ open class SceneGraph(
 
     private var frameCount = 0
 
-    init {
-        context.input.addInputProcessor(this)
-    }
-
     fun initialize() {
+        context.input.addInputProcessor(this)
         root.initialize()
         onStart()
         root._onPostEnterScene()
