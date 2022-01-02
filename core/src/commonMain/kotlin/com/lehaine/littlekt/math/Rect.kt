@@ -13,6 +13,14 @@ data class Rect(var x: Float = 0f, var y: Float = 0f, var width: Float = 0f, var
     val x2 get() = x + width
     val y2 get() = y + height
     val isEmpty get() = width <= 0 || height <= 0
+
+    fun set(newX: Float, newY: Float, newWidth: Float, newHeight: Float): Rect {
+        x = newX
+        y = newY
+        width = newWidth
+        height = newHeight
+        return this
+    }
 }
 
 class RectBuilder {

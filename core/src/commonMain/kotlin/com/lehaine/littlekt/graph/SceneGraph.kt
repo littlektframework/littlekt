@@ -1,4 +1,4 @@
-package graph
+package com.lehaine.littlekt.graph
 
 import com.lehaine.littlekt.Context
 import com.lehaine.littlekt.Disposable
@@ -8,8 +8,8 @@ import com.lehaine.littlekt.graphics.use
 import com.lehaine.littlekt.input.InputProcessor
 import com.lehaine.littlekt.util.viewport.ScreenViewport
 import com.lehaine.littlekt.util.viewport.Viewport
-import graph.node.Node
-import graph.node.annotation.SceneGraphDslMarker
+import com.lehaine.littlekt.graph.node.Node
+import com.lehaine.littlekt.graph.node.annotation.SceneGraphDslMarker
 import kotlin.time.Duration
 
 inline fun sceneGraph(
@@ -20,7 +20,7 @@ inline fun sceneGraph(
 ) = SceneGraph(context, viewport, batch).also(callback)
 
 /**
- * A scene graph
+ * A scene com.lehaine.littlekt.graph
  * @author Colton Daily
  * @date 1/1/2022
  */

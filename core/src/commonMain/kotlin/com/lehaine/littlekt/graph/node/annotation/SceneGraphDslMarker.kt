@@ -1,4 +1,4 @@
-package graph.node.annotation
+package com.lehaine.littlekt.graph.node.annotation
 
 /**
  * @author Colton Daily
