@@ -1,6 +1,5 @@
 package graph.node
 
-import com.lehaine.littlekt.Scene
 import com.lehaine.littlekt.graphics.Camera
 import com.lehaine.littlekt.graphics.SpriteBatch
 import com.lehaine.littlekt.util.fastForEach
@@ -91,7 +90,7 @@ open class Node : Comparable<Node> {
     val isDestroyed get() = _isDestroyed
 
     /**
-     * Check if this [Node] is in a [Scene]
+     * Check if this [Node] is in a [SceneGraph]
      */
     val insideTree get() = scene != null
 
@@ -134,6 +133,64 @@ open class Node : Comparable<Node> {
      */
     val children get() = nodes.toList()
 
+    /**
+     * List of 'ready' callbacks called when [ready] is called. Add any additional callbacks directly to this list.
+     * The main use is to add callbacks directly to nodes inline when building a [SceneGraph] vs having to extend
+     * a class directly.
+     *
+     * ```
+     * node {
+     *     onReady += {
+     *         // handle ready logic
+     *     }
+     * }
+     * ```
+     */
+    val onReady: MutableList<() -> Unit> = mutableListOf()
+
+    /**
+     * List of 'render' callbacks called when [render] is called. Add any additional callbacks directly to this list.
+     * The main use is to add callbacks directly to nodes inline when building a [SceneGraph] vs having to extend
+     * a class directly.
+     *
+     * ```
+     * node {
+     *     onRender += { batch, camera ->
+     *         // handle render logic
+     *     }
+     * }
+     * ```
+     */
+    val onRender: MutableList<(SpriteBatch, Camera) -> Unit> = mutableListOf()
+
+    /**
+     * List of 'debugRender' callbacks called when [debugRender] is called. Add any additional callbacks directly to this list.
+     * The main use is to add callbacks directly to nodes inline when building a [SceneGraph] vs having to extend
+     * a class directly.
+     *
+     * ```
+     * node {
+     *     onDebugRender += { batch ->
+     *         // handle debug render logic
+     *     }
+     * }
+     * ```
+     */
+    val onDebugRender: MutableList<(SpriteBatch) -> Unit> = mutableListOf()
+
+    /**
+     * List of 'update' callbacks called when [update] is called. Add any additional callbacks directly to this list.
+     * The main use is to add callbacks directly to nodes inline when building a [SceneGraph] vs having to extend
+     * a class directly.
+     *
+     * ```
+     * node {
+     *     onUpdate += { dt ->
+     *         // handle update logic
+     *     }
+     * }
+     * ```
+     */
     val onUpdate: MutableList<(Duration) -> Unit> = mutableListOf()
 
     /**
@@ -202,6 +259,9 @@ open class Node : Comparable<Node> {
      */
     internal fun _render(batch: SpriteBatch, camera: Camera) {
         render(batch, camera)
+        onRender.fastForEach {
+            it.invoke(batch, camera)
+        }
         nodes.forEach {
             it._render(batch, camera)
         }
@@ -212,6 +272,9 @@ open class Node : Comparable<Node> {
      */
     internal fun _debugRender(batch: SpriteBatch) {
         debugRender(batch)
+        onDebugRender.fastForEach {
+            it.invoke(batch)
+        }
         nodes.forEach {
             it._debugRender(batch)
         }
@@ -229,7 +292,7 @@ open class Node : Comparable<Node> {
     }
 
     /**
-     * Remove the [Node] from the [Scene] and destroys all children.
+     * Remove the [Node] from the [SceneGraph] and destroys all children.
      */
     fun destroy() {
         _isDestroyed = true
@@ -265,7 +328,7 @@ open class Node : Comparable<Node> {
 
 
     /**
-     * Called when this [Node] is added to a [Scene] after all pending [Node] changes are committed.
+     * Called when this [Node] is added to a [SceneGraph] after all pending [Node] changes are committed.
      */
     internal open fun _onAddedToScene() {
         depth = parent?.depth?.plus(1) ?: 1
@@ -277,13 +340,16 @@ open class Node : Comparable<Node> {
 
     internal open fun _onPostEnterScene() {
         ready()
+        onReady.fastForEach {
+            it.invoke()
+        }
         nodes.forEach {
             it._onPostEnterScene()
         }
     }
 
     /**
-     * Called when this [Node] is removed from a [Scene]. Called bottom-to-top of tree.
+     * Called when this [Node] is removed from a [SceneGraph]. Called bottom-to-top of tree.
      */
     internal open fun _onRemovedFromScene() {
         viewport = null
@@ -330,26 +396,26 @@ open class Node : Comparable<Node> {
     open fun ready() {}
 
     /**
-     * Called by a [Renderer]. The [Camera2D] can be used for culling and the [Batch] instance to draw with.
+     * The main render method. The [Camera] can be used for culling and the [SpriteBatch] instance to draw with.
      * @param batch the batcher
      * @param camera the Camera2D node
      */
     open fun render(batch: SpriteBatch, camera: Camera) {}
 
     /**
-     * Called if `debugRenderEnabled` is `true` by the default renderers. Custom renderers can choose to call it or not.
-     * @param batch the batch
+     * Draw any debug related items here.
+     * @param batch the sprite batch to draw with
      */
     open fun debugRender(batch: SpriteBatch) {}
 
     /**
-     * Called when this [Node] is added to a [Scene] after all pending [Node] changes are committed.
+     * Called when this [Node] is added to a [SceneGraph] after all pending [Node] changes are committed.
      * Called from top-to-bottom of tree.
      */
     open fun onAddedToScene() {}
 
     /**
-     * Called when this [Node] is removed from a [Scene].
+     * Called when this [Node] is removed from a [SceneGraph].
      * Called bottom-to-top of tree.
      */
     open fun onRemovedFromScene() {}
@@ -457,8 +523,6 @@ open class Node : Comparable<Node> {
         result = 31 * result + id
         return result
     }
-
-
 }
 
 fun <T : Node> T.addTo(parent: Node): T {
