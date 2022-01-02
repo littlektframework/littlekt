@@ -1,6 +1,9 @@
 package com.lehaine.littlekt.math
 
 import com.lehaine.littlekt.file.FLoatBuffer
+import com.lehaine.littlekt.math.geom.Angle
+import com.lehaine.littlekt.math.geom.cosine
+import com.lehaine.littlekt.math.geom.sine
 import com.lehaine.littlekt.util.internal.lock
 import kotlin.math.PI
 import kotlin.math.cos
@@ -8,15 +11,79 @@ import kotlin.math.sin
 import kotlin.math.sqrt
 
 /**
+ * A 3x3 matrix.
  * @author Colton Daily
  * @date 11/23/2021
  */
 class Mat3 {
 
-    val matrix = FloatArray(9)
+    val data = FloatArray(9)
+
+    var M00: Float
+        get() = data[0]
+        set(value) {
+            data[0] = value
+        }
+    var M10: Float
+        get() = data[1]
+        set(value) {
+            data[1] = value
+        }
+    var M20: Float
+        get() = data[2]
+        set(value) {
+            data[2] = value
+        }
+    var M01: Float
+        get() = data[3]
+        set(value) {
+            data[3] = value
+        }
+    var M11: Float
+        get() = data[4]
+        set(value) {
+            data[4] = value
+        }
+    var M21: Float
+        get() = data[5]
+        set(value) {
+            data[5] = value
+        }
+    var M02: Float
+        get() = data[6]
+        set(value) {
+            data[6] = value
+        }
+    var M12: Float
+        get() = data[7]
+        set(value) {
+            data[7] = value
+        }
+    var M22: Float
+        get() = data[8]
+        set(value) {
+            data[8] = value
+        }
 
     init {
         setIdentity()
+    }
+
+    fun translate(tx: Float, ty: Float): Mat3 {
+        M02 += tx
+        M12 += ty
+        return this
+    }
+
+    fun translate(t: Vec2f): Mat3 = translate(t.x, t.y)
+
+    fun translate(tx: Float, ty: Float, result: Mat3): Mat3 {
+        for (i in 0..8) {
+            result.data[i] = data[i]
+        }
+        result.M02 += tx
+        result.M12 += ty
+        return result
     }
 
     fun rotate(angleDeg: Float, axX: Float, axY: Float, axZ: Float): Mat3 {
@@ -117,6 +184,7 @@ class Mat3 {
         return result
     }
 
+
     fun mul(other: Mat3): Mat3 {
         return lock(tmpMatLock) {
             mul(other, tmpMatA)
@@ -137,11 +205,31 @@ class Mat3 {
         return result
     }
 
+    fun mulLeft(other: Mat3): Mat3 {
+        return lock(tmpMatLock) {
+            mulLeft(other, tmpMatA)
+            set(tmpMatA)
+        }
+    }
+
+    fun mulLeft(other: Mat3, result: Mat3): Mat3 {
+        for (i in 0..2) {
+            for (j in 0..2) {
+                var x = 0f
+                for (k in 0..2) {
+                    x += other[j + k * 3] * this[i * 3 + k]
+                }
+                result[i * 3 + j] = x
+            }
+        }
+        return result
+    }
+
     fun scale(sx: Float, sy: Float, sz: Float): Mat3 {
         for (i in 0..2) {
-            matrix[i] *= sx
-            matrix[3 + i] *= sy
-            matrix[6 + i] *= sz
+            data[i] *= sx
+            data[3 + i] *= sy
+            data[6 + i] *= sz
         }
         return this
     }
@@ -150,9 +238,9 @@ class Mat3 {
 
     fun scale(sx: Float, sy: Float, sz: Float, result: Mat3): Mat3 {
         for (i in 0..2) {
-            result.matrix[i] = matrix[i] * sx
-            result.matrix[3 + i] = matrix[3 + i] * sy
-            result.matrix[6 + i] = matrix[6 + i] * sz
+            result.data[i] = data[i] * sx
+            result.data[3 + i] = data[3 + i] * sy
+            result.data[6 + i] = data[6 + i] * sz
         }
         return result
     }
@@ -180,6 +268,33 @@ class Mat3 {
         return this
     }
 
+    fun setToTranslate(x: Float, y: Float): Mat3 {
+        setIdentity()
+        M02 = x
+        M12 = y
+        return this
+    }
+
+    fun setToTranslate(offset: Vec2f) = setToTranslate(offset.x, offset.y)
+
+    fun setToRotate(angle: Angle): Mat3 {
+        val cos = angle.cosine
+        val sin = angle.sine
+        M00 = cos
+        M10 = sin
+        M20 = 0f
+
+        M01 = -sin
+        M11 = cos
+        M21 = 0f
+
+        M02 = 0f
+        M12 = 0f
+        M22 = 1f
+
+        return this
+    }
+
     fun setRotate(eulerX: Float, eulerY: Float, eulerZ: Float): Mat3 {
         val a = eulerX.toRad()
         val b = eulerY.toRad()
@@ -196,17 +311,17 @@ class Mat3 {
         val sc = si * ch
         val ss = si * sh
 
-        matrix[0] = cj * ch
-        matrix[3] = sj * sc - cs
-        matrix[6] = sj * cc + ss
+        data[0] = cj * ch
+        data[3] = sj * sc - cs
+        data[6] = sj * cc + ss
 
-        matrix[1] = cj * sh
-        matrix[4] = sj * ss + cc
-        matrix[7] = sj * cs - sc
+        data[1] = cj * sh
+        data[4] = sj * ss + cc
+        data[7] = sj * cs - sc
 
-        matrix[2] = -sj
-        matrix[5] = cj * si
-        matrix[8] = cj * ci
+        data[2] = -sj
+        data[5] = cj * si
+        data[8] = cj * ci
 
         return this
     }
@@ -272,6 +387,14 @@ class Mat3 {
         return this
     }
 
+    fun setToScale(sx: Float, sy: Float): Mat3 {
+        setIdentity()
+        M00 = sx
+        M11 = sy
+        return this
+    }
+
+    fun setToScale(scale: Vec2f) = setToScale(scale.x, scale.y)
 
     fun getRotation(result: MutableVec4f): MutableVec4f {
         val trace = this[0, 0] + this[1, 1] + this[2, 2]
@@ -313,16 +436,16 @@ class Mat3 {
         return result
     }
 
-    operator fun get(i: Int): Float = matrix[i]
+    operator fun get(i: Int): Float = data[i]
 
-    operator fun get(row: Int, col: Int): Float = matrix[col * 3 + row]
+    operator fun get(row: Int, col: Int): Float = data[col * 3 + row]
 
     operator fun set(i: Int, value: Float) {
-        matrix[i] = value
+        data[i] = value
     }
 
     operator fun set(row: Int, col: Int, value: Float) {
-        matrix[col * 3 + row] = value
+        data[col * 3 + row] = value
     }
 
     fun setColVec(col: Int, vec: Vec3f) {
@@ -339,7 +462,7 @@ class Mat3 {
     }
 
     fun toBuffer(buffer: FLoatBuffer): FLoatBuffer {
-        buffer.put(matrix, 0, 9)
+        buffer.put(data, 0, 9)
         buffer.flip()
         return buffer
     }
@@ -347,7 +470,7 @@ class Mat3 {
     fun toList(): List<Float> {
         val list = mutableListOf<Float>()
         for (i in 0..8) {
-            list += matrix[i]
+            list += data[i]
         }
         return list
     }

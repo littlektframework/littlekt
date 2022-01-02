@@ -110,12 +110,6 @@ open class Vec3f(x: Float, y: Float, z: Float) {
 
     override fun toString(): String = "($x, $y, $z)"
 
-    fun toVec3d(): Vec3d = Vec3d(x.toDouble(), y.toDouble(), z.toDouble())
-
-    fun toMutableVec3d(): MutableVec3d = toMutableVec3d(MutableVec3d())
-
-    fun toMutableVec3d(result: MutableVec3d): MutableVec3d = result.set(x.toDouble(), y.toDouble(), z.toDouble())
-
     /**
      * Checks vector components for equality (using '==' operator). For better numeric stability consider using
      * [isFuzzyEqual].
@@ -273,6 +267,7 @@ open class MutableVec3f(x: Float, y: Float, z: Float) : Vec3f(x, y, z) {
         scale(factor)
     }
 }
+
 
 open class Vec3d(x: Double, y: Double, z: Double) {
 

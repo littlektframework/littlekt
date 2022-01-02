@@ -69,11 +69,11 @@ open class Vec2f(x: Float, y: Float) {
 
     override fun toString(): String = "($x, $y)"
 
-    fun toVec2d(): Vec2d = Vec2d(x.toDouble(), y.toDouble())
+    fun toVec(): Vec2f = Vec2f(x, y)
 
-    fun toMutableVec2d(): MutableVec2d = toMutableVec2d(MutableVec2d())
+    fun toMutableVec(): MutableVec2f = toMutableVec(MutableVec2f())
 
-    fun toMutableVec2d(result: MutableVec2d): MutableVec2d = result.set(x.toDouble(), y.toDouble())
+    fun toMutableVec(result: MutableVec2f): MutableVec2f = result.set(x, y)
 
     /**
      * Checks vector components for equality (using '==' operator). For better numeric stability consider using
@@ -94,6 +94,7 @@ open class Vec2f(x: Float, y: Float) {
         result = 31 * result + y.hashCode()
         return result
     }
+
 
     companion object {
         val ZERO = Vec2f(0f)
@@ -142,6 +143,12 @@ open class MutableVec2f(x: Float, y: Float) : Vec2f(x, y) {
         return this
     }
 
+    fun mul(matrix: Mat3): MutableVec2f {
+        x = x * matrix.data[0] + y * matrix.data[3] + matrix.data[6]
+        y = x * matrix.data[1] + y * matrix.data[4] + matrix.data[7]
+        return this
+    }
+
     fun norm(): MutableVec2f = scale(1f / length())
 
     fun rotate(angleDeg: Float): MutableVec2f {
@@ -158,6 +165,18 @@ open class MutableVec2f(x: Float, y: Float) : Vec2f(x, y) {
     fun scale(factor: Float): MutableVec2f {
         x *= factor
         y *= factor
+        return this
+    }
+
+    fun scale(factor: Vec2f): MutableVec2f {
+        x *= factor.x
+        y *= factor.y
+        return this
+    }
+
+    fun scale(xFactor: Float, yFactor: Float): MutableVec2f {
+        x *= xFactor
+        y *= yFactor
         return this
     }
 
@@ -187,6 +206,10 @@ open class MutableVec2f(x: Float, y: Float) : Vec2f(x, y) {
 
     operator fun divAssign(div: Float) {
         scale(1f / div)
+    }
+
+    operator fun divAssign(other: Vec2f) {
+        scale(1f / other.x, 1f / other.y)
     }
 
     operator fun minusAssign(other: Vec2f) {

@@ -10,7 +10,7 @@ import kotlin.math.*
  */
 open class Mat4 {
 
-    val matrix = FloatArray(16)
+    val data = FloatArray(16)
 
     init {
         setIdentity()
@@ -18,7 +18,7 @@ open class Mat4 {
 
     fun translate(tx: Float, ty: Float, tz: Float): Mat4 {
         for (i in 0..3) {
-            matrix[12 + i] += matrix[i] * tx + matrix[4 + i] * ty + matrix[8 + i] * tz
+            data[12 + i] += data[i] * tx + data[4 + i] * ty + data[8 + i] * tz
         }
         return this
     }
@@ -27,10 +27,10 @@ open class Mat4 {
 
     fun translate(tx: Float, ty: Float, tz: Float, result: Mat4): Mat4 {
         for (i in 0..11) {
-            result.matrix[i] = matrix[i]
+            result.data[i] = data[i]
         }
         for (i in 0..3) {
-            result.matrix[12 + i] = matrix[i] * tx + matrix[4 + i] * ty + matrix[8 + i] * tz + matrix[12 + i]
+            result.data[12 + i] = data[i] * tx + data[4 + i] * ty + data[8 + i] * tz + data[12 + i]
         }
         return result
     }
@@ -77,9 +77,9 @@ open class Mat4 {
 
     fun scale(sx: Float, sy: Float, sz: Float): Mat4 {
         for (i in 0..3) {
-            matrix[i] *= sx
-            matrix[4 + i] *= sy
-            matrix[8 + i] *= sz
+            data[i] *= sx
+            data[4 + i] *= sy
+            data[8 + i] *= sz
         }
         return this
     }
@@ -88,10 +88,10 @@ open class Mat4 {
 
     fun scale(sx: Float, sy: Float, sz: Float, result: Mat4): Mat4 {
         for (i in 0..3) {
-            result.matrix[i] = matrix[i] * sx
-            result.matrix[4 + i] = matrix[4 + i] * sy
-            result.matrix[8 + i] = matrix[8 + i] * sz
-            result.matrix[12 + i] = matrix[12 + i]
+            result.data[i] = data[i] * sx
+            result.data[4 + i] = data[4 + i] * sy
+            result.data[8 + i] = data[8 + i] * sz
+            result.data[12 + i] = data[12 + i]
         }
         return result
     }
@@ -113,10 +113,10 @@ open class Mat4 {
     fun transpose(result: Mat4): Mat4 {
         for (i in 0..3) {
             val mBase = i * 4
-            result.matrix[i] = matrix[mBase]
-            result.matrix[i + 4] = matrix[mBase + 1]
-            result.matrix[i + 8] = matrix[mBase + 2]
-            result.matrix[i + 12] = matrix[mBase + 3]
+            result.data[i] = data[mBase]
+            result.data[i + 4] = data[mBase + 1]
+            result.data[i + 8] = data[mBase + 2]
+            result.data[i + 12] = data[mBase + 3]
         }
         return result
     }
@@ -129,25 +129,25 @@ open class Mat4 {
         // Invert a 4 x 4 matrix using Cramer's Rule
 
         // transpose matrix
-        val src0 = matrix[0]
-        val src4 = matrix[1]
-        val src8 = matrix[2]
-        val src12 = matrix[3]
+        val src0 = data[0]
+        val src4 = data[1]
+        val src8 = data[2]
+        val src12 = data[3]
 
-        val src1 = matrix[4]
-        val src5 = matrix[5]
-        val src9 = matrix[6]
-        val src13 = matrix[7]
+        val src1 = data[4]
+        val src5 = data[5]
+        val src9 = data[6]
+        val src13 = data[7]
 
-        val src2 = matrix[8]
-        val src6 = matrix[9]
-        val src10 = matrix[10]
-        val src14 = matrix[11]
+        val src2 = data[8]
+        val src6 = data[9]
+        val src10 = data[10]
+        val src14 = data[11]
 
-        val src3 = matrix[12]
-        val src7 = matrix[13]
-        val src11 = matrix[14]
-        val src15 = matrix[15]
+        val src3 = data[12]
+        val src7 = data[13]
+        val src11 = data[14]
+        val src15 = data[15]
 
         // calculate pairs for first 8 elements (cofactors)
         val atmp0 = src10 * src15
@@ -207,25 +207,25 @@ open class Mat4 {
 
         // calculate matrix inverse
         val invdet = 1.0f / det
-        result.matrix[0] = dst0 * invdet
-        result.matrix[1] = dst1 * invdet
-        result.matrix[2] = dst2 * invdet
-        result.matrix[3] = dst3 * invdet
+        result.data[0] = dst0 * invdet
+        result.data[1] = dst1 * invdet
+        result.data[2] = dst2 * invdet
+        result.data[3] = dst3 * invdet
 
-        result.matrix[4] = dst4 * invdet
-        result.matrix[5] = dst5 * invdet
-        result.matrix[6] = dst6 * invdet
-        result.matrix[7] = dst7 * invdet
+        result.data[4] = dst4 * invdet
+        result.data[5] = dst5 * invdet
+        result.data[6] = dst6 * invdet
+        result.data[7] = dst7 * invdet
 
-        result.matrix[8] = dst8 * invdet
-        result.matrix[9] = dst9 * invdet
-        result.matrix[10] = dst10 * invdet
-        result.matrix[11] = dst11 * invdet
+        result.data[8] = dst8 * invdet
+        result.data[9] = dst9 * invdet
+        result.data[10] = dst10 * invdet
+        result.data[11] = dst11 * invdet
 
-        result.matrix[12] = dst12 * invdet
-        result.matrix[13] = dst13 * invdet
-        result.matrix[14] = dst14 * invdet
-        result.matrix[15] = dst15 * invdet
+        result.data[12] = dst12 * invdet
+        result.data[13] = dst13 * invdet
+        result.data[14] = dst14 * invdet
+        result.data[15] = dst15 * invdet
 
         return true
     }
@@ -262,7 +262,7 @@ open class Mat4 {
 
     fun add(other: Mat4): Mat4 {
         for (i in 0..15) {
-            matrix[i] += other.matrix[i]
+            data[i] += other.data[i]
         }
         return this
     }
@@ -279,9 +279,9 @@ open class Mat4 {
             for (j in 0..3) {
                 var x = 0f
                 for (k in 0..3) {
-                    x += matrix[j + k * 4] * other.matrix[i * 4 + k]
+                    x += data[j + k * 4] * other.data[i * 4 + k]
                 }
-                result.matrix[i * 4 + j] = x
+                result.data[i * 4 + j] = x
             }
         }
         return result
@@ -289,33 +289,53 @@ open class Mat4 {
 
     fun set(other: Mat4): Mat4 {
         for (i in 0..15) {
-            matrix[i] = other.matrix[i]
+            data[i] = other.data[i]
         }
         return this
     }
 
     fun set(floats: List<Float>): Mat4 {
         for (i in 0..15) {
-            matrix[i] = floats[i]
+            data[i] = floats[i]
         }
+        return this
+    }
+
+    fun set(other: Mat3): Mat4 {
+        data[0] = other.data[0]
+        data[1] = other.data[1]
+        data[2] = other.data[2]
+        data[3] = 0f
+        data[4] = other.data[3]
+        data[5] = other.data[4]
+        data[6] = other.data[5]
+        data[7] = 0f
+        data[8] = 0f
+        data[9] = 0f
+        data[10] = 1f
+        data[11] = 0f
+        data[12] = other.data[6]
+        data[13] = other.data[7]
+        data[14] = 0f
+        data[15] = other.data[8]
         return this
     }
 
     fun setZero(): Mat4 {
         for (i in 0..15) {
-            matrix[i] = 0f
+            data[i] = 0f
         }
         return this
     }
 
     fun setIdentity(): Mat4 {
         for (i in 1..15) {
-            matrix[i] = 0f
+            data[i] = 0f
         }
-        matrix[0] = 1f
-        matrix[5] = 1f
-        matrix[10] = 1f
-        matrix[15] = 1f
+        data[0] = 1f
+        data[5] = 1f
+        data[10] = 1f
+        data[15] = 1f
         return this
     }
 
@@ -335,25 +355,25 @@ open class Mat4 {
         val sc = si * ch
         val ss = si * sh
 
-        matrix[0] = cj * ch
-        matrix[4] = sj * sc - cs
-        matrix[8] = sj * cc + ss
-        matrix[12] = 0f
+        data[0] = cj * ch
+        data[4] = sj * sc - cs
+        data[8] = sj * cc + ss
+        data[12] = 0f
 
-        matrix[1] = cj * sh
-        matrix[5] = sj * ss + cc
-        matrix[9] = sj * cs - sc
-        matrix[13] = 0f
+        data[1] = cj * sh
+        data[5] = sj * ss + cc
+        data[9] = sj * cs - sc
+        data[13] = 0f
 
-        matrix[2] = -sj
-        matrix[6] = cj * si
-        matrix[10] = cj * ci
-        matrix[14] = 0f
+        data[2] = -sj
+        data[6] = cj * si
+        data[10] = cj * ci
+        data[14] = 0f
 
-        matrix[3] = 0f
-        matrix[7] = 0f
-        matrix[11] = 0f
-        matrix[15] = 1f
+        data[3] = 0f
+        data[7] = 0f
+        data[11] = 0f
+        data[15] = 1f
 
         return this
     }
@@ -363,45 +383,45 @@ open class Mat4 {
         var x = axX
         var y = axY
         var z = axZ
-        matrix[3] = 0f
-        matrix[7] = 0f
-        matrix[11] = 0f
-        matrix[12] = 0f
-        matrix[13] = 0f
-        matrix[14] = 0f
-        matrix[15] = 1f
+        data[3] = 0f
+        data[7] = 0f
+        data[11] = 0f
+        data[12] = 0f
+        data[13] = 0f
+        data[14] = 0f
+        data[15] = 1f
         val s = sin(a)
         val c = cos(a)
         if (x > 0f && y == 0f && z == 0f) {
-            matrix[5] = c
-            matrix[10] = c
-            matrix[6] = s
-            matrix[9] = -s
-            matrix[1] = 0f
-            matrix[2] = 0f
-            matrix[4] = 0f
-            matrix[8] = 0f
-            matrix[0] = 1f
+            data[5] = c
+            data[10] = c
+            data[6] = s
+            data[9] = -s
+            data[1] = 0f
+            data[2] = 0f
+            data[4] = 0f
+            data[8] = 0f
+            data[0] = 1f
         } else if (x == 0f && y > 0f && z == 0f) {
-            matrix[0] = c
-            matrix[10] = c
-            matrix[8] = s
-            matrix[2] = -s
-            matrix[1] = 0f
-            matrix[4] = 0f
-            matrix[6] = 0f
-            matrix[9] = 0f
-            matrix[5] = 1f
+            data[0] = c
+            data[10] = c
+            data[8] = s
+            data[2] = -s
+            data[1] = 0f
+            data[4] = 0f
+            data[6] = 0f
+            data[9] = 0f
+            data[5] = 1f
         } else if (x == 0f && y == 0f && z > 0f) {
-            matrix[0] = c
-            matrix[5] = c
-            matrix[1] = s
-            matrix[4] = -s
-            matrix[2] = 0f
-            matrix[6] = 0f
-            matrix[8] = 0f
-            matrix[9] = 0f
-            matrix[10] = 1f
+            data[0] = c
+            data[5] = c
+            data[1] = s
+            data[4] = -s
+            data[2] = 0f
+            data[6] = 0f
+            data[8] = 0f
+            data[9] = 0f
+            data[10] = 1f
         } else {
             val recipLen = 1.0f / sqrt(x * x + y * y + z * z)
             x *= recipLen
@@ -415,15 +435,15 @@ open class Mat4 {
             val xs = x * s
             val ys = y * s
             val zs = z * s
-            matrix[0] = x * x * nc + c
-            matrix[4] = xy * nc - zs
-            matrix[8] = zx * nc + ys
-            matrix[1] = xy * nc + zs
-            matrix[5] = y * y * nc + c
-            matrix[9] = yz * nc - xs
-            matrix[2] = zx * nc - ys
-            matrix[6] = yz * nc + xs
-            matrix[10] = z * z * nc + c
+            data[0] = x * x * nc + c
+            data[4] = xy * nc - zs
+            data[8] = zx * nc + ys
+            data[1] = xy * nc + zs
+            data[5] = y * y * nc + c
+            data[9] = yz * nc - xs
+            data[2] = zx * nc - ys
+            data[6] = yz * nc + xs
+            data[10] = z * z * nc + c
         }
         return this
     }
@@ -488,15 +508,15 @@ open class Mat4 {
 
     fun setTranslate(x: Float, y: Float, z: Float): Mat4 {
         for (i in 1..15) {
-            matrix[i] = 0f
+            data[i] = 0f
         }
-        matrix[12] = x
-        matrix[13] = y
-        matrix[14] = z
-        matrix[0] = 1f
-        matrix[5] = 1f
-        matrix[10] = 1f
-        matrix[15] = 1f
+        data[12] = x
+        data[13] = y
+        data[14] = z
+        data[0] = 1f
+        data[5] = 1f
+        data[10] = 1f
+        data[15] = 1f
         return this
     }
 
@@ -529,25 +549,25 @@ open class Mat4 {
         val uy = sz * fx - sx * fz
         val uz = sx * fy - sy * fx
 
-        matrix[0] = sx
-        matrix[1] = ux
-        matrix[2] = -fx
-        matrix[3] = 0.0f
+        data[0] = sx
+        data[1] = ux
+        data[2] = -fx
+        data[3] = 0.0f
 
-        matrix[4] = sy
-        matrix[5] = uy
-        matrix[6] = -fy
-        matrix[7] = 0.0f
+        data[4] = sy
+        data[5] = uy
+        data[6] = -fy
+        data[7] = 0.0f
 
-        matrix[8] = sz
-        matrix[9] = uz
-        matrix[10] = -fz
-        matrix[11] = 0.0f
+        data[8] = sz
+        data[9] = uz
+        data[10] = -fz
+        data[11] = 0.0f
 
-        matrix[12] = 0.0f
-        matrix[13] = 0.0f
-        matrix[14] = 0.0f
-        matrix[15] = 1.0f
+        data[12] = 0.0f
+        data[13] = 0.0f
+        data[14] = 0.0f
+        data[15] = 1.0f
 
         return translate(-position.x, -position.y, -position.z)
     }
@@ -572,22 +592,22 @@ open class Mat4 {
         val tx = -(right + left) * width
         val ty = -(top + bottom) * height
         val tz = -(far + near) * depth
-        matrix[0] = x
-        matrix[5] = y
-        matrix[10] = z
-        matrix[12] = tx
-        matrix[13] = ty
-        matrix[14] = tz
-        matrix[15] = 1.0f
-        matrix[1] = 0.0f
-        matrix[2] = 0.0f
-        matrix[3] = 0.0f
-        matrix[4] = 0.0f
-        matrix[6] = 0.0f
-        matrix[7] = 0.0f
-        matrix[8] = 0.0f
-        matrix[9] = 0.0f
-        matrix[11] = 0.0f
+        data[0] = x
+        data[5] = y
+        data[10] = z
+        data[12] = tx
+        data[13] = ty
+        data[14] = tz
+        data[15] = 1.0f
+        data[1] = 0.0f
+        data[2] = 0.0f
+        data[3] = 0.0f
+        data[4] = 0.0f
+        data[6] = 0.0f
+        data[7] = 0.0f
+        data[8] = 0.0f
+        data[9] = 0.0f
+        data[11] = 0.0f
 
         return this
     }
@@ -596,39 +616,39 @@ open class Mat4 {
         val f = 1.0f / tan(fovy * (PI / 360.0)).toFloat()
         val rangeReciprocal = 1.0f / (near - far)
 
-        matrix[0] = f / aspect
-        matrix[1] = 0.0f
-        matrix[2] = 0.0f
-        matrix[3] = 0.0f
+        data[0] = f / aspect
+        data[1] = 0.0f
+        data[2] = 0.0f
+        data[3] = 0.0f
 
-        matrix[4] = 0.0f
-        matrix[5] = f
-        matrix[6] = 0.0f
-        matrix[7] = 0.0f
+        data[4] = 0.0f
+        data[5] = f
+        data[6] = 0.0f
+        data[7] = 0.0f
 
-        matrix[8] = 0.0f
-        matrix[9] = 0.0f
-        matrix[10] = (far + near) * rangeReciprocal
-        matrix[11] = -1.0f
+        data[8] = 0.0f
+        data[9] = 0.0f
+        data[10] = (far + near) * rangeReciprocal
+        data[11] = -1.0f
 
-        matrix[12] = 0.0f
-        matrix[13] = 0.0f
-        matrix[14] = 2.0f * far * near * rangeReciprocal
-        matrix[15] = 0.0f
+        data[12] = 0.0f
+        data[13] = 0.0f
+        data[14] = 2.0f * far * near * rangeReciprocal
+        data[15] = 0.0f
 
         return this
     }
 
-    operator fun get(i: Int): Float = matrix[i]
+    operator fun get(i: Int): Float = data[i]
 
-    operator fun get(row: Int, col: Int): Float = matrix[col * 4 + row]
+    operator fun get(row: Int, col: Int): Float = data[col * 4 + row]
 
     operator fun set(i: Int, value: Float) {
-        matrix[i] = value
+        data[i] = value
     }
 
     operator fun set(row: Int, col: Int, value: Float) {
-        matrix[col * 4 + row] = value
+        data[col * 4 + row] = value
     }
 
     fun setRow(row: Int, vec: Vec3f, w: Float) {
@@ -741,7 +761,7 @@ open class Mat4 {
     }
 
     fun toBuffer(buffer: FLoatBuffer): FLoatBuffer {
-        buffer.put(matrix, 0, 16)
+        buffer.put(data, 0, 16)
         buffer.flip()
         return buffer
     }
@@ -749,7 +769,7 @@ open class Mat4 {
     fun toList(): List<Float> {
         val list = mutableListOf<Float>()
         for (i in 0..15) {
-            list += matrix[i]
+            list += data[i]
         }
         return list
     }
@@ -784,7 +804,7 @@ class Mat4Stack(val stackSize: Int = DEFAULT_STACK_SIZE) : Mat4() {
         }
         val offset = stackIndex * 16
         for (i in 0..15) {
-            stack[offset + i] = matrix[i]
+            stack[offset + i] = data[i]
         }
         stackIndex++
         return this
@@ -797,7 +817,7 @@ class Mat4Stack(val stackSize: Int = DEFAULT_STACK_SIZE) : Mat4() {
         stackIndex--
         val offset = stackIndex * 16
         for (i in 0..15) {
-            matrix[i] = stack[offset + i]
+            data[i] = stack[offset + i]
         }
         return this
     }
