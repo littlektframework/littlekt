@@ -76,8 +76,8 @@ value class Angle(val radians: Float) : Comparable<Angle> {
         inline fun sin01(ratio: Double) = kotlin.math.sin(PI2 * ratio)
         inline fun tan01(ratio: Double) = kotlin.math.tan(PI2 * ratio)
 
-        inline fun degreesToRadians(degrees: Float): Float = (degrees * DEG2RAD).toFloat()
-        inline fun radiansToDegrees(radians: Float): Float = (radians * RAD2DEG).toFloat()
+        inline fun degreesToRadians(degrees: Float): Float = (degrees * DEG2RAD)
+        inline fun radiansToDegrees(radians: Float): Float = (radians * RAD2DEG)
 
         inline fun shortDistanceTo(from: Angle, to: Angle): Angle = Angle_shortDistanceTo(from, to)
         inline fun longDistanceTo(from: Angle, to: Angle): Angle = Angle_longDistanceTo(from, to)

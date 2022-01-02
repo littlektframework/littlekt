@@ -144,8 +144,10 @@ open class MutableVec2f(x: Float, y: Float) : Vec2f(x, y) {
     }
 
     fun mul(matrix: Mat3): MutableVec2f {
-        x = x * matrix.data[0] + y * matrix.data[3] + matrix.data[6]
-        y = x * matrix.data[1] + y * matrix.data[4] + matrix.data[7]
+        val newX = x * matrix[0] + y * matrix[3] + matrix[6]
+        val newY = x * matrix[1] + y * matrix[4] + matrix[7]
+        x = newX
+        y = newY
         return this
     }
 

@@ -499,6 +499,11 @@ class Mat3 {
         return list
     }
 
+    override fun toString(): String {
+        return "[$m00|$m01|$m02]\n[$m10|$m11|$m12]\n[$m20|$m21|$m22]"
+    }
+
+
     companion object {
         private val tmpMatLock = Any()
         private val tmpMatA = Mat3()
