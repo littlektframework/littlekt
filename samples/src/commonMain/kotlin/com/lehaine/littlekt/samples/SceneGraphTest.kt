@@ -14,9 +14,9 @@ import com.lehaine.littlekt.math.geom.degrees
 import com.lehaine.littlekt.math.geom.minus
 import com.lehaine.littlekt.math.geom.plus
 import com.lehaine.littlekt.util.viewport.ExtendViewport
-import scene.node.node
-import scene.node.node2d.Node2D
-import scene.sceneGraph
+import graph.node.node
+import graph.node.node2d.Node2D
+import graph.sceneGraph
 import kotlin.time.Duration
 
 

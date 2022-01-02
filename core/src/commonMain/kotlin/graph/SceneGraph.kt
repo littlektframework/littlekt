@@ -1,4 +1,4 @@
-package scene
+package graph
 
 import com.lehaine.littlekt.Context
 import com.lehaine.littlekt.Disposable
@@ -8,8 +8,8 @@ import com.lehaine.littlekt.graphics.use
 import com.lehaine.littlekt.input.InputProcessor
 import com.lehaine.littlekt.util.viewport.ScreenViewport
 import com.lehaine.littlekt.util.viewport.Viewport
-import scene.node.Node
-import scene.node.annotation.SceneGraphDslMarker
+import graph.node.Node
+import graph.node.annotation.SceneGraphDslMarker
 import kotlin.time.Duration
 
 inline fun sceneGraph(

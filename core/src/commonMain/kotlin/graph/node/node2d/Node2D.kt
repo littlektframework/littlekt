@@ -1,4 +1,4 @@
-package scene.node.node2d
+package graph.node.node2d
 
 import com.lehaine.littlekt.math.Mat3
 import com.lehaine.littlekt.math.Mat4
@@ -6,10 +6,10 @@ import com.lehaine.littlekt.math.MutableVec2f
 import com.lehaine.littlekt.math.Vec2f
 import com.lehaine.littlekt.math.geom.Angle
 import com.lehaine.littlekt.math.geom.plus
-import scene.SceneGraph
-import scene.node.Node
-import scene.node.addTo
-import scene.node.annotation.SceneGraphDslMarker
+import graph.SceneGraph
+import graph.node.Node
+import graph.node.addTo
+import graph.node.annotation.SceneGraphDslMarker
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin

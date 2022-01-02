@@ -1,13 +1,13 @@
-package scene.node
+package graph.node
 
 import com.lehaine.littlekt.Scene
 import com.lehaine.littlekt.graphics.Camera
 import com.lehaine.littlekt.graphics.SpriteBatch
 import com.lehaine.littlekt.util.fastForEach
 import com.lehaine.littlekt.util.viewport.Viewport
-import scene.SceneGraph
-import scene.node.annotation.SceneGraphDslMarker
-import scene.node.internal.NodeList
+import graph.SceneGraph
+import graph.node.annotation.SceneGraphDslMarker
+import graph.node.internal.NodeList
 import kotlin.time.Duration
 
 inline fun Node.node(callback: @SceneGraphDslMarker Node.() -> Unit = {}) =

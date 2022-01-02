@@ -1,4 +1,4 @@
-package scene.node.annotation
+package graph.node.annotation
 
 /**
  * @author Colton Daily
