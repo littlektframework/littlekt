@@ -118,7 +118,7 @@ class IntBufferImpl(buffer: NioIntBuffer) : IntBuffer, GenericBuffer<NioIntBuffe
 /**
  * FloatBuffer buffer implementation
  */
-class FLoatBufferImpl(buffer: NioFloatBuffer) : FLoatBuffer, GenericBuffer<NioFloatBuffer>(buffer.capacity(), buffer) {
+class FloatBufferImpl(buffer: NioFloatBuffer) : FloatBuffer, GenericBuffer<NioFloatBuffer>(buffer.capacity(), buffer) {
 
     constructor(capacity: Int) : this(
         NioByteBuffer.allocateDirect(capacity * 4).order(ByteOrder.nativeOrder()).asFloatBuffer()
@@ -139,18 +139,18 @@ class FLoatBufferImpl(buffer: NioFloatBuffer) : FLoatBuffer, GenericBuffer<NioFl
         buffer.put(i, value)
     }
 
-    override fun put(data: FloatArray, offset: Int, len: Int): FLoatBuffer {
+    override fun put(data: FloatArray, offset: Int, len: Int): FloatBuffer {
         buffer.put(data, offset, len)
         return this
     }
 
-    override fun put(value: Float): FLoatBuffer {
+    override fun put(value: Float): FloatBuffer {
         buffer.put(value)
         return this
     }
 
-    override fun put(data: FLoatBuffer): FLoatBuffer {
-        if (data is FLoatBufferImpl) {
+    override fun put(data: FloatBuffer): FloatBuffer {
+        if (data is FloatBufferImpl) {
             val dataPos = data.position
             buffer.put(data.buffer)
             data.position = dataPos
@@ -364,9 +364,9 @@ class ByteBufferImpl(buffer: NioByteBuffer) : ByteBuffer, GenericBuffer<NioByteB
         return this
     }
 
-    override fun putFloat(data: FLoatBuffer): ByteBuffer {
+    override fun putFloat(data: FloatBuffer): ByteBuffer {
         val len = data.limit - data.position
-        if (data !is FLoatBufferImpl || len <= BUFFER_CONV_THRESH) {
+        if (data !is FloatBufferImpl || len <= BUFFER_CONV_THRESH) {
             for (i in data.position until data.limit) {
                 buffer.putFloat(data[i])
             }
@@ -406,8 +406,8 @@ actual fun createShortBuffer(capacity: Int): ShortBuffer = ShortBufferImpl(capac
 
 actual fun createIntBuffer(capacity: Int): IntBuffer = IntBufferImpl(capacity)
 
-actual fun createFloatBuffer(capacity: Int): FLoatBuffer = FLoatBufferImpl(capacity)
-actual fun createFloatBuffer(array: FloatArray): FLoatBuffer = FLoatBufferImpl(array)
+actual fun createFloatBuffer(capacity: Int): FloatBuffer = FloatBufferImpl(capacity)
+actual fun createFloatBuffer(array: FloatArray): FloatBuffer = FloatBufferImpl(array)
 
 actual fun createByteBuffer(capacity: Int): ByteBuffer = ByteBufferImpl(capacity)
 actual fun createByteBuffer(array: ByteArray): ByteBuffer = ByteBufferImpl(array)

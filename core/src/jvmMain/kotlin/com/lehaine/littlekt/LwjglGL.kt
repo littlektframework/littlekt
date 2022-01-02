@@ -382,7 +382,7 @@ class LwjglGL(private val engineStats: EngineStats) : GL {
         engineStats.bufferDeleted(lastBoundBuffer!!.bufferId)
         when (data) {
             is DataSource.Float32BufferDataSource -> {
-                data.buffer as FLoatBufferImpl
+                data.buffer as FloatBufferImpl
                 glBufferData(target, data.buffer.buffer, usage)
                 engineStats.bufferAllocated(lastBoundBuffer!!.bufferId, data.buffer.capacity * 4)
             }
@@ -415,7 +415,7 @@ class LwjglGL(private val engineStats: EngineStats) : GL {
         data.buffer.limit = data.buffer.capacity
         when (data) {
             is DataSource.Float32BufferDataSource -> {
-                data.buffer as FLoatBufferImpl
+                data.buffer as FloatBufferImpl
                 GL15.glBufferSubData(target, offset.toLong(), data.buffer.buffer)
             }
             is DataSource.Uint8BufferDataSource -> {
@@ -490,14 +490,14 @@ class LwjglGL(private val engineStats: EngineStats) : GL {
 
     override fun uniformMatrix3fv(uniformLocation: UniformLocation, transpose: Boolean, data: Mat3) {
         engineStats.calls++
-        val buffer = createFloatBuffer(19) as FLoatBufferImpl
+        val buffer = createFloatBuffer(19) as FloatBufferImpl
         data.toBuffer(buffer)
         glUniformMatrix3fv(uniformLocation.address, transpose, buffer.buffer)
     }
 
-    override fun uniformMatrix3fv(uniformLocation: UniformLocation, transpose: Boolean, data: FLoatBuffer) {
+    override fun uniformMatrix3fv(uniformLocation: UniformLocation, transpose: Boolean, data: FloatBuffer) {
         engineStats.calls++
-        data as FLoatBufferImpl
+        data as FloatBufferImpl
         glUniformMatrix3fv(uniformLocation.address, transpose, data.buffer)
     }
 
@@ -508,14 +508,14 @@ class LwjglGL(private val engineStats: EngineStats) : GL {
 
     override fun uniformMatrix4fv(uniformLocation: UniformLocation, transpose: Boolean, data: Mat4) {
         engineStats.calls++
-        val buffer = createFloatBuffer(16) as FLoatBufferImpl
+        val buffer = createFloatBuffer(16) as FloatBufferImpl
         data.toBuffer(buffer)
         glUniformMatrix4fv(uniformLocation.address, transpose, buffer.buffer)
     }
 
-    override fun uniformMatrix4fv(uniformLocation: UniformLocation, transpose: Boolean, data: FLoatBuffer) {
+    override fun uniformMatrix4fv(uniformLocation: UniformLocation, transpose: Boolean, data: FloatBuffer) {
         engineStats.calls++
-        data as FLoatBufferImpl
+        data as FloatBufferImpl
         glUniformMatrix4fv(uniformLocation.address, transpose, data.buffer)
     }
 

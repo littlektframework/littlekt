@@ -60,7 +60,7 @@ class SpriteBatch(
                 setupMatrices()
             }
         }
-    var projectionMatrix = Mat4().setOrthographic(
+    var projectionMatrix = Mat4().setToOrthographic(
         left = 0f,
         right = context.graphics.width.toFloat(),
         bottom = 0f,

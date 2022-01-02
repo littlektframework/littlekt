@@ -1,17 +1,18 @@
 package com.lehaine.littlekt.math
 
-import com.lehaine.littlekt.file.FLoatBuffer
+import com.lehaine.littlekt.file.FloatBuffer
 import com.lehaine.littlekt.math.geom.Angle
 import com.lehaine.littlekt.math.geom.cosine
+import com.lehaine.littlekt.math.geom.radians
 import com.lehaine.littlekt.math.geom.sine
 import com.lehaine.littlekt.util.internal.lock
-import kotlin.math.PI
+import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.math.sqrt
 
 /**
- * A 3x3 matrix.
+ * A 3x3 column major matrix.
  * @author Colton Daily
  * @date 11/23/2021
  */
@@ -19,96 +20,132 @@ class Mat3 {
 
     val data = FloatArray(9)
 
-    var M00: Float
+    var m00: Float
         get() = data[0]
         set(value) {
             data[0] = value
         }
-    var M10: Float
-        get() = data[1]
-        set(value) {
-            data[1] = value
-        }
-    var M20: Float
-        get() = data[2]
-        set(value) {
-            data[2] = value
-        }
-    var M01: Float
+    var m01: Float
         get() = data[3]
         set(value) {
             data[3] = value
         }
-    var M11: Float
-        get() = data[4]
-        set(value) {
-            data[4] = value
-        }
-    var M21: Float
-        get() = data[5]
-        set(value) {
-            data[5] = value
-        }
-    var M02: Float
+    var m02: Float
         get() = data[6]
         set(value) {
             data[6] = value
         }
-    var M12: Float
+    var m10: Float
+        get() = data[1]
+        set(value) {
+            data[1] = value
+        }
+    var m11: Float
+        get() = data[4]
+        set(value) {
+            data[4] = value
+        }
+    var m12: Float
         get() = data[7]
         set(value) {
             data[7] = value
         }
-    var M22: Float
+    var m20: Float
+        get() = data[2]
+        set(value) {
+            data[2] = value
+        }
+    var m21: Float
+        get() = data[5]
+        set(value) {
+            data[5] = value
+        }
+    var m22: Float
         get() = data[8]
         set(value) {
             data[8] = value
         }
 
+
+    val rotation: Angle get() = atan2(m10, m00).radians
+
+    /**
+     * Note: You must clone or copy the values of this [Vec2f] due to the values of this referenced [Vec2f] will change.
+     * @return this matrix's translation component
+     */
+    val position: Vec2f
+        get() = getTranslation(tempVec2f)
+
+    /**
+     * Note: You must clone or copy the values of this [Vec2f] due to the values of this referenced [Vec2f] will change.
+     * @return this matrix's scale component
+     */
+    val scale: Vec2f
+        get() = getScale(tempVec2f)
+
     init {
-        setIdentity()
+        setToIdentity()
     }
 
-    fun translate(tx: Float, ty: Float): Mat3 {
-        M02 += tx
-        M12 += ty
+    /**
+     * Post-multiplies this matrix by a translation matrix.
+     * @param x the X component of the translation vector
+     * @param y the Y component of the translation vector
+     * @return this matrix
+     */
+    fun translate(x: Float, y: Float): Mat3 {
+        for (i in 0..2) {
+            data[6 + i] += data[i] * x + data[3 + i] * y
+        }
         return this
     }
 
-    fun translate(t: Vec2f): Mat3 = translate(t.x, t.y)
+    /**
+     * Post-multiplies this matrix by a translation matrix.
+     * @param offset the translation vector to add to the current matrix
+     * @return this matrix
+     */
+    fun translate(offset: Vec2f): Mat3 = translate(offset.x, offset.y)
 
-    fun translate(tx: Float, ty: Float, result: Mat3): Mat3 {
+    /**
+     * Post-multiplies this matrix by a translation matrix and stores the result in the specified matrix
+     * @param x the X component of the translation vector
+     * @param y the Y component of the translation vector
+     * @return the [result] matrix
+     */
+    fun translate(x: Float, y: Float, result: Mat3): Mat3 {
         for (i in 0..8) {
             result.data[i] = data[i]
         }
-        result.M02 += tx
-        result.M12 += ty
+        for (i in 0..2) {
+            result.data[6 + i] += data[i] * x + data[3 + i] * y
+        }
         return result
     }
 
-    fun rotate(angleDeg: Float, axX: Float, axY: Float, axZ: Float): Mat3 {
+    fun rotate(ax: Float, ay: Float, az: Float, degrees: Float): Mat3 {
         return lock(tmpMatLock) {
-            tmpMatA.setRotate(angleDeg, axX, axY, axZ)
+            tmpMatA.setToRotation(ax, ay, az, degrees)
             set(mul(tmpMatA, tmpMatB))
         }
     }
 
-    fun rotate(angleDeg: Float, axis: Vec3f) = rotate(angleDeg, axis.x, axis.y, axis.z)
+    fun rotate(axis: Vec3f, degrees: Float) = rotate(axis.x, axis.y, axis.z, degrees)
 
     fun rotate(eulerX: Float, eulerY: Float, eulerZ: Float): Mat3 {
         return lock(tmpMatLock) {
-            tmpMatA.setRotate(eulerX, eulerY, eulerZ)
+            tmpMatA.setFromEulerAngles(eulerX, eulerY, eulerZ)
             set(mul(tmpMatA, tmpMatB))
         }
     }
 
-    fun rotate(angleDeg: Float, axX: Float, axY: Float, axZ: Float, result: Mat3): Mat3 {
+    fun rotate(ax: Float, ay: Float, az: Float, degrees: Float, result: Mat3): Mat3 {
         result.set(this)
-        result.rotate(angleDeg, axX, axY, axZ)
+        result.rotate(ax, ay, az, degrees)
         return result
     }
 
-    fun rotate(angleDeg: Float, axis: Vec3f, result: Mat3) = rotate(angleDeg, axis.x, axis.y, axis.z, result)
+    fun rotate(axis: Vec3f, degrees: Float, result: Mat3) = rotate(axis.x, axis.y, axis.z, degrees, result)
 
     fun rotate(eulerX: Float, eulerY: Float, eulerZ: Float, result: Mat3): Mat3 {
         result.set(this)
@@ -184,7 +221,16 @@ class Mat3 {
         return result
     }
 
-
+    /**
+     * Post-multiplies this matrix with the given matrix, storing the result in this matrix.
+     *
+     * For example:
+     * ```
+     * A.mul(B) results in A := AB
+     * ```
+     * @param other the other matrix to multiply by
+     * @return this matrix
+     */
     fun mul(other: Mat3): Mat3 {
         return lock(tmpMatLock) {
             mul(other, tmpMatA)
@@ -192,6 +238,17 @@ class Mat3 {
         }
     }
 
+    /**
+     * Post-multiplies this matrix with the given matrix, storing the result in the specified matrix.
+     *
+     * For example:
+     * ```
+     * A.mul(B) results in A := AB
+     * ```
+     * @param other the other matrix to multiply by
+     * @param result the matrix to store the result
+     * @return the [result] matrix
+     */
     fun mul(other: Mat3, result: Mat3): Mat3 {
         for (i in 0..2) {
             for (j in 0..2) {
@@ -205,6 +262,16 @@ class Mat3 {
         return result
     }
 
+    /**
+     * Pre-multiplies this matrix with the given matrix, storing the result in this matrix.
+     *
+     * For example:
+     * ```
+     * A.mulLeft(B) results in A := BA.
+     * ```
+     * @param other the other matrix to multiply by
+     * @return this matrix
+     */
     fun mulLeft(other: Mat3): Mat3 {
         return lock(tmpMatLock) {
             mulLeft(other, tmpMatA)
@@ -212,6 +279,17 @@ class Mat3 {
         }
     }
 
+    /**
+     * Pre-multiplies this matrix with the given matrix, storing the result in the specified matrix.
+     *
+     * For example:
+     * ```
+     * A.mulLeft(B) results in A := BA.
+     * ```
+     * @param other the other matrix to multiply by
+     * @param result the matrix to store the result
+     * @return the [result] matrix
+     */
     fun mulLeft(other: Mat3, result: Mat3): Mat3 {
         for (i in 0..2) {
             for (j in 0..2) {
@@ -225,22 +303,20 @@ class Mat3 {
         return result
     }
 
-    fun scale(sx: Float, sy: Float, sz: Float): Mat3 {
+    fun scale(sx: Float, sy: Float): Mat3 {
         for (i in 0..2) {
             data[i] *= sx
             data[3 + i] *= sy
-            data[6 + i] *= sz
         }
         return this
     }
 
-    fun scale(scale: Vec3f): Mat3 = scale(scale.x, scale.y, scale.z)
+    fun scale(scale: Vec2f): Mat3 = scale(scale.x, scale.y)
 
-    fun scale(sx: Float, sy: Float, sz: Float, result: Mat3): Mat3 {
+    fun scale(sx: Float, sy: Float, result: Mat3): Mat3 {
         for (i in 0..2) {
             result.data[i] = data[i] * sx
             result.data[3 + i] = data[3 + i] * sy
-            result.data[6 + i] = data[6 + i] * sz
         }
         return result
     }
@@ -258,7 +334,7 @@ class Mat3 {
         }
     }
 
-    fun setIdentity(): Mat3 {
+    fun setToIdentity(): Mat3 {
         for (i in 1..8) {
             this[i] = 0f
         }
@@ -269,33 +345,33 @@ class Mat3 {
     }
 
     fun setToTranslate(x: Float, y: Float): Mat3 {
-        setIdentity()
-        M02 = x
-        M12 = y
+        setToIdentity()
+        m02 = x
+        m12 = y
         return this
     }
 
     fun setToTranslate(offset: Vec2f) = setToTranslate(offset.x, offset.y)
 
-    fun setToRotate(angle: Angle): Mat3 {
+    fun setToRotation(angle: Angle): Mat3 {
         val cos = angle.cosine
         val sin = angle.sine
-        M00 = cos
-        M10 = sin
-        M20 = 0f
+        m00 = cos
+        m10 = sin
+        m20 = 0f
 
-        M01 = -sin
-        M11 = cos
-        M21 = 0f
+        m01 = -sin
+        m11 = cos
+        m21 = 0f
 
-        M02 = 0f
-        M12 = 0f
-        M22 = 1f
+        m02 = 0f
+        m12 = 0f
+        m22 = 1f
 
         return this
     }
 
-    fun setRotate(eulerX: Float, eulerY: Float, eulerZ: Float): Mat3 {
+    fun setFromEulerAngles(eulerX: Float, eulerY: Float, eulerZ: Float): Mat3 {
         val a = eulerX.toRad()
         val b = eulerY.toRad()
         val c = eulerZ.toRad()
@@ -326,113 +402,61 @@ class Mat3 {
         return this
     }
 
-    fun setRotate(angleDeg: Float, axX: Float, axY: Float, axZ: Float): Mat3 {
-        var aX = axX
-        var aY = axY
-        var aZ = axZ
+    fun setToRotation(ax: Float, ay: Float, az: Float, degrees: Float): Mat3 {
+        var aX = ax
+        var aY = ay
+        var aZ = az
         val len = sqrt(aX * aX + aY * aY + aZ * aZ)
-        if (!(1.0 - len).isFuzzyZero()) {
+        if (!(1f - len).isFuzzyZero()) {
             val recipLen = 1f / len
             aX *= recipLen
             aY *= recipLen
             aZ *= recipLen
         }
 
-        val ang = angleDeg * (PI.toFloat() / 180f)
-        val s = sin(ang)
-        val c = cos(ang)
+        val radians = degrees.toRad()
+        val sin = sin(radians)
+        val cos = cos(radians)
 
-        val nc = 1f - c
+        val nc = 1f - cos
         val xy = aX * aY
         val yz = aY * aZ
         val zx = aZ * aX
-        val xs = aX * s
-        val ys = aY * s
-        val zs = aZ * s
+        val xs = aX * sin
+        val ys = aY * sin
+        val zs = aZ * sin
 
-        this[0] = aX * aX * nc + c
+        this[0] = aX * aX * nc + cos
         this[3] = xy * nc - zs
         this[6] = zx * nc + ys
         this[1] = xy * nc + zs
-        this[4] = aY * aY * nc + c
+        this[4] = aY * aY * nc + cos
         this[7] = yz * nc - xs
         this[2] = zx * nc - ys
         this[5] = yz * nc + xs
-        this[8] = aZ * aZ * nc + c
-
-        return this
-    }
-
-    fun setRotate(quaternion: Vec4f): Mat3 {
-        val r = quaternion.w
-        val i = quaternion.x
-        val j = quaternion.y
-        val k = quaternion.z
-
-        var s = sqrt(r * r + i * i + j * j + k * k)
-        s = 1f / (s * s)
-
-        this[0, 0] = 1 - 2 * s * (j * j + k * k)
-        this[0, 1] = 2 * s * (i * j - k * r)
-        this[0, 2] = 2 * s * (i * k + j * r)
-
-        this[1, 0] = 2 * s * (i * j + k * r)
-        this[1, 1] = 1 - 2 * s * (i * i + k * k)
-        this[1, 2] = 2 * s * (j * k - i * r)
-
-        this[2, 0] = 2 * s * (i * k - j * r)
-        this[2, 1] = 2 * s * (j * k + i * r)
-        this[2, 2] = 1 - 2 * s * (i * i + j * j)
+        this[8] = aZ * aZ * nc + cos
 
         return this
     }
 
     fun setToScale(sx: Float, sy: Float): Mat3 {
-        setIdentity()
-        M00 = sx
-        M11 = sy
+        setToIdentity()
+        m00 = sx
+        m11 = sy
         return this
     }
 
     fun setToScale(scale: Vec2f) = setToScale(scale.x, scale.y)
 
-    fun getRotation(result: MutableVec4f): MutableVec4f {
-        val trace = this[0, 0] + this[1, 1] + this[2, 2]
+    fun getTranslation(result: MutableVec2f): MutableVec2f {
+        result.x = m02
+        result.y = m12
+        return result
+    }
 
-        if (trace > 0f) {
-            var s = sqrt(trace + 1f)
-            result.w = s * 0.5f
-            s = 0.5f / s
-
-            result.x = (this[2, 1] - this[1, 2]) * s
-            result.y = (this[0, 2] - this[2, 0]) * s
-            result.z = (this[1, 0] - this[0, 1]) * s
-
-        } else {
-            val i = if (this[0, 0] < this[1, 1]) {
-                if (this[1, 1] < this[2, 2]) {
-                    2
-                } else {
-                    1
-                }
-            } else {
-                if (this[0, 0] < this[2, 2]) {
-                    2
-                } else {
-                    0
-                }
-            }
-            val j = (i + 1) % 3
-            val k = (i + 2) % 3
-
-            var s = sqrt(this[i, i] - this[j, j] - this[k, k] + 1f)
-            result[i] = s * 0.5f
-            s = 0.5f / s
-
-            result.w = (this[k, j] - this[j, k]) * s
-            result[j] = (this[j, i] + this[i, j]) * s
-            result[k] = (this[k, i] + this[i, k]) * s
-        }
+    fun getScale(result: MutableVec2f): MutableVec2f {
+        result.x = sqrt(m00 * m00 + m01 * m01)
+        result.y = sqrt(m10 * m10 + m11 * m11)
         return result
     }
 
@@ -461,7 +485,7 @@ class Mat3 {
         return result
     }
 
-    fun toBuffer(buffer: FLoatBuffer): FLoatBuffer {
+    fun toBuffer(buffer: FloatBuffer): FloatBuffer {
         buffer.put(data, 0, 9)
         buffer.flip()
         return buffer
@@ -479,5 +503,6 @@ class Mat3 {
         private val tmpMatLock = Any()
         private val tmpMatA = Mat3()
         private val tmpMatB = Mat3()
+        private val tempVec2f = MutableVec2f()
     }
 }

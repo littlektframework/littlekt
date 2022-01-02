@@ -238,7 +238,7 @@ open class Node2D : Node() {
                     it.updateHierarchy()
                     _globalToLocalTransform.set(it._globalTransform).invert()
                 } ?: run {
-                    _globalToLocalTransform.setIdentity()
+                    _globalToLocalTransform.setToIdentity()
                 }
                 _globalToLocalDirty = false
             }
@@ -472,7 +472,7 @@ open class Node2D : Node() {
                 }
 
                 if (_localRotationDirty) {
-                    _rotationMatrix.setToRotate(_localRotation)
+                    _rotationMatrix.setToRotation(_localRotation)
                     _localRotationDirty = false
                 }
 

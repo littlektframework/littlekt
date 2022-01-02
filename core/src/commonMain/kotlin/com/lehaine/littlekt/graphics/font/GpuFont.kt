@@ -68,7 +68,7 @@ class GpuFont(
                 setupMatrices()
             }
         }
-    var projectionMatrix = Mat4().setOrthographic(
+    var projectionMatrix = Mat4().setToOrthographic(
         left = 0f,
         right = context.graphics.width.toFloat(),
         bottom = 0f,
@@ -163,7 +163,7 @@ class GpuFont(
         var lastX = tx
         var lastY = ty
         if (rotation != Angle.ZERO) {
-            temp4.setIdentity()
+            temp4.setToIdentity()
             temp4.translate(tx, ty, 0f)
             temp4.rotate(0f, 0f, rotation.degrees)
         }
