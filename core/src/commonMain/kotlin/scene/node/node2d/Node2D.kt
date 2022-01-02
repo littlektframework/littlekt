@@ -505,9 +505,11 @@ open class Node2D : Node() {
         }
     }
 
-    fun translate(offset: Vec2f) {
-        if (offset.x != 0f || offset.y != 0f) {
-            _localPosition.add(offset)
+    fun translate(offset: Vec2f) = translate(offset.x, offset.y)
+
+    fun translate(x: Float, y: Float) {
+        if (x != 0f || y != 0f) {
+            _localPosition.add(x, y)
             updateLocalPosition()
         }
     }

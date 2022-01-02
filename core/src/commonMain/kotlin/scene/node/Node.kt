@@ -3,6 +3,7 @@ package scene.node
 import com.lehaine.littlekt.Scene
 import com.lehaine.littlekt.graphics.Camera
 import com.lehaine.littlekt.graphics.SpriteBatch
+import com.lehaine.littlekt.util.fastForEach
 import com.lehaine.littlekt.util.viewport.Viewport
 import scene.SceneGraph
 import scene.node.annotation.SceneGraphDslMarker
@@ -132,6 +133,8 @@ open class Node : Comparable<Node> {
      * **WARNING**: This possibly allocates a new list on read, depending if there are new nodes to add.
      */
     val children get() = nodes.toList()
+
+    val onUpdate: MutableList<(Duration) -> Unit> = mutableListOf()
 
     /**
      * Sets the parent [Node] of this [Node].
@@ -294,6 +297,7 @@ open class Node : Comparable<Node> {
      */
     internal open fun _update(dt: Duration) {
         update(dt)
+        onUpdate.fastForEach { it.invoke(dt) }
         nodes.updateLists()
         nodes.update(dt)
     }
