@@ -1,22 +1,33 @@
 package com.lehaine.littlekt.graph.node.node2d
 
+import com.lehaine.littlekt.graph.SceneGraph
+import com.lehaine.littlekt.graph.node.Node
+import com.lehaine.littlekt.graph.node.addTo
+import com.lehaine.littlekt.graph.node.annotation.SceneGraphDslMarker
+import com.lehaine.littlekt.graph.node.node2d.ui.VBoxContainer
 import com.lehaine.littlekt.math.Mat3
 import com.lehaine.littlekt.math.Mat4
 import com.lehaine.littlekt.math.MutableVec2f
 import com.lehaine.littlekt.math.Vec2f
 import com.lehaine.littlekt.math.geom.Angle
 import com.lehaine.littlekt.math.geom.plus
-import com.lehaine.littlekt.graph.SceneGraph
-import com.lehaine.littlekt.graph.node.Node
-import com.lehaine.littlekt.graph.node.addTo
-import com.lehaine.littlekt.graph.node.annotation.SceneGraphDslMarker
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
 
+/**
+ * Adds a [Node2D] to the current [Node] as a child and then triggers the [callback]
+ * @param callback the callback that is invoked with a [Node2D] context in order to initialize any values
+ * @return the newly created [Node2D]
+ */
 inline fun Node.node2d(callback: @SceneGraphDslMarker Node2D.() -> Unit = {}) =
     Node2D().also(callback).addTo(this)
 
+/**
+ * Adds a [Node2D] to the current [SceneGraph.root] as a child and then triggers the [Node2D]
+ * @param callback the callback that is invoked with a [Node2D] context in order to initialize any values
+ * @return the newly created [Node2D]
+ */
 inline fun SceneGraph.node2d(callback: @SceneGraphDslMarker Node2D.() -> Unit = {}) = root.node2d(callback)
 
 /**

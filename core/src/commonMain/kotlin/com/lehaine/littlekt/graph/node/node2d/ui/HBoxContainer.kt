@@ -10,6 +10,7 @@ import com.lehaine.littlekt.graph.node.annotation.SceneGraphDslMarker
  */
 inline fun Node.hBoxContainer(callback: @SceneGraphDslMarker HBoxContainer.() -> Unit = {}) =
     HBoxContainer().also(callback).addTo(this)
+
 /**
  * Adds a [HBoxContainer] to the current [SceneGraph.root] as a child and then triggers the [callback]
  */

@@ -10,12 +10,16 @@ import kotlin.math.max
 
 /**
  * Adds a [CenterContainer] to the current [Node] as a child and then triggers the [callback]
+ * @param callback the callback that is invoked with a [CenterContainer] context in order to initialize any values
+ * @return the newly created [CenterContainer]
  */
 inline fun Node.centerContainer(callback: @SceneGraphDslMarker CenterContainer.() -> Unit = {}) =
     CenterContainer().also(callback).addTo(this)
 
 /**
  * Adds a [CenterContainer] to the current [SceneGraph.root] as a child and then triggers the [callback]
+ * @param callback the callback that is invoked with a [CenterContainer] context in order to initialize any values
+ * @return the newly created [CenterContainer]
  */
 inline fun SceneGraph.centerContainer(callback: @SceneGraphDslMarker CenterContainer.() -> Unit = {}) =
     root.centerContainer(callback)

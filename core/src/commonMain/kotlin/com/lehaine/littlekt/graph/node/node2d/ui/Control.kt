@@ -20,12 +20,16 @@ import kotlin.math.max
 
 /**
  * Adds a [Control] to the current [Node] as a child and then triggers the [callback]
+ * @param callback the callback that is invoked with a [Control] context in order to initialize any values
+ * @return the newly created [Control]
  */
 inline fun Node.control(callback: @SceneGraphDslMarker Control.() -> Unit = {}) =
     Control().also(callback).addTo(this)
 
 /**
  * Adds a [Control] to the current [SceneGraph.root] as a child and then triggers the [callback]
+ * @param callback the callback that is invoked with a [Control] context in order to initialize any values
+ * @return the newly created [Control]
  */
 inline fun SceneGraph.control(callback: @SceneGraphDslMarker Control.() -> Unit = {}) = root.control(callback)
 

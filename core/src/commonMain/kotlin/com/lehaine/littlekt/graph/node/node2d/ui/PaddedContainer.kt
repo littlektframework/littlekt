@@ -10,6 +10,7 @@ import com.lehaine.littlekt.graph.node.annotation.SceneGraphDslMarker
  */
 inline fun Node.paddedContainer(callback: @SceneGraphDslMarker PaddedContainer.() -> Unit = {}) =
     PaddedContainer().also(callback).addTo(this)
+
 /**
  * Adds a [PaddedContainer] to the current [SceneGraph.root] as a child and then triggers the [callback]
  */

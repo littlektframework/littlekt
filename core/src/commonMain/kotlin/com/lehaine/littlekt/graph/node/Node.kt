@@ -1,22 +1,47 @@
 package com.lehaine.littlekt.graph.node
 
+import com.lehaine.littlekt.graph.SceneGraph
+import com.lehaine.littlekt.graph.node.annotation.SceneGraphDslMarker
+import com.lehaine.littlekt.graph.node.internal.NodeList
 import com.lehaine.littlekt.graphics.Camera
 import com.lehaine.littlekt.graphics.SpriteBatch
 import com.lehaine.littlekt.util.fastForEach
 import com.lehaine.littlekt.util.viewport.Viewport
-import com.lehaine.littlekt.graph.SceneGraph
-import com.lehaine.littlekt.graph.node.annotation.SceneGraphDslMarker
-import com.lehaine.littlekt.graph.node.internal.NodeList
+import kotlin.native.concurrent.ThreadLocal
 import kotlin.time.Duration
 
+/**
+ * Adds a [Node] to the current [Node] as a child and then triggers the [callback]
+ * @param callback the callback that is invoked with a [Node] context in order to initialize any values
+ * @return the newly created [Node]
+ */
 inline fun Node.node(callback: @SceneGraphDslMarker Node.() -> Unit = {}) =
     Node().also(callback).addTo(this)
 
+/**
+ * Adds the specified [Node] to the current [Node] as a child and then triggers the [callback]. This can be used
+ * for classes that extend node that perhaps they don't have a DSL method to initialize it.
+ * @param node the node to add
+ * @param callback the callback that is invoked with a [Node] context in order to initialize any values
+ * @return the newly created [Node]
+ */
 inline fun <T : Node> Node.node(node: T, callback: @SceneGraphDslMarker T.() -> Unit = {}) =
     node.also(callback).addTo(this)
 
+/**
+ * Adds a [Node] to the current [SceneGraph.root] as a child and then triggers the [Node]
+ * @param callback the callback that is invoked with a [Node] context in order to initialize any values
+ * @return the newly created [Node]
+ */
 inline fun SceneGraph.node(callback: @SceneGraphDslMarker Node.() -> Unit = {}) = root.node(callback)
 
+/**
+ * Adds a [Node] to the current [SceneGraph.root] as a child and then triggers the [Node]. This can be used
+ * for classes that extend node that perhaps they don't have a DSL method to initialize it.
+ * @param node the node to add
+ * @param callback the callback that is invoked with a [Node] context in order to initialize any values
+ * @return the newly created [Node]
+ */
 inline fun <T : Node> SceneGraph.node(node: T, callback: @SceneGraphDslMarker T.() -> Unit = {}) =
     root.node(node, callback)
 
@@ -26,6 +51,7 @@ inline fun <T : Node> SceneGraph.node(node: T, callback: @SceneGraphDslMarker T.
  */
 open class Node : Comparable<Node> {
 
+    @ThreadLocal
     companion object {
         private var idGenerator = 0
         internal const val CLEAN = 0

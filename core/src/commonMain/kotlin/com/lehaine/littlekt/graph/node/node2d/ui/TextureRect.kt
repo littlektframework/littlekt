@@ -12,12 +12,16 @@ import kotlin.math.absoluteValue
 
 /**
  * Adds a [TextureRect] to the current [Node] as a child and then triggers the [callback]
+ * @param callback the callback that is invoked with a [TextureRect] context in order to initialize any values
+ * @return the newly created [TextureRect]
  */
 inline fun Node.textureRect(callback: @SceneGraphDslMarker TextureRect.() -> Unit = {}) =
     TextureRect().also(callback).addTo(this)
 
 /**
  * Adds a [TextureRect] to the  [SceneGraph.root] as a child and then triggers the [callback]
+ * @param callback the callback that is invoked with a [TextureRect] context in order to initialize any values
+ * @return the newly created [TextureRect]
  */
 inline fun SceneGraph.textureRect(callback: @SceneGraphDslMarker TextureRect.() -> Unit = {}) =
     root.textureRect(callback)

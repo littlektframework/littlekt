@@ -13,12 +13,16 @@ import kotlin.time.Duration
 
 /**
  * Adds a [Container] to the current [Node] as a child and then triggers the [callback]
+ * @param callback the callback that is invoked with a [Container] context in order to initialize any values
+ * @return the newly created [Container]
  */
 inline fun Node.container(callback: @SceneGraphDslMarker Container.() -> Unit = {}) =
     Container().also(callback).addTo(this)
 
 /**
  * Adds a [Container] to the current [SceneGraph.root] as a child and then triggers the [callback]
+ * @param callback the callback that is invoked with a [Container] context in order to initialize any values
+ * @return the newly created [Container]
  */
 inline fun SceneGraph.container(callback: @SceneGraphDslMarker Container.() -> Unit = {}) = root.container(callback)
 
