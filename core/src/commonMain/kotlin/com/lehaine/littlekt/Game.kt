@@ -196,7 +196,7 @@ open class Game<SceneType : Scene>(context: Context, firstScene: SceneType? = nu
     inline fun <reified T : Any> load(
         file: VfsFile,
         parameters: GameAssetParameters = GameAssetParameters()
-    ) = `access$assetProvider`.load<T>(file, parameters)
+    ) = `access_assetProvider`.load<T>(file, parameters)
 
 
     /**
@@ -245,7 +245,8 @@ open class Game<SceneType : Scene>(context: Context, firstScene: SceneType? = nu
 
     private fun emptyScene(context: Context): Scene = object : Scene(context) {}
 
+    @Suppress("PropertyName")
     @PublishedApi
-    internal val `access$assetProvider`: AssetProvider
+    internal val access_assetProvider: AssetProvider
         get() = assetProvider
 }
