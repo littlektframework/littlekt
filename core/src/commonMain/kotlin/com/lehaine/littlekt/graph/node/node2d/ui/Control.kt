@@ -385,17 +385,17 @@ open class Control : Node2D() {
     internal fun computeAnchors() {
         val parentRect = getParentAnchorableRect()
         _anchorLeft = (x - marginLeft) / parentRect.width
-        _anchorBottom = (y - marginBottom) / parentRect.height
+        _anchorTop = (y - marginTop) / parentRect.height
         _anchorRight = (x + width - marginLeft) / parentRect.width
-        _anchorTop = (y + height - marginTop) / parentRect.height
+        _anchorBottom = (y + height - marginBottom) / parentRect.height
     }
 
     internal fun computeMargins() {
         val parentRect = getParentAnchorableRect()
         _marginLeft = x - (anchorLeft * parentRect.width)
-        _marginBottom = y - (anchorBottom * parentRect.height)
+        _marginTop = y - (anchorTop * parentRect.height)
         _marginRight = x + width - (anchorRight * parentRect.width)
-        _marginTop = y + height - (anchorTop * parentRect.height)
+        _marginBottom = y + height - (anchorBottom * parentRect.height)
     }
 
     private fun computeAnchorMarginLayout(layout: AnchorLayout, triggerSizeChanged: Boolean = true) {
@@ -444,7 +444,7 @@ open class Control : Node2D() {
             TOP_WIDE,
             VCENTER_WIDE,
             WIDE ->
-                setAnchor(AnchorSide.TOP, 1f, keepMargins, triggerSizeChanged)
+                setAnchor(AnchorSide.TOP, 0f, keepMargins, triggerSizeChanged)
             CENTER_LEFT,
             CENTER_RIGHT,
             CENTER,
@@ -454,7 +454,7 @@ open class Control : Node2D() {
             BOTTOM_RIGHT,
             CENTER_BOTTOM,
             BOTTOM_WIDE ->
-                setAnchor(AnchorSide.TOP, 0f, keepMargins, triggerSizeChanged)
+                setAnchor(AnchorSide.TOP, 1f, keepMargins, triggerSizeChanged)
             else -> {
                 // anchors need set manually
             }
@@ -492,7 +492,7 @@ open class Control : Node2D() {
             TOP_RIGHT,
             CENTER_TOP,
             TOP_WIDE ->
-                setAnchor(AnchorSide.BOTTOM, 1f, keepMargins, triggerSizeChanged)
+                setAnchor(AnchorSide.BOTTOM, 0f, keepMargins, triggerSizeChanged)
             CENTER_LEFT,
             CENTER_RIGHT,
             CENTER,
@@ -506,7 +506,7 @@ open class Control : Node2D() {
             BOTTOM_WIDE,
             VCENTER_WIDE,
             WIDE ->
-                setAnchor(AnchorSide.BOTTOM, 0f, keepMargins, triggerSizeChanged)
+                setAnchor(AnchorSide.BOTTOM, 1f, keepMargins, triggerSizeChanged)
             else -> {
                 // anchors need set manually
             }
@@ -553,17 +553,17 @@ open class Control : Node2D() {
             TOP_WIDE,
             VCENTER_WIDE,
             WIDE ->
-                parentRect.height * (1f - _anchorTop) + parentRect.y
+                parentRect.height * (0f - _anchorTop) + parentRect.y
             CENTER_LEFT,
             CENTER_RIGHT,
             CENTER,
             HCENTER_WIDE ->
-                parentRect.height * (0.5f - _anchorTop) + combinedMinHeight / 2 + parentRect.y
+                parentRect.height * (0.5f - _anchorTop) - combinedMinHeight / 2 + parentRect.y
             BOTTOM_LEFT,
             BOTTOM_RIGHT,
             CENTER_BOTTOM,
             BOTTOM_WIDE ->
-                parentRect.height * (0f - _anchorTop) + combinedMinHeight + parentRect.y
+                parentRect.height * (1f - _anchorTop) - combinedMinHeight + parentRect.y
             else ->
                 _marginTop
         }
@@ -599,12 +599,12 @@ open class Control : Node2D() {
             TOP_RIGHT,
             CENTER_TOP,
             TOP_WIDE ->
-                parentRect.height * (1f - _anchorBottom) - combinedMinHeight + parentRect.y
+                parentRect.height * (0f - _anchorBottom) + combinedMinHeight + parentRect.y
             CENTER_LEFT,
             CENTER_RIGHT,
             CENTER,
             HCENTER_WIDE ->
-                parentRect.height * (0.5f - _anchorBottom) - combinedMinHeight / 2 + parentRect.y
+                parentRect.height * (0.5f - _anchorBottom) + combinedMinHeight / 2 + parentRect.y
             BOTTOM_LEFT,
             BOTTOM_RIGHT,
             CENTER_BOTTOM,
@@ -613,7 +613,7 @@ open class Control : Node2D() {
             BOTTOM_WIDE,
             VCENTER_WIDE,
             WIDE ->
-                parentRect.height * (0f - _anchorBottom) + parentRect.y
+                parentRect.height * (1f - _anchorBottom) + parentRect.y
             else ->
                 _marginBottom
 
@@ -629,22 +629,22 @@ open class Control : Node2D() {
         val parentRect = getParentAnchorableRect()
         val parentRange =
             if (side == AnchorSide.LEFT || side == AnchorSide.RIGHT) parentRect.width else parentRect.height
-        val prevPos = getMargin(side) + getAnchor(side) * parentRange
-        val prevOppositePos = getOppositeMargin(side) + getOppositeAnchor(side) * parentRange
+        val prevPos = side.margin + side.anchor * parentRange
+        val prevOppositePos = side.oppositeMargin + side.oppositeAnchor * parentRange
 
-        setAnchorSide(side, value)
+        side.anchor = value
 
-        if (((side == AnchorSide.LEFT || side == AnchorSide.BOTTOM) && getAnchor(side) > getOppositeAnchor(side)) ||
-            ((side == AnchorSide.RIGHT || side == AnchorSide.TOP) && getAnchor(side) < getOppositeAnchor(side))
+        if (((side == AnchorSide.LEFT || side == AnchorSide.TOP) && side.anchor > side.oppositeAnchor) ||
+            ((side == AnchorSide.RIGHT || side == AnchorSide.BOTTOM) && side.anchor < side.oppositeAnchor)
         ) {
             // push the opposite anchor
-            setOppositeAnchorSide(side, getAnchor(side))
+            side.oppositeAnchor = side.anchor
         }
 
         if (!keepMargins) {
-            setMarginSide(side, prevPos - getAnchor(side) * parentRange)
+            side.margin = prevPos - side.anchor * parentRange
             // push the opposite margin
-            setOppositeMarginSide(side, prevOppositePos - getOppositeAnchor(side) * parentRange)
+            side.oppositeMargin = prevOppositePos - side.oppositeAnchor * parentRange
         }
 
         if (triggerSizeChanged && insideTree) {
@@ -652,65 +652,61 @@ open class Control : Node2D() {
         }
     }
 
-    private fun getAnchor(side: AnchorSide) = when (side) {
-        AnchorSide.LEFT -> _anchorLeft
-        AnchorSide.BOTTOM -> _anchorBottom
-        AnchorSide.RIGHT -> _anchorRight
-        AnchorSide.TOP -> _anchorTop
-    }
-
-    private fun getOppositeAnchor(side: AnchorSide) = when (side) {
-        AnchorSide.LEFT -> _anchorRight
-        AnchorSide.BOTTOM -> _anchorTop
-        AnchorSide.RIGHT -> _anchorLeft
-        AnchorSide.TOP -> _anchorBottom
-    }
-
-    private fun getMargin(side: AnchorSide) = when (side) {
-        AnchorSide.LEFT -> _marginLeft
-        AnchorSide.BOTTOM -> _marginBottom
-        AnchorSide.RIGHT -> _marginRight
-        AnchorSide.TOP -> _marginTop
-    }
-
-    private fun getOppositeMargin(side: AnchorSide) = when (side) {
-        AnchorSide.LEFT -> _marginRight
-        AnchorSide.BOTTOM -> _marginTop
-        AnchorSide.RIGHT -> _marginLeft
-        AnchorSide.TOP -> _marginBottom
-    }
-
-    private fun setAnchorSide(side: AnchorSide, value: Float) {
-        when (side) {
+    private var AnchorSide.anchor: Float
+        get() = when (this) {
+            AnchorSide.LEFT -> _anchorLeft
+            AnchorSide.BOTTOM -> _anchorBottom
+            AnchorSide.RIGHT -> _anchorRight
+            AnchorSide.TOP -> _anchorTop
+        }
+        set(value) = when (this) {
             AnchorSide.LEFT -> _anchorLeft = value
             AnchorSide.BOTTOM -> _anchorBottom = value
             AnchorSide.RIGHT -> _anchorRight = value
             AnchorSide.TOP -> _anchorTop = value
         }
-    }
 
-    private fun setOppositeAnchorSide(side: AnchorSide, value: Float) = when (side) {
-        AnchorSide.LEFT -> _anchorRight = value
-        AnchorSide.BOTTOM -> _anchorTop = value
-        AnchorSide.RIGHT -> _anchorLeft = value
-        AnchorSide.TOP -> _anchorBottom = value
-    }
+    private var AnchorSide.oppositeAnchor: Float
+        get() = when (this) {
+            AnchorSide.LEFT -> _anchorRight
+            AnchorSide.BOTTOM -> _anchorTop
+            AnchorSide.RIGHT -> _anchorLeft
+            AnchorSide.TOP -> _anchorBottom
+        }
+        set(value) = when (this) {
+            AnchorSide.LEFT -> _anchorRight = value
+            AnchorSide.BOTTOM -> _anchorTop = value
+            AnchorSide.RIGHT -> _anchorLeft = value
+            AnchorSide.TOP -> _anchorBottom = value
+        }
 
-    private fun setMarginSide(side: AnchorSide, value: Float) {
-        when (side) {
+    private var AnchorSide.margin: Float
+        get() = when (this) {
+            AnchorSide.LEFT -> _marginLeft
+            AnchorSide.BOTTOM -> _marginBottom
+            AnchorSide.RIGHT -> _marginRight
+            AnchorSide.TOP -> _marginTop
+        }
+        set(value) = when (this) {
             AnchorSide.LEFT -> _marginLeft = value
             AnchorSide.BOTTOM -> _marginBottom = value
             AnchorSide.RIGHT -> _marginRight = value
             AnchorSide.TOP -> _marginTop = value
         }
-    }
 
-    private fun setOppositeMarginSide(side: AnchorSide, value: Float) = when (side) {
-        AnchorSide.LEFT -> _marginRight = value
-        AnchorSide.BOTTOM -> _marginTop = value
-        AnchorSide.RIGHT -> _marginLeft = value
-        AnchorSide.TOP -> _marginBottom = value
-    }
+    private var AnchorSide.oppositeMargin: Float
+        get() = when (this) {
+            AnchorSide.LEFT -> _marginRight
+            AnchorSide.BOTTOM -> _marginTop
+            AnchorSide.RIGHT -> _marginLeft
+            AnchorSide.TOP -> _marginBottom
+        }
+        set(value) = when (this) {
+            AnchorSide.LEFT -> _marginRight = value
+            AnchorSide.BOTTOM -> _marginTop = value
+            AnchorSide.RIGHT -> _marginLeft = value
+            AnchorSide.TOP -> _marginBottom = value
+        }
 
     protected fun applyTransform(batch: SpriteBatch) {
         tempMat4.set(batch.transformMatrix)
@@ -728,14 +724,14 @@ open class Control : Node2D() {
         val parentRect = getParentAnchorableRect()
 
         val edgePosLeft = marginLeft + (anchorLeft * parentRect.width)
-        val edgePosTop = (anchorTop * parentRect.height) - marginTop
+        val edgePosTop = marginTop + (anchorTop * parentRect.height)
         val edgePosRight = (anchorRight * parentRect.width) - marginRight
-        val edgePosBottom = marginBottom + (anchorBottom * parentRect.height)
+        val edgePosBottom = (anchorBottom * parentRect.height) - marginBottom
 
         var newX = edgePosLeft
-        var newY = edgePosBottom
+        var newY = edgePosTop
         var newWidth = edgePosRight - edgePosLeft
-        var newHeight = edgePosTop - edgePosBottom
+        var newHeight = edgePosBottom - edgePosTop
 
         if (combinedMinWidth > newWidth) {
             if (horizontalGrowDirection == GrowDirection.BEGIN) {

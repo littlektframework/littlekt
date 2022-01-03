@@ -2,14 +2,14 @@ package com.lehaine.littlekt.graph
 
 import com.lehaine.littlekt.Context
 import com.lehaine.littlekt.Disposable
+import com.lehaine.littlekt.graph.node.Node
+import com.lehaine.littlekt.graph.node.annotation.SceneGraphDslMarker
 import com.lehaine.littlekt.graphics.OrthographicCamera
 import com.lehaine.littlekt.graphics.SpriteBatch
 import com.lehaine.littlekt.graphics.use
 import com.lehaine.littlekt.input.InputProcessor
 import com.lehaine.littlekt.util.viewport.ScreenViewport
 import com.lehaine.littlekt.util.viewport.Viewport
-import com.lehaine.littlekt.graph.node.Node
-import com.lehaine.littlekt.graph.node.annotation.SceneGraphDslMarker
 import kotlin.time.Duration
 
 inline fun sceneGraph(
@@ -33,7 +33,12 @@ open class SceneGraph(
     private var ownsBatch = true
     val batch: SpriteBatch = batch?.also { ownsBatch = false } ?: SpriteBatch(context)
 
-    val root: Node by lazy { Node().apply { scene = this@SceneGraph } }
+    val root: Node by lazy {
+        Node().apply {
+            scene = this@SceneGraph
+            this.viewport = this@SceneGraph.viewport
+        }
+    }
 
     val width: Int get() = viewport.virtualWidth
     val height: Int get() = viewport.virtualHeight
