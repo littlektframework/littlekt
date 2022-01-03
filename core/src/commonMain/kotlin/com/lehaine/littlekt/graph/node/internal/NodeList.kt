@@ -1,7 +1,7 @@
-package graph.node.internal
+package com.lehaine.littlekt.graph.node.internal
 
 import com.lehaine.littlekt.log.Logger
-import graph.node.Node
+import com.lehaine.littlekt.graph.node.Node
 import kotlin.reflect.KClass
 import kotlin.time.Duration
 

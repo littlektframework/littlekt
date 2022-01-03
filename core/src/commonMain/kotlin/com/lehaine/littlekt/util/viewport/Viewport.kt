@@ -1,6 +1,7 @@
 package com.lehaine.littlekt.util.viewport
 
 import com.lehaine.littlekt.Context
+import com.lehaine.littlekt.util.Signal
 
 /**
  * A base viewport where the virtual size is the same as the viewport/screen size.
@@ -19,6 +20,9 @@ open class Viewport(
     var height: Int
 ) {
     constructor() : this(0, 0, 0, 0)
+
+
+    val sizeChangedSignal = Signal()
 
     /**
      * The virtual/world width.
@@ -50,6 +54,7 @@ open class Viewport(
     open fun update(width: Int, height: Int, context: Context) {
         set(0, 0, width, height)
         apply(context)
+        sizeChangedSignal.emit()
     }
 
     /**
