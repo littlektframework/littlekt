@@ -17,12 +17,17 @@ class GlyphLayout {
     var height: Float = 0f
 
     fun setText(
-        font: Font, text: String, width: Float = 0f, align: HAlign = HAlign.LEFT, wrap: Boolean = false,
+        font: Font,
+        text: String,
+        width: Float = 0f,
+        scale: Float = 1f,
+        align: HAlign = HAlign.LEFT,
+        wrap: Boolean = false,
         truncate: String? = null
     ) {
         if (text.isEmpty()) return
 
-        val targetWidth = if (wrap) max(width, font.spaceWidth * 3) else width
+        val targetWidth = if (wrap) max(width, font.spaceWidth * 3 * scale) else width
         val wrapOrTruncate = wrap || truncate != null
         var lastRun = false
         var y = 0f
@@ -44,48 +49,59 @@ class GlyphLayout {
 
                 if (!newLine && !lastRun) return@forEachIndexed
 
-                val run = GlyphRun().apply {
-                    this.x = 0f
-                    this.y = y
-                    getGlyphsFrom(font, text, runStart, runEnd, null)
-                } // TODO alloc and free from a pool instead
-                if (currentRun == null) {
-                    currentRun = run.also { runs += it }
-                } else {
-                    currentRun?.append(run)
-                }
+                run runEnded@{
+                    val run = GlyphRun().apply {
+                        this.x = 0f
+                        this.y = y
+                        getGlyphsFrom(font, text, scale, runStart, runEnd, null)
+                    } // TODO alloc and free from a pool instead
+                    if (currentRun == null) {
+                        currentRun = run.also { runs += it }
+                    } else {
+                        currentRun?.append(run)
+                    }
 
-                if (wrapOrTruncate && (newLine || lastRun)) {
-                    currentRun?.let { currentRun ->
-                        var runWidth = currentRun.xAdvances.first() + currentRun.xAdvances[1]
-                        var i = 1
-                        while (i < currentRun.xAdvances.size) {
-                            i++
-                            val glyph = currentRun.glyphs[i - 1]
-                            if (runWidth + glyph.width <= targetWidth) {
-                                runWidth += currentRun.xAdvances[i]
-                                continue
+                    if (wrapOrTruncate && (newLine || lastRun)) {
+                        currentRun?.let { cr ->
+                            var glyphRun = cr
+                            var runWidth = glyphRun.xAdvances.first() + glyphRun.xAdvances[1]
+                            var i = 1
+                            while (i < glyphRun.xAdvances.size) {
+                                i++
+                                val glyph = glyphRun.glyphs[i - 1]
+                                if (runWidth + glyph.advanceWidth * scale <= targetWidth) {
+                                    runWidth += glyphRun.xAdvances[i]
+                                    continue
+                                }
+
+                                if (truncate != null) {
+                                    // TODO truncate
+                                    return@outer
+                                }
+
+                                // wrap
+                                var wrapIndex = font.wrapIndex(glyphRun.glyphs, i)
+                                if ((wrapIndex == 0 && glyphRun.x == 0f) // requires at least one glyph per line
+                                    || wrapIndex >= glyphRun.glyphs.size
+                                ) { // wrap al least the glyph that didn't fit
+                                    wrapIndex = i - 1
+                                }
+                                val newRun = wrap(font, glyphRun, wrapIndex).also {
+                                    currentRun = it
+                                }?.also { glyphRun = it } ?: return@runEnded
+
+                                runs += newRun
+                                y += font.down
+                                newRun.x = 0f
+                                newRun.y = y
+
+                                // start the wrap loop again, another wrap might be necessary
+                                runWidth = newRun.xAdvances.first() + newRun.xAdvances[1]
+                                i = 0
                             }
-
-                            if (truncate != null) {
-                                // TODO truncate
-                                return@outer
-                            }
-
-                            // TODO handle wrap
-
-                            runs += currentRun
-                            y += font.down
-                            currentRun.x = 0f
-                            currentRun.y = y
-
-                            // start the wrap loop again, another wrap might be necessary
-                            runWidth = currentRun.xAdvances.first() + currentRun.xAdvances[1]
-                            i = 1
                         }
                     }
                 }
-
                 if (newLine) {
                     currentRun = null
 
@@ -99,17 +115,70 @@ class GlyphLayout {
             }
         }
         height = font.capHeight + abs(y)
-        calculateWidths(font)
+        calculateWidths(font, scale)
         alignRuns(targetWidth, align)
     }
 
-    private fun calculateWidths(font: Font) {
+    private fun wrap(font: Font, first: GlyphRun, wrapIndex: Int): GlyphRun? {
+        val glyphs2 = first.glyphs
+        val glyphCount = first.glyphs.size
+        val xAdvances2 = first.xAdvances
+
+        // skip whitespace before the wrap index
+        var firstEnd = wrapIndex
+        while (firstEnd > 0) {
+            if (!font.isWhitespace(glyphs2[firstEnd - 1].unicode.toChar())) break
+            firstEnd--
+        }
+
+        // skip whitespace after the wrap index
+        var secondStart = wrapIndex
+        while (secondStart < glyphCount) {
+            if (!font.isWhitespace(glyphs2[secondStart].unicode.toChar())) break
+            secondStart++
+        }
+
+        // copy wrapped glyphs and advances to second run
+        // the second run will contain the remaining glyph data, so swap instances rather than copying
+        var second: GlyphRun? = null
+        if (secondStart < glyphCount) {
+            val newRun = GlyphRun()
+            val glyphs1 = newRun.glyphs
+            glyphs1.ensureCapacity(firstEnd)
+            for (i in 0 until firstEnd) {
+                glyphs1 += glyphs2[i]
+            }
+            for (i in 0 until secondStart - 1) {
+                glyphs2.removeAt(i)
+            }
+            first.glyphs = glyphs1
+            newRun.glyphs = glyphs2
+
+            val xAdvances1 = newRun.xAdvances
+            xAdvances1.size = firstEnd + 1
+            for (i in 0 until firstEnd + 1) {
+                xAdvances1 += xAdvances2[i]
+            }
+            xAdvances2.removeAt(1, secondStart)
+            xAdvances2[0] = glyphs2.first().leftSideBearing.toFloat()
+            first.xAdvances = xAdvances1
+            newRun.xAdvances = xAdvances2
+            second = newRun
+        }
+
+        if (firstEnd == 0) {
+            runs.removeLast()
+        }
+        return second
+    }
+
+    private fun calculateWidths(font: Font, scale: Float) {
         var width = 0f
         runs.forEach { run ->
             var runWidth = run.x + run.xAdvances.first()
             var max = 0f
             run.glyphs.forEachIndexed { index, glyph ->
-                max = max(max, runWidth + glyph.width)
+                max = max(max, runWidth + glyph.advanceWidth * scale)
                 runWidth += run.xAdvances[index]
             }
             run.width = max(runWidth, max) - run.x
@@ -128,9 +197,22 @@ class GlyphLayout {
     }
 }
 
+private fun Font.wrapIndex(glyphs: List<Glyph>, start: Int): Int {
+    var i = start - 1
+    var ch = glyphs[i].unicode.toChar()
+    if (ch.isWhitespace) return i
+    if (ch.isWrapChar) i--
+    while (i > 0) {
+        i--
+        ch = glyphs[i].unicode.toChar()
+        if (ch.isWhitespace || ch.isWrapChar) return i + 1
+    }
+    return 0
+}
+
 class GlyphRun {
-    val glyphs = arrayListOf<Glyph>()
-    val xAdvances = FloatArrayList()
+    var glyphs = arrayListOf<Glyph>()
+    var xAdvances = FloatArrayList()
     var x: Float = 0f
     var y: Float = 0f
     var width: Float = 0f
@@ -148,7 +230,7 @@ class GlyphRun {
         xAdvances.clear()
     }
 
-    fun getGlyphsFrom(font: Font, text: CharSequence, start: Int, end: Int, lastGlyph: Glyph?) {
+    fun getGlyphsFrom(font: Font, text: CharSequence, scale: Float, start: Int, end: Int, lastGlyph: Glyph?) {
         val max = end - start
         if (max == 0) return
 
@@ -156,6 +238,7 @@ class GlyphRun {
         var currGlyph = lastGlyph
         glyphs.ensureCapacity(max)
         xAdvances.size = max + 1
+        xAdvances.clear()
 
         do {
             val ch = text[i++]
@@ -165,12 +248,12 @@ class GlyphRun {
                 glyph = font.missingGlyph ?: continue
             }
             glyphs += glyph
-            xAdvances += glyph.advanceWidth
+            xAdvances += glyph.advanceWidth * scale
             currGlyph = glyph
         } while (i < end)
 
         if (currGlyph != null) {
-            xAdvances += currGlyph.advanceWidth
+            xAdvances += currGlyph.advanceWidth * scale
         }
     }
 

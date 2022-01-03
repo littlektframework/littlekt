@@ -14,9 +14,6 @@ class TtfFont(val chars: CharSequence = CharacterSets.LATIN_ALL) : Font() {
 
     override val glyphs: Map<Int, Glyph> get() = glyphCache
 
-    var unitsPerEm = 1000
-        private set
-
     fun load(data: ByteBuffer) {
         val buffer = createByteBuffer(data.toArray(), isBigEndian = true).also { it.flip() }
         val reader = TtfFontReader().also {

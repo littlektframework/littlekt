@@ -3,7 +3,6 @@ package com.lehaine.littlekt.samples
 import com.lehaine.littlekt.Context
 import com.lehaine.littlekt.Game
 import com.lehaine.littlekt.Scene
-import com.lehaine.littlekt.graph.node.component.HAlign
 import com.lehaine.littlekt.graphics.Color
 import com.lehaine.littlekt.graphics.GlyphLayout
 import com.lehaine.littlekt.graphics.font.TtfFont
@@ -20,7 +19,7 @@ class GlyphLayoutTest(context: Context) : Game<Scene>(context) {
 
     override fun create() {
         val layout = GlyphLayout()
-        layout.setText(font, "My test\nstring")
+        layout.setText(font, "My test string", 500f, scale = font.pxScale(36), wrap = true)
         println(layout.runs)
     }
 
