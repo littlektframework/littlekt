@@ -4,6 +4,7 @@ import com.lehaine.littlekt.graph.node.component.HAlign
 import com.lehaine.littlekt.graphics.font.Font
 import com.lehaine.littlekt.graphics.font.Glyph
 import com.lehaine.littlekt.util.datastructure.FloatArrayList
+import kotlin.math.abs
 import kotlin.math.max
 
 /**
@@ -12,6 +13,8 @@ import kotlin.math.max
  */
 class GlyphLayout {
     val runs = mutableListOf<GlyphRun>()
+    var width: Float = 0f
+    var height: Float = 0f
 
     fun setText(
         font: Font, text: String, width: Float = 0f, align: HAlign = HAlign.LEFT, wrap: Boolean = false,
@@ -93,6 +96,33 @@ class GlyphLayout {
                     }
                 }
                 runStart = index
+            }
+        }
+        height = font.capHeight + abs(y)
+        calculateWidths(font)
+        alignRuns(targetWidth, align)
+    }
+
+    private fun calculateWidths(font: Font) {
+        var width = 0f
+        runs.forEach { run ->
+            var runWidth = run.x + run.xAdvances.first()
+            var max = 0f
+            run.glyphs.forEachIndexed { index, glyph ->
+                max = max(max, runWidth + glyph.width)
+                runWidth += run.xAdvances[index]
+            }
+            run.width = max(runWidth, max) - run.x
+            width = max(width, run.x + run.width)
+        }
+        this.width = width
+    }
+
+    private fun alignRuns(targetWidth: Float, align: HAlign) {
+        if (align != HAlign.LEFT) {
+            val center = align == HAlign.CENTER
+            runs.forEach { run ->
+                run.x += if (center) 0.5f * (targetWidth - run.width) else targetWidth - run.width
             }
         }
     }
