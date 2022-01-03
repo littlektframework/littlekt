@@ -138,7 +138,7 @@ class GpuFont(
     }
 
     /**
-     * Draws the specified string of text at the specified location and rotaion.
+     * Draws the specified string of text at the specified location and rotation.
      * @param text the string of text to draw
      * @param x the x coord position
      * @param y the y coord position

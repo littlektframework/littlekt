@@ -52,4 +52,14 @@ abstract class Font {
      * The width of space character.
      */
     var spaceWidth: Float = 0f
+
+    /**
+     * The loaded glyphs of this [Font].
+     */
+    abstract val glyphs: Map<Int, Glyph>
+
+    val totalGlyphs get() = glyphs.size
+
+    operator fun get(code: Int) = glyphs[code]
+    operator fun get(char: Char) = glyphs[char.code]
 }

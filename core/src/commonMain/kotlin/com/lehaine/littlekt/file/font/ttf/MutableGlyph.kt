@@ -3,7 +3,7 @@ package com.lehaine.littlekt.file.font.ttf
 import com.lehaine.littlekt.graphics.font.Glyph
 import com.lehaine.littlekt.graphics.font.GlyphPath
 import com.lehaine.littlekt.graphics.font.GlyphReference
-import com.lehaine.littlekt.graphics.font.Point
+import com.lehaine.littlekt.graphics.font.ContourPoint
 import com.lehaine.littlekt.math.Rect
 
 /**
@@ -71,7 +71,7 @@ internal data class MutablePoint(
     var lastPointOfContour: Boolean = false
 ) {
 
-    fun toImmutable() = Point(x, y, onCurve, lastPointOfContour)
+    fun toImmutable() = ContourPoint(x, y, onCurve, lastPointOfContour)
 }
 
 
