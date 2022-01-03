@@ -4,7 +4,6 @@ import com.lehaine.littlekt.graph.SceneGraph
 import com.lehaine.littlekt.graph.node.Node
 import com.lehaine.littlekt.graph.node.addTo
 import com.lehaine.littlekt.graph.node.annotation.SceneGraphDslMarker
-import com.lehaine.littlekt.graph.node.node2d.ui.VBoxContainer
 import com.lehaine.littlekt.math.Mat3
 import com.lehaine.littlekt.math.Mat4
 import com.lehaine.littlekt.math.MutableVec2f
@@ -31,6 +30,7 @@ inline fun Node.node2d(callback: @SceneGraphDslMarker Node2D.() -> Unit = {}) =
 inline fun SceneGraph.node2d(callback: @SceneGraphDslMarker Node2D.() -> Unit = {}) = root.node2d(callback)
 
 /**
+ * A [Node] with 2D transformations.
  * @author Colton Daily
  * @date 1/1/2022
  */

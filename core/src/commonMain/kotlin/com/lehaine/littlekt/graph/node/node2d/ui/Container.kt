@@ -27,6 +27,7 @@ inline fun Node.container(callback: @SceneGraphDslMarker Container.() -> Unit = 
 inline fun SceneGraph.container(callback: @SceneGraphDslMarker Container.() -> Unit = {}) = root.container(callback)
 
 /**
+ * A [Control] node that all containers inherit from.
  * @author Colton Daily
  * @date 1/2/2022
  */

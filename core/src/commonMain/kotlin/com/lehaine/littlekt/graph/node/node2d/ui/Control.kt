@@ -47,6 +47,7 @@ private enum class AnchorSide {
 }
 
 /**
+ * The base [Node] for deriving ui element nodes. Handles size changes, anchoring, and margins.
  * @author Colton Daily
  * @date 1/2/2022
  */

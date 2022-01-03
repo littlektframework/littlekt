@@ -18,6 +18,7 @@ inline fun SceneGraph.paddedContainer(callback: @SceneGraphDslMarker PaddedConta
     root.paddedContainer(callback)
 
 /**
+ * A [Container] with padding.
  * @author Colton Daily
  * @date 1/2/2022
  */

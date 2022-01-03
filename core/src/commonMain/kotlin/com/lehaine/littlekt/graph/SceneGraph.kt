@@ -12,6 +12,15 @@ import com.lehaine.littlekt.util.viewport.ScreenViewport
 import com.lehaine.littlekt.util.viewport.Viewport
 import kotlin.time.Duration
 
+/**
+ * Create a new scene graph with a [callback] with the [SceneGraph] in context.
+ * @param context the current context
+ * @param viewport the viewport that the camera of the scene graph will own
+ * @param batch an option sprite batch. If omitted, the scene graph will create and manage its own.
+ * @param callback the callback that is invoked with a [SceneGraph] context
+ * in order to initialize any values and create nodes
+ * @return the newly created [SceneGraph]
+ */
 inline fun sceneGraph(
     context: Context,
     viewport: Viewport = ScreenViewport(context.graphics.width, context.graphics.height),
@@ -20,7 +29,10 @@ inline fun sceneGraph(
 ) = SceneGraph(context, viewport, batch).also(callback)
 
 /**
- * A scene com.lehaine.littlekt.graph
+ * A class for creating a scene graph of nodes.
+ * @param context the current context
+ * @param viewport the viewport that the camera of the scene graph will own
+ * @param batch an option sprite batch. If omitted, the scene graph will create and manage its own.
  * @author Colton Daily
  * @date 1/1/2022
  */

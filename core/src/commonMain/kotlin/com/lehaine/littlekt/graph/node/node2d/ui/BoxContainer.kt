@@ -4,6 +4,9 @@ import com.lehaine.littlekt.graph.node.component.AlignMode
 import com.lehaine.littlekt.graph.node.component.SizeFlag
 
 /**
+ * A [Container] that handles both vertical and horizontal alignments of its children.
+ * @see VBoxContainer
+ * @see HBoxContainer
  * @author Colton Daily
  * @date 1/2/2022
  */

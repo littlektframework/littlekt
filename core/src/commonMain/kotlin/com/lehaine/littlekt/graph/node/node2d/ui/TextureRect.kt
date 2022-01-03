@@ -27,6 +27,7 @@ inline fun SceneGraph.textureRect(callback: @SceneGraphDslMarker TextureRect.() 
     root.textureRect(callback)
 
 /**
+ * A [Control] node that display a [TextureSlice].
  * @author Colton Daily
  * @date 1/2/2022
  */

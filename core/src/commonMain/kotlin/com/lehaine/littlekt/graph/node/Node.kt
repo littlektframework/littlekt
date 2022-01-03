@@ -46,6 +46,7 @@ inline fun <T : Node> SceneGraph.node(node: T, callback: @SceneGraphDslMarker T.
     root.node(node, callback)
 
 /**
+ * The base node class that all other node's inherit from.
  * @author Colton Daily
  * @date 1/1/2022
  */

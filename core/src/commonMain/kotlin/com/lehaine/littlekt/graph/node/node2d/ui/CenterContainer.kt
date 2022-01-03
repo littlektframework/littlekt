@@ -25,6 +25,7 @@ inline fun SceneGraph.centerContainer(callback: @SceneGraphDslMarker CenterConta
     root.centerContainer(callback)
 
 /**
+ * A [Container] that centers any children within it.
  * @author Colton Daily
  * @date 1/2/2022
  */

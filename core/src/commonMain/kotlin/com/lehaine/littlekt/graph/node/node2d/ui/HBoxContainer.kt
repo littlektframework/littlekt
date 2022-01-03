@@ -18,6 +18,7 @@ inline fun SceneGraph.hBoxContainer(callback: @SceneGraphDslMarker HBoxContainer
     root.hBoxContainer(callback)
 
 /**
+ * A vertical [BoxContainer] by adding [Control] from left to right.
  * @author Colton Daily
  * @date 1/2/2022
  */
