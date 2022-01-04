@@ -19,7 +19,7 @@ class GlyphLayoutTest(context: Context) : Game<Scene>(context) {
 
     override fun create() {
         val layout = GlyphLayout()
-        layout.setText(font, "My test string", 500f, scale = font.pxScale(36), wrap = true)
+        layout.setText(font, "My test string", 125f, scale = font.pxScale(36), wrap = true)
         println(layout.runs)
     }
 
