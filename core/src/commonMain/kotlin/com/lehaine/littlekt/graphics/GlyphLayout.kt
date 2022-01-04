@@ -4,7 +4,6 @@ import com.lehaine.littlekt.graph.node.component.HAlign
 import com.lehaine.littlekt.graphics.font.Font
 import com.lehaine.littlekt.graphics.font.Glyph
 import com.lehaine.littlekt.util.datastructure.FloatArrayList
-import com.lehaine.littlekt.util.datastructure.internal.arraycopy
 import kotlin.math.abs
 import kotlin.math.max
 
@@ -87,7 +86,7 @@ class GlyphLayout {
                                 ) { // wrap al least the glyph that didn't fit
                                     wrapIndex = i - 1
                                 }
-                                val newRun = wrap(font, glyphRun, wrapIndex).also {
+                                val newRun = wrap(font, scale, glyphRun, wrapIndex).also {
                                     currentRun = it
                                 }?.also { glyphRun = it } ?: return@runEnded
 
@@ -120,10 +119,10 @@ class GlyphLayout {
         alignRuns(targetWidth, align)
     }
 
-    private fun wrap(font: Font, first: GlyphRun, wrapIndex: Int): GlyphRun? {
+    private fun wrap(font: Font, scale: Float, first: GlyphRun, wrapIndex: Int): GlyphRun? {
         val glyphs2 = first.glyphs
         val glyphCount = first.glyphs.size
-        val xAdvances2 = first.advances
+        val advances2 = first.advances
 
         // skip whitespace before the wrap index
         var firstEnd = wrapIndex
@@ -160,16 +159,16 @@ class GlyphLayout {
             first.glyphs = glyphs1
             newRun.glyphs = glyphs2
 
-            val xAdvances1 = newRun.advances
-            xAdvances1.size = firstEnd + 1
-            xAdvances1.clear()
-            for (i in 0 until firstEnd + 1) {
-                xAdvances1 += xAdvances2[i]
+            val advances1 = newRun.advances
+            advances1.size = firstEnd
+            advances1.clear()
+            for (i in 0 until firstEnd) {
+                advances1 += advances2[i]
             }
-            xAdvances2.removeAt(1, secondStart)
-            xAdvances2[0] = glyphs2.first().leftSideBearing.toFloat()
-            first.advances = xAdvances1
-            newRun.advances = xAdvances2
+            advances2.removeAt(1, secondStart)
+            advances2[0] = glyphs2.first().advanceWidth * scale
+            first.advances = advances1
+            newRun.advances = advances2
             second = newRun
         }
 
