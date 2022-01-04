@@ -152,6 +152,12 @@ internal class MeshBatcher(size: Int, val attributes: VertexAttributes) {
         count++
     }
 
+    internal fun add(newVertices: FloatArray, srcOffset: Int, dstOffset: Int, count: Int) {
+        newVertices.copyInto(vertices, dstOffset, srcOffset, srcOffset + count)
+        this.offset = dstOffset + count
+        this.count = offset / vertexSize
+    }
+
     internal fun skip(totalVertices: Int) {
         offset += totalVertices * vertexSize
         count += totalVertices
@@ -221,7 +227,7 @@ class Mesh(
     val numVertices get() = vertices.numVertices
 
     /**
-     * The default total count for rendnering vertices.
+     * The default total count for rendering vertices.
      * If using [batcher], this will default to the `batch.count * verticesPerIndex`
      * If not using the [batcher], this will default to the [numIndices], if greater than 0, else the [numVertices]
      *
@@ -254,6 +260,15 @@ class Mesh(
         batcher.setVertex(tempVertexProps)
         updateVertices = true
         resetProps()
+    }
+
+    /**
+     * Adds an array of vertices to the [MeshBatcher].
+     */
+    fun addVertices(vertices: FloatArray, srcOffset: Int = 0, dstOffset: Int = 0, count: Int = vertices.size) {
+        if (!useBatcher) throw IllegalStateException("This mesh isn't user the mesh batcher! You cannot use setVertex. You must pass in a FloatArray to setVertices.")
+        updateVertices = true
+        batcher.add(vertices, srcOffset, dstOffset, count)
     }
 
     /**
@@ -319,16 +334,18 @@ class Mesh(
 
     /**
      * Sets the vertices of this mesh directly. Updates the [VertexBufferObject].
+     * If [useBatcher] is true then any changes to this will be overridden.
      */
-    fun setVertices(vertices: FloatArray, srcOffset: Int = 0, count: Int = vertices.size): Mesh {
+    fun setVBOVertices(vertices: FloatArray, srcOffset: Int = 0, count: Int = vertices.size): Mesh {
         this.vertices.setVertices(vertices, srcOffset, count)
         return this
     }
 
     /**
-     * Updates a portion of the [VertexBufferObject] vertices.
+     * Updates a portion of the [VertexBufferObject] vertices. If [useBatcher] is true then any changes to this will
+     * be overridden.
      */
-    fun updateVertices(destOffset: Int, source: FloatArray, srcOffset: Int = 0, count: Int = source.size): Mesh {
+    fun updateVBOVertices(destOffset: Int, source: FloatArray, srcOffset: Int = 0, count: Int = source.size): Mesh {
         this.vertices.updateVertices(destOffset, source, srcOffset, count)
         return this
     }
@@ -375,7 +392,7 @@ class Mesh(
         count: Int = defaultCount,
     ) {
         if (useBatcher && updateVertices) {
-            setVertices(batcher.vertices)
+            setVBOVertices(batcher.vertices)
             if (numIndices > 0) {
                 indicesBuffer.apply {
                     position = 0

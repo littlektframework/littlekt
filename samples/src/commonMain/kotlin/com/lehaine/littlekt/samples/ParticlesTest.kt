@@ -6,7 +6,6 @@ import com.lehaine.littlekt.Scene
 import com.lehaine.littlekt.graphics.*
 import com.lehaine.littlekt.graphics.font.GpuFont
 import com.lehaine.littlekt.graphics.font.TtfFont
-import com.lehaine.littlekt.graphics.font.use
 import com.lehaine.littlekt.input.Key
 import com.lehaine.littlekt.math.random
 import com.lehaine.littlekt.util.seconds
@@ -31,6 +30,7 @@ class ParticlesTest(context: Context) : Game<Scene>(context) {
     val gpuFont: GpuFont by prepare { GpuFont(this@ParticlesTest, libSans, maxVertices = 50000) }
     val batch = SpriteBatch(this)
 
+    var lastDrawCalls = "TBD"
     override fun update(dt: Duration) {
         if (input.isKeyJustPressed(Key.ENTER)) {
             dustExplosion(camera.virtualWidth / 2f, camera.virtualHeight / 2f)
@@ -43,26 +43,37 @@ class ParticlesTest(context: Context) : Game<Scene>(context) {
         camera.viewport.apply(this)
         batch.use(camera.viewProjection) {
             particleSimulator.draw(batch)
-        }
 
-        uiCam.viewport.apply(this)
-        gpuFont.use(uiCam.viewProjection) {
-            it.drawText("FPS: ${stats.fps.toString(1)}", 0f, 15f, pxSize = 16, color = Color.WHITE)
-            it.drawText(
+            gpuFont.clear()
+            gpuFont.addText("FPS: ${stats.fps.toString(1)}", 0f, 15f, pxSize = 16, color = Color.WHITE)
+            gpuFont.addText(
                 "Total particles allocated: ${particleSimulator.numAlloc}",
                 0f,
                 40f,
                 pxSize = 16,
                 color = Color.WHITE
             )
-            it.drawText(
+            gpuFont.addText(
                 "Total particles alive: ${particleSimulator.totalAlive}",
                 0f,
                 65f,
                 pxSize = 16,
                 color = Color.WHITE
             )
+
+            gpuFont.addText(
+                "Draw calls: $lastDrawCalls",
+                0f,
+                90f,
+                pxSize = 16,
+                color = Color.WHITE
+            )
+            gpuFont.draw(it)
         }
+
+        lastDrawCalls = stats.engineStats.drawCalls.toString()
+
+        uiCam.viewport.apply(this)
     }
 
     override fun resize(width: Int, height: Int) {

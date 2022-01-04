@@ -8,7 +8,6 @@ import com.lehaine.littlekt.file.vfs.readTtfFont
 import com.lehaine.littlekt.graphics.*
 import com.lehaine.littlekt.graphics.font.GpuFont
 import com.lehaine.littlekt.graphics.font.TtfFont
-import com.lehaine.littlekt.graphics.font.use
 import com.lehaine.littlekt.graphics.tilemap.ldtk.LDtkEnumValue
 import com.lehaine.littlekt.graphics.tilemap.ldtk.LDtkWorld
 import com.lehaine.littlekt.input.Key
@@ -99,9 +98,12 @@ class LDtkMapTest(context: Context) : ContextListener(context) {
 
         uiCam.update()
         uiCam.viewport.apply(this)
-        gpuFontRenderer.use(uiCam.viewProjection) {
-            gpuFontRenderer.drawText("Vertices: ${stats.engineStats.vertices}", 0f, 15f, 16, color = Color.WHITE)
+        batch.use(uiCam.viewProjection) {
+            gpuFontRenderer.clear()
+            gpuFontRenderer.addText("Vertices: ${stats.engineStats.vertices}", 0f, 15f, 16, color = Color.WHITE)
+            gpuFontRenderer.draw(it)
         }
+
         if (input.isKeyPressed(Key.ESCAPE)) {
             close()
         }

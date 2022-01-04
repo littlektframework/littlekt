@@ -21,9 +21,6 @@ import com.lehaine.littlekt.math.geom.cosine
 import com.lehaine.littlekt.math.geom.degrees
 import com.lehaine.littlekt.math.geom.sine
 import com.lehaine.littlekt.util.datastructure.FloatArrayList
-import kotlin.contracts.ExperimentalContracts
-import kotlin.contracts.InvocationKind
-import kotlin.contracts.contract
 import kotlin.math.max
 import kotlin.time.measureTimedValue
 
@@ -59,37 +56,7 @@ class GpuFont(
      */
     maxVertices: Int = 10000
 ) {
-    var transformMatrix = Mat4()
-        set(value) {
-            if (drawing) {
-                flush()
-            }
-            field = value
-            if (drawing) {
-                setupMatrices()
-            }
-        }
-    var projectionMatrix = Mat4().setToOrthographic(
-        left = 0f,
-        right = context.graphics.width.toFloat(),
-        bottom = 0f,
-        top = context.graphics.height.toFloat(),
-        near = -1f,
-        far = 1f
-    )
-        set(value) {
-            if (drawing) {
-                flush()
-            }
-            field = value
-            if (drawing) {
-                setupMatrices()
-            }
-        }
-
     var debug = false
-
-    private val combinedMatrix = Mat4()
 
     private val compiler = GlyphCompiler()
     private val atlases = mutableListOf<AtlasGroup>()
@@ -97,14 +64,8 @@ class GpuFont(
     private val compiledGlyphs = mutableMapOf<TtfFont, MutableMap<Int, GpuGlyph>>(defaultFont to mutableMapOf())
     private val vertices = FloatArrayList(maxVertices)
 
-    private var drawing = false
-
     private val temp4 = Mat4() // used for rotating text
 
-    private val mesh: Mesh = textureMesh(context.gl) {
-        this.maxVertices = maxVertices
-        useBatcher = false
-    }.also { it.indicesAsQuad() }
     private val shader: ShaderProgram<GpuTextVertexShader, GpuTextFragmentShader> = ShaderProgram(
         GpuTextVertexShader(),
         GpuTextFragmentShader()
@@ -121,25 +82,6 @@ class GpuFont(
     }
 
     /**
-     * Indicates to the GpuFont to start drawing. Binds the shader and prepares the matrices for drawing.
-     * @param projectionMatrix the projection matrix to use in the text vertex shader.
-     */
-    fun begin(projectionMatrix: Mat4? = null) {
-        check(!drawing) { "end() must be called before begin." }
-
-        gl.depthMask(false)
-
-        projectionMatrix?.let {
-            this.projectionMatrix = it
-        }
-
-        shader.bind()
-        setupMatrices()
-
-        drawing = true
-    }
-
-    /**
      * Draws the specified string of text at the specified location and rotation.
      * @param text the string of text to draw
      * @param x the x coord position
@@ -148,7 +90,7 @@ class GpuFont(
      * @param rotation the rotation to draw the text
      * @param color the color of the text
      */
-    fun drawText(
+    fun addText(
         text: String,
         x: Float,
         y: Float,
@@ -160,8 +102,6 @@ class GpuFont(
         color: Color = Color.BLACK,
         font: TtfFont = defaultFont
     ) {
-        check(drawing) { "begin() must be called before drawText." }
-
         val scale = font.pxScale(pxSize)
         layout.setText(font, text, maxWidth, scale, align, wrap)
 
@@ -262,29 +202,12 @@ class GpuFont(
                 tx += runGlyph.advanceWidth * scale
             }
         }
-
-        mesh.setVertices(vertices.data, 0, vertices.size)
-    }
-
-    /**
-     * Indicates to the GpuFont to finish drawing and will [flush] any draws.
-     */
-    fun end() {
-        check(drawing) { "begin() must be called before end." }
-        if (instances.isNotEmpty()) {
-            flush()
-            vertices.clear()
-            instances.clear()
-        }
-        drawing = false
-        gl.depthMask(true)
-        gl.disable(State.BLEND)
     }
 
     /**
      * Flushes the text mesh to be rendered.
      */
-    fun flush() {
+    fun draw(batch: SpriteBatch) {
         atlases.forEach {
             if (it.uploaded) return@forEach
             it.texture.prepare(context)
@@ -294,18 +217,18 @@ class GpuFont(
             // TODO handle multiple atlases
             gl.blendFunc(BlendFactor.SRC_ALPHA, BlendFactor.ONE_MINUS_SRC_ALPHA)
             gl.enable(State.BLEND)
-            atlases[0].texture.bind()
             shader.vertexShader.uTexture.apply(shader)
-            mesh.render(shader, count = vertices.size / 20 * 6)
+            val prevShader = batch.shader
+            batch.shader = shader
+            batch.draw(atlases[0].texture, vertices.data, count = vertices.size)
+            batch.shader = prevShader
             gl.disable(State.BLEND)
         }
     }
 
-
-    private fun setupMatrices() {
-        combinedMatrix.set(projectionMatrix).mul(transformMatrix)
-        shader.uProjTrans?.apply(shader, combinedMatrix)
-        shader.uTexture?.apply(shader)
+    fun clear() {
+        vertices.clear()
+        instances.clear()
     }
 
     private fun glyph(char: Char, font: TtfFont): GpuGlyph {
@@ -453,14 +376,6 @@ class GpuFont(
 
         private val logger = Logger<GpuFont>()
     }
-}
-
-@OptIn(ExperimentalContracts::class)
-inline fun GpuFont.use(projectionMatrix: Mat4? = null, action: (GpuFont) -> Unit) {
-    contract { callsInPlace(action, InvocationKind.EXACTLY_ONCE) }
-    begin(projectionMatrix)
-    action(this)
-    end()
 }
 
 private data class GpuGlyph(

@@ -196,7 +196,7 @@ open class Game<SceneType : Scene>(context: Context, firstScene: SceneType? = nu
     inline fun <reified T : Any> load(
         file: VfsFile,
         parameters: GameAssetParameters = GameAssetParameters()
-    ) = `access_assetProvider`.load<T>(file, parameters)
+    ) = access_assetProvider.load<T>(file, parameters)
 
 
     /**

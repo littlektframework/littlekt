@@ -15,6 +15,7 @@ import com.lehaine.littlekt.math.geom.sine
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
+import kotlin.math.min
 
 /**
  * @author Colton Daily
@@ -523,6 +524,39 @@ class SpriteBatch(
         }
 
         idx += SPRITE_SIZE
+    }
+
+    fun draw(texture: Texture, vertices: FloatArray, offset: Int = 0, count: Int = vertices.size) {
+        if (!drawing) {
+            throw IllegalStateException("SpriteBatch.begin must be called before draw.")
+        }
+        val verticesLength: Int = vertices.size
+        var remainingVertices = verticesLength
+
+        if (texture != lastTexture) {
+            switchTexture(texture)
+        } else {
+            remainingVertices -= idx
+            if (remainingVertices == 0) {
+                flush()
+                remainingVertices = verticesLength
+            }
+        }
+
+        var copyCount = min(remainingVertices, count)
+        mesh.addVertices(vertices, offset, idx, copyCount)
+        idx += copyCount
+
+        var remainingCount = count - copyCount
+        var currOffset = offset
+        while (remainingCount > 0) {
+            currOffset += copyCount
+            flush()
+            copyCount = min(verticesLength, remainingCount)
+            mesh.addVertices(vertices, currOffset, 0, copyCount)
+            idx += copyCount
+            remainingCount -= copyCount
+        }
     }
 
     fun end() {
