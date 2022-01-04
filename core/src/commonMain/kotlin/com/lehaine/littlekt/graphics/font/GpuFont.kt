@@ -227,7 +227,7 @@ class GpuFont(
      * Sets the specified [batch] to use this GPU fonts shader in order to render.
      * @param batch the batch to set the shader to
      */
-    fun setShaderTo(batch: SpriteBatch) {
+    fun useShaderWith(batch: SpriteBatch) {
         batch.shader = shader
     }
 

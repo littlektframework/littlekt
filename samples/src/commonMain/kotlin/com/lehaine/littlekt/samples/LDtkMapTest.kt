@@ -99,7 +99,7 @@ class LDtkMapTest(context: Context) : ContextListener(context) {
 
         uiCam.update()
         uiCam.viewport.apply(this)
-        gpuFontRenderer.setShaderTo(batch)
+        gpuFontRenderer.useShaderWith(batch)
         batch.use(uiCam.viewProjection) {
             gpuFontRenderer.clear()
             gpuFontRenderer.addText("Vertices: ${stats.engineStats.vertices}", 0f, 15f, 16, color = Color.WHITE)

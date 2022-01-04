@@ -90,7 +90,7 @@ class GPUFontTest(context: Context) : ContextListener(context) {
         gl.clearColor(Color.DARK_GRAY)
         gl.clear(ClearBufferMask.COLOR_BUFFER_BIT)
         camera.update()
-        gpuFont.setShaderTo(batch)
+        gpuFont.useShaderWith(batch)
         batch.use(camera.viewProjection) {
             gpuFont.draw(it)
         }
