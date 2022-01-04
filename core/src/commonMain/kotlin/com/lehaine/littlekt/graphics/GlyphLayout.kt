@@ -67,6 +67,9 @@ class GlyphLayout {
                         currentRun?.append(run)
                     }
 
+                    if (newLine || lastRun) {
+                        currentRun?.setLastGlyphAdvanceToWidth(scale)
+                    }
                     if (wrapOrTruncate && (newLine || lastRun)) {
                         currentRun?.let { cr ->
                             var glyphRun = cr
@@ -121,8 +124,13 @@ class GlyphLayout {
             }
         }
         height = font.capHeight + abs(y)
+
         calculateWidths(scale)
         alignRuns(targetWidth, align)
+    }
+
+    fun reset() {
+        _runs.clear()
     }
 
     private fun wrap(font: Font, scale: Float, first: GlyphRun, wrapIndex: Int): GlyphRun? {
@@ -152,7 +160,7 @@ class GlyphLayout {
         // the second run will contain the remaining glyph data, so swap instances rather than copying
         var second: GlyphRun? = null
         if (secondStart < glyphCount) {
-            val newRun = GlyphRun()
+            val newRun = GlyphRun() // TODO use pool
             val glyphs1 = newRun.glyphs
             glyphs1.ensureCapacity(firstEnd)
             glyphs1.clear()
@@ -171,8 +179,7 @@ class GlyphLayout {
             for (i in 0 until firstEnd) {
                 advances1 += advances2[i]
             }
-            advances2.removeAt(1, secondStart)
-            advances2[0] = glyphs2.first().advanceWidth * scale
+            advances2.removeAt(0, secondStart)
             first.advances = advances1
             newRun.advances = advances2
             second = newRun
@@ -180,6 +187,8 @@ class GlyphLayout {
 
         if (firstEnd == 0) {
             _runs.removeLast()
+        } else {
+            first.setLastGlyphAdvanceToWidth(scale)
         }
         return second
     }
@@ -190,7 +199,7 @@ class GlyphLayout {
             var runWidth = run.x + run.advances.first()
             var max = 0f
             run.glyphs.forEachIndexed { index, glyph ->
-                max = max(max, runWidth + glyph.advanceWidth * scale)
+                max = max(max, runWidth + glyph.width * scale)
                 runWidth += run.advances[index]
             }
             run.width = max(runWidth, max) - run.x
@@ -208,9 +217,10 @@ class GlyphLayout {
         }
     }
 
-    fun reset() {
-        _runs.clear()
+    private fun GlyphRun.setLastGlyphAdvanceToWidth(scale: Float) {
+        advances[advances.size - 1] = glyphs.last().width * scale
     }
+
 }
 
 private fun Font.wrapIndex(glyphs: List<Glyph>, start: Int): Int {
@@ -272,6 +282,7 @@ class GlyphRun {
             advances += currGlyph.advanceWidth * scale
         }
     }
+
 
     override fun toString(): String {
         return buildString {

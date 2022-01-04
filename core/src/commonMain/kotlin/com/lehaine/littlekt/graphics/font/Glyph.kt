@@ -24,7 +24,10 @@ data class Glyph(
     val width: Int = xMax - xMin
     val height: Int = yMax - yMin
     val rightSideBearing: Int = advanceWidth.toInt() - leftSideBearing - (xMax - xMin)
+
     override fun toString(): String {
-        return "Glyph(name=$name, index=$index, xMin=$xMin, yMin=$yMin, xMax=$xMax, yMax=$yMax, advanceWidth=$advanceWidth, leftSideBearing=$leftSideBearing, numberOfContours=$numberOfContours, unicode=$unicode, unicodes=$unicodes, path=$path, endPointIndices=$endPointIndices, instructionLength=$instructionLength, instructions=$instructions, points=$points, refs=$refs, isComposite=$isComposite, unitsPerEm=$unitsPerEm)"
+        return "Glyph(name=$name, index=$index, xMin=$xMin, yMin=$yMin, xMax=$xMax, yMax=$yMax, advanceWidth=$advanceWidth, leftSideBearing=$leftSideBearing, numberOfContours=$numberOfContours, unicode=$unicode, unicodes=$unicodes, path=$path, endPointIndices=$endPointIndices, instructionLength=$instructionLength, points=$points, refs=$refs, isComposite=$isComposite, unitsPerEm=$unitsPerEm, width=$width, height=$height, rightSideBearing=$rightSideBearing)"
     }
+
+
 }
