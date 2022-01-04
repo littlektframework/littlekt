@@ -16,7 +16,7 @@ data class Glyph(
     val endPointIndices: List<Int>,
     val instructionLength: Int,
     val instructions: List<Byte>,
-    val points: List<Point>,
+    val points: List<ContourPoint>,
     val refs: List<GlyphReference>,
     val isComposite: Boolean,
     val unitsPerEm: Int

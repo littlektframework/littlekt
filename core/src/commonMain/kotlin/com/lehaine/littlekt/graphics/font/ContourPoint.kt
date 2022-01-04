@@ -1,6 +1,6 @@
 package com.lehaine.littlekt.graphics.font
 
-data class Point(
+data class ContourPoint(
     val x: Int = 0,
     val y: Int = 0,
     val onCurve: Boolean = false,

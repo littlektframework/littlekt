@@ -5,6 +5,7 @@ import com.lehaine.littlekt.file.ByteBuffer
 import com.lehaine.littlekt.file.createByteBuffer
 import com.lehaine.littlekt.file.vfs.VfsFile
 import com.lehaine.littlekt.file.vfs.writePixmap
+import com.lehaine.littlekt.graph.node.component.HAlign
 import com.lehaine.littlekt.graphics.*
 import com.lehaine.littlekt.graphics.gl.BlendFactor
 import com.lehaine.littlekt.graphics.gl.PixmapTextureData
@@ -111,6 +112,7 @@ class GpuFont(
 
     private val store: VfsFile get() = context.storageVfs
     private val gl: GL get() = context.gl
+    private val layout = GlyphLayout()
 
     init {
         shader.bind()
@@ -138,7 +140,7 @@ class GpuFont(
     }
 
     /**
-     * Draws the specified string of text at the specified location and rotaion.
+     * Draws the specified string of text at the specified location and rotation.
      * @param text the string of text to draw
      * @param x the x coord position
      * @param y the y coord position
@@ -151,118 +153,114 @@ class GpuFont(
         x: Float,
         y: Float,
         pxSize: Int,
+        maxWidth: Float = 0f,
+        align: HAlign = HAlign.LEFT,
+        wrap: Boolean = false,
         rotation: Angle = Angle.ZERO,
         color: Color = Color.BLACK,
         font: TtfFont = defaultFont
     ) {
         check(drawing) { "begin() must be called before drawText." }
 
-        val scale = 1f / font.unitsPerEm * pxSize
-        var tx = x
-        var ty = y
-        var lastX = tx
-        var lastY = ty
-        if (rotation != Angle.ZERO) {
-            temp4.setToIdentity()
-            temp4.translate(tx, ty, 0f)
-            temp4.rotate(0f, 0f, rotation.degrees)
-        }
-        text.forEach {
-            if (it == '\r') {
-                return@forEach
+        val scale = font.pxScale(pxSize)
+        layout.setText(font, text, maxWidth, scale, align, wrap)
+
+        layout.runs.forEach { run ->
+            var tx = x + run.x
+            val ty = y + run.y
+            var lastX = tx
+            var lastY = ty
+            if (rotation != Angle.ZERO) {
+                temp4.setToIdentity()
+                temp4.translate(tx, ty, 0f)
+                temp4.rotate(0f, 0f, rotation.degrees)
             }
-            if (it == '\n') {
-                ty += font.ascender * scale
-                tx = x
-                return@forEach
+            run.glyphs.forEach { runGlyph ->
+                val char = runGlyph.unicode.toChar()
+
+                if (!font.isWhitespace(char)) {
+                    val glyph = glyph(char, font)
+                    val bx = glyph.bezierAtlasPosX shl 1
+                    val by = glyph.bezierAtlasPosY shl 1
+                    val offsetX = glyph.offsetX * scale
+                    val offsetY = glyph.offsetY * scale
+                    if (rotation != Angle.ZERO) {
+                        temp4.translate(tx + offsetX - lastX, ty - offsetY - lastY, 0f)
+                    }
+                    lastX = tx + offsetX
+                    lastY = ty - offsetY
+                    val mx = (if (rotation == Angle.ZERO) tx + offsetX else temp4[12])
+                    val my = (if (rotation == Angle.ZERO) ty - offsetY else temp4[13])
+                    val p1x = 0f
+                    val p1y = -glyph.height * scale
+                    val p2x = glyph.width * scale
+                    val p3y = 0f
+                    var x1: Float = p1x
+                    var y1: Float = p1y
+                    var x2: Float = p2x
+                    var y2: Float = p1y
+                    var x3: Float = p2x
+                    var y3: Float = p3y
+                    var x4: Float = p1x
+                    var y4: Float = p3y
+                    if (rotation != Angle.ZERO) {
+                        val cos = rotation.cosine
+                        val sin = rotation.sine
+
+                        x1 = cos * p1x - sin * p1y
+                        y1 = sin * p1x + cos * p1y
+
+                        x2 = cos * p2x - sin * p1y
+                        y2 = sin * p2x + cos * p1y
+
+                        x3 = cos * p2x - sin * p3y
+                        y3 = sin * p2x + cos * p3y
+
+                        x4 = x1 + (x3 - x2)
+                        y4 = y3 - (y2 - y1)
+                    }
+                    x1 += mx
+                    y1 += my
+                    x2 += mx
+                    y2 += my
+                    x3 += mx
+                    y3 += my
+                    x4 += mx
+                    y4 += my
+
+                    vertices.run { // bottom left
+                        add(x1)
+                        add(y1)
+                        add(color.toFloatBits())
+                        add(0f + bx)
+                        add(1f + by)
+                    }
+
+                    vertices.run { // top left
+                        add(x4)
+                        add(y4)
+                        add(color.toFloatBits())
+                        add(0f + bx)
+                        add(0f + by)
+                    }
+                    vertices.run { // top right
+                        add(x3)
+                        add(y3)
+                        add(color.toFloatBits())
+                        add(1f + bx)
+                        add(0f + by)
+                    }
+                    vertices.run { // bottom right
+                        add(x2)
+                        add(y2)
+                        add(color.toFloatBits())
+                        add(1f + bx)
+                        add(1f + by)
+                    }
+                    instances += glyph
+                }
+                tx += runGlyph.advanceWidth * scale
             }
-            if (it == '\t') {
-                tx += 2000 * scale
-                return@forEach
-            }
-
-            val glyph = glyph(it, font)
-            if (it != ' ') {
-                val bx = glyph.bezierAtlasPosX shl 1
-                val by = glyph.bezierAtlasPosY shl 1
-                val offsetX = glyph.offsetX * scale
-                val offsetY = glyph.offsetY * scale
-                if (rotation != Angle.ZERO) {
-                    temp4.translate(tx + offsetX - lastX, ty - offsetY - lastY, 0f)
-                }
-                lastX = tx + offsetX
-                lastY = ty - offsetY
-                val mx = (if (rotation == Angle.ZERO) tx + offsetX else temp4[12])
-                val my = (if (rotation == Angle.ZERO) ty - offsetY else temp4[13])
-                val p1x = 0f
-                val p1y = -glyph.height * scale
-                val p2x = glyph.width * scale
-                val p3y = 0f
-                var x1: Float = p1x
-                var y1: Float = p1y
-                var x2: Float = p2x
-                var y2: Float = p1y
-                var x3: Float = p2x
-                var y3: Float = p3y
-                var x4: Float = p1x
-                var y4: Float = p3y
-                if (rotation != Angle.ZERO) {
-                    val cos = rotation.cosine
-                    val sin = rotation.sine
-
-                    x1 = cos * p1x - sin * p1y
-                    y1 = sin * p1x + cos * p1y
-
-                    x2 = cos * p2x - sin * p1y
-                    y2 = sin * p2x + cos * p1y
-
-                    x3 = cos * p2x - sin * p3y
-                    y3 = sin * p2x + cos * p3y
-
-                    x4 = x1 + (x3 - x2)
-                    y4 = y3 - (y2 - y1)
-                }
-                x1 += mx
-                y1 += my
-                x2 += mx
-                y2 += my
-                x3 += mx
-                y3 += my
-                x4 += mx
-                y4 += my
-
-                vertices.run { // bottom left
-                    add(x1)
-                    add(y1)
-                    add(color.toFloatBits())
-                    add(0f + bx)
-                    add(1f + by)
-                }
-
-                vertices.run { // top left
-                    add(x4)
-                    add(y4)
-                    add(color.toFloatBits())
-                    add(0f + bx)
-                    add(0f + by)
-                }
-                vertices.run { // top right
-                    add(x3)
-                    add(y3)
-                    add(color.toFloatBits())
-                    add(1f + bx)
-                    add(0f + by)
-                }
-                vertices.run { // bottom right
-                    add(x2)
-                    add(y2)
-                    add(color.toFloatBits())
-                    add(1f + bx)
-                    add(1f + by)
-                }
-                instances += glyph
-            }
-            tx += glyph.advanceWidth * scale
         }
 
         mesh.setVertices(vertices.data, 0, vertices.size)

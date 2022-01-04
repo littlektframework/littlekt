@@ -8,27 +8,19 @@ import com.lehaine.littlekt.file.font.ttf.TtfFontReader
  * @author Colton Daily
  * @date 12/2/2021
  */
-class TtfFont(val chars: CharArray) {
-    constructor(chars: String = CharacterSets.LATIN_ALL) : this(chars.map { it }.toCharArray())
+class TtfFont(val chars: CharSequence = CharacterSets.LATIN_ALL) : Font() {
 
     private val glyphCache = mutableMapOf<Int, Glyph>()
 
-    val glyphs: Map<Int, Glyph> get() = glyphCache
-    val totalGlyphs get() = glyphs.size
-
-    var ascender = 0
-        private set
-    var descender = 0
-        private set
-    var unitsPerEm = 1000
-        private set
+    override val glyphs: Map<Int, Glyph> get() = glyphCache
 
     fun load(data: ByteBuffer) {
         val buffer = createByteBuffer(data.toArray(), isBigEndian = true).also { it.flip() }
         val reader = TtfFontReader().also {
             it.parse(buffer)
-            ascender = it.ascender
-            descender = it.descender
+            ascender = it.ascender.toFloat()
+            descender = it.descender.toFloat()
+            down = ascender
             unitsPerEm = it.unitsPerEm
         }
         chars.forEach { char ->
