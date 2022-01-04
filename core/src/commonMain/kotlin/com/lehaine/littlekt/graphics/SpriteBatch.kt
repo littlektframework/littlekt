@@ -630,6 +630,10 @@ class SpriteBatch(
         blendDstFuncAlpha = prevBlendDstFuncAlpha
     }
 
+    fun useDefaultShader() {
+        shader = defaultShader
+    }
+
     private fun switchTexture(texture: Texture) {
         flush()
         lastTexture = texture

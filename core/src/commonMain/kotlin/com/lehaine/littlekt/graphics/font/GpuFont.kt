@@ -51,7 +51,7 @@ class GpuFont(
      */
     private val gridSize: Int = 10,
     /**
-     * The max amount of vertices to use for the text mesh. Increase or decrease this based on the amount of text
+     * The max amount of vertices to use for cache the text Increase or decrease this based on the amount of text
      * that will be displayed.
      */
     maxVertices: Int = 10000
@@ -218,14 +218,22 @@ class GpuFont(
             gl.blendFunc(BlendFactor.SRC_ALPHA, BlendFactor.ONE_MINUS_SRC_ALPHA)
             gl.enable(State.BLEND)
             shader.vertexShader.uTexture.apply(shader)
-            val prevShader = batch.shader
-            batch.shader = shader
             batch.draw(atlases[0].texture, vertices.data, count = vertices.size)
-            batch.shader = prevShader
             gl.disable(State.BLEND)
         }
     }
 
+    /**
+     * Sets the specified [batch] to use this GPU fonts shader in order to render.
+     * @param batch the batch to set the shader to
+     */
+    fun setShaderTo(batch: SpriteBatch) {
+        batch.shader = shader
+    }
+
+    /**
+     * Clear any cached vertices and glyph instances.
+     */
     fun clear() {
         vertices.clear()
         instances.clear()

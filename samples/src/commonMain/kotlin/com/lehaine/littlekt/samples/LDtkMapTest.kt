@@ -83,6 +83,7 @@ class LDtkMapTest(context: Context) : ContextListener(context) {
 
         camera.update()
         camera.viewport.apply(this)
+        batch.useDefaultShader()
         batch.use(camera.viewProjection) {
             val level = map["West"]
             map.render(it, camera)
@@ -98,6 +99,7 @@ class LDtkMapTest(context: Context) : ContextListener(context) {
 
         uiCam.update()
         uiCam.viewport.apply(this)
+        gpuFontRenderer.setShaderTo(batch)
         batch.use(uiCam.viewProjection) {
             gpuFontRenderer.clear()
             gpuFontRenderer.addText("Vertices: ${stats.engineStats.vertices}", 0f, 15f, 16, color = Color.WHITE)
