@@ -4,6 +4,7 @@ import com.lehaine.littlekt.graph.node.component.HAlign
 import com.lehaine.littlekt.graphics.font.Font
 import com.lehaine.littlekt.graphics.font.Glyph
 import com.lehaine.littlekt.util.datastructure.FloatArrayList
+import com.lehaine.littlekt.util.datastructure.internal.arraycopy
 import kotlin.math.abs
 import kotlin.math.max
 
@@ -75,8 +76,8 @@ class GlyphLayout {
                                 }
 
                                 if (truncate != null) {
-                                    // TODO truncate
-                                    return@outer
+                                    TODO("Truncate not yet implemented")
+                                    // return@outer
                                 }
 
                                 // wrap
@@ -127,14 +128,18 @@ class GlyphLayout {
         // skip whitespace before the wrap index
         var firstEnd = wrapIndex
         while (firstEnd > 0) {
-            if (!font.isWhitespace(glyphs2[firstEnd - 1].unicode.toChar())) break
+            if (!font.isWhitespace(glyphs2[firstEnd - 1].unicode.toChar())) {
+                break
+            }
             firstEnd--
         }
 
         // skip whitespace after the wrap index
         var secondStart = wrapIndex
         while (secondStart < glyphCount) {
-            if (!font.isWhitespace(glyphs2[secondStart].unicode.toChar())) break
+            if (!font.isWhitespace(glyphs2[secondStart].unicode.toChar())) {
+                break
+            }
             secondStart++
         }
 
@@ -149,7 +154,7 @@ class GlyphLayout {
             for (i in 0 until firstEnd) {
                 glyphs1 += glyphs2[i]
             }
-            for (i in 0 until secondStart - 1) {
+            for (i in 0 until secondStart) {
                 glyphs2.removeFirst()
             }
             first.glyphs = glyphs1
@@ -166,8 +171,6 @@ class GlyphLayout {
             first.advances = xAdvances1
             newRun.advances = xAdvances2
             second = newRun
-        } else {
-            // trim whitespace?
         }
 
         if (firstEnd == 0) {
@@ -207,9 +210,9 @@ private fun Font.wrapIndex(glyphs: List<Glyph>, start: Int): Int {
     if (ch.isWhitespace) return i
     if (ch.isWrapChar) i--
     while (i > 0) {
-        i--
         ch = glyphs[i].unicode.toChar()
         if (ch.isWhitespace || ch.isWrapChar) return i + 1
+        i--
     }
     return 0
 }
@@ -263,7 +266,9 @@ class GlyphRun {
 
     override fun toString(): String {
         return buildString {
+            append("\"")
             glyphs.forEach { append(it.unicode.toChar()) }
+            append("\"")
             append(", $x, $y, $width")
         }
     }
