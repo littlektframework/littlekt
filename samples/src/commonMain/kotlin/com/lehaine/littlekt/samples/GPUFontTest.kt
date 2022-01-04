@@ -3,6 +3,7 @@ package com.lehaine.littlekt.samples
 import com.lehaine.littlekt.Context
 import com.lehaine.littlekt.ContextListener
 import com.lehaine.littlekt.file.vfs.readTtfFont
+import com.lehaine.littlekt.graph.node.component.HAlign
 import com.lehaine.littlekt.graphics.Color
 import com.lehaine.littlekt.graphics.OrthographicCamera
 import com.lehaine.littlekt.graphics.font.GpuFont
@@ -54,48 +55,38 @@ class GPUFontTest(context: Context) : ContextListener(context) {
         gl.clear(ClearBufferMask.COLOR_BUFFER_BIT)
         camera.update()
         gpuFont.use(camera.viewProjection) {
+            it.drawText("I should hopefully be wrapped text.", 150f, 50f, maxWidth = 250f, pxSize = 36, wrap = true)
             it.drawText(
-                "Check out my awesome font rendering!\nThis is a test with static text!!!\nSymbols: @#$!@%&(@*)(#$\n\"<>,.'\"\nNumbers: 1234567890",
-                150f,
-                450f,
-                36,
-                (-45f).degrees,
-                color = Color.BLACK
-            )
-            it.drawText(
-                "This is another insert!!",
-                50f,
-                200f,
-                72,
-                color = Color.RED
-            )
-            it.drawText(
-                "I am rotated!! gYnlqQp",
+                "I am rotated!!\ngYnlqQp",
                 550f,
                 250f,
                 36,
-                45f.degrees,
+                rotation = 45f.degrees,
                 color = Color.BLUE
             )
-            it.drawText("I am a different font!!!!", 250f, 450f, 44, color = Color.DARK_RED, font = libSans)
-            it.drawText(lastStats, 50f, 175f, 16, color = Color.GREEN)
-            if (input.isKeyPressed(Key.ENTER)) {
-                it.drawText(
-                    "Check out my awesome font rendering!\nThis is a test with static text!!!\nSymbols: @#$!@%&(@*)(#$\n\"<>,.'\"\nNumbers: 1234567890",
-                    450f,
-                    150f,
-                    36,
-                    color = Color.DARK_YELLOW
-                )
-            } else {
-                it.drawText(
-                    "My short text",
-                    450f,
-                    150f,
-                    36,
-                    color = Color.DARK_YELLOW
-                )
-            }
+            it.drawText("I am a different font!!!!", 450f, 450f, 44, color = Color.DARK_RED, font = libSans)
+
+            it.drawText(
+                "This is center aligned text which is pretty cool",
+                150f,
+                200f,
+                36,
+                maxWidth = 250f,
+                align = HAlign.CENTER,
+                color = Color.DARK_YELLOW,
+                wrap = true
+            )
+
+            it.drawText(
+                "This is right aligned text which is also cool",
+                150f,
+                350f,
+                36,
+                maxWidth = 250f,
+                align = HAlign.RIGHT,
+                color = Color.DARK_CYAN,
+                wrap = true
+            )
         }
         lastStats = stats.toString()
         if (input.isKeyJustPressed(Key.P)) {

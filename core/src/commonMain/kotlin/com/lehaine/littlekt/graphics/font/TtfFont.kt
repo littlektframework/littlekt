@@ -20,6 +20,7 @@ class TtfFont(val chars: CharSequence = CharacterSets.LATIN_ALL) : Font() {
             it.parse(buffer)
             ascender = it.ascender.toFloat()
             descender = it.descender.toFloat()
+            down = ascender
             unitsPerEm = it.unitsPerEm
         }
         chars.forEach { char ->

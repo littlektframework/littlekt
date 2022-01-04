@@ -12,9 +12,13 @@ import kotlin.math.max
  * @date 1/2/2022
  */
 class GlyphLayout {
-    val runs = mutableListOf<GlyphRun>()
+    private val _runs = mutableListOf<GlyphRun>()
+    val runs: List<GlyphRun> get() = _runs
+
     var width: Float = 0f
+        private set
     var height: Float = 0f
+        private set
 
     fun setText(
         font: Font,
@@ -25,6 +29,8 @@ class GlyphLayout {
         wrap: Boolean = false,
         truncate: String? = null
     ) {
+        reset()
+
         if (text.isEmpty()) return
 
         val targetWidth = if (wrap) max(width, font.spaceWidth * 3 * scale) else width
@@ -56,7 +62,7 @@ class GlyphLayout {
                         getGlyphsFrom(font, text, scale, runStart, runEnd, null)
                     } // TODO alloc and free from a pool instead
                     if (currentRun == null) {
-                        currentRun = run.also { runs += it }
+                        currentRun = run.also { _runs += it }
                     } else {
                         currentRun?.append(run)
                     }
@@ -90,8 +96,8 @@ class GlyphLayout {
                                     currentRun = it
                                 }?.also { glyphRun = it } ?: return@runEnded
 
-                                runs += newRun
-                                y += font.down
+                                _runs += newRun
+                                y += font.down * scale
                                 newRun.x = 0f
                                 newRun.y = y
 
@@ -106,9 +112,9 @@ class GlyphLayout {
                     currentRun = null
 
                     y += if (runEnd == runStart) { // blank line
-                        font.down * font.blankLineScale
+                        font.down * font.blankLineScale * scale
                     } else {
-                        font.down
+                        font.down * scale
                     }
                 }
                 runStart = index
@@ -173,14 +179,14 @@ class GlyphLayout {
         }
 
         if (firstEnd == 0) {
-            runs.removeLast()
+            _runs.removeLast()
         }
         return second
     }
 
     private fun calculateWidths(scale: Float) {
         var width = 0f
-        runs.forEach { run ->
+        _runs.forEach { run ->
             var runWidth = run.x + run.advances.first()
             var max = 0f
             run.glyphs.forEachIndexed { index, glyph ->
@@ -196,10 +202,14 @@ class GlyphLayout {
     private fun alignRuns(targetWidth: Float, align: HAlign) {
         if (align != HAlign.LEFT) {
             val center = align == HAlign.CENTER
-            runs.forEach { run ->
+            _runs.forEach { run ->
                 run.x += if (center) 0.5f * (targetWidth - run.width) else targetWidth - run.width
             }
         }
+    }
+
+    fun reset() {
+        _runs.clear()
     }
 }
 

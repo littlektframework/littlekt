@@ -20,8 +20,7 @@ class GlyphLayoutTest(context: Context) : Game<Scene>(context) {
 
     override fun create() {
         val layout = GlyphLayout()
-        layout.setText(font, "mybigassstring", 200f, scale = font.pxScale(36), align = HAlign.CENTER, wrap = true)
-        println(layout.runs)
+        layout.setText(font, "my test string!!", 200f, scale = font.pxScale(36), align = HAlign.CENTER, wrap = true)
     }
 
     override fun update(dt: Duration) {
