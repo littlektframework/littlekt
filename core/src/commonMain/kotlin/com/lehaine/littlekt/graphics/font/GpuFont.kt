@@ -1,14 +1,16 @@
 package com.lehaine.littlekt.graphics.font
 
 import com.lehaine.littlekt.Context
-import com.lehaine.littlekt.file.ByteBuffer
 import com.lehaine.littlekt.file.createByteBuffer
 import com.lehaine.littlekt.file.vfs.VfsFile
 import com.lehaine.littlekt.file.vfs.writePixmap
 import com.lehaine.littlekt.graph.node.component.HAlign
 import com.lehaine.littlekt.graphics.*
+import com.lehaine.littlekt.graphics.font.internal.GpuAtlas
+import com.lehaine.littlekt.graphics.font.internal.GpuGlyph
+import com.lehaine.littlekt.graphics.font.internal.GpuGlyphCompiler
+import com.lehaine.littlekt.graphics.font.internal.GpuGlyphWriter
 import com.lehaine.littlekt.graphics.gl.BlendFactor
-import com.lehaine.littlekt.graphics.gl.PixmapTextureData
 import com.lehaine.littlekt.graphics.gl.State
 import com.lehaine.littlekt.graphics.shader.ShaderProgram
 import com.lehaine.littlekt.graphics.shader.shaders.GpuTextFragmentShader
@@ -21,7 +23,6 @@ import com.lehaine.littlekt.math.geom.cosine
 import com.lehaine.littlekt.math.geom.degrees
 import com.lehaine.littlekt.math.geom.sine
 import com.lehaine.littlekt.util.datastructure.FloatArrayList
-import kotlin.math.max
 import kotlin.time.measureTimedValue
 
 /**
@@ -58,8 +59,8 @@ class GpuFont(
 ) {
     var debug = false
 
-    private val compiler = GlyphCompiler()
-    private val atlases = mutableListOf<AtlasGroup>()
+    private val compiler = GpuGlyphCompiler()
+    private val atlases = mutableListOf<GpuAtlas>()
     private val instances = mutableListOf<GpuGlyph>()
     private val compiledGlyphs = mutableMapOf<TtfFont, MutableMap<Int, GpuGlyph>>(defaultFont to mutableMapOf())
     private val vertices = FloatArrayList(maxVertices)
@@ -115,11 +116,11 @@ class GpuFont(
                 temp4.translate(tx, ty, 0f)
                 temp4.rotate(0f, 0f, rotation.degrees)
             }
-            run.glyphs.forEach { runGlyph ->
+            run.glyphs.forEachIndexed { index, runGlyph ->
                 val char = runGlyph.unicode.toChar()
 
                 if (!font.isWhitespace(char)) {
-                    val glyph = glyph(char, font)
+                    val glyph = compileGlyph(char, font)
                     val bx = glyph.bezierAtlasPosX shl 1
                     val by = glyph.bezierAtlasPosY shl 1
                     val offsetX = glyph.offsetX * scale
@@ -199,7 +200,7 @@ class GpuFont(
                     }
                     instances += glyph
                 }
-                tx += runGlyph.advanceWidth * scale
+                tx += run.advances[index]
             }
         }
     }
@@ -215,11 +216,7 @@ class GpuFont(
         }
         if (atlases.isNotEmpty()) {
             // TODO handle multiple atlases
-            gl.blendFunc(BlendFactor.SRC_ALPHA, BlendFactor.ONE_MINUS_SRC_ALPHA)
-            gl.enable(State.BLEND)
-            shader.vertexShader.uTexture.apply(shader)
             batch.draw(atlases[0].texture, vertices.data, count = vertices.size)
-            gl.disable(State.BLEND)
         }
     }
 
@@ -239,7 +236,7 @@ class GpuFont(
         instances.clear()
     }
 
-    private fun glyph(char: Char, font: TtfFont): GpuGlyph {
+    private fun compileGlyph(char: Char, font: TtfFont): GpuGlyph {
         // if already compiled -- return the glyph
         compiledGlyphs.getOrPut(font) { mutableMapOf() }[char.code]?.also { return it }
 
@@ -305,7 +302,7 @@ class GpuFont(
         )
 
         buffer.position = atlas.glyphDataBufOffset * ATLAS_CHANNELS + atlasWidth * (atlasHeight / 2) * ATLAS_CHANNELS
-        writeGlyphToBuffer(
+        GpuGlyphWriter.writeGlyphToBuffer(
             buffer, curves, glyph.width, glyph.height, atlas.gridX.toShort(), atlas.gridY.toShort(),
             gridSize.toShort(), gridSize.toShort()
         )
@@ -335,40 +332,9 @@ class GpuFont(
         return gpuGlyph
     }
 
-    private fun writeGlyphToBuffer(
-        buffer: ByteBuffer,
-        curves: List<Bezier>,
-        glyphWidth: Int,
-        glyphHeight: Int,
-        gridX: Short,
-        gridY: Short,
-        gridWidth: Short,
-        gridHeight: Short
-    ) {
-        buffer.putUShort(gridX).putUShort(gridY).putUShort(gridWidth).putUShort(gridHeight)
-        curves.forEach {
-            writeBezierToBuffer(buffer, it, glyphWidth, glyphHeight)
-        }
-    }
-
-    /**
-     * A [Bezier] is written as 6 16-bit integers (12 bytes). Increments buffer by the number of bytes written (always 12).
-     * Coords are scaled from [0, glyphSize] to [o, UShort.MAX_VALUE]
-     */
-    private fun writeBezierToBuffer(buffer: ByteBuffer, bezier: Bezier, glyphWidth: Int, glyphHeight: Int) {
-        buffer.apply {
-            putUShort((bezier.p0.x * UShort.MAX_VALUE.toInt() / glyphWidth).toInt().toShort())
-            putUShort((bezier.p0.y * UShort.MAX_VALUE.toInt() / glyphHeight).toInt().toShort())
-            putUShort((bezier.control.x * UShort.MAX_VALUE.toInt() / glyphWidth).toInt().toShort())
-            putUShort((bezier.control.y * UShort.MAX_VALUE.toInt() / glyphHeight).toInt().toShort())
-            putUShort((bezier.p1.x * UShort.MAX_VALUE.toInt() / glyphWidth).toInt().toShort())
-            putUShort((bezier.p1.y * UShort.MAX_VALUE.toInt() / glyphHeight).toInt().toShort())
-        }
-    }
-
-    private fun getOpenAtlasGroup(): AtlasGroup {
+    private fun getOpenAtlasGroup(): GpuAtlas {
         if (atlases.isEmpty() || atlases.last().full) {
-            val atlas = AtlasGroup().apply {
+            val atlas = GpuAtlas().apply {
 
                 pixmap = Pixmap(atlasWidth, atlasHeight, createByteBuffer(atlasWidth * atlasHeight * ATLAS_CHANNELS))
                 uploaded = true
@@ -383,144 +349,6 @@ class GpuFont(
         private const val ATLAS_CHANNELS = 4 // Must be 4 (RGBA)
 
         private val logger = Logger<GpuFont>()
-    }
-}
-
-private data class GpuGlyph(
-    val width: Int,
-    val height: Int,
-    val offsetX: Int,
-    val offsetY: Int,
-    val bezierAtlasPosX: Int,
-    val bezierAtlasPosY: Int,
-    val atlasIdx: Int,
-    val advanceWidth: Int
-)
-
-private class AtlasGroup {
-    var pixmap = Pixmap(0, 0)
-        set(value) {
-            field = value
-            textureData = PixmapTextureData(field, false)
-        }
-    var textureData = PixmapTextureData(pixmap, false)
-        set(value) {
-            field = value
-            texture = Texture(field)
-        }
-    var texture = Texture(textureData)
-    var gridX = 0
-    var gridY = 0
-    var full = false
-    var uploaded = false
-
-    var glyphDataBufOffset = 0
-
-    override fun toString(): String {
-        return "AtlasGroup(x=$gridX, y=$gridY, full=$full, uploaded=$uploaded, glyphDataBufOffset=$glyphDataBufOffset)"
-    }
-}
-
-private class GlyphCompiler {
-
-    fun compile(glyph: Glyph): List<Bezier> {
-        // Tolerance for error when approximating cubic beziers with quadratics.
-        // Too low and many quadratics are generated (slow), too high and not
-        // enough are generated (looks bad). 5% works pretty well.
-        val c2qResolution = max((((glyph.width + glyph.height) / 2) * 0.05f).toInt(), 1)
-        val beziers = decompose(glyph, c2qResolution)
-
-        if (glyph.xMin != 0 || glyph.yMin != 0) {
-            translateBeziers(beziers, glyph.xMin, glyph.yMin)
-        }
-
-        // TODO calculate if glyph orientation is clockwise or counter clockwise. If, CCW then we need to flip the beziers
-        val counterClockwise = false //glyph.orientation == FILL_LEFT
-        if (counterClockwise) {
-            flipBeziers(beziers)
-        }
-        return beziers
-    }
-
-    private fun flipBeziers(beziers: ArrayList<Bezier>) {
-        beziers.forEach { bezier ->
-            bezier.p0.x = bezier.p1.x.also { bezier.p1.x = bezier.p0.x }
-            bezier.p0.y = bezier.p1.y.also { bezier.p1.y = bezier.p0.y }
-        }
-    }
-
-    private fun decompose(glyph: Glyph, c2qResolution: Int): ArrayList<Bezier> {
-        if (glyph.path.isEmpty() || glyph.numberOfContours <= 0) {
-            return ArrayList()
-        }
-        val curves = ArrayList<Bezier>(glyph.numberOfContours)
-        val quadBeziers = Array(24) { QuadraticBezier(0f, 0f, 0f, 0f, 0f, 0f) }
-
-        var startX = 0f
-        var startY = 0f
-        var prevX = 0f
-        var prevY = 0f
-        glyph.path.commands.forEach { cmd ->
-            when (cmd.type) {
-                GlyphPath.CommandType.MOVE_TO -> {
-                    startX = cmd.x
-                    startY = cmd.y
-                    prevX = cmd.x
-                    prevY = cmd.y
-                }
-                GlyphPath.CommandType.LINE_TO -> {
-                    curves += Bezier().apply {
-                        p0.set(prevX, prevY)
-                        control.set(prevX, prevY)
-                        p1.set(cmd.x, cmd.y)
-                    }
-                    prevX = cmd.x
-                    prevY = cmd.y
-                }
-                GlyphPath.CommandType.CURVE_TO -> {
-                    val cubicBezier = CubicBezier(prevX, prevY, cmd.x1, cmd.y1, cmd.x2, cmd.y2, cmd.x, cmd.y)
-
-                    val totalBeziers = 6 * cubicBezier.convertToQuadBezier(c2qResolution, quadBeziers)
-                    for (i in 0 until totalBeziers step 6) {
-                        val quadBezier = quadBeziers[i]
-                        curves += Bezier().apply {
-                            p0.set(quadBezier.p1x, quadBezier.p1y)
-                            control.set(quadBezier.c1x, quadBezier.c1y)
-                            p1.set(quadBezier.p2x, quadBezier.p2y)
-                        }
-                    }
-                    prevX = cmd.x
-                    prevY = cmd.y
-                }
-                GlyphPath.CommandType.QUADRATIC_CURVE_TO -> {
-                    curves += Bezier().apply {
-                        p0.set(prevX, prevY)
-                        control.set(cmd.x1, cmd.y1)
-                        p1.set(cmd.x, cmd.y)
-                    }
-                    prevX = cmd.x
-                    prevY = cmd.y
-                }
-                GlyphPath.CommandType.CLOSE -> {
-                    prevX = startX
-                    prevY = startY
-                }
-            }
-        }
-        return curves
-    }
-
-
-    private fun translateBeziers(beziers: ArrayList<Bezier>, xMin: Int, yMin: Int) {
-        beziers.forEach {
-            it.p0.x -= xMin
-            it.p0.y -= yMin
-            it.p1.x -= xMin
-            it.p1.y -= yMin
-            it.control.x -= xMin
-            it.control.y -= yMin
-
-        }
     }
 }
 

@@ -1,13 +1,21 @@
-package com.lehaine.littlekt.graphics
+package com.lehaine.littlekt.graphics.internal
 
+import com.lehaine.littlekt.Context
 import com.lehaine.littlekt.file.createByteBuffer
+import com.lehaine.littlekt.graphics.Pixmap
+import com.lehaine.littlekt.graphics.Texture
+import com.lehaine.littlekt.graphics.TextureSlice
 import com.lehaine.littlekt.graphics.gl.PixmapTextureData
+import com.lehaine.littlekt.graphics.slice
+import com.lehaine.littlekt.util.internal.SingletonBase
 
 /**
  * @author Colton Daily
  * @date 12/29/2021
  */
-object Textures {
+internal class InternalResources private constructor(private val context: Context) {
+    internal companion object : SingletonBase<InternalResources, Context>(::InternalResources)
+
     val default = Texture(
         PixmapTextureData(
             Pixmap(
@@ -76,9 +84,10 @@ object Textures {
                     )
                 )
             ),
-            false
+            true
         )
-    )
+    ).also { it.prepare(context) }
+
     private val defaultSlices = default.slice(1, 1)
     val white: TextureSlice = defaultSlices[1][1]
     val black: TextureSlice = defaultSlices[1][4]
@@ -87,5 +96,4 @@ object Textures {
     val blue: TextureSlice = defaultSlices[4][4]
 
     val transparent: TextureSlice = defaultSlices[4][7]
-
 }

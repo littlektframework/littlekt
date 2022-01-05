@@ -631,7 +631,9 @@ class SpriteBatch(
     }
 
     fun useDefaultShader() {
-        shader = defaultShader
+        if (shader != defaultShader) {
+            shader = defaultShader
+        }
     }
 
     private fun switchTexture(texture: Texture) {
