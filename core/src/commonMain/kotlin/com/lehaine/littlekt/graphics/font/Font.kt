@@ -1,12 +1,13 @@
 package com.lehaine.littlekt.graphics.font
 
+import com.lehaine.littlekt.Disposable
 import kotlin.jvm.JvmName
 
 /**
  * @author Colton Daily
  * @date 1/2/2022
  */
-abstract class Font {
+abstract class Font : Disposable {
     /**
      * The name of the font or null.
      */
@@ -93,4 +94,6 @@ abstract class Font {
 
     operator fun get(code: Int) = glyphs[code]
     operator fun get(char: Char) = glyphs[char.code]
+    
+    override fun dispose() = Unit
 }

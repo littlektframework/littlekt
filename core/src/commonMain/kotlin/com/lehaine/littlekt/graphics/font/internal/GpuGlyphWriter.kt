@@ -1,7 +1,6 @@
 package com.lehaine.littlekt.graphics.font.internal
 
 import com.lehaine.littlekt.file.ByteBuffer
-import com.lehaine.littlekt.graphics.font.Bezier
 
 /**
  * @author Colton Daily

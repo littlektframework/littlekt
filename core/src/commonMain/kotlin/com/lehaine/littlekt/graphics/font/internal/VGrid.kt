@@ -1,7 +1,7 @@
-package com.lehaine.littlekt.graphics.font
+package com.lehaine.littlekt.graphics.font.internal
 
 import com.lehaine.littlekt.file.ByteBuffer
-import com.lehaine.littlekt.graphics.font.VGridAtlas.writeVGridCellToBuffer
+import com.lehaine.littlekt.graphics.font.internal.VGridAtlas.writeVGridCellToBuffer
 import com.lehaine.littlekt.log.Logger
 import com.lehaine.littlekt.math.clamp
 import kotlin.math.floor

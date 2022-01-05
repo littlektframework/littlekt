@@ -1,9 +1,6 @@
 package com.lehaine.littlekt.graphics.font.internal
 
 import com.lehaine.littlekt.graphics.font.*
-import com.lehaine.littlekt.graphics.font.Bezier
-import com.lehaine.littlekt.graphics.font.CubicBezier
-import com.lehaine.littlekt.graphics.font.QuadraticBezier
 import kotlin.math.max
 
 /**

@@ -10,8 +10,8 @@ import com.lehaine.littlekt.graphics.font.internal.GpuAtlas
 import com.lehaine.littlekt.graphics.font.internal.GpuGlyph
 import com.lehaine.littlekt.graphics.font.internal.GpuGlyphCompiler
 import com.lehaine.littlekt.graphics.font.internal.GpuGlyphWriter
-import com.lehaine.littlekt.graphics.gl.BlendFactor
-import com.lehaine.littlekt.graphics.gl.State
+import com.lehaine.littlekt.graphics.font.internal.VGrid
+import com.lehaine.littlekt.graphics.font.internal.VGridAtlas
 import com.lehaine.littlekt.graphics.shader.ShaderProgram
 import com.lehaine.littlekt.graphics.shader.shaders.GpuTextFragmentShader
 import com.lehaine.littlekt.graphics.shader.shaders.GpuTextVertexShader

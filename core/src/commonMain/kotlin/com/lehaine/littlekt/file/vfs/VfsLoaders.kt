@@ -9,6 +9,7 @@ import com.lehaine.littlekt.file.ldtk.ProjectJson
 import com.lehaine.littlekt.graphics.Pixmap
 import com.lehaine.littlekt.graphics.Texture
 import com.lehaine.littlekt.graphics.TextureAtlas
+import com.lehaine.littlekt.graphics.TextureSlice
 import com.lehaine.littlekt.graphics.font.CharacterSets
 import com.lehaine.littlekt.graphics.font.TtfFont
 import com.lehaine.littlekt.graphics.tilemap.ldtk.LDtkLevel
@@ -44,6 +45,15 @@ suspend fun VfsFile.readAtlas(): TextureAtlas {
 suspend fun VfsFile.readTtfFont(chars: String = CharacterSets.LATIN_ALL): TtfFont {
     val data = read()
     return TtfFont(chars).also { it.load(data) }
+}
+
+
+/**
+ * Reads a bitmap font.
+ */
+suspend fun VfsFile.readBitmapFont(mipmaps: Boolean = true) {
+    val data = readString()
+    val textures = mutableMapOf<Int, TextureSlice>()
 }
 
 private val mapCache = mutableMapOf<String, LDtkMapLoader>()
