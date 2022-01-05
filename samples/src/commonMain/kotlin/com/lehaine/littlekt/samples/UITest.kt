@@ -81,10 +81,6 @@ class UITest(context: Context) : Game<Scene>(context) {
                     textureRect {
                         slice = Textures.white
                     }
-                    gpuLabel {
-                        font = freeSerif
-                        text = "Center"
-                    }
                 }
 
                 paddedContainer {

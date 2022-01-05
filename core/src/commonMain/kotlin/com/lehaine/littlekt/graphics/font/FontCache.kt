@@ -3,9 +3,6 @@ package com.lehaine.littlekt.graphics.font
 import com.lehaine.littlekt.graph.node.component.HAlign
 import com.lehaine.littlekt.graphics.Color
 import com.lehaine.littlekt.graphics.GlyphLayout
-import com.lehaine.littlekt.graphics.SpriteBatch
-import com.lehaine.littlekt.graphics.font.internal.GpuGlyph
-import com.lehaine.littlekt.graphics.internal.InternalResources
 import com.lehaine.littlekt.graphics.toFloatBits
 import com.lehaine.littlekt.math.Mat4
 import com.lehaine.littlekt.math.geom.Angle
@@ -17,7 +14,7 @@ import com.lehaine.littlekt.util.datastructure.FloatArrayList
  * @author Colton Daily
  * @date 1/5/2022
  */
-class GpuFontCache {
+class FontCache {
     private val layouts = mutableListOf<GlyphLayout>()
     private var x: Float = 0f
     private var y: Float = 0f
@@ -87,16 +84,6 @@ class GpuFontCache {
         addToCache(font, layout, x, y, scale, rotation, color)
     }
 
-    fun render(batch: SpriteBatch) {
-        if (vertices.isEmpty()) return
-
-        if (batch.shader != InternalResources.INSTANCE.gpuFontShader) {
-            batch.shader = InternalResources.INSTANCE.gpuFontShader
-        }
-
-        batch.draw(InternalResources.INSTANCE.gpuAtlas.texture, vertices.data, 0, vertices.size)
-    }
-
     fun clear() {
         layouts.clear()
         x = 0f
@@ -115,31 +102,26 @@ class GpuFontCache {
             lastY = ty
             run.glyphs.forEachIndexed { index, glyph ->
                 tx += run.advances[index]
-                val gpuGlyph = InternalResources.INSTANCE.compileGlyph(glyph.unicode.toChar(), font)
-                addGlyph(gpuGlyph, tx, ty, scale, rotation, color)
+                addGlyph(glyph, tx, ty, scale, rotation, color)
             }
         }
     }
 
     private fun addGlyph(
-        glyph: GpuGlyph,
+        glyph: Glyph,
         tx: Float,
         ty: Float,
         scale: Float,
         rotation: Angle,
         color: Color,
     ) {
-        val bx = glyph.bezierAtlasPosX shl 1
-        val by = glyph.bezierAtlasPosY shl 1
-        val offsetX = glyph.offsetX * scale
-        val offsetY = glyph.offsetY * scale
         if (rotation != Angle.ZERO) {
-            temp4.translate(tx + offsetX - lastX, ty - offsetY - lastY, 0f)
+            temp4.translate(tx - lastX, ty - lastY, 0f)
         }
-        lastX = tx + offsetX
-        lastY = ty - offsetY
-        val mx = (if (rotation == Angle.ZERO) tx + offsetX else temp4[12])
-        val my = (if (rotation == Angle.ZERO) ty - offsetY else temp4[13])
+        lastX = tx
+        lastY = ty
+        val mx = (if (rotation == Angle.ZERO) tx else temp4[12])
+        val my = (if (rotation == Angle.ZERO) ty else temp4[13])
         val p1x = 0f
         val p1y = -glyph.height * scale
         val p2x = glyph.width * scale
@@ -179,34 +161,35 @@ class GpuFontCache {
 
         val colorBits = color.toFloatBits()
 
+        // TODO need to implement UV coords for glyphs
         vertices.run { // bottom left
             add(x1)
             add(y1)
             add(colorBits)
-            add(0f + bx)
-            add(1f + by)
+            add(0f)
+            add(1f)
         }
 
         vertices.run { // top left
             add(x4)
             add(y4)
             add(colorBits)
-            add(0f + bx)
-            add(0f + by)
+            add(0f)
+            add(0f)
         }
         vertices.run { // top right
             add(x3)
             add(y3)
             add(colorBits)
-            add(1f + bx)
-            add(0f + by)
+            add(1f)
+            add(0f)
         }
         vertices.run { // bottom right
             add(x2)
             add(y2)
             add(colorBits)
-            add(1f + bx)
-            add(1f + by)
+            add(1f)
+            add(1f)
         }
     }
 }

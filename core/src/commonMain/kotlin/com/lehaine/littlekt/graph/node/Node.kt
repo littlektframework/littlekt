@@ -3,7 +3,6 @@ package com.lehaine.littlekt.graph.node
 import com.lehaine.littlekt.graph.SceneGraph
 import com.lehaine.littlekt.graph.node.annotation.SceneGraphDslMarker
 import com.lehaine.littlekt.graph.node.internal.NodeList
-import com.lehaine.littlekt.graph.node.node2d.ui.GpuLabel
 import com.lehaine.littlekt.graphics.Camera
 import com.lehaine.littlekt.graphics.SpriteBatch
 import com.lehaine.littlekt.util.fastForEach
@@ -285,14 +284,13 @@ open class Node : Comparable<Node> {
     /**
      * Internal rendering that needs to be done on the node that shouldn't be overridden. Calls [render] method.
      */
-    internal fun _render(batch: SpriteBatch, gpuFontBatch: SpriteBatch, camera: Camera) {
+    internal fun _render(batch: SpriteBatch, camera: Camera) {
         render(batch, camera)
         onRender.fastForEach {
             it.invoke(batch, camera)
         }
-        gpuFontRender(gpuFontBatch, camera)
         nodes.forEach {
-            it._render(batch, gpuFontBatch, camera)
+            it._render(batch, camera)
         }
     }
 
@@ -430,11 +428,6 @@ open class Node : Comparable<Node> {
      * @param camera the Camera2D node
      */
     open fun render(batch: SpriteBatch, camera: Camera) {}
-
-    /**
-     * The render method to be used mainly by [GpuLabel] to prevent multiple draw calls for each label.
-     */
-    open fun gpuFontRender(batch: SpriteBatch, camera: Camera) {}
 
     /**
      * Draw any debug related items here.
