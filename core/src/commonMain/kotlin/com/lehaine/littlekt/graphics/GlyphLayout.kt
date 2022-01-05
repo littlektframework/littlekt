@@ -22,7 +22,7 @@ class GlyphLayout {
 
     fun setText(
         font: Font,
-        text: String,
+        text: CharSequence,
         width: Float = 0f,
         scale: Float = 1f,
         align: HAlign = HAlign.LEFT,
