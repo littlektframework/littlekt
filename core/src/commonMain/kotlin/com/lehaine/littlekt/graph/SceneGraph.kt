@@ -6,6 +6,7 @@ import com.lehaine.littlekt.graph.node.Node
 import com.lehaine.littlekt.graph.node.annotation.SceneGraphDslMarker
 import com.lehaine.littlekt.graphics.OrthographicCamera
 import com.lehaine.littlekt.graphics.SpriteBatch
+import com.lehaine.littlekt.graphics.internal.InternalResources
 import com.lehaine.littlekt.graphics.use
 import com.lehaine.littlekt.input.InputProcessor
 import com.lehaine.littlekt.util.viewport.ScreenViewport
@@ -44,6 +45,9 @@ open class SceneGraph(
 
     private var ownsBatch = true
     val batch: SpriteBatch = batch?.also { ownsBatch = false } ?: SpriteBatch(context)
+    private val gpuFontBatch = SpriteBatch(context, size = 100).apply {
+        shader = InternalResources.INSTANCE.gpuFontShader
+    }
 
     val root: Node by lazy {
         Node().apply {
@@ -69,8 +73,10 @@ open class SceneGraph(
     }
 
     fun render() {
-        batch.use(camera.viewProjection) {
-            root._render(batch, camera)
+        gpuFontBatch.use(camera.viewProjection) {
+            batch.use(camera.viewProjection) {
+                root._render(batch, gpuFontBatch, camera)
+            }
         }
     }
 
@@ -103,6 +109,7 @@ open class SceneGraph(
         if (ownsBatch) {
             batch.dispose()
         }
+        gpuFontBatch.dispose()
         context.input.removeInputProcessor(this)
     }
 }

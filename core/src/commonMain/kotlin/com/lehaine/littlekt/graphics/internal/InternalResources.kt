@@ -5,7 +5,7 @@ import com.lehaine.littlekt.file.createByteBuffer
 import com.lehaine.littlekt.graphics.Pixmap
 import com.lehaine.littlekt.graphics.Texture
 import com.lehaine.littlekt.graphics.TextureSlice
-import com.lehaine.littlekt.graphics.font.TtfFont
+import com.lehaine.littlekt.graphics.font.Font
 import com.lehaine.littlekt.graphics.font.VGrid
 import com.lehaine.littlekt.graphics.font.VGridAtlas
 import com.lehaine.littlekt.graphics.font.internal.GpuAtlas
@@ -13,8 +13,12 @@ import com.lehaine.littlekt.graphics.font.internal.GpuGlyph
 import com.lehaine.littlekt.graphics.font.internal.GpuGlyphCompiler
 import com.lehaine.littlekt.graphics.font.internal.GpuGlyphWriter
 import com.lehaine.littlekt.graphics.gl.PixmapTextureData
+import com.lehaine.littlekt.graphics.shader.ShaderProgram
+import com.lehaine.littlekt.graphics.shader.shaders.GpuTextFragmentShader
+import com.lehaine.littlekt.graphics.shader.shaders.GpuTextVertexShader
 import com.lehaine.littlekt.graphics.slice
 import com.lehaine.littlekt.log.Logger
+import com.lehaine.littlekt.math.Vec2f
 import com.lehaine.littlekt.util.internal.SingletonBase
 import kotlin.time.measureTimedValue
 
@@ -122,15 +126,27 @@ internal class InternalResources private constructor(private val context: Contex
 
     var gridSize = 10
 
-
-    val gpuAtlas = GpuAtlas().apply {
-        pixmap = Pixmap(atlasWidth, atlasHeight, createByteBuffer(atlasWidth * atlasHeight * 4))
-    }.also {
-        it.texture.prepare(context)
+    val gpuAtlas by lazy {
+        GpuAtlas().apply {
+            pixmap = Pixmap(atlasWidth, atlasHeight, createByteBuffer(atlasWidth * atlasHeight * 4))
+        }.also {
+            it.texture.prepare(context)
+        }
     }
 
-    val compiledGlyphs = mutableMapOf<TtfFont, MutableMap<Int, GpuGlyph>>()
+    val gpuFontShader: ShaderProgram<GpuTextVertexShader, GpuTextFragmentShader> by lazy {
+        ShaderProgram(
+            GpuTextVertexShader(),
+            GpuTextFragmentShader()
+        ).also {
+            it.prepare(context)
 
+            it.vertexShader.uTexelSize.apply(it, Vec2f(1f / atlasWidth, 1f / atlasHeight))
+            it.fragmentShader.uTextureWidth.apply(it, atlasWidth)
+        }
+    }
+
+    val compiledGlyphs by lazy { mutableMapOf<Font, MutableMap<Int, GpuGlyph>>() }
 
     /**
      * This will regenerate [gpuAtlas] to the specified size and copy over any existing data and dispose of the
@@ -144,14 +160,16 @@ internal class InternalResources private constructor(private val context: Contex
         newPixmap.draw(oldPixmap)
         gpuAtlas.pixmap = newPixmap
         gpuAtlas.texture.prepare(context)
+        gpuFontShader.vertexShader.uTexelSize.apply(gpuFontShader, Vec2f(1f / atlasWidth, 1f / atlasHeight))
+        gpuFontShader.fragmentShader.uTextureWidth.apply(gpuFontShader, atlasWidth)
     }
 
-    private val compiler = GpuGlyphCompiler()
+    private val compiler by lazy { GpuGlyphCompiler() }
 
     /**
-     * Compile and cache any glyphs from a specific [TtfFont].
+     * Compile and cache any glyphs from a specific [Font].
      */
-    fun compileGlyph(char: Char, font: TtfFont): GpuGlyph {
+    fun compileGlyph(char: Char, font: Font): GpuGlyph {
         // if already compiled -- return the glyph
         compiledGlyphs.getOrPut(font) { mutableMapOf() }[char.code]?.also { return it }
 

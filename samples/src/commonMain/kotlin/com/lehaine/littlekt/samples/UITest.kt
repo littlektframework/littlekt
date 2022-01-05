@@ -8,6 +8,8 @@ import com.lehaine.littlekt.graph.node.node2d.ui.*
 import com.lehaine.littlekt.graph.sceneGraph
 import com.lehaine.littlekt.graphics.Color
 import com.lehaine.littlekt.graphics.Textures
+import com.lehaine.littlekt.graphics.font.TtfFont
+import com.lehaine.littlekt.log.Logger
 import com.lehaine.littlekt.util.viewport.ExtendViewport
 import kotlin.time.Duration
 
@@ -17,6 +19,8 @@ import kotlin.time.Duration
  * @date 1/2/2022
  */
 class UITest(context: Context) : Game<Scene>(context) {
+
+    val freeSerif by load<TtfFont>(resourcesVfs["FreeSerif.ttf"])
 
     val sceneGraph by prepare {
         sceneGraph(context, ExtendViewport(480, 270)) {
@@ -77,6 +81,10 @@ class UITest(context: Context) : Game<Scene>(context) {
                     textureRect {
                         slice = Textures.white
                     }
+                    gpuLabel {
+                        font = freeSerif
+                        text = "Center"
+                    }
                 }
 
                 paddedContainer {
@@ -129,6 +137,10 @@ class UITest(context: Context) : Game<Scene>(context) {
                 }
             }
         }
+    }
+
+    init {
+        Logger.setLevels(Logger.Level.DEBUG)
     }
 
 

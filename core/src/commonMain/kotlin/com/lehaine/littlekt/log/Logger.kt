@@ -32,6 +32,12 @@ class Logger private constructor(val name: String, val dummy: Boolean) {
         private val Logger_levels: AtomicMap<String, Level?> = AtomicMap(emptyMap())
         private val Logger_outputs: AtomicMap<String, Output?> = AtomicMap(emptyMap())
 
+        /** Set the [Level] and [defaultLevel] for all [Logger] that currently exist */
+        fun setLevels(level: Level) {
+            Logger_loggers.value.forEach { it.value.level = level }
+            defaultLevel = level
+        }
+
         /** The default [Level] used for all [Logger] that doesn't have its [Logger.level] set */
         var defaultLevel: Level? by KtAtomicRef(null)
 

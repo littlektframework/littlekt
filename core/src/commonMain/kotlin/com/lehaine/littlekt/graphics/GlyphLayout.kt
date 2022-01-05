@@ -123,7 +123,7 @@ class GlyphLayout {
                 runStart = index
             }
         }
-        height = font.capHeight + abs(y)
+        height = font.capHeight * scale + abs(y)
 
         calculateWidths(scale)
         alignRuns(targetWidth, align)

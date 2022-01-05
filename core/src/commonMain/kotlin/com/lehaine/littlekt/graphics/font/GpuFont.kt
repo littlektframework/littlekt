@@ -216,11 +216,7 @@ class GpuFont(
         }
         if (atlases.isNotEmpty()) {
             // TODO handle multiple atlases
-            gl.blendFunc(BlendFactor.SRC_ALPHA, BlendFactor.ONE_MINUS_SRC_ALPHA)
-            gl.enable(State.BLEND)
-            shader.vertexShader.uTexture.apply(shader)
             batch.draw(atlases[0].texture, vertices.data, count = vertices.size)
-            gl.disable(State.BLEND)
         }
     }
 

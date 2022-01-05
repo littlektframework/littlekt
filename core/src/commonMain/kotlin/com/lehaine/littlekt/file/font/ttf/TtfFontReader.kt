@@ -30,6 +30,8 @@ class TtfFontReader {
         private set
     var numGlyphs: Int = 0
         private set
+    var capHeight: Int = 0
+        private set
 
     operator fun get(codePoint: Int): Glyph = this[codePoint.toChar()]
     operator fun get(char: Char): Glyph {
@@ -153,7 +155,9 @@ class TtfFontReader {
                 }
                 "OS/2" -> {
                     table = uncompressTable(buffer, tableEntry)
-                    val os2 = Os2Parser(table.buffer, table.offset).parse()
+                    val os2 = Os2Parser(table.buffer, table.offset).parse().also {
+                        capHeight = it.sCapHeight
+                    }
                     tables.os2 = os2
                 }
                 "post" -> {
