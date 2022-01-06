@@ -10,10 +10,12 @@ import com.lehaine.littlekt.graphics.Pixmap
 import com.lehaine.littlekt.graphics.Texture
 import com.lehaine.littlekt.graphics.TextureAtlas
 import com.lehaine.littlekt.graphics.TextureSlice
+import com.lehaine.littlekt.graphics.font.BitmapFont
 import com.lehaine.littlekt.graphics.font.CharacterSets
 import com.lehaine.littlekt.graphics.font.TtfFont
 import com.lehaine.littlekt.graphics.tilemap.ldtk.LDtkLevel
 import com.lehaine.littlekt.graphics.tilemap.ldtk.LDtkWorld
+import com.lehaine.littlekt.util.internal.unquote
 import kotlinx.serialization.decodeFromString
 
 /**
@@ -47,13 +49,90 @@ suspend fun VfsFile.readTtfFont(chars: String = CharacterSets.LATIN_ALL): TtfFon
     return TtfFont(chars).also { it.load(data) }
 }
 
-
 /**
  * Reads a bitmap font.
  */
-suspend fun VfsFile.readBitmapFont(mipmaps: Boolean = true) {
+suspend fun VfsFile.readBitmapFont(mipmaps: Boolean = true): BitmapFont {
     val data = readString()
-    val textures = mutableMapOf<Int, TextureSlice>()
+    val textures = mutableMapOf<Int, Texture>()
+    if (data.startsWith("info")) {
+        return readBitmapFontTxt(data, this, textures, mipmaps)
+    } else {
+        TODO("Unsupported font type.")
+    }
+}
+
+private suspend fun readBitmapFontTxt(
+    data: String,
+    fontFile: VfsFile,
+    textures: MutableMap<Int, Texture>,
+    mipmaps: Boolean
+): BitmapFont {
+    val kernings = mutableListOf<BitmapFont.Kerning>()
+    val glyphs = mutableListOf<BitmapFont.Glyph>()
+    var lineHeight = 16f
+    var fontSize = 16f
+    var base: Float? = null
+
+    val lines = data.split("\n")
+    lines.forEach { rline ->
+        val line = rline.trim()
+        val map = linkedMapOf<String, String>()
+
+        line.split(' ').forEach {
+            val (key, value) = it.split('=') + listOf("", "")
+            map[key] = value
+        }
+
+        when {
+            line.startsWith("info") -> {
+                fontSize = map["size"]?.toFloat() ?: 16f
+            }
+            line.startsWith("page") -> {
+                val id = map["id"]?.toInt() ?: 0
+                val file = map["file"]?.unquote() ?: error("Page without file")
+                textures[id] = fontFile.parent[file].readTexture()
+            }
+            line.startsWith("common ") -> {
+                lineHeight = map["lineHeight"]?.toFloatOrNull() ?: 16f
+                base = map["base"]?.toFloatOrNull()
+            }
+            line.startsWith("char ") -> {
+                //id=54 x=158 y=88 width=28 height=42 xoffset=2 yoffset=8 xadvance=28 page=0 chnl=0
+                val page = map["page"]?.toIntOrNull() ?: 0
+                val texture = textures[page] ?: textures.values.first()
+                val id = map["id"]?.toIntOrNull() ?: 0
+                glyphs += BitmapFont.Glyph(
+                    fontSize = fontSize,
+                    id = id,
+                    slice = TextureSlice(
+                        texture,
+                        map["x"]?.toIntOrNull() ?: 0,
+                        map["y"]?.toIntOrNull() ?: 0,
+                        map["width"]?.toIntOrNull() ?: 0,
+                        map["height"]?.toIntOrNull() ?: 0
+                    ),
+                    xoffset = map["xoffset"]?.toIntOrNull() ?: 0,
+                    yoffset = map["yoffset"]?.toIntOrNull() ?: 0,
+                    xadvance = map["xadvance"]?.toIntOrNull() ?: 0
+                )
+            }
+            line.startsWith("kerning ") -> {
+                kernings += BitmapFont.Kerning(
+                    first = map["first"]?.toIntOrNull() ?: 0,
+                    second = map["second"]?.toIntOrNull() ?: 0,
+                    amount = map["amount"]?.toIntOrNull() ?: 0
+                )
+            }
+        }
+    }
+
+    return BitmapFont(
+        fontSize = fontSize,
+        lineHeight = lineHeight,
+        base = base ?: lineHeight,
+        glyphs = glyphs.associateBy { it.id },
+        kernings = kernings.associateBy { BitmapFont.Kerning.buildKey(it.first, it.second) })
 }
 
 private val mapCache = mutableMapOf<String, LDtkMapLoader>()

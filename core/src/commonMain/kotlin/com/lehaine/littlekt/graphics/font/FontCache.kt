@@ -2,7 +2,6 @@ package com.lehaine.littlekt.graphics.font
 
 import com.lehaine.littlekt.graph.node.component.HAlign
 import com.lehaine.littlekt.graphics.Color
-import com.lehaine.littlekt.graphics.GlyphLayout
 import com.lehaine.littlekt.graphics.toFloatBits
 import com.lehaine.littlekt.math.Mat4
 import com.lehaine.littlekt.math.geom.Angle
@@ -108,7 +107,7 @@ class FontCache {
     }
 
     private fun addGlyph(
-        glyph: Glyph,
+        glyph: GlyphMetrics,
         tx: Float,
         ty: Float,
         scale: Float,

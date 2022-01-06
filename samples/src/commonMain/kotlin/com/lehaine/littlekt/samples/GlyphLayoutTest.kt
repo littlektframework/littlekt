@@ -5,7 +5,7 @@ import com.lehaine.littlekt.Game
 import com.lehaine.littlekt.Scene
 import com.lehaine.littlekt.graph.node.component.HAlign
 import com.lehaine.littlekt.graphics.Color
-import com.lehaine.littlekt.graphics.GlyphLayout
+import com.lehaine.littlekt.graphics.font.GlyphLayout
 import com.lehaine.littlekt.graphics.font.TtfFont
 import kotlin.time.Duration
 
@@ -20,7 +20,7 @@ class GlyphLayoutTest(context: Context) : Game<Scene>(context) {
 
     override fun create() {
         val layout = GlyphLayout()
-        layout.setText(font, "my test string!!", 200f, scale = font.pxScale(36), align = HAlign.CENTER, wrap = true)
+        layout.setText(font, "my test string!!", 200f, scale = 36f, align = HAlign.CENTER, wrap = true)
     }
 
     override fun update(dt: Duration) {

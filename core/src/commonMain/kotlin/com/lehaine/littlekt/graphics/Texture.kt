@@ -132,6 +132,8 @@ class Texture(
     }
 }
 
+fun Texture.slice() = TextureSlice(this)
+
 fun Texture.slice(sliceWidth: Int, sliceHeight: Int) = TextureSlice(this).slice(sliceWidth, sliceHeight)
 
 /**

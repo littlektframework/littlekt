@@ -16,7 +16,6 @@ internal const val MILLIS_PER_HOUR = MILLIS_PER_MINUTE * 60 // 3600_000
 internal const val MILLIS_PER_DAY = MILLIS_PER_HOUR * 24 // 86400_000
 internal const val MILLIS_PER_WEEK = MILLIS_PER_DAY * 7 // 604800_000
 
-
 internal val Float.niceStr: String get() = if (floor(this) == this) "${this.toInt()}" else "$this"
 
 internal fun Int.padded(count: Int): String {
@@ -33,16 +32,15 @@ internal fun Float.padded(intCount: Int, decCount: Int): String {
     }"
 }
 
-internal fun String.substr(start: Int, length: Int): String {
-    val low = (if (start >= 0) start else this.length + start).clamp(0, this.length)
-    val high = (if (length >= 0) low + length else this.length + length).clamp(0, this.length)
-    return if (high < low) "" else this.substring(low, high)
-}
-
-
 internal fun Int.clamp(min: Int, max: Int): Int = if (this < min) min else if (this > max) max else this
 internal fun Int.cycle(min: Int, max: Int): Int = ((this - min) umod (max - min + 1)) + min
 internal fun Int.cycleSteps(min: Int, max: Int): Int = (this - min) / (max - min + 1)
+internal fun Int.mask(): Int = (1 shl this) - 1
+internal fun Int.insert(value: Int, offset: Int, count: Int): Int {
+    val mask = count.mask()
+    val clearValue = this and (mask shl offset).inv()
+    return clearValue or ((value and mask) shl offset)
+}
 
 internal infix fun Int.umod(that: Int): Int {
     val remainder = this % that
@@ -67,6 +65,46 @@ internal infix fun Double.umod(that: Double): Double {
         else -> remainder
     }
 }
+
+
+internal fun String.substr(start: Int, length: Int): String {
+    val low = (if (start >= 0) start else this.length + start).clamp(0, this.length)
+    val high = (if (length >= 0) low + length else this.length + length).clamp(0, this.length)
+    return if (high < low) "" else this.substring(low, high)
+}
+
+internal fun String.unescape(): String {
+    val out = StringBuilder()
+    var n = 0
+    while (n < this.length) {
+        val c = this[n++]
+        when (c) {
+            '\\' -> {
+                val c2 = this[n++]
+                when (c2) {
+                    '\\' -> out.append('\\')
+                    '"' -> out.append('\"')
+                    'n' -> out.append('\n')
+                    'r' -> out.append('\r')
+                    't' -> out.append('\t')
+                    'u' -> {
+                        val chars = this.substring(n, n + 4)
+                        n += 4
+                        out.append(chars.toInt(16).toChar())
+                    }
+                    else -> {
+                        out.append("\\$c2")
+                    }
+                }
+            }
+            else -> out.append(c)
+        }
+    }
+    return out.toString()
+}
+
+internal fun String.isQuoted(): Boolean = this.startsWith('"') && this.endsWith('"')
+internal fun String.unquote(): String = if (isQuoted()) this.substring(1, this.length - 1).unescape() else this
 
 internal expect fun epochMillis(): Long
 

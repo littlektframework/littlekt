@@ -6,12 +6,7 @@ import com.lehaine.littlekt.file.vfs.VfsFile
 import com.lehaine.littlekt.file.vfs.writePixmap
 import com.lehaine.littlekt.graph.node.component.HAlign
 import com.lehaine.littlekt.graphics.*
-import com.lehaine.littlekt.graphics.font.internal.GpuAtlas
-import com.lehaine.littlekt.graphics.font.internal.GpuGlyph
-import com.lehaine.littlekt.graphics.font.internal.GpuGlyphCompiler
-import com.lehaine.littlekt.graphics.font.internal.GpuGlyphWriter
-import com.lehaine.littlekt.graphics.font.internal.VGrid
-import com.lehaine.littlekt.graphics.font.internal.VGridAtlas
+import com.lehaine.littlekt.graphics.font.internal.*
 import com.lehaine.littlekt.graphics.shader.ShaderProgram
 import com.lehaine.littlekt.graphics.shader.shaders.GpuTextFragmentShader
 import com.lehaine.littlekt.graphics.shader.shaders.GpuTextVertexShader
@@ -103,8 +98,8 @@ class GpuFont(
         color: Color = Color.BLACK,
         font: TtfFont = defaultFont
     ) {
-        val scale = font.pxScale(pxSize)
-        layout.setText(font, text, maxWidth, scale, align, wrap)
+        val scale = 1f / font.unitsPerEm * pxSize.toFloat()
+        layout.setText(font, text, maxWidth, pxSize.toFloat(), align, wrap)
 
         layout.runs.forEach { run ->
             var tx = x + run.x
@@ -117,7 +112,7 @@ class GpuFont(
                 temp4.rotate(0f, 0f, rotation.degrees)
             }
             run.glyphs.forEachIndexed { index, runGlyph ->
-                val char = runGlyph.unicode.toChar()
+                val char = runGlyph.code.toChar()
 
                 if (!font.isWhitespace(char)) {
                     val glyph = compileGlyph(char, font)

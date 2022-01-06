@@ -9,7 +9,7 @@ import kotlin.math.max
  */
 internal class GpuGlyphCompiler {
 
-    fun compile(glyph: Glyph): List<Bezier> {
+    fun compile(glyph: TtfGlyph): List<Bezier> {
         // Tolerance for error when approximating cubic beziers with quadratics.
         // Too low and many quadratics are generated (slow), too high and not
         // enough are generated (looks bad). 5% works pretty well.
@@ -35,7 +35,7 @@ internal class GpuGlyphCompiler {
         }
     }
 
-    private fun decompose(glyph: Glyph, c2qResolution: Int): ArrayList<Bezier> {
+    private fun decompose(glyph: TtfGlyph, c2qResolution: Int): ArrayList<Bezier> {
         if (glyph.path.isEmpty() || glyph.numberOfContours <= 0) {
             return ArrayList()
         }

@@ -18,6 +18,7 @@ data class VfsFile(val vfs: Vfs, val path: String) : VfsNamed(path.pathInfo) {
     suspend fun read(): ByteBuffer = vfs.readBytes(path)
     suspend fun readBytes(): ByteArray = read().toArray()
     suspend fun readString(): String = readBytes().decodeToString()
+    suspend fun readLines(): List<String> = readBytes().decodeToString().split("\n")
     suspend inline fun <reified T> decodeFromString() = vfs.json.decodeFromString<T>(readString())
 
     fun writeKeystore(data: ByteArray) = vfs.store(pathInfo.baseName, data)
