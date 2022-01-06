@@ -207,7 +207,14 @@ class Mesh(
      * of the values yourself. The batcher will also keep count of each vertex for rendering purposes.
      * @see [verticesPerIndex]
      */
-    private val batcher = MeshBatcher(maxVertices, vertexAttributes)
+    private val batcher =
+        if (useBatcher) MeshBatcher(maxVertices, vertexAttributes) else MeshBatcher(0, vertexAttributes)
+
+    /**
+     * Total max vertices. `maxVertices * vertexSize`.
+     * Only applicable if [useBatcher] is true. Otherwise it will return 0
+     */
+    val batcherVerticesLength get() = if (useBatcher) batcher.vertices.size else 0
 
     /**
      * The number of vertices shared per index. If you are drawing just a triangle, each vertex would only have 1 index.

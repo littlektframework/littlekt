@@ -8,6 +8,7 @@ import com.lehaine.littlekt.graphics.toFloatBits
 import com.lehaine.littlekt.math.Mat4
 import com.lehaine.littlekt.math.geom.Angle
 import com.lehaine.littlekt.math.geom.cosine
+import com.lehaine.littlekt.math.geom.degrees
 import com.lehaine.littlekt.math.geom.sine
 import com.lehaine.littlekt.util.datastructure.FloatArrayList
 
@@ -15,15 +16,17 @@ import com.lehaine.littlekt.util.datastructure.FloatArrayList
  * @author Colton Daily
  * @date 1/5/2022
  */
-class FontCache {
-    private val layouts = mutableListOf<GlyphLayout>()
-    private var x: Float = 0f
-    private var y: Float = 0f
-    private val vertices = FloatArrayList()
+open class FontCache {
     private val temp4 = Mat4() // used for rotating text
+    private val layouts = mutableListOf<GlyphLayout>()
 
-    private var lastX = 0f
-    private var lastY = 0f
+    private  var lastX = 0f
+    private  var lastY = 0f
+
+    protected var x: Float = 0f
+    protected var y: Float = 0f
+    protected val vertices = FloatArrayList()
+
 
     fun draw(batch: SpriteBatch, texture: Texture) {
         batch.draw(texture, vertices.data, 0, vertices.size)
@@ -104,6 +107,11 @@ class FontCache {
             val ty = y + run.y
             lastX = tx
             lastY = ty
+            if (rotation != Angle.ZERO) {
+                temp4.setToIdentity()
+                temp4.translate(tx, ty, 0f)
+                temp4.rotate(0f, 0f, rotation.degrees)
+            }
             run.glyphs.forEachIndexed { index, glyph ->
                 tx += run.advances[index]
                 addGlyph(glyph, tx + glyph.left - glyph.right, ty + glyph.top + glyph.height, scale, rotation, color)

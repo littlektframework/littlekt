@@ -24,7 +24,7 @@ class BitmapFont(
 ) : Font {
 
     private val slices = glyphs
-    private val cache = FontCache()
+    private val cache = BitmapFontCache(this)
 
     /**
      * The name of the font or null.
@@ -82,8 +82,8 @@ class BitmapFont(
         align: HAlign = HAlign.LEFT,
         wrap: Boolean = false
     ) {
-        cache.setText(this, text, x, y, 1f, rotation, color, targetWidth, align, wrap)
-        cache.draw(batch, textures[0]) // TODO impl multiple page font
+        cache.setText(text, x, y, 1f, rotation, color, targetWidth, align, wrap)
+        cache.draw(batch) // TODO impl multiple page font
     }
 
     data class Glyph(
