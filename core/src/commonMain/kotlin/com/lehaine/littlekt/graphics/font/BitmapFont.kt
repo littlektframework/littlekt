@@ -1,6 +1,12 @@
 package com.lehaine.littlekt.graphics.font
 
+import com.lehaine.littlekt.graph.node.component.HAlign
+import com.lehaine.littlekt.graphics.Color
+import com.lehaine.littlekt.graphics.SpriteBatch
+import com.lehaine.littlekt.graphics.Texture
 import com.lehaine.littlekt.graphics.TextureSlice
+import com.lehaine.littlekt.math.Rect
+import com.lehaine.littlekt.math.geom.Angle
 import com.lehaine.littlekt.util.internal.insert
 import kotlin.math.max
 
@@ -12,9 +18,14 @@ class BitmapFont(
     val fontSize: Float,
     val lineHeight: Float,
     val base: Float,
+    val textures: List<Texture>,
     val glyphs: Map<Int, Glyph>,
     val kernings: Map<Int, Kerning>
 ) : Font {
+
+    private val slices = glyphs
+    private val cache = FontCache()
+
     /**
      * The name of the font or null.
      */
@@ -39,14 +50,41 @@ class BitmapFont(
         )
     }
 
-    override val glyphMetrics: Map<Int, GlyphMetrics>
-        get() = TODO("Not yet implemented")
+    override val glyphMetrics: Map<Int, GlyphMetrics> = glyphs.entries.map {
+        val glyph = it.value
+        GlyphMetrics(
+            fontSize,
+            glyph.id,
+            Rect(
+                glyph.xoffset.toFloat(),
+                glyph.yoffset.toFloat(),
+                glyph.slice.width.toFloat(),
+                glyph.slice.height.toFloat()
+            ),
+            glyph.xadvance.toFloat(),
+            u = glyph.slice.u,
+            v = glyph.slice.v,
+            u2 = glyph.slice.u2,
+            v2 = glyph.slice.v2
+        )
+    }.associateBy { it.code }
 
     override var wrapChars: CharSequence = ""
 
-    private val slices = mutableListOf<TextureSlice>()
-    private val cache = FontCache()
-
+    fun draw(
+        batch: SpriteBatch,
+        text: CharSequence,
+        x: Float,
+        y: Float,
+        rotation: Angle = Angle.ZERO,
+        color: Color = Color.BLACK,
+        targetWidth: Float = 0f,
+        align: HAlign = HAlign.LEFT,
+        wrap: Boolean = false
+    ) {
+        cache.setText(this, text, x, y, 1f, rotation, color, targetWidth, align, wrap)
+        cache.draw(batch, textures[0]) // TODO impl multiple page font
+    }
 
     data class Glyph(
         val fontSize: Float,

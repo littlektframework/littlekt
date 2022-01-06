@@ -285,7 +285,7 @@ class GlyphRun {
     override fun toString(): String {
         return buildString {
             append("\"")
-            glyphs.forEach { append(it.xAdvance.toChar()) }
+            glyphs.forEach { append(it.code.toChar()) }
             append("\"")
             append(", $x, $y, $width")
         }

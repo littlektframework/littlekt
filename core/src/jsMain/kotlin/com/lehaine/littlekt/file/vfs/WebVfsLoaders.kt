@@ -6,6 +6,8 @@ import com.lehaine.littlekt.file.ByteBufferImpl
 import com.lehaine.littlekt.graphics.Pixmap
 import com.lehaine.littlekt.graphics.Texture
 import com.lehaine.littlekt.graphics.gl.PixmapTextureData
+import com.lehaine.littlekt.graphics.gl.TexMagFilter
+import com.lehaine.littlekt.graphics.gl.TexMinFilter
 import kotlinx.browser.document
 import kotlinx.coroutines.CompletableDeferred
 import org.w3c.dom.CanvasRenderingContext2D
@@ -21,9 +23,13 @@ import org.w3c.dom.Image
  * Loads an image from the path as a [Texture]. This will call [Texture.prepare] before returning!
  * @return the loaded texture
  */
-actual suspend fun VfsFile.readTexture(): Texture {
-    val data = PixmapTextureData(readPixmap(), true)
-    return Texture(data).also { it.prepare(vfs.context) }
+actual suspend fun VfsFile.readTexture(minFilter: TexMinFilter, magFilter: TexMagFilter, mipmaps: Boolean): Texture {
+    val data = PixmapTextureData(readPixmap(), mipmaps)
+    return Texture(data).also {
+        it.minFilter = minFilter
+        it.magFilter = magFilter
+        it.prepare(vfs.context)
+    }
 }
 
 /**

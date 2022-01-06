@@ -2,6 +2,8 @@ package com.lehaine.littlekt.graphics.font
 
 import com.lehaine.littlekt.graph.node.component.HAlign
 import com.lehaine.littlekt.graphics.Color
+import com.lehaine.littlekt.graphics.SpriteBatch
+import com.lehaine.littlekt.graphics.Texture
 import com.lehaine.littlekt.graphics.toFloatBits
 import com.lehaine.littlekt.math.Mat4
 import com.lehaine.littlekt.math.geom.Angle
@@ -22,6 +24,10 @@ class FontCache {
 
     private var lastX = 0f
     private var lastY = 0f
+
+    fun draw(batch: SpriteBatch, texture: Texture) {
+        batch.draw(texture, vertices.data, 0, vertices.size)
+    }
 
     fun translate(tx: Float, ty: Float) {
         if (tx == 0f && ty == 0f) return
@@ -54,7 +60,6 @@ class FontCache {
     }
 
     fun setText(
-        font: Font,
         layout: GlyphLayout,
         x: Float,
         y: Float,
@@ -63,7 +68,7 @@ class FontCache {
         color: Color = Color.BLACK,
     ) {
         clear()
-        addToCache(font, layout, x, y, scale, rotation, color)
+        addToCache(layout, x, y, scale, rotation, color)
     }
 
     fun addText(
@@ -80,7 +85,7 @@ class FontCache {
     ) {
         val layout = GlyphLayout() // TODO use pool
         layout.setText(font, text, targetWidth, scale, align, wrap)
-        addToCache(font, layout, x, y, scale, rotation, color)
+        addToCache(layout, x, y, scale, rotation, color)
     }
 
     fun clear() {
@@ -91,7 +96,7 @@ class FontCache {
     }
 
     private fun addToCache(
-        font: Font, layout: GlyphLayout, x: Float, y: Float, scale: Float, rotation: Angle, color: Color
+        layout: GlyphLayout, x: Float, y: Float, scale: Float, rotation: Angle, color: Color
     ) {
         layouts += layout
         layout.runs.forEach { run ->
@@ -101,7 +106,7 @@ class FontCache {
             lastY = ty
             run.glyphs.forEachIndexed { index, glyph ->
                 tx += run.advances[index]
-                addGlyph(glyph, tx, ty, scale, rotation, color)
+                addGlyph(glyph, tx + glyph.left - glyph.right, ty + glyph.top + glyph.height, scale, rotation, color)
             }
         }
     }
@@ -159,36 +164,39 @@ class FontCache {
         y4 += my
 
         val colorBits = color.toFloatBits()
+        val u = glyph.u
+        val v = glyph.v2
+        val u2 = glyph.u2
+        val v2 = glyph.v
 
-        // TODO need to implement UV coords for glyphs
         vertices.run { // bottom left
             add(x1)
             add(y1)
             add(colorBits)
-            add(0f)
-            add(1f)
+            add(u)
+            add(v)
         }
 
         vertices.run { // top left
             add(x4)
             add(y4)
             add(colorBits)
-            add(0f)
-            add(0f)
+            add(u)
+            add(v2)
         }
         vertices.run { // top right
             add(x3)
             add(y3)
             add(colorBits)
-            add(1f)
-            add(0f)
+            add(u2)
+            add(v2)
         }
         vertices.run { // bottom right
             add(x2)
             add(y2)
             add(colorBits)
-            add(1f)
-            add(1f)
+            add(u2)
+            add(v)
         }
     }
 }

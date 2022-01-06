@@ -10,7 +10,11 @@ data class GlyphMetrics(
     val size: Float = 0f,
     val code: Int = 0,
     val bounds: Rect = Rect(),
-    val xAdvance: Float = 0f
+    val xAdvance: Float = 0f,
+    val u: Float = 0f,
+    val v: Float = 0f,
+    val u2: Float = 0f,
+    val v2: Float = 0f
 ) {
     val left: Float get() = bounds.x
     val right: Float get() = bounds.x2

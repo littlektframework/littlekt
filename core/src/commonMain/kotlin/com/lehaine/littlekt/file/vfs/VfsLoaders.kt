@@ -13,6 +13,8 @@ import com.lehaine.littlekt.graphics.TextureSlice
 import com.lehaine.littlekt.graphics.font.BitmapFont
 import com.lehaine.littlekt.graphics.font.CharacterSets
 import com.lehaine.littlekt.graphics.font.TtfFont
+import com.lehaine.littlekt.graphics.gl.TexMagFilter
+import com.lehaine.littlekt.graphics.gl.TexMinFilter
 import com.lehaine.littlekt.graphics.tilemap.ldtk.LDtkLevel
 import com.lehaine.littlekt.graphics.tilemap.ldtk.LDtkWorld
 import com.lehaine.littlekt.util.internal.unquote
@@ -52,11 +54,11 @@ suspend fun VfsFile.readTtfFont(chars: String = CharacterSets.LATIN_ALL): TtfFon
 /**
  * Reads a bitmap font.
  */
-suspend fun VfsFile.readBitmapFont(mipmaps: Boolean = true): BitmapFont {
+suspend fun VfsFile.readBitmapFont(filter: TexMagFilter = TexMagFilter.NEAREST, mipmaps: Boolean = true): BitmapFont {
     val data = readString()
     val textures = mutableMapOf<Int, Texture>()
     if (data.startsWith("info")) {
-        return readBitmapFontTxt(data, this, textures, mipmaps)
+        return readBitmapFontTxt(data, this, textures, filter, mipmaps)
     } else {
         TODO("Unsupported font type.")
     }
@@ -66,6 +68,7 @@ private suspend fun readBitmapFontTxt(
     data: String,
     fontFile: VfsFile,
     textures: MutableMap<Int, Texture>,
+    filter: TexMagFilter,
     mipmaps: Boolean
 ): BitmapFont {
     val kernings = mutableListOf<BitmapFont.Kerning>()
@@ -91,17 +94,17 @@ private suspend fun readBitmapFontTxt(
             line.startsWith("page") -> {
                 val id = map["id"]?.toInt() ?: 0
                 val file = map["file"]?.unquote() ?: error("Page without file")
-                textures[id] = fontFile.parent[file].readTexture()
+                textures[id] = fontFile.parent[file].readTexture(magFilter = filter, mipmaps = mipmaps)
             }
             line.startsWith("common ") -> {
                 lineHeight = map["lineHeight"]?.toFloatOrNull() ?: 16f
                 base = map["base"]?.toFloatOrNull()
             }
             line.startsWith("char ") -> {
-                //id=54 x=158 y=88 width=28 height=42 xoffset=2 yoffset=8 xadvance=28 page=0 chnl=0
                 val page = map["page"]?.toIntOrNull() ?: 0
                 val texture = textures[page] ?: textures.values.first()
                 val id = map["id"]?.toIntOrNull() ?: 0
+
                 glyphs += BitmapFont.Glyph(
                     fontSize = fontSize,
                     id = id,
@@ -131,6 +134,7 @@ private suspend fun readBitmapFontTxt(
         fontSize = fontSize,
         lineHeight = lineHeight,
         base = base ?: lineHeight,
+        textures = textures.values.toList(),
         glyphs = glyphs.associateBy { it.id },
         kernings = kernings.associateBy { BitmapFont.Kerning.buildKey(it.first, it.second) })
 }
@@ -178,7 +182,11 @@ suspend fun VfsFile.readLDtkLevel(levelIdx: Int, tilesetBorder: Int = 2): LDtkLe
  * Loads an image from the path as a [Texture]. This will call [Texture.prepare] before returning!
  * @return the loaded texture
  */
-expect suspend fun VfsFile.readTexture(): Texture
+expect suspend fun VfsFile.readTexture(
+    minFilter: TexMinFilter = TexMinFilter.NEAREST,
+    magFilter: TexMagFilter = TexMagFilter.NEAREST,
+    mipmaps: Boolean = true
+): Texture
 
 /**
  * Loads an image from the path as a [Pixmap].

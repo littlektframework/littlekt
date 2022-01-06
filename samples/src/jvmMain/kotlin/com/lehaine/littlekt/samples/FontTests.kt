@@ -11,8 +11,8 @@ fun main(args: Array<String>) {
         width = 960
         height = 540
         vSync = true
-        title = "JVM - Glyph Layout Test"
+        title = "JVM - Font Tests"
     }.start {
-        GlyphLayoutTest(it)
+        FontTests(it)
     }
 }

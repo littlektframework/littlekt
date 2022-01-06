@@ -190,12 +190,12 @@ open class Game<SceneType : Scene>(context: Context, firstScene: SceneType? = nu
      * @param T concrete class of [Any] instance that should be loaded.
      * @param file the file to load
      * @param parameters any parameters that need setting when loading the asset
-     * @see FontAssetParameter
+     * @see BitmapFontAssetParameter
      * @see LDtkGameAssetParameter
      */
     inline fun <reified T : Any> load(
         file: VfsFile,
-        parameters: GameAssetParameters = GameAssetParameters()
+        parameters: GameAssetParameters = EmptyGameAssetParameter()
     ) = access_assetProvider.load<T>(file, parameters)
 
 

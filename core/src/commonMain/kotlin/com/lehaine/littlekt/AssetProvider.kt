@@ -6,8 +6,11 @@ import com.lehaine.littlekt.file.vfs.*
 import com.lehaine.littlekt.graphics.Pixmap
 import com.lehaine.littlekt.graphics.Texture
 import com.lehaine.littlekt.graphics.TextureAtlas
+import com.lehaine.littlekt.graphics.font.BitmapFont
 import com.lehaine.littlekt.graphics.font.CharacterSets
 import com.lehaine.littlekt.graphics.font.TtfFont
+import com.lehaine.littlekt.graphics.gl.TexMagFilter
+import com.lehaine.littlekt.graphics.gl.TexMinFilter
 import com.lehaine.littlekt.graphics.tilemap.ldtk.LDtkLevel
 import com.lehaine.littlekt.graphics.tilemap.ldtk.LDtkWorld
 import kotlinx.atomicfu.atomic
@@ -91,7 +94,7 @@ open class AssetProvider(val context: Context) {
     fun <T : Any> load(
         file: VfsFile,
         clazz: KClass<T>,
-        parameters: GameAssetParameters = GameAssetParameters()
+        parameters: GameAssetParameters = EmptyGameAssetParameter()
     ): GameAsset<T> {
         val sceneAsset = GameAsset<T>(file)
         totalAssetsLoading.addAndGet(1)
@@ -109,12 +112,12 @@ open class AssetProvider(val context: Context) {
      * @param T concrete class of [Any] instance that should be loaded.
      * @param file the file to load
      * @param parameters any parameters that need setting when loading the asset
-     * @see FontAssetParameter
+     * @see BitmapFontAssetParameter
      * @see LDtkGameAssetParameter
      */
     inline fun <reified T : Any> load(
         file: VfsFile,
-        parameters: GameAssetParameters = GameAssetParameters()
+        parameters: GameAssetParameters = EmptyGameAssetParameter()
     ) = load(file, T::class, parameters)
 
 
@@ -129,8 +132,12 @@ open class AssetProvider(val context: Context) {
 
     companion object {
         private fun createLoaders() = mapOf<KClass<*>, suspend (VfsFile, GameAssetParameters) -> Any>(
-            Texture::class to { file, _ ->
-                file.readTexture()
+            Texture::class to { file, param ->
+                if (param is TextureGameAssetParameter) {
+                    file.readTexture(param.minFilter, param.magFilter, param.useMipmaps)
+                } else {
+                    file.readTexture()
+                }
             },
             Pixmap::class to { file, _ ->
                 file.readPixmap()
@@ -142,10 +149,17 @@ open class AssetProvider(val context: Context) {
                 file.readAtlas()
             },
             TtfFont::class to { file, params ->
-                if (params is FontAssetParameter) {
+                if (params is TtfFileAssetParameter) {
                     file.readTtfFont(params.chars)
                 } else {
                     file.readTtfFont()
+                }
+            },
+            BitmapFont::class to { file, params ->
+                if (params is BitmapFontAssetParameter) {
+                    file.readBitmapFont(params.magFilter, params.mipmaps)
+                } else {
+                    file.readBitmapFont()
                 }
             },
             LDtkWorld::class to { file, params ->
@@ -202,18 +216,34 @@ class PreparableGameAsset<T>(val action: () -> T) {
     }
 }
 
-open class GameAssetParameters
+interface GameAssetParameters
+
+class EmptyGameAssetParameter : GameAssetParameters
+
+class TextureGameAssetParameter(
+    val minFilter: TexMinFilter = TexMinFilter.NEAREST,
+    val magFilter: TexMagFilter = TexMagFilter.NEAREST,
+    val useMipmaps: Boolean = true
+) : GameAssetParameters
 
 class LDtkGameAssetParameter(
     val loadAllLevels: Boolean = true,
     val levelIdx: Int = 0,
     val tilesetBorderThickness: Int = 2
-) : GameAssetParameters()
+) : GameAssetParameters
 
-class FontAssetParameter(
+class TtfFileAssetParameter(
     /**
      * The chars to load a glyph for.
      * @see CharacterSets
      */
     val chars: String = CharacterSets.LATIN_ALL
-) : GameAssetParameters()
+) : GameAssetParameters
+
+class BitmapFontAssetParameter(
+    val magFilter: TexMagFilter = TexMagFilter.NEAREST,
+    /**
+     * Use mipmaps on the bitmap textures or not.
+     */
+    val mipmaps: Boolean = true
+) : GameAssetParameters
