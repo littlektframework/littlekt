@@ -58,7 +58,7 @@ class FontTests(context: Context) : Game<Scene>(context) {
 
     override fun create() {
         val layout = GlyphLayout()
-        layout.setText(libSans, "my test string!!", 200f, scale = 36f, align = HAlign.CENTER, wrap = true)
+        layout.setText(libSans, "my test string!!", width = 200f, scale = 36f, align = HAlign.CENTER, wrap = true)
         pixelFontXLargeCache.setText("This is m5x7 point 48", 550f, 100f, rotation = 45.degrees)
     }
 

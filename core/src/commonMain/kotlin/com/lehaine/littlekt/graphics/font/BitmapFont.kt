@@ -77,7 +77,7 @@ class BitmapFont(
         x: Float,
         y: Float,
         rotation: Angle = Angle.ZERO,
-        color: Color = Color.BLACK,
+        color: Color = Color.WHITE,
         targetWidth: Float = 0f,
         align: HAlign = HAlign.LEFT,
         wrap: Boolean = false

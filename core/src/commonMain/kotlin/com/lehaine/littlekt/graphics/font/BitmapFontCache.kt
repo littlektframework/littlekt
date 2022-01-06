@@ -21,7 +21,7 @@ class BitmapFontCache(val font: BitmapFont) : FontCache() {
         y: Float,
         scale: Float = 1f,
         rotation: Angle = Angle.ZERO,
-        color: Color = Color.BLACK,
+        color: Color = Color.WHITE,
         targetWidth: Float = 0f,
         align: HAlign = HAlign.LEFT,
         wrap: Boolean = false
@@ -34,7 +34,7 @@ class BitmapFontCache(val font: BitmapFont) : FontCache() {
         y: Float,
         scale: Float = 1f,
         rotation: Angle = Angle.ZERO,
-        color: Color = Color.BLACK,
+        color: Color = Color.WHITE,
         targetWidth: Float = 0f,
         align: HAlign = HAlign.LEFT,
         wrap: Boolean = false

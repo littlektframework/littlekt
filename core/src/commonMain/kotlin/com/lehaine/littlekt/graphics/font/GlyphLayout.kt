@@ -1,6 +1,8 @@
 package com.lehaine.littlekt.graphics.font
 
 import com.lehaine.littlekt.graph.node.component.HAlign
+import com.lehaine.littlekt.graphics.Color
+import com.lehaine.littlekt.graphics.abgr
 import com.lehaine.littlekt.util.datastructure.FloatArrayList
 import kotlin.math.abs
 import kotlin.math.max
@@ -10,8 +12,13 @@ import kotlin.math.max
  * @date 1/2/2022
  */
 class GlyphLayout {
+    private var glyphCount: Int = 0
+
     private val _runs = mutableListOf<GlyphRun>()
     val runs: List<GlyphRun> get() = _runs
+
+    private val _colors = MutableList(2) { 0 }
+    val colors: List<Int> get() = _colors
 
     var width: Float = 0f
         private set
@@ -21,6 +28,7 @@ class GlyphLayout {
     fun setText(
         font: Font,
         text: CharSequence,
+        color: Color = Color.WHITE,
         width: Float = 0f,
         scale: Float = 1f,
         align: HAlign = HAlign.LEFT,
@@ -33,6 +41,9 @@ class GlyphLayout {
 
         val targetWidth = if (wrap) max(width, font.metrics.maxWidth * 3 * scale) else width
         val wrapOrTruncate = wrap || truncate != null
+        var currentColor = color.abgr()
+        var nextColor = currentColor
+        _colors[0] = currentColor
         var lastRun = false
         var y = 0f
         var runStart = 0
@@ -59,6 +70,18 @@ class GlyphLayout {
                         this.y = y
                         getGlyphsFrom(font, text, scale, runStart, runEnd, null)
                     } // TODO alloc and free from a pool instead
+                    glyphCount += run.glyphs.size
+
+                    if (nextColor != currentColor) {// TODO implement a markup
+                        if (_colors.size - 2 == glyphCount) {
+                            _colors[colors.size - 1] = nextColor
+                        } else {
+                            _colors += glyphCount
+                            _colors += nextColor
+                        }
+                        currentColor = nextColor
+                    }
+
                     if (currentRun == null) {
                         currentRun = run.also { _runs += it }
                     } else {
@@ -240,6 +263,7 @@ class GlyphRun {
     var x: Float = 0f
     var y: Float = 0f
     var width: Float = 0f
+    var color: Color = Color.WHITE
 
     fun append(run: GlyphRun) {
         glyphs.addAll(run.glyphs)

@@ -1,10 +1,7 @@
 package com.lehaine.littlekt.graphics.font
 
 import com.lehaine.littlekt.graph.node.component.HAlign
-import com.lehaine.littlekt.graphics.Color
-import com.lehaine.littlekt.graphics.SpriteBatch
-import com.lehaine.littlekt.graphics.Texture
-import com.lehaine.littlekt.graphics.toFloatBits
+import com.lehaine.littlekt.graphics.*
 import com.lehaine.littlekt.math.Mat4
 import com.lehaine.littlekt.math.geom.Angle
 import com.lehaine.littlekt.math.geom.cosine
@@ -20,12 +17,13 @@ open class FontCache {
     private val temp4 = Mat4() // used for rotating text
     private val layouts = mutableListOf<GlyphLayout>()
 
-    private  var lastX = 0f
-    private  var lastY = 0f
+    private var lastX = 0f
+    private var lastY = 0f
 
     protected var x: Float = 0f
     protected var y: Float = 0f
     protected val vertices = FloatArrayList()
+    protected var currentTint = Color.WHITE.toFloatBits()
 
 
     fun draw(batch: SpriteBatch, texture: Texture) {
@@ -44,6 +42,35 @@ open class FontCache {
         }
     }
 
+    fun tint(tint: Color) {
+        val newTint = tint.toFloatBits()
+        if (newTint == currentTint) return
+        currentTint = newTint
+
+        layouts.forEach { layout ->
+            val colors = layout.colors
+            var colorsIndex = 0
+            var nextColorGlyphIndex = 0
+            var glyphIndex = 0
+            var lastColorFloatBits = 0f
+            layout.runs.forEach { run ->
+                val glyphs = run.glyphs
+                glyphs.forEach {
+                    if (glyphIndex++ == nextColorGlyphIndex) {
+                        tempColor.setAbgr8888(colors[++colorsIndex])
+                        lastColorFloatBits = tempColor.mul(tint).toFloatBits()
+                        nextColorGlyphIndex = if (++colorsIndex < colors.size) colors[colorsIndex] else -1
+                    }
+                    val offset = 2
+                    vertices[offset] = lastColorFloatBits
+                    vertices[offset + 5] = lastColorFloatBits
+                    vertices[offset + 10] = lastColorFloatBits
+                    vertices[offset + 15] = lastColorFloatBits
+                }
+            }
+        }
+    }
+
     fun setPosition(px: Float, py: Float) = translate(px - x, py - y)
 
     fun setText(
@@ -53,7 +80,7 @@ open class FontCache {
         y: Float,
         scale: Float = 1f,
         rotation: Angle = Angle.ZERO,
-        color: Color = Color.BLACK,
+        color: Color = Color.WHITE,
         targetWidth: Float = 0f,
         align: HAlign = HAlign.LEFT,
         wrap: Boolean = false
@@ -68,7 +95,7 @@ open class FontCache {
         y: Float,
         scale: Float = 1f,
         rotation: Angle = Angle.ZERO,
-        color: Color = Color.BLACK,
+        color: Color = Color.WHITE,
     ) {
         clear()
         addToCache(layout, x, y, scale, rotation, color)
@@ -81,13 +108,13 @@ open class FontCache {
         y: Float,
         scale: Float = 1f,
         rotation: Angle = Angle.ZERO,
-        color: Color = Color.BLACK,
+        color: Color = Color.WHITE,
         targetWidth: Float = 0f,
         align: HAlign = HAlign.LEFT,
         wrap: Boolean = false
     ) {
         val layout = GlyphLayout() // TODO use pool
-        layout.setText(font, text, targetWidth, scale, align, wrap)
+        layout.setText(font, text, color, targetWidth, scale, align, wrap)
         addToCache(layout, x, y, scale, rotation, color)
     }
 
@@ -206,5 +233,9 @@ open class FontCache {
             add(u2)
             add(v)
         }
+    }
+
+    companion object {
+        private val tempColor = MutableColor()
     }
 }
