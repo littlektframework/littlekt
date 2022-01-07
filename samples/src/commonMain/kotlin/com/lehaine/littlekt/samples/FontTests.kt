@@ -4,13 +4,11 @@ import com.lehaine.littlekt.BitmapFontAssetParameter
 import com.lehaine.littlekt.Context
 import com.lehaine.littlekt.Game
 import com.lehaine.littlekt.Scene
-import com.lehaine.littlekt.graph.node.component.HAlign
 import com.lehaine.littlekt.graphics.Color
 import com.lehaine.littlekt.graphics.OrthographicCamera
 import com.lehaine.littlekt.graphics.SpriteBatch
 import com.lehaine.littlekt.graphics.font.BitmapFont
 import com.lehaine.littlekt.graphics.font.BitmapFontCache
-import com.lehaine.littlekt.graphics.font.GlyphLayout
 import com.lehaine.littlekt.graphics.font.TtfFont
 import com.lehaine.littlekt.graphics.gl.TexMagFilter
 import com.lehaine.littlekt.graphics.use
@@ -46,7 +44,11 @@ class FontTests(context: Context) : Game<Scene>(context) {
         BitmapFontAssetParameter(magFilter = TexMagFilter.LINEAR)
     )
 
-    val pixelFontXLargeCache by prepare<BitmapFontCache> {
+    val barlowLargeCache by prepare {
+        BitmapFontCache(barlowLarge)
+    }
+
+    val pixelFontXLargeCache by prepare {
         BitmapFontCache(pixelFontXLarge)
     }
     val batch = SpriteBatch(this)
@@ -57,8 +59,7 @@ class FontTests(context: Context) : Game<Scene>(context) {
 
 
     override fun create() {
-        val layout = GlyphLayout()
-        layout.setText(libSans, "my test string!!", width = 200f, scale = 36f, align = HAlign.CENTER, wrap = true)
+        barlowLargeCache.setText("This should be RED", 350f, 400f, color = Color.RED)
         pixelFontXLargeCache.setText("This is m5x7 point 48", 550f, 100f, rotation = 45.degrees)
     }
 
@@ -75,10 +76,11 @@ class FontTests(context: Context) : Game<Scene>(context) {
             pixelFontLarge.draw(it, "This is m5x7 point 32", 50f, 75f)
             pixelFontXLarge.draw(it, "This is m5x7 point 48", 50f, 100f)
             pixelFontXLargeCache.draw(it)
-            barlowTiny.draw(it, "This is barlow point 9", 50f, 250f, color = Color.WHITE)
-            barlowSmall.draw(it, "This is barlow point 11", 50f, 275f, color = Color.WHITE)
-            barlowNormal.draw(it, "This is barlow point 17", 50f, 300f, color = Color.WHITE)
-            barlowLarge.draw(it, "This is barlow point 32", 50f, 325f, color = Color.WHITE)
+            barlowLargeCache.draw(it)
+            barlowTiny.draw(it, "This is barlow point 9", 50f, 250f)
+            barlowSmall.draw(it, "This is barlow point 11", 50f, 275f)
+            barlowNormal.draw(it, "This is barlow point 17", 50f, 300f)
+            barlowLarge.draw(it, "This is barlow point 32", 50f, 325f)
         }
 
         lastFps = stats.fps
