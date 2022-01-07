@@ -3,7 +3,7 @@
 
 **Currently in development.**
 
-A mutliplatform lower level game framework inspired by libGDX and KorGE. The goal of this project is to allow the freedom and flexibility that libGDX offers with enjoyable idiomatic features coded in Kotlin that KorGE has to offer.
+**A mutliplatform lower level Kotlin game development framework based on OpenGL** that is inspired by libGDX and KorGE. The goal of this project is to allow the freedom and flexibility that libGDX offers with enjoyable idiomatic features coded in Kotlin that KorGE has to offer.
 
 Check out the [samples](https://github.com/littlektframework/littlekt-samples) repository.
 
