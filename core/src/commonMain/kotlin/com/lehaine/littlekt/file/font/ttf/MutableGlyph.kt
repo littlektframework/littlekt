@@ -1,6 +1,6 @@
 package com.lehaine.littlekt.file.font.ttf
 
-import com.lehaine.littlekt.graphics.font.Glyph
+import com.lehaine.littlekt.graphics.font.TtfGlyph
 import com.lehaine.littlekt.graphics.font.GlyphPath
 import com.lehaine.littlekt.graphics.font.GlyphReference
 import com.lehaine.littlekt.graphics.font.ContourPoint
@@ -41,7 +41,7 @@ internal class MutableGlyph(var index: Int, var unitsPerEm: Int) {
         unicodes.add(unicode)
     }
 
-    fun toImmutable() = Glyph(
+    fun toImmutable() = TtfGlyph(
         name,
         index,
         xMin,

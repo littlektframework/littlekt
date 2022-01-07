@@ -1,6 +1,6 @@
 package com.lehaine.littlekt.graphics.font
 
-data class Glyph(
+data class TtfGlyph(
     val name: String?,
     val index: Int,
     val xMin: Int,

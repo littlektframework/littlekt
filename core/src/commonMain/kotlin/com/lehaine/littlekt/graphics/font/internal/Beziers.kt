@@ -1,4 +1,4 @@
-package com.lehaine.littlekt.graphics.font
+package com.lehaine.littlekt.graphics.font.internal
 
 import com.lehaine.littlekt.math.MutableVec2f
 import com.lehaine.littlekt.math.Vec2f

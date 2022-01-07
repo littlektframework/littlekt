@@ -8,6 +8,8 @@ import com.lehaine.littlekt.file.createByteBuffer
 import com.lehaine.littlekt.graphics.Pixmap
 import com.lehaine.littlekt.graphics.Texture
 import com.lehaine.littlekt.graphics.gl.PixmapTextureData
+import com.lehaine.littlekt.graphics.gl.TexMagFilter
+import com.lehaine.littlekt.graphics.gl.TexMinFilter
 import com.lehaine.littlekt.graphics.gl.TextureFormat
 import fr.delthas.javamp3.Sound
 import java.io.ByteArrayInputStream
@@ -27,10 +29,12 @@ private val imageIoLock = Any()
  * Loads an image from the path as a [Texture]. This will call [Texture.prepare] before returning!
  * @return the loaded texture
  */
-actual suspend fun VfsFile.readTexture(): Texture {
-    val data = PixmapTextureData(readPixmap(), true)
+actual suspend fun VfsFile.readTexture(minFilter: TexMinFilter, magFilter: TexMagFilter, mipmaps: Boolean): Texture {
+    val data = PixmapTextureData(readPixmap(), mipmaps)
 
     return Texture(data).also {
+        it.minFilter = minFilter
+        it.magFilter = magFilter
         vfs.context as LwjglContext
         vfs.context.runOnMainThread {
             it.prepare(vfs.context)

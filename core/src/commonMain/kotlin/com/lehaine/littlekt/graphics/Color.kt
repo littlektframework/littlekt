@@ -149,10 +149,14 @@ open class Color(r: Float, g: Float, b: Float, a: Float = 1f) : Vec4f(r, g, b, a
 
         fun toRgba8888(r: Float, g: Float, b: Float, a: Float) =
             ((r * 255).toInt() shl 24) or ((g * 255).toInt() shl 16) or ((b * 255).toInt() shl 8) or (a * 255).toInt()
+
+        fun toAbgr888(r: Float, g: Float, b: Float, a: Float) =
+            ((a * 255).toInt() shl 24) or ((b * 255).toInt() shl 16) or ((g * 255).toInt() shl 8) or (r * 255).toInt()
     }
 }
 
-fun Color.abgr(r: Int, g: Int, b: Int, a: Int) = (a shl 24) or (b shl 16) or (g shl 8) or r
+fun Color.toAgbr8888() = Color.toAbgr888(r, g, b, a)
+fun Color.abgr() = toAgbr8888()
 fun Color.toRgba8888() = Color.toRgba8888(r, g, b, a)
 fun Color.rgba() = toRgba8888()
 
@@ -237,6 +241,14 @@ open class MutableColor(r: Float, g: Float, b: Float, a: Float) : Color(r, g, b,
         return this
     }
 
+    fun mul(other: Vec4f): MutableColor {
+        r *= other.x
+        g *= other.y
+        g *= other.z
+        a *= other.w
+        return this
+    }
+
     fun clear(): MutableColor {
         set(0f, 0f, 0f, 0f)
         return this
@@ -290,5 +302,12 @@ open class MutableColor(r: Float, g: Float, b: Float, a: Float) : Color(r, g, b,
         g = ((rgba8888 and 0x00ff0000) ushr 16) / 255f
         b = ((rgba8888 and 0x0000ff00) ushr 8) / 255f
         a = (rgba8888 and 0x000000ff) / 255f
+    }
+
+    fun setAbgr8888(abgr888: Int) {
+        a = ((abgr888 and 0xff000000.toInt()) ushr 24) / 255f
+        b = ((abgr888 and 0x00ff0000) ushr 16) / 255f
+        g = ((abgr888 and 0x0000ff00) ushr 8) / 255f
+        r = (abgr888 and 0x000000ff) / 255f
     }
 }

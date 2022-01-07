@@ -2,7 +2,7 @@ package com.lehaine.littlekt.file.font.ttf
 
 import com.lehaine.littlekt.file.ByteBuffer
 import com.lehaine.littlekt.file.font.ttf.table.*
-import com.lehaine.littlekt.graphics.font.Glyph
+import com.lehaine.littlekt.graphics.font.TtfGlyph
 
 /**
  * @author Colton Daily
@@ -26,6 +26,10 @@ class TtfFontReader {
         private set
     var descender: Int = 0
         private set
+    var lineGap: Int = 0
+        private set
+    var advanceWidthMax: Int = 0
+        private set
     var numberOfHMetrics: Int = 0
         private set
     var numGlyphs: Int = 0
@@ -33,8 +37,17 @@ class TtfFontReader {
     var capHeight: Int = 0
         private set
 
-    operator fun get(codePoint: Int): Glyph = this[codePoint.toChar()]
-    operator fun get(char: Char): Glyph {
+    var xMin: Float = 0f
+        private set
+    var yMin: Float = 0f
+        private set
+    var xMax: Float = 0f
+        private set
+    var yMax: Float = 0f
+        private set
+
+    operator fun get(codePoint: Int): TtfGlyph = this[codePoint.toChar()]
+    operator fun get(char: Char): TtfGlyph {
         val glyphIndex = encoding.charToGlyphIndex(char) ?: 0
         return glyphs[glyphIndex].let {
             it.calcPath()
@@ -125,6 +138,10 @@ class TtfFontReader {
                 "head" -> {
                     table = uncompressTable(buffer, tableEntry)
                     tables.head = HeadParser(table.buffer, table.offset).parse().also {
+                        xMin = it.xMin.toFloat()
+                        xMax = it.xMax.toFloat()
+                        yMin = it.yMin.toFloat()
+                        yMax = it.yMax.toFloat()
                         unitsPerEm = it.unitsPerEm
                         indexToLocFormat = it.indexToLocFormat
                     }
@@ -134,6 +151,8 @@ class TtfFontReader {
                     tables.hhea = HheaParser(table.buffer, table.offset).parse().also {
                         ascender = it.ascender
                         descender = it.descender
+                        advanceWidthMax = it.advanceWidthMax
+                        lineGap = it.lineGap
                         numberOfHMetrics = it.numberOfHMetrics
                     }
                 }

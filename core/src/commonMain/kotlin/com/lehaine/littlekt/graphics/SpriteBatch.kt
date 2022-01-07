@@ -526,11 +526,11 @@ class SpriteBatch(
         idx += SPRITE_SIZE
     }
 
-    fun draw(texture: Texture, vertices: FloatArray, offset: Int = 0, count: Int = vertices.size) {
+    fun draw(texture: Texture, spriteVertices: FloatArray, offset: Int = 0, count: Int = spriteVertices.size) {
         if (!drawing) {
             throw IllegalStateException("SpriteBatch.begin must be called before draw.")
         }
-        val verticesLength: Int = vertices.size
+        val verticesLength: Int = mesh.batcherVerticesLength
         var remainingVertices = verticesLength
 
         if (texture != lastTexture) {
@@ -544,7 +544,7 @@ class SpriteBatch(
         }
 
         var copyCount = min(remainingVertices, count)
-        mesh.addVertices(vertices, offset, idx, copyCount)
+        mesh.addVertices(spriteVertices, offset, idx, copyCount)
         idx += copyCount
 
         var remainingCount = count - copyCount
@@ -553,7 +553,7 @@ class SpriteBatch(
             currOffset += copyCount
             flush()
             copyCount = min(verticesLength, remainingCount)
-            mesh.addVertices(vertices, currOffset, 0, copyCount)
+            mesh.addVertices(spriteVertices, currOffset, 0, copyCount)
             idx += copyCount
             remainingCount -= copyCount
         }

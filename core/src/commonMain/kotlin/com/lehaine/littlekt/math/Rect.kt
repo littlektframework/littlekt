@@ -21,6 +21,10 @@ data class Rect(var x: Float = 0f, var y: Float = 0f, var width: Float = 0f, var
         height = newHeight
         return this
     }
+
+    companion object {
+        fun fromBounds(x: Float, y: Float, x2: Float, y2: Float) = Rect(x, y, x2 - x, y2 - y)
+    }
 }
 
 class RectBuilder {

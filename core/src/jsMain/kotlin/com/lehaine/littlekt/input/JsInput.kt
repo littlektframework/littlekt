@@ -24,7 +24,9 @@ class JsInput(val canvas: HTMLCanvasElement) : Input {
     private var _deltaX = 0f
     private var _deltaY = 0f
 
-    override var inputProcessor: InputProcessor? = null
+    private val _inputProcessors = mutableListOf<InputProcessor>()
+    override val inputProcessors: List<InputProcessor>
+        get() = _inputProcessors
 
     override val gamepads: Array<GamepadInfo> = Array(8) { GamepadInfo(it) }
 
@@ -145,7 +147,7 @@ class JsInput(val canvas: HTMLCanvasElement) : Input {
 
     fun update() {
         updateGamepads()
-        inputCache.processEvents(inputProcessor)
+        inputCache.processEvents(inputProcessors)
     }
 
     fun reset() {
@@ -308,6 +310,14 @@ class JsInput(val canvas: HTMLCanvasElement) : Input {
 
     override fun setCursorPosition(x: Int, y: Int) {
         TODO("Not yet implemented")
+    }
+
+    override fun addInputProcessor(processor: InputProcessor) {
+        _inputProcessors += processor
+    }
+
+    override fun removeInputProcessor(processor: InputProcessor) {
+        _inputProcessors -= processor
     }
 }
 
