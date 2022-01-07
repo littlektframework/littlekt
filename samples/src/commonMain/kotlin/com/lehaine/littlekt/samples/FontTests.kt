@@ -72,7 +72,7 @@ class FontTests(context: Context) : Game<Scene>(context) {
         batch.use(camera.viewProjection) {
             pixelFontLarge.draw(it, "FPS: ${lastFps.toString(1)}", 600f, 25f)
             pixelFontLarge.draw(it, "Draw calls: $drawCalls", 600f, 50f)
-            pixelFont.draw(it, "This is m5x7 point 16", 50f, 50f)
+            pixelFont.draw(it, "This is m5x7 point 16", 0f, 0f)
             pixelFontLarge.draw(it, "This is m5x7 point 32", 50f, 75f)
             pixelFontXLarge.draw(it, "This is m5x7 point 48", 50f, 100f)
             pixelFontXLargeCache.draw(it)
