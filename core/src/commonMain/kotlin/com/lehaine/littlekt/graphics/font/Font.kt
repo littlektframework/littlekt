@@ -32,6 +32,11 @@ interface Font : Disposable {
         return false
     }
 
+    fun getKerning(first: Int, second: Int): Kerning?
+    fun getKerning(first: Char, second: Char): Kerning? = getKerning(first.code, second.code)
+    fun getKerning(scale: Float, first: Int, second: Int): Float = getKerning(first, second)?.amount?.times(scale) ?: 0f
+    fun getKerning(scale: Float, first: Char, second: Char): Float = getKerning(scale, first.code, second.code)
+
     operator fun get(code: Int) = glyphMetrics[code]
     operator fun get(char: Char) = glyphMetrics[char.code]
 

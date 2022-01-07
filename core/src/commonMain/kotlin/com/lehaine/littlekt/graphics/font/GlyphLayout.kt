@@ -296,12 +296,16 @@ class GlyphRun {
             //     glyph = font.missingGlyph ?: continue TODO
             //   }
             glyphs += glyph
-            advances += glyph.xAdvance * scale
+            advances += if (currGlyph == null) -glyph.left * scale else glyph.xAdvance * scale + font.getKerning(
+                scale,
+                currGlyph.code,
+                ch.code
+            )
             currGlyph = glyph
         } while (i < end)
 
         if (currGlyph != null) {
-            advances += currGlyph.xAdvance * scale
+            advances += (currGlyph.width - currGlyph.left) * scale
         }
     }
 

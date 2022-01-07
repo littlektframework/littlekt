@@ -23,6 +23,10 @@ class TtfFont(val chars: CharSequence = CharacterSets.LATIN_ALL) : Font {
 
     override val metrics: FontMetrics get() = _metrics
 
+    override fun getKerning(first: Int, second: Int): Kerning? {
+        return null // TODO impl
+    }
+
     fun load(data: ByteBuffer) {
         val buffer = createByteBuffer(data.toArray(), isBigEndian = true).also { it.flip() }
         val scale: Float

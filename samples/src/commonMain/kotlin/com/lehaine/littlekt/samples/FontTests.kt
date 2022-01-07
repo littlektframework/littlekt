@@ -59,7 +59,7 @@ class FontTests(context: Context) : Game<Scene>(context) {
 
 
     override fun create() {
-        barlowLargeCache.setText("This should be RED", 350f, 400f, color = Color.RED)
+        barlowLargeCache.setText("aabbccddeeffgghhiijjkkllmmnnooppqqrrssttuuvvwwxxyyzz112233445566778899", 50f, 400f, color = Color.RED)
         pixelFontXLargeCache.setText("This is m5x7 point 48", 550f, 100f, rotation = 45.degrees)
     }
 

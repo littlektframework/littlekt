@@ -12,6 +12,7 @@ import com.lehaine.littlekt.graphics.TextureAtlas
 import com.lehaine.littlekt.graphics.TextureSlice
 import com.lehaine.littlekt.graphics.font.BitmapFont
 import com.lehaine.littlekt.graphics.font.CharacterSets
+import com.lehaine.littlekt.graphics.font.Kerning
 import com.lehaine.littlekt.graphics.font.TtfFont
 import com.lehaine.littlekt.graphics.gl.TexMagFilter
 import com.lehaine.littlekt.graphics.gl.TexMinFilter
@@ -71,7 +72,7 @@ private suspend fun readBitmapFontTxt(
     filter: TexMagFilter,
     mipmaps: Boolean
 ): BitmapFont {
-    val kernings = mutableListOf<BitmapFont.Kerning>()
+    val kernings = mutableListOf<Kerning>()
     val glyphs = mutableListOf<BitmapFont.Glyph>()
     var lineHeight = 16f
     var fontSize = 16f
@@ -121,7 +122,7 @@ private suspend fun readBitmapFontTxt(
                 )
             }
             line.startsWith("kerning ") -> {
-                kernings += BitmapFont.Kerning(
+                kernings += Kerning(
                     first = map["first"]?.toIntOrNull() ?: 0,
                     second = map["second"]?.toIntOrNull() ?: 0,
                     amount = map["amount"]?.toIntOrNull() ?: 0
@@ -136,7 +137,7 @@ private suspend fun readBitmapFontTxt(
         base = base ?: lineHeight,
         textures = textures.values.toList(),
         glyphs = glyphs.associateBy { it.id },
-        kernings = kernings.associateBy { BitmapFont.Kerning.buildKey(it.first, it.second) })
+        kernings = kernings.associateBy { Kerning.buildKey(it.first, it.second) })
 }
 
 private val mapCache = mutableMapOf<String, LDtkMapLoader>()
