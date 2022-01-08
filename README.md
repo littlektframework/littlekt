@@ -1,5 +1,5 @@
 # LittleKt - An OpenGL game framework written in Kotlin
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://github.com/LittleKtOrg/LittleKt/blob/master/LICENSE)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://github.com/littlektframework/littlekt/blob/master/LICENSE)
 
 **Currently in development.**
 
