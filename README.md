@@ -16,6 +16,7 @@ Check out the [wiki](https://github.com/littlektframework/littlekt/wiki) for get
 * **Font**: Loaders and renders to make font's easy to use
   * TTF file parser and loader
   * GPU vector font rendering of TTF files on the fly based off of [Will Dobbie's article](https://wdobbie.com/post/gpu-text-rendering-with-vector-textures/)
+  * Bitmap fonts
 * **High-Level 2D APIs**:
   * Orthographic camera and viewports
   * Texture atlases, slicing, and pixmap editing 
@@ -30,7 +31,7 @@ Check out the [wiki](https://github.com/littlektframework/littlekt/wiki) for get
   * Full [LDtk](https://ldtk.io) map loading and rendering
 * **Virtual File System**:
   * A file system abstraction that allows for easy access for reading and writing files
-  * A flexibile asynchronous asset provider system 
+  * A flexible asynchronous asset provider system 
 * **Math**:
   * Matrix and vector classes
   * Bounding shapes and Bresenham implementations
