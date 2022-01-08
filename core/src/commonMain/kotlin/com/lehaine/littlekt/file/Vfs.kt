@@ -15,9 +15,6 @@ import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.selects.select
 import kotlinx.serialization.json.Json
-import kotlin.contracts.ExperimentalContracts
-import kotlin.contracts.InvocationKind
-import kotlin.contracts.contract
 import kotlin.coroutines.CoroutineContext
 
 /**
@@ -78,7 +75,7 @@ abstract class Vfs(
     }
 
     /**
-     * Cancels this file handlers job.
+     * Cancels this vfs job.
      */
     open fun close() {
         job.cancel()
