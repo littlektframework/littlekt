@@ -101,7 +101,7 @@ abstract class Vfs(
                 assetPath.startsWith("data:", true)
 
     /**
-     * Launches a new coroutine using the this file handlers coroutine context. Use this to load assets asynchronously.
+     * Launches a new coroutine using the this vfs coroutine context. Use this to load assets asynchronously.
      */
     fun launch(block: suspend Vfs.() -> Unit) {
         (this as CoroutineScope).launch {

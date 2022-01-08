@@ -1,11 +1,15 @@
 package com.lehaine.littlekt.graphics.internal
 
+import com.lehaine.littlekt.AssetProvider
+import com.lehaine.littlekt.BitmapFontAssetParameter
 import com.lehaine.littlekt.Context
 import com.lehaine.littlekt.file.createByteBuffer
 import com.lehaine.littlekt.graphics.Pixmap
 import com.lehaine.littlekt.graphics.Texture
 import com.lehaine.littlekt.graphics.TextureSlice
+import com.lehaine.littlekt.graphics.font.BitmapFont
 import com.lehaine.littlekt.graphics.gl.PixmapTextureData
+import com.lehaine.littlekt.graphics.gl.TexMagFilter
 import com.lehaine.littlekt.graphics.slice
 import com.lehaine.littlekt.util.internal.SingletonBase
 
@@ -16,7 +20,9 @@ import com.lehaine.littlekt.util.internal.SingletonBase
 internal class InternalResources private constructor(private val context: Context) {
     internal companion object : SingletonBase<InternalResources, Context>(::InternalResources)
 
-    val default = Texture(
+    private val assetProvider = AssetProvider(context)
+
+    val defaultTexture = Texture(
         PixmapTextureData(
             Pixmap(
                 9, 6,
@@ -88,7 +94,7 @@ internal class InternalResources private constructor(private val context: Contex
         )
     ).also { it.prepare(context) }
 
-    private val defaultSlices = default.slice(1, 1)
+    private val defaultSlices = defaultTexture.slice(1, 1)
     val white: TextureSlice = defaultSlices[1][1]
     val black: TextureSlice = defaultSlices[1][4]
     val red: TextureSlice = defaultSlices[1][7]
@@ -96,4 +102,22 @@ internal class InternalResources private constructor(private val context: Contex
     val blue: TextureSlice = defaultSlices[4][4]
 
     val transparent: TextureSlice = defaultSlices[4][7]
+
+
+    val defaultFontTiny: BitmapFont by assetProvider.load(
+        context.resourcesVfs["barlow_condensed_medium_regular_9.fnt"],
+        BitmapFontAssetParameter(magFilter = TexMagFilter.LINEAR)
+    )
+    val defaultFontSmall: BitmapFont by assetProvider.load(
+        context.resourcesVfs["barlow_condensed_medium_regular_11.fnt"],
+        BitmapFontAssetParameter(magFilter = TexMagFilter.LINEAR)
+    )
+    val defaultFont: BitmapFont by assetProvider.load(
+        context.resourcesVfs["barlow_condensed_medium_regular_17.fnt"],
+        BitmapFontAssetParameter(magFilter = TexMagFilter.LINEAR)
+    )
+    val defaultFontLarge: BitmapFont by assetProvider.load(
+        context.resourcesVfs["barlow_condensed_medium_regular_32.fnt"],
+        BitmapFontAssetParameter(magFilter = TexMagFilter.LINEAR)
+    )
 }

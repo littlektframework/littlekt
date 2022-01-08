@@ -1,17 +1,12 @@
 package com.lehaine.littlekt.samples
 
-import com.lehaine.littlekt.BitmapFontAssetParameter
 import com.lehaine.littlekt.Context
 import com.lehaine.littlekt.Game
 import com.lehaine.littlekt.Scene
-import com.lehaine.littlekt.graphics.Color
-import com.lehaine.littlekt.graphics.OrthographicCamera
-import com.lehaine.littlekt.graphics.SpriteBatch
+import com.lehaine.littlekt.graphics.*
 import com.lehaine.littlekt.graphics.font.BitmapFont
 import com.lehaine.littlekt.graphics.font.BitmapFontCache
 import com.lehaine.littlekt.graphics.font.TtfFont
-import com.lehaine.littlekt.graphics.gl.TexMagFilter
-import com.lehaine.littlekt.graphics.use
 import com.lehaine.littlekt.math.geom.degrees
 import com.lehaine.littlekt.util.toString
 import kotlin.time.Duration
@@ -27,25 +22,9 @@ class FontTests(context: Context) : Game<Scene>(context) {
     val pixelFont by load<BitmapFont>(resourcesVfs["m5x7_16.fnt"])
     val pixelFontLarge by load<BitmapFont>(resourcesVfs["m5x7_32.fnt"])
     val pixelFontXLarge by load<BitmapFont>(resourcesVfs["m5x7_48.fnt"])
-    val barlowTiny by load<BitmapFont>(
-        resourcesVfs["barlow_condensed_medium_regular_9.fnt"],
-        BitmapFontAssetParameter(magFilter = TexMagFilter.LINEAR)
-    )
-    val barlowSmall by load<BitmapFont>(
-        resourcesVfs["barlow_condensed_medium_regular_11.fnt"],
-        BitmapFontAssetParameter(magFilter = TexMagFilter.LINEAR)
-    )
-    val barlowNormal by load<BitmapFont>(
-        resourcesVfs["barlow_condensed_medium_regular_17.fnt"],
-        BitmapFontAssetParameter(magFilter = TexMagFilter.LINEAR)
-    )
-    val barlowLarge by load<BitmapFont>(
-        resourcesVfs["barlow_condensed_medium_regular_32.fnt"],
-        BitmapFontAssetParameter(magFilter = TexMagFilter.LINEAR)
-    )
 
     val barlowLargeCache by prepare {
-        BitmapFontCache(barlowLarge)
+        BitmapFontCache(Fonts.large)
     }
 
     val pixelFontXLargeCache by prepare {
@@ -59,7 +38,12 @@ class FontTests(context: Context) : Game<Scene>(context) {
 
 
     override fun create() {
-        barlowLargeCache.setText("aabbccddeeffgghhiijjkkllmmnnooppqqrrssttuuvvwwxxyyzz112233445566778899", 50f, 400f, color = Color.RED)
+        barlowLargeCache.setText(
+            "aabbccddeeffgghhiijjkkllmmnnooppqqrrssttuuvvwwxxyyzz112233445566778899",
+            50f,
+            400f,
+            color = Color.RED
+        )
         pixelFontXLargeCache.setText("This is m5x7 point 48", 550f, 100f, rotation = 45.degrees)
     }
 
@@ -77,10 +61,10 @@ class FontTests(context: Context) : Game<Scene>(context) {
             pixelFontXLarge.draw(it, "This is m5x7 point 48", 50f, 100f)
             pixelFontXLargeCache.draw(it)
             barlowLargeCache.draw(it)
-            barlowTiny.draw(it, "This is barlow point 9", 50f, 250f)
-            barlowSmall.draw(it, "This is barlow point 11", 50f, 275f)
-            barlowNormal.draw(it, "This is barlow point 17", 50f, 300f)
-            barlowLarge.draw(it, "This is barlow point 32", 50f, 325f)
+            Fonts.tiny.draw(it, "This is barlow point 9", 50f, 250f)
+            Fonts.small.draw(it, "This is barlow point 11", 50f, 275f)
+            Fonts.default.draw(it, "This is barlow point 17", 50f, 300f)
+            Fonts.large.draw(it, "This is barlow point 32", 50f, 325f)
         }
 
         lastFps = stats.fps
