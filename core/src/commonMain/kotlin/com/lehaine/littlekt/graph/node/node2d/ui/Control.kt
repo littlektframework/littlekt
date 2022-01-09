@@ -1,4 +1,4 @@
-package com.lehaine.littlekt.graph.node.`2d`.ui
+package com.lehaine.littlekt.graph.node.node2d.ui
 
 import com.lehaine.littlekt.graph.SceneGraph
 import com.lehaine.littlekt.graph.node.Node
@@ -8,7 +8,7 @@ import com.lehaine.littlekt.graph.node.component.AnchorLayout
 import com.lehaine.littlekt.graph.node.component.AnchorLayout.*
 import com.lehaine.littlekt.graph.node.component.InputEvent
 import com.lehaine.littlekt.graph.node.component.SizeFlag
-import com.lehaine.littlekt.graph.node.`2d`.Node2D
+import com.lehaine.littlekt.graph.node.node2d.Node2D
 import com.lehaine.littlekt.graphics.Color
 import com.lehaine.littlekt.graphics.SpriteBatch
 import com.lehaine.littlekt.math.Mat4

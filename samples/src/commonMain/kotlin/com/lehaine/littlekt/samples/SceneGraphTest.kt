@@ -4,7 +4,7 @@ import com.lehaine.littlekt.Context
 import com.lehaine.littlekt.Game
 import com.lehaine.littlekt.Scene
 import com.lehaine.littlekt.graph.node.node
-import com.lehaine.littlekt.graph.node.`2d`.Node2D
+import com.lehaine.littlekt.graph.node.node2d.Node2D
 import com.lehaine.littlekt.graph.sceneGraph
 import com.lehaine.littlekt.graphics.Camera
 import com.lehaine.littlekt.graphics.SpriteBatch
