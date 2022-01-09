@@ -410,9 +410,7 @@ fun Pixmap.sliceWithBorder(
     }
 
     val newTex = Texture(PixmapTextureData(out, mipmaps)).also {
-        context.runOnMainThread {
-            it.prepare(context)
-        }
+        it.prepare(context)
     }
 
     val newSlices = List(slices.size) { n ->

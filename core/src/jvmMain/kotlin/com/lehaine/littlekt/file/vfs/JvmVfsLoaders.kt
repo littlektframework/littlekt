@@ -36,9 +36,7 @@ actual suspend fun VfsFile.readTexture(minFilter: TexMinFilter, magFilter: TexMa
         it.minFilter = minFilter
         it.magFilter = magFilter
         vfs.context as LwjglContext
-        vfs.context.runOnMainThread {
-            it.prepare(vfs.context)
-        }
+        it.prepare(vfs.context)
     }
 }
 

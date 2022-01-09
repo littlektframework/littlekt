@@ -4,12 +4,13 @@ import com.lehaine.littlekt.Context
 import com.lehaine.littlekt.Game
 import com.lehaine.littlekt.Scene
 import com.lehaine.littlekt.createShader
+import com.lehaine.littlekt.file.vfs.readAtlas
+import com.lehaine.littlekt.file.vfs.readTexture
 import com.lehaine.littlekt.graphics.*
 import com.lehaine.littlekt.graphics.shader.shaders.SimpleColorFragmentShader
 import com.lehaine.littlekt.graphics.shader.shaders.SimpleColorVertexShader
 import com.lehaine.littlekt.input.*
 import com.lehaine.littlekt.log.Logger
-import kotlin.time.Duration
 
 /**
  * @author Colton Daily
@@ -17,17 +18,18 @@ import kotlin.time.Duration
  */
 class DisplayTest(context: Context) : Game<Scene>(context), InputProcessor {
 
-    val batch = SpriteBatch(context)
 
-    val texture by load<Texture>(resourcesVfs["atlas.png"])
-    val atlas: TextureAtlas by load(resourcesVfs["tiles.atlas.json"])
-    val slices: Array<Array<TextureSlice>> by prepare { texture.slice(16, 16) }
-    val person by prepare { slices[0][0] }
-    val bossAttack by prepare { atlas.getAnimation("bossAttack") }
-    val boss by prepare { AnimatedSprite(bossAttack.firstFrame) }
+    private var x = 0f
+    private var y = 0f
+
+    private var xVel = 0f
+    private var yVel = 0f
+    private val controller = InputMultiplexer<GameInput>(input)
+    val camera = OrthographicCamera(graphics.width, graphics.height)
 
     val shader = createShader(SimpleColorVertexShader(), SimpleColorFragmentShader())
     val colorBits = Color.WHITE.toFloatBits()
+
     val mesh = colorMesh {
         maxVertices = 4
     }.apply {
@@ -57,15 +59,6 @@ class DisplayTest(context: Context) : Game<Scene>(context), InputProcessor {
 
         indicesAsQuad()
     }
-
-    val camera = OrthographicCamera(graphics.width, graphics.height)
-
-    private var x = 0f
-    private var y = 0f
-
-    private var xVel = 0f
-    private var yVel = 0f
-    private val controller = InputMultiplexer<GameInput>(input)
 
     enum class GameInput {
         MOVE_LEFT,
@@ -100,76 +93,77 @@ class DisplayTest(context: Context) : Game<Scene>(context), InputProcessor {
         )
     }
 
-    override fun create() {
+
+    override suspend fun Context.run() {
+        val batch = SpriteBatch(context)
+
+        val texture = resourcesVfs["atlas.png"].readTexture()
+        val atlas: TextureAtlas = resourcesVfs["tiles.atlas.json"].readAtlas()
+        val slices: Array<Array<TextureSlice>> = texture.slice(16, 16)
+        val person = slices[0][0]
+        val bossAttack = atlas.getAnimation("bossAttack")
+        val boss = AnimatedSprite(bossAttack.firstFrame)
+
+
         boss.playLooped(bossAttack)
         boss.x = 450f
         boss.y = 250f
         boss.scaleX = 2f
         boss.scaleY = 2f
-    }
 
-    override fun update(dt: Duration) {
-        xVel = 0f
-        yVel = 0f
+        onRender { dt ->
+            xVel = 0f
+            yVel = 0f
 
-        val velocity = controller.vector(GameInput.MOVEMENT)
-        xVel = velocity.x * 10f
-        yVel = velocity.y * 10f
+            val velocity = controller.vector(GameInput.MOVEMENT)
+            xVel = velocity.x * 10f
+            yVel = velocity.y * 10f
 
-        if (controller.pressed(GameInput.JUMP)) {
-            yVel -= 25f
-        }
-
-        gl.clearColor(Color.DARK_GRAY)
-        camera.update()
-        boss.update(dt)
-        batch.use(camera.viewProjection) {
-            it.draw(person, x, y, scaleX = 10f, scaleY = 10f)
-            slices.forEachIndexed { rowIdx, row ->
-                row.forEachIndexed { colIdx, slice ->
-                    it.draw(slice, 150f * (rowIdx * row.size + colIdx) + 50f, 50f, scaleX = 10f, scaleY = 10f)
-                }
+            if (controller.pressed(GameInput.JUMP)) {
+                yVel -= 25f
             }
-            boss.render(it)
-            it.draw(Textures.default, 150f, 450f, scaleX = 5f, scaleY = 5f)
-            it.draw(Textures.white, 200f, 400f, scaleX = 5f, scaleY = 5f)
-            it.draw(Textures.transparent, 220f, 400f, scaleX = 5f, scaleY = 5f)
-            it.draw(Textures.red, 240f, 400f, scaleX = 5f, scaleY = 5f)
-            it.draw(Textures.green, 260f, 400f, scaleX = 5f, scaleY = 5f)
-            it.draw(Textures.blue, 280f, 400f, scaleX = 5f, scaleY = 5f)
-            it.draw(Textures.black, 300f, 400f, scaleX = 5f, scaleY = 5f)
+
+            gl.clearColor(Color.DARK_GRAY)
+            camera.update()
+            boss.update(dt)
+            batch.use(camera.viewProjection) {
+                it.draw(person, x, y, scaleX = 10f, scaleY = 10f)
+                slices.forEachIndexed { rowIdx, row ->
+                    row.forEachIndexed { colIdx, slice ->
+                        it.draw(slice, 150f * (rowIdx * row.size + colIdx) + 50f, 50f, scaleX = 10f, scaleY = 10f)
+                    }
+                }
+                boss.render(it)
+                it.draw(Textures.default, 150f, 450f, scaleX = 5f, scaleY = 5f)
+                it.draw(Textures.white, 200f, 400f, scaleX = 5f, scaleY = 5f)
+                it.draw(Textures.transparent, 220f, 400f, scaleX = 5f, scaleY = 5f)
+                it.draw(Textures.red, 240f, 400f, scaleX = 5f, scaleY = 5f)
+                it.draw(Textures.green, 260f, 400f, scaleX = 5f, scaleY = 5f)
+                it.draw(Textures.blue, 280f, 400f, scaleX = 5f, scaleY = 5f)
+                it.draw(Textures.black, 300f, 400f, scaleX = 5f, scaleY = 5f)
+            }
+
+            shader.bind()
+            shader.uProjTrans?.apply(shader, camera.viewProjection)
+            mesh.render(shader)
+
+            x += xVel
+            y += yVel
+
+
+            if (input.isKeyJustPressed(Key.P)) {
+                logger.debug { stats }
+            }
+
+            if (input.isKeyJustPressed(Key.ESCAPE)) {
+                close()
+            }
         }
-
-        shader.bind()
-        shader.uProjTrans?.apply(shader, camera.viewProjection)
-        mesh.render(shader)
-
-        x += xVel
-        y += yVel
-
-
-        if (input.isKeyJustPressed(Key.P)) {
-            logger.debug { stats }
+        onDispose {
+            mesh.dispose()
+            texture.dispose()
+            shader.dispose()
+            batch.dispose()
         }
-
-        if (input.isKeyJustPressed(Key.ESCAPE)) {
-            close()
-        }
-    }
-
-    override fun resize(width: Int, height: Int) {
-        logger.debug { "Resize to $width,$height" }
-    }
-
-    override fun keyUp(key: Key): Boolean {
-        logger.debug { "Key up: $key" }
-        return false
-    }
-
-    override fun dispose() {
-        mesh.dispose()
-        texture.dispose()
-        shader.dispose()
-        batch.dispose()
     }
 }
