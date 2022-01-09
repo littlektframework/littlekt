@@ -32,6 +32,10 @@ class UITest(context: Context) : Game<Scene>(context) {
         resourcesVfs[Fonts.small],
         BitmapFontAssetParameter(magFilter = TexMagFilter.LINEAR)
     )
+    val arialFont by load<BitmapFont>(
+        resourcesVfs["arial_32.fnt"],
+        BitmapFontAssetParameter(magFilter = TexMagFilter.LINEAR)
+    )
 
     val sceneGraph by prepare {
         sceneGraph(context, ExtendViewport(480, 270)) {
@@ -79,7 +83,8 @@ class UITest(context: Context) : Game<Scene>(context) {
                     debugColor = Color.YELLOW
 
                     label {
-                        font = defaultFont
+                        font = arialFont
+                        fontScale = Vec2f(0.5f)
                         text = "Bottom right"
                     }
                 }
