@@ -14,6 +14,7 @@ import com.lehaine.littlekt.graphics.font.BitmapFont
 import com.lehaine.littlekt.graphics.font.BitmapFontCache
 import com.lehaine.littlekt.graphics.font.GlyphLayout
 import com.lehaine.littlekt.math.MutableVec2f
+import com.lehaine.littlekt.math.Vec2f
 import com.lehaine.littlekt.math.geom.Angle
 
 /**
@@ -42,14 +43,10 @@ open class Label : Control() {
     private var cache: BitmapFontCache? = null
     private val layout = GlyphLayout()
 
-    private var fontScaleDirty = false
-
-    private var _fontScale = MutableVec2f()
+    private var _fontScale = MutableVec2f(1f)
     private var textDirty = false
 
-    var fontColor = Color.WHITE
-
-    var fontScale
+    var fontScale: Vec2f
         get() = _fontScale
         set(value) {
             if (value == _fontScale) return
@@ -65,11 +62,10 @@ open class Label : Control() {
                 _fontScale.set(value)
             }
             textDirty = true
-            fontScaleDirty = true
             onMinimumSizeChanged()
         }
 
-    var fontScaleX
+    var fontScaleX: Float
         get() = _fontScale.x
         set(value) {
             if (value == _fontScale.x) return
@@ -79,11 +75,10 @@ open class Label : Control() {
                 _fontScale.x = value
             }
             textDirty = true
-            fontScaleDirty = true
             onMinimumSizeChanged()
         }
 
-    var fontScaleY
+    var fontScaleY: Float
         get() = _fontScale.y
         set(value) {
             if (value == _fontScale.y) return
@@ -93,9 +88,10 @@ open class Label : Control() {
                 _fontScale.y = value
             }
             textDirty = true
-            fontScaleDirty = true
             onMinimumSizeChanged()
         }
+
+    var fontColor = Color.WHITE
 
     var font: BitmapFont?
         get() = cache?.font
@@ -174,11 +170,7 @@ open class Label : Control() {
         }
 
         val text = if (uppercase) text.uppercase() else text
-        if (wrap) {
-            minSizeLayout.setText(font, text, Color.WHITE, width, 1f, HAlign.LEFT, true)
-        } else {
-            minSizeLayout.setText(font, text)
-        }
+        minSizeLayout.setText(font, text, scaleX = fontScaleX, scaleY = fontScaleY, wrap = wrap)
         _internalMinWidth = minSizeLayout.width
         _internalMinHeight = minSizeLayout.height
 
@@ -195,7 +187,17 @@ open class Label : Control() {
         val textHeight: Float
 
         if (wrap || text.contains("\n")) {
-            layout.setText(font, text, Color.WHITE, width, 1f, horizontalAlign, wrap, ellipsis)
+            layout.setText(
+                font,
+                text,
+                Color.WHITE,
+                width,
+                scaleX = fontScaleX,
+                scaleY = fontScaleY,
+                horizontalAlign,
+                wrap,
+                ellipsis
+            )
             textWidth = layout.width
             textHeight = layout.height
         } else {
@@ -217,7 +219,17 @@ open class Label : Control() {
             }
         }
 
-        layout.setText(font, text, Color.WHITE, textWidth, 1f, horizontalAlign, wrap, ellipsis)
-        cache.setText(layout, 0f, ty)
+        layout.setText(
+            font,
+            text,
+            Color.WHITE,
+            textWidth,
+            scaleX = fontScaleX,
+            scaleY = fontScaleY,
+            horizontalAlign,
+            wrap,
+            ellipsis
+        )
+        cache.setText(layout, 0f, ty, fontScaleX, fontScaleY)
     }
 }

@@ -25,7 +25,8 @@ class BitmapFontCache(val font: BitmapFont) : FontCache(font.pages) {
      * @param text the string of text to draw
      * @param x the x position to draw the text
      * @param y the y position to draw the text
-     * @param scale the scale of the glyphs
+     * @param scaleX the scale of the x component of the glyphs
+     * @param scaleY the scale of the y component of the glyphs
      * @param rotation the rotation of the text to draw
      * @param color the color of the text to draw
      * @param targetWidth the width of the area the text will be drawn, for wrapping or truncation
@@ -36,20 +37,22 @@ class BitmapFontCache(val font: BitmapFont) : FontCache(font.pages) {
         text: CharSequence,
         x: Float,
         y: Float,
-        scale: Float = 1f,
+        scaleX: Float = 1f,
+        scaleY: Float = 1f,
         rotation: Angle = Angle.ZERO,
         color: Color = Color.WHITE,
         targetWidth: Float = 0f,
         align: HAlign = HAlign.LEFT,
         wrap: Boolean = false
-    ) = setText(font, text, x, y, scale, rotation, color, targetWidth, align, wrap)
+    ) = setText(font, text, x, y, scaleX, scaleY, rotation, color, targetWidth, align, wrap)
 
     /**
      * Adds new glyphs of the specified string of [text] on top of any existing glyphs.
      * @param text the string of text to draw
      * @param x the x position to draw the text
      * @param y the y position to draw the text
-     * @param scale the scale of the glyphs
+     * @param scaleX the scale of the x component of the glyphs
+     * @param scaleY the scale of the y component of the glyphs
      * @param rotation the rotation of the text to draw
      * @param color the color of the text to draw
      * @param targetWidth the width of the area the text will be drawn, for wrapping or truncation
@@ -60,12 +63,13 @@ class BitmapFontCache(val font: BitmapFont) : FontCache(font.pages) {
         text: CharSequence,
         x: Float,
         y: Float,
-        scale: Float = 1f,
+        scaleX: Float = 1f,
+        scaleY: Float = 1f,
         rotation: Angle = Angle.ZERO,
         color: Color = Color.WHITE,
         targetWidth: Float = 0f,
         align: HAlign = HAlign.LEFT,
         wrap: Boolean = false
-    ) = addText(font, text, x, y, scale, rotation, color, targetWidth, align, wrap)
+    ) = addText(font, text, x, y, scaleX, scaleY, rotation, color, targetWidth, align, wrap)
 
 }

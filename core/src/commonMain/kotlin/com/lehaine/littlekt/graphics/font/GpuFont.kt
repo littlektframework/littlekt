@@ -99,7 +99,7 @@ class GpuFont(
         font: TtfFont = defaultFont
     ) {
         val scale = 1f / font.unitsPerEm * pxSize.toFloat()
-        layout.setText(font, text, color, maxWidth, pxSize.toFloat(), align, wrap)
+        layout.setText(font, text, color, maxWidth, pxSize.toFloat(), pxSize.toFloat(), align, wrap)
 
         layout.runs.forEach { run ->
             var tx = x + run.x

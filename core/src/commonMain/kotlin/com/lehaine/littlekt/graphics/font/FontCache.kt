@@ -109,7 +109,8 @@ open class FontCache(val pages: Int = 1) {
      * @param text the string of text to draw
      * @param x the x position to draw the text
      * @param y the y position to draw the text
-     * @param scale the scale of the glyphs
+     * @param scaleX the scale of the x component of the glyphs
+     * @param scaleY the scale of the y component of the glyphs
      * @param rotation the rotation of the text to draw
      * @param color the color of the text to draw
      * @param targetWidth the width of the area the text will be drawn, for wrapping or truncation
@@ -121,7 +122,8 @@ open class FontCache(val pages: Int = 1) {
         text: CharSequence,
         x: Float,
         y: Float,
-        scale: Float = 1f,
+        scaleX: Float = 1f,
+        scaleY: Float = 1f,
         rotation: Angle = Angle.ZERO,
         color: Color = Color.WHITE,
         targetWidth: Float = 0f,
@@ -129,7 +131,7 @@ open class FontCache(val pages: Int = 1) {
         wrap: Boolean = false
     ) {
         clear()
-        addText(font, text, x, y, scale, rotation, color, targetWidth, align, wrap)
+        addText(font, text, x, y, scaleX, scaleY, rotation, color, targetWidth, align, wrap)
     }
 
     /**
@@ -137,7 +139,8 @@ open class FontCache(val pages: Int = 1) {
      * @param layout the glyph layout to cache
      * @param x the x position to draw the text
      * @param y the y position to draw the text
-     * @param scale the scale of the glyphs
+     * @param scaleX the scale of the x component of the glyphs
+     * @param scaleY the scale of the y component of the glyphs
      * @param rotation the rotation of the text to draw
      * @param color the color of the text to draw
      */
@@ -145,12 +148,13 @@ open class FontCache(val pages: Int = 1) {
         layout: GlyphLayout,
         x: Float,
         y: Float,
-        scale: Float = 1f,
+        scaleX: Float = 1f,
+        scaleY: Float = 1f,
         rotation: Angle = Angle.ZERO,
         color: Color = Color.WHITE,
     ) {
         clear()
-        addToCache(layout, x, y, scale, rotation, color)
+        addToCache(layout, x, y, scaleX, scaleY, rotation, color)
     }
 
     /**
@@ -159,7 +163,8 @@ open class FontCache(val pages: Int = 1) {
      * @param text the string of text to draw
      * @param x the x position to draw the text
      * @param y the y position to draw the text
-     * @param scale the scale of the glyphs
+     * @param scaleX the scale of the x component of the glyphs
+     * @param scaleY the scale of the y component of the glyphs
      * @param rotation the rotation of the text to draw
      * @param color the color of the text to draw
      * @param targetWidth the width of the area the text will be drawn, for wrapping or truncation
@@ -171,7 +176,8 @@ open class FontCache(val pages: Int = 1) {
         text: CharSequence,
         x: Float,
         y: Float,
-        scale: Float = 1f,
+        scaleX: Float = 1f,
+        scaleY: Float = 1f,
         rotation: Angle = Angle.ZERO,
         color: Color = Color.WHITE,
         targetWidth: Float = 0f,
@@ -179,8 +185,8 @@ open class FontCache(val pages: Int = 1) {
         wrap: Boolean = false
     ) {
         val layout = GlyphLayout() // TODO use pool
-        layout.setText(font, text, color, targetWidth, scale, align, wrap)
-        addToCache(layout, x, y, scale, rotation, color)
+        layout.setText(font, text, color, targetWidth, scaleX, scaleY, align, wrap)
+        addToCache(layout, x, y, scaleX, scaleY, rotation, color)
     }
 
     /**
@@ -196,7 +202,7 @@ open class FontCache(val pages: Int = 1) {
     }
 
     private fun addToCache(
-        layout: GlyphLayout, x: Float, y: Float, scale: Float, rotation: Angle, color: Color
+        layout: GlyphLayout, x: Float, y: Float, scaleX: Float, scaleY: Float, rotation: Angle, color: Color
     ) {
         layouts += layout
         layout.runs.forEach { run ->
@@ -211,7 +217,15 @@ open class FontCache(val pages: Int = 1) {
             }
             run.glyphs.forEachIndexed { index, glyph ->
                 tx += run.advances[index]
-                addGlyph(glyph, tx + glyph.left - glyph.right, ty + glyph.top + glyph.height, scale, rotation, color)
+                addGlyph(
+                    glyph,
+                    tx + (glyph.left - glyph.right) * scaleX,
+                    ty + (glyph.top + glyph.height) * scaleY,
+                    scaleX,
+                    scaleY,
+                    rotation,
+                    color
+                )
             }
         }
     }
@@ -220,7 +234,8 @@ open class FontCache(val pages: Int = 1) {
         glyph: GlyphMetrics,
         tx: Float,
         ty: Float,
-        scale: Float,
+        scaleX: Float,
+        scaleY: Float,
         rotation: Angle,
         color: Color,
     ) {
@@ -231,18 +246,20 @@ open class FontCache(val pages: Int = 1) {
         lastY = ty
         val mx = (if (rotation == Angle.ZERO) tx else temp4[12])
         val my = (if (rotation == Angle.ZERO) ty else temp4[13])
+
         val p1x = 0f
-        val p1y = -glyph.height * scale
-        val p2x = glyph.width * scale
-        val p3y = 0f
+        val p1y = -glyph.height * scaleY
+        val p2x = glyph.width * scaleX
+        val p2y = 0f
+
         var x1: Float = p1x
         var y1: Float = p1y
         var x2: Float = p2x
         var y2: Float = p1y
         var x3: Float = p2x
-        var y3: Float = p3y
+        var y3: Float = p2y
         var x4: Float = p1x
-        var y4: Float = p3y
+        var y4: Float = p2y
         if (rotation != Angle.ZERO) {
             val cos = rotation.cosine
             val sin = rotation.sine
@@ -253,8 +270,8 @@ open class FontCache(val pages: Int = 1) {
             x2 = cos * p2x - sin * p1y
             y2 = sin * p2x + cos * p1y
 
-            x3 = cos * p2x - sin * p3y
-            y3 = sin * p2x + cos * p3y
+            x3 = cos * p2x - sin * p2y
+            y3 = sin * p2x + cos * p2y
 
             x4 = x1 + (x3 - x2)
             y4 = y3 - (y2 - y1)

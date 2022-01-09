@@ -1,5 +1,6 @@
 package com.lehaine.littlekt.samples
 
+import com.lehaine.littlekt.BitmapFontAssetParameter
 import com.lehaine.littlekt.Context
 import com.lehaine.littlekt.Game
 import com.lehaine.littlekt.Scene
@@ -13,7 +14,9 @@ import com.lehaine.littlekt.graphics.Fonts
 import com.lehaine.littlekt.graphics.Textures
 import com.lehaine.littlekt.graphics.font.BitmapFont
 import com.lehaine.littlekt.graphics.font.TtfFont
+import com.lehaine.littlekt.graphics.gl.TexMagFilter
 import com.lehaine.littlekt.log.Logger
+import com.lehaine.littlekt.math.Vec2f
 import com.lehaine.littlekt.util.viewport.ExtendViewport
 import kotlin.time.Duration
 
@@ -25,7 +28,10 @@ import kotlin.time.Duration
 class UITest(context: Context) : Game<Scene>(context) {
 
     val freeSerif by load<TtfFont>(resourcesVfs["FreeSerif.ttf"])
-    val defaultFont by load<BitmapFont>(resourcesVfs[Fonts.default])
+    val defaultFont by load<BitmapFont>(
+        resourcesVfs[Fonts.small],
+        BitmapFontAssetParameter(magFilter = TexMagFilter.LINEAR)
+    )
 
     val sceneGraph by prepare {
         sceneGraph(context, ExtendViewport(480, 270)) {
@@ -112,6 +118,7 @@ class UITest(context: Context) : Game<Scene>(context) {
 
                     label {
                         font = defaultFont
+                        fontScale = Vec2f(2f, 2f)
                         text = "Center right"
                     }
                 }
