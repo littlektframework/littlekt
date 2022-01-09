@@ -10,6 +10,13 @@ import com.lehaine.littlekt.math.geom.Angle
 import kotlin.math.max
 
 /**
+ * A [Font] that handles rendering of bitmap fonts using the **BMFont** text format.
+ *
+ * The text is drawn using a [SpriteBatch]. The text can also be cached in a [FontCache] to render static text without
+ * having to compute the geometry of each glyph every frame. The [BitmapFontCache] can be used specifically for this class.
+ *
+ * The textures required for a [BitmapFont] are managed and may be disposed by directly calling the [dispose] method
+ * on the [BitmapFont] object.
  * @author Colt Daily
  * @date 1/5/22
  */
@@ -23,7 +30,6 @@ class BitmapFont(
     val pages: Int = 1
 ) : Font {
 
-    private val slices = glyphs
     private val cache = BitmapFontCache(this)
 
     /**
@@ -31,10 +37,6 @@ class BitmapFont(
      */
     var name: String? = null
 
-    /**
-     * The width of space character.
-     */
-    var spaceWidth: Float = 0f
 
     override val metrics: FontMetrics = run {
         val ascent = base
@@ -76,6 +78,20 @@ class BitmapFont(
         return kernings[Kerning.buildKey(first, second)]
     }
 
+    /**
+     * Draws a string of text.
+     * @param batch the batch to draw the text with
+     * @param text the string of text to draw
+     * @param x the x position to draw the text
+     * @param y the y position to draw the text
+     * @param rotation the rotation of the text to draw
+     * @param color the color of the text to draw
+     * @param targetWidth the width of the area the text will be drawn, for wrapping or truncation
+     * @param align the horizontal alignment of the text, see [HAlign]
+     * @param wrap if true, the text will be wrapped within the [targetWidth]
+     * @see [FontCache.setText]
+     * @see [FontCache.draw]
+     */
     fun draw(
         batch: SpriteBatch,
         text: CharSequence,
@@ -89,6 +105,12 @@ class BitmapFont(
     ) {
         cache.setText(text, x, y, 1f, rotation, color, targetWidth, align, wrap)
         cache.draw(batch) // TODO impl multiple page font
+    }
+
+    override fun dispose() {
+        textures.forEach {
+            it.dispose()
+        }
     }
 
     data class Glyph(

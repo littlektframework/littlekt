@@ -10,6 +10,9 @@ import com.lehaine.littlekt.math.geom.sine
 import com.lehaine.littlekt.util.datastructure.FloatArrayList
 
 /**
+ * Caches glyph geometry to provide a fast way to render static textures without having recompute the glyph each time.
+ * This is a base class and can be extended to add additional functionality to specific fonts.
+ * @see BitmapFontCache
  * @author Colton Daily
  * @date 1/5/2022
  */
@@ -26,6 +29,12 @@ open class FontCache(val pages: Int = 1) {
     protected var currentTint = Color.WHITE.toFloatBits()
 
 
+    /**
+     * Draws the text using the specified batch and list of textures.
+     * The [textures] list size must be >= [pages]
+     * @param batch the batch to draw with
+     * @param textures the textures to use for drawing
+     */
     fun draw(batch: SpriteBatch, textures: List<Texture>) {
         pageVertices.forEachIndexed { index, vertices ->
             if (vertices.isNotEmpty()) {
@@ -34,6 +43,11 @@ open class FontCache(val pages: Int = 1) {
         }
     }
 
+    /**
+     * Moves the position of the text by the specified amount.
+     * @param tx the amount to move the x position
+     * @param ty the amount to move the y position
+     */
     fun translate(tx: Float, ty: Float) {
         if (tx == 0f && ty == 0f) return
 
@@ -48,6 +62,10 @@ open class FontCache(val pages: Int = 1) {
         }
     }
 
+    /**
+     * Tints the existing text in the cache.
+     * @param tint the tint color
+     */
     fun tint(tint: Color) {
         val newTint = tint.toFloatBits()
         if (newTint == currentTint) return
@@ -78,8 +96,26 @@ open class FontCache(val pages: Int = 1) {
         }
     }
 
+    /**
+     * Sets the position of the text.
+     * @param px the x coordinate
+     * @param py the y coordinate
+     */
     fun setPosition(px: Float, py: Float) = translate(px - x, py - y)
 
+    /**
+     * Clears any existing glyphs of previous text and adds the new glyphs of the specified string of [text].
+     * @param font the font that contains the glyphs to use
+     * @param text the string of text to draw
+     * @param x the x position to draw the text
+     * @param y the y position to draw the text
+     * @param scale the scale of the glyphs
+     * @param rotation the rotation of the text to draw
+     * @param color the color of the text to draw
+     * @param targetWidth the width of the area the text will be drawn, for wrapping or truncation
+     * @param align the horizontal alignment of the text, see [HAlign]
+     * @param wrap if true, the text will be wrapped within the [targetWidth]
+     */
     fun setText(
         font: Font,
         text: CharSequence,
@@ -96,6 +132,15 @@ open class FontCache(val pages: Int = 1) {
         addText(font, text, x, y, scale, rotation, color, targetWidth, align, wrap)
     }
 
+    /**
+     * Clears any existing glyphs of previous text and uses [layout] to compile the glyphs to cache.
+     * @param layout the glyph layout to cache
+     * @param x the x position to draw the text
+     * @param y the y position to draw the text
+     * @param scale the scale of the glyphs
+     * @param rotation the rotation of the text to draw
+     * @param color the color of the text to draw
+     */
     fun setText(
         layout: GlyphLayout,
         x: Float,
@@ -108,6 +153,19 @@ open class FontCache(val pages: Int = 1) {
         addToCache(layout, x, y, scale, rotation, color)
     }
 
+    /**
+     * Adds new glyphs of the specified string of [text] on top of any existing glyphs.
+     * @param font the font that contains the glyphs to use
+     * @param text the string of text to draw
+     * @param x the x position to draw the text
+     * @param y the y position to draw the text
+     * @param scale the scale of the glyphs
+     * @param rotation the rotation of the text to draw
+     * @param color the color of the text to draw
+     * @param targetWidth the width of the area the text will be drawn, for wrapping or truncation
+     * @param align the horizontal alignment of the text, see [HAlign]
+     * @param wrap if true, the text will be wrapped within the [targetWidth]
+     */
     fun addText(
         font: Font,
         text: CharSequence,
@@ -125,6 +183,9 @@ open class FontCache(val pages: Int = 1) {
         addToCache(layout, x, y, scale, rotation, color)
     }
 
+    /**
+     * Clears any existing glyphs from the cache.
+     */
     fun clear() {
         layouts.clear()
         x = 0f

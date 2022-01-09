@@ -3,6 +3,9 @@ package com.lehaine.littlekt.graphics.font
 import com.lehaine.littlekt.math.Rect
 
 /**
+ * Metrics that describe a single glyph which can be used for rendering.
+ * @see FontMetrics
+ * @see Font
  * @author Colton Daily
  * @date 1/5/2022
  */

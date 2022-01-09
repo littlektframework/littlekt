@@ -1,6 +1,8 @@
 package com.lehaine.littlekt.graphics.font
 
 /**
+ * Holds data that describes a [Font] to be used for rendering glyphs.
+ * @see GlyphMetrics
  * @author Colton Daily
  * @date 1/5/2022
  */
