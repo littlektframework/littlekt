@@ -148,7 +148,9 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context {
 
         var lastFrame = System.nanoTime()
 
+        InternalResources.createInstance(this)
         val listener = build(this)
+
         GLFW.glfwSetFramebufferSizeCallback(windowHandle) { _, width, height ->
             graphics.gl.viewport(0, 0, width, height)
             graphics._width = width
@@ -156,8 +158,6 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context {
 
             listener.resize(width, height)
         }
-
-        InternalResources.createInstance(listener.context)
         listener.resize(configuration.width, configuration.height)
 
         while (!windowShouldClose) {

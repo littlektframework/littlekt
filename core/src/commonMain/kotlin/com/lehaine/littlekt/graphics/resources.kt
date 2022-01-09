@@ -54,26 +54,38 @@ object Textures {
  */
 object Fonts {
     /**
-     * The the tiny version of the default [BitmapFont] used across **LittleKt**. Font type: `Barlow Condensed medium`.
-     * Size: `9px`
+     * The name of the the tiny version of the default [BitmapFont] used across **LittleKt**.
+     *
+     * **Note**: you must still load the [BitmapFont]! This is just the NAME.
+     *
+     * Font type: `Barlow Condensed medium 9px`
      */
     val tiny get() = InternalResources.INSTANCE.defaultFontTiny
 
     /**
-     * The small version of the  default [BitmapFont] used across **LittleKt**. Font type: `Barlow Condensed medium`.
-     * Size: `11px`
+     * The name of the small version of the  default [BitmapFont] used across **LittleKt**.
+     *
+     * **Note**: you must still load the [BitmapFont]! This is just the NAME.
+     *
+     * Font type: `Barlow Condensed medium 11px`
      */
     val small get() = InternalResources.INSTANCE.defaultFontSmall
 
     /**
-     * The default [BitmapFont] used across **LittleKt**. Font type: `Barlow Condensed medium`.
-     * Size: `17px`
+     * The name of the default [BitmapFont] used across **LittleKt**.
+     *
+     * **Note**: you must still load the [BitmapFont]! This is just the NAME.
+     *
+     * Font type: `Barlow Condensed medium 17px`
      */
     val default get() = InternalResources.INSTANCE.defaultFont
 
     /**
-     * The large version of the default [BitmapFont] used across **LittleKt**. Font type: `Barlow Condensed medium`.
-     * Size: `32px`
+     * The name of the large version of the default [BitmapFont] used across **LittleKt**.
+     *
+     * **Note**: you must still load the [BitmapFont]! This is just the NAME.
+     *
+     * Font type: `Barlow Condensed medium 32px`
      */
     val large get() = InternalResources.INSTANCE.defaultFontLarge
 }

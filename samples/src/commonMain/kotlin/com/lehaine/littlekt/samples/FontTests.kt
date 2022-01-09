@@ -23,9 +23,10 @@ class FontTests(context: Context) : Game<Scene>(context) {
     val pixelFontLarge by load<BitmapFont>(resourcesVfs["m5x7_32.fnt"])
     val pixelFontXLarge by load<BitmapFont>(resourcesVfs["m5x7_48.fnt"])
     val arial by load<BitmapFont>(resourcesVfs["arial_32.fnt"])
+    val barlowLarge by load<BitmapFont>(resourcesVfs[Fonts.large])
 
     val barlowLargeCache by prepare {
-        BitmapFontCache(Fonts.large)
+        BitmapFontCache(barlowLarge)
     }
 
     val pixelFontXLargeCache by prepare {
@@ -62,10 +63,6 @@ class FontTests(context: Context) : Game<Scene>(context) {
             pixelFontXLarge.draw(it, "This is m5x7 point 48", 50f, 100f)
             pixelFontXLargeCache.draw(it)
             barlowLargeCache.draw(it)
-            Fonts.tiny.draw(it, "This is barlow point 9", 50f, 250f)
-            Fonts.small.draw(it, "This is barlow point 11", 50f, 275f)
-            Fonts.default.draw(it, "This is barlow point 17", 50f, 300f)
-            Fonts.large.draw(it, "This is barlow point 32", 50f, 325f)
 
             arial.draw(it, "This should render with multiple pages or\nELSE it is a ZOO!", 50f, 450f)
         }

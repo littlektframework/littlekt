@@ -24,6 +24,7 @@ open class AssetProvider(val context: Context) {
     private val loaders = createLoaders()
     private val assetsToPrepare = mutableListOf<PreparableGameAsset<*>>()
     private var totalAssetsLoading = atomic(0)
+    var onLoaded: (() -> Unit)? = null
 
     /**
      * Hold the current state of assets being loaded.
@@ -75,6 +76,7 @@ open class AssetProvider(val context: Context) {
             create()
             prepared = true
             onFullyLoaded()
+            onLoaded?.invoke()
         }
     }
 

@@ -7,7 +7,9 @@ import com.lehaine.littlekt.graph.node.component.AnchorLayout
 import com.lehaine.littlekt.graph.node.node2d.ui.*
 import com.lehaine.littlekt.graph.sceneGraph
 import com.lehaine.littlekt.graphics.Color
+import com.lehaine.littlekt.graphics.Fonts
 import com.lehaine.littlekt.graphics.Textures
+import com.lehaine.littlekt.graphics.font.BitmapFont
 import com.lehaine.littlekt.graphics.font.TtfFont
 import com.lehaine.littlekt.log.Logger
 import com.lehaine.littlekt.util.viewport.ExtendViewport
@@ -21,6 +23,7 @@ import kotlin.time.Duration
 class UITest(context: Context) : Game<Scene>(context) {
 
     val freeSerif by load<TtfFont>(resourcesVfs["FreeSerif.ttf"])
+    val defaultFont by load<BitmapFont>(resourcesVfs[Fonts.default])
 
     val sceneGraph by prepare {
         sceneGraph(context, ExtendViewport(480, 270)) {
@@ -34,8 +37,9 @@ class UITest(context: Context) : Game<Scene>(context) {
                     anchor(AnchorLayout.TOP_LEFT)
                     debugColor = Color.RED
 
-                    textureRect {
-                        slice = Textures.red
+                    label {
+                        font = defaultFont
+                        text = "Top left"
                     }
                 }
 
@@ -44,9 +48,9 @@ class UITest(context: Context) : Game<Scene>(context) {
                     anchor(AnchorLayout.TOP_RIGHT)
                     debugColor = Color.BLUE
 
-
-                    textureRect {
-                        slice = Textures.blue
+                    label {
+                        font = defaultFont
+                        text = "Top right"
                     }
                 }
 
@@ -55,9 +59,9 @@ class UITest(context: Context) : Game<Scene>(context) {
                     anchor(AnchorLayout.BOTTOM_LEFT)
                     debugColor = Color.GREEN
 
-
-                    textureRect {
-                        slice = Textures.green
+                    label {
+                        font = defaultFont
+                        text = "Bottom left"
                     }
                 }
 
@@ -66,9 +70,9 @@ class UITest(context: Context) : Game<Scene>(context) {
                     anchor(AnchorLayout.BOTTOM_RIGHT)
                     debugColor = Color.YELLOW
 
-
-                    textureRect {
-                        slice = Textures.green
+                    label {
+                        font = defaultFont
+                        text = "Bottom right"
                     }
                 }
 
@@ -89,13 +93,14 @@ class UITest(context: Context) : Game<Scene>(context) {
 
                     vBoxContainer {
                         separation = 10
-                        textureRect {
-                            slice = Textures.white
-                        }
-                        textureRect {
-                            slice = Textures.white
-                        }
 
+                        label {
+                            font = defaultFont
+                            text = "Center left vbox"
+                        }
+                        textureRect {
+                            slice = Textures.red
+                        }
                     }
                 }
 
@@ -103,8 +108,9 @@ class UITest(context: Context) : Game<Scene>(context) {
                     padding = 10f
                     anchor(AnchorLayout.CENTER_RIGHT)
 
-                    textureRect {
-                        slice = Textures.green
+                    label {
+                        font = defaultFont
+                        text = "Center right"
                     }
                 }
 
@@ -112,8 +118,9 @@ class UITest(context: Context) : Game<Scene>(context) {
                     padding = 10f
                     anchor(AnchorLayout.CENTER_BOTTOM)
 
-                    textureRect {
-                        slice = Textures.blue
+                    label {
+                        font = defaultFont
+                        text = "Center bottom"
                     }
                 }
 
@@ -126,8 +133,9 @@ class UITest(context: Context) : Game<Scene>(context) {
                         textureRect {
                             slice = Textures.red
                         }
-                        textureRect {
-                            slice = Textures.red
+                        label {
+                            font = defaultFont
+                            text = "Center top hbox"
                         }
                     }
                 }
