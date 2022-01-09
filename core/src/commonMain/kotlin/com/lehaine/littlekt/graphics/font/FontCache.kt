@@ -13,7 +13,7 @@ import com.lehaine.littlekt.util.datastructure.FloatArrayList
  * @author Colton Daily
  * @date 1/5/2022
  */
-open class FontCache {
+open class FontCache(val pages: Int = 1) {
     private val temp4 = Mat4() // used for rotating text
     private val layouts = mutableListOf<GlyphLayout>()
 
@@ -22,12 +22,16 @@ open class FontCache {
 
     protected var x: Float = 0f
     protected var y: Float = 0f
-    protected val vertices = FloatArrayList()
+    protected val pageVertices = Array(pages) { FloatArrayList() }
     protected var currentTint = Color.WHITE.toFloatBits()
 
 
-    fun draw(batch: SpriteBatch, texture: Texture) {
-        batch.draw(texture, vertices.data, 0, vertices.size)
+    fun draw(batch: SpriteBatch, textures: List<Texture>) {
+        pageVertices.forEachIndexed { index, vertices ->
+            if (vertices.isNotEmpty()) {
+                batch.draw(textures[index], vertices.data, 0, vertices.size)
+            }
+        }
     }
 
     fun translate(tx: Float, ty: Float) {
@@ -36,9 +40,11 @@ open class FontCache {
         x += tx
         y += ty
 
-        for (i in vertices.indices step 5) {
-            vertices[i] += tx
-            vertices[i + 1] += ty
+        pageVertices.forEach { vertices ->
+            for (i in vertices.indices step 5) {
+                vertices[i] += tx
+                vertices[i + 1] += ty
+            }
         }
     }
 
@@ -62,6 +68,7 @@ open class FontCache {
                         nextColorGlyphIndex = if (++colorsIndex < colors.size) colors[colorsIndex] else -1
                     }
                     val offset = 2
+                    val vertices = pageVertices[it.page]
                     vertices[offset] = lastColorFloatBits
                     vertices[offset + 5] = lastColorFloatBits
                     vertices[offset + 10] = lastColorFloatBits
@@ -122,7 +129,9 @@ open class FontCache {
         layouts.clear()
         x = 0f
         y = 0f
-        vertices.clear()
+        pageVertices.forEach {
+            it.clear()
+        }
     }
 
     private fun addToCache(
@@ -203,6 +212,8 @@ open class FontCache {
         val v = glyph.v2
         val u2 = glyph.u2
         val v2 = glyph.v
+
+        val vertices = pageVertices[glyph.page]
 
         vertices.run { // bottom left
             add(x1)

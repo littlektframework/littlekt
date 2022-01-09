@@ -19,7 +19,8 @@ class BitmapFont(
     val base: Float,
     val textures: List<Texture>,
     val glyphs: Map<Int, Glyph>,
-    val kernings: Map<Int, Kerning>
+    val kernings: Map<Int, Kerning>,
+    val pages: Int = 1
 ) : Font {
 
     private val slices = glyphs
@@ -52,19 +53,20 @@ class BitmapFont(
     override val glyphMetrics: Map<Int, GlyphMetrics> = glyphs.entries.map {
         val glyph = it.value
         GlyphMetrics(
-            fontSize,
-            glyph.id,
-            Rect(
+            size = fontSize,
+            code = glyph.id,
+            bounds = Rect(
                 glyph.xoffset.toFloat(),
                 glyph.yoffset.toFloat(),
                 glyph.slice.width.toFloat(),
                 glyph.slice.height.toFloat()
             ),
-            glyph.xadvance.toFloat(),
+            xAdvance = glyph.xadvance.toFloat(),
             u = glyph.slice.u,
             v = glyph.slice.v,
             u2 = glyph.slice.u2,
-            v2 = glyph.slice.v2
+            v2 = glyph.slice.v2,
+            page = glyph.page
         )
     }.associateBy { it.code }
 
@@ -95,7 +97,8 @@ class BitmapFont(
         val slice: TextureSlice,
         val xoffset: Int,
         val yoffset: Int,
-        val xadvance: Int
+        val xadvance: Int,
+        val page: Int
     )
 
 }

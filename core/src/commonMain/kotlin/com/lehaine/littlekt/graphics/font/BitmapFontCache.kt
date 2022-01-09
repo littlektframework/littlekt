@@ -9,10 +9,10 @@ import com.lehaine.littlekt.math.geom.Angle
  * @author Colton Daily
  * @date 1/6/2022
  */
-class BitmapFontCache(val font: BitmapFont) : FontCache() {
+class BitmapFontCache(val font: BitmapFont) : FontCache(font.pages) {
 
     fun draw(batch: SpriteBatch) {
-        batch.draw(font.textures[0], vertices.data, 0, vertices.size)
+        draw(batch, font.textures)
     }
 
     fun setText(

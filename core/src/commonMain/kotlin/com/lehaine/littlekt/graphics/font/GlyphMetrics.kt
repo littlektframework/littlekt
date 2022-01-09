@@ -14,7 +14,8 @@ data class GlyphMetrics(
     val u: Float = 0f,
     val v: Float = 0f,
     val u2: Float = 0f,
-    val v2: Float = 0f
+    val v2: Float = 0f,
+    val page: Int = 0
 ) {
     val left: Float get() = bounds.x
     val right: Float get() = bounds.x2

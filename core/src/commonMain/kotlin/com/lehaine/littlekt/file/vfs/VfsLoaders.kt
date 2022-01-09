@@ -77,7 +77,7 @@ private suspend fun readBitmapFontTxt(
     var lineHeight = 16f
     var fontSize = 16f
     var base: Float? = null
-
+    var pages = 0
     val lines = data.split("\n")
     lines.forEach { rline ->
         val line = rline.trim()
@@ -96,6 +96,7 @@ private suspend fun readBitmapFontTxt(
                 val id = map["id"]?.toInt() ?: 0
                 val file = map["file"]?.unquote() ?: error("Page without file")
                 textures[id] = fontFile.parent[file].readTexture(magFilter = filter, mipmaps = mipmaps)
+                pages++
             }
             line.startsWith("common ") -> {
                 lineHeight = map["lineHeight"]?.toFloatOrNull() ?: 16f
@@ -118,7 +119,8 @@ private suspend fun readBitmapFontTxt(
                     ),
                     xoffset = map["xoffset"]?.toIntOrNull() ?: 0,
                     yoffset = map["yoffset"]?.toIntOrNull() ?: 0,
-                    xadvance = map["xadvance"]?.toIntOrNull() ?: 0
+                    xadvance = map["xadvance"]?.toIntOrNull() ?: 0,
+                    page = page
                 )
             }
             line.startsWith("kerning ") -> {
@@ -137,7 +139,9 @@ private suspend fun readBitmapFontTxt(
         base = base ?: lineHeight,
         textures = textures.values.toList(),
         glyphs = glyphs.associateBy { it.id },
-        kernings = kernings.associateBy { Kerning.buildKey(it.first, it.second) })
+        kernings = kernings.associateBy { Kerning.buildKey(it.first, it.second) },
+        pages = pages
+    )
 }
 
 private val mapCache = mutableMapOf<String, LDtkMapLoader>()
