@@ -4,7 +4,7 @@ import com.lehaine.littlekt.Context
 import com.lehaine.littlekt.Game
 import com.lehaine.littlekt.Scene
 import com.lehaine.littlekt.graph.node.component.AnchorLayout
-import com.lehaine.littlekt.graph.node.node2d.ui.*
+import com.lehaine.littlekt.graph.node.`2d`.ui.*
 import com.lehaine.littlekt.graph.sceneGraph
 import com.lehaine.littlekt.graphics.Color
 import com.lehaine.littlekt.graphics.Textures

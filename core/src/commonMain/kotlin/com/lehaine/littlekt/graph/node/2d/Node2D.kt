@@ -1,4 +1,4 @@
-package com.lehaine.littlekt.graph.node.node2d
+package com.lehaine.littlekt.graph.node.`2d`
 
 import com.lehaine.littlekt.graph.SceneGraph
 import com.lehaine.littlekt.graph.node.Node
