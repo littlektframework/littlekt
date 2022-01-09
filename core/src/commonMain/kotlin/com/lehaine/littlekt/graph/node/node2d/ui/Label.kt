@@ -209,7 +209,7 @@ open class Label : Control() {
                 ty += font.metrics.ascent
             }
             VAlign.BOTTOM -> {
-                ty += textHeight
+                ty += textHeight - height
                 ty -= font.metrics.ascent
             }
             else -> {

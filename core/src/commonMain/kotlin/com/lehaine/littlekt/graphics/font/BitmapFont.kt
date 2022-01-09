@@ -24,6 +24,7 @@ class BitmapFont(
     val fontSize: Float,
     val lineHeight: Float,
     val base: Float,
+    val capHeight: Float,
     val textures: List<Texture>,
     val glyphs: Map<Int, Glyph>,
     val kernings: Map<Int, Kerning>,
@@ -43,12 +44,19 @@ class BitmapFont(
         val baseline = 0f
         val descent = lineHeight - base
         FontMetrics(
-            fontSize, ascent, ascent, baseline, -descent, -descent, 0f,
+            size = fontSize,
+            top = ascent,
+            ascent = ascent,
+            baseline = baseline,
+            descent = -descent,
+            bottom = -descent,
+            leading = 0f,
             maxWidth = run {
                 var width = 0f
                 for (glyph in glyphs.values) width = max(width, glyph.slice.width.toFloat())
                 width
-            }
+            },
+            capHeight = capHeight
         )
     }
 
@@ -120,7 +128,7 @@ class BitmapFont(
         val xoffset: Int,
         val yoffset: Int,
         val xadvance: Int,
-        val page: Int
+        val page: Int,
     )
 
 }

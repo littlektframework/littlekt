@@ -42,7 +42,7 @@ class GlyphLayout {
         val targetWidth = if (wrap) max(width, font.metrics.maxWidth * 3 * scale) else width
         val wrapOrTruncate = wrap || truncate != null
         var currentColor = color.abgr()
-        var nextColor = currentColor
+        val nextColor = currentColor
         _colors[0] = currentColor
         var lastRun = false
         var y = 0f
@@ -121,7 +121,7 @@ class GlyphLayout {
                                 }?.also { glyphRun = it } ?: return@runEnded
 
                                 _runs += newRun
-                                y += font.metrics.ascent * scale
+                                y += font.metrics.lineHeight * scale
                                 newRun.x = 0f
                                 newRun.y = y
 
@@ -136,9 +136,9 @@ class GlyphLayout {
                     currentRun = null
 
                     y += if (runEnd == runStart) { // blank line
-                        font.metrics.ascent * scale
+                        font.metrics.lineHeight * scale
                     } else {
-                        font.metrics.ascent * scale
+                        font.metrics.lineHeight * scale
                     }
                 }
                 runStart = index

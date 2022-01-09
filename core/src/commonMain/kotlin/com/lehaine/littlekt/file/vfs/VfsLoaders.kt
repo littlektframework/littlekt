@@ -18,8 +18,10 @@ import com.lehaine.littlekt.graphics.gl.TexMagFilter
 import com.lehaine.littlekt.graphics.gl.TexMinFilter
 import com.lehaine.littlekt.graphics.tilemap.ldtk.LDtkLevel
 import com.lehaine.littlekt.graphics.tilemap.ldtk.LDtkWorld
+import com.lehaine.littlekt.math.MutableVec4i
 import com.lehaine.littlekt.util.internal.unquote
 import kotlinx.serialization.decodeFromString
+import kotlin.math.max
 
 /**
  * @author Colton Daily
@@ -77,8 +79,17 @@ private suspend fun readBitmapFontTxt(
     var lineHeight = 16f
     var fontSize = 16f
     var base: Float? = null
-    var pages = 0
+    var pages = 1
     val lines = data.split("\n")
+    val padding = MutableVec4i(0)
+
+    val capChars = charArrayOf(
+        'M', 'N', 'B', 'D', 'C', 'E', 'F', 'K', 'A', 'G', 'H', 'I', 'J', 'L', 'O', 'P', 'Q', 'R', 'S',
+        'T', 'U', 'V', 'W', 'X', 'Y', 'Z'
+    )
+    var capHeightFound = false
+    var capHeight = 1
+
     lines.forEach { rline ->
         val line = rline.trim()
         val map = linkedMapOf<String, String>()
@@ -91,22 +102,41 @@ private suspend fun readBitmapFontTxt(
         when {
             line.startsWith("info") -> {
                 fontSize = map["size"]?.toFloat() ?: 16f
+                map["padding"]?.let {
+                    val nums = it.split(',')
+                    padding.set(
+                        nums[0].toIntOrNull() ?: 0,
+                        nums[1].toIntOrNull() ?: 0,
+                        nums[2].toIntOrNull() ?: 0,
+                        nums[3].toIntOrNull() ?: 0,
+                    )
+                }
             }
             line.startsWith("page") -> {
                 val id = map["id"]?.toInt() ?: 0
                 val file = map["file"]?.unquote() ?: error("Page without file")
                 textures[id] = fontFile.parent[file].readTexture(magFilter = filter, mipmaps = mipmaps)
-                pages++
             }
             line.startsWith("common ") -> {
                 lineHeight = map["lineHeight"]?.toFloatOrNull() ?: 16f
                 base = map["base"]?.toFloatOrNull()
+                pages = map["pages"]?.toIntOrNull() ?: 1
             }
             line.startsWith("char ") -> {
                 val page = map["page"]?.toIntOrNull() ?: 0
                 val texture = textures[page] ?: textures.values.first()
                 val id = map["id"]?.toIntOrNull() ?: 0
+                val width = map["width"]?.toIntOrNull() ?: 0
+                val height = map["height"]?.toIntOrNull() ?: 0
 
+                if (!capHeightFound) {
+                    if (capChars.contains(id.toChar())) {
+                        capHeight = height
+                        capHeightFound = true
+                    } else if (width != 0 && height != 0) {
+                        capHeight = max(capHeight, height)
+                    }
+                }
                 glyphs += BitmapFont.Glyph(
                     fontSize = fontSize,
                     id = id,
@@ -114,8 +144,8 @@ private suspend fun readBitmapFontTxt(
                         texture,
                         map["x"]?.toIntOrNull() ?: 0,
                         map["y"]?.toIntOrNull() ?: 0,
-                        map["width"]?.toIntOrNull() ?: 0,
-                        map["height"]?.toIntOrNull() ?: 0
+                        width,
+                        height
                     ),
                     xoffset = map["xoffset"]?.toIntOrNull() ?: 0,
                     yoffset = map["yoffset"]?.toIntOrNull() ?: 0,
@@ -133,10 +163,13 @@ private suspend fun readBitmapFontTxt(
         }
     }
 
+    capHeight -= padding.x + padding.z
+    
     return BitmapFont(
         fontSize = fontSize,
         lineHeight = lineHeight,
         base = base ?: lineHeight,
+        capHeight = capHeight.toFloat(),
         textures = textures.values.toList(),
         glyphs = glyphs.associateBy { it.id },
         kernings = kernings.associateBy { Kerning.buildKey(it.first, it.second) },
