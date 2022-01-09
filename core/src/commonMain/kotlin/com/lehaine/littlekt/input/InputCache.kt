@@ -172,7 +172,6 @@ class InputCache {
         val state = gamepad[button]
         val lastState = gamepadButtonsLastState.getOrPut(gamepad.index) { mutableMapOf() }[button] ?: 0f
         if (state != lastState) {
-            println("trigger $button")
             onGamepadTriggerChanged(button, state, gamepad)
         }
     }

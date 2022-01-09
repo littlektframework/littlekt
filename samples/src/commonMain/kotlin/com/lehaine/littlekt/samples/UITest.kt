@@ -4,6 +4,8 @@ import com.lehaine.littlekt.Context
 import com.lehaine.littlekt.Game
 import com.lehaine.littlekt.Scene
 import com.lehaine.littlekt.graph.node.component.AnchorLayout
+import com.lehaine.littlekt.graph.node.component.HAlign
+import com.lehaine.littlekt.graph.node.component.VAlign
 import com.lehaine.littlekt.graph.node.node2d.ui.*
 import com.lehaine.littlekt.graph.sceneGraph
 import com.lehaine.littlekt.graphics.Color
@@ -120,7 +122,8 @@ class UITest(context: Context) : Game<Scene>(context) {
 
                     label {
                         font = defaultFont
-                        text = "Center bottom"
+                        horizontalAlign = HAlign.CENTER
+                        text = "Center\nbottom"
                     }
                 }
 
@@ -135,7 +138,20 @@ class UITest(context: Context) : Game<Scene>(context) {
                         }
                         label {
                             font = defaultFont
-                            text = "Center top hbox"
+                            verticalAlign = VAlign.TOP
+                            text = "Center top\nvert top align"
+                        }
+                        label {
+                            font = defaultFont
+                            verticalAlign = VAlign.CENTER
+                            horizontalAlign = HAlign.CENTER
+                            text = "Center top\nvert center align"
+                        }
+                        label {
+                            font = defaultFont
+                            verticalAlign = VAlign.BOTTOM
+                            horizontalAlign = HAlign.RIGHT
+                            text = "Center top\nvert bottom align"
                         }
                     }
                 }

@@ -108,7 +108,7 @@ open class Label : Control() {
             }
         }
 
-    var verticalAlign: VAlign = VAlign.BOTTOM
+    var verticalAlign: VAlign = VAlign.TOP
         set(value) {
             if (value == field) return
             field = value
@@ -205,16 +205,15 @@ open class Label : Control() {
 
         when (verticalAlign) {
             VAlign.TOP -> {
-                ty += height
-                ty += font.metrics.ascent
+                ty += font.metrics.descent
             }
             VAlign.BOTTOM -> {
-                ty += textHeight - height
-                ty -= font.metrics.ascent
+                ty += height
+                ty -= font.metrics.descent
             }
             else -> {
-                ty += (height - textHeight) / 2
-                ty += textHeight
+                ty += (height) / 2
+                //ty += textHeight
             }
         }
 
