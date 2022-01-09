@@ -6,9 +6,14 @@ import com.lehaine.littlekt.graphics.internal.InternalResources
 import com.lehaine.littlekt.input.Input
 import com.lehaine.littlekt.input.JsInput
 import com.lehaine.littlekt.log.Logger
+import com.lehaine.littlekt.util.fastForEach
 import kotlinx.browser.document
 import kotlinx.browser.window
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import org.w3c.dom.HTMLCanvasElement
+import kotlin.coroutines.CoroutineContext
+import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.ExperimentalTime
 
@@ -16,8 +21,10 @@ import kotlin.time.ExperimentalTime
  * @author Colton Daily
  * @date 10/4/2021
  */
-class WebGLContext(override val configuration: JsConfiguration) :
-    Context {
+class WebGLContext(override val configuration: JsConfiguration) : Context {
+
+    private val job = Job()
+    override val coroutineContext: CoroutineContext = job
 
     val canvas = document.getElementById(configuration.canvasId) as HTMLCanvasElement
 
@@ -34,9 +41,14 @@ class WebGLContext(override val configuration: JsConfiguration) :
     private var lastFrame = 0.0
     private var closed = false
 
+    private val renderCalls = mutableListOf<suspend (Duration) -> Unit>()
+    private val postRenderCalls = mutableListOf<suspend (Duration) -> Unit>()
+    private val resizeCalls = mutableListOf<suspend (Int, Int) -> Unit>()
+    private val disposeCalls = mutableListOf<suspend () -> Unit>()
+
     private val mainThreadRunnables = mutableListOf<GpuThreadRunnable>()
 
-    override fun start(build: (app: Context) -> ContextListener) {
+    override suspend fun start(build: (app: Context) -> ContextListener) {
         graphics as WebGLGraphics
         input as JsInput
 
@@ -45,6 +57,7 @@ class WebGLContext(override val configuration: JsConfiguration) :
 
         InternalResources.createInstance(this)
         listener = build(this)
+        listener.run { start() }
 
         window.requestAnimationFrame(::render)
     }
@@ -60,7 +73,15 @@ class WebGLContext(override val configuration: JsConfiguration) :
             graphics._height = canvas.clientHeight
             canvas.width = canvas.clientWidth
             canvas.height = canvas.clientHeight
-            listener.resize(graphics.width, graphics.height)
+            launch {
+                listener.run {
+                    resizeCalls.fastForEach { resize ->
+                        resize(
+                            graphics.width, graphics.height
+                        )
+                    }
+                }
+            }
         }
         stats.engineStats.resetPerFrameCounts()
         invokeAnyRunnable()
@@ -71,12 +92,24 @@ class WebGLContext(override val configuration: JsConfiguration) :
 
         input.update()
         stats.update(dt)
-        listener.render(dt)
+
+        renderCalls.fastForEach { render ->
+            launch {
+                render(dt)
+            }
+        }
+        postRenderCalls.fastForEach { postRender ->
+            launch {
+                postRender(dt)
+            }
+        }
         input.reset()
 
         invokeAnyRunnable()
         if (closed) {
-            destroy()
+            launch {
+                destroy()
+            }
         } else {
             window.requestAnimationFrame(::render)
         }
@@ -91,17 +124,30 @@ class WebGLContext(override val configuration: JsConfiguration) :
         }
     }
 
-    override fun close() {
+    override suspend fun close() {
         closed = true
     }
 
-    override fun destroy() {
-        listener.dispose()
+    override suspend fun destroy() {
+        disposeCalls.fastForEach { dispose -> dispose() }
     }
 
-    override fun runOnMainThread(action: () -> Unit) {
-        mainThreadRunnables += GpuThreadRunnable(action)
+    override suspend fun onRender(action: suspend (dt: Duration) -> Unit) {
+        renderCalls += action
     }
+
+    override suspend fun onPostRender(action: suspend (dt: Duration) -> Unit) {
+        postRenderCalls += action
+    }
+
+    override suspend fun onResize(action: suspend (width: Int, height: Int) -> Unit) {
+        resizeCalls += action
+    }
+
+    override suspend fun onDispose(action: suspend () -> Unit) {
+        disposeCalls += action
+    }
+
 
     private class GpuThreadRunnable(val run: () -> Unit)
 }
