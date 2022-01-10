@@ -47,8 +47,9 @@ interface Context : CoroutineScope {
 
     suspend fun destroy()
 
-    suspend fun onRender(action: suspend (dt: Duration) -> Unit)
-    suspend fun onPostRender(action: suspend (dt: Duration) -> Unit)
-    suspend fun onResize(action: suspend (width: Int, height: Int) -> Unit)
-    suspend fun onDispose(action: suspend () -> Unit)
+    fun onRender(action: suspend (dt: Duration) -> Unit)
+    fun onPostRender(action: suspend (dt: Duration) -> Unit)
+    fun onResize(action: suspend (width: Int, height: Int) -> Unit)
+    fun onDispose(action: suspend () -> Unit)
+    fun postRunnable(action: suspend () -> Unit)
 }

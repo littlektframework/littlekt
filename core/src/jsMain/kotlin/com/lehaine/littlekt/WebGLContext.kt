@@ -1,5 +1,6 @@
 package com.lehaine.littlekt
 
+import com.lehaine.littlekt.async.KtAsync
 import com.lehaine.littlekt.file.WebVfs
 import com.lehaine.littlekt.file.vfs.VfsFile
 import com.lehaine.littlekt.graphics.internal.InternalResources
@@ -45,10 +46,10 @@ class WebGLContext(override val configuration: JsConfiguration) : Context {
     private val postRenderCalls = mutableListOf<suspend (Duration) -> Unit>()
     private val resizeCalls = mutableListOf<suspend (Int, Int) -> Unit>()
     private val disposeCalls = mutableListOf<suspend () -> Unit>()
-
-    private val mainThreadRunnables = mutableListOf<GpuThreadRunnable>()
+    private val postRunnableCalls = mutableListOf<suspend () -> Unit>()
 
     override suspend fun start(build: (app: Context) -> ContextListener) {
+        KtAsync.initiate(this)
         graphics as WebGLGraphics
         input as JsInput
 
@@ -65,62 +66,60 @@ class WebGLContext(override val configuration: JsConfiguration) : Context {
     @Suppress("EXPERIMENTAL_IS_NOT_ENABLED")
     @OptIn(ExperimentalTime::class)
     private fun render(now: Double) {
-        if (canvas.clientWidth != graphics.width ||
-            canvas.clientHeight != graphics.height
-        ) {
-            graphics as WebGLGraphics
-            graphics._width = canvas.clientWidth
-            graphics._height = canvas.clientHeight
-            canvas.width = canvas.clientWidth
-            canvas.height = canvas.clientHeight
-            launch {
-                listener.run {
-                    resizeCalls.fastForEach { resize ->
-                        resize(
-                            graphics.width, graphics.height
-                        )
+        KtAsync.launch {
+            if (canvas.clientWidth != graphics.width ||
+                canvas.clientHeight != graphics.height
+            ) {
+                graphics as WebGLGraphics
+                graphics._width = canvas.clientWidth
+                graphics._height = canvas.clientHeight
+                canvas.width = canvas.clientWidth
+                canvas.height = canvas.clientHeight
+                KtAsync.launch {
+                    listener.run {
+                        resizeCalls.fastForEach { resize ->
+                            resize(
+                                graphics.width, graphics.height
+                            )
+                        }
                     }
                 }
             }
-        }
-        stats.engineStats.resetPerFrameCounts()
-        invokeAnyRunnable()
+            stats.engineStats.resetPerFrameCounts()
 
-        input as JsInput
-        val dt = ((now - lastFrame) / 1000.0).seconds
-        lastFrame = now
+            input as JsInput
+            val dt = ((now - lastFrame) / 1000.0).seconds
+            lastFrame = now
 
-        input.update()
-        stats.update(dt)
+            input.update()
+            stats.update(dt)
 
-        renderCalls.fastForEach { render ->
-            launch {
+            renderCalls.fastForEach { render ->
                 render(dt)
+
             }
-        }
-        postRenderCalls.fastForEach { postRender ->
-            launch {
+            postRenderCalls.fastForEach { postRender ->
                 postRender(dt)
             }
-        }
-        input.reset()
 
-        invokeAnyRunnable()
-        if (closed) {
-            launch {
+            input.reset()
+            invokeAnyRunnable()
+
+            if (closed) {
                 destroy()
+
+            } else {
+                window.requestAnimationFrame(::render)
             }
-        } else {
-            window.requestAnimationFrame(::render)
         }
     }
 
-    private fun invokeAnyRunnable() {
-        if (mainThreadRunnables.isNotEmpty()) {
-            mainThreadRunnables.forEach {
-                it.run()
+    private suspend fun invokeAnyRunnable() {
+        if (postRunnableCalls.isNotEmpty()) {
+            postRunnableCalls.fastForEach { postRunnable ->
+                postRunnable.invoke()
             }
-            mainThreadRunnables.clear()
+            postRunnableCalls.clear()
         }
     }
 
@@ -132,22 +131,23 @@ class WebGLContext(override val configuration: JsConfiguration) : Context {
         disposeCalls.fastForEach { dispose -> dispose() }
     }
 
-    override suspend fun onRender(action: suspend (dt: Duration) -> Unit) {
+    override fun onRender(action: suspend (dt: Duration) -> Unit) {
         renderCalls += action
     }
 
-    override suspend fun onPostRender(action: suspend (dt: Duration) -> Unit) {
+    override fun onPostRender(action: suspend (dt: Duration) -> Unit) {
         postRenderCalls += action
     }
 
-    override suspend fun onResize(action: suspend (width: Int, height: Int) -> Unit) {
+    override fun onResize(action: suspend (width: Int, height: Int) -> Unit) {
         resizeCalls += action
     }
 
-    override suspend fun onDispose(action: suspend () -> Unit) {
+    override fun onDispose(action: suspend () -> Unit) {
         disposeCalls += action
     }
 
-
-    private class GpuThreadRunnable(val run: () -> Unit)
+    override fun postRunnable(action: suspend () -> Unit) {
+        postRunnableCalls += action
+    }
 }

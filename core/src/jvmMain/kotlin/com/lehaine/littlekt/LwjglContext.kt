@@ -1,5 +1,6 @@
 package com.lehaine.littlekt
 
+import com.lehaine.littlekt.async.KtAsync
 import com.lehaine.littlekt.audio.OpenALContext
 import com.lehaine.littlekt.file.JvmVfs
 import com.lehaine.littlekt.file.vfs.VfsFile
@@ -21,7 +22,6 @@ import org.lwjgl.opengl.GL30C
 import org.lwjgl.opengl.GLCapabilities
 import org.lwjgl.system.MemoryStack
 import org.lwjgl.system.MemoryUtil
-import java.util.concurrent.CompletableFuture
 import kotlin.coroutines.CoroutineContext
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
@@ -48,8 +48,6 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context {
 
     override val platform: Context.Platform = Context.Platform.DESKTOP
 
-    private val mainThreadRunnables = mutableListOf<GpuThreadRunnable>()
-
     private var windowHandle: Long = 0
 
     private val windowShouldClose: Boolean
@@ -59,11 +57,13 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context {
     private val postRenderCalls = mutableListOf<suspend (Duration) -> Unit>()
     private val resizeCalls = mutableListOf<suspend (Int, Int) -> Unit>()
     private val disposeCalls = mutableListOf<suspend () -> Unit>()
+    private val postRunnableCalls = mutableListOf<suspend () -> Unit>()
 
 
     @Suppress("EXPERIMENTAL_IS_NOT_ENABLED")
     @OptIn(ExperimentalTime::class)
     override suspend fun start(build: (app: Context) -> ContextListener) {
+        KtAsync.initiate(this)
         val graphics = graphics as LwjglGraphics
         val input = input as LwjglInput
 
@@ -170,7 +170,7 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context {
             graphics._width = width
             graphics._height = height
 
-            launch {
+            KtAsync.launch {
                 listener.run {
                     resizeCalls.fastForEach { resize ->
                         resize(
@@ -194,7 +194,6 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context {
         while (!windowShouldClose) {
             stats.engineStats.resetPerFrameCounts()
             glClear(GL.COLOR_BUFFER_BIT or GL.DEPTH_BUFFER_BIT)
-            invokeAnyRunnable()
 
             val time = System.nanoTime()
             val dt = ((time - lastFrame) / 1e9).seconds
@@ -215,15 +214,12 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context {
         destroy()
     }
 
-    private fun invokeAnyRunnable() {
-        synchronized(mainThreadRunnables) {
-            if (mainThreadRunnables.isNotEmpty()) {
-                for (r in mainThreadRunnables) {
-                    r.run()
-                    r.future.complete(null)
-                }
-                mainThreadRunnables.clear()
+    private suspend fun invokeAnyRunnable() {
+        if (postRunnableCalls.isNotEmpty()) {
+            postRunnableCalls.fastForEach { postRunnable ->
+                postRunnable.invoke()
             }
+            postRunnableCalls.clear()
         }
     }
 
@@ -243,23 +239,23 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context {
         OpenALContext.destroy()
     }
 
-    override suspend fun onRender(action: suspend (dt: Duration) -> Unit) {
+    override fun onRender(action: suspend (dt: Duration) -> Unit) {
         renderCalls += action
     }
 
-    override suspend fun onPostRender(action: suspend (dt: Duration) -> Unit) {
+    override fun onPostRender(action: suspend (dt: Duration) -> Unit) {
         postRenderCalls += action
     }
 
-    override suspend fun onResize(action: suspend (width: Int, height: Int) -> Unit) {
+    override fun onResize(action: suspend (width: Int, height: Int) -> Unit) {
         resizeCalls += action
     }
 
-    override suspend fun onDispose(action: suspend () -> Unit) {
+    override fun onDispose(action: suspend () -> Unit) {
         disposeCalls += action
     }
 
-    private class GpuThreadRunnable(val run: () -> Unit) {
-        val future = CompletableFuture<Void>()
+    override fun postRunnable(action: suspend () -> Unit) {
+        postRunnableCalls += action
     }
 }
