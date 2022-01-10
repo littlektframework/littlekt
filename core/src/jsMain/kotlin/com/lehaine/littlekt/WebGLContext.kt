@@ -1,5 +1,6 @@
 package com.lehaine.littlekt
 
+import com.lehaine.littlekt.async.KT
 import com.lehaine.littlekt.async.KtScope
 import com.lehaine.littlekt.file.WebVfs
 import com.lehaine.littlekt.file.vfs.VfsFile
@@ -10,10 +11,12 @@ import com.lehaine.littlekt.log.Logger
 import com.lehaine.littlekt.util.fastForEach
 import kotlinx.browser.document
 import kotlinx.browser.window
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.w3c.dom.HTMLCanvasElement
 import kotlin.coroutines.CoroutineContext
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.microseconds
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.ExperimentalTime
 
@@ -45,6 +48,8 @@ class WebGLContext(override val configuration: JsConfiguration) : Context {
     private val resizeCalls = mutableListOf<suspend (Int, Int) -> Unit>()
     private val disposeCalls = mutableListOf<suspend () -> Unit>()
     private val postRunnableCalls = mutableListOf<suspend () -> Unit>()
+
+    private val counterTimerPerFrame: Duration get() = (1_000_000.0 / stats.fps).microseconds
 
     override suspend fun start(build: (app: Context) -> ContextListener) {
         KtScope.initiate(this)
@@ -87,6 +92,8 @@ class WebGLContext(override val configuration: JsConfiguration) : Context {
 
             input as JsInput
             val dt = ((now - lastFrame) / 1000.0).seconds
+            val available = counterTimerPerFrame - dt
+            Dispatchers.KT.executePending(available)
             lastFrame = now
 
             input.update()
