@@ -1,6 +1,7 @@
 package com.lehaine.littlekt.file.vfs
 
 import com.lehaine.littlekt.LwjglContext
+import com.lehaine.littlekt.async.onRenderingThread
 import com.lehaine.littlekt.audio.AudioClip
 import com.lehaine.littlekt.audio.OpenALAudioClip
 import com.lehaine.littlekt.file.ImageUtils
@@ -36,7 +37,9 @@ actual suspend fun VfsFile.readTexture(minFilter: TexMinFilter, magFilter: TexMa
         it.minFilter = minFilter
         it.magFilter = magFilter
         vfs.context as LwjglContext
-        it.prepare(vfs.context)
+        onRenderingThread {
+            it.prepare(vfs.context)
+        }
     }
 }
 

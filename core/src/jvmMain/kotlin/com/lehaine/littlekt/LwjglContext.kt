@@ -1,6 +1,8 @@
 package com.lehaine.littlekt
 
-import com.lehaine.littlekt.async.KtAsync
+import com.lehaine.littlekt.async.KT
+import com.lehaine.littlekt.async.KtScope
+import com.lehaine.littlekt.async.MainDispatcher
 import com.lehaine.littlekt.audio.OpenALContext
 import com.lehaine.littlekt.file.JvmVfs
 import com.lehaine.littlekt.file.vfs.VfsFile
@@ -11,7 +13,7 @@ import com.lehaine.littlekt.input.Input
 import com.lehaine.littlekt.input.LwjglInput
 import com.lehaine.littlekt.log.Logger
 import com.lehaine.littlekt.util.fastForEach
-import kotlinx.coroutines.Job
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.lwjgl.glfw.Callbacks
 import org.lwjgl.glfw.GLFW
@@ -24,6 +26,7 @@ import org.lwjgl.system.MemoryStack
 import org.lwjgl.system.MemoryUtil
 import kotlin.coroutines.CoroutineContext
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.microseconds
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.ExperimentalTime
 import org.lwjgl.opengl.GL as LWJGL
@@ -35,8 +38,7 @@ import org.lwjgl.opengl.GL as LWJGL
  */
 class LwjglContext(override val configuration: JvmConfiguration) : Context {
 
-    private val job = Job()
-    override val coroutineContext: CoroutineContext = job
+    override val coroutineContext: CoroutineContext get() = KtScope.coroutineContext
 
     override val stats: AppStats = AppStats()
     override val graphics: Graphics = LwjglGraphics(stats.engineStats)
@@ -59,11 +61,12 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context {
     private val disposeCalls = mutableListOf<suspend () -> Unit>()
     private val postRunnableCalls = mutableListOf<suspend () -> Unit>()
 
+    private val counterTimerPerFrame: Duration get() = (1_000_000.0 / stats.fps).microseconds
 
     @Suppress("EXPERIMENTAL_IS_NOT_ENABLED")
     @OptIn(ExperimentalTime::class)
     override suspend fun start(build: (app: Context) -> ContextListener) {
-        KtAsync.initiate(this)
+        KtScope.initiate(this)
         val graphics = graphics as LwjglGraphics
         val input = input as LwjglInput
 
@@ -170,7 +173,7 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context {
             graphics._width = width
             graphics._height = height
 
-            KtAsync.launch {
+            KtScope.launch {
                 listener.run {
                     resizeCalls.fastForEach { resize ->
                         resize(
@@ -197,6 +200,8 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context {
 
             val time = System.nanoTime()
             val dt = ((time - lastFrame) / 1e9).seconds
+            val available = counterTimerPerFrame - dt
+            Dispatchers.KT.executePending(available)
             lastFrame = time
 
             input.update()

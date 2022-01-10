@@ -11,32 +11,70 @@ import kotlin.coroutines.resumeWithException
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 
-/**
- * @author Colton Daily
- * @date 1/9/2022
- */
 
+/**
+ * The base interface of [CoroutineContext] for dispatchers.
+ */
 @OptIn(InternalCoroutinesApi::class)
 interface KtDispatcher : CoroutineContext, Delay {
-    val lock: Any
-    val tasks: MutableList<Runnable>
-    val timedTasks: MutableList<TimedTask>
+
+    /**
+     * Immediately executes the passed [block].
+     */
     fun execute(block: Runnable)
 
-    fun queue(block: Runnable) {
+    /**
+     * Schedules the execution of the passed [block].
+     */
+    fun queue(block: Runnable)
+}
+
+/**
+ * A [CoroutineDispatcher] that wraps around a [Context] to execute tasks on main rendering thread.
+ *
+ * Requires calling [executePending] with the amount of time available in order to support [delay].
+ */
+sealed class RenderingThreadDispatcher(val context: Context) : MainCoroutineDispatcher(), KtDispatcher {
+    private val lock: Any = Any()
+    private val tasks = mutableListOf<Runnable>()
+    private val timedTasks: MutableList<TimedTask> = mutableListOf()
+
+    override fun dispatch(context: CoroutineContext, block: Runnable) {
+        execute(block)
+    }
+
+    override fun execute(block: Runnable) {
+        context.postRunnable { block.run() }
+    }
+
+    override fun queue(block: Runnable) {
         lock(lock) {
             tasks += block
         }
-    }
-
-    override fun scheduleResumeAfterDelay(timeMillis: Long, continuation: CancellableContinuation<Unit>) {
-        scheduleResumeAfterDelay(timeMillis.toDouble().milliseconds, continuation)
     }
 
     override fun invokeOnTimeout(timeMillis: Long, block: Runnable, context: CoroutineContext): DisposableHandle {
         val task = TimedTask(now().milliseconds + timeMillis.milliseconds, null, block)
         lock(lock) { timedTasks += task }
         return DisposableHandle { lock(lock) { timedTasks -= task } }
+    }
+
+
+    override fun scheduleResumeAfterDelay(timeMillis: Long, continuation: CancellableContinuation<Unit>) {
+        scheduleResumeAfterDelay(timeMillis.toDouble().milliseconds, continuation)
+    }
+
+    /**
+     * Executes any pending timed ([delay]) or queued ([queue]) tasks.
+     */
+    internal fun executePending(availableTime: Duration) {
+        try {
+            val startTime = now().milliseconds
+            executeTimedTasks(startTime, availableTime)
+            executeQueuedTasks(startTime, availableTime)
+        } catch (e: Throwable) {
+            e.printStackTrace()
+        }
     }
 
     private fun scheduleResumeAfterDelay(time: Duration, continuation: CancellableContinuation<Unit>) {
@@ -47,7 +85,8 @@ interface KtDispatcher : CoroutineContext, Delay {
         lock(lock) { timedTasks += task }
     }
 
-    fun executeTimedTasks(startTime: Duration, availableTime: Duration) {
+
+    private fun executeTimedTasks(startTime: Duration, availableTime: Duration) {
         while (true) {
             val item = lock(lock) {
                 if (timedTasks.isNotEmpty() && startTime >= timedTasks.first().time) {
@@ -71,7 +110,7 @@ interface KtDispatcher : CoroutineContext, Delay {
         }
     }
 
-    fun executeQueuedTasks(startTime: Duration, availableTime: Duration) {
+    private fun executeQueuedTasks(startTime: Duration, availableTime: Duration) {
         while (true) {
             val task = lock(lock) {
                 if (tasks.isNotEmpty()) {
@@ -80,64 +119,31 @@ interface KtDispatcher : CoroutineContext, Delay {
                     null
                 }
             } ?: break
+            task.run()
             if (now().milliseconds - startTime >= availableTime) {
                 break
             }
         }
     }
 
-    fun executePending(availableTime: Duration) {
-        try {
-            val startTime = now().milliseconds
-            executeTimedTasks(startTime, availableTime)
-            executeQueuedTasks(startTime, availableTime)
-        } catch (e: Throwable) {
-            e.printStackTrace()
-        }
-    }
+    override fun toString(): String = "KtRenderingThreadDispatcher"
 
-    class TimedTask(val time: Duration, val continuation: CancellableContinuation<Unit>?, val callback: Runnable?) {
+    private class TimedTask(
+        val time: Duration,
+        val continuation: CancellableContinuation<Unit>?,
+        val callback: Runnable?
+    ) {
         var exception: Throwable? = null
     }
 }
 
-class AsyncKtDispatcher : CoroutineDispatcher(), KtDispatcher {
-    override val lock = Any()
-
-    override val tasks = mutableListOf<Runnable>()
-    override val timedTasks = mutableListOf<KtDispatcher.TimedTask>()
-
-    override fun execute(block: Runnable) {
-        lock(lock) {
-            tasks += block
-        }
-    }
-
-    override fun dispatch(context: CoroutineContext, block: Runnable) {
-        execute(block)
-    }
-}
-
-sealed class RenderingThreadDispatcher(val context: Context) : MainCoroutineDispatcher(), KtDispatcher {
-    override val lock: Any = Any()
-    override val tasks = mutableListOf<Runnable>()
-    override val timedTasks: MutableList<KtDispatcher.TimedTask> = mutableListOf()
-
-    override fun dispatch(context: CoroutineContext, block: Runnable) {
-        execute(block)
-    }
-
-    override fun execute(block: Runnable) {
-        context.postRunnable { block.run() }
-    }
-
-    override fun toString(): String = "KtRenderingThreadDispatcher"
-}
-
+/**
+ * Executes tasks on the main rendering threads. See [RenderingThreadDispatcher]
+ */
 class MainDispatcher private constructor(context: Context) : RenderingThreadDispatcher(context) {
     override val immediate: MainCoroutineDispatcher = this
 
-    override fun isDispatchNeeded(context: CoroutineContext): Boolean = KtAsync.isOnRenderingThread()
+    override fun isDispatchNeeded(context: CoroutineContext): Boolean = !KtScope.isOnRenderingThread()
 
     internal companion object : SingletonBase<MainDispatcher, Context>(::MainDispatcher)
 }

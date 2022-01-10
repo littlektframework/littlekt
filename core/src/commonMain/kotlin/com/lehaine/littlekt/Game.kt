@@ -1,9 +1,13 @@
 package com.lehaine.littlekt
 
 import com.lehaine.littlekt.file.vfs.VfsFile
+import com.lehaine.littlekt.graphics.shader.FragmentShader
+import com.lehaine.littlekt.graphics.shader.ShaderProgram
+import com.lehaine.littlekt.graphics.shader.VertexShader
+import com.lehaine.littlekt.graphics.shader.shaders.DefaultFragmentShader
+import com.lehaine.littlekt.graphics.shader.shaders.DefaultVertexShader
 import com.lehaine.littlekt.log.Logger
 import kotlin.reflect.KClass
-import kotlin.time.Duration
 
 /**
  * A [ContextListener] that handles commonly loading assets and preparing assets. Handles scene switching and caching.
@@ -15,6 +19,12 @@ import kotlin.time.Duration
  * @date 12/23/21
  */
 open class Game<SceneType : Scene>(context: Context, firstScene: SceneType? = null) : ContextListener(context) {
+    val graphics get() = context.graphics
+    val input get() = context.input
+    val stats get() = context.stats
+    val gl get() = context.gl
+    val logger get() = context.logger
+
     protected val assetProvider = AssetProvider(context)
 
     /**
@@ -81,8 +91,8 @@ open class Game<SceneType : Scene>(context: Context, firstScene: SceneType? = nu
     }
 
     /**
-     * Invoked exactly once after all assets have been created and prepared. Do any initialization
-     * of OpenGL related items here.
+     * Invoked exactly once after all assets have been created and prepared using any delegates. This is method should
+     * be used the same way the [ContextListener.start] method is used.
      */
     open suspend fun Context.run() = Unit
 
@@ -242,3 +252,14 @@ open class Game<SceneType : Scene>(context: Context, firstScene: SceneType? = nu
         protected val logger = Logger<Game<*>>()
     }
 }
+
+/**
+ * Creates a new [ShaderProgram] for the specified shaders.
+ * @param vertexShader the vertex shader to use. Defaults to [DefaultVertexShader].
+ * @param fragmentShader the fragment shader to use. Defaults to [DefaultFragmentShader].
+ */
+fun <T : ContextListener> T.createShader(
+    vertexShader: VertexShader = DefaultVertexShader(),
+    fragmentShader: FragmentShader = DefaultFragmentShader()
+) =
+    ShaderProgram(vertexShader, fragmentShader).also { it.prepare(context) }

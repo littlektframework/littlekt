@@ -1,6 +1,6 @@
 package com.lehaine.littlekt
 
-import com.lehaine.littlekt.async.KtAsync
+import com.lehaine.littlekt.async.KtScope
 import com.lehaine.littlekt.file.WebVfs
 import com.lehaine.littlekt.file.vfs.VfsFile
 import com.lehaine.littlekt.graphics.internal.InternalResources
@@ -10,7 +10,6 @@ import com.lehaine.littlekt.log.Logger
 import com.lehaine.littlekt.util.fastForEach
 import kotlinx.browser.document
 import kotlinx.browser.window
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import org.w3c.dom.HTMLCanvasElement
 import kotlin.coroutines.CoroutineContext
@@ -24,8 +23,7 @@ import kotlin.time.ExperimentalTime
  */
 class WebGLContext(override val configuration: JsConfiguration) : Context {
 
-    private val job = Job()
-    override val coroutineContext: CoroutineContext = job
+    override val coroutineContext: CoroutineContext get() = KtScope.coroutineContext
 
     val canvas = document.getElementById(configuration.canvasId) as HTMLCanvasElement
 
@@ -49,7 +47,7 @@ class WebGLContext(override val configuration: JsConfiguration) : Context {
     private val postRunnableCalls = mutableListOf<suspend () -> Unit>()
 
     override suspend fun start(build: (app: Context) -> ContextListener) {
-        KtAsync.initiate(this)
+        KtScope.initiate(this)
         graphics as WebGLGraphics
         input as JsInput
 
@@ -66,7 +64,7 @@ class WebGLContext(override val configuration: JsConfiguration) : Context {
     @Suppress("EXPERIMENTAL_IS_NOT_ENABLED")
     @OptIn(ExperimentalTime::class)
     private fun render(now: Double) {
-        KtAsync.launch {
+        KtScope.launch {
             if (canvas.clientWidth != graphics.width ||
                 canvas.clientHeight != graphics.height
             ) {
@@ -75,7 +73,7 @@ class WebGLContext(override val configuration: JsConfiguration) : Context {
                 graphics._height = canvas.clientHeight
                 canvas.width = canvas.clientWidth
                 canvas.height = canvas.clientHeight
-                KtAsync.launch {
+                KtScope.launch {
                     listener.run {
                         resizeCalls.fastForEach { resize ->
                             resize(
