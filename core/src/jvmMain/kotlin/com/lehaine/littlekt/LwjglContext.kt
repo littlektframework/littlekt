@@ -197,6 +197,8 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context {
             stats.engineStats.resetPerFrameCounts()
             glClear(GL.COLOR_BUFFER_BIT or GL.DEPTH_BUFFER_BIT)
 
+            invokeAnyRunnable()
+
             val time = System.nanoTime()
             val dt = ((time - lastFrame) / 1e9).seconds
             val available = counterTimerPerFrame - dt
@@ -211,8 +213,6 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context {
             GLFW.glfwSwapBuffers(windowHandle)
             input.reset()
             GLFW.glfwPollEvents()
-
-            invokeAnyRunnable()
         }
         disposeCalls.fastForEach { dispose -> dispose() }
         destroy()

@@ -90,6 +90,8 @@ class WebGLContext(override val configuration: JsConfiguration) : Context {
             }
             stats.engineStats.resetPerFrameCounts()
 
+            invokeAnyRunnable()
+
             input as JsInput
             val dt = ((now - lastFrame) / 1000.0).seconds
             val available = counterTimerPerFrame - dt
@@ -108,7 +110,6 @@ class WebGLContext(override val configuration: JsConfiguration) : Context {
             }
 
             input.reset()
-            invokeAnyRunnable()
 
             if (closed) {
                 destroy()
