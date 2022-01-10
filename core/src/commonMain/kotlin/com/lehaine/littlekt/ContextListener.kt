@@ -1,37 +1,18 @@
 package com.lehaine.littlekt
 
-import com.lehaine.littlekt.graphics.shader.FragmentShader
-import com.lehaine.littlekt.graphics.shader.ShaderProgram
-import com.lehaine.littlekt.graphics.shader.VertexShader
-import com.lehaine.littlekt.graphics.shader.shaders.DefaultFragmentShader
-import com.lehaine.littlekt.graphics.shader.shaders.DefaultVertexShader
-import kotlin.time.Duration
-
 /**
- * A [ContextListener] is the base of an [Context] when it is created, resumed, rendering, paused, or destroyed.
+ * A [ContextListener] is the base of an [Context] when it is created, rendering, or destroyed.
  * @author Colton Daily
  * @date 9/29/2021
  */
-abstract class ContextListener(val context: Context) : Context by context {
+abstract class ContextListener(val context: Context) {
 
-    open fun render(dt: Duration) {}
-
-    open fun resize(width: Int, height: Int) {}
-
-    open fun resume() {}
-
-    open fun pause() {}
-
-    open fun dispose() {}
+    /**
+     * Invoked once the [Context] is ready. Add all the rendering, updating, dispose, and other game logic here.
+     * @see [Context.onRender]
+     * @see [Context.onPostRender]
+     * @see [Context.onResize]
+     * @see [Context.onDispose]
+     */
+    open suspend fun Context.start() {}
 }
-
-/**
- * Creates a new [ShaderProgram] for the specified shaders.
- * @param vertexShader the vertex shader to use. Defaults to [DefaultVertexShader].
- * @param fragmentShader the fragment shader to use. Defaults to [DefaultFragmentShader].
- */
-fun <T : Context> T.createShader(
-    vertexShader: VertexShader = DefaultVertexShader(),
-    fragmentShader: FragmentShader = DefaultFragmentShader()
-) =
-    ShaderProgram(vertexShader, fragmentShader).also { it.prepare(this) }

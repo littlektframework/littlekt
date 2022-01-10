@@ -331,6 +331,16 @@ interface Input {
     fun addInputProcessor(processor: InputProcessor)
 
     /**
+     * Creates and adds a new [InputProcessor] to receive input callbacks using a [InputProcessBuilder].
+     * @return the newly created [InputProcessor]
+     */
+    fun inputProcessor(setup: InputProcessBuilder.() -> Unit): InputProcessor {
+        val builder = InputProcessBuilder()
+        builder.setup()
+        return builder.build().also { addInputProcessor(it) }
+    }
+
+    /**
      * Remove a [InputProcessor] to from receiving input callbacks.
      */
     fun removeInputProcessor(processor: InputProcessor)

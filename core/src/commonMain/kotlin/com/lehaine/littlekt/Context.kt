@@ -5,12 +5,15 @@ import com.lehaine.littlekt.file.vfs.VfsFile
 import com.lehaine.littlekt.graphics.GL
 import com.lehaine.littlekt.input.Input
 import com.lehaine.littlekt.log.Logger
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
+import kotlin.time.Duration
 
 /**
  * @author Colton Daily
  * @date 10/5/2021
  */
-interface Context {
+interface Context : CoroutineScope {
 
     enum class Platform {
         DESKTOP,
@@ -39,11 +42,17 @@ interface Context {
 
     val platform: Platform
 
-    fun start(build: (app: Context) -> ContextListener)
+    suspend fun start(build: (app: Context) -> ContextListener)
 
-    fun close()
+    suspend fun close()
 
-    fun destroy()
+    suspend fun destroy()
 
-    fun runOnMainThread(action: () -> Unit)
+    fun onRender(action: suspend (dt: Duration) -> Unit)
+    fun onPostRender(action: suspend (dt: Duration) -> Unit)
+    fun onResize(action: suspend (width: Int, height: Int) -> Unit)
+    fun onDispose(action: suspend () -> Unit)
+    fun postRunnable(action: suspend () -> Unit)
+
+    fun Context.launch(action: suspend () -> Unit) = (this as CoroutineScope).launch { action() }
 }

@@ -5,6 +5,9 @@ import com.lehaine.littlekt.ContextListener
 import com.lehaine.littlekt.LittleKtApp
 import com.lehaine.littlekt.createLittleKtApp
 import kotlinx.browser.document
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import kotlinx.html.DIV
 import kotlinx.html.button
 import kotlinx.html.dom.append
@@ -20,14 +23,13 @@ import kotlinx.html.style
  */
 
 var lastApp: LittleKtApp? = null
+
+val job = Job()
+val scope = CoroutineScope(job)
 fun main() {
     document.body!!.append {
         div {
             addSample("Display Test") { DisplayTest(it) }
-            addSample("Frame Buffer Test") { FrameBufferTest(it) }
-            addSample("GPU Font Load Test") { GPUFontTest(it) }
-            addSample("Font Tests") { FontTests(it) }
-            addSample("Audio Test") { AudioTest(it) }
         }
     }
 }
@@ -36,7 +38,6 @@ fun DIV.addSample(title: String, gameBuilder: (app: Context) -> ContextListener)
     button {
         +title
         onClickFunction = {
-            lastApp?.close()
             document.getElementById("canvas")?.remove()
             document.getElementById("canvas-container")!!.append {
                 canvas {
@@ -47,9 +48,14 @@ fun DIV.addSample(title: String, gameBuilder: (app: Context) -> ContextListener)
                 }
             }
 
-            lastApp = createLittleKtApp {
-                this.title = title
-            }.start(gameBuilder)
+            scope.launch {
+                lastApp?.close()
+                lastApp = createLittleKtApp {
+                    this.title = title
+                }.also {
+                    it.start(gameBuilder)
+                }
+            }
         }
 
     }

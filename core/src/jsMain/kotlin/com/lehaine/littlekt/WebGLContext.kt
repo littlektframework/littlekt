@@ -1,14 +1,22 @@
 package com.lehaine.littlekt
 
+import com.lehaine.littlekt.async.KT
+import com.lehaine.littlekt.async.KtScope
 import com.lehaine.littlekt.file.WebVfs
 import com.lehaine.littlekt.file.vfs.VfsFile
 import com.lehaine.littlekt.graphics.internal.InternalResources
 import com.lehaine.littlekt.input.Input
 import com.lehaine.littlekt.input.JsInput
 import com.lehaine.littlekt.log.Logger
+import com.lehaine.littlekt.util.fastForEach
 import kotlinx.browser.document
 import kotlinx.browser.window
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import org.w3c.dom.HTMLCanvasElement
+import kotlin.coroutines.CoroutineContext
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.microseconds
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.ExperimentalTime
 
@@ -16,8 +24,9 @@ import kotlin.time.ExperimentalTime
  * @author Colton Daily
  * @date 10/4/2021
  */
-class WebGLContext(override val configuration: JsConfiguration) :
-    Context {
+class WebGLContext(override val configuration: JsConfiguration) : Context {
+
+    override val coroutineContext: CoroutineContext get() = KtScope.coroutineContext
 
     val canvas = document.getElementById(configuration.canvasId) as HTMLCanvasElement
 
@@ -34,9 +43,16 @@ class WebGLContext(override val configuration: JsConfiguration) :
     private var lastFrame = 0.0
     private var closed = false
 
-    private val mainThreadRunnables = mutableListOf<GpuThreadRunnable>()
+    private val renderCalls = mutableListOf<suspend (Duration) -> Unit>()
+    private val postRenderCalls = mutableListOf<suspend (Duration) -> Unit>()
+    private val resizeCalls = mutableListOf<suspend (Int, Int) -> Unit>()
+    private val disposeCalls = mutableListOf<suspend () -> Unit>()
+    private val postRunnableCalls = mutableListOf<suspend () -> Unit>()
 
-    override fun start(build: (app: Context) -> ContextListener) {
+    private val counterTimerPerFrame: Duration get() = (1_000_000.0 / stats.fps).microseconds
+
+    override suspend fun start(build: (app: Context) -> ContextListener) {
+        KtScope.initiate(this)
         graphics as WebGLGraphics
         input as JsInput
 
@@ -45,6 +61,7 @@ class WebGLContext(override val configuration: JsConfiguration) :
 
         InternalResources.createInstance(this)
         listener = build(this)
+        listener.run { start() }
 
         window.requestAnimationFrame(::render)
     }
@@ -52,56 +69,91 @@ class WebGLContext(override val configuration: JsConfiguration) :
     @Suppress("EXPERIMENTAL_IS_NOT_ENABLED")
     @OptIn(ExperimentalTime::class)
     private fun render(now: Double) {
-        if (canvas.clientWidth != graphics.width ||
-            canvas.clientHeight != graphics.height
-        ) {
-            graphics as WebGLGraphics
-            graphics._width = canvas.clientWidth
-            graphics._height = canvas.clientHeight
-            canvas.width = canvas.clientWidth
-            canvas.height = canvas.clientHeight
-            listener.resize(graphics.width, graphics.height)
-        }
-        stats.engineStats.resetPerFrameCounts()
-        invokeAnyRunnable()
-
-        input as JsInput
-        val dt = ((now - lastFrame) / 1000.0).seconds
-        lastFrame = now
-
-        input.update()
-        stats.update(dt)
-        listener.render(dt)
-        input.reset()
-
-        invokeAnyRunnable()
-        if (closed) {
-            destroy()
-        } else {
-            window.requestAnimationFrame(::render)
-        }
-    }
-
-    private fun invokeAnyRunnable() {
-        if (mainThreadRunnables.isNotEmpty()) {
-            mainThreadRunnables.forEach {
-                it.run()
+        KtScope.launch {
+            if (canvas.clientWidth != graphics.width ||
+                canvas.clientHeight != graphics.height
+            ) {
+                graphics as WebGLGraphics
+                graphics._width = canvas.clientWidth
+                graphics._height = canvas.clientHeight
+                canvas.width = canvas.clientWidth
+                canvas.height = canvas.clientHeight
+                KtScope.launch {
+                    listener.run {
+                        resizeCalls.fastForEach { resize ->
+                            resize(
+                                graphics.width, graphics.height
+                            )
+                        }
+                    }
+                }
             }
-            mainThreadRunnables.clear()
+            stats.engineStats.resetPerFrameCounts()
+
+            invokeAnyRunnable()
+
+            input as JsInput
+            val dt = ((now - lastFrame) / 1000.0).seconds
+            val available = counterTimerPerFrame - dt
+            Dispatchers.KT.executePending(available)
+            lastFrame = now
+
+            input.update()
+            stats.update(dt)
+
+            renderCalls.fastForEach { render ->
+                render(dt)
+
+            }
+            postRenderCalls.fastForEach { postRender ->
+                postRender(dt)
+            }
+
+            input.reset()
+
+            if (closed) {
+                destroy()
+
+            } else {
+                window.requestAnimationFrame(::render)
+            }
         }
     }
 
-    override fun close() {
+    private suspend fun invokeAnyRunnable() {
+        if (postRunnableCalls.isNotEmpty()) {
+            postRunnableCalls.fastForEach { postRunnable ->
+                postRunnable.invoke()
+            }
+            postRunnableCalls.clear()
+        }
+    }
+
+    override suspend fun close() {
         closed = true
     }
 
-    override fun destroy() {
-        listener.dispose()
+    override suspend fun destroy() {
+        disposeCalls.fastForEach { dispose -> dispose() }
     }
 
-    override fun runOnMainThread(action: () -> Unit) {
-        mainThreadRunnables += GpuThreadRunnable(action)
+    override fun onRender(action: suspend (dt: Duration) -> Unit) {
+        renderCalls += action
     }
 
-    private class GpuThreadRunnable(val run: () -> Unit)
+    override fun onPostRender(action: suspend (dt: Duration) -> Unit) {
+        postRenderCalls += action
+    }
+
+    override fun onResize(action: suspend (width: Int, height: Int) -> Unit) {
+        resizeCalls += action
+    }
+
+    override fun onDispose(action: suspend () -> Unit) {
+        disposeCalls += action
+    }
+
+    override fun postRunnable(action: suspend () -> Unit) {
+        postRunnableCalls += action
+    }
 }

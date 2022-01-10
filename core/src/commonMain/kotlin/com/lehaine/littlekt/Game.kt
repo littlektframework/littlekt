@@ -1,8 +1,13 @@
 package com.lehaine.littlekt
 
 import com.lehaine.littlekt.file.vfs.VfsFile
+import com.lehaine.littlekt.graphics.shader.FragmentShader
+import com.lehaine.littlekt.graphics.shader.ShaderProgram
+import com.lehaine.littlekt.graphics.shader.VertexShader
+import com.lehaine.littlekt.graphics.shader.shaders.DefaultFragmentShader
+import com.lehaine.littlekt.graphics.shader.shaders.DefaultVertexShader
+import com.lehaine.littlekt.log.Logger
 import kotlin.reflect.KClass
-import kotlin.time.Duration
 
 /**
  * A [ContextListener] that handles commonly loading assets and preparing assets. Handles scene switching and caching.
@@ -14,6 +19,12 @@ import kotlin.time.Duration
  * @date 12/23/21
  */
 open class Game<SceneType : Scene>(context: Context, firstScene: SceneType? = null) : ContextListener(context) {
+    val graphics get() = context.graphics
+    val input get() = context.input
+    val stats get() = context.stats
+    val gl get() = context.gl
+    val logger get() = context.logger
+
     protected val assetProvider = AssetProvider(context)
 
     /**
@@ -46,32 +57,45 @@ open class Game<SceneType : Scene>(context: Context, firstScene: SceneType? = nu
      * @see [update]
      * @see [AssetProvider.fullyLoaded]
      */
-    final override fun render(dt: Duration) {
-        assetProvider.update()
-        if (!assetProvider.fullyLoaded) return
-        if (!created) {
-            created = true
-            create()
+    final override suspend fun Context.start() {
+        onResize { width, height ->
+            currentScene.resize(width, height)
         }
-        update(dt)
+        onRender {
+            assetProvider.update()
+            if (!assetProvider.fullyLoaded) return@onRender
+            if (!created) {
+                created = true
+                run()
+            }
 
-        currentScene.update()
-        if (currentScene.fullyLoaded) {
-            currentScene.render(dt)
+        }
+        onPostRender { dt ->
+            assetProvider.update()
+            if (!assetProvider.fullyLoaded) return@onPostRender
+
+            currentScene.update()
+            if (currentScene.fullyLoaded) {
+                currentScene.render(dt)
+            }
+        }
+        onDispose {
+            scenes.values.forEach {
+                try {
+                    it.dispose()
+                } catch (exception: Throwable) {
+                    onSceneDisposalError(it, exception)
+                }
+            }
         }
     }
 
     /**
-     * Invoked exactly once after all assets have been created and prepared. Do any initialization
-     * of OpenGL related items here.
+     * Invoked exactly once after all assets have been created and prepared using any delegates. This is method should
+     * be used the same way the [ContextListener.start] method is used.
      */
-    open fun create() = Unit
+    open suspend fun Context.run() = Unit
 
-    /**
-     * Continuously invoked once all assets have been loading for this [ContextListener].
-     * Override this to handle any rendering logic.
-     */
-    open fun update(dt: Duration) = Unit
 
     /**
      * Registers an instance of [Scene].
@@ -85,7 +109,7 @@ open class Game<SceneType : Scene>(context: Context, firstScene: SceneType? = nu
      * @see setScene
      * @see removeScene
      */
-    inline fun <reified Type : SceneType> addScene(scene: Type) = addScene(Type::class, scene)
+    suspend inline fun <reified Type : SceneType> addScene(scene: Type) = addScene(Type::class, scene)
 
     /**
      * Registers an instance of [Scene].
@@ -99,7 +123,7 @@ open class Game<SceneType : Scene>(context: Context, firstScene: SceneType? = nu
      * @see setScene
      * @see removeScene
      */
-    open fun <Type : SceneType> addScene(type: KClass<Type>, scene: Type) {
+    open suspend fun <Type : SceneType> addScene(type: KClass<Type>, scene: Type) {
         !scenes.containsKey(type) || error("Scene already registered to type: $type")
         scenes[type] = scene
     }
@@ -112,7 +136,7 @@ open class Game<SceneType : Scene>(context: Context, firstScene: SceneType? = nu
      * @see addScene
      * @see shownScene
      */
-    inline fun <reified Type : SceneType> setScene() = setScene(Type::class)
+    suspend inline fun <reified Type : SceneType> setScene() = setScene(Type::class)
 
     /**
      * Replaces the current scene with the registered scene instance of the passed type.
@@ -121,10 +145,10 @@ open class Game<SceneType : Scene>(context: Context, firstScene: SceneType? = nu
      * @see addScene
      * @see shownScene
      */
-    open fun <Type : SceneType> setScene(type: KClass<Type>) {
+    open suspend fun <Type : SceneType> setScene(type: KClass<Type>) {
         currentScene.hide()
         currentScene = getScene(type)
-        currentScene.resize(graphics.width, graphics.height)
+        currentScene.resize(context.graphics.width, context.graphics.height)
         currentScene.show()
     }
 
@@ -208,32 +232,6 @@ open class Game<SceneType : Scene>(context: Context, firstScene: SceneType? = nu
     fun <T : Any> prepare(action: () -> T) = assetProvider.prepare(action)
 
 
-    override fun resize(width: Int, height: Int) {
-        currentScene.resize(width, height)
-    }
-
-    override fun resume() {
-        currentScene.resume()
-    }
-
-    override fun pause() {
-        currentScene.pause()
-    }
-
-    /**
-     * Disposes of all registered scenes with [Scene.dispose]. Catches thrown error and logs them with
-     * the [Context.logger] instance. Override [onSceneDisposalError] to change error handling behavior.
-     */
-    override fun dispose() {
-        scenes.values.forEach {
-            try {
-                it.dispose()
-            } catch (exception: Throwable) {
-                onSceneDisposalError(it, exception)
-            }
-        }
-    }
-
     /**
      * Invoked on scenes disposal on [dispose] if an error occurs.
      * @param scene thrown [exception] during disposal
@@ -249,4 +247,19 @@ open class Game<SceneType : Scene>(context: Context, firstScene: SceneType? = nu
     @PublishedApi
     internal val access_assetProvider: AssetProvider
         get() = assetProvider
+
+    companion object {
+        protected val logger = Logger<Game<*>>()
+    }
 }
+
+/**
+ * Creates a new [ShaderProgram] for the specified shaders.
+ * @param vertexShader the vertex shader to use. Defaults to [DefaultVertexShader].
+ * @param fragmentShader the fragment shader to use. Defaults to [DefaultFragmentShader].
+ */
+fun <T : ContextListener> T.createShader(
+    vertexShader: VertexShader = DefaultVertexShader(),
+    fragmentShader: FragmentShader = DefaultFragmentShader()
+) =
+    ShaderProgram(vertexShader, fragmentShader).also { it.prepare(context) }

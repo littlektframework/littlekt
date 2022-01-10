@@ -7,12 +7,12 @@ package com.lehaine.littlekt
 class LittleKtApp(
     val context: Context
 ) {
-    fun start(gameBuilder: (app: Context) -> ContextListener): LittleKtApp {
+    suspend fun start(gameBuilder: (app: Context) -> ContextListener): LittleKtApp {
         context.start(gameBuilder)
         return this
     }
 
-    fun close(): LittleKtApp {
+    suspend fun close(): LittleKtApp {
         context.close()
         return this
     }

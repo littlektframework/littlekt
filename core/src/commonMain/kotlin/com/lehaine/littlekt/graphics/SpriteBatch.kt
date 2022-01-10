@@ -80,7 +80,7 @@ class SpriteBatch(
         }
     private var combinedMatrix = Mat4()
 
-    private val mesh = context.textureMesh {
+    private val mesh = textureMesh(context.gl) {
         isStatic = false
         maxVertices = size * 4
     }.apply {
