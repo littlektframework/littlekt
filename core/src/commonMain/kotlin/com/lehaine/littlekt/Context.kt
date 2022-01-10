@@ -6,6 +6,7 @@ import com.lehaine.littlekt.graphics.GL
 import com.lehaine.littlekt.input.Input
 import com.lehaine.littlekt.log.Logger
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import kotlin.time.Duration
 
 /**
@@ -52,4 +53,6 @@ interface Context : CoroutineScope {
     fun onResize(action: suspend (width: Int, height: Int) -> Unit)
     fun onDispose(action: suspend () -> Unit)
     fun postRunnable(action: suspend () -> Unit)
+
+    fun Context.launch(action: suspend () -> Unit) = (this as CoroutineScope).launch { action() }
 }

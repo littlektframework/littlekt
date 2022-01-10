@@ -2,7 +2,6 @@ package com.lehaine.littlekt
 
 import com.lehaine.littlekt.async.KT
 import com.lehaine.littlekt.async.KtScope
-import com.lehaine.littlekt.async.MainDispatcher
 import com.lehaine.littlekt.audio.OpenALContext
 import com.lehaine.littlekt.file.JvmVfs
 import com.lehaine.littlekt.file.vfs.VfsFile

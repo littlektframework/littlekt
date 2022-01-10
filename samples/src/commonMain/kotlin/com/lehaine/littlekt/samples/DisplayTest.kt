@@ -3,7 +3,6 @@ package com.lehaine.littlekt.samples
 import com.lehaine.littlekt.Context
 import com.lehaine.littlekt.Game
 import com.lehaine.littlekt.Scene
-import com.lehaine.littlekt.async.KtScope
 import com.lehaine.littlekt.createShader
 import com.lehaine.littlekt.file.vfs.readAtlas
 import com.lehaine.littlekt.file.vfs.readTexture
@@ -12,7 +11,6 @@ import com.lehaine.littlekt.graphics.shader.shaders.SimpleColorFragmentShader
 import com.lehaine.littlekt.graphics.shader.shaders.SimpleColorVertexShader
 import com.lehaine.littlekt.input.*
 import com.lehaine.littlekt.log.Logger
-import kotlinx.coroutines.launch
 
 /**
  * @author Colton Daily
@@ -97,7 +95,6 @@ class DisplayTest(context: Context) : Game<Scene>(context), InputProcessor {
 
     override suspend fun Context.run() {
         val batch = SpriteBatch(context)
-
         val texture = resourcesVfs["atlas.png"].readTexture()
         val atlas: TextureAtlas = resourcesVfs["tiles.atlas.json"].readAtlas()
         val slices: Array<Array<TextureSlice>> = texture.slice(16, 16)
