@@ -30,6 +30,18 @@ object KtScope : CoroutineScope {
 val Dispatchers.KT get() = MainDispatcher.INSTANCE
 
 /**
+ * Creates a new [AsyncThreadDispatcher] wrapping around an [AsyncExecutor] with a single thread to execute tasks
+ * asynchronously outside of the main rendering thread.
+ */
+fun newSingleThreadAsyncContext() = newAsyncContext(1)
+
+/**
+ * Creates a new [AsyncThreadDispatcher] wrapping around an [AsyncExecutor] with the chosen amount of [threads]
+ * to execute tasks asynchronously outside of the main rendering thread.
+ */
+fun newAsyncContext(threads: Int) = AsyncThreadDispatcher(AsyncExecutor(threads), threads)
+
+/**
  * Suspends the coroutine to execute the defined [block] on the main rendering thread and return its result.
  */
 suspend fun <T> onRenderingThread(block: suspend CoroutineScope.() -> T) =

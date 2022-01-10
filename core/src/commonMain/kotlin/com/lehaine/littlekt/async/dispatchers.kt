@@ -1,6 +1,7 @@
 package com.lehaine.littlekt.async
 
 import com.lehaine.littlekt.Context
+import com.lehaine.littlekt.Disposable
 import com.lehaine.littlekt.util.internal.SingletonBase
 import com.lehaine.littlekt.util.internal.lock
 import com.lehaine.littlekt.util.internal.now
@@ -28,6 +29,120 @@ interface KtDispatcher : CoroutineContext, Delay {
      */
     fun queue(block: Runnable)
 }
+
+/**
+ * A [CoroutineDispatcher] that wraps around an [AsyncExecutor] instance ([executor]) to execute tasks asynchronously.
+ *
+ * Requires calling [executePending] in order to support [delay].
+ */
+class AsyncThreadDispatcher(
+    val executor: AsyncExecutor,
+    val threads: Int = -1
+) : CoroutineDispatcher(), KtDispatcher, Disposable {
+    private val lock: Any = Any()
+    private val tasks = mutableListOf<Runnable>()
+    private val timedTasks: MutableList<TimedTask> = mutableListOf()
+
+    override fun dispatch(context: CoroutineContext, block: Runnable) {
+        execute(block)
+    }
+
+    override fun execute(block: Runnable) {
+        executor.submit(block::run)
+    }
+
+    override fun queue(block: Runnable) {
+        lock(lock) {
+            tasks += block
+        }
+    }
+
+    override fun dispose() {
+        executor.dispose()
+    }
+
+
+    override fun invokeOnTimeout(timeMillis: Long, block: Runnable, context: CoroutineContext): DisposableHandle {
+        val task = TimedTask(now().milliseconds + timeMillis.milliseconds, null, block)
+        lock(lock) { timedTasks += task }
+        return DisposableHandle { lock(lock) { timedTasks -= task } }
+    }
+
+
+    override fun scheduleResumeAfterDelay(timeMillis: Long, continuation: CancellableContinuation<Unit>) {
+        scheduleResumeAfterDelay(timeMillis.toDouble().milliseconds, continuation)
+    }
+
+    /**
+     * Executes any pending timed ([delay]) or queued ([queue]) tasks.
+     */
+    fun executePending() {
+        try {
+            val startTime = now().milliseconds
+            executeTimedTasks(startTime)
+            executeQueuedTasks()
+        } catch (e: Throwable) {
+            e.printStackTrace()
+        }
+    }
+
+    private fun scheduleResumeAfterDelay(time: Duration, continuation: CancellableContinuation<Unit>) {
+        val task = TimedTask(now().milliseconds + time, continuation, null)
+        continuation.invokeOnCancellation {
+            task.exception = it
+        }
+        lock(lock) { timedTasks += task }
+    }
+
+
+    private fun executeTimedTasks(startTime: Duration) {
+        while (true) {
+            val item = lock(lock) {
+                if (timedTasks.isNotEmpty() && startTime >= timedTasks.first().time) {
+                    timedTasks.removeFirst()
+                } else {
+                    null
+                }
+            } ?: break
+            item.exception?.let { exception ->
+                item.continuation?.resumeWithException(exception)
+                item.callback?.let {
+                    exception.printStackTrace()
+                }
+            } ?: run {
+                item.continuation?.resume(Unit)
+                item.callback?.run()
+            }
+        }
+    }
+
+    private fun executeQueuedTasks() {
+        while (true) {
+            val task = lock(lock) {
+                if (tasks.isNotEmpty()) {
+                    tasks.removeFirst()
+                } else {
+                    null
+                }
+            } ?: break
+            task.run()
+        }
+    }
+
+    override fun toString(): String {
+        return "AsyncThreadDispatcher(executor=$executor, threads=$threads)"
+    }
+
+
+    private class TimedTask(
+        val time: Duration,
+        val continuation: CancellableContinuation<Unit>?,
+        val callback: Runnable?
+    ) {
+        var exception: Throwable? = null
+    }
+}
+
 
 /**
  * A [CoroutineDispatcher] that wraps around a [Context] to execute tasks on main rendering thread.

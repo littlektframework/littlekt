@@ -3,20 +3,27 @@ package com.lehaine.littlekt.samples
 import com.lehaine.littlekt.Context
 import com.lehaine.littlekt.Game
 import com.lehaine.littlekt.Scene
+import com.lehaine.littlekt.async.KtScope
+import com.lehaine.littlekt.async.newSingleThreadAsyncContext
 import com.lehaine.littlekt.createShader
 import com.lehaine.littlekt.file.vfs.readAtlas
 import com.lehaine.littlekt.file.vfs.readTexture
 import com.lehaine.littlekt.graphics.*
 import com.lehaine.littlekt.graphics.shader.shaders.SimpleColorFragmentShader
 import com.lehaine.littlekt.graphics.shader.shaders.SimpleColorVertexShader
-import com.lehaine.littlekt.input.*
+import com.lehaine.littlekt.input.GameAxis
+import com.lehaine.littlekt.input.GameButton
+import com.lehaine.littlekt.input.InputMultiplexer
+import com.lehaine.littlekt.input.Key
 import com.lehaine.littlekt.log.Logger
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  * @author Colton Daily
  * @date 11/6/2021
  */
-class DisplayTest(context: Context) : Game<Scene>(context), InputProcessor {
+class DisplayTest(context: Context) : Game<Scene>(context) {
 
     private var x = 0f
     private var y = 0f
@@ -73,7 +80,6 @@ class DisplayTest(context: Context) : Game<Scene>(context), InputProcessor {
     init {
         logger.level = Logger.Level.DEBUG
         input.addInputProcessor(controller)
-        input.addInputProcessor(this)
         camera.translate(graphics.width / 2f, graphics.height / 2f, 0f)
 
         controller.addBinding(GameInput.MOVE_LEFT, listOf(Key.A, Key.ARROW_LEFT), axes = listOf(GameAxis.LX))
@@ -91,7 +97,6 @@ class DisplayTest(context: Context) : Game<Scene>(context), InputProcessor {
             GameInput.MOVE_UP
         )
     }
-
 
     override suspend fun Context.run() {
         val batch = SpriteBatch(context)
