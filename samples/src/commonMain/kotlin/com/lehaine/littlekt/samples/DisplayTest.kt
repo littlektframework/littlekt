@@ -108,6 +108,12 @@ class DisplayTest(context: Context) : Game<Scene>(context), InputProcessor {
         boss.scaleX = 2f
         boss.scaleY = 2f
 
+        input.inputProcessor {
+            onKeyUp {
+                logger.info { "key up: $it" }
+            }
+        }
+
         onRender { dt ->
             xVel = 0f
             yVel = 0f
