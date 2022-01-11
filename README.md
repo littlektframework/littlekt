@@ -1,6 +1,6 @@
 # LittleKt - A 2D game framework written in Kotlin
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://github.com/littlektframework/littlekt/blob/master/LICENSE)
-![CI](https://github.com/littlektframework/littlekt/workflows/CI/badge.svg)
+[![CI](https://github.com/littlektframework/littlekt/workflows/CI/badge.svg)](https://github.com/littlektframework/littlekt/actions)
 
 **Currently in development.**
 
