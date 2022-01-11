@@ -1,4 +1,4 @@
-# LittleKt - An OpenGL game framework written in Kotlin
+# LittleKt - A 2D game framework written in Kotlin
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://github.com/littlektframework/littlekt/blob/master/LICENSE)
 
 **Currently in development.**
