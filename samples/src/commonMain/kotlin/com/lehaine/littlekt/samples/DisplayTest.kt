@@ -3,8 +3,6 @@ package com.lehaine.littlekt.samples
 import com.lehaine.littlekt.Context
 import com.lehaine.littlekt.Game
 import com.lehaine.littlekt.Scene
-import com.lehaine.littlekt.async.KtScope
-import com.lehaine.littlekt.async.newSingleThreadAsyncContext
 import com.lehaine.littlekt.createShader
 import com.lehaine.littlekt.file.vfs.readAtlas
 import com.lehaine.littlekt.file.vfs.readTexture
@@ -16,14 +14,14 @@ import com.lehaine.littlekt.input.GameButton
 import com.lehaine.littlekt.input.InputMultiplexer
 import com.lehaine.littlekt.input.Key
 import com.lehaine.littlekt.log.Logger
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 /**
  * @author Colton Daily
  * @date 11/6/2021
  */
 class DisplayTest(context: Context) : Game<Scene>(context) {
+
+    val testLoad by load<Texture>(resourcesVfs["person.png"])
 
     private var x = 0f
     private var y = 0f
@@ -78,7 +76,7 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
     }
 
     init {
-        logger.level = Logger.Level.DEBUG
+        Logger.setLevels(Logger.Level.DEBUG)
         input.addInputProcessor(controller)
         camera.translate(graphics.width / 2f, graphics.height / 2f, 0f)
 

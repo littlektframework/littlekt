@@ -42,11 +42,11 @@ interface Context : CoroutineScope {
 
     val platform: Platform
 
-    suspend fun start(build: (app: Context) -> ContextListener)
+    fun start(build: (app: Context) -> ContextListener)
 
-    suspend fun close()
+    fun close()
 
-    suspend fun destroy()
+    fun destroy()
 
     fun onRender(action: suspend (dt: Duration) -> Unit)
     fun onPostRender(action: suspend (dt: Duration) -> Unit)

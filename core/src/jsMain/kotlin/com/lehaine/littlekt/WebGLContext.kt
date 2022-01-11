@@ -28,7 +28,7 @@ class WebGLContext(override val configuration: JsConfiguration) : Context {
 
     override val coroutineContext: CoroutineContext get() = KtScope.coroutineContext
 
-    val canvas = document.getElementById(configuration.canvasId) as HTMLCanvasElement
+    private val canvas = document.getElementById(configuration.canvasId) as HTMLCanvasElement
 
     override val stats: AppStats = AppStats()
     override val graphics: Graphics = WebGLGraphics(canvas, stats.engineStats)
@@ -51,7 +51,7 @@ class WebGLContext(override val configuration: JsConfiguration) : Context {
 
     private val counterTimerPerFrame: Duration get() = (1_000_000.0 / stats.fps).microseconds
 
-    override suspend fun start(build: (app: Context) -> ContextListener) {
+    override fun start(build: (app: Context) -> ContextListener) {
         KtScope.initiate(this)
         graphics as WebGLGraphics
         input as JsInput
@@ -61,15 +61,16 @@ class WebGLContext(override val configuration: JsConfiguration) : Context {
 
         InternalResources.createInstance(this)
         listener = build(this)
-        listener.run { start() }
-
+        launch {
+            listener.run { start() }
+        }
         window.requestAnimationFrame(::render)
     }
 
     @Suppress("EXPERIMENTAL_IS_NOT_ENABLED")
     @OptIn(ExperimentalTime::class)
     private fun render(now: Double) {
-        KtScope.launch {
+        launch {
             if (canvas.clientWidth != graphics.width ||
                 canvas.clientHeight != graphics.height
             ) {
@@ -129,12 +130,14 @@ class WebGLContext(override val configuration: JsConfiguration) : Context {
         }
     }
 
-    override suspend fun close() {
+    override fun close() {
         closed = true
     }
 
-    override suspend fun destroy() {
-        disposeCalls.fastForEach { dispose -> dispose() }
+    override fun destroy() {
+        launch {
+            disposeCalls.fastForEach { dispose -> dispose() }
+        }
     }
 
     override fun onRender(action: suspend (dt: Duration) -> Unit) {

@@ -1,7 +1,7 @@
 package com.lehaine.littlekt
 
-import com.lehaine.littlekt.async.KT
 import com.lehaine.littlekt.async.KtScope
+import com.lehaine.littlekt.async.MainDispatcher
 import com.lehaine.littlekt.audio.OpenALContext
 import com.lehaine.littlekt.file.JvmVfs
 import com.lehaine.littlekt.file.vfs.VfsFile
@@ -12,8 +12,6 @@ import com.lehaine.littlekt.input.Input
 import com.lehaine.littlekt.input.LwjglInput
 import com.lehaine.littlekt.log.Logger
 import com.lehaine.littlekt.util.fastForEach
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import org.lwjgl.glfw.Callbacks
 import org.lwjgl.glfw.GLFW
 import org.lwjgl.glfw.GLFWErrorCallback
@@ -64,7 +62,7 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context {
 
     @Suppress("EXPERIMENTAL_IS_NOT_ENABLED")
     @OptIn(ExperimentalTime::class)
-    override suspend fun start(build: (app: Context) -> ContextListener) {
+    override fun start(build: (app: Context) -> ContextListener) {
         KtScope.initiate(this)
         val graphics = graphics as LwjglGraphics
         val input = input as LwjglInput
@@ -164,15 +162,15 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context {
 
         var lastFrame = System.nanoTime()
 
-        InternalResources.createInstance(this)
-        val listener = build(this)
+        InternalResources.createInstance(this@LwjglContext)
+        val listener = build(this@LwjglContext)
 
         GLFW.glfwSetFramebufferSizeCallback(windowHandle) { _, width, height ->
             graphics.gl.viewport(0, 0, width, height)
             graphics._width = width
             graphics._height = height
 
-            KtScope.launch {
+            launch {
                 listener.run {
                     resizeCalls.fastForEach { resize ->
                         resize(
@@ -184,38 +182,45 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context {
             }
         }
 
-        listener.run { start() }
-        listener.run {
-            resizeCalls.fastForEach { resize ->
-                resize(
-                    this@LwjglContext.configuration.width,
-                    this@LwjglContext.configuration.height
-                )
+        launch {
+            listener.run { start() }
+            listener.run {
+                resizeCalls.fastForEach { resize ->
+                    resize(
+                        this@LwjglContext.configuration.width,
+                        this@LwjglContext.configuration.height
+                    )
+                }
             }
         }
         while (!windowShouldClose) {
             stats.engineStats.resetPerFrameCounts()
             glClear(GL.COLOR_BUFFER_BIT or GL.DEPTH_BUFFER_BIT)
 
-            invokeAnyRunnable()
+            launch {
+                invokeAnyRunnable()
 
-            val time = System.nanoTime()
-            val dt = ((time - lastFrame) / 1e9).seconds
-            val available = counterTimerPerFrame - dt
-            Dispatchers.KT.executePending(available)
-            lastFrame = time
+                val time = System.nanoTime()
+                val dt = ((time - lastFrame) / 1e9).seconds
+                val available = counterTimerPerFrame - dt
+                MainDispatcher.INSTANCE.executePending(available)
+                lastFrame = time
 
-            input.update()
-            stats.update(dt)
-            renderCalls.fastForEach { render -> render(dt) }
-            postRenderCalls.fastForEach { postRender -> postRender(dt) }
+                input.update()
+                stats.update(dt)
+                renderCalls.fastForEach { render -> render(dt) }
+                postRenderCalls.fastForEach { postRender -> postRender(dt) }
+            }
 
             GLFW.glfwSwapBuffers(windowHandle)
             input.reset()
             GLFW.glfwPollEvents()
         }
-        disposeCalls.fastForEach { dispose -> dispose() }
+        launch {
+            disposeCalls.fastForEach { dispose -> dispose() }
+        }
         destroy()
+
     }
 
     private suspend fun invokeAnyRunnable() {
@@ -227,11 +232,11 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context {
         }
     }
 
-    override suspend fun close() {
+    override fun close() {
         GLFW.glfwSetWindowShouldClose(windowHandle, true)
     }
 
-    override suspend fun destroy() {
+    override fun destroy() {
         // Free the window callbacks and destroy the window
         Callbacks.glfwFreeCallbacks(windowHandle)
         GLFW.glfwDestroyWindow(windowHandle)

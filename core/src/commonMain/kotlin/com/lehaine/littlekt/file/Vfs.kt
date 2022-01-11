@@ -126,7 +126,7 @@ abstract class Vfs(
         awaitedAssetsChannel.send(awaitedAsset)
         val loaded = awaitedAsset.awaiting.await() as LoadedRawAsset
         loaded.data?.let {
-            logger.debug { "Loaded ${assetPathToName(assetPath)} (${(it.capacity / 1024.0 / 1024.0).toString(2)} mb)" }
+            logger.info { "Loaded ${assetPathToName(assetPath)} (${(it.capacity / 1024.0 / 1024.0).toString(2)} mb)" }
         }
         return loaded.data
             ?: throw FileNotFoundException(assetPath)

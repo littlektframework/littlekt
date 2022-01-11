@@ -5,9 +5,6 @@ import com.lehaine.littlekt.ContextListener
 import com.lehaine.littlekt.LittleKtApp
 import com.lehaine.littlekt.createLittleKtApp
 import kotlinx.browser.document
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.launch
 import kotlinx.html.DIV
 import kotlinx.html.button
 import kotlinx.html.dom.append
@@ -24,8 +21,6 @@ import kotlinx.html.style
 
 var lastApp: LittleKtApp? = null
 
-val job = Job()
-val scope = CoroutineScope(job)
 fun main() {
     document.body!!.append {
         div {
@@ -48,16 +43,12 @@ fun DIV.addSample(title: String, gameBuilder: (app: Context) -> ContextListener)
                 }
             }
 
-            scope.launch {
-                lastApp?.close()
-                lastApp = createLittleKtApp {
-                    this.title = title
-                }.also {
-                    it.start(gameBuilder)
-                }
+            lastApp?.close()
+            lastApp = createLittleKtApp {
+                this.title = title
+            }.also {
+                it.start(gameBuilder)
             }
         }
-
     }
-
 }
