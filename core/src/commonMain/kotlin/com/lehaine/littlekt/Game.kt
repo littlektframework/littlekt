@@ -19,11 +19,14 @@ import kotlin.reflect.KClass
  * @date 12/23/21
  */
 open class Game<SceneType : Scene>(context: Context, firstScene: SceneType? = null) : ContextListener(context) {
+
     val graphics get() = context.graphics
     val input get() = context.input
     val stats get() = context.stats
     val gl get() = context.gl
     val logger get() = context.logger
+    val resourcesVfs get() = context.resourcesVfs
+    val storageVfs get() = context.storageVfs
 
     protected val assetProvider = AssetProvider(context)
 
