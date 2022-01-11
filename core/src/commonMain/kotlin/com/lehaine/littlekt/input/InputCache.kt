@@ -99,19 +99,23 @@ class InputCache {
     }
 
     fun onKeyDown(key: Key) {
-        queueManager.keyDown(key, epochMillis())
-        totalKeysPressed++
-        anyKeyJustPressed = true
-        keysPressed[key] = true
-        keysJustPressed[key] = true
+        if (keysPressed[key] != true) {
+            queueManager.keyDown(key, epochMillis())
+            totalKeysPressed++
+            anyKeyJustPressed = true
+            keysPressed[key] = true
+            keysJustPressed[key] = true
+        }
     }
 
     fun onKeyUp(key: Key) {
-        queueManager.keyUp(key, epochMillis())
-        totalKeysPressed--
-        anyKeyJustReleased = true
-        keysPressed[key] = false
-        keysJustReleased[key] = true
+        if(keysPressed[key] == true) {
+            queueManager.keyUp(key, epochMillis())
+            totalKeysPressed--
+            anyKeyJustReleased = true
+            keysPressed[key] = false
+            keysJustReleased[key] = true
+        }
     }
 
     fun onKeyType(char: Char) {
