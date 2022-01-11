@@ -1,6 +1,7 @@
 package com.lehaine.littlekt.graphics
 
 import com.lehaine.littlekt.Context
+import com.lehaine.littlekt.async.onRenderingThread
 import com.lehaine.littlekt.file.ByteBuffer
 import com.lehaine.littlekt.file.createByteBuffer
 import com.lehaine.littlekt.graphics.gl.DataType
@@ -8,6 +9,7 @@ import com.lehaine.littlekt.graphics.gl.PixmapTextureData
 import com.lehaine.littlekt.graphics.gl.TextureFormat
 import com.lehaine.littlekt.math.clamp
 import com.lehaine.littlekt.math.nextPowerOfTwo
+import kotlinx.coroutines.launch
 import kotlin.math.*
 
 /**
@@ -410,7 +412,11 @@ fun Pixmap.sliceWithBorder(
     }
 
     val newTex = Texture(PixmapTextureData(out, mipmaps)).also {
-        it.prepare(context)
+        context.launch {
+            onRenderingThread {
+                it.prepare(context)
+            }
+        }
     }
 
     val newSlices = List(slices.size) { n ->
