@@ -3,7 +3,6 @@ package com.lehaine.littlekt
 import com.lehaine.littlekt.graphics.Cursor
 import com.lehaine.littlekt.graphics.GL
 import com.lehaine.littlekt.graphics.GLVersion
-import com.lehaine.littlekt.graphics.Pixmap
 import com.lehaine.littlekt.util.internal.jsObject
 import org.khronos.webgl.ArrayBufferView
 import org.khronos.webgl.Float32Array
@@ -19,7 +18,7 @@ import org.w3c.dom.events.UIEvent
  * @author Colton Daily
  * @date 11/6/2021
  */
-class WebGLGraphics(canvas: HTMLCanvasElement, engineStats: EngineStats) : Graphics {
+class WebGLGraphics(val canvas: HTMLCanvasElement, engineStats: EngineStats) : Graphics {
 
     @Suppress("UNCHECKED_CAST_TO_EXTERNAL_INTERFACE")
     override val gl: GL
@@ -61,12 +60,10 @@ class WebGLGraphics(canvas: HTMLCanvasElement, engineStats: EngineStats) : Graph
         _height = canvas.clientHeight
     }
 
-    override
-    val width: Int
+    override val width: Int
         get() = _width
 
-    override
-    val height: Int
+    override val height: Int
         get() = _height
 
     override val glVersion: GLVersion
@@ -78,7 +75,7 @@ class WebGLGraphics(canvas: HTMLCanvasElement, engineStats: EngineStats) : Graph
     }
 
     override fun setCursor(cursor: Cursor) {
-        TODO("Not yet implemented")
+        canvas.style.cursor = cursor.cssCursorProperty
     }
 
 }
