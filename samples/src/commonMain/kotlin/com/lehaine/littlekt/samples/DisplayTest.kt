@@ -105,6 +105,7 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
         val person = slices[0][0]
         val bossAttack = atlas.getAnimation("bossAttack")
         val boss = AnimatedSprite(bossAttack.firstFrame)
+        val stream = resourcesVfs["music.mp3"].readStream()
 
         boss.playLooped(bossAttack)
         boss.x = 450f

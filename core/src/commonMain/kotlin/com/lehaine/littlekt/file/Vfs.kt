@@ -86,10 +86,12 @@ abstract class Vfs(
     private suspend fun readBytes(ref: AssetRef): LoadedAsset {
         return when (ref) {
             is RawAssetRef -> loadRawAsset(ref)
+            is SequenceAssetRef -> loadSequenceStreamAsset(ref)
         }
     }
 
     protected abstract suspend fun loadRawAsset(rawRef: RawAssetRef): LoadedRawAsset
+    protected abstract suspend fun loadSequenceStreamAsset(sequenceRef: SequenceAssetRef): SequenceStreamCreatedAsset
 
     protected open fun isHttpAsset(assetPath: String): Boolean =
         // maybe use something less naive here?
@@ -132,7 +134,23 @@ abstract class Vfs(
             ?: throw FileNotFoundException(assetPath)
     }
 
-    fun assetPathToName(assetPath: String): String {
+    suspend fun readStream(assetPath: String): SequenceStream {
+        val ref = if (isHttpAsset(assetPath)) {
+            SequenceAssetRef(assetPath)
+        } else {
+            SequenceAssetRef("$baseDir/$assetPath")
+        }
+        val awaitedAsset = AwaitedAsset(ref)
+        awaitedAssetsChannel.send(awaitedAsset)
+        val loaded = awaitedAsset.awaiting.await() as SequenceStreamCreatedAsset
+        loaded.sequence?.let {
+            logger.info { "Created stream to ${assetPathToName(assetPath)}." }
+        }
+        return loaded.sequence
+            ?: throw FileNotFoundException(assetPath)
+    }
+
+    private fun assetPathToName(assetPath: String): String {
         return if (assetPath.startsWith("data:", true)) {
             val idx = assetPath.indexOf(';')
             assetPath.substring(0 until idx)
@@ -155,9 +173,11 @@ abstract class Vfs(
 
 sealed class AssetRef
 data class RawAssetRef(val url: String, val isLocal: Boolean) : AssetRef()
+data class SequenceAssetRef(val url: String) : AssetRef()
 
 sealed class LoadedAsset(val ref: AssetRef, val successful: Boolean)
 class LoadedRawAsset(ref: AssetRef, val data: ByteBuffer?) : LoadedAsset(ref, data != null)
+class SequenceStreamCreatedAsset(ref: AssetRef, val sequence: SequenceStream?) : LoadedAsset(ref, sequence != null)
 
 class FileNotFoundException(path: String) :
     Exception("File ($path) could not be found! Check to make sure it exists and is not corrupt.")

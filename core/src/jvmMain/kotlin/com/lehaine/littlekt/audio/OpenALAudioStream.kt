@@ -16,7 +16,7 @@ class OpenALAudioStream(
     pcm: ByteArray,
     val channels: Int,
     val sampleRate: Int
-) : AudioClip {
+) : AudioStream {
 
     private var bufferID = -1
 
@@ -29,6 +29,7 @@ class OpenALAudioStream(
         if (NO_DEVICE) {
             logger.error { "Unable to retrieve audio device!" }
         }
+
         val bytes = pcm.size - (pcm.size % (if (channels > 1) 4 else 2))
         val samples = bytes / (2 * channels)
         duration = (samples / sampleRate.toDouble()).seconds

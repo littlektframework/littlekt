@@ -52,6 +52,21 @@ class JvmVfs(context: Context, logger: Logger, storageBaseDir: String, assetsBas
         }
     }
 
+    override suspend fun loadSequenceStreamAsset(sequenceRef: SequenceAssetRef): SequenceStreamCreatedAsset {
+        var sequence: SequenceStream? = null
+
+        withContext(Dispatchers.IO) {
+            try {
+                openLocalStream(sequenceRef.url).let {
+                    sequence = JvmSequenceStream(it)
+                }
+            } catch (e: Exception) {
+                logger.error { "Failed loading creating buffered sequence of ${sequenceRef.url}: $e" }
+            }
+        }
+        return SequenceStreamCreatedAsset(sequenceRef, sequence)
+    }
+
     private suspend fun loadLocalRaw(localRawRef: RawAssetRef): LoadedRawAsset {
         var data: ByteBufferImpl? = null
         withContext(Dispatchers.IO) {
@@ -90,7 +105,7 @@ class JvmVfs(context: Context, logger: Logger, storageBaseDir: String, assetsBas
         return ByteBufferImpl(Base64.getDecoder().decode(dataUrl.substring(dataIdx)))
     }
 
-    internal fun openLocalStream(assetPath: String): InputStream {
+    private fun openLocalStream(assetPath: String): InputStream {
         var inStream = ClassLoader.getSystemResourceAsStream(assetPath)
         if (inStream == null) {
             // if asset wasn't found in resources try to load it from file system
