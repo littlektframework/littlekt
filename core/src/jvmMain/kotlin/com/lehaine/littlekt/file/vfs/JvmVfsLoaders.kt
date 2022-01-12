@@ -81,7 +81,8 @@ actual suspend fun VfsFile.readAudioClip(): AudioClip {
         }.getOrThrow()
     }
 
-    return OpenALAudioClip(source, channels, sampleRate.toInt())
+    vfs.context as LwjglContext
+    return OpenALAudioClip(vfs.context.audioContext, source, channels, sampleRate.toInt())
 }
 
 actual suspend fun VfsFile.writePixmap(pixmap: Pixmap) {

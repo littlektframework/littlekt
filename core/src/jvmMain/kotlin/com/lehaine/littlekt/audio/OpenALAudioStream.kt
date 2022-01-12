@@ -11,7 +11,7 @@ import kotlin.time.Duration.Companion.seconds
  * @author Colton Daily
  * @date 12/19/2021
  */
-class OpenALAudioClip(
+class OpenALAudioStream(
     private val context: OpenALAudioContext,
     pcm: ByteArray,
     val channels: Int,
@@ -80,13 +80,12 @@ class OpenALAudioClip(
         bufferID = -1
     }
 
-
     private inline fun withDevice(block: () -> Unit) {
         if (NO_DEVICE) return
         block()
     }
 
     companion object {
-        private val logger = Logger<OpenALAudioClip>()
+        private val logger = Logger<OpenALAudioStream>()
     }
 }

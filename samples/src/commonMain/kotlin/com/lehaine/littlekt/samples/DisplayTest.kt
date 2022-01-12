@@ -5,7 +5,7 @@ import com.lehaine.littlekt.Game
 import com.lehaine.littlekt.Scene
 import com.lehaine.littlekt.createShader
 import com.lehaine.littlekt.file.vfs.readAtlas
-import com.lehaine.littlekt.file.vfs.readPixmap
+import com.lehaine.littlekt.file.vfs.readAudioClip
 import com.lehaine.littlekt.file.vfs.readTexture
 import com.lehaine.littlekt.graphics.*
 import com.lehaine.littlekt.graphics.shader.shaders.SimpleColorFragmentShader
@@ -15,7 +15,6 @@ import com.lehaine.littlekt.input.GameButton
 import com.lehaine.littlekt.input.InputMultiplexer
 import com.lehaine.littlekt.input.Key
 import com.lehaine.littlekt.log.Logger
-import kotlin.math.roundToInt
 
 /**
  * @author Colton Daily
@@ -106,7 +105,6 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
         val person = slices[0][0]
         val bossAttack = atlas.getAnimation("bossAttack")
         val boss = AnimatedSprite(bossAttack.firstFrame)
-        graphics.setCursor(SystemCursor.CROSSHAIR)
 
         boss.playLooped(bossAttack)
         boss.x = 450f

@@ -2,7 +2,7 @@ package com.lehaine.littlekt
 
 import com.lehaine.littlekt.async.KtScope
 import com.lehaine.littlekt.async.MainDispatcher
-import com.lehaine.littlekt.audio.OpenALContext
+import com.lehaine.littlekt.audio.OpenALAudioContext
 import com.lehaine.littlekt.file.JvmVfs
 import com.lehaine.littlekt.file.vfs.VfsFile
 import com.lehaine.littlekt.graphics.GL
@@ -49,6 +49,8 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context {
 
     internal var windowHandle: Long = 0
         private set
+
+    internal val audioContext = OpenALAudioContext()
 
     private val windowShouldClose: Boolean
         get() = GLFW.glfwWindowShouldClose(windowHandle)
@@ -246,7 +248,7 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context {
         GLFW.glfwTerminate()
         GLFW.glfwSetErrorCallback(null)?.free()
 
-        OpenALContext.destroy()
+        audioContext.dispose()
     }
 
     override fun onRender(action: suspend (dt: Duration) -> Unit) {
