@@ -12,6 +12,8 @@ import com.lehaine.littlekt.input.Input
 import com.lehaine.littlekt.input.LwjglInput
 import com.lehaine.littlekt.log.Logger
 import com.lehaine.littlekt.util.fastForEach
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import org.lwjgl.glfw.Callbacks
 import org.lwjgl.glfw.GLFW
 import org.lwjgl.glfw.GLFWErrorCallback
@@ -197,6 +199,10 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context {
             }
         }
         while (!windowShouldClose) {
+            launch(Dispatchers.IO) {
+                audioContext.update()
+            }
+
             stats.engineStats.resetPerFrameCounts()
             glClear(GL.COLOR_BUFFER_BIT or GL.DEPTH_BUFFER_BIT)
 

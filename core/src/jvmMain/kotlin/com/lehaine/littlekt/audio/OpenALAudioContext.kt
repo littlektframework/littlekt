@@ -30,6 +30,8 @@ class OpenALAudioContext : Disposable {
 
     val NO_DEVICE get() = context == -1L || device == -1L
 
+    internal val audioStreams = mutableListOf<OpenALAudioStream>()
+
     private val sources by lazy {
         val result = mutableListOf<Int>()
         for (i in 0 until 4) { // total simultaneous sources
@@ -40,6 +42,10 @@ class OpenALAudioContext : Disposable {
         result
     }
 
+    fun update() {
+        if (NO_DEVICE) return
+        audioStreams.forEach { it.update() }
+    }
 
     fun obtainSource(): Int {
         if (NO_DEVICE) return 0
@@ -58,7 +64,7 @@ class OpenALAudioContext : Disposable {
             } ?: -1
     }
 
-    fun resumeSource(bufferID: Int) {
+    fun resumeSourceViaBufferID(bufferID: Int) {
         sources.forEach {
             if (AL10.alGetSourcei(it, AL10.AL_BUFFER) == bufferID) {
                 AL10.alSourcePlay(it)
@@ -66,7 +72,7 @@ class OpenALAudioContext : Disposable {
         }
     }
 
-    fun stopSource(bufferID: Int) {
+    fun stopSourceViaBufferID(bufferID: Int) {
         sources.forEach {
             if (AL10.alGetSourcei(it, AL10.AL_BUFFER) == bufferID) {
                 AL10.alSourceStop(it)
@@ -74,7 +80,7 @@ class OpenALAudioContext : Disposable {
         }
     }
 
-    fun pauseSource(bufferID: Int) {
+    fun pauseSourceViaBufferID(bufferID: Int) {
         sources.forEach {
             if (AL10.alGetSourcei(it, AL10.AL_BUFFER) == bufferID) {
                 AL10.alSourcePause(it)
@@ -82,7 +88,7 @@ class OpenALAudioContext : Disposable {
         }
     }
 
-    fun disposeSource(bufferID: Int) {
+    fun disposeSourceViaBufferID(bufferID: Int) {
         if (bufferID == -1) return
 
         sources.forEach {

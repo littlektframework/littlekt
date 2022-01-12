@@ -13,6 +13,7 @@ import java.nio.IntBuffer
 class OpenALAudioStream(
     private val context: OpenALAudioContext,
     private val read: (ByteArray) -> Int,
+    private val reset: () -> Unit,
     val channels: Int,
     val sampleRate: Int
 ) : AudioStream {
@@ -24,9 +25,28 @@ class OpenALAudioStream(
     private var sourceID = -1
 
     private val maxSecondsToBuffer = (BUFFER_SIZE.toFloat() / (BYTES_PER_SAMPLE * channels * sampleRate)).seconds
+    private val format = if (channels > 1) AL_FORMAT_STEREO16 else AL_FORMAT_MONO16
     private var buffers: IntBuffer? = null
 
+    private var isPlaying = false
+    private var isLooping = false
+
     override var volume: Float = 1f
+        set(value) {
+            check(value > 0) { "Volume must be greater than 0!" }
+            field = value
+            if (NO_DEVICE) return
+            if (sourceID != -1) {
+                alSourcef(sourceID, AL_GAIN, value)
+            }
+        }
+    override val playing: Boolean
+        get() {
+            if (NO_DEVICE || sourceID == -1) {
+                return false
+            }
+            return isPlaying
+        }
 
 
     init {
@@ -35,11 +55,12 @@ class OpenALAudioStream(
         }
     }
 
-
     override fun play(volume: Float, loop: Boolean) = withDevice {
         if (sourceID == -1) {
             sourceID = context.obtainSource()
             if (sourceID == -1) return@withDevice
+
+            context.audioStreams += this
 
             if (buffers == null) {
                 buffers = BufferUtils.createIntBuffer(BUFFER_COUNT).also {
@@ -52,34 +73,55 @@ class OpenALAudioStream(
                 }
             }
             alSourcei(sourceID, AL_LOOPING, AL_FALSE)
+
+            this.volume = volume
             alSourcef(sourceID, AL_GAIN, volume)
 
             alGetError()
 
-            var filled = false // check if there is anything to play
             buffers?.let { buffers ->
                 for (i in 0 until BUFFER_COUNT) {
                     val bufferID = buffers.get(i)
                     if (!fill(bufferID)) break
-                    filled = true
                     alSourceQueueBuffers(sourceID, bufferID)
                 }
             }
-            // TODO
+            if (alGetError() != AL_NO_ERROR) {
+                stop()
+                return@withDevice
+            }
         }
 
+        if (!isPlaying) {
+            alSourcePlay(sourceID)
+            isPlaying = true
+        }
     }
 
     override fun stop() = withDevice {
+        if (sourceID == -1) return@withDevice
+        context.audioStreams -= this
+        reset()
 
+        alSourceStop(sourceID);
+        alSourcei(sourceID, AL_BUFFER, 0);
+
+        sourceID = -1
+        isPlaying = false
     }
 
     override fun resume() = withDevice {
-
+        if (sourceID != -1) {
+            alSourcePlay(sourceID)
+            isPlaying = true
+        }
     }
 
     override fun pause() = withDevice {
-
+        if (sourceID != -1) {
+            alSourcePause(sourceID)
+        }
+        isPlaying = false
     }
 
     override fun dispose() = withDevice {
@@ -90,14 +132,45 @@ class OpenALAudioStream(
         buffers = null
     }
 
-    private fun fill(bufferID: Int): Boolean {
-        tempBuffer.clear()
-        val length = read(tempBytes)
-        if (length <= 0) {
-            // TODO
+    fun update() = withDevice {
+        if (sourceID == -1) return@withDevice
+        var end = false
+        var buffers = alGetSourcei(sourceID, AL_BUFFERS_PROCESSED)
+
+        while (buffers-- > 0) {
+            val bufferID = alSourceUnqueueBuffers(sourceID)
+            if (bufferID == AL_INVALID_VALUE) break
+            if (end) continue
+            if (fill(bufferID)) {
+                alSourceQueueBuffers(sourceID, bufferID)
+            } else {
+                end = true
+            }
+        }
+        if (end && alGetSourcei(sourceID, AL_BUFFERS_QUEUED) == 0) {
+            stop()
         }
 
-        // TODO
+        if (isPlaying && alGetSourcei(sourceID, AL_SOURCE_STATE) != AL_PLAYING) {
+            alSourcePlay(sourceID)
+        }
+    }
+
+    private fun fill(bufferID: Int): Boolean {
+        tempBuffer.clear()
+        var length = read(tempBytes)
+        if (length <= 0) {
+            if (isLooping) {
+                reset()
+                length = read(tempBytes)
+                if (length <= 0) return false
+            } else {
+                return false
+            }
+        }
+        tempBuffer.put(tempBytes, 0, length).flip()
+        alBufferData(bufferID, format, tempBuffer, sampleRate)
+
         return true
     }
 

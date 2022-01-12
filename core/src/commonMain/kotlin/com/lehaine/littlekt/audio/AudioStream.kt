@@ -1,7 +1,6 @@
 package com.lehaine.littlekt.audio
 
 import com.lehaine.littlekt.Disposable
-import kotlin.time.Duration
 
 /**
  * @author Colton Daily
@@ -9,6 +8,7 @@ import kotlin.time.Duration
  */
 interface AudioStream : Disposable {
     var volume: Float
+    val playing: Boolean
 
     fun play(volume: Float = this.volume, loop: Boolean = false)
 
