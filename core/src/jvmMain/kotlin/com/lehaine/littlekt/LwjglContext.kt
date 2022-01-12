@@ -38,7 +38,7 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context {
     override val coroutineContext: CoroutineContext get() = KtScope.coroutineContext
 
     override val stats: AppStats = AppStats()
-    override val graphics: Graphics = LwjglGraphics(stats.engineStats)
+    override val graphics: Graphics = LwjglGraphics(this, stats.engineStats)
     override val logger: Logger = Logger(configuration.title)
     override val input: Input = LwjglInput()
     override val vfs = JvmVfs(this, logger, "./.storage", ".")
@@ -47,7 +47,8 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context {
 
     override val platform: Context.Platform = Context.Platform.DESKTOP
 
-    private var windowHandle: Long = 0
+    internal var windowHandle: Long = 0
+        private set
 
     private val windowShouldClose: Boolean
         get() = GLFW.glfwWindowShouldClose(windowHandle)

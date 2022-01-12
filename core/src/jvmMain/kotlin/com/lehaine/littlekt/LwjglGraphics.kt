@@ -1,5 +1,6 @@
 package com.lehaine.littlekt
 
+import com.lehaine.littlekt.graphics.Cursor
 import com.lehaine.littlekt.graphics.GL
 import com.lehaine.littlekt.graphics.GLVersion
 import org.lwjgl.glfw.GLFW
@@ -8,7 +9,7 @@ import org.lwjgl.glfw.GLFW
  * @author Colton Daily
  * @date 11/6/2021
  */
-class LwjglGraphics(engineStats: EngineStats) : Graphics {
+class LwjglGraphics(val context: LwjglContext, engineStats: EngineStats) : Graphics {
     override val gl: GL = LwjglGL(engineStats)
 
     internal var _glVersion: GLVersion = GLVersion.GL_30
@@ -29,5 +30,9 @@ class LwjglGraphics(engineStats: EngineStats) : Graphics {
 
     override fun supportsExtension(extension: String): Boolean {
         return GLFW.glfwExtensionSupported(extension)
+    }
+
+    override fun setCursor(cursor: Cursor) {
+        GLFW.glfwSetCursor(context.windowHandle, cursor.cursorHandle)
     }
 }

@@ -1,7 +1,9 @@
 package com.lehaine.littlekt
 
+import com.lehaine.littlekt.graphics.Cursor
 import com.lehaine.littlekt.graphics.GL
 import com.lehaine.littlekt.graphics.GLVersion
+import com.lehaine.littlekt.graphics.Pixmap
 import com.lehaine.littlekt.util.internal.jsObject
 import org.khronos.webgl.ArrayBufferView
 import org.khronos.webgl.Float32Array
@@ -73,6 +75,10 @@ class WebGLGraphics(canvas: HTMLCanvasElement, engineStats: EngineStats) : Graph
     override fun supportsExtension(extension: String): Boolean {
         gl as WebGL
         return gl.gl.getExtension("extension") != null
+    }
+
+    override fun setCursor(cursor: Cursor) {
+        TODO("Not yet implemented")
     }
 
 }
