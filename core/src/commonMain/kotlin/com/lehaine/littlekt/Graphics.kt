@@ -1,7 +1,6 @@
 package com.lehaine.littlekt
 
-import com.lehaine.littlekt.graphics.GL
-import com.lehaine.littlekt.graphics.GLVersion
+import com.lehaine.littlekt.graphics.*
 
 
 /**
@@ -10,6 +9,9 @@ import com.lehaine.littlekt.graphics.GLVersion
  */
 interface Graphics {
 
+    /**
+     * THe OpenGL instance.
+     */
     val gl: GL
 
     /**
@@ -38,4 +40,14 @@ interface Graphics {
      * @return whether the extension is supported
      */
     fun supportsExtension(extension: String): Boolean
+
+    /**
+     * Overrides the current cursor with the specified [cursor].
+     */
+    fun setCursor(cursor: Cursor)
+
+    /**
+     * Overrides the current cursor with a default system cursor. See [SystemCursor]
+     */
+    fun setCursor(cursor: SystemCursor)
 }

@@ -10,9 +10,11 @@ import com.lehaine.littlekt.graphics.gl.TexMagFilter
 import com.lehaine.littlekt.graphics.gl.TexMinFilter
 import kotlinx.browser.document
 import kotlinx.coroutines.CompletableDeferred
+import org.khronos.webgl.Uint8ClampedArray
 import org.w3c.dom.CanvasRenderingContext2D
 import org.w3c.dom.HTMLCanvasElement
 import org.w3c.dom.Image
+import org.w3c.dom.ImageData
 
 /**
  * @author Colton Daily
