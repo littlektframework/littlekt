@@ -9,7 +9,6 @@ import kotlin.time.Duration
  */
 interface AudioStream : Disposable {
     var volume: Float
-    val duration: Duration
 
     fun play(volume: Float = this.volume, loop: Boolean = false)
 

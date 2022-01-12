@@ -1,6 +1,7 @@
 package com.lehaine.littlekt.file.vfs
 
 import com.lehaine.littlekt.audio.AudioClip
+import com.lehaine.littlekt.audio.AudioStream
 import com.lehaine.littlekt.audio.WebAudioClip
 import com.lehaine.littlekt.file.ByteBufferImpl
 import com.lehaine.littlekt.graphics.Pixmap
@@ -79,6 +80,14 @@ actual suspend fun VfsFile.readAudioClip(): AudioClip {
     } else {
         WebAudioClip("${vfs.baseDir}/$path")
     }
+}
+
+/**
+ * Streams audio from the path as an [AudioStream].
+ * @return a new [AudioStream]
+ */
+actual suspend fun VfsFile.readAudioStream(): AudioStream {
+    TODO("Implement audio streaming on Web target!")
 }
 
 

@@ -3,8 +3,11 @@ package com.lehaine.littlekt.file.vfs
 import com.lehaine.littlekt.LwjglContext
 import com.lehaine.littlekt.async.onRenderingThread
 import com.lehaine.littlekt.audio.AudioClip
+import com.lehaine.littlekt.audio.AudioStream
 import com.lehaine.littlekt.audio.OpenALAudioClip
+import com.lehaine.littlekt.audio.OpenALAudioStream
 import com.lehaine.littlekt.file.ImageUtils
+import com.lehaine.littlekt.file.JvmSequenceStream
 import com.lehaine.littlekt.file.createByteBuffer
 import com.lehaine.littlekt.graphics.Pixmap
 import com.lehaine.littlekt.graphics.Texture
@@ -83,6 +86,37 @@ actual suspend fun VfsFile.readAudioClip(): AudioClip {
 
     vfs.context as LwjglContext
     return OpenALAudioClip(vfs.context.audioContext, source, channels, sampleRate.toInt())
+}
+
+/**
+ * Streams audio from the path as an [AudioStream].
+ * @return a new [AudioStream]
+ */
+actual suspend fun VfsFile.readAudioStream(): AudioStream {
+    val asset = readStream() as JvmSequenceStream
+    // TODO refactor the sound handling to check the actual file headers
+    val (read, channels, sampleRate) = if (pathInfo.extension == "mp3") {
+        runCatching {
+            val decoder = Sound(asset.stream)
+            val channels = if (decoder.isStereo) 2 else 1
+            val read: (ByteArray) -> Int = {
+                decoder.read(it)
+            }
+
+            Triple(read, channels, decoder.samplingFrequency.toFloat())
+        }.getOrThrow()
+    } else {
+        runCatching {
+            val clip = AudioSystem.getAudioInputStream(asset.stream)
+            val read: (ByteArray) -> Int = {
+                clip.read(it)
+            }
+            Triple(read, clip.format.channels, clip.format.sampleRate)
+        }.getOrThrow()
+    }
+
+    vfs.context as LwjglContext
+    return OpenALAudioStream(vfs.context.audioContext, read, channels, sampleRate.toInt())
 }
 
 actual suspend fun VfsFile.writePixmap(pixmap: Pixmap) {

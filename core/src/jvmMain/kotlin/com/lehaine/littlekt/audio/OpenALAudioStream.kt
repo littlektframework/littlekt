@@ -1,11 +1,10 @@
 package com.lehaine.littlekt.audio
 
 import com.lehaine.littlekt.log.Logger
+import com.lehaine.littlekt.util.seconds
+import org.lwjgl.BufferUtils
 import org.lwjgl.openal.AL10.*
-import java.nio.ByteBuffer
-import java.nio.ByteOrder
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.seconds
+import java.nio.IntBuffer
 
 /**
  * @author Colton Daily
@@ -13,72 +12,93 @@ import kotlin.time.Duration.Companion.seconds
  */
 class OpenALAudioStream(
     private val context: OpenALAudioContext,
-    pcm: ByteArray,
+    private val read: (ByteArray) -> Int,
     val channels: Int,
     val sampleRate: Int
 ) : AudioStream {
+    private val NO_DEVICE get() = context.NO_DEVICE
 
-    private var bufferID = -1
+    private val tempBytes = ByteArray(BUFFER_SIZE)
+    private val tempBuffer = BufferUtils.createByteBuffer(BUFFER_SIZE)
+
+    private var sourceID = -1
+
+    private val maxSecondsToBuffer = (BUFFER_SIZE.toFloat() / (BYTES_PER_SAMPLE * channels * sampleRate)).seconds
+    private var buffers: IntBuffer? = null
 
     override var volume: Float = 1f
-    override val duration: Duration
 
-    private val NO_DEVICE get() = context.NO_DEVICE
 
     init {
         if (NO_DEVICE) {
             logger.error { "Unable to retrieve audio device!" }
         }
-
-        val bytes = pcm.size - (pcm.size % (if (channels > 1) 4 else 2))
-        val samples = bytes / (2 * channels)
-        duration = (samples / sampleRate.toDouble()).seconds
-
-        val buffer = ByteBuffer.allocateDirect(bytes).apply {
-            order(ByteOrder.nativeOrder())
-            put(pcm, 0, bytes)
-            flip()
-        }
-        if (bufferID == -1) {
-            bufferID = alGenBuffers()
-            alBufferData(
-                bufferID,
-                (if (channels > 1) AL_FORMAT_STEREO16 else AL_FORMAT_MONO16),
-                buffer.asShortBuffer(),
-                sampleRate
-            )
-        }
     }
 
 
     override fun play(volume: Float, loop: Boolean) = withDevice {
-        val sourceId = context.obtainSource()
+        if (sourceID == -1) {
+            sourceID = context.obtainSource()
+            if (sourceID == -1) return@withDevice
 
-        if (sourceId == -1) return
+            if (buffers == null) {
+                buffers = BufferUtils.createIntBuffer(BUFFER_COUNT).also {
+                    alGetError()
+                    alGenBuffers(it)
+                    val errorCode = alGetError()
+                    if (errorCode != AL_NO_ERROR) {
+                        error("Unable to allocate audio buffers. AL Error: $errorCode")
+                    }
+                }
+            }
+            alSourcei(sourceID, AL_LOOPING, AL_FALSE)
+            alSourcef(sourceID, AL_GAIN, volume)
 
-        alSourcei(sourceId, AL_BUFFER, bufferID)
-        alSourcei(sourceId, AL_LOOPING, if (loop) AL_TRUE else AL_FALSE)
-        alSourcef(sourceId, AL_GAIN, volume)
-        alSourcePlay(sourceId)
+            alGetError()
+
+            var filled = false // check if there is anything to play
+            buffers?.let { buffers ->
+                for (i in 0 until BUFFER_COUNT) {
+                    val bufferID = buffers.get(i)
+                    if (!fill(bufferID)) break
+                    filled = true
+                    alSourceQueueBuffers(sourceID, bufferID)
+                }
+            }
+            // TODO
+        }
+
     }
 
     override fun stop() = withDevice {
-        context.stopSource(bufferID)
+
     }
 
     override fun resume() = withDevice {
-        context.resumeSource(bufferID)
+
     }
 
     override fun pause() = withDevice {
-        context.pauseSource(bufferID)
+
     }
 
     override fun dispose() = withDevice {
-        if (bufferID == -1) return
+        stop()
+        buffers?.let {
+            alDeleteBuffers(it)
+        } ?: return@withDevice
+        buffers = null
+    }
 
-        context.disposeSource(bufferID)
-        bufferID = -1
+    private fun fill(bufferID: Int): Boolean {
+        tempBuffer.clear()
+        val length = read(tempBytes)
+        if (length <= 0) {
+            // TODO
+        }
+
+        // TODO
+        return true
     }
 
     private inline fun withDevice(block: () -> Unit) {
@@ -88,5 +108,8 @@ class OpenALAudioStream(
 
     companion object {
         private val logger = Logger<OpenALAudioStream>()
+        private const val BUFFER_SIZE = 4096 * 10
+        private const val BUFFER_COUNT = 3
+        private const val BYTES_PER_SAMPLE = 2
     }
 }
