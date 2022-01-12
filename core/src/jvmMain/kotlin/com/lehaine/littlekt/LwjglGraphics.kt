@@ -3,6 +3,7 @@ package com.lehaine.littlekt
 import com.lehaine.littlekt.graphics.Cursor
 import com.lehaine.littlekt.graphics.GL
 import com.lehaine.littlekt.graphics.GLVersion
+import com.lehaine.littlekt.graphics.SystemCursor
 import org.lwjgl.glfw.GLFW
 
 /**
@@ -10,6 +11,8 @@ import org.lwjgl.glfw.GLFW
  * @date 11/6/2021
  */
 class LwjglGraphics(val context: LwjglContext, engineStats: EngineStats) : Graphics {
+    private val systemCursors = mutableMapOf<SystemCursor, Long>()
+
     override val gl: GL = LwjglGL(engineStats)
 
     internal var _glVersion: GLVersion = GLVersion.GL_30
@@ -34,5 +37,22 @@ class LwjglGraphics(val context: LwjglContext, engineStats: EngineStats) : Graph
 
     override fun setCursor(cursor: Cursor) {
         GLFW.glfwSetCursor(context.windowHandle, cursor.cursorHandle)
+    }
+
+    override fun setCursor(cursor: SystemCursor) {
+        var handle = systemCursors[cursor]
+        if (handle == null) {
+            handle = when (cursor) {
+                SystemCursor.ARROW -> GLFW.glfwCreateStandardCursor(GLFW.GLFW_ARROW_CURSOR)
+                SystemCursor.I_BEAM -> GLFW.glfwCreateStandardCursor(GLFW.GLFW_IBEAM_CURSOR)
+                SystemCursor.CROSSHAIR -> GLFW.glfwCreateStandardCursor(GLFW.GLFW_CROSSHAIR_CURSOR)
+                SystemCursor.HAND -> GLFW.glfwCreateStandardCursor(GLFW.GLFW_HAND_CURSOR)
+                SystemCursor.HORIZONTAL_RESIZE -> GLFW.glfwCreateStandardCursor(GLFW.GLFW_HRESIZE_CURSOR)
+                SystemCursor.VERTICAL_RESIZE -> GLFW.glfwCreateStandardCursor(GLFW.GLFW_VRESIZE_CURSOR)
+            }
+            if (handle == 0L) return
+            systemCursors[cursor] = handle
+        }
+        GLFW.glfwSetCursor(context.windowHandle, handle)
     }
 }

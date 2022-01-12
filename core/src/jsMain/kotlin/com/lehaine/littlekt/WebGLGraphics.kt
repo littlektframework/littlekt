@@ -3,6 +3,7 @@ package com.lehaine.littlekt
 import com.lehaine.littlekt.graphics.Cursor
 import com.lehaine.littlekt.graphics.GL
 import com.lehaine.littlekt.graphics.GLVersion
+import com.lehaine.littlekt.graphics.SystemCursor
 import com.lehaine.littlekt.util.internal.jsObject
 import org.khronos.webgl.ArrayBufferView
 import org.khronos.webgl.Float32Array
@@ -76,6 +77,17 @@ class WebGLGraphics(val canvas: HTMLCanvasElement, engineStats: EngineStats) : G
 
     override fun setCursor(cursor: Cursor) {
         canvas.style.cursor = cursor.cssCursorProperty
+    }
+
+    override fun setCursor(cursor: SystemCursor) {
+        canvas.style.cursor = when (cursor) {
+            SystemCursor.ARROW -> "default"
+            SystemCursor.I_BEAM -> "text"
+            SystemCursor.CROSSHAIR -> "crosshair"
+            SystemCursor.HAND -> "pointer"
+            SystemCursor.HORIZONTAL_RESIZE -> "ew-resize"
+            SystemCursor.VERTICAL_RESIZE -> "ns-resize"
+        }
     }
 
 }

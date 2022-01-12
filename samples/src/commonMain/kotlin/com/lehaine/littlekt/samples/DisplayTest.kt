@@ -106,14 +106,7 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
         val person = slices[0][0]
         val bossAttack = atlas.getAnimation("bossAttack")
         val boss = AnimatedSprite(bossAttack.firstFrame)
-        val cursorPixmap = resourcesVfs["cursor.png"].readPixmap()
-        graphics.setCursor(
-            Cursor(
-                cursorPixmap,
-                (cursorPixmap.width * 0.5f).roundToInt(),
-                (cursorPixmap.height * 0.5f).roundToInt()
-            )
-        )
+        graphics.setCursor(SystemCursor.CROSSHAIR)
 
         boss.playLooped(bossAttack)
         boss.x = 450f

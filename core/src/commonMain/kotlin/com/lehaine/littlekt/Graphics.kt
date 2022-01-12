@@ -1,9 +1,6 @@
 package com.lehaine.littlekt
 
-import com.lehaine.littlekt.graphics.Cursor
-import com.lehaine.littlekt.graphics.GL
-import com.lehaine.littlekt.graphics.GLVersion
-import com.lehaine.littlekt.graphics.Pixmap
+import com.lehaine.littlekt.graphics.*
 
 
 /**
@@ -48,4 +45,9 @@ interface Graphics {
      * Overrides the current cursor with the specified [cursor].
      */
     fun setCursor(cursor: Cursor)
+
+    /**
+     * Overrides the current cursor with a default system cursor. See [SystemCursor]
+     */
+    fun setCursor(cursor: SystemCursor)
 }
