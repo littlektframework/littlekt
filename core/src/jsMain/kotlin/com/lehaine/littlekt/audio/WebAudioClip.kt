@@ -88,9 +88,6 @@ class WebAudioClip(val assetPath: String) : AudioClip {
         val duration: Float
             get() = audioElement.duration.toFloat()
 
-        val isEnded: Boolean
-            get() = audioElement.ended
-
         var isPaused: Boolean = false
             private set
 

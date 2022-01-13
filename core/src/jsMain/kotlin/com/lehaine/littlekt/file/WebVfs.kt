@@ -26,8 +26,31 @@ class WebVfs(
 ) : Vfs(context, logger, assetsBaseDir) {
 
     override suspend fun loadRawAsset(rawRef: RawAssetRef) = LoadedRawAsset(rawRef, loadRaw(rawRef.url))
+    override suspend fun loadSequenceStreamAsset(sequenceRef: SequenceAssetRef): SequenceStreamCreatedAsset {
+        val buffer = loadRaw(sequenceRef.url)
+        val stream = if (buffer != null) JsSequenceStream(buffer) else null
+        return SequenceStreamCreatedAsset(sequenceRef, stream)
+    }
 
     private suspend fun loadRaw(url: String): ByteBuffer? {
+        val data = CompletableDeferred<ByteBuffer?>(job)
+        val req = XMLHttpRequest()
+        req.responseType = XMLHttpRequestResponseType.ARRAYBUFFER
+        req.onload = {
+            val array = Uint8Array(req.response as ArrayBuffer)
+            data.complete(ByteBufferImpl(array))
+        }
+        req.onerror = {
+            data.complete(null)
+            logger.error { "Failed loading resource $url: $it" }
+        }
+        req.open("GET", url)
+        req.send()
+
+        return data.await()
+    }
+
+    private suspend fun loadRawStream(url: String): ByteBuffer? {
         val data = CompletableDeferred<ByteBuffer?>(job)
         val req = XMLHttpRequest()
         req.responseType = XMLHttpRequestResponseType.ARRAYBUFFER
