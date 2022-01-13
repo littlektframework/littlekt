@@ -144,7 +144,7 @@ abstract class Vfs(
         awaitedAssetsChannel.send(awaitedAsset)
         val loaded = awaitedAsset.awaiting.await() as SequenceStreamCreatedAsset
         loaded.sequence?.let {
-            logger.info { "Created stream to ${assetPathToName(assetPath)}." }
+            logger.info { "Opened stream to ${assetPathToName(assetPath)}." }
         }
         return loaded.sequence
             ?: throw FileNotFoundException(assetPath)

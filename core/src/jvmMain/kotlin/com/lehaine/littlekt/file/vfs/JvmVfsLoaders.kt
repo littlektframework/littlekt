@@ -18,7 +18,6 @@ import com.lehaine.littlekt.graphics.gl.TextureFormat
 import fr.delthas.javamp3.Sound
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import java.io.ByteArrayInputStream
 import java.io.File
 import java.io.FileOutputStream
@@ -102,7 +101,7 @@ actual suspend fun VfsFile.readAudioStream(): AudioStream {
 
 private suspend fun VfsFile.createAudioStreamMp3(): OpenALAudioStream {
     vfs.context as LwjglContext
-    var decoder = withContext(Dispatchers.IO) { Sound((readStream() as JvmSequenceStream).stream) }
+    var decoder = runCatching { Sound((readStream() as JvmSequenceStream).stream) }.getOrThrow()
     val channels = if (decoder.isStereo) 2 else 1
     val read: (ByteArray) -> Int = {
         decoder.read(it)
@@ -119,8 +118,7 @@ private suspend fun VfsFile.createAudioStreamMp3(): OpenALAudioStream {
 
 private suspend fun VfsFile.createAudioStreamWav(): OpenALAudioStream {
     vfs.context as LwjglContext
-    var clip =
-        withContext(Dispatchers.IO) { AudioSystem.getAudioInputStream((readStream() as JvmSequenceStream).stream) }
+    var clip = runCatching { AudioSystem.getAudioInputStream((readStream() as JvmSequenceStream).stream) }.getOrThrow()
     val read: (ByteArray) -> Int = {
         clip.read(it)
     }

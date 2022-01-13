@@ -28,8 +28,7 @@ class OpenALAudioStream(
     private val format = if (channels > 1) AL_FORMAT_STEREO16 else AL_FORMAT_MONO16
     private var buffers: IntBuffer? = null
 
-    private var isPlaying = false
-    private var isLooping = false
+    override var looping = false
 
     override var volume: Float = 1f
         set(value) {
@@ -40,6 +39,8 @@ class OpenALAudioStream(
                 alSourcef(sourceID, AL_GAIN, value)
             }
         }
+
+    private var isPlaying = false
     override val playing: Boolean
         get() {
             if (NO_DEVICE || sourceID == -1) {
@@ -75,6 +76,7 @@ class OpenALAudioStream(
             alSourcei(sourceID, AL_LOOPING, AL_FALSE)
 
             this.volume = volume
+            this.looping = looping
             alSourcef(sourceID, AL_GAIN, volume)
 
             alGetError()
@@ -160,7 +162,7 @@ class OpenALAudioStream(
         tempBuffer.clear()
         var length = read(tempBytes)
         if (length <= 0) {
-            if (isLooping) {
+            if (looping) {
                 reset()
                 length = read(tempBytes)
                 if (length <= 0) return false
