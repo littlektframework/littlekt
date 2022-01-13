@@ -26,6 +26,11 @@ class WebVfs(
 ) : Vfs(context, logger, assetsBaseDir) {
 
     override suspend fun loadRawAsset(rawRef: RawAssetRef) = LoadedRawAsset(rawRef, loadRaw(rawRef.url))
+    override suspend fun loadSequenceStreamAsset(sequenceRef: SequenceAssetRef): SequenceStreamCreatedAsset {
+        val buffer = loadRaw(sequenceRef.url)
+        val stream = if (buffer != null) JsSequenceStream(buffer) else null
+        return SequenceStreamCreatedAsset(sequenceRef, stream)
+    }
 
     private suspend fun loadRaw(url: String): ByteBuffer? {
         val data = CompletableDeferred<ByteBuffer?>(job)

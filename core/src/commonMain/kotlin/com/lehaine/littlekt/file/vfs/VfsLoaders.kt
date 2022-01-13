@@ -1,6 +1,7 @@
 package com.lehaine.littlekt.file.vfs
 
 import com.lehaine.littlekt.audio.AudioClip
+import com.lehaine.littlekt.audio.AudioStream
 import com.lehaine.littlekt.file.UnsupportedFileTypeException
 import com.lehaine.littlekt.file.atlas.AtlasInfo
 import com.lehaine.littlekt.file.atlas.AtlasPage
@@ -237,6 +238,12 @@ expect suspend fun VfsFile.readPixmap(): Pixmap
  * @return the loaded audio clip
  */
 expect suspend fun VfsFile.readAudioClip(): AudioClip
+
+/**
+ * Streams audio from the path as an [AudioStream].
+ * @return a new [AudioStream]
+ */
+expect suspend fun VfsFile.readAudioStream(): AudioStream
 
 /**
  * Write pixmap to disk.

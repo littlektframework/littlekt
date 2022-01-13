@@ -1,7 +1,9 @@
 package com.lehaine.littlekt.file.vfs
 
 import com.lehaine.littlekt.audio.AudioClip
+import com.lehaine.littlekt.audio.AudioStream
 import com.lehaine.littlekt.audio.WebAudioClip
+import com.lehaine.littlekt.audio.WebAudioStream
 import com.lehaine.littlekt.file.ByteBufferImpl
 import com.lehaine.littlekt.graphics.Pixmap
 import com.lehaine.littlekt.graphics.Texture
@@ -10,11 +12,9 @@ import com.lehaine.littlekt.graphics.gl.TexMagFilter
 import com.lehaine.littlekt.graphics.gl.TexMinFilter
 import kotlinx.browser.document
 import kotlinx.coroutines.CompletableDeferred
-import org.khronos.webgl.Uint8ClampedArray
 import org.w3c.dom.CanvasRenderingContext2D
 import org.w3c.dom.HTMLCanvasElement
 import org.w3c.dom.Image
-import org.w3c.dom.ImageData
 
 /**
  * @author Colton Daily
@@ -78,6 +78,18 @@ actual suspend fun VfsFile.readAudioClip(): AudioClip {
         WebAudioClip(path)
     } else {
         WebAudioClip("${vfs.baseDir}/$path")
+    }
+}
+
+/**
+ * Streams audio from the path as an [AudioStream].
+ * @return a new [AudioStream]
+ */
+actual suspend fun VfsFile.readAudioStream(): AudioStream {
+    return if (isHttpUrl()) {
+        WebAudioStream(path)
+    } else {
+        WebAudioStream("${vfs.baseDir}/$path")
     }
 }
 

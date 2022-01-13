@@ -3,8 +3,11 @@ package com.lehaine.littlekt.file.vfs
 import com.lehaine.littlekt.LwjglContext
 import com.lehaine.littlekt.async.onRenderingThread
 import com.lehaine.littlekt.audio.AudioClip
+import com.lehaine.littlekt.audio.AudioStream
 import com.lehaine.littlekt.audio.OpenALAudioClip
+import com.lehaine.littlekt.audio.OpenALAudioStream
 import com.lehaine.littlekt.file.ImageUtils
+import com.lehaine.littlekt.file.JvmSequenceStream
 import com.lehaine.littlekt.file.createByteBuffer
 import com.lehaine.littlekt.graphics.Pixmap
 import com.lehaine.littlekt.graphics.Texture
@@ -13,6 +16,8 @@ import com.lehaine.littlekt.graphics.gl.TexMagFilter
 import com.lehaine.littlekt.graphics.gl.TexMinFilter
 import com.lehaine.littlekt.graphics.gl.TextureFormat
 import fr.delthas.javamp3.Sound
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import java.io.ByteArrayInputStream
 import java.io.File
 import java.io.FileOutputStream
@@ -67,21 +72,70 @@ actual suspend fun VfsFile.readAudioClip(): AudioClip {
     val asset = read()
     // TODO refactor the sound handling to check the actual file headers
     val (source, channels, sampleRate) = if (pathInfo.extension == "mp3") {
-        runCatching {
-            val decoder = Sound(ByteArrayInputStream(asset.toArray()))
-            val source = decoder.readBytes().also { decoder.close() }
-            val channels = if (decoder.isStereo) 2 else 1
-            Triple(source, channels, decoder.samplingFrequency.toFloat())
-        }.getOrThrow()
+        val decoder = Sound(ByteArrayInputStream(asset.toArray()))
+        val source = decoder.readBytes().also { decoder.close() }
+        val channels = if (decoder.isStereo) 2 else 1
+        Triple(source, channels, decoder.samplingFrequency.toFloat())
+
     } else {
-        runCatching {
-            val source = asset.toArray()
-            val clip = AudioSystem.getAudioFileFormat(ByteArrayInputStream(asset.toArray()))
-            Triple(source, clip.format.channels, clip.format.sampleRate)
-        }.getOrThrow()
+        val source = asset.toArray()
+        val clip = AudioSystem.getAudioFileFormat(ByteArrayInputStream(asset.toArray()))
+        Triple(source, clip.format.channels, clip.format.sampleRate)
     }
 
-    return OpenALAudioClip(source, channels, sampleRate.toInt())
+    vfs.context as LwjglContext
+    return OpenALAudioClip(vfs.context.audioContext, source, channels, sampleRate.toInt())
+}
+
+/**
+ * Streams audio from the path as an [AudioStream].
+ * @return a new [AudioStream]
+ */
+actual suspend fun VfsFile.readAudioStream(): AudioStream {
+    if (pathInfo.extension == "mp3") { // TODO refactor the sound handling to check the actual file headers
+        return createAudioStreamMp3()
+    }
+
+    return createAudioStreamWav()
+}
+
+private suspend fun VfsFile.createAudioStreamMp3(): OpenALAudioStream {
+    vfs.context as LwjglContext
+    var decoder = runCatching { Sound((readStream() as JvmSequenceStream).stream) }.getOrThrow()
+    val channels = if (decoder.isStereo) 2 else 1
+    val read: (ByteArray) -> Int = {
+        decoder.read(it)
+    }
+    val reset: () -> Unit = {
+        decoder.close()
+        vfs.launch(Dispatchers.IO) {
+            decoder = Sound((readStream() as JvmSequenceStream).stream)
+        }
+    }
+
+    return OpenALAudioStream(vfs.context.audioContext, read, reset, channels, decoder.samplingFrequency)
+}
+
+private suspend fun VfsFile.createAudioStreamWav(): OpenALAudioStream {
+    vfs.context as LwjglContext
+    var clip = runCatching { AudioSystem.getAudioInputStream((readStream() as JvmSequenceStream).stream) }.getOrThrow()
+    val read: (ByteArray) -> Int = {
+        clip.read(it)
+    }
+    val reset: () -> Unit = {
+        vfs.launch(Dispatchers.IO) {
+            clip.close()
+            clip = AudioSystem.getAudioInputStream((readStream() as JvmSequenceStream).stream)
+        }
+    }
+
+    return OpenALAudioStream(
+        vfs.context.audioContext,
+        read,
+        reset,
+        clip.format.channels,
+        clip.format.sampleRate.toInt()
+    )
 }
 
 actual suspend fun VfsFile.writePixmap(pixmap: Pixmap) {
