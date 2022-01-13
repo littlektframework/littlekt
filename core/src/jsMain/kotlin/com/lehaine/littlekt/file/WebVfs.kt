@@ -50,24 +50,6 @@ class WebVfs(
         return data.await()
     }
 
-    private suspend fun loadRawStream(url: String): ByteBuffer? {
-        val data = CompletableDeferred<ByteBuffer?>(job)
-        val req = XMLHttpRequest()
-        req.responseType = XMLHttpRequestResponseType.ARRAYBUFFER
-        req.onload = {
-            val array = Uint8Array(req.response as ArrayBuffer)
-            data.complete(ByteBufferImpl(array))
-        }
-        req.onerror = {
-            data.complete(null)
-            logger.error { "Failed loading resource $url: $it" }
-        }
-        req.open("GET", url)
-        req.send()
-
-        return data.await()
-    }
-
     override fun store(key: String, data: ByteArray): Boolean {
         return try {
             localStorage[key] = binToBase64(Uint8Array(data.toTypedArray()))
