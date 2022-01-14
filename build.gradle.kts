@@ -1,6 +1,7 @@
 allprojects {
     group = "com.lehaine.littlekt"
-    version = "0.0.1"
+    version = "0.0.1-SNAPSHOT"
+    extra["isReleaseVersion"] = !version.toString().endsWith("SNAPSHOT")
 }
 
 plugins {

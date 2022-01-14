@@ -83,5 +83,8 @@ publishing {
 }
 
 signing {
+    setRequired({
+        (project.extra["isReleaseVersion"] as Boolean) && gradle.taskGraph.hasTask("publish")
+    })
     sign(publishing.publications)
 }
