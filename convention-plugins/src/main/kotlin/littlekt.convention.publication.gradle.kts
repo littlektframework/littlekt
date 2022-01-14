@@ -9,9 +9,8 @@ plugins {
     signing
 }
 
-ext["signing.keyId"] = null
-ext["signing.password"] = null
-ext["signing.secretKeyRingFile"] = null
+var secretKey: String? = null
+var signingPassword:String? = null
 ext["ossrhUsername"] = null
 ext["ossrhPassword"] = null
 
@@ -25,9 +24,8 @@ if (secretPropsFile.exists()) {
         ext[name.toString()] = value
     }
 } else {
-    ext["signing.keyId"] = System.getenv("SIGNING_KEY_ID")
-    ext["signing.password"] = System.getenv("SIGNING_PASSWORD")
-    ext["signing.secretKeyRingFile"] = System.getenv("SIGNING_SECRET_KEY_RING_FILE")
+    secretKey = System.getenv("SIGNING_SECRET_KEY")
+    signingPassword = System.getenv("SIGNING_PASSWORD")
     ext["ossrhUsername"] = System.getenv("OSSRH_USERNAME")
     ext["ossrhPassword"] = System.getenv("OSSRH_PASSWORD")
 }
@@ -86,5 +84,6 @@ signing {
     setRequired({
         (project.extra["isReleaseVersion"] as Boolean) && gradle.taskGraph.hasTask("publish")
     })
+    useInMemoryPgpKeys(secretKey, signingPassword)
     sign(publishing.publications)
 }
