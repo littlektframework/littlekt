@@ -7,7 +7,7 @@ import com.lehaine.littlekt.audio.AudioStream
 import com.lehaine.littlekt.audio.OpenALAudioClip
 import com.lehaine.littlekt.audio.OpenALAudioStream
 import com.lehaine.littlekt.file.ImageUtils
-import com.lehaine.littlekt.file.JvmSequenceStream
+import com.lehaine.littlekt.file.JvmByteSequenceStream
 import com.lehaine.littlekt.file.createByteBuffer
 import com.lehaine.littlekt.graphics.Pixmap
 import com.lehaine.littlekt.graphics.Texture
@@ -101,7 +101,7 @@ actual suspend fun VfsFile.readAudioStream(): AudioStream {
 
 private suspend fun VfsFile.createAudioStreamMp3(): OpenALAudioStream {
     vfs.context as LwjglContext
-    var decoder = runCatching { Sound((readStream() as JvmSequenceStream).stream) }.getOrThrow()
+    var decoder = runCatching { Sound((readStream() as JvmByteSequenceStream).stream) }.getOrThrow()
     val channels = if (decoder.isStereo) 2 else 1
     val read: (ByteArray) -> Int = {
         decoder.read(it)
@@ -109,7 +109,7 @@ private suspend fun VfsFile.createAudioStreamMp3(): OpenALAudioStream {
     val reset: () -> Unit = {
         decoder.close()
         vfs.launch(Dispatchers.IO) {
-            decoder = Sound((readStream() as JvmSequenceStream).stream)
+            decoder = Sound((readStream() as JvmByteSequenceStream).stream)
         }
     }
 
@@ -118,14 +118,14 @@ private suspend fun VfsFile.createAudioStreamMp3(): OpenALAudioStream {
 
 private suspend fun VfsFile.createAudioStreamWav(): OpenALAudioStream {
     vfs.context as LwjglContext
-    var clip = runCatching { AudioSystem.getAudioInputStream((readStream() as JvmSequenceStream).stream) }.getOrThrow()
+    var clip = runCatching { AudioSystem.getAudioInputStream((readStream() as JvmByteSequenceStream).stream) }.getOrThrow()
     val read: (ByteArray) -> Int = {
         clip.read(it)
     }
     val reset: () -> Unit = {
         vfs.launch(Dispatchers.IO) {
             clip.close()
-            clip = AudioSystem.getAudioInputStream((readStream() as JvmSequenceStream).stream)
+            clip = AudioSystem.getAudioInputStream((readStream() as JvmByteSequenceStream).stream)
         }
     }
 

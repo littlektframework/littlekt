@@ -6,7 +6,7 @@ import java.io.InputStream
  * @author Colton Daily
  * @date 1/12/2022
  */
-class JvmSequenceStream(val stream: InputStream) : SequenceStream {
+class JvmByteSequenceStream(val stream: InputStream) : ByteSequenceStream {
     private val bufferedStream = stream.buffered()
     private var chunkIterator = bufferedStream.iterator()
 

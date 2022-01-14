@@ -5,10 +5,10 @@ package com.lehaine.littlekt.file
  * @author Colton Daily
  * @date 1/12/2022
  */
-interface SequenceStream : Sequence<Byte> {
+interface ByteSequenceStream : Sequence<Byte> {
 
     /**
-     * Reads the next chunk of the specified [size] or until it reaches the end of the [SequenceStream].
+     * Reads the next chunk of the specified [size] or until it reaches the end of the [ByteSequenceStream].
      * @return a new list with the read values.
      */
     fun readChunk(size: Int): List<Byte>

@@ -53,12 +53,12 @@ class JvmVfs(context: Context, logger: Logger, storageBaseDir: String, assetsBas
     }
 
     override suspend fun loadSequenceStreamAsset(sequenceRef: SequenceAssetRef): SequenceStreamCreatedAsset {
-        var sequence: SequenceStream? = null
+        var sequence: ByteSequenceStream? = null
 
         withContext(Dispatchers.IO) {
             try {
                 openLocalStream(sequenceRef.url).let {
-                    sequence = JvmSequenceStream(it)
+                    sequence = JvmByteSequenceStream(it)
                 }
             } catch (e: Exception) {
                 logger.error { "Failed loading creating buffered sequence of ${sequenceRef.url}: $e" }

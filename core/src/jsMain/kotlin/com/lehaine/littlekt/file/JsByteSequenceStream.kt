@@ -4,7 +4,7 @@ package com.lehaine.littlekt.file
  * @author Colton Daily
  * @date 1/12/2022
  */
-class JsSequenceStream(val buffer: ByteBuffer) : SequenceStream {
+class JsByteSequenceStream(val buffer: ByteBuffer) : ByteSequenceStream {
     private var chunkPosition = 0
     private var closed = false
 

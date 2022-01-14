@@ -1,7 +1,7 @@
 package com.lehaine.littlekt.file.vfs
 
 import com.lehaine.littlekt.file.ByteBuffer
-import com.lehaine.littlekt.file.SequenceStream
+import com.lehaine.littlekt.file.ByteSequenceStream
 import com.lehaine.littlekt.file.Vfs
 import kotlinx.serialization.decodeFromString
 
@@ -17,7 +17,7 @@ data class VfsFile(val vfs: Vfs, val path: String) : VfsNamed(path.pathInfo) {
     val absolutePathInfo: PathInfo get() = PathInfo(absolutePath)
 
     suspend fun read(): ByteBuffer = vfs.readBytes(path)
-    suspend fun readStream(): SequenceStream = vfs.readStream(path)
+    suspend fun readStream(): ByteSequenceStream = vfs.readStream(path)
     suspend fun readBytes(): ByteArray = read().toArray()
     suspend fun readString(): String = readBytes().decodeToString()
     suspend fun readLines(): List<String> = readBytes().decodeToString().split("\n")

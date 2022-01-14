@@ -134,7 +134,7 @@ abstract class Vfs(
             ?: throw FileNotFoundException(assetPath)
     }
 
-    suspend fun readStream(assetPath: String): SequenceStream {
+    suspend fun readStream(assetPath: String): ByteSequenceStream {
         val ref = if (isHttpAsset(assetPath)) {
             SequenceAssetRef(assetPath)
         } else {
@@ -177,7 +177,7 @@ data class SequenceAssetRef(val url: String) : AssetRef()
 
 sealed class LoadedAsset(val ref: AssetRef, val successful: Boolean)
 class LoadedRawAsset(ref: AssetRef, val data: ByteBuffer?) : LoadedAsset(ref, data != null)
-class SequenceStreamCreatedAsset(ref: AssetRef, val sequence: SequenceStream?) : LoadedAsset(ref, sequence != null)
+class SequenceStreamCreatedAsset(ref: AssetRef, val sequence: ByteSequenceStream?) : LoadedAsset(ref, sequence != null)
 
 class FileNotFoundException(path: String) :
     Exception("File ($path) could not be found! Check to make sure it exists and is not corrupt.")
