@@ -1,7 +1,3 @@
-import org.gradle.api.publish.maven.MavenPublication
-import org.gradle.api.tasks.bundling.Jar
-import org.gradle.kotlin.dsl.`maven-publish`
-import org.gradle.kotlin.dsl.signing
 import java.util.*
 
 plugins {
@@ -10,7 +6,7 @@ plugins {
 }
 
 var secretKey: String? = null
-var signingPassword:String? = null
+var signingPassword: String? = null
 ext["ossrhUsername"] = null
 ext["ossrhPassword"] = null
 
@@ -41,7 +37,9 @@ publishing {
     repositories {
         maven {
             name = "sonatype"
-            setUrl("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/")
+            val releasesRepoUrl = uri("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/")
+            val snapshotsRepoUrl = uri("https://s01.oss.sonatype.org/content/repositories/snapshots/")
+            url = if (project.extra["isReleaseVersion"] as Boolean) releasesRepoUrl else snapshotsRepoUrl
             credentials {
                 username = getExtraString("ossrhUsername")
                 password = getExtraString("ossrhPassword")
