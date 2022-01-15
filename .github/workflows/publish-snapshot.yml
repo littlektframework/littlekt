@@ -1,9 +1,10 @@
-name: Deploy to Sonatype
+name: publish-snapshot
 
 on:
-  push:
-    tags:
-      - 'v*'
+  workflow_run:
+    workflows: ["build"]
+    types:
+      - completed
 
 env:
   SIGNING_SECRET_KEY: ${{ secrets.OSSRH_GPG_SECRET_KEY }}
@@ -26,5 +27,5 @@ jobs:
         run: chmod +x gradlew
       - name: Start Gradle
         run: ./gradlew
-      - name: Publish all to Sonatype Repository
+      - name: Publish snapshot to Sonatype repository
         run: ./gradlew core:publishAllPublicationsToSonatypeRepository

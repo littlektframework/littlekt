@@ -1,0 +1,29 @@
+name: publish-release
+
+on:
+  release:
+    types: [published]
+
+env:
+  SIGNING_SECRET_KEY: ${{ secrets.OSSRH_GPG_SECRET_KEY }}
+  SIGNING_PASSWORD: ${{ secrets.OSSRH_GPG_SECRET_KEY_PASSWORD }}
+  OSSRH_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
+  OSSRH_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup Java JDK 11
+        uses: actions/setup-java@v2.5.0
+        with:
+          java-version: 11
+          distribution: adopt
+      - name: Grant gradlew execution permissions
+        run: chmod +x gradlew
+      - name: Start Gradle
+        run: ./gradlew
+      - name: Publish release to Sonatype repository
+        run: ./gradlew core:publishAllPublicationsToSonatypeRepository
