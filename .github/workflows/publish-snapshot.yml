@@ -13,7 +13,7 @@ env:
   OSSRH_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
 
 jobs:
-  build:
+  publish-snapshot:
     runs-on: ubuntu-latest
 
     steps:
