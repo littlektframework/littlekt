@@ -1,8 +1,9 @@
 name: DEPLOY
 
 on:
-  release:
-    types: [published]
+  push:
+    tags:
+      - 'v*'
 
 env:
   SIGNING_SECRET_KEY: ${{ secrets.OSSRH_GPG_SECRET_KEY }}
