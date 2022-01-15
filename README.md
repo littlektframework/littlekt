@@ -20,6 +20,14 @@ repositories {
     maven(url ="https://s01.oss.sonatype.org/content/repositories/snapshots/")
 }
 
+kotlin {
+    jvm {
+        compilations.all {
+            kotlinOptions.jvmTarget = "11" // littlekt targets jvm 11 so we must target atleast 11
+        }
+    }
+}
+
 val littleKtVersion = "0.0.1-SNAPSHOT"
 val kotlinCoroutinesVersion = "1.6.0-RC" // or whatever version you are using
 
