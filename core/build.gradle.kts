@@ -2,9 +2,9 @@ import org.jetbrains.kotlin.gradle.plugin.KotlinJsCompilerType
 import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
 
 plugins {
-    kotlin("multiplatform") version "1.6.0"
+    kotlin("multiplatform")
     kotlin("plugin.serialization") version "1.6.0"
-    id("maven-publish")
+    id("littlekt.convention.publication")
 }
 
 repositories {
