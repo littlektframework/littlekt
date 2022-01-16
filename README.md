@@ -10,6 +10,37 @@
 
 Check out some planned [features](https://github.com/littlektframework/littlekt/labels/enhancement)
 
+### Install
+
+If you are eager to try LittleKt you can give the latest SNAPSHOT build a try until an actual release is made:
+
+**build.gradle.kts**:
+```kotlin
+repositories {
+    maven(url ="https://s01.oss.sonatype.org/content/repositories/snapshots/")
+}
+
+kotlin {
+    jvm {
+        compilations.all {
+            kotlinOptions.jvmTarget = "11" // littlekt targets jvm 11 so we must target atleast 11
+        }
+    }
+}
+
+val littleKtVersion = "0.0.1-SNAPSHOT"
+val kotlinCoroutinesVersion = "1.6.0-RC" // or whatever version you are using
+
+sourceSets {
+    val commonMain by getting {
+        dependencies {
+            implementation("com.lehaine.littlekt:core:$littleKtVersion")
+            implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinCoroutinesVersion")  // littlekt requires coroutines library on the classpath
+        }
+    }
+}
+```
+
 ### Current targets
 
 | Platform | Implemented |
