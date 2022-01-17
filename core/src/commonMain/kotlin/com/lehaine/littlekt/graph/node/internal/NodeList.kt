@@ -1,7 +1,7 @@
 package com.lehaine.littlekt.graph.node.internal
 
-import com.lehaine.littlekt.log.Logger
 import com.lehaine.littlekt.graph.node.Node
+import com.lehaine.littlekt.log.Logger
 import kotlin.reflect.KClass
 import kotlin.time.Duration
 
@@ -77,7 +77,7 @@ internal class NodeList {
 
     inline fun forEachReversed(action: (Node) -> Unit) {
         val sortedNodesToAdd = nodesToAdd.sortedBy { it }
-        for (i in nodesToAdd.size downTo 0) {
+        for (i in nodesToAdd.size - 1 downTo 0) {
             val node = sortedNodesToAdd[i]
             action(node)
         }

@@ -8,7 +8,11 @@ import com.lehaine.littlekt.math.geom.Point
  * @date 11/6/2021
  */
 enum class Pointer {
-    POINTER1, POINTER2, POINTER3
+    POINTER1, POINTER2, POINTER3;
+
+    companion object {
+        val cache = values()
+    }
 }
 
 enum class Key {
