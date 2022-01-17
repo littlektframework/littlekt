@@ -14,7 +14,7 @@ abstract class BaseButton : Control() {
 
     private val status = Status()
     private var _toggleMode = false
-    private val buttonGroup: ButtonGroup = ButtonGroup()
+    var buttonGroup: ButtonGroup = ButtonGroup()
 
     val drawMode: DrawMode
         get() {
