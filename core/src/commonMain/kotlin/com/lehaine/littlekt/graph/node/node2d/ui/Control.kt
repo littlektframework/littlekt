@@ -365,7 +365,15 @@ open class Control : Node2D() {
         if (globalRotation == Angle.ZERO) {
             return if (hx >= globalX && hx < globalX + width && hy >= globalY && hy < globalY + height) this else null
         }
+        // TODO determine hit target when rotated
         return null
+    }
+
+    fun hasPoint(px: Float, py: Float): Boolean {
+        if (globalRotation == Angle.ZERO) {
+            return px >= globalX && px < globalX + width && py >= globalY && py < globalY + height
+        }
+        return false //TODO determine has point when rotated
     }
 
     private fun getParentAnchorableRect(): Rect {
