@@ -22,14 +22,14 @@ import kotlin.reflect.KProperty
  * Provides helper functions to load and prepare assets without having to use `null` or `lateinit`.
  */
 open class AssetProvider(val context: Context) {
-    private val loaders = createLoaders()
     private val assetsToPrepare = mutableListOf<PreparableGameAsset<*>>()
     private var totalAssetsLoading = atomic(0)
     private val filesBeingChecked = mutableListOf<VfsFile>()
     private val _assets = mutableMapOf<KClass<*>, MutableMap<VfsFile, GameAsset<*>>>()
     private val lock = Any()
-    val assets: Map<KClass<*>, Map<VfsFile, GameAsset<*>>> get() = _assets
 
+    val loaders = createDefaultLoaders().toMutableMap()
+    val assets: Map<KClass<*>, Map<VfsFile, GameAsset<*>>> get() = _assets
     var onFullyLoaded: (() -> Unit)? = null
 
 
@@ -131,7 +131,7 @@ open class AssetProvider(val context: Context) {
     ) = get(T::class, file)
 
     companion object {
-        private fun createLoaders() = mapOf<KClass<*>, suspend (VfsFile, GameAssetParameters) -> Any>(
+        fun createDefaultLoaders() = mapOf<KClass<*>, suspend (VfsFile, GameAssetParameters) -> Any>(
             Texture::class to { file, param ->
                 if (param is TextureGameAssetParameter) {
                     file.readTexture(param.minFilter, param.magFilter, param.useMipmaps)
