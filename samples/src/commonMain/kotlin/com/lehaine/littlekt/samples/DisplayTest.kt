@@ -5,6 +5,7 @@ import com.lehaine.littlekt.file.vfs.readAtlas
 import com.lehaine.littlekt.file.vfs.readAudioStream
 import com.lehaine.littlekt.file.vfs.readBitmapFont
 import com.lehaine.littlekt.file.vfs.readTexture
+import com.lehaine.littlekt.graph.node.node2d.ui.button
 import com.lehaine.littlekt.graph.node.node2d.ui.label
 import com.lehaine.littlekt.graph.sceneGraph
 import com.lehaine.littlekt.graphics.*
@@ -113,10 +114,9 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
         val pixelFont = resourcesVfs["m5x7_16.fnt"].readBitmapFont()
 
         val scene = sceneGraph(context, batch = batch) {
-            label {
+            button {
                 font = pixelFont
                 text = "HELLO!!!!!!!!!"
-                width
             }
         }.also { it.initialize() }
 
