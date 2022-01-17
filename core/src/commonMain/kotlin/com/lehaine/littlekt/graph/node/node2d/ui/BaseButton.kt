@@ -37,7 +37,7 @@ abstract class BaseButton : Control() {
                     pressing = status.pressed
                 }
                 return if (pressing) {
-                    DrawMode.PRESSRED
+                    DrawMode.PRESSED
                 } else {
                     DrawMode.NORMAL
                 }
@@ -127,13 +127,13 @@ abstract class BaseButton : Control() {
                     _pressed()
                 }
             } else if ((event.type == InputEvent.Type.TOUCH_DOWN && actionMode == ActionMode.BUTTON_PRESS)
-                || (event.type != InputEvent.Type.TOUCH_DOWN && actionMode == ActionMode.BUTTON_RELEASE)
+                || (event.type == InputEvent.Type.TOUCH_UP && actionMode == ActionMode.BUTTON_RELEASE)
             ) {
                 _pressed()
             }
         }
 
-        if (event.type != InputEvent.Type.TOUCH_DOWN) {
+        if (event.type == InputEvent.Type.TOUCH_UP) {
             if (!hasPoint(event.sceneX, event.sceneY)) {
                 status.hovering = false
             }
@@ -172,7 +172,7 @@ abstract class BaseButton : Control() {
 
     enum class DrawMode {
         NORMAL,
-        PRESSRED,
+        PRESSED,
         HOVER,
         DISABLED,
         HOVER_PRESSED

@@ -13,6 +13,7 @@ import com.lehaine.littlekt.graphics.font.GlyphLayout
 import com.lehaine.littlekt.math.MutableVec2f
 import com.lehaine.littlekt.math.Vec2f
 import com.lehaine.littlekt.math.geom.Angle
+import kotlin.math.max
 
 /**
  * Adds a [Button] to the current [Node] as a child and then triggers the [callback]
@@ -43,8 +44,10 @@ open class Button : BaseButton() {
     private var _fontScale = MutableVec2f(1f)
     private var textDirty = false
 
-    var background: TextureSlice = Textures.black
+    var background: TextureSlice = Textures.white
     var backgroundColor = Color.BLACK
+    var backgroundMinWidth = 50f
+
     var padding = 10f
         set(value) {
             if (field == value) return
@@ -152,6 +155,15 @@ open class Button : BaseButton() {
         }
 
     override fun render(batch: SpriteBatch, camera: Camera) {
+
+        when (drawMode) {
+            DrawMode.NORMAL -> tempColor.set(backgroundColor)
+            DrawMode.PRESSED -> tempColor.set(backgroundColor).lighten(0.2f)
+            DrawMode.HOVER -> tempColor.set(backgroundColor).lighten(0.5f)
+            DrawMode.DISABLED -> tempColor.set(Color.DARK_GRAY)
+            DrawMode.HOVER_PRESSED -> tempColor.set(backgroundColor).darken(0.5f)
+        }
+
         batch.draw(
             background,
             globalX,
@@ -159,7 +171,8 @@ open class Button : BaseButton() {
             width = width,
             height = height,
             scaleX = globalScaleX,
-            scaleY = globalScaleY
+            scaleY = globalScaleY,
+            colorBits = tempColor.toFloatBits()
         )
         cache?.let {
             tempColor.set(color).mul(fontColor)
@@ -188,8 +201,8 @@ open class Button : BaseButton() {
 
         val text = if (uppercase) text.uppercase() else text
         minSizeLayout.setText(font, text, scaleX = fontScaleX, scaleY = fontScaleY, wrap = wrap)
-        _internalMinWidth = minSizeLayout.width + padding * 2
-        _internalMinHeight = minSizeLayout.height + padding * 2
+        _internalMinWidth = minSizeLayout.width + padding
+        _internalMinHeight = minSizeLayout.height + padding
 
         minSizeInvalid = false
     }
@@ -208,7 +221,7 @@ open class Button : BaseButton() {
                 font,
                 text,
                 Color.WHITE,
-                width + padding * 2,
+                max(width, backgroundMinWidth) + padding * 2,
                 scaleX = fontScaleX,
                 scaleY = fontScaleY,
                 horizontalAlign,
@@ -216,10 +229,10 @@ open class Button : BaseButton() {
                 ellipsis
             )
             textWidth = layout.width
-            textHeight = layout.height
+            textHeight = layout.height + padding * 2f
         } else {
-            textWidth = width + padding * 2
-            textHeight = font.metrics.capHeight
+            textWidth = max(width, backgroundMinWidth) + padding * 2f
+            textHeight = font.metrics.capHeight + padding * 2f
         }
 
         when (verticalAlign) {
