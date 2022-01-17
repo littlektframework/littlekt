@@ -1,11 +1,7 @@
 package com.lehaine.littlekt.samples
 
-import com.lehaine.littlekt.Context
-import com.lehaine.littlekt.Game
-import com.lehaine.littlekt.Scene
-import com.lehaine.littlekt.createShader
+import com.lehaine.littlekt.*
 import com.lehaine.littlekt.file.vfs.readAtlas
-import com.lehaine.littlekt.file.vfs.readAudioClip
 import com.lehaine.littlekt.file.vfs.readAudioStream
 import com.lehaine.littlekt.file.vfs.readTexture
 import com.lehaine.littlekt.graphics.*
@@ -23,7 +19,8 @@ import com.lehaine.littlekt.log.Logger
  */
 class DisplayTest(context: Context) : Game<Scene>(context) {
 
-    val testLoad by load<Texture>(resourcesVfs["person.png"])
+    private val assetProvider = AssetProvider(context)
+    val testLoad by assetProvider.load<Texture>(resourcesVfs["person.png"])
 
     private var x = 0f
     private var y = 0f
@@ -98,7 +95,10 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
         )
     }
 
-    override suspend fun Context.run() {
+
+    override suspend fun Context.start() {
+        super.setSceneCallbacks(this)
+
         val batch = SpriteBatch(context)
         val texture = resourcesVfs["atlas.png"].readTexture()
         val atlas: TextureAtlas = resourcesVfs["tiles.atlas.json"].readAtlas()
@@ -123,6 +123,8 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
         }
 
         onRender { dt ->
+            if (!assetProvider.fullyLoaded) return@onRender
+
             xVel = 0f
             yVel = 0f
 

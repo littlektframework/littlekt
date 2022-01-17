@@ -41,7 +41,14 @@ open class AssetProvider(val context: Context) {
     var prepared = false
         protected set
 
-    val fullyLoaded get() = totalAssetsLoading.value == 0 && prepared
+    /**
+     * Calls [update] to get the latest assets loaded to determine if is has been fully loaded.
+     */
+    val fullyLoaded: Boolean
+        get() {
+            update()
+            return totalAssetsLoading.value == 0 && prepared
+        }
 
     /**
      * Handle any render / update logic here.
@@ -76,7 +83,7 @@ open class AssetProvider(val context: Context) {
         } ?: GameAsset<T>(file)
 
         if (filesBeingChecked.contains(file)) {
-            throw IllegalStateException("'${file.path}' has already been triggered to load but hasn't finished yet!")
+            throw IllegalStateException("'${file.path}' has already been triggered to load but hasn't finished yet! Ensure `load()` hasn't been called twice for the same VfsFile")
         }
         filesBeingChecked += file
         totalAssetsLoading.addAndGet(1)

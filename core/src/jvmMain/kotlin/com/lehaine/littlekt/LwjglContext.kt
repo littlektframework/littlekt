@@ -201,7 +201,7 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context {
             }
         }
         while (!windowShouldClose) {
-            launch(Dispatchers.IO) {
+            launch {
                 audioContext.update()
             }
 
