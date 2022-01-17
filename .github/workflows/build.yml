@@ -7,11 +7,13 @@ on:
       - 'README.md'
   pull_request:
     branches: [ master ]
+    types: [opened, synchronize, reopened, ready_for_review]
     paths-ignore:
       - 'README.md'
 
 jobs:
   build:
+    if: github.event.pull_request.draft == false
     runs-on: ubuntu-latest
 
     steps:
