@@ -252,6 +252,16 @@ abstract class Camera {
     abstract fun boundsInFrustum(point: Vec3f, size: Vec3f): Boolean
     abstract fun sphereInFrustum(center: Vec3f, radius: Float): Boolean
 
+    fun project(world: Vec2f, result: MutableVec2f): Boolean {
+        tempVec4.set(world.x, world.y, 1f, 1f)
+        viewProjection.transform(tempVec4)
+        if (tempVec4.w.isFuzzyZero()) {
+            return false
+        }
+        result.set(tempVec4.x, tempVec4.y).scale(1f / tempVec4.w)
+        return true
+    }
+
     fun project(world: Vec3f, result: MutableVec3f): Boolean {
         tempVec4.set(world.x, world.y, world.z, 1f)
         viewProjection.transform(tempVec4)
@@ -265,6 +275,16 @@ abstract class Camera {
     fun project(world: Vec3f, result: MutableVec4f): MutableVec4f =
         viewProjection.transform(result.set(world.x, world.y, world.z, 1f))
 
+    fun projectScreen(world: Vec2f, context: Context, result: MutableVec2f): Boolean {
+        if (!project(world, result)) {
+            return false
+        }
+        result.x = (1 + result.x) * 0.5f * viewport.width + viewport.x
+        result.y = context.graphics.height - (1 + result.y) * 0.5f * viewport.height + viewport.y
+
+        return true
+    }
+
     fun projectScreen(world: Vec3f, context: Context, result: MutableVec3f): Boolean {
         if (!project(world, result)) {
             return false
@@ -273,6 +293,17 @@ abstract class Camera {
         result.y = context.graphics.height - (1 + result.y) * 0.5f * viewport.height + viewport.y
         result.z = (1 + result.z) * 0.5f
 
+        return true
+    }
+
+    fun unProjectScreen(screen: Vec2f, context: Context, result: MutableVec2f): Boolean {
+        val x = screen.x - viewport.x
+        val y = (context.graphics.height - screen.y) - viewport.y
+
+        tempVec4.set(2f * x / viewport.width - 1f, 2f * y / viewport.height - 1f, 1f, 1f)
+        invViewProjection.transform(tempVec4)
+        val s = 1f / tempVec4.w
+        result.set(tempVec4.x * s, tempVec4.y * s)
         return true
     }
 

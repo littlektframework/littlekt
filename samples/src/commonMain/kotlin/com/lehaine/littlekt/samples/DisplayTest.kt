@@ -3,7 +3,10 @@ package com.lehaine.littlekt.samples
 import com.lehaine.littlekt.*
 import com.lehaine.littlekt.file.vfs.readAtlas
 import com.lehaine.littlekt.file.vfs.readAudioStream
+import com.lehaine.littlekt.file.vfs.readBitmapFont
 import com.lehaine.littlekt.file.vfs.readTexture
+import com.lehaine.littlekt.graph.node.node2d.ui.label
+import com.lehaine.littlekt.graph.sceneGraph
 import com.lehaine.littlekt.graphics.*
 import com.lehaine.littlekt.graphics.shader.shaders.SimpleColorFragmentShader
 import com.lehaine.littlekt.graphics.shader.shaders.SimpleColorVertexShader
@@ -63,6 +66,7 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
         indicesAsQuad()
     }
 
+
     enum class GameInput {
         MOVE_LEFT,
         MOVE_RIGHT,
@@ -106,6 +110,15 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
         val person = slices[0][0]
         val bossAttack = atlas.getAnimation("bossAttack")
         val boss = AnimatedSprite(bossAttack.firstFrame)
+        val pixelFont = resourcesVfs["m5x7_16.fnt"].readBitmapFont()
+
+        val scene = sceneGraph(context, batch = batch) {
+            label {
+                font = pixelFont
+                text = "HELLO!!!!!!!!!"
+                width
+            }
+        }.also { it.initialize() }
 
         val music = resourcesVfs["music.mp3"].readAudioStream()
         music.play()
@@ -155,6 +168,9 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
                 it.draw(Textures.blue, 280f, 400f, scaleX = 5f, scaleY = 5f)
                 it.draw(Textures.black, 300f, 400f, scaleX = 5f, scaleY = 5f)
             }
+
+            scene.update(dt)
+            scene.render()
 
             shader.bind()
             shader.uProjTrans?.apply(shader, camera.viewProjection)

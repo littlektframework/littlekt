@@ -63,4 +63,9 @@ open class Viewport(
     fun apply(context: Context) {
         context.gl.viewport(x, y, width, height)
     }
+
+    override fun toString(): String {
+        return "Viewport(x=$x, y=$y, width=$width, height=$height, virtualWidth=$virtualWidth, virtualHeight=$virtualHeight, aspectRatio=$aspectRatio)"
+    }
+
 }

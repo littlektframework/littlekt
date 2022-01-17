@@ -1,12 +1,15 @@
 package com.lehaine.littlekt.graph.node.component
 
+import com.lehaine.littlekt.input.Pointer
+import com.lehaine.littlekt.math.geom.Point
+
 /**
  * @author Colton Daily
  * @date 1/2/2022
  */
 class InputEvent : Event() {
     var type: Type = Type.NONE
-    var pointer: Int = 0
+    var pointer: Pointer = Pointer.POINTER1
     var button: Int = 0
     var keyCode: Int = 0
     var sceneX: Float = 0f
