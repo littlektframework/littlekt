@@ -1,6 +1,5 @@
 package com.lehaine.littlekt
 
-import com.lehaine.littlekt.file.vfs.VfsFile
 import com.lehaine.littlekt.graphics.shader.FragmentShader
 import com.lehaine.littlekt.graphics.shader.ShaderProgram
 import com.lehaine.littlekt.graphics.shader.VertexShader
@@ -28,8 +27,6 @@ open class Game<SceneType : Scene>(context: Context, firstScene: SceneType? = nu
     val resourcesVfs get() = context.resourcesVfs
     val storageVfs get() = context.storageVfs
 
-    protected val assetProvider = AssetProvider(context)
-
     /**
      * Holds reference to all scenes registers with [addScene]. Allows to get a reference of the scene instance
      * knowing only its type.
@@ -54,35 +51,15 @@ open class Game<SceneType : Scene>(context: Context, firstScene: SceneType? = nu
     private var created = false
 
     /**
-     * You must override [update]! Render handles asset loading logic for dealing with [AssetProvider].
-     * [update] is called once all assets are fully loaded.
-     * Note that [currentScene] is rendered and updated here. You do not need to call [Scene.render] or [Scene.update].
-     * @see [update]
-     * @see [AssetProvider.fullyLoaded]
+     * Adds callbacks for resizing the [currentScene] and for disposing [scenes].
      */
-    final override suspend fun Context.start() {
-        onResize { width, height ->
+    protected fun setSceneCallbacks(context: Context) {
+        context.onResize { width, height ->
             currentScene.resize(width, height)
+            println("resize")
         }
-        onRender {
-            assetProvider.update()
-            if (!assetProvider.fullyLoaded) return@onRender
-            if (!created) {
-                created = true
-                run()
-            }
 
-        }
-        onPostRender { dt ->
-            assetProvider.update()
-            if (!assetProvider.fullyLoaded) return@onPostRender
-
-            currentScene.update()
-            if (currentScene.fullyLoaded) {
-                currentScene.render(dt)
-            }
-        }
-        onDispose {
+        context.onDispose {
             scenes.values.forEach {
                 try {
                     it.dispose()
@@ -94,10 +71,11 @@ open class Game<SceneType : Scene>(context: Context, firstScene: SceneType? = nu
     }
 
     /**
-     * Invoked exactly once after all assets have been created and prepared using any delegates. This is method should
-     * be used the same way the [ContextListener.start] method is used.
+     * Handles resizing the current scene and disposing of the current scene.
      */
-    open suspend fun Context.run() = Unit
+    override suspend fun Context.start() {
+        setSceneCallbacks(this)
+    }
 
 
     /**
@@ -213,29 +191,6 @@ open class Game<SceneType : Scene>(context: Context, firstScene: SceneType? = nu
     open fun <Type : SceneType> containsScene(type: KClass<Type>): Boolean = scenes.containsKey(type)
 
     /**
-     * Loads an asset asynchronously.
-     * @param T concrete class of [Any] instance that should be loaded.
-     * @param file the file to load
-     * @param parameters any parameters that need setting when loading the asset
-     * @see BitmapFontAssetParameter
-     * @see LDtkGameAssetParameter
-     */
-    inline fun <reified T : Any> load(
-        file: VfsFile,
-        parameters: GameAssetParameters = EmptyGameAssetParameter()
-    ) = access_assetProvider.load<T>(file, parameters)
-
-
-    /**
-     * Prepares a value once assets have finished loading. This acts the same as [lazy] except this will
-     * invoke the [action] once loading is finished to ensure everything is initialized before the first frame.
-     * @param action the action to initialize this value
-     * @see load
-     */
-    fun <T : Any> prepare(action: () -> T) = assetProvider.prepare(action)
-
-
-    /**
      * Invoked on scenes disposal on [dispose] if an error occurs.
      * @param scene thrown [exception] during disposal
      * @param exception unexpected scene dispose exception
@@ -245,11 +200,6 @@ open class Game<SceneType : Scene>(context: Context, firstScene: SceneType? = nu
     }
 
     private fun emptyScene(context: Context): Scene = object : Scene(context) {}
-
-    @Suppress("PropertyName")
-    @PublishedApi
-    internal val access_assetProvider: AssetProvider
-        get() = assetProvider
 
     companion object {
         protected val logger = Logger<Game<*>>()

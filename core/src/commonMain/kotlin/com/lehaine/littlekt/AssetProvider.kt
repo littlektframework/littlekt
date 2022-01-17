@@ -13,6 +13,7 @@ import com.lehaine.littlekt.graphics.gl.TexMagFilter
 import com.lehaine.littlekt.graphics.gl.TexMinFilter
 import com.lehaine.littlekt.graphics.tilemap.ldtk.LDtkLevel
 import com.lehaine.littlekt.graphics.tilemap.ldtk.LDtkWorld
+import com.lehaine.littlekt.util.internal.lock
 import kotlinx.atomicfu.atomic
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
@@ -21,18 +22,16 @@ import kotlin.reflect.KProperty
  * Provides helper functions to load and prepare assets without having to use `null` or `lateinit`.
  */
 open class AssetProvider(val context: Context) {
-    private val loaders = createLoaders()
     private val assetsToPrepare = mutableListOf<PreparableGameAsset<*>>()
     private var totalAssetsLoading = atomic(0)
-    var onLoaded: (() -> Unit)? = null
+    private val filesBeingChecked = mutableListOf<VfsFile>()
+    private val _assets = mutableMapOf<KClass<*>, MutableMap<VfsFile, GameAsset<*>>>()
+    private val lock = Any()
 
-    /**
-     * Hold the current state of assets being loaded.
-     * @see loadAssets
-     * @see load
-     */
-    var loading = true
-        protected set
+    val loaders = createDefaultLoaders().toMutableMap()
+    val assets: Map<KClass<*>, Map<VfsFile, GameAsset<*>>> get() = _assets
+    var onFullyLoaded: (() -> Unit)? = null
+
 
     /**
      * Holds the current state of assets being prepared.
@@ -42,48 +41,29 @@ open class AssetProvider(val context: Context) {
     var prepared = false
         protected set
 
-    val fullyLoaded get() = !loading && totalAssetsLoading.value == 0 && prepared
-
-    init {
-        context.vfs.launch {
-            loadAssets()
-            loading = false
+    /**
+     * Calls [update] to get the latest assets loaded to determine if is has been fully loaded.
+     */
+    val fullyLoaded: Boolean
+        get() {
+            update()
+            return totalAssetsLoading.value == 0 && prepared
         }
-    }
-
-    /**
-     * This is triggered before anything else runs. Runs in a separate thread. Load any assets here.
-     * If an asset needs to be prepared, then prepare it in the [create] function.
-     */
-    open suspend fun loadAssets() {}
-
-    /**
-     * This is triggered after all assets have been loaded. Runs on the ui thread. Initialize any GL related
-     * objects here to ensure everything has been loaded.
-     */
-    open fun create() {}
 
     /**
      * Handle any render / update logic here.
      */
     fun update() {
-        if (loading || totalAssetsLoading.value > 0) return
+        if (totalAssetsLoading.value > 0) return
         if (!prepared) {
             assetsToPrepare.forEach {
                 it.prepare()
             }
             assetsToPrepare.clear()
-            create()
             prepared = true
-            onFullyLoaded()
-            onLoaded?.invoke()
+            onFullyLoaded?.invoke()
         }
     }
-
-    /**
-     * Invoked when every asset has been loaded, prepared, and [create] triggered.
-     */
-    protected open fun onFullyLoaded() = Unit
 
     /**
      * Loads an asset asynchronously.
@@ -98,12 +78,25 @@ open class AssetProvider(val context: Context) {
         clazz: KClass<T>,
         parameters: GameAssetParameters = EmptyGameAssetParameter()
     ): GameAsset<T> {
-        val sceneAsset = GameAsset<T>(file)
+        val sceneAsset = _assets[clazz]?.get(file)?.let {
+            return it as GameAsset<T>
+        } ?: GameAsset<T>(file)
+
+        if (filesBeingChecked.contains(file)) {
+            throw IllegalStateException("'${file.path}' has already been triggered to load but hasn't finished yet! Ensure `load()` hasn't been called twice for the same VfsFile")
+        }
+        filesBeingChecked += file
         totalAssetsLoading.addAndGet(1)
         context.vfs.launch {
             val loader = loaders[clazz] ?: throw UnsupportedFileTypeException(file.path)
             val result = loader.invoke(file, parameters) as T
             sceneAsset.load(result)
+            lock(lock) {
+                _assets.getOrPut(clazz) { mutableMapOf() }.let {
+                    it[file] = sceneAsset
+                }
+                filesBeingChecked -= file
+            }
             totalAssetsLoading.addAndGet(-1)
         }
         return sceneAsset
@@ -131,9 +124,14 @@ open class AssetProvider(val context: Context) {
      */
     fun <T : Any> prepare(action: () -> T) = PreparableGameAsset(action).also { assetsToPrepare += it }
 
+    fun <T : Any> get(clazz: KClass<T>, vfsFile: VfsFile) = assets[clazz]?.get(vfsFile)?.content
+
+    inline fun <reified T : Any> get(
+        file: VfsFile,
+    ) = get(T::class, file)
 
     companion object {
-        private fun createLoaders() = mapOf<KClass<*>, suspend (VfsFile, GameAssetParameters) -> Any>(
+        fun createDefaultLoaders() = mapOf<KClass<*>, suspend (VfsFile, GameAssetParameters) -> Any>(
             Texture::class to { file, param ->
                 if (param is TextureGameAssetParameter) {
                     file.readTexture(param.minFilter, param.magFilter, param.useMipmaps)
@@ -185,14 +183,9 @@ open class AssetProvider(val context: Context) {
 class GameAsset<T>(val vfsFile: VfsFile) {
     private var result: T? = null
     private var isLoaded = false
+    val content get() = if (isLoaded) result!! else throw IllegalStateException("Asset not loaded yet! ${vfsFile.path}")
 
-    operator fun getValue(thisRef: Any?, property: KProperty<*>): T {
-        if (isLoaded) {
-            return result!!
-        } else {
-            throw IllegalStateException("Asset not loaded yet! ${vfsFile.path}")
-        }
-    }
+    operator fun getValue(thisRef: Any?, property: KProperty<*>): T = content
 
     fun load(content: T) {
         result = content

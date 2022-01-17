@@ -160,7 +160,9 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context {
         GLFW.glfwShowWindow(windowHandle)
         input.attachToWindow(windowHandle)
 
-        LWJGL.createCapabilities()
+        launch {
+            LWJGL.createCapabilities()
+        }
         // GLUtil.setupDebugMessageCallback()
 
         GL30C.glClearColor(0f, 0f, 0f, 0f)
@@ -199,7 +201,7 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context {
             }
         }
         while (!windowShouldClose) {
-            launch(Dispatchers.IO) {
+            launch {
                 audioContext.update()
             }
 
