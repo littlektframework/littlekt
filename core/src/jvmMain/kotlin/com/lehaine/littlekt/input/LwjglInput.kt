@@ -65,6 +65,7 @@ class LwjglInput : Input {
 
             // todo handle hdpi mode pixels vs logical
 
+
             inputCache.onMove(mouseX, mouseY, Pointer.POINTER1)
         }
 

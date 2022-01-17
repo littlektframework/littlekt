@@ -8,11 +8,8 @@ import kotlin.math.roundToInt
  * @author Colton Daily
  * @date 12/21/2021
  */
-open class ScalingViewport(val scaler: Scaler, virtualWidth: Int, virtualHeight: Int) : Viewport() {
-    init {
-        this.virtualWidth = virtualWidth
-        this.virtualHeight = virtualHeight
-    }
+open class ScalingViewport(val scaler: Scaler, virtualWidth: Int, virtualHeight: Int) :
+    Viewport(0, 0, virtualWidth, virtualHeight) {
 
     override fun update(width: Int, height: Int, context: Context) {
         val scaled = scaler.apply(virtualWidth, virtualHeight, width, height)
