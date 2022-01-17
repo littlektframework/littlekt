@@ -56,7 +56,10 @@ open class Game<SceneType : Scene>(context: Context, firstScene: SceneType? = nu
     protected fun setSceneCallbacks(context: Context) {
         context.onResize { width, height ->
             currentScene.resize(width, height)
-            println("resize")
+        }
+
+        context.onRender {
+            currentScene.render(it)
         }
 
         context.onDispose {
