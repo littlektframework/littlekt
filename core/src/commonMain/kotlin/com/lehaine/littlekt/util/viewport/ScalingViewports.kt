@@ -22,6 +22,7 @@ open class ScalingViewport(val scaler: Scaler, virtualWidth: Int, virtualHeight:
         this.height = viewportHeight
 
         apply(context)
+        onSizeChanged.emit()
     }
 }
 

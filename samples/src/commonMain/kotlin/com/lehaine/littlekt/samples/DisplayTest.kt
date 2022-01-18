@@ -115,7 +115,7 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
         val boss = AnimatedSprite(bossAttack.firstFrame)
         val pixelFont = resourcesVfs["m5x7_16.fnt"].readBitmapFont()
 
-        val scene = sceneGraph(context, ExtendViewport(480, 270)) {
+        val scene = sceneGraph(context) {
             paddedContainer {
                 padding = 10f
                 anchor(AnchorLayout.TOP_LEFT)
@@ -125,14 +125,14 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
                     font = pixelFont
                     text = "I am a button! woot"
                     onPressed += {
-                        logger.info { "You pressed me!!" }
+                        logger.info { "You pressed me!! I am at ${globalX},${globalY}" }
                     }
                 }
             }
         }.also { it.initialize() }
 
         val music = resourcesVfs["music.mp3"].readAudioStream()
-        music.play()
+        //music.play()
 
         boss.playLooped(bossAttack)
         boss.x = 450f
