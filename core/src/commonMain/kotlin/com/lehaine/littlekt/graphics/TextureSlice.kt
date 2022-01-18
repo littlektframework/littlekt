@@ -14,6 +14,14 @@ open class TextureSlice(
     width: Int = texture.width,
     height: Int = texture.height
 ) {
+    constructor(
+        slice: TextureSlice,
+        x: Int = 0,
+        y: Int = 0,
+        width: Int = slice.width,
+        height: Int = slice.height
+    ) : this(slice.texture, x, y, width, height)
+
     private var _u = 0f
     private var _v = 0f
     private var _u2 = 0f

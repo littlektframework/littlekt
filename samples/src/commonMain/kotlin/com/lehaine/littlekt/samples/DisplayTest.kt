@@ -17,7 +17,6 @@ import com.lehaine.littlekt.input.GameButton
 import com.lehaine.littlekt.input.InputMultiplexer
 import com.lehaine.littlekt.input.Key
 import com.lehaine.littlekt.log.Logger
-import com.lehaine.littlekt.util.viewport.ExtendViewport
 
 /**
  * @author Colton Daily
@@ -114,6 +113,8 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
         val bossAttack = atlas.getAnimation("bossAttack")
         val boss = AnimatedSprite(bossAttack.firstFrame)
         val pixelFont = resourcesVfs["m5x7_16.fnt"].readBitmapFont()
+        val ninepatchImg = resourcesVfs["bg_9.png"].readTexture()
+        val ninepatch = NinePatch(ninepatchImg, 3, 3, 3, 4)
 
         val scene = sceneGraph(context) {
             paddedContainer {
@@ -182,6 +183,7 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
                 it.draw(Textures.green, 260f, 400f, scaleX = 5f, scaleY = 5f)
                 it.draw(Textures.blue, 280f, 400f, scaleX = 5f, scaleY = 5f)
                 it.draw(Textures.black, 300f, 400f, scaleX = 5f, scaleY = 5f)
+                ninepatch.draw(it, 200f, 200f, 25f, 20f, scaleX = 5f, scaleY = 5f)
             }
 
             scene.update(dt)
