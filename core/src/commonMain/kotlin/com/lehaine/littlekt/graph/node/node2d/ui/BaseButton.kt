@@ -2,7 +2,7 @@ package com.lehaine.littlekt.graph.node.node2d.ui
 
 import com.lehaine.littlekt.graph.node.component.InputEvent
 import com.lehaine.littlekt.util.Signal
-import com.lehaine.littlekt.util.TypedSignal
+import com.lehaine.littlekt.util.SingleSignal
 import kotlin.js.JsName
 
 /**
@@ -83,7 +83,7 @@ abstract class BaseButton : Control() {
         }
 
     val onPressed: Signal = Signal()
-    val onToggled: TypedSignal<Boolean> = TypedSignal()
+    val onToggled: SingleSignal<Boolean> = SingleSignal()
     val onButtonDown: Signal = Signal()
     val onButtonUp: Signal = Signal()
 

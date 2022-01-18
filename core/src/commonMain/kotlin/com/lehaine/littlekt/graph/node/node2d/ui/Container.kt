@@ -8,6 +8,7 @@ import com.lehaine.littlekt.graph.node.component.SizeFlag
 import com.lehaine.littlekt.graphics.Color
 import com.lehaine.littlekt.math.geom.Angle
 import com.lehaine.littlekt.util.Signal
+import kotlin.js.JsName
 import kotlin.math.floor
 import kotlin.time.Duration
 
@@ -33,8 +34,10 @@ inline fun SceneGraph.container(callback: @SceneGraphDslMarker Container.() -> U
  */
 open class Container : Control() {
 
-    val presortChildrenSignal = Signal()
-    val sortChildrenSignal = Signal()
+    val onPresortChildren = Signal()
+
+    @JsName("onSortChildrenSignal")
+    val onSortChildren = Signal()
 
     private var pendingSort = false
 
@@ -52,8 +55,8 @@ open class Container : Control() {
         super._onChildAdded(child)
         if (child !is Control) return
 
-        child.sizeFlagsChangedSignal.connect(this, ::queueSort)
-        child.minimumSizeChangedSignal.connect(this, ::onChildMinimumSizeChanged)
+        child.onSizeFlagsChanged.connect(this, ::queueSort)
+        child.onMinimumSizeChanged.connect(this, ::onChildMinimumSizeChanged)
 
         onMinimumSizeChanged()
         queueSort()
@@ -62,8 +65,8 @@ open class Container : Control() {
     override fun _onChildRemoved(child: Node) {
         super._onChildRemoved(child)
         if (child !is Control) return
-        child.sizeFlagsChangedSignal.disconnect(this)
-        child.minimumSizeChangedSignal.disconnect(this)
+        child.onSizeFlagsChanged.disconnect(this)
+        child.onMinimumSizeChanged.disconnect(this)
 
         onMinimumSizeChanged()
         queueSort()
@@ -92,8 +95,8 @@ open class Container : Control() {
     }
 
     private fun sortChildren() {
-        presortChildrenSignal.emit()
-        sortChildrenSignal.emit()
+        onPresortChildren.emit()
+        onSortChildren.emit()
         onSortChildren()
         pendingSort = false
     }

@@ -5,7 +5,7 @@ import com.lehaine.littlekt.graph.node.annotation.SceneGraphDslMarker
 import com.lehaine.littlekt.graph.node.internal.NodeList
 import com.lehaine.littlekt.graphics.Camera
 import com.lehaine.littlekt.graphics.SpriteBatch
-import com.lehaine.littlekt.util.fastForEach
+import com.lehaine.littlekt.util.*
 import com.lehaine.littlekt.util.viewport.Viewport
 import kotlin.native.concurrent.ThreadLocal
 import kotlin.time.Duration
@@ -173,7 +173,7 @@ open class Node : Comparable<Node> {
      * }
      * ```
      */
-    val onReady: MutableList<() -> Unit> = mutableListOf()
+    val onReady: Signal = signal()
 
     /**
      * List of 'render' callbacks called when [render] is called. Add any additional callbacks directly to this list.
@@ -188,7 +188,7 @@ open class Node : Comparable<Node> {
      * }
      * ```
      */
-    val onRender: MutableList<(SpriteBatch, Camera) -> Unit> = mutableListOf()
+    val onRender: DoubleSignal<SpriteBatch, Camera> = signal2v()
 
     /**
      * List of 'debugRender' callbacks called when [debugRender] is called. Add any additional callbacks directly to this list.
@@ -203,7 +203,7 @@ open class Node : Comparable<Node> {
      * }
      * ```
      */
-    val onDebugRender: MutableList<(SpriteBatch) -> Unit> = mutableListOf()
+    val onDebugRender: SingleSignal<SpriteBatch> = signal1v()
 
     /**
      * List of 'update' callbacks called when [update] is called. Add any additional callbacks directly to this list.
@@ -218,7 +218,7 @@ open class Node : Comparable<Node> {
      * }
      * ```
      */
-    val onUpdate: MutableList<(Duration) -> Unit> = mutableListOf()
+    val onUpdate: SingleSignal<Duration> = signal1v()
 
     /**
      * Sets the parent [Node] of this [Node].
@@ -286,9 +286,7 @@ open class Node : Comparable<Node> {
      */
     internal fun _render(batch: SpriteBatch, camera: Camera) {
         render(batch, camera)
-        onRender.fastForEach {
-            it.invoke(batch, camera)
-        }
+        onRender.emit(batch, camera)
         nodes.forEach {
             it._render(batch, camera)
         }
@@ -299,9 +297,7 @@ open class Node : Comparable<Node> {
      */
     internal fun _debugRender(batch: SpriteBatch) {
         debugRender(batch)
-        onDebugRender.fastForEach {
-            it.invoke(batch)
-        }
+        onDebugRender.emit(batch)
         nodes.forEach {
             it._debugRender(batch)
         }
@@ -367,9 +363,7 @@ open class Node : Comparable<Node> {
 
     internal open fun _onPostEnterScene() {
         ready()
-        onReady.fastForEach {
-            it.invoke()
-        }
+        onReady.emit()
         nodes.forEach {
             it._onPostEnterScene()
         }
@@ -390,7 +384,7 @@ open class Node : Comparable<Node> {
      */
     internal open fun _update(dt: Duration) {
         update(dt)
-        onUpdate.fastForEach { it.invoke(dt) }
+        onUpdate.emit(dt)
         nodes.updateLists()
         nodes.update(dt)
     }
@@ -549,6 +543,14 @@ open class Node : Comparable<Node> {
         var result = name.hashCode()
         result = 31 * result + id
         return result
+    }
+
+    protected fun MutableList<() -> Unit>.emit() {
+        fastForEach { it.invoke() }
+    }
+
+    protected fun <T> MutableList<(T) -> Unit>.emit(value: T) {
+        fastForEach { it.invoke(value) }
     }
 }
 

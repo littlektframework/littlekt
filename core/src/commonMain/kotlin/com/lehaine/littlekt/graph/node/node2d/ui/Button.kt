@@ -213,27 +213,19 @@ open class Button : BaseButton() {
         val text = if (uppercase) text.uppercase() else text
 
         var ty = 0f
-        val textWidth: Float
-        val textHeight: Float
 
-        if (wrap || text.contains("\n")) {
-            layout.setText(
-                font,
-                text,
-                Color.WHITE,
-                max(width, backgroundMinWidth) + padding * 2,
-                scaleX = fontScaleX,
-                scaleY = fontScaleY,
-                horizontalAlign,
-                wrap,
-                ellipsis
-            )
-            textWidth = layout.width
-            textHeight = layout.height + padding * 2f
-        } else {
-            textWidth = max(width, backgroundMinWidth) + padding * 2f
-            textHeight = font.metrics.capHeight + padding * 2f
-        }
+        layout.setText(
+            font,
+            text,
+            Color.WHITE,
+            if (wrap || text.contains("\n")) max(width, backgroundMinWidth) else 0f,
+            scaleX = fontScaleX,
+            scaleY = fontScaleY,
+            horizontalAlign,
+            wrap,
+            ellipsis
+        )
+        val textWidth: Float = layout.width + padding * 2f
 
         when (verticalAlign) {
             VAlign.TOP -> {
@@ -245,7 +237,6 @@ open class Button : BaseButton() {
             }
             else -> {
                 ty += (height) / 2
-                //ty += textHeight
             }
         }
 
