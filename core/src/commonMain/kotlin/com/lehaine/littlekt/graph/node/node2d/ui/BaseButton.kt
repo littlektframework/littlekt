@@ -104,6 +104,8 @@ abstract class BaseButton : Control() {
         }
         if (event.type == InputEvent.Type.MOUSE_EXIT) {
             status.hovering = false
+            status.pressAttempt = false
+            status.pressingInside = false
         }
 
         if (event.type == InputEvent.Type.TOUCH_DOWN) {
