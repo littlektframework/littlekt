@@ -15,7 +15,8 @@ import com.lehaine.littlekt.math.Mat4
 import com.lehaine.littlekt.math.Rect
 import com.lehaine.littlekt.math.geom.Angle
 import com.lehaine.littlekt.util.Signal
-import com.lehaine.littlekt.util.TypedSignal
+import com.lehaine.littlekt.util.SingleSignal
+import kotlin.js.JsName
 import kotlin.math.max
 
 /**
@@ -58,10 +59,14 @@ open class Control : Node2D() {
         private val tempMat4 = Mat4()
     }
 
-    val sizeFlagsChangedSignal: Signal = Signal()
-    val sizeChangedSignal: Signal = Signal()
-    val minimumSizeChangedSignal: Signal = Signal()
-    val uiInputSignal: TypedSignal<InputEvent> = TypedSignal()
+    val onSizeFlagsChanged: Signal = Signal()
+
+    @JsName("onSizeChangedSignal")
+    val onSizeChanged: Signal = Signal()
+
+    @JsName("onMinimumSizeChangedSignal")
+    val onMinimumSizeChanged: Signal = Signal()
+    val onUiInput: SingleSignal<InputEvent> = SingleSignal()
 
     private var lastAnchorLayout: AnchorLayout = NONE
 
@@ -121,20 +126,20 @@ open class Control : Node2D() {
         set(value) {
             if (value == field) return
             field = value
-            sizeFlagsChangedSignal.emit()
+            onSizeFlagsChanged.emit()
         }
     var horizontalSizeFlags = SizeFlag.FILL
         set(value) {
             if (value == field) return
             field = value
-            sizeFlagsChangedSignal.emit()
+            onSizeFlagsChanged.emit()
         }
 
     var stretchRatio: Float = 1f
         set(value) {
             if (value == field) return
             field = value
-            sizeFlagsChangedSignal.emit()
+            onSizeFlagsChanged.emit()
         }
 
     var marginLeft: Float
@@ -285,9 +290,9 @@ open class Control : Node2D() {
         super._onAddedToScene()
         val parent = parent
         if (parent is Control) {
-            parent.sizeChangedSignal.connect(this, ::onSizeChanged)
+            parent.onSizeChanged.connect(this, ::onSizeChanged)
         } else {
-            viewport?.sizeChangedSignal?.connect(this, ::onSizeChanged)
+            viewport?.onSizeChanged?.connect(this, ::onSizeChanged)
         }
     }
 
@@ -301,9 +306,9 @@ open class Control : Node2D() {
     override fun _onRemovedFromScene() {
         val parent = parent
         if (parent is Control) {
-            parent.sizeChangedSignal.disconnect(this)
+            parent.onSizeChanged.disconnect(this)
         } else {
-            viewport?.sizeChangedSignal?.disconnect(this)
+            viewport?.onSizeChanged?.disconnect(this)
         }
         super._onRemovedFromScene()
     }
@@ -314,7 +319,7 @@ open class Control : Node2D() {
 
     internal open fun _uiInput(event: InputEvent) {
         if (!enabled) return
-        uiInputSignal.emit(event) // signal is first due to being able to handle the event
+        onUiInput.emit(event) // signal is first due to being able to handle the event
         if (!insideTree || event.handled) {
             return
         }
@@ -365,7 +370,15 @@ open class Control : Node2D() {
         if (globalRotation == Angle.ZERO) {
             return if (hx >= globalX && hx < globalX + width && hy >= globalY && hy < globalY + height) this else null
         }
+        // TODO determine hit target when rotated
         return null
+    }
+
+    fun hasPoint(px: Float, py: Float): Boolean {
+        if (globalRotation == Angle.ZERO) {
+            return px >= globalX && px < globalX + width && py >= globalY && py < globalY + height
+        }
+        return false //TODO determine has point when rotated
     }
 
     private fun getParentAnchorableRect(): Rect {
@@ -768,7 +781,7 @@ open class Control : Node2D() {
                 dirty(SIZE_DIRTY)
             }
             if (sizeChanged || posChanged) {
-                sizeChangedSignal.emit()
+                onSizeChanged.emit()
             }
         }
     }
@@ -790,7 +803,7 @@ open class Control : Node2D() {
             lastMinWidth = combinedMinWidth
             lastMinHeight = combinedMinHeight
             onMinimumSizeChanged()
-            minimumSizeChangedSignal.emit()
+            onMinimumSizeChanged.emit()
         }
     }
 }

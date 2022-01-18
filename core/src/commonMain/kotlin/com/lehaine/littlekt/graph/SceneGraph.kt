@@ -84,6 +84,10 @@ open class SceneGraph(
 
     private var initialized = false
 
+    fun resize(width: Int, height: Int) {
+        camera.update(width, height, context)
+    }
+
     fun initialize() {
         context.input.addInputProcessor(this)
         root.initialize()
@@ -94,6 +98,7 @@ open class SceneGraph(
 
     fun render() {
         if (!initialized) error("You need to call 'initialize()' once before doing any rendering or updating!")
+        viewport.apply(context)
         batch.use(camera.viewProjection) {
             root._render(batch, camera)
         }

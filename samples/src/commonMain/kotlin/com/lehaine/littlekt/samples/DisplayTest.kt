@@ -5,7 +5,9 @@ import com.lehaine.littlekt.file.vfs.readAtlas
 import com.lehaine.littlekt.file.vfs.readAudioStream
 import com.lehaine.littlekt.file.vfs.readBitmapFont
 import com.lehaine.littlekt.file.vfs.readTexture
-import com.lehaine.littlekt.graph.node.node2d.ui.label
+import com.lehaine.littlekt.graph.node.component.AnchorLayout
+import com.lehaine.littlekt.graph.node.node2d.ui.button
+import com.lehaine.littlekt.graph.node.node2d.ui.paddedContainer
 import com.lehaine.littlekt.graph.sceneGraph
 import com.lehaine.littlekt.graphics.*
 import com.lehaine.littlekt.graphics.shader.shaders.SimpleColorFragmentShader
@@ -15,6 +17,7 @@ import com.lehaine.littlekt.input.GameButton
 import com.lehaine.littlekt.input.InputMultiplexer
 import com.lehaine.littlekt.input.Key
 import com.lehaine.littlekt.log.Logger
+import com.lehaine.littlekt.util.viewport.ExtendViewport
 
 /**
  * @author Colton Daily
@@ -112,11 +115,19 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
         val boss = AnimatedSprite(bossAttack.firstFrame)
         val pixelFont = resourcesVfs["m5x7_16.fnt"].readBitmapFont()
 
-        val scene = sceneGraph(context, batch = batch) {
-            label {
-                font = pixelFont
-                text = "HELLO!!!!!!!!!"
-                width
+        val scene = sceneGraph(context, ExtendViewport(480, 270)) {
+            paddedContainer {
+                padding = 10f
+                anchor(AnchorLayout.TOP_LEFT)
+                debugColor = Color.RED
+
+                button {
+                    font = pixelFont
+                    text = "I am a button! woot"
+                    onPressed += {
+                        logger.info { "You pressed me!!" }
+                    }
+                }
             }
         }.also { it.initialize() }
 
@@ -133,6 +144,10 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
             onKeyUp {
                 logger.info { "key up: $it" }
             }
+        }
+
+        onResize { width, height ->
+            scene.resize(width, height)
         }
 
         onRender { dt ->
