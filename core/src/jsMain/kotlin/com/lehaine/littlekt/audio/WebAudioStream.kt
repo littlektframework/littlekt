@@ -35,7 +35,6 @@ class WebAudioStream(val assetPath: String) : AudioStream {
             audioElement.volume = value.toDouble()
         }
 
-
     init {
         audioElement.onended = {
             clipState = StreamState.STOPPED
@@ -43,7 +42,7 @@ class WebAudioStream(val assetPath: String) : AudioStream {
         }
     }
 
-    override fun play(volume: Float, loop: Boolean) {
+    override suspend fun play(volume: Float, loop: Boolean) {
         audioElement.pause()
         this.volume = volume
         this.looping = loop

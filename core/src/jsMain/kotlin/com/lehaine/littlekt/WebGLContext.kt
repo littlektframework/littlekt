@@ -12,7 +12,6 @@ import com.lehaine.littlekt.util.fastForEach
 import kotlinx.browser.document
 import kotlinx.browser.window
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import org.w3c.dom.HTMLCanvasElement
 import kotlin.coroutines.CoroutineContext
 import kotlin.time.Duration
@@ -79,13 +78,11 @@ class WebGLContext(override val configuration: JsConfiguration) : Context {
                 graphics._height = canvas.clientHeight
                 canvas.width = canvas.clientWidth
                 canvas.height = canvas.clientHeight
-                KtScope.launch {
-                    listener.run {
-                        resizeCalls.fastForEach { resize ->
-                            resize(
-                                graphics.width, graphics.height
-                            )
-                        }
+                listener.run {
+                    resizeCalls.fastForEach { resize ->
+                        resize(
+                            graphics.width, graphics.height
+                        )
                     }
                 }
             }

@@ -16,7 +16,6 @@ import com.lehaine.littlekt.graphics.gl.TexMagFilter
 import com.lehaine.littlekt.graphics.gl.TexMinFilter
 import com.lehaine.littlekt.graphics.gl.TextureFormat
 import fr.delthas.javamp3.Sound
-import kotlinx.coroutines.runBlocking
 import java.io.ByteArrayInputStream
 import java.io.File
 import java.io.FileOutputStream
@@ -71,14 +70,15 @@ actual suspend fun VfsFile.readAudioClip(): AudioClip {
     val asset = read()
     // TODO refactor the sound handling to check the actual file headers
     val (source, channels, sampleRate) = if (pathInfo.extension == "mp3") {
-        val decoder = Sound(ByteArrayInputStream(asset.toArray()))
-        val source = decoder.readBytes().also { decoder.close() }
+        val decoder = kotlin.runCatching { Sound(ByteArrayInputStream(asset.toArray())) }.getOrThrow()
+        val source = decoder.readBytes().also { runCatching { decoder.close() }.getOrThrow() }
         val channels = if (decoder.isStereo) 2 else 1
         Triple(source, channels, decoder.samplingFrequency.toFloat())
 
     } else {
         val source = asset.toArray()
-        val clip = AudioSystem.getAudioFileFormat(ByteArrayInputStream(asset.toArray()))
+        val clip =
+            runCatching { AudioSystem.getAudioFileFormat(ByteArrayInputStream(asset.toArray())) }.getOrThrow()
         Triple(source, clip.format.channels, clip.format.sampleRate)
     }
 
@@ -105,11 +105,11 @@ private suspend fun VfsFile.createAudioStreamMp3(): OpenALAudioStream {
     val read: (ByteArray) -> Int = {
         decoder.read(it)
     }
-    val reset: () -> Unit = {
-        decoder.close()
-        runBlocking {
+    val reset: suspend () -> Unit = {
+        runCatching {
+            decoder.close()
             decoder = Sound((readStream() as JvmByteSequenceStream).stream)
-        }
+        }.getOrThrow()
     }
 
     return OpenALAudioStream(vfs.context.audioContext, read, reset, channels, decoder.samplingFrequency)
@@ -123,11 +123,11 @@ private suspend fun VfsFile.createAudioStreamWav(): OpenALAudioStream {
         val result = clip.read(it)
         result
     }
-    val reset: () -> Unit = {
-        clip.close()
-        runBlocking {
+    val reset: suspend () -> Unit = {
+        runCatching {
+            clip.close()
             clip = AudioSystem.getAudioInputStream((readStream() as JvmByteSequenceStream).stream)
-        }
+        }.getOrThrow()
     }
 
     return OpenALAudioStream(

@@ -30,7 +30,7 @@ interface AudioStream : Disposable {
      * @param volume the volume to the audio. Defaults to the current [volume].
      * @param loop whether to loop this audio. Defaults to the current [looping]
      */
-    fun play(volume: Float = this.volume, loop: Boolean = this.looping)
+    suspend fun play(volume: Float = this.volume, loop: Boolean = this.looping)
 
     /**
      * Stops the current stream from playing and resets it to the beginning.

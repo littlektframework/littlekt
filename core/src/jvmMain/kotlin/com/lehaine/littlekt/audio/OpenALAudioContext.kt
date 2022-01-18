@@ -43,7 +43,7 @@ class OpenALAudioContext : Disposable {
         result
     }
 
-    fun update() {
+    suspend fun update() {
         if (NO_DEVICE) return
         audioStreams.fastForEach { it.update() }
     }
