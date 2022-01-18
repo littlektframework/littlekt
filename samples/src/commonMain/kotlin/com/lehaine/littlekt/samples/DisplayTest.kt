@@ -124,6 +124,9 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
                 button {
                     font = pixelFont
                     text = "I am a button! woot"
+                    onPressed += {
+                        logger.info { "You pressed me!!" }
+                    }
                 }
             }
         }.also { it.initialize() }
