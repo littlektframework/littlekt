@@ -16,8 +16,7 @@ import com.lehaine.littlekt.graphics.gl.TexMagFilter
 import com.lehaine.littlekt.graphics.gl.TexMinFilter
 import com.lehaine.littlekt.graphics.gl.TextureFormat
 import fr.delthas.javamp3.Sound
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import java.io.ByteArrayInputStream
 import java.io.File
 import java.io.FileOutputStream
@@ -108,7 +107,7 @@ private suspend fun VfsFile.createAudioStreamMp3(): OpenALAudioStream {
     }
     val reset: () -> Unit = {
         decoder.close()
-        vfs.launch(Dispatchers.IO) {
+        runBlocking {
             decoder = Sound((readStream() as JvmByteSequenceStream).stream)
         }
     }
@@ -118,13 +117,15 @@ private suspend fun VfsFile.createAudioStreamMp3(): OpenALAudioStream {
 
 private suspend fun VfsFile.createAudioStreamWav(): OpenALAudioStream {
     vfs.context as LwjglContext
-    var clip = runCatching { AudioSystem.getAudioInputStream((readStream() as JvmByteSequenceStream).stream) }.getOrThrow()
+    var clip =
+        runCatching { AudioSystem.getAudioInputStream((readStream() as JvmByteSequenceStream).stream) }.getOrThrow()
     val read: (ByteArray) -> Int = {
-        clip.read(it)
+        val result = clip.read(it)
+        result
     }
     val reset: () -> Unit = {
-        vfs.launch(Dispatchers.IO) {
-            clip.close()
+        clip.close()
+        runBlocking {
             clip = AudioSystem.getAudioInputStream((readStream() as JvmByteSequenceStream).stream)
         }
     }

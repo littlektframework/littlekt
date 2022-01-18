@@ -131,8 +131,8 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
             }
         }.also { it.initialize() }
 
-        val music = resourcesVfs["music.mp3"].readAudioStream()
-        //music.play()
+        val music = resourcesVfs["music_short.mp3"].readAudioStream()
+        music.play(0.05f, true)
 
         boss.playLooped(bossAttack)
         boss.x = 450f

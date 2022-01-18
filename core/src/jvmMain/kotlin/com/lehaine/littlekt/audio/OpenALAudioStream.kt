@@ -76,7 +76,7 @@ class OpenALAudioStream(
             alSourcei(sourceID, AL_LOOPING, AL_FALSE)
 
             this.volume = volume
-            this.looping = looping
+            this.looping = loop
             alSourcef(sourceID, AL_GAIN, volume)
 
             alGetError()
