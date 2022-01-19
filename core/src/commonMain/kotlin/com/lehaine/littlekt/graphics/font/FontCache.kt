@@ -82,6 +82,7 @@ open class FontCache(val pages: Int = 1) {
                 glyphs.forEach {
                     if (glyphIndex++ == nextColorGlyphIndex) {
                         tempColor.setAbgr8888(colors[++colorsIndex])
+                        println(colors[colorsIndex])
                         lastColorFloatBits = tempColor.mul(tint).toFloatBits()
                         nextColorGlyphIndex = if (++colorsIndex < colors.size) colors[colorsIndex] else -1
                     }

@@ -244,7 +244,7 @@ open class MutableColor(r: Float, g: Float, b: Float, a: Float) : Color(r, g, b,
     fun mul(other: Vec4f): MutableColor {
         r *= other.x
         g *= other.y
-        g *= other.z
+        b *= other.z
         a *= other.w
         return this
     }
