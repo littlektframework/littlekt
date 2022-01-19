@@ -11,6 +11,7 @@ import com.lehaine.littlekt.graph.node.node2d.ui.button
 import com.lehaine.littlekt.graph.node.node2d.ui.ninePatchRect
 import com.lehaine.littlekt.graph.sceneGraph
 import com.lehaine.littlekt.graphics.*
+import com.lehaine.littlekt.graphics.font.BitmapFontCache
 import com.lehaine.littlekt.graphics.shader.shaders.SimpleColorFragmentShader
 import com.lehaine.littlekt.graphics.shader.shaders.SimpleColorVertexShader
 import com.lehaine.littlekt.input.GameAxis
@@ -115,6 +116,10 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
         val bossAttack = atlas.getAnimation("bossAttack")
         val boss = AnimatedSprite(bossAttack.firstFrame)
         val pixelFont = resourcesVfs["m5x7_16.fnt"].readBitmapFont()
+        val cache = BitmapFontCache(pixelFont).also {
+            it.addText("Test cache", 200f, 50f, scaleX = 4f, scaleY = 4f)
+            it.tint(Color.RED)
+        }
         val ninepatchImg = resourcesVfs["bg_9.png"].readTexture()
         val ninepatch = NinePatch(ninepatchImg, 3, 3, 3, 4)
 
@@ -203,6 +208,7 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
                 it.draw(Textures.blue, 280f, 400f, scaleX = 5f, scaleY = 5f)
                 it.draw(Textures.black, 300f, 400f, scaleX = 5f, scaleY = 5f)
                 ninepatch.draw(it, 200f, 200f, 25f, 20f, scaleX = 5f, scaleY = 5f)
+                cache.draw(it)
             }
 
             scene.update(dt)

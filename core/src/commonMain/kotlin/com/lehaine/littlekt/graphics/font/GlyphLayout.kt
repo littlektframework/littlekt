@@ -17,7 +17,7 @@ class GlyphLayout {
     private val _runs = mutableListOf<GlyphRun>()
     val runs: List<GlyphRun> get() = _runs
 
-    private val _colors = MutableList(2) { 0 }
+    private val _colors = mutableListOf<Int>()
     val colors: List<Int> get() = _colors
 
     var width: Float = 0f
@@ -44,7 +44,8 @@ class GlyphLayout {
         val wrapOrTruncate = wrap || truncate != null
         var currentColor = color.abgr()
         val nextColor = currentColor
-        _colors[0] = currentColor
+        _colors += 0
+        _colors += currentColor
         var lastRun = false
         var y = 0f
         var runStart = 0
@@ -74,7 +75,7 @@ class GlyphLayout {
                     glyphCount += run.glyphs.size
 
                     if (nextColor != currentColor) {// TODO implement a markup
-                        if (_colors.size - 2 == glyphCount) {
+                        if (_colors[colors.size - 2] == glyphCount) {
                             _colors[colors.size - 1] = nextColor
                         } else {
                             _colors += glyphCount
@@ -153,6 +154,10 @@ class GlyphLayout {
 
     fun reset() {
         _runs.clear()
+        _colors.clear()
+        glyphCount = 0
+        width = 0f
+        height = 0f
     }
 
     private fun wrap(font: Font, scale: Float, first: GlyphRun, wrapIndex: Int): GlyphRun? {
