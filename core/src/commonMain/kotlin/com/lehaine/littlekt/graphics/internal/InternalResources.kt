@@ -6,6 +6,7 @@ import com.lehaine.littlekt.file.createByteBuffer
 import com.lehaine.littlekt.graphics.Pixmap
 import com.lehaine.littlekt.graphics.Texture
 import com.lehaine.littlekt.graphics.TextureSlice
+import com.lehaine.littlekt.graphics.font.BitmapFont
 import com.lehaine.littlekt.graphics.gl.PixmapTextureData
 import com.lehaine.littlekt.graphics.slice
 import com.lehaine.littlekt.util.internal.SingletonBase
@@ -102,6 +103,12 @@ internal class InternalResources private constructor(private val context: Contex
 
     val defaultFontTiny: String = "barlow_condensed_medium_regular_9.fnt"
     val defaultFontSmall: String = "barlow_condensed_medium_regular_11.fnt"
-    val defaultFont: String = "barlow_condensed_medium_regular_17.fnt"
+    val defaultFont: BitmapFont by assetProvider.load(context.resourcesVfs["barlow_condensed_medium_regular_17.fnt"])
     val defaultFontLarge: String = "barlow_condensed_medium_regular_32.fnt"
+
+    init {
+        context.onRender {
+            assetProvider.update()
+        }
+    }
 }

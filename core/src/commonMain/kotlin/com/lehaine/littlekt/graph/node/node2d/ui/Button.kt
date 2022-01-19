@@ -6,9 +6,11 @@ import com.lehaine.littlekt.graph.node.addTo
 import com.lehaine.littlekt.graph.node.annotation.SceneGraphDslMarker
 import com.lehaine.littlekt.graph.node.component.Drawable
 import com.lehaine.littlekt.graph.node.component.HAlign
-import com.lehaine.littlekt.graph.node.component.TextureSliceDrawable
 import com.lehaine.littlekt.graph.node.component.VAlign
-import com.lehaine.littlekt.graphics.*
+import com.lehaine.littlekt.graphics.Camera
+import com.lehaine.littlekt.graphics.Color
+import com.lehaine.littlekt.graphics.MutableColor
+import com.lehaine.littlekt.graphics.SpriteBatch
 import com.lehaine.littlekt.graphics.font.BitmapFont
 import com.lehaine.littlekt.graphics.font.BitmapFontCache
 import com.lehaine.littlekt.graphics.font.GlyphLayout
@@ -40,14 +42,11 @@ open class Button : BaseButton() {
         private val minSizeLayout = GlyphLayout()
     }
 
-    private var cache: BitmapFontCache? = null
+    private var cache: BitmapFontCache = BitmapFontCache(font)
     private val layout = GlyphLayout()
 
     private var _fontScale = MutableVec2f(1f)
     private var textDirty = false
-
-    var background: Drawable = TextureSliceDrawable(Textures.white)
-    var backgroundColor = Color.WHITE
 
     var padding = 10f
         set(value) {
@@ -101,17 +100,17 @@ open class Button : BaseButton() {
             onMinimumSizeChanged()
         }
 
-    var fontColor = Color.WHITE
-
-    var font: BitmapFont?
-        get() = cache?.font
+    var fontColor: Color
+        get() = getThemeColor("fontColor")
         set(value) {
-            cache = if (value == null) {
-                cache?.font?.dispose()
-                null
-            } else {
-                BitmapFontCache(value)
-            }
+            colorsOverride["fontColor"] = value
+        }
+
+    var font: BitmapFont
+        get() = getThemeFont("font")
+        set(value) {
+            fontsOverride["font"] = value
+            cache = BitmapFontCache(value)
         }
 
     var verticalAlign: VAlign = VAlign.CENTER
@@ -157,15 +156,30 @@ open class Button : BaseButton() {
 
     override fun render(batch: SpriteBatch, camera: Camera) {
 
+        val drawable: Drawable
         when (drawMode) {
-            DrawMode.NORMAL -> tempColor.set(backgroundColor)
-            DrawMode.PRESSED -> tempColor.set(backgroundColor).lighten(0.2f)
-            DrawMode.HOVER -> tempColor.set(backgroundColor).lighten(0.5f)
-            DrawMode.DISABLED -> tempColor.set(Color.DARK_GRAY)
-            DrawMode.HOVER_PRESSED -> tempColor.set(backgroundColor).darken(0.5f)
+            DrawMode.NORMAL -> {
+                drawable = getThemeDrawable("normal")
+            }
+            DrawMode.PRESSED -> {
+                drawable = getThemeDrawable("pressed")
+            }
+            DrawMode.HOVER -> {
+                drawable = getThemeDrawable("hover")
+            }
+            DrawMode.DISABLED -> {
+                drawable = getThemeDrawable("disabled")
+            }
+            DrawMode.HOVER_PRESSED -> {
+                drawable = if (hasThemeDrawable("hoverPressed")) {
+                    getThemeDrawable("hoverPressed")
+                } else {
+                    getThemeDrawable("pressed")
+                }
+            }
         }
 
-        background.draw(
+        drawable.draw(
             batch,
             globalX,
             globalY,
@@ -176,7 +190,7 @@ open class Button : BaseButton() {
             rotation = rotation,
             color = tempColor
         )
-        cache?.let {
+        cache.let {
             tempColor.set(color).mul(fontColor)
             it.tint(tempColor)
             if (globalRotation != Angle.ZERO || globalScaleX != 1f || globalScaleY != 1f) {
@@ -194,7 +208,6 @@ open class Button : BaseButton() {
 
     override fun calculateMinSize() {
         if (!minSizeInvalid) return
-        val font = font ?: return
 
         if (textDirty) {
             layout()
@@ -203,8 +216,9 @@ open class Button : BaseButton() {
 
         val text = if (uppercase) text.uppercase() else text
         minSizeLayout.setText(font, text, scaleX = fontScaleX, scaleY = fontScaleY, wrap = wrap)
-        _internalMinWidth = minSizeLayout.width + padding
-        _internalMinHeight = minSizeLayout.height + padding
+        val styleBox = getThemeDrawable("normal")
+        _internalMinWidth = minSizeLayout.width + padding + styleBox.minWidth
+        _internalMinHeight = minSizeLayout.height + padding + styleBox.minHeight
 
         minSizeInvalid = false
     }
@@ -215,6 +229,8 @@ open class Button : BaseButton() {
         val text = if (uppercase) text.uppercase() else text
 
         var ty = 0f
+
+        val background = getThemeDrawable("normal")
 
         layout.setText(
             font,

@@ -10,6 +10,10 @@ import com.lehaine.littlekt.math.geom.Angle
  */
 interface Drawable {
 
+    var marginLeft: Float
+    var marginRight: Float
+    var marginTop: Float
+    var marginBottom: Float
     var minWidth: Float
     var minHeight: Float
 
