@@ -4,7 +4,9 @@ import com.lehaine.littlekt.graph.SceneGraph
 import com.lehaine.littlekt.graph.node.Node
 import com.lehaine.littlekt.graph.node.addTo
 import com.lehaine.littlekt.graph.node.annotation.SceneGraphDslMarker
+import com.lehaine.littlekt.graph.node.component.Drawable
 import com.lehaine.littlekt.graph.node.component.HAlign
+import com.lehaine.littlekt.graph.node.component.TextureSliceDrawable
 import com.lehaine.littlekt.graph.node.component.VAlign
 import com.lehaine.littlekt.graphics.*
 import com.lehaine.littlekt.graphics.font.BitmapFont
@@ -44,9 +46,8 @@ open class Button : BaseButton() {
     private var _fontScale = MutableVec2f(1f)
     private var textDirty = false
 
-    var background: TextureSlice = Textures.white
-    var backgroundColor = Color.BLACK
-    var backgroundMinWidth = 50f
+    var background: Drawable = TextureSliceDrawable(Textures.white)
+    var backgroundColor = Color.WHITE
 
     var padding = 10f
         set(value) {
@@ -164,15 +165,16 @@ open class Button : BaseButton() {
             DrawMode.HOVER_PRESSED -> tempColor.set(backgroundColor).darken(0.5f)
         }
 
-        batch.draw(
-            background,
+        background.draw(
+            batch,
             globalX,
             globalY,
             width = width,
             height = height,
             scaleX = globalScaleX,
             scaleY = globalScaleY,
-            colorBits = tempColor.toFloatBits()
+            rotation = rotation,
+            color = tempColor
         )
         cache?.let {
             tempColor.set(color).mul(fontColor)
@@ -218,7 +220,7 @@ open class Button : BaseButton() {
             font,
             text,
             Color.WHITE,
-            if (wrap || text.contains("\n")) max(width, backgroundMinWidth) else 0f,
+            if (wrap || text.contains("\n")) max(width, background.minWidth) else 0f,
             scaleX = fontScaleX,
             scaleY = fontScaleY,
             horizontalAlign,

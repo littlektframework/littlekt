@@ -8,6 +8,7 @@ import com.lehaine.littlekt.math.geom.cosine
 import com.lehaine.littlekt.math.geom.degrees
 import com.lehaine.littlekt.math.geom.sine
 import com.lehaine.littlekt.util.datastructure.FloatArrayList
+import com.lehaine.littlekt.util.datastructure.internal.fill
 
 /**
  * Caches glyph geometry to provide a fast way to render static textures without having recompute the glyph each time.
@@ -19,6 +20,7 @@ import com.lehaine.littlekt.util.datastructure.FloatArrayList
 open class FontCache(val pages: Int = 1) {
     private val temp4 = Mat4() // used for rotating text
     private val layouts = mutableListOf<GlyphLayout>()
+    private val tempGlyphCount = IntArray(pages)
 
     private var lastX = 0f
     private var lastY = 0f
@@ -70,7 +72,7 @@ open class FontCache(val pages: Int = 1) {
         val newTint = tint.toFloatBits()
         if (newTint == currentTint) return
         currentTint = newTint
-
+        tempGlyphCount.fill(0)
         layouts.forEach { layout ->
             val colors = layout.colors
             var colorsIndex = 0
@@ -85,7 +87,8 @@ open class FontCache(val pages: Int = 1) {
                         lastColorFloatBits = tempColor.mul(tint).toFloatBits()
                         nextColorGlyphIndex = if (++colorsIndex < colors.size) colors[colorsIndex] else -1
                     }
-                    val offset = 2
+                    val offset = tempGlyphCount[it.page] * 20 + 2
+                    tempGlyphCount[it.page]++
                     val vertices = pageVertices[it.page]
                     vertices[offset] = lastColorFloatBits
                     vertices[offset + 5] = lastColorFloatBits
