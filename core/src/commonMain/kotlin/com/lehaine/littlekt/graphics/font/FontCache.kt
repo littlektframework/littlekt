@@ -84,10 +84,7 @@ open class FontCache(val pages: Int = 1) {
                 glyphs.forEach {
                     if (glyphIndex++ == nextColorGlyphIndex) {
                         tempColor.setAbgr8888(colors[++colorsIndex])
-                        println("before: $tempColor")
-                        println("tint: $tint")
                         lastColorFloatBits = tempColor.mul(tint).toFloatBits()
-                        println("after: $tempColor")
                         nextColorGlyphIndex = if (++colorsIndex < colors.size) colors[colorsIndex] else -1
                     }
                     val offset = tempGlyphCount[it.page] * 20 + 2

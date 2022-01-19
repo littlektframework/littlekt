@@ -105,9 +105,10 @@ class NinePatch(private val slice: TextureSlice, val left: Int, val right: Int, 
         originY: Float = 0f,
         scaleX: Float = 1f,
         scaleY: Float = 1f,
-        rotation: Angle = Angle.ZERO
+        rotation: Angle = Angle.ZERO,
+        color: Color = Color.WHITE
     ) {
-        prepareVertices(x, y, width, height)
+        prepareVertices(x, y, width, height, color)
         val worldOriginX = x + originX
         val worldOriginY = y + originY
         if (rotation != Angle.ZERO) {
@@ -226,14 +227,14 @@ class NinePatch(private val slice: TextureSlice, val left: Int, val right: Int, 
         return startIdx
     }
 
-    private fun prepareVertices(x: Float, y: Float, width: Float, height: Float) {
+    private fun prepareVertices(x: Float, y: Float, width: Float, height: Float, color: Color) {
         val centerX = x + leftWidth
         val centerY = y + bottomHeight
         val centerWidth = width - rightWidth - leftWidth
         val centerHeight = height - topHeight - bottomHeight
         val rightX = x + width - rightWidth
         val topY = y + height - topHeight
-        val colorBits = Color.WHITE.toFloatBits() // TODO impl color
+        val colorBits = color.toFloatBits()
         if (bottomLeft != -1) set(bottomLeft, x, y, leftWidth, bottomHeight, colorBits)
         if (bottomCenter != -1) set(bottomCenter, centerX, y, centerWidth, bottomHeight, colorBits)
         if (bottomRight != -1) set(bottomRight, rightX, y, rightWidth, bottomHeight, colorBits)
