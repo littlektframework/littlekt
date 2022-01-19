@@ -8,9 +8,12 @@ import com.lehaine.littlekt.graph.node.component.AnchorLayout
 import com.lehaine.littlekt.graph.node.component.AnchorLayout.*
 import com.lehaine.littlekt.graph.node.component.InputEvent
 import com.lehaine.littlekt.graph.node.component.SizeFlag
+import com.lehaine.littlekt.graph.node.component.ui.StyleBox
+import com.lehaine.littlekt.graph.node.component.ui.Theme
 import com.lehaine.littlekt.graph.node.node2d.Node2D
 import com.lehaine.littlekt.graphics.Color
 import com.lehaine.littlekt.graphics.SpriteBatch
+import com.lehaine.littlekt.graphics.font.Font
 import com.lehaine.littlekt.math.Mat4
 import com.lehaine.littlekt.math.Rect
 import com.lehaine.littlekt.math.geom.Angle
@@ -280,6 +283,24 @@ open class Control : Node2D() {
 
     var color = Color.WHITE
     var debugColor = Color.GREEN
+
+    var theme: Theme? = null
+
+
+    private val _stylesOverride by lazy { mutableMapOf<String, StyleBox>() }
+    val stylesOverride: Map<String, StyleBox> get() = _stylesOverride
+
+    private val _fontsOverride by lazy { mutableMapOf<String, Font>() }
+    val fontsOverride: Map<String, Font> get() = _fontsOverride
+
+    private val _fontSizesOverride by lazy { mutableMapOf<String, Int>() }
+    val fontSizesOverride: Map<String, Int> get() = _fontSizesOverride
+
+    private val _colorsOverride by lazy { mutableMapOf<String, Color>() }
+    val colorsOverride: Map<String, Color> get() = _colorsOverride
+
+    private val _constantsOverride by lazy { mutableMapOf<String, Int>() }
+    val constantsOverride: Map<String, Int> get() = _constantsOverride
 
     private val tempRect = Rect()
 
@@ -805,6 +826,81 @@ open class Control : Node2D() {
             onMinimumSizeChanged()
             onMinimumSizeChanged.emit()
         }
+    }
+
+    fun getThemeStyle(name: String): StyleBox {
+        stylesOverride[name]?.let { return it }
+        var themeOwner: Control? = this
+        while (themeOwner != null) {
+            themeOwner.theme?.styles?.get(this::class.simpleName)?.get(name)?.let { return it }
+            themeOwner = if (themeOwner.parent is Control) {
+                themeOwner.parent as Control
+            } else {
+                null
+            }
+        }
+        return Theme.defaultTheme.styles[this::class.simpleName]?.get(name)
+            ?: error("Unable to find theme style of '$name'")
+    }
+
+    fun getThemeColor(name: String): Color {
+        colorsOverride[name]?.let { return it }
+        var themeOwner: Control? = this
+        while (themeOwner != null) {
+            themeOwner.theme?.colors?.get(this::class.simpleName)?.get(name)?.let { return it }
+            themeOwner = if (themeOwner.parent is Control) {
+                themeOwner.parent as Control
+            } else {
+                null
+            }
+        }
+        return Theme.defaultTheme.colors[this::class.simpleName]?.get(name)
+            ?: error("Unable to find theme color of '$name'")
+    }
+
+    fun getThemeFont(name: String): Font {
+        fontsOverride[name]?.let { return it }
+        var themeOwner: Control? = this
+        while (themeOwner != null) {
+            themeOwner.theme?.fonts?.get(this::class.simpleName)?.get(name)?.let { return it }
+            themeOwner = if (themeOwner.parent is Control) {
+                themeOwner.parent as Control
+            } else {
+                null
+            }
+        }
+        return Theme.defaultTheme.fonts[this::class.simpleName]?.get(name)
+            ?: error("Unable to find theme font of '$name'")
+    }
+
+    fun getThemeFontSize(name: String): Int {
+        fontSizesOverride[name]?.let { return it }
+        var themeOwner: Control? = this
+        while (themeOwner != null) {
+            themeOwner.theme?.fontSizes?.get(this::class.simpleName)?.get(name)?.let { return it }
+            themeOwner = if (themeOwner.parent is Control) {
+                themeOwner.parent as Control
+            } else {
+                null
+            }
+        }
+        return Theme.defaultTheme.fontSizes[this::class.simpleName]?.get(name)
+            ?: error("Unable to find theme font size of '$name'")
+    }
+
+    fun getThemeConstant(name: String): Int {
+        constantsOverride[name]?.let { return it }
+        var themeOwner: Control? = this
+        while (themeOwner != null) {
+            themeOwner.theme?.constants?.get(this::class.simpleName)?.get(name)?.let { return it }
+            themeOwner = if (themeOwner.parent is Control) {
+                themeOwner.parent as Control
+            } else {
+                null
+            }
+        }
+        return Theme.defaultTheme.constants[this::class.simpleName]?.get(name)
+            ?: error("Unable to find theme constant of '$name'")
     }
 }
 
