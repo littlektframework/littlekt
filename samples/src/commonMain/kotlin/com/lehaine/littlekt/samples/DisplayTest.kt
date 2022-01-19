@@ -5,6 +5,7 @@ import com.lehaine.littlekt.file.vfs.readAtlas
 import com.lehaine.littlekt.file.vfs.readAudioStream
 import com.lehaine.littlekt.file.vfs.readBitmapFont
 import com.lehaine.littlekt.file.vfs.readTexture
+import com.lehaine.littlekt.graph.node.node2d.Node2D
 import com.lehaine.littlekt.graph.node.node2d.ui.button
 import com.lehaine.littlekt.graph.node.node2d.ui.ninePatchRect
 import com.lehaine.littlekt.graph.sceneGraph
@@ -120,8 +121,8 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
             button {
                 font = pixelFont
                 text = "I am a button! woot"
-                x = 10f
-                y = 10f
+                marginLeft = 10f
+                marginTop = 10f
                 onPressed += {
                     logger.info { "You pressed me!! I am at ${globalX},${globalY}" }
                 }
@@ -129,8 +130,8 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
 
             ninePatchRect {
                 ninePatch = ninepatch
-                x = 250f
-                y = 50f
+                marginLeft = 250f
+                marginTop = 10f
                 minWidth = 200f
                 minHeight = 50f
             }
@@ -226,5 +227,19 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
             shader.dispose()
             batch.dispose()
         }
+    }
+}
+
+private class TextureNode(val slice: TextureSlice) : Node2D() {
+
+    override fun render(batch: SpriteBatch, camera: Camera) {
+        batch.draw(
+            slice,
+            globalX,
+            globalY,
+            scaleX = globalScaleX,
+            scaleY = globalScaleY,
+            rotation = globalRotation
+        )
     }
 }

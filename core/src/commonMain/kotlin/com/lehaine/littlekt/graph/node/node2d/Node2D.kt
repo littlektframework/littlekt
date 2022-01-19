@@ -9,7 +9,6 @@ import com.lehaine.littlekt.math.Mat4
 import com.lehaine.littlekt.math.MutableVec2f
 import com.lehaine.littlekt.math.Vec2f
 import com.lehaine.littlekt.math.geom.Angle
-import com.lehaine.littlekt.math.geom.plus
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
