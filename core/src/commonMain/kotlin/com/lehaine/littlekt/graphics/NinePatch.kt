@@ -18,7 +18,7 @@ import kotlin.math.max
  * @author Colton Daily
  * @date 1/18/2022
  */
-class NinePatch(private val slice: TextureSlice, left: Int, right: Int, bottom: Int, top: Int) {
+class NinePatch(private val slice: TextureSlice, val left: Int, val right: Int, val bottom: Int, val top: Int) {
     constructor(texture: Texture, left: Int, right: Int, top: Int, bottom: Int) : this(
         texture.slice(),
         left,

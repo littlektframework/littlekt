@@ -1,31 +1,59 @@
 package com.lehaine.littlekt.graph.node.node2d.ui
 
-import com.lehaine.littlekt.graphics.TextureSlice
+import com.lehaine.littlekt.graph.SceneGraph
+import com.lehaine.littlekt.graph.node.Node
+import com.lehaine.littlekt.graph.node.addTo
+import com.lehaine.littlekt.graph.node.annotation.SceneGraphDslMarker
+import com.lehaine.littlekt.graphics.Camera
+import com.lehaine.littlekt.graphics.NinePatch
+import com.lehaine.littlekt.graphics.SpriteBatch
 import com.lehaine.littlekt.graphics.Textures
-import com.lehaine.littlekt.math.Rect
+
+/**
+ * Adds a [NinePatchRect] to the current [Node] as a child and then triggers the [callback]
+ */
+inline fun Node.ninePatchRect(callback: @SceneGraphDslMarker NinePatchRect.() -> Unit = {}) =
+    NinePatchRect().also(callback).addTo(this)
+
+/**
+ * Adds a [NinePatchRect] to the current [SceneGraph.root] as a child and then triggers the [callback]
+ */
+inline fun SceneGraph.ninePatchRect(callback: @SceneGraphDslMarker NinePatchRect.() -> Unit = {}) =
+    root.ninePatchRect(callback)
 
 /**
  * @author Colton Daily
  * @date 1/18/2022
  */
-class NinePatchRect : Control() {
+open class NinePatchRect : Control() {
 
-    var drawable: TextureSlice = Textures.white
+    var ninePatch: NinePatch = NinePatch(Textures.white, 0, 0, 0, 0)
+        set(value) {
+            if (field == value) return
+            field = value
+            onMinimumSizeChanged()
+        }
 
-    var drawCenter = true
-    var region = Rect()
-    var hAxis: AxisStretchMode = AxisStretchMode.STRETCH
-    var vAxis: AxisStretchMode = AxisStretchMode.STRETCH
+    override fun calculateMinSize() {
+        if (!minSizeInvalid) return
 
-    var regionMarginLeft = 0f
-    var regionMarginRight = 0f
-    var regionMarginTop = 0f
-    var regionMarginBottom = 0f
+        _internalMinWidth = (ninePatch.left + ninePatch.right).toFloat()
+        _internalMinHeight = (ninePatch.top + ninePatch.bottom).toFloat()
 
-    enum class AxisStretchMode {
-        STRETCH,
-        TILE,
-        TILE_FIT
+        minSizeInvalid = false
     }
 
+
+    override fun render(batch: SpriteBatch, camera: Camera) {
+        ninePatch.draw(
+            batch,
+            globalX,
+            globalY,
+            width,
+            height,
+            scaleX = globalScaleX,
+            scaleY = globalScaleY,
+            rotation = globalRotation
+        )
+    }
 }

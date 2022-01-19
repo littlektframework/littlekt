@@ -207,6 +207,7 @@ open class Node2D : Node() {
             return _localScale.x
         }
         set(value) {
+            if(_localScale.x == value) return
             _localScale.x = value
             updateLocalScale()
         }
@@ -216,6 +217,7 @@ open class Node2D : Node() {
             return _localScale.y
         }
         set(value) {
+            if(_localScale.y == value) return
             _localScale.y = value
             updateLocalScale()
         }
@@ -355,7 +357,7 @@ open class Node2D : Node() {
         return this
     }
 
-    protected fun updateLocalPosition() {
+    private fun updateLocalPosition() {
         onPositionChanged()
         _localDirty = true
         _globalPositionDirty = true

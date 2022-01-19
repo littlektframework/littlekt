@@ -5,9 +5,8 @@ import com.lehaine.littlekt.file.vfs.readAtlas
 import com.lehaine.littlekt.file.vfs.readAudioStream
 import com.lehaine.littlekt.file.vfs.readBitmapFont
 import com.lehaine.littlekt.file.vfs.readTexture
-import com.lehaine.littlekt.graph.node.component.AnchorLayout
 import com.lehaine.littlekt.graph.node.node2d.ui.button
-import com.lehaine.littlekt.graph.node.node2d.ui.paddedContainer
+import com.lehaine.littlekt.graph.node.node2d.ui.ninePatchRect
 import com.lehaine.littlekt.graph.sceneGraph
 import com.lehaine.littlekt.graphics.*
 import com.lehaine.littlekt.graphics.shader.shaders.SimpleColorFragmentShader
@@ -117,19 +116,23 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
         val ninepatchImg = resourcesVfs["bg_9.png"].readTexture()
         val ninepatch = NinePatch(ninepatchImg, 3, 3, 3, 4)
 
-        val scene = sceneGraph(context) {
-            paddedContainer {
-                padding = 10f
-                anchor(AnchorLayout.TOP_LEFT)
-                debugColor = Color.RED
-
-                button {
-                    font = pixelFont
-                    text = "I am a button! woot"
-                    onPressed += {
-                        logger.info { "You pressed me!! I am at ${globalX},${globalY}" }
-                    }
+        val scene = sceneGraph(context, batch = batch) {
+            button {
+                font = pixelFont
+                text = "I am a button! woot"
+                x = 10f
+                y = 10f
+                onPressed += {
+                    logger.info { "You pressed me!! I am at ${globalX},${globalY}" }
                 }
+            }
+
+            ninePatchRect {
+                ninePatch = ninepatch
+                x = 250f
+                y = 50f
+                minWidth = 200f
+                minHeight = 50f
             }
         }.also { it.initialize() }
 
