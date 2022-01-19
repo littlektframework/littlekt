@@ -828,78 +828,78 @@ open class Control : Node2D() {
         }
     }
 
-    fun getThemeStyle(name: String): StyleBox {
+    fun getThemeStyle(name: String, type: String = ""): StyleBox {
         stylesOverride[name]?.let { return it }
         var themeOwner: Control? = this
         while (themeOwner != null) {
-            themeOwner.theme?.styles?.get(this::class.simpleName)?.get(name)?.let { return it }
+            themeOwner.theme?.styles?.get(type)?.get(name)?.let { return it }
             themeOwner = if (themeOwner.parent is Control) {
                 themeOwner.parent as Control
             } else {
                 null
             }
         }
-        return Theme.defaultTheme.styles[this::class.simpleName]?.get(name)
+        return Theme.defaultTheme.styles[type]?.get(name)
             ?: error("Unable to find theme style of '$name'")
     }
 
-    fun getThemeColor(name: String): Color {
+    fun getThemeColor(name: String, type: String = ""): Color {
         colorsOverride[name]?.let { return it }
         var themeOwner: Control? = this
         while (themeOwner != null) {
-            themeOwner.theme?.colors?.get(this::class.simpleName)?.get(name)?.let { return it }
+            themeOwner.theme?.colors?.get(type)?.get(name)?.let { return it }
             themeOwner = if (themeOwner.parent is Control) {
                 themeOwner.parent as Control
             } else {
                 null
             }
         }
-        return Theme.defaultTheme.colors[this::class.simpleName]?.get(name)
+        return Theme.defaultTheme.colors[type]?.get(name)
             ?: error("Unable to find theme color of '$name'")
     }
 
-    fun getThemeFont(name: String): Font {
+    fun getThemeFont(name: String, type: String = ""): Font {
         fontsOverride[name]?.let { return it }
         var themeOwner: Control? = this
         while (themeOwner != null) {
-            themeOwner.theme?.fonts?.get(this::class.simpleName)?.get(name)?.let { return it }
+            themeOwner.theme?.fonts?.get(type)?.get(name)?.let { return it }
             themeOwner = if (themeOwner.parent is Control) {
                 themeOwner.parent as Control
             } else {
                 null
             }
         }
-        return Theme.defaultTheme.fonts[this::class.simpleName]?.get(name)
+        return Theme.defaultTheme.fonts[type]?.get(name)
             ?: error("Unable to find theme font of '$name'")
     }
 
-    fun getThemeFontSize(name: String): Int {
+    fun getThemeFontSize(name: String, type: String = ""): Int {
         fontSizesOverride[name]?.let { return it }
         var themeOwner: Control? = this
         while (themeOwner != null) {
-            themeOwner.theme?.fontSizes?.get(this::class.simpleName)?.get(name)?.let { return it }
+            themeOwner.theme?.fontSizes?.get(type)?.get(name)?.let { return it }
             themeOwner = if (themeOwner.parent is Control) {
                 themeOwner.parent as Control
             } else {
                 null
             }
         }
-        return Theme.defaultTheme.fontSizes[this::class.simpleName]?.get(name)
+        return Theme.defaultTheme.fontSizes[type]?.get(name)
             ?: error("Unable to find theme font size of '$name'")
     }
 
-    fun getThemeConstant(name: String): Int {
+    fun getThemeConstant(name: String, type: String = ""): Int {
         constantsOverride[name]?.let { return it }
         var themeOwner: Control? = this
         while (themeOwner != null) {
-            themeOwner.theme?.constants?.get(this::class.simpleName)?.get(name)?.let { return it }
+            themeOwner.theme?.constants?.get(type)?.get(name)?.let { return it }
             themeOwner = if (themeOwner.parent is Control) {
                 themeOwner.parent as Control
             } else {
                 null
             }
         }
-        return Theme.defaultTheme.constants[this::class.simpleName]?.get(name)
+        return Theme.defaultTheme.constants[type]?.get(name)
             ?: error("Unable to find theme constant of '$name'")
     }
 }
