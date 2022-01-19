@@ -5,6 +5,7 @@ import com.lehaine.littlekt.file.vfs.readAtlas
 import com.lehaine.littlekt.file.vfs.readAudioStream
 import com.lehaine.littlekt.file.vfs.readBitmapFont
 import com.lehaine.littlekt.file.vfs.readTexture
+import com.lehaine.littlekt.graph.node.component.toDrawable
 import com.lehaine.littlekt.graph.node.node2d.Node2D
 import com.lehaine.littlekt.graph.node.node2d.ui.button
 import com.lehaine.littlekt.graph.node.node2d.ui.ninePatchRect
@@ -121,6 +122,8 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
             button {
                 font = pixelFont
                 text = "I am a button! woot"
+                background = ninepatch.toDrawable()
+                backgroundColor = Color.DARK_GRAY
                 marginLeft = 10f
                 marginTop = 10f
                 onPressed += {
