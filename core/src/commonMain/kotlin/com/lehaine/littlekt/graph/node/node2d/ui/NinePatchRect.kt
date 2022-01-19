@@ -22,6 +22,7 @@ inline fun SceneGraph.ninePatchRect(callback: @SceneGraphDslMarker NinePatchRect
     root.ninePatchRect(callback)
 
 /**
+ * Creates a [Control] that uses and renders a [NinePatch].
  * @author Colton Daily
  * @date 1/18/2022
  */
@@ -42,7 +43,6 @@ open class NinePatchRect : Control() {
 
         minSizeInvalid = false
     }
-
 
     override fun render(batch: SpriteBatch, camera: Camera) {
         ninePatch.draw(

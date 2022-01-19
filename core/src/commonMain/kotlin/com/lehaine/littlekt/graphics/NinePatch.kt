@@ -9,7 +9,9 @@ import com.lehaine.littlekt.util.datastructure.FloatArrayList
 import kotlin.math.max
 
 /**
- * Creates a ninepatch by slicing up the [TextureSlice] into nine patches.
+ * Creates a ninepatch by slicing up the [TextureSlice] into nine patches which produces clean panels of any size,
+ * based on a small texture by splitting it into a 3x3 grid. The drawn, the texture tiles the textures sides horizontally
+ * or vertically and the center on both axes but doesn't scale or tile the corners.
  * @param slice the slice to convert into a nine patch
  * @param left amount of pixels from the left edge
  * @param right amount of pixels from the right edge
