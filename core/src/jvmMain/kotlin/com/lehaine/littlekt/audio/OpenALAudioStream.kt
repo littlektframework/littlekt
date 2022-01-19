@@ -13,7 +13,7 @@ import java.nio.IntBuffer
 class OpenALAudioStream(
     private val context: OpenALAudioContext,
     private val read: (ByteArray) -> Int,
-    private val reset: () -> Unit,
+    private val reset: suspend () -> Unit,
     val channels: Int,
     val sampleRate: Int
 ) : AudioStream {
@@ -27,6 +27,7 @@ class OpenALAudioStream(
     private val maxSecondsToBuffer = (BUFFER_SIZE.toFloat() / (BYTES_PER_SAMPLE * channels * sampleRate)).seconds
     private val format = if (channels > 1) AL_FORMAT_STEREO16 else AL_FORMAT_MONO16
     private var buffers: IntBuffer? = null
+    private var needsReset = false
 
     override var looping = false
 
@@ -49,15 +50,18 @@ class OpenALAudioStream(
             return isPlaying
         }
 
-
     init {
         if (NO_DEVICE) {
             logger.error { "Unable to retrieve audio device!" }
         }
     }
 
-    override fun play(volume: Float, loop: Boolean) = withDevice {
+    override suspend fun play(volume: Float, loop: Boolean) = withDevice {
         if (sourceID == -1) {
+            if (needsReset) {
+                reset()
+                needsReset = false
+            }
             sourceID = context.obtainSource()
             if (sourceID == -1) return@withDevice
 
@@ -76,7 +80,7 @@ class OpenALAudioStream(
             alSourcei(sourceID, AL_LOOPING, AL_FALSE)
 
             this.volume = volume
-            this.looping = looping
+            this.looping = loop
             alSourcef(sourceID, AL_GAIN, volume)
 
             alGetError()
@@ -102,11 +106,11 @@ class OpenALAudioStream(
 
     override fun stop() = withDevice {
         if (sourceID == -1) return@withDevice
+        needsReset = true
         context.audioStreams -= this
-        reset()
 
-        alSourceStop(sourceID);
-        alSourcei(sourceID, AL_BUFFER, 0);
+        alSourceStop(sourceID)
+        alSourcei(sourceID, AL_BUFFER, 0)
 
         sourceID = -1
         isPlaying = false
@@ -127,14 +131,21 @@ class OpenALAudioStream(
     }
 
     override fun dispose() = withDevice {
-        stop()
+        if (sourceID != -1) {
+            context.audioStreams -= this
+            alSourceStop(sourceID)
+            alSourcei(sourceID, AL_BUFFER, 0)
+
+            sourceID = -1
+            isPlaying = false
+        }
         buffers?.let {
             alDeleteBuffers(it)
         } ?: return@withDevice
         buffers = null
     }
 
-    fun update() = withDevice {
+    suspend fun update() = withDevice {
         if (sourceID == -1) return@withDevice
         var end = false
         var buffers = alGetSourcei(sourceID, AL_BUFFERS_PROCESSED)
@@ -158,7 +169,7 @@ class OpenALAudioStream(
         }
     }
 
-    private fun fill(bufferID: Int): Boolean {
+    private suspend fun fill(bufferID: Int): Boolean {
         tempBuffer.clear()
         var length = read(tempBytes)
         if (length <= 0) {

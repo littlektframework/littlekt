@@ -18,6 +18,7 @@ import com.lehaine.littlekt.input.InputMultiplexer
 import com.lehaine.littlekt.input.Key
 import com.lehaine.littlekt.log.Logger
 import com.lehaine.littlekt.util.viewport.ExtendViewport
+import kotlinx.coroutines.delay
 
 /**
  * @author Colton Daily
@@ -131,8 +132,19 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
             }
         }.also { it.initialize() }
 
-        val music = resourcesVfs["music.mp3"].readAudioStream()
-        //music.play()
+        val music = resourcesVfs["music_short.mp3"].readAudioStream()
+        music.play(0.05f, true)
+
+        launch {
+            delay(2500)
+            music.pause()
+            delay(2500)
+            music.resume()
+            delay(1000)
+            music.stop()
+            delay(2000)
+            music.play(0.05f, true)
+        }
 
         boss.playLooped(bossAttack)
         boss.x = 450f

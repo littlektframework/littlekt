@@ -1,6 +1,7 @@
 package com.lehaine.littlekt.audio
 
 import com.lehaine.littlekt.Disposable
+import com.lehaine.littlekt.util.fastForEach
 import org.lwjgl.openal.*
 import java.nio.ByteBuffer
 import java.nio.IntBuffer
@@ -42,9 +43,9 @@ class OpenALAudioContext : Disposable {
         result
     }
 
-    fun update() {
+    suspend fun update() {
         if (NO_DEVICE) return
-        audioStreams.forEach { it.update() }
+        audioStreams.fastForEach { it.update() }
     }
 
     fun obtainSource(): Int {
