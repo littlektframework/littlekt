@@ -1,7 +1,6 @@
 package com.lehaine.littlekt.graphics
 
 import com.lehaine.littlekt.math.geom.Angle
-import com.lehaine.littlekt.math.geom.plus
 import com.lehaine.littlekt.math.geom.radians
 import com.lehaine.littlekt.util.fastForEach
 import com.lehaine.littlekt.util.internal.now

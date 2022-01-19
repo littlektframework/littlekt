@@ -5,9 +5,9 @@ import com.lehaine.littlekt.file.vfs.readAtlas
 import com.lehaine.littlekt.file.vfs.readAudioStream
 import com.lehaine.littlekt.file.vfs.readBitmapFont
 import com.lehaine.littlekt.file.vfs.readTexture
-import com.lehaine.littlekt.graph.node.component.AnchorLayout
+import com.lehaine.littlekt.graph.node.node2d.Node2D
 import com.lehaine.littlekt.graph.node.node2d.ui.button
-import com.lehaine.littlekt.graph.node.node2d.ui.paddedContainer
+import com.lehaine.littlekt.graph.node.node2d.ui.ninePatchRect
 import com.lehaine.littlekt.graph.sceneGraph
 import com.lehaine.littlekt.graphics.*
 import com.lehaine.littlekt.graphics.shader.shaders.SimpleColorFragmentShader
@@ -17,7 +17,6 @@ import com.lehaine.littlekt.input.GameButton
 import com.lehaine.littlekt.input.InputMultiplexer
 import com.lehaine.littlekt.input.Key
 import com.lehaine.littlekt.log.Logger
-import com.lehaine.littlekt.util.viewport.ExtendViewport
 import kotlinx.coroutines.delay
 
 /**
@@ -115,20 +114,26 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
         val bossAttack = atlas.getAnimation("bossAttack")
         val boss = AnimatedSprite(bossAttack.firstFrame)
         val pixelFont = resourcesVfs["m5x7_16.fnt"].readBitmapFont()
+        val ninepatchImg = resourcesVfs["bg_9.png"].readTexture()
+        val ninepatch = NinePatch(ninepatchImg, 3, 3, 3, 4)
 
-        val scene = sceneGraph(context) {
-            paddedContainer {
-                padding = 10f
-                anchor(AnchorLayout.TOP_LEFT)
-                debugColor = Color.RED
-
-                button {
-                    font = pixelFont
-                    text = "I am a button! woot"
-                    onPressed += {
-                        logger.info { "You pressed me!! I am at ${globalX},${globalY}" }
-                    }
+        val scene = sceneGraph(context, batch = batch) {
+            button {
+                font = pixelFont
+                text = "I am a button! woot"
+                marginLeft = 10f
+                marginTop = 10f
+                onPressed += {
+                    logger.info { "You pressed me!! I am at ${globalX},${globalY}" }
                 }
+            }
+
+            ninePatchRect {
+                ninePatch = ninepatch
+                marginLeft = 250f
+                marginTop = 10f
+                minWidth = 200f
+                minHeight = 50f
             }
         }.also { it.initialize() }
 
@@ -194,6 +199,7 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
                 it.draw(Textures.green, 260f, 400f, scaleX = 5f, scaleY = 5f)
                 it.draw(Textures.blue, 280f, 400f, scaleX = 5f, scaleY = 5f)
                 it.draw(Textures.black, 300f, 400f, scaleX = 5f, scaleY = 5f)
+                ninepatch.draw(it, 200f, 200f, 25f, 20f, scaleX = 5f, scaleY = 5f)
             }
 
             scene.update(dt)
@@ -221,5 +227,19 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
             shader.dispose()
             batch.dispose()
         }
+    }
+}
+
+private class TextureNode(val slice: TextureSlice) : Node2D() {
+
+    override fun render(batch: SpriteBatch, camera: Camera) {
+        batch.draw(
+            slice,
+            globalX,
+            globalY,
+            scaleX = globalScaleX,
+            scaleY = globalScaleY,
+            rotation = globalRotation
+        )
     }
 }

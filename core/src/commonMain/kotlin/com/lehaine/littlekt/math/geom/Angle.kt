@@ -59,6 +59,19 @@ internal fun Angle_between(x0: Float, y0: Float, x1: Float, y1: Float): Angle {
 value class Angle(val radians: Float) : Comparable<Angle> {
     override fun toString(): String = "$degrees.degrees"
 
+    operator fun times(scale: Float): Angle = Angle(this.radians * scale)
+    operator fun div(scale: Float): Angle = Angle(this.radians / scale)
+    operator fun times(scale: Double): Angle = this * scale.toFloat()
+    operator fun div(scale: Double): Angle = this / scale.toFloat()
+    operator fun times(scale: Int): Angle = this * scale.toFloat()
+    operator fun div(scale: Int): Angle = this / scale.toFloat()
+
+    operator fun div(other: Angle): Float = this.radians / other.radians // Ratio
+    operator fun plus(other: Angle): Angle = Angle(this.radians + other.radians)
+    operator fun minus(other: Angle): Angle = Angle(this.radians - other.radians)
+    operator fun unaryMinus(): Angle = Angle(-radians)
+    operator fun unaryPlus(): Angle = Angle(+radians)
+
     @Suppress("MemberVisibilityCanBePrivate")
     companion object {
         inline val ZERO get() = Angle(0f)
@@ -112,25 +125,6 @@ val Angle.degrees get() = Angle.radiansToDegrees(radians)
 val Angle.absoluteValue: Angle get() = Angle.fromRadians(radians.absoluteValue)
 fun Angle.shortDistanceTo(other: Angle): Angle = Angle.shortDistanceTo(this, other)
 fun Angle.longDistanceTo(other: Angle): Angle = Angle.longDistanceTo(this, other)
-
-operator fun Angle.times(scale: Float): Angle = Angle(this.radians * scale)
-operator fun Angle.div(scale: Float): Angle = Angle(this.radians / scale)
-operator fun Angle.times(scale: Double): Angle = this * scale.toFloat()
-operator fun Angle.div(scale: Double): Angle = this / scale.toFloat()
-operator fun Angle.times(scale: Int): Angle = this * scale.toFloat()
-operator fun Angle.div(scale: Int): Angle = this / scale.toFloat()
-
-operator fun Angle.div(other: Angle): Float = this.radians / other.radians // Ratio
-operator fun Angle.plus(other: Angle): Angle = Angle(this.radians + other.radians)
-operator fun Angle.minus(other: Angle): Angle = Angle(this.radians - other.radians)
-operator fun Angle.unaryMinus(): Angle = Angle(-radians)
-operator fun Angle.unaryPlus(): Angle = Angle(+radians)
-operator fun Angle.compareTo(other: Angle): Int = this.radians.compareTo(other.radians)
-operator fun ClosedRange<Angle>.contains(angle: Angle): Boolean =
-    angle.inBetween(this.start, this.endInclusive, inclusive = true)
-
-operator fun OpenRange<Angle>.contains(angle: Angle): Boolean =
-    angle.inBetween(this.start, this.endExclusive, inclusive = false)
 
 infix fun Angle.until(other: Angle) = OpenRange(this, other)
 

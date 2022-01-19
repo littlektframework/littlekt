@@ -9,7 +9,6 @@ import com.lehaine.littlekt.math.Mat4
 import com.lehaine.littlekt.math.MutableVec2f
 import com.lehaine.littlekt.math.Vec2f
 import com.lehaine.littlekt.math.geom.Angle
-import com.lehaine.littlekt.math.geom.plus
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
@@ -207,6 +206,7 @@ open class Node2D : Node() {
             return _localScale.x
         }
         set(value) {
+            if(_localScale.x == value) return
             _localScale.x = value
             updateLocalScale()
         }
@@ -216,6 +216,7 @@ open class Node2D : Node() {
             return _localScale.y
         }
         set(value) {
+            if(_localScale.y == value) return
             _localScale.y = value
             updateLocalScale()
         }
@@ -355,7 +356,7 @@ open class Node2D : Node() {
         return this
     }
 
-    protected fun updateLocalPosition() {
+    private fun updateLocalPosition() {
         onPositionChanged()
         _localDirty = true
         _globalPositionDirty = true
