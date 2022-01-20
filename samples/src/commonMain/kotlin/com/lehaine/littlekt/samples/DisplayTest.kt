@@ -5,11 +5,10 @@ import com.lehaine.littlekt.file.vfs.readAtlas
 import com.lehaine.littlekt.file.vfs.readAudioStream
 import com.lehaine.littlekt.file.vfs.readBitmapFont
 import com.lehaine.littlekt.file.vfs.readTexture
+import com.lehaine.littlekt.graph.node.component.HAlign
+import com.lehaine.littlekt.graph.node.component.VAlign
 import com.lehaine.littlekt.graph.node.node2d.Node2D
-import com.lehaine.littlekt.graph.node.node2d.ui.button
-import com.lehaine.littlekt.graph.node.node2d.ui.label
-import com.lehaine.littlekt.graph.node.node2d.ui.ninePatchRect
-import com.lehaine.littlekt.graph.node.node2d.ui.paddedContainer
+import com.lehaine.littlekt.graph.node.node2d.ui.*
 import com.lehaine.littlekt.graph.sceneGraph
 import com.lehaine.littlekt.graphics.*
 import com.lehaine.littlekt.graphics.font.BitmapFontCache
@@ -20,7 +19,6 @@ import com.lehaine.littlekt.input.GameButton
 import com.lehaine.littlekt.input.InputMultiplexer
 import com.lehaine.littlekt.input.Key
 import com.lehaine.littlekt.log.Logger
-import kotlinx.coroutines.delay
 
 /**
  * @author Colton Daily
@@ -124,7 +122,7 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
         val ninepatchImg = resourcesVfs["bg_9.png"].readTexture()
         val ninepatch = NinePatch(ninepatchImg, 3, 3, 3, 4)
         val secondNinePatch = NinePatch(
-            Textures.atlas.getByPrefix("grey_button_up").slice,
+            Textures.atlas.getByPrefix("grey_button").slice,
             4,
             4,
             8,
@@ -134,10 +132,32 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
         val scene = sceneGraph(context, batch = batch) {
             paddedContainer {
                 padding(10)
-                button {
-                    text = "I am a button! woot"
-                    onPressed += {
-                        logger.info { "You pressed me!! I am at ${globalX},${globalY}" }
+                vBoxContainer {
+                    separation = 20
+                    button {
+                        text = "Center Center"
+                        minHeight = 50f
+                        onPressed += {
+                            logger.info { "You pressed me!! I am at ${globalX},${globalY}" }
+                        }
+                    }
+                    button {
+                        text = "Bottom Right"
+                        horizontalAlign = HAlign.RIGHT
+                        verticalAlign = VAlign.BOTTOM
+                        minHeight = 50f
+                        onPressed += {
+                            logger.info { "You pressed me!! I am at ${globalX},${globalY}" }
+                        }
+                    }
+                    button {
+                        text = "Top Left"
+                        horizontalAlign = HAlign.LEFT
+                        verticalAlign = VAlign.TOP
+                        minHeight = 50f
+                        onPressed += {
+                            logger.info { "You pressed me!! I am at ${globalX},${globalY}" }
+                        }
                     }
                 }
             }
@@ -158,18 +178,18 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
         }.also { it.initialize() }
 
         val music = resourcesVfs["music_short.mp3"].readAudioStream()
-        music.play(0.05f, true)
-
-        launch {
-            delay(2500)
-            music.pause()
-            delay(2500)
-            music.resume()
-            delay(1000)
-            music.stop()
-            delay(2000)
-            music.play(0.05f, true)
-        }
+//        music.play(0.05f, true)
+//
+//        launch {
+//            delay(2500)
+//            music.pause()
+//            delay(2500)
+//            music.resume()
+//            delay(1000)
+//            music.stop()
+//            delay(2000)
+//            music.play(0.05f, true)
+//        }
 
         boss.playLooped(bossAttack)
         boss.x = 450f
@@ -205,18 +225,18 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
             camera.update()
             boss.update(dt)
             batch.use(camera.viewProjection) {
-//                it.draw(person, x, y, scaleX = 10f, scaleY = 10f)
-//                slices.forEachIndexed { rowIdx, row ->
-//                    row.forEachIndexed { colIdx, slice ->
-//                        it.draw(slice, 150f * (rowIdx * row.size + colIdx) + 50f, 50f, scaleX = 10f, scaleY = 10f)
-//                    }
-//                }
-//                boss.render(it)
-//                it.draw(Textures.white, 200f, 400f, scaleX = 5f, scaleY = 5f)
-//                ninepatch.draw(it, 200f, 200f, 25f, 20f, scaleX = 5f, scaleY = 5f)
-//                secondNinePatch.draw(it, 400f, 250f, 50f, 50f, scaleX = 3f, scaleY = 3f)
-//                cache.draw(it)
-//                it.draw(Textures.atlas.getByPrefix("grey_button_up").slice, 250f, 400f)
+                it.draw(person, x, y, scaleX = 10f, scaleY = 10f)
+                slices.forEachIndexed { rowIdx, row ->
+                    row.forEachIndexed { colIdx, slice ->
+                        it.draw(slice, 150f * (rowIdx * row.size + colIdx) + 50f, 50f, scaleX = 10f, scaleY = 10f)
+                    }
+                }
+                boss.render(it)
+                it.draw(Textures.white, 200f, 400f, scaleX = 5f, scaleY = 5f)
+                ninepatch.draw(it, 200f, 200f, 25f, 20f, scaleX = 5f, scaleY = 5f)
+                secondNinePatch.draw(it, 400f, 250f, 50f, 50f, scaleX = 3f, scaleY = 3f)
+                cache.draw(it)
+                it.draw(Textures.atlas.getByPrefix("grey_button").slice, 250f, 400f)
                 secondNinePatch.draw(it, 250f, 250f, 200f, 50f)
             }
 

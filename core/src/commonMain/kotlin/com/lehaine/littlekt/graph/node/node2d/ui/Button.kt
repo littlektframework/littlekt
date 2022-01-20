@@ -18,6 +18,7 @@ import com.lehaine.littlekt.graphics.font.GlyphLayout
 import com.lehaine.littlekt.math.MutableVec2f
 import com.lehaine.littlekt.math.Vec2f
 import com.lehaine.littlekt.math.geom.Angle
+import com.lehaine.littlekt.util.internal.isFlagSet
 import kotlin.math.max
 
 /**
@@ -221,27 +222,25 @@ open class Button : BaseButton() {
         }
     }
 
+    override fun onHierarchyChanged(flag: Int) {
+        if (flag.isFlagSet(SIZE_DIRTY)) {
+            layout()
+        }
+    }
 
     override fun calculateMinSize() {
         if (!minSizeInvalid) return
 
-        if (textDirty) {
-            layout()
-            textDirty = false
-        }
-
         val text = if (uppercase) text.uppercase() else text
         minSizeLayout.setText(font, text, scaleX = fontScaleX, scaleY = fontScaleY, wrap = wrap)
-        val styleBox = getThemeDrawable(themeVars.normal)
-        _internalMinWidth = minSizeLayout.width + padding + styleBox.minWidth
-        _internalMinHeight = minSizeLayout.height + padding + styleBox.minHeight
+        val drawable = getThemeDrawable(themeVars.normal)
+        _internalMinWidth = max(minSizeLayout.width, drawable.minWidth) + padding * 2f
+        _internalMinHeight = max(minSizeLayout.height, drawable.minHeight) + padding * 2f
 
         minSizeInvalid = false
     }
 
     private fun layout() {
-        val font = font ?: return
-        val cache = cache ?: return
         val text = if (uppercase) text.uppercase() else text
 
         var ty = 0f
@@ -259,18 +258,23 @@ open class Button : BaseButton() {
             wrap,
             ellipsis
         )
-        val textWidth: Float = layout.width + padding * 2f
+        val textWidth: Float = max(layout.width, width)
+        val textHeight: Float = if (wrap || text.contains("\n")) layout.height else font.capHeight
 
         when (verticalAlign) {
             VAlign.TOP -> {
                 ty += font.metrics.descent
+                ty += padding
             }
             VAlign.BOTTOM -> {
                 ty += height
-                ty -= font.metrics.descent
+                ty -= textHeight
+                ty -= padding
+                ty += font.metrics.descent
             }
             else -> {
-                ty += (height) / 2
+                ty += height / 2
+                ty -= textHeight
             }
         }
 
@@ -285,6 +289,6 @@ open class Button : BaseButton() {
             wrap,
             ellipsis
         )
-        cache.setText(layout, 0f, ty, fontScaleX, fontScaleY)
+        cache.setText(layout, padding, ty, fontScaleX, fontScaleY)
     }
 }

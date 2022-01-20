@@ -17,6 +17,7 @@ import com.lehaine.littlekt.graphics.font.GlyphLayout
 import com.lehaine.littlekt.math.MutableVec2f
 import com.lehaine.littlekt.math.Vec2f
 import com.lehaine.littlekt.math.geom.Angle
+import com.lehaine.littlekt.util.internal.isFlagSet
 
 /**
  * Adds a [Label] to the current [Node] as a child and then triggers the [callback]
@@ -157,7 +158,7 @@ open class Label : Control() {
         }
 
     override fun render(batch: SpriteBatch, camera: Camera) {
-        cache?.let {
+        cache.let {
             tempColor.set(color).mul(fontColor)
             it.tint(tempColor)
             if (globalRotation != Angle.ZERO || globalScaleX != 1f || globalScaleY != 1f) {
@@ -172,9 +173,14 @@ open class Label : Control() {
         }
     }
 
+    override fun onHierarchyChanged(flag: Int) {
+        if (flag.isFlagSet(SIZE_DIRTY)) {
+            layout()
+        }
+    }
+
     override fun calculateMinSize() {
         if (!minSizeInvalid) return
-        val font = font ?: return
 
         if (textDirty) {
             layout()
@@ -189,12 +195,11 @@ open class Label : Control() {
     }
 
     private fun layout() {
-        val font = font ?: return
-        val cache = cache ?: return
         val text = if (uppercase) text.uppercase() else text
 
         var ty = 0f
         val textWidth: Float
+        val textHeight: Float
 
         if (wrap || text.contains("\n")) {
             layout.setText(
@@ -209,8 +214,10 @@ open class Label : Control() {
                 ellipsis
             )
             textWidth = layout.width
+            textHeight = layout.height
         } else {
             textWidth = width
+            textHeight = font.capHeight
         }
 
         when (verticalAlign) {
@@ -219,10 +226,12 @@ open class Label : Control() {
             }
             VAlign.BOTTOM -> {
                 ty += height
-                ty -= font.metrics.descent
+                ty -= textHeight
+                ty -= font.metrics.ascent
             }
             else -> {
-                ty += (height) / 2
+                ty += height / 2
+                ty -= textHeight
             }
         }
 
