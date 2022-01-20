@@ -715,7 +715,7 @@ open class Control : Node2D() {
                 null
             }
         }
-        return Theme.defaultTheme.drawables[type]?.get(name) ?: error("Unable to find theme style of '$name'")
+        return Theme.defaultTheme.drawables[type]?.get(name) ?: Theme.FALLBACK_DRAWABLE
     }
 
     fun getThemeColor(name: String, type: String = this::class.simpleName ?: ""): Color {
@@ -729,7 +729,7 @@ open class Control : Node2D() {
                 null
             }
         }
-        return Theme.defaultTheme.colors[type]?.get(name) ?: error("Unable to find theme color of '$name'")
+        return Theme.defaultTheme.colors[type]?.get(name) ?: Color.WHITE
     }
 
     fun getThemeFont(name: String, type: String = this::class.simpleName ?: ""): BitmapFont {
@@ -743,7 +743,7 @@ open class Control : Node2D() {
                 null
             }
         }
-        return Theme.defaultTheme.fonts[type]?.get(name) ?: error("Unable to find theme font of '$name'")
+        return Theme.defaultTheme.fonts[type]?.get(name) ?: Theme.defaultTheme.defaultFont ?: Theme.FALLBACK_FONT
     }
 
     fun getThemeConstant(name: String, type: String = this::class.simpleName ?: ""): Int {
@@ -757,7 +757,7 @@ open class Control : Node2D() {
                 null
             }
         }
-        return Theme.defaultTheme.constants[type]?.get(name) ?: error("Unable to find theme constant of '$name'")
+        return Theme.defaultTheme.constants[type]?.get(name) ?: 0
     }
 }
 

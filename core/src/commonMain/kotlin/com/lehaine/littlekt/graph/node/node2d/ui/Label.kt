@@ -40,7 +40,7 @@ open class Label : Control() {
         private val minSizeLayout = GlyphLayout()
     }
 
-    private var cache: BitmapFontCache? = null
+    private var cache: BitmapFontCache = BitmapFontCache(font)
     private val layout = GlyphLayout()
 
     private var _fontScale = MutableVec2f(1f)
@@ -91,17 +91,17 @@ open class Label : Control() {
             onMinimumSizeChanged()
         }
 
-    var fontColor = Color.WHITE
-
-    var font: BitmapFont?
-        get() = cache?.font
+    var fontColor: Color
+        get() = getThemeColor("fontColor")
         set(value) {
-            cache = if (value == null) {
-                cache?.font?.dispose()
-                null
-            } else {
-                BitmapFontCache(value)
-            }
+            colorsOverride["fontColor"] = value
+        }
+
+    var font: BitmapFont
+        get() = getThemeFont("font")
+        set(value) {
+            fontsOverride["font"] = value
+            cache = BitmapFontCache(value)
         }
 
     var verticalAlign: VAlign = VAlign.TOP
@@ -184,7 +184,6 @@ open class Label : Control() {
 
         var ty = 0f
         val textWidth: Float
-        val textHeight: Float
 
         if (wrap || text.contains("\n")) {
             layout.setText(
@@ -199,10 +198,8 @@ open class Label : Control() {
                 ellipsis
             )
             textWidth = layout.width
-            textHeight = layout.height
         } else {
             textWidth = width
-            textHeight = font.metrics.capHeight
         }
 
         when (verticalAlign) {
@@ -215,7 +212,6 @@ open class Label : Control() {
             }
             else -> {
                 ty += (height) / 2
-                //ty += textHeight
             }
         }
 

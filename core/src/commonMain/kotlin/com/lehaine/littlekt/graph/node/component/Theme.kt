@@ -37,13 +37,13 @@ class Theme(
      *
      * constants["Button"]["MyVar"]
      */
-    val constants: Map<String, Map<String, Int>> = mapOf()
+    val constants: Map<String, Map<String, Int>> = mapOf(),
+    val defaultFont: BitmapFont? = null,
 ) {
 
-
     companion object {
-        const val DEFAULT_BASE_SCALE = 1f
-        const val DEFAULT_FONT_SIZE = 16
+        val FALLBACK_DRAWABLE = TextureSliceDrawable(Textures.white)
+        val FALLBACK_FONT = Fonts.default
 
         var defaultTheme = Theme(
             drawables = mapOf(
@@ -56,7 +56,7 @@ class Theme(
                             8,
                             4
                         )
-                    ),
+                    ).apply { modulate = Color.LIGHT_BLUE },
                     "pressed" to NinePatchDrawable(
                         NinePatch(
                             Textures.atlas.getByPrefix("grey_button_down").slice,
@@ -65,7 +65,7 @@ class Theme(
                             4,
                             4
                         )
-                    ).apply { modulate = Color.WHITE.toMutableColor().also { it.scale(0.6f) } },
+                    ).apply { modulate = Color.LIGHT_BLUE.toMutableColor().also { it.scale(0.6f) } },
                     "hover" to NinePatchDrawable(
                         NinePatch(
                             Textures.atlas.getByPrefix("grey_button_up").slice,
@@ -74,7 +74,7 @@ class Theme(
                             8,
                             4
                         )
-                    ).apply { modulate = Color.WHITE.toMutableColor().also { it.scale(0.8f) } },
+                    ).apply { modulate = Color.LIGHT_BLUE.toMutableColor().also { it.scale(0.8f) } },
                     "disabled" to NinePatchDrawable(
                         NinePatch(
                             Textures.atlas.getByPrefix("grey_button_up").slice,
@@ -83,11 +83,13 @@ class Theme(
                             8,
                             4
                         )
-                    ).apply { modulate = Color.WHITE.toMutableColor().also { it.lighten(0.5f) } },
+                    ).apply { modulate = Color.LIGHT_BLUE.toMutableColor().also { it.lighten(0.5f) } },
                 )
             ),
-            fonts = mapOf("Button" to mapOf("font" to Fonts.default)),
-            colors = mapOf("Button" to mapOf("fontColor" to Color.BLACK))
+            colors = mapOf(
+                "Button" to mapOf("fontColor" to Color.WHITE),
+                "Label" to mapOf("fontColor" to Color.WHITE)
+            )
         )
     }
 }

@@ -7,6 +7,7 @@ import com.lehaine.littlekt.file.vfs.readBitmapFont
 import com.lehaine.littlekt.file.vfs.readTexture
 import com.lehaine.littlekt.graph.node.node2d.Node2D
 import com.lehaine.littlekt.graph.node.node2d.ui.button
+import com.lehaine.littlekt.graph.node.node2d.ui.label
 import com.lehaine.littlekt.graph.node.node2d.ui.ninePatchRect
 import com.lehaine.littlekt.graph.sceneGraph
 import com.lehaine.littlekt.graphics.*
@@ -139,6 +140,12 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
                 }
             }
 
+            label {
+                text = "I am a label!"
+                marginLeft = 150f
+                marginTop = 350f
+            }
+
             ninePatchRect {
                 ninePatch = ninepatch
                 marginLeft = 250f
@@ -196,18 +203,18 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
             camera.update()
             boss.update(dt)
             batch.use(camera.viewProjection) {
-                it.draw(person, x, y, scaleX = 10f, scaleY = 10f)
-                slices.forEachIndexed { rowIdx, row ->
-                    row.forEachIndexed { colIdx, slice ->
-                        it.draw(slice, 150f * (rowIdx * row.size + colIdx) + 50f, 50f, scaleX = 10f, scaleY = 10f)
-                    }
-                }
-                boss.render(it)
-                it.draw(Textures.white, 200f, 400f, scaleX = 5f, scaleY = 5f)
-                ninepatch.draw(it, 200f, 200f, 25f, 20f, scaleX = 5f, scaleY = 5f)
-                secondNinePatch.draw(it, 400f, 250f, 50f, 50f, scaleX = 3f, scaleY = 3f)
-                cache.draw(it)
-                it.draw(Textures.atlas.getByPrefix("grey_button_up").slice, 250f, 400f)
+//                it.draw(person, x, y, scaleX = 10f, scaleY = 10f)
+//                slices.forEachIndexed { rowIdx, row ->
+//                    row.forEachIndexed { colIdx, slice ->
+//                        it.draw(slice, 150f * (rowIdx * row.size + colIdx) + 50f, 50f, scaleX = 10f, scaleY = 10f)
+//                    }
+//                }
+//                boss.render(it)
+//                it.draw(Textures.white, 200f, 400f, scaleX = 5f, scaleY = 5f)
+//                ninepatch.draw(it, 200f, 200f, 25f, 20f, scaleX = 5f, scaleY = 5f)
+//                secondNinePatch.draw(it, 400f, 250f, 50f, 50f, scaleX = 3f, scaleY = 3f)
+//                cache.draw(it)
+//                it.draw(Textures.atlas.getByPrefix("grey_button_up").slice, 250f, 400f)
             }
 
             scene.update(dt)
