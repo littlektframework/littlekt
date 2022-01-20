@@ -13,7 +13,11 @@ import com.lehaine.littlekt.graph.node.component.SizeFlag
 abstract class BoxContainer : Container() {
     protected var vertical: Boolean = false
 
-    var separation: Int = 1
+    var separation: Int
+        get() = getThemeConstant("separation")
+        set(value) {
+            constantsOverride["separation"] = value
+        }
     var align: AlignMode = AlignMode.BEGIN
 
     override fun calculateMinSize() {
