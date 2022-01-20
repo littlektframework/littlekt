@@ -25,16 +25,18 @@ inline fun SceneGraph.hBoxContainer(callback: @SceneGraphDslMarker HBoxContainer
  */
 open class HBoxContainer : BoxContainer() {
 
+    class ThemeVars {
+        val separation = BoxContainer.themeVars.separation
+    }
+
     init {
         vertical = false
     }
 
     companion object {
         /**
-         * [Theme] related variable names when setting theme values for a [Button]
+         * [Theme] related variable names when setting theme values for a [HBoxContainer]
          */
-        object ThemeVars {
-            val SEPARATION get() = BoxContainer.Companion.ThemeVars.SEPARATION
-        }
+        val themeVars = ThemeVars()
     }
 }

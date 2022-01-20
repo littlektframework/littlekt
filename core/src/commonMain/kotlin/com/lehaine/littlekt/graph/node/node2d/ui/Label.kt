@@ -5,8 +5,8 @@ import com.lehaine.littlekt.graph.node.Node
 import com.lehaine.littlekt.graph.node.addTo
 import com.lehaine.littlekt.graph.node.annotation.SceneGraphDslMarker
 import com.lehaine.littlekt.graph.node.component.HAlign
-import com.lehaine.littlekt.graph.node.component.VAlign
 import com.lehaine.littlekt.graph.node.component.Theme
+import com.lehaine.littlekt.graph.node.component.VAlign
 import com.lehaine.littlekt.graphics.Camera
 import com.lehaine.littlekt.graphics.Color
 import com.lehaine.littlekt.graphics.MutableColor
@@ -36,17 +36,19 @@ inline fun SceneGraph.label(callback: @SceneGraphDslMarker Label.() -> Unit = {}
  */
 open class Label : Control() {
 
+    class ThemeVars {
+        val fontColor = "fontColor"
+        val font = "font"
+    }
+
     companion object {
         private val tempColor = MutableColor()
         private val minSizeLayout = GlyphLayout()
 
         /**
-         * [Theme] related variable names when setting theme values for a [Button]
+         * [Theme] related variable names when setting theme values for a [Label]
          */
-        object ThemeVars {
-            const val FONT_COLOR = "fontColor"
-            const val FONT = "font"
-        }
+        val themeVars = ThemeVars()
     }
 
     private var cache: BitmapFontCache = BitmapFontCache(font)
@@ -101,15 +103,15 @@ open class Label : Control() {
         }
 
     var fontColor: Color
-        get() = getThemeColor(ThemeVars.FONT_COLOR)
+        get() = getThemeColor(themeVars.fontColor)
         set(value) {
-            colorsOverride[ThemeVars.FONT_COLOR] = value
+            colorsOverride[themeVars.fontColor] = value
         }
 
     var font: BitmapFont
-        get() = getThemeFont(ThemeVars.FONT)
+        get() = getThemeFont(themeVars.font)
         set(value) {
-            fontsOverride[ThemeVars.FONT] = value
+            fontsOverride[themeVars.font] = value
             cache = BitmapFontCache(value)
         }
 

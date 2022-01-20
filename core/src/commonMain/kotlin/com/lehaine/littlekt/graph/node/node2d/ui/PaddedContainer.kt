@@ -25,44 +25,46 @@ inline fun SceneGraph.paddedContainer(callback: @SceneGraphDslMarker PaddedConta
  */
 open class PaddedContainer : Container() {
 
+    class ThemeVars {
+        val paddingLeft = "paddingLeft"
+        val paddingRight = "paddingRight"
+        val paddingTop = "paddingTop"
+        val paddingBottom = "paddingBottom"
+    }
+
     companion object {
         /**
-         * [Theme] related variable names when setting theme values for a [Button]
+         * [Theme] related variable names when setting theme values for a [PaddedContainer]
          */
-        object ThemeVars {
-            const val PADDING_LEFT = "paddingLeft"
-            const val PADDING_RIGHT = "paddingRight"
-            const val PADDING_TOP = "paddingTop"
-            const val PADDING_BOTTOM = "paddingBottom"
-        }
+        val themeVars = ThemeVars()
     }
 
     var paddingLeft: Int = 0
-        get() = getThemeConstant(ThemeVars.PADDING_LEFT)
+        get() = getThemeConstant(themeVars.paddingLeft)
         set(value) {
             if (value == field) return
-            constantsOverride[ThemeVars.PADDING_LEFT] = value
+            constantsOverride[themeVars.paddingLeft] = value
             onMinimumSizeChanged()
         }
     var paddingRight: Int = 0
-        get() = getThemeConstant(ThemeVars.PADDING_RIGHT)
+        get() = getThemeConstant(themeVars.paddingRight)
         set(value) {
             if (value == field) return
-            constantsOverride[ThemeVars.PADDING_RIGHT] = value
+            constantsOverride[themeVars.paddingRight] = value
             onMinimumSizeChanged()
         }
     var paddingTop: Int = 0
-        get() = getThemeConstant(ThemeVars.PADDING_TOP)
+        get() = getThemeConstant(themeVars.paddingTop)
         set(value) {
             if (value == field) return
-            constantsOverride[ThemeVars.PADDING_TOP] = value
+            constantsOverride[themeVars.paddingTop] = value
             onMinimumSizeChanged()
         }
     var paddingBottom: Int = 0
-        get() = getThemeConstant(ThemeVars.PADDING_BOTTOM)
+        get() = getThemeConstant(themeVars.paddingBottom)
         set(value) {
             if (value == field) return
-            constantsOverride[ThemeVars.PADDING_BOTTOM] = value
+            constantsOverride[themeVars.paddingBottom] = value
             onMinimumSizeChanged()
         }
 

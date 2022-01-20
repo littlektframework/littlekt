@@ -31,16 +31,18 @@ inline fun SceneGraph.vBoxContainer(callback: @SceneGraphDslMarker VBoxContainer
  */
 open class VBoxContainer : BoxContainer() {
 
+    class ThemeVars {
+        val separation = BoxContainer.themeVars.separation
+    }
+
     init {
         vertical = true
     }
 
     companion object {
         /**
-         * [Theme] related variable names when setting theme values for a [Button]
+         * [Theme] related variable names when setting theme values for a [VBoxContainer]
          */
-        object ThemeVars {
-            val SEPARATION get() = BoxContainer.Companion.ThemeVars.SEPARATION
-        }
+        val themeVars = ThemeVars()
     }
 }

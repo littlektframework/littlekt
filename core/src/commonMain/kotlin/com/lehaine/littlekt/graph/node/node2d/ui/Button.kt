@@ -6,8 +6,8 @@ import com.lehaine.littlekt.graph.node.addTo
 import com.lehaine.littlekt.graph.node.annotation.SceneGraphDslMarker
 import com.lehaine.littlekt.graph.node.component.Drawable
 import com.lehaine.littlekt.graph.node.component.HAlign
-import com.lehaine.littlekt.graph.node.component.VAlign
 import com.lehaine.littlekt.graph.node.component.Theme
+import com.lehaine.littlekt.graph.node.component.VAlign
 import com.lehaine.littlekt.graphics.Camera
 import com.lehaine.littlekt.graphics.Color
 import com.lehaine.littlekt.graphics.MutableColor
@@ -38,6 +38,16 @@ inline fun SceneGraph.button(callback: @SceneGraphDslMarker Button.() -> Unit = 
  */
 open class Button : BaseButton() {
 
+    class ThemeVars {
+        val fontColor = "fontColor"
+        val font = "font"
+        val normal = "normal"
+        val pressed = "pressed"
+        val hover = "hover"
+        val hoverPressed = "hoverPressed"
+        val disabled = "disabled"
+    }
+
     companion object {
         private val tempColor = MutableColor()
         private val minSizeLayout = GlyphLayout()
@@ -45,15 +55,7 @@ open class Button : BaseButton() {
         /**
          * [Theme] related variable names when setting theme values for a [Button]
          */
-        object ThemeVars {
-            const val FONT_COLOR = "fontColor"
-            const val FONT = "font"
-            const val NORMAL = "normal"
-            const val PRESSED = "pressed"
-            const val HOVER = "hover"
-            const val HOVER_PRESSED = "hoverPressed"
-            const val DISABLED = "disabled"
-        }
+        val themeVars = ThemeVars()
     }
 
     private var cache: BitmapFontCache = BitmapFontCache(font)
@@ -115,15 +117,15 @@ open class Button : BaseButton() {
         }
 
     var fontColor: Color
-        get() = getThemeColor(ThemeVars.FONT_COLOR)
+        get() = getThemeColor(themeVars.fontColor)
         set(value) {
-            colorsOverride[ThemeVars.FONT_COLOR] = value
+            colorsOverride[themeVars.fontColor] = value
         }
 
     var font: BitmapFont
-        get() = getThemeFont(ThemeVars.FONT)
+        get() = getThemeFont(themeVars.font)
         set(value) {
-            fontsOverride[ThemeVars.FONT] = value
+            fontsOverride[themeVars.font] = value
             cache = BitmapFontCache(value)
         }
 
@@ -173,22 +175,22 @@ open class Button : BaseButton() {
         val drawable: Drawable
         when (drawMode) {
             DrawMode.NORMAL -> {
-                drawable = getThemeDrawable(ThemeVars.NORMAL)
+                drawable = getThemeDrawable(themeVars.normal)
             }
             DrawMode.PRESSED -> {
-                drawable = getThemeDrawable(ThemeVars.PRESSED)
+                drawable = getThemeDrawable(themeVars.pressed)
             }
             DrawMode.HOVER -> {
-                drawable = getThemeDrawable(ThemeVars.HOVER)
+                drawable = getThemeDrawable(themeVars.hover)
             }
             DrawMode.DISABLED -> {
-                drawable = getThemeDrawable(ThemeVars.DISABLED)
+                drawable = getThemeDrawable(themeVars.disabled)
             }
             DrawMode.HOVER_PRESSED -> {
-                drawable = if (hasThemeDrawable(ThemeVars.HOVER_PRESSED)) {
-                    getThemeDrawable(ThemeVars.HOVER_PRESSED)
+                drawable = if (hasThemeDrawable(themeVars.hoverPressed)) {
+                    getThemeDrawable(themeVars.hoverPressed)
                 } else {
-                    getThemeDrawable(ThemeVars.PRESSED)
+                    getThemeDrawable(themeVars.pressed)
                 }
             }
         }
@@ -230,7 +232,7 @@ open class Button : BaseButton() {
 
         val text = if (uppercase) text.uppercase() else text
         minSizeLayout.setText(font, text, scaleX = fontScaleX, scaleY = fontScaleY, wrap = wrap)
-        val styleBox = getThemeDrawable(ThemeVars.NORMAL)
+        val styleBox = getThemeDrawable(themeVars.normal)
         _internalMinWidth = minSizeLayout.width + padding + styleBox.minWidth
         _internalMinHeight = minSizeLayout.height + padding + styleBox.minHeight
 
@@ -244,7 +246,7 @@ open class Button : BaseButton() {
 
         var ty = 0f
 
-        val background = getThemeDrawable(ThemeVars.NORMAL)
+        val background = getThemeDrawable(themeVars.normal)
 
         layout.setText(
             font,

@@ -1,5 +1,7 @@
 package com.lehaine.littlekt.graph.node.component
 
+import com.lehaine.littlekt.graph.node.node2d.ui.Button
+import com.lehaine.littlekt.graph.node.node2d.ui.Label
 import com.lehaine.littlekt.graphics.Color
 import com.lehaine.littlekt.graphics.Fonts
 import com.lehaine.littlekt.graphics.NinePatch
@@ -48,7 +50,7 @@ class Theme(
         var defaultTheme = Theme(
             drawables = mapOf(
                 "Button" to mapOf(
-                    "normal" to NinePatchDrawable(
+                    Button.themeVars.normal to NinePatchDrawable(
                         NinePatch(
                             Textures.atlas.getByPrefix("grey_button_up").slice,
                             4,
@@ -57,7 +59,7 @@ class Theme(
                             4
                         )
                     ).apply { modulate = Color.LIGHT_BLUE },
-                    "pressed" to NinePatchDrawable(
+                    Button.themeVars.pressed to NinePatchDrawable(
                         NinePatch(
                             Textures.atlas.getByPrefix("grey_button_down").slice,
                             4,
@@ -66,7 +68,7 @@ class Theme(
                             4
                         )
                     ).apply { modulate = Color.LIGHT_BLUE.toMutableColor().also { it.scale(0.6f) } },
-                    "hover" to NinePatchDrawable(
+                    Button.themeVars.hover to NinePatchDrawable(
                         NinePatch(
                             Textures.atlas.getByPrefix("grey_button_up").slice,
                             4,
@@ -75,7 +77,7 @@ class Theme(
                             4
                         )
                     ).apply { modulate = Color.LIGHT_BLUE.toMutableColor().also { it.scale(0.8f) } },
-                    "disabled" to NinePatchDrawable(
+                    Button.themeVars.disabled to NinePatchDrawable(
                         NinePatch(
                             Textures.atlas.getByPrefix("grey_button_up").slice,
                             4,
@@ -87,8 +89,8 @@ class Theme(
                 )
             ),
             colors = mapOf(
-                "Button" to mapOf("fontColor" to Color.WHITE),
-                "Label" to mapOf("fontColor" to Color.WHITE)
+                "Button" to mapOf(Button.themeVars.fontColor to Color.WHITE),
+                "Label" to mapOf(Label.themeVars.fontColor to Color.WHITE)
             )
         )
     }

@@ -2,6 +2,7 @@ package com.lehaine.littlekt.graph.node.node2d.ui
 
 import com.lehaine.littlekt.graph.node.component.AlignMode
 import com.lehaine.littlekt.graph.node.component.SizeFlag
+import com.lehaine.littlekt.graph.node.component.Theme
 
 /**
  * A [Container] that handles both vertical and horizontal alignments of its children.
@@ -12,21 +13,23 @@ import com.lehaine.littlekt.graph.node.component.SizeFlag
  */
 abstract class BoxContainer : Container() {
 
+    class ThemeVars {
+        val separation = "separation"
+    }
+
     companion object {
         /**
-         * [Theme] related variable names when setting theme values for a [Button]
+         * [Theme] related variable names when setting theme values for a [BoxContainer]
          */
-        object ThemeVars {
-            const val SEPARATION = "separation"
-        }
+        val themeVars = ThemeVars()
     }
 
     protected var vertical: Boolean = false
 
     var separation: Int
-        get() = getThemeConstant(ThemeVars.SEPARATION)
+        get() = getThemeConstant(themeVars.separation)
         set(value) {
-            constantsOverride[ThemeVars.SEPARATION] = value
+            constantsOverride[themeVars.separation] = value
         }
     var align: AlignMode = AlignMode.BEGIN
 
