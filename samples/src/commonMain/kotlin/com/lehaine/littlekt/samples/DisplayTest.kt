@@ -217,6 +217,7 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
 //                secondNinePatch.draw(it, 400f, 250f, 50f, 50f, scaleX = 3f, scaleY = 3f)
 //                cache.draw(it)
 //                it.draw(Textures.atlas.getByPrefix("grey_button_up").slice, 250f, 400f)
+                secondNinePatch.draw(it, 250f, 250f, 200f, 50f)
             }
 
             scene.update(dt)

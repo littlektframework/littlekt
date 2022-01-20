@@ -20,7 +20,7 @@ open class TextureSlice(
         y: Int = 0,
         width: Int = slice.width,
         height: Int = slice.height
-    ) : this(slice.texture, x, y, width, height)
+    ) : this(slice.texture, x + slice.x, y + slice.y, width, height)
 
     private var _u = 0f
     private var _v = 0f
