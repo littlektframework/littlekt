@@ -5,7 +5,6 @@ import com.lehaine.littlekt.file.vfs.readAtlas
 import com.lehaine.littlekt.file.vfs.readAudioStream
 import com.lehaine.littlekt.file.vfs.readBitmapFont
 import com.lehaine.littlekt.file.vfs.readTexture
-import com.lehaine.littlekt.graph.node.component.toDrawable
 import com.lehaine.littlekt.graph.node.node2d.Node2D
 import com.lehaine.littlekt.graph.node.node2d.ui.button
 import com.lehaine.littlekt.graph.node.node2d.ui.ninePatchRect
@@ -122,13 +121,17 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
         }
         val ninepatchImg = resourcesVfs["bg_9.png"].readTexture()
         val ninepatch = NinePatch(ninepatchImg, 3, 3, 3, 4)
+        val secondNinePatch = NinePatch(
+            Textures.atlas.getByPrefix("grey_button_up").slice,
+            4,
+            4,
+            8,
+            4
+        )
 
         val scene = sceneGraph(context, batch = batch) {
             button {
-                font = pixelFont
                 text = "I am a button! woot"
-                background = ninepatch.toDrawable()
-                backgroundColor = Color.DARK_GRAY
                 marginLeft = 10f
                 marginTop = 10f
                 onPressed += {
@@ -200,15 +203,11 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
                     }
                 }
                 boss.render(it)
-                it.draw(Textures.default, 150f, 450f, scaleX = 5f, scaleY = 5f)
                 it.draw(Textures.white, 200f, 400f, scaleX = 5f, scaleY = 5f)
-                it.draw(Textures.transparent, 220f, 400f, scaleX = 5f, scaleY = 5f)
-                it.draw(Textures.red, 240f, 400f, scaleX = 5f, scaleY = 5f)
-                it.draw(Textures.green, 260f, 400f, scaleX = 5f, scaleY = 5f)
-                it.draw(Textures.blue, 280f, 400f, scaleX = 5f, scaleY = 5f)
-                it.draw(Textures.black, 300f, 400f, scaleX = 5f, scaleY = 5f)
                 ninepatch.draw(it, 200f, 200f, 25f, 20f, scaleX = 5f, scaleY = 5f)
+                secondNinePatch.draw(it, 400f, 250f, 50f, 50f, scaleX = 3f, scaleY = 3f)
                 cache.draw(it)
+                it.draw(Textures.atlas.getByPrefix("grey_button_up").slice, 250f, 400f)
             }
 
             scene.update(dt)

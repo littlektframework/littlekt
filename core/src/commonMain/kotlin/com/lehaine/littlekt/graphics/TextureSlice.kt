@@ -157,4 +157,8 @@ open class TextureSlice(
             }
         }
     }
+
+    override fun toString(): String {
+        return "TextureSlice(u=$u, v=$v, u2=$u2, v2=$v2, width=$width, height=$height, x=$x, y=$y, isFlipH=$isFlipH, isFlipV=$isFlipV)"
+    }
 }

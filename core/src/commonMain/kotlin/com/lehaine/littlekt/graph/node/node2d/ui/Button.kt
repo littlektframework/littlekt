@@ -188,7 +188,7 @@ open class Button : BaseButton() {
             scaleX = globalScaleX,
             scaleY = globalScaleY,
             rotation = rotation,
-            color = tempColor
+            color = drawable.modulate
         )
         cache.let {
             tempColor.set(color).mul(fontColor)

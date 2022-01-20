@@ -18,6 +18,8 @@ class NinePatchDrawable(val ninePatch: NinePatch) : Drawable {
     override var minWidth: Float = (ninePatch.left - ninePatch.right).toFloat()
     override var minHeight: Float = (ninePatch.top - ninePatch.bottom).toFloat()
 
+    override var modulate: Color = Color.WHITE
+
     override fun draw(
         batch: SpriteBatch,
         x: Float,

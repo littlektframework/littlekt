@@ -14,8 +14,12 @@ interface Drawable {
     var marginRight: Float
     var marginTop: Float
     var marginBottom: Float
+
     var minWidth: Float
     var minHeight: Float
+
+    var modulate: Color
+
 
     fun draw(
         batch: SpriteBatch,

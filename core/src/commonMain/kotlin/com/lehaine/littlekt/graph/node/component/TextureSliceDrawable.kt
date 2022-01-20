@@ -19,6 +19,8 @@ class TextureSliceDrawable(val slice: TextureSlice) : Drawable {
     override var minWidth: Float = slice.width.toFloat()
     override var minHeight: Float = slice.height.toFloat()
 
+    override var modulate: Color = Color.WHITE
+
     override fun draw(
         batch: SpriteBatch,
         x: Float,
