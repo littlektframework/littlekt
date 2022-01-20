@@ -11,12 +11,22 @@ import com.lehaine.littlekt.graph.node.component.SizeFlag
  * @date 1/2/2022
  */
 abstract class BoxContainer : Container() {
+
+    companion object {
+        /**
+         * [Theme] related variable names when setting theme values for a [Button]
+         */
+        object ThemeVars {
+            const val SEPARATION = "separation"
+        }
+    }
+
     protected var vertical: Boolean = false
 
     var separation: Int
-        get() = getThemeConstant("separation")
+        get() = getThemeConstant(ThemeVars.SEPARATION)
         set(value) {
-            constantsOverride["separation"] = value
+            constantsOverride[ThemeVars.SEPARATION] = value
         }
     var align: AlignMode = AlignMode.BEGIN
 

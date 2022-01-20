@@ -4,6 +4,7 @@ import com.lehaine.littlekt.graph.SceneGraph
 import com.lehaine.littlekt.graph.node.Node
 import com.lehaine.littlekt.graph.node.addTo
 import com.lehaine.littlekt.graph.node.annotation.SceneGraphDslMarker
+import com.lehaine.littlekt.graph.node.component.Theme
 
 /**
  * Adds a [HBoxContainer] to the current [Node] as a child and then triggers the [callback]
@@ -26,5 +27,14 @@ open class HBoxContainer : BoxContainer() {
 
     init {
         vertical = false
+    }
+
+    companion object {
+        /**
+         * [Theme] related variable names when setting theme values for a [Button]
+         */
+        object ThemeVars {
+            val SEPARATION get() = BoxContainer.Companion.ThemeVars.SEPARATION
+        }
     }
 }

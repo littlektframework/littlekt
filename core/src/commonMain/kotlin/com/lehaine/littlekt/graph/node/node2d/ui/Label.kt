@@ -6,6 +6,7 @@ import com.lehaine.littlekt.graph.node.addTo
 import com.lehaine.littlekt.graph.node.annotation.SceneGraphDslMarker
 import com.lehaine.littlekt.graph.node.component.HAlign
 import com.lehaine.littlekt.graph.node.component.VAlign
+import com.lehaine.littlekt.graph.node.component.Theme
 import com.lehaine.littlekt.graphics.Camera
 import com.lehaine.littlekt.graphics.Color
 import com.lehaine.littlekt.graphics.MutableColor
@@ -38,6 +39,14 @@ open class Label : Control() {
     companion object {
         private val tempColor = MutableColor()
         private val minSizeLayout = GlyphLayout()
+
+        /**
+         * [Theme] related variable names when setting theme values for a [Button]
+         */
+        object ThemeVars {
+            const val FONT_COLOR = "fontColor"
+            const val FONT = "font"
+        }
     }
 
     private var cache: BitmapFontCache = BitmapFontCache(font)
@@ -92,15 +101,15 @@ open class Label : Control() {
         }
 
     var fontColor: Color
-        get() = getThemeColor("fontColor")
+        get() = getThemeColor(ThemeVars.FONT_COLOR)
         set(value) {
-            colorsOverride["fontColor"] = value
+            colorsOverride[ThemeVars.FONT_COLOR] = value
         }
 
     var font: BitmapFont
-        get() = getThemeFont("font")
+        get() = getThemeFont(ThemeVars.FONT)
         set(value) {
-            fontsOverride["font"] = value
+            fontsOverride[ThemeVars.FONT] = value
             cache = BitmapFontCache(value)
         }
 

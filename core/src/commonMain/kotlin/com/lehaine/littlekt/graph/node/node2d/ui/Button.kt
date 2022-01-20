@@ -7,6 +7,7 @@ import com.lehaine.littlekt.graph.node.annotation.SceneGraphDslMarker
 import com.lehaine.littlekt.graph.node.component.Drawable
 import com.lehaine.littlekt.graph.node.component.HAlign
 import com.lehaine.littlekt.graph.node.component.VAlign
+import com.lehaine.littlekt.graph.node.component.Theme
 import com.lehaine.littlekt.graphics.Camera
 import com.lehaine.littlekt.graphics.Color
 import com.lehaine.littlekt.graphics.MutableColor
@@ -40,6 +41,19 @@ open class Button : BaseButton() {
     companion object {
         private val tempColor = MutableColor()
         private val minSizeLayout = GlyphLayout()
+
+        /**
+         * [Theme] related variable names when setting theme values for a [Button]
+         */
+        object ThemeVars {
+            const val FONT_COLOR = "fontColor"
+            const val FONT = "font"
+            const val NORMAL = "normal"
+            const val PRESSED = "pressed"
+            const val HOVER = "hover"
+            const val HOVER_PRESSED = "hoverPressed"
+            const val DISABLED = "disabled"
+        }
     }
 
     private var cache: BitmapFontCache = BitmapFontCache(font)
@@ -101,15 +115,15 @@ open class Button : BaseButton() {
         }
 
     var fontColor: Color
-        get() = getThemeColor("fontColor")
+        get() = getThemeColor(ThemeVars.FONT_COLOR)
         set(value) {
-            colorsOverride["fontColor"] = value
+            colorsOverride[ThemeVars.FONT_COLOR] = value
         }
 
     var font: BitmapFont
-        get() = getThemeFont("font")
+        get() = getThemeFont(ThemeVars.FONT)
         set(value) {
-            fontsOverride["font"] = value
+            fontsOverride[ThemeVars.FONT] = value
             cache = BitmapFontCache(value)
         }
 
@@ -159,22 +173,22 @@ open class Button : BaseButton() {
         val drawable: Drawable
         when (drawMode) {
             DrawMode.NORMAL -> {
-                drawable = getThemeDrawable("normal")
+                drawable = getThemeDrawable(ThemeVars.NORMAL)
             }
             DrawMode.PRESSED -> {
-                drawable = getThemeDrawable("pressed")
+                drawable = getThemeDrawable(ThemeVars.PRESSED)
             }
             DrawMode.HOVER -> {
-                drawable = getThemeDrawable("hover")
+                drawable = getThemeDrawable(ThemeVars.HOVER)
             }
             DrawMode.DISABLED -> {
-                drawable = getThemeDrawable("disabled")
+                drawable = getThemeDrawable(ThemeVars.DISABLED)
             }
             DrawMode.HOVER_PRESSED -> {
-                drawable = if (hasThemeDrawable("hoverPressed")) {
-                    getThemeDrawable("hoverPressed")
+                drawable = if (hasThemeDrawable(ThemeVars.HOVER_PRESSED)) {
+                    getThemeDrawable(ThemeVars.HOVER_PRESSED)
                 } else {
-                    getThemeDrawable("pressed")
+                    getThemeDrawable(ThemeVars.PRESSED)
                 }
             }
         }
@@ -216,7 +230,7 @@ open class Button : BaseButton() {
 
         val text = if (uppercase) text.uppercase() else text
         minSizeLayout.setText(font, text, scaleX = fontScaleX, scaleY = fontScaleY, wrap = wrap)
-        val styleBox = getThemeDrawable("normal")
+        val styleBox = getThemeDrawable(ThemeVars.NORMAL)
         _internalMinWidth = minSizeLayout.width + padding + styleBox.minWidth
         _internalMinHeight = minSizeLayout.height + padding + styleBox.minHeight
 
@@ -230,7 +244,7 @@ open class Button : BaseButton() {
 
         var ty = 0f
 
-        val background = getThemeDrawable("normal")
+        val background = getThemeDrawable(ThemeVars.NORMAL)
 
         layout.setText(
             font,
