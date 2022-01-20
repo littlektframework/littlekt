@@ -9,6 +9,7 @@ import com.lehaine.littlekt.graph.node.node2d.Node2D
 import com.lehaine.littlekt.graph.node.node2d.ui.button
 import com.lehaine.littlekt.graph.node.node2d.ui.label
 import com.lehaine.littlekt.graph.node.node2d.ui.ninePatchRect
+import com.lehaine.littlekt.graph.node.node2d.ui.paddedContainer
 import com.lehaine.littlekt.graph.sceneGraph
 import com.lehaine.littlekt.graphics.*
 import com.lehaine.littlekt.graphics.font.BitmapFontCache
@@ -131,12 +132,13 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
         )
 
         val scene = sceneGraph(context, batch = batch) {
-            button {
-                text = "I am a button! woot"
-                marginLeft = 10f
-                marginTop = 10f
-                onPressed += {
-                    logger.info { "You pressed me!! I am at ${globalX},${globalY}" }
+            paddedContainer {
+                padding(10)
+                button {
+                    text = "I am a button! woot"
+                    onPressed += {
+                        logger.info { "You pressed me!! I am at ${globalX},${globalY}" }
+                    }
                 }
             }
 
