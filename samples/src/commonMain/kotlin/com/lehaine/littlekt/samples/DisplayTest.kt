@@ -157,6 +157,8 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
                 marginLeft = 300f
                 marginTop = 150f
 
+                minWidth = 200f
+
                 paddedContainer {
                     padding(10)
                     centerContainer {
