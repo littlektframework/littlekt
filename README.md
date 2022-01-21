@@ -1,4 +1,4 @@
-[![Logo](/art/logo/logo.svg)](https://littlekt.com)
+[![Logo](/art/logo/logo-outline.svg)](https://littlekt.com)
 
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://github.com/littlektframework/littlekt/blob/master/LICENSE)
