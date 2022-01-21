@@ -78,7 +78,7 @@ fun createDefaultTheme(): Theme {
                 Button.themeVars.pressed to NinePatchDrawable(greyButtonNinePatch)
                     .apply { modulate = Color.LIGHT_BLUE.toMutableColor().also { it.scaleRgb(0.6f) } },
                 Button.themeVars.hover to NinePatchDrawable(greyButtonNinePatch)
-                    .apply { modulate = Color.LIGHT_BLUE.toMutableColor().also { it.scaleRgb(0.8f) } },
+                    .apply { modulate = Color.LIGHT_BLUE.toMutableColor().also { it.lighten(0.2f) } },
                 Button.themeVars.disabled to NinePatchDrawable(greyButtonNinePatch)
                     .apply { modulate = Color.LIGHT_BLUE.toMutableColor().also { it.lighten(0.5f) } },
             )

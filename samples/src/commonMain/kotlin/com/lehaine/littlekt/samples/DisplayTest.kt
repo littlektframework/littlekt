@@ -19,6 +19,7 @@ import com.lehaine.littlekt.input.GameButton
 import com.lehaine.littlekt.input.InputMultiplexer
 import com.lehaine.littlekt.input.Key
 import com.lehaine.littlekt.log.Logger
+import kotlinx.coroutines.delay
 
 /**
  * @author Colton Daily
@@ -136,7 +137,6 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
                     separation = 20
                     button {
                         text = "Center Center"
-                        minHeight = 50f
                         onPressed += {
                             logger.info { "You pressed me!! I am at ${globalX},${globalY}" }
                         }
@@ -145,7 +145,6 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
                         text = "Bottom Right"
                         horizontalAlign = HAlign.RIGHT
                         verticalAlign = VAlign.BOTTOM
-                        minHeight = 50f
                         onPressed += {
                             logger.info { "You pressed me!! I am at ${globalX},${globalY}" }
                         }
@@ -154,7 +153,6 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
                         text = "Top Left"
                         horizontalAlign = HAlign.LEFT
                         verticalAlign = VAlign.TOP
-                        minHeight = 50f
                         onPressed += {
                             logger.info { "You pressed me!! I am at ${globalX},${globalY}" }
                         }
@@ -178,18 +176,18 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
         }.also { it.initialize() }
 
         val music = resourcesVfs["music_short.mp3"].readAudioStream()
-//        music.play(0.05f, true)
-//
-//        launch {
-//            delay(2500)
-//            music.pause()
-//            delay(2500)
-//            music.resume()
-//            delay(1000)
-//            music.stop()
-//            delay(2000)
-//            music.play(0.05f, true)
-//        }
+        music.play(0.05f, true)
+
+        launch {
+            delay(2500)
+            music.pause()
+            delay(2500)
+            music.resume()
+            delay(1000)
+            music.stop()
+            delay(2000)
+            music.play(0.05f, true)
+        }
 
         boss.playLooped(bossAttack)
         boss.x = 450f
