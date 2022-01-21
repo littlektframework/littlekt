@@ -313,10 +313,6 @@ open class Control : Node2D() {
         super._onRemovedFromScene()
     }
 
-    override fun debugRender(batch: SpriteBatch) {
-        super.debugRender(batch)
-    }
-
     internal open fun _uiInput(event: InputEvent) {
         if (!enabled) return
         onUiInput.emit(event) // signal is first due to being able to handle the event
@@ -329,6 +325,7 @@ open class Control : Node2D() {
     open fun uiInput(event: InputEvent) {}
 
     fun size(newWidth: Float, newHeight: Float) {
+        println("$name update wh $width,$height to $newWidth,$newHeight")
         if (width == newWidth && height == newHeight) {
             return
         }
@@ -660,10 +657,8 @@ open class Control : Node2D() {
         _height = newHeight
 
         if (insideTree) {
-            if (sizeChanged) {
-                dirty(SIZE_DIRTY)
-            }
             if (sizeChanged || posChanged) {
+                dirty(SIZE_DIRTY)
                 onSizeChanged.emit()
             }
         }
@@ -685,7 +680,7 @@ open class Control : Node2D() {
         if (lastMinWidth != combinedMinWidth || lastMinHeight != combinedMinHeight) {
             lastMinWidth = combinedMinWidth
             lastMinHeight = combinedMinHeight
-            onMinimumSizeChanged()
+            onSizeChanged()
             onMinimumSizeChanged.emit()
         }
     }

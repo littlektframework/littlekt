@@ -124,34 +124,34 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
         val ninepatch = NinePatch(ninepatchImg, 3, 3, 3, 4)
 
         val scene = sceneGraph(context, batch = batch) {
-            paddedContainer {
-                padding(10)
-                vBoxContainer {
-                    separation = 20
-                    button {
-                        text = "Center Center"
-                        onPressed += {
-                            logger.info { "You pressed me!! I am at ${globalX},${globalY}" }
-                        }
-                    }
-                    button {
-                        text = "Bottom Right"
-                        horizontalAlign = HAlign.RIGHT
-                        verticalAlign = VAlign.BOTTOM
-                        onPressed += {
-                            logger.info { "You pressed me!! I am at ${globalX},${globalY}" }
-                        }
-                    }
-                    button {
-                        text = "Top Left"
-                        horizontalAlign = HAlign.LEFT
-                        verticalAlign = VAlign.TOP
-                        onPressed += {
-                            logger.info { "You pressed me!! I am at ${globalX},${globalY}" }
-                        }
-                    }
-                }
-            }
+//            paddedContainer {
+//                padding(10)
+//                vBoxContainer {
+//                    separation = 20
+//                    button {
+//                        text = "Center Center"
+//                        onPressed += {
+//                            logger.info { "You pressed me!! I am at ${globalX},${globalY}" }
+//                        }
+//                    }
+//                    button {
+//                        text = "Bottom Right"
+//                        horizontalAlign = HAlign.RIGHT
+//                        verticalAlign = VAlign.BOTTOM
+//                        onPressed += {
+//                            logger.info { "You pressed me!! I am at ${globalX},${globalY}" }
+//                        }
+//                    }
+//                    button {
+//                        text = "Top Left"
+//                        horizontalAlign = HAlign.LEFT
+//                        verticalAlign = VAlign.TOP
+//                        onPressed += {
+//                            logger.info { "You pressed me!! I am at ${globalX},${globalY}" }
+//                        }
+//                    }
+//                }
+//            }
 
             panelContainer {
                 marginLeft = 300f
@@ -161,6 +161,7 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
 
                 paddedContainer {
                     padding(10)
+
                     centerContainer {
                         vBoxContainer {
                             separation = 5
@@ -176,26 +177,26 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
                 }
             }
 
-            panel {
-                marginLeft = 100f
-                marginTop = 150f
-                minWidth = 50f
-                minHeight = 50f
-            }
-
-            label {
-                text = "I am a label!"
-                marginLeft = 150f
-                marginTop = 350f
-            }
-
-            ninePatchRect {
-                ninePatch = ninepatch
-                marginLeft = 250f
-                marginTop = 10f
-                minWidth = 200f
-                minHeight = 50f
-            }
+//            panel {
+//                marginLeft = 100f
+//                marginTop = 150f
+//                minWidth = 50f
+//                minHeight = 50f
+//            }
+//
+//            label {
+//                text = "I am a label!"
+//                marginLeft = 150f
+//                marginTop = 350f
+//            }
+//
+//            ninePatchRect {
+//                ninePatch = ninepatch
+//                marginLeft = 250f
+//                marginTop = 10f
+//                minWidth = 200f
+//                minHeight = 50f
+//            }
         }.also { it.initialize() }
 
         val music = resourcesVfs["music_short.mp3"].readAudioStream()
@@ -282,19 +283,5 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
             shader.dispose()
             batch.dispose()
         }
-    }
-}
-
-private class TextureNode(val slice: TextureSlice) : Node2D() {
-
-    override fun render(batch: SpriteBatch, camera: Camera) {
-        batch.draw(
-            slice,
-            globalX,
-            globalY,
-            scaleX = globalScaleX,
-            scaleY = globalScaleY,
-            rotation = globalRotation
-        )
     }
 }
