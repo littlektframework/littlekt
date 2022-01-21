@@ -111,6 +111,8 @@ open class Container : Control() {
     }
 
     protected open fun fitChild(child: Control, tx: Float, ty: Float, tWidth: Float, tHeight: Float) {
+        check(child.parent == this) { "Trying to fit a Control in a container that isn't it's child!" }
+
         val minWidth = child.combinedMinWidth
         val minHeight = child.combinedMinHeight
 

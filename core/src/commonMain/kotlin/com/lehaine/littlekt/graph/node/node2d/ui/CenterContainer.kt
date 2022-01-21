@@ -6,7 +6,6 @@ import com.lehaine.littlekt.graph.node.Node
 import com.lehaine.littlekt.graph.node.addTo
 import com.lehaine.littlekt.graph.node.annotation.SceneGraphDslMarker
 import kotlin.math.floor
-import kotlin.math.max
 
 /**
  * Adds a [CenterContainer] to the current [Node] as a child and then triggers the [callback]
@@ -43,14 +42,22 @@ open class CenterContainer : Container() {
     override fun calculateMinSize() {
         if (!minSizeInvalid) return
 
-        _internalMinHeight = 0f
-        _internalMinWidth = 0f
+        var maxWidth = 0f
+        var maxHeight = 0f
+
         nodes.forEach {
-            if (it is Control) {
-                _internalMinWidth = max(_internalMinWidth, it.combinedMinWidth)
-                _internalMinHeight = max(_internalMinHeight, it.combinedMinHeight)
+            if (it is Control && it.enabled) {
+                if (it.combinedMinWidth > maxWidth) {
+                    maxWidth = it.combinedMinWidth
+                }
+                if (it.combinedMinHeight > maxHeight) {
+                    maxHeight = it.combinedMinHeight
+                }
             }
         }
+
+        _internalMinWidth = maxWidth
+        _internalMinHeight = maxHeight
         minSizeInvalid = false
     }
 }
