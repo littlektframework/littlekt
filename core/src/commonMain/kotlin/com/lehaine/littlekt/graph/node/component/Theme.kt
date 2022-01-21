@@ -2,6 +2,7 @@ package com.lehaine.littlekt.graph.node.component
 
 import com.lehaine.littlekt.graph.node.node2d.ui.Button
 import com.lehaine.littlekt.graph.node.node2d.ui.Label
+import com.lehaine.littlekt.graph.node.node2d.ui.Panel
 import com.lehaine.littlekt.graphics.Color
 import com.lehaine.littlekt.graphics.Fonts
 import com.lehaine.littlekt.graphics.NinePatch
@@ -70,6 +71,13 @@ fun createDefaultTheme(): Theme {
         5,
         4
     )
+    val panelNinePatch = NinePatch(
+        Textures.atlas.getByPrefix("grey_panel").slice,
+        6,
+        6,
+        6,
+        6
+    )
     return Theme(
         drawables = mapOf(
             "Button" to mapOf(
@@ -81,6 +89,11 @@ fun createDefaultTheme(): Theme {
                     .apply { modulate = Color.LIGHT_BLUE.toMutableColor().also { it.lighten(0.2f) } },
                 Button.themeVars.disabled to NinePatchDrawable(greyButtonNinePatch)
                     .apply { modulate = Color.LIGHT_BLUE.toMutableColor().also { it.lighten(0.5f) } },
+            ),
+            "Panel" to mapOf(
+                Panel.themeVars.panel to NinePatchDrawable(panelNinePatch).apply {
+                    modulate = Color.LIGHT_BLUE
+                }
             )
         ),
         colors = mapOf(

@@ -43,7 +43,9 @@ open class Panel : Control() {
     private val panelThemeVar get() = if (mode == Mode.BACKGROUND) themeVars.panel else themeVars.panelForeground
 
     override fun render(batch: SpriteBatch, camera: Camera) {
-        panel.draw(batch, globalX, globalY, width, height, scaleX, scaleY, rotation, color)
+        panel.let {
+            it.draw(batch, globalX, globalY, width, height, scaleX, scaleY, rotation, it.modulate)
+        }
     }
 
     enum class Mode {
