@@ -122,13 +122,6 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
         }
         val ninepatchImg = resourcesVfs["bg_9.png"].readTexture()
         val ninepatch = NinePatch(ninepatchImg, 3, 3, 3, 4)
-        val secondNinePatch = NinePatch(
-            Textures.atlas.getByPrefix("grey_button").slice,
-            4,
-            4,
-            8,
-            4
-        )
 
         val scene = sceneGraph(context, batch = batch) {
             paddedContainer {
@@ -158,6 +151,36 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
                         }
                     }
                 }
+            }
+
+            panelContainer {
+                marginLeft = 300f
+                marginTop = 150f
+
+                minWidth = 200f
+
+                paddedContainer {
+                    padding(10)
+                    centerContainer {
+                        vBoxContainer {
+                            separation = 5
+
+                            label {
+                                text = "Action"
+                            }
+                            label {
+                                text = "E"
+                            }
+                        }
+                    }
+                }
+            }
+
+            panel {
+                marginLeft = 100f
+                marginTop = 150f
+                minWidth = 50f
+                minHeight = 50f
             }
 
             label {
@@ -231,11 +254,7 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
                 }
                 boss.render(it)
                 it.draw(Textures.white, 200f, 400f, scaleX = 5f, scaleY = 5f)
-                ninepatch.draw(it, 200f, 200f, 25f, 20f, scaleX = 5f, scaleY = 5f)
-                secondNinePatch.draw(it, 400f, 250f, 50f, 50f, scaleX = 3f, scaleY = 3f)
                 cache.draw(it)
-                it.draw(Textures.atlas.getByPrefix("grey_button").slice, 250f, 400f)
-                secondNinePatch.draw(it, 250f, 250f, 200f, 50f)
             }
 
             scene.update(dt)
