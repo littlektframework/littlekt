@@ -43,28 +43,28 @@ open class PaddedContainer : Container() {
         get() = getThemeConstant(themeVars.paddingLeft)
         set(value) {
             if (value == field) return
-            constantsOverride[themeVars.paddingLeft] = value
+            constantOverrides[themeVars.paddingLeft] = value
             onMinimumSizeChanged()
         }
     var paddingRight: Int = 0
         get() = getThemeConstant(themeVars.paddingRight)
         set(value) {
             if (value == field) return
-            constantsOverride[themeVars.paddingRight] = value
+            constantOverrides[themeVars.paddingRight] = value
             onMinimumSizeChanged()
         }
     var paddingTop: Int = 0
         get() = getThemeConstant(themeVars.paddingTop)
         set(value) {
             if (value == field) return
-            constantsOverride[themeVars.paddingTop] = value
+            constantOverrides[themeVars.paddingTop] = value
             onMinimumSizeChanged()
         }
     var paddingBottom: Int = 0
         get() = getThemeConstant(themeVars.paddingBottom)
         set(value) {
             if (value == field) return
-            constantsOverride[themeVars.paddingBottom] = value
+            constantOverrides[themeVars.paddingBottom] = value
             onMinimumSizeChanged()
         }
 

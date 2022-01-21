@@ -120,13 +120,13 @@ open class Button : BaseButton() {
     var fontColor: Color
         get() = getThemeColor(themeVars.fontColor)
         set(value) {
-            colorsOverride[themeVars.fontColor] = value
+            colorOverrides[themeVars.fontColor] = value
         }
 
     var font: BitmapFont
         get() = getThemeFont(themeVars.font)
         set(value) {
-            fontsOverride[themeVars.font] = value
+            fontOverrides[themeVars.font] = value
             cache = BitmapFontCache(value)
         }
 

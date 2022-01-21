@@ -276,10 +276,10 @@ open class Control : Node2D() {
 
     var theme: Theme? = null
 
-    val drawablesOverride by lazy { mutableMapOf<String, Drawable>() }
-    val fontsOverride by lazy { mutableMapOf<String, BitmapFont>() }
-    val colorsOverride by lazy { mutableMapOf<String, Color>() }
-    val constantsOverride by lazy { mutableMapOf<String, Int>() }
+    val drawableOverrides by lazy { mutableMapOf<String, Drawable>() }
+    val fontOverrides by lazy { mutableMapOf<String, BitmapFont>() }
+    val colorOverrides by lazy { mutableMapOf<String, Color>() }
+    val constantOverrides by lazy { mutableMapOf<String, Int>() }
 
     private val tempRect = Rect()
 
@@ -691,7 +691,7 @@ open class Control : Node2D() {
     }
 
     fun hasThemeDrawable(name: String, type: String = this::class.simpleName ?: ""): Boolean {
-        drawablesOverride[name]?.let { return true }
+        drawableOverrides[name]?.let { return true }
         var themeOwner: Control? = this
         while (themeOwner != null) {
             themeOwner.theme?.drawables?.get(type)?.get(name)?.let { return true }
@@ -705,7 +705,7 @@ open class Control : Node2D() {
     }
 
     fun getThemeDrawable(name: String, type: String = this::class.simpleName ?: ""): Drawable {
-        drawablesOverride[name]?.let { return it }
+        drawableOverrides[name]?.let { return it }
         var themeOwner: Control? = this
         while (themeOwner != null) {
             themeOwner.theme?.drawables?.get(type)?.get(name)?.let { return it }
@@ -719,7 +719,7 @@ open class Control : Node2D() {
     }
 
     fun getThemeColor(name: String, type: String = this::class.simpleName ?: ""): Color {
-        colorsOverride[name]?.let { return it }
+        colorOverrides[name]?.let { return it }
         var themeOwner: Control? = this
         while (themeOwner != null) {
             themeOwner.theme?.colors?.get(type)?.get(name)?.let { return it }
@@ -733,7 +733,7 @@ open class Control : Node2D() {
     }
 
     fun getThemeFont(name: String, type: String = this::class.simpleName ?: ""): BitmapFont {
-        fontsOverride[name]?.let { return it }
+        fontOverrides[name]?.let { return it }
         var themeOwner: Control? = this
         while (themeOwner != null) {
             themeOwner.theme?.fonts?.get(type)?.get(name)?.let { return it }
@@ -747,7 +747,7 @@ open class Control : Node2D() {
     }
 
     fun getThemeConstant(name: String, type: String = this::class.simpleName ?: ""): Int {
-        constantsOverride[name]?.let { return it }
+        constantOverrides[name]?.let { return it }
         var themeOwner: Control? = this
         while (themeOwner != null) {
             themeOwner.theme?.constants?.get(type)?.get(name)?.let { return it }
@@ -758,6 +758,34 @@ open class Control : Node2D() {
             }
         }
         return Theme.defaultTheme.constants[type]?.get(name) ?: 0
+    }
+
+    fun clearThemeConstantOverrides(): Control {
+        constantOverrides.clear()
+        return this
+    }
+
+    fun clearThemeFontOverrides(): Control {
+        fontOverrides.clear()
+        return this
+    }
+
+    fun clearThemeDrawableOverrides(): Control {
+        drawableOverrides.clear()
+        return this
+    }
+
+    fun clearThemeColorOverrides(): Control {
+        colorOverrides.clear()
+        return this
+    }
+
+    fun clearThemeOverrides(): Control {
+        clearThemeFontOverrides()
+        clearThemeConstantOverrides()
+        clearThemeDrawableOverrides()
+        clearThemeColorOverrides()
+        return this
     }
 }
 

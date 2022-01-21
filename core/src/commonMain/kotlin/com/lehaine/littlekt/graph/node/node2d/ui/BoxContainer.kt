@@ -29,7 +29,7 @@ abstract class BoxContainer : Container() {
     var separation: Int
         get() = getThemeConstant(themeVars.separation)
         set(value) {
-            constantsOverride[themeVars.separation] = value
+            constantOverrides[themeVars.separation] = value
         }
     var align: AlignMode = AlignMode.BEGIN
 
