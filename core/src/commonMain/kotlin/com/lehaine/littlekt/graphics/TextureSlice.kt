@@ -20,7 +20,7 @@ open class TextureSlice(
         y: Int = 0,
         width: Int = slice.width,
         height: Int = slice.height
-    ) : this(slice.texture, x, y, width, height)
+    ) : this(slice.texture, x + slice.x, y + slice.y, width, height)
 
     private var _u = 0f
     private var _v = 0f
@@ -156,5 +156,9 @@ open class TextureSlice(
                 TextureSlice(texture, x, y, sliceWidth, sliceHeight)
             }
         }
+    }
+
+    override fun toString(): String {
+        return "TextureSlice(u=$u, v=$v, u2=$u2, v2=$v2, width=$width, height=$height, x=$x, y=$y, isFlipH=$isFlipH, isFlipV=$isFlipV)"
     }
 }

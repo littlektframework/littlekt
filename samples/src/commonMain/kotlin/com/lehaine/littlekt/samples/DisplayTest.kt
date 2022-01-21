@@ -5,10 +5,10 @@ import com.lehaine.littlekt.file.vfs.readAtlas
 import com.lehaine.littlekt.file.vfs.readAudioStream
 import com.lehaine.littlekt.file.vfs.readBitmapFont
 import com.lehaine.littlekt.file.vfs.readTexture
-import com.lehaine.littlekt.graph.node.component.toDrawable
+import com.lehaine.littlekt.graph.node.component.HAlign
+import com.lehaine.littlekt.graph.node.component.VAlign
 import com.lehaine.littlekt.graph.node.node2d.Node2D
-import com.lehaine.littlekt.graph.node.node2d.ui.button
-import com.lehaine.littlekt.graph.node.node2d.ui.ninePatchRect
+import com.lehaine.littlekt.graph.node.node2d.ui.*
 import com.lehaine.littlekt.graph.sceneGraph
 import com.lehaine.littlekt.graphics.*
 import com.lehaine.littlekt.graphics.font.BitmapFontCache
@@ -122,18 +122,48 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
         }
         val ninepatchImg = resourcesVfs["bg_9.png"].readTexture()
         val ninepatch = NinePatch(ninepatchImg, 3, 3, 3, 4)
+        val secondNinePatch = NinePatch(
+            Textures.atlas.getByPrefix("grey_button").slice,
+            4,
+            4,
+            8,
+            4
+        )
 
         val scene = sceneGraph(context, batch = batch) {
-            button {
-                font = pixelFont
-                text = "I am a button! woot"
-                background = ninepatch.toDrawable()
-                backgroundColor = Color.DARK_GRAY
-                marginLeft = 10f
-                marginTop = 10f
-                onPressed += {
-                    logger.info { "You pressed me!! I am at ${globalX},${globalY}" }
+            paddedContainer {
+                padding(10)
+                vBoxContainer {
+                    separation = 20
+                    button {
+                        text = "Center Center"
+                        onPressed += {
+                            logger.info { "You pressed me!! I am at ${globalX},${globalY}" }
+                        }
+                    }
+                    button {
+                        text = "Bottom Right"
+                        horizontalAlign = HAlign.RIGHT
+                        verticalAlign = VAlign.BOTTOM
+                        onPressed += {
+                            logger.info { "You pressed me!! I am at ${globalX},${globalY}" }
+                        }
+                    }
+                    button {
+                        text = "Top Left"
+                        horizontalAlign = HAlign.LEFT
+                        verticalAlign = VAlign.TOP
+                        onPressed += {
+                            logger.info { "You pressed me!! I am at ${globalX},${globalY}" }
+                        }
+                    }
                 }
+            }
+
+            label {
+                text = "I am a label!"
+                marginLeft = 150f
+                marginTop = 350f
             }
 
             ninePatchRect {
@@ -200,15 +230,12 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
                     }
                 }
                 boss.render(it)
-                it.draw(Textures.default, 150f, 450f, scaleX = 5f, scaleY = 5f)
                 it.draw(Textures.white, 200f, 400f, scaleX = 5f, scaleY = 5f)
-                it.draw(Textures.transparent, 220f, 400f, scaleX = 5f, scaleY = 5f)
-                it.draw(Textures.red, 240f, 400f, scaleX = 5f, scaleY = 5f)
-                it.draw(Textures.green, 260f, 400f, scaleX = 5f, scaleY = 5f)
-                it.draw(Textures.blue, 280f, 400f, scaleX = 5f, scaleY = 5f)
-                it.draw(Textures.black, 300f, 400f, scaleX = 5f, scaleY = 5f)
                 ninepatch.draw(it, 200f, 200f, 25f, 20f, scaleX = 5f, scaleY = 5f)
+                secondNinePatch.draw(it, 400f, 250f, 50f, 50f, scaleX = 3f, scaleY = 3f)
                 cache.draw(it)
+                it.draw(Textures.atlas.getByPrefix("grey_button").slice, 250f, 400f)
+                secondNinePatch.draw(it, 250f, 250f, 200f, 50f)
             }
 
             scene.update(dt)

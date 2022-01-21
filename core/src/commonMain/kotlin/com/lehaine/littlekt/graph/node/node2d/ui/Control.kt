@@ -4,13 +4,12 @@ import com.lehaine.littlekt.graph.SceneGraph
 import com.lehaine.littlekt.graph.node.Node
 import com.lehaine.littlekt.graph.node.addTo
 import com.lehaine.littlekt.graph.node.annotation.SceneGraphDslMarker
-import com.lehaine.littlekt.graph.node.component.AnchorLayout
+import com.lehaine.littlekt.graph.node.component.*
 import com.lehaine.littlekt.graph.node.component.AnchorLayout.*
-import com.lehaine.littlekt.graph.node.component.InputEvent
-import com.lehaine.littlekt.graph.node.component.SizeFlag
 import com.lehaine.littlekt.graph.node.node2d.Node2D
 import com.lehaine.littlekt.graphics.Color
 import com.lehaine.littlekt.graphics.SpriteBatch
+import com.lehaine.littlekt.graphics.font.BitmapFont
 import com.lehaine.littlekt.math.Mat4
 import com.lehaine.littlekt.math.Rect
 import com.lehaine.littlekt.math.geom.Angle
@@ -24,8 +23,7 @@ import kotlin.math.max
  * @param callback the callback that is invoked with a [Control] context in order to initialize any values
  * @return the newly created [Control]
  */
-inline fun Node.control(callback: @SceneGraphDslMarker Control.() -> Unit = {}) =
-    Control().also(callback).addTo(this)
+inline fun Node.control(callback: @SceneGraphDslMarker Control.() -> Unit = {}) = Control().also(callback).addTo(this)
 
 /**
  * Adds a [Control] to the current [SceneGraph.root] as a child and then triggers the [callback]
@@ -35,16 +33,11 @@ inline fun Node.control(callback: @SceneGraphDslMarker Control.() -> Unit = {}) 
 inline fun SceneGraph.control(callback: @SceneGraphDslMarker Control.() -> Unit = {}) = root.control(callback)
 
 enum class GrowDirection {
-    BEGIN,
-    END,
-    BOTH
+    BEGIN, END, BOTH
 }
 
 private enum class AnchorSide {
-    LEFT,
-    BOTTOM,
-    RIGHT,
-    TOP
+    LEFT, BOTTOM, RIGHT, TOP
 }
 
 /**
@@ -281,6 +274,13 @@ open class Control : Node2D() {
     var color = Color.WHITE
     var debugColor = Color.GREEN
 
+    var theme: Theme? = null
+
+    val drawableOverrides by lazy { mutableMapOf<String, Drawable>() }
+    val fontOverrides by lazy { mutableMapOf<String, BitmapFont>() }
+    val colorOverrides by lazy { mutableMapOf<String, Color>() }
+    val constantOverrides by lazy { mutableMapOf<String, Int>() }
+
     private val tempRect = Rect()
 
     override val membersAndPropertiesString: String
@@ -392,15 +392,13 @@ open class Control : Node2D() {
             val width = viewport?.virtualWidth?.toFloat() ?: 0f
             val height = viewport?.virtualHeight?.toFloat() ?: 0f
             tempRect.set(
-                viewport?.x?.toFloat() ?: 0f,
-                viewport?.y?.toFloat() ?: 0f,
-                width, height
+                viewport?.x?.toFloat() ?: 0f, viewport?.y?.toFloat() ?: 0f, width, height
             )
         }
         return tempRect
     }
 
-    internal fun computeAnchors() {
+    private fun computeAnchors() {
         val parentRect = getParentAnchorableRect()
         _anchorLeft = (x - marginLeft) / parentRect.width
         _anchorTop = (y - marginTop) / parentRect.height
@@ -422,31 +420,19 @@ open class Control : Node2D() {
     }
 
     private fun computeAnchorLayout(
-        layout: AnchorLayout,
-        keepMargins: Boolean = true,
-        triggerSizeChanged: Boolean = true
+        layout: AnchorLayout, keepMargins: Boolean = true, triggerSizeChanged: Boolean = true
     ) {
         // LEFT
         when (layout) {
-            TOP_LEFT,
-            BOTTOM_LEFT,
-            CENTER_LEFT,
-            TOP_WIDE,
-            BOTTOM_WIDE,
-            LEFT_WIDE,
-            HCENTER_WIDE,
-            WIDE ->
-                setAnchor(AnchorSide.LEFT, 0f, keepMargins, triggerSizeChanged)
-            CENTER_TOP,
-            CENTER_BOTTOM,
-            CENTER,
-            VCENTER_WIDE ->
-                setAnchor(AnchorSide.LEFT, 0.5f, keepMargins, triggerSizeChanged)
-            TOP_RIGHT,
-            BOTTOM_RIGHT,
-            CENTER_RIGHT,
-            RIGHT_WIDE ->
-                setAnchor(AnchorSide.LEFT, 1f, keepMargins, triggerSizeChanged)
+            TOP_LEFT, BOTTOM_LEFT, CENTER_LEFT, TOP_WIDE, BOTTOM_WIDE, LEFT_WIDE, HCENTER_WIDE, WIDE -> setAnchor(
+                AnchorSide.LEFT, 0f, keepMargins, triggerSizeChanged
+            )
+            CENTER_TOP, CENTER_BOTTOM, CENTER, VCENTER_WIDE -> setAnchor(
+                AnchorSide.LEFT, 0.5f, keepMargins, triggerSizeChanged
+            )
+            TOP_RIGHT, BOTTOM_RIGHT, CENTER_RIGHT, RIGHT_WIDE -> setAnchor(
+                AnchorSide.LEFT, 1f, keepMargins, triggerSizeChanged
+            )
             else -> {
                 // anchors need set manually
             }
@@ -454,25 +440,15 @@ open class Control : Node2D() {
 
         // TOP
         when (layout) {
-            TOP_LEFT,
-            TOP_RIGHT,
-            CENTER_TOP,
-            LEFT_WIDE,
-            RIGHT_WIDE,
-            TOP_WIDE,
-            VCENTER_WIDE,
-            WIDE ->
-                setAnchor(AnchorSide.TOP, 0f, keepMargins, triggerSizeChanged)
-            CENTER_LEFT,
-            CENTER_RIGHT,
-            CENTER,
-            HCENTER_WIDE ->
-                setAnchor(AnchorSide.TOP, 0.5f, keepMargins, triggerSizeChanged)
-            BOTTOM_LEFT,
-            BOTTOM_RIGHT,
-            CENTER_BOTTOM,
-            BOTTOM_WIDE ->
-                setAnchor(AnchorSide.TOP, 1f, keepMargins, triggerSizeChanged)
+            TOP_LEFT, TOP_RIGHT, CENTER_TOP, LEFT_WIDE, RIGHT_WIDE, TOP_WIDE, VCENTER_WIDE, WIDE -> setAnchor(
+                AnchorSide.TOP, 0f, keepMargins, triggerSizeChanged
+            )
+            CENTER_LEFT, CENTER_RIGHT, CENTER, HCENTER_WIDE -> setAnchor(
+                AnchorSide.TOP, 0.5f, keepMargins, triggerSizeChanged
+            )
+            BOTTOM_LEFT, BOTTOM_RIGHT, CENTER_BOTTOM, BOTTOM_WIDE -> setAnchor(
+                AnchorSide.TOP, 1f, keepMargins, triggerSizeChanged
+            )
             else -> {
                 // anchors need set manually
             }
@@ -480,25 +456,15 @@ open class Control : Node2D() {
 
         // RIGHT
         when (layout) {
-            TOP_LEFT,
-            BOTTOM_LEFT,
-            CENTER_LEFT,
-            LEFT_WIDE ->
-                setAnchor(AnchorSide.RIGHT, 0f, keepMargins, triggerSizeChanged)
-            CENTER_TOP,
-            CENTER_BOTTOM,
-            CENTER,
-            VCENTER_WIDE ->
-                setAnchor(AnchorSide.RIGHT, 0.5f, keepMargins, triggerSizeChanged)
-            TOP_RIGHT,
-            BOTTOM_RIGHT,
-            CENTER_RIGHT,
-            TOP_WIDE,
-            RIGHT_WIDE,
-            BOTTOM_WIDE,
-            HCENTER_WIDE,
-            WIDE ->
-                setAnchor(AnchorSide.RIGHT, 1f, keepMargins, triggerSizeChanged)
+            TOP_LEFT, BOTTOM_LEFT, CENTER_LEFT, LEFT_WIDE -> setAnchor(
+                AnchorSide.RIGHT, 0f, keepMargins, triggerSizeChanged
+            )
+            CENTER_TOP, CENTER_BOTTOM, CENTER, VCENTER_WIDE -> setAnchor(
+                AnchorSide.RIGHT, 0.5f, keepMargins, triggerSizeChanged
+            )
+            TOP_RIGHT, BOTTOM_RIGHT, CENTER_RIGHT, TOP_WIDE, RIGHT_WIDE, BOTTOM_WIDE, HCENTER_WIDE, WIDE -> setAnchor(
+                AnchorSide.RIGHT, 1f, keepMargins, triggerSizeChanged
+            )
             else -> {
                 // anchors need set manually
             }
@@ -506,25 +472,15 @@ open class Control : Node2D() {
 
         // BOTTOM
         when (layout) {
-            TOP_LEFT,
-            TOP_RIGHT,
-            CENTER_TOP,
-            TOP_WIDE ->
-                setAnchor(AnchorSide.BOTTOM, 0f, keepMargins, triggerSizeChanged)
-            CENTER_LEFT,
-            CENTER_RIGHT,
-            CENTER,
-            HCENTER_WIDE ->
-                setAnchor(AnchorSide.BOTTOM, 0.5f, keepMargins, triggerSizeChanged)
-            BOTTOM_LEFT,
-            BOTTOM_RIGHT,
-            CENTER_BOTTOM,
-            LEFT_WIDE,
-            RIGHT_WIDE,
-            BOTTOM_WIDE,
-            VCENTER_WIDE,
-            WIDE ->
-                setAnchor(AnchorSide.BOTTOM, 1f, keepMargins, triggerSizeChanged)
+            TOP_LEFT, TOP_RIGHT, CENTER_TOP, TOP_WIDE -> setAnchor(
+                AnchorSide.BOTTOM, 0f, keepMargins, triggerSizeChanged
+            )
+            CENTER_LEFT, CENTER_RIGHT, CENTER, HCENTER_WIDE -> setAnchor(
+                AnchorSide.BOTTOM, 0.5f, keepMargins, triggerSizeChanged
+            )
+            BOTTOM_LEFT, BOTTOM_RIGHT, CENTER_BOTTOM, LEFT_WIDE, RIGHT_WIDE, BOTTOM_WIDE, VCENTER_WIDE, WIDE -> setAnchor(
+                AnchorSide.BOTTOM, 1f, keepMargins, triggerSizeChanged
+            )
             else -> {
                 // anchors need set manually
             }
@@ -538,111 +494,40 @@ open class Control : Node2D() {
 
         // LEFT
         _marginLeft = when (layout) {
-            TOP_LEFT,
-            BOTTOM_LEFT,
-            CENTER_LEFT,
-            TOP_WIDE,
-            BOTTOM_WIDE,
-            LEFT_WIDE,
-            HCENTER_WIDE,
-            WIDE ->
-                parentRect.width * (0f - _anchorLeft) + parentRect.x
-            CENTER_TOP,
-            CENTER_BOTTOM,
-            CENTER,
-            VCENTER_WIDE ->
-                parentRect.width * (0.5f - _anchorLeft) - combinedMinWidth / 2 + parentRect.x
-            TOP_RIGHT,
-            BOTTOM_RIGHT,
-            CENTER_RIGHT,
-            RIGHT_WIDE ->
-                parentRect.width * (1f - _anchorLeft) - combinedMinWidth + parentRect.x
-            else ->
-                _marginLeft
+            TOP_LEFT, BOTTOM_LEFT, CENTER_LEFT, TOP_WIDE, BOTTOM_WIDE, LEFT_WIDE, HCENTER_WIDE, WIDE -> parentRect.width * (0f - _anchorLeft) + parentRect.x
+            CENTER_TOP, CENTER_BOTTOM, CENTER, VCENTER_WIDE -> parentRect.width * (0.5f - _anchorLeft) - combinedMinWidth / 2 + parentRect.x
+            TOP_RIGHT, BOTTOM_RIGHT, CENTER_RIGHT, RIGHT_WIDE -> parentRect.width * (1f - _anchorLeft) - combinedMinWidth + parentRect.x
+            else -> _marginLeft
         }
 
         // TOP
         _marginTop = when (layout) {
-            TOP_LEFT,
-            TOP_RIGHT,
-            CENTER_TOP,
-            LEFT_WIDE,
-            RIGHT_WIDE,
-            TOP_WIDE,
-            VCENTER_WIDE,
-            WIDE ->
-                parentRect.height * (0f - _anchorTop) + parentRect.y
-            CENTER_LEFT,
-            CENTER_RIGHT,
-            CENTER,
-            HCENTER_WIDE ->
-                parentRect.height * (0.5f - _anchorTop) - combinedMinHeight / 2 + parentRect.y
-            BOTTOM_LEFT,
-            BOTTOM_RIGHT,
-            CENTER_BOTTOM,
-            BOTTOM_WIDE ->
-                parentRect.height * (1f - _anchorTop) - combinedMinHeight + parentRect.y
-            else ->
-                _marginTop
+            TOP_LEFT, TOP_RIGHT, CENTER_TOP, LEFT_WIDE, RIGHT_WIDE, TOP_WIDE, VCENTER_WIDE, WIDE -> parentRect.height * (0f - _anchorTop) + parentRect.y
+            CENTER_LEFT, CENTER_RIGHT, CENTER, HCENTER_WIDE -> parentRect.height * (0.5f - _anchorTop) - combinedMinHeight / 2 + parentRect.y
+            BOTTOM_LEFT, BOTTOM_RIGHT, CENTER_BOTTOM, BOTTOM_WIDE -> parentRect.height * (1f - _anchorTop) - combinedMinHeight + parentRect.y
+            else -> _marginTop
         }
 
         // RIGHT
         _marginRight = when (layout) {
-            TOP_LEFT,
-            BOTTOM_LEFT,
-            CENTER_LEFT,
-            LEFT_WIDE ->
-                parentRect.width * (0f - _anchorRight) + combinedMinWidth + parentRect.x
-            CENTER_TOP,
-            CENTER_BOTTOM,
-            CENTER,
-            VCENTER_WIDE ->
-                parentRect.width * (0.5f - _anchorRight) + combinedMinWidth / 2 + parentRect.x
-            TOP_RIGHT,
-            BOTTOM_RIGHT,
-            CENTER_RIGHT,
-            TOP_WIDE,
-            RIGHT_WIDE,
-            BOTTOM_WIDE,
-            HCENTER_WIDE,
-            WIDE ->
-                parentRect.width * (1f - _anchorRight) + parentRect.x
-            else ->
-                _marginRight
+            TOP_LEFT, BOTTOM_LEFT, CENTER_LEFT, LEFT_WIDE -> parentRect.width * (0f - _anchorRight) + combinedMinWidth + parentRect.x
+            CENTER_TOP, CENTER_BOTTOM, CENTER, VCENTER_WIDE -> parentRect.width * (0.5f - _anchorRight) + combinedMinWidth / 2 + parentRect.x
+            TOP_RIGHT, BOTTOM_RIGHT, CENTER_RIGHT, TOP_WIDE, RIGHT_WIDE, BOTTOM_WIDE, HCENTER_WIDE, WIDE -> parentRect.width * (1f - _anchorRight) + parentRect.x
+            else -> _marginRight
         }
 
         // BOTTOM
         _marginBottom = when (layout) {
-            TOP_LEFT,
-            TOP_RIGHT,
-            CENTER_TOP,
-            TOP_WIDE ->
-                parentRect.height * (0f - _anchorBottom) + combinedMinHeight + parentRect.y
-            CENTER_LEFT,
-            CENTER_RIGHT,
-            CENTER,
-            HCENTER_WIDE ->
-                parentRect.height * (0.5f - _anchorBottom) + combinedMinHeight / 2 + parentRect.y
-            BOTTOM_LEFT,
-            BOTTOM_RIGHT,
-            CENTER_BOTTOM,
-            LEFT_WIDE,
-            RIGHT_WIDE,
-            BOTTOM_WIDE,
-            VCENTER_WIDE,
-            WIDE ->
-                parentRect.height * (1f - _anchorBottom) + parentRect.y
-            else ->
-                _marginBottom
+            TOP_LEFT, TOP_RIGHT, CENTER_TOP, TOP_WIDE -> parentRect.height * (0f - _anchorBottom) + combinedMinHeight + parentRect.y
+            CENTER_LEFT, CENTER_RIGHT, CENTER, HCENTER_WIDE -> parentRect.height * (0.5f - _anchorBottom) + combinedMinHeight / 2 + parentRect.y
+            BOTTOM_LEFT, BOTTOM_RIGHT, CENTER_BOTTOM, LEFT_WIDE, RIGHT_WIDE, BOTTOM_WIDE, VCENTER_WIDE, WIDE -> parentRect.height * (1f - _anchorBottom) + parentRect.y
+            else -> _marginBottom
 
         }
     }
 
     private fun setAnchor(
-        side: AnchorSide,
-        value: Float,
-        keepMargins: Boolean = true,
-        triggerSizeChanged: Boolean = true
+        side: AnchorSide, value: Float, keepMargins: Boolean = true, triggerSizeChanged: Boolean = true
     ) {
         val parentRect = getParentAnchorableRect()
         val parentRange =
@@ -652,9 +537,7 @@ open class Control : Node2D() {
 
         side.anchor = value
 
-        if (((side == AnchorSide.LEFT || side == AnchorSide.TOP) && side.anchor > side.oppositeAnchor) ||
-            ((side == AnchorSide.RIGHT || side == AnchorSide.BOTTOM) && side.anchor < side.oppositeAnchor)
-        ) {
+        if (((side == AnchorSide.LEFT || side == AnchorSide.TOP) && side.anchor > side.oppositeAnchor) || ((side == AnchorSide.RIGHT || side == AnchorSide.BOTTOM) && side.anchor < side.oppositeAnchor)) {
             // push the opposite anchor
             side.oppositeAnchor = side.anchor
         }
@@ -735,7 +618,7 @@ open class Control : Node2D() {
         batch.transformMatrix = tempMat4
     }
 
-    protected fun onSizeChanged() {
+    private fun onSizeChanged() {
         if (lastAnchorLayout != NONE) {
             computeAnchorMarginLayout(lastAnchorLayout, triggerSizeChanged = false)
         }
@@ -805,6 +688,104 @@ open class Control : Node2D() {
             onMinimumSizeChanged()
             onMinimumSizeChanged.emit()
         }
+    }
+
+    fun hasThemeDrawable(name: String, type: String = this::class.simpleName ?: ""): Boolean {
+        drawableOverrides[name]?.let { return true }
+        var themeOwner: Control? = this
+        while (themeOwner != null) {
+            themeOwner.theme?.drawables?.get(type)?.get(name)?.let { return true }
+            themeOwner = if (themeOwner.parent is Control) {
+                themeOwner.parent as Control
+            } else {
+                null
+            }
+        }
+        return Theme.defaultTheme.drawables[type]?.get(name)?.let { return true } ?: return false
+    }
+
+    fun getThemeDrawable(name: String, type: String = this::class.simpleName ?: ""): Drawable {
+        drawableOverrides[name]?.let { return it }
+        var themeOwner: Control? = this
+        while (themeOwner != null) {
+            themeOwner.theme?.drawables?.get(type)?.get(name)?.let { return it }
+            themeOwner = if (themeOwner.parent is Control) {
+                themeOwner.parent as Control
+            } else {
+                null
+            }
+        }
+        return Theme.defaultTheme.drawables[type]?.get(name) ?: Theme.FALLBACK_DRAWABLE
+    }
+
+    fun getThemeColor(name: String, type: String = this::class.simpleName ?: ""): Color {
+        colorOverrides[name]?.let { return it }
+        var themeOwner: Control? = this
+        while (themeOwner != null) {
+            themeOwner.theme?.colors?.get(type)?.get(name)?.let { return it }
+            themeOwner = if (themeOwner.parent is Control) {
+                themeOwner.parent as Control
+            } else {
+                null
+            }
+        }
+        return Theme.defaultTheme.colors[type]?.get(name) ?: Color.WHITE
+    }
+
+    fun getThemeFont(name: String, type: String = this::class.simpleName ?: ""): BitmapFont {
+        fontOverrides[name]?.let { return it }
+        var themeOwner: Control? = this
+        while (themeOwner != null) {
+            themeOwner.theme?.fonts?.get(type)?.get(name)?.let { return it }
+            themeOwner = if (themeOwner.parent is Control) {
+                themeOwner.parent as Control
+            } else {
+                null
+            }
+        }
+        return Theme.defaultTheme.fonts[type]?.get(name) ?: Theme.defaultTheme.defaultFont ?: Theme.FALLBACK_FONT
+    }
+
+    fun getThemeConstant(name: String, type: String = this::class.simpleName ?: ""): Int {
+        constantOverrides[name]?.let { return it }
+        var themeOwner: Control? = this
+        while (themeOwner != null) {
+            themeOwner.theme?.constants?.get(type)?.get(name)?.let { return it }
+            themeOwner = if (themeOwner.parent is Control) {
+                themeOwner.parent as Control
+            } else {
+                null
+            }
+        }
+        return Theme.defaultTheme.constants[type]?.get(name) ?: 0
+    }
+
+    fun clearThemeConstantOverrides(): Control {
+        constantOverrides.clear()
+        return this
+    }
+
+    fun clearThemeFontOverrides(): Control {
+        fontOverrides.clear()
+        return this
+    }
+
+    fun clearThemeDrawableOverrides(): Control {
+        drawableOverrides.clear()
+        return this
+    }
+
+    fun clearThemeColorOverrides(): Control {
+        colorOverrides.clear()
+        return this
+    }
+
+    fun clearThemeOverrides(): Control {
+        clearThemeFontOverrides()
+        clearThemeConstantOverrides()
+        clearThemeDrawableOverrides()
+        clearThemeColorOverrides()
+        return this
     }
 }
 
