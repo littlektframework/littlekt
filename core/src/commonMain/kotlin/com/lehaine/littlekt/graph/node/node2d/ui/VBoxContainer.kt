@@ -4,6 +4,7 @@ import com.lehaine.littlekt.graph.SceneGraph
 import com.lehaine.littlekt.graph.node.Node
 import com.lehaine.littlekt.graph.node.addTo
 import com.lehaine.littlekt.graph.node.annotation.SceneGraphDslMarker
+import com.lehaine.littlekt.graph.node.component.Theme
 
 
 /**
@@ -30,7 +31,18 @@ inline fun SceneGraph.vBoxContainer(callback: @SceneGraphDslMarker VBoxContainer
  */
 open class VBoxContainer : BoxContainer() {
 
+    class ThemeVars {
+        val separation = BoxContainer.themeVars.separation
+    }
+
     init {
         vertical = true
+    }
+
+    companion object {
+        /**
+         * [Theme] related variable names when setting theme values for a [VBoxContainer]
+         */
+        val themeVars = ThemeVars()
     }
 }

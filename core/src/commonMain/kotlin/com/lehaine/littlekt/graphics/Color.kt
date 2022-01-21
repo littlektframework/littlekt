@@ -316,11 +316,4 @@ open class MutableColor(r: Float, g: Float, b: Float, a: Float) : Color(r, g, b,
         g = amount + oneMinus * g
         b = amount + oneMinus * b
     }
-
-    fun darken(amount: Float = 0.1f) {
-        val negative = -amount
-        r = amount + negative * r
-        g = amount + negative * g
-        b = amount + negative * b
-    }
 }

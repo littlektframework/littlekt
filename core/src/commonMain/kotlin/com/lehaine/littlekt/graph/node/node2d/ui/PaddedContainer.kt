@@ -4,6 +4,7 @@ import com.lehaine.littlekt.graph.SceneGraph
 import com.lehaine.littlekt.graph.node.Node
 import com.lehaine.littlekt.graph.node.addTo
 import com.lehaine.littlekt.graph.node.annotation.SceneGraphDslMarker
+import com.lehaine.littlekt.graph.node.component.Theme
 
 /**
  * Adds a [PaddedContainer] to the current [Node] as a child and then triggers the [callback]
@@ -23,53 +24,56 @@ inline fun SceneGraph.paddedContainer(callback: @SceneGraphDslMarker PaddedConta
  * @date 1/2/2022
  */
 open class PaddedContainer : Container() {
-    private var _paddingLeft = 0f
-    private var _paddingRight = 0f
-    private var _paddingTop = 0f
-    private var _paddingBottom = 0f
 
-    var paddingLeft: Float
-        get() = _paddingLeft
+    class ThemeVars {
+        val paddingLeft = "paddingLeft"
+        val paddingRight = "paddingRight"
+        val paddingTop = "paddingTop"
+        val paddingBottom = "paddingBottom"
+    }
+
+    companion object {
+        /**
+         * [Theme] related variable names when setting theme values for a [PaddedContainer]
+         */
+        val themeVars = ThemeVars()
+    }
+
+    var paddingLeft: Int = 0
+        get() = getThemeConstant(themeVars.paddingLeft)
         set(value) {
-            if (value == _paddingLeft) return
-            _paddingLeft = value
+            if (value == field) return
+            constantOverrides[themeVars.paddingLeft] = value
             onMinimumSizeChanged()
         }
-    var paddingRight: Float
-        get() = _paddingRight
+    var paddingRight: Int = 0
+        get() = getThemeConstant(themeVars.paddingRight)
         set(value) {
-            if (value == _paddingRight) return
-            _paddingRight = value
+            if (value == field) return
+            constantOverrides[themeVars.paddingRight] = value
             onMinimumSizeChanged()
         }
-    var paddingTop: Float
-        get() = _paddingTop
+    var paddingTop: Int = 0
+        get() = getThemeConstant(themeVars.paddingTop)
         set(value) {
-            if (value == _paddingTop) return
-            _paddingTop = value
+            if (value == field) return
+            constantOverrides[themeVars.paddingTop] = value
             onMinimumSizeChanged()
         }
-    var paddingBottom: Float
-        get() = _paddingBottom
+    var paddingBottom: Int = 0
+        get() = getThemeConstant(themeVars.paddingBottom)
         set(value) {
-            if (value == _paddingBottom) return
-            _paddingBottom = value
+            if (value == field) return
+            constantOverrides[themeVars.paddingBottom] = value
             onMinimumSizeChanged()
         }
 
-    /**
-     * Sets the padding to all the sides to the same value.
-     * @return the side with the largest padding
-     */
-    var padding
-        get() = maxOf(_paddingLeft, _paddingRight, _paddingTop, _paddingBottom)
-        set(value) {
-            _paddingLeft = value
-            _paddingRight = value
-            _paddingTop = value
-            _paddingBottom = value
-            onMinimumSizeChanged()
-        }
+    fun padding(value: Int) {
+        paddingLeft = value
+        paddingTop = value
+        paddingBottom = value
+        paddingRight = value
+    }
 
     override fun calculateMinSize() {
         if (!minSizeInvalid) return
@@ -101,7 +105,7 @@ open class PaddedContainer : Container() {
             if (it is Control && it.enabled) {
                 val w = width - paddingLeft - paddingRight
                 val h = height - paddingTop - paddingBottom
-                fitChild(it, paddingLeft, paddingBottom, w, h)
+                fitChild(it, paddingLeft.toFloat(), paddingBottom.toFloat(), w, h)
                 it.computeMargins()
             }
         }

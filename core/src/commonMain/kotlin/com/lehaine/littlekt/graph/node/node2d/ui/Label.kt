@@ -5,6 +5,7 @@ import com.lehaine.littlekt.graph.node.Node
 import com.lehaine.littlekt.graph.node.addTo
 import com.lehaine.littlekt.graph.node.annotation.SceneGraphDslMarker
 import com.lehaine.littlekt.graph.node.component.HAlign
+import com.lehaine.littlekt.graph.node.component.Theme
 import com.lehaine.littlekt.graph.node.component.VAlign
 import com.lehaine.littlekt.graphics.Camera
 import com.lehaine.littlekt.graphics.Color
@@ -16,6 +17,7 @@ import com.lehaine.littlekt.graphics.font.GlyphLayout
 import com.lehaine.littlekt.math.MutableVec2f
 import com.lehaine.littlekt.math.Vec2f
 import com.lehaine.littlekt.math.geom.Angle
+import com.lehaine.littlekt.util.internal.isFlagSet
 
 /**
  * Adds a [Label] to the current [Node] as a child and then triggers the [callback]
@@ -35,12 +37,22 @@ inline fun SceneGraph.label(callback: @SceneGraphDslMarker Label.() -> Unit = {}
  */
 open class Label : Control() {
 
+    class ThemeVars {
+        val fontColor = "fontColor"
+        val font = "font"
+    }
+
     companion object {
         private val tempColor = MutableColor()
         private val minSizeLayout = GlyphLayout()
+
+        /**
+         * [Theme] related variable names when setting theme values for a [Label]
+         */
+        val themeVars = ThemeVars()
     }
 
-    private var cache: BitmapFontCache? = null
+    private var cache: BitmapFontCache = BitmapFontCache(font)
     private val layout = GlyphLayout()
 
     private var _fontScale = MutableVec2f(1f)
@@ -91,17 +103,17 @@ open class Label : Control() {
             onMinimumSizeChanged()
         }
 
-    var fontColor = Color.WHITE
-
-    var font: BitmapFont?
-        get() = cache?.font
+    var fontColor: Color
+        get() = getThemeColor(themeVars.fontColor)
         set(value) {
-            cache = if (value == null) {
-                cache?.font?.dispose()
-                null
-            } else {
-                BitmapFontCache(value)
-            }
+            colorOverrides[themeVars.fontColor] = value
+        }
+
+    var font: BitmapFont
+        get() = getThemeFont(themeVars.font)
+        set(value) {
+            fontOverrides[themeVars.font] = value
+            cache = BitmapFontCache(value)
         }
 
     var verticalAlign: VAlign = VAlign.TOP
@@ -146,7 +158,7 @@ open class Label : Control() {
         }
 
     override fun render(batch: SpriteBatch, camera: Camera) {
-        cache?.let {
+        cache.let {
             tempColor.set(color).mul(fontColor)
             it.tint(tempColor)
             if (globalRotation != Angle.ZERO || globalScaleX != 1f || globalScaleY != 1f) {
@@ -161,9 +173,14 @@ open class Label : Control() {
         }
     }
 
+    override fun onHierarchyChanged(flag: Int) {
+        if (flag.isFlagSet(SIZE_DIRTY)) {
+            layout()
+        }
+    }
+
     override fun calculateMinSize() {
         if (!minSizeInvalid) return
-        val font = font ?: return
 
         if (textDirty) {
             layout()
@@ -178,8 +195,6 @@ open class Label : Control() {
     }
 
     private fun layout() {
-        val font = font ?: return
-        val cache = cache ?: return
         val text = if (uppercase) text.uppercase() else text
 
         var ty = 0f
@@ -202,7 +217,7 @@ open class Label : Control() {
             textHeight = layout.height
         } else {
             textWidth = width
-            textHeight = font.metrics.capHeight
+            textHeight = font.capHeight
         }
 
         when (verticalAlign) {
@@ -211,11 +226,12 @@ open class Label : Control() {
             }
             VAlign.BOTTOM -> {
                 ty += height
-                ty -= font.metrics.descent
+                ty -= textHeight
+                ty -= font.metrics.ascent
             }
             else -> {
-                ty += (height) / 2
-                //ty += textHeight
+                ty += height / 2
+                ty -= textHeight
             }
         }
 

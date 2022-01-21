@@ -6,15 +6,19 @@ import com.lehaine.littlekt.graph.node.addTo
 import com.lehaine.littlekt.graph.node.annotation.SceneGraphDslMarker
 import com.lehaine.littlekt.graph.node.component.Drawable
 import com.lehaine.littlekt.graph.node.component.HAlign
-import com.lehaine.littlekt.graph.node.component.TextureSliceDrawable
+import com.lehaine.littlekt.graph.node.component.Theme
 import com.lehaine.littlekt.graph.node.component.VAlign
-import com.lehaine.littlekt.graphics.*
+import com.lehaine.littlekt.graphics.Camera
+import com.lehaine.littlekt.graphics.Color
+import com.lehaine.littlekt.graphics.MutableColor
+import com.lehaine.littlekt.graphics.SpriteBatch
 import com.lehaine.littlekt.graphics.font.BitmapFont
 import com.lehaine.littlekt.graphics.font.BitmapFontCache
 import com.lehaine.littlekt.graphics.font.GlyphLayout
 import com.lehaine.littlekt.math.MutableVec2f
 import com.lehaine.littlekt.math.Vec2f
 import com.lehaine.littlekt.math.geom.Angle
+import com.lehaine.littlekt.util.internal.isFlagSet
 import kotlin.math.max
 
 /**
@@ -35,19 +39,31 @@ inline fun SceneGraph.button(callback: @SceneGraphDslMarker Button.() -> Unit = 
  */
 open class Button : BaseButton() {
 
+    class ThemeVars {
+        val fontColor = "fontColor"
+        val font = "font"
+        val normal = "normal"
+        val pressed = "pressed"
+        val hover = "hover"
+        val hoverPressed = "hoverPressed"
+        val disabled = "disabled"
+    }
+
     companion object {
         private val tempColor = MutableColor()
         private val minSizeLayout = GlyphLayout()
+
+        /**
+         * [Theme] related variable names when setting theme values for a [Button]
+         */
+        val themeVars = ThemeVars()
     }
 
-    private var cache: BitmapFontCache? = null
+    private var cache: BitmapFontCache = BitmapFontCache(font)
     private val layout = GlyphLayout()
 
     private var _fontScale = MutableVec2f(1f)
     private var textDirty = false
-
-    var background: Drawable = TextureSliceDrawable(Textures.white)
-    var backgroundColor = Color.WHITE
 
     var padding = 10f
         set(value) {
@@ -101,17 +117,17 @@ open class Button : BaseButton() {
             onMinimumSizeChanged()
         }
 
-    var fontColor = Color.WHITE
-
-    var font: BitmapFont?
-        get() = cache?.font
+    var fontColor: Color
+        get() = getThemeColor(themeVars.fontColor)
         set(value) {
-            cache = if (value == null) {
-                cache?.font?.dispose()
-                null
-            } else {
-                BitmapFontCache(value)
-            }
+            colorOverrides[themeVars.fontColor] = value
+        }
+
+    var font: BitmapFont
+        get() = getThemeFont(themeVars.font)
+        set(value) {
+            fontOverrides[themeVars.font] = value
+            cache = BitmapFontCache(value)
         }
 
     var verticalAlign: VAlign = VAlign.CENTER
@@ -157,15 +173,30 @@ open class Button : BaseButton() {
 
     override fun render(batch: SpriteBatch, camera: Camera) {
 
+        val drawable: Drawable
         when (drawMode) {
-            DrawMode.NORMAL -> tempColor.set(backgroundColor)
-            DrawMode.PRESSED -> tempColor.set(backgroundColor).lighten(0.2f)
-            DrawMode.HOVER -> tempColor.set(backgroundColor).lighten(0.5f)
-            DrawMode.DISABLED -> tempColor.set(Color.DARK_GRAY)
-            DrawMode.HOVER_PRESSED -> tempColor.set(backgroundColor).darken(0.5f)
+            DrawMode.NORMAL -> {
+                drawable = getThemeDrawable(themeVars.normal)
+            }
+            DrawMode.PRESSED -> {
+                drawable = getThemeDrawable(themeVars.pressed)
+            }
+            DrawMode.HOVER -> {
+                drawable = getThemeDrawable(themeVars.hover)
+            }
+            DrawMode.DISABLED -> {
+                drawable = getThemeDrawable(themeVars.disabled)
+            }
+            DrawMode.HOVER_PRESSED -> {
+                drawable = if (hasThemeDrawable(themeVars.hoverPressed)) {
+                    getThemeDrawable(themeVars.hoverPressed)
+                } else {
+                    getThemeDrawable(themeVars.pressed)
+                }
+            }
         }
 
-        background.draw(
+        drawable.draw(
             batch,
             globalX,
             globalY,
@@ -174,9 +205,9 @@ open class Button : BaseButton() {
             scaleX = globalScaleX,
             scaleY = globalScaleY,
             rotation = rotation,
-            color = tempColor
+            color = drawable.modulate
         )
-        cache?.let {
+        cache.let {
             tempColor.set(color).mul(fontColor)
             it.tint(tempColor)
             if (globalRotation != Angle.ZERO || globalScaleX != 1f || globalScaleY != 1f) {
@@ -191,30 +222,30 @@ open class Button : BaseButton() {
         }
     }
 
+    override fun onHierarchyChanged(flag: Int) {
+        if (flag.isFlagSet(SIZE_DIRTY)) {
+            layout()
+        }
+    }
 
     override fun calculateMinSize() {
         if (!minSizeInvalid) return
-        val font = font ?: return
-
-        if (textDirty) {
-            layout()
-            textDirty = false
-        }
 
         val text = if (uppercase) text.uppercase() else text
         minSizeLayout.setText(font, text, scaleX = fontScaleX, scaleY = fontScaleY, wrap = wrap)
-        _internalMinWidth = minSizeLayout.width + padding
-        _internalMinHeight = minSizeLayout.height + padding
+        val drawable = getThemeDrawable(themeVars.normal)
+        _internalMinWidth = max(minSizeLayout.width, drawable.minWidth) + padding * 2f
+        _internalMinHeight = max(minSizeLayout.height, drawable.minHeight) + padding * 2f
 
         minSizeInvalid = false
     }
 
     private fun layout() {
-        val font = font ?: return
-        val cache = cache ?: return
         val text = if (uppercase) text.uppercase() else text
 
         var ty = 0f
+
+        val background = getThemeDrawable(themeVars.normal)
 
         layout.setText(
             font,
@@ -227,18 +258,23 @@ open class Button : BaseButton() {
             wrap,
             ellipsis
         )
-        val textWidth: Float = layout.width + padding * 2f
+        val textWidth: Float = max(layout.width, width)
+        val textHeight: Float = if (wrap || text.contains("\n")) layout.height else font.capHeight
 
         when (verticalAlign) {
             VAlign.TOP -> {
                 ty += font.metrics.descent
+                ty += padding
             }
             VAlign.BOTTOM -> {
                 ty += height
-                ty -= font.metrics.descent
+                ty -= textHeight
+                ty -= padding
+                ty += font.metrics.descent
             }
             else -> {
-                ty += (height) / 2
+                ty += height / 2
+                ty -= textHeight
             }
         }
 
@@ -253,6 +289,6 @@ open class Button : BaseButton() {
             wrap,
             ellipsis
         )
-        cache.setText(layout, 0f, ty, fontScaleX, fontScaleY)
+        cache.setText(layout, padding, ty, fontScaleX, fontScaleY)
     }
 }

@@ -10,8 +10,15 @@ import com.lehaine.littlekt.math.geom.Angle
  * @date 1/19/2022
  */
 class NinePatchDrawable(val ninePatch: NinePatch) : Drawable {
+    override var marginLeft: Float = ninePatch.left.toFloat()
+    override var marginRight: Float = ninePatch.right.toFloat()
+    override var marginTop: Float = ninePatch.top.toFloat()
+    override var marginBottom: Float = ninePatch.bottom.toFloat()
+
     override var minWidth: Float = (ninePatch.left - ninePatch.right).toFloat()
     override var minHeight: Float = (ninePatch.top - ninePatch.bottom).toFloat()
+
+    override var modulate: Color = Color.WHITE
 
     override fun draw(
         batch: SpriteBatch,

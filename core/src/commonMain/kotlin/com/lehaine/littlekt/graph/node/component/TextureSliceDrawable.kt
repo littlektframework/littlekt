@@ -11,8 +11,16 @@ import com.lehaine.littlekt.math.geom.Angle
 class TextureSliceDrawable(val slice: TextureSlice) : Drawable {
     constructor(texture: Texture) : this(texture.slice())
 
+    override var marginLeft: Float = 0f
+    override var marginRight: Float = 0f
+    override var marginTop: Float = 0f
+    override var marginBottom: Float = 0f
+
     override var minWidth: Float = slice.width.toFloat()
     override var minHeight: Float = slice.height.toFloat()
+
+    override var modulate: Color = Color.WHITE
+
     override fun draw(
         batch: SpriteBatch,
         x: Float,
@@ -36,6 +44,4 @@ class TextureSliceDrawable(val slice: TextureSlice) : Drawable {
             colorBits = color.toFloatBits()
         )
     }
-
-
 }
