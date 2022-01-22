@@ -12,8 +12,6 @@ import com.lehaine.littlekt.input.Input
 import com.lehaine.littlekt.input.LwjglInput
 import com.lehaine.littlekt.log.Logger
 import com.lehaine.littlekt.util.fastForEach
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import org.lwjgl.glfw.Callbacks
 import org.lwjgl.glfw.GLFW
 import org.lwjgl.glfw.GLFWErrorCallback
@@ -160,36 +158,34 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context {
         GLFW.glfwShowWindow(windowHandle)
         input.attachToWindow(windowHandle)
 
+        var lastFrame = System.nanoTime()
         launch {
             LWJGL.createCapabilities()
-        }
-        // GLUtil.setupDebugMessageCallback()
+            // GLUtil.setupDebugMessageCallback()
 
-        GL30C.glClearColor(0f, 0f, 0f, 0f)
+            GL30C.glClearColor(0f, 0f, 0f, 0f)
 
-        var lastFrame = System.nanoTime()
 
-        InternalResources.createInstance(this@LwjglContext)
-        val listener = build(this@LwjglContext)
+            InternalResources.createInstance(this@LwjglContext)
+            InternalResources.INSTANCE.load()
+            val listener: ContextListener = build(this@LwjglContext)
 
-        GLFW.glfwSetFramebufferSizeCallback(windowHandle) { _, width, height ->
-            graphics.gl.viewport(0, 0, width, height)
-            graphics._width = width
-            graphics._height = height
+            GLFW.glfwSetFramebufferSizeCallback(windowHandle) { _, width, height ->
+                graphics.gl.viewport(0, 0, width, height)
+                graphics._width = width
+                graphics._height = height
 
-            launch {
-                listener.run {
+                launch {
                     resizeCalls.fastForEach { resize ->
                         resize(
                             width,
                             height
                         )
                     }
+
                 }
             }
-        }
 
-        launch {
             listener.run { start() }
             listener.run {
                 resizeCalls.fastForEach { resize ->
@@ -203,12 +199,10 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context {
         while (!windowShouldClose) {
             launch {
                 audioContext.update()
-            }
 
-            stats.engineStats.resetPerFrameCounts()
-            glClear(GL.COLOR_BUFFER_BIT or GL.DEPTH_BUFFER_BIT)
+                stats.engineStats.resetPerFrameCounts()
+                glClear(GL.COLOR_BUFFER_BIT or GL.DEPTH_BUFFER_BIT)
 
-            launch {
                 invokeAnyRunnable()
 
                 val time = System.nanoTime()
@@ -221,16 +215,16 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context {
                 stats.update(dt)
                 renderCalls.fastForEach { render -> render(dt) }
                 postRenderCalls.fastForEach { postRender -> postRender(dt) }
-            }
 
-            GLFW.glfwSwapBuffers(windowHandle)
-            input.reset()
-            GLFW.glfwPollEvents()
+                GLFW.glfwSwapBuffers(windowHandle)
+                input.reset()
+                GLFW.glfwPollEvents()
+            }
         }
         launch {
             disposeCalls.fastForEach { dispose -> dispose() }
+            destroy()
         }
-        destroy()
 
     }
 
