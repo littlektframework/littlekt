@@ -59,8 +59,9 @@ class WebGLContext(override val configuration: JsConfiguration) : Context {
         graphics._height = canvas.clientHeight
 
         InternalResources.createInstance(this)
-        listener = build(this)
         launch {
+            InternalResources.INSTANCE.load()
+            listener = build(this)
             listener.run { start() }
         }
         window.requestAnimationFrame(::render)
