@@ -7,7 +7,6 @@ import com.lehaine.littlekt.file.vfs.readBitmapFont
 import com.lehaine.littlekt.file.vfs.readTexture
 import com.lehaine.littlekt.graph.node.component.HAlign
 import com.lehaine.littlekt.graph.node.component.VAlign
-import com.lehaine.littlekt.graph.node.node2d.Node2D
 import com.lehaine.littlekt.graph.node.node2d.ui.*
 import com.lehaine.littlekt.graph.sceneGraph
 import com.lehaine.littlekt.graphics.*
@@ -124,79 +123,82 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
         val ninepatch = NinePatch(ninepatchImg, 3, 3, 3, 4)
 
         val scene = sceneGraph(context, batch = batch) {
-//            paddedContainer {
-//                padding(10)
-//                vBoxContainer {
-//                    separation = 20
-//                    button {
-//                        text = "Center Center"
-//                        onPressed += {
-//                            logger.info { "You pressed me!! I am at ${globalX},${globalY}" }
-//                        }
-//                    }
-//                    button {
-//                        text = "Bottom Right"
-//                        horizontalAlign = HAlign.RIGHT
-//                        verticalAlign = VAlign.BOTTOM
-//                        onPressed += {
-//                            logger.info { "You pressed me!! I am at ${globalX},${globalY}" }
-//                        }
-//                    }
-//                    button {
-//                        text = "Top Left"
-//                        horizontalAlign = HAlign.LEFT
-//                        verticalAlign = VAlign.TOP
-//                        onPressed += {
-//                            logger.info { "You pressed me!! I am at ${globalX},${globalY}" }
-//                        }
-//                    }
-//                }
-//            }
-
-            panelContainer {
-                marginLeft = 300f
-                marginTop = 150f
-
-                minWidth = 200f
-
-                paddedContainer {
-                    padding(10)
-
-                    centerContainer {
-                        vBoxContainer {
-                            separation = 5
-
-                            label {
-                                text = "Action"
-                            }
-                            label {
-                                text = "E"
-                            }
+            paddedContainer {
+                padding(10)
+                vBoxContainer {
+                    separation = 20
+                    button {
+                        text = "Center Center"
+                        onPressed += {
+                            logger.info { "You pressed me!! I am at ${globalX},${globalY}" }
+                        }
+                    }
+                    button {
+                        text = "Bottom Right"
+                        horizontalAlign = HAlign.RIGHT
+                        verticalAlign = VAlign.BOTTOM
+                        onPressed += {
+                            logger.info { "You pressed me!! I am at ${globalX},${globalY}" }
+                        }
+                    }
+                    button {
+                        text = "Top Left"
+                        horizontalAlign = HAlign.LEFT
+                        verticalAlign = VAlign.TOP
+                        onPressed += {
+                            logger.info { "You pressed me!! I am at ${globalX},${globalY}" }
                         }
                     }
                 }
             }
 
-//            panel {
-//                marginLeft = 100f
-//                marginTop = 150f
-//                minWidth = 50f
-//                minHeight = 50f
-//            }
-//
-//            label {
-//                text = "I am a label!"
-//                marginLeft = 150f
-//                marginTop = 350f
-//            }
-//
-//            ninePatchRect {
-//                ninePatch = ninepatch
-//                marginLeft = 250f
-//                marginTop = 10f
-//                minWidth = 200f
-//                minHeight = 50f
-//            }
+            panelContainer {
+                x = 300f
+                y = 150f
+
+                width = 200f
+                height = 50f
+
+                paddedContainer {
+                    padding(10)
+                    centerContainer {
+                        vBoxContainer {
+                            separation = 50
+                            label {
+                                text = "Action"
+                                horizontalAlign = HAlign.CENTER
+                            }
+
+                            label {
+                                text = "E"
+                                horizontalAlign = HAlign.CENTER
+                            }
+                        }
+                    }
+                }
+
+            }
+
+            panel {
+                x = 100f
+                y = 150f
+                width = 50f
+                height = 50f
+            }
+
+            label {
+                text = "I am a label!"
+                x = 150f
+                y = 350f
+            }
+
+            ninePatchRect {
+                ninePatch = ninepatch
+                x = 250f
+                y = 10f
+                width = 200f
+                height = 50f
+            }
         }.also { it.initialize() }
 
         val music = resourcesVfs["music_short.mp3"].readAudioStream()

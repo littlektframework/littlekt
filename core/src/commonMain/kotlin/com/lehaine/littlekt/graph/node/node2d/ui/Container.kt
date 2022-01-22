@@ -47,8 +47,7 @@ open class Container : Control() {
 
     override fun _onAddedToScene() {
         super._onAddedToScene()
-        pendingSort = false
-        queueSort()
+        sortChildren()
     }
 
     override fun _onChildAdded(child: Node) {
@@ -139,8 +138,7 @@ open class Container : Control() {
             }
         }
 
-        child.position(newX, newY)
-        child.size(newWidth, newHeight)
+        child.setRect(newX, newY, newWidth, newHeight)
         child.rotation = Angle.ZERO
         child.scale(1f, 1f)
     }

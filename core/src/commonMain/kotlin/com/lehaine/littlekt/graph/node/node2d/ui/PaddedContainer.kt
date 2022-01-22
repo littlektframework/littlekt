@@ -69,10 +69,11 @@ open class PaddedContainer : Container() {
         }
 
     fun padding(value: Int) {
-        paddingLeft = value
-        paddingTop = value
-        paddingBottom = value
-        paddingRight = value
+        constantOverrides[themeVars.paddingRight] = value
+        constantOverrides[themeVars.paddingTop] = value
+        constantOverrides[themeVars.paddingBottom] = value
+        constantOverrides[themeVars.paddingLeft] = value
+        onMinimumSizeChanged()
     }
 
     override fun calculateMinSize() {
