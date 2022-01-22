@@ -102,11 +102,13 @@ open class PaddedContainer : Container() {
     }
 
     override fun onSortChildren() {
+        val width = width
+        val height = height
         nodes.forEach {
             if (it is Control && it.enabled) {
                 val w = width - paddingLeft - paddingRight
                 val h = height - paddingTop - paddingBottom
-                fitChild(it, paddingLeft.toFloat(), paddingBottom.toFloat(), w, h)
+                fitChild(it, paddingLeft.toFloat(), paddingTop.toFloat(), w, h)
                 it.computeMargins()
             }
         }

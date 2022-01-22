@@ -192,32 +192,12 @@ open class Control : Node2D() {
     var width: Float
         get() = _width
         set(value) {
-            if (value == _width) return
-            _width = if (value < minWidth) {
-                minWidth
-            } else {
-                value
-            }
-            if (_marginRight < value) {
-                _marginRight = value
-            }
-            computeMargins()
-            onSizeChanged()
+            size(value, height)
         }
     var height: Float
         get() = _height
         set(value) {
-            if (value == _height) return
-            _height = if (value < minHeight) {
-                minHeight
-            } else {
-                value
-            }
-            if (_marginTop < value) {
-                _marginTop = value
-            }
-            computeMargins()
-            onSizeChanged()
+            size(width, value)
         }
 
 
@@ -289,7 +269,7 @@ open class Control : Node2D() {
 
     override fun _onHierarchyChanged(flag: Int) {
         super._onHierarchyChanged(flag)
-        if(flag == POSITION_DIRTY) {
+        if (flag == POSITION_DIRTY) {
             computeMargins()
             onSizeChanged()
         }
@@ -352,6 +332,7 @@ open class Control : Node2D() {
         }
 
         computeMargins()
+        dirty(SIZE_DIRTY)
         onSizeChanged()
     }
 
@@ -394,13 +375,7 @@ open class Control : Node2D() {
         _anchorRight = 0f
         _anchorTop = 0f
         position(tx, ty)
-        _width = tWidth
-        _height = tHeight
-        computeMargins()
-
-        if (insideTree) {
-            onSizeChanged()
-        }
+        size(tWidth, tHeight)
     }
 
     private fun getParentAnchorableRect(): Rect {
@@ -704,7 +679,7 @@ open class Control : Node2D() {
         if (lastMinWidth != combinedMinWidth || lastMinHeight != combinedMinHeight) {
             lastMinWidth = combinedMinWidth
             lastMinHeight = combinedMinHeight
-            if(insideTree) {
+            if (insideTree) {
                 (parent as? Control)?.onMinimumSizeChanged()
                 onSizeChanged()
                 onMinimumSizeChanged.emit()

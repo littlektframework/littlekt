@@ -115,7 +115,7 @@ open class Label : Control() {
             cache = BitmapFontCache(value)
         }
 
-    var verticalAlign: VAlign = VAlign.CENTER
+    var verticalAlign: VAlign = VAlign.TOP
         set(value) {
             if (value == field) return
             field = value

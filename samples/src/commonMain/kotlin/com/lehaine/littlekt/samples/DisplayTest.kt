@@ -160,9 +160,9 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
                 width = 200f
                 height = 50f
 
-                paddedContainer {
+                panel =   paddedContainer {
                     padding(10)
-                    panel = centerContainer {
+                   centerContainer {
                         vBoxContainer {
                             separation = 50
                             label {
@@ -241,8 +241,9 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
                 done = true
                 panel.run {
                     label {
-                        text = "Test!"
+                        text = "Added later!"
                         horizontalAlign = HAlign.CENTER
+                        verticalAlign = VAlign.CENTER
                     }
                 }
             } else {
