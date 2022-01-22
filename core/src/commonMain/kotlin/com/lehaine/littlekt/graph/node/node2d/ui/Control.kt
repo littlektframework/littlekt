@@ -696,7 +696,6 @@ open class Control : Node2D() {
     protected fun onMinimumSizeChanged() {
         minSizeInvalid = true
         updateMinimumSize()
-        (parent as? Control)?.onMinimumSizeChanged()
     }
 
     private fun updateMinimumSize() {
@@ -705,8 +704,11 @@ open class Control : Node2D() {
         if (lastMinWidth != combinedMinWidth || lastMinHeight != combinedMinHeight) {
             lastMinWidth = combinedMinWidth
             lastMinHeight = combinedMinHeight
-            onSizeChanged()
-            onMinimumSizeChanged.emit()
+            if(insideTree) {
+                (parent as? Control)?.onMinimumSizeChanged()
+                onSizeChanged()
+                onMinimumSizeChanged.emit()
+            }
         }
     }
 

@@ -16,6 +16,9 @@ import com.lehaine.littlekt.util.datastructure.Pool
 import com.lehaine.littlekt.util.fastForEach
 import com.lehaine.littlekt.util.viewport.ScreenViewport
 import com.lehaine.littlekt.util.viewport.Viewport
+import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.InvocationKind
+import kotlin.contracts.contract
 import kotlin.time.Duration
 
 /**
@@ -27,12 +30,16 @@ import kotlin.time.Duration
  * in order to initialize any values and create nodes
  * @return the newly created [SceneGraph]
  */
+@OptIn(ExperimentalContracts::class)
 inline fun sceneGraph(
     context: Context,
     viewport: Viewport = Viewport(0, 0, context.graphics.width, context.graphics.height),
     batch: SpriteBatch? = null,
     callback: @SceneGraphDslMarker SceneGraph.() -> Unit = {}
-) = SceneGraph(context, viewport, batch).also(callback)
+): SceneGraph {
+    contract { callsInPlace(callback, InvocationKind.EXACTLY_ONCE) }
+    return SceneGraph(context, viewport, batch).also(callback)
+}
 
 /**
  * A class for creating a scene graph of nodes.

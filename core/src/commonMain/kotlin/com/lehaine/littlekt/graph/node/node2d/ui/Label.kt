@@ -194,6 +194,7 @@ open class Label : Control() {
     }
 
     private fun layout() {
+        textDirty = false
         val text = if (uppercase) text.uppercase() else text
 
         var ty = 0f

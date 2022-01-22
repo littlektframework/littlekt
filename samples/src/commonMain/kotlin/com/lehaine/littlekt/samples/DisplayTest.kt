@@ -122,6 +122,7 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
         val ninepatchImg = resourcesVfs["bg_9.png"].readTexture()
         val ninepatch = NinePatch(ninepatchImg, 3, 3, 3, 4)
 
+        lateinit var panel: Container
         val scene = sceneGraph(context, batch = batch) {
             paddedContainer {
                 padding(10)
@@ -161,7 +162,7 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
 
                 paddedContainer {
                     padding(10)
-                    centerContainer {
+                    panel = centerContainer {
                         vBoxContainer {
                             separation = 50
                             label {
@@ -231,9 +232,22 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
             scene.resize(width, height)
         }
 
+        var firstRender = true
+        var done = false
         onRender { dt ->
             if (!assetProvider.fullyLoaded) return@onRender
 
+            if (!firstRender && !done) {
+                done = true
+                panel.run {
+                    label {
+                        text = "Test!"
+                        horizontalAlign = HAlign.CENTER
+                    }
+                }
+            } else {
+                firstRender = false
+            }
             xVel = 0f
             yVel = 0f
 
