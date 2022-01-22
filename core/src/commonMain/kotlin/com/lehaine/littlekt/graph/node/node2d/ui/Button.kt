@@ -231,6 +231,10 @@ open class Button : BaseButton() {
     override fun calculateMinSize() {
         if (!minSizeInvalid) return
 
+        if (textDirty) {
+            layout()
+        }
+
         val text = if (uppercase) text.uppercase() else text
         minSizeLayout.setText(font, text, scaleX = fontScaleX, scaleY = fontScaleY, wrap = wrap)
         val drawable = getThemeDrawable(themeVars.normal)
@@ -241,6 +245,7 @@ open class Button : BaseButton() {
     }
 
     private fun layout() {
+        textDirty = false
         val text = if (uppercase) text.uppercase() else text
 
         var ty = 0f
