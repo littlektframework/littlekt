@@ -17,7 +17,6 @@ import com.lehaine.littlekt.graphics.font.GlyphLayout
 import com.lehaine.littlekt.math.MutableVec2f
 import com.lehaine.littlekt.math.Vec2f
 import com.lehaine.littlekt.math.geom.Angle
-import com.lehaine.littlekt.util.internal.isFlagSet
 
 /**
  * Adds a [Label] to the current [Node] as a child and then triggers the [callback]
@@ -174,7 +173,7 @@ open class Label : Control() {
     }
 
     override fun onHierarchyChanged(flag: Int) {
-        if (flag.isFlagSet(SIZE_DIRTY)) {
+        if (flag == SIZE_DIRTY) {
             layout()
         }
     }
@@ -195,6 +194,7 @@ open class Label : Control() {
     }
 
     private fun layout() {
+        textDirty = false
         val text = if (uppercase) text.uppercase() else text
 
         var ty = 0f
