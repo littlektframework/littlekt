@@ -18,7 +18,6 @@ import com.lehaine.littlekt.graphics.font.GlyphLayout
 import com.lehaine.littlekt.math.MutableVec2f
 import com.lehaine.littlekt.math.Vec2f
 import com.lehaine.littlekt.math.geom.Angle
-import com.lehaine.littlekt.util.internal.isFlagSet
 import kotlin.math.max
 
 /**
@@ -223,7 +222,7 @@ open class Button : BaseButton() {
     }
 
     override fun onHierarchyChanged(flag: Int) {
-        if (flag.isFlagSet(SIZE_DIRTY)) {
+        if (flag == SIZE_DIRTY) {
             layout()
         }
     }

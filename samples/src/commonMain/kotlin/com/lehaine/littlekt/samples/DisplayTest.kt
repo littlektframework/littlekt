@@ -7,7 +7,6 @@ import com.lehaine.littlekt.file.vfs.readBitmapFont
 import com.lehaine.littlekt.file.vfs.readTexture
 import com.lehaine.littlekt.graph.node.component.HAlign
 import com.lehaine.littlekt.graph.node.component.VAlign
-import com.lehaine.littlekt.graph.node.node2d.Node2D
 import com.lehaine.littlekt.graph.node.node2d.ui.*
 import com.lehaine.littlekt.graph.sceneGraph
 import com.lehaine.littlekt.graphics.*
@@ -123,6 +122,7 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
         val ninepatchImg = resourcesVfs["bg_9.png"].readTexture()
         val ninepatch = NinePatch(ninepatchImg, 3, 3, 3, 4)
 
+        lateinit var panel: Container
         val scene = sceneGraph(context, batch = batch) {
             paddedContainer {
                 padding(10)
@@ -154,47 +154,51 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
             }
 
             panelContainer {
-                marginLeft = 300f
-                marginTop = 150f
+                x = 300f
+                y = 150f
 
-                minWidth = 200f
+                width = 200f
+                height = 50f
 
-                paddedContainer {
+                panel =   paddedContainer {
                     padding(10)
-                    centerContainer {
+                   centerContainer {
                         vBoxContainer {
-                            separation = 5
-
+                            separation = 50
                             label {
                                 text = "Action"
+                                horizontalAlign = HAlign.CENTER
                             }
+
                             label {
                                 text = "E"
+                                horizontalAlign = HAlign.CENTER
                             }
                         }
                     }
                 }
+
             }
 
             panel {
-                marginLeft = 100f
-                marginTop = 150f
-                minWidth = 50f
-                minHeight = 50f
+                x = 100f
+                y = 150f
+                width = 50f
+                height = 50f
             }
 
             label {
                 text = "I am a label!"
-                marginLeft = 150f
-                marginTop = 350f
+                x = 150f
+                y = 350f
             }
 
             ninePatchRect {
                 ninePatch = ninepatch
-                marginLeft = 250f
-                marginTop = 10f
-                minWidth = 200f
-                minHeight = 50f
+                x = 250f
+                y = 10f
+                width = 200f
+                height = 50f
             }
         }.also { it.initialize() }
 
@@ -228,9 +232,23 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
             scene.resize(width, height)
         }
 
+        var firstRender = true
+        var done = false
         onRender { dt ->
             if (!assetProvider.fullyLoaded) return@onRender
 
+            if (!firstRender && !done) {
+                done = true
+                panel.run {
+                    label {
+                        text = "Added later!"
+                        horizontalAlign = HAlign.CENTER
+                        verticalAlign = VAlign.CENTER
+                    }
+                }
+            } else {
+                firstRender = false
+            }
             xVel = 0f
             yVel = 0f
 
@@ -282,19 +300,5 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
             shader.dispose()
             batch.dispose()
         }
-    }
-}
-
-private class TextureNode(val slice: TextureSlice) : Node2D() {
-
-    override fun render(batch: SpriteBatch, camera: Camera) {
-        batch.draw(
-            slice,
-            globalX,
-            globalY,
-            scaleX = globalScaleX,
-            scaleY = globalScaleY,
-            rotation = globalRotation
-        )
     }
 }

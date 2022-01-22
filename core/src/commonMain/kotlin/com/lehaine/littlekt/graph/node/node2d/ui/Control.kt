@@ -192,32 +192,12 @@ open class Control : Node2D() {
     var width: Float
         get() = _width
         set(value) {
-            if (value == _width) return
-            _width = if (value < minWidth) {
-                minWidth
-            } else {
-                value
-            }
-            if (_marginRight < value) {
-                _marginRight = value
-            }
-            computeAnchors()
-            onSizeChanged()
+            size(value, height)
         }
     var height: Float
         get() = _height
         set(value) {
-            if (value == _height) return
-            _height = if (value < minHeight) {
-                minHeight
-            } else {
-                value
-            }
-            if (_marginTop < value) {
-                _marginTop = value
-            }
-            computeAnchors()
-            onSizeChanged()
+            size(width, value)
         }
 
 
@@ -286,11 +266,22 @@ open class Control : Node2D() {
     override val membersAndPropertiesString: String
         get() = "${super.membersAndPropertiesString}, anchorLeft=$anchorLeft, anchorRight=$anchorRight, anchorTop=$anchorTop, anchorBottom=$anchorBottom, verticalSizeFlags=$verticalSizeFlags, horizontalSizeFlags=$horizontalSizeFlags, marginLeft=$marginLeft, marginRight=$marginRight, marginTop=$marginTop, marginBottom=$marginBottom, horizontalGrowDirection=$horizontalGrowDirection, verticalGrowDirection=$verticalGrowDirection, width=$width, height=$height, minWidth=$minWidth, minHeight=$minHeight, combinedMinWidth=$combinedMinWidth, combinedMinHeight=$combinedMinHeight, color=$color, debugColor=$debugColor"
 
+
+    override fun _onHierarchyChanged(flag: Int) {
+        super._onHierarchyChanged(flag)
+        if (flag == POSITION_DIRTY) {
+            computeMargins()
+            onSizeChanged()
+        }
+    }
+
     override fun _onAddedToScene() {
         super._onAddedToScene()
         val parent = parent
         if (parent is Control) {
-            parent.onSizeChanged.connect(this, ::onSizeChanged)
+            parent.onSizeChanged.connect(this) {
+                onSizeChanged()
+            }
         } else {
             viewport?.onSizeChanged?.connect(this, ::onSizeChanged)
         }
@@ -311,10 +302,6 @@ open class Control : Node2D() {
             viewport?.onSizeChanged?.disconnect(this)
         }
         super._onRemovedFromScene()
-    }
-
-    override fun debugRender(batch: SpriteBatch) {
-        super.debugRender(batch)
     }
 
     internal open fun _uiInput(event: InputEvent) {
@@ -344,7 +331,8 @@ open class Control : Node2D() {
             newHeight
         }
 
-        computeAnchors()
+        computeMargins()
+        dirty(SIZE_DIRTY)
         onSizeChanged()
     }
 
@@ -379,6 +367,15 @@ open class Control : Node2D() {
             return px >= globalX && px < globalX + width && py >= globalY && py < globalY + height
         }
         return false //TODO determine has point when rotated
+    }
+
+    fun setRect(tx: Float, ty: Float, tWidth: Float, tHeight: Float) {
+        _anchorBottom = 0f
+        _anchorLeft = 0f
+        _anchorRight = 0f
+        _anchorTop = 0f
+        position(tx, ty)
+        size(tWidth, tHeight)
     }
 
     private fun getParentAnchorableRect(): Rect {
@@ -626,8 +623,8 @@ open class Control : Node2D() {
 
         val edgePosLeft = marginLeft + (anchorLeft * parentRect.width)
         val edgePosTop = marginTop + (anchorTop * parentRect.height)
-        val edgePosRight = (anchorRight * parentRect.width) - marginRight
-        val edgePosBottom = (anchorBottom * parentRect.height) - marginBottom
+        val edgePosRight = marginRight + (anchorRight * parentRect.width)
+        val edgePosBottom = marginBottom + (anchorBottom * parentRect.height)
 
         var newX = edgePosLeft
         var newY = edgePosTop
@@ -660,10 +657,8 @@ open class Control : Node2D() {
         _height = newHeight
 
         if (insideTree) {
-            if (sizeChanged) {
-                dirty(SIZE_DIRTY)
-            }
             if (sizeChanged || posChanged) {
+                dirty(SIZE_DIRTY)
                 onSizeChanged.emit()
             }
         }
@@ -676,7 +671,6 @@ open class Control : Node2D() {
     protected fun onMinimumSizeChanged() {
         minSizeInvalid = true
         updateMinimumSize()
-        (parent as? Control)?.onMinimumSizeChanged()
     }
 
     private fun updateMinimumSize() {
@@ -685,8 +679,11 @@ open class Control : Node2D() {
         if (lastMinWidth != combinedMinWidth || lastMinHeight != combinedMinHeight) {
             lastMinWidth = combinedMinWidth
             lastMinHeight = combinedMinHeight
-            onMinimumSizeChanged()
-            onMinimumSizeChanged.emit()
+            if (insideTree) {
+                (parent as? Control)?.onMinimumSizeChanged()
+                onSizeChanged()
+                onMinimumSizeChanged.emit()
+            }
         }
     }
 
