@@ -46,9 +46,19 @@ actual suspend fun VfsFile.readTexture(minFilter: TexMinFilter, magFilter: TexMa
     }
 }
 
+/**
+ * Reads Base64 encoded ByteArray for embedded images.
+ */
+internal actual suspend fun ByteArray.readPixmap(): Pixmap {
+    return readPixmap(this)
+}
 
 actual suspend fun VfsFile.readPixmap(): Pixmap {
     val bytes = readBytes()
+    return readPixmap(bytes)
+}
+
+private fun readPixmap(bytes: ByteArray): Pixmap {
     // ImageIO.read is not thread safe!
     val img = synchronized(imageIoLock) {
         runCatching {

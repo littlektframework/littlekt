@@ -4,6 +4,7 @@ import com.lehaine.littlekt.audio.AudioClip
 import com.lehaine.littlekt.audio.AudioStream
 import com.lehaine.littlekt.audio.WebAudioClip
 import com.lehaine.littlekt.audio.WebAudioStream
+import com.lehaine.littlekt.file.Base64.encodeToBase64
 import com.lehaine.littlekt.file.ByteBufferImpl
 import com.lehaine.littlekt.graphics.Pixmap
 import com.lehaine.littlekt.graphics.Texture
@@ -35,10 +36,24 @@ actual suspend fun VfsFile.readTexture(minFilter: TexMinFilter, magFilter: TexMa
 }
 
 /**
+ * Reads Base64 encoded ByteArray for embedded images.
+ */
+internal actual suspend fun ByteArray.readPixmap(): Pixmap {
+    val path = "data:image/png;base64,${encodeToBase64()}"
+
+    return readPixmap(path)
+}
+
+
+/**
  * Loads an image from the path as a [Pixmap].
  * @return the loaded texture
  */
 actual suspend fun VfsFile.readPixmap(): Pixmap {
+    return readPixmap(path)
+}
+
+private suspend fun readPixmap(path: String): Pixmap {
     val deferred = CompletableDeferred<Image>()
 
     val img = Image()

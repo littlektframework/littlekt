@@ -1,5 +1,6 @@
 package com.lehaine.littlekt.file
 
+import com.lehaine.littlekt.file.Base64.encodeToBase64
 import com.lehaine.littlekt.log.Logger
 import java.io.*
 import java.net.HttpURLConnection
@@ -198,7 +199,7 @@ class HttpCache private constructor(private val cacheDir: File) {
     }
 
     class BasicAuthCredentials(val forHost: String, user: String, password: String) {
-        val encoded = "Basic " + Base64.getEncoder().encodeToString("$user:$password".toByteArray())
+        val encoded = "Basic " + "$user:$password".encodeToByteArray().encodeToBase64()
     }
 
     private class CacheEntry(val file: File, var size: Long, lastAccess: Long) : Serializable, Comparable<CacheEntry> {

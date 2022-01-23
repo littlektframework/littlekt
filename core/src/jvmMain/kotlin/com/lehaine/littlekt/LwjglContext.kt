@@ -165,7 +165,6 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context {
 
             GL30C.glClearColor(0f, 0f, 0f, 0f)
 
-
             InternalResources.createInstance(this@LwjglContext)
             InternalResources.INSTANCE.load()
             val listener: ContextListener = build(this@LwjglContext)
