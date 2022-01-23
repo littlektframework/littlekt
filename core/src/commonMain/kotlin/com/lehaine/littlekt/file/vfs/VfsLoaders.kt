@@ -17,6 +17,7 @@ import com.lehaine.littlekt.graphics.font.Kerning
 import com.lehaine.littlekt.graphics.font.TtfFont
 import com.lehaine.littlekt.graphics.gl.TexMagFilter
 import com.lehaine.littlekt.graphics.gl.TexMinFilter
+import com.lehaine.littlekt.graphics.gl.TextureFormat
 import com.lehaine.littlekt.graphics.tilemap.ldtk.LDtkLevel
 import com.lehaine.littlekt.graphics.tilemap.ldtk.LDtkWorld
 import com.lehaine.littlekt.math.MutableVec4i
@@ -226,6 +227,11 @@ expect suspend fun VfsFile.readTexture(
     magFilter: TexMagFilter = TexMagFilter.NEAREST,
     mipmaps: Boolean = true
 ): Texture
+
+/**
+ * Reads Base64 encoded ByteArray for embedded images.
+ */
+internal expect suspend fun ByteArray.readPixmap(): Pixmap
 
 /**
  * Loads an image from the path as a [Pixmap].

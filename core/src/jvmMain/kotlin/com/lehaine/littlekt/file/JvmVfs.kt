@@ -9,7 +9,6 @@ import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.io.*
-import java.util.*
 import kotlin.concurrent.thread
 
 /**
@@ -102,7 +101,7 @@ class JvmVfs(context: Context, logger: Logger, storageBaseDir: String, assetsBas
 
     private fun decodeDataUrl(dataUrl: String): ByteBufferImpl {
         val dataIdx = dataUrl.indexOf(";base64,") + 8
-        return ByteBufferImpl(Base64.getDecoder().decode(dataUrl.substring(dataIdx)))
+        return ByteBufferImpl(java.util.Base64.getDecoder().decode(dataUrl.substring(dataIdx)))
     }
 
     private fun openLocalStream(assetPath: String): InputStream {
