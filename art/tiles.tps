@@ -136,7 +136,7 @@
             <key>data</key>
             <struct type="DataFile">
                 <key>name</key>
-                <filename>../core/src/commonMain/resources/default_tiles.json</filename>
+                <filename>default_assets/default_tiles.json</filename>
             </struct>
         </map>
         <key>multiPack</key>
