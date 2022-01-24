@@ -42,6 +42,7 @@ open class Container : Control() {
     private var pendingSort = false
 
     init {
+        mouseFilter = MouseFilter.IGNORE
         debugColor = Color.RED
     }
 
