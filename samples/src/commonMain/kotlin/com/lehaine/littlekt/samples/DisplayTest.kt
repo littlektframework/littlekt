@@ -1,15 +1,13 @@
 package com.lehaine.littlekt.samples
 
 import com.lehaine.littlekt.*
-import com.lehaine.littlekt.file.vfs.readAtlas
-import com.lehaine.littlekt.file.vfs.readAudioStream
-import com.lehaine.littlekt.file.vfs.readBitmapFont
-import com.lehaine.littlekt.file.vfs.readTexture
+import com.lehaine.littlekt.audio.AudioStream
 import com.lehaine.littlekt.graph.node.component.HAlign
 import com.lehaine.littlekt.graph.node.component.VAlign
 import com.lehaine.littlekt.graph.node.node2d.ui.*
 import com.lehaine.littlekt.graph.sceneGraph
 import com.lehaine.littlekt.graphics.*
+import com.lehaine.littlekt.graphics.font.BitmapFont
 import com.lehaine.littlekt.graphics.font.BitmapFontCache
 import com.lehaine.littlekt.graphics.shader.shaders.SimpleColorFragmentShader
 import com.lehaine.littlekt.graphics.shader.shaders.SimpleColorVertexShader
@@ -18,6 +16,7 @@ import com.lehaine.littlekt.input.GameButton
 import com.lehaine.littlekt.input.InputMultiplexer
 import com.lehaine.littlekt.input.Key
 import com.lehaine.littlekt.log.Logger
+import com.lehaine.littlekt.util.toString
 import kotlinx.coroutines.delay
 
 /**
@@ -106,122 +105,128 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
 
     override suspend fun Context.start() {
         super.setSceneCallbacks(this)
-
         val batch = SpriteBatch(context)
-        val texture = resourcesVfs["atlas.png"].readTexture()
-        val atlas: TextureAtlas = resourcesVfs["tiles.atlas.json"].readAtlas()
-        val slices: Array<Array<TextureSlice>> = texture.slice(16, 16)
-        val person = slices[0][0]
-        val bossAttack = atlas.getAnimation("bossAttack")
-        val boss = AnimatedSprite(bossAttack.firstFrame)
-        val pixelFont = resourcesVfs["m5x7_16.fnt"].readBitmapFont()
-        val cache = BitmapFontCache(pixelFont).also {
-            it.addText("Test cache", 200f, 50f, scaleX = 4f, scaleY = 4f)
-            it.tint(Color.RED)
+        val texture by assetProvider.load<Texture>(resourcesVfs["atlas.png"])
+        val atlas: TextureAtlas by assetProvider.load(resourcesVfs["tiles.atlas.json"])
+        val slices: Array<Array<TextureSlice>> by assetProvider.prepare { texture.slice(16, 16) }
+        val person by assetProvider.prepare { slices[0][0] }
+        val bossAttack by assetProvider.prepare { atlas.getAnimation("bossAttack") }
+        val boss by assetProvider.prepare { AnimatedSprite(bossAttack.firstFrame) }
+        val pixelFont by assetProvider.load<BitmapFont>(resourcesVfs["m5x7_16.fnt"])
+        val cache by assetProvider.prepare {
+            BitmapFontCache(pixelFont).also {
+                it.addText("Test cache", 200f, 50f, scaleX = 4f, scaleY = 4f)
+                it.tint(Color.RED)
+            }
         }
-        val ninepatchImg = resourcesVfs["bg_9.png"].readTexture()
-        val ninepatch = NinePatch(ninepatchImg, 3, 3, 3, 4)
+        val ninepatchImg by assetProvider.load<Texture>(resourcesVfs["bg_9.png"])
+        val ninepatch by assetProvider.prepare { NinePatch(ninepatchImg, 3, 3, 3, 4) }
 
         lateinit var panel: Container
-        val scene = sceneGraph(context, batch = batch) {
-            paddedContainer {
-                padding(10)
-                vBoxContainer {
-                    separation = 20
-
-                    button {
-                        text = "Center Center"
-                        onPressed += {
-                            logger.info { "You pressed me!! I am at ${globalX},${globalY}" }
-                        }
-                    }
-                    button {
-                        text = "Bottom Right"
-                        horizontalAlign = HAlign.RIGHT
-                        verticalAlign = VAlign.BOTTOM
-                        onPressed += {
-                            logger.info { "You pressed me!! I am at ${globalX},${globalY}" }
-                        }
-                    }
-                    button {
-                        text = "Top Left"
-                        horizontalAlign = HAlign.LEFT
-                        verticalAlign = VAlign.TOP
-                        onPressed += {
-                            logger.info { "You pressed me!! I am at ${globalX},${globalY}" }
-                        }
-                    }
-                }
-            }
-
-            panelContainer {
-                x = 300f
-                y = 150f
-
-                width = 200f
-                height = 50f
-
-                panel =   paddedContainer {
+        val scene by assetProvider.prepare {
+            sceneGraph(context, batch = batch) {
+                paddedContainer {
                     padding(10)
-                   centerContainer {
-                        vBoxContainer {
-                            separation = 50
-                            label {
-                                text = "Action"
-                                horizontalAlign = HAlign.CENTER
-                            }
+                    vBoxContainer {
+                        separation = 20
 
-                            label {
-                                text = "E"
-                                horizontalAlign = HAlign.CENTER
+                        button {
+                            text = "Center Center"
+                            onPressed += {
+                                logger.info { "You pressed me!! I am at ${globalX},${globalY}" }
+                            }
+                        }
+                        button {
+                            text = "Bottom Right"
+                            horizontalAlign = HAlign.RIGHT
+                            verticalAlign = VAlign.BOTTOM
+                            onPressed += {
+                                logger.info { "You pressed me!! I am at ${globalX},${globalY}" }
+                            }
+                        }
+                        button {
+                            text = "Top Left"
+                            horizontalAlign = HAlign.LEFT
+                            verticalAlign = VAlign.TOP
+                            onPressed += {
+                                logger.info { "You pressed me!! I am at ${globalX},${globalY}" }
                             }
                         }
                     }
                 }
 
-            }
+                panelContainer {
+                    x = 300f
+                    y = 150f
 
-            panel {
-                x = 100f
-                y = 150f
-                width = 50f
-                height = 50f
-            }
+                    width = 200f
+                    height = 50f
 
-            label {
-                text = "I am a label!"
-                x = 150f
-                y = 350f
-            }
+                    panel = paddedContainer {
+                        padding(10)
+                        centerContainer {
+                            vBoxContainer {
+                                separation = 50
+                                label {
+                                    text = "Action"
+                                    horizontalAlign = HAlign.CENTER
+                                }
 
-            ninePatchRect {
-                ninePatch = ninepatch
-                x = 250f
-                y = 10f
-                width = 200f
-                height = 50f
-            }
-        }.also { it.initialize() }
+                                label {
+                                    text = "E"
+                                    horizontalAlign = HAlign.CENTER
+                                }
+                            }
+                        }
+                    }
 
-        val music = resourcesVfs["music_short.mp3"].readAudioStream()
-        music.play(0.05f, true)
+                }
 
-        launch {
-            delay(2500)
-            music.pause()
-            delay(2500)
-            music.resume()
-            delay(1000)
-            music.stop()
-            delay(2000)
-            music.play(0.05f, true)
+                panel {
+                    x = 100f
+                    y = 150f
+                    width = 50f
+                    height = 50f
+                }
+
+                label {
+                    text = "I am a label!"
+                    x = 150f
+                    y = 350f
+                }
+
+                ninePatchRect {
+                    ninePatch = ninepatch
+                    x = 250f
+                    y = 10f
+                    width = 200f
+                    height = 50f
+                }
+            }.also { it.initialize() }
         }
 
-        boss.playLooped(bossAttack)
-        boss.x = 450f
-        boss.y = 250f
-        boss.scaleX = 2f
-        boss.scaleY = 2f
+        val music by assetProvider.load<AudioStream>(resourcesVfs["music_short.mp3"])
+        assetProvider.prepare {
+            launch {
+                music.play(0.05f, true)
+                delay(2500)
+                music.pause()
+                delay(2500)
+                music.resume()
+                delay(1000)
+                music.stop()
+                delay(2000)
+                music.play(0.05f, true)
+            }
+        }
+
+        assetProvider.prepare {
+            boss.playLooped(bossAttack)
+            boss.x = 450f
+            boss.y = 250f
+            boss.scaleX = 2f
+            boss.scaleY = 2f
+        }
 
         input.inputProcessor {
             onKeyUp {
@@ -230,13 +235,23 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
         }
 
         onResize { width, height ->
+            if (!assetProvider.fullyLoaded) return@onResize
             scene.resize(width, height)
         }
 
         var firstRender = true
         var done = false
+        var firstLoaded = true
         onRender { dt ->
-            if (!assetProvider.fullyLoaded) return@onRender
+            if (!assetProvider.fullyLoaded) {
+                assetProvider.update()
+                println("Loading: ${(assetProvider.percentage * 100.0).toString(1)}%")
+                return@onRender
+            }
+            if (firstLoaded) {
+                logger.info { "Finished loading!" }
+                firstLoaded = false
+            }
 
             if (!firstRender && !done) {
                 done = true

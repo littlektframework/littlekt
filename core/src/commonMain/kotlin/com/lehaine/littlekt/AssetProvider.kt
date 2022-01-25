@@ -1,6 +1,7 @@
 package com.lehaine.littlekt
 
 import com.lehaine.littlekt.audio.AudioClip
+import com.lehaine.littlekt.audio.AudioStream
 import com.lehaine.littlekt.file.UnsupportedFileTypeException
 import com.lehaine.littlekt.file.vfs.*
 import com.lehaine.littlekt.graphics.Pixmap
@@ -24,10 +25,13 @@ import kotlin.reflect.KProperty
 open class AssetProvider(val context: Context) {
     private val assetsToPrepare = mutableListOf<PreparableGameAsset<*>>()
     private var totalAssetsLoading = atomic(0)
+    private var totalAssets = atomic(0)
+    private var totalAssetsFinished = atomic(0)
     private val filesBeingChecked = mutableListOf<VfsFile>()
     private val _assets = mutableMapOf<KClass<*>, MutableMap<VfsFile, GameAsset<*>>>()
     private val lock = Any()
 
+    val percentage: Float get() = if (totalAssets.value == 0) 1f else totalAssetsFinished.value / totalAssets.value.toFloat()
     val loaders = createDefaultLoaders().toMutableMap()
     val assets: Map<KClass<*>, Map<VfsFile, GameAsset<*>>> get() = _assets
     var onFullyLoaded: (() -> Unit)? = null
@@ -45,10 +49,8 @@ open class AssetProvider(val context: Context) {
      * Calls [update] to get the latest assets loaded to determine if is has been fully loaded.
      */
     val fullyLoaded: Boolean
-        get() {
-            update()
-            return totalAssetsLoading.value == 0 && prepared
-        }
+        get() = totalAssetsLoading.value == 0 && prepared
+
 
     /**
      * Handle any render / update logic here.
@@ -87,6 +89,7 @@ open class AssetProvider(val context: Context) {
         }
         filesBeingChecked += file
         totalAssetsLoading.addAndGet(1)
+        totalAssets.addAndGet(1)
         context.vfs.launch {
             val loader = loaders[clazz] ?: throw UnsupportedFileTypeException(file.path)
             val result = loader.invoke(file, parameters) as T
@@ -97,6 +100,7 @@ open class AssetProvider(val context: Context) {
                 }
                 filesBeingChecked -= file
             }
+            totalAssetsFinished.addAndGet(1)
             totalAssetsLoading.addAndGet(-1)
         }
         return sceneAsset
@@ -144,6 +148,9 @@ open class AssetProvider(val context: Context) {
             },
             AudioClip::class to { file, _ ->
                 file.readAudioClip()
+            },
+            AudioStream::class to { file, _ ->
+                file.readAudioStream()
             },
             TextureAtlas::class to { file, _ ->
                 file.readAtlas()
