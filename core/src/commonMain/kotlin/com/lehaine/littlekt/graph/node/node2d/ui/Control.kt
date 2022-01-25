@@ -261,6 +261,8 @@ open class Control : Node2D() {
     val colorOverrides by lazy { mutableMapOf<String, Color>() }
     val constantOverrides by lazy { mutableMapOf<String, Int>() }
 
+    var mouseFilter = MouseFilter.STOP
+
     private val tempRect = Rect()
 
     override val membersAndPropertiesString: String
@@ -345,7 +347,7 @@ open class Control : Node2D() {
     }
 
     fun hit(hx: Float, hy: Float): Control? {
-        if (!enabled) {
+        if (!enabled || mouseFilter == MouseFilter.NONE) {
             return null
         }
         nodes.forEachReversed {
@@ -355,10 +357,13 @@ open class Control : Node2D() {
                 return target
             }
         }
+        if (mouseFilter == MouseFilter.IGNORE) return null
+
         if (globalRotation == Angle.ZERO) {
             return if (hx >= globalX && hx < globalX + width && hy >= globalY && hy < globalY + height) this else null
         }
         // TODO determine hit target when rotated
+
         return null
     }
 
@@ -783,6 +788,23 @@ open class Control : Node2D() {
         clearThemeDrawableOverrides()
         clearThemeColorOverrides()
         return this
+    }
+
+    enum class MouseFilter {
+        /**
+         * Stops at the current [Control] which triggers an input event and does not go any further up the graph.
+         */
+        STOP,
+
+        /**
+         * Receives no input events for the current [Control] and its children.
+         */
+        NONE,
+
+        /**
+         * Ignores input events on the current [Control] but still allows events to its children.
+         */
+        IGNORE
     }
 }
 

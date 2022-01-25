@@ -128,6 +128,7 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
                 padding(10)
                 vBoxContainer {
                     separation = 20
+
                     button {
                         text = "Center Center"
                         onPressed += {
