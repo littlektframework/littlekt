@@ -155,11 +155,11 @@ sealed class RenderingThreadDispatcher(val context: Context) : MainCoroutineDisp
     private val timedTasks: MutableList<TimedTask> = mutableListOf()
 
     override fun dispatch(context: CoroutineContext, block: Runnable) {
-        execute(block)
+        queue(block)
     }
 
     override fun execute(block: Runnable) {
-        context.postRunnable { block.run() }
+        queue(block)
     }
 
     override fun queue(block: Runnable) {
