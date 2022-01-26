@@ -207,8 +207,10 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
 
         val music by assetProvider.load<AudioStream>(resourcesVfs["music_short.mp3"])
         assetProvider.prepare {
-            launch {
+            launch{
                 music.play(0.05f, true)
+            }
+            launch {
                 delay(2500)
                 music.pause()
                 delay(2500)
@@ -245,7 +247,7 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
         onRender { dt ->
             if (!assetProvider.fullyLoaded) {
                 assetProvider.update()
-                println("Loading: ${(assetProvider.percentage * 100.0).toString(1)}%")
+         //       println("Loading: ${(assetProvider.percentage * 100.0).toString(1)}%")
                 return@onRender
             }
             if (firstLoaded) {

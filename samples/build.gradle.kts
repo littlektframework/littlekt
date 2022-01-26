@@ -13,6 +13,38 @@ repositories {
 
 kotlin {
     jvm {
+        withJava()
+        compilations {
+            val main by getting
+
+            tasks {
+                register<Copy>("copyResources") {
+                    group = "publish"
+                    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+                    from(main.output.resourcesDir)
+                    destinationDir = File("$projectDir/build/publish")
+                }
+                register<Jar>("buildFatJar") {
+                    group = "publish"
+                    archiveClassifier.set("all")
+                    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+                    dependsOn(named("jvmJar"))
+                    dependsOn(named("copyResources"))
+                    manifest {
+                        attributes["Main-Class"] = "com.lehaine.littlekt.samples.DisplayTestKt"
+                    }
+                    destinationDirectory.set(File("$projectDir/build/publish/"))
+                    from(
+                        main.runtimeDependencyFiles.map { if (it.isDirectory) it else zipTree(it) },
+                        main.output.classesDirs
+                    )
+                    doLast {
+                        project.logger.lifecycle("[LittleKt] The bundled jar is available at: ${outputs.files.first()}")
+                    }
+                }
+
+            }
+        }
         compilations.all {
             kotlinOptions.jvmTarget = "11"
         }
