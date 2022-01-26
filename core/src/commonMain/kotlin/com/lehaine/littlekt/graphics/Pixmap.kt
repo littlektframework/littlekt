@@ -1,6 +1,7 @@
 package com.lehaine.littlekt.graphics
 
 import com.lehaine.littlekt.Context
+import com.lehaine.littlekt.async.KtScope
 import com.lehaine.littlekt.async.onRenderingThread
 import com.lehaine.littlekt.file.ByteBuffer
 import com.lehaine.littlekt.file.createByteBuffer
@@ -412,7 +413,7 @@ fun Pixmap.sliceWithBorder(
     }
 
     val newTex = Texture(PixmapTextureData(out, mipmaps)).also {
-        context.launch {
+        KtScope.launch {
             onRenderingThread {
                 it.prepare(context)
             }

@@ -149,7 +149,7 @@ class AsyncThreadDispatcher(
  *
  * Requires calling [executePending] with the amount of time available in order to support [delay].
  */
-sealed class RenderingThreadDispatcher(val context: Context) : MainCoroutineDispatcher(), KtDispatcher {
+sealed class RenderingThreadDispatcher : MainCoroutineDispatcher(), KtDispatcher {
     private val lock: Any = Any()
     private val tasks = mutableListOf<Runnable>()
     private val timedTasks: MutableList<TimedTask> = mutableListOf()
@@ -255,10 +255,10 @@ sealed class RenderingThreadDispatcher(val context: Context) : MainCoroutineDisp
 /**
  * Executes tasks on the main rendering threads. See [RenderingThreadDispatcher]
  */
-class MainDispatcher private constructor(context: Context) : RenderingThreadDispatcher(context) {
+class MainDispatcher private constructor(unit: Unit = Unit) : RenderingThreadDispatcher() {
     override val immediate: MainCoroutineDispatcher = this
 
     override fun isDispatchNeeded(context: CoroutineContext): Boolean = !KtScope.isOnRenderingThread()
 
-    internal companion object : SingletonBase<MainDispatcher, Context>(::MainDispatcher)
+    internal companion object : SingletonBase<MainDispatcher, Unit>(::MainDispatcher)
 }

@@ -19,8 +19,8 @@ object KtScope : CoroutineScope {
     /**
      * Needs to be invoked on the [Context] that needs wrapped. Handled internally.
      */
-    internal fun initiate(context: Context) {
-        MainDispatcher.createInstance(context)
+    internal fun initiate() {
+        MainDispatcher.createInstance(Unit)
     }
 }
 

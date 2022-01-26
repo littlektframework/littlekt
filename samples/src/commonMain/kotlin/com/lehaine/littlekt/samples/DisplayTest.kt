@@ -1,6 +1,7 @@
 package com.lehaine.littlekt.samples
 
 import com.lehaine.littlekt.*
+import com.lehaine.littlekt.async.KtScope
 import com.lehaine.littlekt.audio.AudioStream
 import com.lehaine.littlekt.graph.node.component.HAlign
 import com.lehaine.littlekt.graph.node.component.VAlign
@@ -16,8 +17,8 @@ import com.lehaine.littlekt.input.GameButton
 import com.lehaine.littlekt.input.InputMultiplexer
 import com.lehaine.littlekt.input.Key
 import com.lehaine.littlekt.log.Logger
-import com.lehaine.littlekt.util.toString
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 /**
  * @author Colton Daily
@@ -207,10 +208,10 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
 
         val music by assetProvider.load<AudioStream>(resourcesVfs["music_short.mp3"])
         assetProvider.prepare {
-            launch{
+            KtScope.launch {
                 music.play(0.05f, true)
             }
-            launch {
+            KtScope.launch {
                 delay(2500)
                 music.pause()
                 delay(2500)
@@ -247,7 +248,7 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
         onRender { dt ->
             if (!assetProvider.fullyLoaded) {
                 assetProvider.update()
-         //       println("Loading: ${(assetProvider.percentage * 100.0).toString(1)}%")
+                //       println("Loading: ${(assetProvider.percentage * 100.0).toString(1)}%")
                 return@onRender
             }
             if (firstLoaded) {

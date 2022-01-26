@@ -5,15 +5,13 @@ import com.lehaine.littlekt.file.vfs.VfsFile
 import com.lehaine.littlekt.graphics.GL
 import com.lehaine.littlekt.input.Input
 import com.lehaine.littlekt.log.Logger
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
 import kotlin.time.Duration
 
 /**
  * @author Colton Daily
  * @date 10/5/2021
  */
-interface Context : CoroutineScope {
+abstract class Context {
 
     enum class Platform {
         DESKTOP,
@@ -22,37 +20,39 @@ interface Context : CoroutineScope {
         IOS
     }
 
-    val stats: AppStats
+    abstract val stats: AppStats
 
-    val configuration: ContextConfiguration
+    abstract val configuration: ContextConfiguration
 
-    val graphics: Graphics
+    abstract val graphics: Graphics
 
-    val gl: GL get() = graphics.gl
+    open val gl: GL get() = graphics.gl
 
-    val input: Input
+    abstract val input: Input
 
-    val logger: Logger
+    abstract val logger: Logger
 
-    val vfs: Vfs
+    abstract val vfs: Vfs
 
-    val resourcesVfs: VfsFile
+    abstract val resourcesVfs: VfsFile
 
-    val storageVfs: VfsFile
+    abstract val storageVfs: VfsFile
 
-    val platform: Platform
+    abstract val platform: Platform
 
-    fun start(build: (app: Context) -> ContextListener)
+    internal abstract val shouldClose: Boolean
 
-    fun close()
+    internal abstract suspend fun initialize(build: (app: Context) -> ContextListener)
 
-    fun destroy()
+    internal abstract suspend fun update(dt: Duration)
 
-    fun onRender(action: suspend (dt: Duration) -> Unit)
-    fun onPostRender(action: suspend (dt: Duration) -> Unit)
-    fun onResize(action: suspend (width: Int, height: Int) -> Unit)
-    fun onDispose(action: suspend () -> Unit)
-    fun postRunnable(action: suspend () -> Unit)
+    abstract fun close()
 
-    fun Context.launch(action: suspend () -> Unit) = (this as CoroutineScope).launch { action() }
+    internal abstract suspend fun destroy()
+
+    abstract fun onRender(action: suspend (dt: Duration) -> Unit)
+    abstract fun onPostRender(action: suspend (dt: Duration) -> Unit)
+    abstract fun onResize(action: suspend (width: Int, height: Int) -> Unit)
+    abstract fun onDispose(action: suspend () -> Unit)
+    abstract fun postRunnable(action: suspend () -> Unit)
 }

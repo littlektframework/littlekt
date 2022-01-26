@@ -11,7 +11,7 @@ import kotlin.time.Duration
  * @author Colton Daily
  * @date 12/26/2021
  */
-abstract class Scene(context: Context) : AssetProvider(context), Context by context, Disposable {
+abstract class Scene(context: Context) : AssetProvider(context), Disposable {
     open suspend fun show() = Unit
     open suspend fun render(dt: Duration) = Unit
     open suspend fun resize(width: Int, height: Int) = Unit
