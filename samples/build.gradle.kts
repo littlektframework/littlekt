@@ -13,33 +13,33 @@ repositories {
 
 kotlin {
     jvm {
-        withJava()
         compilations {
             val main by getting
 
+            val mainClass = "com.lehaine.littlekt.samples.DisplayTestKt"
             tasks {
                 register<Copy>("copyResources") {
-                    group = "publish"
+                    group = "package"
                     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
                     from(main.output.resourcesDir)
-                    destinationDir = File("$projectDir/build/publish")
+                    destinationDir = File("$buildDir/publish")
                 }
-                register<Jar>("buildFatJar") {
-                    group = "publish"
+                register<Jar>("packageFatJar") {
+                    group = "package"
                     archiveClassifier.set("all")
                     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
                     dependsOn(named("jvmJar"))
                     dependsOn(named("copyResources"))
                     manifest {
-                        attributes["Main-Class"] = "com.lehaine.littlekt.samples.DisplayTestKt"
+                        attributes["Main-Class"] = mainClass
                     }
-                    destinationDirectory.set(File("$projectDir/build/publish/"))
+                    destinationDirectory.set(File("$buildDir/publish/"))
                     from(
                         main.runtimeDependencyFiles.map { if (it.isDirectory) it else zipTree(it) },
                         main.output.classesDirs
                     )
                     doLast {
-                        project.logger.lifecycle("[LittleKt] The bundled jar is available at: ${outputs.files.first()}")
+                        project.logger.lifecycle("[LittleKt] The packaged jar is available at: ${outputs.files.first().parent}")
                     }
                 }
 
