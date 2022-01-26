@@ -1,6 +1,7 @@
 package com.lehaine.littlekt
 
 import com.lehaine.littlekt.async.KtScope
+import com.lehaine.littlekt.async.MainDispatcher
 import com.lehaine.littlekt.audio.OpenALAudioContext
 import com.lehaine.littlekt.file.JvmVfs
 import com.lehaine.littlekt.file.vfs.VfsFile
@@ -10,6 +11,7 @@ import com.lehaine.littlekt.graphics.internal.InternalResources
 import com.lehaine.littlekt.input.LwjglInput
 import com.lehaine.littlekt.log.Logger
 import com.lehaine.littlekt.util.fastForEach
+import com.lehaine.littlekt.util.internal.now
 import kotlinx.coroutines.launch
 import org.lwjgl.glfw.Callbacks
 import org.lwjgl.glfw.GLFW
@@ -21,6 +23,7 @@ import org.lwjgl.opengl.GLCapabilities
 import org.lwjgl.system.MemoryStack
 import org.lwjgl.system.MemoryUtil
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.ExperimentalTime
 import org.lwjgl.opengl.GL as LWJGL
 
@@ -39,10 +42,7 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context() {
     override val resourcesVfs: VfsFile get() = vfs.root
     override val storageVfs: VfsFile get() = VfsFile(vfs, "./.storage")
 
-    override val shouldClose: Boolean
-        get() = windowShouldClose
-
-    override val platform: Context.Platform = Context.Platform.DESKTOP
+    override val platform: Platform = Platform.DESKTOP
 
     internal var windowHandle: Long = 0
         private set
@@ -52,16 +52,10 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context() {
     private val windowShouldClose: Boolean
         get() = GLFW.glfwWindowShouldClose(windowHandle)
 
-    private val renderCalls = mutableListOf<suspend (Duration) -> Unit>()
-    private val postRenderCalls = mutableListOf<suspend (Duration) -> Unit>()
-    private val resizeCalls = mutableListOf<suspend (Int, Int) -> Unit>()
-    private val disposeCalls = mutableListOf<suspend () -> Unit>()
-    private val postRunnableCalls = mutableListOf<suspend () -> Unit>()
-
 
     @Suppress("EXPERIMENTAL_IS_NOT_ENABLED")
     @OptIn(ExperimentalTime::class)
-    override suspend fun initialize(build: (app: Context) -> ContextListener) {
+    override fun start(build: (app: Context) -> ContextListener) {
         // Setup an error callback. The default implementation
         // will print the error message in System.err.
         GLFWErrorCallback.createPrint(System.err).set()
@@ -156,8 +150,10 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context() {
 
         GL30C.glClearColor(0f, 0f, 0f, 0f)
 
-        InternalResources.createInstance(this@LwjglContext)
-        InternalResources.INSTANCE.load()
+        KtScope.launch {
+            InternalResources.createInstance(this@LwjglContext)
+            InternalResources.INSTANCE.load()
+        }
         val listener: ContextListener = build(this@LwjglContext)
 
         GLFW.glfwSetFramebufferSizeCallback(windowHandle) { _, width, height ->
@@ -175,19 +171,31 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context() {
             }
         }
 
-        listener.run { start() }
-        listener.run {
-            resizeCalls.fastForEach { resize ->
-                println("resize init")
-                resize(
-                    this@LwjglContext.configuration.width,
-                    this@LwjglContext.configuration.height
-                )
+        KtScope.launch {
+            listener.run { start() }
+            listener.run {
+                resizeCalls.fastForEach { resize ->
+                    resize(
+                        this@LwjglContext.configuration.width,
+                        this@LwjglContext.configuration.height
+                    )
+                }
             }
+        }
+
+        while (!windowShouldClose) {
+            calcFrameTimes(now().milliseconds)
+            MainDispatcher.INSTANCE.executePending(available)
+            KtScope.launch {
+                update(dt)
+            }
+        }
+        KtScope.launch {
+            disposeCalls.fastForEach { dispose -> dispose() }
         }
     }
 
-    override suspend fun update(dt: Duration) {
+    private suspend fun update(dt: Duration) {
         audioContext.update()
 
         stats.engineStats.resetPerFrameCounts()
@@ -218,8 +226,7 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context() {
         GLFW.glfwSetWindowShouldClose(windowHandle, true)
     }
 
-    override suspend fun destroy() {
-        disposeCalls.fastForEach { dispose -> dispose() }
+    override fun destroy() {
         // Free the window callbacks and destroy the window
         Callbacks.glfwFreeCallbacks(windowHandle)
         GLFW.glfwDestroyWindow(windowHandle)
@@ -229,25 +236,5 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context() {
         GLFW.glfwSetErrorCallback(null)?.free()
 
         audioContext.dispose()
-    }
-
-    override fun onRender(action: suspend (dt: Duration) -> Unit) {
-        renderCalls += action
-    }
-
-    override fun onPostRender(action: suspend (dt: Duration) -> Unit) {
-        postRenderCalls += action
-    }
-
-    override fun onResize(action: suspend (width: Int, height: Int) -> Unit) {
-        resizeCalls += action
-    }
-
-    override fun onDispose(action: suspend () -> Unit) {
-        disposeCalls += action
-    }
-
-    override fun postRunnable(action: suspend () -> Unit) {
-        postRunnableCalls += action
     }
 }

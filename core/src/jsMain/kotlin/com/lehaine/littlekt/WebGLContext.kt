@@ -5,63 +5,46 @@ import com.lehaine.littlekt.async.KtScope
 import com.lehaine.littlekt.file.WebVfs
 import com.lehaine.littlekt.file.vfs.VfsFile
 import com.lehaine.littlekt.graphics.internal.InternalResources
-import com.lehaine.littlekt.input.Input
 import com.lehaine.littlekt.input.JsInput
 import com.lehaine.littlekt.log.Logger
 import com.lehaine.littlekt.util.fastForEach
 import kotlinx.browser.document
 import kotlinx.browser.window
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import org.w3c.dom.HTMLCanvasElement
-import kotlin.coroutines.CoroutineContext
 import kotlin.time.Duration
-import kotlin.time.Duration.Companion.microseconds
-import kotlin.time.Duration.Companion.seconds
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.ExperimentalTime
 
 /**
  * @author Colton Daily
  * @date 10/4/2021
  */
-class WebGLContext(override val configuration: JsConfiguration) : Context {
-
-    override val coroutineContext: CoroutineContext get() = KtScope.coroutineContext
+class WebGLContext(override val configuration: JsConfiguration) : Context() {
 
     private val canvas = document.getElementById(configuration.canvasId) as HTMLCanvasElement
 
     override val stats: AppStats = AppStats()
-    override val graphics: Graphics = WebGLGraphics(canvas, stats.engineStats)
-    override val input: Input = JsInput(canvas)
+    override val graphics: WebGLGraphics = WebGLGraphics(canvas, stats.engineStats)
+    override val input: JsInput = JsInput(canvas)
     override val logger: Logger = Logger(configuration.title)
     override val vfs = WebVfs(this, logger, configuration.rootPath)
     override val resourcesVfs: VfsFile get() = vfs.root
     override val storageVfs: VfsFile get() = vfs.root
-    override val platform: Context.Platform = Context.Platform.JS
+    override val platform: Platform = Platform.JS
 
     private lateinit var listener: ContextListener
-    private var lastFrame = 0.0
     private var closed = false
 
-    private val renderCalls = mutableListOf<suspend (Duration) -> Unit>()
-    private val postRenderCalls = mutableListOf<suspend (Duration) -> Unit>()
-    private val resizeCalls = mutableListOf<suspend (Int, Int) -> Unit>()
-    private val disposeCalls = mutableListOf<suspend () -> Unit>()
-    private val postRunnableCalls = mutableListOf<suspend () -> Unit>()
-
-    private val counterTimerPerFrame: Duration get() = (1_000_000.0 / stats.fps).microseconds
-
     override fun start(build: (app: Context) -> ContextListener) {
-        KtScope.initiate(this)
-        graphics as WebGLGraphics
-        input as JsInput
-
         graphics._width = canvas.clientWidth
         graphics._height = canvas.clientHeight
 
-        InternalResources.createInstance(this)
-        launch {
+        KtScope.launch {
+            InternalResources.createInstance(this@WebGLContext)
             InternalResources.INSTANCE.load()
-            listener = build(this)
+            listener = build(this@WebGLContext)
             listener.run { start() }
         }
         window.requestAnimationFrame(::render)
@@ -70,11 +53,10 @@ class WebGLContext(override val configuration: JsConfiguration) : Context {
     @Suppress("EXPERIMENTAL_IS_NOT_ENABLED")
     @OptIn(ExperimentalTime::class)
     private fun render(now: Double) {
-        launch {
+        KtScope.launch {
             if (canvas.clientWidth != graphics.width ||
                 canvas.clientHeight != graphics.height
             ) {
-                graphics as WebGLGraphics
                 graphics._width = canvas.clientWidth
                 graphics._height = canvas.clientHeight
                 canvas.width = canvas.clientWidth
@@ -91,11 +73,8 @@ class WebGLContext(override val configuration: JsConfiguration) : Context {
 
             invokeAnyRunnable()
 
-            input as JsInput
-            val dt = ((now - lastFrame) / 1000.0).seconds
-            val available = counterTimerPerFrame - dt
+            calcFrameTimes(now.milliseconds)
             Dispatchers.KT.executePending(available)
-            lastFrame = now
 
             input.update()
             stats.update(dt)
@@ -133,28 +112,8 @@ class WebGLContext(override val configuration: JsConfiguration) : Context {
     }
 
     override fun destroy() {
-        launch {
+        KtScope.launch {
             disposeCalls.fastForEach { dispose -> dispose() }
         }
-    }
-
-    override fun onRender(action: suspend (dt: Duration) -> Unit) {
-        renderCalls += action
-    }
-
-    override fun onPostRender(action: suspend (dt: Duration) -> Unit) {
-        postRenderCalls += action
-    }
-
-    override fun onResize(action: suspend (width: Int, height: Int) -> Unit) {
-        resizeCalls += action
-    }
-
-    override fun onDispose(action: suspend () -> Unit) {
-        disposeCalls += action
-    }
-
-    override fun postRunnable(action: suspend () -> Unit) {
-        postRunnableCalls += action
     }
 }

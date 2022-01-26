@@ -5,7 +5,10 @@ import com.lehaine.littlekt.file.vfs.VfsFile
 import com.lehaine.littlekt.graphics.GL
 import com.lehaine.littlekt.input.Input
 import com.lehaine.littlekt.log.Logger
+import com.lehaine.littlekt.util.internal.now
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.microseconds
+import kotlin.time.Duration.Companion.milliseconds
 
 /**
  * @author Colton Daily
@@ -19,6 +22,18 @@ abstract class Context {
         ANDROID,
         IOS
     }
+
+    protected val renderCalls = mutableListOf<suspend (Duration) -> Unit>()
+    protected val postRenderCalls = mutableListOf<suspend (Duration) -> Unit>()
+    protected val resizeCalls = mutableListOf<suspend (Int, Int) -> Unit>()
+    protected val disposeCalls = mutableListOf<suspend () -> Unit>()
+    protected val postRunnableCalls = mutableListOf<suspend () -> Unit>()
+
+    protected var lastFrame: Duration = now().milliseconds
+    protected var dt: Duration = Duration.ZERO
+    protected var available: Duration = Duration.ZERO
+
+    protected val counterTimePerFrame get() = (1_000_000.0 / stats.fps).microseconds
 
     abstract val stats: AppStats
 
@@ -40,19 +55,35 @@ abstract class Context {
 
     abstract val platform: Platform
 
-    internal abstract val shouldClose: Boolean
-
-    internal abstract suspend fun initialize(build: (app: Context) -> ContextListener)
-
-    internal abstract suspend fun update(dt: Duration)
+    internal abstract fun start(build: (app: Context) -> ContextListener)
 
     abstract fun close()
 
-    internal abstract suspend fun destroy()
+    internal abstract fun destroy()
 
-    abstract fun onRender(action: suspend (dt: Duration) -> Unit)
-    abstract fun onPostRender(action: suspend (dt: Duration) -> Unit)
-    abstract fun onResize(action: suspend (width: Int, height: Int) -> Unit)
-    abstract fun onDispose(action: suspend () -> Unit)
-    abstract fun postRunnable(action: suspend () -> Unit)
+    protected fun calcFrameTimes(time: Duration) {
+        dt = time - lastFrame
+        available = counterTimePerFrame - dt
+        lastFrame = time
+    }
+
+    open fun onRender(action: suspend (dt: Duration) -> Unit) {
+        renderCalls += action
+    }
+
+    open fun onPostRender(action: suspend (dt: Duration) -> Unit) {
+        postRenderCalls += action
+    }
+
+    open fun onResize(action: suspend (width: Int, height: Int) -> Unit) {
+        resizeCalls += action
+    }
+
+    open fun onDispose(action: suspend () -> Unit) {
+        disposeCalls += action
+    }
+
+    open fun postRunnable(action: suspend () -> Unit) {
+        postRunnableCalls += action
+    }
 }
