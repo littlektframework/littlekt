@@ -1,3 +1,6 @@
+import com.lehaine.littlekt.gradle.texturepacker.littleKt
+import com.lehaine.littlekt.gradle.texturepacker.packing
+import com.lehaine.littlekt.gradle.texturepacker.texturePacker
 import org.jetbrains.kotlin.gradle.plugin.KotlinJsCompilerType
 import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
 
@@ -19,6 +22,16 @@ plugins {
 repositories {
     mavenCentral()
     maven(url = "https://maven.pkg.jetbrains.space/public/p/kotlinx-html/maven")
+}
+
+
+
+littleKt {
+    texturePacker {
+        packing {
+
+        }
+    }
 }
 
 kotlin {

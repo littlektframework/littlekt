@@ -3,8 +3,7 @@ package com.lehaine.littlekt.gradle.texturepacker
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
-import org.gradle.api.logging.LogLevel
-import org.gradle.api.plugins.ExtensionAware
+import org.jetbrains.kotlin.gradle.internal.ensureParentDirsCreated
 import java.io.File
 
 /**
@@ -14,18 +13,35 @@ import java.io.File
 @Suppress("unused")
 class LittleKtTexturePackerPlugin : Plugin<Project> {
     override fun apply(project: Project) {
-        val littleKtBlock =
-            project.extensions.findByName("littlekt") as? ExtensionAware?
-        val texturePackerConfig =
-            littleKtBlock?.extensions?.findByName("texturePacker") as? TexturePackerConfig?
-                ?: TexturePackerConfig(project)
 
-        project.logger.log(LogLevel.INFO, "HI!")
         project.tasks.register("packTextures", Task::class.java) {
             it.group = "texture packer"
             it.doLast {
-                File("${texturePackerConfig.outputDir}${texturePackerConfig.outputName}").createNewFile()
+                // TODO - pack textures
+                File("${project.littleKt.texturePackerConfig.outputDir}${project.littleKt.texturePackerConfig.outputName}").apply {
+                    ensureParentDirsCreated()
+                    createNewFile()
+                }
             }
         }
     }
 }
+
+fun Project.littleKt(action: LittleKtConfig.() -> Unit) = littleKt.apply(action)
+
+val Project.littleKt: LittleKtConfig
+    get() {
+        val block = project.extensions.findByName("littlekt") as? LittleKtConfig?
+        return if (block == null) {
+            val newBlock = LittleKtConfig()
+            project.extensions.add("littlekt", newBlock)
+            newBlock
+        } else {
+            block
+        }
+    }
+
+
+fun LittleKtConfig.texturePacker(action: TexturePackerConfig.() -> Unit) = texturePackerConfig.apply(action)
+
+fun TexturePackerConfig.packing(action: PackingOptions.() -> Unit) = packingOptions.apply(action)
