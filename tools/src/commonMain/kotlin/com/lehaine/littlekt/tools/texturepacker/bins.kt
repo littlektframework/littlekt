@@ -28,7 +28,6 @@ class SimpleBin(
     override val data: Map<String, Any> = mapOf()
 }
 
-
 abstract class BaseBin : Bin {
 
     protected val _data = mutableMapOf<String, Any>()
@@ -343,6 +342,31 @@ class MaxRectsBin(
             i++
         }
     }
+}
+
+
+class OversizedElementBin(
+    rect: Rect
+) : BaseBin() {
+
+    init {
+        rect.oversized = true
+    }
+
+    override val width: Int = rect.width
+    override val height: Int = rect.height
+    override val freeRects: List<Rect> = emptyList()
+    override val rects: List<Rect> = listOf(rect)
+    override val options: PackingOptions = PackingOptions().apply {
+        maxWidth = rect.width
+        maxHeight = rect.height
+        outputPagesAsPowerOfTwo = false
+    }
+
+    override fun add(rect: Rect): Rect? = null
+    override fun reset(deepReset: Boolean) = Unit
+    override fun repack(): List<Rect> = emptyList()
+    override fun clone(): BaseBin = OversizedElementBin(rects[0])
 }
 
 private val Int.nextPowerOfTwo: Int

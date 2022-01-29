@@ -4,7 +4,12 @@ package com.lehaine.littlekt.tools.texturepacker
  * @author Colton Daily
  * @date 1/28/2022
  */
-interface Packer
+interface Packer {
+    fun add(width: Int, height: Int, data: Map<String, Any> = mapOf()): Rect =
+        add(Rect(width = width, height = height, data = data))
+
+    fun add(rect: Rect): Rect
+}
 
 class MaxRectsPacker(val options: PackingOptions) : Packer {
     val width get() = options.maxWidth
@@ -15,10 +20,9 @@ class MaxRectsPacker(val options: PackingOptions) : Packer {
 
     private var currentBinIndex = 0
 
-
-    fun add(rect: Rect): Rect {
+    override fun add(rect: Rect): Rect {
         if (rect.width > width || rect.height > height) {
-            // TODO add oversized element bin
+            _bins += OversizedElementBin(rect)
         } else {
             val added = bins.drop(currentBinIndex).find { it.add(rect) != null }
             if (added == null) {
