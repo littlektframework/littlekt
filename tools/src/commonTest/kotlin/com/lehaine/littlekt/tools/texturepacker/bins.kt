@@ -12,6 +12,8 @@ class MaxRectsNoPaddingTests {
         maxHeight = 1024
         allowRotation = false
         edgeBorder = 0
+        paddingHorizontal = 0
+        paddingVertical = 0
     }
 
     @BeforeTest
@@ -86,5 +88,38 @@ class MaxRectsNoPaddingTests {
         bin.add(Rect(width = 1024, height = 512, isRotated = true))
         expect(2) { bin.rects.size }
         expect(false) { bin.rects[1].isRotated }
+    }
+
+    @Test
+    fun test_fits_squares_correctly() {
+        var i = 0
+        while (bin.add(Rect(width = 100, height = 100, data = mapOf("number" to i))) != null) {
+            if (i++ == 1000) break
+        }
+        expect(100) { i }
+        expect(100) { bin.rects.size }
+        expect(1024) { bin.width }
+        expect(1024) { bin.height }
+
+        bin.rects.forEachIndexed { index, rect -> expect(index) { rect.data["number"] } }
+
+    }
+
+    @Test
+    fun test_reset_and_deep_reset() {
+        bin.add(Rect(width = 200, height = 100))
+        bin.add(Rect(width = 200, height = 100))
+        bin.add(Rect(width = 200, height = 100))
+        expect(3) { bin.rects.size }
+        expect(512) { bin.width }
+        bin.reset()
+        expect(0) { bin.width }
+        expect(1) { bin.freeRects.size }
+        val unpacked = bin.repack()
+        expect(0) { unpacked.size }
+        expect(512) { bin.width }
+        bin.reset(true)
+        expect(0) { bin.width }
+        expect(0) { bin.rects.size }
     }
 }

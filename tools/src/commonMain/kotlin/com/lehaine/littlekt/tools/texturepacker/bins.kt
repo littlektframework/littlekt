@@ -66,8 +66,8 @@ class MaxRectsBin(
             Rect(
                 options.edgeBorder,
                 options.edgeBorder,
-                maxWidth - options.edgeBorder * 2,
-                maxHeight - options.edgeBorder * 2
+                maxWidth + options.paddingHorizontal - options.edgeBorder * 2,
+                maxHeight + options.paddingVertical - options.edgeBorder * 2
             )
         )
     override val freeRects: List<Rect>
@@ -77,7 +77,7 @@ class MaxRectsBin(
     override val rects: List<Rect>
         get() = _rects
 
-    private val stage = Rect(width = width, height = height)
+    private var stage = Rect(width = width, height = height)
     private var verticalExpand = false
 
     override fun add(rect: Rect): Rect? {
@@ -87,7 +87,7 @@ class MaxRectsBin(
     }
 
     override fun reset(deepReset: Boolean) {
-        if(deepReset) {
+        if (deepReset) {
             _data.clear()
             _rects.clear()
         }
@@ -97,25 +97,17 @@ class MaxRectsBin(
         _freeRects += Rect(
             options.edgeBorder,
             options.edgeBorder,
-            maxWidth - options.edgeBorder * 2,
-            maxHeight - options.edgeBorder * 2
+            maxWidth + options.paddingHorizontal - options.edgeBorder * 2,
+            maxHeight + options.paddingVertical - options.edgeBorder * 2
         )
-        stage.width = width
-        stage.height = height
+        stage=  Rect(width = width, height = height)
         _dirty = 0
     }
 
     override fun repack(): List<Rect> {
         val unpacked = mutableListOf<Rect>()
         reset()
-        rects.sortedWith { a, b ->
-            val result = max(b.width, b.height) - max(a.width, a.height)
-            if (result == 0) {
-                if (a.hashCode() > b.hashCode()) -1 else 1
-            } else {
-                result
-            }
-        }
+        _rects.sortByDescending { max(it.width, it.height) }
         rects.forEach {
             if (place(it) == null) {
                 unpacked += it
@@ -125,7 +117,7 @@ class MaxRectsBin(
         unpacked.forEach {
             _rects.remove(it)
         }
-        return if (unpacked.size > 0) unpacked else listOf()
+        return unpacked
     }
 
     override fun clone(): BaseBin {
@@ -140,7 +132,7 @@ class MaxRectsBin(
         val allowRotation = rect.allowRotation ?: options.allowRotation
         val node: Rect? =
             findNode(rect.width + options.paddingHorizontal, rect.height + options.paddingVertical, allowRotation)
-        node?.let {
+        if (node != null) {
             updateBinSize(node)
             var numRectsToProcess = freeRects.size
             var i = 0
@@ -326,7 +318,7 @@ class MaxRectsBin(
 
     private fun pruneFreeList() {
         var i = 0
-        var j = 0
+        var j: Int
         var len = freeRects.size
         while (i < len) {
             j = i + 1
