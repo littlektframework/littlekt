@@ -1,5 +1,7 @@
 package com.lehaine.littlekt.tools.texturepacker
 
+import kotlin.math.floor
+import kotlin.random.Random
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertNotNull
@@ -121,5 +123,55 @@ class MaxRectsNoPaddingTests {
         bin.reset(true)
         expect(0) { bin.width }
         expect(0) { bin.rects.size }
+    }
+
+    @Test
+    fun test_repack() {
+        val rect1 = bin.add(Rect(width = 512, height = 512, data = mapOf("id" to "one")))
+        assertNotNull(rect1)
+        val rect2 = bin.add(Rect(width = 512, height = 512, data = mapOf("id" to "two")))
+        assertNotNull(rect2)
+        val rect3 = bin.add(Rect(width = 512, height = 512, data = mapOf("id" to "three")))
+        assertNotNull(rect3)
+        rect2.width = 1014
+        rect2.height = 513
+        val unpacked = bin.repack()
+        expect(2) { unpacked.size }
+        expect("one") { unpacked[0].data["id"] }
+        expect("three") { unpacked[1].data["id"] }
+        expect(1) { bin.rects.size }
+    }
+
+    @Test
+    fun test_monkey_testing() {
+        val rects = mutableListOf<Rect>()
+        while (true) {
+            val width = floor(Random.nextFloat() * 200).toInt()
+            val height = floor(Random.nextFloat() * 200).toInt()
+            val rect = Rect(width = width, height = height)
+
+            val pos = bin.add(rect)
+            if (pos != null) {
+                expect(width) { pos.width }
+                expect(height) { pos.height }
+                rects += pos
+            } else {
+                break
+            }
+        }
+
+        expect(true) { bin.width <= 1024 }
+        expect(true) { bin.height <= 1024 }
+
+        rects.forEach { rect1 ->
+            rects.forEach { rect2 ->
+                if (rect1 != rect2) {
+                    expect(false) { rect1.collides(rect2) }
+                }
+            }
+
+            expect(true) { rect1.x + rect1.width <= bin.width }
+            expect(true) { rect1.y + rect1.height <= bin.height }
+        }
     }
 }
