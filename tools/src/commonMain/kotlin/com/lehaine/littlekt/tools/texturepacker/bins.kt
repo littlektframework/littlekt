@@ -34,6 +34,7 @@ abstract class BaseBin : Bin {
     protected val _data = mutableMapOf<String, Any>()
     override val data: Map<String, Any> get() = _data
 
+    fun add(width: Int, height: Int) = add(Rect(width = width, height = height))
     abstract fun add(rect: Rect): Rect?
     abstract fun reset(deepReset: Boolean = false)
     abstract fun repack(): List<Rect>
@@ -100,7 +101,7 @@ class MaxRectsBin(
             maxWidth + options.paddingHorizontal - options.edgeBorder * 2,
             maxHeight + options.paddingVertical - options.edgeBorder * 2
         )
-        stage=  Rect(width = width, height = height)
+        stage = Rect(width = width, height = height)
         _dirty = 0
     }
 
@@ -196,7 +197,7 @@ class MaxRectsBin(
             if (rect.width >= height && rect.height >= width) {
                 areaFit = min(rect.height - width, rect.width - height)
                 if (areaFit < score) {
-                    bestNode = Rect(rect.x, rect.y, rect.height, rect.width, true)
+                    bestNode = Rect(rect.x, rect.y, height, width, true)
                     score = areaFit
                 }
             }
@@ -213,7 +214,8 @@ class MaxRectsBin(
             if (usedNode.y > freeRect.y && usedNode.y < freeRect.y + freeRect.height) {
                 _freeRects += Rect(
                     x = freeRect.x,
-                    y = freeRect.y, width = freeRect.width,
+                    y = freeRect.y,
+                    width = freeRect.width,
                     height = usedNode.y - freeRect.y
                 )
             }
@@ -302,11 +304,11 @@ class MaxRectsBin(
             x = width + options.paddingHorizontal - options.edgeBorder,
             y = options.edgeBorder,
             width = tw - width - options.paddingHorizontal,
-            height = height - options.edgeBorder * 2
+            height = th - options.edgeBorder * 2
         )
         _freeRects += Rect(
             x = options.edgeBorder,
-            y = height + options.paddingHorizontal - options.edgeBorder,
+            y = height + options.paddingVertical - options.edgeBorder,
             width = tw - options.edgeBorder * 2,
             height = th - height - options.paddingVertical
         )
