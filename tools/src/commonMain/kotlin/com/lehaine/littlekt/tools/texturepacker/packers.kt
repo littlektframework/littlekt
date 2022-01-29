@@ -1,5 +1,7 @@
 package com.lehaine.littlekt.tools.texturepacker
 
+import kotlin.math.max
+
 /**
  * @author Colton Daily
  * @date 1/28/2022
@@ -17,6 +19,9 @@ class MaxRectsPacker(val options: PackingOptions) : Packer {
 
     private val _bins = mutableListOf<BaseBin>()
     val bins: List<BaseBin> get() = _bins
+
+    val dirty: Boolean get() = bins.any { it.dirty }
+    val rects: List<Rect> get() = bins.flatMap { it.rects }
 
     private var currentBinIndex = 0
 
@@ -50,6 +55,8 @@ class MaxRectsPacker(val options: PackingOptions) : Packer {
             }
         }
     }
+
+    fun sort(rects: List<Rect>) = rects.sortedByDescending { max(it.width, it.height) }
 
     fun next(): Int {
         currentBinIndex = bins.size

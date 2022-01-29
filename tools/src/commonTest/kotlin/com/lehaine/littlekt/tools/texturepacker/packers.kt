@@ -4,7 +4,7 @@ import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.expect
 
-class MaxRectsPackerTest {
+class MaxRectsPackerTests {
 
     private val options = PackingOptions().apply {
         outputPagesAsPowerOfTwo = false
@@ -50,7 +50,7 @@ class MaxRectsPackerTest {
         packer.add(10, 10, mapOf("number" to 3))
         packer.add(10, 10, mapOf("number" to 4))
         expect(3) { packer.bins.size }
-        expect(2) { packer.bins.last().rects.size}
+        expect(2) { packer.bins.last().rects.size }
     }
 
     @Test
@@ -58,7 +58,23 @@ class MaxRectsPackerTest {
         packer.add(1000, 1000, mapOf("number" to 1))
         packer.add(2000, 2000, mapOf("number" to 2))
         expect(2) { packer.bins.size }
-        expect(2000) { packer.bins[1].rects[0].width}
-        expect(true) { packer.bins[1].rects[0].oversized}
+        expect(2000) { packer.bins[1].rects[0].width }
+        expect(true) { packer.bins[1].rects[0].oversized }
+    }
+
+    @Test
+    fun test_sort_does_not_mutate_input_list() {
+        val input = listOf(Rect(width = 1, height = 1), Rect(width = 2, height = 2))
+        packer.sort(input)
+        expect(1) { input[0].width }
+    }
+
+    @Test
+    fun test_sort_works_correctly() {
+        val input = listOf(Rect(width = 1, height = 1), Rect(width = 3, height = 1), Rect(width = 2, height = 2))
+        val output = packer.sort(input)
+        expect(3) { output[0].width }
+        expect(2) { output[1].width }
+        expect(1) { output[2].width }
     }
 }
