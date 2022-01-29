@@ -1,4 +1,4 @@
-package com.lehaine.littlekt.gradle.texturepacker
+package com.lehaine.littlekt.tools.texturepacker
 
 import kotlin.math.max
 import kotlin.math.min
@@ -15,13 +15,27 @@ interface Bin {
     val freeRects: List<Rect>
     val rects: List<Rect>
     val options: PackingOptions
+    val data: Map<String, Any>
+}
+
+class SimpleBin(
+    override val width: Int,
+    override val height: Int,
+    override val freeRects: List<Rect> = listOf(),
+    override val rects: List<Rect> = listOf(),
+    override val options: PackingOptions = PackingOptions()
+) : Bin {
+    override val data: Map<String, Any> = mapOf()
 }
 
 
 abstract class BaseBin : Bin {
 
+    protected val _data = mutableMapOf<String, Any>()
+    override val data: Map<String, Any> get() = _data
+
     abstract fun add(rect: Rect): Rect?
-    abstract fun reset(deepReset: Boolean)
+    abstract fun reset(deepReset: Boolean = false)
     abstract fun repack(): List<Rect>
 
     protected var _dirty = 0
@@ -73,11 +87,45 @@ class MaxRectsBin(
     }
 
     override fun reset(deepReset: Boolean) {
-        TODO("Not yet implemented")
+        if(deepReset) {
+            _data.clear()
+            _rects.clear()
+        }
+        width = 0
+        height = 0
+        _freeRects.clear()
+        _freeRects += Rect(
+            options.edgeBorder,
+            options.edgeBorder,
+            maxWidth - options.edgeBorder * 2,
+            maxHeight - options.edgeBorder * 2
+        )
+        stage.width = width
+        stage.height = height
+        _dirty = 0
     }
 
     override fun repack(): List<Rect> {
-        TODO("Not yet implemented")
+        val unpacked = mutableListOf<Rect>()
+        reset()
+        rects.sortedWith { a, b ->
+            val result = max(b.width, b.height) - max(a.width, a.height)
+            if (result == 0) {
+                if (a.hashCode() > b.hashCode()) -1 else 1
+            } else {
+                result
+            }
+        }
+        rects.forEach {
+            if (place(it) == null) {
+                unpacked += it
+            }
+        }
+
+        unpacked.forEach {
+            _rects.remove(it)
+        }
+        return if (unpacked.size > 0) unpacked else listOf()
     }
 
     override fun clone(): BaseBin {
@@ -89,8 +137,9 @@ class MaxRectsBin(
     }
 
     private fun place(rect: Rect): Rect? {
+        val allowRotation = rect.allowRotation ?: options.allowRotation
         val node: Rect? =
-            findNode(rect.width + options.paddingVertical, rect.height + options.paddingVertical, options.allowRotation)
+            findNode(rect.width + options.paddingHorizontal, rect.height + options.paddingVertical, allowRotation)
         node?.let {
             updateBinSize(node)
             var numRectsToProcess = freeRects.size
@@ -138,10 +187,10 @@ class MaxRectsBin(
 
     private fun findNode(width: Int, height: Int, allowRotation: Boolean): Rect? {
         var score = Int.MAX_VALUE
-        var areaFit = 0
+        var areaFit: Int
         var bestNode: Rect? = null
         freeRects.forEach { rect ->
-            if (rect.width >= width || rect.height >= height) {
+            if (rect.width >= width && rect.height >= height) {
                 areaFit = min(rect.width - width, rect.height - height)
                 if (areaFit < score) {
                     bestNode = Rect(rect.x, rect.y, width, height)
@@ -214,7 +263,7 @@ class MaxRectsBin(
     }
 
     private fun updateBinSize(node: Rect): Boolean {
-        if (!stage.contains(node)) return false
+        if (stage.contains(node)) return false
 
         var tmpWidth = max(width, node.x + node.width - options.paddingHorizontal + options.edgeBorder)
         var tmpHeight = max(height, node.y + node.height - options.paddingVertical + options.edgeBorder)

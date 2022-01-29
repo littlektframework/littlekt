@@ -1,4 +1,4 @@
-package com.lehaine.littlekt.gradle.texturepacker
+package com.lehaine.littlekt.tools.texturepacker
 
 /**
  * @author Colton Daily
@@ -10,7 +10,8 @@ open class Rect(
     width: Int = 0,
     height: Int = 0,
     isRotated: Boolean = false,
-    useRotation: Boolean = false
+    allowRotation: Boolean? = null,
+    data: Map<String, Any> = mapOf()
 ) {
 
     protected var _dirty = 0
@@ -20,7 +21,7 @@ open class Rect(
     protected var _width = width
     protected var _height = height
     protected var _isRotated: Boolean = isRotated
-    protected var _useRotation: Boolean = useRotation
+    protected var _allowRotation: Boolean? = allowRotation
 
     var x: Int = x
         get() = _x
@@ -54,7 +55,7 @@ open class Rect(
     var isRotated: Boolean = _isRotated
         get() = _isRotated
         set(value) {
-            if (!_useRotation) return
+            if (_allowRotation == false) return
             if (value == field) return
             val tmp = width
             width = height
@@ -62,11 +63,11 @@ open class Rect(
             _isRotated = value
             _dirty++
         }
-    var useRotation: Boolean = _useRotation
-        get() = _useRotation
+    var allowRotation: Boolean? = _allowRotation
+        get() = _allowRotation
         set(value) {
             if (value == field) return
-            _useRotation = value
+            _allowRotation = value
             _dirty++
         }
 
@@ -79,6 +80,9 @@ open class Rect(
     var oversized: Boolean = false
     val area: Int get() = width * height
 
+
+    val data: MutableMap<String, Any> = data.toMutableMap()
+
     fun collides(rect: Rect): Boolean =
         (rect.x < x + width
                 && rect.x + rect.width > x
@@ -88,4 +92,9 @@ open class Rect(
     fun contains(rect: Rect): Boolean = (rect.x >= x && rect.y >= y
             && rect.x + rect.width <= x + width
             && rect.y + rect.height <= y + height)
+
+    override fun toString(): String {
+        return "Rect(x=$x, y=$y, width=$width, height=$height, isRotated=$isRotated, useRotation=$allowRotation, dirty=$dirty, oversized=$oversized, area=$area, data=$data)"
+    }
+
 }

@@ -14,6 +14,7 @@ repositories {
 
 dependencies {
     implementation(kotlin("gradle-plugin"))
+    implementation(project(":tools"))
     implementation(gradleApi())
     implementation(localGroovy())
     compileOnly(gradleKotlinDsl())

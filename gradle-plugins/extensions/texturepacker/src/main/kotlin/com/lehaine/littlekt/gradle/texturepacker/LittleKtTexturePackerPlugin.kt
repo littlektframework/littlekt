@@ -1,5 +1,6 @@
 package com.lehaine.littlekt.gradle.texturepacker
 
+import com.lehaine.littlekt.tools.texturepacker.PackingOptions
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
