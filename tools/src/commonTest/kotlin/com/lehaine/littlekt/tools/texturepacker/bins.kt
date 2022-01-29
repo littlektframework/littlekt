@@ -2,10 +2,7 @@ package com.lehaine.littlekt.tools.texturepacker
 
 import kotlin.math.floor
 import kotlin.random.Random
-import kotlin.test.BeforeTest
-import kotlin.test.Test
-import kotlin.test.assertNotNull
-import kotlin.test.expect
+import kotlin.test.*
 
 class MaxRectsNoPaddingTests {
     private var bin: MaxRectsBin = MaxRectsBin()
@@ -213,7 +210,7 @@ class MaxRectsWithPaddingTests {
     }
 
     @Test
-    fun test_adds_rects_with_sizes_close_to_the_max() {
+    fun test_rect_with_size_close_to_the_max() {
         assertNotNull(bin.add(1024, 1024))
         expect(1) { bin.rects.size }
     }
@@ -251,6 +248,107 @@ class MaxRectsWithPaddingTests {
             expect(true) { rect1.y >= 0 }
             expect(true) { rect1.x + rect1.width <= bin.width }
             expect(true) { rect1.y + rect1.height <= bin.height }
+        }
+    }
+}
+
+class MaxRectsTestWithBorderAndPadding {
+    private val padding = 4
+    private val border = 5
+    private var bin: MaxRectsBin = MaxRectsBin()
+    private val options = PackingOptions().apply {
+        maxWidth = 1024
+        maxHeight = 1024
+        allowRotation = false
+        edgeBorder = border
+        paddingHorizontal = padding
+        paddingVertical = padding
+    }
+
+    @BeforeTest
+    fun setup() {
+        bin = MaxRectsBin(options)
+    }
+
+    @Test
+    fun test_is_initially_empty() {
+        expect(0) { bin.width }
+        expect(0) { bin.height }
+    }
+
+
+    @Test
+    fun test_handles_border_and_padding_correctly() {
+        val size = 512 - border * 2
+        val pos1 = bin.add(size + 1, size)
+        assertNotNull(pos1)
+        expect(5) { pos1.x }
+        expect(5) { pos1.y }
+        expect(1024) { bin.width }
+        expect(512) { bin.height }
+        val pos2 = bin.add(size, size)
+        assertNotNull(pos2)
+        expect(padding) { pos2.x - pos1.x - pos1.width }
+        expect(border) { pos2.y }
+        expect(1024) { bin.width }
+        expect(512) { bin.height }
+        bin.add(size, size)
+        bin.add(512, 508)
+        expect(1024) { bin.width }
+        expect(1024) { bin.height }
+        expect(3) { bin.rects.size }
+    }
+
+    @Test
+    fun test_rect_with_size_close_to_max() {
+        assertNull(bin.add(1024, 1024))
+        expect(0) { bin.rects.size }
+    }
+
+    @Test
+    fun test_monkey_testing() {
+        repeat(5) {
+            val padding = floor(Random.nextFloat() * 10).toInt()
+            val border = floor(Random.nextFloat() * 20).toInt()
+            bin = MaxRectsBin(PackingOptions().apply {
+                maxWidth = 1024
+                maxHeight = 1024
+                allowRotation = false
+                edgeBorder = border
+                paddingHorizontal = padding
+                paddingVertical = padding
+            })
+            val rects = mutableListOf<Rect>()
+            while (true) {
+                val width = floor(Random.nextFloat() * 200).toInt()
+                val height = floor(Random.nextFloat() * 200).toInt()
+                val rect = Rect(width = width, height = height)
+
+                val pos = bin.add(rect)
+                if (pos != null) {
+                    expect(width) { pos.width }
+                    expect(height) { pos.height }
+                    rects += pos
+                } else {
+                    break
+                }
+            }
+
+            expect(true) { bin.width <= 1024 }
+            expect(true) { bin.height <= 1024 }
+
+            rects.forEach { rect1 ->
+                rects.forEach { rect2 ->
+                    if (rect1 != rect2) {
+                        expect(false) { rect1.collides(rect2) }
+                    }
+                }
+
+                expect(true) { rect1.x >= border }
+                expect(true) { rect1.y >= border }
+                expect(true) { rect1.x + rect1.width <= bin.width - border }
+                expect(true) { rect1.y + rect1.height <= bin.height - border }
+            }
         }
     }
 }
