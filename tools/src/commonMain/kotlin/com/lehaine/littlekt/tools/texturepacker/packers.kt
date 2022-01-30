@@ -11,6 +11,15 @@ interface Packer {
         add(Rect(width = width, height = height, data = data))
 
     fun add(rect: Rect): Rect
+    fun add(rects: List<Rect>) = sort(rects).forEach { add(it) }
+    fun reset()
+    fun repack()
+
+    fun next(): Int
+
+    fun sort(rects: List<Rect>): List<Rect>
+
+    fun save(): List<Bin>
 }
 
 class MaxRectsPacker(val options: PackingOptions) : Packer {
@@ -41,12 +50,12 @@ class MaxRectsPacker(val options: PackingOptions) : Packer {
         return rect
     }
 
-    fun reset() {
+    override fun reset() {
         _bins.clear()
         currentBinIndex = 0
     }
 
-    fun repack() {
+    override fun repack() {
         bins.forEach { bin ->
             if (bin.dirty) {
                 bin.repack().forEach {
@@ -56,14 +65,14 @@ class MaxRectsPacker(val options: PackingOptions) : Packer {
         }
     }
 
-    fun sort(rects: List<Rect>) = rects.sortedByDescending { max(it.width, it.height) }
+    override fun sort(rects: List<Rect>) = rects.sortedByDescending { max(it.width, it.height) }
 
-    fun next(): Int {
+    override fun next(): Int {
         currentBinIndex = bins.size
         return currentBinIndex
     }
 
-    fun save(): List<Bin> {
+    override fun save(): List<Bin> {
         val saveBins = mutableListOf<Bin>()
         val tempList = mutableListOf<Rect>()
         bins.forEach { bin ->

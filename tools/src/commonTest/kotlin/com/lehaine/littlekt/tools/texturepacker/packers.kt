@@ -77,4 +77,43 @@ class MaxRectsPackerTests {
         expect(2) { output[1].width }
         expect(1) { output[2].width }
     }
+
+    @Test
+    fun test_adds_multiple_elements_to_bins() {
+        val input = listOf(
+            Rect(width = 1000, height = 1000, data = mapOf("number" to 1)),
+            Rect(width = 1000, height = 1000, data = mapOf("number" to 2))
+        )
+        packer.add(input)
+        expect(2) { packer.bins.size }
+    }
+
+    @Test
+    fun test_adds_big_rects_first() {
+        val input = listOf(
+            Rect(width = 600, height = 20, data = mapOf("number" to 1)),
+            Rect(width = 600, height = 20, data = mapOf("number" to 2)),
+            Rect(width = 1000, height = 1000, data = mapOf("number" to 3)),
+            Rect(width = 1000, height = 1000, data = mapOf("number" to 4))
+        )
+        packer.add(input)
+        expect(2) { packer.bins.size }
+        expect(3) { packer.bins[0].rects[0].data["number"] }
+        expect(1) { packer.bins[0].rects[1].data["number"] }
+    }
+
+    @Test
+    fun test_add_empty_list() {
+        packer.add(emptyList())
+        expect(0) { packer.bins.size }
+    }
+
+    @Test
+    fun test_add_single_element_list() {
+        val input = listOf(
+            Rect(width = 1000, height = 1000, data = mapOf("number" to 1)),
+        )
+        packer.add(input)
+        expect(1) { packer.bins.size }
+    }
 }
