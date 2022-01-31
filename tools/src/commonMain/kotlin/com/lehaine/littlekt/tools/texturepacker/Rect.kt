@@ -23,50 +23,50 @@ open class Rect(
     protected var _isRotated: Boolean = isRotated
     protected var _allowRotation: Boolean? = allowRotation
 
-    var x: Int = x
+    var x: Int
         get() = _x
         set(value) {
-            if (value == field) return
+            if (value == _x) return
             _x = value
             _dirty++
         }
-    var y: Int = _y
+    var y: Int
         get() = _y
         set(value) {
-            if (value == field) return
+            if (value == _y) return
             _y = value
             _dirty++
         }
-    var width: Int = _width
+    var width: Int
         get() = _width
         set(value) {
-            if (value == field) return
+            if (value == _width) return
             _width = value
             _dirty++
         }
-    var height: Int = _height
+    var height: Int
         get() = _height
         set(value) {
-            if (value == field) return
+            if (value == _height) return
             _height = value
             _dirty++
         }
 
-    var isRotated: Boolean = _isRotated
+    var isRotated: Boolean
         get() = _isRotated
         set(value) {
             if (_allowRotation == false) return
-            if (value == field) return
+            if (value == _isRotated) return
             val tmp = width
             width = height
             height = tmp
             _isRotated = value
             _dirty++
         }
-    var allowRotation: Boolean? = _allowRotation
+    var allowRotation: Boolean?
         get() = _allowRotation
         set(value) {
-            if (value == field) return
+            if (value == _allowRotation) return
             _allowRotation = value
             _dirty++
         }

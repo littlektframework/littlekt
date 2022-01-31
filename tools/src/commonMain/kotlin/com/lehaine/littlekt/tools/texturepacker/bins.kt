@@ -134,7 +134,6 @@ class MaxRectsBin(
     }
 
     private fun place(rect: Rect): Rect? {
-        println("attempt ot place $rect")
         val allowRotation = rect.allowRotation ?: options.allowRotation
         val node: Rect? =
             findNode(rect.width + options.paddingHorizontal, rect.height + options.paddingVertical, allowRotation)

@@ -132,7 +132,7 @@ class MaxRectsPackerTests {
         expect(1) { packer.bins.size }
         expect(4) { packer.bins[0].rects.size }
         val bins = packer.save()
-        expect(4) { bins[0].rects.size}
+        expect(4) { bins[0].rects.size }
         packer.load(bins)
         expect(1) { packer.bins.size }
         expect(4) { packer.bins[0].rects.size }
@@ -142,4 +142,25 @@ class MaxRectsPackerTests {
         expect(4) { packer.bins[1].rects.size }
     }
 
+
+    @Test
+    fun test_quick_repack_and_deep_repack() {
+        val rect = Rect(width = 1024, height = 1024)
+        packer.add(rect)
+        packer.add(512, 512)
+        packer.add(512, 512)
+        packer.add(512, 512)
+        packer.add(512, 512)
+        packer.add(512, 512)
+        expect(3) { packer.bins.size }
+        packer.bins.forEach { it.dirty = false }
+        rect.width = 512
+        packer.repack()
+        expect(3) { packer.bins.size }
+        packer.repack(false)
+        expect(2) { packer.bins.size }
+        rect.width = 1024
+        packer.repack()
+        expect(3) { packer.bins.size }
+    }
 }
