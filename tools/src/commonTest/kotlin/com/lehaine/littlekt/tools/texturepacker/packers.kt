@@ -11,6 +11,9 @@ class MaxRectsPackerTests {
         allowRotation = false
         maxWidth = 1024
         maxHeight = 1024
+        paddingHorizontal = 0
+        paddingVertical = 0
+        edgeBorder = 0
     }
     private var packer = MaxRectsPacker(options)
 
@@ -116,4 +119,27 @@ class MaxRectsPackerTests {
         packer.add(input)
         expect(1) { packer.bins.size }
     }
+
+    @Test
+    fun test_load_old_bins_and_continue_packing() {
+        val input = listOf(
+            Rect(width = 512, height = 512, data = mapOf("number" to 1)),
+            Rect(width = 512, height = 512, data = mapOf("number" to 2)),
+            Rect(width = 512, height = 512, data = mapOf("number" to 3)),
+            Rect(width = 512, height = 512, data = mapOf("number" to 4))
+        )
+        packer.add(input)
+        expect(1) { packer.bins.size }
+        expect(4) { packer.bins[0].rects.size }
+        val bins = packer.save()
+        expect(4) { bins[0].rects.size}
+        packer.load(bins)
+        expect(1) { packer.bins.size }
+        expect(4) { packer.bins[0].rects.size }
+        packer.add(input)
+        expect(2) { packer.bins.size }
+        expect(4) { packer.bins[0].rects.size }
+        expect(4) { packer.bins[1].rects.size }
+    }
+
 }

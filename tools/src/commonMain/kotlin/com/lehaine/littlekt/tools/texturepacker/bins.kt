@@ -23,9 +23,14 @@ class SimpleBin(
     override val height: Int,
     override val freeRects: List<Rect> = listOf(),
     override val rects: List<Rect> = listOf(),
-    override val options: PackingOptions = PackingOptions()
-) : Bin {
+    override val options: PackingOptions = PackingOptions(),
     override val data: Map<String, Any> = mapOf()
+) : Bin {
+
+    override fun toString(): String {
+        return "SimpleBin(width=$width, height=$height, freeRects=$freeRects, rects=$rects, options=$options, data=$data)"
+    }
+
 }
 
 abstract class BaseBin : Bin {
@@ -61,7 +66,7 @@ class MaxRectsBin(
     override var width: Int = 0
     override var height: Int = 0
 
-    private var _freeRects =
+    internal var _freeRects =
         mutableListOf(
             Rect(
                 options.edgeBorder,
@@ -73,7 +78,7 @@ class MaxRectsBin(
     override val freeRects: List<Rect>
         get() = _freeRects
 
-    private val _rects = mutableListOf<Rect>()
+    internal var _rects = mutableListOf<Rect>()
     override val rects: List<Rect>
         get() = _rects
 
@@ -129,6 +134,7 @@ class MaxRectsBin(
     }
 
     private fun place(rect: Rect): Rect? {
+        println("attempt ot place $rect")
         val allowRotation = rect.allowRotation ?: options.allowRotation
         val node: Rect? =
             findNode(rect.width + options.paddingHorizontal, rect.height + options.paddingVertical, allowRotation)
@@ -342,12 +348,17 @@ class MaxRectsBin(
             i++
         }
     }
+
+    override fun toString(): String {
+        return "MaxRectsBin(options=$options, width=$width, height=$height, freeRects=$freeRects, rects=$rects, stage=$stage, verticalExpand=$verticalExpand)"
+    }
 }
 
 
 class OversizedElementBin(
     rect: Rect
 ) : BaseBin() {
+    constructor(width: Int, height: Int) : this(Rect(width = width, height = height))
 
     init {
         rect.oversized = true

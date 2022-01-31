@@ -20,6 +20,7 @@ interface Packer {
     fun sort(rects: List<Rect>): List<Rect>
 
     fun save(): List<Bin>
+    fun load(bins: List<Bin>)
 }
 
 class MaxRectsPacker(val options: PackingOptions) : Packer {
@@ -38,8 +39,8 @@ class MaxRectsPacker(val options: PackingOptions) : Packer {
         if (rect.width > width || rect.height > height) {
             _bins += OversizedElementBin(rect)
         } else {
-            val added = bins.drop(currentBinIndex).find { it.add(rect) != null }
-            if (added == null) {
+            val added = bins.drop(currentBinIndex).find { it.add(rect) != null } != null
+            if (!added) {
                 MaxRectsBin(options).apply {
                     add(rect)
                 }.also {
@@ -74,14 +75,38 @@ class MaxRectsPacker(val options: PackingOptions) : Packer {
 
     override fun save(): List<Bin> {
         val saveBins = mutableListOf<Bin>()
-        val tempList = mutableListOf<Rect>()
+
         bins.forEach { bin ->
-            tempList.clear()
-            bin.freeRects.forEach {
-                tempList.add(Rect(it.x, it.y, it.width, it.height))
-            }
-            saveBins += SimpleBin(bin.width, bin.height, freeRects = tempList.toList(), options = options)
+            saveBins += SimpleBin(
+                bin.width,
+                bin.height,
+                rects = bin.rects.map { Rect(it.x, it.y, it.width, it.height) },
+                freeRects = bin.freeRects.map { Rect(it.x, it.y, it.width, it.height) },
+                options = options,
+                data = bin.data
+            )
         }
         return saveBins.toList()
+    }
+
+    override fun load(bins: List<Bin>) {
+        _bins.clear()
+        bins.forEach { bin ->
+            if (bin.maxWidth > width || bin.maxHeight > height) {
+                _bins += OversizedElementBin(bin.width, bin.height)
+            } else {
+                val newBin = MaxRectsBin(bin.options.clone().apply {
+                    this.maxWidth = width
+                    this.maxHeight = height
+                }).apply {
+                    _freeRects.clear()
+                }
+                newBin._freeRects = bin.freeRects.map { Rect(it.x, it.y, it.width, it.height) }.toMutableList()
+                newBin._rects = bin.rects.map { Rect(it.x, it.y, it.width, it.height) }.toMutableList()
+                newBin.width = bin.width
+                newBin.height = bin.height
+                _bins += newBin
+            }
+        }
     }
 }
