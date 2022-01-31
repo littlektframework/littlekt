@@ -68,6 +68,16 @@ class MaxRectsNoPaddingTests {
     }
 
     @Test
+    fun test_stores_tag_and_non_tagged_rects_in_same_bin() {
+        bin.add(Rect(200, 100, data = mapOf("id" to 1), tag = "test"))
+        bin.add(Rect(200, 100, data = mapOf("id" to 2)))
+        expect(2) { bin.rects.size }
+        expect(1) { bin.rects[0].data["id"] }
+        expect("test") { bin.rects[0].tag }
+        expect(2) { bin.rects[1].data["id"] }
+    }
+
+    @Test
     fun test_set_rotation_correctly() {
         bin = MaxRectsBin(PackingOptions().apply {
             maxWidth = 1024

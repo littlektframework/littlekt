@@ -11,7 +11,8 @@ open class Rect(
     height: Int = 0,
     isRotated: Boolean = false,
     allowRotation: Boolean? = null,
-    data: Map<String, Any> = mapOf()
+    data: Map<String, Any> = mapOf(),
+    tag: String? = null
 ) {
 
     protected var _dirty = 0
@@ -22,6 +23,7 @@ open class Rect(
     protected var _height = height
     protected var _isRotated: Boolean = isRotated
     protected var _allowRotation: Boolean? = allowRotation
+    protected var _tag = tag
 
     var x: Int
         get() = _x
@@ -71,6 +73,14 @@ open class Rect(
             _dirty++
         }
 
+    var tag: String?
+        get() = _tag
+        set(value) {
+            if (value == _tag) return
+            _tag = value
+            _dirty++
+        }
+
     var dirty: Boolean
         get() = _dirty > 0
         set(value) {
@@ -94,7 +104,42 @@ open class Rect(
             && rect.y + rect.height <= y + height)
 
     override fun toString(): String {
-        return "Rect(x=$x, y=$y, width=$width, height=$height, isRotated=$isRotated, useRotation=$allowRotation, dirty=$dirty, oversized=$oversized, area=$area, data=$data)"
+        return "Rect(x=$x, y=$y, width=$width, height=$height, isRotated=$isRotated, allowRotation=$allowRotation, tag=$tag, dirty=$dirty, oversized=$oversized, area=$area, data=$data)"
     }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other == null || this::class != other::class) return false
+
+        other as Rect
+
+        if (_dirty != other._dirty) return false
+        if (_x != other._x) return false
+        if (_y != other._y) return false
+        if (_width != other._width) return false
+        if (_height != other._height) return false
+        if (_isRotated != other._isRotated) return false
+        if (_allowRotation != other._allowRotation) return false
+        if (_tag != other._tag) return false
+        if (oversized != other.oversized) return false
+        if (data != other.data) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = _dirty
+        result = 31 * result + _x
+        result = 31 * result + _y
+        result = 31 * result + _width
+        result = 31 * result + _height
+        result = 31 * result + _isRotated.hashCode()
+        result = 31 * result + (_allowRotation?.hashCode() ?: 0)
+        result = 31 * result + (_tag?.hashCode() ?: 0)
+        result = 31 * result + oversized.hashCode()
+        result = 31 * result + data.hashCode()
+        return result
+    }
+
 
 }

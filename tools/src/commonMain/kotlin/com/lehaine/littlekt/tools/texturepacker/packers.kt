@@ -57,7 +57,7 @@ class MaxRectsPacker(val options: PackingOptions) : Packer {
     }
 
     override fun repack(quick: Boolean) {
-        if(quick) {
+        if (quick) {
             val unpacked = mutableListOf<Rect>()
             bins.forEach { bin ->
                 if (bin.dirty) {
@@ -70,7 +70,7 @@ class MaxRectsPacker(val options: PackingOptions) : Packer {
             return
         }
 
-        if(!dirty) return
+        if (!dirty) return
         val rects = this.rects
         reset()
         add(rects)
