@@ -142,7 +142,6 @@ class MaxRectsPackerTests {
         expect(4) { packer.bins[1].rects.size }
     }
 
-
     @Test
     fun test_quick_repack_and_deep_repack() {
         val rect = Rect(width = 1024, height = 1024)
@@ -162,5 +161,15 @@ class MaxRectsPackerTests {
         rect.width = 1024
         packer.repack()
         expect(3) { packer.bins.size }
+    }
+
+    @Test
+    fun test_allow_rotation() {
+        packer = MaxRectsPacker(options.clone().apply {
+            allowRotation = true
+        })
+        packer.add(1024, 512)
+        val rect = packer.add(512, 1024)
+        expect(true) { rect.isRotated }
     }
 }
