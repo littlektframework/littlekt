@@ -272,10 +272,10 @@ class SpriteBatch(
             flush()
         }
 
-        var fx = -originX
-        var fy = -originY
-        var fx2 = width - originX
-        var fy2 = height - originY
+        var fx = -(originX - slice.offsetX)
+        var fy = -(originY - slice.offsetY)
+        var fx2 = width + fx
+        var fy2 = height + fy
 
         if (scaleX != 1f || scaleY != 1f) {
             fx *= scaleX

@@ -26,7 +26,7 @@ repositories {
 
 littleKt {
     texturePacker {
-        inputDir = "src/commonMain/resources/raw/"
+        inputDir = "../art/export_tiles/raw/"
         outputDir = "src/commonMain/resources/"
         outputName = "tiles.atlas"
     }

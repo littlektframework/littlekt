@@ -7,25 +7,25 @@
         "scale": 1.0,
         "size": {
             "w": 256,
-            "h": 256
+            "h": 128
         }
     },
     "frames": [
         {
             "filename": "bossAttack0",
             "frame": {
-                "x": 2,
-                "y": 2,
-                "w": 80,
-                "h": 48
+                "x": 124,
+                "y": 37,
+                "w": 27,
+                "h": 31
             },
             "rotated": false,
-            "trimmed": false,
+            "trimmed": true,
             "spriteSourceSize": {
-                "x": 0,
-                "y": 0,
-                "w": 80,
-                "h": 48
+                "x": 25,
+                "y": 17,
+                "w": 27,
+                "h": 31
             },
             "sourceSize": {
                 "w": 80,
@@ -35,18 +35,18 @@
         {
             "filename": "bossAttack1",
             "frame": {
-                "x": 2,
-                "y": 52,
-                "w": 80,
-                "h": 48
+                "x": 124,
+                "y": 2,
+                "w": 27,
+                "h": 33
             },
             "rotated": false,
-            "trimmed": false,
+            "trimmed": true,
             "spriteSourceSize": {
-                "x": 0,
-                "y": 0,
-                "w": 80,
-                "h": 48
+                "x": 25,
+                "y": 15,
+                "w": 27,
+                "h": 33
             },
             "sourceSize": {
                 "w": 80,
@@ -56,18 +56,18 @@
         {
             "filename": "bossAttack2",
             "frame": {
-                "x": 2,
-                "y": 2,
-                "w": 80,
-                "h": 48
+                "x": 124,
+                "y": 37,
+                "w": 27,
+                "h": 31
             },
             "rotated": false,
-            "trimmed": false,
+            "trimmed": true,
             "spriteSourceSize": {
-                "x": 0,
-                "y": 0,
-                "w": 80,
-                "h": 48
+                "x": 25,
+                "y": 17,
+                "w": 27,
+                "h": 31
             },
             "sourceSize": {
                 "w": 80,
@@ -77,18 +77,18 @@
         {
             "filename": "bossAttack3",
             "frame": {
-                "x": 2,
-                "y": 52,
-                "w": 80,
-                "h": 48
+                "x": 124,
+                "y": 2,
+                "w": 27,
+                "h": 33
             },
             "rotated": false,
-            "trimmed": false,
+            "trimmed": true,
             "spriteSourceSize": {
-                "x": 0,
-                "y": 0,
-                "w": 80,
-                "h": 48
+                "x": 25,
+                "y": 15,
+                "w": 27,
+                "h": 33
             },
             "sourceSize": {
                 "w": 80,
@@ -98,18 +98,18 @@
         {
             "filename": "bossAttack4",
             "frame": {
-                "x": 2,
-                "y": 2,
-                "w": 80,
-                "h": 48
+                "x": 124,
+                "y": 37,
+                "w": 27,
+                "h": 31
             },
             "rotated": false,
-            "trimmed": false,
+            "trimmed": true,
             "spriteSourceSize": {
-                "x": 0,
-                "y": 0,
-                "w": 80,
-                "h": 48
+                "x": 25,
+                "y": 17,
+                "w": 27,
+                "h": 31
             },
             "sourceSize": {
                 "w": 80,
@@ -119,18 +119,18 @@
         {
             "filename": "bossAttack5",
             "frame": {
-                "x": 84,
+                "x": 153,
                 "y": 2,
-                "w": 80,
-                "h": 48
+                "w": 27,
+                "h": 33
             },
             "rotated": false,
-            "trimmed": false,
+            "trimmed": true,
             "spriteSourceSize": {
-                "x": 0,
-                "y": 0,
-                "w": 80,
-                "h": 48
+                "x": 21,
+                "y": 15,
+                "w": 27,
+                "h": 33
             },
             "sourceSize": {
                 "w": 80,
@@ -140,18 +140,18 @@
         {
             "filename": "bossAttack6",
             "frame": {
-                "x": 166,
+                "x": 2,
                 "y": 2,
-                "w": 80,
-                "h": 48
+                "w": 59,
+                "h": 32
             },
             "rotated": false,
-            "trimmed": false,
+            "trimmed": true,
             "spriteSourceSize": {
-                "x": 0,
-                "y": 0,
-                "w": 80,
-                "h": 48
+                "x": 21,
+                "y": 16,
+                "w": 59,
+                "h": 32
             },
             "sourceSize": {
                 "w": 80,
@@ -161,18 +161,18 @@
         {
             "filename": "bossAttack7",
             "frame": {
-                "x": 84,
-                "y": 52,
-                "w": 80,
-                "h": 48
+                "x": 2,
+                "y": 71,
+                "w": 58,
+                "h": 33
             },
             "rotated": false,
-            "trimmed": false,
+            "trimmed": true,
             "spriteSourceSize": {
-                "x": 0,
-                "y": 0,
-                "w": 80,
-                "h": 48
+                "x": 21,
+                "y": 15,
+                "w": 58,
+                "h": 33
             },
             "sourceSize": {
                 "w": 80,
@@ -182,18 +182,18 @@
         {
             "filename": "bossAttack8",
             "frame": {
-                "x": 166,
-                "y": 52,
-                "w": 80,
-                "h": 48
+                "x": 63,
+                "y": 2,
+                "w": 59,
+                "h": 32
             },
             "rotated": false,
-            "trimmed": false,
+            "trimmed": true,
             "spriteSourceSize": {
-                "x": 0,
-                "y": 0,
-                "w": 80,
-                "h": 48
+                "x": 21,
+                "y": 16,
+                "w": 59,
+                "h": 32
             },
             "sourceSize": {
                 "w": 80,
@@ -204,17 +204,17 @@
             "filename": "bossAttack9",
             "frame": {
                 "x": 2,
-                "y": 102,
-                "w": 80,
-                "h": 48
+                "y": 36,
+                "w": 59,
+                "h": 33
             },
             "rotated": false,
-            "trimmed": false,
+            "trimmed": true,
             "spriteSourceSize": {
-                "x": 0,
-                "y": 0,
-                "w": 80,
-                "h": 48
+                "x": 21,
+                "y": 15,
+                "w": 59,
+                "h": 33
             },
             "sourceSize": {
                 "w": 80,
@@ -224,18 +224,18 @@
         {
             "filename": "bossAttack10",
             "frame": {
-                "x": 2,
-                "y": 152,
-                "w": 80,
-                "h": 48
+                "x": 63,
+                "y": 36,
+                "w": 59,
+                "h": 33
             },
             "rotated": false,
-            "trimmed": false,
+            "trimmed": true,
             "spriteSourceSize": {
-                "x": 0,
-                "y": 0,
-                "w": 80,
-                "h": 48
+                "x": 21,
+                "y": 15,
+                "w": 59,
+                "h": 33
             },
             "sourceSize": {
                 "w": 80,
@@ -245,18 +245,18 @@
         {
             "filename": "bossAttack11",
             "frame": {
-                "x": 2,
-                "y": 202,
-                "w": 80,
-                "h": 48
+                "x": 62,
+                "y": 71,
+                "w": 50,
+                "h": 33
             },
             "rotated": false,
-            "trimmed": false,
+            "trimmed": true,
             "spriteSourceSize": {
-                "x": 0,
-                "y": 0,
-                "w": 80,
-                "h": 48
+                "x": 21,
+                "y": 15,
+                "w": 50,
+                "h": 33
             },
             "sourceSize": {
                 "w": 80,
@@ -266,18 +266,18 @@
         {
             "filename": "bossAttack12",
             "frame": {
-                "x": 84,
-                "y": 102,
-                "w": 80,
-                "h": 48
+                "x": 182,
+                "y": 2,
+                "w": 28,
+                "h": 33
             },
             "rotated": false,
-            "trimmed": false,
+            "trimmed": true,
             "spriteSourceSize": {
-                "x": 0,
-                "y": 0,
-                "w": 80,
-                "h": 48
+                "x": 21,
+                "y": 15,
+                "w": 28,
+                "h": 33
             },
             "sourceSize": {
                 "w": 80,
@@ -287,18 +287,18 @@
         {
             "filename": "bossAttack13",
             "frame": {
-                "x": 166,
-                "y": 102,
-                "w": 80,
-                "h": 48
+                "x": 114,
+                "y": 71,
+                "w": 37,
+                "h": 33
             },
             "rotated": false,
-            "trimmed": false,
+            "trimmed": true,
             "spriteSourceSize": {
-                "x": 0,
-                "y": 0,
-                "w": 80,
-                "h": 48
+                "x": 21,
+                "y": 15,
+                "w": 37,
+                "h": 33
             },
             "sourceSize": {
                 "w": 80,
@@ -308,18 +308,18 @@
         {
             "filename": "bossAttack14",
             "frame": {
-                "x": 84,
-                "y": 152,
-                "w": 80,
-                "h": 48
+                "x": 212,
+                "y": 2,
+                "w": 27,
+                "h": 33
             },
             "rotated": false,
-            "trimmed": false,
+            "trimmed": true,
             "spriteSourceSize": {
-                "x": 0,
-                "y": 0,
-                "w": 80,
-                "h": 48
+                "x": 21,
+                "y": 15,
+                "w": 27,
+                "h": 33
             },
             "sourceSize": {
                 "w": 80,

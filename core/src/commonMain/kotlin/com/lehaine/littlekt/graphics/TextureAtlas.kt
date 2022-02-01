@@ -2,6 +2,7 @@ package com.lehaine.littlekt.graphics
 
 import com.lehaine.littlekt.file.atlas.AtlasInfo
 import com.lehaine.littlekt.file.atlas.AtlasPage
+import com.lehaine.littlekt.math.Rect
 
 /**
  * Holds all the TextureSlice entries of the atlas that was read and loaded in.
@@ -26,7 +27,8 @@ class TextureAtlas internal constructor(private val textures: Map<String, Textur
      * @param prefix the name prefix of the [TextureSlice]
      * @returns the first [Entry] that matches the supplied prefix
      */
-    fun getByPrefix(prefix: String): Entry =  entries.firstOrNull() { it.name.startsWith(prefix) }?: throw NoSuchElementException("'$prefix' does not exist in this texture atlas!")
+    fun getByPrefix(prefix: String): Entry = entries.firstOrNull { it.name.startsWith(prefix) }
+        ?: throw NoSuchElementException("'$prefix' does not exist in this texture atlas!")
 
     operator fun get(name: String): Entry = entriesMap[name] ?: error("Can't find $name in atlas.")
 
@@ -36,7 +38,19 @@ class TextureAtlas internal constructor(private val textures: Map<String, Textur
     inner class Entry internal constructor(info: AtlasPage.Frame, page: AtlasPage) {
         private val frame = info.applyRotation()
         val texture = textures[page.meta.image] ?: error("Can't find ${page.meta.image} in ${textures.keys}")
-        val slice = TextureSlice(texture, frame.frame.x, frame.frame.y, frame.frame.w, frame.frame.h)
+        val slice = TextureSlice(texture, frame.frame.x, frame.frame.y, frame.frame.w, frame.frame.h).apply {
+            rotated = frame.rotated
+            if (frame.trimmed) {
+                virtualFrame = Rect(
+                    frame.spriteSourceSize.x.toFloat(),
+                    frame.spriteSourceSize.y.toFloat(),
+                    frame.spriteSourceSize.w.toFloat(),
+                    frame.spriteSourceSize.h.toFloat()
+                )
+                originalWidth = frame.sourceSize.w
+                originalHeight = frame.sourceSize.h
+            }
+        }
         val name get() = frame.name
     }
 }
