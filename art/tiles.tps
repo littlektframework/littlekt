@@ -92,9 +92,9 @@
         <key>maxTextureSize</key>
         <QSize>
             <key>width</key>
-            <int>2048</int>
+            <int>256</int>
             <key>height</key>
-            <int>2048</int>
+            <int>128</int>
         </QSize>
         <key>fixedTextureSize</key>
         <QSize>
@@ -136,11 +136,11 @@
             <key>data</key>
             <struct type="DataFile">
                 <key>name</key>
-                <filename>default_assets/default_tiles.json</filename>
+                <filename>output_atlas/tp_ex/example-{n}.json</filename>
             </struct>
         </map>
         <key>multiPack</key>
-        <false/>
+        <true/>
         <key>forceIdenticalLayout</key>
         <false/>
         <key>outputFormat</key>
@@ -403,6 +403,24 @@
                 <rect>0,0,1,1</rect>
                 <key>scale9Paddings</key>
                 <rect>0,0,1,1</rect>
+                <key>scale9FromFile</key>
+                <false/>
+            </struct>
+            <key type="filename">export_tiles/test/heroRun0.png</key>
+            <key type="filename">export_tiles/test/heroRun1.png</key>
+            <key type="filename">export_tiles/test/heroRun2.png</key>
+            <key type="filename">export_tiles/test/heroRun3.png</key>
+            <struct type="IndividualSpriteSettings">
+                <key>pivotPoint</key>
+                <point_f>0.5,0.5</point_f>
+                <key>spriteScale</key>
+                <double>1</double>
+                <key>scale9Enabled</key>
+                <false/>
+                <key>scale9Borders</key>
+                <rect>6,5,12,10</rect>
+                <key>scale9Paddings</key>
+                <rect>6,5,12,10</rect>
                 <key>scale9FromFile</key>
                 <false/>
             </struct>

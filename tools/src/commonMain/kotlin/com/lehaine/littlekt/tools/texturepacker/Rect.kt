@@ -14,7 +14,6 @@ open class Rect(
     data: Map<String, Any> = mapOf(),
     tag: String? = null
 ) {
-
     protected var _dirty = 0
 
     protected var _x = x

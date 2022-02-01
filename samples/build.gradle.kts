@@ -24,13 +24,11 @@ repositories {
     maven(url = "https://maven.pkg.jetbrains.space/public/p/kotlinx-html/maven")
 }
 
-
-
 littleKt {
     texturePacker {
-        packing {
-
-        }
+        inputDir = "src/commonMain/resources/raw/"
+        outputDir = "src/commonMain/resources/"
+        outputName = "tiles.atlas"
     }
 }
 

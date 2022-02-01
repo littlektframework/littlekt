@@ -1,9 +1,12 @@
 package com.lehaine.littlekt.gradle.texturepacker
 
 import com.lehaine.littlekt.tools.texturepacker.PackingOptions
+import com.lehaine.littlekt.tools.texturepacker.TexturePacker
+import com.lehaine.littlekt.tools.texturepacker.TexturePackerConfig
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
+import org.gradle.internal.impldep.org.eclipse.jgit.util.FileUtils.createNewFile
 import org.jetbrains.kotlin.gradle.internal.ensureParentDirsCreated
 import java.io.File
 
@@ -13,16 +16,15 @@ import java.io.File
  */
 @Suppress("unused")
 class LittleKtTexturePackerPlugin : Plugin<Project> {
+
     override fun apply(project: Project) {
 
         project.tasks.register("packTextures", Task::class.java) {
             it.group = "texture packer"
             it.doLast {
-                // TODO - pack textures
-                File("${project.littleKt.texturePackerConfig.outputDir}${project.littleKt.texturePackerConfig.outputName}").apply {
-                    ensureParentDirsCreated()
-                    createNewFile()
-                }
+                val packer = TexturePacker(project.littleKt.texturePackerConfig)
+                packer.process()
+                packer.pack()
             }
         }
     }

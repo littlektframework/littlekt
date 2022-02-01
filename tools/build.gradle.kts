@@ -4,6 +4,7 @@ import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
 plugins {
     kotlin("multiplatform")
     kotlin("plugin.serialization") version "1.6.0"
+    `maven-publish`
 }
 
 repositories {
