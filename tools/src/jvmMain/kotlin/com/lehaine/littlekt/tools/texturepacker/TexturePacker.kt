@@ -17,7 +17,7 @@ class TexturePacker(val config: TexturePackerConfig) {
 
     private val extensions = listOf("png", "jpg", "jpeg")
     private var files: Sequence<File> = sequenceOf()
-    private val imageProcessor = ImageProcessor()
+    private val imageProcessor = ImageProcessor(config)
     private val json = Json {
         prettyPrint = true
         encodeDefaults = true
@@ -55,7 +55,7 @@ class TexturePacker(val config: TexturePackerConfig) {
             bin.rects.forEach { rect ->
                 rect as ImageRectData
                 val image = rect.loadImage()
-                image.copyTo(0, 0, image.width, image.height, canvas, rect.x, rect.y, rect.isRotated)
+                image.copyTo(rect.offsetX, rect.offsetY, rect.regionWidth, rect.regionHeight, canvas, rect.x, rect.y, rect.isRotated)
             }
             val imageName = "${config.outputName}.png"
             ImageIO.write(canvas, "png", File(outputDir, imageName))

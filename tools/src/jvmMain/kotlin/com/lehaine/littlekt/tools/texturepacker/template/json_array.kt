@@ -57,7 +57,7 @@ internal fun List<ImageRectData>.toFrames(): List<AtlasPage.Frame> {
             data.name,
             AtlasPage.Rect(data.x, data.y, data.width, data.height),
             data.isRotated,
-            false,
+            data.offsetX != 0 || data.offsetY != 0 || data.regionWidth != data.width || data.regionHeight != data.height,
             AtlasPage.Rect(data.offsetX, data.offsetY, data.regionWidth, data.regionHeight),
             AtlasPage.Size(data.originalWidth, data.originalHeight)
         )
@@ -67,7 +67,7 @@ internal fun List<ImageRectData>.toFrames(): List<AtlasPage.Frame> {
                 it.name,
                 AtlasPage.Rect(data.x, data.y, data.width, data.height),
                 data.isRotated,
-                false,
+                data.offsetX != 0 || data.offsetY != 0 || data.regionWidth != data.width || data.regionHeight != data.height,
                 AtlasPage.Rect(data.offsetX, data.offsetY, data.regionWidth, data.regionHeight),
                 AtlasPage.Size(data.originalWidth, data.originalHeight)
             )

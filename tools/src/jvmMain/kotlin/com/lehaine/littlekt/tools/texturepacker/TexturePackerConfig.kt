@@ -38,5 +38,8 @@ open class TexturePackerConfig {
     var ignoreDirs: List<String> = listOf()
     var ignoreFiles: List<String> = listOf()
 
+    var trim = true
+    var trimMargin = 1
+
     var packingOptions = PackingOptions()
 }

@@ -10,7 +10,7 @@ import javax.imageio.ImageIO
  * @author Colton Daily
  * @date 1/31/2022
  */
-class ImageProcessor {
+class ImageProcessor(val config: TexturePackerConfig) {
 
     private val _data = mutableListOf<ImageRectData>()
     val data: List<ImageRectData> get() = _data
@@ -54,9 +54,29 @@ class ImageProcessor {
             index = matcher.group(2).toInt()
         }
 
-        // TODO handle trimming transparent pixels
+        return if (config.trim) {
+            trim(image, inputName).also { it?.index = index }
+        } else {
+            ImageRectData(
+                0,
+                0,
+                image.width,
+                image.height,
+                regionWidth = image.width,
+                regionHeight = image.height,
+                offsetX = 0,
+                offsetY = 0,
+                originalWidth = image.width,
+                originalHeight = image.height,
+                image = image,
+                name = inputName,
+                index = index
+            )
+        }
+    }
 
-        return ImageRectData(
+    private fun trim(image: BufferedImage, name: String): ImageRectData? {
+        val alphaRaster = image.alphaRaster ?: return ImageRectData(
             0,
             0,
             image.width,
@@ -68,8 +88,90 @@ class ImageProcessor {
             originalWidth = image.width,
             originalHeight = image.height,
             image = image,
-            name = inputName,
-            index = index
+            name = name
+        )
+
+        val a = IntArray(1)
+        var left = 0
+        var top = 0
+        var right = image.width
+        var bottom = image.height
+
+        run top@{
+            for (y in 0 until image.height) {
+                for (x in 0 until image.width) {
+                    alphaRaster.getPixel(x, y, a)
+                    var alpha = a[0]
+                    if (alpha < 0) alpha += 256
+                    if (alpha > 0) return@top
+                }
+                top++
+            }
+        }
+
+        run bottom@{
+            for (y in image.height - 1 downTo top) {
+                for (x in 0 until image.width) {
+                    alphaRaster.getPixel(x, y, a)
+                    var alpha = a[0]
+                    if (alpha < 0) alpha += 256
+                    if (alpha > 0) return@bottom
+                }
+                bottom--
+            }
+        }
+
+        run left@{
+            for (x in 0 until image.width) {
+                for (y in top until bottom) {
+                    alphaRaster.getPixel(x, y, a)
+                    var alpha = a[0]
+                    if (alpha < 0) alpha += 256
+                    if (alpha > 0) return@left
+                }
+                left++
+            }
+        }
+        run right@{
+            for (x in image.width - 1 downTo left) {
+                for (y in top until bottom) {
+                    alphaRaster.getPixel(x, y, a)
+                    var alpha = a[0]
+                    if (alpha < 0) alpha += 256
+                    if (alpha > 0) return@right
+                }
+                right--
+            }
+        }
+
+        for (i in 0 until config.trimMargin) {
+            if (left > 0) left--
+            if (right < image.width) right++
+            if (top > 0) top--
+            if (bottom < image.height) bottom++
+        }
+
+        val width = right - left
+        val height = bottom - top
+
+        if (width <= 0 || height <= 0) {
+            return null
+        }
+
+
+        return ImageRectData(
+            0,
+            0,
+            width,
+            height,
+            regionWidth = width,
+            regionHeight = height,
+            offsetX = left,
+            offsetY = top,
+            originalWidth = image.width,
+            originalHeight = image.height,
+            image = image,
+            name = name
         )
     }
 
