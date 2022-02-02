@@ -272,10 +272,12 @@ class SpriteBatch(
             flush()
         }
 
-        var fx = -originX
-        var fy = -originY
-        var fx2 = width - originX
-        var fy2 = height - originY
+        var fx = -(originX - slice.offsetX)
+        var fy = -(originY - slice.offsetY)
+        val w = if (slice.rotated) height else width
+        val h = if (slice.rotated) width else height
+        var fx2 = w + fx
+        var fy2 = h + fy
 
         if (scaleX != 1f || scaleY != 1f) {
             fx *= scaleX
@@ -351,13 +353,13 @@ class SpriteBatch(
                 this.y = y1
                 this.colorPacked = colorBits
                 this.u = u
-                this.v = v
+                this.v = if (slice.rotated) v2 else v
             }
             setVertex { // top left
                 this.x = x2
                 this.y = y2
                 this.colorPacked = colorBits
-                this.u = u
+                this.u = if (slice.rotated) u2 else u
                 this.v = v2
             }
             setVertex { // top right
@@ -365,13 +367,13 @@ class SpriteBatch(
                 this.y = y3
                 this.colorPacked = colorBits
                 this.u = u2
-                this.v = v2
+                this.v = if (slice.rotated) v else v2
             }
             setVertex { // bottom right
                 this.x = x4
                 this.y = y4
                 this.colorPacked = colorBits
-                this.u = u2
+                this.u = if (slice.rotated) u else u2
                 this.v = v
             }
         }

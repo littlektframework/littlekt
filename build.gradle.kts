@@ -1,6 +1,8 @@
+val littleKtVersion: String by project
+
 allprojects {
     group = "com.lehaine.littlekt"
-    version = "0.0.1-SNAPSHOT"
+    version = littleKtVersion
     extra["isReleaseVersion"] = !version.toString().endsWith("SNAPSHOT")
 }
 

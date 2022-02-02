@@ -1,5 +1,6 @@
 package com.lehaine.littlekt.graphics
 
+import com.lehaine.littlekt.math.Rect
 import kotlin.math.abs
 import kotlin.math.roundToInt
 
@@ -85,6 +86,18 @@ open class TextureSlice(
 
     val isFlipH: Boolean get() = u > u2
     val isFlipV: Boolean get() = v > v2
+
+    var virtualFrame: Rect? = null
+
+    val offsetX: Int get() = virtualFrame?.x?.toInt() ?: 0
+    val offsetY: Int get() = virtualFrame?.y?.toInt() ?: 0
+    val packedWidth: Int get() = virtualFrame?.width?.toInt() ?: width
+    val packedHeight: Int get() = virtualFrame?.height?.toInt() ?: height
+
+    var originalWidth: Int = abs(width)
+    var originalHeight: Int = abs(height)
+
+    var rotated: Boolean = false
 
     init {
         setSlice(x, y, width, height)

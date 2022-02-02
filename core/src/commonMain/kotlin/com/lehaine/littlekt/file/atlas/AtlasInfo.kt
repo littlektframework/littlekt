@@ -31,21 +31,7 @@ internal data class AtlasPage(
         val trimmed: Boolean,
         val spriteSourceSize: Rect,
         val sourceSize: Size
-    ) {
-        fun applyRotation() = if (rotated) {
-            copy(
-                frame = frame.copy(w = frame.h, h = frame.w),
-                spriteSourceSize = spriteSourceSize.copy(
-                    x = spriteSourceSize.y,
-                    y = spriteSourceSize.x,
-                    w = spriteSourceSize.h,
-                    h = spriteSourceSize.w
-                )
-            )
-        } else {
-            this
-        }
-    }
+    )
 
     @Serializable
     internal data class Rect(val x: Int, val y: Int, val w: Int, val h: Int)
@@ -63,7 +49,9 @@ internal data class AtlasPage(
         val size: Size = Size(0, 0),
         val frameTags: List<FrameTag> = listOf(),
         val layers: List<Layer> = listOf(),
-        val slices: List<Slice> = listOf()
+        val slices: List<Slice> = listOf(),
+        @SerialName("related_multi_packs")
+        val relatedMultiPacks: List<String> = listOf()
     )
 
     @Serializable
