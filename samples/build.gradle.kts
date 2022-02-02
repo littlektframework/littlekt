@@ -29,6 +29,11 @@ littleKt {
         inputDir = "../art/export_tiles/raw/"
         outputDir = "src/commonMain/resources/"
         outputName = "tiles.atlas"
+
+        packing {
+            outputPagesAsPowerOfTwo = false
+            allowRotation = false
+        }
     }
 }
 

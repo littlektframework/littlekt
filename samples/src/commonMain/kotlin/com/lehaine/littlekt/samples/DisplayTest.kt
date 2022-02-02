@@ -111,6 +111,7 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
         val atlas: TextureAtlas by assetProvider.load(resourcesVfs["tiles.atlas.json"])
         val slices: Array<Array<TextureSlice>> by assetProvider.prepare { texture.slice(16, 16) }
         val person by assetProvider.prepare { slices[0][0] }
+        val bossFrame by assetProvider.prepare { atlas.getByPrefix("bossAttack7") }
         val bossAttack by assetProvider.prepare { atlas.getAnimation("bossAttack") }
         val boss by assetProvider.prepare { AnimatedSprite(bossAttack.firstFrame) }
         val pixelFont by assetProvider.load<BitmapFont>(resourcesVfs["m5x7_16.fnt"])
@@ -290,6 +291,7 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
                     }
                 }
                 boss.render(it)
+                it.draw(bossFrame.slice, 450f, 350f)
                 it.draw(Textures.white, 200f, 400f, scaleX = 5f, scaleY = 5f)
                 cache.draw(it)
             }

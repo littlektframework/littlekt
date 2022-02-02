@@ -36,7 +36,7 @@ class TextureAtlas internal constructor(private val textures: Map<String, Textur
      * Contains the name,[TextureSlice], and the [Texture] for this entry of the atlas.
      */
     inner class Entry internal constructor(info: AtlasPage.Frame, page: AtlasPage) {
-        private val frame = info.applyRotation()
+        private val frame = info
         val texture = textures[page.meta.image] ?: error("Can't find ${page.meta.image} in ${textures.keys}")
         val slice = TextureSlice(texture, frame.frame.x, frame.frame.y, frame.frame.w, frame.frame.h).apply {
             rotated = frame.rotated

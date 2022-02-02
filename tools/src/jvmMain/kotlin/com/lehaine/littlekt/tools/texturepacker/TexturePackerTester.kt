@@ -10,6 +10,10 @@ fun main(args: Array<String>) {
         inputDir = "./art/export_tiles/raw"
         outputDir = "./art/output_atlas"
         outputName = "tile.atlas"
+        packingOptions = PackingOptions().apply {
+            outputPagesAsPowerOfTwo = false
+            allowRotation = true
+        }
     })
     packer.process()
     packer.pack()
