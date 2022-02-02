@@ -90,6 +90,12 @@ open class Vec4f(x: Float, y: Float, z: Float, w: Float) {
 
     operator fun times(other: Vec4f): Float = dot(other)
 
+    fun toVec(): Vec4f = Vec4f(x, y, z, w)
+
+    fun toMutableVec(): MutableVec4f = toMutableVec(MutableVec4f())
+
+    fun toMutableVec(result: MutableVec4f): MutableVec4f = result.set(x, y, z, w)
+
     override fun toString(): String = "($x, $y, $z, $w)"
 
     /**

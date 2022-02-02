@@ -983,7 +983,7 @@ open class Mat4 {
      * @param up the up vector
      * @return this matrix
      */
-    fun setToLookAt(position: Vec3f, lookAt: Vec3f, up: Vec3f): Mat4 {
+        fun setToLookAt(position: Vec3f, lookAt: Vec3f, up: Vec3f): Mat4 {
         // See the OpenGL GLUT documentation for gluLookAt for a description
         // of the algorithm. We implement it in a straightforward way:
         var fx = lookAt.x - position.x

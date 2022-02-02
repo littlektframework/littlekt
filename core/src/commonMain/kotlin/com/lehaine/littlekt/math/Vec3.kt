@@ -108,6 +108,12 @@ open class Vec3f(x: Float, y: Float, z: Float) {
 
     operator fun times(other: Vec3f): Float = dot(other)
 
+    fun toVec(): Vec3f = Vec3f(x, y, z)
+
+    fun toMutableVec(): MutableVec3f = toMutableVec(MutableVec3f())
+
+    fun toMutableVec(result: MutableVec3f): MutableVec3f = result.set(x, y, z)
+
     override fun toString(): String = "($x, $y, $z)"
 
     /**
