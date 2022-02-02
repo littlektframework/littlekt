@@ -33,6 +33,8 @@ littleKt {
         packing {
             outputPagesAsPowerOfTwo = false
             allowRotation = false
+            maxWidth = 128
+            maxHeight = 128
         }
     }
 }

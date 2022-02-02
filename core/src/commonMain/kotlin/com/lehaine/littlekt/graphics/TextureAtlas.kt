@@ -3,6 +3,7 @@ package com.lehaine.littlekt.graphics
 import com.lehaine.littlekt.file.atlas.AtlasInfo
 import com.lehaine.littlekt.file.atlas.AtlasPage
 import com.lehaine.littlekt.math.Rect
+import com.lehaine.littlekt.util.internal.compareName
 
 /**
  * Holds all the TextureSlice entries of the atlas that was read and loaded in.
@@ -19,6 +20,8 @@ class TextureAtlas internal constructor(private val textures: Map<String, Textur
         page.frames.map { frame ->
             Entry(frame, page)
         }
+    }.sortedWith { o1, o2 ->
+        o1.name.compareName(o2.name)
     }
 
     val entriesMap = entries.associateBy { it.name }
