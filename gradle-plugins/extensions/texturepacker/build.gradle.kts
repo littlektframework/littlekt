@@ -1,8 +1,8 @@
 plugins {
     kotlin("jvm")
-    `maven-publish`
     java
     `java-gradle-plugin`
+    id("littlekt.convention.publication")
 }
 val littleKtVersion: String by project
 group = "com.lehaine.littlekt.gradle"

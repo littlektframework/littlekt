@@ -31,3 +31,7 @@ jobs:
         run: ./gradlew
       - name: Publish snapshot to Sonatype repository
         run: ./gradlew core:publishAllPublicationsToSonatypeRepository
+      - name: Publish tools snapshot to Sonatype repository
+        run: ./gradlew tools:publishAllPublicationsToSonatypeRepository
+      - name: Publish texture packer gradle plugins snapshot to Sonatype repository
+        run: ./gradlew gradle-plugins:extensions:texturepacker:publishAllPublicationsToSonatypeRepository

@@ -25,5 +25,9 @@ jobs:
         run: chmod +x gradlew
       - name: Start Gradle
         run: ./gradlew
-      - name: Publish release to Sonatype repository
+      - name: Publish core release to Sonatype repository
         run: ./gradlew core:publishAllPublicationsToSonatypeRepository
+      - name: Publish tools release to Sonatype repository
+        run: ./gradlew tools:publishAllPublicationsToSonatypeRepository
+      - name: Publish texture packer gradle plugins release to Sonatype repository
+        run: ./gradlew gradle-plugins:extensions:texturepacker:publishAllPublicationsToSonatypeRepository
