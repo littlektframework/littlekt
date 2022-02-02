@@ -49,7 +49,9 @@ internal data class AtlasPage(
         val size: Size = Size(0, 0),
         val frameTags: List<FrameTag> = listOf(),
         val layers: List<Layer> = listOf(),
-        val slices: List<Slice> = listOf()
+        val slices: List<Slice> = listOf(),
+        @SerialName("related_multi_packs")
+        val relatedMultiPacks: List<String> = listOf()
     )
 
     @Serializable

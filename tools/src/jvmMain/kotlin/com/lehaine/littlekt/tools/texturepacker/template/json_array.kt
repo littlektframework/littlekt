@@ -40,15 +40,27 @@ internal data class AtlasPage(
         val image: String = "",
         val format: String = "",
         val scale: Float = 1f,
-        val size: Size = Size(0, 0)
+        val size: Size = Size(0, 0),
+        @SerialName("related_multi_packs")
+        val relatedMultiPacks: List<String> = listOf()
     )
 }
 
-internal fun createAtlasPage(image: BufferedImage, imageName: String, data: List<ImageRectData>) =
-    AtlasPage(createMeta(image, imageName), data.toFrames())
+internal fun createAtlasPage(
+    image: BufferedImage,
+    imageName: String,
+    data: List<ImageRectData>,
+    relatedMultiPacks: List<String>
+) =
+    AtlasPage(createMeta(image, imageName, relatedMultiPacks), data.toFrames())
 
-internal fun createMeta(image: BufferedImage, imageName: String) =
-    AtlasPage.Meta(image = imageName, format = "RGBA8888", size = AtlasPage.Size(image.width, image.height))
+internal fun createMeta(image: BufferedImage, imageName: String, relatedMultiPacks: List<String>) =
+    AtlasPage.Meta(
+        image = imageName,
+        format = "RGBA8888",
+        size = AtlasPage.Size(image.width, image.height),
+        relatedMultiPacks = relatedMultiPacks
+    )
 
 internal fun List<ImageRectData>.toFrames(): List<AtlasPage.Frame> {
     val output = mutableListOf<AtlasPage.Frame>()

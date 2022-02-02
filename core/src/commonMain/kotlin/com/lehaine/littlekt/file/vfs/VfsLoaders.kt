@@ -17,7 +17,6 @@ import com.lehaine.littlekt.graphics.font.Kerning
 import com.lehaine.littlekt.graphics.font.TtfFont
 import com.lehaine.littlekt.graphics.gl.TexMagFilter
 import com.lehaine.littlekt.graphics.gl.TexMinFilter
-import com.lehaine.littlekt.graphics.gl.TextureFormat
 import com.lehaine.littlekt.graphics.tilemap.ldtk.LDtkLevel
 import com.lehaine.littlekt.graphics.tilemap.ldtk.LDtkWorld
 import com.lehaine.littlekt.math.MutableVec4i
@@ -38,7 +37,11 @@ suspend fun VfsFile.readAtlas(): TextureAtlas {
     val info = when {
         data.startsWith("{") -> {
             val page = vfs.json.decodeFromString<AtlasPage>(data)
-            AtlasInfo(page.meta, listOf(page))
+            val pages = mutableListOf(page)
+            page.meta.relatedMultiPacks.forEach {
+                pages += vfs.json.decodeFromString<AtlasPage>(parent[it].readString())
+            }
+            AtlasInfo(page.meta, pages)
         }
         data.startsWith('\n') -> TODO("Implement text atlas format")
         data.startsWith("\r\n") -> TODO("Implement text atlas format")
@@ -166,7 +169,7 @@ private suspend fun readBitmapFontTxt(
     }
 
     capHeight -= padding.x + padding.z
-    
+
     return BitmapFont(
         fontSize = fontSize,
         lineHeight = lineHeight,

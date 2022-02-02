@@ -241,8 +241,6 @@ class ImageRectData(
     override fun toString(): String {
         return "ImageRectData(file=$file, image=$image, name=$name, index=$index, aliases=$aliases, x=$x, y=$y, width=$width, height=$height, isRotated=$isRotated)"
     }
-
-
 }
 
 data class ImageAlias(val rect: ImageRectData, var name: String = "", var index: Int = 0)

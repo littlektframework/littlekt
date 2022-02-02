@@ -49,19 +49,45 @@ class TexturePacker(val config: TexturePackerConfig) {
     private fun writeImages(outputDir: File, bins: List<Bin>) {
         outputDir.mkdirs()
 
-        bins.forEach { bin ->
+        bins.forEachIndexed { index, bin ->
             val canvas = BufferedImage(bin.width, bin.height, BufferedImage.TYPE_INT_ARGB)
-            val g = canvas.graphics
             bin.rects.forEach { rect ->
                 rect as ImageRectData
                 val image = rect.loadImage()
-                image.copyTo(rect.offsetX, rect.offsetY, rect.regionWidth, rect.regionHeight, canvas, rect.x, rect.y, rect.isRotated)
+                image.copyTo(
+                    rect.offsetX,
+                    rect.offsetY,
+                    rect.regionWidth,
+                    rect.regionHeight,
+                    canvas,
+                    rect.x,
+                    rect.y,
+                    rect.isRotated
+                )
             }
-            val imageName = "${config.outputName}.png"
+            val imageName = if (bins.size > 1) "${config.outputName}-$index.png" else "${config.outputName}.png"
+            val jsonName = if (bins.size > 1) "${config.outputName}-$index.json" else "${config.outputName}.json"
+            val relatedMultiPacks = if (bins.size > 1) {
+                val relatedMultiPacks = mutableListOf<String>()
+                var i = 0
+                while (i < index) {
+                    relatedMultiPacks += "${config.outputName}-$i.json"
+                    i++
+                }
+                i = index
+                while (i < bins.lastIndex) {
+                    i++
+                    relatedMultiPacks += "${config.outputName}-$i.json"
+                }
+                relatedMultiPacks
+            } else {
+                listOf()
+            }
+            val page = createAtlasPage(canvas, imageName, bin.rects as List<ImageRectData>, relatedMultiPacks)
+
             ImageIO.write(canvas, "png", File(outputDir, imageName))
-            val page = createAtlasPage(canvas, imageName, bin.rects as List<ImageRectData>)
             val json = json.encodeToString(page)
-            val jsonFile = File(outputDir, "${config.outputName}.json").also { it.createNewFile() }
+            val jsonFile = File(outputDir, jsonName).also { it.createNewFile() }
             FileOutputStream(jsonFile).use {
                 it.write(json.toByteArray())
             }
