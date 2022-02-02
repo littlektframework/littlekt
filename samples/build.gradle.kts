@@ -1,22 +1,19 @@
-import com.lehaine.littlekt.gradle.texturepacker.littleKt
-import com.lehaine.littlekt.gradle.texturepacker.packing
-import com.lehaine.littlekt.gradle.texturepacker.texturePacker
 import org.jetbrains.kotlin.gradle.plugin.KotlinJsCompilerType
 import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
 
-buildscript {
-    repositories {
-        mavenLocal()
-    }
-    dependencies {
-        classpath("com.lehaine.littlekt.gradle:texturepacker:0.0.1-SNAPSHOT")
-    }
-}
+//buildscript {
+//    repositories {
+//        mavenLocal()
+//    }
+//    dependencies {
+//        classpath("com.lehaine.littlekt.gradle:texturepacker:0.0.1-SNAPSHOT")
+//    }
+//}
 
 plugins {
     kotlin("multiplatform")
     kotlin("plugin.serialization") version "1.6.0"
-    id("com.lehaine.littlekt.gradle.texturepacker") version "0.0.1-SNAPSHOT"
+    //id("com.lehaine.littlekt.gradle.texturepacker") version "0.0.1-SNAPSHOT"
 }
 
 repositories {
@@ -24,20 +21,20 @@ repositories {
     maven(url = "https://maven.pkg.jetbrains.space/public/p/kotlinx-html/maven")
 }
 
-littleKt {
-    texturePacker {
-        inputDir = "../art/export_tiles/raw/"
-        outputDir = "src/commonMain/resources/"
-        outputName = "tiles.atlas"
-
-        packing {
-            outputPagesAsPowerOfTwo = false
-            allowRotation = false
-            maxWidth = 128
-            maxHeight = 128
-        }
-    }
-}
+//littleKt {
+//    texturePacker {
+//        inputDir = "../art/export_tiles/raw/"
+//        outputDir = "src/commonMain/resources/"
+//        outputName = "tiles.atlas"
+//
+//        packing {
+//            outputPagesAsPowerOfTwo = false
+//            allowRotation = false
+//            maxWidth = 128
+//            maxHeight = 128
+//        }
+//    }
+//}
 
 kotlin {
     jvm {
