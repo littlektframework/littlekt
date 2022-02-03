@@ -255,11 +255,16 @@ open class Control : Node2D() {
     var debugColor = Color.GREEN
 
     var theme: Theme? = null
+        set(value) {
+            if (field == value) return
+            field = value
+            _onThemeChanged()
+        }
 
-    val drawableOverrides by lazy { mutableMapOf<String, Drawable>() }
-    val fontOverrides by lazy { mutableMapOf<String, BitmapFont>() }
-    val colorOverrides by lazy { mutableMapOf<String, Color>() }
-    val constantOverrides by lazy { mutableMapOf<String, Int>() }
+    val drawableOverrides by lazy { OverrideMap<String, Drawable>(::_onThemeChanged) }
+    val fontOverrides by lazy { OverrideMap<String, BitmapFont>(::_onThemeChanged) }
+    val colorOverrides by lazy { OverrideMap<String, Color>(::_onThemeChanged) }
+    val constantOverrides by lazy { OverrideMap<String, Int>(::_onThemeChanged) }
 
     var mouseFilter = MouseFilter.STOP
 
@@ -315,7 +320,20 @@ open class Control : Node2D() {
         uiInput(event)
     }
 
-    open fun uiInput(event: InputEvent) {}
+
+    open fun uiInput(event: InputEvent) = Unit
+
+    private fun _onThemeChanged() {
+        nodes.forEach {
+            if (it is Control) {
+                it._onThemeChanged()
+            }
+        }
+        onThemeChanged()
+        onMinimumSizeChanged()
+    }
+
+    open fun onThemeChanged() = Unit
 
     fun size(newWidth: Float, newHeight: Float) {
         if (width == newWidth && height == newHeight) {
@@ -764,29 +782,34 @@ open class Control : Node2D() {
 
     fun clearThemeConstantOverrides(): Control {
         constantOverrides.clear()
+        _onThemeChanged()
         return this
     }
 
     fun clearThemeFontOverrides(): Control {
         fontOverrides.clear()
+        _onThemeChanged()
         return this
     }
 
     fun clearThemeDrawableOverrides(): Control {
         drawableOverrides.clear()
+        _onThemeChanged()
         return this
     }
 
     fun clearThemeColorOverrides(): Control {
         colorOverrides.clear()
+        _onThemeChanged()
         return this
     }
 
     fun clearThemeOverrides(): Control {
-        clearThemeFontOverrides()
-        clearThemeConstantOverrides()
-        clearThemeDrawableOverrides()
-        clearThemeColorOverrides()
+        constantOverrides.clear()
+        fontOverrides.clear()
+        drawableOverrides.clear()
+        colorOverrides.clear()
+        _onThemeChanged()
         return this
     }
 

@@ -4,7 +4,9 @@ import com.lehaine.littlekt.*
 import com.lehaine.littlekt.async.KtScope
 import com.lehaine.littlekt.audio.AudioStream
 import com.lehaine.littlekt.graph.node.component.HAlign
+import com.lehaine.littlekt.graph.node.component.NinePatchDrawable
 import com.lehaine.littlekt.graph.node.component.VAlign
+import com.lehaine.littlekt.graph.node.component.createDefaultTheme
 import com.lehaine.littlekt.graph.node.node2d.ui.*
 import com.lehaine.littlekt.graph.sceneGraph
 import com.lehaine.littlekt.graphics.*
@@ -123,86 +125,119 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
         }
         val ninepatchImg by assetProvider.load<Texture>(resourcesVfs["bg_9.png"])
         val ninepatch by assetProvider.prepare { NinePatch(ninepatchImg, 3, 3, 3, 4) }
+        val greyButtonNinePatch = NinePatch(
+            Textures.atlas.getByPrefix("grey_button").slice,
+            5,
+            5,
+            5,
+            4
+        )
+
+        val panelNinePatch = NinePatch(
+            Textures.atlas.getByPrefix("grey_panel").slice,
+            6,
+            6,
+            6,
+            6
+        )
+        val theme = createDefaultTheme(
+            extraDrawables = mapOf(
+                "Button" to mapOf(
+                    Button.themeVars.normal to NinePatchDrawable(greyButtonNinePatch)
+                        .apply {
+                            modulate = Color.GREEN
+                            minHeight = 50f
+                        }),
+                "Panel" to mapOf(
+                    Panel.themeVars.panel to NinePatchDrawable(panelNinePatch).apply {
+                        modulate = Color.GREEN
+                    }
+                )
+            )
+        )
 
         lateinit var panel: Container
+        lateinit var rootControl: Control
         val scene by assetProvider.prepare {
             sceneGraph(context, batch = batch) {
-                paddedContainer {
-                    padding(10)
-                    vBoxContainer {
-                        separation = 20
-
-                        button {
-                            text = "Center Center"
-                            onPressed += {
-                                logger.info { "You pressed me!! I am at ${globalX},${globalY}" }
-                            }
-                        }
-                        button {
-                            text = "Bottom Right"
-                            horizontalAlign = HAlign.RIGHT
-                            verticalAlign = VAlign.BOTTOM
-                            onPressed += {
-                                logger.info { "You pressed me!! I am at ${globalX},${globalY}" }
-                            }
-                        }
-                        button {
-                            text = "Top Left"
-                            horizontalAlign = HAlign.LEFT
-                            verticalAlign = VAlign.TOP
-                            onPressed += {
-                                logger.info { "You pressed me!! I am at ${globalX},${globalY}" }
-                            }
-                        }
-                    }
-                }
-
-                panelContainer {
-                    x = 300f
-                    y = 150f
-
-                    width = 200f
-                    height = 50f
-
-                    panel = paddedContainer {
+                rootControl = control {
+                    paddedContainer {
                         padding(10)
-                        centerContainer {
-                            vBoxContainer {
-                                separation = 50
-                                label {
-                                    text = "Action"
-                                    horizontalAlign = HAlign.CENTER
-                                }
+                        vBoxContainer {
+                            separation = 20
 
-                                label {
-                                    text = "E"
-                                    horizontalAlign = HAlign.CENTER
+                            button {
+                                text = "Center Center"
+                                onPressed += {
+                                    logger.info { "You pressed me!! I am at ${globalX},${globalY}" }
+                                }
+                            }
+                            button {
+                                text = "Bottom Right"
+                                horizontalAlign = HAlign.RIGHT
+                                verticalAlign = VAlign.BOTTOM
+                                onPressed += {
+                                    logger.info { "You pressed me!! I am at ${globalX},${globalY}" }
+                                }
+                            }
+                            button {
+                                text = "Top Left"
+                                horizontalAlign = HAlign.LEFT
+                                verticalAlign = VAlign.TOP
+                                onPressed += {
+                                    logger.info { "You pressed me!! I am at ${globalX},${globalY}" }
                                 }
                             }
                         }
                     }
 
-                }
+                    panelContainer {
+                        x = 300f
+                        y = 150f
 
-                panel {
-                    x = 100f
-                    y = 150f
-                    width = 50f
-                    height = 50f
-                }
+                        width = 200f
+                        height = 50f
 
-                label {
-                    text = "I am a label!"
-                    x = 150f
-                    y = 350f
-                }
+                        panel = paddedContainer {
+                            padding(10)
+                            centerContainer {
+                                vBoxContainer {
+                                    separation = 50
+                                    label {
+                                        text = "Action"
+                                        horizontalAlign = HAlign.CENTER
+                                    }
 
-                ninePatchRect {
-                    ninePatch = ninepatch
-                    x = 250f
-                    y = 10f
-                    width = 200f
-                    height = 50f
+                                    label {
+                                        text = "E"
+                                        horizontalAlign = HAlign.CENTER
+                                    }
+                                }
+                            }
+                        }
+
+                    }
+
+                    panel {
+                        x = 100f
+                        y = 150f
+                        width = 50f
+                        height = 50f
+                    }
+
+                    label {
+                        text = "I am a label!"
+                        x = 150f
+                        y = 350f
+                    }
+
+                    ninePatchRect {
+                        ninePatch = ninepatch
+                        x = 250f
+                        y = 10f
+                        width = 200f
+                        height = 50f
+                    }
                 }
             }.also { it.initialize() }
         }
@@ -278,6 +313,13 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
 
             if (controller.pressed(GameInput.JUMP)) {
                 yVel -= 25f
+            }
+            if (input.isKeyJustPressed(Key.ENTER)) {
+                if (rootControl.theme == null) {
+                    rootControl.theme = theme
+                } else {
+                    rootControl.theme = null
+                }
             }
 
             gl.clearColor(Color.DARK_GRAY)
