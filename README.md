@@ -47,13 +47,13 @@ sourceSets {
 
 ### Current targets
 
-| Platform | Implemented |
-| -------- | :---------: |
-| Desktop (JVM) | ✅ |
-| Web (WebGL/2) | ✅ |
-| Android | Not started |
-| iOS | Not started |
-| Desktop (Native) | Not started |
+| Platform | Support | Expected By |
+| -------- | :---------: | ------:
+| Desktop (JVM) | ✅ | Current
+| Web (WebGL/2) | ✅ | Current
+| Android | -- |v 0.2
+| iOS | -- | v1.0
+| Desktop (Native) | -- | Long Term
 
 ### Acknowledgements
 LittleKt was put together based on bits and pieces of features found across multiple engines/frameworks and languages that were very enjoyable to use and flexible. If a piece a code looks familiar, feel free to open an issue with details, so that we can properly attribute the code.
