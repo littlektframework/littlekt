@@ -269,16 +269,16 @@ open class Control : Node2D() {
         get() = "${super.membersAndPropertiesString}, anchorLeft=$anchorLeft, anchorRight=$anchorRight, anchorTop=$anchorTop, anchorBottom=$anchorBottom, verticalSizeFlags=$verticalSizeFlags, horizontalSizeFlags=$horizontalSizeFlags, marginLeft=$marginLeft, marginRight=$marginRight, marginTop=$marginTop, marginBottom=$marginBottom, horizontalGrowDirection=$horizontalGrowDirection, verticalGrowDirection=$verticalGrowDirection, width=$width, height=$height, minWidth=$minWidth, minHeight=$minHeight, combinedMinWidth=$combinedMinWidth, combinedMinHeight=$combinedMinHeight, color=$color, debugColor=$debugColor"
 
 
-    override fun _onHierarchyChanged(flag: Int) {
-        super._onHierarchyChanged(flag)
+    override fun onHierarchyChanged(flag: Int) {
+        super.onHierarchyChanged(flag)
         if (flag == POSITION_DIRTY) {
             computeMargins()
             onSizeChanged()
         }
     }
 
-    override fun _onAddedToScene() {
-        super._onAddedToScene()
+    override fun onAddedToScene() {
+        super.onAddedToScene()
         val parent = parent
         if (parent is Control) {
             parent.onSizeChanged.connect(this) {
@@ -289,24 +289,24 @@ open class Control : Node2D() {
         }
     }
 
-    override fun _onPostEnterScene() {
-        super._onPostEnterScene()
+    override fun onPostEnterScene() {
+        super.onPostEnterScene()
 
         minSizeInvalid = true
         onSizeChanged()
     }
 
-    override fun _onRemovedFromScene() {
+    override fun onRemovedFromScene() {
         val parent = parent
         if (parent is Control) {
             parent.onSizeChanged.disconnect(this)
         } else {
             viewport?.onSizeChanged?.disconnect(this)
         }
-        super._onRemovedFromScene()
+        super.onRemovedFromScene()
     }
 
-    internal open fun _uiInput(event: InputEvent) {
+    internal fun _uiInput(event: InputEvent) {
         if (!enabled) return
         onUiInput.emit(event) // signal is first due to being able to handle the event
         if (!insideTree || event.handled) {

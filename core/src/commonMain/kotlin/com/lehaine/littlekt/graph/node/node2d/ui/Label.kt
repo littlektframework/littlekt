@@ -173,6 +173,7 @@ open class Label : Control() {
     }
 
     override fun onHierarchyChanged(flag: Int) {
+        super.onHierarchyChanged(flag)
         if (flag == SIZE_DIRTY) {
             layout()
         }

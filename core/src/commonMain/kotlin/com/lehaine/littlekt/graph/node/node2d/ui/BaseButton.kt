@@ -87,8 +87,8 @@ abstract class BaseButton : Control() {
     val onButtonDown: Signal = Signal()
     val onButtonUp: Signal = Signal()
 
-    override fun _onRemovedFromScene() {
-        super._onRemovedFromScene()
+    override fun onRemovedFromScene() {
+        super.onRemovedFromScene()
         if (!toggleMode) {
             status.pressed = false
         }

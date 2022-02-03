@@ -46,13 +46,13 @@ open class Container : Control() {
         debugColor = Color.RED
     }
 
-    override fun _onAddedToScene() {
-        super._onAddedToScene()
+    override fun onAddedToScene() {
+        super.onAddedToScene()
         sortChildren()
     }
 
-    override fun _onChildAdded(child: Node) {
-        super._onChildAdded(child)
+    override fun onChildAdded(child: Node) {
+        super.onChildAdded(child)
         if (child !is Control) return
 
         child.onSizeFlagsChanged.connect(this, ::queueSort)
@@ -62,8 +62,8 @@ open class Container : Control() {
         queueSort()
     }
 
-    override fun _onChildRemoved(child: Node) {
-        super._onChildRemoved(child)
+    override fun onChildRemoved(child: Node) {
+        super.onChildRemoved(child)
         if (child !is Control) return
         child.onSizeFlagsChanged.disconnect(this)
         child.onMinimumSizeChanged.disconnect(this)
@@ -72,15 +72,15 @@ open class Container : Control() {
         queueSort()
     }
 
-    override fun _onHierarchyChanged(flag: Int) {
-        super._onHierarchyChanged(flag)
+    override fun onHierarchyChanged(flag: Int) {
+        super.onHierarchyChanged(flag)
         if (flag == SIZE_DIRTY) {
             queueSort()
         }
     }
 
-    override fun _update(dt: Duration) {
-        super._update(dt)
+    override fun update(dt: Duration) {
+        super.update(dt)
 
         if (pendingSort) {
             sortChildren()
