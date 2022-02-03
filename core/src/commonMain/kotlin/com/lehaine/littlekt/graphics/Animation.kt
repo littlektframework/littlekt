@@ -104,7 +104,7 @@ class AnimationBuilder<T>(private val frames: List<T>) {
 
 
 /**
- * Creates an animation from a prefix based on the names of the sprites in an [TextureAtlas].
+ * Creates an animation from a prefix based on the names of the sprites in a [TextureAtlas].
  * @param prefix the prefix to use to create the animation
  * @param defaultTimePerFrame the amount of time each frame is displayed
  */
@@ -115,3 +115,12 @@ fun TextureAtlas.getAnimation(
     val slices = entries.filter { it.name.startsWith(prefix) }.map { it.slice }
     return Animation(slices, List(slices.size) { it }, List(slices.size) { defaultTimePerFrame })
 }
+
+/**
+ * Create an animation from a prefix of the names of the sprites in a [TextureAtlas] using an [AnimationBuilder]
+ * to specify the frame index orders and times.
+ * @param prefix the prefix to use to create the animation
+ * @param action the [AnimationBuilder] callback to build the animation
+ */
+fun TextureAtlas.createAnimation(prefix: String, action: AnimationBuilder<TextureSlice>.() -> Unit) =
+    AnimationBuilder(entries.filter { it.name.startsWith(prefix) }.map { it.slice }).apply(action).build()
