@@ -49,8 +49,8 @@ sourceSets {
 
 | Platform | Support | Expected By |
 | -------- | :---------: | ------:
-| Desktop (JVM) | ✅ | Current
-| Web (WebGL/2) | ✅ | Current
+| Desktop (JVM) | ✅ | Current version
+| Web (WebGL/2) | ✅ | Current version
 | Android | -- |v 0.2
 | iOS | -- | v1.0
 | Desktop (Native) | -- | Long Term
