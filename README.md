@@ -51,8 +51,8 @@ sourceSets {
 | -------- | :---------: | ------:
 | Desktop (JVM) | ✅ | Current version
 | Web (WebGL/2) | ✅ | Current version
-| Android | -- |v 0.2
-| iOS | -- | v1.0
+| Android | Planned |v 0.2
+| iOS | Planned | v1.0
 | Desktop (Native) | -- | Long Term
 
 ### Acknowledgements
