@@ -124,7 +124,7 @@ open class Node : Comparable<Node> {
     private var _tag = 0
     private var _enabled = true
     private var _updateOrder = 0
-    internal var _isDestroyed = false
+    private var _isDestroyed = false
 
     private var pos = -1
     private var depth = -1
@@ -295,7 +295,7 @@ open class Node : Comparable<Node> {
     /**
      * Internal debug render method. Calls the [debugRender] method.
      */
-    internal fun _debugRender(batch: SpriteBatch) {
+    private fun _debugRender(batch: SpriteBatch) {
         debugRender(batch)
         onDebugRender.emit(batch)
         nodes.forEach {
@@ -331,17 +331,17 @@ open class Node : Comparable<Node> {
      * Calls the open [onChildAdded] lifecycle method.
      * @param child - the child node being added to this node.
      */
-    internal open fun _onChildAdded(child: Node) {
+    private fun _onChildAdded(child: Node) {
         child.scene = scene
         parent?._onDescendantAdded(child)
         onChildAdded(child)
     }
 
-    internal open fun _onDescendantAdded(child: Node) {
+    private fun _onDescendantAdded(child: Node) {
         parent?._onDescendantAdded(child)
     }
 
-    internal open fun _onChildRemoved(child: Node) {
+    private fun _onChildRemoved(child: Node) {
         child.scene = null
         nodes.forEachIndexed { index, node ->
             node.pos = index
@@ -353,7 +353,7 @@ open class Node : Comparable<Node> {
     /**
      * Called when this [Node] is added to a [SceneGraph] after all pending [Node] changes are committed.
      */
-    internal open fun _onAddedToScene() {
+    private fun _onAddedToScene() {
         depth = parent?.depth?.plus(1) ?: 1
 
         viewport = parent?.viewport
@@ -361,28 +361,29 @@ open class Node : Comparable<Node> {
         onAddedToScene()
     }
 
-    internal open fun _onPostEnterScene() {
+    internal fun _onPostEnterScene() {
         ready()
         onReady.emit()
         nodes.forEach {
             it._onPostEnterScene()
         }
+        onPostEnterScene()
     }
 
     /**
      * Called when this [Node] is removed from a [SceneGraph]. Called bottom-to-top of tree.
      */
-    internal open fun _onRemovedFromScene() {
+    private fun _onRemovedFromScene() {
+        onRemovedFromScene()
         viewport = null
         depth = -1
-        onRemovedFromScene()
     }
 
     /**
      * Internal update lifecycle method for updating the node and its children.
      * Calls the [update] lifecycle method.
      */
-    internal open fun _update(dt: Duration) {
+    internal fun _update(dt: Duration) {
         update(dt)
         onUpdate.emit(dt)
         nodes.updateLists()
@@ -392,7 +393,7 @@ open class Node : Comparable<Node> {
     /**
      * Dirties the hierarchy for the current [Node] and all of it's [children].
      */
-    internal open fun dirty(dirtyFlag: Int) {
+    open fun dirty(dirtyFlag: Int) {
         if ((hierarchyDirty and dirtyFlag) == 0) {
             hierarchyDirty = hierarchyDirty or dirtyFlag
 
@@ -407,7 +408,7 @@ open class Node : Comparable<Node> {
      * Internal. Called when the hierarchy of this [Node] is changed.
      * Example changes that can trigger this include: `position`, `rotation`, and `scale`
      */
-    internal open fun _onHierarchyChanged(flag: Int) {
+    private fun _onHierarchyChanged(flag: Int) {
         onHierarchyChanged(flag)
     }
 
@@ -415,6 +416,11 @@ open class Node : Comparable<Node> {
      * Called when this [Node] and all of it's children are added to the scene and active
      */
     open fun ready() {}
+
+    /**
+     * Called when this [Node] and all of it's children are added to the scene and have themselves called [onPostEnterScene]
+     */
+    open fun onPostEnterScene() {}
 
     /**
      * The main render method. The [Camera] can be used for culling and the [SpriteBatch] instance to draw with.

@@ -63,7 +63,40 @@ class Theme(
     }
 }
 
-fun createDefaultTheme(): Theme {
+/**
+ * Creates a new [Theme] using the default theme values and allowing to add or override any additional theme values.
+ * @return the newly created theme
+ */
+fun createDefaultTheme(
+    /**
+     * A map of drawables mapped by Node type, mapped by variable name and value.
+     *
+     * Eg: `drawables["Button"]["pressed"]`
+     */
+    extraDrawables: Map<String, Map<String, Drawable>> = mapOf(),
+
+    /**
+     * A map of fonts mapped by Node type, mapped by variable name and value.
+     *
+     * Eg: `fonts["Button"]["font"]`
+     */
+    extraFonts: Map<String, Map<String, BitmapFont>> = mapOf(),
+
+    /**
+     * A map of colors mapped by Node type, mapped by variable name and value.
+     *
+     * Eg: `colors["Button"]["fontColor"]`
+     */
+    extraColors: Map<String, Map<String, Color>> = mapOf(),
+
+    /**
+     * A map of constants mapped by Node type, mapped by variable name and value.
+     *
+     * constants["Button"]["myVar"]
+     */
+    extraConstants: Map<String, Map<String, Int>> = mapOf(),
+    defaultFont: BitmapFont? = null,
+): Theme {
     val greyButtonNinePatch = NinePatch(
         Textures.atlas.getByPrefix("grey_button").slice,
         5,
@@ -78,27 +111,40 @@ fun createDefaultTheme(): Theme {
         6,
         6
     )
-    return Theme(
-        drawables = mapOf(
-            "Button" to mapOf(
-                Button.themeVars.normal to NinePatchDrawable(greyButtonNinePatch)
-                    .apply { modulate = Color.LIGHT_BLUE },
-                Button.themeVars.pressed to NinePatchDrawable(greyButtonNinePatch)
-                    .apply { modulate = Color.LIGHT_BLUE.toMutableColor().also { it.scaleRgb(0.6f) } },
-                Button.themeVars.hover to NinePatchDrawable(greyButtonNinePatch)
-                    .apply { modulate = Color.LIGHT_BLUE.toMutableColor().also { it.lighten(0.2f) } },
-                Button.themeVars.disabled to NinePatchDrawable(greyButtonNinePatch)
-                    .apply { modulate = Color.LIGHT_BLUE.toMutableColor().also { it.lighten(0.5f) } },
-            ),
-            "Panel" to mapOf(
-                Panel.themeVars.panel to NinePatchDrawable(panelNinePatch).apply {
-                    modulate = Color.LIGHT_BLUE
-                }
-            )
+    val drawables = mapOf(
+        "Button" to mapOf(
+            Button.themeVars.normal to NinePatchDrawable(greyButtonNinePatch)
+                .apply { modulate = Color.LIGHT_BLUE },
+            Button.themeVars.normal to NinePatchDrawable(greyButtonNinePatch)
+                .apply { modulate = Color.LIGHT_BLUE },
+            Button.themeVars.pressed to NinePatchDrawable(greyButtonNinePatch)
+                .apply { modulate = Color.LIGHT_BLUE.toMutableColor().also { it.scaleRgb(0.6f) } },
+            Button.themeVars.hover to NinePatchDrawable(greyButtonNinePatch)
+                .apply { modulate = Color.LIGHT_BLUE.toMutableColor().also { it.lighten(0.2f) } },
+            Button.themeVars.disabled to NinePatchDrawable(greyButtonNinePatch)
+                .apply { modulate = Color.LIGHT_BLUE.toMutableColor().also { it.lighten(0.5f) } },
         ),
-        colors = mapOf(
-            "Button" to mapOf(Button.themeVars.fontColor to Color.WHITE),
-            "Label" to mapOf(Label.themeVars.fontColor to Color.WHITE)
+        "Panel" to mapOf(
+            Panel.themeVars.panel to NinePatchDrawable(panelNinePatch).apply {
+                modulate = Color.LIGHT_BLUE
+            }
         )
+    ) + extraDrawables
+
+    val fonts = extraFonts
+
+    val colors = mapOf(
+        "Button" to mapOf(Button.themeVars.fontColor to Color.WHITE),
+        "Label" to mapOf(Label.themeVars.fontColor to Color.WHITE)
+    ) + extraColors
+
+    val constants = extraConstants
+
+    return Theme(
+        drawables = drawables,
+        fonts = fonts,
+        colors = colors,
+        constants = constants,
+        defaultFont = defaultFont
     )
 }

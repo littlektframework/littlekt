@@ -255,11 +255,16 @@ open class Control : Node2D() {
     var debugColor = Color.GREEN
 
     var theme: Theme? = null
+        set(value) {
+            if (field == value) return
+            field = value
+            _onThemeChanged()
+        }
 
-    val drawableOverrides by lazy { mutableMapOf<String, Drawable>() }
-    val fontOverrides by lazy { mutableMapOf<String, BitmapFont>() }
-    val colorOverrides by lazy { mutableMapOf<String, Color>() }
-    val constantOverrides by lazy { mutableMapOf<String, Int>() }
+    val drawableOverrides by lazy { OverrideMap<String, Drawable>(::_onThemeChanged) }
+    val fontOverrides by lazy { OverrideMap<String, BitmapFont>(::_onThemeChanged) }
+    val colorOverrides by lazy { OverrideMap<String, Color>(::_onThemeChanged) }
+    val constantOverrides by lazy { OverrideMap<String, Int>(::_onThemeChanged) }
 
     var mouseFilter = MouseFilter.STOP
 
@@ -269,16 +274,16 @@ open class Control : Node2D() {
         get() = "${super.membersAndPropertiesString}, anchorLeft=$anchorLeft, anchorRight=$anchorRight, anchorTop=$anchorTop, anchorBottom=$anchorBottom, verticalSizeFlags=$verticalSizeFlags, horizontalSizeFlags=$horizontalSizeFlags, marginLeft=$marginLeft, marginRight=$marginRight, marginTop=$marginTop, marginBottom=$marginBottom, horizontalGrowDirection=$horizontalGrowDirection, verticalGrowDirection=$verticalGrowDirection, width=$width, height=$height, minWidth=$minWidth, minHeight=$minHeight, combinedMinWidth=$combinedMinWidth, combinedMinHeight=$combinedMinHeight, color=$color, debugColor=$debugColor"
 
 
-    override fun _onHierarchyChanged(flag: Int) {
-        super._onHierarchyChanged(flag)
+    override fun onHierarchyChanged(flag: Int) {
+        super.onHierarchyChanged(flag)
         if (flag == POSITION_DIRTY) {
             computeMargins()
             onSizeChanged()
         }
     }
 
-    override fun _onAddedToScene() {
-        super._onAddedToScene()
+    override fun onAddedToScene() {
+        super.onAddedToScene()
         val parent = parent
         if (parent is Control) {
             parent.onSizeChanged.connect(this) {
@@ -289,24 +294,24 @@ open class Control : Node2D() {
         }
     }
 
-    override fun _onPostEnterScene() {
-        super._onPostEnterScene()
+    override fun onPostEnterScene() {
+        super.onPostEnterScene()
 
         minSizeInvalid = true
         onSizeChanged()
     }
 
-    override fun _onRemovedFromScene() {
+    override fun onRemovedFromScene() {
         val parent = parent
         if (parent is Control) {
             parent.onSizeChanged.disconnect(this)
         } else {
             viewport?.onSizeChanged?.disconnect(this)
         }
-        super._onRemovedFromScene()
+        super.onRemovedFromScene()
     }
 
-    internal open fun _uiInput(event: InputEvent) {
+    internal fun _uiInput(event: InputEvent) {
         if (!enabled) return
         onUiInput.emit(event) // signal is first due to being able to handle the event
         if (!insideTree || event.handled) {
@@ -315,7 +320,20 @@ open class Control : Node2D() {
         uiInput(event)
     }
 
-    open fun uiInput(event: InputEvent) {}
+
+    open fun uiInput(event: InputEvent) = Unit
+
+    private fun _onThemeChanged() {
+        nodes.forEach {
+            if (it is Control) {
+                it._onThemeChanged()
+            }
+        }
+        onThemeChanged()
+        onMinimumSizeChanged()
+    }
+
+    open fun onThemeChanged() = Unit
 
     fun size(newWidth: Float, newHeight: Float) {
         if (width == newWidth && height == newHeight) {
@@ -764,29 +782,34 @@ open class Control : Node2D() {
 
     fun clearThemeConstantOverrides(): Control {
         constantOverrides.clear()
+        _onThemeChanged()
         return this
     }
 
     fun clearThemeFontOverrides(): Control {
         fontOverrides.clear()
+        _onThemeChanged()
         return this
     }
 
     fun clearThemeDrawableOverrides(): Control {
         drawableOverrides.clear()
+        _onThemeChanged()
         return this
     }
 
     fun clearThemeColorOverrides(): Control {
         colorOverrides.clear()
+        _onThemeChanged()
         return this
     }
 
     fun clearThemeOverrides(): Control {
-        clearThemeFontOverrides()
-        clearThemeConstantOverrides()
-        clearThemeDrawableOverrides()
-        clearThemeColorOverrides()
+        constantOverrides.clear()
+        fontOverrides.clear()
+        drawableOverrides.clear()
+        colorOverrides.clear()
+        _onThemeChanged()
         return this
     }
 
