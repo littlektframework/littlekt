@@ -12,6 +12,7 @@ fun main(args: Array<String>) {
         height = 540
         vSync = true
         title = "JVM - Display Test"
+        icons = listOf("icon_16x16.png", "icon_32x32.png", "icon_48x48.png")
     }.start {
         DisplayTest(it)
     }
