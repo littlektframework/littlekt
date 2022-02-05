@@ -6,7 +6,7 @@
 
 **Currently in development.**
 
-**[Features](https://littlekt.com/features/)** - **[Wiki](https://littlekt.com/wiki/)** - **[Samples](https://github.com/littlektframework/littlekt-samples)**
+**[Features](https://littlekt.com/features/)** - **[Docs](https://littlekt.com/docs/)** - **[Samples](https://github.com/littlektframework/littlekt-samples)**
 
 ## A 2D game framework written in Kotlin
 
