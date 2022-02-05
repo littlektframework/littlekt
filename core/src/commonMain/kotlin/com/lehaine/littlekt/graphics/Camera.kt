@@ -348,11 +348,13 @@ open class OrthographicCamera(virtualWidth: Int = 0, virtualHeight: Int = 0) : C
     }
 
     override fun updateProjectionMatrix() {
-        if (near != far) {
-            projection.setToOrthographic(
-                zoom * -virtualWidth / 2, zoom * (virtualWidth / 2), zoom * -(virtualHeight / 2), zoom
-                        * virtualHeight / 2, near, far
-            )
+        val left = zoom * -virtualWidth / 2
+        val right = zoom * (virtualWidth / 2)
+        val bottom = zoom * -(virtualHeight / 2)
+        val top = zoom * virtualHeight / 2
+
+        if (near != far && left != right && top != bottom) {
+            projection.setToOrthographic(left, right, bottom, top, near, far)
         }
     }
 
