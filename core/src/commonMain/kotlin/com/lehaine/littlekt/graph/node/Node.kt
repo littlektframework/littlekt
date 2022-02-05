@@ -61,12 +61,12 @@ open class Node : Comparable<Node> {
     open val membersAndPropertiesString get() = "name=$name, id=$id,  enabled=$enabled"
 
     /**
-     * Entity name. useful for doing scene-wide searches for an entity
+     * Node name. useful for doing scene-wide searches for an node
      */
     var name: String = this::class.simpleName ?: "Node"
 
     /**
-     * The scene this entity belongs to.
+     * The scene this node belongs to.
      */
     var scene: SceneGraph? = null
         set(value) {
@@ -93,17 +93,17 @@ open class Node : Comparable<Node> {
         internal set
 
     /**
-     * Unique identifier for this Entity.
+     * Unique identifier for this node.
      */
     val id = idGenerator++
 
     /**
-     * Specifies how often this entity's update method should be called. 1 means every frame, 2 is every other, etc
+     * Specifies how often this node's update method should be called. 1 means every frame, 2 is every other, etc
      */
     var updateInterval = 1
 
     /**
-     * Enables/disables the Entity.
+     * Enables/disables the node.
      */
     var enabled: Boolean
         get() = _enabled
@@ -112,7 +112,7 @@ open class Node : Comparable<Node> {
         }
 
     /**
-     * If destroy was called, this will be true until the next time Entity's are processed.
+     * If destroy was called, this will be true until the next time node's are processed.
      */
     val isDestroyed get() = _isDestroyed
 

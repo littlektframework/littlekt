@@ -33,7 +33,7 @@ import kotlin.time.Duration
 @OptIn(ExperimentalContracts::class)
 inline fun sceneGraph(
     context: Context,
-    viewport: Viewport = Viewport(0, 0, context.graphics.width, context.graphics.height),
+    viewport: Viewport = ScreenViewport(context.graphics.width, context.graphics.height),
     batch: SpriteBatch? = null,
     callback: @SceneGraphDslMarker SceneGraph.() -> Unit = {}
 ): SceneGraph {

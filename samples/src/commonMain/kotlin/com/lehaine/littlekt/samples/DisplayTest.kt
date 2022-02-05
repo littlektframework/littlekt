@@ -19,6 +19,7 @@ import com.lehaine.littlekt.input.GameButton
 import com.lehaine.littlekt.input.InputMultiplexer
 import com.lehaine.littlekt.input.Key
 import com.lehaine.littlekt.log.Logger
+import com.lehaine.littlekt.util.viewport.ScreenViewport
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -37,7 +38,9 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
     private var xVel = 0f
     private var yVel = 0f
     private val controller = InputMultiplexer<GameInput>(input)
-    val camera = OrthographicCamera(graphics.width, graphics.height)
+    val camera = OrthographicCamera(graphics.width, graphics.height).apply {
+        viewport = ScreenViewport(graphics.width, graphics.height)
+    }
 
     val shader = createShader(SimpleColorVertexShader(), SimpleColorFragmentShader())
     val colorBits = Color.WHITE.toFloatBits()
@@ -87,7 +90,6 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
     init {
         Logger.setLevels(Logger.Level.DEBUG)
         input.addInputProcessor(controller)
-        camera.translate(graphics.width / 2f, graphics.height / 2f, 0f)
 
         controller.addBinding(GameInput.MOVE_LEFT, listOf(Key.A, Key.ARROW_LEFT), axes = listOf(GameAxis.LX))
         controller.addBinding(GameInput.MOVE_RIGHT, listOf(Key.D, Key.ARROW_RIGHT), axes = listOf(GameAxis.LX))
@@ -275,6 +277,7 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
 
         onResize { width, height ->
             if (!assetProvider.fullyLoaded) return@onResize
+            camera.update(width, height, context)
             scene.resize(width, height)
         }
 
@@ -323,6 +326,7 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
             }
 
             gl.clearColor(Color.DARK_GRAY)
+            camera.viewport.apply(context)
             camera.update()
             boss.update(dt)
             batch.use(camera.viewProjection) {
@@ -358,6 +362,7 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
             }
         }
         onDispose {
+            scene.dispose()
             mesh.dispose()
             texture.dispose()
             shader.dispose()
