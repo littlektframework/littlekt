@@ -18,9 +18,8 @@ import java.nio.ByteBuffer as NioByteBuffer
  * @date 9/28/2021
  */
 class LwjglGL(private val engineStats: EngineStats) : GL {
-    internal var _glVersion: GLVersion = GLVersion.GL_30
-
-    override fun getGLVersion(): GLVersion = _glVersion
+    internal var glVersion: GLVersion = GLVersion()
+    override val version: GLVersion get() = glVersion
 
     var lastBoundBuffer: GlBuffer? = null
 
@@ -311,15 +310,11 @@ class LwjglGL(private val engineStats: EngineStats) : GL {
     }
 
     override fun frameBufferRenderBuffer(
-        attachementType: FrameBufferRenderBufferAttachment,
-        glRenderBuffer: GlRenderBuffer
+        attachementType: FrameBufferRenderBufferAttachment, glRenderBuffer: GlRenderBuffer
     ) {
         engineStats.calls++
         EXTFramebufferObject.glFramebufferRenderbufferEXT(
-            GL.FRAMEBUFFER,
-            attachementType.glFlag,
-            GL.RENDERBUFFER,
-            glRenderBuffer.reference
+            GL.FRAMEBUFFER, attachementType.glFlag, GL.RENDERBUFFER, glRenderBuffer.reference
         )
     }
 
@@ -334,17 +329,11 @@ class LwjglGL(private val engineStats: EngineStats) : GL {
     }
 
     override fun frameBufferTexture2D(
-        attachementType: FrameBufferRenderBufferAttachment,
-        glTexture: GlTexture,
-        level: Int
+        attachementType: FrameBufferRenderBufferAttachment, glTexture: GlTexture, level: Int
     ) {
         engineStats.calls++
         EXTFramebufferObject.glFramebufferTexture2DEXT(
-            GL.FRAMEBUFFER,
-            attachementType.glFlag,
-            GL.TEXTURE_2D,
-            glTexture.reference,
-            level
+            GL.FRAMEBUFFER, attachementType.glFlag, GL.TEXTURE_2D, glTexture.reference, level
         )
     }
 
@@ -633,14 +622,7 @@ class LwjglGL(private val engineStats: EngineStats) : GL {
     }
 
     override fun copyTexImage2D(
-        target: Int,
-        level: Int,
-        internalFormat: Int,
-        x: Int,
-        y: Int,
-        width: Int,
-        height: Int,
-        border: Int
+        target: Int, level: Int, internalFormat: Int, x: Int, y: Int, width: Int, height: Int, border: Int
     ) {
         engineStats.calls++
         glCopyTexImage2D(target, level, internalFormat, x, y, width, height, border)
@@ -677,24 +659,10 @@ class LwjglGL(private val engineStats: EngineStats) : GL {
     }
 
     override fun texImage2D(
-        target: Int,
-        level: Int,
-        internalFormat: Int,
-        format: Int,
-        width: Int,
-        height: Int,
-        type: Int
+        target: Int, level: Int, internalFormat: Int, format: Int, width: Int, height: Int, type: Int
     ) {
         glTexImage2D(
-            target,
-            level,
-            internalFormat,
-            width,
-            height,
-            0,
-            format,
-            type,
-            null as NioByteBuffer?
+            target, level, internalFormat, width, height, 0, format, type, null as NioByteBuffer?
         )
     }
 
@@ -713,15 +681,7 @@ class LwjglGL(private val engineStats: EngineStats) : GL {
         val pos = source.position
         source.position = 0
         glTexImage2D(
-            target,
-            level,
-            internalFormat,
-            width,
-            height,
-            0,
-            format,
-            type,
-            source.buffer
+            target, level, internalFormat, width, height, 0, format, type, source.buffer
         )
         source.position = pos
 

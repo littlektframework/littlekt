@@ -32,7 +32,7 @@ class WebGLContext(override val configuration: JsConfiguration) : Context() {
     override val vfs = WebVfs(this, logger, configuration.rootPath)
     override val resourcesVfs: VfsFile get() = vfs.root
     override val storageVfs: VfsFile get() = vfs.root
-    override val platform: Platform = Platform.JS
+    override val platform: Platform = Platform.WEBGL
 
     private lateinit var listener: ContextListener
     private var closed = false

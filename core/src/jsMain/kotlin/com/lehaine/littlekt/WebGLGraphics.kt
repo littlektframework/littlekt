@@ -5,9 +5,7 @@ import com.lehaine.littlekt.graphics.GL
 import com.lehaine.littlekt.graphics.GLVersion
 import com.lehaine.littlekt.graphics.SystemCursor
 import com.lehaine.littlekt.util.internal.jsObject
-import org.khronos.webgl.ArrayBufferView
-import org.khronos.webgl.Float32Array
-import org.khronos.webgl.WebGLRenderingContext
+import org.khronos.webgl.*
 import org.w3c.dom.Element
 import org.w3c.dom.HTMLCanvasElement
 import org.w3c.dom.HTMLImageElement
@@ -26,24 +24,20 @@ class WebGLGraphics(val canvas: HTMLCanvasElement, engineStats: EngineStats) : G
 
     internal var _width: Int = 0
     internal var _height: Int = 0
-    internal var version: GLVersion = GLVersion.WEBGL2
-        set(value) {
-            (gl as WebGL).glVersion = value
-            field = value
-        }
+    val platform: Context.Platform
 
     private val ctxOptions: dynamic = jsObject { stencil = true }
 
     init {
         var webGlCtx = canvas.getContext("webgl2", ctxOptions)
-        var version = version
         if (webGlCtx == null) {
             webGlCtx = canvas.getContext("experimental-webgl2", ctxOptions)
+            platform = Context.Platform.WEBGL2
         }
         if (webGlCtx == null) {
             console.warn("WebGL2 not available. Attempting to fallback to WebGL.")
             webGlCtx = canvas.getContext("webgl", ctxOptions)
-            version = GLVersion.WEBGL
+            platform = Context.Platform.WEBGL
         }
 
         if (webGlCtx != null) {
@@ -52,8 +46,10 @@ class WebGLGraphics(val canvas: HTMLCanvasElement, engineStats: EngineStats) : G
             js("alert(\"Unable to initialize WebGL or WebGL2 context. Your browser may not support it.\")")
             throw RuntimeException("WebGL2 context required")
         }
-        this.version = version
         webGlCtx.getExtension("OES_standard_derivatives")
+        if (platform == Context.Platform.WEBGL) {
+            webGlCtx.getExtension("OES_vertex_array_object")
+        }
         // suppress context menu
         canvas.oncontextmenu = Event::preventDefault
 
@@ -173,6 +169,9 @@ abstract external class WebGL2RenderingContext : WebGLRenderingContext {
     fun texStorage3D(target: Int, levels: Int, internalformat: Int, width: Int, height: Int, depth: Int)
     fun vertexAttribDivisor(index: Int, divisor: Int)
     fun vertexAttribIPointer(index: Int, size: Int, type: Int, stride: Int, offset: Int)
+    fun createVertexArray(): WebGLVertexArrayObject
+    fun bindVertexArray(vao: WebGLVertexArrayObject?)
+    fun deleteVertexArray(vao: WebGLVertexArrayObject?)
 
     companion object {
         val COLOR: Int
@@ -206,3 +205,5 @@ abstract external class WebGL2RenderingContext : WebGLRenderingContext {
         val RGBA16F: Int
     }
 }
+
+abstract external class WebGLVertexArrayObject : WebGLObject

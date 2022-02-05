@@ -1,5 +1,6 @@
 package com.lehaine.littlekt.graphics
 
+import com.lehaine.littlekt.Context
 import com.lehaine.littlekt.Disposable
 import com.lehaine.littlekt.file.DataSource
 import com.lehaine.littlekt.file.FloatBuffer
@@ -24,7 +25,7 @@ class VertexBufferObject(val gl: GL, val isStatic: Boolean, numVertices: Int, va
         }
     private val glBuffer: GlBuffer = gl.createBuffer()
     private val vaoGl: GlVertexArray? =
-        if (gl.isGL30OrHigher() && gl.getGLVersion() != GLVersion.WEBGL2) gl.createVertexArray() else null
+        if (gl.isG30 && gl.version.platform != Context.Platform.WEBGL2) gl.createVertexArray() else null
     private val usage = if (isStatic) Usage.STATIC_DRAW else Usage.DYNAMIC_DRAW
     private var bound = false
 

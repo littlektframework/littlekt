@@ -18,9 +18,13 @@ abstract class Context {
 
     enum class Platform {
         DESKTOP,
-        JS,
+        WEBGL,
+        WEBGL2,
         ANDROID,
-        IOS
+        IOS;
+
+        val isWebGl get() = this == WEBGL || this == WEBGL2
+        val isMobile get() = this == ANDROID || this == IOS
     }
 
     protected val renderCalls = mutableListOf<suspend (Duration) -> Unit>()

@@ -1,6 +1,10 @@
 package com.lehaine.littlekt.graphics
 
-import com.lehaine.littlekt.file.*
+import com.lehaine.littlekt.Context
+import com.lehaine.littlekt.file.ByteBuffer
+import com.lehaine.littlekt.file.DataSource
+import com.lehaine.littlekt.file.FloatBuffer
+import com.lehaine.littlekt.file.IntBuffer
 import com.lehaine.littlekt.graphics.gl.*
 import com.lehaine.littlekt.math.Mat3
 import com.lehaine.littlekt.math.Mat4
@@ -10,12 +14,33 @@ import com.lehaine.littlekt.math.Mat4
  * @author Colton Daily
  * @date 11/20/2021
  */
-enum class GLVersion {
-    GL_32_PLUS,
-    GL_30,
-    GL_20,
-    WEBGL,
-    WEBGL2
+class GLVersion(
+    val platform: Context.Platform,
+    version: String = "-1.-1",
+    val vendor: String = "N/A",
+    val renderer: String = "N/A"
+) {
+//    GL_32_PLUS,
+//    GL_30,
+//    GL_20,
+//    WEBGL,
+//    WEBGL2
+
+
+    val major: Int
+    val minor: Int
+
+    init {
+        val split = if (platform == Context.Platform.DESKTOP) {
+            version.split(".")
+        } else {
+            version.removePrefix("WebGL ").split(".")
+        }
+
+        major = split[0].toInt()
+        minor = split[0].toInt()
+    }
+
 }
 
 /**
@@ -24,13 +49,15 @@ enum class GLVersion {
  */
 interface GL {
 
-    fun getGLVersion(): GLVersion
+    val version: GLVersion
+
+    val isG30: Boolean get() = version.major >= 3
 
     /**
      * @return if the current GL version is 3.0 or higher
      */
-    fun isGL30OrHigher() =
-        getGLVersion() == GLVersion.GL_30 || getGLVersion() == GLVersion.GL_32_PLUS || getGLVersion() == GLVersion.WEBGL2
+    fun isGL30OrHigher() = true
+    //  getGLVersion() == GLVersion.GL_30 || getGLVersion() == GLVersion.GL_32_PLUS || getGLVersion() == GLVersion.WEBGL2
 
     fun clearColor(r: Float, g: Float, b: Float, a: Float)
     fun clearColor(color: Color) = clearColor(color.r, color.g, color.b, color.a)

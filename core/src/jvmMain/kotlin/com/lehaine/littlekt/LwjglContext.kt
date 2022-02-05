@@ -20,6 +20,7 @@ import org.lwjgl.glfw.Callbacks
 import org.lwjgl.glfw.GLFW
 import org.lwjgl.glfw.GLFWErrorCallback
 import org.lwjgl.glfw.GLFWImage
+import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL11.glClear
 import org.lwjgl.opengl.GL30
 import org.lwjgl.opengl.GL30C
@@ -70,11 +71,19 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context() {
         // Create temporary window for getting OpenGL Version
         GLFW.glfwDefaultWindowHints()
         GLFW.glfwWindowHint(GLFW.GLFW_VISIBLE, GLFW.GLFW_FALSE)
+
         val temp: Long = GLFW.glfwCreateWindow(1, 1, "", MemoryUtil.NULL, MemoryUtil.NULL)
         GLFW.glfwMakeContextCurrent(temp)
+
         LWJGL.createCapabilities()
         val caps: GLCapabilities = LWJGL.getCapabilities()
+        val versionString = GL11.glGetString(GL11.GL_VERSION) ?: ""
+        val vendorString = GL11.glGetString(GL11.GL_VENDOR) ?: ""
+        val rendererString = GL11.glGetString(GL11.GL_RENDERER) ?: ""
+        graphics.gl.glVersion = GLVersion(platform, versionString, vendorString, rendererString)
+
         GLFW.glfwDestroyWindow(temp)
+
 
         // Configure GLFW
         GLFW.glfwDefaultWindowHints() // optional, the current window hints are already the default
@@ -85,19 +94,16 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context() {
                 GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MINOR, 2)
                 GLFW.glfwWindowHint(GLFW.GLFW_OPENGL_PROFILE, GLFW.GLFW_OPENGL_CORE_PROFILE)
                 GLFW.glfwWindowHint(GLFW.GLFW_OPENGL_FORWARD_COMPAT, GL30.GL_TRUE)
-                graphics._glVersion = GLVersion.GL_32_PLUS
             }
             caps.OpenGL30 -> {
                 GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MAJOR, 3)
                 GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MINOR, 0)
                 GLFW.glfwWindowHint(GLFW.GLFW_OPENGL_PROFILE, GLFW.GLFW_OPENGL_CORE_PROFILE)
                 GLFW.glfwWindowHint(GLFW.GLFW_OPENGL_FORWARD_COMPAT, GL30.GL_TRUE)
-                graphics._glVersion = GLVersion.GL_30
             }
             caps.OpenGL21 -> {
                 GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MAJOR, 2)
                 GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MINOR, 1)
-                graphics._glVersion = GLVersion.GL_20
             }
         }
 
