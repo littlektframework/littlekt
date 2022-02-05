@@ -3,8 +3,11 @@ package com.lehaine.littlekt
 import com.lehaine.littlekt.async.KtScope
 import com.lehaine.littlekt.async.MainDispatcher
 import com.lehaine.littlekt.audio.OpenALAudioContext
+import com.lehaine.littlekt.file.Base64.decodeFromBase64
+import com.lehaine.littlekt.file.ByteBufferImpl
 import com.lehaine.littlekt.file.JvmVfs
 import com.lehaine.littlekt.file.vfs.VfsFile
+import com.lehaine.littlekt.file.vfs.readPixmap
 import com.lehaine.littlekt.graphics.GL
 import com.lehaine.littlekt.graphics.GLVersion
 import com.lehaine.littlekt.graphics.internal.InternalResources
@@ -16,6 +19,7 @@ import kotlinx.coroutines.launch
 import org.lwjgl.glfw.Callbacks
 import org.lwjgl.glfw.GLFW
 import org.lwjgl.glfw.GLFWErrorCallback
+import org.lwjgl.glfw.GLFWImage
 import org.lwjgl.opengl.GL11.glClear
 import org.lwjgl.opengl.GL30
 import org.lwjgl.opengl.GL30C
@@ -140,10 +144,35 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context() {
             // Enable v-sync
             GLFW.glfwSwapInterval(1)
         }
+        KtScope.launch {
+            if (configuration.icons.isNotEmpty()) {
+                val buffer = GLFWImage.malloc(configuration.icons.size)
+                configuration.icons.forEach {
+                    val pixmap = resourcesVfs[it].readPixmap()
+                    val icon = GLFWImage.malloc()
+                    icon.set(pixmap.width, pixmap.height, (pixmap.pixels as ByteBufferImpl).buffer)
+                    buffer.put(icon)
+                    icon.free()
+                }
+                buffer.position(0)
+                GLFW.glfwSetWindowIcon(windowHandle, buffer)
+                buffer.free()
+            } else {
+                val pixmap = ktHead32x32.decodeFromBase64().readPixmap()
+                val icon = GLFWImage.malloc()
+                icon.set(pixmap.width, pixmap.height, (pixmap.pixels as ByteBufferImpl).buffer)
+                val buffer = GLFWImage.malloc(1)
+                buffer.put(icon)
+                icon.free()
+                buffer.position(0)
+                GLFW.glfwSetWindowIcon(windowHandle, buffer)
+                buffer.free()
+            }
+        }
+
         // Make the window visible
         GLFW.glfwShowWindow(windowHandle)
         input.attachToWindow(windowHandle)
-
 
         LWJGL.createCapabilities()
         // GLUtil.setupDebugMessageCallback()
