@@ -12,6 +12,9 @@ value class SizeFlag(val bit: Int) {
 
     fun isFlagSet(flag: SizeFlag) = bit.isFlagSet(flag.bit)
 
+    infix fun or(flag: SizeFlag) = SizeFlag(bit.or(flag.bit))
+    infix fun and(flag: SizeFlag) = SizeFlag(bit.and(flag.bit))
+
     companion object {
         val FILL = SizeFlag(1 shl 0)
         val EXPAND = SizeFlag(1 shl 1)
@@ -27,7 +30,7 @@ value class SizeFlag(val bit: Int) {
             var bit = flags[0].bit
             flags.forEachIndexed { index, sizeFlag ->
                 if (index != 0) {
-                    bit = bit shl sizeFlag.bit
+                    bit = bit or sizeFlag.bit
                 }
             }
             return SizeFlag(bit)
