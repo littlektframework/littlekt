@@ -292,19 +292,16 @@ class WebGL(val gl: WebGL2RenderingContext, private val engineStats: EngineStats
     override fun createVertexArray(): GlVertexArray {
         engineStats.calls++
         return GlVertexArray(gl.createVertexArray())
-        // throw RuntimeException("WebGL does not support 'createVertexArray'!")
     }
 
     override fun bindVertexArray(glVertexArray: GlVertexArray) {
         engineStats.calls++
         gl.bindVertexArray(glVertexArray.delegate)
-        //throw RuntimeException("WebGL does not support 'bindVertexArray'!")
     }
 
     override fun bindDefaultVertexArray() {
         engineStats.calls++
         gl.bindVertexArray(null)
-        // throw RuntimeException("WebGL does not support 'bindDefaultVertexArray'!")
     }
 
     override fun bindFrameBuffer(glFrameBuffer: GlFrameBuffer) {
