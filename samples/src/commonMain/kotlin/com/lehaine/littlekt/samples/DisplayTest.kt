@@ -167,6 +167,9 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
         val scene by assetProvider.prepare {
             sceneGraph(context, batch = batch) {
                 rootControl = control {
+                    anchorRight = 1f
+                    anchorBottom = 1f
+
                     paddedContainer {
                         padding(10)
                         vBoxContainer {
@@ -224,11 +227,20 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
                     }
 
                     progressBar = progressBar {
+                        anchorLeft = 1f
+                        anchorRight = 1f
                         x = 200f
                         y = 300f
                         width = 200f
 
                         ratio = 0.27f
+                        onReady += {
+                            (parent as? Control)?.let {
+                                println(it)
+                            }
+                            println(marginLeft)
+                            println(marginRight)
+                        }
                     }
 
                     panel {

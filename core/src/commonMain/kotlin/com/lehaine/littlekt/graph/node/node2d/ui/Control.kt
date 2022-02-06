@@ -200,7 +200,6 @@ open class Control : Node2D() {
             size(width, value)
         }
 
-
     var minWidth: Float = 0f
         set(value) {
             if (value == field) return
@@ -291,6 +290,7 @@ open class Control : Node2D() {
             }
         } else {
             viewport?.onSizeChanged?.connect(this, ::onSizeChanged)
+            onSizeChanged()
         }
     }
 
