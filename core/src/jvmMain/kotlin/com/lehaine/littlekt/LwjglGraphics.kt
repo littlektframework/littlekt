@@ -21,8 +21,6 @@ class LwjglGraphics(val context: LwjglContext, engineStats: EngineStats) : Graph
         get() = _width
     override val height: Int
         get() = _height
-    override val glVersion: GLVersion
-        get() = gl.version
 
     override fun supportsExtension(extension: String): Boolean {
         return GLFW.glfwExtensionSupported(extension)

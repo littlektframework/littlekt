@@ -65,11 +65,7 @@ class WebGLGraphics(val canvas: HTMLCanvasElement, engineStats: EngineStats) : G
     override val height: Int
         get() = _height
 
-    override val glVersion: GLVersion
-        get() = gl.version
-
     override fun supportsExtension(extension: String): Boolean {
-        gl as WebGL
         return gl.gl.getExtension("extension") != null
     }
 

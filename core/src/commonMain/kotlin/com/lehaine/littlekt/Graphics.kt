@@ -1,6 +1,9 @@
 package com.lehaine.littlekt
 
-import com.lehaine.littlekt.graphics.*
+import com.lehaine.littlekt.graphics.Cursor
+import com.lehaine.littlekt.graphics.GL
+import com.lehaine.littlekt.graphics.GLVersion
+import com.lehaine.littlekt.graphics.SystemCursor
 
 
 /**
@@ -27,7 +30,7 @@ interface Graphics {
     /**
      * @return the [GLVersion] of this Graphics instance
      */
-    val glVersion: GLVersion
+    val glVersion: GLVersion get() = gl.version
 
     /**
      * @return if the current GL version is 3.0 or higher
