@@ -429,7 +429,7 @@ open class Control : Node2D() {
         val parentRect = getParentAnchorableRect()
         _anchorLeft = (x - marginLeft) / parentRect.width
         _anchorTop = (y - marginTop) / parentRect.height
-        _anchorRight = (x + width - marginLeft) / parentRect.width
+        _anchorRight = (x + width - marginRight) / parentRect.width
         _anchorBottom = (y + height - marginBottom) / parentRect.height
     }
 
@@ -437,8 +437,8 @@ open class Control : Node2D() {
         val parentRect = getParentAnchorableRect()
         _marginLeft = x - (anchorLeft * parentRect.width)
         _marginTop = y - (anchorTop * parentRect.height)
-        _marginRight = x + max(width, combinedMinWidth) - (anchorRight * parentRect.width)
-        _marginBottom = y + max(height, combinedMinHeight) - (anchorBottom * parentRect.height)
+        _marginRight = x + width - (anchorRight * parentRect.width)
+        _marginBottom = y + height - (anchorBottom * parentRect.height)
     }
 
     private fun computeAnchorMarginLayout(layout: AnchorLayout, triggerSizeChanged: Boolean = true) {
@@ -686,7 +686,7 @@ open class Control : Node2D() {
         val posChanged = x != newX || y != newY
         val sizeChanged = _width != newWidth || _height != newHeight
 
-        position(newX, newY)
+        position(newX, newY, false)
         _width = newWidth
         _height = newHeight
 

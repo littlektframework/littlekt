@@ -206,7 +206,7 @@ open class Node2D : Node() {
             return _localScale.x
         }
         set(value) {
-            if(_localScale.x == value) return
+            if (_localScale.x == value) return
             _localScale.x = value
             updateLocalScale()
         }
@@ -216,7 +216,7 @@ open class Node2D : Node() {
             return _localScale.y
         }
         set(value) {
-            if(_localScale.y == value) return
+            if (_localScale.y == value) return
             _localScale.y = value
             updateLocalScale()
         }
@@ -347,17 +347,19 @@ open class Node2D : Node() {
         return this
     }
 
-    fun position(x: Float, y: Float): Node2D {
+    fun position(x: Float, y: Float, invokeCallback: Boolean = true): Node2D {
         if (_localPosition.x == x && _localPosition.y == y) {
             return this
         }
         _localPosition.set(x, y)
-        updateLocalPosition()
+        updateLocalPosition(invokeCallback)
         return this
     }
 
-    private fun updateLocalPosition() {
-        onPositionChanged()
+    private fun updateLocalPosition(invokeCallback: Boolean = true) {
+        if (invokeCallback) {
+            onPositionChanged()
+        }
         _localDirty = true
         _globalPositionDirty = true
         _localPositionDirty = true
