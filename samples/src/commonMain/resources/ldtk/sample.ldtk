@@ -9,7 +9,7 @@
 		"url": "https://ldtk.io"
 	},
 	"jsonVersion": "0.9.3",
-	"nextUid": 77,
+	"nextUid": 78,
 	"worldLayout": "Free",
 	"worldGridWidth": 256,
 	"worldGridHeight": 256,
@@ -890,7 +890,7 @@
 			"externalRelPath": "sample/0000-West.ldtkl",
 			"fieldInstances": [],
 			"layerInstances": null,
-			"__neighbours": [ { "levelUid": 39, "dir": "e" }, { "levelUid": 40, "dir": "e" } ]
+			"__neighbours": [ { "levelUid": 39, "dir": "e" }, { "levelUid": 40, "dir": "e" }, { "levelUid": 77, "dir": "w" } ]
 		},
 		{
 			"identifier": "East",
@@ -951,6 +951,26 @@
 			"fieldInstances": [],
 			"layerInstances": null,
 			"__neighbours": [{ "levelUid": 39, "dir": "w" }]
+		},
+		{
+			"identifier": "Level_4",
+			"uid": 77,
+			"worldX": -256,
+			"worldY": -96,
+			"pxWid": 256,
+			"pxHei": 384,
+			"__bgColor": "#121331",
+			"bgColor": null,
+			"useAutoIdentifier": true,
+			"bgRelPath": null,
+			"bgPos": null,
+			"bgPivotX": 0.5,
+			"bgPivotY": 0.5,
+			"__bgPos": null,
+			"externalRelPath": "sample/0004-Level_4.ldtkl",
+			"fieldInstances": [],
+			"layerInstances": null,
+			"__neighbours": [{ "levelUid": 0, "dir": "e" }]
 		}
 	]
 }

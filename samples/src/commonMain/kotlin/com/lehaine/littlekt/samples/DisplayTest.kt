@@ -14,6 +14,7 @@ import com.lehaine.littlekt.graphics.font.BitmapFont
 import com.lehaine.littlekt.graphics.font.BitmapFontCache
 import com.lehaine.littlekt.graphics.shader.shaders.SimpleColorFragmentShader
 import com.lehaine.littlekt.graphics.shader.shaders.SimpleColorVertexShader
+import com.lehaine.littlekt.graphics.tilemap.ldtk.LDtkWorld
 import com.lehaine.littlekt.input.GameAxis
 import com.lehaine.littlekt.input.GameButton
 import com.lehaine.littlekt.input.InputMultiplexer
@@ -125,6 +126,7 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
                 it.tint(Color.RED)
             }
         }
+        val ldtkWorld by assetProvider.load<LDtkWorld>(resourcesVfs["ldtk/sample.ldtk"])
         val ninepatchImg by assetProvider.load<Texture>(resourcesVfs["bg_9.png"])
         val ninepatch by assetProvider.prepare { NinePatch(ninepatchImg, 3, 3, 3, 4) }
         val greyButtonNinePatch = NinePatch(
@@ -330,6 +332,7 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
             camera.update()
             boss.update(dt)
             batch.use(camera.viewProjection) {
+                ldtkWorld.render(it, camera, x, y)
                 it.draw(person, x, y, scaleX = 10f, scaleY = 10f)
                 slices.forEachIndexed { rowIdx, row ->
                     row.forEachIndexed { colIdx, slice ->
