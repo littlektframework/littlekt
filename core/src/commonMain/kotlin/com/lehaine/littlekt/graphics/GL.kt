@@ -20,13 +20,6 @@ class GLVersion(
     val vendor: String = "N/A",
     val renderer: String = "N/A"
 ) {
-//    GL_32_PLUS,
-//    GL_30,
-//    GL_20,
-//    WEBGL,
-//    WEBGL2
-
-
     val major: Int
     val minor: Int
 
@@ -41,6 +34,11 @@ class GLVersion(
         minor = split[0].toInt()
     }
 
+    fun atleast(major: Int, minor: Int) = major >= this.major && minor >= this.minor
+
+    override fun toString(): String {
+        return "GLVersion(platform=$platform, vendor='$vendor', renderer='$renderer', major=$major, minor=$minor)"
+    }
 }
 
 /**
@@ -52,12 +50,6 @@ interface GL {
     val version: GLVersion
 
     val isG30: Boolean get() = version.major >= 3
-
-    /**
-     * @return if the current GL version is 3.0 or higher
-     */
-    fun isGL30OrHigher() = true
-    //  getGLVersion() == GLVersion.GL_30 || getGLVersion() == GLVersion.GL_32_PLUS || getGLVersion() == GLVersion.WEBGL2
 
     fun clearColor(r: Float, g: Float, b: Float, a: Float)
     fun clearColor(color: Color) = clearColor(color.r, color.g, color.b, color.a)

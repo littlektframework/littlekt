@@ -18,7 +18,7 @@ import java.nio.ByteBuffer as NioByteBuffer
  * @date 9/28/2021
  */
 class LwjglGL(private val engineStats: EngineStats) : GL {
-    internal var glVersion: GLVersion = GLVersion()
+    internal var glVersion: GLVersion = GLVersion(Context.Platform.DESKTOP)
     override val version: GLVersion get() = glVersion
 
     var lastBoundBuffer: GlBuffer? = null

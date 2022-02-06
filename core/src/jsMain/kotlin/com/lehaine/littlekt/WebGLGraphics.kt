@@ -1,11 +1,13 @@
 package com.lehaine.littlekt
 
 import com.lehaine.littlekt.graphics.Cursor
-import com.lehaine.littlekt.graphics.GL
 import com.lehaine.littlekt.graphics.GLVersion
 import com.lehaine.littlekt.graphics.SystemCursor
 import com.lehaine.littlekt.util.internal.jsObject
-import org.khronos.webgl.*
+import org.khronos.webgl.ArrayBufferView
+import org.khronos.webgl.Float32Array
+import org.khronos.webgl.WebGLObject
+import org.khronos.webgl.WebGLRenderingContext
 import org.w3c.dom.Element
 import org.w3c.dom.HTMLCanvasElement
 import org.w3c.dom.HTMLImageElement
@@ -20,11 +22,11 @@ import org.w3c.dom.events.UIEvent
 class WebGLGraphics(val canvas: HTMLCanvasElement, engineStats: EngineStats) : Graphics {
 
     @Suppress("UNCHECKED_CAST_TO_EXTERNAL_INTERFACE")
-    override val gl: GL
+    override val gl: WebGL
 
     internal var _width: Int = 0
     internal var _height: Int = 0
-    val platform: Context.Platform
+    private var platform: Context.Platform = Context.Platform.WEBGL2
 
     private val ctxOptions: dynamic = jsObject { stencil = true }
 
@@ -32,7 +34,6 @@ class WebGLGraphics(val canvas: HTMLCanvasElement, engineStats: EngineStats) : G
         var webGlCtx = canvas.getContext("webgl2", ctxOptions)
         if (webGlCtx == null) {
             webGlCtx = canvas.getContext("experimental-webgl2", ctxOptions)
-            platform = Context.Platform.WEBGL2
         }
         if (webGlCtx == null) {
             console.warn("WebGL2 not available. Attempting to fallback to WebGL.")
@@ -42,6 +43,7 @@ class WebGLGraphics(val canvas: HTMLCanvasElement, engineStats: EngineStats) : G
 
         if (webGlCtx != null) {
             gl = WebGL(webGlCtx as WebGL2RenderingContext, engineStats)
+            gl.glVersion = GLVersion(platform, if (platform == Context.Platform.WEBGL2) "3.0" else "2.0")
         } else {
             js("alert(\"Unable to initialize WebGL or WebGL2 context. Your browser may not support it.\")")
             throw RuntimeException("WebGL2 context required")
@@ -64,7 +66,7 @@ class WebGLGraphics(val canvas: HTMLCanvasElement, engineStats: EngineStats) : G
         get() = _height
 
     override val glVersion: GLVersion
-        get() = version
+        get() = gl.version
 
     override fun supportsExtension(extension: String): Boolean {
         gl as WebGL

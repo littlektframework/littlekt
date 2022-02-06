@@ -32,8 +32,7 @@ interface Graphics {
     /**
      * @return if the current GL version is 3.0 or higher
      */
-    fun isGL30OrHigher() =
-        glVersion == GLVersion.GL_30 || glVersion == GLVersion.GL_32_PLUS || glVersion == GLVersion.WEBGL2
+    val isGL30 get() = gl.isG30
 
     /**
      * @param extension the extension name

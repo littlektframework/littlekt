@@ -154,7 +154,7 @@ open class SceneGraph(
         }
 
         when (context.platform) {
-            Context.Platform.DESKTOP, Context.Platform.JS -> {
+            Context.Platform.DESKTOP, Context.Platform.WEBGL, Context.Platform.WEBGL2 -> {
                 mouseOverControl = fireEnterAndExit(mouseOverControl, mouseScreenX, mouseScreenY, Pointer.POINTER1)
             }
             else -> {

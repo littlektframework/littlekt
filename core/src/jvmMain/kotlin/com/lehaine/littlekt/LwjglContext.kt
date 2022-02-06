@@ -84,7 +84,6 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context() {
 
         GLFW.glfwDestroyWindow(temp)
 
-
         // Configure GLFW
         GLFW.glfwDefaultWindowHints() // optional, the current window hints are already the default
 

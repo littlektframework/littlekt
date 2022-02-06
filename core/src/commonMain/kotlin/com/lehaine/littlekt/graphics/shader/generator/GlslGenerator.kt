@@ -1,7 +1,6 @@
 package com.lehaine.littlekt.graphics.shader.generator
 
 import com.lehaine.littlekt.Context
-import com.lehaine.littlekt.graphics.GLVersion
 import com.lehaine.littlekt.graphics.shader.FragmentShader
 import com.lehaine.littlekt.graphics.shader.ShaderParameter
 import com.lehaine.littlekt.graphics.shader.generator.InstructionType.*
@@ -105,11 +104,12 @@ abstract class GlslGenerator : GlslProvider {
     override fun generate(context: Context): String {
         removeUnusedDefinitions()
         val sb = StringBuilder()
-        if (context.graphics.isGL30OrHigher()) {
-            val version = when (context.graphics.glVersion) {
-                GLVersion.GL_32_PLUS -> "150"
-                GLVersion.GL_30 -> "130"
-                GLVersion.WEBGL2 -> "300 es"
+        val glVersion = context.gl.version
+        if (context.graphics.isGL30) {
+            val version = when {
+                glVersion.platform == Context.Platform.WEBGL2 -> "300 es"
+                glVersion.major >= 3 && glVersion.minor >= 2 -> "150"
+                glVersion.major >= 3 && !glVersion.platform.isWebGl -> "130"
                 else -> throw IllegalStateException("${context.graphics.glVersion} isn't not considered at least GL 3.0+")
             }
             sb.appendLine("#version $version")
@@ -138,14 +138,14 @@ abstract class GlslGenerator : GlslProvider {
             sb.appendLine("uniform $it;")
         }
         attributes.forEach {
-            if (context.graphics.isGL30OrHigher()) {
+            if (context.graphics.isGL30) {
                 sb.appendLine("in $it;")
             } else {
                 sb.appendLine("attribute $it;")
             }
         }
         varyings.forEach {
-            if (context.graphics.isGL30OrHigher()) {
+            if (context.graphics.isGL30) {
                 if (this is FragmentShader) {
                     sb.appendLine("in $it;")
                 } else {
@@ -156,7 +156,7 @@ abstract class GlslGenerator : GlslProvider {
             }
         }
 
-        if (context.graphics.isGL30OrHigher() && this is FragmentShader) {
+        if (context.graphics.isGL30 && this is FragmentShader) {
             sb.appendLine("out lowp vec4 fragColor;")
         }
 
@@ -210,7 +210,7 @@ abstract class GlslGenerator : GlslProvider {
         sb.appendLine("}")
 
         var result = sb.toString()
-        if (context.graphics.isGL30OrHigher()) {
+        if (context.graphics.isGL30) {
             result = result.replace("texture2D\\(".toRegex(), "texture(")
                 .replace("textureCube\\(".toRegex(), "texture(")
                 .replace("gl_FragColor".toRegex(), "fragColor")
@@ -220,11 +220,12 @@ abstract class GlslGenerator : GlslProvider {
 
     fun ensureShaderVersionChanges(context: Context, source: String): String {
         val sb = StringBuilder()
-        if (context.graphics.isGL30OrHigher()) {
-            val version = when (context.graphics.glVersion) {
-                GLVersion.GL_32_PLUS -> "150"
-                GLVersion.GL_30 -> "130"
-                GLVersion.WEBGL2 -> "300 es"
+        val glVersion = context.graphics.glVersion
+        if (context.graphics.isGL30) {
+            val version = when {
+                glVersion.platform == Context.Platform.WEBGL2 -> "300 es"
+                glVersion.major >= 3 && glVersion.minor >= 2 -> "150"
+                glVersion.major >= 3 && !glVersion.platform.isWebGl -> "130"
                 else -> throw IllegalStateException("${context.graphics.glVersion} isn't not considered at least GL 3.0+")
             }
             sb.appendLine("#version $version")
@@ -240,7 +241,7 @@ abstract class GlslGenerator : GlslProvider {
                 appendLine("#define highp ")
                 appendLine("#endif")
             }
-            if (context.graphics.isGL30OrHigher()) {
+            if (context.graphics.isGL30) {
                 sb.appendLine("out lowp vec4 fragColor;")
             }
         } else {
@@ -254,7 +255,7 @@ abstract class GlslGenerator : GlslProvider {
         }
         sb.appendLine(source)
         var result = sb.toString()
-        if (context.graphics.isGL30OrHigher()) {
+        if (context.graphics.isGL30) {
             result = if (this is FragmentShader) {
                 result.replace("varying ".toRegex(), "in ")
             } else {
