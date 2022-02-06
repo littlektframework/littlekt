@@ -82,7 +82,7 @@ abstract class Range : Control() {
             val percent = (max - min) * value
             v = if (step > 0f) {
                 val steps = (percent / step).roundToInt().toFloat()
-                steps * steps + min
+                steps * step + min
             } else {
                 percent + min
             }

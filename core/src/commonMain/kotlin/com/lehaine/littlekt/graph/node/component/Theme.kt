@@ -3,6 +3,7 @@ package com.lehaine.littlekt.graph.node.component
 import com.lehaine.littlekt.graph.node.node2d.ui.Button
 import com.lehaine.littlekt.graph.node.node2d.ui.Label
 import com.lehaine.littlekt.graph.node.node2d.ui.Panel
+import com.lehaine.littlekt.graph.node.node2d.ui.ProgressBar
 import com.lehaine.littlekt.graphics.Color
 import com.lehaine.littlekt.graphics.Fonts
 import com.lehaine.littlekt.graphics.NinePatch
@@ -127,6 +128,14 @@ fun createDefaultTheme(
         "Panel" to mapOf(
             Panel.themeVars.panel to NinePatchDrawable(panelNinePatch).apply {
                 modulate = Color.LIGHT_BLUE
+            }
+        ),
+        "ProgressBar" to mapOf(
+            ProgressBar.themeVars.bg to NinePatchDrawable(panelNinePatch).apply {
+                modulate = Color.DARK_BLUE
+            },
+            ProgressBar.themeVars.fg to NinePatchDrawable(panelNinePatch).apply {
+                modulate = Color.LIGHT_BLUE.toMutableColor().also { it.lighten(0.5f) }
             }
         )
     ) + extraDrawables
