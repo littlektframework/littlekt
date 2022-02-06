@@ -5,11 +5,15 @@ on:
     branches: [ master ]
     paths-ignore:
       - 'README.md'
+      - 'samples/'
+      - 'art/'
   pull_request:
     branches: [ master ]
     types: [opened, synchronize, reopened, ready_for_review]
     paths-ignore:
       - 'README.md'
+      - 'samples/'
+      - 'art/'
 
 jobs:
   build:
