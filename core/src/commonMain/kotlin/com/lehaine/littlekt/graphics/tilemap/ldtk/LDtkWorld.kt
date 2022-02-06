@@ -1,6 +1,7 @@
 package com.lehaine.littlekt.graphics.tilemap.ldtk
 
 import com.lehaine.littlekt.Disposable
+import com.lehaine.littlekt.file.ldtk.EntityDefinition
 import com.lehaine.littlekt.file.ldtk.WorldLayout
 import com.lehaine.littlekt.graphics.Camera
 import com.lehaine.littlekt.graphics.SpriteBatch
@@ -16,7 +17,8 @@ class LDtkWorld(
     val backgroundColor: String,
     val levels: List<LDtkLevel>,
     val tilesets: Map<Int, LDtkTileset>,
-    val enums: Map<String, LDtkEnum>
+    val enums: Map<String, LDtkEnum>,
+    val entities: Map<String, EntityDefinition>
 ) : TileMap(), Disposable {
     val levelsMap: Map<String, LDtkLevel> = levels.associateBy { it.identifier }
 
