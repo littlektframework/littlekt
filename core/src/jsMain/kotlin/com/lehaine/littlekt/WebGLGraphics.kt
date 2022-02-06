@@ -42,8 +42,7 @@ class WebGLGraphics(val canvas: HTMLCanvasElement, engineStats: EngineStats) : G
         }
 
         if (webGlCtx != null) {
-            gl = WebGL(webGlCtx as WebGL2RenderingContext, engineStats)
-            gl.glVersion = GLVersion(platform, if (platform == Context.Platform.WEBGL2) "3.0" else "2.0")
+            gl = WebGL(webGlCtx as WebGL2RenderingContext, platform, engineStats)
         } else {
             js("alert(\"Unable to initialize WebGL or WebGL2 context. Your browser may not support it.\")")
             throw RuntimeException("WebGL2 context required")
@@ -170,6 +169,10 @@ abstract external class WebGL2RenderingContext : WebGLRenderingContext {
     fun createVertexArray(): WebGLVertexArrayObject
     fun bindVertexArray(vao: WebGLVertexArrayObject?)
     fun deleteVertexArray(vao: WebGLVertexArrayObject?)
+
+    fun createVertexArrayOES(): WebGLVertexArrayObject
+    fun bindVertexArrayOES(vao: WebGLVertexArrayObject?)
+    fun deleteVertexArrayOES(vao: WebGLVertexArrayObject?)
 
     companion object {
         val COLOR: Int
