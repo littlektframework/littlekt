@@ -250,6 +250,8 @@ open class Control : Node2D() {
     private var lastMinWidth = 0f
     private var lastMinHeight = 0f
 
+    private var recomputeMargins = false
+
     var color = Color.WHITE
     var debugColor = Color.GREEN
 
@@ -272,12 +274,15 @@ open class Control : Node2D() {
     override val membersAndPropertiesString: String
         get() = "${super.membersAndPropertiesString}, anchorLeft=$anchorLeft, anchorRight=$anchorRight, anchorTop=$anchorTop, anchorBottom=$anchorBottom, verticalSizeFlags=$verticalSizeFlags, horizontalSizeFlags=$horizontalSizeFlags, marginLeft=$marginLeft, marginRight=$marginRight, marginTop=$marginTop, marginBottom=$marginBottom, horizontalGrowDirection=$horizontalGrowDirection, verticalGrowDirection=$verticalGrowDirection, width=$width, height=$height, minWidth=$minWidth, minHeight=$minHeight, combinedMinWidth=$combinedMinWidth, combinedMinHeight=$combinedMinHeight, color=$color, debugColor=$debugColor"
 
-
-    override fun onHierarchyChanged(flag: Int) {
-        super.onHierarchyChanged(flag)
-        if (flag == POSITION_DIRTY) {
-            computeMargins()
+    override fun onPositionChanged() {
+        super.onPositionChanged()
+        computeMargins()
+        if (insideTree) {
             onSizeChanged()
+        } else {
+            // just in case we set the position before added to a scene - we want to preserve this position and not
+            // recompute it to match the margins
+            recomputeMargins = true
         }
     }
 
@@ -352,8 +357,10 @@ open class Control : Node2D() {
         }
 
         computeMargins()
-        dirty(SIZE_DIRTY)
-        onSizeChanged()
+        if (insideTree) {
+            dirty(SIZE_DIRTY)
+            onSizeChanged()
+        }
     }
 
     fun anchor(layout: AnchorLayout) {
@@ -641,6 +648,10 @@ open class Control : Node2D() {
     private fun onSizeChanged() {
         if (lastAnchorLayout != NONE) {
             computeAnchorMarginLayout(lastAnchorLayout, triggerSizeChanged = false)
+        }
+        if (recomputeMargins) {
+            computeMargins()
+            recomputeMargins = false
         }
         val parentRect = getParentAnchorableRect()
 

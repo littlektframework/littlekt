@@ -235,9 +235,8 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
 
                         ratio = 0.27f
                         onReady += {
-                            (parent as? Control)?.let {
-                                println(it)
-                            }
+                            println(anchorLeft)
+                            println(anchorRight)
                             println(marginLeft)
                             println(marginRight)
                         }

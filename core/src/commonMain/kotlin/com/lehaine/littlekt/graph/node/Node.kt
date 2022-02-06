@@ -362,12 +362,12 @@ open class Node : Comparable<Node> {
     }
 
     internal fun _onPostEnterScene() {
-        ready()
-        onReady.emit()
         nodes.forEach {
             it._onPostEnterScene()
         }
         onPostEnterScene()
+        ready()
+        onReady.emit()
     }
 
     /**
