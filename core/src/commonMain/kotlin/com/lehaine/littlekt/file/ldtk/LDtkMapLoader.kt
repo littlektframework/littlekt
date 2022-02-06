@@ -16,9 +16,16 @@ class LDtkMapLoader(val root: VfsFile, val project: ProjectJson) : Disposable {
     val levelLoader = LDtkLevelLoader(project)
     val enums = project.defs.enums.associateBy(keySelector = { it.identifier }) { enum ->
         val values =
-            enum.values.associateBy(keySelector = { it.id }) { LDtkEnumValue(it.id, Color.fromHex(it.color.toString(16))) }
+            enum.values.associateBy(keySelector = { it.id }) {
+                LDtkEnumValue(
+                    it.id,
+                    Color.fromHex(it.color.toString(16))
+                )
+            }
         LDtkEnum(enum.identifier, values)
     }
+    val entityDefinitions = project.defs.entities.associateBy { it.identifier }
+
     suspend fun loadMap(loadAllLevels: Boolean, levelIdx: Int = 0): LDtkWorld {
         val parent = root.parent
         val levels = mutableListOf<LDtkLevel>()
@@ -53,7 +60,7 @@ class LDtkMapLoader(val root: VfsFile, val project: ProjectJson) : Disposable {
             }
         }
 
-        return LDtkWorld(project.worldLayout, project.bgColor, levels, levelLoader.tilesets, enums)
+        return LDtkWorld(project.worldLayout, project.bgColor, levels, levelLoader.tilesets, enums, entityDefinitions)
     }
 
     suspend fun loadLevel(levelIdx: Int): LDtkLevel {
