@@ -47,8 +47,14 @@ fun <T : TextureData> T.generateMipMap(
     }
 
     when (context.platform) {
-        Context.Platform.DESKTOP -> generateMipMapDesktop(context, target, pixmap, width, height)
-        Context.Platform.JS, Context.Platform.ANDROID, Context.Platform.IOS -> generateMipMapGLES20(
+        Context.Platform.DESKTOP, Context.Platform.WEBGL2 -> generateMipMapDesktop(
+            context,
+            target,
+            pixmap,
+            width,
+            height
+        )
+        Context.Platform.WEBGL, Context.Platform.ANDROID, Context.Platform.IOS -> generateMipMapGLES20(
             context,
             target,
             pixmap
@@ -119,7 +125,7 @@ private fun TextureData.generateMipMapDesktop(
 
     if (context.graphics.supportsExtension("GL_ARB_framebuffer_object")
         || context.graphics.supportsExtension("GL_EXT_framebuffer_object")
-        || context.graphics.isGL30OrHigher()
+        || context.graphics.isGL30
     ) {
         gl.texImage2D(
             target = target,

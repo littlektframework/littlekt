@@ -15,13 +15,9 @@ import org.khronos.webgl.get
  * @author Colton Daily
  * @date 9/28/2021
  */
-class WebGL(val gl: WebGL2RenderingContext, private val engineStats: EngineStats) : GL {
+class WebGL(val gl: WebGL2RenderingContext, val platform: Context.Platform, private val engineStats: EngineStats) : GL {
     private var lastBoundBuffer: GlBuffer? = null
-    internal var glVersion = GLVersion.WEBGL2
-
-    override fun getGLVersion(): GLVersion {
-        return glVersion
-    }
+    override val version: GLVersion = GLVersion(platform, if (platform == Context.Platform.WEBGL2) "3.0" else "2.0")
 
     override fun clearColor(r: Float, g: Float, b: Float, a: Float) {
         engineStats.calls++
@@ -292,15 +288,26 @@ class WebGL(val gl: WebGL2RenderingContext, private val engineStats: EngineStats
     }
 
     override fun createVertexArray(): GlVertexArray {
-        throw RuntimeException("WebGL does not support 'createVertexArray'!")
+        engineStats.calls++
+        return GlVertexArray(if (platform == Context.Platform.WEBGL2) gl.createVertexArray() else gl.createVertexArrayOES())
     }
 
     override fun bindVertexArray(glVertexArray: GlVertexArray) {
-        throw RuntimeException("WebGL does not support 'bindVertexArray'!")
+        engineStats.calls++
+        if (platform == Context.Platform.WEBGL2) {
+            gl.bindVertexArray(glVertexArray.delegate)
+        } else {
+            gl.bindVertexArrayOES(glVertexArray.delegate)
+        }
     }
 
     override fun bindDefaultVertexArray() {
-        throw RuntimeException("WebGL does not support 'bindDefaultVertexArray'!")
+        engineStats.calls++
+        if (platform == Context.Platform.WEBGL2) {
+            gl.bindVertexArray(null)
+        } else {
+            gl.bindVertexArrayOES(null)
+        }
     }
 
     override fun bindFrameBuffer(glFrameBuffer: GlFrameBuffer) {

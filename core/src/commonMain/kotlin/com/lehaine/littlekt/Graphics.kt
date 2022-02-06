@@ -1,6 +1,9 @@
 package com.lehaine.littlekt
 
-import com.lehaine.littlekt.graphics.*
+import com.lehaine.littlekt.graphics.Cursor
+import com.lehaine.littlekt.graphics.GL
+import com.lehaine.littlekt.graphics.GLVersion
+import com.lehaine.littlekt.graphics.SystemCursor
 
 
 /**
@@ -27,13 +30,12 @@ interface Graphics {
     /**
      * @return the [GLVersion] of this Graphics instance
      */
-    val glVersion: GLVersion
+    val glVersion: GLVersion get() = gl.version
 
     /**
      * @return if the current GL version is 3.0 or higher
      */
-    fun isGL30OrHigher() =
-        glVersion == GLVersion.GL_30 || glVersion == GLVersion.GL_32_PLUS || glVersion == GLVersion.WEBGL2
+    val isGL30 get() = gl.isG30
 
     /**
      * @param extension the extension name

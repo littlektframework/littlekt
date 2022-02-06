@@ -13,7 +13,6 @@ import kotlinx.browser.window
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.w3c.dom.HTMLCanvasElement
-import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.ExperimentalTime
 
@@ -32,7 +31,7 @@ class WebGLContext(override val configuration: JsConfiguration) : Context() {
     override val vfs = WebVfs(this, logger, configuration.rootPath)
     override val resourcesVfs: VfsFile get() = vfs.root
     override val storageVfs: VfsFile get() = vfs.root
-    override val platform: Platform = Platform.JS
+    override val platform: Platform = Platform.WEBGL
 
     private lateinit var listener: ContextListener
     private var closed = false

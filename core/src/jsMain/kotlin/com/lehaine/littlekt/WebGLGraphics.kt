@@ -1,12 +1,12 @@
 package com.lehaine.littlekt
 
 import com.lehaine.littlekt.graphics.Cursor
-import com.lehaine.littlekt.graphics.GL
 import com.lehaine.littlekt.graphics.GLVersion
 import com.lehaine.littlekt.graphics.SystemCursor
 import com.lehaine.littlekt.util.internal.jsObject
 import org.khronos.webgl.ArrayBufferView
 import org.khronos.webgl.Float32Array
+import org.khronos.webgl.WebGLObject
 import org.khronos.webgl.WebGLRenderingContext
 import org.w3c.dom.Element
 import org.w3c.dom.HTMLCanvasElement
@@ -22,38 +22,35 @@ import org.w3c.dom.events.UIEvent
 class WebGLGraphics(val canvas: HTMLCanvasElement, engineStats: EngineStats) : Graphics {
 
     @Suppress("UNCHECKED_CAST_TO_EXTERNAL_INTERFACE")
-    override val gl: GL
+    override val gl: WebGL
 
     internal var _width: Int = 0
     internal var _height: Int = 0
-    internal var version: GLVersion = GLVersion.WEBGL2
-        set(value) {
-            (gl as WebGL).glVersion = value
-            field = value
-        }
+    private var platform: Context.Platform = Context.Platform.WEBGL2
 
     private val ctxOptions: dynamic = jsObject { stencil = true }
 
     init {
         var webGlCtx = canvas.getContext("webgl2", ctxOptions)
-        var version = version
         if (webGlCtx == null) {
             webGlCtx = canvas.getContext("experimental-webgl2", ctxOptions)
         }
         if (webGlCtx == null) {
             console.warn("WebGL2 not available. Attempting to fallback to WebGL.")
             webGlCtx = canvas.getContext("webgl", ctxOptions)
-            version = GLVersion.WEBGL
+            platform = Context.Platform.WEBGL
         }
 
         if (webGlCtx != null) {
-            gl = WebGL(webGlCtx as WebGL2RenderingContext, engineStats)
+            gl = WebGL(webGlCtx as WebGL2RenderingContext, platform, engineStats)
         } else {
             js("alert(\"Unable to initialize WebGL or WebGL2 context. Your browser may not support it.\")")
             throw RuntimeException("WebGL2 context required")
         }
-        this.version = version
         webGlCtx.getExtension("OES_standard_derivatives")
+        if (platform == Context.Platform.WEBGL) {
+            webGlCtx.getExtension("OES_vertex_array_object")
+        }
         // suppress context menu
         canvas.oncontextmenu = Event::preventDefault
 
@@ -67,11 +64,7 @@ class WebGLGraphics(val canvas: HTMLCanvasElement, engineStats: EngineStats) : G
     override val height: Int
         get() = _height
 
-    override val glVersion: GLVersion
-        get() = version
-
     override fun supportsExtension(extension: String): Boolean {
-        gl as WebGL
         return gl.gl.getExtension("extension") != null
     }
 
@@ -173,6 +166,13 @@ abstract external class WebGL2RenderingContext : WebGLRenderingContext {
     fun texStorage3D(target: Int, levels: Int, internalformat: Int, width: Int, height: Int, depth: Int)
     fun vertexAttribDivisor(index: Int, divisor: Int)
     fun vertexAttribIPointer(index: Int, size: Int, type: Int, stride: Int, offset: Int)
+    fun createVertexArray(): WebGLVertexArrayObject
+    fun bindVertexArray(vao: WebGLVertexArrayObject?)
+    fun deleteVertexArray(vao: WebGLVertexArrayObject?)
+
+    fun createVertexArrayOES(): WebGLVertexArrayObject
+    fun bindVertexArrayOES(vao: WebGLVertexArrayObject?)
+    fun deleteVertexArrayOES(vao: WebGLVertexArrayObject?)
 
     companion object {
         val COLOR: Int
@@ -206,3 +206,5 @@ abstract external class WebGL2RenderingContext : WebGLRenderingContext {
         val RGBA16F: Int
     }
 }
+
+abstract external class WebGLVertexArrayObject : WebGLObject
