@@ -162,6 +162,8 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
 
         lateinit var panel: Container
         lateinit var rootControl: Control
+        lateinit var progressBar: ProgressBar
+
         val scene by assetProvider.prepare {
             sceneGraph(context, batch = batch) {
                 rootControl = control {
@@ -219,7 +221,14 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
                                 }
                             }
                         }
+                    }
 
+                    progressBar = progressBar {
+                        x = 200f
+                        y = 300f
+                        width = 200f
+
+                        ratio = 0.27f
                     }
 
                     panel {
@@ -327,12 +336,18 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
                 }
             }
 
+            if (input.isKeyPressed(Key.Z)) {
+                progressBar.value -= progressBar.step
+            } else if (input.isKeyPressed(Key.X)) {
+                progressBar.value += progressBar.step
+            }
+
             gl.clearColor(Color.DARK_GRAY)
             camera.viewport.apply(context)
             camera.update()
             boss.update(dt)
             batch.use(camera.viewProjection) {
-                ldtkWorld.render(it, camera, x, y)
+                ldtkWorld.render(it, camera)
                 it.draw(person, x, y, scaleX = 10f, scaleY = 10f)
                 slices.forEachIndexed { rowIdx, row ->
                     row.forEachIndexed { colIdx, slice ->

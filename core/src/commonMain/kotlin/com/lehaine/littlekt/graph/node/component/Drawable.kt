@@ -30,6 +30,6 @@ interface Drawable {
         scaleX: Float = 1f,
         scaleY: Float = 1f,
         rotation: Angle = Angle.ZERO,
-        color: Color = Color.WHITE
+        color: Color = modulate
     )
 }
