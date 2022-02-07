@@ -179,6 +179,11 @@ open class Label : Control() {
         }
     }
 
+    override fun onPostEnterScene() {
+        super.onPostEnterScene()
+        layout()
+    }
+
     override fun calculateMinSize() {
         if (!minSizeInvalid) return
 
