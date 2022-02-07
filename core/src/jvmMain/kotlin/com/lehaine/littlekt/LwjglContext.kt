@@ -2,6 +2,7 @@ package com.lehaine.littlekt
 
 import com.lehaine.littlekt.async.KtScope
 import com.lehaine.littlekt.async.MainDispatcher
+import com.lehaine.littlekt.async.mainThread
 import com.lehaine.littlekt.audio.OpenALAudioContext
 import com.lehaine.littlekt.file.Base64.decodeFromBase64
 import com.lehaine.littlekt.file.ByteBufferImpl
@@ -16,6 +17,7 @@ import com.lehaine.littlekt.log.Logger
 import com.lehaine.littlekt.util.fastForEach
 import com.lehaine.littlekt.util.internal.now
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import org.lwjgl.glfw.Callbacks
 import org.lwjgl.glfw.GLFW
 import org.lwjgl.glfw.GLFWErrorCallback
@@ -57,10 +59,15 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context() {
     private val windowShouldClose: Boolean
         get() = GLFW.glfwWindowShouldClose(windowHandle)
 
+    init {
+        KtScope.initiate()
+        mainThread = Thread.currentThread()
+    }
+
 
     @Suppress("EXPERIMENTAL_IS_NOT_ENABLED")
     @OptIn(ExperimentalTime::class)
-    override fun start(build: (app: Context) -> ContextListener) {
+    override fun start(build: (app: Context) -> ContextListener) = runBlocking {
         // Setup an error callback. The default implementation
         // will print the error message in System.err.
         GLFWErrorCallback.createPrint(System.err).set()
@@ -149,30 +156,28 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context() {
             // Enable v-sync
             GLFW.glfwSwapInterval(1)
         }
-        KtScope.launch {
-            if (configuration.icons.isNotEmpty()) {
-                val buffer = GLFWImage.malloc(configuration.icons.size)
-                configuration.icons.forEach {
-                    val pixmap = resourcesVfs[it].readPixmap()
-                    val icon = GLFWImage.malloc()
-                    icon.set(pixmap.width, pixmap.height, (pixmap.pixels as ByteBufferImpl).buffer)
-                    buffer.put(icon)
-                    icon.free()
-                }
-                buffer.position(0)
-                GLFW.glfwSetWindowIcon(windowHandle, buffer)
-                buffer.free()
-            } else {
-                val pixmap = ktHead32x32.decodeFromBase64().readPixmap()
+        if (configuration.icons.isNotEmpty()) {
+            val buffer = GLFWImage.malloc(configuration.icons.size)
+            configuration.icons.forEach {
+                val pixmap = resourcesVfs[it].readPixmap()
                 val icon = GLFWImage.malloc()
                 icon.set(pixmap.width, pixmap.height, (pixmap.pixels as ByteBufferImpl).buffer)
-                val buffer = GLFWImage.malloc(1)
                 buffer.put(icon)
                 icon.free()
-                buffer.position(0)
-                GLFW.glfwSetWindowIcon(windowHandle, buffer)
-                buffer.free()
             }
+            buffer.position(0)
+            GLFW.glfwSetWindowIcon(windowHandle, buffer)
+            buffer.free()
+        } else {
+            val pixmap = ktHead32x32.decodeFromBase64().readPixmap()
+            val icon = GLFWImage.malloc()
+            icon.set(pixmap.width, pixmap.height, (pixmap.pixels as ByteBufferImpl).buffer)
+            val buffer = GLFWImage.malloc(1)
+            buffer.put(icon)
+            icon.free()
+            buffer.position(0)
+            GLFW.glfwSetWindowIcon(windowHandle, buffer)
+            buffer.free()
         }
 
         // Make the window visible
@@ -184,10 +189,9 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context() {
 
         GL30C.glClearColor(0f, 0f, 0f, 0f)
 
-        KtScope.launch {
-            InternalResources.createInstance(this@LwjglContext)
-            InternalResources.INSTANCE.load()
-        }
+        InternalResources.createInstance(this@LwjglContext)
+        InternalResources.INSTANCE.load()
+
         val listener: ContextListener = build(this@LwjglContext)
 
         GLFW.glfwSetFramebufferSizeCallback(windowHandle) { _, width, height ->
@@ -205,28 +209,25 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context() {
             }
         }
 
-        KtScope.launch {
-            listener.run { start() }
-            listener.run {
-                resizeCalls.fastForEach { resize ->
-                    resize(
-                        this@LwjglContext.configuration.width,
-                        this@LwjglContext.configuration.height
-                    )
-                }
+        listener.run { start() }
+        listener.run {
+            resizeCalls.fastForEach { resize ->
+                resize(
+                    this@LwjglContext.configuration.width,
+                    this@LwjglContext.configuration.height
+                )
             }
         }
+
 
         while (!windowShouldClose) {
             calcFrameTimes(now().milliseconds)
             MainDispatcher.INSTANCE.executePending(available)
-            KtScope.launch {
-                update(dt)
-            }
+            update(dt)
+
         }
-        KtScope.launch {
-            disposeCalls.fastForEach { dispose -> dispose() }
-        }
+        disposeCalls.fastForEach { dispose -> dispose() }
+
     }
 
     private suspend fun update(dt: Duration) {

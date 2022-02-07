@@ -1,7 +1,5 @@
 package com.lehaine.littlekt
 
-import com.lehaine.littlekt.async.KtScope
-
 /**
  * @author Colton Daily
  * @date 11/17/2021
@@ -9,10 +7,7 @@ import com.lehaine.littlekt.async.KtScope
 class LittleKtApp(val context: Context) {
 
     fun start(gameBuilder: (app: Context) -> ContextListener): LittleKtApp {
-        KtScope.initiate()
-
         context.start(gameBuilder)
-
         return this
     }
 
