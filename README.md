@@ -10,7 +10,7 @@
 
 ## A 2D game framework written in Kotlin
 
-**LittleKt is a Kotlin multiplatform 2D game development framework based on OpenGL** that is inspired by libGDX and KorGE. The goal of this project is to allow the freedom and flexibility that libGDX offers with enjoyable idiomatic features coded in Kotlin that KorGE has to offer.
+**LittleKt (Little Kotlin) is a Kotlin multiplatform 2D game development framework based on OpenGL** that is inspired by libGDX and KorGE. The goal of this project is to allow the freedom and flexibility that libGDX offers with enjoyable idiomatic features coded in Kotlin that KorGE has to offer.
 
 Check out some planned [features](https://github.com/littlektframework/littlekt/labels/enhancement)
 
