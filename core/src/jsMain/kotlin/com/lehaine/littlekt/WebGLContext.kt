@@ -36,6 +36,10 @@ class WebGLContext(override val configuration: JsConfiguration) : Context() {
     private lateinit var listener: ContextListener
     private var closed = false
 
+    init {
+        KtScope.initiate()
+    }
+
     override fun start(build: (app: Context) -> ContextListener) {
         graphics._width = canvas.clientWidth
         graphics._height = canvas.clientHeight
@@ -80,8 +84,8 @@ class WebGLContext(override val configuration: JsConfiguration) : Context() {
 
             renderCalls.fastForEach { render ->
                 render(dt)
-
             }
+
             postRenderCalls.fastForEach { postRender ->
                 postRender(dt)
             }
