@@ -75,6 +75,9 @@ class MutableTextureAtlas(val context: Context, options: PackingOptions) {
 
 /**
  * Combine a [TextureSlice] with a [TextureAtlas] into a new [TextureAtlas].
+ *
+ * **This does not dispose of the [TextureAtlas] or the [Texture]!!**
+ *
  * @param slice the texture slice to combine
  * @param name the name to give the texture slice in the [TextureAtlas]
  * @param context the current [Context]
@@ -87,6 +90,9 @@ fun TextureAtlas.combine(slice: TextureSlice, name: String, context: Context) =
 
 /**
  * Combine a [Texture] with a [TextureAtlas] into a new [TextureAtlas].
+ *
+ * **This does not dispose of the [TextureAtlas] or the [Texture]!!**
+ *
  * @param texture the texture to combine
  * @param name the name to give the texture in the [TextureAtlas]
  * @param context the current [Context]
@@ -95,6 +101,9 @@ fun TextureAtlas.combine(texture: Texture, name: String, context: Context) = com
 
 /**
  * Combine another [TextureAtlas] with the current atlas to create a new [TextureAtlas].
+ *
+ * **This does not dispose of either [TextureAtlas]!!**
+ *
  * @param atlas the texture atlas to combine
  * @param context the current [Context]
  */
