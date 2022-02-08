@@ -55,5 +55,9 @@ class TextureAtlas internal constructor(private val textures: Map<String, Textur
             }
         }
         val name get() = frame.name
+
+        override fun toString(): String {
+            return "Entry(texture=$texture, slice=$slice, name='$name', frame='$frame')"
+        }
     }
 }
