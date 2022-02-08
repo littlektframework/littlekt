@@ -16,7 +16,40 @@ Check out some planned [features](https://github.com/littlektframework/littlekt/
 
 ### Install
 
-If you are eager to try LittleKt you can give the latest SNAPSHOT build a try until an actual release is made:
+LittleKt releases are hosted on OSSRH and can be installed like so:
+
+**build.gradle.kts**:
+```kotlin
+repositories {
+    mavenCentral()
+}
+
+kotlin {
+    jvm {
+        compilations.all {
+            kotlinOptions.jvmTarget = "11" // littlekt targets jvm 11 so we must target atleast 11
+        }
+    }
+}
+
+val littleKtVersion = "0.1.0" // get the latest release at the top
+val kotlinCoroutinesVersion = "1.6.0" // or whatever version you are using
+
+sourceSets {
+    val commonMain by getting {
+        dependencies {
+            implementation("com.lehaine.littlekt:core:$littleKtVersion")
+            implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinCoroutinesVersion")  // littlekt requires coroutines library on the classpath
+        }
+    }
+}
+```
+
+
+### Snapshots
+
+On every build a snapshot gets created. If you want to be on the bleeding edge then you can pull from the snapshot repo.
+**Note**: this will most likely cause breaking changes
 
 **build.gradle.kts**:
 ```kotlin
@@ -32,8 +65,8 @@ kotlin {
     }
 }
 
-val littleKtVersion = "0.0.1-SNAPSHOT"
-val kotlinCoroutinesVersion = "1.6.0-RC" // or whatever version you are using
+val littleKtVersion = "0.0.2-SNAPSHOT"
+val kotlinCoroutinesVersion = "1.6.0" // or whatever version you are using
 
 sourceSets {
     val commonMain by getting {
