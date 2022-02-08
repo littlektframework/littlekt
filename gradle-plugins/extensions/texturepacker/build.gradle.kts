@@ -8,6 +8,10 @@ val littleKtVersion: String by project
 group = "com.lehaine.littlekt.gradle"
 version = littleKtVersion
 
+java {
+    withSourcesJar()
+}
+
 repositories {
     gradlePluginPortal()
 }
@@ -19,6 +23,7 @@ dependencies {
     implementation(localGroovy())
     compileOnly(gradleKotlinDsl())
 }
+
 
 gradlePlugin {
     plugins {
