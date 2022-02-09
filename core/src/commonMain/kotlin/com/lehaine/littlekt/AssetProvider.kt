@@ -7,6 +7,7 @@ import com.lehaine.littlekt.file.vfs.*
 import com.lehaine.littlekt.graphics.Pixmap
 import com.lehaine.littlekt.graphics.Texture
 import com.lehaine.littlekt.graphics.TextureAtlas
+import com.lehaine.littlekt.graphics.TextureSlice
 import com.lehaine.littlekt.graphics.font.BitmapFont
 import com.lehaine.littlekt.graphics.font.CharacterSets
 import com.lehaine.littlekt.graphics.font.TtfFont
@@ -164,7 +165,7 @@ open class AssetProvider(val context: Context) {
             },
             BitmapFont::class to { file, params ->
                 if (params is BitmapFontAssetParameter) {
-                    file.readBitmapFont(params.magFilter, params.mipmaps)
+                    file.readBitmapFont(params.magFilter, params.mipmaps, params.preloadedTextures)
                 } else {
                     file.readBitmapFont()
                 }
@@ -247,5 +248,6 @@ class BitmapFontAssetParameter(
     /**
      * Use mipmaps on the bitmap textures or not.
      */
-    val mipmaps: Boolean = true
+    val mipmaps: Boolean = true,
+    val preloadedTextures: List<TextureSlice> = listOf(),
 ) : GameAssetParameters
