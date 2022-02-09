@@ -5,6 +5,7 @@ on:
     branches: [ master ]
     paths-ignore:
       - 'README.md'
+      - 'CHANGELOG.md'
       - 'samples/'
       - 'art/'
   pull_request:
@@ -12,6 +13,7 @@ on:
     types: [opened, synchronize, reopened, ready_for_review]
     paths-ignore:
       - 'README.md'
+      - 'CHANGELOG.md'
       - 'samples/'
       - 'art/'
 
