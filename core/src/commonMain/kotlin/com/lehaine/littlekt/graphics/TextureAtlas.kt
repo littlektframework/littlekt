@@ -1,5 +1,6 @@
 package com.lehaine.littlekt.graphics
 
+import com.lehaine.littlekt.Disposable
 import com.lehaine.littlekt.file.atlas.AtlasInfo
 import com.lehaine.littlekt.file.atlas.AtlasPage
 import com.lehaine.littlekt.math.Rect
@@ -10,7 +11,7 @@ import com.lehaine.littlekt.util.internal.compareName
  * @author Colton Daily
  * @date 11/27/2021
  */
-class TextureAtlas internal constructor(private val textures: Map<String, Texture>, info: AtlasInfo) {
+class TextureAtlas internal constructor(private val textures: Map<String, Texture>, info: AtlasInfo) : Disposable {
     constructor(textures: Map<String, Texture>) : this(textures, AtlasInfo(AtlasPage.Meta(), listOf()))
 
     /**
@@ -55,5 +56,13 @@ class TextureAtlas internal constructor(private val textures: Map<String, Textur
             }
         }
         val name get() = frame.name
+
+        override fun toString(): String {
+            return "Entry(texture=$texture, slice=$slice, name='$name', frame='$frame')"
+        }
+    }
+
+    override fun dispose() {
+        textures.values.forEach { it.dispose() }
     }
 }

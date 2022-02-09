@@ -61,6 +61,7 @@ kotlin {
                 implementation("org.jetbrains.kotlinx:atomicfu:$atomicFuVersion")
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinCoroutinesVersion")
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:$kotlinSerializationVersion")
+                implementation(project(":tools"))
             }
         }
         val commonTest by getting {
