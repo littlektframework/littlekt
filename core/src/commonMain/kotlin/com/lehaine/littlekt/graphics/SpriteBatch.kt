@@ -24,7 +24,7 @@ import kotlin.math.min
 class SpriteBatch(
     val context: Context,
     val size: Int = 1000,
-) : Disposable {
+) : Batch, Disposable {
     companion object {
         private const val VERTEX_SIZE = 2 + 1 + 2
         private const val SPRITE_SIZE = 4 * VERTEX_SIZE
@@ -109,7 +109,7 @@ class SpriteBatch(
     private var blendSrcFuncAlpha = prevBlendSrcFuncAlpha
     private var blendDstFuncAlpha = prevBlendDstFuncAlpha
 
-    fun begin(projectionMatrix: Mat4? = null) {
+    override fun begin(projectionMatrix: Mat4?) {
         if (drawing) {
             throw IllegalStateException("SpriteBatch.end must be called before begin.")
         }
@@ -126,20 +126,20 @@ class SpriteBatch(
         drawing = true
     }
 
-    fun draw(
+    override fun draw(
         texture: Texture,
         x: Float,
         y: Float,
-        originX: Float = 0f,
-        originY: Float = 0f,
-        width: Float = texture.width.toFloat(),
-        height: Float = texture.height.toFloat(),
-        scaleX: Float = 1f,
-        scaleY: Float = 1f,
-        rotation: Angle = Angle.ZERO,
-        colorBits: Float = this.colorBits,
-        flipX: Boolean = false,
-        flipY: Boolean = false,
+        originX: Float,
+        originY: Float,
+        width: Float,
+        height: Float,
+        scaleX: Float,
+        scaleY: Float,
+        rotation: Angle,
+        colorBits: Float,
+        flipX: Boolean,
+        flipY: Boolean,
     ) {
         if (!drawing) {
             throw IllegalStateException("SpriteBatch.begin must be called before draw.")
@@ -248,20 +248,20 @@ class SpriteBatch(
         idx += SPRITE_SIZE
     }
 
-    fun draw(
+    override fun draw(
         slice: TextureSlice,
         x: Float,
         y: Float,
-        originX: Float = 0f,
-        originY: Float = 0f,
-        width: Float = slice.width.toFloat(),
-        height: Float = slice.height.toFloat(),
-        scaleX: Float = 1f,
-        scaleY: Float = 1f,
-        rotation: Angle = Angle.ZERO,
-        colorBits: Float = this.colorBits,
-        flipX: Boolean = false,
-        flipY: Boolean = false,
+        originX: Float,
+        originY: Float,
+        width: Float,
+        height: Float,
+        scaleX: Float,
+        scaleY: Float,
+        rotation: Angle,
+        colorBits: Float,
+        flipX: Boolean,
+        flipY: Boolean,
     ) {
         if (!drawing) {
             throw IllegalStateException("SpriteBatch.begin must be called before draw.")
@@ -381,24 +381,24 @@ class SpriteBatch(
         idx += SPRITE_SIZE
     }
 
-    fun draw(
+    override fun draw(
         texture: Texture,
         x: Float,
         y: Float,
-        originX: Float = 0f,
-        originY: Float = 0f,
-        width: Float = texture.width.toFloat(),
-        height: Float = texture.height.toFloat(),
-        scaleX: Float = 1f,
-        scaleY: Float = 1f,
-        rotation: Angle = Angle.ZERO,
-        srcX: Int = 0,
-        srcY: Int = 0,
-        srcWidth: Int = texture.width,
-        srcHeight: Int = texture.height,
-        colorBits: Float = this.colorBits,
-        flipX: Boolean = false,
-        flipY: Boolean = false,
+        originX: Float,
+        originY: Float,
+        width: Float,
+        height: Float,
+        scaleX: Float,
+        scaleY: Float,
+        rotation: Angle,
+        srcX: Int,
+        srcY: Int,
+        srcWidth: Int,
+        srcHeight: Int,
+        colorBits: Float,
+        flipX: Boolean,
+        flipY: Boolean,
     ) {
         if (!drawing) {
             throw IllegalStateException("SpriteBatch.begin must be called before draw.")
@@ -528,7 +528,7 @@ class SpriteBatch(
         idx += SPRITE_SIZE
     }
 
-    fun draw(texture: Texture, spriteVertices: FloatArray, offset: Int = 0, count: Int = spriteVertices.size) {
+    override fun draw(texture: Texture, spriteVertices: FloatArray, offset: Int, count: Int) {
         if (!drawing) {
             throw IllegalStateException("SpriteBatch.begin must be called before draw.")
         }
@@ -561,7 +561,7 @@ class SpriteBatch(
         }
     }
 
-    fun end() {
+    override fun end() {
         if (!drawing) {
             throw IllegalStateException("SpriteBatch.begin must be called before end.")
         }
@@ -574,7 +574,7 @@ class SpriteBatch(
         gl.disable(State.BLEND)
     }
 
-    fun flush() {
+    override fun flush() {
         if (idx == 0) {
             return
         }
@@ -592,11 +592,11 @@ class SpriteBatch(
         idx = 0
     }
 
-    fun setBlendFunction(src: BlendFactor, dst: BlendFactor) {
+    override fun setBlendFunction(src: BlendFactor, dst: BlendFactor) {
         setBlendFunctionSeparate(src, dst, src, dst)
     }
 
-    fun setBlendFunctionSeparate(
+    override fun setBlendFunctionSeparate(
         srcFuncColor: BlendFactor,
         dstFuncColor: BlendFactor,
         srcFuncAlpha: BlendFactor,
@@ -618,7 +618,7 @@ class SpriteBatch(
         blendDstFuncAlpha = dstFuncAlpha
     }
 
-    fun setToPreviousBlendFunction() {
+    override fun setToPreviousBlendFunction() {
         if (blendSrcFunc == prevBlendSrcFunc && blendDstFunc == prevBlendDstFunc
             && blendSrcFuncAlpha == prevBlendSrcFuncAlpha && blendDstFuncAlpha == prevBlendDstFuncAlpha
         ) {
@@ -632,7 +632,7 @@ class SpriteBatch(
         blendDstFuncAlpha = prevBlendDstFuncAlpha
     }
 
-    fun useDefaultShader() {
+    override fun useDefaultShader() {
         if (shader != defaultShader) {
             shader = defaultShader
         }
@@ -655,12 +655,4 @@ class SpriteBatch(
         mesh.dispose()
         shader.dispose()
     }
-}
-
-@OptIn(ExperimentalContracts::class)
-inline fun SpriteBatch.use(projectionMatrix: Mat4? = null, action: (SpriteBatch) -> Unit) {
-    contract { callsInPlace(action, InvocationKind.EXACTLY_ONCE) }
-    begin(projectionMatrix)
-    action(this)
-    end()
 }
