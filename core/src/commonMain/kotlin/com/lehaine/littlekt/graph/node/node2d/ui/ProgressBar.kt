@@ -6,10 +6,10 @@ import com.lehaine.littlekt.graph.node.addTo
 import com.lehaine.littlekt.graph.node.annotation.SceneGraphDslMarker
 import com.lehaine.littlekt.graph.node.component.Drawable
 import com.lehaine.littlekt.graph.node.component.Theme
+import com.lehaine.littlekt.graphics.Batch
 import com.lehaine.littlekt.graphics.Camera
 import com.lehaine.littlekt.graphics.Color
 import com.lehaine.littlekt.graphics.MutableColor
-import com.lehaine.littlekt.graphics.SpriteBatch
 import com.lehaine.littlekt.graphics.font.BitmapFont
 import com.lehaine.littlekt.graphics.font.BitmapFontCache
 import com.lehaine.littlekt.graphics.font.GlyphLayout
@@ -83,7 +83,7 @@ open class ProgressBar : Range() {
     private var cache: BitmapFontCache = BitmapFontCache(font)
     private val layout = GlyphLayout()
 
-    override fun render(batch: SpriteBatch, camera: Camera) {
+    override fun render(batch: Batch, camera: Camera) {
         bg.draw(batch, globalX, globalY, width, height)
         val progress = ratio * (width - fg.minWidth)
         if (progress > 0) {

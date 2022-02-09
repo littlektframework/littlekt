@@ -22,7 +22,7 @@ class TextureSliceDrawable(val slice: TextureSlice) : Drawable {
     override var modulate: Color = Color.WHITE
 
     override fun draw(
-        batch: SpriteBatch,
+        batch: Batch,
         x: Float,
         y: Float,
         width: Float,

@@ -1,7 +1,6 @@
 package com.lehaine.littlekt.graphics
 
 import com.lehaine.littlekt.Context
-import com.lehaine.littlekt.Disposable
 import com.lehaine.littlekt.graphics.gl.BlendFactor
 import com.lehaine.littlekt.graphics.gl.DrawMode
 import com.lehaine.littlekt.graphics.gl.State
@@ -12,9 +11,6 @@ import com.lehaine.littlekt.math.Mat4
 import com.lehaine.littlekt.math.geom.Angle
 import com.lehaine.littlekt.math.geom.cosine
 import com.lehaine.littlekt.math.geom.sine
-import kotlin.contracts.ExperimentalContracts
-import kotlin.contracts.InvocationKind
-import kotlin.contracts.contract
 import kotlin.math.min
 
 /**
@@ -24,7 +20,7 @@ import kotlin.math.min
 class SpriteBatch(
     val context: Context,
     val size: Int = 1000,
-) : Batch, Disposable {
+) : Batch {
     companion object {
         private const val VERTEX_SIZE = 2 + 1 + 2
         private const val SPRITE_SIZE = 4 * VERTEX_SIZE
@@ -32,7 +28,7 @@ class SpriteBatch(
 
     private val gl get() = context.graphics.gl
     val defaultShader = ShaderProgram(DefaultVertexShader(), DefaultFragmentShader()).also { it.prepare(context) }
-    var shader: ShaderProgram<*, *> = defaultShader
+    override var shader: ShaderProgram<*, *> = defaultShader
         set(value) {
             if (drawing) {
                 flush()
@@ -51,7 +47,7 @@ class SpriteBatch(
         private set
 
     private var drawing = false
-    var transformMatrix = Mat4()
+    override var transformMatrix = Mat4()
         set(value) {
             if (drawing) {
                 flush()
@@ -61,7 +57,7 @@ class SpriteBatch(
                 setupMatrices()
             }
         }
-    var projectionMatrix = Mat4().setToOrthographic(
+    override var projectionMatrix = Mat4().setToOrthographic(
         left = 0f,
         right = context.graphics.width.toFloat(),
         bottom = 0f,
@@ -92,13 +88,13 @@ class SpriteBatch(
     private var invTexWidth = 0f
     private var invTexHeight = 0f
 
-    var color = Color.WHITE
+    override var color = Color.WHITE
         set(value) {
             if (field == value) return
             field = value
             colorBits = field.toFloatBits()
         }
-    private var colorBits = color.toFloatBits()
+    override var colorBits = color.toFloatBits()
 
     private var prevBlendSrcFunc = BlendFactor.SRC_ALPHA
     private var prevBlendDstFunc = BlendFactor.ONE_MINUS_SRC_ALPHA

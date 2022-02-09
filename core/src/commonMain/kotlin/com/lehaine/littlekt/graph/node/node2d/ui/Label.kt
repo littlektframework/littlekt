@@ -7,10 +7,7 @@ import com.lehaine.littlekt.graph.node.annotation.SceneGraphDslMarker
 import com.lehaine.littlekt.graph.node.component.HAlign
 import com.lehaine.littlekt.graph.node.component.Theme
 import com.lehaine.littlekt.graph.node.component.VAlign
-import com.lehaine.littlekt.graphics.Camera
-import com.lehaine.littlekt.graphics.Color
-import com.lehaine.littlekt.graphics.MutableColor
-import com.lehaine.littlekt.graphics.SpriteBatch
+import com.lehaine.littlekt.graphics.*
 import com.lehaine.littlekt.graphics.font.BitmapFont
 import com.lehaine.littlekt.graphics.font.BitmapFontCache
 import com.lehaine.littlekt.graphics.font.GlyphLayout
@@ -156,7 +153,7 @@ open class Label : Control() {
             onMinimumSizeChanged()
         }
 
-    override fun render(batch: SpriteBatch, camera: Camera) {
+    override fun render(batch: Batch, camera: Camera) {
         cache.let {
             tempColor.set(color).mul(fontColor)
             it.tint(tempColor)

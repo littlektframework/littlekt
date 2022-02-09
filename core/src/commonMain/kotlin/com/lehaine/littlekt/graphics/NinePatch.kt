@@ -96,7 +96,7 @@ class NinePatch(private val slice: TextureSlice, val left: Int, val right: Int, 
     }
 
     fun draw(
-        batch: SpriteBatch,
+        batch: Batch,
         x: Float,
         y: Float,
         width: Float,

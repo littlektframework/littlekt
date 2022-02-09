@@ -6,6 +6,7 @@ import com.lehaine.littlekt.graph.node.Node
 import com.lehaine.littlekt.graph.node.annotation.SceneGraphDslMarker
 import com.lehaine.littlekt.graph.node.component.InputEvent
 import com.lehaine.littlekt.graph.node.node2d.ui.Control
+import com.lehaine.littlekt.graphics.Batch
 import com.lehaine.littlekt.graphics.OrthographicCamera
 import com.lehaine.littlekt.graphics.SpriteBatch
 import com.lehaine.littlekt.graphics.use
@@ -52,11 +53,11 @@ inline fun sceneGraph(
 open class SceneGraph(
     val context: Context,
     val viewport: Viewport = ScreenViewport(context.graphics.width, context.graphics.height),
-    batch: SpriteBatch? = null,
+    batch: Batch? = null,
 ) : InputProcessor, Disposable {
 
     private var ownsBatch = true
-    val batch: SpriteBatch = batch?.also { ownsBatch = false } ?: SpriteBatch(context)
+    val batch: Batch = batch?.also { ownsBatch = false } ?: SpriteBatch(context)
 
     val root: Node by lazy {
         Node().apply {

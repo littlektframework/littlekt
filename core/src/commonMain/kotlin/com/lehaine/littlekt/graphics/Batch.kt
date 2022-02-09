@@ -1,6 +1,8 @@
 package com.lehaine.littlekt.graphics
 
+import com.lehaine.littlekt.Disposable
 import com.lehaine.littlekt.graphics.gl.BlendFactor
+import com.lehaine.littlekt.graphics.shader.ShaderProgram
 import com.lehaine.littlekt.math.Mat4
 import com.lehaine.littlekt.math.geom.Angle
 import kotlin.contracts.ExperimentalContracts
@@ -11,7 +13,12 @@ import kotlin.contracts.contract
  * @author Colton Daily
  * @date 2/8/2022
  */
-interface Batch {
+interface Batch : Disposable {
+    var color: Color
+    var colorBits: Float
+    var transformMatrix: Mat4
+    var projectionMatrix: Mat4
+    var shader: ShaderProgram<*, *>
 
     fun begin(projectionMatrix: Mat4? = null)
 
@@ -26,7 +33,7 @@ interface Batch {
         scaleX: Float = 1f,
         scaleY: Float = 1f,
         rotation: Angle = Angle.ZERO,
-        colorBits: Float = Color.WHITE.toFloatBits(),
+        colorBits: Float = this.colorBits,
         flipX: Boolean = false,
         flipY: Boolean = false,
     )
@@ -42,7 +49,7 @@ interface Batch {
         scaleX: Float = 1f,
         scaleY: Float = 1f,
         rotation: Angle = Angle.ZERO,
-        colorBits: Float = Color.WHITE.toFloatBits(),
+        colorBits: Float = this.colorBits,
         flipX: Boolean = false,
         flipY: Boolean = false,
     )
@@ -62,7 +69,7 @@ interface Batch {
         srcY: Int = 0,
         srcWidth: Int = texture.width,
         srcHeight: Int = texture.height,
-        colorBits: Float = Color.WHITE.toFloatBits(),
+        colorBits: Float = this.colorBits,
         flipX: Boolean = false,
         flipY: Boolean = false,
     )
