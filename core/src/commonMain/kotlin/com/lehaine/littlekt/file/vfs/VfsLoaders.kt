@@ -65,7 +65,8 @@ suspend fun VfsFile.readTtfFont(chars: String = CharacterSets.LATIN_ALL): TtfFon
  * @param mipmaps whether the loaded [Texture] should use mipmaps
  * @param preloadedTextures instead of loading a [Texture] when parsing the bitmap font, this will use an existing
  * [TextureSlice]. This is useful if the bitmap font texture already exists in an atlas. Each slice in the list
- * is considered a page in the bitmap font.
+ * is considered a page in the bitmap font. Disposing a [BitmapFont] that uses preloaded textures will not dispose
+ * of the textures.
  */
 suspend fun VfsFile.readBitmapFont(
     filter: TexMagFilter = TexMagFilter.NEAREST,
@@ -74,12 +75,6 @@ suspend fun VfsFile.readBitmapFont(
 ): BitmapFont {
     val data = readString()
     val textures = mutableMapOf<Int, Texture>()
-    var pages = 0
-    preloadedTextures.forEach { slice ->
-        if (!textures.containsValue(slice.texture)) {
-            textures[pages++] = slice.texture
-        }
-    }
     if (data.startsWith("info")) {
         return readBitmapFontTxt(data, this, textures, preloadedTextures, preloadedTextures.isEmpty(), filter, mipmaps)
     } else {
@@ -211,7 +206,7 @@ private suspend fun readBitmapFontTxt(
         lineHeight = lineHeight,
         base = base ?: lineHeight,
         capHeight = capHeight.toFloat(),
-        textures = textures.values.toList(),
+        textures = if (loadTextures) textures.values.toList() else listOf(),
         glyphs = glyphs.associateBy { it.id },
         kernings = kernings.associateBy { Kerning.buildKey(it.first, it.second) },
         pages = pages
