@@ -14,7 +14,7 @@ import com.lehaine.littlekt.tools.texturepacker.Rect
  * @author Colton Daily
  * @date 2/8/2022
  */
-class MutableTextureAtlas(val context: Context, options: PackingOptions) {
+class MutableTextureAtlas(val context: Context, options: PackingOptions = PackingOptions()) {
     constructor(context: Context, width: Int = 4096, height: Int = 4096, padding: Int = 2) : this(
         context,
         PackingOptions().apply {

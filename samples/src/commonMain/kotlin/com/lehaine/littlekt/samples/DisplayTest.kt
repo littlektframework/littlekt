@@ -3,6 +3,9 @@ package com.lehaine.littlekt.samples
 import com.lehaine.littlekt.*
 import com.lehaine.littlekt.async.KtScope
 import com.lehaine.littlekt.audio.AudioStream
+import com.lehaine.littlekt.file.vfs.readAtlas
+import com.lehaine.littlekt.file.vfs.readBitmapFont
+import com.lehaine.littlekt.file.vfs.readTexture
 import com.lehaine.littlekt.graph.node.component.HAlign
 import com.lehaine.littlekt.graph.node.component.NinePatchDrawable
 import com.lehaine.littlekt.graph.node.component.VAlign
@@ -10,7 +13,6 @@ import com.lehaine.littlekt.graph.node.component.createDefaultTheme
 import com.lehaine.littlekt.graph.node.node2d.ui.*
 import com.lehaine.littlekt.graph.sceneGraph
 import com.lehaine.littlekt.graphics.*
-import com.lehaine.littlekt.graphics.font.BitmapFont
 import com.lehaine.littlekt.graphics.font.BitmapFontCache
 import com.lehaine.littlekt.graphics.shader.shaders.SimpleColorFragmentShader
 import com.lehaine.littlekt.graphics.shader.shaders.SimpleColorVertexShader
@@ -20,6 +22,7 @@ import com.lehaine.littlekt.input.GameButton
 import com.lehaine.littlekt.input.InputMultiplexer
 import com.lehaine.littlekt.input.Key
 import com.lehaine.littlekt.log.Logger
+import com.lehaine.littlekt.util.MutableTextureAtlas
 import com.lehaine.littlekt.util.viewport.ScreenViewport
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -112,20 +115,25 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
     override suspend fun Context.start() {
         super.setSceneCallbacks(this)
         val batch = SpriteBatch(context)
+        val pixelFontTexture = resourcesVfs["m5x7_16_0.png"].readTexture()
         val texture by assetProvider.load<Texture>(resourcesVfs["atlas.png"])
-        val atlas: TextureAtlas by assetProvider.load(resourcesVfs["tiles.atlas.json"])
+        val tiles: TextureAtlas = resourcesVfs["tiles.atlas.json"].readAtlas()
+        val atlas: TextureAtlas = MutableTextureAtlas(context).apply {
+            add(tiles)
+            add(pixelFontTexture.slice(), "pixelFont")
+        }.toImmutable()
+
         val slices: Array<Array<TextureSlice>> by assetProvider.prepare { texture.slice(16, 16) }
         val person by assetProvider.prepare { slices[0][0] }
         val bossFrame by assetProvider.prepare { atlas.getByPrefix("bossAttack7") }
         val bossAttack by assetProvider.prepare { atlas.getAnimation("bossAttack") }
         val boss by assetProvider.prepare { AnimatedSprite(bossAttack.firstFrame) }
-        val pixelFont by assetProvider.load<BitmapFont>(resourcesVfs["m5x7_16.fnt"])
-        val cache by assetProvider.prepare {
-            BitmapFontCache(pixelFont).also {
-                it.addText("Test cache", 200f, 50f, scaleX = 4f, scaleY = 4f)
-                it.tint(Color.RED)
-            }
+        val pixelFont = resourcesVfs["m5x7_16.fnt"].readBitmapFont(preloadedTextures = listOf(atlas["pixelFont"].slice))
+        val cache = BitmapFontCache(pixelFont).also {
+            it.addText("Test cache", 200f, 50f, scaleX = 4f, scaleY = 4f)
+            it.tint(Color.RED)
         }
+
         val ldtkWorld by assetProvider.load<LDtkWorld>(resourcesVfs["ldtk/sample.ldtk"])
         val ninepatchImg by assetProvider.load<Texture>(resourcesVfs["bg_9.png"])
         val ninepatch by assetProvider.prepare { NinePatch(ninepatchImg, 3, 3, 3, 4) }
@@ -358,7 +366,7 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
             camera.update()
             boss.update(dt)
             batch.use(camera.viewProjection) {
-                ldtkWorld.render(it, camera)
+            //    ldtkWorld.render(it, camera)
                 it.draw(person, x, y, scaleX = 10f, scaleY = 10f)
                 slices.forEachIndexed { rowIdx, row ->
                     row.forEachIndexed { colIdx, slice ->
@@ -367,8 +375,8 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
                 }
                 boss.render(it)
                 it.draw(bossFrame.slice, 450f, 350f)
-                it.draw(Textures.white, 200f, 400f, scaleX = 5f, scaleY = 5f)
                 cache.draw(it)
+                it.draw(Textures.white, 200f, 400f, scaleX = 5f, scaleY = 5f)
             }
 
             scene.update(dt)
