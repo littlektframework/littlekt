@@ -1,6 +1,6 @@
 # Changelog
 
-## v0.2.0
+## v0.2.0 (Current SNAPSHOT)
 
 * add: **MutableTextureAtlas** class to combine existing `TextureAtlas`, `Texture`, and `TextureSlice` types into a
   single `TextureAtlas`.
