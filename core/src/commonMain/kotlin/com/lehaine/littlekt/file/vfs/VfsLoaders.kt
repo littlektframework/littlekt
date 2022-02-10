@@ -61,12 +61,22 @@ suspend fun VfsFile.readTtfFont(chars: String = CharacterSets.LATIN_ALL): TtfFon
 
 /**
  * Reads a bitmap font.
+ * @param filter the filter to assign any [Texture] that gets loaded
+ * @param mipmaps whether the loaded [Texture] should use mipmaps
+ * @param preloadedTextures instead of loading a [Texture] when parsing the bitmap font, this will use an existing
+ * [TextureSlice]. This is useful if the bitmap font texture already exists in an atlas. Each slice in the list
+ * is considered a page in the bitmap font. Disposing a [BitmapFont] that uses preloaded textures will not dispose
+ * of the textures.
  */
-suspend fun VfsFile.readBitmapFont(filter: TexMagFilter = TexMagFilter.NEAREST, mipmaps: Boolean = true): BitmapFont {
+suspend fun VfsFile.readBitmapFont(
+    filter: TexMagFilter = TexMagFilter.NEAREST,
+    mipmaps: Boolean = true,
+    preloadedTextures: List<TextureSlice> = listOf(),
+): BitmapFont {
     val data = readString()
     val textures = mutableMapOf<Int, Texture>()
     if (data.startsWith("info")) {
-        return readBitmapFontTxt(data, this, textures, filter, mipmaps)
+        return readBitmapFontTxt(data, this, textures, preloadedTextures, preloadedTextures.isEmpty(), filter, mipmaps)
     } else {
         TODO("Unsupported font type.")
     }
@@ -76,6 +86,8 @@ private suspend fun readBitmapFontTxt(
     data: String,
     fontFile: VfsFile,
     textures: MutableMap<Int, Texture>,
+    preloadedTextures: List<TextureSlice>,
+    loadTextures: Boolean,
     filter: TexMagFilter,
     mipmaps: Boolean
 ): BitmapFont {
@@ -120,7 +132,9 @@ private suspend fun readBitmapFontTxt(
             line.startsWith("page") -> {
                 val id = map["id"]?.toInt() ?: 0
                 val file = map["file"]?.unquote() ?: error("Page without file")
-                textures[id] = fontFile.parent[file].readTexture(magFilter = filter, mipmaps = mipmaps)
+                if (loadTextures) {
+                    textures[id] = fontFile.parent[file].readTexture(magFilter = filter, mipmaps = mipmaps)
+                }
             }
             line.startsWith("common ") -> {
                 lineHeight = map["lineHeight"]?.toFloatOrNull() ?: 16f
@@ -142,16 +156,33 @@ private suspend fun readBitmapFontTxt(
                         capHeight = max(capHeight, height)
                     }
                 }
+                val slice = when {
+                    loadTextures -> {
+                        TextureSlice(
+                            texture,
+                            map["x"]?.toIntOrNull() ?: 0,
+                            map["y"]?.toIntOrNull() ?: 0,
+                            width,
+                            height
+                        )
+                    }
+                    preloadedTextures.isNotEmpty() -> {
+                        TextureSlice(
+                            preloadedTextures[page],
+                            map["x"]?.toIntOrNull() ?: 0,
+                            map["y"]?.toIntOrNull() ?: 0,
+                            width,
+                            height
+                        )
+                    }
+                    else -> {
+                        throw IllegalStateException("Unable to load any textures for ${fontFile.baseName}. If they are preloaded, make sure to pass that in 'readBitmapFont()'.")
+                    }
+                }
                 glyphs += BitmapFont.Glyph(
                     fontSize = fontSize,
                     id = id,
-                    slice = TextureSlice(
-                        texture,
-                        map["x"]?.toIntOrNull() ?: 0,
-                        map["y"]?.toIntOrNull() ?: 0,
-                        width,
-                        height
-                    ),
+                    slice = slice,
                     xoffset = map["xoffset"]?.toIntOrNull() ?: 0,
                     yoffset = map["yoffset"]?.toIntOrNull() ?: 0,
                     xadvance = map["xadvance"]?.toIntOrNull() ?: 0,
@@ -175,7 +206,7 @@ private suspend fun readBitmapFontTxt(
         lineHeight = lineHeight,
         base = base ?: lineHeight,
         capHeight = capHeight.toFloat(),
-        textures = textures.values.toList(),
+        textures = if (loadTextures) textures.values.toList() else listOf(),
         glyphs = glyphs.associateBy { it.id },
         kernings = kernings.associateBy { Kerning.buildKey(it.first, it.second) },
         pages = pages

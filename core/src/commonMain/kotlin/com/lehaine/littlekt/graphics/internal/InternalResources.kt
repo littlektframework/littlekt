@@ -11,7 +11,9 @@ import com.lehaine.littlekt.graphics.TextureSlice
 import com.lehaine.littlekt.graphics.font.BitmapFont
 import com.lehaine.littlekt.graphics.font.Kerning
 import com.lehaine.littlekt.graphics.gl.PixmapTextureData
+import com.lehaine.littlekt.graphics.slice
 import com.lehaine.littlekt.math.MutableVec4i
+import com.lehaine.littlekt.util.MutableTextureAtlas
 import com.lehaine.littlekt.util.internal.SingletonBase
 import kotlinx.serialization.decodeFromString
 import kotlin.math.max
@@ -41,22 +43,31 @@ internal class InternalResources private constructor(private val context: Contex
     suspend fun load() {
         val page = context.vfs.json.decodeFromString<AtlasPage>(defaultTilesJson.decodeFromBase64().decodeToString())
         val info = AtlasInfo(page.meta, listOf(page))
-        val texture = Texture(
+        val tilesTexture = Texture(
             PixmapTextureData(
                 defaultTilesBmp.decodeFromBase64().readPixmap(),
                 true
             )
         ).also { it.prepare(context) }
-        atlas = TextureAtlas(mapOf(info.pages[0].meta.image to texture), info)
+
+        val fontTexture = Texture(
+            PixmapTextureData(
+                defaultFontBmp.decodeFromBase64().readPixmap(),
+                true
+            )
+        ).also { it.prepare(context) }
+
+        atlas = MutableTextureAtlas(context).apply {
+            add(TextureAtlas(mapOf(info.pages[0].meta.image to tilesTexture), info))
+            add(fontTexture.slice(), "defaultFont")
+        }.toImmutable()
+
+        tilesTexture.dispose()
+        fontTexture.dispose()
 
         defaultFont = readBitmapFontTxt(
             defaultFontTxt.decodeFromBase64().decodeToString(), mutableMapOf(
-                0 to Texture(
-                    PixmapTextureData(
-                        defaultFontBmp.decodeFromBase64().readPixmap(),
-                        true
-                    )
-                ).also { it.prepare(context) }
+                0 to atlas["defaultFont"].slice
             )
         )
         white = atlas.getByPrefix("pixel_white").slice
@@ -64,7 +75,7 @@ internal class InternalResources private constructor(private val context: Contex
 
     private fun readBitmapFontTxt(
         data: String,
-        textures: MutableMap<Int, Texture>
+        textures: MutableMap<Int, TextureSlice>
     ): BitmapFont {
         val kernings = mutableListOf<Kerning>()
         val glyphs = mutableListOf<BitmapFont.Glyph>()
@@ -157,7 +168,7 @@ internal class InternalResources private constructor(private val context: Contex
             lineHeight = lineHeight,
             base = base ?: lineHeight,
             capHeight = capHeight.toFloat(),
-            textures = textures.values.toList(),
+            textures = listOf(textures.values.first().texture),
             glyphs = glyphs.associateBy { it.id },
             kernings = kernings.associateBy { Kerning.buildKey(it.first, it.second) },
             pages = pages
