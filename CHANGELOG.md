@@ -8,6 +8,9 @@
   a `TextureAtlas`.
 * update: `core` now includes `tools` as an **api** vs just **implementation. Required for the new `MutableTextureAtlas`
   class.
+* JVM config: add `backgroundColor` option for initially setting background color.
+* JS config: add `backgroundColor` option for initially setting background color.
+* fix: remove clearing color buffer in `LwjglContext`.
 
 ## v0.1.0
 
