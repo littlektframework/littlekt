@@ -2,7 +2,6 @@ package com.lehaine.littlekt.graphics.shader.generator.delegate
 
 import com.lehaine.littlekt.graphics.shader.ShaderParameter
 import com.lehaine.littlekt.graphics.shader.generator.GlslGenerator
-import com.lehaine.littlekt.graphics.shader.generator.Instruction
 import com.lehaine.littlekt.graphics.shader.generator.Precision
 import com.lehaine.littlekt.graphics.shader.generator.type.Variable
 import kotlin.reflect.KProperty
@@ -23,11 +22,7 @@ class AttributeDelegate<T : Variable>(
     ): AttributeDelegate<T> {
         v = factory(thisRef)
         v.value = property.name
-        when (v.typeName) {
-            "vec2" -> thisRef.parameters.add(ShaderParameter.AttributeVec2(property.name))
-            "vec3" -> thisRef.parameters.add(ShaderParameter.AttributeVec3(property.name))
-            "vec4" -> thisRef.parameters.add(ShaderParameter.AttributeVec4(property.name))
-        }
+        thisRef.parameters.add(ShaderParameter.Attribute(property.name))
         return this
     }
 

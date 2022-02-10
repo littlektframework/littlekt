@@ -21,7 +21,7 @@ class AnimatedSprite(
         }
     }
 
-    fun render(batch: SpriteBatch) {
+    fun render(batch: Batch) {
         batch.draw(slice, x, y, slice.width * anchorX, slice.height * anchorY, scaleX = scaleX, scaleY = scaleY)
     }
 }

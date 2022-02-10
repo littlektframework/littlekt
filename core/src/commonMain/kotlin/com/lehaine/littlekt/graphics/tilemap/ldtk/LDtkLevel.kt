@@ -1,10 +1,7 @@
 package com.lehaine.littlekt.graphics.tilemap.ldtk
 
 import com.lehaine.littlekt.file.ldtk.LevelBackgroundPosition
-import com.lehaine.littlekt.graphics.Camera
-import com.lehaine.littlekt.graphics.SpriteBatch
-import com.lehaine.littlekt.graphics.Texture
-import com.lehaine.littlekt.graphics.TextureSlice
+import com.lehaine.littlekt.graphics.*
 import com.lehaine.littlekt.math.Rect
 import com.lehaine.littlekt.math.geom.Angle
 import com.lehaine.littlekt.util.calculateViewBounds
@@ -60,12 +57,12 @@ class LDtkLevel(
 
     private val viewBounds = Rect()
 
-    fun render(batch: SpriteBatch, camera: Camera, x: Float = worldX.toFloat(), y: Float = worldY.toFloat()) {
+    fun render(batch: Batch, camera: Camera, x: Float = worldX.toFloat(), y: Float = worldY.toFloat()) {
         viewBounds.calculateViewBounds(camera)
         render(batch, viewBounds, x, y)
     }
 
-    fun render(batch: SpriteBatch, viewBounds: Rect, x: Float = worldX.toFloat(), y: Float = worldY.toFloat()) {
+    fun render(batch: Batch, viewBounds: Rect, x: Float = worldX.toFloat(), y: Float = worldY.toFloat()) {
         levelBackgroundImage?.render(batch, x, y)
         // need to render back to front - layers last in the list need to render first
         for (i in layers.size - 1 downTo 0) {
@@ -120,7 +117,7 @@ class LDtkLevel(
         val slice: TextureSlice
     ) {
 
-        fun render(batch: SpriteBatch, x: Float, y: Float) {
+        fun render(batch: Batch, x: Float, y: Float) {
             batch.draw(
                 slice,
                 topLeftX.toFloat() + x,

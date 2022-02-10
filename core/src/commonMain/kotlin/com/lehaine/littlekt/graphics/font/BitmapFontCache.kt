@@ -3,7 +3,6 @@ package com.lehaine.littlekt.graphics.font
 import com.lehaine.littlekt.graph.node.component.HAlign
 import com.lehaine.littlekt.graphics.Batch
 import com.lehaine.littlekt.graphics.Color
-import com.lehaine.littlekt.graphics.SpriteBatch
 import com.lehaine.littlekt.math.geom.Angle
 
 /**

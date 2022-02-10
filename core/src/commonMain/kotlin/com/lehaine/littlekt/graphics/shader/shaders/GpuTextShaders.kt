@@ -12,9 +12,9 @@ class GpuTextVertexShader : VertexShaderModel() {
     val uTexture = ShaderParameter.UniformSample2D("u_texture")
     val uTexelSize = ShaderParameter.UniformVec2("u_texelSize")
     val uProjTrans = ShaderParameter.UniformMat4("u_projTrans")
-    val aPosition = ShaderParameter.AttributeVec2("a_position")
-    val aColor = ShaderParameter.AttributeVec4("a_color")
-    val aTexCoord0 = ShaderParameter.AttributeVec2("a_texCoord0")
+    val aPosition = ShaderParameter.Attribute("a_position")
+    val aColor = ShaderParameter.Attribute("a_color")
+    val aTexCoord0 = ShaderParameter.Attribute("a_texCoord0")
 
     override val parameters: MutableList<ShaderParameter> =
         mutableListOf(

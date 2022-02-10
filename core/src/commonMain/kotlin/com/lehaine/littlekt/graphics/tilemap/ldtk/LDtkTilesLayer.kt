@@ -1,9 +1,8 @@
 package com.lehaine.littlekt.graphics.tilemap.ldtk
 
-import com.lehaine.littlekt.graphics.SpriteBatch
+import com.lehaine.littlekt.graphics.Batch
 import com.lehaine.littlekt.math.Rect
 import com.lehaine.littlekt.math.geom.Angle
-import com.lehaine.littlekt.math.geom.radians
 import kotlin.math.max
 import kotlin.math.min
 
@@ -38,7 +37,7 @@ open class LDtkTilesLayer(
         return tiles.contains(getCoordId(cx, cy))
     }
 
-    override fun render(batch: SpriteBatch, viewBounds: Rect, x: Float, y: Float) {
+    override fun render(batch: Batch, viewBounds: Rect, x: Float, y: Float) {
         val minX = max(0, ((viewBounds.x - x - pxTotalOffsetX) / cellSize).toInt())
         val maxX = min(
             gridWidth,

@@ -5,7 +5,6 @@ import com.lehaine.littlekt.graph.node.annotation.SceneGraphDslMarker
 import com.lehaine.littlekt.graph.node.internal.NodeList
 import com.lehaine.littlekt.graphics.Batch
 import com.lehaine.littlekt.graphics.Camera
-import com.lehaine.littlekt.graphics.SpriteBatch
 import com.lehaine.littlekt.util.*
 import com.lehaine.littlekt.util.viewport.Viewport
 import kotlin.native.concurrent.ThreadLocal
@@ -296,7 +295,7 @@ open class Node : Comparable<Node> {
     /**
      * Internal debug render method. Calls the [debugRender] method.
      */
-    private fun _debugRender(batch: SpriteBatch) {
+    private fun _debugRender(batch: Batch) {
         debugRender(batch)
         onDebugRender.emit(batch)
         nodes.forEach {
@@ -424,7 +423,7 @@ open class Node : Comparable<Node> {
     open fun onPostEnterScene() {}
 
     /**
-     * The main render method. The [Camera] can be used for culling and the [SpriteBatch] instance to draw with.
+     * The main render method. The [Camera] can be used for culling and the [Batch] instance to draw with.
      * @param batch the batcher
      * @param camera the Camera2D node
      */

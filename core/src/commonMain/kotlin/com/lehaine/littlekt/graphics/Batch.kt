@@ -36,6 +36,24 @@ interface Batch : Disposable {
         colorBits: Float = this.colorBits,
         flipX: Boolean = false,
         flipY: Boolean = false,
+    ) = draw(
+        texture,
+        x,
+        y,
+        originX,
+        originY,
+        width,
+        height,
+        scaleX,
+        scaleY,
+        rotation,
+        0,
+        0,
+        texture.width,
+        texture.height,
+        colorBits,
+        flipX,
+        flipY
     )
 
     fun draw(

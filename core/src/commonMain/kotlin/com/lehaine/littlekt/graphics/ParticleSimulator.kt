@@ -195,7 +195,7 @@ class ParticleSimulator(maxParticles: Int) {
     }
 }
 
-fun ParticleSimulator.draw(batch: SpriteBatch) {
+fun ParticleSimulator.draw(batch: Batch) {
     for (i in 0..numAlloc) {
         particles[i].draw(batch)
     }

@@ -1,10 +1,7 @@
 package com.lehaine.littlekt.graphics.font
 
 import com.lehaine.littlekt.graph.node.component.HAlign
-import com.lehaine.littlekt.graphics.Color
-import com.lehaine.littlekt.graphics.SpriteBatch
-import com.lehaine.littlekt.graphics.Texture
-import com.lehaine.littlekt.graphics.TextureSlice
+import com.lehaine.littlekt.graphics.*
 import com.lehaine.littlekt.math.Rect
 import com.lehaine.littlekt.math.geom.Angle
 import kotlin.math.max
@@ -101,7 +98,7 @@ class BitmapFont(
      * @see [FontCache.draw]
      */
     fun draw(
-        batch: SpriteBatch,
+        batch: Batch,
         text: CharSequence,
         x: Float,
         y: Float,

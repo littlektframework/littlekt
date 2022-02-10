@@ -14,6 +14,7 @@ import com.lehaine.littlekt.graphics.shader.generator.type.mat.Mat3
 import com.lehaine.littlekt.graphics.shader.generator.type.mat.Mat4
 import com.lehaine.littlekt.graphics.shader.generator.type.sampler.Sampler2D
 import com.lehaine.littlekt.graphics.shader.generator.type.sampler.Sampler2DArray
+import com.lehaine.littlekt.graphics.shader.generator.type.sampler.Sampler2DVarArray
 import com.lehaine.littlekt.graphics.shader.generator.type.sampler.ShadowTexture2D
 import com.lehaine.littlekt.graphics.shader.generator.type.scalar.GLFloat
 import com.lehaine.littlekt.graphics.shader.generator.type.scalar.GLInt
@@ -299,7 +300,7 @@ abstract class GlslGenerator : GlslProvider {
         UniformArrayDelegate(size, init, precision)
 
     fun <T : Variable> samplersArray(size: Int, precision: Precision = Precision.DEFAULT) =
-        UniformArrayDelegate(size, ::Sampler2DArray, precision)
+        UniformArrayDelegate(size, ::Sampler2DVarArray, precision)
 
     fun <RT : GenType, F : Func<RT>> Func(
         funcFactory: (GlslGenerator) -> F,
@@ -645,6 +646,7 @@ abstract class GlslGenerator : GlslProvider {
 
     fun shadow2D(sampler: ShadowTexture2D, v: Vec2) = Vec4(this, "shadow2D(${sampler.value}, ${v.value})")
     fun texture2D(sampler: Sampler2D, v: Vec2) = Vec4(this, "texture2D(${sampler.value}, ${v.value})")
+    fun texture(sampler: Sampler2DArray, v: Vec3) = Vec4(this, "texture(${sampler.value}, ${v.value})")
 
     fun float() = ConstructorDelegate(GLFloat(this))
     fun float(x: Float) = ConstructorDelegate(GLFloat(this), x.str())

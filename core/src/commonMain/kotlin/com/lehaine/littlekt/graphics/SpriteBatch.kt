@@ -123,128 +123,6 @@ class SpriteBatch(
     }
 
     override fun draw(
-        texture: Texture,
-        x: Float,
-        y: Float,
-        originX: Float,
-        originY: Float,
-        width: Float,
-        height: Float,
-        scaleX: Float,
-        scaleY: Float,
-        rotation: Angle,
-        colorBits: Float,
-        flipX: Boolean,
-        flipY: Boolean,
-    ) {
-        if (!drawing) {
-            throw IllegalStateException("SpriteBatch.begin must be called before draw.")
-        }
-        if (texture != lastTexture) {
-            switchTexture(texture)
-        } else if (idx == mesh.maxVertices) {
-            flush()
-        }
-
-        var fx = -originX
-        var fy = -originY
-        var fx2 = width - originX
-        var fy2 = height - originY
-
-        if (scaleX != 1f || scaleY != 1f) {
-            fx *= scaleX
-            fy *= scaleY
-            fx2 *= scaleX
-            fy2 *= scaleY
-        }
-
-        val p1x = fx
-        val p1y = fy
-        val p2x = fx
-        val p2y = fy2
-        val p3x = fx2
-        val p3y = fy2
-        val p4x = fx2
-        val p4y = fy
-
-        var x1: Float = p1x
-        var y1: Float = p1y
-        var x2: Float = p2x
-        var y2: Float = p2y
-        var x3: Float = p3x
-        var y3: Float = p3y
-        var x4: Float = p4x
-        var y4: Float = p4y
-
-        if (rotation != Angle.ZERO) {
-            val cos = rotation.cosine
-            val sin = rotation.sine
-
-            x1 = cos * p1x - sin * p1y
-            y1 = sin * p1x + cos * p1y
-
-            x2 = cos * p2x - sin * p2y
-            y2 = sin * p2x + cos * p2y
-
-            x3 = cos * p3x - sin * p3y
-            y3 = sin * p3x + cos * p3y
-
-            x4 = x1 + (x3 - x2)
-            y4 = y3 - (y2 - y1)
-        }
-
-        x1 += x
-        y1 += y
-        x2 += x
-        y2 += y
-        x3 += x
-        y3 += y
-        x4 += x
-        y4 += y
-
-        val u = if (flipX) 1f else 0f
-        val v = if (flipY) 0f else 0f
-        val u2 = if (flipX) 0f else 1f
-        val v2 = if (flipY) 1f else 1f
-
-        mesh.run {
-            setVertex { // bottom left
-                this.x = x1
-                this.y = y1
-                this.colorPacked = colorBits
-                this.u = u
-                this.v = v
-            }
-
-            setVertex { // top left
-                this.x = x2
-                this.y = y2
-                this.colorPacked = colorBits
-                this.u = u
-                this.v = v2
-            }
-
-            setVertex { // top right
-                this.x = x3
-                this.y = y3
-                this.colorPacked = colorBits
-                this.u = u2
-                this.v = v2
-            }
-
-            setVertex { // bottom right
-                this.x = x4
-                this.y = y4
-                this.colorPacked = colorBits
-                this.u = u2
-                this.v = v
-            }
-        }
-
-        idx += SPRITE_SIZE
-    }
-
-    override fun draw(
         slice: TextureSlice,
         x: Float,
         y: Float,
@@ -474,9 +352,9 @@ class SpriteBatch(
         y4 += y
 
         var u = srcX * invTexWidth
-        var v = (srcY + srcHeight) * invTexHeight
+        var v = srcY * invTexHeight
         var u2 = (srcX + srcWidth) * invTexWidth
-        var v2 = srcY * invTexHeight
+        var v2 = (srcY + srcHeight) * invTexHeight
 
         if (flipX) {
             val tmp = u

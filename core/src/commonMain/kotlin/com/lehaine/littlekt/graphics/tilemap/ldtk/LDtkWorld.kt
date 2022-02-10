@@ -3,8 +3,8 @@ package com.lehaine.littlekt.graphics.tilemap.ldtk
 import com.lehaine.littlekt.Disposable
 import com.lehaine.littlekt.file.ldtk.EntityDefinition
 import com.lehaine.littlekt.file.ldtk.WorldLayout
+import com.lehaine.littlekt.graphics.Batch
 import com.lehaine.littlekt.graphics.Camera
-import com.lehaine.littlekt.graphics.SpriteBatch
 import com.lehaine.littlekt.graphics.tilemap.TileMap
 import com.lehaine.littlekt.util.calculateViewBounds
 
@@ -24,7 +24,7 @@ class LDtkWorld(
 
     internal var onDispose = {}
 
-    override fun render(batch: SpriteBatch, camera: Camera, x: Float, y: Float) {
+    override fun render(batch: Batch, camera: Camera, x: Float, y: Float) {
         viewBounds.calculateViewBounds(camera)
         levels.forEach { it.render(batch, viewBounds, it.worldX + x, it.worldY + y) }
     }

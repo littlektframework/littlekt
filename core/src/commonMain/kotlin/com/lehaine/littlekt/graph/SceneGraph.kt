@@ -35,7 +35,7 @@ import kotlin.time.Duration
 inline fun sceneGraph(
     context: Context,
     viewport: Viewport = ScreenViewport(context.graphics.width, context.graphics.height),
-    batch: SpriteBatch? = null,
+    batch: Batch? = null,
     callback: @SceneGraphDslMarker SceneGraph.() -> Unit = {}
 ): SceneGraph {
     contract { callsInPlace(callback, InvocationKind.EXACTLY_ONCE) }
