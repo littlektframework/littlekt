@@ -156,6 +156,8 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context() {
             // Enable v-sync
             GLFW.glfwSwapInterval(1)
         }
+
+        // set window icon
         if (configuration.icons.isNotEmpty()) {
             val buffer = GLFWImage.malloc(configuration.icons.size)
             configuration.icons.forEach {
@@ -187,7 +189,7 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context() {
         LWJGL.createCapabilities()
         // GLUtil.setupDebugMessageCallback()
 
-        GL30C.glClearColor(0f, 0f, 0f, 0f)
+        gl.clearColor(configuration.backgroundColor)
 
         InternalResources.createInstance(this@LwjglContext)
         InternalResources.INSTANCE.load()
@@ -234,7 +236,6 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context() {
         audioContext.update()
 
         stats.engineStats.resetPerFrameCounts()
-        glClear(GL.COLOR_BUFFER_BIT or GL.DEPTH_BUFFER_BIT)
 
         invokeAnyRunnable()
 

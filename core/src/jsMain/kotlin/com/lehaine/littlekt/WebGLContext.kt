@@ -43,7 +43,7 @@ class WebGLContext(override val configuration: JsConfiguration) : Context() {
     override fun start(build: (app: Context) -> ContextListener) {
         graphics._width = canvas.clientWidth
         graphics._height = canvas.clientHeight
-
+        gl.clearColor(configuration.backgroundColor)
         KtScope.launch {
             InternalResources.createInstance(this@WebGLContext)
             InternalResources.INSTANCE.load()

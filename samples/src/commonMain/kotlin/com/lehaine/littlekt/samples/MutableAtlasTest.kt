@@ -5,6 +5,7 @@ import com.lehaine.littlekt.ContextListener
 import com.lehaine.littlekt.file.vfs.readAtlas
 import com.lehaine.littlekt.file.vfs.readTexture
 import com.lehaine.littlekt.graphics.*
+import com.lehaine.littlekt.graphics.gl.ClearBufferMask
 import com.lehaine.littlekt.input.Key
 import com.lehaine.littlekt.util.combine
 import com.lehaine.littlekt.util.viewport.ScreenViewport
@@ -36,7 +37,7 @@ class MutableAtlasTest(context: Context) : ContextListener(context) {
             camera.update(width, height, context)
         }
         onRender { dt ->
-            gl.clearColor(Color.DARK_GRAY)
+            gl.clear(ClearBufferMask.COLOR_BUFFER_BIT)
             camera.update()
             boss.update(dt)
             batch.use(camera.viewProjection) {

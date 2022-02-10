@@ -4,6 +4,7 @@ import com.lehaine.littlekt.Context
 import com.lehaine.littlekt.ContextListener
 import com.lehaine.littlekt.LittleKtApp
 import com.lehaine.littlekt.createLittleKtApp
+import com.lehaine.littlekt.graphics.Color
 import kotlinx.browser.document
 import kotlinx.html.DIV
 import kotlinx.html.button
@@ -46,6 +47,7 @@ fun DIV.addSample(title: String, gameBuilder: (app: Context) -> ContextListener)
             lastApp?.close()
             lastApp = createLittleKtApp {
                 this.title = title
+                backgroundColor = Color.DARK_GRAY
             }.also {
                 it.start(gameBuilder)
             }

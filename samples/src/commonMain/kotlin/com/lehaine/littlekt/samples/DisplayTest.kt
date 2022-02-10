@@ -14,6 +14,7 @@ import com.lehaine.littlekt.graph.node.node2d.ui.*
 import com.lehaine.littlekt.graph.sceneGraph
 import com.lehaine.littlekt.graphics.*
 import com.lehaine.littlekt.graphics.font.BitmapFontCache
+import com.lehaine.littlekt.graphics.gl.ClearBufferMask
 import com.lehaine.littlekt.graphics.shader.shaders.SimpleColorFragmentShader
 import com.lehaine.littlekt.graphics.shader.shaders.SimpleColorVertexShader
 import com.lehaine.littlekt.graphics.tilemap.ldtk.LDtkWorld
@@ -320,6 +321,7 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
                 //       println("Loading: ${(assetProvider.percentage * 100.0).toString(1)}%")
                 return@onRender
             }
+            gl.clear(ClearBufferMask.COLOR_BUFFER_BIT)
             if (firstLoaded) {
                 logger.info { "Finished loading!" }
                 firstLoaded = false
@@ -361,12 +363,11 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
                 progressBar.value += progressBar.step
             }
 
-            gl.clearColor(Color.DARK_GRAY)
             camera.viewport.apply(context)
             camera.update()
             boss.update(dt)
             batch.use(camera.viewProjection) {
-            //    ldtkWorld.render(it, camera)
+                //    ldtkWorld.render(it, camera)
                 it.draw(person, x, y, scaleX = 10f, scaleY = 10f)
                 slices.forEachIndexed { rowIdx, row ->
                     row.forEachIndexed { colIdx, slice ->

@@ -1,6 +1,7 @@
 package com.lehaine.littlekt.samples
 
 import com.lehaine.littlekt.createLittleKtApp
+import com.lehaine.littlekt.graphics.Color
 
 /**
  * @author Colton Daily
@@ -12,6 +13,7 @@ fun main(args: Array<String>) {
         height = 540
         vSync = true
         title = "JVM - Mutable Atlas Test"
+        backgroundColor = Color.DARK_GRAY
     }.start {
         MutableAtlasTest(it)
     }
