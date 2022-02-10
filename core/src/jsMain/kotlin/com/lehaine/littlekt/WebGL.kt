@@ -6,10 +6,7 @@ import com.lehaine.littlekt.graphics.GLVersion
 import com.lehaine.littlekt.graphics.gl.*
 import com.lehaine.littlekt.math.Mat3
 import com.lehaine.littlekt.math.Mat4
-import org.khronos.webgl.Int32Array
-import org.khronos.webgl.Uint8Array
-import org.khronos.webgl.WebGLFramebuffer
-import org.khronos.webgl.get
+import org.khronos.webgl.*
 
 /**
  * @author Colton Daily
@@ -367,6 +364,21 @@ class WebGL(val gl: WebGL2RenderingContext, val platform: Context.Platform, priv
         gl.framebufferTexture2D(GL.FRAMEBUFFER, attachementType.glFlag, GL.TEXTURE_2D, glTexture.delegate, level)
     }
 
+    override fun frameBufferTexture2D(
+        target: Int,
+        attachementType: FrameBufferRenderBufferAttachment,
+        glTexture: GlTexture,
+        level: Int
+    ) {
+        engineStats.calls++
+        gl.framebufferTexture2D(target, attachementType.glFlag, GL.TEXTURE_2D, glTexture.delegate, level)
+    }
+
+    override fun readBuffer(mode: Int) {
+        engineStats.calls++
+        gl.readBuffer(mode)
+    }
+
     override fun checkFrameBufferStatus(): FrameBufferStatus {
         engineStats.calls++
         return FrameBufferStatus(gl.checkFramebufferStatus(GL.FRAMEBUFFER))
@@ -520,93 +532,14 @@ class WebGL(val gl: WebGL2RenderingContext, val platform: Context.Platform, priv
         gl.bindTexture(target, glTexture.delegate)
     }
 
+    override fun bindDefaultTexture(target: TextureTarget) {
+        engineStats.calls++
+        gl.bindTexture(target.glFlag, null)
+    }
+
     override fun deleteTexture(glTexture: GlTexture) {
         engineStats.calls++
         gl.deleteTexture(glTexture.delegate)
-    }
-
-    override fun compressedTexImage2D(
-        target: Int,
-        level: Int,
-        internalFormat: Int,
-        width: Int,
-        height: Int,
-        source: ByteBuffer?
-    ) {
-        engineStats.calls++
-        val dataview = (source as? ByteBufferImpl)?.buffer ?: Uint8Array(0)
-        gl.compressedTexImage2D(target, level, internalFormat, width, height, 0, dataview)
-    }
-
-    override fun compressedTexSubImage2D(
-        target: Int,
-        level: Int,
-        xOffset: Int,
-        yOffset: Int,
-        width: Int,
-        height: Int,
-        format: Int,
-        source: ByteBuffer
-    ) {
-        engineStats.calls++
-        source as ByteBufferImpl
-        gl.compressedTexSubImage2D(target, level, xOffset, yOffset, width, height, format, source.buffer)
-    }
-
-    override fun copyTexImage2D(
-        target: Int,
-        level: Int,
-        internalFormat: Int,
-        x: Int,
-        y: Int,
-        width: Int,
-        height: Int,
-        border: Int
-    ) {
-        engineStats.calls++
-        gl.copyTexImage2D(target, level, internalFormat, x, y, width, height, border)
-    }
-
-    override fun copyTexSubImage2D(
-        target: Int,
-        level: Int,
-        xOffset: Int,
-        yOffset: Int,
-        x: Int,
-        y: Int,
-        width: Int,
-        height: Int
-    ) {
-        engineStats.calls++
-        gl.copyTexSubImage2D(target, level, xOffset, yOffset, x, y, width, height)
-    }
-
-    override fun texSubImage2D(
-        target: Int,
-        level: Int,
-        xOffset: Int,
-        yOffset: Int,
-        width: Int,
-        height: Int,
-        format: Int,
-        type: Int,
-        source: ByteBuffer
-    ) {
-        engineStats.calls++
-        source as ByteBufferImpl
-        gl.texSubImage2D(target, level, xOffset, yOffset, width, height, format, type, source.buffer)
-    }
-
-    override fun texImage2D(
-        target: Int,
-        level: Int,
-        internalFormat: Int,
-        format: Int,
-        width: Int,
-        height: Int,
-        type: Int
-    ) {
-        gl.texImage2D(target, level, internalFormat, width, height, 0, format, type, null)
     }
 
     override fun uniformMatrix3fv(uniformLocation: UniformLocation, transpose: Boolean, data: Mat3) {
@@ -704,6 +637,92 @@ class WebGL(val gl: WebGL2RenderingContext, val platform: Context.Platform, priv
         gl.viewport(x, y, width, height)
     }
 
+    override fun compressedTexImage2D(
+        target: Int,
+        level: Int,
+        internalFormat: Int,
+        width: Int,
+        height: Int,
+        source: ByteBuffer?
+    ) {
+        engineStats.calls++
+        val dataView = (source as? ByteBufferImpl)?.buffer ?: Uint8Array(0)
+        gl.compressedTexImage2D(target, level, internalFormat, width, height, 0, dataView)
+    }
+
+    override fun compressedTexSubImage2D(
+        target: Int,
+        level: Int,
+        xOffset: Int,
+        yOffset: Int,
+        width: Int,
+        height: Int,
+        format: Int,
+        source: ByteBuffer
+    ) {
+        engineStats.calls++
+        source as ByteBufferImpl
+        gl.compressedTexSubImage2D(target, level, xOffset, yOffset, width, height, format, source.buffer)
+    }
+
+    override fun copyTexImage2D(
+        target: Int,
+        level: Int,
+        internalFormat: Int,
+        x: Int,
+        y: Int,
+        width: Int,
+        height: Int,
+        border: Int
+    ) {
+        engineStats.calls++
+        gl.copyTexImage2D(target, level, internalFormat, x, y, width, height, border)
+    }
+
+    override fun copyTexSubImage2D(
+        target: Int,
+        level: Int,
+        xOffset: Int,
+        yOffset: Int,
+        x: Int,
+        y: Int,
+        width: Int,
+        height: Int
+    ) {
+        engineStats.calls++
+        gl.copyTexSubImage2D(target, level, xOffset, yOffset, x, y, width, height)
+    }
+
+    override fun texSubImage2D(
+        target: Int,
+        level: Int,
+        xOffset: Int,
+        yOffset: Int,
+        width: Int,
+        height: Int,
+        format: Int,
+        type: Int,
+        source: ByteBuffer
+    ) {
+        engineStats.calls++
+        source as ByteBufferImpl
+        gl.texSubImage2D(target, level, xOffset, yOffset, width, height, format, type, source.buffer)
+    }
+
+    override fun texImage2D(
+        target: Int,
+        level: Int,
+        internalFormat: Int,
+        format: Int,
+        width: Int,
+        height: Int,
+        type: Int
+    ) {
+        engineStats.calls++
+        gl.texImage2D(target, level, internalFormat, width, height, 0, format, type, null)
+    }
+
+
     override fun texImage2D(
         target: Int,
         level: Int,
@@ -718,6 +737,115 @@ class WebGL(val gl: WebGL2RenderingContext, val platform: Context.Platform, priv
         source as ByteBufferImpl
         gl.texImage2D(
             target, level, internalFormat, width, height, 0, format, type,
+            Uint8Array(source.toArray().toTypedArray()) // convert it to a uint8array or else webgl fails to render
+        )
+    }
+
+    override fun compressedTexImage3D(
+        target: Int,
+        level: Int,
+        internalFormat: Int,
+        width: Int,
+        height: Int,
+        depth: Int,
+        source: ByteBuffer?
+    ) {
+        engineStats.calls++
+        val dataView = (source as? ByteBufferImpl)?.buffer ?: Uint8Array(0)
+        gl.compressedTexImage3D(target, level, internalFormat, width, height, depth, 0, dataView)
+    }
+
+    override fun compressedTexSubImage3D(
+        target: Int,
+        level: Int,
+        xOffset: Int,
+        yOffset: Int,
+        zOffset: Int,
+        width: Int,
+        height: Int,
+        depth: Int,
+        format: Int,
+        source: ByteBuffer
+    ) {
+        engineStats.calls++
+        source as ByteBufferImpl
+        gl.compressedTexSubImage3D(
+            target,
+            level,
+            xOffset,
+            yOffset,
+            zOffset,
+            width,
+            height,
+            depth,
+            format,
+            source.buffer
+        )
+    }
+
+    override fun copyTexSubImage3D(
+        target: Int,
+        level: Int,
+        xOffset: Int,
+        yOffset: Int,
+        zOffset: Int,
+        x: Int,
+        y: Int,
+        width: Int,
+        height: Int
+    ) {
+        engineStats.calls++
+        gl.copyTexSubImage3D(target, level, xOffset, yOffset, zOffset, x, y, width, height)
+    }
+
+    override fun texSubImage3D(
+        target: Int,
+        level: Int,
+        xOffset: Int,
+        yOffset: Int,
+        zOffset: Int,
+        width: Int,
+        height: Int,
+        depth: Int,
+        format: Int,
+        type: Int,
+        source: ByteBuffer
+    ) {
+        engineStats.calls++
+        source as ByteBufferImpl
+        gl.texSubImage3D(target, level, xOffset, yOffset, zOffset, width, height, depth, format, type, source.buffer)
+    }
+
+    override fun texImage3D(
+        target: Int,
+        level: Int,
+        internalFormat: Int,
+        format: Int,
+        width: Int,
+        height: Int,
+        depth: Int,
+        type: Int
+    ) {
+        engineStats.calls++
+        gl.texImage3D(target, level, internalFormat, width, height, depth, 0, format, type, null as Int8Array?)
+    }
+
+    override fun texImage3D(
+        target: Int,
+        level: Int,
+        internalFormat: Int,
+        format: Int,
+        width: Int,
+        height: Int,
+        depth: Int,
+        type: Int,
+        source: ByteBuffer
+    ) {
+        engineStats.calls++
+        source as ByteBufferImpl
+
+        gl.texImage3D(
+            target, level, internalFormat, width, height, depth, 0, format, type,
             Uint8Array(source.toArray().toTypedArray()) // convert it to a uint8array or else webgl fails to render
         )
     }

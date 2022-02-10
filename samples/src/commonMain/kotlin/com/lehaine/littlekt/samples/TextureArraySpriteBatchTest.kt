@@ -42,7 +42,7 @@ class TextureArraySpriteBatchTest(context: Context) : ContextListener(context) {
             camera.update()
             boss.update(dt)
             batch.use(camera.viewProjection) {
-                font.draw(it, "Boobies! --- TITTIES", 50f, 50f)
+                font.draw(it, "test! --- TEST!!!", 50f, 50f)
                 boss.render(it)
                 it.draw(person, 50f, 200f)
             }
