@@ -25,6 +25,8 @@ fun main() {
     document.body!!.append {
         div {
             addSample("Display Test") { DisplayTest(it) }
+            addSample("Mutable Atlas Test") { MutableAtlasTest(it) }
+            addSample("Texture Array Sprite Batch Test") { TextureArraySpriteBatchTest(it) }
         }
     }
 }

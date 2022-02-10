@@ -44,7 +44,7 @@ class TextureArrayVertexShader : VertexShaderModel() {
  * @date 2/9/2022
  */
 class TextureArrayFragmentShader : FragmentShaderModel() {
-    private val u_textureArray by uniform(::Sampler2DArray)
+    private val u_textureArray by uniform(::Sampler2DArray, Precision.HIGH)
 
     private val v_textureIndex by varying(::GLFloat)
     private val v_color by varying(::Vec4, Precision.LOW)
