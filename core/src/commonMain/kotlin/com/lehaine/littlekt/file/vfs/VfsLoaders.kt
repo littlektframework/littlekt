@@ -75,6 +75,12 @@ suspend fun VfsFile.readBitmapFont(
 ): BitmapFont {
     val data = readString()
     val textures = mutableMapOf<Int, Texture>()
+    var pages = 0
+    preloadedTextures.forEach { slice ->
+        if (!textures.containsValue(slice.texture)) {
+            textures[pages++] = slice.texture
+        }
+    }
     if (data.startsWith("info")) {
         return readBitmapFontTxt(data, this, textures, preloadedTextures, preloadedTextures.isEmpty(), filter, mipmaps)
     } else {
@@ -143,7 +149,6 @@ private suspend fun readBitmapFontTxt(
             }
             line.startsWith("char ") -> {
                 val page = map["page"]?.toIntOrNull() ?: 0
-                val texture = textures[page] ?: textures.values.first()
                 val id = map["id"]?.toIntOrNull() ?: 0
                 val width = map["width"]?.toIntOrNull() ?: 0
                 val height = map["height"]?.toIntOrNull() ?: 0
@@ -159,7 +164,7 @@ private suspend fun readBitmapFontTxt(
                 val slice = when {
                     loadTextures -> {
                         TextureSlice(
-                            texture,
+                            textures[page] ?: textures.values.first(),
                             map["x"]?.toIntOrNull() ?: 0,
                             map["y"]?.toIntOrNull() ?: 0,
                             width,
@@ -206,7 +211,7 @@ private suspend fun readBitmapFontTxt(
         lineHeight = lineHeight,
         base = base ?: lineHeight,
         capHeight = capHeight.toFloat(),
-        textures = if (loadTextures) textures.values.toList() else listOf(),
+        textures = textures.values.toList(),
         glyphs = glyphs.associateBy { it.id },
         kernings = kernings.associateBy { Kerning.buildKey(it.first, it.second) },
         pages = pages
