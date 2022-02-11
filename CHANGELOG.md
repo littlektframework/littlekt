@@ -2,9 +2,9 @@
 
 ## v0.2.0 (Current SNAPSHOT)
 
-**New**:
+### New
 
-* add: **MutableTextureAtlas** class to combine existing `TextureAtlas`, `Texture`, and `TextureSlice` types into a
+* add: `MutableTextureAtlas` class to combine existing `TextureAtlas`, `Texture`, and `TextureSlice` types into a
   single `TextureAtlas`.
 * update:`vfsFile.readBitmapFont()` loader to allow passing in a list of existing `TextureSlice`, such as from
   a `TextureAtlas`.
@@ -18,7 +18,7 @@
 * add: New batch implementation called `TextureArraySpriteBatch` that uses texture arrays to render multiple textures as
   a single draw call.
 
-**Bugs**:
+### Bugs:
 
 * fix: remove clearing color buffer in `LwjglContext`.
 
