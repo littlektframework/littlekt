@@ -22,6 +22,13 @@
 
 * fix: remove clearing color buffer in `LwjglContext`.
 
+### Upgrades:
+
+* `Kotlin` from `1.6.0` to `1.6.10`
+* `LWJGL` from `3.2.3` to `3.3.0`
+* `kotlinx-coroutines` from `1.6.0-RC` to `1.6.0-native-mt`
+* `kotlinx-serialization` from `1.3.1` to `1.3.2`
+
 ## v0.1.0
 
 * Add **JVM** support
