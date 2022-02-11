@@ -3,7 +3,7 @@ import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
 
 plugins {
     kotlin("multiplatform")
-    kotlin("plugin.serialization") version "1.6.0"
+    kotlin("plugin.serialization")
     id("littlekt.convention.publication")
 }
 
@@ -39,12 +39,11 @@ kotlin {
             kotlinOptions.sourceMap = true
         }
     }
-    val kotlinSerializationVersion: String by project
 
     sourceSets {
         val commonMain by getting {
             dependencies {
-                implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:$kotlinSerializationVersion")
+                implementation(libs.kotlinx.serialization.json)
             }
         }
         val commonTest by getting {

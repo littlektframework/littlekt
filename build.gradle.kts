@@ -1,11 +1,24 @@
 val littleKtVersion: String by project
 
+buildscript {
+    repositories {
+        gradlePluginPortal()
+        google()
+        mavenCentral()
+    }
+    dependencies {
+        classpath(libs.bundles.plugins)
+    }
+}
+
+
 allprojects {
+    repositories {
+        google()
+        mavenCentral()
+    }
+
     group = "com.lehaine.littlekt"
     version = littleKtVersion
     extra["isReleaseVersion"] = !version.toString().endsWith("SNAPSHOT")
-}
-
-plugins {
-    kotlin("multiplatform") version "1.6.0" apply false
 }
