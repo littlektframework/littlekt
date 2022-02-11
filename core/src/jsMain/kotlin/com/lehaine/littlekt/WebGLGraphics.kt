@@ -1,7 +1,6 @@
 package com.lehaine.littlekt
 
 import com.lehaine.littlekt.graphics.Cursor
-import com.lehaine.littlekt.graphics.GLVersion
 import com.lehaine.littlekt.graphics.SystemCursor
 import com.lehaine.littlekt.util.internal.jsObject
 import org.khronos.webgl.ArrayBufferView
@@ -122,6 +121,42 @@ abstract external class WebGL2RenderingContext : WebGLRenderingContext {
     fun drawElementsInstanced(mode: Int, count: Int, type: Int, offset: Int, instanceCount: Int)
     fun readBuffer(src: Int)
     fun renderbufferStorageMultisample(target: Int, samples: Int, internalformat: Int, width: Int, height: Int)
+
+    fun compressedTexImage3D(
+        target: Int,
+        level: Int,
+        internalformat: Int,
+        width: Int,
+        height: Int,
+        depth: Int,
+        border: Int,
+        srcData: ArrayBufferView?
+    )
+    fun compressedTexSubImage3D(
+        target: Int,
+        level: Int,
+        xoffset: Int,
+        yoffset: Int,
+        zoffset: Int,
+        width: Int,
+        height: Int,
+        depth: Int,
+        format: Int,
+        srcData: ArrayBufferView?
+    )
+
+    fun copyTexSubImage3D(
+        target: Int,
+        level: Int,
+        xoffset: Int,
+        yoffset: Int,
+        zoffset: Int,
+        x: Int,
+        y: Int,
+        width: Int,
+        height: Int
+    )
+
     fun texImage3D(
         target: Int,
         level: Int,
@@ -161,6 +196,21 @@ abstract external class WebGL2RenderingContext : WebGLRenderingContext {
         type: Int,
         pixels: ImageData?
     )
+
+    fun texSubImage3D(
+        target: Int,
+        level: Int,
+        xoffset: Int,
+        yoffset: Int,
+        zoffset: Int,
+        width: Int,
+        height: Int,
+        depth: Int,
+        format: Int,
+        type: Int,
+        pixels: ArrayBufferView?
+    )
+
 
     fun texStorage2D(target: Int, levels: Int, internalformat: Int, width: Int, height: Int)
     fun texStorage3D(target: Int, levels: Int, internalformat: Int, width: Int, height: Int, depth: Int)

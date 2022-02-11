@@ -1,8 +1,8 @@
 package com.lehaine.littlekt.graphics.font
 
 import com.lehaine.littlekt.graph.node.component.HAlign
+import com.lehaine.littlekt.graphics.Batch
 import com.lehaine.littlekt.graphics.Color
-import com.lehaine.littlekt.graphics.SpriteBatch
 import com.lehaine.littlekt.math.geom.Angle
 
 /**
@@ -16,7 +16,7 @@ class BitmapFontCache(val font: BitmapFont) : FontCache(font.pages) {
      * Draws the text using the specified batch.
      * @param batch the batch to draw with
      */
-    fun draw(batch: SpriteBatch) {
+    fun draw(batch: Batch) {
         draw(batch, font.textures)
     }
 

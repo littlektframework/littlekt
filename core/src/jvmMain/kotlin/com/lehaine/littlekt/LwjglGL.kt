@@ -6,10 +6,7 @@ import com.lehaine.littlekt.graphics.GLVersion
 import com.lehaine.littlekt.graphics.gl.*
 import com.lehaine.littlekt.math.Mat3
 import com.lehaine.littlekt.math.Mat4
-import org.lwjgl.opengl.EXTFramebufferObject
-import org.lwjgl.opengl.GL11
-import org.lwjgl.opengl.GL13
-import org.lwjgl.opengl.GL15
+import org.lwjgl.opengl.*
 import org.lwjgl.opengl.GL30.*
 import java.nio.ByteBuffer as NioByteBuffer
 
@@ -337,6 +334,20 @@ class LwjglGL(private val engineStats: EngineStats) : GL {
         )
     }
 
+    override fun frameBufferTexture2D(
+        target: Int, attachementType: FrameBufferRenderBufferAttachment, glTexture: GlTexture, level: Int
+    ) {
+        engineStats.calls++
+        EXTFramebufferObject.glFramebufferTexture2DEXT(
+            target, attachementType.glFlag, GL.TEXTURE_2D, glTexture.reference, level
+        )
+    }
+
+    override fun readBuffer(mode: Int) {
+        engineStats.calls++
+        glReadBuffer(mode)
+    }
+
     override fun checkFrameBufferStatus(): FrameBufferStatus {
         engineStats.calls++
         return FrameBufferStatus(EXTFramebufferObject.glCheckFramebufferStatusEXT(GL.FRAMEBUFFER))
@@ -583,6 +594,11 @@ class LwjglGL(private val engineStats: EngineStats) : GL {
         glBindTexture(target, glTexture.reference)
     }
 
+    override fun bindDefaultTexture(target: TextureTarget) {
+        engineStats.calls++
+        glBindTexture(target.glFlag, GL.NONE)
+    }
+
     override fun deleteTexture(glTexture: GlTexture) {
         engineStats.calls++
         glDeleteTextures(glTexture.reference)
@@ -594,7 +610,7 @@ class LwjglGL(private val engineStats: EngineStats) : GL {
         internalFormat: Int,
         width: Int,
         height: Int,
-        source: com.lehaine.littlekt.file.ByteBuffer?
+        source: ByteBuffer?
     ) {
         engineStats.calls++
         if (source != null) {
@@ -613,12 +629,11 @@ class LwjglGL(private val engineStats: EngineStats) : GL {
         width: Int,
         height: Int,
         format: Int,
-        source: com.lehaine.littlekt.file.ByteBuffer
+        source: ByteBuffer
     ) {
         engineStats.calls++
         source as ByteBufferImpl
         GL13.glCompressedTexSubImage2D(target, level, xOffset, yOffset, width, height, format, source.buffer)
-
     }
 
     override fun copyTexImage2D(
@@ -651,7 +666,7 @@ class LwjglGL(private val engineStats: EngineStats) : GL {
         height: Int,
         format: Int,
         type: Int,
-        source: com.lehaine.littlekt.file.ByteBuffer
+        source: ByteBuffer
     ) {
         engineStats.calls++
         source as ByteBufferImpl
@@ -661,6 +676,7 @@ class LwjglGL(private val engineStats: EngineStats) : GL {
     override fun texImage2D(
         target: Int, level: Int, internalFormat: Int, format: Int, width: Int, height: Int, type: Int
     ) {
+        engineStats.calls++
         glTexImage2D(
             target, level, internalFormat, width, height, 0, format, type, null as NioByteBuffer?
         )
@@ -674,7 +690,7 @@ class LwjglGL(private val engineStats: EngineStats) : GL {
         width: Int,
         height: Int,
         type: Int,
-        source: com.lehaine.littlekt.file.ByteBuffer
+        source: ByteBuffer
     ) {
         engineStats.calls++
         source as ByteBufferImpl
@@ -684,7 +700,134 @@ class LwjglGL(private val engineStats: EngineStats) : GL {
             target, level, internalFormat, width, height, 0, format, type, source.buffer
         )
         source.position = pos
+    }
 
+    override fun compressedTexImage3D(
+        target: Int,
+        level: Int,
+        internalFormat: Int,
+        width: Int,
+        height: Int,
+        depth: Int,
+        source: ByteBuffer?
+    ) {
+        engineStats.calls++
+        if (source != null) {
+            source as ByteBufferImpl
+            GL13.glCompressedTexImage3D(target, level, internalFormat, width, height, depth, 0, source.buffer)
+        } else {
+            GL13.glCompressedTexImage3D(target, level, internalFormat, width, height, depth, 0, null)
+        }
+    }
+
+    override fun compressedTexSubImage3D(
+        target: Int,
+        level: Int,
+        xOffset: Int,
+        yOffset: Int,
+        zOffset: Int,
+        width: Int,
+        height: Int,
+        depth: Int,
+        format: Int,
+        source: ByteBuffer
+    ) {
+        engineStats.calls++
+        source as ByteBufferImpl
+        GL13.glCompressedTexSubImage3D(
+            target,
+            level,
+            xOffset,
+            yOffset,
+            zOffset,
+            width,
+            height,
+            depth,
+            format,
+            source.buffer
+        )
+    }
+
+    override fun copyTexSubImage3D(
+        target: Int,
+        level: Int,
+        xOffset: Int,
+        yOffset: Int,
+        zOffset: Int,
+        x: Int,
+        y: Int,
+        width: Int,
+        height: Int
+    ) {
+        engineStats.calls++
+        glCopyTexSubImage3D(target, level, xOffset, yOffset, zOffset, x, y, width, height)
+    }
+
+    override fun texSubImage3D(
+        target: Int,
+        level: Int,
+        xOffset: Int,
+        yOffset: Int,
+        zOffset: Int,
+        width: Int,
+        height: Int,
+        depth: Int,
+        format: Int,
+        type: Int,
+        source: ByteBuffer
+    ) {
+        engineStats.calls++
+        source as ByteBufferImpl
+        GL12.glTexSubImage3D(
+            target,
+            level,
+            xOffset,
+            yOffset,
+            zOffset,
+            width,
+            height,
+            depth,
+            format,
+            type,
+            source.buffer
+        )
+    }
+
+    override fun texImage3D(
+        target: Int,
+        level: Int,
+        internalFormat: Int,
+        format: Int,
+        width: Int,
+        height: Int,
+        depth: Int,
+        type: Int
+    ) {
+        engineStats.calls++
+        glTexImage3D(
+            target, level, internalFormat, width, height, depth, 0, format, type, null as NioByteBuffer?
+        )
+    }
+
+    override fun texImage3D(
+        target: Int,
+        level: Int,
+        internalFormat: Int,
+        format: Int,
+        width: Int,
+        height: Int,
+        depth: Int,
+        type: Int,
+        source: ByteBuffer
+    ) {
+        engineStats.calls++
+        source as ByteBufferImpl
+        val pos = source.position
+        source.position = 0
+        glTexImage3D(
+            target, level, internalFormat, width, height, depth, 0, format, type, source.buffer
+        )
+        source.position = pos
     }
 
     override fun activeTexture(texture: Int) {

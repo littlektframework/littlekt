@@ -5,8 +5,8 @@ import com.lehaine.littlekt.graph.node.Node
 import com.lehaine.littlekt.graph.node.addTo
 import com.lehaine.littlekt.graph.node.annotation.SceneGraphDslMarker
 import com.lehaine.littlekt.graph.node.component.StretchMode
+import com.lehaine.littlekt.graphics.Batch
 import com.lehaine.littlekt.graphics.Camera
-import com.lehaine.littlekt.graphics.SpriteBatch
 import com.lehaine.littlekt.graphics.TextureSlice
 import kotlin.math.absoluteValue
 
@@ -65,7 +65,7 @@ open class TextureRect : Control() {
     override val membersAndPropertiesString: String
         get() = "${super.membersAndPropertiesString}, flipX=$flipX, flipY=$flipY, stretchMode=$stretchMode, expand=$expand, textureRegion=$slice"
 
-    override fun render(batch: SpriteBatch, camera: Camera) {
+    override fun render(batch: Batch, camera: Camera) {
         super.render(batch, camera)
         slice?.let {
             var newWidth = 0f

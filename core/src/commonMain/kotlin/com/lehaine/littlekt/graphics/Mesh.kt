@@ -5,6 +5,7 @@ import com.lehaine.littlekt.Disposable
 import com.lehaine.littlekt.graphics.gl.DrawMode
 import com.lehaine.littlekt.graphics.gl.IndexType
 import com.lehaine.littlekt.graphics.shader.ShaderProgram
+import com.lehaine.littlekt.util.datastructure.FloatArrayList
 import kotlin.math.floor
 
 /**
@@ -121,7 +122,7 @@ internal class MeshBatcher(size: Int, val attributes: VertexAttributes) {
         private set
     private var offset = 0
 
-    internal fun setVertex(props: VertexProps) {
+    fun setVertex(props: VertexProps) {
         attributes.forEach { vertexAttribute ->
             when (vertexAttribute.usage) {
                 VertexAttrUsage.POSITION -> {
@@ -147,23 +148,38 @@ internal class MeshBatcher(size: Int, val attributes: VertexAttributes) {
                     vertices[offset++] = props.u
                     vertices[offset++] = props.v
                 }
+                VertexAttrUsage.GENERIC -> {
+                    for (i in 0 until vertexAttribute.numComponents) {
+                        vertices[offset++] = props.generic[i]
+                    }
+                }
             }
         }
         count++
     }
 
-    internal fun add(newVertices: FloatArray, srcOffset: Int, dstOffset: Int, count: Int) {
+    fun add(newVertices: FloatArray, srcOffset: Int, dstOffset: Int, count: Int) {
         newVertices.copyInto(vertices, dstOffset, srcOffset, srcOffset + count)
         this.offset = dstOffset + count
         this.count = offset / vertexSize
     }
 
-    internal fun skip(totalVertices: Int) {
+    fun add(vertex: Float) {
+        vertices[offset++] = vertex
+    }
+
+    fun set(offset: Int, vertex: Float) {
+        vertices[offset] = vertex
+    }
+
+    fun get(offset: Int) = vertices[offset]
+
+    fun skip(totalVertices: Int) {
         offset += totalVertices * vertexSize
         count += totalVertices
     }
 
-    internal fun reset() {
+    fun reset() {
         lastCount = count
         offset = 0
         count = 0
@@ -184,6 +200,7 @@ class VertexProps {
     var color: Color = Color.CLEAR
     var u: Float = 0f
     var v: Float = 0f
+    val generic = FloatArrayList()
 }
 
 class Mesh(
@@ -262,7 +279,7 @@ class Mesh(
      * [VertexProps.colorPacked] field will do nothing.
      */
     fun setVertex(action: VertexProps.() -> Unit) {
-        if (!useBatcher) throw IllegalStateException("This mesh isn't user the mesh batcher! You cannot use setVertex. You must pass in a FloatArray to setVertices.")
+        if (!useBatcher) throw IllegalStateException("This mesh isn't user the mesh batcher! You cannot use 'setVertex'. You must pass in a FloatArray to setVertices.")
         tempVertexProps.action()
         batcher.setVertex(tempVertexProps)
         updateVertices = true
@@ -273,10 +290,39 @@ class Mesh(
      * Adds an array of vertices to the [MeshBatcher].
      */
     fun addVertices(vertices: FloatArray, srcOffset: Int = 0, dstOffset: Int = 0, count: Int = vertices.size) {
-        if (!useBatcher) throw IllegalStateException("This mesh isn't user the mesh batcher! You cannot use setVertex. You must pass in a FloatArray to setVertices.")
+        if (!useBatcher) throw IllegalStateException("This mesh isn't user the mesh batcher! You cannot use 'addVertices'. You must pass in a FloatArray to setVertices.")
         updateVertices = true
         batcher.add(vertices, srcOffset, dstOffset, count)
     }
+
+    /**
+     * Add a vertex value to the [MeshBatcher].
+     */
+    fun add(vertex: Float) {
+        if (!useBatcher) throw IllegalStateException("This mesh isn't user the mesh batcher! You cannot use 'add'. You must pass in a FloatArray to setVertices.")
+        updateVertices = true
+        batcher.add(vertex)
+    }
+
+    /**
+     * Set a vertex value at the given offset to the [MeshBatcher].
+     */
+    fun setVertex(offset: Int, vertex: Float) {
+        if (!useBatcher) throw IllegalStateException("This mesh isn't user the mesh batcher! You cannot use 'set'. You must pass in a FloatArray to setVertices.")
+        updateVertices = true
+        batcher.set(offset, vertex)
+    }
+
+    /**
+     * Get a vertex value at the given offset from [MeshBatcher].
+     */
+    fun getVertex(offset: Int): Float {
+        if (!useBatcher) throw IllegalStateException("This mesh isn't user the mesh batcher! You cannot use 'get'. You must pass in a FloatArray to setVertices.")
+        return batcher.get(offset)
+    }
+
+    operator fun get(value: Int) = getVertex(value)
+    operator fun set(idx: Int, value: Float) = setVertex(idx, value)
 
     /**
      * Offsets the [MeshBatcher] by the total amount.
@@ -298,7 +344,7 @@ class Mesh(
             color = Color.CLEAR
             u = 0f
             v = 0f
-
+            generic.clear()
         }
     }
 

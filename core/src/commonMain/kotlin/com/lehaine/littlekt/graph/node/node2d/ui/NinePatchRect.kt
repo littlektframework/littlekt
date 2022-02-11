@@ -4,10 +4,7 @@ import com.lehaine.littlekt.graph.SceneGraph
 import com.lehaine.littlekt.graph.node.Node
 import com.lehaine.littlekt.graph.node.addTo
 import com.lehaine.littlekt.graph.node.annotation.SceneGraphDslMarker
-import com.lehaine.littlekt.graphics.Camera
-import com.lehaine.littlekt.graphics.NinePatch
-import com.lehaine.littlekt.graphics.SpriteBatch
-import com.lehaine.littlekt.graphics.Textures
+import com.lehaine.littlekt.graphics.*
 
 /**
  * Adds a [NinePatchRect] to the current [Node] as a child and then triggers the [callback]
@@ -44,7 +41,7 @@ open class NinePatchRect : Control() {
         minSizeInvalid = false
     }
 
-    override fun render(batch: SpriteBatch, camera: Camera) {
+    override fun render(batch: Batch, camera: Camera) {
         ninePatch.draw(
             batch,
             globalX,

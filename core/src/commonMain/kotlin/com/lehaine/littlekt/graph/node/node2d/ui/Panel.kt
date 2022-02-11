@@ -5,8 +5,8 @@ import com.lehaine.littlekt.graph.node.Node
 import com.lehaine.littlekt.graph.node.addTo
 import com.lehaine.littlekt.graph.node.annotation.SceneGraphDslMarker
 import com.lehaine.littlekt.graph.node.component.Drawable
+import com.lehaine.littlekt.graphics.Batch
 import com.lehaine.littlekt.graphics.Camera
-import com.lehaine.littlekt.graphics.SpriteBatch
 
 /**
  * Adds a [Panel] to the current [Node] as a child and then triggers the [callback]
@@ -42,7 +42,7 @@ open class Panel : Control() {
 
     private val panelThemeVar get() = if (mode == Mode.BACKGROUND) themeVars.panel else themeVars.panelForeground
 
-    override fun render(batch: SpriteBatch, camera: Camera) {
+    override fun render(batch: Batch, camera: Camera) {
         panel.let {
             it.draw(batch, globalX, globalY, width, height, scaleX, scaleY, rotation, it.modulate)
         }

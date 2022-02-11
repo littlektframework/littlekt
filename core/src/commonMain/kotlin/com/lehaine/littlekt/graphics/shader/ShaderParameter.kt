@@ -191,19 +191,7 @@ sealed class ShaderParameter(val name: String) {
         }
     }
 
-    class AttributeVec2(name: String) : ShaderParameter(name) {
-        override fun create(program: ShaderProgram<*, *>) {
-            program.createAttrib(name)
-        }
-    }
-
-    class AttributeVec3(name: String) : ShaderParameter(name) {
-        override fun create(program: ShaderProgram<*, *>) {
-            program.createAttrib(name)
-        }
-    }
-
-    class AttributeVec4(name: String) : ShaderParameter(name) {
+    class Attribute(name: String) : ShaderParameter(name) {
         override fun create(program: ShaderProgram<*, *>) {
             program.createAttrib(name)
         }

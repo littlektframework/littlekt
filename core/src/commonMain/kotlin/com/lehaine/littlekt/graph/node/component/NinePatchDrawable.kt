@@ -1,8 +1,8 @@
 package com.lehaine.littlekt.graph.node.component
 
+import com.lehaine.littlekt.graphics.Batch
 import com.lehaine.littlekt.graphics.Color
 import com.lehaine.littlekt.graphics.NinePatch
-import com.lehaine.littlekt.graphics.SpriteBatch
 import com.lehaine.littlekt.math.geom.Angle
 
 /**
@@ -21,7 +21,7 @@ class NinePatchDrawable(val ninePatch: NinePatch) : Drawable {
     override var modulate: Color = Color.WHITE
 
     override fun draw(
-        batch: SpriteBatch,
+        batch: Batch,
         x: Float,
         y: Float,
         width: Float,

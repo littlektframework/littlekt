@@ -117,7 +117,7 @@ class Particle(var slice: TextureSlice) {
 }
 
 
-fun Particle.draw(batch: SpriteBatch) {
+fun Particle.draw(batch: Batch) {
     if (!visible || !alive) return
 
     batch.draw(

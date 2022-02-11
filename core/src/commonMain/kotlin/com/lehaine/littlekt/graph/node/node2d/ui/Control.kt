@@ -7,8 +7,8 @@ import com.lehaine.littlekt.graph.node.annotation.SceneGraphDslMarker
 import com.lehaine.littlekt.graph.node.component.*
 import com.lehaine.littlekt.graph.node.component.AnchorLayout.*
 import com.lehaine.littlekt.graph.node.node2d.Node2D
+import com.lehaine.littlekt.graphics.Batch
 import com.lehaine.littlekt.graphics.Color
-import com.lehaine.littlekt.graphics.SpriteBatch
 import com.lehaine.littlekt.graphics.font.BitmapFont
 import com.lehaine.littlekt.math.Mat4
 import com.lehaine.littlekt.math.Rect
@@ -636,12 +636,12 @@ open class Control : Node2D() {
             AnchorSide.TOP -> _marginBottom = value
         }
 
-    protected fun applyTransform(batch: SpriteBatch) {
+    protected fun applyTransform(batch: Batch) {
         tempMat4.set(batch.transformMatrix)
         batch.transformMatrix = localToGlobalTransformMat4
     }
 
-    protected fun resetTransform(batch: SpriteBatch) {
+    protected fun resetTransform(batch: Batch) {
         batch.transformMatrix = tempMat4
     }
 

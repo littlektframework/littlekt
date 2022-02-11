@@ -1,33 +1,45 @@
 package com.lehaine.littlekt.graphics
 
 import com.lehaine.littlekt.Context
-import com.lehaine.littlekt.graphics.gl.BlendFactor
-import com.lehaine.littlekt.graphics.gl.DrawMode
-import com.lehaine.littlekt.graphics.gl.State
+import com.lehaine.littlekt.graphics.gl.*
 import com.lehaine.littlekt.graphics.shader.ShaderProgram
-import com.lehaine.littlekt.graphics.shader.shaders.DefaultFragmentShader
-import com.lehaine.littlekt.graphics.shader.shaders.DefaultVertexShader
+import com.lehaine.littlekt.graphics.shader.shaders.TextureArrayFragmentShader
+import com.lehaine.littlekt.graphics.shader.shaders.TextureArrayVertexShader
 import com.lehaine.littlekt.math.Mat4
 import com.lehaine.littlekt.math.geom.Angle
 import com.lehaine.littlekt.math.geom.cosine
 import com.lehaine.littlekt.math.geom.sine
-import kotlin.math.min
 
 /**
  * @author Colton Daily
- * @date 11/7/2021
+ * @date 2/8/2022
  */
-class SpriteBatch(
+class TextureArraySpriteBatch(
     val context: Context,
     val size: Int = 1000,
+    private val maxTextureSlots: Int,
+    private val maxTextureWidth: Int,
+    private val maxTextureHeight: Int,
+    private var textureArrayMagFilter: TexMagFilter = TexMagFilter.NEAREST,
+    private var textureArrayMinFilter: TexMinFilter = TexMinFilter.NEAREST
 ) : Batch {
     companion object {
-        private const val VERTEX_SIZE = 2 + 1 + 2
+        private const val VERTEX_SIZE = 2 + 1 + 2 + 1
         private const val SPRITE_SIZE = 4 * VERTEX_SIZE
     }
 
     private val gl get() = context.graphics.gl
-    val defaultShader = ShaderProgram(DefaultVertexShader(), DefaultFragmentShader()).also { it.prepare(context) }
+
+    override var color = Color.WHITE
+        set(value) {
+            if (field == value) return
+            field = value
+            colorBits = field.toFloatBits()
+        }
+    override var colorBits = color.toFloatBits()
+
+    val defaultShader =
+        ShaderProgram(TextureArrayVertexShader(), TextureArrayFragmentShader()).also { it.prepare(context) }
     override var shader: ShaderProgram<*, *> = defaultShader
         set(value) {
             if (drawing) {
@@ -46,7 +58,9 @@ class SpriteBatch(
     var maxSpritesInBatch = 0
         private set
 
-    private var drawing = false
+    private var currentTextureLFUSize = 0
+    private var currentTextureLFUSwaps = 0
+
     override var transformMatrix = Mat4()
         set(value) {
             if (drawing) {
@@ -76,25 +90,44 @@ class SpriteBatch(
         }
     private var combinedMatrix = Mat4()
 
-    private val mesh = textureMesh(context.gl) {
+    private val mesh = mesh(
+        context.gl,
+        listOf(
+            VertexAttribute.POSITION_2D, VertexAttribute.COLOR_PACKED, VertexAttribute.TEX_COORDS(0),
+            VertexAttribute(
+                usage = VertexAttrUsage.GENERIC,
+                numComponents = 1,
+                alias = "a_textureIndex"
+            )
+        )
+    ) {
         isStatic = false
         maxVertices = size * 4
     }.apply {
         indicesAsQuad()
     }
 
-    private var lastTexture: Texture? = null
+    private var drawing = false
+
     private var idx = 0
+
     private var invTexWidth = 0f
     private var invTexHeight = 0f
+    private val invMaxTexWidth = 1f / maxTextureWidth
+    private val invMaxTexHeight = 1f / maxTextureHeight
+    private var subImageScaleWidth = 0f
+    private var subImageScaleHeight = 0f
 
-    override var color = Color.WHITE
-        set(value) {
-            if (field == value) return
-            field = value
-            colorBits = field.toFloatBits()
-        }
-    override var colorBits = color.toFloatBits()
+    private val usedTextures = arrayOfNulls<Texture>(maxTextureSlots)
+
+    private var usedTexturesNextSwapSlot = 0
+
+    private val textureArrayHandle: GlTexture = initializeArrayTexture()
+    private val useMipMaps =
+        (textureArrayMagFilter.glFlag >= GL.NEAREST_MIPMAP_NEAREST && textureArrayMagFilter.glFlag <= GL.LINEAR_MIPMAP_LINEAR)
+                || (textureArrayMinFilter.glFlag >= GL.NEAREST_MIPMAP_NEAREST || textureArrayMinFilter.glFlag <= GL.LINEAR_MIPMAP_LINEAR)
+
+    private var mipMapsDirty: Boolean = false
 
     private var prevBlendSrcFunc = BlendFactor.SRC_ALPHA
     private var prevBlendDstFunc = BlendFactor.ONE_MINUS_SRC_ALPHA
@@ -105,13 +138,43 @@ class SpriteBatch(
     private var blendSrcFuncAlpha = prevBlendSrcFuncAlpha
     private var blendDstFuncAlpha = prevBlendDstFuncAlpha
 
+    private val copyFrameBuffer = FrameBuffer(maxTextureWidth, maxTextureHeight).also { it.prepare(context) }
+
+    private fun initializeArrayTexture(): GlTexture {
+        val texture = gl.createTexture()
+        gl.bindTexture(TextureTarget._2D_ARRAY, texture)
+        gl.texImage3D(
+            TextureTarget._2D_ARRAY,
+            0,
+            TextureFormat.RGBA,
+            TextureFormat.RGBA,
+            maxTextureWidth,
+            maxTextureHeight,
+            maxTextureSlots,
+            DataType.UNSIGNED_BYTE
+        )
+        gl.texParameteri(TextureTarget._2D_ARRAY, TexParameter.MAG_FILTER, textureArrayMagFilter.glFlag)
+        gl.texParameteri(TextureTarget._2D_ARRAY, TexParameter.MIN_FILTER, textureArrayMinFilter.glFlag)
+
+        gl.texParameteri(TextureTarget._2D_ARRAY, TexParameter.WRAP_S, TexWrap.REPEAT.glFlag)
+        gl.texParameteri(TextureTarget._2D_ARRAY, TexParameter.WRAP_T, TexWrap.REPEAT.glFlag)
+
+        gl.bindDefaultTexture(TextureTarget._2D_ARRAY)
+
+        mipMapsDirty = useMipMaps
+        return texture
+    }
+
     override fun begin(projectionMatrix: Mat4?) {
         if (drawing) {
             throw IllegalStateException("SpriteBatch.end must be called before begin.")
         }
         renderCalls = 0
+        currentTextureLFUSwaps = 0
 
         gl.depthMask(false)
+        gl.activeTexture(GL.TEXTURE0)
+        gl.bindTexture(TextureTarget._2D_ARRAY, textureArrayHandle)
 
         projectionMatrix?.let {
             this.projectionMatrix = it
@@ -140,11 +203,10 @@ class SpriteBatch(
         if (!drawing) {
             throw IllegalStateException("SpriteBatch.begin must be called before draw.")
         }
-        if (slice.texture != lastTexture) {
-            switchTexture(slice.texture)
-        } else if (idx == mesh.maxVertices) {
-            flush()
-        }
+
+        flushIfFull()
+
+        val ti = activateTexture(slice.texture).toFloat()
 
         var fx = -(originX - slice.offsetX)
         var fy = -(originY - slice.offsetY)
@@ -216,10 +278,10 @@ class SpriteBatch(
         x4 += x
         y4 += y
 
-        val u = if (flipX) slice.u2 else slice.u
-        val v = if (flipY) slice.v else slice.v2
-        val u2 = if (flipX) slice.u else slice.u2
-        val v2 = if (flipY) slice.v2 else slice.v
+        val u = (if (flipX) slice.u2 else slice.u) * subImageScaleWidth
+        val v = (if (flipY) slice.v else slice.v2) * subImageScaleHeight
+        val u2 = (if (flipX) slice.u else slice.u2) * subImageScaleWidth
+        val v2 = (if (flipY) slice.v2 else slice.v) * subImageScaleHeight
 
         mesh.run {
             setVertex { // bottom left
@@ -228,6 +290,7 @@ class SpriteBatch(
                 this.colorPacked = colorBits
                 this.u = u
                 this.v = if (slice.rotated) v2 else v
+                generic.add(ti)
             }
             setVertex { // top left
                 this.x = x2
@@ -235,6 +298,7 @@ class SpriteBatch(
                 this.colorPacked = colorBits
                 this.u = if (slice.rotated) u2 else u
                 this.v = v2
+                generic.add(ti)
             }
             setVertex { // top right
                 this.x = x3
@@ -249,6 +313,7 @@ class SpriteBatch(
                 this.colorPacked = colorBits
                 this.u = if (slice.rotated) u else u2
                 this.v = v
+                generic.add(ti)
             }
         }
 
@@ -277,11 +342,10 @@ class SpriteBatch(
         if (!drawing) {
             throw IllegalStateException("SpriteBatch.begin must be called before draw.")
         }
-        if (texture != lastTexture) {
-            switchTexture(texture)
-        } else if (idx == mesh.maxVertices) {
-            flush()
-        }
+
+        flushIfFull()
+
+        val ti = activateTexture(texture).toFloat()
 
         var fx = -originX
         var fy = -originY
@@ -375,6 +439,7 @@ class SpriteBatch(
                 this.colorPacked = colorBits
                 this.u = u
                 this.v = v
+                generic.add(ti)
             }
             setVertex { // top left
                 this.x = x2
@@ -382,6 +447,7 @@ class SpriteBatch(
                 this.colorPacked = colorBits
                 this.u = u
                 this.v = v2
+                generic.add(ti)
             }
             setVertex { // top right
                 this.x = x3
@@ -389,6 +455,7 @@ class SpriteBatch(
                 this.colorPacked = colorBits
                 this.u = u2
                 this.v = v2
+                generic.add(ti)
             }
             setVertex { // bottom right
                 this.x = x4
@@ -396,6 +463,7 @@ class SpriteBatch(
                 this.colorPacked = colorBits
                 this.u = u2
                 this.v = v
+                generic.add(ti)
             }
         }
 
@@ -406,32 +474,17 @@ class SpriteBatch(
         if (!drawing) {
             throw IllegalStateException("SpriteBatch.begin must be called before draw.")
         }
-        val verticesLength: Int = mesh.batcherVerticesLength
-        var remainingVertices = verticesLength
+        flushIfFull()
 
-        if (texture != lastTexture) {
-            switchTexture(texture)
-        } else {
-            remainingVertices -= idx
-            if (remainingVertices == 0) {
-                flush()
-                remainingVertices = verticesLength
-            }
-        }
+        val ti = activateTexture(texture).toFloat()
 
-        var copyCount = min(remainingVertices, count)
-        mesh.addVertices(spriteVertices, offset, idx, copyCount)
-        idx += copyCount
-
-        var remainingCount = count - copyCount
-        var currOffset = offset
-        while (remainingCount > 0) {
-            currOffset += copyCount
-            flush()
-            copyCount = min(verticesLength, remainingCount)
-            mesh.addVertices(spriteVertices, currOffset, 0, copyCount)
-            idx += copyCount
-            remainingCount -= copyCount
+        for (srcPos in 0 until count step VERTEX_SIZE - 1) {
+            mesh.addVertices(spriteVertices, srcPos, idx, VERTEX_SIZE - 1)
+            idx += VERTEX_SIZE - 3
+            mesh[idx++] *= subImageScaleWidth
+            mesh[idx++] *= subImageScaleHeight
+            mesh.add(ti)
+            idx++
         }
     }
 
@@ -442,10 +495,15 @@ class SpriteBatch(
         if (idx > 0) {
             flush()
         }
-        lastTexture = null
         drawing = false
         gl.depthMask(true)
         gl.disable(State.BLEND)
+    }
+
+    private fun flushIfFull() {
+        if (mesh.batcherVerticesLength - idx < SPRITE_SIZE / VERTEX_SIZE) {
+            flush()
+        }
     }
 
     override fun flush() {
@@ -459,11 +517,103 @@ class SpriteBatch(
             maxSpritesInBatch = spritesInBatch
         }
         val count = spritesInBatch * 6
-        lastTexture?.bind()
+
+        if (useMipMaps && mipMapsDirty) {
+            gl.generateMipmap(TextureTarget._2D_ARRAY)
+            mipMapsDirty = false
+        }
+
         gl.enable(State.BLEND)
         gl.blendFuncSeparate(blendSrcFunc, blendDstFunc, blendSrcFuncAlpha, blendDstFuncAlpha)
         mesh.render(shader, DrawMode.TRIANGLES, 0, count)
         idx = 0
+    }
+
+    /**
+     * Assigns space on the texture array, sets up texture scaling, and manages the LFU cache.
+     * @param texture the texture to get from or load into the cache
+     * @return the texture slot allocated for the specified texture
+     */
+    private fun activateTexture(texture: Texture): Int {
+        subImageScaleWidth = texture.width * invMaxTexWidth
+        subImageScaleHeight = texture.height * invMaxTexHeight
+
+        if (subImageScaleWidth > 1f || subImageScaleHeight > 1f) {
+            throw IllegalStateException("Texture ${texture.glTexture} is larger than the Array Texture: [${texture.width},${texture.height}] > [$maxTextureWidth,$maxTextureHeight]")
+        }
+
+        invTexWidth = subImageScaleWidth / texture.width
+        invTexHeight = subImageScaleHeight / texture.height
+
+        val textureSlot = findTextureCacheIndex(texture)
+        if (textureSlot >= 0) {
+            // We don't want to throw out a texture we just used
+            if (textureSlot == usedTexturesNextSwapSlot) {
+                usedTexturesNextSwapSlot = (usedTexturesNextSwapSlot + 1) % currentTextureLFUSize
+            }
+            return textureSlot
+        }
+        // If a free texture unit is available we just use it
+        // If not we have to flush and then throw out the least accessed one.
+        if (currentTextureLFUSize < maxTextureSlots) {
+            usedTextures[currentTextureLFUSize] = texture
+            copyTextureIntoArrayTexture(texture, currentTextureLFUSize)
+            currentTextureLFUSwaps++
+            return currentTextureLFUSize++
+        } else {
+            // We have to flush if there is something in the pipeline using this texture already,
+            // otherwise the texture index of previously rendered sprites gets invalidated
+            if (idx > 0) {
+                flush()
+            }
+            val slot = usedTexturesNextSwapSlot
+            usedTexturesNextSwapSlot = (usedTexturesNextSwapSlot + 1) % currentTextureLFUSize
+            usedTextures[slot] = texture
+            copyTextureIntoArrayTexture(texture, slot)
+
+            currentTextureLFUSwaps++
+            return slot
+        }
+    }
+
+    private fun findTextureCacheIndex(texture: Texture): Int {
+        val handle = texture.glTexture
+        for (i in 0 until currentTextureLFUSize) {
+            if (handle == usedTextures[i]?.glTexture) return i
+        }
+        return -1
+    }
+
+    /**
+     * Copies a texture into the texture array.
+     * @param texture the texture to copy
+     * @param slot the slot of the texture array to copy the texture to
+     */
+    private fun copyTextureIntoArrayTexture(texture: Texture, slot: Int) {
+        copyFrameBuffer.begin()
+        gl.frameBufferTexture2D(
+            GL.READ_FRAMEBUFFER,
+            FrameBufferRenderBufferAttachment.COLOR_ATTACHMENT(0),
+            texture.glTexture ?: error("Texture doesn't have a 'glTexture' handle!"),
+            0
+        )
+        gl.readBuffer(FrameBufferRenderBufferAttachment.COLOR_ATTACHMENT(0).glFlag)
+        gl.copyTexSubImage3D(
+            TextureTarget._2D_ARRAY,
+            0,
+            0,
+            0,
+            slot,
+            0,
+            0,
+            copyFrameBuffer.width,
+            copyFrameBuffer.height
+        )
+        copyFrameBuffer.end()
+
+        if (useMipMaps) {
+            mipMapsDirty = true
+        }
     }
 
     override fun setBlendFunction(src: BlendFactor, dst: BlendFactor) {
@@ -512,20 +662,15 @@ class SpriteBatch(
         }
     }
 
-    private fun switchTexture(texture: Texture) {
-        flush()
-        lastTexture = texture
-        invTexWidth = 1f / texture.width
-        invTexHeight = 1f / texture.height
-    }
-
     private fun setupMatrices() {
         combinedMatrix.set(projectionMatrix).mul(transformMatrix)
         shader.uProjTrans?.apply(shader, combinedMatrix)
-        shader.uTexture?.apply(shader)
     }
 
     override fun dispose() {
+        gl.bindDefaultTexture(TextureTarget._2D_ARRAY)
+        gl.deleteTexture(textureArrayHandle)
+        copyFrameBuffer.dispose()
         mesh.dispose()
         shader.dispose()
     }

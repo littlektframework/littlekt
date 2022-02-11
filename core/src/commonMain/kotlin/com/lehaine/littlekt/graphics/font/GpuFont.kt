@@ -203,7 +203,7 @@ class GpuFont(
     /**
      * Flushes the text mesh to be rendered.
      */
-    fun draw(batch: SpriteBatch) {
+    fun draw(batch: Batch) {
         atlases.forEach {
             if (it.uploaded) return@forEach
             it.texture.prepare(context)
@@ -219,7 +219,7 @@ class GpuFont(
      * Sets the specified [batch] to use this GPU fonts shader in order to render.
      * @param batch the batch to set the shader to
      */
-    fun useShaderWith(batch: SpriteBatch) {
+    fun useShaderWith(batch: Batch) {
         batch.shader = shader
     }
 

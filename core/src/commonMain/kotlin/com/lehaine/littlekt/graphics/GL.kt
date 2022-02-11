@@ -158,6 +158,15 @@ interface GL {
     fun deleteFrameBuffer(glFrameBuffer: GlFrameBuffer)
     fun deleteRenderBuffer(glRenderBuffer: GlRenderBuffer)
     fun frameBufferTexture2D(attachementType: FrameBufferRenderBufferAttachment, glTexture: GlTexture, level: Int)
+    fun frameBufferTexture2D(
+        target: Int,
+        attachementType: FrameBufferRenderBufferAttachment,
+        glTexture: GlTexture,
+        level: Int
+    )
+
+    fun readBuffer(mode: Int)
+
     fun checkFrameBufferStatus(): FrameBufferStatus
 
     fun createBuffer(): GlBuffer
@@ -224,6 +233,7 @@ interface GL {
     fun activeTexture(texture: Int)
     fun bindTexture(target: Int, glTexture: GlTexture)
     fun bindTexture(target: TextureTarget, glTexture: GlTexture) = bindTexture(target.glFlag, glTexture)
+    fun bindDefaultTexture(target: TextureTarget)
     fun deleteTexture(glTexture: GlTexture)
 
     fun compressedTexImage2D(
@@ -317,7 +327,6 @@ interface GL {
         height: Int,
     ) = copyTexSubImage2D(target.glFlag, level, xOffset, yOffset, x, y, width, height)
 
-
     fun texSubImage2D(
         target: Int,
         level: Int,
@@ -383,6 +392,183 @@ interface GL {
         type: DataType,
         source: ByteBuffer
     ) = texImage2D(target.glFlag, level, internalFormat.glFlag, format.glFlag, width, height, type.glFlag, source)
+
+
+    fun compressedTexImage3D(
+        target: Int,
+        level: Int,
+        internalFormat: Int,
+        width: Int,
+        height: Int,
+        depth:Int,
+        source: ByteBuffer?
+    )
+
+    fun compressedTexImage3D(
+        target: TextureTarget,
+        level: Int,
+        internalFormat: TextureFormat,
+        width: Int,
+        height: Int,
+        depth:Int,
+        source: ByteBuffer?
+    ) = compressedTexImage3D(
+        target.glFlag,
+        level,
+        internalFormat.glFlag,
+        width,
+        height,
+        depth,
+        source
+    )
+
+    fun compressedTexSubImage3D(
+        target: Int,
+        level: Int,
+        xOffset: Int,
+        yOffset: Int,
+        zOffset: Int,
+        width: Int,
+        height: Int,
+        depth:Int,
+        format: Int,
+        source: ByteBuffer
+    )
+
+    fun compressedTexSubImage3D(
+        target: TextureTarget,
+        level: Int,
+        xOffset: Int,
+        yOffset: Int,
+        zOffset: Int,
+        width: Int,
+        height: Int,
+        depth:Int,
+        format: TextureFormat,
+        source: ByteBuffer
+    ) = compressedTexSubImage3D(target.glFlag, level, xOffset, yOffset, zOffset, width, height, depth, format.glFlag, source)
+
+    fun copyTexSubImage3D(
+        target: Int,
+        level: Int,
+        xOffset: Int,
+        yOffset: Int,
+        zOffset: Int,
+        x: Int,
+        y: Int,
+        width: Int,
+        height: Int,
+    )
+
+    fun copyTexSubImage3D(
+        target: TextureTarget,
+        level: Int,
+        xOffset: Int,
+        yOffset: Int,
+        zOffset: Int,
+        x: Int,
+        y: Int,
+        width: Int,
+        height: Int,
+    ) = copyTexSubImage3D(target.glFlag, level, xOffset, yOffset, zOffset, x, y, width, height)
+
+
+    fun texSubImage3D(
+        target: Int,
+        level: Int,
+        xOffset: Int,
+        yOffset: Int,
+        zOffset: Int,
+        width: Int,
+        height: Int,
+        depth:Int,
+        format: Int,
+        type: Int,
+        source: ByteBuffer
+    )
+
+    fun texSubImage3D(
+        target: TextureTarget,
+        level: Int,
+        xOffset: Int,
+        yOffset: Int,
+        zOffset: Int,
+        width: Int,
+        height: Int,
+        depth:Int,
+        format: TextureFormat,
+        type: DataType,
+        source: ByteBuffer
+    ) = texSubImage3D(
+        target.glFlag,
+        level,
+        xOffset,
+        yOffset,
+        zOffset,
+        width,
+        height,
+        depth,
+        format.glFlag,
+        type.glFlag,
+        source
+    )
+
+    fun texImage3D(
+        target: Int,
+        level: Int,
+        internalFormat: Int,
+        format: Int,
+        width: Int,
+        height: Int,
+        depth: Int,
+        type: Int
+    )
+
+    fun texImage3D(
+        target: TextureTarget,
+        level: Int,
+        internalFormat: TextureFormat,
+        format: TextureFormat,
+        width: Int,
+        height: Int,
+        depth: Int,
+        type: DataType
+    ) = texImage3D(target.glFlag, level, internalFormat.glFlag, format.glFlag, width, height, depth, type.glFlag)
+
+    fun texImage3D(
+        target: Int,
+        level: Int,
+        internalFormat: Int,
+        format: Int,
+        width: Int,
+        height: Int,
+        depth: Int,
+        type: Int,
+        source: ByteBuffer
+    )
+
+    fun texImage3D(
+        target: TextureTarget,
+        level: Int,
+        internalFormat: TextureFormat,
+        format: TextureFormat,
+        width: Int,
+        height: Int,
+        depth: Int,
+        type: DataType,
+        source: ByteBuffer
+    ) = texImage3D(
+        target.glFlag,
+        level,
+        internalFormat.glFlag,
+        format.glFlag,
+        width,
+        height,
+        depth,
+        type.glFlag,
+        source
+    )
+
 
     fun texParameteri(target: Int, pname: Int, param: Int)
     fun texParameteri(target: TextureTarget, paramName: TexParameter, paramValue: Int) =

@@ -37,7 +37,7 @@ open class FontCache(val pages: Int = 1) {
      * @param batch the batch to draw with
      * @param textures the textures to use for drawing
      */
-    fun draw(batch: SpriteBatch, textures: List<Texture>) {
+    fun draw(batch: Batch, textures: List<Texture>) {
         pageVertices.forEachIndexed { index, vertices ->
             if (vertices.isNotEmpty()) {
                 batch.draw(textures[index], vertices.data, 0, vertices.size)

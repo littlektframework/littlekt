@@ -3,8 +3,8 @@ package com.lehaine.littlekt.graph.node
 import com.lehaine.littlekt.graph.SceneGraph
 import com.lehaine.littlekt.graph.node.annotation.SceneGraphDslMarker
 import com.lehaine.littlekt.graph.node.internal.NodeList
+import com.lehaine.littlekt.graphics.Batch
 import com.lehaine.littlekt.graphics.Camera
-import com.lehaine.littlekt.graphics.SpriteBatch
 import com.lehaine.littlekt.util.*
 import com.lehaine.littlekt.util.viewport.Viewport
 import kotlin.native.concurrent.ThreadLocal
@@ -188,7 +188,7 @@ open class Node : Comparable<Node> {
      * }
      * ```
      */
-    val onRender: DoubleSignal<SpriteBatch, Camera> = signal2v()
+    val onRender: DoubleSignal<Batch, Camera> = signal2v()
 
     /**
      * List of 'debugRender' callbacks called when [debugRender] is called. Add any additional callbacks directly to this list.
@@ -203,7 +203,7 @@ open class Node : Comparable<Node> {
      * }
      * ```
      */
-    val onDebugRender: SingleSignal<SpriteBatch> = signal1v()
+    val onDebugRender: SingleSignal<Batch> = signal1v()
 
     /**
      * List of 'update' callbacks called when [update] is called. Add any additional callbacks directly to this list.
@@ -284,7 +284,7 @@ open class Node : Comparable<Node> {
     /**
      * Internal rendering that needs to be done on the node that shouldn't be overridden. Calls [render] method.
      */
-    internal fun _render(batch: SpriteBatch, camera: Camera) {
+    internal fun _render(batch: Batch, camera: Camera) {
         render(batch, camera)
         onRender.emit(batch, camera)
         nodes.forEach {
@@ -295,7 +295,7 @@ open class Node : Comparable<Node> {
     /**
      * Internal debug render method. Calls the [debugRender] method.
      */
-    private fun _debugRender(batch: SpriteBatch) {
+    private fun _debugRender(batch: Batch) {
         debugRender(batch)
         onDebugRender.emit(batch)
         nodes.forEach {
@@ -423,17 +423,17 @@ open class Node : Comparable<Node> {
     open fun onPostEnterScene() {}
 
     /**
-     * The main render method. The [Camera] can be used for culling and the [SpriteBatch] instance to draw with.
+     * The main render method. The [Camera] can be used for culling and the [Batch] instance to draw with.
      * @param batch the batcher
      * @param camera the Camera2D node
      */
-    open fun render(batch: SpriteBatch, camera: Camera) {}
+    open fun render(batch: Batch, camera: Camera) {}
 
     /**
      * Draw any debug related items here.
      * @param batch the sprite batch to draw with
      */
-    open fun debugRender(batch: SpriteBatch) {}
+    open fun debugRender(batch: Batch) {}
 
     /**
      * Called when this [Node] is added to a [SceneGraph] after all pending [Node] changes are committed.
