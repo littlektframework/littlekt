@@ -16,7 +16,7 @@
 * update: `SpriteBatch` to use new interface.
 * update: all references to `SpriteBatch` with `Batch`.
 * add: New batch implementation called `TextureArraySpriteBatch` that uses texture arrays to render multiple textures as
-  a single draw call.
+  a single draw call (GL 3+).
 
 ### Bugs:
 
