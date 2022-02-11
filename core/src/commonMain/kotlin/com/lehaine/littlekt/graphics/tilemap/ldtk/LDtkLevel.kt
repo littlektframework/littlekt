@@ -1,7 +1,10 @@
 package com.lehaine.littlekt.graphics.tilemap.ldtk
 
 import com.lehaine.littlekt.file.ldtk.LevelBackgroundPosition
-import com.lehaine.littlekt.graphics.*
+import com.lehaine.littlekt.graphics.Batch
+import com.lehaine.littlekt.graphics.Camera
+import com.lehaine.littlekt.graphics.Texture
+import com.lehaine.littlekt.graphics.TextureSlice
 import com.lehaine.littlekt.math.Rect
 import com.lehaine.littlekt.math.geom.Angle
 import com.lehaine.littlekt.util.calculateViewBounds
@@ -67,7 +70,6 @@ class LDtkLevel(
         // need to render back to front - layers last in the list need to render first
         for (i in layers.size - 1 downTo 0) {
             layers[i].render(batch, viewBounds, x, y)
-
         }
     }
 

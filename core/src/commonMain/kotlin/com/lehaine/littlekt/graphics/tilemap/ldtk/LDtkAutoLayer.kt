@@ -29,8 +29,7 @@ open class LDtkAutoLayer(
         getCoordId(it.renderX / cellSize, it.renderY / cellSize)
     }
 
-
-    internal fun getAutoLayerLDtkTile(
+    private fun getAutoLayerLDtkTile(
         autoTile: AutoTile,
     ): LDtkTileset.LDtkTile? {
         if (autoTile.tileId < 0) {

@@ -14,6 +14,9 @@ import com.lehaine.littlekt.math.geom.sine
 import kotlin.math.min
 
 /**
+ * Draws batched quads using indices.
+ * @param context the context
+ * @param size the max number of sprites in a single batch. Max of 8191.
  * @author Colton Daily
  * @date 11/7/2021
  */
@@ -104,6 +107,11 @@ class SpriteBatch(
     private var blendDstFunc = prevBlendDstFunc
     private var blendSrcFuncAlpha = prevBlendSrcFuncAlpha
     private var blendDstFuncAlpha = prevBlendDstFuncAlpha
+
+    init {
+        // 32767 is max vertex index, so 32767 / 4 vertices per sprite = 8191 sprites max
+        check(size <= 8191) { "A batch must be 8191 sprites or fewer: $size" }
+    }
 
     override fun begin(projectionMatrix: Mat4?) {
         if (drawing) {

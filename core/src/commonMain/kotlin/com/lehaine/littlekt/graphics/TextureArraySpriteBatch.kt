@@ -11,6 +11,17 @@ import com.lehaine.littlekt.math.geom.cosine
 import com.lehaine.littlekt.math.geom.sine
 
 /**
+ * **Requires GLES 3.0!**
+ *
+ * Creates a new [TextureArraySpriteBatch] that is an optimized version of the [SpriteBatch] that maintains
+ * a texture-cache inside a [GL.TEXTURE_2D_ARRAY] to combine draw calls with different textures effectively.
+ * @param context the context
+ * @param size the max number of sprites in a single batch. Max of 8191.
+ * @param maxTextureSlots the expected number of textures to be in use.
+ * @param maxTextureWidth the width of the largest texture
+ * @param maxTextureHeight the height of the largest texture
+ * @param textureArrayMagFilter the mag filter to use for the texture array
+ * @param textureArrayMinFilter the min filter to use for the texture array
  * @author Colton Daily
  * @date 2/8/2022
  */

@@ -115,7 +115,7 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
 
     override suspend fun Context.start() {
         super.setSceneCallbacks(this)
-        val batch = SpriteBatch(context)
+        val batch = SpriteBatch(context, 5000)
         val pixelFontTexture = resourcesVfs["m5x7_16_0.png"].readTexture()
         val texture by assetProvider.load<Texture>(resourcesVfs["atlas.png"])
         val tiles: TextureAtlas = resourcesVfs["tiles.atlas.json"].readAtlas()
@@ -318,7 +318,6 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
         onRender { dt ->
             if (!assetProvider.fullyLoaded) {
                 assetProvider.update()
-                //       println("Loading: ${(assetProvider.percentage * 100.0).toString(1)}%")
                 return@onRender
             }
             gl.clear(ClearBufferMask.COLOR_BUFFER_BIT)
@@ -367,7 +366,7 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
             camera.update()
             boss.update(dt)
             batch.use(camera.viewProjection) {
-                //    ldtkWorld.render(it, camera)
+                ldtkWorld.render(it, camera)
                 it.draw(person, x, y, scaleX = 10f, scaleY = 10f)
                 slices.forEachIndexed { rowIdx, row ->
                     row.forEachIndexed { colIdx, slice ->
