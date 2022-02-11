@@ -3,7 +3,7 @@ import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
 
 plugins {
     kotlin("multiplatform")
-    kotlin("plugin.serialization") version "1.6.0"
+    kotlin("plugin.serialization")
     id("littlekt.convention.publication")
 }
 
@@ -39,28 +39,13 @@ kotlin {
             kotlinOptions.sourceMap = true
         }
     }
-    val hostOs = System.getProperty("os.name")
-    val isMingwX64 = hostOs.startsWith("Windows")
-//    val nativeTarget = when {
-//        hostOs == "Mac OS X" -> macosX64("native")
-//        hostOs == "Linux" -> linuxX64("native")
-//        isMingwX64 -> mingwX64("native")
-//        else -> throw GradleException("Host OS is not supported in Kotlin/Native.")
-//    }
-
-    val lwjglVersion: String by project
-    val mp3DecoderVersion: String by project
-    val kotlinCoroutinesVersion: String by project
-    val kotlinSerializationVersion: String by project
-    val atomicFuVersion: String by project
 
     sourceSets {
         val commonMain by getting {
             dependencies {
-
-                implementation("org.jetbrains.kotlinx:atomicfu:$atomicFuVersion")
-                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinCoroutinesVersion")
-                implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:$kotlinSerializationVersion")
+                implementation(libs.kotlinx.atomicfu)
+                implementation(libs.kotlinx.coroutines.core)
+                implementation(libs.kotlinx.serialization.json)
                 api(project(":tools"))
             }
         }
@@ -71,27 +56,42 @@ kotlin {
         }
         val jvmMain by getting {
             dependencies {
-                implementation("org.lwjgl:lwjgl:$lwjglVersion")
-                implementation("org.lwjgl:lwjgl:$lwjglVersion:natives-windows")
-                implementation("org.lwjgl:lwjgl:$lwjglVersion:natives-linux")
-                implementation("org.lwjgl:lwjgl:$lwjglVersion:natives-macos")
-                implementation("org.lwjgl:lwjgl-glfw:$lwjglVersion")
-                implementation("org.lwjgl:lwjgl-glfw:$lwjglVersion:natives-windows")
-                implementation("org.lwjgl:lwjgl-glfw:$lwjglVersion:natives-linux")
-                implementation("org.lwjgl:lwjgl-glfw:$lwjglVersion:natives-macos")
-                implementation("org.lwjgl:lwjgl-opengl:$lwjglVersion")
-                implementation("org.lwjgl:lwjgl-opengl:$lwjglVersion:natives-windows")
-                implementation("org.lwjgl:lwjgl-opengl:$lwjglVersion:natives-linux")
-                implementation("org.lwjgl:lwjgl-opengl:$lwjglVersion:natives-macos")
-                implementation("org.lwjgl:lwjgl-openal:$lwjglVersion")
-                implementation("org.lwjgl:lwjgl-openal:$lwjglVersion:natives-linux")
-                implementation("org.lwjgl:lwjgl-openal:$lwjglVersion:natives-linux-arm32")
-                implementation("org.lwjgl:lwjgl-openal:$lwjglVersion:natives-linux-arm64")
-                implementation("org.lwjgl:lwjgl-openal:$lwjglVersion:natives-macos")
-                implementation("org.lwjgl:lwjgl-openal:$lwjglVersion:natives-windows")
-                implementation("org.lwjgl:lwjgl-openal:$lwjglVersion:natives-windows-x86")
+                val lwjglModule = "${libs.lwjgl.asProvider().get().module}:${
+                    libs.lwjgl.asProvider().get().versionConstraint.requiredVersion
+                }"
+                val lwjglGlfwModule =
+                    "${libs.lwjgl.glfw.get().module}:${libs.lwjgl.glfw.get().versionConstraint.requiredVersion}"
+                val lwjglOpenGlModule = "${libs.lwjgl.opengl.get().module}:${
+                    libs.lwjgl.opengl.get().versionConstraint.requiredVersion
+                }"
+                val lwjglOpenAlModule = "${libs.lwjgl.openal.get().module}:${
+                    libs.lwjgl.openal.get().versionConstraint.requiredVersion
+                }"
+                implementation(libs.lwjgl)
+                implementation("$lwjglModule:natives-windows")
+                implementation("$lwjglModule:natives-linux")
+                implementation("$lwjglModule:natives-macos")
 
-                implementation("fr.delthas:javamp3:$mp3DecoderVersion")
+                implementation(libs.lwjgl.glfw)
+                implementation("$lwjglGlfwModule:natives-windows")
+                implementation("$lwjglGlfwModule:natives-linux")
+                implementation("$lwjglGlfwModule:natives-macos")
+
+
+                implementation(libs.lwjgl.opengl)
+                implementation("$lwjglOpenGlModule:natives-windows")
+                implementation("$lwjglOpenGlModule:natives-linux")
+                implementation("$lwjglOpenGlModule:natives-macos")
+
+                implementation(libs.lwjgl.openal)
+                implementation("$lwjglOpenAlModule:natives-windows")
+                implementation("$lwjglOpenAlModule:natives-windows-x86")
+                implementation("$lwjglOpenAlModule:natives-linux")
+                implementation("$lwjglOpenAlModule:natives-linux-arm32")
+                implementation("$lwjglOpenAlModule:natives-linux-arm64")
+                implementation("$lwjglOpenAlModule:natives-macos")
+
+                implementation(libs.mp3.decoder)
             }
         }
         val jvmTest by getting

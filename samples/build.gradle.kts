@@ -1,10 +1,9 @@
 import org.jetbrains.kotlin.gradle.plugin.KotlinJsCompilerType
 import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
 
-
 plugins {
     kotlin("multiplatform")
-    kotlin("plugin.serialization") version "1.6.0"
+    kotlin("plugin.serialization")
 }
 
 repositories {
@@ -73,13 +72,12 @@ kotlin {
             kotlinOptions.sourceMap = true
         }
     }
-    val kotlinCoroutinesVersion: String by project
 
     sourceSets {
         val commonMain by getting {
             dependencies {
                 implementation(project(":core"))
-                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinCoroutinesVersion")
+                implementation(libs.kotlinx.coroutines.core)
             }
         }
         val commonTest by getting {

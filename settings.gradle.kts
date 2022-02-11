@@ -11,3 +11,6 @@ include("core")
 include("tools")
 include("gradle-plugins:extensions:texturepacker")
 include("samples")
+
+
+enableFeaturePreview("VERSION_CATALOGS")
