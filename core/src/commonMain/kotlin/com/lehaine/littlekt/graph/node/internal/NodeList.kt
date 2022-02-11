@@ -2,6 +2,7 @@ package com.lehaine.littlekt.graph.node.internal
 
 import com.lehaine.littlekt.graph.node.Node
 import com.lehaine.littlekt.log.Logger
+import com.lehaine.littlekt.util.fastForEach
 import kotlin.reflect.KClass
 import kotlin.time.Duration
 
@@ -29,11 +30,6 @@ internal class NodeList {
     }
 
     fun remove(node: Node) {
-        if (nodesToAdd.contains(node)) {
-            nodesToAdd.remove(node)
-            return
-        }
-
         if (!nodesToRemove.add(node)) {
             logger.warn { "You are trying to remove an node (${node.name}) that you already removed." }
         }
@@ -54,7 +50,7 @@ internal class NodeList {
 
         updateLists()
 
-        nodes.forEach {
+        nodes.fastForEach {
             it.destroy()
         }
         nodes.clear()
@@ -65,7 +61,7 @@ internal class NodeList {
     }
 
     inline fun forEach(action: (Node) -> Unit) {
-        nodes.forEach(action)
+        nodes.fastForEach(action)
         nodesToAdd.forEach(action)
     }
 
@@ -93,7 +89,7 @@ internal class NodeList {
      * Should only be called once a frame.
      */
     fun update(dt: Duration) {
-        nodes.forEach {
+        nodes.fastForEach {
             if (it.enabled && (it.updateInterval == 1 || frameCount % it.updateInterval == 0)) {
                 it._update(dt)
             }
@@ -107,8 +103,9 @@ internal class NodeList {
             nodesToRemove = _tempNodeList
             _tempNodeList = temp
 
-            _tempNodeList.sorted().forEach {
+            _tempNodeList.sorted().fastForEach {
                 nodes.remove(it)
+                nodesToAdd.remove(it)
             }
 
             _tempNodeList.clear()
@@ -119,7 +116,7 @@ internal class NodeList {
             nodesToAdd = _tempNodeList
             _tempNodeList = temp
 
-            _tempNodeList.sorted().forEach {
+            _tempNodeList.sorted().fastForEach {
                 nodes.add(it)
             }
 
@@ -138,7 +135,7 @@ internal class NodeList {
 
     @Suppress("UNCHECKED_CAST")
     fun <T : Node> findFirstNodeOfType(type: KClass<T>): T? {
-        nodes.forEach {
+        nodes.fastForEach {
             if (type.isInstance(it)) {
                 return it as T
             }
@@ -154,7 +151,7 @@ internal class NodeList {
     }
 
     fun findNode(name: String): Node? {
-        nodes.forEach {
+        nodes.fastForEach {
             if (it.name == name) {
                 return it
             }
@@ -171,7 +168,7 @@ internal class NodeList {
 
     inline fun <reified T : Node> nodesOfType(): List<T> {
         val list = mutableListOf<T>()
-        nodes.forEach {
+        nodes.fastForEach {
             if (it is T) {
                 list.add(it)
             }
