@@ -4,6 +4,7 @@ import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
 plugins {
     kotlin("multiplatform")
     kotlin("plugin.serialization")
+    id("com.android.library")
     id("littlekt.convention.publication")
 }
 
@@ -12,6 +13,7 @@ repositories {
 }
 
 kotlin {
+    android()
     jvm {
         compilations.all {
             kotlinOptions.jvmTarget = "11"
@@ -97,6 +99,15 @@ kotlin {
         val jvmTest by getting
         val jsMain by getting
         val jsTest by getting
+        val androidMain by getting
+        val androidTest by getting
+
+        androidMain.dependsOn(commonMain)
+        jvmMain.dependsOn(commonMain)
+        jsMain.dependsOn(commonMain)
+        androidTest.dependsOn(commonTest)
+        jvmTest.dependsOn(commonTest)
+        jsTest.dependsOn(commonTest)
 
         all {
             languageSettings.apply {
@@ -105,5 +116,15 @@ kotlin {
                 optIn("kotlin.time.ExperimentalTime")
             }
         }
+    }
+}
+
+android {
+    sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
+    compileSdk = (findProperty("android.compileSdk") as String).toInt()
+
+    defaultConfig {
+        minSdk = (findProperty("android.minSdk") as String).toInt()
+        targetSdk = (findProperty("android.targetSdk") as String).toInt()
     }
 }
