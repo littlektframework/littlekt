@@ -2,6 +2,6 @@ package com.lehaine.littlekt.graphics.gl
 
 /**
  * @author Colton Daily
- * @date 11/20/2021
+ * @date 9/28/2021
  */
-actual class GlVertexArray
+actual class GlShaderProgram(val address: Int)

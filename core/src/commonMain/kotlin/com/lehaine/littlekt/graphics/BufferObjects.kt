@@ -43,7 +43,7 @@ class VertexBufferObject(val gl: GL, val isStatic: Boolean, numVertices: Int, va
             gl.bindVertexArray(it)
         }
         gl.bindBuffer(BufferTarget.ARRAY, glBuffer)
-        gl.bufferData(BufferTarget.ARRAY, DataSource.Float32BufferDataSource(buffer), usage)
+        gl.bufferData(BufferTarget.ARRAY, DataSource.FloatBufferDataSource(buffer), usage)
         gl.bindDefaultBuffer(GL.ARRAY_BUFFER)
         vaoGl?.let {
             gl.bindDefaultVertexArray()
@@ -73,7 +73,7 @@ class VertexBufferObject(val gl: GL, val isStatic: Boolean, numVertices: Int, va
         }
         gl.bindBuffer(BufferTarget.ARRAY, glBuffer)
         if (isDirty) {
-            gl.bufferSubData(BufferTarget.ARRAY, 0, DataSource.Float32BufferDataSource(buffer))
+            gl.bufferSubData(BufferTarget.ARRAY, 0, DataSource.FloatBufferDataSource(buffer))
             isDirty = false
         }
         if (shader != null) {
@@ -111,7 +111,7 @@ class VertexBufferObject(val gl: GL, val isStatic: Boolean, numVertices: Int, va
 
     private fun onBufferChanged() {
         if (bound) {
-            gl.bufferSubData(BufferTarget.ARRAY, 0, DataSource.Float32BufferDataSource(buffer))
+            gl.bufferSubData(BufferTarget.ARRAY, 0, DataSource.FloatBufferDataSource(buffer))
             isDirty = false
         }
     }
@@ -145,7 +145,7 @@ class IndexBufferObject(val gl: GL, maxIndices: Int, val isStatic: Boolean = tru
 
     private fun allocBuffer() {
         gl.bindBuffer(BufferTarget.ELEMENT_ARRAY, glBuffer)
-        gl.bufferData(BufferTarget.ELEMENT_ARRAY, DataSource.Uint16BufferDataSource(buffer), usage)
+        gl.bufferData(BufferTarget.ELEMENT_ARRAY, DataSource.ShortBufferDataSource(buffer), usage)
         gl.bindDefaultBuffer(BufferTarget.ELEMENT_ARRAY)
     }
 
@@ -169,7 +169,7 @@ class IndexBufferObject(val gl: GL, maxIndices: Int, val isStatic: Boolean = tru
     fun bind() {
         gl.bindBuffer(BufferTarget.ELEMENT_ARRAY, glBuffer)
         if (isDirty) {
-            gl.bufferSubData(BufferTarget.ELEMENT_ARRAY, 0, DataSource.Uint16BufferDataSource(buffer))
+            gl.bufferSubData(BufferTarget.ELEMENT_ARRAY, 0, DataSource.ShortBufferDataSource(buffer))
             isDirty = false
         }
         bound = true
@@ -182,7 +182,7 @@ class IndexBufferObject(val gl: GL, maxIndices: Int, val isStatic: Boolean = tru
 
     private fun onBufferChanged() {
         if (bound) {
-            gl.bufferSubData(BufferTarget.ELEMENT_ARRAY, 0, DataSource.Uint16BufferDataSource(buffer))
+            gl.bufferSubData(BufferTarget.ELEMENT_ARRAY, 0, DataSource.ShortBufferDataSource(buffer))
             isDirty = false
         }
     }

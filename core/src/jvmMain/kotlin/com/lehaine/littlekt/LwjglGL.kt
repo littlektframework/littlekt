@@ -322,7 +322,7 @@ class LwjglGL(private val engineStats: EngineStats) : GL {
 
     override fun deleteRenderBuffer(glRenderBuffer: GlRenderBuffer) {
         engineStats.calls++
-        EXTFramebufferObject.glDeleteFramebuffersEXT(glRenderBuffer.reference)
+        EXTFramebufferObject.glDeleteRenderbuffersEXT(glRenderBuffer.reference)
     }
 
     override fun frameBufferTexture2D(
@@ -381,22 +381,22 @@ class LwjglGL(private val engineStats: EngineStats) : GL {
         data.buffer.limit = data.buffer.capacity
         engineStats.bufferDeleted(lastBoundBuffer!!.bufferId)
         when (data) {
-            is DataSource.Float32BufferDataSource -> {
+            is DataSource.FloatBufferDataSource -> {
                 data.buffer as FloatBufferImpl
                 glBufferData(target, data.buffer.buffer, usage)
                 engineStats.bufferAllocated(lastBoundBuffer!!.bufferId, data.buffer.capacity * 4)
             }
-            is DataSource.Uint8BufferDataSource -> {
+            is DataSource.ByteBufferDataSource -> {
                 data.buffer as ShortBufferImpl
                 glBufferData(target, data.buffer.buffer, usage)
                 engineStats.bufferAllocated(lastBoundBuffer!!.bufferId, data.buffer.capacity)
             }
-            is DataSource.Uint16BufferDataSource -> {
+            is DataSource.ShortBufferDataSource -> {
                 data.buffer as ShortBufferImpl
                 glBufferData(target, data.buffer.buffer, usage)
                 engineStats.bufferAllocated(lastBoundBuffer!!.bufferId, data.buffer.capacity * 2)
             }
-            is DataSource.Uint32BufferDataSource -> {
+            is DataSource.IntBufferDataSource -> {
                 data.buffer as IntBufferImpl
                 glBufferData(target, data.buffer.buffer, usage)
                 engineStats.bufferAllocated(lastBoundBuffer!!.bufferId, data.buffer.capacity * 4)
@@ -414,19 +414,19 @@ class LwjglGL(private val engineStats: EngineStats) : GL {
         data.buffer.position = 0
         data.buffer.limit = data.buffer.capacity
         when (data) {
-            is DataSource.Float32BufferDataSource -> {
+            is DataSource.FloatBufferDataSource -> {
                 data.buffer as FloatBufferImpl
                 GL15.glBufferSubData(target, offset.toLong(), data.buffer.buffer)
             }
-            is DataSource.Uint8BufferDataSource -> {
+            is DataSource.ByteBufferDataSource -> {
                 data.buffer as ShortBufferImpl
                 GL15.glBufferSubData(target, offset.toLong(), data.buffer.buffer)
             }
-            is DataSource.Uint16BufferDataSource -> {
+            is DataSource.ShortBufferDataSource -> {
                 data.buffer as ShortBufferImpl
                 GL15.glBufferSubData(target, offset.toLong(), data.buffer.buffer)
             }
-            is DataSource.Uint32BufferDataSource -> {
+            is DataSource.IntBufferDataSource -> {
                 data.buffer as IntBufferImpl
                 GL15.glBufferSubData(target, offset.toLong(), data.buffer.buffer)
             }
