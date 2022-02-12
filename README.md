@@ -85,7 +85,7 @@ sourceSets {
 | -------- | :---------: | ------:
 | Desktop (JVM) | ✅ | Current version
 | Web (WebGL/2) | ✅ | Current version
-| Android | In progress | v0.2
+| Android | [In progress](https://github.com/littlektframework/littlekt/pull/92) | v0.2
 | iOS | Planned | v1.0
 | Desktop (Native) | -- | Long Term
 
