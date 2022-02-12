@@ -4,6 +4,7 @@ import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
 plugins {
     kotlin("multiplatform")
     kotlin("plugin.serialization")
+    id("com.android.application")
 }
 
 repositories {
@@ -13,6 +14,7 @@ repositories {
 
 
 kotlin {
+    android()
     jvm {
         compilations {
             val main by getting
@@ -101,6 +103,8 @@ kotlin {
         }
         val jsTest by getting
 
+        val androidMain by getting
+
         all {
             languageSettings.apply {
                 progressiveMode = true
@@ -112,5 +116,15 @@ kotlin {
                 optIn("kotlin.time.ExperimentalTime")
             }
         }
+    }
+}
+
+android {
+    sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
+    compileSdk = (findProperty("android.compileSdk") as String).toInt()
+
+    defaultConfig {
+        minSdk = (findProperty("android.minSdk") as String).toInt()
+        targetSdk = (findProperty("android.targetSdk") as String).toInt()
     }
 }
