@@ -13,6 +13,7 @@ import java.io.*
  * @date 2/12/2022
  */
 class AndroidVfs(
+    private val androidCtx: android.content.Context,
     private val sharedPreferences: SharedPreferences,
     context: Context,
     logger: Logger,
@@ -20,7 +21,7 @@ class AndroidVfs(
     assetsBaseDir: String
 ) : Vfs(context, logger, assetsBaseDir) {
 
-    private val storageDir = File(storageBaseDir)
+    private val storageDir = File(androidCtx.filesDir, storageBaseDir)
 
     override suspend fun loadRawAsset(rawRef: RawAssetRef): LoadedRawAsset {
         return if (rawRef.isLocal) {
@@ -84,12 +85,8 @@ class AndroidVfs(
     }
 
     private fun openLocalStream(assetPath: String): InputStream {
-        var inStream = ClassLoader.getSystemResourceAsStream(assetPath)
-        if (inStream == null) {
-            // if asset wasn't found in resources try to load it from file system
-            inStream = FileInputStream(assetPath)
-        }
-        return inStream
+        val path = if(assetPath.startsWith("./")) assetPath.substring(2) else assetPath
+        return androidCtx.assets.open(path)
     }
 
     override fun store(key: String, data: ByteArray): Boolean {
@@ -105,7 +102,7 @@ class AndroidVfs(
     }
 
     override fun store(key: String, data: String): Boolean {
-        //   keyValueStore[key] = data
+        sharedPreferences.edit().putString(key, data).apply()
         return true
     }
 
@@ -123,6 +120,6 @@ class AndroidVfs(
     }
 
     override fun loadString(key: String): String? {
-        TODO()
+        return sharedPreferences.getString(key, null)
     }
 }

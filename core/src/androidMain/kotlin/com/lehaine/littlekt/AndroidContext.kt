@@ -17,6 +17,7 @@ class AndroidContext(private val activity: Activity, override val configuration:
     override val logger: Logger = Logger(configuration.title)
     override val vfs: AndroidVfs =
         AndroidVfs(
+            activity,
             activity.getPreferences(android.content.Context.MODE_PRIVATE),
             this, logger, "./.storage", "."
         )

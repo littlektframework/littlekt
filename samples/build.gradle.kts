@@ -120,7 +120,10 @@ kotlin {
 }
 
 android {
-    sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
+    sourceSets["main"].apply {
+        manifest.srcFile("src/androidMain/AndroidManifest.xml")
+        assets.srcDirs("src/commonMain/resources")
+    }
     compileSdk = (findProperty("android.compileSdk") as String).toInt()
 
     defaultConfig {
