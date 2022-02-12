@@ -1,8 +1,10 @@
 package com.lehaine.littlekt
 
+import android.app.Activity
 import com.lehaine.littlekt.graphics.Color
 
 actual class LittleKtProps {
+    var activity: Activity? = null
     var title: String = "LitteKt"
     var vSync: Boolean = true
     var backgroundColor = Color.CLEAR
@@ -12,6 +14,7 @@ actual fun createLittleKtApp(action: LittleKtProps.() -> Unit): LittleKtApp {
     val props = LittleKtProps().apply(action)
     return LittleKtApp(
         AndroidContext(
+            props.activity ?: error("Ensure to set 'activity' in 'LittleKtProps' when creating an application!"),
             AndroidConfiguration(
                 props.title,
                 props.vSync,
@@ -27,6 +30,6 @@ actual fun createLittleKtApp(action: LittleKtProps.() -> Unit): LittleKtApp {
  */
 class AndroidConfiguration(
     override val title: String,
-    val vSync: Boolean,
-    val backgroundColor: Color
+    val vSync: Boolean = true,
+    val backgroundColor: Color = Color.CLEAR
 ) : ContextConfiguration()

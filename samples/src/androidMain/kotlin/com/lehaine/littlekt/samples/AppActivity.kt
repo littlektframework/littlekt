@@ -1,11 +1,21 @@
 package com.lehaine.littlekt.samples
 
-import android.app.Activity
+import com.lehaine.littlekt.Context
+import com.lehaine.littlekt.ContextListener
+import com.lehaine.littlekt.LittleKtActivity
+import com.lehaine.littlekt.LittleKtProps
 
 /**
  * @author Colton Daily
  * @date 2/11/2022
  */
-class AppActivity : Activity() {
+class AppActivity : LittleKtActivity() {
 
+    override fun LittleKtProps.configureLittleKt() {
+        activity = this@AppActivity
+    }
+
+    override fun createContextListener(context: Context): ContextListener {
+        return DisplayTest(context)
+    }
 }
