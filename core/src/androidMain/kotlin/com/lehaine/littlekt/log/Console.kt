@@ -1,22 +1,19 @@
 package com.lehaine.littlekt.log
 
-import java.text.SimpleDateFormat
+import android.util.Log
 
 actual object Console : BaseConsole() {
-    val dateFormat = SimpleDateFormat("HH:mm:ss.SSS")
-    override fun log(kind: Kind, vararg msg: Any?) {
-        val stream = if (kind == Kind.ERROR) System.err else System.out
-        stream.println(logToString(kind, *msg))
-    }
 
-    override fun logToString(kind: Kind, vararg msg: Any?): String = buildString {
-        val color = kind.color
-        if (color != null) appendFgColor(color)
-        synchronized(dateFormat) {
-            append("[${dateFormat.format(System.currentTimeMillis())}] - ")
+    override fun log(kind: Kind, vararg msg: Any?) {
+        val tag = "LittleKt"
+        val str = logToString(kind, *msg)
+        when (kind) {
+            Kind.ERROR -> Log.e(tag, str)
+            Kind.WARN -> Log.w(tag, str)
+            Kind.INFO -> Log.i(tag, str)
+            Kind.DEBUG -> Log.d(tag, str)
+            Kind.TRACE -> Log.v(tag, str)
+            Kind.LOG -> Log.i(tag, str)
         }
-        append("[Thread: ${Thread.currentThread().id}] - ")
-        msg.joinTo(this, ": ")
-        if (color != null) appendReset()
     }
 }
