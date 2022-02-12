@@ -102,8 +102,11 @@ kotlin {
         val androidMain by getting
         val androidTest by getting
 
-        androidMain.dependsOn(commonMain)
-        jvmMain.dependsOn(commonMain)
+        val jvmAndroidMain = maybeCreate("jvmAndroidMain")
+
+        jvmAndroidMain.dependsOn(commonMain)
+        androidMain.dependsOn(jvmAndroidMain)
+        jvmMain.dependsOn(jvmAndroidMain)
         jsMain.dependsOn(commonMain)
         androidTest.dependsOn(commonTest)
         jvmTest.dependsOn(commonTest)
