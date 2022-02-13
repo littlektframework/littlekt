@@ -1,6 +1,7 @@
 package com.lehaine.littlekt.file
 
 import android.content.SharedPreferences
+import android.content.res.AssetManager
 import com.lehaine.littlekt.Context
 import com.lehaine.littlekt.file.Base64.decodeFromBase64
 import com.lehaine.littlekt.log.Logger
@@ -13,7 +14,8 @@ import java.io.*
  * @date 2/12/2022
  */
 class AndroidVfs(
-    private val androidCtx: android.content.Context,
+    androidCtx: android.content.Context,
+    internal val assets: AssetManager,
     private val sharedPreferences: SharedPreferences,
     context: Context,
     logger: Logger,
@@ -85,8 +87,8 @@ class AndroidVfs(
     }
 
     private fun openLocalStream(assetPath: String): InputStream {
-        val path = if(assetPath.startsWith("./")) assetPath.substring(2) else assetPath
-        return androidCtx.assets.open(path)
+        val path = if (assetPath.startsWith("./")) assetPath.substring(2) else assetPath
+        return assets.open(path)
     }
 
     override fun store(key: String, data: ByteArray): Boolean {

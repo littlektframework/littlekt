@@ -5,6 +5,7 @@ import android.opengl.GLSurfaceView
 import com.lehaine.littlekt.async.KtScope
 import com.lehaine.littlekt.async.MainDispatcher
 import com.lehaine.littlekt.async.mainThread
+import com.lehaine.littlekt.audio.AndroidAudioContext
 import com.lehaine.littlekt.file.AndroidVfs
 import com.lehaine.littlekt.file.vfs.VfsFile
 import com.lehaine.littlekt.graphics.internal.InternalResources
@@ -16,6 +17,7 @@ import com.lehaine.littlekt.util.internal.now
 import kotlinx.coroutines.launch
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
+
 
 /**
  * @author Colton Daily
@@ -29,12 +31,14 @@ class AndroidContext(override val configuration: AndroidConfiguration) : Context
     override val vfs: AndroidVfs =
         AndroidVfs(
             configuration.activity,
+            configuration.activity.assets,
             configuration.activity.getPreferences(android.content.Context.MODE_PRIVATE),
             this, logger, "./.storage", "."
         )
     override val resourcesVfs: VfsFile get() = vfs.root
     override val storageVfs: VfsFile get() = VfsFile(vfs, "./.storage")
     override val platform: Platform = Platform.ANDROID
+    val audioContext: AndroidAudioContext = AndroidAudioContext(configuration.activity)
 
     init {
         KtScope.initiate()
