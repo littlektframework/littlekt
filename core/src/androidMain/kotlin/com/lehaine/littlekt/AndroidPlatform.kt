@@ -14,8 +14,8 @@ actual fun createLittleKtApp(action: LittleKtProps.() -> Unit): LittleKtApp {
     val props = LittleKtProps().apply(action)
     return LittleKtApp(
         AndroidContext(
-            props.activity ?: error("Ensure to set 'activity' in 'LittleKtProps' when creating an application!"),
             AndroidConfiguration(
+                props.activity ?: error("Ensure to set 'activity' in 'LittleKtProps' when creating an application!"),
                 props.title,
                 props.vSync,
                 props.backgroundColor
@@ -29,6 +29,7 @@ actual fun createLittleKtApp(action: LittleKtProps.() -> Unit): LittleKtApp {
  * @date 2/12/2022
  */
 class AndroidConfiguration(
+    val activity: Activity,
     override val title: String,
     val vSync: Boolean = true,
     val backgroundColor: Color = Color.CLEAR
