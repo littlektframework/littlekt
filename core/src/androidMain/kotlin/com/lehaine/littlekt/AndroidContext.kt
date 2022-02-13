@@ -1,11 +1,15 @@
 package com.lehaine.littlekt
 
 import android.graphics.Point
+import android.opengl.GLSurfaceView
 import com.lehaine.littlekt.async.KtScope
 import com.lehaine.littlekt.async.MainDispatcher
+import com.lehaine.littlekt.async.mainThread
 import com.lehaine.littlekt.file.AndroidVfs
 import com.lehaine.littlekt.file.vfs.VfsFile
+import com.lehaine.littlekt.graphics.internal.InternalResources
 import com.lehaine.littlekt.input.AndroidInput
+import com.lehaine.littlekt.internal.LittleKtSurfaceView
 import com.lehaine.littlekt.log.Logger
 import com.lehaine.littlekt.util.fastForEach
 import com.lehaine.littlekt.util.internal.now
@@ -32,13 +36,24 @@ class AndroidContext(override val configuration: AndroidConfiguration) : Context
     override val storageVfs: VfsFile get() = VfsFile(vfs, "./.storage")
     override val platform: Platform = Platform.ANDROID
 
+    init {
+        KtScope.initiate()
+        mainThread = Thread.currentThread()
+    }
+
     override fun start(build: (app: Context) -> ContextListener) {
         graphics.onCreate = {
-            val size = Point()
-            configuration.activity.windowManager.defaultDisplay.getSize(size)
-            val listener = build(this@AndroidContext)
-            listener.run {
-                KtScope.launch {
+            KtScope.launch {
+                InternalResources.createInstance(this@AndroidContext)
+                InternalResources.INSTANCE.load()
+
+                gl.clearColor(configuration.backgroundColor)
+
+                val size = Point()
+                configuration.activity.windowManager.defaultDisplay.getSize(size)
+
+                val listener = build(this@AndroidContext)
+                listener.run {
                     start()
                     resizeCalls.forEach {
                         it.invoke(size.x, size.y)
@@ -54,15 +69,16 @@ class AndroidContext(override val configuration: AndroidConfiguration) : Context
             }
         }
         graphics.onDrawFrame = {
+            calcFrameTimes(now().milliseconds)
+            MainDispatcher.INSTANCE.executePending(available)
             KtScope.launch {
-                calcFrameTimes(now().milliseconds)
-                MainDispatcher.INSTANCE.executePending(available)
                 update(dt)
             }
         }
 
         val surfaceView = LittleKtSurfaceView(configuration.activity).apply {
             setRenderer(graphics)
+            renderMode = GLSurfaceView.RENDERMODE_CONTINUOUSLY
         }
         configuration.activity.setContentView(surfaceView)
     }

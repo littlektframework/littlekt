@@ -33,11 +33,11 @@ class AndroidInput : Input, OnTouchListener, OnKeyListener, OnGenericMotionListe
     override val deltaY: Int
         get() = TODO("Not yet implemented")
     override val isTouching: Boolean
-        get() = TODO("Not yet implemented")
+        get() = inputCache.isTouching
     override val justTouched: Boolean
-        get() = TODO("Not yet implemented")
+        get() = inputCache.justTouched
     override val pressure: Float
-        get() = TODO("Not yet implemented")
+        get() = getPressure(Pointer.POINTER1)
     override val axisLeftX: Float
         get() = getGamepadJoystickXDistance(GameStick.LEFT)
     override val axisLeftY: Float
@@ -46,22 +46,6 @@ class AndroidInput : Input, OnTouchListener, OnKeyListener, OnGenericMotionListe
         get() = getGamepadJoystickXDistance(GameStick.RIGHT)
     override val axisRightY: Float
         get() = getGamepadJoystickYDistance(GameStick.RIGHT)
-
-    override fun getX(pointer: Pointer): Int {
-        TODO("Not yet implemented")
-    }
-
-    override fun getY(pointer: Pointer): Int {
-        TODO("Not yet implemented")
-    }
-
-    override fun getDeltaX(pointer: Pointer): Int {
-        TODO("Not yet implemented")
-    }
-
-    override fun getDeltaY(pointer: Pointer): Int {
-        TODO("Not yet implemented")
-    }
 
     override fun onTouch(v: View, event: MotionEvent): Boolean {
         for (i in 0 until event.pointerCount) {
@@ -94,52 +78,68 @@ class AndroidInput : Input, OnTouchListener, OnKeyListener, OnGenericMotionListe
         TODO("Not yet implemented")
     }
 
+    override fun getX(pointer: Pointer): Int {
+        return if (pointer == Pointer.POINTER1) x else 0
+    }
+
+    override fun getY(pointer: Pointer): Int {
+        return if (pointer == Pointer.POINTER1) y else 0
+    }
+
+    override fun getDeltaX(pointer: Pointer): Int {
+        return if (pointer == Pointer.POINTER1) deltaX else 0
+    }
+
+    override fun getDeltaY(pointer: Pointer): Int {
+        return if (pointer == Pointer.POINTER1) deltaY else 0
+    }
+
     override fun isTouched(pointer: Pointer): Boolean {
-        TODO("Not yet implemented")
+        return inputCache.isTouching(pointer)
     }
 
     override fun getPressure(pointer: Pointer): Float {
-        TODO("Not yet implemented")
+        return if (isTouched(pointer)) 1f else 0f
     }
 
     override fun isKeyJustPressed(key: Key): Boolean {
-        TODO("Not yet implemented")
+        return inputCache.isKeyJustPressed(key)
     }
 
     override fun isKeyPressed(key: Key): Boolean {
-        TODO("Not yet implemented")
+        return inputCache.isKeyPressed(key)
     }
 
     override fun isKeyJustReleased(key: Key): Boolean {
-        TODO("Not yet implemented")
+        return inputCache.isKeyJustReleased(key)
     }
 
     override fun isGamepadButtonJustPressed(button: GameButton, gamepad: Int): Boolean {
-        TODO("Not yet implemented")
+        return inputCache.isGamepadButtonJustPressed(button, gamepad)
     }
 
     override fun isGamepadButtonPressed(button: GameButton, gamepad: Int): Boolean {
-        TODO("Not yet implemented")
+        return inputCache.isGamepadButtonPressed(button, gamepad)
     }
 
     override fun isGamepadButtonJustReleased(button: GameButton, gamepad: Int): Boolean {
-        TODO("Not yet implemented")
+        return inputCache.isGamepadButtonJustReleased(button, gamepad)
     }
 
     override fun getGamepadButtonPressure(button: GameButton, gamepad: Int): Float {
-        TODO("Not yet implemented")
+        return if (connectedGamepads.isNotEmpty()) gamepads[gamepad][button] else 0f
     }
 
     override fun getGamepadJoystickDistance(stick: GameStick, gamepad: Int): Point {
-        TODO("Not yet implemented")
+        return if (connectedGamepads.isNotEmpty()) gamepads[gamepad][stick] else Point.ZERO
     }
 
     override fun getGamepadJoystickXDistance(stick: GameStick, gamepad: Int): Float {
-        TODO("Not yet implemented")
+        return if (connectedGamepads.isNotEmpty()) gamepads[gamepad].getX(stick) else 0f
     }
 
     override fun getGamepadJoystickYDistance(stick: GameStick, gamepad: Int): Float {
-        TODO("Not yet implemented")
+        return if (connectedGamepads.isNotEmpty()) gamepads[gamepad].getY(stick) else 0f
     }
 
     override fun setCursorPosition(x: Int, y: Int) {
@@ -147,14 +147,10 @@ class AndroidInput : Input, OnTouchListener, OnKeyListener, OnGenericMotionListe
     }
 
     override fun addInputProcessor(processor: InputProcessor) {
-        TODO("Not yet implemented")
+        _inputProcessors += processor
     }
 
     override fun removeInputProcessor(processor: InputProcessor) {
-        TODO("Not yet implemented")
-    }
-
-    companion object {
-        const val NUM_TOUCHES = 20
+        _inputProcessors -= processor
     }
 }

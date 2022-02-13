@@ -513,31 +513,31 @@ class AndroidGL(private val engineStats: EngineStats) : GL {
         engineStats.calls++
         val buffer = createFloatBuffer(19) as FloatBufferImpl
         data.toBuffer(buffer)
-        GLES20.glUniformMatrix3fv(uniformLocation.address, buffer.limit, transpose, buffer.buffer)
+        GLES20.glUniformMatrix3fv(uniformLocation.address, 1, transpose, buffer.buffer)
     }
 
     override fun uniformMatrix3fv(uniformLocation: UniformLocation, transpose: Boolean, data: FloatBuffer) {
         engineStats.calls++
         data as FloatBufferImpl
-        GLES20.glUniformMatrix3fv(uniformLocation.address, data.limit, transpose, data.buffer)
+        GLES20.glUniformMatrix3fv(uniformLocation.address, 1, transpose, data.buffer)
     }
 
     override fun uniformMatrix3fv(uniformLocation: UniformLocation, transpose: Boolean, data: Array<Float>) {
         engineStats.calls++
-        GLES20.glUniformMatrix3fv(uniformLocation.address, data.size, transpose, data.toFloatArray(), 0)
+        GLES20.glUniformMatrix3fv(uniformLocation.address, 1, transpose, data.toFloatArray(), 0)
     }
 
     override fun uniformMatrix4fv(uniformLocation: UniformLocation, transpose: Boolean, data: Mat4) {
         engineStats.calls++
         val buffer = createFloatBuffer(16) as FloatBufferImpl
         data.toBuffer(buffer)
-        GLES20.glUniformMatrix4fv(uniformLocation.address, buffer.limit, transpose, buffer.buffer)
+        GLES20.glUniformMatrix4fv(uniformLocation.address, 1, transpose, buffer.buffer)
     }
 
     override fun uniformMatrix4fv(uniformLocation: UniformLocation, transpose: Boolean, data: FloatBuffer) {
         engineStats.calls++
         data as FloatBufferImpl
-        GLES20.glUniformMatrix4fv(uniformLocation.address, data.limit, transpose, data.buffer)
+        GLES20.glUniformMatrix4fv(uniformLocation.address, 1, transpose, data.buffer)
     }
 
     override fun uniformMatrix4fv(uniformLocation: UniformLocation, transpose: Boolean, data: Array<Float>) {

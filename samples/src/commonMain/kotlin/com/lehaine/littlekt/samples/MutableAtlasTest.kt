@@ -22,7 +22,7 @@ class MutableAtlasTest(context: Context) : ContextListener(context) {
         val bossAttackAnim = atlas.getAnimation("bossAttack")
         val boss = AnimatedSprite(bossAttackAnim.firstFrame).apply {
             x = 450f
-            y = 250f
+            y = 350f
             scaleX = 2f
             scaleY = 2f
             playLooped(bossAttackAnim)
@@ -41,7 +41,7 @@ class MutableAtlasTest(context: Context) : ContextListener(context) {
             camera.update()
             boss.update(dt)
             batch.use(camera.viewProjection) {
-                it.draw(atlas["font"].slice, 5f, 5f)
+                it.draw(atlas["font"].slice, 450f, 150f, scaleX = 4f, scaleY = 4f)
                 boss.render(it)
             }
 

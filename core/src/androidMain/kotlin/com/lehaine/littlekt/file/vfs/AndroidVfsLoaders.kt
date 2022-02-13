@@ -1,8 +1,10 @@
 package com.lehaine.littlekt.file.vfs
 
+import android.graphics.BitmapFactory
 import com.lehaine.littlekt.async.onRenderingThread
 import com.lehaine.littlekt.audio.AudioClip
 import com.lehaine.littlekt.audio.AudioStream
+import com.lehaine.littlekt.file.ByteBufferImpl
 import com.lehaine.littlekt.file.createByteBuffer
 import com.lehaine.littlekt.graphics.Pixmap
 import com.lehaine.littlekt.graphics.Texture
@@ -41,7 +43,10 @@ actual suspend fun VfsFile.readPixmap(): Pixmap {
 }
 
 private fun readPixmap(bytes: ByteArray): Pixmap {
-    TODO("Implement me!")
+    val bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+    val buffer = createByteBuffer(bitmap.width * bitmap.height * 4) as ByteBufferImpl
+    bitmap.copyPixelsToBuffer(buffer.buffer)
+    return Pixmap(bitmap.width, bitmap.height, buffer)
 }
 
 /**

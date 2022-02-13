@@ -10,6 +10,7 @@
             android:name=".AppActivity"
             android:configChanges="orientation|screenSize|screenLayout|keyboardHidden"
             android:launchMode="singleInstance"
+            android:screenOrientation="landscape"
             android:windowSoftInputMode="adjustResize"
             android:exported="true">
             <intent-filter>
