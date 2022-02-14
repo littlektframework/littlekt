@@ -15,6 +15,8 @@ class AppActivity : LittleKtActivity() {
     override fun LittleKtProps.configureLittleKt() {
         activity = this@AppActivity
         backgroundColor = Color.DARK_GRAY
+        useImmersiveMode = false
+        showStatusBar = false
     }
 
     override fun createContextListener(context: Context): ContextListener {

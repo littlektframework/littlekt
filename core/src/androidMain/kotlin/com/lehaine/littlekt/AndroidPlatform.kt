@@ -6,8 +6,10 @@ import com.lehaine.littlekt.graphics.Color
 actual class LittleKtProps {
     var activity: Activity? = null
     var title: String = "LitteKt"
-    var vSync: Boolean = true
     var backgroundColor = Color.CLEAR
+    var showStatusBar = true
+    var useImmersiveMode = true
+    var useWakeLock = true
 }
 
 actual fun createLittleKtApp(action: LittleKtProps.() -> Unit): LittleKtApp {
@@ -17,8 +19,10 @@ actual fun createLittleKtApp(action: LittleKtProps.() -> Unit): LittleKtApp {
             AndroidConfiguration(
                 props.activity ?: error("Ensure to set 'activity' in 'LittleKtProps' when creating an application!"),
                 props.title,
-                props.vSync,
-                props.backgroundColor
+                props.backgroundColor,
+                props.showStatusBar,
+                props.useImmersiveMode,
+                props.useWakeLock
             )
         )
     )
@@ -31,6 +35,8 @@ actual fun createLittleKtApp(action: LittleKtProps.() -> Unit): LittleKtApp {
 class AndroidConfiguration(
     val activity: Activity,
     override val title: String,
-    val vSync: Boolean = true,
-    val backgroundColor: Color = Color.CLEAR
+    val backgroundColor: Color = Color.CLEAR,
+    val showStatusBar: Boolean = true,
+    val useImmersiveMode: Boolean = true,
+    val useWakeLock: Boolean = true
 ) : ContextConfiguration()

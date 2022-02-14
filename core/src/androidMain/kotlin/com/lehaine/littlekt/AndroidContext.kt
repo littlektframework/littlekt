@@ -2,6 +2,11 @@ package com.lehaine.littlekt
 
 import android.graphics.Point
 import android.opengl.GLSurfaceView
+import android.os.Build
+import android.view.View
+import android.view.WindowInsets
+import android.view.WindowInsetsController
+import android.view.WindowManager
 import com.lehaine.littlekt.async.KtScope
 import com.lehaine.littlekt.async.MainDispatcher
 import com.lehaine.littlekt.async.mainThread
@@ -43,9 +48,39 @@ class AndroidContext(override val configuration: AndroidConfiguration) : Context
     init {
         KtScope.initiate()
         mainThread = Thread.currentThread()
+        setupConfig()
+    }
+
+    private fun setupConfig() {
+        val activity = configuration.activity
+        val window = activity.window
+        if (!configuration.showStatusBar) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                window.setDecorFitsSystemWindows(false)
+                window.insetsController?.hide(WindowInsets.Type.statusBars())
+            } else {
+                window.decorView.systemUiVisibility = 0x1
+            }
+        }
+
+        if (configuration.useWakeLock) {
+            window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        }
+
+        if (configuration.useImmersiveMode) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                window.insetsController?.hide(WindowInsets.Type.navigationBars() or WindowInsets.Type.captionBar())
+            } else {
+                window.decorView.systemUiVisibility =
+                    (View.SYSTEM_UI_FLAG_LAYOUT_STABLE or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                            or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or View.SYSTEM_UI_FLAG_FULLSCREEN
+                            or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY)
+            }
+        }
     }
 
     fun resume() {
+        setupConfig()
         audioContext.resume()
         graphics.resume()
     }
