@@ -3,14 +3,15 @@ package com.lehaine.littlekt.input
 import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
-import android.view.View.*
+import android.view.View.OnKeyListener
+import android.view.View.OnTouchListener
 import com.lehaine.littlekt.math.geom.Point
 
 /**
  * @author Colton Daily
  * @date 2/12/2022
  */
-class AndroidInput : Input, OnTouchListener, OnKeyListener, OnGenericMotionListener {
+class AndroidInput : Input, OnTouchListener, OnKeyListener {
 
     private val inputCache = InputCache()
 
@@ -24,14 +25,19 @@ class AndroidInput : Input, OnTouchListener, OnKeyListener, OnGenericMotionListe
     override val connectedGamepads: List<GamepadInfo>
         get() = _connectedGamepads
 
+    private val touchX = IntArray(MAX_TOUCHES)
+    private val touchY = IntArray(MAX_TOUCHES)
+    private val touchDeltaX = IntArray(MAX_TOUCHES)
+    private val touchDeltaY = IntArray(MAX_TOUCHES)
+
     override val x: Int
-        get() = TODO("Not yet implemented")
+        get() = touchX[0]
     override val y: Int
-        get() = TODO("Not yet implemented")
+        get() = touchY[0]
     override val deltaX: Int
-        get() = TODO("Not yet implemented")
+        get() = touchDeltaX[0]
     override val deltaY: Int
-        get() = TODO("Not yet implemented")
+        get() = touchDeltaY[0]
     override val isTouching: Boolean
         get() = inputCache.isTouching
     override val justTouched: Boolean
@@ -66,6 +72,12 @@ class AndroidInput : Input, OnTouchListener, OnKeyListener, OnGenericMotionListe
                 inputCache.onTouchUp(event.getX(id), event.getY(id), pointer)
             }
             MotionEvent.ACTION_MOVE -> {
+                val x = event.getX(id)
+                val y = event.getY(id)
+                touchDeltaX[id] = (touchX[id] - x).toInt()
+                touchDeltaY[id] = (touchY[id] - y).toInt()
+                touchX[id] = x.toInt()
+                touchY[id] = y.toInt()
                 inputCache.onMove(event.getX(id), event.getY(id), pointer)
             }
         }
@@ -79,28 +91,29 @@ class AndroidInput : Input, OnTouchListener, OnKeyListener, OnGenericMotionListe
         inputCache.reset()
     }
 
-    override fun onKey(v: View?, keyCode: Int, event: KeyEvent?): Boolean {
-        TODO("Not yet implemented")
+    override fun onKey(v: View, keyCode: Int, event: KeyEvent): Boolean {
+        when (event.action) {
+            KeyEvent.ACTION_DOWN -> inputCache.onKeyDown(keyCode.getKey)
+            KeyEvent.ACTION_UP -> inputCache.onKeyUp(keyCode.getKey)
+        }
+        return true
     }
 
-    override fun onGenericMotion(v: View?, event: MotionEvent?): Boolean {
-        TODO("Not yet implemented")
-    }
 
     override fun getX(pointer: Pointer): Int {
-        return if (pointer == Pointer.POINTER1) x else 0
+        return if (pointer == Pointer.POINTER1) x else touchX[pointer.index]
     }
 
     override fun getY(pointer: Pointer): Int {
-        return if (pointer == Pointer.POINTER1) y else 0
+        return if (pointer == Pointer.POINTER1) y else touchY[pointer.index]
     }
 
     override fun getDeltaX(pointer: Pointer): Int {
-        return if (pointer == Pointer.POINTER1) deltaX else 0
+        return if (pointer == Pointer.POINTER1) deltaX else touchDeltaX[pointer.index]
     }
 
     override fun getDeltaY(pointer: Pointer): Int {
-        return if (pointer == Pointer.POINTER1) deltaY else 0
+        return if (pointer == Pointer.POINTER1) deltaY else touchDeltaY[pointer.index]
     }
 
     override fun isTouched(pointer: Pointer): Boolean {
@@ -161,5 +174,9 @@ class AndroidInput : Input, OnTouchListener, OnKeyListener, OnGenericMotionListe
 
     override fun removeInputProcessor(processor: InputProcessor) {
         _inputProcessors -= processor
+    }
+
+    companion object {
+        private const val MAX_TOUCHES = 20
     }
 }

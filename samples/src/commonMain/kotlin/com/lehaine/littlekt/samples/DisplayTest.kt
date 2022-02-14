@@ -300,6 +300,9 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
             boss.scaleY = 2f
         }
 
+        assetProvider.onFullyLoaded = {
+            scene.resize(graphics.width, graphics.height)
+        }
         input.inputProcessor {
             onTouchDown { screenX, screenY, pointer ->
                 logger.info { "pointer down at $screenX,$screenY: $pointer" }

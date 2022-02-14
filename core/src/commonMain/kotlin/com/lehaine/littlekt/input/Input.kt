@@ -10,6 +10,12 @@ import com.lehaine.littlekt.math.geom.Point
 enum class Pointer {
     POINTER1, POINTER2, POINTER3;
 
+    val index: Int
+        get() {
+            cache.forEachIndexed { i, pointer -> if (this == pointer) return i }
+            return -1
+        }
+
     companion object {
         val cache = values()
     }
