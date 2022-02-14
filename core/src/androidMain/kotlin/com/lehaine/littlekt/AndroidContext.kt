@@ -45,6 +45,16 @@ class AndroidContext(override val configuration: AndroidConfiguration) : Context
         mainThread = Thread.currentThread()
     }
 
+    fun resume() {
+        audioContext.resume()
+        graphics.resume()
+    }
+
+    fun pause() {
+        audioContext.pause()
+        graphics.pause()
+    }
+
     override fun start(build: (app: Context) -> ContextListener) {
         graphics.onCreate = {
             KtScope.launch {
@@ -83,12 +93,11 @@ class AndroidContext(override val configuration: AndroidConfiguration) : Context
         val surfaceView = LittleKtSurfaceView(configuration.activity).apply {
             setRenderer(graphics)
             renderMode = GLSurfaceView.RENDERMODE_CONTINUOUSLY
-        }
+        }.also { graphics.surfaceView }
         configuration.activity.setContentView(surfaceView)
     }
 
     private suspend fun update(dt: Duration) {
-        //     audioContext.update()
 
         stats.engineStats.resetPerFrameCounts()
 

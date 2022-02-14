@@ -1,5 +1,6 @@
 package com.lehaine.littlekt
 
+import android.opengl.GLSurfaceView
 import android.opengl.GLSurfaceView.Renderer
 import com.lehaine.littlekt.graphics.Cursor
 import com.lehaine.littlekt.graphics.GL
@@ -14,6 +15,8 @@ import javax.microedition.khronos.opengles.GL10
  */
 class AndroidGraphics(engineStats: EngineStats) : Graphics, Renderer {
     override val gl: AndroidGL = AndroidGL(engineStats)
+
+    internal var surfaceView: GLSurfaceView? = null
 
     internal var _width: Int = 0
     internal var _height: Int = 0
@@ -51,5 +54,13 @@ class AndroidGraphics(engineStats: EngineStats) : Graphics, Renderer {
 
     override fun onDrawFrame(gl: GL10) {
         onDrawFrame?.invoke()
+    }
+
+    fun resume() {
+        surfaceView?.onResume()
+    }
+
+    fun pause() {
+        surfaceView?.onPause()
     }
 }
