@@ -8,7 +8,7 @@ import kotlin.time.Duration
  * @author Colt Daily
  * @date 2/13/22
  */
-class AndroidAudioClip(val soundPool: SoundPool, val soundId: Int) : AudioClip {
+class AndroidAudioClip(private val soundPool: SoundPool, private val soundId: Int) : AudioClip {
 
     override var volume: Float = 1f
         set(value) {

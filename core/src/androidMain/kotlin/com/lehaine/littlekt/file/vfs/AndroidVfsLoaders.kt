@@ -2,14 +2,11 @@ package com.lehaine.littlekt.file.vfs
 
 import android.content.res.AssetFileDescriptor
 import android.graphics.BitmapFactory
-import android.media.AudioManager
 import android.media.SoundPool
 import android.util.Log
 import com.lehaine.littlekt.AndroidContext
 import com.lehaine.littlekt.async.onRenderingThread
-import com.lehaine.littlekt.audio.AndroidAudioClip
-import com.lehaine.littlekt.audio.AudioClip
-import com.lehaine.littlekt.audio.AudioStream
+import com.lehaine.littlekt.audio.*
 import com.lehaine.littlekt.file.AndroidVfs
 import com.lehaine.littlekt.file.ByteBufferImpl
 import com.lehaine.littlekt.file.createByteBuffer
@@ -18,6 +15,7 @@ import com.lehaine.littlekt.graphics.Texture
 import com.lehaine.littlekt.graphics.gl.PixmapTextureData
 import com.lehaine.littlekt.graphics.gl.TexMagFilter
 import com.lehaine.littlekt.graphics.gl.TexMinFilter
+import com.lehaine.littlekt.util.internal.lock
 import com.lehaine.littlekt.util.toString
 import java.io.File
 import java.io.FileOutputStream
@@ -57,12 +55,15 @@ private fun readPixmap(bytes: ByteArray): Pixmap {
     return Pixmap(bitmap.width, bitmap.height, buffer)
 }
 
+private val VfsFile.audioContext: AndroidAudioContext get() = (vfs.context as AndroidContext).audioContext
+private val VfsFile.soundPool: SoundPool get() = audioContext.soundPool
+
 /**
  * Loads audio from the path as an [AudioClip].
  * @return the loaded audio clip
  */
 actual suspend fun VfsFile.readAudioClip(): AudioClip {
-    val descriptor = assetFileDescriptor
+    val descriptor = createAssetFileDescriptor()
 
     Log.i("LittleKt", "Loaded $baseName (${(descriptor.length / 1024.0 / 1024.0).toString(2)} mb)")
     return AndroidAudioClip(
@@ -78,15 +79,14 @@ actual suspend fun VfsFile.readAudioClip(): AudioClip {
  * @return a new [AudioStream]
  */
 actual suspend fun VfsFile.readAudioStream(): AudioStream {
-    TODO("Implement Me!")
-}
-
-private suspend fun VfsFile.createAudioStreamMp3() {
-    TODO("Implement Me!")
-}
-
-private suspend fun VfsFile.createAudioStreamWav() {
-    TODO("Implement Me!")
+    val descriptor = createAssetFileDescriptor()
+    val player = audioContext.createMediaPlayer().apply {
+        setDataSource(descriptor.fileDescriptor, descriptor.startOffset, descriptor.length)
+    }
+    Log.i("LittleKt", "Loaded $baseName (${(descriptor.length / 1024.0 / 1024.0).toString(2)} mb)")
+    descriptor.close()
+    player.prepare()
+    return AndroidAudioStream(audioContext, player).also { lock(audioContext.streams) { audioContext.streams += it } }
 }
 
 actual suspend fun VfsFile.writePixmap(pixmap: Pixmap) {
@@ -120,11 +120,10 @@ actual suspend fun VfsFile.writePixmap(pixmap: Pixmap) {
     }.getOrThrow()
 }
 
-private val VfsFile.assetFileDescriptor: AssetFileDescriptor
-    get() = (vfs as AndroidVfs).assets.openFd(
-        path.removePrefix(
-            "./"
+private fun VfsFile.createAssetFileDescriptor(): AssetFileDescriptor =
+    (vfs as AndroidVfs).assets
+        .openFd(
+            path.removePrefix(
+                "./"
+            )
         )
-    )
-private val VfsFile.soundPool: SoundPool get() = (vfs.context as AndroidContext).audioContext.soundPool
-private val VfsFile.audioManager: AudioManager get() = (vfs.context as AndroidContext).audioContext.audioManager

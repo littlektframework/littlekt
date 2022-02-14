@@ -2,10 +2,13 @@ package com.lehaine.littlekt.audio
 
 import android.content.Context
 import android.media.AudioAttributes
-import android.media.AudioManager
 import android.media.MediaPlayer
 import android.media.SoundPool
 import com.lehaine.littlekt.Disposable
+import com.lehaine.littlekt.async.KtScope
+import com.lehaine.littlekt.util.fastForEach
+import com.lehaine.littlekt.util.internal.lock
+import kotlinx.coroutines.launch
 
 /**
  * @author Colt Daily
@@ -13,8 +16,9 @@ import com.lehaine.littlekt.Disposable
  */
 class AndroidAudioContext(private val androidCtx: Context) : Disposable {
 
-    val audioManager: AudioManager = androidCtx.getSystemService(Context.AUDIO_SERVICE) as AudioManager
-    val soundPool: SoundPool = SoundPool.Builder()
+    internal val streams = mutableListOf<AndroidAudioStream>()
+
+    internal val soundPool: SoundPool = SoundPool.Builder()
         .setAudioAttributes(
             AudioAttributes.Builder()
                 .setUsage(AudioAttributes.USAGE_GAME)
@@ -24,7 +28,7 @@ class AndroidAudioContext(private val androidCtx: Context) : Disposable {
         .setMaxStreams(16)
         .build()
 
-    private fun createMediaPlayer() = MediaPlayer().apply {
+    internal fun createMediaPlayer() = MediaPlayer().apply {
         setAudioAttributes(
             AudioAttributes.Builder()
                 .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
@@ -34,14 +38,45 @@ class AndroidAudioContext(private val androidCtx: Context) : Disposable {
     }
 
     fun resume() {
+        lock(streams) {
+            KtScope.launch {
+                streams.fastForEach {
+                    if (it.wasPlaying) {
+                        it.play()
+                    }
+                }
+            }
+        }
         soundPool.autoResume()
     }
 
     fun pause() {
+        lock(streams) {
+            streams.fastForEach {
+                if (it.playing) {
+                    it.pause()
+                    it.wasPlaying = true
+                } else {
+                    it.wasPlaying = false
+                }
+            }
+        }
         soundPool.autoPause()
     }
 
+
+    fun disposeStream(stream: AudioStream) {
+        lock(streams) {
+            streams.remove(stream)
+        }
+    }
+
     override fun dispose() {
+        lock(streams) {
+            streams.fastForEach {
+                it.dispose()
+            }
+        }
         soundPool.release()
     }
 }
