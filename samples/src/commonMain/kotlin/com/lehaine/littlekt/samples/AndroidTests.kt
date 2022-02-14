@@ -11,7 +11,7 @@ import com.lehaine.littlekt.graphics.*
 import com.lehaine.littlekt.graphics.gl.ClearBufferMask
 import com.lehaine.littlekt.input.Key
 import com.lehaine.littlekt.util.combine
-import com.lehaine.littlekt.util.viewport.ScreenViewport
+import com.lehaine.littlekt.util.viewport.ExtendViewport
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -26,8 +26,8 @@ class AndroidTests(context: Context) : ContextListener(context) {
         val atlas = resourcesVfs["tiles.atlas.json"].readAtlas().combine(fntTexture, "font", this)
         val bossAttackAnim = atlas.getAnimation("bossAttack")
         val boss = AnimatedSprite(bossAttackAnim.firstFrame).apply {
-            x = 450f
-            y = 350f
+            x = 150f
+            y = 150f
             scaleX = 2f
             scaleY = 2f
             playLooped(bossAttackAnim)
@@ -50,13 +50,14 @@ class AndroidTests(context: Context) : ContextListener(context) {
         }
 
         val camera = OrthographicCamera(graphics.width, graphics.height).apply {
-            viewport = ScreenViewport(graphics.width, graphics.height)
+            viewport = ExtendViewport(480, 270)
         }
         val batch = SpriteBatch(this)
 
         clip.play()
 
         onResize { width, height ->
+            println("$width,$height")
             camera.update(width, height, context)
         }
         onRender { dt ->
@@ -64,7 +65,7 @@ class AndroidTests(context: Context) : ContextListener(context) {
             camera.update()
             boss.update(dt)
             batch.use(camera.viewProjection) {
-                it.draw(atlas["font"].slice, 450f, 150f, scaleX = 4f, scaleY = 4f)
+                it.draw(atlas["font"].slice, 5f, 5f)
                 boss.render(it)
             }
 

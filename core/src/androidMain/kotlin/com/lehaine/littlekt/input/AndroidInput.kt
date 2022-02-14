@@ -52,6 +52,7 @@ class AndroidInput : Input, OnTouchListener, OnKeyListener, OnGenericMotionListe
             val id = event.getPointerId(i)
             val pointer = Pointer.cache[i]
             onTouch(pointer, id, event)
+            v.performClick()
         }
         return true
     }
@@ -68,6 +69,14 @@ class AndroidInput : Input, OnTouchListener, OnKeyListener, OnGenericMotionListe
                 inputCache.onMove(event.getX(id), event.getY(id), pointer)
             }
         }
+    }
+
+    fun update() {
+        inputCache.processEvents(inputProcessors)
+    }
+
+    fun reset() {
+        inputCache.reset()
     }
 
     override fun onKey(v: View?, keyCode: Int, event: KeyEvent?): Boolean {

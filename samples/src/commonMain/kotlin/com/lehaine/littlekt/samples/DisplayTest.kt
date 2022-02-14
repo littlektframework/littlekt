@@ -24,7 +24,7 @@ import com.lehaine.littlekt.input.InputMultiplexer
 import com.lehaine.littlekt.input.Key
 import com.lehaine.littlekt.log.Logger
 import com.lehaine.littlekt.util.MutableTextureAtlas
-import com.lehaine.littlekt.util.viewport.ScreenViewport
+import com.lehaine.littlekt.util.viewport.ExtendViewport
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -44,7 +44,7 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
     private var yVel = 0f
     private val controller = InputMultiplexer<GameInput>(input)
     val camera = OrthographicCamera(graphics.width, graphics.height).apply {
-        viewport = ScreenViewport(graphics.width, graphics.height)
+        viewport = ExtendViewport(960, 540)
     }
 
     val shader = createShader(SimpleColorVertexShader(), SimpleColorFragmentShader())
@@ -174,7 +174,7 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
         lateinit var progressBar: ProgressBar
 
         val scene by assetProvider.prepare {
-            sceneGraph(context, batch = batch) {
+            sceneGraph(context, viewport = ExtendViewport(960, 540), batch = batch) {
                 rootControl = control {
                     anchorRight = 1f
                     anchorBottom = 1f
@@ -301,6 +301,9 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
         }
 
         input.inputProcessor {
+            onTouchDown { screenX, screenY, pointer ->
+                logger.info { "pointer down at $screenX,$screenY: $pointer" }
+            }
             onKeyUp {
                 logger.info { "key up: $it" }
             }

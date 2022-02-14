@@ -14,10 +14,10 @@ import com.lehaine.littlekt.file.AndroidVfs
 import com.lehaine.littlekt.file.vfs.VfsFile
 import com.lehaine.littlekt.graphics.internal.InternalResources
 import com.lehaine.littlekt.input.AndroidInput
-import com.lehaine.littlekt.view.LittleKtSurfaceView
 import com.lehaine.littlekt.log.Logger
 import com.lehaine.littlekt.util.fastForEach
 import com.lehaine.littlekt.util.internal.now
+import com.lehaine.littlekt.view.LittleKtSurfaceView
 import kotlinx.coroutines.launch
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
@@ -76,6 +76,7 @@ class AndroidContext(override val configuration: AndroidConfiguration) : Context
                             or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY)
             }
         }
+
     }
 
     fun resume() {
@@ -127,7 +128,8 @@ class AndroidContext(override val configuration: AndroidConfiguration) : Context
         val surfaceView = LittleKtSurfaceView(configuration.activity).apply {
             setRenderer(graphics)
             renderMode = GLSurfaceView.RENDERMODE_CONTINUOUSLY
-        }.also { graphics.surfaceView }
+            setOnTouchListener(input)
+        }.also { graphics.surfaceView = it }
         configuration.activity.setContentView(surfaceView)
     }
 
@@ -135,14 +137,23 @@ class AndroidContext(override val configuration: AndroidConfiguration) : Context
 
         stats.engineStats.resetPerFrameCounts()
 
-        //   invokeAnyRunnable()
+        invokeAnyRunnable()
 
-        //input.update()
+        input.update()
         stats.update(dt)
         renderCalls.fastForEach { render -> render(dt) }
         postRenderCalls.fastForEach { postRender -> postRender(dt) }
 
-        //  input.reset()
+        input.reset()
+    }
+
+    private suspend fun invokeAnyRunnable() {
+        if (postRunnableCalls.isNotEmpty()) {
+            postRunnableCalls.fastForEach { postRunnable ->
+                postRunnable.invoke()
+            }
+            postRunnableCalls.clear()
+        }
     }
 
 
@@ -151,7 +162,10 @@ class AndroidContext(override val configuration: AndroidConfiguration) : Context
     }
 
     override fun destroy() {
-
+        KtScope.launch {
+            disposeCalls.fastForEach { dispose -> dispose() }
+            audioContext.dispose()
+        }
     }
 
 }
