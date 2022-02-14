@@ -310,8 +310,9 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
         }
 
         onResize { width, height ->
-            if (!assetProvider.fullyLoaded) return@onResize
+            println("resize $width,$height")
             camera.update(width, height, context)
+            if (!assetProvider.fullyLoaded) return@onResize
             scene.resize(width, height)
         }
 

@@ -55,12 +55,4 @@ class AndroidGraphics(engineStats: EngineStats) : Graphics, Renderer {
     override fun onDrawFrame(gl: GL10) {
         onDrawFrame?.invoke()
     }
-
-    fun resume() {
-        surfaceView?.onResume()
-    }
-
-    fun pause() {
-        surfaceView?.onPause()
-    }
 }

@@ -82,12 +82,10 @@ class AndroidContext(override val configuration: AndroidConfiguration) : Context
     fun resume() {
         setupConfig()
         audioContext.resume()
-        graphics.resume()
     }
 
     fun pause() {
         audioContext.pause()
-        graphics.pause()
     }
 
     override fun start(build: (app: Context) -> ContextListener) {
