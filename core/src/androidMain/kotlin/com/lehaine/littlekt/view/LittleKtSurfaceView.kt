@@ -1,4 +1,4 @@
-package com.lehaine.littlekt.internal
+package com.lehaine.littlekt.view
 
 import android.opengl.GLSurfaceView
 import android.util.Log
@@ -11,7 +11,7 @@ import javax.microedition.khronos.egl.EGLDisplay
  * @author Colton Daily
  * @date 2/12/2022
  */
-internal class LittleKtSurfaceView(context: android.content.Context) : GLSurfaceView(context) {
+class LittleKtSurfaceView(context: android.content.Context) : GLSurfaceView(context) {
 
     init {
         setEGLContextFactory(ContextFactory())

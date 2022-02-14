@@ -5,7 +5,6 @@ import android.opengl.GLSurfaceView
 import android.os.Build
 import android.view.View
 import android.view.WindowInsets
-import android.view.WindowInsetsController
 import android.view.WindowManager
 import com.lehaine.littlekt.async.KtScope
 import com.lehaine.littlekt.async.MainDispatcher
@@ -15,7 +14,7 @@ import com.lehaine.littlekt.file.AndroidVfs
 import com.lehaine.littlekt.file.vfs.VfsFile
 import com.lehaine.littlekt.graphics.internal.InternalResources
 import com.lehaine.littlekt.input.AndroidInput
-import com.lehaine.littlekt.internal.LittleKtSurfaceView
+import com.lehaine.littlekt.view.LittleKtSurfaceView
 import com.lehaine.littlekt.log.Logger
 import com.lehaine.littlekt.util.fastForEach
 import com.lehaine.littlekt.util.internal.now
