@@ -1,38 +1,50 @@
 package com.lehaine.littlekt.audio
 
-import android.media.AudioManager
 import android.media.SoundPool
+import com.lehaine.littlekt.util.datastructure.IntArrayList
 import kotlin.time.Duration
 
 /**
  * @author Colt Daily
  * @date 2/13/22
  */
-class AndroidAudioClip(val manager: AudioManager, val soundPool: SoundPool, val soundId: Int) : AudioClip {
+class AndroidAudioClip(val soundPool: SoundPool, val soundId: Int) : AudioClip {
 
-    override var volume: Float
-        get() = TODO("Not yet implemented")
-        set(value) {}
-    override val duration: Duration
-        get() = TODO("Not yet implemented")
+    override var volume: Float = 1f
+        set(value) {
+            field = value
+            streamIds.forEach {
+                soundPool.setVolume(it, value, value)
+            }
+        }
+
+    // we are not able to determine the duration of a clip using a [SoulPool]
+    override val duration: Duration = Duration.ZERO
+
+    private val streamIds = IntArrayList(8)
 
     override fun play(volume: Float, loop: Boolean) {
-        TODO("Not yet implemented")
+        if (streamIds.size == 8) streamIds.pop()
+        val streamId = soundPool.play(soundId, volume, volume, 1, if (loop) -1 else 0, 1f)
+        if (streamId == 0) return
+        streamIds.insertAt(0, streamId)
     }
 
     override fun stop() {
-        TODO("Not yet implemented")
+        streamIds.forEach {
+            soundPool.stop(it)
+        }
     }
 
     override fun resume() {
-        TODO("Not yet implemented")
+        soundPool.autoResume()
     }
 
     override fun pause() {
-        TODO("Not yet implemented")
+        soundPool.autoPause()
     }
 
     override fun dispose() {
-        TODO("Not yet implemented")
+        soundPool.unload(soundId)
     }
 }

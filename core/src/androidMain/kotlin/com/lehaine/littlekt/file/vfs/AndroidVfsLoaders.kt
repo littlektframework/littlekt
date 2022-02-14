@@ -4,6 +4,7 @@ import android.content.res.AssetFileDescriptor
 import android.graphics.BitmapFactory
 import android.media.AudioManager
 import android.media.SoundPool
+import android.util.Log
 import com.lehaine.littlekt.AndroidContext
 import com.lehaine.littlekt.async.onRenderingThread
 import com.lehaine.littlekt.audio.AndroidAudioClip
@@ -17,6 +18,7 @@ import com.lehaine.littlekt.graphics.Texture
 import com.lehaine.littlekt.graphics.gl.PixmapTextureData
 import com.lehaine.littlekt.graphics.gl.TexMagFilter
 import com.lehaine.littlekt.graphics.gl.TexMinFilter
+import com.lehaine.littlekt.util.toString
 import java.io.File
 import java.io.FileOutputStream
 
@@ -61,13 +63,14 @@ private fun readPixmap(bytes: ByteArray): Pixmap {
  */
 actual suspend fun VfsFile.readAudioClip(): AudioClip {
     val descriptor = assetFileDescriptor
-    val clip = AndroidAudioClip(
-        audioManager,
+
+    Log.i("LittleKt", "Loaded $baseName (${(descriptor.length / 1024.0 / 1024.0).toString(2)} mb)")
+    return AndroidAudioClip(
         soundPool,
         soundPool.load(descriptor, 1),
-    )
-    descriptor.close()
-    return clip
+    ).also {
+        descriptor.close()
+    }
 }
 
 /**
@@ -117,6 +120,11 @@ actual suspend fun VfsFile.writePixmap(pixmap: Pixmap) {
     }.getOrThrow()
 }
 
-private val VfsFile.assetFileDescriptor: AssetFileDescriptor get() = (vfs as AndroidVfs).assets.openFd(path)
+private val VfsFile.assetFileDescriptor: AssetFileDescriptor
+    get() = (vfs as AndroidVfs).assets.openFd(
+        path.removePrefix(
+            "./"
+        )
+    )
 private val VfsFile.soundPool: SoundPool get() = (vfs.context as AndroidContext).audioContext.soundPool
 private val VfsFile.audioManager: AudioManager get() = (vfs.context as AndroidContext).audioContext.audioManager
