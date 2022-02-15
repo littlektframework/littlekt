@@ -4,6 +4,7 @@
 
 ### New
 
+* add: Full **Android** support.
 * add: `MutableTextureAtlas` class to combine existing `TextureAtlas`, `Texture`, and `TextureSlice` types into a
   single `TextureAtlas`.
 * update:`vfsFile.readBitmapFont()` loader to allow passing in a list of existing `TextureSlice`, such as from
@@ -17,10 +18,17 @@
 * update: all references to `SpriteBatch` with `Batch`.
 * add: New batch implementation called `TextureArraySpriteBatch` that uses texture arrays to render multiple textures as
   a single draw call (GL 3+).
+* add: new helper methods for projecting / un-projecting coordinates on a `Camera`.
+* update: `GLVersion` to handle parsing version for **OpenGL ES**.
+* update: `Pointer` enum to support more than **3** pointers / touches (due to Android support).
+* update: `Pointer` with an `index` parameter for determine the actual index of the pointer / touch.
+* update: `Input` with new `vibrate()` and `cancelVibrate()` methods (Android support).
+* update `GLSLGenerator` to handle ES versions for mobile platforms.
 
 ### Bugs:
 
 * fix: remove clearing color buffer in `LwjglContext`.
+* fix: `PathInfo` to handle `./`.
 
 ### Upgrades:
 
