@@ -16,7 +16,7 @@ import com.lehaine.littlekt.math.Mat4
  */
 class GLVersion(
     val platform: Context.Platform,
-    version: String = "-1.-1",
+    version: String = "0.0",
     val vendor: String = "N/A",
     val renderer: String = "N/A"
 ) {
@@ -24,20 +24,23 @@ class GLVersion(
     val minor: Int
 
     init {
-        val split = if (platform == Context.Platform.DESKTOP) {
-            version.split(".")
+        val regex = ("(\\d(\\.\\d){0,2})").toRegex()
+        val matchResult = regex.find(version)
+        if (matchResult != null) {
+            val split = matchResult.value.split(".")
+            major = split[0].toInt()
+            minor = split[1].toInt()
         } else {
-            version.removePrefix("WebGL ").split(".")
+            major = 2
+            minor = 0
         }
-
-        major = split[0].toInt()
-        minor = split[0].toInt()
     }
 
     fun atleast(major: Int, minor: Int) = major >= this.major && minor >= this.minor
 
     override fun toString(): String {
-        return "GLVersion(platform=$platform, vendor='$vendor', renderer='$renderer', major=$major, minor=$minor)"
+        val extra = if(platform.isMobile || platform.isWebGl) " ES " else " "
+        return "OpenGL$extra$major.$minor ($vendor - $renderer)"
     }
 }
 
@@ -400,7 +403,7 @@ interface GL {
         internalFormat: Int,
         width: Int,
         height: Int,
-        depth:Int,
+        depth: Int,
         source: ByteBuffer?
     )
 
@@ -410,7 +413,7 @@ interface GL {
         internalFormat: TextureFormat,
         width: Int,
         height: Int,
-        depth:Int,
+        depth: Int,
         source: ByteBuffer?
     ) = compressedTexImage3D(
         target.glFlag,
@@ -430,7 +433,7 @@ interface GL {
         zOffset: Int,
         width: Int,
         height: Int,
-        depth:Int,
+        depth: Int,
         format: Int,
         source: ByteBuffer
     )
@@ -443,10 +446,21 @@ interface GL {
         zOffset: Int,
         width: Int,
         height: Int,
-        depth:Int,
+        depth: Int,
         format: TextureFormat,
         source: ByteBuffer
-    ) = compressedTexSubImage3D(target.glFlag, level, xOffset, yOffset, zOffset, width, height, depth, format.glFlag, source)
+    ) = compressedTexSubImage3D(
+        target.glFlag,
+        level,
+        xOffset,
+        yOffset,
+        zOffset,
+        width,
+        height,
+        depth,
+        format.glFlag,
+        source
+    )
 
     fun copyTexSubImage3D(
         target: Int,
@@ -481,7 +495,7 @@ interface GL {
         zOffset: Int,
         width: Int,
         height: Int,
-        depth:Int,
+        depth: Int,
         format: Int,
         type: Int,
         source: ByteBuffer
@@ -495,7 +509,7 @@ interface GL {
         zOffset: Int,
         width: Int,
         height: Int,
-        depth:Int,
+        depth: Int,
         format: TextureFormat,
         type: DataType,
         source: ByteBuffer

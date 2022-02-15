@@ -226,10 +226,9 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context() {
             calcFrameTimes(now().milliseconds)
             MainDispatcher.INSTANCE.executePending(available)
             update(dt)
-
         }
-        disposeCalls.fastForEach { dispose -> dispose() }
 
+        disposeCalls.fastForEach { dispose -> dispose() }
     }
 
     private suspend fun update(dt: Duration) {

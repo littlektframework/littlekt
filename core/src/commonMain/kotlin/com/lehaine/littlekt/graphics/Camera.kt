@@ -124,6 +124,7 @@ abstract class Camera {
     private var _maximumZoom = 3f
     private var _zoom = 1f
 
+    private val tempVec2 = MutableVec2f()
     private val tempVec3 = MutableVec3f()
     private val tempVec4 = MutableVec4f()
     private val ray = Ray()
@@ -275,6 +276,21 @@ abstract class Camera {
     fun project(world: Vec3f, result: MutableVec4f): MutableVec4f =
         viewProjection.transform(result.set(world.x, world.y, world.z, 1f))
 
+    fun projectScreen(world: Vec2f, context: Context): MutableVec2f {
+        val result = MutableVec2f()
+        projectScreen(world, context, result)
+        return result
+    }
+
+    fun projectScreen(x: Float, y: Float, context: Context): MutableVec2f {
+        val result = MutableVec2f()
+        projectScreen(tempVec2.set(x, y), context, result)
+        return result
+    }
+
+    fun projectScreen(x: Float, y: Float, context: Context, result: MutableVec2f) =
+        projectScreen(tempVec2.set(x, y), context, result)
+
     fun projectScreen(world: Vec2f, context: Context, result: MutableVec2f): Boolean {
         if (!project(world, result)) {
             return false
@@ -284,6 +300,22 @@ abstract class Camera {
 
         return true
     }
+
+    fun projectScreen(world: Vec3f, context: Context): MutableVec3f {
+        val result = MutableVec3f()
+        projectScreen(world, context, result)
+        return result
+    }
+
+    fun projectScreen(x: Float, y: Float, z: Float, context: Context): MutableVec3f {
+        val result = MutableVec3f()
+        projectScreen(tempVec3.set(x, y, z), context, result)
+        return result
+    }
+
+    fun projectScreen(x: Float, y: Float, z: Float, context: Context, result: MutableVec3f) =
+        projectScreen(tempVec3.set(x, y, z), context, result)
+
 
     fun projectScreen(world: Vec3f, context: Context, result: MutableVec3f): Boolean {
         if (!project(world, result)) {
@@ -296,6 +328,22 @@ abstract class Camera {
         return true
     }
 
+    fun unProjectScreen(screen: Vec2f, context: Context): MutableVec2f {
+        val result = MutableVec2f()
+        unProjectScreen(screen, context, result)
+        return result
+    }
+
+    fun unProjectScreen(x: Float, y: Float, context: Context): MutableVec2f {
+        val result = MutableVec2f()
+        unProjectScreen(tempVec2.set(x, y), context, result)
+        return result
+    }
+
+    fun unProjectScreen(x: Float, y: Float, context: Context, result: MutableVec2f) =
+        unProjectScreen(tempVec2.set(x, y), context, result)
+
+
     fun unProjectScreen(screen: Vec2f, context: Context, result: MutableVec2f): Boolean {
         val x = screen.x - viewport.x
         val y = (context.graphics.height - screen.y) - viewport.y
@@ -306,6 +354,22 @@ abstract class Camera {
         result.set(tempVec4.x * s, tempVec4.y * s)
         return true
     }
+
+    fun unProjectScreen(screen: Vec3f, context: Context): MutableVec3f {
+        val result = MutableVec3f()
+        unProjectScreen(screen, context, result)
+        return result
+    }
+
+    fun unProjectScreen(x: Float, y: Float, z: Float, context: Context): MutableVec3f {
+        val result = MutableVec3f()
+        unProjectScreen(tempVec3.set(x, y, z), context, result)
+        return result
+    }
+
+    fun unProjectScreen(x: Float, y: Float, z: Float, context: Context, result: MutableVec3f) =
+        unProjectScreen(tempVec3.set(x, y, z), context, result)
+
 
     fun unProjectScreen(screen: Vec3f, context: Context, result: MutableVec3f): Boolean {
         val x = screen.x - viewport.x

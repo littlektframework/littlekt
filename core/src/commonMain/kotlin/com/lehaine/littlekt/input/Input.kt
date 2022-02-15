@@ -2,13 +2,34 @@ package com.lehaine.littlekt.input
 
 import com.lehaine.littlekt.math.geom.MutablePoint
 import com.lehaine.littlekt.math.geom.Point
+import kotlin.time.Duration
 
 /**
  * @author Colton Daily
  * @date 11/6/2021
  */
-enum class Pointer {
-    POINTER1, POINTER2, POINTER3;
+enum class Pointer(val index: Int) {
+    // trust me, I know.
+    POINTER1(0),
+    POINTER2(1),
+    POINTER3(2),
+    POINTER4(3),
+    POINTER5(4),
+    POINTER6(5),
+    POINTER7(6),
+    POINTER8(7),
+    POINTER9(8),
+    POINTER10(9),
+    POINTER511(10),
+    POINTER512(11),
+    POINTER513(12),
+    POINTER514(13),
+    POINTER515(14),
+    POINTER516(15),
+    POINTER517(16),
+    POINTER518(17),
+    POINTER519(18),
+    POINTER520(19);
 
     companion object {
         val cache = values()
@@ -348,4 +369,14 @@ interface Input {
      * Remove a [InputProcessor] to from receiving input callbacks.
      */
     fun removeInputProcessor(processor: InputProcessor)
+
+    /**
+     * Vibrates for the given amount of time.
+     */
+    fun vibrate(duration: Duration) = Unit
+
+    /**
+     * Stops the vibrator.
+     */
+    fun cancelVibrate() = Unit
 }

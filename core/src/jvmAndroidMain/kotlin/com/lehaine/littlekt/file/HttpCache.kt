@@ -52,7 +52,7 @@ class HttpCache private constructor(private val cacheDir: File) {
         }
 
         fun File.walk(recv: (File) -> Unit) {
-            listFiles().forEach {
+            listFiles()?.forEach {
                 if (it.isDirectory) {
                     it.walk(recv)
                 } else {
@@ -189,7 +189,7 @@ class HttpCache private constructor(private val cacheDir: File) {
         }
 
         fun addLogger(logger: Logger?) {
-            this.logger = logger
+            Companion.logger = logger
         }
 
         fun loadHttpResource(url: String): File? {

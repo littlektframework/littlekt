@@ -411,22 +411,22 @@ class WebGL(val gl: WebGL2RenderingContext, val platform: Context.Platform, priv
         data.buffer.position = 0
         data.buffer.limit = data.buffer.capacity
         when (data) {
-            is DataSource.Float32BufferDataSource -> {
+            is DataSource.FloatBufferDataSource -> {
                 data.buffer as FloatBufferImpl
                 gl.bufferData(target, data.buffer.buffer, usage, 0, data.buffer.limit)
                 engineStats.bufferAllocated(lastBoundBuffer!!.bufferId, data.buffer.capacity * 4)
             }
-            is DataSource.Uint8BufferDataSource -> {
+            is DataSource.ByteBufferDataSource -> {
                 data.buffer as ByteBufferImpl
                 gl.bufferData(target, data.buffer.buffer, usage, 0, data.buffer.limit)
                 engineStats.bufferAllocated(lastBoundBuffer!!.bufferId, data.buffer.capacity)
             }
-            is DataSource.Uint16BufferDataSource -> {
+            is DataSource.ShortBufferDataSource -> {
                 data.buffer as ShortBufferImpl
                 gl.bufferData(target, data.buffer.buffer, usage, 0, data.buffer.limit)
                 engineStats.bufferAllocated(lastBoundBuffer!!.bufferId, data.buffer.capacity * 2)
             }
-            is DataSource.Uint32BufferDataSource -> {
+            is DataSource.IntBufferDataSource -> {
                 data.buffer as IntBufferImpl
                 gl.bufferData(target, data.buffer.buffer, usage, 0, data.buffer.limit)
                 engineStats.bufferAllocated(lastBoundBuffer!!.bufferId, data.buffer.capacity * 4)
@@ -443,19 +443,19 @@ class WebGL(val gl: WebGL2RenderingContext, val platform: Context.Platform, priv
         data.buffer.position = 0
         data.buffer.limit = data.buffer.capacity
         when (data) {
-            is DataSource.Float32BufferDataSource -> {
+            is DataSource.FloatBufferDataSource -> {
                 data.buffer as FloatBufferImpl
                 gl.bufferSubData(target, offset, data.buffer.buffer)
             }
-            is DataSource.Uint8BufferDataSource -> {
+            is DataSource.ByteBufferDataSource -> {
                 data.buffer as ByteBufferImpl
                 gl.bufferSubData(target, offset, data.buffer.buffer)
             }
-            is DataSource.Uint16BufferDataSource -> {
+            is DataSource.ShortBufferDataSource -> {
                 data.buffer as ShortBufferImpl
                 gl.bufferSubData(target, offset, data.buffer.buffer)
             }
-            is DataSource.Uint32BufferDataSource -> {
+            is DataSource.IntBufferDataSource -> {
                 data.buffer as IntBufferImpl
                 gl.bufferSubData(target, offset, data.buffer.buffer)
             }

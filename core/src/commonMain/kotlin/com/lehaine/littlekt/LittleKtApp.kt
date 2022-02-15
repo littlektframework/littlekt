@@ -19,4 +19,4 @@ class LittleKtApp(val context: Context) {
 
 expect class LittleKtProps
 
-expect fun createLittleKtApp(action: LittleKtProps.() -> Unit): LittleKtApp
+expect fun createLittleKtApp(action: LittleKtProps.() -> Unit = {}): LittleKtApp

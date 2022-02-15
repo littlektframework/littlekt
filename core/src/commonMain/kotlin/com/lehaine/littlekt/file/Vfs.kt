@@ -3,6 +3,7 @@ package com.lehaine.littlekt.file
 import com.lehaine.littlekt.Context
 import com.lehaine.littlekt.file.vfs.VfsFile
 import com.lehaine.littlekt.file.vfs.lightCombine
+import com.lehaine.littlekt.file.vfs.normalize
 import com.lehaine.littlekt.file.vfs.pathInfo
 import com.lehaine.littlekt.log.Logger
 import com.lehaine.littlekt.util.toString
@@ -122,7 +123,7 @@ abstract class Vfs(
         val ref = if (isHttpAsset(assetPath)) {
             RawAssetRef(assetPath, false)
         } else {
-            RawAssetRef("$baseDir/$assetPath", true)
+            RawAssetRef("$baseDir/$assetPath".pathInfo.normalize(), true)
         }
         val awaitedAsset = AwaitedAsset(ref)
         awaitedAssetsChannel.send(awaitedAsset)

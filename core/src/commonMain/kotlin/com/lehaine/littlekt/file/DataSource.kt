@@ -6,8 +6,8 @@ package com.lehaine.littlekt.file
  */
 sealed class DataSource(val buffer: Buffer) {
 
-    class Float32BufferDataSource(buffer: FloatBuffer) : DataSource(buffer)
-    class Uint8BufferDataSource(buffer: ByteBuffer) : DataSource(buffer)
-    class Uint16BufferDataSource(buffer: ShortBuffer) : DataSource(buffer)
-    class Uint32BufferDataSource(buffer: IntBuffer) : DataSource(buffer)
+    class FloatBufferDataSource(buffer: FloatBuffer) : DataSource(buffer)
+    class ByteBufferDataSource(buffer: ByteBuffer) : DataSource(buffer)
+    class ShortBufferDataSource(buffer: ShortBuffer) : DataSource(buffer)
+    class IntBufferDataSource(buffer: IntBuffer) : DataSource(buffer)
 }

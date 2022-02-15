@@ -62,3 +62,4 @@ libgdx-*.zip.MD5
 .httpCache
 
 *.base64
+local/
