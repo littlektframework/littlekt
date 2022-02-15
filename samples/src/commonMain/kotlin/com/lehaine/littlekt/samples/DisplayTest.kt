@@ -23,6 +23,7 @@ import com.lehaine.littlekt.input.GameButton
 import com.lehaine.littlekt.input.InputMultiplexer
 import com.lehaine.littlekt.input.Key
 import com.lehaine.littlekt.log.Logger
+import com.lehaine.littlekt.math.MutableVec2f
 import com.lehaine.littlekt.util.MutableTextureAtlas
 import com.lehaine.littlekt.util.viewport.ExtendViewport
 import kotlinx.coroutines.delay
@@ -308,8 +309,20 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
             scene.resize(graphics.width, graphics.height)
         }
         input.inputProcessor {
+            val temp = MutableVec2f()
             onTouchDown { screenX, screenY, pointer ->
                 logger.info { "pointer down at $screenX,$screenY: $pointer" }
+            }
+            onMouseMoved { screenX, screenY ->
+                camera.unProjectScreen(screenX, screenY, context, temp)
+                x = temp.x
+                y = temp.y
+            }
+
+            onTouchDragged { screenX, screenY, pointer ->
+                camera.unProjectScreen(screenX, screenY, context, temp)
+                x = temp.x
+                y = temp.y
             }
             onKeyUp {
                 logger.info { "key up: $it" }
@@ -378,7 +391,7 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
             boss.update(dt)
             batch.use(camera.viewProjection) {
                 ldtkWorld.render(it, camera)
-                it.draw(person, x, y, scaleX = 10f, scaleY = 10f)
+                it.draw(person, x, y, scaleX = 10f, scaleY = 10f, originX = person.width / 2f, originY = person.height / 2f)
                 slices.forEachIndexed { rowIdx, row ->
                     row.forEachIndexed { colIdx, slice ->
                         it.draw(slice, 150f * (rowIdx * row.size + colIdx) + 50f, 50f, scaleX = 10f, scaleY = 10f)
