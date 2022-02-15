@@ -108,7 +108,8 @@ abstract class GlslGenerator : GlslProvider {
         val glVersion = context.gl.version
         if (context.graphics.isGL30) {
             val version = when {
-                glVersion.platform == Context.Platform.WEBGL2 -> "300 es"
+                glVersion.platform == Context.Platform.WEBGL2
+                        || glVersion.major >= 3 && glVersion.platform.isMobile -> "300 es"
                 glVersion.major >= 3 && glVersion.minor >= 2 -> "150"
                 glVersion.major >= 3 && !glVersion.platform.isWebGl -> "130"
                 else -> throw IllegalStateException("${context.graphics.glVersion} isn't not considered at least GL 3.0+")
@@ -224,7 +225,8 @@ abstract class GlslGenerator : GlslProvider {
         val glVersion = context.graphics.glVersion
         if (context.graphics.isGL30) {
             val version = when {
-                glVersion.platform == Context.Platform.WEBGL2 -> "300 es"
+                glVersion.platform == Context.Platform.WEBGL2
+                        || glVersion.major >= 3 && glVersion.platform.isMobile -> "300 es"
                 glVersion.major >= 3 && glVersion.minor >= 2 -> "150"
                 glVersion.major >= 3 && !glVersion.platform.isWebGl -> "130"
                 else -> throw IllegalStateException("${context.graphics.glVersion} isn't not considered at least GL 3.0+")

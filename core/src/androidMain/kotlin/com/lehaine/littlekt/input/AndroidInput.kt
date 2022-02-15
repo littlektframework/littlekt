@@ -38,6 +38,7 @@ class AndroidInput(private val androidCtx: Context) : Input, OnTouchListener, On
     private val touchDeltaX = IntArray(MAX_TOUCHES)
     private val touchDeltaY = IntArray(MAX_TOUCHES)
     private val pressures = FloatArray(MAX_TOUCHES)
+    private val realId = IntArray(MAX_TOUCHES) { -1 }
 
     override val x: Int
         get() = touchX[0]
@@ -63,45 +64,65 @@ class AndroidInput(private val androidCtx: Context) : Input, OnTouchListener, On
         get() = getGamepadJoystickYDistance(GameStick.RIGHT)
 
     override fun onTouch(v: View, event: MotionEvent): Boolean {
-        for (i in 0 until event.pointerCount) {
-            val id = event.getPointerId(i)
-            val pointer = Pointer.cache[i]
-            onTouch(pointer, id, event)
-        }
-        if (event.action == MotionEvent.ACTION_CANCEL) {
-            for (i in 0 until MAX_TOUCHES) {
-                touchDeltaX[i] = 0
-                touchDeltaY[i] = 0
-                touchX[i] = 0
-                touchY[i] = 0
-                pressures[i] = 0f
-            }
-        }
-        v.performClick()
-        return true
-    }
+        var pointerIndex =
+            (event.action and MotionEvent.ACTION_POINTER_INDEX_MASK) shr MotionEvent.ACTION_POINTER_INDEX_SHIFT
+        var pointerId = event.getPointerId(pointerIndex)
 
-    private fun onTouch(pointer: Pointer, id: Int, event: MotionEvent) {
         when (event.action) {
             MotionEvent.ACTION_DOWN, MotionEvent.ACTION_POINTER_DOWN -> {
-                inputCache.onTouchDown(event.getX(id), event.getY(id), pointer)
-                pressures[id] = event.getPressure(id)
+                val actualIdx = getFreePointerIndex()
+                if (actualIdx >= MAX_TOUCHES) return false
+                val x = event.getX(pointerIndex)
+                val y = event.getY(pointerIndex)
+                realId[actualIdx] = pointerId
+                touchX[actualIdx] = x.toInt()
+                touchY[actualIdx] = y.toInt()
+                touchDeltaX[actualIdx] = 0
+                touchDeltaY[actualIdx] = 0
+                pressures[actualIdx] = event.getPressure(pointerIndex)
+                inputCache.onTouchDown(x, y, Pointer.cache[actualIdx])
             }
             MotionEvent.ACTION_UP, MotionEvent.ACTION_POINTER_UP, MotionEvent.ACTION_OUTSIDE -> {
-                inputCache.onTouchUp(event.getX(id), event.getY(id), pointer)
-                pressures[id] = 0f
+                val actualIdx = lookUpPointerIndex(pointerId)
+                if (actualIdx == -1 || actualIdx >= MAX_TOUCHES) return false
+                realId[actualIdx] = -1
+                val x = event.getX(pointerIndex)
+                val y = event.getY(pointerIndex)
+                touchX[actualIdx] = x.toInt()
+                touchY[actualIdx] = y.toInt()
+                touchDeltaX[actualIdx] = 0
+                touchDeltaY[actualIdx] = 0
+                pressures[actualIdx] = 0f
+                inputCache.onTouchUp(x, y, Pointer.cache[actualIdx])
             }
             MotionEvent.ACTION_MOVE -> {
-                val x = event.getX(id)
-                val y = event.getY(id)
-                touchDeltaX[id] = (touchX[id] - x).toInt()
-                touchDeltaY[id] = (touchY[id] - y).toInt()
-                touchX[id] = x.toInt()
-                touchY[id] = y.toInt()
-                inputCache.onMove(event.getX(id), event.getY(id), pointer)
-                pressures[id] = event.getPressure(id)
+                val pointerCount = event.pointerCount
+                for (i in 0 until pointerCount) {
+                    pointerIndex = i
+                    pointerId = event.getPointerId(pointerIndex)
+                    val actualIdx = lookUpPointerIndex(pointerId)
+                    if (actualIdx == -1 || actualIdx >= MAX_TOUCHES) continue
+                    val x = event.getX(pointerIndex)
+                    val y = event.getY(pointerIndex)
+                    touchDeltaX[actualIdx] = (x - touchX[actualIdx]).toInt()
+                    touchDeltaY[actualIdx] = (y - touchY[actualIdx]).toInt()
+                    touchX[actualIdx] = x.toInt()
+                    touchY[actualIdx] = y.toInt()
+                    pressures[actualIdx] = event.getPressure(pointerIndex)
+                    inputCache.onMove(x, y, Pointer.cache[actualIdx])
+                }
+            }
+            MotionEvent.ACTION_CANCEL -> {
+                for (i in 0 until MAX_TOUCHES) {
+                    touchDeltaX[i] = 0
+                    touchDeltaY[i] = 0
+                    touchX[i] = 0
+                    touchY[i] = 0
+                    pressures[i] = 0f
+                }
             }
         }
+        return true
     }
 
     override fun onKey(v: View, keyCode: Int, event: KeyEvent): Boolean {
@@ -123,6 +144,9 @@ class AndroidInput(private val androidCtx: Context) : Input, OnTouchListener, On
         inputCache.reset()
     }
 
+    private fun getFreePointerIndex() = realId.indexOfFirst { it == -1 }
+
+    private fun lookUpPointerIndex(pointerId: Int) = realId.firstOrNull { it == pointerId } ?: -1
 
     override fun getX(pointer: Pointer): Int {
         return if (pointer == Pointer.POINTER1) x else touchX[pointer.index]

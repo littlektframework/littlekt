@@ -56,7 +56,7 @@ class AndroidContext(override val configuration: AndroidConfiguration) : Context
         if (!configuration.showStatusBar) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                 window.setDecorFitsSystemWindows(false)
-                window.insetsController?.hide(WindowInsets.Type.statusBars())
+                window.decorView.windowInsetsController?.hide(WindowInsets.Type.statusBars())
             } else {
                 window.decorView.systemUiVisibility = 0x1
             }
@@ -67,8 +67,14 @@ class AndroidContext(override val configuration: AndroidConfiguration) : Context
         }
 
         if (configuration.useImmersiveMode) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                window.attributes.layoutInDisplayCutoutMode =
+                    WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
+            }
+
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                window.insetsController?.hide(WindowInsets.Type.navigationBars() or WindowInsets.Type.captionBar())
+                window.setDecorFitsSystemWindows(false)
+                window.decorView.windowInsetsController?.hide(WindowInsets.Type.systemBars())
             } else {
                 window.decorView.systemUiVisibility =
                     (View.SYSTEM_UI_FLAG_LAYOUT_STABLE or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
