@@ -65,7 +65,7 @@ private val VfsFile.soundPool: SoundPool get() = audioContext.soundPool
 actual suspend fun VfsFile.readAudioClip(): AudioClip {
     val descriptor = createAssetFileDescriptor()
 
-    Log.i("LittleKt", "Loaded $baseName (${(descriptor.length / 1024.0 / 1024.0).toString(2)} mb)")
+    vfs.logger.info { "Loaded $baseName (${(descriptor.length / 1024.0 / 1024.0).toString(2)} mb)" }
     return AndroidAudioClip(
         soundPool,
         soundPool.load(descriptor, 1),
@@ -83,7 +83,7 @@ actual suspend fun VfsFile.readAudioStream(): AudioStream {
     val player = audioContext.createMediaPlayer().apply {
         setDataSource(descriptor.fileDescriptor, descriptor.startOffset, descriptor.length)
     }
-    Log.i("LittleKt", "Loaded $baseName (${(descriptor.length / 1024.0 / 1024.0).toString(2)} mb)")
+    vfs.logger.info { "Loaded $baseName (${(descriptor.length / 1024.0 / 1024.0).toString(2)} mb)" }
     descriptor.close()
     player.prepare()
     return AndroidAudioStream(audioContext, player).also { lock(audioContext.streams) { audioContext.streams += it } }
