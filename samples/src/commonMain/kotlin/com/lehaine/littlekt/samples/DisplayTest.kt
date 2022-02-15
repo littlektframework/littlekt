@@ -27,6 +27,7 @@ import com.lehaine.littlekt.util.MutableTextureAtlas
 import com.lehaine.littlekt.util.viewport.ExtendViewport
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlin.time.Duration.Companion.milliseconds
 
 /**
  * @author Colton Daily
@@ -188,6 +189,7 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
                                 text = "Center Center"
                                 onPressed += {
                                     logger.info { "You pressed me!! I am at ${globalX},${globalY}" }
+                                    input.vibrate(100.milliseconds)
                                 }
                             }
                             button {
@@ -196,6 +198,7 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
                                 verticalAlign = VAlign.BOTTOM
                                 onPressed += {
                                     logger.info { "You pressed me!! I am at ${globalX},${globalY}" }
+                                    input.vibrate(200.milliseconds)
                                 }
                             }
                             button {
@@ -204,6 +207,7 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
                                 verticalAlign = VAlign.TOP
                                 onPressed += {
                                     logger.info { "You pressed me!! I am at ${globalX},${globalY}" }
+                                    input.vibrate(300.milliseconds)
                                 }
                             }
                         }

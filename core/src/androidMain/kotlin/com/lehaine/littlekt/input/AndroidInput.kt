@@ -1,17 +1,25 @@
 package com.lehaine.littlekt.input
 
+import android.annotation.SuppressLint
+import android.content.Context
+import android.os.Build
+import android.os.VibrationEffect
+import android.os.Vibrator
 import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
 import android.view.View.OnKeyListener
 import android.view.View.OnTouchListener
 import com.lehaine.littlekt.math.geom.Point
+import kotlin.time.Duration
 
 /**
  * @author Colton Daily
  * @date 2/12/2022
  */
-class AndroidInput : Input, OnTouchListener, OnKeyListener {
+class AndroidInput(private val androidCtx: Context) : Input, OnTouchListener, OnKeyListener {
+
+    private val vibrator = androidCtx.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
 
     private val inputCache = InputCache()
 
@@ -83,20 +91,23 @@ class AndroidInput : Input, OnTouchListener, OnKeyListener {
         }
     }
 
+    override fun onKey(v: View, keyCode: Int, event: KeyEvent): Boolean {
+        when (event.action) {
+            KeyEvent.ACTION_DOWN -> inputCache.onKeyDown(keyCode.getKey)
+            KeyEvent.ACTION_UP -> {
+                inputCache.onKeyUp(keyCode.getKey)
+                inputCache.onKeyType(keyCode.toChar())
+            }
+        }
+        return false
+    }
+
     fun update() {
         inputCache.processEvents(inputProcessors)
     }
 
     fun reset() {
         inputCache.reset()
-    }
-
-    override fun onKey(v: View, keyCode: Int, event: KeyEvent): Boolean {
-        when (event.action) {
-            KeyEvent.ACTION_DOWN -> inputCache.onKeyDown(keyCode.getKey)
-            KeyEvent.ACTION_UP -> inputCache.onKeyUp(keyCode.getKey)
-        }
-        return true
     }
 
 
@@ -164,9 +175,7 @@ class AndroidInput : Input, OnTouchListener, OnKeyListener {
         return if (connectedGamepads.isNotEmpty()) gamepads[gamepad].getY(stick) else 0f
     }
 
-    override fun setCursorPosition(x: Int, y: Int) {
-        TODO("Not yet implemented")
-    }
+    override fun setCursorPosition(x: Int, y: Int) = Unit
 
     override fun addInputProcessor(processor: InputProcessor) {
         _inputProcessors += processor
@@ -174,6 +183,25 @@ class AndroidInput : Input, OnTouchListener, OnKeyListener {
 
     override fun removeInputProcessor(processor: InputProcessor) {
         _inputProcessors -= processor
+    }
+
+    @SuppressLint("MissingPermission")
+    override fun vibrate(duration: Duration) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            vibrator.vibrate(
+                VibrationEffect.createOneShot(
+                    duration.inWholeMilliseconds,
+                    VibrationEffect.DEFAULT_AMPLITUDE
+                )
+            )
+        } else {
+            vibrator.vibrate(duration.inWholeMilliseconds)
+        }
+    }
+
+    @SuppressLint("MissingPermission")
+    override fun cancelVibrate() {
+        vibrator.cancel()
     }
 
     companion object {

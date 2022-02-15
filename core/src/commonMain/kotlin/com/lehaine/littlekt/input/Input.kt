@@ -2,6 +2,7 @@ package com.lehaine.littlekt.input
 
 import com.lehaine.littlekt.math.geom.MutablePoint
 import com.lehaine.littlekt.math.geom.Point
+import kotlin.time.Duration
 
 /**
  * @author Colton Daily
@@ -354,4 +355,14 @@ interface Input {
      * Remove a [InputProcessor] to from receiving input callbacks.
      */
     fun removeInputProcessor(processor: InputProcessor)
+
+    /**
+     * Vibrates for the given amount of time.
+     */
+    fun vibrate(duration: Duration) = Unit
+
+    /**
+     * Stops the vibrator.
+     */
+    fun cancelVibrate() = Unit
 }
