@@ -8,14 +8,28 @@ import kotlin.time.Duration
  * @author Colton Daily
  * @date 11/6/2021
  */
-enum class Pointer {
-    POINTER1, POINTER2, POINTER3;
-
-    val index: Int
-        get() {
-            cache.forEachIndexed { i, pointer -> if (this == pointer) return i }
-            return -1
-        }
+enum class Pointer(val index: Int) {
+    // trust me, I know.
+    POINTER1(0),
+    POINTER2(1),
+    POINTER3(2),
+    POINTER4(3),
+    POINTER5(4),
+    POINTER6(5),
+    POINTER7(6),
+    POINTER8(7),
+    POINTER9(8),
+    POINTER10(9),
+    POINTER511(10),
+    POINTER512(11),
+    POINTER513(12),
+    POINTER514(13),
+    POINTER515(14),
+    POINTER516(15),
+    POINTER517(16),
+    POINTER518(17),
+    POINTER519(18),
+    POINTER520(19);
 
     companion object {
         val cache = values()

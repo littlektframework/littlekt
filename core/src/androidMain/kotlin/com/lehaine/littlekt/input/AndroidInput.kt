@@ -37,6 +37,7 @@ class AndroidInput(private val androidCtx: Context) : Input, OnTouchListener, On
     private val touchY = IntArray(MAX_TOUCHES)
     private val touchDeltaX = IntArray(MAX_TOUCHES)
     private val touchDeltaY = IntArray(MAX_TOUCHES)
+    private val pressures = FloatArray(MAX_TOUCHES)
 
     override val x: Int
         get() = touchX[0]
@@ -66,8 +67,17 @@ class AndroidInput(private val androidCtx: Context) : Input, OnTouchListener, On
             val id = event.getPointerId(i)
             val pointer = Pointer.cache[i]
             onTouch(pointer, id, event)
-            v.performClick()
         }
+        if (event.action == MotionEvent.ACTION_CANCEL) {
+            for (i in 0 until MAX_TOUCHES) {
+                touchDeltaX[i] = 0
+                touchDeltaY[i] = 0
+                touchX[i] = 0
+                touchY[i] = 0
+                pressures[i] = 0f
+            }
+        }
+        v.performClick()
         return true
     }
 
@@ -75,9 +85,11 @@ class AndroidInput(private val androidCtx: Context) : Input, OnTouchListener, On
         when (event.action) {
             MotionEvent.ACTION_DOWN, MotionEvent.ACTION_POINTER_DOWN -> {
                 inputCache.onTouchDown(event.getX(id), event.getY(id), pointer)
+                pressures[id] = event.getPressure(id)
             }
             MotionEvent.ACTION_UP, MotionEvent.ACTION_POINTER_UP, MotionEvent.ACTION_OUTSIDE -> {
                 inputCache.onTouchUp(event.getX(id), event.getY(id), pointer)
+                pressures[id] = 0f
             }
             MotionEvent.ACTION_MOVE -> {
                 val x = event.getX(id)
@@ -87,6 +99,7 @@ class AndroidInput(private val androidCtx: Context) : Input, OnTouchListener, On
                 touchX[id] = x.toInt()
                 touchY[id] = y.toInt()
                 inputCache.onMove(event.getX(id), event.getY(id), pointer)
+                pressures[id] = event.getPressure(id)
             }
         }
     }
@@ -132,7 +145,7 @@ class AndroidInput(private val androidCtx: Context) : Input, OnTouchListener, On
     }
 
     override fun getPressure(pointer: Pointer): Float {
-        return if (isTouched(pointer)) 1f else 0f
+        return if (isTouched(pointer)) pressures[pointer.index] else 0f
     }
 
     override fun isKeyJustPressed(key: Key): Boolean {
@@ -205,6 +218,6 @@ class AndroidInput(private val androidCtx: Context) : Input, OnTouchListener, On
     }
 
     companion object {
-        private const val MAX_TOUCHES = 20
+        private val MAX_TOUCHES = Pointer.cache.size
     }
 }
