@@ -4,6 +4,8 @@ import com.lehaine.littlekt.graph.node.component.HAlign
 import com.lehaine.littlekt.graphics.Color
 import com.lehaine.littlekt.graphics.abgr
 import com.lehaine.littlekt.util.datastructure.FloatArrayList
+import com.lehaine.littlekt.util.datastructure.Pool
+import com.lehaine.littlekt.util.truncate
 import kotlin.math.abs
 import kotlin.math.max
 
@@ -25,6 +27,32 @@ class GlyphLayout {
     var height: Float = 0f
         private set
 
+    private val glyphRunPool = Pool(
+        reset = {
+            it.x = 0f
+            it.y = 0f
+            it.glyphs.clear()
+            it.width = 0f
+            it.color = Color.WHITE
+            it.advances.clear()
+        },
+    ) {
+        GlyphRun()
+    }
+
+    /**
+     * Calculates the glyphs position and size.
+     * @param font the font to use in the setting the text
+     * @param text the character sequence of text
+     * @param color the default color to use for the text
+     * @param width the width to use for alignment, line wrapping, and truncation. May be zero if those features are not used.
+     * @param scaleX the x-scale of the text
+     * @param scaleY the y-scale of the text
+     * @param wrap whether to wrap the text or not. Requires [width] to be set.
+     * @param truncate if not null and the width of the glyphs exceed [width], the glyphs are truncated with the glyphs
+     * of the specified truncate string. Truncate should not be used with text that contains multiple lines. Wrap is
+     * ignored if truncate is not null.
+     */
     fun setText(
         font: Font,
         text: CharSequence,
@@ -67,11 +95,11 @@ class GlyphLayout {
                 if (!newLine && !lastRun) return@forEachIndexed
 
                 run runEnded@{
-                    val run = GlyphRun().apply {
+                    val run = glyphRunPool.alloc().apply {
                         this.x = 0f
                         this.y = y
                         getGlyphsFrom(font, text, scaleX, runStart, runEnd, null)
-                    } // TODO alloc and free from a pool instead
+                    }
                     glyphCount += run.glyphs.size
 
                     if (nextColor != currentColor) {// TODO implement a markup
@@ -84,10 +112,14 @@ class GlyphLayout {
                         currentColor = nextColor
                     }
 
-                    if (currentRun == null) {
+                    if (run.glyphs.isEmpty()) {
+                        glyphRunPool.free(run)
+                        if (currentRun == null) return@runEnded
+                    } else if (currentRun == null) {
                         currentRun = run.also { _runs += it }
                     } else {
                         currentRun?.append(run)
+                        glyphRunPool.free(run)
                     }
 
                     if (newLine || lastRun) {
@@ -107,8 +139,8 @@ class GlyphLayout {
                                 }
 
                                 if (truncate != null) {
-                                    TODO("Truncate not yet implemented")
-                                    // return@outer
+                                    truncate(font, cr, scaleX, width, truncate)
+                                    return@outer
                                 }
 
                                 // wrap
@@ -152,7 +184,51 @@ class GlyphLayout {
         alignRuns(targetWidth, align)
     }
 
+    private fun truncate(font: Font, run: GlyphRun, scaleX: Float, width: Float, truncate: String) {
+        var targetWidth = width
+        val glyphCount = run.glyphs.size
+
+        val truncateRun = glyphRunPool.alloc()
+        truncateRun.getGlyphsFrom(font, truncate, scaleX, 0, truncate.length, null)
+        var truncateWidth = 0f
+        if (truncateRun.advances.isNotEmpty()) {
+            truncateRun.setLastGlyphAdvanceToWidth(scaleX)
+            for (i in 1 until truncateRun.advances.size) {
+                truncateWidth += truncateRun.advances[i]
+            }
+        }
+        targetWidth -= truncateWidth
+
+        var count = 0
+        var runWidth = run.x
+        while (count < run.advances.size) {
+            runWidth += run.advances[count]
+            if (runWidth >= targetWidth) break
+            count++
+        }
+
+        if (count > 1) {
+            run.glyphs.truncate(count - 1)
+            run.advances.size = count
+            run.setLastGlyphAdvanceToWidth(scaleX)
+            if (truncateRun.advances.isNotEmpty()) {
+                run.advances.add(truncateRun.advances.data, 1, truncateRun.advances.size - 1)
+            }
+        } else {
+            run.glyphs.clear()
+            run.advances.clear()
+            run.advances.add(truncateRun.advances)
+        }
+
+        this.glyphCount -= glyphCount - run.glyphs.size
+
+        run.glyphs.addAll(truncateRun.glyphs)
+        this.glyphCount += truncate.length
+        glyphRunPool.free(truncateRun)
+    }
+
     fun reset() {
+        glyphRunPool.free(_runs)
         _runs.clear()
         _colors.clear()
         glyphCount = 0
@@ -187,7 +263,7 @@ class GlyphLayout {
         // the second run will contain the remaining glyph data, so swap instances rather than copying
         var second: GlyphRun? = null
         if (secondStart < glyphCount) {
-            val newRun = GlyphRun() // TODO use pool
+            val newRun = glyphRunPool.alloc()
             val glyphs1 = newRun.glyphs
             glyphs1.ensureCapacity(firstEnd)
             glyphs1.clear()
@@ -213,6 +289,7 @@ class GlyphLayout {
         }
 
         if (firstEnd == 0) {
+            glyphRunPool.free(first)
             _runs.removeLast()
         } else {
             first.setLastGlyphAdvanceToWidth(scale)
