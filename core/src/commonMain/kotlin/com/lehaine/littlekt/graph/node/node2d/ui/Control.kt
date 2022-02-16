@@ -83,7 +83,7 @@ open class Control : Node2D() {
         set(value) {
             if (value == _anchorLeft) return
             lastAnchorLayout = NONE
-            setAnchor(AnchorSide.LEFT, value)
+            setAnchor(Side.LEFT, value)
             if (insideTree) {
                 onSizeChanged()
             }
@@ -98,7 +98,7 @@ open class Control : Node2D() {
         set(value) {
             if (value == _anchorRight) return
             lastAnchorLayout = NONE
-            setAnchor(AnchorSide.RIGHT, value)
+            setAnchor(Side.RIGHT, value)
             if (insideTree) {
                 onSizeChanged()
             }
@@ -113,7 +113,7 @@ open class Control : Node2D() {
         set(value) {
             if (value == _anchorTop) return
             lastAnchorLayout = NONE
-            setAnchor(AnchorSide.TOP, value)
+            setAnchor(Side.TOP, value)
             if (insideTree) {
                 onSizeChanged()
             }
@@ -128,7 +128,7 @@ open class Control : Node2D() {
         set(value) {
             if (value == _anchorBottom) return
             lastAnchorLayout = NONE
-            setAnchor(AnchorSide.BOTTOM, value)
+            setAnchor(Side.BOTTOM, value)
             if (insideTree) {
                 onSizeChanged()
             }
@@ -408,6 +408,16 @@ open class Control : Node2D() {
      */
     var mouseFilter = MouseFilter.STOP
 
+    var focusMode = FocusMode.NONE
+
+    var focusNext: Control? = null
+    var focusPrev: Control? = null
+    var focusNeighborTop: Control? = null
+    var focusNeighborRight: Control? = null
+    var focusNeighborBottom: Control? = null
+    var focusNeighborLeft: Control? = null
+    val hasFocus: Boolean = false
+
     private val tempRect = Rect()
 
     override val membersAndPropertiesString: String
@@ -619,13 +629,13 @@ open class Control : Node2D() {
         // LEFT
         when (layout) {
             TOP_LEFT, BOTTOM_LEFT, CENTER_LEFT, TOP_WIDE, BOTTOM_WIDE, LEFT_WIDE, HCENTER_WIDE, WIDE -> setAnchor(
-                AnchorSide.LEFT, 0f, keepMargins, triggerSizeChanged
+                Side.LEFT, 0f, keepMargins, triggerSizeChanged
             )
             CENTER_TOP, CENTER_BOTTOM, CENTER, VCENTER_WIDE -> setAnchor(
-                AnchorSide.LEFT, 0.5f, keepMargins, triggerSizeChanged
+                Side.LEFT, 0.5f, keepMargins, triggerSizeChanged
             )
             TOP_RIGHT, BOTTOM_RIGHT, CENTER_RIGHT, RIGHT_WIDE -> setAnchor(
-                AnchorSide.LEFT, 1f, keepMargins, triggerSizeChanged
+                Side.LEFT, 1f, keepMargins, triggerSizeChanged
             )
             else -> {
                 // anchors need set manually
@@ -635,13 +645,13 @@ open class Control : Node2D() {
         // TOP
         when (layout) {
             TOP_LEFT, TOP_RIGHT, CENTER_TOP, LEFT_WIDE, RIGHT_WIDE, TOP_WIDE, VCENTER_WIDE, WIDE -> setAnchor(
-                AnchorSide.TOP, 0f, keepMargins, triggerSizeChanged
+                Side.TOP, 0f, keepMargins, triggerSizeChanged
             )
             CENTER_LEFT, CENTER_RIGHT, CENTER, HCENTER_WIDE -> setAnchor(
-                AnchorSide.TOP, 0.5f, keepMargins, triggerSizeChanged
+                Side.TOP, 0.5f, keepMargins, triggerSizeChanged
             )
             BOTTOM_LEFT, BOTTOM_RIGHT, CENTER_BOTTOM, BOTTOM_WIDE -> setAnchor(
-                AnchorSide.TOP, 1f, keepMargins, triggerSizeChanged
+                Side.TOP, 1f, keepMargins, triggerSizeChanged
             )
             else -> {
                 // anchors need set manually
@@ -651,13 +661,13 @@ open class Control : Node2D() {
         // RIGHT
         when (layout) {
             TOP_LEFT, BOTTOM_LEFT, CENTER_LEFT, LEFT_WIDE -> setAnchor(
-                AnchorSide.RIGHT, 0f, keepMargins, triggerSizeChanged
+                Side.RIGHT, 0f, keepMargins, triggerSizeChanged
             )
             CENTER_TOP, CENTER_BOTTOM, CENTER, VCENTER_WIDE -> setAnchor(
-                AnchorSide.RIGHT, 0.5f, keepMargins, triggerSizeChanged
+                Side.RIGHT, 0.5f, keepMargins, triggerSizeChanged
             )
             TOP_RIGHT, BOTTOM_RIGHT, CENTER_RIGHT, TOP_WIDE, RIGHT_WIDE, BOTTOM_WIDE, HCENTER_WIDE, WIDE -> setAnchor(
-                AnchorSide.RIGHT, 1f, keepMargins, triggerSizeChanged
+                Side.RIGHT, 1f, keepMargins, triggerSizeChanged
             )
             else -> {
                 // anchors need set manually
@@ -667,13 +677,13 @@ open class Control : Node2D() {
         // BOTTOM
         when (layout) {
             TOP_LEFT, TOP_RIGHT, CENTER_TOP, TOP_WIDE -> setAnchor(
-                AnchorSide.BOTTOM, 0f, keepMargins, triggerSizeChanged
+                Side.BOTTOM, 0f, keepMargins, triggerSizeChanged
             )
             CENTER_LEFT, CENTER_RIGHT, CENTER, HCENTER_WIDE -> setAnchor(
-                AnchorSide.BOTTOM, 0.5f, keepMargins, triggerSizeChanged
+                Side.BOTTOM, 0.5f, keepMargins, triggerSizeChanged
             )
             BOTTOM_LEFT, BOTTOM_RIGHT, CENTER_BOTTOM, LEFT_WIDE, RIGHT_WIDE, BOTTOM_WIDE, VCENTER_WIDE, WIDE -> setAnchor(
-                AnchorSide.BOTTOM, 1f, keepMargins, triggerSizeChanged
+                Side.BOTTOM, 1f, keepMargins, triggerSizeChanged
             )
             else -> {
                 // anchors need set manually
@@ -721,17 +731,17 @@ open class Control : Node2D() {
     }
 
     private fun setAnchor(
-        side: AnchorSide, value: Float, keepMargins: Boolean = true, triggerSizeChanged: Boolean = true
+        side: Side, value: Float, keepMargins: Boolean = true, triggerSizeChanged: Boolean = true
     ) {
         val parentRect = getParentAnchorableRect()
         val parentRange =
-            if (side == AnchorSide.LEFT || side == AnchorSide.RIGHT) parentRect.width else parentRect.height
+            if (side == Side.LEFT || side == Side.RIGHT) parentRect.width else parentRect.height
         val prevPos = side.margin + side.anchor * parentRange
         val prevOppositePos = side.oppositeMargin + side.oppositeAnchor * parentRange
 
         side.anchor = value
 
-        if (((side == AnchorSide.LEFT || side == AnchorSide.TOP) && side.anchor > side.oppositeAnchor) || ((side == AnchorSide.RIGHT || side == AnchorSide.BOTTOM) && side.anchor < side.oppositeAnchor)) {
+        if (((side == Side.LEFT || side == Side.TOP) && side.anchor > side.oppositeAnchor) || ((side == Side.RIGHT || side == Side.BOTTOM) && side.anchor < side.oppositeAnchor)) {
             // push the opposite anchor
             side.oppositeAnchor = side.anchor
         }
@@ -747,61 +757,73 @@ open class Control : Node2D() {
         }
     }
 
-    private var AnchorSide.anchor: Float
+    private var Side.anchor: Float
         get() = when (this) {
-            AnchorSide.LEFT -> _anchorLeft
-            AnchorSide.BOTTOM -> _anchorBottom
-            AnchorSide.RIGHT -> _anchorRight
-            AnchorSide.TOP -> _anchorTop
+            Side.LEFT -> _anchorLeft
+            Side.BOTTOM -> _anchorBottom
+            Side.RIGHT -> _anchorRight
+            Side.TOP -> _anchorTop
         }
         set(value) = when (this) {
-            AnchorSide.LEFT -> _anchorLeft = value
-            AnchorSide.BOTTOM -> _anchorBottom = value
-            AnchorSide.RIGHT -> _anchorRight = value
-            AnchorSide.TOP -> _anchorTop = value
+            Side.LEFT -> _anchorLeft = value
+            Side.BOTTOM -> _anchorBottom = value
+            Side.RIGHT -> _anchorRight = value
+            Side.TOP -> _anchorTop = value
         }
 
-    private var AnchorSide.oppositeAnchor: Float
+    private var Side.oppositeAnchor: Float
         get() = when (this) {
-            AnchorSide.LEFT -> _anchorRight
-            AnchorSide.BOTTOM -> _anchorTop
-            AnchorSide.RIGHT -> _anchorLeft
-            AnchorSide.TOP -> _anchorBottom
+            Side.LEFT -> _anchorRight
+            Side.BOTTOM -> _anchorTop
+            Side.RIGHT -> _anchorLeft
+            Side.TOP -> _anchorBottom
         }
         set(value) = when (this) {
-            AnchorSide.LEFT -> _anchorRight = value
-            AnchorSide.BOTTOM -> _anchorTop = value
-            AnchorSide.RIGHT -> _anchorLeft = value
-            AnchorSide.TOP -> _anchorBottom = value
+            Side.LEFT -> _anchorRight = value
+            Side.BOTTOM -> _anchorTop = value
+            Side.RIGHT -> _anchorLeft = value
+            Side.TOP -> _anchorBottom = value
         }
 
-    private var AnchorSide.margin: Float
+    private var Side.margin: Float
         get() = when (this) {
-            AnchorSide.LEFT -> _marginLeft
-            AnchorSide.BOTTOM -> _marginBottom
-            AnchorSide.RIGHT -> _marginRight
-            AnchorSide.TOP -> _marginTop
+            Side.LEFT -> _marginLeft
+            Side.BOTTOM -> _marginBottom
+            Side.RIGHT -> _marginRight
+            Side.TOP -> _marginTop
         }
         set(value) = when (this) {
-            AnchorSide.LEFT -> _marginLeft = value
-            AnchorSide.BOTTOM -> _marginBottom = value
-            AnchorSide.RIGHT -> _marginRight = value
-            AnchorSide.TOP -> _marginTop = value
+            Side.LEFT -> _marginLeft = value
+            Side.BOTTOM -> _marginBottom = value
+            Side.RIGHT -> _marginRight = value
+            Side.TOP -> _marginTop = value
         }
 
-    private var AnchorSide.oppositeMargin: Float
+    private var Side.oppositeMargin: Float
         get() = when (this) {
-            AnchorSide.LEFT -> _marginRight
-            AnchorSide.BOTTOM -> _marginTop
-            AnchorSide.RIGHT -> _marginLeft
-            AnchorSide.TOP -> _marginBottom
+            Side.LEFT -> _marginRight
+            Side.BOTTOM -> _marginTop
+            Side.RIGHT -> _marginLeft
+            Side.TOP -> _marginBottom
         }
         set(value) = when (this) {
-            AnchorSide.LEFT -> _marginRight = value
-            AnchorSide.BOTTOM -> _marginTop = value
-            AnchorSide.RIGHT -> _marginLeft = value
-            AnchorSide.TOP -> _marginBottom = value
+            Side.LEFT -> _marginRight = value
+            Side.BOTTOM -> _marginTop = value
+            Side.RIGHT -> _marginLeft = value
+            Side.TOP -> _marginBottom = value
         }
+
+    fun grabFocus() {
+        TODO()
+    }
+
+    fun releaseFocus() {
+        TODO()
+    }
+
+    internal fun getFocusNeighbor(): Control? {
+        TODO()
+    }
 
     protected fun applyTransform(batch: Batch) {
         tempMat4.set(batch.transformMatrix)
@@ -1236,7 +1258,7 @@ open class Control : Node2D() {
         }
     }
 
-    private enum class AnchorSide {
+    private enum class Side {
         LEFT, BOTTOM, RIGHT, TOP
     }
 

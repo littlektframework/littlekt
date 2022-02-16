@@ -33,6 +33,9 @@ enum class Pointer(val index: Int) {
 
     companion object {
         val cache = values()
+        val MOUSE_LEFT = POINTER1
+        val MOUSE_RIGHT = POINTER2
+        val MOUSE_MIDDLE = POINTER3
     }
 }
 

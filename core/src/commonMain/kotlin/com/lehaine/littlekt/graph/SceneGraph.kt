@@ -188,6 +188,9 @@ open class SceneGraph(
 
         val target = hit(tempVec.x, tempVec.y)
         target?.let {
+            if(pointer == Pointer.MOUSE_LEFT && it.focusMode != Control.FocusMode.NONE) {
+                it.grabFocus()
+            }
             it._uiInput(event)
             uiInput(it, event)
             addTouchFocus(it, pointer)
