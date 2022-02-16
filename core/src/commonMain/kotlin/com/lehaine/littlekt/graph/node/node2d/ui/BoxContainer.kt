@@ -1,7 +1,6 @@
 package com.lehaine.littlekt.graph.node.node2d.ui
 
 import com.lehaine.littlekt.graph.node.component.AlignMode
-import com.lehaine.littlekt.graph.node.component.SizeFlag
 import com.lehaine.littlekt.graph.node.component.Theme
 
 /**
