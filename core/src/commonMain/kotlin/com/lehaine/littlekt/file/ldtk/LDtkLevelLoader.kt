@@ -75,7 +75,7 @@ class LDtkLevelLoader(private val project: ProjectJson) : Disposable {
         return when (json.type) { //IntGrid, Entities, Tiles or AutoLayer
             "IntGrid" -> {
                 val intGridValueInfo = getLayerDef(json.layerDefUid)?.intGridValues?.map {
-                    LDtkIntGridLayer.ValueInfo(it.identifier, it.value)
+                    LDtkIntGridLayer.ValueInfo(it.identifier, it.color)
                 } ?: listOf()
                 val intGrid = mutableMapOf<Int, Int>().apply {
                     if (json.intGridCSV != null) {

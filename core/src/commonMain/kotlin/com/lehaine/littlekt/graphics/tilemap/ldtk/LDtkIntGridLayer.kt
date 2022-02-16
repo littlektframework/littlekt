@@ -1,5 +1,7 @@
 package com.lehaine.littlekt.graphics.tilemap.ldtk
 
+import com.lehaine.littlekt.graphics.Color
+
 /**
  * @author Colton Daily
  * @date 12/20/2021
@@ -60,27 +62,14 @@ open class LDtkIntGridLayer(
     }
 
     /**
-     * Get the value color (0xrrggbb Unsigned-Int format) at selected coordinates.
-     * @return null if none.
-     */
-    fun getColorInt(cx: Int, cy: Int): Int? {
-        return if (!hasValue(cx, cy)) {
-            null
-        } else {
-            intGridValueInfo[getInt(cx, cy) - 1].color
-        }
-    }
-
-    /**
      * Get the value color ("#rrggbb" string format) at selected coordinates.
      * @return null if none.
      */
-    fun getColorHex(cx: Int, cy: Int): String? {
+    fun getColor(cx: Int, cy: Int): Color? {
         return if (!hasValue(cx, cy)) {
             null
         } else {
-            "#000000" // TODO
-            //     Project.intToHex(valueInfos[getInt(cx, cy) - 1].color)
+            Color.fromHex(intGridValueInfo[getInt(cx, cy) - 1].color)
         }
     }
 
@@ -88,5 +77,5 @@ open class LDtkIntGridLayer(
         return "LDtkIntGridLayer(valueInfos=$intGridValueInfo)"
     }
 
-    data class ValueInfo(val identifier: String?, val color: Int)
+    data class ValueInfo(val identifier: String?, val color: String)
 }
