@@ -24,6 +24,8 @@
 * update: `Pointer` with an `index` parameter for determine the actual index of the pointer / touch.
 * update: `Input` with new `vibrate()` and `cancelVibrate()` methods (Android support).
 * update `GLSLGenerator` to handle ES versions for mobile platforms.
+* remove: `getColorHex` and `getColorInt` methods from `LDtkIntGridLayer`.
+* add: `getColor()` that returns a new `Color` instance to `LDtkIntGridLayer`.
 
 ### Bugs:
 
