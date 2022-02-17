@@ -305,6 +305,7 @@ open class SceneGraph(
 
 
     override fun keyDown(key: Key): Boolean {
+        println("key down scene graph $key")
         if (key == Key.SHIFT_LEFT) {
             shift = true
         }
@@ -319,16 +320,16 @@ open class SceneGraph(
                     }
                 }
                 Key.ARROW_UP -> {
-                    next = it.focusNeighborTop
+                    next = it.getFocusNeighbor(Control.Side.TOP)
                 }
                 Key.ARROW_RIGHT -> {
-                    next = it.focusNeighborRight
+                    next = it.getFocusNeighbor(Control.Side.RIGHT)
                 }
                 Key.ARROW_DOWN -> {
-                    next = it.focusNeighborBottom
+                    next = it.getFocusNeighbor(Control.Side.BOTTOM)
                 }
                 Key.ARROW_LEFT -> {
-                    next = it.focusNeighborLeft
+                    next = it.getFocusNeighbor(Control.Side.LEFT)
                 }
                 else -> Unit
             }

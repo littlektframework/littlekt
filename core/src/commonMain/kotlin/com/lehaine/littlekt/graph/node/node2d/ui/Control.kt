@@ -13,9 +13,9 @@ import com.lehaine.littlekt.graph.node.node2d.ui.Control.AnchorLayout.*
 import com.lehaine.littlekt.graphics.Batch
 import com.lehaine.littlekt.graphics.Color
 import com.lehaine.littlekt.graphics.font.BitmapFont
-import com.lehaine.littlekt.math.Mat4
-import com.lehaine.littlekt.math.Rect
+import com.lehaine.littlekt.math.*
 import com.lehaine.littlekt.math.geom.Angle
+import com.lehaine.littlekt.math.geom.closestPointsBetweenSegments
 import com.lehaine.littlekt.util.Signal
 import com.lehaine.littlekt.util.SingleSignal
 import com.lehaine.littlekt.util.internal.isFlagSet
@@ -526,116 +526,6 @@ open class Control : Node2D() {
      */
     open fun onFocusLost() = Unit
 
-    fun findNextValidFocus(): Control? {
-        var from: Control = this
-
-        while (true) {
-            // if focusNext set manually, attempt to sue it first.
-            focusNext?.let {
-                if (it.enabled && it.focusMode != FocusMode.NONE) {
-                    return it
-                }
-            }
-
-            var nextChild: Control? = null
-            for (i in 0 until from.nodes.size) {
-                val child = from.nodes[i] as? Control
-                if (child != null && child.enabled) {
-                    nextChild = child
-                    break
-                }
-            }
-
-            if (nextChild == null) {
-                nextChild = nextControl(from)
-                if (nextChild == null) {
-                    nextChild = this
-                    while (nextChild != null && nextChild.parent is Control) {
-                        nextChild = nextChild.parent as Control
-                    }
-                }
-            }
-
-            if (nextChild == this) return if (focusMode == FocusMode.ALL) nextChild else null
-
-            if (nextChild != null) {
-                if (nextChild.focusMode == FocusMode.ALL) {
-                    return nextChild
-                }
-                from = nextChild
-            } else {
-                break
-            }
-        }
-        return null
-    }
-
-    private fun nextControl(from: Control): Control? {
-        val controlParent = from.parent as? Control ?: return null
-        val next = from.index
-
-        for (i in next + 1 until controlParent.nodes.size) {
-            val child = controlParent.nodes[i] as? Control
-            if (child != null && child.enabled) {
-                return child
-            }
-        }
-        return nextControl(controlParent)
-    }
-
-    fun findPreviousValidFocus(): Control? {
-        var from: Control = this
-        while (true) {
-            focusPrev?.let {
-                if (it.enabled && it.focusMode != FocusMode.NONE) return it
-            }
-
-            var prevChild: Control? = null
-
-            if (from.parent !is Control) {
-                prevChild = previousControl(from)
-            } else {
-                for (i in from.index - 1 downTo 0) {
-                    val c = from.parent?.nodes?.get(i) as? Control
-                    if (c != null && c.enabled) {
-                        prevChild = c
-                        break
-                    }
-                }
-
-                prevChild = if (prevChild == null) {
-                    from.parent as? Control
-                } else {
-                    previousControl(prevChild)
-                }
-            }
-            if (prevChild == this) return if (focusMode == FocusMode.ALL) prevChild else null
-
-            if (prevChild != null) {
-                if (prevChild.focusMode == FocusMode.ALL) {
-                    return prevChild
-                }
-                from = prevChild
-            } else {
-                break
-            }
-        }
-        return null
-    }
-
-    private fun previousControl(from: Control): Control {
-        var child: Control? = null
-        for (i in from.nodes.size - 1 downTo 0) {
-            val c = from.nodes[i] as? Control
-            if (c != null && c.enabled) {
-                child = c
-                break
-            }
-        }
-        if (child == null) return from
-        return previousControl(child)
-    }
-
     /**
      * Set the control to a new size.
      * @param newWidth the new width of the bounding rectangle
@@ -961,9 +851,213 @@ open class Control : Node2D() {
 
     fun releaseFocus() = scene?.releaseFocus()
 
-    internal fun getFocusNeighbor(): Control? {
-        TODO()
+    fun findNextValidFocus(): Control? {
+        var from: Control = this
+
+        while (true) {
+            // if focusNext set manually, attempt to sue it first.
+            focusNext?.let {
+                if (it.enabled && it.focusMode != FocusMode.NONE) {
+                    return it
+                }
+            }
+
+            var nextChild: Control? = null
+            for (i in 0 until from.nodes.size) {
+                val child = from.nodes[i] as? Control
+                if (child != null && child.enabled) {
+                    nextChild = child
+                    break
+                }
+            }
+
+            if (nextChild == null) {
+                nextChild = nextControl(from)
+                if (nextChild == null) {
+                    nextChild = this
+                    while (nextChild != null && nextChild.parent is Control) {
+                        nextChild = nextChild.parent as Control
+                    }
+                }
+            }
+
+            if (nextChild == this) return if (focusMode == FocusMode.ALL) nextChild else null
+
+            if (nextChild != null) {
+                if (nextChild.focusMode == FocusMode.ALL) {
+                    return nextChild
+                }
+                from = nextChild
+            } else {
+                break
+            }
+        }
+        return null
     }
+
+    private fun nextControl(from: Control): Control? {
+        val controlParent = from.parent as? Control ?: return null
+        val next = from.index
+
+        for (i in next + 1 until controlParent.nodes.size) {
+            val child = controlParent.nodes[i] as? Control
+            if (child != null && child.enabled) {
+                return child
+            }
+        }
+        return nextControl(controlParent)
+    }
+
+    fun findPreviousValidFocus(): Control? {
+        var from: Control = this
+        while (true) {
+            focusPrev?.let {
+                if (it.enabled && it.focusMode != FocusMode.NONE) return it
+            }
+
+            var prevChild: Control? = null
+
+            if (from.parent !is Control) {
+                prevChild = previousControl(from)
+            } else {
+                for (i in from.index - 1 downTo 0) {
+                    val c = from.parent?.nodes?.get(i) as? Control
+                    if (c != null && c.enabled) {
+                        prevChild = c
+                        break
+                    }
+                }
+
+                prevChild = if (prevChild == null) {
+                    from.parent as? Control
+                } else {
+                    previousControl(prevChild)
+                }
+            }
+            if (prevChild == this) return if (focusMode == FocusMode.ALL) prevChild else null
+
+            if (prevChild != null) {
+                if (prevChild.focusMode == FocusMode.ALL) {
+                    return prevChild
+                }
+                from = prevChild
+            } else {
+                break
+            }
+        }
+        return null
+    }
+
+    private fun previousControl(from: Control): Control {
+        var child: Control? = null
+        for (i in from.nodes.size - 1 downTo 0) {
+            val c = from.nodes[i] as? Control
+            if (c != null && c.enabled) {
+                child = c
+                break
+            }
+        }
+        if (child == null) return from
+        return previousControl(child)
+    }
+
+    internal fun getFocusNeighbor(side: Side, count: Int = 0): Control? {
+        if (count >= MAX_NEIGHBOR_SEARCH_COUNT) return null
+
+        side.focusNeighbor?.let {
+            if (it.enabled && it.focusMode != FocusMode.NONE) {
+                return it
+            }
+            return it.getFocusNeighbor(side, count + 1)
+        }
+
+        val dir = when (side) {
+            Side.LEFT -> tempVec2f.set(-1f, 0f)
+            Side.TOP -> tempVec2f.set(0f, -1f)
+            Side.RIGHT -> tempVec2f.set(1f, 0f)
+            Side.BOTTOM -> tempVec2f.set(0f, 1f)
+        }
+        points2[0].set(globalX, globalY)
+        points2[1].set(globalX + width, globalY)
+        points2[2].set(globalX + width, globalY + height)
+        points2[3].set(globalX, globalY + height)
+
+        var maxDist = -1e7f
+        points2.forEach {
+            val dot = dir.dot(it)
+            if (dot > maxDist) {
+                maxDist = dot
+            }
+        }
+
+        var base: Node? = this
+
+        while (base != null && base.parent is Control) {
+            base = base.parent
+        }
+
+        if (base == null) return null
+
+        controlResult[0] = null
+        floatResult[0] = 1e7f
+        findFocusNeighbor(dir, base, points2, maxDist, floatResult, controlResult)
+        return controlResult[0]
+    }
+
+    private fun findFocusNeighbor(
+        dir: Vec2f,
+        at: Node,
+        fromPoints: Array<MutableVec2f>,
+        fromMin: Float,
+        closestDist: FloatArray,
+        out: Array<Control?>
+    ) {
+        val c = at as? Control
+
+        if (c != null && c != this && c.focusMode == FocusMode.ALL && c.enabled) {
+            points[0].set(c.globalX, c.globalY)
+            points[1].set(c.globalX + c.width, c.globalY)
+            points[2].set(c.globalX + c.width, c.globalY + c.height)
+            points[3].set(c.globalX, c.globalY + c.height)
+
+            var min = 1e7f
+
+            points.forEach {
+                val d = dir.dot(it)
+                if (d < min) {
+                    min = d
+                }
+            }
+
+            if (min > (fromMin - FUZZY_EQ_F)) {
+                for (i in 0 until 4) {
+                    val la = fromPoints[i]
+                    val lb = fromPoints[(i + 1) % 4]
+
+                    for (j in 0 until 4) {
+                        val fa = points[j]
+                        val fb = points[(j + 1) % 4]
+                        val d = closestPointsBetweenSegments(la, lb, fa, fb)
+                        if (d < closestDist[0]) {
+                            closestDist[0] = d
+                            out[0] = c
+                        }
+                    }
+                }
+            }
+        }
+        c?.nodes?.forEach {
+            findFocusNeighbor(dir, it, fromPoints, fromMin, closestDist, out)
+        }
+    }
+
+    private val Side.focusNeighbor
+        get() = when (this) {
+            Side.LEFT -> focusNeighborLeft
+            Side.BOTTOM -> focusNeighborBottom
+            Side.RIGHT -> focusNeighborRight
+            Side.TOP -> focusNeighborTop
+        }
 
     protected fun applyTransform(batch: Batch) {
         tempMat4.set(batch.transformMatrix)
@@ -1398,13 +1492,21 @@ open class Control : Node2D() {
         }
     }
 
-    private enum class Side {
+    internal enum class Side {
         LEFT, BOTTOM, RIGHT, TOP
     }
 
     companion object {
         const val SIZE_DIRTY = 4
+
         private val tempMat4 = Mat4()
+        private val tempVec2f = MutableVec2f()
+        private val tempVec3f = MutableVec3f()
+        private val points = Array(4) { MutableVec2f() }
+        private val points2 = Array(4) { MutableVec2f() }
+        private val controlResult = arrayOfNulls<Control>(1)
+        private val floatResult = floatArrayOf(0f)
+        private const val MAX_NEIGHBOR_SEARCH_COUNT = 512
     }
 }
 
