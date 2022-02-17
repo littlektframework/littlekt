@@ -11,6 +11,7 @@ import com.lehaine.littlekt.graphics.OrthographicCamera
 import com.lehaine.littlekt.graphics.SpriteBatch
 import com.lehaine.littlekt.graphics.use
 import com.lehaine.littlekt.input.InputProcessor
+import com.lehaine.littlekt.input.Key
 import com.lehaine.littlekt.input.Pointer
 import com.lehaine.littlekt.math.MutableVec2f
 import com.lehaine.littlekt.util.datastructure.Pool
@@ -92,6 +93,8 @@ open class SceneGraph(
 
     private var initialized = false
 
+    private var shift = false
+
     fun resize(width: Int, height: Int) {
         camera.update(width, height, context)
     }
@@ -125,6 +128,21 @@ open class SceneGraph(
     open fun onStart() = Unit
 
     open fun uiInput(control: Control, event: InputEvent) {}
+
+    fun requestFocus(control: Control) {
+        if (keyboardFocus == control) return
+
+        keyboardFocus = control
+        control._onFocus()
+    }
+
+    fun releaseFocus() {
+        val control = keyboardFocus
+        keyboardFocus = null
+        control?._onFocusLost()
+    }
+
+    fun hasFocus(control: Control) = keyboardFocus == control
 
     open fun update(dt: Duration) {
         if (!initialized) error("You need to call 'initialize()' once before doing any rendering or updating!")
@@ -188,8 +206,9 @@ open class SceneGraph(
 
         val target = hit(tempVec.x, tempVec.y)
         target?.let {
-            if(pointer == Pointer.MOUSE_LEFT && it.focusMode != Control.FocusMode.NONE) {
+            if (pointer == Pointer.MOUSE_LEFT && it.focusMode != Control.FocusMode.NONE) {
                 it.grabFocus()
+                keyboardFocus = it
             }
             it._uiInput(event)
             uiInput(it, event)
@@ -282,6 +301,48 @@ open class SceneGraph(
         mouseScreenY = screenY
 
         return false
+    }
+
+
+    override fun keyDown(key: Key): Boolean {
+        if (key == Key.SHIFT_LEFT) {
+            shift = true
+        }
+        keyboardFocus?.let {
+            var next: Control? = null
+            when (key) {
+                Key.TAB -> {
+                    next = if (shift) {
+                        it.findPreviousValidFocus()
+                    } else {
+                        it.findNextValidFocus()
+                    }
+                }
+                Key.ARROW_UP -> {
+                    next = it.focusNeighborTop
+                }
+                Key.ARROW_RIGHT -> {
+                    next = it.focusNeighborRight
+                }
+                Key.ARROW_DOWN -> {
+                    next = it.focusNeighborBottom
+                }
+                Key.ARROW_LEFT -> {
+                    next = it.focusNeighborLeft
+                }
+                else -> Unit
+            }
+
+            next?.grabFocus()
+        }
+        return super.keyDown(key)
+    }
+
+    override fun keyUp(key: Key): Boolean {
+        if (key == Key.SHIFT_LEFT) {
+            shift = false
+        }
+        return super.keyUp(key)
     }
 
     private fun fireEnterAndExit(overLast: Control?, screenX: Float, screenY: Float, pointer: Pointer): Control? {

@@ -67,6 +67,18 @@ open class Control : Node2D() {
      */
     val onUiInput: SingleSignal<InputEvent> = SingleSignal()
 
+    /**
+     * A [Signal] that is emitted when the control gains focus.
+     */
+    @JsName("onFocusSignal")
+    val onFocus: Signal = Signal()
+
+    /**
+     * A [Signal] that is emitted when the control loses focus.
+     */
+    @JsName("onFocusLostSignal")
+    val onFocusLost: Signal = Signal()
+
     private var lastAnchorLayout: AnchorLayout = NONE
 
     private var _anchorLeft = 0f
@@ -416,7 +428,7 @@ open class Control : Node2D() {
     var focusNeighborRight: Control? = null
     var focusNeighborBottom: Control? = null
     var focusNeighborLeft: Control? = null
-    val hasFocus: Boolean = false
+    val hasFocus: Boolean get() = scene?.hasFocus(this) ?: false
 
     private val tempRect = Rect()
 
@@ -493,6 +505,136 @@ open class Control : Node2D() {
      * Open method that is to process and recalculate minimum size when a theme is changed.
      */
     open fun onThemeChanged() = Unit
+
+    internal fun _onFocus() {
+        onFocus()
+        onFocus.emit()
+    }
+
+    internal fun _onFocusLost() {
+        onFocusLost()
+        onFocusLost.emit()
+    }
+
+    /**
+     * Open method to process when a control is gain focus.
+     */
+    open fun onFocus() = Unit
+
+    /**
+     * Open method to process when a control loses focus.
+     */
+    open fun onFocusLost() = Unit
+
+    fun findNextValidFocus(): Control? {
+        var from: Control = this
+
+        while (true) {
+            // if focusNext set manually, attempt to sue it first.
+            focusNext?.let {
+                if (it.enabled && it.focusMode != FocusMode.NONE) {
+                    return it
+                }
+            }
+
+            var nextChild: Control? = null
+            for (i in 0 until from.nodes.size) {
+                val child = from.nodes[i] as? Control
+                if (child != null && child.enabled) {
+                    nextChild = child
+                    break
+                }
+            }
+
+            if (nextChild == null) {
+                nextChild = nextControl(from)
+                if (nextChild == null) {
+                    nextChild = this
+                    while (nextChild != null && nextChild.parent is Control) {
+                        nextChild = nextChild.parent as Control
+                    }
+                }
+            }
+
+            if (nextChild == this) return if (focusMode == FocusMode.ALL) nextChild else null
+
+            if (nextChild != null) {
+                if (nextChild.focusMode == FocusMode.ALL) {
+                    return nextChild
+                }
+                from = nextChild
+            } else {
+                break
+            }
+        }
+        return null
+    }
+
+    private fun nextControl(from: Control): Control? {
+        val controlParent = from.parent as? Control ?: return null
+        val next = from.index
+
+        for (i in next + 1 until controlParent.nodes.size) {
+            val child = controlParent.nodes[i] as? Control
+            if (child != null && child.enabled) {
+                return child
+            }
+        }
+        return nextControl(controlParent)
+    }
+
+    fun findPreviousValidFocus(): Control? {
+        var from: Control = this
+        while (true) {
+            focusPrev?.let {
+                if (it.enabled && it.focusMode != FocusMode.NONE) return it
+            }
+
+            var prevChild: Control? = null
+
+            if (from.parent !is Control) {
+                prevChild = previousControl(from)
+            } else {
+                for (i in from.index - 1 downTo 0) {
+                    val c = from.parent?.nodes?.get(i) as? Control
+                    if (c != null && c.enabled) {
+                        prevChild = c
+                        break
+                    }
+                }
+
+                prevChild = if (prevChild == null) {
+                    from.parent as? Control
+                } else {
+                    previousControl(prevChild)
+                }
+            }
+            if (prevChild == this) return if (focusMode == FocusMode.ALL) prevChild else null
+
+            if (prevChild != null) {
+                if (prevChild.focusMode == FocusMode.ALL) {
+                    return prevChild
+                }
+                from = prevChild
+            } else {
+                break
+            }
+        }
+        return null
+    }
+
+    private fun previousControl(from: Control): Control {
+        var child: Control? = null
+        for (i in from.nodes.size - 1 downTo 0) {
+            val c = from.nodes[i] as? Control
+            if (c != null && c.enabled) {
+                child = c
+                break
+            }
+        }
+        if (child == null) return from
+        return previousControl(child)
+    }
 
     /**
      * Set the control to a new size.
@@ -814,12 +956,10 @@ open class Control : Node2D() {
         }
 
     fun grabFocus() {
-        TODO()
+        scene?.requestFocus(this)
     }
 
-    fun releaseFocus() {
-        TODO()
-    }
+    fun releaseFocus() = scene?.releaseFocus()
 
     internal fun getFocusNeighbor(): Control? {
         TODO()

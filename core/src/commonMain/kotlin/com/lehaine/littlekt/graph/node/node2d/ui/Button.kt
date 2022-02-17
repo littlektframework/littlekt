@@ -8,7 +8,10 @@ import com.lehaine.littlekt.graph.node.component.Drawable
 import com.lehaine.littlekt.graph.node.component.HAlign
 import com.lehaine.littlekt.graph.node.component.Theme
 import com.lehaine.littlekt.graph.node.component.VAlign
-import com.lehaine.littlekt.graphics.*
+import com.lehaine.littlekt.graphics.Batch
+import com.lehaine.littlekt.graphics.Camera
+import com.lehaine.littlekt.graphics.Color
+import com.lehaine.littlekt.graphics.MutableColor
 import com.lehaine.littlekt.graphics.font.BitmapFont
 import com.lehaine.littlekt.graphics.font.BitmapFontCache
 import com.lehaine.littlekt.graphics.font.GlyphLayout
@@ -43,6 +46,7 @@ open class Button : BaseButton() {
         val hover = "hover"
         val hoverPressed = "hoverPressed"
         val disabled = "disabled"
+        val focus = "focus"
     }
 
     companion object {
@@ -167,6 +171,10 @@ open class Button : BaseButton() {
             onMinimumSizeChanged()
         }
 
+    init {
+        focusMode = FocusMode.ALL
+    }
+
     override fun render(batch: Batch, camera: Camera) {
 
         val drawable: Drawable
@@ -203,6 +211,21 @@ open class Button : BaseButton() {
             rotation = rotation,
             color = drawable.modulate
         )
+
+        if (hasFocus) {
+            val focusDrawable = getThemeDrawable(themeVars.focus)
+            focusDrawable.draw(
+                batch,
+                globalX,
+                globalY,
+                width = width,
+                height = height,
+                scaleX = globalScaleX,
+                scaleY = globalScaleY,
+                rotation = rotation,
+                color = focusDrawable.modulate
+            )
+        }
         cache.let {
             tempColor.set(color).mul(fontColor)
             it.tint(tempColor)

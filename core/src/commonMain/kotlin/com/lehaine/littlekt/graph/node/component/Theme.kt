@@ -105,6 +105,13 @@ fun createDefaultTheme(
         5,
         4
     )
+    val greyOutlineNinePatch = NinePatch(
+        Textures.atlas.getByPrefix("grey_outline").slice,
+        2,
+        2,
+        2,
+        2
+    )
     val panelNinePatch = NinePatch(
         Textures.atlas.getByPrefix("grey_panel").slice,
         6,
@@ -124,6 +131,8 @@ fun createDefaultTheme(
                 .apply { modulate = Color.LIGHT_BLUE.toMutableColor().also { it.lighten(0.2f) } },
             Button.themeVars.disabled to NinePatchDrawable(greyButtonNinePatch)
                 .apply { modulate = Color.LIGHT_BLUE.toMutableColor().also { it.lighten(0.5f) } },
+            Button.themeVars.focus to NinePatchDrawable(greyOutlineNinePatch)
+                .apply { modulate = Color.WHITE },
         ),
         "Panel" to mapOf(
             Panel.themeVars.panel to NinePatchDrawable(panelNinePatch).apply {
