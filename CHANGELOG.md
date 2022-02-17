@@ -26,6 +26,7 @@
 * update `GLSLGenerator` to handle ES versions for mobile platforms.
 * remove: `getColorHex` and `getColorInt` methods from `LDtkIntGridLayer`.
 * add: `getColor()` that returns a new `Color` instance to `LDtkIntGridLayer`.
+* add: `truncate` string to `Font`, `FontCache` and `GlyphLayout`.
 
 ### Bugs:
 

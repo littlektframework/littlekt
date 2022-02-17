@@ -113,3 +113,9 @@ inline fun <T> MutableList<T>.fastIterateRemove(callback: (T) -> Boolean): Mutab
     while (this.size > m) this.removeAt(this.size - 1)
     return this
 }
+
+fun <T> MutableList<T>.truncate(newSize: Int) {
+    check(newSize > 0) { "'newSize' must be >= 0: $newSize" }
+    if (size <= newSize) return
+    subList(newSize, size).clear()
+}

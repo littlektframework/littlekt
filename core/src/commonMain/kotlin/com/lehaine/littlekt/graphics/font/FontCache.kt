@@ -8,6 +8,7 @@ import com.lehaine.littlekt.math.geom.cosine
 import com.lehaine.littlekt.math.geom.degrees
 import com.lehaine.littlekt.math.geom.sine
 import com.lehaine.littlekt.util.datastructure.FloatArrayList
+import com.lehaine.littlekt.util.datastructure.Pool
 import com.lehaine.littlekt.util.datastructure.internal.fill
 
 /**
@@ -21,6 +22,13 @@ open class FontCache(val pages: Int = 1) {
     private val temp4 = Mat4() // used for rotating text
     private val layouts = mutableListOf<GlyphLayout>()
     private val tempGlyphCount = IntArray(pages)
+
+    private val layoutPool = Pool(reset = {
+        it.reset()
+    }) {
+        GlyphLayout()
+    }
+    private val pooledLayouts = mutableListOf<GlyphLayout>()
 
     private var lastX = 0f
     private var lastY = 0f
@@ -185,10 +193,12 @@ open class FontCache(val pages: Int = 1) {
         color: Color = Color.WHITE,
         targetWidth: Float = 0f,
         align: HAlign = HAlign.LEFT,
-        wrap: Boolean = false
+        wrap: Boolean = false,
+        truncate: String? = null
     ) {
-        val layout = GlyphLayout() // TODO use pool
-        layout.setText(font, text, color, targetWidth, scaleX, scaleY, align, wrap)
+        val layout = layoutPool.alloc()
+        pooledLayouts += layout
+        layout.setText(font, text, color, targetWidth, scaleX, scaleY, align, wrap, truncate)
         addToCache(layout, x, y, scaleX, scaleY, rotation, color)
     }
 
@@ -196,6 +206,8 @@ open class FontCache(val pages: Int = 1) {
      * Clears any existing glyphs from the cache.
      */
     fun clear() {
+        layoutPool.free(pooledLayouts)
+        pooledLayouts.clear()
         layouts.clear()
         x = 0f
         y = 0f

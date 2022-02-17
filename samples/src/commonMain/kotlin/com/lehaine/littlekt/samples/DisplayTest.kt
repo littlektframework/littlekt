@@ -134,6 +134,24 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
         val pixelFont = resourcesVfs["m5x7_16.fnt"].readBitmapFont(preloadedTextures = listOf(atlas["pixelFont"].slice))
         val cache = BitmapFontCache(pixelFont).also {
             it.addText("Test cache", 200f, 50f, scaleX = 4f, scaleY = 4f)
+            it.addText(
+                "Test wrapping lines should work",
+                200f,
+                85f,
+                scaleX = 4f,
+                scaleY = 4f,
+                targetWidth = 200f,
+                wrap = true
+            )
+            it.addText(
+                "Test truncating lines should work",
+                400f,
+                85f,
+                scaleX = 4f,
+                scaleY = 4f,
+                targetWidth = 500f,
+                truncate = "...",
+            )
             it.tint(Color.RED)
         }
 
@@ -391,7 +409,15 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
             boss.update(dt)
             batch.use(camera.viewProjection) {
                 ldtkWorld.render(it, camera)
-                it.draw(person, x, y, scaleX = 10f, scaleY = 10f, originX = person.width / 2f, originY = person.height / 2f)
+                it.draw(
+                    person,
+                    x,
+                    y,
+                    scaleX = 10f,
+                    scaleY = 10f,
+                    originX = person.width / 2f,
+                    originY = person.height / 2f
+                )
                 slices.forEachIndexed { rowIdx, row ->
                     row.forEachIndexed { colIdx, slice ->
                         it.draw(slice, 150f * (rowIdx * row.size + colIdx) + 50f, 50f, scaleX = 10f, scaleY = 10f)
