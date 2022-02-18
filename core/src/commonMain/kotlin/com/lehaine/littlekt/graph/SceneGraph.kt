@@ -131,8 +131,9 @@ open class SceneGraph(
 
     fun requestFocus(control: Control) {
         if (keyboardFocus == control) return
-
+        val oldFocus = keyboardFocus
         keyboardFocus = control
+        oldFocus?._onFocusLost()
         control._onFocus()
     }
 
@@ -307,7 +308,7 @@ open class SceneGraph(
         if (key == Key.SHIFT_LEFT) {
             shift = true
         }
-        println("sg keydown: $key")
+
         keyboardFocus?.let {
             val event = inputEventPool.alloc().apply {
                 type = InputEvent.Type.KEY_DOWN

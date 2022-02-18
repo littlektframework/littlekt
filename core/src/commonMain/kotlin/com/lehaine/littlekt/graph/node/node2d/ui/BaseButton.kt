@@ -98,10 +98,15 @@ abstract class BaseButton : Control() {
         status.pressingInside = false
     }
 
+    override fun onFocusLost() {
+        super.onFocusLost()
+        status.pressAttempt = false
+        status.pressingInside = false
+    }
+
     override fun uiInput(event: InputEvent) {
         super.uiInput(event)
 
-        println(event)
         if (event.type == InputEvent.Type.MOUSE_ENTER) {
             status.hovering = true
         }
@@ -124,7 +129,7 @@ abstract class BaseButton : Control() {
         if (status.pressAttempt && status.pressingInside) {
             if (_toggleMode) {
                 val isPressed =
-                    event.type == InputEvent.Type.TOUCH_DOWN || event.type == InputEvent.Type.KEY_UP && event.key == Key.SPACE
+                    event.type == InputEvent.Type.TOUCH_DOWN || event.type == InputEvent.Type.KEY_DOWN && event.key == Key.SPACE
                 // TODO check if shortcut input then: isPressed = false
                 if ((isPressed && actionMode == ActionMode.BUTTON_PRESS) || (!isPressed && actionMode == ActionMode.BUTTON_RELEASE)) {
                     if (actionMode == ActionMode.BUTTON_PRESS) {
@@ -136,8 +141,12 @@ abstract class BaseButton : Control() {
                     _toggled(status.pressed)
                     _pressed()
                 }
-            } else if ((event.type == InputEvent.Type.TOUCH_DOWN && actionMode == ActionMode.BUTTON_PRESS)
-                || (event.type == InputEvent.Type.TOUCH_UP && actionMode == ActionMode.BUTTON_RELEASE)
+            } else if (((event.type == InputEvent.Type.TOUCH_DOWN
+                        || event.type == InputEvent.Type.KEY_DOWN && event.key == Key.SPACE)
+                        && actionMode == ActionMode.BUTTON_PRESS)
+                || ((event.type == InputEvent.Type.TOUCH_UP
+                        || event.type == InputEvent.Type.KEY_UP && event.key == Key.SPACE)
+                        && actionMode == ActionMode.BUTTON_RELEASE)
             ) {
                 _pressed()
             }
