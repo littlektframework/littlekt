@@ -201,32 +201,93 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
 
                     paddedContainer {
                         padding(10)
-                        vBoxContainer {
+                        hBoxContainer {
                             separation = 20
+                            vBoxContainer {
+                                separation = 20
 
-                            button {
-                                text = "Center Center"
-                                onPressed += {
-                                    logger.info { "You pressed me!! I am at ${globalX},${globalY}" }
-                                    input.vibrate(100.milliseconds)
+                                button {
+                                    text = "Top Left"
+                                    onPressed += {
+                                        logger.info { "You pressed me!! I am at ${globalX},${globalY}" }
+                                        input.vibrate(100.milliseconds)
+                                    }
+                                }
+                                button {
+                                    text = "Center Left"
+                                    horizontalAlign = HAlign.RIGHT
+                                    verticalAlign = VAlign.BOTTOM
+                                    onPressed += {
+                                        logger.info { "You pressed me!! I am at ${globalX},${globalY}" }
+                                        input.vibrate(200.milliseconds)
+                                    }
+                                }
+                                button {
+                                    text = "Bottom Left"
+                                    horizontalAlign = HAlign.LEFT
+                                    verticalAlign = VAlign.TOP
+                                    onPressed += {
+                                        logger.info { "You pressed me!! I am at ${globalX},${globalY}" }
+                                        input.vibrate(300.milliseconds)
+                                    }
                                 }
                             }
-                            button {
-                                text = "Bottom Right"
-                                horizontalAlign = HAlign.RIGHT
-                                verticalAlign = VAlign.BOTTOM
-                                onPressed += {
-                                    logger.info { "You pressed me!! I am at ${globalX},${globalY}" }
-                                    input.vibrate(200.milliseconds)
+                            vBoxContainer {
+                                separation = 20
+
+                                button {
+                                    text = "Top Center"
+                                    onPressed += {
+                                        logger.info { "You pressed me!! I am at ${globalX},${globalY}" }
+                                        input.vibrate(100.milliseconds)
+                                    }
+                                }
+                                button {
+                                    text = "Center Center"
+                                    horizontalAlign = HAlign.RIGHT
+                                    verticalAlign = VAlign.BOTTOM
+                                    onPressed += {
+                                        logger.info { "You pressed me!! I am at ${globalX},${globalY}" }
+                                        input.vibrate(200.milliseconds)
+                                    }
+                                }
+                                button {
+                                    text = "Bottom Center"
+                                    horizontalAlign = HAlign.LEFT
+                                    verticalAlign = VAlign.TOP
+                                    onPressed += {
+                                        logger.info { "You pressed me!! I am at ${globalX},${globalY}" }
+                                        input.vibrate(300.milliseconds)
+                                    }
                                 }
                             }
-                            button {
-                                text = "Top Left"
-                                horizontalAlign = HAlign.LEFT
-                                verticalAlign = VAlign.TOP
-                                onPressed += {
-                                    logger.info { "You pressed me!! I am at ${globalX},${globalY}" }
-                                    input.vibrate(300.milliseconds)
+                            vBoxContainer {
+                                separation = 20
+
+                                button {
+                                    text = "Top Right"
+                                    onPressed += {
+                                        logger.info { "You pressed me!! I am at ${globalX},${globalY}" }
+                                        input.vibrate(100.milliseconds)
+                                    }
+                                }
+                                button {
+                                    text = "Center Right"
+                                    horizontalAlign = HAlign.RIGHT
+                                    verticalAlign = VAlign.BOTTOM
+                                    onPressed += {
+                                        logger.info { "You pressed me!! I am at ${globalX},${globalY}" }
+                                        input.vibrate(200.milliseconds)
+                                    }
+                                }
+                                button {
+                                    text = "Bottom Right"
+                                    horizontalAlign = HAlign.LEFT
+                                    verticalAlign = VAlign.TOP
+                                    onPressed += {
+                                        logger.info { "You pressed me!! I am at ${globalX},${globalY}" }
+                                        input.vibrate(300.milliseconds)
+                                    }
                                 }
                             }
                         }
@@ -289,7 +350,7 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
 
                     ninePatchRect {
                         ninePatch = ninepatch
-                        x = 250f
+                        x = 650f
                         y = 10f
                         width = 200f
                         height = 50f
@@ -331,6 +392,7 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
             onTouchDown { screenX, screenY, pointer ->
                 logger.info { "pointer down at $screenX,$screenY: $pointer" }
             }
+
             onMouseMoved { screenX, screenY ->
                 camera.unProjectScreen(screenX, screenY, context, temp)
                 x = temp.x
@@ -342,8 +404,13 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
                 x = temp.x
                 y = temp.y
             }
+
             onKeyUp {
                 logger.info { "key up: $it" }
+            }
+
+            onKeyDown {
+                logger.info { "key down: $it" }
             }
         }
 

@@ -126,6 +126,8 @@ open class Node : Comparable<Node> {
     private var _updateOrder = 0
     private var _isDestroyed = false
 
+    val index: Int get() = pos - 1
+
     private var pos = -1
     private var depth = -1
 

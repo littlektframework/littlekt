@@ -4,18 +4,23 @@ import com.lehaine.littlekt.graph.SceneGraph
 import com.lehaine.littlekt.graph.node.Node
 import com.lehaine.littlekt.graph.node.addTo
 import com.lehaine.littlekt.graph.node.annotation.SceneGraphDslMarker
-import com.lehaine.littlekt.graph.node.component.*
-import com.lehaine.littlekt.graph.node.component.AnchorLayout.*
+import com.lehaine.littlekt.graph.node.component.Drawable
+import com.lehaine.littlekt.graph.node.component.InputEvent
+import com.lehaine.littlekt.graph.node.component.OverrideMap
+import com.lehaine.littlekt.graph.node.component.Theme
 import com.lehaine.littlekt.graph.node.node2d.Node2D
+import com.lehaine.littlekt.graph.node.node2d.ui.Control.AnchorLayout.*
 import com.lehaine.littlekt.graphics.Batch
 import com.lehaine.littlekt.graphics.Color
 import com.lehaine.littlekt.graphics.font.BitmapFont
-import com.lehaine.littlekt.math.Mat4
-import com.lehaine.littlekt.math.Rect
+import com.lehaine.littlekt.math.*
 import com.lehaine.littlekt.math.geom.Angle
+import com.lehaine.littlekt.math.geom.closestPointsBetweenSegments
 import com.lehaine.littlekt.util.Signal
 import com.lehaine.littlekt.util.SingleSignal
+import com.lehaine.littlekt.util.internal.isFlagSet
 import kotlin.js.JsName
+import kotlin.jvm.JvmInline
 import kotlin.math.max
 
 /**
@@ -32,13 +37,6 @@ inline fun Node.control(callback: @SceneGraphDslMarker Control.() -> Unit = {}) 
  */
 inline fun SceneGraph.control(callback: @SceneGraphDslMarker Control.() -> Unit = {}) = root.control(callback)
 
-enum class GrowDirection {
-    BEGIN, END, BOTH
-}
-
-private enum class AnchorSide {
-    LEFT, BOTTOM, RIGHT, TOP
-}
 
 /**
  * The base [Node] for deriving ui element nodes. Handles size changes, anchoring, and margins.
@@ -47,19 +45,39 @@ private enum class AnchorSide {
  */
 open class Control : Node2D() {
 
-    companion object {
-        const val SIZE_DIRTY = 4
-        private val tempMat4 = Mat4()
-    }
-
+    /**
+     * A [Signal] the is emitted when the [horizontalSizeFlags] or [verticalSizeFlags] are changed.
+     */
     val onSizeFlagsChanged: Signal = Signal()
 
+    /**
+     * A [Signal] that is emitted when the control changes size.
+     */
     @JsName("onSizeChangedSignal")
     val onSizeChanged: Signal = Signal()
 
+    /**
+     * A [Signal] that is emitted when the control's minimum size changes via [minWidth] or [minHeight]
+     */
     @JsName("onMinimumSizeChangedSignal")
     val onMinimumSizeChanged: Signal = Signal()
+
+    /**
+     * A [Signal] that is emitted when the control receives an [InputEvent].
+     */
     val onUiInput: SingleSignal<InputEvent> = SingleSignal()
+
+    /**
+     * A [Signal] that is emitted when the control gains focus.
+     */
+    @JsName("onFocusSignal")
+    val onFocus: Signal = Signal()
+
+    /**
+     * A [Signal] that is emitted when the control loses focus.
+     */
+    @JsName("onFocusLostSignal")
+    val onFocusLost: Signal = Signal()
 
     private var lastAnchorLayout: AnchorLayout = NONE
 
@@ -68,43 +86,61 @@ open class Control : Node2D() {
     private var _anchorBottom = 0f
     private var _anchorTop = 0f
 
+    /**
+     * Anchors the left edge of the node to the origin, the center or the end of its parent control.
+     * It changes how the left offset updates when the node moves or changes size.
+     */
     var anchorLeft: Float
         get() = _anchorLeft
         set(value) {
             if (value == _anchorLeft) return
             lastAnchorLayout = NONE
-            setAnchor(AnchorSide.LEFT, value)
-            if (insideTree) {
-                onSizeChanged()
-            }
-        }
-    var anchorRight: Float
-        get() = _anchorRight
-        set(value) {
-            if (value == _anchorRight) return
-            lastAnchorLayout = NONE
-            setAnchor(AnchorSide.RIGHT, value)
-            if (insideTree) {
-                onSizeChanged()
-            }
-        }
-    var anchorTop: Float
-        get() = _anchorTop
-        set(value) {
-            if (value == _anchorTop) return
-            lastAnchorLayout = NONE
-            setAnchor(AnchorSide.TOP, value)
+            setAnchor(Side.LEFT, value)
             if (insideTree) {
                 onSizeChanged()
             }
         }
 
+    /**
+     * Anchors the right edge of the node to the origin, the center or the end of its parent control.
+     * It changes how the right offset updates when the node moves or changes size.
+     */
+    var anchorRight: Float
+        get() = _anchorRight
+        set(value) {
+            if (value == _anchorRight) return
+            lastAnchorLayout = NONE
+            setAnchor(Side.RIGHT, value)
+            if (insideTree) {
+                onSizeChanged()
+            }
+        }
+
+    /**
+     * Anchors the top edge of the node to the origin, the center or the end of its parent control.
+     * It changes how the top offset updates when the node moves or changes size.
+     */
+    var anchorTop: Float
+        get() = _anchorTop
+        set(value) {
+            if (value == _anchorTop) return
+            lastAnchorLayout = NONE
+            setAnchor(Side.TOP, value)
+            if (insideTree) {
+                onSizeChanged()
+            }
+        }
+
+    /**
+     * Anchors the bottom edge of the node to the origin, the center or the end of its parent control.
+     * It changes how the bottom offset updates when the node moves or changes size.
+     */
     var anchorBottom: Float
         get() = _anchorBottom
         set(value) {
             if (value == _anchorBottom) return
             lastAnchorLayout = NONE
-            setAnchor(AnchorSide.BOTTOM, value)
+            setAnchor(Side.BOTTOM, value)
             if (insideTree) {
                 onSizeChanged()
             }
@@ -115,12 +151,21 @@ open class Control : Node2D() {
     private var _marginBottom = 0f
     private var _marginTop = 0f
 
+    /**
+     * Tells the parent Container nodes how they should resize and place the node on the Y axis.
+     * Use one of the [SizeFlag] constants to change the flags.
+     */
     var verticalSizeFlags = SizeFlag.FILL
         set(value) {
             if (value == field) return
             field = value
             onSizeFlagsChanged.emit()
         }
+
+    /**
+     * Tells the parent Container nodes how they should resize and place the node on the X axis.
+     * Use one of the [SizeFlag] constants to change the flags.
+     */
     var horizontalSizeFlags = SizeFlag.FILL
         set(value) {
             if (value == field) return
@@ -128,6 +173,12 @@ open class Control : Node2D() {
             onSizeFlagsChanged.emit()
         }
 
+    /**
+     * If the node and at least one of its neighbors uses the SIZE_EXPAND size flag,
+     * the parent Container will let it take more or less space depending on this property.
+     * If this node has a stretch ratio of 2 and its neighbor a ratio of 1, this node
+     * will take two thirds of the available space.
+     */
     var stretchRatio: Float = 1f
         set(value) {
             if (value == field) return
@@ -135,6 +186,13 @@ open class Control : Node2D() {
             onSizeFlagsChanged.emit()
         }
 
+    /**
+     * Distance between the node's left edge and its parent control, based on [anchorLeft].
+     *
+     * Margins are often controlled by one or multiple parent [Container] nodes, so you should not modify them
+     * manually if your node is a direct child of a [Container]. Margins update automatically when you move or resize
+     * the node.
+     */
     var marginLeft: Float
         get() = _marginLeft
         set(value) {
@@ -144,6 +202,14 @@ open class Control : Node2D() {
                 onSizeChanged()
             }
         }
+
+    /**
+     * Distance between the node's right edge and its parent control, based on [anchorRight].
+     *
+     * Margins are often controlled by one or multiple parent [Container] nodes, so you should not modify them
+     * manually if your node is a direct child of a [Container]. Margins update automatically when you move or resize
+     * the node.
+     */
     var marginRight: Float
         get() = _marginRight
         set(value) {
@@ -153,6 +219,14 @@ open class Control : Node2D() {
                 onSizeChanged()
             }
         }
+
+    /**
+     * Distance between the node's top edge and its parent control, based on [anchorTop].
+     *
+     * Margins are often controlled by one or multiple parent [Container] nodes, so you should not modify them
+     * manually if your node is a direct child of a [Container]. Margins update automatically when you move or resize
+     * the node.
+     */
     var marginTop: Float
         get() = _marginTop
         set(value) {
@@ -163,6 +237,13 @@ open class Control : Node2D() {
             }
         }
 
+    /**
+     * Distance between the node's bottom edge and its parent control, based on [anchorBottom].
+     *
+     * Margins are often controlled by one or multiple parent [Container] nodes, so you should not modify them
+     * manually if your node is a direct child of a [Container]. Margins update automatically when you mvoe or resize
+     * the node.
+     */
     var marginBottom: Float
         get() = _marginBottom
         set(value) {
@@ -173,12 +254,22 @@ open class Control : Node2D() {
             }
         }
 
+    /**
+     * Controls the direction on the horizontal axis in which the control should grow
+     * if its horizontal minimum size is changed to be greater than its current size,
+     * as the control always has to be at least the minimum size.
+     */
     var horizontalGrowDirection: GrowDirection = GrowDirection.END
         set(value) {
             if (value == field) return
             field = value
             onSizeChanged()
         }
+
+    /**
+     * Controls the direction on the vertical axis in which the control should grow if its vertical minimum size is
+     * changed to be greater than its current size, as the control always has to be at least the minimum size.
+     */
     var verticalGrowDirection: GrowDirection = GrowDirection.END
         set(value) {
             if (value == field) return
@@ -189,23 +280,37 @@ open class Control : Node2D() {
     private var _width = 0f
     private var _height = 0f
 
+    /**
+     * The width of the node's bounding rectangle, in pixels. [Container] node's update this property automatically.
+     */
     var width: Float
         get() = _width
         set(value) {
             size(value, height)
         }
+
+    /**
+     * The height of the node's bounding rectangle, in pixels. [Container] node's update this property automatically.
+     */
     var height: Float
         get() = _height
         set(value) {
             size(width, value)
         }
 
+    /**
+     * The minimum width that this node should use.
+     */
     var minWidth: Float = 0f
         set(value) {
             if (value == field) return
             field = value
             onMinimumSizeChanged()
         }
+
+    /**
+     * The minimum height that this node should use.
+     */
     var minHeight: Float = 0f
         set(value) {
             if (value == field) return
@@ -219,6 +324,12 @@ open class Control : Node2D() {
     protected var _internalMinWidth = 0f
     protected var _internalMinHeight = 0f
 
+    /**
+     * The internal minimum height of this control. Useful when creating custom [Control] that needs an absolute
+     * minimum height.
+     *
+     * @see combinedMinWidth
+     */
     protected var internalMinWidth: Float
         get() {
             if (minSizeInvalid) {
@@ -231,6 +342,13 @@ open class Control : Node2D() {
             _internalMinWidth = value
             onMinimumSizeChanged()
         }
+
+    /**
+     * The internal minimum height of this control. Useful when creating custom [Control] that needs an absolute
+     * minimum height.
+     *
+     * @see combinedMinHeight
+     */
     protected var internalMinHeight: Float
         get() {
             if (minSizeInvalid) {
@@ -244,7 +362,14 @@ open class Control : Node2D() {
             onMinimumSizeChanged()
         }
 
+    /**
+     * The combined width of [minWidth] and [internalMinWidth].
+     */
     val combinedMinWidth get() = max(minWidth, internalMinWidth)
+
+    /**
+     * The combined height of [minHeight] and [internalMinHeight].
+     */
     val combinedMinHeight get() = max(minHeight, internalMinHeight)
 
     private var lastMinWidth = 0f
@@ -255,6 +380,9 @@ open class Control : Node2D() {
     var color = Color.WHITE
     var debugColor = Color.GREEN
 
+    /**
+     * The theme of this node and all its [Control] children use.
+     */
     var theme: Theme? = null
         set(value) {
             if (field == value) return
@@ -262,12 +390,45 @@ open class Control : Node2D() {
             _onThemeChanged()
         }
 
+    /**
+     * The map of overrides for a theme [Drawable]. Local overrides always take precedence when fetching theme items
+     * for the control. An override can be removed with [remove].
+     */
     val drawableOverrides by lazy { OverrideMap<String, Drawable>(::_onThemeChanged) }
+
+    /**
+     * The map of overrides for a theme [BitmapFont]. Local overrides always take precedence when fetching theme items
+     * for the control. An override can be removed with [remove].
+     */
     val fontOverrides by lazy { OverrideMap<String, BitmapFont>(::_onThemeChanged) }
+
+    /**
+     * The map of overrides for a theme [Color]. Local overrides always take precedence when fetching theme items
+     * for the control. An override can be removed with [remove].
+     */
     val colorOverrides by lazy { OverrideMap<String, Color>(::_onThemeChanged) }
+
+    /**
+     * The map of overrides for a theme [Int]. Local overrides always take precedence when fetching theme items
+     * for the control. An override can be removed with [remove].
+     */
     val constantOverrides by lazy { OverrideMap<String, Int>(::_onThemeChanged) }
 
+    /**
+     * Controls when the control will be able to receive mouse button input events through [onUiInput] and how these
+     * events are handled.
+     */
     var mouseFilter = MouseFilter.STOP
+
+    var focusMode = FocusMode.NONE
+
+    var focusNext: Control? = null
+    var focusPrev: Control? = null
+    var focusNeighborTop: Control? = null
+    var focusNeighborRight: Control? = null
+    var focusNeighborBottom: Control? = null
+    var focusNeighborLeft: Control? = null
+    val hasFocus: Boolean get() = scene?.hasFocus(this) ?: false
 
     private val tempRect = Rect()
 
@@ -325,7 +486,9 @@ open class Control : Node2D() {
         uiInput(event)
     }
 
-
+    /**
+     * Open method that is to process and accept inputs on UI elements.
+     */
     open fun uiInput(event: InputEvent) = Unit
 
     private fun _onThemeChanged() {
@@ -338,8 +501,36 @@ open class Control : Node2D() {
         onMinimumSizeChanged()
     }
 
+    /**
+     * Open method that is to process and recalculate minimum size when a theme is changed.
+     */
     open fun onThemeChanged() = Unit
 
+    internal fun _onFocus() {
+        onFocus()
+        onFocus.emit()
+    }
+
+    internal fun _onFocusLost() {
+        onFocusLost()
+        onFocusLost.emit()
+    }
+
+    /**
+     * Open method to process when a control is gain focus.
+     */
+    open fun onFocus() = Unit
+
+    /**
+     * Open method to process when a control loses focus.
+     */
+    open fun onFocusLost() = Unit
+
+    /**
+     * Set the control to a new size.
+     * @param newWidth the new width of the bounding rectangle
+     * @param newHeight the new height of the bounding rectangle
+     */
     fun size(newWidth: Float, newHeight: Float) {
         if (width == newWidth && height == newHeight) {
             return
@@ -363,6 +554,10 @@ open class Control : Node2D() {
         }
     }
 
+    /**
+     * Anchor this node using an [AnchorLayout] preset.
+     * @param layout the anchor layout preset
+     */
     fun anchor(layout: AnchorLayout) {
         lastAnchorLayout = layout
         computeAnchorMarginLayout(layout)
@@ -371,6 +566,13 @@ open class Control : Node2D() {
         }
     }
 
+    /**
+     * Attempts to _hit_ a [Control] node. This will check any children [Control] nodes first and then itself.
+     * This will return null if the control is not [enabled] or if [mouseFilter] is set to [MouseFilter.NONE].
+     * @param hx the x coord
+     * @param hy the y coord
+     * @return a [Control] node that was hit
+     */
     fun hit(hx: Float, hy: Float): Control? {
         if (!enabled || mouseFilter == MouseFilter.NONE) {
             return null
@@ -392,6 +594,10 @@ open class Control : Node2D() {
         return null
     }
 
+    /**
+     * Determines if the point is in the controls bounding rectangle.
+     * @return true if it contains; false otherwise
+     */
     fun hasPoint(px: Float, py: Float): Boolean {
         if (globalRotation == Angle.ZERO) {
             return px >= globalX && px < globalX + width && py >= globalY && py < globalY + height
@@ -399,6 +605,9 @@ open class Control : Node2D() {
         return false //TODO determine has point when rotated
     }
 
+    /**
+     * Set the bounding rectangle of this control.
+     */
     fun setRect(tx: Float, ty: Float, tWidth: Float, tHeight: Float) {
         _anchorBottom = 0f
         _anchorLeft = 0f
@@ -452,13 +661,13 @@ open class Control : Node2D() {
         // LEFT
         when (layout) {
             TOP_LEFT, BOTTOM_LEFT, CENTER_LEFT, TOP_WIDE, BOTTOM_WIDE, LEFT_WIDE, HCENTER_WIDE, WIDE -> setAnchor(
-                AnchorSide.LEFT, 0f, keepMargins, triggerSizeChanged
+                Side.LEFT, 0f, keepMargins, triggerSizeChanged
             )
             CENTER_TOP, CENTER_BOTTOM, CENTER, VCENTER_WIDE -> setAnchor(
-                AnchorSide.LEFT, 0.5f, keepMargins, triggerSizeChanged
+                Side.LEFT, 0.5f, keepMargins, triggerSizeChanged
             )
             TOP_RIGHT, BOTTOM_RIGHT, CENTER_RIGHT, RIGHT_WIDE -> setAnchor(
-                AnchorSide.LEFT, 1f, keepMargins, triggerSizeChanged
+                Side.LEFT, 1f, keepMargins, triggerSizeChanged
             )
             else -> {
                 // anchors need set manually
@@ -468,13 +677,13 @@ open class Control : Node2D() {
         // TOP
         when (layout) {
             TOP_LEFT, TOP_RIGHT, CENTER_TOP, LEFT_WIDE, RIGHT_WIDE, TOP_WIDE, VCENTER_WIDE, WIDE -> setAnchor(
-                AnchorSide.TOP, 0f, keepMargins, triggerSizeChanged
+                Side.TOP, 0f, keepMargins, triggerSizeChanged
             )
             CENTER_LEFT, CENTER_RIGHT, CENTER, HCENTER_WIDE -> setAnchor(
-                AnchorSide.TOP, 0.5f, keepMargins, triggerSizeChanged
+                Side.TOP, 0.5f, keepMargins, triggerSizeChanged
             )
             BOTTOM_LEFT, BOTTOM_RIGHT, CENTER_BOTTOM, BOTTOM_WIDE -> setAnchor(
-                AnchorSide.TOP, 1f, keepMargins, triggerSizeChanged
+                Side.TOP, 1f, keepMargins, triggerSizeChanged
             )
             else -> {
                 // anchors need set manually
@@ -484,13 +693,13 @@ open class Control : Node2D() {
         // RIGHT
         when (layout) {
             TOP_LEFT, BOTTOM_LEFT, CENTER_LEFT, LEFT_WIDE -> setAnchor(
-                AnchorSide.RIGHT, 0f, keepMargins, triggerSizeChanged
+                Side.RIGHT, 0f, keepMargins, triggerSizeChanged
             )
             CENTER_TOP, CENTER_BOTTOM, CENTER, VCENTER_WIDE -> setAnchor(
-                AnchorSide.RIGHT, 0.5f, keepMargins, triggerSizeChanged
+                Side.RIGHT, 0.5f, keepMargins, triggerSizeChanged
             )
             TOP_RIGHT, BOTTOM_RIGHT, CENTER_RIGHT, TOP_WIDE, RIGHT_WIDE, BOTTOM_WIDE, HCENTER_WIDE, WIDE -> setAnchor(
-                AnchorSide.RIGHT, 1f, keepMargins, triggerSizeChanged
+                Side.RIGHT, 1f, keepMargins, triggerSizeChanged
             )
             else -> {
                 // anchors need set manually
@@ -500,13 +709,13 @@ open class Control : Node2D() {
         // BOTTOM
         when (layout) {
             TOP_LEFT, TOP_RIGHT, CENTER_TOP, TOP_WIDE -> setAnchor(
-                AnchorSide.BOTTOM, 0f, keepMargins, triggerSizeChanged
+                Side.BOTTOM, 0f, keepMargins, triggerSizeChanged
             )
             CENTER_LEFT, CENTER_RIGHT, CENTER, HCENTER_WIDE -> setAnchor(
-                AnchorSide.BOTTOM, 0.5f, keepMargins, triggerSizeChanged
+                Side.BOTTOM, 0.5f, keepMargins, triggerSizeChanged
             )
             BOTTOM_LEFT, BOTTOM_RIGHT, CENTER_BOTTOM, LEFT_WIDE, RIGHT_WIDE, BOTTOM_WIDE, VCENTER_WIDE, WIDE -> setAnchor(
-                AnchorSide.BOTTOM, 1f, keepMargins, triggerSizeChanged
+                Side.BOTTOM, 1f, keepMargins, triggerSizeChanged
             )
             else -> {
                 // anchors need set manually
@@ -554,17 +763,17 @@ open class Control : Node2D() {
     }
 
     private fun setAnchor(
-        side: AnchorSide, value: Float, keepMargins: Boolean = true, triggerSizeChanged: Boolean = true
+        side: Side, value: Float, keepMargins: Boolean = true, triggerSizeChanged: Boolean = true
     ) {
         val parentRect = getParentAnchorableRect()
         val parentRange =
-            if (side == AnchorSide.LEFT || side == AnchorSide.RIGHT) parentRect.width else parentRect.height
+            if (side == Side.LEFT || side == Side.RIGHT) parentRect.width else parentRect.height
         val prevPos = side.margin + side.anchor * parentRange
         val prevOppositePos = side.oppositeMargin + side.oppositeAnchor * parentRange
 
         side.anchor = value
 
-        if (((side == AnchorSide.LEFT || side == AnchorSide.TOP) && side.anchor > side.oppositeAnchor) || ((side == AnchorSide.RIGHT || side == AnchorSide.BOTTOM) && side.anchor < side.oppositeAnchor)) {
+        if (((side == Side.LEFT || side == Side.TOP) && side.anchor > side.oppositeAnchor) || ((side == Side.RIGHT || side == Side.BOTTOM) && side.anchor < side.oppositeAnchor)) {
             // push the opposite anchor
             side.oppositeAnchor = side.anchor
         }
@@ -580,60 +789,274 @@ open class Control : Node2D() {
         }
     }
 
-    private var AnchorSide.anchor: Float
+    private var Side.anchor: Float
         get() = when (this) {
-            AnchorSide.LEFT -> _anchorLeft
-            AnchorSide.BOTTOM -> _anchorBottom
-            AnchorSide.RIGHT -> _anchorRight
-            AnchorSide.TOP -> _anchorTop
+            Side.LEFT -> _anchorLeft
+            Side.BOTTOM -> _anchorBottom
+            Side.RIGHT -> _anchorRight
+            Side.TOP -> _anchorTop
         }
         set(value) = when (this) {
-            AnchorSide.LEFT -> _anchorLeft = value
-            AnchorSide.BOTTOM -> _anchorBottom = value
-            AnchorSide.RIGHT -> _anchorRight = value
-            AnchorSide.TOP -> _anchorTop = value
+            Side.LEFT -> _anchorLeft = value
+            Side.BOTTOM -> _anchorBottom = value
+            Side.RIGHT -> _anchorRight = value
+            Side.TOP -> _anchorTop = value
         }
 
-    private var AnchorSide.oppositeAnchor: Float
+    private var Side.oppositeAnchor: Float
         get() = when (this) {
-            AnchorSide.LEFT -> _anchorRight
-            AnchorSide.BOTTOM -> _anchorTop
-            AnchorSide.RIGHT -> _anchorLeft
-            AnchorSide.TOP -> _anchorBottom
+            Side.LEFT -> _anchorRight
+            Side.BOTTOM -> _anchorTop
+            Side.RIGHT -> _anchorLeft
+            Side.TOP -> _anchorBottom
         }
         set(value) = when (this) {
-            AnchorSide.LEFT -> _anchorRight = value
-            AnchorSide.BOTTOM -> _anchorTop = value
-            AnchorSide.RIGHT -> _anchorLeft = value
-            AnchorSide.TOP -> _anchorBottom = value
+            Side.LEFT -> _anchorRight = value
+            Side.BOTTOM -> _anchorTop = value
+            Side.RIGHT -> _anchorLeft = value
+            Side.TOP -> _anchorBottom = value
         }
 
-    private var AnchorSide.margin: Float
+    private var Side.margin: Float
         get() = when (this) {
-            AnchorSide.LEFT -> _marginLeft
-            AnchorSide.BOTTOM -> _marginBottom
-            AnchorSide.RIGHT -> _marginRight
-            AnchorSide.TOP -> _marginTop
+            Side.LEFT -> _marginLeft
+            Side.BOTTOM -> _marginBottom
+            Side.RIGHT -> _marginRight
+            Side.TOP -> _marginTop
         }
         set(value) = when (this) {
-            AnchorSide.LEFT -> _marginLeft = value
-            AnchorSide.BOTTOM -> _marginBottom = value
-            AnchorSide.RIGHT -> _marginRight = value
-            AnchorSide.TOP -> _marginTop = value
+            Side.LEFT -> _marginLeft = value
+            Side.BOTTOM -> _marginBottom = value
+            Side.RIGHT -> _marginRight = value
+            Side.TOP -> _marginTop = value
         }
 
-    private var AnchorSide.oppositeMargin: Float
+    private var Side.oppositeMargin: Float
         get() = when (this) {
-            AnchorSide.LEFT -> _marginRight
-            AnchorSide.BOTTOM -> _marginTop
-            AnchorSide.RIGHT -> _marginLeft
-            AnchorSide.TOP -> _marginBottom
+            Side.LEFT -> _marginRight
+            Side.BOTTOM -> _marginTop
+            Side.RIGHT -> _marginLeft
+            Side.TOP -> _marginBottom
         }
         set(value) = when (this) {
-            AnchorSide.LEFT -> _marginRight = value
-            AnchorSide.BOTTOM -> _marginTop = value
-            AnchorSide.RIGHT -> _marginLeft = value
-            AnchorSide.TOP -> _marginBottom = value
+            Side.LEFT -> _marginRight = value
+            Side.BOTTOM -> _marginTop = value
+            Side.RIGHT -> _marginLeft = value
+            Side.TOP -> _marginBottom = value
+        }
+
+    fun grabFocus() {
+        scene?.requestFocus(this)
+    }
+
+    fun releaseFocus() = scene?.releaseFocus()
+
+    fun findNextValidFocus(): Control? {
+        var from: Control = this
+
+        while (true) {
+            // if focusNext set manually, attempt to sue it first.
+            focusNext?.let {
+                if (it.enabled && it.focusMode != FocusMode.NONE) {
+                    return it
+                }
+            }
+
+            var nextChild: Control? = null
+            for (i in 0 until from.nodes.size) {
+                val child = from.nodes[i] as? Control
+                if (child != null && child.enabled) {
+                    nextChild = child
+                    break
+                }
+            }
+
+            if (nextChild == null) {
+                nextChild = nextControl(from)
+                if (nextChild == null) {
+                    nextChild = this
+                    while (nextChild != null && nextChild.parent is Control) {
+                        nextChild = nextChild.parent as Control
+                    }
+                }
+            }
+
+            if (nextChild == this) return if (focusMode == FocusMode.ALL) nextChild else null
+
+            if (nextChild != null) {
+                if (nextChild.focusMode == FocusMode.ALL) {
+                    return nextChild
+                }
+                from = nextChild
+            } else {
+                break
+            }
+        }
+        return null
+    }
+
+    private fun nextControl(from: Control): Control? {
+        val controlParent = from.parent as? Control ?: return null
+        val next = from.index
+
+        for (i in next + 1 until controlParent.nodes.size) {
+            val child = controlParent.nodes[i] as? Control
+            if (child != null && child.enabled) {
+                return child
+            }
+        }
+        return nextControl(controlParent)
+    }
+
+    fun findPreviousValidFocus(): Control? {
+        var from: Control = this
+        while (true) {
+            focusPrev?.let {
+                if (it.enabled && it.focusMode != FocusMode.NONE) return it
+            }
+
+            var prevChild: Control? = null
+
+            if (from.parent !is Control) {
+                prevChild = previousControl(from)
+            } else {
+                for (i in from.index - 1 downTo 0) {
+                    val c = from.parent?.nodes?.get(i) as? Control
+                    if (c != null && c.enabled) {
+                        prevChild = c
+                        break
+                    }
+                }
+
+                prevChild = if (prevChild == null) {
+                    from.parent as? Control
+                } else {
+                    previousControl(prevChild)
+                }
+            }
+            if (prevChild == this) return if (focusMode == FocusMode.ALL) prevChild else null
+
+            if (prevChild != null) {
+                if (prevChild.focusMode == FocusMode.ALL) {
+                    return prevChild
+                }
+                from = prevChild
+            } else {
+                break
+            }
+        }
+        return null
+    }
+
+    private fun previousControl(from: Control): Control {
+        var child: Control? = null
+        for (i in from.nodes.size - 1 downTo 0) {
+            val c = from.nodes[i] as? Control
+            if (c != null && c.enabled) {
+                child = c
+                break
+            }
+        }
+        if (child == null) return from
+        return previousControl(child)
+    }
+
+    internal fun getFocusNeighbor(side: Side, count: Int = 0): Control? {
+        if (count >= MAX_NEIGHBOR_SEARCH_COUNT) return null
+
+        side.focusNeighbor?.let {
+            if (it.enabled && it.focusMode != FocusMode.NONE) {
+                return it
+            }
+            return it.getFocusNeighbor(side, count + 1)
+        }
+
+        val dir = when (side) {
+            Side.LEFT -> tempVec2f.set(-1f, 0f)
+            Side.TOP -> tempVec2f.set(0f, -1f)
+            Side.RIGHT -> tempVec2f.set(1f, 0f)
+            Side.BOTTOM -> tempVec2f.set(0f, 1f)
+        }
+        points2[0].set(globalX, globalY)
+        points2[1].set(globalX + width, globalY)
+        points2[2].set(globalX + width, globalY + height)
+        points2[3].set(globalX, globalY + height)
+
+        var maxDist = -1e7f
+        points2.forEach {
+            val dot = dir.dot(it)
+            if (dot > maxDist) {
+                maxDist = dot
+            }
+        }
+
+        var base: Node? = this
+
+        while (base != null && base.parent is Control) {
+            base = base.parent
+        }
+
+        if (base == null) return null
+
+        controlResult[0] = null
+        floatResult[0] = 1e7f
+        findFocusNeighbor(dir, base, points2, maxDist, floatResult, controlResult)
+        return controlResult[0]
+    }
+
+    private fun findFocusNeighbor(
+        dir: Vec2f,
+        at: Node,
+        fromPoints: Array<MutableVec2f>,
+        fromMin: Float,
+        closestDist: FloatArray,
+        out: Array<Control?>
+    ) {
+        val c = at as? Control
+
+        if (c != null && c != this && c.focusMode == FocusMode.ALL && c.enabled) {
+            points[0].set(c.globalX, c.globalY)
+            points[1].set(c.globalX + c.width, c.globalY)
+            points[2].set(c.globalX + c.width, c.globalY + c.height)
+            points[3].set(c.globalX, c.globalY + c.height)
+
+            var min = 1e7f
+
+            points.forEach {
+                val d = dir.dot(it)
+                if (d < min) {
+                    min = d
+                }
+            }
+
+            if (min > (fromMin - FUZZY_EQ_F)) {
+                for (i in 0 until 4) {
+                    val la = fromPoints[i]
+                    val lb = fromPoints[(i + 1) % 4]
+
+                    for (j in 0 until 4) {
+                        val fa = points[j]
+                        val fb = points[(j + 1) % 4]
+                        val d = closestPointsBetweenSegments(la, lb, fa, fb)
+                        if (d < closestDist[0]) {
+                            closestDist[0] = d
+                            out[0] = c
+                        }
+                    }
+                }
+            }
+        }
+        c?.nodes?.forEach {
+            findFocusNeighbor(dir, it, fromPoints, fromMin, closestDist, out)
+        }
+    }
+
+    private val Side.focusNeighbor
+        get() = when (this) {
+            Side.LEFT -> focusNeighborLeft
+            Side.BOTTOM -> focusNeighborBottom
+            Side.RIGHT -> focusNeighborRight
+            Side.TOP -> focusNeighborTop
         }
 
     protected fun applyTransform(batch: Batch) {
@@ -722,6 +1145,9 @@ open class Control : Node2D() {
         }
     }
 
+    /**
+     * Checks if the control has a theme [Drawable].
+     */
     fun hasThemeDrawable(name: String, type: String = this::class.simpleName ?: ""): Boolean {
         drawableOverrides[name]?.let { return true }
         var themeOwner: Control? = this
@@ -736,6 +1162,10 @@ open class Control : Node2D() {
         return Theme.defaultTheme.drawables[type]?.get(name)?.let { return true } ?: return false
     }
 
+    /**
+     * @return a [Drawable] from the first matching [Theme] in the tree that has a [Drawable] with the specified
+     * [name] and [type]. If [type] is omitted the class name of the current control is used as the type.
+     */
     fun getThemeDrawable(name: String, type: String = this::class.simpleName ?: ""): Drawable {
         drawableOverrides[name]?.let { return it }
         var themeOwner: Control? = this
@@ -750,6 +1180,10 @@ open class Control : Node2D() {
         return Theme.defaultTheme.drawables[type]?.get(name) ?: Theme.FALLBACK_DRAWABLE
     }
 
+    /**
+     * @return a [Color] from the first matching [Theme] in the tree that has a [Color] with the specified
+     * [name] and [type]. If [type] is omitted the class name of the current control is used as the type.
+     */
     fun getThemeColor(name: String, type: String = this::class.simpleName ?: ""): Color {
         colorOverrides[name]?.let { return it }
         var themeOwner: Control? = this
@@ -764,6 +1198,10 @@ open class Control : Node2D() {
         return Theme.defaultTheme.colors[type]?.get(name) ?: Color.WHITE
     }
 
+    /**
+     * @return a [BitmapFont] from the first matching [Theme] in the tree that has a [BitmapFont] with the specified
+     * [name] and [type]. If [type] is omitted the class name of the current control is used as the type.
+     */
     fun getThemeFont(name: String, type: String = this::class.simpleName ?: ""): BitmapFont {
         fontOverrides[name]?.let { return it }
         var themeOwner: Control? = this
@@ -778,6 +1216,10 @@ open class Control : Node2D() {
         return Theme.defaultTheme.fonts[type]?.get(name) ?: Theme.defaultTheme.defaultFont ?: Theme.FALLBACK_FONT
     }
 
+    /**
+     * @return a [Int] from the first matching [Theme] in the tree that has a [Int] with the specified
+     * [name] and [type]. If [type] is omitted the class name of the current control is used as the type.
+     */
     fun getThemeConstant(name: String, type: String = this::class.simpleName ?: ""): Int {
         constantOverrides[name]?.let { return it }
         var themeOwner: Control? = this
@@ -792,30 +1234,49 @@ open class Control : Node2D() {
         return Theme.defaultTheme.constants[type]?.get(name) ?: 0
     }
 
+    /**
+     * Clears the local theme [constantOverrides] map.
+     */
     fun clearThemeConstantOverrides(): Control {
         constantOverrides.clear()
         _onThemeChanged()
         return this
     }
 
+    /**
+     * Clears the local theme [fontOverrides] map.
+     */
     fun clearThemeFontOverrides(): Control {
         fontOverrides.clear()
         _onThemeChanged()
         return this
     }
 
+    /**
+     * Clears the local theme [fontOverrides] map.
+     */
     fun clearThemeDrawableOverrides(): Control {
         drawableOverrides.clear()
         _onThemeChanged()
         return this
     }
 
+    /**
+     * Clears the local theme [color] map.
+     */
     fun clearThemeColorOverrides(): Control {
         colorOverrides.clear()
         _onThemeChanged()
         return this
     }
 
+    /**
+     * Clears all the local theme override maps.
+     * @see constantOverrides
+     * @see fontOverrides
+     * @see drawableOverrides
+     * @see color
+     */
     fun clearThemeOverrides(): Control {
         constantOverrides.clear()
         fontOverrides.clear()
@@ -823,6 +1284,118 @@ open class Control : Node2D() {
         colorOverrides.clear()
         _onThemeChanged()
         return this
+    }
+
+    enum class AnchorLayout {
+        /**
+         * Snap all 4 anchors to the top-left of the parent control's bounds.
+         */
+        TOP_LEFT,
+
+        /**
+         * Snap all 4 anchors to the top-right of the parent control's bounds.
+         */
+        TOP_RIGHT,
+
+        /**
+         * Snap all 4 anchors to the bottom-left of the parent control's bounds.
+         */
+        BOTTOM_LEFT,
+
+        /**
+         * Snap all 4 anchors to the bottom-right of the parent control's bounds.
+         */
+        BOTTOM_RIGHT,
+
+        /**
+         * Snap all 4 anchors to the center of the left edge of the parent control's bounds.
+         */
+        CENTER_LEFT,
+
+        /**
+         * Snap all 4 anchors to the center of the top edge of the parent control's bounds.
+         */
+        CENTER_TOP,
+
+        /**
+         * Snap all 4 anchors to the center of the right edge of the parent control's bounds.
+         */
+        CENTER_RIGHT,
+
+        /**
+         * Snap all 4 anchors to the center of the bottom edge of the parent control's bounds.
+         */
+        CENTER_BOTTOM,
+
+        /**
+         * Snap all 4 anchors to the center of the parent control's bounds.
+         */
+        CENTER,
+
+        /**
+         * Snap all 4 anchors to the left edge of the parent control.
+         * The left offset becomes relative to the left edge and the top offset relative to the top left corner
+         * of the node's parent.
+         */
+        LEFT_WIDE,
+
+        /**
+         * Snap all 4 anchors to the top edge of the parent control. The left offset becomes relative to
+         * the top left corner, the top offset relative to the top edge, and the right offset relative
+         * to the top right corner of the node's parent
+         */
+        TOP_WIDE,
+
+        /**
+         * Snap all 4 anchors to the right edge of the parent control. The right offset becomes relative
+         * to the right edge and the top offset relative to the top right corner of the node's parent.
+         */
+        RIGHT_WIDE,
+
+        /**
+         * Snap all 4 anchors to the bottom edge of the parent control. The left offset becomes relative
+         * to the bottom left corner, the bottom offset relative to the bottom edge, and the right offset
+         * relative to the bottom right corner of the node's parent.
+         */
+        BOTTOM_WIDE,
+
+        /**
+         * Snap all 4 anchors to a vertical line that cuts the parent control in half.
+         */
+        VCENTER_WIDE,
+
+        /**
+         * Snap all 4 anchors to a horizontal line that cuts the parent control in half.
+         */
+        HCENTER_WIDE,
+
+        /**
+         * Snap all 4 anchors to the respective corners of the parent control.
+         * Set all 4 offsets to 0 after you applied this preset and the Control will fit its parent control.
+         */
+        WIDE,
+
+        /**
+         * Anchors will need to be set manually.
+         */
+        NONE
+    }
+
+    enum class FocusMode {
+        /**
+         * The node cannot grab focus.
+         */
+        NONE,
+
+        /**
+         * The node can only grab focus on mouse clicks.
+         */
+        CLICK,
+
+        /**
+         * The node can grab focus on mouse click or using the arrows and tab keys on keyboard.
+         */
+        ALL
     }
 
     enum class MouseFilter {
@@ -840,6 +1413,100 @@ open class Control : Node2D() {
          * Ignores input events on the current [Control] but still allows events to its children.
          */
         IGNORE
+    }
+
+    enum class GrowDirection {
+        BEGIN, END, BOTH
+    }
+
+    /**
+     * Flags the tell the parent [Container] how to expand/shrink the child. Use with [horizontalSizeFlags] and
+     * [verticalSizeFlags]
+     * @author Colt Daily
+     */
+    @JvmInline
+    value class SizeFlag(val bit: Int) {
+
+        fun isFlagSet(flag: SizeFlag) = bit.isFlagSet(flag.bit)
+
+        infix fun or(flag: SizeFlag) = SizeFlag(bit.or(flag.bit))
+        infix fun and(flag: SizeFlag) = SizeFlag(bit.and(flag.bit))
+
+        companion object {
+            /**
+             * Tells the parent Container to expand the bounds of this node to fill all the available
+             * space without pushing any other node.
+             */
+            val FILL = SizeFlag(1 shl 0)
+
+            /**
+             * Tells the parent Container to let this node take all the available space on the axis you flag.
+             * If multiple neighboring nodes are set to expand, they'll share the space based on their stretch ratio.
+             * @see stretchRatio
+             */
+            val EXPAND = SizeFlag(1 shl 1)
+
+            /**
+             * Tells the parent Container to center the node in itself. It centers the control based on its bounding box,
+             * so it doesn't work with the fill or expand size flags.
+             */
+            val SHRINK_CENTER = SizeFlag(1 shl 2)
+
+            /**
+             * Tells the parent Container to align the node with its end, either the bottom or the right edge.
+             * It doesn't work with the fill or expand size flags
+             */
+            val SHRINK_END = SizeFlag(1 shl 3)
+
+            private val values =
+                arrayOf(FILL, EXPAND, SHRINK_CENTER, SHRINK_END)
+
+            fun values() = values
+
+            fun set(flags: List<SizeFlag>): SizeFlag {
+                var bit = flags[0].bit
+                flags.forEachIndexed { index, sizeFlag ->
+                    if (index != 0) {
+                        bit = bit or sizeFlag.bit
+                    }
+                }
+                return SizeFlag(bit)
+            }
+
+            operator fun invoke(str: String): SizeFlag = when (str) {
+                "FILL" -> FILL
+                "EXPAND" -> EXPAND
+                "SHRINK_CENTER" -> SHRINK_CENTER
+                "SHRINK_END" -> SHRINK_END
+                else -> SizeFlag(str.substringAfter('(').substringBefore(')').toIntOrNull() ?: 0)
+            }
+        }
+
+
+        override fun toString(): String = when (this) {
+            FILL -> "FILL"
+            EXPAND -> "EXPAND"
+            SHRINK_CENTER -> "SHRINK_CENTER"
+            SHRINK_END -> "SHRINK_END"
+            else -> "SizeFlag($bit)"
+        }
+    }
+
+    internal enum class Side {
+        LEFT, BOTTOM, RIGHT, TOP
+    }
+
+    companion object {
+        const val SIZE_DIRTY = 4
+
+        private val tempMat4 = Mat4()
+        private val tempVec2f = MutableVec2f()
+        private val tempVec3f = MutableVec3f()
+        private val points = Array(4) { MutableVec2f() }
+        private val points2 = Array(4) { MutableVec2f() }
+        private val controlResult = arrayOfNulls<Control>(1)
+        private val floatResult = floatArrayOf(0f)
+        private const val MAX_NEIGHBOR_SEARCH_COUNT = 512
     }
 }
 

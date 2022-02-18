@@ -30,6 +30,8 @@ open class Vec2f(x: Float, y: Float) {
 
     fun dot(other: Vec2f): Float = x * other.x + y * other.y
 
+    fun dot(other: Vec3f): Float = x * other.x + y * other.y
+
     /**
      * Checks vector components for equality using [com.lehaine.littlekt.math.isFuzzyEqual], that is all components must
      * have a difference less or equal [eps].

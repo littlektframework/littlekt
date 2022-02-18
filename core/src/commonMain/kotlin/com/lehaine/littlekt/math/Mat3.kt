@@ -221,6 +221,18 @@ class Mat3 {
         return result
     }
 
+    fun transform(vec: MutableVec2f): MutableVec2f {
+        val x = vec.x * this[0, 0] + vec.y * this[0, 1] + this[0, 2]
+        val y = vec.x * this[1, 0] + vec.y * this[1, 1] + this[1, 2]
+        return vec.set(x, y)
+    }
+
+    fun transform(vec: Vec2f, result: MutableVec2f): MutableVec2f {
+        result.x = vec.x * this[0, 0] + vec.y * this[0, 1] + this[0, 2]
+        result.y = vec.x * this[1, 0] + vec.y * this[1, 1] + this[1, 2]
+        return result
+    }
+
     /**
      * Post-multiplies this matrix with the given matrix, storing the result in this matrix.
      *

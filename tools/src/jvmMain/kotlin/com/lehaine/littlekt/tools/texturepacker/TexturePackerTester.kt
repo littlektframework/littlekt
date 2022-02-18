@@ -7,9 +7,9 @@ package com.lehaine.littlekt.tools.texturepacker
 
 fun main(args: Array<String>) {
     val packer = TexturePacker(TexturePackerConfig().apply {
-        inputDir = "./art/export_tiles/raw"
-        outputDir = "./art/output_atlas"
-        outputName = "tile.atlas"
+        inputDir = "./art/export_tiles"
+        outputDir = "./art/default_assets"
+        outputName = "default_tiles"
         packingOptions = PackingOptions().apply {
             outputPagesAsPowerOfTwo = false
             allowRotation = true

@@ -47,11 +47,7 @@ class Pool<T>(private val reset: (T) -> Unit = {}, preallocate: Int = 0, private
 
     inline fun <R> alloc(callback: (T) -> R): R {
         val temp = alloc()
-        try {
-            return callback(temp)
-        } finally {
-            free(temp)
-        }
+        return callback(temp)
     }
 
     inline fun <R> allocMultiple(
@@ -61,20 +57,12 @@ class Pool<T>(private val reset: (T) -> Unit = {}, preallocate: Int = 0, private
     ): R {
         temp.clear()
         for (n in 0 until count) temp.add(alloc())
-        try {
-            return callback(temp)
-        } finally {
-            while (temp.isNotEmpty()) free(temp.removeLast())
-        }
+        return callback(temp)
     }
 
     inline fun <R> allocThis(callback: T.() -> R): R {
         val temp = alloc()
-        try {
-            return callback(temp)
-        } finally {
-            free(temp)
-        }
+        return callback(temp)
     }
 
     override fun hashCode(): Int = items.hashCode()
