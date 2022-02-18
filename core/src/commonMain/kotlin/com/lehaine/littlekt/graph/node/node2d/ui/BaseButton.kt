@@ -1,6 +1,7 @@
 package com.lehaine.littlekt.graph.node.node2d.ui
 
 import com.lehaine.littlekt.graph.node.component.InputEvent
+import com.lehaine.littlekt.input.Key
 import com.lehaine.littlekt.util.Signal
 import com.lehaine.littlekt.util.SingleSignal
 import kotlin.js.JsName
@@ -99,6 +100,8 @@ abstract class BaseButton : Control() {
 
     override fun uiInput(event: InputEvent) {
         super.uiInput(event)
+
+        println(event)
         if (event.type == InputEvent.Type.MOUSE_ENTER) {
             status.hovering = true
         }
@@ -106,17 +109,22 @@ abstract class BaseButton : Control() {
             status.hovering = false
             status.pressAttempt = false
             status.pressingInside = false
+            event.handle()
         }
 
-        if (event.type == InputEvent.Type.TOUCH_DOWN) {
+        if (event.type == InputEvent.Type.TOUCH_DOWN
+            || event.type == InputEvent.Type.KEY_DOWN && event.key == Key.SPACE
+        ) {
             status.pressAttempt = true
             status.pressingInside = true
             onButtonDown.emit()
+            event.handle()
         }
 
         if (status.pressAttempt && status.pressingInside) {
             if (_toggleMode) {
-                val isPressed = event.type == InputEvent.Type.TOUCH_DOWN
+                val isPressed =
+                    event.type == InputEvent.Type.TOUCH_DOWN || event.type == InputEvent.Type.KEY_UP && event.key == Key.SPACE
                 // TODO check if shortcut input then: isPressed = false
                 if ((isPressed && actionMode == ActionMode.BUTTON_PRESS) || (!isPressed && actionMode == ActionMode.BUTTON_RELEASE)) {
                     if (actionMode == ActionMode.BUTTON_PRESS) {
@@ -135,8 +143,12 @@ abstract class BaseButton : Control() {
             }
         }
 
-        if (event.type == InputEvent.Type.TOUCH_UP) {
-            if (!hasPoint(event.sceneX, event.sceneY)) {
+        if (event.type == InputEvent.Type.TOUCH_UP
+            || event.type == InputEvent.Type.KEY_UP && event.key == Key.SPACE
+        ) {
+            if (event.type == InputEvent.Type.KEY_UP
+                || event.type == InputEvent.Type.TOUCH_UP && !hasPoint(event.sceneX, event.sceneY)
+            ) {
                 status.hovering = false
             }
             status.pressAttempt = false

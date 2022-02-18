@@ -1,7 +1,7 @@
 package com.lehaine.littlekt.graph.node.component
 
+import com.lehaine.littlekt.input.Key
 import com.lehaine.littlekt.input.Pointer
-import com.lehaine.littlekt.math.geom.Point
 
 /**
  * @author Colton Daily
@@ -11,7 +11,7 @@ class InputEvent : Event() {
     var type: Type = Type.NONE
     var pointer: Pointer = Pointer.POINTER1
     var button: Int = 0
-    var keyCode: Int = 0
+    var key: Key = Key.ANY_KEY
     var sceneX: Float = 0f
     var sceneY: Float = 0f
     var scrollAmountX: Int = 0
@@ -20,10 +20,11 @@ class InputEvent : Event() {
     override fun reset() {
         super.reset()
         button = -1
+        key = Key.ANY_KEY
     }
 
     override fun toString(): String {
-        return "InputEvent(type=$type, pointer=$pointer, button=$button, keyCode=$keyCode, sceneX=$sceneX, sceneY=$sceneY, scrollAmountX=$scrollAmountX, scrollAmountY=$scrollAmountY)"
+        return "InputEvent(type=$type, pointer=$pointer, button=$button, keyCode=$key, sceneX=$sceneX, sceneY=$sceneY, scrollAmountX=$scrollAmountX, scrollAmountY=$scrollAmountY)"
     }
 
     enum class Type {

@@ -13,7 +13,7 @@ class InputQueueProcessor {
 
     val currentEventTime get() = _currentEventTime
 
-    private val eventsPool = Pool(preallocate = 10, gen = { InternalInputEvent() })
+    private val eventsPool = Pool(reset = { it.reset() }, preallocate = 25, gen = { InternalInputEvent() })
 
     private val queue = mutableListOf<InternalInputEvent>()
     private val processingQueue = mutableListOf<InternalInputEvent>()
@@ -60,6 +60,7 @@ class InputQueueProcessor {
                 )
             }
         }
+        eventsPool.free(processingQueue)
         processingQueue.clear()
     }
 

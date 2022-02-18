@@ -203,6 +203,7 @@ class InputProcessBuilder {
     }
 
     fun build() = object : InputProcessor {
+
         override fun keyDown(key: Key): Boolean {
             var handled = false
             keyDown.fastForEach { if (it.invoke(key)) handled = true }

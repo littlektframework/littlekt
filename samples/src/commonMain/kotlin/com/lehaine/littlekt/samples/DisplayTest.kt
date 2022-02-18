@@ -386,8 +386,13 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
                 x = temp.x
                 y = temp.y
             }
+
             onKeyUp {
                 logger.info { "key up: $it" }
+            }
+
+            onKeyDown {
+                logger.info { "key down: $it" }
             }
         }
 

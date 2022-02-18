@@ -303,12 +303,23 @@ open class SceneGraph(
         return false
     }
 
-
     override fun keyDown(key: Key): Boolean {
         if (key == Key.SHIFT_LEFT) {
             shift = true
         }
+        println("sg keydown: $key")
         keyboardFocus?.let {
+            val event = inputEventPool.alloc().apply {
+                type = InputEvent.Type.KEY_DOWN
+                this.key = key
+            }
+            it._uiInput(event)
+            uiInput(it, event)
+            val handled = event.handled
+            inputEventPool.free(event)
+
+            if (handled) return true
+
             var next: Control? = null
             when (key) {
                 Key.TAB -> {
@@ -335,14 +346,27 @@ open class SceneGraph(
 
             next?.grabFocus()
         }
-        return super.keyDown(key)
+
+        return false
     }
 
     override fun keyUp(key: Key): Boolean {
         if (key == Key.SHIFT_LEFT) {
             shift = false
         }
-        return super.keyUp(key)
+
+        var handled = false
+        keyboardFocus?.let {
+            val event = inputEventPool.alloc().apply {
+                type = InputEvent.Type.KEY_UP
+                this.key = key
+            }
+            it._uiInput(event)
+            uiInput(it, event)
+            handled = event.handled
+            inputEventPool.free(event)
+        }
+        return handled
     }
 
     private fun fireEnterAndExit(overLast: Control?, screenX: Float, screenY: Float, pointer: Pointer): Control? {
