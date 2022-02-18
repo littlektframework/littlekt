@@ -305,7 +305,6 @@ open class SceneGraph(
 
 
     override fun keyDown(key: Key): Boolean {
-        println("key down scene graph $key")
         if (key == Key.SHIFT_LEFT) {
             shift = true
         }

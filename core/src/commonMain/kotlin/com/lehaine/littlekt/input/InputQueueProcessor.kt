@@ -201,50 +201,50 @@ class InputQueueProcessor {
     }
 
     private fun List<InputProcessor>.keyDown(key: Key) {
-        fastForEach { it.keyDown(key) }
+        fastForEach { if (it.keyDown(key)) return }
     }
 
     private fun List<InputProcessor>.keyUp(key: Key) {
-        fastForEach { it.keyUp(key) }
+        fastForEach { if (it.keyUp(key)) return }
     }
 
     private fun List<InputProcessor>.keyTyped(character: Char) {
-        fastForEach { it.keyTyped(character) }
+        fastForEach { if (it.keyTyped(character)) return }
     }
 
     private fun List<InputProcessor>.touchDown(screenX: Float, screenY: Float, pointer: Pointer) {
-        fastForEach { it.touchDown(screenX, screenY, pointer) }
+        fastForEach { if (it.touchDown(screenX, screenY, pointer)) return }
     }
 
     private fun List<InputProcessor>.touchUp(screenX: Float, screenY: Float, pointer: Pointer) {
-        fastForEach { it.touchUp(screenX, screenY, pointer) }
+        fastForEach { if (it.touchUp(screenX, screenY, pointer)) return }
     }
 
     private fun List<InputProcessor>.touchDragged(screenX: Float, screenY: Float, pointer: Pointer) {
-        fastForEach { it.touchDragged(screenX, screenY, pointer) }
+        fastForEach { if (it.touchDragged(screenX, screenY, pointer)) return }
     }
 
     private fun List<InputProcessor>.mouseMoved(screenX: Float, screenY: Float) {
-        fastForEach { it.mouseMoved(screenX, screenY) }
+        fastForEach { if (it.mouseMoved(screenX, screenY)) return }
     }
 
     private fun List<InputProcessor>.scrolled(amountX: Float, amountY: Float) {
-        fastForEach { it.scrolled(amountX, amountY) }
+        fastForEach { if (it.scrolled(amountX, amountY)) return }
     }
 
     private fun List<InputProcessor>.gamepadButtonPressed(button: GameButton, pressure: Float, gamepad: Int) {
-        fastForEach { it.gamepadButtonPressed(button, pressure, gamepad) }
+        fastForEach { if (it.gamepadButtonPressed(button, pressure, gamepad)) return }
     }
 
     private fun List<InputProcessor>.gamepadButtonReleased(button: GameButton, gamepad: Int) {
-        fastForEach { it.gamepadButtonReleased(button, gamepad) }
+        fastForEach { if (it.gamepadButtonReleased(button, gamepad)) return }
     }
 
     private fun List<InputProcessor>.gamepadJoystickMoved(stick: GameStick, xAxis: Float, yAxis: Float, gamepad: Int) {
-        fastForEach { it.gamepadJoystickMoved(stick, xAxis, yAxis, gamepad) }
+        fastForEach { if (it.gamepadJoystickMoved(stick, xAxis, yAxis, gamepad)) return }
     }
 
     private fun List<InputProcessor>.gamepadTriggerChanged(button: GameButton, pressure: Float, gamepad: Int) {
-        fastForEach { it.gamepadTriggerChanged(button, pressure, gamepad) }
+        fastForEach { if (it.gamepadTriggerChanged(button, pressure, gamepad)) return }
     }
 }

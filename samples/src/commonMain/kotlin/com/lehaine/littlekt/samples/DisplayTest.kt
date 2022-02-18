@@ -374,6 +374,7 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
             onTouchDown { screenX, screenY, pointer ->
                 logger.info { "pointer down at $screenX,$screenY: $pointer" }
             }
+
             onMouseMoved { screenX, screenY ->
                 camera.unProjectScreen(screenX, screenY, context, temp)
                 x = temp.x
