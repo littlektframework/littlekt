@@ -27,11 +27,19 @@
 * remove: `getColorHex` and `getColorInt` methods from `LDtkIntGridLayer`.
 * add: `getColor()` that returns a new `Color` instance to `LDtkIntGridLayer`.
 * add: `truncate` string to `Font`, `FontCache` and `GlyphLayout`.
+* add: ability to focus `Control` nodes and cycle through them with keyboard.
+* add: `onFocus` and `onFocusLost` methods to `Control`
+* update: `SceneGraph` to trigger ui input events for keyboard
+* update: `BaseButton` to allow for triggering press signal with keyboard
+* update `Button` with new _focus_ theme variable drawable
 
 ### Bugs:
 
 * fix: remove clearing color buffer in `LwjglContext`.
 * fix: `PathInfo` to handle `./`.
+* fix: `InputQueueProcessor` from triggering any subsequent input processors if the input has been handled
+* fix: `InputQueueProcessor` not correctly resetting internal input events to be reused.
+* fix: `Pool` from freeing an allocated object when using a callback.
 
 ### Upgrades:
 
