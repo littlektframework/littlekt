@@ -136,7 +136,7 @@ class InputMultiplexer<InputSignal>(val input: Input) : InputProcessor {
         }
     }
 
-    override fun keyTyped(character: Char): Boolean {
+    override fun charTyped(character: Char): Boolean {
         mode = InputMode.KEYBOARD
         return false
     }

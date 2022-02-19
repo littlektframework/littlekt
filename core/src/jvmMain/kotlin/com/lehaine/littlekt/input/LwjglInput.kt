@@ -34,13 +34,15 @@ class LwjglInput : Input {
         glfwSetKeyCallback(windowHandle) { window, key, scancode, action, mods ->
             when (action) {
                 GLFW_PRESS -> {
+                    lastChar = 0.toChar()
                     inputCache.onKeyDown(key.getKey)
                 }
                 GLFW_RELEASE -> inputCache.onKeyUp(key.getKey)
                 GLFW_REPEAT -> {
                     if (lastChar != 0.toChar()) {
-                        inputCache.onKeyType(lastChar)
+                        inputCache.onCharTyped(lastChar)
                     }
+                    inputCache.onKeyRepeat(key.getKey)
                 }
             }
         }
@@ -48,7 +50,7 @@ class LwjglInput : Input {
         glfwSetCharCallback(windowHandle) { window, codepoint ->
             if (codepoint and 0xff00 == 0xf700) return@glfwSetCharCallback
             lastChar = codepoint.toChar()
-            inputCache.onKeyType(lastChar)
+            inputCache.onCharTyped(lastChar)
         }
 
         glfwSetScrollCallback(windowHandle) { window, xoffset, yoffset ->

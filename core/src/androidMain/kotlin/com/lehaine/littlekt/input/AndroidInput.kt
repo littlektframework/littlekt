@@ -130,7 +130,7 @@ class AndroidInput(private val androidCtx: Context) : Input, OnTouchListener, On
             KeyEvent.ACTION_DOWN -> inputCache.onKeyDown(keyCode.getKey)
             KeyEvent.ACTION_UP -> {
                 inputCache.onKeyUp(keyCode.getKey)
-                inputCache.onKeyType(keyCode.toChar())
+                inputCache.onCharTyped(keyCode.toChar())
             }
         }
         return false

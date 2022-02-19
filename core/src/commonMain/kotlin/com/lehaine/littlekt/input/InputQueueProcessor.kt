@@ -32,7 +32,8 @@ class InputQueueProcessor {
             when (it.type) {
                 InternalInputEventType.KEY_DOWN -> processors.keyDown(key = it.key)
                 InternalInputEventType.KEY_UP -> processors.keyUp(key = it.key)
-                InternalInputEventType.KEY_TYPED -> processors.keyTyped(character = it.typedChar)
+                InternalInputEventType.KEY_REPEAT -> processors.keyRepeat(key = it.key)
+                InternalInputEventType.CHAR_TYPED -> processors.charTyped(character = it.typedChar)
                 InternalInputEventType.TOUCH_DOWN -> processors.touchDown(it.x, it.y, it.pointer)
                 InternalInputEventType.TOUCH_UP -> processors.touchUp(it.x, it.y, it.pointer)
                 InternalInputEventType.TOUCH_DRAGGED -> processors.touchDragged(it.x, it.y, it.pointer)
@@ -84,10 +85,20 @@ class InputQueueProcessor {
         }.also { queue.add(it) }
     }
 
-    fun keyTyped(character: Char, time: Long) {
+    fun keyRepeat(key: Key, time: Long) {
         eventsPool.alloc {
             it.apply {
-                type = InternalInputEventType.KEY_TYPED
+                type = InternalInputEventType.KEY_REPEAT
+                this.key = key
+                queueTime = time
+            }
+        }.also { queue.add(it) }
+    }
+
+    fun charTyped(character: Char, time: Long) {
+        eventsPool.alloc {
+            it.apply {
+                type = InternalInputEventType.CHAR_TYPED
                 typedChar = character
                 queueTime = time
             }
@@ -209,8 +220,12 @@ class InputQueueProcessor {
         fastForEach { if (it.keyUp(key)) return }
     }
 
-    private fun List<InputProcessor>.keyTyped(character: Char) {
-        fastForEach { if (it.keyTyped(character)) return }
+    private fun List<InputProcessor>.keyRepeat(key: Key) {
+        fastForEach { if (it.keyRepeat(key)) return }
+    }
+
+    private fun List<InputProcessor>.charTyped(character: Char) {
+        fastForEach { if (it.charTyped(character)) return }
     }
 
     private fun List<InputProcessor>.touchDown(screenX: Float, screenY: Float, pointer: Pointer) {

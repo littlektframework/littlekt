@@ -370,12 +370,26 @@ open class SceneGraph(
         return handled
     }
 
-    override fun keyTyped(character: Char): Boolean {
+    override fun keyRepeat(key: Key): Boolean {
         var handled = false
         keyboardFocus?.let {
             val event = inputEventPool.alloc().apply {
-                type = InputEvent.Type.KEY_TYPED
+                type = InputEvent.Type.KEY_REPEAT
                 this.key = key
+            }
+            it._uiInput(event)
+            uiInput(it, event)
+            handled = event.handled
+            inputEventPool.free(event)
+        }
+        return handled
+    }
+
+    override fun charTyped(character: Char): Boolean {
+        var handled = false
+        keyboardFocus?.let {
+            val event = inputEventPool.alloc().apply {
+                type = InputEvent.Type.CHAR_TYPED
                 char = character
             }
             it._uiInput(event)

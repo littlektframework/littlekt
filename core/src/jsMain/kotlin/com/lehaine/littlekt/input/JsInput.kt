@@ -71,7 +71,8 @@ class JsInput(val canvas: HTMLCanvasElement) : Input {
 
     private fun keyPress(event: Event) {
         event as KeyboardEvent
-        inputCache.onKeyType(event.charCode.toChar())
+        inputCache.onCharTyped(event.charCode.toChar())
+        inputCache.onKeyRepeat(event.jsKey)
     }
 
     private fun touchStart(event: Event) {

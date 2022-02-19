@@ -25,7 +25,6 @@ class Pool<T>(private val reset: (T) -> Unit = {}, preallocate: Int = 0, private
         return if (items.isNotEmpty()) items.pop() else gen(lastId++)
     }
 
-
     fun free(element: T) {
         reset(element)
         items.push(element)

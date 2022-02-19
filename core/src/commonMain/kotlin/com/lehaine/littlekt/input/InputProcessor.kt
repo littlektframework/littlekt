@@ -7,59 +7,38 @@ import com.lehaine.littlekt.util.fastForEach
  * @date 11/17/2021
  */
 interface InputProcessor {
-    fun keyDown(key: Key): Boolean {
-        return false
-    }
+    fun keyDown(key: Key): Boolean = false
 
-    fun keyUp(key: Key): Boolean {
-        return false
-    }
+    fun keyUp(key: Key): Boolean = false
 
-    fun keyTyped(character: Char): Boolean {
-        return false
-    }
+    fun keyRepeat(key: Key): Boolean = false
 
-    fun touchDown(screenX: Float, screenY: Float, pointer: Pointer): Boolean {
-        return false
-    }
+    fun charTyped(character: Char): Boolean = false
 
-    fun touchUp(screenX: Float, screenY: Float, pointer: Pointer): Boolean {
-        return false
-    }
+    fun touchDown(screenX: Float, screenY: Float, pointer: Pointer): Boolean = false
 
-    fun touchDragged(screenX: Float, screenY: Float, pointer: Pointer): Boolean {
-        return false
-    }
+    fun touchUp(screenX: Float, screenY: Float, pointer: Pointer): Boolean = false
 
-    fun mouseMoved(screenX: Float, screenY: Float): Boolean {
-        return false
-    }
+    fun touchDragged(screenX: Float, screenY: Float, pointer: Pointer): Boolean = false
 
-    fun scrolled(amountX: Float, amountY: Float): Boolean {
-        return false
-    }
+    fun mouseMoved(screenX: Float, screenY: Float): Boolean = false
 
-    fun gamepadButtonPressed(button: GameButton, pressure: Float, gamepad: Int): Boolean {
-        return false
-    }
+    fun scrolled(amountX: Float, amountY: Float): Boolean = false
 
-    fun gamepadButtonReleased(button: GameButton, gamepad: Int): Boolean {
-        return false
-    }
+    fun gamepadButtonPressed(button: GameButton, pressure: Float, gamepad: Int): Boolean = false
 
-    fun gamepadJoystickMoved(stick: GameStick, xAxis: Float, yAxis: Float, gamepad: Int): Boolean {
-        return false
-    }
+    fun gamepadButtonReleased(button: GameButton, gamepad: Int): Boolean = false
 
-    fun gamepadTriggerChanged(button: GameButton, pressure: Float, gamepad: Int): Boolean {
-        return false
-    }
+    fun gamepadJoystickMoved(stick: GameStick, xAxis: Float, yAxis: Float, gamepad: Int): Boolean = false
+
+    fun gamepadTriggerChanged(button: GameButton, pressure: Float, gamepad: Int): Boolean = false
 }
 
 class InputProcessBuilder {
     private val keyDown = mutableListOf<(Key) -> Boolean>()
     private val keyUp = mutableListOf<(Key) -> Boolean>()
-    private val keyTyped = mutableListOf<(Char) -> Boolean>()
+    private val keyRepeat = mutableListOf<(Key) -> Boolean>()
+    private val charTyped = mutableListOf<(Char) -> Boolean>()
     private val touchDown = mutableListOf<(Float, Float, Pointer) -> Boolean>()
     private val touchUp = mutableListOf<(Float, Float, Pointer) -> Boolean>()
     private val touchDragged = mutableListOf<(Float, Float, Pointer) -> Boolean>()
@@ -92,12 +71,23 @@ class InputProcessBuilder {
         }
     }
 
-    fun onKeyTypedHandle(action: (character: Char) -> Boolean) {
-        keyTyped += action
+    fun onKeyRepeatHandle(action: (key: Key) -> Boolean) {
+        keyRepeat += action
     }
 
-    fun onKeyTyped(action: (character: Char) -> Unit) {
-        keyTyped += {
+    fun onKeyRepeat(action: (key: Key) -> Unit) {
+        keyRepeat += {
+            action(it)
+            false
+        }
+    }
+
+    fun onCharTypedHandle(action: (character: Char) -> Boolean) {
+        charTyped += action
+    }
+
+    fun onCharTyped(action: (character: Char) -> Unit) {
+        charTyped += {
             action(it)
             false
         }
@@ -216,9 +206,15 @@ class InputProcessBuilder {
             return handled
         }
 
-        override fun keyTyped(character: Char): Boolean {
+        override fun keyRepeat(key: Key): Boolean {
             var handled = false
-            keyTyped.fastForEach { if (it.invoke(character)) handled = true }
+            keyRepeat.fastForEach { if (it.invoke(key)) handled = true }
+            return handled
+        }
+
+        override fun charTyped(character: Char): Boolean {
+            var handled = false
+            charTyped.fastForEach { if (it.invoke(character)) handled = true }
             return handled
         }
 

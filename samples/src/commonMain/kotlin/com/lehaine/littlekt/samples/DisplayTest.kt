@@ -430,8 +430,12 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
                 logger.info { "key down: $it" }
             }
 
-            onKeyTyped { char ->
-                logger.info { "key typed: '$char' - " }
+            onKeyRepeat {
+                logger.info { "key repeated: $it" }
+            }
+
+            onCharTyped {
+                logger.info { "char typed: '$it'" }
             }
         }
 

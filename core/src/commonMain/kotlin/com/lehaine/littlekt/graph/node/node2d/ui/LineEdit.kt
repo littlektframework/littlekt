@@ -89,7 +89,7 @@ class LineEdit : Control() {
             event.handle()
         }
 
-        if (event.type == InputEvent.Type.KEY_DOWN) {
+        if (event.type == InputEvent.Type.KEY_DOWN || event.type == InputEvent.Type.KEY_REPEAT) {
             when (event.key) {
                 Key.ARROW_LEFT -> {
                     if (caretPosition > 0) caretPosition--
@@ -101,7 +101,6 @@ class LineEdit : Control() {
                 }
                 else -> Unit
             }
-            println(caretPosition)
         }
     }
 
@@ -135,7 +134,7 @@ class LineEdit : Control() {
 
         }
 
-        if(hasFocus) {
+        if (hasFocus) {
             val caretHeight = font.capHeight - font.metrics.descent
             caret.draw(
                 batch,

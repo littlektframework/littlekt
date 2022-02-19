@@ -7,7 +7,8 @@ package com.lehaine.littlekt.input.internal
 internal enum class InternalInputEventType {
     KEY_DOWN,
     KEY_UP,
-    KEY_TYPED,
+    KEY_REPEAT,
+    CHAR_TYPED,
     TOUCH_DOWN,
     TOUCH_UP,
     TOUCH_DRAGGED,
