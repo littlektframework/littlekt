@@ -33,7 +33,9 @@ class LwjglInput : Input {
     fun attachToWindow(windowHandle: Long) {
         glfwSetKeyCallback(windowHandle) { window, key, scancode, action, mods ->
             when (action) {
-                GLFW_PRESS -> inputCache.onKeyDown(key.getKey)
+                GLFW_PRESS -> {
+                    inputCache.onKeyDown(key.getKey)
+                }
                 GLFW_RELEASE -> inputCache.onKeyUp(key.getKey)
                 GLFW_REPEAT -> {
                     if (lastChar != 0.toChar()) {

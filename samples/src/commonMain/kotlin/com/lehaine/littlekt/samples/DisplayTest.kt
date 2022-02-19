@@ -293,6 +293,23 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
                         }
                     }
 
+                    button {
+                        x = 600f
+                        y = 400f
+                        text = "Over yonder"
+                        onPressed += {
+                            logger.info { "You pressed me!! I am at ${globalX},${globalY}" }
+                            input.vibrate(100.milliseconds)
+                        }
+                    }
+
+                    lineEdit {
+                        x = 600f
+                        y = 200f
+
+                        text = "test lineaws ye"
+                    }
+
                     panelContainer {
                         x = 300f
                         y = 150f
@@ -411,6 +428,10 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
 
             onKeyDown {
                 logger.info { "key down: $it" }
+            }
+
+            onKeyTyped { char ->
+                logger.info { "key typed: '$char' - " }
             }
         }
 

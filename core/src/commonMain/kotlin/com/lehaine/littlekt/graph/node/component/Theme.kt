@@ -1,9 +1,6 @@
 package com.lehaine.littlekt.graph.node.component
 
-import com.lehaine.littlekt.graph.node.node2d.ui.Button
-import com.lehaine.littlekt.graph.node.node2d.ui.Label
-import com.lehaine.littlekt.graph.node.node2d.ui.Panel
-import com.lehaine.littlekt.graph.node.node2d.ui.ProgressBar
+import com.lehaine.littlekt.graph.node.node2d.ui.*
 import com.lehaine.littlekt.graphics.Color
 import com.lehaine.littlekt.graphics.Fonts
 import com.lehaine.littlekt.graphics.NinePatch
@@ -119,6 +116,14 @@ fun createDefaultTheme(
         6,
         6
     )
+
+    val greyBoxNinePatch = NinePatch(
+        Textures.atlas.getByPrefix("grey_box").slice,
+        7,
+        7,
+        6,
+        6
+    )
     val drawables = mapOf(
         "Button" to mapOf(
             Button.themeVars.normal to NinePatchDrawable(greyButtonNinePatch)
@@ -146,6 +151,14 @@ fun createDefaultTheme(
             ProgressBar.themeVars.fg to NinePatchDrawable(panelNinePatch).apply {
                 modulate = Color.LIGHT_BLUE.toMutableColor().also { it.lighten(0.5f) }
             }
+        ),
+        "LineEdit" to mapOf(
+            LineEdit.themeVars.bg to NinePatchDrawable(greyBoxNinePatch).apply {
+                minWidth = 50f
+                minHeight = 25f
+                modulate = Color.DARK_BLUE
+            },
+            LineEdit.themeVars.caret to TextureSliceDrawable(Textures.white)
         )
     ) + extraDrawables
 

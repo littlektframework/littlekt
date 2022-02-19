@@ -12,6 +12,7 @@ class InputEvent : Event() {
     var pointer: Pointer = Pointer.POINTER1
     var button: Int = 0
     var key: Key = Key.ANY_KEY
+    var char: Char = Char.MIN_VALUE
     var sceneX: Float = 0f
     var sceneY: Float = 0f
     var scrollAmountX: Int = 0
@@ -21,6 +22,7 @@ class InputEvent : Event() {
         super.reset()
         button = -1
         key = Key.ANY_KEY
+        char = Char.MIN_VALUE
     }
 
     override fun toString(): String {
