@@ -313,7 +313,6 @@ open class SceneGraph(
                 uiInput(it, event)
                 event.handle()
             }
-            touchFocusPool.free(focus)
         }
 
         val handled = event.handled

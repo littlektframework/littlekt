@@ -13,7 +13,6 @@ import com.lehaine.littlekt.graphics.font.BitmapFont
 import com.lehaine.littlekt.graphics.font.BitmapFontCache
 import com.lehaine.littlekt.graphics.font.GlyphLayout
 import com.lehaine.littlekt.input.Key
-import com.lehaine.littlekt.math.MutableVec2f
 import com.lehaine.littlekt.math.clamp
 import com.lehaine.littlekt.util.datastructure.FloatArrayList
 import kotlin.math.max
@@ -90,7 +89,8 @@ class LineEdit : Control() {
         super.uiInput(event)
 
         if (event.type == InputEvent.Type.TOUCH_DOWN || event.type == InputEvent.Type.TOUCH_DRAGGED) {
-            moveCaretToPosition(event.localX, event.localY)
+            println(event.type)
+            moveCaretToPosition(event.localX)
             event.handle()
         }
 
@@ -260,7 +260,7 @@ class LineEdit : Control() {
         text = stringBuilder.toString()
     }
 
-    private fun moveCaretToPosition(x: Float, y: Float) {
+    private fun moveCaretToPosition(x: Float) {
         caretPosition = determineGlyphPosition(x)
         caretPosition = max(0, caretPosition)
     }
