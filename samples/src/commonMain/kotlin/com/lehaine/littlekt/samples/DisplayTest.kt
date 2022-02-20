@@ -306,8 +306,6 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
                     lineEdit {
                         x = 600f
                         y = 200f
-
-                        text = "test lineaws ye"
                     }
 
                     panelContainer {

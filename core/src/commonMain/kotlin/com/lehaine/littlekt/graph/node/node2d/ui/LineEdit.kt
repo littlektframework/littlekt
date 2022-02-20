@@ -42,6 +42,7 @@ class LineEdit : Control() {
 
     private var visibleStart = 0
     private var visibleEnd = 0
+    private val availableWidth get() = width - bg.marginLeft - bg.marginRight
 
     var editable: Boolean = true
     var text: String = ""
@@ -92,15 +93,54 @@ class LineEdit : Control() {
         if (event.type == InputEvent.Type.KEY_DOWN || event.type == InputEvent.Type.KEY_REPEAT) {
             when (event.key) {
                 Key.ARROW_LEFT -> {
-                    if (caretPosition > 0) caretPosition--
+                    if (caretPosition > 0) {
+                        caretPosition--
+                    }
+                    if (caretPosition < visibleStart) {
+                        visibleStart--
+                        visibleStart = max(visibleStart, 0)
+                    }
                     event.handle()
                 }
                 Key.ARROW_RIGHT -> {
-                    if (caretPosition < text.length) caretPosition++
+                    if (caretPosition < text.length) {
+                        caretPosition++
+
+                        if (caretPosition > visibleEnd) {
+                            visibleStart += caretPosition - visibleEnd
+                            visibleStart = min(visibleStart, text.length)
+                        }
+                    }
+
                     event.handle()
+                }
+                Key.BACKSPACE -> {
+                    removeCharAtCaret(false)
+                    event.handle()
+                }
+                Key.DELETE -> {
+                    removeCharAtCaret(true)
+                    event.handle()
+                }
+                Key.HOME -> {
+                    caretPosition = 0
+                    visibleStart = 0
+                }
+                Key.END -> {
+                    caretPosition = text.length
+
+                    if (caretPosition > visibleEnd) {
+                        visibleStart += caretPosition - visibleEnd
+                        visibleStart = min(visibleStart, text.length)
+                    }
                 }
                 else -> Unit
             }
+        }
+
+        if (event.type == InputEvent.Type.CHAR_TYPED) {
+            insertCharAtCaret(event.char)
+            event.handle()
         }
     }
 
@@ -138,7 +178,7 @@ class LineEdit : Control() {
             val caretHeight = font.capHeight - font.metrics.descent
             caret.draw(
                 batch,
-                globalX + bg.marginLeft + widthPositions[caretPosition],
+                globalX + bg.marginLeft + widthPositions[caretPosition] - widthPositions[visibleStart],
                 globalY,
                 width = 1f,
                 height = caretHeight,
@@ -177,16 +217,45 @@ class LineEdit : Control() {
 
     private fun calcOffsets() {
         visibleEnd = 0
-        val availableWidth = width - bg.marginLeft - bg.marginRight
+        val currentPos = widthPositions[visibleStart]
         for (pos in widthPositions) {
-            if (pos <= availableWidth) {
+            if (pos - currentPos <= availableWidth) {
                 visibleEnd++
             } else {
                 break
             }
         }
-        visibleEnd--
         visibleEnd = visibleEnd.clamp(visibleStart, widthPositions.size - 1)
+    }
+
+    private fun insertCharAtCaret(char: Char) {
+        stringBuilder.clear()
+        stringBuilder.append(text)
+        stringBuilder.insert(caretPosition++, char)
+        text = stringBuilder.toString()
+
+        val currentPos = widthPositions[visibleStart]
+        if (widthPositions[caretPosition] - currentPos > availableWidth) {
+            visibleStart++
+            visibleStart = min(visibleStart, text.length)
+        }
+    }
+
+    private fun removeCharAtCaret(forward: Boolean) {
+        if (!forward && caretPosition <= 0) return
+        if (forward && caretPosition >= text.length) return
+
+        stringBuilder.clear()
+        stringBuilder.append(text)
+        val index = if (forward) caretPosition else --caretPosition
+        stringBuilder.deleteAt(index)
+        text = stringBuilder.toString()
+
+        val currentPos = widthPositions[visibleStart]
+        if (widthPositions[caretPosition] - currentPos < availableWidth) {
+            visibleStart--
+            visibleStart = max(visibleStart, 0)
+        }
     }
 
     class ThemeVars {
@@ -206,5 +275,7 @@ class LineEdit : Control() {
          * [Theme] related variable names when setting theme values for a [LineEdit]
          */
         val themeVars = ThemeVars()
+
+        private val stringBuilder = StringBuilder()
     }
 }
