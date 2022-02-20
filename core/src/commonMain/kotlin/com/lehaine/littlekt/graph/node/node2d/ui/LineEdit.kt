@@ -244,12 +244,6 @@ class LineEdit : Control() {
         stringBuilder.insert(caretPosition, chars)
         caretPosition += chars.length
         text = stringBuilder.toString()
-
-        val currentPos = glyphPositions[visibleStart]
-        if (glyphPositions[caretPosition] - currentPos > availableWidth) {
-            visibleStart++
-            visibleStart = min(visibleStart, text.length)
-        }
     }
 
     private fun removeAtCaret(forward: Boolean) {
@@ -261,12 +255,6 @@ class LineEdit : Control() {
         val index = if (forward) caretPosition else --caretPosition
         stringBuilder.deleteAt(index)
         text = stringBuilder.toString()
-
-        val currentPos = glyphPositions[visibleStart]
-        if (glyphPositions[caretPosition] - currentPos < availableWidth) {
-            visibleStart--
-            visibleStart = max(visibleStart, 0)
-        }
     }
 
     class ThemeVars {
