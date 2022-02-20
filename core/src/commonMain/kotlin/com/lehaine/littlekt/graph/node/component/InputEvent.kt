@@ -15,6 +15,8 @@ class InputEvent : Event() {
     var char: Char = Char.MIN_VALUE
     var sceneX: Float = 0f
     var sceneY: Float = 0f
+    var localX: Float = 0f
+    var localY: Float = 0f
     var scrollAmountX: Int = 0
     var scrollAmountY: Int = 0
 
@@ -23,6 +25,10 @@ class InputEvent : Event() {
         button = -1
         key = Key.ANY_KEY
         char = Char.MIN_VALUE
+        sceneX = 0f
+        sceneY = 0f
+        localX = 0f
+        localY = 0f
     }
 
     override fun toString(): String {

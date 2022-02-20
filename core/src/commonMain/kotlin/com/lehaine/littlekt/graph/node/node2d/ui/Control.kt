@@ -577,6 +577,7 @@ open class Control : Node2D() {
         if (!enabled || mouseFilter == MouseFilter.NONE) {
             return null
         }
+
         nodes.forEachReversed {
             if (it !is Control) return@forEachReversed
             val target = it.hit(hx, hy)
@@ -587,7 +588,10 @@ open class Control : Node2D() {
         if (mouseFilter == MouseFilter.IGNORE) return null
 
         if (globalRotation == Angle.ZERO) {
-            return if (hx >= globalX && hx < globalX + width && hy >= globalY && hy < globalY + height) this else null
+            toLocal(hx, hy, tempVec2f)
+            val x = tempVec2f.x
+            val y = tempVec2f.y
+            return if (x >= 0f && x < width && y >= 0f && y < height) this else null
         }
         // TODO determine hit target when rotated
 

@@ -13,6 +13,7 @@ import com.lehaine.littlekt.graphics.font.BitmapFont
 import com.lehaine.littlekt.graphics.font.BitmapFontCache
 import com.lehaine.littlekt.graphics.font.GlyphLayout
 import com.lehaine.littlekt.input.Key
+import com.lehaine.littlekt.math.MutableVec2f
 import com.lehaine.littlekt.math.clamp
 import com.lehaine.littlekt.util.datastructure.FloatArrayList
 import kotlin.math.max
@@ -44,6 +45,7 @@ class LineEdit : Control() {
     private var visibleEnd = 0
     private val availableWidth get() = width - bg.marginLeft - bg.marginRight
     private var renderOffset = 0f
+    private var fontOffset = 0f
 
     var editable: Boolean = true
     var text: String = ""
@@ -87,7 +89,8 @@ class LineEdit : Control() {
     override fun uiInput(event: InputEvent) {
         super.uiInput(event)
 
-        if (event.type == InputEvent.Type.TOUCH_DOWN) {
+        if (event.type == InputEvent.Type.TOUCH_DOWN || event.type == InputEvent.Type.TOUCH_DRAGGED) {
+            moveCaretToPosition(event.localX, event.localY)
             event.handle()
         }
 
@@ -115,9 +118,11 @@ class LineEdit : Control() {
                 }
                 Key.HOME -> {
                     caretPosition = 0
+                    event.handle()
                 }
                 Key.END -> {
                     caretPosition = text.length
+                    event.handle()
                 }
                 else -> Unit
             }
@@ -143,7 +148,6 @@ class LineEdit : Control() {
             rotation = rotation
         )
 
-
         if (text.isNotEmpty()) {
             calculateVisibility()
             cache.setText(
@@ -155,15 +159,13 @@ class LineEdit : Control() {
                 rotation
             )
             cache.draw(batch)
-        } else {
-
         }
 
         if (hasFocus) {
             val caretHeight = font.capHeight - font.metrics.descent
             caret.draw(
                 batch,
-                globalX + bg.marginLeft + glyphPositions[caretPosition] - glyphPositions[visibleStart],
+                globalX + bg.marginLeft + glyphPositions[caretPosition] - glyphPositions[visibleStart] + fontOffset,
                 globalY,
                 width = 1f,
                 height = caretHeight,
@@ -189,6 +191,7 @@ class LineEdit : Control() {
         var x = 0f
         if (layout.runs.isNotEmpty()) {
             val run = layout.runs.first()
+            fontOffset = run.glyphs[0].left
             run.glyphs.forEach { glyph ->
                 glyphPositions += x
                 x += glyph.xAdvance
@@ -257,6 +260,22 @@ class LineEdit : Control() {
         text = stringBuilder.toString()
     }
 
+    private fun moveCaretToPosition(x: Float, y: Float) {
+        caretPosition = determineGlyphPosition(x)
+        caretPosition = max(0, caretPosition)
+    }
+
+    private fun determineGlyphPosition(tx: Float): Int {
+        val x = tx + fontOffset - glyphPositions[visibleStart] - bg.marginLeft
+        for (i in 1 until glyphPositions.size) {
+            if (glyphPositions[i] > x) {
+                if (glyphPositions[i] - x <= x - glyphPositions[i - 1]) return i
+                return i - 1
+            }
+        }
+        return glyphPositions.size - 1
+    }
+
     class ThemeVars {
         val fontColor = "fontColor"
         val font = "font"
@@ -274,7 +293,6 @@ class LineEdit : Control() {
          * [Theme] related variable names when setting theme values for a [LineEdit]
          */
         val themeVars = ThemeVars()
-
         private val stringBuilder = StringBuilder()
     }
 }
