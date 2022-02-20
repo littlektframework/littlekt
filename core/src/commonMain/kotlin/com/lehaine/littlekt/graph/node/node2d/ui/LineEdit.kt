@@ -38,11 +38,12 @@ class LineEdit : Control() {
 
     private var cache: BitmapFontCache = BitmapFontCache(font)
     private val layout = GlyphLayout()
-    private val widthPositions = FloatArrayList()
+    private val glyphPositions = FloatArrayList()
 
     private var visibleStart = 0
     private var visibleEnd = 0
     private val availableWidth get() = width - bg.marginLeft - bg.marginRight
+    private var renderOffset = 0f
 
     var editable: Boolean = true
     var text: String = ""
@@ -96,50 +97,34 @@ class LineEdit : Control() {
                     if (caretPosition > 0) {
                         caretPosition--
                     }
-                    if (caretPosition < visibleStart) {
-                        visibleStart--
-                        visibleStart = max(visibleStart, 0)
-                    }
                     event.handle()
                 }
                 Key.ARROW_RIGHT -> {
                     if (caretPosition < text.length) {
                         caretPosition++
-
-                        if (caretPosition > visibleEnd) {
-                            visibleStart += caretPosition - visibleEnd
-                            visibleStart = min(visibleStart, text.length)
-                        }
                     }
-
                     event.handle()
                 }
                 Key.BACKSPACE -> {
-                    removeCharAtCaret(false)
+                    removeAtCaret(false)
                     event.handle()
                 }
                 Key.DELETE -> {
-                    removeCharAtCaret(true)
+                    removeAtCaret(true)
                     event.handle()
                 }
                 Key.HOME -> {
                     caretPosition = 0
-                    visibleStart = 0
                 }
                 Key.END -> {
                     caretPosition = text.length
-
-                    if (caretPosition > visibleEnd) {
-                        visibleStart += caretPosition - visibleEnd
-                        visibleStart = min(visibleStart, text.length)
-                    }
                 }
                 else -> Unit
             }
         }
 
         if (event.type == InputEvent.Type.CHAR_TYPED) {
-            insertCharAtCaret(event.char)
+            insertAtCaret(event.char.toString())
             event.handle()
         }
     }
@@ -160,7 +145,7 @@ class LineEdit : Control() {
 
 
         if (text.isNotEmpty()) {
-            calcOffsets()
+            calculateVisibility()
             cache.setText(
                 text.substring(visibleStart, visibleEnd),
                 globalX + bg.marginLeft,
@@ -178,7 +163,7 @@ class LineEdit : Control() {
             val caretHeight = font.capHeight - font.metrics.descent
             caret.draw(
                 batch,
-                globalX + bg.marginLeft + widthPositions[caretPosition] - widthPositions[visibleStart],
+                globalX + bg.marginLeft + glyphPositions[caretPosition] - glyphPositions[visibleStart],
                 globalY,
                 width = 1f,
                 height = caretHeight,
@@ -200,48 +185,74 @@ class LineEdit : Control() {
 
     private fun updateText() {
         layout.setText(font, text.replace('\r', ' ').replace('\n', ' '))
-        widthPositions.clear()
+        glyphPositions.clear()
         var x = 0f
         if (layout.runs.isNotEmpty()) {
-            val advances = layout.runs.first().advances
-            for (i in 1 until advances.size) {
-                widthPositions += x
-                x += advances[i]
+            val run = layout.runs.first()
+            run.glyphs.forEach { glyph ->
+                glyphPositions += x
+                x += glyph.xAdvance
             }
         }
-        widthPositions += x
 
-        visibleStart = min(visibleStart, widthPositions.size - 1)
-        visibleEnd = visibleEnd.clamp(visibleStart, widthPositions.size - 1)
+        glyphPositions += x
+
+        visibleStart = min(visibleStart, glyphPositions.size - 1)
+        visibleEnd = visibleEnd.clamp(visibleStart, glyphPositions.size - 1)
     }
 
-    private fun calcOffsets() {
-        visibleEnd = 0
-        val currentPos = widthPositions[visibleStart]
-        for (pos in widthPositions) {
-            if (pos - currentPos <= availableWidth) {
-                visibleEnd++
-            } else {
+    private fun calculateVisibility() {
+        caretPosition = caretPosition.clamp(0, glyphPositions.size - 1)
+        val distance = glyphPositions[max(0, caretPosition - 1)] + renderOffset
+        if (distance <= 0f) {
+            renderOffset -= distance
+        } else {
+            val index = min(glyphPositions.size - 1, caretPosition + 1)
+            val minX = glyphPositions[index] - availableWidth
+            if (-renderOffset < minX) renderOffset = -minX
+        }
+
+        var maxOffset = 0f
+        val width = glyphPositions.last()
+        for (i in glyphPositions.size - 2 downTo 0) {
+            val x = glyphPositions[i]
+            if (width - x > availableWidth) break
+            maxOffset = x
+        }
+        if (-renderOffset > maxOffset) renderOffset = -maxOffset
+
+        visibleStart = 0
+        for (i in glyphPositions.indices) {
+            if (glyphPositions[i] >= -renderOffset) {
+                visibleStart = i
                 break
             }
         }
-        visibleEnd = visibleEnd.clamp(visibleStart, widthPositions.size - 1)
+
+        var end = visibleStart + 1
+        val endX = availableWidth - renderOffset
+        for (n in end..min(text.length, glyphPositions.size)) {
+            if (glyphPositions[end] > endX) break
+            end = n
+        }
+        visibleEnd = max(0, end)
     }
 
-    private fun insertCharAtCaret(char: Char) {
+    private fun insertAtCaret(chars: CharSequence) {
         stringBuilder.clear()
         stringBuilder.append(text)
-        stringBuilder.insert(caretPosition++, char)
+        stringBuilder.insert(caretPosition, chars)
+        caretPosition += chars.length
         text = stringBuilder.toString()
 
-        val currentPos = widthPositions[visibleStart]
-        if (widthPositions[caretPosition] - currentPos > availableWidth) {
+        val currentPos = glyphPositions[visibleStart]
+        if (glyphPositions[caretPosition] - currentPos > availableWidth) {
             visibleStart++
             visibleStart = min(visibleStart, text.length)
         }
     }
 
-    private fun removeCharAtCaret(forward: Boolean) {
+    private fun removeAtCaret(forward: Boolean) {
         if (!forward && caretPosition <= 0) return
         if (forward && caretPosition >= text.length) return
 
@@ -251,8 +262,8 @@ class LineEdit : Control() {
         stringBuilder.deleteAt(index)
         text = stringBuilder.toString()
 
-        val currentPos = widthPositions[visibleStart]
-        if (widthPositions[caretPosition] - currentPos < availableWidth) {
+        val currentPos = glyphPositions[visibleStart]
+        if (glyphPositions[caretPosition] - currentPos < availableWidth) {
             visibleStart--
             visibleStart = max(visibleStart, 0)
         }
