@@ -13,6 +13,7 @@ import com.lehaine.littlekt.graphics.font.BitmapFont
 import com.lehaine.littlekt.graphics.font.BitmapFontCache
 import com.lehaine.littlekt.graphics.font.GlyphLayout
 import com.lehaine.littlekt.input.Key
+import com.lehaine.littlekt.input.Pointer
 import com.lehaine.littlekt.math.clamp
 import com.lehaine.littlekt.util.datastructure.FloatArrayList
 import com.lehaine.littlekt.util.internal.now
@@ -20,6 +21,7 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 
 /**
  * Adds a [LineEdit] to the current [Node] as a child and then triggers the [callback]
@@ -54,9 +56,15 @@ open class LineEdit : Control() {
     private var selectionX = 0f
     private var selectionWidth = 0f
     private var _caretPosition: Int = 0
+
     private var lastChanged: Duration = Duration.ZERO
     private val undoStack by lazy { ArrayDeque<String>() }
     private val redoStack by lazy { ArrayDeque<String>() }
+
+    private var lastPointer: Pointer? = null
+    private var lastTap: Duration = Duration.ZERO
+    private var taps = 0
+    private var pressed = false
 
     var editable: Boolean = true
     var text: String = ""
@@ -112,18 +120,35 @@ open class LineEdit : Control() {
     override fun uiInput(event: InputEvent) {
         super.uiInput(event)
 
-        if (event.type == InputEvent.Type.TOUCH_DOWN || event.type == InputEvent.Type.TOUCH_DRAGGED) {
+        if (event.type == InputEvent.Type.TOUCH_DOWN) {
+            if (pressed) return
             moveCaretToPosition(event.localX)
+            pressed = true
+            lastPointer = event.pointer
+            selectionStart = _caretPosition
+            hasSelection = true
+        }
 
-            if (event.type == InputEvent.Type.TOUCH_DOWN) {
-                selectionStart = _caretPosition
-                hasSelection = true
-            }
+        if (event.type == InputEvent.Type.TOUCH_DRAGGED) {
+            if (lastPointer != event.pointer) return
+            pressed = hasPoint(event.sceneX, event.sceneY)
+            moveCaretToPosition(event.localX)
         }
 
         if (event.type == InputEvent.Type.TOUCH_UP) {
-            if (selectionStart == _caretPosition) {
-                hasSelection = false
+            if (event.pointer == lastPointer) {
+                if (selectionStart == _caretPosition) {
+                    hasSelection = false
+                }
+                val time = now().milliseconds
+                if (time - lastTap > 500.milliseconds) {
+                    taps = 0
+                }
+                taps++
+                lastTap = time
+                pressed = false
+                lastPointer = null
+                onTapped(event)
             }
         }
 
@@ -223,6 +248,19 @@ open class LineEdit : Control() {
                 redoStack.clear()
             }
             lastChanged = time
+        }
+    }
+
+    private fun onTapped(event: InputEvent) {
+        val count = taps % 4
+        println("tapped: $count")
+        if (count == 0) unselect()
+        if (count == 2) {
+            val indices = determineWordIndices(event.localX)
+            select(indices[0], indices[1])
+        }
+        if (count == 3) {
+            selectAll()
         }
     }
 
@@ -444,6 +482,31 @@ open class LineEdit : Control() {
         _caretPosition = max(0, _caretPosition)
     }
 
+    private fun determineWordIndices(tx: Float) = determineWordIndices(determineGlyphPosition(tx))
+
+    private fun determineWordIndices(idx: Int): IntArray {
+        var right = text.length
+        var left = 0
+        if (idx >= text.length) {
+            left = text.length
+            right = 0
+        } else {
+            for (i in idx until right) {
+                if (!text[i].isLetterOrDigit()) {
+                    right = i
+                    break
+                }
+            }
+            for (i in idx - 1 downTo 0) {
+                if (!text[i].isLetterOrDigit()) {
+                    left = i + 1
+                    break
+                }
+            }
+        }
+        return intArrayOf(left, right)
+    }
+
     private fun determineGlyphPosition(tx: Float): Int {
         val x = tx + fontOffset + glyphPositions[visibleStart] - bg.marginLeft
         for (i in 1 until glyphPositions.size) {
@@ -452,7 +515,8 @@ open class LineEdit : Control() {
                 return i - 1
             }
         }
-        return glyphPositions.size - 1
+        val pos = glyphPositions.size - 1
+        return max(pos, 0)
     }
 
     class ThemeVars {

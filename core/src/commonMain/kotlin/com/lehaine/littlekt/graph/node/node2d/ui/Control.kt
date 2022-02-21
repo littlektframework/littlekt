@@ -478,9 +478,9 @@ open class Control : Node2D() {
     }
 
     internal fun _uiInput(event: InputEvent) {
-        if (!enabled) return
+        if (!enabled || !insideTree) return
         onUiInput.emit(event) // signal is first due to being able to handle the event
-        if (!insideTree || event.handled) {
+        if (event.handled) {
             return
         }
         uiInput(event)
