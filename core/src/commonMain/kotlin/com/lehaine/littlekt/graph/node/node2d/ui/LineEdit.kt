@@ -21,7 +21,6 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
-import kotlin.time.Duration.Companion.seconds
 
 /**
  * Adds a [LineEdit] to the current [Node] as a child and then triggers the [callback]
@@ -215,6 +214,34 @@ open class LineEdit : Control() {
                 Key.A -> {
                     if (ctrl) {
                         selectAll()
+                        event.handle()
+                    }
+                }
+                Key.C -> {
+                    if (ctrl && hasSelection) {
+                        val minIdx = min(_caretPosition, selectionStart)
+                        val maxIdx = max(_caretPosition, selectionStart)
+                        scene?.context?.clipboard?.contents = text.substring(minIdx, maxIdx)
+                        event.handle()
+                    }
+                }
+                Key.X -> {
+                    if (ctrl && hasSelection) {
+                        val minIdx = min(_caretPosition, selectionStart)
+                        val maxIdx = max(_caretPosition, selectionStart)
+                        scene?.context?.clipboard?.contents = text.substring(minIdx, maxIdx)
+                        removeAtCaret(true)
+                        event.handle()
+                    }
+                }
+                Key.V -> {
+                    if (ctrl) {
+                        if (hasSelection) {
+                            removeAtCaret(true)
+                        }
+                        scene?.context?.clipboard?.contents?.let {
+                            insertAtCaret(it)
+                        }
                         event.handle()
                     }
                 }
