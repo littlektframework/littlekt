@@ -136,14 +136,38 @@ open class LineEdit : Control() {
                     || scene?.context?.input?.isKeyPressed(Key.CTRL_RIGHT) == true
             when (event.key) {
                 Key.ARROW_LEFT -> {
-                    if (_caretPosition > 0) {
-                        _caretPosition--
+                    if (text.isNotEmpty()) {
+                        if (!hasSelection && shift) {
+                            hasSelection = true
+                            selectionStart = _caretPosition
+                        } else if (!shift) {
+                            unselect()
+                        }
+                        if (ctrl) {
+                            while (--_caretPosition > 0) {
+                                if (!text[_caretPosition - 1].isLetterOrDigit()) break
+                            }
+                        } else if (_caretPosition > 0) {
+                            _caretPosition--
+                        }
                     }
                     event.handle()
                 }
                 Key.ARROW_RIGHT -> {
-                    if (_caretPosition < text.length) {
-                        _caretPosition++
+                    if (text.isNotEmpty()) {
+                        if (!hasSelection && shift) {
+                            hasSelection = true
+                            selectionStart = _caretPosition
+                        } else if (!shift) {
+                            unselect()
+                        }
+                        if (ctrl) {
+                            while (++_caretPosition < text.length) {
+                                if (!text[_caretPosition].isLetterOrDigit()) break
+                            }
+                        } else if (_caretPosition < text.length) {
+                            _caretPosition++
+                        }
                     }
                     event.handle()
                 }
