@@ -201,10 +201,13 @@ open class SceneGraph(
 
         screenToSceneCoordinates(tempVec.set(screenX, screenY))
 
+        val sceneX = tempVec.x
+        val sceneY = tempVec.y
+
         val event = inputEventPool.alloc().apply {
             type = InputEvent.Type.TOUCH_DOWN
-            sceneX = tempVec.x
-            sceneY = tempVec.y
+            this.sceneX = sceneX
+            this.sceneY = sceneY
             this.pointer = pointer
         }
 
@@ -214,7 +217,7 @@ open class SceneGraph(
                 it.grabFocus()
                 keyboardFocus = it
             }
-            it.toLocal(event.sceneX, event.sceneY, tempVec)
+            it.toLocal(sceneX, sceneY, tempVec)
             event.apply {
                 localX = tempVec.x
                 localY = tempVec.y

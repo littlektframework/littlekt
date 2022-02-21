@@ -89,7 +89,6 @@ class LineEdit : Control() {
         super.uiInput(event)
 
         if (event.type == InputEvent.Type.TOUCH_DOWN || event.type == InputEvent.Type.TOUCH_DRAGGED) {
-            println(event.type)
             moveCaretToPosition(event.localX)
             event.handle()
         }
@@ -189,6 +188,7 @@ class LineEdit : Control() {
         layout.setText(font, text.replace('\r', ' ').replace('\n', ' '))
         glyphPositions.clear()
         var x = 0f
+        fontOffset = 0f
         if (layout.runs.isNotEmpty()) {
             val run = layout.runs.first()
             fontOffset = run.glyphs[0].left
@@ -266,7 +266,7 @@ class LineEdit : Control() {
     }
 
     private fun determineGlyphPosition(tx: Float): Int {
-        val x = tx + fontOffset - glyphPositions[visibleStart] - bg.marginLeft
+        val x = tx + fontOffset + glyphPositions[visibleStart] - bg.marginLeft
         for (i in 1 until glyphPositions.size) {
             if (glyphPositions[i] > x) {
                 if (glyphPositions[i] - x <= x - glyphPositions[i - 1]) return i
