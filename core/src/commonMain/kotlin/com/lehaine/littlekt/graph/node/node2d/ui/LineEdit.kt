@@ -15,8 +15,11 @@ import com.lehaine.littlekt.graphics.font.GlyphLayout
 import com.lehaine.littlekt.input.Key
 import com.lehaine.littlekt.math.clamp
 import com.lehaine.littlekt.util.datastructure.FloatArrayList
+import com.lehaine.littlekt.util.internal.now
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
 
 /**
  * Adds a [LineEdit] to the current [Node] as a child and then triggers the [callback]
@@ -51,12 +54,16 @@ open class LineEdit : Control() {
     private var selectionX = 0f
     private var selectionWidth = 0f
     private var _caretPosition: Int = 0
+    private var lastChanged: Duration = Duration.ZERO
+    private val undoStack by lazy { ArrayDeque<String>() }
+    private val redoStack by lazy { ArrayDeque<String>() }
 
     var editable: Boolean = true
     var text: String = ""
         set(value) {
             field = value
             updateText()
+            _caretPosition = _caretPosition.clamp(0, text.length)
         }
     var placeholderText: String = ""
     var secretCharacter: Char = '*'
@@ -120,8 +127,8 @@ open class LineEdit : Control() {
             }
         }
 
+        val oldText = text
         if (event.type == InputEvent.Type.KEY_DOWN || event.type == InputEvent.Type.KEY_REPEAT) {
-
             val shift =
                 scene?.context?.input?.isKeyPressed(Key.SHIFT_LEFT) == true
                         || scene?.context?.input?.isKeyPressed(Key.SHIFT_RIGHT) == true
@@ -157,9 +164,20 @@ open class LineEdit : Control() {
                     event.handle()
                 }
                 Key.A -> {
-                    if(ctrl) {
+                    if (ctrl) {
                         selectAll()
                         event.handle()
+                    }
+                }
+                Key.Z -> {
+                    if (ctrl && !shift) {
+                        undo()
+                        event.handle()
+                        return
+                    } else if (ctrl && shift) {
+                        redo()
+                        event.handle()
+                        return
                     }
                 }
                 else -> Unit
@@ -172,6 +190,15 @@ open class LineEdit : Control() {
             }
             insertAtCaret(event.char.toString())
             event.handle()
+        }
+
+        if (oldText != text) {
+            val time = now().milliseconds
+            if (time - 750.milliseconds > lastChanged) {
+                undoStack.addFirst(oldText)
+                redoStack.clear()
+            }
+            lastChanged = time
         }
     }
 
@@ -265,6 +292,26 @@ open class LineEdit : Control() {
 
     fun unselect() {
         hasSelection = false
+    }
+
+    fun undo() {
+        if (undoStack.isEmpty()) return
+
+        unselect()
+        val oldText = text
+        text = undoStack.removeFirst()
+        redoStack.addFirst(oldText)
+        _caretPosition = text.length
+    }
+
+    fun redo() {
+        if (redoStack.isEmpty()) return
+
+        unselect()
+        val oldText = text
+        text = redoStack.removeFirst()
+        undoStack.addFirst(oldText)
+        _caretPosition = text.length
     }
 
     private fun updateText() {
