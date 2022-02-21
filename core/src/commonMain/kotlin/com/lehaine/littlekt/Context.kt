@@ -5,6 +5,7 @@ import com.lehaine.littlekt.file.vfs.VfsFile
 import com.lehaine.littlekt.graphics.GL
 import com.lehaine.littlekt.input.Input
 import com.lehaine.littlekt.log.Logger
+import com.lehaine.littlekt.util.Clipboard
 import com.lehaine.littlekt.util.internal.now
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.microseconds
@@ -58,6 +59,8 @@ abstract class Context {
     abstract val storageVfs: VfsFile
 
     abstract val platform: Platform
+
+    abstract val clipboard: Clipboard
 
     internal abstract fun start(build: (app: Context) -> ContextListener)
 
