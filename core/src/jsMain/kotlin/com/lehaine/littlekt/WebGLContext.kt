@@ -7,6 +7,7 @@ import com.lehaine.littlekt.file.vfs.VfsFile
 import com.lehaine.littlekt.graphics.internal.InternalResources
 import com.lehaine.littlekt.input.JsInput
 import com.lehaine.littlekt.log.Logger
+import com.lehaine.littlekt.util.Clipboard
 import com.lehaine.littlekt.util.fastForEach
 import kotlinx.browser.document
 import kotlinx.browser.window
@@ -32,6 +33,7 @@ class WebGLContext(override val configuration: JsConfiguration) : Context() {
     override val resourcesVfs: VfsFile get() = vfs.root
     override val storageVfs: VfsFile get() = vfs.root
     override val platform: Platform = Platform.WEBGL
+    override val clipboard: JsClipboard = JsClipboard()
 
     private lateinit var listener: ContextListener
     private var closed = false
