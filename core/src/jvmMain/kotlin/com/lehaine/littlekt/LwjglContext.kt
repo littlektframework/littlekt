@@ -9,7 +9,6 @@ import com.lehaine.littlekt.file.ByteBufferImpl
 import com.lehaine.littlekt.file.JvmVfs
 import com.lehaine.littlekt.file.vfs.VfsFile
 import com.lehaine.littlekt.file.vfs.readPixmap
-import com.lehaine.littlekt.graphics.GL
 import com.lehaine.littlekt.graphics.GLVersion
 import com.lehaine.littlekt.graphics.internal.InternalResources
 import com.lehaine.littlekt.input.LwjglInput
@@ -23,9 +22,7 @@ import org.lwjgl.glfw.GLFW
 import org.lwjgl.glfw.GLFWErrorCallback
 import org.lwjgl.glfw.GLFWImage
 import org.lwjgl.opengl.GL11
-import org.lwjgl.opengl.GL11.glClear
 import org.lwjgl.opengl.GL30
-import org.lwjgl.opengl.GL30C
 import org.lwjgl.opengl.GLCapabilities
 import org.lwjgl.system.MemoryStack
 import org.lwjgl.system.MemoryUtil
@@ -50,6 +47,8 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context() {
     override val storageVfs: VfsFile get() = VfsFile(vfs, "./.storage")
 
     override val platform: Platform = Platform.DESKTOP
+
+    override val clipboard: JvmClipboard by lazy { JvmClipboard(windowHandle) }
 
     internal var windowHandle: Long = 0
         private set
