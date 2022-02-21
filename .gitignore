@@ -63,3 +63,5 @@ libgdx-*.zip.MD5
 
 *.base64
 local/
+
+kotlin-js-store/

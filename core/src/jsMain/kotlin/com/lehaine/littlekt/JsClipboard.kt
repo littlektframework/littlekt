@@ -29,6 +29,7 @@ class JsClipboard : Clipboard {
                 window.navigator.asDynamic().permissions.query(jsObject { name = "clipboard-write" }).then { result ->
                     if (result.state == "granted" || result.state == "prompt") {
                         content = value ?: ""
+                        clipboard.writeText(value ?: "")
                         hasWritePermissions = true
                     }
                     if (result.state == "denied") {
