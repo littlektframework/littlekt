@@ -34,7 +34,7 @@ inline fun SceneGraph.lineEdit(callback: @SceneGraphDslMarker LineEdit.() -> Uni
  * @author Colton Daily
  * @date 2/18/2022
  */
-class LineEdit : Control() {
+open class LineEdit : Control() {
 
     private var cache: BitmapFontCache = BitmapFontCache(font)
     private val layout = GlyphLayout()
@@ -50,6 +50,7 @@ class LineEdit : Control() {
     private var hasSelection = false
     private var selectionX = 0f
     private var selectionWidth = 0f
+    private var _caretPosition: Int = 0
 
     var editable: Boolean = true
     var text: String = ""
@@ -59,7 +60,12 @@ class LineEdit : Control() {
         }
     var placeholderText: String = ""
     var secretCharacter: Char = '*'
-    var caretPosition: Int = 0
+    var caretPosition: Int
+        get() = _caretPosition
+        set(value) {
+            unselect()
+            _caretPosition = value.clamp(0, text.length)
+        }
 
     var font: BitmapFont
         get() = getThemeFont(Label.themeVars.font)
@@ -103,28 +109,34 @@ class LineEdit : Control() {
             moveCaretToPosition(event.localX)
 
             if (event.type == InputEvent.Type.TOUCH_DOWN) {
-                selectionStart = caretPosition
+                selectionStart = _caretPosition
                 hasSelection = true
             }
         }
 
         if (event.type == InputEvent.Type.TOUCH_UP) {
-            if (selectionStart == caretPosition) {
+            if (selectionStart == _caretPosition) {
                 hasSelection = false
             }
         }
 
         if (event.type == InputEvent.Type.KEY_DOWN || event.type == InputEvent.Type.KEY_REPEAT) {
+
+            val shift =
+                scene?.context?.input?.isKeyPressed(Key.SHIFT_LEFT) == true
+                        || scene?.context?.input?.isKeyPressed(Key.SHIFT_RIGHT) == true
+            val ctrl = scene?.context?.input?.isKeyPressed(Key.CTRL_LEFT) == true
+                    || scene?.context?.input?.isKeyPressed(Key.CTRL_RIGHT) == true
             when (event.key) {
                 Key.ARROW_LEFT -> {
-                    if (caretPosition > 0) {
-                        caretPosition--
+                    if (_caretPosition > 0) {
+                        _caretPosition--
                     }
                     event.handle()
                 }
                 Key.ARROW_RIGHT -> {
-                    if (caretPosition < text.length) {
-                        caretPosition++
+                    if (_caretPosition < text.length) {
+                        _caretPosition++
                     }
                     event.handle()
                 }
@@ -137,18 +149,27 @@ class LineEdit : Control() {
                     event.handle()
                 }
                 Key.HOME -> {
-                    caretPosition = 0
+                    _caretPosition = 0
                     event.handle()
                 }
                 Key.END -> {
-                    caretPosition = text.length
+                    _caretPosition = text.length
                     event.handle()
+                }
+                Key.A -> {
+                    if(ctrl) {
+                        selectAll()
+                        event.handle()
+                    }
                 }
                 else -> Unit
             }
         }
 
         if (event.type == InputEvent.Type.CHAR_TYPED) {
+            if (hasSelection) {
+                removeAtCaret(true)
+            }
             insertAtCaret(event.char.toString())
             event.handle()
         }
@@ -200,7 +221,7 @@ class LineEdit : Control() {
         if (hasFocus) {
             caret.draw(
                 batch,
-                globalX + bg.marginLeft + textOffset + glyphPositions[caretPosition] - glyphPositions[visibleStart] + fontOffset,
+                globalX + bg.marginLeft + textOffset + glyphPositions[_caretPosition] - glyphPositions[visibleStart] + fontOffset,
                 globalY + font.lineHeight / 4f,
                 width = caret.minWidth,
                 height = font.capHeight,
@@ -218,6 +239,32 @@ class LineEdit : Control() {
         _internalMinHeight = max(minHeight, bg.minHeight)
 
         minSizeInvalid = false
+    }
+
+    fun select(start: Int, end: Int) {
+        check(start >= 0) { "'start' must be >= 0" }
+        check(end >= 0) { "'end' must be >= 0" }
+        var selectionStart = min(text.length, start)
+        var selectionEnd = min(text.length, end)
+        if (selectionEnd == selectionStart) {
+            unselect()
+            return
+        }
+
+        if (selectionEnd < selectionStart) {
+            selectionEnd = selectionStart.also { selectionStart = selectionEnd }
+        }
+        hasSelection = true
+        this.selectionStart = selectionStart
+        _caretPosition = selectionEnd
+    }
+
+    fun selectAll() {
+        select(0, text.length)
+    }
+
+    fun unselect() {
+        hasSelection = false
     }
 
     private fun updateText() {
@@ -243,12 +290,12 @@ class LineEdit : Control() {
     }
 
     private fun calculateVisibility() {
-        caretPosition = caretPosition.clamp(0, glyphPositions.size - 1)
-        val distance = glyphPositions[max(0, caretPosition - 1)] + renderOffset
+        _caretPosition = _caretPosition.clamp(0, glyphPositions.size - 1)
+        val distance = glyphPositions[max(0, _caretPosition - 1)] + renderOffset
         if (distance <= 0f) {
             renderOffset -= distance
         } else {
-            val index = min(glyphPositions.size - 1, caretPosition + 1)
+            val index = min(glyphPositions.size - 1, _caretPosition + 1)
             val minX = glyphPositions[index] - availableWidth
             if (-renderOffset < minX) renderOffset = -minX
         }
@@ -283,8 +330,8 @@ class LineEdit : Control() {
         textOffset = startX + renderOffset
 
         if (hasSelection) {
-            val minIdx = min(caretPosition, selectionStart)
-            val maxIdx = max(caretPosition, selectionStart)
+            val minIdx = min(_caretPosition, selectionStart)
+            val maxIdx = max(_caretPosition, selectionStart)
             val minX = max(glyphPositions[minIdx] - glyphPositions[visibleStart], -textOffset)
             val maxX = min(glyphPositions[maxIdx] - glyphPositions[visibleStart], availableWidth - textOffset)
             selectionX = minX
@@ -295,25 +342,35 @@ class LineEdit : Control() {
     private fun insertAtCaret(chars: CharSequence) {
         stringBuilder.clear()
         stringBuilder.append(text)
-        stringBuilder.insert(caretPosition, chars)
-        caretPosition += chars.length
+        stringBuilder.insert(_caretPosition, chars)
+        _caretPosition += chars.length
         text = stringBuilder.toString()
     }
 
     private fun removeAtCaret(forward: Boolean) {
-        if (!forward && caretPosition <= 0) return
-        if (forward && caretPosition >= text.length) return
+        if (!forward && caretPosition <= 0 && !hasSelection) return
+        if (forward && caretPosition >= text.length && !hasSelection) return
 
         stringBuilder.clear()
         stringBuilder.append(text)
-        val index = if (forward) caretPosition else --caretPosition
-        stringBuilder.deleteAt(index)
+        if (hasSelection) {
+            val start = selectionStart
+            val end = _caretPosition
+            val minIdx = min(start, end)
+            val maxIdx = max(start, end)
+            stringBuilder.deleteRange(minIdx, maxIdx)
+            _caretPosition = minIdx
+        } else {
+            val index = if (forward) _caretPosition else --_caretPosition
+            stringBuilder.deleteAt(index)
+        }
         text = stringBuilder.toString()
+        unselect()
     }
 
     private fun moveCaretToPosition(x: Float) {
-        caretPosition = determineGlyphPosition(x)
-        caretPosition = max(0, caretPosition)
+        _caretPosition = determineGlyphPosition(x)
+        _caretPosition = max(0, _caretPosition)
     }
 
     private fun determineGlyphPosition(tx: Float): Int {
