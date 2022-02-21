@@ -119,15 +119,6 @@ open class TextureSlice(
         this.v = v
         this.u2 = u2
         this.v2 = v2
-        // For a 1x1 region, adjust UVs toward pixel center to avoid filtering artifacts on AMD GPUs when drawing very stretched.
-        if (width == 1 && height == 1) {
-            val adjustX = 0.25f / texture.width
-            val adjustY = 0.25f / texture.height
-            this.u += adjustX
-            this.u2 -= adjustX
-            this.v += adjustY
-            this.v2 -= adjustY
-        }
     }
 
     fun setSlice(slice: TextureSlice) {
