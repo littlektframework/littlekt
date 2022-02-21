@@ -171,15 +171,14 @@ class LineEdit : Control() {
         if (text.isNotEmpty()) {
             calculateVisibility()
         }
-        val textHeight = font.capHeight - font.metrics.descent
 
         if (hasFocus && hasSelection) {
             selection.draw(
                 batch,
                 globalX + textOffset + selectionX + fontOffset + bg.marginLeft,
-                globalY,
+                globalY + font.lineHeight / 4f,
                 width = selectionWidth,
-                height = textHeight,
+                height = font.capHeight,
                 scaleX = globalScaleX,
                 scaleY = globalScaleY,
                 rotation = rotation,
@@ -202,9 +201,9 @@ class LineEdit : Control() {
             caret.draw(
                 batch,
                 globalX + bg.marginLeft + textOffset + glyphPositions[caretPosition] - glyphPositions[visibleStart] + fontOffset,
-                globalY,
+                globalY + font.lineHeight / 4f,
                 width = caret.minWidth,
-                height = textHeight,
+                height = font.capHeight,
                 scaleX = globalScaleX,
                 scaleY = globalScaleY,
                 rotation = rotation,
