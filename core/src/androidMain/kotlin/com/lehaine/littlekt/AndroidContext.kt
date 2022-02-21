@@ -42,6 +42,8 @@ class AndroidContext(override val configuration: AndroidConfiguration) : Context
     override val resourcesVfs: VfsFile get() = vfs.root
     override val storageVfs: VfsFile get() = VfsFile(vfs, "./.storage")
     override val platform: Platform = Platform.ANDROID
+    override val clipboard: AndroidClipboard = AndroidClipboard(configuration.activity)
+
     val audioContext: AndroidAudioContext = AndroidAudioContext(configuration.activity)
 
     init {
