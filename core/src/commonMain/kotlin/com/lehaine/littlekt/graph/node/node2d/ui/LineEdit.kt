@@ -45,6 +45,11 @@ class LineEdit : Control() {
     private val availableWidth get() = width - bg.marginLeft - bg.marginRight
     private var renderOffset = 0f
     private var fontOffset = 0f
+    private var textOffset = 0f
+    private var selectionStart = 0
+    private var hasSelection = false
+    private var selectionX = 0f
+    private var selectionWidth = 0f
 
     var editable: Boolean = true
     var text: String = ""
@@ -69,6 +74,12 @@ class LineEdit : Control() {
             drawableOverrides[themeVars.bg] = value
         }
 
+    var selection: Drawable
+        get() = getThemeDrawable(themeVars.selection)
+        set(value) {
+            drawableOverrides[themeVars.selection] = value
+        }
+
     var caret: Drawable
         get() = getThemeDrawable(themeVars.caret)
         set(value) {
@@ -90,7 +101,17 @@ class LineEdit : Control() {
 
         if (event.type == InputEvent.Type.TOUCH_DOWN || event.type == InputEvent.Type.TOUCH_DRAGGED) {
             moveCaretToPosition(event.localX)
-            event.handle()
+
+            if (event.type == InputEvent.Type.TOUCH_DOWN) {
+                selectionStart = caretPosition
+                hasSelection = true
+            }
+        }
+
+        if (event.type == InputEvent.Type.TOUCH_UP) {
+            if (selectionStart == caretPosition) {
+                hasSelection = false
+            }
         }
 
         if (event.type == InputEvent.Type.KEY_DOWN || event.type == InputEvent.Type.KEY_REPEAT) {
@@ -149,9 +170,26 @@ class LineEdit : Control() {
 
         if (text.isNotEmpty()) {
             calculateVisibility()
+        }
+        val textHeight = font.capHeight - font.metrics.descent
+
+        if (hasFocus && hasSelection) {
+            selection.draw(
+                batch,
+                globalX + textOffset + selectionX + fontOffset + bg.marginLeft,
+                globalY,
+                width = selectionWidth,
+                height = textHeight,
+                scaleX = globalScaleX,
+                scaleY = globalScaleY,
+                rotation = rotation,
+            )
+        }
+
+        if (text.isNotEmpty()) {
             cache.setText(
                 text.substring(visibleStart, visibleEnd),
-                globalX + bg.marginLeft,
+                globalX + bg.marginLeft + textOffset,
                 globalY,
                 scaleX,
                 scaleY,
@@ -161,13 +199,12 @@ class LineEdit : Control() {
         }
 
         if (hasFocus) {
-            val caretHeight = font.capHeight - font.metrics.descent
             caret.draw(
                 batch,
-                globalX + bg.marginLeft + glyphPositions[caretPosition] - glyphPositions[visibleStart] + fontOffset,
+                globalX + bg.marginLeft + textOffset + glyphPositions[caretPosition] - glyphPositions[visibleStart] + fontOffset,
                 globalY,
-                width = 1f,
-                height = caretHeight,
+                width = caret.minWidth,
+                height = textHeight,
                 scaleX = globalScaleX,
                 scaleY = globalScaleY,
                 rotation = rotation,
@@ -202,6 +239,8 @@ class LineEdit : Control() {
 
         visibleStart = min(visibleStart, glyphPositions.size - 1)
         visibleEnd = visibleEnd.clamp(visibleStart, glyphPositions.size - 1)
+
+        selectionStart = min(selectionStart, text.length)
     }
 
     private fun calculateVisibility() {
@@ -225,9 +264,11 @@ class LineEdit : Control() {
         if (-renderOffset > maxOffset) renderOffset = -maxOffset
 
         visibleStart = 0
+        var startX = 0f
         for (i in glyphPositions.indices) {
             if (glyphPositions[i] >= -renderOffset) {
                 visibleStart = i
+                startX = glyphPositions[i]
                 break
             }
         }
@@ -239,6 +280,17 @@ class LineEdit : Control() {
             end = n
         }
         visibleEnd = max(0, end)
+
+        textOffset = startX + renderOffset
+
+        if (hasSelection) {
+            val minIdx = min(caretPosition, selectionStart)
+            val maxIdx = max(caretPosition, selectionStart)
+            val minX = max(glyphPositions[minIdx] - glyphPositions[visibleStart], -textOffset)
+            val maxX = min(glyphPositions[maxIdx] - glyphPositions[visibleStart], availableWidth - textOffset)
+            selectionX = minX
+            selectionWidth = maxX - minX
+        }
     }
 
     private fun insertAtCaret(chars: CharSequence) {
@@ -286,6 +338,7 @@ class LineEdit : Control() {
         val disabled = "disabled"
         val focus = "focus"
         val caret = "caret"
+        val selection = "selection"
     }
 
     companion object {

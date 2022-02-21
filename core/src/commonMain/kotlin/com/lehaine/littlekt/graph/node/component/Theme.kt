@@ -158,7 +158,12 @@ fun createDefaultTheme(
                 minHeight = 25f
                 modulate = Color.DARK_BLUE
             },
-            LineEdit.themeVars.caret to TextureSliceDrawable(Textures.white)
+            LineEdit.themeVars.caret to TextureSliceDrawable(Textures.white).apply {
+                minWidth = 1f
+            },
+            LineEdit.themeVars.selection to TextureSliceDrawable(Textures.white).apply {
+                modulate = Color.LIGHT_BLUE
+            }
         )
     ) + extraDrawables
 
