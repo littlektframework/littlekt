@@ -303,9 +303,21 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
                         }
                     }
 
-                    lineEdit {
+                    vBoxContainer {
                         x = 600f
                         y = 200f
+
+                        label {
+                            text = "Username:"
+                        }
+                        lineEdit()
+
+                        label {
+                            text = "Password:"
+                        }
+                        lineEdit {
+                            secret = true
+                        }
                     }
 
                     panelContainer {

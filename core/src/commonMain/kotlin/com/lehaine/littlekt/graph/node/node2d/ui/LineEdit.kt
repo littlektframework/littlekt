@@ -60,10 +60,13 @@ open class LineEdit : Control() {
     private val undoStack by lazy { ArrayDeque<String>() }
     private val redoStack by lazy { ArrayDeque<String>() }
 
+    private val secretBuffer by lazy { StringBuilder() }
+
     private var lastPointer: Pointer? = null
     private var lastTap: Duration = Duration.ZERO
     private var taps = 0
     private var pressed = false
+    private var displayTest: String = ""
 
     var editable: Boolean = true
     var text: String = ""
@@ -74,6 +77,7 @@ open class LineEdit : Control() {
         }
     var placeholderText: String = ""
     var secretCharacter: Char = '*'
+    var secret: Boolean = false
     var caretPosition: Int
         get() = _caretPosition
         set(value) {
@@ -218,7 +222,7 @@ open class LineEdit : Control() {
                     }
                 }
                 Key.C -> {
-                    if (ctrl && hasSelection) {
+                    if (ctrl && hasSelection && !secret) {
                         val minIdx = min(_caretPosition, selectionStart)
                         val maxIdx = max(_caretPosition, selectionStart)
                         scene?.context?.clipboard?.contents = text.substring(minIdx, maxIdx)
@@ -226,7 +230,7 @@ open class LineEdit : Control() {
                     }
                 }
                 Key.X -> {
-                    if (ctrl && hasSelection) {
+                    if (ctrl && hasSelection && !secret) {
                         val minIdx = min(_caretPosition, selectionStart)
                         val maxIdx = max(_caretPosition, selectionStart)
                         scene?.context?.clipboard?.contents = text.substring(minIdx, maxIdx)
@@ -280,7 +284,6 @@ open class LineEdit : Control() {
 
     private fun onTapped(event: InputEvent) {
         val count = taps % 4
-        println("tapped: $count")
         if (count == 0) unselect()
         if (count == 2) {
             val indices = determineWordIndices(event.localX)
@@ -305,7 +308,7 @@ open class LineEdit : Control() {
             rotation = rotation
         )
 
-        if (text.isNotEmpty()) {
+        if (displayTest.isNotEmpty()) {
             calculateVisibility()
         }
 
@@ -322,9 +325,9 @@ open class LineEdit : Control() {
             )
         }
 
-        if (text.isNotEmpty()) {
+        if (displayTest.isNotEmpty()) {
             cache.setText(
-                text.substring(visibleStart, visibleEnd),
+                displayTest.substring(visibleStart, visibleEnd),
                 globalX + bg.marginLeft + textOffset,
                 globalY,
                 scaleX,
@@ -404,7 +407,15 @@ open class LineEdit : Control() {
     }
 
     private fun updateText() {
-        layout.setText(font, text.replace('\r', ' ').replace('\n', ' '))
+        displayTest = text
+        if (secret) {
+            secretBuffer.clear()
+            repeat(text.length) {
+                secretBuffer.append(secretCharacter)
+            }
+            displayTest = secretBuffer.toString()
+        }
+        layout.setText(font, displayTest.replace('\r', ' ').replace('\n', ' '))
         glyphPositions.clear()
         var x = 0f
         fontOffset = 0f
@@ -422,7 +433,7 @@ open class LineEdit : Control() {
         visibleStart = min(visibleStart, glyphPositions.size - 1)
         visibleEnd = visibleEnd.clamp(visibleStart, glyphPositions.size - 1)
 
-        selectionStart = min(selectionStart, text.length)
+        selectionStart = min(selectionStart, displayTest.length)
     }
 
     private fun calculateVisibility() {
