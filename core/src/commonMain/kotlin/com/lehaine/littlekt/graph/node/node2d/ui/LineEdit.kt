@@ -36,6 +36,7 @@ inline fun SceneGraph.lineEdit(callback: @SceneGraphDslMarker LineEdit.() -> Uni
     root.lineEdit(callback)
 
 /**
+ * A [Control] that renders and single line of editable text.
  * @author Colton Daily
  * @date 2/18/2022
  */
