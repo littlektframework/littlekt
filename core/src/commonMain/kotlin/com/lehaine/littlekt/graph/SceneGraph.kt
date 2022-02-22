@@ -35,44 +35,94 @@ inline fun sceneGraph(
     context: Context,
     viewport: Viewport = ScreenViewport(context.graphics.width, context.graphics.height),
     batch: Batch? = null,
-    controller: InputMapController<String> = createDefaultSceneGraphController(context.input),
+    controller: InputMapController<String>? = null,
     callback: @SceneGraphDslMarker SceneGraph<String>.() -> Unit = {}
 ): SceneGraph<String> {
+    contract { callsInPlace(callback, InvocationKind.EXACTLY_ONCE) }
+    val signals = SceneGraph.UiInputSignals(
+        "ui_accept",
+        "ui_select",
+        "ui_cancel",
+        "ui_focus_next",
+        "ui_focus_prev",
+        "ui_left",
+        "ui_right",
+        "ui_up",
+        "ui_down",
+        "ui_home",
+        "ui_end"
+    )
+    return SceneGraph(
+        context,
+        viewport,
+        batch,
+        signals,
+        controller ?: createDefaultSceneGraphController(context.input, signals)
+    ).also(callback)
+}
+
+/**
+ * Create a new scene graph with a [callback] with the [SceneGraph] in context.
+ * @param context the current context
+ * @param viewport the viewport that the camera of the scene graph will own
+ * @param batch an option sprite batch. If omitted, the scene graph will create and manage its own.
+ * @param callback the callback that is invoked with a [SceneGraph] context
+ * in order to initialize any values and create nodes
+ * @return the newly created [SceneGraph]
+ */
+@OptIn(ExperimentalContracts::class)
+inline fun <InputSignal> sceneGraph(
+    context: Context,
+    viewport: Viewport = ScreenViewport(context.graphics.width, context.graphics.height),
+    batch: Batch? = null,
+    uiInputSignals: SceneGraph.UiInputSignals<InputSignal> = SceneGraph.UiInputSignals(),
+    controller: InputMapController<InputSignal> = InputMapController(context.input),
+    callback: @SceneGraphDslMarker SceneGraph<InputSignal>.() -> Unit = {}
+): SceneGraph<InputSignal> {
     contract { callsInPlace(callback, InvocationKind.EXACTLY_ONCE) }
     return SceneGraph(
         context,
         viewport,
         batch,
-        SceneGraph.UiInputSignals(
-            "ui_accept",
-            "ui_select",
-            "ui_cancel",
-            "ui_focus_next",
-            "ui_focus_prev",
-            "ui_left",
-            "ui_right",
-            "ui_up",
-            "ui_down",
-            "ui_home",
-            "ui_end"
-        ),
+        uiInputSignals,
         controller
     ).also(callback)
 }
 
-fun createDefaultSceneGraphController(input: Input): InputMapController<String> =
-    InputMapController<String>(input).apply {
-        addBinding("ui_accept", keys = listOf(Key.SPACE, Key.ENTER), buttons = listOf(GameButton.XBOX_A))
-        addBinding("ui_select", keys = listOf(Key.SPACE), buttons = listOf(GameButton.XBOX_Y))
-        addBinding("ui_cancel", keys = listOf(Key.ESCAPE), buttons = listOf(GameButton.XBOX_B))
-        addBinding("ui_focus_next", keys = listOf(Key.TAB))
-        addBinding("ui_focus_prev", keys = listOf(Key.TAB), keyModifiers = listOf(InputMapController.KeyModifier.SHIFT))
-        addBinding("ui_up", keys = listOf(Key.ARROW_UP), buttons = listOf(GameButton.UP))
-        addBinding("ui_down", keys = listOf(Key.ARROW_DOWN), buttons = listOf(GameButton.DOWN))
-        addBinding("ui_left", keys = listOf(Key.ARROW_LEFT), buttons = listOf(GameButton.LEFT))
-        addBinding("ui_right", keys = listOf(Key.ARROW_RIGHT), buttons = listOf(GameButton.RIGHT))
-        addBinding("ui_home", keys = listOf(Key.HOME))
-        addBinding("ui_end", keys = listOf(Key.END))
+fun <InputSignal> createDefaultSceneGraphController(
+    input: Input,
+    uiInputSignals: SceneGraph.UiInputSignals<InputSignal>
+): InputMapController<InputSignal> =
+    InputMapController<InputSignal>(input).apply {
+        uiInputSignals.uiAccept?.let {
+            addBinding(
+                it,
+                keys = listOf(Key.SPACE, Key.ENTER),
+                buttons = listOf(GameButton.XBOX_A)
+            )
+        }
+        uiInputSignals.uiSelect?.let { addBinding(it, keys = listOf(Key.SPACE), buttons = listOf(GameButton.XBOX_Y)) }
+        uiInputSignals.uiCancel?.let { addBinding(it, keys = listOf(Key.ESCAPE), buttons = listOf(GameButton.XBOX_B)) }
+        uiInputSignals.uiFocusNext?.let { addBinding(it, keys = listOf(Key.TAB)) }
+        uiInputSignals.uiFocusPrev?.let {
+            addBinding(
+                it,
+                keys = listOf(Key.TAB),
+                keyModifiers = listOf(InputMapController.KeyModifier.SHIFT)
+            )
+        }
+        uiInputSignals.uiUp?.let { addBinding(it, keys = listOf(Key.ARROW_UP), buttons = listOf(GameButton.UP)) }
+        uiInputSignals.uiDown?.let { addBinding(it, keys = listOf(Key.ARROW_DOWN), buttons = listOf(GameButton.DOWN)) }
+        uiInputSignals.uiLeft?.let { addBinding(it, keys = listOf(Key.ARROW_LEFT), buttons = listOf(GameButton.LEFT)) }
+        uiInputSignals.uiRight?.let {
+            addBinding(
+                it,
+                keys = listOf(Key.ARROW_RIGHT),
+                buttons = listOf(GameButton.RIGHT)
+            )
+        }
+        uiInputSignals.uiHome?.let { addBinding(it, keys = listOf(Key.HOME)) }
+        uiInputSignals.uiEnd?.let { addBinding(it, keys = listOf(Key.END)) }
     }
 
 /**

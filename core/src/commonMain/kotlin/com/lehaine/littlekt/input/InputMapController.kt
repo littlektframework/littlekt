@@ -43,7 +43,9 @@ class InputMapController<InputSignal>(
     private val pointerToType = mutableMapOf<Pointer, InputSignal>()
 
     private val axes = mutableMapOf<InputSignal, InputAxis<InputSignal>>()
+    private val axesToType = mutableMapOf<InputSignal, MutableList<InputSignal>>()
     private val vectors = mutableMapOf<InputSignal, InputVector<InputSignal>>()
+    private val vectorsToType = mutableMapOf<InputSignal, MutableList<InputSignal>>()
 
     private val processors = mutableListOf<InputMapProcessor<InputSignal>>()
 
@@ -122,6 +124,8 @@ class InputMapController<InputSignal>(
      */
     fun addAxis(type: InputSignal, positive: InputSignal, negative: InputSignal) {
         axes[type] = InputAxis(positive, negative)
+        axesToType.getOrPut(positive) { mutableListOf() }.add(type)
+        axesToType.getOrPut(negative) { mutableListOf() }.add(type)
     }
 
     /**
@@ -145,6 +149,10 @@ class InputMapController<InputSignal>(
         negativeY: InputSignal
     ) {
         vectors[type] = InputVector(positiveX, positiveY, negativeX, negativeY)
+        vectorsToType.getOrPut(positiveX) { mutableListOf() }.add(type)
+        vectorsToType.getOrPut(negativeX) { mutableListOf() }.add(type)
+        vectorsToType.getOrPut(positiveY) { mutableListOf() }.add(type)
+        vectorsToType.getOrPut(negativeY) { mutableListOf() }.add(type)
     }
 
     val isTouching get() = input.isTouching
@@ -198,13 +206,13 @@ class InputMapController<InputSignal>(
                 var handled = processor.onActionDown(it)
                 if (handled) return true
 
-                if (axisBindings.containsKey(it)) {
+                axesToType[it]?.forEach {
                     val axis = axis(it)
                     handled = processor.onAxisChanged(it, axis)
                     if (handled) return true
                 }
 
-                if (vectors.containsKey(it)) {
+                vectorsToType[it]?.forEach {
                     val vector = vector(it)
                     handled = processor.onVectorChanged(it, vector.x, vector.y)
                     if (handled) return true
@@ -221,12 +229,13 @@ class InputMapController<InputSignal>(
                 var handled = processor.onActionUp(it)
                 if (handled) return true
 
-                if (axisBindings.containsKey(it)) {
+                axesToType[it]?.forEach {
                     val axis = axis(it)
                     handled = processor.onAxisChanged(it, axis)
                     if (handled) return true
                 }
-                if (vectors.containsKey(it)) {
+
+                vectorsToType[it]?.forEach {
                     val vector = vector(it)
                     handled = processor.onVectorChanged(it, vector.x, vector.y)
                     if (handled) return true
@@ -256,14 +265,15 @@ class InputMapController<InputSignal>(
                 processors.forEach { processor ->
                     var handled = processor.onActionDown(inputSignal)
                     if (handled) return true
-                    if (axisBindings.containsKey(inputSignal)) {
-                        val axis = axis(inputSignal)
-                        handled = processor.onAxisChanged(inputSignal, axis)
+                    axesToType[inputSignal]?.forEach {
+                        val axis = axis(it)
+                        handled = processor.onAxisChanged(it, axis)
                         if (handled) return true
                     }
-                    if (vectors.containsKey(inputSignal)) {
-                        val vector = vector(inputSignal)
-                        handled = processor.onVectorChanged(inputSignal, vector.x, vector.y)
+
+                    vectorsToType[inputSignal]?.forEach {
+                        val vector = vector(it)
+                        handled = processor.onVectorChanged(it, vector.x, vector.y)
                         if (handled) return true
                     }
                 }
@@ -273,12 +283,13 @@ class InputMapController<InputSignal>(
                 processors.forEach { processor ->
                     var handled = processor.onActionDown(it)
                     if (handled) return true
-                    if (axisBindings.containsKey(it)) {
+                    axesToType[it]?.forEach {
                         val axis = axis(it)
                         handled = processor.onAxisChanged(it, axis)
                         if (handled) return true
                     }
-                    if (vectors.containsKey(it)) {
+
+                    vectorsToType[it]?.forEach {
                         val vector = vector(it)
                         handled = processor.onVectorChanged(it, vector.x, vector.y)
                         if (handled) return true
@@ -297,12 +308,13 @@ class InputMapController<InputSignal>(
             processors.forEach { processor ->
                 var handled = processor.onActionRepeat(it)
                 if (handled) return true
-                if (axisBindings.containsKey(it)) {
+                axesToType[it]?.forEach {
                     val axis = axis(it)
                     handled = processor.onAxisChanged(it, axis)
                     if (handled) return true
                 }
-                if (vectors.containsKey(it)) {
+
+                vectorsToType[it]?.forEach {
                     val vector = vector(it)
                     handled = processor.onVectorChanged(it, vector.x, vector.y)
                     if (handled) return true
@@ -320,12 +332,13 @@ class InputMapController<InputSignal>(
             processors.forEach { processor ->
                 var handled = processor.onActionUp(it)
                 if (handled) return true
-                if (axisBindings.containsKey(it)) {
+                axesToType[it]?.forEach {
                     val axis = axis(it)
                     handled = processor.onAxisChanged(it, axis)
                     if (handled) return true
                 }
-                if (vectors.containsKey(it)) {
+
+                vectorsToType[it]?.forEach {
                     val vector = vector(it)
                     handled = processor.onVectorChanged(it, vector.x, vector.y)
                     if (handled) return true
@@ -343,12 +356,13 @@ class InputMapController<InputSignal>(
             processors.forEach { processor ->
                 var handled = processor.onActionDown(it)
                 if (handled) return true
-                if (axisBindings.containsKey(it)) {
+                axesToType[it]?.forEach {
                     val axis = axis(it)
                     handled = processor.onAxisChanged(it, axis)
                     if (handled) return true
                 }
-                if (vectors.containsKey(it)) {
+
+                vectorsToType[it]?.forEach {
                     val vector = vector(it)
                     handled = processor.onVectorChanged(it, vector.x, vector.y)
                     if (handled) return true
@@ -366,12 +380,13 @@ class InputMapController<InputSignal>(
             processors.forEach { processor ->
                 var handled = processor.onActionUp(it)
                 if (handled) return true
-                if (axisBindings.containsKey(it)) {
+                axesToType[it]?.forEach {
                     val axis = axis(it)
                     handled = processor.onAxisChanged(it, axis)
                     if (handled) return true
                 }
-                if (vectors.containsKey(it)) {
+
+                vectorsToType[it]?.forEach {
                     val vector = vector(it)
                     handled = processor.onVectorChanged(it, vector.x, vector.y)
                     if (handled) return true
@@ -388,10 +403,14 @@ class InputMapController<InputSignal>(
         var gameAxis = if (stick == GameStick.LEFT) GameAxis.LX else GameAxis.RX
         axisToType[gameAxis]?.let { it ->
             processors.forEach { processor ->
-                val axis = axis(it)
-                var handled = processor.onAxisChanged(it, axis)
-                if (handled) return true
-                if (vectors.containsKey(it)) {
+                var handled: Boolean
+                axesToType[it]?.forEach {
+                    val axis = axis(it)
+                    handled = processor.onAxisChanged(it, axis)
+                    if (handled) return true
+                }
+
+                vectorsToType[it]?.forEach {
                     val vector = vector(it)
                     handled = processor.onVectorChanged(it, vector.x, vector.y)
                     if (handled) return true
@@ -401,13 +420,17 @@ class InputMapController<InputSignal>(
         gameAxis = if (stick == GameStick.LEFT) GameAxis.LY else GameAxis.RY
         axisToType[gameAxis]?.let {
             processors.forEach { processor ->
-                val axis = axis(it)
-                var hanndled = processor.onAxisChanged(it, axis)
-                if (hanndled) return true
-                if (vectors.containsKey(it)) {
+                var handled: Boolean
+                axesToType[it]?.forEach {
+                    val axis = axis(it)
+                    handled = processor.onAxisChanged(it, axis)
+                    if (handled) return true
+                }
+
+                vectorsToType[it]?.forEach {
                     val vector = vector(it)
-                    hanndled = processor.onVectorChanged(it, vector.x, vector.y)
-                    if (hanndled) return true
+                    handled = processor.onVectorChanged(it, vector.x, vector.y)
+                    if (handled) return true
                 }
             }
         }

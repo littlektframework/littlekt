@@ -6,6 +6,8 @@ import com.lehaine.littlekt.audio.AudioStream
 import com.lehaine.littlekt.file.vfs.readAtlas
 import com.lehaine.littlekt.file.vfs.readBitmapFont
 import com.lehaine.littlekt.file.vfs.readTexture
+import com.lehaine.littlekt.graph.SceneGraph
+import com.lehaine.littlekt.graph.createDefaultSceneGraphController
 import com.lehaine.littlekt.graph.node.component.HAlign
 import com.lehaine.littlekt.graph.node.component.NinePatchDrawable
 import com.lehaine.littlekt.graph.node.component.VAlign
@@ -20,7 +22,7 @@ import com.lehaine.littlekt.graphics.shader.shaders.SimpleColorVertexShader
 import com.lehaine.littlekt.graphics.tilemap.ldtk.LDtkWorld
 import com.lehaine.littlekt.input.GameAxis
 import com.lehaine.littlekt.input.GameButton
-import com.lehaine.littlekt.input.InputMapController
+import com.lehaine.littlekt.input.InputMapProcessor
 import com.lehaine.littlekt.input.Key
 import com.lehaine.littlekt.log.Logger
 import com.lehaine.littlekt.math.MutableVec2f
@@ -44,7 +46,16 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
 
     private var xVel = 0f
     private var yVel = 0f
-    private val controller = InputMapController<GameInput>(input)
+    private val uiSignals = SceneGraph.UiInputSignals(
+        uiLeft = InputMap.UI_LEFT,
+        uiRight = InputMap.UI_RIGHT,
+        uiUp = InputMap.UI_UP,
+        uiDown = InputMap.UI_DOWN,
+        uiAccept = InputMap.UI_ACCEPT,
+        uiFocusNext = InputMap.UI_FOCUS_NEXT,
+        uiFocusPrev = InputMap.UI_FOCUS_PREV
+    )
+    private val controller = createDefaultSceneGraphController(context.input, uiSignals)
     val camera = OrthographicCamera(graphics.width, graphics.height).apply {
         viewport = ExtendViewport(960, 540)
     }
@@ -83,7 +94,14 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
     }
 
 
-    enum class GameInput {
+    enum class InputMap {
+        UI_LEFT,
+        UI_RIGHT,
+        UI_UP,
+        UI_DOWN,
+        UI_ACCEPT,
+        UI_FOCUS_NEXT,
+        UI_FOCUS_PREV,
         MOVE_LEFT,
         MOVE_RIGHT,
         MOVE_UP,
@@ -96,21 +114,20 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
 
     init {
         Logger.setLevels(Logger.Level.DEBUG)
-        input.addInputProcessor(controller)
 
-        controller.addBinding(GameInput.MOVE_LEFT, listOf(Key.A, Key.ARROW_LEFT), axes = listOf(GameAxis.LX))
-        controller.addBinding(GameInput.MOVE_RIGHT, listOf(Key.D, Key.ARROW_RIGHT), axes = listOf(GameAxis.LX))
-        controller.addBinding(GameInput.MOVE_UP, listOf(Key.W, Key.ARROW_UP), axes = listOf(GameAxis.LY))
-        controller.addBinding(GameInput.MOVE_DOWN, listOf(Key.S, Key.ARROW_DOWN), axes = listOf(GameAxis.LY))
-        controller.addBinding(GameInput.JUMP, listOf(Key.SPACE), buttons = listOf(GameButton.XBOX_A))
-        controller.addAxis(GameInput.HORIZONTAL, GameInput.MOVE_RIGHT, GameInput.MOVE_LEFT)
-        controller.addAxis(GameInput.VERTICAL, GameInput.MOVE_DOWN, GameInput.MOVE_UP)
+        controller.addBinding(InputMap.MOVE_LEFT, listOf(Key.A, Key.ARROW_LEFT), axes = listOf(GameAxis.LX))
+        controller.addBinding(InputMap.MOVE_RIGHT, listOf(Key.D, Key.ARROW_RIGHT), axes = listOf(GameAxis.LX))
+        controller.addBinding(InputMap.MOVE_UP, listOf(Key.W, Key.ARROW_UP), axes = listOf(GameAxis.LY))
+        controller.addBinding(InputMap.MOVE_DOWN, listOf(Key.S, Key.ARROW_DOWN), axes = listOf(GameAxis.LY))
+        controller.addBinding(InputMap.JUMP, listOf(Key.SPACE), buttons = listOf(GameButton.XBOX_A))
+        controller.addAxis(InputMap.HORIZONTAL, InputMap.MOVE_RIGHT, InputMap.MOVE_LEFT)
+        controller.addAxis(InputMap.VERTICAL, InputMap.MOVE_DOWN, InputMap.MOVE_UP)
         controller.addVector(
-            GameInput.MOVEMENT,
-            GameInput.MOVE_RIGHT,
-            GameInput.MOVE_DOWN,
-            GameInput.MOVE_LEFT,
-            GameInput.MOVE_UP
+            InputMap.MOVEMENT,
+            InputMap.MOVE_RIGHT,
+            InputMap.MOVE_DOWN,
+            InputMap.MOVE_LEFT,
+            InputMap.MOVE_UP
         )
     }
 
@@ -194,7 +211,13 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
         lateinit var progressBar: ProgressBar
 
         val scene by assetProvider.prepare {
-            sceneGraph(context, viewport = ExtendViewport(960, 540), batch = batch) {
+            sceneGraph(
+                context,
+                viewport = ExtendViewport(960, 540),
+                batch = batch,
+                uiSignals,
+                controller = controller
+            ) {
                 rootControl = control {
                     anchorRight = 1f
                     anchorBottom = 1f
@@ -464,6 +487,12 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
             }
         }
 
+        controller.addInputMapProcessor(object : InputMapProcessor<InputMap> {
+            override fun onVectorChanged(inputType: InputMap, xAxis: Float, yAxis: Float): Boolean {
+                return super.onVectorChanged(inputType, xAxis, yAxis)
+            }
+        })
+
         onResize { width, height ->
             println("resize $width,$height")
             camera.update(width, height, context)
@@ -500,11 +529,11 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
             xVel = 0f
             yVel = 0f
 
-            val velocity = controller.vector(GameInput.MOVEMENT)
+            val velocity = controller.vector(InputMap.MOVEMENT)
             xVel = velocity.x * 10f
             yVel = velocity.y * 10f
 
-            if (controller.pressed(GameInput.JUMP)) {
+            if (controller.pressed(InputMap.JUMP)) {
                 yVel -= 25f
             }
             if (input.isKeyJustPressed(Key.ENTER)) {
