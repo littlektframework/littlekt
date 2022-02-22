@@ -16,20 +16,28 @@ import kotlin.math.max
  * Additionally, the strength, distances, and angles of each input can be calculated.
  *
  * @param input the current input of the context
+ * @param processor an [InputMapProcessor] that reacts to [InputSignal] action events
  * @see addBinding
  * @see addAxis
  * @see addVector
  * @author Colt Daily
  * @date 12/31/21
  */
-class InputMultiplexer<InputSignal>(val input: Input) : InputProcessor {
+class InputMapController<InputSignal>(
+    private val input: Input,
+    private val processor: InputMapProcessor<InputSignal>? = null
+) :
+    InputProcessor {
 
     var axisDeadZone = 0.3f
     var mode = InputMode.KEYBOARD
 
     private val keyBindings = mutableMapOf<InputSignal, List<Key>>()
+    private val keyToType = mutableMapOf<Key, InputSignal>()
     private val buttonBindings = mutableMapOf<InputSignal, List<GameButton>>()
+    private val buttonToType = mutableMapOf<GameButton, InputSignal>()
     private val axisBindings = mutableMapOf<InputSignal, List<GameAxis>>()
+    private val axisToType = mutableMapOf<GameAxis, InputSignal>()
 
     private val axes = mutableMapOf<InputSignal, InputAxis<InputSignal>>()
     private val vectors = mutableMapOf<InputSignal, InputVector<InputSignal>>()
@@ -56,8 +64,17 @@ class InputMultiplexer<InputSignal>(val input: Input) : InputProcessor {
         axes: List<GameAxis> = emptyList()
     ) {
         keyBindings[type] = keys.toList()
+        keys.forEach {
+            keyToType[it] = type
+        }
         buttonBindings[type] = buttons.toList()
+        buttons.forEach {
+            buttonToType[it] = type
+        }
         axisBindings[type] = axes.toList()
+        axes.forEach {
+            axisToType[it] = type
+        }
     }
 
     /**
@@ -142,32 +159,146 @@ class InputMultiplexer<InputSignal>(val input: Input) : InputProcessor {
     }
 
     override fun keyDown(key: Key): Boolean {
+        processor ?: return false
         mode = InputMode.KEYBOARD
+
+        keyToType[key]?.let {
+            var handled = processor.onActionDown(it)
+            if (handled) return true
+            if (axisBindings.containsKey(it)) {
+                val axis = axis(it)
+                handled = processor.onAxisChanged(it, axis)
+                if (handled) return true
+            }
+            if (vectors.containsKey(it)) {
+                val vector = vector(it)
+                handled = processor.onVectorChanged(it, vector.x, vector.y)
+                if (handled) return true
+            }
+        }
+        return false
+    }
+
+    override fun keyRepeat(key: Key): Boolean {
+        mode = InputMode.KEYBOARD
+        processor ?: return false
+
+        keyToType[key]?.let {
+            var handled = processor.onActionRepeat(it)
+            if (handled) return true
+            if (axisBindings.containsKey(it)) {
+                val axis = axis(it)
+                handled = processor.onAxisChanged(it, axis)
+                if (handled) return true
+            }
+            if (vectors.containsKey(it)) {
+                val vector = vector(it)
+                handled = processor.onVectorChanged(it, vector.x, vector.y)
+                if (handled) return true
+            }
+        }
         return false
     }
 
     override fun keyUp(key: Key): Boolean {
         mode = InputMode.KEYBOARD
+        processor ?: return false
+
+        keyToType[key]?.let {
+            var handled = processor.onActionUp(it)
+            if (handled) return true
+            if (axisBindings.containsKey(it)) {
+                val axis = axis(it)
+                handled = processor.onAxisChanged(it, axis)
+                if (handled) return true
+            }
+            if (vectors.containsKey(it)) {
+                val vector = vector(it)
+                handled = processor.onVectorChanged(it, vector.x, vector.y)
+                if (handled) return true
+            }
+        }
         return false
     }
 
     override fun gamepadButtonPressed(button: GameButton, pressure: Float, gamepad: Int): Boolean {
         mode = InputMode.GAMEPAD
+        processor ?: return false
+
+        buttonToType[button]?.let {
+            var handled = processor.onActionDown(it)
+            if (handled) return true
+            if (axisBindings.containsKey(it)) {
+                val axis = axis(it)
+                handled = processor.onAxisChanged(it, axis)
+                if (handled) return true
+            }
+            if (vectors.containsKey(it)) {
+                val vector = vector(it)
+                handled = processor.onVectorChanged(it, vector.x, vector.y)
+                if (handled) return true
+            }
+        }
         return false
     }
 
     override fun gamepadButtonReleased(button: GameButton, gamepad: Int): Boolean {
         mode = InputMode.GAMEPAD
+        processor ?: return false
+
+        buttonToType[button]?.let {
+            var handled = processor.onActionUp(it)
+            if (handled) return true
+            if (axisBindings.containsKey(it)) {
+                val axis = axis(it)
+                handled = processor.onAxisChanged(it, axis)
+                if (handled) return true
+            }
+            if (vectors.containsKey(it)) {
+                val vector = vector(it)
+                handled = processor.onVectorChanged(it, vector.x, vector.y)
+                if (handled) return true
+            }
+        }
         return false
     }
 
     override fun gamepadJoystickMoved(stick: GameStick, xAxis: Float, yAxis: Float, gamepad: Int): Boolean {
         mode = InputMode.GAMEPAD
+        processor ?: return false
+
+        var gameAxis = if (stick == GameStick.LEFT) GameAxis.LX else GameAxis.RX
+        axisToType[gameAxis]?.let {
+            val axis = axis(it)
+            var handled = processor.onAxisChanged(it, axis)
+            if (handled) return true
+            if (vectors.containsKey(it)) {
+                val vector = vector(it)
+                handled = processor.onVectorChanged(it, vector.x, vector.y)
+                if (handled) return true
+            }
+        }
+        gameAxis = if (stick == GameStick.LEFT) GameAxis.LY else GameAxis.RY
+        axisToType[gameAxis]?.let {
+            val axis = axis(it)
+            var hanndled = processor.onAxisChanged(it, axis)
+            if (hanndled) return true
+            if (vectors.containsKey(it)) {
+                val vector = vector(it)
+                hanndled = processor.onVectorChanged(it, vector.x, vector.y)
+                if (hanndled) return true
+            }
+        }
         return false
     }
 
     override fun gamepadTriggerChanged(button: GameButton, pressure: Float, gamepad: Int): Boolean {
         mode = InputMode.GAMEPAD
+        processor ?: return false
+
+        buttonToType[button]?.let {
+            return processor.onActionChange(it, pressure)
+        }
         return false
     }
 

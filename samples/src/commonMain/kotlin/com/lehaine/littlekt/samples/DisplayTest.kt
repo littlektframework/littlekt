@@ -20,7 +20,7 @@ import com.lehaine.littlekt.graphics.shader.shaders.SimpleColorVertexShader
 import com.lehaine.littlekt.graphics.tilemap.ldtk.LDtkWorld
 import com.lehaine.littlekt.input.GameAxis
 import com.lehaine.littlekt.input.GameButton
-import com.lehaine.littlekt.input.InputMultiplexer
+import com.lehaine.littlekt.input.InputMapController
 import com.lehaine.littlekt.input.Key
 import com.lehaine.littlekt.log.Logger
 import com.lehaine.littlekt.math.MutableVec2f
@@ -44,7 +44,7 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
 
     private var xVel = 0f
     private var yVel = 0f
-    private val controller = InputMultiplexer<GameInput>(input)
+    private val controller = InputMapController<GameInput>(input)
     val camera = OrthographicCamera(graphics.width, graphics.height).apply {
         viewport = ExtendViewport(960, 540)
     }
