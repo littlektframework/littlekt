@@ -30,7 +30,7 @@ import kotlin.time.Duration.Companion.milliseconds
 class AndroidContext(override val configuration: AndroidConfiguration) : Context() {
     override val stats: AppStats = AppStats()
     override val graphics: AndroidGraphics = AndroidGraphics(stats.engineStats)
-    override val input: AndroidInput = AndroidInput(configuration.activity)
+    override val input: AndroidInput = AndroidInput(configuration.activity, graphics)
     override val logger: Logger = Logger(configuration.title)
     override val vfs: AndroidVfs =
         AndroidVfs(
