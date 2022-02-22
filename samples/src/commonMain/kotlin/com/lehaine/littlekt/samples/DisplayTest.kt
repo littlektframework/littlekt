@@ -312,13 +312,18 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
                         label {
                             text = "Username:"
                         }
-                        lineEdit()
+                        lineEdit {
+                            placeholderText = "Enter Username"
+                            minWidth = 150f
+                        }
 
                         label {
                             text = "Password:"
                         }
                         lineEdit {
+                            placeholderText = "Enter Password"
                             secret = true
+                            minWidth = 150f
                         }
                         label {
                             text = "Your Code:"
@@ -326,6 +331,7 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
                         lineEdit {
                             text = "542849"
                             editable = false
+                            minWidth = 150f
                         }
                     }
 

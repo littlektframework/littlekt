@@ -105,6 +105,12 @@ open class LineEdit : Control() {
             colorOverrides[themeVars.fontColorDisabled] = value
         }
 
+    var fontColorPlaceholder: Color
+        get() = getThemeColor(themeVars.fontColorPlaceholder)
+        set(value) {
+            colorOverrides[themeVars.fontColorPlaceholder] = value
+        }
+
     var bg: Drawable
         get() = getThemeDrawable(themeVars.bg)
         set(value) {
@@ -362,6 +368,21 @@ open class LineEdit : Control() {
                 color
             )
             cache.draw(batch)
+        } else {
+            if ((!hasFocus || !editable) && placeholderText.isNotEmpty()) {
+                cache.setText(
+                    placeholderText,
+                    globalX + bg.marginLeft,
+                    globalY,
+                    scaleX,
+                    scaleY,
+                    rotation,
+                    fontColorPlaceholder,
+                    availableWidth,
+                    truncate = "..."
+                )
+                cache.draw(batch)
+            }
         }
 
         if (hasFocus) {
@@ -600,6 +621,7 @@ open class LineEdit : Control() {
     class ThemeVars {
         val fontColor = "fontColor"
         val fontColorDisabled = "fontColorDisabled"
+        val fontColorPlaceholder = "fontColorPlaceholder"
         val font = "font"
         val bg = "bg"
         val pressed = "pressed"

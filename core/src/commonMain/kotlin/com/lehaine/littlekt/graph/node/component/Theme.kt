@@ -181,6 +181,7 @@ fun createDefaultTheme(
         "Label" to mapOf(Label.themeVars.fontColor to Color.WHITE),
         "LineEdit" to mapOf(
             LineEdit.themeVars.fontColor to Color.WHITE,
+            LineEdit.themeVars.fontColorPlaceholder to Color.LIGHT_GRAY,
             LineEdit.themeVars.fontColorDisabled to Color.LIGHT_GRAY
         )
     ) + extraColors

@@ -139,10 +139,11 @@ open class FontCache(val pages: Int = 1) {
         color: Color = Color.WHITE,
         targetWidth: Float = 0f,
         align: HAlign = HAlign.LEFT,
-        wrap: Boolean = false
+        wrap: Boolean = false,
+        truncate: String? = null
     ) {
         clear()
-        addText(font, text, x, y, scaleX, scaleY, rotation, color, targetWidth, align, wrap)
+        addText(font, text, x, y, scaleX, scaleY, rotation, color, targetWidth, align, wrap, truncate)
     }
 
     /**
@@ -181,6 +182,7 @@ open class FontCache(val pages: Int = 1) {
      * @param targetWidth the width of the area the text will be drawn, for wrapping or truncation
      * @param align the horizontal alignment of the text, see [HAlign]
      * @param wrap if true, the text will be wrapped within the [targetWidth]
+     * @param truncate the string to display when the text is too long to fit within [targetWidth]
      */
     fun addText(
         font: Font,
