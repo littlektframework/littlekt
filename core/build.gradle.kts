@@ -99,7 +99,11 @@ kotlin {
         val jvmTest by getting
         val jsMain by getting
         val jsTest by getting
-        val androidMain by getting
+        val androidMain by getting {
+            dependencies {
+                implementation(libs.kotlinx.coroutines.android)
+            }
+        }
         val androidTest by getting
 
         val jvmAndroidMain = maybeCreate("jvmAndroidMain")

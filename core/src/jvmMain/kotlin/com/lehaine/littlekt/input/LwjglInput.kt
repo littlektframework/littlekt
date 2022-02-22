@@ -292,4 +292,6 @@ class LwjglInput : Input {
         _inputProcessors -= processor
     }
 
+    override fun showSoftKeyboard() = Unit
+    override fun hideSoftKeyboard() = Unit
 }

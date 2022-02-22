@@ -320,6 +320,9 @@ class JsInput(val canvas: HTMLCanvasElement) : Input {
     override fun removeInputProcessor(processor: InputProcessor) {
         _inputProcessors -= processor
     }
+
+    override fun showSoftKeyboard() = Unit
+    override fun hideSoftKeyboard() = Unit
 }
 
 private external val navigator: dynamic

@@ -211,6 +211,7 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
                                     onPressed += {
                                         logger.info { "You pressed me!! I am at ${globalX},${globalY}" }
                                         input.vibrate(100.milliseconds)
+                                        input.showSoftKeyboard()
                                     }
                                 }
                                 button {
@@ -220,6 +221,7 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
                                     onPressed += {
                                         logger.info { "You pressed me!! I am at ${globalX},${globalY}" }
                                         input.vibrate(200.milliseconds)
+                                        input.hideSoftKeyboard()
                                     }
                                 }
                                 button {
