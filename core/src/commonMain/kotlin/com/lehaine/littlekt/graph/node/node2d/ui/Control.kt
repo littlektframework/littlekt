@@ -478,9 +478,9 @@ open class Control : Node2D() {
     }
 
     internal fun _uiInput(event: InputEvent) {
-        if (!enabled) return
+        if (!enabled || !insideTree) return
         onUiInput.emit(event) // signal is first due to being able to handle the event
-        if (!insideTree || event.handled) {
+        if (event.handled) {
             return
         }
         uiInput(event)
@@ -569,14 +569,15 @@ open class Control : Node2D() {
     /**
      * Attempts to _hit_ a [Control] node. This will check any children [Control] nodes first and then itself.
      * This will return null if the control is not [enabled] or if [mouseFilter] is set to [MouseFilter.NONE].
-     * @param hx the x coord
-     * @param hy the y coord
+     * @param hx the x coord in global
+     * @param hy the y coord in global
      * @return a [Control] node that was hit
      */
     fun hit(hx: Float, hy: Float): Control? {
         if (!enabled || mouseFilter == MouseFilter.NONE) {
             return null
         }
+
         nodes.forEachReversed {
             if (it !is Control) return@forEachReversed
             val target = it.hit(hx, hy)
@@ -587,7 +588,10 @@ open class Control : Node2D() {
         if (mouseFilter == MouseFilter.IGNORE) return null
 
         if (globalRotation == Angle.ZERO) {
-            return if (hx >= globalX && hx < globalX + width && hy >= globalY && hy < globalY + height) this else null
+            toLocal(hx, hy, tempVec2f)
+            val x = tempVec2f.x
+            val y = tempVec2f.y
+            return if (x >= 0f && x < width && y >= 0f && y < height) this else null
         }
         // TODO determine hit target when rotated
 
@@ -596,11 +600,16 @@ open class Control : Node2D() {
 
     /**
      * Determines if the point is in the controls bounding rectangle.
+     * @param px the x coord in global
+     * @param py the y coord in global
      * @return true if it contains; false otherwise
      */
     fun hasPoint(px: Float, py: Float): Boolean {
         if (globalRotation == Angle.ZERO) {
-            return px >= globalX && px < globalX + width && py >= globalY && py < globalY + height
+            toLocal(px, py, tempVec2f)
+            val x = tempVec2f.x
+            val y = tempVec2f.y
+            return x >= 0f && x < width && y >= 0f && y < height
         }
         return false //TODO determine has point when rotated
     }

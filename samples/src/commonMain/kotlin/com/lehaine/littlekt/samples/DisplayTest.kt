@@ -295,6 +295,40 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
                         }
                     }
 
+                    button {
+                        x = 600f
+                        y = 400f
+                        text = "Over yonder"
+                        onPressed += {
+                            logger.info { "You pressed me!! I am at ${globalX},${globalY}" }
+                            input.vibrate(100.milliseconds)
+                        }
+                    }
+
+                    vBoxContainer {
+                        x = 600f
+                        y = 200f
+
+                        label {
+                            text = "Username:"
+                        }
+                        lineEdit()
+
+                        label {
+                            text = "Password:"
+                        }
+                        lineEdit {
+                            secret = true
+                        }
+                        label {
+                            text = "Your Code:"
+                        }
+                        lineEdit {
+                            text = "542849"
+                            editable = false
+                        }
+                    }
+
                     panelContainer {
                         x = 300f
                         y = 150f
@@ -413,6 +447,14 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
 
             onKeyDown {
                 logger.info { "key down: $it" }
+            }
+
+            onKeyRepeat {
+                logger.info { "key repeated: $it" }
+            }
+
+            onCharTyped {
+                logger.info { "char typed: '$it'" }
             }
         }
 

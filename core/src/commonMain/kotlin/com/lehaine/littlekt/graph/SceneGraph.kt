@@ -161,6 +161,9 @@ open class SceneGraph(
                     val event = inputEventPool.alloc().apply {
                         sceneX = tempVec.x
                         sceneY = tempVec.y
+                        overLast.toLocal(tempVec, tempVec)
+                        localX = tempVec.x
+                        localY = tempVec.y
                         pointer = Pointer.cache[index]
                     }
                     overLast._uiInput(event)
@@ -198,10 +201,13 @@ open class SceneGraph(
 
         screenToSceneCoordinates(tempVec.set(screenX, screenY))
 
+        val sceneX = tempVec.x
+        val sceneY = tempVec.y
+
         val event = inputEventPool.alloc().apply {
             type = InputEvent.Type.TOUCH_DOWN
-            sceneX = tempVec.x
-            sceneY = tempVec.y
+            this.sceneX = sceneX
+            this.sceneY = sceneY
             this.pointer = pointer
         }
 
@@ -210,6 +216,11 @@ open class SceneGraph(
             if (pointer == Pointer.MOUSE_LEFT && it.focusMode != Control.FocusMode.NONE) {
                 it.grabFocus()
                 keyboardFocus = it
+            }
+            it.toLocal(sceneX, sceneY, tempVec)
+            event.apply {
+                localX = tempVec.x
+                localY = tempVec.y
             }
             it._uiInput(event)
             uiInput(it, event)
@@ -231,10 +242,13 @@ open class SceneGraph(
 
         screenToSceneCoordinates(tempVec.set(screenX, screenY))
 
+        val sceneX = tempVec.x
+        val sceneY = tempVec.y
+
         val event = inputEventPool.alloc().apply {
             type = InputEvent.Type.TOUCH_UP
-            sceneX = tempVec.x
-            sceneY = tempVec.y
+            this.sceneX = sceneX
+            this.sceneY = sceneY
             this.pointer = pointer
         }
 
@@ -246,6 +260,11 @@ open class SceneGraph(
                 return@fastForEach
             }
             focus.target?.let {
+                it.toLocal(sceneX, sceneY, tempVec)
+                event.apply {
+                    localX = tempVec.x
+                    localY = tempVec.y
+                }
                 it._uiInput(event)
                 uiInput(it, event)
                 event.handle()
@@ -270,10 +289,13 @@ open class SceneGraph(
 
         screenToSceneCoordinates(tempVec.set(screenX, screenY))
 
+        val sceneX = tempVec.x
+        val sceneY = tempVec.y
+
         val event = inputEventPool.alloc().apply {
             type = InputEvent.Type.TOUCH_DRAGGED
-            sceneX = tempVec.x
-            sceneY = tempVec.y
+            this.sceneX = sceneX
+            this.sceneY = sceneY
             this.pointer = pointer
         }
 
@@ -285,11 +307,15 @@ open class SceneGraph(
                 return@fastForEach
             }
             focus.target?.let {
+                it.toLocal(sceneX, sceneY, tempVec)
+                event.apply {
+                    localX = tempVec.x
+                    localY = tempVec.y
+                }
                 it._uiInput(event)
                 uiInput(it, event)
                 event.handle()
             }
-            touchFocusPool.free(focus)
         }
 
         val handled = event.handled
@@ -370,17 +396,52 @@ open class SceneGraph(
         return handled
     }
 
+    override fun keyRepeat(key: Key): Boolean {
+        var handled = false
+        keyboardFocus?.let {
+            val event = inputEventPool.alloc().apply {
+                type = InputEvent.Type.KEY_REPEAT
+                this.key = key
+            }
+            it._uiInput(event)
+            uiInput(it, event)
+            handled = event.handled
+            inputEventPool.free(event)
+        }
+        return handled
+    }
+
+    override fun charTyped(character: Char): Boolean {
+        var handled = false
+        keyboardFocus?.let {
+            val event = inputEventPool.alloc().apply {
+                type = InputEvent.Type.CHAR_TYPED
+                char = character
+            }
+            it._uiInput(event)
+            uiInput(it, event)
+            handled = event.handled
+            inputEventPool.free(event)
+        }
+        return handled
+    }
+
     private fun fireEnterAndExit(overLast: Control?, screenX: Float, screenY: Float, pointer: Pointer): Control? {
         screenToSceneCoordinates(tempVec.set(screenX, screenY))
 
+        val sceneX = tempVec.x
+        val sceneY = tempVec.y
         val over = hit(tempVec.x, tempVec.y)
         if (over == overLast) return overLast
 
         if (overLast != null) {
             val event = inputEventPool.alloc().apply {
-                sceneX = tempVec.x
-                sceneY = tempVec.y
+                this.sceneX = sceneX
+                this.sceneY = sceneY
                 this.pointer = pointer
+                overLast.toLocal(sceneX, sceneY, tempVec)
+                localX = tempVec.x
+                localY = tempVec.y
                 type = InputEvent.Type.MOUSE_EXIT
             }
             overLast.let {
@@ -392,9 +453,12 @@ open class SceneGraph(
 
         if (over != null) {
             val event = inputEventPool.alloc().apply {
-                sceneX = tempVec.x
-                sceneY = tempVec.y
+                this.sceneX = sceneX
+                this.sceneY = sceneY
                 this.pointer = pointer
+                over.toLocal(sceneX, sceneY, tempVec)
+                localX = tempVec.x
+                localY = tempVec.y
                 type = InputEvent.Type.MOUSE_ENTER
             }
             over.let {

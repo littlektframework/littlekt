@@ -118,8 +118,12 @@ class InputCache {
         }
     }
 
-    fun onKeyType(char: Char) {
-        queueManager.keyTyped(char, epochMillis())
+    fun onCharTyped(char: Char) {
+        queueManager.charTyped(char, epochMillis())
+    }
+
+    fun onKeyRepeat(key: Key) {
+        queueManager.keyRepeat(key, epochMillis())
     }
 
     fun onGamepadButtonDown(button: GameButton, pressure: Float, gamepad: GamepadInfo) {

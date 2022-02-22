@@ -12,8 +12,11 @@ class InputEvent : Event() {
     var pointer: Pointer = Pointer.POINTER1
     var button: Int = 0
     var key: Key = Key.ANY_KEY
+    var char: Char = Char.MIN_VALUE
     var sceneX: Float = 0f
     var sceneY: Float = 0f
+    var localX: Float = 0f
+    var localY: Float = 0f
     var scrollAmountX: Int = 0
     var scrollAmountY: Int = 0
 
@@ -21,6 +24,11 @@ class InputEvent : Event() {
         super.reset()
         button = -1
         key = Key.ANY_KEY
+        char = Char.MIN_VALUE
+        sceneX = 0f
+        sceneY = 0f
+        localX = 0f
+        localY = 0f
     }
 
     override fun toString(): String {
@@ -30,34 +38,59 @@ class InputEvent : Event() {
     enum class Type {
         NONE,
 
-        /** A new touch for a pointer on the scene was detected  */
+        /**
+         * A new touch for a pointer on the scene was detected
+         */
         TOUCH_DOWN,
 
-        /** A pointer has stopped touching the scene.  */
+        /**
+         * A pointer has stopped touching the scene.
+         */
         TOUCH_UP,
 
-        /** A pointer that is touching the scene has moved.  */
+        /**
+         * A pointer that is touching the scene has moved.
+         */
         TOUCH_DRAGGED,
 
-        /** The mouse pointer has moved (without a mouse button being active).  */
+        /**
+         * The mouse pointer has moved (without a mouse button being active).
+         */
         MOUSE_HOVER,
 
-        /** The mouse pointer or an active touch have entered (i.e., [hit][Cotnrol.hit]) a Control.  */
+        /**
+         * The mouse pointer or an active touch have entered (i.e., [hit][Cotnrol.hit]) a Control.
+         */
         MOUSE_ENTER,
 
-        /** The mouse pointer or an active touch have exited a Control.  */
+        /**
+         * The mouse pointer or an active touch have exited a Control.
+         */
         MOUSE_EXIT,
 
-        /** The mouse scroll wheel has changed.  */
+        /**
+         * The mouse scroll wheel has changed.
+         */
         SCROLLED,
 
-        /** A keyboard key has been pressed.  */
+        /**
+         * A keyboard key has been pressed.
+         */
         KEY_DOWN,
 
-        /** A keyboard key has been released.  */
+        /**
+         * A keyboard key has been released.
+         */
         KEY_UP,
 
-        /** A keyboard key has been pressed and released.  */
-        KEY_TYPED
+        /**
+         * A keyboard key has been pressed and not released.
+         */
+        KEY_REPEAT,
+
+        /**
+         * A keyboard character has been typed.
+         */
+        CHAR_TYPED
     }
 }

@@ -137,7 +137,7 @@ class AndroidInput(private val androidCtx: Context, private val graphics: Androi
             KeyEvent.ACTION_DOWN -> inputCache.onKeyDown(keyCode.getKey)
             KeyEvent.ACTION_UP -> {
                 inputCache.onKeyUp(keyCode.getKey)
-                inputCache.onKeyType(keyCode.toChar())
+                inputCache.onCharTyped(keyCode.toChar())
             }
         }
         return false

@@ -534,21 +534,67 @@ open class Node2D : Node() {
      * Applying this method to the positions of child nodes will correctly transform their positions into the global coordinate space,
      * but applying it to a node's own position will give an incorrect result, as it will incorporate the node's own transformation into its global position.
      */
-    fun toWorld(point: Vec2f): Vec2f {
-        val x = (point.x - globalPosition.x) * cos(PI) + (point.y - globalPosition.y) * sin(PI)
-        val y = -(point.x - globalPosition.y) * sin(PI) + (point.y - globalPosition.y) * cos(PI)
-        return Vec2f(x.toFloat(), y.toFloat())
+    fun toWorld(point: Vec2f): Vec2f = toWorld(point, MutableVec2f())
+
+    /**
+     * Transforms the provided local position into a position in world coordinate space.
+     * The input is expected to be local relative to the Node2D it is called on. e.g.
+     * Applying this method to the positions of child nodes will correctly transform their positions into the global coordinate space,
+     * but applying it to a node's own position will give an incorrect result, as it will incorporate the node's own transformation into its global position.
+     */
+    fun toWorld(x: Float, y: Float): Vec2f = toWorld(x, y, MutableVec2f())
+
+    /**
+     * Transforms the provided local position into a position in world coordinate space.
+     * The input is expected to be local relative to the Node2D it is called on. e.g.
+     * Applying this method to the positions of child nodes will correctly transform their positions into the global coordinate space,
+     * but applying it to a node's own position will give an incorrect result, as it will incorporate the node's own transformation into its global position.
+     */
+    fun toWorld(point: Vec2f, out: MutableVec2f): MutableVec2f = toWorld(point.x, point.y, out)
+
+    /**
+     * Transforms the provided local position into a position in world coordinate space.
+     * The input is expected to be local relative to the Node2D it is called on. e.g.
+     * Applying this method to the positions of child nodes will correctly transform their positions into the global coordinate space,
+     * but applying it to a node's own position will give an incorrect result, as it will incorporate the node's own transformation into its global position.
+     */
+    fun toWorld(x: Float, y: Float, out: MutableVec2f): MutableVec2f {
+        val tx = (x - globalPosition.x) * cos(PI) + (y - globalPosition.y) * sin(PI)
+        val ty = -(x - globalPosition.y) * sin(PI) + (y - globalPosition.y) * cos(PI)
+        return out.set(tx.toFloat(), ty.toFloat())
     }
+
 
     /**
      * Transforms the provided world position into a position in local coordinate space.
      * The output will be local relative to the Node2D it is called on. e.g. It is appropriate for determining the positions of child nodes,
      * but it is not appropriate for determining its own position relative to its parent.
      */
-    fun toLocal(point: Vec2f): Vec2f {
-        val x = globalPosition.x * cos(PI) - globalPosition.y * sin(PI) + point.x
-        val y = globalPosition.x * sin(PI) + globalPosition.y * cos(PI) + point.y
-        return Vec2f(x.toFloat(), y.toFloat())
+    fun toLocal(point: Vec2f): Vec2f = toLocal(point, MutableVec2f())
+
+    /**
+     * Transforms the provided world position into a position in local coordinate space.
+     * The output will be local relative to the Node2D it is called on. e.g. It is appropriate for determining the positions of child nodes,
+     * but it is not appropriate for determining its own position relative to its parent.
+     */
+    fun toLocal(x: Float, y: Float): Vec2f = toLocal(x, y, MutableVec2f())
+
+    /**
+     * Transforms the provided world position into a position in local coordinate space.
+     * The output will be local relative to the Node2D it is called on. e.g. It is appropriate for determining the positions of child nodes,
+     * but it is not appropriate for determining its own position relative to its parent.
+     */
+    fun toLocal(point: Vec2f, out: MutableVec2f): MutableVec2f = toLocal(point.x, point.y, out)
+
+    /**
+     * Transforms the provided world position into a position in local coordinate space.
+     * The output will be local relative to the Node2D it is called on. e.g. It is appropriate for determining the positions of child nodes,
+     * but it is not appropriate for determining its own position relative to its parent.
+     */
+    fun toLocal(x: Float, y: Float, out: MutableVec2f): MutableVec2f {
+        val tx = globalPosition.x * cos(PI) - globalPosition.y * sin(PI) + x
+        val ty = globalPosition.x * sin(PI) + globalPosition.y * cos(PI) + y
+        return out.set(tx.toFloat(), ty.toFloat())
     }
 
     fun copyFrom(node: Node2D) {
