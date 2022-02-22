@@ -149,6 +149,7 @@ open class LineEdit : Control() {
             lastPointer = event.pointer
             selectionStart = _caretPosition
             hasSelection = true
+            scene?.context?.input?.showSoftKeyboard()
         }
 
         if (event.type == InputEvent.Type.TOUCH_DRAGGED) {
