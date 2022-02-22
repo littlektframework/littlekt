@@ -445,6 +445,8 @@ open class LineEdit : Control() {
 
     fun unselect() {
         hasSelection = false
+        selectionStart = 0
+        selectionWidth = 0f
     }
 
     fun undo() {
