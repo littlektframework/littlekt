@@ -15,7 +15,6 @@ import com.lehaine.littlekt.AndroidGraphics
 import com.lehaine.littlekt.async.KtScope
 import com.lehaine.littlekt.math.geom.Point
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.time.Duration
 
@@ -137,7 +136,7 @@ class AndroidInput(private val androidCtx: Context, private val graphics: Androi
             KeyEvent.ACTION_DOWN -> inputCache.onKeyDown(keyCode.getKey)
             KeyEvent.ACTION_UP -> {
                 inputCache.onKeyUp(keyCode.getKey)
-                inputCache.onCharTyped(keyCode.toChar())
+                inputCache.onCharTyped(event.unicodeChar.toChar())
             }
         }
         return false

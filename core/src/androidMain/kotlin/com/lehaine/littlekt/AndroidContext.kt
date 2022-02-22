@@ -135,6 +135,7 @@ class AndroidContext(override val configuration: AndroidConfiguration) : Context
             setRenderer(graphics)
             renderMode = GLSurfaceView.RENDERMODE_CONTINUOUSLY
             setOnTouchListener(input)
+            setOnKeyListener(input)
         }.also { graphics.surfaceView = it }
         configuration.activity.setContentView(surfaceView)
     }

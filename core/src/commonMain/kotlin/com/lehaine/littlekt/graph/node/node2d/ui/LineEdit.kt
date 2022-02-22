@@ -226,7 +226,7 @@ open class LineEdit : Control() {
                 }
                 Key.DELETE -> {
                     if (!editable) return
-                    removeAtCaret(true)
+                    removeAtCaret(scene?.context?.platform?.isMobile?.not() ?: true)
                     event.handle()
                 }
                 Key.HOME -> {
@@ -321,7 +321,7 @@ open class LineEdit : Control() {
     override fun render(batch: Batch, camera: Camera) {
         super.render(batch, camera)
 
-        val bgDrawable = if(editable) bg else bgDisabled
+        val bgDrawable = if (editable) bg else bgDisabled
         bgDrawable.draw(
             batch,
             globalX,
