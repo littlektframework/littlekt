@@ -20,7 +20,7 @@ inline fun Node.vBoxContainer(callback: @SceneGraphDslMarker VBoxContainer.() ->
  * @param callback the callback that is invoked with a [VBoxContainer] context in order to initialize any values
  * @return the newly created [VBoxContainer]
  */
-inline fun SceneGraph.vBoxContainer(callback: @SceneGraphDslMarker VBoxContainer.() -> Unit = {}) =
+inline fun SceneGraph<*>.vBoxContainer(callback: @SceneGraphDslMarker VBoxContainer.() -> Unit = {}) =
     root.vBoxContainer(callback)
 
 /**

@@ -104,7 +104,7 @@ abstract class BaseButton : Control() {
         status.pressingInside = false
     }
 
-    override fun uiInput(event: InputEvent) {
+    override fun uiInput(event: InputEvent<*>) {
         super.uiInput(event)
 
         if (event.type == InputEvent.Type.MOUSE_ENTER) {

@@ -21,7 +21,7 @@ inline fun Node.panel(callback: @SceneGraphDslMarker Panel.() -> Unit = {}) =
  * @param callback the callback that is invoked with a [Panel] context in order to initialize any values
  * @return the newly created [Panel]
  */
-inline fun SceneGraph.panel(callback: @SceneGraphDslMarker Panel.() -> Unit = {}) =
+inline fun SceneGraph<*>.panel(callback: @SceneGraphDslMarker Panel.() -> Unit = {}) =
     root.panel(callback)
 
 

@@ -232,12 +232,20 @@ class LwjglInput : Input {
         return if (pointer == Pointer.POINTER1) deltaY else 0
     }
 
-    override fun isTouched(pointer: Pointer): Boolean {
+    override fun isJustTouched(pointer: Pointer): Boolean {
+        return inputCache.isJustTouched(pointer)
+    }
+
+    override fun isTouching(pointer: Pointer): Boolean {
         return inputCache.isTouching(pointer)
     }
 
+    override fun isTouchJustReleased(pointer: Pointer): Boolean {
+        return inputCache.isTouchJustReleased(pointer)
+    }
+
     override fun getPressure(pointer: Pointer): Float {
-        return if (isTouched(pointer)) 1f else 0f
+        return if (isJustTouched(pointer)) 1f else 0f
     }
 
     override fun isKeyJustPressed(key: Key): Boolean {

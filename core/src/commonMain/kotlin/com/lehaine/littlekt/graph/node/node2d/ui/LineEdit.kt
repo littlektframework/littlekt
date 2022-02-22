@@ -32,7 +32,7 @@ inline fun Node.lineEdit(callback: @SceneGraphDslMarker LineEdit.() -> Unit = {}
 /**
  * Adds a [LineEdit] to the current [SceneGraph.root] as a child and then triggers the [callback]
  */
-inline fun SceneGraph.lineEdit(callback: @SceneGraphDslMarker LineEdit.() -> Unit = {}) =
+inline fun SceneGraph<*>.lineEdit(callback: @SceneGraphDslMarker LineEdit.() -> Unit = {}) =
     root.lineEdit(callback)
 
 /**
@@ -146,7 +146,7 @@ open class LineEdit : Control() {
         focusMode = FocusMode.ALL
     }
 
-    override fun uiInput(event: InputEvent) {
+    override fun uiInput(event: InputEvent<*>) {
         super.uiInput(event)
 
         if (event.type == InputEvent.Type.TOUCH_DOWN) {
@@ -313,7 +313,7 @@ open class LineEdit : Control() {
         }
     }
 
-    private fun onTapped(event: InputEvent) {
+    private fun onTapped(event: InputEvent<*>) {
         val count = taps % 4
         if (count == 0) unselect()
         if (count == 2) {

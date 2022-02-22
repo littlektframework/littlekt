@@ -35,7 +35,7 @@ inline fun Node.control(callback: @SceneGraphDslMarker Control.() -> Unit = {}) 
  * @param callback the callback that is invoked with a [Control] context in order to initialize any values
  * @return the newly created [Control]
  */
-inline fun SceneGraph.control(callback: @SceneGraphDslMarker Control.() -> Unit = {}) = root.control(callback)
+inline fun SceneGraph<*>.control(callback: @SceneGraphDslMarker Control.() -> Unit = {}) = root.control(callback)
 
 
 /**
@@ -65,7 +65,7 @@ open class Control : Node2D() {
     /**
      * A [Signal] that is emitted when the control receives an [InputEvent].
      */
-    val onUiInput: SingleSignal<InputEvent> = SingleSignal()
+    val onUiInput: SingleSignal<InputEvent<*>> = SingleSignal()
 
     /**
      * A [Signal] that is emitted when the control gains focus.
@@ -477,7 +477,7 @@ open class Control : Node2D() {
         super.onRemovedFromScene()
     }
 
-    internal fun _uiInput(event: InputEvent) {
+    internal fun _uiInput(event: InputEvent<*>) {
         if (!enabled || !insideTree) return
         onUiInput.emit(event) // signal is first due to being able to handle the event
         if (event.handled) {
@@ -489,7 +489,7 @@ open class Control : Node2D() {
     /**
      * Open method that is to process and accept inputs on UI elements.
      */
-    open fun uiInput(event: InputEvent) = Unit
+    open fun uiInput(event: InputEvent<*>) = Unit
 
     private fun _onThemeChanged() {
         nodes.forEach {

@@ -15,7 +15,7 @@ inline fun Node.ninePatchRect(callback: @SceneGraphDslMarker NinePatchRect.() ->
 /**
  * Adds a [NinePatchRect] to the current [SceneGraph.root] as a child and then triggers the [callback]
  */
-inline fun SceneGraph.ninePatchRect(callback: @SceneGraphDslMarker NinePatchRect.() -> Unit = {}) =
+inline fun SceneGraph<*>.ninePatchRect(callback: @SceneGraphDslMarker NinePatchRect.() -> Unit = {}) =
     root.ninePatchRect(callback)
 
 /**

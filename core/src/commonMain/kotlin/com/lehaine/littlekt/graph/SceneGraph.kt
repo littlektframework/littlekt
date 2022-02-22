@@ -10,9 +10,7 @@ import com.lehaine.littlekt.graphics.Batch
 import com.lehaine.littlekt.graphics.OrthographicCamera
 import com.lehaine.littlekt.graphics.SpriteBatch
 import com.lehaine.littlekt.graphics.use
-import com.lehaine.littlekt.input.InputProcessor
-import com.lehaine.littlekt.input.Key
-import com.lehaine.littlekt.input.Pointer
+import com.lehaine.littlekt.input.*
 import com.lehaine.littlekt.math.MutableVec2f
 import com.lehaine.littlekt.util.datastructure.Pool
 import com.lehaine.littlekt.util.fastForEach
@@ -37,11 +35,45 @@ inline fun sceneGraph(
     context: Context,
     viewport: Viewport = ScreenViewport(context.graphics.width, context.graphics.height),
     batch: Batch? = null,
-    callback: @SceneGraphDslMarker SceneGraph.() -> Unit = {}
-): SceneGraph {
+    controller: InputMapController<String> = createDefaultSceneGraphController(context.input),
+    callback: @SceneGraphDslMarker SceneGraph<String>.() -> Unit = {}
+): SceneGraph<String> {
     contract { callsInPlace(callback, InvocationKind.EXACTLY_ONCE) }
-    return SceneGraph(context, viewport, batch).also(callback)
+    return SceneGraph(
+        context,
+        viewport,
+        batch,
+        SceneGraph.UiInputSignals(
+            "ui_accept",
+            "ui_select",
+            "ui_cancel",
+            "ui_focus_next",
+            "ui_focus_prev",
+            "ui_left",
+            "ui_right",
+            "ui_up",
+            "ui_down",
+            "ui_home",
+            "ui_end"
+        ),
+        controller
+    ).also(callback)
 }
+
+fun createDefaultSceneGraphController(input: Input): InputMapController<String> =
+    InputMapController<String>(input).apply {
+        addBinding("ui_accept", keys = listOf(Key.SPACE, Key.ENTER), buttons = listOf(GameButton.XBOX_A))
+        addBinding("ui_select", keys = listOf(Key.SPACE), buttons = listOf(GameButton.XBOX_Y))
+        addBinding("ui_cancel", keys = listOf(Key.ESCAPE), buttons = listOf(GameButton.XBOX_B))
+        addBinding("ui_focus_next", keys = listOf(Key.TAB))
+        addBinding("ui_focus_prev", keys = listOf(Key.TAB), keyModifiers = listOf(InputMapController.KeyModifier.SHIFT))
+        addBinding("ui_up", keys = listOf(Key.ARROW_UP), buttons = listOf(GameButton.UP))
+        addBinding("ui_down", keys = listOf(Key.ARROW_DOWN), buttons = listOf(GameButton.DOWN))
+        addBinding("ui_left", keys = listOf(Key.ARROW_LEFT), buttons = listOf(GameButton.LEFT))
+        addBinding("ui_right", keys = listOf(Key.ARROW_RIGHT), buttons = listOf(GameButton.RIGHT))
+        addBinding("ui_home", keys = listOf(Key.HOME))
+        addBinding("ui_end", keys = listOf(Key.END))
+    }
 
 /**
  * A class for creating a scene graph of nodes.
@@ -51,12 +83,13 @@ inline fun sceneGraph(
  * @author Colton Daily
  * @date 1/1/2022
  */
-open class SceneGraph(
+open class SceneGraph<InputType>(
     val context: Context,
-    val viewport: Viewport = ScreenViewport(context.graphics.width, context.graphics.height),
-    batch: Batch? = null,
-) : InputProcessor, Disposable {
-
+    val viewport: Viewport,
+    batch: Batch?,
+    val uiInputSignals: UiInputSignals<InputType>,
+    private val controller: InputMapController<InputType>,
+) : InputMapProcessor<InputType>, Disposable {
     private var ownsBatch = true
     val batch: Batch = batch?.also { ownsBatch = false } ?: SpriteBatch(context)
 
@@ -82,7 +115,7 @@ open class SceneGraph(
     private var mouseOverControl: Control? = null
     private var keyboardFocus: Control? = null
     private val touchFocusPool = Pool(reset = { it.reset() }, preallocate = 1) { TouchFocus() }
-    private val inputEventPool = Pool(reset = { it.reset() }, preallocate = 10) { InputEvent() }
+    private val inputEventPool = Pool(reset = { it.reset() }, preallocate = 10) { InputEvent<InputType>() }
     private val touchFocuses = ArrayList<TouchFocus>(4)
     private val pointerScreenX = FloatArray(20)
     private val pointerScreenY = FloatArray(20)
@@ -92,8 +125,6 @@ open class SceneGraph(
     private val tempVec = MutableVec2f()
 
     private var initialized = false
-
-    private var shift = false
 
     /**
      * Resizes the internal graph's [OrthographicCamera] and [Viewport].
@@ -106,7 +137,9 @@ open class SceneGraph(
      * Initializes the root [Node] and [InputProcessor]. This must be called before an [update] or [render] calls.
      */
     fun initialize() {
+        controller.addInputMapProcessor(this)
         context.input.addInputProcessor(this)
+        context.input.addInputProcessor(controller)
         root.initialize()
         onStart()
         root._onPostEnterScene()
@@ -124,7 +157,6 @@ open class SceneGraph(
         }
     }
 
-
     /**
      * Lifecycle method. This is called whenever the [SceneGraph] is set before [initialize] is called.
      * Any nodes added to this [Node] context won't be added until the next frame update.
@@ -139,7 +171,7 @@ open class SceneGraph(
     /**
      * Open method that is triggered whenever a [Control] node receives an input event.
      */
-    open fun uiInput(control: Control, event: InputEvent) {}
+    open fun uiInput(control: Control, event: InputEvent<InputType>) {}
 
     /**
      * Request a [Control] to receive keyboard focus.
@@ -354,15 +386,11 @@ open class SceneGraph(
         return false
     }
 
-    override fun keyDown(key: Key): Boolean {
-        if (key == Key.SHIFT_LEFT) {
-            shift = true
-        }
-
+    override fun onActionDown(inputType: InputType): Boolean {
         keyboardFocus?.let {
             val event = inputEventPool.alloc().apply {
-                type = InputEvent.Type.KEY_DOWN
-                this.key = key
+                type = InputEvent.Type.ACTION_DOWN
+                this.inputType = inputType
             }
             it._uiInput(event)
             uiInput(it, event)
@@ -372,24 +400,23 @@ open class SceneGraph(
             if (handled) return true
 
             var next: Control? = null
-            when (key) {
-                Key.TAB -> {
-                    next = if (shift) {
-                        it.findPreviousValidFocus()
-                    } else {
-                        it.findNextValidFocus()
-                    }
+            when (inputType) {
+                uiInputSignals.uiFocusNext -> {
+                    next = it.findNextValidFocus()
                 }
-                Key.ARROW_UP -> {
+                uiInputSignals.uiFocusPrev -> {
+                    next = it.findPreviousValidFocus()
+                }
+                uiInputSignals.uiUp -> {
                     next = it.getFocusNeighbor(Control.Side.TOP)
                 }
-                Key.ARROW_RIGHT -> {
+                uiInputSignals.uiRight -> {
                     next = it.getFocusNeighbor(Control.Side.RIGHT)
                 }
-                Key.ARROW_DOWN -> {
+                uiInputSignals.uiDown -> {
                     next = it.getFocusNeighbor(Control.Side.BOTTOM)
                 }
-                Key.ARROW_LEFT -> {
+                uiInputSignals.uiLeft -> {
                     next = it.getFocusNeighbor(Control.Side.LEFT)
                 }
                 else -> Unit
@@ -401,11 +428,54 @@ open class SceneGraph(
         return false
     }
 
-    override fun keyUp(key: Key): Boolean {
-        if (key == Key.SHIFT_LEFT) {
-            shift = false
+    override fun onActionUp(inputType: InputType): Boolean {
+        var handled = false
+        keyboardFocus?.let {
+            val event = inputEventPool.alloc().apply {
+                type = InputEvent.Type.ACTION_UP
+                this.inputType = inputType
+            }
+            it._uiInput(event)
+            uiInput(it, event)
+            handled = event.handled
+            inputEventPool.free(event)
+        }
+        return handled
+    }
+
+    override fun onActionRepeat(inputType: InputType): Boolean {
+        var handled = false
+        keyboardFocus?.let {
+            val event = inputEventPool.alloc().apply {
+                type = InputEvent.Type.ACTION_REPEAT
+                this.inputType = inputType
+            }
+            it._uiInput(event)
+            uiInput(it, event)
+            handled = event.handled
+            inputEventPool.free(event)
+        }
+        return handled
+    }
+
+    override fun keyDown(key: Key): Boolean {
+        keyboardFocus?.let {
+            val event = inputEventPool.alloc().apply {
+                type = InputEvent.Type.KEY_DOWN
+                this.key = key
+            }
+            it._uiInput(event)
+            uiInput(it, event)
+            val handled = event.handled
+            inputEventPool.free(event)
+
+            if (handled) return true
         }
 
+        return false
+    }
+
+    override fun keyUp(key: Key): Boolean {
         var handled = false
         keyboardFocus?.let {
             val event = inputEventPool.alloc().apply {
@@ -536,8 +606,24 @@ open class SceneGraph(
         if (ownsBatch) {
             batch.dispose()
         }
+        controller.removeInputMapProcessor(this)
+        context.input.removeInputProcessor(controller)
         context.input.removeInputProcessor(this)
     }
+
+    data class UiInputSignals<InputType>(
+        val uiAccept: InputType? = null,
+        val uiSelect: InputType? = null,
+        val uiCancel: InputType? = null,
+        val uiFocusNext: InputType? = null,
+        val uiFocusPrev: InputType? = null,
+        val uiLeft: InputType? = null,
+        val uiRight: InputType? = null,
+        val uiUp: InputType? = null,
+        val uiDown: InputType? = null,
+        val uiHome: InputType? = null,
+        val uiEnd: InputType? = null,
+    )
 
     private class TouchFocus {
         var target: Control? = null

@@ -15,7 +15,7 @@ inline fun Node.hBoxContainer(callback: @SceneGraphDslMarker HBoxContainer.() ->
 /**
  * Adds a [HBoxContainer] to the current [SceneGraph.root] as a child and then triggers the [callback]
  */
-inline fun SceneGraph.hBoxContainer(callback: @SceneGraphDslMarker HBoxContainer.() -> Unit = {}) =
+inline fun SceneGraph<*>.hBoxContainer(callback: @SceneGraphDslMarker HBoxContainer.() -> Unit = {}) =
     root.hBoxContainer(callback)
 
 /**

@@ -26,7 +26,7 @@ inline fun Node.node2d(callback: @SceneGraphDslMarker Node2D.() -> Unit = {}) =
  * @param callback the callback that is invoked with a [Node2D] context in order to initialize any values
  * @return the newly created [Node2D]
  */
-inline fun SceneGraph.node2d(callback: @SceneGraphDslMarker Node2D.() -> Unit = {}) = root.node2d(callback)
+inline fun SceneGraph<*>.node2d(callback: @SceneGraphDslMarker Node2D.() -> Unit = {}) = root.node2d(callback)
 
 /**
  * A [Node] with 2D transformations.

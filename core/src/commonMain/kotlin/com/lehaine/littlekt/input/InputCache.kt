@@ -14,7 +14,9 @@ class InputCache {
     private val pointerCache = Pointer.values()
     private val keyCache = Key.values()
 
-    private val justTouchedPointers = mutableMapOf<Pointer, Boolean>()
+    private val pointersTouching = mutableMapOf<Pointer, Boolean>()
+    private val pointersJustTouched = mutableMapOf<Pointer, Boolean>()
+    private val pointersJustReleased = mutableMapOf<Pointer, Boolean>()
 
     private val keysPressed = mutableMapOf<Key, Boolean>()
     private val keysJustPressed = mutableMapOf<Key, Boolean>()
@@ -48,10 +50,21 @@ class InputCache {
     var justTouched = false
         private set
 
+    var justTouchReleased = false
+        private set
+
     private val queueManager = InputQueueProcessor()
 
+    fun isJustTouched(pointer: Pointer): Boolean {
+        return pointersJustTouched[pointer] ?: false
+    }
+
     fun isTouching(pointer: Pointer): Boolean {
-        return justTouchedPointers[pointer] ?: false
+        return pointersTouching[pointer] ?: false
+    }
+
+    fun isTouchJustReleased(pointer: Pointer): Boolean {
+        return pointersJustReleased[pointer] ?: false
     }
 
     fun isKeyJustPressed(key: Key): Boolean {
@@ -79,10 +92,13 @@ class InputCache {
     }
 
     fun onTouchDown(x: Float, y: Float, pointer: Pointer) {
-        queueManager.touchDown(x, y, pointer, epochMillis())
-        touches++
-        justTouched = true
-        justTouchedPointers[pointer] = true
+        if (pointersTouching[pointer] != true) {
+            queueManager.touchDown(x, y, pointer, epochMillis())
+            touches++
+            justTouched = true
+            pointersTouching[pointer] = true
+            pointersJustTouched[pointer] = true
+        }
     }
 
     fun onMove(x: Float, y: Float, pointer: Pointer) {
@@ -94,8 +110,13 @@ class InputCache {
     }
 
     fun onTouchUp(x: Float, y: Float, pointer: Pointer) {
-        queueManager.touchUp(x, y, pointer, epochMillis())
-        touches = max(0, touches - 1)
+        if (pointersTouching[pointer] == true) {
+            queueManager.touchUp(x, y, pointer, epochMillis())
+            touches = max(0, touches - 1)
+            justTouchReleased = true
+            pointersTouching[pointer] = false
+            pointersJustReleased[pointer] = true
+        }
     }
 
     fun onKeyDown(key: Key) {
@@ -109,7 +130,7 @@ class InputCache {
     }
 
     fun onKeyUp(key: Key) {
-        if(keysPressed[key] == true) {
+        if (keysPressed[key] == true) {
             queueManager.keyUp(key, epochMillis())
             totalKeysPressed--
             anyKeyJustReleased = true
@@ -193,9 +214,10 @@ class InputCache {
     }
 
     fun reset() {
-        if (justTouched) {
+        if (justTouched || justTouchReleased) {
             pointerCache.forEach {
-                justTouchedPointers[it] = false
+                pointersJustTouched[it] = false
+                pointersJustReleased[it] = false
             }
         }
 
@@ -220,6 +242,7 @@ class InputCache {
         anyGamepadButtonsJustPressed = false
         anyGamepadButtonsJustReleased = false
         justTouched = false
+        justTouchReleased = false
     }
 
 }
