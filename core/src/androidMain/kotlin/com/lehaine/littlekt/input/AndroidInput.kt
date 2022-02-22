@@ -10,14 +10,21 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.View.OnKeyListener
 import android.view.View.OnTouchListener
+import android.view.inputmethod.InputMethodManager
+import com.lehaine.littlekt.AndroidGraphics
+import com.lehaine.littlekt.async.KtScope
 import com.lehaine.littlekt.math.geom.Point
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlin.time.Duration
 
 /**
  * @author Colton Daily
  * @date 2/12/2022
  */
-class AndroidInput(private val androidCtx: Context) : Input, OnTouchListener, OnKeyListener {
+class AndroidInput(private val androidCtx: Context, private val graphics: AndroidGraphics) : Input, OnTouchListener,
+    OnKeyListener {
 
     private val vibrator = androidCtx.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
 
@@ -239,6 +246,26 @@ class AndroidInput(private val androidCtx: Context) : Input, OnTouchListener, On
     @SuppressLint("MissingPermission")
     override fun cancelVibrate() {
         vibrator.cancel()
+    }
+
+    override fun showSoftKeyboard() {
+        val view = graphics.surfaceView ?: return
+        val manager = androidCtx.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        KtScope.launch(Dispatchers.Main) {
+            view.isFocusable = true
+            view.isFocusableInTouchMode = true
+            view.requestFocus()
+            manager.showSoftInput(view, 0)
+        }
+    }
+
+    override fun hideSoftKeyboard() {
+
+        val view = graphics.surfaceView ?: return
+        val manager = androidCtx.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        KtScope.launch(Dispatchers.Main) {
+            manager.hideSoftInputFromWindow(view.windowToken, 0)
+        }
     }
 
     companion object {

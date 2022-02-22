@@ -382,4 +382,14 @@ interface Input {
      * Stops the vibrator.
      */
     fun cancelVibrate() = Unit
+
+    /**
+     * Shows an on-screen keyboard. Applicable for mobile only.
+     */
+    fun showSoftKeyboard()
+
+    /**
+     * Hides the on-screen keyboard. Applicable for mobile only.
+     */
+    fun hideSoftKeyboard()
 }
