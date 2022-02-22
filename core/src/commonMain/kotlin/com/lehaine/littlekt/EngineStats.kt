@@ -3,6 +3,7 @@ package com.lehaine.littlekt
 import com.lehaine.littlekt.util.toString
 
 /**
+ * OpenGL related engine stats.
  * @author Colton Daily
  * @date 11/24/2021
  */

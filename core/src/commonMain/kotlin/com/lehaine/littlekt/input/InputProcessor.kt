@@ -3,34 +3,117 @@ package com.lehaine.littlekt.input
 import com.lehaine.littlekt.util.fastForEach
 
 /**
+ * An interface that handles input events.
  * @author Colton Daily
  * @date 11/17/2021
  */
 interface InputProcessor {
+
+    /**
+     * Invoked when a [Key] is initially pressed down.
+     * @param key the key that is pressed
+     * @return true if event is handled; false otherwise
+     */
     fun keyDown(key: Key): Boolean = false
 
+    /**
+     * Invoked when a [Key] is released.
+     * @param key the key that is released
+     * @return true if event is handled; false otherwise
+     */
     fun keyUp(key: Key): Boolean = false
 
+    /**
+     * Invoked when a [Key] is pressed and held down.
+     * @param key the key that is repeated
+     * @return true if event is handled; false otherwise
+     */
     fun keyRepeat(key: Key): Boolean = false
 
+    /**
+     * Invoked when a [Key] is pressed and a [Char] is associated with that key.
+     * @param character the char of the key
+     * @return true if event is handled; false otherwise
+     */
     fun charTyped(character: Char): Boolean = false
 
+    /**
+     * Invoked when a [Pointer] is initially touched or clicked. This includes mouse and touch.
+     * @param screenX the x-coordinate of the event based on screen
+     * @param screenY the y-coordinate of the event based on screen
+     * @param pointer the pointer that was pressed/clicked
+     * @return true if event is handled; false otherwise
+     */
     fun touchDown(screenX: Float, screenY: Float, pointer: Pointer): Boolean = false
 
+    /**
+     * Invoked when a [Pointer] is released. This includes mouse and touch.
+     * @param screenX the x-coordinate of the event based on screen
+     * @param screenY the y-coordinate of the event based on screen
+     * @param pointer the pointer that was released
+     * @return true if event is handled; false otherwise
+     */
     fun touchUp(screenX: Float, screenY: Float, pointer: Pointer): Boolean = false
 
+    /**
+     * Invoked when a [Pointer] is pressed/clicked and dragged. This includes mouse and touch.
+     * @param screenX the x-coordinate of the event based on screen
+     * @param screenY the y-coordinate of the event based on screen
+     * @param pointer the pointer that was pressed and dragged
+     * @return true if event is handled; false otherwise
+     */
     fun touchDragged(screenX: Float, screenY: Float, pointer: Pointer): Boolean = false
 
+    /**
+     * Invoked when the mouse is moved.
+     * @param screenX the x-coordinate of the event based on screen
+     * @param screenY the y-coordinate of the event based on screen
+     * @return true if event is handled; false otherwise
+     */
     fun mouseMoved(screenX: Float, screenY: Float): Boolean = false
 
+    /**
+     * Invoked when the mouse is scrolled.
+     * @param amountX the scroll amount on the x-coordinate
+     * @param amountY the scroll amount on the y-coordinate
+     * @return true if event is handled; false otherwise
+     */
     fun scrolled(amountX: Float, amountY: Float): Boolean = false
 
+    /**
+     * Invoked when a [GameButton] is initially pressed on a [GamepadInfo].
+     * @param button the game button that was pressed
+     * @param pressure the pressure of the game button `0f` or `1f`.
+     * @param gamepad the index of the gamepad that had the button pressed
+     * @return true if event is handled; false otherwise
+     */
     fun gamepadButtonPressed(button: GameButton, pressure: Float, gamepad: Int): Boolean = false
 
+    /**
+     * Invoked when a [GameButton] is released on a [GamepadInfo].
+     * @param button the game button that was released
+     * @param gamepad the index of the gamepad that had the button pressed
+     * @return true if event is handled; false otherwise
+     */
     fun gamepadButtonReleased(button: GameButton, gamepad: Int): Boolean = false
 
+    /**
+     * Invoked when a [GameStick] is moved on a [GamepadInfo].
+     * @param stick the game stick that was moved
+     * @param xAxis the current value of the x-axis. Any value between `-1f to 1f`.
+     * @param yAxis the current value of the y-axis. Any value between `-1f to 1f`.
+     * @param gamepad the index of the gamepad that had the button pressed
+     * @return true if event is handled; false otherwise
+     */
     fun gamepadJoystickMoved(stick: GameStick, xAxis: Float, yAxis: Float, gamepad: Int): Boolean = false
 
+    /**
+     * Invoked when a [GameButton] that is considered a trigger is changed / moved.
+     * @param button the trigger button that was changed
+     * @param pressure the current pressure of the triggered. Any value between `0f to 1f`.
+     * @param gamepad the index of the gamepad that had the button pressed
+     * @return true if event is handled; false otherwise
+     */
     fun gamepadTriggerChanged(button: GameButton, pressure: Float, gamepad: Int): Boolean = false
 }
 

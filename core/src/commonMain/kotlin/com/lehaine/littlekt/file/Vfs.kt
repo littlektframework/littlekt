@@ -19,15 +19,18 @@ import kotlinx.serialization.json.Json
 import kotlin.coroutines.CoroutineContext
 
 /**
+ * A virtual file system that handles loading and streaming data and files.
  * @author Colton Daily
  * @date 11/6/2021
  */
-
 abstract class Vfs(
     val context: Context,
     val logger: Logger,
     var baseDir: String
 ) : CoroutineScope {
+    /**
+     * The root [VfsFile] that this [Vfs] starts from.
+     */
     val root get() = VfsFile(this, baseDir)
 
     protected open val absolutePath: String get() = ""
@@ -82,6 +85,10 @@ abstract class Vfs(
         job.cancel()
     }
 
+    /**
+     * Get the absolute path of the queried [path] based off the Vfs path.
+     * @param path the path to retrieve the absolute path for
+     */
     open fun getAbsolutePath(path: String) = absolutePath.pathInfo.lightCombine(path.pathInfo).fullPath
 
     private suspend fun readBytes(ref: AssetRef): LoadedAsset {
@@ -109,9 +116,30 @@ abstract class Vfs(
         }
     }
 
+    /**
+     * Store array of bytes in the storage directory based on the [key].
+     * @param key the key of the data
+     * @param data the data to store
+     */
     abstract fun store(key: String, data: ByteArray): Boolean
+
+    /**
+     * Store a string in the storage directory based on the [key].
+     * @param key the key of the data
+     * @param data the string to store
+     */
     abstract fun store(key: String, data: String): Boolean
+
+    /**
+     * Load an array of bytes from the storage directory based on the [key].
+     * @param key the key of the data to load
+     */
     abstract fun load(key: String): ByteBuffer?
+
+    /**
+     * Load a string from the storage directory based on the [key].
+     * @param key the key of the string to load
+     */
     abstract fun loadString(key: String): String?
 
     /**
@@ -135,6 +163,11 @@ abstract class Vfs(
             ?: throw FileNotFoundException(assetPath)
     }
 
+    /**
+     * Opens a stream to a file into a [ByteSequenceStream].
+     * @param assetPath the path to file
+     * @return the byte input stream
+     */
     suspend fun readStream(assetPath: String): ByteSequenceStream {
         val ref = if (isHttpAsset(assetPath)) {
             SequenceAssetRef(assetPath)

@@ -6,6 +6,7 @@ import kotlin.time.Duration.Companion.seconds
 import kotlin.time.DurationUnit
 
 /**
+ * Application runtime statistics.
  * @author Colton Daily
  * @date 11/27/2021
  */

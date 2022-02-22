@@ -95,10 +95,16 @@ open class SceneGraph(
 
     private var shift = false
 
+    /**
+     * Resizes the internal graph's [OrthographicCamera] and [Viewport].
+     */
     fun resize(width: Int, height: Int) {
         camera.update(width, height, context)
     }
 
+    /**
+     * Initializes the root [Node] and [InputProcessor]. This must be called before an [update] or [render] calls.
+     */
     fun initialize() {
         context.input.addInputProcessor(this)
         root.initialize()
@@ -107,6 +113,9 @@ open class SceneGraph(
         initialized = true
     }
 
+    /**
+     * Renders the entire tree.
+     */
     fun render() {
         if (!initialized) error("You need to call 'initialize()' once before doing any rendering or updating!")
         viewport.apply(context)
@@ -127,8 +136,14 @@ open class SceneGraph(
      */
     open fun onStart() = Unit
 
+    /**
+     * Open method that is triggered whenever a [Control] node receives an input event.
+     */
     open fun uiInput(control: Control, event: InputEvent) {}
 
+    /**
+     * Request a [Control] to receive keyboard focus.
+     */
     fun requestFocus(control: Control) {
         if (keyboardFocus == control) return
         val oldFocus = keyboardFocus
@@ -137,14 +152,23 @@ open class SceneGraph(
         control._onFocus()
     }
 
+    /**
+     * Releases any current keyboard focus.
+     */
     fun releaseFocus() {
         val control = keyboardFocus
         keyboardFocus = null
         control?._onFocusLost()
     }
 
+    /**
+     * Checks if the [Control] has the current keyboard focus.
+     */
     fun hasFocus(control: Control) = keyboardFocus == control
 
+    /**
+     * Updates all the nodes in the tree.
+     */
     open fun update(dt: Duration) {
         if (!initialized) error("You need to call 'initialize()' once before doing any rendering or updating!")
 

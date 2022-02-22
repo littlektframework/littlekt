@@ -7,13 +7,14 @@ import com.lehaine.littlekt.graphics.SystemCursor
 
 
 /**
+ * Contains graphic related properties and methods.
  * @author Colton Daily
  * @date 10/4/2021
  */
 interface Graphics {
 
     /**
-     * THe OpenGL instance.
+     * The OpenGL instance.
      */
     val gl: GL
 
