@@ -296,24 +296,27 @@ open class MutableColor(r: Float, g: Float, b: Float, a: Float) : Color(r, g, b,
         return this
     }
 
-    fun setRgba8888(rgba8888: Int) {
+    fun setRgba8888(rgba8888: Int): MutableColor {
         r = ((rgba8888 and 0xff000000.toInt()) ushr 24) / 255f
         g = ((rgba8888 and 0x00ff0000) ushr 16) / 255f
         b = ((rgba8888 and 0x0000ff00) ushr 8) / 255f
         a = (rgba8888 and 0x000000ff) / 255f
+        return this
     }
 
-    fun setAbgr8888(abgr888: Int) {
+    fun setAbgr8888(abgr888: Int): MutableColor {
         a = ((abgr888 and 0xff000000.toInt()) ushr 24) / 255f
         b = ((abgr888 and 0x00ff0000) ushr 16) / 255f
         g = ((abgr888 and 0x0000ff00) ushr 8) / 255f
         r = (abgr888 and 0x000000ff) / 255f
+        return this
     }
 
-    fun lighten(amount: Float = 0.1f) {
+    fun lighten(amount: Float = 0.1f): MutableColor {
         val oneMinus = 1f - amount
         r = amount + oneMinus * r
         g = amount + oneMinus * g
         b = amount + oneMinus * b
+        return this
     }
 }

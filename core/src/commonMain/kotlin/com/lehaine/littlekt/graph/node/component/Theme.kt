@@ -131,11 +131,11 @@ fun createDefaultTheme(
             Button.themeVars.normal to NinePatchDrawable(greyButtonNinePatch)
                 .apply { modulate = Color.LIGHT_BLUE },
             Button.themeVars.pressed to NinePatchDrawable(greyButtonNinePatch)
-                .apply { modulate = Color.LIGHT_BLUE.toMutableColor().also { it.scaleRgb(0.6f) } },
+                .apply { modulate = Color.LIGHT_BLUE.toMutableColor().scaleRgb(0.6f) },
             Button.themeVars.hover to NinePatchDrawable(greyButtonNinePatch)
-                .apply { modulate = Color.LIGHT_BLUE.toMutableColor().also { it.lighten(0.2f) } },
+                .apply { modulate = Color.LIGHT_BLUE.toMutableColor().lighten(0.2f) },
             Button.themeVars.disabled to NinePatchDrawable(greyButtonNinePatch)
-                .apply { modulate = Color.LIGHT_BLUE.toMutableColor().also { it.lighten(0.5f) } },
+                .apply { modulate = Color.LIGHT_BLUE.toMutableColor().lighten(0.5f) },
             Button.themeVars.focus to NinePatchDrawable(greyOutlineNinePatch)
                 .apply { modulate = Color.WHITE },
         ),
@@ -149,7 +149,7 @@ fun createDefaultTheme(
                 modulate = Color.DARK_BLUE
             },
             ProgressBar.themeVars.fg to NinePatchDrawable(panelNinePatch).apply {
-                modulate = Color.LIGHT_BLUE.toMutableColor().also { it.lighten(0.5f) }
+                modulate = Color.LIGHT_BLUE.toMutableColor().lighten(0.5f)
             }
         ),
         "LineEdit" to mapOf(
@@ -158,12 +158,19 @@ fun createDefaultTheme(
                 minHeight = 25f
                 modulate = Color.DARK_BLUE
             },
+            LineEdit.themeVars.disabled to NinePatchDrawable(greyBoxNinePatch).apply {
+                minWidth = 50f
+                minHeight = 25f
+                modulate = Color.DARK_BLUE.toMutableColor().lighten(0.2f)
+            },
             LineEdit.themeVars.caret to TextureSliceDrawable(Textures.white).apply {
                 minWidth = 1f
             },
             LineEdit.themeVars.selection to TextureSliceDrawable(Textures.white).apply {
                 modulate = Color.LIGHT_BLUE
-            }
+            },
+            LineEdit.themeVars.focus to NinePatchDrawable(greyOutlineNinePatch)
+                .apply { modulate = Color.WHITE },
         )
     ) + extraDrawables
 
@@ -171,7 +178,11 @@ fun createDefaultTheme(
 
     val colors = mapOf(
         "Button" to mapOf(Button.themeVars.fontColor to Color.WHITE),
-        "Label" to mapOf(Label.themeVars.fontColor to Color.WHITE)
+        "Label" to mapOf(Label.themeVars.fontColor to Color.WHITE),
+        "LineEdit" to mapOf(
+            LineEdit.themeVars.fontColor to Color.WHITE,
+            LineEdit.themeVars.fontColorDisabled to Color.LIGHT_GRAY
+        )
     ) + extraColors
 
     val constants = extraConstants

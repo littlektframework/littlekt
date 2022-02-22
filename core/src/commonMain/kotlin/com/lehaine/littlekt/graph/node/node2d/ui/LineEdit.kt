@@ -9,6 +9,7 @@ import com.lehaine.littlekt.graph.node.component.InputEvent
 import com.lehaine.littlekt.graph.node.component.Theme
 import com.lehaine.littlekt.graphics.Batch
 import com.lehaine.littlekt.graphics.Camera
+import com.lehaine.littlekt.graphics.Color
 import com.lehaine.littlekt.graphics.font.BitmapFont
 import com.lehaine.littlekt.graphics.font.BitmapFontCache
 import com.lehaine.littlekt.graphics.font.GlyphLayout
@@ -86,16 +87,34 @@ open class LineEdit : Control() {
         }
 
     var font: BitmapFont
-        get() = getThemeFont(Label.themeVars.font)
+        get() = getThemeFont(themeVars.font)
         set(value) {
-            fontOverrides[Label.themeVars.font] = value
+            fontOverrides[themeVars.font] = value
             cache = BitmapFontCache(value)
+        }
+
+    var fontColor: Color
+        get() = getThemeColor(themeVars.fontColor)
+        set(value) {
+            colorOverrides[themeVars.fontColor] = value
+        }
+
+    var fontColorDisabled: Color
+        get() = getThemeColor(themeVars.fontColorDisabled)
+        set(value) {
+            colorOverrides[themeVars.fontColorDisabled] = value
         }
 
     var bg: Drawable
         get() = getThemeDrawable(themeVars.bg)
         set(value) {
             drawableOverrides[themeVars.bg] = value
+        }
+
+    var bgDisabled: Drawable
+        get() = getThemeDrawable(themeVars.disabled)
+        set(value) {
+            drawableOverrides[themeVars.disabled] = value
         }
 
     var selection: Drawable
@@ -267,7 +286,7 @@ open class LineEdit : Control() {
         }
 
         if (event.type == InputEvent.Type.CHAR_TYPED) {
-            if(editable) {
+            if (editable) {
                 if (hasSelection) {
                     removeAtCaret(true)
                 }
@@ -301,7 +320,8 @@ open class LineEdit : Control() {
     override fun render(batch: Batch, camera: Camera) {
         super.render(batch, camera)
 
-        bg.draw(
+        val bgDrawable = if(editable) bg else bgDisabled
+        bgDrawable.draw(
             batch,
             globalX,
             globalY,
@@ -330,27 +350,42 @@ open class LineEdit : Control() {
         }
 
         if (displayTest.isNotEmpty()) {
+            val color = if (editable) fontColor else fontColorDisabled
             cache.setText(
                 displayTest.substring(visibleStart, visibleEnd),
                 globalX + bg.marginLeft + textOffset,
                 globalY,
                 scaleX,
                 scaleY,
-                rotation
+                rotation,
+                color
             )
             cache.draw(batch)
         }
 
         if (hasFocus) {
-            caret.draw(
+            if (editable) {
+                caret.draw(
+                    batch,
+                    globalX + bg.marginLeft + textOffset + glyphPositions[_caretPosition] - glyphPositions[visibleStart] + fontOffset,
+                    globalY + font.lineHeight / 4f,
+                    width = caret.minWidth,
+                    height = font.capHeight,
+                    scaleX = globalScaleX,
+                    scaleY = globalScaleY,
+                    rotation = rotation,
+                )
+            }
+
+            focusDrawable.draw(
                 batch,
-                globalX + bg.marginLeft + textOffset + glyphPositions[_caretPosition] - glyphPositions[visibleStart] + fontOffset,
-                globalY + font.lineHeight / 4f,
-                width = caret.minWidth,
-                height = font.capHeight,
+                globalX,
+                globalY,
+                width = width,
+                height = height,
                 scaleX = globalScaleX,
                 scaleY = globalScaleY,
-                rotation = rotation,
+                rotation = rotation
             )
         }
     }
@@ -563,11 +598,10 @@ open class LineEdit : Control() {
 
     class ThemeVars {
         val fontColor = "fontColor"
+        val fontColorDisabled = "fontColorDisabled"
         val font = "font"
         val bg = "bg"
         val pressed = "pressed"
-        val hover = "hover"
-        val hoverPressed = "hoverPressed"
         val disabled = "disabled"
         val focus = "focus"
         val caret = "caret"
