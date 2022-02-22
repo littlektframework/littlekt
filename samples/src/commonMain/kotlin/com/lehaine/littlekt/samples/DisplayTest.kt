@@ -318,6 +318,13 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
                         lineEdit {
                             secret = true
                         }
+                        label {
+                            text = "Your Code:"
+                        }
+                        lineEdit {
+                            text = "542849"
+                            editable = false
+                        }
                     }
 
                     panelContainer {

@@ -200,10 +200,12 @@ open class LineEdit : Control() {
                     event.handle()
                 }
                 Key.BACKSPACE -> {
+                    if (!editable) return
                     removeAtCaret(false)
                     event.handle()
                 }
                 Key.DELETE -> {
+                    if (!editable) return
                     removeAtCaret(true)
                     event.handle()
                 }
@@ -230,7 +232,7 @@ open class LineEdit : Control() {
                     }
                 }
                 Key.X -> {
-                    if (ctrl && hasSelection && !secret) {
+                    if (ctrl && hasSelection && !secret && editable) {
                         val minIdx = min(_caretPosition, selectionStart)
                         val maxIdx = max(_caretPosition, selectionStart)
                         scene?.context?.clipboard?.contents = text.substring(minIdx, maxIdx)
@@ -239,7 +241,7 @@ open class LineEdit : Control() {
                     }
                 }
                 Key.V -> {
-                    if (ctrl) {
+                    if (ctrl && editable) {
                         if (hasSelection) {
                             removeAtCaret(true)
                         }
@@ -250,11 +252,11 @@ open class LineEdit : Control() {
                     }
                 }
                 Key.Z -> {
-                    if (ctrl && !shift) {
+                    if (ctrl && !shift && editable) {
                         undo()
                         event.handle()
                         return
-                    } else if (ctrl && shift) {
+                    } else if (ctrl && shift && editable) {
                         redo()
                         event.handle()
                         return
@@ -265,11 +267,13 @@ open class LineEdit : Control() {
         }
 
         if (event.type == InputEvent.Type.CHAR_TYPED) {
-            if (hasSelection) {
-                removeAtCaret(true)
+            if(editable) {
+                if (hasSelection) {
+                    removeAtCaret(true)
+                }
+                insertAtCaret(event.char.toString())
+                event.handle()
             }
-            insertAtCaret(event.char.toString())
-            event.handle()
         }
 
         if (oldText != text) {
