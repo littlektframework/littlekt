@@ -43,9 +43,7 @@ class InputMapController<InputSignal>(
     private val pointerToType = mutableMapOf<Pointer, InputSignal>()
 
     private val axes = mutableMapOf<InputSignal, InputAxis<InputSignal>>()
-    private val axesToType = mutableMapOf<InputSignal, MutableList<InputSignal>>()
     private val vectors = mutableMapOf<InputSignal, InputVector<InputSignal>>()
-    private val vectorsToType = mutableMapOf<InputSignal, MutableList<InputSignal>>()
 
     private val processors = mutableListOf<InputMapProcessor<InputSignal>>()
 
@@ -124,8 +122,6 @@ class InputMapController<InputSignal>(
      */
     fun addAxis(type: InputSignal, positive: InputSignal, negative: InputSignal) {
         axes[type] = InputAxis(positive, negative)
-        axesToType.getOrPut(positive) { mutableListOf() }.add(type)
-        axesToType.getOrPut(negative) { mutableListOf() }.add(type)
     }
 
     /**
@@ -149,10 +145,6 @@ class InputMapController<InputSignal>(
         negativeY: InputSignal
     ) {
         vectors[type] = InputVector(positiveX, positiveY, negativeX, negativeY)
-        vectorsToType.getOrPut(positiveX) { mutableListOf() }.add(type)
-        vectorsToType.getOrPut(negativeX) { mutableListOf() }.add(type)
-        vectorsToType.getOrPut(positiveY) { mutableListOf() }.add(type)
-        vectorsToType.getOrPut(negativeY) { mutableListOf() }.add(type)
     }
 
     val isTouching get() = input.isTouching
@@ -203,20 +195,8 @@ class InputMapController<InputSignal>(
         if (processors.isEmpty()) return false
         pointerToType[pointer]?.let {
             processors.forEach { processor ->
-                var handled = processor.onActionDown(it)
+                val handled = processor.onActionDown(it)
                 if (handled) return true
-
-                axesToType[it]?.forEach {
-                    val axis = axis(it)
-                    handled = processor.onAxisChanged(it, axis)
-                    if (handled) return true
-                }
-
-                vectorsToType[it]?.forEach {
-                    val vector = vector(it)
-                    handled = processor.onVectorChanged(it, vector.x, vector.y)
-                    if (handled) return true
-                }
             }
         }
         return false
@@ -226,20 +206,8 @@ class InputMapController<InputSignal>(
         if (processors.isEmpty()) return false
         pointerToType[pointer]?.let {
             processors.forEach { processor ->
-                var handled = processor.onActionUp(it)
+                val handled = processor.onActionUp(it)
                 if (handled) return true
-
-                axesToType[it]?.forEach {
-                    val axis = axis(it)
-                    handled = processor.onAxisChanged(it, axis)
-                    if (handled) return true
-                }
-
-                vectorsToType[it]?.forEach {
-                    val vector = vector(it)
-                    handled = processor.onVectorChanged(it, vector.x, vector.y)
-                    if (handled) return true
-                }
             }
         }
         return false
@@ -263,37 +231,15 @@ class InputMapController<InputSignal>(
                 // if we get here then all the modifiers are met
                 val inputSignal = binding.input
                 processors.forEach { processor ->
-                    var handled = processor.onActionDown(inputSignal)
+                    val handled = processor.onActionDown(inputSignal)
                     if (handled) return true
-                    axesToType[inputSignal]?.forEach {
-                        val axis = axis(it)
-                        handled = processor.onAxisChanged(it, axis)
-                        if (handled) return true
-                    }
-
-                    vectorsToType[inputSignal]?.forEach {
-                        val vector = vector(it)
-                        handled = processor.onVectorChanged(it, vector.x, vector.y)
-                        if (handled) return true
-                    }
                 }
             }
         } else {
             keyToType[key]?.let {
                 processors.forEach { processor ->
-                    var handled = processor.onActionDown(it)
+                    val handled = processor.onActionDown(it)
                     if (handled) return true
-                    axesToType[it]?.forEach {
-                        val axis = axis(it)
-                        handled = processor.onAxisChanged(it, axis)
-                        if (handled) return true
-                    }
-
-                    vectorsToType[it]?.forEach {
-                        val vector = vector(it)
-                        handled = processor.onVectorChanged(it, vector.x, vector.y)
-                        if (handled) return true
-                    }
                 }
             }
         }
@@ -306,19 +252,8 @@ class InputMapController<InputSignal>(
 
         keyToType[key]?.let {
             processors.forEach { processor ->
-                var handled = processor.onActionRepeat(it)
+                val handled = processor.onActionRepeat(it)
                 if (handled) return true
-                axesToType[it]?.forEach {
-                    val axis = axis(it)
-                    handled = processor.onAxisChanged(it, axis)
-                    if (handled) return true
-                }
-
-                vectorsToType[it]?.forEach {
-                    val vector = vector(it)
-                    handled = processor.onVectorChanged(it, vector.x, vector.y)
-                    if (handled) return true
-                }
             }
         }
         return false
@@ -330,19 +265,8 @@ class InputMapController<InputSignal>(
 
         keyToType[key]?.let {
             processors.forEach { processor ->
-                var handled = processor.onActionUp(it)
+                val handled = processor.onActionUp(it)
                 if (handled) return true
-                axesToType[it]?.forEach {
-                    val axis = axis(it)
-                    handled = processor.onAxisChanged(it, axis)
-                    if (handled) return true
-                }
-
-                vectorsToType[it]?.forEach {
-                    val vector = vector(it)
-                    handled = processor.onVectorChanged(it, vector.x, vector.y)
-                    if (handled) return true
-                }
             }
         }
         return false
@@ -354,19 +278,8 @@ class InputMapController<InputSignal>(
 
         buttonToType[button]?.let {
             processors.forEach { processor ->
-                var handled = processor.onActionDown(it)
+                val handled = processor.onActionDown(it)
                 if (handled) return true
-                axesToType[it]?.forEach {
-                    val axis = axis(it)
-                    handled = processor.onAxisChanged(it, axis)
-                    if (handled) return true
-                }
-
-                vectorsToType[it]?.forEach {
-                    val vector = vector(it)
-                    handled = processor.onVectorChanged(it, vector.x, vector.y)
-                    if (handled) return true
-                }
             }
         }
         return false
@@ -378,60 +291,8 @@ class InputMapController<InputSignal>(
 
         buttonToType[button]?.let {
             processors.forEach { processor ->
-                var handled = processor.onActionUp(it)
+                val handled = processor.onActionUp(it)
                 if (handled) return true
-                axesToType[it]?.forEach {
-                    val axis = axis(it)
-                    handled = processor.onAxisChanged(it, axis)
-                    if (handled) return true
-                }
-
-                vectorsToType[it]?.forEach {
-                    val vector = vector(it)
-                    handled = processor.onVectorChanged(it, vector.x, vector.y)
-                    if (handled) return true
-                }
-            }
-        }
-        return false
-    }
-
-    override fun gamepadJoystickMoved(stick: GameStick, xAxis: Float, yAxis: Float, gamepad: Int): Boolean {
-        mode = InputMode.GAMEPAD
-        if (processors.isEmpty()) return false
-
-        var gameAxis = if (stick == GameStick.LEFT) GameAxis.LX else GameAxis.RX
-        axisToType[gameAxis]?.let { it ->
-            processors.forEach { processor ->
-                var handled: Boolean
-                axesToType[it]?.forEach {
-                    val axis = axis(it)
-                    handled = processor.onAxisChanged(it, axis)
-                    if (handled) return true
-                }
-
-                vectorsToType[it]?.forEach {
-                    val vector = vector(it)
-                    handled = processor.onVectorChanged(it, vector.x, vector.y)
-                    if (handled) return true
-                }
-            }
-        }
-        gameAxis = if (stick == GameStick.LEFT) GameAxis.LY else GameAxis.RY
-        axisToType[gameAxis]?.let {
-            processors.forEach { processor ->
-                var handled: Boolean
-                axesToType[it]?.forEach {
-                    val axis = axis(it)
-                    handled = processor.onAxisChanged(it, axis)
-                    if (handled) return true
-                }
-
-                vectorsToType[it]?.forEach {
-                    val vector = vector(it)
-                    handled = processor.onVectorChanged(it, vector.x, vector.y)
-                    if (handled) return true
-                }
             }
         }
         return false

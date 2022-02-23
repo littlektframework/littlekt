@@ -9,6 +9,4 @@ interface InputMapProcessor<InputSignal> : InputProcessor {
     fun onActionUp(inputType: InputSignal): Boolean = false
     fun onActionRepeat(inputType: InputSignal): Boolean = false
     fun onActionChange(inputType: InputSignal, pressure: Float): Boolean = false
-    fun onAxisChanged(inputType: InputSignal, axis: Float): Boolean = false
-    fun onVectorChanged(inputType: InputSignal, xAxis: Float, yAxis: Float): Boolean = false
 }

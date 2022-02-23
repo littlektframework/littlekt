@@ -444,35 +444,40 @@ open class SceneGraph<InputType>(
             }
             it._uiInput(event)
             uiInput(it, event)
-            val handled = event.handled
+            var handled = event.handled
             inputEventPool.free(event)
-
-            if (handled) return true
 
             var next: Control? = null
             when (inputType) {
                 uiInputSignals.uiFocusNext -> {
                     next = it.findNextValidFocus()
+                    handled = true
                 }
                 uiInputSignals.uiFocusPrev -> {
                     next = it.findPreviousValidFocus()
+                    handled = true
                 }
                 uiInputSignals.uiUp -> {
                     next = it.getFocusNeighbor(Control.Side.TOP)
+                    handled = true
                 }
                 uiInputSignals.uiRight -> {
                     next = it.getFocusNeighbor(Control.Side.RIGHT)
+                    handled = true
                 }
                 uiInputSignals.uiDown -> {
                     next = it.getFocusNeighbor(Control.Side.BOTTOM)
+                    handled = true
                 }
                 uiInputSignals.uiLeft -> {
                     next = it.getFocusNeighbor(Control.Side.LEFT)
+                    handled = true
                 }
                 else -> Unit
             }
 
             next?.grabFocus()
+            return  handled
         }
 
         return false

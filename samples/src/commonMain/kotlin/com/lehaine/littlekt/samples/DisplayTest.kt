@@ -487,12 +487,6 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
             }
         }
 
-        controller.addInputMapProcessor(object : InputMapProcessor<InputMap> {
-            override fun onVectorChanged(inputType: InputMap, xAxis: Float, yAxis: Float): Boolean {
-                return super.onVectorChanged(inputType, xAxis, yAxis)
-            }
-        })
-
         onResize { width, height ->
             println("resize $width,$height")
             camera.update(width, height, context)
