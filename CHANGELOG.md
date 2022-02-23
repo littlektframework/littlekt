@@ -32,8 +32,8 @@
 * update: `SceneGraph` to trigger ui input events for keyboard
 * update: `BaseButton` to allow for triggering press signal with keyboard
 * update `Button` with new _focus_ theme variable drawable
-* add: `LineEdit` control to editing single lines of text.
-* add: Clipboard` support
+* add: `LineEdit` control for editing single lines of text.
+* add: `Clipboard` support
 * add: showing/hiding soft keyboard for Android
 * **BREAKING**: rename `InputMultiplexer` to `InputMapController`
 * add: new `InputMapProcessor` interface with `onAction` callbacks used with `InputMapController`
