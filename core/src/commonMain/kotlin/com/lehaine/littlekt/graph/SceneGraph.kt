@@ -89,41 +89,43 @@ inline fun <InputSignal> sceneGraph(
     ).also(callback)
 }
 
+fun <InputSignal> InputMapController<InputSignal>.addDefaultUiInput(uiInputSignals: SceneGraph.UiInputSignals<InputSignal>) {
+    uiInputSignals.uiAccept?.let {
+        addBinding(
+            it,
+            keys = listOf(Key.SPACE, Key.ENTER),
+            buttons = listOf(GameButton.XBOX_A)
+        )
+    }
+    uiInputSignals.uiSelect?.let { addBinding(it, keys = listOf(Key.SPACE), buttons = listOf(GameButton.XBOX_Y)) }
+    uiInputSignals.uiCancel?.let { addBinding(it, keys = listOf(Key.ESCAPE), buttons = listOf(GameButton.XBOX_B)) }
+    uiInputSignals.uiFocusNext?.let { addBinding(it, keys = listOf(Key.TAB)) }
+    uiInputSignals.uiFocusPrev?.let {
+        addBinding(
+            it,
+            keys = listOf(Key.TAB),
+            keyModifiers = listOf(InputMapController.KeyModifier.SHIFT)
+        )
+    }
+    uiInputSignals.uiUp?.let { addBinding(it, keys = listOf(Key.ARROW_UP), buttons = listOf(GameButton.UP)) }
+    uiInputSignals.uiDown?.let { addBinding(it, keys = listOf(Key.ARROW_DOWN), buttons = listOf(GameButton.DOWN)) }
+    uiInputSignals.uiLeft?.let { addBinding(it, keys = listOf(Key.ARROW_LEFT), buttons = listOf(GameButton.LEFT)) }
+    uiInputSignals.uiRight?.let {
+        addBinding(
+            it,
+            keys = listOf(Key.ARROW_RIGHT),
+            buttons = listOf(GameButton.RIGHT)
+        )
+    }
+    uiInputSignals.uiHome?.let { addBinding(it, keys = listOf(Key.HOME)) }
+    uiInputSignals.uiEnd?.let { addBinding(it, keys = listOf(Key.END)) }
+}
+
 fun <InputSignal> createDefaultSceneGraphController(
     input: Input,
     uiInputSignals: SceneGraph.UiInputSignals<InputSignal>
 ): InputMapController<InputSignal> =
-    InputMapController<InputSignal>(input).apply {
-        uiInputSignals.uiAccept?.let {
-            addBinding(
-                it,
-                keys = listOf(Key.SPACE, Key.ENTER),
-                buttons = listOf(GameButton.XBOX_A)
-            )
-        }
-        uiInputSignals.uiSelect?.let { addBinding(it, keys = listOf(Key.SPACE), buttons = listOf(GameButton.XBOX_Y)) }
-        uiInputSignals.uiCancel?.let { addBinding(it, keys = listOf(Key.ESCAPE), buttons = listOf(GameButton.XBOX_B)) }
-        uiInputSignals.uiFocusNext?.let { addBinding(it, keys = listOf(Key.TAB)) }
-        uiInputSignals.uiFocusPrev?.let {
-            addBinding(
-                it,
-                keys = listOf(Key.TAB),
-                keyModifiers = listOf(InputMapController.KeyModifier.SHIFT)
-            )
-        }
-        uiInputSignals.uiUp?.let { addBinding(it, keys = listOf(Key.ARROW_UP), buttons = listOf(GameButton.UP)) }
-        uiInputSignals.uiDown?.let { addBinding(it, keys = listOf(Key.ARROW_DOWN), buttons = listOf(GameButton.DOWN)) }
-        uiInputSignals.uiLeft?.let { addBinding(it, keys = listOf(Key.ARROW_LEFT), buttons = listOf(GameButton.LEFT)) }
-        uiInputSignals.uiRight?.let {
-            addBinding(
-                it,
-                keys = listOf(Key.ARROW_RIGHT),
-                buttons = listOf(GameButton.RIGHT)
-            )
-        }
-        uiInputSignals.uiHome?.let { addBinding(it, keys = listOf(Key.HOME)) }
-        uiInputSignals.uiEnd?.let { addBinding(it, keys = listOf(Key.END)) }
-    }
+    InputMapController<InputSignal>(input).also { it.addDefaultUiInput(uiInputSignals) }
 
 /**
  * A class for creating a scene graph of nodes.
@@ -477,7 +479,7 @@ open class SceneGraph<InputType>(
             }
 
             next?.grabFocus()
-            return  handled
+            return handled
         }
 
         return false

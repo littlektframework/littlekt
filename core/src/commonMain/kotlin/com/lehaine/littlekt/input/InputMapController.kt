@@ -33,14 +33,14 @@ class InputMapController<InputSignal>(
     private val keyBindings = mutableMapOf<InputSignal, List<Key>>()
     private val keyBindingsWithModifiers =
         mutableMapOf<InputSignal, MutableMap<Key, KeyBindingWithModifiers<InputSignal>>>()
-    private val keyToType = mutableMapOf<Key, InputSignal>()
-    private val keyModifiersToType = mutableMapOf<Key, KeyBindingWithModifiers<InputSignal>>()
+    private val keyToType = mutableMapOf<Key, MutableList<InputSignal>>()
+    private val keyModifiersToType = mutableMapOf<Key, MutableList<KeyBindingWithModifiers<InputSignal>>>()
     private val buttonBindings = mutableMapOf<InputSignal, List<GameButton>>()
-    private val buttonToType = mutableMapOf<GameButton, InputSignal>()
+    private val buttonToType = mutableMapOf<GameButton, MutableList<InputSignal>>()
     private val axisBindings = mutableMapOf<InputSignal, List<GameAxis>>()
-    private val axisToType = mutableMapOf<GameAxis, InputSignal>()
+    private val axisToType = mutableMapOf<GameAxis, MutableList<InputSignal>>()
     private val pointerBindings = mutableMapOf<InputSignal, List<Pointer>>()
-    private val pointerToType = mutableMapOf<Pointer, InputSignal>()
+    private val pointerToType = mutableMapOf<Pointer, MutableList<InputSignal>>()
 
     private val axes = mutableMapOf<InputSignal, InputAxis<InputSignal>>()
     private val vectors = mutableMapOf<InputSignal, InputVector<InputSignal>>()
@@ -86,27 +86,27 @@ class InputMapController<InputSignal>(
         if (keyModifiers.isEmpty()) {
             keyBindings[type] = keys.toList()
             keys.forEach {
-                keyToType[it] = type
+                keyToType.getOrPut(it) { mutableListOf() }.add(type)
             }
         } else {
             val map = keyBindingsWithModifiers.getOrPut(type) { mutableMapOf() }
             val modifier = KeyBindingWithModifiers(type, keyModifiers.toList())
             keys.forEach {
                 map[it] = modifier
-                keyModifiersToType[it] = modifier
+                keyModifiersToType.getOrPut(it) { mutableListOf() }.add(modifier)
             }
         }
         buttonBindings[type] = buttons.toList()
         buttons.forEach {
-            buttonToType[it] = type
+            buttonToType.getOrPut(it) { mutableListOf() }.add(type)
         }
         axisBindings[type] = axes.toList()
         axes.forEach {
-            axisToType[it] = type
+            axisToType.getOrPut(it) { mutableListOf() }.add(type)
         }
         pointerBindings[type] = pointers.toList()
         pointers.forEach {
-            pointerToType[it] = type
+            pointerToType.getOrPut(it) { mutableListOf() }.add(type)
         }
     }
 
@@ -192,8 +192,10 @@ class InputMapController<InputSignal>(
     }
 
     override fun touchDown(screenX: Float, screenY: Float, pointer: Pointer): Boolean {
+        mode = InputMode.KEYBOARD
         if (processors.isEmpty()) return false
-        pointerToType[pointer]?.let {
+
+        pointerToType[pointer]?.forEach {
             processors.forEach { processor ->
                 val handled = processor.onActionDown(it)
                 if (handled) return true
@@ -203,8 +205,10 @@ class InputMapController<InputSignal>(
     }
 
     override fun touchUp(screenX: Float, screenY: Float, pointer: Pointer): Boolean {
+        mode = InputMode.KEYBOARD
         if (processors.isEmpty()) return false
-        pointerToType[pointer]?.let {
+
+        pointerToType[pointer]?.forEach {
             processors.forEach { processor ->
                 val handled = processor.onActionUp(it)
                 if (handled) return true
@@ -218,7 +222,7 @@ class InputMapController<InputSignal>(
         mode = InputMode.KEYBOARD
 
         if (anyModifierPressed) {
-            keyModifiersToType[key]?.let { binding ->
+            keyModifiersToType[key]?.forEach outside@{ binding ->
                 binding.modifiers.forEach { keyModifier ->
                     var modPressed = false
                     keyModifier.keys.forEach {
@@ -226,7 +230,7 @@ class InputMapController<InputSignal>(
                             modPressed = true
                         }
                     }
-                    if (!modPressed) return@let
+                    if (!modPressed) return@outside
                 }
                 // if we get here then all the modifiers are met
                 val inputSignal = binding.input
@@ -236,7 +240,7 @@ class InputMapController<InputSignal>(
                 }
             }
         } else {
-            keyToType[key]?.let {
+            keyToType[key]?.forEach {
                 processors.forEach { processor ->
                     val handled = processor.onActionDown(it)
                     if (handled) return true
@@ -250,7 +254,7 @@ class InputMapController<InputSignal>(
         mode = InputMode.KEYBOARD
         if (processors.isEmpty()) return false
 
-        keyToType[key]?.let {
+        keyToType[key]?.forEach {
             processors.forEach { processor ->
                 val handled = processor.onActionRepeat(it)
                 if (handled) return true
@@ -263,7 +267,7 @@ class InputMapController<InputSignal>(
         mode = InputMode.KEYBOARD
         if (processors.isEmpty()) return false
 
-        keyToType[key]?.let {
+        keyToType[key]?.forEach {
             processors.forEach { processor ->
                 val handled = processor.onActionUp(it)
                 if (handled) return true
@@ -276,7 +280,7 @@ class InputMapController<InputSignal>(
         mode = InputMode.GAMEPAD
         if (processors.isEmpty()) return false
 
-        buttonToType[button]?.let {
+        buttonToType[button]?.forEach {
             processors.forEach { processor ->
                 val handled = processor.onActionDown(it)
                 if (handled) return true
@@ -289,7 +293,7 @@ class InputMapController<InputSignal>(
         mode = InputMode.GAMEPAD
         if (processors.isEmpty()) return false
 
-        buttonToType[button]?.let {
+        buttonToType[button]?.forEach {
             processors.forEach { processor ->
                 val handled = processor.onActionUp(it)
                 if (handled) return true
@@ -302,7 +306,7 @@ class InputMapController<InputSignal>(
         mode = InputMode.GAMEPAD
         if (processors.isEmpty()) return false
 
-        buttonToType[button]?.let {
+        buttonToType[button]?.forEach {
             processors.forEach { processor ->
                 val handled = processor.onActionChange(it, pressure)
                 if (handled) return true
