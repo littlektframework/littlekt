@@ -47,6 +47,7 @@
 * add: new `onKeyRepeat` method to `InputProcessor`
 * add: support for `KEY_REPEAT` event in `SceneGraph`
 * **BREAKING**: move `StretchMode` into `TextureRect` class.
+* add: `TILE` stretch mode implementation to `TextureRect`
 
 ### Bugs:
 
