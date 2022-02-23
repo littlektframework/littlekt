@@ -400,14 +400,74 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
                         width = 200f
 
                         ratio = 0.27f
-                        onReady += {
-                            println(anchorLeft)
-                            println(anchorRight)
-                            println(marginLeft)
-                            println(marginRight)
-                        }
                     }
 
+                    vBoxContainer {
+                        x = 300f
+                        y = 400f
+
+                        textureProgress {
+                            this.progressBar = ninepatchImg.slice()
+                            ratio = 0.43f
+                            progressBarColor = Color.DARK_GREEN
+
+                            onUpdate += {
+                                if (input.isKeyPressed(Key.Z)) {
+                                    value--
+                                }
+                                if (input.isKeyPressed(Key.X)) {
+                                    value++
+                                }
+                            }
+                        }
+
+                        textureProgress {
+                            this.progressBar = ninepatchImg.slice()
+                            fillMode = TextureProgress.FillMode.RIGHT_TO_LEFT
+                            ratio = 0.43f
+                            progressBarColor = Color.DARK_BLUE
+
+                            onUpdate += {
+                                if (input.isKeyPressed(Key.Z)) {
+                                    value--
+                                }
+                                if (input.isKeyPressed(Key.X)) {
+                                    value++
+                                }
+                            }
+                        }
+                        textureProgress {
+                            this.progressBar = ninepatchImg.slice()
+                            fillMode = TextureProgress.FillMode.TOP_TO_BOTTOM
+                            ratio = 0.43f
+                            progressBarColor = Color.DARK_ORANGE
+
+                            onUpdate += {
+                                if (input.isKeyPressed(Key.Z)) {
+                                    value--
+                                }
+                                if (input.isKeyPressed(Key.X)) {
+                                    value++
+                                }
+                            }
+                        }
+
+                        textureProgress {
+                            this.progressBar = ninepatchImg.slice()
+                            fillMode = TextureProgress.FillMode.BOTTOM_TO_TOP
+                            ratio = 0.43f
+                            progressBarColor = Color.DARK_RED
+
+                            onUpdate += {
+                                if (input.isKeyPressed(Key.Z)) {
+                                    value--
+                                }
+                                if (input.isKeyPressed(Key.X)) {
+                                    value++
+                                }
+                            }
+                        }
+                    }
                     panel {
                         x = 100f
                         y = 150f
@@ -422,7 +482,11 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
                     }
 
                     ninePatchRect {
-                        ninePatch = ninepatch
+                        this.texture = ninepatchImg.slice()
+                        left = 3
+                        right = 3
+                        top = 3
+                        bottom = 4
                         x = 650f
                         y = 10f
                         width = 200f

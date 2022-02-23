@@ -85,8 +85,8 @@ open class NinePatchRect : Control() {
     override fun calculateMinSize() {
         if (!minSizeInvalid) return
 
-        _internalMinWidth = (ninePatch.left + ninePatch.right).toFloat()
-        _internalMinHeight = (ninePatch.top + ninePatch.bottom).toFloat()
+        _internalMinWidth = (left + right).toFloat()
+        _internalMinHeight = (top + bottom).toFloat()
 
         minSizeInvalid = false
     }
