@@ -46,6 +46,7 @@
 * **BREAKING**: rename `onKeyTyped` to `onCharType`.
 * add: new `onKeyRepeat` method to `InputProcessor`
 * add: support for `KEY_REPEAT` event in `SceneGraph`
+* **BREAKING**: move `StretchMode` into `TextureRect` class.
 
 ### Bugs:
 
@@ -56,6 +57,7 @@
 * fix: `Pool` from freeing an allocated object when using a callback.
 * fix: `TextureSlice` using incorrect UV coordinates for a 1x1 slice
 * fix: LWJGL input not resetting the last char when typing
+* fix: `TextureRect` not actually using the specified width and height for stretching
 
 ### Upgrades:
 
