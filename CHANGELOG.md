@@ -24,7 +24,7 @@
 * update: `Pointer` with an `index` parameter for determine the actual index of the pointer / touch.
 * update: `Input` with new `vibrate()` and `cancelVibrate()` methods (Android support).
 * update `GLSLGenerator` to handle ES versions for mobile platforms.
-* remove: `getColorHex` and `getColorInt` methods from `LDtkIntGridLayer`.
+* **BREAKING**: remove: `getColorHex` and `getColorInt` methods from `LDtkIntGridLayer`.
 * add: `getColor()` that returns a new `Color` instance to `LDtkIntGridLayer`.
 * add: `truncate` string to `Font`, `FontCache` and `GlyphLayout`.
 * add: ability to focus `Control` nodes and cycle through them with keyboard.
@@ -32,6 +32,20 @@
 * update: `SceneGraph` to trigger ui input events for keyboard
 * update: `BaseButton` to allow for triggering press signal with keyboard
 * update `Button` with new _focus_ theme variable drawable
+* add: `LineEdit` control to editing single lines of text.
+* add: Clipboard` support
+* add: showing/hiding soft keyboard for Android
+* **BREAKING**: rename `InputMultiplexer` to `InputMapController`
+* add: new `InputMapProcessor` interface with `onAction` callbacks used with `InputMapController`
+* update: `InputMapController` to handle `Pointer` types as a binding
+* update: `InputMapController` to handle key modifiers in a binding (SHIFT, CTRL, and ALT)
+* update: `SceneGraph` to use an `InputMapController` and input actions
+* update: `SceneGraph` focus key binds to use action bindings
+* add: helper methods to set default UI input action bindings to for `SceneGraph`
+* add: `justTouched` and `touchJustReleased` methods to `Input`
+* **BREAKING**: rename `onKeyTyped` to `onCharType`.
+* add: new `onKeyRepeat` method to `InputProcessor`
+* add: support for `KEY_REPEAT` event in `SceneGraph`
 
 ### Bugs:
 
@@ -40,6 +54,8 @@
 * fix: `InputQueueProcessor` from triggering any subsequent input processors if the input has been handled
 * fix: `InputQueueProcessor` not correctly resetting internal input events to be reused.
 * fix: `Pool` from freeing an allocated object when using a callback.
+* fix: `TextureSlice` using incorrect UV coordinates for a 1x1 slice
+* fix: LWJGL input not resetting the last char when typing
 
 ### Upgrades:
 
