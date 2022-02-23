@@ -29,21 +29,45 @@ open class NinePatchRect : Control() {
      * The width of the 9-patch's left column.
      */
     var left: Int = 0
+        set(value) {
+            if (field == value) return
+            field = value
+            ninePatch = NinePatch(texture, left, right, bottom, top)
+            onMinimumSizeChanged()
+        }
 
     /**
      * The width of the 9-patch's right column.
      */
     var right: Int = 0
+        set(value) {
+            if (field == value) return
+            field = value
+            ninePatch = NinePatch(texture, left, right, bottom, top)
+            onMinimumSizeChanged()
+        }
 
     /**
      * The height of the 9-patch's top row.
      */
     var top: Int = 0
+        set(value) {
+            if (field == value) return
+            field = value
+            ninePatch = NinePatch(texture, left, right, bottom, top)
+            onMinimumSizeChanged()
+        }
 
     /**
      * The height of the 9-patch's bottom row.
      */
     var bottom: Int = 0
+        set(value) {
+            if (field == value) return
+            field = value
+            ninePatch = NinePatch(texture, left, right, bottom, top)
+            onMinimumSizeChanged()
+        }
 
     /**
      * The texture to be used as a [NinePatch].
