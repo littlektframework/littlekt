@@ -17,7 +17,7 @@ Check out some planned [features](https://github.com/littlektframework/littlekt/
 
 ### Install
 
-LittleKt releases are hosted on OSSRH and can be installed like so:
+LittleKt releases are hosted on Maven Central and can be installed like so:
 
 **build.gradle.kts**:
 ```kotlin
