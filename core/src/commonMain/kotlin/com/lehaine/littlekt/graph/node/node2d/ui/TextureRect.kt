@@ -4,10 +4,10 @@ import com.lehaine.littlekt.graph.SceneGraph
 import com.lehaine.littlekt.graph.node.Node
 import com.lehaine.littlekt.graph.node.addTo
 import com.lehaine.littlekt.graph.node.annotation.SceneGraphDslMarker
-import com.lehaine.littlekt.graph.node.component.StretchMode
 import com.lehaine.littlekt.graphics.Batch
 import com.lehaine.littlekt.graphics.Camera
 import com.lehaine.littlekt.graphics.TextureSlice
+import com.lehaine.littlekt.graphics.toFloatBits
 import kotlin.math.absoluteValue
 
 /**
@@ -42,15 +42,10 @@ open class TextureRect : Control() {
      */
     var flipY = false
 
-
-    var stretchMode = StretchMode.SCALE_ON_EXPAND
-
-    var expand: Boolean
-        get() = _expand
-        set(value) {
-            expand(value)
-        }
-    protected var _expand = false
+    /**
+     * The texture behavior when resizing the node's bounding rectangle.
+     */
+    var stretchMode = StretchMode.KEEP
 
     /**
      * The [TextureSlice] that should be displayed by this [TextureRect] node. Sets the origin of the [TextureRect] to the center.
@@ -63,7 +58,7 @@ open class TextureRect : Control() {
     protected var _slice: TextureSlice? = null
 
     override val membersAndPropertiesString: String
-        get() = "${super.membersAndPropertiesString}, flipX=$flipX, flipY=$flipY, stretchMode=$stretchMode, expand=$expand, textureRegion=$slice"
+        get() = "${super.membersAndPropertiesString}, flipX=$flipX, flipY=$flipY, stretchMode=$stretchMode, textureRegion=$slice"
 
     override fun render(batch: Batch, camera: Camera) {
         super.render(batch, camera)
@@ -76,43 +71,39 @@ open class TextureRect : Control() {
 
             var sliceX = it.x.toFloat()
             var sliceY = it.y.toFloat()
-            var width = it.width.toFloat()
-            var height = it.height.toFloat()
+            var sliceWidth = it.width.toFloat()
+            var sliceHeight = it.height.toFloat()
 
             when (stretchMode) {
-                StretchMode.SCALE_ON_EXPAND -> {
-                    newWidth = if (expand) width else it.width.toFloat()
-                    newHeight = if (expand) height else it.height.toFloat()
-                }
                 StretchMode.SCALE -> {
                     newWidth = width
                     newHeight = height
                 }
                 StretchMode.TILE -> {
                     // TODO - impl a tile mode
-                    newWidth = width
-                    newHeight = height
+                    newWidth = sliceWidth
+                    newHeight = sliceHeight
                     tile = true
                 }
                 StretchMode.KEEP -> {
-                    newWidth = it.width.toFloat()
-                    newHeight = it.height.toFloat()
+                    newWidth = sliceWidth
+                    newHeight = sliceHeight
                 }
                 StretchMode.KEEP_CENTERED -> {
-                    offsetX = (width - it.width.toFloat()) * 0.5f
-                    offsetY = (height - it.height.toFloat()) * 0.5f
-                    newWidth = it.width.toFloat()
-                    newHeight = it.height.toFloat()
+                    offsetX = (width - sliceWidth) * 0.5f
+                    offsetY = (height - sliceHeight) * 0.5f
+                    newWidth = sliceWidth
+                    newHeight = sliceHeight
                 }
                 StretchMode.KEEP_ASPECT, StretchMode.KEEP_ASPECT_CENTERED -> {
                     newWidth = width
                     newHeight = height
-                    var texWidth = it.width.toFloat() * newHeight / it.height.toFloat()
+                    var texWidth = sliceWidth * newHeight / sliceHeight
                     var textHeight = newHeight
 
                     if (texWidth > newWidth) {
                         texWidth = newWidth
-                        textHeight = it.height.toFloat() * texWidth / it.width.toFloat()
+                        textHeight = sliceHeight * texWidth / it.width.toFloat()
                     }
 
                     if (stretchMode == StretchMode.KEEP_ASPECT_CENTERED) {
@@ -125,39 +116,40 @@ open class TextureRect : Control() {
                 StretchMode.KEEP_ASPECT_COVERED -> {
                     newWidth = width
                     newHeight = height
-                    var texWidth = it.width.toFloat()
-                    var texHeight = it.height.toFloat()
+                    var texWidth = sliceWidth
+                    var texHeight = sliceHeight
                     val widthRatio = newWidth / texWidth
                     val heightRatio = newHeight / texHeight
                     val scale = if (widthRatio > heightRatio) widthRatio else heightRatio
 
                     texWidth *= scale
-                    texHeight *= -scale
+                    texHeight *= scale
 
                     sliceX = ((texWidth - newWidth) / scale).absoluteValue * 0.5f
                     sliceY = ((texHeight - newHeight) / scale).absoluteValue * 0.5f
-                    width = newWidth / scale
-                    height = newHeight / scale
+
+                    sliceWidth = newWidth / scale
+                    sliceHeight = newHeight / scale
                 }
             }
-            batch.color = color
             batch.draw(
                 it.texture,
-                globalPosition.x + offsetX,
-                globalPosition.y + offsetY,
+                globalX + offsetX,
+                globalY + offsetY,
                 0f,
                 0f,
                 width = newWidth,
                 height = newHeight,
-                scaleX = globalScale.x,
-                scaleY = globalScale.y,
+                scaleX = globalScaleX,
+                scaleY = globalScaleY,
                 rotation = globalRotation,
                 srcX = sliceX.toInt(),
                 srcY = sliceY.toInt(),
-                srcWidth = width.toInt(),
-                srcHeight = height.toInt(),
+                srcWidth = sliceWidth.toInt(),
+                srcHeight = sliceHeight.toInt(),
                 flipX = flipX,
-                flipY = flipY
+                flipY = flipY,
+                colorBits = color.toFloatBits()
             )
 
         }
@@ -166,13 +158,9 @@ open class TextureRect : Control() {
     override fun calculateMinSize() {
         if (!minSizeInvalid) return
 
-        _internalMinHeight = 0f
-        _internalMinWidth = 0f
-        val texture = _slice
-        if (!expand && texture != null) {
-            _internalMinWidth = texture.width.toFloat()
-            _internalMinHeight = texture.height.toFloat()
-        }
+        _internalMinWidth = _slice?.width?.toFloat() ?: 0f
+        _internalMinHeight = _slice?.height?.toFloat() ?: 0f
+
         minSizeInvalid = false
     }
 
@@ -185,12 +173,41 @@ open class TextureRect : Control() {
         onMinimumSizeChanged()
     }
 
-    fun expand(expand: Boolean) {
-        if (expand == _expand) {
-            return
-        }
-        _expand = expand
-        onMinimumSizeChanged()
-    }
 
+    enum class StretchMode {
+        /**
+         * Scale to fit the node's bounding rectangle.
+         */
+        SCALE,
+
+        /**
+         * Tile inside the node's bounding rectangle.
+         */
+        TILE,
+
+        /**
+         * The texture keeps its original size and stays in the bounding rectangle's top-left corner.
+         */
+        KEEP,
+
+        /**
+         * The texture keeps its original size and stays centered in the node's bounding rectangle.
+         */
+        KEEP_CENTERED,
+
+        /**
+         * Scale the texture to fit the node's bounding rectangle, but maintain the texture's aspect ratio.
+         */
+        KEEP_ASPECT,
+
+        /**
+         *  Scale the texture to fit the node's bounding rectangle, center it and maintain its aspect ratio.
+         */
+        KEEP_ASPECT_CENTERED,
+
+        /**
+         * Scale the texture so that the shorter side fits the bounding rectangle. The other side clips to the node's limits.
+         */
+        KEEP_ASPECT_COVERED,
+    }
 }

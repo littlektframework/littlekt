@@ -22,7 +22,6 @@ import com.lehaine.littlekt.graphics.shader.shaders.SimpleColorVertexShader
 import com.lehaine.littlekt.graphics.tilemap.ldtk.LDtkWorld
 import com.lehaine.littlekt.input.GameAxis
 import com.lehaine.littlekt.input.GameButton
-import com.lehaine.littlekt.input.InputMapProcessor
 import com.lehaine.littlekt.input.Key
 import com.lehaine.littlekt.log.Logger
 import com.lehaine.littlekt.math.MutableVec2f
@@ -356,6 +355,15 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
                             editable = false
                             minWidth = 150f
                         }
+                    }
+
+                    textureRect {
+                        slice = person
+                        stretchMode = TextureRect.StretchMode.KEEP_ASPECT_COVERED
+                        width = 25f
+                        height = 150f
+                        x = 500f
+                        y = 400f
                     }
 
                     panelContainer {
