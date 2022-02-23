@@ -26,7 +26,7 @@ inline fun Node.progressBar(callback: @SceneGraphDslMarker ProgressBar.() -> Uni
 /**
  * Adds a [ProgressBar] to the current [SceneGraph.root] as a child and then triggers the [callback]
  */
-inline fun SceneGraph.progressBar(callback: @SceneGraphDslMarker ProgressBar.() -> Unit = {}) =
+inline fun SceneGraph<*>.progressBar(callback: @SceneGraphDslMarker ProgressBar.() -> Unit = {}) =
     root.progressBar(callback)
 
 

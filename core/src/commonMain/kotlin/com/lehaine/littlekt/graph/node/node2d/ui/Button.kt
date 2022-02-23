@@ -29,7 +29,7 @@ inline fun Node.button(callback: @SceneGraphDslMarker Button.() -> Unit = {}) =
 /**
  * Adds a [Button] to the current [SceneGraph.root] as a child and then triggers the [callback]
  */
-inline fun SceneGraph.button(callback: @SceneGraphDslMarker Button.() -> Unit = {}) =
+inline fun SceneGraph<*>.button(callback: @SceneGraphDslMarker Button.() -> Unit = {}) =
     root.button(callback)
 
 /**

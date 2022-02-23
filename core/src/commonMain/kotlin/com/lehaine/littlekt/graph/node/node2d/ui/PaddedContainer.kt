@@ -15,7 +15,7 @@ inline fun Node.paddedContainer(callback: @SceneGraphDslMarker PaddedContainer.(
 /**
  * Adds a [PaddedContainer] to the current [SceneGraph.root] as a child and then triggers the [callback]
  */
-inline fun SceneGraph.paddedContainer(callback: @SceneGraphDslMarker PaddedContainer.() -> Unit = {}) =
+inline fun SceneGraph<*>.paddedContainer(callback: @SceneGraphDslMarker PaddedContainer.() -> Unit = {}) =
     root.paddedContainer(callback)
 
 /**

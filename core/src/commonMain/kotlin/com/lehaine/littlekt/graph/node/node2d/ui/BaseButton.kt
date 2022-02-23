@@ -1,7 +1,6 @@
 package com.lehaine.littlekt.graph.node.node2d.ui
 
 import com.lehaine.littlekt.graph.node.component.InputEvent
-import com.lehaine.littlekt.input.Key
 import com.lehaine.littlekt.util.Signal
 import com.lehaine.littlekt.util.SingleSignal
 import kotlin.js.JsName
@@ -104,7 +103,7 @@ abstract class BaseButton : Control() {
         status.pressingInside = false
     }
 
-    override fun uiInput(event: InputEvent) {
+    override fun uiInput(event: InputEvent<*>) {
         super.uiInput(event)
 
         if (event.type == InputEvent.Type.MOUSE_ENTER) {
@@ -117,8 +116,9 @@ abstract class BaseButton : Control() {
             event.handle()
         }
 
+        val uiAccept = scene?.uiInputSignals?.uiAccept
         if (event.type == InputEvent.Type.TOUCH_DOWN
-            || event.type == InputEvent.Type.KEY_DOWN && event.key == Key.SPACE
+            || event.type == InputEvent.Type.ACTION_DOWN && event.inputType == uiAccept
         ) {
             status.pressAttempt = true
             status.pressingInside = true
@@ -129,7 +129,7 @@ abstract class BaseButton : Control() {
         if (status.pressAttempt && status.pressingInside) {
             if (_toggleMode) {
                 val isPressed =
-                    event.type == InputEvent.Type.TOUCH_DOWN || event.type == InputEvent.Type.KEY_DOWN && event.key == Key.SPACE
+                    event.type == InputEvent.Type.TOUCH_DOWN || event.type == InputEvent.Type.ACTION_DOWN && event.inputType == uiAccept
                 // TODO check if shortcut input then: isPressed = false
                 if ((isPressed && actionMode == ActionMode.BUTTON_PRESS) || (!isPressed && actionMode == ActionMode.BUTTON_RELEASE)) {
                     if (actionMode == ActionMode.BUTTON_PRESS) {
@@ -142,10 +142,10 @@ abstract class BaseButton : Control() {
                     _pressed()
                 }
             } else if (((event.type == InputEvent.Type.TOUCH_DOWN
-                        || event.type == InputEvent.Type.KEY_DOWN && event.key == Key.SPACE)
+                        || event.type == InputEvent.Type.ACTION_DOWN && event.inputType == uiAccept)
                         && actionMode == ActionMode.BUTTON_PRESS)
                 || ((event.type == InputEvent.Type.TOUCH_UP
-                        || event.type == InputEvent.Type.KEY_UP && event.key == Key.SPACE)
+                        || event.type == InputEvent.Type.ACTION_UP && event.inputType == uiAccept)
                         && actionMode == ActionMode.BUTTON_RELEASE)
             ) {
                 _pressed()
@@ -153,9 +153,9 @@ abstract class BaseButton : Control() {
         }
 
         if (event.type == InputEvent.Type.TOUCH_UP
-            || event.type == InputEvent.Type.KEY_UP && event.key == Key.SPACE
+            || event.type == InputEvent.Type.ACTION_UP && event.inputType == uiAccept
         ) {
-            if (event.type == InputEvent.Type.KEY_UP
+            if (event.type == InputEvent.Type.ACTION_UP
                 || event.type == InputEvent.Type.TOUCH_UP && !hasPoint(event.sceneX, event.sceneY)
             ) {
                 status.hovering = false

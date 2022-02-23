@@ -21,7 +21,7 @@ inline fun Node.panelContainer(callback: @SceneGraphDslMarker PanelContainer.() 
  * @param callback the callback that is invoked with a [PanelContainer] context in order to initialize any values
  * @return the newly created [PanelContainer]
  */
-inline fun SceneGraph.panelContainer(callback: @SceneGraphDslMarker PanelContainer.() -> Unit = {}) =
+inline fun SceneGraph<*>.panelContainer(callback: @SceneGraphDslMarker PanelContainer.() -> Unit = {}) =
     root.panelContainer(callback)
 
 /**

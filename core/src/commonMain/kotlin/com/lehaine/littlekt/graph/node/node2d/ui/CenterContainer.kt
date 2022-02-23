@@ -20,7 +20,7 @@ inline fun Node.centerContainer(callback: @SceneGraphDslMarker CenterContainer.(
  * @param callback the callback that is invoked with a [CenterContainer] context in order to initialize any values
  * @return the newly created [CenterContainer]
  */
-inline fun SceneGraph.centerContainer(callback: @SceneGraphDslMarker CenterContainer.() -> Unit = {}) =
+inline fun SceneGraph<*>.centerContainer(callback: @SceneGraphDslMarker CenterContainer.() -> Unit = {}) =
     root.centerContainer(callback)
 
 /**

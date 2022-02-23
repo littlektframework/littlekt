@@ -7,11 +7,12 @@ import com.lehaine.littlekt.input.Pointer
  * @author Colton Daily
  * @date 1/2/2022
  */
-class InputEvent : Event() {
+class InputEvent<InputSignal> : Event() {
     var type: Type = Type.NONE
     var pointer: Pointer = Pointer.POINTER1
     var button: Int = 0
     var key: Key = Key.ANY_KEY
+    var inputType: InputSignal? = null
     var char: Char = Char.MIN_VALUE
     var sceneX: Float = 0f
     var sceneY: Float = 0f
@@ -29,6 +30,7 @@ class InputEvent : Event() {
         sceneY = 0f
         localX = 0f
         localY = 0f
+        inputType = null
     }
 
     override fun toString(): String {
@@ -91,6 +93,21 @@ class InputEvent : Event() {
         /**
          * A keyboard character has been typed.
          */
-        CHAR_TYPED
+        CHAR_TYPED,
+
+        /**
+         * The input type action that has been pressed.
+         */
+        ACTION_DOWN,
+
+        /**
+         * The input type action that has been pressed and not released.
+         */
+        ACTION_REPEAT,
+
+        /**
+         * The input type action that has been released.
+         */
+        ACTION_UP
     }
 }

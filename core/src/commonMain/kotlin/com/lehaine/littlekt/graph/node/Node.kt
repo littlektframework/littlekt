@@ -33,7 +33,7 @@ inline fun <T : Node> Node.node(node: T, callback: @SceneGraphDslMarker T.() -> 
  * @param callback the callback that is invoked with a [Node] context in order to initialize any values
  * @return the newly created [Node]
  */
-inline fun SceneGraph.node(callback: @SceneGraphDslMarker Node.() -> Unit = {}) = root.node(callback)
+inline fun SceneGraph<*>.node(callback: @SceneGraphDslMarker Node.() -> Unit = {}) = root.node(callback)
 
 /**
  * Adds a [Node] to the current [SceneGraph.root] as a child and then triggers the [Node]. This can be used
@@ -42,7 +42,7 @@ inline fun SceneGraph.node(callback: @SceneGraphDslMarker Node.() -> Unit = {}) 
  * @param callback the callback that is invoked with a [Node] context in order to initialize any values
  * @return the newly created [Node]
  */
-inline fun <T : Node> SceneGraph.node(node: T, callback: @SceneGraphDslMarker T.() -> Unit = {}) =
+inline fun <T : Node> SceneGraph<*>.node(node: T, callback: @SceneGraphDslMarker T.() -> Unit = {}) =
     root.node(node, callback)
 
 /**
@@ -68,7 +68,7 @@ open class Node : Comparable<Node> {
     /**
      * The scene this node belongs to.
      */
-    var scene: SceneGraph? = null
+    var scene: SceneGraph<*>? = null
         set(value) {
             if (value == field) return
             field = value

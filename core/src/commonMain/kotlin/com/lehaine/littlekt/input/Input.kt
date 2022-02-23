@@ -303,7 +303,9 @@ interface Input {
     fun getDeltaX(pointer: Pointer): Int
     fun getDeltaY(pointer: Pointer): Int
 
-    fun isTouched(pointer: Pointer): Boolean
+    fun isJustTouched(pointer: Pointer): Boolean
+    fun isTouching(pointer: Pointer):Boolean
+    fun isTouchJustReleased(pointer: Pointer):Boolean
 
     fun getPressure(pointer: Pointer): Float
 

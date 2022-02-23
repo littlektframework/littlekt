@@ -170,12 +170,20 @@ class AndroidInput(private val androidCtx: Context, private val graphics: Androi
         return if (pointer == Pointer.POINTER1) deltaY else touchDeltaY[pointer.index]
     }
 
-    override fun isTouched(pointer: Pointer): Boolean {
+    override fun isJustTouched(pointer: Pointer): Boolean {
+        return inputCache.isJustTouched(pointer)
+    }
+
+    override fun isTouching(pointer: Pointer): Boolean {
         return inputCache.isTouching(pointer)
     }
 
+    override fun isTouchJustReleased(pointer: Pointer): Boolean {
+        return inputCache.isTouchJustReleased(pointer)
+    }
+
     override fun getPressure(pointer: Pointer): Float {
-        return if (isTouched(pointer)) pressures[pointer.index] else 0f
+        return if (isJustTouched(pointer)) pressures[pointer.index] else 0f
     }
 
     override fun isKeyJustPressed(key: Key): Boolean {

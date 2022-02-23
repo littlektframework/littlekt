@@ -24,7 +24,7 @@ inline fun Node.label(callback: @SceneGraphDslMarker Label.() -> Unit = {}) =
 /**
  * Adds a [Label] to the current [SceneGraph.root] as a child and then triggers the [callback]
  */
-inline fun SceneGraph.label(callback: @SceneGraphDslMarker Label.() -> Unit = {}) =
+inline fun SceneGraph<*>.label(callback: @SceneGraphDslMarker Label.() -> Unit = {}) =
     root.label(callback)
 
 /**

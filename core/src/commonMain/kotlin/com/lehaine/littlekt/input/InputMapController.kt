@@ -16,28 +16,54 @@ import kotlin.math.max
  * Additionally, the strength, distances, and angles of each input can be calculated.
  *
  * @param input the current input of the context
+ * @param processor an [InputMapProcessor] that reacts to [InputSignal] action events
  * @see addBinding
  * @see addAxis
  * @see addVector
  * @author Colt Daily
  * @date 12/31/21
  */
-class InputMultiplexer<InputSignal>(val input: Input) : InputProcessor {
+class InputMapController<InputSignal>(
+    private val input: Input,
+) : InputProcessor {
 
     var axisDeadZone = 0.3f
     var mode = InputMode.KEYBOARD
 
     private val keyBindings = mutableMapOf<InputSignal, List<Key>>()
+    private val keyBindingsWithModifiers =
+        mutableMapOf<InputSignal, MutableMap<Key, KeyBindingWithModifiers<InputSignal>>>()
+    private val keyToType = mutableMapOf<Key, MutableList<InputSignal>>()
+    private val keyModifiersToType = mutableMapOf<Key, MutableList<KeyBindingWithModifiers<InputSignal>>>()
     private val buttonBindings = mutableMapOf<InputSignal, List<GameButton>>()
+    private val buttonToType = mutableMapOf<GameButton, MutableList<InputSignal>>()
     private val axisBindings = mutableMapOf<InputSignal, List<GameAxis>>()
+    private val axisToType = mutableMapOf<GameAxis, MutableList<InputSignal>>()
+    private val pointerBindings = mutableMapOf<InputSignal, List<Pointer>>()
+    private val pointerToType = mutableMapOf<Pointer, MutableList<InputSignal>>()
 
     private val axes = mutableMapOf<InputSignal, InputAxis<InputSignal>>()
     private val vectors = mutableMapOf<InputSignal, InputVector<InputSignal>>()
 
+    private val processors = mutableListOf<InputMapProcessor<InputSignal>>()
+
     private val tempVec2f = MutableVec2f()
+
+    private val shift get() = input.isKeyPressed(Key.SHIFT_LEFT) || input.isKeyPressed(Key.SHIFT_RIGHT)
+    private val ctrl get() = input.isKeyPressed(Key.CTRL_LEFT) || input.isKeyPressed(Key.CTRL_RIGHT)
+    private val alt get() = input.isKeyPressed(Key.ALT_LEFT) || input.isKeyPressed(Key.ALT_RIGHT)
+    private val anyModifierPressed get() = shift || ctrl || alt
 
     enum class InputMode {
         KEYBOARD, GAMEPAD
+    }
+
+    fun addInputMapProcessor(processor: InputMapProcessor<InputSignal>) {
+        processors += processor
+    }
+
+    fun removeInputMapProcessor(processor: InputMapProcessor<InputSignal>) {
+        processors -= processor
     }
 
     /**
@@ -52,12 +78,36 @@ class InputMultiplexer<InputSignal>(val input: Input) : InputProcessor {
     fun addBinding(
         type: InputSignal,
         keys: List<Key> = emptyList(),
+        keyModifiers: List<KeyModifier> = emptyList(),
         buttons: List<GameButton> = emptyList(),
-        axes: List<GameAxis> = emptyList()
+        axes: List<GameAxis> = emptyList(),
+        pointers: List<Pointer> = emptyList()
     ) {
-        keyBindings[type] = keys.toList()
+        if (keyModifiers.isEmpty()) {
+            keyBindings[type] = keys.toList()
+            keys.forEach {
+                keyToType.getOrPut(it) { mutableListOf() }.add(type)
+            }
+        } else {
+            val map = keyBindingsWithModifiers.getOrPut(type) { mutableMapOf() }
+            val modifier = KeyBindingWithModifiers(type, keyModifiers.toList())
+            keys.forEach {
+                map[it] = modifier
+                keyModifiersToType.getOrPut(it) { mutableListOf() }.add(modifier)
+            }
+        }
         buttonBindings[type] = buttons.toList()
+        buttons.forEach {
+            buttonToType.getOrPut(it) { mutableListOf() }.add(type)
+        }
         axisBindings[type] = axes.toList()
+        axes.forEach {
+            axisToType.getOrPut(it) { mutableListOf() }.add(type)
+        }
+        pointerBindings[type] = pointers.toList()
+        pointers.forEach {
+            pointerToType.getOrPut(it) { mutableListOf() }.add(type)
+        }
     }
 
     /**
@@ -108,7 +158,7 @@ class InputMultiplexer<InputSignal>(val input: Input) : InputProcessor {
         return if (mode == InputMode.GAMEPAD) {
             getGamepadButtonEvent(type) { input.isGamepadButtonPressed(it) }
         } else {
-            getKeyEvent(type) { input.isKeyPressed(it) }
+            return getKeyEvent(type) { input.isKeyPressed(it) } || getPointerEvent(type) { input.isTouching(it) }
         }
     }
 
@@ -120,7 +170,7 @@ class InputMultiplexer<InputSignal>(val input: Input) : InputProcessor {
         return if (mode == InputMode.GAMEPAD) {
             getGamepadButtonEvent(type) { input.isGamepadButtonJustPressed(it) }
         } else {
-            getKeyEvent(type) { input.isKeyJustPressed(it) }
+            getKeyEvent(type) { input.isKeyJustPressed(it) } || getPointerEvent(type) { input.isJustTouched(it) }
         }
     }
 
@@ -132,7 +182,7 @@ class InputMultiplexer<InputSignal>(val input: Input) : InputProcessor {
         return if (mode == InputMode.GAMEPAD) {
             getGamepadButtonEvent(type) { input.isGamepadButtonJustReleased(it) }
         } else {
-            getKeyEvent(type) { input.isKeyJustPressed(it) }
+            getKeyEvent(type) { input.isKeyJustReleased(it) } || getPointerEvent(type) { input.isTouchJustReleased(it) }
         }
     }
 
@@ -141,33 +191,127 @@ class InputMultiplexer<InputSignal>(val input: Input) : InputProcessor {
         return false
     }
 
-    override fun keyDown(key: Key): Boolean {
+    override fun touchDown(screenX: Float, screenY: Float, pointer: Pointer): Boolean {
         mode = InputMode.KEYBOARD
+        if (processors.isEmpty()) return false
+
+        pointerToType[pointer]?.forEach {
+            processors.forEach { processor ->
+                val handled = processor.onActionDown(it)
+                if (handled) return true
+            }
+        }
+        return false
+    }
+
+    override fun touchUp(screenX: Float, screenY: Float, pointer: Pointer): Boolean {
+        mode = InputMode.KEYBOARD
+        if (processors.isEmpty()) return false
+
+        pointerToType[pointer]?.forEach {
+            processors.forEach { processor ->
+                val handled = processor.onActionUp(it)
+                if (handled) return true
+            }
+        }
+        return false
+    }
+
+    override fun keyDown(key: Key): Boolean {
+        if (processors.isEmpty()) return false
+        mode = InputMode.KEYBOARD
+
+        if (anyModifierPressed) {
+            keyModifiersToType[key]?.forEach outside@{ binding ->
+                binding.modifiers.forEach { keyModifier ->
+                    var modPressed = false
+                    keyModifier.keys.forEach {
+                        if (input.isKeyPressed(it)) {
+                            modPressed = true
+                        }
+                    }
+                    if (!modPressed) return@outside
+                }
+                // if we get here then all the modifiers are met
+                val inputSignal = binding.input
+                processors.forEach { processor ->
+                    val handled = processor.onActionDown(inputSignal)
+                    if (handled) return true
+                }
+            }
+        } else {
+            keyToType[key]?.forEach {
+                processors.forEach { processor ->
+                    val handled = processor.onActionDown(it)
+                    if (handled) return true
+                }
+            }
+        }
+        return false
+    }
+
+    override fun keyRepeat(key: Key): Boolean {
+        mode = InputMode.KEYBOARD
+        if (processors.isEmpty()) return false
+
+        keyToType[key]?.forEach {
+            processors.forEach { processor ->
+                val handled = processor.onActionRepeat(it)
+                if (handled) return true
+            }
+        }
         return false
     }
 
     override fun keyUp(key: Key): Boolean {
         mode = InputMode.KEYBOARD
+        if (processors.isEmpty()) return false
+
+        keyToType[key]?.forEach {
+            processors.forEach { processor ->
+                val handled = processor.onActionUp(it)
+                if (handled) return true
+            }
+        }
         return false
     }
 
     override fun gamepadButtonPressed(button: GameButton, pressure: Float, gamepad: Int): Boolean {
         mode = InputMode.GAMEPAD
+        if (processors.isEmpty()) return false
+
+        buttonToType[button]?.forEach {
+            processors.forEach { processor ->
+                val handled = processor.onActionDown(it)
+                if (handled) return true
+            }
+        }
         return false
     }
 
     override fun gamepadButtonReleased(button: GameButton, gamepad: Int): Boolean {
         mode = InputMode.GAMEPAD
-        return false
-    }
+        if (processors.isEmpty()) return false
 
-    override fun gamepadJoystickMoved(stick: GameStick, xAxis: Float, yAxis: Float, gamepad: Int): Boolean {
-        mode = InputMode.GAMEPAD
+        buttonToType[button]?.forEach {
+            processors.forEach { processor ->
+                val handled = processor.onActionUp(it)
+                if (handled) return true
+            }
+        }
         return false
     }
 
     override fun gamepadTriggerChanged(button: GameButton, pressure: Float, gamepad: Int): Boolean {
         mode = InputMode.GAMEPAD
+        if (processors.isEmpty()) return false
+
+        buttonToType[button]?.forEach {
+            processors.forEach { processor ->
+                val handled = processor.onActionChange(it, pressure)
+                if (handled) return true
+            }
+        }
         return false
     }
 
@@ -260,6 +404,15 @@ class InputMultiplexer<InputSignal>(val input: Input) : InputProcessor {
 
     private inline fun getKeyEvent(type: InputSignal, predicate: (Key) -> Boolean): Boolean {
         keyBindings[type]?.fastForEach {
+            if (predicate(it)) {
+                return true
+            }
+        }
+        return false
+    }
+
+    private inline fun getPointerEvent(type: InputSignal, predicate: (Pointer) -> Boolean): Boolean {
+        pointerBindings[type]?.fastForEach {
             if (predicate(it)) {
                 return true
             }
@@ -400,9 +553,18 @@ class InputMultiplexer<InputSignal>(val input: Input) : InputProcessor {
     fun angle(xAxis: InputSignal, yAxis: InputSignal, deadZone: Float = axisDeadZone) =
         atan2(axis(yAxis, deadZone), axis(xAxis, deadZone))
 
-
+    enum class KeyModifier(val keys: List<Key>) {
+        SHIFT(listOf(Key.SHIFT_LEFT, Key.SHIFT_RIGHT)),
+        CTRL(listOf(Key.CTRL_LEFT, Key.CTRL_RIGHT)),
+        ALT(listOf(Key.ALT_LEFT, Key.ALT_RIGHT))
+    }
 }
 
 private data class InputAxis<T>(val positive: T, val negative: T)
 
 private data class InputVector<T>(val positiveX: T, val positiveY: T, val negativeX: T, val negativeY: T)
+
+private data class KeyBindingWithModifiers<T>(
+    val input: T,
+    val modifiers: List<InputMapController.KeyModifier>
+)
