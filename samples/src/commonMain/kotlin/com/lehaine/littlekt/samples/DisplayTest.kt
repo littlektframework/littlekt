@@ -359,9 +359,9 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
 
                     textureRect {
                         slice = person
-                        stretchMode = TextureRect.StretchMode.KEEP_ASPECT_COVERED
-                        width = 25f
-                        height = 150f
+                        stretchMode = TextureRect.StretchMode.TILE
+                        width = 75f
+                        height = 60f
                         x = 500f
                         y = 400f
                     }

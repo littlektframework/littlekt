@@ -9,6 +9,7 @@ import com.lehaine.littlekt.graphics.Camera
 import com.lehaine.littlekt.graphics.TextureSlice
 import com.lehaine.littlekt.graphics.toFloatBits
 import kotlin.math.absoluteValue
+import kotlin.math.min
 
 /**
  * Adds a [TextureRect] to the current [Node] as a child and then triggers the [callback]
@@ -80,7 +81,6 @@ open class TextureRect : Control() {
                     newHeight = height
                 }
                 StretchMode.TILE -> {
-                    // TODO - impl a tile mode
                     newWidth = sliceWidth
                     newHeight = sliceHeight
                     tile = true
@@ -132,26 +132,67 @@ open class TextureRect : Control() {
                     sliceHeight = newHeight / scale
                 }
             }
-            batch.draw(
-                it.texture,
-                globalX + offsetX,
-                globalY + offsetY,
-                0f,
-                0f,
-                width = newWidth,
-                height = newHeight,
-                scaleX = globalScaleX,
-                scaleY = globalScaleY,
-                rotation = globalRotation,
-                srcX = sliceX.toInt(),
-                srcY = sliceY.toInt(),
-                srcWidth = sliceWidth.toInt(),
-                srcHeight = sliceHeight.toInt(),
-                flipX = flipX,
-                flipY = flipY,
-                colorBits = color.toFloatBits()
-            )
-
+            if (tile) {
+                var totalH = 0f
+                while (totalH < height) {
+                    var totalW = 0f
+                    while (totalW < width) {
+                        if (width - totalW >= sliceWidth && height - totalH >= sliceHeight) {
+                            batch.draw(
+                                it,
+                                x = globalX + totalW,
+                                y = globalY + totalH,
+                                scaleX = globalScaleX,
+                                scaleY = globalScaleY,
+                                rotation = globalRotation,
+                                colorBits = color.toFloatBits()
+                            )
+                        } else {
+                            batch.draw(
+                                it.texture,
+                                globalX + totalW,
+                                globalY + totalH,
+                                0f,
+                                0f,
+                                width = min(width - totalW, sliceWidth),
+                                height =  min(height - totalH, sliceHeight),
+                                scaleX = globalScaleX,
+                                scaleY = globalScaleY,
+                                rotation = globalRotation,
+                                srcX = it.x,
+                                srcY = it.y,
+                                srcWidth = min(width - totalW, sliceWidth).toInt(),
+                                srcHeight = min(height - totalH, sliceHeight).toInt(),
+                                flipX = flipX,
+                                flipY = flipY,
+                                colorBits = color.toFloatBits()
+                            )
+                        }
+                        totalW += sliceWidth
+                    }
+                    totalH += sliceHeight
+                }
+            } else {
+                batch.draw(
+                    it.texture,
+                    globalX + offsetX,
+                    globalY + offsetY,
+                    0f,
+                    0f,
+                    width = newWidth,
+                    height = newHeight,
+                    scaleX = globalScaleX,
+                    scaleY = globalScaleY,
+                    rotation = globalRotation,
+                    srcX = sliceX.toInt(),
+                    srcY = sliceY.toInt(),
+                    srcWidth = sliceWidth.toInt(),
+                    srcHeight = sliceHeight.toInt(),
+                    flipX = flipX,
+                    flipY = flipY,
+                    colorBits = color.toFloatBits()
+                )
+            }
         }
     }
 
