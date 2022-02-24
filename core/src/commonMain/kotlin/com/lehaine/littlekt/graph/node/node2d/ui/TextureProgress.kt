@@ -5,6 +5,7 @@ import com.lehaine.littlekt.graph.node.Node
 import com.lehaine.littlekt.graph.node.addTo
 import com.lehaine.littlekt.graph.node.annotation.SceneGraphDslMarker
 import com.lehaine.littlekt.graphics.*
+import kotlin.math.ceil
 import kotlin.math.min
 
 /**
@@ -178,7 +179,17 @@ open class TextureProgress : Range() {
         super.render(batch, camera)
 
         if (useNinePatch) {
-            //backgroundNine?.draw()
+            backgroundNine?.draw(
+                batch,
+                globalX,
+                globalY,
+                width,
+                height,
+                scaleX = globalScaleX,
+                scaleY = globalScaleY,
+                rotation = globalRotation,
+                color = backgroundColor,
+            )
 
             progressNine?.let {
                 when (fillMode) {
@@ -192,6 +203,7 @@ open class TextureProgress : Range() {
                             scaleX = globalScaleX,
                             scaleY = globalScaleY,
                             rotation = globalRotation,
+                            color = progressBarColor,
                             srcWidth = width - width * (1f - ratio)
                         )
                     }
@@ -205,6 +217,7 @@ open class TextureProgress : Range() {
                             scaleX = globalScaleX,
                             scaleY = globalScaleY,
                             rotation = globalRotation,
+                            color = progressBarColor,
                             srcX = width * (1f - ratio),
                         )
                     }
@@ -218,6 +231,7 @@ open class TextureProgress : Range() {
                             scaleX = globalScaleX,
                             scaleY = globalScaleY,
                             rotation = globalRotation,
+                            color = progressBarColor,
                             srcHeight = height - height * (1f - ratio)
                         )
                     }
@@ -231,10 +245,23 @@ open class TextureProgress : Range() {
                             scaleX = globalScaleX,
                             scaleY = globalScaleY,
                             rotation = globalRotation,
+                            color = progressBarColor,
                             srcY = height * (1f - ratio),
                         )
                     }
                 }
+
+                foregroundNine?.draw(
+                    batch,
+                    globalX,
+                    globalY,
+                    width,
+                    height,
+                    scaleX = globalScaleX,
+                    scaleY = globalScaleY,
+                    rotation = globalRotation,
+                    color = foregroundColor
+                )
 
             }
 
@@ -255,8 +282,8 @@ open class TextureProgress : Range() {
                 val sliceY = it.y
                 val sliceWidth = it.width
                 val sliceHeight = it.height
-                val widthRatio = (sliceWidth * ratio).toInt()
-                val heightRatio = (sliceHeight * ratio).toInt()
+                val widthRatio = ceil(sliceWidth * ratio).toInt()
+                val heightRatio = ceil(sliceHeight * ratio).toInt()
 
                 when (fillMode) {
                     FillMode.LEFT_TO_RIGHT -> {

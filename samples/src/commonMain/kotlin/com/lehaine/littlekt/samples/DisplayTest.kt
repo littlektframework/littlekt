@@ -406,14 +406,16 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
                         x = 200f
                         y = 275f
                         separation = 10
-                        scaleX = 3f
-                        scaleY = 3f
 
                         vBoxContainer {
                             textureProgress {
+                                background = ninepatchImg.slice()
+                                foreground = ninepatchImg.slice()
                                 this.progressBar = ninepatchImg.slice()
                                 ratio = 0.43f
                                 progressBarColor = Color.DARK_GREEN
+                                backgroundColor = Color.DARK_GRAY
+                                foregroundColor = Color(1f, 0f, 1f, 0.5f)
 
                                 onUpdate += {
                                     if (input.isKeyPressed(Key.Z)) {
@@ -475,6 +477,8 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
 
                         vBoxContainer {
                             textureProgress {
+                                background = ninepatchImg.slice()
+                                foreground = ninepatchImg.slice()
                                 this.progressBar = ninepatchImg.slice()
                                 ratio = 0.43f
                                 left = 3
@@ -485,6 +489,8 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
                                 minWidth = 80f
                                 minHeight = 16f
                                 progressBarColor = Color.DARK_GREEN
+                                backgroundColor = Color.DARK_GRAY
+                                foregroundColor = Color(1f, 0f, 1f, 0.5f)
 
                                 onUpdate += {
                                     if (input.isKeyPressed(Key.Z)) {
