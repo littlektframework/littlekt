@@ -25,18 +25,68 @@ inline fun SceneGraph<*>.ninePatchRect(callback: @SceneGraphDslMarker NinePatchR
  */
 open class NinePatchRect : Control() {
 
-    var ninePatch: NinePatch = NinePatch(Textures.white, 0, 0, 0, 0)
+    /**
+     * The width of the 9-patch's left column.
+     */
+    var left: Int = 0
         set(value) {
             if (field == value) return
             field = value
+            ninePatch = NinePatch(texture, left, right, bottom, top)
             onMinimumSizeChanged()
         }
+
+    /**
+     * The width of the 9-patch's right column.
+     */
+    var right: Int = 0
+        set(value) {
+            if (field == value) return
+            field = value
+            ninePatch = NinePatch(texture, left, right, bottom, top)
+            onMinimumSizeChanged()
+        }
+
+    /**
+     * The height of the 9-patch's top row.
+     */
+    var top: Int = 0
+        set(value) {
+            if (field == value) return
+            field = value
+            ninePatch = NinePatch(texture, left, right, bottom, top)
+            onMinimumSizeChanged()
+        }
+
+    /**
+     * The height of the 9-patch's bottom row.
+     */
+    var bottom: Int = 0
+        set(value) {
+            if (field == value) return
+            field = value
+            ninePatch = NinePatch(texture, left, right, bottom, top)
+            onMinimumSizeChanged()
+        }
+
+    /**
+     * The texture to be used as a [NinePatch].
+     */
+    var texture: TextureSlice = Textures.white
+        set(value) {
+            if (field == value) return
+            field = value
+            ninePatch = NinePatch(value, left, right, bottom, top)
+            onMinimumSizeChanged()
+        }
+
+    private var ninePatch: NinePatch = NinePatch(Textures.white, left, right, bottom, top)
 
     override fun calculateMinSize() {
         if (!minSizeInvalid) return
 
-        _internalMinWidth = (ninePatch.left + ninePatch.right).toFloat()
-        _internalMinHeight = (ninePatch.top + ninePatch.bottom).toFloat()
+        _internalMinWidth = (left + right).toFloat()
+        _internalMinHeight = (top + bottom).toFloat()
 
         minSizeInvalid = false
     }

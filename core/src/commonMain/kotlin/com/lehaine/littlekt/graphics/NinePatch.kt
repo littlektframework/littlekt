@@ -7,6 +7,7 @@ import com.lehaine.littlekt.math.geom.cosine
 import com.lehaine.littlekt.math.geom.sine
 import com.lehaine.littlekt.util.datastructure.FloatArrayList
 import kotlin.math.max
+import kotlin.math.min
 
 /**
  * Creates a ninepatch by slicing up the [TextureSlice] into nine patches which produces clean panels of any size,
@@ -22,13 +23,10 @@ import kotlin.math.max
  */
 class NinePatch(private val slice: TextureSlice, val left: Int, val right: Int, val bottom: Int, val top: Int) {
     constructor(texture: Texture, left: Int, right: Int, top: Int, bottom: Int) : this(
-        texture.slice(),
-        left,
-        right,
-        top,
-        bottom
+        texture.slice(), left, right, top, bottom
     )
 
+    private val patches = arrayOfNulls<TextureSlice?>(9)
     private val vertices = FloatArrayList(9 * 4 * 5)
     private var bottomLeft: Int = 0
     private var bottomCenter: Int = 0
@@ -51,7 +49,6 @@ class NinePatch(private val slice: TextureSlice, val left: Int, val right: Int, 
     init {
         val middleWidth = slice.width - left - right
         val middleHeight = slice.height - bottom - top
-        val patches = arrayOfNulls<TextureSlice?>(9)
 
         if (bottom > 0) {
             if (left > 0) patches[BOTTOM_LEFT] = TextureSlice(slice, 0, 0, left, bottom)
@@ -106,9 +103,18 @@ class NinePatch(private val slice: TextureSlice, val left: Int, val right: Int, 
         scaleX: Float = 1f,
         scaleY: Float = 1f,
         rotation: Angle = Angle.ZERO,
-        color: Color = Color.WHITE
+        color: Color = Color.WHITE,
+        srcX: Float = 0f,
+        srcY: Float = 0f,
+        srcWidth: Float = width,
+        srcHeight: Float = height
     ) {
-        prepareVertices(x, y, width, height, color)
+        check(srcX >= 0f) { "srcX must be >= 0!" }
+        check(srcY >= 0f) { "srcY must be >= 0!" }
+        check(srcWidth <= width) { "srcWidth must be <= width!" }
+        check(srcHeight <= height) { "srcHeight must be <= height!" }
+
+        prepareVertices(x, y, width, height, color, srcX, srcY, srcWidth, srcHeight)
         val worldOriginX = x + originX
         val worldOriginY = y + originY
         if (rotation != Angle.ZERO) {
@@ -132,69 +138,272 @@ class NinePatch(private val slice: TextureSlice, val left: Int, val right: Int, 
 
     private fun load(patches: Array<TextureSlice?>) {
         patches[BOTTOM_LEFT]?.let {
-            bottomLeft = add(it, stretchW = false, stretchH = false)
+            bottomLeft = add()
             leftWidth = it.width.toFloat()
             bottomHeight = it.height.toFloat()
         } ?: run { bottomLeft = -1 }
 
         patches[BOTTOM_CENTER]?.let {
-            bottomCenter = add(it, patches[BOTTOM_LEFT] != null || patches[BOTTOM_RIGHT] != null, false)
+            bottomCenter = add()
             middleWidth = max(middleWidth, it.width.toFloat())
             bottomHeight = max(bottomHeight, it.height.toFloat())
         } ?: run { bottomCenter = -1 }
 
         patches[BOTTOM_RIGHT]?.let {
-            bottomRight = add(it, stretchW = false, stretchH = false)
+            bottomRight = add()
             rightWidth = max(rightWidth, it.width.toFloat())
             bottomHeight = max(bottomHeight, it.height.toFloat())
         } ?: run { bottomRight = -1 }
 
         patches[MIDDLE_LEFT]?.let {
-            middleLeft = add(it, false, patches[TOP_LEFT] != null || patches[BOTTOM_LEFT] != null)
+            middleLeft = add()
             leftWidth = max(leftWidth, it.width.toFloat())
             middleHeight = max(middleHeight, it.height.toFloat())
         } ?: run { middleLeft = -1 }
 
         patches[MIDDLE_CENTER]?.let {
-            middleCenter = add(
-                it,
-                patches[MIDDLE_LEFT] != null || patches[MIDDLE_RIGHT] != null,
-                patches[TOP_CENTER] != null || patches[BOTTOM_CENTER] != null
-            )
+            middleCenter = add()
             middleWidth = max(middleWidth, it.width.toFloat())
             middleHeight = max(middleHeight, it.height.toFloat())
         } ?: run { middleCenter = -1 }
 
         patches[MIDDLE_RIGHT]?.let {
-            middleRight = add(it, false, patches[TOP_RIGHT] != null || patches[BOTTOM_RIGHT] != null)
+            middleRight = add()
             rightWidth = max(rightWidth, it.width.toFloat())
             middleHeight = max(middleHeight, it.height.toFloat())
         } ?: run { middleRight = -1 }
 
         patches[TOP_LEFT]?.let {
-            topLeft = add(it, stretchW = false, stretchH = false)
+            topLeft = add()
             leftWidth = max(leftWidth, it.width.toFloat())
             topHeight = max(topHeight, it.height.toFloat())
         } ?: run { topLeft = -1 }
 
         patches[TOP_CENTER]?.let {
-            topCenter = add(it, patches[TOP_LEFT] != null || patches[TOP_RIGHT] != null, false)
+            topCenter = add()
             middleWidth = max(middleWidth, it.width.toFloat())
             topHeight = max(topHeight, it.height.toFloat())
         } ?: run { topCenter = -1 }
 
         patches[TOP_RIGHT]?.let {
-            topRight = add(it, stretchW = false, stretchH = false)
+            topRight = add()
             rightWidth = max(rightWidth, it.width.toFloat())
             topHeight = max(topHeight, it.height.toFloat())
         } ?: run { topRight = -1 }
     }
 
-    private fun add(slice: TextureSlice, stretchW: Boolean, stretchH: Boolean): Int {
-        var u = slice.u
-        var v = slice.v2
-        var u2 = slice.u2
-        var v2 = slice.v
+    private fun add(): Int {
+        val startIdx = idx
+        idx += 20
+        return startIdx
+    }
+
+    private fun prepareVertices(
+        x: Float,
+        y: Float,
+        width: Float,
+        height: Float,
+        color: Color,
+        srcX: Float,
+        srcY: Float,
+        srcWidth: Float,
+        srcHeight: Float
+    ) {
+        val centerX = x + max(leftWidth, srcX)
+        val centerY = y + max(bottomHeight, srcY)
+        val centerWidth = max(width - max(width - srcWidth, rightWidth) - max(leftWidth, srcX), 0f)
+        val centerHeight = max(height - max(height - srcHeight, topHeight) - max(bottomHeight, srcY), 0f)
+
+        val leftWidthOffset = min(max(leftWidth - srcX, 0f), min(leftWidth, srcWidth))
+
+        val bottomHeightOffset = min(max(bottomHeight - srcY, 0f), min(bottomHeight, srcHeight))
+
+        val rightX = x + width - rightWidth
+        val rightXOffset = min(rightWidth, max(rightWidth - (width - srcX), 0f))
+        val rightWidthOffset = min(min(width - srcX, rightWidth), max(0f, rightWidth - (width - srcWidth)))
+
+        val topY = y + height - topHeight
+        val topYOffset = min(topHeight, max(topHeight - (height - srcY), 0f))
+        val topHeightOffset = min(min(height - srcY, topHeight), max(0f, topHeight - (height - srcHeight)))
+
+        val colorBits = color.toFloatBits()
+        if (bottomLeft != -1) {
+            patches[BOTTOM_LEFT]?.let {
+                set(
+                    idx = bottomLeft,
+                    x = x + srcX,
+                    y = y + srcY,
+                    width = leftWidthOffset,
+                    height = bottomHeightOffset,
+                    color = colorBits,
+                    srcX = it.x.toFloat() + min(srcX, it.width.toFloat()),
+                    srcY = it.y.toFloat() + min(srcY, it.height.toFloat()),
+                    srcWidth = leftWidthOffset,
+                    srcHeight = bottomHeightOffset
+                )
+            }
+        }
+        if (bottomCenter != -1) {
+            patches[BOTTOM_CENTER]?.let {
+                set(
+                    idx = bottomCenter,
+                    x = centerX,
+                    y = y + srcY,
+                    width = centerWidth,
+                    height = bottomHeightOffset,
+                    color = colorBits,
+                    srcX = it.x.toFloat(),
+                    srcY = it.y.toFloat() + min(srcY, it.height.toFloat()),
+                    srcWidth = it.width.toFloat(),
+                    srcHeight = bottomHeightOffset,
+                    stretchW = patches[BOTTOM_LEFT] != null || patches[BOTTOM_RIGHT] != null,
+                )
+            }
+        }
+        if (bottomRight != -1) {
+            patches[BOTTOM_RIGHT]?.let {
+                set(
+                    idx = bottomRight,
+                    x = rightX + rightXOffset,
+                    y = y + srcY,
+                    width = rightWidthOffset,
+                    height = bottomHeightOffset,
+                    color = colorBits,
+                    srcX = it.x.toFloat() + rightXOffset,
+                    srcY = it.y.toFloat() + min(srcY, it.height.toFloat()),
+                    srcWidth = rightWidthOffset,
+                    srcHeight = bottomHeightOffset
+                )
+            }
+        }
+        if (middleLeft != -1) {
+            patches[MIDDLE_LEFT]?.let {
+                set(
+                    idx = middleLeft,
+                    x = x + srcX,
+                    y = centerY,
+                    width = leftWidthOffset,
+                    height = centerHeight,
+                    color = colorBits,
+                    srcX = it.x.toFloat() + min(srcX, it.width.toFloat()),
+                    srcY = it.y.toFloat(),
+                    srcWidth = leftWidthOffset,
+                    srcHeight = it.height.toFloat(),
+                    stretchW = false,
+                    stretchH = patches[TOP_LEFT] != null || patches[BOTTOM_LEFT] != null
+                )
+            }
+        }
+        if (middleCenter != -1) {
+            patches[MIDDLE_CENTER]?.let {
+                set(
+                    idx = middleCenter,
+                    x = centerX,
+                    y = centerY,
+                    width = centerWidth,
+                    height = centerHeight,
+                    color = colorBits,
+                    srcX = it.x.toFloat(),
+                    srcY = it.y.toFloat(),
+                    srcWidth = it.width.toFloat(),
+                    srcHeight = it.height.toFloat(),
+                    stretchW = patches[MIDDLE_LEFT] != null || patches[MIDDLE_RIGHT] != null,
+                    stretchH = patches[TOP_CENTER] != null || patches[BOTTOM_CENTER] != null
+                )
+            }
+        }
+        if (middleRight != -1) {
+            patches[MIDDLE_RIGHT]?.let {
+                set(
+                    idx = middleRight,
+                    x = rightX + rightXOffset,
+                    y = centerY,
+                    width = rightWidthOffset,
+                    height = centerHeight,
+                    color = colorBits,
+                    srcX = it.x.toFloat() + rightXOffset,
+                    srcY = it.y.toFloat(),
+                    srcWidth = rightWidthOffset,
+                    srcHeight = it.height.toFloat(),
+                    stretchW = false,
+                    stretchH = patches[TOP_RIGHT] != null || patches[BOTTOM_RIGHT] != null
+                )
+            }
+        }
+        if (topLeft != -1) {
+            patches[TOP_LEFT]?.let {
+                set(
+                    idx = topLeft,
+                    x = x + srcX,
+                    y = topY + topYOffset,
+                    width = leftWidthOffset,
+                    height = topHeightOffset,
+                    color = colorBits,
+                    srcX = it.x.toFloat() + min(srcX, it.width.toFloat()),
+                    srcY = it.y.toFloat() + topYOffset,
+                    srcWidth = leftWidthOffset,
+                    srcHeight = topHeightOffset
+                )
+            }
+        }
+        if (topCenter != -1) {
+            patches[TOP_CENTER]?.let {
+                set(
+                    idx = topCenter,
+                    x = centerX,
+                    y = topY + topYOffset,
+                    width = centerWidth,
+                    height = topHeightOffset,
+                    color = colorBits,
+                    srcX = it.x.toFloat(),
+                    srcY = it.y.toFloat() + topYOffset,
+                    srcWidth = it.width.toFloat(),
+                    srcHeight = topHeightOffset,
+                    stretchW = patches[TOP_LEFT] != null || patches[TOP_RIGHT] != null,
+                )
+            }
+        }
+        if (topRight != -1) {
+            patches[TOP_RIGHT]?.let {
+                set(
+                    idx = topRight,
+                    x = rightX + rightXOffset,
+                    y = topY + topYOffset,
+                    width = rightWidthOffset,
+                    height = topHeightOffset,
+                    color = colorBits,
+                    srcX = it.x.toFloat() + rightXOffset,
+                    srcY = it.y.toFloat() + topYOffset,
+                    srcWidth = rightWidthOffset,
+                    srcHeight = topHeightOffset,
+                )
+            }
+        }
+    }
+
+
+    private fun set(
+        idx: Int,
+        x: Float,
+        y: Float,
+        width: Float,
+        height: Float,
+        color: Float,
+        srcX: Float,
+        srcY: Float,
+        srcWidth: Float,
+        srcHeight: Float,
+        stretchW: Boolean = false,
+        stretchH: Boolean = false
+    ) {
+        val fx2 = x + width
+        val fy2 = y + height
+        val invTexWidth = 1f / slice.texture.width
+        val invTexHeight = 1f / slice.texture.height
+        var u = srcX * invTexWidth
+        var v = srcY * invTexHeight
+        var u2 = (srcX + srcWidth) * invTexWidth
+        var v2 = (srcY + srcHeight) * invTexHeight
 
         // Add half pixel offsets on stretchable dimensions to avoid color bleeding when GL_LINEAR
         // filtering is used for the texture. This nudges the texture coordinate to the center
@@ -212,58 +421,29 @@ class NinePatch(private val slice: TextureSlice, val left: Int, val right: Int, 
             }
         }
 
-        val startIdx = idx
-        vertices.let {
-            it[idx + 3] = u
-            it[idx + 4] = v
-            it[idx + 8] = u
-            it[idx + 9] = v2
-            it[idx + 13] = u2
-            it[idx + 14] = v2
-            it[idx + 18] = u2
-            it[idx + 19] = v
-        }
-        idx += 20
-        return startIdx
-    }
-
-    private fun prepareVertices(x: Float, y: Float, width: Float, height: Float, color: Color) {
-        val centerX = x + leftWidth
-        val centerY = y + bottomHeight
-        val centerWidth = width - rightWidth - leftWidth
-        val centerHeight = height - topHeight - bottomHeight
-        val rightX = x + width - rightWidth
-        val topY = y + height - topHeight
-        val colorBits = color.toFloatBits()
-        if (bottomLeft != -1) set(bottomLeft, x, y, leftWidth, bottomHeight, colorBits)
-        if (bottomCenter != -1) set(bottomCenter, centerX, y, centerWidth, bottomHeight, colorBits)
-        if (bottomRight != -1) set(bottomRight, rightX, y, rightWidth, bottomHeight, colorBits)
-        if (middleLeft != -1) set(middleLeft, x, centerY, leftWidth, centerHeight, colorBits)
-        if (middleCenter != -1) set(middleCenter, centerX, centerY, centerWidth, centerHeight, colorBits)
-        if (middleRight != -1) set(middleRight, rightX, centerY, rightWidth, centerHeight, colorBits)
-        if (topLeft != -1) set(topLeft, x, topY, leftWidth, topHeight, colorBits)
-        if (topCenter != -1) set(topCenter, centerX, topY, centerWidth, topHeight, colorBits)
-        if (topRight != -1) set(topRight, rightX, topY, rightWidth, topHeight, colorBits)
-    }
-
-    private fun set(idx: Int, x: Float, y: Float, width: Float, height: Float, color: Float) {
-        val fx2 = x + width
-        val fy2 = y + height
         vertices[idx] = x
         vertices[idx + 1] = y
         vertices[idx + 2] = color
+        vertices[idx + 3] = u
+        vertices[idx + 4] = v
 
         vertices[idx + 5] = x
         vertices[idx + 6] = fy2
         vertices[idx + 7] = color
+        vertices[idx + 8] = u
+        vertices[idx + 9] = v2
 
         vertices[idx + 10] = fx2
         vertices[idx + 11] = fy2
         vertices[idx + 12] = color
+        vertices[idx + 13] = u2
+        vertices[idx + 14] = v2
 
         vertices[idx + 15] = fx2
         vertices[idx + 16] = y
         vertices[idx + 17] = color
+        vertices[idx + 18] = u2
+        vertices[idx + 19] = v
     }
 
     companion object {
