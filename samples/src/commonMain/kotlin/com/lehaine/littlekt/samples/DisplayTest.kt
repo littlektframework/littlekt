@@ -221,6 +221,34 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
                     anchorRight = 1f
                     anchorBottom = 1f
 
+                    centerContainer {
+                        anchorRight = 1f
+                        anchorBottom = 1f
+                        vBoxContainer {
+                            separation = 20
+                            label {
+                                text = "Select a Sample:"
+                            }
+
+                            vBoxContainer {
+                                separation = 10
+                                button {
+                                    text = "Platformer - Collect all the Diamonds!"
+                                }
+                                button {
+                                    text = "Another!!"
+                                }
+                            }
+
+                            button {
+                                text = "Exit"
+                                onPressed += {
+                                    context.close()
+                                }
+                            }
+                        }
+                    }
+
                     paddedContainer {
                         padding(10)
                         hBoxContainer {
