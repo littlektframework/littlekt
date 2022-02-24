@@ -247,29 +247,34 @@ class NinePatch(private val slice: TextureSlice, val left: Int, val right: Int, 
         val centerX = x + max(leftWidth, srcX)
         val centerY = y + max(bottomHeight, srcY)
         val centerWidth = max(width - max(width - srcWidth, rightWidth) - max(leftWidth, srcX), 0f)
-        val centerHeight = height - topHeight - bottomHeight
+        val centerHeight = max(height - max(height - srcHeight, topHeight) - max(bottomHeight, srcY), 0f)
 
         val leftWidthOffset = min(max(leftWidth - srcX, 0f), min(leftWidth, srcWidth))
+
+        val bottomHeightOffset = min(max(bottomHeight - srcY, 0f), min(bottomHeight, srcHeight))
 
         val rightX = x + width - rightWidth
         val rightXOffset = min(rightWidth, max(rightWidth - (width - srcX), 0f))
         val rightWidthOffset = min(min(width - srcX, rightWidth), max(0f, rightWidth - (width - srcWidth)))
 
         val topY = y + height - topHeight
+        val topYOffset = min(topHeight, max(topHeight - (height - srcY), 0f))
+        val topHeightOffset = min(min(height - srcY, topHeight), max(0f, topHeight - (height - srcHeight)))
+
         val colorBits = color.toFloatBits()
         if (bottomLeft != -1) {
             patches[BOTTOM_LEFT]?.let {
                 set(
                     idx = bottomLeft,
                     x = x + srcX,
-                    y = y,
+                    y = y + srcY,
                     width = leftWidthOffset,
-                    height = bottomHeight,
+                    height = bottomHeightOffset,
                     color = colorBits,
                     srcX = it.x.toFloat() + min(srcX, it.width.toFloat()),
-                    srcY = it.y.toFloat(),
+                    srcY = it.y.toFloat() + min(srcY, it.height.toFloat()),
                     srcWidth = leftWidthOffset,
-                    srcHeight = it.height.toFloat()
+                    srcHeight = bottomHeightOffset
                 )
             }
         }
@@ -278,14 +283,14 @@ class NinePatch(private val slice: TextureSlice, val left: Int, val right: Int, 
                 set(
                     idx = bottomCenter,
                     x = centerX,
-                    y = y,
+                    y = y + srcY,
                     width = centerWidth,
-                    height = bottomHeight,
+                    height = bottomHeightOffset,
                     color = colorBits,
                     srcX = it.x.toFloat(),
-                    srcY = it.y.toFloat(),
+                    srcY = it.y.toFloat() + min(srcY, it.height.toFloat()),
                     srcWidth = it.width.toFloat(),
-                    srcHeight = it.height.toFloat(),
+                    srcHeight = bottomHeightOffset,
                     stretchW = patches[BOTTOM_LEFT] != null || patches[BOTTOM_RIGHT] != null,
                 )
             }
@@ -295,14 +300,14 @@ class NinePatch(private val slice: TextureSlice, val left: Int, val right: Int, 
                 set(
                     idx = bottomRight,
                     x = rightX + rightXOffset,
-                    y = y,
+                    y = y + srcY,
                     width = rightWidthOffset,
-                    height = bottomHeight,
+                    height = bottomHeightOffset,
                     color = colorBits,
                     srcX = it.x.toFloat() + rightXOffset,
-                    srcY = it.y.toFloat(),
+                    srcY = it.y.toFloat() + min(srcY, it.height.toFloat()),
                     srcWidth = rightWidthOffset,
-                    srcHeight = it.height.toFloat()
+                    srcHeight = bottomHeightOffset
                 )
             }
         }
@@ -365,14 +370,14 @@ class NinePatch(private val slice: TextureSlice, val left: Int, val right: Int, 
                 set(
                     idx = topLeft,
                     x = x + srcX,
-                    y = topY,
+                    y = topY + topYOffset,
                     width = leftWidthOffset,
-                    height = topHeight,
+                    height = topHeightOffset,
                     color = colorBits,
                     srcX = it.x.toFloat() + min(srcX, it.width.toFloat()),
-                    srcY = it.y.toFloat(),
+                    srcY = it.y.toFloat() + topYOffset,
                     srcWidth = leftWidthOffset,
-                    srcHeight = it.height.toFloat()
+                    srcHeight = topHeightOffset
                 )
             }
         }
@@ -381,14 +386,14 @@ class NinePatch(private val slice: TextureSlice, val left: Int, val right: Int, 
                 set(
                     idx = topCenter,
                     x = centerX,
-                    y = topY,
+                    y = topY + topYOffset,
                     width = centerWidth,
-                    height = topHeight,
+                    height = topHeightOffset,
                     color = colorBits,
                     srcX = it.x.toFloat(),
-                    srcY = it.y.toFloat(),
+                    srcY = it.y.toFloat() + topYOffset,
                     srcWidth = it.width.toFloat(),
-                    srcHeight = it.height.toFloat(),
+                    srcHeight = topHeightOffset,
                     stretchW = patches[TOP_LEFT] != null || patches[TOP_RIGHT] != null,
                 )
             }
@@ -398,14 +403,14 @@ class NinePatch(private val slice: TextureSlice, val left: Int, val right: Int, 
                 set(
                     idx = topRight,
                     x = rightX + rightXOffset,
-                    y = topY,
+                    y = topY + topYOffset,
                     width = rightWidthOffset,
-                    height = topHeight,
+                    height = topHeightOffset,
                     color = colorBits,
                     srcX = it.x.toFloat() + rightXOffset,
-                    srcY = it.y.toFloat(),
+                    srcY = it.y.toFloat() + topYOffset,
                     srcWidth = rightWidthOffset,
-                    srcHeight = it.height.toFloat(),
+                    srcHeight = topHeightOffset,
                 )
             }
         }

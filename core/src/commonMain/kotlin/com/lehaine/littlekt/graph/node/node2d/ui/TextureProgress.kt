@@ -208,8 +208,32 @@ open class TextureProgress : Range() {
                             srcX = width * (1f - ratio),
                         )
                     }
-                    FillMode.TOP_TO_BOTTOM -> {}
-                    FillMode.BOTTOM_TO_TOP -> {}
+                    FillMode.TOP_TO_BOTTOM -> {
+                        progressNine?.draw(
+                            batch,
+                            globalX,
+                            globalY,
+                            width,
+                            height,
+                            scaleX = globalScaleX,
+                            scaleY = globalScaleY,
+                            rotation = globalRotation,
+                            srcHeight = height - height * (1f - ratio)
+                        )
+                    }
+                    FillMode.BOTTOM_TO_TOP -> {
+                        progressNine?.draw(
+                            batch,
+                            globalX,
+                            globalY,
+                            width,
+                            height,
+                            scaleX = globalScaleX,
+                            scaleY = globalScaleY,
+                            rotation = globalRotation,
+                            srcY = height * (1f - ratio),
+                        )
+                    }
                 }
 
             }
