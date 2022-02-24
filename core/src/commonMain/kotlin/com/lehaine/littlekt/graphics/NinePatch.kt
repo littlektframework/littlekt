@@ -252,9 +252,8 @@ class NinePatch(private val slice: TextureSlice, val left: Int, val right: Int, 
         val leftWidthOffset = min(max(leftWidth - srcX, 0f), min(leftWidth, srcWidth))
 
         val rightX = x + width - rightWidth
-        val rightXOffset = if (width - srcX <= rightWidth) rightWidth - (width - srcX) else 0f
-        val rightWidthOffset =
-            if (width - srcX <= rightWidth) width - srcX else min(rightWidth, max(0f, rightWidth - (width - srcWidth)))
+        val rightXOffset = min(rightWidth, max(rightWidth - (width - srcX), 0f))
+        val rightWidthOffset = min(min(width - srcX, rightWidth), max(0f, rightWidth - (width - srcWidth)))
 
         val topY = y + height - topHeight
         val colorBits = color.toFloatBits()
