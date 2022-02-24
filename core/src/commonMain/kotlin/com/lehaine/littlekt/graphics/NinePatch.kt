@@ -138,97 +138,62 @@ class NinePatch(private val slice: TextureSlice, val left: Int, val right: Int, 
 
     private fun load(patches: Array<TextureSlice?>) {
         patches[BOTTOM_LEFT]?.let {
-            bottomLeft = add(it, stretchW = false, stretchH = false)
+            bottomLeft = add()
             leftWidth = it.width.toFloat()
             bottomHeight = it.height.toFloat()
         } ?: run { bottomLeft = -1 }
 
         patches[BOTTOM_CENTER]?.let {
-            bottomCenter = add(it, patches[BOTTOM_LEFT] != null || patches[BOTTOM_RIGHT] != null, false)
+            bottomCenter = add()
             middleWidth = max(middleWidth, it.width.toFloat())
             bottomHeight = max(bottomHeight, it.height.toFloat())
         } ?: run { bottomCenter = -1 }
 
         patches[BOTTOM_RIGHT]?.let {
-            bottomRight = add(it, stretchW = false, stretchH = false)
+            bottomRight = add()
             rightWidth = max(rightWidth, it.width.toFloat())
             bottomHeight = max(bottomHeight, it.height.toFloat())
         } ?: run { bottomRight = -1 }
 
         patches[MIDDLE_LEFT]?.let {
-            middleLeft = add(it, false, patches[TOP_LEFT] != null || patches[BOTTOM_LEFT] != null)
+            middleLeft = add()
             leftWidth = max(leftWidth, it.width.toFloat())
             middleHeight = max(middleHeight, it.height.toFloat())
         } ?: run { middleLeft = -1 }
 
         patches[MIDDLE_CENTER]?.let {
-            middleCenter = add(
-                it,
-                patches[MIDDLE_LEFT] != null || patches[MIDDLE_RIGHT] != null,
-                patches[TOP_CENTER] != null || patches[BOTTOM_CENTER] != null
-            )
+            middleCenter = add()
             middleWidth = max(middleWidth, it.width.toFloat())
             middleHeight = max(middleHeight, it.height.toFloat())
         } ?: run { middleCenter = -1 }
 
         patches[MIDDLE_RIGHT]?.let {
-            middleRight = add(it, false, patches[TOP_RIGHT] != null || patches[BOTTOM_RIGHT] != null)
+            middleRight = add()
             rightWidth = max(rightWidth, it.width.toFloat())
             middleHeight = max(middleHeight, it.height.toFloat())
         } ?: run { middleRight = -1 }
 
         patches[TOP_LEFT]?.let {
-            topLeft = add(it, stretchW = false, stretchH = false)
+            topLeft = add()
             leftWidth = max(leftWidth, it.width.toFloat())
             topHeight = max(topHeight, it.height.toFloat())
         } ?: run { topLeft = -1 }
 
         patches[TOP_CENTER]?.let {
-            topCenter = add(it, patches[TOP_LEFT] != null || patches[TOP_RIGHT] != null, false)
+            topCenter = add()
             middleWidth = max(middleWidth, it.width.toFloat())
             topHeight = max(topHeight, it.height.toFloat())
         } ?: run { topCenter = -1 }
 
         patches[TOP_RIGHT]?.let {
-            topRight = add(it, stretchW = false, stretchH = false)
+            topRight = add()
             rightWidth = max(rightWidth, it.width.toFloat())
             topHeight = max(topHeight, it.height.toFloat())
         } ?: run { topRight = -1 }
     }
 
-    private fun add(slice: TextureSlice, stretchW: Boolean, stretchH: Boolean): Int {
-        var u = slice.u
-        var v = slice.v2
-        var u2 = slice.u2
-        var v2 = slice.v
-
-        // Add half pixel offsets on stretchable dimensions to avoid color bleeding when GL_LINEAR
-        // filtering is used for the texture. This nudges the texture coordinate to the center
-        // of the texel where the neighboring pixel has 0% contribution in linear blending mode.
-        if (slice.texture.magFilter == TexMagFilter.LINEAR || slice.texture.minFilter == TexMinFilter.LINEAR) {
-            if (stretchW) {
-                val halfTexelWidth = 0.5f * 1f / slice.texture.width
-                u += halfTexelWidth
-                u2 -= halfTexelWidth
-            }
-            if (stretchH) {
-                val halfTexelHeight = 0.5f * 1f / slice.texture.height
-                v -= halfTexelHeight
-                v2 += halfTexelHeight
-            }
-        }
-
+    private fun add(): Int {
         val startIdx = idx
-        vertices.let {
-            it[idx + 3] = u
-            it[idx + 4] = v
-            it[idx + 8] = u
-            it[idx + 9] = v2
-            it[idx + 13] = u2
-            it[idx + 14] = v2
-            it[idx + 18] = u2
-            it[idx + 19] = v
-        }
         idx += 20
         return startIdx
     }
