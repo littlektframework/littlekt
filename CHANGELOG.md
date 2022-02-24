@@ -51,6 +51,9 @@
 * add: `TextureProgress` control node
 * update: `NinePatch` to support setting source rectangle
 * **BREAKING**: update: `NinePatchRect` control node to use a `TextureSlice` vs using a `NinePatch` directly.
+* **BREAKING**: update `Scene` to use scoped lifecycle methods with `Context`
+* **BREAKING**: update `Scene` to no longer inherit from `AssetProvider`
+* update: `Game` with `vfs` and `clipboard` properties
 
 ### Bugs:
 
@@ -62,6 +65,10 @@
 * fix: `TextureSlice` using incorrect UV coordinates for a 1x1 slice
 * fix: LWJGL input not resetting the last char when typing
 * fix: `TextureRect` not actually using the specified width and height for stretching
+* fix: `SceneGraph` focusing a `Control` node that wasn't enabled
+* fix: `Node` not updating children nodes when `enable` value was changed.
+* fix: `Button` sometimes not calculating text size resulting in misplaced text
+* fix: `Label` sometimes not calculating text size resulting in misplaced text
 
 ### Upgrades:
 
