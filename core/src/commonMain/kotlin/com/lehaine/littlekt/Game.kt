@@ -26,6 +26,8 @@ open class Game<SceneType : Scene>(context: Context, firstScene: SceneType? = nu
     val logger get() = context.logger
     val resourcesVfs get() = context.resourcesVfs
     val storageVfs get() = context.storageVfs
+    val vfs get() = context.vfs
+    val clipboard get() = context.clipboard
 
     /**
      * Holds reference to all scenes registers with [addScene]. Allows to get a reference of the scene instance
@@ -55,17 +57,23 @@ open class Game<SceneType : Scene>(context: Context, firstScene: SceneType? = nu
      */
     protected fun setSceneCallbacks(context: Context) {
         context.onResize { width, height ->
-            currentScene.resize(width, height)
+            with(currentScene) {
+                context.resize(width, height)
+            }
         }
 
         context.onRender {
-            currentScene.render(it)
+            with(currentScene) {
+                context.render(it)
+            }
         }
 
         context.onDispose {
             scenes.values.forEach {
                 try {
-                    it.dispose()
+                    with(it) {
+                        context.dispose()
+                    }
                 } catch (exception: Throwable) {
                     onSceneDisposalError(it, exception)
                 }
@@ -74,12 +82,12 @@ open class Game<SceneType : Scene>(context: Context, firstScene: SceneType? = nu
     }
 
     /**
-     * Handles resizing the current scene and disposing of the current scene.
+     * Handles resizing the current scene and disposing of the current scene. If this is overridden, ensure to call
+     * [setSceneCallbacks] to ensure the lifecycle events happen for a [Scene].
      */
     override suspend fun Context.start() {
         setSceneCallbacks(this)
     }
-
 
     /**
      * Registers an instance of [Scene].
@@ -130,10 +138,14 @@ open class Game<SceneType : Scene>(context: Context, firstScene: SceneType? = nu
      * @see shownScene
      */
     open suspend fun <Type : SceneType> setScene(type: KClass<Type>) {
-        currentScene.hide()
+        currentScene.run {
+            context.hide()
+        }
         currentScene = getScene(type)
-        currentScene.resize(context.graphics.width, context.graphics.height)
-        currentScene.show()
+        currentScene.run {
+            context.resize(context.graphics.width, context.graphics.height)
+            context.show()
+        }
     }
 
     /**
