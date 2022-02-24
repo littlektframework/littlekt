@@ -312,6 +312,9 @@ open class Node : Comparable<Node> {
     fun enabled(value: Boolean): Node {
         if (_enabled != value) {
             _enabled = value
+            nodes.forEach {
+                it._enabled = value
+            }
         }
         return this
     }

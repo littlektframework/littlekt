@@ -230,6 +230,7 @@ open class SceneGraph<InputType>(
      */
     fun requestFocus(control: Control) {
         if (keyboardFocus == control) return
+        if (!control.enabled) return
         val oldFocus = keyboardFocus
         keyboardFocus = control
         oldFocus?._onFocusLost()
