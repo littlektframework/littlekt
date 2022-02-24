@@ -109,6 +109,11 @@ class NinePatch(private val slice: TextureSlice, val left: Int, val right: Int, 
         srcWidth: Float = width,
         srcHeight: Float = height
     ) {
+        check(srcX >= 0f) { "srcX must be >= 0!" }
+        check(srcY >= 0f) { "srcY must be >= 0!" }
+        check(srcWidth <= width) { "srcWidth must be <= width!" }
+        check(srcHeight <= height) { "srcHeight must be <= height!" }
+
         prepareVertices(x, y, width, height, color, srcX, srcY, srcWidth, srcHeight)
         val worldOriginX = x + originX
         val worldOriginY = y + originY
@@ -241,9 +246,16 @@ class NinePatch(private val slice: TextureSlice, val left: Int, val right: Int, 
     ) {
         val centerX = x + max(leftWidth, srcX)
         val centerY = y + max(bottomHeight, srcY)
-        val centerWidth = max(width - rightWidth - max(leftWidth, srcX), 0f)
+        val centerWidth = max(width - max(width - srcWidth, rightWidth) - max(leftWidth, srcX), 0f)
         val centerHeight = height - topHeight - bottomHeight
+
+        val leftWidthOffset = min(max(leftWidth - srcX, 0f), min(leftWidth, srcWidth))
+
         val rightX = x + width - rightWidth
+        val rightXOffset = if (width - srcX <= rightWidth) rightWidth - (width - srcX) else 0f
+        val rightWidthOffset =
+            if (width - srcX <= rightWidth) width - srcX else min(rightWidth, max(0f, rightWidth - (width - srcWidth)))
+
         val topY = y + height - topHeight
         val colorBits = color.toFloatBits()
         if (bottomLeft != -1) {
@@ -252,12 +264,12 @@ class NinePatch(private val slice: TextureSlice, val left: Int, val right: Int, 
                     idx = bottomLeft,
                     x = x + srcX,
                     y = y,
-                    width = max(it.width - srcX, 0f),
+                    width = leftWidthOffset,
                     height = bottomHeight,
                     color = colorBits,
                     srcX = it.x.toFloat() + min(srcX, it.width.toFloat()),
                     srcY = it.y.toFloat(),
-                    srcWidth = max(it.width - srcX, 0f),
+                    srcWidth = leftWidthOffset,
                     srcHeight = it.height.toFloat()
                 )
             }
@@ -283,14 +295,14 @@ class NinePatch(private val slice: TextureSlice, val left: Int, val right: Int, 
             patches[BOTTOM_RIGHT]?.let {
                 set(
                     idx = bottomRight,
-                    x = rightX + if (width - srcX <= it.width) it.width - (width - srcX) else 0f,
+                    x = rightX + rightXOffset,
                     y = y,
-                    width = if (width - srcX <= it.width) width - srcX else it.width.toFloat(),
+                    width = rightWidthOffset,
                     height = bottomHeight,
                     color = colorBits,
-                    srcX = it.x.toFloat() + if (width - srcX <= it.width) it.width - (width - srcX) else 0f,
+                    srcX = it.x.toFloat() + rightXOffset,
                     srcY = it.y.toFloat(),
-                    srcWidth = if (width - srcX <= it.width) width - srcX else it.width.toFloat(),
+                    srcWidth = rightWidthOffset,
                     srcHeight = it.height.toFloat()
                 )
             }
@@ -301,12 +313,12 @@ class NinePatch(private val slice: TextureSlice, val left: Int, val right: Int, 
                     idx = middleLeft,
                     x = x + srcX,
                     y = centerY,
-                    width = max(it.width - srcX, 0f),
+                    width = leftWidthOffset,
                     height = centerHeight,
                     color = colorBits,
                     srcX = it.x.toFloat() + min(srcX, it.width.toFloat()),
                     srcY = it.y.toFloat(),
-                    srcWidth = max(it.width - srcX, 0f),
+                    srcWidth = leftWidthOffset,
                     srcHeight = it.height.toFloat(),
                     stretchW = false,
                     stretchH = patches[TOP_LEFT] != null || patches[BOTTOM_LEFT] != null
@@ -335,14 +347,14 @@ class NinePatch(private val slice: TextureSlice, val left: Int, val right: Int, 
             patches[MIDDLE_RIGHT]?.let {
                 set(
                     idx = middleRight,
-                    x = rightX + if (width - srcX <= it.width) it.width - (width - srcX) else 0f,
+                    x = rightX + rightXOffset,
                     y = centerY,
-                    width = if (width - srcX <= it.width) width - srcX else it.width.toFloat(),
+                    width = rightWidthOffset,
                     height = centerHeight,
                     color = colorBits,
-                    srcX = it.x.toFloat() + if (width - srcX <= it.width) it.width - (width - srcX) else 0f,
+                    srcX = it.x.toFloat() + rightXOffset,
                     srcY = it.y.toFloat(),
-                    srcWidth = if (width - srcX <= it.width) width - srcX else it.width.toFloat(),
+                    srcWidth = rightWidthOffset,
                     srcHeight = it.height.toFloat(),
                     stretchW = false,
                     stretchH = patches[TOP_RIGHT] != null || patches[BOTTOM_RIGHT] != null
@@ -355,12 +367,12 @@ class NinePatch(private val slice: TextureSlice, val left: Int, val right: Int, 
                     idx = topLeft,
                     x = x + srcX,
                     y = topY,
-                    width = max(it.width - srcX, 0f),
+                    width = leftWidthOffset,
                     height = topHeight,
                     color = colorBits,
                     srcX = it.x.toFloat() + min(srcX, it.width.toFloat()),
                     srcY = it.y.toFloat(),
-                    srcWidth = max(it.width - srcX, 0f),
+                    srcWidth = leftWidthOffset,
                     srcHeight = it.height.toFloat()
                 )
             }
@@ -386,14 +398,14 @@ class NinePatch(private val slice: TextureSlice, val left: Int, val right: Int, 
             patches[TOP_RIGHT]?.let {
                 set(
                     idx = topRight,
-                    x = rightX + if (width - srcX <= it.width) it.width - (width - srcX) else 0f,
+                    x = rightX + rightXOffset,
                     y = topY,
-                    width = if (width - srcX <= it.width) width - srcX else it.width.toFloat(),
+                    width = rightWidthOffset,
                     height = topHeight,
                     color = colorBits,
-                    srcX = it.x.toFloat() + if (width - srcX <= it.width) it.width - (width - srcX) else 0f,
+                    srcX = it.x.toFloat() + rightXOffset,
                     srcY = it.y.toFloat(),
-                    srcWidth = if (width - srcX <= it.width) width - srcX else it.width.toFloat(),
+                    srcWidth = rightWidthOffset,
                     srcHeight = it.height.toFloat(),
                 )
             }

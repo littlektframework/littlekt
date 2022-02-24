@@ -183,7 +183,17 @@ open class TextureProgress : Range() {
             progressNine?.let {
                 when (fillMode) {
                     FillMode.LEFT_TO_RIGHT -> {
-
+                        progressNine?.draw(
+                            batch,
+                            globalX,
+                            globalY,
+                            width,
+                            height,
+                            scaleX = globalScaleX,
+                            scaleY = globalScaleY,
+                            rotation = globalRotation,
+                            srcWidth = width - width * (1f - ratio)
+                        )
                     }
                     FillMode.RIGHT_TO_LEFT -> {
                         progressNine?.draw(
@@ -196,7 +206,6 @@ open class TextureProgress : Range() {
                             scaleY = globalScaleY,
                             rotation = globalRotation,
                             srcX = width * (1f - ratio),
-                            srcWidth = width - width * (1f - ratio)
                         )
                     }
                     FillMode.TOP_TO_BOTTOM -> {}

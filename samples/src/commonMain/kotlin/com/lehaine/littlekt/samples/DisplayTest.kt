@@ -476,7 +476,8 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
                         vBoxContainer {
                             textureProgress {
                                 this.progressBar = ninepatchImg.slice()
-                                ratio = 0.43f
+                                max = 1000f
+                                ratio = 0.05f
                                 left = 3
                                 right = 3
                                 top = 3
@@ -499,8 +500,8 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
                             textureProgress {
                                 this.progressBar = ninepatchImg.slice()
                                 fillMode = TextureProgress.FillMode.RIGHT_TO_LEFT
-                                max = 100f
-                                ratio = 0.1f
+                                max = 1000f
+                                ratio = 0.05f
                                 left = 3
                                 right = 3
                                 top = 3
