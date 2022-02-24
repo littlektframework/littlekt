@@ -48,6 +48,9 @@
 * add: support for `KEY_REPEAT` event in `SceneGraph`
 * **BREAKING**: move `StretchMode` into `TextureRect` class.
 * add: `TILE` stretch mode implementation to `TextureRect`
+* add: `TextureProgress` control node
+* update: `NinePatch` to support setting source rectangle
+* **BREAKING**: update: `NinePatchRect` control node to use a `TextureSlice` vs using a `NinePatch` directly.
 
 ### Bugs:
 
