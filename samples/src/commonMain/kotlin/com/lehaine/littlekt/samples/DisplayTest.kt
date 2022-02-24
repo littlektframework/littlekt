@@ -402,68 +402,166 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
                         ratio = 0.27f
                     }
 
-                    vBoxContainer {
-                        x = 300f
-                        y = 400f
+                    hBoxContainer {
+                        x = 200f
+                        y = 275f
+                        separation = 10
+                        scaleX = 3f
+                        scaleY = 3f
 
-                        textureProgress {
-                            this.progressBar = ninepatchImg.slice()
-                            ratio = 0.43f
-                            progressBarColor = Color.DARK_GREEN
+                        vBoxContainer {
+                            textureProgress {
+                                this.progressBar = ninepatchImg.slice()
+                                ratio = 0.43f
+                                progressBarColor = Color.DARK_GREEN
 
-                            onUpdate += {
-                                if (input.isKeyPressed(Key.Z)) {
-                                    value--
+                                onUpdate += {
+                                    if (input.isKeyPressed(Key.Z)) {
+                                        value--
+                                    }
+                                    if (input.isKeyPressed(Key.X)) {
+                                        value++
+                                    }
                                 }
-                                if (input.isKeyPressed(Key.X)) {
-                                    value++
+                            }
+
+                            textureProgress {
+                                this.progressBar = ninepatchImg.slice()
+                                fillMode = TextureProgress.FillMode.RIGHT_TO_LEFT
+                                ratio = 0.43f
+                                progressBarColor = Color.DARK_BLUE
+
+                                onUpdate += {
+                                    if (input.isKeyPressed(Key.Z)) {
+                                        value--
+                                    }
+                                    if (input.isKeyPressed(Key.X)) {
+                                        value++
+                                    }
+                                }
+                            }
+                            textureProgress {
+                                this.progressBar = ninepatchImg.slice()
+                                fillMode = TextureProgress.FillMode.TOP_TO_BOTTOM
+                                ratio = 0.43f
+                                progressBarColor = Color.DARK_ORANGE
+
+                                onUpdate += {
+                                    if (input.isKeyPressed(Key.Z)) {
+                                        value--
+                                    }
+                                    if (input.isKeyPressed(Key.X)) {
+                                        value++
+                                    }
+                                }
+                            }
+
+                            textureProgress {
+                                this.progressBar = ninepatchImg.slice()
+                                fillMode = TextureProgress.FillMode.BOTTOM_TO_TOP
+                                ratio = 0.43f
+                                progressBarColor = Color.DARK_RED
+
+                                onUpdate += {
+                                    if (input.isKeyPressed(Key.Z)) {
+                                        value--
+                                    }
+                                    if (input.isKeyPressed(Key.X)) {
+                                        value++
+                                    }
                                 }
                             }
                         }
 
-                        textureProgress {
-                            this.progressBar = ninepatchImg.slice()
-                            fillMode = TextureProgress.FillMode.RIGHT_TO_LEFT
-                            ratio = 0.43f
-                            progressBarColor = Color.DARK_BLUE
+                        vBoxContainer {
+                            textureProgress {
+                                this.progressBar = ninepatchImg.slice()
+                                ratio = 0.43f
+                                left = 3
+                                right = 3
+                                top = 3
+                                bottom = 4
+                                useNinePatch = true
+                                minWidth = 80f
+                                minHeight = 16f
+                                progressBarColor = Color.DARK_GREEN
 
-                            onUpdate += {
-                                if (input.isKeyPressed(Key.Z)) {
-                                    value--
-                                }
-                                if (input.isKeyPressed(Key.X)) {
-                                    value++
+                                onUpdate += {
+                                    if (input.isKeyPressed(Key.Z)) {
+                                        value--
+                                    }
+                                    if (input.isKeyPressed(Key.X)) {
+                                        value++
+                                    }
                                 }
                             }
-                        }
-                        textureProgress {
-                            this.progressBar = ninepatchImg.slice()
-                            fillMode = TextureProgress.FillMode.TOP_TO_BOTTOM
-                            ratio = 0.43f
-                            progressBarColor = Color.DARK_ORANGE
 
-                            onUpdate += {
-                                if (input.isKeyPressed(Key.Z)) {
-                                    value--
-                                }
-                                if (input.isKeyPressed(Key.X)) {
-                                    value++
+                            textureProgress {
+                                this.progressBar = ninepatchImg.slice()
+                                fillMode = TextureProgress.FillMode.RIGHT_TO_LEFT
+                                max = 100f
+                                ratio = 0.1f
+                                left = 3
+                                right = 3
+                                top = 3
+                                bottom = 4
+                                useNinePatch = true
+                                minWidth = 80f
+                                minHeight = 16f
+                                progressBarColor = Color.DARK_BLUE
+
+                                onUpdate += {
+                                    if (input.isKeyPressed(Key.Z)) {
+                                        value--
+                                    }
+                                    if (input.isKeyPressed(Key.X)) {
+                                        value++
+                                    }
                                 }
                             }
-                        }
+                            textureProgress {
+                                this.progressBar = ninepatchImg.slice()
+                                fillMode = TextureProgress.FillMode.TOP_TO_BOTTOM
+                                ratio = 0.43f
+                                left = 3
+                                right = 3
+                                top = 3
+                                bottom = 4
+                                useNinePatch = true
+                                minWidth = 80f
+                                minHeight = 16f
+                                progressBarColor = Color.DARK_ORANGE
 
-                        textureProgress {
-                            this.progressBar = ninepatchImg.slice()
-                            fillMode = TextureProgress.FillMode.BOTTOM_TO_TOP
-                            ratio = 0.43f
-                            progressBarColor = Color.DARK_RED
-
-                            onUpdate += {
-                                if (input.isKeyPressed(Key.Z)) {
-                                    value--
+                                onUpdate += {
+                                    if (input.isKeyPressed(Key.Z)) {
+                                        value--
+                                    }
+                                    if (input.isKeyPressed(Key.X)) {
+                                        value++
+                                    }
                                 }
-                                if (input.isKeyPressed(Key.X)) {
-                                    value++
+                            }
+
+                            textureProgress {
+                                this.progressBar = ninepatchImg.slice()
+                                fillMode = TextureProgress.FillMode.BOTTOM_TO_TOP
+                                ratio = 0.43f
+                                left = 3
+                                right = 3
+                                top = 3
+                                bottom = 4
+                                useNinePatch = true
+                                minWidth = 80f
+                                minHeight = 16f
+                                progressBarColor = Color.DARK_RED
+
+                                onUpdate += {
+                                    if (input.isKeyPressed(Key.Z)) {
+                                        value--
+                                    }
+                                    if (input.isKeyPressed(Key.X)) {
+                                        value++
+                                    }
                                 }
                             }
                         }

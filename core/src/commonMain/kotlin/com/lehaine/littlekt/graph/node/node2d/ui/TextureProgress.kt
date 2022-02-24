@@ -178,6 +178,32 @@ open class TextureProgress : Range() {
         super.render(batch, camera)
 
         if (useNinePatch) {
+            //backgroundNine?.draw()
+
+            progressNine?.let {
+                when (fillMode) {
+                    FillMode.LEFT_TO_RIGHT -> {
+
+                    }
+                    FillMode.RIGHT_TO_LEFT -> {
+                        progressNine?.draw(
+                            batch,
+                            globalX,
+                            globalY,
+                            width,
+                            height,
+                            scaleX = globalScaleX,
+                            scaleY = globalScaleY,
+                            rotation = globalRotation,
+                            srcX = width * (1f - ratio),
+                            srcWidth = width - width * (1f - ratio)
+                        )
+                    }
+                    FillMode.TOP_TO_BOTTOM -> {}
+                    FillMode.BOTTOM_TO_TOP -> {}
+                }
+
+            }
 
         } else {
             background?.let {
