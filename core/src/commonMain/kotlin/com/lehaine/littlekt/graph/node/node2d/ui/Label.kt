@@ -7,7 +7,10 @@ import com.lehaine.littlekt.graph.node.annotation.SceneGraphDslMarker
 import com.lehaine.littlekt.graph.node.component.HAlign
 import com.lehaine.littlekt.graph.node.component.Theme
 import com.lehaine.littlekt.graph.node.component.VAlign
-import com.lehaine.littlekt.graphics.*
+import com.lehaine.littlekt.graphics.Batch
+import com.lehaine.littlekt.graphics.Camera
+import com.lehaine.littlekt.graphics.Color
+import com.lehaine.littlekt.graphics.MutableColor
 import com.lehaine.littlekt.graphics.font.BitmapFont
 import com.lehaine.littlekt.graphics.font.BitmapFontCache
 import com.lehaine.littlekt.graphics.font.GlyphLayout
@@ -52,7 +55,6 @@ open class Label : Control() {
     private val layout = GlyphLayout()
 
     private var _fontScale = MutableVec2f(1f)
-    private var textDirty = false
 
     var fontScale: Vec2f
         get() = _fontScale
@@ -69,7 +71,6 @@ open class Label : Control() {
             } else {
                 _fontScale.set(value)
             }
-            textDirty = true
             onMinimumSizeChanged()
         }
 
@@ -82,7 +83,6 @@ open class Label : Control() {
             } else {
                 _fontScale.x = value
             }
-            textDirty = true
             onMinimumSizeChanged()
         }
 
@@ -95,7 +95,6 @@ open class Label : Control() {
             } else {
                 _fontScale.y = value
             }
-            textDirty = true
             onMinimumSizeChanged()
         }
 
@@ -116,14 +115,12 @@ open class Label : Control() {
         set(value) {
             if (value == field) return
             field = value
-            textDirty = true
             onMinimumSizeChanged()
         }
     var horizontalAlign: HAlign = HAlign.LEFT
         set(value) {
             if (value == field) return
             field = value
-            textDirty = true
             onMinimumSizeChanged()
         }
 
@@ -131,7 +128,6 @@ open class Label : Control() {
         set(value) {
             if (value == field) return
             field = value
-            textDirty = true
             onMinimumSizeChanged()
         }
 
@@ -141,7 +137,6 @@ open class Label : Control() {
         set(value) {
             if (value == field) return
             field = value
-            textDirty = true
             onMinimumSizeChanged()
         }
 
@@ -149,7 +144,6 @@ open class Label : Control() {
         set(value) {
             if (value == field) return
             field = value
-            textDirty = true
             onMinimumSizeChanged()
         }
 
@@ -184,9 +178,7 @@ open class Label : Control() {
     override fun calculateMinSize() {
         if (!minSizeInvalid) return
 
-        if (textDirty) {
-            layout()
-        }
+        layout()
 
         val text = if (uppercase) text.uppercase() else text
         minSizeLayout.setText(font, text, scaleX = fontScaleX, scaleY = fontScaleY, wrap = wrap)
@@ -197,7 +189,6 @@ open class Label : Control() {
     }
 
     private fun layout() {
-        textDirty = false
         val text = if (uppercase) text.uppercase() else text
 
         var ty = 0f

@@ -63,7 +63,6 @@ open class Button : BaseButton() {
     private val layout = GlyphLayout()
 
     private var _fontScale = MutableVec2f(1f)
-    private var textDirty = false
 
     var padding = 10f
         set(value) {
@@ -87,7 +86,6 @@ open class Button : BaseButton() {
             } else {
                 _fontScale.set(value)
             }
-            textDirty = true
             onMinimumSizeChanged()
         }
 
@@ -100,7 +98,6 @@ open class Button : BaseButton() {
             } else {
                 _fontScale.x = value
             }
-            textDirty = true
             onMinimumSizeChanged()
         }
 
@@ -113,7 +110,6 @@ open class Button : BaseButton() {
             } else {
                 _fontScale.y = value
             }
-            textDirty = true
             onMinimumSizeChanged()
         }
 
@@ -134,14 +130,12 @@ open class Button : BaseButton() {
         set(value) {
             if (value == field) return
             field = value
-            textDirty = true
             onMinimumSizeChanged()
         }
     var horizontalAlign: HAlign = HAlign.CENTER
         set(value) {
             if (value == field) return
             field = value
-            textDirty = true
             onMinimumSizeChanged()
         }
 
@@ -149,7 +143,6 @@ open class Button : BaseButton() {
         set(value) {
             if (value == field) return
             field = value
-            textDirty = true
             onMinimumSizeChanged()
         }
 
@@ -159,7 +152,6 @@ open class Button : BaseButton() {
         set(value) {
             if (value == field) return
             field = value
-            textDirty = true
             onMinimumSizeChanged()
         }
 
@@ -167,7 +159,6 @@ open class Button : BaseButton() {
         set(value) {
             if (value == field) return
             field = value
-            textDirty = true
             onMinimumSizeChanged()
         }
 
@@ -250,9 +241,7 @@ open class Button : BaseButton() {
     override fun calculateMinSize() {
         if (!minSizeInvalid) return
 
-        if (textDirty) {
-            layout()
-        }
+        layout()
 
         val text = if (uppercase) text.uppercase() else text
         minSizeLayout.setText(font, text, scaleX = fontScaleX, scaleY = fontScaleY, wrap = wrap)
@@ -264,7 +253,6 @@ open class Button : BaseButton() {
     }
 
     private fun layout() {
-        textDirty = false
         val text = if (uppercase) text.uppercase() else text
 
         var ty = 0f
