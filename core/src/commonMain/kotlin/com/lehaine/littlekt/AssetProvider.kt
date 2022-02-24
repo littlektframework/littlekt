@@ -40,7 +40,6 @@ open class AssetProvider(val context: Context) {
 
     /**
      * Holds the current state of assets being prepared.
-     * @see create
      * @see prepare
      */
     var prepared = false
@@ -54,7 +53,7 @@ open class AssetProvider(val context: Context) {
 
 
     /**
-     * Handle any render / update logic here.
+     * Updates to check if all assets have been loaded, and if so, prepare them.
      */
     fun update() {
         if (totalAssetsLoading.value > 0) return
@@ -88,6 +87,7 @@ open class AssetProvider(val context: Context) {
         if (filesBeingChecked.contains(file)) {
             throw IllegalStateException("'${file.path}' has already been triggered to load but hasn't finished yet! Ensure `load()` hasn't been called twice for the same VfsFile")
         }
+        prepared = false
         filesBeingChecked += file
         totalAssetsLoading.addAndGet(1)
         totalAssets.addAndGet(1)
@@ -129,11 +129,12 @@ open class AssetProvider(val context: Context) {
      */
     fun <T : Any> prepare(action: () -> T) = PreparableGameAsset(action).also { assetsToPrepare += it }
 
-    fun <T : Any> get(clazz: KClass<T>, vfsFile: VfsFile) = assets[clazz]?.get(vfsFile)?.content
+    @Suppress("UNCHECKED_CAST")
+    fun <T : Any> get(clazz: KClass<T>, vfsFile: VfsFile) = assets[clazz]?.get(vfsFile)?.content as T
 
     inline fun <reified T : Any> get(
         file: VfsFile,
-    ) = get(T::class, file)
+    ) = get(T::class, file) as T
 
     companion object {
         fun createDefaultLoaders() = mapOf<KClass<*>, suspend (VfsFile, GameAssetParameters) -> Any>(
