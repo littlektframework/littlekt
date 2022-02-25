@@ -1429,7 +1429,7 @@ open class Control : Node2D() {
     }
 
     /**
-     * Flags the tell the parent [Container] how to expand/shrink the child. Use with [horizontalSizeFlags] and
+     * Flags that tell the parent [Container] how to expand/shrink the child. Use with [horizontalSizeFlags] and
      * [verticalSizeFlags]
      * @author Colt Daily
      */
@@ -1442,6 +1442,11 @@ open class Control : Node2D() {
         infix fun and(flag: SizeFlag) = SizeFlag(bit.and(flag.bit))
 
         companion object {
+            /**
+             * Useful when there is no need for a size flag. Same as using `SizeFlag(0)`.
+             */
+            val NONE = SizeFlag(0)
+
             /**
              * Tells the parent Container to expand the bounds of this node to fill all the available
              * space without pushing any other node.
