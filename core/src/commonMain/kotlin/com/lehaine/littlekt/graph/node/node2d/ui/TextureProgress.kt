@@ -288,7 +288,7 @@ open class TextureProgress : Range() {
                 when (fillMode) {
                     FillMode.LEFT_TO_RIGHT -> {
                         batch.draw(
-                            it.texture,
+                            it,
                             globalX,
                             globalY,
                             0f,
@@ -307,7 +307,7 @@ open class TextureProgress : Range() {
                     }
                     FillMode.RIGHT_TO_LEFT -> {
                         batch.draw(
-                            it.texture,
+                            it,
                             globalX + sliceWidth - widthRatio,
                             globalY,
                             0f,
@@ -326,7 +326,7 @@ open class TextureProgress : Range() {
                     }
                     FillMode.TOP_TO_BOTTOM -> {
                         batch.draw(
-                            it.texture,
+                            it,
                             globalX,
                             globalY,
                             0f,
@@ -345,7 +345,7 @@ open class TextureProgress : Range() {
                     }
                     FillMode.BOTTOM_TO_TOP -> {
                         batch.draw(
-                            it.texture,
+                            it,
                             globalX,
                             globalY + sliceHeight - heightRatio,
                             0f,

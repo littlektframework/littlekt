@@ -437,8 +437,6 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
 
                         vBoxContainer {
                             textureProgress {
-                                background = ninepatchImg.slice()
-                                foreground = ninepatchImg.slice()
                                 this.progressBar = ninepatchImg.slice()
                                 ratio = 0.43f
                                 progressBarColor = Color.DARK_GREEN

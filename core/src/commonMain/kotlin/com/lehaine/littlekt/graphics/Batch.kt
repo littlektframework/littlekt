@@ -73,6 +73,26 @@ interface Batch : Disposable {
     )
 
     fun draw(
+        slice: TextureSlice,
+        x: Float,
+        y: Float,
+        originX: Float = 0f,
+        originY: Float = 0f,
+        width: Float = slice.width.toFloat(),
+        height: Float = slice.height.toFloat(),
+        scaleX: Float = 1f,
+        scaleY: Float = 1f,
+        rotation: Angle = Angle.ZERO,
+        colorBits: Float = this.colorBits,
+        srcX: Int = slice.x,
+        srcY: Int = slice.y,
+        srcWidth: Int = slice.width,
+        srcHeight: Int = slice.height,
+        flipX: Boolean = false,
+        flipY: Boolean = false,
+    )
+
+    fun draw(
         texture: Texture,
         x: Float,
         y: Float,
