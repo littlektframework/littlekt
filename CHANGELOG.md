@@ -54,6 +54,7 @@
 * **BREAKING**: update `Scene` to use scoped lifecycle methods with `Context`
 * **BREAKING**: update `Scene` to no longer inherit from `AssetProvider`
 * update: `Game` with `vfs` and `clipboard` properties
+* add: a return value to `Context` callback methods (`onRender`, `onPostRender`, `onResize`, `onDispose`, `onPostRunnable`) that can be invoked once to remove the callback from being invoked.
 
 ### Bugs:
 
