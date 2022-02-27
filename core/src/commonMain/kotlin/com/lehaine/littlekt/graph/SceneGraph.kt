@@ -180,9 +180,13 @@ open class SceneGraph<InputType>(
 
     /**
      * Resizes the internal graph's [OrthographicCamera] and [Viewport].
+     * @param centerCamera if true will center the graphs internal camera after resizing the viewport
      */
-    fun resize(width: Int, height: Int) {
+    fun resize(width: Int, height: Int, centerCamera: Boolean = false) {
         camera.update(width, height, context)
+        if (centerCamera) {
+            camera.position.set(viewport.virtualWidth / 2f, viewport.virtualHeight / 2f, 0f)
+        }
     }
 
     /**

@@ -2,14 +2,11 @@ package com.lehaine.littlekt.samples
 
 import com.lehaine.littlekt.Context
 import com.lehaine.littlekt.ContextListener
-import com.lehaine.littlekt.graph.node.node2d.ui.button
-import com.lehaine.littlekt.graph.node.node2d.ui.centerContainer
-import com.lehaine.littlekt.graph.node.node2d.ui.label
-import com.lehaine.littlekt.graph.node.node2d.ui.vBoxContainer
+import com.lehaine.littlekt.graph.node.node2d.ui.*
 import com.lehaine.littlekt.graph.sceneGraph
 import com.lehaine.littlekt.graphics.gl.ClearBufferMask
 import com.lehaine.littlekt.input.Key
-import com.lehaine.littlekt.util.viewport.FitViewport
+import com.lehaine.littlekt.util.viewport.ExtendViewport
 
 /**
  * @author Colton Daily
@@ -18,30 +15,34 @@ import com.lehaine.littlekt.util.viewport.FitViewport
 class UiTest(context: Context) : ContextListener(context) {
 
     override suspend fun Context.start() {
-        val graph = sceneGraph(context, FitViewport(480, 270)) {
-            centerContainer {
-                anchorBottom = 1f
+        val graph = sceneGraph(context, ExtendViewport(480, 270)) {
+            paddedContainer {
                 anchorRight = 1f
-                vBoxContainer {
-                    separation = 20
-                    label {
-                        text = "Select a Sample:"
+                anchorBottom = 1f
+                padding(5)
+
+                hBoxContainer {
+                    vBoxContainer {
+                        name = "Player Info"
+                        separation = 5
+                        horizontalSizeFlags = Control.SizeFlag.FILL or Control.SizeFlag.EXPAND
+
+
+                        label {
+                            text = "top left"
+                        }
                     }
 
                     vBoxContainer {
-                        separation = 10
-                        button {
-                            text = "Platformer - Collect all the Diamonds!"
-                        }
-                        button {
-                            text = "Another!!"
-                        }
-                    }
+                        name = "Zone Info"
+                        separation = 5
 
-                    button {
-                        text = "Exit"
-                        onPressed += {
-                            context.close()
+                        label {
+                            text = "Emerald Forest"
+                        }
+
+                        label {
+                            text = "Levels 1-10"
                         }
                     }
                 }
@@ -49,7 +50,7 @@ class UiTest(context: Context) : ContextListener(context) {
         }.also { it.initialize() }
 
         onResize { width, height ->
-            graph.resize(width, height)
+            graph.resize(width, height, true)
         }
         onRender { dt ->
             gl.clear(ClearBufferMask.COLOR_BUFFER_BIT)
