@@ -29,6 +29,7 @@
 * add: `truncate` string to `Font`, `FontCache` and `GlyphLayout`.
 * add: ability to focus `Control` nodes and cycle through them with keyboard.
 * add: `onFocus` and `onFocusLost` methods to `Control`
+* **BREAKING**: move most UI enum classes to the specific Node class such as `SizeFlag`, `StretchMode`, and `AnchorLayout`
 * update: `SceneGraph` to trigger ui input events for keyboard
 * update: `BaseButton` to allow for triggering press signal with keyboard
 * update `Button` with new _focus_ theme variable drawable
@@ -55,6 +56,7 @@
 * **BREAKING**: update `Scene` to no longer inherit from `AssetProvider`
 * update: `Game` with `vfs` and `clipboard` properties
 * add: a return value to `Context` callback methods (`onRender`, `onPostRender`, `onResize`, `onDispose`, `onPostRunnable`) that can be invoked once to remove the callback from being invoked.
+* add: new `SizeFlag` value of `NONE` which is the same as creating a `SizeFlag(0)`
 
 ### Bugs:
 
