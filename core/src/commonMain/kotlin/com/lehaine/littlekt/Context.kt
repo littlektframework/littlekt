@@ -114,36 +114,63 @@ abstract class Context {
 
     /**
      * Creates a new render callback is invoked on every frame.
+     * @return a lambda that can be invoked to remove the callback
      */
-    open fun onRender(action: suspend (dt: Duration) -> Unit) {
+    open fun onRender(action: suspend (dt: Duration) -> Unit): RemoveContextCallback {
         renderCalls += action
+        return {
+            check(renderCalls.contains(action)) { "the 'onRender' action has already been removed!" }
+            renderCalls -= action
+        }
     }
 
     /**
      * Creates a new post-render callback that is invoked after the _render_ method is finished.
+     * @return a lambda that can be invoked to remove the callback
      */
-    open fun onPostRender(action: suspend (dt: Duration) -> Unit) {
+    open fun onPostRender(action: suspend (dt: Duration) -> Unit): RemoveContextCallback {
         postRenderCalls += action
+        return {
+            check(postRenderCalls.contains(action)) { "the 'onPostRender' action has already been removed!" }
+            postRenderCalls -= action
+        }
     }
 
     /**
      * Creates a new _resize_ callback that is invoked whenever the context is resized.
+     * @return a lambda that can be invoked to remove the callback
      */
-    open fun onResize(action: suspend (width: Int, height: Int) -> Unit) {
+    open fun onResize(action: suspend (width: Int, height: Int) -> Unit): RemoveContextCallback {
         resizeCalls += action
+        return {
+            check(resizeCalls.contains(action)) { "the 'onResize' action has already been removed!" }
+            resizeCalls -= action
+        }
     }
 
     /**
      * Creates a new _dispose_ callback that is invoked when the context is being destroyed.
+     * @return a lambda that can be invoked to remove the callback
      */
-    open fun onDispose(action: suspend () -> Unit) {
+    open fun onDispose(action: suspend () -> Unit): RemoveContextCallback {
         disposeCalls += action
+        return {
+            check(disposeCalls.contains(action)) { "the 'onDispose' action has already been removed!" }
+            disposeCalls -= action
+        }
     }
 
     /**
      * Creates a new _postRunnable_ that is invoked one time after the next frame.
+     * @return a lambda that can be invoked to remove the callback
      */
-    open fun postRunnable(action: suspend () -> Unit) {
+    open fun postRunnable(action: suspend () -> Unit): RemoveContextCallback {
         postRunnableCalls += action
+        return {
+            check(postRunnableCalls.contains(action)) { "the 'postRunnable' action has already been removed!" }
+            postRunnableCalls -= action
+        }
     }
 }
+
+typealias RemoveContextCallback = () -> Unit
