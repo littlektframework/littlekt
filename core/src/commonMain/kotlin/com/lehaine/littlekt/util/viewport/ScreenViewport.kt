@@ -3,6 +3,8 @@ package com.lehaine.littlekt.util.viewport
 import com.lehaine.littlekt.Context
 
 /**
+ * A viewport that uses a virtual size that will always match the window size.
+ * No scaling happens along with no black bars appearing.
  * @author Colton Daily
  * @date 12/21/2021
  */

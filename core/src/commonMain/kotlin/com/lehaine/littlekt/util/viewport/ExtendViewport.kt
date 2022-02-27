@@ -5,6 +5,9 @@ import com.lehaine.littlekt.util.Scaler
 import kotlin.math.roundToInt
 
 /**
+ * A viewport that supports using a virtual size.
+ * The virtual viewport maintains the aspect ratio by extending the game world horizontally or vertically.
+ * The world is scaled to fit within the viewport and then the shorter dimension is lengthened to fill the viewport.
  * @author Colton Daily
  * @date 12/27/2021
  */
