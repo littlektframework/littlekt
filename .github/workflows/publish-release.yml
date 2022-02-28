@@ -28,6 +28,6 @@ jobs:
       - name: Publish core release to Sonatype repository
         run: ./gradlew core:publishAllPublicationsToSonatypeRepository
       - name: Publish tools release to Sonatype repository
-        run: ./gradlew tools:publishAllPublicationsToSonatypeRepository
+        run: ./gradlew extensions:tools:publishAllPublicationsToSonatypeRepository
       - name: Publish texture packer gradle plugins release to Sonatype repository
-        run: ./gradlew gradle-plugins:extensions:texturepacker:publishAllPublicationsToSonatypeRepository
+        run: ./gradlew extensions:gradle:texturepacker:publishAllPublicationsToSonatypeRepository
