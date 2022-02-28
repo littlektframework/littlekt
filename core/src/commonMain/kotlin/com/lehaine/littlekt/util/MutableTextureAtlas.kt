@@ -5,9 +5,9 @@ import com.lehaine.littlekt.file.atlas.AtlasInfo
 import com.lehaine.littlekt.file.atlas.AtlasPage
 import com.lehaine.littlekt.graphics.*
 import com.lehaine.littlekt.graphics.gl.PixmapTextureData
-import com.lehaine.littlekt.tools.texturepacker.MaxRectsPacker
-import com.lehaine.littlekt.tools.texturepacker.PackingOptions
-import com.lehaine.littlekt.tools.texturepacker.Rect
+import com.lehaine.littlekt.util.packer.BinRect
+import com.lehaine.littlekt.util.packer.MaxRectsPacker
+import com.lehaine.littlekt.util.packer.PackingOptions
 
 /**
  * Allows building of a [TextureAtlas] by combining existing textures, texture slices, and texture atlases.
@@ -17,17 +17,18 @@ import com.lehaine.littlekt.tools.texturepacker.Rect
 class MutableTextureAtlas(val context: Context, options: PackingOptions = PackingOptions()) {
     constructor(context: Context, width: Int = 4096, height: Int = 4096, padding: Int = 2) : this(
         context,
-        PackingOptions().apply {
-            maxWidth = width
-            maxHeight = height
-            paddingVertical = padding
+        PackingOptions(
+            maxWidth = width,
+            maxHeight = height,
+            paddingVertical = padding,
             paddingHorizontal = padding
-        })
+        )
+    )
 
     private val packer = MaxRectsPacker(options)
     private val entries = mutableListOf<Entry>()
 
-    private data class Entry(val slice: TextureSlice, val name: String) : Rect(0, 0, slice.width, slice.height)
+    private data class Entry(val slice: TextureSlice, val name: String) : BinRect(0, 0, slice.width, slice.height)
 
     val size get() = entries.size
     val width get() = packer.width

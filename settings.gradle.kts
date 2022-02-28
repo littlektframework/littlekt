@@ -8,8 +8,8 @@ pluginManagement {
 includeBuild("gradle-plugins/convention-plugins")
 rootProject.name = "littlekt"
 include("core")
-include("tools")
-include("gradle-plugins:extensions:texturepacker")
+include("extensions:tools")
+include("extensions:gradle:texturepacker")
 include("samples")
 
 
