@@ -31,7 +31,7 @@ internal data class TiledProperty(val key: String, val type: String, val value: 
 internal data class TiledLayerData(
     val id: Int,
     val draworder: String? = null,
-    val data: List<Int> = emptyList(),
+    val data: List<Long> = emptyList(),
     val objects: List<TiledObjectData> = emptyList(),
     val width: Int,
     val height: Int,

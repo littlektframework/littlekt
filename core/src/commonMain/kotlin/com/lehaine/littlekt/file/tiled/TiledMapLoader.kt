@@ -55,7 +55,7 @@ class TiledMapLoader internal constructor(private val root: VfsFile, private val
                 tintColor = layerData.tintColor?.let { Color.fromHex(it) },
                 opacity = layerData.opacity,
                 properties = layerData.properties.toTiledMapProperty(),
-                tileData = layerData.data.toIntArray(),
+                tileData = layerData.data.map { it.toInt() }.toIntArray(),
                 tiles = tiles
             )
             "objectgroup" -> TODO()
@@ -74,7 +74,9 @@ class TiledMapLoader internal constructor(private val root: VfsFile, private val
             tileWidth = tilesetData.tilewidth,
             tileHeight = tilesetData.tileheight,
             tiles = slices.mapIndexed { index, slice ->
-                val tileData = tilesetData.tiles.firstOrNull { it.id == index }
+                val tileData = tilesetData.tiles.firstOrNull {
+                    it.id == index
+                }
 
                 TiledTileset.Tile(
                     slice,
@@ -82,7 +84,7 @@ class TiledMapLoader internal constructor(private val root: VfsFile, private val
                     tileData?.animation?.map {
                         TiledTileset.AnimatedTile(
                             slices[it.tileid],
-                        it.tileid + gid,
+                            it.tileid + gid,
                             it.duration.milliseconds
                         )
                     }

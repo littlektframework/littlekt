@@ -164,4 +164,11 @@ class TiledMap(
             ) : Shape()
         }
     }
+
+    companion object {
+        internal const val FLAG_FLIP_HORIZONTALLY = 0x80000000.toInt()
+        internal const val FLAG_FLIP_VERTICALLY = 0x40000000
+        internal const val FLAG_FLIP_DIAGONALLY = 0x20000000
+        internal const val MASK_CLEAR = 0xE0000000.toInt()
+    }
 }

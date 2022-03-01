@@ -4,6 +4,7 @@ import com.lehaine.littlekt.graphics.Batch
 import com.lehaine.littlekt.graphics.Color
 import com.lehaine.littlekt.math.Rect
 import com.lehaine.littlekt.math.geom.Angle
+import com.lehaine.littlekt.math.geom.degrees
 import com.lehaine.littlekt.util.internal.now
 import kotlin.math.max
 import kotlin.math.min
@@ -50,7 +51,31 @@ class TiledTilesLayer(
             for (cx in minX..maxX) {
                 val cid = getCoordId(cx, cy)
                 if (cid < tileData.size) {
-                    val tileId = tileData[cid]
+                    val bits = tileData[cid]
+                    val flipHorizontally = (bits and TiledMap.FLAG_FLIP_HORIZONTALLY) != 0
+                    val flipVertically = (bits and TiledMap.FLAG_FLIP_VERTICALLY) != 0
+                    val flipDiagonally = (bits and TiledMap.FLAG_FLIP_DIAGONALLY) != 0
+                    val tileId = bits and TiledMap.MASK_CLEAR.inv()
+
+                    var flipX = false
+                    var flipY = false
+                    var rotation = Angle.ZERO
+                    if (flipDiagonally) {
+                        if (flipHorizontally && flipVertically) {
+                            flipX = true
+                            rotation = (-270).degrees
+                        } else if (flipHorizontally) {
+                            rotation = (-270).degrees
+                        } else if (flipVertically) {
+                            rotation = (-90).degrees
+                        } else {
+                            flipY = true
+                            rotation = (-270).degrees
+                        }
+                    } else {
+                        flipX = flipHorizontally
+                        flipY = flipVertically
+                    }
                     tiles[tileId]?.let {
                         if (it.frames.isEmpty()) {
                             batch.draw(
@@ -63,9 +88,9 @@ class TiledTilesLayer(
                                 height = tileHeight.toFloat(),
                                 scaleX = 1f,
                                 scaleY = 1f,
-                                rotation = Angle.ZERO,
-//                        flipX = it.flipX,
-//                        flipY = it.flipY
+                                rotation = rotation,
+                                flipX = flipX,
+                                flipY = flipY
                             )
                         } else {
                             val now = now().milliseconds
@@ -92,9 +117,9 @@ class TiledTilesLayer(
                                 height = tileHeight.toFloat(),
                                 scaleX = 1f,
                                 scaleY = 1f,
-                                rotation = Angle.ZERO,
-//                        flipX = it.flipX,
-//                        flipY = it.flipY
+                                rotation = rotation,
+                                flipX = flipX,
+                                flipY = flipY
                             )
 
                         }
@@ -102,7 +127,5 @@ class TiledTilesLayer(
                 }
             }
         }
-
-        data class TileInfo(val tileId: Int, val flipBits: Int)
     }
 }
