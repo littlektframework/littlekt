@@ -2,6 +2,7 @@ package com.lehaine.littlekt.graphics.tilemap.tiled
 
 import com.lehaine.littlekt.graphics.TextureSlice
 import com.lehaine.littlekt.graphics.tilemap.TileSet
+import kotlin.time.Duration
 
 /**
  * @author Colton Daily
@@ -10,6 +11,17 @@ import com.lehaine.littlekt.graphics.tilemap.TileSet
 class TiledTileset(
     val tileWidth: Int,
     val tileHeight: Int,
-    val tiles: List<TextureSlice>
+    val tiles: List<Tile>
 ) : TileSet {
+
+    data class Tile(
+        val slice: TextureSlice,
+        val id: Int,
+        val frames: List<AnimatedTile>,
+        val properties: Map<String, TiledMap.Property>
+    )
+
+    data class AnimatedTile(
+        val slice: TextureSlice, val id: Int, val duration: Duration
+    )
 }

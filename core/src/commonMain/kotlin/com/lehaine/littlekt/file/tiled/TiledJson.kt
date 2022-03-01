@@ -108,17 +108,17 @@ internal data class TiledTerrainData(val name: String, val properties: List<Tile
 internal data class TiledTileData(
     val animation: List<TiledTileFrame> = emptyList(),
     val id: Int,
-    val imageheight: Int,
-    val imagewidth: Int,
+    val imageheight: Int = 0,
+    val imagewidth: Int = 0,
     val objectgroup: TiledLayerData? = null,
-    val probability: Float,
+    val probability: Float = 0f,
     val properties: List<TiledProperty> = emptyList(),
-    val terrain: List<Int>,
-    val type: String
+    val terrain: List<Int> = emptyList(),
+    val type: String = ""
 )
 
 @Serializable
-internal data class TiledTileFrame(val duration: Int, val tiledid: Int)
+internal data class TiledTileFrame(val duration: Int, val tileid: Int)
 
 @Serializable
 internal data class TiledWangSetData(

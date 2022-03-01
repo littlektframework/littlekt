@@ -29,7 +29,6 @@ abstract class TiledLayer(
         return cx in 0 until width && cy >= 0 && cy < height
     }
 
-
     fun getCellX(coordId: Int): Int {
         return coordId - coordId / width * width
     }

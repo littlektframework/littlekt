@@ -3,12 +3,12 @@ package com.lehaine.littlekt.file.tiled
 import com.lehaine.littlekt.file.vfs.VfsFile
 import com.lehaine.littlekt.file.vfs.readTexture
 import com.lehaine.littlekt.graphics.Color
-import com.lehaine.littlekt.graphics.TextureSlice
 import com.lehaine.littlekt.graphics.sliceWithBorder
 import com.lehaine.littlekt.graphics.tilemap.tiled.TiledLayer
 import com.lehaine.littlekt.graphics.tilemap.tiled.TiledMap
 import com.lehaine.littlekt.graphics.tilemap.tiled.TiledTilesLayer
 import com.lehaine.littlekt.graphics.tilemap.tiled.TiledTileset
+import kotlin.time.Duration.Companion.milliseconds
 
 /**
  * @author Colton Daily
@@ -18,7 +18,7 @@ class TiledMapLoader internal constructor(private val root: VfsFile, private val
 
     suspend fun loadMap(): TiledMap {
         val tileSets = mapData.tilesets.map { loadTileSet(it.firstgid, it.source) }
-        val tiles = tileSets.flatMap { it.tiles }
+        val tiles = tileSets.flatMap { it.tiles }.associateBy { it.id }
 
         return TiledMap(
             backgroundColor = mapData.backgroundColor?.let { Color.fromHex(it) },
@@ -39,17 +39,8 @@ class TiledMapLoader internal constructor(private val root: VfsFile, private val
     private fun instantiateLayer(
         mapData: TiledMapData,
         layerData: TiledLayerData,
-        tiles: List<TextureSlice>
+        tiles: Map<Int, TiledTileset.Tile>
     ): TiledLayer {
-        println(layerData.name)
-        println(tiles.size)
-        val layerTiles = mutableMapOf<Int, TextureSlice>().apply {
-            layerData.data.forEach {
-                if (it > 0) {
-                    put(it, tiles[it - 1])
-                }
-            }
-        }
         return when (layerData.type) {
             "tilelayer" -> TiledTilesLayer(
                 type = layerData.type,
@@ -65,7 +56,7 @@ class TiledMapLoader internal constructor(private val root: VfsFile, private val
                 opacity = layerData.opacity,
                 properties = layerData.properties.toTiledMapProperty(),
                 tileData = layerData.data.toIntArray(),
-                tiles = layerTiles
+                tiles = tiles
             )
             "objectgroup" -> TODO()
             "imagelayer" -> TODO()
@@ -75,12 +66,30 @@ class TiledMapLoader internal constructor(private val root: VfsFile, private val
     }
 
     private suspend fun loadTileSet(gid: Int, source: String): TiledTileset {
-        val tiledData = root[source].decodeFromString<TiledTilesetData>()
-        val texture = root[tiledData.image].readTexture()
+        val tilesetData = root[source].decodeFromString<TiledTilesetData>()
+        val texture = root[tilesetData.image].readTexture()
+        val slices = texture.sliceWithBorder(root.vfs.context, tilesetData.tilewidth, tilesetData.tileheight)
+
         return TiledTileset(
-            tileWidth = tiledData.tilewidth,
-            tileHeight = tiledData.tileheight,
-            tiles = texture.sliceWithBorder(root.vfs.context, tiledData.tilewidth, tiledData.tileheight)
+            tileWidth = tilesetData.tilewidth,
+            tileHeight = tilesetData.tileheight,
+            tiles = slices.mapIndexed { index, slice ->
+                val tileData = tilesetData.tiles.firstOrNull { it.id == index }
+
+                TiledTileset.Tile(
+                    slice,
+                    index + gid,
+                    tileData?.animation?.map {
+                        TiledTileset.AnimatedTile(
+                            slices[it.tileid],
+                        it.tileid + gid,
+                            it.duration.milliseconds
+                        )
+                    }
+                        ?: emptyList(),
+                    tileData?.properties?.toTiledMapProperty() ?: emptyMap()
+                )
+            }
         )
     }
 
