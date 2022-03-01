@@ -7,6 +7,8 @@ import com.lehaine.littlekt.file.atlas.AtlasInfo
 import com.lehaine.littlekt.file.atlas.AtlasPage
 import com.lehaine.littlekt.file.ldtk.LDtkMapLoader
 import com.lehaine.littlekt.file.ldtk.ProjectJson
+import com.lehaine.littlekt.file.tiled.TiledMapData
+import com.lehaine.littlekt.file.tiled.TiledMapLoader
 import com.lehaine.littlekt.graphics.Pixmap
 import com.lehaine.littlekt.graphics.Texture
 import com.lehaine.littlekt.graphics.TextureAtlas
@@ -19,6 +21,7 @@ import com.lehaine.littlekt.graphics.gl.TexMagFilter
 import com.lehaine.littlekt.graphics.gl.TexMinFilter
 import com.lehaine.littlekt.graphics.tilemap.ldtk.LDtkLevel
 import com.lehaine.littlekt.graphics.tilemap.ldtk.LDtkWorld
+import com.lehaine.littlekt.graphics.tilemap.tiled.TiledMap
 import com.lehaine.littlekt.math.MutableVec4i
 import com.lehaine.littlekt.util.internal.unquote
 import kotlinx.serialization.decodeFromString
@@ -255,6 +258,12 @@ suspend fun VfsFile.readLDtkLevel(levelIdx: Int, tilesetBorder: Int = 2): LDtkLe
         LDtkMapLoader(this, project).also { it.levelLoader.sliceBorder = tilesetBorder }
     }
     return loader.loadLevel(levelIdx)
+}
+
+suspend fun VfsFile.readTiledMap(): TiledMap {
+    val mapData = decodeFromString<TiledMapData>()
+    val loader = TiledMapLoader(parent, mapData)
+    return loader.loadMap()
 }
 
 /**

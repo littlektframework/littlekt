@@ -1,0 +1,14 @@
+{ "columns":12,
+ "image":"Cavernas_by_Adam_Saltsman.png",
+ "imageheight":256,
+ "imagewidth":96,
+ "margin":0,
+ "name":"Cavernas_by_Adam_Saltsman",
+ "spacing":0,
+ "tilecount":384,
+ "tiledversion":"1.8.2",
+ "tileheight":8,
+ "tilewidth":8,
+ "type":"tileset",
+ "version":"1.8"
+}

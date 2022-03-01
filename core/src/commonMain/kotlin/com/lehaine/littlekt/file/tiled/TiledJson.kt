@@ -8,11 +8,17 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 internal data class TiledMapData(
-    val backgroundColor: String,
+    val backgroundColor: String? = null,
+    val orientation: String,
+    val renderorder: String,
     val layers: List<TiledLayerData> = emptyList(),
     val width: Int,
     val height: Int,
     val properties: List<TiledProperty> = emptyList(),
+    val staggeraxis: String? = null,
+    val staggerindex: String? = null,
+    val hexsidelength: Int = 0,
+    val infinite: Boolean = false,
     val tilewidth: Int,
     val tileheight: Int,
     val tilesets: List<TiledTilesetData> = emptyList()
@@ -24,13 +30,20 @@ internal data class TiledProperty(val key: String, val type: String, val value: 
 @Serializable
 internal data class TiledLayerData(
     val id: Int,
-    val draworder: String,
+    val draworder: String? = null,
     val data: List<Int> = emptyList(),
     val objects: List<TiledObjectData> = emptyList(),
     val width: Int,
     val height: Int,
     val x: Int,
     val y: Int,
+    val image: String? = null,
+    val offsetx: Float = 0f,
+    val offsety: Float = 0f,
+    val type: String,
+    val startx: Int = 0,
+    val starty: Int = 0,
+    val tintColor: String? = null,
     val properties: List<TiledProperty> = emptyList(),
     val name: String,
     val visible: Boolean,
@@ -68,19 +81,19 @@ internal data class TiledTextData(
 
 @Serializable
 internal data class TiledTilesetData(
-    val firstgid: Int,
-    val rows: Int,
-    val columns: Int,
-    val source: String,
-    val tilewidth: Int,
-    val tileheight: Int,
+    val firstgid: Int = 0,
+    val columns: Int = 0,
+    val source: String = "",
+    val tilewidth: Int = 0,
+    val tileheight: Int = 0,
     val wangsets: List<TiledWangSetData> = emptyList(),
-    val imagewidth: Int,
-    val imageheight: Int,
-    val margin: Int,
-    val spacing: Int,
+    val image: String = "",
+    val imagewidth: Int = 0,
+    val imageheight: Int = 0,
+    val margin: Int = 0,
+    val spacing: Int = 0,
     val grid: TiledGridData? = null,
-    val objectalignment: String,
+    val objectalignment: String = "unspecified",
     val terrains: List<TiledTerrainData> = emptyList(),
     val tiles: List<TiledTileData> = emptyList()
 )
