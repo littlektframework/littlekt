@@ -80,7 +80,7 @@ class TiledMap(
         val int: Int get() = number.toInt()
         val float: Float get() = number.toFloat()
         val bool: Boolean get() = float != 0f
-        open val number: Number get() = string.toDoubleOrNull() ?: 0.0
+        open val number: Number get() = string.toFloatOrNull() ?: 0f
         override fun toString(): String = string
 
         class StringProp(val value: String) : Property() {
@@ -139,8 +139,8 @@ class TiledMap(
         }
 
         sealed class Shape {
-            data class Rectangle(val width: Double, val height: Double) : Shape()
-            data class Ellipse(val width: Double, val height: Double) : Shape()
+            data class Rectangle(val width: Float, val height: Float) : Shape()
+            data class Ellipse(val width: Float, val height: Float) : Shape()
             object Point : Shape()
             data class Polygon(val points: List<com.lehaine.littlekt.math.geom.Point>) : Shape()
             data class Polyline(val points: List<com.lehaine.littlekt.math.geom.Point>) : Shape()

@@ -21,7 +21,7 @@ class TiledObjectLayer(
     tintColor: Color?,
     opacity: Float,
     properties: Map<String, TiledMap.Property>,
-    val drawOrder: TiledMap.Object.DrawOrder,
+    val drawOrder: TiledMap.Object.DrawOrder?,
     val objects: List<TiledMap.Object>
 ) : TiledLayer(type, name, id, width, height, offsetX, offsetY, tileWidth, tileHeight, tintColor, opacity, properties) {
     val objectsById by lazy { objects.associateBy { it.id } }
@@ -33,6 +33,6 @@ class TiledObjectLayer(
     fun getByType(type: String): List<TiledMap.Object> = objects.filter { it.type == type }
 
     override fun render(batch: Batch, viewBounds: Rect, x: Float, y: Float) {
-        TODO("Not yet implemented")
+        // TODO add drawing objects on 'debug' mode when drawing primitives is supported
     }
 }

@@ -53,8 +53,9 @@ internal data class TiledLayerData(
 @Serializable
 internal data class TiledObjectData(
     val id: Int,
-    val gid: Int,
+    val gid: Int? = null,
     val name: String,
+    val type: String,
     val properties: List<TiledProperty> = emptyList(),
     val x: Float,
     val y: Float,
@@ -62,8 +63,10 @@ internal data class TiledObjectData(
     val height: Float,
     val rotation: Float,
     val visible: Boolean,
-    val point: Boolean,
-    val ellipse: Boolean,
+    val point: Boolean = false,
+    val ellipse: Boolean = false,
+    val polygon: List<TiledPointData>? = null,
+    val polyline: List<TiledPointData>? = null,
     val text: TiledTextData? = null
 )
 
@@ -72,6 +75,10 @@ internal data class TiledTextData(
     val text: String,
     val wrap: Boolean,
     val bold: Boolean,
+    val italic: Boolean,
+    val underline: Boolean,
+    val strikeout: Boolean,
+    val kerning: Boolean,
     val color: String,
     val halign: String,
     val valign: String,
@@ -101,6 +108,9 @@ internal data class TiledTilesetData(
 
 @Serializable
 internal data class TiledOffsetData(val x: Int, val y: Int)
+
+@Serializable
+internal data class TiledPointData(val x: Float, val y: Float)
 
 @Serializable
 internal data class TiledGridData(val width: Int, val height: Int, val orientation: String)

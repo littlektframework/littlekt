@@ -2,10 +2,15 @@ package com.lehaine.littlekt.file.tiled
 
 import com.lehaine.littlekt.file.vfs.VfsFile
 import com.lehaine.littlekt.file.vfs.readTexture
+import com.lehaine.littlekt.graph.node.component.HAlign
+import com.lehaine.littlekt.graph.node.component.VAlign
 import com.lehaine.littlekt.graphics.Color
 import com.lehaine.littlekt.graphics.slice
 import com.lehaine.littlekt.graphics.sliceWithBorder
 import com.lehaine.littlekt.graphics.tilemap.tiled.*
+import com.lehaine.littlekt.math.Rect
+import com.lehaine.littlekt.math.geom.Point
+import com.lehaine.littlekt.math.geom.degrees
 import kotlin.time.Duration.Companion.milliseconds
 
 /**
@@ -59,7 +64,75 @@ class TiledMapLoader internal constructor(private val root: VfsFile, private val
                 tileData = layerData.data.map { it.toInt() }.toIntArray(),
                 tiles = tiles
             )
-            "objectgroup" -> TODO()
+            "objectgroup" -> {
+                TiledObjectLayer(
+                    type = layerData.type,
+                    name = layerData.name,
+                    id = layerData.id,
+                    width = layerData.width,
+                    height = layerData.height,
+                    offsetX = layerData.offsetx,
+                    offsetY = layerData.offsety,
+                    tileWidth = mapData.tilewidth,
+                    tileHeight = mapData.tileheight,
+                    tintColor = layerData.tintColor?.let { Color.fromHex(it) },
+                    opacity = layerData.opacity,
+                    drawOrder = layerData.draworder?.toDrawOrder(),
+                    objects = layerData.objects.map { objectData ->
+                        TiledMap.Object(
+                            id = objectData.id,
+                            gid = objectData.gid,
+                            name = objectData.name,
+                            type = objectData.type,
+                            bounds = Rect(objectData.x, objectData.y, objectData.width, objectData.height),
+                            rotation = objectData.rotation.degrees,
+                            visible = objectData.visible,
+                            shape = when {
+                                objectData.ellipse -> TiledMap.Object.Shape.Ellipse(objectData.width, objectData.height)
+                                objectData.point -> TiledMap.Object.Shape.Point
+                                objectData.polygon != null -> TiledMap.Object.Shape.Polygon(objectData.polygon.map {
+                                    Point(
+                                        it.x,
+                                        it.y
+                                    )
+                                })
+                                objectData.polyline != null -> TiledMap.Object.Shape.Polyline(objectData.polyline.map {
+                                    Point(
+                                        it.x,
+                                        it.y
+                                    )
+                                })
+                                objectData.text != null -> TiledMap.Object.Shape.Text(
+                                    fontFamily = objectData.text.fontfamily,
+                                    pixelSize = objectData.text.pixelsize,
+                                    wordWrap = objectData.text.wrap,
+                                    color = Color.fromHex(objectData.text.color),
+                                    bold = objectData.text.bold,
+                                    italic = objectData.text.italic,
+                                    underline = objectData.text.underline,
+                                    strikeout = objectData.text.strikeout,
+                                    kerning = objectData.text.kerning,
+                                    hAlign = when (objectData.text.halign) {
+                                        "left" -> HAlign.LEFT
+                                        "center" -> HAlign.CENTER
+                                        "right" -> HAlign.RIGHT
+                                        else -> HAlign.LEFT
+                                    },
+                                    vAlign = when (objectData.text.valign) {
+                                        "top" -> VAlign.TOP
+                                        "center" -> VAlign.CENTER
+                                        "bottom" -> VAlign.BOTTOM
+                                        else -> VAlign.TOP
+                                    }
+                                )
+                                else -> TiledMap.Object.Shape.Rectangle(objectData.width, objectData.height)
+                            },
+                            properties = objectData.properties.toTiledMapProperty()
+                        )
+                    },
+                    properties = layerData.properties.toTiledMapProperty()
+                )
+            }
             "imagelayer" -> {
                 TiledImageLayer(
                     type = layerData.type,
@@ -158,6 +231,12 @@ class TiledMapLoader internal constructor(private val root: VfsFile, private val
     private fun String.toStaggerIndex() = when (this) {
         "even" -> TiledMap.StaggerIndex.EVEN
         "odd" -> TiledMap.StaggerIndex.ODD
+        else -> null
+    }
+
+    private fun String.toDrawOrder() = when (this) {
+        "index" -> TiledMap.Object.DrawOrder.INDEX
+        "topdown" -> TiledMap.Object.DrawOrder.TOP_DOWN
         else -> null
     }
 }
