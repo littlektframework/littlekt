@@ -41,10 +41,8 @@ class TiledTilesLayer(
     private val flipData = TileData()
 
     private val screenPos = MutableVec3f()
-    private val topRight = MutableVec2f()
     private val topLeft = MutableVec2f()
     private val bottomRight = MutableVec2f()
-    private val bottomLeft = MutableVec2f()
 
     override fun render(batch: Batch, viewBounds: Rect, x: Float, y: Float) {
         when (orientation) {
@@ -95,12 +93,10 @@ class TiledTilesLayer(
 
     private fun renderIsometrically(batch: Batch, viewBounds: Rect, x: Float, y: Float) {
         topLeft.set(viewBounds.x - x - offsetX, viewBounds.y - y - offsetY)
-        topRight.set(viewBounds.x + viewBounds.width - x - offsetX, viewBounds.y - y - offsetY)
-        bottomLeft.set(viewBounds.x - x - offsetX, viewBounds.y + viewBounds.height - y - offsetY)
         bottomRight.set(viewBounds.x + viewBounds.width - x - offsetX, viewBounds.y + viewBounds.height - y - offsetY)
 
-        val minX = max(0, (bottomLeft.toIso().x / tileWidth).toInt())
-        val maxX = min(width, (topRight.toIso().x / tileWidth).toInt())
+        val minX = max(0, (topLeft.toIso().x / tileWidth).toInt())
+        val maxX = min(width, (bottomRight.toIso().x / tileWidth).toInt())
         val minY = max(0, (topLeft.toIso().y / tileHeight).toInt())
         val maxY = min(height, (bottomRight.toIso().y / tileHeight).toInt())
 
