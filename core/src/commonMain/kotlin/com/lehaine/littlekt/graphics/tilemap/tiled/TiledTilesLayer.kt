@@ -95,40 +95,51 @@ class TiledTilesLayer(
 
     private fun renderIsometrically(batch: Batch, viewBounds: Rect, x: Float, y: Float) {
         topLeft.set(viewBounds.x - x - offsetX, viewBounds.y - y - offsetY)
-        bottomRight.set(viewBounds.x + viewBounds.width - x - offsetX, viewBounds.y + viewBounds.height - y - offsetY)
+        bottomRight.set(
+            viewBounds.x + viewBounds.width - x - offsetX,
+            viewBounds.y + viewBounds.height - y - offsetY
+        )
 
-        val minX = max(0, (topLeft.toIso().x / tileWidth).toInt())
-        val maxX = min(width - 1, (bottomRight.toIso().x / tileWidth).toInt())
-        val minY = max(0, (topLeft.toIso().y / tileHeight).toInt())
-        val maxY = min(height - 1, (bottomRight.toIso().y / tileHeight).toInt())
+        val widthHeightRatio = ((width + height) * 0.5f).toInt()
+        val minX = (topLeft.toIso().x / tileWidth).toInt() - widthHeightRatio
+        val maxX = (bottomRight.toIso().x / tileWidth).toInt() + widthHeightRatio
+        val minY = (topLeft.toIso().y / tileHeight).toInt() - widthHeightRatio * 2
+        val maxY = (bottomRight.toIso().y / tileHeight).toInt() + widthHeightRatio
+
+
+        if (maxX < 0 || maxY < 0) return
+        if (minX > width || minY > height) return
 
         for (cy in minY..maxY) {
             for (cx in minX..maxX) {
                 val cid = getCoordId(cx, cy)
-                if (cid in tileData.indices) {
+                if (isCoordValid(cx, cy) && cid in tileData.indices) {
                     val tileData = tileData[cid].bitsToTileData()
                     tiles[tileData.id]?.let {
                         val slice = it.updateFramesAndGetSlice()
                         val halfWidth = tileWidth * 0.5f
                         val halfHeight = tileHeight * 0.5f
 
-                        val tx = (cx * halfWidth) - (cy * halfWidth) + (height - 1) * halfWidth
-                        val ty = (cy * halfHeight) + (cx * halfHeight)
+                        val tx =
+                            (cx * halfWidth) - (cy * halfWidth) + (height - 1) * halfWidth + offsetX + x + it.offsetX
+                        val ty = (cy * halfHeight) + (cx * halfHeight) + offsetY + y + it.offsetY
 
-                        batch.draw(
-                            slice = slice,
-                            x = tx + offsetX + x + it.offsetX,
-                            y = ty + offsetY + y + it.offsetY,
-                            originX = 0f,
-                            originY = 0f,
-                            width = it.width.toFloat(),
-                            height = it.height.toFloat(),
-                            scaleX = 1f,
-                            scaleY = 1f,
-                            rotation = tileData.rotation,
-                            flipX = tileData.flipX,
-                            flipY = tileData.flipY
-                        )
+                        if (viewBounds.intersects(tx, ty, tx + it.width.toFloat(), ty + it.height.toFloat())) {
+                            batch.draw(
+                                slice = slice,
+                                x = tx,
+                                y = ty,
+                                originX = 0f,
+                                originY = 0f,
+                                width = it.width.toFloat(),
+                                height = it.height.toFloat(),
+                                scaleX = 1f,
+                                scaleY = 1f,
+                                rotation = tileData.rotation,
+                                flipX = tileData.flipX,
+                                flipY = tileData.flipY
+                            )
+                        }
                     }
                 }
             }
