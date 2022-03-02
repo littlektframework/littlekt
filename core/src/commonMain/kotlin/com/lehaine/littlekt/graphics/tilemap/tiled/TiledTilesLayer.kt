@@ -56,12 +56,12 @@ class TiledTilesLayer(
     private fun renderOrthographically(batch: Batch, viewBounds: Rect, x: Float, y: Float) {
         val minX = max(0, ((viewBounds.x - x - offsetX) / tileWidth).toInt())
         val maxX = min(
-            width,
+            width - 1,
             ((viewBounds.x + viewBounds.width - x - offsetX) / tileWidth).toInt()
         )
         val minY = max(0, ((viewBounds.y - y - offsetY) / tileHeight).toInt())
         val maxY = min(
-            height,
+            height - 1,
             ((viewBounds.y + viewBounds.height - y - offsetY) / tileHeight).toInt()
         )
         for (cy in minY..maxY) {
@@ -96,9 +96,9 @@ class TiledTilesLayer(
         bottomRight.set(viewBounds.x + viewBounds.width - x - offsetX, viewBounds.y + viewBounds.height - y - offsetY)
 
         val minX = max(0, (topLeft.toIso().x / tileWidth).toInt())
-        val maxX = min(width, (bottomRight.toIso().x / tileWidth).toInt())
+        val maxX = min(width - 1, (bottomRight.toIso().x / tileWidth).toInt())
         val minY = max(0, (topLeft.toIso().y / tileHeight).toInt())
-        val maxY = min(height, (bottomRight.toIso().y / tileHeight).toInt())
+        val maxY = min(height - 1, (bottomRight.toIso().y / tileHeight).toInt())
 
         for (cy in minY..maxY) {
             for (cx in minX..maxX) {
