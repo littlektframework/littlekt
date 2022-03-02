@@ -55,9 +55,11 @@ class TiledMapLoader internal constructor(private val root: VfsFile, private val
                 tintColor = layerData.tintColor?.let { Color.fromHex(it) },
                 opacity = layerData.opacity,
                 properties = layerData.properties.toTiledMapProperty(),
+                staggerIndex = mapData.staggeraxis?.toStaggerIndex(),
+                staggerAxis = mapData.staggeraxis?.toStaggerAxis(),
+                orientation = mapData.orientation.toOrientation(),
                 tileData = layerData.data.map { it.toInt() }.toIntArray(),
-                tiles = tiles,
-                orientation = mapData.orientation.toOrientation()
+                tiles = tiles
             )
             "objectgroup" -> TODO()
             "imagelayer" -> TODO()
@@ -105,7 +107,7 @@ class TiledMapLoader internal constructor(private val root: VfsFile, private val
         )
     }
 
-    private fun List<TiledProperty>.toTiledMapProperty() = associateBy(keySelector = { it.key }) {
+    private fun List<TiledProperty>.toTiledMapProperty() = associateBy(keySelector = { it.name }) {
         when (it.type) {
             "string" -> TiledMap.Property.StringProp(it.value)
             "int" -> TiledMap.Property.IntProp(it.value.toIntOrNull() ?: 0)

@@ -20,6 +20,12 @@
          "id":2,
          "name":"Items",
          "opacity":1,
+         "properties":[
+                {
+                 "name":"total",
+                 "type":"int",
+                 "value":5
+                }],
          "type":"tilelayer",
          "visible":true,
          "width":40,
@@ -38,7 +44,7 @@
          "x":0,
          "y":0
         }],
- "nextlayerid":4,
+ "nextlayerid":6,
  "nextobjectid":1,
  "orientation":"orthogonal",
  "renderorder":"right-down",

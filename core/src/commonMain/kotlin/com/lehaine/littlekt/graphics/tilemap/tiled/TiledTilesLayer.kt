@@ -30,6 +30,8 @@ class TiledTilesLayer(
     tintColor: Color?,
     opacity: Float,
     properties: Map<String, TiledMap.Property>,
+    private val staggerIndex: TiledMap.StaggerIndex?,
+    private val staggerAxis: TiledMap.StaggerAxis?,
     private val orientation: TiledMap.Orientation,
     private val tileData: IntArray,
     private val tiles: Map<Int, TiledTileset.Tile>
@@ -48,7 +50,7 @@ class TiledTilesLayer(
         when (orientation) {
             TiledMap.Orientation.ORTHOGONAL -> renderOrthographically(batch, viewBounds, x, y)
             TiledMap.Orientation.ISOMETRIC -> renderIsometrically(batch, viewBounds, x, y)
-            TiledMap.Orientation.STAGGERED -> TODO()
+            TiledMap.Orientation.STAGGERED -> renderStaggered(batch, viewBounds, x, y)
             else -> error("$orientation is not currently supported!")
         }
     }
@@ -117,6 +119,50 @@ class TiledTilesLayer(
                             slice = slice,
                             x = tx + offsetX + x + it.offsetX,
                             y = ty + offsetY + y + it.offsetY,
+                            originX = 0f,
+                            originY = 0f,
+                            width = it.width.toFloat(),
+                            height = it.height.toFloat(),
+                            scaleX = 1f,
+                            scaleY = 1f,
+                            rotation = tileData.rotation,
+                            flipX = tileData.flipX,
+                            flipY = tileData.flipY
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    private fun renderStaggered(batch: Batch, viewBounds: Rect, x: Float, y: Float) {
+        val halfWidth = tileWidth * 0.5f
+        val halfHeight = tileHeight * 0.5f
+
+
+        val minX = max(0, ((viewBounds.x - x - offsetX - halfWidth) / tileWidth).toInt())
+        val maxX = min(
+            width - 1,
+            ((viewBounds.x + viewBounds.width - x - offsetX + halfWidth) / tileWidth).toInt()
+        )
+        val minY = max(0, ((viewBounds.y - y - offsetY) / tileHeight).toInt())
+        val maxY = min(
+            height - 1,
+            ((viewBounds.y + viewBounds.height - y - offsetY) / halfHeight).toInt()
+        )
+
+        for (cy in minY..maxY) {
+            val tileOffsetX = if (cy % 2 == 1) halfWidth else 0f
+            for (cx in minX..maxX) {
+                val cid = getCoordId(cx, cy)
+                if (cid in tileData.indices) {
+                    val tileData = tileData[cid].bitsToTileData()
+                    tiles[tileData.id]?.let {
+                        val slice = it.updateFramesAndGetSlice()
+                        batch.draw(
+                            slice = slice,
+                            x = cx * tileWidth - tileOffsetX + offsetX + x + it.offsetX,
+                            y = cy * halfHeight + offsetY + y + it.offsetY,
                             originX = 0f,
                             originY = 0f,
                             width = it.width.toFloat(),

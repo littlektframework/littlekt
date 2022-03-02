@@ -25,7 +25,7 @@ internal data class TiledMapData(
 )
 
 @Serializable
-internal data class TiledProperty(val key: String, val type: String, val value: String)
+internal data class TiledProperty(val name: String, val type: String, val value: String)
 
 @Serializable
 internal data class TiledLayerData(

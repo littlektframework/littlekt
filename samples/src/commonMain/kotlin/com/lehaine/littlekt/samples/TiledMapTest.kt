@@ -6,9 +6,9 @@ import com.lehaine.littlekt.file.vfs.readTiledMap
 import com.lehaine.littlekt.graphics.OrthographicCamera
 import com.lehaine.littlekt.graphics.SpriteBatch
 import com.lehaine.littlekt.graphics.gl.ClearBufferMask
+import com.lehaine.littlekt.graphics.tilemap.tiled.TiledMap
 import com.lehaine.littlekt.graphics.use
 import com.lehaine.littlekt.input.Key
-import com.lehaine.littlekt.util.viewport.ExtendViewport
 import com.lehaine.littlekt.util.viewport.ScreenViewport
 
 /**
@@ -24,24 +24,38 @@ class TiledMapTest(context: Context) : ContextListener(context) {
 
         val batch = SpriteBatch(context)
 
-        val orthoMap = resourcesVfs["tiled/ortho-tiled-world.tmj"].readTiledMap()
-        val isoMap = resourcesVfs["tiled/iso-tiled-world.tmj"].readTiledMap()
+        val maps = mutableListOf<TiledMap>()
+        resourcesVfs["tiled/ortho-tiled-world.tmj"].readTiledMap().also { maps += it }
+        resourcesVfs["tiled/iso-tiled-world.tmj"].readTiledMap().also { maps += it }
+        resourcesVfs["tiled/staggered-tiled-world.tmj"].readTiledMap().also { maps += it }
 
-        var visibleMap = orthoMap
+        var mapIdx = 0
         onResize { width, height ->
             camera.update(width, height, context)
         }
         onRender { dt ->
             gl.clear(ClearBufferMask.COLOR_BUFFER_BIT)
 
+            if (input.isKeyPressed(Key.W)) {
+                camera.position.y -= 10f
+            } else if (input.isKeyPressed(Key.S)) {
+                camera.position.y += 10f
+            }
+
+            if (input.isKeyPressed(Key.D)) {
+                camera.position.x += 10f
+            } else if (input.isKeyPressed(Key.A)) {
+                camera.position.x -= 10f
+            }
             camera.update()
 
             batch.use(camera.viewProjection) {
-                visibleMap.render(it, camera)
+                maps[mapIdx].render(it, camera)
             }
 
             if (input.isKeyJustPressed(Key.ENTER)) {
-                visibleMap = if (visibleMap == orthoMap) isoMap else orthoMap
+                mapIdx++
+                if (mapIdx >= maps.size) mapIdx = 0
             }
             if (input.isKeyJustPressed(Key.P)) {
                 logger.info { stats }

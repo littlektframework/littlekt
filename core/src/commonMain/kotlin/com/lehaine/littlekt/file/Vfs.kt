@@ -36,7 +36,10 @@ abstract class Vfs(
     protected open val absolutePath: String get() = ""
 
     @PublishedApi
-    internal val json = Json { ignoreUnknownKeys = true }
+    internal val json = Json {
+        ignoreUnknownKeys = true
+        isLenient = true
+    }
 
     protected val job = Job()
 
