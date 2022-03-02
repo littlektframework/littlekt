@@ -22,8 +22,10 @@ const val FLT_EPSILON = 1.19209290e-7f
 /**
  * Square-root of 0.5f
  */
-const val SQRT_1_2 = 0.707106781f
+const val SQRT_1_2 = 0.70710677f
 
+inline fun Float.floor() = floor(this)
+inline fun Float.floorToInt() = floor(this).toInt()
 inline fun Float.toDeg() = this * RAD_2_DEG.toFloat()
 inline fun Float.toRad() = this * DEG_2_RAD.toFloat()
 inline fun Double.toDeg() = this * RAD_2_DEG
