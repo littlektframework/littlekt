@@ -9,6 +9,7 @@ import com.lehaine.littlekt.graphics.gl.ClearBufferMask
 import com.lehaine.littlekt.graphics.use
 import com.lehaine.littlekt.input.Key
 import com.lehaine.littlekt.util.viewport.ExtendViewport
+import com.lehaine.littlekt.util.viewport.ScreenViewport
 
 /**
  * @author Colton Daily
@@ -18,13 +19,15 @@ class TiledMapTest(context: Context) : ContextListener(context) {
 
     override suspend fun Context.start() {
         val camera = OrthographicCamera().apply {
-            viewport = ExtendViewport(480, 270)
+            viewport = ScreenViewport(context.graphics.width, context.graphics.height)
         }
 
         val batch = SpriteBatch(context)
 
-        val tiledMap = resourcesVfs["tiled/tiled-world.tmj"].readTiledMap()
+        val orthoMap = resourcesVfs["tiled/ortho-tiled-world.tmj"].readTiledMap()
+        val isoMap = resourcesVfs["tiled/iso-tiled-world.tmj"].readTiledMap()
 
+        var visibleMap = orthoMap
         onResize { width, height ->
             camera.update(width, height, context)
         }
@@ -34,9 +37,12 @@ class TiledMapTest(context: Context) : ContextListener(context) {
             camera.update()
 
             batch.use(camera.viewProjection) {
-                tiledMap.render(it, camera)
+                visibleMap.render(it, camera)
             }
 
+            if (input.isKeyJustPressed(Key.ENTER)) {
+                visibleMap = if (visibleMap == orthoMap) isoMap else orthoMap
+            }
             if (input.isKeyJustPressed(Key.P)) {
                 logger.info { stats }
             }

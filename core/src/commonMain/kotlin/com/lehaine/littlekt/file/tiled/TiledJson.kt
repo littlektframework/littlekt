@@ -86,6 +86,7 @@ internal data class TiledTilesetData(
     val source: String = "",
     val tilewidth: Int = 0,
     val tileheight: Int = 0,
+    val tileoffset: TiledOffsetData? = null,
     val wangsets: List<TiledWangSetData> = emptyList(),
     val image: String = "",
     val imagewidth: Int = 0,
@@ -97,6 +98,9 @@ internal data class TiledTilesetData(
     val terrains: List<TiledTerrainData> = emptyList(),
     val tiles: List<TiledTileData> = emptyList()
 )
+
+@Serializable
+internal data class TiledOffsetData(val x: Int, val y: Int)
 
 @Serializable
 internal data class TiledGridData(val width: Int, val height: Int, val orientation: String)

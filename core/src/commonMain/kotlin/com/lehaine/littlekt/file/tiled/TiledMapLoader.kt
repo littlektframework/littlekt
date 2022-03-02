@@ -56,7 +56,8 @@ class TiledMapLoader internal constructor(private val root: VfsFile, private val
                 opacity = layerData.opacity,
                 properties = layerData.properties.toTiledMapProperty(),
                 tileData = layerData.data.map { it.toInt() }.toIntArray(),
-                tiles = tiles
+                tiles = tiles,
+                orientation = mapData.orientation.toOrientation()
             )
             "objectgroup" -> TODO()
             "imagelayer" -> TODO()
@@ -69,7 +70,8 @@ class TiledMapLoader internal constructor(private val root: VfsFile, private val
         val tilesetData = root[source].decodeFromString<TiledTilesetData>()
         val texture = root[tilesetData.image].readTexture()
         val slices = texture.sliceWithBorder(root.vfs.context, tilesetData.tilewidth, tilesetData.tileheight)
-
+        val offsetX = tilesetData.tileoffset?.x ?: 0
+        val offsetY = tilesetData.tileoffset?.y ?: 0
         return TiledTileset(
             tileWidth = tilesetData.tilewidth,
             tileHeight = tilesetData.tileheight,
@@ -79,17 +81,25 @@ class TiledMapLoader internal constructor(private val root: VfsFile, private val
                 }
 
                 TiledTileset.Tile(
-                    slice,
-                    index + gid,
-                    tileData?.animation?.map {
+                    slice = slice,
+                    id = index + gid,
+                    width = tilesetData.tilewidth,
+                    height = tilesetData.tileheight,
+                    offsetX = offsetX,
+                    offsetY = offsetY,
+                    frames = tileData?.animation?.map {
                         TiledTileset.AnimatedTile(
-                            slices[it.tileid],
-                            it.tileid + gid,
-                            it.duration.milliseconds
+                            slice = slices[it.tileid],
+                            id = it.tileid + gid,
+                            duration = it.duration.milliseconds,
+                            width = tilesetData.tilewidth,
+                            height = tilesetData.tileheight,
+                            offsetX = offsetX,
+                            offsetY = offsetY,
                         )
                     }
                         ?: emptyList(),
-                    tileData?.properties?.toTiledMapProperty() ?: emptyMap()
+                    properties = tileData?.properties?.toTiledMapProperty() ?: emptyMap()
                 )
             }
         )
@@ -112,7 +122,6 @@ class TiledMapLoader internal constructor(private val root: VfsFile, private val
         "orthogonal" -> TiledMap.Orientation.ORTHOGONAL
         "isometric" -> TiledMap.Orientation.ISOMETRIC
         "staggered" -> TiledMap.Orientation.STAGGERED
-        "hexagonal" -> TiledMap.Orientation.HEXAGONAL
         else -> error("Unsupported TiledMap orientation: '$this'")
     }
 

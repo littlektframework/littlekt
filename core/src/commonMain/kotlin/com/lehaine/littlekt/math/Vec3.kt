@@ -196,6 +196,16 @@ open class MutableVec3f(x: Float, y: Float, z: Float) : Vec3f(x, y, z) {
         return this
     }
 
+    fun mul(matrix: Mat4): MutableVec3f {
+        val newX = x * matrix[0] + y * matrix[4] + z * matrix[8] + matrix[12]
+        val newY = x * matrix[1] + y * matrix[5] + z * matrix[9] + matrix[13]
+        val newZ = x * matrix[2] + y * matrix[6] + z * matrix[10] + matrix[14]
+        x = newX
+        y = newY
+        z = newZ
+        return this
+    }
+
     fun norm(): MutableVec3f {
         val l = length()
         return if (l != 0f) {

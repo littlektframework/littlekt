@@ -73,12 +73,7 @@ class TiledMap(
         val cellWidth: Int,
         val cellHeight: Int,
         val orientation: Orientation = Orientation.ORTHOGONAL
-    ) {
-        enum class Orientation(val value: String) {
-            ORTHOGONAL("orthogonal"),
-            ISOMETRIC("isometric")
-        }
-    }
+    )
 
     sealed class Property {
         abstract val string: String

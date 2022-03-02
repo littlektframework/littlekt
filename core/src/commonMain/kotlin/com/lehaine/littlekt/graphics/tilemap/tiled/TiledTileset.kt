@@ -17,11 +17,21 @@ class TiledTileset(
     data class Tile(
         val slice: TextureSlice,
         val id: Int,
+        val width: Int,
+        val height: Int,
+        val offsetX: Int,
+        val offsetY: Int,
         val frames: List<AnimatedTile>,
         val properties: Map<String, TiledMap.Property>
     )
 
     data class AnimatedTile(
-        val slice: TextureSlice, val id: Int, val duration: Duration
+        val slice: TextureSlice,
+        val id: Int,
+        val duration: Duration,
+        val width: Int,
+        val height: Int,
+        val offsetX: Int,
+        val offsetY: Int,
     )
 }
