@@ -112,7 +112,7 @@ class TiledTilesLayer(
                         val halfWidth = tileWidth * 0.5f
                         val halfHeight = tileHeight * 0.5f
 
-                        val tx = (cx * halfWidth) - (cy * halfWidth)
+                        val tx = (cx * halfWidth) - (cy * halfWidth) + (height - 1) * halfWidth
                         val ty = (cy * halfHeight) + (cx * halfHeight)
 
                         batch.draw(
