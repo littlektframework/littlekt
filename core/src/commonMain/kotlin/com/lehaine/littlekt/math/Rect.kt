@@ -22,6 +22,21 @@ data class Rect(var x: Float = 0f, var y: Float = 0f, var width: Float = 0f, var
         return this
     }
 
+    fun intersects(rect: Rect) = intersects(rect.x, rect.y, rect.x2, rect.y2)
+
+    fun intersects(left: Float, top: Float, right: Float, bottom: Float): Boolean {
+        if (x >= right || left >= x2) {
+            return false
+        }
+
+        if (y >= bottom || top >= y2) {
+            return false
+        }
+
+        return true
+    }
+
+
     companion object {
         fun fromBounds(x: Float, y: Float, x2: Float, y2: Float) = Rect(x, y, x2 - x, y2 - y)
     }
