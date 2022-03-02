@@ -3,11 +3,9 @@ package com.lehaine.littlekt.file.tiled
 import com.lehaine.littlekt.file.vfs.VfsFile
 import com.lehaine.littlekt.file.vfs.readTexture
 import com.lehaine.littlekt.graphics.Color
+import com.lehaine.littlekt.graphics.slice
 import com.lehaine.littlekt.graphics.sliceWithBorder
-import com.lehaine.littlekt.graphics.tilemap.tiled.TiledLayer
-import com.lehaine.littlekt.graphics.tilemap.tiled.TiledMap
-import com.lehaine.littlekt.graphics.tilemap.tiled.TiledTilesLayer
-import com.lehaine.littlekt.graphics.tilemap.tiled.TiledTileset
+import com.lehaine.littlekt.graphics.tilemap.tiled.*
 import kotlin.time.Duration.Companion.milliseconds
 
 /**
@@ -36,7 +34,7 @@ class TiledMapLoader internal constructor(private val root: VfsFile, private val
         )
     }
 
-    private fun instantiateLayer(
+    private suspend fun instantiateLayer(
         mapData: TiledMapData,
         layerData: TiledLayerData,
         tiles: Map<Int, TiledTileset.Tile>
@@ -62,7 +60,23 @@ class TiledMapLoader internal constructor(private val root: VfsFile, private val
                 tiles = tiles
             )
             "objectgroup" -> TODO()
-            "imagelayer" -> TODO()
+            "imagelayer" -> {
+                TiledImageLayer(
+                    type = layerData.type,
+                    name = layerData.name,
+                    id = layerData.id,
+                    width = layerData.width,
+                    height = layerData.height,
+                    offsetX = layerData.offsetx,
+                    offsetY = layerData.offsety,
+                    tileWidth = mapData.tilewidth,
+                    tileHeight = mapData.tileheight,
+                    tintColor = layerData.tintColor?.let { Color.fromHex(it) },
+                    opacity = layerData.opacity,
+                    properties = layerData.properties.toTiledMapProperty(),
+                    texture = layerData.image?.let { root[it].readTexture().slice() }
+                )
+            }
             "group" -> TODO()
             else -> error("Unsupported TiledLayer '${layerData.type}")
         }
