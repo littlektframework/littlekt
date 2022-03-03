@@ -1,5 +1,7 @@
 package com.lehaine.littlekt.file.tiled
 
+import com.lehaine.littlekt.file.Base64.decodeFromBase64
+import com.lehaine.littlekt.file.readIntArrayLE
 import com.lehaine.littlekt.file.vfs.VfsFile
 import com.lehaine.littlekt.file.vfs.readTexture
 import com.lehaine.littlekt.graph.node.component.HAlign
@@ -62,7 +64,15 @@ class TiledMapLoader internal constructor(private val root: VfsFile, private val
                 staggerIndex = mapData.staggeraxis?.toStaggerIndex(),
                 staggerAxis = mapData.staggeraxis?.toStaggerAxis(),
                 orientation = mapData.orientation.toOrientation(),
-                tileData = layerData.data.map { it.toInt() }.toIntArray(),
+                tileData = layerData.data.let { data ->
+                    if (layerData.encoding == "csv" || layerData.encoding.isEmpty()) {
+                        data.array.map { it.toInt() }.toIntArray()
+                    } else if (layerData.encoding == "base64" && layerData.compression.isEmpty()) {
+                        data.base64.decodeFromBase64().readIntArrayLE(0, layerData.width * layerData.height)
+                    } else {
+                        error("Unsupported encoding of Tiled TilesLayer '${layerData.encoding}' with compression '${layerData.compression}'")
+                    }
+                },
                 tiles = tiles
             )
             "objectgroup" -> {

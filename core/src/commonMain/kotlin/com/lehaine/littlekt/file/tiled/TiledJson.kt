@@ -1,6 +1,16 @@
 package com.lehaine.littlekt.file.tiled
 
+import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.descriptors.buildClassSerialDescriptor
+import kotlinx.serialization.descriptors.element
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonDecoder
+import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonPrimitive
 
 /**
  * @author Colton Daily
@@ -31,7 +41,9 @@ internal data class TiledProperty(val name: String, val type: String, val value:
 internal data class TiledLayerData(
     val id: Int,
     val draworder: String? = null,
-    val data: List<Long> = emptyList(),
+    val data: TiledTileLayerDataValue = TiledTileLayerDataValue(),
+    val encoding: String = "",
+    val compression:String = "",
     val objects: List<TiledObjectData> = emptyList(),
     val width: Int = 0,
     val height: Int = 0,
@@ -50,6 +62,35 @@ internal data class TiledLayerData(
     val visible: Boolean,
     val opacity: Float
 )
+
+@Serializable(with = TiledDataValueSerializer::class)
+internal data class TiledTileLayerDataValue(
+    val base64: String = "",
+    val array: List<Long> = emptyList()
+)
+
+private object TiledDataValueSerializer : KSerializer<TiledTileLayerDataValue> {
+    override val descriptor: SerialDescriptor =
+        buildClassSerialDescriptor("com.lehaine.littlekt.file.tiled.TiledDataValueSerializer") {
+            element<List<Long>>("array", isOptional = true)
+            element<String>("base64", isOptional = true)
+        }
+
+    override fun serialize(encoder: Encoder, value: TiledTileLayerDataValue) {
+        throw NotImplementedError("TiledDataValueSerializer serialization is not supported!")
+    }
+
+    override fun deserialize(decoder: Decoder): TiledTileLayerDataValue {
+        val input = decoder as? JsonDecoder ?: error("Unable to cast to JsonDecoder")
+        val json = input.decodeJsonElement()
+        if (json is JsonArray) {
+            val arrList = json.jsonArray
+
+            return TiledTileLayerDataValue(array = arrList.map { it.jsonPrimitive.content.toLong() })
+        }
+        return TiledTileLayerDataValue(base64 = json.jsonPrimitive.content)
+    }
+}
 
 @Serializable
 internal data class TiledObjectData(
