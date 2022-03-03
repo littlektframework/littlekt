@@ -26,7 +26,10 @@ class TiledGroupLayer(
 ) : TiledLayer(
     type, name, id, width, height, offsetX, offsetY, tileWidth, tileHeight, tintColor, opacity, properties
 ) {
+
     override fun render(batch: Batch, viewBounds: Rect, x: Float, y: Float) {
-        TODO("Not yet implemented")
+        layers.forEach {
+            it.render(batch, viewBounds, x + offsetX, y + offsetY)
+        }
     }
 }

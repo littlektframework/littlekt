@@ -45,6 +45,7 @@ internal data class TiledLayerData(
     val starty: Int = 0,
     val tintColor: String? = null,
     val properties: List<TiledProperty> = emptyList(),
+    val layers: List<TiledLayerData> = emptyList(),
     val name: String,
     val visible: Boolean,
     val opacity: Float

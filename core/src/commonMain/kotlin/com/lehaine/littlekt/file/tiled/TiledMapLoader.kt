@@ -150,7 +150,21 @@ class TiledMapLoader internal constructor(private val root: VfsFile, private val
                     texture = layerData.image?.let { root[it].readTexture().slice() }
                 )
             }
-            "group" -> TODO()
+            "group" -> TiledGroupLayer(
+                type = layerData.type,
+                name = layerData.name,
+                id = layerData.id,
+                width = layerData.width,
+                height = layerData.height,
+                offsetX = layerData.offsetx,
+                offsetY = layerData.offsety,
+                tileWidth = mapData.tilewidth,
+                tileHeight = mapData.tileheight,
+                tintColor = layerData.tintColor?.let { Color.fromHex(it) },
+                opacity = layerData.opacity,
+                properties = layerData.properties.toTiledMapProperty(),
+                layers = layerData.layers.map { instantiateLayer(mapData, it, tiles) }
+            )
             else -> error("Unsupported TiledLayer '${layerData.type}")
         }
     }
