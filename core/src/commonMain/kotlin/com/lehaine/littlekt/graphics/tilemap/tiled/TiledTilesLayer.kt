@@ -87,7 +87,8 @@ class TiledTilesLayer(
                             scaleY = 1f,
                             rotation = tileData.rotation,
                             flipX = tileData.flipX,
-                            flipY = tileData.flipY
+                            flipY = tileData.flipY,
+                            colorBits = colorBits
                         )
                     }
                 }
@@ -139,7 +140,8 @@ class TiledTilesLayer(
                                 scaleY = 1f,
                                 rotation = tileData.rotation,
                                 flipX = tileData.flipX,
-                                flipY = tileData.flipY
+                                flipY = tileData.flipY,
+                                colorBits = colorBits
                             )
                         }
                     }
@@ -184,7 +186,8 @@ class TiledTilesLayer(
                             scaleY = 1f,
                             rotation = tileData.rotation,
                             flipX = tileData.flipX,
-                            flipY = tileData.flipY
+                            flipY = tileData.flipY,
+                            colorBits = colorBits
                         )
                     }
                 }

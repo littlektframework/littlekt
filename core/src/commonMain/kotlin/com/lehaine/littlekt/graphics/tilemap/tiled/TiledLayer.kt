@@ -5,6 +5,7 @@ import com.lehaine.littlekt.graphics.Camera
 import com.lehaine.littlekt.graphics.Color
 import com.lehaine.littlekt.graphics.tilemap.TileLayer
 import com.lehaine.littlekt.graphics.tilemap.tiled.internal.TileData
+import com.lehaine.littlekt.graphics.toFloatBits
 import com.lehaine.littlekt.math.Rect
 import com.lehaine.littlekt.math.geom.Angle
 import com.lehaine.littlekt.math.geom.degrees
@@ -29,6 +30,10 @@ abstract class TiledLayer(
     val opacity: Float,
     val properties: Map<String, TiledMap.Property>
 ) : TileLayer() {
+
+    protected val colorBits = (tintColor?.toMutableColor() ?: Color.WHITE.toMutableColor()).apply {
+        a *= opacity
+    }.toFloatBits()
 
     fun render(batch: Batch, camera: Camera, x: Float, y: Float, displayObjects: Boolean) {
         viewBounds.calculateViewBounds(camera)

@@ -57,8 +57,6 @@ class TiledObjectLayer(
             obj.gid?.let { gid ->
                 val tileData = gid.toInt().bitsToTileData(flipData)
                 tiles[tileData.id]?.let {
-                    println("id: ${it.id}, gid: $gid")
-                    println("x: ${obj.x + offsetX + x + it.offsetX}, y: ${obj.y + offsetY + y + it.offsetY}")
                     batch.draw(
                         slice = it.slice,
                         x = obj.x + offsetX + x + it.offsetX,
@@ -71,7 +69,8 @@ class TiledObjectLayer(
                         scaleY = 1f,
                         rotation = obj.rotation,
                         flipX = tileData.flipX,
-                        flipY = tileData.flipY
+                        flipY = tileData.flipY,
+                        colorBits = colorBits
                     )
                 }
             }

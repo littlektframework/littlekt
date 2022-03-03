@@ -56,7 +56,7 @@ class TiledMapLoader internal constructor(private val root: VfsFile, private val
                 offsetY = layerData.offsety,
                 tileWidth = mapData.tilewidth,
                 tileHeight = mapData.tileheight,
-                tintColor = layerData.tintColor?.let { Color.fromHex(it) },
+                tintColor = layerData.tintcolor?.let { Color.fromHex(it) },
                 opacity = layerData.opacity,
                 properties = layerData.properties.toTiledMapProperty(),
                 staggerIndex = mapData.staggeraxis?.toStaggerIndex(),
@@ -77,7 +77,7 @@ class TiledMapLoader internal constructor(private val root: VfsFile, private val
                     offsetY = layerData.offsety,
                     tileWidth = mapData.tilewidth,
                     tileHeight = mapData.tileheight,
-                    tintColor = layerData.tintColor?.let { Color.fromHex(it) },
+                    tintColor = layerData.tintcolor?.let { Color.fromHex(it) },
                     opacity = layerData.opacity,
                     drawOrder = layerData.draworder?.toDrawOrder(),
                     objects = layerData.objects.map { objectData ->
@@ -148,7 +148,7 @@ class TiledMapLoader internal constructor(private val root: VfsFile, private val
                     offsetY = layerData.offsety,
                     tileWidth = mapData.tilewidth,
                     tileHeight = mapData.tileheight,
-                    tintColor = layerData.tintColor?.let { Color.fromHex(it) },
+                    tintColor = layerData.tintcolor?.let { Color.fromHex(it) },
                     opacity = layerData.opacity,
                     properties = layerData.properties.toTiledMapProperty(),
                     texture = layerData.image?.let { root[it].readTexture().slice() }
@@ -165,7 +165,7 @@ class TiledMapLoader internal constructor(private val root: VfsFile, private val
                 offsetY = layerData.offsety,
                 tileWidth = mapData.tilewidth,
                 tileHeight = mapData.tileheight,
-                tintColor = layerData.tintColor?.let { Color.fromHex(it) },
+                tintColor = layerData.tintcolor?.let { Color.fromHex(it) },
                 opacity = layerData.opacity,
                 properties = layerData.properties.toTiledMapProperty(),
                 layers = layerData.layers.map { instantiateLayer(mapData, it, tiles) }

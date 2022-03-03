@@ -170,13 +170,14 @@
          "height":40,
          "id":2,
          "name":"Items",
-         "opacity":1,
+         "opacity":0.5,
          "properties":[
                 {
                  "name":"total",
                  "type":"int",
                  "value":5
                 }],
+         "tintcolor":"#ff0000",
          "type":"tilelayer",
          "visible":true,
          "width":40,

@@ -37,7 +37,7 @@ class TiledImageLayer(
             val tx2 = tx + texture.width
             val ty2 = ty + texture.height
             if (viewBounds.intersects(tx, ty, tx2, ty2)) {
-                batch.draw(it, tx, ty)
+                batch.draw(it, tx, ty, colorBits = colorBits)
             }
         }
     }
