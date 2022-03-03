@@ -6,7 +6,7 @@ import com.lehaine.littlekt.file.UnsupportedFileTypeException
 import com.lehaine.littlekt.file.atlas.AtlasInfo
 import com.lehaine.littlekt.file.atlas.AtlasPage
 import com.lehaine.littlekt.file.ldtk.LDtkMapLoader
-import com.lehaine.littlekt.file.ldtk.ProjectJson
+import com.lehaine.littlekt.file.ldtk.LDtkMapData
 import com.lehaine.littlekt.graphics.Pixmap
 import com.lehaine.littlekt.graphics.Texture
 import com.lehaine.littlekt.graphics.TextureAtlas
@@ -226,7 +226,7 @@ private suspend fun readBitmapFontTxt(
  * @see [VfsFile.readLDtkLevel]
  */
 suspend fun VfsFile.readLDtkMapLoader(tilesetBorder: Int = 2): LDtkMapLoader {
-    val project = decodeFromString<ProjectJson>()
+    val project = decodeFromString<LDtkMapData>()
     return LDtkMapLoader(this, project, tilesetBorder)
 }
 
@@ -239,7 +239,7 @@ suspend fun VfsFile.readLDtkMapLoader(tilesetBorder: Int = 2): LDtkMapLoader {
  * @return the loaded LDtk level
  */
 suspend fun VfsFile.readLDtkLevel(levelIdx: Int, tilesetBorder: Int = 2): LDtkLevel {
-    val project = decodeFromString<ProjectJson>()
+    val project = decodeFromString<LDtkMapData>()
     val loader = LDtkMapLoader(this, project, tilesetBorder)
     return loader.loadLevel(levelIdx)
 }

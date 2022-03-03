@@ -6,7 +6,6 @@ import com.lehaine.littlekt.file.vfs.readPixmap
 import com.lehaine.littlekt.file.vfs.readTexture
 import com.lehaine.littlekt.graphics.Color
 import com.lehaine.littlekt.graphics.Texture
-import com.lehaine.littlekt.graphics.TextureAtlas
 import com.lehaine.littlekt.graphics.sliceWithBorder
 import com.lehaine.littlekt.graphics.tilemap.ldtk.*
 import com.lehaine.littlekt.log.Logger
@@ -17,7 +16,7 @@ import com.lehaine.littlekt.math.geom.Point
  * @date 12/20/2021
  */
 internal class LDtkLevelLoader(
-    private val project: ProjectJson,
+    private val mapData: LDtkMapData,
     private val sliceBorder: Int = 2,
 ) : Disposable {
 
@@ -31,7 +30,7 @@ internal class LDtkLevelLoader(
 
     suspend fun loadLevel(root: VfsFile, levelDef: LevelDefinition, enums: Map<String, LDtkEnum>): LDtkLevel {
         levelDef.layerInstances?.forEach { layerInstance ->
-            project.defs.tilesets.find { it.uid == layerInstance.tilesetDefUid }?.let {
+            mapData.defs.tilesets.find { it.uid == layerInstance.tilesetDefUid }?.let {
                 tilesets.getOrPut(it.uid) { loadTileset(root, it) }
             }
         }
@@ -66,7 +65,7 @@ internal class LDtkLevelLoader(
         if (uid == null && identifier == null) {
             return null
         }
-        return project.defs.layers.find { it.uid == uid || it.identifier == identifier }
+        return mapData.defs.layers.find { it.uid == uid || it.identifier == identifier }
     }
 
     private fun instantiateLayer(
@@ -128,7 +127,7 @@ internal class LDtkLevelLoader(
             "Entities" -> {
                 json.entityInstances.mapTo(entities) { entity ->
                     val fields = mutableMapOf<String, LDtkField<*>>()
-                    val entityDef = project.defs.entities.first { it.uid == entity.defUid }
+                    val entityDef = mapData.defs.entities.first { it.uid == entity.defUid }
                     entity.fieldInstances.forEach { field ->
                         val isArray = ARRAY_REGEX.matches(field.type)
                         val type = if (isArray) {

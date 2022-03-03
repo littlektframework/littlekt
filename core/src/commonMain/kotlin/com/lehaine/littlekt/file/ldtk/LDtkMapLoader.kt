@@ -14,11 +14,11 @@ import com.lehaine.littlekt.graphics.tilemap.ldtk.LDtkWorld
  */
 class LDtkMapLoader(
     private val root: VfsFile,
-    private val project: ProjectJson,
+    private val mapData: LDtkMapData,
     tilesetBorder: Int = 2,
 ) : Disposable {
-    private val levelLoader = LDtkLevelLoader(project, tilesetBorder)
-    private val enums = project.defs.enums.associateBy(keySelector = { it.identifier }) { enum ->
+    private val levelLoader = LDtkLevelLoader(mapData, tilesetBorder)
+    private val enums = mapData.defs.enums.associateBy(keySelector = { it.identifier }) { enum ->
         val values =
             enum.values.associateBy(keySelector = { it.id }) {
                 LDtkEnumValue(
@@ -28,7 +28,7 @@ class LDtkMapLoader(
             }
         LDtkEnum(enum.identifier, values)
     }
-    private val entityDefinitions = project.defs.entities.associateBy { it.identifier }
+    private val entityDefinitions = mapData.defs.entities.associateBy { it.identifier }
 
     suspend fun loadMap(loadAllLevels: Boolean, levelIdx: Int = 0): LDtkWorld {
         val parent = root.parent
@@ -36,8 +36,8 @@ class LDtkMapLoader(
 
         when {
             loadAllLevels -> {
-                project.levelDefinitions.forEach {
-                    levels += if (project.externalLevels) {
+                mapData.levelDefinitions.forEach {
+                    levels += if (mapData.externalLevels) {
                         levelLoader.loadLevel(
                             parent,
                             it.externalRelPath ?: error("Unable to load external level: ${it.identifier}"),
@@ -46,12 +46,11 @@ class LDtkMapLoader(
                     } else {
                         levelLoader.loadLevel(parent, it, enums)
                     }
-
                 }
             }
             else -> {
-                val level = project.levelDefinitions[levelIdx]
-                levels += if (project.externalLevels) {
+                val level = mapData.levelDefinitions[levelIdx]
+                levels += if (mapData.externalLevels) {
                     val path = level.externalRelPath
                     levelLoader.loadLevel(
                         parent,
@@ -64,14 +63,14 @@ class LDtkMapLoader(
             }
         }
 
-        return LDtkWorld(project.worldLayout, project.bgColor, levels, levelLoader.tilesets, enums, entityDefinitions)
+        return LDtkWorld(mapData.worldLayout, mapData.bgColor, levels, levelLoader.tilesets, enums, entityDefinitions)
     }
 
     suspend fun loadLevel(levelIdx: Int): LDtkLevel {
         val parent = root.parent
-        val level = project.levelDefinitions[levelIdx]
+        val level = mapData.levelDefinitions[levelIdx]
 
-        return if (project.externalLevels) {
+        return if (mapData.externalLevels) {
             val path = level.externalRelPath
             levelLoader.loadLevel(
                 parent,

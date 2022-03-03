@@ -13,7 +13,7 @@ import kotlinx.serialization.json.*
  * users).
  */
 @Serializable
-data class ProjectJson(
+data class LDtkMapData(
     /**
      * Project background color
      */
@@ -585,7 +585,7 @@ data class LevelDefinition(
      * Position informations of the background image, if there is one.
      */
     @SerialName("__bgPos")
-    val bgPos: LevelBackgroundPosition? = null,
+    val bgPos: LevelBackgroundPositionData? = null,
 
     /**
      * An array listing all other levels touching this one on the world map. In "linear" world
@@ -593,7 +593,7 @@ data class LevelDefinition(
      * the linear horizontal/vertical layout.
      */
     @SerialName("__neighbours")
-    val neighbours: List<NeighbourLevel>?,
+    val neighbours: List<NeighbourLevelData>?,
 
     /**
      * Background color of the level. If `null`, the project `defaultLevelBgColor` should be
@@ -678,7 +678,7 @@ data class LevelDefinition(
  * Level background image position info
  */
 @Serializable
-data class LevelBackgroundPosition(
+data class LevelBackgroundPositionData(
     /**
      * An array of 4 float values describing the cropped sub-rectangle of the displayed
      * background image. This cropping happens when original is larger than the level bounds.
@@ -1060,7 +1060,7 @@ enum class BgPos(val value: String) {
  * Nearby level info
  */
 @Serializable
-data class NeighbourLevel(
+data class NeighbourLevelData(
     /**
      * A single lowercase character tipping on the level location (`n`orth, `s`outh, `w`est,
      * `e`ast).
