@@ -260,9 +260,13 @@ suspend fun VfsFile.readLDtkLevel(levelIdx: Int, tilesetBorder: Int = 2): LDtkLe
     return loader.loadLevel(levelIdx)
 }
 
-suspend fun VfsFile.readTiledMap(atlas: TextureAtlas? = null, tilesetBorder: Int = 2): TiledMap {
+suspend fun VfsFile.readTiledMap(
+    atlas: TextureAtlas? = null,
+    tilesetBorder: Int = 2,
+    mipmaps: Boolean = true
+): TiledMap {
     val mapData = decodeFromString<TiledMapData>()
-    val loader = TiledMapLoader(parent, mapData, atlas, tilesetBorder)
+    val loader = TiledMapLoader(parent, mapData, atlas, tilesetBorder, mipmaps)
     return loader.loadMap()
 }
 
