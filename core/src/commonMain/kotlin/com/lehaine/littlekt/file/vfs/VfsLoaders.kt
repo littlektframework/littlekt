@@ -231,20 +231,6 @@ suspend fun VfsFile.readLDtkMapLoader(tilesetBorder: Int = 2): LDtkMapLoader {
 }
 
 /**
- * Reads the [VfsFile] as a [LDtkLevel] and loads the level specified by [levelIdx]. This will create a new [LDtkMapLoader]
- * and load textures from file. If the intention is to reuse already loaded textures then use [readLDtkMapLoader].
- *
- * @param levelIdx the index of the level to load
- * @param tilesetBorder the border thickness of each slice when loading the tileset to prevent bleeding
- * @return the loaded LDtk level
- */
-suspend fun VfsFile.readLDtkLevel(levelIdx: Int, tilesetBorder: Int = 2): LDtkLevel {
-    val project = decodeFromString<LDtkMapData>()
-    val loader = LDtkMapLoader(this, project, tilesetBorder)
-    return loader.loadLevel(levelIdx)
-}
-
-/**
  * Loads an image from the path as a [Texture]. This will call [Texture.prepare] before returning!
  * @return the loaded texture
  */
