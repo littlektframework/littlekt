@@ -54,7 +54,7 @@ internal data class TiledLayerData(
 @Serializable
 internal data class TiledObjectData(
     val id: Int,
-    val gid: Int? = null,
+    val gid: Long? = null,
     val name: String,
     val type: String,
     val properties: List<TiledProperty> = emptyList(),

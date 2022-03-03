@@ -27,6 +27,41 @@
          "y":0
         }, 
         {
+         "id":8,
+         "layers":[
+                {
+                 "draworder":"topdown",
+                 "id":9,
+                 "name":"Object Layer 2",
+                 "objects":[
+                        {
+                         "ellipse":true,
+                         "height":0,
+                         "id":22,
+                         "name":"",
+                         "rotation":0,
+                         "type":"",
+                         "visible":true,
+                         "width":0,
+                         "x":195.5,
+                         "y":133.5
+                        }],
+                 "opacity":1,
+                 "type":"objectgroup",
+                 "visible":true,
+                 "x":0,
+                 "y":0
+                }],
+         "name":"Group 1",
+         "offsetx":-14.75,
+         "offsety":9.25,
+         "opacity":1,
+         "type":"group",
+         "visible":true,
+         "x":0,
+         "y":0
+        }, 
+        {
          "draworder":"topdown",
          "id":7,
          "name":"Object Layer 1",
@@ -111,6 +146,18 @@
                  "width":0,
                  "x":67.8181818181818,
                  "y":131.636363636364
+                }, 
+                {
+                 "gid":2147483703,
+                 "height":8,
+                 "id":23,
+                 "name":"",
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":8,
+                 "x":272,
+                 "y":112
                 }],
          "opacity":1,
          "type":"objectgroup",
@@ -148,8 +195,8 @@
          "x":0,
          "y":0
         }],
- "nextlayerid":8,
- "nextobjectid":22,
+ "nextlayerid":10,
+ "nextobjectid":26,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tiledversion":"1.8.2",

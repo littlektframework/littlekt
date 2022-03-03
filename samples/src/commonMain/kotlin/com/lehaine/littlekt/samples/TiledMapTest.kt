@@ -9,6 +9,7 @@ import com.lehaine.littlekt.graphics.gl.ClearBufferMask
 import com.lehaine.littlekt.graphics.tilemap.tiled.TiledMap
 import com.lehaine.littlekt.graphics.use
 import com.lehaine.littlekt.input.Key
+import com.lehaine.littlekt.util.viewport.ExtendViewport
 import com.lehaine.littlekt.util.viewport.ScreenViewport
 
 /**
@@ -19,7 +20,7 @@ class TiledMapTest(context: Context) : ContextListener(context) {
 
     override suspend fun Context.start() {
         val camera = OrthographicCamera().apply {
-            viewport = ScreenViewport(context.graphics.width, context.graphics.height)
+            viewport = ExtendViewport(480, 270)
         }
 
         val batch = SpriteBatch(context)
@@ -50,7 +51,7 @@ class TiledMapTest(context: Context) : ContextListener(context) {
             camera.update()
 
             batch.use(camera.viewProjection) {
-                maps[mapIdx].render(it, camera)
+                maps[mapIdx].render(it, camera, displayObjects = true)
             }
 
             if (input.isKeyJustPressed(Key.ENTER)) {

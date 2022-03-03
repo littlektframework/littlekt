@@ -13,6 +13,7 @@ class TiledImageLayer(
     type: String,
     name: String,
     id: Int,
+    visible: Boolean,
     width: Int,
     height: Int,
     offsetX: Float,
@@ -24,9 +25,12 @@ class TiledImageLayer(
     properties: Map<String, TiledMap.Property>,
     private val texture: TextureSlice?
 ) : TiledLayer(
-    type, name, id, width, height, offsetX, offsetY, tileWidth, tileHeight, tintColor, opacity, properties
+    type, name, id, visible, width, height, offsetX, offsetY, tileWidth, tileHeight, tintColor, opacity, properties
 ) {
-    override fun render(batch: Batch, viewBounds: Rect, x: Float, y: Float) {
+
+    override fun render(batch: Batch, viewBounds: Rect, x: Float, y: Float, displayObjects: Boolean) {
+        if (!visible) return
+
         texture?.let {
             val tx = x + offsetX
             val ty = y + offsetY

@@ -17,5 +17,5 @@ abstract class TileLayer {
         render(batch, viewBounds, x, y)
     }
 
-    abstract fun render(batch: Batch, viewBounds: Rect, x: Float, y: Float)
+    abstract fun render(batch: Batch, viewBounds: Rect, x: Float = 0f, y: Float = 0f)
 }

@@ -1,7 +1,14 @@
 package com.lehaine.littlekt.graphics.tilemap.tiled
 
+import com.lehaine.littlekt.graphics.Batch
+import com.lehaine.littlekt.graphics.Camera
 import com.lehaine.littlekt.graphics.Color
 import com.lehaine.littlekt.graphics.tilemap.TileLayer
+import com.lehaine.littlekt.graphics.tilemap.tiled.internal.TileData
+import com.lehaine.littlekt.math.Rect
+import com.lehaine.littlekt.math.geom.Angle
+import com.lehaine.littlekt.math.geom.degrees
+import com.lehaine.littlekt.util.calculateViewBounds
 
 /**
  * @author Colton Daily
@@ -11,6 +18,7 @@ abstract class TiledLayer(
     val type: String,
     val name: String,
     val id: Int,
+    val visible: Boolean,
     val width: Int,
     val height: Int,
     val offsetX: Float,
@@ -21,6 +29,16 @@ abstract class TiledLayer(
     val opacity: Float,
     val properties: Map<String, TiledMap.Property>
 ) : TileLayer() {
+
+    fun render(batch: Batch, camera: Camera, x: Float, y: Float, displayObjects: Boolean) {
+        viewBounds.calculateViewBounds(camera)
+        render(batch, viewBounds, x, y, displayObjects)
+    }
+
+    final override fun render(batch: Batch, viewBounds: Rect, x: Float, y: Float) =
+        render(batch, viewBounds, x, y, false)
+
+    abstract fun render(batch: Batch, viewBounds: Rect, x: Float = 0f, y: Float = 0f, displayObjects: Boolean = false)
 
     /**
      * @return true if grid-based coordinates are within layer bounds.
@@ -38,4 +56,38 @@ abstract class TiledLayer(
     }
 
     fun getCoordId(cx: Int, cy: Int) = cx + cy * width
+
+    internal fun Int.bitsToTileData(result: TileData): TileData {
+        val bits = this
+        val flipHorizontally = (bits and TiledMap.FLAG_FLIP_HORIZONTALLY) != 0
+        val flipVertically = (bits and TiledMap.FLAG_FLIP_VERTICALLY) != 0
+        val flipDiagonally = (bits and TiledMap.FLAG_FLIP_DIAGONALLY) != 0
+        val tileId = bits and TiledMap.MASK_CLEAR.inv()
+
+        var flipX = false
+        var flipY = false
+        var rotation = Angle.ZERO
+        if (flipDiagonally) {
+            if (flipHorizontally && flipVertically) {
+                flipX = true
+                rotation = (-270).degrees
+            } else if (flipHorizontally) {
+                rotation = (-270).degrees
+            } else if (flipVertically) {
+                rotation = (-90).degrees
+            } else {
+                flipY = true
+                rotation = (-270).degrees
+            }
+        } else {
+            flipX = flipHorizontally
+            flipY = flipVertically
+        }
+        return result.also {
+            it.flipX = flipX
+            it.flipY = flipY
+            it.rotation = rotation
+            it.id = tileId
+        }
+    }
 }

@@ -2,7 +2,6 @@ package com.lehaine.littlekt.graphics.tilemap.tiled
 
 import com.lehaine.littlekt.graphics.Batch
 import com.lehaine.littlekt.graphics.Color
-import com.lehaine.littlekt.graphics.tilemap.TileLayer
 import com.lehaine.littlekt.math.Rect
 
 /**
@@ -13,6 +12,7 @@ class TiledGroupLayer(
     type: String,
     name: String,
     id: Int,
+    visible: Boolean,
     width: Int,
     height: Int,
     offsetX: Float,
@@ -22,14 +22,16 @@ class TiledGroupLayer(
     tintColor: Color?,
     opacity: Float,
     properties: Map<String, TiledMap.Property>,
-    val layers: List<TileLayer>,
+    val layers: List<TiledLayer>,
 ) : TiledLayer(
-    type, name, id, width, height, offsetX, offsetY, tileWidth, tileHeight, tintColor, opacity, properties
+    type, name, id, visible, width, height, offsetX, offsetY, tileWidth, tileHeight, tintColor, opacity, properties
 ) {
 
-    override fun render(batch: Batch, viewBounds: Rect, x: Float, y: Float) {
+    override fun render(batch: Batch, viewBounds: Rect, x: Float, y: Float, displayObjects: Boolean) {
+        if (!visible) return
+
         layers.forEach {
-            it.render(batch, viewBounds, x + offsetX, y + offsetY)
+            it.render(batch, viewBounds, x + offsetX, y + offsetY, displayObjects)
         }
     }
 }

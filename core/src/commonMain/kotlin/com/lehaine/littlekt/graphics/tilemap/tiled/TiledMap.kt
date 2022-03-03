@@ -28,9 +28,11 @@ class TiledMap(
     val tileSets: List<TiledTileset>
 ) : TileMap() {
 
-    override fun render(batch: Batch, camera: Camera, x: Float, y: Float) {
+    override fun render(batch: Batch, camera: Camera, x: Float, y: Float) = render(batch, camera, x, y, false)
+
+    fun render(batch: Batch, camera: Camera, x: Float = 0f, y: Float = 0f, displayObjects: Boolean = false) {
         layers.forEach {
-            it.render(batch, camera, x, y)
+            it.render(batch, camera, x, y, displayObjects)
         }
     }
 
@@ -117,7 +119,7 @@ class TiledMap(
 
     data class Object(
         val id: Int,
-        val gid: Int?,
+        val gid: Long?,
         val name: String,
         val type: String,
         val bounds: Rect,

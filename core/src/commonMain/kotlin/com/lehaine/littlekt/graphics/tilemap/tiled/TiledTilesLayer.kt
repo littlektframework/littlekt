@@ -3,9 +3,8 @@ package com.lehaine.littlekt.graphics.tilemap.tiled
 import com.lehaine.littlekt.graphics.Batch
 import com.lehaine.littlekt.graphics.Color
 import com.lehaine.littlekt.graphics.TextureSlice
+import com.lehaine.littlekt.graphics.tilemap.tiled.internal.TileData
 import com.lehaine.littlekt.math.*
-import com.lehaine.littlekt.math.geom.Angle
-import com.lehaine.littlekt.math.geom.degrees
 import com.lehaine.littlekt.util.internal.now
 import kotlin.math.max
 import kotlin.math.min
@@ -21,6 +20,7 @@ class TiledTilesLayer(
     type: String,
     name: String,
     id: Int,
+    visible: Boolean,
     width: Int,
     height: Int,
     offsetX: Float,
@@ -36,7 +36,7 @@ class TiledTilesLayer(
     private val tileData: IntArray,
     private val tiles: Map<Int, TiledTileset.Tile>
 ) : TiledLayer(
-    type, name, id, width, height, offsetX, offsetY, tileWidth, tileHeight, tintColor, opacity, properties
+    type, name, id, visible, width, height, offsetX, offsetY, tileWidth, tileHeight, tintColor, opacity, properties
 ) {
     private val lastFrameTimes by lazy { mutableMapOf<Int, Duration>() }
     private val lastFrameIndex by lazy { mutableMapOf<Int, Int>() }
@@ -46,7 +46,9 @@ class TiledTilesLayer(
     private val topLeft = MutableVec2f()
     private val bottomRight = MutableVec2f()
 
-    override fun render(batch: Batch, viewBounds: Rect, x: Float, y: Float) {
+    override fun render(batch: Batch, viewBounds: Rect, x: Float, y: Float, displayObjects: Boolean) {
+        if (!visible) return
+
         when (orientation) {
             TiledMap.Orientation.ORTHOGONAL -> renderOrthographically(batch, viewBounds, x, y)
             TiledMap.Orientation.ISOMETRIC -> renderIsometrically(batch, viewBounds, x, y)
@@ -70,7 +72,7 @@ class TiledTilesLayer(
             for (cx in minX..maxX) {
                 val cid = getCoordId(cx, cy)
                 if (cid in tileData.indices) {
-                    val tileData = tileData[cid].bitsToTileData()
+                    val tileData = tileData[cid].bitsToTileData(flipData)
                     tiles[tileData.id]?.let {
                         val slice = it.updateFramesAndGetSlice()
                         batch.draw(
@@ -114,7 +116,7 @@ class TiledTilesLayer(
             for (cx in minX..maxX) {
                 val cid = getCoordId(cx, cy)
                 if (isCoordValid(cx, cy) && cid in tileData.indices) {
-                    val tileData = tileData[cid].bitsToTileData()
+                    val tileData = tileData[cid].bitsToTileData(flipData)
                     tiles[tileData.id]?.let {
                         val slice = it.updateFramesAndGetSlice()
                         val halfWidth = tileWidth * 0.5f
@@ -167,7 +169,7 @@ class TiledTilesLayer(
             for (cx in minX..maxX) {
                 val cid = getCoordId(cx, cy)
                 if (cid in tileData.indices) {
-                    val tileData = tileData[cid].bitsToTileData()
+                    val tileData = tileData[cid].bitsToTileData(flipData)
                     tiles[tileData.id]?.let {
                         val slice = it.updateFramesAndGetSlice()
                         batch.draw(
@@ -187,47 +189,6 @@ class TiledTilesLayer(
                     }
                 }
             }
-        }
-    }
-
-    private data class TileData(
-        var id: Int = 0,
-        var flipX: Boolean = false,
-        var flipY: Boolean = false,
-        var rotation: Angle = Angle.ZERO
-    )
-
-    private fun Int.bitsToTileData(): TileData {
-        val bits = this
-        val flipHorizontally = (bits and TiledMap.FLAG_FLIP_HORIZONTALLY) != 0
-        val flipVertically = (bits and TiledMap.FLAG_FLIP_VERTICALLY) != 0
-        val flipDiagonally = (bits and TiledMap.FLAG_FLIP_DIAGONALLY) != 0
-        val tileId = bits and TiledMap.MASK_CLEAR.inv()
-
-        var flipX = false
-        var flipY = false
-        var rotation = Angle.ZERO
-        if (flipDiagonally) {
-            if (flipHorizontally && flipVertically) {
-                flipX = true
-                rotation = (-270).degrees
-            } else if (flipHorizontally) {
-                rotation = (-270).degrees
-            } else if (flipVertically) {
-                rotation = (-90).degrees
-            } else {
-                flipY = true
-                rotation = (-270).degrees
-            }
-        } else {
-            flipX = flipHorizontally
-            flipY = flipVertically
-        }
-        return flipData.also {
-            it.flipX = flipX
-            it.flipY = flipY
-            it.rotation = rotation
-            it.id = tileId
         }
     }
 

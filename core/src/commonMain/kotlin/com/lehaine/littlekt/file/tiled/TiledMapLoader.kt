@@ -49,6 +49,7 @@ class TiledMapLoader internal constructor(private val root: VfsFile, private val
                 type = layerData.type,
                 name = layerData.name,
                 id = layerData.id,
+                visible = layerData.visible,
                 width = layerData.width,
                 height = layerData.height,
                 offsetX = layerData.offsetx,
@@ -69,6 +70,7 @@ class TiledMapLoader internal constructor(private val root: VfsFile, private val
                     type = layerData.type,
                     name = layerData.name,
                     id = layerData.id,
+                    visible = layerData.visible,
                     width = layerData.width,
                     height = layerData.height,
                     offsetX = layerData.offsetx,
@@ -130,7 +132,8 @@ class TiledMapLoader internal constructor(private val root: VfsFile, private val
                             properties = objectData.properties.toTiledMapProperty()
                         )
                     },
-                    properties = layerData.properties.toTiledMapProperty()
+                    properties = layerData.properties.toTiledMapProperty(),
+                    tiles = tiles
                 )
             }
             "imagelayer" -> {
@@ -138,6 +141,7 @@ class TiledMapLoader internal constructor(private val root: VfsFile, private val
                     type = layerData.type,
                     name = layerData.name,
                     id = layerData.id,
+                    visible = layerData.visible,
                     width = layerData.width,
                     height = layerData.height,
                     offsetX = layerData.offsetx,
@@ -154,6 +158,7 @@ class TiledMapLoader internal constructor(private val root: VfsFile, private val
                 type = layerData.type,
                 name = layerData.name,
                 id = layerData.id,
+                visible = layerData.visible,
                 width = layerData.width,
                 height = layerData.height,
                 offsetX = layerData.offsetx,
