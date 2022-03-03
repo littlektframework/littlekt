@@ -3,6 +3,7 @@ package com.lehaine.littlekt.samples
 import com.lehaine.littlekt.*
 import com.lehaine.littlekt.async.KtScope
 import com.lehaine.littlekt.audio.AudioStream
+import com.lehaine.littlekt.file.ldtk.LDtkMapLoader
 import com.lehaine.littlekt.file.vfs.readAtlas
 import com.lehaine.littlekt.file.vfs.readBitmapFont
 import com.lehaine.littlekt.file.vfs.readTexture
@@ -19,7 +20,6 @@ import com.lehaine.littlekt.graphics.font.BitmapFontCache
 import com.lehaine.littlekt.graphics.gl.ClearBufferMask
 import com.lehaine.littlekt.graphics.shader.shaders.SimpleColorFragmentShader
 import com.lehaine.littlekt.graphics.shader.shaders.SimpleColorVertexShader
-import com.lehaine.littlekt.graphics.tilemap.ldtk.LDtkWorld
 import com.lehaine.littlekt.input.GameAxis
 import com.lehaine.littlekt.input.GameButton
 import com.lehaine.littlekt.input.Key
@@ -171,7 +171,10 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
             it.tint(Color.RED)
         }
 
-        val ldtkWorld by assetProvider.load<LDtkWorld>(resourcesVfs["ldtk/sample.ldtk"])
+        val ldtkMapLoader by assetProvider.load<LDtkMapLoader>(resourcesVfs["ldtk/sample.ldtk"])
+        val ldtkWorld by assetProvider.prepare {
+                ldtkMapLoader.loadMap(true)
+        }
         val ninepatchImg by assetProvider.load<Texture>(resourcesVfs["bg_9.png"])
         val ninepatch by assetProvider.prepare { NinePatch(ninepatchImg, 3, 3, 3, 4) }
         val greyButtonNinePatch = NinePatch(

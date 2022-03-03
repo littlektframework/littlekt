@@ -12,9 +12,13 @@ import com.lehaine.littlekt.graphics.tilemap.ldtk.LDtkWorld
  * @author Colton Daily
  * @date 12/20/2021
  */
-class LDtkMapLoader(val root: VfsFile, val project: ProjectJson) : Disposable {
-    val levelLoader = LDtkLevelLoader(project)
-    val enums = project.defs.enums.associateBy(keySelector = { it.identifier }) { enum ->
+class LDtkMapLoader(
+    private val root: VfsFile,
+    private val project: ProjectJson,
+    tilesetBorder: Int = 2,
+) : Disposable {
+    private val levelLoader = LDtkLevelLoader(project, tilesetBorder)
+    private val enums = project.defs.enums.associateBy(keySelector = { it.identifier }) { enum ->
         val values =
             enum.values.associateBy(keySelector = { it.id }) {
                 LDtkEnumValue(
@@ -24,7 +28,7 @@ class LDtkMapLoader(val root: VfsFile, val project: ProjectJson) : Disposable {
             }
         LDtkEnum(enum.identifier, values)
     }
-    val entityDefinitions = project.defs.entities.associateBy { it.identifier }
+    private val entityDefinitions = project.defs.entities.associateBy { it.identifier }
 
     suspend fun loadMap(loadAllLevels: Boolean, levelIdx: Int = 0): LDtkWorld {
         val parent = root.parent

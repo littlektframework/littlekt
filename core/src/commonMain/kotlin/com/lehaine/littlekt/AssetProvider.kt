@@ -3,6 +3,7 @@ package com.lehaine.littlekt
 import com.lehaine.littlekt.audio.AudioClip
 import com.lehaine.littlekt.audio.AudioStream
 import com.lehaine.littlekt.file.UnsupportedFileTypeException
+import com.lehaine.littlekt.file.ldtk.LDtkMapLoader
 import com.lehaine.littlekt.file.vfs.*
 import com.lehaine.littlekt.graphics.Pixmap
 import com.lehaine.littlekt.graphics.Texture
@@ -14,7 +15,6 @@ import com.lehaine.littlekt.graphics.font.TtfFont
 import com.lehaine.littlekt.graphics.gl.TexMagFilter
 import com.lehaine.littlekt.graphics.gl.TexMinFilter
 import com.lehaine.littlekt.graphics.tilemap.ldtk.LDtkLevel
-import com.lehaine.littlekt.graphics.tilemap.ldtk.LDtkWorld
 import com.lehaine.littlekt.util.internal.lock
 import kotlinx.atomicfu.atomic
 import kotlin.reflect.KClass
@@ -55,7 +55,7 @@ open class AssetProvider(val context: Context) {
     /**
      * Updates to check if all assets have been loaded, and if so, prepare them.
      */
-    fun update() {
+   suspend fun update() {
         if (totalAssetsLoading.value > 0) return
         if (!prepared) {
             assetsToPrepare.forEach {
@@ -127,7 +127,7 @@ open class AssetProvider(val context: Context) {
      * @param action the action to initialize this value
      * @see load
      */
-    fun <T : Any> prepare(action: () -> T) = PreparableGameAsset(action).also { assetsToPrepare += it }
+    fun <T : Any> prepare(action: suspend () -> T) = PreparableGameAsset(action).also { assetsToPrepare += it }
 
     @Suppress("UNCHECKED_CAST")
     fun <T : Any> get(clazz: KClass<T>, vfsFile: VfsFile) = assets[clazz]?.get(vfsFile)?.content as T
@@ -171,16 +171,16 @@ open class AssetProvider(val context: Context) {
                     file.readBitmapFont()
                 }
             },
-            LDtkWorld::class to { file, params ->
+            LDtkMapLoader::class to { file, params ->
                 if (params is LDtkGameAssetParameter) {
-                    file.readLDtkMap(params.loadAllLevels, params.levelIdx, params.tilesetBorderThickness)
+                    file.readLDtkMapLoader(params.tilesetBorderThickness)
                 } else {
-                    file.readLDtkMap()
+                    file.readLDtkMapLoader()
                 }
             },
             LDtkLevel::class to { file, params ->
                 if (params is LDtkGameAssetParameter) {
-                    file.readLDtkLevel(params.levelIdx)
+                    file.readLDtkLevel(params.levelIdx, params.tilesetBorderThickness)
                 } else {
                     file.readLDtkLevel(0)
                 }
@@ -202,7 +202,7 @@ class GameAsset<T>(val vfsFile: VfsFile) {
     }
 }
 
-class PreparableGameAsset<T>(val action: () -> T) {
+class PreparableGameAsset<T>(val action: suspend () -> T) {
     private var isPrepared = false
     private var result: T? = null
 
@@ -214,7 +214,7 @@ class PreparableGameAsset<T>(val action: () -> T) {
         }
     }
 
-    fun prepare() {
+    suspend fun prepare() {
         result = action.invoke()
         isPrepared = true
     }
@@ -231,7 +231,6 @@ class TextureGameAssetParameter(
 ) : GameAssetParameters
 
 class LDtkGameAssetParameter(
-    val loadAllLevels: Boolean = true,
     val levelIdx: Int = 0,
     val tilesetBorderThickness: Int = 2
 ) : GameAssetParameters

@@ -6,6 +6,7 @@ import com.lehaine.littlekt.file.vfs.readPixmap
 import com.lehaine.littlekt.file.vfs.readTexture
 import com.lehaine.littlekt.graphics.Color
 import com.lehaine.littlekt.graphics.Texture
+import com.lehaine.littlekt.graphics.TextureAtlas
 import com.lehaine.littlekt.graphics.sliceWithBorder
 import com.lehaine.littlekt.graphics.tilemap.ldtk.*
 import com.lehaine.littlekt.log.Logger
@@ -15,11 +16,13 @@ import com.lehaine.littlekt.math.geom.Point
  * @author Colton Daily
  * @date 12/20/2021
  */
-class LDtkLevelLoader(private val project: ProjectJson) : Disposable {
+internal class LDtkLevelLoader(
+    private val project: ProjectJson,
+    private val sliceBorder: Int = 2,
+) : Disposable {
 
-    var sliceBorder = 2
-    val assetCache = mutableMapOf<VfsFile, Texture>()
-    val tilesets = mutableMapOf<Int, LDtkTileset>()
+    private val assetCache = mutableMapOf<VfsFile, Texture>()
+    internal val tilesets = mutableMapOf<Int, LDtkTileset>()
 
     suspend fun loadLevel(root: VfsFile, externalRelPath: String, enums: Map<String, LDtkEnum>): LDtkLevel {
         val levelDef: LevelDefinition = root[externalRelPath].decodeFromString()
