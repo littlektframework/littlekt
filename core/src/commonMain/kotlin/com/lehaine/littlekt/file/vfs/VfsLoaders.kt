@@ -260,6 +260,15 @@ suspend fun VfsFile.readLDtkLevel(levelIdx: Int, tilesetBorder: Int = 2): LDtkLe
     return loader.loadLevel(levelIdx)
 }
 
+/**
+ * Reads the [VfsFile] as a [TiledMap]. Any loaders and assets will be cached for reuse/reloading.
+ * @param atlas an atlas the has the preloaded textures for both tilesets and image layers. **Note**: that if the
+ * [Texture] for a tileset has a border thickness set, that value must be used for [tilesetBorder]. If no border is set,
+ * then [tilesetBorder] must be marked as `0`.
+ * @param tilesetBorder the border thickness of each slice when loading the tileset to prevent bleeding. This is used when
+ * slicing tileset textures from an atlas or when loading externally.
+ * @return the loaded Tiled map
+ */
 suspend fun VfsFile.readTiledMap(
     atlas: TextureAtlas? = null,
     tilesetBorder: Int = 2,
