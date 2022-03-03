@@ -35,14 +35,18 @@ class MutableTextureAtlas(val context: Context, options: PackingOptions = Packin
     val height get() = packer.height
 
 
-    fun add(slice: TextureSlice, name: String = "slice$size") {
+    fun add(slice: TextureSlice, name: String = "slice$size"): MutableTextureAtlas {
         entries += Entry(slice, name)
+        return this
     }
 
-    fun add(atlas: TextureAtlas) {
+    fun add(slices: List<TextureSlice>) = slices.forEach { add(it) }
+
+    fun add(atlas: TextureAtlas): MutableTextureAtlas {
         atlas.entries.forEach {
             entries += Entry(it.slice, it.name)
         }
+        return this
     }
 
     fun toImmutable(useMiMaps: Boolean = true): TextureAtlas {

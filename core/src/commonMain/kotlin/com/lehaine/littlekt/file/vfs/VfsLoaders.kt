@@ -7,6 +7,8 @@ import com.lehaine.littlekt.file.atlas.AtlasInfo
 import com.lehaine.littlekt.file.atlas.AtlasPage
 import com.lehaine.littlekt.file.ldtk.LDtkMapLoader
 import com.lehaine.littlekt.file.ldtk.ProjectJson
+import com.lehaine.littlekt.file.tiled.TiledMapData
+import com.lehaine.littlekt.file.tiled.TiledMapLoader
 import com.lehaine.littlekt.graphics.Pixmap
 import com.lehaine.littlekt.graphics.Texture
 import com.lehaine.littlekt.graphics.TextureAtlas
@@ -19,6 +21,7 @@ import com.lehaine.littlekt.graphics.gl.TexMagFilter
 import com.lehaine.littlekt.graphics.gl.TexMinFilter
 import com.lehaine.littlekt.graphics.tilemap.ldtk.LDtkLevel
 import com.lehaine.littlekt.graphics.tilemap.ldtk.LDtkWorld
+import com.lehaine.littlekt.graphics.tilemap.tiled.TiledMap
 import com.lehaine.littlekt.math.MutableVec4i
 import com.lehaine.littlekt.util.internal.unquote
 import kotlinx.serialization.decodeFromString
@@ -255,6 +258,25 @@ suspend fun VfsFile.readLDtkLevel(levelIdx: Int, tilesetBorder: Int = 2): LDtkLe
         LDtkMapLoader(this, project).also { it.levelLoader.sliceBorder = tilesetBorder }
     }
     return loader.loadLevel(levelIdx)
+}
+
+/**
+ * Reads the [VfsFile] as a [TiledMap]. Any loaders and assets will be cached for reuse/reloading.
+ * @param atlas an atlas the has the preloaded textures for both tilesets and image layers. **Note**: that if the
+ * [Texture] for a tileset has a border thickness set, that value must be used for [tilesetBorder]. If no border is set,
+ * then [tilesetBorder] must be marked as `0`.
+ * @param tilesetBorder the border thickness of each slice when loading the tileset to prevent bleeding. This is used when
+ * slicing tileset textures from an atlas or when loading externally.
+ * @return the loaded Tiled map
+ */
+suspend fun VfsFile.readTiledMap(
+    atlas: TextureAtlas? = null,
+    tilesetBorder: Int = 2,
+    mipmaps: Boolean = true
+): TiledMap {
+    val mapData = decodeFromString<TiledMapData>()
+    val loader = TiledMapLoader(parent, mapData, atlas, tilesetBorder, mipmaps)
+    return loader.loadMap()
 }
 
 /**
