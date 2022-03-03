@@ -431,6 +431,50 @@ fun Pixmap.sliceWithBorder(
     return newSlices
 }
 
+/**
+ * Slice up the pixmap with the given size with an added border but returns the newly created [Texture].
+ * This can be used to prevent atlas bleeding.
+ * @param context the current context - used to prepare the newly created Texture.
+ * @param sliceWidth the width of each slice
+ * @param sliceHeight the height of each slice
+ * @param border the thickness of the border for each slice
+ * @param mipmaps use mipmaps or not for the new texture
+ */
+fun Pixmap.addBorderToSlices(
+    context: Context,
+    sliceWidth: Int,
+    sliceHeight: Int,
+    border: Int = 1,
+    mipmaps: Boolean = false
+): Texture {
+    val slices = slice(sliceWidth, sliceHeight).flatten()
+    val newWidth = sliceWidth + border * 2
+    val newHeight = sliceHeight + border * 2
+    val area = newWidth * newHeight
+    val fullArea = slices.size.nextPowerOfTwo * area
+    val length = ceil(sqrt(fullArea.toDouble())).toInt().nextPowerOfTwo
+
+    val out = Pixmap(length, length)
+
+    val columns = (out.width / newWidth)
+
+    slices.forEachIndexed { n, slice ->
+        val y = n / columns
+        val x = n % columns
+        val px = x * newWidth + border
+        val py = y * newHeight + border
+        out.drawSlice(px, py, slice.pixmap, slice.x, slice.y, slice.width, slice.height, border)
+    }
+
+    return Texture(PixmapTextureData(out, mipmaps)).also {
+        KtScope.launch {
+            onRenderingThread {
+                it.prepare(context)
+            }
+        }
+    }
+}
+
 fun Pixmap.slice(sliceWidth: Int, sliceHeight: Int): Array<Array<PixmapSlice>> {
     val cols = width / sliceWidth
     val rows = height / sliceHeight

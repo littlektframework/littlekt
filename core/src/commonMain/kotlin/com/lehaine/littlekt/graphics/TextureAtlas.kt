@@ -34,7 +34,8 @@ class TextureAtlas internal constructor(private val textures: Map<String, Textur
     fun getByPrefix(prefix: String): Entry = entries.firstOrNull { it.name.startsWith(prefix) }
         ?: throw NoSuchElementException("'$prefix' does not exist in this texture atlas!")
 
-    operator fun get(name: String): Entry = entriesMap[name] ?: error("Can't find $name in atlas.")
+    operator fun get(name: String): Entry =
+        entriesMap[name] ?: throw NoSuchElementException("Can't find $name in atlas.")
 
     /**
      * Contains the name,[TextureSlice], and the [Texture] for this entry of the atlas.
