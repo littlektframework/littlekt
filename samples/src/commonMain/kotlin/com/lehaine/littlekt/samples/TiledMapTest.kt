@@ -23,7 +23,7 @@ class TiledMapTest(context: Context) : ContextListener(context) {
             viewport = ExtendViewport(480, 270)
         }
 
-        val batch = SpriteBatch(context)
+        val batch = SpriteBatch(context, 8191)
 
         val maps = mutableListOf<TiledMap>()
         resourcesVfs["tiled/ortho-tiled-world.tmj"].readTiledMap().also { maps += it }

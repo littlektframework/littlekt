@@ -15,6 +15,7 @@ import com.lehaine.littlekt.graphics.gl.TexMagFilter
 import com.lehaine.littlekt.graphics.gl.TexMinFilter
 import com.lehaine.littlekt.graphics.tilemap.ldtk.LDtkLevel
 import com.lehaine.littlekt.graphics.tilemap.ldtk.LDtkWorld
+import com.lehaine.littlekt.graphics.tilemap.tiled.TiledMap
 import com.lehaine.littlekt.util.internal.lock
 import kotlinx.atomicfu.atomic
 import kotlin.reflect.KClass
@@ -184,6 +185,9 @@ open class AssetProvider(val context: Context) {
                 } else {
                     file.readLDtkLevel(0)
                 }
+            },
+            TiledMap::class to { file, _ ->
+                file.readTiledMap()
             }
         )
     }
