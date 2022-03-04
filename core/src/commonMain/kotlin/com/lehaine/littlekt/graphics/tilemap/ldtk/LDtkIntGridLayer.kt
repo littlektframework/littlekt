@@ -13,6 +13,7 @@ open class LDtkIntGridLayer(
      */
     val intGrid: Map<Int, Int>,
     identifier: String,
+    iid: String,
     type: LayerType,
     cellSize: Int,
     gridWidth: Int,
@@ -21,7 +22,7 @@ open class LDtkIntGridLayer(
     pxTotalOffsetY: Int,
     opacity: Float,
 ) : LDtkLayer(
-    identifier, type, cellSize, gridWidth, gridHeight, pxTotalOffsetX, pxTotalOffsetY, opacity
+    identifier, iid, type, cellSize, gridWidth, gridHeight, pxTotalOffsetX, pxTotalOffsetY, opacity
 ) {
 
     /**

@@ -5,8 +5,8 @@ import com.lehaine.littlekt.audio.AudioStream
 import com.lehaine.littlekt.file.UnsupportedFileTypeException
 import com.lehaine.littlekt.file.atlas.AtlasInfo
 import com.lehaine.littlekt.file.atlas.AtlasPage
+import com.lehaine.littlekt.file.ldtk.LDtkMapData
 import com.lehaine.littlekt.file.ldtk.LDtkMapLoader
-import com.lehaine.littlekt.file.ldtk.ProjectJson
 import com.lehaine.littlekt.file.tiled.TiledMapData
 import com.lehaine.littlekt.file.tiled.TiledMapLoader
 import com.lehaine.littlekt.graphics.Pixmap
@@ -221,43 +221,19 @@ private suspend fun readBitmapFontTxt(
     )
 }
 
-private val mapCache = mutableMapOf<String, LDtkMapLoader>()
-
 /**
- * Reads the [VfsFile] as a [LDtkWorld]. Any loaders and assets will be cached for reuse/reloading.
- * @param loadAllLevels if true this will load all the external levels and their dependencies. They then will all be available
- * in [LDtkWorld.levels]; if false it will load the specified [levelIdx] as the default and only level.
- * @param levelIdx the index of the level to load if [loadAllLevels] is false.
- * @param tilesetBorder the border thickness of each slice when loading the tileset to prevent bleeding
+ * Reads the [VfsFile] as a [LDtkMapLoader]. This will read the LDtk file and create a loader to allow flexible loading
+ * of [LDtkWorld] or [LDtkLevel]. This loader should be cached and reused when loading separate levels.
+ * @param atlas an atlas the has the preloaded textures for both tilesets and image layers. **Note**: that if the
+ * [Texture] for a tileset has a border thickness set, that value must be used for [tilesetBorder]. If no border is set,
+ * then [tilesetBorder] must be marked as `0`.
+ * @param tilesetBorder the border thickness of each slice when loading the tileset to prevent bleeding. This is used when
+ * slicing tileset textures from an atlas or when loading externally.
  * @return the loaded LDtk map
- * @see [VfsFile.readLDtkLevel]
  */
-suspend fun VfsFile.readLDtkMap(loadAllLevels: Boolean = true, levelIdx: Int = 0, tilesetBorder: Int = 2): LDtkWorld {
-    val loader = mapCache.getOrPut(path) {
-        val project = decodeFromString<ProjectJson>()
-        LDtkMapLoader(this, project).also { it.levelLoader.sliceBorder = tilesetBorder }
-    }
-    return loader.loadMap(loadAllLevels, levelIdx).also {
-        it.onDispose = {
-            loader.dispose()
-            mapCache.remove(path)
-        }
-    }
-}
-
-/**
- * Reads the [VfsFile] as a [LDtkWorld] and loads the level specified by [levelIdx].
- * Any loaders and assets will be cached for reuse/reloading.
- * @param levelIdx the index of the level to load
- * @param tilesetBorder the border thickness of each slice when loading the tileset to prevent bleeding
- * @return the loaded LDtk level
- */
-suspend fun VfsFile.readLDtkLevel(levelIdx: Int, tilesetBorder: Int = 2): LDtkLevel {
-    val loader = mapCache.getOrPut(path) {
-        val project = decodeFromString<ProjectJson>()
-        LDtkMapLoader(this, project).also { it.levelLoader.sliceBorder = tilesetBorder }
-    }
-    return loader.loadLevel(levelIdx)
+suspend fun VfsFile.readLDtkMapLoader(atlas: TextureAtlas? = null, tilesetBorder: Int = 2): LDtkMapLoader {
+    val mapData = decodeFromString<LDtkMapData>()
+    return LDtkMapLoader(this, mapData, atlas, tilesetBorder)
 }
 
 /**

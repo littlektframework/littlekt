@@ -14,6 +14,7 @@ open class LDtkAutoLayer(
     val tileset: LDtkTileset,
     val autoTiles: List<AutoTile>,
     identifier: String,
+    iid: String,
     type: LayerType,
     cellSize: Int,
     gridWidth: Int,
@@ -22,9 +23,8 @@ open class LDtkAutoLayer(
     pxTotalOffsetY: Int,
     opacity: Float,
 ) : LDtkLayer(
-    identifier, type, cellSize, gridWidth, gridHeight, pxTotalOffsetX, pxTotalOffsetY, opacity
+    identifier, iid, type, cellSize, gridWidth, gridHeight, pxTotalOffsetX, pxTotalOffsetY, opacity
 ) {
-
     val autoTilesCoordIdMap: Map<Int, AutoTile> = autoTiles.associateBy {
         getCoordId(it.renderX / cellSize, it.renderY / cellSize)
     }

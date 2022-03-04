@@ -1,9 +1,8 @@
 package com.lehaine.littlekt.graphics.tilemap.ldtk
 
-import com.lehaine.littlekt.file.ldtk.LevelBackgroundPosition
+import com.lehaine.littlekt.file.ldtk.LDtkLevelBackgroundPositionData
 import com.lehaine.littlekt.graphics.Batch
 import com.lehaine.littlekt.graphics.Camera
-import com.lehaine.littlekt.graphics.Texture
 import com.lehaine.littlekt.graphics.TextureSlice
 import com.lehaine.littlekt.math.Rect
 import com.lehaine.littlekt.math.geom.Angle
@@ -16,6 +15,7 @@ import com.lehaine.littlekt.util.calculateViewBounds
 class LDtkLevel(
     val uid: Int,
     val identifier: String,
+    val iid: String,
     val pxWidth: Int,
     val pxHeight: Int,
     val worldX: Int,
@@ -24,11 +24,14 @@ class LDtkLevel(
     val layers: List<LDtkLayer>,
     val entities: List<LDtkEntity>,
     val backgroundColor: String,
-    levelBackgroundPos: LevelBackgroundPosition? = null,
-    bgImageTexture: Texture? = null
+    levelBackgroundPos: LDtkLevelBackgroundPositionData? = null,
+    bgImageTexture: TextureSlice? = null
 ) {
-    val layersMap = layers.associateBy { it.identifier }
-    val entitiesMap: Map<String, List<LDtkEntity>> = entities.groupBy { it.identifier }
+    val layersByIdentifier by lazy { layers.associateBy { it.identifier } }
+    val layersByIid by lazy { layers.associateBy { it.iid } }
+
+    val entitiesByIdentifier: Map<String, List<LDtkEntity>> by lazy { entities.groupBy { it.identifier } }
+    val entitiesByIid: Map<String, LDtkEntity> by lazy { entities.associateBy { it.iid } }
 
     val hasBgImage: Boolean
         get() = levelBackgroundImage != null
@@ -74,9 +77,12 @@ class LDtkLevel(
     }
 
     fun entities(name: String): List<LDtkEntity> =
-        entitiesMap[name] ?: error("Entities: '$name' do not exist in this level!")
+        entitiesByIdentifier[name] ?: error("Entities: '$name' do not exist in this level!")
 
-    fun layer(name: String): LDtkLayer = layersMap[name] ?: error("Layer: '$name' does not exist in this level!")
+    fun entity(iid: String): LDtkEntity = entitiesByIid[iid] ?: error("Entity: '$iid' do not exist in this level!")
+
+    fun layer(name: String): LDtkLayer =
+        layersByIdentifier[name] ?: error("Layer: '$name' does not exist in this level!")
 
     operator fun get(layer: String) = layer(layer)
 
@@ -92,7 +98,7 @@ class LDtkLevel(
 
         companion object {
             fun fromDir(dir: String): NeighborDirection {
-                return when (dir.toLowerCase()) {
+                return when (dir.lowercase()) {
                     "n" -> North
                     "e" -> East
                     "s" -> South
@@ -106,7 +112,7 @@ class LDtkLevel(
         }
     }
 
-    data class Neighbor(val levelUid: Int, val dir: NeighborDirection)
+    data class Neighbor(val levelUid: Int, val levelIid: String, val dir: NeighborDirection)
 
     data class CropRect(val x: Float, val y: Float, val w: Float, val h: Float);
 

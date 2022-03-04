@@ -16,6 +16,7 @@ open class LDtkIntGridAutoLayer(
     intGridValueInfo: List<ValueInfo>,
     intGrid: Map<Int, Int>,
     identifier: String,
+    iid: String,
     type: LayerType,
     cellSize: Int,
     gridWidth: Int,
@@ -27,6 +28,7 @@ open class LDtkIntGridAutoLayer(
     intGridValueInfo,
     intGrid,
     identifier,
+    iid,
     type,
     cellSize,
     gridWidth,
@@ -35,9 +37,10 @@ open class LDtkIntGridAutoLayer(
     pxTotalOffsetY,
     opacity
 ) {
-
-    val autoTilesCoordIdMap: Map<Int, LDtkAutoLayer.AutoTile> = autoTiles.associateBy {
-        getCoordId(it.renderX / cellSize, it.renderY / cellSize)
+    val autoTilesCoordIdMap: Map<Int, LDtkAutoLayer.AutoTile> by lazy {
+        autoTiles.associateBy {
+            getCoordId(it.renderX / cellSize, it.renderY / cellSize)
+        }
     }
 
     operator fun get(coordId: Int) = autoTilesCoordIdMap[coordId]

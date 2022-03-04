@@ -3,8 +3,10 @@ package com.lehaine.littlekt.samples
 import com.lehaine.littlekt.*
 import com.lehaine.littlekt.async.KtScope
 import com.lehaine.littlekt.audio.AudioStream
+import com.lehaine.littlekt.file.ldtk.LDtkMapLoader
 import com.lehaine.littlekt.file.vfs.readAtlas
 import com.lehaine.littlekt.file.vfs.readBitmapFont
+import com.lehaine.littlekt.file.vfs.readPixmap
 import com.lehaine.littlekt.file.vfs.readTexture
 import com.lehaine.littlekt.graph.SceneGraph
 import com.lehaine.littlekt.graph.createDefaultSceneGraphController
@@ -19,7 +21,6 @@ import com.lehaine.littlekt.graphics.font.BitmapFontCache
 import com.lehaine.littlekt.graphics.gl.ClearBufferMask
 import com.lehaine.littlekt.graphics.shader.shaders.SimpleColorFragmentShader
 import com.lehaine.littlekt.graphics.shader.shaders.SimpleColorVertexShader
-import com.lehaine.littlekt.graphics.tilemap.ldtk.LDtkWorld
 import com.lehaine.littlekt.input.GameAxis
 import com.lehaine.littlekt.input.GameButton
 import com.lehaine.littlekt.input.Key
@@ -133,14 +134,25 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
 
     override suspend fun Context.start() {
         super.setSceneCallbacks(this)
-        val batch = SpriteBatch(context, 5000)
+        val batch = SpriteBatch(context, 8191)
         val pixelFontTexture = resourcesVfs["m5x7_16_0.png"].readTexture()
         val texture by assetProvider.load<Texture>(resourcesVfs["atlas.png"])
         val tiles: TextureAtlas = resourcesVfs["tiles.atlas.json"].readAtlas()
-        val atlas: TextureAtlas = MutableTextureAtlas(context).apply {
-            add(tiles)
-            add(pixelFontTexture.slice(), "pixelFont")
-        }.toImmutable()
+        // load the textures manually for the ortho map
+        val cavernasTexture =
+            resourcesVfs["tiled/Cavernas_by_Adam_Saltsman.png"].readPixmap().addBorderToSlices(context, 8, 8, 2)
+        val background = resourcesVfs["ldtk/N2D - SpaceWallpaper1280x448.png"].readTexture()
+
+        val atlas: TextureAtlas = MutableTextureAtlas(context)
+            .add(tiles)
+            .add(pixelFontTexture.slice(), "pixelFont")
+            .add(cavernasTexture.slice(), "Cavernas_by_Adam_Saltsman.png")
+            .add(background.slice(), "N2D - SpaceWallpaper1280x448.png")
+            .toImmutable()
+
+        // we need to dispose of them if we aren't using them since the atlas generates new textures
+        cavernasTexture.dispose()
+        background.dispose()
 
         val slices: Array<Array<TextureSlice>> by assetProvider.prepare { texture.slice(16, 16) }
         val person by assetProvider.prepare { slices[0][0] }
@@ -171,7 +183,13 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
             it.tint(Color.RED)
         }
 
-        val ldtkWorld by assetProvider.load<LDtkWorld>(resourcesVfs["ldtk/sample.ldtk"])
+        val ldtkMapLoader by assetProvider.load<LDtkMapLoader>(
+            resourcesVfs["ldtk/sample-1.0.ldtk"],
+            LDtkGameAssetParameter(atlas, 2)
+        )
+        val ldtkWorld by assetProvider.prepare {
+            ldtkMapLoader.loadMap(true)
+        }
         val ninepatchImg by assetProvider.load<Texture>(resourcesVfs["bg_9.png"])
         val ninepatch by assetProvider.prepare { NinePatch(ninepatchImg, 3, 3, 3, 4) }
         val greyButtonNinePatch = NinePatch(
@@ -503,7 +521,7 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
 
                         vBoxContainer {
                             textureProgress {
-                                background = ninepatchImg.slice()
+                                this.background = ninepatchImg.slice()
                                 foreground = ninepatchImg.slice()
                                 this.progressBar = ninepatchImg.slice()
                                 ratio = 0.43f

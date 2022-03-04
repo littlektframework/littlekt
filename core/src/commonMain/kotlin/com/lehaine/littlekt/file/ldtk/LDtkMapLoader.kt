@@ -3,6 +3,7 @@ package com.lehaine.littlekt.file.ldtk
 import com.lehaine.littlekt.Disposable
 import com.lehaine.littlekt.file.vfs.VfsFile
 import com.lehaine.littlekt.graphics.Color
+import com.lehaine.littlekt.graphics.TextureAtlas
 import com.lehaine.littlekt.graphics.tilemap.ldtk.LDtkEnum
 import com.lehaine.littlekt.graphics.tilemap.ldtk.LDtkEnumValue
 import com.lehaine.littlekt.graphics.tilemap.ldtk.LDtkLevel
@@ -12,9 +13,14 @@ import com.lehaine.littlekt.graphics.tilemap.ldtk.LDtkWorld
  * @author Colton Daily
  * @date 12/20/2021
  */
-class LDtkMapLoader(val root: VfsFile, val project: ProjectJson) : Disposable {
-    val levelLoader = LDtkLevelLoader(project)
-    val enums = project.defs.enums.associateBy(keySelector = { it.identifier }) { enum ->
+class LDtkMapLoader(
+    private val root: VfsFile,
+    private val mapData: LDtkMapData,
+    atlas: TextureAtlas? = null,
+    tilesetBorder: Int = 2,
+) : Disposable {
+    private val levelLoader = LDtkLevelLoader(mapData, atlas, tilesetBorder)
+    private val enums = mapData.defs.enums.associateBy(keySelector = { it.identifier }) { enum ->
         val values =
             enum.values.associateBy(keySelector = { it.id }) {
                 LDtkEnumValue(
@@ -24,7 +30,7 @@ class LDtkMapLoader(val root: VfsFile, val project: ProjectJson) : Disposable {
             }
         LDtkEnum(enum.identifier, values)
     }
-    val entityDefinitions = project.defs.entities.associateBy { it.identifier }
+    private val entityDefinitions = mapData.defs.entities.associateBy { it.identifier }
 
     suspend fun loadMap(loadAllLevels: Boolean, levelIdx: Int = 0): LDtkWorld {
         val parent = root.parent
@@ -32,8 +38,8 @@ class LDtkMapLoader(val root: VfsFile, val project: ProjectJson) : Disposable {
 
         when {
             loadAllLevels -> {
-                project.levelDefinitions.forEach {
-                    levels += if (project.externalLevels) {
+                mapData.levelDefinitions.forEach {
+                    levels += if (mapData.externalLevels) {
                         levelLoader.loadLevel(
                             parent,
                             it.externalRelPath ?: error("Unable to load external level: ${it.identifier}"),
@@ -42,12 +48,11 @@ class LDtkMapLoader(val root: VfsFile, val project: ProjectJson) : Disposable {
                     } else {
                         levelLoader.loadLevel(parent, it, enums)
                     }
-
                 }
             }
             else -> {
-                val level = project.levelDefinitions[levelIdx]
-                levels += if (project.externalLevels) {
+                val level = mapData.levelDefinitions[levelIdx]
+                levels += if (mapData.externalLevels) {
                     val path = level.externalRelPath
                     levelLoader.loadLevel(
                         parent,
@@ -60,14 +65,14 @@ class LDtkMapLoader(val root: VfsFile, val project: ProjectJson) : Disposable {
             }
         }
 
-        return LDtkWorld(project.worldLayout, project.bgColor, levels, levelLoader.tilesets, enums, entityDefinitions)
+        return LDtkWorld(mapData.worldLayout ?: error("World Layout is not set."), mapData.bgColor, levels, levelLoader.tilesets, enums, entityDefinitions)
     }
 
     suspend fun loadLevel(levelIdx: Int): LDtkLevel {
         val parent = root.parent
-        val level = project.levelDefinitions[levelIdx]
+        val level = mapData.levelDefinitions[levelIdx]
 
-        return if (project.externalLevels) {
+        return if (mapData.externalLevels) {
             val path = level.externalRelPath
             levelLoader.loadLevel(
                 parent,

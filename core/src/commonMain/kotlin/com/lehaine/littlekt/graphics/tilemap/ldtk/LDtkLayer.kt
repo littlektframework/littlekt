@@ -18,7 +18,11 @@ enum class LayerType {
 
 open class LDtkLayer(
     val identifier: String,
+
+    val iid: String,
+
     val type: LayerType,
+
     /**
      * Grid size in pixels
      */
