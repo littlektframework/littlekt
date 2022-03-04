@@ -60,6 +60,15 @@
   , `onPostRunnable`) that can be invoked once to remove the callback from being invoked.
 * add: new `SizeFlag` value of `NONE` which is the same as creating a `SizeFlag(0)`
 * add: a new parameter to the `resize` method of a `SceneGraph` to allow centering of the camera if `true`.
+* update: `Context` callbacks (`onRender`, `onPosRender`, `onResize`, `onDispose`, and `postRunnable`) to return a `RemoveContextCallback` lambda that can be invoked to remove itself from being called by the `Context`.
+* update: the `resize()` method in a `SceneGraph` to allow optional centering of camera.
+* update: **LDtk** version support to `1.0.0 beta3`
+* **BREAKING**: remove `readLDtkLevel` from `VfsLoaders`.
+* **BREAKING**: refactor `readLDtkMap` to `readLDtkMapLoader`. This now returns the `LDtkMapLoader` which then can be
+  used to call `loadMap()` and `loadLevel()`.
+* **BREAKING**: remove `LDtkWorld` and `LDtkLevel` from `AssetProvider` default loaders
+* add: Passing in optional `TextureAtlas` when reading an `LDtkMapLoader`. Requires preloading tileset textures in order to benefit from it.
+* add: **Tiled** map support. Includes, **orthographic**, **isometric**, and **staggered** map rendering support.
 
 ### Bugs:
 
