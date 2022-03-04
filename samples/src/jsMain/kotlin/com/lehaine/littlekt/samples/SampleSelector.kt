@@ -29,6 +29,7 @@ fun main() {
             addSample("Mutable Atlas Test") { MutableAtlasTest(it) }
             addSample("Texture Array Sprite Batch Test") { TextureArraySpriteBatchTest(it) }
             addSample("Tiled Map Test") { TiledMapTest(it) }
+            addSample("LDtk Map Test") { LDtkMapTest(it) }
         }
     }
 }
@@ -41,8 +42,8 @@ fun DIV.addSample(title: String, gameBuilder: (app: Context) -> ContextListener)
             document.getElementById("canvas-container")!!.append {
                 canvas {
                     id = "canvas"
-                    width = "1024"
-                    height = "576"
+                    width = "960"
+                    height = "540"
                     style = "border:1px solid #000000;"
                 }
             }
