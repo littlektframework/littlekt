@@ -137,7 +137,7 @@ data class LDtkWorldData(
     /**
      * Unique instance identifier
      */
-    val iid: String,
+    val iid: String = "",
 
     @SerialName("levels")
     val levelDefinitions: List<LDtkLevelDefinition>,
@@ -529,18 +529,18 @@ data class LDtkLayerDefinition(
      * Parallax horizontal factor (from -1 to 1, defaults to 0) which affects the scrolling speed of this layer,
      * creating a fake 3D (parallax) effect.
      */
-    val parallaxFactorX: Float,
+    val parallaxFactorX: Float = 0f,
 
     /**
      * Parallax vertical factor (from -1 to 1, defaults to 0) which affects the scrolling speed of this layer,
      * creating a fake 3D (parallax) effect.
      */
-    val parallaxFactorY: Float,
+    val parallaxFactorY: Float = 0f,
 
     /**
      * If true (default), a layer with a parallax factor will also be scaled up/down accordingly.
      */
-    val parallaxScaling: Boolean,
+    val parallaxScaling: Boolean = false,
 )
 
 /**
@@ -768,7 +768,7 @@ data class LDtkLevelDefinition(
     /**
      * Unique instance identifier
      */
-    val iid: String,
+    val iid: String = "",
 
     /**
      * Index that represents the "depth" of the level in the world.
@@ -776,7 +776,7 @@ data class LDtkLevelDefinition(
      *
      * This value is mostly used for display only and is intended to make stacking of levels easier to manage.
      */
-    val worldDepth: Int,
+    val worldDepth: Int = 0,
 )
 
 /**
@@ -1018,7 +1018,7 @@ data class LDtkLayerInstance(
     /**
      * Unique instance id
      */
-    val iid: String,
+    val iid: String = "",
 )
 
 /**
@@ -1119,12 +1119,12 @@ data class LDtkEntityInstance(
      * List of tags defined
      */
     @SerialName("__tags")
-    val tags: List<String>,
+    val tags: List<String> = emptyList(),
 
     /**
      * Unique instance identifier
      */
-    val iid: String,
+    val iid: String = "",
 )
 
 /**
@@ -1147,22 +1147,22 @@ data class LDtkTileRect(
     /**
      * Height in pixels.
      */
-    val h: Int,
+    val h: Int = 0,
 
     /**
      * Width in pixels.
      */
-    val w: Int,
+    val w: Int = 0,
 
     /**
      * X pixel coordinate relative to top-left corner of the tileset image
      */
-    val x: Int,
+    val x: Int = 0,
 
     /**
      * Y pixel coordinate relative to top-left corner of the tileset image
      */
-    val y: Int,
+    val y: Int = 0,
 )
 
 /**
