@@ -184,7 +184,7 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
         }
 
         val ldtkMapLoader by assetProvider.load<LDtkMapLoader>(
-            resourcesVfs["ldtk/sample.ldtk"],
+            resourcesVfs["ldtk/sample-1.0.ldtk"],
             LDtkGameAssetParameter(atlas, 2)
         )
         val ldtkWorld by assetProvider.prepare {

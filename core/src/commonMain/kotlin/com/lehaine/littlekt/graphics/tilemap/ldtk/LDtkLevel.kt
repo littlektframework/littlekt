@@ -1,9 +1,8 @@
 package com.lehaine.littlekt.graphics.tilemap.ldtk
 
-import com.lehaine.littlekt.file.ldtk.LevelBackgroundPositionData
+import com.lehaine.littlekt.file.ldtk.LDtkLevelBackgroundPositionData
 import com.lehaine.littlekt.graphics.Batch
 import com.lehaine.littlekt.graphics.Camera
-import com.lehaine.littlekt.graphics.Texture
 import com.lehaine.littlekt.graphics.TextureSlice
 import com.lehaine.littlekt.math.Rect
 import com.lehaine.littlekt.math.geom.Angle
@@ -24,7 +23,7 @@ class LDtkLevel(
     val layers: List<LDtkLayer>,
     val entities: List<LDtkEntity>,
     val backgroundColor: String,
-    levelBackgroundPos: LevelBackgroundPositionData? = null,
+    levelBackgroundPos: LDtkLevelBackgroundPositionData? = null,
     bgImageTexture: TextureSlice? = null
 ) {
     val layersMap = layers.associateBy { it.identifier }

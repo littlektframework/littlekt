@@ -21,11 +21,11 @@ internal class LDtkLevelLoader(
     internal val tilesets = mutableMapOf<Int, LDtkTileset>()
 
     suspend fun loadLevel(root: VfsFile, externalRelPath: String, enums: Map<String, LDtkEnum>): LDtkLevel {
-        val levelDef: LevelDefinition = root[externalRelPath].decodeFromString()
+        val levelDef: LDtkLevelDefinition = root[externalRelPath].decodeFromString()
         return loadLevel(root, levelDef, enums)
     }
 
-    suspend fun loadLevel(root: VfsFile, levelDef: LevelDefinition, enums: Map<String, LDtkEnum>): LDtkLevel {
+    suspend fun loadLevel(root: VfsFile, levelDef: LDtkLevelDefinition, enums: Map<String, LDtkEnum>): LDtkLevel {
         levelDef.layerInstances?.forEach { layerInstance ->
             mapData.defs.tilesets.find { it.uid == layerInstance.tilesetDefUid }?.let {
                 tilesets.getOrPut(it.uid) { loadTileset(root, it) }
@@ -58,7 +58,7 @@ internal class LDtkLevelLoader(
         )
     }
 
-    private fun getLayerDef(uid: Int?, identifier: String? = ""): LayerDefinition? {
+    private fun getLayerDef(uid: Int?, identifier: String? = ""): LDtkLayerDefinition? {
         if (uid == null && identifier == null) {
             return null
         }
@@ -66,7 +66,7 @@ internal class LDtkLevelLoader(
     }
 
     private fun instantiateLayer(
-        json: LayerInstance,
+        json: LDtkLayerInstance,
         entities: MutableList<LDtkEntity>,
         tilesets: Map<Int, LDtkTileset>,
         enums: Map<String, LDtkEnum>
@@ -183,6 +183,12 @@ internal class LDtkLevelLoader(
                                 "FilePath" -> {
                                     TODO("FilePath not yet implemented!")
                                 }
+                                "Tile" -> {
+                                    TODO("Tile not yet implemented")
+                                }
+                                "EntityRef" -> {
+                                    TODO("EntityRef not yet implemented")
+                                }
                                 else -> {
                                     when {
                                         "LocalEnum." in type -> {
@@ -263,6 +269,12 @@ internal class LDtkLevelLoader(
                                 "FilePath" -> {
                                     TODO("FilePath not yet implemented!")
                                 }
+                                "Tile" -> {
+                                    TODO("Tile not yet implemented")
+                                }
+                                "EntityRef" -> {
+                                    TODO("EntityRef not yet implemented")
+                                }
                                 else -> {
                                     when {
                                         "LocalEnum." in type -> {
@@ -299,10 +311,10 @@ internal class LDtkLevelLoader(
                         } else {
                             LDtkEntity.TileInfo(
                                 tilesetUid = entity.tile.tilesetUid,
-                                x = entity.tile.srcRect[0],
-                                y = entity.tile.srcRect[1],
-                                w = entity.tile.srcRect[2],
-                                h = entity.tile.srcRect[3]
+                                x = if (entity.tile.srcRect.isNotEmpty()) entity.tile.srcRect[0] else entity.tile.x,
+                                y = if (entity.tile.srcRect.isNotEmpty()) entity.tile.srcRect[1] else entity.tile.y,
+                                w = if (entity.tile.srcRect.isNotEmpty()) entity.tile.srcRect[2] else entity.tile.w,
+                                h = if (entity.tile.srcRect.isNotEmpty()) entity.tile.srcRect[3] else entity.tile.h
                             )
                         },
                         fields
@@ -363,7 +375,7 @@ internal class LDtkLevelLoader(
         }
     }
 
-    suspend fun loadTileset(vfs: VfsFile, tilesetDef: TilesetDefinition) =
+    suspend fun loadTileset(vfs: VfsFile, tilesetDef: LDtkTilesetDefinition) =
         LDtkTileset(
             identifier = tilesetDef.identifier,
             cellSize = tilesetDef.tileGridSize,

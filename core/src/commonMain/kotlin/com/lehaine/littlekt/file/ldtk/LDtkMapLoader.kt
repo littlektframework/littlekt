@@ -65,7 +65,7 @@ class LDtkMapLoader(
             }
         }
 
-        return LDtkWorld(mapData.worldLayout, mapData.bgColor, levels, levelLoader.tilesets, enums, entityDefinitions)
+        return LDtkWorld(mapData.worldLayout ?: error("World Layout is not set."), mapData.bgColor, levels, levelLoader.tilesets, enums, entityDefinitions)
     }
 
     suspend fun loadLevel(levelIdx: Int): LDtkLevel {

@@ -1,8 +1,11 @@
 package com.lehaine.littlekt.file.ldtk
 
-import kotlinx.serialization.*
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.descriptors.*
-import kotlinx.serialization.encoding.*
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.json.*
 
 /**
@@ -78,7 +81,7 @@ data class LDtkMapData(
      * the `worldX`,`worldY` coordinates of each Level.
      */
     @SerialName("levels")
-    val levelDefinitions: List<LevelDefinition>,
+    val levelDefinitions: List<LDtkLevelDefinition>,
 
     /**
      * If TRUE, the Json is partially minified (no indentation, nor line breaks, default is
@@ -100,6 +103,48 @@ data class LDtkMapData(
     /**
      * Height of the world grid in pixels.
      */
+    val worldGridHeight: Int? = null,
+
+    /**
+     * Width of the world grid in pixels.
+     */
+    val worldGridWidth: Int? = null,
+
+    /**
+     * An enum that describes how levels are organized in this project (ie. linearly or in a 2D
+     * space). Possible values: `null`, `Free`, `GridVania`, `LinearHorizontal`, `LinearVertical`
+     */
+    val worldLayout: LDtkWorldLayout? = null,
+
+    /**
+     * This list isn't used yet in LDtk (so for now it's always empty).
+     *
+     * In current version, a LDtk project file can only contain a single world with multiple levels in it.
+     * In this case, levels and world layout related settings are stored in the root of the JSON.
+     * after the "Multiple worlds" update, there will be a worlds array in root, each world containing levels and layout settings.
+     * Basically, it's pretty much only about moving the levels array to the worlds array, along with world layout related values (eg. worldGridWidth etc).
+     */
+    val worlds: List<LDtkWorldData> = emptyList()
+)
+
+@Serializable
+data class LDtkWorldData(
+    /**
+     * User defined unique identifier
+     */
+    val identifier: String,
+
+    /**
+     * Unique instance identifier
+     */
+    val iid: String,
+
+    @SerialName("levels")
+    val levelDefinitions: List<LDtkLevelDefinition>,
+
+    /**
+     * Height of the world grid in pixels.
+     */
     val worldGridHeight: Int,
 
     /**
@@ -111,7 +156,7 @@ data class LDtkMapData(
      * An enum that describes how levels are organized in this project (ie. linearly or in a 2D
      * space). Possible values: `Free`, `GridVania`, `LinearHorizontal`, `LinearVertical`
      */
-    val worldLayout: WorldLayout
+    val worldLayout: LDtkWorldLayout,
 )
 
 /**
@@ -129,28 +174,28 @@ data class Definitions(
     /**
      * All entities, including their custom fields
      */
-    val entities: List<EntityDefinition>,
+    val entities: List<LDtkEntityDefinition>,
 
-    val enums: List<EnumDefinition>,
+    val enums: List<LDtkEnumDefinition>,
 
     /**
      * Note: external enums are exactly the same as `enums`, except they have a `relPath` to
      * point to an external source file.
      */
-    val externalEnums: List<EnumDefinition>,
+    val externalEnums: List<LDtkEnumDefinition>,
 
-    val layers: List<LayerDefinition>,
+    val layers: List<LDtkLayerDefinition>,
 
     /**
      * An array containing all custom fields available to all levels.
      */
-    val levelFields: List<FieldDefinition>,
+    val levelFields: List<LDtkFieldDefinition>,
 
-    val tilesets: List<TilesetDefinition>
+    val tilesets: List<LDtkTilesetDefinition>
 )
 
 @Serializable
-data class EntityDefinition(
+data class LDtkEntityDefinition(
     /**
      * Base entity color
      */
@@ -159,7 +204,7 @@ data class EntityDefinition(
     /**
      * Array of field definitions
      */
-    val fieldDefs: List<FieldDefinition>,
+    val fieldDefs: List<LDtkFieldDefinition>,
 
     val fillOpacity: Float,
 
@@ -238,7 +283,12 @@ data class EntityDefinition(
     /**
      * Pixel width
      */
-    val width: Int
+    val width: Int,
+
+    /**
+     * An object representing a rectangle from an existing tileset
+     */
+    val tileRect: LDtkTileRect? = null
 )
 
 /**
@@ -246,7 +296,7 @@ data class EntityDefinition(
  * ignore it.
  */
 @Serializable
-data class FieldDefinition(
+data class LDtkFieldDefinition(
     /**
      * Human readable value type (eg. `Int`, `Float`, `Point`, etc.). If the field is an array,
      * this field will look like `Array<...>` (eg. `Array<Int>`, `Array<Point>` etc.)
@@ -313,13 +363,11 @@ data class FieldDefinition(
     val uid: Int
 )
 
-
 @Serializable
 data class DefaultOverrideInfo(val id: String, val params: List<MultiAssociatedValue>)
 
-
 @Serializable
-data class EnumDefinition(
+data class LDtkEnumDefinition(
     val externalFileChecksum: String? = null,
 
     /**
@@ -345,11 +393,16 @@ data class EnumDefinition(
     /**
      * All possible enum values, with their optional Tile infos.
      */
-    val values: List<EnumValueDefinition>
+    val values: List<LDtkEnumValueDefinition>,
+
+    /**
+     * A list of user-defined tags to organize the Enums
+     */
+    val tags: List<String> = emptyList()
 )
 
 @Serializable
-data class EnumValueDefinition(
+data class LDtkEnumValueDefinition(
     /**
      * An array of 4 Int values that refers to the tile in the tileset image: `[ x, y, width,
      * height ]`
@@ -375,7 +428,7 @@ data class EnumValueDefinition(
 )
 
 @Serializable
-data class LayerDefinition(
+data class LDtkLayerDefinition(
     /**
      * Type of the layer (*IntGrid, Entities, Tiles or AutoLayer*)
      */
@@ -392,6 +445,10 @@ data class LayerDefinition(
     /**
      * Reference to the Tileset UID being used by this auto-layer rules
      */
+    @Deprecated(
+        "Removed since version 1.0.0 and merged into tilesetDefUid.",
+        replaceWith = ReplaceWith("tilesetDefUid")
+    )
     val autoTilesetDefUid: Int? = null,
 
     /**
@@ -415,10 +472,12 @@ data class LayerDefinition(
     val identifier: String,
 
     /**
-     * An array that defines extra optional info for each IntGrid value. The array is sorted
-     * using value (ascending).
+     * A list that defines extra optional info for each IntGrid value.
+     *
+     * **WARNING**: the list order is not related to actual IntGrid values!
+     * As user can re-order IntGrid values freely, you may value "2" before value "1" in this list.
      */
-    val intGridValues: List<IntGridValueDefinition>,
+    val intGridValues: List<LDtkIntGridValueDefinition>,
 
     /**
      * X offset of the layer, in pixels (IMPORTANT: this should be added to the `LayerInstance`
@@ -459,19 +518,39 @@ data class LayerDefinition(
      * `AutoLayer`
      */
     @SerialName("type")
-    val layerDefinitionType: Type,
+    val layerDefinitionType: LDtkLayerType,
 
     /**
      * Unique Int identifier
      */
-    val uid: Int
+    val uid: Int,
+
+    /**
+     * Parallax horizontal factor (from -1 to 1, defaults to 0) which affects the scrolling speed of this layer,
+     * creating a fake 3D (parallax) effect.
+     */
+    val parallaxFactorX: Float,
+
+    /**
+     * Parallax vertical factor (from -1 to 1, defaults to 0) which affects the scrolling speed of this layer,
+     * creating a fake 3D (parallax) effect.
+     */
+    val parallaxFactorY: Float,
+
+    /**
+     * If true (default), a layer with a parallax factor will also be scaled up/down accordingly.
+     */
+    val parallaxScaling: Boolean,
 )
 
 /**
  * IntGrid value definition
  */
 @Serializable
-data class IntGridValueDefinition(
+data class LDtkIntGridValueDefinition(
+    /**
+     * Hex color "#rrggbb"
+     */
     val color: String,
 
     /**
@@ -486,23 +565,23 @@ data class IntGridValueDefinition(
 )
 
 /**
- * Type of the layer as Haxe Enum Possible values: `IntGrid`, `Entities`, `Tiles`,
+ * Type of the layer as enum possible values: `IntGrid`, `Entities`, `Tiles`,
  * `AutoLayer`
  */
 @Serializable
-enum class Type(val value: String) {
+enum class LDtkLayerType(val value: String) {
     AutoLayer("AutoLayer"),
     Entities("Entities"),
     IntGrid("IntGrid"),
     Tiles("Tiles");
 
-    companion object : KSerializer<Type> {
+    companion object : KSerializer<LDtkLayerType> {
         override val descriptor: SerialDescriptor
             get() {
                 return PrimitiveSerialDescriptor("com.lehaine.littlekt.file.ldtk.Type", PrimitiveKind.STRING)
             }
 
-        override fun deserialize(decoder: Decoder): Type = when (val value = decoder.decodeString()) {
+        override fun deserialize(decoder: Decoder): LDtkLayerType = when (val value = decoder.decodeString()) {
             "AutoLayer" -> AutoLayer
             "Entities" -> Entities
             "IntGrid" -> IntGrid
@@ -510,7 +589,7 @@ enum class Type(val value: String) {
             else -> throw IllegalArgumentException("Type could not parse: $value")
         }
 
-        override fun serialize(encoder: Encoder, value: Type) {
+        override fun serialize(encoder: Encoder, value: LDtkLayerType) {
             return encoder.encodeString(value.value)
         }
     }
@@ -518,11 +597,11 @@ enum class Type(val value: String) {
 
 /**
  * The `Tileset` definition is the most important part among project definitions. It
- * contains some extra informations about each integrated tileset. If you only had to parse
+ * contains some extra info about each integrated tileset. If you only had to parse
  * one definition section, that would be the one.
  */
 @Serializable
-data class TilesetDefinition(
+data class LDtkTilesetDefinition(
 
     /**
      * Unique String identifier
@@ -559,7 +638,14 @@ data class TilesetDefinition(
     /**
      * Unique Intidentifier
      */
-    val uid: Int
+    val uid: Int,
+
+    /**
+     * If this value is set, then it means that this atlas uses an internal LDtk atlas image instead of a loaded one.
+     *
+     * Possible values: `null`, `LdtkIcons`
+     */
+    val embedAtlas: String? = null
 )
 
 /**
@@ -573,7 +659,7 @@ data class TilesetDefinition(
  * containing exactly what is described below.
  */
 @Serializable
-data class LevelDefinition(
+data class LDtkLevelDefinition(
     /**
      * Background color of the level (same as `bgColor`, except the default value is
      * automatically used here if its value is `null`)
@@ -585,7 +671,7 @@ data class LevelDefinition(
      * Position informations of the background image, if there is one.
      */
     @SerialName("__bgPos")
-    val bgPos: LevelBackgroundPositionData? = null,
+    val bgPos: LDtkLevelBackgroundPositionData? = null,
 
     /**
      * An array listing all other levels touching this one on the world map. In "linear" world
@@ -593,7 +679,7 @@ data class LevelDefinition(
      * the linear horizontal/vertical layout.
      */
     @SerialName("__neighbours")
-    val neighbours: List<NeighbourLevelData>?,
+    val neighbours: List<LDtkNeighbourLevelData>?,
 
     /**
      * Background color of the level. If `null`, the project `defaultLevelBgColor` should be
@@ -618,7 +704,7 @@ data class LevelDefinition(
      * `Contain`, `Cover`, `CoverDirty`
      */
     @SerialName("bgPos")
-    val levelBgPos: BgPos? = null,
+    val levelBgPos: LDtkBgPos? = null,
 
     /**
      * The *optional* relative path to the level background image.
@@ -634,7 +720,7 @@ data class LevelDefinition(
     /**
      * An array containing this level custom field values.
      */
-    val fieldInstances: List<FieldInstance>,
+    val fieldInstances: List<LDtkFieldInstance>,
 
     /**
      * Unique String identifier
@@ -646,7 +732,7 @@ data class LevelDefinition(
      * levels separately*" is enabled, this field will be `null`.<br/>  This array is **sorted
      * in display order**: the 1st layer is the top-most and the last is behind.
      */
-    val layerInstances: List<LayerInstance>? = null,
+    val layerInstances: List<LDtkLayerInstance>? = null,
 
     /**
      * Height of the level in pixels
@@ -664,21 +750,40 @@ data class LevelDefinition(
     val uid: Int,
 
     /**
-     * World X coordinate in pixels
+     * World X coordinate in pixels.
+     *
+     * Only relevant for world layouts where level spatial positioning is manual (ie. GridVania, Free).
+     * For Horizontal and Vertical layouts, the value is always -1 here.
      */
     val worldX: Int,
 
     /**
-     * World Y coordinate in pixels
+     * World Y coordinate in pixels.
+     *
+     * Only relevant for world layouts where level spatial positioning is manual (ie. GridVania, Free).
+     * For Horizontal and Vertical layouts, the value is always -1 here.
      */
-    val worldY: Int
+    val worldY: Int,
+
+    /**
+     * Unique instance identifier
+     */
+    val iid: String,
+
+    /**
+     * Index that represents the "depth" of the level in the world.
+     * Default is 0, greater means "above", lower means "below".
+     *
+     * This value is mostly used for display only and is intended to make stacking of levels easier to manage.
+     */
+    val worldDepth: Int,
 )
 
 /**
  * Level background image position info
  */
 @Serializable
-data class LevelBackgroundPositionData(
+data class LDtkLevelBackgroundPositionData(
     /**
      * An array of 4 float values describing the cropped sub-rectangle of the displayed
      * background image. This cropping happens when original is larger than the level bounds.
@@ -700,7 +805,7 @@ data class LevelBackgroundPositionData(
 )
 
 @Serializable
-data class FieldInstance(
+data class LDtkFieldInstance(
     /**
      * Field definition identifier
      */
@@ -724,6 +829,12 @@ data class FieldInstance(
      * Reference of the **Field definition** UID
      */
     val defUid: Int,
+
+    /**
+     * Optional TilesetRect used to display this field (this can be the field own Tile, or some other Tile guessed from the value, like an Enum)
+     */
+    @SerialName("__tile")
+    val tile: LDtkTileRect? = null
 )
 
 @Serializable(with = MultiAssociatedValueSerializer::class)
@@ -734,7 +845,7 @@ data class MultiAssociatedValue(
     val content: String? = null
 )
 
-object MultiAssociatedValueSerializer : KSerializer<MultiAssociatedValue> {
+private object MultiAssociatedValueSerializer : KSerializer<MultiAssociatedValue> {
     override val descriptor: SerialDescriptor =
         buildClassSerialDescriptor("com.lehaine.littlekt.file.ldtk.MultiAssociatedValueSerializer") {
             element<List<String>>("stringList", isOptional = true)
@@ -779,7 +890,7 @@ object MultiAssociatedValueSerializer : KSerializer<MultiAssociatedValue> {
 }
 
 @Serializable
-data class LayerInstance(
+data class LDtkLayerInstance(
     /**
      * Grid-based height
      */
@@ -846,16 +957,16 @@ data class LayerInstance(
      * Note: if multiple tiles are stacked in the same cell as the result of different rules,
      * all tiles behind opaque ones will be discarded.
      */
-    val autoLayerTiles: List<TileInstance>,
+    val autoLayerTiles: List<LDtkTileInstance>,
 
-    val entityInstances: List<EntityInstance>,
-    val gridTiles: List<TileInstance>,
+    val entityInstances: List<LDtkEntityInstance>,
+    val gridTiles: List<LDtkTileInstance>,
 
     /**
      * **WARNING**: this deprecated value will be *removed* completely on version 0.9.0+
      * Replaced by: `intGridCsv`
      */
-    val intGrid: List<IntGridValueInstance>? = null,
+    val intGrid: List<LDtkIntGridValueInstance>? = null,
 
     /**
      * A list of all values in the IntGrid layer, stored from left to right, and top to bottom
@@ -908,17 +1019,21 @@ data class LayerInstance(
  * This structure represents a single tile from a given Tileset.
  */
 @Serializable
-data class TileInstance(
+data class LDtkTileInstance(
     /**
-     * Internal data used by the editor.<br/>  For auto-layer tiles: `[ruleId, coordId]`.<br/>
-     * For tile-layer tiles: `[coordId]`.
+     * Internal data used by the editor.
+     *
+     * For auto-layer tiles: `(ruleId, coordId)`.
+     *
+     * For tile-layer tiles: `(coordId)`.
      */
     val d: List<Int>,
 
     /**
      * "Flip bits", a 2-bits integer to represent the mirror transformations of the tile.<br/>
-     * - Bit 0 = X flip<br/>   - Bit 1 = Y flip<br/>   Examples: f=0 (no flip), f=1 (X flip
-     * only), f=2 (Y flip only), f=3 (both flips)
+     * - Bit 0 = X flip<br/>   - Bit 1 = Y flip<br/>
+     *
+     * Examples: f=0 (no flip), f=1 (X flip only), f=2 (Y flip only), f=3 (both flips)
      */
     val f: Int,
 
@@ -940,7 +1055,7 @@ data class TileInstance(
 )
 
 @Serializable
-data class EntityInstance(
+data class LDtkEntityInstance(
     /**
      * Grid-based coordinates (`[x,y]` format)
      */
@@ -964,7 +1079,7 @@ data class EntityInstance(
      * some tile provided by a field value, like an Enum).
      */
     @SerialName("__tile")
-    val tile: EntityInstanceTile? = null,
+    val tile: LDtkTileRect? = null,
 
     /**
      * Reference of the **Entity definition** UID
@@ -974,7 +1089,7 @@ data class EntityInstance(
     /**
      * An array of all custom fields and their values.
      */
-    val fieldInstances: List<FieldInstance>,
+    val fieldInstances: List<LDtkFieldInstance>,
 
     /**
      * Entity height in pixels. For non-resizable entities, it will be the same as Entity
@@ -992,31 +1107,63 @@ data class EntityInstance(
      * Entity width in pixels. For non-resizable entities, it will be the same as Entity
      * definition.
      */
-    val width: Int
+    val width: Int,
+
+    /**
+     * List of tags defined
+     */
+    @SerialName("__tags")
+    val tags: List<String>,
+
+    /**
+     * Unique instance identifier
+     */
+    val iid: String,
 )
 
 /**
  * Tile data in an Entity instance
  */
 @Serializable
-data class EntityInstanceTile(
+data class LDtkTileRect(
     /**
-     * An array of 4 Int values that refers to the tile in the tileset image: `[ x, y, width,
+     * A list of 4 Int values that refers to the tile in the tileset image: `[ x, y, width,
      * height ]`
      */
-    val srcRect: List<Int>,
+    @Deprecated("Removed in version 1.0.0", replaceWith = ReplaceWith("this.x\nthis.y\nthis.w\nthis.h"))
+    val srcRect: List<Int> = emptyList(),
 
     /**
-     * Tileset ID
+     * Tileset UID
      */
-    val tilesetUid: Int
+    val tilesetUid: Int,
+
+    /**
+     * Height in pixels.
+     */
+    val h: Int,
+
+    /**
+     * Width in pixels.
+     */
+    val w: Int,
+
+    /**
+     * X pixel coordinate relative to top-left corner of the tileset image
+     */
+    val x: Int,
+
+    /**
+     * Y pixel coordinate relative to top-left corner of the tileset image
+     */
+    val y: Int,
 )
 
 /**
  * IntGrid value instance
  */
 @Serializable
-data class IntGridValueInstance(
+data class LDtkIntGridValueInstance(
     /**
      * Coordinate ID in the layer grid
      */
@@ -1030,19 +1177,19 @@ data class IntGridValueInstance(
 )
 
 @Serializable
-enum class BgPos(val value: String) {
+enum class LDtkBgPos(val value: String) {
     Contain("Contain"),
     Cover("Cover"),
     CoverDirty("CoverDirty"),
     Unscaled("Unscaled");
 
-    companion object : KSerializer<BgPos> {
+    companion object : KSerializer<LDtkBgPos> {
         override val descriptor: SerialDescriptor
             get() {
                 return PrimitiveSerialDescriptor("com.lehaine.littlekt.file.ldtk.BgPos", PrimitiveKind.STRING)
             }
 
-        override fun deserialize(decoder: Decoder): BgPos = when (val value = decoder.decodeString()) {
+        override fun deserialize(decoder: Decoder): LDtkBgPos = when (val value = decoder.decodeString()) {
             "Contain" -> Contain
             "Cover" -> Cover
             "CoverDirty" -> CoverDirty
@@ -1050,7 +1197,7 @@ enum class BgPos(val value: String) {
             else -> throw IllegalArgumentException("BgPos could not parse: $value")
         }
 
-        override fun serialize(encoder: Encoder, value: BgPos) {
+        override fun serialize(encoder: Encoder, value: LDtkBgPos) {
             return encoder.encodeString(value.value)
         }
     }
@@ -1060,13 +1207,19 @@ enum class BgPos(val value: String) {
  * Nearby level info
  */
 @Serializable
-data class NeighbourLevelData(
+data class LDtkNeighbourLevelData(
     /**
      * A single lowercase character tipping on the level location (`n`orth, `s`outh, `w`est,
      * `e`ast).
      */
     val dir: String,
 
+    /**
+     * Neighbor instance identifier
+     */
+    val levelIid: String,
+
+    @Deprecated("Will be removed completely in LDtk '1.2.0+'", replaceWith = ReplaceWith("levelIid"))
     val levelUid: Int
 )
 
@@ -1075,19 +1228,19 @@ data class NeighbourLevelData(
  * space). Possible values: `Free`, `GridVania`, `LinearHorizontal`, `LinearVertical`
  */
 @Serializable
-enum class WorldLayout(val value: String) {
+enum class LDtkWorldLayout(val value: String) {
     Free("Free"),
     GridVania("GridVania"),
     LinearHorizontal("LinearHorizontal"),
     LinearVertical("LinearVertical");
 
-    companion object : KSerializer<WorldLayout> {
+    companion object : KSerializer<LDtkWorldLayout> {
         override val descriptor: SerialDescriptor
             get() {
                 return PrimitiveSerialDescriptor("com.lehaine.littlekt.file.ldtk.WorldLayout", PrimitiveKind.STRING)
             }
 
-        override fun deserialize(decoder: Decoder): WorldLayout = when (val value = decoder.decodeString()) {
+        override fun deserialize(decoder: Decoder): LDtkWorldLayout = when (val value = decoder.decodeString()) {
             "Free" -> Free
             "GridVania" -> GridVania
             "LinearHorizontal" -> LinearHorizontal
@@ -1095,7 +1248,7 @@ enum class WorldLayout(val value: String) {
             else -> throw IllegalArgumentException("WorldLayout could not parse: $value")
         }
 
-        override fun serialize(encoder: Encoder, value: WorldLayout) {
+        override fun serialize(encoder: Encoder, value: LDtkWorldLayout) {
             return encoder.encodeString(value.value)
         }
     }
