@@ -1,10 +1,12 @@
 package com.lehaine.littlekt.graphics.tilemap.tiled
 
+import com.lehaine.littlekt.Disposable
 import com.lehaine.littlekt.graph.node.component.HAlign
 import com.lehaine.littlekt.graph.node.component.VAlign
 import com.lehaine.littlekt.graphics.Batch
 import com.lehaine.littlekt.graphics.Camera
 import com.lehaine.littlekt.graphics.Color
+import com.lehaine.littlekt.graphics.Texture
 import com.lehaine.littlekt.graphics.tilemap.TileMap
 import com.lehaine.littlekt.math.Rect
 import com.lehaine.littlekt.math.geom.Angle
@@ -25,8 +27,9 @@ class TiledMap(
     val properties: Map<String, Property>,
     val tileWidth: Int,
     val tileHeight: Int,
-    val tileSets: List<TiledTileset>
-) : TileMap() {
+    val tileSets: List<TiledTileset>,
+    private val textures: MutableList<Texture>
+) : TileMap(), Disposable {
     val layersByName by lazy { layers.associateBy { it.name } }
     val layersById by lazy { layers.associateBy { it.id } }
 
@@ -42,6 +45,11 @@ class TiledMap(
         layersByName[name] ?: error("Layer: '$name' does not exist in this map!")
 
     operator fun get(layer: String) = layer(layer)
+
+    override fun dispose() {
+        textures.forEach { it.dispose() }
+        textures.clear()
+    }
 
     enum class Orientation(val value: String) {
         ORTHOGONAL("orthogonal"),

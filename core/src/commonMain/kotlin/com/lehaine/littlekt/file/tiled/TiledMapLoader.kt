@@ -1,5 +1,6 @@
 package com.lehaine.littlekt.file.tiled
 
+import com.lehaine.littlekt.Disposable
 import com.lehaine.littlekt.file.Base64.decodeFromBase64
 import com.lehaine.littlekt.file.readIntArrayLE
 import com.lehaine.littlekt.file.vfs.VfsFile
@@ -8,10 +9,7 @@ import com.lehaine.littlekt.file.vfs.pathInfo
 import com.lehaine.littlekt.file.vfs.readTexture
 import com.lehaine.littlekt.graph.node.component.HAlign
 import com.lehaine.littlekt.graph.node.component.VAlign
-import com.lehaine.littlekt.graphics.Color
-import com.lehaine.littlekt.graphics.TextureAtlas
-import com.lehaine.littlekt.graphics.slice
-import com.lehaine.littlekt.graphics.sliceWithBorder
+import com.lehaine.littlekt.graphics.*
 import com.lehaine.littlekt.graphics.tilemap.tiled.*
 import com.lehaine.littlekt.math.Rect
 import com.lehaine.littlekt.math.geom.Point
@@ -29,6 +27,7 @@ class TiledMapLoader internal constructor(
     private val tilesetBorder: Int = 2,
     private val mipmaps: Boolean = true
 ) {
+    private val textures = mutableListOf<Texture>()
 
     suspend fun loadMap(): TiledMap {
         val tileSets = mapData.tilesets.map { loadTileSet(it.firstgid, it.source) }
@@ -46,7 +45,8 @@ class TiledMapLoader internal constructor(
             properties = mapData.properties.toTiledMapProperty(),
             tileWidth = mapData.tilewidth,
             tileHeight = mapData.tileheight,
-            tileSets = tileSets
+            tileSets = tileSets,
+            textures = textures.toMutableList().also { textures.clear() }
         )
     }
 
@@ -171,7 +171,8 @@ class TiledMapLoader internal constructor(
                     opacity = layerData.opacity,
                     properties = layerData.properties.toTiledMapProperty(),
                     texture = layerData.image?.let {
-                        atlas?.get(it.pathInfo.baseName)?.slice ?: root[it].readTexture(mipmaps = mipmaps).slice()
+                        atlas?.get(it.pathInfo.baseName)?.slice ?: root[it].readTexture(mipmaps = mipmaps)
+                            .also { texture -> textures += texture }.slice()
                     }
                 )
             }
@@ -213,6 +214,7 @@ class TiledMapLoader internal constructor(
                         mipmaps
                     )
                     it.dispose()
+                    result.getOrNull(0)?.let { slice -> textures += slice.texture }
                     result
                 }
 
