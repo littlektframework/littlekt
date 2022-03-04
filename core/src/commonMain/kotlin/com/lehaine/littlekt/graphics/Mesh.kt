@@ -120,7 +120,8 @@ internal class MeshBatcher(size: Int, val attributes: VertexAttributes) {
         private set
     var count = 0
         private set
-    private var offset = 0
+    var offset = 0
+        private set
 
     fun setVertex(props: VertexProps) {
         attributes.forEach { vertexAttribute ->
@@ -445,7 +446,7 @@ class Mesh(
         count: Int = defaultCount,
     ) {
         if (useBatcher && updateVertices) {
-            setVBOVertices(batcher.vertices)
+            setVBOVertices(batcher.vertices, 0, batcher.offset)
             if (numIndices > 0) {
                 indicesBuffer.apply {
                     position = 0

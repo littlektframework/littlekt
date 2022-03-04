@@ -28,6 +28,7 @@ fun main() {
             addSample("Display Test") { DisplayTest(it) }
             addSample("Mutable Atlas Test") { MutableAtlasTest(it) }
             addSample("Texture Array Sprite Batch Test") { TextureArraySpriteBatchTest(it) }
+            addSample("Tiled Map Test") { TiledMapTest(it) }
         }
     }
 }

@@ -53,8 +53,10 @@ class VertexBufferObject(val gl: GL, val isStatic: Boolean, numVertices: Int, va
     fun setVertices(vertices: FloatArray, srcOffset: Int, count: Int) {
         isDirty = true
         buffer.clear()
+        buffer.position = 0
         buffer.put(vertices, srcOffset, count)
-        buffer.flip()
+        buffer.position = 0
+        buffer.limit = count
         onBufferChanged()
     }
 
