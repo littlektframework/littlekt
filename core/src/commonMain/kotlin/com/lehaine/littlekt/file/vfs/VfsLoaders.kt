@@ -5,8 +5,8 @@ import com.lehaine.littlekt.audio.AudioStream
 import com.lehaine.littlekt.file.UnsupportedFileTypeException
 import com.lehaine.littlekt.file.atlas.AtlasInfo
 import com.lehaine.littlekt.file.atlas.AtlasPage
-import com.lehaine.littlekt.file.ldtk.LDtkMapLoader
 import com.lehaine.littlekt.file.ldtk.LDtkMapData
+import com.lehaine.littlekt.file.ldtk.LDtkMapLoader
 import com.lehaine.littlekt.file.tiled.TiledMapData
 import com.lehaine.littlekt.file.tiled.TiledMapLoader
 import com.lehaine.littlekt.graphics.Pixmap
@@ -224,13 +224,16 @@ private suspend fun readBitmapFontTxt(
 /**
  * Reads the [VfsFile] as a [LDtkMapLoader]. This will read the LDtk file and create a loader to allow flexible loading
  * of [LDtkWorld] or [LDtkLevel]. This loader should be cached and reused when loading separate levels.
- * @param tilesetBorder the border thickness of each slice when loading the tileset to prevent bleeding
+ * @param atlas an atlas the has the preloaded textures for both tilesets and image layers. **Note**: that if the
+ * [Texture] for a tileset has a border thickness set, that value must be used for [tilesetBorder]. If no border is set,
+ * then [tilesetBorder] must be marked as `0`.
+ * @param tilesetBorder the border thickness of each slice when loading the tileset to prevent bleeding. This is used when
+ * slicing tileset textures from an atlas or when loading externally.
  * @return the loaded LDtk map
- * @see [VfsFile.readLDtkLevel]
  */
-suspend fun VfsFile.readLDtkMapLoader(tilesetBorder: Int = 2): LDtkMapLoader {
-    val project = decodeFromString<LDtkMapData>()
-    return LDtkMapLoader(this, project, tilesetBorder)
+suspend fun VfsFile.readLDtkMapLoader(atlas: TextureAtlas? = null, tilesetBorder: Int = 2): LDtkMapLoader {
+    val mapData = decodeFromString<LDtkMapData>()
+    return LDtkMapLoader(this, mapData, atlas, tilesetBorder)
 }
 
 /**

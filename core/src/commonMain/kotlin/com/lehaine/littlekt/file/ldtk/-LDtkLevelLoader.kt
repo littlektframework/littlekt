@@ -1,12 +1,8 @@
 package com.lehaine.littlekt.file.ldtk
 
 import com.lehaine.littlekt.Disposable
-import com.lehaine.littlekt.file.vfs.VfsFile
-import com.lehaine.littlekt.file.vfs.readPixmap
-import com.lehaine.littlekt.file.vfs.readTexture
-import com.lehaine.littlekt.graphics.Color
-import com.lehaine.littlekt.graphics.Texture
-import com.lehaine.littlekt.graphics.sliceWithBorder
+import com.lehaine.littlekt.file.vfs.*
+import com.lehaine.littlekt.graphics.*
 import com.lehaine.littlekt.graphics.tilemap.ldtk.*
 import com.lehaine.littlekt.log.Logger
 import com.lehaine.littlekt.math.geom.Point
@@ -17,10 +13,11 @@ import com.lehaine.littlekt.math.geom.Point
  */
 internal class LDtkLevelLoader(
     private val mapData: LDtkMapData,
+    private val atlas: TextureAtlas? = null,
     private val sliceBorder: Int = 2,
 ) : Disposable {
 
-    private val assetCache = mutableMapOf<VfsFile, Texture>()
+    private val assetCache = mutableMapOf<VfsFile, TextureSlice>()
     internal val tilesets = mutableMapOf<Int, LDtkTileset>()
 
     suspend fun loadLevel(root: VfsFile, externalRelPath: String, enums: Map<String, LDtkEnum>): LDtkLevel {
@@ -36,7 +33,7 @@ internal class LDtkLevelLoader(
         }
         val bgImage = levelDef.bgRelPath?.let {
             val file = root[it]
-            assetCache.getOrPut(file) { file.readTexture() }
+            assetCache.getOrPut(file) { atlas?.get(it.pathInfo.baseName)?.slice ?: file.readTexture().slice() }
         }
         val entities: MutableList<LDtkEntity> = mutableListOf()
         return LDtkLevel(
@@ -372,12 +369,19 @@ internal class LDtkLevelLoader(
             cellSize = tilesetDef.tileGridSize,
             pxWidth = tilesetDef.pxWid,
             pxHeight = tilesetDef.pxHei,
-            tiles = vfs[tilesetDef.relPath].readPixmap()
-                .sliceWithBorder(vfs.vfs.context, tilesetDef.tileGridSize, tilesetDef.tileGridSize, sliceBorder)
+            tiles = atlas?.get(tilesetDef.relPath.pathInfo.baseName)?.slice?.slice(
+                tilesetDef.tileGridSize,
+                tilesetDef.tileGridSize,
+                sliceBorder
+            )?.flatten()
+                ?: vfs[tilesetDef.relPath].readPixmap()
+                    .sliceWithBorder(vfs.vfs.context, tilesetDef.tileGridSize, tilesetDef.tileGridSize, sliceBorder)
         )
 
     override fun dispose() {
-        assetCache.values.forEach { it.dispose() }
+        assetCache.values.forEach { it.texture.dispose() }
+        assetCache.clear()
+        tilesets.clear()
     }
 
     companion object {

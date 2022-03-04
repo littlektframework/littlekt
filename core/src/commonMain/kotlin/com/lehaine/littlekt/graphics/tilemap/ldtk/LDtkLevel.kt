@@ -25,7 +25,7 @@ class LDtkLevel(
     val entities: List<LDtkEntity>,
     val backgroundColor: String,
     levelBackgroundPos: LevelBackgroundPositionData? = null,
-    bgImageTexture: Texture? = null
+    bgImageTexture: TextureSlice? = null
 ) {
     val layersMap = layers.associateBy { it.identifier }
     val entitiesMap: Map<String, List<LDtkEntity>> = entities.groupBy { it.identifier }
@@ -92,7 +92,7 @@ class LDtkLevel(
 
         companion object {
             fun fromDir(dir: String): NeighborDirection {
-                return when (dir.toLowerCase()) {
+                return when (dir.lowercase()) {
                     "n" -> North
                     "e" -> East
                     "s" -> South

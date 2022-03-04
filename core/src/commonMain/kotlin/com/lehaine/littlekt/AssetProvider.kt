@@ -173,7 +173,7 @@ open class AssetProvider(val context: Context) {
             },
             LDtkMapLoader::class to { file, params ->
                 if (params is LDtkGameAssetParameter) {
-                    file.readLDtkMapLoader(params.tilesetBorderThickness)
+                    file.readLDtkMapLoader(params.atlas, params.tilesetBorderThickness)
                 } else {
                     file.readLDtkMapLoader()
                 }
@@ -227,7 +227,7 @@ class TextureGameAssetParameter(
 ) : GameAssetParameters
 
 class LDtkGameAssetParameter(
-    val levelIdx: Int = 0,
+    val atlas: TextureAtlas? = null,
     val tilesetBorderThickness: Int = 2
 ) : GameAssetParameters
 

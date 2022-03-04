@@ -3,6 +3,7 @@ package com.lehaine.littlekt.file.ldtk
 import com.lehaine.littlekt.Disposable
 import com.lehaine.littlekt.file.vfs.VfsFile
 import com.lehaine.littlekt.graphics.Color
+import com.lehaine.littlekt.graphics.TextureAtlas
 import com.lehaine.littlekt.graphics.tilemap.ldtk.LDtkEnum
 import com.lehaine.littlekt.graphics.tilemap.ldtk.LDtkEnumValue
 import com.lehaine.littlekt.graphics.tilemap.ldtk.LDtkLevel
@@ -15,9 +16,10 @@ import com.lehaine.littlekt.graphics.tilemap.ldtk.LDtkWorld
 class LDtkMapLoader(
     private val root: VfsFile,
     private val mapData: LDtkMapData,
+    atlas: TextureAtlas? = null,
     tilesetBorder: Int = 2,
 ) : Disposable {
-    private val levelLoader = LDtkLevelLoader(mapData, tilesetBorder)
+    private val levelLoader = LDtkLevelLoader(mapData, atlas, tilesetBorder)
     private val enums = mapData.defs.enums.associateBy(keySelector = { it.identifier }) { enum ->
         val values =
             enum.values.associateBy(keySelector = { it.id }) {
