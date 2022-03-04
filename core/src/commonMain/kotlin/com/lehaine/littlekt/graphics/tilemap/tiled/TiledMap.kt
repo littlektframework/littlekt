@@ -27,6 +27,8 @@ class TiledMap(
     val tileHeight: Int,
     val tileSets: List<TiledTileset>
 ) : TileMap() {
+    val layersByName by lazy { layers.associateBy { it.name } }
+    val layersById by lazy { layers.associateBy { it.id } }
 
     override fun render(batch: Batch, camera: Camera, x: Float, y: Float) = render(batch, camera, x, y, false)
 
@@ -35,6 +37,11 @@ class TiledMap(
             it.render(batch, camera, x, y, displayObjects)
         }
     }
+
+    fun layer(name: String): TiledLayer =
+        layersByName[name] ?: error("Layer: '$name' does not exist in this map!")
+
+    operator fun get(layer: String) = layer(layer)
 
     enum class Orientation(val value: String) {
         ORTHOGONAL("orthogonal"),

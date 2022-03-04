@@ -77,8 +77,10 @@ class TiledObjectLayer(
         }
     }
 
-
-    fun getById(id: Int): TiledMap.Object? = objectsById[id]
-    fun getByName(name: String): TiledMap.Object? = objectsByName[name]
+    fun getById(id: Int): TiledMap.Object = objectsById[id] ?: error("Object: '$id' does not exist in this layer!")
+    fun getByName(name: String): TiledMap.Object = objectsByName[name] ?: error("Object: '$name' does not exist in this layer!")
     fun getByType(type: String): List<TiledMap.Object> = objects.filter { it.type == type }
+
+    operator fun get(name: String) = getByName(name)
+    operator fun get(id: Int) = getById(id)
 }
