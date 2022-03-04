@@ -14,7 +14,7 @@ import com.lehaine.littlekt.graphics.font.CharacterSets
 import com.lehaine.littlekt.graphics.font.TtfFont
 import com.lehaine.littlekt.graphics.gl.TexMagFilter
 import com.lehaine.littlekt.graphics.gl.TexMinFilter
-import com.lehaine.littlekt.graphics.tilemap.ldtk.LDtkLevel
+import com.lehaine.littlekt.graphics.tilemap.tiled.TiledMap
 import com.lehaine.littlekt.util.internal.lock
 import kotlinx.atomicfu.atomic
 import kotlin.reflect.KClass
@@ -55,7 +55,7 @@ open class AssetProvider(val context: Context) {
     /**
      * Updates to check if all assets have been loaded, and if so, prepare them.
      */
-   suspend fun update() {
+    suspend fun update() {
         if (totalAssetsLoading.value > 0) return
         if (!prepared) {
             assetsToPrepare.forEach {
@@ -178,12 +178,8 @@ open class AssetProvider(val context: Context) {
                     file.readLDtkMapLoader()
                 }
             },
-            LDtkLevel::class to { file, params ->
-                if (params is LDtkGameAssetParameter) {
-                    file.readLDtkLevel(params.levelIdx, params.tilesetBorderThickness)
-                } else {
-                    file.readLDtkLevel(0)
-                }
+            TiledMap::class to { file, _ ->
+                file.readTiledMap()
             }
         )
     }

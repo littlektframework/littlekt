@@ -143,20 +143,27 @@ open class TextureSlice(
         v2 = temp
     }
 
-    fun slice(sliceWidth: Int, sliceHeight: Int): Array<Array<TextureSlice>> {
-        val cols = width / sliceWidth
-        val rows = height / sliceHeight
+    /**
+     * Slice this [TextureSlice] into smaller slices.
+     * @param sliceWidth the width of the slice
+     * @param sliceHeight the height of the slice
+     * @param border the thickness of the border the slice has. This will usually be `0` but could change if
+     * [Texture.sliceWithBorder] was used and needed to keep the original slice sizes.
+     */
+    fun slice(sliceWidth: Int, sliceHeight: Int, border: Int = 0): Array<Array<TextureSlice>> {
+        val cols = width / (sliceWidth + border * 2)
+        val rows = height / (sliceHeight + border * 2)
 
-        var y = this.y - sliceHeight
+        var y = this.y - sliceHeight - border
         var x: Int
-        val startX = this.x - sliceWidth
+        val startX = this.x - sliceWidth - border
 
         return Array(rows) {
             x = startX
-            y += sliceHeight
+            y += sliceHeight + border * 2
 
             Array(cols) {
-                x += sliceWidth
+                x += sliceWidth + border * 2
                 TextureSlice(texture, x, y, sliceWidth, sliceHeight)
             }
         }

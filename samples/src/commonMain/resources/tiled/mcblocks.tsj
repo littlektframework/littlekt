@@ -1,0 +1,25 @@
+{ "columns":18,
+ "grid":
+    {
+     "height":32,
+     "orientation":"isometric",
+     "width":32
+    },
+ "image":"MCBlocksColorOutline.png",
+ "imageheight":1728,
+ "imagewidth":576,
+ "margin":0,
+ "name":"MCBlocksColorOutline",
+ "spacing":0,
+ "tilecount":972,
+ "tiledversion":"1.8.2",
+ "tileheight":32,
+ "tileoffset":
+    {
+     "x":-4,
+     "y":4
+    },
+ "tilewidth":32,
+ "type":"tileset",
+ "version":"1.8"
+}

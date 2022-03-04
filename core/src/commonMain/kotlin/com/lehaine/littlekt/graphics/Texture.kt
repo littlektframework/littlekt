@@ -151,3 +151,20 @@ fun Texture.sliceWithBorder(
     border: Int = 1,
     mipmaps: Boolean = false
 ): List<TextureSlice> = textureData.pixmap.sliceWithBorder(context, sliceWidth, sliceHeight, border, mipmaps)
+
+/**
+ * Slice up the texture with the given size with an added border but returns the newly created [Texture].
+ * This can be used to prevent atlas bleeding.
+ * @param context the current context - used to prepare the newly created Texture.
+ * @param sliceWidth the width of each slice
+ * @param sliceHeight the height of each slice
+ * @param border the thickness of the border for each slice
+ * @param mipmaps use mipmaps or not for the new texture
+ */
+fun Texture.addBorderToSlices(
+    context: Context,
+    sliceWidth: Int,
+    sliceHeight: Int,
+    border: Int = 1,
+    mipmaps: Boolean = false
+): Texture = textureData.pixmap.addBorderToSlices(context, sliceWidth, sliceHeight, border, mipmaps)
