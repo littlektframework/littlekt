@@ -636,7 +636,7 @@ data class LDtkTilesetDefinition(
     val tileGridSize: Int,
 
     /**
-     * Unique Intidentifier
+     * Unique Int identifier
      */
     val uid: Int,
 
@@ -966,6 +966,7 @@ data class LDtkLayerInstance(
      * **WARNING**: this deprecated value will be *removed* completely on version 0.9.0+
      * Replaced by: `intGridCsv`
      */
+    @Deprecated("Removed in versions 0.9.0+", replaceWith = ReplaceWith("this.intGridCsv"))
     val intGrid: List<LDtkIntGridValueInstance>? = null,
 
     /**
@@ -1012,7 +1013,12 @@ data class LDtkLayerInstance(
     /**
      * Layer instance visibility
      */
-    val visible: Boolean
+    val visible: Boolean,
+
+    /**
+     * Unique instance id
+     */
+    val iid: String,
 )
 
 /**
@@ -1217,10 +1223,10 @@ data class LDtkNeighbourLevelData(
     /**
      * Neighbor instance identifier
      */
-    val levelIid: String,
+    val levelIid: String = "",
 
     @Deprecated("Will be removed completely in LDtk '1.2.0+'", replaceWith = ReplaceWith("levelIid"))
-    val levelUid: Int
+    val levelUid: Int = 0
 )
 
 /**

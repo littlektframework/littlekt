@@ -7,6 +7,8 @@ package com.lehaine.littlekt.graphics.tilemap.ldtk
 open class LDtkEntity(
     val identifier: String,
 
+    val iid: String,
+
     /** Grid-based X coordinate **/
     val cx: Int,
 
@@ -32,13 +34,10 @@ open class LDtkEntity(
     val height: Int,
 
     /** Tile infos if the entity has one (it could have been overridden by a Field value, such as Enums) **/
-    val tileInfo: TileInfo?,
+    val tileInfo: LDtkTileInfo?,
 
     val fields: Map<String, LDtkField<*>>
 ) {
-
-    data class TileInfo(val tilesetUid: Int, val x: Int, val y: Int, val w: Int, val h: Int)
-
     @Suppress("UNCHECKED_CAST")
     fun <T> field(name: String) = fields[name] as LDtkValueField<T>
 

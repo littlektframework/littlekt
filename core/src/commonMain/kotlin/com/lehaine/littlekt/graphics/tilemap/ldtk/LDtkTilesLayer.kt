@@ -14,6 +14,7 @@ open class LDtkTilesLayer(
     val tileset: LDtkTileset,
     val tiles: Map<Int, List<TileInfo>>,
     identifier: String,
+    iid: String,
     type: LayerType,
     cellSize: Int,
     gridWidth: Int,
@@ -22,7 +23,7 @@ open class LDtkTilesLayer(
     pxTotalOffsetY: Int,
     opacity: Float,
 ) : LDtkLayer(
-    identifier, type, cellSize, gridWidth, gridHeight, pxTotalOffsetX, pxTotalOffsetY, opacity
+    identifier, iid, type, cellSize, gridWidth, gridHeight, pxTotalOffsetX, pxTotalOffsetY, opacity
 ) {
 
     fun getTileStackAt(cx: Int, cy: Int): List<TileInfo> {

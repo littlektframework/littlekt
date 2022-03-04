@@ -7,6 +7,7 @@ package com.lehaine.littlekt.graphics.tilemap.ldtk
 open class LDtkEntityLayer(
     val entities: List<LDtkEntity>,
     identifier: String,
+    iid: String,
     type: LayerType,
     cellSize: Int,
     gridWidth: Int,
@@ -15,18 +16,10 @@ open class LDtkEntityLayer(
     pxTotalOffsetY: Int,
     opacity: Float,
 ) : LDtkLayer(
-    identifier, type, cellSize, gridWidth, gridHeight, pxTotalOffsetX, pxTotalOffsetY, opacity
+    identifier, iid, type, cellSize, gridWidth, gridHeight, pxTotalOffsetX, pxTotalOffsetY, opacity
 ) {
-    val entitiesMap: Map<String, List<LDtkEntity>>
-
-    init {
-        val map = mutableMapOf<String, MutableList<LDtkEntity>>()
-        entities.forEach {
-            map.getOrPut(it.identifier) {
-                mutableListOf()
-            }.add(it)
-        }
-        entitiesMap = map
+    val entitiesMap: Map<String, List<LDtkEntity>> by lazy {
+        entities.groupBy { it.identifier }
     }
 
     fun entities(name: String) = entitiesMap[name] ?: error("Entities: '$name' does not exist in the Entity layer!")

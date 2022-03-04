@@ -39,6 +39,7 @@ internal class LDtkLevelLoader(
         return LDtkLevel(
             uid = levelDef.uid,
             identifier = levelDef.identifier,
+            iid = levelDef.iid,
             pxWidth = levelDef.pxWid,
             pxHeight = levelDef.pxHei,
             worldX = levelDef.worldX,
@@ -46,6 +47,7 @@ internal class LDtkLevelLoader(
             neighbors = levelDef.neighbours?.map {
                 LDtkLevel.Neighbor(
                     it.levelUid,
+                    it.levelIid,
                     LDtkLevel.NeighborDirection.fromDir(it.dir)
                 )
             }
@@ -88,11 +90,13 @@ internal class LDtkLevelLoader(
                     }
                 }
 
-                if (getLayerDef(json.layerDefUid)?.autoTilesetDefUid == null) {
+                val layerDef = getLayerDef(json.layerDefUid)
+                if (layerDef?.tilesetDefUid == null && layerDef?.autoTilesetDefUid == null) {
                     LDtkIntGridLayer(
                         intGridValueInfo = intGridValueInfo,
                         intGrid = intGrid,
                         identifier = json.identifier,
+                        iid = json.iid,
                         type = LayerType.valueOf(json.type),
                         cellSize = json.gridSize,
                         gridWidth = json.cWid,
@@ -111,6 +115,7 @@ internal class LDtkLevelLoader(
                         intGridValueInfo = intGridValueInfo,
                         intGrid = intGrid,
                         identifier = json.identifier,
+                        iid = json.iid,
                         type = LayerType.valueOf(json.type),
                         cellSize = json.gridSize,
                         gridWidth = json.cWid,
@@ -184,10 +189,40 @@ internal class LDtkLevelLoader(
                                     TODO("FilePath not yet implemented!")
                                 }
                                 "Tile" -> {
-                                    TODO("Tile not yet implemented")
+                                    val values = field.value?.stringMapList?.map {
+                                        LDtkValueField(
+                                            LDtkTileInfo(
+                                                tilesetUid = it["tilesetUid"]?.toInt()
+                                                    ?: error("Unable to find 'tilesetUid' value when creating LDtkTileInfo LDtkField!"),
+                                                x = it["x"]?.toInt()
+                                                    ?: error("Unable to find 'x' value when creating LDtkTileInfo LDtkField!"),
+                                                y = it["y"]?.toInt()
+                                                    ?: error("Unable to find 'y' value when creating LDtkTileInfo LDtkField!"),
+                                                w = it["w"]?.toInt()
+                                                    ?: error("Unable to find 'w' value when creating LDtkTileInfo LDtkField!"),
+                                                h = it["h"]?.toInt()
+                                                    ?: error("Unable to find 'h' value when creating LDtkTileInfo LDtkField!")
+                                            )
+                                        )
+                                    } ?: emptyList()
+                                    fields[field.identifier] = LDtkArrayField(values)
                                 }
                                 "EntityRef" -> {
-                                    TODO("EntityRef not yet implemented")
+                                    val values = field.value?.stringMapList?.map {
+                                        LDtkValueField(
+                                            LDtkEntityRef(
+                                                it["entityIid"]
+                                                    ?: error("Unable to find 'entityIid' value when creating LDtkEntityRef LDtkField!"),
+                                                it["layerIid"]
+                                                    ?: error("Unable to find 'layerIid' value when creating LDtkEntityRef LDtkField!"),
+                                                it["levelIid"]
+                                                    ?: error("Unable to find 'levelIid' value when creating LDtkEntityRef LDtkField!"),
+                                                it["worldIid"]
+                                                    ?: error("Unable to find 'worldIid' value when creating LDtkEntityRef LDtkField!")
+                                            )
+                                        )
+                                    } ?: emptyList()
+                                    fields[field.identifier] = LDtkArrayField(values)
                                 }
                                 else -> {
                                     when {
@@ -270,10 +305,66 @@ internal class LDtkLevelLoader(
                                     TODO("FilePath not yet implemented!")
                                 }
                                 "Tile" -> {
-                                    TODO("Tile not yet implemented")
+                                    fields[field.identifier] = if (canBeNull) {
+                                        LDtkValueField(field.value?.stringMap?.let {
+                                            LDtkTileInfo(
+                                                tilesetUid = it["tilesetUid"]?.toInt()
+                                                    ?: error("Unable to find 'tilesetUid' value when creating LDtkTileInfo LDtkField!"),
+                                                x = it["x"]?.toInt()
+                                                    ?: error("Unable to find 'x' value when creating LDtkTileInfo LDtkField!"),
+                                                y = it["y"]?.toInt()
+                                                    ?: error("Unable to find 'y' value when creating LDtkTileInfo LDtkField!"),
+                                                w = it["w"]?.toInt()
+                                                    ?: error("Unable to find 'w' value when creating LDtkTileInfo LDtkField!"),
+                                                h = it["h"]?.toInt()
+                                                    ?: error("Unable to find 'h' value when creating LDtkTileInfo LDtkField!")
+                                            )
+                                        })
+                                    } else {
+                                        LDtkValueField(field.value!!.stringMap!!.let {
+                                            LDtkTileInfo(
+                                                tilesetUid = it["tilesetUid"]?.toInt()
+                                                    ?: error("Unable to find 'tilesetUid' value when creating LDtkTileInfo LDtkField!"),
+                                                x = it["x"]?.toInt()
+                                                    ?: error("Unable to find 'x' value when creating LDtkTileInfo LDtkField!"),
+                                                y = it["y"]?.toInt()
+                                                    ?: error("Unable to find 'y' value when creating LDtkTileInfo LDtkField!"),
+                                                w = it["w"]?.toInt()
+                                                    ?: error("Unable to find 'w' value when creating LDtkTileInfo LDtkField!"),
+                                                h = it["h"]?.toInt()
+                                                    ?: error("Unable to find 'h' value when creating LDtkTileInfo LDtkField!")
+                                            )
+                                        })
+                                    }
                                 }
                                 "EntityRef" -> {
-                                    TODO("EntityRef not yet implemented")
+                                    fields[field.identifier] = if (canBeNull) {
+                                        LDtkValueField(field.value?.stringMap?.let {
+                                            LDtkEntityRef(
+                                                it["entityIid"]
+                                                    ?: error("Unable to find 'entityIid' value when creating LDtkEntityRef LDtkField!"),
+                                                it["layerIid"]
+                                                    ?: error("Unable to find 'layerIid' value when creating LDtkEntityRef LDtkField!"),
+                                                it["levelIid"]
+                                                    ?: error("Unable to find 'levelIid' value when creating LDtkEntityRef LDtkField!"),
+                                                it["worldIid"]
+                                                    ?: error("Unable to find 'worldIid' value when creating LDtkEntityRef LDtkField!")
+                                            )
+                                        })
+                                    } else {
+                                        LDtkValueField(field.value!!.stringMap!!.let {
+                                            LDtkEntityRef(
+                                                it["entityIid"]
+                                                    ?: error("Unable to find 'entityIid' value when creating LDtkEntityRef LDtkField!"),
+                                                it["layerIid"]
+                                                    ?: error("Unable to find 'layerIid' value when creating LDtkEntityRef LDtkField!"),
+                                                it["levelIid"]
+                                                    ?: error("Unable to find 'levelIid' value when creating LDtkEntityRef LDtkField!"),
+                                                it["worldIid"]
+                                                    ?: error("Unable to find 'worldIid' value when creating LDtkEntityRef LDtkField!")
+                                            )
+                                        })
+                                    }
                                 }
                                 else -> {
                                     when {
@@ -298,6 +389,7 @@ internal class LDtkLevelLoader(
                     }
                     LDtkEntity(
                         identifier = entity.identifier,
+                        iid = entity.iid,
                         cx = entity.grid[0],
                         cy = entity.grid[1],
                         x = entity.px[0].toFloat(),
@@ -309,7 +401,7 @@ internal class LDtkLevelLoader(
                         tileInfo = if (entity.tile == null) {
                             null
                         } else {
-                            LDtkEntity.TileInfo(
+                            LDtkTileInfo(
                                 tilesetUid = entity.tile.tilesetUid,
                                 x = if (entity.tile.srcRect.isNotEmpty()) entity.tile.srcRect[0] else entity.tile.x,
                                 y = if (entity.tile.srcRect.isNotEmpty()) entity.tile.srcRect[1] else entity.tile.y,
@@ -323,6 +415,7 @@ internal class LDtkLevelLoader(
                 LDtkEntityLayer(
                     entities = entities,
                     identifier = json.identifier,
+                    iid = json.iid,
                     type = LayerType.valueOf(json.type),
                     cellSize = json.gridSize,
                     gridWidth = json.cWid,
@@ -345,6 +438,7 @@ internal class LDtkLevelLoader(
                         ?: error("Unable to retrieve LDtk tileset: ${json.tilesetDefUid} at ${json.tilesetRelPath}"),
                     tiles = tiles,
                     identifier = json.identifier,
+                    iid = json.iid,
                     type = LayerType.valueOf(json.type),
                     cellSize = json.gridSize,
                     gridWidth = json.cWid,
@@ -362,6 +456,7 @@ internal class LDtkLevelLoader(
                         LDtkAutoLayer.AutoTile(it.t, it.f, it.px[0], it.px[1])
                     },
                     identifier = json.identifier,
+                    iid = json.iid,
                     type = LayerType.valueOf(json.type),
                     cellSize = json.gridSize,
                     gridWidth = json.cWid,
@@ -378,6 +473,7 @@ internal class LDtkLevelLoader(
     suspend fun loadTileset(vfs: VfsFile, tilesetDef: LDtkTilesetDefinition) =
         LDtkTileset(
             identifier = tilesetDef.identifier,
+            uid = tilesetDef.uid,
             cellSize = tilesetDef.tileGridSize,
             pxWidth = tilesetDef.pxWid,
             pxHeight = tilesetDef.pxHei,

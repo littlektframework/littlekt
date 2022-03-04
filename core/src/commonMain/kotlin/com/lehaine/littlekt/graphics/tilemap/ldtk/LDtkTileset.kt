@@ -14,6 +14,7 @@ import kotlin.math.ceil
  */
 class LDtkTileset(
     val identifier: String,
+    val uid: Int,
     val cellSize: Int,
     val pxWidth: Int,
     val pxHeight: Int,
