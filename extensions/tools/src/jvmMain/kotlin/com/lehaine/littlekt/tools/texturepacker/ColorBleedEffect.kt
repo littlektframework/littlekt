@@ -45,11 +45,9 @@ class ColorBleedEffect {
             var count = 0
 
             for (i in offsets.indices step 2) {
-                var column = x + offsets[i]
-                var row = y + offsets[i + 1]
+                val column = x + offsets[i]
+                val row = y + offsets[i + 1]
                 if (column < 0 || column >= width || row < 0 || row >= height) {
-                    column = x
-                    row = y
                     continue
                 }
                 val currentPixelIndex = getPixelIndex(width, column, row)
