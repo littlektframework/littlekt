@@ -29,6 +29,18 @@ open class PackingOptions(
     var maxHeight: Int = 4096,
 
     var edgeBorder: Int = 2,
+
+    /**
+     * If true, RGB values for transparent pixels are set based on the RGB values of the nearest non-transparent pixels.
+     * This prevents filtering artifacts when RGB values are sampled for transparent pixels.
+     */
+    var bleed: Boolean = true,
+
+    /**
+     * The amount of bleed iterations that should be performed.
+     * Use greater values such as 4 or 8 if you’re having artifacts when downscaling your textures.
+     */
+    var bleedIterations: Int = 2,
 ) {
 
     fun clone() = PackingOptions().apply {
