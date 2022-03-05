@@ -52,7 +52,7 @@ class TexturePacker(val config: TexturePackerConfig) {
         outputDir.mkdirs()
 
         bins.forEachIndexed { index, bin ->
-            val canvas = BufferedImage(bin.width, bin.height, BufferedImage.TYPE_INT_ARGB)
+            var canvas = BufferedImage(bin.width, bin.height, BufferedImage.TYPE_INT_ARGB)
             bin.rects.forEach { rect ->
                 rect as ImageRectData
                 val image = rect.loadImage()
@@ -84,6 +84,9 @@ class TexturePacker(val config: TexturePackerConfig) {
                 relatedMultiPacks
             } else {
                 listOf()
+            }
+            if (config.packingOptions.bleed) {
+                canvas = ColorBleedEffect().processImage(canvas, config.packingOptions.bleedIterations)
             }
             val page = createAtlasPage(canvas, imageName, bin.rects as List<ImageRectData>, relatedMultiPacks)
 
