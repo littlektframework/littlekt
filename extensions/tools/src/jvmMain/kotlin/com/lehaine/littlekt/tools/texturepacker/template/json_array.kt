@@ -67,9 +67,14 @@ internal fun List<ImageRectData>.toFrames(): List<AtlasPage.Frame> {
     forEach { data ->
         output += AtlasPage.Frame(
             data.name,
-            AtlasPage.Rect(data.x, data.y, data.width, data.height),
+            AtlasPage.Rect(
+                data.x + data.extrude,
+                data.y + data.extrude,
+                data.width - data.extrude * 2,
+                data.height - data.extrude * 2
+            ),
             data.isRotated,
-            data.offsetX != 0 || data.offsetY != 0 || data.regionWidth != data.width || data.regionHeight != data.height,
+            data.offsetX != 0 || data.offsetY != 0 || data.regionWidth != data.width - data.extrude * 2 || data.regionHeight != data.height - data.extrude * 2,
             AtlasPage.Rect(data.offsetX, data.offsetY, data.regionWidth, data.regionHeight),
             AtlasPage.Size(data.originalWidth, data.originalHeight)
         )
@@ -77,7 +82,12 @@ internal fun List<ImageRectData>.toFrames(): List<AtlasPage.Frame> {
         data.aliases.forEach {
             output += AtlasPage.Frame(
                 it.name,
-                AtlasPage.Rect(data.x, data.y, data.width, data.height),
+                AtlasPage.Rect(
+                    data.x + data.extrude,
+                    data.y + data.extrude,
+                    data.width - data.extrude * 2,
+                    data.height - data.extrude * 2
+                ),
                 data.isRotated,
                 data.offsetX != 0 || data.offsetY != 0 || data.regionWidth != data.width || data.regionHeight != data.height,
                 AtlasPage.Rect(data.offsetX, data.offsetY, data.regionWidth, data.regionHeight),

@@ -55,6 +55,13 @@ class ImageProcessor(val config: TexturePackerConfig) {
             index = matcher.group(2).toInt()
         }
 
+        val extrude = config.packingOptions.extrude
+        check(extrude >= 0) { "Extrude must be >= 0!" }
+
+        if (extrude > 0) {
+            image = extrude(image)
+        }
+
         return if (config.trim) {
             trim(image, inputName).also { it?.index = index }
         } else {
@@ -63,15 +70,16 @@ class ImageProcessor(val config: TexturePackerConfig) {
                 0,
                 image.width,
                 image.height,
-                regionWidth = image.width,
-                regionHeight = image.height,
+                regionWidth = image.width - extrude * 2,
+                regionHeight = image.height - extrude * 2,
                 offsetX = 0,
                 offsetY = 0,
-                originalWidth = image.width,
-                originalHeight = image.height,
+                originalWidth = image.width - extrude * 2,
+                originalHeight = image.height - extrude * 2,
                 image = image,
                 name = inputName,
-                index = index
+                index = index,
+                extrude = extrude
             )
         }
     }
@@ -92,11 +100,12 @@ class ImageProcessor(val config: TexturePackerConfig) {
             name = name
         )
 
+        val extrude = config.packingOptions.extrude
         val a = IntArray(1)
-        var left = 0
-        var top = 0
-        var right = image.width
-        var bottom = image.height
+        var left = extrude
+        var top = extrude
+        var right = image.width - extrude
+        var bottom = image.height - extrude
 
         run top@{
             for (y in 0 until image.height) {
@@ -159,7 +168,6 @@ class ImageProcessor(val config: TexturePackerConfig) {
             return null
         }
 
-
         return ImageRectData(
             0,
             0,
@@ -174,6 +182,19 @@ class ImageProcessor(val config: TexturePackerConfig) {
             image = image,
             name = name
         )
+    }
+
+    private fun extrude(image: BufferedImage): BufferedImage {
+        val extrude = config.packingOptions.extrude
+        val out = BufferedImage(
+            image.width + extrude * 2,
+            image.height + extrude * 2,
+            image.type
+        ).apply {
+            graphics.drawImage(image, extrude, extrude, null)
+        }
+
+        return out
     }
 
     private fun hash(input: BufferedImage): String {
@@ -225,7 +246,8 @@ class ImageRectData(
     var image: BufferedImage? = null,
     var name: String = "",
     var index: Int = 0,
-    val aliases: MutableList<ImageAlias> = mutableListOf()
+    val aliases: MutableList<ImageAlias> = mutableListOf(),
+    var extrude: Int = 0
 ) : BinRect(x, y, width, height) {
 
     fun unloadImage(file: File) {
@@ -240,7 +262,7 @@ class ImageRectData(
     }
 
     override fun toString(): String {
-        return "ImageRectData(file=$file, image=$image, name=$name, index=$index, aliases=$aliases, x=$x, y=$y, width=$width, height=$height, isRotated=$isRotated)"
+        return "ImageRectData(offsetX=$offsetX, offsetY=$offsetY, regionWidth=$regionWidth, regionHeight=$regionHeight, originalWidth=$originalWidth, originalHeight=$originalHeight, file=$file, image=$image, name='$name', index=$index, aliases=$aliases)"
     }
 }
 
