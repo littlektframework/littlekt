@@ -10,6 +10,7 @@ import java.awt.image.BufferedImage
 import java.io.File
 import java.io.FileOutputStream
 import javax.imageio.ImageIO
+import kotlin.math.min
 
 /**
  * @author Colton Daily
@@ -64,7 +65,8 @@ class TexturePacker(val config: TexturePackerConfig) {
                     canvas,
                     rect.x,
                     rect.y,
-                    rect.isRotated
+                    rect.isRotated,
+                    config.packingOptions.extrude
                 )
             }
             val imageName = if (bins.size > 1) "${config.outputName}-$index.png" else "${config.outputName}.png"
@@ -107,21 +109,165 @@ class TexturePacker(val config: TexturePackerConfig) {
         dst: BufferedImage,
         dx: Int,
         dy: Int,
-        rotated: Boolean
+        rotated: Boolean,
+        extrude: Int,
     ) {
         if (rotated) {
             for (i in 0 until width) {
                 for (j in 0 until height) {
-                    dst.plot(dx + j, dy + width - i - 1, getRGB(x + i, y + j))
+                    dst.plot(dx + j + extrude, dy + width + extrude - i - 1, getRGB(x + i, y + j))
                 }
             }
         } else {
             for (i in 0 until width) {
                 for (j in 0 until height) {
-                    dst.plot(dx + i, dy + j, getRGB(x + i, y + j))
+                    dst.plot(dx + i + extrude, dy + j + extrude, getRGB(x + i, y + j))
                 }
             }
         }
+
+        if (extrude > 0) {
+            extrude(dst, dx, dy, width, height, rotated, extrude)
+        }
+    }
+
+    private fun BufferedImage.extrude(
+        dst: BufferedImage,
+        dx: Int,
+        dy: Int,
+        dstWidth: Int,
+        dstHeight: Int,
+        rotated: Boolean,
+        extrude: Int
+    ) {
+        run top@{
+            for (y in 0 until extrude) {
+                for (x in 0 until min(width, dstWidth)) {
+                    if (rotated) {
+                        dst.plot(y + dx, dy + dstWidth - x + extrude - 1, getRGB(x, 0))
+                    } else {
+                        dst.plot(x + dx + extrude, y + dy, getRGB(x, 0))
+                    }
+                }
+            }
+        }
+
+        run bottom@{
+            for (i in 1 until extrude + 1) {
+                for (x in 0 until min(width, dstWidth)) {
+                    if (rotated) {
+                        dst.plot(
+                            i + dstHeight + dx + extrude - 1,
+                            dy + dstWidth - x + extrude - 1,
+                            getRGB(x, height - 1)
+                        )
+                    } else {
+                        dst.plot(
+                            x + dx + extrude,
+                            dstHeight + dy - i + extrude * 2,
+                            getRGB(x, height - 1)
+                        )
+                    }
+                }
+            }
+        }
+
+        run left@{
+            for (x in 0 until extrude) {
+                for (y in 0 until min(height, dstHeight)) {
+                    if (rotated) {
+                        dst.plot(
+                            y + dx + extrude,
+                            dy + extrude * 2 + dstWidth - x - 1,
+                            getRGB(0, y)
+                        )
+                    } else {
+                        dst.plot(x + dx, y + dy + extrude, getRGB(0, y))
+                    }
+                }
+            }
+        }
+        run right@{
+            for (i in 1 until extrude + 1) {
+                for (y in 0 until min(height, dstHeight)) {
+                    if (rotated) {
+                        dst.plot(
+                            dx - y + extrude + dstHeight - 1,
+                            dy + extrude + dstWidth - i - dstWidth,
+                            getRGB(width - 1, height - 1 - y)
+                        )
+                    } else {
+                        dst.plot(
+                            dstWidth + dx - i + extrude * 2,
+                            y + dy + extrude,
+                            getRGB(width - 1, y)
+                        )
+                    }
+                }
+            }
+        }
+
+
+        run topLeft@{
+            for (x in 0 until extrude) {
+                for (y in 0 until extrude) {
+                    if (rotated) {
+                        dst.plot(x + dx, y + dy, getRGB(width - 1, 0))
+                    } else {
+                        dst.plot(x + dx, y + dy, getRGB(0, 0))
+                    }
+                }
+            }
+        }
+
+        run topRight@{
+            for (x in extrude downTo 1) {
+                for (y in 0 until extrude) {
+                    if (rotated) {
+                        dst.plot(
+                            dx + dstHeight - x + extrude * 2,
+                            y + dy,
+                            getRGB(width - 1, height - 1)
+                        )
+                    } else {
+                        dst.plot(dx + dstWidth - x + extrude * 2, y + dy, getRGB(width - 1, 0))
+                    }
+                }
+            }
+        }
+
+        run bottomLeft@{
+            for (x in 0 until extrude) {
+                for (y in extrude downTo 1) {
+                    if (rotated) {
+                        dst.plot(x + dx, dy + dstWidth - y + extrude * 2, getRGB(0, 0))
+                    } else {
+                        dst.plot(x + dx, dy + dstHeight - y + extrude * 2, getRGB(0, height - 1))
+                    }
+                }
+            }
+        }
+
+        run bottomRight@{
+            for (x in extrude downTo 1) {
+                for (y in extrude downTo 1) {
+                    if (rotated) {
+                        dst.plot(
+                            dx + dstHeight - x + extrude * 2,
+                            dy + dstWidth - y + extrude * 2,
+                            getRGB(0, height - 1)
+                        )
+                    } else {
+                        dst.plot(
+                            dx + dstWidth - x + extrude * 2,
+                            dy + dstHeight - y + extrude * 2,
+                            getRGB(width - 1, height - 1)
+                        )
+                    }
+                }
+            }
+        }
+
     }
 
     private fun BufferedImage.plot(x: Int, y: Int, argb: Int) {

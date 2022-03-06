@@ -55,6 +55,13 @@ class ImageProcessor(val config: TexturePackerConfig) {
             index = matcher.group(2).toInt()
         }
 
+        val extrude = config.packingOptions.extrude
+        check(extrude >= 0) { "Extrude must be >= 0!" }
+
+        if (extrude > 0) {
+            image = extrude(image)
+        }
+
         return if (config.trim) {
             trim(image, inputName).also { it?.index = index }
         } else {
@@ -63,33 +70,37 @@ class ImageProcessor(val config: TexturePackerConfig) {
                 0,
                 image.width,
                 image.height,
-                regionWidth = image.width,
-                regionHeight = image.height,
+                regionWidth = image.width - extrude * 2,
+                regionHeight = image.height - extrude * 2,
                 offsetX = 0,
                 offsetY = 0,
-                originalWidth = image.width,
-                originalHeight = image.height,
+                originalWidth = image.width - extrude * 2,
+                originalHeight = image.height - extrude * 2,
                 image = image,
                 name = inputName,
-                index = index
+                index = index,
+                extrude = extrude
             )
         }
     }
 
     private fun trim(image: BufferedImage, name: String): ImageRectData? {
+        val extrude = config.packingOptions.extrude
+
         val alphaRaster = image.alphaRaster ?: return ImageRectData(
             0,
             0,
             image.width,
             image.height,
-            regionWidth = image.width,
-            regionHeight = image.height,
+            regionWidth = image.width - extrude * 2,
+            regionHeight = image.height - extrude * 2,
             offsetX = 0,
             offsetY = 0,
-            originalWidth = image.width,
-            originalHeight = image.height,
+            originalWidth = image.width - extrude * 2,
+            originalHeight = image.height - extrude * 2,
             image = image,
-            name = name
+            name = name,
+            extrude = extrude
         )
 
         val a = IntArray(1)
@@ -99,8 +110,8 @@ class ImageProcessor(val config: TexturePackerConfig) {
         var bottom = image.height
 
         run top@{
-            for (y in 0 until image.height) {
-                for (x in 0 until image.width) {
+            for (y in extrude until image.height - extrude) {
+                for (x in extrude until image.width - extrude) {
                     alphaRaster.getPixel(x, y, a)
                     var alpha = a[0]
                     if (alpha < 0) alpha += 256
@@ -111,8 +122,8 @@ class ImageProcessor(val config: TexturePackerConfig) {
         }
 
         run bottom@{
-            for (y in image.height - 1 downTo top) {
-                for (x in 0 until image.width) {
+            for (y in image.height - 1 - extrude downTo top) {
+                for (x in extrude until image.width - extrude) {
                     alphaRaster.getPixel(x, y, a)
                     var alpha = a[0]
                     if (alpha < 0) alpha += 256
@@ -123,7 +134,7 @@ class ImageProcessor(val config: TexturePackerConfig) {
         }
 
         run left@{
-            for (x in 0 until image.width) {
+            for (x in extrude until image.width - extrude) {
                 for (y in top until bottom) {
                     alphaRaster.getPixel(x, y, a)
                     var alpha = a[0]
@@ -134,7 +145,7 @@ class ImageProcessor(val config: TexturePackerConfig) {
             }
         }
         run right@{
-            for (x in image.width - 1 downTo left) {
+            for (x in image.width - 1 - extrude downTo left) {
                 for (y in top until bottom) {
                     alphaRaster.getPixel(x, y, a)
                     var alpha = a[0]
@@ -146,10 +157,10 @@ class ImageProcessor(val config: TexturePackerConfig) {
         }
 
         for (i in 0 until config.trimMargin) {
-            if (left > 0) left--
-            if (right < image.width) right++
-            if (top > 0) top--
-            if (bottom < image.height) bottom++
+            if (left > extrude) left--
+            if (right < image.width - extrude) right++
+            if (top > extrude) top--
+            if (bottom < image.height - extrude) bottom++
         }
 
         val width = right - left
@@ -159,21 +170,34 @@ class ImageProcessor(val config: TexturePackerConfig) {
             return null
         }
 
-
         return ImageRectData(
             0,
             0,
             width,
             height,
-            regionWidth = width,
-            regionHeight = height,
+            regionWidth = width - extrude * 2,
+            regionHeight = height - extrude * 2,
             offsetX = left,
             offsetY = top,
-            originalWidth = image.width,
-            originalHeight = image.height,
+            originalWidth = image.width - extrude * 2,
+            originalHeight = image.height - extrude * 2,
             image = image,
-            name = name
+            name = name,
+            extrude = extrude
         )
+    }
+
+    private fun extrude(image: BufferedImage): BufferedImage {
+        val extrude = config.packingOptions.extrude
+        val out = BufferedImage(
+            image.width + extrude * 2,
+            image.height + extrude * 2,
+            image.type
+        ).apply {
+            graphics.drawImage(image, extrude, extrude, null)
+        }
+
+        return out
     }
 
     private fun hash(input: BufferedImage): String {
@@ -225,7 +249,8 @@ class ImageRectData(
     var image: BufferedImage? = null,
     var name: String = "",
     var index: Int = 0,
-    val aliases: MutableList<ImageAlias> = mutableListOf()
+    val aliases: MutableList<ImageAlias> = mutableListOf(),
+    var extrude: Int = 0
 ) : BinRect(x, y, width, height) {
 
     fun unloadImage(file: File) {
@@ -240,7 +265,7 @@ class ImageRectData(
     }
 
     override fun toString(): String {
-        return "ImageRectData(file=$file, image=$image, name=$name, index=$index, aliases=$aliases, x=$x, y=$y, width=$width, height=$height, isRotated=$isRotated)"
+        return "ImageRectData(offsetX=$offsetX, offsetY=$offsetY, regionWidth=$regionWidth, regionHeight=$regionHeight, originalWidth=$originalWidth, originalHeight=$originalHeight, file=$file, image=$image, name='$name', index=$index, aliases=$aliases)"
     }
 }
 

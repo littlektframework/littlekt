@@ -14,7 +14,8 @@ fun main(args: Array<String>) {
         outputName = "default_tiles"
         packingOptions = PackingOptions(
             outputPagesAsPowerOfTwo = false,
-            allowRotation = true
+            allowRotation = false,
+            extrude = 2
         )
     })
     packer.process()

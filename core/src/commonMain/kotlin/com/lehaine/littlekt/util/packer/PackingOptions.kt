@@ -41,6 +41,11 @@ open class PackingOptions(
      * Use greater values such as 4 or 8 if you’re having artifacts when downscaling your textures.
      */
     var bleedIterations: Int = 2,
+
+    /**
+     * Repeats the packed image pixels at the border. Does not change the packed image size.
+     */
+    var extrude: Int = 1
 ) {
 
     fun clone() = PackingOptions().apply {
@@ -51,6 +56,9 @@ open class PackingOptions(
         maxWidth = this@PackingOptions.maxWidth
         maxHeight = this@PackingOptions.maxHeight
         edgeBorder = this@PackingOptions.edgeBorder
+        bleed = this@PackingOptions.bleed
+        bleedIterations = this@PackingOptions.bleedIterations
+        extrude = this@PackingOptions.extrude
     }
 
     override fun toString(): String {
