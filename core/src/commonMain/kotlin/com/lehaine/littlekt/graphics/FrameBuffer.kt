@@ -2,8 +2,8 @@ package com.lehaine.littlekt.graphics
 
 import com.lehaine.littlekt.Context
 import com.lehaine.littlekt.Disposable
-import com.lehaine.littlekt.graphics.gl.*
 import com.lehaine.littlekt.file.createIntBuffer
+import com.lehaine.littlekt.graphics.gl.*
 import com.lehaine.littlekt.math.MutableVec4i
 
 /**
@@ -22,7 +22,9 @@ class FrameBuffer(
     val hasDepth: Boolean = false,
     val hasStencil: Boolean = false,
     var hasPackedDepthStencil: Boolean = false,
-    val format: Pixmap.Format = Pixmap.Format.RGBA8888
+    val format: Pixmap.Format = Pixmap.Format.RGBA8888,
+    val minFilter: TexMinFilter = TexMinFilter.LINEAR,
+    val magFilter: TexMagFilter = TexMagFilter.LINEAR
 ) : Preparable, Disposable {
 
     /**
@@ -77,8 +79,8 @@ class FrameBuffer(
             }
         }
         texture = Texture(GLTextureData(width, height, 0, format.glFormat, format.glFormat, format.glType)).apply {
-            minFilter = TexMinFilter.LINEAR
-            magFilter = TexMagFilter.LINEAR
+            minFilter = this@FrameBuffer.minFilter
+            magFilter = this@FrameBuffer.magFilter
             uWrap = TexWrap.CLAMP_TO_EDGE
             vWrap = TexWrap.CLAMP_TO_EDGE
         }.also { it.prepare(context) } // preparing the texture will also bind it
