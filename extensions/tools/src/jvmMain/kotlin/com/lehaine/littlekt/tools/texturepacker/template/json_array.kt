@@ -89,7 +89,7 @@ internal fun List<ImageRectData>.toFrames(): List<AtlasPage.Frame> {
                     data.height - data.extrude * 2
                 ),
                 data.isRotated,
-                data.offsetX != 0 || data.offsetY != 0 || data.regionWidth != data.width || data.regionHeight != data.height,
+                data.offsetX != 0 || data.offsetY != 0 || data.regionWidth != data.width - data.extrude * 2 || data.regionHeight != data.height - data.extrude * 2,
                 AtlasPage.Rect(data.offsetX, data.offsetY, data.regionWidth, data.regionHeight),
                 AtlasPage.Size(data.originalWidth, data.originalHeight)
             )

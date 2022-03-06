@@ -17,7 +17,6 @@ fun main(args: Array<String>) {
             allowRotation = false,
             extrude = 2
         )
-        trim = false
     })
     packer.process()
     packer.pack()
