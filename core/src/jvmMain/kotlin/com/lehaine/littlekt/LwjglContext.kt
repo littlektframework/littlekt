@@ -154,6 +154,8 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context() {
         if (configuration.vSync) {
             // Enable v-sync
             GLFW.glfwSwapInterval(1)
+        } else {
+            GLFW.glfwSwapInterval(0)
         }
 
         // set window icon
