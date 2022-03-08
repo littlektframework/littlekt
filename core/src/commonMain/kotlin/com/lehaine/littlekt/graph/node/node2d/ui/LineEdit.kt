@@ -485,10 +485,10 @@ open class LineEdit : Control() {
         fontOffset = 0f
         if (layout.runs.isNotEmpty()) {
             val run = layout.runs.first()
-            fontOffset = run.glyphs[0].left
-            run.glyphs.forEach { glyph ->
+            fontOffset = run.advances.first()
+            for (i in 1 until run.advances.size) {
                 glyphPositions += x
-                x += glyph.xAdvance
+                x += run.advances[i]
             }
         }
 
