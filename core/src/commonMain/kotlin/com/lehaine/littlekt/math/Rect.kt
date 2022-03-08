@@ -9,7 +9,7 @@ import kotlin.math.sqrt
  * @author Colton Daily
  * @date 11/30/2021
  */
-data class Rect(var x: Float = 0f, var y: Float = 0f, var width: Float = 0f, var height: Float = 0f) {
+open class Rect(var x: Float = 0f, var y: Float = 0f, var width: Float = 0f, var height: Float = 0f) {
     val x2 get() = x + width
     val y2 get() = y + height
     val isEmpty get() = width <= 0 || height <= 0
