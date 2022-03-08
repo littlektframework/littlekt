@@ -9,6 +9,7 @@ import com.lehaine.littlekt.graphics.Texture
 import com.lehaine.littlekt.graphics.TextureAtlas
 import com.lehaine.littlekt.graphics.TextureSlice
 import com.lehaine.littlekt.graphics.font.BitmapFont
+import com.lehaine.littlekt.graphics.font.FontMetrics
 import com.lehaine.littlekt.graphics.font.Kerning
 import com.lehaine.littlekt.graphics.gl.PixmapTextureData
 import com.lehaine.littlekt.graphics.slice
@@ -147,6 +148,8 @@ internal class InternalResources private constructor(private val context: Contex
                         ),
                         xoffset = map["xoffset"]?.toIntOrNull() ?: 0,
                         yoffset = map["yoffset"]?.toIntOrNull() ?: 0,
+                        width = width,
+                        height = height,
                         xadvance = map["xadvance"]?.toIntOrNull() ?: 0,
                         page = page
                     )
@@ -167,6 +170,7 @@ internal class InternalResources private constructor(private val context: Contex
             fontSize = fontSize,
             lineHeight = lineHeight,
             base = base ?: lineHeight,
+            padding = FontMetrics.Padding(padding.x, padding.y, padding.z, padding.w),
             capHeight = capHeight.toFloat(),
             textures = listOf(textures.values.first().texture),
             glyphs = glyphs.associateBy { it.id },

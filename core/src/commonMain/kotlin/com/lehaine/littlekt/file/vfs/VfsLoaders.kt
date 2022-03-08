@@ -13,10 +13,7 @@ import com.lehaine.littlekt.graphics.Pixmap
 import com.lehaine.littlekt.graphics.Texture
 import com.lehaine.littlekt.graphics.TextureAtlas
 import com.lehaine.littlekt.graphics.TextureSlice
-import com.lehaine.littlekt.graphics.font.BitmapFont
-import com.lehaine.littlekt.graphics.font.CharacterSets
-import com.lehaine.littlekt.graphics.font.Kerning
-import com.lehaine.littlekt.graphics.font.TtfFont
+import com.lehaine.littlekt.graphics.font.*
 import com.lehaine.littlekt.graphics.gl.TexMagFilter
 import com.lehaine.littlekt.graphics.gl.TexMinFilter
 import com.lehaine.littlekt.graphics.tilemap.ldtk.LDtkLevel
@@ -194,6 +191,8 @@ private suspend fun readBitmapFontTxt(
                     xoffset = map["xoffset"]?.toIntOrNull() ?: 0,
                     yoffset = map["yoffset"]?.toIntOrNull() ?: 0,
                     xadvance = map["xadvance"]?.toIntOrNull() ?: 0,
+                    width = width,
+                    height = height,
                     page = page
                 )
             }
@@ -214,6 +213,7 @@ private suspend fun readBitmapFontTxt(
         lineHeight = lineHeight,
         base = base ?: lineHeight,
         capHeight = capHeight.toFloat(),
+        padding = FontMetrics.Padding(padding.x, padding.y, padding.z, padding.w),
         textures = textures.values.toList(),
         glyphs = glyphs.associateBy { it.id },
         kernings = kernings.associateBy { Kerning.buildKey(it.first, it.second) },

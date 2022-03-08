@@ -3,6 +3,7 @@ package com.lehaine.littlekt.graphics.font
 import com.lehaine.littlekt.graph.node.component.HAlign
 import com.lehaine.littlekt.graphics.*
 import com.lehaine.littlekt.math.Rect
+import com.lehaine.littlekt.math.Vec4i
 import com.lehaine.littlekt.math.geom.Angle
 import kotlin.math.max
 
@@ -22,10 +23,11 @@ class BitmapFont(
     val lineHeight: Float,
     val base: Float,
     val capHeight: Float,
+    val padding: FontMetrics.Padding,
     val textures: List<Texture>,
     val glyphs: Map<Int, Glyph>,
     val kernings: Map<Int, Kerning>,
-    val pages: Int = 1
+    val pages: Int = 1,
 ) : Font {
 
     private val cache = BitmapFontCache(this)
@@ -53,7 +55,8 @@ class BitmapFont(
                 for (glyph in glyphs.values) width = max(width, glyph.slice.width.toFloat())
                 width
             },
-            capHeight = capHeight
+            capHeight = capHeight,
+            padding = padding
         )
     }
 
@@ -65,8 +68,8 @@ class BitmapFont(
             bounds = Rect(
                 glyph.xoffset.toFloat(),
                 glyph.yoffset.toFloat(),
-                glyph.slice.width.toFloat(),
-                glyph.slice.height.toFloat()
+                glyph.width.toFloat(),
+                glyph.height.toFloat()
             ),
             xAdvance = glyph.xadvance.toFloat(),
             u = glyph.slice.u,
@@ -125,6 +128,8 @@ class BitmapFont(
         val xoffset: Int,
         val yoffset: Int,
         val xadvance: Int,
+        val width:Int,
+        val height:Int,
         val page: Int,
     )
 

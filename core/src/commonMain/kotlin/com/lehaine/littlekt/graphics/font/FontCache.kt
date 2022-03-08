@@ -236,8 +236,8 @@ open class FontCache(val pages: Int = 1) {
                 tx += run.advances[index]
                 addGlyph(
                     glyph,
-                    tx + (glyph.left - glyph.right) * scaleX,
-                    ty + (glyph.top + glyph.height) * scaleY,
+                    tx + glyph.left * scaleX,
+                    ty + glyph.top * scaleY,
                     scaleX,
                     scaleY,
                     rotation,
@@ -265,7 +265,7 @@ open class FontCache(val pages: Int = 1) {
         val my = (if (rotation == Angle.ZERO) ty else temp4[13])
 
         val p1x = 0f
-        val p1y = -glyph.height * scaleY
+        val p1y = glyph.height * scaleY
         val p2x = glyph.width * scaleX
         val p2y = 0f
 
@@ -304,9 +304,9 @@ open class FontCache(val pages: Int = 1) {
 
         val colorBits = color.toFloatBits()
         val u = glyph.u
-        val v = glyph.v2
+        val v = glyph.v
         val u2 = glyph.u2
-        val v2 = glyph.v
+        val v2 = glyph.v2
 
         val vertices = pageVertices[glyph.page]
 

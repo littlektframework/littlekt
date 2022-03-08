@@ -39,7 +39,8 @@ data class FontMetrics(
      * The max width
      */
     val maxWidth: Float = 0f,
-    val capHeight:Float = 0f
+    val capHeight: Float = 0f,
+    val padding: Padding = Padding(0, 0, 0, 0)
 ) {
     /**
      * 'E' height
@@ -50,4 +51,6 @@ data class FontMetrics(
      *'É' + 'j' + line gap
      */
     val lineHeight get() = top - bottom
+
+    data class Padding(val top: Int, val right: Int, val bottom: Int, val left: Int)
 }
