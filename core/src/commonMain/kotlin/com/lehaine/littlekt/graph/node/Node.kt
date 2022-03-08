@@ -287,6 +287,7 @@ open class Node : Comparable<Node> {
      * Internal rendering that needs to be done on the node that shouldn't be overridden. Calls [render] method.
      */
     internal fun _render(batch: Batch, camera: Camera) {
+        if(!enabled) return
         render(batch, camera)
         onRender.emit(batch, camera)
         nodes.forEach {
