@@ -294,7 +294,7 @@ open class Button : BaseButton() {
             font,
             text,
             Color.WHITE,
-            textWidth,
+            textWidth - padding * 2,
             scaleX = fontScaleX,
             scaleY = fontScaleY,
             horizontalAlign,
