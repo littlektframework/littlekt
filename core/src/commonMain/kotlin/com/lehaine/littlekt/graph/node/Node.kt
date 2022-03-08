@@ -112,6 +112,15 @@ open class Node : Comparable<Node> {
         }
 
     /**
+     * Shows/hides the node if it is renderable.
+     */
+    var visible: Boolean
+        get() = _visible
+        set(value) {
+            visible(value)
+        }
+
+    /**
      * If destroy was called, this will be true until the next time node's are processed.
      */
     val isDestroyed get() = _isDestroyed
@@ -123,6 +132,7 @@ open class Node : Comparable<Node> {
 
     private var _tag = 0
     private var _enabled = true
+    private var _visible = true
     private var _updateOrder = 0
     private var _isDestroyed = false
 
@@ -315,6 +325,20 @@ open class Node : Comparable<Node> {
             _enabled = value
             nodes.forEach {
                 it._enabled = value
+            }
+        }
+        return this
+    }
+
+    /**
+     * Shows/hides the [Node]. When disabled [render] is no longer called.
+     * @param value true to enable this node; false otherwise
+     */
+    fun visible(value: Boolean): Node {
+        if (_visible != value) {
+            _visible = value
+            nodes.forEach {
+                it._visible = value
             }
         }
         return this
