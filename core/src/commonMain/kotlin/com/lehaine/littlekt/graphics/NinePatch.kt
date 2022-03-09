@@ -16,77 +16,77 @@ import kotlin.math.min
  * @param slice the slice to convert into a nine patch
  * @param left amount of pixels from the left edge
  * @param right amount of pixels from the right edge
- * @param bottom amount of pixels from the top edge
- * @param top amount of pixels from the bottom edge
+ * @param top amount of pixels from the top edge
+ * @param bottom amount of pixels from the bottom edge
  * @author Colton Daily
  * @date 1/18/2022
  */
-class NinePatch(private val slice: TextureSlice, val left: Int, val right: Int, val bottom: Int, val top: Int) {
+class NinePatch(private val slice: TextureSlice, val left: Int, val right: Int, val top: Int, val bottom: Int) {
     constructor(texture: Texture, left: Int, right: Int, top: Int, bottom: Int) : this(
         texture.slice(), left, right, top, bottom
     )
 
     private val patches = arrayOfNulls<TextureSlice?>(9)
     private val vertices = FloatArrayList(9 * 4 * 5)
-    private var bottomLeft: Int = 0
-    private var bottomCenter: Int = 0
-    private var bottomRight: Int = 0
-    private var middleLeft: Int = 0
-    private var middleCenter: Int = 0
-    private var middleRight: Int = 0
     private var topLeft: Int = 0
     private var topCenter: Int = 0
     private var topRight: Int = 0
+    private var middleLeft: Int = 0
+    private var middleCenter: Int = 0
+    private var middleRight: Int = 0
+    private var bottomLeft: Int = 0
+    private var bottomCenter: Int = 0
+    private var bottomRight: Int = 0
     private var leftWidth: Float = 0f
     private var rightWidth: Float = 0f
     private var middleWidth: Float = 0f
     private var middleHeight: Float = 0f
-    private var topHeight: Float = 0f
     private var bottomHeight: Float = 0f
+    private var topHeight: Float = 0f
 
     private var idx = 0
 
     init {
         val middleWidth = slice.width - left - right
-        val middleHeight = slice.height - bottom - top
+        val middleHeight = slice.height - top - bottom
 
-        if (bottom > 0) {
-            if (left > 0) patches[BOTTOM_LEFT] = TextureSlice(slice, 0, 0, left, bottom)
-            if (middleWidth > 0) patches[BOTTOM_CENTER] = TextureSlice(slice, left, 0, middleWidth, bottom)
-            if (right > 0) patches[BOTTOM_RIGHT] = TextureSlice(slice, left + middleWidth, 0, right, bottom)
+        if (top > 0) {
+            if (left > 0) patches[TOP_LEFT] = TextureSlice(slice, 0, 0, left, top)
+            if (middleWidth > 0) patches[TOP_CENTER] = TextureSlice(slice, left, 0, middleWidth, top)
+            if (right > 0) patches[TOP_RIGHT] = TextureSlice(slice, left + middleWidth, 0, right, top)
         }
 
         if (middleHeight > 0) {
-            if (left > 0) patches[MIDDLE_LEFT] = TextureSlice(slice, 0, bottom, left, middleHeight)
-            if (middleWidth > 0) patches[MIDDLE_CENTER] = TextureSlice(slice, left, bottom, middleWidth, middleHeight)
-            if (right > 0) patches[MIDDLE_RIGHT] = TextureSlice(slice, left + middleWidth, bottom, right, middleHeight)
+            if (left > 0) patches[MIDDLE_LEFT] = TextureSlice(slice, 0, top, left, middleHeight)
+            if (middleWidth > 0) patches[MIDDLE_CENTER] = TextureSlice(slice, left, top, middleWidth, middleHeight)
+            if (right > 0) patches[MIDDLE_RIGHT] = TextureSlice(slice, left + middleWidth, top, right, middleHeight)
         }
 
-        if (top > 0) {
-            if (left > 0) patches[TOP_LEFT] = TextureSlice(slice, 0, bottom + middleHeight, left, top)
-            if (middleWidth > 0) patches[TOP_CENTER] =
-                TextureSlice(slice, left, bottom + middleHeight, middleWidth, top)
-            if (right > 0) patches[TOP_RIGHT] =
-                TextureSlice(slice, left + middleWidth, bottom + middleHeight, right, top)
+        if (bottom > 0) {
+            if (left > 0) patches[BOTTOM_LEFT] = TextureSlice(slice, 0, top + middleHeight, left, bottom)
+            if (middleWidth > 0) patches[BOTTOM_CENTER] =
+                TextureSlice(slice, left, top + middleHeight, middleWidth, bottom)
+            if (right > 0) patches[BOTTOM_RIGHT] =
+                TextureSlice(slice, left + middleWidth, top + middleHeight, right, bottom)
         }
 
         // if split only vertically, move splits from right to center
         if (left == 0 && middleWidth == 0) {
-            patches[TOP_CENTER] = patches[TOP_RIGHT]
-            patches[MIDDLE_CENTER] = patches[MIDDLE_RIGHT]
             patches[BOTTOM_CENTER] = patches[BOTTOM_RIGHT]
-            patches[TOP_RIGHT] = null
-            patches[MIDDLE_RIGHT] = null
+            patches[MIDDLE_CENTER] = patches[MIDDLE_RIGHT]
+            patches[TOP_CENTER] = patches[TOP_RIGHT]
             patches[BOTTOM_RIGHT] = null
+            patches[MIDDLE_RIGHT] = null
+            patches[TOP_RIGHT] = null
         }
         // if split only horizontally, move splits from bottom to center
-        if (bottom == 0 && middleHeight == 0) {
-            patches[MIDDLE_LEFT] = patches[BOTTOM_LEFT]
-            patches[MIDDLE_CENTER] = patches[BOTTOM_CENTER]
-            patches[MIDDLE_RIGHT] = patches[BOTTOM_RIGHT]
-            patches[BOTTOM_LEFT] = null
-            patches[BOTTOM_CENTER] = null
-            patches[BOTTOM_RIGHT] = null
+        if (top == 0 && middleHeight == 0) {
+            patches[MIDDLE_LEFT] = patches[TOP_LEFT]
+            patches[MIDDLE_CENTER] = patches[TOP_CENTER]
+            patches[MIDDLE_RIGHT] = patches[TOP_RIGHT]
+            patches[TOP_LEFT] = null
+            patches[TOP_CENTER] = null
+            patches[TOP_RIGHT] = null
         }
 
         load(patches)
@@ -137,23 +137,23 @@ class NinePatch(private val slice: TextureSlice, val left: Int, val right: Int, 
     }
 
     private fun load(patches: Array<TextureSlice?>) {
-        patches[BOTTOM_LEFT]?.let {
-            bottomLeft = add()
+        patches[TOP_LEFT]?.let {
+            topLeft = add()
             leftWidth = it.width.toFloat()
-            bottomHeight = it.height.toFloat()
-        } ?: run { bottomLeft = -1 }
+            topHeight = it.height.toFloat()
+        } ?: run { topLeft = -1 }
 
-        patches[BOTTOM_CENTER]?.let {
-            bottomCenter = add()
+        patches[TOP_CENTER]?.let {
+            topCenter = add()
             middleWidth = max(middleWidth, it.width.toFloat())
-            bottomHeight = max(bottomHeight, it.height.toFloat())
-        } ?: run { bottomCenter = -1 }
+            topHeight = max(topHeight, it.height.toFloat())
+        } ?: run { topCenter = -1 }
 
-        patches[BOTTOM_RIGHT]?.let {
-            bottomRight = add()
+        patches[TOP_RIGHT]?.let {
+            topRight = add()
             rightWidth = max(rightWidth, it.width.toFloat())
-            bottomHeight = max(bottomHeight, it.height.toFloat())
-        } ?: run { bottomRight = -1 }
+            topHeight = max(topHeight, it.height.toFloat())
+        } ?: run { topRight = -1 }
 
         patches[MIDDLE_LEFT]?.let {
             middleLeft = add()
@@ -173,23 +173,23 @@ class NinePatch(private val slice: TextureSlice, val left: Int, val right: Int, 
             middleHeight = max(middleHeight, it.height.toFloat())
         } ?: run { middleRight = -1 }
 
-        patches[TOP_LEFT]?.let {
-            topLeft = add()
+        patches[BOTTOM_LEFT]?.let {
+            bottomLeft = add()
             leftWidth = max(leftWidth, it.width.toFloat())
-            topHeight = max(topHeight, it.height.toFloat())
-        } ?: run { topLeft = -1 }
+            bottomHeight = max(bottomHeight, it.height.toFloat())
+        } ?: run { bottomLeft = -1 }
 
-        patches[TOP_CENTER]?.let {
-            topCenter = add()
+        patches[BOTTOM_CENTER]?.let {
+            bottomCenter = add()
             middleWidth = max(middleWidth, it.width.toFloat())
-            topHeight = max(topHeight, it.height.toFloat())
-        } ?: run { topCenter = -1 }
+            bottomHeight = max(bottomHeight, it.height.toFloat())
+        } ?: run { bottomCenter = -1 }
 
-        patches[TOP_RIGHT]?.let {
-            topRight = add()
+        patches[BOTTOM_RIGHT]?.let {
+            bottomRight = add()
             rightWidth = max(rightWidth, it.width.toFloat())
-            topHeight = max(topHeight, it.height.toFloat())
-        } ?: run { topRight = -1 }
+            bottomHeight = max(bottomHeight, it.height.toFloat())
+        } ?: run { bottomRight = -1 }
     }
 
     private fun add(): Int {
@@ -210,27 +210,27 @@ class NinePatch(private val slice: TextureSlice, val left: Int, val right: Int, 
         srcHeight: Float
     ) {
         val centerX = x + max(leftWidth, srcX)
-        val centerY = y + max(bottomHeight, srcY)
+        val centerY = y + max(topHeight, srcY)
         val centerWidth = max(width - max(width - srcWidth, rightWidth) - max(leftWidth, srcX), 0f)
-        val centerHeight = max(height - max(height - srcHeight, topHeight) - max(bottomHeight, srcY), 0f)
+        val centerHeight = max(height - max(height - srcHeight, bottomHeight) - max(topHeight, srcY), 0f)
 
         val leftWidthOffset = min(max(leftWidth - srcX, 0f), min(leftWidth, srcWidth))
 
-        val bottomHeightOffset = min(max(bottomHeight - srcY, 0f), min(bottomHeight, srcHeight))
+        val bottomHeightOffset = min(max(topHeight - srcY, 0f), min(topHeight, srcHeight))
 
         val rightX = x + width - rightWidth
         val rightXOffset = min(rightWidth, max(rightWidth - (width - srcX), 0f))
         val rightWidthOffset = min(min(width - srcX, rightWidth), max(0f, rightWidth - (width - srcWidth)))
 
-        val topY = y + height - topHeight
-        val topYOffset = min(topHeight, max(topHeight - (height - srcY), 0f))
-        val topHeightOffset = min(min(height - srcY, topHeight), max(0f, topHeight - (height - srcHeight)))
+        val topY = y + height - bottomHeight
+        val topYOffset = min(bottomHeight, max(bottomHeight - (height - srcY), 0f))
+        val topHeightOffset = min(min(height - srcY, bottomHeight), max(0f, bottomHeight - (height - srcHeight)))
 
         val colorBits = color.toFloatBits()
-        if (bottomLeft != -1) {
-            patches[BOTTOM_LEFT]?.let {
+        if (topLeft != -1) {
+            patches[TOP_LEFT]?.let {
                 set(
-                    idx = bottomLeft,
+                    idx = topLeft,
                     x = x + srcX,
                     y = y + srcY,
                     width = leftWidthOffset,
@@ -243,10 +243,10 @@ class NinePatch(private val slice: TextureSlice, val left: Int, val right: Int, 
                 )
             }
         }
-        if (bottomCenter != -1) {
-            patches[BOTTOM_CENTER]?.let {
+        if (topCenter != -1) {
+            patches[TOP_CENTER]?.let {
                 set(
-                    idx = bottomCenter,
+                    idx = topCenter,
                     x = centerX,
                     y = y + srcY,
                     width = centerWidth,
@@ -256,14 +256,14 @@ class NinePatch(private val slice: TextureSlice, val left: Int, val right: Int, 
                     srcY = it.y.toFloat() + min(srcY, it.height.toFloat()),
                     srcWidth = it.width.toFloat(),
                     srcHeight = bottomHeightOffset,
-                    stretchW = patches[BOTTOM_LEFT] != null || patches[BOTTOM_RIGHT] != null,
+                    stretchW = patches[TOP_LEFT] != null || patches[TOP_RIGHT] != null,
                 )
             }
         }
-        if (bottomRight != -1) {
-            patches[BOTTOM_RIGHT]?.let {
+        if (topRight != -1) {
+            patches[TOP_RIGHT]?.let {
                 set(
-                    idx = bottomRight,
+                    idx = topRight,
                     x = rightX + rightXOffset,
                     y = y + srcY,
                     width = rightWidthOffset,
@@ -290,7 +290,7 @@ class NinePatch(private val slice: TextureSlice, val left: Int, val right: Int, 
                     srcWidth = leftWidthOffset,
                     srcHeight = it.height.toFloat(),
                     stretchW = false,
-                    stretchH = patches[TOP_LEFT] != null || patches[BOTTOM_LEFT] != null
+                    stretchH = patches[BOTTOM_LEFT] != null || patches[TOP_LEFT] != null
                 )
             }
         }
@@ -308,7 +308,7 @@ class NinePatch(private val slice: TextureSlice, val left: Int, val right: Int, 
                     srcWidth = it.width.toFloat(),
                     srcHeight = it.height.toFloat(),
                     stretchW = patches[MIDDLE_LEFT] != null || patches[MIDDLE_RIGHT] != null,
-                    stretchH = patches[TOP_CENTER] != null || patches[BOTTOM_CENTER] != null
+                    stretchH = patches[BOTTOM_CENTER] != null || patches[TOP_CENTER] != null
                 )
             }
         }
@@ -326,14 +326,14 @@ class NinePatch(private val slice: TextureSlice, val left: Int, val right: Int, 
                     srcWidth = rightWidthOffset,
                     srcHeight = it.height.toFloat(),
                     stretchW = false,
-                    stretchH = patches[TOP_RIGHT] != null || patches[BOTTOM_RIGHT] != null
+                    stretchH = patches[BOTTOM_RIGHT] != null || patches[TOP_RIGHT] != null
                 )
             }
         }
-        if (topLeft != -1) {
-            patches[TOP_LEFT]?.let {
+        if (bottomLeft != -1) {
+            patches[BOTTOM_LEFT]?.let {
                 set(
-                    idx = topLeft,
+                    idx = bottomLeft,
                     x = x + srcX,
                     y = topY + topYOffset,
                     width = leftWidthOffset,
@@ -346,10 +346,10 @@ class NinePatch(private val slice: TextureSlice, val left: Int, val right: Int, 
                 )
             }
         }
-        if (topCenter != -1) {
-            patches[TOP_CENTER]?.let {
+        if (bottomCenter != -1) {
+            patches[BOTTOM_CENTER]?.let {
                 set(
-                    idx = topCenter,
+                    idx = bottomCenter,
                     x = centerX,
                     y = topY + topYOffset,
                     width = centerWidth,
@@ -359,14 +359,14 @@ class NinePatch(private val slice: TextureSlice, val left: Int, val right: Int, 
                     srcY = it.y.toFloat() + topYOffset,
                     srcWidth = it.width.toFloat(),
                     srcHeight = topHeightOffset,
-                    stretchW = patches[TOP_LEFT] != null || patches[TOP_RIGHT] != null,
+                    stretchW = patches[BOTTOM_LEFT] != null || patches[BOTTOM_RIGHT] != null,
                 )
             }
         }
-        if (topRight != -1) {
-            patches[TOP_RIGHT]?.let {
+        if (bottomRight != -1) {
+            patches[BOTTOM_RIGHT]?.let {
                 set(
-                    idx = topRight,
+                    idx = bottomRight,
                     x = rightX + rightXOffset,
                     y = topY + topYOffset,
                     width = rightWidthOffset,
@@ -447,14 +447,14 @@ class NinePatch(private val slice: TextureSlice, val left: Int, val right: Int, 
     }
 
     companion object {
-        private const val TOP_LEFT = 0
-        private const val TOP_CENTER = 1
-        private const val TOP_RIGHT = 2
+        private const val BOTTOM_LEFT = 0
+        private const val BOTTOM_CENTER = 1
+        private const val BOTTOM_RIGHT = 2
         private const val MIDDLE_LEFT = 3
         private const val MIDDLE_CENTER = 4
         private const val MIDDLE_RIGHT = 5
-        private const val BOTTOM_LEFT = 6
-        private const val BOTTOM_CENTER = 7
-        private const val BOTTOM_RIGHT = 8
+        private const val TOP_LEFT = 6
+        private const val TOP_CENTER = 7
+        private const val TOP_RIGHT = 8
     }
 }

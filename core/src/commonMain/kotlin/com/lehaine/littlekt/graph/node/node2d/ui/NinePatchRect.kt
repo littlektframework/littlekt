@@ -32,7 +32,7 @@ open class NinePatchRect : Control() {
         set(value) {
             if (field == value) return
             field = value
-            ninePatch = NinePatch(texture, left, right, bottom, top)
+            ninePatch = NinePatch(texture, left, right, top, bottom)
             onMinimumSizeChanged()
         }
 
@@ -43,7 +43,7 @@ open class NinePatchRect : Control() {
         set(value) {
             if (field == value) return
             field = value
-            ninePatch = NinePatch(texture, left, right, bottom, top)
+            ninePatch = NinePatch(texture, left, right, top, bottom)
             onMinimumSizeChanged()
         }
 
@@ -54,7 +54,7 @@ open class NinePatchRect : Control() {
         set(value) {
             if (field == value) return
             field = value
-            ninePatch = NinePatch(texture, left, right, bottom, top)
+            ninePatch = NinePatch(texture, left, right, top, bottom)
             onMinimumSizeChanged()
         }
 
@@ -65,7 +65,7 @@ open class NinePatchRect : Control() {
         set(value) {
             if (field == value) return
             field = value
-            ninePatch = NinePatch(texture, left, right, bottom, top)
+            ninePatch = NinePatch(texture, left, right, top, bottom)
             onMinimumSizeChanged()
         }
 
@@ -76,11 +76,11 @@ open class NinePatchRect : Control() {
         set(value) {
             if (field == value) return
             field = value
-            ninePatch = NinePatch(value, left, right, bottom, top)
+            ninePatch = NinePatch(value, left, right, top, bottom)
             onMinimumSizeChanged()
         }
 
-    private var ninePatch: NinePatch = NinePatch(Textures.white, left, right, bottom, top)
+    private var ninePatch: NinePatch = NinePatch(Textures.white, left, right, top, bottom)
 
     override fun calculateMinSize() {
         if (!minSizeInvalid) return
