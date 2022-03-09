@@ -7,7 +7,6 @@ import com.lehaine.littlekt.file.vfs.VfsFile
 import com.lehaine.littlekt.graphics.internal.InternalResources
 import com.lehaine.littlekt.input.JsInput
 import com.lehaine.littlekt.log.Logger
-import com.lehaine.littlekt.util.Clipboard
 import com.lehaine.littlekt.util.fastForEach
 import kotlinx.browser.document
 import kotlinx.browser.window
@@ -50,7 +49,12 @@ class WebGLContext(override val configuration: JsConfiguration) : Context() {
             InternalResources.createInstance(this@WebGLContext)
             InternalResources.INSTANCE.load()
             listener = build(this@WebGLContext)
-            listener.run { start() }
+            listener.run {
+                start()
+                resizeCalls.fastForEach {
+                    it.invoke(graphics.width, graphics.height)
+                }
+            }
         }
         window.requestAnimationFrame(::render)
     }
@@ -96,7 +100,6 @@ class WebGLContext(override val configuration: JsConfiguration) : Context() {
 
             if (closed) {
                 destroy()
-
             } else {
                 window.requestAnimationFrame(::render)
             }
