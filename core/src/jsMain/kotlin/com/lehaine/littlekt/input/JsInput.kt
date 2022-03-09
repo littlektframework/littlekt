@@ -33,6 +33,7 @@ class JsInput(val canvas: HTMLCanvasElement) : Input {
     private val _connectedGamepads = mutableListOf<GamepadInfo>()
     override val connectedGamepads: List<GamepadInfo>
         get() = _connectedGamepads
+    override val catchKeys: MutableList<Key> = mutableListOf()
 
     init {
         document.addEventListener("keydown", ::keyDown, false)
@@ -61,11 +62,17 @@ class JsInput(val canvas: HTMLCanvasElement) : Input {
 
     private fun keyDown(event: Event) {
         event as KeyboardEvent
+        if (catchKeys.contains(event.jsKey)) {
+            event.preventDefault()
+        }
         inputCache.onKeyDown(event.jsKey)
     }
 
     private fun keyUp(event: Event) {
         event as KeyboardEvent
+        if (catchKeys.contains(event.jsKey)) {
+            event.preventDefault()
+        }
         inputCache.onKeyUp(event.jsKey)
     }
 

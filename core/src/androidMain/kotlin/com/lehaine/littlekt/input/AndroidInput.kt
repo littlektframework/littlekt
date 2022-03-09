@@ -38,6 +38,7 @@ class AndroidInput(private val androidCtx: Context, private val graphics: Androi
     private val _connectedGamepads = mutableListOf<GamepadInfo>()
     override val connectedGamepads: List<GamepadInfo>
         get() = _connectedGamepads
+    override val catchKeys: MutableList<Key> = mutableListOf()
 
     private val touchX = IntArray(MAX_TOUCHES)
     private val touchY = IntArray(MAX_TOUCHES)
@@ -139,7 +140,8 @@ class AndroidInput(private val androidCtx: Context, private val graphics: Androi
                 inputCache.onCharTyped(event.unicodeChar.toChar())
             }
         }
-        return false
+
+        return catchKeys.contains(keyCode.getKey)
     }
 
     fun update() {
