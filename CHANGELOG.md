@@ -94,6 +94,8 @@
 * fix: `Button` text width calculations due to `GlyphLayoutRun` glyph `advance` fix
 * fix: `LWJGL` application defaulting to graphic cards `vSync` setting when `vSync` was set to false. It now will
   properly turn off `vSync`.
+* fix: `AnimationPlayer` not able to restart a current animation by using `stop()` and then `play()` without having to
+  swap animations.
 
 ### Upgrades:
 
