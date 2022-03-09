@@ -113,7 +113,16 @@ open class AnimationPlayer<KeyFrameType> {
     }
 
     /**
-     * Stops any running animations.
+     * Starts any currently stopped animation. This only does something when an animation is stopped with [stop].
+     */
+    fun start() {
+        currentAnimation?.let {
+            animationRequested = true
+        }
+    }
+
+    /**
+     * Stops any running animations. Resume the current animation with [start].
      */
     fun stop() {
         animationRequested = false
@@ -152,7 +161,7 @@ open class AnimationPlayer<KeyFrameType> {
         type: AnimationType = AnimationType.STANDARD,
         force: Boolean = false
     ) {
-        if (!force && currentAnimation == animation) return
+        if (!force && animationRequested && currentAnimation == animation) return
 
         currentAnimation = animation
         currentFrameIdx = 0
