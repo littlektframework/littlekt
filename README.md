@@ -3,11 +3,11 @@
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://github.com/littlektframework/littlekt/blob/master/LICENSE)
 [![build](https://github.com/littlektframework/littlekt/actions/workflows/build.yml/badge.svg?branch=master)](https://github.com/littlektframework/littlekt/actions/workflows/build.yml)
-[![Download](https://img.shields.io/maven-central/v/com.lehaine.littlekt/core/0.1.0)](https://search.maven.org/artifact/com.lehaine.littlekt/core/0.1.0/pom)
+[![Download](https://img.shields.io/maven-central/v/com.lehaine.littlekt/core/0.2.0)](https://search.maven.org/artifact/com.lehaine.littlekt/core/0.2.0/pom)
 
 **Currently in development.**
 
-**[Features](https://littlekt.com/features/)** - **[Docs](https://littlekt.com/docs/)** - **[Samples](https://github.com/littlektframework/littlekt-samples)** - **[Ask a Question](https://github.com/littlektframework/littlekt/discussions/categories/q-a)** - **[Changelog](CHANGELOG.md)**
+**[Features](https://littlekt.com/features/)** - **[Docs](https://littlekt.com/docs/)** - **[Samples](https://github.com/littlektframework/littlekt-samples)** - **[Ask a Question](https://github.com/littlektframework/littlekt/discussions/categories/q-a)** - **[Changelog](CHANGELOG.md)** - **[Starter Project](https://github.com/littlektframework/littlekt-game-template)**
 
 ## A 2D game framework written in Kotlin
 
@@ -33,7 +33,7 @@ kotlin {
     }
 }
 
-val littleKtVersion = "0.1.0" // get the latest release at the top
+val littleKtVersion = "0.2.0" // get the latest release at the top
 val kotlinCoroutinesVersion = "1.6.0" // or whatever version you are using
 
 sourceSets {
@@ -66,7 +66,7 @@ kotlin {
     }
 }
 
-val littleKtVersion = "0.0.2-SNAPSHOT"
+val littleKtVersion = "0.2.1-SNAPSHOT"
 val kotlinCoroutinesVersion = "1.6.0" // or whatever version you are using
 
 sourceSets {
@@ -85,7 +85,7 @@ sourceSets {
 | -------- | :---------: | ------:
 | Desktop (JVM) | ✅ | Current version
 | Web (WebGL/2) | ✅ | Current version
-| Android | ✅ | v0.2 (Current snapshot)
+| Android | ✅ | Current version
 | iOS | Planned | v1.0
 | Desktop (Native) | -- | Long Term
 
