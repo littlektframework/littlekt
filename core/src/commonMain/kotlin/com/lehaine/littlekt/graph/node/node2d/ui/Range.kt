@@ -112,4 +112,9 @@ abstract class Range : Control() {
     private fun validateMinMax() {
         _max = max(_max, _min)
     }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        onValueChanged.clear()
+    }
 }

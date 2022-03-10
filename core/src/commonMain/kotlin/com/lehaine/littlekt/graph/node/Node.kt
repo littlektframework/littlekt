@@ -7,6 +7,7 @@ import com.lehaine.littlekt.graphics.Batch
 import com.lehaine.littlekt.graphics.Camera
 import com.lehaine.littlekt.util.*
 import com.lehaine.littlekt.util.viewport.Viewport
+import kotlin.js.JsName
 import kotlin.native.concurrent.ThreadLocal
 import kotlin.time.Duration
 
@@ -233,6 +234,22 @@ open class Node : Comparable<Node> {
     val onUpdate: SingleSignal<Duration> = signal1v()
 
     /**
+     * List of 'destroy' callbacks called when [destroy] is called. Add any additional callbacks directly to this list.
+     * The main use is to add callbacks directly to nodes inline when building a [SceneGraph] vs having to extend
+     * a class directly.
+     *
+     * ```
+     * node {
+     *     onDestroy += {
+     *         // handle extra destroy logic
+     *     }
+     * }
+     * ```
+     */
+    @JsName("onDestroySignal")
+    val onDestroy: Signal = signal()
+
+    /**
      * Sets the parent [Node] of this [Node].
      * @param parent this Nodes parent
      */
@@ -297,7 +314,7 @@ open class Node : Comparable<Node> {
      * Internal rendering that needs to be done on the node that shouldn't be overridden. Calls [render] method.
      */
     internal fun _render(batch: Batch, camera: Camera) {
-        if(!enabled || !visible) return
+        if (!enabled || !visible) return
         render(batch, camera)
         onRender.emit(batch, camera)
         nodes.forEach {
@@ -350,11 +367,22 @@ open class Node : Comparable<Node> {
     fun destroy() {
         _isDestroyed = true
         parent = null
-
         nodes.forEach {
             it.destroy()
         }
+        onDestroy()
+        onDestroy.emit()
+        onUpdate.clear()
+        onReady.clear()
+        onRender.clear()
+        onDebugRender.clear()
+        onDestroy.clear()
     }
+
+    /**
+     * Called when [destroy] is invoked and all of its children have been destroyed.
+     */
+    open fun onDestroy() = Unit
 
     /**
      * The internal lifecycle method for when a child is added to this [Node].

@@ -193,6 +193,14 @@ abstract class BaseButton : Control() {
 
     protected open fun toggled(pressed: Boolean) = Unit
 
+    override fun onDestroy() {
+        super.onDestroy()
+        onButtonDown.clear()
+        onButtonUp.clear()
+        onPressed.clear()
+        onToggled.clear()
+    }
+
     enum class DrawMode {
         NORMAL,
         PRESSED,

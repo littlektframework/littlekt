@@ -29,6 +29,11 @@ open class Signal {
     operator fun minusAssign(slot: () -> Unit) {
         connections -= slot
     }
+
+    fun clear() {
+        connectedNodes.clear()
+        connections.clear()
+    }
 }
 
 /**
@@ -58,6 +63,11 @@ class SingleSignal<T> {
 
     operator fun minusAssign(slot: (T) -> Unit) {
         connections -= slot
+    }
+
+    fun clear() {
+        connectedNodes.clear()
+        connections.clear()
     }
 }
 
@@ -89,6 +99,11 @@ class DoubleSignal<A, B> {
     operator fun minusAssign(slot: (A, B) -> Unit) {
         connections -= slot
     }
+
+    fun clear() {
+        connectedNodes.clear()
+        connections.clear()
+    }
 }
 
 /**
@@ -118,6 +133,11 @@ class TripleSignal<A, B, C> {
 
     operator fun minusAssign(slot: (A, B, C) -> Unit) {
         connections -= slot
+    }
+
+    fun clear() {
+        connectedNodes.clear()
+        connections.clear()
     }
 }
 

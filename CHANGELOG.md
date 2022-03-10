@@ -6,6 +6,10 @@
 
 * add: list of catching keys to prevent default platform functionality from performing on key events
 * add: `loadSuspending` to `AssetProvider` to load assets as a suspending function instead loading inside a coroutine
+* add: `onDestroy` open function and `onDestroy` signal to `Node` when `destroy()` is invoked.
+
+### Bugs:
+* fix: clearing signals of all existing nodes when destroyed.
 
 ## v0.2.0
 

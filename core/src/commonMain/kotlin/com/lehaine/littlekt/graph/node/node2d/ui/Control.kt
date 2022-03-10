@@ -1295,6 +1295,17 @@ open class Control : Node2D() {
         return this
     }
 
+
+    override fun onDestroy() {
+        super.onDestroy()
+        onMinimumSizeChanged.clear()
+        onFocus.clear()
+        onFocusLost.clear()
+        onSizeChanged.clear()
+        onSizeFlagsChanged.clear()
+        onUiInput.clear()
+    }
+
     enum class AnchorLayout {
         /**
          * Snap all 4 anchors to the top-left of the parent control's bounds.

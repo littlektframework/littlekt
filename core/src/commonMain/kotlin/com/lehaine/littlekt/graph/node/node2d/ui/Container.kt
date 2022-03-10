@@ -143,4 +143,9 @@ open class Container : Control() {
         child.scale(1f, 1f)
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        onPresortChildren.clear()
+        onSortChildren.clear()
+    }
 }
