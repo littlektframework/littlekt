@@ -74,11 +74,39 @@ open class AssetProvider(val context: Context) {
      * @param parameters any parameters that need setting when loading the asset
      * @see LDtkGameAssetParameter
      */
-    @Suppress("UNCHECKED_CAST")
     fun <T : Any> load(
         file: VfsFile,
         clazz: KClass<T>,
         parameters: GameAssetParameters = EmptyGameAssetParameter()
+    ): GameAsset<T> {
+        val sceneAsset = checkOrCreateNewSceneAsset(file, clazz)
+        context.vfs.launch {
+            loadVfsFile(sceneAsset, file, clazz, parameters)
+        }
+        return sceneAsset
+    }
+
+    /**
+     * Loads an asset in a suspending function.
+     * @param T concrete class of [Any] instance that should be loaded.
+     * @param file the file to load
+     * @param parameters any parameters that need setting when loading the asset
+     * @see LDtkGameAssetParameter
+     */
+    suspend fun <T : Any> loadSuspending(
+        file: VfsFile,
+        clazz: KClass<T>,
+        parameters: GameAssetParameters = EmptyGameAssetParameter()
+    ): GameAsset<T> {
+        val sceneAsset = checkOrCreateNewSceneAsset(file, clazz)
+        loadVfsFile(sceneAsset, file, clazz, parameters)
+        return sceneAsset
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    private fun <T : Any> checkOrCreateNewSceneAsset(
+        file: VfsFile,
+        clazz: KClass<T>,
     ): GameAsset<T> {
         val sceneAsset = _assets[clazz]?.get(file)?.let {
             return it as GameAsset<T>
@@ -91,20 +119,27 @@ open class AssetProvider(val context: Context) {
         filesBeingChecked += file
         totalAssetsLoading.addAndGet(1)
         totalAssets.addAndGet(1)
-        context.vfs.launch {
-            val loader = loaders[clazz] ?: throw UnsupportedFileTypeException(file.path)
-            val result = loader.invoke(file, parameters) as T
-            sceneAsset.load(result)
-            lock(lock) {
-                _assets.getOrPut(clazz) { mutableMapOf() }.let {
-                    it[file] = sceneAsset
-                }
-                filesBeingChecked -= file
-            }
-            totalAssetsFinished.addAndGet(1)
-            totalAssetsLoading.addAndGet(-1)
-        }
         return sceneAsset
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    private suspend fun <T : Any> loadVfsFile(
+        sceneAsset: GameAsset<T>,
+        file: VfsFile,
+        clazz: KClass<T>,
+        parameters: GameAssetParameters = EmptyGameAssetParameter()
+    ) {
+        val loader = loaders[clazz] ?: throw UnsupportedFileTypeException(file.path)
+        val result = loader.invoke(file, parameters) as T
+        sceneAsset.load(result)
+        lock(lock) {
+            _assets.getOrPut(clazz) { mutableMapOf() }.let {
+                it[file] = sceneAsset
+            }
+            filesBeingChecked -= file
+        }
+        totalAssetsFinished.addAndGet(1)
+        totalAssetsLoading.addAndGet(-1)
     }
 
     /**
