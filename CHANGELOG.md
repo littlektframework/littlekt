@@ -4,7 +4,8 @@
 
 ### New
 
-* add: list of catching keys to prevent default platform functionality from performing on key events  
+* add: list of catching keys to prevent default platform functionality from performing on key events
+* add: `loadSuspending` to `AssetProvider` to load assets as a suspending function instead loading inside a coroutine
 
 ## v0.2.0
 
