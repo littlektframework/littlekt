@@ -134,6 +134,7 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
 
     override suspend fun Context.start() {
         super.setSceneCallbacks(this)
+        input.catchKeys += listOf(Key.TAB, Key.SPACE, Key.ARROW_LEFT, Key.ARROW_RIGHT, Key.ARROW_DOWN, Key.ARROW_UP)
         val batch = SpriteBatch(context, 8191)
         val pixelFontTexture = resourcesVfs["m5x7_16_0.png"].readTexture()
         val texture by assetProvider.load<Texture>(resourcesVfs["atlas.png"])

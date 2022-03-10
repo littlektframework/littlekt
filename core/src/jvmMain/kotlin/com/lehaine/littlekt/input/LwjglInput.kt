@@ -29,6 +29,7 @@ class LwjglInput : Input {
     private val _connectedGamepads = mutableListOf<GamepadInfo>()
     override val connectedGamepads: List<GamepadInfo>
         get() = _connectedGamepads
+    override val catchKeys: MutableList<Key> = mutableListOf()
 
     fun attachToWindow(windowHandle: Long) {
         glfwSetKeyCallback(windowHandle) { window, key, scancode, action, mods ->

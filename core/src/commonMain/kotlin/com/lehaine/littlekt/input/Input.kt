@@ -292,6 +292,13 @@ interface Input {
     val gamepads: Array<GamepadInfo>
     val connectedGamepads: List<GamepadInfo>
 
+    /**
+     * A list of [Key] types to catch to prevent calling the current platforms default functionality.
+     *
+     * E.g: Catching [Key.SPACE] to prevent the webpage from scrolling in a JS app.
+     */
+    val catchKeys: MutableList<Key>
+
     val axisLeftX: Float
     val axisLeftY: Float
     val axisRightX: Float
@@ -334,13 +341,13 @@ interface Input {
     fun areAnyKeysPressed(vararg keys: Key): Boolean = keys.any { isKeyPressed(it) }
 
     /**
-     * Determines if all of the specified [keys] are currently pressed.
-     * @return `true` if all of the keys are pressed; `false` otherwise.
+     * Determines if all the specified [keys] are currently pressed.
+     * @return `true` if all the keys are pressed; `false` otherwise.
      */
     fun areAllKeysPressed(vararg keys: Key): Boolean = keys.all { isKeyPressed(it) }
 
     /**
-     * Determines if all of the specified [keys] are **NOT** currently pressed.
+     * Determines if all the specified [keys] are **NOT** currently pressed.
      * @return `true` if no keys are pressed; `false` otherwise.
      */
     fun areNoKeysPressed(vararg keys: Key): Boolean = keys.none { isKeyPressed(it) }
