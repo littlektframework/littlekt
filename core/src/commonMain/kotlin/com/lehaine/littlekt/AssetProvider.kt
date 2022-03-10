@@ -72,7 +72,10 @@ open class AssetProvider(val context: Context) {
      * @param T concrete class of [Any] instance that should be loaded.
      * @param file the file to load
      * @param parameters any parameters that need setting when loading the asset
+     * @see BitmapFontAssetParameter
      * @see LDtkGameAssetParameter
+     * @see TextureGameAssetParameter
+     * @see TtfFileAssetParameter
      */
     fun <T : Any> load(
         file: VfsFile,
@@ -91,7 +94,10 @@ open class AssetProvider(val context: Context) {
      * @param T concrete class of [Any] instance that should be loaded.
      * @param file the file to load
      * @param parameters any parameters that need setting when loading the asset
+     * @see BitmapFontAssetParameter
      * @see LDtkGameAssetParameter
+     * @see TextureGameAssetParameter
+     * @see TtfFileAssetParameter
      */
     suspend fun <T : Any> loadSuspending(
         file: VfsFile,
@@ -149,11 +155,28 @@ open class AssetProvider(val context: Context) {
      * @param parameters any parameters that need setting when loading the asset
      * @see BitmapFontAssetParameter
      * @see LDtkGameAssetParameter
+     * @see TextureGameAssetParameter
+     * @see TtfFileAssetParameter
      */
     inline fun <reified T : Any> load(
         file: VfsFile,
         parameters: GameAssetParameters = EmptyGameAssetParameter()
     ) = load(file, T::class, parameters)
+
+    /**
+     * Loads an asset in a suspending function.
+     * @param T concrete class of [Any] instance that should be loaded.
+     * @param file the file to load
+     * @param parameters any parameters that need setting when loading the asset
+     * @see BitmapFontAssetParameter
+     * @see LDtkGameAssetParameter
+     * @see TextureGameAssetParameter
+     * @see TtfFileAssetParameter
+     */
+    suspend inline fun <reified T : Any> loadSuspending(
+        file: VfsFile,
+        parameters: GameAssetParameters = EmptyGameAssetParameter()
+    ) = loadSuspending(file, T::class, parameters)
 
 
     /**
