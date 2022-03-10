@@ -1,6 +1,12 @@
 # Changelog
 
-## v0.2.0 (Current SNAPSHOT)
+## v0.2.1 (Current SNAPSHOT)
+
+### New
+
+* add: list of catching keys to prevent default platform functionality from performing on key events  
+
+## v0.2.0
 
 ### New
 
