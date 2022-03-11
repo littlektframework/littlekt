@@ -7,8 +7,11 @@
 * add: list of catching keys to prevent default platform functionality from performing on key events
 * add: `loadSuspending` to `AssetProvider` to load assets as a suspending function instead loading inside a coroutine
 * add: `onDestroy` open function and `onDestroy` signal to `Node` when `destroy()` is invoked.
+* add: contracts to `SceneGraph` DSL to allow usage of assigning objects to `val` outside of it.
+* add contract to `AssetProvider.prepare()` to allow usage of assigning objects to `val` outside of it.
 
 ### Bugs:
+
 * fix: clearing signals of all existing nodes when destroyed.
 
 ## v0.2.0
