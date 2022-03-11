@@ -8,7 +8,11 @@
 * add: `loadSuspending` to `AssetProvider` to load assets as a suspending function instead loading inside a coroutine
 * add: `onDestroy` open function and `onDestroy` signal to `Node` when `destroy()` is invoked.
 * add: contracts to `SceneGraph` DSL to allow usage of assigning objects to `val` outside of it.
-* add contract to `AssetProvider.prepare()` to allow usage of assigning objects to `val` outside of it.
+* add: contract to `AssetProvider.prepare()` to allow usage of assigning objects to `val` outside of it.
+
+### Changes
+
+* update: `SceneGraph` methods `resize()`, `render()`, and `initialize()` as `open`.
 
 ### Bugs:
 
