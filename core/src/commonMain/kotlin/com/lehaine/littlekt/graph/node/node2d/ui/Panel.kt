@@ -7,22 +7,31 @@ import com.lehaine.littlekt.graph.node.annotation.SceneGraphDslMarker
 import com.lehaine.littlekt.graph.node.component.Drawable
 import com.lehaine.littlekt.graphics.Batch
 import com.lehaine.littlekt.graphics.Camera
+import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.InvocationKind
+import kotlin.contracts.contract
 
 /**
  * Adds a [Panel] to the current [Node] as a child and then triggers the [callback]
  * @param callback the callback that is invoked with a [Panel] context in order to initialize any values
  * @return the newly created [Panel]
  */
-inline fun Node.panel(callback: @SceneGraphDslMarker Panel.() -> Unit = {}) =
-    Panel().also(callback).addTo(this)
+@OptIn(ExperimentalContracts::class)
+inline fun Node.panel(callback: @SceneGraphDslMarker Panel.() -> Unit = {}): Panel {
+    contract { callsInPlace(callback, InvocationKind.EXACTLY_ONCE) }
+    return Panel().also(callback).addTo(this)
+}
 
 /**
  * Adds a [Panel] to the  [SceneGraph.root] as a child and then triggers the [callback]
  * @param callback the callback that is invoked with a [Panel] context in order to initialize any values
  * @return the newly created [Panel]
  */
-inline fun SceneGraph<*>.panel(callback: @SceneGraphDslMarker Panel.() -> Unit = {}) =
-    root.panel(callback)
+@OptIn(ExperimentalContracts::class)
+inline fun SceneGraph<*>.panel(callback: @SceneGraphDslMarker Panel.() -> Unit = {}): Panel {
+    contract { callsInPlace(callback, InvocationKind.EXACTLY_ONCE) }
+    return root.panel(callback)
+}
 
 
 /**

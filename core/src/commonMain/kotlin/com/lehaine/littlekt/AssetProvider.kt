@@ -17,6 +17,9 @@ import com.lehaine.littlekt.graphics.gl.TexMinFilter
 import com.lehaine.littlekt.graphics.tilemap.tiled.TiledMap
 import com.lehaine.littlekt.util.internal.lock
 import kotlinx.atomicfu.atomic
+import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.InvocationKind
+import kotlin.contracts.contract
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
 
@@ -185,7 +188,11 @@ open class AssetProvider(val context: Context) {
      * @param action the action to initialize this value
      * @see load
      */
-    fun <T : Any> prepare(action: suspend () -> T) = PreparableGameAsset(action).also { assetsToPrepare += it }
+    @OptIn(ExperimentalContracts::class)
+    fun <T : Any> prepare(action: suspend () -> T): PreparableGameAsset<T> {
+        contract { callsInPlace(action, InvocationKind.EXACTLY_ONCE) }
+        return PreparableGameAsset(action).also { assetsToPrepare += it }
+    }
 
     @Suppress("UNCHECKED_CAST")
     fun <T : Any> get(clazz: KClass<T>, vfsFile: VfsFile) = assets[clazz]?.get(vfsFile)?.content as T

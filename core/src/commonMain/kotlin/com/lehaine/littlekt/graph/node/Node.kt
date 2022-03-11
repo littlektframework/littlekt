@@ -7,6 +7,9 @@ import com.lehaine.littlekt.graphics.Batch
 import com.lehaine.littlekt.graphics.Camera
 import com.lehaine.littlekt.util.*
 import com.lehaine.littlekt.util.viewport.Viewport
+import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.InvocationKind
+import kotlin.contracts.contract
 import kotlin.js.JsName
 import kotlin.native.concurrent.ThreadLocal
 import kotlin.time.Duration
@@ -16,8 +19,11 @@ import kotlin.time.Duration
  * @param callback the callback that is invoked with a [Node] context in order to initialize any values
  * @return the newly created [Node]
  */
-inline fun Node.node(callback: @SceneGraphDslMarker Node.() -> Unit = {}) =
-    Node().also(callback).addTo(this)
+@OptIn(ExperimentalContracts::class)
+inline fun Node.node(callback: @SceneGraphDslMarker Node.() -> Unit = {}): Node {
+    contract { callsInPlace(callback, InvocationKind.EXACTLY_ONCE) }
+    return Node().also(callback).addTo(this)
+}
 
 /**
  * Adds the specified [Node] to the current [Node] as a child and then triggers the [callback]. This can be used
@@ -26,15 +32,22 @@ inline fun Node.node(callback: @SceneGraphDslMarker Node.() -> Unit = {}) =
  * @param callback the callback that is invoked with a [Node] context in order to initialize any values
  * @return the newly created [Node]
  */
-inline fun <T : Node> Node.node(node: T, callback: @SceneGraphDslMarker T.() -> Unit = {}) =
-    node.also(callback).addTo(this)
+@OptIn(ExperimentalContracts::class)
+inline fun <T : Node> Node.node(node: T, callback: @SceneGraphDslMarker T.() -> Unit = {}): T {
+    contract { callsInPlace(callback, InvocationKind.EXACTLY_ONCE) }
+    return node.also(callback).addTo(this)
+}
 
 /**
  * Adds a [Node] to the current [SceneGraph.root] as a child and then triggers the [Node]
  * @param callback the callback that is invoked with a [Node] context in order to initialize any values
  * @return the newly created [Node]
  */
-inline fun SceneGraph<*>.node(callback: @SceneGraphDslMarker Node.() -> Unit = {}) = root.node(callback)
+@OptIn(ExperimentalContracts::class)
+inline fun SceneGraph<*>.node(callback: @SceneGraphDslMarker Node.() -> Unit = {}): Node {
+    contract { callsInPlace(callback, InvocationKind.EXACTLY_ONCE) }
+    return root.node(callback)
+}
 
 /**
  * Adds a [Node] to the current [SceneGraph.root] as a child and then triggers the [Node]. This can be used
@@ -43,8 +56,11 @@ inline fun SceneGraph<*>.node(callback: @SceneGraphDslMarker Node.() -> Unit = {
  * @param callback the callback that is invoked with a [Node] context in order to initialize any values
  * @return the newly created [Node]
  */
-inline fun <T : Node> SceneGraph<*>.node(node: T, callback: @SceneGraphDslMarker T.() -> Unit = {}) =
-    root.node(node, callback)
+@OptIn(ExperimentalContracts::class)
+inline fun <T : Node> SceneGraph<*>.node(node: T, callback: @SceneGraphDslMarker T.() -> Unit = {}): T {
+    contract { callsInPlace(callback, InvocationKind.EXACTLY_ONCE) }
+    return root.node(node, callback)
+}
 
 /**
  * The base node class that all other node's inherit from.

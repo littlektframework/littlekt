@@ -18,6 +18,9 @@ import com.lehaine.littlekt.input.Pointer
 import com.lehaine.littlekt.math.clamp
 import com.lehaine.littlekt.util.datastructure.FloatArrayList
 import com.lehaine.littlekt.util.internal.now
+import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.InvocationKind
+import kotlin.contracts.contract
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.time.Duration
@@ -26,14 +29,20 @@ import kotlin.time.Duration.Companion.milliseconds
 /**
  * Adds a [LineEdit] to the current [Node] as a child and then triggers the [callback]
  */
-inline fun Node.lineEdit(callback: @SceneGraphDslMarker LineEdit.() -> Unit = {}) =
-    LineEdit().also(callback).addTo(this)
+@OptIn(ExperimentalContracts::class)
+inline fun Node.lineEdit(callback: @SceneGraphDslMarker LineEdit.() -> Unit = {}): LineEdit {
+    contract { callsInPlace(callback, InvocationKind.EXACTLY_ONCE) }
+    return LineEdit().also(callback).addTo(this)
+}
 
 /**
  * Adds a [LineEdit] to the current [SceneGraph.root] as a child and then triggers the [callback]
  */
-inline fun SceneGraph<*>.lineEdit(callback: @SceneGraphDslMarker LineEdit.() -> Unit = {}) =
-    root.lineEdit(callback)
+@OptIn(ExperimentalContracts::class)
+inline fun SceneGraph<*>.lineEdit(callback: @SceneGraphDslMarker LineEdit.() -> Unit = {}): LineEdit {
+    contract { callsInPlace(callback, InvocationKind.EXACTLY_ONCE) }
+    return root.lineEdit(callback)
+}
 
 /**
  * A [Control] that renders and single line of editable text.

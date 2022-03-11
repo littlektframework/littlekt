@@ -5,18 +5,27 @@ import com.lehaine.littlekt.graph.node.Node
 import com.lehaine.littlekt.graph.node.addTo
 import com.lehaine.littlekt.graph.node.annotation.SceneGraphDslMarker
 import com.lehaine.littlekt.graphics.*
+import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.InvocationKind
+import kotlin.contracts.contract
 
 /**
  * Adds a [NinePatchRect] to the current [Node] as a child and then triggers the [callback]
  */
-inline fun Node.ninePatchRect(callback: @SceneGraphDslMarker NinePatchRect.() -> Unit = {}) =
-    NinePatchRect().also(callback).addTo(this)
+@OptIn(ExperimentalContracts::class)
+inline fun Node.ninePatchRect(callback: @SceneGraphDslMarker NinePatchRect.() -> Unit = {}): NinePatchRect {
+    contract { callsInPlace(callback, InvocationKind.EXACTLY_ONCE) }
+    return NinePatchRect().also(callback).addTo(this)
+}
 
 /**
  * Adds a [NinePatchRect] to the current [SceneGraph.root] as a child and then triggers the [callback]
  */
-inline fun SceneGraph<*>.ninePatchRect(callback: @SceneGraphDslMarker NinePatchRect.() -> Unit = {}) =
-    root.ninePatchRect(callback)
+@OptIn(ExperimentalContracts::class)
+inline fun SceneGraph<*>.ninePatchRect(callback: @SceneGraphDslMarker NinePatchRect.() -> Unit = {}): NinePatchRect {
+    contract { callsInPlace(callback, InvocationKind.EXACTLY_ONCE) }
+    return root.ninePatchRect(callback)
+}
 
 /**
  * Creates a [Control] that uses and renders a [NinePatch].

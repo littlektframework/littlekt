@@ -224,9 +224,9 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
             )
         )
 
-        lateinit var panel: Container
-        lateinit var rootControl: Control
-        lateinit var progressBar: ProgressBar
+        val panel: Container
+        val rootControl: Control
+        val progressBar: ProgressBar
 
         val scene by assetProvider.prepare {
             sceneGraph(

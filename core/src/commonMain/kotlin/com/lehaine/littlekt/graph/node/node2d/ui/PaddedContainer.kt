@@ -5,18 +5,27 @@ import com.lehaine.littlekt.graph.node.Node
 import com.lehaine.littlekt.graph.node.addTo
 import com.lehaine.littlekt.graph.node.annotation.SceneGraphDslMarker
 import com.lehaine.littlekt.graph.node.component.Theme
+import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.InvocationKind
+import kotlin.contracts.contract
 
 /**
  * Adds a [PaddedContainer] to the current [Node] as a child and then triggers the [callback]
  */
-inline fun Node.paddedContainer(callback: @SceneGraphDslMarker PaddedContainer.() -> Unit = {}) =
-    PaddedContainer().also(callback).addTo(this)
+@OptIn(ExperimentalContracts::class)
+inline fun Node.paddedContainer(callback: @SceneGraphDslMarker PaddedContainer.() -> Unit = {}): PaddedContainer {
+    contract { callsInPlace(callback, InvocationKind.EXACTLY_ONCE) }
+    return PaddedContainer().also(callback).addTo(this)
+}
 
 /**
  * Adds a [PaddedContainer] to the current [SceneGraph.root] as a child and then triggers the [callback]
  */
-inline fun SceneGraph<*>.paddedContainer(callback: @SceneGraphDslMarker PaddedContainer.() -> Unit = {}) =
-    root.paddedContainer(callback)
+@OptIn(ExperimentalContracts::class)
+inline fun SceneGraph<*>.paddedContainer(callback: @SceneGraphDslMarker PaddedContainer.() -> Unit = {}): PaddedContainer {
+    contract { callsInPlace(callback, InvocationKind.EXACTLY_ONCE) }
+    return root.paddedContainer(callback)
+}
 
 /**
  * A [Container] with padding.

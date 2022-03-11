@@ -5,20 +5,29 @@ import com.lehaine.littlekt.graph.node.Node
 import com.lehaine.littlekt.graph.node.addTo
 import com.lehaine.littlekt.graph.node.annotation.SceneGraphDslMarker
 import com.lehaine.littlekt.graphics.*
+import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.InvocationKind
+import kotlin.contracts.contract
 import kotlin.math.ceil
 import kotlin.math.min
 
 /**
  * Adds a [TextureProgress] to the current [Node] as a child and then triggers the [callback]
  */
-inline fun Node.textureProgress(callback: @SceneGraphDslMarker TextureProgress.() -> Unit = {}) =
-    TextureProgress().also(callback).addTo(this)
+@OptIn(ExperimentalContracts::class)
+inline fun Node.textureProgress(callback: @SceneGraphDslMarker TextureProgress.() -> Unit = {}): TextureProgress {
+    contract { callsInPlace(callback, InvocationKind.EXACTLY_ONCE) }
+    return TextureProgress().also(callback).addTo(this)
+}
 
 /**
  * Adds a [TextureProgress] to the current [SceneGraph.root] as a child and then triggers the [callback]
  */
-inline fun SceneGraph<*>.textureProgress(callback: @SceneGraphDslMarker TextureProgress.() -> Unit = {}) =
-    root.textureProgress(callback)
+@OptIn(ExperimentalContracts::class)
+inline fun SceneGraph<*>.textureProgress(callback: @SceneGraphDslMarker TextureProgress.() -> Unit = {}): TextureProgress {
+    contract { callsInPlace(callback, InvocationKind.EXACTLY_ONCE) }
+    return root.textureProgress(callback)
+}
 
 /**
  * A textured-based progress bar. Useful for loading screens and health bars.

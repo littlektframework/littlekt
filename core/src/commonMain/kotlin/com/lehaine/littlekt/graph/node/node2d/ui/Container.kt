@@ -7,6 +7,9 @@ import com.lehaine.littlekt.graph.node.annotation.SceneGraphDslMarker
 import com.lehaine.littlekt.graphics.Color
 import com.lehaine.littlekt.math.geom.Angle
 import com.lehaine.littlekt.util.Signal
+import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.InvocationKind
+import kotlin.contracts.contract
 import kotlin.js.JsName
 import kotlin.math.floor
 import kotlin.time.Duration
@@ -16,15 +19,22 @@ import kotlin.time.Duration
  * @param callback the callback that is invoked with a [Container] context in order to initialize any values
  * @return the newly created [Container]
  */
-inline fun Node.container(callback: @SceneGraphDslMarker Container.() -> Unit = {}) =
-    Container().also(callback).addTo(this)
+@OptIn(ExperimentalContracts::class)
+inline fun Node.container(callback: @SceneGraphDslMarker Container.() -> Unit = {}): Container {
+    contract { callsInPlace(callback, InvocationKind.EXACTLY_ONCE) }
+    return Container().also(callback).addTo(this)
+}
 
 /**
  * Adds a [Container] to the current [SceneGraph.root] as a child and then triggers the [callback]
  * @param callback the callback that is invoked with a [Container] context in order to initialize any values
  * @return the newly created [Container]
  */
-inline fun SceneGraph<*>.container(callback: @SceneGraphDslMarker Container.() -> Unit = {}) = root.container(callback)
+@OptIn(ExperimentalContracts::class)
+inline fun SceneGraph<*>.container(callback: @SceneGraphDslMarker Container.() -> Unit = {}): Container {
+    contract { callsInPlace(callback, InvocationKind.EXACTLY_ONCE) }
+    return root.container(callback)
+}
 
 /**
  * A [Control] node that all containers inherit from.

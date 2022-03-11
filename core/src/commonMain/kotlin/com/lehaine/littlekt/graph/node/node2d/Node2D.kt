@@ -9,6 +9,9 @@ import com.lehaine.littlekt.math.Mat4
 import com.lehaine.littlekt.math.MutableVec2f
 import com.lehaine.littlekt.math.Vec2f
 import com.lehaine.littlekt.math.geom.Angle
+import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.InvocationKind
+import kotlin.contracts.contract
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
@@ -18,15 +21,22 @@ import kotlin.math.sin
  * @param callback the callback that is invoked with a [Node2D] context in order to initialize any values
  * @return the newly created [Node2D]
  */
-inline fun Node.node2d(callback: @SceneGraphDslMarker Node2D.() -> Unit = {}) =
-    Node2D().also(callback).addTo(this)
+@OptIn(ExperimentalContracts::class)
+inline fun Node.node2d(callback: @SceneGraphDslMarker Node2D.() -> Unit = {}): Node2D {
+    contract { callsInPlace(callback, InvocationKind.EXACTLY_ONCE) }
+    return Node2D().also(callback).addTo(this)
+}
 
 /**
  * Adds a [Node2D] to the current [SceneGraph.root] as a child and then triggers the [Node2D]
  * @param callback the callback that is invoked with a [Node2D] context in order to initialize any values
  * @return the newly created [Node2D]
  */
-inline fun SceneGraph<*>.node2d(callback: @SceneGraphDslMarker Node2D.() -> Unit = {}) = root.node2d(callback)
+@OptIn(ExperimentalContracts::class)
+inline fun SceneGraph<*>.node2d(callback: @SceneGraphDslMarker Node2D.() -> Unit = {}): Node2D {
+    contract { callsInPlace(callback, InvocationKind.EXACTLY_ONCE) }
+    return root.node2d(callback)
+}
 
 /**
  * A [Node] with 2D transformations.

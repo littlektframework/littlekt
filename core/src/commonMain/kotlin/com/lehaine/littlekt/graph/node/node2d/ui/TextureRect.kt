@@ -8,6 +8,9 @@ import com.lehaine.littlekt.graphics.Batch
 import com.lehaine.littlekt.graphics.Camera
 import com.lehaine.littlekt.graphics.TextureSlice
 import com.lehaine.littlekt.graphics.toFloatBits
+import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.InvocationKind
+import kotlin.contracts.contract
 import kotlin.math.absoluteValue
 import kotlin.math.min
 
@@ -16,16 +19,22 @@ import kotlin.math.min
  * @param callback the callback that is invoked with a [TextureRect] context in order to initialize any values
  * @return the newly created [TextureRect]
  */
-inline fun Node.textureRect(callback: @SceneGraphDslMarker TextureRect.() -> Unit = {}) =
-    TextureRect().also(callback).addTo(this)
+@OptIn(ExperimentalContracts::class)
+inline fun Node.textureRect(callback: @SceneGraphDslMarker TextureRect.() -> Unit = {}): TextureRect {
+    contract { callsInPlace(callback, InvocationKind.EXACTLY_ONCE) }
+    return TextureRect().also(callback).addTo(this)
+}
 
 /**
  * Adds a [TextureRect] to the  [SceneGraph.root] as a child and then triggers the [callback]
  * @param callback the callback that is invoked with a [TextureRect] context in order to initialize any values
  * @return the newly created [TextureRect]
  */
-inline fun SceneGraph<*>.textureRect(callback: @SceneGraphDslMarker TextureRect.() -> Unit = {}) =
-    root.textureRect(callback)
+@OptIn(ExperimentalContracts::class)
+inline fun SceneGraph<*>.textureRect(callback: @SceneGraphDslMarker TextureRect.() -> Unit = {}): TextureRect {
+    contract { callsInPlace(callback, InvocationKind.EXACTLY_ONCE) }
+    return root.textureRect(callback)
+}
 
 /**
  * A [Control] node that display a [TextureSlice].
@@ -155,7 +164,7 @@ open class TextureRect : Control() {
                                 0f,
                                 0f,
                                 width = min(width - totalW, sliceWidth),
-                                height =  min(height - totalH, sliceHeight),
+                                height = min(height - totalH, sliceHeight),
                                 scaleX = globalScaleX,
                                 scaleY = globalScaleY,
                                 rotation = globalRotation,

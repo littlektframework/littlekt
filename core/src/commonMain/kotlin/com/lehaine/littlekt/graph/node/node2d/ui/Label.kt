@@ -17,18 +17,27 @@ import com.lehaine.littlekt.graphics.font.GlyphLayout
 import com.lehaine.littlekt.math.MutableVec2f
 import com.lehaine.littlekt.math.Vec2f
 import com.lehaine.littlekt.math.geom.Angle
+import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.InvocationKind
+import kotlin.contracts.contract
 
 /**
  * Adds a [Label] to the current [Node] as a child and then triggers the [callback]
  */
-inline fun Node.label(callback: @SceneGraphDslMarker Label.() -> Unit = {}) =
-    Label().also(callback).addTo(this)
+@OptIn(ExperimentalContracts::class)
+inline fun Node.label(callback: @SceneGraphDslMarker Label.() -> Unit = {}): Label {
+    contract { callsInPlace(callback, InvocationKind.EXACTLY_ONCE) }
+    return Label().also(callback).addTo(this)
+}
 
 /**
  * Adds a [Label] to the current [SceneGraph.root] as a child and then triggers the [callback]
  */
-inline fun SceneGraph<*>.label(callback: @SceneGraphDslMarker Label.() -> Unit = {}) =
-    root.label(callback)
+@OptIn(ExperimentalContracts::class)
+inline fun SceneGraph<*>.label(callback: @SceneGraphDslMarker Label.() -> Unit = {}): Label {
+    contract { callsInPlace(callback, InvocationKind.EXACTLY_ONCE) }
+    return root.label(callback)
+}
 
 /**
  * @author Colton Daily

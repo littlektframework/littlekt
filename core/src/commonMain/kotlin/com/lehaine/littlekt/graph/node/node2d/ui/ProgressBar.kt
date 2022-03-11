@@ -15,19 +15,28 @@ import com.lehaine.littlekt.graphics.font.BitmapFontCache
 import com.lehaine.littlekt.graphics.font.GlyphLayout
 import com.lehaine.littlekt.math.geom.Angle
 import com.lehaine.littlekt.util.toString
+import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.InvocationKind
+import kotlin.contracts.contract
 import kotlin.math.max
 
 /**
  * Adds a [ProgressBar] to the current [Node] as a child and then triggers the [callback]
  */
-inline fun Node.progressBar(callback: @SceneGraphDslMarker ProgressBar.() -> Unit = {}) =
-    ProgressBar().also(callback).addTo(this)
+@OptIn(ExperimentalContracts::class)
+inline fun Node.progressBar(callback: @SceneGraphDslMarker ProgressBar.() -> Unit = {}): ProgressBar {
+    contract { callsInPlace(callback, InvocationKind.EXACTLY_ONCE) }
+    return ProgressBar().also(callback).addTo(this)
+}
 
 /**
  * Adds a [ProgressBar] to the current [SceneGraph.root] as a child and then triggers the [callback]
  */
-inline fun SceneGraph<*>.progressBar(callback: @SceneGraphDslMarker ProgressBar.() -> Unit = {}) =
-    root.progressBar(callback)
+@OptIn(ExperimentalContracts::class)
+inline fun SceneGraph<*>.progressBar(callback: @SceneGraphDslMarker ProgressBar.() -> Unit = {}): ProgressBar {
+    contract { callsInPlace(callback, InvocationKind.EXACTLY_ONCE) }
+    return root.progressBar(callback)
+}
 
 
 /**

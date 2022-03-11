@@ -19,6 +19,9 @@ import com.lehaine.littlekt.math.geom.closestPointsBetweenSegments
 import com.lehaine.littlekt.util.Signal
 import com.lehaine.littlekt.util.SingleSignal
 import com.lehaine.littlekt.util.internal.isFlagSet
+import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.InvocationKind
+import kotlin.contracts.contract
 import kotlin.js.JsName
 import kotlin.jvm.JvmInline
 import kotlin.math.max
@@ -28,14 +31,22 @@ import kotlin.math.max
  * @param callback the callback that is invoked with a [Control] context in order to initialize any values
  * @return the newly created [Control]
  */
-inline fun Node.control(callback: @SceneGraphDslMarker Control.() -> Unit = {}) = Control().also(callback).addTo(this)
+@OptIn(ExperimentalContracts::class)
+inline fun Node.control(callback: @SceneGraphDslMarker Control.() -> Unit = {}): Control {
+    contract { callsInPlace(callback, InvocationKind.EXACTLY_ONCE) }
+    return Control().also(callback).addTo(this)
+}
 
 /**
  * Adds a [Control] to the current [SceneGraph.root] as a child and then triggers the [callback]
  * @param callback the callback that is invoked with a [Control] context in order to initialize any values
  * @return the newly created [Control]
  */
-inline fun SceneGraph<*>.control(callback: @SceneGraphDslMarker Control.() -> Unit = {}) = root.control(callback)
+@OptIn(ExperimentalContracts::class)
+inline fun SceneGraph<*>.control(callback: @SceneGraphDslMarker Control.() -> Unit = {}): Control {
+    contract { callsInPlace(callback, InvocationKind.EXACTLY_ONCE) }
+    return root.control(callback)
+}
 
 
 /**

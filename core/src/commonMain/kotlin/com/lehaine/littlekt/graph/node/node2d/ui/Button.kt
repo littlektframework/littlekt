@@ -18,19 +18,28 @@ import com.lehaine.littlekt.graphics.font.GlyphLayout
 import com.lehaine.littlekt.math.MutableVec2f
 import com.lehaine.littlekt.math.Vec2f
 import com.lehaine.littlekt.math.geom.Angle
+import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.InvocationKind
+import kotlin.contracts.contract
 import kotlin.math.max
 
 /**
  * Adds a [Button] to the current [Node] as a child and then triggers the [callback]
  */
-inline fun Node.button(callback: @SceneGraphDslMarker Button.() -> Unit = {}) =
-    Button().also(callback).addTo(this)
+@OptIn(ExperimentalContracts::class)
+inline fun Node.button(callback: @SceneGraphDslMarker Button.() -> Unit = {}): Button {
+    contract { callsInPlace(callback, InvocationKind.EXACTLY_ONCE) }
+    return Button().also(callback).addTo(this)
+}
 
 /**
  * Adds a [Button] to the current [SceneGraph.root] as a child and then triggers the [callback]
  */
-inline fun SceneGraph<*>.button(callback: @SceneGraphDslMarker Button.() -> Unit = {}) =
-    root.button(callback)
+@OptIn(ExperimentalContracts::class)
+inline fun SceneGraph<*>.button(callback: @SceneGraphDslMarker Button.() -> Unit = {}): Button {
+    contract { callsInPlace(callback, InvocationKind.EXACTLY_ONCE) }
+    return root.button(callback)
+}
 
 /**
  * @author Colton Daily
