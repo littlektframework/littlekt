@@ -155,7 +155,7 @@ open class SceneGraph<InputType>(
     val width: Int get() = viewport.virtualWidth
     val height: Int get() = viewport.virtualHeight
 
-    private val camera = OrthographicCamera(context.graphics.width, context.graphics.height).apply {
+    val camera = OrthographicCamera(context.graphics.width, context.graphics.height).apply {
         this.viewport = this@SceneGraph.viewport
     }
 
