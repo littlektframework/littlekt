@@ -13,6 +13,7 @@
 ### Changes
 
 * update: `SceneGraph` methods `resize()`, `render()`, and `initialize()` as `open`.
+* update: `camera` property in `SceneGraph` to public.
 
 ### Bugs:
 
