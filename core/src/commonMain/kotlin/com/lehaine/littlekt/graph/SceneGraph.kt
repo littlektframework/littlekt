@@ -182,7 +182,7 @@ open class SceneGraph<InputType>(
      * Resizes the internal graph's [OrthographicCamera] and [Viewport].
      * @param centerCamera if true will center the graphs internal camera after resizing the viewport
      */
-    fun resize(width: Int, height: Int, centerCamera: Boolean = false) {
+    open fun resize(width: Int, height: Int, centerCamera: Boolean = false) {
         camera.update(width, height, context)
         if (centerCamera) {
             camera.position.set(viewport.virtualWidth / 2f, viewport.virtualHeight / 2f, 0f)
@@ -192,7 +192,7 @@ open class SceneGraph<InputType>(
     /**
      * Initializes the root [Node] and [InputProcessor]. This must be called before an [update] or [render] calls.
      */
-    fun initialize() {
+    open fun initialize() {
         controller.addInputMapProcessor(this)
         context.input.addInputProcessor(this)
         context.input.addInputProcessor(controller)
@@ -205,7 +205,7 @@ open class SceneGraph<InputType>(
     /**
      * Renders the entire tree.
      */
-    fun render() {
+    open fun render() {
         if (!initialized) error("You need to call 'initialize()' once before doing any rendering or updating!")
         viewport.apply(context)
         batch.use(camera.viewProjection) {
