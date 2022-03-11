@@ -9,88 +9,48 @@ import com.lehaine.littlekt.util.viewport.Viewport
  * @author Colton Daily
  * @date 11/27/2021
  */
-abstract class Camera {
-    val position = MutableVec3f(0f)
-    val direction = MutableVec3f(Vec3f.Z_AXIS)
-    val up = MutableVec3f(Vec3f.NEG_Y_AXIS)
-    val rightDir: Vec3f get() = rightMut
+interface Camera {
+    val position: MutableVec3f
+    val direction: MutableVec3f
+    val up: MutableVec3f
+    val rightDir: Vec3f
 
-    protected val rightMut = MutableVec3f()
+    val projection: Mat4
+    val view: Mat4
 
-    val projection = Mat4()
-    val view = Mat4()
-
-    private val lazyInvProjection = LazyMat4 { projection.invert(it) }
-    val invProj: Mat4 get() = lazyInvProjection.get()
-
-    private val lazyInvView = LazyMat4 { view.invert(it) }
-    val invView: Mat4 get() = lazyInvView.get()
-
-    private val lazyViewProjection = LazyMat4 { projection.mul(view, it) }
-    val viewProjection: Mat4 get() = lazyViewProjection.get()
-
-    private val lazyInvViewProjection = LazyMat4 { viewProjection.invert(it) }
-    val invViewProjection: Mat4 get() = lazyInvViewProjection.get()
+    val invProj: Mat4
+    val invView: Mat4
+    val viewProjection: Mat4
+    val invViewProjection: Mat4
 
     /**
      * The near clipping plane distance
      */
-    var near = 1f
+    var near: Float
 
     /**
      * The far clipping plane distance
      */
-    var far = 100f
+    var far: Float
+    var fov: Float
 
-    var fov = 67f
-
-    var viewport = Viewport()
-        set(value) {
-            field = value
-            position.set(viewport.virtualWidth / 2f, viewport.virtualHeight / 2f, 0f)
-        }
+    var viewport: Viewport
 
     var virtualWidth: Int
-        get() = viewport.virtualWidth
-        set(value) {
-            viewport.virtualWidth = value
-        }
-
     var virtualHeight: Int
-        get() = viewport.virtualHeight
-        set(value) {
-            viewport.virtualHeight = value
-        }
 
     var screenX: Int
-        get() = viewport.x
-        set(value) {
-            viewport.x = value
-        }
-
     var screenY: Int
-        get() = viewport.y
-        set(value) {
-            viewport.y = value
-        }
 
     /**
      * The screen width
      */
     var screenWidth: Int
-        get() = viewport.width
-        set(value) {
-            viewport.width = value
-        }
 
     /**
      * The screen height
      */
     var screenHeight: Int
-        get() = viewport.height
-        set(value) {
-            viewport.height = value
-        }
 
 
     /**
@@ -98,58 +58,23 @@ abstract class Camera {
      * This lets you set appropriate minimum/maximum values then use a more intuitive -1 to 1 mapping to change the zoom.
      */
     var zoom: Float
-        get() = _zoom
-        set(value) {
-            zoom(value)
-        }
 
     /**
      * Minimum non-scaled value (0 - [Float.MAX_VALUE] that the camera zoom can be. Defaults to 0.3f.
      */
     var minimumZoom: Float
-        get() = _minimumZoom
-        set(value) {
-            minimumZoom(value)
-        }
 
     /**
      * Maximum non-scaled value (0 - [Float.MAX_VALUE] that the camera zoom can be. Defaults to 3f.
      */
     var maximumZoom: Float
-        get() = _maximumZoom
-        set(value) {
-            maximumZoom(value)
-        }
-    private var _minimumZoom = 0.3f
-    private var _maximumZoom = 3f
-    private var _zoom = 1f
 
-    private val tempVec2 = MutableVec2f()
-    private val tempVec3 = MutableVec3f()
-    private val tempVec4 = MutableVec4f()
-    private val ray = Ray()
-
-    open fun update() {
-        updateViewMatrix()
-        updateProjectionMatrix()
-
-        lazyInvProjection.isDirty = true
-        lazyViewProjection.isDirty = true
-        lazyInvViewProjection.isDirty = true
-    }
+    fun update()
 
     fun update(width: Int, height: Int, context: Context) {
         viewport.update(width, height, context)
         update()
     }
-
-    protected open fun updateViewMatrix() {
-        direction.cross(up, rightMut).norm()
-        view.setToLookAt(position, tempVec3.set(position).add(direction), up)
-        lazyInvView.isDirty = true
-    }
-
-    protected abstract fun updateProjectionMatrix()
 
     fun lookAt(x: Float, y: Float, z: Float) {
         tempVec3.set(x, y, z).subtract(position).norm()
@@ -204,54 +129,24 @@ abstract class Camera {
      * @param value the new zoom
      * @return this camera
      */
-    fun zoom(value: Float) {
-        val newZoom = value.clamp(-1f, 1f)
-        _zoom = when {
-            newZoom == 0f -> {
-                1f
-            }
-            newZoom < 0f -> {
-                map(-1f, 0f, _minimumZoom, 1f, newZoom)
-            }
-            else -> {
-                map(0f, 1f, 1f, _maximumZoom, newZoom)
-            }
-        }
-    }
+    fun zoom(value: Float)
 
     /**
      * Sets the minimum non-scaled value (0 - [Float.MAX_VALUE] that the camera zoom can be. Defaults to 0.3f.
      * @param value the new minimum zoom
      * @return this camera
      */
-    fun minimumZoom(value: Float) {
-        check(value > 0f) { "Minimum zoom must be greater than zero!" }
-
-        if (_zoom < value) {
-            _zoom = value
-        }
-
-        _minimumZoom = value
-    }
-
+    fun minimumZoom(value: Float)
 
     /**
      * Sets the maximum non-scaled value (0 - [Float.MAX_VALUE] that the camera zoom can be. Defaults to 3f.
      * @param value the new maximum zoom
      * @return this camera
      */
-    fun maximumZoom(value: Float) {
-        check(value > 0f) { "Maximum zoom must be greater than zero!" }
+    fun maximumZoom(value: Float)
 
-        if (_zoom > value) {
-            _zoom = value
-        }
-
-        _maximumZoom = value
-    }
-
-    abstract fun boundsInFrustum(point: Vec3f, size: Vec3f): Boolean
-    abstract fun sphereInFrustum(center: Vec3f, radius: Float): Boolean
+    fun boundsInFrustum(point: Vec3f, size: Vec3f): Boolean
+    fun sphereInFrustum(center: Vec3f, radius: Float): Boolean
 
     fun project(world: Vec2f, result: MutableVec2f): Boolean {
         tempVec4.set(world.x, world.y, 1f, 1f)
@@ -398,18 +293,191 @@ abstract class Camera {
 
         return valid
     }
+
+
+    companion object {
+        private val tempVec2 = MutableVec2f()
+        private val tempVec3 = MutableVec3f()
+        private val tempVec4 = MutableVec4f()
+    }
 }
 
-open class OrthographicCamera(virtualWidth: Int = 0, virtualHeight: Int = 0) : Camera() {
+abstract class AbstractCamera : Camera {
+    override val position = MutableVec3f(0f)
+    override val direction = MutableVec3f(Vec3f.Z_AXIS)
+    override val up = MutableVec3f(Vec3f.NEG_Y_AXIS)
+    override val rightDir: Vec3f get() = rightMut
+
+    protected val rightMut = MutableVec3f()
+
+    override val projection = Mat4()
+    override val view = Mat4()
+
+    private val lazyInvProjection = LazyMat4 { projection.invert(it) }
+    override val invProj: Mat4 get() = lazyInvProjection.get()
+
+    private val lazyInvView = LazyMat4 { view.invert(it) }
+    override val invView: Mat4 get() = lazyInvView.get()
+
+    private val lazyViewProjection = LazyMat4 { projection.mul(view, it) }
+    override val viewProjection: Mat4 get() = lazyViewProjection.get()
+
+    private val lazyInvViewProjection = LazyMat4 { viewProjection.invert(it) }
+    override val invViewProjection: Mat4 get() = lazyInvViewProjection.get()
+
+    /**
+     * The near clipping plane distance
+     */
+    override var near = 1f
+
+    /**
+     * The far clipping plane distance
+     */
+    override var far = 100f
+
+    override var fov = 67f
+
+    override var viewport = Viewport()
+        set(value) {
+            field = value
+            position.set(viewport.virtualWidth / 2f, viewport.virtualHeight / 2f, 0f)
+        }
+
+    override var virtualWidth: Int
+        get() = viewport.virtualWidth
+        set(value) {
+            viewport.virtualWidth = value
+        }
+
+    override var virtualHeight: Int
+        get() = viewport.virtualHeight
+        set(value) {
+            viewport.virtualHeight = value
+        }
+
+    override var screenX: Int
+        get() = viewport.x
+        set(value) {
+            viewport.x = value
+        }
+
+    override var screenY: Int
+        get() = viewport.y
+        set(value) {
+            viewport.y = value
+        }
+
+    /**
+     * The screen width
+     */
+    override var screenWidth: Int
+        get() = viewport.width
+        set(value) {
+            viewport.width = value
+        }
+
+    /**
+     * The screen height
+     */
+    override var screenHeight: Int
+        get() = viewport.height
+        set(value) {
+            viewport.height = value
+        }
+
+
+    /**
+     * The zoom value should be between -1 and 1. This value is then translated to be from [minimumZoom] to [maximumZoom].
+     * This lets you set appropriate minimum/maximum values then use a more intuitive -1 to 1 mapping to change the zoom.
+     */
+    override var zoom: Float
+        get() = _zoom
+        set(value) {
+            zoom(value)
+        }
+
+    /**
+     * Minimum non-scaled value (0 - [Float.MAX_VALUE] that the camera zoom can be. Defaults to 0.3f.
+     */
+    override var minimumZoom: Float
+        get() = _minimumZoom
+        set(value) {
+            minimumZoom(value)
+        }
+
+    /**
+     * Maximum non-scaled value (0 - [Float.MAX_VALUE] that the camera zoom can be. Defaults to 3f.
+     */
+    override var maximumZoom: Float
+        get() = _maximumZoom
+        set(value) {
+            maximumZoom(value)
+        }
+    private var _minimumZoom = 0.3f
+    private var _maximumZoom = 3f
+    private var _zoom = 1f
+
+    private val tempVec3 = MutableVec3f()
+
+    override fun update() {
+        updateViewMatrix()
+        updateProjectionMatrix()
+
+        lazyInvProjection.isDirty = true
+        lazyViewProjection.isDirty = true
+        lazyInvViewProjection.isDirty = true
+    }
+
+    protected open fun updateViewMatrix() {
+        direction.cross(up, rightMut).norm()
+        view.setToLookAt(position, tempVec3.set(position).add(direction), up)
+        lazyInvView.isDirty = true
+    }
+
+    protected abstract fun updateProjectionMatrix()
+
+    override fun zoom(value: Float) {
+        val newZoom = value.clamp(-1f, 1f)
+        _zoom = when {
+            newZoom == 0f -> {
+                1f
+            }
+            newZoom < 0f -> {
+                map(-1f, 0f, _minimumZoom, 1f, newZoom)
+            }
+            else -> {
+                map(0f, 1f, 1f, _maximumZoom, newZoom)
+            }
+        }
+    }
+
+    override fun minimumZoom(value: Float) {
+        check(value > 0f) { "Minimum zoom must be greater than zero!" }
+
+        if (_zoom < value) {
+            _zoom = value
+        }
+
+        _minimumZoom = value
+    }
+
+    override fun maximumZoom(value: Float) {
+        check(value > 0f) { "Maximum zoom must be greater than zero!" }
+
+        if (_zoom > value) {
+            _zoom = value
+        }
+
+        _maximumZoom = value
+    }
+}
+
+open class OrthographicCamera(override var virtualWidth: Int = 0, override var virtualHeight: Int = 0) :
+    AbstractCamera() {
     private val planes = List(6) { FrustumPlane() }
 
     private val tempCenter = MutableVec3f()
-
-    init {
-        this.virtualWidth = virtualWidth
-        this.virtualHeight = virtualHeight
-        near = 0f
-    }
+    override var near: Float = 0f
 
     override fun updateProjectionMatrix() {
         val left = zoom * -virtualWidth / 2
