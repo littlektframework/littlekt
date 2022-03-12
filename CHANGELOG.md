@@ -14,6 +14,8 @@
 
 * update: `SceneGraph` methods `resize()`, `render()`, and `initialize()` as `open`.
 * update: `camera` property in `SceneGraph` to public.
+* **BREAKING** update: `Camera` to be an interface and refactor the previous `Camera` abstract class to
+  be `AbstractCamera`.
 
 ### Bugs:
 
