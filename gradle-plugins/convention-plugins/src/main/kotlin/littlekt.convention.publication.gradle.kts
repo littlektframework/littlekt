@@ -46,9 +46,6 @@ val hash: String by lazy {
 publishing {
     repositories {
         maven {
-            if (!(project.extra["isReleaseVersion"] as Boolean)) {
-                version = "$littleKtVersion-$hash"
-            }
             name = "sonatype"
             val releasesRepoUrl = uri("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/")
             val snapshotsRepoUrl = uri("https://s01.oss.sonatype.org/content/repositories/snapshots/")
@@ -91,9 +88,10 @@ publishing {
     }
 }
 
-
-tasks.withType<PublishToMavenLocal> {
-    version = littleKtVersion
+tasks.withType<PublishToMavenRepository> {
+    if (!(project.extra["isReleaseVersion"] as Boolean)) {
+        version = "$littleKtVersion-$hash"
+    }
 }
 
 signing {
