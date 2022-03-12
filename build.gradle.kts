@@ -22,7 +22,7 @@ allprojects {
 
     group = "com.lehaine.littlekt"
     version = littleKtVersion
-    extra["isReleaseVersion"] = !version.toString().endsWith("SNAPSHOT")
+    extra["isReleaseVersion"] = !littleKtVersion.endsWith("SNAPSHOT")
 
     // ./gradlew dependencyUpdates
     // Report: build/dependencyUpdates/report.txt
