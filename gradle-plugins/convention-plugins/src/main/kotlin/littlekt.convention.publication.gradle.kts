@@ -32,10 +32,23 @@ val javadocJar by tasks.registering(Jar::class) {
 
 fun getExtraString(name: String) = ext[name]?.toString()
 
-publishing {
+val littleKtVersion: String by project
+val hash: String by lazy {
+    val stdout = java.io.ByteArrayOutputStream()
+    rootProject.exec {
+        commandLine("git", "rev-parse", "--verify", "--short", "HEAD")
+        standardOutput = stdout
+    }
+    stdout.toString().trim()
+}
 
+
+publishing {
     repositories {
         maven {
+            if (!(project.extra["isReleaseVersion"] as Boolean)) {
+                version = "$littleKtVersion-$hash"
+            }
             name = "sonatype"
             val releasesRepoUrl = uri("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/")
             val snapshotsRepoUrl = uri("https://s01.oss.sonatype.org/content/repositories/snapshots/")
@@ -76,6 +89,11 @@ publishing {
 
         }
     }
+}
+
+
+tasks.withType<PublishToMavenLocal> {
+    version = littleKtVersion
 }
 
 signing {
