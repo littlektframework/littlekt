@@ -90,7 +90,7 @@ publishing {
 
 tasks.withType<PublishToMavenRepository> {
     if (!(project.extra["isReleaseVersion"] as Boolean)) {
-        version = "$littleKtVersion-$hash"
+        version = littleKtVersion.removeSuffix("-SNAPSHOT") + ".$hash-SNAPSHOT"
     }
 }
 

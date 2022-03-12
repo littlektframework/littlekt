@@ -54,8 +54,8 @@ sourceSets {
 ### Snapshots
 
 On every build a snapshot gets created. If you want to be on the bleeding edge then you can pull from the snapshot repo.
-The snapshot versioning uses commit hashes as a suffix. The version convention looks like so: `x.x.x-SNAPSHOT-hash`.
-E.g `0.2.1-SNAPSHOT-080b1ad`.
+The snapshot versioning uses commit hashes as a suffix. The version convention looks like so: `x.x.x.hash-SNAPSHOT`.
+E.g `0.2.1.080b1ad-SNAPSHOT`.
 **Note**: this will most likely cause breaking changes
 
 **build.gradle.kts**:
@@ -73,7 +73,7 @@ kotlin {
     }
 }
 
-val littleKtVersion = "0.2.1-SNAPSHOT-080b1ad" // or whichever hash you are using
+val littleKtVersion = "0.2.1.080b1ad-SNAPSHOT" // or whichever hash you are using
 val kotlinCoroutinesVersion = "1.6.0" // or whatever version you are using
 
 sourceSets {
