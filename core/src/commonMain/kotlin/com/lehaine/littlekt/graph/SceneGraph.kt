@@ -137,10 +137,13 @@ fun <InputSignal> createDefaultSceneGraphController(
  */
 open class SceneGraph<InputType>(
     val context: Context,
-    viewport: Viewport,
-    batch: Batch?,
-    val uiInputSignals: UiInputSignals<InputType>,
-    private val controller: InputMapController<InputType>,
+    viewport: Viewport = ScreenViewport(context.graphics.width, context.graphics.height),
+    batch: Batch? = null,
+    val uiInputSignals: UiInputSignals<InputType> = UiInputSignals(),
+    val controller: InputMapController<InputType> = createDefaultSceneGraphController(
+        context.input,
+        uiInputSignals
+    ),
 ) : InputMapProcessor<InputType>, Disposable {
     private var ownsBatch = true
     val batch: Batch = batch?.also { ownsBatch = false } ?: SpriteBatch(context)
