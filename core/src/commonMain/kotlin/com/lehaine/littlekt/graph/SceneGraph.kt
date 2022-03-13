@@ -137,7 +137,7 @@ fun <InputSignal> createDefaultSceneGraphController(
  */
 open class SceneGraph<InputType>(
     val context: Context,
-    val viewport: Viewport,
+    viewport: Viewport,
     batch: Batch?,
     val uiInputSignals: UiInputSignals<InputType>,
     private val controller: InputMapController<InputType>,
@@ -155,9 +155,11 @@ open class SceneGraph<InputType>(
     val width: Int get() = viewport.virtualWidth
     val height: Int get() = viewport.virtualHeight
 
-    val camera = OrthographicCamera(context.graphics.width, context.graphics.height).apply {
-        this.viewport = this@SceneGraph.viewport
+    var camera = OrthographicCamera(context.graphics.width, context.graphics.height).apply {
+        this.viewport = viewport
     }
+
+    val viewport get() = camera.viewport
 
     private var frameCount = 0
 
