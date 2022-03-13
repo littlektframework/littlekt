@@ -107,7 +107,12 @@ open class Node : Comparable<Node> {
      * If none are found, the scene root viewport will be used.
      */
     var viewport: Viewport? = null
-        internal set
+        internal set(value) {
+            field = value
+            children.fastForEach {
+                it.viewport = value
+            }
+        }
 
     /**
      * Unique identifier for this node.
@@ -329,7 +334,7 @@ open class Node : Comparable<Node> {
     /**
      * Internal rendering that needs to be done on the node that shouldn't be overridden. Calls [render] method.
      */
-    internal fun _render(batch: Batch, camera: Camera) {
+    internal open fun _render(batch: Batch, camera: Camera) {
         if (!enabled || !visible) return
         render(batch, camera)
         onRender.emit(batch, camera)
@@ -462,6 +467,13 @@ open class Node : Comparable<Node> {
         onUpdate.emit(dt)
         nodes.updateLists()
         nodes.update(dt)
+    }
+
+    internal open fun _onResize(width: Int, height: Int, center: Boolean) {
+        if (!enabled) return
+        nodes.forEach {
+            it._onResize(width, height, center)
+        }
     }
 
     /**

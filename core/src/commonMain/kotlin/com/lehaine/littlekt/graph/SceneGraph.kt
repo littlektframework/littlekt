@@ -158,11 +158,18 @@ open class SceneGraph<InputType>(
     val width: Int get() = viewport.virtualWidth
     val height: Int get() = viewport.virtualHeight
 
-    var camera = OrthographicCamera(context.graphics.width, context.graphics.height).apply {
+    internal val camera = OrthographicCamera(context.graphics.width, context.graphics.height).apply {
         this.viewport = viewport
     }
 
-    val viewport get() = camera.viewport
+    private var activeCamera = camera
+
+    var viewport: Viewport = viewport
+        set(value) {
+            field = value
+            camera.viewport = value
+            root.viewport = viewport
+        }
 
     private var frameCount = 0
 
@@ -192,6 +199,7 @@ open class SceneGraph<InputType>(
         if (centerCamera) {
             camera.position.set(viewport.virtualWidth / 2f, viewport.virtualHeight / 2f, 0f)
         }
+        root._onResize(width, height, centerCamera)
     }
 
     /**
@@ -263,7 +271,7 @@ open class SceneGraph<InputType>(
     /**
      * Updates all the nodes in the tree.
      */
-    open fun update(dt: Duration) {
+    fun update(dt: Duration) {
         if (!initialized) error("You need to call 'initialize()' once before doing any rendering or updating!")
 
         pointerOverControls.forEachIndexed { index, overLast ->

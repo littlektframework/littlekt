@@ -33,11 +33,11 @@ class SpriteBatch(
     val defaultShader = ShaderProgram(DefaultVertexShader(), DefaultFragmentShader()).also { it.prepare(context) }
     override var shader: ShaderProgram<*, *> = defaultShader
         set(value) {
-            if (drawing) {
+            if (_drawing) {
                 flush()
             }
             field = value
-            if (drawing) {
+            if (_drawing) {
                 field.bind()
                 setupMatrices()
             }
@@ -49,14 +49,16 @@ class SpriteBatch(
     var maxSpritesInBatch = 0
         private set
 
-    private var drawing = false
+    override val drawing: Boolean get() = _drawing
+    private var _drawing = false
+
     override var transformMatrix = Mat4()
         set(value) {
-            if (drawing) {
+            if (_drawing) {
                 flush()
             }
             field = value
-            if (drawing) {
+            if (_drawing) {
                 setupMatrices()
             }
         }
@@ -69,11 +71,11 @@ class SpriteBatch(
         far = 1f
     )
         set(value) {
-            if (drawing) {
+            if (_drawing) {
                 flush()
             }
             field = value
-            if (drawing) {
+            if (_drawing) {
                 setupMatrices()
             }
         }
@@ -114,7 +116,7 @@ class SpriteBatch(
     }
 
     override fun begin(projectionMatrix: Mat4?) {
-        if (drawing) {
+        if (_drawing) {
             throw IllegalStateException("SpriteBatch.end must be called before begin.")
         }
         renderCalls = 0
@@ -127,7 +129,7 @@ class SpriteBatch(
         shader.bind()
         setupMatrices()
 
-        drawing = true
+        _drawing = true
     }
 
     override fun draw(
@@ -145,7 +147,7 @@ class SpriteBatch(
         flipX: Boolean,
         flipY: Boolean,
     ) {
-        if (!drawing) {
+        if (!_drawing) {
             throw IllegalStateException("SpriteBatch.begin must be called before draw.")
         }
         if (slice.texture != lastTexture) {
@@ -282,7 +284,7 @@ class SpriteBatch(
         flipX: Boolean,
         flipY: Boolean,
     ) {
-        if (!drawing) {
+        if (!_drawing) {
             throw IllegalStateException("SpriteBatch.begin must be called before draw.")
         }
         if (slice.texture != lastTexture) {
@@ -424,7 +426,7 @@ class SpriteBatch(
         flipX: Boolean,
         flipY: Boolean,
     ) {
-        if (!drawing) {
+        if (!_drawing) {
             throw IllegalStateException("SpriteBatch.begin must be called before draw.")
         }
         if (texture != lastTexture) {
@@ -553,7 +555,7 @@ class SpriteBatch(
     }
 
     override fun draw(texture: Texture, spriteVertices: FloatArray, offset: Int, count: Int) {
-        if (!drawing) {
+        if (!_drawing) {
             throw IllegalStateException("SpriteBatch.begin must be called before draw.")
         }
         val verticesLength: Int = mesh.batcherVerticesLength
@@ -586,14 +588,14 @@ class SpriteBatch(
     }
 
     override fun end() {
-        if (!drawing) {
+        if (!_drawing) {
             throw IllegalStateException("SpriteBatch.begin must be called before end.")
         }
         if (idx > 0) {
             flush()
         }
         lastTexture = null
-        drawing = false
+        _drawing = false
         gl.depthMask(true)
         gl.disable(State.BLEND)
     }

@@ -53,11 +53,11 @@ class TextureArraySpriteBatch(
         ShaderProgram(TextureArrayVertexShader(), TextureArrayFragmentShader()).also { it.prepare(context) }
     override var shader: ShaderProgram<*, *> = defaultShader
         set(value) {
-            if (drawing) {
+            if (_drawing) {
                 flush()
             }
             field = value
-            if (drawing) {
+            if (_drawing) {
                 field.bind()
                 setupMatrices()
             }
@@ -74,11 +74,11 @@ class TextureArraySpriteBatch(
 
     override var transformMatrix = Mat4()
         set(value) {
-            if (drawing) {
+            if (_drawing) {
                 flush()
             }
             field = value
-            if (drawing) {
+            if (_drawing) {
                 setupMatrices()
             }
         }
@@ -91,11 +91,11 @@ class TextureArraySpriteBatch(
         far = 1f
     )
         set(value) {
-            if (drawing) {
+            if (_drawing) {
                 flush()
             }
             field = value
-            if (drawing) {
+            if (_drawing) {
                 setupMatrices()
             }
         }
@@ -118,7 +118,8 @@ class TextureArraySpriteBatch(
         indicesAsQuad()
     }
 
-    private var drawing = false
+    override val drawing: Boolean get() = _drawing
+    private var _drawing = false
 
     private var idx = 0
 
@@ -177,7 +178,7 @@ class TextureArraySpriteBatch(
     }
 
     override fun begin(projectionMatrix: Mat4?) {
-        if (drawing) {
+        if (_drawing) {
             throw IllegalStateException("SpriteBatch.end must be called before begin.")
         }
         renderCalls = 0
@@ -193,7 +194,7 @@ class TextureArraySpriteBatch(
         shader.bind()
         setupMatrices()
 
-        drawing = true
+        _drawing = true
     }
 
     override fun draw(
@@ -211,7 +212,7 @@ class TextureArraySpriteBatch(
         flipX: Boolean,
         flipY: Boolean,
     ) {
-        if (!drawing) {
+        if (!_drawing) {
             throw IllegalStateException("SpriteBatch.begin must be called before draw.")
         }
 
@@ -350,7 +351,7 @@ class TextureArraySpriteBatch(
         flipX: Boolean,
         flipY: Boolean
     ) {
-        if (!drawing) {
+        if (!_drawing) {
             throw IllegalStateException("SpriteBatch.begin must be called before draw.")
         }
 
@@ -494,7 +495,7 @@ class TextureArraySpriteBatch(
         flipX: Boolean,
         flipY: Boolean,
     ) {
-        if (!drawing) {
+        if (!_drawing) {
             throw IllegalStateException("SpriteBatch.begin must be called before draw.")
         }
 
@@ -626,7 +627,7 @@ class TextureArraySpriteBatch(
     }
 
     override fun draw(texture: Texture, spriteVertices: FloatArray, offset: Int, count: Int) {
-        if (!drawing) {
+        if (!_drawing) {
             throw IllegalStateException("SpriteBatch.begin must be called before draw.")
         }
         flushIfFull()
@@ -644,13 +645,13 @@ class TextureArraySpriteBatch(
     }
 
     override fun end() {
-        if (!drawing) {
+        if (!_drawing) {
             throw IllegalStateException("SpriteBatch.begin must be called before end.")
         }
         if (idx > 0) {
             flush()
         }
-        drawing = false
+        _drawing = false
         gl.depthMask(true)
         gl.disable(State.BLEND)
     }

@@ -14,6 +14,7 @@ import kotlin.contracts.contract
  * @date 2/8/2022
  */
 interface Batch : Disposable {
+    val drawing: Boolean
     var color: Color
     var colorBits: Float
     var transformMatrix: Mat4
