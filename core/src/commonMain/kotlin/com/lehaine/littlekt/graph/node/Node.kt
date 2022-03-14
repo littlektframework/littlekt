@@ -109,7 +109,7 @@ open class Node : Comparable<Node> {
     var viewport: Viewport? = null
         internal set(value) {
             field = value
-            children.fastForEach {
+            nodes.forEach {
                 it.viewport = value
             }
         }

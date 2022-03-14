@@ -1,10 +1,11 @@
 package com.lehaine.littlekt.graph.node.node2d
 
 import com.lehaine.littlekt.graph.SceneGraph
-import com.lehaine.littlekt.graph.node.CanvasLayer
 import com.lehaine.littlekt.graph.node.Node
 import com.lehaine.littlekt.graph.node.addTo
 import com.lehaine.littlekt.graph.node.annotation.SceneGraphDslMarker
+import com.lehaine.littlekt.graphics.Batch
+import com.lehaine.littlekt.graphics.Camera
 import com.lehaine.littlekt.graphics.OrthographicCamera
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
@@ -37,7 +38,7 @@ inline fun SceneGraph<*>.camera2d(callback: @SceneGraphDslMarker Camera2D.() -> 
  * @author Colton Daily
  * @date 3/13/2022
  */
-class Camera2D : Node2D() {
+open class Camera2D : Node2D() {
 
     private var camera: OrthographicCamera? = null
 
@@ -46,10 +47,7 @@ class Camera2D : Node2D() {
             field = value
             if (value) {
                 scene?.let {
-                    println("added")
-                    it.root.disableOtherCameras()
-                    findClosestCanvasTransform()
-                    onPositionChanged()
+                    initializeCamera()
                 }
             }
         }
@@ -57,15 +55,25 @@ class Camera2D : Node2D() {
     override fun onAddedToScene() {
         super.onAddedToScene()
         if (active) {
-            findClosestCanvasTransform()
-            camera?.position?.set(globalX, globalY, 0f)
+            initializeCamera()
         }
+    }
+
+    private fun initializeCamera() {
+        scene?.root?.disableOtherCameras()
     }
 
     override fun update(dt: Duration) {
         if (active) {
             camera?.position?.set(globalX, globalY, 0f)
         }
+    }
+
+    override fun _render(batch: Batch, camera: Camera) {
+        if (active) {
+            camera.position.set(globalX, globalY, 0f)
+        }
+        super._render(batch, camera)
     }
 
     private fun Node.disableOtherCameras() {
@@ -76,24 +84,5 @@ class Camera2D : Node2D() {
             }
         }
         nodes.forEach { it.disableOtherCameras() }
-    }
-
-    private fun findClosestCanvasTransform() {
-        var current: Node? = this
-        while (current != null) {
-            when (val parent = current.parent) {
-                is CanvasLayer -> {
-                    camera = parent.camera
-                    return
-                }
-                scene?.root -> {
-                    camera = scene?.camera ?: error("Unable to set to camera root")
-                    return
-                }
-                else -> {
-                    current = parent
-                }
-            }
-        }
     }
 }

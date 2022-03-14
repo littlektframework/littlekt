@@ -47,7 +47,7 @@ abstract class Camera {
     var viewport = Viewport()
         set(value) {
             field = value
-            position.set(viewport.virtualWidth / 2f, viewport.virtualHeight / 2f, 0f)
+        //    position.set(viewport.virtualWidth / 2f, viewport.virtualHeight / 2f, 0f)
         }
 
     var virtualWidth: Int
