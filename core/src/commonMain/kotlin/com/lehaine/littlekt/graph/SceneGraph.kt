@@ -2,14 +2,15 @@ package com.lehaine.littlekt.graph
 
 import com.lehaine.littlekt.Context
 import com.lehaine.littlekt.Disposable
+import com.lehaine.littlekt.graph.node.GraphViewport
 import com.lehaine.littlekt.graph.node.Node
+import com.lehaine.littlekt.graph.node.addTo
 import com.lehaine.littlekt.graph.node.annotation.SceneGraphDslMarker
 import com.lehaine.littlekt.graph.node.component.InputEvent
 import com.lehaine.littlekt.graph.node.node2d.ui.Control
 import com.lehaine.littlekt.graphics.Batch
 import com.lehaine.littlekt.graphics.OrthographicCamera
 import com.lehaine.littlekt.graphics.SpriteBatch
-import com.lehaine.littlekt.graphics.use
 import com.lehaine.littlekt.input.*
 import com.lehaine.littlekt.math.MutableVec2f
 import com.lehaine.littlekt.util.datastructure.Pool
@@ -148,21 +149,24 @@ open class SceneGraph<InputType>(
     private var ownsBatch = true
     val batch: Batch = batch?.also { ownsBatch = false } ?: SpriteBatch(context)
 
-    val root: Node by lazy {
-        Node().apply {
+    val sceneViewport: GraphViewport by lazy {
+        GraphViewport().apply {
+            name = "Scene Viewport"
             scene = this@SceneGraph
-            this.viewport = this@SceneGraph.viewport
+            strategy = viewport
         }
     }
 
-    val width: Int get() = viewport.virtualWidth
-    val height: Int get() = viewport.virtualHeight
-
-    var camera = OrthographicCamera(context.graphics.width, context.graphics.height).apply {
-        this.viewport = viewport
+    val root: Node by lazy {
+        Node().apply { name = "Root" }.addTo(sceneViewport)
     }
 
-    val viewport get() = camera.viewport
+    val width: Int get() = sceneViewport.virtualWidth
+    val height: Int get() = sceneViewport.virtualHeight
+
+    internal val camera = OrthographicCamera(context.graphics.width, context.graphics.height).apply {
+        this.viewport = viewport
+    }
 
     private var frameCount = 0
 
@@ -188,9 +192,11 @@ open class SceneGraph<InputType>(
      * @param centerCamera if true will center the graphs internal camera after resizing the viewport
      */
     open fun resize(width: Int, height: Int, centerCamera: Boolean = false) {
-        camera.update(width, height, context)
+        sceneViewport._onResize(width, height, centerCamera)
+        camera.viewport = sceneViewport.strategy
+        camera.update()
         if (centerCamera) {
-            camera.position.set(viewport.virtualWidth / 2f, viewport.virtualHeight / 2f, 0f)
+              camera.position.set(sceneViewport.virtualWidth / 2f, sceneViewport.virtualHeight / 2f, 0f)
         }
     }
 
@@ -211,11 +217,11 @@ open class SceneGraph<InputType>(
      * Renders the entire tree.
      */
     open fun render() {
-        if (!initialized) error("You need to call 'initialize()' once before doing any rendering or updating!")
-        viewport.apply(context)
-        batch.use(camera.viewProjection) {
-            root._render(batch, camera)
-        }
+        if (!initialized) error("You need to call 'initialize()'once before doing any rendering or updating!")
+        camera.viewport = sceneViewport.strategy
+        camera.update()
+        batch.projectionMatrix = camera.viewProjection
+        sceneViewport._render(batch, camera)
     }
 
     /**
@@ -263,7 +269,7 @@ open class SceneGraph<InputType>(
     /**
      * Updates all the nodes in the tree.
      */
-    open fun update(dt: Duration) {
+    fun update(dt: Duration) {
         if (!initialized) error("You need to call 'initialize()' once before doing any rendering or updating!")
 
         pointerOverControls.forEachIndexed { index, overLast ->
@@ -303,7 +309,6 @@ open class SceneGraph<InputType>(
             }
         }
 
-        camera.update()
         if (root.enabled && (root.updateInterval == 1 || frameCount % root.updateInterval == 0)) {
             root._update(dt)
         }
@@ -656,10 +661,10 @@ open class SceneGraph<InputType>(
     }
 
     private fun isInsideViewport(x: Int, y: Int): Boolean {
-        val x0 = viewport.x
-        val x1 = x0 + viewport.width
-        val y0 = viewport.y
-        val y1 = y0 + viewport.height
+        val x0 = sceneViewport.x
+        val x1 = x0 + sceneViewport.width
+        val y0 = sceneViewport.y
+        val y1 = y0 + sceneViewport.height
         val screenY = context.graphics.height - 1 - y
         return x in x0 until x1 && screenY in y0 until y1
     }
@@ -669,7 +674,7 @@ open class SceneGraph<InputType>(
      * from the active slot.
      */
     override fun dispose() {
-        root.destroy()
+        sceneViewport.destroy()
         if (ownsBatch) {
             batch.dispose()
         }
