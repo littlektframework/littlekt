@@ -204,7 +204,7 @@ open class SceneGraph<InputType>(
     /**
      * Initializes the root [Node] and [InputProcessor]. This must be called before an [update] or [render] calls.
      */
-    open fun initialize() {
+    open suspend fun initialize() {
         controller.addInputMapProcessor(this)
         context.input.addInputProcessor(this)
         context.input.addInputProcessor(controller)
@@ -225,14 +225,14 @@ open class SceneGraph<InputType>(
         camera.update()
         batch.projectionMatrix = camera.viewProjection
         sceneViewport._render(batch, camera, onNodeRender)
-        if(batch.drawing) batch.end()
+        if (batch.drawing) batch.end()
     }
 
     /**
      * Lifecycle method. This is called whenever the [SceneGraph] is set before [initialize] is called.
      * Any nodes added to this [Node] context won't be added until the next frame update.
      */
-    open fun Node.initialize() = Unit
+    open suspend fun Node.initialize() = Unit
 
     /**
      * Lifecycle method. This is called when this scene becomes the active scene.
