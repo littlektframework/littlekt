@@ -47,7 +47,7 @@ abstract class Camera {
     var viewport = Viewport()
         set(value) {
             field = value
-        //    position.set(viewport.virtualWidth / 2f, viewport.virtualHeight / 2f, 0f)
+            //    position.set(viewport.virtualWidth / 2f, viewport.virtualHeight / 2f, 0f)
         }
 
     var virtualWidth: Int
@@ -94,40 +94,13 @@ abstract class Camera {
 
 
     /**
-     * The zoom value should be between -1 and 1. This value is then translated to be from [minimumZoom] to [maximumZoom].
-     * This lets you set appropriate minimum/maximum values then use a more intuitive -1 to 1 mapping to change the zoom.
+     * The current zoom value.
      */
-    var zoom: Float
-        get() = _zoom
-        set(value) {
-            zoom(value)
-        }
-
-    /**
-     * Minimum non-scaled value (0 - [Float.MAX_VALUE] that the camera zoom can be. Defaults to 0.3f.
-     */
-    var minimumZoom: Float
-        get() = _minimumZoom
-        set(value) {
-            minimumZoom(value)
-        }
-
-    /**
-     * Maximum non-scaled value (0 - [Float.MAX_VALUE] that the camera zoom can be. Defaults to 3f.
-     */
-    var maximumZoom: Float
-        get() = _maximumZoom
-        set(value) {
-            maximumZoom(value)
-        }
-    private var _minimumZoom = 0.3f
-    private var _maximumZoom = 3f
-    private var _zoom = 1f
+    var zoom: Float = 1f
 
     private val tempVec2 = MutableVec2f()
     private val tempVec3 = MutableVec3f()
     private val tempVec4 = MutableVec4f()
-    private val ray = Ray()
 
     open fun update() {
         updateViewMatrix()
@@ -196,58 +169,6 @@ abstract class Camera {
     fun normalizeUp() {
         tempVec3.set(direction).cross(up, tempVec3)
         up.set(tempVec3).cross(direction, up).norm()
-    }
-
-    /**
-     * Sets the zoom value should be between -1 and 1. This value is then translated to be from [minimumZoom] to [maximumZoom].
-     * This lets you set appropriate minimum/maximum values then use a more intuitive -1 to 1 mapping to change the zoom.
-     * @param value the new zoom
-     * @return this camera
-     */
-    fun zoom(value: Float) {
-        val newZoom = value.clamp(-1f, 1f)
-        _zoom = when {
-            newZoom == 0f -> {
-                1f
-            }
-            newZoom < 0f -> {
-                map(-1f, 0f, _minimumZoom, 1f, newZoom)
-            }
-            else -> {
-                map(0f, 1f, 1f, _maximumZoom, newZoom)
-            }
-        }
-    }
-
-    /**
-     * Sets the minimum non-scaled value (0 - [Float.MAX_VALUE] that the camera zoom can be. Defaults to 0.3f.
-     * @param value the new minimum zoom
-     * @return this camera
-     */
-    fun minimumZoom(value: Float) {
-        check(value > 0f) { "Minimum zoom must be greater than zero!" }
-
-        if (_zoom < value) {
-            _zoom = value
-        }
-
-        _minimumZoom = value
-    }
-
-
-    /**
-     * Sets the maximum non-scaled value (0 - [Float.MAX_VALUE] that the camera zoom can be. Defaults to 3f.
-     * @param value the new maximum zoom
-     * @return this camera
-     */
-    fun maximumZoom(value: Float) {
-        check(value > 0f) { "Maximum zoom must be greater than zero!" }
-
-        if (_zoom > value) {
-            _zoom = value
-        }
-
-        _maximumZoom = value
     }
 
     abstract fun boundsInFrustum(point: Vec3f, size: Vec3f): Boolean

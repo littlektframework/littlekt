@@ -39,8 +39,6 @@ inline fun SceneGraph<*>.camera2d(callback: @SceneGraphDslMarker Camera2D.() -> 
 open class Camera2D : Node2D() {
 
     var zoom: Float = 1f
-    var minZoom: Float = 1f
-    var maxZoom: Float = 1f
     var near: Float = 0f
     var far: Float = 100f
 
@@ -68,8 +66,6 @@ open class Camera2D : Node2D() {
     override fun _render(batch: Batch, camera: Camera, renderCallback: ((Node, Batch, Camera) -> Unit)?) {
         if (active) {
             camera.zoom = zoom
-            camera.maximumZoom = maxZoom
-            camera.minimumZoom = minZoom
             camera.near = near
             camera.far = far
             camera.position.set(globalX, globalY, 0f)
