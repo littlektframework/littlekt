@@ -9,6 +9,7 @@ import com.lehaine.littlekt.graph.node.annotation.SceneGraphDslMarker
 import com.lehaine.littlekt.graph.node.component.InputEvent
 import com.lehaine.littlekt.graph.node.node2d.ui.Control
 import com.lehaine.littlekt.graphics.Batch
+import com.lehaine.littlekt.graphics.Camera
 import com.lehaine.littlekt.graphics.OrthographicCamera
 import com.lehaine.littlekt.graphics.SpriteBatch
 import com.lehaine.littlekt.input.*
@@ -196,7 +197,7 @@ open class SceneGraph<InputType>(
         camera.viewport = sceneViewport.strategy
         camera.update()
         if (centerCamera) {
-              camera.position.set(sceneViewport.virtualWidth / 2f, sceneViewport.virtualHeight / 2f, 0f)
+            camera.position.set(sceneViewport.virtualWidth / 2f, sceneViewport.virtualHeight / 2f, 0f)
         }
     }
 
@@ -215,13 +216,16 @@ open class SceneGraph<InputType>(
 
     /**
      * Renders the entire tree.
+     * @param onNodeRender invoked when a node receives a `render` call. Useful when extending the [SceneGraph]
+     * and providing custom logic before each render such as camera culling.
      */
-    open fun render() {
+    open fun render(onNodeRender: ((Node, Batch, Camera) -> Unit)? = null) {
         if (!initialized) error("You need to call 'initialize()'once before doing any rendering or updating!")
         camera.viewport = sceneViewport.strategy
         camera.update()
         batch.projectionMatrix = camera.viewProjection
-        sceneViewport._render(batch, camera)
+        sceneViewport._render(batch, camera, onNodeRender)
+        if(batch.drawing) batch.end()
     }
 
     /**

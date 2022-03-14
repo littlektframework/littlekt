@@ -69,11 +69,11 @@ open class Camera2D : Node2D() {
         }
     }
 
-    override fun _render(batch: Batch, camera: Camera) {
+    override fun _render(batch: Batch, camera: Camera, renderCallback: ((Node, Batch, Camera) -> Unit)?) {
         if (active) {
             camera.position.set(globalX, globalY, 0f)
         }
-        super._render(batch, camera)
+        super._render(batch, camera, renderCallback)
     }
 
     private fun Node.disableOtherCameras() {

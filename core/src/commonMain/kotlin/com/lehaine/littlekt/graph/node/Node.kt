@@ -334,12 +334,13 @@ open class Node : Comparable<Node> {
     /**
      * Internal rendering that needs to be done on the node that shouldn't be overridden. Calls [render] method.
      */
-    internal open fun _render(batch: Batch, camera: Camera) {
+    internal open fun _render(batch: Batch, camera: Camera, renderCallback: ((Node, Batch, Camera) -> Unit)?) {
         if (!enabled || !visible) return
+        renderCallback?.invoke(this, batch, camera)
         render(batch, camera)
         onRender.emit(batch, camera)
         nodes.forEach {
-            it._render(batch, camera)
+            it._render(batch, camera, renderCallback)
         }
     }
 

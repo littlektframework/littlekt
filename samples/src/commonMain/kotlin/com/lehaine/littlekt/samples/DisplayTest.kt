@@ -670,7 +670,7 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
         }
 
         assetProvider.onFullyLoaded = {
-            scene.resize(graphics.width, graphics.height)
+            scene.resize(graphics.width, graphics.height, true)
         }
         input.inputProcessor {
             val temp = MutableVec2f()
@@ -708,10 +708,10 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
         }
 
         onResize { width, height ->
-            println("resize $width,$height")
             camera.update(width, height, context)
+            camera.position.set(camera.virtualWidth / 2f, camera.virtualHeight / 2f, 0f)
             if (!assetProvider.fullyLoaded) return@onResize
-            scene.resize(width, height)
+            scene.resize(width, height, true)
         }
 
         var firstRender = true

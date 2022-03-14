@@ -53,7 +53,7 @@ open class CanvasLayer : Node() {
         super._onResize(width, height, center)
     }
 
-    override fun _render(batch: Batch, camera: Camera) {
+    override fun _render(batch: Batch, camera: Camera, renderCallback: ((Node, Batch, Camera) -> Unit)?) {
         if (!enabled || !visible) return
         val prevProjMatrix = batch.projectionMatrix
         scene?.let {
@@ -61,11 +61,14 @@ open class CanvasLayer : Node() {
             this.camera.update()
         }
         batch.projectionMatrix = this.camera.viewProjection
+        renderCallback?.invoke(this, batch, this.camera)
         render(batch, this.camera)
         onRender.emit(batch, this.camera)
         nodes.forEach {
-            it._render(batch, this.camera)
+            it._render(batch, this.camera, renderCallback)
         }
         batch.projectionMatrix = prevProjMatrix
     }
+
+
 }
