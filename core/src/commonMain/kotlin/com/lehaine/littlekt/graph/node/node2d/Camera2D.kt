@@ -6,11 +6,9 @@ import com.lehaine.littlekt.graph.node.addTo
 import com.lehaine.littlekt.graph.node.annotation.SceneGraphDslMarker
 import com.lehaine.littlekt.graphics.Batch
 import com.lehaine.littlekt.graphics.Camera
-import com.lehaine.littlekt.graphics.OrthographicCamera
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
-import kotlin.time.Duration
 
 /**
  * Adds a [Camera2D] to the current [Node] as a child and then triggers the [callback]
@@ -40,7 +38,11 @@ inline fun SceneGraph<*>.camera2d(callback: @SceneGraphDslMarker Camera2D.() -> 
  */
 open class Camera2D : Node2D() {
 
-    private var camera: OrthographicCamera? = null
+    var zoom: Float = 1f
+    var minZoom: Float = 1f
+    var maxZoom: Float = 1f
+    var near: Float = 0f
+    var far: Float = 100f
 
     var active: Boolean = false
         set(value) {
@@ -63,14 +65,13 @@ open class Camera2D : Node2D() {
         scene?.root?.disableOtherCameras()
     }
 
-    override fun update(dt: Duration) {
-        if (active) {
-            camera?.position?.set(globalX, globalY, 0f)
-        }
-    }
-
     override fun _render(batch: Batch, camera: Camera, renderCallback: ((Node, Batch, Camera) -> Unit)?) {
         if (active) {
+            camera.zoom = zoom
+            camera.maximumZoom = maxZoom
+            camera.minimumZoom = minZoom
+            camera.near = near
+            camera.far = far
             camera.position.set(globalX, globalY, 0f)
         }
         super._render(batch, camera, renderCallback)
