@@ -35,15 +35,22 @@ abstract class TiledLayer(
         a *= opacity
     }.toFloatBits()
 
-    fun render(batch: Batch, camera: Camera, x: Float, y: Float, displayObjects: Boolean) {
+    fun render(batch: Batch, camera: Camera, x: Float, y: Float, scale: Float = 1f, displayObjects: Boolean = false) {
         viewBounds.calculateViewBounds(camera)
-        render(batch, viewBounds, x, y, displayObjects)
+        render(batch, viewBounds, x, y, scale, displayObjects = displayObjects)
     }
 
-    final override fun render(batch: Batch, viewBounds: Rect, x: Float, y: Float) =
-        render(batch, viewBounds, x, y, false)
+    final override fun render(batch: Batch, viewBounds: Rect, x: Float, y: Float, scale: Float) =
+        render(batch, viewBounds, x, y, scale, displayObjects = false)
 
-    abstract fun render(batch: Batch, viewBounds: Rect, x: Float = 0f, y: Float = 0f, displayObjects: Boolean = false)
+    abstract fun render(
+        batch: Batch,
+        viewBounds: Rect,
+        x: Float = 0f,
+        y: Float = 0f,
+        scale: Float = 1f,
+        displayObjects: Boolean = false
+    )
 
     /**
      * @return true if grid-based coordinates are within layer bounds.

@@ -33,11 +33,25 @@ class TiledMap(
     val layersByName by lazy { layers.associateBy { it.name } }
     val layersById by lazy { layers.associateBy { it.id } }
 
-    override fun render(batch: Batch, camera: Camera, x: Float, y: Float) = render(batch, camera, x, y, false)
+    override fun render(batch: Batch, camera: Camera, x: Float, y: Float, scale: Float) = render(
+        batch,
+        camera,
+        x,
+        y,
+        scale,
+        displayObjects = false
+    )
 
-    fun render(batch: Batch, camera: Camera, x: Float = 0f, y: Float = 0f, displayObjects: Boolean = false) {
+    fun render(
+        batch: Batch,
+        camera: Camera,
+        x: Float = 0f,
+        y: Float = 0f,
+        scale: Float = 1f,
+        displayObjects: Boolean = false
+    ) {
         layers.forEach {
-            it.render(batch, camera, x, y, displayObjects)
+            it.render(batch, camera, x, y, scale, displayObjects = displayObjects)
         }
     }
 

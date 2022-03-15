@@ -11,5 +11,5 @@ import com.lehaine.littlekt.math.Rect
 abstract class TileMap {
     protected val viewBounds = Rect()
 
-    abstract fun render(batch: Batch, camera: Camera, x: Float = 0f, y: Float = 0f)
+    abstract fun render(batch: Batch, camera: Camera, x: Float = 0f, y: Float = 0f, scale: Float = 1f)
 }

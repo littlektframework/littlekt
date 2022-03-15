@@ -12,10 +12,10 @@ import com.lehaine.littlekt.util.calculateViewBounds
 abstract class TileLayer {
     protected val viewBounds = Rect()
 
-    fun render(batch: Batch, camera: Camera, x: Float, y: Float) {
+    fun render(batch: Batch, camera: Camera, x: Float, y: Float, scale: Float = 1f) {
         viewBounds.calculateViewBounds(camera)
-        render(batch, viewBounds, x, y)
+        render(batch, viewBounds, x, y, scale)
     }
 
-    abstract fun render(batch: Batch, viewBounds: Rect, x: Float = 0f, y: Float = 0f)
+    abstract fun render(batch: Batch, viewBounds: Rect, x: Float = 0f, y: Float = 0f, scale: Float = 1f)
 }

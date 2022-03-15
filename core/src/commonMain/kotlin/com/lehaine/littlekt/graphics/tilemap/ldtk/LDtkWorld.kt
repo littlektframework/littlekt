@@ -24,7 +24,7 @@ class LDtkWorld(
 
     internal var onDispose = {}
 
-    override fun render(batch: Batch, camera: Camera, x: Float, y: Float) {
+    override fun render(batch: Batch, camera: Camera, x: Float, y: Float, scale: Float) {
         viewBounds.calculateViewBounds(camera)
         levels.forEach { it.render(batch, viewBounds, it.worldX + x, it.worldY + y) }
     }

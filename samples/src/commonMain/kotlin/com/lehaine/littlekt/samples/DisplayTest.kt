@@ -768,7 +768,7 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
             camera.update()
             boss.update(dt)
             batch.use(camera.viewProjection) {
-                ldtkWorld.render(it, camera)
+                ldtkWorld.render(it, camera, scale = 4f)
                 it.draw(
                     person,
                     x,

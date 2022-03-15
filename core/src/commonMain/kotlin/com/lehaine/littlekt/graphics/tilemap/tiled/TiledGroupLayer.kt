@@ -27,11 +27,11 @@ class TiledGroupLayer(
     type, name, id, visible, width, height, offsetX, offsetY, tileWidth, tileHeight, tintColor, opacity, properties
 ) {
 
-    override fun render(batch: Batch, viewBounds: Rect, x: Float, y: Float, displayObjects: Boolean) {
+    override fun render(batch: Batch, viewBounds: Rect, x: Float, y: Float, scale: Float, displayObjects: Boolean) {
         if (!visible) return
 
         layers.forEach {
-            it.render(batch, viewBounds, x + offsetX, y + offsetY, displayObjects)
+            it.render(batch, viewBounds, x + offsetX, y + offsetY, displayObjects = displayObjects)
         }
     }
 }

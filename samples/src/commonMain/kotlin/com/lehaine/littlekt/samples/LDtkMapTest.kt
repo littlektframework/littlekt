@@ -8,6 +8,7 @@ import com.lehaine.littlekt.graphics.SpriteBatch
 import com.lehaine.littlekt.graphics.gl.ClearBufferMask
 import com.lehaine.littlekt.graphics.use
 import com.lehaine.littlekt.input.Key
+import com.lehaine.littlekt.util.milliseconds
 import com.lehaine.littlekt.util.viewport.ExtendViewport
 
 /**
@@ -18,12 +19,12 @@ class LDtkMapTest(context: Context) : ContextListener(context) {
 
     override suspend fun Context.start() {
         val camera = OrthographicCamera().apply {
-            viewport = ExtendViewport(480, 270)
+            viewport = ExtendViewport(30, 16)
         }
 
         val batch = SpriteBatch(context, 8191)
 
-       val mapLoader =  resourcesVfs["ldtk/world.ldtk"].readLDtkMapLoader()
+        val mapLoader = resourcesVfs["ldtk/world.ldtk"].readLDtkMapLoader()
         val level = mapLoader.loadLevel(2)
 
         onResize { width, height ->
@@ -33,20 +34,20 @@ class LDtkMapTest(context: Context) : ContextListener(context) {
             gl.clear(ClearBufferMask.COLOR_BUFFER_BIT)
 
             if (input.isKeyPressed(Key.W)) {
-                camera.position.y -= 10f
+                camera.position.y -= 0.05f * dt.milliseconds
             } else if (input.isKeyPressed(Key.S)) {
-                camera.position.y += 10f
+                camera.position.y += 0.05f * dt.milliseconds
             }
 
             if (input.isKeyPressed(Key.D)) {
-                camera.position.x += 10f
+                camera.position.x += 0.05f * dt.milliseconds
             } else if (input.isKeyPressed(Key.A)) {
-                camera.position.x -= 10f
+                camera.position.x -= 0.05f * dt.milliseconds
             }
             camera.update()
 
             batch.use(camera.viewProjection) {
-                level.render(it, camera)
+                level.render(it, camera, scale = 1 / 8f)
             }
 
             if (input.isKeyJustPressed(Key.P)) {

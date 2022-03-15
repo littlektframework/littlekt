@@ -28,7 +28,7 @@ class TiledImageLayer(
     type, name, id, visible, width, height, offsetX, offsetY, tileWidth, tileHeight, tintColor, opacity, properties
 ) {
 
-    override fun render(batch: Batch, viewBounds: Rect, x: Float, y: Float, displayObjects: Boolean) {
+    override fun render(batch: Batch, viewBounds: Rect, x: Float, y: Float, scale: Float, displayObjects: Boolean) {
         if (!visible) return
 
         texture?.let {
@@ -37,7 +37,7 @@ class TiledImageLayer(
             val tx2 = tx + texture.width
             val ty2 = ty + texture.height
             if (viewBounds.intersects(tx, ty, tx2, ty2)) {
-                batch.draw(it, tx, ty, colorBits = colorBits)
+                batch.draw(it, tx, ty, scaleX = scale, scaleY = scale, colorBits = colorBits)
             }
         }
     }

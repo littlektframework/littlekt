@@ -48,7 +48,7 @@ class TiledObjectLayer(
     val objectsByName by lazy { objects.associateBy { it.name } }
     val objectsByType by lazy { objects.groupBy { it.type } }
 
-    override fun render(batch: Batch, viewBounds: Rect, x: Float, y: Float, displayObjects: Boolean) {
+    override fun render(batch: Batch, viewBounds: Rect, x: Float, y: Float, scale: Float, displayObjects: Boolean) {
         if (!displayObjects || !visible) return
 
         objects.forEach { obj ->

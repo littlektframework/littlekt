@@ -38,7 +38,10 @@ open class LDtkTilesLayer(
         return tiles.contains(getCoordId(cx, cy))
     }
 
-    override fun render(batch: Batch, viewBounds: Rect, x: Float, y: Float) {
+    override fun render(batch: Batch, viewBounds: Rect, x: Float, y: Float, scale: Float) {
+        val cellSize = cellSize * scale
+        val pxTotalOffsetX = pxTotalOffsetX * scale
+        val pxTotalOffsetY = pxTotalOffsetY * scale
         val minX = max(0, ((viewBounds.x - x - pxTotalOffsetX) / cellSize).toInt())
         val maxX = min(
             gridWidth,
@@ -63,10 +66,8 @@ open class LDtkTilesLayer(
                                 y = cy * cellSize + pxTotalOffsetY + y,
                                 originX = 0f,
                                 originY = 0f,
-                                width = cellSize.toFloat(),
-                                height = cellSize.toFloat(),
-                                scaleX = 1f,
-                                scaleY = 1f,
+                                scaleX = scale,
+                                scaleY = scale,
                                 rotation = Angle.ZERO,
                                 flipX = it.flipX,
                                 flipY = it.flipY

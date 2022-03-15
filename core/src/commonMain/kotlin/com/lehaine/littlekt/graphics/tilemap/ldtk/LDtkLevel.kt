@@ -63,16 +63,28 @@ class LDtkLevel(
 
     private val viewBounds = Rect()
 
-    fun render(batch: Batch, camera: Camera, x: Float = worldX.toFloat(), y: Float = worldY.toFloat()) {
+    fun render(
+        batch: Batch,
+        camera: Camera,
+        x: Float = worldX.toFloat(),
+        y: Float = worldY.toFloat(),
+        scale: Float = 1f
+    ) {
         viewBounds.calculateViewBounds(camera)
-        render(batch, viewBounds, x, y)
+        render(batch, viewBounds, x, y, scale)
     }
 
-    fun render(batch: Batch, viewBounds: Rect, x: Float = worldX.toFloat(), y: Float = worldY.toFloat()) {
+    fun render(
+        batch: Batch,
+        viewBounds: Rect,
+        x: Float = worldX.toFloat(),
+        y: Float = worldY.toFloat(),
+        scale: Float = 1f
+    ) {
         levelBackgroundImage?.render(batch, x, y)
         // need to render back to front - layers last in the list need to render first
         for (i in layers.size - 1 downTo 0) {
-            layers[i].render(batch, viewBounds, x, y)
+            layers[i].render(batch, viewBounds, x, y, scale)
         }
     }
 
@@ -125,7 +137,7 @@ class LDtkLevel(
         val slice: TextureSlice
     ) {
 
-        fun render(batch: Batch, x: Float, y: Float) {
+        fun render(batch: Batch, x: Float, y: Float, scale: Float = 1f) {
             batch.draw(
                 slice,
                 topLeftX.toFloat() + x,
@@ -134,8 +146,8 @@ class LDtkLevel(
                 0f,
                 slice.width.toFloat(),
                 slice.height.toFloat(),
-                scaleX,
-                scaleY,
+                scaleX * scale,
+                scaleY * scaleY,
                 Angle.ZERO,
                 flipX = false,
                 flipY = false

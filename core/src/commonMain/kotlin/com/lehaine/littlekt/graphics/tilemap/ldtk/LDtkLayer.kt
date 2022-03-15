@@ -70,7 +70,7 @@ open class LDtkLayer(
 
     fun getCoordId(cx: Int, cy: Int) = cx + cy * gridWidth
 
-    override fun render(batch: Batch, viewBounds: Rect, x: Float, y: Float) {}
+    override fun render(batch: Batch, viewBounds: Rect, x: Float, y: Float, scale: Float) {}
 
     override fun toString(): String {
         return "LDtkLayer(identifier='$identifier', type=$type, cellSize=$cellSize, gridWidth=$gridWidth, gridHeight=$gridHeight, pxTotalOffsetX=$pxTotalOffsetX, pxTotalOffsetY=$pxTotalOffsetY, opacity=$opacity)"

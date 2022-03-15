@@ -10,7 +10,9 @@ import com.lehaine.littlekt.graphics.gl.ClearBufferMask
 import com.lehaine.littlekt.graphics.tilemap.tiled.TiledMap
 import com.lehaine.littlekt.input.Key
 import com.lehaine.littlekt.util.MutableTextureAtlas
+import com.lehaine.littlekt.util.milliseconds
 import com.lehaine.littlekt.util.viewport.ExtendViewport
+import kotlin.math.roundToInt
 
 /**
  * @author Colton Daily
@@ -20,7 +22,7 @@ class TiledMapTest(context: Context) : ContextListener(context) {
 
     override suspend fun Context.start() {
         val camera = OrthographicCamera().apply {
-            viewport = ExtendViewport(480, 270)
+            viewport = ExtendViewport(30, 16)
         }
 
         val batch = SpriteBatch(context, 8191)
@@ -51,20 +53,23 @@ class TiledMapTest(context: Context) : ContextListener(context) {
             gl.clear(ClearBufferMask.COLOR_BUFFER_BIT)
 
             if (input.isKeyPressed(Key.W)) {
-                camera.position.y -= 10f
+                camera.position.y -= 0.1f * dt.milliseconds
             } else if (input.isKeyPressed(Key.S)) {
-                camera.position.y += 10f
+                camera.position.y += 0.1f * dt.milliseconds
             }
 
             if (input.isKeyPressed(Key.D)) {
-                camera.position.x += 10f
+                camera.position.x += 0.1f * dt.milliseconds
             } else if (input.isKeyPressed(Key.A)) {
-                camera.position.x -= 10f
+                camera.position.x -= 0.1f * dt.milliseconds
             }
+
+            camera.position.x = camera.position.x.roundToInt().toFloat()
+            camera.position.y = camera.position.y.roundToInt().toFloat()
             camera.update()
 
             batch.use(camera.viewProjection) {
-                maps[mapIdx].render(it, camera, displayObjects = true)
+                maps[mapIdx].render(it, camera, scale = 1f / 8f, displayObjects = true)
             }
 
             if (input.isKeyJustPressed(Key.ENTER)) {

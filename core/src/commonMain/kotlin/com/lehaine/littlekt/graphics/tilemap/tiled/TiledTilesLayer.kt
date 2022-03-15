@@ -46,18 +46,23 @@ class TiledTilesLayer(
     private val topLeft = MutableVec2f()
     private val bottomRight = MutableVec2f()
 
-    override fun render(batch: Batch, viewBounds: Rect, x: Float, y: Float, displayObjects: Boolean) {
+    override fun render(batch: Batch, viewBounds: Rect, x: Float, y: Float, scale: Float, displayObjects: Boolean) {
         if (!visible) return
 
         when (orientation) {
-            TiledMap.Orientation.ORTHOGONAL -> renderOrthographically(batch, viewBounds, x, y)
-            TiledMap.Orientation.ISOMETRIC -> renderIsometrically(batch, viewBounds, x, y)
-            TiledMap.Orientation.STAGGERED -> renderStaggered(batch, viewBounds, x, y)
+            TiledMap.Orientation.ORTHOGONAL -> renderOrthographically(batch, viewBounds, x, y, scale)
+            TiledMap.Orientation.ISOMETRIC -> renderIsometrically(batch, viewBounds, x, y, scale)
+            TiledMap.Orientation.STAGGERED -> renderStaggered(batch, viewBounds, x, y, scale)
             else -> error("$orientation is not currently supported!")
         }
     }
 
-    private fun renderOrthographically(batch: Batch, viewBounds: Rect, x: Float, y: Float) {
+    private fun renderOrthographically(batch: Batch, viewBounds: Rect, x: Float, y: Float, scale: Float) {
+        val tileWidth = tileWidth * scale
+        val tileHeight = tileHeight * scale
+        val offsetX = offsetX * scale
+        val offsetY = offsetY * scale
+
         val minX = max(0, ((viewBounds.x - x - offsetX) / tileWidth).toInt())
         val maxX = min(
             width - 1,
@@ -77,14 +82,12 @@ class TiledTilesLayer(
                         val slice = it.updateFramesAndGetSlice()
                         batch.draw(
                             slice = slice,
-                            x = cx * tileWidth + offsetX + x + it.offsetX,
-                            y = cy * tileHeight + offsetY + y + it.offsetY,
+                            x = cx * tileWidth + offsetX + x + it.offsetX * scale,
+                            y = cy * tileHeight + offsetY + y + it.offsetY * scale,
                             originX = 0f,
                             originY = 0f,
-                            width = it.width.toFloat(),
-                            height = it.height.toFloat(),
-                            scaleX = 1f,
-                            scaleY = 1f,
+                            scaleX = scale,
+                            scaleY = scale,
                             rotation = tileData.rotation,
                             flipX = tileData.flipX,
                             flipY = tileData.flipY,
@@ -96,7 +99,12 @@ class TiledTilesLayer(
         }
     }
 
-    private fun renderIsometrically(batch: Batch, viewBounds: Rect, x: Float, y: Float) {
+    private fun renderIsometrically(batch: Batch, viewBounds: Rect, x: Float, y: Float, scale: Float) {
+        val tileWidth = tileWidth * scale
+        val tileHeight = tileHeight * scale
+        val offsetX = offsetX * scale
+        val offsetY = offsetY * scale
+
         topLeft.set(viewBounds.x - x - offsetX, viewBounds.y - y - offsetY)
         bottomRight.set(
             viewBounds.x + viewBounds.width - x - offsetX,
@@ -124,8 +132,8 @@ class TiledTilesLayer(
                         val halfHeight = tileHeight * 0.5f
 
                         val tx =
-                            (cx * halfWidth) - (cy * halfWidth) + (height - 1) * halfWidth + offsetX + x + it.offsetX
-                        val ty = (cy * halfHeight) + (cx * halfHeight) + offsetY + y + it.offsetY
+                            (cx * halfWidth) - (cy * halfWidth) + (height - 1) * halfWidth + offsetX + x + it.offsetX * scale
+                        val ty = (cy * halfHeight) + (cx * halfHeight) + offsetY + y + it.offsetY * scale
 
                         if (viewBounds.intersects(tx, ty, tx + it.width.toFloat(), ty + it.height.toFloat())) {
                             batch.draw(
@@ -134,10 +142,8 @@ class TiledTilesLayer(
                                 y = ty,
                                 originX = 0f,
                                 originY = 0f,
-                                width = it.width.toFloat(),
-                                height = it.height.toFloat(),
-                                scaleX = 1f,
-                                scaleY = 1f,
+                                scaleX = scale,
+                                scaleY = scale,
                                 rotation = tileData.rotation,
                                 flipX = tileData.flipX,
                                 flipY = tileData.flipY,
@@ -150,7 +156,12 @@ class TiledTilesLayer(
         }
     }
 
-    private fun renderStaggered(batch: Batch, viewBounds: Rect, x: Float, y: Float) {
+    private fun renderStaggered(batch: Batch, viewBounds: Rect, x: Float, y: Float, scale: Float) {
+        val tileWidth = tileWidth * scale
+        val tileHeight = tileHeight * scale
+        val offsetX = offsetX * scale
+        val offsetY = offsetY * scale
+
         val halfWidth = tileWidth * 0.5f
         val halfHeight = tileHeight * 0.5f
 
@@ -176,14 +187,12 @@ class TiledTilesLayer(
                         val slice = it.updateFramesAndGetSlice()
                         batch.draw(
                             slice = slice,
-                            x = cx * tileWidth - tileOffsetX + offsetX + x + it.offsetX,
-                            y = cy * halfHeight + offsetY + y + it.offsetY,
+                            x = cx * tileWidth - tileOffsetX + offsetX + x + it.offsetX * scale,
+                            y = cy * halfHeight + offsetY + y + it.offsetY * scale,
                             originX = 0f,
                             originY = 0f,
-                            width = it.width.toFloat(),
-                            height = it.height.toFloat(),
-                            scaleX = 1f,
-                            scaleY = 1f,
+                            scaleX = scale,
+                            scaleY = scale,
                             rotation = tileData.rotation,
                             flipX = tileData.flipX,
                             flipY = tileData.flipY,

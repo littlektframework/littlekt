@@ -45,7 +45,10 @@ open class LDtkIntGridAutoLayer(
 
     operator fun get(coordId: Int) = autoTilesCoordIdMap[coordId]
 
-    override fun render(batch: Batch, viewBounds: Rect, x: Float, y: Float) {
+    override fun render(batch: Batch, viewBounds: Rect, x: Float, y: Float, scale: Float) {
+        val cellSize = cellSize * scale
+        val pxTotalOffsetX = pxTotalOffsetX * scale
+        val pxTotalOffsetY = pxTotalOffsetY * scale
         val minX = max(0, ((viewBounds.x - x - pxTotalOffsetX) / cellSize).toInt())
         val maxX = min(
             gridWidth,
@@ -56,23 +59,19 @@ open class LDtkIntGridAutoLayer(
             gridHeight,
             ((viewBounds.y + viewBounds.height - y - pxTotalOffsetY) / cellSize).toInt()
         )
-        autoTiles.forEach { autoTile ->
-            val rx = autoTile.renderX
-            val ry = autoTile.renderY
-            val tx = rx / cellSize
-            val ty = ry / cellSize
-            if (tx in minX..maxX && ty in minY..maxY) {
+
+        for (cy in minY..maxY) {
+            for (cx in minX..maxX) {
+                val autoTile = autoTilesCoordIdMap[getCoordId(cx, cy)] ?: continue
                 getAutoLayerLDtkTile(autoTile)?.also {
                     batch.draw(
                         slice = it.slice,
-                        x = rx + pxTotalOffsetX + x,
-                        y = ry + pxTotalOffsetY + y,
+                        x = cx * cellSize + pxTotalOffsetX + x,
+                        y = cy * cellSize + pxTotalOffsetY + y,
                         originX = 0f,
                         originY = 0f,
-                        width = cellSize.toFloat(),
-                        height = cellSize.toFloat(),
-                        scaleX = 1f,
-                        scaleY = 1f,
+                        scaleX = scale,
+                        scaleY = scale,
                         rotation = Angle.ZERO,
                         flipX = it.flipX,
                         flipY = it.flipY
