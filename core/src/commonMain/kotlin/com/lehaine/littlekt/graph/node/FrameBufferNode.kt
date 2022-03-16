@@ -47,43 +47,37 @@ class FrameBufferNode : Node() {
 
     override fun onAddedToScene() {
         super.onAddedToScene()
-        if (lastWidth != width || lastHeight != height) {
-            scene?.let { scene ->
-                fbo?.dispose()
-                fbo = FrameBuffer(
-                    width,
-                    height,
-                    minFilter = TexMinFilter.NEAREST,
-                    magFilter = TexMagFilter.NEAREST
-                ).also { it.prepare(scene.context) }
-                lastWidth = width
-                lastHeight = height
-                fboCamera.virtualWidth = width
-                fboCamera.virtualHeight = height
-                fboCamera.position.set(fboCamera.virtualWidth * 0.5f, fboCamera.virtualHeight * 0.5f, 0f)
-                onFboChanged.emit(fboTexture)
-            }
+        resizeFbo(width, height)
+    }
+
+    private fun checkForResize(newWidth: Int, newHeight: Int) {
+        if (width != newWidth || height != newHeight) {
+            resizeFbo(newWidth, newHeight)
+        }
+    }
+
+    fun resizeFbo(newWidth: Int, newHeight: Int) {
+        scene?.let { scene ->
+            lastWidth = newWidth
+            lastHeight = newHeight
+            width = newWidth
+            height = newHeight
+            fbo?.dispose()
+            fbo = FrameBuffer(
+                width,
+                height,
+                minFilter = TexMinFilter.NEAREST,
+                magFilter = TexMagFilter.NEAREST
+            ).also { it.prepare(scene.context) }
+            fboCamera.virtualWidth = width
+            fboCamera.virtualHeight = height
+            fboCamera.position.set(fboCamera.virtualWidth * 0.5f, fboCamera.virtualHeight * 0.5f, 0f)
+            onFboChanged.emit(fboTexture)
         }
     }
 
     override fun _render(batch: Batch, camera: Camera, renderCallback: ((Node, Batch, Camera) -> Unit)?) {
-        if (lastWidth != width || lastHeight != height) {
-            scene?.let { scene ->
-                fbo?.dispose()
-                fbo = FrameBuffer(
-                    width,
-                    height,
-                    minFilter = TexMinFilter.NEAREST,
-                    magFilter = TexMagFilter.NEAREST
-                ).also { it.prepare(scene.context) }
-                lastWidth = width
-                lastHeight = height
-                fboCamera.virtualWidth = width
-                fboCamera.virtualHeight = height
-                fboCamera.position.set(fboCamera.virtualWidth * 0.5f, fboCamera.virtualHeight * 0.5f, 0f)
-                onFboChanged.emit(fboTexture)
-            }
-        }
+        checkForResize(lastWidth, lastHeight)
         val fbo = fbo ?: return
         val context = scene?.context ?: return
         val gl = context.gl

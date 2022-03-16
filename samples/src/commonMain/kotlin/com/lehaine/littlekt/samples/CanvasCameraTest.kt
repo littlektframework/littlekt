@@ -94,8 +94,8 @@ class CanvasCameraTest(context: Context) : ContextListener(context) {
                 }
 
                 canvasLayer {
-                    enabled = true
                     node2d {
+                        x = 50f
                         onReady += {
                             println("$name: $viewport")
                         }
@@ -123,7 +123,7 @@ class CanvasCameraTest(context: Context) : ContextListener(context) {
 
                     var rotation = Angle.ZERO
                     node2d {
-                        x = 200f
+                        x = 250f
                         y = 20f
                         onRender += { batch, camera ->
                             rotation += 0.01.radians

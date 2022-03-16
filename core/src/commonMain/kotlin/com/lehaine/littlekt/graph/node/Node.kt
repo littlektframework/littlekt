@@ -271,6 +271,21 @@ open class Node : Comparable<Node> {
     val onDestroy: Signal = signal()
 
     /**
+     * List of 'resize' callbacks called when [resize] is called. Add any additional callbacks directly to this list.
+     * The main use is to add callbacks directly to nodes inline when building a [SceneGraph] vs having to extend
+     * a class directly.
+     *
+     * ```
+     * node {
+     *     onResize += { width, height ->
+     *         // handle extra resize logic
+     *     }
+     * }
+     * ```
+     */
+    val onResize: DoubleSignal<Int, Int> = signal2v()
+
+    /**
      * Sets the parent [Node] of this [Node].
      * @param parent this Nodes parent
      */
@@ -399,6 +414,7 @@ open class Node : Comparable<Node> {
         onRender.clear()
         onDebugRender.clear()
         onDestroy.clear()
+        onResize.clear()
     }
 
     /**
@@ -475,6 +491,8 @@ open class Node : Comparable<Node> {
         nodes.forEach {
             it._onResize(width, height, center)
         }
+        resize(width, height)
+        onResize.emit(width, height)
     }
 
     /**
@@ -505,7 +523,7 @@ open class Node : Comparable<Node> {
     open fun ready() {}
 
     /**
-     * Called when this [Node] and all of it's children are added to the scene and have themselves called [onPostEnterScene]
+     * Called when this [Node] and all of its children are added to the scene and have themselves called [onPostEnterScene]
      */
     open fun onPostEnterScene() {}
 
@@ -521,6 +539,11 @@ open class Node : Comparable<Node> {
      * @param batch the sprite batch to draw with
      */
     open fun debugRender(batch: Batch) {}
+
+    /**
+     * Called when the [scene] is resized.
+     */
+    open fun resize(width: Int, height: Int) {}
 
     /**
      * Called when this [Node] is added to a [SceneGraph] after all pending [Node] changes are committed.
