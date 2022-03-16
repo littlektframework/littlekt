@@ -6,14 +6,21 @@ import com.lehaine.littlekt.file.vfs.readBitmapFont
 import com.lehaine.littlekt.file.vfs.readTexture
 import com.lehaine.littlekt.graph.node.canvasLayer
 import com.lehaine.littlekt.graph.node.component.HAlign
+import com.lehaine.littlekt.graph.node.frameBuffer
 import com.lehaine.littlekt.graph.node.graphViewport
 import com.lehaine.littlekt.graph.node.node2d.camera2d
 import com.lehaine.littlekt.graph.node.node2d.node2d
+import com.lehaine.littlekt.graph.node.node2d.ui.TextureRect
 import com.lehaine.littlekt.graph.node.node2d.ui.centerContainer
 import com.lehaine.littlekt.graph.node.node2d.ui.label
+import com.lehaine.littlekt.graph.node.node2d.ui.textureRect
 import com.lehaine.littlekt.graph.sceneGraph
 import com.lehaine.littlekt.graphics.gl.ClearBufferMask
+import com.lehaine.littlekt.graphics.slice
 import com.lehaine.littlekt.input.Key
+import com.lehaine.littlekt.math.geom.Angle
+import com.lehaine.littlekt.math.geom.degrees
+import com.lehaine.littlekt.math.geom.radians
 import com.lehaine.littlekt.util.viewport.ExtendViewport
 
 /**
@@ -28,16 +35,81 @@ class CanvasCameraTest(context: Context) : ContextListener(context) {
         val graph = sceneGraph(context, ExtendViewport(240, 135)) {
             graphViewport {
                 strategy = ExtendViewport(960, 540)
+
                 canvasLayer {
+                    val fbo = frameBuffer {
+                        width = 240
+                        height = 135
+
+                        node2d {
+                            rotation = 45.degrees
+                            onReady += {
+                                println("$name: $viewport")
+                            }
+                            onUpdate += {
+                                if (input.isKeyPressed(Key.D)) {
+                                    globalX += 1f
+                                } else if (input.isKeyPressed(Key.A)) {
+                                    globalX -= 1f
+                                }
+
+                                if (input.isKeyPressed(Key.S)) {
+                                    globalY += 1f
+                                } else if (input.isKeyPressed(Key.W)) {
+                                    globalY -= 1f
+                                }
+                            }
+                            onRender += { batch, camera ->
+                                batch.draw(icon, globalX, globalY, rotation = globalRotation)
+                            }
+                            camera2d {
+                                x = 50f
+                                active = true
+                            }
+                        }
+
+                        var rotation = Angle.ZERO
+                        node2d {
+                            x = 100f
+                            y = 20f
+                            onRender += { batch, camera ->
+                                rotation += 0.01.radians
+                                batch.draw(icon, globalX, globalY, scaleX = 2f, scaleY = 2f, rotation = rotation)
+                            }
+                        }
+                    }
+
+                    textureRect {
+                        anchorRight = 1f
+                        anchorBottom = 1f
+                        stretchMode = TextureRect.StretchMode.KEEP_ASPECT_COVERED
+                        flipY = true
+                        onReady += {
+                            slice = fbo.fboTexture.slice()
+                            fbo.onFboChanged.connect(this) {
+                                slice = it.slice()
+                            }
+                        }
+                    }
+                }
+
+                canvasLayer {
+                    enabled = true
                     node2d {
                         onReady += {
                             println("$name: $viewport")
                         }
                         onUpdate += {
                             if (input.isKeyPressed(Key.D)) {
-                                globalX += 10f
+                                globalX += 1f
                             } else if (input.isKeyPressed(Key.A)) {
-                                globalX -= 10f
+                                globalX -= 1f
+                            }
+
+                            if (input.isKeyPressed(Key.S)) {
+                                globalY += 1f
+                            } else if (input.isKeyPressed(Key.W)) {
+                                globalY -= 1f
                             }
                         }
                         onRender += { batch, camera ->
@@ -49,30 +121,32 @@ class CanvasCameraTest(context: Context) : ContextListener(context) {
                         }
                     }
 
+                    var rotation = Angle.ZERO
                     node2d {
-                        x = 100f
+                        x = 200f
                         y = 20f
                         onRender += { batch, camera ->
-                            batch.draw(icon, globalX, globalY)
+                            rotation += 0.01.radians
+                            batch.draw(icon, globalX, globalY, scaleX = 2f, scaleY = 2f, rotation = rotation)
                         }
                     }
                 }
             }
-            canvasLayer {
-                centerContainer {
-                    anchorRight = 1f
-                    anchorBottom = 1f
-                    label {
-                        text = "Should be centered label"
-                        horizontalAlign = HAlign.CENTER
-                        font = pixelFont
 
-                        onReady += {
-                            println("$name: $viewport")
-                        }
+            centerContainer {
+                anchorRight = 1f
+                anchorBottom = 1f
+                label {
+                    text = "Should be centered label"
+                    horizontalAlign = HAlign.CENTER
+                    font = pixelFont
+
+                    onReady += {
+                        println("$name: ${viewport!!::class.simpleName} - $viewport")
                     }
                 }
             }
+
         }.also {
             it.initialize()
             println(it.sceneViewport.treeString())

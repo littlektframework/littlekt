@@ -11,6 +11,7 @@ import com.lehaine.littlekt.math.geom.Angle
 import com.lehaine.littlekt.math.geom.radians
 import com.lehaine.littlekt.util.milliseconds
 import com.lehaine.littlekt.util.viewport.ScreenViewport
+import kotlin.math.abs
 import kotlin.math.floor
 import kotlin.math.max
 import kotlin.math.min
@@ -39,7 +40,7 @@ class FBOTest(context: Context) : ContextListener(context) {
         var rotation = Angle.ZERO
         onResize { width, height ->
             camera.update(width, height, this)
-            camera.position.set(camera.virtualWidth*0.5f, camera.virtualHeight*0.5f, 0f)
+            camera.position.set(camera.virtualWidth * 0.5f, camera.virtualHeight * 0.5f, 0f)
         }
 
         onRender { dt ->
@@ -60,6 +61,12 @@ class FBOTest(context: Context) : ContextListener(context) {
             }
             rotation += 0.01.radians
 
+            if (abs(fboCamera.position.x - x) >= 25) {
+                fboCamera.position.x = x
+            }
+            if (abs(fboCamera.position.y - y) >= 25) {
+                fboCamera.position.y = y
+            }
             fboCamera.update()
             fbo.begin()
             gl.clearColor(0.5f, 0f, 0f, 1f)

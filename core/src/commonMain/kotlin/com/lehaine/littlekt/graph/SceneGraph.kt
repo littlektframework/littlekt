@@ -183,6 +183,8 @@ open class SceneGraph<InputType>(
     private val pointerScreenY = FloatArray(20)
     private val pointerOverControls = arrayOfNulls<Control>(20)
     private val pointerTouched = BooleanArray(20)
+    private var previousViewportApplied: Viewport? = null
+    private var currentViewportApplied:Viewport? = null
 
     private val tempVec = MutableVec2f()
 
@@ -223,7 +225,7 @@ open class SceneGraph<InputType>(
         if (!initialized) error("You need to call 'initialize()'once before doing any rendering or updating!")
         camera.viewport = sceneViewport.strategy
         camera.update()
-        batch.projectionMatrix = camera.viewProjection
+        batch.begin(camera.viewProjection)
         sceneViewport._render(batch, camera, onNodeRender)
         if (batch.drawing) batch.end()
     }
@@ -317,6 +319,17 @@ open class SceneGraph<InputType>(
             root._update(dt)
         }
         frameCount++
+    }
+
+    internal fun applyViewport(viewport: Viewport) {
+        previousViewportApplied = currentViewportApplied
+        currentViewportApplied = viewport
+        viewport.apply(context)
+    }
+
+    internal fun applyPreviousViewport() {
+        currentViewportApplied = previousViewportApplied
+        previousViewportApplied?.apply(context)
     }
 
     override fun touchDown(screenX: Float, screenY: Float, pointer: Pointer): Boolean {

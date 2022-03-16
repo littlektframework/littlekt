@@ -1,6 +1,7 @@
 package com.lehaine.littlekt.graph.node.node2d
 
 import com.lehaine.littlekt.graph.SceneGraph
+import com.lehaine.littlekt.graph.node.CanvasLayer
 import com.lehaine.littlekt.graph.node.Node
 import com.lehaine.littlekt.graph.node.addTo
 import com.lehaine.littlekt.graph.node.annotation.SceneGraphDslMarker
@@ -42,6 +43,9 @@ open class Camera2D : Node2D() {
     var near: Float = 0f
     var far: Float = 100f
 
+    /**
+     * Disables other cameras sharing the same [CanvasLayer] or [SceneGraph.root].
+     */
     var active: Boolean = false
         set(value) {
             field = value
@@ -59,8 +63,21 @@ open class Camera2D : Node2D() {
         }
     }
 
+    private fun Node.findClosestCanvas(): Node {
+        var current: Node? = this
+        while (current != null) {
+            val parent = current.parent
+            if (parent is CanvasLayer || parent != null && parent == scene?.root) {
+                return parent
+            } else {
+                current = parent
+            }
+        }
+        error("Unable to find a CanvasLayer or root for $name. Ensure that a Camera2D is a descendant of the scene root or a CanvasLayer.")
+    }
+
     private fun initializeCamera() {
-        scene?.root?.disableOtherCameras()
+        findClosestCanvas().disableOtherCameras()
     }
 
     override fun _render(batch: Batch, camera: Camera, renderCallback: ((Node, Batch, Camera) -> Unit)?) {

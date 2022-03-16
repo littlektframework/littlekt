@@ -37,18 +37,19 @@ inline fun SceneGraph<*>.canvasLayer(callback: @SceneGraphDslMarker CanvasLayer.
  */
 open class CanvasLayer : Node() {
 
-    internal val camera = OrthographicCamera()
+    private val canvasCamera = OrthographicCamera()
 
     override fun onAddedToScene() {
         super.onAddedToScene()
-        camera.viewport = viewport ?: error("Unable to set CanvasLayer transform viewport")
-        camera.position.set(camera.viewport.virtualWidth / 2f, camera.viewport.virtualHeight / 2f, 0f)
+        canvasCamera.viewport = viewport ?: error("Unable to set CanvasLayer transform viewport")
+        canvasCamera.position.set(canvasCamera.virtualWidth / 2f, canvasCamera.virtualHeight / 2f, 0f)
     }
 
     override fun _onResize(width: Int, height: Int, center: Boolean) {
-        camera.update()
+        val context = scene?.context ?: return
+        canvasCamera.update(width,height, context)
         if (center) {
-            camera.position.set(camera.viewport.virtualWidth / 2f, camera.viewport.virtualHeight / 2f, 0f)
+            canvasCamera.position.set(canvasCamera.viewport.virtualWidth / 2f, canvasCamera.viewport.virtualHeight / 2f, 0f)
         }
         super._onResize(width, height, center)
     }
@@ -56,16 +57,14 @@ open class CanvasLayer : Node() {
     override fun _render(batch: Batch, camera: Camera, renderCallback: ((Node, Batch, Camera) -> Unit)?) {
         if (!enabled || !visible) return
         val prevProjMatrix = batch.projectionMatrix
-        scene?.let {
-            this.camera.viewport = viewport ?: error("Unable to set CanvasLayer transform viewport")
-            this.camera.update()
-        }
-        batch.projectionMatrix = this.camera.viewProjection
-        renderCallback?.invoke(this, batch, this.camera)
-        render(batch, this.camera)
-        onRender.emit(batch, this.camera)
+        canvasCamera.viewport = viewport ?: error("Unable to set CanvasLayer transform viewport")
+        canvasCamera.update()
+        batch.projectionMatrix = canvasCamera.viewProjection
+        renderCallback?.invoke(this, batch, canvasCamera)
+        render(batch, canvasCamera)
+        onRender.emit(batch, canvasCamera)
         nodes.forEach {
-            it._render(batch, this.camera, renderCallback)
+            it._render(batch, canvasCamera, renderCallback)
         }
         batch.projectionMatrix = prevProjMatrix
     }
