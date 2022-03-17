@@ -7,7 +7,7 @@ import com.lehaine.littlekt.graph.node.Node
 import com.lehaine.littlekt.graph.node.addTo
 import com.lehaine.littlekt.graph.node.annotation.SceneGraphDslMarker
 import com.lehaine.littlekt.graph.node.component.InputEvent
-import com.lehaine.littlekt.graph.node.node2d.ui.Control
+import com.lehaine.littlekt.graph.node.ui.Control
 import com.lehaine.littlekt.graphics.Batch
 import com.lehaine.littlekt.graphics.Camera
 import com.lehaine.littlekt.graphics.OrthographicCamera
@@ -154,7 +154,6 @@ open class SceneGraph<InputType>(
     val sceneViewport: GraphViewport by lazy {
         GraphViewport().apply {
             name = "Scene Viewport"
-            scene = this@SceneGraph
             strategy = viewport
         }
     }
@@ -172,6 +171,9 @@ open class SceneGraph<InputType>(
 
     var targetFPS = 60
     var tmod: Float = 1f
+        private set
+
+    var dt: Duration = Duration.ZERO
         private set
 
     private var frameCount = 0
@@ -215,9 +217,9 @@ open class SceneGraph<InputType>(
         controller.addInputMapProcessor(this)
         context.input.addInputProcessor(this)
         context.input.addInputProcessor(controller)
+        sceneViewport.scene = this
         root.initialize()
         onStart()
-        root._onPostEnterScene()
         initialized = true
     }
 
@@ -231,7 +233,7 @@ open class SceneGraph<InputType>(
         camera.viewport = sceneViewport.strategy
         camera.update()
         batch.begin(camera.viewProjection)
-        sceneViewport._render(batch, camera, onNodeRender)
+        sceneViewport.render(batch, camera, onNodeRender)
         if (batch.drawing) batch.end()
     }
 
@@ -282,6 +284,7 @@ open class SceneGraph<InputType>(
      */
     open fun update(dt: Duration) {
         if (!initialized) error("You need to call 'initialize()' once before doing any rendering or updating!")
+        this.dt = dt
         tmod = dt.seconds * targetFPS
         pointerOverControls.forEachIndexed { index, overLast ->
             if (!pointerTouched[index]) {
@@ -321,7 +324,7 @@ open class SceneGraph<InputType>(
         }
 
         if (root.enabled && (root.updateInterval == 1 || frameCount % root.updateInterval == 0)) {
-            root._update(dt)
+            root.propagateUpdate()
         }
         frameCount++
     }

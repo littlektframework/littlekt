@@ -1,58 +1,107 @@
-package com.lehaine.littlekt.graph.node.node2d
+package com.lehaine.littlekt.graph.node
 
 import com.lehaine.littlekt.graph.SceneGraph
-import com.lehaine.littlekt.graph.node.Node
-import com.lehaine.littlekt.graph.node.addTo
-import com.lehaine.littlekt.graph.node.annotation.SceneGraphDslMarker
+import com.lehaine.littlekt.graphics.Batch
+import com.lehaine.littlekt.graphics.Camera
 import com.lehaine.littlekt.math.Mat3
 import com.lehaine.littlekt.math.Mat4
 import com.lehaine.littlekt.math.MutableVec2f
 import com.lehaine.littlekt.math.Vec2f
 import com.lehaine.littlekt.math.geom.Angle
-import kotlin.contracts.ExperimentalContracts
-import kotlin.contracts.InvocationKind
-import kotlin.contracts.contract
+import com.lehaine.littlekt.util.DoubleSignal
+import com.lehaine.littlekt.util.SingleSignal
+import com.lehaine.littlekt.util.signal1v
+import com.lehaine.littlekt.util.signal2v
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
 
-/**
- * Adds a [CanvasItem] to the current [Node] as a child and then triggers the [callback]
- * @param callback the callback that is invoked with a [CanvasItem] context in order to initialize any values
- * @return the newly created [CanvasItem]
- */
-@OptIn(ExperimentalContracts::class)
-inline fun Node.node2d(callback: @SceneGraphDslMarker CanvasItem.() -> Unit = {}): CanvasItem {
-    contract { callsInPlace(callback, InvocationKind.EXACTLY_ONCE) }
-    return CanvasItem().also(callback).addTo(this)
-}
-
-/**
- * Adds a [CanvasItem] to the current [SceneGraph.root] as a child and then triggers the [CanvasItem]
- * @param callback the callback that is invoked with a [CanvasItem] context in order to initialize any values
- * @return the newly created [CanvasItem]
- */
-@OptIn(ExperimentalContracts::class)
-inline fun SceneGraph<*>.node2d(callback: @SceneGraphDslMarker CanvasItem.() -> Unit = {}): CanvasItem {
-    contract { callsInPlace(callback, InvocationKind.EXACTLY_ONCE) }
-    return root.node2d(callback)
-}
 
 /**
  * A [Node] with 2D transformations.
  * @author Colton Daily
  * @date 1/1/2022
  */
-open class CanvasItem : Node() {
+abstract class CanvasItem : Node() {
 
     companion object {
         const val POSITION_DIRTY = 1
         const val SCALE_DIRTY = 2
         const val ROTATION_DIRTY = 3
+        const val CLEAN = 0
     }
 
     /**
-     * The position of the [CanvasItem] in world space. If you want to set the [x,y] properties of this [Vector2] then use
+     * List of 'preRender' callbacks called when [onPreRender] is called. Add any additional callbacks directly to this list.
+     * The main use is to add callbacks directly to nodes inline when building a [SceneGraph] vs having to extend
+     * a class directly.
+     *
+     * ```
+     * node {
+     *     onPreRender += { batch, camera ->
+     *         // handle render logic
+     *     }
+     * }
+     * ```
+     */
+    val onPreRender: DoubleSignal<Batch, Camera> = signal2v()
+
+    /**
+     * List of 'render' callbacks called when [render] is called. Add any additional callbacks directly to this list.
+     * The main use is to add callbacks directly to nodes inline when building a [SceneGraph] vs having to extend
+     * a class directly.
+     *
+     * ```
+     * node {
+     *     onRender += { batch, camera ->
+     *         // handle render logic
+     *     }
+     * }
+     * ```
+     */
+    val onRender: DoubleSignal<Batch, Camera> = signal2v()
+
+    /**
+     * List of 'postRender' callbacks called after [postRender] is called. Add any additional callbacks directly to this list.
+     * The main use is to add callbacks directly to nodes inline when building a [SceneGraph] vs having to extend
+     * a class directly.
+     *
+     * ```
+     * node {
+     *     onPostRender += { batch, camera ->
+     *         // handle render logic
+     *     }
+     * }
+     * ```
+     */
+    val onPostRender: DoubleSignal<Batch, Camera> = signal2v()
+
+    /**
+     * List of 'debugRender' callbacks called when [debugRender] is called. Add any additional callbacks directly to this list.
+     * The main use is to add callbacks directly to nodes inline when building a [SceneGraph] vs having to extend
+     * a class directly.
+     *
+     * ```
+     * node {
+     *     onDebugRender += { batch ->
+     *         // handle debug render logic
+     *     }
+     * }
+     * ```
+     */
+    val onDebugRender: SingleSignal<Batch> = signal1v()
+
+    /**
+     * Shows/hides the node if it is renderable.
+     */
+    var visible: Boolean
+        get() = _visible
+        set(value) {
+            visible(value)
+        }
+
+    /**
+     * The position of the [CanvasItem] in world space. If you want to set the [x,y] properties of this [Vec2f] then use
      * the [globalX] and [globalY] properties of this [CanvasItem]
      */
     var globalPosition: Vec2f
@@ -101,7 +150,7 @@ open class CanvasItem : Node() {
 
     /**
      * The position of the [CanvasItem] relative to the parent transform. If the [CanvasItem] has no parent or if the parent node is NOT
-     * a [CanvasItem], then it is the same a [globalPosition]. If you want to set the [x,y] properties of this [Vector2] then use
+     * a [CanvasItem], then it is the same a [globalPosition]. If you want to set the [x,y] properties of this [Vec2f] then use
      * the [x] and [y] properties of this [CanvasItem]
      */
     var position: Vec2f
@@ -166,7 +215,7 @@ open class CanvasItem : Node() {
 
 
     /**
-     * The global scale of the [CanvasItem]. If you want to set the [x,y] properties of this [Vector2] then use
+     * The global scale of the [CanvasItem]. If you want to set the [x,y] properties of this [Vec2f] then use
      * the [globalScaleX] and [globalScaleY] properties of this [CanvasItem].
      */
     var globalScale: Vec2f
@@ -199,7 +248,7 @@ open class CanvasItem : Node() {
 
     /**
      * The scale of the [CanvasItem] relative to the parent transform's scales. If the [CanvasItem] has no parent or if the parent node is NOT
-     * a [CanvasItem], then it is the same a [globalScale]. If you want to set the [x,y] properties of this [Vector2] then use
+     * a [CanvasItem], then it is the same a [globalScale]. If you want to set the [x,y] properties of this [Vec2f] then use
      * the [scaleX] and [scaleY] properties of this [CanvasItem].
      */
     var scale: Vec2f
@@ -270,6 +319,9 @@ open class CanvasItem : Node() {
     override val membersAndPropertiesString: String
         get() = "${super.membersAndPropertiesString}, globalPosition=$globalPosition, position=$position, globalRotation=$globalRotation, rotation=$rotation, globalScale=$globalScale, scale=$scale"
 
+    private var _visible = true
+    protected var hierarchyDirty: Int = CLEAN
+
     private var _localDirty = false
     private var _localPositionDirty = false
     private var _localScaleDirty = false
@@ -306,6 +358,90 @@ open class CanvasItem : Node() {
 
         return this
     }
+
+    /**
+     * Shows/hides the [Node]. When disabled [render] is no longer called.
+     * @param value true to enable this node; false otherwise
+     */
+    fun visible(value: Boolean): Node {
+        if (_visible != value) {
+            _visible = value
+            nodes.forEach {
+                if (it is CanvasItem) {
+                    it._visible = value
+                }
+            }
+        }
+        return this
+    }
+
+
+    fun propagatePreRender(batch: Batch, camera: Camera) {
+        if (!enabled || !visible) return
+        preRender(batch, camera)
+        onPreRender.emit(batch, camera)
+        nodes.forEach {
+            if (it is CanvasItem) {
+                it.propagatePreRender(batch, camera)
+            }
+        }
+    }
+
+    /**
+     * Internal rendering that needs to be done on the node that shouldn't be overridden. Calls [render] method.
+     */
+    fun propagateRender(batch: Batch, camera: Camera, renderCallback: ((Node, Batch, Camera) -> Unit)?) {
+        if (!enabled || !visible) return
+        renderCallback?.invoke(this, batch, camera)
+        render(batch, camera)
+        onRender.emit(batch, camera)
+        nodes.forEach {
+            if (it is CanvasItem) {
+                it.propagateRender(batch, camera, renderCallback)
+            }
+        }
+    }
+
+    fun propagatePostRender(batch: Batch, camera: Camera) {
+        if (!enabled || !visible) return
+        postRender(batch, camera)
+        onPostRender.emit(batch, camera)
+        nodes.forEach {
+            if (it is CanvasItem) {
+                it.propagatePostRender(batch, camera)
+            }
+        }
+    }
+
+    /**
+     * Internal debug render method. Calls the [debugRender] method.
+     */
+    private fun _debugRender(batch: Batch) {
+        debugRender(batch)
+        onDebugRender.emit(batch)
+        nodes.forEach {
+            if (it is CanvasItem) {
+                it._debugRender(batch)
+            }
+        }
+    }
+
+    open fun preRender(batch: Batch, camera: Camera) {}
+
+    /**
+     * The main render method. The [Camera] can be used for culling and the [Batch] instance to draw with.
+     * @param batch the batcher
+     * @param camera the Camera2D node
+     */
+    open fun render(batch: Batch, camera: Camera) {}
+
+    open fun postRender(batch: Batch, camera: Camera) {}
+
+    /**
+     * Draw any debug related items here.
+     * @param batch the sprite batch to draw with
+     */
+    open fun debugRender(batch: Batch) {}
 
     /**
      * Sets the position of the [CanvasItem] in world space.
@@ -486,9 +622,50 @@ open class CanvasItem : Node() {
         dirty(SCALE_DIRTY)
     }
 
-    override fun updateHierarchy() {
+
+    /**
+     * Dirties the hierarchy for the current [Node] and all of it's [children].
+     */
+    protected open fun dirty(dirtyFlag: Int) {
+        if ((hierarchyDirty and dirtyFlag) == 0) {
+            hierarchyDirty = hierarchyDirty or dirtyFlag
+
+            nodes.forEach {
+                it.propagateDirty(dirtyFlag)
+            }
+            propagateDirty(dirtyFlag)
+            _onHierarchyChanged(dirtyFlag)
+        }
+    }
+
+    private fun Node.propagateDirty(dirtyFlag: Int) {
+        if (this is CanvasItem) {
+            dirty(dirtyFlag)
+        } else {
+            nodes.forEach { it.propagateDirty(dirtyFlag) }
+        }
+    }
+
+    /**
+     * Internal. Called when the hierarchy of this [CanvasItem] is changed.
+     * Example changes that can trigger this include: `position`, `rotation`, and `scale`
+     */
+    private fun _onHierarchyChanged(flag: Int) {
+        onHierarchyChanged(flag)
+    }
+
+    /**
+     * Called when the hierarchy of this [CanvasItem] is changed.
+     * Example changes that can trigger this include: `position`, `rotation`, and `scale`
+     */
+    protected open fun onHierarchyChanged(flag: Int) {}
+
+    /**
+     * Updates the current [CanvasItem] hierarchy if it is dirty.
+     */
+    open fun updateHierarchy() {
         if (hierarchyDirty != CLEAN) {
-            parent?.updateHierarchy()
+            (parent as? CanvasItem)?.updateHierarchy()
             if (_localDirty) {
                 if (_localPositionDirty) {
                     _translationMatrix.setToTranslate(_localPosition)
@@ -527,6 +704,13 @@ open class CanvasItem : Node() {
             _globalPositionDirty = true
             hierarchyDirty = CLEAN
         }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+
+        onRender.clear()
+        onDebugRender.clear()
     }
 
     fun translate(offset: Vec2f) = translate(offset.x, offset.y)

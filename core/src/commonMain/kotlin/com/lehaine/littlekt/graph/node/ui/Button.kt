@@ -1,4 +1,4 @@
-package com.lehaine.littlekt.graph.node.node2d.ui
+package com.lehaine.littlekt.graph.node.ui
 
 import com.lehaine.littlekt.graph.SceneGraph
 import com.lehaine.littlekt.graph.node.Node
@@ -176,7 +176,6 @@ open class Button : BaseButton() {
     }
 
     override fun render(batch: Batch, camera: Camera) {
-
         val drawable: Drawable
         when (drawMode) {
             DrawMode.NORMAL -> {

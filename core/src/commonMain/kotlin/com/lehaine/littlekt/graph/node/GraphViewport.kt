@@ -90,10 +90,12 @@ class GraphViewport : Node() {
         super._onResize(width, height, center)
     }
 
-    override fun _render(batch: Batch, camera: Camera, renderCallback: ((Node, Batch, Camera) -> Unit)?) {
-        if (!enabled || !visible) return
+    override fun render(batch: Batch, camera: Camera, renderCallback: ((Node, Batch, Camera) -> Unit)?) {
+        if (!enabled) return
         scene?.applyViewport(strategy)
-        super._render(batch, camera, renderCallback)
+        nodes.forEach {
+            it.render(batch, camera, renderCallback)
+        }
         batch.flush()
         scene?.applyPreviousViewport()
     }

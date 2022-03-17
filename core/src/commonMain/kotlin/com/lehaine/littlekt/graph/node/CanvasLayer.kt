@@ -47,27 +47,24 @@ open class CanvasLayer : Node() {
 
     override fun _onResize(width: Int, height: Int, center: Boolean) {
         val context = scene?.context ?: return
-        canvasCamera.update(width,height, context)
+        canvasCamera.update(width, height, context)
         if (center) {
-            canvasCamera.position.set(canvasCamera.viewport.virtualWidth / 2f, canvasCamera.viewport.virtualHeight / 2f, 0f)
+            canvasCamera.position.set(canvasCamera.viewport.virtualWidth / 2f,
+                canvasCamera.viewport.virtualHeight / 2f,
+                0f)
         }
         super._onResize(width, height, center)
     }
 
-    override fun _render(batch: Batch, camera: Camera, renderCallback: ((Node, Batch, Camera) -> Unit)?) {
-        if (!enabled || !visible) return
+    override fun render(batch: Batch, camera: Camera, renderCallback: ((Node, Batch, Camera) -> Unit)?) {
+        if (!enabled) return
         val prevProjMatrix = batch.projectionMatrix
         canvasCamera.viewport = viewport ?: error("Unable to set CanvasLayer transform viewport")
         canvasCamera.update()
         batch.projectionMatrix = canvasCamera.viewProjection
-        renderCallback?.invoke(this, batch, canvasCamera)
-        render(batch, canvasCamera)
-        onRender.emit(batch, canvasCamera)
         nodes.forEach {
-            it._render(batch, canvasCamera, renderCallback)
+            it.render(batch, canvasCamera, renderCallback)
         }
         batch.projectionMatrix = prevProjMatrix
     }
-
-
 }

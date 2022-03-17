@@ -10,10 +10,10 @@ import com.lehaine.littlekt.graph.node.frameBuffer
 import com.lehaine.littlekt.graph.node.graphViewport
 import com.lehaine.littlekt.graph.node.node2d.camera2d
 import com.lehaine.littlekt.graph.node.node2d.node2d
-import com.lehaine.littlekt.graph.node.node2d.ui.TextureRect
-import com.lehaine.littlekt.graph.node.node2d.ui.centerContainer
-import com.lehaine.littlekt.graph.node.node2d.ui.label
-import com.lehaine.littlekt.graph.node.node2d.ui.textureRect
+import com.lehaine.littlekt.graph.node.ui.TextureRect
+import com.lehaine.littlekt.graph.node.ui.centerContainer
+import com.lehaine.littlekt.graph.node.ui.label
+import com.lehaine.littlekt.graph.node.ui.textureRect
 import com.lehaine.littlekt.graph.sceneGraph
 import com.lehaine.littlekt.graphics.gl.ClearBufferMask
 import com.lehaine.littlekt.graphics.slice
