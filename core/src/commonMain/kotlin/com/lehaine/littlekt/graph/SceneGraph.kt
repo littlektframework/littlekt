@@ -16,6 +16,7 @@ import com.lehaine.littlekt.input.*
 import com.lehaine.littlekt.math.MutableVec2f
 import com.lehaine.littlekt.util.datastructure.Pool
 import com.lehaine.littlekt.util.fastForEach
+import com.lehaine.littlekt.util.seconds
 import com.lehaine.littlekt.util.viewport.ScreenViewport
 import com.lehaine.littlekt.util.viewport.Viewport
 import kotlin.contracts.ExperimentalContracts
@@ -169,6 +170,10 @@ open class SceneGraph<InputType>(
         this.viewport = viewport
     }
 
+    var targetFPS = 60
+    var tmod: Float = 1f
+        private set
+
     private var frameCount = 0
 
     // scene input related fields
@@ -277,7 +282,7 @@ open class SceneGraph<InputType>(
      */
     open fun update(dt: Duration) {
         if (!initialized) error("You need to call 'initialize()' once before doing any rendering or updating!")
-
+        tmod = dt.seconds * targetFPS
         pointerOverControls.forEachIndexed { index, overLast ->
             if (!pointerTouched[index]) {
                 if (overLast != null) {
