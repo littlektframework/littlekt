@@ -8,7 +8,7 @@ import com.lehaine.littlekt.graph.node.component.Drawable
 import com.lehaine.littlekt.graph.node.component.InputEvent
 import com.lehaine.littlekt.graph.node.component.OverrideMap
 import com.lehaine.littlekt.graph.node.component.Theme
-import com.lehaine.littlekt.graph.node.node2d.Node2D
+import com.lehaine.littlekt.graph.node.CanvasItem
 import com.lehaine.littlekt.graph.node.node2d.ui.Control.AnchorLayout.*
 import com.lehaine.littlekt.graphics.Batch
 import com.lehaine.littlekt.graphics.Color
@@ -54,7 +54,7 @@ inline fun SceneGraph<*>.control(callback: @SceneGraphDslMarker Control.() -> Un
  * @author Colton Daily
  * @date 1/2/2022
  */
-open class Control : Node2D() {
+open class Control : CanvasItem() {
 
     /**
      * A [Signal] the is emitted when the [horizontalSizeFlags] or [verticalSizeFlags] are changed.

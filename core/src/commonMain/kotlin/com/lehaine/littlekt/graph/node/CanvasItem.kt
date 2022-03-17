@@ -17,23 +17,23 @@ import kotlin.math.cos
 import kotlin.math.sin
 
 /**
- * Adds a [Node2D] to the current [Node] as a child and then triggers the [callback]
- * @param callback the callback that is invoked with a [Node2D] context in order to initialize any values
- * @return the newly created [Node2D]
+ * Adds a [CanvasItem] to the current [Node] as a child and then triggers the [callback]
+ * @param callback the callback that is invoked with a [CanvasItem] context in order to initialize any values
+ * @return the newly created [CanvasItem]
  */
 @OptIn(ExperimentalContracts::class)
-inline fun Node.node2d(callback: @SceneGraphDslMarker Node2D.() -> Unit = {}): Node2D {
+inline fun Node.node2d(callback: @SceneGraphDslMarker CanvasItem.() -> Unit = {}): CanvasItem {
     contract { callsInPlace(callback, InvocationKind.EXACTLY_ONCE) }
-    return Node2D().also(callback).addTo(this)
+    return CanvasItem().also(callback).addTo(this)
 }
 
 /**
- * Adds a [Node2D] to the current [SceneGraph.root] as a child and then triggers the [Node2D]
- * @param callback the callback that is invoked with a [Node2D] context in order to initialize any values
- * @return the newly created [Node2D]
+ * Adds a [CanvasItem] to the current [SceneGraph.root] as a child and then triggers the [CanvasItem]
+ * @param callback the callback that is invoked with a [CanvasItem] context in order to initialize any values
+ * @return the newly created [CanvasItem]
  */
 @OptIn(ExperimentalContracts::class)
-inline fun SceneGraph<*>.node2d(callback: @SceneGraphDslMarker Node2D.() -> Unit = {}): Node2D {
+inline fun SceneGraph<*>.node2d(callback: @SceneGraphDslMarker CanvasItem.() -> Unit = {}): CanvasItem {
     contract { callsInPlace(callback, InvocationKind.EXACTLY_ONCE) }
     return root.node2d(callback)
 }
@@ -43,7 +43,7 @@ inline fun SceneGraph<*>.node2d(callback: @SceneGraphDslMarker Node2D.() -> Unit
  * @author Colton Daily
  * @date 1/1/2022
  */
-open class Node2D : Node() {
+open class CanvasItem : Node() {
 
     companion object {
         const val POSITION_DIRTY = 1
@@ -52,14 +52,14 @@ open class Node2D : Node() {
     }
 
     /**
-     * The position of the [Node2D] in world space. If you want to set the [x,y] properties of this [Vector2] then use
-     * the [globalX] and [globalY] properties of this [Node2D]
+     * The position of the [CanvasItem] in world space. If you want to set the [x,y] properties of this [Vector2] then use
+     * the [globalX] and [globalY] properties of this [CanvasItem]
      */
     var globalPosition: Vec2f
         get() {
             updateHierarchy()
             if (_globalPositionDirty) {
-                (parent as? Node2D)?.let {
+                (parent as? CanvasItem)?.let {
                     it.updateHierarchy()
                     _globalPosition.set(_localPosition).mul(it._globalTransform)
                 } ?: run {
@@ -100,9 +100,9 @@ open class Node2D : Node() {
         }
 
     /**
-     * The position of the [Node2D] relative to the parent transform. If the [Node2D] has no parent or if the parent node is NOT
-     * a [Node2D], then it is the same a [globalPosition]. If you want to set the [x,y] properties of this [Vector2] then use
-     * the [x] and [y] properties of this [Node2D]
+     * The position of the [CanvasItem] relative to the parent transform. If the [CanvasItem] has no parent or if the parent node is NOT
+     * a [CanvasItem], then it is the same a [globalPosition]. If you want to set the [x,y] properties of this [Vector2] then use
+     * the [x] and [y] properties of this [CanvasItem]
      */
     var position: Vec2f
         get() {
@@ -140,7 +140,7 @@ open class Node2D : Node() {
 
 
     /**
-     * The rotation of the [Node2D] in world space in radians
+     * The rotation of the [CanvasItem] in world space in radians
      */
     var globalRotation: Angle
         get() {
@@ -152,8 +152,8 @@ open class Node2D : Node() {
         }
 
     /**
-     * The rotation of the [Node2D] relative to the parent transform's rotation. If the [Node2D] has no parent or if the parent node is NOT
-     * a [Node2D], then it is the same a [globalRotation]
+     * The rotation of the [CanvasItem] relative to the parent transform's rotation. If the [CanvasItem] has no parent or if the parent node is NOT
+     * a [CanvasItem], then it is the same a [globalRotation]
      */
     var rotation: Angle
         get() {
@@ -166,8 +166,8 @@ open class Node2D : Node() {
 
 
     /**
-     * The global scale of the [Node2D]. If you want to set the [x,y] properties of this [Vector2] then use
-     * the [globalScaleX] and [globalScaleY] properties of this [Node2D].
+     * The global scale of the [CanvasItem]. If you want to set the [x,y] properties of this [Vector2] then use
+     * the [globalScaleX] and [globalScaleY] properties of this [CanvasItem].
      */
     var globalScale: Vec2f
         get() {
@@ -198,9 +198,9 @@ open class Node2D : Node() {
 
 
     /**
-     * The scale of the [Node2D] relative to the parent transform's scales. If the [Node2D] has no parent or if the parent node is NOT
-     * a [Node2D], then it is the same a [globalScale]. If you want to set the [x,y] properties of this [Vector2] then use
-     * the [scaleX] and [scaleY] properties of this [Node2D].
+     * The scale of the [CanvasItem] relative to the parent transform's scales. If the [CanvasItem] has no parent or if the parent node is NOT
+     * a [CanvasItem], then it is the same a [globalScale]. If you want to set the [x,y] properties of this [Vector2] then use
+     * the [scaleX] and [scaleY] properties of this [CanvasItem].
      */
     var scale: Vec2f
         get() {
@@ -256,7 +256,7 @@ open class Node2D : Node() {
     val globalToLocalTransform: Mat3
         get() {
             if (_globalToLocalDirty) {
-                (parent as? Node2D)?.let {
+                (parent as? CanvasItem)?.let {
                     it.updateHierarchy()
                     _globalToLocalTransform.set(it._globalTransform).invert()
                 } ?: run {
@@ -308,11 +308,11 @@ open class Node2D : Node() {
     }
 
     /**
-     * Sets the position of the [Node2D] in world space.
+     * Sets the position of the [CanvasItem] in world space.
      * @param value the new position
-     * @return the current [Node2D]
+     * @return the current [CanvasItem]
      */
-    fun globalPosition(value: Vec2f): Node2D {
+    fun globalPosition(value: Vec2f): CanvasItem {
         if (value == _globalPosition) {
             return this
         }
@@ -321,7 +321,7 @@ open class Node2D : Node() {
         return this
     }
 
-    fun globalPosition(x: Float, y: Float): Node2D {
+    fun globalPosition(x: Float, y: Float): CanvasItem {
         if (_globalPosition.x == x && _globalPosition.y == y) {
             return this
         }
@@ -333,7 +333,7 @@ open class Node2D : Node() {
     private fun updateGlobalPosition() {
         _localPosition.set(_globalPosition)
         updateHierarchy()
-        if (parent is Node2D) {
+        if (parent is CanvasItem) {
             _localPosition.mul(globalToLocalTransform)
         }
         updateLocalPosition()
@@ -341,12 +341,12 @@ open class Node2D : Node() {
     }
 
     /**
-     * Sets the position of the [Node2D] relative to the parent [Node]. If the [Node2D] has no parent or if the parent node is NOT
-     * a [Node2D], then it is the same a [globalPosition]
+     * Sets the position of the [CanvasItem] relative to the parent [Node]. If the [CanvasItem] has no parent or if the parent node is NOT
+     * a [CanvasItem], then it is the same a [globalPosition]
      * @param value the new position
-     * @return the current [Node2D]
+     * @return the current [CanvasItem]
      */
-    fun position(value: Vec2f): Node2D {
+    fun position(value: Vec2f): CanvasItem {
         if (value == _localPosition) {
             return this
         }
@@ -357,7 +357,7 @@ open class Node2D : Node() {
         return this
     }
 
-    fun position(x: Float, y: Float, invokeCallback: Boolean = true): Node2D {
+    fun position(x: Float, y: Float, invokeCallback: Boolean = true): CanvasItem {
         if (_localPosition.x == x && _localPosition.y == y) {
             return this
         }
@@ -381,16 +381,16 @@ open class Node2D : Node() {
     protected open fun onPositionChanged() {}
 
     /**
-     * Sets the rotation of the [Node2D] in world space in radians.
+     * Sets the rotation of the [CanvasItem] in world space in radians.
      * @param angle the new rotation
-     * @return the current [Node2D]
+     * @return the current [CanvasItem]
      */
-    fun globalRotation(angle: Angle): Node2D {
+    fun globalRotation(angle: Angle): CanvasItem {
         if (_globalRotation == angle) {
             return this
         }
         _globalRotation = angle
-        (parent as? Node2D)?.let {
+        (parent as? CanvasItem)?.let {
             rotation = it.globalRotation + angle
         } ?: run {
             rotation = angle
@@ -400,12 +400,12 @@ open class Node2D : Node() {
     }
 
     /**
-     * Sets the rotation of the [Node2D] relative to the parent [Node] in radians. If the [Node2D] has no parent or if the parent node is NOT
-     * a [Node2D], then it is the same a [globalRotation]
+     * Sets the rotation of the [CanvasItem] relative to the parent [Node] in radians. If the [CanvasItem] has no parent or if the parent node is NOT
+     * a [CanvasItem], then it is the same a [globalRotation]
      * @param angle the new rotation
-     * @return the current [Node2D]
+     * @return the current [CanvasItem]
      */
-    fun rotation(angle: Angle): Node2D {
+    fun rotation(angle: Angle): CanvasItem {
         if (_localRotation == angle) {
             return this
         }
@@ -422,11 +422,11 @@ open class Node2D : Node() {
     }
 
     /**
-     * Sets the global scale of the [Node2D].
+     * Sets the global scale of the [CanvasItem].
      * @param value the new scale
-     * @return the current [Node2D]
+     * @return the current [CanvasItem]
      */
-    fun globalScale(value: Vec2f): Node2D {
+    fun globalScale(value: Vec2f): CanvasItem {
         if (_globalScale == value) {
             return this
         }
@@ -435,7 +435,7 @@ open class Node2D : Node() {
         return this
     }
 
-    fun globalScale(x: Float, y: Float): Node2D {
+    fun globalScale(x: Float, y: Float): CanvasItem {
         if (_globalScale.x == x && _globalScale.y == y) {
             return this
         }
@@ -446,18 +446,18 @@ open class Node2D : Node() {
 
     private fun updateScale() {
         _localScale.set(_globalScale)
-        val node2d = parent as? Node2D
-        if (node2d != null) {
-            _localScale /= node2d._globalScale
+        val canvasItem = parent as? CanvasItem
+        if (canvasItem != null) {
+            _localScale /= canvasItem._globalScale
         }
         updateLocalScale()
     }
 
     /**
-     * Sets the scale of the [Node2D] relative to the parent transform's scales. If the [Node2D] has no parent or if the parent node is NOT
-     * a [Node2D], then it is the same a [globalScale]
+     * Sets the scale of the [CanvasItem] relative to the parent transform's scales. If the [CanvasItem] has no parent or if the parent node is NOT
+     * a [CanvasItem], then it is the same a [globalScale]
      */
-    fun scale(value: Vec2f): Node2D {
+    fun scale(value: Vec2f): CanvasItem {
         if (value == _localScale) {
             return this
         }
@@ -468,7 +468,7 @@ open class Node2D : Node() {
         return this
     }
 
-    fun scale(x: Float, y: Float): Node2D {
+    fun scale(x: Float, y: Float): CanvasItem {
         if (x == _localScale.x && y == _localScale.y) {
             return this
         }
@@ -506,7 +506,7 @@ open class Node2D : Node() {
                 }
 
                 _localTransform.set(_scaleMatrix).mulLeft(_rotationMatrix).mulLeft(_translationMatrix)
-                if (parent !is Node2D) {
+                if (parent !is CanvasItem) {
                     _globalTransform.set(_localTransform)
                     _globalRotation = _localRotation
                     _globalScale.set(_localScale)
@@ -515,7 +515,7 @@ open class Node2D : Node() {
                 _localDirty = false
             }
 
-            (parent as? Node2D)?.let {
+            (parent as? CanvasItem)?.let {
                 _globalTransform.set(_localTransform).mulLeft(it._globalTransform)
 
                 _globalRotation = _localRotation + it._globalRotation
@@ -607,7 +607,7 @@ open class Node2D : Node() {
         return out.set(tx.toFloat(), ty.toFloat())
     }
 
-    fun copyFrom(node: Node2D) {
+    fun copyFrom(node: CanvasItem) {
         _globalPosition = node.globalPosition.toMutableVec()
         _localPosition = node.position.toMutableVec()
         _globalRotation = node.globalRotation
