@@ -184,7 +184,7 @@ open class SceneGraph<InputType>(
     private val pointerOverControls = arrayOfNulls<Control>(20)
     private val pointerTouched = BooleanArray(20)
     private var previousViewportApplied: Viewport? = null
-    private var currentViewportApplied:Viewport? = null
+    private var currentViewportApplied: Viewport? = null
 
     private val tempVec = MutableVec2f()
 
@@ -275,7 +275,7 @@ open class SceneGraph<InputType>(
     /**
      * Updates all the nodes in the tree.
      */
-    fun update(dt: Duration) {
+    open fun update(dt: Duration) {
         if (!initialized) error("You need to call 'initialize()' once before doing any rendering or updating!")
 
         pointerOverControls.forEachIndexed { index, overLast ->
