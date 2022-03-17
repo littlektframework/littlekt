@@ -254,9 +254,9 @@ open class Node : Comparable<Node> {
     @JsName("onAddedToSceneSignal")
     val onAddedToScene: Signal = signal()
 
-    val childExitedTree: SingleSignal<Node> = signal1v()
+    val onChildExitedTree: SingleSignal<Node> = signal1v()
 
-    val childEnteredTree: SingleSignal<Node> = signal1v()
+    val onChildEnteredTree: SingleSignal<Node> = signal1v()
 
     private fun propagateExitTree() {
         nodes.forEach {
@@ -265,7 +265,7 @@ open class Node : Comparable<Node> {
         onRemovingFromScene()
         onRemovingFromScene.emit()
 
-        parent?.childExitedTree?.emit(this)
+        parent?.onChildExitedTree?.emit(this)
         readyNotified = false
         depth = -1
     }
@@ -291,7 +291,7 @@ open class Node : Comparable<Node> {
         onAddedToScene()
         onAddedToScene.emit()
 
-        parent?.childEnteredTree?.emit(this)
+        parent?.onChildEnteredTree?.emit(this)
 
         nodes.forEach {
             if (!it.insideTree) {
@@ -321,14 +321,17 @@ open class Node : Comparable<Node> {
         nodes.update()
     }
 
-    internal open fun render(batch: Batch, camera: Camera, renderCallback: ((Node, Batch, Camera) -> Unit)?) {
-        if (this is CanvasItem) {
-            propagatePreRender(batch, camera)
-            propagateRender(batch, camera, renderCallback)
-            propagatePostRender(batch, camera)
-        } else {
-            nodes.forEach { it.render(batch, camera, renderCallback) }
+    fun propagateResize(width: Int, height: Int, center: Boolean) {
+        if (!enabled) return
+        nodes.forEach {
+            it.propagateResize(width, height, center)
         }
+        resize(width, height)
+        onResize.emit(width, height)
+    }
+
+    internal open fun propagateInternalRender(batch: Batch, camera: Camera, renderCallback: ((Node, Batch, Camera) -> Unit)?) {
+        nodes.forEach { it.propagateInternalRender(batch, camera, renderCallback) }
     }
 
     /**
@@ -427,6 +430,11 @@ open class Node : Comparable<Node> {
         onReady.clear()
         onDestroy.clear()
         onResize.clear()
+        onRemovedFromScene.clear()
+        onRemovingFromScene.clear()
+        onAddedToScene.clear()
+        onChildEnteredTree.clear()
+        onChildExitedTree.clear()
     }
 
     /**
@@ -441,15 +449,6 @@ open class Node : Comparable<Node> {
 
     open fun onDescendantRemoved(child: Node) {
         parent?.onDescendantRemoved(child)
-    }
-
-    internal open fun _onResize(width: Int, height: Int, center: Boolean) {
-        if (!enabled) return
-        nodes.forEach {
-            it._onResize(width, height, center)
-        }
-        resize(width, height)
-        onResize.emit(width, height)
     }
 
     /**

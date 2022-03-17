@@ -2,7 +2,7 @@ package com.lehaine.littlekt.graph
 
 import com.lehaine.littlekt.Context
 import com.lehaine.littlekt.Disposable
-import com.lehaine.littlekt.graph.node.GraphViewport
+import com.lehaine.littlekt.graph.node.ViewportNode
 import com.lehaine.littlekt.graph.node.Node
 import com.lehaine.littlekt.graph.node.addTo
 import com.lehaine.littlekt.graph.node.annotation.SceneGraphDslMarker
@@ -151,8 +151,8 @@ open class SceneGraph<InputType>(
     private var ownsBatch = true
     val batch: Batch = batch?.also { ownsBatch = false } ?: SpriteBatch(context)
 
-    val sceneViewport: GraphViewport by lazy {
-        GraphViewport().apply {
+    val sceneViewport: ViewportNode by lazy {
+        ViewportNode().apply {
             name = "Scene Viewport"
             strategy = viewport
         }
@@ -202,7 +202,7 @@ open class SceneGraph<InputType>(
      * @param centerCamera if true will center the graphs internal camera after resizing the viewport
      */
     open fun resize(width: Int, height: Int, centerCamera: Boolean = false) {
-        sceneViewport._onResize(width, height, centerCamera)
+        sceneViewport.propagateResize(width, height, centerCamera)
         camera.viewport = sceneViewport.strategy
         camera.update()
         if (centerCamera) {
@@ -233,7 +233,7 @@ open class SceneGraph<InputType>(
         camera.viewport = sceneViewport.strategy
         camera.update()
         batch.begin(camera.viewProjection)
-        sceneViewport.render(batch, camera, onNodeRender)
+        sceneViewport.propagateInternalRender(batch, camera, onNodeRender)
         if (batch.drawing) batch.end()
     }
 

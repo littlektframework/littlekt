@@ -7,7 +7,7 @@ import com.lehaine.littlekt.file.vfs.readTexture
 import com.lehaine.littlekt.graph.node.canvasLayer
 import com.lehaine.littlekt.graph.node.component.HAlign
 import com.lehaine.littlekt.graph.node.frameBuffer
-import com.lehaine.littlekt.graph.node.graphViewport
+import com.lehaine.littlekt.graph.node.viewport
 import com.lehaine.littlekt.graph.node.node2d.camera2d
 import com.lehaine.littlekt.graph.node.node2d.node2d
 import com.lehaine.littlekt.graph.node.ui.TextureRect
@@ -33,7 +33,7 @@ class CanvasCameraTest(context: Context) : ContextListener(context) {
         val pixelFont = resourcesVfs["m5x7_16.fnt"].readBitmapFont()
         val icon = resourcesVfs["icon_16x16.png"].readTexture()
         val graph = sceneGraph(context, ExtendViewport(240, 135)) {
-            graphViewport {
+            viewport {
                 strategy = ExtendViewport(960, 540)
 
                 canvasLayer {

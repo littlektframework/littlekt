@@ -10,32 +10,32 @@ import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
 
 /**
- * Adds a [GraphViewport] to the current [Node] as a child and then triggers the [callback]
- * @param callback the callback that is invoked with a [GraphViewport] context in order to initialize any values
- * @return the newly created [GraphViewport]
+ * Adds a [ViewportNode] to the current [Node] as a child and then triggers the [callback]
+ * @param callback the callback that is invoked with a [ViewportNode] context in order to initialize any values
+ * @return the newly created [ViewportNode]
  */
 @OptIn(ExperimentalContracts::class)
-inline fun Node.graphViewport(callback: @SceneGraphDslMarker GraphViewport.() -> Unit = {}): GraphViewport {
+inline fun Node.viewport(callback: @SceneGraphDslMarker ViewportNode.() -> Unit = {}): ViewportNode {
     contract { callsInPlace(callback, InvocationKind.EXACTLY_ONCE) }
-    return GraphViewport().also(callback).addTo(this)
+    return ViewportNode().also(callback).addTo(this)
 }
 
 /**
- * Adds a [GraphViewport] to the current [SceneGraph.root] as a child and then triggers the [GraphViewport]
- * @param callback the callback that is invoked with a [GraphViewport] context in order to initialize any values
- * @return the newly created [GraphViewport]
+ * Adds a [ViewportNode] to the current [SceneGraph.root] as a child and then triggers the [ViewportNode]
+ * @param callback the callback that is invoked with a [ViewportNode] context in order to initialize any values
+ * @return the newly created [ViewportNode]
  */
 @OptIn(ExperimentalContracts::class)
-inline fun SceneGraph<*>.graphViewport(callback: @SceneGraphDslMarker GraphViewport.() -> Unit = {}): GraphViewport {
+inline fun SceneGraph<*>.viewport(callback: @SceneGraphDslMarker ViewportNode.() -> Unit = {}): ViewportNode {
     contract { callsInPlace(callback, InvocationKind.EXACTLY_ONCE) }
-    return root.graphViewport(callback)
+    return root.viewport(callback)
 }
 
 /**
  * @author Colton Daily
  * @date 3/13/2022
  */
-class GraphViewport : Node() {
+class ViewportNode : Node() {
     var strategy: Viewport = Viewport()
         set(value) {
             field = value
@@ -83,18 +83,18 @@ class GraphViewport : Node() {
         viewport = strategy
     }
 
-    override fun _onResize(width: Int, height: Int, center: Boolean) {
+    override fun resize(width: Int, height: Int) {
         scene?.let {
             strategy.update(width, height, it.context)
         }
-        super._onResize(width, height, center)
+        super.resize(width, height)
     }
 
-    override fun render(batch: Batch, camera: Camera, renderCallback: ((Node, Batch, Camera) -> Unit)?) {
+    override fun propagateInternalRender(batch: Batch, camera: Camera, renderCallback: ((Node, Batch, Camera) -> Unit)?) {
         if (!enabled) return
         scene?.applyViewport(strategy)
         nodes.forEach {
-            it.render(batch, camera, renderCallback)
+            it.propagateInternalRender(batch, camera, renderCallback)
         }
         batch.flush()
         scene?.applyPreviousViewport()

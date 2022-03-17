@@ -33,7 +33,7 @@ inline fun SceneGraph<*>.frameBuffer(
  * @author Colton Daily
  * @date 3/14/2022
  */
-class FrameBufferNode : CanvasItem() {
+class FrameBufferNode : Node() {
 
     var width: Int = 0
     var height: Int = 0
@@ -80,7 +80,7 @@ class FrameBufferNode : CanvasItem() {
 
     private var prevProjection: Mat4 = Mat4()
 
-    override fun preRender(batch: Batch, camera: Camera) {
+    fun begin(batch: Batch) {
         checkForResize(lastWidth, lastHeight)
         val fbo = fbo ?: return
         val context = scene?.context ?: return
@@ -95,7 +95,15 @@ class FrameBufferNode : CanvasItem() {
         batch.begin(fboCamera.viewProjection)
     }
 
-    override fun postRender(batch: Batch, camera: Camera) {
+    override fun propagateInternalRender(batch: Batch, camera: Camera, renderCallback: ((Node, Batch, Camera) -> Unit)?) {
+        fbo ?: return
+        if (width == 0 || height == 0) return
+        begin(batch)
+        nodes.forEach { it.propagateInternalRender(batch, fboCamera, renderCallback) }
+        end(batch)
+    }
+
+    fun end(batch: Batch) {
         val fbo = fbo ?: return
         if (width == 0 || height == 0) return
         batch.end()

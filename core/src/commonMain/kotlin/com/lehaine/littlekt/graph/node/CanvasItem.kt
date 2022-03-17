@@ -47,7 +47,7 @@ abstract class CanvasItem : Node() {
     val onPreRender: DoubleSignal<Batch, Camera> = signal2v()
 
     /**
-     * List of 'render' callbacks called when [render] is called. Add any additional callbacks directly to this list.
+     * List of 'render' callbacks called when [propagateInternalRender] is called. Add any additional callbacks directly to this list.
      * The main use is to add callbacks directly to nodes inline when building a [SceneGraph] vs having to extend
      * a class directly.
      *
@@ -360,7 +360,7 @@ abstract class CanvasItem : Node() {
     }
 
     /**
-     * Shows/hides the [Node]. When disabled [render] is no longer called.
+     * Shows/hides the [Node]. When disabled [propagateInternalRender] is no longer called.
      * @param value true to enable this node; false otherwise
      */
     fun visible(value: Boolean): Node {
@@ -375,6 +375,11 @@ abstract class CanvasItem : Node() {
         return this
     }
 
+    override fun propagateInternalRender(batch: Batch, camera: Camera, renderCallback: ((Node, Batch, Camera) -> Unit)?) {
+        propagatePreRender(batch, camera)
+        propagateRender(batch, camera, renderCallback)
+        propagatePostRender(batch, camera)
+    }
 
     fun propagatePreRender(batch: Batch, camera: Camera) {
         if (!enabled || !visible) return
@@ -388,7 +393,7 @@ abstract class CanvasItem : Node() {
     }
 
     /**
-     * Internal rendering that needs to be done on the node that shouldn't be overridden. Calls [render] method.
+     * Internal rendering that needs to be done on the node that shouldn't be overridden. Calls [propagateInternalRender] method.
      */
     fun propagateRender(batch: Batch, camera: Camera, renderCallback: ((Node, Batch, Camera) -> Unit)?) {
         if (!enabled || !visible) return
@@ -648,7 +653,7 @@ abstract class CanvasItem : Node() {
 
     /**
      * Internal. Called when the hierarchy of this [CanvasItem] is changed.
-     * Example changes that can trigger this include: `position`, `rotation`, and `scale`
+     * Example changes that can trigger this includes: `position`, `rotation`, and `scale`
      */
     private fun _onHierarchyChanged(flag: Int) {
         onHierarchyChanged(flag)
@@ -803,5 +808,4 @@ abstract class CanvasItem : Node() {
         dirty(ROTATION_DIRTY)
         dirty(SCALE_DIRTY)
     }
-
 }
