@@ -40,6 +40,7 @@ inline fun SceneGraph<*>.label(callback: @SceneGraphDslMarker Label.() -> Unit =
 }
 
 /**
+ * A [Control] that renders text with a specified [BitmapFont].
  * @author Colton Daily
  * @date 1/8/2022
  */

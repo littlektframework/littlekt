@@ -32,6 +32,7 @@ inline fun SceneGraph<*>.viewport(callback: @SceneGraphDslMarker ViewportNode.()
 }
 
 /**
+ * A [Node] that applies a [Viewport] to its children when rendering via [strategy].
  * @author Colton Daily
  * @date 3/13/2022
  */

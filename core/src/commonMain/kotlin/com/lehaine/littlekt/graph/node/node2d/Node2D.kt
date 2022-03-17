@@ -32,6 +32,7 @@ inline fun SceneGraph<*>.node2d(callback: @SceneGraphDslMarker Node2D.() -> Unit
 }
 
 /**
+ * A [Node] with extended 2D transformations.
  * @author Colton Daily
  * @date 3/17/2022
  */

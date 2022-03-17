@@ -1137,10 +1137,13 @@ open class Control : CanvasItem() {
             if (sizeChanged || posChanged) {
                 computeMargins()
                 dirty(SIZE_DIRTY)
+                onResized()
                 onSizeChanged.emit()
             }
         }
     }
+
+    protected open fun onResized() = Unit
 
     protected open fun calculateMinSize() {
         minSizeInvalid = false

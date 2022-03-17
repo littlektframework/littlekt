@@ -227,6 +227,10 @@ abstract class CanvasItem : Node() {
             globalScale(value)
         }
 
+    /**
+     * The global x-scale of the [CanvasItem].
+     * @see globalScale
+     */
     var globalScaleX: Float
         get() {
             return _globalScale.x
@@ -236,6 +240,10 @@ abstract class CanvasItem : Node() {
             updateScale()
         }
 
+    /**
+     * The global y-scale of the [CanvasItem].
+     * @see globalScale
+     */
     var globalScaleY: Float
         get() {
             return _globalScale.y
@@ -260,6 +268,10 @@ abstract class CanvasItem : Node() {
             scale(value)
         }
 
+    /**
+     * The x-scale of the [CanvasItem] relative to the parent transform's scales.
+     * @see scale
+     */
     var scaleX: Float
         get() {
             return _localScale.x
@@ -270,6 +282,10 @@ abstract class CanvasItem : Node() {
             updateLocalScale()
         }
 
+    /**
+     * The y-scale of the [CanvasItem] relative to the parent transform's scales.
+     * @see scale
+     */
     var scaleY: Float
         get() {
             return _localScale.y
@@ -375,7 +391,11 @@ abstract class CanvasItem : Node() {
         return this
     }
 
-    override fun propagateInternalRender(batch: Batch, camera: Camera, renderCallback: ((Node, Batch, Camera) -> Unit)?) {
+    override fun propagateInternalRender(
+        batch: Batch,
+        camera: Camera,
+        renderCallback: ((Node, Batch, Camera) -> Unit)?,
+    ) {
         propagatePreRender(batch, camera)
         propagateRender(batch, camera, renderCallback)
         propagatePostRender(batch, camera)
@@ -401,9 +421,7 @@ abstract class CanvasItem : Node() {
         render(batch, camera)
         onRender.emit(batch, camera)
         nodes.forEach {
-            if (it is CanvasItem) {
-                it.propagateRender(batch, camera, renderCallback)
-            }
+            it.propagateInternalRender(batch, camera, renderCallback)
         }
     }
 
@@ -431,6 +449,12 @@ abstract class CanvasItem : Node() {
         }
     }
 
+    /**
+     * Invoked before [render]. Calculations or logic that needs to be done before rendering such as flushing the batch
+     * or starting a frame buffer. The [Camera] can be used for culling and the [Batch] instance to draw with.
+     * @param batch the batcher
+     * @param camera the Camera2D node
+     */
     open fun preRender(batch: Batch, camera: Camera) {}
 
     /**
@@ -440,6 +464,12 @@ abstract class CanvasItem : Node() {
      */
     open fun render(batch: Batch, camera: Camera) {}
 
+    /**
+     * Invoked after [render]. Calculations or logic that needs to be done after rendering such as flushing the batch
+     * or ending a frame buffer. The [Camera] can be used for culling and the [Batch] instance to draw with.
+     * @param batch the batcher
+     * @param camera the Camera2D node
+     */
     open fun postRender(batch: Batch, camera: Camera) {}
 
     /**
@@ -462,6 +492,12 @@ abstract class CanvasItem : Node() {
         return this
     }
 
+    /**
+     * Sets the position of the [CanvasItem] in world space.
+     * @param x the new x position
+     * @param y the new y position
+     * @return the current [CanvasItem]
+     */
     fun globalPosition(x: Float, y: Float): CanvasItem {
         if (_globalPosition.x == x && _globalPosition.y == y) {
             return this
@@ -498,6 +534,13 @@ abstract class CanvasItem : Node() {
         return this
     }
 
+    /**
+     * Sets the position of the [CanvasItem] relative to the parent [Node]. If the [CanvasItem] has no parent or if the parent node is NOT
+     * a [CanvasItem], then it is the same a [globalPosition]
+     * @param x the new x position
+     * @param y the new y position
+     * @return the current [CanvasItem]
+     */
     fun position(x: Float, y: Float, invokeCallback: Boolean = true): CanvasItem {
         if (_localPosition.x == x && _localPosition.y == y) {
             return this
@@ -519,6 +562,9 @@ abstract class CanvasItem : Node() {
         dirty(POSITION_DIRTY)
     }
 
+    /**
+     * Invoked when this [CanvasItem] position is changed.
+     */
     protected open fun onPositionChanged() {}
 
     /**
@@ -576,6 +622,12 @@ abstract class CanvasItem : Node() {
         return this
     }
 
+    /**
+     * Sets the global scale of the [CanvasItem].
+     * @param x the new x scale
+     * @param y the new y scale
+     * @return the current [CanvasItem]
+     */
     fun globalScale(x: Float, y: Float): CanvasItem {
         if (_globalScale.x == x && _globalScale.y == y) {
             return this
@@ -718,8 +770,17 @@ abstract class CanvasItem : Node() {
         onDebugRender.clear()
     }
 
+    /**
+     * Translates the position by the offset vector in `local` coordinates.
+     * @param offset the amount to translate by
+     */
     fun translate(offset: Vec2f) = translate(offset.x, offset.y)
 
+    /**
+     * Translates the position by the offset vector in `local` coordinates.
+     * @param x the amount to translate x by
+     * @param y the amount to translate y by
+     */
     fun translate(x: Float, y: Float) {
         if (x != 0f || y != 0f) {
             _localPosition.add(x, y)

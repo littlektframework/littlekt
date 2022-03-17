@@ -34,6 +34,8 @@ inline fun SceneGraph<*>.camera2d(callback: @SceneGraphDslMarker Camera2D.() -> 
 }
 
 /**
+ * A [Node2D] that scrolls the closest rendering [Camera]. The rendering [Camera] will either be
+ * from a [CanvasLayer] or the [SceneGraph]. Only one [Camera2D] can be active at a time per [Camera].
  * @author Colton Daily
  * @date 3/13/2022
  */

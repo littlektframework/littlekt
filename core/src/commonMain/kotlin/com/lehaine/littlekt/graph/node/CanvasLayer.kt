@@ -32,6 +32,11 @@ inline fun SceneGraph<*>.canvasLayer(callback: @SceneGraphDslMarker CanvasLayer.
 }
 
 /**
+ * A [Node] that uses a separate [OrthographicCamera] for rendering instead of the inherited camera from the [SceneGraph].
+ * This is useful to render a list of nodes with a camera a certain way and another list of nodes another way.
+ *
+ * For example: When rendering certain nodes at a low resolution using a [CanvasLayer] to render UI at a higher resolution.
+ *
  * @author Colton Daily
  * @date 3/13/2022
  */
@@ -54,7 +59,11 @@ open class CanvasLayer : Node() {
         super.resize(width, height)
     }
 
-    override fun propagateInternalRender(batch: Batch, camera: Camera, renderCallback: ((Node, Batch, Camera) -> Unit)?) {
+    override fun propagateInternalRender(
+        batch: Batch,
+        camera: Camera,
+        renderCallback: ((Node, Batch, Camera) -> Unit)?,
+    ) {
         if (!enabled) return
         val prevProjMatrix = batch.projectionMatrix
         canvasCamera.viewport = viewport ?: error("Unable to set CanvasLayer transform viewport")
