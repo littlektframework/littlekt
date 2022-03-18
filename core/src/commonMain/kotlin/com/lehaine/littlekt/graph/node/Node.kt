@@ -2,6 +2,7 @@ package com.lehaine.littlekt.graph.node
 
 import com.lehaine.littlekt.graph.SceneGraph
 import com.lehaine.littlekt.graph.node.annotation.SceneGraphDslMarker
+import com.lehaine.littlekt.graph.node.component.InputEvent
 import com.lehaine.littlekt.graph.node.internal.NodeList
 import com.lehaine.littlekt.graphics.Batch
 import com.lehaine.littlekt.graphics.Camera
@@ -245,12 +246,69 @@ open class Node : Comparable<Node> {
      */
     val onResize: DoubleSignal<Int, Int> = signal2v()
 
+    /**
+     * List of 'input' callbacks called when [input] is called. Add any additional callbacks directly to this list.
+     * The main use is to add callbacks directly to nodes inline when building a [SceneGraph] vs having to extend
+     * a class directly.
+     *
+     * ```
+     * node {
+     *     onInput += { event ->
+     *         // handle extra input logic
+     *     }
+     * }
+     * ```
+     */
+    val onInput: SingleSignal<InputEvent<*>> = signal1v()
+
+    /**
+     * List of 'unhandledInput' callbacks called when [unhandledInput] is called. Add any additional callbacks directly to this list.
+     * The main use is to add callbacks directly to nodes inline when building a [SceneGraph] vs having to extend
+     * a class directly.
+     *
+     * ```
+     * node {
+     *     onUnhandledInput += { event ->
+     *         // handle extra unhandled input logic
+     *     }
+     * }
+     * ```
+     */
+    val onUnhandledInput: SingleSignal<InputEvent<*>> = signal1v()
+
+
     @JsName("onRemovingFromSceneSignal")
     val onRemovingFromScene: Signal = signal()
 
+    /**
+     * List of 'removedFromScene' callbacks called when [onRemovedFromScene] is called. Add any additional callbacks directly to this list.
+     * The main use is to add callbacks directly to nodes inline when building a [SceneGraph] vs having to extend
+     * a class directly.
+     *
+     * ```
+     * node {
+     *     onUnhandledInput += { event ->
+     *         // handle extra unhandled input logic
+     *     }
+     * }
+     * ```
+     */
     @JsName("onRemovedFromSceneSignal")
     val onRemovedFromScene: Signal = signal()
 
+    /**
+     * List of 'addedToScene' callbacks called when [onAddedToScene] is called. Add any additional callbacks directly to this list.
+     * The main use is to add callbacks directly to nodes inline when building a [SceneGraph] vs having to extend
+     * a class directly.
+     *
+     * ```
+     * node {
+     *     onUnhandledInput += { event ->
+     *         // handle extra unhandled input logic
+     *     }
+     * }
+     * ```
+     */
     @JsName("onAddedToSceneSignal")
     val onAddedToScene: Signal = signal()
 
@@ -330,8 +388,30 @@ open class Node : Comparable<Node> {
         onResize.emit(width, height)
     }
 
-    internal open fun propagateInternalRender(batch: Batch, camera: Camera, renderCallback: ((Node, Batch, Camera) -> Unit)?) {
+    internal open fun propagateInternalRender(
+        batch: Batch,
+        camera: Camera,
+        renderCallback: ((Node, Batch, Camera) -> Unit)?,
+    ) {
         nodes.forEach { it.propagateInternalRender(batch, camera, renderCallback) }
+    }
+
+    internal fun callInput(event: InputEvent<*>) {
+        if (!enabled || !insideTree) return
+        onInput.emit(event)
+        if (event.handled) {
+            return
+        }
+        input(event)
+    }
+
+    internal fun callUnhandledInput(event: InputEvent<*>) {
+        if (!enabled || !insideTree) return
+        onUnhandledInput.emit(event)
+        if (event.handled) {
+            return
+        }
+        unhandledInput(event)
     }
 
     /**
@@ -501,6 +581,17 @@ open class Node : Comparable<Node> {
      */
     protected open fun update(dt: Duration) {}
 
+    /**
+     * Called when there is an [InputEvent]. The input event propagates up through the node
+     * tree until a node consumes it.
+     */
+    protected open fun input(event: InputEvent<*>) = Unit
+
+    /**
+     * Called when an [InputEvent] isn't consumed by [input] or the UI. The input event propagates up through the node
+     * tree until a node consumes it.
+     */
+    protected open fun unhandledInput(event: InputEvent<*>) = Unit
 
     /**
      * @return a tree string for all the child nodes under this [Node].

@@ -9,6 +9,7 @@ import com.lehaine.littlekt.graph.node.component.HAlign
 import com.lehaine.littlekt.graph.node.frameBuffer
 import com.lehaine.littlekt.graph.node.node2d.camera2d
 import com.lehaine.littlekt.graph.node.node2d.node2d
+import com.lehaine.littlekt.graph.node.ui.button
 import com.lehaine.littlekt.graph.node.ui.centerContainer
 import com.lehaine.littlekt.graph.node.ui.frameBufferContainer
 import com.lehaine.littlekt.graph.node.ui.label
@@ -43,6 +44,9 @@ class CanvasCameraTest(context: Context) : ContextListener(context) {
 
                         frameBuffer {
 
+                            button {
+                                text = "test"
+                            }
                             node2d {
                                 rotation = 45.degrees
                                 onReady += {
