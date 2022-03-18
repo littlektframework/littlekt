@@ -6,10 +6,7 @@
 
 **Currently in development.**
 
-**[Features](https://littlekt.com/features/)** - **[Docs](https://littlekt.com/docs/)**
-- **[Samples](https://github.com/littlektframework/littlekt-samples)**
-- **[Ask a Question](https://github.com/littlektframework/littlekt/discussions/categories/q-a)**
-- **[Changelog](CHANGELOG.md)** - **[Starter Project](https://github.com/littlektframework/littlekt-game-template)**
+**[Features](https://littlekt.com/features/)** - **[Docs](https://littlekt.com/docs/)** - **[Samples](https://github.com/littlektframework/littlekt-samples)** - **[Ask a Question](https://github.com/littlektframework/littlekt/discussions/categories/q-a)** - **[Changelog](CHANGELOG.md)** - **[Starter Project](https://github.com/littlektframework/littlekt-game-template)**
 
 ## A 2D game framework written in Kotlin
 
@@ -73,7 +70,7 @@ kotlin {
     }
 }
 
-val littleKtVersion = "0.2.1.080b1ad-SNAPSHOT" // or whichever hash you are using
+val littleKtVersion = "0.3.0.ed0803a-SNAPSHOT" // or whichever hash you are using
 val kotlinCoroutinesVersion = "1.6.0" // or whatever version you are using
 
 sourceSets {
