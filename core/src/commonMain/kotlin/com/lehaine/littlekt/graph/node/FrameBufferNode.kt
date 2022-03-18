@@ -110,7 +110,6 @@ class FrameBufferNode : Node() {
     override fun propagateInternalRender(batch: Batch, camera: Camera, renderCallback: ((Node, Batch, Camera) -> Unit)?) {
         fbo ?: return
         if (width == 0 || height == 0) return
-        println("render fbo $width,$height")
         begin(batch)
         nodes.forEach { it.propagateInternalRender(batch, fboCamera, renderCallback) }
         end(batch)
