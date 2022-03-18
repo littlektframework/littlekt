@@ -10,6 +10,7 @@ import com.lehaine.littlekt.graphics.Camera
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
+import kotlin.math.roundToInt
 
 /**
  * Adds a [Camera2D] to the current [Node] as a child and then triggers the [callback]
@@ -41,6 +42,7 @@ inline fun SceneGraph<*>.camera2d(callback: @SceneGraphDslMarker Camera2D.() -> 
  */
 open class Camera2D : Node2D() {
 
+    var snapToPixel = false
     var zoom: Float = 1f
     var near: Float = 0f
     var far: Float = 100f
@@ -87,7 +89,11 @@ open class Camera2D : Node2D() {
             camera.zoom = zoom
             camera.near = near
             camera.far = far
-            camera.position.set(globalX, globalY, 0f)
+            if (snapToPixel) {
+                camera.position.set(globalX.roundToInt().toFloat(), globalY.roundToInt().toFloat(), 0f)
+            } else {
+                camera.position.set(globalX, globalY, 0f)
+            }
         }
     }
 
