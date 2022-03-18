@@ -199,53 +199,53 @@ abstract class Camera {
     fun project(world: Vec3f, result: MutableVec4f): MutableVec4f =
         viewProjection.transform(result.set(world.x, world.y, world.z, 1f))
 
-    fun projectScreen(world: Vec2f, context: Context): MutableVec2f {
+    fun projectScreen(world: Vec2f): MutableVec2f {
         val result = MutableVec2f()
-        projectScreen(world, context, result)
+        projectScreen(world, result)
         return result
     }
 
-    fun projectScreen(x: Float, y: Float, context: Context): MutableVec2f {
+    fun projectScreen(x: Float, y: Float): MutableVec2f {
         val result = MutableVec2f()
-        projectScreen(tempVec2.set(x, y), context, result)
+        projectScreen(tempVec2.set(x, y), result)
         return result
     }
 
-    fun projectScreen(x: Float, y: Float, context: Context, result: MutableVec2f) =
-        projectScreen(tempVec2.set(x, y), context, result)
+    fun projectScreen(x: Float, y: Float, result: MutableVec2f) =
+        projectScreen(tempVec2.set(x, y), result)
 
-    fun projectScreen(world: Vec2f, context: Context, result: MutableVec2f): Boolean {
+    fun projectScreen(world: Vec2f, result: MutableVec2f): Boolean {
         if (!project(world, result)) {
             return false
         }
         result.x = (1 + result.x) * 0.5f * viewport.width + viewport.x
-        result.y = context.graphics.height - (1 + result.y) * 0.5f * viewport.height + viewport.y
+        result.y = (1 + result.y) * 0.5f * viewport.height + viewport.y
 
         return true
     }
 
-    fun projectScreen(world: Vec3f, context: Context): MutableVec3f {
+    fun projectScreen(world: Vec3f): MutableVec3f {
         val result = MutableVec3f()
-        projectScreen(world, context, result)
+        projectScreen(world, result)
         return result
     }
 
-    fun projectScreen(x: Float, y: Float, z: Float, context: Context): MutableVec3f {
+    fun projectScreen(x: Float, y: Float, z: Float): MutableVec3f {
         val result = MutableVec3f()
-        projectScreen(tempVec3.set(x, y, z), context, result)
+        projectScreen(tempVec3.set(x, y, z), result)
         return result
     }
 
-    fun projectScreen(x: Float, y: Float, z: Float, context: Context, result: MutableVec3f) =
-        projectScreen(tempVec3.set(x, y, z), context, result)
+    fun projectScreen(x: Float, y: Float, z: Float, result: MutableVec3f) =
+        projectScreen(tempVec3.set(x, y, z), result)
 
 
-    fun projectScreen(world: Vec3f, context: Context, result: MutableVec3f): Boolean {
+    fun projectScreen(world: Vec3f, result: MutableVec3f): Boolean {
         if (!project(world, result)) {
             return false
         }
         result.x = (1 + result.x) * 0.5f * viewport.width + viewport.x
-        result.y = context.graphics.height - (1 + result.y) * 0.5f * viewport.height + viewport.y
+        result.y = (1 + result.y) * 0.5f * viewport.height + viewport.y
         result.z = (1 + result.z) * 0.5f
 
         return true

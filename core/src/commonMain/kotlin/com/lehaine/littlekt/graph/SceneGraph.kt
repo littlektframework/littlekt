@@ -854,7 +854,7 @@ open class SceneGraph<InputType>(
     }
 
     fun sceneToScreenCoordinates(vector2: MutableVec2f): MutableVec2f {
-        camera.projectScreen(vector2, context, vector2)
+        camera.projectScreen(vector2, vector2)
         return vector2
     }
 
