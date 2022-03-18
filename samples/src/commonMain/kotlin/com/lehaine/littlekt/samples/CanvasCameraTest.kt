@@ -7,16 +7,15 @@ import com.lehaine.littlekt.file.vfs.readTexture
 import com.lehaine.littlekt.graph.node.canvasLayer
 import com.lehaine.littlekt.graph.node.component.HAlign
 import com.lehaine.littlekt.graph.node.frameBuffer
-import com.lehaine.littlekt.graph.node.graphViewport
 import com.lehaine.littlekt.graph.node.node2d.camera2d
 import com.lehaine.littlekt.graph.node.node2d.node2d
-import com.lehaine.littlekt.graph.node.node2d.ui.TextureRect
-import com.lehaine.littlekt.graph.node.node2d.ui.centerContainer
-import com.lehaine.littlekt.graph.node.node2d.ui.label
-import com.lehaine.littlekt.graph.node.node2d.ui.textureRect
+import com.lehaine.littlekt.graph.node.ui.button
+import com.lehaine.littlekt.graph.node.ui.centerContainer
+import com.lehaine.littlekt.graph.node.ui.frameBufferContainer
+import com.lehaine.littlekt.graph.node.ui.label
+import com.lehaine.littlekt.graph.node.viewport
 import com.lehaine.littlekt.graph.sceneGraph
 import com.lehaine.littlekt.graphics.gl.ClearBufferMask
-import com.lehaine.littlekt.graphics.slice
 import com.lehaine.littlekt.input.Key
 import com.lehaine.littlekt.math.geom.Angle
 import com.lehaine.littlekt.math.geom.degrees
@@ -33,61 +32,55 @@ class CanvasCameraTest(context: Context) : ContextListener(context) {
         val pixelFont = resourcesVfs["m5x7_16.fnt"].readBitmapFont()
         val icon = resourcesVfs["icon_16x16.png"].readTexture()
         val graph = sceneGraph(context, ExtendViewport(240, 135)) {
-            graphViewport {
-                strategy = ExtendViewport(960, 540)
+            viewport {
+                strategy = ExtendViewport(480, 270)
 
                 canvasLayer {
-                    val fbo = frameBuffer {
-                        width = 240
-                        height = 135
-
-                        node2d {
-                            rotation = 45.degrees
-                            onReady += {
-                                println("$name: $viewport")
-                            }
-                            onUpdate += {
-                                if (input.isKeyPressed(Key.D)) {
-                                    globalX += 1f
-                                } else if (input.isKeyPressed(Key.A)) {
-                                    globalX -= 1f
-                                }
-
-                                if (input.isKeyPressed(Key.S)) {
-                                    globalY += 1f
-                                } else if (input.isKeyPressed(Key.W)) {
-                                    globalY -= 1f
-                                }
-                            }
-                            onRender += { batch, camera ->
-                                batch.draw(icon, globalX, globalY, rotation = globalRotation)
-                            }
-                            camera2d {
-                                x = 50f
-                                active = true
-                            }
-                        }
-
-                        var rotation = Angle.ZERO
-                        node2d {
-                            x = 100f
-                            y = 20f
-                            onRender += { batch, camera ->
-                                rotation += 0.01.radians
-                                batch.draw(icon, globalX, globalY, scaleX = 2f, scaleY = 2f, rotation = rotation)
-                            }
-                        }
-                    }
-
-                    textureRect {
+                    frameBufferContainer {
+                        stretch = true
+                        shrink = 2
                         anchorRight = 1f
                         anchorBottom = 1f
-                        stretchMode = TextureRect.StretchMode.KEEP_ASPECT_COVERED
-                        flipY = true
-                        onReady += {
-                            slice = fbo.fboTexture.slice()
-                            fbo.onFboChanged.connect(this) {
-                                slice = it.slice()
+
+                        frameBuffer {
+
+                            button {
+                                text = "test"
+                            }
+                            node2d {
+                                rotation = 45.degrees
+                                onReady += {
+                                    println("$name: $viewport")
+                                }
+                                onUpdate += {
+                                    if (input.isKeyPressed(Key.D)) {
+                                        globalX += 1f
+                                    } else if (input.isKeyPressed(Key.A)) {
+                                        globalX -= 1f
+                                    }
+
+                                    if (input.isKeyPressed(Key.S)) {
+                                        globalY += 1f
+                                    } else if (input.isKeyPressed(Key.W)) {
+                                        globalY -= 1f
+                                    }
+                                }
+                                onRender += { batch, camera ->
+                                    batch.draw(icon, globalX, globalY, rotation = globalRotation)
+                                }
+                                camera2d {
+                                    active = true
+                                }
+                            }
+
+                            var rotation = Angle.ZERO
+                            node2d {
+                                x = 100f
+                                y = 20f
+                                onRender += { batch, camera ->
+                                    rotation += 0.01.radians
+                                    batch.draw(icon, globalX, globalY, scaleX = 2f, scaleY = 2f, rotation = rotation)
+                                }
                             }
                         }
                     }

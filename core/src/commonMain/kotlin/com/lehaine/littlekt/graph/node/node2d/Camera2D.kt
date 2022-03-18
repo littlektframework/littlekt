@@ -34,6 +34,8 @@ inline fun SceneGraph<*>.camera2d(callback: @SceneGraphDslMarker Camera2D.() -> 
 }
 
 /**
+ * A [Node2D] that scrolls the closest rendering [Camera]. The rendering [Camera] will either be
+ * from a [CanvasLayer] or the [SceneGraph]. Only one [Camera2D] can be active at a time per [Camera].
  * @author Colton Daily
  * @date 3/13/2022
  */
@@ -80,14 +82,13 @@ open class Camera2D : Node2D() {
         findClosestCanvas().disableOtherCameras()
     }
 
-    override fun _render(batch: Batch, camera: Camera, renderCallback: ((Node, Batch, Camera) -> Unit)?) {
+    override fun preRender(batch: Batch, camera: Camera) {
         if (active) {
             camera.zoom = zoom
             camera.near = near
             camera.far = far
             camera.position.set(globalX, globalY, 0f)
         }
-        super._render(batch, camera, renderCallback)
     }
 
     private fun Node.disableOtherCameras() {

@@ -4,32 +4,33 @@ import com.lehaine.littlekt.graph.node.Node
 import com.lehaine.littlekt.log.Logger
 import com.lehaine.littlekt.util.fastForEach
 import kotlin.reflect.KClass
-import kotlin.time.Duration
 
 /**
  * @author Colton Daily
  * @date 1/1/2022
  */
-@PublishedApi
-internal class NodeList {
+class NodeList {
 
     val size get() = nodes.size + nodesToAdd.size - nodesToRemove.size
 
-    val nodes = mutableListOf<Node>()
-    var nodesToAdd = mutableSetOf<Node>()
-    var nodesToRemove = mutableSetOf<Node>()
-    var isNodeListUnsorted = false
-    var _tempNodeList = mutableSetOf<Node>()
+    @PublishedApi
+    internal val nodes = mutableListOf<Node>()
+
+    @PublishedApi
+    internal var nodesToAdd = mutableSetOf<Node>()
+    internal var nodesToRemove = mutableSetOf<Node>()
+    internal var isNodeListUnsorted = false
+    internal var _tempNodeList = mutableSetOf<Node>()
 
     private var frameCount = 0
 
-    fun add(node: Node) {
+    internal fun add(node: Node) {
         if (!nodesToAdd.add(node)) {
             logger.warn { "You are trying to add an node (${node.name}) that you already added." }
         }
     }
 
-    fun remove(node: Node) {
+    internal fun remove(node: Node) {
         if (!nodesToRemove.add(node)) {
             logger.warn { "You are trying to remove an node (${node.name}) that you already removed." }
         }
@@ -44,7 +45,7 @@ internal class NodeList {
         }
     }
 
-    fun removeAllNodes() {
+    internal fun removeAllNodes() {
         nodesToAdd.clear()
         isNodeListUnsorted = false
 
@@ -88,16 +89,16 @@ internal class NodeList {
     /**
      * Should only be called once a frame.
      */
-    fun update(dt: Duration) {
+    internal fun update() {
         nodes.fastForEach {
             if (it.enabled && (it.updateInterval == 1 || frameCount % it.updateInterval == 0)) {
-                it._update(dt)
+                it.propagateUpdate()
             }
         }
         frameCount++
     }
 
-    fun updateLists() {
+    internal fun updateLists() {
         if (nodesToRemove.isNotEmpty()) {
             val temp = nodesToRemove
             nodesToRemove = _tempNodeList
@@ -182,7 +183,9 @@ internal class NodeList {
         return list
     }
 
-    fun toList(): List<Node> = if (nodesToAdd.isEmpty()) nodes else nodes + nodesToAdd
+    override fun toString(): String {
+        return "[$nodes, $nodesToAdd]"
+    }
 
     companion object {
         private val logger = Logger<NodeList>()

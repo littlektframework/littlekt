@@ -2,12 +2,12 @@ package com.lehaine.littlekt.graph
 
 import com.lehaine.littlekt.Context
 import com.lehaine.littlekt.Disposable
-import com.lehaine.littlekt.graph.node.GraphViewport
 import com.lehaine.littlekt.graph.node.Node
+import com.lehaine.littlekt.graph.node.ViewportNode
 import com.lehaine.littlekt.graph.node.addTo
 import com.lehaine.littlekt.graph.node.annotation.SceneGraphDslMarker
 import com.lehaine.littlekt.graph.node.component.InputEvent
-import com.lehaine.littlekt.graph.node.node2d.ui.Control
+import com.lehaine.littlekt.graph.node.ui.Control
 import com.lehaine.littlekt.graphics.Batch
 import com.lehaine.littlekt.graphics.Camera
 import com.lehaine.littlekt.graphics.OrthographicCamera
@@ -39,7 +39,7 @@ inline fun sceneGraph(
     viewport: Viewport = ScreenViewport(context.graphics.width, context.graphics.height),
     batch: Batch? = null,
     controller: InputMapController<String>? = null,
-    callback: @SceneGraphDslMarker SceneGraph<String>.() -> Unit = {}
+    callback: @SceneGraphDslMarker SceneGraph<String>.() -> Unit = {},
 ): SceneGraph<String> {
     contract { callsInPlace(callback, InvocationKind.EXACTLY_ONCE) }
     val signals = SceneGraph.UiInputSignals(
@@ -80,7 +80,7 @@ inline fun <InputSignal> sceneGraph(
     batch: Batch? = null,
     uiInputSignals: SceneGraph.UiInputSignals<InputSignal> = SceneGraph.UiInputSignals(),
     controller: InputMapController<InputSignal> = InputMapController(context.input),
-    callback: @SceneGraphDslMarker SceneGraph<InputSignal>.() -> Unit = {}
+    callback: @SceneGraphDslMarker SceneGraph<InputSignal>.() -> Unit = {},
 ): SceneGraph<InputSignal> {
     contract { callsInPlace(callback, InvocationKind.EXACTLY_ONCE) }
     return SceneGraph(
@@ -126,7 +126,7 @@ fun <InputSignal> InputMapController<InputSignal>.addDefaultUiInput(uiInputSigna
 
 fun <InputSignal> createDefaultSceneGraphController(
     input: Input,
-    uiInputSignals: SceneGraph.UiInputSignals<InputSignal>
+    uiInputSignals: SceneGraph.UiInputSignals<InputSignal>,
 ): InputMapController<InputSignal> =
     InputMapController<InputSignal>(input).also { it.addDefaultUiInput(uiInputSignals) }
 
@@ -151,10 +151,9 @@ open class SceneGraph<InputType>(
     private var ownsBatch = true
     val batch: Batch = batch?.also { ownsBatch = false } ?: SpriteBatch(context)
 
-    val sceneViewport: GraphViewport by lazy {
-        GraphViewport().apply {
+    val sceneViewport: ViewportNode by lazy {
+        ViewportNode().apply {
             name = "Scene Viewport"
-            scene = this@SceneGraph
             strategy = viewport
         }
     }
@@ -172,6 +171,9 @@ open class SceneGraph<InputType>(
 
     var targetFPS = 60
     var tmod: Float = 1f
+        private set
+
+    var dt: Duration = Duration.ZERO
         private set
 
     private var frameCount = 0
@@ -195,12 +197,14 @@ open class SceneGraph<InputType>(
 
     private var initialized = false
 
+    private val unhandledInputQueue = ArrayDeque<InputEvent<InputType>>(20)
+
     /**
      * Resizes the internal graph's [OrthographicCamera] and [Viewport].
      * @param centerCamera if true will center the graphs internal camera after resizing the viewport
      */
     open fun resize(width: Int, height: Int, centerCamera: Boolean = false) {
-        sceneViewport._onResize(width, height, centerCamera)
+        sceneViewport.propagateResize(width, height, centerCamera)
         camera.viewport = sceneViewport.strategy
         camera.update()
         if (centerCamera) {
@@ -214,10 +218,9 @@ open class SceneGraph<InputType>(
     open suspend fun initialize() {
         controller.addInputMapProcessor(this)
         context.input.addInputProcessor(this)
-        context.input.addInputProcessor(controller)
+        sceneViewport.scene = this
         root.initialize()
         onStart()
-        root._onPostEnterScene()
         initialized = true
     }
 
@@ -231,7 +234,7 @@ open class SceneGraph<InputType>(
         camera.viewport = sceneViewport.strategy
         camera.update()
         batch.begin(camera.viewProjection)
-        sceneViewport._render(batch, camera, onNodeRender)
+        sceneViewport.propagateInternalRender(batch, camera, onNodeRender)
         if (batch.drawing) batch.end()
     }
 
@@ -282,6 +285,7 @@ open class SceneGraph<InputType>(
      */
     open fun update(dt: Duration) {
         if (!initialized) error("You need to call 'initialize()' once before doing any rendering or updating!")
+        this.dt = dt
         tmod = dt.seconds * targetFPS
         pointerOverControls.forEachIndexed { index, overLast ->
             if (!pointerTouched[index]) {
@@ -301,7 +305,7 @@ open class SceneGraph<InputType>(
                         localY = tempVec.y
                         pointer = Pointer.cache[index]
                     }
-                    overLast._uiInput(event)
+                    overLast.callUiInput(event)
                     uiInput(overLast, event)
                     inputEventPool.free(event)
                 }
@@ -320,8 +324,14 @@ open class SceneGraph<InputType>(
             }
         }
 
+        unhandledInputQueue.forEach {
+            callUnhandledInput(it)
+            inputEventPool.free(it)
+        }
+        unhandledInputQueue.clear()
+
         if (root.enabled && (root.updateInterval == 1 || frameCount % root.updateInterval == 0)) {
-            root._update(dt)
+            root.propagateUpdate()
         }
         frameCount++
     }
@@ -339,6 +349,7 @@ open class SceneGraph<InputType>(
 
     override fun touchDown(screenX: Float, screenY: Float, pointer: Pointer): Boolean {
         if (!isInsideViewport(screenX.toInt(), screenY.toInt())) return false
+        if (controller.touchDown(screenX, screenY, pointer)) return true
 
         pointerTouched[pointer.ordinal] = true
         pointerScreenX[pointer.ordinal] = screenX
@@ -356,7 +367,13 @@ open class SceneGraph<InputType>(
             this.pointer = pointer
         }
 
-        val target = hit(tempVec.x, tempVec.y)
+        // InputEvents go: input -> ui input -> unhandled input
+        if (callInput(event)) {
+            inputEventPool.free(event)
+            return true
+        }
+
+        val target = callHitTest(tempVec.x, tempVec.y)
         target?.let {
             if (pointer == Pointer.MOUSE_LEFT && it.focusMode != Control.FocusMode.NONE) {
                 it.grabFocus()
@@ -367,16 +384,22 @@ open class SceneGraph<InputType>(
                 localX = tempVec.x
                 localY = tempVec.y
             }
-            it._uiInput(event)
+            it.callUiInput(event)
             uiInput(it, event)
             addTouchFocus(it, pointer)
         }
-        val handled = event.handled
-        inputEventPool.free(event)
-        return handled
+        if (event.handled) {
+            inputEventPool.free(event)
+            return true
+        }
+
+        unhandledInputQueue += event
+        return false
     }
 
     override fun touchUp(screenX: Float, screenY: Float, pointer: Pointer): Boolean {
+        if (controller.touchUp(screenX, screenY, pointer)) return true
+
         pointerTouched[pointer.ordinal] = false
         pointerScreenX[pointer.ordinal] = screenX
         pointerScreenY[pointer.ordinal] = screenY
@@ -397,6 +420,12 @@ open class SceneGraph<InputType>(
             this.pointer = pointer
         }
 
+        // InputEvents go: input -> ui input -> unhandled input
+        if (callInput(event)) {
+            inputEventPool.free(event)
+            return true
+        }
+
         touchFocuses.fastForEach { focus ->
             if (focus.pointer != pointer) {
                 return@fastForEach
@@ -410,19 +439,25 @@ open class SceneGraph<InputType>(
                     localX = tempVec.x
                     localY = tempVec.y
                 }
-                it._uiInput(event)
+                it.callUiInput(event)
                 uiInput(it, event)
                 event.handle()
             }
             touchFocusPool.free(focus)
         }
 
-        val handled = event.handled
-        inputEventPool.free(event)
-        return handled
+        if (event.handled) {
+            inputEventPool.free(event)
+            return true
+        }
+
+        unhandledInputQueue += event
+        return false
     }
 
     override fun touchDragged(screenX: Float, screenY: Float, pointer: Pointer): Boolean {
+        if (controller.touchDragged(screenX, screenY, pointer)) return true
+
         pointerScreenX[pointer.ordinal] = screenX
         pointerScreenY[pointer.ordinal] = screenY
         mouseScreenX = screenX
@@ -444,6 +479,12 @@ open class SceneGraph<InputType>(
             this.pointer = pointer
         }
 
+        // InputEvents go: input -> ui input -> unhandled input
+        if (callInput(event)) {
+            inputEventPool.free(event)
+            return true
+        }
+
         touchFocuses.fastForEach { focus ->
             if (focus.pointer != pointer) {
                 return@fastForEach
@@ -457,15 +498,19 @@ open class SceneGraph<InputType>(
                     localX = tempVec.x
                     localY = tempVec.y
                 }
-                it._uiInput(event)
+                it.callUiInput(event)
                 uiInput(it, event)
                 event.handle()
             }
         }
 
-        val handled = event.handled
-        inputEventPool.free(event)
-        return handled
+        if (event.handled) {
+            inputEventPool.free(event)
+            return true
+        }
+
+        unhandledInputQueue += event
+        return false
     }
 
     override fun mouseMoved(screenX: Float, screenY: Float): Boolean {
@@ -476,15 +521,21 @@ open class SceneGraph<InputType>(
     }
 
     override fun onActionDown(inputType: InputType): Boolean {
+        val event = inputEventPool.alloc().apply {
+            type = InputEvent.Type.ACTION_DOWN
+            this.inputType = inputType
+        }
+
+        // InputEvents go: input -> ui input -> unhandled input
+        if (callInput(event)) {
+            inputEventPool.free(event)
+            return true
+        }
+
         keyboardFocus?.let {
-            val event = inputEventPool.alloc().apply {
-                type = InputEvent.Type.ACTION_DOWN
-                this.inputType = inputType
-            }
-            it._uiInput(event)
+            it.callUiInput(event)
             uiInput(it, event)
             var handled = event.handled
-            inputEventPool.free(event)
 
             var next: Control? = null
             when (inputType) {
@@ -516,102 +567,188 @@ open class SceneGraph<InputType>(
             }
 
             next?.grabFocus()
-            return handled
+            if (handled) {
+                inputEventPool.free(event)
+                return true
+            }
         }
 
+        unhandledInputQueue += event
         return false
     }
 
     override fun onActionUp(inputType: InputType): Boolean {
-        var handled = false
-        keyboardFocus?.let {
-            val event = inputEventPool.alloc().apply {
-                type = InputEvent.Type.ACTION_UP
-                this.inputType = inputType
-            }
-            it._uiInput(event)
-            uiInput(it, event)
-            handled = event.handled
-            inputEventPool.free(event)
+        val event = inputEventPool.alloc().apply {
+            type = InputEvent.Type.ACTION_UP
+            this.inputType = inputType
         }
-        return handled
+
+        // InputEvents go: input -> ui input -> unhandled input
+        if (callInput(event)) {
+            inputEventPool.free(event)
+            return true
+        }
+
+        keyboardFocus?.let {
+            it.callUiInput(event)
+            uiInput(it, event)
+            val handled = event.handled
+            if (handled) {
+                inputEventPool.free(event)
+                return true
+            }
+        }
+
+        unhandledInputQueue += event
+        return false
     }
 
     override fun onActionRepeat(inputType: InputType): Boolean {
-        var handled = false
-        keyboardFocus?.let {
-            val event = inputEventPool.alloc().apply {
-                type = InputEvent.Type.ACTION_REPEAT
-                this.inputType = inputType
-            }
-            it._uiInput(event)
-            uiInput(it, event)
-            handled = event.handled
-            inputEventPool.free(event)
+        val event = inputEventPool.alloc().apply {
+            type = InputEvent.Type.ACTION_REPEAT
+            this.inputType = inputType
         }
-        return handled
+
+        // InputEvents go: input -> ui input -> unhandled input
+        if (callInput(event)) {
+            inputEventPool.free(event)
+            return true
+        }
+
+        keyboardFocus?.let {
+            it.callUiInput(event)
+            uiInput(it, event)
+            val handled = event.handled
+            if (handled) {
+                inputEventPool.free(event)
+                return true
+            }
+        }
+        unhandledInputQueue += event
+        return false
     }
 
     override fun keyDown(key: Key): Boolean {
-        keyboardFocus?.let {
-            val event = inputEventPool.alloc().apply {
-                type = InputEvent.Type.KEY_DOWN
-                this.key = key
-            }
-            it._uiInput(event)
-            uiInput(it, event)
-            val handled = event.handled
-            inputEventPool.free(event)
+        if (controller.keyDown(key)) return true
 
-            if (handled) return true
+        val event = inputEventPool.alloc().apply {
+            type = InputEvent.Type.KEY_DOWN
+            this.key = key
+        }
+        // InputEvents go: input -> ui input -> unhandled input
+        if (callInput(event)) {
+            inputEventPool.free(event)
+            return true
         }
 
+        keyboardFocus?.let {
+            it.callUiInput(event)
+            uiInput(it, event)
+            val handled = event.handled
+            if (handled) {
+                inputEventPool.free(event)
+                return true
+            }
+        }
+
+        unhandledInputQueue += event
         return false
     }
 
     override fun keyUp(key: Key): Boolean {
-        var handled = false
-        keyboardFocus?.let {
-            val event = inputEventPool.alloc().apply {
-                type = InputEvent.Type.KEY_UP
-                this.key = key
-            }
-            it._uiInput(event)
-            uiInput(it, event)
-            handled = event.handled
-            inputEventPool.free(event)
+        if (controller.keyUp(key)) return true
+
+        val event = inputEventPool.alloc().apply {
+            type = InputEvent.Type.KEY_UP
+            this.key = key
         }
-        return handled
+
+        // InputEvents go: input -> ui input -> unhandled input
+        if (callInput(event)) {
+            inputEventPool.free(event)
+            return true
+        }
+
+        keyboardFocus?.let {
+            it.callUiInput(event)
+            uiInput(it, event)
+            val handled = event.handled
+            if (handled) {
+                inputEventPool.free(event)
+                return true
+            }
+        }
+        unhandledInputQueue += event
+        return false
     }
 
     override fun keyRepeat(key: Key): Boolean {
-        var handled = false
-        keyboardFocus?.let {
-            val event = inputEventPool.alloc().apply {
-                type = InputEvent.Type.KEY_REPEAT
-                this.key = key
-            }
-            it._uiInput(event)
-            uiInput(it, event)
-            handled = event.handled
-            inputEventPool.free(event)
+        if (controller.keyRepeat(key)) return true
+
+        val event = inputEventPool.alloc().apply {
+            type = InputEvent.Type.KEY_REPEAT
+            this.key = key
         }
-        return handled
+        // InputEvents go: input -> ui input -> unhandled input
+        if (callInput(event)) {
+            inputEventPool.free(event)
+            return true
+        }
+        keyboardFocus?.let {
+            it.callUiInput(event)
+            uiInput(it, event)
+            val handled = event.handled
+            if (handled) {
+                inputEventPool.free(event)
+            }
+        }
+        unhandledInputQueue += event
+        return false
     }
 
     override fun charTyped(character: Char): Boolean {
-        var handled = false
-        keyboardFocus?.let {
-            val event = inputEventPool.alloc().apply {
-                type = InputEvent.Type.CHAR_TYPED
-                char = character
-            }
-            it._uiInput(event)
-            uiInput(it, event)
-            handled = event.handled
-            inputEventPool.free(event)
+        if (controller.charTyped(character)) return true
+
+        val event = inputEventPool.alloc().apply {
+            type = InputEvent.Type.CHAR_TYPED
+            char = character
         }
-        return handled
+        // InputEvents go: input -> ui input -> unhandled input
+        if (callInput(event)) {
+            inputEventPool.free(event)
+            return true
+        }
+        keyboardFocus?.let {
+            it.callUiInput(event)
+            uiInput(it, event)
+            val handled = event.handled
+            if (handled) {
+                inputEventPool.free(event)
+                return true
+            }
+        }
+        unhandledInputQueue += event
+        return false
+    }
+
+    override fun scrolled(amountX: Float, amountY: Float): Boolean {
+        return controller.scrolled(amountX, amountY)
+    }
+
+    override fun gamepadButtonPressed(button: GameButton, pressure: Float, gamepad: Int): Boolean {
+        return controller.gamepadButtonPressed(button, pressure, gamepad)
+    }
+
+    override fun gamepadButtonReleased(button: GameButton, gamepad: Int): Boolean {
+        return controller.gamepadButtonReleased(button, gamepad)
+    }
+
+    override fun gamepadJoystickMoved(stick: GameStick, xAxis: Float, yAxis: Float, gamepad: Int): Boolean {
+        return controller.gamepadJoystickMoved(stick, xAxis, yAxis, gamepad)
+    }
+
+    override fun gamepadTriggerChanged(button: GameButton, pressure: Float, gamepad: Int): Boolean {
+        return controller.gamepadTriggerChanged(button, pressure, gamepad)
     }
 
     private fun fireEnterAndExit(overLast: Control?, screenX: Float, screenY: Float, pointer: Pointer): Control? {
@@ -619,7 +756,7 @@ open class SceneGraph<InputType>(
 
         val sceneX = tempVec.x
         val sceneY = tempVec.y
-        val over = hit(tempVec.x, tempVec.y)
+        val over = callHitTest(tempVec.x, tempVec.y)
         if (over == overLast) return overLast
 
         if (overLast != null) {
@@ -633,7 +770,7 @@ open class SceneGraph<InputType>(
                 type = InputEvent.Type.MOUSE_EXIT
             }
             overLast.let {
-                it._uiInput(event)
+                it.callUiInput(event)
                 uiInput(it, event)
             }
             inputEventPool.free(event)
@@ -650,7 +787,7 @@ open class SceneGraph<InputType>(
                 type = InputEvent.Type.MOUSE_ENTER
             }
             over.let {
-                it._uiInput(event)
+                it.callUiInput(event)
                 uiInput(it, event)
             }
             inputEventPool.free(event)
@@ -666,15 +803,67 @@ open class SceneGraph<InputType>(
         }.also { touchFocuses.add(it) }
     }
 
-    private fun hit(hx: Float, hy: Float): Control? {
+    private fun callHitTest(hx: Float, hy: Float): Control? {
         root.nodes.forEachReversed {
-            if (it !is Control) return@forEachReversed
-            val target = it.hit(hx, hy)
+            val target = it.propagateHitTest(hx, hy)
             if (target != null) {
                 return target
             }
         }
         return null
+    }
+
+    private fun Node.propagateHitTest(hx: Float, hy: Float): Control? {
+        nodes.forEachReversed {
+            val target = it.propagateHitTest(hx, hy)
+            if (target != null) {
+                return target
+            }
+        }
+        if (this is Control) {
+            return hit(hx, hy)
+        }
+        return null
+    }
+
+    private fun callInput(event: InputEvent<InputType>): Boolean {
+        root.nodes.forEachReversed {
+            if (it.propagateInput(event)) {
+                return true
+            }
+        }
+        return false
+    }
+
+    private fun Node.propagateInput(event: InputEvent<InputType>): Boolean {
+        nodes.forEachReversed {
+            it.propagateInput(event)
+            if (event.handled) {
+                return true
+            }
+        }
+        callInput(event)
+        return event.handled
+    }
+
+    private fun callUnhandledInput(event: InputEvent<InputType>): Boolean {
+        root.nodes.forEachReversed {
+            if (it.propagateUnhandledInput(event)) {
+                return true
+            }
+        }
+        return false
+    }
+
+    private fun Node.propagateUnhandledInput(event: InputEvent<InputType>): Boolean {
+        nodes.forEachReversed {
+            it.propagateUnhandledInput(event)
+            if (event.handled) {
+                return true
+            }
+        }
+        callUnhandledInput(event)
+        return event.handled
     }
 
     private fun screenToSceneCoordinates(vector2: MutableVec2f): MutableVec2f {
@@ -701,7 +890,6 @@ open class SceneGraph<InputType>(
             batch.dispose()
         }
         controller.removeInputMapProcessor(this)
-        context.input.removeInputProcessor(controller)
         context.input.removeInputProcessor(this)
     }
 

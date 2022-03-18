@@ -5,7 +5,7 @@ import com.lehaine.littlekt.ContextListener
 import com.lehaine.littlekt.file.vfs.readBitmapFont
 import com.lehaine.littlekt.file.vfs.readTexture
 import com.lehaine.littlekt.graph.node.component.HAlign
-import com.lehaine.littlekt.graph.node.node2d.ui.*
+import com.lehaine.littlekt.graph.node.ui.*
 import com.lehaine.littlekt.graph.sceneGraph
 import com.lehaine.littlekt.graphics.*
 import com.lehaine.littlekt.graphics.gl.ClearBufferMask

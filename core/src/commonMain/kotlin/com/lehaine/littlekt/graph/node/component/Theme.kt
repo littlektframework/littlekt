@@ -1,6 +1,6 @@
 package com.lehaine.littlekt.graph.node.component
 
-import com.lehaine.littlekt.graph.node.node2d.ui.*
+import com.lehaine.littlekt.graph.node.ui.*
 import com.lehaine.littlekt.graphics.Color
 import com.lehaine.littlekt.graphics.Fonts
 import com.lehaine.littlekt.graphics.NinePatch

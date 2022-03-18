@@ -1,6 +1,7 @@
-package com.lehaine.littlekt.graph.node.node2d.ui
+package com.lehaine.littlekt.graph.node.ui
 
 import com.lehaine.littlekt.graph.SceneGraph
+import com.lehaine.littlekt.graph.node.CanvasItem
 import com.lehaine.littlekt.graph.node.Node
 import com.lehaine.littlekt.graph.node.addTo
 import com.lehaine.littlekt.graph.node.annotation.SceneGraphDslMarker
@@ -8,8 +9,7 @@ import com.lehaine.littlekt.graph.node.component.Drawable
 import com.lehaine.littlekt.graph.node.component.InputEvent
 import com.lehaine.littlekt.graph.node.component.OverrideMap
 import com.lehaine.littlekt.graph.node.component.Theme
-import com.lehaine.littlekt.graph.node.node2d.Node2D
-import com.lehaine.littlekt.graph.node.node2d.ui.Control.AnchorLayout.*
+import com.lehaine.littlekt.graph.node.ui.Control.AnchorLayout.*
 import com.lehaine.littlekt.graphics.Batch
 import com.lehaine.littlekt.graphics.Color
 import com.lehaine.littlekt.graphics.font.BitmapFont
@@ -54,7 +54,7 @@ inline fun SceneGraph<*>.control(callback: @SceneGraphDslMarker Control.() -> Un
  * @author Colton Daily
  * @date 1/2/2022
  */
-open class Control : Node2D() {
+open class Control : CanvasItem() {
 
     /**
      * A [Signal] the is emitted when the [horizontalSizeFlags] or [verticalSizeFlags] are changed.
@@ -488,7 +488,7 @@ open class Control : Node2D() {
         super.onRemovedFromScene()
     }
 
-    internal fun _uiInput(event: InputEvent<*>) {
+    internal fun callUiInput(event: InputEvent<*>) {
         if (!enabled || !insideTree) return
         onUiInput.emit(event) // signal is first due to being able to handle the event
         if (event.handled) {
@@ -590,8 +590,7 @@ open class Control : Node2D() {
         }
 
         nodes.forEachReversed {
-            if (it !is Control) return@forEachReversed
-            val target = it.hit(hx, hy)
+            val target = it.propagateHit(hx, hy)
             if (target != null) {
                 return target
             }
@@ -606,6 +605,19 @@ open class Control : Node2D() {
         }
         // TODO determine hit target when rotated
 
+        return null
+    }
+
+    private fun Node.propagateHit(hx: Float, hy: Float): Control? {
+        nodes.forEachReversed {
+            val target = it.propagateHit(hx, hy)
+            if (target != null) {
+                return target
+            }
+        }
+        if (this is Control) {
+            return hit(hx, hy)
+        }
         return null
     }
 
@@ -676,7 +688,7 @@ open class Control : Node2D() {
     }
 
     private fun computeAnchorLayout(
-        layout: AnchorLayout, keepMargins: Boolean = true, triggerSizeChanged: Boolean = true
+        layout: AnchorLayout, keepMargins: Boolean = true, triggerSizeChanged: Boolean = true,
     ) {
         // LEFT
         when (layout) {
@@ -744,7 +756,7 @@ open class Control : Node2D() {
     }
 
     private fun computeMarginLayout(
-        layout: AnchorLayout
+        layout: AnchorLayout,
     ) {
         val parentRect = getParentAnchorableRect()
 
@@ -783,7 +795,7 @@ open class Control : Node2D() {
     }
 
     private fun setAnchor(
-        side: Side, value: Float, keepMargins: Boolean = true, triggerSizeChanged: Boolean = true
+        side: Side, value: Float, keepMargins: Boolean = true, triggerSizeChanged: Boolean = true,
     ) {
         val parentRect = getParentAnchorableRect()
         val parentRange =
@@ -1030,7 +1042,7 @@ open class Control : Node2D() {
         fromPoints: Array<MutableVec2f>,
         fromMin: Float,
         closestDist: FloatArray,
-        out: Array<Control?>
+        out: Array<Control?>,
     ) {
         val c = at as? Control
 
@@ -1137,10 +1149,13 @@ open class Control : Node2D() {
             if (sizeChanged || posChanged) {
                 computeMargins()
                 dirty(SIZE_DIRTY)
+                onResized()
                 onSizeChanged.emit()
             }
         }
     }
+
+    protected open fun onResized() = Unit
 
     protected open fun calculateMinSize() {
         minSizeInvalid = false

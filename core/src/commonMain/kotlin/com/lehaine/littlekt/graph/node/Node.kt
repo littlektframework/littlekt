@@ -2,6 +2,7 @@ package com.lehaine.littlekt.graph.node
 
 import com.lehaine.littlekt.graph.SceneGraph
 import com.lehaine.littlekt.graph.node.annotation.SceneGraphDslMarker
+import com.lehaine.littlekt.graph.node.component.InputEvent
 import com.lehaine.littlekt.graph.node.internal.NodeList
 import com.lehaine.littlekt.graphics.Batch
 import com.lehaine.littlekt.graphics.Camera
@@ -72,32 +73,39 @@ open class Node : Comparable<Node> {
     @ThreadLocal
     companion object {
         private var idGenerator = 0
-        internal const val CLEAN = 0
     }
 
     open val membersAndPropertiesString get() = "name=$name, id=$id,  enabled=$enabled"
+
+    private var readyNotified = false
+    private var readyFirst = true
+
+    val dt: Duration get() = scene?.dt ?: Duration.ZERO
 
     /**
      * Node name. useful for doing scene-wide searches for an node
      */
     var name: String = this::class.simpleName ?: "Node"
 
+    internal var _scene: SceneGraph<*>? = null
+
     /**
      * The scene this node belongs to.
      */
-    var scene: SceneGraph<*>? = null
+    var scene: SceneGraph<*>?
+        get() = _scene
         set(value) {
-            if (value == field) return
-            field = value
-            if (value == null) {
-                nodes.forEach {
-                    it.scene = null
-                }
-                _onRemovedFromScene()
-            } else {
-                _onAddedToScene()
-                nodes.forEach {
-                    it.scene = value
+            if (value == _scene) return
+
+            if (_scene != null) {
+                propagateExitTree()
+            }
+
+            _scene = value
+            if (value != null) {
+                propagateEnterTree()
+                if (parent == null || parent?.readyNotified == true) {
+                    propagateReady()
                 }
             }
         }
@@ -109,9 +117,6 @@ open class Node : Comparable<Node> {
     var viewport: Viewport? = null
         internal set(value) {
             field = value
-            nodes.forEach {
-                it.viewport = value
-            }
         }
 
     /**
@@ -134,15 +139,6 @@ open class Node : Comparable<Node> {
         }
 
     /**
-     * Shows/hides the node if it is renderable.
-     */
-    var visible: Boolean
-        get() = _visible
-        set(value) {
-            visible(value)
-        }
-
-    /**
      * If destroy was called, this will be true until the next time node's are processed.
      */
     val isDestroyed get() = _isDestroyed
@@ -154,7 +150,6 @@ open class Node : Comparable<Node> {
 
     private var _tag = 0
     private var _enabled = true
-    private var _visible = true
     private var _updateOrder = 0
     private var _isDestroyed = false
 
@@ -174,25 +169,21 @@ open class Node : Comparable<Node> {
 
 
     protected var _parent: Node? = null
-    protected var hierarchyDirty: Int = CLEAN
 
     /**
-     * The current child count for this [Node]
+     * The current child count for this [Node]. Alias for [NodeList.size].
      */
     val childCount get() = nodes.size
 
     /**
      * The list of [Node]s in this scene.
      */
-    @PublishedApi
-    internal val nodes by lazy { NodeList() }
+    val nodes by lazy { NodeList() }
 
     /**
-     * The children of this [Node].
-     *
-     * **WARNING**: This possibly allocates a new list on read, depending if there are new nodes to add.
+     * The children of this [Node]. Alias for [nodes].
      */
-    val children get() = nodes.toList()
+    val children get() = nodes
 
     /**
      * List of 'ready' callbacks called when [ready] is called. Add any additional callbacks directly to this list.
@@ -208,36 +199,6 @@ open class Node : Comparable<Node> {
      * ```
      */
     val onReady: Signal = signal()
-
-    /**
-     * List of 'render' callbacks called when [render] is called. Add any additional callbacks directly to this list.
-     * The main use is to add callbacks directly to nodes inline when building a [SceneGraph] vs having to extend
-     * a class directly.
-     *
-     * ```
-     * node {
-     *     onRender += { batch, camera ->
-     *         // handle render logic
-     *     }
-     * }
-     * ```
-     */
-    val onRender: DoubleSignal<Batch, Camera> = signal2v()
-
-    /**
-     * List of 'debugRender' callbacks called when [debugRender] is called. Add any additional callbacks directly to this list.
-     * The main use is to add callbacks directly to nodes inline when building a [SceneGraph] vs having to extend
-     * a class directly.
-     *
-     * ```
-     * node {
-     *     onDebugRender += { batch ->
-     *         // handle debug render logic
-     *     }
-     * }
-     * ```
-     */
-    val onDebugRender: SingleSignal<Batch> = signal1v()
 
     /**
      * List of 'update' callbacks called when [update] is called. Add any additional callbacks directly to this list.
@@ -286,6 +247,174 @@ open class Node : Comparable<Node> {
     val onResize: DoubleSignal<Int, Int> = signal2v()
 
     /**
+     * List of 'input' callbacks called when [input] is called. Add any additional callbacks directly to this list.
+     * The main use is to add callbacks directly to nodes inline when building a [SceneGraph] vs having to extend
+     * a class directly.
+     *
+     * ```
+     * node {
+     *     onInput += { event ->
+     *         // handle extra input logic
+     *     }
+     * }
+     * ```
+     */
+    val onInput: SingleSignal<InputEvent<*>> = signal1v()
+
+    /**
+     * List of 'unhandledInput' callbacks called when [unhandledInput] is called. Add any additional callbacks directly to this list.
+     * The main use is to add callbacks directly to nodes inline when building a [SceneGraph] vs having to extend
+     * a class directly.
+     *
+     * ```
+     * node {
+     *     onUnhandledInput += { event ->
+     *         // handle extra unhandled input logic
+     *     }
+     * }
+     * ```
+     */
+    val onUnhandledInput: SingleSignal<InputEvent<*>> = signal1v()
+
+
+    @JsName("onRemovingFromSceneSignal")
+    val onRemovingFromScene: Signal = signal()
+
+    /**
+     * List of 'removedFromScene' callbacks called when [onRemovedFromScene] is called. Add any additional callbacks directly to this list.
+     * The main use is to add callbacks directly to nodes inline when building a [SceneGraph] vs having to extend
+     * a class directly.
+     *
+     * ```
+     * node {
+     *     onUnhandledInput += { event ->
+     *         // handle extra unhandled input logic
+     *     }
+     * }
+     * ```
+     */
+    @JsName("onRemovedFromSceneSignal")
+    val onRemovedFromScene: Signal = signal()
+
+    /**
+     * List of 'addedToScene' callbacks called when [onAddedToScene] is called. Add any additional callbacks directly to this list.
+     * The main use is to add callbacks directly to nodes inline when building a [SceneGraph] vs having to extend
+     * a class directly.
+     *
+     * ```
+     * node {
+     *     onUnhandledInput += { event ->
+     *         // handle extra unhandled input logic
+     *     }
+     * }
+     * ```
+     */
+    @JsName("onAddedToSceneSignal")
+    val onAddedToScene: Signal = signal()
+
+    val onChildExitedTree: SingleSignal<Node> = signal1v()
+
+    val onChildEnteredTree: SingleSignal<Node> = signal1v()
+
+    private fun propagateExitTree() {
+        nodes.forEach {
+            it.propagateExitTree()
+        }
+        onRemovingFromScene()
+        onRemovingFromScene.emit()
+
+        parent?.onChildExitedTree?.emit(this)
+        readyNotified = false
+        depth = -1
+    }
+
+    private fun propagateAfterExitTree() {
+        nodes.forEach {
+            it.propagateAfterExitTree()
+        }
+
+        onRemovedFromScene()
+        onRemovedFromScene.emit()
+    }
+
+    private fun propagateEnterTree() {
+        depth = 1
+        parent?.let {
+            _scene = it.scene
+            depth = it.depth + 1
+        }
+
+        viewport = parent?.viewport
+
+        onAddedToScene()
+        onAddedToScene.emit()
+
+        parent?.onChildEnteredTree?.emit(this)
+
+        nodes.forEach {
+            if (!it.insideTree) {
+                it.propagateEnterTree()
+            }
+        }
+    }
+
+    private fun propagateReady() {
+        readyNotified = true
+        nodes.forEach {
+            it.onPostEnterScene()
+            it.propagateReady()
+        }
+
+        if (readyFirst) {
+            readyFirst = false
+            ready()
+            onReady.emit()
+        }
+    }
+
+    fun propagateUpdate() {
+        update(dt)
+        onUpdate.emit(dt)
+        nodes.updateLists()
+        nodes.update()
+    }
+
+    fun propagateResize(width: Int, height: Int, center: Boolean) {
+        if (!enabled) return
+        nodes.forEach {
+            it.propagateResize(width, height, center)
+        }
+        resize(width, height)
+        onResize.emit(width, height)
+    }
+
+    internal open fun propagateInternalRender(
+        batch: Batch,
+        camera: Camera,
+        renderCallback: ((Node, Batch, Camera) -> Unit)?,
+    ) {
+        nodes.forEach { it.propagateInternalRender(batch, camera, renderCallback) }
+    }
+
+    internal fun callInput(event: InputEvent<*>) {
+        if (!enabled || !insideTree) return
+        onInput.emit(event)
+        if (event.handled) {
+            return
+        }
+        input(event)
+    }
+
+    internal fun callUnhandledInput(event: InputEvent<*>) {
+        if (!enabled || !insideTree) return
+        onUnhandledInput.emit(event)
+        if (event.handled) {
+            return
+        }
+        unhandledInput(event)
+    }
+
+    /**
      * Sets the parent [Node] of this [Node].
      * @param parent this Nodes parent
      */
@@ -293,14 +422,8 @@ open class Node : Comparable<Node> {
         if (_parent == parent) {
             return this
         }
-
-        _parent?.nodes?.remove(this)
-        _parent?._onChildRemoved(this)
-        parent?.nodes?.add(this)
-        pos = parent?.childCount ?: -1
-
-        _parent = parent
-        _parent?._onChildAdded(this)
+        _parent?.removeChild(this)
+        parent?.addChild(this)
         return this
     }
 
@@ -309,7 +432,14 @@ open class Node : Comparable<Node> {
      * @param child the child to add
      */
     open fun addChild(child: Node): Node {
-        child.parent(this)
+        nodes.add(child)
+        child.pos = childCount
+        child._parent = this
+
+        child.scene = scene
+        onChildAdded(child)
+
+        parent?.onDescendantAdded(child)
         return this
     }
 
@@ -324,9 +454,24 @@ open class Node : Comparable<Node> {
         return this
     }
 
-    open fun removeChild(child: Node): Node {
+    fun removeChild(child: Node): Node {
         if (child.parent != this) return this
-        child.parent(null)
+
+        child._parent = null
+        nodes.remove(child)
+
+        child.scene = null
+        child.pos = -1
+        nodes.forEachIndexed { index, node ->
+            node.pos = index
+        }
+
+        onChildRemoved(child)
+
+        parent?.onDescendantAdded(child)
+        if (insideTree) {
+            child.propagateAfterExitTree()
+        }
         return this
     }
 
@@ -334,40 +479,6 @@ open class Node : Comparable<Node> {
         if (idx >= childCount) return this
         nodes[idx]?.also { removeChild(it) }
         return this
-    }
-
-    /**
-     * Updates the current [Node] hierarchy if it is dirty.
-     */
-    open fun updateHierarchy() {
-        if (hierarchyDirty != CLEAN) {
-            parent?.updateHierarchy()
-            hierarchyDirty = CLEAN
-        }
-    }
-
-    /**
-     * Internal rendering that needs to be done on the node that shouldn't be overridden. Calls [render] method.
-     */
-    open fun _render(batch: Batch, camera: Camera, renderCallback: ((Node, Batch, Camera) -> Unit)?) {
-        if (!enabled || !visible) return
-        renderCallback?.invoke(this, batch, camera)
-        render(batch, camera)
-        onRender.emit(batch, camera)
-        nodes.forEach {
-            it._render(batch, camera, renderCallback)
-        }
-    }
-
-    /**
-     * Internal debug render method. Calls the [debugRender] method.
-     */
-    private fun _debugRender(batch: Batch) {
-        debugRender(batch)
-        onDebugRender.emit(batch)
-        nodes.forEach {
-            it._debugRender(batch)
-        }
     }
 
     /**
@@ -379,20 +490,6 @@ open class Node : Comparable<Node> {
             _enabled = value
             nodes.forEach {
                 it._enabled = value
-            }
-        }
-        return this
-    }
-
-    /**
-     * Shows/hides the [Node]. When disabled [render] is no longer called.
-     * @param value true to enable this node; false otherwise
-     */
-    fun visible(value: Boolean): Node {
-        if (_visible != value) {
-            _visible = value
-            nodes.forEach {
-                it._visible = value
             }
         }
         return this
@@ -411,10 +508,13 @@ open class Node : Comparable<Node> {
         onDestroy.emit()
         onUpdate.clear()
         onReady.clear()
-        onRender.clear()
-        onDebugRender.clear()
         onDestroy.clear()
         onResize.clear()
+        onRemovedFromScene.clear()
+        onRemovingFromScene.clear()
+        onAddedToScene.clear()
+        onChildEnteredTree.clear()
+        onChildExitedTree.clear()
     }
 
     /**
@@ -422,163 +522,76 @@ open class Node : Comparable<Node> {
      */
     open fun onDestroy() = Unit
 
-    /**
-     * The internal lifecycle method for when a child is added to this [Node].
-     * Calls the open [onChildAdded] lifecycle method.
-     * @param child - the child node being added to this node.
-     */
-    private fun _onChildAdded(child: Node) {
-        child.scene = scene
-        parent?._onDescendantAdded(child)
-        onChildAdded(child)
+
+    open fun onDescendantAdded(child: Node) {
+        parent?.onDescendantAdded(child)
     }
 
-    private fun _onDescendantAdded(child: Node) {
-        parent?._onDescendantAdded(child)
-    }
-
-    private fun _onChildRemoved(child: Node) {
-        child.scene = null
-        nodes.forEachIndexed { index, node ->
-            node.pos = index
-        }
-        onChildRemoved(child)
-    }
-
-
-    /**
-     * Called when this [Node] is added to a [SceneGraph] after all pending [Node] changes are committed.
-     */
-    private fun _onAddedToScene() {
-        depth = parent?.depth?.plus(1) ?: 1
-
-        viewport = parent?.viewport
-
-        onAddedToScene()
-    }
-
-    internal fun _onPostEnterScene() {
-        nodes.forEach {
-            it._onPostEnterScene()
-        }
-        onPostEnterScene()
-        ready()
-        onReady.emit()
-    }
-
-    /**
-     * Called when this [Node] is removed from a [SceneGraph]. Called bottom-to-top of tree.
-     */
-    private fun _onRemovedFromScene() {
-        onRemovedFromScene()
-        viewport = null
-        depth = -1
-    }
-
-    /**
-     * Internal update lifecycle method for updating the node and its children.
-     * Calls the [update] lifecycle method.
-     */
-    internal fun _update(dt: Duration) {
-        update(dt)
-        onUpdate.emit(dt)
-        nodes.updateLists()
-        nodes.update(dt)
-    }
-
-    internal open fun _onResize(width: Int, height: Int, center: Boolean) {
-        if (!enabled) return
-        nodes.forEach {
-            it._onResize(width, height, center)
-        }
-        resize(width, height)
-        onResize.emit(width, height)
-    }
-
-    /**
-     * Dirties the hierarchy for the current [Node] and all of it's [children].
-     */
-    open fun dirty(dirtyFlag: Int) {
-        if ((hierarchyDirty and dirtyFlag) == 0) {
-            hierarchyDirty = hierarchyDirty or dirtyFlag
-
-            nodes.forEach {
-                it.dirty(dirtyFlag)
-            }
-            _onHierarchyChanged(dirtyFlag)
-        }
-    }
-
-    /**
-     * Internal. Called when the hierarchy of this [Node] is changed.
-     * Example changes that can trigger this include: `position`, `rotation`, and `scale`
-     */
-    private fun _onHierarchyChanged(flag: Int) {
-        onHierarchyChanged(flag)
+    open fun onDescendantRemoved(child: Node) {
+        parent?.onDescendantRemoved(child)
     }
 
     /**
      * Called when this [Node] and all of it's children are added to the scene and active
      */
-    open fun ready() {}
+    protected open fun ready() {}
 
     /**
      * Called when this [Node] and all of its children are added to the scene and have themselves called [onPostEnterScene]
      */
-    open fun onPostEnterScene() {}
-
-    /**
-     * The main render method. The [Camera] can be used for culling and the [Batch] instance to draw with.
-     * @param batch the batcher
-     * @param camera the Camera2D node
-     */
-    open fun render(batch: Batch, camera: Camera) {}
-
-    /**
-     * Draw any debug related items here.
-     * @param batch the sprite batch to draw with
-     */
-    open fun debugRender(batch: Batch) {}
+    protected open fun onPostEnterScene() {}
 
     /**
      * Called when the [scene] is resized.
      */
-    open fun resize(width: Int, height: Int) {}
+    protected open fun resize(width: Int, height: Int) {}
 
     /**
      * Called when this [Node] is added to a [SceneGraph] after all pending [Node] changes are committed.
      * Called from top-to-bottom of tree.
      */
-    open fun onAddedToScene() {}
+    protected open fun onAddedToScene() {}
 
     /**
      * Called when this [Node] is removed from a [SceneGraph].
      * Called bottom-to-top of tree.
      */
-    open fun onRemovedFromScene() {}
+    protected open fun onRemovedFromScene() {}
+
+    /**
+     * Called when this [Node] is removed from a [SceneGraph].
+     * Called bottom-to-top of tree.
+     */
+    protected open fun onRemovingFromScene() {}
 
     /**
      * Called when a [Node] is added as a child to this node.
      * @param child - the child node being added
      */
-    open fun onChildAdded(child: Node) {}
+    protected open fun onChildAdded(child: Node) {}
 
     /**
      * Called when a [Node] is removed as a child from this node.
      * @param child - the child node being removed
      */
-    open fun onChildRemoved(child: Node) {}
+    protected open fun onChildRemoved(child: Node) {}
 
     /**
      * Called each frame as long as the [Node] is [enabled].
      */
-    open fun update(dt: Duration) {}
+    protected open fun update(dt: Duration) {}
 
     /**
-     * Called when the hierarchy of this [Node] is changed.
-     * Example changes that can trigger this include: `position`, `rotation`, and `scale`
+     * Called when there is an [InputEvent]. The input event propagates up through the node
+     * tree until a node consumes it.
      */
-    open fun onHierarchyChanged(flag: Int) {}
+    protected open fun input(event: InputEvent<*>) = Unit
+
+    /**
+     * Called when an [InputEvent] isn't consumed by [input] or the UI. The input event propagates up through the node
+     * tree until a node consumes it.
+     */
+    protected open fun unhandledInput(event: InputEvent<*>) = Unit
 
     /**
      * @return a tree string for all the child nodes under this [Node].
@@ -599,7 +612,7 @@ open class Node : Comparable<Node> {
         builder: StringBuilder,
         prefix: String,
         childrenPrefix: String,
-        showProps: Boolean = false
+        showProps: Boolean = false,
     ) {
         builder.run {
             append(prefix)

@@ -32,6 +32,11 @@ inline fun SceneGraph<*>.canvasLayer(callback: @SceneGraphDslMarker CanvasLayer.
 }
 
 /**
+ * A [Node] that uses a separate [OrthographicCamera] for rendering instead of the inherited camera from the [SceneGraph].
+ * This is useful to render a list of nodes with a camera a certain way and another list of nodes another way.
+ *
+ * For example: When rendering certain nodes at a low resolution using a [CanvasLayer] to render UI at a higher resolution.
+ *
  * @author Colton Daily
  * @date 3/13/2022
  */
@@ -45,29 +50,28 @@ open class CanvasLayer : Node() {
         canvasCamera.position.set(canvasCamera.virtualWidth / 2f, canvasCamera.virtualHeight / 2f, 0f)
     }
 
-    override fun _onResize(width: Int, height: Int, center: Boolean) {
+    override fun resize(width: Int, height: Int) {
         val context = scene?.context ?: return
-        canvasCamera.update(width,height, context)
-        if (center) {
-            canvasCamera.position.set(canvasCamera.viewport.virtualWidth / 2f, canvasCamera.viewport.virtualHeight / 2f, 0f)
-        }
-        super._onResize(width, height, center)
+        canvasCamera.update(width, height, context)
+        canvasCamera.position.set(canvasCamera.viewport.virtualWidth / 2f,
+            canvasCamera.viewport.virtualHeight / 2f,
+            0f)
+        super.resize(width, height)
     }
 
-    override fun _render(batch: Batch, camera: Camera, renderCallback: ((Node, Batch, Camera) -> Unit)?) {
-        if (!enabled || !visible) return
+    override fun propagateInternalRender(
+        batch: Batch,
+        camera: Camera,
+        renderCallback: ((Node, Batch, Camera) -> Unit)?,
+    ) {
+        if (!enabled) return
         val prevProjMatrix = batch.projectionMatrix
         canvasCamera.viewport = viewport ?: error("Unable to set CanvasLayer transform viewport")
         canvasCamera.update()
         batch.projectionMatrix = canvasCamera.viewProjection
-        renderCallback?.invoke(this, batch, canvasCamera)
-        render(batch, canvasCamera)
-        onRender.emit(batch, canvasCamera)
         nodes.forEach {
-            it._render(batch, canvasCamera, renderCallback)
+            it.propagateInternalRender(batch, canvasCamera, renderCallback)
         }
         batch.projectionMatrix = prevProjMatrix
     }
-
-
 }

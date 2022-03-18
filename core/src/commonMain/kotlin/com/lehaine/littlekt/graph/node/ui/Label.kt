@@ -1,4 +1,4 @@
-package com.lehaine.littlekt.graph.node.node2d.ui
+package com.lehaine.littlekt.graph.node.ui
 
 import com.lehaine.littlekt.graph.SceneGraph
 import com.lehaine.littlekt.graph.node.Node
@@ -40,6 +40,7 @@ inline fun SceneGraph<*>.label(callback: @SceneGraphDslMarker Label.() -> Unit =
 }
 
 /**
+ * A [Control] that renders text with a specified [BitmapFont].
  * @author Colton Daily
  * @date 1/8/2022
  */

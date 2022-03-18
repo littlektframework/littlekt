@@ -1,4 +1,4 @@
-package com.lehaine.littlekt.graph.node.node2d.ui
+package com.lehaine.littlekt.graph.node.ui
 
 import com.lehaine.littlekt.math.clamp
 import com.lehaine.littlekt.math.ife

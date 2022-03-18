@@ -10,6 +10,8 @@ import com.lehaine.littlekt.util.viewport.Viewport
  * @date 11/27/2021
  */
 abstract class Camera {
+    val id = nextCameraId++
+
     val position = MutableVec3f(0f)
     val direction = MutableVec3f(Vec3f.Z_AXIS)
     val up = MutableVec3f(Vec3f.NEG_Y_AXIS)
@@ -47,7 +49,7 @@ abstract class Camera {
     var viewport = Viewport()
         set(value) {
             field = value
-        //    position.set(viewport.virtualWidth / 2f, viewport.virtualHeight / 2f, 0f)
+            //    position.set(viewport.virtualWidth / 2f, viewport.virtualHeight / 2f, 0f)
         }
 
     var virtualWidth: Int
@@ -307,7 +309,7 @@ abstract class Camera {
         pickRay: Ray,
         screenX: Float,
         screenY: Float,
-        context: Context
+        context: Context,
     ): Boolean {
         var valid = unProjectScreen(tempVec3.set(screenX, screenY, 0f), context, pickRay.origin)
         valid = valid && unProjectScreen(tempVec3.set(screenX, screenY, 1f), context, pickRay.direction)
@@ -318,6 +320,15 @@ abstract class Camera {
         }
 
         return valid
+    }
+
+    override fun toString(): String {
+        return "Camera(id=$id, position=$position, direction=$direction, up=$up, rightDir=$rightDir, projection=$projection, view=$view, invProj=$invProj, invView=$invView, viewProjection=$viewProjection, invViewProjection=$invViewProjection, near=$near, far=$far, fov=$fov, viewport=$viewport, zoom=$zoom)"
+    }
+
+
+    companion object {
+        private var nextCameraId = 1L
     }
 }
 
