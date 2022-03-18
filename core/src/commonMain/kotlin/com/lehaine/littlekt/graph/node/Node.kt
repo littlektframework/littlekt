@@ -4,6 +4,7 @@ import com.lehaine.littlekt.graph.SceneGraph
 import com.lehaine.littlekt.graph.node.annotation.SceneGraphDslMarker
 import com.lehaine.littlekt.graph.node.component.InputEvent
 import com.lehaine.littlekt.graph.node.internal.NodeList
+import com.lehaine.littlekt.graph.node.ui.Control
 import com.lehaine.littlekt.graphics.Batch
 import com.lehaine.littlekt.graphics.Camera
 import com.lehaine.littlekt.util.*
@@ -396,7 +397,20 @@ open class Node : Comparable<Node> {
         nodes.forEach { it.propagateInternalRender(batch, camera, renderCallback) }
     }
 
-    internal fun callInput(event: InputEvent<*>) {
+    internal open fun propagateHit(hx: Float, hy: Float): Control? {
+        nodes.forEachReversed {
+            val target = it.propagateHit(hx, hy)
+            if (target != null) {
+                return target
+            }
+        }
+        if (this is Control) {
+            return hit(hx, hy)
+        }
+        return null
+    }
+
+    internal open fun callInput(event: InputEvent<*>) {
         if (!enabled || !insideTree) return
         onInput.emit(event)
         if (event.handled) {
@@ -405,7 +419,7 @@ open class Node : Comparable<Node> {
         input(event)
     }
 
-    internal fun callUnhandledInput(event: InputEvent<*>) {
+    internal open fun callUnhandledInput(event: InputEvent<*>) {
         if (!enabled || !insideTree) return
         onUnhandledInput.emit(event)
         if (event.handled) {

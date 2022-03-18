@@ -379,11 +379,6 @@ open class SceneGraph<InputType>(
                 it.grabFocus()
                 keyboardFocus = it
             }
-            it.toLocal(sceneX, sceneY, tempVec)
-            event.apply {
-                localX = tempVec.x
-                localY = tempVec.y
-            }
             it.callUiInput(event)
             uiInput(it, event)
             addTouchFocus(it, pointer)
@@ -805,23 +800,10 @@ open class SceneGraph<InputType>(
 
     private fun callHitTest(hx: Float, hy: Float): Control? {
         root.nodes.forEachReversed {
-            val target = it.propagateHitTest(hx, hy)
+            val target = it.propagateHit(hx, hy)
             if (target != null) {
                 return target
             }
-        }
-        return null
-    }
-
-    private fun Node.propagateHitTest(hx: Float, hy: Float): Control? {
-        nodes.forEachReversed {
-            val target = it.propagateHitTest(hx, hy)
-            if (target != null) {
-                return target
-            }
-        }
-        if (this is Control) {
-            return hit(hx, hy)
         }
         return null
     }
@@ -866,8 +848,13 @@ open class SceneGraph<InputType>(
         return event.handled
     }
 
-    private fun screenToSceneCoordinates(vector2: MutableVec2f): MutableVec2f {
+    fun screenToSceneCoordinates(vector2: MutableVec2f): MutableVec2f {
         camera.unProjectScreen(vector2, context, vector2)
+        return vector2
+    }
+
+    fun sceneToScreenCoordinates(vector2: MutableVec2f): MutableVec2f {
+        camera.projectScreen(vector2, vector2)
         return vector2
     }
 

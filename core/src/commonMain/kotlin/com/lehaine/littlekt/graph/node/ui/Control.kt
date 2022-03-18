@@ -490,6 +490,11 @@ open class Control : CanvasItem() {
 
     internal fun callUiInput(event: InputEvent<*>) {
         if (!enabled || !insideTree) return
+
+        event.apply {
+            localX = toLocalX(event.sceneX)
+            localY = toLocalY(event.sceneY)
+        }
         onUiInput.emit(event) // signal is first due to being able to handle the event
         if (event.handled) {
             return
@@ -605,19 +610,6 @@ open class Control : CanvasItem() {
         }
         // TODO determine hit target when rotated
 
-        return null
-    }
-
-    private fun Node.propagateHit(hx: Float, hy: Float): Control? {
-        nodes.forEachReversed {
-            val target = it.propagateHit(hx, hy)
-            if (target != null) {
-                return target
-            }
-        }
-        if (this is Control) {
-            return hit(hx, hy)
-        }
         return null
     }
 
