@@ -5,6 +5,7 @@ import com.lehaine.littlekt.graph.node.FrameBufferNode
 import com.lehaine.littlekt.graph.node.Node
 import com.lehaine.littlekt.graph.node.addTo
 import com.lehaine.littlekt.graph.node.annotation.SceneGraphDslMarker
+import com.lehaine.littlekt.graph.node.component.InputEvent
 import com.lehaine.littlekt.graphics.Batch
 import com.lehaine.littlekt.graphics.Camera
 import kotlin.contracts.ExperimentalContracts
@@ -124,5 +125,19 @@ open class FrameBufferContainer : Container() {
             }
         }
         minSizeInvalid = false
+    }
+
+    override fun callInput(event: InputEvent<*>) {
+        if (!enabled || !insideTree) return
+
+        event.apply {
+            localX = toLocalX(event.sceneX)
+            localY = toLocalY(event.sceneY)
+        }
+        onInput.emit(event) // signal is first due to being able to handle the event
+        if (event.handled) {
+            return
+        }
+        input(event)
     }
 }

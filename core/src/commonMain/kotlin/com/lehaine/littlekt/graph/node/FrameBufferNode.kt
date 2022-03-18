@@ -2,11 +2,14 @@ package com.lehaine.littlekt.graph.node
 
 import com.lehaine.littlekt.graph.SceneGraph
 import com.lehaine.littlekt.graph.node.annotation.SceneGraphDslMarker
+import com.lehaine.littlekt.graph.node.ui.Control
 import com.lehaine.littlekt.graphics.*
 import com.lehaine.littlekt.graphics.gl.ClearBufferMask
 import com.lehaine.littlekt.graphics.gl.TexMagFilter
 import com.lehaine.littlekt.graphics.gl.TexMinFilter
 import com.lehaine.littlekt.math.Mat4
+import com.lehaine.littlekt.math.MutableVec2f
+import com.lehaine.littlekt.math.Vec2f
 import com.lehaine.littlekt.util.SingleSignal
 import com.lehaine.littlekt.util.signal1v
 import kotlin.contracts.ExperimentalContracts
@@ -49,7 +52,7 @@ class FrameBufferNode : Node() {
 
     override fun onAddedToScene() {
         super.onAddedToScene()
-        if(width != 0 && height != 0) {
+        if (width != 0 && height != 0) {
             resizeFbo(width, height)
         }
     }
@@ -79,13 +82,13 @@ class FrameBufferNode : Node() {
                 minFilter = TexMinFilter.NEAREST,
                 magFilter = TexMagFilter.NEAREST
             ).also { it.prepare(scene.context) }
+            fboCamera.viewport.set(0, 0, width,height)
             fboCamera.virtualWidth = width
             fboCamera.virtualHeight = height
             fboCamera.position.set(fboCamera.virtualWidth * 0.5f, fboCamera.virtualHeight * 0.5f, 0f)
             onFboChanged.emit(fboTexture)
         }
     }
-
 
     private var prevProjection: Mat4 = Mat4()
 
@@ -107,7 +110,11 @@ class FrameBufferNode : Node() {
         batch.begin(fboCamera.viewProjection)
     }
 
-    override fun propagateInternalRender(batch: Batch, camera: Camera, renderCallback: ((Node, Batch, Camera) -> Unit)?) {
+    override fun propagateInternalRender(
+        batch: Batch,
+        camera: Camera,
+        renderCallback: ((Node, Batch, Camera) -> Unit)?,
+    ) {
         fbo ?: return
         if (width == 0 || height == 0) return
         begin(batch)
