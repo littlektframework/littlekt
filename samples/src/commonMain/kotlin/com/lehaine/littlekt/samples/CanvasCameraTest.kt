@@ -42,8 +42,6 @@ class CanvasCameraTest(context: Context) : ContextListener(context) {
                         anchorBottom = 1f
 
                     frameBuffer {
-//                        width = 240
-//                        height = 136
                         button {
                             text = "test"
                         }

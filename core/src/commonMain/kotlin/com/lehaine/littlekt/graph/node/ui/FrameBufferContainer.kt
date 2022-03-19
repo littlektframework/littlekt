@@ -40,6 +40,7 @@ inline fun SceneGraph<*>.frameBufferContainer(callback: @SceneGraphDslMarker Fra
  */
 open class FrameBufferContainer : Container() {
 
+    private val temp = MutableVec2f()
     private var dirty = true
 
     /**
@@ -144,13 +145,12 @@ open class FrameBufferContainer : Container() {
         input(event)
     }
 
-    private val temp = MutableVec2f()
     override fun propagateHit(hx: Float, hy: Float): Control? {
         val canvas = canvas ?: return null
         temp.set(hx, hy)
         if (stretch) {
             canvas.canvasToScreenCoordinates(temp)
-            temp.scale(shrink.toFloat())
+            temp.scale(1f / shrink.toFloat())
             canvas.screenToCanvasCoordinates(temp)
         }
         nodes.forEachReversed {

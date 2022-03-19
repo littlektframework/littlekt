@@ -401,14 +401,14 @@ open class Node : Comparable<Node> {
     }
 
     internal open fun propagateHit(hx: Float, hy: Float): Control? {
+        if (this is Control) {
+            return hit(hx, hy)
+        }
         nodes.forEachReversed {
             val target = it.propagateHit(hx, hy)
             if (target != null) {
                 return target
             }
-        }
-        if (this is Control) {
-            return hit(hx, hy)
         }
         return null
     }

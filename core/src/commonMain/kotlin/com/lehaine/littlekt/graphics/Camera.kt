@@ -340,6 +340,8 @@ open class OrthographicCamera(virtualWidth: Int = 0, virtualHeight: Int = 0) : C
     init {
         this.virtualWidth = virtualWidth
         this.virtualHeight = virtualHeight
+        this.screenWidth = virtualWidth
+        this.screenHeight = virtualHeight
         near = 0f
     }
 

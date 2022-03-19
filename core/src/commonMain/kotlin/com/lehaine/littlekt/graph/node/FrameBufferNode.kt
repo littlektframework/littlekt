@@ -138,19 +138,4 @@ class FrameBufferNode : Node() {
         super.onDestroy()
         onFboChanged.clear()
     }
-
-    private val temp = MutableVec2f()
-    override fun propagateHit(hx: Float, hy: Float): Control? {
-        val canvas = canvas ?: return null
-        val scene = scene ?: return null
-        canvas.canvasToScreenCoordinates(temp.set(hx, hy))
-        fboCamera.screenToWorld(temp, scene.context, temp)
-        nodes.forEachReversed {
-            val target = it.propagateHit(temp.x, temp.y)
-            if (target != null) {
-                return target
-            }
-        }
-        return null
-    }
 }
