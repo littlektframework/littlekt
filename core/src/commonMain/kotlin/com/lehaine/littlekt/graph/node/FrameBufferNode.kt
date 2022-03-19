@@ -40,7 +40,7 @@ class FrameBufferNode : Node() {
 
     var width: Int = 0
     var height: Int = 0
-    val fboTexture: Texture get() = fbo?.colorBufferTexture ?: error("FBO hasn't been created yet!")
+    val fboTexture: Texture? get() = fbo?.colorBufferTexture
     val onFboChanged: SingleSignal<Texture> = signal1v()
 
     private val fboCamera = OrthographicCamera(width, height)
@@ -69,6 +69,7 @@ class FrameBufferNode : Node() {
      * @param newHeight the new width of the [FrameBuffer]
      */
     fun resizeFbo(newWidth: Int, newHeight: Int) {
+        if (newWidth == 0 || newHeight == 0) return
         scene?.let { scene ->
             lastWidth = newWidth
             lastHeight = newHeight
@@ -85,7 +86,8 @@ class FrameBufferNode : Node() {
             fboCamera.virtualWidth = width
             fboCamera.virtualHeight = height
             fboCamera.position.set(fboCamera.virtualWidth * 0.5f, fboCamera.virtualHeight * 0.5f, 0f)
-            onFboChanged.emit(fboTexture)
+            fboTexture?.let { onFboChanged.emit(it) }
+
         }
     }
 
@@ -142,7 +144,7 @@ class FrameBufferNode : Node() {
         val canvas = canvas ?: return null
         val scene = scene ?: return null
         canvas.canvasToScreenCoordinates(temp.set(hx, hy))
-        fboCamera.screenToWorld(temp, scene.context,temp)
+        fboCamera.screenToWorld(temp, scene.context, temp)
         nodes.forEachReversed {
             val target = it.propagateHit(temp.x, temp.y)
             if (target != null) {

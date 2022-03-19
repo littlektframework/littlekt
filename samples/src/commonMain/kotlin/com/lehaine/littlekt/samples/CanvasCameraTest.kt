@@ -20,6 +20,7 @@ import com.lehaine.littlekt.math.geom.Angle
 import com.lehaine.littlekt.math.geom.degrees
 import com.lehaine.littlekt.math.geom.radians
 import com.lehaine.littlekt.util.viewport.ExtendViewport
+import com.lehaine.littlekt.util.viewport.FitViewport
 
 /**
  * @author Colton Daily
@@ -31,100 +32,98 @@ class CanvasCameraTest(context: Context) : ContextListener(context) {
         val pixelFont = resourcesVfs["m5x7_16.fnt"].readBitmapFont()
         val icon = resourcesVfs["icon_16x16.png"].readTexture()
         val graph = sceneGraph(context, ExtendViewport(240, 136)) {
-//            viewport {
-//                strategy = ExtendViewport(480, 272)
+            canvasLayer {
+                viewport = ExtendViewport(480, 272)
 
-              //  canvasLayer {
-                    frameBufferContainer {
-//                        stretch = true
-//                        shrink = 2
-//                        anchorRight = 1f
-//                        anchorBottom = 1f
+                frameBufferContainer {
+                        stretch = true
+                        shrink = 2
+                        anchorRight = 1f
+                        anchorBottom = 1f
 
-                        frameBuffer {
-                            width = 240
-                            height = 136
-                            button {
-                                text = "test"
+                    frameBuffer {
+//                        width = 240
+//                        height = 136
+                        button {
+                            text = "test"
+                        }
+                        node2d {
+                            rotation = 45.degrees
+                            onReady += {
+                                println("$name: $canvas")
                             }
-                            node2d {
-                                rotation = 45.degrees
-                                onReady += {
-                                    println("$name: $canvas")
+                            onUpdate += {
+                                if (input.isKeyPressed(Key.D)) {
+                                    globalX += 1f
+                                } else if (input.isKeyPressed(Key.A)) {
+                                    globalX -= 1f
                                 }
-                                onUpdate += {
-                                    if (input.isKeyPressed(Key.D)) {
-                                        globalX += 1f
-                                    } else if (input.isKeyPressed(Key.A)) {
-                                        globalX -= 1f
-                                    }
 
-                                    if (input.isKeyPressed(Key.S)) {
-                                        globalY += 1f
-                                    } else if (input.isKeyPressed(Key.W)) {
-                                        globalY -= 1f
-                                    }
-                                }
-                                onRender += { batch, camera ->
-                                    batch.draw(icon, globalX, globalY, rotation = globalRotation)
-                                }
-                                camera2d {
-                                    active = true
+                                if (input.isKeyPressed(Key.S)) {
+                                    globalY += 1f
+                                } else if (input.isKeyPressed(Key.W)) {
+                                    globalY -= 1f
                                 }
                             }
+                            onRender += { batch, camera ->
+                                batch.draw(icon, globalX, globalY, rotation = globalRotation)
+                            }
+                            camera2d {
+                                active = true
+                            }
+                        }
 
-                            var rotation = Angle.ZERO
-                            node2d {
-                                x = 100f
-                                y = 20f
-                                onRender += { batch, camera ->
-                                    rotation += 0.01.radians
-                                    batch.draw(icon, globalX, globalY, scaleX = 2f, scaleY = 2f, rotation = rotation)
-                                }
+                        var rotation = Angle.ZERO
+                        node2d {
+                            x = 100f
+                            y = 20f
+                            onRender += { batch, camera ->
+                                rotation += 0.01.radians
+                                batch.draw(icon, globalX, globalY, scaleX = 2f, scaleY = 2f, rotation = rotation)
                             }
                         }
                     }
-           //     }
-
-                canvasLayer {
-                    node2d {
-                        x = 50f
-                        onReady += {
-                            println("$name: $canvas")
-                        }
-                        onUpdate += {
-                            if (input.isKeyPressed(Key.D)) {
-                                globalX += 1f
-                            } else if (input.isKeyPressed(Key.A)) {
-                                globalX -= 1f
-                            }
-
-                            if (input.isKeyPressed(Key.S)) {
-                                globalY += 1f
-                            } else if (input.isKeyPressed(Key.W)) {
-                                globalY -= 1f
-                            }
-                        }
-                        onRender += { batch, camera ->
-                            batch.draw(icon, globalX, globalY)
-                        }
-                        camera2d {
-                            x = 50f
-                            active = true
-                        }
-                    }
-
-                    var rotation = Angle.ZERO
-                    node2d {
-                        x = 250f
-                        y = 20f
-                        onRender += { batch, camera ->
-                            rotation += 0.01.radians
-                            batch.draw(icon, globalX, globalY, scaleX = 2f, scaleY = 2f, rotation = rotation)
-                        }
-                    }
-       //         }
+                }
             }
+
+//            canvasLayer {
+//                node2d {
+//                    x = 50f
+//                    onReady += {
+//                        println("$name: $canvas")
+//                    }
+//                    onUpdate += {
+//                        if (input.isKeyPressed(Key.D)) {
+//                            globalX += 1f
+//                        } else if (input.isKeyPressed(Key.A)) {
+//                            globalX -= 1f
+//                        }
+//
+//                        if (input.isKeyPressed(Key.S)) {
+//                            globalY += 1f
+//                        } else if (input.isKeyPressed(Key.W)) {
+//                            globalY -= 1f
+//                        }
+//                    }
+//                    onRender += { batch, camera ->
+//                        batch.draw(icon, globalX, globalY)
+//                    }
+//                    camera2d {
+//                        x = 50f
+//                        active = true
+//                    }
+//                }
+
+//                var rotation = Angle.ZERO
+//                node2d {
+//                    x = 250f
+//                    y = 20f
+//                    onRender += { batch, camera ->
+//                        rotation += 0.01.radians
+//                        batch.draw(icon, globalX, globalY, scaleX = 2f, scaleY = 2f, rotation = rotation)
+//                    }
+//                }
+//            }
 
             centerContainer {
                 anchorRight = 1f

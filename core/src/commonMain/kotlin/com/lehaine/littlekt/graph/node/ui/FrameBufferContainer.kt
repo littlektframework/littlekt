@@ -96,19 +96,21 @@ open class FrameBufferContainer : Container() {
             }
             dirty = false
         }
-        nodes.forEach {
-            if (it is FrameBufferNode) {
-                batch.draw(
-                    it.fboTexture,
-                    globalX,
-                    globalY,
-                    width = if (stretch) width else it.fboTexture.width.toFloat(),
-                    height = if (stretch) height else it.fboTexture.height.toFloat(),
-                    scaleX = globalScaleX,
-                    scaleY = globalScaleY,
-                    rotation = globalRotation,
-                    flipY = true
-                )
+        nodes.forEach { node ->
+            if (node is FrameBufferNode) {
+                node.fboTexture?.let {
+                    batch.draw(
+                        it,
+                        globalX,
+                        globalY,
+                        width = if (stretch) width else it.width.toFloat(),
+                        height = if (stretch) height else it.height.toFloat(),
+                        scaleX = globalScaleX,
+                        scaleY = globalScaleY,
+                        rotation = globalRotation,
+                        flipY = true
+                    )
+                }
             }
         }
     }

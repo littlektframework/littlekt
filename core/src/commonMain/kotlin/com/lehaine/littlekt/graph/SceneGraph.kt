@@ -18,6 +18,7 @@ import com.lehaine.littlekt.util.datastructure.Pool
 import com.lehaine.littlekt.util.fastForEach
 import com.lehaine.littlekt.util.seconds
 import com.lehaine.littlekt.util.viewport.ScreenViewport
+import com.lehaine.littlekt.util.viewport.Viewport
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
@@ -35,7 +36,7 @@ import kotlin.time.Duration
 @OptIn(ExperimentalContracts::class)
 inline fun sceneGraph(
     context: Context,
-    viewport: com.lehaine.littlekt.util.viewport.Viewport = ScreenViewport(context.graphics.width,
+    viewport: Viewport = ScreenViewport(context.graphics.width,
         context.graphics.height),
     batch: Batch? = null,
     controller: InputMapController<String>? = null,
@@ -76,7 +77,7 @@ inline fun sceneGraph(
 @OptIn(ExperimentalContracts::class)
 inline fun <InputSignal> sceneGraph(
     context: Context,
-    viewport: com.lehaine.littlekt.util.viewport.Viewport = ScreenViewport(context.graphics.width,
+    viewport: Viewport = ScreenViewport(context.graphics.width,
         context.graphics.height),
     batch: Batch? = null,
     uiInputSignals: SceneGraph.UiInputSignals<InputSignal> = SceneGraph.UiInputSignals(),
@@ -141,7 +142,7 @@ fun <InputSignal> createDefaultSceneGraphController(
  */
 open class SceneGraph<InputType>(
     val context: Context,
-    viewport: com.lehaine.littlekt.util.viewport.Viewport = ScreenViewport(context.graphics.width,
+    viewport: Viewport = ScreenViewport(context.graphics.width,
         context.graphics.height),
     batch: Batch? = null,
     val uiInputSignals: UiInputSignals<InputType> = UiInputSignals(),
@@ -188,8 +189,7 @@ open class SceneGraph<InputType>(
     private val pointerScreenY = FloatArray(20)
     private val pointerOverControls = arrayOfNulls<Control>(20)
     private val pointerTouched = BooleanArray(20)
-    private var previousViewportApplied: com.lehaine.littlekt.util.viewport.Viewport? = null
-    private var currentViewportApplied: com.lehaine.littlekt.util.viewport.Viewport? = null
+    private val viewportsApplied = mutableListOf<Viewport>()
 
     private val tempVec = MutableVec2f()
 
@@ -326,15 +326,18 @@ open class SceneGraph<InputType>(
         frameCount++
     }
 
-    internal fun applyViewport(viewport: com.lehaine.littlekt.util.viewport.Viewport) {
-        previousViewportApplied = currentViewportApplied
-        currentViewportApplied = viewport
+    internal fun pushViewport(viewport: Viewport) {
+        viewportsApplied += viewport
         viewport.apply(context)
     }
 
-    internal fun applyPreviousViewport() {
-        currentViewportApplied = previousViewportApplied
-        previousViewportApplied?.apply(context)
+    internal fun popViewport() {
+        if (viewportsApplied.isNotEmpty()) {
+            viewportsApplied.removeLast()
+            if (viewportsApplied.isNotEmpty()) {
+                viewportsApplied.last().apply(context)
+            }
+        }
     }
 
     override fun touchDown(screenX: Float, screenY: Float, pointer: Pointer): Boolean {

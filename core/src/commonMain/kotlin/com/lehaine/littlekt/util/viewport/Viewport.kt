@@ -61,7 +61,7 @@ open class Viewport(
     }
 
     override fun toString(): String {
-        return "Viewport(x=$x, y=$y, width=$width, height=$height, virtualWidth=$virtualWidth, virtualHeight=$virtualHeight, aspectRatio=$aspectRatio)"
+        return "${this::class.simpleName}(x=$x, y=$y, width=$width, height=$height, virtualWidth=$virtualWidth, virtualHeight=$virtualHeight, aspectRatio=$aspectRatio)"
     }
 
 }

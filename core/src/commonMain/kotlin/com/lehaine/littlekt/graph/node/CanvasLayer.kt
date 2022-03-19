@@ -6,19 +6,19 @@ import com.lehaine.littlekt.graph.node.ui.Control
 import com.lehaine.littlekt.graphics.Batch
 import com.lehaine.littlekt.graphics.Camera
 import com.lehaine.littlekt.graphics.OrthographicCamera
-import com.lehaine.littlekt.graphics.use
 import com.lehaine.littlekt.math.MutableVec2f
 import com.lehaine.littlekt.util.Signal
 import com.lehaine.littlekt.util.signal
+import com.lehaine.littlekt.util.viewport.ScreenViewport
 import com.lehaine.littlekt.util.viewport.Viewport
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
 
 /**
- * Adds a [Viewport] to the current [Node] as a child and then triggers the [callback]
- * @param callback the callback that is invoked with a [Viewport] context in order to initialize any values
- * @return the newly created [Viewport]
+ * Adds a [CanvasLayer] to the current [Node] as a child and then triggers the [callback]
+ * @param callback the callback that is invoked with a [CanvasLayer] context in order to initialize any values
+ * @return the newly created [CanvasLayer]
  */
 @OptIn(ExperimentalContracts::class)
 inline fun Node.canvasLayer(callback: @SceneGraphDslMarker CanvasLayer.() -> Unit = {}): CanvasLayer {
@@ -27,9 +27,9 @@ inline fun Node.canvasLayer(callback: @SceneGraphDslMarker CanvasLayer.() -> Uni
 }
 
 /**
- * Adds a [Viewport] to the current [SceneGraph.root] as a child and then triggers the [Viewport]
- * @param callback the callback that is invoked with a [Viewport] context in order to initialize any values
- * @return the newly created [Viewport]
+ * Adds a [CanvasLayer] to the current [SceneGraph.root] as a child and then triggers the [CanvasLayer]
+ * @param callback the callback that is invoked with a [CanvasLayer] context in order to initialize any values
+ * @return the newly created [CanvasLayer]
  */
 @OptIn(ExperimentalContracts::class)
 inline fun SceneGraph<*>.canvasLayer(callback: @SceneGraphDslMarker CanvasLayer.() -> Unit = {}): CanvasLayer {
@@ -48,14 +48,18 @@ inline fun SceneGraph<*>.canvasLayer(callback: @SceneGraphDslMarker CanvasLayer.
  */
 open class CanvasLayer : Node() {
 
+    private var explicitlySet = false
+
     val canvasCamera = OrthographicCamera()
 
     val onSizeChanged: Signal = signal()
 
     var viewport: Viewport = Viewport()
         set(value) {
+            println("$id set $value")
             field = value
             canvasCamera.viewport = value
+            explicitlySet = true
         }
 
     var virtualWidth: Int
@@ -98,30 +102,46 @@ open class CanvasLayer : Node() {
 
     override fun onAddedToScene() {
         super.onAddedToScene()
+        if (!explicitlySet) {
+            viewport = canvas?.viewport?.let {
+                ScreenViewport(it.width, it.height)
+            } ?: viewport
+        }
         canvasCamera.position.set(canvasCamera.virtualWidth / 2f, canvasCamera.virtualHeight / 2f, 0f)
     }
 
     override fun resize(width: Int, height: Int) {
-        val context = scene?.context ?: return
-        canvasCamera.update(width, height, context)
+        val scene = scene ?: return
+        canvasCamera.update(width, height, scene.context)
         canvasCamera.position.set(canvasCamera.viewport.virtualWidth / 2f,
             canvasCamera.viewport.virtualHeight / 2f,
             0f)
         onSizeChanged.emit()
-        println("resize $width,$height")
         super.resize(width, height)
     }
 
     fun render(batch: Batch, renderCallback: ((Node, Batch, Camera) -> Unit)?) {
+        val scene = scene ?: return
         if (!enabled) return
+
+        val prevProjMatrix = batch.projectionMatrix
+        scene.pushViewport(viewport)
         canvasCamera.update()
-        scene?.applyViewport(viewport)
-        batch.use(canvasCamera.viewProjection) {
-            nodes.forEach {
-                it.propagateInternalRender(batch, canvasCamera, renderCallback)
-            }
+        batch.projectionMatrix = canvasCamera.viewProjection
+        if (!batch.drawing) batch.begin()
+        nodes.forEach {
+            it.propagateInternalRender(batch, canvasCamera, renderCallback)
         }
-        scene?.applyPreviousViewport()
+        batch.projectionMatrix = prevProjMatrix
+        scene.popViewport()
+    }
+
+    override fun propagateInternalRender(
+        batch: Batch,
+        camera: Camera,
+        renderCallback: ((Node, Batch, Camera) -> Unit)?,
+    ) {
+        render(batch, renderCallback)
     }
 
     override fun propagateHit(hx: Float, hy: Float): Control? {
