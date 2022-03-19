@@ -466,7 +466,7 @@ open class Control : CanvasItem() {
                 onSizeChanged()
             }
         } else {
-            viewport?.onSizeChanged?.connect(this, ::onSizeChanged)
+            canvas?.onSizeChanged?.connect(this, ::onSizeChanged)
             onSizeChanged()
         }
     }
@@ -483,7 +483,7 @@ open class Control : CanvasItem() {
         if (parent is Control) {
             parent.onSizeChanged.disconnect(this)
         } else {
-            viewport?.onSizeChanged?.disconnect(this)
+            canvas?.onSizeChanged?.disconnect(this)
         }
         super.onRemovedFromScene()
     }
@@ -649,11 +649,12 @@ open class Control : CanvasItem() {
         if (parent is Control) {
             tempRect.set(0f, 0f, parent.width, parent.height)
         } else {
-            val width = viewport?.virtualWidth?.toFloat() ?: 0f
-            val height = viewport?.virtualHeight?.toFloat() ?: 0f
+            val width = canvas?.virtualWidth?.toFloat() ?: 0f
+            val height = canvas?.virtualHeight?.toFloat() ?: 0f
             tempRect.set(
-                viewport?.x?.toFloat() ?: 0f, viewport?.y?.toFloat() ?: 0f, width, height
+                canvas?.x?.toFloat() ?: 0f, canvas?.y?.toFloat() ?: 0f, width, height
             )
+            println("$name: $tempRect")
         }
         return tempRect
     }

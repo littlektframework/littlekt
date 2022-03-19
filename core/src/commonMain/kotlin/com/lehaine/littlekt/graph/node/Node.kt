@@ -8,7 +8,6 @@ import com.lehaine.littlekt.graph.node.ui.Control
 import com.lehaine.littlekt.graphics.Batch
 import com.lehaine.littlekt.graphics.Camera
 import com.lehaine.littlekt.util.*
-import com.lehaine.littlekt.util.viewport.Viewport
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
@@ -112,13 +111,11 @@ open class Node : Comparable<Node> {
         }
 
     /**
-     * The [Viewport] that this [Node] belongs to. The closest parent [Viewport] will be selected.
+     * The [CanvasLayer] that this [Node] belongs to. The closest parent [CanvasLayer] will be selected.
      * If none are found, the scene root viewport will be used.
      */
-    var viewport: Viewport? = null
-        internal set(value) {
-            field = value
-        }
+    var canvas: CanvasLayer? = null
+        internal set
 
     /**
      * Unique identifier for this node.
@@ -345,7 +342,13 @@ open class Node : Comparable<Node> {
             depth = it.depth + 1
         }
 
-        viewport = parent?.viewport
+        canvas = parent?.let {
+            if (it is CanvasLayer) {
+                it
+            } else {
+                it.canvas
+            }
+        } ?: scene?.sceneCanvas
 
         onAddedToScene()
         onAddedToScene.emit()

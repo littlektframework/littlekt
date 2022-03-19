@@ -2,8 +2,8 @@ package com.lehaine.littlekt.graph
 
 import com.lehaine.littlekt.Context
 import com.lehaine.littlekt.Disposable
+import com.lehaine.littlekt.graph.node.CanvasLayer
 import com.lehaine.littlekt.graph.node.Node
-import com.lehaine.littlekt.graph.node.ViewportNode
 import com.lehaine.littlekt.graph.node.addTo
 import com.lehaine.littlekt.graph.node.annotation.SceneGraphDslMarker
 import com.lehaine.littlekt.graph.node.component.InputEvent
@@ -18,7 +18,6 @@ import com.lehaine.littlekt.util.datastructure.Pool
 import com.lehaine.littlekt.util.fastForEach
 import com.lehaine.littlekt.util.seconds
 import com.lehaine.littlekt.util.viewport.ScreenViewport
-import com.lehaine.littlekt.util.viewport.Viewport
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
@@ -36,7 +35,8 @@ import kotlin.time.Duration
 @OptIn(ExperimentalContracts::class)
 inline fun sceneGraph(
     context: Context,
-    viewport: Viewport = ScreenViewport(context.graphics.width, context.graphics.height),
+    viewport: com.lehaine.littlekt.util.viewport.Viewport = ScreenViewport(context.graphics.width,
+        context.graphics.height),
     batch: Batch? = null,
     controller: InputMapController<String>? = null,
     callback: @SceneGraphDslMarker SceneGraph<String>.() -> Unit = {},
@@ -76,7 +76,8 @@ inline fun sceneGraph(
 @OptIn(ExperimentalContracts::class)
 inline fun <InputSignal> sceneGraph(
     context: Context,
-    viewport: Viewport = ScreenViewport(context.graphics.width, context.graphics.height),
+    viewport: com.lehaine.littlekt.util.viewport.Viewport = ScreenViewport(context.graphics.width,
+        context.graphics.height),
     batch: Batch? = null,
     uiInputSignals: SceneGraph.UiInputSignals<InputSignal> = SceneGraph.UiInputSignals(),
     controller: InputMapController<InputSignal> = InputMapController(context.input),
@@ -140,7 +141,8 @@ fun <InputSignal> createDefaultSceneGraphController(
  */
 open class SceneGraph<InputType>(
     val context: Context,
-    viewport: Viewport = ScreenViewport(context.graphics.width, context.graphics.height),
+    viewport: com.lehaine.littlekt.util.viewport.Viewport = ScreenViewport(context.graphics.width,
+        context.graphics.height),
     batch: Batch? = null,
     val uiInputSignals: UiInputSignals<InputType> = UiInputSignals(),
     val controller: InputMapController<InputType> = createDefaultSceneGraphController(
@@ -151,23 +153,19 @@ open class SceneGraph<InputType>(
     private var ownsBatch = true
     val batch: Batch = batch?.also { ownsBatch = false } ?: SpriteBatch(context)
 
-    val sceneViewport: ViewportNode by lazy {
-        ViewportNode().apply {
+    val sceneCanvas: CanvasLayer by lazy {
+        CanvasLayer().apply {
             name = "Scene Viewport"
-            strategy = viewport
+            this.viewport = viewport
         }
     }
 
     val root: Node by lazy {
-        Node().apply { name = "Root" }.addTo(sceneViewport)
+        Node().apply { name = "Root" }.addTo(sceneCanvas)
     }
 
-    val width: Int get() = sceneViewport.virtualWidth
-    val height: Int get() = sceneViewport.virtualHeight
-
-    internal val camera = OrthographicCamera(context.graphics.width, context.graphics.height).apply {
-        this.viewport = viewport
-    }
+    val width: Int get() = sceneCanvas.virtualWidth
+    val height: Int get() = sceneCanvas.virtualHeight
 
     var targetFPS = 60
     var tmod: Float = 1f
@@ -190,8 +188,8 @@ open class SceneGraph<InputType>(
     private val pointerScreenY = FloatArray(20)
     private val pointerOverControls = arrayOfNulls<Control>(20)
     private val pointerTouched = BooleanArray(20)
-    private var previousViewportApplied: Viewport? = null
-    private var currentViewportApplied: Viewport? = null
+    private var previousViewportApplied: com.lehaine.littlekt.util.viewport.Viewport? = null
+    private var currentViewportApplied: com.lehaine.littlekt.util.viewport.Viewport? = null
 
     private val tempVec = MutableVec2f()
 
@@ -200,16 +198,11 @@ open class SceneGraph<InputType>(
     private val unhandledInputQueue = ArrayDeque<InputEvent<InputType>>(20)
 
     /**
-     * Resizes the internal graph's [OrthographicCamera] and [Viewport].
+     * Resizes the internal graph's [OrthographicCamera] and [CanvasLayer].
      * @param centerCamera if true will center the graphs internal camera after resizing the viewport
      */
     open fun resize(width: Int, height: Int, centerCamera: Boolean = false) {
-        sceneViewport.propagateResize(width, height, centerCamera)
-        camera.viewport = sceneViewport.strategy
-        camera.update()
-        if (centerCamera) {
-            camera.position.set(sceneViewport.virtualWidth / 2f, sceneViewport.virtualHeight / 2f, 0f)
-        }
+        sceneCanvas.propagateResize(width, height, centerCamera)
     }
 
     /**
@@ -218,7 +211,7 @@ open class SceneGraph<InputType>(
     open suspend fun initialize() {
         controller.addInputMapProcessor(this)
         context.input.addInputProcessor(this)
-        sceneViewport.scene = this
+        sceneCanvas.scene = this
         root.initialize()
         onStart()
         initialized = true
@@ -231,10 +224,7 @@ open class SceneGraph<InputType>(
      */
     open fun render(onNodeRender: ((Node, Batch, Camera) -> Unit)? = null) {
         if (!initialized) error("You need to call 'initialize()'once before doing any rendering or updating!")
-        camera.viewport = sceneViewport.strategy
-        camera.update()
-        batch.begin(camera.viewProjection)
-        sceneViewport.propagateInternalRender(batch, camera, onNodeRender)
+        sceneCanvas.render(batch, onNodeRender)
         if (batch.drawing) batch.end()
     }
 
@@ -336,7 +326,7 @@ open class SceneGraph<InputType>(
         frameCount++
     }
 
-    internal fun applyViewport(viewport: Viewport) {
+    internal fun applyViewport(viewport: com.lehaine.littlekt.util.viewport.Viewport) {
         previousViewportApplied = currentViewportApplied
         currentViewportApplied = viewport
         viewport.apply(context)
@@ -848,21 +838,15 @@ open class SceneGraph<InputType>(
         return event.handled
     }
 
-    fun screenToSceneCoordinates(vector2: MutableVec2f): MutableVec2f {
-        camera.unProjectScreen(vector2, context, vector2)
-        return vector2
-    }
+    fun screenToSceneCoordinates(inOut: MutableVec2f) = sceneCanvas.screenToCanvasCoordinates(inOut)
 
-    fun sceneToScreenCoordinates(vector2: MutableVec2f): MutableVec2f {
-        camera.projectScreen(vector2, vector2)
-        return vector2
-    }
+    fun sceneToScreenCoordinates(inOut: MutableVec2f) = sceneCanvas.canvasToScreenCoordinates(inOut)
 
     private fun isInsideViewport(x: Int, y: Int): Boolean {
-        val x0 = sceneViewport.x
-        val x1 = x0 + sceneViewport.width
-        val y0 = sceneViewport.y
-        val y1 = y0 + sceneViewport.height
+        val x0 = sceneCanvas.x
+        val x1 = x0 + sceneCanvas.width
+        val y0 = sceneCanvas.y
+        val y1 = y0 + sceneCanvas.height
         val screenY = context.graphics.height - 1 - y
         return x in x0 until x1 && screenY in y0 until y1
     }
@@ -872,7 +856,7 @@ open class SceneGraph<InputType>(
      * from the active slot.
      */
     override fun dispose() {
-        sceneViewport.destroy()
+        sceneCanvas.destroy()
         if (ownsBatch) {
             batch.dispose()
         }

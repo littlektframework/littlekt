@@ -13,7 +13,6 @@ import com.lehaine.littlekt.graph.node.ui.button
 import com.lehaine.littlekt.graph.node.ui.centerContainer
 import com.lehaine.littlekt.graph.node.ui.frameBufferContainer
 import com.lehaine.littlekt.graph.node.ui.label
-import com.lehaine.littlekt.graph.node.viewport
 import com.lehaine.littlekt.graph.sceneGraph
 import com.lehaine.littlekt.graphics.gl.ClearBufferMask
 import com.lehaine.littlekt.input.Key
@@ -31,26 +30,27 @@ class CanvasCameraTest(context: Context) : ContextListener(context) {
     override suspend fun Context.start() {
         val pixelFont = resourcesVfs["m5x7_16.fnt"].readBitmapFont()
         val icon = resourcesVfs["icon_16x16.png"].readTexture()
-        val graph = sceneGraph(context, ExtendViewport(240, 135)) {
-            viewport {
-                strategy = ExtendViewport(480, 270)
+        val graph = sceneGraph(context, ExtendViewport(240, 136)) {
+//            viewport {
+//                strategy = ExtendViewport(480, 272)
 
-                canvasLayer {
+              //  canvasLayer {
                     frameBufferContainer {
-                        stretch = true
-                        shrink = 2
-                        anchorRight = 1f
-                        anchorBottom = 1f
+//                        stretch = true
+//                        shrink = 2
+//                        anchorRight = 1f
+//                        anchorBottom = 1f
 
                         frameBuffer {
-
+                            width = 240
+                            height = 136
                             button {
                                 text = "test"
                             }
                             node2d {
                                 rotation = 45.degrees
                                 onReady += {
-                                    println("$name: $viewport")
+                                    println("$name: $canvas")
                                 }
                                 onUpdate += {
                                     if (input.isKeyPressed(Key.D)) {
@@ -84,13 +84,13 @@ class CanvasCameraTest(context: Context) : ContextListener(context) {
                             }
                         }
                     }
-                }
+           //     }
 
                 canvasLayer {
                     node2d {
                         x = 50f
                         onReady += {
-                            println("$name: $viewport")
+                            println("$name: $canvas")
                         }
                         onUpdate += {
                             if (input.isKeyPressed(Key.D)) {
@@ -123,7 +123,7 @@ class CanvasCameraTest(context: Context) : ContextListener(context) {
                             batch.draw(icon, globalX, globalY, scaleX = 2f, scaleY = 2f, rotation = rotation)
                         }
                     }
-                }
+       //         }
             }
 
             centerContainer {
@@ -135,14 +135,14 @@ class CanvasCameraTest(context: Context) : ContextListener(context) {
                     font = pixelFont
 
                     onReady += {
-                        println("$name: ${viewport!!::class.simpleName} - $viewport")
+                        println("$name: ${canvas!!::class.simpleName} - $canvas")
                     }
                 }
             }
 
         }.also {
             it.initialize()
-            println(it.sceneViewport.treeString())
+            println(it.sceneCanvas.treeString())
         }
 
         onResize { width, height ->

@@ -679,13 +679,13 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
             }
 
             onMouseMoved { screenX, screenY ->
-                camera.unProjectScreen(screenX, screenY, context, temp)
+                camera.screenToWorld(screenX, screenY, context, temp)
                 x = temp.x
                 y = temp.y
             }
 
             onTouchDragged { screenX, screenY, pointer ->
-                camera.unProjectScreen(screenX, screenY, context, temp)
+                camera.screenToWorld(screenX, screenY, context, temp)
                 x = temp.x
                 y = temp.y
             }

@@ -199,75 +199,75 @@ abstract class Camera {
     fun project(world: Vec3f, result: MutableVec4f): MutableVec4f =
         viewProjection.transform(result.set(world.x, world.y, world.z, 1f))
 
-    fun projectScreen(world: Vec2f): MutableVec2f {
+    fun worldToScreen(world: Vec2f, context: Context): MutableVec2f {
         val result = MutableVec2f()
-        projectScreen(world, result)
+        worldToScreen(world, context, result)
         return result
     }
 
-    fun projectScreen(x: Float, y: Float): MutableVec2f {
+    fun worldToScreen(x: Float, y: Float, context: Context): MutableVec2f {
         val result = MutableVec2f()
-        projectScreen(tempVec2.set(x, y), result)
+        worldToScreen(tempVec2.set(x, y), context, result)
         return result
     }
 
-    fun projectScreen(x: Float, y: Float, result: MutableVec2f) =
-        projectScreen(tempVec2.set(x, y), result)
+    fun worldToScreen(x: Float, y: Float, context: Context, result: MutableVec2f) =
+        worldToScreen(tempVec2.set(x, y), context, result)
 
-    fun projectScreen(world: Vec2f, result: MutableVec2f): Boolean {
+    fun worldToScreen(world: Vec2f, context: Context, result: MutableVec2f): Boolean {
         if (!project(world, result)) {
             return false
         }
         result.x = (1 + result.x) * 0.5f * viewport.width + viewport.x
-        result.y = (1 + result.y) * 0.5f * viewport.height + viewport.y
+        result.y = context.graphics.height - (1 + result.y) * 0.5f * viewport.height + viewport.y
 
         return true
     }
 
-    fun projectScreen(world: Vec3f): MutableVec3f {
+    fun worldToScreen(world: Vec3f, context: Context): MutableVec3f {
         val result = MutableVec3f()
-        projectScreen(world, result)
+        worldToScreen(world, context, result)
         return result
     }
 
-    fun projectScreen(x: Float, y: Float, z: Float): MutableVec3f {
+    fun worldToScreen(x: Float, y: Float, z: Float, context: Context): MutableVec3f {
         val result = MutableVec3f()
-        projectScreen(tempVec3.set(x, y, z), result)
+        worldToScreen(tempVec3.set(x, y, z), context, result)
         return result
     }
 
-    fun projectScreen(x: Float, y: Float, z: Float, result: MutableVec3f) =
-        projectScreen(tempVec3.set(x, y, z), result)
+    fun worldToScreen(x: Float, y: Float, z: Float, context: Context, result: MutableVec3f) =
+        worldToScreen(tempVec3.set(x, y, z), context, result)
 
 
-    fun projectScreen(world: Vec3f, result: MutableVec3f): Boolean {
+    fun worldToScreen(world: Vec3f, context: Context, result: MutableVec3f): Boolean {
         if (!project(world, result)) {
             return false
         }
         result.x = (1 + result.x) * 0.5f * viewport.width + viewport.x
-        result.y = (1 + result.y) * 0.5f * viewport.height + viewport.y
+        result.y = context.graphics.height - (1 + result.y) * 0.5f * viewport.height + viewport.y
         result.z = (1 + result.z) * 0.5f
 
         return true
     }
 
-    fun unProjectScreen(screen: Vec2f, context: Context): MutableVec2f {
+    fun screenToWorld(screen: Vec2f, context: Context): MutableVec2f {
         val result = MutableVec2f()
-        unProjectScreen(screen, context, result)
+        screenToWorld(screen, context, result)
         return result
     }
 
-    fun unProjectScreen(x: Float, y: Float, context: Context): MutableVec2f {
+    fun screenToWorld(x: Float, y: Float, context: Context): MutableVec2f {
         val result = MutableVec2f()
-        unProjectScreen(tempVec2.set(x, y), context, result)
+        screenToWorld(tempVec2.set(x, y), context, result)
         return result
     }
 
-    fun unProjectScreen(x: Float, y: Float, context: Context, result: MutableVec2f) =
-        unProjectScreen(tempVec2.set(x, y), context, result)
+    fun screenToWorld(x: Float, y: Float, context: Context, result: MutableVec2f) =
+        screenToWorld(tempVec2.set(x, y), context, result)
 
 
-    fun unProjectScreen(screen: Vec2f, context: Context, result: MutableVec2f): Boolean {
+    fun screenToWorld(screen: Vec2f, context: Context, result: MutableVec2f): Boolean {
         val x = screen.x - viewport.x
         val y = (context.graphics.height - screen.y) - viewport.y
 
@@ -278,23 +278,23 @@ abstract class Camera {
         return true
     }
 
-    fun unProjectScreen(screen: Vec3f, context: Context): MutableVec3f {
+    fun screenToWorld(screen: Vec3f, context: Context): MutableVec3f {
         val result = MutableVec3f()
-        unProjectScreen(screen, context, result)
+        screenToWorld(screen, context, result)
         return result
     }
 
-    fun unProjectScreen(x: Float, y: Float, z: Float, context: Context): MutableVec3f {
+    fun screenToWorld(x: Float, y: Float, z: Float, context: Context): MutableVec3f {
         val result = MutableVec3f()
-        unProjectScreen(tempVec3.set(x, y, z), context, result)
+        screenToWorld(tempVec3.set(x, y, z), context, result)
         return result
     }
 
-    fun unProjectScreen(x: Float, y: Float, z: Float, context: Context, result: MutableVec3f) =
-        unProjectScreen(tempVec3.set(x, y, z), context, result)
+    fun screenToWorld(x: Float, y: Float, z: Float, context: Context, result: MutableVec3f) =
+        screenToWorld(tempVec3.set(x, y, z), context, result)
 
 
-    fun unProjectScreen(screen: Vec3f, context: Context, result: MutableVec3f): Boolean {
+    fun screenToWorld(screen: Vec3f, context: Context, result: MutableVec3f): Boolean {
         val x = screen.x - viewport.x
         val y = (context.graphics.height - screen.y) - viewport.y
 
@@ -311,8 +311,8 @@ abstract class Camera {
         screenY: Float,
         context: Context,
     ): Boolean {
-        var valid = unProjectScreen(tempVec3.set(screenX, screenY, 0f), context, pickRay.origin)
-        valid = valid && unProjectScreen(tempVec3.set(screenX, screenY, 1f), context, pickRay.direction)
+        var valid = screenToWorld(tempVec3.set(screenX, screenY, 0f), context, pickRay.origin)
+        valid = valid && screenToWorld(tempVec3.set(screenX, screenY, 1f), context, pickRay.direction)
 
         if (valid) {
             pickRay.direction.subtract(pickRay.origin)

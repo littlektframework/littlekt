@@ -21,8 +21,6 @@ open class Viewport(
 ) {
     constructor() : this(0, 0, 0, 0)
 
-    val onSizeChanged = Signal()
-
     /**
      * The virtual/world width.
      */
@@ -53,7 +51,6 @@ open class Viewport(
     open fun update(width: Int, height: Int, context: Context) {
         set(0, 0, width, height)
         apply(context)
-        onSizeChanged.emit()
     }
 
     /**

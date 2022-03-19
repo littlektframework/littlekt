@@ -9,7 +9,6 @@ import com.lehaine.littlekt.graphics.gl.TexMagFilter
 import com.lehaine.littlekt.graphics.gl.TexMinFilter
 import com.lehaine.littlekt.math.Mat4
 import com.lehaine.littlekt.math.MutableVec2f
-import com.lehaine.littlekt.math.Vec2f
 import com.lehaine.littlekt.util.SingleSignal
 import com.lehaine.littlekt.util.signal1v
 import kotlin.contracts.ExperimentalContracts
@@ -82,7 +81,7 @@ class FrameBufferNode : Node() {
                 minFilter = TexMinFilter.NEAREST,
                 magFilter = TexMagFilter.NEAREST
             ).also { it.prepare(scene.context) }
-            fboCamera.viewport.set(0, 0, width,height)
+            fboCamera.viewport.set(0, 0, width, height)
             fboCamera.virtualWidth = width
             fboCamera.virtualHeight = height
             fboCamera.position.set(fboCamera.virtualWidth * 0.5f, fboCamera.virtualHeight * 0.5f, 0f)
@@ -136,5 +135,20 @@ class FrameBufferNode : Node() {
     override fun onDestroy() {
         super.onDestroy()
         onFboChanged.clear()
+    }
+
+    private val temp = MutableVec2f()
+    override fun propagateHit(hx: Float, hy: Float): Control? {
+        val canvas = canvas ?: return null
+        val scene = scene ?: return null
+        canvas.canvasToScreenCoordinates(temp.set(hx, hy))
+        fboCamera.screenToWorld(temp, scene.context,temp)
+        nodes.forEachReversed {
+            val target = it.propagateHit(temp.x, temp.y)
+            if (target != null) {
+                return target
+            }
+        }
+        return null
     }
 }

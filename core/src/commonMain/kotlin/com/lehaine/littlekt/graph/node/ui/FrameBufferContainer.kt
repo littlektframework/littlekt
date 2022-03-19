@@ -8,6 +8,7 @@ import com.lehaine.littlekt.graph.node.annotation.SceneGraphDslMarker
 import com.lehaine.littlekt.graph.node.component.InputEvent
 import com.lehaine.littlekt.graphics.Batch
 import com.lehaine.littlekt.graphics.Camera
+import com.lehaine.littlekt.math.MutableVec2f
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
@@ -87,10 +88,10 @@ open class FrameBufferContainer : Container() {
 
     override fun render(batch: Batch, camera: Camera) {
         super.render(batch, camera)
-        if(dirty) {
+        if (dirty) {
             nodes.forEach {
                 if (it is FrameBufferNode) {
-                    it.resizeFbo((width / shrink.toFloat()).toInt(), (height/shrink.toFloat()).toInt())
+                    it.resizeFbo((width / shrink.toFloat()).toInt(), (height / shrink.toFloat()).toInt())
                 }
             }
             dirty = false
@@ -139,5 +140,24 @@ open class FrameBufferContainer : Container() {
             return
         }
         input(event)
+    }
+
+    private val temp = MutableVec2f()
+    override fun propagateHit(hx: Float, hy: Float): Control? {
+        val canvas = canvas ?: return null
+        temp.set(hx, hy)
+        if (stretch) {
+            canvas.canvasToScreenCoordinates(temp)
+            temp.scale(shrink.toFloat())
+            canvas.screenToCanvasCoordinates(temp)
+        }
+        nodes.forEachReversed {
+            val target = if (it is FrameBufferNode) it.propagateHit(temp.x, temp.y) else it.propagateHit(hx, hy)
+            if (target != null) {
+                return target
+            }
+        }
+
+        return hit(hx, hy)
     }
 }

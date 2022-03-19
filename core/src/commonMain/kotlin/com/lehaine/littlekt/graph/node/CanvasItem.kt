@@ -30,6 +30,8 @@ abstract class CanvasItem : Node() {
         const val SCALE_DIRTY = 2
         const val ROTATION_DIRTY = 3
         const val CLEAN = 0
+        private val tempv1 = MutableVec2f()
+        private val tempv2 = MutableVec2f()
     }
 
     /**
@@ -324,7 +326,7 @@ abstract class CanvasItem : Node() {
             if (_globalToLocalDirty) {
                 (parent as? CanvasItem)?.let {
                     it.updateHierarchy()
-                    _globalToLocalTransform.set(it._globalTransform).invert()
+                    _globalToLocalTransform.set(it.globalInverseTransform)
                 } ?: run {
                     _globalToLocalTransform.setToIdentity()
                 }
@@ -795,7 +797,9 @@ abstract class CanvasItem : Node() {
     override fun onDestroy() {
         super.onDestroy()
 
+        onPreRender.clear()
         onRender.clear()
+        onPostRender.clear()
         onDebugRender.clear()
     }
 

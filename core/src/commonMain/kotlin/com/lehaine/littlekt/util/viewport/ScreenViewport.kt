@@ -23,6 +23,5 @@ class ScreenViewport(x: Int, y: Int, width: Int, height: Int) : Viewport(x, y, w
         virtualWidth = (width * unitsPerPixel).toInt()
         virtualHeight = (height * unitsPerPixel).toInt()
         apply(context)
-        onSizeChanged.emit()
     }
 }
