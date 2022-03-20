@@ -20,7 +20,6 @@ import com.lehaine.littlekt.math.geom.Angle
 import com.lehaine.littlekt.math.geom.degrees
 import com.lehaine.littlekt.math.geom.radians
 import com.lehaine.littlekt.util.viewport.ExtendViewport
-import com.lehaine.littlekt.util.viewport.FitViewport
 
 /**
  * @author Colton Daily
@@ -36,10 +35,10 @@ class CanvasCameraTest(context: Context) : ContextListener(context) {
                 viewport = ExtendViewport(480, 272)
 
                 frameBufferContainer {
-                        stretch = true
-                        shrink = 2
-                        anchorRight = 1f
-                        anchorBottom = 1f
+                    stretch = true
+                    shrink = 2
+                    anchorRight = 1f
+                    anchorBottom = 1f
 
                     frameBuffer {
                         button {
