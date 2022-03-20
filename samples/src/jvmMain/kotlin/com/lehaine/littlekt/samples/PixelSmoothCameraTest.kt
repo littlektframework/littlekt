@@ -10,7 +10,7 @@ import com.lehaine.littlekt.graphics.Color
 fun main(args: Array<String>) {
     createLittleKtApp {
         width = 960
-        height = 540
+        height = 544
         vSync = true
         title = "JVM - Pixel Smooth Camera Test"
         backgroundColor = Color.DARK_GRAY

@@ -15,8 +15,11 @@ import com.lehaine.littlekt.graphics.shader.VertexShaderModel
 import com.lehaine.littlekt.graphics.shader.shaders.DefaultVertexShader
 import com.lehaine.littlekt.input.Key
 import com.lehaine.littlekt.math.MutableVec2f
+import com.lehaine.littlekt.math.Vec2f
 import com.lehaine.littlekt.math.floor
-import com.lehaine.littlekt.util.milliseconds
+import com.lehaine.littlekt.util.seconds
+import com.lehaine.littlekt.util.viewport.ExtendViewport
+import kotlin.math.floor
 
 /**
  * @author Colton Daily
@@ -36,42 +39,76 @@ class PixelSmoothCameraTest(context: Context) : ContextListener(context) {
         val worldUnitInvScale = 1f / worldUnitScale
         val pixelSmoothShader =
             ShaderProgram(PixelSmoothVertexShader(), PixelSmoothFragmentShader()).also { it.prepare(this) }
-        val sceneCamera = OrthographicCamera(30, 17)
+        val sceneCamera = OrthographicCamera().apply {
+            viewport = ExtendViewport(30, 17)
+        }
         val viewportCamera = OrthographicCamera(graphics.width, graphics.height).apply {
             position.x = virtualWidth * 0.5f
             position.y = virtualHeight * 0.5f
             update()
         }
-        val fbo = FrameBuffer(240, 136, minFilter = TexMinFilter.NEAREST, magFilter = TexMagFilter.NEAREST).also {
+        val fbo = FrameBuffer(480, 272, minFilter = TexMinFilter.NEAREST, magFilter = TexMagFilter.NEAREST).also {
             it.prepare(this)
         }
 
+        val cameraDir = MutableVec2f()
         val targetPosition = MutableVec2f()
+        val velocity = MutableVec2f()
+        val tempVec2fs = List(2) { MutableVec2f() }
+        var useBilinearFilter = false
+        val speed = 1f
+        val dampen = 0.5f
+
+        onResize { width, height ->
+            sceneCamera.update(width, height, context)
+            viewportCamera.update(width, height, context)
+        }
         onRender { dt ->
             gl.enable(State.SCISSOR_TEST)
             gl.scissor(0, 0, graphics.width, graphics.height)
             gl.clearColor(Color.DARK_GRAY)
             gl.clear(ClearBufferMask.COLOR_BUFFER_BIT)
 
-            val speed = 0.05f
+            cameraDir.set(0f, 0f)
             if (input.isKeyPressed(Key.W)) {
-                targetPosition.y -= speed * dt.milliseconds
+                cameraDir.y = -1f
             } else if (input.isKeyPressed(Key.S)) {
-                targetPosition.y += speed * dt.milliseconds
+                cameraDir.y = 1f
             }
 
             if (input.isKeyPressed(Key.D)) {
-                targetPosition.x += speed * dt.milliseconds
+                cameraDir.x = 1f
             } else if (input.isKeyPressed(Key.A)) {
-                targetPosition.x -= speed * dt.milliseconds
+                cameraDir.x = -1f
             }
+
+            tempVec2fs[0].set(cameraDir).norm().scale(speed)
+            velocity.mulAdd(tempVec2fs[0], dt.seconds * speed)
+            tempVec2fs[1].set(velocity).norm().scale(-cameraDir.norm().length())
+            velocity.mulAdd(tempVec2fs[1], dt.seconds * dampen)
+            velocity.lerp(Vec2f.ZERO, 0.1f * (1f - cameraDir.norm().length()))
+
+            targetPosition += velocity
 
             val tx = (targetPosition.x * worldUnitScale).floor() / worldUnitScale
             val ty = (targetPosition.y * worldUnitScale).floor() / worldUnitScale
 
-            val scaledDistX = (targetPosition.x - tx) * worldUnitScale * 2
-            val scaledDistY = (targetPosition.y - ty) * worldUnitScale * 2
+            var scaledDistX = (targetPosition.x - tx) * worldUnitScale * 2
+            var scaledDistY = (targetPosition.y - ty) * worldUnitScale * 2
+
+            var subpixelX = 0f
+            var subPixelY = 0f
+
+            if (useBilinearFilter) {
+                subpixelX = scaledDistX - floor(scaledDistX)
+                subPixelY = scaledDistY - floor(scaledDistY)
+            }
+
+            scaledDistX -= subpixelX
+            scaledDistY -= subPixelY
+
             sceneCamera.position.set(tx, ty, 0f)
+
             sceneCamera.update()
             fbo.begin()
             gl.clear(ClearBufferMask.COLOR_BUFFER_BIT)
@@ -81,17 +118,28 @@ class PixelSmoothCameraTest(context: Context) : ContextListener(context) {
             fbo.end()
 
             gl.viewport(1, 1, graphics.width, graphics.height)
-            gl.scissor(1, 1, graphics.width - 1, graphics.height - 1)
+            gl.scissor(1, 1, graphics.width - 2, graphics.height - 2)
 
             viewportCamera.update()
             batch.shader = pixelSmoothShader
-            pixelSmoothShader.vertexShader.uTextureSizes.apply(pixelSmoothShader, fbo.width.toFloat(), fbo.height.toFloat(), 2f, 0f)
-            pixelSmoothShader.vertexShader.uSampleProperties.apply(pixelSmoothShader, 0f, 0f, scaledDistX, scaledDistY)
             batch.use(viewportCamera.viewProjection) {
+                pixelSmoothShader.vertexShader.uTextureSizes.apply(pixelSmoothShader,
+                    fbo.width.toFloat(),
+                    fbo.height.toFloat(),
+                    2f,
+                    0f)
+                pixelSmoothShader.vertexShader.uSampleProperties.apply(pixelSmoothShader,
+                    subpixelX,
+                    subPixelY,
+                    scaledDistX,
+                    scaledDistY)
                 it.draw(fbo.colorBufferTexture, 0f, 0f, scaleX = 2f, scaleY = 2f, flipY = true)
             }
             batch.shader = batch.defaultShader
 
+            if (input.isKeyPressed(Key.B)) {
+                useBilinearFilter = !useBilinearFilter
+            }
 
             if (input.isKeyJustPressed(Key.P)) {
                 logger.info { stats }
@@ -134,8 +182,8 @@ private class PixelSmoothVertexShader : VertexShaderModel() {
             vec2 uvSize = u_textureSizes.xy;
             float upscale = u_textureSizes.z;
 
-            v_texCoords.x = a_texCoord0.x; //+ (u_sampleProperties.z / upscale) / uvSize.x;
-            v_texCoords.y = a_texCoord0.y; //+ (u_sampleProperties.w / upscale) / uvSize.y;
+            v_texCoords.x = a_texCoord0.x + (u_sampleProperties.z / upscale) / uvSize.x;
+            v_texCoords.y = a_texCoord0.y + (u_sampleProperties.w / upscale) / uvSize.y;
 
             gl_Position = u_projTrans * a_position;
         }

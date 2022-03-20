@@ -22,7 +22,7 @@ import kotlin.math.min
  */
 class SpriteBatch(
     val context: Context,
-    val size: Int = 1000,
+    val size: Int = 8191,
 ) : Batch {
     companion object {
         private const val VERTEX_SIZE = 2 + 1 + 2

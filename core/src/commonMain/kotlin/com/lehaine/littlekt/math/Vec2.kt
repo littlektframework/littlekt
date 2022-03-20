@@ -153,7 +153,32 @@ open class MutableVec2f(x: Float, y: Float) : Vec2f(x, y) {
         return this
     }
 
-    fun norm(): MutableVec2f = scale(1f / length())
+    fun mulAdd(other: Vec2f, scalar: Float): MutableVec2f {
+        x += other.x * scalar
+        y += other.y * scalar
+        return this
+    }
+
+    fun mulAdd(other: Vec2f, scalar: Vec2f): MutableVec2f {
+        x += other.x * scalar.x
+        y += other.y * scalar.y
+        return this
+    }
+
+    fun norm(): MutableVec2f {
+        val length = length()
+        if (length != 0f) {
+            scale(1f / length)
+        }
+        return this
+    }
+
+    fun lerp(target: Vec2f, alpha: Float): MutableVec2f {
+        val invAlpha = 1f - alpha
+        x = (x * invAlpha) + (target.x * alpha)
+        y = (y * invAlpha) + (target.y * alpha)
+        return this
+    }
 
     fun rotate(angleDeg: Float): MutableVec2f {
         val rad = angleDeg.toRad()
