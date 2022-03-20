@@ -2,13 +2,11 @@ package com.lehaine.littlekt.graph.node
 
 import com.lehaine.littlekt.graph.SceneGraph
 import com.lehaine.littlekt.graph.node.annotation.SceneGraphDslMarker
-import com.lehaine.littlekt.graph.node.ui.Control
 import com.lehaine.littlekt.graphics.*
 import com.lehaine.littlekt.graphics.gl.ClearBufferMask
 import com.lehaine.littlekt.graphics.gl.TexMagFilter
 import com.lehaine.littlekt.graphics.gl.TexMinFilter
 import com.lehaine.littlekt.math.Mat4
-import com.lehaine.littlekt.math.MutableVec2f
 import com.lehaine.littlekt.util.SingleSignal
 import com.lehaine.littlekt.util.signal1v
 import kotlin.contracts.ExperimentalContracts
@@ -40,6 +38,7 @@ class FrameBufferNode : Node() {
 
     var width: Int = 0
     var height: Int = 0
+    var clearColor: Color = Color.CLEAR
     val fboTexture: Texture? get() = fbo?.colorBufferTexture
     val onFboChanged: SingleSignal<Texture> = signal1v()
 
@@ -107,6 +106,7 @@ class FrameBufferNode : Node() {
 
         fboCamera.update()
         fbo.begin()
+        gl.clearColor(clearColor)
         gl.clear(ClearBufferMask.COLOR_BUFFER_BIT)
         batch.begin(fboCamera.viewProjection)
     }

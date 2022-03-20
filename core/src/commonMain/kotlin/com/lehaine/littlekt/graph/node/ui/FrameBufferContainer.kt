@@ -42,6 +42,9 @@ open class FrameBufferContainer : Container() {
 
     private val temp = MutableVec2f()
     private var dirty = true
+    var offsetX = 0f
+    var offsetY = 0f
+    var margin = 0f
 
     /**
      * If `true`, the frame buffer will be scaled to this [Control] size.
@@ -92,7 +95,8 @@ open class FrameBufferContainer : Container() {
         if (dirty) {
             nodes.forEach {
                 if (it is FrameBufferNode) {
-                    it.resizeFbo((width / shrink.toFloat()).toInt(), (height / shrink.toFloat()).toInt())
+                    it.resizeFbo((width / shrink.toFloat()).toInt(),
+                        (height / shrink.toFloat()).toInt())
                 }
             }
             dirty = false
@@ -102,10 +106,10 @@ open class FrameBufferContainer : Container() {
                 node.fboTexture?.let {
                     batch.draw(
                         it,
-                        globalX,
-                        globalY,
-                        width = if (stretch) width else it.width.toFloat(),
-                        height = if (stretch) height else it.height.toFloat(),
+                        globalX - margin / shrink + offsetX,
+                        globalY - margin / shrink + offsetY,
+                        width = if (stretch) width + margin * 2 / shrink else it.width.toFloat() + margin * 2 / shrink,
+                        height = if (stretch) height + margin * 2 / shrink else it.height.toFloat() + margin * 2 / shrink,
                         scaleX = globalScaleX,
                         scaleY = globalScaleY,
                         rotation = globalRotation,
