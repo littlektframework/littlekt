@@ -56,7 +56,6 @@ open class CanvasLayer : Node() {
 
     var viewport: Viewport = Viewport()
         set(value) {
-            println("$id set $value")
             field = value
             canvasCamera.viewport = value
             explicitlySet = true

@@ -654,7 +654,6 @@ open class Control : CanvasItem() {
             tempRect.set(
                 canvas?.x?.toFloat() ?: 0f, canvas?.y?.toFloat() ?: 0f, width, height
             )
-            println("$name: $tempRect")
         }
         return tempRect
     }
