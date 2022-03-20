@@ -81,7 +81,7 @@ class LDtkLevel(
         y: Float = worldY.toFloat(),
         scale: Float = 1f
     ) {
-        levelBackgroundImage?.render(batch, x, y)
+        levelBackgroundImage?.render(batch, x, y, scale)
         // need to render back to front - layers last in the list need to render first
         for (i in layers.size - 1 downTo 0) {
             layers[i].render(batch, viewBounds, x, y, scale)
