@@ -34,8 +34,8 @@ class ExtendViewport(val minWidth: Int, val minHeight: Int) : Viewport(0, 0, min
             viewportHeight += (lengthen * toViewportSpace).roundToInt()
         }
 
-        virtualWidth = worldWidth.toInt()
-        virtualHeight = worldHeight.toInt()
+        virtualWidth = worldWidth
+        virtualHeight = worldHeight
         set((width - viewportWidth) / 2, (height - viewportHeight) / 2, viewportWidth, viewportHeight)
         apply(context)
     }

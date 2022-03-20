@@ -13,7 +13,7 @@ open class ScalingViewport(val scaler: Scaler, virtualWidth: Int, virtualHeight:
     Viewport(0, 0, virtualWidth, virtualHeight) {
 
     override fun update(width: Int, height: Int, context: Context) {
-        val scaled = scaler.apply(virtualWidth, virtualHeight, width, height)
+        val scaled = scaler.apply(virtualWidth, virtualHeight, width.toFloat(), height.toFloat())
         val viewportWidth = scaled.x.roundToInt()
         val viewportHeight = scaled.y.roundToInt()
 

@@ -61,13 +61,13 @@ open class CanvasLayer : Node() {
             explicitlySet = true
         }
 
-    var virtualWidth: Int
+    var virtualWidth: Float
         get() = viewport.virtualWidth
         set(value) {
             viewport.virtualWidth = value
         }
 
-    var virtualHeight: Int
+    var virtualHeight: Float
         get() = viewport.virtualHeight
         set(value) {
             viewport.virtualHeight = value

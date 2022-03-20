@@ -165,8 +165,8 @@ open class SceneGraph<InputType>(
         Node().apply { name = "Root" }.addTo(sceneCanvas)
     }
 
-    val width: Int get() = sceneCanvas.virtualWidth
-    val height: Int get() = sceneCanvas.virtualHeight
+    val width: Float get() = sceneCanvas.virtualWidth
+    val height: Float get() = sceneCanvas.virtualHeight
 
     var targetFPS = 60
     var tmod: Float = 1f

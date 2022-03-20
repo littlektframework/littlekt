@@ -1,7 +1,6 @@
 package com.lehaine.littlekt.util.viewport
 
 import com.lehaine.littlekt.Context
-import com.lehaine.littlekt.util.Signal
 
 /**
  * A base viewport where the virtual size is the same as the viewport/screen size.
@@ -24,12 +23,12 @@ open class Viewport(
     /**
      * The virtual/world width.
      */
-    var virtualWidth = width
+    var virtualWidth: Float = width.toFloat()
 
     /**
      * The virtual/world height.
      */
-    var virtualHeight = height
+    var virtualHeight: Float = height.toFloat()
 
     val aspectRatio get() = width.toFloat() / height.toFloat()
 

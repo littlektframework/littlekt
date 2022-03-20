@@ -52,13 +52,13 @@ abstract class Camera {
             //    position.set(viewport.virtualWidth / 2f, viewport.virtualHeight / 2f, 0f)
         }
 
-    var virtualWidth: Int
+    var virtualWidth: Float
         get() = viewport.virtualWidth
         set(value) {
             viewport.virtualWidth = value
         }
 
-    var virtualHeight: Int
+    var virtualHeight: Float
         get() = viewport.virtualHeight
         set(value) {
             viewport.virtualHeight = value
@@ -332,7 +332,9 @@ abstract class Camera {
     }
 }
 
-open class OrthographicCamera(virtualWidth: Int = 0, virtualHeight: Int = 0) : Camera() {
+open class OrthographicCamera(virtualWidth: Float = 0f, virtualHeight: Float = 0f) : Camera() {
+    constructor(virtualWidth: Int, virtualHeight: Int) : this(virtualWidth.toFloat(), virtualHeight.toFloat())
+
     private val planes = List(6) { FrustumPlane() }
 
     private val tempCenter = MutableVec3f()
@@ -340,8 +342,6 @@ open class OrthographicCamera(virtualWidth: Int = 0, virtualHeight: Int = 0) : C
     init {
         this.virtualWidth = virtualWidth
         this.virtualHeight = virtualHeight
-        this.screenWidth = virtualWidth
-        this.screenHeight = virtualHeight
         near = 0f
     }
 

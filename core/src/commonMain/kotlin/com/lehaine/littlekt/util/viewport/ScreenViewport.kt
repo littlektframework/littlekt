@@ -20,8 +20,8 @@ class ScreenViewport(x: Int, y: Int, width: Int, height: Int) : Viewport(x, y, w
 
     override fun update(width: Int, height: Int, context: Context) {
         set(0, 0, width, height)
-        virtualWidth = (width * unitsPerPixel).toInt()
-        virtualHeight = (height * unitsPerPixel).toInt()
+        virtualWidth = width * unitsPerPixel
+        virtualHeight = height * unitsPerPixel
         apply(context)
     }
 }

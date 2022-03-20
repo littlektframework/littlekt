@@ -42,7 +42,7 @@ class FrameBufferNode : Node() {
     val fboTexture: Texture? get() = fbo?.colorBufferTexture
     val onFboChanged: SingleSignal<Texture> = signal1v()
 
-    private val fboCamera = OrthographicCamera(width, height)
+    private val fboCamera = OrthographicCamera(width.toFloat(), height.toFloat())
     private var lastWidth = width
     private var lastHeight = height
 
@@ -82,8 +82,8 @@ class FrameBufferNode : Node() {
                 magFilter = TexMagFilter.NEAREST
             ).also { it.prepare(scene.context) }
             fboCamera.viewport.set(0, 0, width, height)
-            fboCamera.virtualWidth = width
-            fboCamera.virtualHeight = height
+            fboCamera.virtualWidth = width.toFloat()
+            fboCamera.virtualHeight = height.toFloat()
             fboCamera.position.set(fboCamera.virtualWidth * 0.5f, fboCamera.virtualHeight * 0.5f, 0f)
             fboTexture?.let { onFboChanged.emit(it) }
 
