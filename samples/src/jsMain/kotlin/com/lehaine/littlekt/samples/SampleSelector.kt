@@ -30,6 +30,7 @@ fun main() {
             addSample("Texture Array Sprite Batch Test") { TextureArraySpriteBatchTest(it) }
             addSample("Tiled Map Test") { TiledMapTest(it) }
             addSample("LDtk Map Test") { LDtkMapTest(it) }
+            addSample("Pixel Smooth Camera Test") { PixelSmoothCameraTest(it) }
         }
     }
 }
