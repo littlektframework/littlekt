@@ -392,7 +392,7 @@ open class Node : Comparable<Node> {
         onResize.emit(width, height)
     }
 
-    internal open fun propagateInternalRender(
+    open fun propagateInternalRender(
         batch: Batch,
         camera: Camera,
         renderCallback: ((Node, Batch, Camera) -> Unit)?,
@@ -400,7 +400,7 @@ open class Node : Comparable<Node> {
         nodes.forEach { it.propagateInternalRender(batch, camera, renderCallback) }
     }
 
-    internal open fun propagateHit(hx: Float, hy: Float): Control? {
+    open fun propagateHit(hx: Float, hy: Float): Control? {
         if (this is Control) {
             return hit(hx, hy)
         }
@@ -413,7 +413,7 @@ open class Node : Comparable<Node> {
         return null
     }
 
-    internal open fun callInput(event: InputEvent<*>) {
+    open fun callInput(event: InputEvent<*>) {
         if (!enabled || !insideTree) return
         onInput.emit(event)
         if (event.handled) {
@@ -422,7 +422,7 @@ open class Node : Comparable<Node> {
         input(event)
     }
 
-    internal open fun callUnhandledInput(event: InputEvent<*>) {
+    open fun callUnhandledInput(event: InputEvent<*>) {
         if (!enabled || !insideTree) return
         onUnhandledInput.emit(event)
         if (event.handled) {

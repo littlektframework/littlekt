@@ -119,7 +119,7 @@ open class CanvasLayer : Node() {
         super.resize(width, height)
     }
 
-    fun render(batch: Batch, renderCallback: ((Node, Batch, Camera) -> Unit)?) {
+   open fun render(batch: Batch, renderCallback: ((Node, Batch, Camera) -> Unit)?) {
         val scene = scene ?: return
         if (!enabled) return
 
