@@ -113,7 +113,8 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context() {
         }
 
         GLFW.glfwWindowHint(GLFW.GLFW_VISIBLE, GLFW.GLFW_FALSE) // the window will stay hidden after creation
-        GLFW.glfwWindowHint(GLFW.GLFW_RESIZABLE, GLFW.GLFW_TRUE) // the window will be resizable
+        GLFW.glfwWindowHint(GLFW.GLFW_RESIZABLE, configuration.resizeable.glfw) // the window will be resizable
+        GLFW.glfwWindowHint(GLFW.GLFW_MAXIMIZED, configuration.maximized.glfw)
 
         // Create the window
         windowHandle = GLFW.glfwCreateWindow(
@@ -124,6 +125,7 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context() {
             MemoryUtil.NULL
         )
         if (windowHandle == MemoryUtil.NULL) throw RuntimeException("Failed to create the GLFW window")
+
 
         MemoryStack.stackPush().use { stack ->
             val pWidth = stack.mallocInt(1) // int*
@@ -140,8 +142,8 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context() {
             // Center the window
             GLFW.glfwSetWindowPos(
                 windowHandle,
-                (vidmode.width() - pWidth[0]) / 2,
-                (vidmode.height() - pHeight[0]) / 2
+                configuration.windowPosX ?: ((vidmode.width() - pWidth[0]) / 2),
+                configuration.windowPosY ?: ((vidmode.height() - pHeight[0]) / 2)
             )
 
             graphics._width = pWidth[0]
@@ -273,4 +275,7 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context() {
 
         audioContext.dispose()
     }
+
+    private val Boolean.glfw: Int
+        get() = if (this) GLFW.GLFW_TRUE else GLFW.GLFW_FALSE
 }

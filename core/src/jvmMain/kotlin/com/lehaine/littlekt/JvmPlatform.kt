@@ -16,6 +16,11 @@ actual class LittleKtProps {
     var vSync: Boolean = true
     var icons: List<String> = listOf()
     var backgroundColor = Color.CLEAR
+    var resizeable = true
+    var maximized = false
+
+    var windowPosX: Int? = null
+    var windowPosY: Int? = null
 }
 
 /**
@@ -32,7 +37,11 @@ actual fun createLittleKtApp(action: LittleKtProps.() -> Unit): LittleKtApp {
                 props.height,
                 props.vSync,
                 props.icons,
-                props.backgroundColor
+                props.backgroundColor,
+                props.resizeable,
+                props.maximized,
+                props.windowPosX,
+                props.windowPosY
             )
         )
     )
@@ -48,5 +57,9 @@ class JvmConfiguration(
     val height: Int,
     val vSync: Boolean,
     val icons: List<String>,
-    val backgroundColor: Color
+    val backgroundColor: Color,
+    val resizeable: Boolean,
+    val maximized:Boolean,
+    val windowPosX: Int?,
+    val windowPosY: Int?,
 ) : ContextConfiguration()
