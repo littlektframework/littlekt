@@ -3,6 +3,7 @@ package com.lehaine.littlekt.samples
 import com.lehaine.littlekt.Context
 import com.lehaine.littlekt.ContextListener
 import com.lehaine.littlekt.file.vfs.readLDtkMapLoader
+import com.lehaine.littlekt.file.vfs.readTexture
 import com.lehaine.littlekt.graphics.*
 import com.lehaine.littlekt.graphics.gl.ClearBufferMask
 import com.lehaine.littlekt.graphics.gl.State
@@ -16,35 +17,40 @@ import com.lehaine.littlekt.input.Key
 import com.lehaine.littlekt.math.MutableVec2f
 import com.lehaine.littlekt.math.Vec2f
 import com.lehaine.littlekt.math.floor
+import com.lehaine.littlekt.math.geom.degrees
 import com.lehaine.littlekt.util.seconds
-import com.lehaine.littlekt.util.viewport.ExtendViewport
+import com.lehaine.littlekt.util.viewport.FitViewport
 import kotlin.math.floor
+import kotlin.math.max
+import kotlin.math.min
 
 /**
  * @author Colton Daily
  * @date 2/24/2022
  */
 class PixelSmoothCameraTest(context: Context) : ContextListener(context) {
+    val fboWidth = 320
+    val fboHeight = 180
+
+    val worldUnitScale = 16f
+    val worldUnitInvScale = 1f / worldUnitScale
+
+    val sceneCamera = OrthographicCamera(fboWidth / 2 / worldUnitScale, fboHeight / 2 / worldUnitScale)
+    val viewportCamera = OrthographicCamera(context.graphics.width, context.graphics.height).apply {
+        position.x = virtualWidth * 0.5f
+        position.y = virtualHeight * 0.5f
+        update()
+    }
+    val scale: Int = 3
 
     override suspend fun Context.start() {
         val batch = SpriteBatch(this)
         val mapLoader = resourcesVfs["ldtk/world.ldtk"].readLDtkMapLoader()
+        val icon = resourcesVfs["icon_16x16.png"].readTexture()
         val world = mapLoader.loadLevel(0)
-        val worldUnitScale = 16f
-        val worldUnitInvScale = 1f / worldUnitScale
-        val fboWidth = 240
-        val fboHeight = 136
-        val scale = 4
         val pixelSmoothShader =
             ShaderProgram(PixelSmoothVertexShader(), PixelSmoothFragmentShader()).also { it.prepare(this) }
-        val sceneCamera = OrthographicCamera().apply {
-            viewport = ExtendViewport((fboWidth / worldUnitScale).toInt(), (fboHeight / worldUnitScale).toInt())
-        }
-        val viewportCamera = OrthographicCamera(graphics.width, graphics.height).apply {
-            position.x = virtualWidth * 0.5f
-            position.y = virtualHeight * 0.5f
-            update()
-        }
+
         val fbo =
             FrameBuffer(fboWidth, fboHeight, minFilter = TexMinFilter.NEAREST, magFilter = TexMagFilter.NEAREST).also {
                 it.prepare(this)
@@ -58,7 +64,6 @@ class PixelSmoothCameraTest(context: Context) : ContextListener(context) {
         val speed = 1f
 
         onResize { width, height ->
-            sceneCamera.update(width, height, context)
             viewportCamera.update(width, height, context)
         }
         onRender { dt ->
@@ -111,10 +116,11 @@ class PixelSmoothCameraTest(context: Context) : ContextListener(context) {
             gl.clear(ClearBufferMask.COLOR_BUFFER_BIT)
             batch.use(sceneCamera.viewProjection) {
                 world.render(it, sceneCamera, 0f, 0f, worldUnitInvScale)
+                it.draw(icon, 0f, 0f, scaleX = worldUnitInvScale, scaleY = worldUnitInvScale, rotation = 45.degrees)
             }
             fbo.end()
 
-            gl.viewport(scale / 2, scale / 2, graphics.width, graphics.height)
+            gl.viewport(0, 0, graphics.width, graphics.height)
             gl.scissor(scale / 2, scale / 2, graphics.width - scale, graphics.height - scale)
 
             viewportCamera.update()
