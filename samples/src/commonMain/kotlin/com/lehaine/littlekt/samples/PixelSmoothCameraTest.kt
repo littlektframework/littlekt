@@ -18,30 +18,27 @@ import com.lehaine.littlekt.math.MutableVec2f
 import com.lehaine.littlekt.math.Vec2f
 import com.lehaine.littlekt.math.floor
 import com.lehaine.littlekt.math.geom.degrees
+import com.lehaine.littlekt.math.nextPowerOfTwo
 import com.lehaine.littlekt.util.seconds
-import com.lehaine.littlekt.util.viewport.FitViewport
 import kotlin.math.floor
-import kotlin.math.max
-import kotlin.math.min
 
 /**
  * @author Colton Daily
  * @date 2/24/2022
  */
 class PixelSmoothCameraTest(context: Context) : ContextListener(context) {
-    val fboWidth = 320
-    val fboHeight = 180
-
+    var pxWidth = 0
+    var pxHeight = 0
+    val targetHeight = 160
     val worldUnitScale = 16f
     val worldUnitInvScale = 1f / worldUnitScale
 
-    val sceneCamera = OrthographicCamera(fboWidth / 2 / worldUnitScale, fboHeight / 2 / worldUnitScale)
+    val sceneCamera = OrthographicCamera(1, 1)
     val viewportCamera = OrthographicCamera(context.graphics.width, context.graphics.height).apply {
         position.x = virtualWidth * 0.5f
         position.y = virtualHeight * 0.5f
         update()
     }
-    val scale: Int = 3
 
     override suspend fun Context.start() {
         val batch = SpriteBatch(this)
@@ -51,11 +48,12 @@ class PixelSmoothCameraTest(context: Context) : ContextListener(context) {
         val pixelSmoothShader =
             ShaderProgram(PixelSmoothVertexShader(), PixelSmoothFragmentShader()).also { it.prepare(this) }
 
-        val fbo =
-            FrameBuffer(fboWidth, fboHeight, minFilter = TexMinFilter.NEAREST, magFilter = TexMagFilter.NEAREST).also {
+        var fbo =
+            FrameBuffer(1, 1, minFilter = TexMinFilter.NEAREST, magFilter = TexMagFilter.NEAREST).also {
                 it.prepare(this)
             }
 
+        var fboRegion = TextureSlice(fbo.colorBufferTexture, 0, 0, fbo.width, fbo.height)
         val cameraDir = MutableVec2f()
         val targetPosition = MutableVec2f()
         val velocity = MutableVec2f()
@@ -64,7 +62,18 @@ class PixelSmoothCameraTest(context: Context) : ContextListener(context) {
         val speed = 1f
 
         onResize { width, height ->
-            viewportCamera.update(width, height, context)
+            pxHeight = height / (height / targetHeight)
+            pxWidth = (width / (height / pxHeight))
+            fbo.dispose()
+            fbo =
+                FrameBuffer(pxWidth.nextPowerOfTwo,
+                    pxHeight.nextPowerOfTwo,
+                    minFilter = TexMinFilter.NEAREST,
+                    magFilter = TexMagFilter.NEAREST).also {
+                    it.prepare(this)
+                }
+            fboRegion = TextureSlice(fbo.colorBufferTexture, 0, fbo.height - pxHeight, pxWidth, pxHeight)
+            sceneCamera.ortho(fbo.width * worldUnitInvScale, fbo.height * worldUnitInvScale)
         }
         onRender { dt ->
             gl.enable(State.SCISSOR_TEST)
@@ -94,8 +103,8 @@ class PixelSmoothCameraTest(context: Context) : ContextListener(context) {
             val tx = (targetPosition.x * worldUnitScale).floor() / worldUnitScale
             val ty = (targetPosition.y * worldUnitScale).floor() / worldUnitScale
 
-            var scaledDistX = (targetPosition.x - tx) * worldUnitScale * scale
-            var scaledDistY = (targetPosition.y - ty) * worldUnitScale * scale
+            var scaledDistX = (targetPosition.x - tx) * worldUnitScale
+            var scaledDistY = (targetPosition.y - ty) * worldUnitScale
 
             var subpixelX = 0f
             var subPixelY = 0f
@@ -108,7 +117,6 @@ class PixelSmoothCameraTest(context: Context) : ContextListener(context) {
             scaledDistX -= subpixelX
             scaledDistY -= subPixelY
 
-            sceneCamera.viewport.apply(this)
             sceneCamera.position.set(tx, ty, 0f)
             sceneCamera.update()
 
@@ -121,26 +129,27 @@ class PixelSmoothCameraTest(context: Context) : ContextListener(context) {
             fbo.end()
 
             gl.viewport(0, 0, graphics.width, graphics.height)
-            gl.scissor(scale / 2, scale / 2, graphics.width - scale, graphics.height - scale)
+            gl.scissor( 1, 1, graphics.width - 1, graphics.height - 1)
 
-            viewportCamera.update()
             batch.shader = pixelSmoothShader
+            viewportCamera.ortho(graphics.width, graphics.height)
+            viewportCamera.update()
             batch.use(viewportCamera.viewProjection) {
                 pixelSmoothShader.vertexShader.uTextureSizes.apply(pixelSmoothShader,
                     fbo.width.toFloat(),
                     fbo.height.toFloat(),
-                    scale.toFloat(),
+                    0f,
                     0f)
                 pixelSmoothShader.vertexShader.uSampleProperties.apply(pixelSmoothShader,
                     subpixelX,
                     subPixelY,
                     scaledDistX,
                     scaledDistY)
-                it.draw(fbo.colorBufferTexture,
+                it.draw(fboRegion,
                     0f,
                     0f,
-                    scaleX = scale.toFloat(),
-                    scaleY = scale.toFloat(),
+                    width = context.graphics.width.toFloat(),
+                    height = context.graphics.height.toFloat(),
                     flipY = true)
             }
             batch.shader = batch.defaultShader
@@ -188,10 +197,9 @@ private class PixelSmoothVertexShader : VertexShaderModel() {
             v_color.a = v_color.a * (255.0/254.0);
 
             vec2 uvSize = u_textureSizes.xy;
-            float upscale = u_textureSizes.z;
 
-            v_texCoords.x = a_texCoord0.x + (u_sampleProperties.z / upscale) / uvSize.x;
-            v_texCoords.y = a_texCoord0.y + (u_sampleProperties.w / upscale) / uvSize.y;
+            v_texCoords.x = a_texCoord0.x + u_sampleProperties.z / uvSize.x;
+            v_texCoords.y = a_texCoord0.y + u_sampleProperties.w / uvSize.y;
 
             gl_Position = u_projTrans * a_position;
         }
@@ -219,10 +227,9 @@ private class PixelSmoothFragmentShader : FragmentShaderModel() {
             vec2 uv = v_texCoords;
             vec2 uvSize = u_textureSizes.xy;
 
-            float upscale = u_textureSizes.z;
 
-            float dU = (1.0 / upscale) / uvSize.x;
-            float dV = (1.0 / upscale) / uvSize.y;
+            float dU = 1.0 / uvSize.x;
+            float dV = 1.0 / uvSize.y;
 
             vec4 c0 = texture2D(u_texture, uv);
             vec4 c1 = texture2D(u_texture, uv + vec2(dU, 0));
