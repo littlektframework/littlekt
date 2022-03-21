@@ -12,7 +12,6 @@ import com.lehaine.littlekt.graphics.shader.FragmentShaderModel
 import com.lehaine.littlekt.graphics.shader.ShaderParameter
 import com.lehaine.littlekt.graphics.shader.ShaderProgram
 import com.lehaine.littlekt.graphics.shader.VertexShaderModel
-import com.lehaine.littlekt.graphics.shader.shaders.DefaultVertexShader
 import com.lehaine.littlekt.input.Key
 import com.lehaine.littlekt.math.MutableVec2f
 import com.lehaine.littlekt.math.Vec2f
@@ -28,36 +27,35 @@ import kotlin.math.floor
 class PixelSmoothCameraTest(context: Context) : ContextListener(context) {
 
     override suspend fun Context.start() {
-        println(DefaultVertexShader().let {
-            it.generate(this)
-            it.source
-        })
         val batch = SpriteBatch(this)
         val mapLoader = resourcesVfs["ldtk/world.ldtk"].readLDtkMapLoader()
         val world = mapLoader.loadLevel(0)
         val worldUnitScale = 16f
         val worldUnitInvScale = 1f / worldUnitScale
+        val fboWidth = 240
+        val fboHeight = 136
+        val scale = 4
         val pixelSmoothShader =
             ShaderProgram(PixelSmoothVertexShader(), PixelSmoothFragmentShader()).also { it.prepare(this) }
         val sceneCamera = OrthographicCamera().apply {
-            viewport = ExtendViewport(30, 17)
+            viewport = ExtendViewport((fboWidth / worldUnitScale).toInt(), (fboHeight / worldUnitScale).toInt())
         }
         val viewportCamera = OrthographicCamera(graphics.width, graphics.height).apply {
             position.x = virtualWidth * 0.5f
             position.y = virtualHeight * 0.5f
             update()
         }
-        val fbo = FrameBuffer(480, 272, minFilter = TexMinFilter.NEAREST, magFilter = TexMagFilter.NEAREST).also {
-            it.prepare(this)
-        }
+        val fbo =
+            FrameBuffer(fboWidth, fboHeight, minFilter = TexMinFilter.NEAREST, magFilter = TexMagFilter.NEAREST).also {
+                it.prepare(this)
+            }
 
         val cameraDir = MutableVec2f()
         val targetPosition = MutableVec2f()
         val velocity = MutableVec2f()
-        val tempVec2fs = List(2) { MutableVec2f() }
+        val tempVec2f = MutableVec2f()
         var useBilinearFilter = false
         val speed = 1f
-        val dampen = 0.5f
 
         onResize { width, height ->
             sceneCamera.update(width, height, context)
@@ -82,19 +80,17 @@ class PixelSmoothCameraTest(context: Context) : ContextListener(context) {
                 cameraDir.x = -1f
             }
 
-            tempVec2fs[0].set(cameraDir).norm().scale(speed)
-            velocity.mulAdd(tempVec2fs[0], dt.seconds * speed)
-            tempVec2fs[1].set(velocity).norm().scale(-cameraDir.norm().length())
-            velocity.mulAdd(tempVec2fs[1], dt.seconds * dampen)
-            velocity.lerp(Vec2f.ZERO, 0.1f * (1f - cameraDir.norm().length()))
+            tempVec2f.set(cameraDir).norm().scale(speed)
+            velocity.mulAdd(tempVec2f, dt.seconds * speed)
+            velocity.lerp(Vec2f.ZERO, 0.7f * (1f - cameraDir.norm().length()))
 
             targetPosition += velocity
 
             val tx = (targetPosition.x * worldUnitScale).floor() / worldUnitScale
             val ty = (targetPosition.y * worldUnitScale).floor() / worldUnitScale
 
-            var scaledDistX = (targetPosition.x - tx) * worldUnitScale * 2
-            var scaledDistY = (targetPosition.y - ty) * worldUnitScale * 2
+            var scaledDistX = (targetPosition.x - tx) * worldUnitScale * scale
+            var scaledDistY = (targetPosition.y - ty) * worldUnitScale * scale
 
             var subpixelX = 0f
             var subPixelY = 0f
@@ -107,9 +103,10 @@ class PixelSmoothCameraTest(context: Context) : ContextListener(context) {
             scaledDistX -= subpixelX
             scaledDistY -= subPixelY
 
+            sceneCamera.viewport.apply(this)
             sceneCamera.position.set(tx, ty, 0f)
-
             sceneCamera.update()
+
             fbo.begin()
             gl.clear(ClearBufferMask.COLOR_BUFFER_BIT)
             batch.use(sceneCamera.viewProjection) {
@@ -117,8 +114,8 @@ class PixelSmoothCameraTest(context: Context) : ContextListener(context) {
             }
             fbo.end()
 
-            gl.viewport(1, 1, graphics.width, graphics.height)
-            gl.scissor(1, 1, graphics.width - 2, graphics.height - 2)
+            gl.viewport(scale / 2, scale / 2, graphics.width, graphics.height)
+            gl.scissor(scale / 2, scale / 2, graphics.width - scale, graphics.height - scale)
 
             viewportCamera.update()
             batch.shader = pixelSmoothShader
@@ -126,18 +123,23 @@ class PixelSmoothCameraTest(context: Context) : ContextListener(context) {
                 pixelSmoothShader.vertexShader.uTextureSizes.apply(pixelSmoothShader,
                     fbo.width.toFloat(),
                     fbo.height.toFloat(),
-                    2f,
+                    scale.toFloat(),
                     0f)
                 pixelSmoothShader.vertexShader.uSampleProperties.apply(pixelSmoothShader,
                     subpixelX,
                     subPixelY,
                     scaledDistX,
                     scaledDistY)
-                it.draw(fbo.colorBufferTexture, 0f, 0f, scaleX = 2f, scaleY = 2f, flipY = true)
+                it.draw(fbo.colorBufferTexture,
+                    0f,
+                    0f,
+                    scaleX = scale.toFloat(),
+                    scaleY = scale.toFloat(),
+                    flipY = true)
             }
             batch.shader = batch.defaultShader
 
-            if (input.isKeyPressed(Key.B)) {
+            if (input.isKeyJustPressed(Key.B)) {
                 useBilinearFilter = !useBilinearFilter
             }
 

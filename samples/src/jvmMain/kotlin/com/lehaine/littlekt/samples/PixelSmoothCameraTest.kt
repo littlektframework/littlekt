@@ -14,6 +14,7 @@ fun main(args: Array<String>) {
         vSync = true
         title = "JVM - Pixel Smooth Camera Test"
         backgroundColor = Color.DARK_GRAY
+        resizeable = false
     }.start {
         PixelSmoothCameraTest(it)
     }
