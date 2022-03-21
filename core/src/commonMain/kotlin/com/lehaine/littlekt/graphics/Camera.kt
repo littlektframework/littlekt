@@ -345,6 +345,15 @@ open class OrthographicCamera(virtualWidth: Float = 0f, virtualHeight: Float = 0
         near = 0f
     }
 
+    fun ortho(virtualWidth: Float, virtualHeight: Float) {
+        this.virtualWidth = virtualWidth
+        this.virtualHeight = virtualHeight
+        position.set(zoom * virtualWidth * 0.5f, zoom * virtualHeight * 0.5f, 0f)
+        update()
+    }
+
+    fun ortho(virtualWidth: Int, virtualHeight: Int) = ortho(virtualWidth.toFloat(), virtualHeight.toFloat())
+
     override fun updateProjectionMatrix() {
         val left = zoom * -virtualWidth / 2
         val right = zoom * (virtualWidth / 2)

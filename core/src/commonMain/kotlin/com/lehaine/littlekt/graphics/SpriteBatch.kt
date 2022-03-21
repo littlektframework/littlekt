@@ -152,7 +152,7 @@ class SpriteBatch(
         }
         if (slice.texture != lastTexture) {
             switchTexture(slice.texture)
-        } else if (idx == mesh.maxVertices) {
+        } else if (idx >= mesh.maxVertices) {
             flush()
         }
 
@@ -289,7 +289,7 @@ class SpriteBatch(
         }
         if (slice.texture != lastTexture) {
             switchTexture(slice.texture)
-        } else if (idx == mesh.maxVertices) {
+        } else if (idx >= mesh.maxVertices) {
             flush()
         }
 
@@ -431,7 +431,7 @@ class SpriteBatch(
         }
         if (texture != lastTexture) {
             switchTexture(texture)
-        } else if (idx == mesh.maxVertices) {
+        } else if (idx >= mesh.maxVertices) {
             flush()
         }
 
