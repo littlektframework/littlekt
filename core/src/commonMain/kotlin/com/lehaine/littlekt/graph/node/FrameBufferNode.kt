@@ -81,10 +81,8 @@ class FrameBufferNode : Node() {
                 minFilter = TexMinFilter.NEAREST,
                 magFilter = TexMagFilter.NEAREST
             ).also { it.prepare(scene.context) }
-            fboCamera.viewport.set(0, 0, width, height)
-            fboCamera.virtualWidth = width.toFloat()
-            fboCamera.virtualHeight = height.toFloat()
-            fboCamera.position.set(fboCamera.virtualWidth * 0.5f, fboCamera.virtualHeight * 0.5f, 0f)
+            fboCamera.ortho(width,height)
+            fboCamera.update()
             fboTexture?.let { onFboChanged.emit(it) }
 
         }
