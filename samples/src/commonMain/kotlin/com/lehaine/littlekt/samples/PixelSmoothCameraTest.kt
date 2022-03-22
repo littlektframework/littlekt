@@ -117,8 +117,8 @@ class PixelSmoothCameraTest(context: Context) : ContextListener(context) {
             scaledDistX -= subpixelX
             scaledDistY -= subPixelY
 
-            sceneCamera.position.set(tx, ty, 0f).add((fbo.width * 0.5f) * worldUnitInvScale,
-                (fbo.height * 0.5f - (fbo.height - pxHeight)) * worldUnitInvScale,
+            sceneCamera.position.set(tx, ty, 0f).add((fbo.width / 2) * worldUnitInvScale,
+                ((fbo.height - pxHeight) / 2) * worldUnitInvScale,
                 0f)
             sceneCamera.update()
 
