@@ -72,7 +72,7 @@ class PixelSmoothCameraTest(context: Context) : ContextListener(context) {
                     magFilter = TexMagFilter.NEAREST).also {
                     it.prepare(this)
                 }
-            fboRegion = TextureSlice(fbo.colorBufferTexture, 0, fbo.height - pxHeight, pxWidth, pxHeight)
+            fboRegion = TextureSlice(fbo.colorBufferTexture, 0, 0, pxWidth, pxHeight)
             sceneCamera.ortho(fbo.width * worldUnitInvScale, fbo.height * worldUnitInvScale)
         }
         onRender { dt ->
@@ -117,7 +117,9 @@ class PixelSmoothCameraTest(context: Context) : ContextListener(context) {
             scaledDistX -= subpixelX
             scaledDistY -= subPixelY
 
-            sceneCamera.position.set(tx, ty, 0f)
+            sceneCamera.position.set(tx, ty, 0f).add((fbo.width * 0.5f) * worldUnitInvScale,
+                (fbo.height * 0.5f - (fbo.height - pxHeight)) * worldUnitInvScale,
+                0f)
             sceneCamera.update()
 
             fbo.begin()
@@ -127,9 +129,6 @@ class PixelSmoothCameraTest(context: Context) : ContextListener(context) {
                 it.draw(icon, 0f, 0f, scaleX = worldUnitInvScale, scaleY = worldUnitInvScale, rotation = 45.degrees)
             }
             fbo.end()
-
-            gl.viewport(0, 0, graphics.width, graphics.height)
-            gl.scissor( 1, 1, graphics.width - 1, graphics.height - 1)
 
             batch.shader = pixelSmoothShader
             viewportCamera.ortho(graphics.width, graphics.height)
