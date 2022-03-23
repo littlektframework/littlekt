@@ -18,7 +18,7 @@ class ScreenViewport(x: Int, y: Int, width: Int, height: Int) : Viewport(x, y, w
     var unitsPerPixel = 1f
 
 
-    override fun update(width: Int, height: Int, context: Context) {
+    override fun update(width: Int, height: Int, context: Context, centerCamera: Boolean) {
         set(0, 0, width, height)
         virtualWidth = width * unitsPerPixel
         virtualHeight = height * unitsPerPixel

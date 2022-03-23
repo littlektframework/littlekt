@@ -13,7 +13,7 @@ import kotlin.math.roundToInt
  */
 class ExtendViewport(val minWidth: Int, val minHeight: Int) : Viewport(0, 0, minWidth, minHeight) {
 
-    override fun update(width: Int, height: Int, context: Context) {
+    override fun update(width: Int, height: Int, context: Context, centerCamera: Boolean) {
         var worldWidth = minWidth.toFloat()
         var worldHeight = minHeight.toFloat()
 
@@ -37,6 +37,6 @@ class ExtendViewport(val minWidth: Int, val minHeight: Int) : Viewport(0, 0, min
         virtualWidth = worldWidth
         virtualHeight = worldHeight
         set((width - viewportWidth) / 2, (height - viewportHeight) / 2, viewportWidth, viewportHeight)
-        apply(context)
+        apply(context, centerCamera)
     }
 }

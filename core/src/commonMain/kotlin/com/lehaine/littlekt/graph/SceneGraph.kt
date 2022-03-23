@@ -4,6 +4,7 @@ import com.lehaine.littlekt.Context
 import com.lehaine.littlekt.Disposable
 import com.lehaine.littlekt.graph.node.CanvasLayer
 import com.lehaine.littlekt.graph.node.Node
+import com.lehaine.littlekt.graph.node.ViewportCanvasLayer
 import com.lehaine.littlekt.graph.node.addTo
 import com.lehaine.littlekt.graph.node.annotation.SceneGraphDslMarker
 import com.lehaine.littlekt.graph.node.component.InputEvent
@@ -154,8 +155,8 @@ open class SceneGraph<InputType>(
     private var ownsBatch = true
     val batch: Batch = batch?.also { ownsBatch = false } ?: SpriteBatch(context)
 
-    val sceneCanvas: CanvasLayer by lazy {
-        CanvasLayer().apply {
+    val sceneCanvas: ViewportCanvasLayer by lazy {
+        ViewportCanvasLayer().apply {
             name = "Scene Viewport"
             this.viewport = viewport
         }

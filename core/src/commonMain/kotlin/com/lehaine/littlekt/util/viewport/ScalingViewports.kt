@@ -12,7 +12,7 @@ import kotlin.math.roundToInt
 open class ScalingViewport(val scaler: Scaler, virtualWidth: Int, virtualHeight: Int) :
     Viewport(0, 0, virtualWidth, virtualHeight) {
 
-    override fun update(width: Int, height: Int, context: Context) {
+    override fun update(width: Int, height: Int, context: Context, centerCamera: Boolean) {
         val scaled = scaler.apply(virtualWidth, virtualHeight, width.toFloat(), height.toFloat())
         val viewportWidth = scaled.x.roundToInt()
         val viewportHeight = scaled.y.roundToInt()

@@ -21,9 +21,9 @@ import kotlin.math.roundToInt
 class TiledMapTest(context: Context) : ContextListener(context) {
 
     override suspend fun Context.start() {
-        val camera = OrthographicCamera().apply {
-            viewport = ExtendViewport(30, 16)
-        }
+
+        val viewport = ExtendViewport(30,16)
+        val camera = viewport.camera
 
         val batch = SpriteBatch(context, 8191)
 
@@ -47,7 +47,7 @@ class TiledMapTest(context: Context) : ContextListener(context) {
 
         var mapIdx = 0
         onResize { width, height ->
-            camera.update(width, height, context)
+            viewport.update(width, height, context)
         }
         onRender { dt ->
             gl.clear(ClearBufferMask.COLOR_BUFFER_BIT)

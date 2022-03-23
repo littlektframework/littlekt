@@ -8,6 +8,7 @@ import com.lehaine.littlekt.graphics.*
 import com.lehaine.littlekt.graphics.gl.ClearBufferMask
 import com.lehaine.littlekt.input.Key
 import com.lehaine.littlekt.util.combine
+import com.lehaine.littlekt.util.viewport.ExtendViewport
 import com.lehaine.littlekt.util.viewport.ScreenViewport
 
 /**
@@ -28,13 +29,12 @@ class MutableAtlasTest(context: Context) : ContextListener(context) {
             playLooped(bossAttackAnim)
         }
 
-        val camera = OrthographicCamera(graphics.width, graphics.height).apply {
-            viewport = ScreenViewport(graphics.width, graphics.height)
-        }
+        val viewport = ScreenViewport(graphics.width, graphics.height)
+        val camera = viewport.camera
         val batch = SpriteBatch(this)
 
         onResize { width, height ->
-            camera.update(width, height, context)
+            viewport.update(width, height, context)
         }
         onRender { dt ->
             gl.clear(ClearBufferMask.COLOR_BUFFER_BIT)
