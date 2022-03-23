@@ -626,7 +626,7 @@ class SpriteBatch(
         srcFuncColor: BlendFactor,
         dstFuncColor: BlendFactor,
         srcFuncAlpha: BlendFactor,
-        dstFuncAlpha: BlendFactor
+        dstFuncAlpha: BlendFactor,
     ) {
         if (blendSrcFunc == srcFuncColor && blendDstFunc == dstFuncColor
             && blendSrcFuncAlpha == srcFuncAlpha && blendDstFuncAlpha == dstFuncAlpha

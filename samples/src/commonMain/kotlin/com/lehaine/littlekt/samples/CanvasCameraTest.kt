@@ -9,6 +9,8 @@ import com.lehaine.littlekt.graph.node.component.HAlign
 import com.lehaine.littlekt.graph.node.frameBuffer
 import com.lehaine.littlekt.graph.node.node2d.camera2d
 import com.lehaine.littlekt.graph.node.node2d.node2d
+import com.lehaine.littlekt.graph.node.render.BlendMode
+import com.lehaine.littlekt.graph.node.render.Material
 import com.lehaine.littlekt.graph.node.ui.button
 import com.lehaine.littlekt.graph.node.ui.centerContainer
 import com.lehaine.littlekt.graph.node.ui.frameBufferContainer

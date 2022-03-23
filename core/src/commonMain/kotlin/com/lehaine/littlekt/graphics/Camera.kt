@@ -11,7 +11,7 @@ import com.lehaine.littlekt.util.viewport.Viewport
  */
 abstract class Camera {
     val id = nextCameraId++
-
+    
     val position = MutableVec3f(0f)
     val direction = MutableVec3f(Vec3f.Z_AXIS)
     val up = MutableVec3f(Vec3f.NEG_Y_AXIS)

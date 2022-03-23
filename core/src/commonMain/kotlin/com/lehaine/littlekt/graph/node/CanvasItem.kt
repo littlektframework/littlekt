@@ -2,6 +2,7 @@ package com.lehaine.littlekt.graph.node
 
 import com.lehaine.littlekt.graph.SceneGraph
 import com.lehaine.littlekt.graph.node.component.InputEvent
+import com.lehaine.littlekt.graph.node.render.Material
 import com.lehaine.littlekt.graphics.Batch
 import com.lehaine.littlekt.graphics.Camera
 import com.lehaine.littlekt.math.Mat3
@@ -30,9 +31,9 @@ abstract class CanvasItem : Node() {
         const val SCALE_DIRTY = 2
         const val ROTATION_DIRTY = 3
         const val CLEAN = 0
-        private val tempv1 = MutableVec2f()
-        private val tempv2 = MutableVec2f()
     }
+
+    var material: Material? = null
 
     /**
      * List of 'preRender' callbacks called when [onPreRender] is called. Add any additional callbacks directly to this list.

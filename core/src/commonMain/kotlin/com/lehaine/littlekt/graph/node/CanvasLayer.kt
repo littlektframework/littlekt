@@ -99,8 +99,10 @@ open class CanvasLayer : Node() {
 
     open fun render(batch: Batch, renderCallback: ((Node, Batch, Camera) -> Unit)?) {
         if (!enabled) return
+        val scene = scene ?: return
 
         val prevProjMatrix = batch.projectionMatrix
+        canvasCamera.ortho(scene.context.graphics.width, scene.context.graphics.height)
         canvasCamera.update()
         batch.projectionMatrix = canvasCamera.viewProjection
         if (!batch.drawing) batch.begin()

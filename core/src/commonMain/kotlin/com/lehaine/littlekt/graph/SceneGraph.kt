@@ -2,17 +2,18 @@ package com.lehaine.littlekt.graph
 
 import com.lehaine.littlekt.Context
 import com.lehaine.littlekt.Disposable
-import com.lehaine.littlekt.graph.node.CanvasLayer
-import com.lehaine.littlekt.graph.node.Node
-import com.lehaine.littlekt.graph.node.ViewportCanvasLayer
-import com.lehaine.littlekt.graph.node.addTo
+import com.lehaine.littlekt.graph.node.*
 import com.lehaine.littlekt.graph.node.annotation.SceneGraphDslMarker
 import com.lehaine.littlekt.graph.node.component.InputEvent
+import com.lehaine.littlekt.graph.node.render.Material
 import com.lehaine.littlekt.graph.node.ui.Control
 import com.lehaine.littlekt.graphics.Batch
 import com.lehaine.littlekt.graphics.Camera
 import com.lehaine.littlekt.graphics.OrthographicCamera
 import com.lehaine.littlekt.graphics.SpriteBatch
+import com.lehaine.littlekt.graphics.gl.BlendFactor
+import com.lehaine.littlekt.graphics.gl.FaceMode
+import com.lehaine.littlekt.graphics.gl.State
 import com.lehaine.littlekt.input.*
 import com.lehaine.littlekt.math.MutableVec2f
 import com.lehaine.littlekt.util.datastructure.Pool
@@ -176,6 +177,11 @@ open class SceneGraph<InputType>(
     var dt: Duration = Duration.ZERO
         private set
 
+    /**
+     * Holds the current [Material] of the last rendered [Node] (or the [SceneGraph.material] if no changes were made)
+     */
+    protected var currentMaterial: Material? = null
+
     private var frameCount = 0
 
     // scene input related fields
@@ -223,10 +229,82 @@ open class SceneGraph<InputType>(
      * @param onNodeRender invoked when a node receives a `render` call. Useful when extending the [SceneGraph]
      * and providing custom logic before each render such as camera culling.
      */
-    open fun render(onNodeRender: ((Node, Batch, Camera) -> Unit)? = null) {
+    open fun render() {
         if (!initialized) error("You need to call 'initialize()'once before doing any rendering or updating!")
-        sceneCanvas.render(batch, onNodeRender)
+        begin()
+        sceneCanvas.render(batch, ::checkNodeMaterial)
+        end()
+    }
+
+    protected open fun begin() {
+        currentMaterial = null
+        batch.useDefaultShader()
+    }
+
+    protected fun checkNodeMaterial(node: Node, batch: Batch, camera: Camera) {
+        if (node !is CanvasItem) return
+        // check for Material changes
+        if (node.material != currentMaterial) {
+            currentMaterial = node.material
+            currentMaterial?.let { mat ->
+                mat.shader?.let {
+                    mat.onPreRender()
+                }
+            }
+            flush()
+        }
+    }
+
+    protected fun flush() {
+        end()
+
+        batch.useDefaultShader()
+        currentMaterial?.let { mat ->
+            setMaterialGlFunctions(mat)
+            mat.shader?.let {
+                batch.shader = it
+            }
+        }
+        batch.begin()
+    }
+
+    protected fun end() {
         if (batch.drawing) batch.end()
+        batch.setBlendFunctionSeparate(BlendFactor.SRC_ALPHA,
+            BlendFactor.ONE_MINUS_SRC_ALPHA,
+            BlendFactor.SRC_ALPHA,
+            BlendFactor.ONE_MINUS_SRC_ALPHA)
+    }
+
+    private fun setMaterialGlFunctions(material: Material) {
+        val gl = context.gl
+        val blendMode = material.blendMode
+        val depthStencilMode = material.depthStencilMode
+
+        batch.setBlendFunctionSeparate(
+            blendMode.colorSourceBlend,
+            blendMode.colorDestinationBlend,
+            blendMode.alphaSourceBlend,
+            blendMode.alphaDestinationBlend
+        )
+
+        if (depthStencilMode.depthBufferEnable) {
+            gl.enable(State.DEPTH_TEST)
+            gl.depthFunc(depthStencilMode.depthBufferFunction)
+            gl.depthMask(true)
+        }
+
+        if (depthStencilMode.stencilEnable) {
+            gl.enable(State.STENCIL_TEST)
+            gl.stencilFuncSeparate(FaceMode.FRONT,
+                depthStencilMode.stencilFunction,
+                depthStencilMode.referenceStencil,
+                depthStencilMode.stencilMask)
+            gl.stencilOpSeparate(FaceMode.FRONT,
+                depthStencilMode.stencilFail,
+                depthStencilMode.stencilDepthBufferFail,
+                depthStencilMode.stencilPass)
+        }
     }
 
     /**
