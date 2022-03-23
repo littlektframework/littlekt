@@ -34,7 +34,7 @@ inline fun SceneGraph<*>.frameBuffer(
  * @author Colton Daily
  * @date 3/14/2022
  */
-class FrameBufferNode : Node() {
+open class FrameBufferNode : Node() {
 
     var width: Int = 0
     var height: Int = 0
