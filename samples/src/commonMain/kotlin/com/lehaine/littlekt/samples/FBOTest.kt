@@ -10,6 +10,7 @@ import com.lehaine.littlekt.input.Key
 import com.lehaine.littlekt.math.geom.Angle
 import com.lehaine.littlekt.math.geom.radians
 import com.lehaine.littlekt.util.milliseconds
+import com.lehaine.littlekt.util.viewport.ExtendViewport
 import com.lehaine.littlekt.util.viewport.ScreenViewport
 import kotlin.math.abs
 import kotlin.math.floor
@@ -24,9 +25,9 @@ class FBOTest(context: Context) : ContextListener(context) {
 
     override suspend fun Context.start() {
         val batch = SpriteBatch(this)
-        val camera = OrthographicCamera().apply {
-            viewport = ScreenViewport(context.graphics.width, context.graphics.height)
-        }
+        val viewport = ScreenViewport(context.graphics.width, context.graphics.height)
+        val camera = viewport.camera
+
         val fboCamera = OrthographicCamera(240, 135).apply {
             position.set(240 / 2f, 135 / 2f, 0f)
         }
@@ -39,8 +40,7 @@ class FBOTest(context: Context) : ContextListener(context) {
         var y = 0f
         var rotation = Angle.ZERO
         onResize { width, height ->
-            camera.update(width, height, this)
-            camera.position.set(camera.virtualWidth * 0.5f, camera.virtualHeight * 0.5f, 0f)
+            viewport.update(width, height, this, true)
         }
 
         onRender { dt ->

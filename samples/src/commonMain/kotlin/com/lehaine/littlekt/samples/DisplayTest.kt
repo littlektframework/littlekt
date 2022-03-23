@@ -56,9 +56,8 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
         uiFocusPrev = InputMap.UI_FOCUS_PREV
     )
     private val controller = createDefaultSceneGraphController(context.input, uiSignals)
-    val camera = OrthographicCamera(graphics.width, graphics.height).apply {
-        viewport = ExtendViewport(960, 540)
-    }
+    val viewport = ExtendViewport(960, 540)
+    val camera = viewport.camera
 
     val shader = createShader(SimpleColorVertexShader(), SimpleColorFragmentShader())
     val colorBits = Color.WHITE.toFloatBits()
@@ -679,13 +678,13 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
             }
 
             onMouseMoved { screenX, screenY ->
-                camera.screenToWorld(screenX, screenY, context, temp)
+                camera.screenToWorld(context, screenX, screenY, viewport, temp)
                 x = temp.x
                 y = temp.y
             }
 
             onTouchDragged { screenX, screenY, pointer ->
-                camera.screenToWorld(screenX, screenY, context, temp)
+                camera.screenToWorld(context, screenX, screenY, viewport, temp)
                 x = temp.x
                 y = temp.y
             }
@@ -708,8 +707,7 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
         }
 
         onResize { width, height ->
-            camera.update(width, height, context)
-            camera.position.set(camera.virtualWidth / 2f, camera.virtualHeight / 2f, 0f)
+            viewport.update(width, height, context, true)
             if (!assetProvider.fullyLoaded) return@onResize
             scene.resize(width, height, true)
         }
@@ -764,7 +762,7 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
                 progressBar.value += progressBar.step
             }
 
-            camera.viewport.apply(context)
+            viewport.apply(context)
             camera.update()
             boss.update(dt)
             batch.use(camera.viewProjection) {

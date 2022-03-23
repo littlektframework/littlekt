@@ -22,9 +22,9 @@ class UiTest(context: Context) : ContextListener(context) {
         val batch = SpriteBatch(this)
         val pixelFont = resourcesVfs["m5x7_16.fnt"].readBitmapFont()
         val icon = resourcesVfs["icon_16x16.png"].readTexture()
-        val camera = OrthographicCamera().apply {
-            viewport = ExtendViewport(480, 270)
-        }
+        val viewport = ExtendViewport(480, 270)
+        val camera = viewport.camera
+
         val graph = sceneGraph(context, ExtendViewport(480, 270)) {
             centerContainer {
                 anchorRight = 1f
@@ -52,14 +52,14 @@ class UiTest(context: Context) : ContextListener(context) {
         }.also { it.initialize() }
 
         onResize { width, height ->
-            camera.update(width, height, this)
+            viewport.update(width, height, this)
             graph.resize(width, height, true)
         }
         onRender { dt ->
             gl.clear(ClearBufferMask.COLOR_BUFFER_BIT)
 
             camera.update()
-            camera.viewport.apply(this)
+            viewport.apply(this)
             batch.use(camera.viewProjection) {
                 Fonts.default.draw(it, "My Label\nMiddle", 0f, 0f, targetWidth = 480f, align = HAlign.CENTER)
             }

@@ -46,54 +46,9 @@ abstract class Camera {
 
     var fov = 67f
 
-    var viewport = Viewport()
-        set(value) {
-            field = value
-            //    position.set(viewport.virtualWidth / 2f, viewport.virtualHeight / 2f, 0f)
-        }
+    var virtualWidth: Float = 0f
 
-    var virtualWidth: Float
-        get() = viewport.virtualWidth
-        set(value) {
-            viewport.virtualWidth = value
-        }
-
-    var virtualHeight: Float
-        get() = viewport.virtualHeight
-        set(value) {
-            viewport.virtualHeight = value
-        }
-
-    var screenX: Int
-        get() = viewport.x
-        set(value) {
-            viewport.x = value
-        }
-
-    var screenY: Int
-        get() = viewport.y
-        set(value) {
-            viewport.y = value
-        }
-
-    /**
-     * The screen width
-     */
-    var screenWidth: Int
-        get() = viewport.width
-        set(value) {
-            viewport.width = value
-        }
-
-    /**
-     * The screen height
-     */
-    var screenHeight: Int
-        get() = viewport.height
-        set(value) {
-            viewport.height = value
-        }
-
+    var virtualHeight: Float = 0f
 
     /**
      * The current zoom value.
@@ -111,11 +66,6 @@ abstract class Camera {
         lazyInvProjection.isDirty = true
         lazyViewProjection.isDirty = true
         lazyInvViewProjection.isDirty = true
-    }
-
-    fun update(width: Int, height: Int, context: Context) {
-        viewport.update(width, height, context)
-        update()
     }
 
     protected open fun updateViewMatrix() {
@@ -199,106 +149,307 @@ abstract class Camera {
     fun project(world: Vec3f, result: MutableVec4f): MutableVec4f =
         viewProjection.transform(result.set(world.x, world.y, world.z, 1f))
 
-    fun worldToScreen(world: Vec2f, context: Context): MutableVec2f {
+    fun worldToScreen(context: Context, screen: MutableVec2f, viewport: Viewport) = worldToScreen(context,
+        screen,
+        viewport.x.toFloat(),
+        viewport.y.toFloat(),
+        viewport.width.toFloat(),
+        viewport.height.toFloat())
+
+    fun worldToScreen(
+        context: Context,
+        world: Vec2f,
+        viewportX: Float = 0f,
+        viewportY: Float = 0f,
+        viewportWidth: Float = context.graphics.width.toFloat(),
+        viewportHeight: Float = context.graphics.height.toFloat(),
+    ): MutableVec2f {
         val result = MutableVec2f()
-        worldToScreen(world, context, result)
+        worldToScreen(context, world, viewportX, viewportY, viewportWidth, viewportHeight, result)
         return result
     }
 
-    fun worldToScreen(x: Float, y: Float, context: Context): MutableVec2f {
+    fun worldToScreen(context: Context, screen: MutableVec2f, viewport: Viewport, result: MutableVec2f) = worldToScreen(
+        context,
+        screen,
+        viewport.x.toFloat(),
+        viewport.y.toFloat(),
+        viewport.width.toFloat(),
+        viewport.height.toFloat(),
+        result)
+
+    fun worldToScreen(
+        context: Context,
+        x: Float,
+        y: Float,
+        viewport: Viewport,
+        result: MutableVec2f,
+    ) = worldToScreen(context,
+        x,
+        y,
+        viewport.x.toFloat(),
+        viewport.y.toFloat(),
+        viewport.width.toFloat(),
+        viewport.height.toFloat(),
+        result)
+
+    fun worldToScreen(
+        context: Context,
+        x: Float,
+        y: Float,
+        viewportX: Float = 0f,
+        viewportY: Float = 0f,
+        viewportWidth: Float = context.graphics.width.toFloat(),
+        viewportHeight: Float = context.graphics.height.toFloat(),
+    ): MutableVec2f {
         val result = MutableVec2f()
-        worldToScreen(tempVec2.set(x, y), context, result)
+        worldToScreen(context, tempVec2.set(x, y), viewportX, viewportY, viewportWidth, viewportHeight, result)
         return result
     }
 
-    fun worldToScreen(x: Float, y: Float, context: Context, result: MutableVec2f) =
-        worldToScreen(tempVec2.set(x, y), context, result)
+    fun worldToScreen(
+        context: Context,
+        x: Float,
+        y: Float,
+        viewportX: Float = 0f,
+        viewportY: Float = 0f,
+        viewportWidth: Float = context.graphics.width.toFloat(),
+        viewportHeight: Float = context.graphics.height.toFloat(),
+        result: MutableVec2f,
+    ) = worldToScreen(context, tempVec2.set(x, y), viewportX, viewportY, viewportWidth, viewportHeight, result)
 
-    fun worldToScreen(world: Vec2f, context: Context, result: MutableVec2f): Boolean {
+    fun worldToScreen(
+        context: Context,
+        world: Vec2f,
+        viewportX: Float = 0f,
+        viewportY: Float = 0f,
+        viewportWidth: Float = context.graphics.width.toFloat(),
+        viewportHeight: Float = context.graphics.height.toFloat(),
+        result: MutableVec2f,
+    ): Boolean {
         if (!project(world, result)) {
             return false
         }
-        result.x = (1 + result.x) * 0.5f * viewport.width + viewport.x
-        result.y = context.graphics.height - (1 + result.y) * 0.5f * viewport.height + viewport.y
+        result.x = (1 + result.x) * 0.5f * viewportWidth + viewportX
+        result.y = context.graphics.height - (1 + result.y) * 0.5f * viewportHeight + viewportY
 
         return true
     }
 
-    fun worldToScreen(world: Vec3f, context: Context): MutableVec3f {
+    fun worldToScreen(
+        context: Context,
+        world: Vec3f,
+        viewportX: Float = 0f,
+        viewportY: Float = 0f,
+        viewportWidth: Float = context.graphics.width.toFloat(),
+        viewportHeight: Float = context.graphics.height.toFloat(),
+    ): MutableVec3f {
         val result = MutableVec3f()
-        worldToScreen(world, context, result)
+        worldToScreen(context, world, viewportX, viewportY, viewportWidth, viewportHeight, result)
         return result
     }
 
-    fun worldToScreen(x: Float, y: Float, z: Float, context: Context): MutableVec3f {
+    fun worldToScreen(
+        context: Context,
+        x: Float,
+        y: Float,
+        z: Float,
+        viewportX: Float = 0f,
+        viewportY: Float = 0f,
+        viewportWidth: Float = context.graphics.width.toFloat(),
+        viewportHeight: Float = context.graphics.height.toFloat(),
+    ): MutableVec3f {
         val result = MutableVec3f()
-        worldToScreen(tempVec3.set(x, y, z), context, result)
+        worldToScreen(context, tempVec3.set(x, y, z), viewportX, viewportY, viewportWidth, viewportHeight, result)
         return result
     }
 
-    fun worldToScreen(x: Float, y: Float, z: Float, context: Context, result: MutableVec3f) =
-        worldToScreen(tempVec3.set(x, y, z), context, result)
+    fun worldToScreen(
+        context: Context,
+        x: Float,
+        y: Float,
+        z: Float,
+        viewportX: Float = 0f,
+        viewportY: Float = 0f,
+        viewportWidth: Float = context.graphics.width.toFloat(),
+        viewportHeight: Float = context.graphics.height.toFloat(),
+        result: MutableVec3f,
+    ) = worldToScreen(context, tempVec3.set(x, y, z), viewportX, viewportY, viewportWidth, viewportHeight, result)
 
 
-    fun worldToScreen(world: Vec3f, context: Context, result: MutableVec3f): Boolean {
+    fun worldToScreen(
+        context: Context,
+        world: Vec3f,
+        viewportX: Float = 0f,
+        viewportY: Float = 0f,
+        viewportWidth: Float = context.graphics.width.toFloat(),
+        viewportHeight: Float = context.graphics.height.toFloat(),
+        result: MutableVec3f,
+    ): Boolean {
         if (!project(world, result)) {
             return false
         }
-        result.x = (1 + result.x) * 0.5f * viewport.width + viewport.x
-        result.y = context.graphics.height - (1 + result.y) * 0.5f * viewport.height + viewport.y
+        result.x = (1 + result.x) * 0.5f * viewportWidth + viewportX
+        result.y = context.graphics.height - (1 + result.y) * 0.5f * viewportHeight + viewportY
         result.z = (1 + result.z) * 0.5f
 
         return true
     }
 
-    fun screenToWorld(screen: Vec2f, context: Context): MutableVec2f {
+    fun screenToWorld(
+        context: Context,
+        screen: Vec2f,
+        viewportX: Float = 0f,
+        viewportY: Float = 0f,
+        viewportWidth: Float = context.graphics.width.toFloat(),
+        viewportHeight: Float = context.graphics.height.toFloat(),
+    ): MutableVec2f {
         val result = MutableVec2f()
-        screenToWorld(screen, context, result)
+        screenToWorld(context, screen, viewportX, viewportY, viewportWidth, viewportHeight, result)
         return result
     }
 
-    fun screenToWorld(x: Float, y: Float, context: Context): MutableVec2f {
+    fun screenToWorld(context: Context, screen: MutableVec2f, viewport: Viewport) = screenToWorld(context,
+        screen,
+        viewport.x.toFloat(),
+        viewport.y.toFloat(),
+        viewport.width.toFloat(),
+        viewport.height.toFloat())
+
+    fun screenToWorld(
+        context: Context,
+        x: Float,
+        y: Float,
+        viewportX: Float = 0f,
+        viewportY: Float = 0f,
+        viewportWidth: Float = context.graphics.width.toFloat(),
+        viewportHeight: Float = context.graphics.height.toFloat(),
+    ): MutableVec2f {
         val result = MutableVec2f()
-        screenToWorld(tempVec2.set(x, y), context, result)
+        screenToWorld(context, tempVec2.set(x, y), viewportX, viewportY, viewportWidth, viewportHeight, result)
         return result
     }
 
-    fun screenToWorld(x: Float, y: Float, context: Context, result: MutableVec2f) =
-        screenToWorld(tempVec2.set(x, y), context, result)
+    fun screenToWorld(
+        context: Context,
+        x: Float,
+        y: Float,
+        viewportX: Float = 0f,
+        viewportY: Float = 0f,
+        viewportWidth: Float = context.graphics.width.toFloat(),
+        viewportHeight: Float = context.graphics.height.toFloat(),
+        result: MutableVec2f,
+    ) = screenToWorld(context, tempVec2.set(x, y), viewportX, viewportY, viewportWidth, viewportHeight, result)
+    
+    fun screenToWorld(context: Context, x: Float, y: Float, viewport: Viewport, result: MutableVec2f) =
+        screenToWorld(context, tempVec2.set(x, y), viewport, result)
 
+    fun screenToWorld(context: Context, screen: MutableVec2f, viewport: Viewport, result: MutableVec2f) = screenToWorld(
+        context,
+        screen,
+        viewport.x.toFloat(),
+        viewport.y.toFloat(),
+        viewport.width.toFloat(),
+        viewport.height.toFloat(),
+        result)
 
-    fun screenToWorld(screen: Vec2f, context: Context, result: MutableVec2f): Boolean {
-        val x = screen.x - viewport.x
-        val y = (context.graphics.height - screen.y) - viewport.y
+    fun screenToWorld(
+        context: Context,
+        screen: Vec2f,
+        viewportX: Float = 0f,
+        viewportY: Float = 0f,
+        viewportWidth: Float = context.graphics.width.toFloat(),
+        viewportHeight: Float = context.graphics.height.toFloat(),
+        result: MutableVec2f,
+    ): Boolean {
+        val x = screen.x - viewportX
+        val y = (context.graphics.height - screen.y) - viewportY
 
-        tempVec4.set(2f * x / viewport.width - 1f, 2f * y / viewport.height - 1f, 1f, 1f)
+        tempVec4.set(2f * x / viewportWidth - 1f, 2f * y / viewportHeight - 1f, 1f, 1f)
         invViewProjection.transform(tempVec4)
         val s = 1f / tempVec4.w
         result.set(tempVec4.x * s, tempVec4.y * s)
         return true
     }
 
-    fun screenToWorld(screen: Vec3f, context: Context): MutableVec3f {
+    fun screenToWorld(
+        context: Context,
+        screen: Vec3f,
+        viewport: Viewport,
+    ): MutableVec3f = screenToWorld(context,
+        screen,
+        viewport.x.toFloat(),
+        viewport.y.toFloat(),
+        viewport.width.toFloat(),
+        viewport.height.toFloat())
+
+    fun screenToWorld(
+        context: Context,
+        screen: Vec3f,
+        viewportX: Float = 0f,
+        viewportY: Float = 0f,
+        viewportWidth: Float = context.graphics.width.toFloat(),
+        viewportHeight: Float = context.graphics.height.toFloat(),
+    ): MutableVec3f {
         val result = MutableVec3f()
-        screenToWorld(screen, context, result)
+        screenToWorld(context, screen, viewportX, viewportY, viewportWidth, viewportHeight, result)
         return result
     }
 
-    fun screenToWorld(x: Float, y: Float, z: Float, context: Context): MutableVec3f {
+    fun screenToWorld(
+        context: Context,
+        x: Float,
+        y: Float,
+        z: Float,
+        viewportX: Float = 0f,
+        viewportY: Float = 0f,
+        viewportWidth: Float = context.graphics.width.toFloat(),
+        viewportHeight: Float = context.graphics.height.toFloat(),
+    ): MutableVec3f {
         val result = MutableVec3f()
-        screenToWorld(tempVec3.set(x, y, z), context, result)
+        screenToWorld(context, tempVec3.set(x, y, z), viewportX, viewportY, viewportWidth, viewportHeight, result)
         return result
     }
 
-    fun screenToWorld(x: Float, y: Float, z: Float, context: Context, result: MutableVec3f) =
-        screenToWorld(tempVec3.set(x, y, z), context, result)
+    fun screenToWorld(
+        context: Context,
+        x: Float,
+        y: Float,
+        z: Float,
+        viewportX: Float = 0f,
+        viewportY: Float = 0f,
+        viewportWidth: Float = context.graphics.width.toFloat(),
+        viewportHeight: Float = context.graphics.height.toFloat(),
+        result: MutableVec3f,
+    ) = screenToWorld(context, tempVec3.set(x, y, z), viewportX, viewportY, viewportWidth, viewportHeight, result)
 
 
-    fun screenToWorld(screen: Vec3f, context: Context, result: MutableVec3f): Boolean {
-        val x = screen.x - viewport.x
-        val y = (context.graphics.height - screen.y) - viewport.y
+    fun screenToWorld(
+        context: Context,
+        screen: Vec3f,
+        viewport: Viewport,
+        result: MutableVec3f,
+    ) = screenToWorld(context,
+        screen,
+        viewport.x.toFloat(),
+        viewport.y.toFloat(),
+        viewport.width.toFloat(),
+        viewport.height.toFloat(),
+        result)
 
-        tempVec4.set(2f * x / viewport.width - 1f, 2f * y / viewport.height - 1f, 2f * screen.z - 1f, 1f)
+    fun screenToWorld(
+        context: Context,
+        screen: Vec3f,
+        viewportX: Float = 0f,
+        viewportY: Float = 0f,
+        viewportWidth: Float = context.graphics.width.toFloat(),
+        viewportHeight: Float = context.graphics.height.toFloat(),
+        result: MutableVec3f,
+    ): Boolean {
+        val x = screen.x - viewportX
+        val y = (context.graphics.height - screen.y) - viewportY
+
+        tempVec4.set(2f * x / viewportWidth - 1f, 2f * y / viewportHeight - 1f, 2f * screen.z - 1f, 1f)
         invViewProjection.transform(tempVec4)
         val s = 1f / tempVec4.w
         result.set(tempVec4.x * s, tempVec4.y * s, tempVec4.z * s)
@@ -306,13 +457,29 @@ abstract class Camera {
     }
 
     fun computePickRay(
+        context: Context,
         pickRay: Ray,
         screenX: Float,
         screenY: Float,
-        context: Context,
+        viewportX: Float,
+        viewportY: Float,
+        viewportWidth: Float,
+        viewportHeight: Float,
     ): Boolean {
-        var valid = screenToWorld(tempVec3.set(screenX, screenY, 0f), context, pickRay.origin)
-        valid = valid && screenToWorld(tempVec3.set(screenX, screenY, 1f), context, pickRay.direction)
+        var valid = screenToWorld(context,
+            tempVec3.set(screenX, screenY, 0f),
+            viewportX,
+            viewportY,
+            viewportWidth,
+            viewportHeight,
+            pickRay.origin)
+        valid = valid && screenToWorld(context,
+            tempVec3.set(screenX, screenY, 1f),
+            viewportX,
+            viewportY,
+            viewportWidth,
+            viewportHeight,
+            pickRay.direction)
 
         if (valid) {
             pickRay.direction.subtract(pickRay.origin)
@@ -323,7 +490,7 @@ abstract class Camera {
     }
 
     override fun toString(): String {
-        return "Camera(id=$id, position=$position, direction=$direction, up=$up, rightDir=$rightDir, projection=$projection, view=$view, invProj=$invProj, invView=$invView, viewProjection=$viewProjection, invViewProjection=$invViewProjection, near=$near, far=$far, fov=$fov, viewport=$viewport, zoom=$zoom)"
+        return "Camera(id=$id, position=$position, direction=$direction, up=$up, rightDir=$rightDir, projection=$projection, view=$view, invProj=$invProj, invView=$invView, viewProjection=$viewProjection, invViewProjection=$invViewProjection, near=$near, far=$far, fov=$fov, zoom=$zoom)"
     }
 
 

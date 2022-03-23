@@ -28,14 +28,13 @@ class TextureArraySpriteBatchTest(context: Context) : ContextListener(context) {
             playLooped(bossAttackAnim)
         }
 
-        val camera = OrthographicCamera(graphics.width, graphics.height).apply {
-            viewport = ScreenViewport(graphics.width, graphics.height)
-        }
+        val viewport = ScreenViewport(graphics.width, graphics.height)
+        val camera = viewport.camera
         val batch =
             TextureArraySpriteBatch(this, maxTextureSlots = 3, maxTextureWidth = 256, maxTextureHeight = 256)
 
         onResize { width, height ->
-            camera.update(width, height, context)
+            viewport.update(width, height, context)
         }
         onRender { dt ->
             gl.clearColor(Color.DARK_GRAY)

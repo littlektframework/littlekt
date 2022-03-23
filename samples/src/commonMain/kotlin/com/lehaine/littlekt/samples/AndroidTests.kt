@@ -7,8 +7,11 @@ import com.lehaine.littlekt.file.vfs.readAtlas
 import com.lehaine.littlekt.file.vfs.readAudioClip
 import com.lehaine.littlekt.file.vfs.readAudioStream
 import com.lehaine.littlekt.file.vfs.readTexture
-import com.lehaine.littlekt.graphics.*
+import com.lehaine.littlekt.graphics.AnimatedSprite
+import com.lehaine.littlekt.graphics.SpriteBatch
+import com.lehaine.littlekt.graphics.getAnimation
 import com.lehaine.littlekt.graphics.gl.ClearBufferMask
+import com.lehaine.littlekt.graphics.use
 import com.lehaine.littlekt.input.Key
 import com.lehaine.littlekt.util.combine
 import com.lehaine.littlekt.util.viewport.ExtendViewport
@@ -49,16 +52,15 @@ class AndroidTests(context: Context) : ContextListener(context) {
             music.play(1f, true)
         }
 
-        val camera = OrthographicCamera(graphics.width, graphics.height).apply {
-            viewport = ExtendViewport(480, 270)
-        }
+        val viewport = ExtendViewport(480, 270)
+        val camera = viewport.camera
         val batch = SpriteBatch(this)
 
         clip.play()
 
         onResize { width, height ->
             println("$width,$height")
-            camera.update(width, height, context)
+            viewport.update(width, height, context, false)
         }
         onRender { dt ->
             gl.clear(ClearBufferMask.COLOR_BUFFER_BIT)

@@ -4,12 +4,18 @@ import com.lehaine.littlekt.Context
 import com.lehaine.littlekt.ContextListener
 import com.lehaine.littlekt.file.vfs.readLDtkMapLoader
 import com.lehaine.littlekt.file.vfs.readTexture
+import com.lehaine.littlekt.graph.node.canvasLayer
+import com.lehaine.littlekt.graph.node.frameBuffer
+import com.lehaine.littlekt.graph.sceneGraph
 import com.lehaine.littlekt.graphics.*
 import com.lehaine.littlekt.graphics.gl.ClearBufferMask
 import com.lehaine.littlekt.graphics.gl.State
 import com.lehaine.littlekt.graphics.gl.TexMagFilter
 import com.lehaine.littlekt.graphics.gl.TexMinFilter
+import com.lehaine.littlekt.graphics.shader.FragmentShaderModel
+import com.lehaine.littlekt.graphics.shader.ShaderParameter
 import com.lehaine.littlekt.graphics.shader.ShaderProgram
+import com.lehaine.littlekt.graphics.shader.VertexShaderModel
 import com.lehaine.littlekt.input.Key
 import com.lehaine.littlekt.math.MutableVec2f
 import com.lehaine.littlekt.math.Vec2f
@@ -25,7 +31,7 @@ import kotlin.math.floor
  * @author Colton Daily
  * @date 2/24/2022
  */
-class PixelSmoothCameraTest(context: Context) : ContextListener(context) {
+class PixelSmoothCameraSceneGraphTest(context: Context) : ContextListener(context) {
     var pxWidth = 0
     var pxHeight = 0
     val targetHeight = 160
@@ -40,6 +46,15 @@ class PixelSmoothCameraTest(context: Context) : ContextListener(context) {
     }
 
     override suspend fun Context.start() {
+
+        val graph = sceneGraph(context) {
+            canvasLayer {
+                frameBuffer {
+
+                }
+            }
+        }
+
         val batch = SpriteBatch(this)
         val mapLoader = resourcesVfs["ldtk/world.ldtk"].readLDtkMapLoader()
         val icon = resourcesVfs["icon_16x16.png"].readTexture()
