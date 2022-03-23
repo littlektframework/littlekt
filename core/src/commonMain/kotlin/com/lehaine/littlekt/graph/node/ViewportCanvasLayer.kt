@@ -36,6 +36,12 @@ inline fun SceneGraph<*>.viewport(callback: @SceneGraphDslMarker ViewportCanvasL
  */
 open class ViewportCanvasLayer : CanvasLayer() {
 
+    override fun resize(width: Int, height: Int) {
+        val scene = scene ?: return
+        viewport.update(width, height, scene.context, true)
+        onSizeChanged.emit()
+    }
+
     override fun render(batch: Batch, renderCallback: ((Node, Batch, Camera) -> Unit)?) {
         val scene = scene ?: return
         if (!enabled) return

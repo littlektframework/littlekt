@@ -47,11 +47,10 @@ inline fun SceneGraph<*>.canvasLayer(callback: @SceneGraphDslMarker CanvasLayer.
  */
 open class CanvasLayer : Node() {
 
-    val canvasCamera = OrthographicCamera()
+    var viewport: Viewport = Viewport()
+    val canvasCamera: OrthographicCamera get() = viewport.camera as OrthographicCamera
 
     val onSizeChanged: Signal = signal()
-
-    var viewport: Viewport = Viewport()
 
     var virtualWidth: Float
         get() = viewport.virtualWidth
