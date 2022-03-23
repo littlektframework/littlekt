@@ -1,5 +1,6 @@
 package com.lehaine.littlekt.graph.node
 
+import com.lehaine.littlekt.Context
 import com.lehaine.littlekt.graph.SceneGraph
 import com.lehaine.littlekt.graph.node.annotation.SceneGraphDslMarker
 import com.lehaine.littlekt.graph.node.component.InputEvent
@@ -80,6 +81,11 @@ open class Node : Comparable<Node> {
     private var readyNotified = false
     private var readyFirst = true
 
+    val context: Context
+        get() = scene?.context
+            ?: error("This Node could not get a context. Check to see if it is added to a Scene and if that Scene is the active scene!")
+    val contextOrNull: Context? get() = scene?.context
+
     val dt: Duration get() = scene?.dt ?: Duration.ZERO
 
     /**
@@ -146,12 +152,20 @@ open class Node : Comparable<Node> {
      */
     val insideTree get() = scene != null
 
+    /**
+     * Attempts to grab the [SceneGraph.fixedProgressionRatio]. Defaults to `1` if not.
+     */
+    val fixedProgressRatio: Float get() = scene?.fixedProgressionRatio ?: 1f
+
+    /**
+     * The index of this [Node] as a child in it's [parent].
+     */
+    val index: Int get() = pos - 1
+
     private var _tag = 0
     private var _enabled = true
     private var _updateOrder = 0
     private var _isDestroyed = false
-
-    val index: Int get() = pos - 1
 
     private var pos = -1
     private var depth = -1
@@ -198,6 +212,22 @@ open class Node : Comparable<Node> {
      */
     val onReady: Signal = signal()
 
+
+    /**
+     * List of 'pre-update' callbacks called when [preUpdate] is called. Add any additional callbacks directly to this list.
+     * The main use is to add callbacks directly to nodes inline when building a [SceneGraph] vs having to extend
+     * a class directly.
+     *
+     * ```
+     * node {
+     *     onPreUpdate += { dt ->
+     *         // handle pre-update logic
+     *     }
+     * }
+     * ```
+     */
+    val onPreUpdate: SingleSignal<Duration> = signal1v()
+
     /**
      * List of 'update' callbacks called when [update] is called. Add any additional callbacks directly to this list.
      * The main use is to add callbacks directly to nodes inline when building a [SceneGraph] vs having to extend
@@ -212,6 +242,36 @@ open class Node : Comparable<Node> {
      * ```
      */
     val onUpdate: SingleSignal<Duration> = signal1v()
+
+    /**
+     * List of 'post-update' callbacks called when [postUpdate] is called. Add any additional callbacks directly to this list.
+     * The main use is to add callbacks directly to nodes inline when building a [SceneGraph] vs having to extend
+     * a class directly.
+     *
+     * ```
+     * node {
+     *     onPostUpdate += { dt ->
+     *         // handle post-update logic
+     *     }
+     * }
+     * ```
+     */
+    val onPostUpdate: SingleSignal<Duration> = signal1v()
+
+    /**
+     * List of 'fixed-update' callbacks called when [fixedUpdate] is called. Add any additional callbacks directly to this list.
+     * The main use is to add callbacks directly to nodes inline when building a [SceneGraph] vs having to extend
+     * a class directly.
+     *
+     * ```
+     * node {
+     *     onFixedUpdate += {
+     *         // handle fixed-update logic
+     *     }
+     * }
+     * ```
+     */
+    val onFixedUpdate: Signal = signal()
 
     /**
      * List of 'destroy' callbacks called when [destroy] is called. Add any additional callbacks directly to this list.
@@ -376,11 +436,29 @@ open class Node : Comparable<Node> {
         }
     }
 
+    fun propagatePreUpdate() {
+        preUpdate(dt)
+        onUpdate.emit(dt)
+        nodes.preUpdate()
+    }
+
     fun propagateUpdate() {
         update(dt)
         onUpdate.emit(dt)
         nodes.updateLists()
         nodes.update()
+    }
+
+    fun propagatePostUpdate() {
+        postUpdate(dt)
+        onPostUpdate.emit(dt)
+        nodes.postUpdate()
+    }
+
+    fun propagateFixedUpdate() {
+        fixedUpdate()
+        onFixedUpdate.emit()
+        nodes.fixedUpdate()
     }
 
     fun propagateResize(width: Int, height: Int, center: Boolean) {
@@ -596,7 +674,24 @@ open class Node : Comparable<Node> {
     /**
      * Called each frame as long as the [Node] is [enabled].
      */
+    protected open fun preUpdate(dt: Duration) {}
+
+    /**
+     * Called each frame as long as the [Node] is [enabled].
+     */
     protected open fun update(dt: Duration) {}
+
+    /**
+     * Called each frame as long as the [Node] is [enabled].
+     */
+    protected open fun postUpdate(dt: Duration) {}
+
+    /**
+     * Called at a fixed interval.
+     * @see SceneGraph.fixedTimesPerSecond
+     * @see SceneGraph.fixedProgressionRatio
+     */
+    protected open fun fixedUpdate() {}
 
     /**
      * Called when there is an [InputEvent]. The input event propagates up through the node

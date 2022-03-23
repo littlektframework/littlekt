@@ -18,6 +18,7 @@ import com.lehaine.littlekt.input.*
 import com.lehaine.littlekt.math.MutableVec2f
 import com.lehaine.littlekt.util.datastructure.Pool
 import com.lehaine.littlekt.util.fastForEach
+import com.lehaine.littlekt.util.milliseconds
 import com.lehaine.littlekt.util.seconds
 import com.lehaine.littlekt.util.viewport.ScreenViewport
 import com.lehaine.littlekt.util.viewport.Viewport
@@ -25,6 +26,7 @@ import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
 
 /**
  * Create a new scene graph with a [callback] with the [SceneGraph] in context.
@@ -170,12 +172,54 @@ open class SceneGraph<InputType>(
     val width: Float get() = sceneCanvas.virtualWidth
     val height: Float get() = sceneCanvas.virtualHeight
 
+    /**
+     * The target FPS for [tmod].
+     */
     var targetFPS = 60
+
+    /**
+     * The time modifier based off of [targetFPS].
+     *
+     * If [targetFPS] is set to `60` and the application is running at `120` FPS then this value will be `0.5f`
+     * This can be used instead of [dt] to handle frame indepenent logic.
+     */
     var tmod: Float = 1f
         private set
 
+    /**
+     * Pixel Per Unit. Changing this value affects [ppuInv]. Defaults to `1`.
+     */
+    open var ppu = 1f
+
+    /**
+     * The inverse of [ppu]. Can be used to scale nodes correctly when using a [ppu] that isn't `1`.
+     */
+    val ppuInv get() = 1f / ppu
+
+    /**
+     * The current delta time.
+     */
     var dt: Duration = Duration.ZERO
         private set
+
+    /**
+     * The fixed progression lerp ratio for fixed updates. This is used for rendering nodes that
+     * use [Node.fixedUpdate] for movement / physics logic.
+     */
+    val fixedProgressionRatio: Float get() = _fixedProgressionRatio
+
+    /**
+     * The interval for [Node.fixedUpdate] to fire. Defaults to `30` times per second.
+     */
+    var fixedTimesPerSecond: Int = 30
+        set(value) {
+            field = value
+            time = (1f / value).seconds
+        }
+
+    private var accum = 0.milliseconds
+    private var _fixedProgressionRatio = 1f
+    private var time = (1f / fixedTimesPerSecond).seconds
 
     /**
      * Holds the current [Material] of the last rendered [Node] (or the [SceneGraph.material] if no changes were made)
@@ -226,8 +270,6 @@ open class SceneGraph<InputType>(
 
     /**
      * Renders the entire tree.
-     * @param onNodeRender invoked when a node receives a `render` call. Useful when extending the [SceneGraph]
-     * and providing custom logic before each render such as camera culling.
      */
     open fun render() {
         if (!initialized) error("You need to call 'initialize()'once before doing any rendering or updating!")
@@ -398,6 +440,16 @@ open class SceneGraph<InputType>(
             inputEventPool.free(it)
         }
         unhandledInputQueue.clear()
+
+        accum += dt
+        while (accum >= time) {
+            accum -= time
+            if (root.enabled && (root.updateInterval == 1 || frameCount % root.updateInterval == 0)) {
+                root.propagateFixedUpdate()
+            }
+        }
+
+        _fixedProgressionRatio = accum.milliseconds / time.milliseconds
 
         if (root.enabled && (root.updateInterval == 1 || frameCount % root.updateInterval == 0)) {
             root.propagateUpdate()

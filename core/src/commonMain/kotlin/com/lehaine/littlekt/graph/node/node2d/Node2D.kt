@@ -36,4 +36,7 @@ inline fun SceneGraph<*>.node2d(callback: @SceneGraphDslMarker Node2D.() -> Unit
  * @author Colton Daily
  * @date 3/17/2022
  */
-open class Node2D : CanvasItem()
+open class Node2D : CanvasItem() {
+    val ppu: Float get() = scene?.ppu ?: 1f
+    val ppuInv: Float get() = scene?.ppuInv ?: 1f
+}

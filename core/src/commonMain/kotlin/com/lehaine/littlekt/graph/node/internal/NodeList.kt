@@ -86,6 +86,15 @@ class NodeList {
         }
     }
 
+    internal fun preUpdate() {
+        nodes.fastForEach {
+            if (it.enabled && (it.updateInterval == 1 || frameCount % it.updateInterval == 0)) {
+                it.propagatePreUpdate()
+            }
+        }
+        frameCount++
+    }
+
     /**
      * Should only be called once a frame.
      */
@@ -93,6 +102,24 @@ class NodeList {
         nodes.fastForEach {
             if (it.enabled && (it.updateInterval == 1 || frameCount % it.updateInterval == 0)) {
                 it.propagateUpdate()
+            }
+        }
+        frameCount++
+    }
+
+    internal fun postUpdate() {
+        nodes.fastForEach {
+            if (it.enabled && (it.updateInterval == 1 || frameCount % it.updateInterval == 0)) {
+                it.propagatePostUpdate()
+            }
+        }
+        frameCount++
+    }
+
+    internal fun fixedUpdate() {
+        nodes.fastForEach {
+            if (it.enabled && (it.updateInterval == 1 || frameCount % it.updateInterval == 0)) {
+                it.propagateFixedUpdate()
             }
         }
         frameCount++
