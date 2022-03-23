@@ -162,6 +162,17 @@ open class Node : Comparable<Node> {
      */
     val index: Int get() = pos - 1
 
+    /**
+     * Pixels per unit. Mainly used when rendering a [Node]. This is based off of the
+     * [SceneGraph.ppu].
+     */
+    val ppu: Float get() = scene?.ppu ?: 1f
+
+    /**
+     * The inverse of [ppu]. This is based off the [SceneGraph.ppuInv].
+     */
+    val ppuInv: Float get() = scene?.ppuInv ?: 1f
+
     private var _tag = 0
     private var _enabled = true
     private var _updateOrder = 0
