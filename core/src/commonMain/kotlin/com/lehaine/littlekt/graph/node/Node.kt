@@ -155,7 +155,7 @@ open class Node : Comparable<Node> {
     /**
      * Attempts to grab the [SceneGraph.fixedProgressionRatio]. Defaults to `1` if not.
      */
-    val fixedProgressRatio: Float get() = scene?.fixedProgressionRatio ?: 1f
+    val fixedProgressionRatio: Float get() = scene?.fixedProgressionRatio ?: 1f
 
     /**
      * The index of this [Node] as a child in it's [parent].
