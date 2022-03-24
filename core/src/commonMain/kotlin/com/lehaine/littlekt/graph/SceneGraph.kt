@@ -461,7 +461,9 @@ open class SceneGraph<InputType>(
         _fixedProgressionRatio = accum.milliseconds / time.milliseconds
 
         if (root.enabled && (root.updateInterval == 1 || frameCount % root.updateInterval == 0)) {
+            root.propagatePreUpdate()
             root.propagateUpdate()
+            root.propagatePostUpdate()
         }
         frameCount++
     }

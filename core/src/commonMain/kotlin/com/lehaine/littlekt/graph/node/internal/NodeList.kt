@@ -92,7 +92,6 @@ class NodeList {
                 it.propagatePreUpdate()
             }
         }
-        frameCount++
     }
 
     /**
@@ -113,7 +112,6 @@ class NodeList {
                 it.propagatePostUpdate()
             }
         }
-        frameCount++
     }
 
     internal fun fixedUpdate() {
@@ -122,7 +120,6 @@ class NodeList {
                 it.propagateFixedUpdate()
             }
         }
-        frameCount++
     }
 
     internal fun updateLists() {

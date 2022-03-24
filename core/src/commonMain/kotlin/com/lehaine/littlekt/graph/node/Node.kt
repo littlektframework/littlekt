@@ -449,7 +449,7 @@ open class Node : Comparable<Node> {
 
     fun propagatePreUpdate() {
         preUpdate(dt)
-        onUpdate.emit(dt)
+        onPreUpdate.emit(dt)
         nodes.preUpdate()
     }
 
