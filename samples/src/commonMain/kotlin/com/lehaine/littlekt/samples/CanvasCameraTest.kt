@@ -15,6 +15,7 @@ import com.lehaine.littlekt.graph.node.ui.button
 import com.lehaine.littlekt.graph.node.ui.centerContainer
 import com.lehaine.littlekt.graph.node.ui.frameBufferContainer
 import com.lehaine.littlekt.graph.node.ui.label
+import com.lehaine.littlekt.graph.node.viewport
 import com.lehaine.littlekt.graph.sceneGraph
 import com.lehaine.littlekt.graphics.gl.ClearBufferMask
 import com.lehaine.littlekt.input.Key
@@ -33,7 +34,7 @@ class CanvasCameraTest(context: Context) : ContextListener(context) {
         val pixelFont = resourcesVfs["m5x7_16.fnt"].readBitmapFont()
         val icon = resourcesVfs["icon_16x16.png"].readTexture()
         val graph = sceneGraph(context, ExtendViewport(240, 136)) {
-            canvasLayer {
+            viewport {
                 viewport = ExtendViewport(480, 272)
 
                 frameBufferContainer {
@@ -84,45 +85,6 @@ class CanvasCameraTest(context: Context) : ContextListener(context) {
                     }
                 }
             }
-
-//            canvasLayer {
-//                node2d {
-//                    x = 50f
-//                    onReady += {
-//                        println("$name: $canvas")
-//                    }
-//                    onUpdate += {
-//                        if (input.isKeyPressed(Key.D)) {
-//                            globalX += 1f
-//                        } else if (input.isKeyPressed(Key.A)) {
-//                            globalX -= 1f
-//                        }
-//
-//                        if (input.isKeyPressed(Key.S)) {
-//                            globalY += 1f
-//                        } else if (input.isKeyPressed(Key.W)) {
-//                            globalY -= 1f
-//                        }
-//                    }
-//                    onRender += { batch, camera ->
-//                        batch.draw(icon, globalX, globalY)
-//                    }
-//                    camera2d {
-//                        x = 50f
-//                        active = true
-//                    }
-//                }
-
-//                var rotation = Angle.ZERO
-//                node2d {
-//                    x = 250f
-//                    y = 20f
-//                    onRender += { batch, camera ->
-//                        rotation += 0.01.radians
-//                        batch.draw(icon, globalX, globalY, scaleX = 2f, scaleY = 2f, rotation = rotation)
-//                    }
-//                }
-//            }
 
             centerContainer {
                 anchorRight = 1f
