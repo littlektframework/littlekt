@@ -162,6 +162,20 @@ open class AnimationPlayer<KeyFrameType> {
      */
     fun stop() {
         animationRequested = false
+        if (overlapPlaying) {
+            overlapPlaying = false
+            if (lastAnimationType == AnimationType.LOOPED) {
+                lastAnimation?.let {
+                    playLooped(it)
+                }
+            } else {
+                lastAnimation?.let {
+                    play(it)
+                }
+            }
+            lastAnimation = null
+            lastAnimationType = null
+        }
     }
 
     private fun nextFrame(frameTime: Duration) {

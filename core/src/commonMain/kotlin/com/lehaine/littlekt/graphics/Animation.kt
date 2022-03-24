@@ -25,7 +25,7 @@ class Animation<KeyFrameType>(
     /**
      * The amount of time spent displaying each frame.
      */
-    val frameTimes: List<Duration>
+    val frameTimes: List<Duration>,
 ) {
     val id = nextAnimId++
     val frameStackSize: Int get() = frames.size
@@ -35,8 +35,7 @@ class Animation<KeyFrameType>(
     /**
      * The total duration of this animation
      */
-    val duration = frameTimes.reduce { acc, ft -> acc + ft }
-
+    val duration = if (frameTimes.isEmpty()) Duration.ZERO else frameTimes.reduce { acc, ft -> acc + ft }
 
     fun getFrame(time: Duration): KeyFrameType {
         var counter = time
@@ -110,7 +109,7 @@ class AnimationBuilder<T>(private val frames: List<T>) {
  */
 fun TextureAtlas.getAnimation(
     prefix: String = "",
-    defaultTimePerFrame: Duration = 100.milliseconds
+    defaultTimePerFrame: Duration = 100.milliseconds,
 ): Animation<TextureSlice> {
     val slices = entries.filter { it.name.startsWith(prefix) }.map { it.slice }
     return Animation(slices, List(slices.size) { it }, List(slices.size) { defaultTimePerFrame })
