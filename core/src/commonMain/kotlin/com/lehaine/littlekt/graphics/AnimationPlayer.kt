@@ -17,6 +17,7 @@ open class AnimationPlayer<KeyFrameType> {
      * @see [play]
      * @see [playOnce]
      * @see [playLooped]
+     * @see [playOverlap]
      */
     var currentAnimation: Animation<KeyFrameType>? = null
         private set
@@ -56,9 +57,45 @@ open class AnimationPlayer<KeyFrameType> {
         }
     private var frameDisplayTime: Duration = 100.milliseconds
     private var animationType = AnimationType.STANDARD
-    private var loop = false
     private var lastFrameTime: Duration = Duration.ZERO
     private var remainingDuration: Duration = Duration.ZERO
+
+    private var lastAnimation: Animation<KeyFrameType>? = null
+    private var lastAnimationType: AnimationType? = null
+
+    private var overlapPlaying: Boolean = false
+    private val tempFrames = mutableListOf<KeyFrameType>()
+    private val tempIndices = mutableListOf<Int>()
+    private val tempTimes = mutableListOf<Duration>()
+    private val tempAnim = Animation(tempFrames, tempIndices, tempTimes)
+
+    /**
+     * Plays the specified animation one time and then reverts to the previous animation.
+     */
+    fun playOverlap(animation: Animation<KeyFrameType>) {
+        if (!overlapPlaying) {
+            lastAnimation = currentAnimation
+            lastAnimationType = animationType
+        }
+        overlapPlaying = true
+        play(animation)
+    }
+
+    /**
+     * Play a specified frame for a certain amount of frames as an overlap.
+     * @see [playOverlap]
+     */
+    fun playOverlap(frame: KeyFrameType, frameTime: Duration = 50.milliseconds, numFrames: Int = 1) {
+        tempFrames.clear()
+        tempIndices.clear()
+        tempTimes.clear()
+        tempFrames += frame
+        repeat(numFrames) {
+            tempIndices += 0
+            tempTimes += frameTime
+        }
+        playOverlap(tempAnim)
+    }
 
     /**
      * Play the specified animation an X number of times.
@@ -97,7 +134,6 @@ open class AnimationPlayer<KeyFrameType> {
     fun playLooped(animation: Animation<KeyFrameType>, force: Boolean = false) {
         setAnimInfo(
             animation,
-            loop = true,
             type = AnimationType.LOOPED,
             force = force
         )
@@ -157,16 +193,14 @@ open class AnimationPlayer<KeyFrameType> {
     private fun setAnimInfo(
         animation: Animation<KeyFrameType>,
         cyclesRequested: Int = 1,
-        loop: Boolean = false,
         type: AnimationType = AnimationType.STANDARD,
-        force: Boolean = false
+        force: Boolean = false,
     ) {
         if (!force && animationRequested && currentAnimation == animation) return
 
         currentAnimation = animation
         currentFrameIdx = 0
         frameDisplayTime = currentAnimation?.getFrameTime(currentFrameIdx) ?: Duration.ZERO
-        this.loop = loop
         animationType = type
         animationRequested = true
         numOfFramesRequested = cyclesRequested * totalFrames
