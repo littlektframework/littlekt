@@ -102,8 +102,14 @@ class SceneGraphTest(context: Context) : ContextListener(context) {
             graph.render()
 
             if (input.isKeyJustPressed(Key.R)) {
+                println("graph before destroy")
+                println(graph.root.treeString())
                 graph.destroyRoot()
+                println("graph after destroy")
+                println(graph.root.treeString())
                 graph.init()
+                println("graph after init")
+                println(graph.root.treeString())
             }
 
             if (input.isKeyJustPressed(Key.P)) {

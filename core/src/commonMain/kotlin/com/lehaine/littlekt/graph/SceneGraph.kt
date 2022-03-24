@@ -245,7 +245,6 @@ open class SceneGraph<InputType>(
     private val tempVec = MutableVec2f()
 
     private var initialized = false
-    private var reloadRequest = false
 
     private val unhandledInputQueue = ArrayDeque<InputEvent<InputType>>(20)
 
@@ -275,6 +274,7 @@ open class SceneGraph<InputType>(
      */
     fun destroyRoot() {
         root.children.forEach { it.destroy() }
+        root.nodes.updateLists()
     }
 
     /**

@@ -577,7 +577,7 @@ open class Node : Comparable<Node> {
 
         onChildRemoved(child)
 
-        parent?.onDescendantAdded(child)
+        parent?.onDescendantRemoved(child)
         if (insideTree) {
             child.propagateAfterExitTree()
         }
