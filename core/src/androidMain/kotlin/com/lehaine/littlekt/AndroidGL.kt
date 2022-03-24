@@ -19,7 +19,9 @@ class AndroidGL(private val engineStats: EngineStats) : GL {
     internal var glVersion: GLVersion = GLVersion(Context.Platform.ANDROID)
     override val version: GLVersion get() = glVersion
 
-    var lastBoundBuffer: GlBuffer? = null
+    private var lastBoundBuffer: GlBuffer? = null
+    private var lastBoundShader: GlShaderProgram? = null
+    private var lastBoundTexture: GlTexture? = null
 
     private val intBuffer = java.nio.IntBuffer.allocate(1)
 
@@ -322,7 +324,7 @@ class AndroidGL(private val engineStats: EngineStats) : GL {
     }
 
     override fun frameBufferRenderBuffer(
-        attachementType: FrameBufferRenderBufferAttachment, glRenderBuffer: GlRenderBuffer
+        attachementType: FrameBufferRenderBufferAttachment, glRenderBuffer: GlRenderBuffer,
     ) {
         engineStats.calls++
         GLES20.glFramebufferRenderbuffer(
@@ -345,7 +347,7 @@ class AndroidGL(private val engineStats: EngineStats) : GL {
     }
 
     override fun frameBufferTexture2D(
-        attachementType: FrameBufferRenderBufferAttachment, glTexture: GlTexture, level: Int
+        attachementType: FrameBufferRenderBufferAttachment, glTexture: GlTexture, level: Int,
     ) {
         engineStats.calls++
         GLES20.glFramebufferTexture2D(
@@ -354,7 +356,7 @@ class AndroidGL(private val engineStats: EngineStats) : GL {
     }
 
     override fun frameBufferTexture2D(
-        target: Int, attachementType: FrameBufferRenderBufferAttachment, glTexture: GlTexture, level: Int
+        target: Int, attachementType: FrameBufferRenderBufferAttachment, glTexture: GlTexture, level: Int,
     ) {
         engineStats.calls++
         GLES20.glFramebufferTexture2D(
@@ -488,9 +490,12 @@ class AndroidGL(private val engineStats: EngineStats) : GL {
     }
 
     override fun useProgram(glShaderProgram: GlShaderProgram) {
-        engineStats.calls++
-        engineStats.shaderSwitches++
-        GLES20.glUseProgram(glShaderProgram.address)
+        if (lastBoundShader != glShaderProgram) {
+            engineStats.calls++
+            engineStats.shaderSwitches++
+            lastBoundShader = glShaderProgram
+            GLES20.glUseProgram(glShaderProgram.address)
+        }
     }
 
     override fun validateProgram(glShaderProgram: GlShaderProgram) {
@@ -499,9 +504,12 @@ class AndroidGL(private val engineStats: EngineStats) : GL {
     }
 
     override fun useDefaultProgram() {
-        engineStats.calls++
-        engineStats.shaderSwitches++
-        GLES20.glUseProgram(0)
+        if (lastBoundShader != null) {
+            engineStats.calls++
+            engineStats.shaderSwitches++
+            lastBoundShader = null
+            GLES20.glUseProgram(0)
+        }
     }
 
     override fun scissor(x: Int, y: Int, width: Int, height: Int) {
@@ -612,14 +620,21 @@ class AndroidGL(private val engineStats: EngineStats) : GL {
     }
 
     override fun bindTexture(target: Int, glTexture: GlTexture) {
-        engineStats.calls++
-        engineStats.textureBindings++
-        GLES20.glBindTexture(target, glTexture.reference)
+        if (lastBoundTexture != glTexture) {
+            engineStats.calls++
+            engineStats.textureBindings++
+            lastBoundTexture = glTexture
+            GLES20.glBindTexture(target, glTexture.reference)
+        }
     }
 
     override fun bindDefaultTexture(target: TextureTarget) {
-        engineStats.calls++
-        GLES20.glBindTexture(target.glFlag, GL.NONE)
+        if (lastBoundTexture != null) {
+            engineStats.calls++
+            engineStats.textureBindings++
+            lastBoundTexture = null
+            GLES20.glBindTexture(target.glFlag, GL.NONE)
+        }
     }
 
     override fun deleteTexture(glTexture: GlTexture) {
@@ -635,7 +650,7 @@ class AndroidGL(private val engineStats: EngineStats) : GL {
         internalFormat: Int,
         width: Int,
         height: Int,
-        source: ByteBuffer?
+        source: ByteBuffer?,
     ) {
         engineStats.calls++
         if (source != null) {
@@ -654,7 +669,7 @@ class AndroidGL(private val engineStats: EngineStats) : GL {
         width: Int,
         height: Int,
         format: Int,
-        source: ByteBuffer
+        source: ByteBuffer,
     ) {
         engineStats.calls++
         source as ByteBufferImpl
@@ -672,7 +687,7 @@ class AndroidGL(private val engineStats: EngineStats) : GL {
     }
 
     override fun copyTexImage2D(
-        target: Int, level: Int, internalFormat: Int, x: Int, y: Int, width: Int, height: Int, border: Int
+        target: Int, level: Int, internalFormat: Int, x: Int, y: Int, width: Int, height: Int, border: Int,
     ) {
         engineStats.calls++
         GLES20.glCopyTexImage2D(target, level, internalFormat, x, y, width, height, border)
@@ -701,7 +716,7 @@ class AndroidGL(private val engineStats: EngineStats) : GL {
         height: Int,
         format: Int,
         type: Int,
-        source: ByteBuffer
+        source: ByteBuffer,
     ) {
         engineStats.calls++
         source as ByteBufferImpl
@@ -709,7 +724,7 @@ class AndroidGL(private val engineStats: EngineStats) : GL {
     }
 
     override fun texImage2D(
-        target: Int, level: Int, internalFormat: Int, format: Int, width: Int, height: Int, type: Int
+        target: Int, level: Int, internalFormat: Int, format: Int, width: Int, height: Int, type: Int,
     ) {
         engineStats.calls++
         GLES20.glTexImage2D(
@@ -725,7 +740,7 @@ class AndroidGL(private val engineStats: EngineStats) : GL {
         width: Int,
         height: Int,
         type: Int,
-        source: ByteBuffer
+        source: ByteBuffer,
     ) {
         engineStats.calls++
         source as ByteBufferImpl
@@ -744,7 +759,7 @@ class AndroidGL(private val engineStats: EngineStats) : GL {
         width: Int,
         height: Int,
         depth: Int,
-        source: ByteBuffer?
+        source: ByteBuffer?,
     ) {
         engineStats.calls++
         if (source != null) {
@@ -775,7 +790,7 @@ class AndroidGL(private val engineStats: EngineStats) : GL {
         height: Int,
         depth: Int,
         format: Int,
-        source: ByteBuffer
+        source: ByteBuffer,
     ) {
         engineStats.calls++
         source as ByteBufferImpl
@@ -803,7 +818,7 @@ class AndroidGL(private val engineStats: EngineStats) : GL {
         x: Int,
         y: Int,
         width: Int,
-        height: Int
+        height: Int,
     ) {
         engineStats.calls++
         GLES30.glCopyTexSubImage3D(target, level, xOffset, yOffset, zOffset, x, y, width, height)
@@ -820,7 +835,7 @@ class AndroidGL(private val engineStats: EngineStats) : GL {
         depth: Int,
         format: Int,
         type: Int,
-        source: ByteBuffer
+        source: ByteBuffer,
     ) {
         engineStats.calls++
         source as ByteBufferImpl
@@ -847,7 +862,7 @@ class AndroidGL(private val engineStats: EngineStats) : GL {
         width: Int,
         height: Int,
         depth: Int,
-        type: Int
+        type: Int,
     ) {
         engineStats.calls++
         GLES30.glTexImage3D(
@@ -864,7 +879,7 @@ class AndroidGL(private val engineStats: EngineStats) : GL {
         height: Int,
         depth: Int,
         type: Int,
-        source: ByteBuffer
+        source: ByteBuffer,
     ) {
         engineStats.calls++
         source as ByteBufferImpl

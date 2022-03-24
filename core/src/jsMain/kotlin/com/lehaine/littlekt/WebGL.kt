@@ -13,8 +13,11 @@ import org.khronos.webgl.*
  * @date 9/28/2021
  */
 class WebGL(val gl: WebGL2RenderingContext, val platform: Context.Platform, private val engineStats: EngineStats) : GL {
-    private var lastBoundBuffer: GlBuffer? = null
     override val version: GLVersion = GLVersion(platform, if (platform == Context.Platform.WEBGL2) "3.0" else "2.0")
+
+    private var lastBoundBuffer: GlBuffer? = null
+    private var lastBoundShader: GlShaderProgram? = null
+    private var lastBoundTexture: GlTexture? = null
 
     override fun clearColor(r: Float, g: Float, b: Float, a: Float) {
         engineStats.calls++
@@ -209,7 +212,8 @@ class WebGL(val gl: WebGL2RenderingContext, val platform: Context.Platform, priv
             GL.STENCIL_BACK_WRITEMASK, GL.STENCIL_BITS, GL.STENCIL_CLEAR_VALUE,
             GL.STENCIL_FAIL, GL.STENCIL_FUNC, GL.STENCIL_PASS_DEPTH_FAIL,
             GL.STENCIL_PASS_DEPTH_PASS, GL.STENCIL_REF, GL.STENCIL_VALUE_MASK,
-            GL.STENCIL_WRITEMASK, GL.SUBPIXEL_BITS, GL.UNPACK_ALIGNMENT -> {
+            GL.STENCIL_WRITEMASK, GL.SUBPIXEL_BITS, GL.UNPACK_ALIGNMENT,
+            -> {
                 data[0] = gl.getParameter(pname) as Int
                 data.flip()
             }
@@ -339,7 +343,7 @@ class WebGL(val gl: WebGL2RenderingContext, val platform: Context.Platform, priv
 
     override fun frameBufferRenderBuffer(
         attachementType: FrameBufferRenderBufferAttachment,
-        glRenderBuffer: GlRenderBuffer
+        glRenderBuffer: GlRenderBuffer,
     ) {
         engineStats.calls++
         gl.framebufferRenderbuffer(GL.FRAMEBUFFER, attachementType.glFlag, GL.RENDERBUFFER, glRenderBuffer.delegate)
@@ -358,7 +362,7 @@ class WebGL(val gl: WebGL2RenderingContext, val platform: Context.Platform, priv
     override fun frameBufferTexture2D(
         attachementType: FrameBufferRenderBufferAttachment,
         glTexture: GlTexture,
-        level: Int
+        level: Int,
     ) {
         engineStats.calls++
         gl.framebufferTexture2D(GL.FRAMEBUFFER, attachementType.glFlag, GL.TEXTURE_2D, glTexture.delegate, level)
@@ -368,7 +372,7 @@ class WebGL(val gl: WebGL2RenderingContext, val platform: Context.Platform, priv
         target: Int,
         attachementType: FrameBufferRenderBufferAttachment,
         glTexture: GlTexture,
-        level: Int
+        level: Int,
     ) {
         engineStats.calls++
         gl.framebufferTexture2D(target, attachementType.glFlag, GL.TEXTURE_2D, glTexture.delegate, level)
@@ -495,9 +499,12 @@ class WebGL(val gl: WebGL2RenderingContext, val platform: Context.Platform, priv
     }
 
     override fun useProgram(glShaderProgram: GlShaderProgram) {
-        engineStats.calls++
-        engineStats.shaderSwitches++
-        gl.useProgram(glShaderProgram.delegate)
+        if (lastBoundShader != glShaderProgram) {
+            engineStats.calls++
+            engineStats.shaderSwitches++
+            lastBoundShader = glShaderProgram
+            gl.useProgram(glShaderProgram.delegate)
+        }
     }
 
     override fun validateProgram(glShaderProgram: GlShaderProgram) {
@@ -506,9 +513,12 @@ class WebGL(val gl: WebGL2RenderingContext, val platform: Context.Platform, priv
     }
 
     override fun useDefaultProgram() {
-        engineStats.calls++
-        engineStats.shaderSwitches++
-        gl.useProgram(null)
+        if (lastBoundShader != null) {
+            engineStats.calls++
+            engineStats.shaderSwitches++
+            lastBoundShader = null
+            gl.useProgram(null)
+        }
     }
 
     override fun scissor(x: Int, y: Int, width: Int, height: Int) {
@@ -527,14 +537,20 @@ class WebGL(val gl: WebGL2RenderingContext, val platform: Context.Platform, priv
     }
 
     override fun bindTexture(target: Int, glTexture: GlTexture) {
-        engineStats.calls++
-        engineStats.textureBindings++
-        gl.bindTexture(target, glTexture.delegate)
+        if (lastBoundTexture != glTexture) {
+            engineStats.calls++
+            engineStats.textureBindings++
+            lastBoundTexture = glTexture
+            gl.bindTexture(target, glTexture.delegate)
+        }
     }
 
     override fun bindDefaultTexture(target: TextureTarget) {
-        engineStats.calls++
-        gl.bindTexture(target.glFlag, null)
+        if (lastBoundTexture != null) {
+            engineStats.calls++
+            lastBoundTexture = null
+            gl.bindTexture(target.glFlag, null)
+        }
     }
 
     override fun deleteTexture(glTexture: GlTexture) {
@@ -643,7 +659,7 @@ class WebGL(val gl: WebGL2RenderingContext, val platform: Context.Platform, priv
         internalFormat: Int,
         width: Int,
         height: Int,
-        source: ByteBuffer?
+        source: ByteBuffer?,
     ) {
         engineStats.calls++
         val dataView = (source as? ByteBufferImpl)?.buffer ?: Uint8Array(0)
@@ -658,7 +674,7 @@ class WebGL(val gl: WebGL2RenderingContext, val platform: Context.Platform, priv
         width: Int,
         height: Int,
         format: Int,
-        source: ByteBuffer
+        source: ByteBuffer,
     ) {
         engineStats.calls++
         source as ByteBufferImpl
@@ -673,7 +689,7 @@ class WebGL(val gl: WebGL2RenderingContext, val platform: Context.Platform, priv
         y: Int,
         width: Int,
         height: Int,
-        border: Int
+        border: Int,
     ) {
         engineStats.calls++
         gl.copyTexImage2D(target, level, internalFormat, x, y, width, height, border)
@@ -687,7 +703,7 @@ class WebGL(val gl: WebGL2RenderingContext, val platform: Context.Platform, priv
         x: Int,
         y: Int,
         width: Int,
-        height: Int
+        height: Int,
     ) {
         engineStats.calls++
         gl.copyTexSubImage2D(target, level, xOffset, yOffset, x, y, width, height)
@@ -702,7 +718,7 @@ class WebGL(val gl: WebGL2RenderingContext, val platform: Context.Platform, priv
         height: Int,
         format: Int,
         type: Int,
-        source: ByteBuffer
+        source: ByteBuffer,
     ) {
         engineStats.calls++
         source as ByteBufferImpl
@@ -716,7 +732,7 @@ class WebGL(val gl: WebGL2RenderingContext, val platform: Context.Platform, priv
         format: Int,
         width: Int,
         height: Int,
-        type: Int
+        type: Int,
     ) {
         engineStats.calls++
         gl.texImage2D(target, level, internalFormat, width, height, 0, format, type, null)
@@ -731,7 +747,7 @@ class WebGL(val gl: WebGL2RenderingContext, val platform: Context.Platform, priv
         width: Int,
         height: Int,
         type: Int,
-        source: ByteBuffer
+        source: ByteBuffer,
     ) {
         engineStats.calls++
         source as ByteBufferImpl
@@ -748,7 +764,7 @@ class WebGL(val gl: WebGL2RenderingContext, val platform: Context.Platform, priv
         width: Int,
         height: Int,
         depth: Int,
-        source: ByteBuffer?
+        source: ByteBuffer?,
     ) {
         engineStats.calls++
         val dataView = (source as? ByteBufferImpl)?.buffer ?: Uint8Array(0)
@@ -765,7 +781,7 @@ class WebGL(val gl: WebGL2RenderingContext, val platform: Context.Platform, priv
         height: Int,
         depth: Int,
         format: Int,
-        source: ByteBuffer
+        source: ByteBuffer,
     ) {
         engineStats.calls++
         source as ByteBufferImpl
@@ -792,7 +808,7 @@ class WebGL(val gl: WebGL2RenderingContext, val platform: Context.Platform, priv
         x: Int,
         y: Int,
         width: Int,
-        height: Int
+        height: Int,
     ) {
         engineStats.calls++
         gl.copyTexSubImage3D(target, level, xOffset, yOffset, zOffset, x, y, width, height)
@@ -809,7 +825,7 @@ class WebGL(val gl: WebGL2RenderingContext, val platform: Context.Platform, priv
         depth: Int,
         format: Int,
         type: Int,
-        source: ByteBuffer
+        source: ByteBuffer,
     ) {
         engineStats.calls++
         source as ByteBufferImpl
@@ -824,7 +840,7 @@ class WebGL(val gl: WebGL2RenderingContext, val platform: Context.Platform, priv
         width: Int,
         height: Int,
         depth: Int,
-        type: Int
+        type: Int,
     ) {
         engineStats.calls++
         gl.texImage3D(target, level, internalFormat, width, height, depth, 0, format, type, null as Int8Array?)
@@ -839,7 +855,7 @@ class WebGL(val gl: WebGL2RenderingContext, val platform: Context.Platform, priv
         height: Int,
         depth: Int,
         type: Int,
-        source: ByteBuffer
+        source: ByteBuffer,
     ) {
         engineStats.calls++
         source as ByteBufferImpl

@@ -18,7 +18,9 @@ class LwjglGL(private val engineStats: EngineStats) : GL {
     internal var glVersion: GLVersion = GLVersion(Context.Platform.DESKTOP)
     override val version: GLVersion get() = glVersion
 
-    var lastBoundBuffer: GlBuffer? = null
+    private var lastBoundBuffer: GlBuffer? = null
+    private var lastBoundShader: GlShaderProgram? = null
+    private var lastBoundTexture: GlTexture? = null
 
     override fun clearColor(r: Float, g: Float, b: Float, a: Float) {
         engineStats.calls++
@@ -307,7 +309,7 @@ class LwjglGL(private val engineStats: EngineStats) : GL {
     }
 
     override fun frameBufferRenderBuffer(
-        attachementType: FrameBufferRenderBufferAttachment, glRenderBuffer: GlRenderBuffer
+        attachementType: FrameBufferRenderBufferAttachment, glRenderBuffer: GlRenderBuffer,
     ) {
         engineStats.calls++
         EXTFramebufferObject.glFramebufferRenderbufferEXT(
@@ -326,7 +328,7 @@ class LwjglGL(private val engineStats: EngineStats) : GL {
     }
 
     override fun frameBufferTexture2D(
-        attachementType: FrameBufferRenderBufferAttachment, glTexture: GlTexture, level: Int
+        attachementType: FrameBufferRenderBufferAttachment, glTexture: GlTexture, level: Int,
     ) {
         engineStats.calls++
         EXTFramebufferObject.glFramebufferTexture2DEXT(
@@ -335,7 +337,7 @@ class LwjglGL(private val engineStats: EngineStats) : GL {
     }
 
     override fun frameBufferTexture2D(
-        target: Int, attachementType: FrameBufferRenderBufferAttachment, glTexture: GlTexture, level: Int
+        target: Int, attachementType: FrameBufferRenderBufferAttachment, glTexture: GlTexture, level: Int,
     ) {
         engineStats.calls++
         EXTFramebufferObject.glFramebufferTexture2DEXT(
@@ -467,9 +469,12 @@ class LwjglGL(private val engineStats: EngineStats) : GL {
     }
 
     override fun useProgram(glShaderProgram: GlShaderProgram) {
-        engineStats.calls++
-        engineStats.shaderSwitches++
-        glUseProgram(glShaderProgram.address)
+        if (lastBoundShader != glShaderProgram) {
+            engineStats.calls++
+            engineStats.shaderSwitches++
+            lastBoundShader = glShaderProgram
+            glUseProgram(glShaderProgram.address)
+        }
     }
 
     override fun validateProgram(glShaderProgram: GlShaderProgram) {
@@ -478,9 +483,12 @@ class LwjglGL(private val engineStats: EngineStats) : GL {
     }
 
     override fun useDefaultProgram() {
-        engineStats.calls++
-        engineStats.shaderSwitches++
-        glUseProgram(0)
+        if (lastBoundShader != null) {
+            lastBoundBuffer = null
+            engineStats.calls++
+            engineStats.shaderSwitches++
+            glUseProgram(0)
+        }
     }
 
     override fun scissor(x: Int, y: Int, width: Int, height: Int) {
@@ -589,14 +597,20 @@ class LwjglGL(private val engineStats: EngineStats) : GL {
     }
 
     override fun bindTexture(target: Int, glTexture: GlTexture) {
-        engineStats.calls++
-        engineStats.textureBindings++
-        glBindTexture(target, glTexture.reference)
+        if (lastBoundTexture != glTexture) {
+            engineStats.calls++
+            engineStats.textureBindings++
+            lastBoundTexture = glTexture
+            glBindTexture(target, glTexture.reference)
+        }
     }
 
     override fun bindDefaultTexture(target: TextureTarget) {
-        engineStats.calls++
-        glBindTexture(target.glFlag, GL.NONE)
+        if (lastBoundTexture != null) {
+            engineStats.calls++
+            lastBoundTexture = null
+            glBindTexture(target.glFlag, GL.NONE)
+        }
     }
 
     override fun deleteTexture(glTexture: GlTexture) {
@@ -610,7 +624,7 @@ class LwjglGL(private val engineStats: EngineStats) : GL {
         internalFormat: Int,
         width: Int,
         height: Int,
-        source: ByteBuffer?
+        source: ByteBuffer?,
     ) {
         engineStats.calls++
         if (source != null) {
@@ -629,7 +643,7 @@ class LwjglGL(private val engineStats: EngineStats) : GL {
         width: Int,
         height: Int,
         format: Int,
-        source: ByteBuffer
+        source: ByteBuffer,
     ) {
         engineStats.calls++
         source as ByteBufferImpl
@@ -637,7 +651,7 @@ class LwjglGL(private val engineStats: EngineStats) : GL {
     }
 
     override fun copyTexImage2D(
-        target: Int, level: Int, internalFormat: Int, x: Int, y: Int, width: Int, height: Int, border: Int
+        target: Int, level: Int, internalFormat: Int, x: Int, y: Int, width: Int, height: Int, border: Int,
     ) {
         engineStats.calls++
         glCopyTexImage2D(target, level, internalFormat, x, y, width, height, border)
@@ -666,7 +680,7 @@ class LwjglGL(private val engineStats: EngineStats) : GL {
         height: Int,
         format: Int,
         type: Int,
-        source: ByteBuffer
+        source: ByteBuffer,
     ) {
         engineStats.calls++
         source as ByteBufferImpl
@@ -674,7 +688,7 @@ class LwjglGL(private val engineStats: EngineStats) : GL {
     }
 
     override fun texImage2D(
-        target: Int, level: Int, internalFormat: Int, format: Int, width: Int, height: Int, type: Int
+        target: Int, level: Int, internalFormat: Int, format: Int, width: Int, height: Int, type: Int,
     ) {
         engineStats.calls++
         glTexImage2D(
@@ -690,7 +704,7 @@ class LwjglGL(private val engineStats: EngineStats) : GL {
         width: Int,
         height: Int,
         type: Int,
-        source: ByteBuffer
+        source: ByteBuffer,
     ) {
         engineStats.calls++
         source as ByteBufferImpl
@@ -709,7 +723,7 @@ class LwjglGL(private val engineStats: EngineStats) : GL {
         width: Int,
         height: Int,
         depth: Int,
-        source: ByteBuffer?
+        source: ByteBuffer?,
     ) {
         engineStats.calls++
         if (source != null) {
@@ -730,7 +744,7 @@ class LwjglGL(private val engineStats: EngineStats) : GL {
         height: Int,
         depth: Int,
         format: Int,
-        source: ByteBuffer
+        source: ByteBuffer,
     ) {
         engineStats.calls++
         source as ByteBufferImpl
@@ -757,7 +771,7 @@ class LwjglGL(private val engineStats: EngineStats) : GL {
         x: Int,
         y: Int,
         width: Int,
-        height: Int
+        height: Int,
     ) {
         engineStats.calls++
         glCopyTexSubImage3D(target, level, xOffset, yOffset, zOffset, x, y, width, height)
@@ -774,7 +788,7 @@ class LwjglGL(private val engineStats: EngineStats) : GL {
         depth: Int,
         format: Int,
         type: Int,
-        source: ByteBuffer
+        source: ByteBuffer,
     ) {
         engineStats.calls++
         source as ByteBufferImpl
@@ -801,7 +815,7 @@ class LwjglGL(private val engineStats: EngineStats) : GL {
         width: Int,
         height: Int,
         depth: Int,
-        type: Int
+        type: Int,
     ) {
         engineStats.calls++
         glTexImage3D(
@@ -818,7 +832,7 @@ class LwjglGL(private val engineStats: EngineStats) : GL {
         height: Int,
         depth: Int,
         type: Int,
-        source: ByteBuffer
+        source: ByteBuffer,
     ) {
         engineStats.calls++
         source as ByteBufferImpl
