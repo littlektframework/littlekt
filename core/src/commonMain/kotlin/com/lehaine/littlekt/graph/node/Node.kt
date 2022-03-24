@@ -473,7 +473,7 @@ open class Node : Comparable<Node> {
     }
 
     fun propagateResize(width: Int, height: Int, center: Boolean) {
-        if (!enabled) return
+        if (!enabled || isDestroyed) return
         nodes.forEach {
             it.propagateResize(width, height, center)
         }
@@ -486,10 +486,13 @@ open class Node : Comparable<Node> {
         camera: Camera,
         renderCallback: ((Node, Batch, Camera) -> Unit)?,
     ) {
+        if (!enabled || isDestroyed) return
         nodes.forEach { it.propagateInternalRender(batch, camera, renderCallback) }
     }
 
     open fun propagateHit(hx: Float, hy: Float): Control? {
+        if (!enabled || isDestroyed) return null
+
         if (this is Control) {
             return hit(hx, hy)
         }
@@ -503,7 +506,7 @@ open class Node : Comparable<Node> {
     }
 
     open fun callInput(event: InputEvent<*>) {
-        if (!enabled || !insideTree) return
+        if (!enabled || !insideTree || isDestroyed) return
         onInput.emit(event)
         if (event.handled) {
             return
@@ -512,7 +515,7 @@ open class Node : Comparable<Node> {
     }
 
     open fun callUnhandledInput(event: InputEvent<*>) {
-        if (!enabled || !insideTree) return
+        if (!enabled || !insideTree || isDestroyed) return
         onUnhandledInput.emit(event)
         if (event.handled) {
             return

@@ -98,7 +98,7 @@ open class CanvasLayer : Node() {
     }
 
     open fun render(batch: Batch, renderCallback: ((Node, Batch, Camera) -> Unit)?) {
-        if (!enabled) return
+        if (!enabled || isDestroyed) return
         val scene = scene ?: return
 
         val prevProjMatrix = batch.projectionMatrix
@@ -122,6 +122,7 @@ open class CanvasLayer : Node() {
 
     override fun propagateHit(hx: Float, hy: Float): Control? {
         val scene = scene ?: return null
+        if(!enabled || isDestroyed) return null
         scene.sceneToScreenCoordinates(temp.set(hx, hy))
         canvasCamera.screenToWorld(scene.context, temp, viewport, temp)
         nodes.forEachReversed {

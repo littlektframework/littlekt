@@ -44,7 +44,7 @@ open class ViewportCanvasLayer : CanvasLayer() {
 
     override fun render(batch: Batch, renderCallback: ((Node, Batch, Camera) -> Unit)?) {
         val scene = scene ?: return
-        if (!enabled) return
+        if (!enabled || isDestroyed) return
 
         val prevProjMatrix = batch.projectionMatrix
         scene.pushViewport(viewport)

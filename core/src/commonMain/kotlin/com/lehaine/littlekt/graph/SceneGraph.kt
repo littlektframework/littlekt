@@ -245,6 +245,7 @@ open class SceneGraph<InputType>(
     private val tempVec = MutableVec2f()
 
     private var initialized = false
+    private var reloadRequest = false
 
     private val unhandledInputQueue = ArrayDeque<InputEvent<InputType>>(20)
 
@@ -256,6 +257,7 @@ open class SceneGraph<InputType>(
         sceneCanvas.propagateResize(width, height, centerCamera)
     }
 
+
     /**
      * Initializes the root [Node] and [InputProcessor]. This must be called before an [update] or [render] calls.
      */
@@ -266,6 +268,13 @@ open class SceneGraph<InputType>(
         root.initialize()
         onStart()
         initialized = true
+    }
+
+    /**
+     * Destroy all the children in [root].
+     */
+    fun destroyRoot() {
+        root.children.forEach { it.destroy() }
     }
 
     /**

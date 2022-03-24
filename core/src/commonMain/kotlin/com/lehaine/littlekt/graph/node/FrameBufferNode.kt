@@ -68,6 +68,7 @@ open class FrameBufferNode : Node() {
      * @param newHeight the new width of the [FrameBuffer]
      */
     fun resizeFbo(newWidth: Int, newHeight: Int) {
+        if(!enabled || isDestroyed) return
         if (newWidth == 0 || newHeight == 0) return
         scene?.let { scene ->
             lastWidth = newWidth
@@ -93,6 +94,7 @@ open class FrameBufferNode : Node() {
      * Begins drawing to the [FrameBuffer].
      */
     fun begin(batch: Batch) {
+        if(!enabled || isDestroyed) return
         checkForResize(lastWidth, lastHeight)
         val fbo = fbo ?: return
         val context = scene?.context ?: return
@@ -113,6 +115,7 @@ open class FrameBufferNode : Node() {
         camera: Camera,
         renderCallback: ((Node, Batch, Camera) -> Unit)?,
     ) {
+        if(!enabled || isDestroyed) return
         fbo ?: return
         if (width == 0 || height == 0) return
         begin(batch)
@@ -124,6 +127,7 @@ open class FrameBufferNode : Node() {
      * Finishes drawing to the [FrameBuffer].
      */
     fun end(batch: Batch) {
+        if(!enabled || isDestroyed) return
         val fbo = fbo ?: return
         if (width == 0 || height == 0) return
         batch.end()

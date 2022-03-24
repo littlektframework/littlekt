@@ -406,7 +406,7 @@ abstract class CanvasItem : Node() {
     }
 
     fun propagatePreRender(batch: Batch, camera: Camera) {
-        if (!enabled || !visible) return
+        if (!enabled || !visible || isDestroyed) return
         preRender(batch, camera)
         onPreRender.emit(batch, camera)
         nodes.forEach {
@@ -420,7 +420,7 @@ abstract class CanvasItem : Node() {
      * Internal rendering that needs to be done on the node that shouldn't be overridden. Calls [propagateInternalRender] method.
      */
     fun propagateRender(batch: Batch, camera: Camera, renderCallback: ((Node, Batch, Camera) -> Unit)?) {
-        if (!enabled || !visible) return
+        if (!enabled || !visible || isDestroyed) return
         renderCallback?.invoke(this, batch, camera)
         render(batch, camera)
         onRender.emit(batch, camera)
@@ -430,7 +430,7 @@ abstract class CanvasItem : Node() {
     }
 
     fun propagatePostRender(batch: Batch, camera: Camera) {
-        if (!enabled || !visible) return
+        if (!enabled || !visible || isDestroyed) return
         postRender(batch, camera)
         onPostRender.emit(batch, camera)
         nodes.forEach {
@@ -444,6 +444,7 @@ abstract class CanvasItem : Node() {
      * Internal debug render method. Calls the [debugRender] method.
      */
     private fun _debugRender(batch: Batch) {
+        if (!enabled || !visible || isDestroyed) return
         debugRender(batch)
         onDebugRender.emit(batch)
         nodes.forEach {
@@ -483,7 +484,7 @@ abstract class CanvasItem : Node() {
     open fun debugRender(batch: Batch) {}
 
     override fun callInput(event: InputEvent<*>) {
-        if (!enabled || !insideTree) return
+        if (!enabled || !insideTree || isDestroyed) return
 
         event.apply {
             localX = toLocalX(event.sceneX)
@@ -497,7 +498,7 @@ abstract class CanvasItem : Node() {
     }
 
     override fun callUnhandledInput(event: InputEvent<*>) {
-        if (!enabled || !insideTree) return
+        if (!enabled || !insideTree || isDestroyed) return
 
         event.apply {
             localX = toLocalX(event.sceneX)

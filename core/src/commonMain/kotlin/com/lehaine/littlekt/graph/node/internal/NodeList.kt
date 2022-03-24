@@ -88,7 +88,7 @@ class NodeList {
 
     internal fun preUpdate() {
         nodes.fastForEach {
-            if (it.enabled && (it.updateInterval == 1 || frameCount % it.updateInterval == 0)) {
+            if (it.enabled && !it.isDestroyed && (it.updateInterval == 1 || frameCount % it.updateInterval == 0)) {
                 it.propagatePreUpdate()
             }
         }
@@ -100,7 +100,7 @@ class NodeList {
      */
     internal fun update() {
         nodes.fastForEach {
-            if (it.enabled && (it.updateInterval == 1 || frameCount % it.updateInterval == 0)) {
+            if (it.enabled && !it.isDestroyed && (it.updateInterval == 1 || frameCount % it.updateInterval == 0)) {
                 it.propagateUpdate()
             }
         }
@@ -109,7 +109,7 @@ class NodeList {
 
     internal fun postUpdate() {
         nodes.fastForEach {
-            if (it.enabled && (it.updateInterval == 1 || frameCount % it.updateInterval == 0)) {
+            if (it.enabled && !it.isDestroyed && (it.updateInterval == 1 || frameCount % it.updateInterval == 0)) {
                 it.propagatePostUpdate()
             }
         }
@@ -118,7 +118,7 @@ class NodeList {
 
     internal fun fixedUpdate() {
         nodes.fastForEach {
-            if (it.enabled && (it.updateInterval == 1 || frameCount % it.updateInterval == 0)) {
+            if (it.enabled && !it.isDestroyed && (it.updateInterval == 1 || frameCount % it.updateInterval == 0)) {
                 it.propagateFixedUpdate()
             }
         }
