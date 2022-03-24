@@ -474,6 +474,8 @@ class LwjglGL(private val engineStats: EngineStats) : GL {
             engineStats.shaderSwitches++
             lastBoundShader = glShaderProgram
             glUseProgram(glShaderProgram.address)
+        } else if (engineStats.shaderSwitches == 0) {
+            engineStats.shaderSwitches = 1
         }
     }
 
@@ -602,6 +604,8 @@ class LwjglGL(private val engineStats: EngineStats) : GL {
             engineStats.textureBindings++
             lastBoundTexture = glTexture
             glBindTexture(target, glTexture.reference)
+        } else if (engineStats.textureBindings == 0) {
+            engineStats.textureBindings = 1
         }
     }
 

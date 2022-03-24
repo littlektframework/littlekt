@@ -504,6 +504,8 @@ class WebGL(val gl: WebGL2RenderingContext, val platform: Context.Platform, priv
             engineStats.shaderSwitches++
             lastBoundShader = glShaderProgram
             gl.useProgram(glShaderProgram.delegate)
+        } else if (engineStats.shaderSwitches == 0) {
+            engineStats.shaderSwitches = 1
         }
     }
 
@@ -542,6 +544,8 @@ class WebGL(val gl: WebGL2RenderingContext, val platform: Context.Platform, priv
             engineStats.textureBindings++
             lastBoundTexture = glTexture
             gl.bindTexture(target, glTexture.delegate)
+        } else if (engineStats.textureBindings == 0) {
+            engineStats.textureBindings = 1
         }
     }
 

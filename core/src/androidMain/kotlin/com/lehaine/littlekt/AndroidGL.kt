@@ -495,6 +495,8 @@ class AndroidGL(private val engineStats: EngineStats) : GL {
             engineStats.shaderSwitches++
             lastBoundShader = glShaderProgram
             GLES20.glUseProgram(glShaderProgram.address)
+        } else if (engineStats.shaderSwitches == 0) {
+            engineStats.shaderSwitches = 1
         }
     }
 
@@ -625,6 +627,8 @@ class AndroidGL(private val engineStats: EngineStats) : GL {
             engineStats.textureBindings++
             lastBoundTexture = glTexture
             GLES20.glBindTexture(target, glTexture.reference)
+        } else if (engineStats.textureBindings == 0) {
+            engineStats.textureBindings = 1
         }
     }
 
