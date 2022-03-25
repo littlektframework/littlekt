@@ -42,6 +42,9 @@ open class AnimationPlayer<KeyFrameType> {
             onFrameChange?.invoke(field)
         }
 
+    val currentKeyFrame: KeyFrameType?
+        get() = currentAnimation?.getFrame(currentFrameIdx)
+
     /**
      * Invoked when a frame is changed.
      */
