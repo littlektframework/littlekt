@@ -45,7 +45,9 @@ open class PackingOptions(
     /**
      * Repeats the packed image pixels at the border. Does not change the packed image size.
      */
-    var extrude: Int = 1
+    var extrude: Int = 1,
+
+    var crop: CropType = CropType.NONE,
 ) {
 
     fun clone() = PackingOptions().apply {
@@ -63,5 +65,11 @@ open class PackingOptions(
 
     override fun toString(): String {
         return "PackingOptions(allowRotation=$allowRotation, paddingHorizontal=$paddingHorizontal, paddingVertical=$paddingVertical, outputPagesAsPowerOfTwo=$outputPagesAsPowerOfTwo, maxWidth=$maxWidth, maxHeight=$maxHeight, edgeBorder=$edgeBorder)"
+    }
+
+    enum class CropType {
+        NONE,
+        FLUSH_POSITION,
+        KEEP_POSITION
     }
 }

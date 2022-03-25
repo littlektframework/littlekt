@@ -66,32 +66,32 @@ internal fun List<ImageRectData>.toFrames(): List<AtlasPage.Frame> {
     val output = mutableListOf<AtlasPage.Frame>()
     forEach { data ->
         output += AtlasPage.Frame(
-            data.name,
-            AtlasPage.Rect(
+            name = data.name,
+            frame = AtlasPage.Rect(
                 data.x + data.extrude,
                 data.y + data.extrude,
                 data.width - data.extrude * 2,
                 data.height - data.extrude * 2
             ),
-            data.isRotated,
-            data.offsetX != 0 || data.offsetY != 0 || data.regionWidth != data.width - data.extrude * 2 || data.regionHeight != data.height - data.extrude * 2,
-            AtlasPage.Rect(data.offsetX, data.offsetY, data.regionWidth, data.regionHeight),
-            AtlasPage.Size(data.originalWidth, data.originalHeight)
+            rotated = data.isRotated,
+            trimmed = data.offsetX != 0 || data.offsetY != 0 || data.regionWidth != data.width - data.extrude * 2 || data.regionHeight != data.height - data.extrude * 2,
+            spriteSourceSize = AtlasPage.Rect(data.offsetX, data.offsetY, data.regionWidth, data.regionHeight),
+            sourceSize = AtlasPage.Size(data.originalWidth, data.originalHeight)
         )
 
         data.aliases.forEach {
             output += AtlasPage.Frame(
-                it.name,
-                AtlasPage.Rect(
+                name = it.name,
+                frame = AtlasPage.Rect(
                     data.x + data.extrude,
                     data.y + data.extrude,
                     data.width - data.extrude * 2,
                     data.height - data.extrude * 2
                 ),
-                data.isRotated,
-                data.offsetX != 0 || data.offsetY != 0 || data.regionWidth != data.width - data.extrude * 2 || data.regionHeight != data.height - data.extrude * 2,
-                AtlasPage.Rect(data.offsetX, data.offsetY, data.regionWidth, data.regionHeight),
-                AtlasPage.Size(data.originalWidth, data.originalHeight)
+                rotated = data.isRotated,
+                trimmed = data.offsetX != 0 || data.offsetY != 0 || data.regionWidth != data.width - data.extrude * 2 || data.regionHeight != data.height - data.extrude * 2,
+                spriteSourceSize = AtlasPage.Rect(data.offsetX, data.offsetY, data.regionWidth, data.regionHeight),
+                sourceSize = AtlasPage.Size(data.originalWidth, data.originalHeight)
             )
         }
     }

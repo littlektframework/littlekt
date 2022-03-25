@@ -14,7 +14,7 @@ fun main(args: Array<String>) {
         outputName = "default_tiles"
         packingOptions = PackingOptions(
             outputPagesAsPowerOfTwo = false,
-            allowRotation = false,
+            allowRotation = true,
             extrude = 2
         )
     })

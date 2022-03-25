@@ -1,6 +1,7 @@
 package com.lehaine.littlekt.tools.texturepacker
 
 import com.lehaine.littlekt.util.packer.BinRect
+import com.lehaine.littlekt.util.packer.PackingOptions
 import java.awt.image.BufferedImage
 import java.io.File
 import java.math.BigInteger
@@ -177,10 +178,10 @@ class ImageProcessor(val config: TexturePackerConfig) {
             height,
             regionWidth = width - extrude * 2,
             regionHeight = height - extrude * 2,
-            offsetX = left,
-            offsetY = top,
-            originalWidth = image.width - extrude * 2,
-            originalHeight = image.height - extrude * 2,
+            offsetX = if (config.packingOptions.crop == PackingOptions.CropType.FLUSH_POSITION) 0 else left,
+            offsetY = if (config.packingOptions.crop == PackingOptions.CropType.FLUSH_POSITION) 0 else top,
+            originalWidth = if (config.packingOptions.crop == PackingOptions.CropType.NONE) image.width - extrude * 2 else width - extrude * 2,
+            originalHeight = if (config.packingOptions.crop == PackingOptions.CropType.NONE) image.height - extrude * 2 else height - extrude * 2,
             image = image,
             name = name,
             extrude = extrude
@@ -250,7 +251,7 @@ class ImageRectData(
     var name: String = "",
     var index: Int = 0,
     val aliases: MutableList<ImageAlias> = mutableListOf(),
-    var extrude: Int = 0
+    var extrude: Int = 0,
 ) : BinRect(x, y, width, height) {
 
     fun unloadImage(file: File) {
