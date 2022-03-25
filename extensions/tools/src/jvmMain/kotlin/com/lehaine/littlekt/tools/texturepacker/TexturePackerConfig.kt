@@ -42,6 +42,14 @@ open class TexturePackerConfig {
 
     var trim = true
     var trimMargin = 1
+    var crop: CropType = CropType.NONE
 
     var packingOptions = PackingOptions()
+
+
+    enum class CropType {
+        NONE,
+        FLUSH_POSITION,
+        KEEP_POSITION
+    }
 }

@@ -90,7 +90,7 @@ class TexturePacker(val config: TexturePackerConfig) {
             if (config.packingOptions.bleed) {
                 canvas = ColorBleedEffect().processImage(canvas, config.packingOptions.bleedIterations)
             }
-            val page = createAtlasPage(canvas, imageName, bin.rects as List<ImageRectData>, relatedMultiPacks)
+            val page = createAtlasPage(canvas, imageName, bin.rects as List<ImageRectData>, relatedMultiPacks, config.crop)
 
             ImageIO.write(canvas, "png", File(outputDir, imageName))
             val json = json.encodeToString(page)

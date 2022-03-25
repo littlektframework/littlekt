@@ -12,9 +12,10 @@ fun main(args: Array<String>) {
         inputDir = "./art/export_tiles"
         outputDir = "./art/default_assets"
         outputName = "default_tiles"
+        crop = TexturePackerConfig.CropType.FLUSH_POSITION
         packingOptions = PackingOptions(
             outputPagesAsPowerOfTwo = false,
-            allowRotation = true,
+            allowRotation = false,
             extrude = 2
         )
     })

@@ -47,7 +47,6 @@ open class PackingOptions(
      */
     var extrude: Int = 1,
 
-    var crop: CropType = CropType.NONE,
 ) {
 
     fun clone() = PackingOptions().apply {
@@ -65,11 +64,5 @@ open class PackingOptions(
 
     override fun toString(): String {
         return "PackingOptions(allowRotation=$allowRotation, paddingHorizontal=$paddingHorizontal, paddingVertical=$paddingVertical, outputPagesAsPowerOfTwo=$outputPagesAsPowerOfTwo, maxWidth=$maxWidth, maxHeight=$maxHeight, edgeBorder=$edgeBorder)"
-    }
-
-    enum class CropType {
-        NONE,
-        FLUSH_POSITION,
-        KEEP_POSITION
     }
 }

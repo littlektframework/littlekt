@@ -2,6 +2,7 @@ package com.lehaine.littlekt.tools.texturepacker.template
 
 import com.lehaine.littlekt.tools.StringCompare
 import com.lehaine.littlekt.tools.texturepacker.ImageRectData
+import com.lehaine.littlekt.tools.texturepacker.TexturePackerConfig
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import java.awt.image.BufferedImage
@@ -13,7 +14,7 @@ import java.awt.image.BufferedImage
 @Serializable
 internal data class AtlasPage(
     val meta: Meta,
-    val frames: List<Frame>
+    val frames: List<Frame>,
 ) {
 
     @Serializable
@@ -24,7 +25,7 @@ internal data class AtlasPage(
         val rotated: Boolean,
         val trimmed: Boolean,
         val spriteSourceSize: Rect,
-        val sourceSize: Size
+        val sourceSize: Size,
     )
 
     @Serializable
@@ -42,7 +43,7 @@ internal data class AtlasPage(
         val scale: Float = 1f,
         val size: Size = Size(0, 0),
         @SerialName("related_multi_packs")
-        val relatedMultiPacks: List<String> = listOf()
+        val relatedMultiPacks: List<String> = listOf(),
     )
 }
 
@@ -50,9 +51,10 @@ internal fun createAtlasPage(
     image: BufferedImage,
     imageName: String,
     data: List<ImageRectData>,
-    relatedMultiPacks: List<String>
+    relatedMultiPacks: List<String>,
+    cropType: TexturePackerConfig.CropType,
 ) =
-    AtlasPage(createMeta(image, imageName, relatedMultiPacks), data.toFrames())
+    AtlasPage(createMeta(image, imageName, relatedMultiPacks), data.toFrames(cropType))
 
 internal fun createMeta(image: BufferedImage, imageName: String, relatedMultiPacks: List<String>) =
     AtlasPage.Meta(
@@ -62,7 +64,7 @@ internal fun createMeta(image: BufferedImage, imageName: String, relatedMultiPac
         relatedMultiPacks = relatedMultiPacks
     )
 
-internal fun List<ImageRectData>.toFrames(): List<AtlasPage.Frame> {
+internal fun List<ImageRectData>.toFrames(cropType: TexturePackerConfig.CropType): List<AtlasPage.Frame> {
     val output = mutableListOf<AtlasPage.Frame>()
     forEach { data ->
         output += AtlasPage.Frame(
@@ -74,8 +76,12 @@ internal fun List<ImageRectData>.toFrames(): List<AtlasPage.Frame> {
                 data.height - data.extrude * 2
             ),
             rotated = data.isRotated,
-            trimmed = data.offsetX != 0 || data.offsetY != 0 || data.regionWidth != data.width - data.extrude * 2 || data.regionHeight != data.height - data.extrude * 2,
-            spriteSourceSize = AtlasPage.Rect(data.offsetX, data.offsetY, data.regionWidth, data.regionHeight),
+            trimmed = (cropType != TexturePackerConfig.CropType.FLUSH_POSITION && (data.offsetX != 0 || data.offsetY != 0)) || data.regionWidth != data.width - data.extrude * 2 || data.regionHeight != data.height - data.extrude * 2,
+            spriteSourceSize = AtlasPage.Rect(
+                if (cropType == TexturePackerConfig.CropType.FLUSH_POSITION) 0 else data.offsetX,
+                if (cropType == TexturePackerConfig.CropType.FLUSH_POSITION) 0 else data.offsetY,
+                data.regionWidth,
+                data.regionHeight),
             sourceSize = AtlasPage.Size(data.originalWidth, data.originalHeight)
         )
 
@@ -89,8 +95,12 @@ internal fun List<ImageRectData>.toFrames(): List<AtlasPage.Frame> {
                     data.height - data.extrude * 2
                 ),
                 rotated = data.isRotated,
-                trimmed = data.offsetX != 0 || data.offsetY != 0 || data.regionWidth != data.width - data.extrude * 2 || data.regionHeight != data.height - data.extrude * 2,
-                spriteSourceSize = AtlasPage.Rect(data.offsetX, data.offsetY, data.regionWidth, data.regionHeight),
+                trimmed = (cropType != TexturePackerConfig.CropType.FLUSH_POSITION && (data.offsetX != 0 || data.offsetY != 0)) || data.regionWidth != data.width - data.extrude * 2 || data.regionHeight != data.height - data.extrude * 2,
+                spriteSourceSize = AtlasPage.Rect(
+                    if (cropType == TexturePackerConfig.CropType.FLUSH_POSITION) 0 else data.offsetX,
+                    if (cropType == TexturePackerConfig.CropType.FLUSH_POSITION) 0 else data.offsetY,
+                    data.regionWidth,
+                    data.regionHeight),
                 sourceSize = AtlasPage.Size(data.originalWidth, data.originalHeight)
             )
         }
