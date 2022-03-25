@@ -66,7 +66,8 @@ open class AnimationPlayer<KeyFrameType> {
     private var lastAnimation: Animation<KeyFrameType>? = null
     private var lastAnimationType: AnimationType? = null
 
-    private var overlapPlaying: Boolean = false
+    var overlapPlaying: Boolean = false
+        private set
     private val tempFrames = mutableListOf<KeyFrameType>()
     private val tempIndices = mutableListOf<Int>()
     private val tempTimes = mutableListOf<Duration>()
