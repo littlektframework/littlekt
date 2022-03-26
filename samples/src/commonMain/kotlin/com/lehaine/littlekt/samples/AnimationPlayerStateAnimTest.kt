@@ -14,7 +14,7 @@ import kotlin.time.Duration.Companion.seconds
  * @author Colton Daily
  * @date 3/25/2022
  */
-class AnimationPlayerTest(context: Context) : ContextListener(context) {
+class AnimationPlayerStateAnimTest(context: Context) : ContextListener(context) {
 
     override suspend fun Context.start() {
         val batch = SpriteBatch(this)
@@ -29,7 +29,18 @@ class AnimationPlayerTest(context: Context) : ContextListener(context) {
         val heroRun = atlas.getAnimation("heroRun")
         val heroRoll = atlas.getAnimation("heroRoll", 250.milliseconds)
 
-        animPlayer.playLooped(heroSleep)
+        var shouldSleep = false
+        var shouldWakeup = false
+        var shouldRun = false
+        var shouldRoll = false
+
+        animPlayer.apply {
+            registerState(heroRoll, 11) { shouldRoll }
+            registerState(heroWakeup, 10) { shouldWakeup }
+            registerState(heroRun, 5) { shouldRun }
+            registerState(heroSleep, 5) { shouldSleep }
+            registerState(heroIdle, 0)
+        }
 
         onResize { width, height ->
             viewport.update(width, height, this, true)
@@ -40,32 +51,29 @@ class AnimationPlayerTest(context: Context) : ContextListener(context) {
             gl.clear(ClearBufferMask.COLOR_BUFFER_BIT)
 
             if (input.isKeyJustPressed(Key.NUM1)) {
-                animPlayer.playLooped(heroSleep)
+                shouldSleep = !shouldSleep
             }
 
             if (input.isKeyJustPressed(Key.NUM2)) {
-                animPlayer.playLooped(heroWakeup)
+                shouldWakeup = !shouldWakeup
             }
 
             if (input.isKeyJustPressed(Key.NUM3)) {
-                animPlayer.playLooped(heroRun)
+                shouldRun = !shouldRun
             }
 
             if (input.isKeyJustPressed(Key.NUM4)) {
-                animPlayer.playLooped(heroSlingShot)
-            }
-
-            if (input.isKeyJustPressed(Key.NUM5)) {
-                animPlayer.playLooped(heroIdle)
-            }
-
-            if (input.isKeyJustPressed(Key.SPACE)) {
-                animPlayer.play(heroIdle.firstFrame, 2.seconds)
+                shouldRoll = !shouldRoll
             }
 
             if (input.isKeyJustPressed(Key.ENTER)) {
-                animPlayer.play(heroRoll)
+                animPlayer.play(heroSlingShot)
             }
+
+            if(input.isKeyJustPressed(Key.SPACE)) {
+                animPlayer.play(heroRoll, 2.seconds)
+            }
+
 
             animPlayer.update(dt)
             camera.update()

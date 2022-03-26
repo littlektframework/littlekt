@@ -1,5 +1,7 @@
 package com.lehaine.littlekt.graphics
 
+import com.lehaine.littlekt.util.datastructure.Pool
+import com.lehaine.littlekt.util.fastForEach
 import com.lehaine.littlekt.util.internal.umod
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
@@ -17,10 +19,10 @@ open class AnimationPlayer<KeyFrameType> {
      * @see [play]
      * @see [playOnce]
      * @see [playLooped]
-     * @see [playOverlap]
      */
-    var currentAnimation: Animation<KeyFrameType>? = null
-        private set
+    val currentAnimation: Animation<KeyFrameType>? get() = currentAnimationInstance?.anim
+
+    private val currentAnimationInstance: AnimationInstance<KeyFrameType>? get() = stack.firstOrNull()
 
     /**
      * The total frames the [currentAnimation] has.
@@ -53,15 +55,45 @@ open class AnimationPlayer<KeyFrameType> {
     private var animationRequested = false
     private var numOfFramesRequested = 0
         set(value) {
+            field = value
             if (value == 0) {
                 stop()
+                stack.removeFirstOrNull()?.let {
+                    animInstancePool.free(it)
+                }
+                stack.firstOrNull()?.let { animInstance ->
+                    animInstance.anim?.let {
+                        setAnimInfo(it,
+                            animInstance.plays,
+                            animInstance.speed,
+                            animInstance.duration,
+                            animInstance.type)
+                    }
+                }
             }
-            field = value
         }
     private var frameDisplayTime: Duration = 100.milliseconds
     private var animationType = AnimationType.STANDARD
     private var lastFrameTime: Duration = Duration.ZERO
     private var remainingDuration: Duration = Duration.ZERO
+        set(value) {
+            field = value
+            if (value <= Duration.ZERO) {
+                stop()
+                stack.removeFirstOrNull()?.let {
+                    animInstancePool.free(it)
+                }
+                stack.firstOrNull()?.let { animInstance ->
+                    animInstance.anim?.let {
+                        setAnimInfo(it,
+                            animInstance.plays,
+                            animInstance.speed,
+                            animInstance.duration,
+                            animInstance.type)
+                    }
+                }
+            }
+        }
 
     private var lastAnimation: Animation<KeyFrameType>? = null
     private var lastAnimationType: AnimationType? = null
@@ -73,23 +105,17 @@ open class AnimationPlayer<KeyFrameType> {
     private val tempTimes = mutableListOf<Duration>()
     private val tempAnim = Animation(tempFrames, tempIndices, tempTimes)
 
-    /**
-     * Plays the specified animation one time and then reverts to the previous animation.
-     */
-    fun playOverlap(animation: Animation<KeyFrameType>) {
-        if (!overlapPlaying) {
-            lastAnimation = currentAnimation
-            lastAnimationType = animationType
-        }
-        overlapPlaying = true
-        play(animation)
+    private val states = arrayListOf<AnimationState<KeyFrameType>>()
+    private val stack = arrayListOf<AnimationInstance<KeyFrameType>>()
+    private val animInstancePool = Pool(reset = { it.reset() }, 20) {
+        AnimationInstance<KeyFrameType>()
     }
 
+
     /**
-     * Play a specified frame for a certain amount of frames as an overlap.
-     * @see [playOverlap]
+     * Play a specified frame for a certain amount of frames.
      */
-    fun playOverlap(frame: KeyFrameType, frameTime: Duration = 50.milliseconds, numFrames: Int = 1) {
+    fun play(frame: KeyFrameType, frameTime: Duration = 50.milliseconds, numFrames: Int = 1) {
         tempFrames.clear()
         tempIndices.clear()
         tempTimes.clear()
@@ -98,57 +124,111 @@ open class AnimationPlayer<KeyFrameType> {
             tempIndices += 0
             tempTimes += frameTime
         }
-        playOverlap(tempAnim)
+        play(tempAnim)
     }
 
     /**
      * Play the specified animation an X number of times.
      * @param animation the animation to play
      * @param times the number of times to play
-     * @param force if true force the animation to restart if already playing; otherwise continue
+     * @param queue if `false` will play the animation immediately
      */
-    fun play(animation: Animation<KeyFrameType>, times: Int = 1, force: Boolean = false) {
-        setAnimInfo(
-            animation,
-            cyclesRequested = times,
-            type = AnimationType.STANDARD,
-            force = force
-        )
+    fun play(animation: Animation<KeyFrameType>, times: Int = 1, queue: Boolean = false) {
+        if (!queue && stack.isNotEmpty()) {
+            animInstancePool.free(stack)
+            stack.clear()
+        }
+        stack += animInstancePool.alloc().apply {
+            anim = animation
+            plays = times
+            type = AnimationType.STANDARD
+        }
+        if (!queue) {
+            currentAnimationInstance?.let { animInstance ->
+                animInstance.anim?.let {
+                    setAnimInfo(it, animInstance.plays, animInstance.speed, animInstance.duration, animInstance.type)
+                }
+            }
+        }
     }
 
     /**
      * Play the specified animation one time.
      * @param animation the animation to play
-     * @param force if true force the animation to restart if already playing; otherwise continue
      */
-    fun playOnce(animation: Animation<KeyFrameType>, force: Boolean = false) {
-        setAnimInfo(
-            animation,
-            cyclesRequested = 1,
-            type = AnimationType.STANDARD,
-            force = force
-        )
+    fun playOnce(animation: Animation<KeyFrameType>) = play(animation)
+
+    private fun playStateAnimOnce(animation: Animation<KeyFrameType>) {
+        play(animation)
+        stack.lastOrNull()?.let {
+            it.isStateAnim = true
+        }
     }
 
     /**
      * Play the specified animation as a loop.
      * @param animation the animation to play
-     * @param force if true force the animation to restart if already playing; otherwise continue
      */
-    fun playLooped(animation: Animation<KeyFrameType>, force: Boolean = false) {
-        setAnimInfo(
-            animation,
-            type = AnimationType.LOOPED,
-            force = force
-        )
+    fun playLooped(animation: Animation<KeyFrameType>) {
+        if (stack.isNotEmpty()) {
+            animInstancePool.free(stack)
+            stack.clear()
+        }
+        stack += animInstancePool.alloc().apply {
+            anim = animation
+            type = AnimationType.LOOPED
+        }
+        currentAnimationInstance?.let { animInstance ->
+            animInstance.anim?.let {
+                setAnimInfo(it, animInstance.plays, animInstance.speed, animInstance.duration, animInstance.type)
+            }
+        }
+    }
+
+    private fun playStateAnimLooped(animation: Animation<KeyFrameType>) {
+        playLooped(animation)
+        stack.lastOrNull()?.let {
+            it.isStateAnim = true
+        }
+    }
+
+    /**
+     * Play the specified animation for a duration.
+     * @param animation the animation to play
+     * @param duration the duration to play the animation
+     * @param queue if `false` will play the animation immediately
+     */
+    fun play(animation: Animation<KeyFrameType>, duration: Duration, queue: Boolean = false) {
+        setAnimInfo(animation)
+        if (!queue && stack.isNotEmpty()) {
+            animInstancePool.free(stack)
+            stack.clear()
+        }
+        stack += animInstancePool.alloc().apply {
+            anim = animation
+            this.duration = duration
+            type = AnimationType.DURATION
+        }
+        if (!queue) {
+            currentAnimationInstance?.let { animInstance ->
+                animInstance.anim?.let {
+                    setAnimInfo(it, animInstance.plays, animInstance.speed, animInstance.duration, animInstance.type)
+                }
+            }
+        }
     }
 
     /**
      * Runs any updates for any requested animation and grabs the next frame if so.
      */
     fun update(dt: Duration) {
+        updateStateAnimations()
+
         if (animationRequested) {
             nextFrame(dt)
+        }
+        if (states.isNotEmpty()) {
+            println(stack)
         }
     }
 
@@ -166,20 +246,6 @@ open class AnimationPlayer<KeyFrameType> {
      */
     fun stop() {
         animationRequested = false
-        if (overlapPlaying) {
-            overlapPlaying = false
-            if (lastAnimationType == AnimationType.LOOPED) {
-                lastAnimation?.let {
-                    playLooped(it)
-                }
-            } else {
-                lastAnimation?.let {
-                    play(it)
-                }
-            }
-            lastAnimation = null
-            lastAnimationType = null
-        }
     }
 
     private fun nextFrame(frameTime: Duration) {
@@ -211,18 +277,85 @@ open class AnimationPlayer<KeyFrameType> {
     private fun setAnimInfo(
         animation: Animation<KeyFrameType>,
         cyclesRequested: Int = 1,
+        speed: Float = 1f,
+        duration: Duration = Duration.INFINITE,
         type: AnimationType = AnimationType.STANDARD,
-        force: Boolean = false,
     ) {
-        if (!force && animationRequested && currentAnimation == animation) return
-
-        currentAnimation = animation
         currentFrameIdx = 0
-        frameDisplayTime = currentAnimation?.getFrameTime(currentFrameIdx) ?: Duration.ZERO
+        frameDisplayTime = animation.getFrameTime(currentFrameIdx) * speed.toDouble()
         animationType = type
         animationRequested = true
+        remainingDuration = duration
         numOfFramesRequested = cyclesRequested * totalFrames
     }
+
+    /**
+     * Priority is represented by the deepest. The deepest has top priority while the shallowest has lowest.
+     */
+    fun registerState(
+        anim: Animation<KeyFrameType>,
+        priority: Int,
+        loop: Boolean = true,
+        reason: () -> Boolean = { true },
+    ) {
+        removeState(anim)
+        states.add(AnimationState(anim, priority, loop, reason))
+        states.sortByDescending { priority }
+    }
+
+    fun removeState(anim: Animation<KeyFrameType>) {
+        states.find { it.anim == anim }?.also { states.remove(it) }
+    }
+
+    fun removeAllStates() {
+        states.clear()
+    }
+
+    private fun updateStateAnimations() {
+        if (states.isEmpty()) return
+
+        if (stack.isNotEmpty() && currentAnimationInstance?.isStateAnim == false) {
+            return
+        }
+
+        states.fastForEach { state ->
+            if (state.reason()) {
+                if (currentAnimation == state.anim) return
+                if (state.loop) {
+                    playStateAnimLooped(state.anim)
+                } else {
+                    playStateAnimOnce(state.anim)
+                }
+                return
+            }
+        }
+    }
+
+    private data class AnimationInstance<KeyFrameType>(
+        var anim: Animation<KeyFrameType>? = null,
+        var plays: Int = 1,
+        var duration: Duration = Duration.INFINITE,
+        var isStateAnim: Boolean = false,
+        var speed: Float = 1f,
+        var type: AnimationType = AnimationType.STANDARD,
+    ) {
+
+        fun reset() {
+            anim = null
+            plays = 1
+            duration = Duration.INFINITE
+            isStateAnim = false
+            speed = 1f
+            type = AnimationType.STANDARD
+        }
+    }
+
+    private data class AnimationState<KeyFrameType>(
+        val anim: Animation<KeyFrameType>,
+        val priority: Int,
+        val loop: Boolean,
+        val reason: () -> Boolean,
+    )
 }
 
 /**
