@@ -227,9 +227,6 @@ open class AnimationPlayer<KeyFrameType> {
         if (animationRequested) {
             nextFrame(dt)
         }
-        if (states.isNotEmpty()) {
-            println(stack)
-        }
     }
 
     /**
