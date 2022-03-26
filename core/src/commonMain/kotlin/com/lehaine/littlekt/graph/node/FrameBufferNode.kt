@@ -30,19 +30,16 @@ inline fun SceneGraph<*>.frameBuffer(
 }
 
 /**
- * A [Node] that renders it children to a [FrameBuffer] of a specified size.
+ * A [CanvasLayer] that renders it children to a [FrameBuffer] of a specified size.
  * @author Colton Daily
  * @date 3/14/2022
  */
-open class FrameBufferNode : Node() {
+open class FrameBufferNode : CanvasLayer() {
 
-    var width: Int = 0
-    var height: Int = 0
     var clearColor: Color = Color.CLEAR
     val fboTexture: Texture? get() = fbo?.colorBufferTexture
     val onFboChanged: SingleSignal<Texture> = signal1v()
 
-    val fboCamera = OrthographicCamera(width.toFloat(), height.toFloat())
     private var lastWidth = width
     private var lastHeight = height
 
@@ -82,8 +79,8 @@ open class FrameBufferNode : Node() {
                 minFilter = TexMinFilter.NEAREST,
                 magFilter = TexMagFilter.NEAREST
             ).also { it.prepare(scene.context) }
-            fboCamera.ortho(width, height)
-            fboCamera.update()
+            canvasCamera.ortho(width, height)
+            canvasCamera.update()
             fboTexture?.let { onFboChanged.emit(it) }
         }
     }
@@ -103,11 +100,11 @@ open class FrameBufferNode : Node() {
         batch.end()
         prevProjection = batch.projectionMatrix
 
-        fboCamera.update()
+        canvasCamera.update()
         fbo.begin()
         gl.clearColor(clearColor)
         gl.clear(ClearBufferMask.COLOR_BUFFER_BIT)
-        batch.begin(fboCamera.viewProjection)
+        batch.begin(canvasCamera.viewProjection)
     }
 
     override fun propagateInternalRender(
@@ -119,7 +116,7 @@ open class FrameBufferNode : Node() {
         fbo ?: return
         if (width == 0 || height == 0) return
         begin(batch)
-        nodes.forEach { it.propagateInternalRender(batch, fboCamera, renderCallback) }
+        nodes.forEach { it.propagateInternalRender(batch, canvasCamera, renderCallback) }
         end(batch)
     }
 

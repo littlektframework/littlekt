@@ -59,8 +59,8 @@ class PixelSmoothCameraSceneGraphTest(context: Context) : ContextListener(contex
                         pxHeight = height / (height / targetHeight)
                         pxWidth = (width / (height / pxHeight))
                         resizeFbo(pxWidth.nextPowerOfTwo, pxHeight.nextPowerOfTwo)
-                        fboCamera.ortho(this.width * worldUnitInvScale, this.height * worldUnitInvScale)
-                        fboCamera.update()
+                        canvasCamera.ortho(this.width * worldUnitInvScale, this.height * worldUnitInvScale)
+                        canvasCamera.update()
                     }
 
                     node2d {
@@ -122,7 +122,7 @@ class PixelSmoothCameraSceneGraphTest(context: Context) : ContextListener(contex
                             scaledDistY -= subPixelY
 
                             (parent as? FrameBufferNode)?.let {
-                                it.fboCamera.position.set(tx, ty, 0f).add((it.width / 2) * worldUnitInvScale,
+                                it.canvasCamera.position.set(tx, ty, 0f).add((it.width / 2) * worldUnitInvScale,
                                     ((it.height - pxHeight) / 2) * worldUnitInvScale,
                                     0f)
                             }
