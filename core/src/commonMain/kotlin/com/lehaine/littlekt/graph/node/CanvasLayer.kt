@@ -92,6 +92,8 @@ open class CanvasLayer : Node() {
 
     override fun resize(width: Int, height: Int) {
         canvasCamera.ortho(width, height)
+        viewport.width = width
+        viewport.height = height
         onSizeChanged.emit()
 
         super.resize(width, height)

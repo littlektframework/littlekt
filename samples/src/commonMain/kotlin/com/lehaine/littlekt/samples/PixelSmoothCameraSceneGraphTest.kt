@@ -14,7 +14,6 @@ import com.lehaine.littlekt.graph.sceneGraph
 import com.lehaine.littlekt.graphics.Color
 import com.lehaine.littlekt.graphics.TextureSlice
 import com.lehaine.littlekt.graphics.gl.ClearBufferMask
-import com.lehaine.littlekt.graphics.gl.State
 import com.lehaine.littlekt.graphics.shader.ShaderProgram
 import com.lehaine.littlekt.input.Key
 import com.lehaine.littlekt.math.MutableVec2f

@@ -3,11 +3,11 @@ package com.lehaine.littlekt.samples
 import com.lehaine.littlekt.Context
 import com.lehaine.littlekt.ContextListener
 import com.lehaine.littlekt.file.vfs.readLDtkMapLoader
-import com.lehaine.littlekt.graphics.OrthographicCamera
 import com.lehaine.littlekt.graphics.SpriteBatch
 import com.lehaine.littlekt.graphics.gl.ClearBufferMask
 import com.lehaine.littlekt.graphics.use
 import com.lehaine.littlekt.input.Key
+import com.lehaine.littlekt.math.MutableVec2f
 import com.lehaine.littlekt.util.milliseconds
 import com.lehaine.littlekt.util.viewport.ExtendViewport
 
@@ -18,13 +18,14 @@ import com.lehaine.littlekt.util.viewport.ExtendViewport
 class LDtkMapTest(context: Context) : ContextListener(context) {
 
     override suspend fun Context.start() {
-        val viewport = ExtendViewport(30,16)
+        val viewport = ExtendViewport(30, 16)
         val camera = viewport.camera
 
         val batch = SpriteBatch(context, 8191)
 
         val mapLoader = resourcesVfs["ldtk/world.ldtk"].readLDtkMapLoader()
         val level = mapLoader.loadLevel(2)
+        val tempVec2f = MutableVec2f()
 
         onResize { width, height ->
             viewport.update(width, height, context)
@@ -51,6 +52,15 @@ class LDtkMapTest(context: Context) : ContextListener(context) {
 
             if (input.isKeyJustPressed(Key.P)) {
                 logger.info { stats }
+            }
+
+            if (input.isKeyJustPressed(Key.M)) {
+                logger.info { "Screen coords: ${input.x},${input.y}" }
+                logger.info { "cam pos: ${camera.position}" }
+                tempVec2f.x = input.x.toFloat()
+                tempVec2f.y = input.y.toFloat()
+                camera.screenToWorld(context, tempVec2f, viewport, result = tempVec2f)
+                logger.info { "world coords: $tempVec2f" }
             }
 
             if (input.isKeyJustPressed(Key.ESCAPE)) {

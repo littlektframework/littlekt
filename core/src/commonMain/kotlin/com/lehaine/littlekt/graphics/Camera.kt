@@ -363,9 +363,9 @@ abstract class Camera {
         result: MutableVec2f,
     ): Boolean {
         val x = screen.x - viewportX
-        val y = (context.graphics.height - screen.y) - viewportY
+        val y = context.graphics.height - screen.y - viewportY
 
-        tempVec4.set(2f * x / viewportWidth - 1f, 2f * y / viewportHeight - 1f, 1f, 1f)
+        tempVec4.set(2f * x / viewportWidth - 1f, 2f * y / viewportHeight - 1f, -1f, 1f)
         invViewProjection.transform(tempVec4)
         val s = 1f / tempVec4.w
         result.set(tempVec4.x * s, tempVec4.y * s)

@@ -58,6 +58,10 @@ open class FrameBufferNode : CanvasLayer() {
         }
     }
 
+    override fun resize(width: Int, height: Int) {
+        // do nothing
+    }
+
     /**
      * Resizes the internal [FrameBuffer] to the new width and height. This will dispose
      * of the previous [FrameBuffer] and the texture.
@@ -65,7 +69,7 @@ open class FrameBufferNode : CanvasLayer() {
      * @param newHeight the new width of the [FrameBuffer]
      */
     fun resizeFbo(newWidth: Int, newHeight: Int) {
-        if(!enabled || isDestroyed) return
+        if (!enabled || isDestroyed) return
         if (newWidth == 0 || newHeight == 0) return
         scene?.let { scene ->
             lastWidth = newWidth
@@ -79,9 +83,12 @@ open class FrameBufferNode : CanvasLayer() {
                 minFilter = TexMinFilter.NEAREST,
                 magFilter = TexMagFilter.NEAREST
             ).also { it.prepare(scene.context) }
+            viewport.width = width
+            viewport.height = height
             canvasCamera.ortho(width, height)
             canvasCamera.update()
             fboTexture?.let { onFboChanged.emit(it) }
+            onSizeChanged.emit()
         }
     }
 
@@ -91,7 +98,7 @@ open class FrameBufferNode : CanvasLayer() {
      * Begins drawing to the [FrameBuffer].
      */
     fun begin(batch: Batch) {
-        if(!enabled || isDestroyed) return
+        if (!enabled || isDestroyed) return
         checkForResize(lastWidth, lastHeight)
         val fbo = fbo ?: return
         val context = scene?.context ?: return
@@ -112,7 +119,7 @@ open class FrameBufferNode : CanvasLayer() {
         camera: Camera,
         renderCallback: ((Node, Batch, Camera) -> Unit)?,
     ) {
-        if(!enabled || isDestroyed) return
+        if (!enabled || isDestroyed) return
         fbo ?: return
         if (width == 0 || height == 0) return
         begin(batch)
@@ -124,7 +131,7 @@ open class FrameBufferNode : CanvasLayer() {
      * Finishes drawing to the [FrameBuffer].
      */
     fun end(batch: Batch) {
-        if(!enabled || isDestroyed) return
+        if (!enabled || isDestroyed) return
         val fbo = fbo ?: return
         if (width == 0 || height == 0) return
         batch.end()

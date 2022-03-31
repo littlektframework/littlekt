@@ -71,7 +71,7 @@ class PixelSmoothCameraTest(context: Context) : ContextListener(context) {
                     magFilter = TexMagFilter.NEAREST).also {
                     it.prepare(this)
                 }
-            fboRegion = TextureSlice(fbo.colorBufferTexture, 0, 0, pxWidth, pxHeight)
+            fboRegion = TextureSlice(fbo.colorBufferTexture, 0, fbo.height - pxHeight, pxWidth, pxHeight)
             sceneCamera.ortho(fbo.width * worldUnitInvScale, fbo.height * worldUnitInvScale)
         }
         onRender { dt ->
@@ -116,22 +116,33 @@ class PixelSmoothCameraTest(context: Context) : ContextListener(context) {
             scaledDistX -= subpixelX
             scaledDistY -= subPixelY
 
-            sceneCamera.position.set(tx, ty, 0f).add((fbo.width / 2) * worldUnitInvScale,
-                ((fbo.height - pxHeight) / 2) * worldUnitInvScale,
-                0f)
+            sceneCamera.position.set(tx, ty, 0f)
+                .add(fbo.width * worldUnitInvScale / 2f, fbo.height * worldUnitInvScale / 2f, 0f)
             sceneCamera.update()
+
+
+            tempVec2f.x = input.x.toFloat()
+            tempVec2f.y = input.y.toFloat()
+            tempVec2f.x = (pxWidth / 100f) * ((100f / graphics.width) * input.x)
+            tempVec2f.y = (pxHeight / 100f) * ((100f / graphics.height) * input.y)
+            tempVec2f.x *= worldUnitInvScale
+            tempVec2f.y *= worldUnitInvScale
+            tempVec2f.x = tempVec2f.x - fbo.width * worldUnitInvScale * 0.5f + sceneCamera.position.x
+            tempVec2f.y = tempVec2f.y - fbo.height * worldUnitInvScale * 0.5f + sceneCamera.position.y
 
             fbo.begin()
             gl.clear(ClearBufferMask.COLOR_BUFFER_BIT)
             batch.use(sceneCamera.viewProjection) {
                 world.render(it, sceneCamera, 0f, 0f, worldUnitInvScale)
                 it.draw(icon, 0f, 0f, scaleX = worldUnitInvScale, scaleY = worldUnitInvScale, rotation = 45.degrees)
+                it.draw(icon, 10f, 10f, scaleX = worldUnitInvScale, scaleY = worldUnitInvScale, rotation = 45.degrees)
             }
             fbo.end()
 
             batch.shader = pixelSmoothShader
             viewportCamera.ortho(graphics.width, graphics.height)
             viewportCamera.update()
+
             batch.use(viewportCamera.viewProjection) {
                 pixelSmoothShader.vertexShader.uTextureSizes.apply(pixelSmoothShader,
                     fbo.width.toFloat(),
