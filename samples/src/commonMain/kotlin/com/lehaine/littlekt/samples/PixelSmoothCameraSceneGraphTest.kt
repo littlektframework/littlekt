@@ -34,8 +34,6 @@ class PixelSmoothCameraSceneGraphTest(context: Context) : ContextListener(contex
     var pxWidth = 0
     var pxHeight = 0
     val targetHeight = 160
-    val worldUnitScale = 16f
-    val worldUnitInvScale = 1f / worldUnitScale
 
     override suspend fun Context.start() {
         val mapLoader = resourcesVfs["ldtk/world.ldtk"].readLDtkMapLoader()
@@ -46,6 +44,7 @@ class PixelSmoothCameraSceneGraphTest(context: Context) : ContextListener(contex
             ShaderProgram(PixelSmoothVertexShader(), PixelSmoothFragmentShader()).also { it.prepare(this) }
 
         val graph = sceneGraph(context) {
+            ppu = 16f
             val fbo: FrameBufferNode
             canvasLayer {
                 var scaledDistX = 0f
@@ -58,18 +57,18 @@ class PixelSmoothCameraSceneGraphTest(context: Context) : ContextListener(contex
                         pxHeight = height / (height / targetHeight)
                         pxWidth = (width / (height / pxHeight))
                         resizeFbo(pxWidth.nextPowerOfTwo, pxHeight.nextPowerOfTwo)
-                        canvasCamera.ortho(this.width * worldUnitInvScale, this.height * worldUnitInvScale)
+                        canvasCamera.ortho(this.width * ppuInv, this.height * ppuInv)
                         canvasCamera.update()
                     }
 
                     node2d {
                         onRender += { batch, camera ->
-                            world.render(batch, camera, 0f, 0f, worldUnitInvScale)
+                            world.render(batch, camera, 0f, 0f, ppuInv)
                             batch.draw(icon,
                                 0f,
                                 0f,
-                                scaleX = worldUnitInvScale,
-                                scaleY = worldUnitInvScale,
+                                scaleX = ppuInv,
+                                scaleY = ppuInv,
                                 rotation = 45.degrees)
                         }
                     }
@@ -103,11 +102,11 @@ class PixelSmoothCameraSceneGraphTest(context: Context) : ContextListener(contex
 
                             targetPosition += velocity
 
-                            val tx = (targetPosition.x * worldUnitScale).floor() / worldUnitScale
-                            val ty = (targetPosition.y * worldUnitScale).floor() / worldUnitScale
+                            val tx = (targetPosition.x * ppu).floor() / ppu
+                            val ty = (targetPosition.y * ppu).floor() / ppu
 
-                            scaledDistX = (targetPosition.x - tx) * worldUnitScale
-                            scaledDistY = (targetPosition.y - ty) * worldUnitScale
+                            scaledDistX = (targetPosition.x - tx) * ppu
+                            scaledDistY = (targetPosition.y - ty) * ppu
 
                             subpixelX = 0f
                             subPixelY = 0f
@@ -121,12 +120,24 @@ class PixelSmoothCameraSceneGraphTest(context: Context) : ContextListener(contex
                             scaledDistY -= subPixelY
 
                             (parent as? FrameBufferNode)?.let {
-                                it.canvasCamera.position.set(tx, ty, 0f).add((it.width / 2) * worldUnitInvScale,
-                                    ((it.height - pxHeight) / 2) * worldUnitInvScale,
-                                    0f)
+                                it.canvasCamera.position.set(tx, ty, 0f)
+                                    .add(it.width * ppuInv / 2f, it.height * ppuInv / 2f, 0f)
+
+                                tempVec2f.x = input.x.toFloat()
+                                tempVec2f.y = input.y.toFloat()
+                                tempVec2f.x = (pxWidth / 100f) * ((100f / graphics.width) * input.x)
+                                tempVec2f.y = (pxHeight / 100f) * ((100f / graphics.height) * input.y)
+                                tempVec2f.x *= ppuInv
+                                tempVec2f.y *= ppuInv
+                                tempVec2f.x = tempVec2f.x - it.width * ppuInv * 0.5f + it.canvasCamera.position.x
+                                tempVec2f.y = tempVec2f.y - it.height * ppuInv * 0.5f + it.canvasCamera.position.y
                             }
                             if (input.isKeyJustPressed(Key.B)) {
                                 useBilinearFilter = !useBilinearFilter
+                            }
+
+                            if(input.isKeyJustPressed(Key.L)) {
+                                println(tempVec2f)
                             }
                         }
                     }
@@ -137,7 +148,7 @@ class PixelSmoothCameraSceneGraphTest(context: Context) : ContextListener(contex
                     material = Material(pixelSmoothShader)
 
                     fbo.onFboChanged.connect(this) {
-                        slice = TextureSlice(it, 0, 0, pxWidth, pxHeight)
+                        slice = TextureSlice(it, 0, it.height-pxHeight, pxWidth, pxHeight)
                     }
 
                     onRender += { batch, camera ->
