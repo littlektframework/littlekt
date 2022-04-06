@@ -22,6 +22,6 @@ class ScreenViewport(x: Int, y: Int, width: Int, height: Int) : Viewport(x, y, w
         set(0, 0, width, height)
         virtualWidth = width * unitsPerPixel
         virtualHeight = height * unitsPerPixel
-        apply(context)
+        apply(context, centerCamera)
     }
 }

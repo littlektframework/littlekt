@@ -22,7 +22,7 @@ open class ScalingViewport(val scaler: Scaler, virtualWidth: Int, virtualHeight:
         this.width = viewportWidth
         this.height = viewportHeight
 
-        apply(context)
+        apply(context, centerCamera)
     }
 }
 
