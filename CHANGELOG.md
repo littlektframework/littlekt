@@ -97,6 +97,7 @@
   depth/stencil modes.
 * add: `AnimationState` optional state machine stack that can be to register animation states that will be played based
   on a predicate.
+* add: `CropType` options to `TexturePacker`: `NONE`, `FLUSH_POSITION`, and `KEEP_POSITION`.
 
 ### Changes
 
