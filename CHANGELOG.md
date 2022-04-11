@@ -2,6 +2,17 @@
 
 ## v0.3.0 (Current SNAPSHOT)
 
+### Highlights
+
+**For the full log see below.**
+
+* New `SceneGraph` nodes to handle different viewports, frame buffers, and materials (shaders,
+  blend modes, depth/stencil modes).
+* New input and unhandled input handling inside a `SceneGraph`.
+* New lifecycle methods added to Nodes in a `SceneGraph`: `preUpdate()`, `postUpdate()` and `fixedUpdate()`.
+* Major optimizations and clean up of the `SceneGraph` in general.
+* `Camera` & `Viewport` relationship refactoring to make more sense. See full changelog for more info.
+
 ### Breaking
 
 * refactor `Viewport` to contain an internal `Camera` and remove `Viewport` from `Camera`.
@@ -80,11 +91,12 @@
 * add: `resizable`, `maximize`, and `windowPosition` configuration parameters to JVM.
 * add: `ppu` and `ppuInv` properties to `SceneGraph` and `Node` that allow setting the **Pixels per Unit** which is used
   for rendering.
+* add: `Material` class and property to `CanvasItem` that can be used to set and change shaders, blend modes, and
+  depth/stencil modes.
 
 ### Changes
 
 * update: `SceneGraph` methods `resize()`, `render()`, and `initialize()` as `open`.
-*
 
 ### Bugs:
 

@@ -7,10 +7,25 @@ import com.lehaine.littlekt.graphics.shader.ShaderProgram
  * @author Colton Daily
  * @date 3/23/2022
  */
-open class Material(val shader: ShaderProgram<*, *>? = null) : Disposable {
+open class Material(
+    /**
+     * The [ShaderProgram] that this material will use for rendering
+     */
+    val shader: ShaderProgram<*, *>? = null,
+) : Disposable {
+    /**
+     * The [BlendMode] this material uses. Defaults to [BlendMode.NonPreMultiplied].
+     */
     var blendMode: BlendMode = BlendMode.NonPreMultiplied
+
+    /**
+     * The [DepthStencilMode] this material uses. Defaults to [DepthStencilMode.None].
+     */
     var depthStencilMode: DepthStencilMode = DepthStencilMode.None
 
+    /**
+     * Can be used to set shader uniforms and such right before rendering.
+     */
     open fun onPreRender() = Unit
 
     override fun dispose() {
