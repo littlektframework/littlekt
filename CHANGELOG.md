@@ -6,12 +6,14 @@
 
 **For the full log see below.**
 
-* New `SceneGraph` nodes to handle different viewports, frame buffers, and materials (shaders,
-  blend modes, depth/stencil modes).
+* New `SceneGraph` nodes to handle different viewports, frame buffers, and materials (shaders, blend modes,
+  depth/stencil modes).
 * New input and unhandled input handling inside a `SceneGraph`.
 * New lifecycle methods added to Nodes in a `SceneGraph`: `preUpdate()`, `postUpdate()` and `fixedUpdate()`.
 * Major optimizations and clean up of the `SceneGraph` in general.
 * `Camera` & `Viewport` relationship refactoring to make more sense. See full changelog for more info.
+* `AnimationPlayer` playback clean up and add few additional playback methods
+* New optional `AnimationStateMachine` within `AnimationPlayer`.
 
 ### Breaking
 
@@ -93,15 +95,18 @@
   for rendering.
 * add: `Material` class and property to `CanvasItem` that can be used to set and change shaders, blend modes, and
   depth/stencil modes.
+* add: `AnimationState` optional state machine stack that can be to register animation states that will be played based
+  on a predicate.
 
 ### Changes
 
 * update: `SceneGraph` methods `resize()`, `render()`, and `initialize()` as `open`.
+* update: `AnimationPlayer` to handle the way animations are queued and played back based on a stack.
 
 ### Bugs:
 
 * fix: clearing signals of all existing nodes when destroyed.
-* fix: `LDtk` auto tile maps now only loop through tiles within the view bounds instead of all of the tiles.
+* fix: `LDtk` auto tile maps now only loop through tiles within the view bounds instead of all the tiles.
 
 ## v0.2.0
 
