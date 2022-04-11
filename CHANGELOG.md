@@ -2,6 +2,49 @@
 
 ## v0.3.0 (Current SNAPSHOT)
 
+### Breaking
+
+* refactor `Viewport` to contain an internal `Camera` and remove `Viewport` from `Camera`.
+
+  #### Migration:
+
+  Before:
+
+    ```kotlin
+    val viewport = ExtendViewport(480, 270)
+    val camera = OrthographicCamrea().apply {
+        this.viewport = viewport
+    }
+    ```
+
+  New:
+
+    ```kotlin
+    val viewport = ExtendViewport(480, 270)
+    val camera = viewport.camera
+    ```
+
+* remove `SceneGraph.viewport: Viewport` and `SceneGraph.camera` and replaced with the `ViewportCanvasLayer` node.
+
+  #### Migration:
+
+  Before:
+
+    ```kotlin
+    val viewport: Viewport = graph.viewport
+    val camera: Camera = graph.camera
+    ```
+
+  After:
+
+    ```kotlin
+    val viewport: Viewport = graph.sceneCanvas.viewport
+    val camera: Camera = -graph.sceneCanvas.canvasCamera
+    ```
+* update `SceneGraph.initialize()` to be **suspending**.
+* update `SceneGraph.Node.initialize()` to be **suspending**.
+* rename `Node2D.toWorld` functions to `toGlobal`.
+
 ### New
 
 * add: list of catching keys to prevent default platform functionality from performing on key events
@@ -9,15 +52,44 @@
 * add: `onDestroy` open function and `onDestroy` signal to `Node` when `destroy()` is invoked.
 * add: contracts to `SceneGraph` DSL to allow usage of assigning objects to `val` outside of it.
 * add: contract to `AssetProvider.prepare()` to allow usage of assigning objects to `val` outside of it.
+* add: `CanvasItem` node as the base node for 2D transformations in the `SceneGraph`. `Node2D` now inherits directly
+  from this node.
+* add: `CanvasLayer` node that creates a separate `OrthographicCamera` for rendering instead of inheriting the base
+  camera from the `SceneGraph`. For example: When rendering certain nodes at a low resolution using a `Viewport` to
+  render UI at a higher resolution. This contains an instance to a `Viewport` but isn't used directly to render
+  children. A new node called `ViewportCanvasLayer` can be used to render children nodes with a separate viewport.
+* add: `ViewportCanvasLayer` to use separate `Viewport` to render children nodes in a `SceneGraph`.
+* add: `FrameBufferNode` which is a `CanvasLayer` to allow rendering children nodes directly to a `FrameBuffer`.
+  The `FrameBuffer` texture is then available to be rendered in a separate node.
+* add: `FrameBufferContainer` control node which can be used to help render a `FrameBufferNode`.
+* add: `zoom`, `near`, and `far` properties to `Camera2D` which will be used to set the `CanvasLayer.canvasCamera`
+  properties before rendering.
+* add: `scale` property to the `render` method of `LDtk` and `Tiled` tile maps.
+* add: `tmod` and `targetFPS` properties to `SceneGraph` to be used as another way to handle frame independent
+  movements.
+* add: **three** new lifecycle calls to a `Node`: `onPreUpdate`, `onPostUpdate`, and `onFixedUpdate` as well as their
+  respective `Signal` types. The `onFixedUpdate` comes with a few more properties to handle changing the fixed time step
+  and as well as an interpolating ratio.
+    * `SceneGraph.fixedTimesPerSecond`: can be used to set the amount of times `onFixedUpdate` is call per second
+    * `SceneGraph.fixedProgressionRatio`: is an interpolation ratio that can be used to render nodes that
+      use `onFixedUpdate` for movement / physics.
+* add: `input` and `unhandledInput` callbacks to all `Node`.
+    * `input`: is called whenever there is an `InputEvent` generated and is propagated up the node tree until a node
+      consumes it.
+    * `unhandledInput`: is called when an `InputEvent` isn't consumed by `input` or the UI.
+* add: `resizable`, `maximize`, and `windowPosition` configuration parameters to JVM.
+* add: `ppu` and `ppuInv` properties to `SceneGraph` and `Node` that allow setting the **Pixels per Unit** which is used
+  for rendering.
 
 ### Changes
 
 * update: `SceneGraph` methods `resize()`, `render()`, and `initialize()` as `open`.
-* update: `camera` property in `SceneGraph` to public.
+*
 
 ### Bugs:
 
 * fix: clearing signals of all existing nodes when destroyed.
+* fix: `LDtk` auto tile maps now only loop through tiles within the view bounds instead of all of the tiles.
 
 ## v0.2.0
 

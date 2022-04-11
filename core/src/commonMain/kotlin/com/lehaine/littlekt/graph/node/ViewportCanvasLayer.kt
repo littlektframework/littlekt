@@ -31,6 +31,7 @@ inline fun SceneGraph<*>.viewport(callback: @SceneGraphDslMarker ViewportCanvasL
 }
 
 /**
+ * A [CanvasLayer] that handles updating the [viewport] and uses the [viewport] to render its children.
  * @author Colton Daily
  * @date 3/22/2022
  */

@@ -47,41 +47,67 @@ inline fun SceneGraph<*>.canvasLayer(callback: @SceneGraphDslMarker CanvasLayer.
  */
 open class CanvasLayer : Node() {
 
+    /**
+     * Viewport instance that can be used for rendering children nodes in inherited classes. This is not used directly
+     * in the base [CanvasLayer] class.
+     * @see ViewportCanvasLayer
+     */
     var viewport: Viewport = Viewport()
     val canvasCamera: OrthographicCamera get() = viewport.camera as OrthographicCamera
 
+    /**
+     * Signal that is emitted when the viewport dimensions are changed by the [CanvasLayer].
+     */
     val onSizeChanged: Signal = signal()
 
+    /**
+     * The viewport virtual/world width
+     */
     var virtualWidth: Float
         get() = viewport.virtualWidth
         set(value) {
             viewport.virtualWidth = value
         }
 
+    /**
+     * The viewport virtual/world height
+     */
     var virtualHeight: Float
         get() = viewport.virtualHeight
         set(value) {
             viewport.virtualHeight = value
         }
 
+    /**
+     * Width of the viewport
+     */
     var width: Int
         get() = viewport.width
         set(value) {
             viewport.width = value
         }
 
+    /**
+     * Height of the viewport
+     */
     var height: Int
         get() = viewport.height
         set(value) {
             viewport.height = value
         }
 
+    /**
+     * Viewport x-coord
+     */
     var x: Int
         get() = viewport.x
         set(value) {
             viewport.x = value
         }
 
+    /**
+     * Viewport y-coord
+     */
     var y: Int
         get() = viewport.y
         set(value) {
@@ -124,7 +150,7 @@ open class CanvasLayer : Node() {
 
     override fun propagateHit(hx: Float, hy: Float): Control? {
         val scene = scene ?: return null
-        if(!enabled || isDestroyed) return null
+        if (!enabled || isDestroyed) return null
         scene.sceneToScreenCoordinates(temp.set(hx, hy))
         canvasCamera.screenToWorld(scene.context, temp, viewport, temp)
         nodes.forEachReversed {
@@ -141,6 +167,10 @@ open class CanvasLayer : Node() {
         onSizeChanged.clear()
     }
 
+    /**
+     * Convert screen coordinates to local canvas coordinates.
+     * @param vector2 the input screen coordinates. This is also used as the `out` vector.
+     */
     fun screenToCanvasCoordinates(vector2: MutableVec2f): MutableVec2f {
         canvasCamera.screenToWorld(scene?.context ?: error("CanvasLayer is not added to a scene!"),
             vector2,
@@ -149,6 +179,10 @@ open class CanvasLayer : Node() {
         return vector2
     }
 
+    /**
+     * Convert canvas coordinates to screen coordinates.
+     * @param vector2 the input canvas coordinates. This is also used as the `out` vector.
+     */
     fun canvasToScreenCoordinates(vector2: MutableVec2f): MutableVec2f {
         canvasCamera.worldToScreen(scene?.context ?: error("CanvasLayer is not added to a scene!"),
             vector2,

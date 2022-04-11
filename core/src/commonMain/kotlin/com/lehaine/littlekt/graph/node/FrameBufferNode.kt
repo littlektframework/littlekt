@@ -36,8 +36,19 @@ inline fun SceneGraph<*>.frameBuffer(
  */
 open class FrameBufferNode : CanvasLayer() {
 
+    /**
+     * The color to clear the [FrameBuffer].
+     */
     var clearColor: Color = Color.CLEAR
+
+    /**
+     * The color buffer texture from the [FrameBuffer].
+     */
     val fboTexture: Texture? get() = fbo?.colorBufferTexture
+
+    /**
+     * Signal that is emitted when the [FrameBuffer] is resized and recreated.
+     */
     val onFboChanged: SingleSignal<Texture> = signal1v()
 
     private var lastWidth = width

@@ -158,6 +158,10 @@ open class SceneGraph<InputType>(
     private var ownsBatch = true
     val batch: Batch = batch?.also { ownsBatch = false } ?: SpriteBatch(context)
 
+    /**
+     * The root [ViewportCanvasLayer] that is used for rendering all the children in the graph. Do not add children
+     * directly to this node. Instead, add children to the [root] node.
+     */
     val sceneCanvas: ViewportCanvasLayer by lazy {
         ViewportCanvasLayer().apply {
             name = "Scene Viewport"
@@ -165,11 +169,21 @@ open class SceneGraph<InputType>(
         }
     }
 
+    /**
+     * The root node that should be used to add any children nodes to.
+     */
     val root: Node by lazy {
         Node().apply { name = "Root" }.addTo(sceneCanvas)
     }
 
+    /**
+     * The virtual width of the [sceneCanvas].
+     */
     val width: Float get() = sceneCanvas.virtualWidth
+
+    /**
+     * The virtual height of hte [sceneCanvas].
+     */
     val height: Float get() = sceneCanvas.virtualHeight
 
     /**
