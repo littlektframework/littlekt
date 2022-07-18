@@ -19,7 +19,7 @@ class ShapeRendererTest(context: Context) : ContextListener(context) {
         val atlas = resourcesVfs["tiles.atlas.json"].readAtlas().combine(Textures.white, "pixel", this)
         val batch = SpriteBatch(this)
         val shapeRenderer = ShapeRenderer(batch, atlas["pixel"].slice)
-        val viewport = ExtendViewport(480, 270)
+        val viewport = ExtendViewport(960, 540)
         val camera = viewport.camera
         val animPlayer = AnimationPlayer<TextureSlice>()
         val heroSleep = atlas.getAnimation("heroSleeping")
@@ -40,9 +40,15 @@ class ShapeRendererTest(context: Context) : ContextListener(context) {
                 animPlayer.currentKeyFrame?.let {
                     batch.draw(it, 250f, 50f, scaleX = 5f, scaleY = 5f)
                 }
-                shapeRenderer.triangle(50f, 250f, 50f, Color.GREEN)
-                shapeRenderer.rect(50f, 100f, 50f, 50f, Color.RED)
-                shapeRenderer.circle(155f, 75f, 50f)
+                shapeRenderer.run {
+             //       triangle(50f, 250f, 50f, Color.GREEN)
+              //      triangleFilled(50f, 325f, 50f, Color.DARK_RED)
+                    rect(50f, 100f, 50f, 50f, Color.RED)
+                    circle(155f, 75f, 50f, segments = 256)
+                 //   line(125f, 100f, 225f, 175f, Color.BLUE, 1f)
+                 //   line(125f, 175f, 225f, 100f, Color.BLUE, 4f)
+                    line(125f, 100f, 225f, 100f, Color.BLUE)
+                }
             }
 
             if (input.isKeyJustPressed(Key.P)) {
