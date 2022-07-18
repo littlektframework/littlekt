@@ -259,8 +259,43 @@ class ShapeRenderer(val batch: Batch, val slice: TextureSlice = Textures.white) 
         batch.draw(slice.texture, vertices.data, 0, 5 * 4)
     }
 
+
     /**
-     * Draws a circle with a given radius.
+     * Draws a circle outline with the given radius's.
+     * @param x the x-coord for center of the circle
+     * @param y the y-coord for center of the circle
+     * @param radius the radius of the circle
+     * @param color the color of the outline
+     * @param segments the number of segments to render the circle with. The higher the segments the smoother it looks
+     * but at the cost of more vertices.
+     * @param thickness the thickness of the outline
+     */
+    fun circle(
+        x: Float,
+        y: Float,
+        radius: Float,
+        color: Color = Color.WHITE,
+        segments: Int = 32,
+        thickness: Int = 2,
+    ) {
+        val colorPacked = color.toFloatBits()
+        vertices.clear()
+
+        val pi2 = (PI * 2f).toFloat()
+
+        for (i in 0..segments) {
+            val x1 = x + (radius * cos(i * pi2 / segments))
+            val y1 = y + (radius * sin(i * pi2 / segments))
+            val x2 = x + (radius * cos((i + 1) * pi2 / segments))
+            val y2 = y + (radius * sin((i + 1) * pi2 / segments))
+            batchLine(x1, y1, x2, y2, colorPacked, thickness)
+        }
+
+        batch.draw(slice.texture, vertices.data, 0, 5 * 4 * segments)
+    }
+
+    /**
+     * Draws a filled circle with a given radius.
      * @param x the x-coord for center of the circle
      * @param y the y-coord for center of the circle
      * @param radius the radius of the circle
@@ -272,14 +307,51 @@ class ShapeRenderer(val batch: Batch, val slice: TextureSlice = Textures.white) 
         return ellipseFilled(x, y, radius, radius, color, segments)
     }
 
+
     /**
-     * Draws an ellipse with the given radius's.
+     * Draws an ellipse outline with the given radius's.
+     * @param x the x-coord for center of the ellipse
+     * @param y the y-coord for center of the ellipse
+     * @param rx the horizontal radius of the ellipse
+     * @param ry the vertical radius of the ellipse
+     * @param color the color of the outline
+     * @param segments the number of segments to render the ellipse with. The higher the segments the smoother it looks
+     * but at the cost of more vertices.
+     * @param thickness the thickness of the outline
+     */
+    fun ellipse(
+        x: Float,
+        y: Float,
+        rx: Float,
+        ry: Float,
+        color: Color = Color.WHITE,
+        segments: Int = 32,
+        thickness: Int = 2,
+    ) {
+        val colorPacked = color.toFloatBits()
+        vertices.clear()
+
+        val pi2 = (PI * 2f).toFloat()
+
+        for (i in 0..segments) {
+            val x1 = x + (rx * cos(i * pi2 / segments))
+            val y1 = y + (ry * sin(i * pi2 / segments))
+            val x2 = x + (rx * cos((i + 1) * pi2 / segments))
+            val y2 = y + (ry * sin((i + 1) * pi2 / segments))
+            batchLine(x1, y1, x2, y2, colorPacked, thickness)
+        }
+
+        batch.draw(slice.texture, vertices.data, 0, 5 * 4 * segments)
+    }
+
+    /**
+     * Draws a filled ellipse with the given radius's.
      * @param x the x-coord for center of the ellipse
      * @param y the y-coord for center of the ellipse
      * @param rx the horizontal radius of the ellipse
      * @param ry the vertical radius of the ellipse
      * @param color the color of the fill
-     * @param segments the number of segments to render the circle with. The higher the segments the smoother it looks
+     * @param segments the number of segments to render the ellipse with. The higher the segments the smoother it looks
      * but at the cost of more vertices.
      */
     fun ellipseFilled(x: Float, y: Float, rx: Float, ry: Float, color: Color = Color.WHITE, segments: Int = 32) {
