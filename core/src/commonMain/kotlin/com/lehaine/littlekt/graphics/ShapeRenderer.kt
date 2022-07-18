@@ -115,6 +115,56 @@ class ShapeRenderer(val batch: Batch, val slice: TextureSlice = Textures.white) 
     }
 
     /**
+     * Draws a triangle outline with equal side lengths.
+     * @param x the x-coord of the triangle
+     * @param y the y-coord of the triangle
+     * @param length the length of each side of the triangle
+     * @param color the color of the outline
+     * @param thickness the thickness of the outline in pixels
+     */
+    fun triangle(x: Float, y: Float, length: Float, color: Color = Color.WHITE, thickness: Int = 2) {
+        val colorPacked = color.toFloatBits()
+        vertices.clear()
+
+        batchLine(x, y, x + length * 0.5f, y - length, colorPacked, thickness)
+        batchLine(x + length * 0.5f, y - length, x + length, y, colorPacked, thickness)
+        batchLine(x + length, y, x, y, colorPacked, thickness)
+
+        batch.draw(slice.texture, vertices.data, 0, 5 * 4 * 3)
+    }
+
+    /**
+     * Draws a triangle outline base on the three given points.
+     * @param x the x-coord of the first point
+     * @param y the y-coord of the first point
+     * @param x2 the x-coord of the second point
+     * @param y2 the y-coord of the second point
+     * @param x3 the x-coord of the third point
+     * @param y3 the y-coord of the third point
+     * @param color the color of the outline
+     * @param thickness the thickness of the outline in pixels
+     */
+    fun triangle(
+        x: Float,
+        y: Float,
+        x2: Float,
+        y2: Float,
+        x3: Float,
+        y3: Float,
+        color: Color = Color.WHITE,
+        thickness: Int = 2,
+    ) {
+        val colorPacked = color.toFloatBits()
+        vertices.clear()
+
+        batchLine(x, y, x2, y2, colorPacked, thickness)
+        batchLine(x2, y2, x3, y3, colorPacked, thickness)
+        batchLine(x3, y3, x, y, colorPacked, thickness)
+
+        batch.draw(slice.texture, vertices.data, 0, 5 * 4 * 3)
+    }
+
+    /**
      * Draws a filled triangle with equal side lengths.
      * @param x the x-coord of the triangle
      * @param y the y-coord of the triangle
@@ -157,22 +207,56 @@ class ShapeRenderer(val batch: Batch, val slice: TextureSlice = Textures.white) 
     }
 
     /**
-     * Draws a triangle outline with equal side lengths.
-     * @param x the x-coord of the triangle
-     * @param y the y-coord of the triangle
-     * @param length the length of each side of the triangle
-     * @param color the color of the outline
-     * @param thickness the thickness of the outline in pixels
+     * Draws a filled triangle with equal side lengths.
+     * @param x the x-coord of the first point
+     * @param y the y-coord of the first point
+     * @param x2 the x-coord of the second point
+     * @param y2 the y-coord of the second point
+     * @param x3 the x-coord of the third point
+     * @param y3 the y-coord of the third point
+     * @param color the color of the fill
      */
-    fun triangle(x: Float, y: Float, length: Float, color: Color = Color.WHITE, thickness: Int = 2) {
+    fun triangleFilled(
+        x: Float,
+        y: Float,
+        x2: Float,
+        y2: Float,
+        x3: Float,
+        y3: Float,
+        color: Color = Color.WHITE,
+    ) {
         val colorPacked = color.toFloatBits()
         vertices.clear()
 
-        batchLine(x, y, x + length * 0.5f, y - length, colorPacked, thickness)
-        batchLine(x + length * 0.5f, y - length, x + length, y, colorPacked, thickness)
-        batchLine(x + length, y, x, y, colorPacked, thickness)
+        // bottom left
+        vertices += x
+        vertices += y
+        vertices += colorPacked
+        vertices += u
+        vertices += if (slice.rotated) v2 else v
 
-        batch.draw(slice.texture, vertices.data, 0, 5 * 4 * 3)
+        // top left (middle point)
+        vertices += x2
+        vertices += y2
+        vertices += colorPacked
+        vertices += if (slice.rotated) u2 else u
+        vertices += v2
+
+        // top right (middle point)
+        vertices += x2
+        vertices += y2
+        vertices += colorPacked
+        vertices += u2
+        vertices += if (slice.rotated) v else v2
+
+        // bottom right
+        vertices += x3
+        vertices += y3
+        vertices += colorPacked
+        vertices += if (slice.rotated) u else u2
+        vertices += v
+
+        batch.draw(slice.texture, vertices.data, 0, 5 * 4)
     }
 
     /**
@@ -184,7 +268,7 @@ class ShapeRenderer(val batch: Batch, val slice: TextureSlice = Textures.white) 
      * @param segments the number of segments to render the circle with. The higher the segments the smoother it looks
      * but at the cost of more vertices.
      */
-    fun circle(x: Float, y: Float, radius: Float, color: Color = Color.WHITE, segments: Int = 32) {
+    fun circleFilled(x: Float, y: Float, radius: Float, color: Color = Color.WHITE, segments: Int = 32) {
         val colorPacked = color.toFloatBits()
         vertices.clear()
 
@@ -205,6 +289,51 @@ class ShapeRenderer(val batch: Batch, val slice: TextureSlice = Textures.white) 
 
             vertices += x + (radius * cos((i + 1) * pi2 / segments))
             vertices += y + (radius * sin((i + 1) * pi2 / segments))
+            vertices += colorPacked
+            vertices += u2
+            vertices += if (slice.rotated) v else v2
+
+            vertices += x
+            vertices += y
+            vertices += colorPacked
+            vertices += if (slice.rotated) u2 else u
+            vertices += v2
+        }
+
+        batch.draw(slice.texture, vertices.data, 0, 5 * 4 * segments)
+    }
+
+    /**
+     * Draws an ellipse with the given radius's.
+     * @param x the x-coord for center of the ellipse
+     * @param y the y-coord for center of the ellipse
+     * @param rx the horizontal radius of the ellipse
+     * @param ry the vertical radius of the ellipse
+     * @param color the color of the fill
+     * @param segments the number of segments to render the circle with. The higher the segments the smoother it looks
+     * but at the cost of more vertices.
+     */
+    fun ellipseFilled(x: Float, y: Float, rx: Float, ry: Float, color: Color = Color.WHITE, segments: Int = 32) {
+        val colorPacked = color.toFloatBits()
+        vertices.clear()
+
+        val pi2 = (PI * 2f).toFloat()
+
+        for (i in 0..segments) {
+            vertices += x
+            vertices += y
+            vertices += colorPacked
+            vertices += u
+            vertices += if (slice.rotated) v2 else v
+
+            vertices += x + (rx * cos(i * pi2 / segments))
+            vertices += y + (ry * sin(i * pi2 / segments))
+            vertices += colorPacked
+            vertices += if (slice.rotated) u else u2
+            vertices += v
+
+            vertices += x + (rx * cos((i + 1) * pi2 / segments))
+            vertices += y + (ry * sin((i + 1) * pi2 / segments))
             vertices += colorPacked
             vertices += u2
             vertices += if (slice.rotated) v else v2
