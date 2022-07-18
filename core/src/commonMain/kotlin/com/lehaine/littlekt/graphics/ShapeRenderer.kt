@@ -269,38 +269,7 @@ class ShapeRenderer(val batch: Batch, val slice: TextureSlice = Textures.white) 
      * but at the cost of more vertices.
      */
     fun circleFilled(x: Float, y: Float, radius: Float, color: Color = Color.WHITE, segments: Int = 32) {
-        val colorPacked = color.toFloatBits()
-        vertices.clear()
-
-        val pi2 = (PI * 2f).toFloat()
-
-        for (i in 0..segments) {
-            vertices += x
-            vertices += y
-            vertices += colorPacked
-            vertices += u
-            vertices += if (slice.rotated) v2 else v
-
-            vertices += x + (radius * cos(i * pi2 / segments))
-            vertices += y + (radius * sin(i * pi2 / segments))
-            vertices += colorPacked
-            vertices += if (slice.rotated) u else u2
-            vertices += v
-
-            vertices += x + (radius * cos((i + 1) * pi2 / segments))
-            vertices += y + (radius * sin((i + 1) * pi2 / segments))
-            vertices += colorPacked
-            vertices += u2
-            vertices += if (slice.rotated) v else v2
-
-            vertices += x
-            vertices += y
-            vertices += colorPacked
-            vertices += if (slice.rotated) u2 else u
-            vertices += v2
-        }
-
-        batch.draw(slice.texture, vertices.data, 0, 5 * 4 * segments)
+        return ellipseFilled(x, y, radius, radius, color, segments)
     }
 
     /**
