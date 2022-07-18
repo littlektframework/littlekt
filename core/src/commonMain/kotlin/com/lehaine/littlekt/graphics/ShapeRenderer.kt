@@ -1,10 +1,7 @@
 package com.lehaine.littlekt.graphics
 
 import com.lehaine.littlekt.util.datastructure.FloatArrayList
-import kotlin.math.PI
-import kotlin.math.cos
-import kotlin.math.sin
-import kotlin.math.sqrt
+import kotlin.math.*
 
 /**
  * Renders primitive shapes using an existing [Batch].
@@ -14,6 +11,8 @@ import kotlin.math.sqrt
  * @date 7/16/2022
  */
 class ShapeRenderer(val batch: Batch, val slice: TextureSlice = Textures.white) {
+    var snap = false
+
     private val vertices = FloatArrayList(100)
 
     private val invTexWidth = 1f / slice.texture.width
@@ -31,24 +30,60 @@ class ShapeRenderer(val batch: Batch, val slice: TextureSlice = Textures.white) 
      * @param y2 ending y-coord
      * @param color color of the line
      * @param thickness the thickness of the line in pixels
+     * @param snap whether to snap the given coordinates to the center of the pixel
      */
-    fun line(x: Float, y: Float, x2: Float, y2: Float, color: Color = Color.WHITE, thickness: Int = 2) {
+    fun line(
+        x: Float, y: Float, x2: Float, y2: Float, color: Color = Color.WHITE, thickness: Int = 2,
+        snap: Boolean = this.snap,
+    ) {
         val colorPacked = color.toFloatBits()
         vertices.clear()
 
-        batchLine(x, y, x2, y2, colorPacked, thickness)
+        batchLine(x, y, x2, y2, colorPacked, thickness, snap)
 
         batch.draw(slice.texture, vertices.data, 0, 5 * 4)
     }
 
-    private fun batchLine(x: Float, y: Float, x2: Float, y2: Float, colorPacked: Float, thickness: Int = 2) {
+    private fun snapPixel(a: Float, pixelSize: Float, halfPixelSize: Float) =
+        (round(a / pixelSize) * pixelSize) + halfPixelSize
+
+    private fun batchLine(
+        x: Float,
+        y: Float,
+        x2: Float,
+        y2: Float,
+        colorPacked: Float,
+        thickness: Int = 2,
+        snap: Boolean = this.snap,
+    ) {
         val dx = x2 - x
         val dy = y2 - y
 
-        val sqrt = sqrt(dx * dx + dy * dy)
+        val offset = 0.001f
+        val pixelSize = 1f
+        val halfPixelSize = pixelSize * 0.5f
 
-        val px = -dy / sqrt * thickness * 0.5f
-        val py = dx / sqrt * thickness * 0.5f
+        @Suppress("NAME_SHADOWING")
+        val x = if (snap) snapPixel(x, pixelSize, halfPixelSize) - sign(dx) * offset else x
+
+        @Suppress("NAME_SHADOWING")
+        val y = if (snap) snapPixel(y, pixelSize, halfPixelSize) - sign(dy) * offset else y
+
+        @Suppress("NAME_SHADOWING")
+        val x2 = if (snap) snapPixel(x2, pixelSize, halfPixelSize) - sign(dx) * offset else x2
+
+        @Suppress("NAME_SHADOWING")
+        val y2 = if (snap) snapPixel(y2, pixelSize, halfPixelSize) - sign(dy) * offset else y2
+
+        var px = thickness * 0.5f
+        var py = thickness * 0.5f
+
+        if (x != x2 && y != y2) {
+            val scale = 1f / sqrt(dx * dx + dy * dy) * thickness * 0.5f
+
+            px = -dy * scale
+            py = dx * scale
+        }
 
         // bottom left
         vertices += x - px
