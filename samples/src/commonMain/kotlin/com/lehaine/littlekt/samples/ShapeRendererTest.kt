@@ -41,12 +41,13 @@ class ShapeRendererTest(context: Context) : ContextListener(context) {
                     batch.draw(it, 250f, 50f, scaleX = 5f, scaleY = 5f)
                 }
                 shapeRenderer.run {
-             //       triangle(50f, 250f, 50f, Color.GREEN)
-              //      triangleFilled(50f, 325f, 50f, Color.DARK_RED)
+                    triangle(50f, 250f, 50f, Color.GREEN)
+                    triangleFilled(50f, 325f, 50f, Color.DARK_RED)
                     rect(50f, 100f, 50f, 50f, Color.RED)
+                    rectFilled(51f, 101f, 48f, 48f, Color.DARK_YELLOW)
                     circle(155f, 75f, 50f, segments = 256)
-                 //   line(125f, 100f, 225f, 175f, Color.BLUE, 1f)
-                 //   line(125f, 175f, 225f, 100f, Color.BLUE, 4f)
+                    line(125f, 100f, 225f, 175f, Color.BLUE, )
+                    line(125f, 175f, 225f, 100f, Color.BLUE, 4)
                     line(125f, 100f, 225f, 100f, Color.BLUE)
                 }
             }
