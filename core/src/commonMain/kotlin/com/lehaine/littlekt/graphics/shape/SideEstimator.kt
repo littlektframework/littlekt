@@ -22,5 +22,3 @@ interface SideEstimator {
         return sides.clamp(20, 4000)
     }
 }
-
-class DefaultSideEstimator : SideEstimator

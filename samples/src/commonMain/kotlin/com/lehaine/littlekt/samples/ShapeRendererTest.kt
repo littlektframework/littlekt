@@ -29,7 +29,6 @@ class ShapeRendererTest(context: Context) : ContextListener(context) {
 
         onResize { width, height ->
             viewport.update(width, height, this, true)
-            shapeRenderer.updatePixelSize(context)
         }
 
         onRender { dt ->
