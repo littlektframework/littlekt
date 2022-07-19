@@ -49,6 +49,9 @@ class ShapeRendererTest(context: Context) : ContextListener(context) {
                     line(125f, 100f, 225f, 175f, Color.BLUE, Color.YELLOW)
                     line(125f, 175f, 225f, 100f, Color.BLUE)
                     line(125f, 100f, 225f, 100f, Color.BLUE)
+                    colorBits = Color.RED.toFloatBits()
+                    rectangle(50f, 50f, 75f, 50f)
+                    triangle(100f, 250f, 150f, 300f, 200f, 250f)
                 }
             }
 

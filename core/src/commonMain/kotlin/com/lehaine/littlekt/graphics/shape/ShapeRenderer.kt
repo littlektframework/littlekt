@@ -33,6 +33,8 @@ enum class JoinType {
 
 /**
  * Renders primitive shapes using an existing [Batch].
+ *
+ * Ported from [Shape Drawer](https://github.com/earlygrey/shapedrawer) by **earlygrey**.
  * @param batch the batch used to batch draw calls with
  * @param slice a 1x1 slice of a texture. Generally a single white pixel.
  * @author Colton Daily
@@ -59,7 +61,8 @@ class ShapeRenderer(val batch: Batch, val slice: TextureSlice = Textures.white) 
      * @param y starting y-coord
      * @param x2 ending x-coord
      * @param y2 ending y-coord
-     * @param color color of the line
+     * @param color color of the start vertex
+     * @param color2 color of the end vertex
      * @param thickness the thickness of the line in pixels
      * @param snap whether to snap the given coordinates to the center of the pixel
      */
@@ -68,14 +71,47 @@ class ShapeRenderer(val batch: Batch, val slice: TextureSlice = Textures.white) 
         y: Float,
         x2: Float,
         y2: Float,
-        color: Color = Color.WHITE,
+        color: Color,
         color2: Color = color,
         thickness: Int = this.thickness,
         snap: Boolean = this.snap,
     ) {
-        lineDrawer.line(x, y, x2, y2, thickness, snap, color.toFloatBits(), color2.toFloatBits())
+        line(x, y, x2, y2, color.toFloatBits(), color2.toFloatBits(), thickness, snap)
     }
 
+    /**
+     * Draws a line from point A to point B.
+     * @param x starting x-coord
+     * @param y starting y-coord
+     * @param x2 ending x-coord
+     * @param y2 ending y-coord
+     * @param colorBits packed color of the start vertex
+     * @param colorBits2 packed color of the end vertex
+     * @param thickness the thickness of the line in pixels
+     * @param snap whether to snap the given coordinates to the center of the pixel
+     */
+    fun line(
+        x: Float,
+        y: Float,
+        x2: Float,
+        y2: Float,
+        colorBits: Float = this.colorBits,
+        colorBits2: Float = colorBits,
+        thickness: Int = this.thickness,
+        snap: Boolean = this.snap,
+    ) {
+        lineDrawer.line(x, y, x2, y2, thickness, snap, colorBits, colorBits2)
+    }
+
+    /**
+     * Draws a circle around the specified point with the given radius.
+     * @param x center x-coord
+     * @param y center y-coord
+     * @param radius the radius of the circle
+     * @param rotation the rotation of the circle
+     * @param thickness the thickness of the outline in pixels
+     * @param joinType the type of join, see [JoinType]
+     */
     fun circle(
         x: Float,
         y: Float,
@@ -87,6 +123,16 @@ class ShapeRenderer(val batch: Batch, val slice: TextureSlice = Textures.white) 
         ellipse(x, y, radius, radius, rotation, thickness, joinType)
     }
 
+    /**
+     * Draws an ellipse around the specified point with the given radius's.
+     * @param x center x-coord
+     * @param y center y-coord
+     * @param rx the horizontal radius
+     * @param ry the vertical radius
+     * @param rotation the rotation of the ellipse
+     * @param thickness the thickness of the outline in pixels
+     * @param joinType the type of join, see [JoinType]
+     */
     fun ellipse(
         x: Float,
         y: Float,
@@ -97,6 +143,58 @@ class ShapeRenderer(val batch: Batch, val slice: TextureSlice = Textures.white) 
         joinType: JoinType = if (isJoinNecessary(thickness)) JoinType.SMOOTH else JoinType.NONE,
     ) {
         polygon(x, y, estimateSidesRequired(rx, ry), rx, ry, rotation, thickness, joinType)
+    }
+
+    fun triangle(
+        x1: Float,
+        y1: Float,
+        x2: Float,
+        y2: Float,
+        x3: Float,
+        y3: Float,
+        thickness: Int = this.thickness,
+        joinType: JoinType = if (isJoinNecessary(thickness)) JoinType.POINTY else JoinType.NONE,
+        color: Float = colorBits,
+    ) {
+
+        val cBits = colorBits
+        colorBits = color
+        if (joinType == JoinType.NONE) {
+            line(x1, y1, x2, y2, thickness = thickness)
+            line(x2, y2, x3, y3, thickness = thickness)
+            line(x3, y3, x1, y1, thickness = thickness)
+        } else {
+            // TODO impl via path drawer
+        }
+        colorBits = cBits
+    }
+
+    fun rectangle(
+        x: Float,
+        y: Float,
+        width: Float,
+        height: Float,
+        rotation: Angle = 0.radians,
+        thickness: Int = this.thickness,
+        joinType: JoinType = JoinType.POINTY,
+    ) {
+        if (joinType == JoinType.POINTY && rotation.radians.isFuzzyZero()) {
+            val halfThickness = 0.5f * thickness
+            val nx = x + width
+            val ny = y + height
+            val caching = batchManager.cachingDraws
+            lineDrawer.run {
+                pushLine(x + halfThickness, y, nx - halfThickness, y, thickness, false) // bottom
+                pushLine(x + halfThickness, ny, nx - halfThickness, ny, thickness, false) // top
+                pushLine(x, y - halfThickness, x, ny + halfThickness, thickness, false) // left
+                pushLine(nx, y - halfThickness, nx, ny + halfThickness, thickness, false) // right
+            }
+            if (!caching) {
+                batchManager.pushToBatch()
+            }
+            return
+        }
+        // TODO impl via path
     }
 
     fun polygon(
@@ -527,7 +625,6 @@ private class LineDrawer(batchManager: BatchManager) : Drawer(batchManager) {
         c2: Float = batchManager.colorBits,
     ) {
         pushLine(x1, y1, x2, y2, thickness, snap, c1, c2)
-        batchManager.pushToBatch()
     }
 
     @Suppress("NAME_SHADOWING")
@@ -542,6 +639,7 @@ private class LineDrawer(batchManager: BatchManager) : Drawer(batchManager) {
         c2: Float = batchManager.colorBits,
     ) {
         batchManager.ensureSpaceForQuad()
+
         val dx = x2 - x1
         val dy = y2 - y1
 
@@ -554,24 +652,28 @@ private class LineDrawer(batchManager: BatchManager) : Drawer(batchManager) {
         val x2 = if (snap) snapPixel(x2, pixelSize, halfPixelSize) - sign(dx) * offset else x2
         val y2 = if (snap) snapPixel(y2, pixelSize, halfPixelSize) - sign(dy) * offset else y2
 
-        var px = thickness * 0.5f
-        var py = thickness * 0.5f
+        var px = 0f
+        var py = 0f
 
-        if (x1 != x2 && y1 != y2) {
-            val scale = 1f / sqrt(dx * dx + dy * dy) * thickness * 0.5f
+        if (x1 == x2) {
+            px = thickness * 0.5f
+        } else if (y1 == y2) {
+            py = thickness * 0.5f
+        } else {
+            val scale = 1f / sqrt(dx * dx + dy * dy) * (thickness * 0.5f)
 
-            px = -dy * scale
+            px = dy * scale
             py = dx * scale
         }
 
-        x1(x1 - px)
-        y1(y1 + py)
-        x2(x1 + px)
-        y2(y1 - py)
-        x3(x2 + px)
-        y3(y2 - py)
-        x4(x2 - px)
-        y4(y2 + py)
+        x1(x1 + px)
+        y1(y1 - py)
+        x2(x1 - px)
+        y2(y1 + py)
+        x3(x2 - px)
+        y3(y2 + py)
+        x4(x2 + px)
+        y4(y2 - py)
 
         color1(c1)
         color2(c1)
