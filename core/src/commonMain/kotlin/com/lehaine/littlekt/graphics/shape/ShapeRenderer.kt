@@ -4,7 +4,10 @@ import com.lehaine.littlekt.Context
 import com.lehaine.littlekt.graphics.*
 import com.lehaine.littlekt.math.*
 import com.lehaine.littlekt.math.geom.Angle
+import com.lehaine.littlekt.math.geom.cosine
 import com.lehaine.littlekt.math.geom.radians
+import com.lehaine.littlekt.math.geom.sine
+import kotlin.math.abs
 
 
 /**
@@ -340,7 +343,6 @@ class ShapeRenderer(val batch: Batch, val slice: TextureSlice = Textures.white) 
         joinType: JoinType = if (isJoinNecessary(thickness)) JoinType.POINTY else JoinType.NONE,
         color: Float = colorBits,
     ) {
-
         val cBits = colorBits
         colorBits = color
         if (joinType == JoinType.NONE) {
@@ -348,7 +350,13 @@ class ShapeRenderer(val batch: Batch, val slice: TextureSlice = Textures.white) 
             line(x2, y2, x3, y3, thickness = thickness)
             line(x3, y3, x1, y1, thickness = thickness)
         } else {
-            // TODO impl via path drawer
+            trianglePathPoints[0] = x1
+            trianglePathPoints[1] = y1
+            trianglePathPoints[2] = x2
+            trianglePathPoints[3] = y2
+            trianglePathPoints[4] = x3
+            trianglePathPoints[5] = y3
+            pathDrawer.path(trianglePathPoints, thickness, joinType, open = false)
         }
         colorBits = cBits
     }
@@ -417,7 +425,33 @@ class ShapeRenderer(val batch: Batch, val slice: TextureSlice = Textures.white) 
             }
             return
         }
-        // TODO impl via path
+
+        var i = 0
+        rectangleCorners[i++] = x
+        rectangleCorners[i++] = y
+        rectangleCorners[i++] = x + width
+        rectangleCorners[i++] = y
+        rectangleCorners[i++] = x + width
+        rectangleCorners[i++] = y + height
+        rectangleCorners[i++] = x
+        rectangleCorners[i] = y + height
+
+        if (abs(rotation.radians) > FUZZY_EQ_F) {
+            val centerX = x + width / 2f
+            val centerY = y + height / 2f
+            val cos = rotation.cosine
+            val sin = rotation.sine
+            for (j in 0 until 8 step 2) {
+                rectangleCorners[j] -= centerX
+                rectangleCorners[j + 1] -= centerY
+                val rotatedX = rectangleCorners[j] * cos - rectangleCorners[j + 1] * sin
+                val rotatedY = rectangleCorners[j] * sin + rectangleCorners[j + 1] * cos
+
+                rectangleCorners[j] = rotatedX + centerX
+                rectangleCorners[j + 1] = rotatedY + centerY
+            }
+        }
+        path(rectangleCorners, thickness, joinType, open = false)
     }
 
     /**
@@ -472,6 +506,8 @@ class ShapeRenderer(val batch: Batch, val slice: TextureSlice = Textures.white) 
 
     companion object {
         private val mat4 = Mat4()
+        private val trianglePathPoints = FloatArray(6)
+        private val rectangleCorners = FloatArray(8)
     }
 }
 

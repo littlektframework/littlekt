@@ -8,6 +8,7 @@ import com.lehaine.littlekt.graphics.gl.ClearBufferMask
 import com.lehaine.littlekt.graphics.shape.ShapeRenderer
 import com.lehaine.littlekt.input.Key
 import com.lehaine.littlekt.math.Vec2f
+import com.lehaine.littlekt.math.geom.degrees
 import com.lehaine.littlekt.util.combine
 import com.lehaine.littlekt.util.viewport.ExtendViewport
 
@@ -63,6 +64,9 @@ class ShapeRendererTest(context: Context) : ContextListener(context) {
                     triangle(100f, 250f, 150f, 300f, 200f, 250f)
                     colorBits = Color.ORANGE.toFloatBits()
                     path(path, thickness = 4)
+                    colorBits = Color.LIGHT_BLUE.toFloatBits()
+                    rectangle(500f, 400f, 100f, 50f, 45.degrees)
+                    triangle(75f, 450f, 150f, 350f, 200f, 500f, thickness = 4)
                 }
             }
 
