@@ -516,7 +516,6 @@ private open class Drawer(protected val batchManager: BatchManager) {
 
 private class LineDrawer(batchManager: BatchManager) : Drawer(batchManager) {
 
-
     fun line(
         x1: Float,
         y1: Float,
@@ -688,12 +687,12 @@ private class PolygonDrawer(batchManager: BatchManager, private val lineDrawer: 
             start = 1
             end = sides
             dir.set(1f, 0f).rotate(start * angleInterval)
-            a.set(1f, 0f).rotate((start - 2) * angleInterval)
+            a.set(1f, 0f).rotate((start - 2) * angleInterval).scale(radius)
             c.set(dir).scale(radius)
             b.set(1f, 0f).rotate((start - 1) * angleInterval).scale(radius)
         } else {
             start = ceil(sides * (startAngle.radians / PI2_F)).toInt()
-            if ((start * angleInterval).radians ife startAngle.radians) {
+            if ((start * angleInterval).radians.isFuzzyEqual(startAngle.radians, 0.001f)) {
                 start++
             }
             end = floor(sides * (endAngle.radians / PI2_F)).toInt() + 1
@@ -705,6 +704,8 @@ private class PolygonDrawer(batchManager: BatchManager, private val lineDrawer: 
         }
 
         for (i in start..end) {
+            batchManager.ensureSpaceForQuad()
+
             if (!full && i == start) {
                 Joiner.prepareRadialEndpoint(b, d, e, halfThickness)
             } else {
@@ -733,6 +734,8 @@ private class PolygonDrawer(batchManager: BatchManager, private val lineDrawer: 
                 } else {
                     Joiner.preparePointyJoin(a, b, c, d, e, halfThickness)
                 }
+            } else {
+                Joiner.prepareRadialEndpoint(b, d, e, halfThickness)
             }
 
             vert3(d.x * cosRot - d.y * sinRot + center.x, d.x * sinRot + d.y * cosRot + center.y)

@@ -42,10 +42,12 @@ class ShapeRendererTest(context: Context) : ContextListener(context) {
                     batch.draw(it, 250f, 50f, scaleX = 5f, scaleY = 5f)
                 }
                 shapeRenderer.run {
+                    colorBits = Color.YELLOW.toFloatBits()
                     ellipse(400f, 365f, 25f, 50f)
-                    circle(500f, 365f, 25f)
-                    line(125f, 100f, 225f, 175f, Color.BLUE)
-                    line(125f, 175f, 225f, 100f, Color.BLUE, thickness = 4)
+                    colorBits = Color.GREEN.toFloatBits()
+                    circle(500f, 365f, 150f, thickness = 10)
+                    line(125f, 100f, 225f, 175f, Color.BLUE, Color.YELLOW)
+                    line(125f, 175f, 225f, 100f, Color.BLUE)
                     line(125f, 100f, 225f, 100f, Color.BLUE)
                 }
             }
