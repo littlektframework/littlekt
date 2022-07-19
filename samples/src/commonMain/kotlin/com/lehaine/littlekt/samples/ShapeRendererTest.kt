@@ -5,6 +5,7 @@ import com.lehaine.littlekt.ContextListener
 import com.lehaine.littlekt.file.vfs.readAtlas
 import com.lehaine.littlekt.graphics.*
 import com.lehaine.littlekt.graphics.gl.ClearBufferMask
+import com.lehaine.littlekt.graphics.shape.ShapeRenderer
 import com.lehaine.littlekt.input.Key
 import com.lehaine.littlekt.util.combine
 import com.lehaine.littlekt.util.viewport.ExtendViewport
@@ -41,18 +42,10 @@ class ShapeRendererTest(context: Context) : ContextListener(context) {
                     batch.draw(it, 250f, 50f, scaleX = 5f, scaleY = 5f)
                 }
                 shapeRenderer.run {
-                    triangle(50f, 250f, 50f, Color.GREEN)
-                    triangleFilled(50f, 325f, 50f, Color.DARK_RED)
-                    rect(50f, 100f, 50f, 50f, Color.RED)
-                    rectFilled(51f, 101f, 48f, 48f, Color.DARK_YELLOW)
-                    circleFilled(155f, 75f, 50f, segments = 6)
-                    circleFilled(155f, 225f, 50f, Color.DARK_MAGENTA, segments = 32)
-                    ellipseFilled(400f, 125f, 25f, 50f, Color.DARK_CYAN, 32)
-                    ellipseFilled(400f, 255f, 33f, 12f, Color.DARK_CYAN, 32)
-                    ellipse(400f, 365f, 25f, 50f, Color.CYAN, 32)
-                    circle(500f, 365f, 25f, Color.CYAN, 32)
+                    ellipse(400f, 365f, 25f, 50f)
+                    circle(500f, 365f, 25f)
                     line(125f, 100f, 225f, 175f, Color.BLUE)
-                    line(125f, 175f, 225f, 100f, Color.BLUE, 4)
+                    line(125f, 175f, 225f, 100f, Color.BLUE, thickness = 4)
                     line(125f, 100f, 225f, 100f, Color.BLUE)
                 }
             }

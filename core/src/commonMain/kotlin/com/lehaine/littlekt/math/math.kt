@@ -1,5 +1,6 @@
 package com.lehaine.littlekt.math
 
+import kotlin.jvm.JvmName
 import kotlin.math.*
 import kotlin.random.Random
 
@@ -13,6 +14,10 @@ const val RAD_2_DEG = 180.0 / PI
 
 const val FUZZY_EQ_F = 1e-5f
 const val FUZZY_EQ_D = 1e-10
+
+const val PI_F = PI.toFloat()
+const val PI2 = (PI * 2)
+const val PI2_F = PI2.toFloat()
 
 /**
  * The difference between 1 and the smallest floating point number of type float that is greater than 1.
@@ -33,6 +38,10 @@ inline fun Double.toRad() = this * DEG_2_RAD
 
 inline fun isFuzzyEqual(a: Float, b: Float, eps: Float = FUZZY_EQ_F) = (a - b).isFuzzyZero(eps)
 inline fun isFuzzyEqual(a: Double, b: Double, eps: Double = FUZZY_EQ_D) = (a - b).isFuzzyZero(eps)
+@JvmName("isFuzzyEqual_F")
+inline fun Float.isFuzzyEqual(b: Float, eps: Float = FUZZY_EQ_F) = (this - b).isFuzzyZero(eps)
+@JvmName("isFuzzyEqual_D")
+inline fun Double.isFuzzyEqual(b: Double, eps: Double = FUZZY_EQ_D) = (this - b).isFuzzyZero(eps)
 
 infix fun Float.ife(b: Float) = isFuzzyEqual(this, b)
 infix fun Double.ife(b: Double) = isFuzzyEqual(this, b)

@@ -2,27 +2,18 @@
 
 package com.lehaine.littlekt.math.geom
 
-import com.lehaine.littlekt.math.interpolate
+import com.lehaine.littlekt.math.*
 import com.lehaine.littlekt.util.internal.umod
 import kotlin.jvm.JvmInline
-import kotlin.math.PI
 import kotlin.math.absoluteValue
 import kotlin.math.atan2
 
-@PublishedApi
-internal const val PI2 = (PI * 2).toFloat()
-
-@PublishedApi
-internal const val DEG2RAD = (PI / 180.0).toFloat()
-
-@PublishedApi
-internal const val RAD2DEG = (180.0 / PI).toFloat()
 
 @PublishedApi
 internal const val MAX_DEGREES = 360f
 
 @PublishedApi
-internal const val MAX_RADIANS = PI2
+internal const val MAX_RADIANS = PI2_F
 
 @PublishedApi
 internal const val HALF_DEGREES = MAX_DEGREES / 2f
@@ -51,7 +42,7 @@ internal fun Angle_longDistanceTo(from: Angle, to: Angle): Angle {
 @PublishedApi
 internal fun Angle_between(x0: Float, y0: Float, x1: Float, y1: Float): Angle {
     val angle = atan2(y1 - y0, x1 - x0)
-    return if (angle < 0) Angle(angle + PI2) else Angle(angle)
+    return if (angle < 0) Angle(angle + PI2_F) else Angle(angle)
 }
 
 // https://github.com/korlibs/korge-next/blob/master/korma/src/commonMain/kotlin/com/soywiz/korma/geom/Angle.kt
@@ -89,8 +80,8 @@ value class Angle(val radians: Float) : Comparable<Angle> {
         inline fun sin01(ratio: Double) = kotlin.math.sin(PI2 * ratio)
         inline fun tan01(ratio: Double) = kotlin.math.tan(PI2 * ratio)
 
-        inline fun degreesToRadians(degrees: Float): Float = (degrees * DEG2RAD)
-        inline fun radiansToDegrees(radians: Float): Float = (radians * RAD2DEG)
+        inline fun degreesToRadians(degrees: Float): Float = (degrees.toRad())
+        inline fun radiansToDegrees(radians: Float): Float = (radians.toDeg())
 
         inline fun shortDistanceTo(from: Angle, to: Angle): Angle = Angle_shortDistanceTo(from, to)
         inline fun longDistanceTo(from: Angle, to: Angle): Angle = Angle_longDistanceTo(from, to)
@@ -147,6 +138,13 @@ fun Angle.inBetween(min: Angle, max: Angle, inclusive: Boolean): Boolean {
         else -> nthis >= nmin && (if (inclusive) nthis <= nmax else nthis < nmax)
     }
 }
+
+operator fun Float.times(angle: Angle): Angle = Angle(this * angle.radians)
+operator fun Float.div(angle: Angle): Angle = Angle(this / angle.radians)
+operator fun Double.times(angle: Angle): Angle = this.toFloat() * angle
+operator fun Double.div(angle: Angle): Angle = this.toFloat() / angle
+operator fun Int.times(angle: Angle): Angle = this.toFloat() * angle
+operator fun Int.div(angle: Angle): Angle = this.toFloat() / angle
 
 val Double.degrees get() = Angle.fromDegrees(this)
 val Double.radians get() = Angle.fromRadians(this)

@@ -1,5 +1,6 @@
 package com.lehaine.littlekt.math
 
+import com.lehaine.littlekt.math.geom.Angle
 import kotlin.math.abs
 import kotlin.math.cos
 import kotlin.math.sin
@@ -85,11 +86,11 @@ open class Vec3f(x: Float, y: Float, z: Float) {
         }
     }
 
-    fun rotate(angleDeg: Float, axisX: Float, axisY: Float, axisZ: Float, result: MutableVec3f): MutableVec3f =
-        result.set(this).rotate(angleDeg, axisX, axisY, axisZ)
+    fun rotate(angle: Angle, axisX: Float, axisY: Float, axisZ: Float, result: MutableVec3f): MutableVec3f =
+        result.set(this).rotate(angle, axisX, axisY, axisZ)
 
-    fun rotate(angleDeg: Float, axis: Vec3f, result: MutableVec3f): MutableVec3f =
-        result.set(this).rotate(angleDeg, axis.x, axis.y, axis.z)
+    fun rotate(angle: Angle, axis: Vec3f, result: MutableVec3f): MutableVec3f =
+        result.set(this).rotate(angle, axis.x, axis.y, axis.z)
 
     fun scale(factor: Float, result: MutableVec3f): MutableVec3f = result.set(this).scale(factor)
 
@@ -217,8 +218,8 @@ open class MutableVec3f(x: Float, y: Float, z: Float) : Vec3f(x, y, z) {
 
     fun cross(other: Vec3f): MutableVec3f = cross(other, this)
 
-    fun rotate(angleDeg: Float, axisX: Float, axisY: Float, axisZ: Float): MutableVec3f {
-        val rad = angleDeg.toRad()
+    fun rotate(angle: Angle, axisX: Float, axisY: Float, axisZ: Float): MutableVec3f {
+        val rad = angle.radians
         val c = cos(rad)
         val c1 = 1f - c
         val s = sin(rad)
@@ -235,7 +236,7 @@ open class MutableVec3f(x: Float, y: Float, z: Float) : Vec3f(x, y, z) {
         return this
     }
 
-    fun rotate(angleDeg: Float, axis: Vec3f): MutableVec3f = rotate(angleDeg, axis.x, axis.y, axis.z)
+    fun rotate(angle: Angle, axis: Vec3f): MutableVec3f = rotate(angle, axis.x, axis.y, axis.z)
 
     fun scale(factor: Float): MutableVec3f {
         x *= factor
