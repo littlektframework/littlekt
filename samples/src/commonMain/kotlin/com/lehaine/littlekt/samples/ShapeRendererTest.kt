@@ -7,6 +7,7 @@ import com.lehaine.littlekt.graphics.*
 import com.lehaine.littlekt.graphics.gl.ClearBufferMask
 import com.lehaine.littlekt.graphics.shape.ShapeRenderer
 import com.lehaine.littlekt.input.Key
+import com.lehaine.littlekt.math.Vec2f
 import com.lehaine.littlekt.util.combine
 import com.lehaine.littlekt.util.viewport.ExtendViewport
 
@@ -24,6 +25,14 @@ class ShapeRendererTest(context: Context) : ContextListener(context) {
         val camera = viewport.camera
         val animPlayer = AnimationPlayer<TextureSlice>()
         val heroSleep = atlas.getAnimation("heroSleeping")
+
+        val path = listOf(Vec2f(0f, 0f),
+            Vec2f(50f, 25f),
+            Vec2f(135f, 232f),
+            Vec2f(312f, 400f),
+            Vec2f(650f, 425f),
+            Vec2f(725f, 50f),
+            Vec2f(250f, 10f))
 
         animPlayer.playLooped(heroSleep)
 
@@ -52,6 +61,8 @@ class ShapeRendererTest(context: Context) : ContextListener(context) {
                     colorBits = Color.RED.toFloatBits()
                     rectangle(50f, 50f, 75f, 50f)
                     triangle(100f, 250f, 150f, 300f, 200f, 250f)
+                    colorBits = Color.ORANGE.toFloatBits()
+                    path(path, thickness = 4)
                 }
             }
 

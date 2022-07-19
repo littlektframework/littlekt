@@ -58,6 +58,7 @@ class ShapeRenderer(val batch: Batch, val slice: TextureSlice = Textures.white) 
     private val batchManager = BatchManager(batch, slice)
     private val lineDrawer = LineDrawer(batchManager)
     private val polygonDrawer = PolygonDrawer(batchManager, lineDrawer)
+    private val pathDrawer = PathDrawer(batchManager, lineDrawer)
 
     /**
      * Uses the current projection and transformation matrices of [Batch] to calculate the size of the screen pixel
@@ -157,6 +158,53 @@ class ShapeRenderer(val batch: Batch, val slice: TextureSlice = Textures.white) 
         snap: Boolean = this.snap,
     ) {
         lineDrawer.line(x, y, x2, y2, thickness, snap, colorBits, colorBits2)
+    }
+
+    /**
+     * Draws a path by drawing a line between each point and the next.
+     *
+     * The points at which two lines connect can be mitered to give a smooth join.
+     * Note that this may cause strange looking joins when the angle between connected lines approaches &pi;, as the
+     * miter can get arbitrarily long. For thin line where the miter cannot be seen,
+     * you can set [joinType] to [JoinType.NONE].
+     *
+     * Only a subset of the path containing unique consecutive points (up to some small error) will be considered.
+     * For example, the paths [(0,0), (1.001, 1, (1, 1), (2, 2)] and [(0,0), (1,1), (2,2)] will be drawn identically.
+     *
+     * If [pathPoints] is empty nothing will be drawn, if it contains wo points [line] will be used.
+     *
+     * @param pathPoints a list of [Vec2f] containing the ordered points in the path
+     * @param thickness the thickness of the line in world units
+     * @param joinType the type of join, see [JoinType]
+     * @param open if false then the first and last points are connected
+     */
+    fun path(
+        pathPoints: List<Vec2f>,
+        thickness: Int = this.thickness,
+        joinType: JoinType = if (isJoinNecessary(thickness)) JoinType.SMOOTH else JoinType.NONE,
+        open: Boolean = true,
+    ) {
+        pathDrawer.path(pathPoints, thickness, joinType, open)
+    }
+
+    /**
+     * Draws a path by drawing al ine between each point and the next. See [path] for details.
+     * @param pathPoints a [FloatArray] containing the ordered points in the path
+     * @param thickness the thickness of the line in world units
+     * @param joinType the type of join, see [JoinType]
+     * @param start the index of [pathPoints] which represents the first point to draw, inclusive
+     * @param end the index of [pathPoints] which represents the last point to draw, exclusive
+     * @param open if false then the first and last points are connected
+     */
+    fun path(
+        pathPoints: FloatArray,
+        thickness: Int = this.thickness,
+        joinType: JoinType = if (isJoinNecessary(thickness)) JoinType.SMOOTH else JoinType.NONE,
+        start: Int = 0,
+        end: Int = pathPoints.size,
+        open: Boolean = true,
+    ) {
+        pathDrawer.path(pathPoints, thickness, joinType, start, end, open)
     }
 
     /**
