@@ -29,6 +29,7 @@ class ShapeRendererTest(context: Context) : ContextListener(context) {
 
         onResize { width, height ->
             viewport.update(width, height, this, true)
+            shapeRenderer.updatePixelSize(context)
         }
 
         onRender { dt ->
@@ -46,7 +47,7 @@ class ShapeRendererTest(context: Context) : ContextListener(context) {
                     ellipse(400f, 365f, 25f, 50f)
                     colorBits = Color.GREEN.toFloatBits()
                     circle(500f, 365f, 150f, thickness = 10)
-                    line(125f, 100f, 225f, 175f, Color.BLUE, Color.YELLOW)
+                    line(125f, 100f, 225f, 175f, Color.BLUE, Color.YELLOW, snap = true)
                     line(125f, 175f, 225f, 100f, Color.BLUE)
                     line(125f, 100f, 225f, 100f, Color.BLUE)
                     colorBits = Color.RED.toFloatBits()

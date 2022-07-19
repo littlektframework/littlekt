@@ -1,5 +1,6 @@
 package com.lehaine.littlekt.graphics.shape
 
+import com.lehaine.littlekt.Context
 import com.lehaine.littlekt.graphics.*
 import com.lehaine.littlekt.graphics.Batch.Companion.C1
 import com.lehaine.littlekt.graphics.Batch.Companion.C2
@@ -22,38 +23,112 @@ import kotlin.math.*
 
 
 /**
+ * The type of miter joint used for connecting.
  * @author Colton Daily
  * @date 7/18/2022
  */
 enum class JoinType {
+    /**
+     * No mitering is performed. This defaults to [ShapeRenderer.line] and is the fastest options.
+     */
     NONE,
+
+    /**
+     * A standard miter joint.
+     */
     POINTY,
+
+    /**
+     * A truncated miter joint.
+     */
     SMOOTH
 }
 
 /**
- * Renders primitive shapes using an existing [Batch].
+ * Draws lines, shapes, and paths using a [Batch] for optimal performance.
  *
- * Ported from [Shape Drawer](https://github.com/earlygrey/shapedrawer) by **earlygrey**.
+ * Line mitering can be performed when drawing polygons and paths, see [JoinType] for options.
+ *
+ * Also includes an option to snap lines to the center of pixels.
+ *
+ * Ported from [Shape Drawer](https://github.com/earlygrey/shapedrawer) by [earlygrey](https://github.com/earlygrey)
+ *
  * @param batch the batch used to batch draw calls with
  * @param slice a 1x1 slice of a texture. Generally a single white pixel.
  * @author Colton Daily
  * @date 7/16/2022
  */
 class ShapeRenderer(val batch: Batch, val slice: TextureSlice = Textures.white) {
+    /**
+     * Whether line endpoints are snapped to the center of pixels by default.
+     */
     var snap = false
+
+    /**
+     * The default thickness, in world units, of lines and outlines when drawing when thickness is not specified
+     */
     var thickness: Int = 1
+
+    /**
+     * The [SideEstimator] used to calculate the number of sides. Defaults to [DefaultSideEstimator].
+     */
     var sideEstimator: SideEstimator = DefaultSideEstimator()
-    val pixelSize: Float get() = batchManager.pixelSize
+
+    /**
+     * The packed color to be used when drawing polygons. See [Color.toFloatBits].
+     */
     var colorBits: Float
         set(value) {
             batchManager.colorBits = value
         }
         get() = batchManager.colorBits
 
+    /**
+     * The current pixel size in world units.
+     */
+    var pixelSize: Float
+        private set(value) {
+            batchManager.pixelSize = value
+        }
+        get() = batchManager.pixelSize
+
     private val batchManager = BatchManager(batch, slice)
     private val lineDrawer = LineDrawer(batchManager)
     private val polygonDrawer = PolygonDrawer(batchManager, lineDrawer)
+
+    /**
+     * Uses the current projection and transformation matrices of [Batch] to calculate the size of the screen pixel
+     * along the x-axis in world units, and calls sets the [pixelSize] with that value.
+     *
+     * This should be called if [Batch.projectionMatrix] or [Batch.transformMatrix]are changed.
+     */
+    fun updatePixelSize(context: Context) {
+        val trans = batch.transformMatrix
+        val proj = batch.projectionMatrix
+        mat4.set(proj).mul(trans)
+        val scaleX = mat4.scaleX
+        val worldWidth = 2f / scaleX
+        val newPixelSize = worldWidth / context.graphics.width
+        pixelSize = newPixelSize
+    }
+
+    /**
+     * Draws a line from point A to point B.
+     * @param v1 starting vertex point
+     * @param v2 ending vertex point
+     * @param color color of the start vertex
+     * @param color2 color of the end vertex
+     * @param thickness the thickness of the line in pixels
+     * @param snap whether to snap the given coordinates to the center of the pixel
+     */
+    fun line(
+        v1: Vec2f,
+        v2: Vec2f,
+        color: Color,
+        color2: Color = color,
+        thickness: Int = this.thickness,
+        snap: Boolean = this.snap,
+    ) = line(v1.x, v1.y, v2.x, v2.y, color, color2, thickness, snap)
 
     /**
      * Draws a line from point A to point B.
@@ -81,13 +156,31 @@ class ShapeRenderer(val batch: Batch, val slice: TextureSlice = Textures.white) 
 
     /**
      * Draws a line from point A to point B.
+     * @param v1 starting vertex point
+     * @param v2 ending vertex point
+     * @param colorBits packed color of the start vertex
+     * @param colorBits2 packed color of the end vertex
+     * @param thickness the thickness of the line in world units
+     * @param snap whether to snap the given coordinates to the center of the pixel
+     */
+    fun line(
+        v1: Vec2f,
+        v2: Vec2f,
+        colorBits: Float = this.colorBits,
+        colorBits2: Float = colorBits,
+        thickness: Int = this.thickness,
+        snap: Boolean = this.snap,
+    ) = line(v1.x, v1.y, v2.x, v2.y, colorBits, colorBits2, thickness, snap)
+
+    /**
+     * Draws a line from point A to point B.
      * @param x starting x-coord
      * @param y starting y-coord
      * @param x2 ending x-coord
      * @param y2 ending y-coord
      * @param colorBits packed color of the start vertex
      * @param colorBits2 packed color of the end vertex
-     * @param thickness the thickness of the line in pixels
+     * @param thickness the thickness of the line in world units
      * @param snap whether to snap the given coordinates to the center of the pixel
      */
     fun line(
@@ -105,11 +198,27 @@ class ShapeRenderer(val batch: Batch, val slice: TextureSlice = Textures.white) 
 
     /**
      * Draws a circle around the specified point with the given radius.
+     * @param center the center point
+     * @param radius the radius of the circle
+     * @param rotation the rotation of the circle
+     * @param thickness the thickness of the line in world units
+     * @param joinType the type of join, see [JoinType]
+     */
+    fun circle(
+        center: Vec2f,
+        radius: Float,
+        rotation: Angle = 0.radians,
+        thickness: Int = this.thickness,
+        joinType: JoinType = if (isJoinNecessary(thickness)) JoinType.SMOOTH else JoinType.NONE,
+    ) = circle(center.x, center.y, radius, rotation, thickness, joinType)
+
+    /**
+     * Draws a circle around the specified point with the given radius.
      * @param x center x-coord
      * @param y center y-coord
      * @param radius the radius of the circle
      * @param rotation the rotation of the circle
-     * @param thickness the thickness of the outline in pixels
+     * @param thickness the thickness of the line in world units
      * @param joinType the type of join, see [JoinType]
      */
     fun circle(
@@ -125,12 +234,46 @@ class ShapeRenderer(val batch: Batch, val slice: TextureSlice = Textures.white) 
 
     /**
      * Draws an ellipse around the specified point with the given radius's.
-     * @param x center x-coord
-     * @param y center y-coord
+     * @param center the center point
      * @param rx the horizontal radius
      * @param ry the vertical radius
      * @param rotation the rotation of the ellipse
-     * @param thickness the thickness of the outline in pixels
+     * @param thickness the thickness of the line in world units
+     * @param joinType the type of join, see [JoinType]
+     */
+    fun ellipse(
+        center: Vec2f,
+        rx: Float,
+        ry: Float = rx,
+        rotation: Angle = 0.radians,
+        thickness: Int = this.thickness,
+        joinType: JoinType = if (isJoinNecessary(thickness)) JoinType.SMOOTH else JoinType.NONE,
+    ) = ellipse(center.x, center.y, rx, ry, rotation, thickness, joinType)
+
+    /**
+     * Draws an ellipse around the specified point with the given radius's.
+     * @param center the center point
+     * @param radius the radius vector
+     * @param rotation the rotation of the ellipse
+     * @param thickness the thickness of the line in world units
+     * @param joinType the type of join, see [JoinType]
+     */
+    fun ellipse(
+        center: Vec2f,
+        radius: Vec2f,
+        rotation: Angle = 0.radians,
+        thickness: Int = this.thickness,
+        joinType: JoinType = if (isJoinNecessary(thickness)) JoinType.SMOOTH else JoinType.NONE,
+    ) = ellipse(center.x, center.y, radius.x, radius.y, rotation, thickness, joinType)
+
+    /**
+     * Draws an ellipse around the specified point with the given radius's.
+     * @param x the x-coord of the center point
+     * @param y the y-coord of the center point
+     * @param rx the horizontal radius
+     * @param ry the vertical radius
+     * @param rotation the rotation of the ellipse
+     * @param thickness the thickness of the line in world units
      * @param joinType the type of join, see [JoinType]
      */
     fun ellipse(
@@ -145,6 +288,36 @@ class ShapeRenderer(val batch: Batch, val slice: TextureSlice = Textures.white) 
         polygon(x, y, estimateSidesRequired(rx, ry), rx, ry, rotation, thickness, joinType)
     }
 
+    /**
+     * Draws a triangle at the specified points.
+     * @param v1 the coordinates of the first vertex
+     * @param v2 the coordinates of the second vertex
+     * @param v3 the coordinates of the third vertex
+     * @param thickness the thickness of the line in world units
+     * @param joinType the type of join, see [JoinType]
+     * @param color the packed color to draw the outline. See [Color.toFloatBits].
+     */
+    fun triangle(
+        v1: Vec2f,
+        v2: Vec2f,
+        v3: Vec3f,
+        thickness: Int = this.thickness,
+        joinType: JoinType = if (isJoinNecessary(thickness)) JoinType.POINTY else JoinType.NONE,
+        color: Float = colorBits,
+    ) = triangle(v1.x, v1.y, v2.x, v2.y, v3.x, v3.y, thickness, joinType, color)
+
+    /**
+     * Draws a triangle at the specified points.
+     * @param x1 x-coord of first vertex
+     * @param y1 y-coord of first vertex
+     * @param x2 x-coord of second vertex
+     * @param y2 y-coord of second vertex
+     * @param x3 x-coord of third vertex
+     * @param y3 y-coord of third vertex
+     * @param thickness the thickness of the line in world units
+     * @param joinType the type of join, see [JoinType]
+     * @param color the packed color to draw the outline. See [Color.toFloatBits].
+     */
     fun triangle(
         x1: Float,
         y1: Float,
@@ -169,6 +342,45 @@ class ShapeRenderer(val batch: Batch, val slice: TextureSlice = Textures.white) 
         colorBits = cBits
     }
 
+    /**
+     * Draws a rectangle.
+     * @param position the position of the bottom left corner of the rectangle
+     * @param width the width of the rectangle
+     * @param height the height of the rectangle
+     * @param thickness the thickness of the line in world units
+     * @param joinType the type of join, see [JoinType]
+     */
+    fun rectangle(
+        position: Vec2f,
+        width: Float,
+        height: Float,
+        rotation: Angle = 0.radians,
+        thickness: Int = this.thickness,
+        joinType: JoinType = JoinType.POINTY,
+    ) = rectangle(position.x, position.y, width, height, rotation, thickness, joinType)
+
+    /**
+     * Draws a rectangle.
+     * @param rect the rectangle info
+     * @param thickness the thickness of the line in world units
+     * @param joinType the type of join, see [JoinType]
+     */
+    fun rectangle(
+        rect: Rect,
+        rotation: Angle = 0.radians,
+        thickness: Int = this.thickness,
+        joinType: JoinType = JoinType.POINTY,
+    ) = rectangle(rect.x, rect.y, rect.width, rect.height, rotation, thickness, joinType)
+
+    /**
+     * Draws a rectangle.
+     * @param x x-coord of the bottom left corner of the rectangle
+     * @param y y-coord of the bottom left corner of the rectangle
+     * @param width the width of the rectangle
+     * @param height the height of the rectangle
+     * @param thickness the thickness of the line in world units
+     * @param joinType the type of join, see [JoinType]
+     */
     fun rectangle(
         x: Float,
         y: Float,
@@ -197,6 +409,37 @@ class ShapeRenderer(val batch: Batch, val slice: TextureSlice = Textures.white) 
         // TODO impl via path
     }
 
+    /**
+     * Draws a regular polygon by drawing lines between the vertices
+     * @param center the center point
+     * @param sides the number of sides
+     * @param scaleX the horizontal scale
+     * @param scaleY the vertical scale
+     * @param rotation the rotation
+     * @param thickness the thickness of the line in world units
+     * @param joinType the type of join, see [JoinType]
+     */
+    fun polygon(
+        center: Vec2f,
+        sides: Int,
+        scaleX: Float,
+        scaleY: Float = scaleX,
+        rotation: Angle = 0.radians,
+        thickness: Int = this.thickness,
+        joinType: JoinType = if (isJoinNecessary(thickness)) JoinType.POINTY else JoinType.NONE,
+    ) = polygon(center.x, center.y, sides, scaleX, scaleY, rotation, thickness, joinType)
+
+    /**
+     * Draws a regular polygon by drawing lines between the vertices
+     * @param x the x-coord of the center point
+     * @param y the y-coord of the center point
+     * @param sides the number of sides
+     * @param scaleX the horizontal scale
+     * @param scaleY the vertical scale
+     * @param rotation the rotation
+     * @param thickness the thickness of the line in world units
+     * @param joinType the type of join, see [JoinType]
+     */
     fun polygon(
         x: Float,
         y: Float,
@@ -215,6 +458,10 @@ class ShapeRenderer(val batch: Batch, val slice: TextureSlice = Textures.white) 
     private fun isJoinNecessary() = isJoinNecessary(thickness)
     private fun estimateSidesRequired(rx: Float, ry: Float) =
         sideEstimator.estimateSidesRequired(batchManager.pixelSize, rx, ry)
+
+    companion object {
+        private val mat4 = Mat4()
+    }
 }
 
 private class BatchManager(private val batch: Batch, private val slice: TextureSlice) {
@@ -222,9 +469,9 @@ private class BatchManager(private val batch: Batch, private val slice: TextureS
     var colorBits: Float = Color.WHITE.toFloatBits()
     private var verts = FloatArray(2000)
     private var vertexCount = 0
-    var offset = 0.001f
     var pixelSize = 1f
     val halfPixelSize get() = pixelSize * 0.5f
+    val offset get() = 0.001f * pixelSize
 
     private val verticesArrayIndex: Int get() = VERTEX_SIZE * vertexCount
     private val verticesRemaining: Int get() = (verts.size - QUAD_PUSH_SIZE * vertexCount) / VERTEX_SIZE
@@ -236,7 +483,15 @@ private class BatchManager(private val batch: Batch, private val slice: TextureS
         setTextureSliceUV()
     }
 
-    //fun x1(x1: Float) = vertices
+    fun updatePixelSize(context: Context) {
+        val trans = batch.transformMatrix
+        val proj = batch.projectionMatrix
+        mat4.set(proj).mul(trans)
+        val scaleX = mat4.scaleX
+        val worldWidth = 2f / scaleX
+        val newPixelSize = worldWidth / context.graphics.width
+        pixelSize = newPixelSize
+    }
 
     fun startCaching(): Boolean {
         val wasCaching = cachingDraws
@@ -389,6 +644,7 @@ private class BatchManager(private val batch: Batch, private val slice: TextureS
     companion object {
         private const val VERTEX_SIZE = 5
         private const val QUAD_PUSH_SIZE = 4 * VERTEX_SIZE
+        private val mat4 = Mat4()
     }
 }
 
