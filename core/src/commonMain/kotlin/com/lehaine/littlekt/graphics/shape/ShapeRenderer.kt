@@ -180,14 +180,19 @@ class ShapeRenderer(val batch: Batch, val slice: TextureSlice = Textures.white) 
      * @param thickness the thickness of the line in world units
      * @param joinType the type of join, see [JoinType]
      * @param open if false then the first and last points are connected
+     * @param color the packed color to draw the outline. See [Color.toFloatBits].
      */
     fun path(
         pathPoints: List<Vec2f>,
         thickness: Int = this.thickness,
         joinType: JoinType = if (isJoinNecessary(thickness)) JoinType.SMOOTH else JoinType.NONE,
         open: Boolean = true,
+        color: Float = colorBits,
     ) {
+        val old = colorBits
+        colorBits = color
         pathDrawer.path(pathPoints, thickness, joinType, open)
+        colorBits = old
     }
 
     /**
@@ -198,6 +203,7 @@ class ShapeRenderer(val batch: Batch, val slice: TextureSlice = Textures.white) 
      * @param start the index of [pathPoints] which represents the first point to draw, inclusive
      * @param end the index of [pathPoints] which represents the last point to draw, exclusive
      * @param open if false then the first and last points are connected
+     * @param color the packed color to draw the outline. See [Color.toFloatBits].
      */
     fun path(
         pathPoints: FloatArray,
@@ -206,8 +212,12 @@ class ShapeRenderer(val batch: Batch, val slice: TextureSlice = Textures.white) 
         start: Int = 0,
         end: Int = pathPoints.size,
         open: Boolean = true,
+        color: Float = colorBits,
     ) {
+        val old = colorBits
+        colorBits = color
         pathDrawer.path(pathPoints, thickness, joinType, start, end, open)
+        colorBits = old
     }
 
     /**
@@ -217,6 +227,7 @@ class ShapeRenderer(val batch: Batch, val slice: TextureSlice = Textures.white) 
      * @param rotation the rotation of the circle
      * @param thickness the thickness of the line in world units
      * @param joinType the type of join, see [JoinType]
+     * @param color the packed color to draw the outline. See [Color.toFloatBits].
      */
     fun circle(
         center: Vec2f,
@@ -224,7 +235,8 @@ class ShapeRenderer(val batch: Batch, val slice: TextureSlice = Textures.white) 
         rotation: Angle = 0.radians,
         thickness: Int = this.thickness,
         joinType: JoinType = if (isJoinNecessary(thickness)) JoinType.SMOOTH else JoinType.NONE,
-    ) = circle(center.x, center.y, radius, rotation, thickness, joinType)
+        color: Float = colorBits,
+    ) = circle(center.x, center.y, radius, rotation, thickness, joinType, color)
 
     /**
      * Draws a circle around the specified point with the given radius.
@@ -234,6 +246,7 @@ class ShapeRenderer(val batch: Batch, val slice: TextureSlice = Textures.white) 
      * @param rotation the rotation of the circle
      * @param thickness the thickness of the line in world units
      * @param joinType the type of join, see [JoinType]
+     * @param color the packed color to draw the outline. See [Color.toFloatBits].
      */
     fun circle(
         x: Float,
@@ -242,8 +255,9 @@ class ShapeRenderer(val batch: Batch, val slice: TextureSlice = Textures.white) 
         rotation: Angle = 0.radians,
         thickness: Int = this.thickness,
         joinType: JoinType = if (isJoinNecessary(thickness)) JoinType.SMOOTH else JoinType.NONE,
+        color: Float = colorBits,
     ) {
-        ellipse(x, y, radius, radius, rotation, thickness, joinType)
+        ellipse(x, y, radius, radius, rotation, thickness, joinType, color)
     }
 
     /**
@@ -254,6 +268,7 @@ class ShapeRenderer(val batch: Batch, val slice: TextureSlice = Textures.white) 
      * @param rotation the rotation of the ellipse
      * @param thickness the thickness of the line in world units
      * @param joinType the type of join, see [JoinType]
+     * @param color the packed color to draw the outline. See [Color.toFloatBits].
      */
     fun ellipse(
         center: Vec2f,
@@ -262,7 +277,8 @@ class ShapeRenderer(val batch: Batch, val slice: TextureSlice = Textures.white) 
         rotation: Angle = 0.radians,
         thickness: Int = this.thickness,
         joinType: JoinType = if (isJoinNecessary(thickness)) JoinType.SMOOTH else JoinType.NONE,
-    ) = ellipse(center.x, center.y, rx, ry, rotation, thickness, joinType)
+        color: Float = colorBits,
+    ) = ellipse(center.x, center.y, rx, ry, rotation, thickness, joinType, color)
 
     /**
      * Draws an ellipse around the specified point with the given radius's.
@@ -271,6 +287,7 @@ class ShapeRenderer(val batch: Batch, val slice: TextureSlice = Textures.white) 
      * @param rotation the rotation of the ellipse
      * @param thickness the thickness of the line in world units
      * @param joinType the type of join, see [JoinType]
+     * @param color the packed color to draw the outline. See [Color.toFloatBits].
      */
     fun ellipse(
         center: Vec2f,
@@ -278,7 +295,8 @@ class ShapeRenderer(val batch: Batch, val slice: TextureSlice = Textures.white) 
         rotation: Angle = 0.radians,
         thickness: Int = this.thickness,
         joinType: JoinType = if (isJoinNecessary(thickness)) JoinType.SMOOTH else JoinType.NONE,
-    ) = ellipse(center.x, center.y, radius.x, radius.y, rotation, thickness, joinType)
+        color: Float = colorBits,
+    ) = ellipse(center.x, center.y, radius.x, radius.y, rotation, thickness, joinType, color)
 
     /**
      * Draws an ellipse around the specified point with the given radius's.
@@ -289,6 +307,7 @@ class ShapeRenderer(val batch: Batch, val slice: TextureSlice = Textures.white) 
      * @param rotation the rotation of the ellipse
      * @param thickness the thickness of the line in world units
      * @param joinType the type of join, see [JoinType]
+     * @param color the packed color to draw the outline. See [Color.toFloatBits].
      */
     fun ellipse(
         x: Float,
@@ -298,8 +317,9 @@ class ShapeRenderer(val batch: Batch, val slice: TextureSlice = Textures.white) 
         rotation: Angle = 0.radians,
         thickness: Int = this.thickness,
         joinType: JoinType = if (isJoinNecessary(thickness)) JoinType.SMOOTH else JoinType.NONE,
+        color: Float = colorBits,
     ) {
-        polygon(x, y, estimateSidesRequired(rx, ry), rx, ry, rotation, thickness, joinType)
+        polygon(x, y, estimateSidesRequired(rx, ry), rx, ry, rotation, thickness, joinType, color)
     }
 
     /**
@@ -368,6 +388,7 @@ class ShapeRenderer(val batch: Batch, val slice: TextureSlice = Textures.white) 
      * @param height the height of the rectangle
      * @param thickness the thickness of the line in world units
      * @param joinType the type of join, see [JoinType]
+     * @param color the packed color to draw the outline. See [Color.toFloatBits].
      */
     fun rectangle(
         position: Vec2f,
@@ -376,20 +397,23 @@ class ShapeRenderer(val batch: Batch, val slice: TextureSlice = Textures.white) 
         rotation: Angle = 0.radians,
         thickness: Int = this.thickness,
         joinType: JoinType = JoinType.POINTY,
-    ) = rectangle(position.x, position.y, width, height, rotation, thickness, joinType)
+        color: Float = colorBits,
+    ) = rectangle(position.x, position.y, width, height, rotation, thickness, joinType, color)
 
     /**
      * Draws a rectangle.
      * @param rect the rectangle info
      * @param thickness the thickness of the line in world units
      * @param joinType the type of join, see [JoinType]
+     * @param color the packed color to draw the outline. See [Color.toFloatBits].
      */
     fun rectangle(
         rect: Rect,
         rotation: Angle = 0.radians,
         thickness: Int = this.thickness,
         joinType: JoinType = JoinType.POINTY,
-    ) = rectangle(rect.x, rect.y, rect.width, rect.height, rotation, thickness, joinType)
+        color: Float = colorBits,
+    ) = rectangle(rect.x, rect.y, rect.width, rect.height, rotation, thickness, joinType, color)
 
     /**
      * Draws a rectangle.
@@ -399,6 +423,7 @@ class ShapeRenderer(val batch: Batch, val slice: TextureSlice = Textures.white) 
      * @param height the height of the rectangle
      * @param thickness the thickness of the line in world units
      * @param joinType the type of join, see [JoinType]
+     * @param color the packed color to draw the outline. See [Color.toFloatBits].
      */
     fun rectangle(
         x: Float,
@@ -408,7 +433,10 @@ class ShapeRenderer(val batch: Batch, val slice: TextureSlice = Textures.white) 
         rotation: Angle = 0.radians,
         thickness: Int = this.thickness,
         joinType: JoinType = JoinType.POINTY,
+        color: Float = colorBits,
     ) {
+        val old = colorBits
+        colorBits = color
         if (joinType == JoinType.POINTY && rotation.radians.isFuzzyZero()) {
             val halfThickness = 0.5f * thickness
             val nx = x + width
@@ -423,6 +451,7 @@ class ShapeRenderer(val batch: Batch, val slice: TextureSlice = Textures.white) 
             if (!caching) {
                 batchManager.pushToBatch()
             }
+            colorBits = old
             return
         }
 
@@ -452,6 +481,7 @@ class ShapeRenderer(val batch: Batch, val slice: TextureSlice = Textures.white) 
             }
         }
         path(rectangleCorners, thickness, joinType, open = false)
+        colorBits = old
     }
 
     /**
@@ -463,6 +493,7 @@ class ShapeRenderer(val batch: Batch, val slice: TextureSlice = Textures.white) 
      * @param rotation the rotation
      * @param thickness the thickness of the line in world units
      * @param joinType the type of join, see [JoinType]
+     * @param color the packed color to draw the outline. See [Color.toFloatBits].
      */
     fun polygon(
         center: Vec2f,
@@ -472,7 +503,8 @@ class ShapeRenderer(val batch: Batch, val slice: TextureSlice = Textures.white) 
         rotation: Angle = 0.radians,
         thickness: Int = this.thickness,
         joinType: JoinType = if (isJoinNecessary(thickness)) JoinType.POINTY else JoinType.NONE,
-    ) = polygon(center.x, center.y, sides, scaleX, scaleY, rotation, thickness, joinType)
+        color: Float = colorBits,
+    ) = polygon(center.x, center.y, sides, scaleX, scaleY, rotation, thickness, joinType, color)
 
     /**
      * Draws a regular polygon by drawing lines between the vertices
@@ -484,6 +516,7 @@ class ShapeRenderer(val batch: Batch, val slice: TextureSlice = Textures.white) 
      * @param rotation the rotation
      * @param thickness the thickness of the line in world units
      * @param joinType the type of join, see [JoinType]
+     * @param color the packed color to draw the outline. See [Color.toFloatBits].
      */
     fun polygon(
         x: Float,
@@ -494,8 +527,12 @@ class ShapeRenderer(val batch: Batch, val slice: TextureSlice = Textures.white) 
         rotation: Angle = 0.radians,
         thickness: Int = this.thickness,
         joinType: JoinType = if (isJoinNecessary(thickness)) JoinType.POINTY else JoinType.NONE,
+        color: Float = colorBits,
     ) {
+        val old = colorBits
+        colorBits = color
         polygonDrawer.polygon(x, y, sides, scaleX, scaleY, rotation, thickness, joinType, 0.radians, PI2_F)
+        colorBits = old
     }
 
 
