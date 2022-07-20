@@ -2,7 +2,7 @@
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://github.com/littlektframework/littlekt/blob/master/LICENSE)
 [![build](https://github.com/littlektframework/littlekt/actions/workflows/build.yml/badge.svg?branch=master)](https://github.com/littlektframework/littlekt/actions/workflows/build.yml)
-[![Download](https://img.shields.io/maven-central/v/com.lehaine.littlekt/core/0.2.0)](https://search.maven.org/artifact/com.lehaine.littlekt/core/0.2.0/pom)
+[![Download](https://img.shields.io/maven-central/v/com.lehaine.littlekt/core/0.3.0)](https://search.maven.org/artifact/com.lehaine.littlekt/core/0.3.0/pom)
 
 **Currently in development.**
 
@@ -35,7 +35,7 @@ kotlin {
     }
 }
 
-val littleKtVersion = "0.2.0" // get the latest release at the top
+val littleKtVersion = "0.3.0" // get the latest release at the top
 val kotlinCoroutinesVersion = "1.6.0" // or whatever version you are using
 
 sourceSets {
@@ -70,7 +70,7 @@ kotlin {
     }
 }
 
-val littleKtVersion = "0.3.0.ed0803a-SNAPSHOT" // or whichever hash you are using
+val littleKtVersion = "0.4.0.6a1a731-SNAPSHOT" // or whichever hash you are using
 val kotlinCoroutinesVersion = "1.6.0" // or whatever version you are using
 
 sourceSets {
