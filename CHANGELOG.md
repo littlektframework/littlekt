@@ -14,6 +14,7 @@
 * `Camera` & `Viewport` relationship refactoring to make more sense. See full changelog for more info.
 * `AnimationPlayer` playback clean up and add few additional playback methods
 * New optional `AnimationStateMachine` within `AnimationPlayer`.
+* New shape, lines, and path drawing class `ShapeRenderer`.
 
 ### Breaking
 
@@ -57,6 +58,25 @@
 * update `SceneGraph.initialize()` to be **suspending**.
 * update `SceneGraph.Node.initialize()` to be **suspending**.
 * rename `Node2D.toWorld` functions to `toGlobal`.
+* update `Vec2f.rotate` to use `Angle` instead of a float.
+
+  #### Migration:
+
+  Before:
+
+  ```kotlin
+    val vec = MutableVec2f()
+    val angle:Float = 45.degrees
+    vec.rotate(angle.degrees)
+    ```
+
+  After:
+
+  ```kotlin
+    val vec = MutableVec2f()
+    val angle:Float = 45.degrees
+    vec.rotate(angle)
+    ```
 
 ### New
 
@@ -98,6 +118,7 @@
 * add: `AnimationState` optional state machine stack that can be to register animation states that will be played based
   on a predicate.
 * add: `CropType` options to `TexturePacker`: `NONE`, `FLUSH_POSITION`, and `KEEP_POSITION`.
+* add: `ShapeRenderer` class to handle drawing shapes, lines, and paths using a `Batch` instance and a `TextureSlice`.
 
 ### Changes
 
