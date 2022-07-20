@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.3.2
+
+### Bugs
+
+* fix: Infix function `ife` from using the incorrect `isFuzzyEquals` method resulting in incorrect values.
+
 ## v0.3.1
 
 ### Changes
