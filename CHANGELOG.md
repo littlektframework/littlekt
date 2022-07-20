@@ -1,6 +1,6 @@
 # Changelog
 
-## v0.3.0 (Current SNAPSHOT)
+## v0.3.0
 
 ### Highlights
 
