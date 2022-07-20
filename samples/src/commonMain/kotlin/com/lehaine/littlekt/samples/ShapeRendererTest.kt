@@ -67,6 +67,16 @@ class ShapeRendererTest(context: Context) : ContextListener(context) {
                     colorBits = Color.LIGHT_BLUE.toFloatBits()
                     rectangle(500f, 400f, 100f, 50f, 45.degrees)
                     triangle(75f, 450f, 150f, 350f, 200f, 500f, thickness = 4)
+                    filledEllipse(600f,
+                        200f,
+                        25f,
+                        40f,
+                        33.degrees,
+                        innerColor = Color.DARK_GRAY.toFloatBits(),
+                        outerColor = Color.WHITE.toFloatBits())
+                    filledCircle(600f, 280f, 40f, color = Color.LIGHT_RED.toFloatBits())
+                    filledRectangle(600f, 400f, 20f, 30f, 45.degrees)
+                    filledTriangle(450f, 150f, 525f, 50f, 400f, 400f)
                 }
             }
 

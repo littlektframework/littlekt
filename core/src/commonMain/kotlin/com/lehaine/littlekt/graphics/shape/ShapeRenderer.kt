@@ -3,10 +3,7 @@ package com.lehaine.littlekt.graphics.shape
 import com.lehaine.littlekt.Context
 import com.lehaine.littlekt.graphics.*
 import com.lehaine.littlekt.math.*
-import com.lehaine.littlekt.math.geom.Angle
-import com.lehaine.littlekt.math.geom.cosine
-import com.lehaine.littlekt.math.geom.radians
-import com.lehaine.littlekt.math.geom.sine
+import com.lehaine.littlekt.math.geom.*
 import kotlin.math.abs
 
 
@@ -61,6 +58,7 @@ class ShapeRenderer(val batch: Batch, val slice: TextureSlice = Textures.white) 
     private val batchManager = BatchManager(batch, slice)
     private val lineDrawer = LineDrawer(batchManager)
     private val polygonDrawer = PolygonDrawer(batchManager, lineDrawer)
+    private val filledPolygonDrawer = FilledPolygonDrawer(batchManager)
     private val pathDrawer = PathDrawer(batchManager, lineDrawer)
 
     /**
@@ -283,7 +281,7 @@ class ShapeRenderer(val batch: Batch, val slice: TextureSlice = Textures.white) 
     /**
      * Draws an ellipse around the specified point with the given radius's.
      * @param center the center point
-     * @param radius the radius vector
+     * @param radius the horizontal and vertical radii
      * @param rotation the rotation of the ellipse
      * @param thickness the thickness of the line in world units
      * @param joinType the type of join, see [JoinType]
@@ -299,7 +297,8 @@ class ShapeRenderer(val batch: Batch, val slice: TextureSlice = Textures.white) 
     ) = ellipse(center.x, center.y, radius.x, radius.y, rotation, thickness, joinType, color)
 
     /**
-     * Draws an ellipse around the specified point with the given radius's.
+     * Draws an ellipse as a stretched regular polygon estimating the number of sides required
+     * (see [estimateSidesRequired]) to appear smooth enough based on the pixel size that has been set.
      * @param x the x-coord of the center point
      * @param y the y-coord of the center point
      * @param rx the horizontal radius
@@ -320,6 +319,87 @@ class ShapeRenderer(val batch: Batch, val slice: TextureSlice = Textures.white) 
         color: Float = colorBits,
     ) {
         polygon(x, y, estimateSidesRequired(rx, ry), rx, ry, rotation, thickness, joinType, color)
+    }
+
+    /**
+     * Draws a filled circle as a stretched regular polygon estimating the number of sides required
+     * (see [estimateSidesRequired]) to appear smooth enough based on the pixel size that has been set.
+     * @param center the center point
+     * @param radius the radius
+     * @param rotation the rotation of the ellipse
+     * @param color the packed color of circle. See [Color.toFloatBits].
+     */
+    fun filledCircle(
+        center: Vec2f,
+        radius: Float,
+        rotation: Angle = 0.radians,
+        color: Float = colorBits,
+    ) = filledEllipse(center.x, center.y, radius, radius, rotation, color, color)
+
+    /**
+     * Draws a filled circle as a stretched regular polygon estimating the number of sides required
+     * (see [estimateSidesRequired]) to appear smooth enough based on the pixel size that has been set.
+     * @param x the x-coord of the center point
+     * @param y the y-coord of the center point
+     * @param radius the radius
+     * @param rotation the rotation of the ellipse
+     * @param color the packed color of circle. See [Color.toFloatBits].
+     */
+    fun filledCircle(
+        x: Float,
+        y: Float,
+        radius: Float,
+        rotation: Angle = 0.radians,
+        color: Float = colorBits,
+    ) = filledEllipse(x, y, radius, radius, rotation, color, color)
+
+    /**
+     * Draws a filled ellipse as a stretched regular polygon estimating the number of sides required
+     * (see [estimateSidesRequired]) to appear smooth enough based on the pixel size that has been set.
+     * @param center the center point
+     * @param radius the horizontal and vertical radii
+     * @param rotation the rotation of the ellipse
+     * @param innerColor the packed color of the center of the ellipse. See [Color.toFloatBits].
+     * @param outerColor the packed color of the perimeter of the ellipse. See [Color.toFloatBits]
+     */
+    fun filledEllipse(
+        center: Vec2f,
+        radius: Vec2f,
+        rotation: Angle = 0.radians,
+        innerColor: Float = colorBits,
+        outerColor: Float = colorBits,
+    ) = filledEllipse(center.x, center.y, radius.x, radius.y, rotation, innerColor, outerColor)
+
+    /**
+     * Draws a filled ellipse as a stretched regular polygon estimating the number of sides required
+     * (see [estimateSidesRequired]) to appear smooth enough based on the pixel size that has been set.
+     * @param x the x-coord of the center point
+     * @param y the y-coord of the center point
+     * @param rx the horizontal radius
+     * @param ry the vertical radius
+     * @param rotation the rotation of the ellipse
+     * @param innerColor the packed color of the center of the ellipse. See [Color.toFloatBits].
+     * @param outerColor the packed color of the perimeter of the ellipse. See [Color.toFloatBits]
+     */
+    fun filledEllipse(
+        x: Float,
+        y: Float,
+        rx: Float,
+        ry: Float = rx,
+        rotation: Angle = 0.radians,
+        innerColor: Float = colorBits,
+        outerColor: Float = colorBits,
+    ) {
+        filledPolygonDrawer.polygon(x,
+            y,
+            estimateSidesRequired(rx, ry),
+            rx,
+            ry,
+            rotation,
+            0.radians,
+            PI2_F,
+            innerColor,
+            outerColor)
     }
 
     /**
@@ -379,6 +459,50 @@ class ShapeRenderer(val batch: Batch, val slice: TextureSlice = Textures.white) 
             pathDrawer.path(trianglePathPoints, thickness, joinType, open = false)
         }
         colorBits = cBits
+    }
+
+    /**
+     * Draws a filled triangle at the specified points.
+     * @param v1 the coordinates of the first vertex
+     * @param v2 the coordinates of the second vertex
+     * @param v3 the coordinates of the third vertex
+     * @param color the packed color of the first vertex or all if [color2] or [color3] are not set.
+     * @param color2 the packed color of the second vertex. If [color3] then the third vertex as well.
+     * @param color3 the packed color of the third vertex.
+     */
+    fun filledTriangle(
+        v1: Vec2f,
+        v2: Vec2f,
+        v3: Vec3f,
+        color: Float = colorBits,
+        color2: Float = color,
+        color3: Float = color2,
+    ) = filledTriangle(v1.x, v1.y, v2.x, v2.y, v3.x, v3.y, color, color2, color3)
+
+    /**
+     * Draws a filled triangle at the specified points.
+     * @param x1 x-coord of first vertex
+     * @param y1 y-coord of first vertex
+     * @param x2 x-coord of second vertex
+     * @param y2 y-coord of second vertex
+     * @param x3 x-coord of third vertex
+     * @param y3 y-coord of third vertex
+     * @param color the packed color of the first vertex or all if [color2] or [color3] are not set.
+     * @param color2 the packed color of the second vertex. If [color3] then the third vertex as well.
+     * @param color3 the packed color of the third vertex.
+     */
+    fun filledTriangle(
+        x1: Float,
+        y1: Float,
+        x2: Float,
+        y2: Float,
+        x3: Float,
+        y3: Float,
+        color: Float = colorBits,
+        color2: Float = color,
+        color3: Float = color2,
+    ) {
+        filledPolygonDrawer.triangle(x1, y1, x2, y2, x3, y3, color, color2, color3)
     }
 
     /**
@@ -485,6 +609,78 @@ class ShapeRenderer(val batch: Batch, val slice: TextureSlice = Textures.white) 
     }
 
     /**
+     * Draws a filled rectangle.
+     * @param position the position of the bottom left corner of the rectangle
+     * @param width the width of the rectangle
+     * @param height the height of the rectangle
+     * @param color the packed color of top right vertex. If no subsequent colors are set
+     * then the remaining vertices as well.
+     * @param color2 the packed color of top left vertex. If no subsequent colors are set
+     * then the remaining vertices as well.
+     * @param color3 the packed color of bottom left vertex. If no subsequent colors are set
+     * then the remaining vertices as well.
+     * @param color4 the packed color of bottom right vertex.
+     */
+    fun filledRectangle(
+        position: Vec2f,
+        width: Float,
+        height: Float,
+        rotation: Angle = 0.radians,
+        color: Float = colorBits,
+        color2: Float = color,
+        color3: Float = color2,
+        color4: Float = color3,
+    ) = filledRectangle(position.x, position.y, width, height, rotation, color, color2, color3, color4)
+
+    /**
+     * Draws a filled rectangle.
+     * @param rect the rectangle info
+     * @param color the packed color of top right vertex. If no subsequent colors are set
+     * then the remaining vertices as well.
+     * @param color2 the packed color of top left vertex. If no subsequent colors are set
+     * then the remaining vertices as well.
+     * @param color3 the packed color of bottom left vertex. If no subsequent colors are set
+     * then the remaining vertices as well.
+     * @param color4 the packed color of bottom right vertex.
+     */
+    fun filledRectangle(
+        rect: Rect,
+        rotation: Angle = 0.radians,
+        color: Float = colorBits,
+        color2: Float = color,
+        color3: Float = color2,
+        color4: Float = color3,
+    ) = filledRectangle(rect.x, rect.y, rect.width, rect.height, rotation, color, color2, color3, color4)
+
+    /**
+     * Draws a filled rectangle.
+     * @param x x-coord of the bottom left corner of the rectangle
+     * @param y y-coord of the bottom left corner of the rectangle
+     * @param width the width of the rectangle
+     * @param height the height of the rectangle
+     * @param color the packed color of top right vertex. If no subsequent colors are set
+     * then the remaining vertices as well.
+     * @param color2 the packed color of top left vertex. If no subsequent colors are set
+     * then the remaining vertices as well.
+     * @param color3 the packed color of bottom left vertex. If no subsequent colors are set
+     * then the remaining vertices as well.
+     * @param color4 the packed color of bottom right vertex.
+     */
+    fun filledRectangle(
+        x: Float,
+        y: Float,
+        width: Float,
+        height: Float,
+        rotation: Angle = 0.radians,
+        color: Float = colorBits,
+        color2: Float = color,
+        color3: Float = color2,
+        color4: Float = color3,
+    ) {
+        filledPolygonDrawer.rectangle(x, y, width, height, rotation, color, color2, color3, color4)
+    }
+
+    /**
      * Draws a regular polygon by drawing lines between the vertices
      * @param center the center point
      * @param sides the number of sides
@@ -535,6 +731,74 @@ class ShapeRenderer(val batch: Batch, val slice: TextureSlice = Textures.white) 
         colorBits = old
     }
 
+    /**
+     * Draws a filled polygon.
+     *
+     * @param center the center point
+     * @param sides the number of sides
+     * @param scaleX the horizontal scale
+     * @param scaleY the vertical scale
+     * @param rotation the rotation of the polygon
+     * @param innerColor the packed color of the center of the polygon. See [Color.toFloatBits].
+     * @param outerColor the packed color of the perimeter of the polygon. See [Color.toFloatBits]
+     */
+    fun filledPolygon(
+        center: Vec2f,
+        sides: Int,
+        scaleX: Float,
+        scaleY: Float = scaleX,
+        rotation: Angle = 0.radians,
+        innerColor: Float = colorBits,
+        outerColor: Float = colorBits,
+    ) = filledPolygon(center.x, center.y, sides, scaleX, scaleY, rotation, innerColor, outerColor)
+
+    /**
+     * Draws a filled polygon.
+     *
+     * @param x the x-coord of the center point
+     * @param y the y-coord of the center point
+     * @param sides the number of sides
+     * @param scaleX the horizontal scale
+     * @param scaleY the vertical scale
+     * @param rotation the rotation of the polygon
+     * @param innerColor the packed color of the center of the polygon. See [Color.toFloatBits].
+     * @param outerColor the packed color of the perimeter of the polygon. See [Color.toFloatBits]
+     */
+    fun filledPolygon(
+        x: Float,
+        y: Float,
+        sides: Int,
+        scaleX: Float,
+        scaleY: Float = scaleX,
+        rotation: Angle = 0.radians,
+        innerColor: Float = colorBits,
+        outerColor: Float = colorBits,
+    ) {
+        filledPolygonDrawer.polygon(x, y, sides, scaleX, scaleY, rotation, 0.radians, PI2_F, innerColor, outerColor)
+    }
+
+    /**
+     * Draws a filled polygon used the specified vertices.
+     *
+     * Note: this triangulates the polygon everytime it is called - it is recommended to cache the triangles.
+     * [Triangulator.computeTriangles] can be used to calculate the triangles.
+     * @param vertices consecutive ordered pairs of the x-y coordinates of the vertices of the polygon
+     * @param offset the index of the vertices [FloatArray] at which to start drawing
+     * @param count the number of vertices to draw from the [offset]
+     */
+    fun filledPolygon(vertices: FloatArray, offset: Int = 0, count: Int = vertices.size) {
+        filledPolygonDrawer.polygon(vertices, offset, count)
+    }
+
+    /**
+     * Draws a filled polygon used the specified vertices.
+     * @param vertices consecutive ordered pairs of the x-y coordinates of the vertices of the polygon
+     * @param triangles ordered triples of the indices of the float[] defining the polygon vertices corresponding to triangles.
+     * [Triangulator.computeTriangles] can be used to calculate the triangles.
+     */
+    fun filledPolygon(vertices: FloatArray, triangles: ShortArray) {
+        filledPolygonDrawer.polygon(vertices, triangles)
+    }
 
     private fun isJoinNecessary(thickness: Int) = thickness > 3 * batchManager.pixelSize
     private fun isJoinNecessary() = isJoinNecessary(thickness)
