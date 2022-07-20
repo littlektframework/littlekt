@@ -66,7 +66,7 @@
 
   ```kotlin
     val vec = MutableVec2f()
-    val angle:Float = 45.degrees
+    val angle: Angle = 45.degrees
     vec.rotate(angle.degrees)
     ```
 
@@ -74,7 +74,7 @@
 
   ```kotlin
     val vec = MutableVec2f()
-    val angle:Float = 45.degrees
+    val angle: Angle = 45.degrees
     vec.rotate(angle)
     ```
 
