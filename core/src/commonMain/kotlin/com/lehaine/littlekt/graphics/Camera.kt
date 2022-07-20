@@ -2,6 +2,7 @@ package com.lehaine.littlekt.graphics
 
 import com.lehaine.littlekt.Context
 import com.lehaine.littlekt.math.*
+import com.lehaine.littlekt.math.geom.Angle
 import com.lehaine.littlekt.util.LazyMat4
 import com.lehaine.littlekt.util.viewport.Viewport
 
@@ -92,17 +93,17 @@ abstract class Camera {
 
     fun lookAt(target: Vec3f) = lookAt(target.x, target.y, target.z)
 
-    fun rotate(angle: Float, axisX: Float, axisY: Float, axisZ: Float) {
+    fun rotate(angle: Angle, axisX: Float, axisY: Float, axisZ: Float) {
         direction.rotate(angle, axisX, axisY, axisZ)
         up.rotate(angle, axisX, axisY, axisZ)
     }
 
-    fun rotate(angle: Float, axis: Vec3f) {
+    fun rotate(angle: Angle, axis: Vec3f) {
         direction.rotate(angle, axis)
         up.rotate(angle, axis)
     }
 
-    fun rotateAround(point: Vec3f, axis: Vec3f, angle: Float) {
+    fun rotateAround(point: Vec3f, axis: Vec3f, angle: Angle) {
         tempVec3.set(point).subtract(position)
         translate(tempVec3)
         rotate(angle, axis)

@@ -1,5 +1,8 @@
 package com.lehaine.littlekt.math
 
+import com.lehaine.littlekt.math.geom.Angle
+import com.lehaine.littlekt.math.geom.radians
+import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.math.sqrt
@@ -41,6 +44,10 @@ open class Vec2f(x: Float, y: Float) {
 
     fun length(): Float = sqrt(sqrLength())
 
+    fun setLength(length: Float, result: MutableVec2f): MutableVec2f = result.set(this).setSqrLength(length * length)
+
+    fun setSqrLength(sqrLength: Float, result: MutableVec2f): MutableVec2f = result.set(this).setSqrLength(sqrLength)
+
     fun mix(other: Vec2f, weight: Float, result: MutableVec2f): MutableVec2f {
         result.x = other.x * weight + x * (1f - weight)
         result.y = other.y * weight + y * (1f - weight)
@@ -51,7 +58,7 @@ open class Vec2f(x: Float, y: Float) {
 
     fun norm(result: MutableVec2f): MutableVec2f = result.set(this).norm()
 
-    fun rotate(angleDeg: Float, result: MutableVec2f): MutableVec2f = result.set(this).rotate(angleDeg)
+    fun rotate(angle: Angle, result: MutableVec2f): MutableVec2f = result.set(this).rotate(angle)
 
     fun scale(factor: Float, result: MutableVec2f): MutableVec2f = result.set(this).scale(factor)
 
@@ -64,6 +71,10 @@ open class Vec2f(x: Float, y: Float) {
     fun sqrLength(): Float = x * x + y * y
 
     fun subtract(other: Vec2f, result: MutableVec2f): MutableVec2f = result.set(this).subtract(other)
+
+    fun angleTo(other: Vec2f): Angle {
+        return atan2(other.x * y - other.y * x, x * other.x + y * other.y).radians
+    }
 
     open operator fun get(i: Int): Float = fields[i]
 
@@ -127,6 +138,17 @@ open class MutableVec2f(x: Float, y: Float) : Vec2f(x, y) {
     constructor(f: Float) : this(f, f)
     constructor(v: Vec2f) : this(v.x, v.y)
 
+    fun setLength(length: Float): MutableVec2f = setSqrLength(length * length)
+
+    fun setSqrLength(sqrLength: Float): MutableVec2f {
+        val oldLength = sqrLength()
+        return if (oldLength == 0f || oldLength == sqrLength) {
+            this
+        } else {
+            scale(sqrt(sqrLength / oldLength))
+        }
+    }
+
     fun add(other: Vec2f): MutableVec2f {
         x += other.x
         y += other.y
@@ -180,8 +202,8 @@ open class MutableVec2f(x: Float, y: Float) : Vec2f(x, y) {
         return this
     }
 
-    fun rotate(angleDeg: Float): MutableVec2f {
-        val rad = angleDeg.toRad()
+    fun rotate(angle: Angle): MutableVec2f {
+        val rad = angle.radians
         val cos = cos(rad)
         val sin = sin(rad)
         val rx = x * cos - y * sin

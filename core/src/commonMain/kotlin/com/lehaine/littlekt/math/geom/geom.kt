@@ -72,3 +72,21 @@ fun closestPointsBetweenSegments(p1: Vec2f, q1: Vec2f, p2: Vec2f, q2: Vec2f): Fl
     c1.subtract(c2, temp2)
     return sqrt(temp2.dot(temp2))
 }
+
+fun isClockwise(polygon: FloatArray, offset: Int = 0, count: Int = polygon.size): Boolean {
+    if (count <= 2) return false
+    var area = 0f
+    val last = offset + count - 2
+    var x1 = polygon[last]
+    var y1 = polygon[last + 1]
+    for (i in offset..last step 2) {
+        val x2 = polygon[i]
+        val y2 = polygon[i + 1]
+        area += x1 * y2 - x2 * y1
+        x1 = x2
+        y1 = y2
+    }
+    return area < 0f
+}
+
+fun isCCW(polygon: FloatArray, offset: Int = 0, count: Int = polygon.size) = !isClockwise(polygon, offset, count)

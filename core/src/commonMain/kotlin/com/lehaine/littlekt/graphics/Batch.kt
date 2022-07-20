@@ -122,12 +122,35 @@ interface Batch : Disposable {
         srcFuncColor: BlendFactor,
         dstFuncColor: BlendFactor,
         srcFuncAlpha: BlendFactor,
-        dstFuncAlpha: BlendFactor
+        dstFuncAlpha: BlendFactor,
     )
 
     fun setToPreviousBlendFunction()
 
     fun useDefaultShader()
+
+    companion object {
+        const val X1 = 0
+        const val Y1 = 1
+        const val C1 = 2
+        const val U1 = 3
+        const val V1 = 4
+        const val X2 = 5
+        const val Y2 = 6
+        const val C2 = 7
+        const val U2 = 8
+        const val V2 = 9
+        const val X3 = 10
+        const val Y3 = 11
+        const val C3 = 12
+        const val U3 = 13
+        const val V3 = 14
+        const val X4 = 15
+        const val Y4 = 16
+        const val C4 = 17
+        const val U4 = 18
+        const val V4 = 19
+    }
 }
 
 @OptIn(ExperimentalContracts::class)
