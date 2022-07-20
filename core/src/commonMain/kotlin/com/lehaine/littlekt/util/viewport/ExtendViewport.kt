@@ -1,6 +1,8 @@
 package com.lehaine.littlekt.util.viewport
 
 import com.lehaine.littlekt.Context
+import com.lehaine.littlekt.graphics.Camera
+import com.lehaine.littlekt.graphics.OrthographicCamera
 import com.lehaine.littlekt.util.Scaler
 import kotlin.math.roundToInt
 
@@ -11,7 +13,8 @@ import kotlin.math.roundToInt
  * @author Colton Daily
  * @date 12/27/2021
  */
-class ExtendViewport(val minWidth: Int, val minHeight: Int) : Viewport(0, 0, minWidth, minHeight) {
+class ExtendViewport(val minWidth: Int, val minHeight: Int, camera: Camera = OrthographicCamera()) :
+    Viewport(0, 0, minWidth, minHeight, camera) {
 
     override fun update(width: Int, height: Int, context: Context, centerCamera: Boolean) {
         var worldWidth = minWidth.toFloat()

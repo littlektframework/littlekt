@@ -1,6 +1,8 @@
 package com.lehaine.littlekt.util.viewport
 
 import com.lehaine.littlekt.Context
+import com.lehaine.littlekt.graphics.Camera
+import com.lehaine.littlekt.graphics.OrthographicCamera
 import com.lehaine.littlekt.util.Scaler
 import kotlin.math.roundToInt
 
@@ -9,8 +11,13 @@ import kotlin.math.roundToInt
  * @author Colton Daily
  * @date 12/21/2021
  */
-open class ScalingViewport(val scaler: Scaler, virtualWidth: Int, virtualHeight: Int) :
-    Viewport(0, 0, virtualWidth, virtualHeight) {
+open class ScalingViewport(
+    val scaler: Scaler,
+    virtualWidth: Int,
+    virtualHeight: Int,
+    camera: Camera = OrthographicCamera(),
+) :
+    Viewport(0, 0, virtualWidth, virtualHeight, camera) {
 
     override fun update(width: Int, height: Int, context: Context, centerCamera: Boolean) {
         val scaled = scaler.apply(virtualWidth, virtualHeight, width.toFloat(), height.toFloat())
@@ -31,19 +38,21 @@ open class ScalingViewport(val scaler: Scaler, virtualWidth: Int, virtualHeight:
  * The virtual viewport will maintain its aspect ratio while attempting to fit as much as possible onto the screen.
  * Black bars may appear.
  */
-open class FitViewport(virtualWidth: Int, virtualHeight: Int) : ScalingViewport(
-    Scaler.Fit(), virtualWidth,
-    virtualHeight
-)
+open class FitViewport(virtualWidth: Int, virtualHeight: Int, camera: Camera = OrthographicCamera()) :
+    ScalingViewport(
+        Scaler.Fit(), virtualWidth,
+        virtualHeight, camera
+    )
 
 /**
  * A viewport that supports using a virtual size.
  * The virtual viewport is stretched to fit the screen. There are no black bars and the aspect ratio can change after scaling.
  */
-open class StretchViewport(virtualWidth: Int, virtualHeight: Int) : ScalingViewport(
-    Scaler.Stretch(), virtualWidth,
-    virtualHeight
-)
+open class StretchViewport(virtualWidth: Int, virtualHeight: Int, camera: Camera = OrthographicCamera()) :
+    ScalingViewport(
+        Scaler.Stretch(), virtualWidth,
+        virtualHeight, camera
+    )
 
 /**
  * A viewport that supports using a virtual size.
@@ -51,7 +60,8 @@ open class StretchViewport(virtualWidth: Int, virtualHeight: Int) : ScalingViewp
  * the screen parts of the viewport may be cut off.
  * No black bars may appear.
  */
-open class FillViewport(virtualWidth: Int, virtualHeight: Int) : ScalingViewport(
-    Scaler.Fill(), virtualWidth,
-    virtualHeight
-)
+open class FillViewport(virtualWidth: Int, virtualHeight: Int, camera: Camera = OrthographicCamera()) :
+    ScalingViewport(
+        Scaler.Fill(), virtualWidth,
+        virtualHeight, camera
+    )

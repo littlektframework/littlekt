@@ -1,6 +1,8 @@
 package com.lehaine.littlekt.util.viewport
 
 import com.lehaine.littlekt.Context
+import com.lehaine.littlekt.graphics.Camera
+import com.lehaine.littlekt.graphics.OrthographicCamera
 
 /**
  * A viewport that uses a virtual size that will always match the window size.
@@ -8,8 +10,11 @@ import com.lehaine.littlekt.Context
  * @author Colton Daily
  * @date 12/21/2021
  */
-class ScreenViewport(x: Int, y: Int, width: Int, height: Int) : Viewport(x, y, width, height) {
-    constructor(width: Int, height: Int) : this(0, 0, width, height)
+class ScreenViewport(
+    x: Int, y: Int, width: Int, height: Int,
+    camera: Camera = OrthographicCamera(),
+) : Viewport(x, y, width, height, camera) {
+    constructor(width: Int, height: Int, camera: Camera = OrthographicCamera()) : this(0, 0, width, height, camera)
 
     /**
      * The number of pixels for each world unit.

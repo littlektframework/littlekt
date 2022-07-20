@@ -2,6 +2,7 @@ package com.lehaine.littlekt.util.viewport
 
 import com.lehaine.littlekt.Context
 import com.lehaine.littlekt.graphics.Camera
+import com.lehaine.littlekt.graphics.GL
 import com.lehaine.littlekt.graphics.OrthographicCamera
 
 /**
@@ -21,7 +22,7 @@ open class Viewport(
      */
     var height: Int = 0,
 
-    val camera: Camera = OrthographicCamera(),
+    var camera: Camera = OrthographicCamera(),
 ) {
 
     /**
