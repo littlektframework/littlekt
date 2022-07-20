@@ -38,13 +38,15 @@ inline fun Double.toRad() = this * DEG_2_RAD
 
 inline fun isFuzzyEqual(a: Float, b: Float, eps: Float = FUZZY_EQ_F) = (a - b).isFuzzyZero(eps)
 inline fun isFuzzyEqual(a: Double, b: Double, eps: Double = FUZZY_EQ_D) = (a - b).isFuzzyZero(eps)
-@JvmName("isFuzzyEqual_F")
-inline fun Float.isFuzzyEqual(b: Float, eps: Float = FUZZY_EQ_F) = (this - b).isFuzzyZero(eps)
-@JvmName("isFuzzyEqual_D")
-inline fun Double.isFuzzyEqual(b: Double, eps: Double = FUZZY_EQ_D) = (this - b).isFuzzyZero(eps)
 
-infix fun Float.ife(b: Float) = isFuzzyEqual(this, b)
-infix fun Double.ife(b: Double) = isFuzzyEqual(this, b)
+@JvmName("isFuzzyEqual_F")
+inline fun Float.isFuzzyEqual(b: Float, eps: Float = FUZZY_EQ_F) = isFuzzyEqual(this, b, eps)
+
+@JvmName("isFuzzyEqual_D")
+inline fun Double.isFuzzyEqual(b: Double, eps: Double = FUZZY_EQ_D) = isFuzzyEqual(this, b, eps)
+
+infix fun Float.ife(b: Float) = this.isFuzzyEqual(b)
+infix fun Double.ife(b: Double) = this.isFuzzyEqual(b)
 
 inline fun Float.isFuzzyZero(eps: Float = FUZZY_EQ_F) = abs(this) <= eps
 inline fun Double.isFuzzyZero(eps: Double = FUZZY_EQ_D) = abs(this) <= eps
