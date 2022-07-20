@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.3.1
+
+### Changes
+
+* update: `Viewport.camera` to be mutable.
+* update: all existing `Viewport` subtype classes to receive a constructor paramter for a `Camera`.
+
 ## v0.3.0
 
 ### Highlights
