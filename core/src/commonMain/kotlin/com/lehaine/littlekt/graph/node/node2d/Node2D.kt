@@ -36,4 +36,26 @@ inline fun SceneGraph<*>.node2d(callback: @SceneGraphDslMarker Node2D.() -> Unit
  * @author Colton Daily
  * @date 3/17/2022
  */
-open class Node2D : CanvasItem()
+open class Node2D : CanvasItem() {
+    var ySort: Boolean = false
+        set(value) {
+            field = value
+            nodes.sort = if (field) SORT_BY_Y else null
+        }
+
+    companion object {
+        private val SORT_BY_Y: Comparator<Node> = Comparator { a, b ->
+            if (a is CanvasItem && b is CanvasItem) {
+                return@Comparator a.globalY.compareTo(b.globalY)
+            }
+            if (a is CanvasItem) {
+                return@Comparator 1
+            }
+            if (b is CanvasItem) {
+                return@Comparator -1
+            }
+            return@Comparator 0
+        }
+
+    }
+}

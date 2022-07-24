@@ -22,6 +22,15 @@ class NodeList {
     internal var isNodeListUnsorted = false
     internal var _tempNodeList = mutableSetOf<Node>()
 
+    /**
+     * Allow custom sorting when updating internal node lists.
+     */
+    var sort: Comparator<Node>? = null
+        set(value) {
+            field = value
+            isNodeListUnsorted = true
+        }
+
     private var frameCount = 0
 
     internal fun add(node: Node) {
@@ -150,7 +159,11 @@ class NodeList {
         }
 
         if (isNodeListUnsorted) {
-            nodes.sort()
+            sort?.let {
+                nodes.sortWith(it)
+            } ?: run {
+                nodes.sort()
+            }
             isNodeListUnsorted = false
         }
     }
