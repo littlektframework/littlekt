@@ -34,6 +34,8 @@ class YSortTest(context: Context) : ContextListener(context) {
 
     fun SceneGraph<*>.init() {
 
+        val input = context.input
+
         node(TestNode()) {
             color = Color.YELLOW
             x = 100f
@@ -73,22 +75,39 @@ class YSortTest(context: Context) : ContextListener(context) {
 
 
             // show draw red -> blue -> green
+            // pressing enter should reorder to green -> red -> blue
             node(TestNode()) {
                 color = Color.RED
                 y = 40f
                 x = 150f
+
+                onUpdate += {
+                    if (input.isKeyJustPressed(Key.ENTER)) {
+                        y = 45f
+                    }
+                }
             }
 
             node(TestNode()) {
                 color = Color.GREEN
                 y = 50f
                 x = 150f
+                onUpdate += {
+                    if (input.isKeyJustPressed(Key.ENTER)) {
+                        y = 40f
+                    }
+                }
             }
 
             node(TestNode()) {
                 color = Color.BLUE
                 y = 45f
                 x = 150f
+                onUpdate += {
+                    if (input.isKeyJustPressed(Key.ENTER)) {
+                        y = 50f
+                    }
+                }
             }
 
             // show draw red -> green -> blue

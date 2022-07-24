@@ -158,7 +158,7 @@ class NodeList {
             isNodeListUnsorted = true
         }
 
-        if (isNodeListUnsorted) {
+        if (isNodeListUnsorted || sort != null) {
             sort?.let {
                 nodes.sortWith(it)
             } ?: run {
