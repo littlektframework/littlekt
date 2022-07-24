@@ -22,7 +22,10 @@ class NodeList {
     internal var isNodeListUnsorted = false
     internal var _tempNodeList = mutableSetOf<Node>()
 
-    internal var sort: Comparator<Node>? = null
+    /**
+     * Allow custom sorting when updating internal node lists.
+     */
+    var sort: Comparator<Node>? = null
         set(value) {
             field = value
             isNodeListUnsorted = true
