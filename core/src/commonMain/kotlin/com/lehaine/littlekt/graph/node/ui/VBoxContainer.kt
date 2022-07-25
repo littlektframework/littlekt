@@ -17,6 +17,7 @@ import kotlin.contracts.contract
  */
 @OptIn(ExperimentalContracts::class)
 inline fun Node.vBoxContainer(callback: @SceneGraphDslMarker VBoxContainer.() -> Unit = {}): VBoxContainer {
+    contract { callsInPlace(callback, InvocationKind.EXACTLY_ONCE) }
     return VBoxContainer().also(callback).addTo(this)
 }
 
