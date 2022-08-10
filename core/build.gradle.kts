@@ -72,27 +72,36 @@ kotlin {
                 }"
                 implementation(libs.lwjgl)
                 implementation("$lwjglModule:natives-windows")
+                implementation("$lwjglModule:natives-windows-arm64")
                 implementation("$lwjglModule:natives-linux")
+                implementation("$lwjglModule:natives-linux-arm64")
                 implementation("$lwjglModule:natives-macos")
+                implementation("$lwjglModule:natives-macos-arm64")
 
                 implementation(libs.lwjgl.glfw)
                 implementation("$lwjglGlfwModule:natives-windows")
+                implementation("$lwjglGlfwModule:natives-windows-arm64")
                 implementation("$lwjglGlfwModule:natives-linux")
+                implementation("$lwjglGlfwModule:natives-linux-arm64")
                 implementation("$lwjglGlfwModule:natives-macos")
+                implementation("$lwjglGlfwModule:natives-macos-arm64")
 
 
                 implementation(libs.lwjgl.opengl)
                 implementation("$lwjglOpenGlModule:natives-windows")
+                implementation("$lwjglOpenGlModule:natives-windows-arm64")
                 implementation("$lwjglOpenGlModule:natives-linux")
+                implementation("$lwjglOpenGlModule:natives-linux-arm64")
                 implementation("$lwjglOpenGlModule:natives-macos")
+                implementation("$lwjglOpenGlModule:natives-macos-arm64")
 
                 implementation(libs.lwjgl.openal)
                 implementation("$lwjglOpenAlModule:natives-windows")
-                implementation("$lwjglOpenAlModule:natives-windows-x86")
+                implementation("$lwjglOpenAlModule:natives-windows-arm64")
                 implementation("$lwjglOpenAlModule:natives-linux")
-                implementation("$lwjglOpenAlModule:natives-linux-arm32")
                 implementation("$lwjglOpenAlModule:natives-linux-arm64")
                 implementation("$lwjglOpenAlModule:natives-macos")
+                implementation("$lwjglOpenAlModule:natives-macos-arm64")
 
                 implementation(libs.mp3.decoder)
             }
