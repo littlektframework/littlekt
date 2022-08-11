@@ -160,29 +160,33 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context() {
             GLFW.glfwSwapInterval(0)
         }
 
+        val isMac = System.getProperty("os.name").contains("Mac")
+
         // set window icon
-        if (configuration.icons.isNotEmpty()) {
-            val buffer = GLFWImage.malloc(configuration.icons.size)
-            configuration.icons.forEach {
-                val pixmap = resourcesVfs[it].readPixmap()
+        if (!isMac) {
+            if (configuration.icons.isNotEmpty()) {
+                val buffer = GLFWImage.malloc(configuration.icons.size)
+                configuration.icons.forEach {
+                    val pixmap = resourcesVfs[it].readPixmap()
+                    val icon = GLFWImage.malloc()
+                    icon.set(pixmap.width, pixmap.height, (pixmap.pixels as ByteBufferImpl).buffer)
+                    buffer.put(icon)
+                    icon.free()
+                }
+                buffer.position(0)
+                GLFW.glfwSetWindowIcon(windowHandle, buffer)
+                buffer.free()
+            } else {
+                val pixmap = ktHead32x32.decodeFromBase64().readPixmap()
                 val icon = GLFWImage.malloc()
                 icon.set(pixmap.width, pixmap.height, (pixmap.pixels as ByteBufferImpl).buffer)
+                val buffer = GLFWImage.malloc(1)
                 buffer.put(icon)
                 icon.free()
+                buffer.position(0)
+                GLFW.glfwSetWindowIcon(windowHandle, buffer)
+                buffer.free()
             }
-            buffer.position(0)
-            GLFW.glfwSetWindowIcon(windowHandle, buffer)
-            buffer.free()
-        } else {
-            val pixmap = ktHead32x32.decodeFromBase64().readPixmap()
-            val icon = GLFWImage.malloc()
-            icon.set(pixmap.width, pixmap.height, (pixmap.pixels as ByteBufferImpl).buffer)
-            val buffer = GLFWImage.malloc(1)
-            buffer.put(icon)
-            icon.free()
-            buffer.position(0)
-            GLFW.glfwSetWindowIcon(windowHandle, buffer)
-            buffer.free()
         }
 
         // Make the window visible
