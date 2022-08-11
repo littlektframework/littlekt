@@ -70,38 +70,37 @@ kotlin {
                 val lwjglOpenAlModule = "${libs.lwjgl.openal.get().module}:${
                     libs.lwjgl.openal.get().versionConstraint.requiredVersion
                 }"
+                val lwjglNatives = Pair(
+                    System.getProperty("os.name")!!,
+                    System.getProperty("os.arch")!!
+                ).let { (name, arch) ->
+                    when {
+                        arrayOf("Linux", "FreeBSD", "SunOS", "Unit").any { name.startsWith(it) } ->
+                            if (arrayOf("arm", "aarch64").any { arch.startsWith(it) })
+                                "natives-linux${if (arch.contains("64") || arch.startsWith("armv8")) "-arm64" else "-arm32"}"
+                            else
+                                "natives-linux"
+                        arrayOf("Mac OS X", "Darwin").any { name.startsWith(it) } ->
+                            "natives-macos${if (arch.startsWith("aarch64")) "-arm64" else ""}"
+                        arrayOf("Windows").any { name.startsWith(it) } ->
+                            if (arch.contains("64"))
+                                "natives-windows${if (arch.startsWith("aarch64")) "-arm64" else ""}"
+                            else
+                                "natives-windows-x86"
+                        else -> throw Error("Unrecognized or unsupported platform. Please set \"lwjglNatives\" manually")
+                    }
+                }
                 implementation(libs.lwjgl)
-                implementation("$lwjglModule:natives-windows")
-                implementation("$lwjglModule:natives-windows-arm64")
-                implementation("$lwjglModule:natives-linux")
-                implementation("$lwjglModule:natives-linux-arm64")
-                implementation("$lwjglModule:natives-macos")
-                implementation("$lwjglModule:natives-macos-arm64")
+                implementation("$lwjglModule:$lwjglNatives")
 
                 implementation(libs.lwjgl.glfw)
-                implementation("$lwjglGlfwModule:natives-windows")
-                implementation("$lwjglGlfwModule:natives-windows-arm64")
-                implementation("$lwjglGlfwModule:natives-linux")
-                implementation("$lwjglGlfwModule:natives-linux-arm64")
-                implementation("$lwjglGlfwModule:natives-macos")
-                implementation("$lwjglGlfwModule:natives-macos-arm64")
-
+                implementation("$lwjglGlfwModule:$lwjglNatives")
 
                 implementation(libs.lwjgl.opengl)
-                implementation("$lwjglOpenGlModule:natives-windows")
-                implementation("$lwjglOpenGlModule:natives-windows-arm64")
-                implementation("$lwjglOpenGlModule:natives-linux")
-                implementation("$lwjglOpenGlModule:natives-linux-arm64")
-                implementation("$lwjglOpenGlModule:natives-macos")
-                implementation("$lwjglOpenGlModule:natives-macos-arm64")
+                implementation("$lwjglOpenGlModule:$lwjglNatives")
 
                 implementation(libs.lwjgl.openal)
-                implementation("$lwjglOpenAlModule:natives-windows")
-                implementation("$lwjglOpenAlModule:natives-windows-arm64")
-                implementation("$lwjglOpenAlModule:natives-linux")
-                implementation("$lwjglOpenAlModule:natives-linux-arm64")
-                implementation("$lwjglOpenAlModule:natives-macos")
-                implementation("$lwjglOpenAlModule:natives-macos-arm64")
+                implementation("$lwjglOpenAlModule:$lwjglNatives")
 
                 implementation(libs.mp3.decoder)
             }
