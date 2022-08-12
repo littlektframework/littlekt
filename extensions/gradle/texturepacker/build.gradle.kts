@@ -18,8 +18,18 @@ repositories {
 
 dependencies {
     implementation(kotlin("gradle-plugin"))
-    implementation(project(":extensions:tools"))
-    implementation(project(":core"))
+    implementation(project(":extensions:tools")) {
+        exclude(group = "org.lwjgl", module = "lwjgl")
+        exclude(group = "org.lwjgl", module = "lwjgl-glfw")
+        exclude(group = "org.lwjgl", module = "lwjgl-opengl")
+        exclude(group = "org.lwjgl", module = "lwjgl-openal")
+    }
+    implementation(project(":core")) {
+        exclude(group = "org.lwjgl", module = "lwjgl")
+        exclude(group = "org.lwjgl", module = "lwjgl-glfw")
+        exclude(group = "org.lwjgl", module = "lwjgl-opengl")
+        exclude(group = "org.lwjgl", module = "lwjgl-openal")
+    }
     implementation(gradleApi())
     implementation(localGroovy())
     compileOnly(gradleKotlinDsl())
