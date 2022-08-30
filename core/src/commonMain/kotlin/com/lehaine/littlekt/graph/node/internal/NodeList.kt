@@ -17,6 +17,9 @@ class NodeList {
     internal val nodes = mutableListOf<Node>()
 
     @PublishedApi
+    internal val sortedNodes = mutableListOf<Node>()
+
+    @PublishedApi
     internal var nodesToAdd = mutableSetOf<Node>()
     internal var nodesToRemove = mutableSetOf<Node>()
     internal var isNodeListUnsorted = false
@@ -29,6 +32,10 @@ class NodeList {
         set(value) {
             field = value
             isNodeListUnsorted = true
+            sortedNodes.clear()
+            if (field != null) {
+                sortedNodes.addAll(nodes)
+            }
         }
 
     private var frameCount = 0
@@ -64,14 +71,31 @@ class NodeList {
             it.destroy()
         }
         nodes.clear()
+        sortedNodes.clear()
     }
 
     fun contains(node: Node): Boolean {
         return nodes.contains(node) || nodesToAdd.contains(node)
     }
 
+    /**
+     * Iterate through the nodes in normal sorted order. To iterate the sorted list see [forEachSorted].
+     */
     inline fun forEach(action: (Node) -> Unit) {
         nodes.fastForEach(action)
+        nodesToAdd.forEach(action)
+    }
+
+
+    /**
+     * Iterate through the sorted list. Mainly used for custom render sorting while keep the original update order. See [NodeList.sort].
+     */
+    inline fun forEachSorted(action: (Node) -> Unit) {
+        sort?.let {
+            sortedNodes.fastForEach(action)
+        } ?: run {
+            nodes.fastForEach(action)
+        }
         nodesToAdd.forEach(action)
     }
 
@@ -139,6 +163,9 @@ class NodeList {
 
             _tempNodeList.sorted().fastForEach {
                 nodes.remove(it)
+                sort?.run {
+                    sortedNodes.remove(it)
+                }
                 nodesToAdd.remove(it)
             }
 
@@ -152,6 +179,9 @@ class NodeList {
 
             _tempNodeList.sorted().fastForEach {
                 nodes.add(it)
+                sort?.run {
+                    sortedNodes.add(it)
+                }
             }
 
             _tempNodeList.clear()
@@ -159,10 +189,11 @@ class NodeList {
         }
 
         if (isNodeListUnsorted || sort != null) {
+            nodes.sort()
             sort?.let {
-                nodes.sortWith(it)
+                sortedNodes.sortWith(it)
             } ?: run {
-                nodes.sort()
+                sortedNodes.sort()
             }
             isNodeListUnsorted = false
         }
