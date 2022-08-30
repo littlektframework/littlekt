@@ -12,7 +12,7 @@ import com.lehaine.littlekt.util.viewport.Viewport
  */
 abstract class Camera {
     val id = nextCameraId++
-    
+
     val position = MutableVec3f(0f)
     val direction = MutableVec3f(Vec3f.Z_AXIS)
     val up = MutableVec3f(Vec3f.NEG_Y_AXIS)
@@ -124,8 +124,18 @@ abstract class Camera {
         up.set(tempVec3).cross(direction, up).norm()
     }
 
-    abstract fun boundsInFrustum(point: Vec3f, size: Vec3f): Boolean
-    abstract fun sphereInFrustum(center: Vec3f, radius: Float): Boolean
+    fun boundsInFrustum(point: Vec3f, size: Vec3f): Boolean =
+        boundsInFrustum(point.x, point.y, point.z, size.x, size.y, size.z)
+
+    fun sphereInFrustum(center: Vec3f, radius: Float): Boolean =
+        sphereInFrustum(center.x, center.y, center.z, radius)
+
+    fun sphereInFrustum(cx: Float, cy: Float, radius: Float): Boolean = sphereInFrustum(cx, cy, 1f, radius)
+    fun boundsInFrustum(px: Float, py: Float, width: Float, height: Float): Boolean =
+        boundsInFrustum(px, py, 1f, width, height, 0f)
+
+    abstract fun sphereInFrustum(cx: Float, cy: Float, cz: Float, radius: Float): Boolean
+    abstract fun boundsInFrustum(px: Float, py: Float, pz: Float, width: Float, height: Float, length: Float): Boolean
 
     fun project(world: Vec2f, result: MutableVec2f): Boolean {
         tempVec4.set(world.x, world.y, 1f, 1f)
@@ -341,7 +351,7 @@ abstract class Camera {
         viewportHeight: Float = context.graphics.height.toFloat(),
         result: MutableVec2f,
     ) = screenToWorld(context, tempVec2.set(x, y), viewportX, viewportY, viewportWidth, viewportHeight, result)
-    
+
     fun screenToWorld(context: Context, x: Float, y: Float, viewport: Viewport, result: MutableVec2f) =
         screenToWorld(context, tempVec2.set(x, y), viewport, result)
 
@@ -503,8 +513,6 @@ abstract class Camera {
 open class OrthographicCamera(virtualWidth: Float = 0f, virtualHeight: Float = 0f) : Camera() {
     constructor(virtualWidth: Int, virtualHeight: Int) : this(virtualWidth.toFloat(), virtualHeight.toFloat())
 
-    private val planes = List(6) { FrustumPlane() }
-
     private val tempCenter = MutableVec3f()
 
     init {
@@ -533,23 +541,46 @@ open class OrthographicCamera(virtualWidth: Float = 0f, virtualHeight: Float = 0
         }
     }
 
-    override fun boundsInFrustum(point: Vec3f, size: Vec3f): Boolean {
-        // TODO impl
-        return false
-    }
-
-    override fun sphereInFrustum(center: Vec3f, radius: Float): Boolean {
-        tempCenter.set(center)
+    override fun boundsInFrustum(px: Float, py: Float, pz: Float, width: Float, height: Float, length: Float): Boolean {
+        tempCenter.set(px, py, pz)
         tempCenter.subtract(position)
 
         val x = tempCenter.dot(rightDir)
-        if (x > virtualWidth + radius || x < -radius) {
+        val halfWidth = virtualWidth * 0.5f + width
+        if (x > halfWidth || x < -halfWidth) {
+            // bounds is either left or right of frustum
+            return false
+        }
+
+        val y = tempCenter.dot(up)
+        val halfHeight = virtualHeight * 0.5f + height
+        if (y > halfHeight || y < -halfHeight) {
+            // bounds is either above or below frustum
+            return false
+        }
+
+        val z = tempCenter.dot(direction)
+        if (z > far + length || z < near - length) {
+            // bounds is either in front of near or behind far plane
+            return false
+        }
+        return true
+    }
+
+    override fun sphereInFrustum(cx: Float, cy: Float, cz: Float, radius: Float): Boolean {
+        tempCenter.set(cx, cy, cz)
+        tempCenter.subtract(position)
+
+        val x = tempCenter.dot(rightDir)
+        val halfWidth = virtualWidth * 0.5f + radius
+        if (x > halfWidth || x < -halfWidth) {
             // sphere is either left or right of frustum
             return false
         }
 
         val y = tempCenter.dot(up)
-        if (y > virtualHeight + radius || y < -radius) {
+        val halfHeight = virtualHeight * 0.5f + radius
+        if (y > halfHeight || y < -halfHeight) {
             // sphere is either above or below frustum
             return false
         }
@@ -560,19 +591,5 @@ open class OrthographicCamera(virtualWidth: Float = 0f, virtualHeight: Float = 0
             return false
         }
         return true
-    }
-}
-
-class FrustumPlane {
-    val upperLeft = MutableVec3f()
-    val upperRight = MutableVec3f()
-    val lowerLeft = MutableVec3f()
-    val lowerRight = MutableVec3f()
-
-    fun set(other: FrustumPlane) {
-        upperLeft.set(other.upperLeft)
-        upperRight.set(other.upperRight)
-        lowerLeft.set(other.lowerLeft)
-        lowerRight.set(other.lowerRight)
     }
 }
