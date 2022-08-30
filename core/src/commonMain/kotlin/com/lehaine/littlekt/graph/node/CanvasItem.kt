@@ -409,7 +409,7 @@ abstract class CanvasItem : Node() {
         if (!enabled || !visible || isDestroyed) return
         preRender(batch, camera)
         onPreRender.emit(batch, camera)
-        nodes.forEach {
+        nodes.forEachSorted {
             if (it is CanvasItem) {
                 it.propagatePreRender(batch, camera)
             }
@@ -424,7 +424,7 @@ abstract class CanvasItem : Node() {
         renderCallback?.invoke(this, batch, camera)
         render(batch, camera)
         onRender.emit(batch, camera)
-        nodes.forEach {
+        nodes.forEachSorted {
             it.propagateInternalRender(batch, camera, renderCallback)
         }
     }
@@ -433,7 +433,7 @@ abstract class CanvasItem : Node() {
         if (!enabled || !visible || isDestroyed) return
         postRender(batch, camera)
         onPostRender.emit(batch, camera)
-        nodes.forEach {
+        nodes.forEachSorted {
             if (it is CanvasItem) {
                 it.propagatePostRender(batch, camera)
             }

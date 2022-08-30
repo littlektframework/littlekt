@@ -82,6 +82,9 @@ class YSortTest(context: Context) : ContextListener(context) {
                 x = 150f
 
                 onUpdate += {
+                    if(input.isKeyPressed(Key.SPACE)) {
+                        println("RED!!")
+                    }
                     if (input.isKeyJustPressed(Key.ENTER)) {
                         y = 45f
                     }
@@ -91,8 +94,12 @@ class YSortTest(context: Context) : ContextListener(context) {
             node(TestNode()) {
                 color = Color.GREEN
                 y = 50f
+                y = 50f
                 x = 150f
                 onUpdate += {
+                    if(input.isKeyPressed(Key.SPACE)) {
+                        println("GREEN!!")
+                    }
                     if (input.isKeyJustPressed(Key.ENTER)) {
                         y = 40f
                     }
