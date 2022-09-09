@@ -228,18 +228,32 @@ open class AnimationPlayer<KeyFrameType> {
             nextFrame(dt)
         }
     }
-
     /**
-     * Starts any currently stopped animation. This only does something when an animation is stopped with [stop].
+     * Starts any currently stopped animation from the beginning. This only does something when an animation is stopped with [stop].
      */
     fun start() {
+        currentAnimation?.let {
+            animationRequested = true
+            currentFrameIdx = 0
+        }
+    }
+
+    /**
+     * Restarts the current running animation from the beginning. Is the same as invoking [stop] and then [start].
+     */
+    fun restart()  = start()
+
+    /**
+     * Resumes any currently stopped animation. This only does something when an animation is stopped with [stop].
+     */
+    fun resume() {
         currentAnimation?.let {
             animationRequested = true
         }
     }
 
     /**
-     * Stops any running animations. Resume the current animation with [start].
+     * Stops any running animations. Resume the current animation with [resume].
      */
     fun stop() {
         animationRequested = false
