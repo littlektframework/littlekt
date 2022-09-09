@@ -235,6 +235,7 @@ open class AnimationPlayer<KeyFrameType> {
         currentAnimation?.let {
             animationRequested = true
             currentFrameIdx = 0
+            lastFrameTime = Duration.ZERO
         }
     }
 
