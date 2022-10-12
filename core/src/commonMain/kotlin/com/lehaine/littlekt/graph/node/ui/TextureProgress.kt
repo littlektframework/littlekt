@@ -5,6 +5,7 @@ import com.lehaine.littlekt.graph.node.Node
 import com.lehaine.littlekt.graph.node.addTo
 import com.lehaine.littlekt.graph.node.annotation.SceneGraphDslMarker
 import com.lehaine.littlekt.graphics.*
+import com.lehaine.littlekt.graphics.shape.ShapeRenderer
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
@@ -184,8 +185,8 @@ open class TextureProgress : Range() {
      */
     var fillMode: FillMode = FillMode.LEFT_TO_RIGHT
 
-    override fun render(batch: Batch, camera: Camera) {
-        super.render(batch, camera)
+    override fun render(batch: Batch, camera: Camera, shapeRenderer: ShapeRenderer) {
+        super.render(batch, camera, shapeRenderer)
 
         if (useNinePatch) {
             backgroundNine?.draw(

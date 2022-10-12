@@ -19,13 +19,12 @@ import com.lehaine.littlekt.util.viewport.ExtendViewport
  */
 class YSortTest(context: Context) : ContextListener(context) {
     private val batch = SpriteBatch(context)
-    val shapeRenderer = ShapeRenderer(batch)
 
     inner class TestNode : Node2D() {
         var color = Color.WHITE
 
-        override fun render(batch: Batch, camera: Camera) {
-            super.render(batch, camera)
+        override fun render(batch: Batch, camera: Camera, shapeRenderer: ShapeRenderer) {
+            super.render(batch, camera, shapeRenderer)
             val bits = color.toFloatBits()
             shapeRenderer.filledRectangle(globalX, globalY, 8f, 16f, rotation, bits)
 

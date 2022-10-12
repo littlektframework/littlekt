@@ -8,6 +8,7 @@ import com.lehaine.littlekt.graph.node.annotation.SceneGraphDslMarker
 import com.lehaine.littlekt.graph.node.component.InputEvent
 import com.lehaine.littlekt.graphics.Batch
 import com.lehaine.littlekt.graphics.Camera
+import com.lehaine.littlekt.graphics.shape.ShapeRenderer
 import com.lehaine.littlekt.math.MutableVec2f
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
@@ -90,8 +91,8 @@ open class FrameBufferContainer : Container() {
         }
     }
 
-    override fun render(batch: Batch, camera: Camera) {
-        super.render(batch, camera)
+    override fun render(batch: Batch, camera: Camera, shapeRenderer: ShapeRenderer) {
+        super.render(batch, camera, shapeRenderer)
         if (dirty) {
             nodes.forEach {
                 if (it is FrameBufferNode) {

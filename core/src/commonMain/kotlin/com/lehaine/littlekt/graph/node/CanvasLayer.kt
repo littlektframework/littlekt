@@ -6,6 +6,7 @@ import com.lehaine.littlekt.graph.node.ui.Control
 import com.lehaine.littlekt.graphics.Batch
 import com.lehaine.littlekt.graphics.Camera
 import com.lehaine.littlekt.graphics.OrthographicCamera
+import com.lehaine.littlekt.graphics.shape.ShapeRenderer
 import com.lehaine.littlekt.math.MutableVec2f
 import com.lehaine.littlekt.util.Signal
 import com.lehaine.littlekt.util.signal
@@ -125,7 +126,7 @@ open class CanvasLayer : Node() {
         super.resize(width, height)
     }
 
-    open fun render(batch: Batch, renderCallback: ((Node, Batch, Camera) -> Unit)?) {
+    open fun render(batch: Batch, shapeRenderer: ShapeRenderer, renderCallback: ((Node, Batch, Camera, ShapeRenderer) -> Unit)?) {
         if (!enabled || isDestroyed) return
         val scene = scene ?: return
 
@@ -135,7 +136,7 @@ open class CanvasLayer : Node() {
         batch.projectionMatrix = canvasCamera.viewProjection
         if (!batch.drawing) batch.begin()
         nodes.forEach {
-            it.propagateInternalRender(batch, canvasCamera, renderCallback)
+            it.propagateInternalRender(batch, canvasCamera, shapeRenderer, renderCallback)
         }
         batch.projectionMatrix = prevProjMatrix
     }
@@ -143,9 +144,10 @@ open class CanvasLayer : Node() {
     override fun propagateInternalRender(
         batch: Batch,
         camera: Camera,
-        renderCallback: ((Node, Batch, Camera) -> Unit)?,
+        shapeRenderer: ShapeRenderer,
+        renderCallback: ((Node, Batch, Camera, ShapeRenderer) -> Unit)?,
     ) {
-        render(batch, renderCallback)
+        render(batch, shapeRenderer, renderCallback)
     }
 
     override fun propagateHit(hx: Float, hy: Float): Control? {

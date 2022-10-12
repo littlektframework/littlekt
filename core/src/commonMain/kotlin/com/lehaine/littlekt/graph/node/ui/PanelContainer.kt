@@ -7,6 +7,7 @@ import com.lehaine.littlekt.graph.node.annotation.SceneGraphDslMarker
 import com.lehaine.littlekt.graph.node.component.Drawable
 import com.lehaine.littlekt.graphics.Batch
 import com.lehaine.littlekt.graphics.Camera
+import com.lehaine.littlekt.graphics.shape.ShapeRenderer
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
@@ -50,7 +51,7 @@ open class PanelContainer : Container() {
             onMinimumSizeChanged()
         }
 
-    override fun render(batch: Batch, camera: Camera) {
+    override fun render(batch: Batch, camera: Camera, shapeRenderer: ShapeRenderer) {
         panel.let {
             it.draw(batch, globalX, globalY, width, height, scaleX, scaleY, rotation, it.modulate)
         }

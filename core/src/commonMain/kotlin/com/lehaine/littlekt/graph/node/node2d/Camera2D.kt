@@ -7,6 +7,7 @@ import com.lehaine.littlekt.graph.node.addTo
 import com.lehaine.littlekt.graph.node.annotation.SceneGraphDslMarker
 import com.lehaine.littlekt.graphics.Batch
 import com.lehaine.littlekt.graphics.Camera
+import com.lehaine.littlekt.graphics.shape.ShapeRenderer
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
@@ -84,7 +85,7 @@ open class Camera2D : Node2D() {
         findClosestCanvas().disableOtherCameras()
     }
 
-    override fun preRender(batch: Batch, camera: Camera) {
+    override fun preRender(batch: Batch, camera: Camera, shapeRenderer: ShapeRenderer) {
         if (active) {
             camera.zoom = zoom
             camera.near = near

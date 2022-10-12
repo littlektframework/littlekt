@@ -6,6 +6,7 @@ import com.lehaine.littlekt.graphics.*
 import com.lehaine.littlekt.graphics.gl.ClearBufferMask
 import com.lehaine.littlekt.graphics.gl.TexMagFilter
 import com.lehaine.littlekt.graphics.gl.TexMinFilter
+import com.lehaine.littlekt.graphics.shape.ShapeRenderer
 import com.lehaine.littlekt.math.Mat4
 import com.lehaine.littlekt.util.SingleSignal
 import com.lehaine.littlekt.util.signal1v
@@ -128,13 +129,14 @@ open class FrameBufferNode : CanvasLayer() {
     override fun propagateInternalRender(
         batch: Batch,
         camera: Camera,
-        renderCallback: ((Node, Batch, Camera) -> Unit)?,
+        shapeRenderer: ShapeRenderer,
+        renderCallback: ((Node, Batch, Camera, ShapeRenderer) -> Unit)?,
     ) {
         if (!enabled || isDestroyed) return
         fbo ?: return
         if (width == 0 || height == 0) return
         begin(batch)
-        nodes.forEach { it.propagateInternalRender(batch, canvasCamera, renderCallback) }
+        nodes.forEach { it.propagateInternalRender(batch, canvasCamera, shapeRenderer, renderCallback) }
         end(batch)
     }
 

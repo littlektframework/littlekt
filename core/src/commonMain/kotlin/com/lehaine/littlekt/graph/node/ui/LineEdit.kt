@@ -13,6 +13,7 @@ import com.lehaine.littlekt.graphics.Color
 import com.lehaine.littlekt.graphics.font.BitmapFont
 import com.lehaine.littlekt.graphics.font.BitmapFontCache
 import com.lehaine.littlekt.graphics.font.GlyphLayout
+import com.lehaine.littlekt.graphics.shape.ShapeRenderer
 import com.lehaine.littlekt.input.Key
 import com.lehaine.littlekt.input.Pointer
 import com.lehaine.littlekt.math.clamp
@@ -334,8 +335,8 @@ open class LineEdit : Control() {
         }
     }
 
-    override fun render(batch: Batch, camera: Camera) {
-        super.render(batch, camera)
+    override fun render(batch: Batch, camera: Camera, shapeRenderer: ShapeRenderer) {
+        super.render(batch, camera, shapeRenderer)
 
         val bgDrawable = if (editable) bg else bgDisabled
         bgDrawable.draw(

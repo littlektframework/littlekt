@@ -14,6 +14,7 @@ import com.lehaine.littlekt.graphics.MutableColor
 import com.lehaine.littlekt.graphics.font.BitmapFont
 import com.lehaine.littlekt.graphics.font.BitmapFontCache
 import com.lehaine.littlekt.graphics.font.GlyphLayout
+import com.lehaine.littlekt.graphics.shape.ShapeRenderer
 import com.lehaine.littlekt.math.MutableVec2f
 import com.lehaine.littlekt.math.Vec2f
 import com.lehaine.littlekt.math.geom.Angle
@@ -157,7 +158,7 @@ open class Label : Control() {
             onMinimumSizeChanged()
         }
 
-    override fun render(batch: Batch, camera: Camera) {
+    override fun render(batch: Batch, camera: Camera, shapeRenderer: ShapeRenderer) {
         cache.let {
             tempColor.set(color).mul(fontColor)
             it.tint(tempColor)

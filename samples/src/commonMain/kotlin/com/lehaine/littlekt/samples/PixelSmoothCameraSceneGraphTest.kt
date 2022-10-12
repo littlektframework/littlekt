@@ -62,7 +62,7 @@ class PixelSmoothCameraSceneGraphTest(context: Context) : ContextListener(contex
                     }
 
                     node2d {
-                        onRender += { batch, camera ->
+                        onRender += { batch, camera, shapeRenderer ->
                             world.render(batch, camera, 0f, 0f, ppuInv)
                             batch.draw(icon,
                                 0f,
@@ -151,7 +151,7 @@ class PixelSmoothCameraSceneGraphTest(context: Context) : ContextListener(contex
                         slice = TextureSlice(it, 0, it.height-pxHeight, pxWidth, pxHeight)
                     }
 
-                    onRender += { batch, camera ->
+                    onRender += { batch, camera, shapeRenderer ->
                         slice?.let {
                             pixelSmoothShader.vertexShader.uTextureSizes.apply(pixelSmoothShader,
                                 fbo.width.toFloat(),
