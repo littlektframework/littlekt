@@ -4,6 +4,7 @@ import com.lehaine.littlekt.graph.SceneGraph
 import com.lehaine.littlekt.graph.node.annotation.SceneGraphDslMarker
 import com.lehaine.littlekt.graphics.Batch
 import com.lehaine.littlekt.graphics.Camera
+import com.lehaine.littlekt.graphics.shape.ShapeRenderer
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
@@ -43,7 +44,11 @@ open class ViewportCanvasLayer : CanvasLayer() {
         onSizeChanged.emit()
     }
 
-    override fun render(batch: Batch, renderCallback: ((Node, Batch, Camera) -> Unit)?) {
+    override fun render(
+        batch: Batch,
+        shapeRenderer: ShapeRenderer,
+        renderCallback: ((Node, Batch, Camera, ShapeRenderer) -> Unit)?,
+    ) {
         val scene = scene ?: return
         if (!enabled || isDestroyed) return
 
@@ -53,7 +58,7 @@ open class ViewportCanvasLayer : CanvasLayer() {
         batch.projectionMatrix = canvasCamera.viewProjection
         if (!batch.drawing) batch.begin()
         nodes.forEach {
-            it.propagateInternalRender(batch, canvasCamera, renderCallback)
+            it.propagateInternalRender(batch, canvasCamera, shapeRenderer, renderCallback)
         }
         batch.projectionMatrix = prevProjMatrix
         scene.popViewport()

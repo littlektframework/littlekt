@@ -65,7 +65,7 @@ class CanvasCameraTest(context: Context) : ContextListener(context) {
                                     globalY -= 1f
                                 }
                             }
-                            onRender += { batch, camera ->
+                            onRender += { batch, camera, shapeRenderer ->
                                 batch.draw(icon, globalX, globalY, rotation = globalRotation)
                             }
                             camera2d {
@@ -77,7 +77,7 @@ class CanvasCameraTest(context: Context) : ContextListener(context) {
                         node2d {
                             x = 100f
                             y = 20f
-                            onRender += { batch, camera ->
+                            onRender += { batch, camera, shapeRenderer ->
                                 rotation += 0.01.radians
                                 batch.draw(icon, globalX, globalY, scaleX = 2f, scaleY = 2f, rotation = rotation)
                             }

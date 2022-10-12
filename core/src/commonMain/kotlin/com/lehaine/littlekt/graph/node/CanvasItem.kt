@@ -5,15 +5,13 @@ import com.lehaine.littlekt.graph.node.component.InputEvent
 import com.lehaine.littlekt.graph.node.render.Material
 import com.lehaine.littlekt.graphics.Batch
 import com.lehaine.littlekt.graphics.Camera
+import com.lehaine.littlekt.graphics.shape.ShapeRenderer
 import com.lehaine.littlekt.math.Mat3
 import com.lehaine.littlekt.math.Mat4
 import com.lehaine.littlekt.math.MutableVec2f
 import com.lehaine.littlekt.math.Vec2f
 import com.lehaine.littlekt.math.geom.Angle
-import com.lehaine.littlekt.util.DoubleSignal
-import com.lehaine.littlekt.util.SingleSignal
-import com.lehaine.littlekt.util.signal1v
-import com.lehaine.littlekt.util.signal2v
+import com.lehaine.littlekt.util.*
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
@@ -42,13 +40,13 @@ abstract class CanvasItem : Node() {
      *
      * ```
      * node {
-     *     onPreRender += { batch, camera ->
+     *     onPreRender += { batch, camera, shapeRenderer ->
      *         // handle render logic
      *     }
      * }
      * ```
      */
-    val onPreRender: DoubleSignal<Batch, Camera> = signal2v()
+    val onPreRender: TripleSignal<Batch, Camera, ShapeRenderer> = signal3v()
 
     /**
      * List of 'render' callbacks called when [propagateInternalRender] is called. Add any additional callbacks directly to this list.
@@ -57,13 +55,13 @@ abstract class CanvasItem : Node() {
      *
      * ```
      * node {
-     *     onRender += { batch, camera ->
+     *     onRender += { batch, camera, shapeRenderer ->
      *         // handle render logic
      *     }
      * }
      * ```
      */
-    val onRender: DoubleSignal<Batch, Camera> = signal2v()
+    val onRender: TripleSignal<Batch, Camera, ShapeRenderer> = signal3v()
 
     /**
      * List of 'postRender' callbacks called after [postRender] is called. Add any additional callbacks directly to this list.
@@ -72,13 +70,13 @@ abstract class CanvasItem : Node() {
      *
      * ```
      * node {
-     *     onPostRender += { batch, camera ->
+     *     onPostRender += { batch, camera, shapeRenderer ->
      *         // handle render logic
      *     }
      * }
      * ```
      */
-    val onPostRender: DoubleSignal<Batch, Camera> = signal2v()
+    val onPostRender: TripleSignal<Batch, Camera, ShapeRenderer> = signal3v()
 
     /**
      * List of 'debugRender' callbacks called when [debugRender] is called. Add any additional callbacks directly to this list.
@@ -87,13 +85,13 @@ abstract class CanvasItem : Node() {
      *
      * ```
      * node {
-     *     onDebugRender += { batch ->
+     *     onDebugRender += { batch, shapeRenderer ->
      *         // handle debug render logic
      *     }
      * }
      * ```
      */
-    val onDebugRender: SingleSignal<Batch> = signal1v()
+    val onDebugRender: DoubleSignal<Batch, ShapeRenderer> = signal2v()
 
     /**
      * Shows/hides the node if it is renderable.
@@ -398,20 +396,21 @@ abstract class CanvasItem : Node() {
     override fun propagateInternalRender(
         batch: Batch,
         camera: Camera,
-        renderCallback: ((Node, Batch, Camera) -> Unit)?,
+        shapeRenderer: ShapeRenderer,
+        renderCallback: ((Node, Batch, Camera, ShapeRenderer) -> Unit)?,
     ) {
-        propagatePreRender(batch, camera)
-        propagateRender(batch, camera, renderCallback)
-        propagatePostRender(batch, camera)
+        propagatePreRender(batch, camera, shapeRenderer)
+        propagateRender(batch, camera, shapeRenderer, renderCallback)
+        propagatePostRender(batch, camera, shapeRenderer)
     }
 
-    fun propagatePreRender(batch: Batch, camera: Camera) {
+    fun propagatePreRender(batch: Batch, camera: Camera, shapeRenderer: ShapeRenderer) {
         if (!enabled || !visible || isDestroyed) return
-        preRender(batch, camera)
-        onPreRender.emit(batch, camera)
+        preRender(batch, camera, shapeRenderer)
+        onPreRender.emit(batch, camera, shapeRenderer)
         nodes.forEachSorted {
             if (it is CanvasItem) {
-                it.propagatePreRender(batch, camera)
+                it.propagatePreRender(batch, camera, shapeRenderer)
             }
         }
     }
@@ -419,23 +418,28 @@ abstract class CanvasItem : Node() {
     /**
      * Internal rendering that needs to be done on the node that shouldn't be overridden. Calls [propagateInternalRender] method.
      */
-    fun propagateRender(batch: Batch, camera: Camera, renderCallback: ((Node, Batch, Camera) -> Unit)?) {
+    fun propagateRender(
+        batch: Batch,
+        camera: Camera,
+        shapeRenderer: ShapeRenderer,
+        renderCallback: ((Node, Batch, Camera, ShapeRenderer) -> Unit)?,
+    ) {
         if (!enabled || !visible || isDestroyed) return
-        renderCallback?.invoke(this, batch, camera)
-        render(batch, camera)
-        onRender.emit(batch, camera)
+        renderCallback?.invoke(this, batch, camera, shapeRenderer)
+        render(batch, camera, shapeRenderer)
+        onRender.emit(batch, camera, shapeRenderer)
         nodes.forEachSorted {
-            it.propagateInternalRender(batch, camera, renderCallback)
+            it.propagateInternalRender(batch, camera, shapeRenderer, renderCallback)
         }
     }
 
-    fun propagatePostRender(batch: Batch, camera: Camera) {
+    fun propagatePostRender(batch: Batch, camera: Camera, shapeRenderer: ShapeRenderer) {
         if (!enabled || !visible || isDestroyed) return
-        postRender(batch, camera)
-        onPostRender.emit(batch, camera)
+        postRender(batch, camera, shapeRenderer)
+        onPostRender.emit(batch, camera, shapeRenderer)
         nodes.forEachSorted {
             if (it is CanvasItem) {
-                it.propagatePostRender(batch, camera)
+                it.propagatePostRender(batch, camera, shapeRenderer)
             }
         }
     }
@@ -443,13 +447,13 @@ abstract class CanvasItem : Node() {
     /**
      * Internal debug render method. Calls the [debugRender] method.
      */
-    private fun _debugRender(batch: Batch) {
+    private fun _debugRender(batch: Batch, shapeRenderer: ShapeRenderer) {
         if (!enabled || !visible || isDestroyed) return
-        debugRender(batch)
-        onDebugRender.emit(batch)
+        debugRender(batch, shapeRenderer)
+        onDebugRender.emit(batch, shapeRenderer)
         nodes.forEach {
             if (it is CanvasItem) {
-                it._debugRender(batch)
+                it._debugRender(batch, shapeRenderer)
             }
         }
     }
@@ -460,14 +464,14 @@ abstract class CanvasItem : Node() {
      * @param batch the batcher
      * @param camera the Camera2D node
      */
-    open fun preRender(batch: Batch, camera: Camera) {}
+    open fun preRender(batch: Batch, camera: Camera, shapeRenderer: ShapeRenderer) {}
 
     /**
      * The main render method. The [Camera] can be used for culling and the [Batch] instance to draw with.
      * @param batch the batcher
      * @param camera the Camera2D node
      */
-    open fun render(batch: Batch, camera: Camera) {}
+    open fun render(batch: Batch, camera: Camera, shapeRenderer: ShapeRenderer) {}
 
     /**
      * Invoked after [render]. Calculations or logic that needs to be done after rendering such as flushing the batch
@@ -475,13 +479,13 @@ abstract class CanvasItem : Node() {
      * @param batch the batcher
      * @param camera the Camera2D node
      */
-    open fun postRender(batch: Batch, camera: Camera) {}
+    open fun postRender(batch: Batch, camera: Camera, shapeRenderer: ShapeRenderer) {}
 
     /**
      * Draw any debug related items here.
      * @param batch the sprite batch to draw with
      */
-    open fun debugRender(batch: Batch) {}
+    open fun debugRender(batch: Batch, shapeRenderer: ShapeRenderer) {}
 
     override fun callInput(event: InputEvent<*>) {
         if (!enabled || !insideTree || isDestroyed) return

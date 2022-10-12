@@ -8,6 +8,7 @@ import com.lehaine.littlekt.graph.node.internal.NodeList
 import com.lehaine.littlekt.graph.node.ui.Control
 import com.lehaine.littlekt.graphics.Batch
 import com.lehaine.littlekt.graphics.Camera
+import com.lehaine.littlekt.graphics.shape.ShapeRenderer
 import com.lehaine.littlekt.util.*
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
@@ -484,10 +485,11 @@ open class Node : Comparable<Node> {
     open fun propagateInternalRender(
         batch: Batch,
         camera: Camera,
-        renderCallback: ((Node, Batch, Camera) -> Unit)?,
+        shapeRenderer: ShapeRenderer,
+        renderCallback: ((Node, Batch, Camera, ShapeRenderer) -> Unit)?,
     ) {
         if (!enabled || isDestroyed) return
-        nodes.forEach { it.propagateInternalRender(batch, camera, renderCallback) }
+        nodes.forEach { it.propagateInternalRender(batch, camera, shapeRenderer, renderCallback) }
     }
 
     open fun propagateHit(hx: Float, hy: Float): Control? {

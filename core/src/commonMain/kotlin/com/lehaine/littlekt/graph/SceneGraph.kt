@@ -7,13 +7,11 @@ import com.lehaine.littlekt.graph.node.annotation.SceneGraphDslMarker
 import com.lehaine.littlekt.graph.node.component.InputEvent
 import com.lehaine.littlekt.graph.node.render.Material
 import com.lehaine.littlekt.graph.node.ui.Control
-import com.lehaine.littlekt.graphics.Batch
-import com.lehaine.littlekt.graphics.Camera
-import com.lehaine.littlekt.graphics.OrthographicCamera
-import com.lehaine.littlekt.graphics.SpriteBatch
+import com.lehaine.littlekt.graphics.*
 import com.lehaine.littlekt.graphics.gl.BlendFactor
 import com.lehaine.littlekt.graphics.gl.FaceMode
 import com.lehaine.littlekt.graphics.gl.State
+import com.lehaine.littlekt.graphics.shape.ShapeRenderer
 import com.lehaine.littlekt.input.*
 import com.lehaine.littlekt.math.MutableVec2f
 import com.lehaine.littlekt.util.datastructure.Pool
@@ -40,8 +38,10 @@ import kotlin.time.Duration.Companion.milliseconds
 @OptIn(ExperimentalContracts::class)
 inline fun sceneGraph(
     context: Context,
-    viewport: Viewport = ScreenViewport(context.graphics.width,
-        context.graphics.height),
+    viewport: Viewport = ScreenViewport(
+        context.graphics.width,
+        context.graphics.height
+    ),
     batch: Batch? = null,
     controller: InputMapController<String>? = null,
     callback: @SceneGraphDslMarker SceneGraph<String>.() -> Unit = {},
@@ -81,8 +81,10 @@ inline fun sceneGraph(
 @OptIn(ExperimentalContracts::class)
 inline fun <InputSignal> sceneGraph(
     context: Context,
-    viewport: Viewport = ScreenViewport(context.graphics.width,
-        context.graphics.height),
+    viewport: Viewport = ScreenViewport(
+        context.graphics.width,
+        context.graphics.height
+    ),
     batch: Batch? = null,
     uiInputSignals: SceneGraph.UiInputSignals<InputSignal> = SceneGraph.UiInputSignals(),
     controller: InputMapController<InputSignal> = InputMapController(context.input),
@@ -141,22 +143,29 @@ fun <InputSignal> createDefaultSceneGraphController(
  * @param context the current context
  * @param viewport the viewport that the camera of the scene graph will own
  * @param batch an option sprite batch. If omitted, the scene graph will create and manage its own.
+ * @param uiInputSignals the input signals mapped to the UI input of type [InputType].
+ * @param controller the input map controller for the scene graph
+ * @param whitePixel a white 1x1 pixel [TextureSlice] that is used for rendering with [ShapeRenderer].
  * @author Colton Daily
  * @date 1/1/2022
  */
 open class SceneGraph<InputType>(
     val context: Context,
-    viewport: Viewport = ScreenViewport(context.graphics.width,
-        context.graphics.height),
+    viewport: Viewport = ScreenViewport(
+        context.graphics.width,
+        context.graphics.height
+    ),
     batch: Batch? = null,
     val uiInputSignals: UiInputSignals<InputType> = UiInputSignals(),
     val controller: InputMapController<InputType> = createDefaultSceneGraphController(
         context.input,
         uiInputSignals
     ),
+    whitePixel: TextureSlice = Textures.white,
 ) : InputMapProcessor<InputType>, Disposable {
     private var ownsBatch = true
     val batch: Batch = batch?.also { ownsBatch = false } ?: SpriteBatch(context)
+    val shapeRenderer: ShapeRenderer = ShapeRenderer(this.batch, whitePixel)
 
     /**
      * The root [ViewportCanvasLayer] that is used for rendering all the children in the graph. Do not add children
@@ -297,7 +306,7 @@ open class SceneGraph<InputType>(
     open fun render() {
         if (!initialized) error("You need to call 'initialize()'once before doing any rendering or updating!")
         begin()
-        sceneCanvas.render(batch, ::checkNodeMaterial)
+        sceneCanvas.render(batch, shapeRenderer, ::checkNodeMaterial)
         end()
     }
 
@@ -306,7 +315,7 @@ open class SceneGraph<InputType>(
         batch.useDefaultShader()
     }
 
-    protected fun checkNodeMaterial(node: Node, batch: Batch, camera: Camera) {
+    protected fun checkNodeMaterial(node: Node, batch: Batch, camera: Camera, shapeRenderer: ShapeRenderer) {
         if (node !is CanvasItem) return
         // check for Material changes
         if (node.material != currentMaterial) {
@@ -335,10 +344,12 @@ open class SceneGraph<InputType>(
 
     protected fun end() {
         if (batch.drawing) batch.end()
-        batch.setBlendFunctionSeparate(BlendFactor.SRC_ALPHA,
+        batch.setBlendFunctionSeparate(
+            BlendFactor.SRC_ALPHA,
             BlendFactor.ONE_MINUS_SRC_ALPHA,
             BlendFactor.SRC_ALPHA,
-            BlendFactor.ONE_MINUS_SRC_ALPHA)
+            BlendFactor.ONE_MINUS_SRC_ALPHA
+        )
     }
 
     private fun setMaterialGlFunctions(material: Material) {
@@ -361,14 +372,18 @@ open class SceneGraph<InputType>(
 
         if (depthStencilMode.stencilEnable) {
             gl.enable(State.STENCIL_TEST)
-            gl.stencilFuncSeparate(FaceMode.FRONT,
+            gl.stencilFuncSeparate(
+                FaceMode.FRONT,
                 depthStencilMode.stencilFunction,
                 depthStencilMode.referenceStencil,
-                depthStencilMode.stencilMask)
-            gl.stencilOpSeparate(FaceMode.FRONT,
+                depthStencilMode.stencilMask
+            )
+            gl.stencilOpSeparate(
+                FaceMode.FRONT,
                 depthStencilMode.stencilFail,
                 depthStencilMode.stencilDepthBufferFail,
-                depthStencilMode.stencilPass)
+                depthStencilMode.stencilPass
+            )
         }
     }
 
@@ -453,6 +468,7 @@ open class SceneGraph<InputType>(
             Context.Platform.DESKTOP, Context.Platform.WEBGL, Context.Platform.WEBGL2 -> {
                 mouseOverControl = fireEnterAndExit(mouseOverControl, mouseScreenX, mouseScreenY, Pointer.POINTER1)
             }
+
             else -> {
                 // do nothing
             }
@@ -687,26 +703,32 @@ open class SceneGraph<InputType>(
                     next = it.findNextValidFocus()
                     handled = true
                 }
+
                 uiInputSignals.uiFocusPrev -> {
                     next = it.findPreviousValidFocus()
                     handled = true
                 }
+
                 uiInputSignals.uiUp -> {
                     next = it.getFocusNeighbor(Control.Side.TOP)
                     handled = true
                 }
+
                 uiInputSignals.uiRight -> {
                     next = it.getFocusNeighbor(Control.Side.RIGHT)
                     handled = true
                 }
+
                 uiInputSignals.uiDown -> {
                     next = it.getFocusNeighbor(Control.Side.BOTTOM)
                     handled = true
                 }
+
                 uiInputSignals.uiLeft -> {
                     next = it.getFocusNeighbor(Control.Side.LEFT)
                     handled = true
                 }
+
                 else -> Unit
             }
 

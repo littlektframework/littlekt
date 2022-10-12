@@ -5,6 +5,7 @@ import com.lehaine.littlekt.graph.node.Node
 import com.lehaine.littlekt.graph.node.addTo
 import com.lehaine.littlekt.graph.node.annotation.SceneGraphDslMarker
 import com.lehaine.littlekt.graphics.*
+import com.lehaine.littlekt.graphics.shape.ShapeRenderer
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
@@ -100,7 +101,7 @@ open class NinePatchRect : Control() {
         minSizeInvalid = false
     }
 
-    override fun render(batch: Batch, camera: Camera) {
+    override fun render(batch: Batch, camera: Camera, shapeRenderer: ShapeRenderer) {
         ninePatch.draw(
             batch,
             globalX,

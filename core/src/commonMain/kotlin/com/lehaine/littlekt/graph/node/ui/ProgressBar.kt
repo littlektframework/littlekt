@@ -13,6 +13,7 @@ import com.lehaine.littlekt.graphics.MutableColor
 import com.lehaine.littlekt.graphics.font.BitmapFont
 import com.lehaine.littlekt.graphics.font.BitmapFontCache
 import com.lehaine.littlekt.graphics.font.GlyphLayout
+import com.lehaine.littlekt.graphics.shape.ShapeRenderer
 import com.lehaine.littlekt.math.geom.Angle
 import com.lehaine.littlekt.util.toString
 import kotlin.contracts.ExperimentalContracts
@@ -92,7 +93,7 @@ open class ProgressBar : Range() {
     private var cache: BitmapFontCache = BitmapFontCache(font)
     private val layout = GlyphLayout()
 
-    override fun render(batch: Batch, camera: Camera) {
+    override fun render(batch: Batch, camera: Camera, shapeRenderer: ShapeRenderer) {
         bg.draw(batch, globalX, globalY, width, height)
         val progress = ratio * (width - fg.minWidth)
         if (progress > 0) {
