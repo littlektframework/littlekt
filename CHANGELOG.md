@@ -1,5 +1,76 @@
 # Changelog
 
+## v.0.4.0 (Curent SHAPSHOT)
+
+### Highlights
+
+* `SceneGraph` nodes now allow for custom sort options when updating lists. This allows to render nodes based on the
+  sort while keeping the update order.
+* `SceneGraph`: New `ySort` option added to `Node2D` to allow y-sorting rendering.
+* `JVM`: Added `arm64` dependencies for LWJGL.
+
+### Breaking
+
+* Add `ShapeRenderer` to `SceneGraph` and `Node` render methods. This includes `preRender`, `render`, `postRender`
+  and `debugRender` as well as all the `Node` rendering signals.
+
+  #### Migration:
+
+  Before:
+
+  **DSL:**
+
+    ```kotlin
+    node {
+        onRender += { batch, camera ->
+            // render logic
+        }
+    }
+    ```
+
+  **Extending a Node:**
+
+    ```kotlin
+    override fun render(batch: Batch, camera: Camera) {
+        // render logic
+    }
+    ```
+
+  New:
+
+  **DSL:**
+
+    ```kotlin
+    node {
+        onRender += { batch, camera, shapeRenderer ->
+            // render logic
+        }
+    }
+    ```
+
+  **Extending a Node:**
+
+    ```kotlin
+    override fun render(batch: Batch, camera: Camera, shapeRenderer: ShapeRenderer) {
+        // render logic
+    }
+    ```
+
+### New
+
+* add: `Camera.boundsInFrustum` implementation.
+* add: New implementation of `AnimationPlayer.start()` that will restart the current running animation to the first
+  frame. `AnimationPlayer.resume()` provides the old functionality of `AnimationPlayer.start()`
+* add: `AnimationPlayer.restart()` alias for `AnimationPlayer.start()`.
+
+### Changes
+
+* fix: add missing `contract` call for `vBoxContainer`.
+* fix: JVM - add a `isMac` check before attempting to set window icon.
+* fix: Texture Packer Plugin - All LWJGL dependencies are now removed from the plugin.
+* update: Refactor `AnimationPlayer.start()` to `AnimationPlayer.resume()`.
+* update: `AnimationPlayer` restarts the last frame time back to zero when stopping an animation.
+
 ## v0.3.2
 
 ### Bugs
@@ -77,7 +148,7 @@
 
   Before:
 
-  ```kotlin
+    ```kotlin
     val vec = MutableVec2f()
     val angle: Angle = 45.degrees
     vec.rotate(angle.degrees)
@@ -85,7 +156,7 @@
 
   After:
 
-  ```kotlin
+    ```kotlin
     val vec = MutableVec2f()
     val angle: Angle = 45.degrees
     vec.rotate(angle)
