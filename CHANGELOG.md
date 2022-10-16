@@ -7,6 +7,8 @@
 * `SceneGraph` nodes now allow for custom sort options when updating lists. This allows to render nodes based on the
   sort while keeping the update order.
 * `SceneGraph`: New `ySort` option added to `Node2D` to allow y-sorting rendering.
+* `SceneGraph` will now handle debug rendering as well as `Control` nodes to render it's bounds when rendering to help
+  UI positioning.
 * `JVM`: Added `arm64` dependencies for LWJGL.
 
 ### Breaking
