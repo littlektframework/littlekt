@@ -39,6 +39,9 @@ class AppStats {
     var fps: Double = 0.0
         private set
 
+    /**
+     * OpenGL related engine stats.
+     */
     val engineStats: EngineStats = EngineStats()
 
     /**
