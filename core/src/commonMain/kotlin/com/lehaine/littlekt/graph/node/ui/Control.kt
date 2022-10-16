@@ -11,8 +11,11 @@ import com.lehaine.littlekt.graph.node.component.OverrideMap
 import com.lehaine.littlekt.graph.node.component.Theme
 import com.lehaine.littlekt.graph.node.ui.Control.AnchorLayout.*
 import com.lehaine.littlekt.graphics.Batch
+import com.lehaine.littlekt.graphics.Camera
 import com.lehaine.littlekt.graphics.Color
 import com.lehaine.littlekt.graphics.font.BitmapFont
+import com.lehaine.littlekt.graphics.shape.ShapeRenderer
+import com.lehaine.littlekt.graphics.toFloatBits
 import com.lehaine.littlekt.math.*
 import com.lehaine.littlekt.math.geom.Angle
 import com.lehaine.littlekt.math.geom.closestPointsBetweenSegments
@@ -446,6 +449,18 @@ open class Control : CanvasItem() {
     override val membersAndPropertiesString: String
         get() = "${super.membersAndPropertiesString}, anchorLeft=$anchorLeft, anchorRight=$anchorRight, anchorTop=$anchorTop, anchorBottom=$anchorBottom, verticalSizeFlags=$verticalSizeFlags, horizontalSizeFlags=$horizontalSizeFlags, marginLeft=$marginLeft, marginRight=$marginRight, marginTop=$marginTop, marginBottom=$marginBottom, horizontalGrowDirection=$horizontalGrowDirection, verticalGrowDirection=$verticalGrowDirection, width=$width, height=$height, minWidth=$minWidth, minHeight=$minHeight, combinedMinWidth=$combinedMinWidth, combinedMinHeight=$combinedMinHeight, color=$color, debugColor=$debugColor"
 
+    override fun debugRender(batch: Batch, camera: Camera, shapeRenderer: ShapeRenderer) {
+        super.debugRender(batch, camera, shapeRenderer)
+        shapeRenderer.rectangle(
+            globalPosition,
+            width,
+            height,
+            globalRotation,
+            1,
+            color = debugColor.toFloatBits()
+        )
+    }
+
     override fun onPositionChanged() {
         super.onPositionChanged()
         computeMargins()
@@ -687,12 +702,15 @@ open class Control : CanvasItem() {
             TOP_LEFT, BOTTOM_LEFT, CENTER_LEFT, TOP_WIDE, BOTTOM_WIDE, LEFT_WIDE, HCENTER_WIDE, WIDE -> setAnchor(
                 Side.LEFT, 0f, keepMargins, triggerSizeChanged
             )
+
             CENTER_TOP, CENTER_BOTTOM, CENTER, VCENTER_WIDE -> setAnchor(
                 Side.LEFT, 0.5f, keepMargins, triggerSizeChanged
             )
+
             TOP_RIGHT, BOTTOM_RIGHT, CENTER_RIGHT, RIGHT_WIDE -> setAnchor(
                 Side.LEFT, 1f, keepMargins, triggerSizeChanged
             )
+
             else -> {
                 // anchors need set manually
             }
@@ -703,12 +721,15 @@ open class Control : CanvasItem() {
             TOP_LEFT, TOP_RIGHT, CENTER_TOP, LEFT_WIDE, RIGHT_WIDE, TOP_WIDE, VCENTER_WIDE, WIDE -> setAnchor(
                 Side.TOP, 0f, keepMargins, triggerSizeChanged
             )
+
             CENTER_LEFT, CENTER_RIGHT, CENTER, HCENTER_WIDE -> setAnchor(
                 Side.TOP, 0.5f, keepMargins, triggerSizeChanged
             )
+
             BOTTOM_LEFT, BOTTOM_RIGHT, CENTER_BOTTOM, BOTTOM_WIDE -> setAnchor(
                 Side.TOP, 1f, keepMargins, triggerSizeChanged
             )
+
             else -> {
                 // anchors need set manually
             }
@@ -719,12 +740,15 @@ open class Control : CanvasItem() {
             TOP_LEFT, BOTTOM_LEFT, CENTER_LEFT, LEFT_WIDE -> setAnchor(
                 Side.RIGHT, 0f, keepMargins, triggerSizeChanged
             )
+
             CENTER_TOP, CENTER_BOTTOM, CENTER, VCENTER_WIDE -> setAnchor(
                 Side.RIGHT, 0.5f, keepMargins, triggerSizeChanged
             )
+
             TOP_RIGHT, BOTTOM_RIGHT, CENTER_RIGHT, TOP_WIDE, RIGHT_WIDE, BOTTOM_WIDE, HCENTER_WIDE, WIDE -> setAnchor(
                 Side.RIGHT, 1f, keepMargins, triggerSizeChanged
             )
+
             else -> {
                 // anchors need set manually
             }
@@ -735,12 +759,15 @@ open class Control : CanvasItem() {
             TOP_LEFT, TOP_RIGHT, CENTER_TOP, TOP_WIDE -> setAnchor(
                 Side.BOTTOM, 0f, keepMargins, triggerSizeChanged
             )
+
             CENTER_LEFT, CENTER_RIGHT, CENTER, HCENTER_WIDE -> setAnchor(
                 Side.BOTTOM, 0.5f, keepMargins, triggerSizeChanged
             )
+
             BOTTOM_LEFT, BOTTOM_RIGHT, CENTER_BOTTOM, LEFT_WIDE, RIGHT_WIDE, BOTTOM_WIDE, VCENTER_WIDE, WIDE -> setAnchor(
                 Side.BOTTOM, 1f, keepMargins, triggerSizeChanged
             )
+
             else -> {
                 // anchors need set manually
             }

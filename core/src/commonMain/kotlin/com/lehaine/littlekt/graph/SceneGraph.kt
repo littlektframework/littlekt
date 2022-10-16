@@ -240,6 +240,11 @@ open class SceneGraph<InputType>(
             time = (1f / value).seconds
         }
 
+    /**
+     * When [true], nodes will handle rendering debug related info such as node bounds.
+     */
+    var showDebugInfo = false
+
     private var accum = 0.milliseconds
     private var _fixedProgressionRatio = 1f
     private var time = (1f / fixedTimesPerSecond).seconds
