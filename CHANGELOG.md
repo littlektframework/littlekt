@@ -64,7 +64,7 @@
 * add: New implementation of `AnimationPlayer.start()` that will restart the current running animation to the first
   frame. `AnimationPlayer.resume()` provides the old functionality of `AnimationPlayer.start()`
 * add: `AnimationPlayer.restart()` alias for `AnimationPlayer.start()`.
-
+* add: `Experimental` annotation that requires opt-in.
 ### Changes
 
 * fix: add missing `contract` call for `vBoxContainer`.
@@ -72,6 +72,7 @@
 * fix: Texture Packer Plugin - All LWJGL dependencies are now removed from the plugin.
 * update: Refactor `AnimationPlayer.start()` to `AnimationPlayer.resume()`.
 * update: `AnimationPlayer` restarts the last frame time back to zero when stopping an animation.
+* update: `GpuFont` is now marked as `Experimental`.
 
 ## v0.3.2
 
