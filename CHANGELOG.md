@@ -73,6 +73,8 @@
 * update: Refactor `AnimationPlayer.start()` to `AnimationPlayer.resume()`.
 * update: `AnimationPlayer` restarts the last frame time back to zero when stopping an animation.
 * update: `GpuFont` is now marked as `Experimental`.
+* update Android compile & target versions to 33.
+* update `AssetProviderer` to use an `ArrayList` instead of a `MutableList` to fix iterating through assets to prepare.
 
 ## v0.3.2
 
