@@ -1,6 +1,7 @@
 package com.lehaine.littlekt.graphics.font
 
 import com.lehaine.littlekt.Context
+import com.lehaine.littlekt.Experimental
 import com.lehaine.littlekt.file.createByteBuffer
 import com.lehaine.littlekt.file.vfs.VfsFile
 import com.lehaine.littlekt.file.vfs.writePixmap
@@ -25,6 +26,7 @@ import kotlin.time.measureTimedValue
  * @date 12/9/2021
  */
 
+@Experimental
 class GpuFont(
     private val context: Context,
     /**
@@ -50,7 +52,7 @@ class GpuFont(
      * The max amount of vertices to use for cache the text Increase or decrease this based on the amount of text
      * that will be displayed.
      */
-    maxVertices: Int = 10000
+    maxVertices: Int = 10000,
 ) {
     var debug = false
 
@@ -96,7 +98,7 @@ class GpuFont(
         wrap: Boolean = false,
         rotation: Angle = Angle.ZERO,
         color: Color = Color.BLACK,
-        font: TtfFont = defaultFont
+        font: TtfFont = defaultFont,
     ) {
         val scale = 1f / font.unitsPerEm * pxSize.toFloat()
         layout.setText(font, text, color, maxWidth, pxSize.toFloat(), pxSize.toFloat(), align, wrap)
