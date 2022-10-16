@@ -7,8 +7,11 @@ import com.lehaine.littlekt.file.vfs.readTexture
 import com.lehaine.littlekt.graph.node.component.HAlign
 import com.lehaine.littlekt.graph.node.ui.*
 import com.lehaine.littlekt.graph.sceneGraph
-import com.lehaine.littlekt.graphics.*
+import com.lehaine.littlekt.graphics.Fonts
+import com.lehaine.littlekt.graphics.SpriteBatch
 import com.lehaine.littlekt.graphics.gl.ClearBufferMask
+import com.lehaine.littlekt.graphics.slice
+import com.lehaine.littlekt.graphics.use
 import com.lehaine.littlekt.input.Key
 import com.lehaine.littlekt.util.viewport.ExtendViewport
 
@@ -66,6 +69,10 @@ class UiTest(context: Context) : ContextListener(context) {
 
             graph.update(dt)
             graph.render()
+
+            if(input.isKeyJustPressed(Key.ENTER)) {
+                graph.showDebugInfo =  !graph.showDebugInfo
+            }
 
             if (input.isKeyJustPressed(Key.P)) {
                 logger.info { stats }

@@ -481,6 +481,15 @@ open class Node : Comparable<Node> {
         resize(width, height)
         onResize.emit(width, height)
     }
+    open fun propagateInternalDebugRender(
+        batch: Batch,
+        camera: Camera,
+        shapeRenderer: ShapeRenderer,
+        renderCallback: ((Node, Batch, Camera, ShapeRenderer) -> Unit)?,
+    ) {
+        if (!enabled || isDestroyed) return
+        nodes.forEach { it.propagateInternalDebugRender(batch, camera, shapeRenderer, renderCallback) }
+    }
 
     open fun propagateInternalRender(
         batch: Batch,

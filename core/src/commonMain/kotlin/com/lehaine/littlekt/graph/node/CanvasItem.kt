@@ -11,7 +11,10 @@ import com.lehaine.littlekt.math.Mat4
 import com.lehaine.littlekt.math.MutableVec2f
 import com.lehaine.littlekt.math.Vec2f
 import com.lehaine.littlekt.math.geom.Angle
-import com.lehaine.littlekt.util.*
+import com.lehaine.littlekt.util.DoubleSignal
+import com.lehaine.littlekt.util.TripleSignal
+import com.lehaine.littlekt.util.signal2v
+import com.lehaine.littlekt.util.signal3v
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
@@ -85,13 +88,13 @@ abstract class CanvasItem : Node() {
      *
      * ```
      * node {
-     *     onDebugRender += { batch, shapeRenderer ->
+     *     onDebugRender += { batch, camera, shapeRenderer ->
      *         // handle debug render logic
      *     }
      * }
      * ```
      */
-    val onDebugRender: DoubleSignal<Batch, ShapeRenderer> = signal2v()
+    val onDebugRender: TripleSignal<Batch, Camera, ShapeRenderer> = signal3v()
 
     /**
      * Shows/hides the node if it is renderable.
@@ -393,6 +396,34 @@ abstract class CanvasItem : Node() {
         return this
     }
 
+    override fun propagateInternalDebugRender(
+        batch: Batch,
+        camera: Camera,
+        shapeRenderer: ShapeRenderer,
+        renderCallback: ((Node, Batch, Camera, ShapeRenderer) -> Unit)?,
+    ) {
+        propagateDebugRender(batch,camera,shapeRenderer,renderCallback)
+    }
+
+
+    /**
+     * Internal debug rendering that needs to be done on the node that shouldn't be overridden. Calls [propagateInternalDebugRender] method.
+     */
+    fun propagateDebugRender(
+        batch: Batch,
+        camera: Camera,
+        shapeRenderer: ShapeRenderer,
+        renderCallback: ((Node, Batch, Camera, ShapeRenderer) -> Unit)?,
+    ) {
+        if (!enabled || !visible || isDestroyed) return
+        renderCallback?.invoke(this, batch, camera, shapeRenderer)
+        debugRender(batch, camera, shapeRenderer)
+        onDebugRender.emit(batch, camera, shapeRenderer)
+        nodes.forEachSorted {
+            it.propagateInternalDebugRender(batch, camera, shapeRenderer, renderCallback)
+        }
+    }
+
     override fun propagateInternalRender(
         batch: Batch,
         camera: Camera,
@@ -403,7 +434,9 @@ abstract class CanvasItem : Node() {
         propagateRender(batch, camera, shapeRenderer, renderCallback)
         propagatePostRender(batch, camera, shapeRenderer)
     }
-
+    /**
+     * Internal pre rendering that needs to be done on the node that shouldn't be overridden. Calls [propagatePreRender] method.
+     */
     fun propagatePreRender(batch: Batch, camera: Camera, shapeRenderer: ShapeRenderer) {
         if (!enabled || !visible || isDestroyed) return
         preRender(batch, camera, shapeRenderer)
@@ -433,6 +466,9 @@ abstract class CanvasItem : Node() {
         }
     }
 
+    /**
+     * Internal post rendering that needs to be done on the node that shouldn't be overridden. Calls [propagatePostRender] method.
+     */
     fun propagatePostRender(batch: Batch, camera: Camera, shapeRenderer: ShapeRenderer) {
         if (!enabled || !visible || isDestroyed) return
         postRender(batch, camera, shapeRenderer)
@@ -445,24 +481,11 @@ abstract class CanvasItem : Node() {
     }
 
     /**
-     * Internal debug render method. Calls the [debugRender] method.
-     */
-    private fun _debugRender(batch: Batch, shapeRenderer: ShapeRenderer) {
-        if (!enabled || !visible || isDestroyed) return
-        debugRender(batch, shapeRenderer)
-        onDebugRender.emit(batch, shapeRenderer)
-        nodes.forEach {
-            if (it is CanvasItem) {
-                it._debugRender(batch, shapeRenderer)
-            }
-        }
-    }
-
-    /**
      * Invoked before [render]. Calculations or logic that needs to be done before rendering such as flushing the batch
      * or starting a frame buffer. The [Camera] can be used for culling and the [Batch] instance to draw with.
      * @param batch the batcher
      * @param camera the Camera2D node
+     * @param shapeRenderer the shape renderer
      */
     open fun preRender(batch: Batch, camera: Camera, shapeRenderer: ShapeRenderer) {}
 
@@ -470,6 +493,7 @@ abstract class CanvasItem : Node() {
      * The main render method. The [Camera] can be used for culling and the [Batch] instance to draw with.
      * @param batch the batcher
      * @param camera the Camera2D node
+     * @param shapeRenderer the shape renderer
      */
     open fun render(batch: Batch, camera: Camera, shapeRenderer: ShapeRenderer) {}
 
@@ -478,14 +502,17 @@ abstract class CanvasItem : Node() {
      * or ending a frame buffer. The [Camera] can be used for culling and the [Batch] instance to draw with.
      * @param batch the batcher
      * @param camera the Camera2D node
+     * @param shapeRenderer the shape renderer
      */
     open fun postRender(batch: Batch, camera: Camera, shapeRenderer: ShapeRenderer) {}
 
     /**
      * Draw any debug related items here.
      * @param batch the sprite batch to draw with
+     * @param camera the Camera2D node
+     * @param shapeRenderer the shape renderer
      */
-    open fun debugRender(batch: Batch, shapeRenderer: ShapeRenderer) {}
+    open fun debugRender(batch: Batch, camera: Camera, shapeRenderer: ShapeRenderer) {}
 
     override fun callInput(event: InputEvent<*>) {
         if (!enabled || !insideTree || isDestroyed) return

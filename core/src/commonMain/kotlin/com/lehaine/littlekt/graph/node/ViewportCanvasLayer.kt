@@ -59,6 +59,7 @@ open class ViewportCanvasLayer : CanvasLayer() {
         if (!batch.drawing) batch.begin()
         nodes.forEach {
             it.propagateInternalRender(batch, canvasCamera, shapeRenderer, renderCallback)
+            if (scene.showDebugInfo) it.propagateInternalDebugRender(batch, canvasCamera, shapeRenderer, renderCallback)
         }
         batch.projectionMatrix = prevProjMatrix
         scene.popViewport()
