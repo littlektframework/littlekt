@@ -70,7 +70,7 @@ kotlin {
     }
 }
 
-val littleKtVersion = "0.4.0.6a1a731-SNAPSHOT" // or whichever hash you are using
+val littleKtVersion = "0.5.0.af4fdbf-SNAPSHOT" // or whichever hash you are using
 val kotlinCoroutinesVersion = "1.6.0" // or whatever version you are using
 
 sourceSets {
