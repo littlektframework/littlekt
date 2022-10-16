@@ -15,6 +15,7 @@ import com.lehaine.littlekt.graphics.font.TtfFont
 import com.lehaine.littlekt.graphics.gl.TexMagFilter
 import com.lehaine.littlekt.graphics.gl.TexMinFilter
 import com.lehaine.littlekt.graphics.tilemap.tiled.TiledMap
+import com.lehaine.littlekt.util.fastForEach
 import com.lehaine.littlekt.util.internal.lock
 import kotlinx.atomicfu.atomic
 import kotlin.contracts.ExperimentalContracts
@@ -27,7 +28,7 @@ import kotlin.reflect.KProperty
  * Provides helper functions to load and prepare assets without having to use `null` or `lateinit`.
  */
 open class AssetProvider(val context: Context) {
-    private val assetsToPrepare = mutableListOf<PreparableGameAsset<*>>()
+    private val assetsToPrepare = arrayListOf<PreparableGameAsset<*>>()
     private var totalAssetsLoading = atomic(0)
     private var totalAssets = atomic(0)
     private var totalAssetsFinished = atomic(0)
@@ -61,7 +62,7 @@ open class AssetProvider(val context: Context) {
     suspend fun update() {
         if (totalAssetsLoading.value > 0) return
         if (!prepared) {
-            assetsToPrepare.forEach {
+            assetsToPrepare.fastForEach {
                 it.prepare()
             }
             assetsToPrepare.clear()
