@@ -124,6 +124,50 @@ fun createDefaultTheme(
         6,
         6
     )
+    val greyArrowUpPatch = NinePatch(
+        Textures.atlas.getByPrefix("grey_arrowUp").slice,
+        3,
+        3,
+        3,
+        4
+    )
+    val greyArrowDownPatch = NinePatch(
+        Textures.atlas.getByPrefix("grey_arrowDown").slice,
+        3,
+        3,
+        3,
+        4
+    )
+    val greyArrowLeftPatch = NinePatch(
+        Textures.atlas.getByPrefix("grey_arrowLeft").slice,
+        3,
+        3,
+        3,
+        4
+    )
+    val greyArrowRightPatch = NinePatch(
+        Textures.atlas.getByPrefix("grey_arrowRight").slice,
+        3,
+        3,
+        3,
+        4
+    )
+
+    val greySliderBg = NinePatch(
+        Textures.atlas.getByPrefix("grey_sliderBg").slice,
+        3,
+        3,
+        3,
+        3
+    )
+
+    val graeGrabber = NinePatch(
+        Textures.atlas.getByPrefix("grey_grabber").slice,
+        3,
+        3,
+        3,
+        3
+    )
     val drawables = mapOf(
         "Button" to mapOf(
             Button.themeVars.normal to NinePatchDrawable(greyButtonNinePatch)
@@ -171,7 +215,57 @@ fun createDefaultTheme(
             },
             LineEdit.themeVars.focus to NinePatchDrawable(greyOutlineNinePatch)
                 .apply { modulate = Color.WHITE },
-        )
+        ),
+        "VScrollBar" to mapOf(
+            ScrollBar.themeVars.incrementIcon to NinePatchDrawable(greyArrowUpPatch).apply {
+                modulate = Color.LIGHT_BLUE
+            },
+            ScrollBar.themeVars.incrementHighlightIcon to NinePatchDrawable(greyArrowUpPatch).apply {
+                modulate = Color.LIGHT_BLUE.toMutableColor().lighten(0.2f)
+            },
+            ScrollBar.themeVars.incrementPressedIcon to NinePatchDrawable(greyArrowUpPatch).apply {
+                modulate = Color.LIGHT_BLUE.toMutableColor().scaleRgb(0.6f)
+            },
+            ScrollBar.themeVars.decrementIcon to NinePatchDrawable(greyArrowDownPatch).apply {
+                modulate = Color.LIGHT_BLUE
+            },
+            ScrollBar.themeVars.decrementHighlightIcon to NinePatchDrawable(greyArrowDownPatch).apply {
+                modulate = Color.LIGHT_BLUE.toMutableColor().lighten(0.2f)
+            },
+            ScrollBar.themeVars.decrementPressedIcon to NinePatchDrawable(greyArrowDownPatch).apply {
+                modulate = Color.LIGHT_BLUE.toMutableColor().scaleRgb(0.6f)
+            },
+            ScrollBar.themeVars.scroll to NinePatchDrawable(greySliderBg).apply {
+                modulate = Color.DARK_BLUE
+            },
+            ScrollBar.themeVars.grabber to NinePatchDrawable(greySliderBg).apply {
+                modulate = Color.LIGHT_BLUE
+            }
+        ),
+        "HScrollBar" to mapOf(ScrollBar.themeVars.incrementIcon to NinePatchDrawable(greyArrowLeftPatch).apply {
+            modulate = Color.LIGHT_BLUE
+        },
+            ScrollBar.themeVars.incrementHighlightIcon to NinePatchDrawable(greyArrowLeftPatch).apply {
+                modulate = Color.LIGHT_BLUE.toMutableColor().lighten(0.2f)
+            },
+            ScrollBar.themeVars.incrementPressedIcon to NinePatchDrawable(greyArrowLeftPatch).apply {
+                modulate = Color.LIGHT_BLUE.toMutableColor().scaleRgb(0.6f)
+            },
+            ScrollBar.themeVars.decrementIcon to NinePatchDrawable(greyArrowRightPatch).apply {
+                modulate = Color.LIGHT_BLUE
+            },
+            ScrollBar.themeVars.decrementHighlightIcon to NinePatchDrawable(greyArrowRightPatch).apply {
+                modulate = Color.LIGHT_BLUE.toMutableColor().lighten(0.2f)
+            },
+            ScrollBar.themeVars.decrementPressedIcon to NinePatchDrawable(greyArrowRightPatch).apply {
+                modulate = Color.LIGHT_BLUE.toMutableColor().scaleRgb(0.6f)
+            },
+            ScrollBar.themeVars.scroll to NinePatchDrawable(greySliderBg).apply {
+                modulate = Color.DARK_BLUE
+            },
+            ScrollBar.themeVars.grabber to NinePatchDrawable(greySliderBg).apply {
+                modulate = Color.LIGHT_BLUE
+            })
     ) + extraDrawables
 
     val fonts = extraFonts

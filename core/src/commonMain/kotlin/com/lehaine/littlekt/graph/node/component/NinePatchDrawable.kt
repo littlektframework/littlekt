@@ -15,8 +15,8 @@ class NinePatchDrawable(val ninePatch: NinePatch) : Drawable {
     override var marginTop: Float = ninePatch.top.toFloat()
     override var marginBottom: Float = ninePatch.bottom.toFloat()
 
-    override var minWidth: Float = (ninePatch.left - ninePatch.right).toFloat()
-    override var minHeight: Float = (ninePatch.top - ninePatch.bottom).toFloat()
+    override var minWidth: Float = ninePatch.totalWidth
+    override var minHeight: Float = ninePatch.totalHeight
 
     override var modulate: Color = Color.WHITE
 

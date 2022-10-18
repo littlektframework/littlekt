@@ -50,7 +50,13 @@ class UiTest(context: Context) : ContextListener(context) {
                         slice = icon.slice()
                         stretchMode = TextureRect.StretchMode.KEEP_CENTERED
                     }
+
                 }
+            }
+
+            vScrollBar {
+                x = 50f
+                y = 50f
             }
         }.also { it.initialize() }
 
@@ -70,8 +76,8 @@ class UiTest(context: Context) : ContextListener(context) {
             graph.update(dt)
             graph.render()
 
-            if(input.isKeyJustPressed(Key.ENTER)) {
-                graph.showDebugInfo =  !graph.showDebugInfo
+            if (input.isKeyJustPressed(Key.ENTER)) {
+                graph.showDebugInfo = !graph.showDebugInfo
             }
 
             if (input.isKeyJustPressed(Key.P)) {

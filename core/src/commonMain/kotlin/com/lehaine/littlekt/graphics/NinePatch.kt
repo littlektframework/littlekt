@@ -26,6 +26,9 @@ class NinePatch(private val slice: TextureSlice, val left: Int, val right: Int, 
         texture.slice(), left, right, top, bottom
     )
 
+    val totalHeight: Float get() = topHeight + middleHeight + bottomHeight
+    val totalWidth: Float get() = leftWidth + middleWidth + rightWidth
+
     private val patches = arrayOfNulls<TextureSlice?>(9)
     private val vertices = FloatArrayList(9 * 4 * 5)
     private var topLeft: Int = 0
@@ -107,7 +110,7 @@ class NinePatch(private val slice: TextureSlice, val left: Int, val right: Int, 
         srcX: Float = 0f,
         srcY: Float = 0f,
         srcWidth: Float = width,
-        srcHeight: Float = height
+        srcHeight: Float = height,
     ) {
         check(srcX >= 0f) { "srcX must be >= 0!" }
         check(srcY >= 0f) { "srcY must be >= 0!" }
@@ -207,7 +210,7 @@ class NinePatch(private val slice: TextureSlice, val left: Int, val right: Int, 
         srcX: Float,
         srcY: Float,
         srcWidth: Float,
-        srcHeight: Float
+        srcHeight: Float,
     ) {
         val centerX = x + max(leftWidth, srcX)
         val centerY = y + max(topHeight, srcY)
@@ -394,7 +397,7 @@ class NinePatch(private val slice: TextureSlice, val left: Int, val right: Int, 
         srcWidth: Float,
         srcHeight: Float,
         stretchW: Boolean = false,
-        stretchH: Boolean = false
+        stretchH: Boolean = false,
     ) {
         val fx2 = x + width
         val fy2 = y + height

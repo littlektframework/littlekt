@@ -8,12 +8,13 @@ import com.lehaine.littlekt.graphics.Batch
 import com.lehaine.littlekt.graphics.Camera
 import com.lehaine.littlekt.graphics.shape.ShapeRenderer
 import com.lehaine.littlekt.input.Pointer
+import kotlin.math.max
 
 /**
  * @author Colton Daily
  * @date 10/16/2022
  */
-open class ScrollBar(val orientation: Orientation = Orientation.VERTICAL) : Range() {
+abstract class ScrollBar(val orientation: Orientation = Orientation.VERTICAL) : Range() {
 
     private val increment: Drawable
         get() = getThemeDrawable(themeVars.incrementIcon)
@@ -65,8 +66,8 @@ open class ScrollBar(val orientation: Orientation = Orientation.VERTICAL) : Rang
 
         decrement.draw(
             batch,
-            0f,
-            0f,
+            globalPosition.x,
+            globalPosition.y,
             decrement.minWidth,
             decrement.minHeight,
             globalScaleX,
@@ -74,8 +75,8 @@ open class ScrollBar(val orientation: Orientation = Orientation.VERTICAL) : Rang
             globalRotation
         )
 
-        var offsetX = 0f
-        var offsetY = 0f
+        var offsetX = globalPosition.x
+        var offsetY = globalPosition.y
         if (orientation == Orientation.HORIZONTAL) {
             offsetX += decrement.minWidth
         } else {
@@ -105,8 +106,8 @@ open class ScrollBar(val orientation: Orientation = Orientation.VERTICAL) : Rang
 
         val grabberWidth: Float
         val grabberHeight: Float
-        var grabberX = 0f
-        var grabberY = 0f
+        var grabberX = globalPosition.x
+        var grabberY = globalPosition.y
         if (orientation == Orientation.HORIZONTAL) {
             grabberWidth = getGrabberSize()
             grabberHeight = height
@@ -157,6 +158,32 @@ open class ScrollBar(val orientation: Orientation = Orientation.VERTICAL) : Rang
         }
     }
 
+    override fun calculateMinSize() {
+        if (!minSizeInvalid) return
+
+        println("start $_internalMinWidth,$_internalMinHeight")
+        if (orientation == Orientation.VERTICAL) {
+            _internalMinWidth = max(increment.minWidth, scroll.minWidth)
+            println("1 $_internalMinWidth,$_internalMinHeight")
+            _internalMinHeight = increment.minHeight
+            println("2 $_internalMinWidth,$_internalMinHeight")
+            _internalMinHeight += decrement.minHeight
+            println("3 $_internalMinWidth,$_internalMinHeight")
+            _internalMinHeight += scroll.minHeight
+            println("4 $_internalMinWidth,$_internalMinHeight")
+            _internalMinHeight += getGrabberMinSize()
+            println(" 5$_internalMinWidth,$_internalMinHeight")
+        } else if (orientation == Orientation.HORIZONTAL) {
+            _internalMinHeight = max(increment.minHeight, scroll.minHeight)
+            _internalMinWidth = increment.minWidth
+            _internalMinWidth += decrement.minWidth
+            _internalMinWidth += scroll.minWidth
+            _internalMinWidth += getGrabberMinSize()
+        }
+
+
+        minSizeInvalid = false
+    }
 
     enum class HighlightStatus {
         NONE,
