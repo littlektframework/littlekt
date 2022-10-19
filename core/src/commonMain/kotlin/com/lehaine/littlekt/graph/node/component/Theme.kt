@@ -184,15 +184,15 @@ fun createDefaultTheme(
                 .apply { modulate = Color.WHITE },
         ),
         "Panel" to mapOf(
-            Panel.themeVars.panel to NinePatchDrawable(panelNinePatch).apply {
+            Panel.themeVars.panel to NinePatchDrawable(greyBoxNinePatch).apply {
                 modulate = Color.LIGHT_BLUE
             }
         ),
         "ProgressBar" to mapOf(
-            ProgressBar.themeVars.bg to NinePatchDrawable(panelNinePatch).apply {
+            ProgressBar.themeVars.bg to NinePatchDrawable(greyBoxNinePatch).apply {
                 modulate = Color.DARK_BLUE
             },
-            ProgressBar.themeVars.fg to NinePatchDrawable(panelNinePatch).apply {
+            ProgressBar.themeVars.fg to NinePatchDrawable(greyBoxNinePatch).apply {
                 modulate = Color.LIGHT_BLUE.toMutableColor().lighten(0.5f)
             }
         ),
