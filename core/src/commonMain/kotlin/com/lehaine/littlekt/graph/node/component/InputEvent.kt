@@ -18,8 +18,8 @@ class InputEvent<InputSignal> : Event() {
     var sceneY: Float = 0f
     var localX: Float = 0f
     var localY: Float = 0f
-    var scrollAmountX: Int = 0
-    var scrollAmountY: Int = 0
+    var scrollAmountX: Float = 0f
+    var scrollAmountY: Float = 0f
 
     override fun reset() {
         super.reset()
@@ -30,6 +30,8 @@ class InputEvent<InputSignal> : Event() {
         sceneY = 0f
         localX = 0f
         localY = 0f
+        scrollAmountX = 0f
+        scrollAmountY = 0f
         inputType = null
     }
 

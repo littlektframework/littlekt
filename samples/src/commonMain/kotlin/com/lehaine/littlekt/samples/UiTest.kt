@@ -7,11 +7,8 @@ import com.lehaine.littlekt.file.vfs.readTexture
 import com.lehaine.littlekt.graph.node.component.HAlign
 import com.lehaine.littlekt.graph.node.ui.*
 import com.lehaine.littlekt.graph.sceneGraph
-import com.lehaine.littlekt.graphics.Color
-import com.lehaine.littlekt.graphics.Fonts
-import com.lehaine.littlekt.graphics.SpriteBatch
+import com.lehaine.littlekt.graphics.*
 import com.lehaine.littlekt.graphics.gl.ClearBufferMask
-import com.lehaine.littlekt.graphics.use
 import com.lehaine.littlekt.input.Key
 import com.lehaine.littlekt.util.viewport.ExtendViewport
 
@@ -29,56 +26,44 @@ class UiTest(context: Context) : ContextListener(context) {
         val camera = viewport.camera
 
         val graph = sceneGraph(context, ExtendViewport(480, 270)) {
-            control {
+            centerContainer {
                 anchorRight = 1f
                 anchorBottom = 1f
-                showDebugInfo = true
-                panelContainer {
-                    paddedContainer {
-                        padding(10)
-                        debugColor = Color.ORANGE
-                        onUpdate += {
-                            println("anchors - left: $anchorLeft, right: $anchorRight, top: $anchorTop, bottom: $anchorBottom")
-                        }
-                        centerContainer {
-                            vBoxContainer {
-                                label {
-                                    text = "Center!"
-                                }
-                            }
-                        }
+
+                vBoxContainer {
+                    separation = 5
+
+                    label {
+                        text = "A"
+                        horizontalAlign = HAlign.CENTER
+                        font = pixelFont
                     }
+                    label {
+                        text = "My Label Middle"
+                        horizontalAlign = HAlign.CENTER
+                        font = pixelFont
+                    }
+                    textureRect {
+                        slice = icon.slice()
+                        stretchMode = TextureRect.StretchMode.KEEP_CENTERED
+                    }
+
                 }
             }
-//            centerContainer {
-//                anchorRight = 1f
-//                anchorBottom = 1f
-//
-//                vBoxContainer {
-//                    separation = 5
-//
-//                    label {
-//                        text = "A"
-//                        horizontalAlign = HAlign.CENTER
-//                        font = pixelFont
-//                    }
-//                    label {
-//                        text = "My Label Middle"
-//                        horizontalAlign = HAlign.CENTER
-//                        font = pixelFont
-//                    }
-//                    textureRect {
-//                        slice = icon.slice()
-//                        stretchMode = TextureRect.StretchMode.KEEP_CENTERED
-//                    }
-//
-//                }
-//            }
-//
-//            vScrollBar {
-//                x = 50f
-//                y = 50f
-//            }
+
+            vScrollBar {
+                x = 50f
+                y = 50f
+                height = 150f
+                page = 4f
+            }
+
+
+            hScrollBar {
+                x = 75f
+                y = 50f
+                width = 150f
+            }
         }.also { it.initialize() }
 
         onResize { width, height ->

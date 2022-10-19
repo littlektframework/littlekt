@@ -161,7 +161,7 @@ fun createDefaultTheme(
         3
     )
 
-    val graeGrabber = NinePatch(
+    val grayGrabber = NinePatch(
         Textures.atlas.getByPrefix("grey_grabber").slice,
         3,
         3,
@@ -217,54 +217,66 @@ fun createDefaultTheme(
                 .apply { modulate = Color.WHITE },
         ),
         "VScrollBar" to mapOf(
-            ScrollBar.themeVars.incrementIcon to NinePatchDrawable(greyArrowUpPatch).apply {
+            ScrollBar.themeVars.incrementIcon to NinePatchDrawable(greyArrowDownPatch).apply {
                 modulate = Color.LIGHT_BLUE
             },
-            ScrollBar.themeVars.incrementHighlightIcon to NinePatchDrawable(greyArrowUpPatch).apply {
+            ScrollBar.themeVars.incrementHighlightIcon to NinePatchDrawable(greyArrowDownPatch).apply {
                 modulate = Color.LIGHT_BLUE.toMutableColor().lighten(0.2f)
             },
-            ScrollBar.themeVars.incrementPressedIcon to NinePatchDrawable(greyArrowUpPatch).apply {
+            ScrollBar.themeVars.incrementPressedIcon to NinePatchDrawable(greyArrowDownPatch).apply {
                 modulate = Color.LIGHT_BLUE.toMutableColor().scaleRgb(0.6f)
             },
-            ScrollBar.themeVars.decrementIcon to NinePatchDrawable(greyArrowDownPatch).apply {
+            ScrollBar.themeVars.decrementIcon to NinePatchDrawable(greyArrowUpPatch).apply {
                 modulate = Color.LIGHT_BLUE
             },
-            ScrollBar.themeVars.decrementHighlightIcon to NinePatchDrawable(greyArrowDownPatch).apply {
+            ScrollBar.themeVars.decrementHighlightIcon to NinePatchDrawable(greyArrowUpPatch).apply {
                 modulate = Color.LIGHT_BLUE.toMutableColor().lighten(0.2f)
             },
-            ScrollBar.themeVars.decrementPressedIcon to NinePatchDrawable(greyArrowDownPatch).apply {
+            ScrollBar.themeVars.decrementPressedIcon to NinePatchDrawable(greyArrowUpPatch).apply {
                 modulate = Color.LIGHT_BLUE.toMutableColor().scaleRgb(0.6f)
             },
             ScrollBar.themeVars.scroll to NinePatchDrawable(greySliderBg).apply {
                 modulate = Color.DARK_BLUE
             },
-            ScrollBar.themeVars.grabber to NinePatchDrawable(greySliderBg).apply {
+            ScrollBar.themeVars.grabber to NinePatchDrawable(grayGrabber).apply {
                 modulate = Color.LIGHT_BLUE
+            },
+            ScrollBar.themeVars.grabberPressed to NinePatchDrawable(grayGrabber).apply {
+                modulate = Color.LIGHT_BLUE.toMutableColor().scaleRgb(0.6f)
+            },
+            ScrollBar.themeVars.grabberHighlight to NinePatchDrawable(grayGrabber).apply {
+                modulate = Color.LIGHT_BLUE.toMutableColor().lighten(0.2f)
             }
         ),
-        "HScrollBar" to mapOf(ScrollBar.themeVars.incrementIcon to NinePatchDrawable(greyArrowLeftPatch).apply {
+        "HScrollBar" to mapOf(ScrollBar.themeVars.incrementIcon to NinePatchDrawable(greyArrowRightPatch).apply {
             modulate = Color.LIGHT_BLUE
         },
-            ScrollBar.themeVars.incrementHighlightIcon to NinePatchDrawable(greyArrowLeftPatch).apply {
+            ScrollBar.themeVars.incrementHighlightIcon to NinePatchDrawable(greyArrowRightPatch).apply {
                 modulate = Color.LIGHT_BLUE.toMutableColor().lighten(0.2f)
             },
-            ScrollBar.themeVars.incrementPressedIcon to NinePatchDrawable(greyArrowLeftPatch).apply {
+            ScrollBar.themeVars.incrementPressedIcon to NinePatchDrawable(greyArrowRightPatch).apply {
                 modulate = Color.LIGHT_BLUE.toMutableColor().scaleRgb(0.6f)
             },
-            ScrollBar.themeVars.decrementIcon to NinePatchDrawable(greyArrowRightPatch).apply {
+            ScrollBar.themeVars.decrementIcon to NinePatchDrawable(greyArrowLeftPatch).apply {
                 modulate = Color.LIGHT_BLUE
             },
-            ScrollBar.themeVars.decrementHighlightIcon to NinePatchDrawable(greyArrowRightPatch).apply {
+            ScrollBar.themeVars.decrementHighlightIcon to NinePatchDrawable(greyArrowLeftPatch).apply {
                 modulate = Color.LIGHT_BLUE.toMutableColor().lighten(0.2f)
             },
-            ScrollBar.themeVars.decrementPressedIcon to NinePatchDrawable(greyArrowRightPatch).apply {
+            ScrollBar.themeVars.decrementPressedIcon to NinePatchDrawable(greyArrowLeftPatch).apply {
                 modulate = Color.LIGHT_BLUE.toMutableColor().scaleRgb(0.6f)
             },
             ScrollBar.themeVars.scroll to NinePatchDrawable(greySliderBg).apply {
                 modulate = Color.DARK_BLUE
             },
-            ScrollBar.themeVars.grabber to NinePatchDrawable(greySliderBg).apply {
+            ScrollBar.themeVars.grabber to NinePatchDrawable(grayGrabber).apply {
                 modulate = Color.LIGHT_BLUE
+            },
+            ScrollBar.themeVars.grabberPressed to NinePatchDrawable(grayGrabber).apply {
+                modulate = Color.LIGHT_BLUE.toMutableColor().scaleRgb(0.6f)
+            },
+            ScrollBar.themeVars.grabberHighlight to NinePatchDrawable(grayGrabber).apply {
+                modulate = Color.LIGHT_BLUE.toMutableColor().lighten(0.2f)
             })
     ) + extraDrawables
 

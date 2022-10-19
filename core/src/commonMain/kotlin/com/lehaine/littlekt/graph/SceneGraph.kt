@@ -679,9 +679,45 @@ open class SceneGraph<InputType>(
     }
 
     override fun mouseMoved(screenX: Float, screenY: Float): Boolean {
+        if (controller.mouseMoved(screenX, screenY)) return true
+
         mouseScreenX = screenX
         mouseScreenY = screenY
 
+        screenToSceneCoordinates(tempVec.set(screenX, screenY))
+
+        val sceneX = tempVec.x
+        val sceneY = tempVec.y
+
+        val event = inputEventPool.alloc().apply {
+            type = InputEvent.Type.MOUSE_HOVER
+            this.sceneX = sceneX
+            this.sceneY = sceneY
+        }
+
+        // InputEvents go: input -> ui input -> unhandled input
+        if (callInput(event)) {
+            inputEventPool.free(event)
+            return true
+        }
+
+        mouseOverControl?.let {
+            it.toLocal(sceneX, sceneY, tempVec)
+            event.apply {
+                localX = tempVec.x
+                localY = tempVec.y
+            }
+            it.callUiInput(event)
+            uiInput(it, event)
+            event.handle()
+        }
+
+        if (event.handled) {
+            inputEventPool.free(event)
+            return true
+        }
+
+        unhandledInputQueue += event
         return false
     }
 
@@ -903,7 +939,28 @@ open class SceneGraph<InputType>(
     }
 
     override fun scrolled(amountX: Float, amountY: Float): Boolean {
-        return controller.scrolled(amountX, amountY)
+        if (controller.scrolled(amountX, amountY)) return true
+
+        val event = inputEventPool.alloc().apply {
+            type = InputEvent.Type.SCROLLED
+            scrollAmountX = amountX
+            scrollAmountY = amountY
+        }
+        // InputEvents go: input -> ui input -> unhandled input
+        if (callInput(event)) {
+            inputEventPool.free(event)
+            return true
+        }
+        mouseOverControl?.let {
+            it.callUiInput(event)
+            uiInput(it, event)
+            val handled = event.handled
+            if (handled) {
+                inputEventPool.free(event)
+            }
+        }
+        unhandledInputQueue += event
+        return false
     }
 
     override fun gamepadButtonPressed(button: GameButton, pressure: Float, gamepad: Int): Boolean {

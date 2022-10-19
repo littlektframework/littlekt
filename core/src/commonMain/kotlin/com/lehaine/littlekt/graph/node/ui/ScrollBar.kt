@@ -7,7 +7,7 @@ import com.lehaine.littlekt.graph.node.component.Theme
 import com.lehaine.littlekt.graphics.Batch
 import com.lehaine.littlekt.graphics.Camera
 import com.lehaine.littlekt.graphics.shape.ShapeRenderer
-import com.lehaine.littlekt.input.Pointer
+import com.lehaine.littlekt.math.clamp
 import kotlin.math.max
 
 /**
@@ -41,10 +41,24 @@ abstract class ScrollBar(val orientation: Orientation = Orientation.VERTICAL) : 
     private val grabberHighlight: Drawable
         get() = getThemeDrawable(themeVars.grabberHighlight)
 
-    private var draggingPointer: Pointer? = null
+    private var positionAtTouch: Float = 0f
+    private var valueAtTouch: Float = 0f
+
+    private var highlight = HighlightStatus.NONE
+    private var dragActive = false
+    private var decrementActive = false
+    private var incrementActive = false
 
     override fun uiInput(event: InputEvent<*>) {
+        if (event.type == InputEvent.Type.MOUSE_EXIT) {
+            highlight = HighlightStatus.NONE
+            return
+        }
+
         val scrolling = event.type == InputEvent.Type.SCROLLED
+        val touchDown = event.type == InputEvent.Type.TOUCH_DOWN
+        val dragging = event.type == InputEvent.Type.TOUCH_DRAGGED
+
         if (scrolling) {
             event.handle()
             if (event.scrollAmountY > 0) {
@@ -55,14 +69,102 @@ abstract class ScrollBar(val orientation: Orientation = Orientation.VERTICAL) : 
                 value -= page / 4f
             }
         }
+
+        if (touchDown) {
+            event.handle()
+            var offset = if (orientation == Orientation.VERTICAL) event.localY else event.localX
+            val decrementSize = if (orientation == Orientation.VERTICAL) decrement.minHeight else decrement.minWidth
+            val incrementSize = if (orientation == Orientation.VERTICAL) increment.minHeight else increment.minWidth
+            val grabberOffset = getGrabberOffset()
+            val grabberSize = getGrabberSize()
+            val total = if (orientation == Orientation.VERTICAL) height else width
+
+            if (offset < decrementSize) {
+                decrementActive = true
+                value -= step
+                return
+            }
+
+            if (offset > total - incrementSize) {
+                incrementActive = true
+                value += step
+                return
+            }
+
+            offset -= decrementSize
+
+            if (offset < grabberOffset) {
+                value = (value - page).clamp(min, max - page)
+                return
+            }
+
+            offset -= grabberOffset
+
+            if (offset < grabberSize) {
+                positionAtTouch = grabberOffset + offset
+                valueAtTouch = ratio
+                dragActive = true
+            } else {
+                value = (value - page).clamp(min, max - page)
+            }
+        }
+
+        if (event.type == InputEvent.Type.TOUCH_UP) {
+            incrementActive = false
+            decrementActive = false
+            dragActive = false
+        }
+
+        if (dragging && dragActive) {
+            var offset = if (orientation == Orientation.VERTICAL) event.localY else event.localX
+            val decrement = getThemeDrawable(themeVars.decrementIcon)
+            val decrementSize = if (orientation == Orientation.VERTICAL) decrement.minHeight else decrement.minWidth
+            offset -= decrementSize
+
+            val diff = (offset - positionAtTouch) / getAreaSize()
+            ratio = valueAtTouch + diff
+        }
+
+        if (event.type == InputEvent.Type.MOUSE_ENTER || event.type == InputEvent.Type.MOUSE_HOVER) {
+            val offset = if (orientation == Orientation.VERTICAL) event.localY else event.localX
+            val decrementSize = if (orientation == Orientation.VERTICAL) decrement.minHeight else decrement.minWidth
+            val incrementSize = if (orientation == Orientation.VERTICAL) increment.minHeight else increment.minWidth
+            val total = if (orientation == Orientation.VERTICAL) height else width
+
+            highlight = if (offset < decrementSize) {
+                HighlightStatus.DECREMENT
+            } else if (offset > total - incrementSize) {
+                HighlightStatus.INCREMENT
+            } else {
+                HighlightStatus.RANGE
+            }
+        }
     }
 
     override fun render(batch: Batch, camera: Camera, shapeRenderer: ShapeRenderer) {
-        val increment = getThemeDrawable(themeVars.incrementIcon)
-        val decrement = getThemeDrawable(themeVars.decrementIcon)
+        val increment = if (incrementActive) {
+            getThemeDrawable(themeVars.incrementPressedIcon)
+        } else if (highlight == HighlightStatus.INCREMENT) {
+            getThemeDrawable(themeVars.incrementHighlightIcon)
+        } else {
+            getThemeDrawable(themeVars.incrementIcon)
+        }
+        val decrement = if (decrementActive) {
+            getThemeDrawable(themeVars.decrementPressedIcon)
+        } else if (highlight == HighlightStatus.DECREMENT) {
+            getThemeDrawable(themeVars.decrementHighlightIcon)
+        } else {
+            getThemeDrawable(themeVars.decrementIcon)
+        }
 
         val bg = if (hasFocus) getThemeDrawable(themeVars.scrollFocused) else getThemeDrawable(themeVars.scroll)
-        val grabber = getThemeDrawable(themeVars.grabber)
+        val grabber = if (dragActive) {
+            getThemeDrawable(themeVars.grabberPressed)
+        } else if (highlight == HighlightStatus.RANGE) {
+            getThemeDrawable(themeVars.grabberHighlight)
+        } else {
+            getThemeDrawable(themeVars.grabber)
+        }
 
         decrement.draw(
             batch,
@@ -93,6 +195,12 @@ abstract class ScrollBar(val orientation: Orientation = Orientation.VERTICAL) : 
 
         bg.draw(batch, offsetX, offsetY, areaWidth, areaHeight, globalScaleX, globalScaleY, globalRotation)
 
+        if (orientation == Orientation.HORIZONTAL) {
+            offsetX += areaWidth
+        } else {
+            offsetY += areaHeight
+        }
+
         increment.draw(
             batch,
             offsetX,
@@ -111,11 +219,11 @@ abstract class ScrollBar(val orientation: Orientation = Orientation.VERTICAL) : 
         if (orientation == Orientation.HORIZONTAL) {
             grabberWidth = getGrabberSize()
             grabberHeight = height
-            grabberX = getGrabberOffset() + decrement.minWidth + bg.marginLeft
+            grabberX += getGrabberOffset() + decrement.minWidth + bg.marginLeft
         } else {
             grabberWidth = width
             grabberHeight = getGrabberSize()
-            grabberY = getGrabberOffset() + decrement.minHeight + bg.marginTop
+            grabberY += getGrabberOffset() + decrement.minHeight + bg.marginTop
         }
 
         grabber.draw(batch, grabberX, grabberY, grabberWidth, grabberHeight, globalScaleX, globalScaleY, globalRotation)
@@ -161,18 +269,12 @@ abstract class ScrollBar(val orientation: Orientation = Orientation.VERTICAL) : 
     override fun calculateMinSize() {
         if (!minSizeInvalid) return
 
-        println("start $_internalMinWidth,$_internalMinHeight")
         if (orientation == Orientation.VERTICAL) {
             _internalMinWidth = max(increment.minWidth, scroll.minWidth)
-            println("1 $_internalMinWidth,$_internalMinHeight")
             _internalMinHeight = increment.minHeight
-            println("2 $_internalMinWidth,$_internalMinHeight")
             _internalMinHeight += decrement.minHeight
-            println("3 $_internalMinWidth,$_internalMinHeight")
             _internalMinHeight += scroll.minHeight
-            println("4 $_internalMinWidth,$_internalMinHeight")
             _internalMinHeight += getGrabberMinSize()
-            println(" 5$_internalMinWidth,$_internalMinHeight")
         } else if (orientation == Orientation.HORIZONTAL) {
             _internalMinHeight = max(increment.minHeight, scroll.minHeight)
             _internalMinWidth = increment.minWidth
