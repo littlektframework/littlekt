@@ -112,6 +112,28 @@ class ScrollContainer : Container() {
         }
     }
 
+    override fun unhandledInput(event: InputEvent<*>) {
+        super.unhandledInput(event)
+
+        when (event.type) {
+            InputEvent.Type.KEY_DOWN -> {
+                if (event.key == Key.SHIFT_LEFT) {
+                    shiftPressed = true
+                }
+            }
+
+            InputEvent.Type.KEY_UP -> {
+                if (event.key == Key.SHIFT_LEFT) {
+                    shiftPressed = false
+                }
+            }
+
+            else -> {
+                // do nothing
+            }
+        }
+    }
+
     override fun calculateMinSize() {
         largestChildWidth = 0f
         largestChildHeight = 0f
@@ -180,7 +202,7 @@ class ScrollContainer : Container() {
         val scissorY = tempVec2.y
         tempVec2.set(
             globalX + width + if (vScrollBar.visible) vScrollBar.combinedMinWidth else 0f,
-            globalY + height + if(hScrollBar.visible) hScrollBar.combinedMinHeight else 0f
+            globalY + height + if (hScrollBar.visible) hScrollBar.combinedMinHeight else 0f
         )
         tempVec2.mul(batch.transformMatrix)
         canvas.canvasToScreenCoordinates(tempVec2)
