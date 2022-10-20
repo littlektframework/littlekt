@@ -4,11 +4,13 @@ import com.lehaine.littlekt.graph.SceneGraph
 import com.lehaine.littlekt.graph.node.Node
 import com.lehaine.littlekt.graph.node.addTo
 import com.lehaine.littlekt.graph.node.annotation.SceneGraphDslMarker
+import com.lehaine.littlekt.graph.node.component.InputEvent
 import com.lehaine.littlekt.graph.node.component.Theme
 import com.lehaine.littlekt.graphics.Batch
 import com.lehaine.littlekt.graphics.Camera
 import com.lehaine.littlekt.graphics.gl.State
 import com.lehaine.littlekt.graphics.shape.ShapeRenderer
+import com.lehaine.littlekt.input.Key
 import com.lehaine.littlekt.math.MutableVec2f
 import com.lehaine.littlekt.math.floor
 import kotlin.contracts.ExperimentalContracts
@@ -54,6 +56,7 @@ class ScrollContainer : Container() {
     }
     private var largestChildWidth = 0f
     private var largestChildHeight = 0f
+    private var shiftPressed = false
 
     override fun ready() {
         super.ready()
@@ -68,6 +71,41 @@ class ScrollContainer : Container() {
     override fun onPostEnterScene() {
         super.onPostEnterScene()
         updateScrollbarPosition()
+    }
+
+    override fun uiInput(event: InputEvent<*>) {
+        super.uiInput(event)
+
+        when (event.type) {
+            InputEvent.Type.KEY_DOWN -> {
+                if (event.key == Key.SHIFT_LEFT) {
+                    shiftPressed = true
+                }
+            }
+
+            InputEvent.Type.KEY_UP -> {
+                if (event.key == Key.SHIFT_LEFT) {
+                    shiftPressed = false
+                }
+            }
+
+            InputEvent.Type.SCROLLED -> {
+                val prevHScroll = hScrollBar.value
+                val prevVScroll = vScrollBar.value
+                if (hScrollBar.visible && (!vScrollBar.visible || shiftPressed)) {
+                    hScrollBar.value = hScrollBar.value + hScrollBar.page / 8f * event.scrollAmountY
+                } else if (vScrollBar.visible) {
+                    vScrollBar.value = vScrollBar.value + vScrollBar.page / 8f * event.scrollAmountY
+                }
+                if (prevHScroll != hScrollBar.value || prevVScroll != vScrollBar.value) {
+                    event.handle()
+                }
+            }
+
+            else -> {
+                // nothing
+            }
+        }
     }
 
     override fun calculateMinSize() {
@@ -137,8 +175,8 @@ class ScrollContainer : Container() {
         val scissorX = tempVec2.x
         val scissorY = tempVec2.y
         tempVec2.set(
-            globalX + width + vScrollBar.combinedMinWidth,
-            globalY + height + hScrollBar.combinedMinHeight
+            globalX + width + if (vScrollBar.visible) vScrollBar.combinedMinWidth else 0f,
+            globalY + height + if(hScrollBar.visible) hScrollBar.combinedMinHeight else 0f
         )
         tempVec2.mul(batch.transformMatrix)
         canvas.canvasToScreenCoordinates(tempVec2)
@@ -171,8 +209,6 @@ class ScrollContainer : Container() {
         val panel = getThemeDrawable(themeVars.panel)
         width -= panel.minWidth
         height -= panel.minHeight
-        val hMinHeight = hScrollBar.combinedMinHeight
-        val vMinWidth = vScrollBar.combinedMinWidth
 
         hScrollBar.visible =
             horizontalScrollMode == ScrollMode.ALWAYS || (horizontalScrollMode == ScrollMode.AUTO && largestChildWidth > width)
@@ -180,15 +216,13 @@ class ScrollContainer : Container() {
             verticalScrollMode == ScrollMode.ALWAYS || (verticalScrollMode == ScrollMode.AUTO && largestChildHeight > height)
 
         hScrollBar.max = largestChildWidth
-        hScrollBar.page = if (vScrollBar.visible && vScrollBar.parent == this) width - vMinWidth else width
+        hScrollBar.page = width
 
         vScrollBar.max = largestChildHeight
-        vScrollBar.page = if (hScrollBar.visible && hScrollBar.parent == this) height - hMinHeight else height
+        vScrollBar.page = height
 
         hScrollBar.setAnchor(Side.RIGHT, 1f, false)
-        hScrollBar.marginRight = if (vScrollBar.visible && vScrollBar.parent == this) -vMinWidth else 0f
         vScrollBar.setAnchor(Side.BOTTOM, 1f, false)
-        vScrollBar.marginBottom = if (hScrollBar.visible && hScrollBar.parent == this) -hMinHeight else 0f
     }
 
     private fun repositionChildren() {

@@ -62,10 +62,13 @@ class UiTest(context: Context) : ContextListener(context) {
                 height = 150f
 
                 vBoxContainer {
-                    repeat(15) {
+                    repeat(15) {i ->
                         hBoxContainer {
-                            repeat(12) {
-                                label { text = "$it$it$it$it" }
+                            repeat(7) {
+                                label {
+                                    text = "$it$it$it$it"
+                                    if(it == 0) text = "$i-$text"
+                                }
                             }
                         }
                     }
