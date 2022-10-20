@@ -665,6 +665,27 @@
             }
         },
         {
+            "filename": "pixel_transparent",
+            "frame": {
+                "x": 166,
+                "y": 136,
+                "w": -2,
+                "h": -2
+            },
+            "rotated": false,
+            "trimmed": false,
+            "spriteSourceSize": {
+                "x": 0,
+                "y": 0,
+                "w": -2,
+                "h": -2
+            },
+            "sourceSize": {
+                "w": -2,
+                "h": -2
+            }
+        },
+        {
             "filename": "pixel_white",
             "frame": {
                 "x": 14,

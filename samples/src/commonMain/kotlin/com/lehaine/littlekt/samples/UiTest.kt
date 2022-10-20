@@ -28,7 +28,7 @@ class UiTest(context: Context) : ContextListener(context) {
         val viewport = ExtendViewport(480, 270)
         val camera = viewport.camera
 
-        val graph = sceneGraph(context, ExtendViewport(960, 270)) {
+        val graph = sceneGraph(context, ExtendViewport(480, 270)) {
 
 //            centerContainer {
 //                anchorRight = 1f

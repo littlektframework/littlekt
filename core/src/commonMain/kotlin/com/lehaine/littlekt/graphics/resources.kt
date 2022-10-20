@@ -14,6 +14,11 @@ object Textures {
     val white: TextureSlice get() = InternalResources.INSTANCE.white
 
     /**
+     * A 1x1 transparent pixel [TextureSlice].
+     */
+    val transparent: TextureSlice get() = InternalResources.INSTANCE.transparent
+
+    /**
      * The default [TextureAtlas] that contains all the default textures used across **LittleKt**.
      */
     val atlas: TextureAtlas get() = InternalResources.INSTANCE.atlas
