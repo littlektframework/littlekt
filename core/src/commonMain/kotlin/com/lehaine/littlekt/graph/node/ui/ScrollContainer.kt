@@ -58,6 +58,10 @@ class ScrollContainer : Container() {
     private var largestChildHeight = 0f
     private var shiftPressed = false
 
+    init {
+        mouseFilter = MouseFilter.STOP
+    }
+
     override fun ready() {
         super.ready()
         repositionChildren()

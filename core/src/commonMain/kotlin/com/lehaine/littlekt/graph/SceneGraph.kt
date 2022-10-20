@@ -907,6 +907,7 @@ open class SceneGraph<InputType>(
             val handled = event.handled
             if (handled) {
                 inputEventPool.free(event)
+                return true
             }
         }
         unhandledInputQueue += event
@@ -957,6 +958,7 @@ open class SceneGraph<InputType>(
             val handled = event.handled
             if (handled) {
                 inputEventPool.free(event)
+                return true
             }
         }
         unhandledInputQueue += event
