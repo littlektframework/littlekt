@@ -290,7 +290,6 @@ abstract class ScrollBar(val orientation: Orientation = Orientation.VERTICAL) : 
         val decrementHighlightIcon = "decrementHighlightIcon"
         val scroll = "scroll"
         val scrollFocused = "scrollFocused"
-        val scrollOffset = "hscroll"
         val grabber = "grabber"
         val grabberPressed = "grabberPressed"
         val grabberHighlight = "grabberHighlight"
