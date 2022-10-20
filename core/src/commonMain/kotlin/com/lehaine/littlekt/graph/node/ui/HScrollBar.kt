@@ -28,6 +28,7 @@ inline fun SceneGraph<*>.hScrollBar(callback: @SceneGraphDslMarker HScrollBar.()
 }
 
 /**
+ * A horizontal [ScrollBar] which goes left [min] to right [max].
  * @author Colton Daily
  * @date 10/17/2022
  */

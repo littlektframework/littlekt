@@ -169,6 +169,7 @@ class NodeList {
                 nodesToAdd.remove(it)
             }
 
+            nodesToRemove.clear()
             _tempNodeList.clear()
         }
 
@@ -184,6 +185,7 @@ class NodeList {
                 }
             }
 
+            nodesToAdd.clear()
             _tempNodeList.clear()
             isNodeListUnsorted = true
         }

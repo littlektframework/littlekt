@@ -11,9 +11,7 @@ import com.lehaine.littlekt.math.Mat4
 import com.lehaine.littlekt.math.MutableVec2f
 import com.lehaine.littlekt.math.Vec2f
 import com.lehaine.littlekt.math.geom.Angle
-import com.lehaine.littlekt.util.DoubleSignal
 import com.lehaine.littlekt.util.TripleSignal
-import com.lehaine.littlekt.util.signal2v
 import com.lehaine.littlekt.util.signal3v
 import kotlin.math.PI
 import kotlin.math.cos
@@ -338,7 +336,7 @@ abstract class CanvasItem : Node() {
         }
 
     override val membersAndPropertiesString: String
-        get() = "${super.membersAndPropertiesString}, globalPosition=$globalPosition, position=$position, globalRotation=$globalRotation, rotation=$rotation, globalScale=$globalScale, scale=$scale"
+        get() = "${super.membersAndPropertiesString}, visible=$visible, globalPosition=$globalPosition, position=$position, globalRotation=$globalRotation, rotation=$rotation, globalScale=$globalScale, scale=$scale"
 
     private var _visible = true
     protected var hierarchyDirty: Int = CLEAN

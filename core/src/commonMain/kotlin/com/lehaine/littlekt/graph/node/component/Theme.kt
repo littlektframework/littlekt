@@ -216,6 +216,7 @@ fun createDefaultTheme(
             LineEdit.themeVars.focus to NinePatchDrawable(greyOutlineNinePatch)
                 .apply { modulate = Color.WHITE },
         ),
+        "ScrollContainer" to mapOf(ScrollContainer.themeVars.panel to EmptyDrawable()),
         "VScrollBar" to mapOf(
             ScrollBar.themeVars.incrementIcon to NinePatchDrawable(greyArrowDownPatch).apply {
                 modulate = Color.LIGHT_BLUE

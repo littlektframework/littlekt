@@ -7,8 +7,11 @@ import com.lehaine.littlekt.file.vfs.readTexture
 import com.lehaine.littlekt.graph.node.component.HAlign
 import com.lehaine.littlekt.graph.node.ui.*
 import com.lehaine.littlekt.graph.sceneGraph
-import com.lehaine.littlekt.graphics.*
+import com.lehaine.littlekt.graphics.Fonts
+import com.lehaine.littlekt.graphics.SpriteBatch
 import com.lehaine.littlekt.graphics.gl.ClearBufferMask
+import com.lehaine.littlekt.graphics.slice
+import com.lehaine.littlekt.graphics.use
 import com.lehaine.littlekt.input.Key
 import com.lehaine.littlekt.util.viewport.ExtendViewport
 
@@ -26,43 +29,48 @@ class UiTest(context: Context) : ContextListener(context) {
         val camera = viewport.camera
 
         val graph = sceneGraph(context, ExtendViewport(480, 270)) {
-            centerContainer {
-                anchorRight = 1f
-                anchorBottom = 1f
 
-                vBoxContainer {
-                    separation = 5
+//            centerContainer {
+//                anchorRight = 1f
+//                anchorBottom = 1f
+//
+//                vBoxContainer {
+//                    separation = 5
+//
+//                    label {
+//                        text = "A"
+//                        horizontalAlign = HAlign.CENTER
+//                        font = pixelFont
+//                    }
+//                    label {
+//                        text = "My Label Middle"
+//                        horizontalAlign = HAlign.CENTER
+//                        font = pixelFont
+//                    }
+//                    textureRect {
+//                        slice = icon.slice()
+//                        stretchMode = TextureRect.StretchMode.KEEP_CENTERED
+//                    }
+//
+//                }
+//            }
 
-                    label {
-                        text = "A"
-                        horizontalAlign = HAlign.CENTER
-                        font = pixelFont
-                    }
-                    label {
-                        text = "My Label Middle"
-                        horizontalAlign = HAlign.CENTER
-                        font = pixelFont
-                    }
-                    textureRect {
-                        slice = icon.slice()
-                        stretchMode = TextureRect.StretchMode.KEEP_CENTERED
-                    }
-
-                }
-            }
-
-            vScrollBar {
+            scrollContainer {
                 x = 50f
                 y = 50f
+                width = 100f
                 height = 150f
-                page = 4f
-            }
 
-
-            hScrollBar {
-                x = 75f
-                y = 50f
-                width = 150f
+                hBoxContainer {
+                    repeat(5) {
+                        label { text = "$it$it$it$it$it$it$it$it$it" }
+                    }
+                }
+                vBoxContainer {
+                    repeat(50) {
+                        label { text = "$it$it$it$it$it$it$it$it$it" }
+                    }
+                }
             }
         }.also { it.initialize() }
 
@@ -84,6 +92,10 @@ class UiTest(context: Context) : ContextListener(context) {
 
             if (input.isKeyJustPressed(Key.ENTER)) {
                 graph.showDebugInfo = !graph.showDebugInfo
+            }
+
+            if(input.isKeyJustPressed(Key.T)) {
+                logger.info { "\n" + graph.root.treeString() }
             }
 
             if (input.isKeyJustPressed(Key.P)) {

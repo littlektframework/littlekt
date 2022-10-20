@@ -11,6 +11,8 @@ import com.lehaine.littlekt.math.clamp
 import kotlin.math.max
 
 /**
+ * A abstract [Range]-based [Control] that displays a draggable area ([page]). See [HScrollBar] or [VScrollBar] in order to
+ * use it.
  * @author Colton Daily
  * @date 10/16/2022
  */
@@ -18,28 +20,13 @@ abstract class ScrollBar(val orientation: Orientation = Orientation.VERTICAL) : 
 
     private val increment: Drawable
         get() = getThemeDrawable(themeVars.incrementIcon)
-    private val incrementPressed: Drawable
-        get() = getThemeDrawable(themeVars.incrementPressedIcon)
-    private val incrementHighlight: Drawable
-        get() = getThemeDrawable(themeVars.incrementHighlightIcon)
     private val decrement: Drawable
         get() = getThemeDrawable(themeVars.decrementIcon)
-    private val decrementPressed: Drawable
-        get() = getThemeDrawable(themeVars.decrementPressedIcon)
-    private val decrementHighlight: Drawable
-        get() = getThemeDrawable(themeVars.decrementHighlightIcon)
     private val scroll: Drawable
         get() = getThemeDrawable(themeVars.scroll)
-    private val scrollFocus: Drawable
-        get() = getThemeDrawable(themeVars.scrollFocused)
-    private val scrollOffset: Drawable
-        get() = getThemeDrawable(themeVars.scrollOffset)
     private val grabber: Drawable
         get() = getThemeDrawable(themeVars.grabber)
-    private val grabberPressed: Drawable
-        get() = getThemeDrawable(themeVars.grabberPressed)
-    private val grabberHighlight: Drawable
-        get() = getThemeDrawable(themeVars.grabberHighlight)
+
 
     private var positionAtTouch: Float = 0f
     private var valueAtTouch: Float = 0f

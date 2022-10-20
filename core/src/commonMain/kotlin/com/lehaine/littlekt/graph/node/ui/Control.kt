@@ -813,7 +813,7 @@ open class Control : CanvasItem() {
         }
     }
 
-    private fun setAnchor(
+    fun setAnchor(
         side: Side, value: Float, keepMargins: Boolean = true, triggerSizeChanged: Boolean = true,
     ) {
         val parentRect = getParentAnchorableRect()
@@ -1562,7 +1562,7 @@ open class Control : CanvasItem() {
         }
     }
 
-    internal enum class Side {
+    enum class Side {
         LEFT, BOTTOM, RIGHT, TOP
     }
 

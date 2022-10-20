@@ -30,6 +30,7 @@ inline fun SceneGraph<*>.vScrollBar(callback: @SceneGraphDslMarker VScrollBar.()
 
 
 /**
+ * A vertical [ScrollBar] which goes top [min] to bottom [max].
  * @author Colton Daily
  * @date 10/17/2022
  */
