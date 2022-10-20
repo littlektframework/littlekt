@@ -481,6 +481,7 @@ open class Node : Comparable<Node> {
         resize(width, height)
         onResize.emit(width, height)
     }
+
     open fun propagateInternalDebugRender(
         batch: Batch,
         camera: Camera,
@@ -560,6 +561,16 @@ open class Node : Comparable<Node> {
         onChildAdded(child)
 
         parent?.onDescendantAdded(child)
+        return this
+    }
+
+    fun moveChild(child: Node, index: Int): Node {
+        val moved = nodes.moveChild(child, index)
+        if (moved) {
+            nodes.forEachIndexed { pos, node ->
+                node.pos = pos
+            }
+        }
         return this
     }
 

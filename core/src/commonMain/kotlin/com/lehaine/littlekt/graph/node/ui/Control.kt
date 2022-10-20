@@ -605,7 +605,7 @@ open class Control : CanvasItem() {
      * @return a [Control] node that was hit
      */
     fun hit(hx: Float, hy: Float): Control? {
-        if (!enabled || mouseFilter == MouseFilter.NONE) {
+        if (!enabled || mouseFilter == MouseFilter.NONE || !visible) {
             return null
         }
 

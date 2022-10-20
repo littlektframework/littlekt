@@ -14,6 +14,7 @@ import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
 import kotlin.math.max
+import kotlin.time.Duration
 
 
 /**
@@ -53,11 +54,10 @@ class ScrollContainer : Container() {
     private var largestChildWidth = 0f
     private var largestChildHeight = 0f
 
-    init {
-        onReady += {
-            updateScrollbarPosition()
-            repositionChildren()
-        }
+    override fun ready() {
+        super.ready()
+        updateScrollbarPosition()
+        repositionChildren()
     }
 
     override fun calculateMinSize() {
@@ -97,6 +97,17 @@ class ScrollContainer : Container() {
         _internalMinHeight += panel.minHeight
 
         minSizeInvalid = false
+    }
+
+    override fun update(dt: Duration) {
+        super.update(dt)
+        // move the scroll bars to bottom of parent to ensure they get the click events
+        if (vScrollBar.index != nodes.size - 1) {
+            moveChild(vScrollBar, nodes.size - 1)
+        }
+        if (hScrollBar.index != nodes.size - 2) {
+            moveChild(hScrollBar, nodes.size - 2)
+        }
     }
 
     override fun render(batch: Batch, camera: Camera, shapeRenderer: ShapeRenderer) {

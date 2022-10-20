@@ -52,6 +52,16 @@ class NodeList {
         }
     }
 
+    internal fun moveChild(node: Node, index: Int): Boolean {
+        if (nodes.contains(node)) {
+            nodes.remove(node)
+            nodes.add(index, node)
+            isNodeListUnsorted = true
+            return true
+        }
+        return false
+    }
+
     operator fun get(idx: Int): Node? {
         return if (idx > nodes.size - 1) {
             val newIdx = idx - nodes.size
