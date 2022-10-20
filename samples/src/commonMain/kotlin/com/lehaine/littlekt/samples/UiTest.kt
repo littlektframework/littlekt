@@ -28,7 +28,7 @@ class UiTest(context: Context) : ContextListener(context) {
         val viewport = ExtendViewport(480, 270)
         val camera = viewport.camera
 
-        val graph = sceneGraph(context, ExtendViewport(480, 270)) {
+        val graph = sceneGraph(context, ExtendViewport(960, 270)) {
 
 //            centerContainer {
 //                anchorRight = 1f
@@ -58,17 +58,16 @@ class UiTest(context: Context) : ContextListener(context) {
             scrollContainer {
                 x = 50f
                 y = 50f
-                width = 100f
+                width = 200f
                 height = 150f
 
-                hBoxContainer {
-                    repeat(5) {
-                        label { text = "$it$it$it$it$it$it$it$it$it" }
-                    }
-                }
                 vBoxContainer {
-                    repeat(50) {
-                        label { text = "$it$it$it$it$it$it$it$it$it" }
+                    repeat(15) {
+                        hBoxContainer {
+                            repeat(12) {
+                                label { text = "$it$it$it$it" }
+                            }
+                        }
                     }
                 }
             }

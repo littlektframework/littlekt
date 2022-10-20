@@ -9,6 +9,7 @@ import com.lehaine.littlekt.graphics.Batch
 import com.lehaine.littlekt.graphics.Camera
 import com.lehaine.littlekt.graphics.gl.State
 import com.lehaine.littlekt.graphics.shape.ShapeRenderer
+import com.lehaine.littlekt.math.MutableVec2f
 import com.lehaine.littlekt.math.floor
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
@@ -56,13 +57,24 @@ class ScrollContainer : Container() {
 
     override fun ready() {
         super.ready()
-        updateScrollbarPosition()
         repositionChildren()
+    }
+
+    override fun onThemeChanged() {
+        super.onThemeChanged()
+        updateScrollbarPosition()
+    }
+
+    override fun onPostEnterScene() {
+        super.onPostEnterScene()
+        updateScrollbarPosition()
     }
 
     override fun calculateMinSize() {
         largestChildWidth = 0f
         largestChildHeight = 0f
+        _internalMinWidth = 0f
+        _internalMinHeight = 0f
 
         nodes.forEach {
             if (it !is Control || !it.visible) return@forEach
@@ -89,11 +101,11 @@ class ScrollContainer : Container() {
             _internalMinHeight += hScrollBar.minHeight
         }
         if (showVerticalScroll && vScrollBar.parent == this) {
-            _internalMinHeight += vScrollBar.minWidth
+            _internalMinWidth += vScrollBar.minWidth
         }
         val panel = getThemeDrawable(themeVars.panel)
 
-        _internalMinHeight += panel.minWidth
+        _internalMinWidth += panel.minWidth
         _internalMinHeight += panel.minHeight
 
         minSizeInvalid = false
@@ -112,23 +124,41 @@ class ScrollContainer : Container() {
 
     override fun render(batch: Batch, camera: Camera, shapeRenderer: ShapeRenderer) {
         super.render(batch, camera, shapeRenderer)
+        val canvas = canvas ?: return
         val gl = context.gl
 
         val panel = getThemeDrawable(themeVars.panel)
         panel.draw(batch, globalX, globalY, width, height, globalScaleX, globalScaleY, globalRotation)
 
-        //     batch.flush()
+        batch.flush()
+        tempVec2.set(globalX, globalY)
+        tempVec2.mul(batch.transformMatrix)
+        canvas.canvasToScreenCoordinates(tempVec2)
+        val scissorX = tempVec2.x
+        val scissorY = tempVec2.y
+        tempVec2.set(
+            globalX + width + vScrollBar.combinedMinWidth,
+            globalY + height + hScrollBar.combinedMinHeight
+        )
+        tempVec2.mul(batch.transformMatrix)
+        canvas.canvasToScreenCoordinates(tempVec2)
+        val scissorWidth = tempVec2.x - scissorX
+        val scissorHeight = tempVec2.y - scissorY
 
         gl.enable(State.SCISSOR_TEST)
-        //   gl.scissor(globalX.toInt(), globalY.toInt(), width.toInt(), height.toInt())
+        gl.scissor(
+            scissorX.toInt(),
+            context.graphics.height - scissorY.toInt() - scissorHeight.toInt(), // need to flip the y-coord to y-up
+            scissorWidth.toInt(),
+            scissorHeight.toInt()
+        )
     }
 
     override fun postRender(batch: Batch, camera: Camera, shapeRenderer: ShapeRenderer) {
         super.postRender(batch, camera, shapeRenderer)
         val gl = context.gl
-        // batch.flush()
+        batch.flush()
         gl.disable(State.SCISSOR_TEST)
-
     }
 
     override fun onSortChildren() {
@@ -193,7 +223,7 @@ class ScrollContainer : Container() {
                 th = max(height, it.combinedMinHeight)
             }
             tx += panel.marginLeft
-            ty += panel.marginRight
+            ty += panel.marginTop
             tx = tx.floor()
             ty = ty.floor()
             fitChild(it, tx, ty, tw, th)
@@ -241,5 +271,6 @@ class ScrollContainer : Container() {
          * [Theme] related variable names when setting theme values for a [ScrollContainer]
          */
         val themeVars = ThemeVars()
+        private val tempVec2 = MutableVec2f()
     }
 }

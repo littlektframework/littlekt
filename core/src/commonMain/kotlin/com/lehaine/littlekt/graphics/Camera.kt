@@ -160,12 +160,14 @@ abstract class Camera {
     fun project(world: Vec3f, result: MutableVec4f): MutableVec4f =
         viewProjection.transform(result.set(world.x, world.y, world.z, 1f))
 
-    fun worldToScreen(context: Context, screen: MutableVec2f, viewport: Viewport) = worldToScreen(context,
+    fun worldToScreen(context: Context, screen: MutableVec2f, viewport: Viewport) = worldToScreen(
+        context,
         screen,
         viewport.x.toFloat(),
         viewport.y.toFloat(),
         viewport.width.toFloat(),
-        viewport.height.toFloat())
+        viewport.height.toFloat()
+    )
 
     fun worldToScreen(
         context: Context,
@@ -180,14 +182,15 @@ abstract class Camera {
         return result
     }
 
-    fun worldToScreen(context: Context, screen: MutableVec2f, viewport: Viewport, result: MutableVec2f) = worldToScreen(
+    fun worldToScreen(context: Context, world: Vec2f, viewport: Viewport, result: MutableVec2f) = worldToScreen(
         context,
-        screen,
+        world,
         viewport.x.toFloat(),
         viewport.y.toFloat(),
         viewport.width.toFloat(),
         viewport.height.toFloat(),
-        result)
+        result
+    )
 
     fun worldToScreen(
         context: Context,
@@ -195,14 +198,16 @@ abstract class Camera {
         y: Float,
         viewport: Viewport,
         result: MutableVec2f,
-    ) = worldToScreen(context,
+    ) = worldToScreen(
+        context,
         x,
         y,
         viewport.x.toFloat(),
         viewport.y.toFloat(),
         viewport.width.toFloat(),
         viewport.height.toFloat(),
-        result)
+        result
+    )
 
     fun worldToScreen(
         context: Context,
@@ -246,6 +251,16 @@ abstract class Camera {
 
         return true
     }
+
+    fun worldToScreen(context: Context, world: Vec3f, viewport: Viewport, result: MutableVec3f) = worldToScreen(
+        context,
+        world,
+        viewport.x.toFloat(),
+        viewport.y.toFloat(),
+        viewport.width.toFloat(),
+        viewport.height.toFloat(),
+        result
+    )
 
     fun worldToScreen(
         context: Context,
@@ -320,12 +335,14 @@ abstract class Camera {
         return result
     }
 
-    fun screenToWorld(context: Context, screen: MutableVec2f, viewport: Viewport) = screenToWorld(context,
+    fun screenToWorld(context: Context, screen: MutableVec2f, viewport: Viewport) = screenToWorld(
+        context,
         screen,
         viewport.x.toFloat(),
         viewport.y.toFloat(),
         viewport.width.toFloat(),
-        viewport.height.toFloat())
+        viewport.height.toFloat()
+    )
 
     fun screenToWorld(
         context: Context,
@@ -362,7 +379,8 @@ abstract class Camera {
         viewport.y.toFloat(),
         viewport.width.toFloat(),
         viewport.height.toFloat(),
-        result)
+        result
+    )
 
     fun screenToWorld(
         context: Context,
@@ -387,12 +405,14 @@ abstract class Camera {
         context: Context,
         screen: Vec3f,
         viewport: Viewport,
-    ): MutableVec3f = screenToWorld(context,
+    ): MutableVec3f = screenToWorld(
+        context,
         screen,
         viewport.x.toFloat(),
         viewport.y.toFloat(),
         viewport.width.toFloat(),
-        viewport.height.toFloat())
+        viewport.height.toFloat()
+    )
 
     fun screenToWorld(
         context: Context,
@@ -440,13 +460,15 @@ abstract class Camera {
         screen: Vec3f,
         viewport: Viewport,
         result: MutableVec3f,
-    ) = screenToWorld(context,
+    ) = screenToWorld(
+        context,
         screen,
         viewport.x.toFloat(),
         viewport.y.toFloat(),
         viewport.width.toFloat(),
         viewport.height.toFloat(),
-        result)
+        result
+    )
 
     fun screenToWorld(
         context: Context,
@@ -477,20 +499,24 @@ abstract class Camera {
         viewportWidth: Float,
         viewportHeight: Float,
     ): Boolean {
-        var valid = screenToWorld(context,
+        var valid = screenToWorld(
+            context,
             tempVec3.set(screenX, screenY, 0f),
             viewportX,
             viewportY,
             viewportWidth,
             viewportHeight,
-            pickRay.origin)
-        valid = valid && screenToWorld(context,
+            pickRay.origin
+        )
+        valid = valid && screenToWorld(
+            context,
             tempVec3.set(screenX, screenY, 1f),
             viewportX,
             viewportY,
             viewportWidth,
             viewportHeight,
-            pickRay.direction)
+            pickRay.direction
+        )
 
         if (valid) {
             pickRay.direction.subtract(pickRay.origin)
