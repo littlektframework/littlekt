@@ -6,11 +6,6 @@
 
 * Add `ScrollContainer`, `VScrollBar`, and `HScrollBar` control nodes for scroll handling
 
-### Breaking
-
-* Add `ShapeRenderer` to `SceneGraph` and `Node` render methods. This includes `preRender`, `render`, `postRender`
-  and `debugRender` as well as all the `Node` rendering signals.
-
 ### New
 
 * add: `EmptyDrawable` to handle drawables that don't need drawn.
