@@ -1,6 +1,39 @@
 # Changelog
 
-## v.0.4.0 (Curent SHAPSHOT)
+## v.0.5.0 (Current SHAPSHOT)
+
+### Highlights
+
+* Add `ScrollContainer`, `VScrollBar`, and `HScrollBar` control nodes for scroll handling
+
+### Breaking
+
+* Add `ShapeRenderer` to `SceneGraph` and `Node` render methods. This includes `preRender`, `render`, `postRender`
+  and `debugRender` as well as all the `Node` rendering signals.
+
+### New
+
+* add: `EmptyDrawable` to handle drawables that don't need drawn.
+* add: Additional vec3 `CanvasLayer.canvasToScreen` methods.
+* add: two new size properties to `NinePatch`: `totalWidth` & `totalHeight`.
+* add: new `Textures.transparent` 1x1 transparent pixel texture slice.
+* add: `MutableVec2f.mul(Mat4)` implementation.
+* add: `Node.moveChild(child, index)` method to handle moving a child to different index in the tree.
+* add: `SceneGraph` now propagates scroll input to control nodes that the mouse is over.
+* add: `allowGreater` & `allowLesser` flags to `Range` node to allow values pass the min & max values.
+
+### Changes
+
+* fix: `SceneGraph` sometimes adding handled input to the unhandled input queue.
+* update: `Theme.FALLBACK_DRAWABLE` is not an `EmptyDrawable` instead of a white `TextureSliceDrawable`.
+* update: `Control` now checks to ensure node is `visible` before returning successfully in the `hit` test.
+* update: `NinePatchDrawable` `minWidth` and `minHeight` calculations to use the new `NinePatch.totalWidth` and `NinePatch.totalHeight` properties.
+* fix: `PanelContainer` not fitting children nodes to the correct positions.
+* update: default UI asset pngs.
+* update: `Label` default `mouseFilter` is now `IGNORE`.
+* update: `Control.setAnchor` to be public.
+
+## v.0.4.0
 
 ### Highlights
 
@@ -65,6 +98,7 @@
   frame. `AnimationPlayer.resume()` provides the old functionality of `AnimationPlayer.start()`
 * add: `AnimationPlayer.restart()` alias for `AnimationPlayer.start()`.
 * add: `Experimental` annotation that requires opt-in.
+
 ### Changes
 
 * fix: add missing `contract` call for `vBoxContainer`.
