@@ -123,34 +123,6 @@ fun createDefaultTheme(
         6,
         6
     )
-    val greyArrowUpPatch = NinePatch(
-        Textures.atlas.getByPrefix("grey_arrowUp").slice,
-        3,
-        3,
-        3,
-        4
-    )
-    val greyArrowDownPatch = NinePatch(
-        Textures.atlas.getByPrefix("grey_arrowDown").slice,
-        3,
-        3,
-        3,
-        4
-    )
-    val greyArrowLeftPatch = NinePatch(
-        Textures.atlas.getByPrefix("grey_arrowLeft").slice,
-        3,
-        3,
-        3,
-        4
-    )
-    val greyArrowRightPatch = NinePatch(
-        Textures.atlas.getByPrefix("grey_arrowRight").slice,
-        3,
-        3,
-        3,
-        4
-    )
 
     val greySliderBg = NinePatch(
         Textures.atlas.getByPrefix("grey_sliderBg").slice,
@@ -188,10 +160,10 @@ fun createDefaultTheme(
             }
         ),
         "ProgressBar" to mapOf(
-            ProgressBar.themeVars.bg to NinePatchDrawable(greyBoxNinePatch).apply {
+            ProgressBar.themeVars.bg to NinePatchDrawable(greySliderBg).apply {
                 modulate = Color.DARK_BLUE
             },
-            ProgressBar.themeVars.fg to NinePatchDrawable(greyBoxNinePatch).apply {
+            ProgressBar.themeVars.fg to NinePatchDrawable(greySliderBg).apply {
                 modulate = Color.LIGHT_BLUE.toMutableColor().lighten(0.5f)
             }
         ),

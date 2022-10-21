@@ -81,7 +81,7 @@ open class ProgressBar : Range() {
         }
 
     /**
-     * The drawable of the progress (the part that files the bar).
+     * The drawable of the progress (the part that fills the bar).
      */
     var fg: Drawable
         get() = getThemeDrawable(themeVars.fg)
@@ -114,7 +114,7 @@ open class ProgressBar : Range() {
                 cache.draw(batch)
                 resetTransform(batch)
             } else {
-                cache.setPosition(globalX + width / 2f - layout.width / 2f, globalY - height / 2f)
+                cache.setPosition(globalX + width / 2f - layout.width / 2f, globalY)
                 cache.draw(batch)
             }
         }
