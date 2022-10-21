@@ -90,8 +90,7 @@ sourceSets {
 | Desktop (JVM)    |    ✅    | Current version |
 | Web (WebGL/2)    |    ✅    | Current version |
 | Android          |    ✅    | Current version |
-| iOS              | Planned |            v1.0 |
-| Desktop (Native) |   --    |       Long Term |
+| iOS / Native     | Planned |            v1.0 |
 
 ### Acknowledgements
 
