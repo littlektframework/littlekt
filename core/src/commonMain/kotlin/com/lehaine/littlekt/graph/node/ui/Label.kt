@@ -47,21 +47,6 @@ inline fun SceneGraph<*>.label(callback: @SceneGraphDslMarker Label.() -> Unit =
  */
 open class Label : Control() {
 
-    class ThemeVars {
-        val fontColor = "fontColor"
-        val font = "font"
-    }
-
-    companion object {
-        private val tempColor = MutableColor()
-        private val minSizeLayout = GlyphLayout()
-
-        /**
-         * [Theme] related variable names when setting theme values for a [Label]
-         */
-        val themeVars = ThemeVars()
-    }
-
     private var cache: BitmapFontCache = BitmapFontCache(font)
     private val layout = GlyphLayout()
 
@@ -158,6 +143,11 @@ open class Label : Control() {
             onMinimumSizeChanged()
         }
 
+    init {
+        mouseFilter = MouseFilter.IGNORE
+        verticalSizeFlags = SizeFlag.SHRINK_CENTER
+    }
+
     override fun render(batch: Batch, camera: Camera, shapeRenderer: ShapeRenderer) {
         cache.let {
             tempColor.set(color).mul(fontColor)
@@ -252,5 +242,20 @@ open class Label : Control() {
             ellipsis
         )
         cache.setText(layout, 0f, ty, fontScaleX, fontScaleY)
+    }
+
+    class ThemeVars {
+        val fontColor = "fontColor"
+        val font = "font"
+    }
+
+    companion object {
+        private val tempColor = MutableColor()
+        private val minSizeLayout = GlyphLayout()
+
+        /**
+         * [Theme] related variable names when setting theme values for a [Label]
+         */
+        val themeVars = ThemeVars()
     }
 }

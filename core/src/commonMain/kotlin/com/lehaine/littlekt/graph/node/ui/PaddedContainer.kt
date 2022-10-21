@@ -92,7 +92,7 @@ open class PaddedContainer : Container() {
         var maxHeight = 0f
 
         nodes.forEach {
-            if (it is Control && it.enabled) {
+            if (it is Control && it.enabled && it.visible) {
                 if (it.combinedMinWidth > maxWidth) {
                     maxWidth = it.combinedMinWidth
                 }

@@ -175,6 +175,14 @@ open class MutableVec2f(x: Float, y: Float) : Vec2f(x, y) {
         return this
     }
 
+    fun mul(matrix: Mat4): MutableVec2f {
+        val newX = x * matrix[0] + y * matrix[4] + matrix[12]
+        val newY = x * matrix[1] + y * matrix[5] + matrix[13]
+        x = newX
+        y = newY
+        return this
+    }
+
     fun mulAdd(other: Vec2f, scalar: Float): MutableVec2f {
         x += other.x * scalar
         y += other.y * scalar

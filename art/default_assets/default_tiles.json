@@ -6,23 +6,44 @@
         "format": "RGBA8888",
         "scale": 1.0,
         "size": {
-            "w": 194,
-            "h": 219
+            "w": 198,
+            "h": 176
         },
         "related_multi_packs": [
         ]
     },
     "frames": [
         {
+            "filename": "grey_arrowDown",
+            "frame": {
+                "x": 118,
+                "y": 140,
+                "w": 16,
+                "h": 16
+            },
+            "rotated": false,
+            "trimmed": false,
+            "spriteSourceSize": {
+                "x": 0,
+                "y": 0,
+                "w": 16,
+                "h": 16
+            },
+            "sourceSize": {
+                "w": 16,
+                "h": 16
+            }
+        },
+        {
             "filename": "grey_arrowDownGrey",
             "frame": {
-                "x": 110,
-                "y": 106,
-                "w": 10,
-                "h": 15
+                "x": 48,
+                "y": 113,
+                "w": 15,
+                "h": 10
             },
-            "rotated": true,
-            "trimmed": true,
+            "rotated": false,
+            "trimmed": false,
             "spriteSourceSize": {
                 "x": 0,
                 "y": 0,
@@ -37,13 +58,13 @@
         {
             "filename": "grey_arrowDownWhite",
             "frame": {
-                "x": 180,
-                "y": 118,
-                "w": 10,
-                "h": 15
+                "x": 4,
+                "y": 162,
+                "w": 15,
+                "h": 10
             },
-            "rotated": true,
-            "trimmed": true,
+            "rotated": false,
+            "trimmed": false,
             "spriteSourceSize": {
                 "x": 0,
                 "y": 0,
@@ -56,15 +77,78 @@
             }
         },
         {
+            "filename": "grey_arrowLeft",
+            "frame": {
+                "x": 140,
+                "y": 140,
+                "w": 16,
+                "h": 16
+            },
+            "rotated": false,
+            "trimmed": false,
+            "spriteSourceSize": {
+                "x": 0,
+                "y": 0,
+                "w": 16,
+                "h": 16
+            },
+            "sourceSize": {
+                "w": 16,
+                "h": 16
+            }
+        },
+        {
+            "filename": "grey_arrowRight",
+            "frame": {
+                "x": 162,
+                "y": 140,
+                "w": 16,
+                "h": 16
+            },
+            "rotated": false,
+            "trimmed": false,
+            "spriteSourceSize": {
+                "x": 0,
+                "y": 0,
+                "w": 16,
+                "h": 16
+            },
+            "sourceSize": {
+                "w": 16,
+                "h": 16
+            }
+        },
+        {
+            "filename": "grey_arrowUp",
+            "frame": {
+                "x": 166,
+                "y": 114,
+                "w": 16,
+                "h": 16
+            },
+            "rotated": false,
+            "trimmed": false,
+            "spriteSourceSize": {
+                "x": 0,
+                "y": 0,
+                "w": 16,
+                "h": 16
+            },
+            "sourceSize": {
+                "w": 16,
+                "h": 16
+            }
+        },
+        {
             "filename": "grey_arrowUpGrey",
             "frame": {
-                "x": 180,
-                "y": 135,
-                "w": 10,
-                "h": 15
+                "x": 25,
+                "y": 162,
+                "w": 15,
+                "h": 10
             },
-            "rotated": true,
-            "trimmed": true,
+            "rotated": false,
+            "trimmed": false,
             "spriteSourceSize": {
                 "x": 0,
                 "y": 0,
@@ -79,13 +163,13 @@
         {
             "filename": "grey_arrowUpWhite",
             "frame": {
-                "x": 180,
-                "y": 152,
-                "w": 10,
-                "h": 15
+                "x": 46,
+                "y": 162,
+                "w": 15,
+                "h": 10
             },
-            "rotated": true,
-            "trimmed": true,
+            "rotated": false,
+            "trimmed": false,
             "spriteSourceSize": {
                 "x": 0,
                 "y": 0,
@@ -100,8 +184,8 @@
         {
             "filename": "grey_box",
             "frame": {
-                "x": 2,
-                "y": 143,
+                "x": 127,
+                "y": 14,
                 "w": 38,
                 "h": 36
             },
@@ -121,8 +205,8 @@
         {
             "filename": "grey_boxCheckmark",
             "frame": {
-                "x": 42,
-                "y": 143,
+                "x": 127,
+                "y": 56,
                 "w": 38,
                 "h": 36
             },
@@ -142,8 +226,8 @@
         {
             "filename": "grey_boxCross",
             "frame": {
-                "x": 82,
-                "y": 143,
+                "x": 4,
+                "y": 120,
                 "w": 38,
                 "h": 36
             },
@@ -163,8 +247,8 @@
         {
             "filename": "grey_boxTick",
             "frame": {
-                "x": 122,
-                "y": 106,
+                "x": 82,
+                "y": 88,
                 "w": 36,
                 "h": 36
             },
@@ -184,34 +268,34 @@
         {
             "filename": "grey_button",
             "frame": {
-                "x": 110,
-                "y": 8,
-                "w": 49,
-                "h": 45
+                "x": 67,
+                "y": 154,
+                "w": 14,
+                "h": 12
             },
             "rotated": false,
             "trimmed": false,
             "spriteSourceSize": {
                 "x": 0,
                 "y": 0,
-                "w": 49,
-                "h": 45
+                "w": 14,
+                "h": 12
             },
             "sourceSize": {
-                "w": 49,
-                "h": 45
+                "w": 14,
+                "h": 12
             }
         },
         {
             "filename": "grey_checkmarkGrey",
             "frame": {
-                "x": 84,
-                "y": 110,
-                "w": 20,
-                "h": 21
+                "x": 171,
+                "y": 14,
+                "w": 21,
+                "h": 20
             },
-            "rotated": true,
-            "trimmed": true,
+            "rotated": false,
+            "trimmed": false,
             "spriteSourceSize": {
                 "x": 0,
                 "y": 0,
@@ -226,8 +310,8 @@
         {
             "filename": "grey_checkmarkWhite",
             "frame": {
-                "x": 160,
-                "y": 96,
+                "x": 171,
+                "y": 40,
                 "w": 21,
                 "h": 20
             },
@@ -247,8 +331,8 @@
         {
             "filename": "grey_circle",
             "frame": {
-                "x": 2,
-                "y": 181,
+                "x": 124,
+                "y": 98,
                 "w": 36,
                 "h": 36
             },
@@ -268,8 +352,8 @@
         {
             "filename": "grey_crossGrey",
             "frame": {
-                "x": 160,
-                "y": 118,
+                "x": 171,
+                "y": 90,
                 "w": 18,
                 "h": 18
             },
@@ -289,8 +373,8 @@
         {
             "filename": "grey_crossWhite",
             "frame": {
-                "x": 160,
-                "y": 138,
+                "x": 48,
+                "y": 130,
                 "w": 18,
                 "h": 18
             },
@@ -308,15 +392,36 @@
             }
         },
         {
+            "filename": "grey_grabber",
+            "frame": {
+                "x": 101,
+                "y": 162,
+                "w": 8,
+                "h": 9
+            },
+            "rotated": false,
+            "trimmed": false,
+            "spriteSourceSize": {
+                "x": 0,
+                "y": 0,
+                "w": 8,
+                "h": 9
+            },
+            "sourceSize": {
+                "w": 8,
+                "h": 9
+            }
+        },
+        {
             "filename": "grey_outline",
             "frame": {
-                "x": 110,
-                "y": 55,
-                "w": 45,
-                "h": 49
+                "x": 14,
+                "y": 14,
+                "w": 49,
+                "h": 45
             },
-            "rotated": true,
-            "trimmed": true,
+            "rotated": false,
+            "trimmed": false,
             "spriteSourceSize": {
                 "x": 0,
                 "y": 0,
@@ -331,29 +436,50 @@
         {
             "filename": "grey_panel",
             "frame": {
-                "x": 2,
-                "y": 8,
-                "w": 100,
-                "h": 100
+                "x": 171,
+                "y": 66,
+                "w": 20,
+                "h": 18
             },
             "rotated": false,
             "trimmed": false,
             "spriteSourceSize": {
                 "x": 0,
                 "y": 0,
-                "w": 100,
-                "h": 100
+                "w": 20,
+                "h": 18
             },
             "sourceSize": {
-                "w": 100,
-                "h": 100
+                "w": 20,
+                "h": 18
+            }
+        },
+        {
+            "filename": "grey_sliderBg",
+            "frame": {
+                "x": 184,
+                "y": 136,
+                "w": 10,
+                "h": 9
+            },
+            "rotated": false,
+            "trimmed": false,
+            "spriteSourceSize": {
+                "x": 0,
+                "y": 0,
+                "w": 10,
+                "h": 9
+            },
+            "sourceSize": {
+                "w": 10,
+                "h": 9
             }
         },
         {
             "filename": "grey_sliderDown",
             "frame": {
-                "x": 161,
-                "y": 8,
+                "x": 14,
+                "y": 65,
                 "w": 28,
                 "h": 42
             },
@@ -373,13 +499,13 @@
         {
             "filename": "grey_sliderEnd",
             "frame": {
-                "x": 84,
-                "y": 133,
-                "w": 10,
-                "h": 8
+                "x": 87,
+                "y": 162,
+                "w": 8,
+                "h": 10
             },
-            "rotated": true,
-            "trimmed": true,
+            "rotated": false,
+            "trimmed": false,
             "spriteSourceSize": {
                 "x": 0,
                 "y": 0,
@@ -394,8 +520,8 @@
         {
             "filename": "grey_sliderHorizontal",
             "frame": {
-                "x": 2,
-                "y": 2,
+                "x": 4,
+                "y": 4,
                 "w": 190,
                 "h": 4
             },
@@ -415,8 +541,8 @@
         {
             "filename": "grey_sliderLeft",
             "frame": {
-                "x": 2,
-                "y": 110,
+                "x": 69,
+                "y": 14,
                 "w": 39,
                 "h": 31
             },
@@ -436,8 +562,8 @@
         {
             "filename": "grey_sliderRight",
             "frame": {
-                "x": 43,
-                "y": 110,
+                "x": 82,
+                "y": 51,
                 "w": 39,
                 "h": 31
             },
@@ -457,8 +583,8 @@
         {
             "filename": "grey_sliderUp",
             "frame": {
-                "x": 161,
-                "y": 52,
+                "x": 48,
+                "y": 65,
                 "w": 28,
                 "h": 42
             },
@@ -478,8 +604,8 @@
         {
             "filename": "grey_sliderVertical",
             "frame": {
-                "x": 104,
-                "y": 8,
+                "x": 4,
+                "y": 14,
                 "w": 4,
                 "h": 100
             },
@@ -499,8 +625,8 @@
         {
             "filename": "grey_tickGrey",
             "frame": {
-                "x": 40,
-                "y": 181,
+                "x": 72,
+                "y": 130,
                 "w": 17,
                 "h": 17
             },
@@ -520,8 +646,8 @@
         {
             "filename": "grey_tickWhite",
             "frame": {
-                "x": 40,
-                "y": 200,
+                "x": 95,
+                "y": 130,
                 "w": 17,
                 "h": 17
             },
@@ -539,10 +665,31 @@
             }
         },
         {
+            "filename": "pixel_transparent",
+            "frame": {
+                "x": 166,
+                "y": 136,
+                "w": -2,
+                "h": -2
+            },
+            "rotated": false,
+            "trimmed": false,
+            "spriteSourceSize": {
+                "x": 0,
+                "y": 0,
+                "w": -2,
+                "h": -2
+            },
+            "sourceSize": {
+                "w": -2,
+                "h": -2
+            }
+        },
+        {
             "filename": "pixel_white",
             "frame": {
-                "x": 157,
-                "y": 55,
+                "x": 14,
+                "y": 113,
                 "w": 1,
                 "h": 1
             },

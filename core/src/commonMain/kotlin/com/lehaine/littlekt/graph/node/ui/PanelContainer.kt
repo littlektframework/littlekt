@@ -64,7 +64,7 @@ open class PanelContainer : Container() {
         var maxHeight = 0f
 
         nodes.forEach {
-            if (it is Control && it.enabled) {
+            if (it is Control && it.enabled && it.visible) {
                 if (it.combinedMinWidth > maxWidth) {
                     maxWidth = it.combinedMinWidth
                 }
@@ -86,12 +86,12 @@ open class PanelContainer : Container() {
     override fun onSortChildren() {
         var w = width
         var h = height
-        w -= panel.minWidth
-        h -= panel.minHeight
+        w -= panel.marginRight + panel.marginLeft
+        h -= panel.marginBottom + panel.marginTop
 
         nodes.forEach {
             if (it is Control && it.enabled) {
-                fitChild(it, 0f, 0f, w, h)
+                fitChild(it, panel.marginLeft, panel.marginTop, w, h)
             }
         }
     }

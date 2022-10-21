@@ -29,26 +29,48 @@ class UiTest(context: Context) : ContextListener(context) {
         val camera = viewport.camera
 
         val graph = sceneGraph(context, ExtendViewport(480, 270)) {
-            centerContainer {
-                anchorRight = 1f
-                anchorBottom = 1f
+
+//            centerContainer {
+//                anchorRight = 1f
+//                anchorBottom = 1f
+//
+//                vBoxContainer {
+//                    separation = 5
+//
+//                    label {
+//                        text = "A"
+//                        horizontalAlign = HAlign.CENTER
+//                        font = pixelFont
+//                    }
+//                    label {
+//                        text = "My Label Middle"
+//                        horizontalAlign = HAlign.CENTER
+//                        font = pixelFont
+//                    }
+//                    textureRect {
+//                        slice = icon.slice()
+//                        stretchMode = TextureRect.StretchMode.KEEP_CENTERED
+//                    }
+//
+//                }
+//            }
+
+            scrollContainer {
+                x = 50f
+                y = 50f
+                width = 200f
+                height = 150f
 
                 vBoxContainer {
-                    separation = 5
-
-                    label {
-                        text = "A"
-                        horizontalAlign = HAlign.CENTER
-                        font = pixelFont
-                    }
-                    label {
-                        text = "My Label Middle"
-                        horizontalAlign = HAlign.CENTER
-                        font = pixelFont
-                    }
-                    textureRect {
-                        slice = icon.slice()
-                        stretchMode = TextureRect.StretchMode.KEEP_CENTERED
+                    repeat(50) {i ->
+                        hBoxContainer {
+                            repeat(15) {
+                                label {
+                                    text = "$it$it$it$it$it$it$it$it$it"
+                                    if(it == 0) text = "$i-$text"
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -70,8 +92,12 @@ class UiTest(context: Context) : ContextListener(context) {
             graph.update(dt)
             graph.render()
 
-            if(input.isKeyJustPressed(Key.ENTER)) {
-                graph.showDebugInfo =  !graph.showDebugInfo
+            if (input.isKeyJustPressed(Key.ENTER)) {
+                graph.showDebugInfo = !graph.showDebugInfo
+            }
+
+            if(input.isKeyJustPressed(Key.T)) {
+                logger.info { "\n" + graph.root.treeString() }
             }
 
             if (input.isKeyJustPressed(Key.P)) {

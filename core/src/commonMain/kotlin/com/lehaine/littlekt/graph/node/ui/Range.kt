@@ -28,7 +28,7 @@ abstract class Range : Control() {
             if (_min == value) return
             _min = value
             updateValue(_value)
-            validateMinMax()
+            validateValues()
         }
 
 
@@ -43,7 +43,7 @@ abstract class Range : Control() {
             if (_max == value) return
             _max = value
             updateValue(_value)
-            validateMinMax()
+            validateValues()
         }
 
     /**
@@ -51,10 +51,34 @@ abstract class Range : Control() {
      */
     var step: Float = 1f
 
+    private var _page: Float = 0f
+
+    /**
+     * The page size. Used for [ScrollBar]. The ScrollBar's length is its size multiplied by [page] over the different between [min] and [max].
+     */
+    var page: Float
+        get() = _page
+        set(value) {
+            if (_page == value) return
+            _page = value
+            updateValue(_value)
+            validateValues()
+        }
+
     /**
      * If `true`, [value] will always be rounded to the nearest integer.
      */
     var rounded: Boolean = false
+
+    /**
+     * If `true`, [value] may be greater than [max].
+     */
+    var allowGreater: Boolean = false
+
+    /**
+     * If `true`, [value] may be less than [min].
+     */
+    var allowLesser: Boolean = false
 
     private var _value = 0f
 
@@ -98,10 +122,10 @@ abstract class Range : Control() {
         if (rounded) {
             newValue = newValue.roundToInt().toFloat()
         }
-        if (newValue > max) {
-            newValue = max
+        if (!allowGreater && newValue > max - page) {
+            newValue = max - page
         }
-        if (newValue < min) {
+        if (!allowLesser && newValue < min) {
             newValue = min
         }
         if (newValue == _value) return
@@ -109,8 +133,9 @@ abstract class Range : Control() {
         onValueChanged.emit(newValue)
     }
 
-    private fun validateMinMax() {
+    private fun validateValues() {
         _max = max(_max, _min)
+        _page = _page.clamp(0f, _max - _min)
     }
 
     override fun onDestroy() {

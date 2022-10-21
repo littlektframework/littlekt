@@ -43,9 +43,8 @@ class Theme(
 ) {
 
     companion object {
-        val FALLBACK_DRAWABLE = TextureSliceDrawable(Textures.white)
+        val FALLBACK_DRAWABLE = EmptyDrawable()
         val FALLBACK_FONT = Fonts.default
-
 
         private var _theme: Theme? = null
         var defaultTheme: Theme
@@ -124,6 +123,50 @@ fun createDefaultTheme(
         6,
         6
     )
+    val greyArrowUpPatch = NinePatch(
+        Textures.atlas.getByPrefix("grey_arrowUp").slice,
+        3,
+        3,
+        3,
+        4
+    )
+    val greyArrowDownPatch = NinePatch(
+        Textures.atlas.getByPrefix("grey_arrowDown").slice,
+        3,
+        3,
+        3,
+        4
+    )
+    val greyArrowLeftPatch = NinePatch(
+        Textures.atlas.getByPrefix("grey_arrowLeft").slice,
+        3,
+        3,
+        3,
+        4
+    )
+    val greyArrowRightPatch = NinePatch(
+        Textures.atlas.getByPrefix("grey_arrowRight").slice,
+        3,
+        3,
+        3,
+        4
+    )
+
+    val greySliderBg = NinePatch(
+        Textures.atlas.getByPrefix("grey_sliderBg").slice,
+        3,
+        3,
+        3,
+        3
+    )
+
+    val grayGrabber = NinePatch(
+        Textures.atlas.getByPrefix("grey_grabber").slice,
+        3,
+        3,
+        3,
+        3
+    )
     val drawables = mapOf(
         "Button" to mapOf(
             Button.themeVars.normal to NinePatchDrawable(greyButtonNinePatch)
@@ -140,15 +183,15 @@ fun createDefaultTheme(
                 .apply { modulate = Color.WHITE },
         ),
         "Panel" to mapOf(
-            Panel.themeVars.panel to NinePatchDrawable(panelNinePatch).apply {
+            Panel.themeVars.panel to NinePatchDrawable(greyBoxNinePatch).apply {
                 modulate = Color.LIGHT_BLUE
             }
         ),
         "ProgressBar" to mapOf(
-            ProgressBar.themeVars.bg to NinePatchDrawable(panelNinePatch).apply {
+            ProgressBar.themeVars.bg to NinePatchDrawable(greyBoxNinePatch).apply {
                 modulate = Color.DARK_BLUE
             },
-            ProgressBar.themeVars.fg to NinePatchDrawable(panelNinePatch).apply {
+            ProgressBar.themeVars.fg to NinePatchDrawable(greyBoxNinePatch).apply {
                 modulate = Color.LIGHT_BLUE.toMutableColor().lighten(0.5f)
             }
         ),
@@ -171,7 +214,35 @@ fun createDefaultTheme(
             },
             LineEdit.themeVars.focus to NinePatchDrawable(greyOutlineNinePatch)
                 .apply { modulate = Color.WHITE },
-        )
+        ),
+        "ScrollContainer" to mapOf(ScrollContainer.themeVars.panel to EmptyDrawable()),
+        "VScrollBar" to mapOf(
+            ScrollBar.themeVars.scroll to NinePatchDrawable(greySliderBg).apply {
+                modulate = Color.DARK_BLUE
+            },
+            ScrollBar.themeVars.grabber to NinePatchDrawable(grayGrabber).apply {
+                modulate = Color.LIGHT_BLUE
+            },
+            ScrollBar.themeVars.grabberPressed to NinePatchDrawable(grayGrabber).apply {
+                modulate = Color.LIGHT_BLUE.toMutableColor().scaleRgb(0.6f)
+            },
+            ScrollBar.themeVars.grabberHighlight to NinePatchDrawable(grayGrabber).apply {
+                modulate = Color.LIGHT_BLUE.toMutableColor().lighten(0.2f)
+            }
+        ),
+        "HScrollBar" to mapOf(
+            ScrollBar.themeVars.scroll to NinePatchDrawable(greySliderBg).apply {
+                modulate = Color.DARK_BLUE
+            },
+            ScrollBar.themeVars.grabber to NinePatchDrawable(grayGrabber).apply {
+                modulate = Color.LIGHT_BLUE
+            },
+            ScrollBar.themeVars.grabberPressed to NinePatchDrawable(grayGrabber).apply {
+                modulate = Color.LIGHT_BLUE.toMutableColor().scaleRgb(0.6f)
+            },
+            ScrollBar.themeVars.grabberHighlight to NinePatchDrawable(grayGrabber).apply {
+                modulate = Color.LIGHT_BLUE.toMutableColor().lighten(0.2f)
+            })
     ) + extraDrawables
 
     val fonts = extraFonts
