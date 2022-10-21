@@ -48,27 +48,6 @@ inline fun SceneGraph<*>.button(callback: @SceneGraphDslMarker Button.() -> Unit
  */
 open class Button : BaseButton() {
 
-    class ThemeVars {
-        val fontColor = "fontColor"
-        val font = "font"
-        val normal = "normal"
-        val pressed = "pressed"
-        val hover = "hover"
-        val hoverPressed = "hoverPressed"
-        val disabled = "disabled"
-        val focus = "focus"
-    }
-
-    companion object {
-        private val tempColor = MutableColor()
-        private val minSizeLayout = GlyphLayout()
-
-        /**
-         * [Theme] related variable names when setting theme values for a [Button]
-         */
-        val themeVars = ThemeVars()
-    }
-
     private var cache: BitmapFontCache = BitmapFontCache(font)
     private val layout = GlyphLayout()
 
@@ -312,4 +291,27 @@ open class Button : BaseButton() {
         )
         cache.setText(layout, padding, ty, fontScaleX, fontScaleY)
     }
+
+
+    class ThemeVars {
+        val fontColor = "fontColor"
+        val font = "font"
+        val normal = "normal"
+        val pressed = "pressed"
+        val hover = "hover"
+        val hoverPressed = "hoverPressed"
+        val disabled = "disabled"
+        val focus = "focus"
+    }
+
+    companion object {
+        private val tempColor = MutableColor()
+        private val minSizeLayout = GlyphLayout()
+
+        /**
+         * [Theme] related variable names when setting theme values for a [Button]
+         */
+        val themeVars = ThemeVars()
+    }
+
 }
