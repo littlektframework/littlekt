@@ -408,25 +408,45 @@ open class Control : CanvasItem() {
      * The map of overrides for a theme [Drawable]. Local overrides always take precedence when fetching theme items
      * for the control. An override can be removed with [remove].
      */
-    val drawableOverrides by lazy { OverrideMap<String, Drawable>(::_onThemeChanged) }
+    val drawableOverrides by lazy { OverrideMap<String, Drawable>(::_onThemeValueChanged) }
+
+    /**
+     * A map for storing the result of [getThemeDrawable] when needed to prevent searching the tree every frame.
+     */
+    val drawableCache by lazy { mutableMapOf<String, Drawable>() }
 
     /**
      * The map of overrides for a theme [BitmapFont]. Local overrides always take precedence when fetching theme items
      * for the control. An override can be removed with [remove].
      */
-    val fontOverrides by lazy { OverrideMap<String, BitmapFont>(::_onThemeChanged) }
+    val fontOverrides by lazy { OverrideMap<String, BitmapFont>(::_onThemeValueChanged) }
+
+    /**
+     * A map for storing the result of [getThemeFont] when needed to prevent searching the tree every frame.
+     */
+    val fontCache by lazy { mutableMapOf<String, BitmapFont>() }
 
     /**
      * The map of overrides for a theme [Color]. Local overrides always take precedence when fetching theme items
      * for the control. An override can be removed with [remove].
      */
-    val colorOverrides by lazy { OverrideMap<String, Color>(::_onThemeChanged) }
+    val colorOverrides by lazy { OverrideMap<String, Color>(::_onThemeValueChanged) }
+
+    /**
+     * A map for storing the result of [getThemeColor] when needed to prevent searching the tree every frame.
+     */
+    val colorCache by lazy { mutableMapOf<String, Color>() }
 
     /**
      * The map of overrides for a theme [Int]. Local overrides always take precedence when fetching theme items
      * for the control. An override can be removed with [remove].
      */
-    val constantOverrides by lazy { OverrideMap<String, Int>(::_onThemeChanged) }
+    val constantOverrides by lazy { OverrideMap<String, Int>(::_onThemeValueChanged) }
+
+    /**
+     * A map for storing the result of [getThemeConstant] when needed to prevent searching the tree every frame.
+     */
+    val constantCache by lazy { mutableMapOf<String, Int>() }
 
     /**
      * Controls when the control will be able to receive mouse button input events through [onUiInput] and how these
@@ -523,6 +543,14 @@ open class Control : CanvasItem() {
     open fun uiInput(event: InputEvent<*>) = Unit
 
     private fun _onThemeChanged() {
+        drawableCache.clear()
+        fontCache.clear()
+        colorCache.clear()
+        constantCache.clear()
+        _onThemeValueChanged()
+    }
+
+    private fun _onThemeValueChanged() {
         nodes.forEach {
             if (it is Control) {
                 it._onThemeChanged()
@@ -1222,6 +1250,7 @@ open class Control : CanvasItem() {
      */
     fun getThemeDrawable(name: String, type: String = this::class.simpleName ?: ""): Drawable {
         drawableOverrides[name]?.let { return it }
+        drawableCache[name]?.let { return it }
         var themeOwner: Control? = this
         while (themeOwner != null) {
             themeOwner.theme?.drawables?.get(type)?.get(name)?.let { return it }
@@ -1231,7 +1260,9 @@ open class Control : CanvasItem() {
                 null
             }
         }
-        return Theme.defaultTheme.drawables[type]?.get(name) ?: Theme.FALLBACK_DRAWABLE
+        val drawable = Theme.defaultTheme.drawables[type]?.get(name) ?: Theme.FALLBACK_DRAWABLE
+        drawableCache[name] = drawable
+        return drawable
     }
 
     /**
@@ -1240,6 +1271,7 @@ open class Control : CanvasItem() {
      */
     fun getThemeColor(name: String, type: String = this::class.simpleName ?: ""): Color {
         colorOverrides[name]?.let { return it }
+        colorCache[name]?.let { return it }
         var themeOwner: Control? = this
         while (themeOwner != null) {
             themeOwner.theme?.colors?.get(type)?.get(name)?.let { return it }
@@ -1249,7 +1281,9 @@ open class Control : CanvasItem() {
                 null
             }
         }
-        return Theme.defaultTheme.colors[type]?.get(name) ?: Color.WHITE
+        val color = Theme.defaultTheme.colors[type]?.get(name) ?: Color.WHITE
+        colorCache[name] = color
+        return color
     }
 
     /**
@@ -1258,6 +1292,7 @@ open class Control : CanvasItem() {
      */
     fun getThemeFont(name: String, type: String = this::class.simpleName ?: ""): BitmapFont {
         fontOverrides[name]?.let { return it }
+        fontCache[name]?.let { return it }
         var themeOwner: Control? = this
         while (themeOwner != null) {
             themeOwner.theme?.fonts?.get(type)?.get(name)?.let { return it }
@@ -1267,7 +1302,9 @@ open class Control : CanvasItem() {
                 null
             }
         }
-        return Theme.defaultTheme.fonts[type]?.get(name) ?: Theme.defaultTheme.defaultFont ?: Theme.FALLBACK_FONT
+        val font = Theme.defaultTheme.fonts[type]?.get(name) ?: Theme.defaultTheme.defaultFont ?: Theme.FALLBACK_FONT
+        fontCache[name] = font
+        return font
     }
 
     /**
@@ -1276,6 +1313,8 @@ open class Control : CanvasItem() {
      */
     fun getThemeConstant(name: String, type: String = this::class.simpleName ?: ""): Int {
         constantOverrides[name]?.let { return it }
+        constantCache[name]?.let { return it }
+
         var themeOwner: Control? = this
         while (themeOwner != null) {
             themeOwner.theme?.constants?.get(type)?.get(name)?.let { return it }
@@ -1285,7 +1324,9 @@ open class Control : CanvasItem() {
                 null
             }
         }
-        return Theme.defaultTheme.constants[type]?.get(name) ?: 0
+        val constant = Theme.defaultTheme.constants[type]?.get(name) ?: 0
+        constantCache[name] = constant
+        return constant
     }
 
     /**
@@ -1293,7 +1334,7 @@ open class Control : CanvasItem() {
      */
     fun clearThemeConstantOverrides(): Control {
         constantOverrides.clear()
-        _onThemeChanged()
+        _onThemeValueChanged()
         return this
     }
 
@@ -1302,7 +1343,7 @@ open class Control : CanvasItem() {
      */
     fun clearThemeFontOverrides(): Control {
         fontOverrides.clear()
-        _onThemeChanged()
+        _onThemeValueChanged()
         return this
     }
 
@@ -1311,7 +1352,7 @@ open class Control : CanvasItem() {
      */
     fun clearThemeDrawableOverrides(): Control {
         drawableOverrides.clear()
-        _onThemeChanged()
+        _onThemeValueChanged()
         return this
     }
 
@@ -1320,7 +1361,7 @@ open class Control : CanvasItem() {
      */
     fun clearThemeColorOverrides(): Control {
         colorOverrides.clear()
-        _onThemeChanged()
+        _onThemeValueChanged()
         return this
     }
 
@@ -1336,7 +1377,23 @@ open class Control : CanvasItem() {
         fontOverrides.clear()
         drawableOverrides.clear()
         colorOverrides.clear()
-        _onThemeChanged()
+        _onThemeValueChanged()
+        return this
+    }
+
+    /**
+     * Clears all the local theme cache maps
+     * @see constantCache
+     * @see fontCache
+     * @see drawableOverrides
+     * @see colorOverrides
+     */
+    fun clearThemeCache(): Control {
+        constantCache.clear()
+        fontCache.clear()
+        drawableCache.clear()
+        colorOverrides.clear()
+        _onThemeValueChanged()
         return this
     }
 
