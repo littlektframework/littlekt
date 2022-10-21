@@ -5,6 +5,11 @@
 ### Highlights
 
 * Add `ScrollContainer`, `VScrollBar`, and `HScrollBar` control nodes for scroll handling
+* Add automatic caching of `Control` theme values when first grabbing the theme value.
+    * **For Example**: `getThemeDrawable()` will return a result and then is cached in the `drawableCache` map. Any
+      subsequent calls to `getThemeDrawable()` will first check in the `drawableOverrides` and then in
+      the `drawableCache` map and return a result if it exists.
+    * When a theme owners theme changes, the theme owners and its child control nodes will all have their caches cleared.
 
 ### New
 
@@ -22,7 +27,8 @@
 * fix: `SceneGraph` sometimes adding handled input to the unhandled input queue.
 * update: `Theme.FALLBACK_DRAWABLE` is not an `EmptyDrawable` instead of a white `TextureSliceDrawable`.
 * update: `Control` now checks to ensure node is `visible` before returning successfully in the `hit` test.
-* update: `NinePatchDrawable` `minWidth` and `minHeight` calculations to use the new `NinePatch.totalWidth` and `NinePatch.totalHeight` properties.
+* update: `NinePatchDrawable` `minWidth` and `minHeight` calculations to use the new `NinePatch.totalWidth`
+  and `NinePatch.totalHeight` properties.
 * fix: `PanelContainer` not fitting children nodes to the correct positions.
 * update: default UI asset pngs.
 * update: `Label` default `mouseFilter` is now `IGNORE`.
