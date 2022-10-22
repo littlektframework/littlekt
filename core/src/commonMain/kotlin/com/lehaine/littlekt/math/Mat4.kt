@@ -237,6 +237,7 @@ open class Mat4 {
         return this
     }
 
+
     fun set(floats: List<Float>): Mat4 {
         for (i in 0..15) {
             data[i] = floats[i]
@@ -1219,44 +1220,5 @@ open class Mat4 {
         private val right = MutableVec3f()
         private val tmpForward = MutableVec3f()
         private val tmpUp = MutableVec3f()
-    }
-}
-
-class Mat4Stack(val stackSize: Int = DEFAULT_STACK_SIZE) : Mat4() {
-    companion object {
-        const val DEFAULT_STACK_SIZE = 32
-    }
-
-    private var stackIndex = 0
-    private val stack = FloatArray(16 * stackSize)
-
-    fun push(): Mat4Stack {
-        if (stackIndex >= stackSize) {
-            throw RuntimeException("Matrix stack overflow")
-        }
-        val offset = stackIndex * 16
-        for (i in 0..15) {
-            stack[offset + i] = data[i]
-        }
-        stackIndex++
-        return this
-    }
-
-    fun pop(): Mat4Stack {
-        if (stackIndex <= 0) {
-            throw RuntimeException("Matrix stack underflow")
-        }
-        stackIndex--
-        val offset = stackIndex * 16
-        for (i in 0..15) {
-            data[i] = stack[offset + i]
-        }
-        return this
-    }
-
-    fun reset(): Mat4Stack {
-        stackIndex = 0
-        setToIdentity()
-        return this
     }
 }

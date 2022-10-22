@@ -9,8 +9,8 @@ import com.lehaine.littlekt.graphics.Color
  */
 fun main(args: Array<String>) {
     createLittleKtApp {
-        width = 1100
-        height = 700
+        width = 960
+        height = 540
         vSync = true
         title = "JVM - GPU Font Test"
         backgroundColor = Color.DARK_GRAY

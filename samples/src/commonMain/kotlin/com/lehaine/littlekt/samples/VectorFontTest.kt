@@ -11,7 +11,9 @@ import com.lehaine.littlekt.graphics.font.TextBlock
 import com.lehaine.littlekt.graphics.font.VectorFont
 import com.lehaine.littlekt.graphics.gl.ClearBufferMask
 import com.lehaine.littlekt.input.Key
+import com.lehaine.littlekt.math.floor
 import com.lehaine.littlekt.util.viewport.ExtendViewport
+import com.lehaine.littlekt.util.viewport.ScreenViewport
 
 /**
  * @author Colton Daily
@@ -26,31 +28,38 @@ class VectorFontTest(context: Context) : ContextListener(context) {
         val camera = viewport.camera
         val freeSerif = resourcesVfs["FreeSerif.ttf"].readTtfFont()
         val vectorFont = VectorFont(freeSerif).also { it.prepare(this) }
-        val text = TextBlock(50f, 350f, mutableListOf(Text("Eat Ass", 128, Color.WHITE)))
+        val text = TextBlock(50f, 350f, mutableListOf(Text("Eat Ass", 128, Color.RED)))
 
+        camera.position.x = 481f
         onResize { width, height ->
             viewport.update(width, height, this, true)
-            vectorFont.resize(width,height, this)
+            vectorFont.resize(width, height, this)
         }
 
         onRender { dt ->
             gl.clearColor(Color.DARK_GRAY)
             gl.clear(ClearBufferMask.COLOR_BUFFER_BIT)
-
+            camera.position.y = 273.5245f
             camera.update()
             vectorFont.queue(text)
-        //    vectorFont.flush(batch, camera.viewProjection, Color.WHITE)
-            vectorFont.flush(camera.viewProjection)
-            if(input.isKeyPressed(Key.W)) {
+            //vectorFont.flush(batch, camera.viewProjection, Color.WHITE)
+                vectorFont.flush(camera.viewProjection)
+            if(input.isKeyPressed(Key.V)) {
+                text.text[0].pxScale++
+            }
+            if(input.isKeyPressed(Key.C)) {
+                text.text[0].pxScale--
+            }
+            if (input.isKeyPressed(Key.W)) {
                 text.y -= 10f
             }
-            if(input.isKeyPressed(Key.S)) {
+            if (input.isKeyPressed(Key.S)) {
                 text.y += 10f
             }
-            if(input.isKeyPressed(Key.D)) {
+            if (input.isKeyPressed(Key.D)) {
                 text.x += 10f
             }
-            if(input.isKeyPressed(Key.A)) {
+            if (input.isKeyPressed(Key.A)) {
                 text.x -= 10f
             }
             if (input.isKeyJustPressed(Key.P)) {

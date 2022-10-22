@@ -1,6 +1,7 @@
 package com.lehaine.littlekt.graphics.font
 
 import com.lehaine.littlekt.Context
+import com.lehaine.littlekt.Experimental
 import com.lehaine.littlekt.graphics.*
 import com.lehaine.littlekt.graphics.font.internal.CubicBezier
 import com.lehaine.littlekt.graphics.font.internal.QuadraticBezier
@@ -20,6 +21,7 @@ import kotlin.time.measureTime
  * @author Colton Daily
  * @date 11/30/2021
  */
+@Experimental
 class VectorFont(private val font: TtfFont) : Preparable {
     private lateinit var glyphRenderer: GlyphRenderer
 
@@ -66,22 +68,27 @@ class VectorFont(private val font: TtfFont) : Preparable {
             useBatcher = false
         }
         glyphRenderer = GlyphRenderer()
-        fbo = FrameBuffer(context.graphics.width, context.graphics.height).apply { prepare(context) }
+        fbo = FrameBuffer(
+            context.graphics.width,
+            context.graphics.height
+        ).apply { prepare(context) }
         isPrepared = true
     }
 
+    /**
+     * Resizes the internal frame buffer.
+     */
     fun resize(width: Int, height: Int, context: Context) {
         if (!prepared) return
         fbo.dispose()
-        fbo = FrameBuffer(width, height).apply { prepare(context) }
+        fbo = FrameBuffer(
+            width, height
+        ).apply { prepare(context) }
     }
 
     /**
-     * @param text the string of text to render
-     * @param x the x coord position to render the text at
-     * @param y the y coord position to tender the text at
-     * @param color the color to render the text as. The color is only taken into account if [flush] is used.
-     * This is due to be able to render directly to the vertices vs having to use blending to get the desired results.
+     * Queue a [TextBlock] to render.
+     * @param text the [TextBlock] to render
      */
     fun queue(text: TextBlock) {
         check(isPrepared) { "VectorFont has not been prepared yet! Please call prepare() before using!" }
@@ -127,13 +134,10 @@ class VectorFont(private val font: TtfFont) : Preparable {
      * Renders the text offscreen in order to determine antialiasing and then renders the FBO texture to the [batch].
      * @param batch the batch to render the results to
      * @param viewProjection the combined view projection matrix to render the text
-     * @param useJitter whether to use the jitter pattern to display text. If set to `true` this will allow for
-     * cleaner and crisper text but at the cost of **6** higher draw calls. Otherwise, the text will be rendered offscreen
-     * once.
      * @param color the color to render the text as. If any color BUT [Color.BLACK] is used, it will result in one extra
      * draw call due.
      */
-    fun flush(batch: Batch, viewProjection: Mat4, color: Color = Color.BLACK, useJitter: Boolean = true) {
+    fun flush(batch: Batch, viewProjection: Mat4, color: Color = Color.BLACK) {
         fbo.begin()
         gl.clearColor(Color.CLEAR)
         gl.clear(ClearBufferMask.COLOR_BUFFER_BIT)
@@ -144,35 +148,27 @@ class VectorFont(private val font: TtfFont) : Preparable {
         updateGlyphMeshVertices()
 
         glyphOffscreenShader.bind()
-        if (useJitter) {
-            JITTER_PATTERN.forEachIndexed { idx, pattern ->
-                temp.set(viewProjection)
-                temp.translate(pattern.x, pattern.y, 0f)
-                if (idx % 2 == 0) {
-                    glyphOffscreenShader.fragmentShader.uColor.apply(
-                        glyphOffscreenShader,
-                        if (idx == 0) 1f else 0f,
-                        if (idx == 2) 1f else 0f,
-                        if (idx == 4) 1f else 0f,
-                        0f
-                    )
-                }
-                glyphOffscreenShader.vertexShader.uProjTrans.apply(glyphOffscreenShader, temp)
-                glyphMesh.render(glyphOffscreenShader, count = offset / 5)
+        JITTER_PATTERN.forEachIndexed { idx, pattern ->
+            temp.set(viewProjection)
+            temp.translate(pattern.x, pattern.y, 0f)
+            if (idx % 2 == 0) {
+                glyphOffscreenShader.fragmentShader.uColor.apply(
+                    glyphOffscreenShader,
+                    if (idx == 0) 1f else 0f,
+                    if (idx == 2) 1f else 0f,
+                    if (idx == 4) 1f else 0f,
+                    0f
+                )
             }
-        } else {
-            glyphOffscreenShader.fragmentShader.uColor.apply(
-                glyphOffscreenShader,
-                1f,
-                1f,
-                1f,
-                1f
-            )
-            glyphOffscreenShader.vertexShader.uProjTrans.apply(glyphOffscreenShader, viewProjection)
+            glyphOffscreenShader.vertexShader.uProjTrans.apply(glyphOffscreenShader, temp)
             glyphMesh.render(glyphOffscreenShader, count = offset / 5)
         }
         fbo.end()
+        val projMat = batch.projectionMatrix
+        val drawing = batch.drawing
+        if (drawing) batch.end()
         val prevShader = batch.shader
+
         batch.shader = textShader
         batch.setBlendFunction(BlendFactor.ZERO, BlendFactor.SRC_COLOR)
         batch.use(viewProjection) {
@@ -188,8 +184,10 @@ class VectorFont(private val font: TtfFont) : Preparable {
         }
         batch.shader = prevShader
         batch.setToPreviousBlendFunction()
+        if (drawing) batch.begin(projMat)
         reset()
     }
+
     private fun updateGlyphMeshVertices() {
         if (instancesHash.size == lastInstancesHash.size && lastInstancesHash.containsAll(instancesHash)) {
             instances.forEach { block ->
