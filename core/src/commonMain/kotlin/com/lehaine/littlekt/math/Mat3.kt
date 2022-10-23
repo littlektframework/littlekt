@@ -16,7 +16,7 @@ import kotlin.math.sqrt
  * @author Colton Daily
  * @date 11/23/2021
  */
-class Mat3 {
+open class Mat3 {
 
     val data = FloatArray(9)
 

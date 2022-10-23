@@ -7,7 +7,7 @@ import com.lehaine.littlekt.graphics.gl.*
 import com.lehaine.littlekt.math.MutableVec4i
 
 /**
- * Encapsulates OpenGL ES 2.0 frame buffer objects.
+ * Encapsulates OpenGL frame buffer objects.
  * @param width the width of the framebuffer in pixels
  * @param height the height of the framebuffer in pixels
  * @param hasDepth whether to attach a depth buffer. Defaults to false.

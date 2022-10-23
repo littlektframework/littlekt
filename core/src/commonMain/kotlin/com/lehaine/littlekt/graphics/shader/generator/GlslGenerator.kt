@@ -793,6 +793,8 @@ abstract class GlslGenerator : GlslProvider {
     fun mat3() = ConstructorDelegate(Mat3(this))
     fun mat2() = ConstructorDelegate(Mat2(this))
 
+    fun round(vec4: Vec4) = Vec4(this, "round(${vec4.value})")
+
     val String.float get() = GLFloat(this@GlslGenerator, this)
     val String.bool get() = Bool(this@GlslGenerator, this)
     val Float.lit get() = GLFloat(this@GlslGenerator, this.str())

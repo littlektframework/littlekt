@@ -6,6 +6,7 @@ import com.lehaine.littlekt.graphics.shader.generator.str
 import com.lehaine.littlekt.graphics.shader.generator.type.Vector
 import com.lehaine.littlekt.graphics.shader.generator.type.scalar.GLFloat
 import com.lehaine.littlekt.graphics.shader.generator.type.scalar.floatComponent
+import kotlin.reflect.KProperty
 
 /**
  * @author Colton Daily
