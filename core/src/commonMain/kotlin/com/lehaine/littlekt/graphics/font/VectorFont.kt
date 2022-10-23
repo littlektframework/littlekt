@@ -249,7 +249,7 @@ class VectorFont(private val font: TtfFont) : Preparable {
         text.text.forEach { char ->
             val code = char.code
             if (char == '\n') {
-                ty -= font.metrics.ascent * pathScale
+                ty += font.metrics.ascent * text.pxScale
                 tx = startX
                 return@forEach
             }
@@ -269,22 +269,17 @@ class VectorFont(private val font: TtfFont) : Preparable {
                         )
 
                         GlyphPath.CommandType.CURVE_TO -> {
-//                            glyphRenderer.cubicCurveTo(
-//                                cmd.x1 * pathScale + tx,
-//                                -cmd.y1 * pathScale + ty,
-//                                cmd.x2 * pathScale + tx,
-//                                -cmd.y2 * pathScale + ty,
-//                                cmd.x * pathScale + tx,
-//                                -cmd.y * pathScale + ty
-//                            )
+                            // possibly future use to convert cubic beziers to quadratic beziers
                         }
 
-                        GlyphPath.CommandType.QUADRATIC_CURVE_TO -> glyphRenderer.curveTo(
-                            cmd.x1 * pathScale + tx,
-                            -cmd.y1 * pathScale + ty,
-                            cmd.x * pathScale + tx,
-                            -cmd.y * pathScale + ty
-                        )
+                        GlyphPath.CommandType.QUADRATIC_CURVE_TO -> {
+                            glyphRenderer.curveTo(
+                                cmd.x1 * pathScale + tx,
+                                -cmd.y1 * pathScale + ty,
+                                cmd.x * pathScale + tx,
+                                -cmd.y * pathScale + ty
+                            )
+                        }
 
                         GlyphPath.CommandType.CLOSE -> glyphRenderer.close()
 

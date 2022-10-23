@@ -5,7 +5,6 @@ import com.lehaine.littlekt.ContextListener
 import com.lehaine.littlekt.Experimental
 import com.lehaine.littlekt.file.vfs.readTtfFont
 import com.lehaine.littlekt.graphics.Color
-import com.lehaine.littlekt.graphics.SpriteBatch
 import com.lehaine.littlekt.graphics.font.VectorFont
 import com.lehaine.littlekt.graphics.font.VectorFont.*
 import com.lehaine.littlekt.graphics.gl.ClearBufferMask
@@ -20,15 +19,14 @@ class VectorFontTest(context: Context) : ContextListener(context) {
 
     @OptIn(Experimental::class)
     override suspend fun Context.start() {
-        val batch = SpriteBatch(this)
         val viewport = ExtendViewport(480, 270)
         val camera = viewport.camera
         val freeSerif = resourcesVfs["FreeSerif.ttf"].readTtfFont()
         val vectorFont = VectorFont(freeSerif).also { it.prepare(this) }
-        val text = TextBlock(50f, 150f, mutableListOf(Text("You're not real man", 32, Color.RED)))
+        val text = TextBlock(5f, 5f, mutableListOf(Text("You're not real man", 16, Color.RED)))
         val text2 = TextBlock(50f, 200f, mutableListOf(Text("Had a funeral for a bird", 32, Color.RED)))
+        var lastStats = ""
 
-        camera.position.x = 481f
         onResize { width, height ->
             viewport.update(width, height, this, true)
             vectorFont.resize(width, height, this)
@@ -39,10 +37,12 @@ class VectorFontTest(context: Context) : ContextListener(context) {
             gl.clear(ClearBufferMask.COLOR_BUFFER_BIT)
             camera.update()
 
+            text.text[0].text = lastStats
             vectorFont.queue(text)
             vectorFont.queue(text2)
             vectorFont.flush(camera.viewProjection)
 
+            lastStats = stats.toString()
             if (input.isKeyPressed(Key.V)) {
                 text.text[0].pxScale++
             }
