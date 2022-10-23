@@ -3,18 +3,16 @@ package com.lehaine.littlekt.graphics.font
 import com.lehaine.littlekt.Context
 import com.lehaine.littlekt.Experimental
 import com.lehaine.littlekt.graphics.*
-import com.lehaine.littlekt.graphics.font.internal.CubicBezier
-import com.lehaine.littlekt.graphics.font.internal.QuadraticBezier
-import com.lehaine.littlekt.graphics.font.internal.convertToQuadBezier
-import com.lehaine.littlekt.graphics.gl.*
+import com.lehaine.littlekt.graphics.gl.ClearBufferMask
+import com.lehaine.littlekt.graphics.gl.CompareFunction
+import com.lehaine.littlekt.graphics.gl.State
+import com.lehaine.littlekt.graphics.gl.StencilAction
 import com.lehaine.littlekt.graphics.shader.ShaderProgram
-import com.lehaine.littlekt.graphics.shader.shaders.*
-import com.lehaine.littlekt.log.Logger
+import com.lehaine.littlekt.graphics.shader.shaders.GlyphFragmentShader
+import com.lehaine.littlekt.graphics.shader.shaders.GlyphVertexShader
 import com.lehaine.littlekt.math.Mat4
 import com.lehaine.littlekt.math.RectBuilder
-import com.lehaine.littlekt.math.Vec2f
 import com.lehaine.littlekt.util.datastructure.FloatArrayList
-import kotlin.math.max
 import kotlin.time.measureTime
 
 /**
@@ -26,15 +24,13 @@ class VectorFont(private val font: TtfFont) : Preparable {
     private lateinit var glyphRenderer: GlyphRenderer
 
     private lateinit var glyphShader: ShaderProgram<GlyphVertexShader, GlyphFragmentShader>
-    private lateinit var glyphOffscreenShader: ShaderProgram<GlyphVertexShader, GlyphOffscreenFragmentShader>
 
-    private lateinit var textShader: ShaderProgram<TextVertexShader, TextFragmentShader>
     private lateinit var glyphMesh: Mesh
     private lateinit var gl: GL
     private lateinit var fbo: FrameBuffer
+    private lateinit var fboSlice: TextureSlice
 
     private var isPrepared = false
-    private val temp = Mat4()
 
     // text block cache -  textBlock.id to textBlock.hashCode
     private val textBlockCache = linkedMapOf<Int, Pair<Int, Pair<Float, Float>>>()
@@ -59,9 +55,6 @@ class VectorFont(private val font: TtfFont) : Preparable {
     override fun prepare(context: Context) {
         gl = context.gl
         glyphShader = ShaderProgram(GlyphVertexShader(), GlyphFragmentShader()).also { it.prepare(context) }
-        glyphOffscreenShader =
-            ShaderProgram(GlyphVertexShader(), GlyphOffscreenFragmentShader()).also { it.prepare(context) }
-        textShader = ShaderProgram(TextVertexShader(), TextFragmentShader()).also { it.prepare(context) }
 
         glyphMesh = textureMesh(context.gl) {
             maxVertices = vertices.capacity
@@ -70,8 +63,9 @@ class VectorFont(private val font: TtfFont) : Preparable {
         glyphRenderer = GlyphRenderer()
         fbo = FrameBuffer(
             context.graphics.width,
-            context.graphics.height
+            context.graphics.height,
         ).apply { prepare(context) }
+        fboSlice = fbo.colorBufferTexture.slice()
         isPrepared = true
     }
 
@@ -84,6 +78,7 @@ class VectorFont(private val font: TtfFont) : Preparable {
         fbo = FrameBuffer(
             width, height
         ).apply { prepare(context) }
+        fboSlice = fbo.colorBufferTexture.slice()
     }
 
     /**
@@ -127,64 +122,7 @@ class VectorFont(private val font: TtfFont) : Preparable {
         glyphMesh.render(glyphShader, count = offset / 5)
 
         gl.disable(State.STENCIL_TEST)
-        reset()
-    }
 
-    /**
-     * Renders the text offscreen in order to determine antialiasing and then renders the FBO texture to the [batch].
-     * @param batch the batch to render the results to
-     * @param viewProjection the combined view projection matrix to render the text
-     * @param color the color to render the text as. If any color BUT [Color.BLACK] is used, it will result in one extra
-     * draw call due.
-     */
-    fun flush(batch: Batch, viewProjection: Mat4, color: Color = Color.BLACK) {
-        fbo.begin()
-        gl.clearColor(Color.CLEAR)
-        gl.clear(ClearBufferMask.COLOR_BUFFER_BIT)
-        gl.enable(State.BLEND)
-        gl.blendEquation(BlendEquationMode.FUNC_ADD)
-        gl.blendFunc(BlendFactor.ONE, BlendFactor.ONE)
-
-        updateGlyphMeshVertices()
-
-        glyphOffscreenShader.bind()
-        JITTER_PATTERN.forEachIndexed { idx, pattern ->
-            temp.set(viewProjection)
-            temp.translate(pattern.x, pattern.y, 0f)
-            if (idx % 2 == 0) {
-                glyphOffscreenShader.fragmentShader.uColor.apply(
-                    glyphOffscreenShader,
-                    if (idx == 0) 1f else 0f,
-                    if (idx == 2) 1f else 0f,
-                    if (idx == 4) 1f else 0f,
-                    0f
-                )
-            }
-            glyphOffscreenShader.vertexShader.uProjTrans.apply(glyphOffscreenShader, temp)
-            glyphMesh.render(glyphOffscreenShader, count = offset / 5)
-        }
-        fbo.end()
-        val projMat = batch.projectionMatrix
-        val drawing = batch.drawing
-        if (drawing) batch.end()
-        val prevShader = batch.shader
-
-        batch.shader = textShader
-        batch.setBlendFunction(BlendFactor.ZERO, BlendFactor.SRC_COLOR)
-        batch.use(viewProjection) {
-            textShader.fragmentShader.uColor.apply(textShader, Color.CLEAR)
-            it.draw(fbo.colorBufferTexture, 0f, 0f, flipY = true)
-            it.setToPreviousBlendFunction()
-
-            if (color != Color.BLACK) {
-                it.setBlendFunction(BlendFactor.ONE, BlendFactor.ONE)
-                textShader.fragmentShader.uColor.apply(textShader, color)
-                it.draw(fbo.colorBufferTexture, 0f, 0f, flipY = true)
-            }
-        }
-        batch.shader = prevShader
-        batch.setToPreviousBlendFunction()
-        if (drawing) batch.begin(projMat)
         reset()
     }
 
@@ -356,91 +294,56 @@ class VectorFont(private val font: TtfFont) : Preparable {
             }
             tx += glyph.advanceWidth * pathScale
         }
-        return TextData(text, tx, ty, tempVertices.toFloatArray())
+        return TextData(tx, ty, tempVertices.toFloatArray())
     }
 
-    companion object {
-        private val logger = Logger<VectorFont>()
 
-        /**
-         * 6x subpixel AA pattern
-         *
-         * ```
-         * R = (f(x - 2/3, y) + f(x - 1/3, y) + f(x, y)) / 3
-         * G = (f(x - 1/3, y) + f(x, y) + f(x + 1/3, y)) / 3
-         * B = (f(x, y) + f(x + 1/3, y) + f(x + 2/3, y)) / 3
-         * ```
-         *
-         * The shader would require three texture lookups if the texture format
-         * stored data for offsets -1/3, 0, and +1/3 since the shader also needs
-         * data for offsets -2/3 and +2/3. To avoid this, the texture format stores
-         * data for offsets 0, +1/3, and +2/3 instead. That way the shader can get
-         * data for offsets -2/3 and -1/3 with only one additional texture lookup.
-         */
-        private val JITTER_PATTERN = listOf(
-            Vec2f(-1f / 12f, -5f / 12f),
-            Vec2f(1f / 12f, 1f / 12f),
-            Vec2f(3f / 12f, -1f / 12f),
-            Vec2f(5f / 12f, 5f / 12f),
-            Vec2f(7f / 12f, -3f / 12f),
-            Vec2f(9f / 12f, 3f / 12f)
-        )
-    }
-}
+    data class TextBlock(
+        var x: Float = 0f,
+        var y: Float = 0f,
+        val text: MutableList<Text> = mutableListOf(),
+    ) {
+        val id = genId
 
-private class TextData(val text: Text, val endX: Float, val endY: Float, val vertices: FloatArray) {
-    val id = genId
+        companion object {
+            private var genId = 1
+                get() = field++
+        }
 
-    companion object {
-        private var genId = 1
-            get() = field++
-    }
-}
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (other == null || this::class != other::class) return false
 
-data class TextBlock(
-    var x: Float = 0f,
-    var y: Float = 0f,
-    val text: MutableList<Text> = mutableListOf(),
-) {
-    val id = genId
+            other as TextBlock
 
-    companion object {
-        private var genId = 1
-            get() = field++
+            return id == other.id
+        }
+
+        override fun hashCode(): Int {
+            var result = x.hashCode()
+            result = 31 * result + y.hashCode()
+            result = 31 * result + text.hashCode()
+            result = 31 * result + id
+            return result
+        }
+
     }
 
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (other == null || this::class != other::class) return false
+    data class Text(
+        var text: String = "",
+        var pxScale: Int = 16,
+        var color: Color = Color.BLACK,
+    ) {
+        val id = genId
 
-        other as TextBlock
-
-        return id == other.id
-    }
-
-    override fun hashCode(): Int {
-        var result = x.hashCode()
-        result = 31 * result + y.hashCode()
-        result = 31 * result + text.hashCode()
-        result = 31 * result + id
-        return result
-    }
-
-}
-
-data class Text(
-    var text: String = "",
-    var pxScale: Int = 16,
-    var color: Color = Color.BLACK,
-) {
-    val id = genId
-
-    companion object {
-        private var genId = 1
-            get() = field++
+        companion object {
+            private var genId = 1
+                get() = field++
+        }
     }
 }
 
+private class TextData(val endX: Float, val endY: Float, val vertices: FloatArray)
 
 internal class GlyphRenderer {
 
@@ -459,7 +362,6 @@ internal class GlyphRenderer {
     private var color: Color = Color.WHITE
     private var colorBits = color.toFloatBits()
     private val vertices = FloatArrayList(100)
-    private val quadBeziers = Array(24) { QuadraticBezier(0f, 0f, 0f, 0f, 0f, 0f) }
 
     fun begin(glyph: TtfGlyph, color: Color) {
         if (this.color != color) {
@@ -494,22 +396,6 @@ internal class GlyphRenderer {
         appendTriangle(currentX, currentY, cx, cy, x, y, TriangleType.QUADRATIC_CURVE)
         currentX = x
         currentY = y
-    }
-
-    fun cubicCurveTo(x1: Float, y1: Float, x2: Float, y2: Float, x: Float, y: Float) {
-        val glyph = glyph ?: return
-        val cubicBezier = CubicBezier(currentX, currentY, x1, y1, x2, y2, x, y)
-        val c2qResolution = max((((glyph.width + glyph.height) / 2) * 0.05f).toInt(), 1)
-        val totalBeziers = 6 * cubicBezier.convertToQuadBezier(c2qResolution, quadBeziers)
-        for (i in 0 until totalBeziers step 6) {
-            val quadBezier = quadBeziers[i]
-            curveTo(quadBezier.c1x, quadBezier.c1y, quadBezier.p2x, quadBezier.p2y)
-//            Bezier().apply {
-//                p0.set(quadBezier.p1x, quadBezier.p1y)
-//                control.set(quadBezier.c1x, quadBezier.c1y)
-//                p1.set(quadBezier.p2x, quadBezier.p2y)
-//            }
-        }
     }
 
     fun close() {

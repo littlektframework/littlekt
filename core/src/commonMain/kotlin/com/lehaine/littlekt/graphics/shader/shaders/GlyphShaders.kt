@@ -41,30 +41,6 @@ class GlyphFragmentShader : FragmentShaderModel() {
             discard()
         }
 
-        gl_FragColor = v_color
-    }
-}
-
-
-/**
- * @author Colton Daily
- * @date 11/28/2021
- */
-class GlyphOffscreenFragmentShader : FragmentShaderModel() {
-    val uColor get() = parameters[0] as ShaderParameter.UniformVec4
-    private val u_color by uniform(::Vec4)
-    private val v_color by varying(::Vec4)
-    private val v_texCoords by varying(::Vec2)
-
-    init {
-        If(v_texCoords.x * v_texCoords.x - v_texCoords.y gt 0f) {
-            discard()
-        }
-
-        gl_FragColor = u_color * ternary(
-            gl_FrontFacing,
-            left = "16.0 / 255.0".float,
-            right = "1.0 / 255.0".float
-        )
+        gl_FragColor =  v_color
     }
 }
