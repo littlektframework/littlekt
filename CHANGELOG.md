@@ -10,7 +10,8 @@
       subsequent calls to `getThemeDrawable()` will first check in the `drawableOverrides` and then in
       the `drawableCache` map and return a result if it exists.
     * When a theme owners theme changes, the theme owners and its child control nodes will all have their caches cleared.
-
+* Add an expirmental API for rendering scalable TrueType Fonts (TTF) called `VectorFont`. A sample `VectorFontTest` exists for usage.
+*
 ### New
 
 * add: `EmptyDrawable` to handle drawables that don't need drawn.
