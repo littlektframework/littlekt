@@ -6,6 +6,7 @@ import com.lehaine.littlekt.input.Pointer
 import com.lehaine.littlekt.math.MutableVec2f
 import com.lehaine.littlekt.util.internal.epochMillis
 import com.lehaine.littlekt.util.milliseconds
+import com.lehaine.littlekt.util.seconds
 import kotlinx.coroutines.*
 import kotlin.math.abs
 import kotlin.math.min
@@ -162,7 +163,7 @@ class GestureController(
         if (longPressFired) return false
 
         if (inTapRectangle) {
-            if (lastTapPointer != pointer || epochMillis() * 1000000 - lastTapTime > tapCountInterval.milliseconds || !isWithinTapRectangle(
+            if (lastTapPointer != pointer || epochMillis() - lastTapTime > tapCountInterval.milliseconds || !isWithinTapRectangle(
                     screenX,
                     screenY,
                     lastTapX,
@@ -172,7 +173,7 @@ class GestureController(
                 tapCount = 0
             }
             tapCount++
-            lastTapTime = epochMillis() * 1000000
+            lastTapTime = epochMillis()
             lastTapX = screenX
             lastTapY = screenY
             lastTapPointer = pointer
@@ -198,7 +199,7 @@ class GestureController(
         }
 
         val time = input.currentEventTime
-        if (time - touchDownTime <= maxFlingDuration.milliseconds) {
+        if (time - touchDownTime <= maxFlingDuration.seconds) {
             tracker.update(screenX, screenY, time)
             handled = processor.fling(tracker.velocityX, tracker.velocityY, pointer) || handled
         }
@@ -231,7 +232,7 @@ class GestureController(
         val velocityX: Float
             get() {
                 val meanX = getAverage(meanX, numSamples)
-                val meanTime = getAverage(meanTime, numSamples) / 1_000_000_000f
+                val meanTime = getAverage(meanTime, numSamples).toFloat()
                 if (meanTime == 0f) return 0f
                 return meanX / meanTime
             }
@@ -239,7 +240,7 @@ class GestureController(
         val velocityY: Float
             get() {
                 val meanY = getAverage(meanY, numSamples)
-                val meanTime = getAverage(meanTime, numSamples) / 1_000_000_000f
+                val meanTime = getAverage(meanTime, numSamples).toFloat()
                 if (meanTime == 0f) return 0f
                 return meanY / meanTime
             }

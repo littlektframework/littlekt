@@ -11,13 +11,20 @@ import com.lehaine.littlekt.graphics.Camera
 import com.lehaine.littlekt.graphics.gl.State
 import com.lehaine.littlekt.graphics.shape.ShapeRenderer
 import com.lehaine.littlekt.input.Key
+import com.lehaine.littlekt.input.Pointer
+import com.lehaine.littlekt.input.gesture.GestureController
+import com.lehaine.littlekt.input.gesture.GestureProcessor
 import com.lehaine.littlekt.math.MutableVec2f
 import com.lehaine.littlekt.math.floor
+import com.lehaine.littlekt.util.milliseconds
+import com.lehaine.littlekt.util.seconds
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
+import kotlin.math.absoluteValue
 import kotlin.math.max
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 
 
 /**
@@ -44,9 +51,14 @@ inline fun SceneGraph<*>.scrollContainer(callback: @SceneGraphDslMarker ScrollCo
  * @author Colton Daily
  * @date 10/16/2022
  */
-class ScrollContainer : Container() {
+class ScrollContainer : Container(), GestureProcessor {
     var horizontalScrollMode: ScrollMode = ScrollMode.AUTO
     var verticalScrollMode: ScrollMode = ScrollMode.AUTO
+
+    /**
+     * If `true` scrolling will work by clicking & dragging / flinging the contents.
+     */
+    var dragToScroll = false
 
     private var hScrollBar: HScrollBar = hScrollBar {
         onValueChanged.connect(this, ::onScrollMoved)
@@ -57,6 +69,12 @@ class ScrollContainer : Container() {
     private var largestChildWidth = 0f
     private var largestChildHeight = 0f
     private var shiftPressed = false
+
+    private val velocity = MutableVec2f()
+    private var flingTimer = Duration.ZERO
+    private var flingTime = 1.seconds
+
+    private val gestureController by lazy { GestureController(context.input, processor = this) }
 
     init {
         mouseFilter = MouseFilter.STOP
@@ -79,6 +97,7 @@ class ScrollContainer : Container() {
 
     override fun uiInput(event: InputEvent<*>) {
         super.uiInput(event)
+
 
         when (event.type) {
             InputEvent.Type.KEY_DOWN -> {
@@ -103,6 +122,33 @@ class ScrollContainer : Container() {
                 }
                 if (prevHScroll != hScrollBar.value || prevVScroll != vScrollBar.value) {
                     event.handle()
+                }
+            }
+
+            InputEvent.Type.TOUCH_DOWN -> {
+                if(dragToScroll) {
+                    val result = gestureController.touchDown(event.sceneX, event.sceneY, event.pointer)
+                    if (result) {
+                        event.handle()
+                    }
+                }
+            }
+
+            InputEvent.Type.TOUCH_DRAGGED -> {
+                if(dragToScroll) {
+                    val result = gestureController.touchDragged(event.sceneX, event.sceneY, event.pointer)
+                    if (result) {
+                        event.handle()
+                    }
+                }
+            }
+
+            InputEvent.Type.TOUCH_UP -> {
+                if(dragToScroll) {
+                    val result = gestureController.touchUp(event.sceneX, event.sceneY, event.pointer)
+                    if (result) {
+                        event.handle()
+                    }
                 }
             }
 
@@ -132,6 +178,40 @@ class ScrollContainer : Container() {
                 // do nothing
             }
         }
+    }
+
+    override fun touchDown(screenX: Float, screenY: Float, pointer: Pointer): Boolean {
+        velocity.set(0f, 0f)
+        flingTimer = Duration.ZERO
+        return true
+    }
+
+    override fun fling(velocityX: Float, velocityY: Float, pointer: Pointer): Boolean {
+        if (velocityX.absoluteValue > 0.15f) {
+            velocity.x = velocityX
+        } else {
+            velocity.x = 0f
+        }
+        if (velocityY.absoluteValue > 0.15f) {
+            velocity.y = velocityY
+        } else {
+            velocity.y = 0f
+        }
+        if(velocityX != 0f || velocityY != 0f) {
+            flingTimer = flingTime
+        }
+        return true
+    }
+
+    override fun pan(screenX: Float, screenY: Float, dx: Float, dy: Float): Boolean {
+        if (hScrollBar.visible) {
+            hScrollBar.value -= dx
+        }
+
+        if (vScrollBar.visible) {
+            vScrollBar.value -= dy
+        }
+        return true
     }
 
     override fun calculateMinSize() {
@@ -183,6 +263,21 @@ class ScrollContainer : Container() {
         }
         if (hScrollBar.index != nodes.size - 2) {
             moveChild(hScrollBar, nodes.size - 2)
+        }
+
+        if (flingTimer > Duration.ZERO) {
+            val alpha = flingTimer.seconds / flingTime.seconds
+            if (hScrollBar.visible) {
+                hScrollBar.value += -velocity.x * alpha * dt.milliseconds
+            }
+
+            if (vScrollBar.visible) {
+                vScrollBar.value += -velocity.y * alpha * dt.milliseconds
+            }
+            flingTimer -= dt
+            if (flingTimer <= Duration.ZERO) {
+                velocity.set(0f, 0f)
+            }
         }
     }
 
