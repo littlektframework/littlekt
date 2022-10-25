@@ -1,5 +1,6 @@
 package com.lehaine.littlekt
 
+import com.lehaine.littlekt.async.KtScope
 import com.lehaine.littlekt.audio.AudioClip
 import com.lehaine.littlekt.audio.AudioStream
 import com.lehaine.littlekt.file.UnsupportedFileTypeException
@@ -18,6 +19,9 @@ import com.lehaine.littlekt.graphics.tilemap.tiled.TiledMap
 import com.lehaine.littlekt.util.fastForEach
 import com.lehaine.littlekt.util.internal.lock
 import kotlinx.atomicfu.atomic
+import kotlinx.coroutines.CompletableJob
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
@@ -55,19 +59,23 @@ open class AssetProvider(val context: Context) {
     val fullyLoaded: Boolean
         get() = totalAssetsLoading.value == 0 && prepared
 
+    private var job: Job? = null
+
 
     /**
      * Updates to check if all assets have been loaded, and if so, prepare them.
      */
-    suspend fun update() {
+    fun update() {
         if (totalAssetsLoading.value > 0) return
-        if (!prepared) {
-            assetsToPrepare.fastForEach {
-                it.prepare()
+        if (!prepared && job?.isActive != true) {
+            job = KtScope.launch {
+                assetsToPrepare.fastForEach {
+                    it.prepare()
+                }
+                assetsToPrepare.clear()
+                prepared = true
+                onFullyLoaded?.invoke()
             }
-            assetsToPrepare.clear()
-            prepared = true
-            onFullyLoaded?.invoke()
         }
     }
 
@@ -84,7 +92,7 @@ open class AssetProvider(val context: Context) {
     fun <T : Any> load(
         file: VfsFile,
         clazz: KClass<T>,
-        parameters: GameAssetParameters = EmptyGameAssetParameter()
+        parameters: GameAssetParameters = EmptyGameAssetParameter(),
     ): GameAsset<T> {
         val sceneAsset = checkOrCreateNewSceneAsset(file, clazz)
         context.vfs.launch {
@@ -106,7 +114,7 @@ open class AssetProvider(val context: Context) {
     suspend fun <T : Any> loadSuspending(
         file: VfsFile,
         clazz: KClass<T>,
-        parameters: GameAssetParameters = EmptyGameAssetParameter()
+        parameters: GameAssetParameters = EmptyGameAssetParameter(),
     ): GameAsset<T> {
         val sceneAsset = checkOrCreateNewSceneAsset(file, clazz)
         loadVfsFile(sceneAsset, file, clazz, parameters)
@@ -137,7 +145,7 @@ open class AssetProvider(val context: Context) {
         sceneAsset: GameAsset<T>,
         file: VfsFile,
         clazz: KClass<T>,
-        parameters: GameAssetParameters = EmptyGameAssetParameter()
+        parameters: GameAssetParameters = EmptyGameAssetParameter(),
     ) {
         val loader = loaders[clazz] ?: throw UnsupportedFileTypeException(file.path)
         val result = loader.invoke(file, parameters) as T
@@ -164,7 +172,7 @@ open class AssetProvider(val context: Context) {
      */
     inline fun <reified T : Any> load(
         file: VfsFile,
-        parameters: GameAssetParameters = EmptyGameAssetParameter()
+        parameters: GameAssetParameters = EmptyGameAssetParameter(),
     ) = load(file, T::class, parameters)
 
     /**
@@ -179,7 +187,7 @@ open class AssetProvider(val context: Context) {
      */
     suspend inline fun <reified T : Any> loadSuspending(
         file: VfsFile,
-        parameters: GameAssetParameters = EmptyGameAssetParameter()
+        parameters: GameAssetParameters = EmptyGameAssetParameter(),
     ) = loadSuspending(file, T::class, parameters)
 
 
@@ -289,12 +297,12 @@ class EmptyGameAssetParameter : GameAssetParameters
 class TextureGameAssetParameter(
     val minFilter: TexMinFilter = TexMinFilter.NEAREST,
     val magFilter: TexMagFilter = TexMagFilter.NEAREST,
-    val useMipmaps: Boolean = true
+    val useMipmaps: Boolean = true,
 ) : GameAssetParameters
 
 class LDtkGameAssetParameter(
     val atlas: TextureAtlas? = null,
-    val tilesetBorderThickness: Int = 2
+    val tilesetBorderThickness: Int = 2,
 ) : GameAssetParameters
 
 class TtfFileAssetParameter(
@@ -302,7 +310,7 @@ class TtfFileAssetParameter(
      * The chars to load a glyph for.
      * @see CharacterSets
      */
-    val chars: String = CharacterSets.LATIN_ALL
+    val chars: String = CharacterSets.LATIN_ALL,
 ) : GameAssetParameters
 
 class BitmapFontAssetParameter(

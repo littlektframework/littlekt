@@ -717,7 +717,9 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
         var firstLoaded = true
         onRender { dt ->
             if (!assetProvider.fullyLoaded) {
-                assetProvider.update()
+                KtScope.launch {
+                    assetProvider.update()
+                }
                 return@onRender
             }
             gl.clear(ClearBufferMask.COLOR_BUFFER_BIT)

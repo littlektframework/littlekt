@@ -15,7 +15,6 @@ import com.lehaine.littlekt.input.LwjglInput
 import com.lehaine.littlekt.log.Logger
 import com.lehaine.littlekt.util.fastForEach
 import com.lehaine.littlekt.util.internal.now
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.lwjgl.glfw.Callbacks
 import org.lwjgl.glfw.GLFW
@@ -208,14 +207,12 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context() {
             graphics._width = width
             graphics._height = height
 
-            KtScope.launch {
                 resizeCalls.fastForEach { resize ->
                     resize(
                         width,
                         height
                     )
                 }
-            }
         }
 
         listener.run { start() }
@@ -255,7 +252,7 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context() {
         GLFW.glfwPollEvents()
     }
 
-    private suspend fun invokeAnyRunnable() {
+    private fun invokeAnyRunnable() {
         if (postRunnableCalls.isNotEmpty()) {
             postRunnableCalls.fastForEach { postRunnable ->
                 postRunnable.invoke()
