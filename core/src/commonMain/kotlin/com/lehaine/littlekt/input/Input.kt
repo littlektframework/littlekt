@@ -36,6 +36,8 @@ enum class Pointer(val index: Int) {
         val MOUSE_LEFT = POINTER1
         val MOUSE_RIGHT = POINTER2
         val MOUSE_MIDDLE = POINTER3
+
+        operator fun get(index: Int) = cache[index]
     }
 }
 
@@ -287,6 +289,8 @@ interface Input {
 
     val pressure: Float
 
+    val currentEventTime: Long
+
     val inputProcessors: List<InputProcessor>
 
     val gamepads: Array<GamepadInfo>
@@ -311,8 +315,9 @@ interface Input {
     fun getDeltaY(pointer: Pointer): Int
 
     fun isJustTouched(pointer: Pointer): Boolean
-    fun isTouching(pointer: Pointer):Boolean
-    fun isTouchJustReleased(pointer: Pointer):Boolean
+    fun isTouching(pointer: Pointer): Boolean
+    fun isTouching(totalPointers: Int): Boolean
+    fun isTouchJustReleased(pointer: Pointer): Boolean
 
     fun getPressure(pointer: Pointer): Float
 

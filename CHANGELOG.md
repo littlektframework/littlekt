@@ -11,12 +11,16 @@
       the `drawableCache` map and return a result if it exists.
     * When a theme owners theme changes, the theme owners and its child control nodes will all have their caches
       cleared.
-* Add an expirmental API for rendering scalable TrueType Fonts (TTF) called `VectorFont`. A sample `VectorFontTest`
+* Add an experimental API for rendering scalable TrueType Fonts (TTF) called `VectorFont`. A sample `VectorFontTest`
   exists for usage.
+* Add a `GestureProcessor` interface with a `GestureController` input processor to handle gesture detection and
+  callbacks. Comes with a `GestureProcessorBuilder` class for easy callback creation. A helper
+  extension `Input.gestureController` to easily create and add the gesture controller as an input processor to the
+  input.
 
 ### Breaking
 
-* `Context.onRender`, `Context.onPostRender`, `Context.onPostRunnable` is now non-suspending. This fixed issues with the
+* `Context.onRender`, `Context.onPostRender`, `Context.onPostRunnable`, and `Context.onResize` are now non-suspending. This fixed issues with the
   Android and Web platforms from creating unneeded coroutines every frame. Wrap any suspending calls called within these
   callbacks in a coroutine, `KtScope.launch { }`, or check if the suspending function can be made non-suspending.
 
