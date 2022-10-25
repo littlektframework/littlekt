@@ -291,3 +291,12 @@ class GestureController(
         }
     }
 }
+
+/**
+ * Creates a new [GestureController] using a [GestureProcessorBuilder] and calls [Input.addInputProcessor] when built.
+ * @return the built [GestureController]
+ */
+fun Input.gestureController(setup: GestureProcessorBuilder.() -> Unit): GestureController {
+    return GestureController(this, setup = setup).also { addInputProcessor(it) }
+}
+

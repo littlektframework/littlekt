@@ -73,11 +73,12 @@ class AndroidInput(private val androidCtx: Context, private val graphics: Androi
         get() = getGamepadJoystickYDistance(GameStick.RIGHT)
 
     override fun onTouch(v: View, event: MotionEvent): Boolean {
+        val action = event.action and MotionEvent.ACTION_MASK
         var pointerIndex =
             (event.action and MotionEvent.ACTION_POINTER_INDEX_MASK) shr MotionEvent.ACTION_POINTER_INDEX_SHIFT
         var pointerId = event.getPointerId(pointerIndex)
 
-        when (event.action) {
+        when (action) {
             MotionEvent.ACTION_DOWN, MotionEvent.ACTION_POINTER_DOWN -> {
                 val actualIdx = getFreePointerIndex()
                 if (actualIdx >= MAX_TOUCHES) return false
@@ -91,7 +92,10 @@ class AndroidInput(private val androidCtx: Context, private val graphics: Androi
                 pressures[actualIdx] = event.getPressure(pointerIndex)
                 inputCache.onTouchDown(x, y, Pointer.cache[actualIdx])
             }
-            MotionEvent.ACTION_UP, MotionEvent.ACTION_POINTER_UP, MotionEvent.ACTION_OUTSIDE -> {
+            MotionEvent.ACTION_UP,
+            MotionEvent.ACTION_POINTER_UP,
+            MotionEvent.ACTION_OUTSIDE,
+            MotionEvent.ACTION_CANCEL -> {
                 val actualIdx = lookUpPointerIndex(pointerId)
                 if (actualIdx == -1 || actualIdx >= MAX_TOUCHES) return false
                 realId[actualIdx] = -1
@@ -119,15 +123,6 @@ class AndroidInput(private val androidCtx: Context, private val graphics: Androi
                     touchY[actualIdx] = y.toInt()
                     pressures[actualIdx] = event.getPressure(pointerIndex)
                     inputCache.onMove(x, y, Pointer.cache[actualIdx])
-                }
-            }
-            MotionEvent.ACTION_CANCEL -> {
-                for (i in 0 until MAX_TOUCHES) {
-                    touchDeltaX[i] = 0
-                    touchDeltaY[i] = 0
-                    touchX[i] = 0
-                    touchY[i] = 0
-                    pressures[i] = 0f
                 }
             }
         }

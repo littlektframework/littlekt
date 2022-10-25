@@ -18,6 +18,6 @@ class AppActivity : LittleKtActivity() {
     }
 
     override fun createContextListener(context: Context): ContextListener {
-        return DisplayTest(context)
+        return GestureControllerTest(context)
     }
 }

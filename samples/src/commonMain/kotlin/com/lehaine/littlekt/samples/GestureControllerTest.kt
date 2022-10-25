@@ -8,6 +8,7 @@ import com.lehaine.littlekt.graphics.gl.ClearBufferMask
 import com.lehaine.littlekt.graphics.shape.ShapeRenderer
 import com.lehaine.littlekt.input.Key
 import com.lehaine.littlekt.input.gesture.GestureController
+import com.lehaine.littlekt.input.gesture.gestureController
 import com.lehaine.littlekt.util.combine
 import com.lehaine.littlekt.util.viewport.ExtendViewport
 
@@ -22,9 +23,24 @@ class GestureControllerTest(context: Context) : ContextListener(context) {
         val viewport = ExtendViewport(960, 540)
         val camera = viewport.camera
 
+        var inputStatus = "TBD"
         var gestureStatus = "TBD"
 
-        GestureController(input) {
+        input.inputProcessor {
+            onTouchDown {screenX, screenY, pointer ->
+                inputStatus = "Pointer ${pointer.index} touch down at $screenX, $screenY"
+            }
+
+            onTouchDragged { screenX, screenY, pointer ->
+                inputStatus = "Pointer ${pointer.index} touch dragged at $screenX, $screenY"
+            }
+
+            onTouchUp { screenX, screenY, pointer ->
+                inputStatus = "Pointer ${pointer.index} touch up at $screenX, $screenY"
+            }
+        }
+
+        input.gestureController{
             onTouchDown { screenX, screenY, pointer ->
                 gestureStatus = "Pointer ${pointer.index} touch down at $screenX, $screenY"
             }
@@ -56,8 +72,6 @@ class GestureControllerTest(context: Context) : ContextListener(context) {
             onPanStop { screenX, screenY, pointer ->
                 gestureStatus = "Panning stopped at $screenX,$screenY"
             }
-        }.also {
-            input.addInputProcessor(it)
         }
 
         onResize { width, height ->
@@ -70,7 +84,8 @@ class GestureControllerTest(context: Context) : ContextListener(context) {
 
             camera.update()
             batch.use(camera.viewProjection) { batch ->
-                Fonts.default.draw(batch, gestureStatus, 100f, 250f)
+                Fonts.default.draw(batch, gestureStatus, 100f, 450f)
+                Fonts.default.draw(batch, inputStatus, 100f, 250f)
             }
 
             if (input.isKeyJustPressed(Key.P)) {
