@@ -108,8 +108,6 @@ class AndroidContext(override val configuration: AndroidConfiguration) : Context
 
                 val size = Point()
                 configuration.activity.windowManager.defaultDisplay.getSize(size)
-                graphics._width = size.x
-                graphics._height = size.y
 
                 val listener = build(this@AndroidContext)
                 listener.run {
