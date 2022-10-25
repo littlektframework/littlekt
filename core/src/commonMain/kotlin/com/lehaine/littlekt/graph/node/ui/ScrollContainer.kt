@@ -55,6 +55,11 @@ class ScrollContainer : Container(), GestureProcessor {
     var horizontalScrollMode: ScrollMode = ScrollMode.AUTO
     var verticalScrollMode: ScrollMode = ScrollMode.AUTO
 
+    /**
+     * If `true` scrolling will work by clicking & dragging / flinging the contents.
+     */
+    var dragToScroll = false
+
     private var hScrollBar: HScrollBar = hScrollBar {
         onValueChanged.connect(this, ::onScrollMoved)
     }
@@ -121,23 +126,29 @@ class ScrollContainer : Container(), GestureProcessor {
             }
 
             InputEvent.Type.TOUCH_DOWN -> {
-                val result = gestureController.touchDown(event.sceneX, event.sceneY, event.pointer)
-                if (result) {
-                    event.handle()
+                if(dragToScroll) {
+                    val result = gestureController.touchDown(event.sceneX, event.sceneY, event.pointer)
+                    if (result) {
+                        event.handle()
+                    }
                 }
             }
 
             InputEvent.Type.TOUCH_DRAGGED -> {
-                val result = gestureController.touchDragged(event.sceneX, event.sceneY, event.pointer)
-                if (result) {
-                    event.handle()
+                if(dragToScroll) {
+                    val result = gestureController.touchDragged(event.sceneX, event.sceneY, event.pointer)
+                    if (result) {
+                        event.handle()
+                    }
                 }
             }
 
             InputEvent.Type.TOUCH_UP -> {
-                val result = gestureController.touchUp(event.sceneX, event.sceneY, event.pointer)
-                if (result) {
-                    event.handle()
+                if(dragToScroll) {
+                    val result = gestureController.touchUp(event.sceneX, event.sceneY, event.pointer)
+                    if (result) {
+                        event.handle()
+                    }
                 }
             }
 
