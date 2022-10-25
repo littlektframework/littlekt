@@ -9,9 +9,15 @@
     * **For Example**: `getThemeDrawable()` will return a result and then is cached in the `drawableCache` map. Any
       subsequent calls to `getThemeDrawable()` will first check in the `drawableOverrides` and then in
       the `drawableCache` map and return a result if it exists.
-    * When a theme owners theme changes, the theme owners and its child control nodes will all have their caches cleared.
-* Add an expirmental API for rendering scalable TrueType Fonts (TTF) called `VectorFont`. A sample `VectorFontTest` exists for usage.
-*
+    * When a theme owners theme changes, the theme owners and its child control nodes will all have their caches
+      cleared.
+* Add an experimental API for rendering scalable TrueType Fonts (TTF) called `VectorFont`. A sample `VectorFontTest`
+  exists for usage.
+* Add a `GestureProcessor` interface with a `GestureController` input processor to handle gesture detection and
+  callbacks. Comes with a `GestureProcessorBuilder` class for easy callback creation. A helper
+  extension `Input.gestureController` to easily create and add the gesture controller as an input processor to the
+  input.
+
 ### New
 
 * add: `EmptyDrawable` to handle drawables that don't need drawn.
