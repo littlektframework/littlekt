@@ -19,6 +19,7 @@ import com.lehaine.littlekt.util.fastForEach
 import com.lehaine.littlekt.util.internal.now
 import com.lehaine.littlekt.view.LittleKtSurfaceView
 import kotlinx.coroutines.launch
+import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -45,6 +46,7 @@ class AndroidContext(override val configuration: AndroidConfiguration) : Context
     override val clipboard: AndroidClipboard = AndroidClipboard(configuration.activity)
 
     val audioContext: AndroidAudioContext = AndroidAudioContext(configuration.activity)
+    private var canUpdate = AtomicBoolean(false)
 
     init {
         KtScope.initiate()
@@ -106,6 +108,8 @@ class AndroidContext(override val configuration: AndroidConfiguration) : Context
 
                 val size = Point()
                 configuration.activity.windowManager.defaultDisplay.getSize(size)
+                graphics._width = size.x
+                graphics._height = size.y
 
                 val listener = build(this@AndroidContext)
                 listener.run {
@@ -114,19 +118,18 @@ class AndroidContext(override val configuration: AndroidConfiguration) : Context
                         it.invoke(size.x, size.y)
                     }
                 }
+                canUpdate.set(true)
             }
         }
         graphics.onResize = { width, height ->
-            KtScope.launch {
-                resizeCalls.forEach {
-                    it.invoke(width, height)
-                }
+            resizeCalls.forEach {
+                it.invoke(width, height)
             }
         }
         graphics.onDrawFrame = {
             calcFrameTimes(now().milliseconds)
             MainDispatcher.INSTANCE.executePending(available)
-            KtScope.launch {
+            if (canUpdate.get()) {
                 update(dt)
             }
         }
@@ -140,7 +143,7 @@ class AndroidContext(override val configuration: AndroidConfiguration) : Context
         configuration.activity.setContentView(surfaceView)
     }
 
-    private suspend fun update(dt: Duration) {
+    private fun update(dt: Duration) {
 
         stats.engineStats.resetPerFrameCounts()
 
@@ -154,7 +157,7 @@ class AndroidContext(override val configuration: AndroidConfiguration) : Context
         input.reset()
     }
 
-    private suspend fun invokeAnyRunnable() {
+    private fun invokeAnyRunnable() {
         if (postRunnableCalls.isNotEmpty()) {
             postRunnableCalls.fastForEach { postRunnable ->
                 postRunnable.invoke()

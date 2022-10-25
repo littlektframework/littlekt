@@ -19,12 +19,12 @@ abstract class Scene(val context: Context) : Disposable {
     /**
      * Invoked on every render frame.
      */
-    open suspend fun Context.render(dt: Duration) = Unit
+    open fun Context.render(dt: Duration) = Unit
 
     /**
      * Invoked when a resize event occurs.
      */
-    open suspend fun Context.resize(width: Int, height: Int) = Unit
+    open fun Context.resize(width: Int, height: Int) = Unit
 
     /**
      * Invoked when this scene is hidden from view.
