@@ -18,6 +18,12 @@
   extension `Input.gestureController` to easily create and add the gesture controller as an input processor to the
   input.
 
+### Breaking
+
+* `Context.onRender`, `Context.onPostRender`, `Context.onPostRunnable`, and `Context.onResize` are now non-suspending. This fixed issues with the
+  Android and Web platforms from creating unneeded coroutines every frame. Wrap any suspending calls called within these
+  callbacks in a coroutine, `KtScope.launch { }`, or check if the suspending function can be made non-suspending.
+
 ### New
 
 * add: `EmptyDrawable` to handle drawables that don't need drawn.

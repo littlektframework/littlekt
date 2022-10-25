@@ -14,7 +14,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.w3c.dom.HTMLCanvasElement
 import kotlin.time.Duration.Companion.milliseconds
-import kotlin.time.ExperimentalTime
 
 /**
  * @author Colton Daily
@@ -59,54 +58,51 @@ class WebGLContext(override val configuration: JsConfiguration) : Context() {
         window.requestAnimationFrame(::render)
     }
 
-    @Suppress("EXPERIMENTAL_IS_NOT_ENABLED")
-    @OptIn(ExperimentalTime::class)
     private fun render(now: Double) {
-        KtScope.launch {
-            if (canvas.clientWidth != graphics.width ||
-                canvas.clientHeight != graphics.height
-            ) {
-                graphics._width = canvas.clientWidth
-                graphics._height = canvas.clientHeight
-                canvas.width = canvas.clientWidth
-                canvas.height = canvas.clientHeight
-                listener.run {
-                    resizeCalls.fastForEach { resize ->
-                        resize(
-                            graphics.width, graphics.height
-                        )
-                    }
+        if (canvas.clientWidth != graphics.width ||
+            canvas.clientHeight != graphics.height
+        ) {
+            graphics._width = canvas.clientWidth
+            graphics._height = canvas.clientHeight
+            canvas.width = canvas.clientWidth
+            canvas.height = canvas.clientHeight
+            listener.run {
+                resizeCalls.fastForEach { resize ->
+                    resize(
+                        graphics.width, graphics.height
+                    )
                 }
             }
-            stats.engineStats.resetPerFrameCounts()
-
-            invokeAnyRunnable()
-
-            calcFrameTimes(now.milliseconds)
-            Dispatchers.KT.executePending(available)
-
-            input.update()
-            stats.update(dt)
-
-            renderCalls.fastForEach { render ->
-                render(dt)
-            }
-
-            postRenderCalls.fastForEach { postRender ->
-                postRender(dt)
-            }
-
-            input.reset()
-
-            if (closed) {
-                destroy()
-            } else {
-                window.requestAnimationFrame(::render)
-            }
         }
+        stats.engineStats.resetPerFrameCounts()
+
+        invokeAnyRunnable()
+
+        calcFrameTimes(now.milliseconds)
+        Dispatchers.KT.executePending(available)
+
+        input.update()
+        stats.update(dt)
+
+        renderCalls.fastForEach { render ->
+            render(dt)
+        }
+
+        postRenderCalls.fastForEach { postRender ->
+            postRender(dt)
+        }
+
+        input.reset()
+
+        if (closed) {
+            destroy()
+        } else {
+            window.requestAnimationFrame(::render)
+        }
+
     }
 
-    private suspend fun invokeAnyRunnable() {
+    private fun invokeAnyRunnable() {
         if (postRunnableCalls.isNotEmpty()) {
             postRunnableCalls.fastForEach { postRunnable ->
                 postRunnable.invoke()
