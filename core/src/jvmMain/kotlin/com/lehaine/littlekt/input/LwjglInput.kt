@@ -19,6 +19,7 @@ class LwjglInput : Input {
     private var _deltaX = 0f
     private var _deltaY = 0f
     private var lastChar: Char = 0.toChar()
+    private var touchedPointers = mutableListOf<Pointer>()
 
     private val _inputProcessors = mutableListOf<InputProcessor>()
     override val inputProcessors: List<InputProcessor>
@@ -38,6 +39,7 @@ class LwjglInput : Input {
                     lastChar = 0.toChar()
                     inputCache.onKeyDown(key.getKey)
                 }
+
                 GLFW_RELEASE -> inputCache.onKeyUp(key.getKey)
                 GLFW_REPEAT -> {
                     if (lastChar != 0.toChar()) {
@@ -68,17 +70,20 @@ class LwjglInput : Input {
             logicalMouseX = mouseX
             logicalMouseY = mouseY
 
-            // todo handle hdpi mode pixels vs logical
-
-
-            inputCache.onMove(mouseX, mouseY, Pointer.POINTER1)
+            if (touchedPointers.size > 0) {
+                inputCache.onMove(mouseX, mouseY, touchedPointers.last())
+            } else {
+                inputCache.onMove(mouseX, mouseY, Pointer.POINTER1)
+            }
         }
 
         glfwSetMouseButtonCallback(windowHandle) { window, button, action, mods ->
             if (action == GLFW_PRESS) {
                 inputCache.onTouchDown(mouseX, mouseY, button.getPointer)
+                touchedPointers += button.getPointer
             } else {
                 inputCache.onTouchUp(mouseX, mouseY, button.getPointer)
+                touchedPointers -= button.getPointer
             }
         }
 
@@ -207,7 +212,8 @@ class LwjglInput : Input {
         get() = inputCache.justTouched
     override val pressure: Float
         get() = getPressure(Pointer.POINTER1)
-
+    override val currentEventTime: Long
+        get() = inputCache.currentEventTime
     override val axisLeftX: Float
         get() = getGamepadJoystickXDistance(GameStick.LEFT)
     override val axisLeftY: Float
@@ -239,6 +245,10 @@ class LwjglInput : Input {
 
     override fun isTouching(pointer: Pointer): Boolean {
         return inputCache.isTouching(pointer)
+    }
+
+    override fun isTouching(totalPointers: Int): Boolean {
+        return inputCache.isTouching(totalPointers)
     }
 
     override fun isTouchJustReleased(pointer: Pointer): Boolean {

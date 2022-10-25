@@ -37,6 +37,8 @@ class InputCache {
 
     val isTouching: Boolean get() = touches > 0
 
+    val currentEventTime: Long get() = queueManager.currentEventTime
+
     var anyKeyJustPressed = false
         private set
     var anyKeyJustReleased = false
@@ -61,6 +63,16 @@ class InputCache {
 
     fun isTouching(pointer: Pointer): Boolean {
         return pointersTouching[pointer] ?: false
+    }
+
+    fun isTouching(totalPointers: Int): Boolean {
+        var total = 0
+        pointersTouching.values.forEach {
+            if (it) {
+                total++
+            }
+        }
+        return total >= totalPointers
     }
 
     fun isTouchJustReleased(pointer: Pointer): Boolean {

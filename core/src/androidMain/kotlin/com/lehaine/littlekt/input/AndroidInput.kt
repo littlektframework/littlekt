@@ -61,6 +61,8 @@ class AndroidInput(private val androidCtx: Context, private val graphics: Androi
         get() = inputCache.justTouched
     override val pressure: Float
         get() = getPressure(Pointer.POINTER1)
+    override val currentEventTime: Long
+        get() = inputCache.currentEventTime
     override val axisLeftX: Float
         get() = getGamepadJoystickXDistance(GameStick.LEFT)
     override val axisLeftY: Float
@@ -178,6 +180,10 @@ class AndroidInput(private val androidCtx: Context, private val graphics: Androi
 
     override fun isTouching(pointer: Pointer): Boolean {
         return inputCache.isTouching(pointer)
+    }
+
+    override fun isTouching(totalPointers: Int): Boolean {
+        return inputCache.isTouching(totalPointers)
     }
 
     override fun isTouchJustReleased(pointer: Pointer): Boolean {
