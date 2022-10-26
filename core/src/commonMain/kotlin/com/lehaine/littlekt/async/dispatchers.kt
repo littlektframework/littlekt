@@ -37,7 +37,7 @@ interface KtDispatcher : CoroutineContext, Delay {
  */
 class AsyncThreadDispatcher(
     val executor: AsyncExecutor,
-    val threads: Int = -1
+    val threads: Int = -1,
 ) : CoroutineDispatcher(), KtDispatcher, Disposable {
     private val lock: Any = Any()
     private val tasks = mutableListOf<Runnable>()
@@ -137,7 +137,7 @@ class AsyncThreadDispatcher(
     private class TimedTask(
         val time: Duration,
         val continuation: CancellableContinuation<Unit>?,
-        val callback: Runnable?
+        val callback: Runnable?,
     ) {
         var exception: Throwable? = null
     }
@@ -211,13 +211,17 @@ sealed class RenderingThreadDispatcher : MainCoroutineDispatcher(), KtDispatcher
                 }
             } ?: break
             item.exception?.let { exception ->
-                item.continuation?.resumeWithException(exception)
-                item.callback?.let {
-                    exception.printStackTrace()
+                if (item.continuation?.isActive == true) {
+                    item.continuation.resumeWithException(exception)
+                    item.callback?.let {
+                        exception.printStackTrace()
+                    }
                 }
             } ?: run {
-                item.continuation?.resume(Unit)
-                item.callback?.run()
+                if (item.continuation?.isActive == true) {
+                    item.continuation.resume(Unit)
+                    item.callback?.run()
+                }
             }
             if (now().milliseconds - startTime >= availableTime) {
                 break
@@ -246,7 +250,7 @@ sealed class RenderingThreadDispatcher : MainCoroutineDispatcher(), KtDispatcher
     private class TimedTask(
         val time: Duration,
         val continuation: CancellableContinuation<Unit>?,
-        val callback: Runnable?
+        val callback: Runnable?,
     ) {
         var exception: Throwable? = null
     }
