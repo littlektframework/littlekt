@@ -46,6 +46,7 @@
 * update: default UI asset pngs.
 * update: `Label` default `mouseFilter` is now `IGNORE`.
 * update: `Control.setAnchor` to be public.
+* fix: `Dispatchers` coroutines attempting to resume an already cancelled continuation.
 
 ## v.0.4.0
 
