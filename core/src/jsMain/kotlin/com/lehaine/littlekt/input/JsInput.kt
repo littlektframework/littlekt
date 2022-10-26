@@ -23,6 +23,7 @@ class JsInput(val canvas: HTMLCanvasElement) : Input {
     private var logicalMouseY = 0f
     private var _deltaX = 0f
     private var _deltaY = 0f
+    private val touchedPointers = mutableListOf<Pointer>()
 
     private val _inputProcessors = mutableListOf<InputProcessor>()
     override val inputProcessors: List<InputProcessor>
@@ -100,7 +101,7 @@ class JsInput(val canvas: HTMLCanvasElement) : Input {
             val rect = canvas.getBoundingClientRect()
             val x = touchEvent.clientX.toFloat() - rect.left.toFloat()
             val y = touchEvent.clientY.toFloat() - rect.top.toFloat()
-            inputCache.onMove(x, y, it.getPointer)
+            inputCache.onMove(x, y, touchedPointers.last())
         }
     }
 
@@ -121,6 +122,7 @@ class JsInput(val canvas: HTMLCanvasElement) : Input {
         val x = event.clientX.toFloat() - rect.left.toFloat()
         val y = event.clientY.toFloat() - rect.top.toFloat()
         inputCache.onTouchDown(x, y, event.button.getPointer)
+        touchedPointers += event.button.getPointer
     }
 
     private fun mouseUp(event: Event) {
@@ -129,6 +131,7 @@ class JsInput(val canvas: HTMLCanvasElement) : Input {
         val x = event.clientX.toFloat() - rect.left.toFloat()
         val y = event.clientY.toFloat() - rect.top.toFloat()
         inputCache.onTouchUp(x, y, event.button.getPointer)
+        touchedPointers -= event.button.getPointer
     }
 
     private fun mouseMove(event: Event) {
@@ -143,9 +146,11 @@ class JsInput(val canvas: HTMLCanvasElement) : Input {
         logicalMouseX = mouseX
         logicalMouseY = mouseY
 
-        // todo handle hdpi mode pixels vs logical
-
-        inputCache.onMove(mouseX, mouseY, Pointer.POINTER1)
+        if (touchedPointers.isNotEmpty()) {
+            inputCache.onMove(mouseX, mouseY, touchedPointers.last())
+        } else {
+            inputCache.onMove(mouseX, mouseY, Pointer.POINTER1)
+        }
     }
 
 
