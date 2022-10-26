@@ -31,6 +31,7 @@ fun main() {
             addSample("Tiled Map Test") { TiledMapTest(it) }
             addSample("LDtk Map Test") { LDtkMapTest(it) }
             addSample("Pixel Smooth Camera Test") { PixelSmoothCameraTest(it) }
+            addSample("Gesture Controller Test") { GestureControllerTest(it) }
         }
     }
 }
