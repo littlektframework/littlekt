@@ -47,6 +47,8 @@
 * update: `Label` default `mouseFilter` is now `IGNORE`.
 * update: `Control.setAnchor` to be public.
 * fix: `Dispatchers` coroutines attempting to resume an already cancelled continuation.
+* fix: Android input not properly detecting the correct touch event action when touching with the 2 or more pointers.
+* fix: LWJGL & JS input from not properly outputting the correct `Pointer` on `touchDragged` when using any pointer but the left mouse button.
 
 ## v.0.4.0
 
