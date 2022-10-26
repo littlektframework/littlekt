@@ -187,7 +187,7 @@ open class Label : Control() {
         layout()
 
         val text = if (uppercase) text.uppercase() else text
-        minSizeLayout.setText(font, text, scaleX = fontScaleX, scaleY = fontScaleY, wrap = wrap)
+        minSizeLayout.setText(font, text, scaleX = fontScaleX, scaleY = fontScaleY, wrap = wrap, truncate = ellipsis)
         _internalMinWidth = minSizeLayout.width
         _internalMinHeight = minSizeLayout.height
 
