@@ -128,6 +128,11 @@ open class Label : Control() {
         }
 
     var ellipsis: String? = null
+        set(value) {
+            if (value == field) return
+            field = value
+            onMinimumSizeChanged()
+        }
 
     var wrap: Boolean = false
         set(value) {
@@ -192,11 +197,12 @@ open class Label : Control() {
     private fun layout() {
         val text = if (uppercase) text.uppercase() else text
 
+        var tx = 0f
         var ty = 0f
         val textWidth: Float
         val textHeight: Float
 
-        if (wrap || text.contains("\n")) {
+        if (wrap || text.contains("\n") || ellipsis != null) {
             layout.setText(
                 font,
                 text,
@@ -210,6 +216,14 @@ open class Label : Control() {
             )
             textWidth = layout.width
             textHeight = layout.height
+
+            if(horizontalAlign != HAlign.LEFT) {
+                if(horizontalAlign == HAlign.RIGHT) {
+                    tx += width - textWidth
+                } else {
+                    tx += (width - textWidth) / 2
+                }
+            }
         } else {
             textWidth = width
             textHeight = font.capHeight
@@ -241,7 +255,7 @@ open class Label : Control() {
             wrap,
             ellipsis
         )
-        cache.setText(layout, 0f, ty, fontScaleX, fontScaleY)
+        cache.setText(layout, tx, ty, fontScaleX, fontScaleY)
     }
 
     class ThemeVars {
