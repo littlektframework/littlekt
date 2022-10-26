@@ -58,7 +58,7 @@ class ScrollContainer : Container(), GestureProcessor {
     /**
      * If `true` scrolling will work by clicking & dragging / flinging the contents.
      */
-    var dragToScroll = false
+    var dragToScroll = true
 
     private var hScrollBar: HScrollBar = hScrollBar {
         onValueChanged.connect(this, ::onScrollMoved)
