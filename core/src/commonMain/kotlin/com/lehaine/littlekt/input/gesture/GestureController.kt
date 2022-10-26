@@ -58,8 +58,6 @@ class GestureController(
     private val tracker = VelocityTracker()
     private var tapCenterX = 0f
     private var tapCenterY = 0f
-    private var tempTapCenterX = 0f
-    private var tempTapCenterY = 0f
     private var touchDownTime = 0L
 
     private var tapCount = 0
@@ -152,7 +150,8 @@ class GestureController(
         val idx = pointers.indexOf(pointer)
         pointers -= pointer
 
-        if (inTapRectangle && !isWithinTapRectangle(screenX, screenY, tempTapCenterX, tempTapCenterY)) {
+        if (inTapRectangle && !isWithinTapRectangle(screenX, screenY, tapCenterX, tapCenterY)) {
+            println("not in tap rect ! now false")
             inTapRectangle = false
         }
 
@@ -167,7 +166,7 @@ class GestureController(
                     screenX,
                     screenY,
                     lastTapX,
-                    lastTapX
+                    lastTapY
                 )
             ) {
                 tapCount = 0
