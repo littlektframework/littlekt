@@ -1,5 +1,6 @@
 package com.lehaine.littlekt.input.gesture
 
+import com.lehaine.littlekt.async.KtScope
 import com.lehaine.littlekt.input.Input
 import com.lehaine.littlekt.input.InputProcessor
 import com.lehaine.littlekt.input.Pointer
@@ -7,7 +8,9 @@ import com.lehaine.littlekt.math.MutableVec2f
 import com.lehaine.littlekt.util.internal.epochMillis
 import com.lehaine.littlekt.util.milliseconds
 import com.lehaine.littlekt.util.seconds
-import kotlinx.coroutines.*
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlin.math.abs
 import kotlin.math.min
 import kotlin.time.Duration
@@ -72,7 +75,7 @@ class GestureController(
 
     private val pointers = mutableSetOf<Pointer>()
 
-    private val longPressScope = CoroutineScope(SupervisorJob())
+    private var longPressJob: Job? = null
 
     override fun touchDown(screenX: Float, screenY: Float, pointer: Pointer): Boolean {
         if (pointers.size > 1) return false
@@ -88,15 +91,15 @@ class GestureController(
                 pinching = true
                 initialPos1.set(pointer1)
                 initialPos2.set(pointer2)
-                longPressScope.cancel()
+                longPressJob?.cancel()
             } else {
                 inTapRectangle = true
                 pinching = false
                 longPressFired = false
                 tapCenterX = screenX
                 tapCenterY = screenY
-                if (!longPressScope.isActive) {
-                    longPressScope.launch {
+                if (longPressJob?.isActive != true) {
+                    longPressJob = KtScope.launch {
                         delay(longPressDuration)
                         processor.longPress(screenX, screenY)
                     }
@@ -108,7 +111,7 @@ class GestureController(
             pinching = true
             initialPos1.set(pointer1)
             initialPos2.set(pointer2)
-            longPressScope.cancel()
+            longPressJob?.cancel()
         }
 
         return processor.touchDown(screenX, screenY, pointer)
@@ -133,7 +136,7 @@ class GestureController(
         tracker.update(screenX, screenY, input.currentEventTime)
 
         if (inTapRectangle && !isWithinTapRectangle(screenX, screenY, tapCenterX, tapCenterY)) {
-            longPressScope.cancel()
+            longPressJob?.cancel()
             inTapRectangle = false
         }
 
@@ -151,14 +154,13 @@ class GestureController(
         pointers -= pointer
 
         if (inTapRectangle && !isWithinTapRectangle(screenX, screenY, tapCenterX, tapCenterY)) {
-            println("not in tap rect ! now false")
             inTapRectangle = false
         }
 
         val wasPanning = panning
         panning = false
 
-        longPressScope.cancel()
+        longPressJob?.cancel()
         if (longPressFired) return false
 
         if (inTapRectangle) {
@@ -208,7 +210,7 @@ class GestureController(
     }
 
     fun cancel() {
-        longPressScope.cancel()
+        longPressJob?.cancel()
         longPressFired = true
     }
 
