@@ -202,7 +202,7 @@ open class Label : Control() {
         val textWidth: Float
         val textHeight: Float
 
-        if (wrap || text.contains("\n") || ellipsis != null) {
+        if (wrap || text.contains("\n")) {
             layout.setText(
                 font,
                 text,
