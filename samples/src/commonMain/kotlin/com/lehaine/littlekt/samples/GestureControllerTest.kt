@@ -11,6 +11,7 @@ import com.lehaine.littlekt.input.gesture.GestureController
 import com.lehaine.littlekt.input.gesture.gestureController
 import com.lehaine.littlekt.util.combine
 import com.lehaine.littlekt.util.viewport.ExtendViewport
+import kotlin.time.Duration.Companion.milliseconds
 
 /**
  * @author Colton Daily
@@ -67,6 +68,7 @@ class GestureControllerTest(context: Context) : ContextListener(context) {
 
             onLongPress { screenX, screenY ->
                 gestureStatus = "Long pressing at $screenX, $screenY"
+                input.vibrate(100.milliseconds)
             }
 
             onPan { screenX, screenY, dx, dy ->
