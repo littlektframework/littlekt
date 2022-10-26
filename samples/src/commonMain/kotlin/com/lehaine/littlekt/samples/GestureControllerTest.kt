@@ -53,6 +53,10 @@ class GestureControllerTest(context: Context) : ContextListener(context) {
                 gestureStatus = "Pinching!"
             }
 
+            onTap { screenX, screenY, count, pointer ->
+                gestureStatus = "Pointer ${pointer.index} is tapping at $screenX,$screenY for a total of $count taps."
+            }
+
             onZoom { initialDistance, distance ->
                 gestureStatus = "Zooming a distance of $distance"
             }
