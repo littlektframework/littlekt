@@ -139,50 +139,53 @@ fun createDefaultTheme(
         3,
         3
     )
+    val darkBlue = Color.fromHex("242b33")
+    val lightBlue = Color.fromHex("3d4754")
+
     val drawables = mapOf(
         "Button" to mapOf(
             Button.themeVars.normal to NinePatchDrawable(greyButtonNinePatch)
-                .apply { modulate = Color.LIGHT_BLUE },
+                .apply { modulate = lightBlue },
             Button.themeVars.normal to NinePatchDrawable(greyButtonNinePatch)
-                .apply { modulate = Color.LIGHT_BLUE },
+                .apply { modulate = lightBlue},
             Button.themeVars.pressed to NinePatchDrawable(greyButtonNinePatch)
-                .apply { modulate = Color.LIGHT_BLUE.toMutableColor().scaleRgb(0.6f) },
+                .apply { modulate = lightBlue.toMutableColor().scaleRgb(0.6f) },
             Button.themeVars.hover to NinePatchDrawable(greyButtonNinePatch)
-                .apply { modulate = Color.LIGHT_BLUE.toMutableColor().lighten(0.2f) },
+                .apply { modulate = lightBlue.toMutableColor().lighten(0.2f) },
             Button.themeVars.disabled to NinePatchDrawable(greyButtonNinePatch)
-                .apply { modulate = Color.LIGHT_BLUE.toMutableColor().lighten(0.5f) },
+                .apply { modulate = lightBlue.toMutableColor().lighten(0.5f) },
             Button.themeVars.focus to NinePatchDrawable(greyOutlineNinePatch)
                 .apply { modulate = Color.WHITE },
         ),
         "Panel" to mapOf(
-            Panel.themeVars.panel to NinePatchDrawable(greyBoxNinePatch).apply {
-                modulate = Color.LIGHT_BLUE
+            Panel.themeVars.panel to NinePatchDrawable(panelNinePatch).apply {
+                modulate = lightBlue
             }
         ),
         "ProgressBar" to mapOf(
             ProgressBar.themeVars.bg to NinePatchDrawable(greySliderBg).apply {
-                modulate = Color.DARK_BLUE
+                modulate = darkBlue
             },
             ProgressBar.themeVars.fg to NinePatchDrawable(greySliderBg).apply {
-                modulate = Color.LIGHT_BLUE.toMutableColor().lighten(0.5f)
+                modulate = lightBlue.toMutableColor().lighten(0.5f)
             }
         ),
         "LineEdit" to mapOf(
             LineEdit.themeVars.bg to NinePatchDrawable(greyBoxNinePatch).apply {
                 minWidth = 50f
                 minHeight = 25f
-                modulate = Color.DARK_BLUE
+                modulate = darkBlue
             },
             LineEdit.themeVars.disabled to NinePatchDrawable(greyBoxNinePatch).apply {
                 minWidth = 50f
                 minHeight = 25f
-                modulate = Color.DARK_BLUE.toMutableColor().lighten(0.2f)
+                modulate = darkBlue.toMutableColor().lighten(0.2f)
             },
             LineEdit.themeVars.caret to TextureSliceDrawable(Textures.white).apply {
                 minWidth = 1f
             },
             LineEdit.themeVars.selection to TextureSliceDrawable(Textures.white).apply {
-                modulate = Color.LIGHT_BLUE
+                modulate = lightBlue
             },
             LineEdit.themeVars.focus to NinePatchDrawable(greyOutlineNinePatch)
                 .apply { modulate = Color.WHITE },
@@ -190,30 +193,30 @@ fun createDefaultTheme(
         "ScrollContainer" to mapOf(ScrollContainer.themeVars.panel to EmptyDrawable()),
         "VScrollBar" to mapOf(
             ScrollBar.themeVars.scroll to NinePatchDrawable(greySliderBg).apply {
-                modulate = Color.DARK_BLUE
+                modulate = darkBlue
             },
             ScrollBar.themeVars.grabber to NinePatchDrawable(grayGrabber).apply {
-                modulate = Color.LIGHT_BLUE
+                modulate = lightBlue
             },
             ScrollBar.themeVars.grabberPressed to NinePatchDrawable(grayGrabber).apply {
-                modulate = Color.LIGHT_BLUE.toMutableColor().scaleRgb(0.6f)
+                modulate = lightBlue.toMutableColor().scaleRgb(0.6f)
             },
             ScrollBar.themeVars.grabberHighlight to NinePatchDrawable(grayGrabber).apply {
-                modulate = Color.LIGHT_BLUE.toMutableColor().lighten(0.2f)
+                modulate = lightBlue.toMutableColor().lighten(0.2f)
             }
         ),
         "HScrollBar" to mapOf(
             ScrollBar.themeVars.scroll to NinePatchDrawable(greySliderBg).apply {
-                modulate = Color.DARK_BLUE
+                modulate = darkBlue
             },
             ScrollBar.themeVars.grabber to NinePatchDrawable(grayGrabber).apply {
-                modulate = Color.LIGHT_BLUE
+                modulate = lightBlue
             },
             ScrollBar.themeVars.grabberPressed to NinePatchDrawable(grayGrabber).apply {
-                modulate = Color.LIGHT_BLUE.toMutableColor().scaleRgb(0.6f)
+                modulate = lightBlue.toMutableColor().scaleRgb(0.6f)
             },
             ScrollBar.themeVars.grabberHighlight to NinePatchDrawable(grayGrabber).apply {
-                modulate = Color.LIGHT_BLUE.toMutableColor().lighten(0.2f)
+                modulate = lightBlue.toMutableColor().lighten(0.2f)
             })
     ) + extraDrawables
 

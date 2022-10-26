@@ -17,6 +17,7 @@
   callbacks. Comes with a `GestureProcessorBuilder` class for easy callback creation. A helper
   extension `Input.gestureController` to easily create and add the gesture controller as an input processor to the
   input.
+* Update default theme colors and tweak default UI assets to be slightly more presentable.
 
 ### Breaking
 
