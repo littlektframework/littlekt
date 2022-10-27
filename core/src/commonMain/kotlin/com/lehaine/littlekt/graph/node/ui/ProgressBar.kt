@@ -90,6 +90,7 @@ open class ProgressBar : Range() {
         }
 
 
+    private var previousValue = -1f
     private var cache: BitmapFontCache = BitmapFontCache(font)
     private val layout = GlyphLayout()
 
@@ -101,9 +102,12 @@ open class ProgressBar : Range() {
         }
 
         if (percentVisible) {
-            val text = (ratio * 100.0).toString(1) + "%"
-            layout.setText(font, text, fontColor)
-            cache.setText(layout, 0f, 0f)
+            if (previousValue != value) {
+                val text = (ratio * 100.0).toString(1) + "%"
+                layout.setText(font, text, fontColor)
+                cache.setText(layout, 0f, height / 2f - font.capHeight)
+                previousValue = value
+            }
 
             tempColor.set(color).mul(fontColor)
             cache.tint(tempColor)
