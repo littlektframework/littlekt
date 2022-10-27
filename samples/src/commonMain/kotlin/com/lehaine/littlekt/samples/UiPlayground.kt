@@ -137,6 +137,16 @@ class UiPlayground(context: Context) : ContextListener(context) {
                                             Color((0f..1f).random(), (0f..1f).random(), (0f..1f).random(), 1f)
                                     }
                                 }
+
+                                button {
+                                    text = "Left Align"
+                                    horizontalAlign = HAlign.LEFT
+                                }
+
+                                button {
+                                    text = "Right Align"
+                                    horizontalAlign = HAlign.RIGHT
+                                }
                             }
 
                             column {
