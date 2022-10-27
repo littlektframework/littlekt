@@ -33,6 +33,29 @@ inline fun SceneGraph<*>.vBoxContainer(callback: @SceneGraphDslMarker VBoxContai
 }
 
 /**
+ * Adds a [VBoxContainer] to the current [Node] as a child and then triggers the [callback]
+ * @param callback the callback that is invoked with a [VBoxContainer] context in order to initialize any values
+ * @return the newly created [VBoxContainer]
+ */
+@OptIn(ExperimentalContracts::class)
+inline fun Node.column(callback: @SceneGraphDslMarker VBoxContainer.() -> Unit = {}): VBoxContainer {
+    contract { callsInPlace(callback, InvocationKind.EXACTLY_ONCE) }
+    return VBoxContainer().also(callback).addTo(this)
+}
+
+/**
+ * Adds a [VBoxContainer] to the current [SceneGraph.root] as a child and then triggers the [callback]
+ * @param callback the callback that is invoked with a [VBoxContainer] context in order to initialize any values
+ * @return the newly created [VBoxContainer]
+ */
+@OptIn(ExperimentalContracts::class)
+inline fun SceneGraph<*>.column(callback: @SceneGraphDslMarker VBoxContainer.() -> Unit = {}): VBoxContainer {
+    contract { callsInPlace(callback, InvocationKind.EXACTLY_ONCE) }
+    return root.column(callback)
+}
+
+
+/**
  * A vertical [BoxContainer] by adding [Control] from bottom up.
  *
  * @author Colton Daily

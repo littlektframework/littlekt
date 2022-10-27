@@ -28,6 +28,24 @@ inline fun SceneGraph<*>.hBoxContainer(callback: @SceneGraphDslMarker HBoxContai
 }
 
 /**
+ * Adds a [HBoxContainer] to the current [Node] as a child and then triggers the [callback]
+ */
+@OptIn(ExperimentalContracts::class)
+inline fun Node.row(callback: @SceneGraphDslMarker HBoxContainer.() -> Unit = {}): HBoxContainer {
+    contract { callsInPlace(callback, InvocationKind.EXACTLY_ONCE) }
+    return HBoxContainer().also(callback).addTo(this)
+}
+
+/**
+ * Adds a [HBoxContainer] to the current [SceneGraph.root] as a child and then triggers the [callback]
+ */
+@OptIn(ExperimentalContracts::class)
+inline fun SceneGraph<*>.row(callback: @SceneGraphDslMarker HBoxContainer.() -> Unit = {}): HBoxContainer {
+    contract { callsInPlace(callback, InvocationKind.EXACTLY_ONCE) }
+    return root.row(callback)
+}
+
+/**
  * A vertical [BoxContainer] by adding [Control] from left to right.
  * @author Colton Daily
  * @date 1/2/2022
