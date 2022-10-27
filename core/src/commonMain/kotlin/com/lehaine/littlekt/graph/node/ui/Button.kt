@@ -232,7 +232,7 @@ open class Button : BaseButton() {
         layout()
 
         val text = if (uppercase) text.uppercase() else text
-        minSizeLayout.setText(font, text, scaleX = fontScaleX, scaleY = fontScaleY, wrap = wrap)
+        minSizeLayout.setText(font, text, scaleX = fontScaleX, scaleY = fontScaleY, wrap = wrap, truncate = ellipsis)
         val drawable = getThemeDrawable(themeVars.normal)
         _internalMinWidth = max(minSizeLayout.width, drawable.minWidth) + padding * 2f
         _internalMinHeight = max(minSizeLayout.height, drawable.minHeight) + padding * 2f
@@ -243,6 +243,7 @@ open class Button : BaseButton() {
     private fun layout() {
         val text = if (uppercase) text.uppercase() else text
 
+        var tx = padding
         var ty = 0f
 
         val background = getThemeDrawable(themeVars.normal)
@@ -260,6 +261,14 @@ open class Button : BaseButton() {
         )
         val textWidth: Float = max(layout.width, width)
         val textHeight: Float = if (wrap || text.contains("\n")) layout.height else font.capHeight
+
+        if(horizontalAlign != HAlign.LEFT) {
+            tx += if(horizontalAlign == HAlign.RIGHT) {
+                width - textWidth
+            } else {
+                (width - textWidth) / 2
+            }
+        }
 
         when (verticalAlign) {
             VAlign.TOP -> {
@@ -289,7 +298,7 @@ open class Button : BaseButton() {
             wrap,
             ellipsis
         )
-        cache.setText(layout, padding, ty, fontScaleX, fontScaleY)
+        cache.setText(layout, tx, ty, fontScaleX, fontScaleY)
     }
 
 
