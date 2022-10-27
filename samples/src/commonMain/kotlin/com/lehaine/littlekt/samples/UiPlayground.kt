@@ -15,7 +15,6 @@ import com.lehaine.littlekt.graphics.slice
 import com.lehaine.littlekt.input.Key
 import com.lehaine.littlekt.math.random
 import com.lehaine.littlekt.util.fastForEach
-import com.lehaine.littlekt.util.viewport.ExtendViewport
 
 /**
  * @author Colton Daily
@@ -27,7 +26,8 @@ class UiPlayground(context: Context) : ContextListener(context) {
 
         val ninepatchImg = resourcesVfs["bg_9.png"].readTexture()
         val ninepatchSlice = ninepatchImg.slice()
-        val graph = sceneGraph(context, ExtendViewport(960, 540)) {
+        val ktHeadSlice = resourcesVfs["ktHead.png"].readTexture().slice()
+        val graph = sceneGraph(context) {
             panel {
                 anchorRight = 1f
                 anchorBottom = 1f
@@ -35,15 +35,18 @@ class UiPlayground(context: Context) : ContextListener(context) {
                 paddedContainer {
                     padding(10)
 
-                    hBoxContainer {
+                    row {
                         separation = 20
 
-                        vBoxContainer {
+                        column {
                             separation = 20
 
-                            vBoxContainer {
+                            column {
                                 separation = 10
-                                label { text = "**Labels**" }
+                                label {
+                                    text = "----Labels----"
+                                    horizontalAlign = HAlign.CENTER
+                                }
                                 label {
                                     text = "Different colored label"
                                     horizontalAlign = HAlign.CENTER
@@ -67,7 +70,7 @@ class UiPlayground(context: Context) : ContextListener(context) {
                                 }
 
                                 label { text = "Vertical Alignment:" }
-                                hBoxContainer {
+                                row {
                                     separation = 10
                                     minHeight = 50f
                                     align = AlignMode.CENTER
@@ -88,9 +91,9 @@ class UiPlayground(context: Context) : ContextListener(context) {
                                 }
                             }
 
-                            vBoxContainer {
+                            column {
                                 separation = 10
-                                label { text = "**Line Edits (Text Fields)**" }
+                                label { text = "----Line Edits (Text Fields)----" }
                                 label { text = "Normal:" }
                                 lineEdit {
                                     text = "you can see this"
@@ -106,13 +109,16 @@ class UiPlayground(context: Context) : ContextListener(context) {
                             }
                         }
 
-                        vBoxContainer {
+                        column {
                             separation = 20
 
-                            vBoxContainer {
+                            column {
                                 separation = 10
 
-                                label { text = "**Buttons**" }
+                                label {
+                                    text = "----Buttons----"
+                                    horizontalAlign = HAlign.CENTER
+                                }
 
                                 separation = 10
                                 button {
@@ -133,11 +139,14 @@ class UiPlayground(context: Context) : ContextListener(context) {
                                 }
                             }
 
-                            vBoxContainer {
+                            column {
                                 separation = 10
-                                label { text = "**Ranges**" }
+                                label {
+                                    text = "----Ranges----"
+                                    horizontalAlign = HAlign.CENTER
+                                }
                                 label { text = "Progress bar:" }
-                                hBoxContainer {
+                                row {
                                     val progressBar = ProgressBar()
                                     button {
                                         text = "-"
@@ -164,9 +173,9 @@ class UiPlayground(context: Context) : ContextListener(context) {
                                 label { text = "Texture Progress bars:" }
 
                                 val progessBars = mutableListOf<TextureProgress>()
-                                hBoxContainer {
-                                    separation =10
-                                    vBoxContainer {
+                                row {
+                                    separation = 10
+                                    column {
                                         align = AlignMode.CENTER
                                         button {
                                             text = "-"
@@ -186,9 +195,9 @@ class UiPlayground(context: Context) : ContextListener(context) {
                                             }
                                         }
                                     }
-                                    vBoxContainer {
-                                        separation =10
-                                        hBoxContainer {
+                                    column {
+                                        separation = 10
+                                        row {
                                             separation = 10
                                             label { text = "Left to right:" }
                                             progessBars += textureProgress {
@@ -197,11 +206,10 @@ class UiPlayground(context: Context) : ContextListener(context) {
                                                 ratio = 0.5f
                                                 progressBarColor = Color.DARK_GREEN
                                                 backgroundColor = Color.DARK_GRAY
-                                                minWidth = 100f
                                             }
                                         }
 
-                                        hBoxContainer {
+                                        row {
                                             separation = 10
                                             label { text = "Right to left: " }
                                             progessBars += textureProgress {
@@ -211,11 +219,10 @@ class UiPlayground(context: Context) : ContextListener(context) {
                                                 ratio = 0.5f
                                                 progressBarColor = Color.DARK_BLUE
                                                 backgroundColor = Color.DARK_GRAY
-                                                minWidth = 100f
                                             }
                                         }
 
-                                        hBoxContainer {
+                                        row {
                                             separation = 10
                                             label { text = "Top to bottom: " }
                                             progessBars += textureProgress {
@@ -225,11 +232,10 @@ class UiPlayground(context: Context) : ContextListener(context) {
                                                 ratio = 0.5f
                                                 progressBarColor = Color.DARK_ORANGE
                                                 backgroundColor = Color.DARK_GRAY
-                                                minWidth = 100f
                                             }
                                         }
 
-                                        hBoxContainer {
+                                        row {
                                             separation = 10
                                             label { text = "Bottom to top:" }
                                             progessBars += textureProgress {
@@ -239,16 +245,191 @@ class UiPlayground(context: Context) : ContextListener(context) {
                                                 ratio = 0.5f
                                                 progressBarColor = Color.DARK_RED
                                                 backgroundColor = Color.DARK_GRAY
-                                                minWidth = 100f
                                             }
                                         }
                                     }
                                 }
-                            }
 
-                            vBoxContainer {
+                                label { text = "Scrollbars:" }
+                                vScrollBar {
+                                    page = 10f
+                                    minHeight = 100f
+                                }
+                                hScrollBar {
+                                    page = 10f
+                                }
+                            }
+                        }
+
+                        column {
+                            separation = 20
+                            column {
+                                separation = 5
+                                label {
+                                    text = "----Texture & Ninepatch Rects----"
+                                    horizontalAlign = HAlign.CENTER
+                                }
+
+                                ninePatchRect {
+                                    texture = ninepatchSlice
+                                    left = 3
+                                    right = 3
+                                    top = 3
+                                    bottom = 4
+                                    width = 100f
+                                    minHeight = 50f
+                                    color = Color.DARK_GRAY
+                                }
+
+                                textureRect {
+                                    slice = ktHeadSlice
+                                    stretchMode = TextureRect.StretchMode.KEEP_CENTERED
+                                }
+
+                                label { text = "Stretch Modes:" }
+
+                                row {
+                                    label { text = "Keep:" }
+                                    textureRect {
+                                        slice = ktHeadSlice
+                                    }
+                                }
+
+                                row {
+                                    label { text = "Keep Aspect:" }
+                                    textureRect {
+                                        slice = ktHeadSlice
+                                        stretchMode = TextureRect.StretchMode.KEEP_ASPECT
+                                        minWidth = 64f
+                                    }
+                                }
+
+
+                                row {
+                                    label { text = "Keep Aspect Covered:" }
+                                    textureRect {
+                                        slice = ktHeadSlice
+                                        stretchMode = TextureRect.StretchMode.KEEP_ASPECT_COVERED
+                                        minWidth = 64f
+                                    }
+                                }
+
+
+                                row {
+                                    label { text = "Keep Aspect Centered:" }
+                                    textureRect {
+                                        slice = ktHeadSlice
+                                        stretchMode = TextureRect.StretchMode.KEEP_ASPECT_CENTERED
+                                        minWidth = 64f
+                                    }
+                                }
+
+                                row {
+                                    label { text = "Scale:" }
+                                    textureRect {
+                                        slice = ktHeadSlice
+                                        stretchMode = TextureRect.StretchMode.SCALE
+                                        minWidth = 64f
+                                    }
+                                }
+
+                                row {
+                                    label { text = "Tile:" }
+                                    textureRect {
+                                        slice = ktHeadSlice
+                                        stretchMode = TextureRect.StretchMode.TILE
+                                        minWidth = 96f
+                                        minHeight = 64f
+                                    }
+                                }
+                            }
+                        }
+
+                        column {
+                            separation = 20
+
+                            column {
                                 separation = 10
-                                label { text = "**Textures**" }
+
+                                label { text = "----Containers----" }
+
+                                panelContainer {
+                                    label { text = "Panel Container" }
+                                }
+
+
+                                panelContainer {
+                                    paddedContainer {
+                                        padding(10)
+                                        label { text = "Padded Container" }
+                                    }
+                                }
+
+                                panelContainer {
+                                    paddedContainer {
+                                        padding(10)
+                                        column {
+                                            separation = 10
+                                            label { text = "Scrolling Container:" }
+
+                                            scrollContainer {
+                                                minHeight = 100f
+                                                vBoxContainer {
+                                                    repeat(20) {
+                                                        label {
+                                                            text =
+                                                                "I am really super duper long and awesome label ${it + 1}"
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+
+                                panelContainer {
+                                    paddedContainer {
+                                        padding(10)
+                                        column {
+                                            separation = 10
+                                            label { text = "VBox / Column" }
+                                            repeat(4) {
+                                                label { text = "I am label ${it + 1}" }
+                                            }
+                                        }
+                                    }
+                                }
+
+                                panelContainer {
+                                    paddedContainer {
+                                        padding(10)
+                                        column {
+                                            separation = 10
+                                            label { text = "HBox / Row" }
+
+                                            row {
+                                                separation = 5
+                                                repeat(4) {
+                                                    label {
+                                                        text = "Label ${it + 1}"
+                                                        if (it != 3) {
+                                                            text += ","
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+
+                                panelContainer {
+                                    paddedContainer {
+                                        padding(10)
+                                        centerContainer {
+                                            label { text = "Center Container" }
+                                        }
+                                    }
+                                }
                             }
                         }
                     }

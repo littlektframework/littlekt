@@ -9,8 +9,8 @@ import com.lehaine.littlekt.graphics.Color
  */
 fun main(args: Array<String>) {
     createLittleKtApp {
-        width = 960
-        height = 540
+        width = 1280
+        height = 720
         vSync = true
         title = "JVM - UI Playground"
         backgroundColor = Color.DARK_GRAY
