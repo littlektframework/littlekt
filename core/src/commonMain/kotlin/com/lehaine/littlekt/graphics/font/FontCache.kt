@@ -213,6 +213,7 @@ open class FontCache(val pages: Int = 1) {
         layouts.clear()
         x = 0f
         y = 0f
+        currentTint = Color.WHITE.toFloatBits()
         pageVertices.forEach {
             it.clear()
         }
