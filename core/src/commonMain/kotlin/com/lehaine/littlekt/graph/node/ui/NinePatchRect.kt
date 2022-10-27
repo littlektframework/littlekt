@@ -108,6 +108,7 @@ open class NinePatchRect : Control() {
             globalY,
             width,
             height,
+            color = color
             scaleX = globalScaleX,
             scaleY = globalScaleY,
             rotation = globalRotation
