@@ -18,6 +18,7 @@
   extension `Input.gestureController` to easily create and add the gesture controller as an input processor to the
   input.
 * Update default theme colors and tweak default UI assets to be slightly more presentable.
+* Add `column` and `row` DSL aliases for `VBoxContainer` and `HBoxContainer` containers.
 
 ### Breaking
 
@@ -50,6 +51,10 @@
 * fix: `Dispatchers` coroutines attempting to resume an already cancelled continuation.
 * fix: Android input not properly detecting the correct touch event action when touching with the 2 or more pointers.
 * fix: LWJGL & JS input from not properly outputting the correct `Pointer` on `touchDragged` when using any pointer but the left mouse button.
+* fix: `FontCache` not resetting its current tint when calling `clear()`.
+* fix: `Label` bottom vertical alignment calculation not being correct.
+* fix: `Label` horizontal alignment calculations not being correct.
+* fix: `Label` not taking into account the correct minimum size when using `ellipsis`.
 
 ## v.0.4.0
 
