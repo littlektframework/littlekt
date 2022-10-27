@@ -55,6 +55,10 @@
 * fix: `Label` bottom vertical alignment calculation not being correct.
 * fix: `Label` horizontal alignment calculations not being correct.
 * fix: `Label` not taking into account the correct minimum size when using `ellipsis`.
+* fix: `Button` horizontal alignment calculations not being correct.
+* fix: `Button` not taking into account the correct minimum size when using `ellipsis`.
+* fix: `ProgressBar` percentage font positioning to be more centered.
+* update: `ProgressBar` to only measure font when value changes.
 
 ## v.0.4.0
 
