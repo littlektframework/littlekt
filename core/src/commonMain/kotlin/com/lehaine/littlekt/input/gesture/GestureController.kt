@@ -202,7 +202,7 @@ class GestureController(
         val time = input.currentEventTime
         if (time - touchDownTime <= maxFlingDuration.seconds) {
             tracker.update(screenX, screenY, time)
-            handled = processor.fling(tracker.velocityX, tracker.velocityY, pointer) || handled
+            handled = processor.fling(tracker.velocityX * 1000f, tracker.velocityY * 1000f, pointer) || handled
         }
 
         touchDownTime = 0
