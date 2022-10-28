@@ -1,6 +1,6 @@
 # Changelog
 
-## v.0.5.0 (Current SHAPSHOT)
+## v.0.5.0
 
 ### Highlights
 
