@@ -31,7 +31,7 @@ class TextureArraySpriteBatchTest(context: Context) : ContextListener(context) {
         val viewport = ScreenViewport(graphics.width, graphics.height)
         val camera = viewport.camera
         val batch =
-            TextureArraySpriteBatch(this, maxTextureSlots = 3, maxTextureWidth = 256, maxTextureHeight = 256)
+            TextureArraySpriteBatch(this, maxTextureSlots = 3, maxTextureWidth = 256, maxTextureHeight = 1024)
 
         onResize { width, height ->
             viewport.update(width, height, context)
