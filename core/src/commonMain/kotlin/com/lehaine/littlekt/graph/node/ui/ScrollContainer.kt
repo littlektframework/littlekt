@@ -187,12 +187,12 @@ class ScrollContainer : Container(), GestureProcessor {
     }
 
     override fun fling(velocityX: Float, velocityY: Float, pointer: Pointer): Boolean {
-        if (velocityX.absoluteValue > 0.15f) {
+        if (velocityX.absoluteValue > 150f) {
             velocity.x = velocityX
         } else {
             velocity.x = 0f
         }
-        if (velocityY.absoluteValue > 0.15f) {
+        if (velocityY.absoluteValue > 150f) {
             velocity.y = velocityY
         } else {
             velocity.y = 0f
@@ -268,11 +268,11 @@ class ScrollContainer : Container(), GestureProcessor {
         if (flingTimer > Duration.ZERO) {
             val alpha = flingTimer.seconds / flingTime.seconds
             if (hScrollBar.visible) {
-                hScrollBar.value += -velocity.x * alpha * dt.milliseconds
+                hScrollBar.value += -velocity.x * alpha * dt.seconds
             }
 
             if (vScrollBar.visible) {
-                vScrollBar.value += -velocity.y * alpha * dt.milliseconds
+                vScrollBar.value += -velocity.y * alpha * dt.seconds
             }
             flingTimer -= dt
             if (flingTimer <= Duration.ZERO) {
