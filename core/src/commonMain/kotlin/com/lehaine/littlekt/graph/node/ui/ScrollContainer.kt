@@ -16,7 +16,6 @@ import com.lehaine.littlekt.input.gesture.GestureController
 import com.lehaine.littlekt.input.gesture.GestureProcessor
 import com.lehaine.littlekt.math.MutableVec2f
 import com.lehaine.littlekt.math.floor
-import com.lehaine.littlekt.util.milliseconds
 import com.lehaine.littlekt.util.seconds
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
@@ -82,16 +81,12 @@ class ScrollContainer : Container(), GestureProcessor {
 
     override fun ready() {
         super.ready()
+        updateScrollbarPosition()
         repositionChildren()
     }
 
     override fun onThemeChanged() {
         super.onThemeChanged()
-        updateScrollbarPosition()
-    }
-
-    override fun onPostEnterScene() {
-        super.onPostEnterScene()
         updateScrollbarPosition()
     }
 
@@ -126,7 +121,7 @@ class ScrollContainer : Container(), GestureProcessor {
             }
 
             InputEvent.Type.TOUCH_DOWN -> {
-                if(dragToScroll) {
+                if (dragToScroll) {
                     val result = gestureController.touchDown(event.sceneX, event.sceneY, event.pointer)
                     if (result) {
                         event.handle()
@@ -135,7 +130,7 @@ class ScrollContainer : Container(), GestureProcessor {
             }
 
             InputEvent.Type.TOUCH_DRAGGED -> {
-                if(dragToScroll) {
+                if (dragToScroll) {
                     val result = gestureController.touchDragged(event.sceneX, event.sceneY, event.pointer)
                     if (result) {
                         event.handle()
@@ -144,7 +139,7 @@ class ScrollContainer : Container(), GestureProcessor {
             }
 
             InputEvent.Type.TOUCH_UP -> {
-                if(dragToScroll) {
+                if (dragToScroll) {
                     val result = gestureController.touchUp(event.sceneX, event.sceneY, event.pointer)
                     if (result) {
                         event.handle()
@@ -197,7 +192,7 @@ class ScrollContainer : Container(), GestureProcessor {
         } else {
             velocity.y = 0f
         }
-        if(velocityX != 0f || velocityY != 0f) {
+        if (velocityX != 0f || velocityY != 0f) {
             flingTimer = flingTime
         }
         return true
@@ -406,7 +401,7 @@ class ScrollContainer : Container(), GestureProcessor {
         vScrollBar.anchorTop = 0f
         vScrollBar.marginTop = 0f
         vScrollBar.anchorBottom = 1f
-        vScrollBar.marginBottom = 0f
+        vScrollBar.marginBottom = hScrollBar.height
     }
 
     enum class ScrollMode {
