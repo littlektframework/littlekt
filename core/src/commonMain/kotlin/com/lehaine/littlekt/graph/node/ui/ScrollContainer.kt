@@ -4,6 +4,7 @@ import com.lehaine.littlekt.graph.SceneGraph
 import com.lehaine.littlekt.graph.node.Node
 import com.lehaine.littlekt.graph.node.addTo
 import com.lehaine.littlekt.graph.node.annotation.SceneGraphDslMarker
+import com.lehaine.littlekt.graph.node.component.Drawable
 import com.lehaine.littlekt.graph.node.component.InputEvent
 import com.lehaine.littlekt.graph.node.component.Theme
 import com.lehaine.littlekt.graphics.Batch
@@ -16,8 +17,8 @@ import com.lehaine.littlekt.input.gesture.GestureController
 import com.lehaine.littlekt.input.gesture.GestureProcessor
 import com.lehaine.littlekt.math.MutableVec2f
 import com.lehaine.littlekt.math.floor
-import com.lehaine.littlekt.util.milliseconds
 import com.lehaine.littlekt.util.seconds
+import com.lehaine.littlekt.util.signal
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
@@ -52,7 +53,35 @@ inline fun SceneGraph<*>.scrollContainer(callback: @SceneGraphDslMarker ScrollCo
  * @date 10/16/2022
  */
 class ScrollContainer : Container(), GestureProcessor {
+
+    /**
+     * Triggered when the container scrolling is started
+     */
+    val onScroll = signal()
+
+    /**
+     * Triggered when the container scrolling is stopped
+     */
+    val onScrollStop = signal()
+
+    /**
+     * The panel [Drawable].
+     */
+    var panel: Drawable
+        get() = getThemeDrawable(themeVars.panel)
+        set(value) {
+            drawableOverrides[themeVars.panel] = value
+        }
+
+
+    /**
+     * The [ScrollMode] for horizontal scrolling.
+     */
     var horizontalScrollMode: ScrollMode = ScrollMode.AUTO
+
+    /**
+     * The [ScrollMode] for vertical scrolling.
+     */
     var verticalScrollMode: ScrollMode = ScrollMode.AUTO
 
     /**
@@ -82,16 +111,12 @@ class ScrollContainer : Container(), GestureProcessor {
 
     override fun ready() {
         super.ready()
+        updateScrollbarPosition()
         repositionChildren()
     }
 
     override fun onThemeChanged() {
         super.onThemeChanged()
-        updateScrollbarPosition()
-    }
-
-    override fun onPostEnterScene() {
-        super.onPostEnterScene()
         updateScrollbarPosition()
     }
 
@@ -122,11 +147,12 @@ class ScrollContainer : Container(), GestureProcessor {
                 }
                 if (prevHScroll != hScrollBar.value || prevVScroll != vScrollBar.value) {
                     event.handle()
+                    onScroll.emit()
                 }
             }
 
             InputEvent.Type.TOUCH_DOWN -> {
-                if(dragToScroll) {
+                if (dragToScroll) {
                     val result = gestureController.touchDown(event.sceneX, event.sceneY, event.pointer)
                     if (result) {
                         event.handle()
@@ -135,7 +161,7 @@ class ScrollContainer : Container(), GestureProcessor {
             }
 
             InputEvent.Type.TOUCH_DRAGGED -> {
-                if(dragToScroll) {
+                if (dragToScroll) {
                     val result = gestureController.touchDragged(event.sceneX, event.sceneY, event.pointer)
                     if (result) {
                         event.handle()
@@ -144,7 +170,7 @@ class ScrollContainer : Container(), GestureProcessor {
             }
 
             InputEvent.Type.TOUCH_UP -> {
-                if(dragToScroll) {
+                if (dragToScroll) {
                     val result = gestureController.touchUp(event.sceneX, event.sceneY, event.pointer)
                     if (result) {
                         event.handle()
@@ -181,6 +207,7 @@ class ScrollContainer : Container(), GestureProcessor {
     }
 
     override fun touchDown(screenX: Float, screenY: Float, pointer: Pointer): Boolean {
+        onScrollStop.emit()
         velocity.set(0f, 0f)
         flingTimer = Duration.ZERO
         return true
@@ -197,13 +224,15 @@ class ScrollContainer : Container(), GestureProcessor {
         } else {
             velocity.y = 0f
         }
-        if(velocityX != 0f || velocityY != 0f) {
+        if (velocityX != 0f || velocityY != 0f) {
+            onScroll.emit()
             flingTimer = flingTime
         }
         return true
     }
 
     override fun pan(screenX: Float, screenY: Float, dx: Float, dy: Float): Boolean {
+        onScroll.emit()
         if (hScrollBar.visible) {
             hScrollBar.value -= dx
         }
@@ -247,7 +276,6 @@ class ScrollContainer : Container(), GestureProcessor {
         if (showVerticalScroll && vScrollBar.parent == this) {
             _internalMinWidth += vScrollBar.minWidth
         }
-        val panel = getThemeDrawable(themeVars.panel)
 
         _internalMinWidth += panel.minWidth
         _internalMinHeight += panel.minHeight
@@ -277,6 +305,7 @@ class ScrollContainer : Container(), GestureProcessor {
             flingTimer -= dt
             if (flingTimer <= Duration.ZERO) {
                 velocity.set(0f, 0f)
+                onScrollStop.emit()
             }
         }
     }
@@ -286,7 +315,6 @@ class ScrollContainer : Container(), GestureProcessor {
         val canvas = canvas ?: return
         val gl = context.gl
 
-        val panel = getThemeDrawable(themeVars.panel)
         panel.draw(batch, globalX, globalY, width, height, globalScaleX, globalScaleY, globalRotation)
 
         batch.flush()
@@ -327,7 +355,6 @@ class ScrollContainer : Container(), GestureProcessor {
     private fun updateScrollbars() {
         var width = width
         var height = height
-        val panel = getThemeDrawable(themeVars.panel)
         width -= panel.minWidth
         height -= panel.minHeight
 
@@ -350,7 +377,6 @@ class ScrollContainer : Container(), GestureProcessor {
         updateScrollbars()
         var width = width
         var height = height
-        val panel = getThemeDrawable(themeVars.panel)
         width -= panel.minWidth
         height -= panel.minHeight
 
@@ -406,13 +432,32 @@ class ScrollContainer : Container(), GestureProcessor {
         vScrollBar.anchorTop = 0f
         vScrollBar.marginTop = 0f
         vScrollBar.anchorBottom = 1f
-        vScrollBar.marginBottom = 0f
+        vScrollBar.marginBottom = hScrollBar.height
     }
 
+    /**
+     * The type of scrolling.
+     */
     enum class ScrollMode {
+        /**
+         * Scrolling is disabled and the scrollbar is always invisible.
+         */
         DISABLED,
+
+        /**
+         * Scrolling is enabled and the scrollbar will only be visible when necessary, such as when the content is
+         * too large to fit inside the container.
+         */
         AUTO,
+
+        /**
+         * Scrolling is enabled and the scrollbar is always visible.
+         */
         ALWAYS,
+
+        /**
+         * Scroll is disabled and the scrollbar is hidden.
+         */
         NEVER
     }
 
