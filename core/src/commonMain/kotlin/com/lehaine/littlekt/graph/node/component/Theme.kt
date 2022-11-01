@@ -43,7 +43,7 @@ class Theme(
 ) {
 
     companion object {
-        val FALLBACK_DRAWABLE = EmptyDrawable()
+        val FALLBACK_DRAWABLE = emptyDrawable()
         val FALLBACK_FONT = Fonts.default
 
         private var _theme: Theme? = null
@@ -147,7 +147,7 @@ fun createDefaultTheme(
             Button.themeVars.normal to NinePatchDrawable(greyButtonNinePatch)
                 .apply { modulate = lightBlue },
             Button.themeVars.normal to NinePatchDrawable(greyButtonNinePatch)
-                .apply { modulate = lightBlue},
+                .apply { modulate = lightBlue },
             Button.themeVars.pressed to NinePatchDrawable(greyButtonNinePatch)
                 .apply { modulate = lightBlue.toMutableColor().scaleRgb(0.6f) },
             Button.themeVars.hover to NinePatchDrawable(greyButtonNinePatch)
@@ -190,7 +190,7 @@ fun createDefaultTheme(
             LineEdit.themeVars.focus to NinePatchDrawable(greyOutlineNinePatch)
                 .apply { modulate = Color.WHITE },
         ),
-        "ScrollContainer" to mapOf(ScrollContainer.themeVars.panel to EmptyDrawable()),
+        "ScrollContainer" to mapOf(ScrollContainer.themeVars.panel to emptyDrawable()),
         "VScrollBar" to mapOf(
             ScrollBar.themeVars.scroll to NinePatchDrawable(greySliderBg).apply {
                 modulate = darkBlue
