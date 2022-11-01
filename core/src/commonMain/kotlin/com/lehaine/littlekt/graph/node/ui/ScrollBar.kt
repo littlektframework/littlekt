@@ -324,7 +324,7 @@ abstract class ScrollBar(val orientation: Orientation = Orientation.VERTICAL) : 
         when (orientation) {
             Orientation.VERTICAL -> {
                 var area = height
-                area -= scroll.minHeight
+                area -= scroll.minHeight - scroll.marginTop
                 area -= increment.minHeight
                 area -= decrement.minHeight
                 area -= getGrabberMinSize()
@@ -333,7 +333,7 @@ abstract class ScrollBar(val orientation: Orientation = Orientation.VERTICAL) : 
 
             Orientation.HORIZONTAL -> {
                 var area = width
-                area -= scroll.minWidth
+                area -= scroll.minWidth - scroll.marginLeft
                 area -= increment.minWidth
                 area -= decrement.minWidth
                 area -= getGrabberMinSize()
