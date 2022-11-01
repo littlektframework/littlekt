@@ -18,14 +18,104 @@ import kotlin.math.max
  */
 abstract class ScrollBar(val orientation: Orientation = Orientation.VERTICAL) : Range() {
 
-    private val increment: Drawable
+    /**
+     * The [Drawable] of the normal state of the increment button.
+     */
+    var increment: Drawable
         get() = getThemeDrawable(themeVars.incrementIcon)
-    private val decrement: Drawable
+        set(value) {
+            drawableOverrides[themeVars.incrementIcon] = value
+        }
+
+    /**
+     * The [Drawable] of the pressed state of the increment button.
+     */
+    var incrementPressed: Drawable
+        get() = getThemeDrawable(themeVars.incrementPressedIcon)
+        set(value) {
+            drawableOverrides[themeVars.incrementPressedIcon] = value
+        }
+
+    /**
+     * The [Drawable] of the highlight/hover state of the increment button.
+     */
+    var incrementHighlight: Drawable
+        get() = getThemeDrawable(themeVars.incrementHighlightIcon)
+        set(value) {
+            drawableOverrides[themeVars.incrementHighlightIcon] = value
+        }
+
+    /**
+     * The [Drawable]of the normal state of the decrement button.
+     */
+    var decrement: Drawable
         get() = getThemeDrawable(themeVars.decrementIcon)
-    private val scroll: Drawable
+        set(value) {
+            drawableOverrides[themeVars.decrementIcon] = value
+        }
+
+    /**
+     * The [Drawable] of the pressed state of the decrement button.
+     */
+    var decrementPressed: Drawable
+        get() = getThemeDrawable(themeVars.decrementPressedIcon)
+        set(value) {
+            drawableOverrides[themeVars.decrementPressedIcon] = value
+        }
+
+    /**
+     * The [Drawable] of the highlight/hover state of the decrement button.
+     */
+    var decrementHighlight: Drawable
+        get() = getThemeDrawable(themeVars.decrementHighlightIcon)
+        set(value) {
+            drawableOverrides[themeVars.decrementHighlightIcon] = value
+        }
+
+    /**
+     * The [Drawable] of the normal state of the scrolling background.
+     */
+    var scroll: Drawable
         get() = getThemeDrawable(themeVars.scroll)
-    private val grabber: Drawable
+        set(value) {
+            drawableOverrides[themeVars.scroll] = value
+        }
+
+    /**
+     * The [Drawable] of the focused state of the scrolling background.
+     */
+    var scrollFocused: Drawable
+        get() = getThemeDrawable(themeVars.scrollFocused)
+        set(value) {
+            drawableOverrides[themeVars.scrollFocused] = value
+        }
+
+    /**
+     * The [Drawable] of the normal state of the "grabber" of the scrollbar.
+     */
+    var grabber: Drawable
         get() = getThemeDrawable(themeVars.grabber)
+        set(value) {
+            drawableOverrides[themeVars.grabber] = value
+        }
+
+    /**
+     * The [Drawable] of the pressed state of the "grabber" of the scrollbar.
+     */
+    var grabbedPressed: Drawable
+        get() = getThemeDrawable(themeVars.grabberPressed)
+        set(value) {
+            drawableOverrides[themeVars.grabberPressed] = value
+        }
+
+    /**
+     * The [Drawable] of the highlight/hover state of the "grabber" of the scrollbar.
+     */
+    var grabberHighlight: Drawable
+        get() = getThemeDrawable(themeVars.grabberHighlight)
+        set(value) {
+            drawableOverrides[themeVars.grabberHighlight] = value
+        }
 
 
     private var positionAtTouch: Float = 0f
@@ -104,7 +194,6 @@ abstract class ScrollBar(val orientation: Orientation = Orientation.VERTICAL) : 
 
         if (dragging && dragActive) {
             var offset = if (orientation == Orientation.VERTICAL) event.localY else event.localX
-            val decrement = getThemeDrawable(themeVars.decrementIcon)
             val decrementSize = if (orientation == Orientation.VERTICAL) decrement.minHeight else decrement.minWidth
             offset -= decrementSize
 
@@ -130,27 +219,27 @@ abstract class ScrollBar(val orientation: Orientation = Orientation.VERTICAL) : 
 
     override fun render(batch: Batch, camera: Camera, shapeRenderer: ShapeRenderer) {
         val increment = if (incrementActive) {
-            getThemeDrawable(themeVars.incrementPressedIcon)
+            incrementPressed
         } else if (highlight == HighlightStatus.INCREMENT) {
-            getThemeDrawable(themeVars.incrementHighlightIcon)
+            incrementHighlight
         } else {
-            getThemeDrawable(themeVars.incrementIcon)
+            increment
         }
         val decrement = if (decrementActive) {
-            getThemeDrawable(themeVars.decrementPressedIcon)
+            decrementPressed
         } else if (highlight == HighlightStatus.DECREMENT) {
-            getThemeDrawable(themeVars.decrementHighlightIcon)
+            decrementHighlight
         } else {
-            getThemeDrawable(themeVars.decrementIcon)
+            decrement
         }
 
-        val bg = if (hasFocus) getThemeDrawable(themeVars.scrollFocused) else getThemeDrawable(themeVars.scroll)
+        val bg = if (hasFocus) scrollFocused else scroll
         val grabber = if (dragActive) {
-            getThemeDrawable(themeVars.grabberPressed)
+            grabbedPressed
         } else if (highlight == HighlightStatus.RANGE) {
-            getThemeDrawable(themeVars.grabberHighlight)
+            grabberHighlight
         } else {
-            getThemeDrawable(themeVars.grabber)
+            grabber
         }
 
         decrement.draw(
