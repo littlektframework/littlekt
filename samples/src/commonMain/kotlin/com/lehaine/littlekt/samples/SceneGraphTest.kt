@@ -6,6 +6,7 @@ import com.lehaine.littlekt.graph.SceneGraph
 import com.lehaine.littlekt.graph.node.Node
 import com.lehaine.littlekt.graph.node.component.InputEvent
 import com.lehaine.littlekt.graph.node.node
+import com.lehaine.littlekt.graph.node.ui.Label
 import com.lehaine.littlekt.graph.node.ui.button
 import com.lehaine.littlekt.graph.sceneGraph
 import com.lehaine.littlekt.graphics.gl.ClearBufferMask
@@ -38,8 +39,8 @@ class SceneGraphTest(context: Context) : ContextListener(context) {
         }
     }
 
-    fun SceneGraph<*>.init() {
-        node(TestNode()) {
+    fun SceneGraph<*>.init(): Node {
+        return node(TestNode()) {
             name = "TestRoot"
             node(TestNode()) {
                 name = "TestChild1"
@@ -88,9 +89,9 @@ class SceneGraphTest(context: Context) : ContextListener(context) {
     }
 
     override suspend fun Context.start() {
-        val graph = sceneGraph(context, ExtendViewport(480, 270)) {
-            init()
-        }.also { it.initialize() }
+        val graph = sceneGraph(context, ExtendViewport(480, 270))
+        val testRoot = graph.init()
+        graph.initialize()
 
         onResize { width, height ->
             graph.resize(width, height, true)
@@ -100,6 +101,23 @@ class SceneGraphTest(context: Context) : ContextListener(context) {
 
             graph.update(dt)
             graph.render()
+
+            if (input.isKeyJustPressed(Key.ENTER)) {
+                testRoot.removeChildAt(2)
+                testRoot.addChildAt(Label().apply { text = "Newly added!" }, 0)
+            }
+
+            if (input.isKeyJustPressed(Key.F)) {
+                testRoot.sendChildAtToBottom(0)
+            }
+
+            if (input.isKeyJustPressed(Key.B)) {
+                testRoot.sendChildAtToTop(2)
+            }
+
+            if (input.isKeyJustPressed(Key.M)) {
+                testRoot.swapChildrenAt(0, 2)
+            }
 
             if (input.isKeyJustPressed(Key.R)) {
                 println("graph before destroy")
@@ -114,6 +132,10 @@ class SceneGraphTest(context: Context) : ContextListener(context) {
 
             if (input.isKeyJustPressed(Key.P)) {
                 logger.info { stats }
+            }
+
+            if (input.isKeyJustPressed(Key.T)) {
+                println(graph.root.treeString())
             }
 
             if (input.isKeyJustPressed(Key.ESCAPE)) {

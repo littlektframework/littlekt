@@ -3,6 +3,8 @@ package com.lehaine.littlekt.graph.node.internal
 import com.lehaine.littlekt.graph.node.Node
 import com.lehaine.littlekt.log.Logger
 import com.lehaine.littlekt.util.fastForEach
+import com.lehaine.littlekt.util.fastForEachReverse
+import com.lehaine.littlekt.util.fastForEachWithIndex
 import kotlin.reflect.KClass
 
 /**
@@ -11,7 +13,7 @@ import kotlin.reflect.KClass
  */
 class NodeList {
 
-    val size get() = nodes.size + nodesToAdd.size - nodesToRemove.size
+    val size get() = nodes.size
 
     @PublishedApi
     internal val nodes = mutableListOf<Node>()
@@ -19,11 +21,7 @@ class NodeList {
     @PublishedApi
     internal val sortedNodes = mutableListOf<Node>()
 
-    @PublishedApi
-    internal var nodesToAdd = mutableSetOf<Node>()
-    internal var nodesToRemove = mutableSetOf<Node>()
-    internal var isNodeListUnsorted = false
-    internal var _tempNodeList = mutableSetOf<Node>()
+    private var isNodeListUnsorted = false
 
     /**
      * Allow custom sorting when updating internal node lists.
@@ -41,18 +39,47 @@ class NodeList {
     private var frameCount = 0
 
     internal fun add(node: Node) {
-        if (!nodesToAdd.add(node)) {
+        addAt(node, size)
+    }
+
+    internal fun addAt(node: Node, index: Int) {
+        if (nodes.contains(node)) {
             logger.warn { "You are trying to add an node (${node.name}) that you already added." }
+        } else {
+            nodes.add(index, node)
         }
     }
 
     internal fun remove(node: Node) {
-        if (!nodesToRemove.add(node)) {
+        if (!nodes.contains(node)) {
             logger.warn { "You are trying to remove an node (${node.name}) that you already removed." }
+        } else {
+            nodes -= node
         }
     }
 
-    internal fun moveChild(node: Node, index: Int): Boolean {
+    internal fun removeAt(index: Int) {
+        nodes.getOrNull(index)?.let(::remove)
+        isNodeListUnsorted = true
+    }
+
+    internal fun sendToTop(node: Node) {
+        moveTo(node, 0)
+    }
+
+    internal fun sendToBottom(node: Node) {
+        moveTo(node, size - 1)
+    }
+
+    internal fun swap(node: Node, node2: Node) {
+        val idx1 = nodes.indexOf(node)
+        val idx2 = nodes.indexOf(node2)
+        nodes[idx1] = node2
+        nodes[idx2] = node
+        isNodeListUnsorted = true
+    }
+
+    internal fun moveTo(node: Node, index: Int): Boolean {
         if (nodes.contains(node)) {
             nodes.remove(node)
             nodes.add(index, node)
@@ -62,17 +89,12 @@ class NodeList {
         return false
     }
 
-    operator fun get(idx: Int): Node? {
-        return if (idx > nodes.size - 1) {
-            val newIdx = idx - nodes.size
-            nodesToAdd.elementAt(newIdx)
-        } else {
-            nodes[idx]
-        }
+    operator fun get(idx: Int): Node {
+        return nodes[idx]
+
     }
 
     internal fun removeAllNodes() {
-        nodesToAdd.clear()
         isNodeListUnsorted = false
 
         updateLists()
@@ -85,7 +107,7 @@ class NodeList {
     }
 
     fun contains(node: Node): Boolean {
-        return nodes.contains(node) || nodesToAdd.contains(node)
+        return nodes.contains(node)
     }
 
     /**
@@ -93,7 +115,6 @@ class NodeList {
      */
     inline fun forEach(action: (Node) -> Unit) {
         nodes.fastForEach(action)
-        nodesToAdd.forEach(action)
     }
 
 
@@ -106,27 +127,14 @@ class NodeList {
         } ?: run {
             nodes.fastForEach(action)
         }
-        nodesToAdd.forEach(action)
     }
 
     inline fun forEachIndexed(action: (index: Int, node: Node) -> Unit) {
-        var index = 0
-        for (item in nodes) action(index++, item)
-        for (item in nodesToAdd) action(index++, item)
+        nodes.fastForEachWithIndex { index, value -> action(index, value) }
     }
 
     inline fun forEachReversed(action: (Node) -> Unit) {
-        val sortedNodesToAdd = nodesToAdd.sortedBy { it }
-        for (i in nodesToAdd.size - 1 downTo 0) {
-            val node = sortedNodesToAdd[i]
-            action(node)
-        }
-
-
-        for (i in nodes.lastIndex downTo 0) {
-            val node = nodes[i]
-            action(node)
-        }
+        nodes.fastForEachReverse { action(it) }
     }
 
     internal fun preUpdate() {
@@ -166,40 +174,6 @@ class NodeList {
     }
 
     internal fun updateLists() {
-        if (nodesToRemove.isNotEmpty()) {
-            val temp = nodesToRemove
-            nodesToRemove = _tempNodeList
-            _tempNodeList = temp
-
-            _tempNodeList.sorted().fastForEach {
-                nodes.remove(it)
-                sort?.run {
-                    sortedNodes.remove(it)
-                }
-                nodesToAdd.remove(it)
-            }
-
-            nodesToRemove.clear()
-            _tempNodeList.clear()
-        }
-
-        if (nodesToAdd.isNotEmpty()) {
-            val temp = nodesToAdd
-            nodesToAdd = _tempNodeList
-            _tempNodeList = temp
-
-            _tempNodeList.sorted().fastForEach {
-                nodes.add(it)
-                sort?.run {
-                    sortedNodes.add(it)
-                }
-            }
-
-            nodesToAdd.clear()
-            _tempNodeList.clear()
-            isNodeListUnsorted = true
-        }
-
         if (isNodeListUnsorted || sort != null) {
             nodes.sort()
             sort?.let {
@@ -211,7 +185,6 @@ class NodeList {
         }
     }
 
-
     inline fun <reified T : Node> findFirstNodeOfType(): T? = findFirstNodeOfType(T::class)
 
     @Suppress("UNCHECKED_CAST")
@@ -222,23 +195,11 @@ class NodeList {
             }
             return it.nodes.findFirstNodeOfType(type)
         }
-        nodesToAdd.forEach {
-            if (type.isInstance(it)) {
-                return it as T
-            }
-            return it.nodes.findFirstNodeOfType(type)
-        }
         return null
     }
 
     fun findNode(name: String): Node? {
         nodes.fastForEach {
-            if (it.name == name) {
-                return it
-            }
-        }
-
-        nodesToAdd.forEach {
             if (it.name == name) {
                 return it
             }
@@ -255,16 +216,11 @@ class NodeList {
             }
         }
 
-        nodesToAdd.forEach {
-            if (it is T) {
-                list.add(it)
-            }
-        }
         return list
     }
 
     override fun toString(): String {
-        return "[$nodes, $nodesToAdd]"
+        return "[$nodes]"
     }
 
     companion object {
