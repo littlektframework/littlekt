@@ -1,5 +1,31 @@
 # Changelog
 
+## v0.5.1
+
+### Breaking
+
+* Update `EmptyDrawable` to be an immutable singleton object instead of a class. Any attempted changes to this will
+  throw an exception.
+    * Migration: `val drawable = EmptyDrawable()` to `val drawable = createEmptyDrawable()`
+      or `val drawable = EmptyDrawable`
+
+### Changes
+
+* Update `ScrollContainer` vertical scrollbar to extend the entire height of the container.
+* Update `ScrollContainer` add new `Drawable` properties that can be overridden.
+* Update `Scrollbar` add new `Drawable` properties that can be overridden.
+* Fix `Scrollbar` grabber height and position not fully reaching the correct position at the end of the scrollbar.
+
+* Adds new child tree positioning methods. NodeList updated to use just an array list to handle the indexing as the
+  multiple collections were not able to handle the movement changes.
+    * `sendChildToTop()` - sends child to top of parent tree
+    * `sendChildAtToTop()` - sends child at index to top of parent tree
+    * `sendChildToBottom()` - sends child to bottom of parent tree
+    * `sendChildAtToBottom()` - sends child at index to bottom of parent tree
+    * `addChildAt()` - adds new child to parent node at specified index
+    * `swapChildren()` - swap child positions in the parent tree
+    * `swapChildrenAt()` - swap children node positions at indices in the paren tree
+
 ## v.0.5.0
 
 ### Highlights
@@ -22,7 +48,8 @@
 
 ### Breaking
 
-* `Context.onRender`, `Context.onPostRender`, `Context.onPostRunnable`, and `Context.onResize` are now non-suspending. This fixed issues with the
+* `Context.onRender`, `Context.onPostRender`, `Context.onPostRunnable`, and `Context.onResize` are now non-suspending.
+  This fixed issues with the
   Android and Web platforms from creating unneeded coroutines every frame. Wrap any suspending calls called within these
   callbacks in a coroutine, `KtScope.launch { }`, or check if the suspending function can be made non-suspending.
 
@@ -50,7 +77,8 @@
 * update: `Control.setAnchor` to be public.
 * fix: `Dispatchers` coroutines attempting to resume an already cancelled continuation.
 * fix: Android input not properly detecting the correct touch event action when touching with the 2 or more pointers.
-* fix: LWJGL & JS input from not properly outputting the correct `Pointer` on `touchDragged` when using any pointer but the left mouse button.
+* fix: LWJGL & JS input from not properly outputting the correct `Pointer` on `touchDragged` when using any pointer but
+  the left mouse button.
 * fix: `FontCache` not resetting its current tint when calling `clear()`.
 * fix: `Label` bottom vertical alignment calculation not being correct.
 * fix: `Label` horizontal alignment calculations not being correct.
