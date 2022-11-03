@@ -47,6 +47,10 @@ class NodeList {
             logger.warn { "You are trying to add an node (${node.name}) that you already added." }
         } else {
             nodes.add(index, node)
+            sort?.run {
+                sortedNodes.add(node)
+            }
+            isNodeListUnsorted = true
         }
     }
 
@@ -55,12 +59,14 @@ class NodeList {
             logger.warn { "You are trying to remove an node (${node.name}) that you already removed." }
         } else {
             nodes -= node
+            sort?.run {
+                sortedNodes.remove(node)
+            }
         }
     }
 
     internal fun removeAt(index: Int) {
         nodes.getOrNull(index)?.let(::remove)
-        isNodeListUnsorted = true
     }
 
     internal fun sendToTop(node: Node) {
