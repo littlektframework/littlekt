@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.5.2
+
+### Changes
+
+* Fix `NodeList` not adding newly added nodes to the internal `sortedNodeList` preventing nodes from being rendered.
+
 ## v0.5.1
 
 ### Breaking
