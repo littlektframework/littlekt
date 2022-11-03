@@ -552,7 +552,7 @@ open class Node : Comparable<Node> {
      * Sets the parent of the child to this [Node].
      * @param child the child to add
      */
-    open fun addChild(child: Node): Node {
+    fun addChild(child: Node): Node {
         nodes.add(child)
         child.pos = childCount
         child._parent = this
@@ -564,8 +564,34 @@ open class Node : Comparable<Node> {
         return this
     }
 
+    /**
+     * Sets the parent of the child to this [Node] sets it at the specified index.
+     * @param child the child to add
+     * @param index the index of the child to be added at
+     */
+    fun addChildAt(child: Node, index: Int): Node {
+        nodes.addAt(child, index)
+        nodes.forEachIndexed { pos, node ->
+            node.pos = pos
+        }
+        child._parent = this
+
+        child.scene = scene
+        onChildAdded(child)
+
+        parent?.onDescendantAdded(child)
+        return this
+    }
+
+    /**
+     * Moves a child node to the specified index.
+     * @param child the child node to move
+     * @param index the index to move the child to
+     */
     fun moveChild(child: Node, index: Int): Node {
-        val moved = nodes.moveChild(child, index)
+        if (child.parent != this) return this
+
+        val moved = nodes.moveTo(child, index)
         if (moved) {
             nodes.forEachIndexed { pos, node ->
                 node.pos = pos
@@ -578,13 +604,17 @@ open class Node : Comparable<Node> {
      * Sets the parent of the children to this [Node].
      * @param children the children to add
      */
-    open fun addChildren(vararg children: Node): Node {
+    fun addChildren(vararg children: Node): Node {
         children.forEach {
             addChild(it)
         }
         return this
     }
 
+    /**
+     * Removes the node if this node is its parent.
+     * @param child the child node to remove
+     */
     fun removeChild(child: Node): Node {
         if (child.parent != this) return this
 
@@ -606,11 +636,85 @@ open class Node : Comparable<Node> {
         return this
     }
 
-    open fun removeChildAt(idx: Int): Node {
+
+    /**
+     * Removes the child at the specified index.
+     * @param idx the index of the child to remove
+     */
+    fun removeChildAt(idx: Int): Node {
         if (idx >= childCount) return this
-        nodes[idx]?.also { removeChild(it) }
+        nodes[idx].also { removeChild(it) }
         return this
     }
+
+    /**
+     * Swaps the two children positions within the parents list
+     * @param child the first child to swap
+     * @param child2 the second child to swap
+     */
+    fun swapChildren(child: Node, child2: Node): Node {
+        if (child.parent != this || child2.parent != this) return this
+        nodes.swap(child, child2)
+        nodes.forEachIndexed { index, node ->
+            node.pos = index
+        }
+        return this
+    }
+
+    /**
+     * Swaps children positions at the specified indices.
+     * @param idx the index of the first child
+     * @param idx2 the index of the second child
+     */
+    fun swapChildrenAt(idx: Int, idx2: Int): Node {
+        if (idx >= childCount || idx2 >= childCount) return this
+        return swapChildren(nodes[idx], nodes[idx2])
+    }
+
+    /**
+     * Sends the child node to the bottom of this list which will be rendered on top.
+     * @param child to send to the front
+     */
+    fun sendChildToBottom(child: Node): Node {
+        if (child.parent != this) return this
+        nodes.sendToBottom(child)
+        nodes.forEachIndexed { index, node ->
+            node.pos = index
+        }
+        return this
+    }
+
+    /**
+     * Sends the child node at the specified index to the bottom of this list which will be rendered on top.
+     * @param idx the index of the child to send to the front
+     */
+    fun sendChildAtToBottom(idx: Int): Node {
+        if (idx >= childCount) return this
+        return sendChildToBottom(nodes[idx])
+    }
+
+    /**
+     * Sends the child node to the top of this list which will be rendered behind.
+     * @param child to send to the back
+     */
+    fun sendChildToTop(child: Node): Node {
+        if (child.parent != this) return this
+        nodes.sendToTop(child)
+        nodes.forEachIndexed { index, node ->
+            node.pos = index
+        }
+        return this
+    }
+
+    /**
+     * Sends the child node at the specified index to the top of this list which will be rendered behind.
+     * @param idx the index of the child to send to the back
+     */
+    fun sendChildAtToTop(idx: Int): Node {
+        if (idx >= childCount) return this
+        return sendChildToTop(nodes[idx])
+    }
+
 
     /**
      * Enables/disables the [Node]. When disabled colliders are removed from the Physics system and will not be called.
