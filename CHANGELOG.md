@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.5.3
+
+### Changes
+
+* Fix `NodeList` not handling removing children correctly, missing `onDestroy` calls and not removing every child.
+
+
 ## v0.5.2
 
 ### Changes
