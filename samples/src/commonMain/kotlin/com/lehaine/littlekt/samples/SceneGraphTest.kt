@@ -90,8 +90,16 @@ class SceneGraphTest(context: Context) : ContextListener(context) {
 
     override suspend fun Context.start() {
         val graph = sceneGraph(context, ExtendViewport(480, 270))
-        val testRoot = graph.init()
+        var testRoot = graph.init()
         graph.initialize()
+        graph.root.apply {
+            node {
+
+            }
+            node {}
+            node {}
+            node {}
+        }
 
         onResize { width, height ->
             graph.resize(width, height, true)
@@ -125,7 +133,7 @@ class SceneGraphTest(context: Context) : ContextListener(context) {
                 graph.destroyRoot()
                 println("graph after destroy")
                 println(graph.root.treeString())
-                graph.init()
+                testRoot = graph.init()
                 println("graph after init")
                 println(graph.root.treeString())
             }

@@ -17,6 +17,9 @@ class NodeList {
 
     @PublishedApi
     internal val nodes = mutableListOf<Node>()
+    internal var nodesToRemove = mutableSetOf<Node>()
+    internal var _tempNodeList = mutableSetOf<Node>()
+
 
     @PublishedApi
     internal val sortedNodes = mutableListOf<Node>()
@@ -55,13 +58,8 @@ class NodeList {
     }
 
     internal fun remove(node: Node) {
-        if (!nodes.contains(node)) {
+        if (!nodesToRemove.add(node)) {
             logger.warn { "You are trying to remove an node (${node.name}) that you already removed." }
-        } else {
-            nodes -= node
-            sort?.run {
-                sortedNodes.remove(node)
-            }
         }
     }
 
@@ -180,6 +178,21 @@ class NodeList {
     }
 
     internal fun updateLists() {
+        if (nodesToRemove.isNotEmpty()) {
+            val temp = nodesToRemove
+            nodesToRemove = _tempNodeList
+            _tempNodeList = temp
+
+            _tempNodeList.sorted().fastForEach {
+                nodes.remove(it)
+                sort?.run {
+                    sortedNodes.remove(it)
+                }
+            }
+
+            nodesToRemove.clear()
+            _tempNodeList.clear()
+        }
         if (isNodeListUnsorted || sort != null) {
             nodes.sort()
             sort?.let {
