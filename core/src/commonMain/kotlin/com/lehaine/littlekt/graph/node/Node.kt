@@ -735,12 +735,12 @@ open class Node : Comparable<Node> {
      */
     fun destroy() {
         _isDestroyed = true
-        parent = null
         nodes.forEach {
             it.destroy()
         }
         onDestroy()
         onDestroy.emit()
+        parent = null
         onUpdate.clear()
         onReady.clear()
         onDestroy.clear()
