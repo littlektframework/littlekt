@@ -21,8 +21,7 @@ class Particle(var slice: TextureSlice) {
     var scaleX: Float = 0f
     var scaleY: Float = 0f
     var rotation: Angle = Angle.ZERO
-    var color = Color.WHITE.toMutableColor() // TODO - possible use a field delegate here so we can update the colorBits when using color.set()
-    var colorBits = color.toFloatBits()
+    val color = Color.WHITE.toMutableColor()
     var alpha: Float
         get() = color.a
         set(value) {
@@ -95,10 +94,14 @@ class Particle(var slice: TextureSlice) {
 
     var timeStamp: Double = 0.0
 
-    var data0 = 0
-    var data1 = 0
-    var data2 = 0
-    var data3 = 0
+    var data0 = 0f
+    var data1 = 0f
+    var data2 = 0f
+    var data3 = 0f
+    var data4 = 0f
+    var data5 = 0f
+    var data6 = 0f
+    var data7 = 0f
 
     fun moveAwayFrom(x: Float, y: Float, speed: Float) {
         val angle = atan2(y - this.y, x - this.x)
@@ -112,7 +115,7 @@ class Particle(var slice: TextureSlice) {
     }
 
     override fun toString(): String {
-        return "Particle(index=$index, xDelta=$xDelta, yDelta=$yDelta, scaleDelta=$scaleDelta, scaleDeltaX=$scaleDeltaX, scaleDeltaY=$scaleDeltaY, scaleFriction=$scaleFriction, scaleMultiplier=$scaleMultiplier, scaleXMultiplier=$scaleXMultiplier, scaleYMultiplier=$scaleYMultiplier, rotationDelta=$rotationDelta, rotationFriction=$rotationFriction, frictionX=$frictionX, frictionY=$frictionY, gravityX=$gravityX, gravityY=$gravityY, fadeOutSpeed=$fadeOutSpeed, life=$life, remainingLife=$remainingLife, delay=$delay, killed=$killed, onStart=$onStart, onUpdate=$onUpdate, onKill=$onKill, colorRdelta=$colorRdelta, colorGdelta=$colorGdelta, colorBdelta=$colorBdelta, alphaDelta=$alphaDelta, timeStamp=$timeStamp, data0=$data0, data1=$data1, data2=$data2, data3=$data3)"
+        return "Particle(index=$index, xDelta=$xDelta, yDelta=$yDelta, scaleDelta=$scaleDelta, scaleDeltaX=$scaleDeltaX, scaleDeltaY=$scaleDeltaY, scaleFriction=$scaleFriction, scaleMultiplier=$scaleMultiplier, scaleXMultiplier=$scaleXMultiplier, scaleYMultiplier=$scaleYMultiplier, rotationDelta=$rotationDelta, rotationFriction=$rotationFriction, frictionX=$frictionX, frictionY=$frictionY, gravityX=$gravityX, gravityY=$gravityY, fadeOutSpeed=$fadeOutSpeed, life=$life, remainingLife=$remainingLife, delay=$delay, killed=$killed, onStart=$onStart, onUpdate=$onUpdate, onKill=$onKill, colorRdelta=$colorRdelta, colorGdelta=$colorGdelta, colorBdelta=$colorBdelta, alphaDelta=$alphaDelta, timeStamp=$timeStamp, data0=$data0, data1=$data1, data2=$data2, data3=$data3. data4=$data4, data5=$data5, data6=$data6, data7=$data7)"
     }
 }
 
@@ -129,6 +132,6 @@ fun Particle.draw(batch: Batch) {
         scaleX = scaleX,
         scaleY = scaleY,
         rotation = rotation,
-        colorBits = colorBits
+        colorBits = color.toFloatBits()
     )
 }

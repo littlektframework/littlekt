@@ -62,10 +62,14 @@ class ParticleSimulator(maxParticles: Int) {
             visible = true
             alpha = 1f
 
-            data0 = 0
-            data1 = 0
-            data2 = 0
-            data3 = 0
+            data0 = 0f
+            data1 = 0f
+            data2 = 0f
+            data3 = 0f
+            data4 = 0f
+            data5 = 0f
+            data6 = 0f
+            data7 = 0f
 
             xDelta = 0f
             yDelta = 0f
@@ -164,7 +168,6 @@ class ParticleSimulator(maxParticles: Int) {
             val colorA = color.a + particle.alphaDelta * tmod
             if (colorR != 0f || colorG != 0f || colorB != 0f || colorA != 0f) {
                 color.set(colorR, colorG, colorB, colorA)
-                colorBits = color.toFloatBits()
             }
 
             // life
