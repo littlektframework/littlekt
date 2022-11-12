@@ -143,7 +143,7 @@ class NodeList {
 
     internal fun preUpdate() {
         nodes.fastForEach {
-            if (it.enabled && !it.isDestroyed && (it.updateInterval == 1 || frameCount % it.updateInterval == 0)) {
+            if (it.canUpdate) {
                 it.propagatePreUpdate()
             }
         }
@@ -154,7 +154,7 @@ class NodeList {
      */
     internal fun update() {
         nodes.fastForEach {
-            if (it.enabled && !it.isDestroyed && (it.updateInterval == 1 || frameCount % it.updateInterval == 0)) {
+            if (it.canUpdate) {
                 it.propagateUpdate()
             }
         }
@@ -163,7 +163,7 @@ class NodeList {
 
     internal fun postUpdate() {
         nodes.fastForEach {
-            if (it.enabled && !it.isDestroyed && (it.updateInterval == 1 || frameCount % it.updateInterval == 0)) {
+            if (it.canUpdate) {
                 it.propagatePostUpdate()
             }
         }
@@ -171,7 +171,7 @@ class NodeList {
 
     internal fun fixedUpdate() {
         nodes.fastForEach {
-            if (it.enabled && !it.isDestroyed && (it.updateInterval == 1 || frameCount % it.updateInterval == 0)) {
+            if (it.canUpdate) {
                 it.propagateFixedUpdate()
             }
         }
@@ -241,6 +241,8 @@ class NodeList {
     override fun toString(): String {
         return "[$nodes]"
     }
+
+    private val Node.canUpdate: Boolean get() = enabled && !isDestroyed && updateInterval > 0 && (updateInterval == 1 || frameCount % updateInterval == 0)
 
     companion object {
         private val logger = Logger<NodeList>()

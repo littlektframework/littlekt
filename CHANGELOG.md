@@ -28,6 +28,8 @@
 
 * Fix `BaseButton` `pressed` & `disabled` properties incorrectly comparing new value with a wrong value affecting toggle
   buttons.
+* Update `NodeList` to handle `Node.updateInterval` values less than `1`. Anything less than `1` will now not update
+  itself or its children.
 
 ## v0.5.3
 
