@@ -14,8 +14,7 @@ abstract class BaseButton : Control() {
 
     private val status = Status()
     private var _toggleMode = false
-    var buttonGroup: ButtonGroup = ButtonGroup()
-
+    private var buttonGroup: ButtonGroup = ButtonGroup()
     val drawMode: DrawMode
         get() {
             if (status.disabled) {
@@ -55,11 +54,11 @@ abstract class BaseButton : Control() {
     val pressing: Boolean get() = status.pressAttempt
 
     @JsName("isPressed")
-    var pressed: Boolean = false
+    var pressed: Boolean
         get() = if (_toggleMode) status.pressed else status.pressAttempt
         set(value) {
             if (!_toggleMode) return
-            if (field == value) return
+            if (status.pressed == value) return
             status.pressed = value
 
             if (value) {
@@ -68,10 +67,10 @@ abstract class BaseButton : Control() {
             _toggled(status.pressed)
         }
     val hovered: Boolean get() = status.hovering
-    var disabled: Boolean = false
+    var disabled: Boolean
         get() = status.disabled
         set(value) {
-            if (field == value) return
+            if (status.disabled == value) return
             status.disabled = value
             if (value) {
                 if (!_toggleMode) {
@@ -166,6 +165,15 @@ abstract class BaseButton : Control() {
         }
     }
 
+    /**
+     * Assigns the [BaseButton] to the [ButtonGroup] and removes itself from its previous.
+     */
+    fun setButtonGroup(group: ButtonGroup) {
+        buttonGroup.buttons -= this
+        buttonGroup = group
+        buttonGroup.buttons += this
+    }
+
     private fun unpressGroup() {
         if (toggleMode) {
             status.pressed = true
@@ -224,6 +232,5 @@ abstract class BaseButton : Control() {
 }
 
 class ButtonGroup {
-    val buttons = mutableSetOf<BaseButton>()
-
+    internal val buttons = mutableSetOf<BaseButton>()
 }
