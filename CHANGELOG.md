@@ -1,11 +1,39 @@
 # Changelog
 
+## v0.6.0-SNAPSHOT
+
+### Breaking
+
+* Update `BaseButton.buttonGroup` to be private and added a new `setButtonGroup(group)` function to handle setting
+  button groups.
+
+  #### Migration:
+  **Previous:**
+  ```kotlin
+  val myButtonGroup = ButtonGroup()
+  button {
+  buttonGroup = myButtonGroup
+  buttonGroup.buttons += this
+  }
+  ```
+  **New**:
+  ```kotlin
+  val myButtonGroup = ButtonGroup()
+  button {
+  setButtonGroup(myButtonGroup)
+  }
+  ```
+
+### Changes
+
+* Fix `BaseButton` `pressed` & `disabled` properties incorrectly comparing new value with a wrong value affecting toggle
+  buttons.
+
 ## v0.5.3
 
 ### Changes
 
 * Fix `NodeList` not handling removing children correctly, missing `onDestroy` calls and not removing every child.
-
 
 ## v0.5.2
 
