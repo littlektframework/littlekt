@@ -497,9 +497,7 @@ open class Control : CanvasItem() {
         super.onAddedToScene()
         val parent = parent
         if (parent is Control) {
-            parent.onSizeChanged.connect(this) {
-                onSizeChanged()
-            }
+            parent.onSizeChanged.connect(this, ::onSizeChanged)
         } else {
             canvas?.onSizeChanged?.connect(this, ::onSizeChanged)
             onSizeChanged()
