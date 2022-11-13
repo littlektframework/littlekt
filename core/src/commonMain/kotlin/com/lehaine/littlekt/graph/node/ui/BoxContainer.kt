@@ -39,7 +39,7 @@ abstract class BoxContainer : Container() {
         _internalMinWidth = 0f
         _internalMinHeight = 0f
         nodes.forEach {
-            if (it is Control && it.enabled) {
+            if (it is Control && it.enabled && it.visible && !it.isDestroyed) {
                 if (vertical) {
                     if (it.combinedMinWidth > _internalMinWidth) {
                         _internalMinWidth = it.combinedMinWidth
@@ -71,7 +71,7 @@ abstract class BoxContainer : Container() {
         minSizeCache.clear()
 
         nodes.forEach {
-            if (it is Control && it.enabled) {
+            if (it is Control && it.enabled && it.visible && !it.isDestroyed) {
                 val minSize: Int
                 val willStretch: Boolean
 
@@ -116,7 +116,7 @@ abstract class BoxContainer : Container() {
             var error = 0f  // Keep track of accumulated error in pixels
 
             nodes.forEach {
-                if (it is Control && it.enabled) {
+                if (it is Control && it.enabled && it.visible && !it.isDestroyed) {
                     val msc = minSizeCache[it] ?: return@forEach
 
                     if (msc.willStretch) {  //wants to stretch

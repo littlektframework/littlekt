@@ -92,7 +92,7 @@ open class PaddedContainer : Container() {
         var maxHeight = 0f
 
         nodes.forEach {
-            if (it is Control && it.enabled && it.visible) {
+            if (it is Control && it.enabled && it.visible && !it.isDestroyed) {
                 if (it.combinedMinWidth > maxWidth) {
                     maxWidth = it.combinedMinWidth
                 }
@@ -114,7 +114,7 @@ open class PaddedContainer : Container() {
         val width = width
         val height = height
         nodes.forEach {
-            if (it is Control && it.enabled) {
+            if (it is Control && it.enabled && it.visible && !it.isDestroyed) {
                 val w = width - paddingLeft - paddingRight
                 val h = height - paddingTop - paddingBottom
                 fitChild(it, paddingLeft.toFloat(), paddingTop.toFloat(), w, h)
