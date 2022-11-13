@@ -435,11 +435,16 @@ open class Node : Comparable<Node> {
     }
 
     private fun propagateReady() {
-        readyNotified = true
+        // if node was added to a parent after the parent propagated through ready, then we want to make sure
+        // this child receives the onPostEnterScene
+        if(_parent?.readyNotified == true) {
+            onPostEnterScene()
+        }
         nodes.forEach {
             it.onPostEnterScene()
             it.propagateReady()
         }
+        readyNotified = true
 
         if (readyFirst) {
             readyFirst = false

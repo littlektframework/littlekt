@@ -4,11 +4,10 @@ import com.lehaine.littlekt.Context
 import com.lehaine.littlekt.ContextListener
 import com.lehaine.littlekt.graph.SceneGraph
 import com.lehaine.littlekt.graph.node.Node
-import com.lehaine.littlekt.graph.node.component.InputEvent
 import com.lehaine.littlekt.graph.node.node
-import com.lehaine.littlekt.graph.node.ui.Label
-import com.lehaine.littlekt.graph.node.ui.button
+import com.lehaine.littlekt.graph.node.ui.*
 import com.lehaine.littlekt.graph.sceneGraph
+import com.lehaine.littlekt.graphics.Textures
 import com.lehaine.littlekt.graphics.gl.ClearBufferMask
 import com.lehaine.littlekt.input.Key
 import com.lehaine.littlekt.math.random
@@ -39,51 +38,22 @@ class SceneGraphTest(context: Context) : ContextListener(context) {
         }
     }
 
+    var testControl = Control()
+
     fun SceneGraph<*>.init(): Node {
         return node(TestNode()) {
             name = "TestRoot"
-            node(TestNode()) {
-                name = "TestChild1"
-                onInput += {
-                    if (it.type == InputEvent.Type.ACTION_DOWN && it.inputType == "ui_accept") {
-                        println("$name consumed 'ui_accept' action")
-                        it.handle()
-                    }
-                }
-                node(TestNode()) {
-                    name = "TestChild3"
-                    onInput += {
-                        if (it.type == InputEvent.Type.KEY_DOWN && it.key == Key.ENTER) {
-                            println("$name consumed ${it.key} pressed down")
-                            it.handle()
-                        }
-                    }
-                    onUnhandledInput += {
-                        if (it.type == InputEvent.Type.KEY_DOWN) {
-                            println("$name received ${it.key} down as unhandled input")
-                            it.handle()
-                        }
-                        if (it.type == InputEvent.Type.KEY_UP) {
-                            println("$name consumed ${it.key} up as unhandled input")
-                            it.handle()
-                        }
-                    }
-                }
-            }
-            node(TestNode()) {
-                name = "TestChild2"
-                onUnhandledInput += {
-                    if (it.type == InputEvent.Type.TOUCH_DOWN) {
-                        println("$name consumed ${it.pointer} down as unhandled input")
-                        it.handle()
-                    }
-                }
-            }
 
-            button {
-                x = (50..100).random()
-                y = (50..100).random()
-                text = "Press Me!"
+
+            testControl = control {
+                anchorRight = 1f
+                anchorBottom = 1f
+
+                button {
+                    x = (50..100).random()
+                    y = (50..100).random()
+                    text = "Press Me!"
+                }
             }
         }
     }
@@ -110,9 +80,18 @@ class SceneGraphTest(context: Context) : ContextListener(context) {
             graph.update(dt)
             graph.render()
 
-            if (input.isKeyJustPressed(Key.ENTER)) {
+            if (input.isKeyPressed(Key.SHIFT_LEFT) && input.isKeyJustPressed(Key.ENTER)) {
                 testRoot.removeChildAt(2)
                 testRoot.addChildAt(Label().apply { text = "Newly added!" }, 0)
+            } else if (input.isKeyJustPressed(Key.ENTER)) {
+                testControl.apply {
+                    textureRect {
+                        anchorRight = 1f
+                        anchorBottom = 1f
+                        stretchMode = TextureRect.StretchMode.SCALE
+                        slice = Textures.white
+                    }
+                }
             }
 
             if (input.isKeyJustPressed(Key.F)) {
