@@ -64,7 +64,7 @@ open class PanelContainer : Container() {
         var maxHeight = 0f
 
         nodes.forEach {
-            if (it is Control && it.enabled && it.visible) {
+            if (it is Control && it.enabled && it.visible && !it.isDestroyed) {
                 if (it.combinedMinWidth > maxWidth) {
                     maxWidth = it.combinedMinWidth
                 }
@@ -90,7 +90,7 @@ open class PanelContainer : Container() {
         h -= panel.marginBottom + panel.marginTop
 
         nodes.forEach {
-            if (it is Control && it.enabled) {
+            if (it is Control && it.enabled && it.visible && !it.isDestroyed) {
                 fitChild(it, panel.marginLeft, panel.marginTop, w, h)
             }
         }
