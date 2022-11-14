@@ -437,7 +437,7 @@ open class Node : Comparable<Node> {
     private fun propagateReady() {
         // if node was added to a parent after the parent propagated through ready, then we want to make sure
         // this child receives the onPostEnterScene
-        if(_parent?.readyNotified == true) {
+        if (_parent?.readyNotified == true) {
             onPostEnterScene()
         }
         nodes.forEach {
@@ -653,6 +653,15 @@ open class Node : Comparable<Node> {
     }
 
     /**
+     * Removes & destroys all children nodes.
+     */
+    fun destroyAllChildren(): Node {
+        nodes.removeAndDestroyAllNodes()
+        return this
+    }
+
+
+    /**
      * Swaps the two children positions within the parents list
      * @param child the first child to swap
      * @param child2 the second child to swap
@@ -739,6 +748,7 @@ open class Node : Comparable<Node> {
      * Remove the [Node] from the [SceneGraph] and destroys all children.
      */
     fun destroy() {
+        _enabled = false
         _isDestroyed = true
         nodes.forEach {
             it.destroy()

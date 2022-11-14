@@ -183,7 +183,7 @@ abstract class BoxContainer : Container() {
         for (i in 0 until childrenCount) {
             val child = children[i]
 
-            if (child is Control && child.enabled) {
+            if (child is Control && child.enabled && !child.isDestroyed) {
                 val msc = minSizeCache[child] ?: continue
                 if (first) {
                     first = false

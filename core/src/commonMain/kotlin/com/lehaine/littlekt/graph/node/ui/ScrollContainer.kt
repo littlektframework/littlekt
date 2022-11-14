@@ -250,7 +250,7 @@ class ScrollContainer : Container(), GestureProcessor {
         _internalMinHeight = 0f
 
         nodes.forEach {
-            if (it !is Control || !it.visible) return@forEach
+            if (it !is Control || !it.visible || !it.enabled || it.isDestroyed) return@forEach
             if (it == hScrollBar || it == vScrollBar) return@forEach
 
             largestChildWidth = max(it.combinedMinWidth, largestChildWidth)
@@ -389,7 +389,7 @@ class ScrollContainer : Container(), GestureProcessor {
         }
 
         nodes.forEach {
-            if (it !is Control || !it.visible) return@forEach
+            if (it !is Control || !it.visible || !it.enabled || it.isDestroyed) return@forEach
             if (it == hScrollBar || it == vScrollBar) return@forEach
 
             var tx = -hScrollBar.value
