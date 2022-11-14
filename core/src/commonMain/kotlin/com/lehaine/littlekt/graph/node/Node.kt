@@ -745,6 +745,20 @@ open class Node : Comparable<Node> {
     }
 
     /**
+     * Determines if this [Node] has zero children nodes.
+     * @return true if contains no children nodes
+     */
+    fun isEmpty(): Boolean {
+        return nodes.size == 0
+    }
+
+    /**
+     * Determines if this [Node] contains any children.
+     * @return true if contains 1 or more children nodes
+     */
+    fun isNotEmpty() = !isEmpty()
+
+    /**
      * Remove the [Node] from the [SceneGraph] and destroys all children.
      */
     fun destroy() {

@@ -5,13 +5,11 @@ import com.lehaine.littlekt.ContextListener
 import com.lehaine.littlekt.file.vfs.readTexture
 import com.lehaine.littlekt.graph.node.component.AlignMode
 import com.lehaine.littlekt.graph.node.component.HAlign
-import com.lehaine.littlekt.graph.node.component.NinePatchDrawable
 import com.lehaine.littlekt.graph.node.component.VAlign
 import com.lehaine.littlekt.graph.node.node
 import com.lehaine.littlekt.graph.node.ui.*
 import com.lehaine.littlekt.graph.sceneGraph
 import com.lehaine.littlekt.graphics.Color
-import com.lehaine.littlekt.graphics.NinePatch
 import com.lehaine.littlekt.graphics.gl.ClearBufferMask
 import com.lehaine.littlekt.graphics.slice
 import com.lehaine.littlekt.input.Key
@@ -381,17 +379,40 @@ class UiPlayground(context: Context) : ContextListener(context) {
                                     paddedContainer {
                                         padding(10)
                                         column {
-                                            separation = 10
+                                            separation = 20
                                             label { text = "Scrolling Container:" }
 
+                                            val labels: VBoxContainer
                                             scrollContainer {
                                                 minHeight = 100f
-                                                vBoxContainer {
+                                                labels = column {
                                                     repeat(20) {
                                                         label {
                                                             text =
                                                                 "I am really super duper long and awesome label ${it + 1}"
                                                         }
+                                                    }
+                                                }
+                                            }
+
+                                            button {
+                                                text = "Press to add another label"
+                                                onPressed += {
+                                                    labels.apply {
+                                                        label {
+                                                            text = "I am a new label and placed at ${labels.childCount}"
+                                                        }
+                                                    }
+                                                }
+                                            }
+
+
+
+                                            button {
+                                                text = "Press to remove a label"
+                                                onPressed += {
+                                                    if (labels.isNotEmpty()) {
+                                                        labels.removeChildAt(labels.childCount - 1)
                                                     }
                                                 }
                                             }

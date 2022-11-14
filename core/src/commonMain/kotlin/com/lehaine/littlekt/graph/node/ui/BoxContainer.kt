@@ -158,6 +158,7 @@ abstract class BoxContainer : Container() {
                     AlignMode.BEGIN -> {
                         // do nothing
                     }
+
                     AlignMode.CENTER -> ofs = stretchDiff / 2
                     AlignMode.END -> {
                         ofs = stretchDiff
@@ -168,6 +169,7 @@ abstract class BoxContainer : Container() {
                     AlignMode.BEGIN -> {
                         // todo handle rtl: ofs = stretchDiff
                     }
+
                     AlignMode.CENTER -> ofs = stretchDiff / 2
                     AlignMode.END -> {
                         // todo handle if !rtl
@@ -183,7 +185,7 @@ abstract class BoxContainer : Container() {
         for (i in 0 until childrenCount) {
             val child = children[i]
 
-            if (child is Control && child.enabled && !child.isDestroyed) {
+            if (child is Control && child.enabled && child.visible && !child.isDestroyed) {
                 val msc = minSizeCache[child] ?: continue
                 if (first) {
                     first = false
