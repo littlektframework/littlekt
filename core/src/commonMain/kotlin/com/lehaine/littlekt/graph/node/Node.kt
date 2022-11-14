@@ -386,6 +386,38 @@ open class Node : Comparable<Node> {
 
     val onChildEnteredTree: SingleSignal<Node> = signal1v()
 
+    /**
+     * List of 'onEnabled' callbacks called when [onEnabled] is called. Add any additional callbacks directly to this list.
+     * The main use is to add callbacks directly to nodes inline when building a [SceneGraph] vs having to extend
+     * a class directly.
+     *
+     * ```
+     * node {
+     *     onEnable += {
+     *         // visibility logic
+     *     }
+     * }
+     * ```
+     */
+    @JsName("onEnabledSignal")
+    val onEnabled: Signal = signal()
+
+    /**
+     * List of 'onDisabled' callbacks called when [onDisabled] is called. Add any additional callbacks directly to this list.
+     * The main use is to add callbacks directly to nodes inline when building a [SceneGraph] vs having to extend
+     * a class directly.
+     *
+     * ```
+     * node {
+     *     onDisabled += {
+     *         // invisibility logic
+     *     }
+     * }
+     * ```
+     */
+    @JsName("onDisabledSignal")
+    val onDisabled: Signal = signal()
+
     private fun propagateExitTree() {
         nodes.forEach {
             it.propagateExitTree()
@@ -738,7 +770,14 @@ open class Node : Comparable<Node> {
         if (_enabled != value) {
             _enabled = value
             nodes.forEach {
-                it._enabled = value
+                it.enabled(value)
+            }
+            if (_enabled) {
+                onEnabled()
+                onEnabled.emit()
+            } else {
+                onDisabled()
+                onDisabled.emit()
             }
         }
         return this
@@ -764,8 +803,8 @@ open class Node : Comparable<Node> {
     fun destroy() {
         _enabled = false
         _isDestroyed = true
-        nodes.forEach {
-            it.destroy()
+        while (nodes.isNotEmpty()) {
+            nodes[0].destroy()
         }
         onDestroy()
         onDestroy.emit()
@@ -779,6 +818,8 @@ open class Node : Comparable<Node> {
         onAddedToScene.clear()
         onChildEnteredTree.clear()
         onChildExitedTree.clear()
+        onEnabled.clear()
+        onDisabled.clear()
     }
 
     /**
@@ -873,6 +914,16 @@ open class Node : Comparable<Node> {
      * tree until a node consumes it.
      */
     protected open fun unhandledInput(event: InputEvent<*>) = Unit
+
+    /**
+     * Called when [enabled] is set to `true`.
+     */
+    protected open fun onEnabled() = Unit
+
+    /**
+     * Called when [enabled] is set to `false`.
+     */
+    protected open fun onDisabled() = Unit
 
     /**
      * @return a tree string for all the child nodes under this [Node].

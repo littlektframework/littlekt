@@ -40,7 +40,7 @@ inline fun SceneGraph<*>.centerContainer(callback: @SceneGraphDslMarker CenterCo
 open class CenterContainer : Container() {
     override fun onSortChildren() {
         nodes.forEach {
-            if (it is Control && it.enabled && it.visible && !it.isDestroyed) {
+            if (it is Control && it.enabled && !it.isDestroyed) {
                 val newX = floor((width - it.combinedMinWidth) * 0.5f)
                 val newY = floor((height - it.combinedMinHeight) * 0.5f)
                 fitChild(it, newX, newY, it.combinedMinWidth, it.combinedMinHeight)

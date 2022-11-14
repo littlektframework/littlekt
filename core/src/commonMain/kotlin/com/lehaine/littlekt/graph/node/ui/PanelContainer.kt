@@ -90,7 +90,7 @@ open class PanelContainer : Container() {
         h -= panel.marginBottom + panel.marginTop
 
         nodes.forEach {
-            if (it is Control && it.enabled && it.visible && !it.isDestroyed) {
+            if (it is Control && it.enabled && !it.isDestroyed) {
                 fitChild(it, panel.marginLeft, panel.marginTop, w, h)
             }
         }

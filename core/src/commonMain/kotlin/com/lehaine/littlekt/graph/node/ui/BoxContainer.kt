@@ -39,7 +39,7 @@ abstract class BoxContainer : Container() {
         _internalMinWidth = 0f
         _internalMinHeight = 0f
         nodes.forEach {
-            if (it is Control && it.enabled && it.visible && !it.isDestroyed) {
+            if (it is Control && it.enabled && !it.isDestroyed) {
                 if (vertical) {
                     if (it.combinedMinWidth > _internalMinWidth) {
                         _internalMinWidth = it.combinedMinWidth
@@ -71,25 +71,27 @@ abstract class BoxContainer : Container() {
         minSizeCache.clear()
 
         nodes.forEach {
-            if (it is Control && it.enabled && it.visible && !it.isDestroyed) {
-                val minSize: Int
-                val willStretch: Boolean
+            if (it is Control) {
+                if (it.enabled && it.visible && !it.isDestroyed) {
+                    val minSize: Int
+                    val willStretch: Boolean
 
-                if (vertical) {
-                    stretchMin += it.combinedMinHeight.toInt()
-                    minSize = it.combinedMinHeight.toInt()
-                    willStretch = it.verticalSizeFlags.isFlagSet(SizeFlag.EXPAND)
-                } else {
-                    stretchMin += it.combinedMinWidth.toInt()
-                    minSize = it.combinedMinWidth.toInt()
-                    willStretch = it.horizontalSizeFlags.isFlagSet(SizeFlag.EXPAND)
-                }
+                    if (vertical) {
+                        stretchMin += it.combinedMinHeight.toInt()
+                        minSize = it.combinedMinHeight.toInt()
+                        willStretch = it.verticalSizeFlags.isFlagSet(SizeFlag.EXPAND)
+                    } else {
+                        stretchMin += it.combinedMinWidth.toInt()
+                        minSize = it.combinedMinWidth.toInt()
+                        willStretch = it.horizontalSizeFlags.isFlagSet(SizeFlag.EXPAND)
+                    }
 
-                if (willStretch) {
-                    stretchAvail += minSize
-                    stretchRatioTotal += it.stretchRatio
+                    if (willStretch) {
+                        stretchAvail += minSize
+                        stretchRatioTotal += it.stretchRatio
+                    }
+                    minSizeCache[it] = MinSizeCache(minSize = minSize, willStretch = willStretch, finalSize = minSize)
                 }
-                minSizeCache[it] = MinSizeCache(minSize = minSize, willStretch = willStretch, finalSize = minSize)
                 childrenCount++
             }
         }
@@ -182,47 +184,47 @@ abstract class BoxContainer : Container() {
         first = true
         var idx = 0
 
-        for (i in 0 until childrenCount) {
-            val child = children[i]
+        if (childrenCount > 0) {
+            nodes.forEach { child ->
+                if (child is Control && child.enabled && child.visible && !child.isDestroyed) {
+                    val msc = minSizeCache[child] ?: return@forEach
+                    if (first) {
+                        first = false
+                    } else {
+                        ofs += separation
+                    }
 
-            if (child is Control && child.enabled && child.visible && !child.isDestroyed) {
-                val msc = minSizeCache[child] ?: continue
-                if (first) {
-                    first = false
-                } else {
-                    ofs += separation
+                    val from = ofs
+                    var to = ofs + msc.finalSize
+
+                    if (msc.willStretch && idx == childrenCount - 1) {
+                        // adjust so the last one always fits perfect
+                        // compensating for numerical imprecision
+                        to = if (vertical) height.toInt() else width.toInt()
+                    }
+
+                    val size = to - from
+                    val tx: Float
+                    val ty: Float
+                    val tWidth: Float
+                    val tHeight: Float
+
+                    if (vertical) {
+                        tx = 0f
+                        ty = from.toFloat()
+                        tWidth = width
+                        tHeight = size.toFloat()
+                    } else {
+                        tx = from.toFloat()
+                        ty = 0f
+                        tWidth = size.toFloat()
+                        tHeight = height
+                    }
+
+                    fitChild(child, tx, ty, tWidth, tHeight)
+                    ofs = to
+                    idx++
                 }
-
-                val from = ofs
-                var to = ofs + msc.finalSize
-
-                if (msc.willStretch && idx == childrenCount - 1) {
-                    // adjust so the last one always fits perfect
-                    // compensating for numerical imprecision
-                    to = if (vertical) height.toInt() else width.toInt()
-                }
-
-                val size = to - from
-                val tx: Float
-                val ty: Float
-                val tWidth: Float
-                val tHeight: Float
-
-                if (vertical) {
-                    tx = 0f
-                    ty = from.toFloat()
-                    tWidth = width
-                    tHeight = size.toFloat()
-                } else {
-                    tx = from.toFloat()
-                    ty = 0f
-                    tWidth = size.toFloat()
-                    tHeight = height
-                }
-
-                fitChild(child, tx, ty, tWidth, tHeight)
-                ofs = to
-                idx++
             }
         }
 

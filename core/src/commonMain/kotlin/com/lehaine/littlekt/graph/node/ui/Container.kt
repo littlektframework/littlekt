@@ -64,6 +64,10 @@ open class Container : Control() {
         super.onChildAdded(child)
         if (child !is Control) return
 
+        child.onVisible.connect(this, ::onChildMinimumSizeChanged)
+        child.onInvisible.connect(this, ::onChildMinimumSizeChanged)
+        child.onEnabled.connect(this, ::onChildMinimumSizeChanged)
+        child.onDisabled.connect(this, ::onChildMinimumSizeChanged)
         child.onSizeFlagsChanged.connect(this, ::queueSort)
         child.onMinimumSizeChanged.connect(this, ::onChildMinimumSizeChanged)
 
@@ -74,6 +78,10 @@ open class Container : Control() {
     override fun onChildRemoved(child: Node) {
         super.onChildRemoved(child)
         if (child !is Control) return
+        child.onVisible.disconnect(this)
+        child.onInvisible.disconnect(this)
+        child.onEnabled.disconnect(this)
+        child.onDisabled.disconnect(this)
         child.onSizeFlagsChanged.disconnect(this)
         child.onMinimumSizeChanged.disconnect(this)
 
