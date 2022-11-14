@@ -653,6 +653,15 @@ open class Node : Comparable<Node> {
     }
 
     /**
+     * Removes all children nodes.
+     */
+    fun destroyAllChildren() : Node {
+        nodes.removeAllNodes()
+        return  this
+    }
+
+
+    /**
      * Swaps the two children positions within the parents list
      * @param child the first child to swap
      * @param child2 the second child to swap
@@ -739,6 +748,7 @@ open class Node : Comparable<Node> {
      * Remove the [Node] from the [SceneGraph] and destroys all children.
      */
     fun destroy() {
+        _enabled = false
         _isDestroyed = true
         nodes.forEach {
             it.destroy()
