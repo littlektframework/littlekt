@@ -213,7 +213,7 @@ class NodeList {
             _tempNodeList = temp
 
             _tempNodeList.forEach {
-                nodes.add(nodesToAddIdx[it.id] ?: nodes.size, it)
+                nodes.add(nodesToAddIdx[it.id]?.coerceAtMost(nodes.size) ?: nodes.size, it)
                 sort?.run {
                     sortedNodes.add(it)
                 }
