@@ -107,7 +107,7 @@ class NodeList {
         }
     }
 
-    internal fun removeAllNodes() {
+    internal fun removeAndDestroyAllNodes() {
         isNodeListUnsorted = false
 
         updateLists()

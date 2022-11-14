@@ -437,7 +437,7 @@ open class Node : Comparable<Node> {
     private fun propagateReady() {
         // if node was added to a parent after the parent propagated through ready, then we want to make sure
         // this child receives the onPostEnterScene
-        if(_parent?.readyNotified == true) {
+        if (_parent?.readyNotified == true) {
             onPostEnterScene()
         }
         nodes.forEach {
@@ -653,11 +653,11 @@ open class Node : Comparable<Node> {
     }
 
     /**
-     * Removes all children nodes.
+     * Removes & destroys all children nodes.
      */
-    fun destroyAllChildren() : Node {
-        nodes.removeAllNodes()
-        return  this
+    fun destroyAllChildren(): Node {
+        nodes.removeAndDestroyAllNodes()
+        return this
     }
 
 
