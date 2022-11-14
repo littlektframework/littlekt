@@ -58,12 +58,8 @@ class NodeList {
     }
 
     internal fun remove(node: Node) {
-        if (nodesToAdd.contains(node)) {
-            nodesToAdd.remove(node)
-        } else {
-            if (!nodesToRemove.add(node)) {
-                logger.warn { "You are trying to remove an node (${node.name}) that you already removed." }
-            }
+        if (!nodesToRemove.add(node)) {
+            logger.warn { "You are trying to remove an node (${node.name}) that you already removed." }
         }
     }
 
