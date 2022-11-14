@@ -504,6 +504,35 @@ open class Control : CanvasItem() {
         }
     }
 
+    override fun onEnabled() {
+        super.onEnabled()
+       dirty(SIZE_DIRTY)
+    }
+
+    override fun onDisabled() {
+        super.onDisabled()
+        val parent = parent
+        if (parent is Control && parent.enabled && parent.visible) {
+            parent.onSizeChanged()
+        }
+    }
+
+    override fun onVisible() {
+        super.onVisible()
+        val parent = parent
+        if (parent is Control && parent.enabled && parent.visible) {
+            parent.onSizeChanged()
+        }
+    }
+
+    override fun onInvisible() {
+        super.onInvisible()
+        val parent = parent
+        if (parent is Control && parent.enabled && parent.visible) {
+            parent.onSizeChanged()
+        }
+    }
+
     override fun onPostEnterScene() {
         super.onPostEnterScene()
 

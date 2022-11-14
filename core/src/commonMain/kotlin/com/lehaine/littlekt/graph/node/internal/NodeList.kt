@@ -104,8 +104,8 @@ class NodeList {
 
         updateLists()
 
-        nodes.fastForEach {
-            it.destroy()
+        while (nodes.isNotEmpty()) {
+            nodes[0].destroy()
         }
         nodes.clear()
         sortedNodes.clear()

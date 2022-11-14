@@ -298,14 +298,6 @@ open class SceneGraph<InputType>(
     }
 
     /**
-     * Destroy all the children in [root].
-     */
-    fun destroyRoot() {
-        root.children.forEach { it.destroy() }
-        root.nodes.updateLists()
-    }
-
-    /**
      * Renders the entire tree.
      */
     open fun render() {

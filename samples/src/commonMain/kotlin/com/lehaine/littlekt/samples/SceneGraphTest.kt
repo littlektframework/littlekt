@@ -109,7 +109,7 @@ class SceneGraphTest(context: Context) : ContextListener(context) {
             if (input.isKeyJustPressed(Key.R)) {
                 println("graph before destroy")
                 println(graph.root.treeString())
-                graph.destroyRoot()
+                graph.root.destroyAllChildren()
                 println("graph after destroy")
                 println(graph.root.treeString())
                 testRoot = graph.init()

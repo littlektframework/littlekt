@@ -11,8 +11,11 @@ import com.lehaine.littlekt.math.Mat4
 import com.lehaine.littlekt.math.MutableVec2f
 import com.lehaine.littlekt.math.Vec2f
 import com.lehaine.littlekt.math.geom.Angle
+import com.lehaine.littlekt.util.Signal
 import com.lehaine.littlekt.util.TripleSignal
+import com.lehaine.littlekt.util.signal
 import com.lehaine.littlekt.util.signal3v
+import kotlin.js.JsName
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
@@ -93,6 +96,38 @@ abstract class CanvasItem : Node() {
      * ```
      */
     val onDebugRender: TripleSignal<Batch, Camera, ShapeRenderer> = signal3v()
+
+    /**
+     * List of 'onVisible' callbacks called when [onVisible] is called. Add any additional callbacks directly to this list.
+     * The main use is to add callbacks directly to nodes inline when building a [SceneGraph] vs having to extend
+     * a class directly.
+     *
+     * ```
+     * node {
+     *     onVisible += {
+     *         // visibility logic
+     *     }
+     * }
+     * ```
+     */
+    @JsName("onVisibleSignal")
+    val onVisible: Signal = signal()
+
+    /**
+     * List of 'onInvisible' callbacks called when [onInvisible] is called. Add any additional callbacks directly to this list.
+     * The main use is to add callbacks directly to nodes inline when building a [SceneGraph] vs having to extend
+     * a class directly.
+     *
+     * ```
+     * node {
+     *     onInvisible += {
+     *         // invisibility logic
+     *     }
+     * }
+     * ```
+     */
+    @JsName("onInvisibleSignal")
+    val onInvisible: Signal = signal()
 
     /**
      * Shows/hides the node if it is renderable.
@@ -387,8 +422,16 @@ abstract class CanvasItem : Node() {
             _visible = value
             nodes.forEach {
                 if (it is CanvasItem) {
-                    it._visible = value
+                    it.visible(value)
                 }
+            }
+
+            if (_visible) {
+                onVisible()
+                onVisible.emit()
+            } else {
+                onInvisible()
+                onInvisible.emit()
             }
         }
         return this
@@ -400,7 +443,7 @@ abstract class CanvasItem : Node() {
         shapeRenderer: ShapeRenderer,
         renderCallback: ((Node, Batch, Camera, ShapeRenderer) -> Unit)?,
     ) {
-        propagateDebugRender(batch,camera,shapeRenderer,renderCallback)
+        propagateDebugRender(batch, camera, shapeRenderer, renderCallback)
     }
 
 
@@ -432,6 +475,7 @@ abstract class CanvasItem : Node() {
         propagateRender(batch, camera, shapeRenderer, renderCallback)
         propagatePostRender(batch, camera, shapeRenderer)
     }
+
     /**
      * Internal pre rendering that needs to be done on the node that shouldn't be overridden. Calls [propagatePreRender] method.
      */
@@ -511,6 +555,17 @@ abstract class CanvasItem : Node() {
      * @param shapeRenderer the shape renderer
      */
     open fun debugRender(batch: Batch, camera: Camera, shapeRenderer: ShapeRenderer) {}
+
+
+    /**
+     * Called when [visible] is set to `true`.
+     */
+    protected open fun onVisible() = Unit
+
+    /**
+     * Called when [visible] is set to `false`.
+     */
+    protected open fun onInvisible() = Unit
 
     override fun callInput(event: InputEvent<*>) {
         if (!enabled || !insideTree || isDestroyed) return
@@ -832,6 +887,8 @@ abstract class CanvasItem : Node() {
         onRender.clear()
         onPostRender.clear()
         onDebugRender.clear()
+        onVisible.clear()
+        onInvisible.clear()
     }
 
     /**
