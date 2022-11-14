@@ -39,7 +39,7 @@ abstract class BoxContainer : Container() {
         _internalMinWidth = 0f
         _internalMinHeight = 0f
         nodes.forEach {
-            if (it is Control && it.enabled && !it.isDestroyed) {
+            if (it is Control && it.enabled && it.visible && !it.isDestroyed) {
                 if (vertical) {
                     if (it.combinedMinWidth > _internalMinWidth) {
                         _internalMinWidth = it.combinedMinWidth
