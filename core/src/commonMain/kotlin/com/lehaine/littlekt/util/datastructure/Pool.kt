@@ -6,9 +6,11 @@ package com.lehaine.littlekt.util.datastructure
  * @param preallocate the number of objects to preallocate
  * @param gen the object generate function to create a new object when needed
  */
-fun <T> pool(preallocate: Int = 0, gen: Pool<T>.(Int) -> T): Pool<T> {
+fun <T> pool(reset: (T) -> Unit = {}, preallocate: Int = 0, gen: Pool<T>.(Int) -> T): Pool<T> {
     val pool = Pool<T>()
-    pool.preAlloc(preallocate, gen)
+    pool.setup(reset, preallocate) {
+        pool.gen(it)
+    }
     return pool
 }
 
@@ -22,6 +24,14 @@ class Pool<T> internal constructor() {
     private var reset: (T) -> Unit = {}
     private var gen: ((Int) -> T)? = null
 
+    private val items = Stack<T>()
+    private var lastId = 0
+
+    val totalAllocatedItems get() = lastId
+    val totalItemsInUse get() = totalAllocatedItems - itemsInPool
+    val itemsInPool: Int get() = items.size
+
+
     /**
      * Structure containing a set of reusable objects.
      * @param reset the function that reset an existing object to its initial state
@@ -29,9 +39,7 @@ class Pool<T> internal constructor() {
      * @param gen the object generate function to create a new object when needed
      */
     constructor(reset: (T) -> Unit = {}, preallocate: Int = 0, gen: (Int) -> T) : this() {
-        this.reset = reset
-        this.gen = gen
-        preAlloc(preallocate, gen)
+        setup(reset, preallocate, gen)
     }
 
     /**
@@ -41,18 +49,20 @@ class Pool<T> internal constructor() {
      */
     constructor(preallocate: Int = 0, gen: (Int) -> T) : this({}, preallocate, gen)
 
-    private val items = Stack<T>()
-    private var lastId = 0
-
-    val totalAllocatedItems get() = lastId
-    val totalItemsInUse get() = totalAllocatedItems - itemsInPool
-    val itemsInPool: Int get() = items.size
-
-    private fun preAlloc(preallocate: Int, gen: (Int) -> T) {
-        for (n in 0 until preallocate) items.push(gen(lastId++))
+    /**
+     * Setup structure containing a set of reusable objects.
+     *
+     * @param reset the function that reset an existing object to its initial state
+     * @param preallocate the number of objects to preallocate
+     * @param gen the object generate function to create a new object when needed
+     */
+    fun setup(reset: (T) -> Unit = {}, preallocate: Int, gen: (Int) -> T) {
+        this.reset = reset
+        this.gen = gen
+        preAlloc(preallocate, gen)
     }
 
-    internal fun preAlloc(preallocate: Int, gen: Pool<T>.(Int) -> T) {
+    private fun preAlloc(preallocate: Int, gen: (Int) -> T) {
         for (n in 0 until preallocate) items.push(gen(lastId++))
     }
 
