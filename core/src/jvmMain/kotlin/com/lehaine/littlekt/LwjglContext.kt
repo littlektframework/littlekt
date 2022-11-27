@@ -25,9 +25,9 @@ import org.lwjgl.opengl.GL30
 import org.lwjgl.opengl.GLCapabilities
 import org.lwjgl.system.MemoryStack
 import org.lwjgl.system.MemoryUtil
+import java.nio.IntBuffer
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
-import kotlin.time.ExperimentalTime
 import org.lwjgl.opengl.GL as LWJGL
 
 
@@ -57,14 +57,20 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context() {
     private val windowShouldClose: Boolean
         get() = GLFW.glfwWindowShouldClose(windowHandle)
 
+    private val tempBuffer: IntBuffer
+    private val tempBuffer2: IntBuffer
+
     init {
+        MemoryStack.stackPush().use { stack ->
+            tempBuffer = stack.mallocInt(1) // int*
+            tempBuffer2 = stack.mallocInt(1) // int*
+        }
         KtScope.initiate()
         mainThread = Thread.currentThread()
     }
 
 
     @Suppress("EXPERIMENTAL_IS_NOT_ENABLED")
-    @OptIn(ExperimentalTime::class)
     override fun start(build: (app: Context) -> ContextListener) = runBlocking {
         // Setup an error callback. The default implementation
         // will print the error message in System.err.
@@ -99,12 +105,14 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context() {
                 GLFW.glfwWindowHint(GLFW.GLFW_OPENGL_PROFILE, GLFW.GLFW_OPENGL_CORE_PROFILE)
                 GLFW.glfwWindowHint(GLFW.GLFW_OPENGL_FORWARD_COMPAT, GL30.GL_TRUE)
             }
+
             caps.OpenGL30 -> {
                 GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MAJOR, 3)
                 GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MINOR, 0)
                 GLFW.glfwWindowHint(GLFW.GLFW_OPENGL_PROFILE, GLFW.GLFW_OPENGL_CORE_PROFILE)
                 GLFW.glfwWindowHint(GLFW.GLFW_OPENGL_FORWARD_COMPAT, GL30.GL_TRUE)
             }
+
             caps.OpenGL21 -> {
                 GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MAJOR, 2)
                 GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MINOR, 1)
@@ -126,28 +134,19 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context() {
         if (windowHandle == MemoryUtil.NULL) throw RuntimeException("Failed to create the GLFW window")
 
 
-        MemoryStack.stackPush().use { stack ->
-            val pWidth = stack.mallocInt(1) // int*
-            val pHeight = stack.mallocInt(1) // int*
+        updateFramebufferInfo()
 
-            // Get the window size passed to glfwCreateWindow
-            GLFW.glfwGetWindowSize(windowHandle, pWidth, pHeight)
+        // Get the resolution of the primary monitor
+        val vidmode = GLFW.glfwGetVideoMode(GLFW.glfwGetPrimaryMonitor())
 
-            // Get the resolution of the primary monitor
-            val vidmode = GLFW.glfwGetVideoMode(GLFW.glfwGetPrimaryMonitor())
+        check(vidmode != null) { "Unable to retrieve GLFW video mode" }
 
-            check(vidmode != null) { "Unable to retrieve GLFW video mode" }
-
-            // Center the window
-            GLFW.glfwSetWindowPos(
-                windowHandle,
-                configuration.windowPosX ?: ((vidmode.width() - pWidth[0]) / 2),
-                configuration.windowPosY ?: ((vidmode.height() - pHeight[0]) / 2)
-            )
-
-            graphics._width = pWidth[0]
-            graphics._height = pHeight[0]
-        }
+        // Center the window
+        GLFW.glfwSetWindowPos(
+            windowHandle,
+            configuration.windowPosX ?: ((vidmode.width() - graphics.width) / 2),
+            configuration.windowPosY ?: ((vidmode.height() - graphics.height) / 2)
+        )
 
         // Make the OpenGL context current
         GLFW.glfwMakeContextCurrent(windowHandle)
@@ -202,17 +201,16 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context() {
 
         val listener: ContextListener = build(this@LwjglContext)
 
-        GLFW.glfwSetFramebufferSizeCallback(windowHandle) { _, width, height ->
-            graphics.gl.viewport(0, 0, width, height)
-            graphics._width = width
-            graphics._height = height
+        GLFW.glfwSetFramebufferSizeCallback(windowHandle) { _, _, _ ->
+            updateFramebufferInfo()
+            graphics.gl.viewport(0, 0, graphics.backBufferWidth, graphics.backBufferHeight)
 
-                resizeCalls.fastForEach { resize ->
-                    resize(
-                        width,
-                        height
-                    )
-                }
+            resizeCalls.fastForEach { resize ->
+                resize(
+                    graphics.backBufferWidth,
+                    graphics.backBufferHeight
+                )
+            }
         }
 
         listener.run { start() }
@@ -233,6 +231,19 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context() {
         }
 
         disposeCalls.fastForEach { dispose -> dispose() }
+    }
+
+    private fun updateFramebufferInfo() {
+        GLFW.glfwGetWindowSize(windowHandle, tempBuffer, tempBuffer2)
+
+        graphics._width = tempBuffer[0]
+        graphics._height = tempBuffer2[0]
+
+        GLFW.glfwGetFramebufferSize(windowHandle, tempBuffer, tempBuffer2)
+
+        graphics._backBufferWidth = tempBuffer[0]
+        graphics._backBufferHeight = tempBuffer2[0]
+
     }
 
     private suspend fun update(dt: Duration) {

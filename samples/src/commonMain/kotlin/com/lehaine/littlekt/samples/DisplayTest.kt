@@ -708,6 +708,8 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
 
         onResize { width, height ->
             viewport.update(width, height, context, true)
+
+            println("${graphics.backBufferWidth},${graphics.backBufferHeight}")
             if (!assetProvider.fullyLoaded) return@onResize
             scene.resize(width, height, true)
         }

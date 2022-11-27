@@ -1,7 +1,6 @@
 package com.lehaine.littlekt
 
 import com.lehaine.littlekt.graphics.Cursor
-import com.lehaine.littlekt.graphics.GLVersion
 import com.lehaine.littlekt.graphics.SystemCursor
 import org.lwjgl.glfw.GLFW
 
@@ -12,15 +11,22 @@ import org.lwjgl.glfw.GLFW
 class LwjglGraphics(val context: LwjglContext, engineStats: EngineStats) : Graphics {
     private val systemCursors = mutableMapOf<SystemCursor, Long>()
 
-    override val gl: LwjglGL = LwjglGL(engineStats)
+    override val gl: LwjglGL = LwjglGL(engineStats, this)
 
     internal var _width: Int = 0
     internal var _height: Int = 0
+
+    internal var _backBufferWidth: Int = 0
+    internal var _backBufferHeight: Int = 0
 
     override val width: Int
         get() = _width
     override val height: Int
         get() = _height
+    override val backBufferWidth: Int
+        get() = _backBufferWidth
+    override val backBufferHeight: Int
+        get() = _backBufferHeight
 
     override fun supportsExtension(extension: String): Boolean {
         return GLFW.glfwExtensionSupported(extension)
