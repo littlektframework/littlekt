@@ -215,10 +215,11 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context() {
 
         listener.run { start() }
         listener.run {
+            updateFramebufferInfo()
             resizeCalls.fastForEach { resize ->
                 resize(
-                    this@LwjglContext.configuration.width,
-                    this@LwjglContext.configuration.height
+                    graphics.backBufferWidth,
+                    graphics.backBufferHeight
                 )
             }
         }
