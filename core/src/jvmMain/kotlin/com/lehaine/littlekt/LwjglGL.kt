@@ -14,7 +14,7 @@ import java.nio.ByteBuffer as NioByteBuffer
  * @author Colton Daily
  * @date 9/28/2021
  */
-class LwjglGL(private val engineStats: EngineStats) : GL {
+class LwjglGL(private val engineStats: EngineStats, private val graphics: Graphics) : GL {
     internal var glVersion: GLVersion = GLVersion(Context.Platform.DESKTOP)
     override val version: GLVersion get() = glVersion
 
@@ -388,16 +388,19 @@ class LwjglGL(private val engineStats: EngineStats) : GL {
                 glBufferData(target, data.buffer.buffer, usage)
                 engineStats.bufferAllocated(lastBoundBuffer!!.bufferId, data.buffer.capacity * 4)
             }
+
             is DataSource.ByteBufferDataSource -> {
                 data.buffer as ShortBufferImpl
                 glBufferData(target, data.buffer.buffer, usage)
                 engineStats.bufferAllocated(lastBoundBuffer!!.bufferId, data.buffer.capacity)
             }
+
             is DataSource.ShortBufferDataSource -> {
                 data.buffer as ShortBufferImpl
                 glBufferData(target, data.buffer.buffer, usage)
                 engineStats.bufferAllocated(lastBoundBuffer!!.bufferId, data.buffer.capacity * 2)
             }
+
             is DataSource.IntBufferDataSource -> {
                 data.buffer as IntBufferImpl
                 glBufferData(target, data.buffer.buffer, usage)
@@ -420,14 +423,17 @@ class LwjglGL(private val engineStats: EngineStats) : GL {
                 data.buffer as FloatBufferImpl
                 GL15.glBufferSubData(target, offset.toLong(), data.buffer.buffer)
             }
+
             is DataSource.ByteBufferDataSource -> {
                 data.buffer as ShortBufferImpl
                 GL15.glBufferSubData(target, offset.toLong(), data.buffer.buffer)
             }
+
             is DataSource.ShortBufferDataSource -> {
                 data.buffer as ShortBufferImpl
                 GL15.glBufferSubData(target, offset.toLong(), data.buffer.buffer)
             }
+
             is DataSource.IntBufferDataSource -> {
                 data.buffer as IntBufferImpl
                 GL15.glBufferSubData(target, offset.toLong(), data.buffer.buffer)
@@ -495,7 +501,13 @@ class LwjglGL(private val engineStats: EngineStats) : GL {
 
     override fun scissor(x: Int, y: Int, width: Int, height: Int) {
         engineStats.calls++
-        glScissor(x, y, width, height)
+        if (graphics.width != graphics.backBufferWidth || graphics.height != graphics.backBufferHeight) {
+            with(graphics) {
+                glScissor(x.toBackBufferX, y.toBackBufferY, width.toBackBufferX, height.toBackBufferY)
+            }
+        } else {
+            glScissor(x, y, width, height)
+        }
     }
 
     override fun uniformMatrix3fv(uniformLocation: UniformLocation, transpose: Boolean, data: Mat3) {
@@ -590,7 +602,15 @@ class LwjglGL(private val engineStats: EngineStats) : GL {
 
     override fun viewport(x: Int, y: Int, width: Int, height: Int) {
         engineStats.calls++
-        glViewport(x, y, width, height)
+
+        // handle hdpi related viewports here as well
+        if (graphics.width != graphics.backBufferWidth || graphics.height != graphics.backBufferHeight) {
+            with(graphics) {
+                glViewport(x.toBackBufferX, y.toBackBufferY, width.toBackBufferX, height.toBackBufferY)
+            }
+        } else {
+            glViewport(x, y, width, height)
+        }
     }
 
     override fun createTexture(): GlTexture {
@@ -753,16 +773,7 @@ class LwjglGL(private val engineStats: EngineStats) : GL {
         engineStats.calls++
         source as ByteBufferImpl
         GL13.glCompressedTexSubImage3D(
-            target,
-            level,
-            xOffset,
-            yOffset,
-            zOffset,
-            width,
-            height,
-            depth,
-            format,
-            source.buffer
+            target, level, xOffset, yOffset, zOffset, width, height, depth, format, source.buffer
         )
     }
 
@@ -797,17 +808,7 @@ class LwjglGL(private val engineStats: EngineStats) : GL {
         engineStats.calls++
         source as ByteBufferImpl
         GL12.glTexSubImage3D(
-            target,
-            level,
-            xOffset,
-            yOffset,
-            zOffset,
-            width,
-            height,
-            depth,
-            format,
-            type,
-            source.buffer
+            target, level, xOffset, yOffset, zOffset, width, height, depth, format, type, source.buffer
         )
     }
 
