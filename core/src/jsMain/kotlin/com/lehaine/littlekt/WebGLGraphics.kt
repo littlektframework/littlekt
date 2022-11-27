@@ -63,6 +63,12 @@ class WebGLGraphics(val canvas: HTMLCanvasElement, engineStats: EngineStats) : G
     override val height: Int
         get() = _height
 
+    override val backBufferWidth: Int
+        get() = width
+
+    override val backBufferHeight: Int
+        get() = height
+
     override fun supportsExtension(extension: String): Boolean {
         return gl.gl.getExtension("extension") != null
     }
@@ -132,6 +138,7 @@ abstract external class WebGL2RenderingContext : WebGLRenderingContext {
         border: Int,
         srcData: ArrayBufferView?
     )
+
     fun compressedTexSubImage3D(
         target: Int,
         level: Int,

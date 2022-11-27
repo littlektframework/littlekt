@@ -29,6 +29,11 @@ class AndroidGraphics(engineStats: EngineStats) : Graphics, Renderer {
     override val height: Int
         get() = _height
 
+    override val backBufferWidth: Int
+        get() = width
+    override val backBufferHeight: Int
+        get() = height
+
     private val extensions: String by lazy { gl.getString(GL.EXTENSIONS) ?: "" }
 
     override fun supportsExtension(extension: String): Boolean {
