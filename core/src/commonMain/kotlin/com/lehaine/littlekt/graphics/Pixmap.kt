@@ -5,6 +5,7 @@ import com.lehaine.littlekt.async.KtScope
 import com.lehaine.littlekt.async.onRenderingThread
 import com.lehaine.littlekt.file.ByteBuffer
 import com.lehaine.littlekt.file.createByteBuffer
+import com.lehaine.littlekt.graphics.g2d.TextureSlice
 import com.lehaine.littlekt.graphics.gl.DataType
 import com.lehaine.littlekt.graphics.gl.PixmapTextureData
 import com.lehaine.littlekt.graphics.gl.TextureFormat

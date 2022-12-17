@@ -7,13 +7,13 @@ import com.lehaine.littlekt.graph.node.annotation.SceneGraphDslMarker
 import com.lehaine.littlekt.graph.node.component.Drawable
 import com.lehaine.littlekt.graph.node.component.InputEvent
 import com.lehaine.littlekt.graph.node.component.Theme
-import com.lehaine.littlekt.graphics.Batch
 import com.lehaine.littlekt.graphics.Camera
 import com.lehaine.littlekt.graphics.Color
-import com.lehaine.littlekt.graphics.font.BitmapFont
-import com.lehaine.littlekt.graphics.font.BitmapFontCache
-import com.lehaine.littlekt.graphics.font.GlyphLayout
-import com.lehaine.littlekt.graphics.shape.ShapeRenderer
+import com.lehaine.littlekt.graphics.g2d.Batch
+import com.lehaine.littlekt.graphics.g2d.font.BitmapFont
+import com.lehaine.littlekt.graphics.g2d.font.BitmapFontCache
+import com.lehaine.littlekt.graphics.g2d.font.GlyphLayout
+import com.lehaine.littlekt.graphics.g2d.shape.ShapeRenderer
 import com.lehaine.littlekt.input.Key
 import com.lehaine.littlekt.input.Pointer
 import com.lehaine.littlekt.math.clamp
@@ -218,6 +218,7 @@ open class LineEdit : Control() {
                     }
                     event.handle()
                 }
+
                 Key.ARROW_RIGHT -> {
                     if (text.isNotEmpty()) {
                         if (!hasSelection && shift) {
@@ -236,30 +237,36 @@ open class LineEdit : Control() {
                     }
                     event.handle()
                 }
+
                 Key.BACKSPACE -> {
                     if (!editable) return
                     removeAtCaret(false)
                     event.handle()
                 }
+
                 Key.DELETE -> {
                     if (!editable) return
                     removeAtCaret(scene?.context?.platform?.isMobile?.not() ?: true)
                     event.handle()
                 }
+
                 Key.HOME -> {
                     _caretPosition = 0
                     event.handle()
                 }
+
                 Key.END -> {
                     _caretPosition = text.length
                     event.handle()
                 }
+
                 Key.A -> {
                     if (ctrl) {
                         selectAll()
                         event.handle()
                     }
                 }
+
                 Key.C -> {
                     if (ctrl && hasSelection && !secret) {
                         val minIdx = min(_caretPosition, selectionStart)
@@ -268,6 +275,7 @@ open class LineEdit : Control() {
                         event.handle()
                     }
                 }
+
                 Key.X -> {
                     if (ctrl && hasSelection && !secret && editable) {
                         val minIdx = min(_caretPosition, selectionStart)
@@ -277,6 +285,7 @@ open class LineEdit : Control() {
                         event.handle()
                     }
                 }
+
                 Key.V -> {
                     if (ctrl && editable) {
                         if (hasSelection) {
@@ -288,6 +297,7 @@ open class LineEdit : Control() {
                         event.handle()
                     }
                 }
+
                 Key.Z -> {
                     if (ctrl && !shift && editable) {
                         undo()
@@ -299,6 +309,7 @@ open class LineEdit : Control() {
                         return
                     }
                 }
+
                 else -> Unit
             }
         }

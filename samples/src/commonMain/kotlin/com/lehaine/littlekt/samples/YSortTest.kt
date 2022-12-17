@@ -7,9 +7,13 @@ import com.lehaine.littlekt.graph.node.node
 import com.lehaine.littlekt.graph.node.node2d.Node2D
 import com.lehaine.littlekt.graph.node.node2d.node2d
 import com.lehaine.littlekt.graph.sceneGraph
-import com.lehaine.littlekt.graphics.*
+import com.lehaine.littlekt.graphics.Camera
+import com.lehaine.littlekt.graphics.Color
+import com.lehaine.littlekt.graphics.g2d.Batch
+import com.lehaine.littlekt.graphics.g2d.SpriteBatch
+import com.lehaine.littlekt.graphics.g2d.shape.ShapeRenderer
 import com.lehaine.littlekt.graphics.gl.ClearBufferMask
-import com.lehaine.littlekt.graphics.shape.ShapeRenderer
+import com.lehaine.littlekt.graphics.toFloatBits
 import com.lehaine.littlekt.input.Key
 import com.lehaine.littlekt.util.viewport.ExtendViewport
 
@@ -81,7 +85,7 @@ class YSortTest(context: Context) : ContextListener(context) {
                 x = 150f
 
                 onUpdate += {
-                    if(input.isKeyPressed(Key.SPACE)) {
+                    if (input.isKeyPressed(Key.SPACE)) {
                         println("RED!!")
                     }
                     if (input.isKeyJustPressed(Key.ENTER)) {
@@ -96,7 +100,7 @@ class YSortTest(context: Context) : ContextListener(context) {
                 y = 50f
                 x = 150f
                 onUpdate += {
-                    if(input.isKeyPressed(Key.SPACE)) {
+                    if (input.isKeyPressed(Key.SPACE)) {
                         println("GREEN!!")
                     }
                     if (input.isKeyJustPressed(Key.ENTER)) {

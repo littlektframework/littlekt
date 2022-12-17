@@ -3,10 +3,10 @@ package com.lehaine.littlekt.graph.node
 import com.lehaine.littlekt.graph.SceneGraph
 import com.lehaine.littlekt.graph.node.annotation.SceneGraphDslMarker
 import com.lehaine.littlekt.graph.node.ui.Control
-import com.lehaine.littlekt.graphics.Batch
+import com.lehaine.littlekt.graphics.g2d.Batch
 import com.lehaine.littlekt.graphics.Camera
 import com.lehaine.littlekt.graphics.OrthographicCamera
-import com.lehaine.littlekt.graphics.shape.ShapeRenderer
+import com.lehaine.littlekt.graphics.g2d.shape.ShapeRenderer
 import com.lehaine.littlekt.math.MutableVec2f
 import com.lehaine.littlekt.math.MutableVec3f
 import com.lehaine.littlekt.util.Signal

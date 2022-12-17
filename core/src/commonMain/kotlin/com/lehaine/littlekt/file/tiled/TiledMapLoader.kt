@@ -1,6 +1,5 @@
 package com.lehaine.littlekt.file.tiled
 
-import com.lehaine.littlekt.Disposable
 import com.lehaine.littlekt.file.Base64.decodeFromBase64
 import com.lehaine.littlekt.file.readIntArrayLE
 import com.lehaine.littlekt.file.vfs.VfsFile
@@ -10,7 +9,8 @@ import com.lehaine.littlekt.file.vfs.readTexture
 import com.lehaine.littlekt.graph.node.component.HAlign
 import com.lehaine.littlekt.graph.node.component.VAlign
 import com.lehaine.littlekt.graphics.*
-import com.lehaine.littlekt.graphics.tilemap.tiled.*
+import com.lehaine.littlekt.graphics.g2d.TextureAtlas
+import com.lehaine.littlekt.graphics.g2d.tilemap.tiled.*
 import com.lehaine.littlekt.math.Rect
 import com.lehaine.littlekt.math.geom.Point
 import com.lehaine.littlekt.math.geom.degrees

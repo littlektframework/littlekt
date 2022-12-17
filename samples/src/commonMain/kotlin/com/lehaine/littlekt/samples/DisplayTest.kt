@@ -17,7 +17,8 @@ import com.lehaine.littlekt.graph.node.component.createDefaultTheme
 import com.lehaine.littlekt.graph.node.ui.*
 import com.lehaine.littlekt.graph.sceneGraph
 import com.lehaine.littlekt.graphics.*
-import com.lehaine.littlekt.graphics.font.BitmapFontCache
+import com.lehaine.littlekt.graphics.g2d.font.BitmapFontCache
+import com.lehaine.littlekt.graphics.g2d.*
 import com.lehaine.littlekt.graphics.gl.ClearBufferMask
 import com.lehaine.littlekt.graphics.shader.shaders.SimpleColorFragmentShader
 import com.lehaine.littlekt.graphics.shader.shaders.SimpleColorVertexShader

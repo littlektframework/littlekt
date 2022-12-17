@@ -10,11 +10,11 @@ import com.lehaine.littlekt.graph.node.component.InputEvent
 import com.lehaine.littlekt.graph.node.component.OverrideMap
 import com.lehaine.littlekt.graph.node.component.Theme
 import com.lehaine.littlekt.graph.node.ui.Control.AnchorLayout.*
-import com.lehaine.littlekt.graphics.Batch
+import com.lehaine.littlekt.graphics.g2d.Batch
 import com.lehaine.littlekt.graphics.Camera
 import com.lehaine.littlekt.graphics.Color
-import com.lehaine.littlekt.graphics.font.BitmapFont
-import com.lehaine.littlekt.graphics.shape.ShapeRenderer
+import com.lehaine.littlekt.graphics.g2d.font.BitmapFont
+import com.lehaine.littlekt.graphics.g2d.shape.ShapeRenderer
 import com.lehaine.littlekt.graphics.toFloatBits
 import com.lehaine.littlekt.math.*
 import com.lehaine.littlekt.math.geom.Angle
@@ -419,12 +419,12 @@ open class Control : CanvasItem() {
      * The map of overrides for a theme [BitmapFont]. Local overrides always take precedence when fetching theme items
      * for the control. An override can be removed with [remove].
      */
-    val fontOverrides by lazy { OverrideMap<String, BitmapFont>(::_onThemeValueChanged) }
+    val fontOverrides by lazy { OverrideMap<String, com.lehaine.littlekt.graphics.g2d.font.BitmapFont>(::_onThemeValueChanged) }
 
     /**
      * A map for storing the result of [getThemeFont] when needed to prevent searching the tree every frame.
      */
-    val fontCache by lazy { mutableMapOf<String, BitmapFont>() }
+    val fontCache by lazy { mutableMapOf<String, com.lehaine.littlekt.graphics.g2d.font.BitmapFont>() }
 
     /**
      * The map of overrides for a theme [Color]. Local overrides always take precedence when fetching theme items
@@ -1317,7 +1317,7 @@ open class Control : CanvasItem() {
      * @return a [BitmapFont] from the first matching [Theme] in the tree that has a [BitmapFont] with the specified
      * [name] and [type]. If [type] is omitted the class name of the current control is used as the type.
      */
-    fun getThemeFont(name: String, type: String = this::class.simpleName ?: ""): BitmapFont {
+    fun getThemeFont(name: String, type: String = this::class.simpleName ?: ""): com.lehaine.littlekt.graphics.g2d.font.BitmapFont {
         fontOverrides[name]?.let { return it }
         fontCache[name]?.let { return it }
         var themeOwner: Control? = this

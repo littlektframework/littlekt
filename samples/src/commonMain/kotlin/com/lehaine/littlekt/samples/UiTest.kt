@@ -5,13 +5,15 @@ import com.lehaine.littlekt.ContextListener
 import com.lehaine.littlekt.file.vfs.readBitmapFont
 import com.lehaine.littlekt.file.vfs.readTexture
 import com.lehaine.littlekt.graph.node.component.HAlign
-import com.lehaine.littlekt.graph.node.ui.*
+import com.lehaine.littlekt.graph.node.ui.hBoxContainer
+import com.lehaine.littlekt.graph.node.ui.label
+import com.lehaine.littlekt.graph.node.ui.scrollContainer
+import com.lehaine.littlekt.graph.node.ui.vBoxContainer
 import com.lehaine.littlekt.graph.sceneGraph
 import com.lehaine.littlekt.graphics.Fonts
-import com.lehaine.littlekt.graphics.SpriteBatch
+import com.lehaine.littlekt.graphics.g2d.SpriteBatch
+import com.lehaine.littlekt.graphics.g2d.use
 import com.lehaine.littlekt.graphics.gl.ClearBufferMask
-import com.lehaine.littlekt.graphics.slice
-import com.lehaine.littlekt.graphics.use
 import com.lehaine.littlekt.input.Key
 import com.lehaine.littlekt.util.viewport.ExtendViewport
 
@@ -62,12 +64,12 @@ class UiTest(context: Context) : ContextListener(context) {
                 height = 150f
 
                 vBoxContainer {
-                    repeat(50) {i ->
+                    repeat(50) { i ->
                         hBoxContainer {
                             repeat(15) {
                                 label {
                                     text = "$it$it$it$it$it$it$it$it$it"
-                                    if(it == 0) text = "$i-$text"
+                                    if (it == 0) text = "$i-$text"
                                 }
                             }
                         }
@@ -96,7 +98,7 @@ class UiTest(context: Context) : ContextListener(context) {
                 graph.showDebugInfo = !graph.showDebugInfo
             }
 
-            if(input.isKeyJustPressed(Key.T)) {
+            if (input.isKeyJustPressed(Key.T)) {
                 logger.info { "\n" + graph.root.treeString() }
             }
 

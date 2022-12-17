@@ -1,8 +1,8 @@
 package com.lehaine.littlekt.graph.node.component
 
-import com.lehaine.littlekt.graphics.Batch
+import com.lehaine.littlekt.graphics.g2d.Batch
 import com.lehaine.littlekt.graphics.Color
-import com.lehaine.littlekt.graphics.NinePatch
+import com.lehaine.littlekt.graphics.g2d.NinePatch
 import com.lehaine.littlekt.math.geom.Angle
 
 /**

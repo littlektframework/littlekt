@@ -11,14 +11,14 @@ import com.lehaine.littlekt.file.tiled.TiledMapData
 import com.lehaine.littlekt.file.tiled.TiledMapLoader
 import com.lehaine.littlekt.graphics.Pixmap
 import com.lehaine.littlekt.graphics.Texture
-import com.lehaine.littlekt.graphics.TextureAtlas
-import com.lehaine.littlekt.graphics.TextureSlice
-import com.lehaine.littlekt.graphics.font.*
+import com.lehaine.littlekt.graphics.g2d.TextureAtlas
+import com.lehaine.littlekt.graphics.g2d.TextureSlice
+import com.lehaine.littlekt.graphics.g2d.font.*
 import com.lehaine.littlekt.graphics.gl.TexMagFilter
 import com.lehaine.littlekt.graphics.gl.TexMinFilter
-import com.lehaine.littlekt.graphics.tilemap.ldtk.LDtkLevel
-import com.lehaine.littlekt.graphics.tilemap.ldtk.LDtkWorld
-import com.lehaine.littlekt.graphics.tilemap.tiled.TiledMap
+import com.lehaine.littlekt.graphics.g2d.tilemap.ldtk.LDtkLevel
+import com.lehaine.littlekt.graphics.g2d.tilemap.ldtk.LDtkWorld
+import com.lehaine.littlekt.graphics.g2d.tilemap.tiled.TiledMap
 import com.lehaine.littlekt.math.MutableVec4i
 import com.lehaine.littlekt.util.internal.unquote
 import kotlinx.serialization.decodeFromString
@@ -72,7 +72,7 @@ suspend fun VfsFile.readBitmapFont(
     filter: TexMagFilter = TexMagFilter.NEAREST,
     mipmaps: Boolean = true,
     preloadedTextures: List<TextureSlice> = listOf(),
-): BitmapFont {
+): com.lehaine.littlekt.graphics.g2d.font.BitmapFont {
     val data = readString()
     val textures = mutableMapOf<Int, Texture>()
     var pages = 0
@@ -96,9 +96,9 @@ private suspend fun readBitmapFontTxt(
     loadTextures: Boolean,
     filter: TexMagFilter,
     mipmaps: Boolean
-): BitmapFont {
+): com.lehaine.littlekt.graphics.g2d.font.BitmapFont {
     val kernings = mutableListOf<Kerning>()
-    val glyphs = mutableListOf<BitmapFont.Glyph>()
+    val glyphs = mutableListOf<com.lehaine.littlekt.graphics.g2d.font.BitmapFont.Glyph>()
     var lineHeight = 16f
     var fontSize = 16f
     var base: Float? = null
@@ -184,7 +184,7 @@ private suspend fun readBitmapFontTxt(
                         throw IllegalStateException("Unable to load any textures for ${fontFile.baseName}. If they are preloaded, make sure to pass that in 'readBitmapFont()'.")
                     }
                 }
-                glyphs += BitmapFont.Glyph(
+                glyphs += com.lehaine.littlekt.graphics.g2d.font.BitmapFont.Glyph(
                     fontSize = fontSize,
                     id = id,
                     slice = slice,
@@ -208,7 +208,7 @@ private suspend fun readBitmapFontTxt(
 
     capHeight -= padding.x + padding.z
 
-    return BitmapFont(
+    return com.lehaine.littlekt.graphics.g2d.font.BitmapFont(
         fontSize = fontSize,
         lineHeight = lineHeight,
         base = base ?: lineHeight,

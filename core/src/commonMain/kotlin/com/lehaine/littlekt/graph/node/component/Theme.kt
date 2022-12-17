@@ -3,9 +3,9 @@ package com.lehaine.littlekt.graph.node.component
 import com.lehaine.littlekt.graph.node.ui.*
 import com.lehaine.littlekt.graphics.Color
 import com.lehaine.littlekt.graphics.Fonts
-import com.lehaine.littlekt.graphics.NinePatch
+import com.lehaine.littlekt.graphics.g2d.NinePatch
 import com.lehaine.littlekt.graphics.Textures
-import com.lehaine.littlekt.graphics.font.BitmapFont
+import com.lehaine.littlekt.graphics.g2d.font.BitmapFont
 
 /**
  * @author Colton Daily
@@ -24,7 +24,7 @@ class Theme(
      *
      * Eg: `fonts["Button"]["font"]`
      */
-    val fonts: Map<String, Map<String, BitmapFont>> = mapOf(),
+    val fonts: Map<String, Map<String, com.lehaine.littlekt.graphics.g2d.font.BitmapFont>> = mapOf(),
 
     /**
      * A map of colors mapped by Node type, mapped by variable name and value.
@@ -39,7 +39,7 @@ class Theme(
      * constants["Button"]["myVar"]
      */
     val constants: Map<String, Map<String, Int>> = mapOf(),
-    val defaultFont: BitmapFont? = null,
+    val defaultFont: com.lehaine.littlekt.graphics.g2d.font.BitmapFont? = null,
 ) {
 
     companion object {
@@ -77,7 +77,7 @@ fun createDefaultTheme(
      *
      * Eg: `fonts["Button"]["font"]`
      */
-    extraFonts: Map<String, Map<String, BitmapFont>> = mapOf(),
+    extraFonts: Map<String, Map<String, com.lehaine.littlekt.graphics.g2d.font.BitmapFont>> = mapOf(),
 
     /**
      * A map of colors mapped by Node type, mapped by variable name and value.
@@ -92,7 +92,7 @@ fun createDefaultTheme(
      * constants["Button"]["myVar"]
      */
     extraConstants: Map<String, Map<String, Int>> = mapOf(),
-    defaultFont: BitmapFont? = null,
+    defaultFont: com.lehaine.littlekt.graphics.g2d.font.BitmapFont? = null,
 ): Theme {
     val greyButtonNinePatch = NinePatch(
         Textures.atlas.getByPrefix("grey_button").slice,

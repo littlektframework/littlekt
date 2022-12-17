@@ -6,11 +6,11 @@ import com.lehaine.littlekt.file.atlas.AtlasInfo
 import com.lehaine.littlekt.file.atlas.AtlasPage
 import com.lehaine.littlekt.file.vfs.readPixmap
 import com.lehaine.littlekt.graphics.Texture
-import com.lehaine.littlekt.graphics.TextureAtlas
-import com.lehaine.littlekt.graphics.TextureSlice
-import com.lehaine.littlekt.graphics.font.BitmapFont
-import com.lehaine.littlekt.graphics.font.FontMetrics
-import com.lehaine.littlekt.graphics.font.Kerning
+import com.lehaine.littlekt.graphics.g2d.TextureAtlas
+import com.lehaine.littlekt.graphics.g2d.TextureSlice
+import com.lehaine.littlekt.graphics.g2d.font.BitmapFont
+import com.lehaine.littlekt.graphics.g2d.font.FontMetrics
+import com.lehaine.littlekt.graphics.g2d.font.Kerning
 import com.lehaine.littlekt.graphics.gl.PixmapTextureData
 import com.lehaine.littlekt.graphics.slice
 import com.lehaine.littlekt.math.MutableVec4i

@@ -2,7 +2,7 @@ package com.lehaine.littlekt.file.font.ttf.table
 
 import com.lehaine.littlekt.file.ByteBuffer
 import com.lehaine.littlekt.file.font.ttf.*
-import com.lehaine.littlekt.graphics.font.GlyphPath
+import com.lehaine.littlekt.graphics.g2d.font.GlyphPath
 import kotlin.math.floor
 
 /**

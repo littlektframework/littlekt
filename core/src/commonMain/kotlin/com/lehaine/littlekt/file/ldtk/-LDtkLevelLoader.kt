@@ -2,8 +2,12 @@ package com.lehaine.littlekt.file.ldtk
 
 import com.lehaine.littlekt.Disposable
 import com.lehaine.littlekt.file.vfs.*
-import com.lehaine.littlekt.graphics.*
-import com.lehaine.littlekt.graphics.tilemap.ldtk.*
+import com.lehaine.littlekt.graphics.Color
+import com.lehaine.littlekt.graphics.g2d.TextureAtlas
+import com.lehaine.littlekt.graphics.g2d.TextureSlice
+import com.lehaine.littlekt.graphics.g2d.tilemap.ldtk.*
+import com.lehaine.littlekt.graphics.slice
+import com.lehaine.littlekt.graphics.sliceWithBorder
 import com.lehaine.littlekt.log.Logger
 import com.lehaine.littlekt.math.geom.Point
 
@@ -71,7 +75,7 @@ internal class LDtkLevelLoader(
         json: LDtkLayerInstance,
         entities: MutableList<LDtkEntity>,
         tilesets: Map<Int, LDtkTileset>,
-        enums: Map<String, LDtkEnum>
+        enums: Map<String, LDtkEnum>,
     ): LDtkLayer {
         return when (json.type) { //IntGrid, Entities, Tiles or AutoLayer
             "IntGrid" -> {
@@ -110,7 +114,12 @@ internal class LDtkLevelLoader(
                         tileset = tilesets[json.tilesetDefUid]
                             ?: error("Unable to retrieve LDtk tileset: ${json.tilesetDefUid} at ${json.tilesetRelPath}"),
                         autoTiles = json.autoLayerTiles.map {
-                            LDtkAutoLayer.AutoTile(it.t, it.f, it.px[0], it.px[1])
+                            com.lehaine.littlekt.graphics.g2d.tilemap.ldtk.LDtkAutoLayer.AutoTile(
+                                it.t,
+                                it.f,
+                                it.px[0],
+                                it.px[1]
+                            )
                         },
                         intGridValueInfo = intGridValueInfo,
                         intGrid = intGrid,
@@ -126,6 +135,7 @@ internal class LDtkLevelLoader(
                     )
                 }
             }
+
             "Entities" -> {
                 json.entityInstances.mapTo(entities) { entity ->
                     val fields = mutableMapOf<String, LDtkField<*>>()
@@ -148,30 +158,35 @@ internal class LDtkLevelLoader(
                                     } ?: emptyList()
                                     fields[field.identifier] = LDtkArrayField(values)
                                 }
+
                                 "Float" -> {
                                     val values = field.value?.stringList?.map {
                                         LDtkValueField(it.toFloat())
                                     } ?: emptyList()
                                     fields[field.identifier] = LDtkArrayField(values)
                                 }
+
                                 "Bool" -> {
                                     val values = field.value?.stringList?.map {
                                         LDtkValueField(it.toBoolean())
                                     } ?: emptyList()
                                     fields[field.identifier] = LDtkArrayField(values)
                                 }
+
                                 "String" -> {
                                     val values = field.value?.stringList?.map {
                                         LDtkValueField(it)
                                     } ?: emptyList()
                                     fields[field.identifier] = LDtkArrayField(values)
                                 }
+
                                 "Color" -> {
                                     val values = field.value?.stringList?.map {
                                         LDtkValueField(Color.fromHex(it.toInt().toString(16)))
                                     } ?: emptyList()
                                     fields[field.identifier] = LDtkArrayField(values)
                                 }
+
                                 "Point" -> {
                                     val values = field.value?.stringMapList?.map {
                                         LDtkValueField(
@@ -185,9 +200,11 @@ internal class LDtkLevelLoader(
                                     } ?: emptyList()
                                     fields[field.identifier] = LDtkArrayField(values)
                                 }
+
                                 "FilePath" -> {
                                     TODO("FilePath not yet implemented!")
                                 }
+
                                 "Tile" -> {
                                     val values = field.value?.stringMapList?.map {
                                         LDtkValueField(
@@ -207,6 +224,7 @@ internal class LDtkLevelLoader(
                                     } ?: emptyList()
                                     fields[field.identifier] = LDtkArrayField(values)
                                 }
+
                                 "EntityRef" -> {
                                     val values = field.value?.stringMapList?.map {
                                         LDtkValueField(
@@ -224,6 +242,7 @@ internal class LDtkLevelLoader(
                                     } ?: emptyList()
                                     fields[field.identifier] = LDtkArrayField(values)
                                 }
+
                                 else -> {
                                     when {
                                         "LocalEnum." in type -> {
@@ -233,9 +252,11 @@ internal class LDtkLevelLoader(
                                             } ?: emptyList()
                                             fields[field.identifier] = LDtkArrayField(values)
                                         }
+
                                         "ExternEnum." in type -> {
                                             logger.warn { "ExternEnums are not supported! ($type)" }
                                         }
+
                                         else -> {
                                             logger.warn { "Unsupported field type: $type" }
                                         }
@@ -251,6 +272,7 @@ internal class LDtkLevelLoader(
                                         LDtkValueField(field.value!!.content!!.toInt())
                                     }
                                 }
+
                                 "Float" -> {
                                     fields[field.identifier] = if (canBeNull) {
                                         LDtkValueField(field.value?.content?.toFloat())
@@ -258,6 +280,7 @@ internal class LDtkLevelLoader(
                                         LDtkValueField(field.value!!.content!!.toFloat())
                                     }
                                 }
+
                                 "Bool" -> {
                                     fields[field.identifier] = if (canBeNull) {
                                         LDtkValueField(field.value?.content?.toBoolean())
@@ -265,6 +288,7 @@ internal class LDtkLevelLoader(
                                         LDtkValueField(field.value!!.content!!.toBoolean())
                                     }
                                 }
+
                                 "String" -> {
                                     fields[field.identifier] = if (canBeNull) {
                                         LDtkValueField(field.value?.content)
@@ -272,6 +296,7 @@ internal class LDtkLevelLoader(
                                         LDtkValueField(field.value!!.content!!)
                                     }
                                 }
+
                                 "Color" -> {
                                     fields[field.identifier] =
                                         LDtkValueField(
@@ -280,6 +305,7 @@ internal class LDtkLevelLoader(
                                             )
                                         )
                                 }
+
                                 "Point" -> {
                                     fields[field.identifier] = if (canBeNull) {
                                         LDtkValueField(field.value?.stringMap?.let {
@@ -301,9 +327,11 @@ internal class LDtkLevelLoader(
                                         })
                                     }
                                 }
+
                                 "FilePath" -> {
                                     TODO("FilePath not yet implemented!")
                                 }
+
                                 "Tile" -> {
                                     fields[field.identifier] = if (canBeNull) {
                                         LDtkValueField(field.value?.stringMap?.let {
@@ -337,6 +365,7 @@ internal class LDtkLevelLoader(
                                         })
                                     }
                                 }
+
                                 "EntityRef" -> {
                                     fields[field.identifier] = if (canBeNull) {
                                         LDtkValueField(field.value?.stringMap?.let {
@@ -366,6 +395,7 @@ internal class LDtkLevelLoader(
                                         })
                                     }
                                 }
+
                                 else -> {
                                     when {
                                         "LocalEnum." in type -> {
@@ -376,9 +406,11 @@ internal class LDtkLevelLoader(
                                                 LDtkValueField(enums[enumName]!![field.value?.content]!!)
                                             }
                                         }
+
                                         "ExternEnum." in type -> {
                                             logger.warn { "ExternEnums are not supported! ($type)" }
                                         }
+
                                         else -> {
                                             logger.warn { "Unsupported field type: $type" }
                                         }
@@ -425,6 +457,7 @@ internal class LDtkLevelLoader(
                     opacity = json.opacity
                 )
             }
+
             "Tiles" -> {
                 val tiles = mutableMapOf<Int, MutableList<LDtkTilesLayer.TileInfo>>().apply {
                     json.gridTiles.forEach {
@@ -448,12 +481,18 @@ internal class LDtkLevelLoader(
                     opacity = json.opacity
                 )
             }
+
             "AutoLayer" -> {
-                LDtkAutoLayer(
+                com.lehaine.littlekt.graphics.g2d.tilemap.ldtk.LDtkAutoLayer(
                     tileset = tilesets[json.tilesetDefUid]
                         ?: error("Unable to retrieve LDtk tileset: ${json.tilesetDefUid} at ${json.tilesetRelPath}"),
                     autoTiles = json.autoLayerTiles.map {
-                        LDtkAutoLayer.AutoTile(it.t, it.f, it.px[0], it.px[1])
+                        com.lehaine.littlekt.graphics.g2d.tilemap.ldtk.LDtkAutoLayer.AutoTile(
+                            it.t,
+                            it.f,
+                            it.px[0],
+                            it.px[1]
+                        )
                     },
                     identifier = json.identifier,
                     iid = json.iid,
@@ -466,6 +505,7 @@ internal class LDtkLevelLoader(
                     opacity = json.opacity
                 )
             }
+
             else -> error("Unable to instantiate layer for level ${json.identifier}")
         }
     }

@@ -8,18 +8,16 @@ import com.lehaine.littlekt.file.ldtk.LDtkMapLoader
 import com.lehaine.littlekt.file.vfs.*
 import com.lehaine.littlekt.graphics.Pixmap
 import com.lehaine.littlekt.graphics.Texture
-import com.lehaine.littlekt.graphics.TextureAtlas
-import com.lehaine.littlekt.graphics.TextureSlice
-import com.lehaine.littlekt.graphics.font.BitmapFont
-import com.lehaine.littlekt.graphics.font.CharacterSets
-import com.lehaine.littlekt.graphics.font.TtfFont
+import com.lehaine.littlekt.graphics.g2d.TextureAtlas
+import com.lehaine.littlekt.graphics.g2d.TextureSlice
+import com.lehaine.littlekt.graphics.g2d.font.CharacterSets
+import com.lehaine.littlekt.graphics.g2d.font.TtfFont
+import com.lehaine.littlekt.graphics.g2d.tilemap.tiled.TiledMap
 import com.lehaine.littlekt.graphics.gl.TexMagFilter
 import com.lehaine.littlekt.graphics.gl.TexMinFilter
-import com.lehaine.littlekt.graphics.tilemap.tiled.TiledMap
 import com.lehaine.littlekt.util.fastForEach
 import com.lehaine.littlekt.util.internal.lock
 import kotlinx.atomicfu.atomic
-import kotlinx.coroutines.CompletableJob
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlin.contracts.ExperimentalContracts
@@ -208,7 +206,7 @@ open class AssetProvider(val context: Context) {
 
     inline fun <reified T : Any> get(
         file: VfsFile,
-    ) = get(T::class, file) as T
+    ) = get(T::class, file)
 
     companion object {
         fun createDefaultLoaders() = mapOf<KClass<*>, suspend (VfsFile, GameAssetParameters) -> Any>(
@@ -238,7 +236,7 @@ open class AssetProvider(val context: Context) {
                     file.readTtfFont()
                 }
             },
-            BitmapFont::class to { file, params ->
+            com.lehaine.littlekt.graphics.g2d.font.BitmapFont::class to { file, params ->
                 if (params is BitmapFontAssetParameter) {
                     file.readBitmapFont(params.magFilter, params.mipmaps, params.preloadedTextures)
                 } else {

@@ -1,6 +1,8 @@
 package com.lehaine.littlekt.graph.node.component
 
 import com.lehaine.littlekt.graphics.*
+import com.lehaine.littlekt.graphics.g2d.Batch
+import com.lehaine.littlekt.graphics.g2d.TextureSlice
 import com.lehaine.littlekt.math.geom.Angle
 
 /**

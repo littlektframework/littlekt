@@ -6,13 +6,13 @@ import com.lehaine.littlekt.file.vfs.readBitmapFont
 import com.lehaine.littlekt.file.vfs.readPixmap
 import com.lehaine.littlekt.file.vfs.readTexture
 import com.lehaine.littlekt.file.vfs.readTiledMap
-import com.lehaine.littlekt.graphics.SpriteBatch
 import com.lehaine.littlekt.graphics.addBorderToSlices
-import com.lehaine.littlekt.graphics.font.BitmapFontCache
+import com.lehaine.littlekt.graphics.g2d.SpriteBatch
+import com.lehaine.littlekt.graphics.g2d.font.BitmapFontCache
+import com.lehaine.littlekt.graphics.g2d.tilemap.tiled.TiledMap
+import com.lehaine.littlekt.graphics.g2d.use
 import com.lehaine.littlekt.graphics.gl.ClearBufferMask
 import com.lehaine.littlekt.graphics.slice
-import com.lehaine.littlekt.graphics.tilemap.tiled.TiledMap
-import com.lehaine.littlekt.graphics.use
 import com.lehaine.littlekt.input.Key
 import com.lehaine.littlekt.util.MutableTextureAtlas
 import com.lehaine.littlekt.util.viewport.*
@@ -28,11 +28,13 @@ class ViewportsTest(context: Context) : ContextListener(context) {
         val virtualWidth = 480
         val virtualHeight = 270
         var viewportIdx = 0
-        val viewports = listOf(ScreenViewport(virtualWidth, virtualHeight),
+        val viewports = listOf(
+            ScreenViewport(virtualWidth, virtualHeight),
             ExtendViewport(virtualWidth, virtualHeight),
             FitViewport(256, 256),
             StretchViewport(virtualWidth, virtualHeight),
-            FillViewport(virtualWidth, virtualHeight))
+            FillViewport(virtualWidth, virtualHeight)
+        )
 
         fun viewport() = viewports[viewportIdx]
         fun camera() = viewport().camera
@@ -50,8 +52,10 @@ class ViewportsTest(context: Context) : ContextListener(context) {
             .toImmutable()
         val pixelFont = resourcesVfs["m5x7_16.fnt"].readBitmapFont()
         val cache = BitmapFontCache(pixelFont).also {
-            it.setText(viewport()::class.simpleName ?: "N/A", viewport().virtualWidth * 0.5f,
-                camera().virtualHeight * 0.5f)
+            it.setText(
+                viewport()::class.simpleName ?: "N/A", viewport().virtualWidth * 0.5f,
+                camera().virtualHeight * 0.5f
+            )
         }
 
         // we need to dispose of them if we aren't using them since the atlas generates new textures
@@ -89,9 +93,11 @@ class ViewportsTest(context: Context) : ContextListener(context) {
                     viewportIdx = 0
                 }
                 viewport().update(graphics.width, graphics.height, context, true)
-                cache.setText(viewport()::class.simpleName ?: "N/A",
+                cache.setText(
+                    viewport()::class.simpleName ?: "N/A",
                     viewport().virtualWidth * 0.5f,
-                    viewport().virtualHeight * 0.5f)
+                    viewport().virtualHeight * 0.5f
+                )
             }
             if (input.isKeyJustPressed(Key.P)) {
                 logger.info { stats }
