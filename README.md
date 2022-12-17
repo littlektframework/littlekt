@@ -107,5 +107,7 @@ built on top of libGDX.
 Carlos Velasco's (soywiz) awesome Kotlin game engine [KorGE](https://github.com/korlibs/korge) which has a bunch of very
 enjoyable features and awesome ideas that were brought over to be used in LittleKt.
 
+Max Thiele's (fabmax) incredible Kotlin OpenGL/Vulkan graphics engine [kool](https://github.com/fabmax/kool) where many features were shamelessly copied and brought over as well which helped get many graphics related features working and allowed me to understand how it worked.
+
 David Wursteisen's excellent multiplatform game framework [MiniGDX](https://github.com/minigdx/minigdx/) that allowed
 LittleKt to get up and running quickly.
