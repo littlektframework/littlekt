@@ -1,6 +1,8 @@
 package com.lehaine.littlekt.file.gltf
 
+import com.lehaine.littlekt.file.ByteBuffer
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 import kotlinx.serialization.json.JsonObject
 
 /**
@@ -11,12 +13,12 @@ internal data class GltfFile(
     /**
      * An array of accessors.
      */
-    val accessors: List<GltfAccessor>? = null,
+    val accessors: List<GltfAccessor> = emptyList(),
 
     /**
      * An array of keyframe animations.
      */
-    val animations: List<GltfAnimation>? = null,
+    val animations: List<GltfAnimation> = emptyList(),
 
     /**
      * Metadata about the glTF asset.
@@ -26,56 +28,56 @@ internal data class GltfFile(
     /**
      * An array of buffers.
      */
-    val buffers: List<GltfBuffer>? = null,
+    val buffers: List<GltfBuffer> = emptyList(),
 
     /**
      * An array of bufferViews.
      */
-    val bufferViews: List<GltfBufferView>? = null,
+    val bufferViews: List<GltfBufferView> = emptyList(),
 
     /**
      * An array of cameras.
      */
-    val cameras: List<GltfCamera>? = null,
+    val cameras: List<GltfCamera> = emptyList(),
 
     val extensions: JsonObject? = null,
 
     /**
      * Names of glTF extensions required to properly load this asset.
      */
-    val extensionsRequired: List<String>? = null,
+    val extensionsRequired: List<String> = emptyList(),
 
     /**
      * Names of glTF extensions used in this asset.
      */
-    val extensionsUsed: List<String>? = null,
+    val extensionsUsed: List<String> = emptyList(),
 
     val extras: JsonObject? = null,
 
     /**
      * An array of images.
      */
-    val images: List<GltfImage>? = null,
+    val images: List<GltfImage> = emptyList(),
 
     /**
      * An array of materials.
      */
-    val materials: List<GltfMaterial>? = null,
+    val materials: List<GltfMaterial> = emptyList(),
 
     /**
      * An array of meshes.
      */
-    val meshes: List<GltfMesh>? = null,
+    val meshes: List<GltfMesh> = emptyList(),
 
     /**
      * An array of nodes.
      */
-    val nodes: List<GltfNode>? = null,
+    val nodes: List<GltfNode> = emptyList(),
 
     /**
      * An array of samplers.
      */
-    val samplers: List<GltfSampler>? = null,
+    val samplers: List<GltfSampler> = emptyList(),
 
     /**
      * The index of the default scene.
@@ -85,18 +87,24 @@ internal data class GltfFile(
     /**
      * An array of scenes.
      */
-    val scenes: List<GltfScene>? = null,
+    val scenes: List<GltfScene> = emptyList(),
 
     /**
      * An array of skins.
      */
-    val skins: List<GltfSkin>? = null,
+    val skins: List<GltfSkin> = emptyList(),
 
     /**
      * An array of textures.
      */
-    val textures: List<GltfTexture>? = null,
-)
+    val textures: List<GltfTexture> = emptyList(),
+) {
+    companion object {
+        const val GLB_FILE_MAGIC = 0x46546C67
+        const val GLB_CHUNK_MAGIC_JSON = 0x4E4F534A
+        const val GLB_CHUNK_MAGIC_BIN = 0x004E4942
+    }
+}
 
 /**
  * A typed view into a buffer view that contains raw binary data.
@@ -106,22 +114,22 @@ internal data class GltfAccessor(
     /**
      * The index of the bufferView.
      */
-    val bufferView: Long? = null,
+    val bufferView: Int = -1,
 
     /**
      * The offset relative to the start of the buffer view in bytes.
      */
-    val byteOffset: Long? = null,
+    val byteOffset: Int = 0,
 
     /**
      * The datatype of the accessor's components.
      */
-    val componentType: Long,
+    val componentType: Int,
 
     /**
      * The number of elements referenced by this accessor.
      */
-    val count: Long,
+    val count: Int,
 
     val extensions: JsonObject? = null,
     val extras: JsonObject? = null,
@@ -129,12 +137,12 @@ internal data class GltfAccessor(
     /**
      * Maximum value of each component in this accessor.
      */
-    val max: List<Double>? = null,
+    val max: List<Float> = emptyList(),
 
     /**
      * Minimum value of each component in this accessor.
      */
-    val min: List<Double>? = null,
+    val min: List<Float> = emptyList(),
 
     /**
      * The user-defined name of this object.
@@ -144,7 +152,7 @@ internal data class GltfAccessor(
     /**
      * Specifies whether integer data values are normalized before usage.
      */
-    val normalized: Boolean? = null,
+    val normalized: Boolean = false,
 
     /**
      * Sparse storage of elements that deviate from their initialization value.
@@ -154,7 +162,7 @@ internal data class GltfAccessor(
     /**
      * Specifies if the accessor's elements are scalars, vectors, or matrices.
      */
-    val type: JsonObject?,
+    val type: String,
 )
 
 /**
@@ -167,7 +175,7 @@ internal data class GltfAccessorSparse(
     /**
      * Number of deviating accessor values stored in the sparse array.
      */
-    val count: Long,
+    val count: Int,
 
     val extensions: JsonObject? = null,
     val extras: JsonObject? = null,
@@ -199,17 +207,17 @@ internal data class GltfAccessorSparseIndices(
      * have its `target` or `byteStride` properties defined. The buffer view and the optional
      * `byteOffset` **MUST** be aligned to the `componentType` byte length.
      */
-    val bufferView: Long,
+    val bufferView: Int,
 
     /**
      * The offset relative to the start of the buffer view in bytes.
      */
-    val byteOffset: Long? = null,
+    val byteOffset: Int = 0,
 
     /**
      * The indices data type.
      */
-    val componentType: Long,
+    val componentType: Int,
 
     val extensions: JsonObject? = null,
     val extras: JsonObject? = null,
@@ -229,12 +237,12 @@ internal data class GltfAccessorSparseValues(
      * The index of the bufferView with sparse values. The referenced buffer view **MUST NOT**
      * have its `target` or `byteStride` properties defined.
      */
-    val bufferView: Long,
+    val bufferView: Int,
 
     /**
      * The offset relative to the start of the bufferView in bytes.
      */
-    val byteOffset: Long? = null,
+    val byteOffset: Int = 0,
 
     val extensions: JsonObject? = null,
     val extras: JsonObject? = null,
@@ -278,7 +286,7 @@ internal data class GltfAnimationChannel(
     /**
      * The index of a sampler in this animation used to compute the value for the target.
      */
-    val sampler: Long,
+    val sampler: Int,
 
     /**
      * The descriptor of the animated property.
@@ -298,7 +306,7 @@ internal data class GltfAnimationChannelTarget(
      * The index of the node to animate. When undefined, the animated object **MAY** be defined
      * by an extension.
      */
-    val node: Long? = null,
+    val node: Int = -1,
 
     /**
      * The name of the node's TRS property to animate, or the `"weights"` of the Morph Targets
@@ -307,8 +315,16 @@ internal data class GltfAnimationChannelTarget(
      * the values are a quaternion in the order (x, y, z, w), where w is the scalar. For the
      * `"scale"` property, the values are the scaling factors along the X, Y, and Z axes.
      */
-    val path: JsonObject?,
-)
+    val path: String,
+) {
+
+    companion object {
+        const val PATH_TRANSLATION = "translation"
+        const val PATH_ROTATION = "rotation"
+        const val PATH_SCALE = "scale"
+        const val PATH_WEIGHTS = "weights"
+    }
+}
 
 /**
  * An animation sampler combines timestamps with a sequence of output values and defines an
@@ -322,18 +338,24 @@ internal data class GltfAnimationSampler(
     /**
      * The index of an accessor containing keyframe timestamps.
      */
-    val input: Long,
+    val input: Int,
 
     /**
      * Interpolation algorithm.
      */
-    val interpolation: JsonObject? = null,
+    val interpolation: String = INTERPOLATION_LINEAR,
 
     /**
      * The index of an accessor, containing keyframe output values.
      */
-    val output: Long,
-)
+    val output: Int,
+) {
+    companion object {
+        const val INTERPOLATION_LINEAR = "LINEAR"
+        const val INTERPOLATION_STEP = "STEP"
+        const val INTERPOLATION_CUBICSPLINE = "CUBICSPLINE"
+    }
+}
 
 /**
  * Metadata about the glTF asset.
@@ -373,22 +395,22 @@ internal data class GltfBufferView(
     /**
      * The index of the buffer.
      */
-    val buffer: Long,
+    val buffer: Int,
 
     /**
      * The length of the bufferView in bytes.
      */
-    val byteLength: Long,
+    val byteLength: Int,
 
     /**
      * The offset into the buffer in bytes.
      */
-    val byteOffset: Long? = null,
+    val byteOffset: Int = 0,
 
     /**
      * The stride, in bytes.
      */
-    val byteStride: Long? = null,
+    val byteStride: Int = 0,
 
     val extensions: JsonObject? = null,
     val extras: JsonObject? = null,
@@ -401,7 +423,7 @@ internal data class GltfBufferView(
     /**
      * The hint representing the intended GPU buffer type to use with this buffer view.
      */
-    val target: Long? = null,
+    val target: Int = 0,
 )
 
 /**
@@ -412,7 +434,7 @@ internal data class GltfBuffer(
     /**
      * The length of the buffer in bytes.
      */
-    val byteLength: Long,
+    val byteLength: Int,
 
     val extensions: JsonObject? = null,
     val extras: JsonObject? = null,
@@ -426,7 +448,10 @@ internal data class GltfBuffer(
      * The URI (or IRI) of the buffer.
      */
     val uri: String? = null,
-)
+) {
+    @Transient
+    lateinit var data: ByteBuffer
+}
 
 /**
  * A camera's projection.  A node **MAY** reference a camera to apply a transform to place
@@ -538,7 +563,7 @@ internal data class GltfImage(
      * The index of the bufferView that contains the image. This field **MUST NOT** be defined
      * when `uri` is defined.
      */
-    val bufferView: Long? = null,
+    val bufferView: Int = -1,
 
     val extensions: JsonObject? = null,
     val extras: JsonObject? = null,
@@ -567,22 +592,22 @@ internal data class GltfMaterial(
     /**
      * The alpha cutoff value of the material.
      */
-    val alphaCutoff: Double? = null,
+    val alphaCutoff: Float = 0.5f,
 
     /**
      * The alpha rendering mode of the material.
      */
-    val alphaMode: JsonObject? = null,
+    val alphaMode: String = ALPHA_MODE_OPAQUE,
 
     /**
      * Specifies whether the material is double sided.
      */
-    val doubleSided: Boolean? = null,
+    val doubleSided: Boolean = false,
 
     /**
      * The factors for the emissive color of the material.
      */
-    val emissiveFactor: List<Double>? = null,
+    val emissiveFactor: List<Float> = emptyList(),
 
     /**
      * The emissive texture.
@@ -600,20 +625,33 @@ internal data class GltfMaterial(
     /**
      * The tangent space normal texture.
      */
-    val normalTexture: GltfMaterialNormalTextureInfoClass? = null,
+    val normalTexture: GltfTextureInfo? = null,
 
     /**
      * The occlusion texture.
      */
-    val occlusionTexture: GltfMaterialOcclusionTextureInfoClass? = null,
+    val occlusionTexture: GltfTextureInfo? = null,
 
     /**
      * A set of parameter values that are used to define the metallic-roughness material model
      * from Physically Based Rendering (PBR) methodology. When undefined, all the default values
      * of `pbrMetallicRoughness` **MUST** apply.
      */
-    val pbrMetallicRoughness: GltfMaterialPBRMetallicRoughness? = null,
-)
+    val pbrMetallicRoughness: GltfMaterialPBRMetallicRoughness = GltfMaterialPBRMetallicRoughness(
+        baseColorFactor = listOf(
+            0.5f,
+            0.5f,
+            0.5f,
+            1f
+        )
+    ),
+) {
+    companion object {
+        const val ALPHA_MODE_BLEND = "BLEND"
+        const val ALPHA_MODE_MASK = "MASK"
+        const val ALPHA_MODE_OPAQUE = "OPAQUE"
+    }
+}
 
 /**
  * The emissive texture.
@@ -632,65 +670,16 @@ internal data class GltfTextureInfo(
     /**
      * The index of the texture.
      */
-    val index: Long,
+    val index: Int,
 
     /**
      * The set index of texture's TEXCOORD attribute used for texture coordinate mapping.
      */
-    val texCoord: Long? = null,
+    val texCoord: Int = 0,
+    val strength: Float = 1f,
+    val scale: Float = 1f,
 )
 
-/**
- * The tangent space normal texture.
- *
- * Reference to a texture.
- */
-@Serializable
-internal data class GltfMaterialNormalTextureInfoClass(
-    val extensions: JsonObject? = null,
-    val extras: JsonObject? = null,
-
-    /**
-     * The index of the texture.
-     */
-    val index: Long,
-
-    /**
-     * The scalar parameter applied to each normal vector of the normal texture.
-     */
-    val scale: Double? = null,
-
-    /**
-     * The set index of texture's TEXCOORD attribute used for texture coordinate mapping.
-     */
-    val texCoord: Long? = null,
-)
-
-/**
- * The occlusion texture.
- *
- * Reference to a texture.
- */
-@Serializable
-internal data class GltfMaterialOcclusionTextureInfoClass(
-    val extensions: JsonObject? = null,
-    val extras: JsonObject? = null,
-
-    /**
-     * The index of the texture.
-     */
-    val index: Long,
-
-    /**
-     * A scalar multiplier controlling the amount of occlusion applied.
-     */
-    val strength: Double? = null,
-
-    /**
-     * The set index of texture's TEXCOORD attribute used for texture coordinate mapping.
-     */
-    val texCoord: Long? = null,
-)
 
 /**
  * A set of parameter values that are used to define the metallic-roughness material model
@@ -705,7 +694,7 @@ internal data class GltfMaterialPBRMetallicRoughness(
     /**
      * The factors for the base color of the material.
      */
-    val baseColorFactor: List<Double>? = null,
+    val baseColorFactor: List<Float> = listOf(1f, 1f, 1f, 1f),
 
     /**
      * The base color texture.
@@ -718,7 +707,7 @@ internal data class GltfMaterialPBRMetallicRoughness(
     /**
      * The factor for the metalness of the material.
      */
-    val metallicFactor: Double? = null,
+    val metallicFactor: Float = 1f,
 
     /**
      * The metallic-roughness texture.
@@ -728,7 +717,7 @@ internal data class GltfMaterialPBRMetallicRoughness(
     /**
      * The factor for the roughness of the material.
      */
-    val roughnessFactor: Double? = null,
+    val roughnessFactor: Float = 1f,
 )
 
 /**
@@ -754,7 +743,7 @@ internal data class GltfMesh(
      * Array of weights to be applied to the morph targets. The number of array elements
      * **MUST** match the number of morph targets.
      */
-    val weights: List<Double>? = null,
+    val weights: List<Float> = emptyList(),
 )
 
 /**
@@ -766,7 +755,7 @@ internal data class GltfMeshPrimitive(
      * A plain JSON object, where each key corresponds to a mesh attribute semantic and each
      * value is the index of the accessor containing attribute's data.
      */
-    val attributes: Map<String, Long>,
+    val attributes: Map<String, Int>,
 
     val extensions: JsonObject? = null,
     val extras: JsonObject? = null,
@@ -774,23 +763,45 @@ internal data class GltfMeshPrimitive(
     /**
      * The index of the accessor that contains the vertex indices.
      */
-    val indices: Long? = null,
+    val indices: Int = -1,
 
     /**
      * The index of the material to apply to this primitive when rendering.
      */
-    val material: Long? = null,
+    val material: Int = -1,
 
     /**
      * The topology type of primitives to render.
      */
-    val mode: Long? = null,
+    val mode: Int = MODE_TRIANGLES,
 
     /**
      * An array of morph targets.
      */
-    val targets: List<Map<String, Long>>? = null,
-)
+    val targets: List<Map<String, Int>> = emptyList(),
+) {
+    companion object {
+        const val MODE_POINTS = 0
+        const val MODE_LINES = 1
+        const val MODE_LINE_LOOP = 2
+        const val MODE_LINE_STRIP = 3
+        const val MODE_TRIANGLES = 4
+        const val MODE_TRIANGLE_STRIP = 5
+        const val MODE_TRIANGLE_FAN = 6
+        const val MODE_QUADS = 7
+        const val MODE_QUAD_STRIP = 8
+        const val MODE_POLYGON = 9
+
+        const val ATTRIBUTE_POSITION = "POSITION"
+        const val ATTRIBUTE_NORMAL = "NORMAL"
+        const val ATTRIBUTE_TANGENT = "TANGENT"
+        const val ATTRIBUTE_TEXCOORD_0 = "TEXCOORD_0"
+        const val ATTRIBUTE_TEXCOORD_1 = "TEXCOORD_1"
+        const val ATTRIBUTE_COLOR_0 = "COLOR_0"
+        const val ATTRIBUTE_JOINTS_0 = "JOINTS_0"
+        const val ATTRIBUTE_WEIGHTS_0 = "WEIGHTS_0"
+    }
+}
 
 /**
  * A node in the node hierarchy.  When the node contains `skin`, all `mesh.primitives`
@@ -807,12 +818,12 @@ internal data class GltfNode(
     /**
      * The index of the camera referenced by this node.
      */
-    val camera: Long? = null,
+    val camera: Int = -1,
 
     /**
      * The indices of this node's children.
      */
-    val children: List<Long>? = null,
+    val children: List<Int> = emptyList(),
 
     val extensions: JsonObject? = null,
     val extras: JsonObject? = null,
@@ -820,12 +831,12 @@ internal data class GltfNode(
     /**
      * A floating-point 4x4 transformation matrix stored in column-major order.
      */
-    val matrix: List<Double>? = null,
+    val matrix: List<Float> = emptyList(),
 
     /**
      * The index of the mesh in this node.
      */
-    val mesh: Long? = null,
+    val mesh: Int = -1,
 
     /**
      * The user-defined name of this object.
@@ -835,29 +846,29 @@ internal data class GltfNode(
     /**
      * The node's unit quaternion rotation in the order (x, y, z, w), where w is the scalar.
      */
-    val rotation: List<Double>? = null,
+    val rotation: List<Float> = emptyList(),
 
     /**
      * The node's non-uniform scale, given as the scaling factors along the x, y, and z axes.
      */
-    val scale: List<Double>? = null,
+    val scale: List<Float> = emptyList(),
 
     /**
      * The index of the skin referenced by this node.
      */
-    val skin: Long? = null,
+    val skin: Int = -1,
 
     /**
      * The node's translation along the x, y, and z axes.
      */
-    val translation: List<Double>? = null,
+    val translation: List<Float> = emptyList(),
 
     /**
      * The weights of the instantiated morph target. The number of array elements **MUST** match
      * the number of morph targets of the referenced mesh. When defined, `mesh` **MUST** also be
      * defined.
      */
-    val weights: List<Double>? = null,
+    val weights: List<Float> = emptyList(),
 )
 
 /**
@@ -871,12 +882,12 @@ internal data class GltfSampler(
     /**
      * Magnification filter.
      */
-    val magFilter: Long? = null,
+    val magFilter: Int? = null,
 
     /**
      * Minification filter.
      */
-    val minFilter: Long? = null,
+    val minFilter: Int? = null,
 
     /**
      * The user-defined name of this object.
@@ -886,12 +897,12 @@ internal data class GltfSampler(
     /**
      * S (U) wrapping mode.
      */
-    val wrapS: Long? = null,
+    val wrapS: Int? = null,
 
     /**
      * T (V) wrapping mode.
      */
-    val wrapT: Long? = null,
+    val wrapT: Int? = null,
 )
 
 /**
@@ -910,7 +921,7 @@ internal data class GltfScene(
     /**
      * The indices of each root node.
      */
-    val nodes: List<Long>? = null,
+    val nodes: List<Int> = emptyList(),
 )
 
 /**
@@ -924,12 +935,12 @@ data class GltfSkin(
     /**
      * The index of the accessor containing the floating-point 4x4 inverse-bind matrices.
      */
-    val inverseBindMatrices: Long? = null,
+    val inverseBindMatrices: Int = -1,
 
     /**
      * Indices of skeleton nodes, used as joints in this skin.
      */
-    val joints: List<Long>,
+    val joints: List<Int>,
 
     /**
      * The user-defined name of this object.
@@ -939,7 +950,7 @@ data class GltfSkin(
     /**
      * The index of the node used as a skeleton root.
      */
-    val skeleton: Long? = null,
+    val skeleton: Int = -1,
 )
 
 /**
@@ -959,11 +970,11 @@ internal data class GltfTexture(
      * The index of the sampler used by this texture. When undefined, a sampler with repeat
      * wrapping and auto filtering **SHOULD** be used.
      */
-    val sampler: Long? = null,
+    val sampler: Int = -1,
 
     /**
      * The index of the image used by this texture. When undefined, an extension or other
      * mechanism **SHOULD** supply an alternate texture source, otherwise behavior is undefined.
      */
-    val source: Long? = null,
+    val source: Int = 0,
 )

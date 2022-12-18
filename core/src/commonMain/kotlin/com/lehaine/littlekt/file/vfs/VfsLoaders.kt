@@ -5,6 +5,9 @@ import com.lehaine.littlekt.audio.AudioStream
 import com.lehaine.littlekt.file.UnsupportedFileTypeException
 import com.lehaine.littlekt.file.atlas.AtlasInfo
 import com.lehaine.littlekt.file.atlas.AtlasPage
+import com.lehaine.littlekt.file.createByteBuffer
+import com.lehaine.littlekt.file.gltf.GltfFile
+import com.lehaine.littlekt.file.gltf.toModel
 import com.lehaine.littlekt.file.ldtk.LDtkMapData
 import com.lehaine.littlekt.file.ldtk.LDtkMapLoader
 import com.lehaine.littlekt.file.tiled.TiledMapData
@@ -14,11 +17,12 @@ import com.lehaine.littlekt.graphics.Texture
 import com.lehaine.littlekt.graphics.g2d.TextureAtlas
 import com.lehaine.littlekt.graphics.g2d.TextureSlice
 import com.lehaine.littlekt.graphics.g2d.font.*
-import com.lehaine.littlekt.graphics.gl.TexMagFilter
-import com.lehaine.littlekt.graphics.gl.TexMinFilter
 import com.lehaine.littlekt.graphics.g2d.tilemap.ldtk.LDtkLevel
 import com.lehaine.littlekt.graphics.g2d.tilemap.ldtk.LDtkWorld
 import com.lehaine.littlekt.graphics.g2d.tilemap.tiled.TiledMap
+import com.lehaine.littlekt.graphics.g3d.model.Model
+import com.lehaine.littlekt.graphics.gl.TexMagFilter
+import com.lehaine.littlekt.graphics.gl.TexMinFilter
 import com.lehaine.littlekt.math.MutableVec4i
 import com.lehaine.littlekt.util.internal.unquote
 import kotlinx.serialization.decodeFromString
@@ -43,6 +47,7 @@ suspend fun VfsFile.readAtlas(): TextureAtlas {
             }
             AtlasInfo(page.meta, pages)
         }
+
         data.startsWith('\n') -> TODO("Implement text atlas format")
         data.startsWith("\r\n") -> TODO("Implement text atlas format")
         else -> throw UnsupportedFileTypeException("This atlas format is not supported! ($path)")
@@ -72,7 +77,7 @@ suspend fun VfsFile.readBitmapFont(
     filter: TexMagFilter = TexMagFilter.NEAREST,
     mipmaps: Boolean = true,
     preloadedTextures: List<TextureSlice> = listOf(),
-): com.lehaine.littlekt.graphics.g2d.font.BitmapFont {
+): BitmapFont {
     val data = readString()
     val textures = mutableMapOf<Int, Texture>()
     var pages = 0
@@ -95,10 +100,10 @@ private suspend fun readBitmapFontTxt(
     preloadedTextures: List<TextureSlice>,
     loadTextures: Boolean,
     filter: TexMagFilter,
-    mipmaps: Boolean
-): com.lehaine.littlekt.graphics.g2d.font.BitmapFont {
+    mipmaps: Boolean,
+): BitmapFont {
     val kernings = mutableListOf<Kerning>()
-    val glyphs = mutableListOf<com.lehaine.littlekt.graphics.g2d.font.BitmapFont.Glyph>()
+    val glyphs = mutableListOf<BitmapFont.Glyph>()
     var lineHeight = 16f
     var fontSize = 16f
     var base: Float? = null
@@ -135,6 +140,7 @@ private suspend fun readBitmapFontTxt(
                     )
                 }
             }
+
             line.startsWith("page") -> {
                 val id = map["id"]?.toInt() ?: 0
                 val file = map["file"]?.unquote() ?: error("Page without file")
@@ -142,11 +148,13 @@ private suspend fun readBitmapFontTxt(
                     textures[id] = fontFile.parent[file].readTexture(magFilter = filter, mipmaps = mipmaps)
                 }
             }
+
             line.startsWith("common ") -> {
                 lineHeight = map["lineHeight"]?.toFloatOrNull() ?: 16f
                 base = map["base"]?.toFloatOrNull()
                 pages = map["pages"]?.toIntOrNull() ?: 1
             }
+
             line.startsWith("char ") -> {
                 val page = map["page"]?.toIntOrNull() ?: 0
                 val id = map["id"]?.toIntOrNull() ?: 0
@@ -171,6 +179,7 @@ private suspend fun readBitmapFontTxt(
                             height
                         )
                     }
+
                     preloadedTextures.isNotEmpty() -> {
                         TextureSlice(
                             preloadedTextures[page],
@@ -180,11 +189,12 @@ private suspend fun readBitmapFontTxt(
                             height
                         )
                     }
+
                     else -> {
                         throw IllegalStateException("Unable to load any textures for ${fontFile.baseName}. If they are preloaded, make sure to pass that in 'readBitmapFont()'.")
                     }
                 }
-                glyphs += com.lehaine.littlekt.graphics.g2d.font.BitmapFont.Glyph(
+                glyphs += BitmapFont.Glyph(
                     fontSize = fontSize,
                     id = id,
                     slice = slice,
@@ -196,6 +206,7 @@ private suspend fun readBitmapFontTxt(
                     page = page
                 )
             }
+
             line.startsWith("kerning ") -> {
                 kernings += Kerning(
                     first = map["first"]?.toIntOrNull() ?: 0,
@@ -208,7 +219,7 @@ private suspend fun readBitmapFontTxt(
 
     capHeight -= padding.x + padding.z
 
-    return com.lehaine.littlekt.graphics.g2d.font.BitmapFont(
+    return BitmapFont(
         fontSize = fontSize,
         lineHeight = lineHeight,
         base = base ?: lineHeight,
@@ -248,7 +259,7 @@ suspend fun VfsFile.readLDtkMapLoader(atlas: TextureAtlas? = null, tilesetBorder
 suspend fun VfsFile.readTiledMap(
     atlas: TextureAtlas? = null,
     tilesetBorder: Int = 2,
-    mipmaps: Boolean = true
+    mipmaps: Boolean = true,
 ): TiledMap {
     val mapData = decodeFromString<TiledMapData>()
     val loader = TiledMapLoader(parent, mapData, atlas, tilesetBorder, mipmaps)
@@ -262,7 +273,7 @@ suspend fun VfsFile.readTiledMap(
 expect suspend fun VfsFile.readTexture(
     minFilter: TexMinFilter = TexMinFilter.NEAREST,
     magFilter: TexMagFilter = TexMagFilter.NEAREST,
-    mipmaps: Boolean = true
+    mipmaps: Boolean = true,
 ): Texture
 
 /**
@@ -292,3 +303,75 @@ expect suspend fun VfsFile.readAudioStream(): AudioStream
  * Write pixmap to disk.
  */
 expect suspend fun VfsFile.writePixmap(pixmap: Pixmap)
+
+/**
+ * Loads a glTF / glb model from the path and converts it to a [Model].
+ * @return a new [Model]
+ */
+suspend fun VfsFile.readGltfModel(): Model {
+    val file: GltfFile = when {
+        isGltf() -> loadGltf()
+        isBinaryGltf() -> loadBinaryGltf()
+        else -> throw IllegalArgumentException("Unknown glTF type: $path")
+    }
+    file.buffers.filter { it.uri != null }.forEach {
+        val uri = it.uri!!
+        val bufferPath = if (uri.startsWith("data:", true)) VfsFile(vfs, uri) else VfsFile(vfs, "$path/$uri")
+        it.data = bufferPath.read()
+    }
+    //  file.images.filter { it.uri != null }.forEach { it.uri = "" }
+
+    return file.toModel()
+}
+
+private fun VfsFile.isGltf() = path.endsWith(".gltf", true) || path.endsWith(".gltf.gz", true)
+private fun VfsFile.isBinaryGltf() = path.endsWith(".glb", true) || path.endsWith(".glb.gz", true)
+
+private suspend fun VfsFile.loadGltf(): GltfFile {
+    if (path.endsWith(".gz", true)) {
+        TODO("Implement gzip inflation")
+    }
+    return decodeFromString()
+}
+
+private suspend fun VfsFile.loadBinaryGltf(): GltfFile {
+    if (path.endsWith(".gz", true)) {
+        TODO("Implement gzip inflation")
+    }
+    val stream = readStream()
+
+    val magic = stream.readUInt()
+    val version = stream.readUInt()
+    stream.readUInt() // total length of glTF - skipping over - not needed
+    if (magic != GltfFile.GLB_FILE_MAGIC) {
+        throw IllegalStateException("Unexpected glTF magic number: $magic. Expected: ${GltfFile.GLB_FILE_MAGIC} / 'glTF'.")
+    }
+
+    if (version != 2) {
+        vfs.logger.warn { "Unexpected glTF version: $version. Expected: version 2." }
+    }
+
+    var chunkLength = stream.readUInt()
+    var chunkType = stream.readUInt()
+    if (chunkType != GltfFile.GLB_CHUNK_MAGIC_JSON) {
+        throw IllegalStateException("Unexpected chunk type for chunk 0: $chunkType. Expected: ${GltfFile.GLB_CHUNK_MAGIC_JSON} / 'JSON'.")
+    }
+
+    val jsonData = stream.readChunk(chunkLength)
+
+    val gltf = vfs.json.decodeFromString<GltfFile>(jsonData.decodeToString())
+
+    var chunk = 1
+    while (stream.hasRemaining()) {
+        chunkLength = stream.readUInt()
+        chunkType = stream.readUInt()
+        if (chunkType != GltfFile.GLB_CHUNK_MAGIC_BIN) {
+            vfs.logger.warn { "Unexpected chunk type for chunk $chunk: $chunkType. Expected: ${GltfFile.GLB_CHUNK_MAGIC_BIN} / 'BIN'." }
+            stream.readChunk(chunkLength)
+        } else {
+            gltf.buffers[chunk - 1].data = createByteBuffer(stream.readChunk(chunkLength))
+        }
+        chunk++
+    }
+    return gltf
+}

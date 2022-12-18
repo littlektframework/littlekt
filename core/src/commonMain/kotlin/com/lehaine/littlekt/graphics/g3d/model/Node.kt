@@ -249,6 +249,8 @@ abstract class Node(val name: String? = null) : Disposable {
         return this
     }
 
+    override fun dispose() = Unit
+
     companion object {
         private val MODEL_MAT_IDENTITY = Mat4()
     }

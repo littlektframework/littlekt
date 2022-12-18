@@ -14,14 +14,55 @@ class JvmByteSequenceStream(val stream: InputStream) : ByteSequenceStream {
         return bufferedStream.iterator()
     }
 
-    override fun readChunk(size: Int): List<Byte> {
-        val list = mutableListOf<Byte>()
+    override fun readByte(): Int {
+        return chunkIterator.nextByte().toInt()
+    }
+
+    override fun readUByte(): Int {
+        return chunkIterator.nextByte().toInt() and 0xff
+    }
+
+    override fun readShort(): Int {
+        var s = readUShort()
+        if (s > 32767) {
+            s -= 65536
+        }
+        return s
+    }
+
+    override fun readUShort(): Int {
+        var d = 0
+        for (i in 0..1) {
+            d = d or (readUByte() shl (i * 8))
+        }
+        return d
+    }
+
+    override fun readInt(): Int = readUInt()
+
+    override fun readUInt(): Int {
+        var d = 0
+        for (i in 0..3) {
+            d = d or (readUByte() shl (i * 8))
+        }
+        return d
+    }
+
+    override fun readChunk(size: Int): ByteArray {
+        val list = ByteArray(size)
         var i = 0
         while (i < size && chunkIterator.hasNext()) {
-            list += chunkIterator.nextByte()
+            list[i] = chunkIterator.nextByte()
             i++
         }
+        if(i < size && chunkIterator.hasNext()) {
+            throw IllegalStateException("Attempt to read a chunk of $size but was only able to read a size of $i!")
+        }
         return list
+    }
+
+    override fun hasRemaining(): Boolean {
+        return chunkIterator.hasNext()
     }
 
     override fun reset() {

@@ -2,6 +2,7 @@ package com.lehaine.littlekt.samples.s3d
 
 import com.lehaine.littlekt.Context
 import com.lehaine.littlekt.ContextListener
+import com.lehaine.littlekt.file.vfs.readGltfModel
 import com.lehaine.littlekt.graphics.Color
 import com.lehaine.littlekt.graphics.gl.ClearBufferMask
 import com.lehaine.littlekt.input.Key
@@ -13,6 +14,7 @@ import com.lehaine.littlekt.input.Key
 class GltfTest(context: Context) : ContextListener(context) {
 
     override suspend fun Context.start() {
+        val model = resourcesVfs["models/player.glb"].readGltfModel()
 
         onResize { width, height ->
 

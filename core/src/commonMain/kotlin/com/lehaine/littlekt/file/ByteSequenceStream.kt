@@ -11,7 +11,18 @@ interface ByteSequenceStream : Sequence<Byte> {
      * Reads the next chunk of the specified [size] or until it reaches the end of the [ByteSequenceStream].
      * @return a new list with the read values.
      */
-    fun readChunk(size: Int): List<Byte>
+    fun readChunk(size: Int): ByteArray
+
+    fun readByte(): Int
+    fun readUByte(): Int
+
+    fun readShort(): Int
+    fun readUShort(): Int
+
+    fun readInt(): Int
+    fun readUInt(): Int
+
+    fun hasRemaining(): Boolean
 
     /**
      * Resets the chunk iterator back to the beginning.
