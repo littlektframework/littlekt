@@ -895,6 +895,38 @@ open class Mat4 {
         return this
     }
 
+    fun setToRotation(quaternion: Vec4f): Mat4 {
+        val r = quaternion.w
+        val i = quaternion.x
+        val j = quaternion.y
+        val k = quaternion.z
+
+        var s = sqrt(r * r + i * i + j * j + k * k)
+        s = 1f / (s * s)
+
+        this[0, 0] = 1 - 2 * s * (j * j + k * k)
+        this[0, 1] = 2 * s * (i * j - k * r)
+        this[0, 2] = 2 * s * (i * k + j * r)
+        this[0, 3] = 0f
+
+        this[1, 0] = 2 * s * (i * j + k * r)
+        this[1, 1] = 1 - 2 * s * (i * i + k * k)
+        this[1, 2] = 2 * s * (j * k - i * r)
+        this[1, 3] = 0f
+
+        this[2, 0] = 2 * s * (i * k - j * r)
+        this[2, 1] = 2 * s * (j * k + i * r)
+        this[2, 2] = 1 - 2 * s * (i * i + j * j)
+        this[2, 3] = 0f
+
+        this[3, 0] = 0f
+        this[3, 1] = 0f
+        this[3, 2] = 0f
+        this[3, 3] = 1f
+
+        return this
+    }
+
     /**
      * Sets this matrix to a rotation matrix from the given euler angles.
      * @param yaw the yaw in degrees
@@ -1107,6 +1139,20 @@ open class Mat4 {
         this[3, col] = w
     }
 
+    fun setCol(col: Int, vec: Vec4f) {
+        this[0, col] = vec.x
+        this[1, col] = vec.y
+        this[2, col] = vec.z
+        this[3, col] = vec.w
+    }
+
+    fun getCol(col: Int, result: MutableVec4f): MutableVec4f {
+        result.x = this[0, col]
+        result.y = this[1, col]
+        result.z = this[2, col]
+        result.w = this[3, col]
+        return result
+    }
 
     fun getOrigin(result: MutableVec3f): MutableVec3f {
         result.x = this[0, 3]
