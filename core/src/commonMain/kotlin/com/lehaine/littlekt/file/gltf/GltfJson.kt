@@ -571,7 +571,7 @@ internal data class GltfImage(
     /**
      * The image's media type. This field **MUST** be defined when `bufferView` is defined.
      */
-    val mimeType: JsonObject? = null,
+    val mimeType: String? = null,
 
     /**
      * The user-defined name of this object.
