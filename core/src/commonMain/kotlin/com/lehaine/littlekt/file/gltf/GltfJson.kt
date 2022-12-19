@@ -86,7 +86,7 @@ internal data class GltfFile(
     /**
      * The index of the default scene.
      */
-    val scene: Long? = null,
+    val scene: Int = 0,
 
     /**
      * An array of scenes.

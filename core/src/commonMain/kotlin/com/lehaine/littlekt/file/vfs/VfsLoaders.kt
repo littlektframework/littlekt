@@ -322,7 +322,7 @@ suspend fun VfsFile.readGltfModel(): Model {
     //  file.images.filter { it.uri != null }.forEach { it.uri = "" }
     file.updateReferences()
 
-    return file.toModel()
+    return file.toModel(vfs.context.gl)
 }
 
 private fun VfsFile.isGltf() = path.endsWith(".gltf", true) || path.endsWith(".gltf.gz", true)

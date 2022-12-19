@@ -1,6 +1,7 @@
 package com.lehaine.littlekt.graphics.g3d.model
 
 import com.lehaine.littlekt.Disposable
+import com.lehaine.littlekt.graphics.shader.ShaderProgram
 import com.lehaine.littlekt.math.Mat4
 import com.lehaine.littlekt.math.MutableVec3f
 import com.lehaine.littlekt.math.Vec3f
@@ -11,7 +12,7 @@ import com.lehaine.littlekt.util.LazyMat4
  * @author Colton Daily
  * @date 12/17/2022
  */
-abstract class Node(val name: String? = null) : Disposable {
+open class Node(val name: String? = null) : Disposable {
     protected val intChildren = mutableListOf<Node>()
     protected val childrenBounds = BoundingBox()
     val children: List<Node> get() = intChildren
@@ -135,6 +136,12 @@ abstract class Node(val name: String? = null) : Disposable {
 
         if (!isIdentity) {
             modelMat.mul(transform)
+        }
+    }
+
+    open fun render(shader: ShaderProgram<*, *>) {
+        for (i in intChildren.indices) {
+            intChildren[i].render(shader)
         }
     }
 

@@ -9,6 +9,7 @@ interface Buffer {
     var position: Int
     val remaining: Int
     val capacity: Int
+    var dirty: Boolean
 
     fun flip()
     fun clear()

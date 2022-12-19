@@ -1,6 +1,5 @@
 package com.lehaine.littlekt.file
 
-import java.io.ByteArrayInputStream
 import java.io.InputStream
 
 /**
@@ -82,9 +81,4 @@ class JvmByteSequenceStream(val stream: InputStream) : ByteSequenceStream {
         stream.close()
         bufferedStream.close()
     }
-}
-
-actual fun ByteSequenceStream(data: ByteBuffer, offset: Int): ByteSequenceStream {
-    val byteArray = data.toArray()
-    return JvmByteSequenceStream(ByteArrayInputStream(byteArray, offset, byteArray.size))
 }

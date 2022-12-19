@@ -1,15 +1,13 @@
 package com.lehaine.littlekt.graphics
 
 import com.lehaine.littlekt.Disposable
-import com.lehaine.littlekt.file.DataSource
-import com.lehaine.littlekt.file.FloatBuffer
-import com.lehaine.littlekt.file.createFloatBuffer
-import com.lehaine.littlekt.file.createShortBuffer
+import com.lehaine.littlekt.file.*
 import com.lehaine.littlekt.graphics.gl.BufferTarget
 import com.lehaine.littlekt.graphics.gl.GlBuffer
 import com.lehaine.littlekt.graphics.gl.GlVertexArray
 import com.lehaine.littlekt.graphics.gl.Usage
 import com.lehaine.littlekt.graphics.shader.ShaderProgram
+
 
 /**
  * @author Colton Daily
@@ -18,10 +16,7 @@ import com.lehaine.littlekt.graphics.shader.ShaderProgram
 class VertexBufferObject(val gl: GL, val isStatic: Boolean, numVertices: Int, val attributes: VertexAttributes) :
     Disposable {
     val buffer: FloatBuffer = createFloatBuffer(attributes.vertexSize / 4 * numVertices)
-        get() {
-            isDirty = true
-            return field
-        }
+
     private val glBuffer: GlBuffer = gl.createBuffer()
     private val vaoGl: GlVertexArray? = if (gl.isG30) gl.createVertexArray() else null
     private val usage = if (isStatic) Usage.STATIC_DRAW else Usage.DYNAMIC_DRAW
@@ -30,8 +25,6 @@ class VertexBufferObject(val gl: GL, val isStatic: Boolean, numVertices: Int, va
     val isBound get() = bound
     val numVertices get() = buffer.limit * 4 / attributes.vertexSize
     val maxNumVertices get() = buffer.capacity * 4 / attributes.vertexSize
-
-    private var isDirty = false
 
     init {
         allocBuffer()
@@ -51,7 +44,6 @@ class VertexBufferObject(val gl: GL, val isStatic: Boolean, numVertices: Int, va
     }
 
     fun setVertices(vertices: FloatArray, srcOffset: Int, count: Int) {
-        isDirty = true
         buffer.clear()
         buffer.position = 0
         buffer.put(vertices, srcOffset, count)
@@ -61,7 +53,6 @@ class VertexBufferObject(val gl: GL, val isStatic: Boolean, numVertices: Int, va
     }
 
     fun updateVertices(destOffset: Int, vertices: FloatArray, srcOffset: Int, count: Int) {
-        isDirty = true
         val pos = buffer.position
         buffer.position = destOffset
         buffer.put(vertices, srcOffset, count)
@@ -74,9 +65,9 @@ class VertexBufferObject(val gl: GL, val isStatic: Boolean, numVertices: Int, va
             gl.bindVertexArray(it)
         }
         gl.bindBuffer(BufferTarget.ARRAY, glBuffer)
-        if (isDirty) {
+        if (buffer.dirty) {
             gl.bufferSubData(BufferTarget.ARRAY, 0, DataSource.FloatBufferDataSource(buffer))
-            isDirty = false
+            buffer.dirty = false
         }
         if (shader != null) {
             attributes.forEachIndexed { index, attribute ->
@@ -114,7 +105,7 @@ class VertexBufferObject(val gl: GL, val isStatic: Boolean, numVertices: Int, va
     private fun onBufferChanged() {
         if (bound) {
             gl.bufferSubData(BufferTarget.ARRAY, 0, DataSource.FloatBufferDataSource(buffer))
-            isDirty = false
+            buffer.dirty = false
         }
     }
 
@@ -126,11 +117,8 @@ class VertexBufferObject(val gl: GL, val isStatic: Boolean, numVertices: Int, va
 }
 
 class IndexBufferObject(val gl: GL, maxIndices: Int, val isStatic: Boolean = true) : Disposable {
-    val buffer = createShortBuffer(maxIndices * 2)
-        get() {
-            isDirty = true
-            return field
-        }
+    val buffer: ShortBuffer = createShortBuffer(maxIndices * 2)
+
     private val glBuffer: GlBuffer = gl.createBuffer()
     private val usage = if (isStatic) Usage.STATIC_DRAW else Usage.DYNAMIC_DRAW
     private var bound = false
@@ -138,7 +126,6 @@ class IndexBufferObject(val gl: GL, maxIndices: Int, val isStatic: Boolean = tru
     val isBound get() = bound
     val numIndices get() = buffer.limit
     val maxNumIndices get() = buffer.capacity
-    private var isDirty = false
 
     init {
         allocBuffer()
@@ -152,7 +139,6 @@ class IndexBufferObject(val gl: GL, maxIndices: Int, val isStatic: Boolean = tru
     }
 
     fun setIndices(indices: ShortArray, srcOffset: Int, count: Int) {
-        isDirty = true
         buffer.clear()
         buffer.put(indices, srcOffset, count)
         buffer.flip()
@@ -160,7 +146,6 @@ class IndexBufferObject(val gl: GL, maxIndices: Int, val isStatic: Boolean = tru
     }
 
     fun updateVertices(destOffset: Int, indices: ShortArray, srcOffset: Int, count: Int) {
-        isDirty = true
         val pos = buffer.position
         buffer.position = destOffset
         buffer.put(indices, srcOffset, count)
@@ -170,9 +155,9 @@ class IndexBufferObject(val gl: GL, maxIndices: Int, val isStatic: Boolean = tru
 
     fun bind() {
         gl.bindBuffer(BufferTarget.ELEMENT_ARRAY, glBuffer)
-        if (isDirty) {
+        if (buffer.dirty) {
             gl.bufferSubData(BufferTarget.ELEMENT_ARRAY, 0, DataSource.ShortBufferDataSource(buffer))
-            isDirty = false
+            buffer.dirty = false
         }
         bound = true
     }
@@ -185,7 +170,7 @@ class IndexBufferObject(val gl: GL, maxIndices: Int, val isStatic: Boolean = tru
     private fun onBufferChanged() {
         if (bound) {
             gl.bufferSubData(BufferTarget.ELEMENT_ARRAY, 0, DataSource.ShortBufferDataSource(buffer))
-            isDirty = false
+            buffer.dirty = false
         }
     }
 

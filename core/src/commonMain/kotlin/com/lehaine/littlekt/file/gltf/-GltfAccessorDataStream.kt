@@ -1,6 +1,7 @@
 package com.lehaine.littlekt.file.gltf
 
 import com.lehaine.littlekt.file.ByteSequenceStream
+import com.lehaine.littlekt.file.IndexedByteSequenceStream
 import com.lehaine.littlekt.math.*
 
 /**
@@ -13,31 +14,30 @@ internal abstract class GltfAccessorDataStream(val accessor: GltfAccessor) {
     private val byteStride: Int
 
     private val buffer: GltfBufferView? = accessor.bufferViewRef
-    private val stream: ByteSequenceStream? = if (buffer != null) {
-        ByteSequenceStream(buffer.bufferRef.data, accessor.byteOffset + buffer.byteOffset)
+    private val stream: IndexedByteSequenceStream? = if (buffer != null) {
+        IndexedByteSequenceStream(buffer.bufferRef.data, accessor.byteOffset + buffer.byteOffset)
     } else {
         null
     }
 
-    private val sparseIndexStream: ByteSequenceStream?
-    private val sparseValueStream: ByteSequenceStream?
+    private val sparseIndexStream: IndexedByteSequenceStream?
+    private val sparseValueStream: IndexedByteSequenceStream?
     private val sparseIndexType: Int
     private var nextSparseIndex: Int
 
     var index: Int = 0
         set(value) {
-            val diff = value - field
-            stream?.skip(diff * byteStride)
             field = value
+            stream?.index = value * byteStride
         }
 
     init {
 
         if (accessor.sparse != null) {
-            sparseIndexStream = ByteSequenceStream(
+            sparseIndexStream = IndexedByteSequenceStream(
                 accessor.sparse.indices.bufferViewRef.bufferRef.data, accessor.sparse.indices.bufferViewRef.byteOffset
             )
-            sparseValueStream = ByteSequenceStream(
+            sparseValueStream = IndexedByteSequenceStream(
                 accessor.sparse.values.bufferViewRef.bufferRef.data, accessor.sparse.values.bufferViewRef.byteOffset
             )
             sparseIndexType = accessor.sparse.indices.componentType
@@ -102,14 +102,12 @@ internal abstract class GltfAccessorDataStream(val accessor: GltfAccessor) {
                 GltfAccessor.COMP_TYPE_UNSIGNED_BYTE -> 255f
                 GltfAccessor.COMP_TYPE_SHORT -> 32767f
                 GltfAccessor.COMP_TYPE_UNSIGNED_SHORT -> 65535f
-                GltfAccessor.COMP_TYPE_INT -> 2147483647f
-                GltfAccessor.COMP_TYPE_UNSIGNED_INT -> 4294967296f
+                GltfAccessor.COMP_TYPE_INT -> 2.14748365E9f
+                GltfAccessor.COMP_TYPE_UNSIGNED_INT -> 4.2949673E9f
                 else -> throw IllegalStateException("Unknown component type: ${accessor.componentType}")
             }
         }
     }
-
-    protected fun nextDouble() = nextFloat().toDouble()
 
     private fun ByteSequenceStream.nextIntComponent(componentType: Int): Int {
         return when (componentType) {
@@ -170,9 +168,6 @@ internal class FloatAccessor(accessor: GltfAccessor) : GltfAccessorDataStream(ac
         if (accessor.type != GltfAccessor.TYPE_SCALAR) {
             throw IllegalArgumentException("Vec2fAccessor requires accessor type ${GltfAccessor.TYPE_SCALAR}, provided was ${accessor.type}")
         }
-//        if (accessor.componentType != GltfAccessor.COMP_TYPE_FLOAT) {
-//            throw IllegalArgumentException("FloatAccessor requires a float component type, provided was ${accessor.componentType}")
-//        }
     }
 
     fun next(): Float {
@@ -180,8 +175,6 @@ internal class FloatAccessor(accessor: GltfAccessor) : GltfAccessorDataStream(ac
         advance()
         return f
     }
-
-    fun nextD() = next().toDouble()
 }
 
 /**
@@ -195,9 +188,6 @@ internal class Vec2fAccessor(accessor: GltfAccessor) : GltfAccessorDataStream(ac
         if (accessor.type != GltfAccessor.TYPE_VEC2) {
             throw IllegalArgumentException("Vec2fAccessor requires accessor type ${GltfAccessor.TYPE_VEC2}, provided was ${accessor.type}")
         }
-//        if (accessor.componentType != GltfAccessor.COMP_TYPE_FLOAT) {
-//            throw IllegalArgumentException("Vec2fAccessor requires a float component type, provided was ${accessor.componentType}")
-//        }
     }
 
     fun next(): MutableVec2f = next(MutableVec2f())

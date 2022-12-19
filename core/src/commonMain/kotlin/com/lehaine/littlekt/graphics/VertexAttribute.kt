@@ -84,6 +84,28 @@ data class VertexAttribute(
                 type = VertexAttrType.FLOAT,
                 normalized = false
             )
+
+        val TANGENT
+            get() = VertexAttribute(
+                usage = VertexAttrUsage.BINORMAL,
+                numComponents = 3,
+                alias = ShaderProgram.TANGENT_ATTRIBUTE,
+            )
+
+
+        val BINORMAL
+            get() = VertexAttribute(
+                usage = VertexAttrUsage.TANGENT,
+                numComponents = 3,
+                alias = ShaderProgram.TANGENT_ATTRIBUTE,
+            )
+
+        fun BONE_WEIGHT(unit: Int = 0) = VertexAttribute(
+            usage = VertexAttrUsage.BONE_WEIGHT,
+            numComponents = 2,
+            alias = ShaderProgram.TANGENT_ATTRIBUTE + unit,
+            unit = unit
+        )
     }
 }
 
@@ -168,5 +190,8 @@ value class VertexAttrUsage(val usage: Int) {
         val NORMAL = VertexAttrUsage(8)
         val TEX_COORDS = VertexAttrUsage(16)
         val GENERIC = VertexAttrUsage(32)
+        val BONE_WEIGHT = VertexAttrUsage(64)
+        val TANGENT = VertexAttrUsage(128)
+        val BINORMAL = VertexAttrUsage(256)
     }
 }

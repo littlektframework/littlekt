@@ -5,6 +5,9 @@ import com.lehaine.littlekt.Disposable
 import com.lehaine.littlekt.graphics.gl.DrawMode
 import com.lehaine.littlekt.graphics.gl.IndexType
 import com.lehaine.littlekt.graphics.shader.ShaderProgram
+import com.lehaine.littlekt.math.Vec2f
+import com.lehaine.littlekt.math.Vec3f
+import com.lehaine.littlekt.math.Vec4f
 import com.lehaine.littlekt.util.datastructure.FloatArrayList
 import kotlin.math.floor
 
@@ -88,6 +91,20 @@ fun <T : ContextListener> T.textureMesh(generate: MeshProps.() -> Unit): Mesh {
     return textureMesh(context.gl, generate)
 }
 
+fun meshFromGeometry(gl: GL, geometry: MeshGeometry): Mesh {
+    val mesh = Mesh(
+        gl = gl,
+        isStatic = false,
+        maxVertices = geometry.size,
+        maxIndices = geometry.indices.size,
+        attributes = geometry.attributes.toList(),
+        useBatcher = false
+    )
+    mesh.setVBOVertices(geometry.vertices)
+    mesh.setIndices(geometry.indices.toShortArray())
+    return mesh
+}
+
 class MeshProps {
     var isStatic: Boolean = true
     private var indicesSpecificallySet = false
@@ -113,7 +130,7 @@ class MeshProps {
     var autoBind = true
 }
 
-internal class MeshBatcher(size: Int, val attributes: VertexAttributes) {
+internal class MeshBatcher(val size: Int, val attributes: VertexAttributes) {
     val vertexSize = attributes.sumOf { if (it == VertexAttribute.COLOR_PACKED) 1 else it.numComponents }
     val vertices = FloatArray(size * vertexSize)
     var lastCount = 0
@@ -136,19 +153,23 @@ internal class MeshBatcher(size: Int, val attributes: VertexAttributes) {
                         vertices[offset++] = props.w
                     }
                 }
+
                 VertexAttrUsage.COLOR_UNPACKED -> {
                     vertices[offset++] = props.color.r
                     vertices[offset++] = props.color.g
                     vertices[offset++] = props.color.b
                     vertices[offset++] = props.color.a
                 }
+
                 VertexAttrUsage.COLOR_PACKED -> {
                     vertices[offset++] = props.colorPacked
                 }
+
                 VertexAttrUsage.TEX_COORDS -> {
                     vertices[offset++] = props.u
                     vertices[offset++] = props.v
                 }
+
                 VertexAttrUsage.GENERIC -> {
                     for (i in 0 until vertexAttribute.numComponents) {
                         vertices[offset++] = props.generic[i]
@@ -163,6 +184,24 @@ internal class MeshBatcher(size: Int, val attributes: VertexAttributes) {
         newVertices.copyInto(vertices, dstOffset, srcOffset, srcOffset + count)
         this.offset = dstOffset + count
         this.count = offset / vertexSize
+    }
+
+    fun add(data: Vec2f) {
+        vertices[offset++] = data.x
+        vertices[offset++] = data.y
+    }
+
+    fun add(data: Vec3f) {
+        vertices[offset++] = data.x
+        vertices[offset++] = data.y
+        vertices[offset++] = data.z
+    }
+
+    fun add(data: Vec4f) {
+        vertices[offset++] = data.x
+        vertices[offset++] = data.y
+        vertices[offset++] = data.z
+        vertices[offset++] = data.w
     }
 
     fun add(vertex: Float) {
@@ -211,7 +250,7 @@ class Mesh(
     val maxIndices: Int,
     var useBatcher: Boolean = true,
     var autoBind: Boolean = true,
-    attributes: List<VertexAttribute>
+    attributes: List<VertexAttribute>,
 ) : Disposable {
 
     private val vertexAttributes = VertexAttributes(attributes)
@@ -230,7 +269,7 @@ class Mesh(
 
     /**
      * Total max vertices. `maxVertices * vertexSize`.
-     * Only applicable if [useBatcher] is true. Otherwise it will return 0
+     * Only applicable if [useBatcher] is true. Otherwise, it will return 0
      */
     val batcherVerticesLength get() = if (useBatcher) batcher.vertices.size else 0
 
@@ -387,7 +426,7 @@ class Mesh(
     }
 
     /**
-     * Sets the vertices of this mesh directly. Updates the [VertexBufferObject].
+     * Sets the vertices     of this mesh directly. Updates the [VertexBufferObject].
      * If [useBatcher] is true then any changes to this will be overridden.
      */
     fun setVBOVertices(vertices: FloatArray, srcOffset: Int = 0, count: Int = vertices.size): Mesh {

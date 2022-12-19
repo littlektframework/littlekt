@@ -89,9 +89,3 @@ class JsByteSequenceStream(val buffer: ByteBuffer) : ByteSequenceStream {
         buffer.clear()
     }
 }
-
-actual fun ByteSequenceStream(data: ByteBuffer, offset: Int): ByteSequenceStream {
-    val buffer = createByteBuffer(data.toArray())
-    buffer.position = offset
-    return JsByteSequenceStream(buffer)
-}

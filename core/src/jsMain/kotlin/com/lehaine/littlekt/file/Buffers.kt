@@ -4,6 +4,7 @@ import org.khronos.webgl.*
 
 internal abstract class GenericBuffer<out B : ArrayBufferView>(final override val capacity: Int, create: () -> B) :
     Buffer {
+    override var dirty: Boolean = false
     val buffer = create()
 
     override var limit = capacity
@@ -39,22 +40,26 @@ internal abstract class GenericBuffer<out B : ArrayBufferView>(final override va
 internal class ShortBufferImpl(capacity: Int) : ShortBuffer, GenericBuffer<Uint16Array>(capacity, {
     Uint16Array(capacity)
 }) {
+    override var dirty: Boolean = false
     override fun get(i: Int): Short {
         return buffer[i]
     }
 
     override fun set(i: Int, value: Short) {
+        dirty = true
         buffer[i] = value
     }
 
     override fun put(data: ShortArray, offset: Int, len: Int): ShortBuffer {
         for (i in offset until offset + len) {
+            dirty = true
             buffer[position++] = data[i]
         }
         return this
     }
 
     override fun put(value: Short): ShortBuffer {
+        dirty = true
         buffer[position++] = value
         return this
     }
@@ -73,22 +78,26 @@ internal class ShortBufferImpl(capacity: Int) : ShortBuffer, GenericBuffer<Uint1
 internal class IntBufferImpl(capacity: Int) : IntBuffer, GenericBuffer<Uint32Array>(capacity, {
     Uint32Array(capacity)
 }) {
+    override var dirty: Boolean = false
     override fun get(i: Int): Int {
         return buffer[i]
     }
 
     override fun set(i: Int, value: Int) {
+        dirty = true
         buffer[i] = value
     }
 
     override fun put(data: IntArray, offset: Int, len: Int): IntBuffer {
         for (i in offset until offset + len) {
+            dirty = true
             buffer[position++] = data[i]
         }
         return this
     }
 
     override fun put(value: Int): IntBuffer {
+        dirty = true
         buffer[position++] = value
         return this
     }
@@ -106,6 +115,8 @@ internal class IntBufferImpl(capacity: Int) : IntBuffer, GenericBuffer<Uint32Arr
  */
 internal class FloatBufferImpl(array: Float32Array) : FloatBuffer,
     GenericBuffer<Float32Array>(array.length, { array }) {
+    override var dirty: Boolean = false
+
     constructor(capacity: Int) : this(Float32Array(capacity))
 
 
@@ -114,17 +125,20 @@ internal class FloatBufferImpl(array: Float32Array) : FloatBuffer,
     }
 
     override fun set(i: Int, value: Float) {
+        dirty = true
         buffer[i] = value
     }
 
     override fun put(data: FloatArray, offset: Int, len: Int): FloatBuffer {
         for (i in offset until offset + len) {
+            dirty = true
             buffer[position++] = data[i]
         }
         return this
     }
 
     override fun put(value: Float): FloatBuffer {
+        dirty = true
         buffer[position++] = value
         return this
     }
@@ -143,6 +157,8 @@ internal class FloatBufferImpl(array: Float32Array) : FloatBuffer,
 internal class ByteBufferImpl(buffer: ArrayBuffer) : ByteBuffer, GenericBuffer<DataView>(buffer.byteLength, {
     DataView(buffer)
 }) {
+    override var dirty: Boolean = false
+
     constructor(capacity: Int) : this(ArrayBuffer(capacity))
     constructor(array: Uint8Array) : this(array.buffer)
     constructor(array: Uint8ClampedArray) : this(array.buffer)
@@ -153,18 +169,22 @@ internal class ByteBufferImpl(buffer: ArrayBuffer) : ByteBuffer, GenericBuffer<D
     }
 
     override fun set(i: Int, value: Byte) {
+        dirty = true
         buffer.setInt8(i, value)
     }
 
     override fun set(i: Int, value: Short) {
+        dirty = true
         buffer.setInt16(i, value)
     }
 
     override fun set(i: Int, value: Int) {
+        dirty = true
         buffer.setInt32(i, value)
     }
 
     override fun set(i: Int, value: Float) {
+        dirty = true
         buffer.setFloat32(i, value)
     }
 
@@ -225,12 +245,14 @@ internal class ByteBufferImpl(buffer: ArrayBuffer) : ByteBuffer, GenericBuffer<D
     }
 
     override fun putUByte(value: Byte): ByteBuffer {
+        dirty = true
         buffer.setUint8(position++, value)
         return this
     }
 
     override fun putUByte(data: ByteArray, offset: Int, len: Int): ByteBuffer {
         for (i in offset until offset + len) {
+            dirty = true
             buffer.setUint8(position++, data[i])
         }
         return this
@@ -238,6 +260,7 @@ internal class ByteBufferImpl(buffer: ArrayBuffer) : ByteBuffer, GenericBuffer<D
 
     override fun putUByte(data: ByteBuffer): ByteBuffer {
         for (i in data.position until data.limit) {
+            dirty = true
             buffer.setUint8(position++, data.getUByte(i))
         }
         return this
@@ -256,6 +279,7 @@ internal class ByteBufferImpl(buffer: ArrayBuffer) : ByteBuffer, GenericBuffer<D
     }
 
     override fun putUShort(value: Short): ByteBuffer {
+        dirty = true
         buffer.setUint16(position, value)
         position += 2
         return this
@@ -263,6 +287,7 @@ internal class ByteBufferImpl(buffer: ArrayBuffer) : ByteBuffer, GenericBuffer<D
 
     override fun putUShort(data: ShortArray, offset: Int, len: Int): ByteBuffer {
         for (i in offset until offset + len) {
+            dirty = true
             buffer.setUint16(position, data[i])
             position += 2
         }
@@ -271,6 +296,7 @@ internal class ByteBufferImpl(buffer: ArrayBuffer) : ByteBuffer, GenericBuffer<D
 
     override fun putUShort(data: ShortBuffer): ByteBuffer {
         for (i in data.position until data.limit) {
+            dirty = true
             buffer.setUint16(position, data[i])
             position += 2
         }
@@ -289,18 +315,21 @@ internal class ByteBufferImpl(buffer: ArrayBuffer) : ByteBuffer, GenericBuffer<D
     }
 
     override fun putUInt(value: Int): ByteBuffer {
+        dirty = true
         buffer.setUint32(position, value)
         position += 4
         return this
     }
 
     override fun putUInt(offset: Int, value: Int): ByteBuffer {
+        dirty = true
         buffer.setUint32(offset, value)
         return this
     }
 
     override fun putUInt(data: IntArray, offset: Int, len: Int): ByteBuffer {
         for (i in offset until offset + len) {
+            dirty = true
             buffer.setUint32(position, data[i])
             position += 4
         }
@@ -309,6 +338,7 @@ internal class ByteBufferImpl(buffer: ArrayBuffer) : ByteBuffer, GenericBuffer<D
 
     override fun putUInt(data: IntBuffer): ByteBuffer {
         for (i in data.position until data.limit) {
+            dirty = true
             buffer.setUint32(position, data[i])
             position += 4
         }
@@ -327,6 +357,7 @@ internal class ByteBufferImpl(buffer: ArrayBuffer) : ByteBuffer, GenericBuffer<D
     }
 
     override fun putFloat(value: Float): ByteBuffer {
+        dirty = true
         buffer.setFloat32(position, value)
         position += 4
         return this
@@ -334,6 +365,7 @@ internal class ByteBufferImpl(buffer: ArrayBuffer) : ByteBuffer, GenericBuffer<D
 
     override fun putFloat(data: FloatArray, offset: Int, len: Int): ByteBuffer {
         for (i in offset until offset + len) {
+            dirty = true
             buffer.setFloat32(position, data[i])
             position += 4
         }
@@ -342,6 +374,7 @@ internal class ByteBufferImpl(buffer: ArrayBuffer) : ByteBuffer, GenericBuffer<D
 
     override fun putFloat(data: FloatBuffer): ByteBuffer {
         for (i in data.position until data.limit) {
+            dirty = true
             buffer.setFloat32(position, data[i])
             position += 4
         }

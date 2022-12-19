@@ -12,17 +12,19 @@ class ShaderProgram<V : VertexShader, F : FragmentShader>(
     val fragmentShader: F,
 ) : Preparable, Disposable {
     companion object {
-        /** default name for position attributes  */
         const val POSITION_ATTRIBUTE = "a_position"
 
-        /** default name for normal attributes  */
         const val NORMAL_ATTRIBUTE = "a_normal"
 
-        /** default name for color attributes  */
         const val COLOR_ATTRIBUTE = "a_color"
 
-        /** default name for texcoords attributes, append texture unit number  */
         const val TEXCOORD_ATTRIBUTE = "a_texCoord"
+
+        const val TANGENT_ATTRIBUTE = "a_tangent"
+
+        const val BINORMAL_ATTRIBUTE = "a_binormal"
+
+        const val BONE_WEIGHT_ATTRIBUTE = "a_boneWeight"
 
         const val U_PROJ_TRANS_UNIFORM = "u_projTrans"
         const val U_TEXTURE = "u_texture"
