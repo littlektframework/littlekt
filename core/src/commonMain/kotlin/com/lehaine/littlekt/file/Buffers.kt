@@ -121,6 +121,8 @@ interface FloatBuffer : Buffer {
  * A [Byte] buffer for mixed types. All buffer positions are in bytes.
  */
 interface ByteBuffer : Buffer {
+
+    operator fun get(i: Int): Byte
     operator fun set(i: Int, value: Byte)
     operator fun set(i: Int, value: Int)
     operator fun set(i: Int, value: Short)

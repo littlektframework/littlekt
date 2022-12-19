@@ -44,7 +44,7 @@ class Pixmap(val width: Int, val height: Int, val pixels: ByteBuffer = createByt
         dstWidth: Int = srcWidth,
         dstHeight: Int = srcHeight,
         filtering: Boolean = false,
-        blending: Boolean = false
+        blending: Boolean = false,
     ) {
         if (srcWidth == 0 || srcHeight == 0 || dstWidth == 0 || dstHeight == 0) {
             return
@@ -212,7 +212,7 @@ class Pixmap(val width: Int, val height: Int, val pixels: ByteBuffer = createByt
         sliceY: Int,
         sliceWidth: Int,
         sliceHeight: Int,
-        border: Int = 0
+        border: Int = 0,
     ) {
         src.copyTo(sliceX, sliceY, this, x, y, sliceWidth, sliceHeight)
 
@@ -392,7 +392,7 @@ fun Pixmap.sliceWithBorder(
     sliceWidth: Int,
     sliceHeight: Int,
     border: Int = 1,
-    mipmaps: Boolean = false
+    mipmaps: Boolean = false,
 ): List<TextureSlice> {
     val slices = slice(sliceWidth, sliceHeight).flatten()
     val newWidth = sliceWidth + border * 2
@@ -446,7 +446,7 @@ fun Pixmap.addBorderToSlices(
     sliceWidth: Int,
     sliceHeight: Int,
     border: Int = 1,
-    mipmaps: Boolean = false
+    mipmaps: Boolean = false,
 ): Texture {
     val slices = slice(sliceWidth, sliceHeight).flatten()
     val newWidth = sliceWidth + border * 2
@@ -504,5 +504,5 @@ data class PixmapSlice(
     val x: Int = 0,
     val y: Int = 0,
     val width: Int = pixmap.width,
-    val height: Int = pixmap.height
+    val height: Int = pixmap.height,
 )

@@ -1,6 +1,10 @@
 package com.lehaine.littlekt.file.gltf
 
 import com.lehaine.littlekt.file.ByteBuffer
+import com.lehaine.littlekt.file.createByteBuffer
+import com.lehaine.littlekt.file.vfs.readPixmap
+import com.lehaine.littlekt.graphics.Texture
+import com.lehaine.littlekt.graphics.gl.PixmapTextureData
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import kotlinx.serialization.json.JsonObject
@@ -99,6 +103,56 @@ internal data class GltfFile(
      */
     val textures: List<GltfTexture> = emptyList(),
 ) {
+    fun updateReferences() {
+        accessors.forEach {
+            if (it.bufferView >= 0) {
+                it.bufferViewRef = bufferViews[it.bufferView]
+            }
+            it.sparse?.let { sparse ->
+                sparse.indices.bufferViewRef = bufferViews[sparse.indices.bufferView]
+                sparse.values.bufferViewRef = bufferViews[sparse.values.bufferView]
+            }
+        }
+        animations.forEach { anim ->
+            anim.samplers.forEach {
+                it.inputAccessorRef = accessors[it.input]
+                it.outputAccessorRef = accessors[it.output]
+            }
+            anim.channels.forEach {
+                it.samplerRef = anim.samplers[it.sampler]
+                if (it.target.node >= 0) {
+                    it.target.nodeRef = nodes[it.target.node]
+                }
+            }
+        }
+        bufferViews.forEach { it.bufferRef = buffers[it.buffer] }
+        images.filter { it.bufferView >= 0 }.forEach { it.bufferViewRef = bufferViews[it.bufferView] }
+        meshes.forEach { mesh ->
+            mesh.primitives.forEach {
+                if (it.material >= 0) {
+                    it.materialRef = materials[it.material]
+                }
+            }
+        }
+        nodes.forEach {
+            it.childRefs = it.children.map { iNd -> nodes[iNd] }
+            if (it.mesh >= 0) {
+                it.meshRef = meshes[it.mesh]
+            }
+            if (it.skin >= 0) {
+                it.skinRef = skins[it.skin]
+            }
+        }
+        scenes.forEach { it.nodeRefs = it.nodes.map { iNd -> nodes[iNd] } }
+        skins.forEach {
+            if (it.inverseBindMatrices >= 0) {
+                it.inverseBindMatrixAccessorRef = accessors[it.inverseBindMatrices]
+            }
+            it.jointRefs = it.joints.map { iJt -> nodes[iJt] }
+        }
+        textures.forEach { it.imageRef = images[it.source] }
+    }
+
     companion object {
         const val GLB_FILE_MAGIC = 0x46546C67
         const val GLB_CHUNK_MAGIC_JSON = 0x4E4F534A
@@ -163,7 +217,34 @@ internal data class GltfAccessor(
      * Specifies if the accessor's elements are scalars, vectors, or matrices.
      */
     val type: String,
-)
+) {
+    @Transient
+    var bufferViewRef: GltfBufferView? = null
+
+    companion object {
+        const val TYPE_SCALAR = "SCALAR"
+        const val TYPE_VEC2 = "VEC2"
+        const val TYPE_VEC3 = "VEC3"
+        const val TYPE_VEC4 = "VEC4"
+        const val TYPE_MAT2 = "MAT2"
+        const val TYPE_MAT3 = "MAT3"
+        const val TYPE_MAT4 = "MAT4"
+
+        const val COMP_TYPE_BYTE = 5120
+        const val COMP_TYPE_UNSIGNED_BYTE = 5121
+        const val COMP_TYPE_SHORT = 5122
+        const val COMP_TYPE_UNSIGNED_SHORT = 5123
+        const val COMP_TYPE_INT = 5124
+        const val COMP_TYPE_UNSIGNED_INT = 5125
+        const val COMP_TYPE_FLOAT = 5126
+
+        val COMP_INT_TYPES = setOf(
+            COMP_TYPE_BYTE, COMP_TYPE_UNSIGNED_BYTE,
+            COMP_TYPE_SHORT, COMP_TYPE_UNSIGNED_SHORT,
+            COMP_TYPE_INT, COMP_TYPE_UNSIGNED_INT
+        )
+    }
+}
 
 /**
  * Sparse storage of elements that deviate from their initialization value.
@@ -221,7 +302,10 @@ internal data class GltfAccessorSparseIndices(
 
     val extensions: JsonObject? = null,
     val extras: JsonObject? = null,
-)
+) {
+    @Transient
+    lateinit var bufferViewRef: GltfBufferView
+}
 
 /**
  * An object pointing to a buffer view containing the deviating accessor values.
@@ -246,7 +330,10 @@ internal data class GltfAccessorSparseValues(
 
     val extensions: JsonObject? = null,
     val extras: JsonObject? = null,
-)
+) {
+    @Transient
+    lateinit var bufferViewRef: GltfBufferView
+}
 
 /**
  * A keyframe animation.
@@ -292,7 +379,10 @@ internal data class GltfAnimationChannel(
      * The descriptor of the animated property.
      */
     val target: GltfAnimationChannelTarget,
-)
+) {
+    @Transient
+    lateinit var samplerRef: GltfAnimationSampler
+}
 
 /**
  * The descriptor of the animated property.
@@ -317,6 +407,8 @@ internal data class GltfAnimationChannelTarget(
      */
     val path: String,
 ) {
+    @Transient
+    var nodeRef: GltfNode? = null
 
     companion object {
         const val PATH_TRANSLATION = "translation"
@@ -350,6 +442,12 @@ internal data class GltfAnimationSampler(
      */
     val output: Int,
 ) {
+    @Transient
+    lateinit var inputAccessorRef: GltfAccessor
+
+    @Transient
+    lateinit var outputAccessorRef: GltfAccessor
+
     companion object {
         const val INTERPOLATION_LINEAR = "LINEAR"
         const val INTERPOLATION_STEP = "STEP"
@@ -424,7 +522,18 @@ internal data class GltfBufferView(
      * The hint representing the intended GPU buffer type to use with this buffer view.
      */
     val target: Int = 0,
-)
+) {
+    @Transient
+    lateinit var bufferRef: GltfBuffer
+
+    fun getData(): ByteBuffer {
+        val array = createByteBuffer(byteLength)
+        for (i in 0 until byteLength) {
+            array[i] = bufferRef.data[byteOffset + i]
+        }
+        return array
+    }
+}
 
 /**
  * A buffer points to binary geometry, animation, or skins.
@@ -482,7 +591,7 @@ internal data class GltfCamera(
     /**
      * Specifies if the camera uses a perspective or orthographic projection.
      */
-    val type: JsonObject?,
+    val type: String? = null,
 )
 
 /**
@@ -500,24 +609,24 @@ internal data class GltfCameraOrthographic(
      * The floating-point horizontal magnification of the view. This value **MUST NOT** be equal
      * to zero. This value **SHOULD NOT** be negative.
      */
-    val xmag: Double,
+    val xmag: Float,
 
     /**
      * The floating-point vertical magnification of the view. This value **MUST NOT** be equal
      * to zero. This value **SHOULD NOT** be negative.
      */
-    val ymag: Double,
+    val ymag: Float,
 
     /**
      * The floating-point distance to the far clipping plane. This value **MUST NOT** be equal
      * to zero. `zfar` **MUST** be greater than `znear`.
      */
-    val zfar: Double,
+    val zfar: Float,
 
     /**
      * The floating-point distance to the near clipping plane.
      */
-    val znear: Double,
+    val znear: Float,
 )
 
 /**
@@ -531,7 +640,7 @@ internal data class GltfCameraPerspective(
     /**
      * The floating-point aspect ratio of the field of view.
      */
-    val aspectRatio: Double? = null,
+    val aspectRatio: Float? = null,
 
     val extensions: JsonObject? = null,
     val extras: JsonObject? = null,
@@ -540,17 +649,17 @@ internal data class GltfCameraPerspective(
      * The floating-point vertical field of view in radians. This value **SHOULD** be less than
      * π.
      */
-    val yfov: Double,
+    val yfov: Float,
 
     /**
      * The floating-point distance to the far clipping plane.
      */
-    val zfar: Double? = null,
+    val zfar: Float? = null,
 
     /**
      * The floating-point distance to the near clipping plane.
      */
-    val znear: Double,
+    val znear: Float,
 )
 
 /**
@@ -582,7 +691,10 @@ internal data class GltfImage(
      * The URI (or IRI) of the image.
      */
     val uri: String? = null,
-)
+) {
+    @Transient
+    var bufferViewRef: GltfBufferView? = null
+}
 
 /**
  * The material appearance of a primitive.
@@ -678,7 +790,11 @@ internal data class GltfTextureInfo(
     val texCoord: Int = 0,
     val strength: Float = 1f,
     val scale: Float = 1f,
-)
+) {
+    suspend fun getTexture(gltfFile: GltfFile): Texture {
+        return gltfFile.textures[index].toTexture()
+    }
+}
 
 
 /**
@@ -780,6 +896,10 @@ internal data class GltfMeshPrimitive(
      */
     val targets: List<Map<String, Int>> = emptyList(),
 ) {
+    @Transient
+    var materialRef: GltfMaterial? = null
+
+
     companion object {
         const val MODE_POINTS = 0
         const val MODE_LINES = 1
@@ -869,7 +989,16 @@ internal data class GltfNode(
      * defined.
      */
     val weights: List<Float> = emptyList(),
-)
+) {
+    @Transient
+    lateinit var childRefs: List<GltfNode>
+
+    @Transient
+    var meshRef: GltfMesh? = null
+
+    @Transient
+    var skinRef: GltfSkin? = null
+}
 
 /**
  * Texture sampler properties for filtering and wrapping modes.
@@ -922,13 +1051,16 @@ internal data class GltfScene(
      * The indices of each root node.
      */
     val nodes: List<Int> = emptyList(),
-)
+) {
+    @Transient
+    lateinit var nodeRefs: List<GltfNode>
+}
 
 /**
  * Joints and matrices defining a skin.
  */
 @Serializable
-data class GltfSkin(
+internal data class GltfSkin(
     val extensions: JsonObject? = null,
     val extras: JsonObject? = null,
 
@@ -951,7 +1083,13 @@ data class GltfSkin(
      * The index of the node used as a skeleton root.
      */
     val skeleton: Int = -1,
-)
+) {
+    @Transient
+    var inverseBindMatrixAccessorRef: GltfAccessor? = null
+
+    @Transient
+    lateinit var jointRefs: List<GltfNode>
+}
 
 /**
  * A texture and its sampler.
@@ -977,4 +1115,22 @@ internal data class GltfTexture(
      * mechanism **SHOULD** supply an alternate texture source, otherwise behavior is undefined.
      */
     val source: Int = 0,
-)
+) {
+    @Transient
+    lateinit var imageRef: GltfImage
+
+    @Transient
+    private var texture: Texture? = null
+
+    suspend fun toTexture(): Texture {
+        if (texture == null) {
+            val uri = imageRef.uri
+            if (uri != null) {
+                TODO("Load data url image")
+            } else {
+                texture = Texture(PixmapTextureData(imageRef.bufferViewRef!!.getData().toArray().readPixmap(), true))
+            }
+        }
+        return texture!!
+    }
+}

@@ -320,6 +320,7 @@ suspend fun VfsFile.readGltfModel(): Model {
         it.data = bufferPath.read()
     }
     //  file.images.filter { it.uri != null }.forEach { it.uri = "" }
+    file.updateReferences()
 
     return file.toModel()
 }

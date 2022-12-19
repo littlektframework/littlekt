@@ -61,9 +61,7 @@ actual suspend fun VfsFile.readPixmap(): Pixmap {
 private fun readPixmap(bytes: ByteArray): Pixmap {
     // ImageIO.read is not thread safe!
     val img = synchronized(imageIoLock) {
-        runCatching {
             ImageIO.read(ByteArrayInputStream(bytes))
-        }.getOrThrow()
     }
     return Pixmap(
         img.width,

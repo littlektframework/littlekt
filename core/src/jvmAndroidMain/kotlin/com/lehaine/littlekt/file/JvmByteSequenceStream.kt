@@ -1,5 +1,6 @@
 package com.lehaine.littlekt.file
 
+import java.io.ByteArrayInputStream
 import java.io.InputStream
 
 /**
@@ -48,6 +49,10 @@ class JvmByteSequenceStream(val stream: InputStream) : ByteSequenceStream {
         return d
     }
 
+    override fun readFloat(): Float {
+        return Float.fromBits(readUInt())
+    }
+
     override fun readChunk(size: Int): ByteArray {
         val list = ByteArray(size)
         var i = 0
@@ -55,7 +60,7 @@ class JvmByteSequenceStream(val stream: InputStream) : ByteSequenceStream {
             list[i] = chunkIterator.nextByte()
             i++
         }
-        if(i < size && chunkIterator.hasNext()) {
+        if (i < size && chunkIterator.hasNext()) {
             throw IllegalStateException("Attempt to read a chunk of $size but was only able to read a size of $i!")
         }
         return list
@@ -63,6 +68,10 @@ class JvmByteSequenceStream(val stream: InputStream) : ByteSequenceStream {
 
     override fun hasRemaining(): Boolean {
         return chunkIterator.hasNext()
+    }
+
+    override fun skip(amount: Int) {
+        repeat(amount) { chunkIterator.nextByte() }
     }
 
     override fun reset() {
@@ -73,4 +82,9 @@ class JvmByteSequenceStream(val stream: InputStream) : ByteSequenceStream {
         stream.close()
         bufferedStream.close()
     }
+}
+
+actual fun ByteSequenceStream(data: ByteBuffer, offset: Int): ByteSequenceStream {
+    val byteArray = data.toArray()
+    return JvmByteSequenceStream(ByteArrayInputStream(byteArray, offset, byteArray.size))
 }

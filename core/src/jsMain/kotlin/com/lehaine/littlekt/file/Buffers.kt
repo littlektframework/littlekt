@@ -148,6 +148,10 @@ internal class ByteBufferImpl(buffer: ArrayBuffer) : ByteBuffer, GenericBuffer<D
     constructor(array: Uint8ClampedArray) : this(array.buffer)
     constructor(array: ByteArray) : this(Uint8Array(array.toTypedArray()))
 
+    override fun get(i: Int): Byte {
+        return buffer.getInt8(i)
+    }
+
     override fun set(i: Int, value: Byte) {
         buffer.setInt8(i, value)
     }

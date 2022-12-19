@@ -182,6 +182,10 @@ class ByteBufferImpl(buffer: NioByteBuffer) : ByteBuffer, GenericBuffer<NioByteB
         putByte(data)
     }
 
+    override fun get(i: Int): Byte {
+        return buffer.get(i)
+    }
+
     override fun set(i: Int, value: Byte) {
         buffer.put(i, value)
     }
