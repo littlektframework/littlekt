@@ -659,16 +659,6 @@ open class PerspectiveCamera(virtualWidth: Float = 0f, virtualHeight: Float = 0f
         fovX = (angX * 2).degrees
     }
 
-//    override fun computeFrustumPlane(z: Float, result: FrustumPlane) {
-//        val x = z * tangX
-//        val y = z * tangY
-//
-//        invView.transform(result.upperLeft.set(-x, y, -z))
-//        invView.transform(result.upperRight.set(x, y, -z))
-//        invView.transform(result.lowerLeft.set(-x, -y, -z))
-//        invView.transform(result.lowerRight.set(x, -y, -z))
-//    }
-
     override fun boundsInFrustum(px: Float, py: Float, pz: Float, width: Float, height: Float, length: Float): Boolean {
         // TODO
         return true
