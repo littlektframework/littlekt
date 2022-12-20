@@ -16,7 +16,7 @@ class SimpleColor3DVertexShader : VertexShaderModel() {
     private var v_color by varying(::Vec4)
 
     init {
-        v_color = vec4Lit(1f, 1f, 1f, 1f)
+        v_color = vec4(1f, 1f, 1f, 1f).lit
         gl_Position = u_projTrans * a_position
     }
 }

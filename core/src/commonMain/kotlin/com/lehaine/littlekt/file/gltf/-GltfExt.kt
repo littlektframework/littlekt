@@ -13,6 +13,7 @@ import com.lehaine.littlekt.graphics.g3d.model.Model
 import com.lehaine.littlekt.graphics.g3d.model.Node
 import com.lehaine.littlekt.log.Logger
 import com.lehaine.littlekt.math.Mat4
+import com.lehaine.littlekt.math.Vec3f
 import com.lehaine.littlekt.math.Vec4f
 
 
@@ -105,11 +106,11 @@ private class GltfModelGenerator(val gltfFile: GltfFile, val gl: GL) {
 
         // for PbrShader positions and normals are always required
         attribs += VertexAttribute.POSITION_VEC3
-        //    attribs += VertexAttribute.NORMAL
+        attribs += VertexAttribute.NORMAL
 
-//        if (colorAcc != null || cfg.setVertexAttribsFromMaterial) {
-//            attribs += VertexAttribute.COLOR_PACKED
-//        }
+        if (colorAcc != null) {
+       //     attribs += VertexAttribute.COLOR_PACKED
+        }
 //        if (cfg.setVertexAttribsFromMaterial) {
 //            attribs += Attribute.EMISSIVE_COLOR
 //            attribs += Attribute.METAL_ROUGH
@@ -147,9 +148,13 @@ private class GltfModelGenerator(val gltfFile: GltfFile, val gl: GL) {
         val meshGeometry = MeshGeometry(positionAcc.count, attributes)
         for (i in 0 until positionAcc.count) {
             poss.next().let {
-                meshGeometry.add(it.toMutableVec().apply {
-                    this *= 100f // TODO temp
-                })
+                meshGeometry.add(Vec3f(it.z, it.y, it.x))
+            }
+            cols?.next()?.let {
+           //     meshGeometry.add(it)
+            }
+            nrms?.next()?.let {
+                meshGeometry.add(it)
             }
 //            texs?.next()?.let { batcher.add(it) }
 //            cols?.next()?.let { batcher.add(it) }

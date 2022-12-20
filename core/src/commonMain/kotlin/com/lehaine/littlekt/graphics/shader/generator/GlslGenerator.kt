@@ -5,10 +5,7 @@ import com.lehaine.littlekt.graphics.shader.FragmentShader
 import com.lehaine.littlekt.graphics.shader.ShaderParameter
 import com.lehaine.littlekt.graphics.shader.generator.InstructionType.*
 import com.lehaine.littlekt.graphics.shader.generator.delegate.*
-import com.lehaine.littlekt.graphics.shader.generator.type.Bool
-import com.lehaine.littlekt.graphics.shader.generator.type.Func
-import com.lehaine.littlekt.graphics.shader.generator.type.GenType
-import com.lehaine.littlekt.graphics.shader.generator.type.Variable
+import com.lehaine.littlekt.graphics.shader.generator.type.*
 import com.lehaine.littlekt.graphics.shader.generator.type.mat.Mat2
 import com.lehaine.littlekt.graphics.shader.generator.type.mat.Mat3
 import com.lehaine.littlekt.graphics.shader.generator.type.mat.Mat4
@@ -67,6 +64,9 @@ interface GlslProvider {
     fun generate(context: Context): String
 }
 
+/**
+ * Based off of: https://github.com/dananas/kotlin-glsl
+ */
 abstract class GlslGenerator : GlslProvider {
     internal val uniforms = mutableSetOf<String>()
     internal val attributes = mutableSetOf<String>()
@@ -110,6 +110,7 @@ abstract class GlslGenerator : GlslProvider {
             val version = when {
                 glVersion.platform == Context.Platform.WEBGL2
                         || glVersion.major >= 3 && glVersion.platform.isMobile -> "300 es"
+
                 glVersion.major >= 3 && glVersion.minor >= 2 -> "150"
                 glVersion.major >= 3 && !glVersion.platform.isWebGl -> "130"
                 else -> throw IllegalStateException("${context.graphics.glVersion} isn't not considered at least GL 3.0+")
@@ -168,18 +169,22 @@ abstract class GlslGenerator : GlslProvider {
                 IF -> {
                     "if (${it.result}) {"
                 }
+
                 ELSEIF -> {
                     "else if (${it.result}) {"
                 }
+
                 ELSE -> {
                     "else {"
                 }
+
                 ENDIF -> "}"
                 FUNC_DEFINED -> "${it.result} {"
                 END_FUNC -> "}"
                 FOR -> {
                     "for (${it.result}) {"
                 }
+
                 END_FOR -> "}"
                 else -> throw IllegalStateException("Instruction ${it.type} is not valid for the custom function instructions!")
             }
@@ -193,16 +198,20 @@ abstract class GlslGenerator : GlslProvider {
                 IF -> {
                     "if (${it.result}) {"
                 }
+
                 ELSEIF -> {
                     "else if (${it.result}) {"
                 }
+
                 ELSE -> {
                     "else {"
                 }
+
                 ENDIF -> "}"
                 FOR -> {
                     "for (${it.result}) {"
                 }
+
                 END_FOR -> "}"
                 DISCARD -> "discard;"
                 else -> throw IllegalStateException("Instruction ${it.type} is not valid for the main function instructions!")
@@ -227,6 +236,7 @@ abstract class GlslGenerator : GlslProvider {
             val version = when {
                 glVersion.platform == Context.Platform.WEBGL2
                         || glVersion.major >= 3 && glVersion.platform.isMobile -> "300 es"
+
                 glVersion.major >= 3 && glVersion.minor >= 2 -> "150"
                 glVersion.major >= 3 && !glVersion.platform.isWebGl -> "130"
                 else -> throw IllegalStateException("${context.graphics.glVersion} isn't not considered at least GL 3.0+")
@@ -290,14 +300,14 @@ abstract class GlslGenerator : GlslProvider {
     @Suppress("UNCHECKED_CAST")
     fun <T : Variable> uniformCtr(
         clazz: KClass<T>,
-        precision: Precision = Precision.DEFAULT
+        precision: Precision = Precision.DEFAULT,
     ): UniformConstructorDelegate<T> =
         UniformConstructorDelegate(createVariable(clazz), precision) as UniformConstructorDelegate<T>
 
     fun <T : Variable> uniformArray(
         size: Int,
         init: (builder: GlslGenerator) -> T,
-        precision: Precision = Precision.DEFAULT
+        precision: Precision = Precision.DEFAULT,
     ) =
         UniformArrayDelegate(size, init, precision)
 
@@ -306,20 +316,20 @@ abstract class GlslGenerator : GlslProvider {
 
     fun <RT : GenType, F : Func<RT>> Func(
         funcFactory: (GlslGenerator) -> F,
-        body: () -> RT
+        body: () -> RT,
     ): FunctionDelegate<RT, F> = FunctionDelegate(funcFactory, body)
 
     fun <RT : GenType, F : Func<RT>, P1 : Variable> Func(
         funcFactory: (GlslGenerator) -> F,
         p1Factory: (GlslGenerator) -> P1,
-        body: (p1: P1) -> RT
+        body: (p1: P1) -> RT,
     ): FunctionDelegate1<RT, F, P1> = FunctionDelegate1(funcFactory, p1Factory, body)
 
     fun <RT : GenType, F : Func<RT>, P1 : Variable, P2 : Variable> Func(
         funcFactory: (GlslGenerator) -> F,
         p1Factory: (GlslGenerator) -> P1,
         p2Factory: (GlslGenerator) -> P2,
-        body: (p1: P1, p2: P2) -> RT
+        body: (p1: P1, p2: P2) -> RT,
     ): FunctionDelegate2<RT, F, P1, P2> = FunctionDelegate2(funcFactory, p1Factory, p2Factory, body)
 
     fun <RT : GenType, F : Func<RT>, P1 : Variable, P2 : Variable, P3 : Variable> Func(
@@ -327,7 +337,7 @@ abstract class GlslGenerator : GlslProvider {
         p1Factory: (GlslGenerator) -> P1,
         p2Factory: (GlslGenerator) -> P2,
         p3Factory: (GlslGenerator) -> P3,
-        body: (p1: P1, p2: P2, p3: P3) -> RT
+        body: (p1: P1, p2: P2, p3: P3) -> RT,
     ): FunctionDelegate3<RT, F, P1, P2, P3> = FunctionDelegate3(funcFactory, p1Factory, p2Factory, p3Factory, body)
 
     fun <RT : GenType, F : Func<RT>, P1 : Variable, P2 : Variable, P3 : Variable, P4 : Variable> Func(
@@ -336,7 +346,7 @@ abstract class GlslGenerator : GlslProvider {
         p2Factory: (GlslGenerator) -> P2,
         p3Factory: (GlslGenerator) -> P3,
         p4Factory: (GlslGenerator) -> P4,
-        body: (p1: P1, p2: P2, p3: P3, p4: P4) -> RT
+        body: (p1: P1, p2: P2, p3: P3, p4: P4) -> RT,
     ): FunctionDelegate4<RT, F, P1, P2, P3, P4> =
         FunctionDelegate4(funcFactory, p1Factory, p2Factory, p3Factory, p4Factory, body)
 
@@ -350,7 +360,7 @@ abstract class GlslGenerator : GlslProvider {
     fun <P1 : Variable, P2 : Variable> Void(
         p1Factory: (GlslGenerator) -> P1,
         p2Factory: (GlslGenerator) -> P2,
-        body: (p1: P1, p2: P2) -> Unit
+        body: (p1: P1, p2: P2) -> Unit,
     ): FunctionVoidDelegate2<P1, P2> = FunctionVoidDelegate2(FuncVoid(this), p1Factory, p2Factory, body)
 
     internal fun <T : Variable> createVariable(clazz: KClass<T>) = when (clazz) {
@@ -638,13 +648,21 @@ abstract class GlslGenerator : GlslProvider {
     fun length(v: GenType) = GLFloat(this, "length(${v.value})")
     fun distance(a: GenType, b: GenType) = GLFloat(this, "distance(${a.value}, ${b.value})")
     fun dot(a: GenType, b: GenType) = GLFloat(this, "dot(${a.value}, ${b.value})")
-    fun cross(a: Vec3, b: Vec3) = Vec3(this, "dot(${a.value}, ${b.value})")
+    fun cross(a: Vec3, b: Vec3) = Vec3(this, "cross(${a.value}, ${b.value})")
     fun normalize(v: GLFloat) = GLFloat(this, "normalize(${v.value})")
     fun normalize(v: Vec3) = Vec3(this, "normalize(${v.value})")
     fun normalize(v: Vec4) = Vec4(this, "normalize(${v.value})")
     fun reflect(i: GenType, n: GenType) = Vec3(this, "reflect(${i.value}, ${n.value})")
     fun refract(i: GenType, n: GenType, eta: GLFloat) =
         Vec3(this, "refract(${i.value}, ${n.value}, ${eta.value})")
+
+    fun transpose(v: Mat2) = Mat2(this, "transpose(${v.value})")
+    fun transpose(v: Mat3) = Mat3(this, "transpose(${v.value})")
+    fun transpose(v: Mat4) = Mat4(this, "transpose(${v.value})")
+
+    fun inverse(v: Mat2) = Mat2(this, "inverse(${v.value})")
+    fun inverse(v: Mat3) = Mat3(this, "inverse(${v.value})")
+    fun inverse(v: Mat4) = Mat4(this, "inverse(${v.value})")
 
     fun shadow2D(sampler: ShadowTexture2D, v: Vec2) = Vec4(this, "shadow2D(${sampler.value}, ${v.value})")
     fun texture2D(sampler: Sampler2D, v: Vec2) = Vec4(this, "texture2D(${sampler.value}, ${v.value})")
@@ -670,15 +688,9 @@ abstract class GlslGenerator : GlslProvider {
     fun vec2(x: Float, y: GLFloat) = ConstructorDelegate(Vec2(this), "vec2(${x.str()}, ${y.value})")
     fun vec2(x: GLFloat, y: GLFloat) = ConstructorDelegate(Vec2(this), "vec2(${x.value}, ${y.value})")
 
-    fun vec2Lit() = Vec2(this)
-    fun vec2Lit(x: Vec2) = Vec2(this, "${x.value}")
-    fun vec2Lit(x: Float, y: Float) = Vec2(this, "vec2(${x.str()}, ${y.str()})")
-    fun vec2Lit(x: GLFloat, y: Float) = Vec2(this, "vec2(${x.value}, ${y.str()})")
-    fun vec2Lit(x: Float, y: GLFloat) = Vec2(this, "vec2(${x.str()}, ${y.value})")
-    fun vec2Lit(x: GLFloat, y: GLFloat) = Vec2(this, "vec2(${x.value}, ${y.value})")
-
     fun vec3() = ConstructorDelegate(Vec3(this))
     fun vec3(v: Vec3) = ConstructorDelegate(Vec3(this), "${v.value}")
+    fun vec3(v: Vec4) = ConstructorDelegate(Vec3(this), "${v.xyz.value}")
     fun vec3(x: GLFloat, y: GLFloat, z: GLFloat) =
         ConstructorDelegate(Vec3(this), ("vec3(${x.value}, ${y.value}, ${z.value})"))
 
@@ -708,37 +720,6 @@ abstract class GlslGenerator : GlslProvider {
     fun vec3(x: Float, v2: Vec2) = ConstructorDelegate(Vec3(this), ("vec3(${x.str()}, ${v2.value})"))
     fun vec3(x: GLFloat, v2: Vec2) = ConstructorDelegate(Vec3(this), ("vec3(${x.value}, ${v2.value})"))
 
-    fun vec3Lit() = Vec3(this)
-    fun vec3Lit(v: Vec3) = Vec3(this, "${v.value}")
-    fun vec3Lit(x: GLFloat, y: GLFloat, z: GLFloat) =
-        Vec3(this, "vec3(${x.value}, ${y.value}, ${z.value})")
-
-    fun vec3Lit(x: GLFloat, y: GLFloat, z: Float) =
-        Vec3(this, "vec3(${x.value}, ${y.value}, ${z.str()})")
-
-    fun vec3Lit(x: GLFloat, y: Float, z: GLFloat) =
-        Vec3(this, "vec3(${x.value}, ${y.str()}, ${z.value})")
-
-    fun vec3Lit(x: GLFloat, y: Float, z: Float) =
-        Vec3(this, "vec3(${x.value}, ${y.str()}, ${z.str()})")
-
-    fun vec3Lit(x: Float, y: GLFloat, z: GLFloat) =
-        Vec3(this, "vec3(${x.str()}, ${y.value}, ${z.value})")
-
-    fun vec3Lit(x: Float, y: GLFloat, z: Float) =
-        Vec3(this, "vec3(${x.str()}, ${y.value}, ${z.str()})")
-
-    fun vec3Lit(x: Float, y: Float, z: GLFloat) =
-        Vec3(this, "vec3(${x.str()}, ${y.str()}, ${z.value})")
-
-    fun vec3Lit(x: Float, y: Float, z: Float) =
-        Vec3(this, "vec3(${x.str()}, ${y.str()}, ${z.str()})")
-
-    fun vec3Lit(v2: Vec2, z: Float) = Vec3(this, "vec3(${v2.value}, ${z.str()})")
-    fun vec3Lit(v2: Vec2, z: GLFloat) = Vec3(this, "vec3(${v2.value}, ${z.value})")
-    fun vec3Lit(x: Float, v2: Vec2) = Vec3(this, "vec3(${x.str()}, ${v2.value})")
-    fun vec3Lit(x: GLFloat, v2: Vec2) = Vec3(this, "vec3(${x.value}, ${v2.value})")
-
     fun vec4() = ConstructorDelegate(Vec4(this))
     fun vec4(vec3: Vec3, w: Float) = ConstructorDelegate(Vec4(this), ("vec4(${vec3.value}, ${w.str()})"))
     fun vec4(vec3: Vec3, w: GLFloat) = ConstructorDelegate(Vec4(this), ("vec4(${vec3.value}, ${w.value})"))
@@ -763,34 +744,8 @@ abstract class GlslGenerator : GlslProvider {
     fun vec4(x: GLFloat, y: GLFloat, z: Float, w: Float) =
         ConstructorDelegate(Vec4(this), ("vec4(${x.value}, ${y.value}, ${z.str()}, ${w.str()})"))
 
-    fun vec4Lit() = Vec4(this)
-    fun vec4Lit(vec3: Vec3, w: Float) = Vec4(this, "vec4(${vec3.value}, ${w.str()})")
-    fun vec4Lit(vec3: Vec3, w: GLFloat) = Vec4(this, "vec4(${vec3.value}, ${w.value})")
-    fun vec4Lit(vec2: Vec2, z: Float, w: Float) =
-        Vec4(this, "vec4(${vec2.value}, ${z.str()}, ${w.str()})")
-
-    fun vec4Lit(vec: Vec2, vec2: Vec2) =
-        Vec4(this, "vec4(${vec.value}, ${vec2.value})")
-
-    fun vec4Lit(x: GLFloat, y: GLFloat, zw: Vec2) =
-        Vec4(this, "vec4(${x.value}, ${y.value}, ${zw.value})")
-
-    fun vec4Lit(x: Float, y: Float, z: Float, w: Float) =
-        Vec4(this, "vec4(${x.str()}, ${y.str()}, ${z.str()}, ${w.str()})")
-
-    fun vec4Lit(x: Float, y: Float, z: Float, w: GLFloat) =
-        Vec4(this, "vec4(${x.str()}, ${y.str()}, ${z.str()}, ${w.value})")
-
-    fun vec4Lit(x: GLFloat, y: GLFloat, z: GLFloat, w: GLFloat) =
-        Vec4(this, "vec4(${x.value}, ${y.value}, ${z.value}, ${w.value})")
-
-    fun vec4Lit(x: GLFloat, y: GLFloat, z: GLFloat, w: Float) =
-        Vec4(this, "vec4(${x.value}, ${y.value}, ${z.value}, ${w.str()})")
-
-    fun vec4Lit(x: GLFloat, y: GLFloat, z: Float, w: Float) =
-        Vec4(this, "vec4(${x.value}, ${y.value}, ${z.str()}, ${w.str()})")
-
     fun mat3() = ConstructorDelegate(Mat3(this))
+    fun mat3(v: Mat4) = Mat3(this, "mat3(${v.value})")
     fun mat2() = ConstructorDelegate(Mat2(this))
 
     fun round(vec4: Vec4) = Vec4(this, "round(${vec4.value})")
