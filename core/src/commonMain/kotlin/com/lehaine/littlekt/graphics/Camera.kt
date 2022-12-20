@@ -20,8 +20,8 @@ abstract class Camera {
     val aspectRatio: Float get() = if (virtualHeight > 0) virtualWidth / virtualHeight else 1f
 
     val position = MutableVec3f(0f)
-    val direction = MutableVec3f(Vec3f.Z_AXIS)
-    val up = MutableVec3f(Vec3f.NEG_Y_AXIS)
+    abstract val direction: MutableVec3f
+    abstract val up: MutableVec3f
     val rightDir: Vec3f get() = rightMut
 
     protected val rightMut = MutableVec3f()
@@ -87,9 +87,9 @@ abstract class Camera {
         tempVec3.set(x, y, z).subtract(position).norm()
         if (tempVec3 != Vec3f.ZERO) {
             val dot = tempVec3.dot(up)
-            if ((dot - 1f).isFuzzyZero(0.000001f)) {
+            if ((dot - 1f).isFuzzyZero(0.000000001f)) {
                 up.set(direction).scale(-1f)
-            } else if ((dot + 1f).isFuzzyZero(0.000001f)) {
+            } else if ((dot + 1f).isFuzzyZero(0.000000001f)) {
                 up.set(direction)
             }
             direction.set(tempVec3)
@@ -545,6 +545,9 @@ abstract class Camera {
 open class OrthographicCamera(virtualWidth: Float = 0f, virtualHeight: Float = 0f) : Camera() {
     constructor(virtualWidth: Int, virtualHeight: Int) : this(virtualWidth.toFloat(), virtualHeight.toFloat())
 
+    override val direction: MutableVec3f =  MutableVec3f(Vec3f.Z_AXIS)
+    override val up: MutableVec3f = MutableVec3f(Vec3f.NEG_Y_AXIS)
+
     private val tempCenter = MutableVec3f()
 
     init {
@@ -629,6 +632,8 @@ open class OrthographicCamera(virtualWidth: Float = 0f, virtualHeight: Float = 0
 open class PerspectiveCamera(virtualWidth: Float = 0f, virtualHeight: Float = 0f) : Camera() {
     constructor(virtualWidth: Int, virtualHeight: Int) : this(virtualWidth.toFloat(), virtualHeight.toFloat())
 
+    override val direction: MutableVec3f =  MutableVec3f(Vec3f.NEG_Z_AXIS)
+    override val up: MutableVec3f = MutableVec3f(Vec3f.Y_AXIS)
     var fovX = 0f
         private set
 

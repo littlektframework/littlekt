@@ -19,7 +19,7 @@ import com.lehaine.littlekt.util.viewport.ScreenViewport
 class GltfTest(context: Context) : ContextListener(context) {
 
     override suspend fun Context.start() {
-        val model = resourcesVfs["models/duck.glb"].readGltfModel()
+        val model = resourcesVfs["models/player.glb"].readGltfModel()
         val shader = createShader(SimpleColor3DVertexShader(), SimpleColor3DFragmentShader())
         val viewport = ScreenViewport(graphics.width, graphics.height, PerspectiveCamera())
         val camera = viewport.camera
@@ -35,14 +35,15 @@ class GltfTest(context: Context) : ContextListener(context) {
             camera.update()
             shader.bind()
             shader.uProjTrans?.apply(shader, camera.viewProjection)
+            model.update()
             model.render(shader)
 
             val speed = 5f * if (input.isKeyPressed(Key.SHIFT_LEFT)) 10f else 1f
             if (input.isKeyPressed(Key.W)) {
-                camera.position.z += speed
+                camera.position.z -= speed
             }
             if (input.isKeyPressed(Key.S)) {
-                camera.position.z -= speed
+                camera.position.z += speed
             }
 
             if (input.isKeyPressed(Key.A)) {

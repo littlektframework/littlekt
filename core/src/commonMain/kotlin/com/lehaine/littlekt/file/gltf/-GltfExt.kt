@@ -148,7 +148,7 @@ private class GltfModelGenerator(val gltfFile: GltfFile, val gl: GL) {
         for (i in 0 until positionAcc.count) {
             poss.next().let {
                 meshGeometry.add(it.toMutableVec().apply {
-                    this *= 100f
+                    this *= 100f // TODO temp
                 })
             }
 //            texs?.next()?.let { batcher.add(it) }
