@@ -5,10 +5,8 @@ import com.lehaine.littlekt.file.IndexedByteSequenceStream
 import com.lehaine.littlekt.math.*
 
 /**
- * @author Colton Daily
- * @date 12/19/2022
+ * Taken from: https://github.com/fabmax/kool/blob/main/kool-core/src/commonMain/kotlin/de/fabmax/kool/modules/gltf/GltfAccessor.kt
  */
-
 internal abstract class GltfAccessorDataStream(val accessor: GltfAccessor) {
     private val elemByteSize: Int
     private val byteStride: Int
