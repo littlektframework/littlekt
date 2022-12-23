@@ -1,7 +1,7 @@
 package com.lehaine.littlekt.math.spatial
 
-import com.lehaine.littlekt.graphics.IndexedVertexList
-import com.lehaine.littlekt.graphics.PrimitiveType
+import com.lehaine.littlekt.graphics.util.MeshGeometry
+import com.lehaine.littlekt.graphics.gl.DrawMode
 import com.lehaine.littlekt.math.MutableVec3f
 import com.lehaine.littlekt.math.Ray
 import com.lehaine.littlekt.math.Vec3f
@@ -65,16 +65,16 @@ open class Edge<T : Vec3f>(val pt0: T, val pt1: T) {
     }
 
     companion object {
-        fun getEdges(lineMeshData: IndexedVertexList): List<Edge<Vec3f>> {
-            if (lineMeshData.primitiveType != PrimitiveType.LINES) {
-                throw IllegalArgumentException("Supplied meshData must have primitiveType GL_LINES")
-            }
+        fun getEdges(lineMeshData: MeshGeometry): List<Edge<Vec3f>> {
+//            if (lineMeshData.primitiveType != DrawMode.LINES) {
+//                throw IllegalArgumentException("Supplied meshData must have primitiveType GL_LINES")
+//            }
             val edges = mutableListOf<Edge<Vec3f>>()
             for (i in 0 until lineMeshData.numIndices step 2) {
                 val i0 = lineMeshData.indices[i]
                 val i1 = lineMeshData.indices[i + 1]
-                val p0 = Vec3f(lineMeshData.vertexIt.apply { index = i0 })
-                val p1 = Vec3f(lineMeshData.vertexIt.apply { index = i1 })
+                val p0 = Vec3f(lineMeshData.view.apply { index = i0.toInt() })
+                val p1 = Vec3f(lineMeshData.view.apply { index = i1.toInt() })
                 edges += Edge(p0, p1)
             }
             return edges

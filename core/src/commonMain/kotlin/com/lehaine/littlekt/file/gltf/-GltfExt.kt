@@ -7,13 +7,17 @@ import com.lehaine.littlekt.file.gltf.GltfMeshPrimitive.Companion.ATTRIBUTE_POSI
 import com.lehaine.littlekt.file.gltf.GltfMeshPrimitive.Companion.ATTRIBUTE_TANGENT
 import com.lehaine.littlekt.file.gltf.GltfMeshPrimitive.Companion.ATTRIBUTE_TEXCOORD_0
 import com.lehaine.littlekt.file.gltf.GltfMeshPrimitive.Companion.ATTRIBUTE_WEIGHTS_0
-import com.lehaine.littlekt.graphics.*
+import com.lehaine.littlekt.graphics.GL
+import com.lehaine.littlekt.graphics.Mesh
+import com.lehaine.littlekt.graphics.VertexAttribute
+import com.lehaine.littlekt.graphics.VertexAttributes
 import com.lehaine.littlekt.graphics.g3d.model.MeshNode
 import com.lehaine.littlekt.graphics.g3d.model.Model
 import com.lehaine.littlekt.graphics.g3d.model.Node
+import com.lehaine.littlekt.graphics.gl.Usage
+import com.lehaine.littlekt.graphics.util.MeshGeometry
 import com.lehaine.littlekt.log.Logger
 import com.lehaine.littlekt.math.Mat4
-import com.lehaine.littlekt.math.Vec3f
 import com.lehaine.littlekt.math.Vec4f
 
 
@@ -73,7 +77,7 @@ private class GltfModelGenerator(val gltfFile: GltfFile, val gl: GL) {
         meshRef?.primitives?.forEachIndexed { index, prim ->
             val name = "${meshRef?.name ?: "${node.name}.mesh"}_$index"
             val geometry = prim.toGeometry(gltfFile.accessors)
-            val mesh = meshFromGeometry(gl, geometry)
+            val mesh = Mesh(gl, geometry)
             node += MeshNode(mesh)
             meshesByMaterial.getOrPut(prim.material) { mutableSetOf() } += mesh
             meshMaterials[mesh] = prim.materialRef
@@ -96,7 +100,7 @@ private class GltfModelGenerator(val gltfFile: GltfFile, val gl: GL) {
         if (positionAcc == null) {
             logger.warn { "GltfMeshPrimitive without position attribute" }
             // return IndexedVertexList()
-            return MeshGeometry(0, VertexAttributes(emptyList()))
+            return MeshGeometry(Usage.STATIC_DRAW, VertexAttributes(emptyList()), 0)
         }
 
 
@@ -105,11 +109,11 @@ private class GltfModelGenerator(val gltfFile: GltfFile, val gl: GL) {
         val attribs = mutableListOf<VertexAttribute>()
 
         // for PbrShader positions and normals are always required
-        attribs += VertexAttribute.POSITION_VEC3
+        attribs += VertexAttribute.POSITION
         attribs += VertexAttribute.NORMAL
 
         if (colorAcc != null) {
-       //     attribs += VertexAttribute.COLOR_PACKED
+            //     attribs += VertexAttribute.COLOR_PACKED
         }
 //        if (cfg.setVertexAttribsFromMaterial) {
 //            attribs += Attribute.EMISSIVE_COLOR
@@ -134,7 +138,6 @@ private class GltfModelGenerator(val gltfFile: GltfFile, val gl: GL) {
 //        val morphAccessors = makeMorphTargetAccessors(gltfAccessors)
 //        attribs += morphAccessors.keys
 
-        val attributes = VertexAttributes(attribs)
 
 //        val verts = IndexedVertexList(attribs)
         val poss = Vec3fAccessor(positionAcc)
@@ -145,31 +148,18 @@ private class GltfModelGenerator(val gltfFile: GltfFile, val gl: GL) {
         val jnts = if (jointAcc != null) Vec4iAccessor(jointAcc) else null
         val wgts = if (weightAcc != null) Vec4fAccessor(weightAcc) else null
 
-        val meshGeometry = MeshGeometry(positionAcc.count, attributes)
-        for (i in 0 until positionAcc.count) {
-            poss.next().let {
-                meshGeometry.add(Vec3f(it.z, it.y, it.x))
-            }
-            cols?.next()?.let {
-           //     meshGeometry.add(it)
-            }
-            nrms?.next()?.let {
-                meshGeometry.add(it)
-            }
-//            texs?.next()?.let { batcher.add(it) }
-//            cols?.next()?.let { batcher.add(it) }
-        }
+        val verts = MeshGeometry(Usage.DYNAMIC_DRAW, VertexAttributes(attribs), grow = true)
 
-//        for (i in 0 until positionAcc.count) {
-//            verts.addVertex {
-//                poss.next(position)
-//                nrms?.next(normal)
-//                tans?.next(tangent)
-//                texs?.next(texCoord)
-//                cols?.next()?.let { col -> color.set(col) }
-//                jnts?.next(joints)
-//                wgts?.next(weights)
-//
+        for (i in 0 until positionAcc.count) {
+            verts.addVertex {
+                poss.next(position)
+                nrms?.next(normal)
+                //      tans?.next(tangent)
+                //     texs?.next(texCoord)
+                //      cols?.next()?.let { col -> color.set(col) }
+                //     jnts?.next(joints)
+                //   wgts?.next(weights)
+
 //                if (cfg.setVertexAttribsFromMaterial) {
 //                    metallicRoughness.set(0f, 0.5f)
 //                    materialRef?.let { mat ->
@@ -192,17 +182,17 @@ private class GltfModelGenerator(val gltfFile: GltfFile, val gl: GL) {
 //                morphAccessors.forEach { (attrib, acc) ->
 //                    getVec3fAttribute(attrib)?.let { acc.next(it) }
 //                }
-//            }
-//        }
-//
+            }
+        }
+
         if (indexAccessor != null) {
             val inds = IntAccessor(indexAccessor)
             for (i in 0 until indexAccessor.count) {
-                meshGeometry.addIndex(inds.next())
+                verts.addIndex(inds.next())
             }
         } else {
             for (i in 0 until positionAcc.count) {
-                meshGeometry.addIndex(i)
+                verts.addIndex(i)
             }
         }
 
@@ -212,7 +202,7 @@ private class GltfModelGenerator(val gltfFile: GltfFile, val gl: GL) {
 //        if (cfg.generateNormals || normalAcc == null) {
 //            verts.generateNormals()
 //        }
-        return meshGeometry
+        return verts
     }
 
     companion object {

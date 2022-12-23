@@ -64,6 +64,27 @@ value class ClearBufferMask(val glFlag: Int) {
 @JvmInline
 value class DrawMode(val glFlag: Int) {
 
+    val numVertices: Int
+        get() {
+            return when (glFlag) {
+                GL.TRIANGLES -> {
+                    3
+                }
+
+                GL.LINES -> {
+                    2
+                }
+
+                GL.POINTS -> {
+                    1
+                }
+
+                else -> {
+                    3
+                }
+            }
+        }
+
     companion object {
         val POINTS = DrawMode(GL.POINTS)
         val LINES = DrawMode(GL.LINES)

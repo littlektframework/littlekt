@@ -59,6 +59,13 @@ class ShortBufferImpl(buffer: NioShortBuffer) : ShortBuffer, GenericBuffer<NioSh
         return this
     }
 
+    override fun put(data: ShortArray, offset: Int, dstOffset: Int, len: Int): ShortBuffer {
+        dirty = true
+        buffer.position(dstOffset)
+        buffer.put(data, offset, len)
+        return this
+    }
+
     override fun put(value: Short): ShortBuffer {
         dirty = true
         buffer.put(value)
@@ -102,6 +109,13 @@ class IntBufferImpl(buffer: NioIntBuffer) : IntBuffer, GenericBuffer<NioIntBuffe
 
     override fun put(data: IntArray, offset: Int, len: Int): IntBuffer {
         dirty = true
+        buffer.put(data, offset, len)
+        return this
+    }
+
+    override fun put(data: IntArray, offset: Int, dstOffset: Int, len: Int): IntBuffer {
+        dirty = true
+        buffer.position(dstOffset)
         buffer.put(data, offset, len)
         return this
     }
@@ -157,6 +171,13 @@ class FloatBufferImpl(buffer: NioFloatBuffer) : FloatBuffer, GenericBuffer<NioFl
 
     override fun put(data: FloatArray, offset: Int, len: Int): FloatBuffer {
         dirty = true
+        buffer.put(data, offset, len)
+        return this
+    }
+
+    override fun put(data: FloatArray, offset: Int, dstOffset: Int, len: Int): FloatBuffer {
+        dirty = true
+        buffer.position(dstOffset)
         buffer.put(data, offset, len)
         return this
     }
@@ -274,6 +295,13 @@ class ByteBufferImpl(buffer: NioByteBuffer) : ByteBuffer, GenericBuffer<NioByteB
         return this
     }
 
+    override fun putUByte(data: ByteArray, offset: Int, dstOffset: Int, len: Int): ByteBuffer {
+        dirty = true
+        buffer.position(dstOffset)
+        buffer.put(data, offset, len)
+        return this
+    }
+
     override fun putUByte(data: ByteBuffer): ByteBuffer {
         if (data is ByteBufferImpl) {
             dirty = true
@@ -314,6 +342,11 @@ class ByteBufferImpl(buffer: NioByteBuffer) : ByteBuffer, GenericBuffer<NioByteB
             position += len * 2
         }
         return this
+    }
+
+    override fun putUShort(data: ShortArray, offset: Int, dstOffset: Int, len: Int): ByteBuffer {
+        buffer.position(dstOffset)
+        return putUShort(data, offset, len)
     }
 
     override fun putUShort(data: ShortBuffer): ByteBuffer {
@@ -366,6 +399,11 @@ class ByteBufferImpl(buffer: NioByteBuffer) : ByteBuffer, GenericBuffer<NioByteB
         return this
     }
 
+    override fun putUInt(data: IntArray, srcOffset: Int, dstOffset: Int, len: Int): ByteBuffer {
+        buffer.position(dstOffset)
+        return putUInt(data, srcOffset, len)
+    }
+
     override fun putUInt(data: IntBuffer): ByteBuffer {
         val len = data.limit - data.position
         if (data !is IntBufferImpl || len <= BUFFER_CONV_THRESH) {
@@ -408,6 +446,11 @@ class ByteBufferImpl(buffer: NioByteBuffer) : ByteBuffer, GenericBuffer<NioByteB
             position += len * 4
         }
         return this
+    }
+
+    override fun putFloat(data: FloatArray, offset: Int, dstOffset: Int, len: Int): ByteBuffer {
+        buffer.position(dstOffset)
+        return putFloat(data, offset, len)
     }
 
     override fun putFloat(data: FloatBuffer): ByteBuffer {

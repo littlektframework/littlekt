@@ -57,10 +57,7 @@ class VectorFont(private val font: TtfFont) : Preparable {
         gl = context.gl
         glyphShader = ShaderProgram(GlyphVertexShader(), GlyphFragmentShader()).also { it.prepare(context) }
 
-        glyphMesh = textureMesh(context.gl) {
-            maxVertices = vertices.capacity
-            useBatcher = false
-        }
+        glyphMesh = textureMesh(context.gl, vertices.capacity) {}
         glyphRenderer = GlyphRenderer()
         fbo = FrameBuffer(
             context.graphics.width,
@@ -158,7 +155,7 @@ class VectorFont(private val font: TtfFont) : Preparable {
             }
             lastInstancesHash.clear()
             lastInstancesHash.addAll(instancesHash)
-            glyphMesh.setVBOVertices(vertices.toFloatArray())
+            glyphMesh.geometry.add(vertices.toFloatArray())
         }
     }
 

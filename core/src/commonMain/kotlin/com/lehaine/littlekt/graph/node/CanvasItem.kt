@@ -1000,12 +1000,12 @@ abstract class CanvasItem : Node() {
     fun toLocalY(y: Float) = (globalPosition.x * sin(PI) + globalPosition.y * cos(PI) + y).toFloat()
 
     fun copyFrom(node: CanvasItem) {
-        _globalPosition = node.globalPosition.toMutableVec()
-        _localPosition = node.position.toMutableVec()
+        _globalPosition = node.globalPosition.toMutableVec2()
+        _localPosition = node.position.toMutableVec2()
         _globalRotation = node.globalRotation
         _localRotation = node.rotation
-        _globalScale = node.globalScale.toMutableVec()
-        _localScale = node.scale.toMutableVec()
+        _globalScale = node.globalScale.toMutableVec2()
+        _localScale = node.scale.toMutableVec2()
 
         dirty(POSITION_DIRTY)
         dirty(ROTATION_DIRTY)

@@ -17,8 +17,8 @@ import com.lehaine.littlekt.graph.node.component.createDefaultTheme
 import com.lehaine.littlekt.graph.node.ui.*
 import com.lehaine.littlekt.graph.sceneGraph
 import com.lehaine.littlekt.graphics.*
-import com.lehaine.littlekt.graphics.g2d.font.BitmapFontCache
 import com.lehaine.littlekt.graphics.g2d.*
+import com.lehaine.littlekt.graphics.g2d.font.BitmapFontCache
 import com.lehaine.littlekt.graphics.gl.ClearBufferMask
 import com.lehaine.littlekt.graphics.shader.shaders.SimpleColorFragmentShader
 import com.lehaine.littlekt.graphics.shader.shaders.SimpleColorVertexShader
@@ -61,36 +61,41 @@ class DisplayTest(context: Context) : Game<Scene>(context) {
     val camera = viewport.camera
 
     val shader = createShader(SimpleColorVertexShader(), SimpleColorFragmentShader())
-    val colorBits = Color.WHITE.toFloatBits()
+    val colorBits = Color.RED.toFloatBits()
 
-    val mesh = colorMesh {
-        maxVertices = 4
-    }.apply {
-        setVertex {
-            x = 50f
-            y = 50f
-            colorPacked = colorBits
+    val vertsData =
+        floatArrayOf(
+            0f, 0f, colorBits, 25f, 0f, colorBits, 25f, 25f, colorBits, 0f, 25f, colorBits,
+            // 50f, 50f, 0f, colorBits, 66f, 50f, 0f, colorBits, 66f, 66f, 0f, colorBits, 50f, 66f, 0f, colorBits
+        )
+    val mesh = colorMesh(size = 8) {
+        geometry.run {
+            addVertex {
+                position.x = 50f
+                position.y = 50f
+                colorPacked.value = colorBits
+            }
+
+            addVertex {
+                position.x = 66f
+                position.y = 50f
+                colorPacked.value = colorBits
+            }
+
+            addVertex {
+                position.x = 66f
+                position.y = 66f
+                colorPacked.value = colorBits
+            }
+
+            addVertex {
+                position.x = 50f
+                position.y = 66f
+                colorPacked.value = colorBits
+            }
         }
-
-        setVertex {
-            x = 66f
-            y = 50f
-            colorPacked = colorBits
-        }
-
-        setVertex {
-            x = 66f
-            y = 66f
-            colorPacked = colorBits
-        }
-
-        setVertex {
-            x = 50f
-            y = 66f
-            colorPacked = colorBits
-        }
-
-        indicesAsQuad()
+        geometry.add(vertsData, dstOffset = 12)
+        geometry.indicesAsQuad()
     }
 
 

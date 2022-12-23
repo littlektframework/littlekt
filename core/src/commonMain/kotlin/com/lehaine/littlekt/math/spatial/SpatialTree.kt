@@ -1,9 +1,9 @@
 package com.lehaine.littlekt.math.spatial
 
-import com.lehaine.littlekt.graphics.IndexedVertexList
+import com.lehaine.littlekt.graphics.util.MeshGeometry
 import com.lehaine.littlekt.math.Vec3f
 
-fun <T: Vec3f> pointKdTree(points: List<T>, bucketSz: Int = 20): KdTree<T> {
+fun <T : Vec3f> pointKdTree(points: List<T>, bucketSz: Int = 20): KdTree<T> {
     return KdTree(points, Vec3fAdapter(), bucketSz)
 }
 
@@ -11,19 +11,19 @@ fun <T: Vec3f> pointKdTree(points: List<T>, bucketSz: Int = 20): KdTree<T> {
 //    return OcTree(Vec3fAdapter(), points, bounds, bucketSz = bucketSz)
 //}
 
-fun triangleKdTree(mesh: IndexedVertexList, bucketSz: Int = 10): KdTree<Triangle> {
+fun triangleKdTree(mesh: MeshGeometry, bucketSz: Int = 10): KdTree<Triangle> {
     val triangles = mutableListOf<Triangle>()
     val v = mesh[0]
     for (i in 0 until mesh.numIndices step 3) {
-        val p0 = Vec3f(v.apply { index = mesh.indices[i] })
-        val p1 = Vec3f(v.apply { index = mesh.indices[i+1] })
-        val p2 = Vec3f(v.apply { index = mesh.indices[i+2] })
+        val p0 = Vec3f(v.apply { index = mesh.indices[i].toInt() })
+        val p1 = Vec3f(v.apply { index = mesh.indices[i + 1].toInt() })
+        val p2 = Vec3f(v.apply { index = mesh.indices[i + 2].toInt() })
         triangles += Triangle(p0, p1, p2)
     }
     return triangleKdTree(triangles, bucketSz)
 }
 
-fun <T: Triangle> triangleKdTree(triangles: List<T>, bucketSz: Int = 10): KdTree<T> {
+fun <T : Triangle> triangleKdTree(triangles: List<T>, bucketSz: Int = 10): KdTree<T> {
     return KdTree(triangles, TriangleAdapter(), bucketSz)
 }
 
@@ -43,7 +43,7 @@ fun <T: Triangle> triangleKdTree(triangles: List<T>, bucketSz: Int = 10): KdTree
 //    return triangleOcTree(triangles, mesh.bounds, bucketSz)
 //}
 
-fun <T: Edge<*>> edgeKdTree(edges: List<T>, bucketSz: Int = 10): KdTree<T> {
+fun <T : Edge<*>> edgeKdTree(edges: List<T>, bucketSz: Int = 10): KdTree<T> {
     return KdTree(edges, EdgeAdapter(), bucketSz)
 }
 
@@ -51,7 +51,7 @@ fun <T: Edge<*>> edgeKdTree(edges: List<T>, bucketSz: Int = 10): KdTree<T> {
 //    return OcTree(EdgeAdapter(), triangles, bounds, bucketSz = bucketSz)
 //}
 
-abstract class SpatialTree<T: Any>(val itemAdapter: ItemAdapter<T>) : Collection<T> {
+abstract class SpatialTree<T : Any>(val itemAdapter: ItemAdapter<T>) : Collection<T> {
 
     abstract val root: Node
 

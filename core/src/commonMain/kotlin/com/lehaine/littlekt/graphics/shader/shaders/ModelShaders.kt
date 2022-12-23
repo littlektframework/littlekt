@@ -20,7 +20,7 @@ class ModelVertexShader : VertexShaderModel() {
     private val u_model by uniform(::Mat4)
 
     private val a_position by attribute(::Vec3)
-   // private val a_color by attribute(::Vec4)
+    private val a_color by attribute(::Vec4)
     private val a_normal by attribute(::Vec3)
 
     //  private val a_texCoord0 by attribute(::Vec2)
@@ -31,7 +31,7 @@ class ModelVertexShader : VertexShaderModel() {
 
     init {
         //      v_texCoords = a_texCoord0
-       // v_color = a_color
+        v_color = a_color
         v_normal = mat3(transpose(inverse(u_model))) * a_normal
         v_fragPosition = vec3(u_model * vec4(a_position, 1f).lit).lit
         gl_Position = u_projTrans * vec4(v_fragPosition, 1f).lit
@@ -49,7 +49,7 @@ class ModelFragmentShader : FragmentShaderModel() {
     private val u_ambientStrength by uniform(::GLFloat)
     private val u_lightPosition by uniform(::Vec3)
 
-  //  private val v_color by varying(::Vec4)
+    private val v_color by varying(::Vec4)
     private val v_normal by varying(::Vec3)
     private val v_fragPos by varying(::Vec3)
     //   private val v_texCoords by varying(::Vec2)

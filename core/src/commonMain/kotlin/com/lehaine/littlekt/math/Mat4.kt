@@ -392,14 +392,14 @@ open class Mat4 {
         return result
     }
 
-    fun rotate(ax: Float, ay: Float, az: Float, degrees: Float): Mat4 {
+    fun rotate(ax: Float, ay: Float, az: Float, angle: Angle): Mat4 {
         return lock(tmpMatLock) {
-            tmpMatA.setToRotation(degrees, ax, ay, az)
+            tmpMatA.setToRotation(ax, ay, az, angle)
             set(mul(tmpMatA, tmpMatB))
         }
     }
 
-    fun rotate(axis: Vec3f, degrees: Float) = rotate(axis.x, axis.y, axis.z, degrees)
+    fun rotate(axis: Vec3f, angle: Angle) = rotate(axis.x, axis.y, axis.z, angle)
 
     fun rotate(eulerX: Float, eulerY: Float, eulerZ: Float): Mat4 {
         return lock(tmpMatLock) {
@@ -408,14 +408,14 @@ open class Mat4 {
         }
     }
 
-    fun rotate(ax: Float, ay: Float, az: Float, degrees: Float, result: Mat4): Mat4 {
+    fun rotate(ax: Float, ay: Float, az: Float, angle: Angle, result: Mat4): Mat4 {
         return lock(tmpMatLock) {
-            tmpMatA.setToRotation(degrees, ax, ay, az)
+            tmpMatA.setToRotation(ax, ay, az, angle)
             mul(tmpMatA, result)
         }
     }
 
-    fun rotate(axis: Vec3f, degrees: Float, result: Mat4) = rotate(axis.x, axis.y, axis.z, degrees, result)
+    fun rotate(axis: Vec3f, angle: Angle, result: Mat4) = rotate(axis.x, axis.y, axis.z, angle, result)
 
     fun rotate(eulerX: Float, eulerY: Float, eulerZ: Float, result: Mat4): Mat4 {
         result.set(this)
@@ -816,14 +816,7 @@ open class Mat4 {
     fun setToTranslateAndScaling(translation: Vec3f, scale: Vec3f) =
         setToTranslateAndScaling(translation.x, translation.y, translation.z, scale.x, scale.y, scale.z)
 
-    fun setToRotation(axis: Vec3f, degrees: Float): Mat4 = setToRotation(axis, degrees.degrees)
-    fun setToRotationRad(axis: Vec3f, radians: Float): Mat4 = setToRotation(axis, radians.radians)
     fun setToRotation(axis: Vec3f, angle: Angle): Mat4 = setToRotation(axis.x, axis.y, axis.z, angle)
-    fun setToRotation(ax: Float, ay: Float, az: Float, degrees: Float): Mat4 =
-        setToRotation(ax, ay, az, degrees.degrees)
-
-    fun setToRotationRad(ax: Float, ay: Float, az: Float, radians: Float): Mat4 =
-        setToRotation(ax, ay, az, radians.radians)
 
     fun setToRotation(ax: Float, ay: Float, az: Float, angle: Angle): Mat4 {
         val a = angle.radians
@@ -1266,5 +1259,44 @@ open class Mat4 {
         private val right = MutableVec3f()
         private val tmpForward = MutableVec3f()
         private val tmpUp = MutableVec3f()
+    }
+}
+
+class Mat4Stack(val stackSize: Int = DEFAULT_STACK_SIZE) : Mat4() {
+    companion object {
+        const val DEFAULT_STACK_SIZE = 32
+    }
+
+    private var stackIndex = 0
+    private val stack = FloatArray(16 * stackSize)
+
+    fun push(): Mat4Stack {
+        if (stackIndex >= stackSize) {
+            throw IllegalStateException("Matrix stack overflow")
+        }
+        val offset = stackIndex * 16
+        for (i in 0..15) {
+            stack[offset + i] = data[i]
+        }
+        stackIndex++
+        return this
+    }
+
+    fun pop(): Mat4Stack {
+        if (stackIndex <= 0) {
+            throw IllegalStateException("Matrix stack underflow")
+        }
+        stackIndex--
+        val offset = stackIndex * 16
+        for (i in 0..15) {
+            data[i] = stack[offset + i]
+        }
+        return this
+    }
+
+    fun reset(): Mat4Stack {
+        stackIndex = 0
+        setToIdentity()
+        return this
     }
 }

@@ -4,451 +4,132 @@ import com.lehaine.littlekt.ContextListener
 import com.lehaine.littlekt.Disposable
 import com.lehaine.littlekt.graphics.gl.DrawMode
 import com.lehaine.littlekt.graphics.gl.IndexType
+import com.lehaine.littlekt.graphics.gl.Usage
 import com.lehaine.littlekt.graphics.shader.ShaderProgram
-import com.lehaine.littlekt.math.Vec2f
-import com.lehaine.littlekt.math.Vec3f
-import com.lehaine.littlekt.math.Vec4f
-import com.lehaine.littlekt.util.datastructure.FloatArrayList
-import kotlin.math.floor
+import com.lehaine.littlekt.graphics.util.MeshBuilder
+import com.lehaine.littlekt.graphics.util.MeshGeometry
 
 /**
  * @author Colton Daily
  * @date 11/18/2021
  */
 
-inline fun mesh(gl: GL, attributes: List<VertexAttribute>, block: MeshProps.() -> Unit): Mesh {
-    val props = MeshProps().apply(block)
-    return Mesh(
-        gl,
-        props.isStatic,
-        props.maxVertices,
-        props.maxIndices,
-        props.useBatcher,
-        props.autoBind,
-        attributes
-    ).also { it.indicesAsTri() }
+inline fun mesh(
+    gl: GL,
+    attributes: List<VertexAttribute>,
+    size: Int = 1000,
+    grow: Boolean = false,
+    generate: Mesh.() -> Unit,
+): Mesh {
+    val mesh = Mesh(
+        gl, MeshGeometry(Usage.DYNAMIC_DRAW, VertexAttributes(attributes), size, grow)
+    )
+    mesh.geometry.indicesAsTri()
+    mesh.generate()
+    return mesh
 }
+
 
 /**
  * Creates a mesh with [VertexAttribute.POSITION_2D] and [VertexAttribute.COLOR_PACKED] attributes.
  */
-fun colorMesh(gl: GL, generate: MeshProps.() -> Unit): Mesh {
-    return mesh(gl, listOf(VertexAttribute.POSITION_2D, VertexAttribute.COLOR_PACKED), generate)
+fun colorMesh(gl: GL, size: Int = 1000, grow: Boolean = false, generate: Mesh.() -> Unit): Mesh {
+    return mesh(gl, listOf(VertexAttribute.POSITION_2D, VertexAttribute.COLOR_PACKED), size, grow, generate)
 }
 
 /**
  * Creates a mesh with [VertexAttribute.POSITION_2D] and [VertexAttribute.COLOR_UNPACKED] attributes.
  */
-fun colorMeshUnpacked(gl: GL, generate: MeshProps.() -> Unit): Mesh {
-    return mesh(gl, listOf(VertexAttribute.POSITION_2D, VertexAttribute.COLOR_UNPACKED), generate)
+fun colorMeshUnpacked(gl: GL, size: Int = 1000, grow: Boolean = false, generate: Mesh.() -> Unit): Mesh {
+    return mesh(gl, listOf(VertexAttribute.POSITION_2D, VertexAttribute.COLOR_UNPACKED), size, grow, generate)
 }
 
 /**
  * Creates a mesh with [VertexAttribute.POSITION_2D], [VertexAttribute.COLOR_PACKED], and [VertexAttribute.TEX_COORDS] attributes.
  */
-fun textureMesh(gl: GL, generate: MeshProps.() -> Unit): Mesh {
+fun textureMesh(gl: GL, size: Int = 1000, grow: Boolean = false, generate: Mesh.() -> Unit): Mesh {
     return mesh(
         gl,
         listOf(VertexAttribute.POSITION_2D, VertexAttribute.COLOR_PACKED, VertexAttribute.TEX_COORDS(0)),
+        size,
+        grow,
         generate
     )
 }
 
-fun positionMesh(gl: GL, generate: MeshProps.() -> Unit): Mesh {
-    return mesh(gl, listOf(VertexAttribute.POSITION_2D), generate)
+fun positionMesh(gl: GL, size: Int = 1000, grow: Boolean = false, generate: Mesh.() -> Unit): Mesh {
+    return mesh(gl, listOf(VertexAttribute.POSITION_2D), size, grow, generate)
 }
 
-fun position3Mesh(gl: GL, generate: MeshProps.() -> Unit): Mesh {
-    return mesh(gl, listOf(VertexAttribute.POSITION_VEC3), generate)
-}
-
-fun position4Mesh(gl: GL, generate: MeshProps.() -> Unit): Mesh {
-    return mesh(gl, listOf(VertexAttribute.POSITION_VEC4), generate)
-}
-
-fun <T : ContextListener> T.mesh(attributes: List<VertexAttribute>, block: MeshProps.() -> Unit): Mesh {
-    return mesh(context.gl, attributes, block)
+fun <T : ContextListener> T.mesh(
+    attributes: List<VertexAttribute>,
+    size: Int = 1000,
+    grow: Boolean = false,
+    generate: Mesh.() -> Unit,
+): Mesh {
+    return mesh(context.gl, attributes, size, grow, generate)
 }
 
 /**
  * Creates a mesh with [VertexAttribute.POSITION_2D] and [VertexAttribute.COLOR_UNPACKED] attributes.
  */
-fun <T : ContextListener> T.colorMesh(generate: MeshProps.() -> Unit): Mesh {
-    return colorMesh(context.gl, generate)
+fun <T : ContextListener> T.colorMesh(size: Int = 1000, grow: Boolean = false, generate: Mesh.() -> Unit): Mesh {
+    return colorMesh(context.gl, size, grow, generate)
 }
 
 /**
  * Creates a mesh with [VertexAttribute.POSITION_2D] and [VertexAttribute.COLOR_UNPACKED] attributes.
  */
-fun <T : ContextListener> T.colorMeshUnpacked(generate: MeshProps.() -> Unit): Mesh {
-    return colorMeshUnpacked(context.gl, generate)
+fun <T : ContextListener> T.colorMeshUnpacked(
+    size: Int = 1000,
+    grow: Boolean = false,
+    generate: Mesh.() -> Unit,
+): Mesh {
+    return colorMeshUnpacked(context.gl, size, grow, generate)
 }
 
 /**
  * Creates a mesh with [VertexAttribute.POSITION_2D], [VertexAttribute.COLOR_PACKED], and [VertexAttribute.TEX_COORDS] attributes.
  */
-fun <T : ContextListener> T.textureMesh(generate: MeshProps.() -> Unit): Mesh {
-    return textureMesh(context.gl, generate)
-}
-
-fun meshFromGeometry(gl: GL, geometry: MeshGeometry): Mesh {
-    val mesh = Mesh(
-        gl = gl,
-        isStatic = false,
-        maxVertices = geometry.size,
-        maxIndices = geometry.indices.size,
-        attributes = geometry.attributes.toList(),
-        useBatcher = false
-    )
-    mesh.setVBOVertices(geometry.vertices)
-    mesh.setIndices(geometry.indices.toShortArray())
-    return mesh
-}
-
-class MeshProps {
-    var isStatic: Boolean = true
-    private var indicesSpecificallySet = false
-
-    /**
-     * Updates [maxIndices] as well if it has not been set.
-     */
-    var maxVertices = 1000
-        set(value) {
-            field = value
-            if (!indicesSpecificallySet) {
-                _maxIndices = floor(field * 1.5f).toInt()
-            }
-        }
-    private var _maxIndices = floor(maxVertices * 1.5f).toInt()
-    var maxIndices
-        get() = _maxIndices
-        set(value) {
-            indicesSpecificallySet = true
-            _maxIndices = value
-        }
-    var useBatcher = true
-    var autoBind = true
-}
-
-internal class MeshBatcher(val size: Int, val attributes: VertexAttributes) {
-    val vertexSize = attributes.sumOf { if (it == VertexAttribute.COLOR_PACKED) 1 else it.numComponents }
-    val vertices = FloatArray(size * vertexSize)
-    var lastCount = 0
-        private set
-    var count = 0
-        private set
-    var offset = 0
-        private set
-
-    fun setVertex(props: VertexProps) {
-        attributes.forEach { vertexAttribute ->
-            when (vertexAttribute.usage) {
-                VertexAttrUsage.POSITION -> {
-                    vertices[offset++] = props.x
-                    vertices[offset++] = props.y
-                    if (vertexAttribute.numComponents >= 3) {
-                        vertices[offset++] = props.z
-                    }
-                    if (vertexAttribute.numComponents == 4) {
-                        vertices[offset++] = props.w
-                    }
-                }
-
-                VertexAttrUsage.COLOR_UNPACKED -> {
-                    vertices[offset++] = props.color.r
-                    vertices[offset++] = props.color.g
-                    vertices[offset++] = props.color.b
-                    vertices[offset++] = props.color.a
-                }
-
-                VertexAttrUsage.COLOR_PACKED -> {
-                    vertices[offset++] = props.colorPacked
-                }
-
-                VertexAttrUsage.TEX_COORDS -> {
-                    vertices[offset++] = props.u
-                    vertices[offset++] = props.v
-                }
-
-                VertexAttrUsage.GENERIC -> {
-                    for (i in 0 until vertexAttribute.numComponents) {
-                        vertices[offset++] = props.generic[i]
-                    }
-                }
-            }
-        }
-        count++
-    }
-
-    fun add(newVertices: FloatArray, srcOffset: Int, dstOffset: Int, count: Int) {
-        newVertices.copyInto(vertices, dstOffset, srcOffset, srcOffset + count)
-        this.offset = dstOffset + count
-        this.count = offset / vertexSize
-    }
-
-    fun add(data: Vec2f) {
-        vertices[offset++] = data.x
-        vertices[offset++] = data.y
-    }
-
-    fun add(data: Vec3f) {
-        vertices[offset++] = data.x
-        vertices[offset++] = data.y
-        vertices[offset++] = data.z
-    }
-
-    fun add(data: Vec4f) {
-        vertices[offset++] = data.x
-        vertices[offset++] = data.y
-        vertices[offset++] = data.z
-        vertices[offset++] = data.w
-    }
-
-    fun add(vertex: Float) {
-        vertices[offset++] = vertex
-    }
-
-    fun set(offset: Int, vertex: Float) {
-        vertices[offset] = vertex
-    }
-
-    fun get(offset: Int) = vertices[offset]
-
-    fun skip(totalVertices: Int) {
-        offset += totalVertices * vertexSize
-        count += totalVertices
-    }
-
-    fun reset() {
-        lastCount = count
-        offset = 0
-        count = 0
-    }
-
-}
-
-/**
- * Vertex props that can be used when setting a vertex on a [Mesh].
- * @see [Mesh.setVertex]
- */
-class VertexProps {
-    var x: Float = 0f
-    var y: Float = 0f
-    var z: Float = 0f
-    var w: Float = 0f
-    var colorPacked: Float = 0f
-    var color: Color = Color.CLEAR
-    var u: Float = 0f
-    var v: Float = 0f
-    val generic = FloatArrayList()
+fun <T : ContextListener> T.textureMesh(size: Int = 1000, grow: Boolean = false, generate: Mesh.() -> Unit): Mesh {
+    return textureMesh(context.gl, size, grow, generate)
 }
 
 class Mesh(
     val gl: GL,
-    isStatic: Boolean,
-    val maxVertices: Int,
-    val maxIndices: Int,
-    var useBatcher: Boolean = true,
+    val geometry: MeshGeometry,
     var autoBind: Boolean = true,
-    attributes: List<VertexAttribute>,
 ) : Disposable {
 
-    private val vertexAttributes = VertexAttributes(attributes)
-    private val vertices = VertexBufferObject(gl, isStatic, maxVertices, vertexAttributes)
-    private val indices = IndexBufferObject(gl, maxIndices, isStatic)
-    private var updateVertices = false
-    private val tempVertexProps = VertexProps()
+    private val isStatic get() = geometry.usage == Usage.STATIC_DRAW
+    private val vertexAttributes = geometry.attributes
+    val vertices =
+        VertexBufferObject(gl, isStatic, geometry.vertices.capacity / geometry.vertexSize, vertexAttributes).apply {
+            grow = geometry.grow
+        }
+    val indices = IndexBufferObject(gl, isStatic, geometry.indices.capacity).apply { grow = geometry.grow }
 
-    /**
-     * The batcher allows you to [setVertex] without having to worry about creating the data array and positioning
-     * of the values yourself. The batcher will also keep count of each vertex for rendering purposes.
-     * @see [verticesPerIndex]
-     */
-    private val batcher =
-        if (useBatcher) MeshBatcher(maxVertices, vertexAttributes) else MeshBatcher(0, vertexAttributes)
-
-    /**
-     * Total max vertices. `maxVertices * vertexSize`.
-     * Only applicable if [useBatcher] is true. Otherwise, it will return 0
-     */
-    val batcherVerticesLength get() = if (useBatcher) batcher.vertices.size else 0
-
-    /**
-     * The number of vertices shared per index. If you are drawing just a triangle, each vertex would only have 1 index.
-     * If you wanted to draw a quad (4 vertices), you would use 6 indices. Each index would share 1.5 vertices.
-     *
-     * If you are setting your own indices then you will want to change this value to match that data.
-     * **WARNING**: A call to [indicesAsTri] or [indicesAsQuad] will alter this value!
-     *
-     * Defaults to **1**.
-     */
-    var verticesPerIndex = 1f
-
-    val verticesBuffer get() = vertices.buffer
-    val indicesBuffer get() = indices.buffer
-
-    val numIndices get() = indices.numIndices
-    val numVertices get() = vertices.numVertices
+    val numIndices get() = geometry.numIndices
+    val numVertices get() = geometry.numVertices
 
     /**
      * The default total count for rendering vertices.
-     * If using [batcher], this will default to the `batch.count * verticesPerIndex`
-     * If not using the [batcher], this will default to the [numIndices], if greater than 0, else the [numVertices]
-     *
-     * @see MeshBatcher.count
-     * @see verticesPerIndex
+     * This will default to the [numIndices], if greater than 0, else the [numVertices]
      */
     val defaultCount: Int
         get() {
-            return if (useBatcher) {
-                if (batcher.count > 0) {
-                    floor(batcher.count * verticesPerIndex).toInt()
-                } else {
-                    floor(batcher.lastCount * verticesPerIndex).toInt()
-                }
-            } else if (numIndices > 0) {
+            return if (numIndices > 0) {
                 numIndices
             } else {
                 numVertices
             }
         }
 
-    /**
-     * Sets a vertex based on the [VertexProps]. If the mesh created is missing a [VertexAttribute], setting the value
-     * of that attribute will do nothing. E.g. Creating a mesh with only a [VertexAttribute.POSITION_2D] and setting the
-     * [VertexProps.colorPacked] field will do nothing.
-     */
-    fun setVertex(action: VertexProps.() -> Unit) {
-        if (!useBatcher) throw IllegalStateException("This mesh isn't user the mesh batcher! You cannot use 'setVertex'. You must pass in a FloatArray to setVertices.")
-        tempVertexProps.action()
-        batcher.setVertex(tempVertexProps)
-        updateVertices = true
-        resetProps()
-    }
-
-    /**
-     * Adds an array of vertices to the [MeshBatcher].
-     */
-    fun addVertices(vertices: FloatArray, srcOffset: Int = 0, dstOffset: Int = 0, count: Int = vertices.size) {
-        if (!useBatcher) throw IllegalStateException("This mesh isn't user the mesh batcher! You cannot use 'addVertices'. You must pass in a FloatArray to setVertices.")
-        updateVertices = true
-        batcher.add(vertices, srcOffset, dstOffset, count)
-    }
-
-    /**
-     * Add a vertex value to the [MeshBatcher].
-     */
-    fun add(vertex: Float) {
-        if (!useBatcher) throw IllegalStateException("This mesh isn't user the mesh batcher! You cannot use 'add'. You must pass in a FloatArray to setVertices.")
-        updateVertices = true
-        batcher.add(vertex)
-    }
-
-    /**
-     * Set a vertex value at the given offset to the [MeshBatcher].
-     */
-    fun setVertex(offset: Int, vertex: Float) {
-        if (!useBatcher) throw IllegalStateException("This mesh isn't user the mesh batcher! You cannot use 'set'. You must pass in a FloatArray to setVertices.")
-        updateVertices = true
-        batcher.set(offset, vertex)
-    }
-
-    /**
-     * Get a vertex value at the given offset from [MeshBatcher].
-     */
-    fun getVertex(offset: Int): Float {
-        if (!useBatcher) throw IllegalStateException("This mesh isn't user the mesh batcher! You cannot use 'get'. You must pass in a FloatArray to setVertices.")
-        return batcher.get(offset)
-    }
-
-    operator fun get(value: Int) = getVertex(value)
-    operator fun set(idx: Int, value: Float) = setVertex(idx, value)
-
-    /**
-     * Offsets the [MeshBatcher] by the total amount.
-     * If you are using this, be sure you know what you are doing!!
-     * @param totalVertices the total vertices being skipped
-     */
-    fun skip(totalVertices: Int) {
-        if (!useBatcher) throw RuntimeException("This mesh isn't user the mesh batcher! You cannot use skip. You must pass in a FloatArray to setVertices.")
-        updateVertices = true
-        batcher.skip(totalVertices)
-    }
-
-    private fun resetProps() {
-        tempVertexProps.apply {
-            x = 0f
-            y = 0f
-            z = 0f
-            colorPacked = 0f
-            color = Color.CLEAR
-            u = 0f
-            v = 0f
-            generic.clear()
+    fun generate(generator: MeshBuilder.() -> Unit) {
+        geometry.batchUpdate {
+            clear()
+            MeshBuilder(this).generator()
         }
-    }
-
-    /**
-     * Creates an array of indices based on a quad and uploads the indices to the [IndexBufferObject].
-     * This will set [verticesPerIndex] to **1.5**.
-     */
-    fun indicesAsQuad() {
-        val indices = ShortArray(maxIndices)
-        var i = 0
-        var j = 0
-        while (i < maxIndices) {
-            indices[i] = j.toShort()
-            indices[i + 1] = (j + 1).toShort()
-            indices[i + 2] = (j + 2).toShort()
-            indices[i + 3] = (j + 2).toShort()
-            indices[i + 4] = (j + 3).toShort()
-            indices[i + 5] = j.toShort()
-            i += 6
-            j += 4
-        }
-        setIndices(indices)
-        verticesPerIndex = 1.5f
-    }
-
-    /**
-     * Creates an array of indices based on a triangle and uploads the indices to the [IndexBufferObject].
-     * This will set [verticesPerIndex] to **1**.
-     */
-    fun indicesAsTri() {
-        val indices = ShortArray(maxIndices)
-        for (i in 0 until maxIndices step 3) {
-            indices[i] = i.toShort()
-            indices[i + 1] = (i + 1).toShort()
-            indices[i + 2] = (i + 2).toShort()
-        }
-        setIndices(indices)
-        verticesPerIndex = 1f
-    }
-
-    /**
-     * Sets the vertices     of this mesh directly. Updates the [VertexBufferObject].
-     * If [useBatcher] is true then any changes to this will be overridden.
-     */
-    fun setVBOVertices(vertices: FloatArray, srcOffset: Int = 0, count: Int = vertices.size): Mesh {
-        this.vertices.setVertices(vertices, srcOffset, count)
-        return this
-    }
-
-    /**
-     * Updates a portion of the [VertexBufferObject] vertices. If [useBatcher] is true then any changes to this will
-     * be overridden.
-     */
-    fun updateVBOVertices(destOffset: Int, source: FloatArray, srcOffset: Int = 0, count: Int = source.size): Mesh {
-        this.vertices.updateVertices(destOffset, source, srcOffset, count)
-        return this
-    }
-
-    /**
-     * Sets indices of this mesh directly. Updtes the [IndexBufferObject].
-     */
-    fun setIndices(indices: ShortArray, srcOffset: Int = 0, count: Int = indices.size): Mesh {
-        this.indices.setIndices(indices, srcOffset, count)
-        return this
     }
 
     /**
@@ -484,16 +165,22 @@ class Mesh(
         offset: Int = 0,
         count: Int = defaultCount,
     ) {
-        if (useBatcher && updateVertices) {
-            setVBOVertices(batcher.vertices, 0, batcher.offset)
+        if (geometry.dirty) {
+            if (geometry.verticesDirty) {
+                vertices.setVertices(geometry.vertices.data, 0, geometry.vertices.size)
+                geometry.verticesDirty = false
+            }
+            if (geometry.indicesDirty) {
+                indices.setIndices(geometry.indices.data, 0, geometry.indices.size)
+                geometry.indicesDirty = false
+            }
             if (numIndices > 0) {
-                indicesBuffer.apply {
+                indices.buffer.apply {
                     position = 0
                     limit = count
                 }
             }
-            batcher.reset()
-            updateVertices = false
+            geometry.clear()
         } else if (count == 0) {
             return
         }

@@ -38,9 +38,12 @@ interface ShortBuffer : Buffer {
     fun put(value: Short): ShortBuffer
     fun put(data: ShortArray): ShortBuffer = put(data, 0, data.size)
     fun put(data: ShortArray, offset: Int, len: Int): ShortBuffer
+    fun put(data: ShortArray, offset: Int, dstOffset: Int, len: Int): ShortBuffer
     fun put(data: ShortBuffer): ShortBuffer
 
     fun toArray(): ShortArray {
+        position = 0
+        limit = capacity
         val array = ShortArray(capacity)
         for (i in 0 until capacity) {
             array[i] = get(i)
@@ -69,6 +72,7 @@ interface IntBuffer : Buffer {
     fun put(value: Int): IntBuffer
     fun put(data: IntArray): IntBuffer = put(data, 0, data.size)
     fun put(data: IntArray, offset: Int, len: Int): IntBuffer
+    fun put(data: IntArray, offset: Int, dstOffset: Int, len: Int): IntBuffer
     fun put(data: IntBuffer): IntBuffer
 
     fun toArray(): IntArray {
@@ -100,9 +104,12 @@ interface FloatBuffer : Buffer {
     fun put(value: Float): FloatBuffer
     fun put(data: FloatArray): FloatBuffer = put(data, 0, data.size)
     fun put(data: FloatArray, offset: Int, len: Int): FloatBuffer
+    fun put(data: FloatArray, offset: Int, dstOffset: Int, len: Int): FloatBuffer
     fun put(data: FloatBuffer): FloatBuffer
 
     fun toArray(): FloatArray {
+        position = 0
+        limit = capacity
         val array = FloatArray(capacity)
         for (i in 0 until capacity) {
             array[i] = get(i)
@@ -151,6 +158,7 @@ interface ByteBuffer : Buffer {
     fun putByte(value: Byte) = putUByte(value)
     fun putByte(data: ByteArray) = putUByte(data)
     fun putByte(data: ByteArray, offset: Int, len: Int) = putUByte(data, offset, len)
+    fun putByte(data: ByteArray, offset: Int, dstOffset: Int, len: Int) = putUByte(data, offset, dstOffset, len)
     fun putByte(data: ByteBuffer) = putUByte(data)
 
     val readShort: Short
@@ -158,6 +166,7 @@ interface ByteBuffer : Buffer {
     fun putShort(value: Short) = putUShort(value)
     fun putShort(data: ShortArray) = putUShort(data)
     fun putShort(data: ShortArray, offset: Int, len: Int) = putUShort(data, offset, len)
+    fun putShort(data: ShortArray, offset: Int, dstOffset: Int, len: Int) = putUShort(data, offset, dstOffset, len)
     fun putShort(data: ShortBuffer) = putUShort(data)
 
     val readInt: Int
@@ -166,6 +175,7 @@ interface ByteBuffer : Buffer {
     fun putInt(value: Int) = putUInt(value)
     fun putInt(data: IntArray) = putUInt(data)
     fun putInt(data: IntArray, offset: Int, len: Int) = putUInt(data, offset, len)
+    fun putInt(data: IntArray, srcOffset: Int, dstOffset: Int, len: Int) = putUInt(data, srcOffset, dstOffset, len)
     fun putInt(data: IntBuffer) = putUInt(data)
 
     val readUByte: Byte
@@ -174,6 +184,7 @@ interface ByteBuffer : Buffer {
     fun putUByte(value: Byte): ByteBuffer
     fun putUByte(data: ByteArray): ByteBuffer = putUByte(data, 0, data.size)
     fun putUByte(data: ByteArray, offset: Int, len: Int): ByteBuffer
+    fun putUByte(data: ByteArray, offset: Int, dstOffset: Int, len: Int): ByteBuffer
     fun putUByte(data: ByteBuffer): ByteBuffer
 
     val readUShort: Short
@@ -181,6 +192,7 @@ interface ByteBuffer : Buffer {
     fun putUShort(value: Short): ByteBuffer
     fun putUShort(data: ShortArray): ByteBuffer = putUShort(data, 0, data.size)
     fun putUShort(data: ShortArray, offset: Int, len: Int): ByteBuffer
+    fun putUShort(data: ShortArray, offset: Int, dstOffset: Int, len: Int): ByteBuffer
     fun putUShort(data: ShortBuffer): ByteBuffer
 
     val readUInt: Int
@@ -189,6 +201,7 @@ interface ByteBuffer : Buffer {
     fun putUInt(offset: Int, value: Int): ByteBuffer
     fun putUInt(data: IntArray): ByteBuffer = putUInt(data, 0, data.size)
     fun putUInt(data: IntArray, offset: Int, len: Int): ByteBuffer
+    fun putUInt(data: IntArray, srcOffset: Int, dstOffset: Int, len: Int): ByteBuffer
     fun putUInt(data: IntBuffer): ByteBuffer
 
     val readFloat: Float
@@ -196,6 +209,7 @@ interface ByteBuffer : Buffer {
     fun putFloat(value: Float): ByteBuffer
     fun putFloat(data: FloatArray): ByteBuffer = putFloat(data, 0, data.size)
     fun putFloat(data: FloatArray, offset: Int, len: Int): ByteBuffer
+    fun putFloat(data: FloatArray, offset: Int, dstOffset: Int, len: Int): ByteBuffer
     fun putFloat(data: FloatBuffer): ByteBuffer
 
     /**

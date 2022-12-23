@@ -5,7 +5,9 @@ import com.lehaine.littlekt.ContextListener
 import com.lehaine.littlekt.file.vfs.readGltfModel
 import com.lehaine.littlekt.graphics.Color
 import com.lehaine.littlekt.graphics.PerspectiveCamera
+import com.lehaine.littlekt.graphics.VertexAttribute
 import com.lehaine.littlekt.graphics.gl.ClearBufferMask
+import com.lehaine.littlekt.graphics.mesh
 import com.lehaine.littlekt.graphics.shader.ShaderProgram
 import com.lehaine.littlekt.graphics.shader.shaders.ModelFragmentShader
 import com.lehaine.littlekt.graphics.shader.shaders.ModelVertexShader
@@ -39,9 +41,11 @@ class GltfTest(context: Context) : ContextListener(context) {
                 }
         val viewport = ScreenViewport(graphics.width, graphics.height, PerspectiveCamera())
         val camera = viewport.camera
+        val grid =
+            mesh(listOf(VertexAttribute.POSITION, VertexAttribute.COLOR_PACKED), grow = true) { generate { grid { } } }
 
         camera.position.z += 250
-        //model.scale(100f)
+        //  model.scale(100f)
 
         onResize { width, height ->
             viewport.update(width, height, context, false)
@@ -58,6 +62,7 @@ class GltfTest(context: Context) : ContextListener(context) {
             shader.uProjTrans?.apply(shader, camera.viewProjection)
             shader.vertexShader.uModel.apply(shader, model.modelMat)
 
+            grid.render(shader)
             model.render(shader)
 
             val speed = 5f * if (input.isKeyPressed(Key.SHIFT_LEFT)) 10f else 1f

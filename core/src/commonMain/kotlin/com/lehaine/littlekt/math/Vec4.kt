@@ -6,15 +6,10 @@ import kotlin.math.sqrt
  * @author Colton Daily
  * @date 11/23/2021
  */
-open class Vec4f(x: Float, y: Float, z: Float, w: Float) {
-
-    protected val fields = FloatArray(4)
-
-    open val x get() = this[0]
-    open val y get() = this[1]
-    open val z get() = this[2]
+open class Vec4f internal constructor(x: Float, y: Float, z: Float, w: Float, size: Int) : Vec3f(x, y, z, size) {
     open val w get() = this[3]
 
+    constructor(x: Float, y: Float, z: Float, w: Float) : this(x, y, z, w, 4)
     constructor(f: Float) : this(f, f, f, f)
     constructor(xyz: Vec3f, w: Float) : this(xyz.x, xyz.y, xyz.z, w)
     constructor(v: Vec4f) : this(v.x, v.y, v.z, v.w)
@@ -43,7 +38,6 @@ open class Vec4f(x: Float, y: Float, z: Float, w: Float) {
             eps
         )
 
-    fun length(): Float = sqrt(sqrLength())
 
     fun mix(other: Vec4f, weight: Float, result: MutableVec4f): MutableVec4f {
         result.x = other.x * weight + x * (1f - weight)
@@ -75,7 +69,7 @@ open class Vec4f(x: Float, y: Float, z: Float, w: Float) {
         return dx * dx + dy * dy + dz * dz + dw * dw
     }
 
-    fun sqrLength(): Float = x * x + y * y + z * z + w * w
+    override fun sqrLength(): Float = x * x + y * y + z * z + w * w
 
     fun subtract(other: Vec4f, result: MutableVec4f): MutableVec4f = result.set(this).subtract(other)
 
@@ -86,15 +80,13 @@ open class Vec4f(x: Float, y: Float, z: Float, w: Float) {
         return result
     }
 
-    open operator fun get(i: Int): Float = fields[i]
-
     operator fun times(other: Vec4f): Float = dot(other)
 
-    fun toVec(): Vec4f = Vec4f(x, y, z, w)
+    fun toVec4(): Vec4f = Vec4f(x, y, z, w)
 
-    fun toMutableVec(): MutableVec4f = toMutableVec(MutableVec4f())
+    fun toMutableVec4(): MutableVec4f = toMutableVec4(MutableVec4f())
 
-    fun toMutableVec(result: MutableVec4f): MutableVec4f = result.set(x, y, z, w)
+    fun toMutableVec4(result: MutableVec4f): MutableVec4f = result.set(x, y, z, w)
 
     override fun toString(): String = "($x, $y, $z, $w)"
 

@@ -1,10 +1,7 @@
 package com.lehaine.littlekt.graphics
 
 import com.lehaine.littlekt.Context
-import com.lehaine.littlekt.file.ByteBuffer
-import com.lehaine.littlekt.file.DataSource
-import com.lehaine.littlekt.file.FloatBuffer
-import com.lehaine.littlekt.file.IntBuffer
+import com.lehaine.littlekt.file.*
 import com.lehaine.littlekt.graphics.gl.*
 import com.lehaine.littlekt.math.Mat3
 import com.lehaine.littlekt.math.Mat4
@@ -178,11 +175,11 @@ interface GL {
     fun bindDefaultBuffer(target: Int)
     fun bindDefaultBuffer(target: BufferTarget) = bindDefaultBuffer(target.glFlag)
     fun deleteBuffer(glBuffer: GlBuffer)
-    fun bufferData(target: Int, data: DataSource, usage: Int)
-    fun bufferData(target: BufferTarget, data: DataSource, usage: Usage) = bufferData(target.glFlag, data, usage.glFlag)
+    fun bufferData(target: Int, data: Buffer, usage: Int)
+    fun bufferData(target: BufferTarget, data: Buffer, usage: Usage) = bufferData(target.glFlag, data, usage.glFlag)
 
-    fun bufferSubData(target: Int, offset: Int, data: DataSource)
-    fun bufferSubData(target: BufferTarget, offset: Int, data: DataSource) =
+    fun bufferSubData(target: Int, offset: Int, data: Buffer)
+    fun bufferSubData(target: BufferTarget, offset: Int, data: Buffer) =
         bufferSubData(target.glFlag, offset, data)
 
     fun depthFunc(func: Int)

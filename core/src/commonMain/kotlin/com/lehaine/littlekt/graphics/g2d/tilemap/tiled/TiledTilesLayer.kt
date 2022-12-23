@@ -1,10 +1,11 @@
 package com.lehaine.littlekt.graphics.g2d.tilemap.tiled
 
-import com.lehaine.littlekt.graphics.g2d.Batch
 import com.lehaine.littlekt.graphics.Color
+import com.lehaine.littlekt.graphics.g2d.Batch
 import com.lehaine.littlekt.graphics.g2d.TextureSlice
 import com.lehaine.littlekt.graphics.g2d.tilemap.tiled.internal.TileData
 import com.lehaine.littlekt.math.*
+import com.lehaine.littlekt.math.geom.degrees
 import com.lehaine.littlekt.util.internal.now
 import kotlin.math.max
 import kotlin.math.min
@@ -236,7 +237,7 @@ class TiledTilesLayer(
             Mat4()
                 .setToIdentity()
                 .scale(sqrt(2f) / 2f, sqrt(2f) / 4f, 1f)
-                .rotate(0f, 0f, 1f, -45f)
+                .rotate(0f, 0f, 1f, (-45).degrees)
                 .invert()
         }
     }

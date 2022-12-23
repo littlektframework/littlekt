@@ -33,7 +33,7 @@ class TextureArraySpriteBatch(
     private val maxTextureWidth: Int,
     private val maxTextureHeight: Int,
     private var textureArrayMagFilter: TexMagFilter = TexMagFilter.NEAREST,
-    private var textureArrayMinFilter: TexMinFilter = TexMinFilter.NEAREST
+    private var textureArrayMinFilter: TexMinFilter = TexMinFilter.NEAREST,
 ) : Batch {
     companion object {
         private const val VERTEX_SIZE = 2 + 1 + 2 + 1
@@ -102,22 +102,22 @@ class TextureArraySpriteBatch(
         }
     private var combinedMatrix = Mat4()
 
+    private val textureIndexAttribute = VertexAttribute(
+        usage = VertexAttrUsage.GENERIC,
+        numComponents = 1,
+        alias = "a_textureIndex"
+    )
+
     private val mesh = mesh(
         context.gl,
         listOf(
-            VertexAttribute.POSITION_2D, VertexAttribute.COLOR_PACKED, VertexAttribute.TEX_COORDS(0),
-            VertexAttribute(
-                usage = VertexAttrUsage.GENERIC,
-                numComponents = 1,
-                alias = "a_textureIndex"
-            )
+            VertexAttribute.POSITION, VertexAttribute.COLOR_PACKED, VertexAttribute.TEX_COORDS(0),
+            textureIndexAttribute
         )
     ) {
-        isStatic = false
-        maxVertices = size * 4
-    }.apply {
-        indicesAsQuad()
+        geometry.indicesAsQuad()
     }
+
 
     override val drawing: Boolean get() = _drawing
     private var _drawing = false
@@ -296,37 +296,38 @@ class TextureArraySpriteBatch(
         val u2 = (if (flipX) slice.u else slice.u2) * subImageScaleWidth
         val v2 = (if (flipY) slice.v2 else slice.v) * subImageScaleHeight
 
-        mesh.run {
-            setVertex { // bottom left
+        mesh.geometry.run {
+            addVertex { // bottom left
                 this.x = x1
-                this.y = y1
-                this.colorPacked = colorBits
-                this.u = u
-                this.v = if (slice.rotated) v2 else v
-                generic.add(ti)
+                position.y = y1
+                colorPacked.value = colorBits
+                texCoords.x = u
+                texCoords.y = if (slice.rotated) v2 else v
+                getFloatAttribute(textureIndexAttribute)?.value = ti
             }
-            setVertex { // top left
+            addVertex { // top left
                 this.x = x2
-                this.y = y2
-                this.colorPacked = colorBits
-                this.u = if (slice.rotated) u2 else u
-                this.v = v2
-                generic.add(ti)
+                position.y = y2
+                colorPacked.value = colorBits
+                texCoords.x = if (slice.rotated) u2 else u
+                texCoords.y = v2
+                getFloatAttribute(textureIndexAttribute)?.value = ti
             }
-            setVertex { // top right
+            addVertex { // top right
                 this.x = x3
-                this.y = y3
-                this.colorPacked = colorBits
-                this.u = u2
-                this.v = if (slice.rotated) v else v2
+                position.y = y3
+                colorPacked.value = colorBits
+                texCoords.x = u2
+                texCoords.y = if (slice.rotated) v else v2
+                getFloatAttribute(textureIndexAttribute)?.value = ti
             }
-            setVertex { // bottom right
+            addVertex { // bottom right
                 this.x = x4
-                this.y = y4
-                this.colorPacked = colorBits
-                this.u = if (slice.rotated) u else u2
-                this.v = v
-                generic.add(ti)
+                position.y = y4
+                colorPacked.value = colorBits
+                texCoords.x = if (slice.rotated) u else u2
+                texCoords.y = v
+                getFloatAttribute(textureIndexAttribute)?.value = ti
             }
         }
 
@@ -350,7 +351,7 @@ class TextureArraySpriteBatch(
         srcWidth: Int,
         srcHeight: Int,
         flipX: Boolean,
-        flipY: Boolean
+        flipY: Boolean,
     ) {
         if (!_drawing) {
             throw IllegalStateException("SpriteBatch.begin must be called before draw.")
@@ -440,37 +441,38 @@ class TextureArraySpriteBatch(
         u2 = if (flipX) u else u2
         v2 = if (flipY) v else v2
 
-        mesh.run {
-            setVertex { // bottom left
-                this.x = x1
-                this.y = y1
-                this.colorPacked = colorBits
-                this.u = u
-                this.v = if (slice.rotated) v2 else v
-                generic.add(ti)
+        mesh.geometry.run {
+            addVertex { // bottom left
+                position.x = x1
+                position.y = y1
+                colorPacked.value = colorBits
+                texCoords.x = u
+                texCoords.y = if (slice.rotated) v2 else v
+                getFloatAttribute(textureIndexAttribute)?.value = ti
             }
-            setVertex { // top left
-                this.x = x2
-                this.y = y2
-                this.colorPacked = colorBits
-                this.u = if (slice.rotated) u2 else u
-                this.v = v2
-                generic.add(ti)
+            addVertex { // top left
+                position.x = x2
+                position.y = y2
+                colorPacked.value = colorBits
+                texCoords.x = if (slice.rotated) u2 else u
+                texCoords.y = v2
+                getFloatAttribute(textureIndexAttribute)?.value = ti
             }
-            setVertex { // top right
-                this.x = x3
-                this.y = y3
-                this.colorPacked = colorBits
-                this.u = u2
-                this.v = if (slice.rotated) v else v2
+            addVertex { // top right
+                position.x = x3
+                position.y = y3
+                colorPacked.value = colorBits
+                texCoords.x = u2
+                texCoords.y = if (slice.rotated) v else v2
+                getFloatAttribute(textureIndexAttribute)?.value = ti
             }
-            setVertex { // bottom right
-                this.x = x4
-                this.y = y4
-                this.colorPacked = colorBits
-                this.u = if (slice.rotated) u else u2
-                this.v = v
-                generic.add(ti)
+            addVertex { // bottom right
+                position.x = x4
+                position.y = y4
+                colorPacked.value = colorBits
+                texCoords.x = if (slice.rotated) u else u2
+                texCoords.y = v
+                getFloatAttribute(textureIndexAttribute)?.value = ti
             }
         }
 
@@ -589,38 +591,38 @@ class TextureArraySpriteBatch(
             v2 = tmp
         }
 
-        mesh.run {
-            setVertex { // bottom left
-                this.x = x1
-                this.y = y1
-                this.colorPacked = colorBits
-                this.u = u
-                this.v = v
-                generic.add(ti)
+        mesh.geometry.run {
+            addVertex { // bottom left
+                position.x = x1
+                position.y = y1
+                colorPacked.value = colorBits
+                texCoords.x = u
+                texCoords.y = v
+                getFloatAttribute(textureIndexAttribute)?.value = ti
             }
-            setVertex { // top left
-                this.x = x2
-                this.y = y2
-                this.colorPacked = colorBits
-                this.u = u
-                this.v = v2
-                generic.add(ti)
+            addVertex { // top left
+                position.x = x2
+                position.y = y2
+                colorPacked.value = colorBits
+                texCoords.x = u
+                texCoords.y = v2
+                getFloatAttribute(textureIndexAttribute)?.value = ti
             }
-            setVertex { // top right
-                this.x = x3
-                this.y = y3
-                this.colorPacked = colorBits
-                this.u = u2
-                this.v = v2
-                generic.add(ti)
+            addVertex { // top right
+                position.x = x3
+                position.y = y3
+                colorPacked.value = colorBits
+                texCoords.x = u2
+                texCoords.y = v2
+                getFloatAttribute(textureIndexAttribute)?.value = ti
             }
-            setVertex { // bottom right
-                this.x = x4
-                this.y = y4
-                this.colorPacked = colorBits
-                this.u = u2
-                this.v = v
-                generic.add(ti)
+            addVertex { // bottom right
+                position.x = x4
+                position.y = y4
+                colorPacked.value = colorBits
+                texCoords.x = u2
+                texCoords.y = v
+                getFloatAttribute(textureIndexAttribute)?.value = ti
             }
         }
 
@@ -636,11 +638,11 @@ class TextureArraySpriteBatch(
         val ti = activateTexture(texture).toFloat()
 
         for (srcPos in 0 until count step VERTEX_SIZE - 1) {
-            mesh.addVertices(spriteVertices, srcPos, idx, VERTEX_SIZE - 1)
+            mesh.geometry.add(spriteVertices, srcPos, idx, VERTEX_SIZE - 1)
             idx += VERTEX_SIZE - 3
-            mesh[idx++] *= subImageScaleWidth
-            mesh[idx++] *= subImageScaleHeight
-            mesh.add(ti)
+            mesh.geometry.vertices[idx++] *= subImageScaleWidth
+            mesh.geometry.vertices[idx++] *= subImageScaleHeight
+            mesh.geometry.vertices += ti
             idx++
         }
     }
@@ -658,7 +660,7 @@ class TextureArraySpriteBatch(
     }
 
     private fun flushIfFull() {
-        if (mesh.batcherVerticesLength - idx < SPRITE_SIZE / VERTEX_SIZE) {
+        if (mesh.geometry.vertices.capacity - idx < SPRITE_SIZE / VERTEX_SIZE) {
             flush()
         }
     }
@@ -781,7 +783,7 @@ class TextureArraySpriteBatch(
         srcFuncColor: BlendFactor,
         dstFuncColor: BlendFactor,
         srcFuncAlpha: BlendFactor,
-        dstFuncAlpha: BlendFactor
+        dstFuncAlpha: BlendFactor,
     ) {
         if (blendSrcFunc == srcFuncColor && blendDstFunc == dstFuncColor
             && blendSrcFuncAlpha == srcFuncAlpha && blendDstFuncAlpha == dstFuncAlpha

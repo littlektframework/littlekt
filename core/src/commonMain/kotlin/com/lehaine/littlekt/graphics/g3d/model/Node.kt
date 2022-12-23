@@ -5,6 +5,7 @@ import com.lehaine.littlekt.graphics.shader.ShaderProgram
 import com.lehaine.littlekt.math.Mat4
 import com.lehaine.littlekt.math.MutableVec3f
 import com.lehaine.littlekt.math.Vec3f
+import com.lehaine.littlekt.math.geom.Angle
 import com.lehaine.littlekt.math.spatial.BoundingBox
 import com.lehaine.littlekt.util.LazyMat4
 
@@ -220,10 +221,10 @@ open class Node(val name: String? = null) : Disposable {
     }
 
 
-    fun rotate(angleDeg: Float, axis: Vec3f) = rotate(angleDeg, axis.x, axis.y, axis.z)
+    fun rotate(axis: Vec3f, angle: Angle) = rotate(axis.x, axis.y, axis.z, angle)
 
-    fun rotate(angleDeg: Float, axX: Float, axY: Float, axZ: Float): Node {
-        transform.rotate(angleDeg, axX, axY, axZ)
+    fun rotate(axX: Float, axY: Float, axZ: Float, angle: Angle): Node {
+        transform.rotate(axX, axY, axZ, angle)
         setDirty()
         return this
     }

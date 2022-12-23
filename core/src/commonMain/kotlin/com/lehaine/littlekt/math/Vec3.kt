@@ -10,20 +10,16 @@ import kotlin.math.sqrt
  * @author Colton Daily
  * @date 11/23/2021
  */
-open class Vec3f(x: Float, y: Float, z: Float) {
+open class Vec3f internal constructor(x: Float, y: Float, z: Float, size: Int) : Vec2f(x, y, size) {
 
-    protected val fields = FloatArray(3)
-
-    open val x get() = this[0]
-    open val y get() = this[1]
     open val z get() = this[2]
+
+    constructor(x: Float, y: Float, z: Float) : this(x, y, z, 3)
 
     constructor(f: Float) : this(f, f, f)
     constructor(v: Vec3f) : this(v.x, v.y, v.z)
 
     init {
-        fields[0] = x
-        fields[1] = y
         fields[2] = z
     }
 
@@ -46,8 +42,6 @@ open class Vec3f(x: Float, y: Float, z: Float) {
      */
     fun isFuzzyEqual(other: Vec3f, eps: Float = FUZZY_EQ_F): Boolean =
         isFuzzyEqual(x, other.x, eps) && isFuzzyEqual(y, other.y, eps) && isFuzzyEqual(z, other.z, eps)
-
-    fun length(): Float = sqrt(sqrLength())
 
     fun mix(other: Vec3f, weight: Float, result: MutableVec3f): MutableVec3f {
         result.x = other.x * weight + x * (1f - weight)
@@ -101,19 +95,17 @@ open class Vec3f(x: Float, y: Float, z: Float) {
         return dx * dx + dy * dy + dz * dz
     }
 
-    fun sqrLength(): Float = x * x + y * y + z * z
+    override fun sqrLength(): Float = x * x + y * y + z * z
 
     fun subtract(other: Vec3f, result: MutableVec3f): MutableVec3f = result.set(this).subtract(other)
 
-    open operator fun get(i: Int) = fields[i]
-
     operator fun times(other: Vec3f): Float = dot(other)
 
-    fun toVec(): Vec3f = Vec3f(x, y, z)
+    fun toVec3(): Vec3f = Vec3f(x, y, z)
 
-    fun toMutableVec(): MutableVec3f = toMutableVec(MutableVec3f())
+    fun toMutableVec3(): MutableVec3f = toMutableVec3(MutableVec3f())
 
-    fun toMutableVec(result: MutableVec3f): MutableVec3f = result.set(x, y, z)
+    fun toMutableVec3(result: MutableVec3f): MutableVec3f = result.set(x, y, z)
 
     override fun toString(): String = "($x, $y, $z)"
 

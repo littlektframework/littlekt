@@ -408,64 +408,64 @@ class WebGL(val gl: WebGL2RenderingContext, val platform: Context.Platform, priv
         gl.deleteBuffer(glBuffer.delegate)
     }
 
-    override fun bufferData(target: Int, data: DataSource, usage: Int) {
+    override fun bufferData(target: Int, data: Buffer, usage: Int) {
         engineStats.calls++
-        val limit = data.buffer.limit
-        val pos = data.buffer.position
-        data.buffer.position = 0
-        data.buffer.limit = data.buffer.capacity
+        val limit = data.limit
+        val pos = data.position
+        data.position = 0
+        data.limit = data.capacity
         when (data) {
-            is DataSource.FloatBufferDataSource -> {
-                data.buffer as FloatBufferImpl
-                gl.bufferData(target, data.buffer.buffer, usage, 0, data.buffer.limit)
-                engineStats.bufferAllocated(lastBoundBuffer!!.bufferId, data.buffer.capacity * 4)
+            is FloatBuffer -> {
+                data as FloatBufferImpl
+                gl.bufferData(target, data.buffer, usage, 0, data.limit)
+                engineStats.bufferAllocated(lastBoundBuffer!!.bufferId, data.capacity * 4)
             }
-            is DataSource.ByteBufferDataSource -> {
-                data.buffer as ByteBufferImpl
-                gl.bufferData(target, data.buffer.buffer, usage, 0, data.buffer.limit)
-                engineStats.bufferAllocated(lastBoundBuffer!!.bufferId, data.buffer.capacity)
+            is ByteBuffer -> {
+                data as ByteBufferImpl
+                gl.bufferData(target, data.buffer, usage, 0, data.limit)
+                engineStats.bufferAllocated(lastBoundBuffer!!.bufferId, data.capacity)
             }
-            is DataSource.ShortBufferDataSource -> {
-                data.buffer as ShortBufferImpl
-                gl.bufferData(target, data.buffer.buffer, usage, 0, data.buffer.limit)
-                engineStats.bufferAllocated(lastBoundBuffer!!.bufferId, data.buffer.capacity * 2)
+            is ShortBuffer -> {
+                data as ShortBufferImpl
+                gl.bufferData(target, data.buffer, usage, 0, data.limit)
+                engineStats.bufferAllocated(lastBoundBuffer!!.bufferId, data.capacity * 2)
             }
-            is DataSource.IntBufferDataSource -> {
-                data.buffer as IntBufferImpl
-                gl.bufferData(target, data.buffer.buffer, usage, 0, data.buffer.limit)
-                engineStats.bufferAllocated(lastBoundBuffer!!.bufferId, data.buffer.capacity * 4)
+            is IntBuffer -> {
+                data as IntBufferImpl
+                gl.bufferData(target, data.buffer, usage, 0, data.limit)
+                engineStats.bufferAllocated(lastBoundBuffer!!.bufferId, data.capacity * 4)
             }
         }
-        data.buffer.limit = limit
-        data.buffer.position = pos
+        data.limit = limit
+        data.position = pos
     }
 
-    override fun bufferSubData(target: Int, offset: Int, data: DataSource) {
+    override fun bufferSubData(target: Int, offset: Int, data: Buffer) {
         engineStats.calls++
-        val limit = data.buffer.limit
-        val pos = data.buffer.position
-        data.buffer.position = 0
-        data.buffer.limit = data.buffer.capacity
+        val limit = data.limit
+        val pos = data.position
+        data.position = 0
+        data.limit = data.capacity
         when (data) {
-            is DataSource.FloatBufferDataSource -> {
-                data.buffer as FloatBufferImpl
-                gl.bufferSubData(target, offset, data.buffer.buffer)
+            is FloatBuffer -> {
+                data as FloatBufferImpl
+                gl.bufferSubData(target, offset, data.buffer)
             }
-            is DataSource.ByteBufferDataSource -> {
-                data.buffer as ByteBufferImpl
-                gl.bufferSubData(target, offset, data.buffer.buffer)
+            is ByteBuffer -> {
+                data as ByteBufferImpl
+                gl.bufferSubData(target, offset, data.buffer)
             }
-            is DataSource.ShortBufferDataSource -> {
-                data.buffer as ShortBufferImpl
-                gl.bufferSubData(target, offset, data.buffer.buffer)
+            is ShortBuffer -> {
+                data as ShortBufferImpl
+                gl.bufferSubData(target, offset, data.buffer)
             }
-            is DataSource.IntBufferDataSource -> {
-                data.buffer as IntBufferImpl
-                gl.bufferSubData(target, offset, data.buffer.buffer)
+            is IntBuffer -> {
+                data as IntBufferImpl
+                gl.bufferSubData(target, offset, data.buffer)
             }
         }
-        data.buffer.limit = limit
-        data.buffer.position = pos
+        data.limit = limit
+        data.position = pos
     }
 
     override fun depthFunc(func: Int) {

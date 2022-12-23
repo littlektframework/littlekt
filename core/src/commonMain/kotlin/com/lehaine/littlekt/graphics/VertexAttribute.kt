@@ -26,33 +26,24 @@ data class VertexAttribute(
             }
         }
 
-    val key get() = (usageIndex shl 8) + (unit and 0xFF)
-
     internal var offset: Int = 0
 
     private val usageIndex = usage.usage.countTrailingZeroBits()
 
+    val key: Int = (usageIndex shl 8) + (unit and 0xFF)
+
     companion object {
-        val POSITION_2D
-            get() = VertexAttribute(
-                usage = VertexAttrUsage.POSITION,
-                numComponents = 2,
-                alias = ShaderProgram.POSITION_ATTRIBUTE
-            )
+        val POSITION = VertexAttribute(
+            usage = VertexAttrUsage.POSITION,
+            numComponents = 3,
+            alias = ShaderProgram.POSITION_ATTRIBUTE
+        )
 
-        val POSITION_VEC3
-            get() = VertexAttribute(
-                usage = VertexAttrUsage.POSITION,
-                numComponents = 3,
-                alias = ShaderProgram.POSITION_ATTRIBUTE
-            )
-
-        val POSITION_VEC4
-            get() = VertexAttribute(
-                usage = VertexAttrUsage.POSITION,
-                numComponents = 4,
-                alias = ShaderProgram.POSITION_ATTRIBUTE
-            )
+        val POSITION_2D = VertexAttribute(
+            usage = VertexAttrUsage.POSITION,
+            numComponents = 2,
+            alias = ShaderProgram.POSITION_ATTRIBUTE
+        )
 
         fun TEX_COORDS(unit: Int = 0) =
             VertexAttribute(
@@ -62,48 +53,44 @@ data class VertexAttribute(
                 unit = unit
             )
 
-        val NORMAL
-            get() = VertexAttribute(
-                usage = VertexAttrUsage.NORMAL,
-                numComponents = 3,
-                alias = ShaderProgram.NORMAL_ATTRIBUTE
-            )
-        val COLOR_PACKED
-            get() = VertexAttribute(
-                usage = VertexAttrUsage.COLOR_PACKED,
-                numComponents = 4,
-                alias = ShaderProgram.COLOR_ATTRIBUTE,
-                type = VertexAttrType.UNSIGNED_BYTE,
-                normalized = true
-            )
-        val COLOR_UNPACKED
-            get() = VertexAttribute(
-                usage = VertexAttrUsage.COLOR_UNPACKED,
-                numComponents = 4,
-                alias = ShaderProgram.COLOR_ATTRIBUTE,
-                type = VertexAttrType.FLOAT,
-                normalized = false
-            )
+        val NORMAL = VertexAttribute(
+            usage = VertexAttrUsage.NORMAL,
+            numComponents = 3,
+            alias = ShaderProgram.NORMAL_ATTRIBUTE
+        )
 
-        val TANGENT
-            get() = VertexAttribute(
-                usage = VertexAttrUsage.BINORMAL,
-                numComponents = 3,
-                alias = ShaderProgram.TANGENT_ATTRIBUTE,
-            )
+        val COLOR_PACKED = VertexAttribute(
+            usage = VertexAttrUsage.COLOR_PACKED,
+            numComponents = 4,
+            alias = ShaderProgram.COLOR_ATTRIBUTE,
+            type = VertexAttrType.UNSIGNED_BYTE,
+            normalized = true
+        )
+        val COLOR_UNPACKED = VertexAttribute(
+            usage = VertexAttrUsage.COLOR_UNPACKED,
+            numComponents = 4,
+            alias = ShaderProgram.COLOR_ATTRIBUTE,
+            type = VertexAttrType.FLOAT,
+            normalized = false
+        )
+
+        val TANGENT = VertexAttribute(
+            usage = VertexAttrUsage.BINORMAL,
+            numComponents = 3,
+            alias = ShaderProgram.TANGENT_ATTRIBUTE,
+        )
 
 
-        val BINORMAL
-            get() = VertexAttribute(
-                usage = VertexAttrUsage.TANGENT,
-                numComponents = 3,
-                alias = ShaderProgram.TANGENT_ATTRIBUTE,
-            )
+        val BINORMAL = VertexAttribute(
+            usage = VertexAttrUsage.BINORMAL,
+            numComponents = 3,
+            alias = ShaderProgram.BINORMAL_ATTRIBUTE,
+        )
 
         fun BONE_WEIGHT(unit: Int = 0) = VertexAttribute(
             usage = VertexAttrUsage.BONE_WEIGHT,
             numComponents = 2,
-            alias = ShaderProgram.TANGENT_ATTRIBUTE + unit,
+            alias = ShaderProgram.BONE_WEIGHT_ATTRIBUTE + unit,
             unit = unit
         )
     }
@@ -134,6 +121,8 @@ class VertexAttributes(private val attributes: List<VertexAttribute>) : Iterable
         return findByUsage(usage)?.offset?.div(4) ?: defaultOffsetIfNotFound
     }
 
+    fun getOffset(usage: VertexAttrUsage) = getOffsetOrDefault(usage, 0)
+
     fun findByUsage(usage: VertexAttrUsage): VertexAttribute? {
         for (i in 0 until size) {
             if (attributes[i].usage == usage) {
@@ -143,6 +132,7 @@ class VertexAttributes(private val attributes: List<VertexAttribute>) : Iterable
         return null
     }
 
+    fun contains(attribute: VertexAttribute) = attributes.contains(attribute)
 
     operator fun get(index: Int) = attributes[index]
 

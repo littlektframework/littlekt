@@ -33,6 +33,8 @@ class SpriteBatch(
         private const val SPRITE_SIZE = 4 * VERTEX_SIZE
     }
 
+    private val maxVertices = size * 4
+
     private val gl get() = context.graphics.gl
     val defaultShader = ShaderProgram(DefaultVertexShader(), DefaultFragmentShader()).also { it.prepare(context) }
     override var shader: ShaderProgram<*, *> = defaultShader
@@ -85,11 +87,8 @@ class SpriteBatch(
         }
     private var combinedMatrix = Mat4()
 
-    private val mesh = textureMesh(context.gl) {
-        isStatic = false
-        maxVertices = size * 4
-    }.apply {
-        indicesAsQuad()
+    private val mesh = textureMesh(context.gl, maxVertices) {
+        geometry.indicesAsQuad()
     }
 
     private var lastTexture: Texture? = null
@@ -156,7 +155,7 @@ class SpriteBatch(
         }
         if (slice.texture != lastTexture) {
             switchTexture(slice.texture)
-        } else if (idx >= mesh.maxVertices) {
+        } else if (idx >= maxVertices) {
             flush()
         }
 
@@ -235,34 +234,34 @@ class SpriteBatch(
         val u2 = if (flipX) slice.u else slice.u2
         val v2 = if (flipY) slice.v2 else slice.v
 
-        mesh.run {
-            setVertex { // bottom left
-                this.x = x1
-                this.y = y1
-                this.colorPacked = colorBits
-                this.u = u
-                this.v = if (slice.rotated) v2 else v
+        mesh.geometry.run {
+            addVertex { // bottom left
+                position.x = x1
+                position.y = y1
+                colorPacked.value = colorBits
+                texCoords.x = u
+                texCoords.y = if (slice.rotated) v2 else v
             }
-            setVertex { // top left
-                this.x = x2
-                this.y = y2
-                this.colorPacked = colorBits
-                this.u = if (slice.rotated) u2 else u
-                this.v = v2
+            addVertex { // top left
+                position.x = x2
+                position.y = y2
+                colorPacked.value = colorBits
+                texCoords.x = if (slice.rotated) u2 else u
+                texCoords.y = v2
             }
-            setVertex { // top right
-                this.x = x3
-                this.y = y3
-                this.colorPacked = colorBits
-                this.u = u2
-                this.v = if (slice.rotated) v else v2
+            addVertex { // top right
+                position.x = x3
+                position.y = y3
+                colorPacked.value = colorBits
+                texCoords.x = u2
+                texCoords.y = if (slice.rotated) v else v2
             }
-            setVertex { // bottom right
-                this.x = x4
-                this.y = y4
-                this.colorPacked = colorBits
-                this.u = if (slice.rotated) u else u2
-                this.v = v
+            addVertex { // bottom right
+                position.x = x4
+                position.y = y4
+                colorPacked.value = colorBits
+                texCoords.x = if (slice.rotated) u else u2
+                texCoords.y = v
             }
         }
 
@@ -293,7 +292,7 @@ class SpriteBatch(
         }
         if (slice.texture != lastTexture) {
             switchTexture(slice.texture)
-        } else if (idx >= mesh.maxVertices) {
+        } else if (idx >= maxVertices) {
             flush()
         }
 
@@ -377,34 +376,34 @@ class SpriteBatch(
         u2 = if (flipX) u else u2
         v2 = if (flipY) v else v2
 
-        mesh.run {
-            setVertex { // bottom left
-                this.x = x1
-                this.y = y1
-                this.colorPacked = colorBits
-                this.u = u
-                this.v = if (slice.rotated) v2 else v
+        mesh.geometry.run {
+            addVertex { // bottom left
+                position.x = x1
+                position.y = y1
+                colorPacked.value = colorBits
+                texCoords.x = u
+                texCoords.y = if (slice.rotated) v2 else v
             }
-            setVertex { // top left
-                this.x = x2
-                this.y = y2
-                this.colorPacked = colorBits
-                this.u = if (slice.rotated) u2 else u
-                this.v = v2
+            addVertex { // top left
+                position.x = x2
+                position.y = y2
+                colorPacked.value = colorBits
+                texCoords.x = if (slice.rotated) u2 else u
+                texCoords.y = v2
             }
-            setVertex { // top right
-                this.x = x3
-                this.y = y3
-                this.colorPacked = colorBits
-                this.u = u2
-                this.v = if (slice.rotated) v else v2
+            addVertex { // top right
+                position.x = x3
+                position.y = y3
+                colorPacked.value = colorBits
+                texCoords.x = u2
+                texCoords.y = if (slice.rotated) v else v2
             }
-            setVertex { // bottom right
-                this.x = x4
-                this.y = y4
-                this.colorPacked = colorBits
-                this.u = if (slice.rotated) u else u2
-                this.v = v
+            addVertex { // bottom right
+                position.x = x4
+                position.y = y4
+                colorPacked.value = colorBits
+                texCoords.x = if (slice.rotated) u else u2
+                texCoords.y = v
             }
         }
 
@@ -435,7 +434,7 @@ class SpriteBatch(
         }
         if (texture != lastTexture) {
             switchTexture(texture)
-        } else if (idx >= mesh.maxVertices) {
+        } else if (idx >= maxVertices) {
             flush()
         }
 
@@ -524,34 +523,35 @@ class SpriteBatch(
             v2 = tmp
         }
 
-        mesh.run {
-            setVertex { // bottom left
-                this.x = x1
-                this.y = y1
-                this.colorPacked = colorBits
-                this.u = u
-                this.v = v
+
+        mesh.geometry.run {
+            addVertex { // bottom left
+                position.x = x1
+                position.y = y1
+                colorPacked.value = colorBits
+                texCoords.x = u
+                texCoords.y = v
             }
-            setVertex { // top left
-                this.x = x2
-                this.y = y2
-                this.colorPacked = colorBits
-                this.u = u
-                this.v = v2
+            addVertex { // top left
+                position.x = x2
+                position.y = y2
+                colorPacked.value = colorBits
+                texCoords.x = u
+                texCoords.y = v2
             }
-            setVertex { // top right
-                this.x = x3
-                this.y = y3
-                this.colorPacked = colorBits
-                this.u = u2
-                this.v = v2
+            addVertex { // top right
+                position.x = x3
+                position.y = y3
+                colorPacked.value = colorBits
+                texCoords.x = u2
+                texCoords.y = v2
             }
-            setVertex { // bottom right
-                this.x = x4
-                this.y = y4
-                this.colorPacked = colorBits
-                this.u = u2
-                this.v = v
+            addVertex { // bottom right
+                position.x = x4
+                position.y = y4
+                colorPacked.value = colorBits
+                texCoords.x = u2
+                texCoords.y = v
             }
         }
 
@@ -562,7 +562,7 @@ class SpriteBatch(
         if (!_drawing) {
             throw IllegalStateException("SpriteBatch.begin must be called before draw.")
         }
-        val verticesLength: Int = mesh.batcherVerticesLength
+        val verticesLength: Int = mesh.geometry.vertices.capacity
         var remainingVertices = verticesLength
 
         if (texture != lastTexture) {
@@ -576,7 +576,7 @@ class SpriteBatch(
         }
 
         var copyCount = min(remainingVertices, count)
-        mesh.addVertices(spriteVertices, offset, idx, copyCount)
+        mesh.geometry.add(spriteVertices, offset, idx, copyCount)
         idx += copyCount
 
         var remainingCount = count - copyCount
@@ -585,7 +585,7 @@ class SpriteBatch(
             currOffset += copyCount
             flush()
             copyCount = min(verticesLength, remainingCount)
-            mesh.addVertices(spriteVertices, currOffset, 0, copyCount)
+            mesh.geometry.add(spriteVertices, currOffset, 0, copyCount)
             idx += copyCount
             remainingCount -= copyCount
         }

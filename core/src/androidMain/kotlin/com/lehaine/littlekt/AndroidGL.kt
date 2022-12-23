@@ -396,67 +396,73 @@ class AndroidGL(private val engineStats: EngineStats) : GL {
         GLES11.glDeleteBuffers(1, intBuffer)
     }
 
-    override fun bufferData(target: Int, data: DataSource, usage: Int) {
+    override fun bufferData(target: Int, data: Buffer, usage: Int) {
         engineStats.calls++
-        val limit = data.buffer.limit
-        val pos = data.buffer.position
-        data.buffer.position = 0
-        data.buffer.limit = data.buffer.capacity
+        val limit = data.limit
+        val pos = data.position
+        data.position = 0
+        data.limit = data.capacity
         engineStats.bufferDeleted(lastBoundBuffer!!.bufferId)
         when (data) {
-            is DataSource.FloatBufferDataSource -> {
-                data.buffer as FloatBufferImpl
-                GLES11.glBufferData(target, data.buffer.capacity * 4, data.buffer.buffer, usage)
-                engineStats.bufferAllocated(lastBoundBuffer!!.bufferId, data.buffer.capacity * 4)
+            is FloatBuffer -> {
+                data as FloatBufferImpl
+                GLES11.glBufferData(target, data.capacity * 4, data.buffer, usage)
+                engineStats.bufferAllocated(lastBoundBuffer!!.bufferId, data.capacity * 4)
             }
-            is DataSource.ByteBufferDataSource -> {
-                data.buffer as ShortBufferImpl
-                GLES11.glBufferData(target, data.buffer.capacity, data.buffer.buffer, usage)
-                engineStats.bufferAllocated(lastBoundBuffer!!.bufferId, data.buffer.capacity)
+
+            is ByteBuffer -> {
+                data as ByteBufferImpl
+                GLES11.glBufferData(target, data.capacity, data.buffer, usage)
+                engineStats.bufferAllocated(lastBoundBuffer!!.bufferId, data.capacity)
             }
-            is DataSource.ShortBufferDataSource -> {
-                data.buffer as ShortBufferImpl
-                GLES11.glBufferData(target, data.buffer.capacity * 2, data.buffer.buffer, usage)
-                engineStats.bufferAllocated(lastBoundBuffer!!.bufferId, data.buffer.capacity * 2)
+
+            is ShortBuffer -> {
+                data as ShortBufferImpl
+                GLES11.glBufferData(target, data.capacity * 2, data.buffer, usage)
+                engineStats.bufferAllocated(lastBoundBuffer!!.bufferId, data.capacity * 2)
             }
-            is DataSource.IntBufferDataSource -> {
-                data.buffer as IntBufferImpl
-                GLES11.glBufferData(target, data.buffer.capacity * 4, data.buffer.buffer, usage)
-                engineStats.bufferAllocated(lastBoundBuffer!!.bufferId, data.buffer.capacity * 4)
+
+            is IntBuffer -> {
+                data as IntBufferImpl
+                GLES11.glBufferData(target, data.capacity * 4, data.buffer, usage)
+                engineStats.bufferAllocated(lastBoundBuffer!!.bufferId, data.capacity * 4)
             }
         }
 
-        data.buffer.limit = limit
-        data.buffer.position = pos
+        data.limit = limit
+        data.position = pos
     }
 
-    override fun bufferSubData(target: Int, offset: Int, data: DataSource) {
+    override fun bufferSubData(target: Int, offset: Int, data: Buffer) {
         engineStats.calls++
-        val limit = data.buffer.limit
-        val pos = data.buffer.position
-        data.buffer.position = 0
-        data.buffer.limit = data.buffer.capacity
+        val limit = data.limit
+        val pos = data.position
+        data.position = 0
+        data.limit = data.capacity
         when (data) {
-            is DataSource.FloatBufferDataSource -> {
-                data.buffer as FloatBufferImpl
-                GLES11.glBufferSubData(target, offset, data.buffer.capacity * 4, data.buffer.buffer)
+            is FloatBuffer -> {
+                data as FloatBufferImpl
+                GLES11.glBufferSubData(target, offset, data.capacity * 4, data.buffer)
             }
-            is DataSource.ByteBufferDataSource -> {
-                data.buffer as ShortBufferImpl
-                GLES11.glBufferSubData(target, offset, data.buffer.capacity, data.buffer.buffer)
+
+            is ByteBuffer -> {
+                data as ByteBufferImpl
+                GLES11.glBufferSubData(target, offset, data.capacity, data.buffer)
             }
-            is DataSource.ShortBufferDataSource -> {
-                data.buffer as ShortBufferImpl
-                GLES11.glBufferSubData(target, offset, data.buffer.capacity * 2, data.buffer.buffer)
+
+            is ShortBuffer -> {
+                data as ShortBufferImpl
+                GLES11.glBufferSubData(target, offset, data.capacity * 2, data.buffer)
             }
-            is DataSource.IntBufferDataSource -> {
-                data.buffer as IntBufferImpl
-                GLES11.glBufferSubData(target, offset, data.buffer.capacity * 4, data.buffer.buffer)
+
+            is IntBuffer -> {
+                data as IntBufferImpl
+                GLES11.glBufferSubData(target, offset, data.capacity * 4, data.buffer)
             }
         }
 
-        data.buffer.limit = limit
-        data.buffer.position = pos
+        data.limit = limit
+        data.position = pos
     }
 
     override fun depthFunc(func: Int) {
