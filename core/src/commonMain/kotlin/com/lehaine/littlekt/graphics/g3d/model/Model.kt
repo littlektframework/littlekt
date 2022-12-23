@@ -50,7 +50,7 @@ class Model(name: String? = null) : Node(name) {
     }
 
     private fun Node.printHierarchy(indent: String) {
-        println("$indent$name [${children.filterIsInstance<Mesh>().count()} meshes]")
+        println("$indent$name [${children.filterIsInstance<MeshNode>().count()} meshes]")
         children.forEach {
             it.printHierarchy("$indent    ")
         }

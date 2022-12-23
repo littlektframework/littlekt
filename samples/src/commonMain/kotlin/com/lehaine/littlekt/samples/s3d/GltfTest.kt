@@ -6,15 +6,23 @@ import com.lehaine.littlekt.file.vfs.readGltfModel
 import com.lehaine.littlekt.graphics.Color
 import com.lehaine.littlekt.graphics.PerspectiveCamera
 import com.lehaine.littlekt.graphics.VertexAttribute
+import com.lehaine.littlekt.graphics.g3d.model.MeshNode
+import com.lehaine.littlekt.graphics.g3d.model.Model
 import com.lehaine.littlekt.graphics.gl.ClearBufferMask
+import com.lehaine.littlekt.graphics.gl.CompareFunction
+import com.lehaine.littlekt.graphics.gl.State
 import com.lehaine.littlekt.graphics.mesh
 import com.lehaine.littlekt.graphics.shader.ShaderProgram
 import com.lehaine.littlekt.graphics.shader.shaders.ModelFragmentShader
 import com.lehaine.littlekt.graphics.shader.shaders.ModelVertexShader
 import com.lehaine.littlekt.input.Key
+import com.lehaine.littlekt.math.MutableVec3f
 import com.lehaine.littlekt.math.Vec3f
 import com.lehaine.littlekt.math.geom.degrees
+import com.lehaine.littlekt.util.seconds
 import com.lehaine.littlekt.util.viewport.ScreenViewport
+import kotlin.math.sin
+import kotlin.time.Duration
 
 /**
  * @author Colton Daily
@@ -23,13 +31,9 @@ import com.lehaine.littlekt.util.viewport.ScreenViewport
 class GltfTest(context: Context) : ContextListener(context) {
 
     override suspend fun Context.start() {
-        println("vertex:")
-        println(ModelVertexShader().generate(this))
-        println()
-        println()
-        println("fragment:")
-        println(ModelFragmentShader().generate(this))
-        val model = resourcesVfs["models/duck.glb"].readGltfModel()
+        val duckModel = resourcesVfs["models/duck.glb"].readGltfModel()
+        val humanModel = resourcesVfs["models/player.glb"].readGltfModel()
+        val lightPos = MutableVec3f(1.2f, 1f, 2f).toMutableVec3()
         val shader: ShaderProgram<ModelVertexShader, ModelFragmentShader> =
             ShaderProgram(ModelVertexShader(), ModelFragmentShader())
                 .also { it.prepare(this) }
@@ -37,33 +41,71 @@ class GltfTest(context: Context) : ContextListener(context) {
                     bind()
                     fragmentShader.uLightColor.apply(this, Color.WHITE)
                     fragmentShader.uAmbientStrength.apply(this, 0.1f)
-                    fragmentShader.uLightPosition.apply(this, Vec3f(1.2f, 1f, 2f))
+                    fragmentShader.uLightPosition.apply(this, lightPos)
                 }
-        val viewport = ScreenViewport(graphics.width, graphics.height, PerspectiveCamera())
+        val viewport = ScreenViewport(graphics.width, graphics.height, PerspectiveCamera().apply { far = 1000f })
         val camera = viewport.camera
-        val grid =
-            mesh(listOf(VertexAttribute.POSITION, VertexAttribute.COLOR_PACKED), grow = true) { generate { grid { } } }
+        val cube =
+            Model().apply {
+                val meshName = "cube_mesh"
+                val meshNode = MeshNode(
+                    mesh(
+                        listOf(VertexAttribute.POSITION, VertexAttribute.NORMAL),
+                        grow = true
+                    ) {
+                        generate { cube { colored() } }
+                    },
+                    meshName
+                )
+                addNode(meshNode)
+                meshes[meshName] = meshNode.mesh
+            }
 
-        camera.position.z += 250
-        //  model.scale(100f)
+        duckModel.printHierarchy()
+
+        camera.position.z += 250f
+        duckModel.translate(100f, 0f, 0f)
+        duckModel.rotate(Vec3f.Y_AXIS, (-90).degrees)
+        humanModel.translate(-100f, 0f, 0f)
+        humanModel.scale(85f)
+        cube.translate(-100f, 0f, 0f)
+        cube.scale(100f)
 
         onResize { width, height ->
             viewport.update(width, height, context, false)
         }
 
+        gl.enable(State.DEPTH_TEST)
+        gl.depthMask(true)
+        gl.depthFunc(CompareFunction.LESS)
+
+        var time = Duration.ZERO
         onRender { dt ->
+            time += dt
             gl.clearColor(Color.CLEAR)
-            gl.clear(ClearBufferMask.COLOR_BUFFER_BIT)
+            gl.clear(ClearBufferMask.COLOR_DEPTH_BUFFER_BIT)
+
+            lightPos.x = 1f + sin(time.seconds) * 2f
+            lightPos.y = sin(time.seconds / 2f) * 1f
 
             camera.update()
-            model.update()
+            duckModel.update()
+            humanModel.update()
+            cube.update()
 
             shader.bind()
             shader.uProjTrans?.apply(shader, camera.viewProjection)
-            shader.vertexShader.uModel.apply(shader, model.modelMat)
+            shader.fragmentShader.uLightPosition.apply(shader, lightPos)
+            shader.vertexShader.uModel.apply(shader, duckModel.modelMat)
 
-            grid.render(shader)
-            model.render(shader)
+            duckModel.render(shader)
+
+            shader.vertexShader.uModel.apply(shader, humanModel.modelMat)
+            humanModel.render(shader)
+
+            //     shader.vertexShader.uModel.apply(shader, cube.modelMat)
+
+            //     cube.render(shader)
 
             val speed = 5f * if (input.isKeyPressed(Key.SHIFT_LEFT)) 10f else 1f
             if (input.isKeyPressed(Key.W)) {

@@ -59,12 +59,12 @@ class ModelFragmentShader : FragmentShaderModel() {
         // diffuse light
         val norm by vec3 { normalize(v_normal) }
         val lightDir by vec3 { normalize(u_lightPosition - v_fragPos) }
-        val diff by float { max(dot(norm, lightDir), 0f) }
-        val diffuse by vec3 { diff * u_lightColor.xyz }
+        val diffFactor by float { max(dot(norm, lightDir), 0f) }
+        val diffColor by vec3 { diffFactor * u_lightColor.xyz }
 
         // ambient light
         val ambient by vec3 { u_ambientStrength * u_lightColor.xyz }
-        val result by vec3 { (ambient + diffuse) * vec3(1f, 0.5f, 0.31f).lit }
+        val result by vec3 { (ambient + diffColor) * vec3(1f, 0.5f, 0.31f).lit }
 
         gl_FragColor = vec4(result, 1f).lit
     }

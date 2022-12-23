@@ -48,7 +48,7 @@ private class GltfModelGenerator(val gltfFile: GltfFile, val gl: GL) {
 
     fun GltfNode.toNode(model: Model): Node {
         val modelNdName = name ?: "node_${model.nodes.size}"
-        val node = Node(name)
+        val node = Node(modelNdName)
         modelNodes[this] = node
         model.nodes[modelNdName] = node
 
@@ -78,7 +78,7 @@ private class GltfModelGenerator(val gltfFile: GltfFile, val gl: GL) {
             val name = "${meshRef?.name ?: "${node.name}.mesh"}_$index"
             val geometry = prim.toGeometry(gltfFile.accessors)
             val mesh = Mesh(gl, geometry)
-            node += MeshNode(mesh)
+            node += MeshNode(mesh, name)
             meshesByMaterial.getOrPut(prim.material) { mutableSetOf() } += mesh
             meshMaterials[mesh] = prim.materialRef
             model.meshes[name] = mesh
@@ -113,7 +113,7 @@ private class GltfModelGenerator(val gltfFile: GltfFile, val gl: GL) {
         attribs += VertexAttribute.NORMAL
 
         if (colorAcc != null) {
-            //     attribs += VertexAttribute.COLOR_PACKED
+            attribs += VertexAttribute.COLOR_UNPACKED
         }
 //        if (cfg.setVertexAttribsFromMaterial) {
 //            attribs += Attribute.EMISSIVE_COLOR
@@ -156,7 +156,7 @@ private class GltfModelGenerator(val gltfFile: GltfFile, val gl: GL) {
                 nrms?.next(normal)
                 //      tans?.next(tangent)
                 //     texs?.next(texCoord)
-                //      cols?.next()?.let { col -> color.set(col) }
+                cols?.next()?.let { col -> color.set(col) }
                 //     jnts?.next(joints)
                 //   wgts?.next(weights)
 

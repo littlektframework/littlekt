@@ -13,7 +13,7 @@ import kotlin.reflect.KProperty
 class ConstructorDelegate<T : Variable>(
     private val v: T,
     private val initialValue: String? = null,
-    private val genInitialValue: (() -> T)? = null,
+    genInitialValue: (() -> T)? = null,
 ) {
     private var define: Instruction
     private var defined: Boolean = false

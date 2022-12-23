@@ -165,7 +165,11 @@ class MeshBuilder(val geometry: MeshGeometry) {
                 Vec3f.NEG_Z_AXIS,
                 Vec2f(0f, 1f)
             )
-            val i3 = vertex(tmpPos.set(props.origin.x, props.origin.y, props.origin.z), Vec3f.NEG_Z_AXIS, Vec2f(1f, 1f))
+            val i3 = vertex(
+                tmpPos.set(props.origin.x, props.origin.y, props.origin.z),
+                Vec3f.NEG_Z_AXIS,
+                Vec2f(1f, 1f)
+            )
             addTriIndices(i0, i1, i2)
             addTriIndices(i0, i2, i3)
         }
@@ -187,7 +191,11 @@ class MeshBuilder(val geometry: MeshGeometry) {
                 Vec3f.NEG_X_AXIS,
                 Vec2f(0f, 0f)
             )
-            val i3 = vertex(tmpPos.set(props.origin.x, props.origin.y, props.origin.z), Vec3f.NEG_X_AXIS, Vec2f(0f, 1f))
+            val i3 = vertex(
+                tmpPos.set(props.origin.x, props.origin.y, props.origin.z),
+                Vec3f.NEG_X_AXIS,
+                Vec2f(0f, 1f)
+            )
             addTriIndices(i0, i1, i2)
             addTriIndices(i0, i2, i3)
         }
@@ -204,7 +212,9 @@ class MeshBuilder(val geometry: MeshGeometry) {
                     props.origin.x + props.size.x,
                     props.origin.y + props.size.y,
                     props.origin.z + props.size.z
-                ), Vec3f.Y_AXIS, Vec2f(1f, 1f)
+                ),
+                Vec3f.Y_AXIS,
+                Vec2f(1f, 1f)
             )
             val i2 = vertex(
                 tmpPos.set(props.origin.x + props.size.x, props.origin.y + props.size.y, props.origin.z),
@@ -222,7 +232,11 @@ class MeshBuilder(val geometry: MeshGeometry) {
 
         // bottom
         withColor(props.bottomColor ?: color) {
-            val i0 = vertex(tmpPos.set(props.origin.x, props.origin.y, props.origin.z), Vec3f.NEG_Y_AXIS, Vec2f(0f, 1f))
+            val i0 = vertex(
+                tmpPos.set(props.origin.x, props.origin.y, props.origin.z),
+                Vec3f.NEG_Y_AXIS,
+                Vec2f(0f, 1f)
+            )
             val i1 = vertex(
                 tmpPos.set(props.origin.x + props.size.x, props.origin.y, props.origin.z),
                 Vec3f.NEG_Y_AXIS,
