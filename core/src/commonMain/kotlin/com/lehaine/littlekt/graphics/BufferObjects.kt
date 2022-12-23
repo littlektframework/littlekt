@@ -193,7 +193,6 @@ class IndexBufferObject(
         checkBufferSizes(count)
         buffer.put(indices, srcOffset, count)
         buffer.flip()
-        println("set: ${buffer.position}  --- ${buffer.limit}")
         onBufferChanged()
     }
 
@@ -208,7 +207,6 @@ class IndexBufferObject(
 
     private fun checkBufferSizes(reqSpace: Int) {
         if (!grow) return
-        println("req space: $reqSpace -- remaining: ${buffer.remaining} -- pos: ${buffer.position}")
         if (buffer.remaining < reqSpace) {
             increaseBufferSize(
                 max(
@@ -220,7 +218,6 @@ class IndexBufferObject(
     }
 
     private fun increaseBufferSize(newSize: Int) {
-        println("increase indices size $newSize")
         val newData = createShortBuffer(newSize)
         buffer.flip()
         newData.put(buffer)
