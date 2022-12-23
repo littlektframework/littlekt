@@ -10,7 +10,11 @@ import kotlin.reflect.KProperty
  * @date 11/25/2021
  */
 
-class ConstructorDelegate<T : Variable>(private val v: T, private val initialValue: String? = null) {
+class ConstructorDelegate<T : Variable>(
+    private val v: T,
+    private val initialValue: String? = null,
+    private val genInitialValue: (() -> T)? = null,
+) {
     private var define: Instruction
     private var defined: Boolean = false
 
@@ -21,7 +25,8 @@ class ConstructorDelegate<T : Variable>(private val v: T, private val initialVal
         }
 
     init {
-        val definitionString = "${v.typeName} {def}${getInitializerExpr(initialValue)}"
+        val value = initialValue ?: genInitialValue?.invoke()?.value
+        val definitionString = "${v.typeName} {def}${getInitializerExpr(value)}"
         define = Instruction(InstructionType.DEFINE, definitionString)
         v.builder.addInstruction(define)
     }

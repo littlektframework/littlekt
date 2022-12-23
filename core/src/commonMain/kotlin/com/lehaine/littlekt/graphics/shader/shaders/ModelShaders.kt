@@ -20,18 +20,19 @@ class ModelVertexShader : VertexShaderModel() {
     private val u_model by uniform(::Mat4)
 
     private val a_position by attribute(::Vec3)
-    private val a_color by attribute(::Vec4)
+
+    // private val a_color by attribute(::Vec4)
     private val a_normal by attribute(::Vec3)
 
     //  private val a_texCoord0 by attribute(::Vec2)
-    private var v_color by varying(::Vec4)
+    //private var v_color by varying(::Vec4)
     private var v_normal by varying(::Vec3)
     private var v_fragPosition by varying(::Vec3)
     //   private var v_texCoords by varying(::Vec2)
 
     init {
         //      v_texCoords = a_texCoord0
-        v_color = a_color
+        //  v_color = a_color
         v_normal = mat3(transpose(inverse(u_model))) * a_normal
         v_fragPosition = vec3(u_model * vec4(a_position, 1f).lit).lit
         gl_Position = u_projTrans * vec4(v_fragPosition, 1f).lit
@@ -49,27 +50,21 @@ class ModelFragmentShader : FragmentShaderModel() {
     private val u_ambientStrength by uniform(::GLFloat)
     private val u_lightPosition by uniform(::Vec3)
 
-    private val v_color by varying(::Vec4)
+    //private val v_color by varying(::Vec4)
     private val v_normal by varying(::Vec3)
     private val v_fragPos by varying(::Vec3)
     //   private val v_texCoords by varying(::Vec2)
 
     init {
         // diffuse light
-        var norm by vec3()
-        norm = normalize(v_normal)
-        var lightDir by vec3()
-        lightDir = normalize(u_lightPosition - v_fragPos)
-        var diff by float()
-        diff = max(dot(norm, lightDir), 0f)
-        var diffuse by vec3()
-        diffuse = diff * u_lightColor.xyz
+        val norm by vec3 { normalize(v_normal) }
+        val lightDir by vec3 { normalize(u_lightPosition - v_fragPos) }
+        val diff by float { max(dot(norm, lightDir), 0f) }
+        val diffuse by vec3 { diff * u_lightColor.xyz }
 
         // ambient light
-        var ambient by vec3()
-        ambient = u_ambientStrength * u_lightColor.xyz
-        var result by vec3()
-        result = (ambient + diffuse) * vec3(1f, 0.5f, 0.31f).lit
+        val ambient by vec3 { u_ambientStrength * u_lightColor.xyz }
+        val result by vec3 { (ambient + diffuse) * vec3(1f, 0.5f, 0.31f).lit }
 
         gl_FragColor = vec4(result, 1f).lit
     }

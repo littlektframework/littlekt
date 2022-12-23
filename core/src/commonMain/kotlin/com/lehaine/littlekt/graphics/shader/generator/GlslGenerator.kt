@@ -673,27 +673,27 @@ abstract class GlslGenerator : GlslProvider {
     fun texture2D(sampler: Sampler2D, v: Vec2) = Vec4(this, "texture2D(${sampler.value}, ${v.value})")
     fun texture(sampler: Sampler2DArray, v: Vec3) = Vec4(this, "texture(${sampler.value}, ${v.value})")
 
-    fun float() = ConstructorDelegate(GLFloat(this))
+    fun float(genValue: (() -> GLFloat)? = null) = ConstructorDelegate(GLFloat(this), null, genValue)
     fun float(x: Float) = ConstructorDelegate(GLFloat(this), x.str())
     fun float(x: GLFloat) = ConstructorDelegate(GLFloat(this), x.value)
     fun float(lit: String) = ConstructorDelegate(GLFloat(this), lit)
 
-    fun intVal() = ConstructorDelegate(GLInt(this))
-    fun intVal(x: GLInt) = ConstructorDelegate(GLInt(this), x.value)
-    fun intVal(x: Int) = ConstructorDelegate(GLInt(this), "$x")
+    fun int(genValue: (() -> GLInt)?) = ConstructorDelegate(GLInt(this), null, genValue)
+    fun int(x: GLInt) = ConstructorDelegate(GLInt(this), x.value)
+    fun int(x: Int) = ConstructorDelegate(GLInt(this), "$x")
 
-    fun bool() = ConstructorDelegate(Bool(this))
+    fun bool(genValue: (() -> Bool)? = null) = ConstructorDelegate(Bool(this), null, genValue)
     fun bool(bool: Bool) = ConstructorDelegate(Bool(this), bool.value)
     fun bool(lit: String) = ConstructorDelegate(Bool(this), lit)
 
-    fun vec2() = ConstructorDelegate(Vec2(this))
+    fun vec2(genValue: (() -> Vec2)? = null) = ConstructorDelegate(Vec2(this), null, genValue)
     fun vec2(x: Vec2) = ConstructorDelegate(Vec2(this), "${x.value}")
     fun vec2(x: Float, y: Float) = ConstructorDelegate(Vec2(this), "vec2(${x.str()}, ${y.str()})")
     fun vec2(x: GLFloat, y: Float) = ConstructorDelegate(Vec2(this), "vec2(${x.value}, ${y.str()})")
     fun vec2(x: Float, y: GLFloat) = ConstructorDelegate(Vec2(this), "vec2(${x.str()}, ${y.value})")
     fun vec2(x: GLFloat, y: GLFloat) = ConstructorDelegate(Vec2(this), "vec2(${x.value}, ${y.value})")
 
-    fun vec3() = ConstructorDelegate(Vec3(this))
+    fun vec3(genValue: (() -> Vec3)? = null) = ConstructorDelegate(Vec3(this), null, genValue)
     fun vec3(v: Vec3) = ConstructorDelegate(Vec3(this), "${v.value}")
     fun vec3(v: Vec4) = ConstructorDelegate(Vec3(this), "${v.xyz.value}")
     fun vec3(x: GLFloat, y: GLFloat, z: GLFloat) =
@@ -725,7 +725,7 @@ abstract class GlslGenerator : GlslProvider {
     fun vec3(x: Float, v2: Vec2) = ConstructorDelegate(Vec3(this), ("vec3(${x.str()}, ${v2.value})"))
     fun vec3(x: GLFloat, v2: Vec2) = ConstructorDelegate(Vec3(this), ("vec3(${x.value}, ${v2.value})"))
 
-    fun vec4() = ConstructorDelegate(Vec4(this))
+    fun vec4(genValue: (() -> Vec4)? = null) = ConstructorDelegate(Vec4(this), null, genValue)
     fun vec4(vec3: Vec3, w: Float) = ConstructorDelegate(Vec4(this), ("vec4(${vec3.value}, ${w.str()})"))
     fun vec4(vec3: Vec3, w: GLFloat) = ConstructorDelegate(Vec4(this), ("vec4(${vec3.value}, ${w.value})"))
     fun vec4(vec2: Vec2, z: Float, w: Float) =
@@ -749,9 +749,9 @@ abstract class GlslGenerator : GlslProvider {
     fun vec4(x: GLFloat, y: GLFloat, z: Float, w: Float) =
         ConstructorDelegate(Vec4(this), ("vec4(${x.value}, ${y.value}, ${z.str()}, ${w.str()})"))
 
-    fun mat3() = ConstructorDelegate(Mat3(this))
+    fun mat3(genValue: (() -> Mat3)? = null) = ConstructorDelegate(Mat3(this), null, genValue)
     fun mat3(v: Mat4) = Mat3(this, "mat3(${v.value})")
-    fun mat2() = ConstructorDelegate(Mat2(this))
+    fun mat2(genValue: (() -> Mat2)? = null) = ConstructorDelegate(Mat2(this), null, genValue)
 
     fun round(vec4: Vec4) = Vec4(this, "round(${vec4.value})")
 
@@ -759,6 +759,7 @@ abstract class GlslGenerator : GlslProvider {
     val String.bool get() = Bool(this@GlslGenerator, this)
     val Float.lit get() = GLFloat(this@GlslGenerator, this.str())
     val Int.lit get() = GLInt(this@GlslGenerator, this.toString())
+    val Boolean.lit get() = Bool(this@GlslGenerator, this.toString())
 
     operator fun Float.times(a: GLFloat) = GLFloat(a.builder, "(${this.str()} * ${a.value})")
     operator fun Float.times(a: GLInt) = GLFloat(a.builder, "(${this.str()} * ${a.value})")
