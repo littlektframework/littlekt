@@ -43,12 +43,16 @@ class ModelFragmentShader : FragmentShaderModel() {
     //  val uTexture get() = parameters[0] as ShaderParameter.UniformSample2D
     val uLightColor get() = parameters[0] as ShaderParameter.UniformVec4
     val uAmbientStrength get() = parameters[1] as ShaderParameter.UniformFloat
-    val uLightPosition get() = parameters[2] as ShaderParameter.UniformVec3
+    val uSpecularStrength get() = parameters[2] as ShaderParameter.UniformFloat
+    val uLightPosition get() = parameters[3] as ShaderParameter.UniformVec3
+    val uViewPosition get() = parameters[4] as ShaderParameter.UniformVec3
 
     //   private val u_texture by uniform(::Sampler2D)
     private val u_lightColor by uniform(::Vec4)
     private val u_ambientStrength by uniform(::GLFloat)
+    private val u_specularStrength by uniform(::GLFloat)
     private val u_lightPosition by uniform(::Vec3)
+    private val u_viewPosition by uniform(::Vec3)
 
     //private val v_color by varying(::Vec4)
     private val v_normal by varying(::Vec3)
@@ -63,8 +67,15 @@ class ModelFragmentShader : FragmentShaderModel() {
         val diffColor by vec3 { diffFactor * u_lightColor.xyz }
 
         // ambient light
-        val ambient by vec3 { u_ambientStrength * u_lightColor.xyz }
-        val result by vec3 { (ambient + diffColor) * vec3(1f, 0.5f, 0.31f).lit }
+        val ambientColor by vec3 { u_ambientStrength * u_lightColor.xyz }
+
+        // specular light
+        val viewDir by vec3 { normalize(u_viewPosition - v_fragPos) }
+        val reflectDir by vec3 { reflect(-lightDir, norm) }
+        val specFactor by float { pow(max(dot(viewDir, reflectDir), 0f), 32f) }
+        val specColor by vec3 { u_specularStrength * specFactor * u_lightColor.xyz }
+
+        val result by vec3 { (ambientColor + diffColor + specColor) * vec3(1f, 0.5f, 0.31f).lit }
 
         gl_FragColor = vec4(result, 1f).lit
     }

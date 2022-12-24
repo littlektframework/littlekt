@@ -42,6 +42,7 @@ class GltfTest(context: Context) : ContextListener(context) {
                     fragmentShader.uLightColor.apply(this, Color.WHITE)
                     fragmentShader.uAmbientStrength.apply(this, 0.1f)
                     fragmentShader.uLightPosition.apply(this, lightPos)
+                    fragmentShader.uSpecularStrength.apply(this, 0.5f)
                 }
         val viewport = ScreenViewport(graphics.width, graphics.height, PerspectiveCamera().apply { far = 1000f })
         val camera = viewport.camera
@@ -101,6 +102,7 @@ class GltfTest(context: Context) : ContextListener(context) {
             shader.uProjTrans?.apply(shader, camera.viewProjection)
             shader.fragmentShader.uLightPosition.apply(shader, lightPos)
             shader.vertexShader.uModel.apply(shader, duckModel.modelMat)
+            shader.fragmentShader.uViewPosition.apply(shader, camera.position)
 
             duckModel.render(shader)
 
