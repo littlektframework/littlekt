@@ -53,7 +53,12 @@ class GltfTest(context: Context) : ContextListener(context) {
                         listOf(VertexAttribute.POSITION, VertexAttribute.NORMAL),
                         grow = true
                     ) {
-                        generate { cube { colored() } }
+                        generate {
+                            cube {
+                                colored()
+                                centered()
+                            }
+                        }
                     },
                     meshName
                 )
@@ -68,8 +73,7 @@ class GltfTest(context: Context) : ContextListener(context) {
         duckModel.rotate(Vec3f.Y_AXIS, (-90).degrees)
         humanModel.translate(-100f, 0f, 0f)
         humanModel.scale(85f)
-        cube.translate(-100f, 0f, 0f)
-        cube.scale(100f)
+        cube.scale(50f)
 
         onResize { width, height ->
             viewport.update(width, height, context, false)
@@ -103,9 +107,8 @@ class GltfTest(context: Context) : ContextListener(context) {
             shader.vertexShader.uModel.apply(shader, humanModel.modelMat)
             humanModel.render(shader)
 
-            //     shader.vertexShader.uModel.apply(shader, cube.modelMat)
-
-            //     cube.render(shader)
+            shader.vertexShader.uModel.apply(shader, cube.modelMat)
+            cube.render(shader)
 
             val speed = 5f * if (input.isKeyPressed(Key.SHIFT_LEFT)) 10f else 1f
             if (input.isKeyPressed(Key.W)) {

@@ -25,6 +25,7 @@ import com.lehaine.littlekt.graphics.gl.TexMagFilter
 import com.lehaine.littlekt.graphics.gl.TexMinFilter
 import com.lehaine.littlekt.math.MutableVec4i
 import com.lehaine.littlekt.util.internal.unquote
+import com.lehaine.littlekt.util.toString
 import kotlinx.serialization.decodeFromString
 import kotlin.math.max
 
@@ -343,7 +344,7 @@ private suspend fun VfsFile.loadBinaryGltf(): GltfFile {
 
     val magic = stream.readUInt()
     val version = stream.readUInt()
-    stream.readUInt() // total length of glTF - skipping over - not needed
+    val length = stream.readUInt()
     if (magic != GltfFile.GLB_FILE_MAGIC) {
         throw IllegalStateException("Unexpected glTF magic number: $magic. Expected: ${GltfFile.GLB_FILE_MAGIC} / 'glTF'.")
     }
@@ -374,5 +375,7 @@ private suspend fun VfsFile.loadBinaryGltf(): GltfFile {
         }
         chunk++
     }
+
+    vfs.logger.info { "Fully loaded glTF $path (${(length / 1024.0 / 1024.0).toString(2)} mb)" }
     return gltf
 }
