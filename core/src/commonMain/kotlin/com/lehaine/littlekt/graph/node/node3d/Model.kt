@@ -1,15 +1,17 @@
-package com.lehaine.littlekt.graphics.g3d.model
+package com.lehaine.littlekt.graph.node.node3d
 
 import com.lehaine.littlekt.graphics.Mesh
 import com.lehaine.littlekt.graphics.Texture
+import com.lehaine.littlekt.graphics.g3d.model.Animation
+import com.lehaine.littlekt.graphics.g3d.model.Skin
 
 /**
  * @author Colton Daily
  * @date 12/17/2022
  */
-class Model(name: String? = null) : Node(name) {
+class Model : Node3D() {
 
-    val nodes = mutableMapOf<String, Node>()
+    val nodes3d = mutableMapOf<String, Node3D>()
     val meshes = mutableMapOf<String, Mesh>()
     val textures = mutableMapOf<String, Texture>()
 
@@ -49,14 +51,12 @@ class Model(name: String? = null) : Node(name) {
         printHierarchy("")
     }
 
-    private fun Node.printHierarchy(indent: String) {
+    private fun Node3D.printHierarchy(indent: String) {
         println("$indent$name [${children.filterIsInstance<MeshNode>().count()} meshes]")
         children.forEach {
-            it.printHierarchy("$indent    ")
+            if (it is Node3D) {
+                it.printHierarchy("$indent    ")
+            }
         }
-    }
-
-    override fun dispose() {
-        textures.values.forEach { it.dispose() }
     }
 }

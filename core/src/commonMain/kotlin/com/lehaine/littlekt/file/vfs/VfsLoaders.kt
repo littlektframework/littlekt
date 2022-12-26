@@ -20,7 +20,7 @@ import com.lehaine.littlekt.graphics.g2d.font.*
 import com.lehaine.littlekt.graphics.g2d.tilemap.ldtk.LDtkLevel
 import com.lehaine.littlekt.graphics.g2d.tilemap.ldtk.LDtkWorld
 import com.lehaine.littlekt.graphics.g2d.tilemap.tiled.TiledMap
-import com.lehaine.littlekt.graphics.g3d.model.Model
+import com.lehaine.littlekt.graph.node.node3d.Model
 import com.lehaine.littlekt.graphics.gl.TexMagFilter
 import com.lehaine.littlekt.graphics.gl.TexMinFilter
 import com.lehaine.littlekt.math.MutableVec4i

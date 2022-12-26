@@ -6,8 +6,8 @@ import com.lehaine.littlekt.graph.node.annotation.SceneGraphDslMarker
 import com.lehaine.littlekt.graph.node.component.InputEvent
 import com.lehaine.littlekt.graph.node.internal.NodeList
 import com.lehaine.littlekt.graph.node.ui.Control
-import com.lehaine.littlekt.graphics.g2d.Batch
 import com.lehaine.littlekt.graphics.Camera
+import com.lehaine.littlekt.graphics.g2d.Batch
 import com.lehaine.littlekt.graphics.g2d.shape.ShapeRenderer
 import com.lehaine.littlekt.util.*
 import kotlin.contracts.ExperimentalContracts
@@ -924,6 +924,20 @@ open class Node : Comparable<Node> {
      * Called when [enabled] is set to `false`.
      */
     protected open fun onDisabled() = Unit
+
+    /**
+     * @see addChild
+     */
+    operator fun plusAssign(child: Node) {
+        addChild(child)
+    }
+
+    /**
+     * @see removeChild
+     */
+    operator fun minusAssign(child: Node) {
+        removeChild(child)
+    }
 
     /**
      * @return a tree string for all the child nodes under this [Node].

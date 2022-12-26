@@ -1,6 +1,6 @@
-package com.lehaine.littlekt.graphics.g3d.model
+package com.lehaine.littlekt.graph.node.node3d
 
-import com.lehaine.littlekt.Disposable
+import com.lehaine.littlekt.graph.node.Node
 import com.lehaine.littlekt.graphics.shader.ShaderProgram
 import com.lehaine.littlekt.math.Mat4
 import com.lehaine.littlekt.math.MutableVec3f
@@ -13,11 +13,8 @@ import com.lehaine.littlekt.util.LazyMat4
  * @author Colton Daily
  * @date 12/17/2022
  */
-open class Node(val name: String? = null) : Disposable {
-    protected val intChildren = mutableListOf<Node>()
+open class Node3D : Node() {
     protected val childrenBounds = BoundingBox()
-    val children: List<Node> get() = intChildren
-    val size: Int get() = intChildren.size
 
     /**
      * Axis-aligned bounds of this node in local coordinates.
@@ -55,11 +52,6 @@ open class Node(val name: String? = null) : Disposable {
     private val tmpBounds = BoundingBox()
 
     /**
-     * Parent node is set when this node is added to another [Node]
-     */
-    var parent: Node? = null
-
-    /**
      * Determines the visibility of this node. If visible is false this node will be skipped on
      * rendering.
      */
@@ -89,6 +81,7 @@ open class Node(val name: String? = null) : Disposable {
         isIdentity = false
     }
 
+
     fun update() {
         updateModelMat()
 
@@ -99,9 +92,11 @@ open class Node(val name: String? = null) : Disposable {
 
         // call update on all children and update group bounding box
         childrenBounds.clear()
-        for (i in intChildren.indices) {
-            intChildren[i].update()
-            childrenBounds.add(intChildren[i].bounds)
+        children.forEach {
+            if (it is Node3D) {
+                it.update()
+                childrenBounds.add(it.bounds)
+            }
         }
 
         // update bounds based on updated children bounds
@@ -132,6 +127,7 @@ open class Node(val name: String? = null) : Disposable {
     }
 
     fun updateModelMat() {
+        val parent = parent as? Node3D
         modelMat.set(parent?.modelMat ?: MODEL_MAT_IDENTITY)
         modelMatInvLazy.isDirty = true
 
@@ -141,8 +137,10 @@ open class Node(val name: String? = null) : Disposable {
     }
 
     open fun render(shader: ShaderProgram<*, *>) {
-        for (i in intChildren.indices) {
-            intChildren[i].render(shader)
+        children.forEach {
+            if (it is Node3D) {
+                it.render(shader)
+            }
         }
     }
 
@@ -152,33 +150,12 @@ open class Node(val name: String? = null) : Disposable {
         return result.set(invTransform.get())
     }
 
-    fun addNode(node: Node, index: Int = -1) {
-        if (index >= 0) {
-            intChildren.add(index, node)
-        } else {
-            intChildren.add(node)
-        }
-        node.parent = this
-        bounds.add(node.bounds)
-    }
+    override fun onChildAdded(child: Node) {
+        super.onChildAdded(child)
 
-    fun <R : Comparable<R>> sortChildrenBy(selector: (Node) -> R) {
-        intChildren.sortBy(selector)
-    }
-
-    fun removeNode(node: Node): Boolean {
-        if (intChildren.remove(node)) {
-            node.parent = null
-            return true
+        if (child is Node3D) {
+            bounds.add(child.bounds)
         }
-        return false
-    }
-
-    fun removeAllChildren() {
-        for (i in intChildren.indices) {
-            intChildren[i].parent = null
-        }
-        intChildren.clear()
     }
 
     /**
@@ -197,24 +174,9 @@ open class Node(val name: String? = null) : Disposable {
         return vec
     }
 
-    operator fun plusAssign(node: Node) {
-        addNode(node)
-    }
-
-    operator fun minusAssign(node: Node) {
-        removeNode(node)
-    }
-
-    operator fun Node.unaryPlus() {
-        addNode(this)
-    }
-
-    operator fun Node.unaryMinus() =
-        removeNode(this)
-
     fun translate(t: Vec3f) = translate(t.x, t.y, t.z)
 
-    fun translate(tx: Float, ty: Float, tz: Float): Node {
+    fun translate(tx: Float, ty: Float, tz: Float): Node3D {
         transform.translate(tx, ty, tz)
         setDirty()
         return this
@@ -223,7 +185,7 @@ open class Node(val name: String? = null) : Disposable {
 
     fun rotate(axis: Vec3f, angle: Angle) = rotate(axis.x, axis.y, axis.z, angle)
 
-    fun rotate(axX: Float, axY: Float, axZ: Float, angle: Angle): Node {
+    fun rotate(axX: Float, axY: Float, axZ: Float, angle: Angle): Node3D {
         transform.rotate(axX, axY, axZ, angle)
         setDirty()
         return this
@@ -231,33 +193,31 @@ open class Node(val name: String? = null) : Disposable {
 
     fun scale(s: Float) = scale(s, s, s)
 
-    fun scale(sx: Float, sy: Float, sz: Float): Node {
+    fun scale(sx: Float, sy: Float, sz: Float): Node3D {
         transform.scale(sx, sy, sz)
         setDirty()
         return this
     }
 
-    fun mul(mat: Mat4): Node {
+    fun mul(mat: Mat4): Node3D {
         transform.mul(mat)
         setDirty()
         return this
     }
 
-    fun set(mat: Mat4): Node {
+    fun set(mat: Mat4): Node3D {
         transform.set(mat)
         setDirty()
         return this
     }
 
 
-    fun setIdentity(): Node {
+    fun setIdentity(): Node3D {
         transform.setToIdentity()
         invTransform.clear()
         isIdentity = true
         return this
     }
-
-    override fun dispose() = Unit
 
     companion object {
         private val MODEL_MAT_IDENTITY = Mat4()

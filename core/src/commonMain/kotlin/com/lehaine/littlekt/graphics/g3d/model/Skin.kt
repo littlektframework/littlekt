@@ -1,5 +1,6 @@
 package com.lehaine.littlekt.graphics.g3d.model
 
+import com.lehaine.littlekt.graph.node.node3d.Node3D
 import com.lehaine.littlekt.math.Mat4
 
 class Skin {
@@ -17,7 +18,7 @@ class Skin {
         nodes.filter { !it.hasParent }.forEach { it.printHierarchy("") }
     }
 
-    class SkinNode(val joint: Node, val inverseBindMatrix: Mat4) {
+    class SkinNode(val joint: Node3D, val inverseBindMatrix: Mat4) {
         val jointTransform = Mat4()
 
         private val tmpMat4f = Mat4()

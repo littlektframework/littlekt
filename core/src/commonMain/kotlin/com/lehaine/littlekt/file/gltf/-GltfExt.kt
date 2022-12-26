@@ -7,13 +7,13 @@ import com.lehaine.littlekt.file.gltf.GltfMeshPrimitive.Companion.ATTRIBUTE_POSI
 import com.lehaine.littlekt.file.gltf.GltfMeshPrimitive.Companion.ATTRIBUTE_TANGENT
 import com.lehaine.littlekt.file.gltf.GltfMeshPrimitive.Companion.ATTRIBUTE_TEXCOORD_0
 import com.lehaine.littlekt.file.gltf.GltfMeshPrimitive.Companion.ATTRIBUTE_WEIGHTS_0
+import com.lehaine.littlekt.graph.node.node3d.MeshNode
+import com.lehaine.littlekt.graph.node.node3d.Model
+import com.lehaine.littlekt.graph.node.node3d.Node3D
 import com.lehaine.littlekt.graphics.GL
 import com.lehaine.littlekt.graphics.Mesh
 import com.lehaine.littlekt.graphics.VertexAttribute
 import com.lehaine.littlekt.graphics.VertexAttributes
-import com.lehaine.littlekt.graphics.g3d.model.MeshNode
-import com.lehaine.littlekt.graphics.g3d.model.Model
-import com.lehaine.littlekt.graphics.g3d.model.Node
 import com.lehaine.littlekt.graphics.gl.Usage
 import com.lehaine.littlekt.graphics.util.MeshGeometry
 import com.lehaine.littlekt.log.Logger
@@ -28,11 +28,11 @@ internal fun GltfFile.toModel(gl: GL): Model {
 
 private class GltfModelGenerator(val gltfFile: GltfFile, val gl: GL) {
     val modelAnimations = mutableListOf<GltfAnimation>()
-    val modelNodes = mutableMapOf<GltfNode, Node>()
+    val modelNodes = mutableMapOf<GltfNode, Node3D>()
     val meshesByMaterial = mutableMapOf<Int, MutableSet<Mesh>>()
     val meshMaterials = mutableMapOf<Mesh, GltfMaterial?>()
     fun toModel(scene: GltfScene): Model {
-        val model = Model(scene.name ?: "model_scene")
+        val model = Model().apply { name = scene.name ?: "model_scene" }
         scene.nodeRefs.forEach { nd -> model += nd.toNode(model) }
         // TODO create transition animations
         // TODO create skins
@@ -46,11 +46,11 @@ private class GltfModelGenerator(val gltfFile: GltfFile, val gl: GL) {
         return model
     }
 
-    fun GltfNode.toNode(model: Model): Node {
-        val modelNdName = name ?: "node_${model.nodes.size}"
-        val node = Node(modelNdName)
+    fun GltfNode.toNode(model: Model): Node3D {
+        val modelNdName = name ?: "node_${model.nodes3d.size}"
+        val node = Node3D().apply { name = modelNdName }
         modelNodes[this] = node
-        model.nodes[modelNdName] = node
+        model.nodes3d[modelNdName] = node
 
         if (matrix.isNotEmpty()) {
             node.transform.set(matrix.map { it })
@@ -73,12 +73,12 @@ private class GltfModelGenerator(val gltfFile: GltfFile, val gl: GL) {
         return node
     }
 
-    fun GltfNode.createMeshes(model: Model, node: Node) {
+    fun GltfNode.createMeshes(model: Model, node: Node3D) {
         meshRef?.primitives?.forEachIndexed { index, prim ->
             val name = "${meshRef?.name ?: "${node.name}.mesh"}_$index"
             val geometry = prim.toGeometry(gltfFile.accessors)
             val mesh = Mesh(gl, geometry)
-            node += MeshNode(mesh, name)
+            node += MeshNode(mesh).apply { this.name = name }
             meshesByMaterial.getOrPut(prim.material) { mutableSetOf() } += mesh
             meshMaterials[mesh] = prim.materialRef
             model.meshes[name] = mesh

@@ -190,6 +190,9 @@ class NodeList {
         }
     }
 
+
+    inline fun <reified T:Node> filterIsInstance(): List<T> = nodes.filterIsInstance<T>()
+
     inline fun <reified T : Node> findFirstNodeOfType(): T? = findFirstNodeOfType(T::class)
 
     @Suppress("UNCHECKED_CAST")

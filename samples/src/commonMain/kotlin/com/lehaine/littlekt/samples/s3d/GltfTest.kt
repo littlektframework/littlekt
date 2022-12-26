@@ -3,11 +3,11 @@ package com.lehaine.littlekt.samples.s3d
 import com.lehaine.littlekt.Context
 import com.lehaine.littlekt.ContextListener
 import com.lehaine.littlekt.file.vfs.readGltfModel
+import com.lehaine.littlekt.graph.node.node3d.MeshNode
+import com.lehaine.littlekt.graph.node.node3d.Model
 import com.lehaine.littlekt.graphics.Color
 import com.lehaine.littlekt.graphics.PerspectiveCamera
 import com.lehaine.littlekt.graphics.VertexAttribute
-import com.lehaine.littlekt.graphics.g3d.model.MeshNode
-import com.lehaine.littlekt.graphics.g3d.model.Model
 import com.lehaine.littlekt.graphics.gl.ClearBufferMask
 import com.lehaine.littlekt.graphics.gl.CompareFunction
 import com.lehaine.littlekt.graphics.gl.State
@@ -60,10 +60,9 @@ class GltfTest(context: Context) : ContextListener(context) {
                                 centered()
                             }
                         }
-                    },
-                    meshName
-                )
-                addNode(meshNode)
+                    }
+                ).apply { name = meshName }
+                addChild(meshNode)
                 meshes[meshName] = meshNode.mesh
             }
 

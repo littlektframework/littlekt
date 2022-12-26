@@ -1,5 +1,7 @@
 package com.lehaine.littlekt.graphics.g3d.model
 
+import com.lehaine.littlekt.graph.node.node3d.MeshNode
+import com.lehaine.littlekt.graph.node.node3d.Node3D
 import com.lehaine.littlekt.math.*
 import com.lehaine.littlekt.util.datastructure.TreeMap
 import kotlin.math.min
@@ -102,7 +104,7 @@ interface AnimationNode {
     fun setWeights(weights: FloatArray) {}
 }
 
-class AnimatedTransformGroup(val target: Node) : AnimationNode {
+class AnimatedTransformGroup(val target: Node3D) : AnimationNode {
     override val name: String?
         get() = target.name
 
@@ -173,7 +175,7 @@ class AnimatedTransformGroup(val target: Node) : AnimationNode {
 }
 
 class MorphAnimatedMesh(val target: MeshNode) : AnimationNode {
-    override val name: String?
+    override val name: String
         get() = target.name
 
     private var weights = FloatArray(1)
