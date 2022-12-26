@@ -63,7 +63,7 @@ class GltfTest(context: Context) : ContextListener(context) {
                     }
                 ).apply { name = meshName }
                 addChild(meshNode)
-                meshes[meshName] = meshNode.mesh
+                meshes[meshName] = meshNode
             }
 
         duckModel.printHierarchy()

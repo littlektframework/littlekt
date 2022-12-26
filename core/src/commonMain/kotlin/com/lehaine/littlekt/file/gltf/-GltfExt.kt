@@ -29,8 +29,8 @@ internal fun GltfFile.toModel(gl: GL): Model {
 private class GltfModelGenerator(val gltfFile: GltfFile, val gl: GL) {
     val modelAnimations = mutableListOf<GltfAnimation>()
     val modelNodes = mutableMapOf<GltfNode, Node3D>()
-    val meshesByMaterial = mutableMapOf<Int, MutableSet<Mesh>>()
-    val meshMaterials = mutableMapOf<Mesh, GltfMaterial?>()
+    val meshesByMaterial = mutableMapOf<Int, MutableSet<MeshNode>>()
+    val meshMaterials = mutableMapOf<MeshNode, GltfMaterial?>()
     fun toModel(scene: GltfScene): Model {
         val model = Model().apply { name = scene.name ?: "model_scene" }
         scene.nodeRefs.forEach { nd -> model += nd.toNode(model) }
@@ -77,8 +77,8 @@ private class GltfModelGenerator(val gltfFile: GltfFile, val gl: GL) {
         meshRef?.primitives?.forEachIndexed { index, prim ->
             val name = "${meshRef?.name ?: "${node.name}.mesh"}_$index"
             val geometry = prim.toGeometry(gltfFile.accessors)
-            val mesh = Mesh(gl, geometry)
-            node += MeshNode(mesh).apply { this.name = name }
+            val mesh = MeshNode(Mesh(gl, geometry)).apply { this.name = name }
+            node += mesh
             meshesByMaterial.getOrPut(prim.material) { mutableSetOf() } += mesh
             meshMaterials[mesh] = prim.materialRef
             model.meshes[name] = mesh

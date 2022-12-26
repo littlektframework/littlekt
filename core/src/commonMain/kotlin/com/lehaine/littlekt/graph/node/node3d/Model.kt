@@ -1,6 +1,5 @@
 package com.lehaine.littlekt.graph.node.node3d
 
-import com.lehaine.littlekt.graphics.Mesh
 import com.lehaine.littlekt.graphics.Texture
 import com.lehaine.littlekt.graphics.g3d.model.Animation
 import com.lehaine.littlekt.graphics.g3d.model.Skin
@@ -12,7 +11,7 @@ import com.lehaine.littlekt.graphics.g3d.model.Skin
 class Model : Node3D() {
 
     val nodes3d = mutableMapOf<String, Node3D>()
-    val meshes = mutableMapOf<String, Mesh>()
+    val meshes = mutableMapOf<String, MeshNode>()
     val textures = mutableMapOf<String, Texture>()
 
     val animations = mutableListOf<Animation>()
