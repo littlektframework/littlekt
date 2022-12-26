@@ -82,12 +82,15 @@ open class Node3D : Node() {
     }
 
 
+    /**
+     * Updates transforms and bounds.
+     */
     fun update() {
         updateModelMat()
 
         // update global center and radius
-        toGlobalCoords(globalCenterMut.set(bounds.center))
-        toGlobalCoords(globalExtentMut.set(bounds.max))
+        toGlobal(globalCenterMut.set(bounds.center))
+        toGlobal(globalExtentMut.set(bounds.max))
         globalRadius = globalCenter.distance(globalExtentMut)
 
         // call update on all children and update group bounding box
@@ -161,7 +164,7 @@ open class Node3D : Node() {
     /**
      * Transforms [vec] in-place from local to global coordinates.
      */
-    fun toGlobalCoords(vec: MutableVec3f, w: Float = 1f): MutableVec3f {
+    fun toGlobal(vec: MutableVec3f, w: Float = 1f): MutableVec3f {
         modelMat.transform(vec, w)
         return vec
     }
@@ -169,7 +172,7 @@ open class Node3D : Node() {
     /**
      * Transforms [vec] in-place from global to local coordinates.
      */
-    fun toLocalCoords(vec: MutableVec3f, w: Float = 1f): MutableVec3f {
+    fun toLocal(vec: MutableVec3f, w: Float = 1f): MutableVec3f {
         modelMatInv.transform(vec, w)
         return vec
     }
