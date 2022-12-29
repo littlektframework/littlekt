@@ -1036,4 +1036,9 @@ fun <T : Node> T.addTo(parent: Node): T {
     return this
 }
 
+fun <T : Node> T.addTo(scene: SceneGraph<*>): T {
+    parent(scene.root)
+    return this
+}
+
 inline fun <reified T : Node> Node.findFirstNodeOfType() = nodes.findFirstNodeOfType(T::class)

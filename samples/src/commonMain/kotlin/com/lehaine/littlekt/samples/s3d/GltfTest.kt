@@ -4,10 +4,7 @@ import com.lehaine.littlekt.Context
 import com.lehaine.littlekt.ContextListener
 import com.lehaine.littlekt.file.vfs.readGltfModel
 import com.lehaine.littlekt.graph.node.addTo
-import com.lehaine.littlekt.graph.node.node3d.Camera3D
-import com.lehaine.littlekt.graph.node.node3d.DirectionalLight
-import com.lehaine.littlekt.graph.node.node3d.MeshNode
-import com.lehaine.littlekt.graph.node.node3d.Model
+import com.lehaine.littlekt.graph.node.node3d.*
 import com.lehaine.littlekt.graph.node.ui.control
 import com.lehaine.littlekt.graph.node.ui.label
 import com.lehaine.littlekt.graph.node.ui.paddedContainer
@@ -33,53 +30,41 @@ class GltfTest(context: Context) : ContextListener(context) {
 
     override suspend fun Context.start() {
 
-        val camera = Camera3D().apply {
-            active = true
-            far = 1000f
-            translate(0f, 0f, 250f)
-        }
+        val camera: Camera3D
 
+        val duckModel: Model
+        val humanModel: Model
+        val cube: MeshNode
         val scene = sceneGraph(this) {
-            initialize()
-            camera.addTo(root)
-            DirectionalLight().apply {
+            camera = camera3d {
+                active = true
+                far = 1000f
+                translate(0f, 0f, 250f)
+            }
+            duckModel = resourcesVfs["models/duck.glb"].readGltfModel().also { it.addTo(this) }
+            humanModel = resourcesVfs["models/player.glb"].readGltfModel().also { it.addTo(this) }
+            cube = meshNode {
+                mesh = mesh(
+                    listOf(VertexAttribute.POSITION, VertexAttribute.NORMAL),
+                    grow = true
+                ) {
+                    generate {
+                        cube {
+                            colored()
+                            centered()
+                        }
+                    }
+                }
+            }
+            directionalLight {
                 var time = Duration.ZERO
                 translate(1.2f, 1f, 2f)
                 onUpdate += {
                     transform.setToTranslate(1f + sin(time.seconds) * 2f, sin(time.seconds / 2f) * 1f, 0f)
                     time += it
                 }
-            }.addTo(root)
-        }
-
-        val duckModel = resourcesVfs["models/duck.glb"].readGltfModel().apply {
-            scene += this
-        }
-        val humanModel = resourcesVfs["models/player.glb"].readGltfModel().apply {
-            scene += this
-        }
-        val cube =
-            Model().apply {
-                val meshName = "cube_mesh"
-                val meshNode = MeshNode(
-                    mesh(
-                        listOf(VertexAttribute.POSITION, VertexAttribute.NORMAL),
-                        grow = true
-                    ) {
-                        generate {
-                            cube {
-                                colored()
-                                centered()
-                            }
-                        }
-                    }
-                ).apply { name = meshName }
-                addChild(meshNode)
-                meshes[meshName] = meshNode
-                scene += this
             }
 
-        scene.apply {
             control {
                 paddedContainer {
                     padding(10)
@@ -88,7 +73,7 @@ class GltfTest(context: Context) : ContextListener(context) {
                     }
                 }
             }
-        }
+        }.also { it.initialize() }
 
         duckModel.translate(100f, 0f, 0f)
         duckModel.rotate(Vec3f.Y_AXIS, (-90).degrees)

@@ -3,8 +3,36 @@ package com.lehaine.littlekt.graph.node.node3d
 import com.lehaine.littlekt.graph.SceneGraph
 import com.lehaine.littlekt.graph.node.CanvasLayer
 import com.lehaine.littlekt.graph.node.Node
+import com.lehaine.littlekt.graph.node.addTo
+import com.lehaine.littlekt.graph.node.annotation.SceneGraphDslMarker
+import com.lehaine.littlekt.graph.node.node2d.Camera2D
 import com.lehaine.littlekt.graphics.Camera
 import com.lehaine.littlekt.math.Vec3f
+import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.InvocationKind
+import kotlin.contracts.contract
+
+/**
+ * Adds a [Camera3D] to the current [Node] as a child and then triggers the [callback]
+ * @param callback the callback that is invoked with a [Camera3D] context in order to initialize any values
+ * @return the newly created [Camera3D]
+ */
+@OptIn(ExperimentalContracts::class)
+inline fun Node.camera3d(callback: @SceneGraphDslMarker Camera3D.() -> Unit = {}): Camera3D {
+    contract { callsInPlace(callback, InvocationKind.EXACTLY_ONCE) }
+    return Camera3D().also(callback).addTo(this)
+}
+
+/**
+ * Adds a [Camera3D] to the current [SceneGraph.root] as a child and then triggers the [Camera3D]
+ * @param callback the callback that is invoked with a [Camera3D] context in order to initialize any values
+ * @return the newly created [Camera3D]
+ */
+@OptIn(ExperimentalContracts::class)
+inline fun SceneGraph<*>.camera3d(callback: @SceneGraphDslMarker Camera3D.() -> Unit = {}): Camera3D {
+    contract { callsInPlace(callback, InvocationKind.EXACTLY_ONCE) }
+    return root.camera3d(callback)
+}
 
 /**
  * @author Colton Daily

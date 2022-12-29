@@ -77,7 +77,10 @@ private class GltfModelGenerator(val gltfFile: GltfFile, val gl: GL) {
         meshRef?.primitives?.forEachIndexed { index, prim ->
             val name = "${meshRef?.name ?: "${node.name}.mesh"}_$index"
             val geometry = prim.toGeometry(gltfFile.accessors)
-            val mesh = MeshNode(Mesh(gl, geometry)).apply { this.name = name }
+            val mesh = MeshNode().apply {
+                this.mesh = Mesh(gl, geometry)
+                this.name = name
+            }
             node += mesh
             meshesByMaterial.getOrPut(prim.material) { mutableSetOf() } += mesh
             meshMaterials[mesh] = prim.materialRef
