@@ -4,7 +4,7 @@ import com.lehaine.littlekt.Context
 import com.lehaine.littlekt.ContextListener
 import com.lehaine.littlekt.file.vfs.readBitmapFont
 import com.lehaine.littlekt.file.vfs.readTexture
-import com.lehaine.littlekt.graph.node.component.HAlign
+import com.lehaine.littlekt.graph.node.resource.HAlign
 import com.lehaine.littlekt.graph.node.ui.hBoxContainer
 import com.lehaine.littlekt.graph.node.ui.label
 import com.lehaine.littlekt.graph.node.ui.scrollContainer

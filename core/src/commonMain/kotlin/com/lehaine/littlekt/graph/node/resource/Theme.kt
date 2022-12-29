@@ -1,11 +1,10 @@
-package com.lehaine.littlekt.graph.node.component
+package com.lehaine.littlekt.graph.node.resource
 
 import com.lehaine.littlekt.graph.node.ui.*
 import com.lehaine.littlekt.graphics.Color
 import com.lehaine.littlekt.graphics.Fonts
 import com.lehaine.littlekt.graphics.g2d.NinePatch
 import com.lehaine.littlekt.graphics.Textures
-import com.lehaine.littlekt.graphics.g2d.font.BitmapFont
 
 /**
  * @author Colton Daily

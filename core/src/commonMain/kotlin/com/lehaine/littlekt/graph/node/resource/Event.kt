@@ -1,4 +1,4 @@
-package com.lehaine.littlekt.graph.node.component
+package com.lehaine.littlekt.graph.node.resource
 
 /**
  * @author Colton Daily

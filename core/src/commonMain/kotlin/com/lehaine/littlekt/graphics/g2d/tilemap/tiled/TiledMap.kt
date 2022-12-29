@@ -1,13 +1,12 @@
 package com.lehaine.littlekt.graphics.g2d.tilemap.tiled
 
 import com.lehaine.littlekt.Disposable
-import com.lehaine.littlekt.graph.node.component.HAlign
-import com.lehaine.littlekt.graph.node.component.VAlign
+import com.lehaine.littlekt.graph.node.resource.HAlign
+import com.lehaine.littlekt.graph.node.resource.VAlign
 import com.lehaine.littlekt.graphics.g2d.Batch
 import com.lehaine.littlekt.graphics.Camera
 import com.lehaine.littlekt.graphics.Color
 import com.lehaine.littlekt.graphics.Texture
-import com.lehaine.littlekt.graphics.g2d.tilemap.TileMap
 import com.lehaine.littlekt.math.Rect
 import com.lehaine.littlekt.math.geom.Angle
 

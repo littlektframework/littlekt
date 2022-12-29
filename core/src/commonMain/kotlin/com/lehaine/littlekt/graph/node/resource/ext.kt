@@ -1,4 +1,4 @@
-package com.lehaine.littlekt.graph.node.component
+package com.lehaine.littlekt.graph.node.resource
 
 import com.lehaine.littlekt.graphics.g2d.NinePatch
 import com.lehaine.littlekt.graphics.Texture

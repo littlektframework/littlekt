@@ -5,7 +5,7 @@ import com.lehaine.littlekt.Experimental
 import com.lehaine.littlekt.file.createByteBuffer
 import com.lehaine.littlekt.file.vfs.VfsFile
 import com.lehaine.littlekt.file.vfs.writePixmap
-import com.lehaine.littlekt.graph.node.component.HAlign
+import com.lehaine.littlekt.graph.node.resource.HAlign
 import com.lehaine.littlekt.graphics.*
 import com.lehaine.littlekt.graphics.g2d.font.internal.*
 import com.lehaine.littlekt.graphics.g2d.Batch

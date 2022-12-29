@@ -46,7 +46,7 @@ open class Camera2D : Node2D() {
     var snapToPixel = false
     var zoom: Float = 1f
     var near: Float = 0f
-    var far: Float = 100f
+    var far: Float = 1000f
 
     /**
      * Disables other cameras sharing the same [CanvasLayer] or [SceneGraph.root].

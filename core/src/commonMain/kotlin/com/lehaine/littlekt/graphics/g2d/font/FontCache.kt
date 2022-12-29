@@ -1,6 +1,6 @@
 package com.lehaine.littlekt.graphics.g2d.font
 
-import com.lehaine.littlekt.graph.node.component.HAlign
+import com.lehaine.littlekt.graph.node.resource.HAlign
 import com.lehaine.littlekt.graphics.*
 import com.lehaine.littlekt.graphics.g2d.Batch
 import com.lehaine.littlekt.math.Mat4

@@ -12,11 +12,11 @@ import com.lehaine.littlekt.graphics.shader.generator.type.vec.Vec4
  * @author Colton Daily
  * @date 12/20/2022
  */
-class ModelVertexShader : VertexShaderModel() {
-    val uProjTrans get() = parameters[0] as ShaderParameter.UniformMat4
+open class ModelVertexShader : VertexShaderModel() {
+    val uProjection get() = parameters[0] as ShaderParameter.UniformMat4
     val uModel get() = parameters[1] as ShaderParameter.UniformMat4
 
-    private val u_projTrans by uniform(::Mat4)
+    private val u_projection by uniform(::Mat4)
     private val u_model by uniform(::Mat4)
 
     private val a_position by attribute(::Vec3)
@@ -35,11 +35,11 @@ class ModelVertexShader : VertexShaderModel() {
         //  v_color = a_color
         v_normal = mat3(transpose(inverse(u_model))) * a_normal
         v_fragPosition = vec3(u_model * vec4(a_position, 1f).lit).lit
-        gl_Position = u_projTrans * vec4(v_fragPosition, 1f).lit
+        gl_Position = u_projection * vec4(v_fragPosition, 1f).lit
     }
 }
 
-class ModelFragmentShader : FragmentShaderModel() {
+open class ModelFragmentShader : FragmentShaderModel() {
     //  val uTexture get() = parameters[0] as ShaderParameter.UniformSample2D
     val uLightColor get() = parameters[0] as ShaderParameter.UniformVec4
     val uAmbientStrength get() = parameters[1] as ShaderParameter.UniformFloat

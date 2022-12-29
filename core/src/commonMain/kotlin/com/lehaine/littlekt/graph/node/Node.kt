@@ -3,8 +3,8 @@ package com.lehaine.littlekt.graph.node
 import com.lehaine.littlekt.Context
 import com.lehaine.littlekt.graph.SceneGraph
 import com.lehaine.littlekt.graph.node.annotation.SceneGraphDslMarker
-import com.lehaine.littlekt.graph.node.component.InputEvent
 import com.lehaine.littlekt.graph.node.internal.NodeList
+import com.lehaine.littlekt.graph.node.resource.InputEvent
 import com.lehaine.littlekt.graph.node.ui.Control
 import com.lehaine.littlekt.graphics.Camera
 import com.lehaine.littlekt.graphics.g2d.Batch
@@ -522,21 +522,23 @@ open class Node : Comparable<Node> {
     open fun propagateInternalDebugRender(
         batch: Batch,
         camera: Camera,
+        camera3d: Camera,
         shapeRenderer: ShapeRenderer,
-        renderCallback: ((Node, Batch, Camera, ShapeRenderer) -> Unit)?,
+        renderCallback: ((Node, Batch, Camera, Camera, ShapeRenderer) -> Unit)?,
     ) {
         if (!enabled || isDestroyed) return
-        nodes.forEach { it.propagateInternalDebugRender(batch, camera, shapeRenderer, renderCallback) }
+        nodes.forEach { it.propagateInternalDebugRender(batch, camera, camera3d, shapeRenderer, renderCallback) }
     }
 
     open fun propagateInternalRender(
         batch: Batch,
         camera: Camera,
+        camera3d: Camera,
         shapeRenderer: ShapeRenderer,
-        renderCallback: ((Node, Batch, Camera, ShapeRenderer) -> Unit)?,
+        renderCallback: ((Node, Batch, Camera, Camera, ShapeRenderer) -> Unit)?,
     ) {
         if (!enabled || isDestroyed) return
-        nodes.forEach { it.propagateInternalRender(batch, camera, shapeRenderer, renderCallback) }
+        nodes.forEach { it.propagateInternalRender(batch, camera, camera3d, shapeRenderer, renderCallback) }
     }
 
     open fun propagateHit(hx: Float, hy: Float): Control? {

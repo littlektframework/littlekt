@@ -10,10 +10,10 @@ import com.lehaine.littlekt.file.vfs.readPixmap
 import com.lehaine.littlekt.file.vfs.readTexture
 import com.lehaine.littlekt.graph.SceneGraph
 import com.lehaine.littlekt.graph.createDefaultSceneGraphController
-import com.lehaine.littlekt.graph.node.component.HAlign
-import com.lehaine.littlekt.graph.node.component.NinePatchDrawable
-import com.lehaine.littlekt.graph.node.component.VAlign
-import com.lehaine.littlekt.graph.node.component.createDefaultTheme
+import com.lehaine.littlekt.graph.node.resource.HAlign
+import com.lehaine.littlekt.graph.node.resource.NinePatchDrawable
+import com.lehaine.littlekt.graph.node.resource.VAlign
+import com.lehaine.littlekt.graph.node.resource.createDefaultTheme
 import com.lehaine.littlekt.graph.node.ui.*
 import com.lehaine.littlekt.graph.sceneGraph
 import com.lehaine.littlekt.graphics.*

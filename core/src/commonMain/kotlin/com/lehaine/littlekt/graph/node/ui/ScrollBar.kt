@@ -1,9 +1,9 @@
 package com.lehaine.littlekt.graph.node.ui
 
-import com.lehaine.littlekt.graph.node.component.Drawable
-import com.lehaine.littlekt.graph.node.component.InputEvent
-import com.lehaine.littlekt.graph.node.component.Orientation
-import com.lehaine.littlekt.graph.node.component.Theme
+import com.lehaine.littlekt.graph.node.resource.Drawable
+import com.lehaine.littlekt.graph.node.resource.InputEvent
+import com.lehaine.littlekt.graph.node.resource.Orientation
+import com.lehaine.littlekt.graph.node.resource.Theme
 import com.lehaine.littlekt.graphics.g2d.Batch
 import com.lehaine.littlekt.graphics.Camera
 import com.lehaine.littlekt.graphics.g2d.shape.ShapeRenderer

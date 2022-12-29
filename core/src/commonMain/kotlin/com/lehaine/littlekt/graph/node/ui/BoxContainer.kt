@@ -1,7 +1,7 @@
 package com.lehaine.littlekt.graph.node.ui
 
-import com.lehaine.littlekt.graph.node.component.AlignMode
-import com.lehaine.littlekt.graph.node.component.Theme
+import com.lehaine.littlekt.graph.node.resource.AlignMode
+import com.lehaine.littlekt.graph.node.resource.Theme
 
 /**
  * A [Container] that handles both vertical and horizontal alignments of its children.

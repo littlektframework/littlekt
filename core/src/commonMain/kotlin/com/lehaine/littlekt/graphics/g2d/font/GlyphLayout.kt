@@ -1,6 +1,6 @@
 package com.lehaine.littlekt.graphics.g2d.font
 
-import com.lehaine.littlekt.graph.node.component.HAlign
+import com.lehaine.littlekt.graph.node.resource.HAlign
 import com.lehaine.littlekt.graphics.Color
 import com.lehaine.littlekt.graphics.abgr
 import com.lehaine.littlekt.util.datastructure.FloatArrayList

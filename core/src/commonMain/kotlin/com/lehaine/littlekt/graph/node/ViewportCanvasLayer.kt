@@ -2,8 +2,8 @@ package com.lehaine.littlekt.graph.node
 
 import com.lehaine.littlekt.graph.SceneGraph
 import com.lehaine.littlekt.graph.node.annotation.SceneGraphDslMarker
-import com.lehaine.littlekt.graphics.g2d.Batch
 import com.lehaine.littlekt.graphics.Camera
+import com.lehaine.littlekt.graphics.g2d.Batch
 import com.lehaine.littlekt.graphics.g2d.shape.ShapeRenderer
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
@@ -47,7 +47,7 @@ open class ViewportCanvasLayer : CanvasLayer() {
     override fun render(
         batch: Batch,
         shapeRenderer: ShapeRenderer,
-        renderCallback: ((Node, Batch, Camera, ShapeRenderer) -> Unit)?,
+        renderCallback: ((Node, Batch, Camera, Camera, ShapeRenderer) -> Unit)?,
     ) {
         val scene = scene ?: return
         if (!enabled || isDestroyed) return
@@ -55,11 +55,17 @@ open class ViewportCanvasLayer : CanvasLayer() {
         val prevProjMatrix = batch.projectionMatrix
         scene.pushViewport(viewport)
         canvasCamera.update()
+        canvasCamera3d.update()
         batch.projectionMatrix = canvasCamera.viewProjection
-        if (!batch.drawing) batch.begin()
         nodes.forEach {
-            it.propagateInternalRender(batch, canvasCamera, shapeRenderer, renderCallback)
-            if (scene.showDebugInfo) it.propagateInternalDebugRender(batch, canvasCamera, shapeRenderer, renderCallback)
+            it.propagateInternalRender(batch, canvasCamera, canvasCamera3d, shapeRenderer, renderCallback)
+            if (scene.showDebugInfo) it.propagateInternalDebugRender(
+                batch,
+                canvasCamera,
+                canvasCamera3d,
+                shapeRenderer,
+                renderCallback
+            )
         }
         batch.projectionMatrix = prevProjMatrix
         scene.popViewport()

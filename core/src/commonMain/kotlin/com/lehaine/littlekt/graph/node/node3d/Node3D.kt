@@ -1,7 +1,6 @@
 package com.lehaine.littlekt.graph.node.node3d
 
 import com.lehaine.littlekt.graph.node.Node
-import com.lehaine.littlekt.graphics.shader.ShaderProgram
 import com.lehaine.littlekt.math.Mat4
 import com.lehaine.littlekt.math.MutableVec3f
 import com.lehaine.littlekt.math.Vec3f
@@ -52,12 +51,6 @@ open class Node3D : Node() {
     private val tmpBounds = BoundingBox()
 
     /**
-     * Determines the visibility of this node. If visible is false this node will be skipped on
-     * rendering.
-     */
-    var isVisible = true
-
-    /**
      * Determines whether this node is considered for ray-picking tests.
      */
     var isPickable = true
@@ -74,6 +67,10 @@ open class Node3D : Node() {
         // be default, frustum culling is disabled for groups. Potential benefit is rather small, and it can cause
         // problems if group content is not frustum checked as well (e.g. an instaned mesh)
         isFrustumChecked = false
+
+        onUpdate += {
+            update()
+        }
     }
 
     fun setDirty() {
@@ -86,6 +83,8 @@ open class Node3D : Node() {
      * Updates transforms and bounds.
      */
     fun update() {
+        // TODO need to refactor this to be similar to CanvasItem where the matrices and transforms are only updated
+        // when accessing
         updateModelMat()
 
         // update global center and radius
@@ -136,14 +135,6 @@ open class Node3D : Node() {
 
         if (!isIdentity) {
             modelMat.mul(transform)
-        }
-    }
-
-    open fun render(shader: ShaderProgram<*, *>) {
-        children.forEach {
-            if (it is Node3D) {
-                it.render(shader)
-            }
         }
     }
 

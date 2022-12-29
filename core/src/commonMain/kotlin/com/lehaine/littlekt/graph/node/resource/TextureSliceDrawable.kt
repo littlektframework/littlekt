@@ -1,4 +1,4 @@
-package com.lehaine.littlekt.graph.node.component
+package com.lehaine.littlekt.graph.node.resource
 
 import com.lehaine.littlekt.graphics.*
 import com.lehaine.littlekt.graphics.g2d.Batch

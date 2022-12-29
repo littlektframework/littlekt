@@ -1,10 +1,10 @@
 package com.lehaine.littlekt.graph.node
 
 import com.lehaine.littlekt.graph.SceneGraph
-import com.lehaine.littlekt.graph.node.component.InputEvent
 import com.lehaine.littlekt.graph.node.render.Material
-import com.lehaine.littlekt.graphics.g2d.Batch
+import com.lehaine.littlekt.graph.node.resource.InputEvent
 import com.lehaine.littlekt.graphics.Camera
+import com.lehaine.littlekt.graphics.g2d.Batch
 import com.lehaine.littlekt.graphics.g2d.shape.ShapeRenderer
 import com.lehaine.littlekt.math.Mat3
 import com.lehaine.littlekt.math.Mat4
@@ -440,10 +440,11 @@ abstract class CanvasItem : Node() {
     override fun propagateInternalDebugRender(
         batch: Batch,
         camera: Camera,
+        camera3d: Camera,
         shapeRenderer: ShapeRenderer,
-        renderCallback: ((Node, Batch, Camera, ShapeRenderer) -> Unit)?,
+        renderCallback: ((Node, Batch, Camera, Camera, ShapeRenderer) -> Unit)?,
     ) {
-        propagateDebugRender(batch, camera, shapeRenderer, renderCallback)
+        propagateDebugRender(batch, camera, camera3d, shapeRenderer, renderCallback)
     }
 
 
@@ -453,26 +454,28 @@ abstract class CanvasItem : Node() {
     fun propagateDebugRender(
         batch: Batch,
         camera: Camera,
+        camera3d: Camera,
         shapeRenderer: ShapeRenderer,
-        renderCallback: ((Node, Batch, Camera, ShapeRenderer) -> Unit)?,
+        renderCallback: ((Node, Batch, Camera, Camera, ShapeRenderer) -> Unit)?,
     ) {
         if (!enabled || !visible || isDestroyed) return
-        renderCallback?.invoke(this, batch, camera, shapeRenderer)
+        renderCallback?.invoke(this, batch, camera, camera3d, shapeRenderer)
         debugRender(batch, camera, shapeRenderer)
         onDebugRender.emit(batch, camera, shapeRenderer)
         nodes.forEachSorted {
-            it.propagateInternalDebugRender(batch, camera, shapeRenderer, renderCallback)
+            it.propagateInternalDebugRender(batch, camera, camera3d, shapeRenderer, renderCallback)
         }
     }
 
     override fun propagateInternalRender(
         batch: Batch,
         camera: Camera,
+        camera3d: Camera,
         shapeRenderer: ShapeRenderer,
-        renderCallback: ((Node, Batch, Camera, ShapeRenderer) -> Unit)?,
+        renderCallback: ((Node, Batch, Camera, Camera, ShapeRenderer) -> Unit)?,
     ) {
         propagatePreRender(batch, camera, shapeRenderer)
-        propagateRender(batch, camera, shapeRenderer, renderCallback)
+        propagateRender(batch, camera, camera3d, shapeRenderer, renderCallback)
         propagatePostRender(batch, camera, shapeRenderer)
     }
 
@@ -481,6 +484,7 @@ abstract class CanvasItem : Node() {
      */
     fun propagatePreRender(batch: Batch, camera: Camera, shapeRenderer: ShapeRenderer) {
         if (!enabled || !visible || isDestroyed) return
+        if (!batch.drawing) batch.begin()
         preRender(batch, camera, shapeRenderer)
         onPreRender.emit(batch, camera, shapeRenderer)
         nodes.forEachSorted {
@@ -496,15 +500,16 @@ abstract class CanvasItem : Node() {
     fun propagateRender(
         batch: Batch,
         camera: Camera,
+        camera3d: Camera,
         shapeRenderer: ShapeRenderer,
-        renderCallback: ((Node, Batch, Camera, ShapeRenderer) -> Unit)?,
+        renderCallback: ((Node, Batch, Camera, Camera, ShapeRenderer) -> Unit)?,
     ) {
         if (!enabled || !visible || isDestroyed) return
-        renderCallback?.invoke(this, batch, camera, shapeRenderer)
+        renderCallback?.invoke(this, batch, camera, camera3d, shapeRenderer)
         render(batch, camera, shapeRenderer)
         onRender.emit(batch, camera, shapeRenderer)
         nodes.forEachSorted {
-            it.propagateInternalRender(batch, camera, shapeRenderer, renderCallback)
+            it.propagateInternalRender(batch, camera, camera3d, shapeRenderer, renderCallback)
         }
     }
 

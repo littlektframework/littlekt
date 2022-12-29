@@ -5,7 +5,7 @@ import com.lehaine.littlekt.graph.node.FrameBufferNode
 import com.lehaine.littlekt.graph.node.Node
 import com.lehaine.littlekt.graph.node.addTo
 import com.lehaine.littlekt.graph.node.annotation.SceneGraphDslMarker
-import com.lehaine.littlekt.graph.node.component.InputEvent
+import com.lehaine.littlekt.graph.node.resource.InputEvent
 import com.lehaine.littlekt.graphics.g2d.Batch
 import com.lehaine.littlekt.graphics.Camera
 import com.lehaine.littlekt.graphics.g2d.shape.ShapeRenderer

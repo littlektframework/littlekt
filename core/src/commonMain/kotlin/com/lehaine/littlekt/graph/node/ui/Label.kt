@@ -4,9 +4,9 @@ import com.lehaine.littlekt.graph.SceneGraph
 import com.lehaine.littlekt.graph.node.Node
 import com.lehaine.littlekt.graph.node.addTo
 import com.lehaine.littlekt.graph.node.annotation.SceneGraphDslMarker
-import com.lehaine.littlekt.graph.node.component.HAlign
-import com.lehaine.littlekt.graph.node.component.Theme
-import com.lehaine.littlekt.graph.node.component.VAlign
+import com.lehaine.littlekt.graph.node.resource.HAlign
+import com.lehaine.littlekt.graph.node.resource.Theme
+import com.lehaine.littlekt.graph.node.resource.VAlign
 import com.lehaine.littlekt.graphics.Camera
 import com.lehaine.littlekt.graphics.Color
 import com.lehaine.littlekt.graphics.MutableColor
