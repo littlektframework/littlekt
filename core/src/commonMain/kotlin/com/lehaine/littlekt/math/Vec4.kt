@@ -1,5 +1,10 @@
 package com.lehaine.littlekt.math
 
+import com.lehaine.littlekt.math.geom.Angle
+import com.lehaine.littlekt.math.geom.radians
+import kotlin.math.PI
+import kotlin.math.asin
+import kotlin.math.atan2
 import kotlin.math.sqrt
 
 /**
@@ -8,6 +13,54 @@ import kotlin.math.sqrt
  */
 open class Vec4f internal constructor(x: Float, y: Float, z: Float, w: Float, size: Int) : Vec3f(x, y, z, size) {
     open val w get() = this[3]
+
+    /**
+     * The pole of the gimbal lock, if any.
+     * Postiive (+1) for north pole, negative (-1) for south pole, zero (0) who no gimbal lock.
+     */
+    val gimbalPole: Int
+        get() {
+            val t = y * x + z * w
+            return if (t > 0.499f) 1 else if (t < -0.499f) -1 else 0
+        }
+
+    /**
+     * The rotation around the z-axis. Requires this vector / quaternion to be normalized.
+     */
+    val roll: Angle
+        get() {
+            val pole = gimbalPole
+            return if (pole == 0) {
+                atan2(2f * (w * z + y * x), 1f - 2f * (x * x + z * z)).radians
+            } else {
+                (pole * 2f * atan2(y, w)).radians
+            }
+        }
+
+    /**
+     * The rotation around the x-axis. Requires that this vector / quaternion to be normalized.
+     */
+    val pitch: Angle
+        get() {
+            val pole = gimbalPole
+            return if (pole == 0) {
+                asin((2f * (w * x - z * y).clamp(-1f, 1f))).radians
+            } else {
+                (pole * PI * 0.5f).radians
+            }
+        }
+
+    /**
+     * The rotation around the y-axis. Requires that this vector / quaternion tobe normalized.
+     */
+    val yaw: Angle
+        get() {
+            return if (gimbalPole == 0) {
+                atan2(2f * (y * w + x * z), 1f - 2f * (y * y + x * x)).radians
+            } else {
+                Angle.ZERO
+            }
+        }
 
     constructor(x: Float, y: Float, z: Float, w: Float) : this(x, y, z, w, 4)
     constructor(f: Float) : this(f, f, f, f)
@@ -38,6 +91,21 @@ open class Vec4f internal constructor(x: Float, y: Float, z: Float, w: Float, si
             eps
         )
 
+    /**
+     * Transforms the given vector and outputs the [result].
+     * @param vec the vector to use in transforming
+     * @param result the output of the transformation
+     */
+    fun transform(vec: Vec3f, result: MutableVec3f): MutableVec3f {
+        temp2.set(this)
+        temp2.conjugate()
+        temp2.mul(temp1.set(vec.x, vec.y, vec.z, 0f).mul(this))
+
+        result.x = temp2.x
+        result.y = temp2.y
+        result.z = temp2.z
+        return result
+    }
 
     fun mix(other: Vec4f, weight: Float, result: MutableVec4f): MutableVec4f {
         result.x = other.x * weight + x * (1f - weight)
@@ -51,7 +119,7 @@ open class Vec4f internal constructor(x: Float, y: Float, z: Float, w: Float, si
 
     fun norm(result: MutableVec4f): MutableVec4f = result.set(this).norm()
 
-    fun quatProduct(otherQuat: Vec4f, result: MutableVec4f): MutableVec4f {
+    fun quatMul(otherQuat: Vec4f, result: MutableVec4f): MutableVec4f {
         result.x = w * otherQuat.x + x * otherQuat.w + y * otherQuat.z - z * otherQuat.y
         result.y = w * otherQuat.y + y * otherQuat.w + z * otherQuat.x - x * otherQuat.z
         result.z = w * otherQuat.z + z * otherQuat.w + x * otherQuat.y - y * otherQuat.x
@@ -124,6 +192,9 @@ open class Vec4f internal constructor(x: Float, y: Float, z: Float, w: Float, si
         val NEG_Y_AXIS = Vec4f(0f, -1f, 0f, 0f)
         val NEG_Z_AXIS = Vec4f(0f, 0f, -1f, 0f)
         val NEG_W_AXIS = Vec4f(0f, 0f, 0f, -1f)
+
+        private val temp1 = MutableVec4f()
+        private val temp2 = MutableVec4f()
     }
 }
 
@@ -176,12 +247,19 @@ open class MutableVec4f(x: Float, y: Float, z: Float, w: Float) : Vec4f(x, y, z,
 
     fun norm(): MutableVec4f = scale(1f / length())
 
-    fun quatProduct(otherQuat: Vec4f): MutableVec4f {
+    fun quatMul(otherQuat: Vec4f): MutableVec4f {
         val px = w * otherQuat.x + x * otherQuat.w + y * otherQuat.z - z * otherQuat.y
         val py = w * otherQuat.y + y * otherQuat.w + z * otherQuat.x - x * otherQuat.z
         val pz = w * otherQuat.z + z * otherQuat.w + x * otherQuat.y - y * otherQuat.x
         val pw = w * otherQuat.w - x * otherQuat.x - y * otherQuat.y - z * otherQuat.z
         set(px, py, pz, pw)
+        return this
+    }
+
+    fun conjugate(): MutableVec4f {
+        x = -x
+        y = -y
+        z = -z
         return this
     }
 

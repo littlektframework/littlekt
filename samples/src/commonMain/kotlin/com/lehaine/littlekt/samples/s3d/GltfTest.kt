@@ -30,20 +30,47 @@ class GltfTest(context: Context) : ContextListener(context) {
 
     override suspend fun Context.start() {
 
-        val camera: Camera3D
-
-        val duckModel: Model
-        val humanModel: Model
-        val cube: MeshNode
         val scene = sceneGraph(this) {
-            camera = camera3d {
+            camera3d {
                 active = true
                 far = 1000f
                 translate(0f, 0f, 250f)
+
+                onUpdate += {
+                    val speed = 5f * if (input.isKeyPressed(Key.SHIFT_LEFT)) 10f else 1f
+                    if (input.isKeyPressed(Key.W)) {
+                        rotate(Vec3f.X_AXIS, 1.degrees)
+                    }
+                    if (input.isKeyPressed(Key.S)) {
+                        rotate(Vec3f.X_AXIS, (-1).degrees)
+                    }
+
+                    if (input.isKeyPressed(Key.A)) {
+                        rotate(Vec3f.Y_AXIS, 1.degrees)
+                    }
+                    if (input.isKeyPressed(Key.D)) {
+                        rotate(Vec3f.Y_AXIS, (-1).degrees)
+                    }
+
+                    if (input.isKeyPressed(Key.Q)) {
+                        translate(0f, -speed, 0f)
+                    }
+                    if (input.isKeyPressed(Key.E)) {
+                        translate(0f, speed, 0f)
+                    }
+                }
             }
-            duckModel = resourcesVfs["models/duck.glb"].readGltfModel().also { it.addTo(this) }
-            humanModel = resourcesVfs["models/player.glb"].readGltfModel().also { it.addTo(this) }
-            cube = meshNode {
+            resourcesVfs["models/duck.glb"].readGltfModel().apply {
+                translate(100f, 0f, 0f)
+                rotate(Vec3f.Y_AXIS, (-90).degrees)
+            }.also { it.addTo(this) }
+
+            resourcesVfs["models/player.glb"].readGltfModel().apply {
+                translate(-100f, 0f, 0f)
+                scale(85f)
+            }.also { it.addTo(this) }
+
+            meshNode {
                 mesh = mesh(
                     listOf(VertexAttribute.POSITION, VertexAttribute.NORMAL),
                     grow = true
@@ -55,6 +82,7 @@ class GltfTest(context: Context) : ContextListener(context) {
                         }
                     }
                 }
+                scale(50f)
             }
             directionalLight {
                 var time = Duration.ZERO
@@ -75,19 +103,9 @@ class GltfTest(context: Context) : ContextListener(context) {
             }
         }.also { it.initialize() }
 
-        duckModel.translate(100f, 0f, 0f)
-        duckModel.rotate(Vec3f.Y_AXIS, (-90).degrees)
-        humanModel.translate(-100f, 0f, 0f)
-        humanModel.scale(85f)
-        cube.scale(50f)
-
         onResize { width, height ->
             scene.resize(width, height, false)
         }
-
-        gl.enable(State.DEPTH_TEST)
-        gl.depthMask(true)
-        gl.depthFunc(CompareFunction.LESS)
 
         var time = Duration.ZERO
         onRender { dt ->
@@ -97,28 +115,6 @@ class GltfTest(context: Context) : ContextListener(context) {
 
             scene.update(dt)
             scene.render()
-
-            val speed = 5f * if (input.isKeyPressed(Key.SHIFT_LEFT)) 10f else 1f
-            if (input.isKeyPressed(Key.W)) {
-                camera.rotate(Vec3f.X_AXIS, 1.degrees)
-            }
-            if (input.isKeyPressed(Key.S)) {
-                camera.rotate(Vec3f.X_AXIS, (-1).degrees)
-            }
-
-            if (input.isKeyPressed(Key.A)) {
-                camera.rotate(Vec3f.Y_AXIS, 1.degrees)
-            }
-            if (input.isKeyPressed(Key.D)) {
-                camera.rotate(Vec3f.Y_AXIS, (-1).degrees)
-            }
-
-            if (input.isKeyPressed(Key.Q)) {
-                camera.translate(0f, -speed, 0f)
-            }
-            if (input.isKeyPressed(Key.E)) {
-                camera.translate(0f, speed, 0f)
-            }
 
             if (input.isKeyJustPressed(Key.P)) {
                 logger.info { stats }
