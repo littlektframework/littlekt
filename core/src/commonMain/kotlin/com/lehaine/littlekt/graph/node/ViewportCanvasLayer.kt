@@ -41,6 +41,8 @@ open class ViewportCanvasLayer : CanvasLayer() {
     override fun resize(width: Int, height: Int) {
         val scene = scene ?: return
         viewport.update(width, height, scene.context, true)
+        canvasCamera3d.virtualWidth = viewport.virtualWidth
+        canvasCamera3d.virtualHeight = viewport.virtualHeight
         onSizeChanged.emit()
     }
 
@@ -54,7 +56,8 @@ open class ViewportCanvasLayer : CanvasLayer() {
 
         val prevProjMatrix = batch.projectionMatrix
         scene.pushViewport(viewport)
-        canvasCamera.update()
+        canvasCamera3d.virtualWidth = viewport.virtualWidth
+        canvasCamera3d.virtualHeight = viewport.virtualHeight
         canvasCamera3d.update()
         batch.projectionMatrix = canvasCamera.viewProjection
         nodes.forEach {
