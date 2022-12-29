@@ -8,6 +8,9 @@ import com.lehaine.littlekt.graph.node.node3d.Camera3D
 import com.lehaine.littlekt.graph.node.node3d.DirectionalLight
 import com.lehaine.littlekt.graph.node.node3d.MeshNode
 import com.lehaine.littlekt.graph.node.node3d.Model
+import com.lehaine.littlekt.graph.node.ui.control
+import com.lehaine.littlekt.graph.node.ui.label
+import com.lehaine.littlekt.graph.node.ui.paddedContainer
 import com.lehaine.littlekt.graph.sceneGraph
 import com.lehaine.littlekt.graphics.Color
 import com.lehaine.littlekt.graphics.VertexAttribute
@@ -75,6 +78,17 @@ class GltfTest(context: Context) : ContextListener(context) {
                 meshes[meshName] = meshNode
                 scene += this
             }
+
+        scene.apply {
+            control {
+                paddedContainer {
+                    padding(10)
+                    label {
+                        text = "glTF Test with Scene Graph"
+                    }
+                }
+            }
+        }
 
         duckModel.translate(100f, 0f, 0f)
         duckModel.rotate(Vec3f.Y_AXIS, (-90).degrees)
