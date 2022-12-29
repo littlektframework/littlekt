@@ -84,6 +84,19 @@ class GltfTest(context: Context) : ContextListener(context) {
                 }
                 scale(50f)
             }
+
+            meshNode {
+                mesh =  mesh(
+                    listOf(VertexAttribute.POSITION, VertexAttribute.NORMAL),
+                    grow = true
+                ) {
+                    generate {
+                        grid {  }
+                    }
+                }
+                translate(0f, -50f, 0f)
+                scale(50f)
+            }
             directionalLight {
                 var time = Duration.ZERO
                 translate(1.2f, 1f, 2f)
