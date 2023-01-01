@@ -67,7 +67,7 @@ class GltfTest(context: Context) : ContextListener(context) {
 
             resourcesVfs["models/flighthelmet/FlightHelmet.gltf"].readGltfModel().apply {
                 translate(-100f, 0f, 0f)
-                scale(85f)
+                scale(200f)
             }.also { it.addTo(this) }
 
             meshNode {
