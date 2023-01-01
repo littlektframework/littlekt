@@ -30,8 +30,8 @@ class Pixmap(val width: Int, val height: Int, val pixels: ByteBuffer = createByt
         RGBA8888(DataType.UNSIGNED_BYTE, TextureFormat.RGBA);
     }
 
-    val glFormat = TextureFormat.RGBA
-    val glType = DataType.UNSIGNED_BYTE
+    var glFormat = TextureFormat.RGBA
+    var glType = DataType.UNSIGNED_BYTE
 
     fun draw(
         pixmap: Pixmap,
@@ -377,6 +377,10 @@ class Pixmap(val width: Int, val height: Int, val pixels: ByteBuffer = createByt
 
     private fun clampWidth(x: Int) = x.clamp(0, width)
     private fun clampHeight(y: Int) = y.clamp(0, height)
+
+    override fun toString(): String {
+        return "Pixmap(width=$width, height=$height, glFormat=$glFormat, glType=$glType)"
+    }
 }
 
 /**

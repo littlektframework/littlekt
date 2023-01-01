@@ -277,7 +277,7 @@ open class VisualInstance : Node3D() {
      */
     protected open fun onInvisible() = Unit
 
-    private fun setMaterialParameters(material: ModelMaterial, camera: Camera) {
+    protected open fun setMaterialParameters(material: ModelMaterial, camera: Camera) {
         scene?.environment?.updateMaterial(material)
         material.model = modelMat
         material.projection = camera.viewProjection

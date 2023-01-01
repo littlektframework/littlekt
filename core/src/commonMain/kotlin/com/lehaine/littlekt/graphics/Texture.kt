@@ -90,6 +90,7 @@ class Texture(
         }
         val texture = glTexture ?: gl.createTexture()
 
+        println("preparing texture $texture")
         gl.bindTexture(TextureTarget._2D, texture)
 
         gl.texParameteri(

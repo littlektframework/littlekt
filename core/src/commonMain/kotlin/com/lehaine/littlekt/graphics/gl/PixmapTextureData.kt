@@ -13,12 +13,12 @@ class PixmapTextureData(override val pixmap: Pixmap, override val useMipMaps: Bo
         get() = pixmap.width
     override val height: Int
         get() = pixmap.height
-    override val format: Pixmap.Format = Pixmap.Format.RGBA8888
+    override var format: Pixmap.Format = Pixmap.Format.RGBA8888
     override val isPrepared: Boolean = true
     override val isCustom: Boolean = false
 
     override fun prepare() {
-        throw RuntimeException("prepare()must not be called on a PixmapTextureData instance as it is already prepared.")
+        throw RuntimeException("prepare() must not be called on a PixmapTextureData instance as it is already prepared.")
     }
 
     override fun consumePixmap(): Pixmap {

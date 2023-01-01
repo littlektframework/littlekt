@@ -1,5 +1,7 @@
 package com.lehaine.littlekt.graph.node.node3d
 
+import com.lehaine.littlekt.graph.node.render.ModelMaterial
+import com.lehaine.littlekt.graphics.Camera
 import com.lehaine.littlekt.graphics.Texture
 import com.lehaine.littlekt.graphics.g3d.model.Animation
 import com.lehaine.littlekt.graphics.g3d.model.Skin
@@ -8,7 +10,7 @@ import com.lehaine.littlekt.graphics.g3d.model.Skin
  * @author Colton Daily
  * @date 12/17/2022
  */
-class Model : Node3D() {
+class Model : VisualInstance() {
 
     val nodes3d = mutableMapOf<String, Node3D>()
     val meshes = mutableMapOf<String, MeshNode>()
@@ -46,16 +48,10 @@ class Model : Node3D() {
         }
     }
 
-    fun printHierarchy() {
-        printHierarchy("")
-    }
-
-    private fun Node3D.printHierarchy(indent: String) {
-        println("$indent$name [${children.filterIsInstance<MeshNode>().count()} meshes]")
-        children.forEach {
-            if (it is Node3D) {
-                it.printHierarchy("$indent    ")
-            }
+    override fun setMaterialParameters(material: ModelMaterial, camera: Camera) {
+        super.setMaterialParameters(material, camera)
+        textures["albedo"]?.let {
+            material.texture = it
         }
     }
 }

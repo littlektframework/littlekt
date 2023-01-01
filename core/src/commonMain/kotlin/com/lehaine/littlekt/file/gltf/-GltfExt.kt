@@ -1,5 +1,6 @@
 package com.lehaine.littlekt.file.gltf
 
+import com.lehaine.littlekt.Context
 import com.lehaine.littlekt.file.gltf.GltfMeshPrimitive.Companion.ATTRIBUTE_COLOR_0
 import com.lehaine.littlekt.file.gltf.GltfMeshPrimitive.Companion.ATTRIBUTE_JOINTS_0
 import com.lehaine.littlekt.file.gltf.GltfMeshPrimitive.Companion.ATTRIBUTE_NORMAL
@@ -21,17 +22,17 @@ import com.lehaine.littlekt.math.Mat4
 import com.lehaine.littlekt.math.Vec4f
 
 
-internal fun GltfFile.toModel(gl: GL): Model {
-    return GltfModelGenerator(this, gl).toModel(scenes[scene])
+internal suspend fun GltfFile.toModel(context: Context, gl: GL): Model {
+    return GltfModelGenerator(context, this, gl).toModel(scenes[scene])
 }
 
 
-private class GltfModelGenerator(val gltfFile: GltfFile, val gl: GL) {
+private class GltfModelGenerator(val context: Context, val gltfFile: GltfFile, val gl: GL) {
     val modelAnimations = mutableListOf<GltfAnimation>()
     val modelNodes = mutableMapOf<GltfNode, Node3D>()
     val meshesByMaterial = mutableMapOf<Int, MutableSet<MeshNode>>()
     val meshMaterials = mutableMapOf<MeshNode, GltfMaterial?>()
-    fun toModel(scene: GltfScene): Model {
+    suspend fun toModel(scene: GltfScene): Model {
         val model = Model().apply { name = scene.name ?: "model_scene" }
         scene.nodeRefs.forEach { nd -> model += nd.toNode(model) }
         // TODO create transition animations
@@ -73,7 +74,7 @@ private class GltfModelGenerator(val gltfFile: GltfFile, val gl: GL) {
         return node
     }
 
-    fun GltfNode.createMeshes(model: Model, node: Node3D) {
+    suspend fun GltfNode.createMeshes(model: Model, node: Node3D) {
         meshRef?.primitives?.forEachIndexed { index, prim ->
             val name = "${meshRef?.name ?: "${node.name}.mesh"}_$index"
             val geometry = prim.toGeometry(gltfFile.accessors)
@@ -82,8 +83,13 @@ private class GltfModelGenerator(val gltfFile: GltfFile, val gl: GL) {
                 this.name = name
             }
             node += mesh
+
             meshesByMaterial.getOrPut(prim.material) { mutableSetOf() } += mesh
             meshMaterials[mesh] = prim.materialRef
+
+            prim.materialRef?.pbrMetallicRoughness?.baseColorTexture?.getTexture(context, gltfFile)?.also {
+                model.textures["albedo"] = it
+            }
             model.meshes[name] = mesh
         }
     }
@@ -122,9 +128,9 @@ private class GltfModelGenerator(val gltfFile: GltfFile, val gl: GL) {
 //            attribs += Attribute.EMISSIVE_COLOR
 //            attribs += Attribute.METAL_ROUGH
 //        }
-//        if (texCoordAcc != null) {
-//            attribs += Attribute.TEXTURE_COORDS
-//        }
+        if (texCoordAcc != null) {
+            attribs += VertexAttribute.TEX_COORDS(0)
+        }
 //        if (tangentAcc != null) {
 //            attribs += Attribute.TANGENTS
 //        } else if (materialRef?.normalTexture != null) {
@@ -158,8 +164,10 @@ private class GltfModelGenerator(val gltfFile: GltfFile, val gl: GL) {
                 poss.next(position)
                 nrms?.next(normal)
                 //      tans?.next(tangent)
-                //     texs?.next(texCoord)
-                cols?.next()?.let { col -> color.set(col) }
+                texs?.next(texCoords)
+                cols?.next()?.let { col ->
+                    color.set(col)
+                }
                 //     jnts?.next(joints)
                 //   wgts?.next(weights)
 

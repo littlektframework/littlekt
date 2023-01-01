@@ -1,10 +1,14 @@
 package com.lehaine.littlekt.file.gltf
 
+import com.lehaine.littlekt.Context
+import com.lehaine.littlekt.async.onRenderingThread
 import com.lehaine.littlekt.file.ByteBuffer
 import com.lehaine.littlekt.file.createByteBuffer
 import com.lehaine.littlekt.file.vfs.readPixmap
+import com.lehaine.littlekt.graphics.Pixmap
 import com.lehaine.littlekt.graphics.Texture
 import com.lehaine.littlekt.graphics.gl.PixmapTextureData
+import com.lehaine.littlekt.graphics.gl.TextureFormat
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import kotlinx.serialization.json.JsonObject
@@ -791,8 +795,9 @@ internal data class GltfTextureInfo(
     val strength: Float = 1f,
     val scale: Float = 1f,
 ) {
-    suspend fun getTexture(gltfFile: GltfFile): Texture {
+    suspend fun getTexture(context: Context, gltfFile: GltfFile): Texture {
         return gltfFile.textures[index].toTexture()
+            .also { onRenderingThread { it.prepare(context) } }
     }
 }
 
@@ -1128,7 +1133,12 @@ internal data class GltfTexture(
             if (uri != null) {
                 TODO("Load data url image")
             } else {
-                texture = Texture(PixmapTextureData(imageRef.bufferViewRef!!.getData().toArray().readPixmap(), true))
+                val pixmap = imageRef.bufferViewRef!!.getData().toArray().readPixmap()
+                val textureData = PixmapTextureData(pixmap, true).apply {
+                    format =
+                        if (pixmap.glFormat == TextureFormat.RGBA) Pixmap.Format.RGBA8888 else Pixmap.Format.RGB8888
+                }
+                texture = Texture(textureData)
             }
         }
         return texture!!
