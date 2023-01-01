@@ -65,7 +65,7 @@ class GltfTest(context: Context) : ContextListener(context) {
                 rotate(Vec3f.Y_AXIS, (-90).degrees)
             }.also { it.addTo(this) }
 
-            resourcesVfs["models/player.glb"].readGltfModel().apply {
+            resourcesVfs["models/flighthelmet/FlightHelmet.gltf"].readGltfModel().apply {
                 translate(-100f, 0f, 0f)
                 scale(85f)
             }.also { it.addTo(this) }
@@ -86,12 +86,12 @@ class GltfTest(context: Context) : ContextListener(context) {
             }
 
             meshNode {
-                mesh =  mesh(
+                mesh = mesh(
                     listOf(VertexAttribute.POSITION, VertexAttribute.NORMAL),
                     grow = true
                 ) {
                     generate {
-                        grid {  }
+                        grid { }
                     }
                 }
                 translate(0f, -50f, 0f)

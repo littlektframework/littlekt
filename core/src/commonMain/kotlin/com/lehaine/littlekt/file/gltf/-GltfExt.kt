@@ -8,6 +8,7 @@ import com.lehaine.littlekt.file.gltf.GltfMeshPrimitive.Companion.ATTRIBUTE_POSI
 import com.lehaine.littlekt.file.gltf.GltfMeshPrimitive.Companion.ATTRIBUTE_TANGENT
 import com.lehaine.littlekt.file.gltf.GltfMeshPrimitive.Companion.ATTRIBUTE_TEXCOORD_0
 import com.lehaine.littlekt.file.gltf.GltfMeshPrimitive.Companion.ATTRIBUTE_WEIGHTS_0
+import com.lehaine.littlekt.file.vfs.VfsFile
 import com.lehaine.littlekt.graph.node.node3d.MeshNode
 import com.lehaine.littlekt.graph.node.node3d.Model
 import com.lehaine.littlekt.graph.node.node3d.Node3D
@@ -22,12 +23,12 @@ import com.lehaine.littlekt.math.Mat4
 import com.lehaine.littlekt.math.Vec4f
 
 
-internal suspend fun GltfFile.toModel(context: Context, gl: GL): Model {
-    return GltfModelGenerator(context, this, gl).toModel(scenes[scene])
+internal suspend fun GltfFile.toModel(context: Context, gl: GL, file: VfsFile): Model {
+    return GltfModelGenerator(context, this, gl, file).toModel(scenes[scene])
 }
 
 
-private class GltfModelGenerator(val context: Context, val gltfFile: GltfFile, val gl: GL) {
+private class GltfModelGenerator(val context: Context, val gltfFile: GltfFile, val gl: GL, val root: VfsFile) {
     val modelAnimations = mutableListOf<GltfAnimation>()
     val modelNodes = mutableMapOf<GltfNode, Node3D>()
     val meshesByMaterial = mutableMapOf<Int, MutableSet<MeshNode>>()
@@ -87,8 +88,8 @@ private class GltfModelGenerator(val context: Context, val gltfFile: GltfFile, v
             meshesByMaterial.getOrPut(prim.material) { mutableSetOf() } += mesh
             meshMaterials[mesh] = prim.materialRef
 
-            prim.materialRef?.pbrMetallicRoughness?.baseColorTexture?.getTexture(context, gltfFile)?.also {
-                model.textures["albedo"] = it
+            prim.materialRef?.pbrMetallicRoughness?.baseColorTexture?.getTexture(context, gltfFile, root)?.also {
+                mesh.textures["albedo"] = it
             }
             model.meshes[name] = mesh
         }

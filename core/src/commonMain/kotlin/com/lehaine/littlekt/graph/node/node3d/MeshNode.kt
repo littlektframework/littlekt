@@ -7,6 +7,7 @@ import com.lehaine.littlekt.graph.node.annotation.SceneGraphDslMarker
 import com.lehaine.littlekt.graph.node.render.ModelMaterial
 import com.lehaine.littlekt.graphics.Camera
 import com.lehaine.littlekt.graphics.Mesh
+import com.lehaine.littlekt.graphics.Texture
 import com.lehaine.littlekt.graphics.g3d.model.Skin
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
@@ -41,6 +42,8 @@ inline fun SceneGraph<*>.meshNode(callback: @SceneGraphDslMarker MeshNode.() -> 
 class MeshNode : VisualInstance() {
     var mesh: Mesh? = null
     var morphWeights: FloatArray? = null
+
+    val textures = mutableMapOf<String, Texture>()
     var skin: Skin? = null
     var isOpaque = true
 
@@ -49,6 +52,13 @@ class MeshNode : VisualInstance() {
         val material = material ?: scene?.currentMaterial as? ModelMaterial ?: return
         material.shader?.let {
             mesh?.render(it)
+        }
+    }
+
+    override fun setMaterialParameters(material: ModelMaterial, camera: Camera) {
+        super.setMaterialParameters(material, camera)
+        textures["albedo"]?.let {
+            material.texture = it
         }
     }
 }

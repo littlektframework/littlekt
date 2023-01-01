@@ -10,11 +10,10 @@ import com.lehaine.littlekt.graphics.g3d.model.Skin
  * @author Colton Daily
  * @date 12/17/2022
  */
-class Model : VisualInstance() {
+class Model : Node3D() {
 
     val nodes3d = mutableMapOf<String, Node3D>()
     val meshes = mutableMapOf<String, MeshNode>()
-    val textures = mutableMapOf<String, Texture>()
 
     val animations = mutableListOf<Animation>()
     val skins = mutableListOf<Skin>()
@@ -45,13 +44,6 @@ class Model : VisualInstance() {
         }
         for (i in skins.indices) {
             skins[i].updateJointTransforms()
-        }
-    }
-
-    override fun setMaterialParameters(material: ModelMaterial, camera: Camera) {
-        super.setMaterialParameters(material, camera)
-        textures["albedo"]?.let {
-            material.texture = it
         }
     }
 }

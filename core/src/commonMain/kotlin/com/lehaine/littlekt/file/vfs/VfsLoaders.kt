@@ -12,6 +12,7 @@ import com.lehaine.littlekt.file.ldtk.LDtkMapData
 import com.lehaine.littlekt.file.ldtk.LDtkMapLoader
 import com.lehaine.littlekt.file.tiled.TiledMapData
 import com.lehaine.littlekt.file.tiled.TiledMapLoader
+import com.lehaine.littlekt.graph.node.node3d.Model
 import com.lehaine.littlekt.graphics.Pixmap
 import com.lehaine.littlekt.graphics.Texture
 import com.lehaine.littlekt.graphics.g2d.TextureAtlas
@@ -20,7 +21,6 @@ import com.lehaine.littlekt.graphics.g2d.font.*
 import com.lehaine.littlekt.graphics.g2d.tilemap.ldtk.LDtkLevel
 import com.lehaine.littlekt.graphics.g2d.tilemap.ldtk.LDtkWorld
 import com.lehaine.littlekt.graphics.g2d.tilemap.tiled.TiledMap
-import com.lehaine.littlekt.graph.node.node3d.Model
 import com.lehaine.littlekt.graphics.gl.TexMagFilter
 import com.lehaine.littlekt.graphics.gl.TexMinFilter
 import com.lehaine.littlekt.math.MutableVec4i
@@ -317,13 +317,13 @@ suspend fun VfsFile.readGltfModel(): Model {
     }
     file.buffers.filter { it.uri != null }.forEach {
         val uri = it.uri!!
-        val bufferPath = if (uri.startsWith("data:", true)) VfsFile(vfs, uri) else VfsFile(vfs, "$path/$uri")
+        val bufferPath = if (uri.startsWith("data:", true)) VfsFile(vfs, uri) else VfsFile(vfs, "${parent.path}/$uri")
         it.data = bufferPath.read()
     }
     //  file.images.filter { it.uri != null }.forEach { it.uri = "" }
     file.updateReferences()
 
-    return file.toModel(vfs.context, vfs.context.gl)
+    return file.toModel(vfs.context, vfs.context.gl, this)
 }
 
 private fun VfsFile.isGltf() = path.endsWith(".gltf", true) || path.endsWith(".gltf.gz", true)

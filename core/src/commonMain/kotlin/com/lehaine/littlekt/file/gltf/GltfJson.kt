@@ -4,6 +4,7 @@ import com.lehaine.littlekt.Context
 import com.lehaine.littlekt.async.onRenderingThread
 import com.lehaine.littlekt.file.ByteBuffer
 import com.lehaine.littlekt.file.createByteBuffer
+import com.lehaine.littlekt.file.vfs.VfsFile
 import com.lehaine.littlekt.file.vfs.readPixmap
 import com.lehaine.littlekt.graphics.Pixmap
 import com.lehaine.littlekt.graphics.Texture
@@ -795,8 +796,8 @@ internal data class GltfTextureInfo(
     val strength: Float = 1f,
     val scale: Float = 1f,
 ) {
-    suspend fun getTexture(context: Context, gltfFile: GltfFile): Texture {
-        return gltfFile.textures[index].toTexture()
+    suspend fun getTexture(context: Context, gltfFile: GltfFile, root: VfsFile): Texture {
+        return gltfFile.textures[index].toTexture(root)
             .also { onRenderingThread { it.prepare(context) } }
     }
 }
@@ -1127,19 +1128,19 @@ internal data class GltfTexture(
     @Transient
     private var texture: Texture? = null
 
-    suspend fun toTexture(): Texture {
+    suspend fun toTexture(root: VfsFile): Texture {
         if (texture == null) {
             val uri = imageRef.uri
-            if (uri != null) {
-                TODO("Load data url image")
+            val pixmap = if (uri != null) {
+                VfsFile(root.vfs, "${root.parent.path}/$uri").readPixmap()
             } else {
-                val pixmap = imageRef.bufferViewRef!!.getData().toArray().readPixmap()
-                val textureData = PixmapTextureData(pixmap, true).apply {
-                    format =
-                        if (pixmap.glFormat == TextureFormat.RGBA) Pixmap.Format.RGBA8888 else Pixmap.Format.RGB8888
-                }
-                texture = Texture(textureData)
+                imageRef.bufferViewRef!!.getData().toArray().readPixmap()
             }
+            val textureData = PixmapTextureData(pixmap, true).apply {
+                format =
+                    if (pixmap.glFormat == TextureFormat.RGBA) Pixmap.Format.RGBA8888 else Pixmap.Format.RGB8888
+            }
+            texture = Texture(textureData)
         }
         return texture!!
     }
