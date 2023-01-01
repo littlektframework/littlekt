@@ -13,7 +13,8 @@ class PixmapTextureData(override val pixmap: Pixmap, override val useMipMaps: Bo
         get() = pixmap.width
     override val height: Int
         get() = pixmap.height
-    override var format: Pixmap.Format = Pixmap.Format.RGBA8888
+    override var format: Pixmap.Format =
+        if (pixmap.glFormat == TextureFormat.RGB) Pixmap.Format.RGB8888 else Pixmap.Format.RGBA8888
     override val isPrepared: Boolean = true
     override val isCustom: Boolean = false
 
@@ -25,7 +26,7 @@ class PixmapTextureData(override val pixmap: Pixmap, override val useMipMaps: Bo
         return pixmap
     }
 
-    override fun consumeCustomData(context:Context, target: TextureTarget) {
+    override fun consumeCustomData(context: Context, target: TextureTarget) {
         throw RuntimeException("This TextureData implementation does not upload data itself")
     }
 }

@@ -127,7 +127,6 @@ private fun TextureData.generateMipMapDesktop(
         || context.graphics.supportsExtension("GL_EXT_framebuffer_object")
         || context.graphics.isGL30
     ) {
-        println("mipmap for pixamp of format ${pixmap.glFormat}")
         gl.texImage2D(
             target = target,
             level = 0,

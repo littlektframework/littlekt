@@ -79,7 +79,6 @@ internal object ImageUtils {
         val bytes = imgBuf.bankData[0]
         val nPixels = image.width * image.height * dstFormat.channels
 
-        println("fast copy")
         if (dstFormat == TextureFormat.RGBA && bytes.size == nPixels) {
             for (i in 0 until nPixels step 4) {
                 // swap byte order (abgr -> rgba)
@@ -117,7 +116,6 @@ internal object ImageUtils {
         width: Int,
         height: Int,
     ) {
-        println("slow copy: $dstFormat")
         val pixel = IntArray(4)
         val model = image.colorModel
         val sizes = IntArray(4) { i -> (1 shl model.componentSize[i % model.componentSize.size]) - 1 }
