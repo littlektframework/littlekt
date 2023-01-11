@@ -144,10 +144,10 @@ abstract class CanvasItem : Node() {
      */
     var globalPosition: Vec2f
         get() {
-            updateHierarchy()
+            updateTransform()
             if (_globalPositionDirty) {
                 (parent as? CanvasItem)?.let {
-                    it.updateHierarchy()
+                    it.updateTransform()
                     _globalPosition.set(_localPosition).mul(it._globalTransform)
                 } ?: run {
                     _globalPosition.set(_localPosition)
@@ -193,7 +193,7 @@ abstract class CanvasItem : Node() {
      */
     var position: Vec2f
         get() {
-            updateHierarchy()
+            updateTransform()
             return _localPosition
         }
         set(value) {
@@ -231,7 +231,7 @@ abstract class CanvasItem : Node() {
      */
     var globalRotation: Angle
         get() {
-            updateHierarchy()
+            updateTransform()
             return _globalRotation
         }
         set(value) {
@@ -244,7 +244,7 @@ abstract class CanvasItem : Node() {
      */
     var rotation: Angle
         get() {
-            updateHierarchy()
+            updateTransform()
             return _localRotation
         }
         set(value) {
@@ -258,7 +258,7 @@ abstract class CanvasItem : Node() {
      */
     var globalScale: Vec2f
         get() {
-            updateHierarchy()
+            updateTransform()
             return _globalScale
         }
         set(value) {
@@ -299,7 +299,7 @@ abstract class CanvasItem : Node() {
      */
     var scale: Vec2f
         get() {
-            updateHierarchy()
+            updateTransform()
             return _localScale
         }
         set(value) {
@@ -336,7 +336,7 @@ abstract class CanvasItem : Node() {
 
     val globalInverseTransform: Mat3
         get() {
-            updateHierarchy()
+            updateTransform()
             if (_globalInverseDirty) {
                 _globalInverseTransform.set(_globalTransform).invert()
                 _globalInverseDirty = false
@@ -346,7 +346,7 @@ abstract class CanvasItem : Node() {
 
     val localToGlobalTransform: Mat3
         get() {
-            updateHierarchy()
+            updateTransform()
             return _globalTransform
         }
 
@@ -360,7 +360,7 @@ abstract class CanvasItem : Node() {
         get() {
             if (_globalToLocalDirty) {
                 (parent as? CanvasItem)?.let {
-                    it.updateHierarchy()
+                    it.updateTransform()
                     _globalToLocalTransform.set(it.globalInverseTransform)
                 } ?: run {
                     _globalToLocalTransform.setToIdentity()
@@ -631,7 +631,7 @@ abstract class CanvasItem : Node() {
 
     private fun updateGlobalPosition() {
         _localPosition.set(_globalPosition)
-        updateHierarchy()
+        updateTransform()
         if (parent is CanvasItem) {
             _localPosition.mul(globalToLocalTransform)
         }
@@ -840,11 +840,11 @@ abstract class CanvasItem : Node() {
     protected open fun onHierarchyChanged(flag: Int) {}
 
     /**
-     * Updates the current [CanvasItem] hierarchy if it is dirty.
+     * Updates the current [CanvasItem] transform if it is dirty.
      */
-    open fun updateHierarchy() {
+    open fun updateTransform() {
         if (hierarchyDirty != CLEAN) {
-            (parent as? CanvasItem)?.updateHierarchy()
+            (parent as? CanvasItem)?.updateTransform()
             if (_localDirty) {
                 if (_localPositionDirty) {
                     _translationMatrix.setToTranslate(_localPosition)

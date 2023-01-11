@@ -5,10 +5,8 @@ import com.lehaine.littlekt.graph.node.CanvasLayer
 import com.lehaine.littlekt.graph.node.Node
 import com.lehaine.littlekt.graph.node.addTo
 import com.lehaine.littlekt.graph.node.annotation.SceneGraphDslMarker
-import com.lehaine.littlekt.graph.node.node2d.Camera2D
 import com.lehaine.littlekt.graphics.Camera
 import com.lehaine.littlekt.math.MutableVec4f
-import com.lehaine.littlekt.math.MutableVec4i
 import com.lehaine.littlekt.math.Vec3f
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind

@@ -12,8 +12,6 @@ import com.lehaine.littlekt.graph.sceneGraph
 import com.lehaine.littlekt.graphics.Color
 import com.lehaine.littlekt.graphics.VertexAttribute
 import com.lehaine.littlekt.graphics.gl.ClearBufferMask
-import com.lehaine.littlekt.graphics.gl.CompareFunction
-import com.lehaine.littlekt.graphics.gl.State
 import com.lehaine.littlekt.graphics.mesh
 import com.lehaine.littlekt.input.Key
 import com.lehaine.littlekt.math.Vec3f

@@ -2,8 +2,6 @@ package com.lehaine.littlekt.math
 
 import com.lehaine.littlekt.file.FloatBuffer
 import com.lehaine.littlekt.math.geom.Angle
-import com.lehaine.littlekt.math.geom.degrees
-import com.lehaine.littlekt.math.geom.radians
 import com.lehaine.littlekt.util.internal.lock
 import kotlin.math.*
 
@@ -283,7 +281,27 @@ open class Mat4 {
     fun set(qx: Float, qy: Float, qz: Float, qw: Float) = set(0f, 0f, 0f, qx, qy, qz, qw)
 
     /**
-     * Sets the matrix to a rotation matrix representing the translation and quaternion.
+     * Sets the matrix to a rotation matrix representing the translation, quaternion, and scale.
+     * @param translation the translation component
+     * @param quaternion the rotation component
+     * @param scale the scale component
+     * @return this matrix
+     */
+    fun set(translation: Vec3f, quaternion: Vec4f, scale: Vec3f) = set(
+        translation.x,
+        translation.y,
+        translation.z,
+        quaternion.x,
+        quaternion.y,
+        quaternion.z,
+        quaternion.w,
+        scale.x,
+        scale.y,
+        scale.z
+    )
+
+    /**
+     * Sets the matrix to a rotation matrix representing the translation, quaternion, and scale.
      * @param tx The X component of the translation that is to be used to set this matrix.
      * @param ty The Y component of the translation that is to be used to set this matrix.
      * @param tz The Z component of the translation that is to be used to set this matrix.
@@ -973,6 +991,8 @@ open class Mat4 {
         m22 = z
         return this
     }
+
+    fun setToScaling(scale: Vec3f): Mat4 = setToScaling(scale.x, scale.y, scale.z)
 
     /**
      * Sets the matrix to a look at matrix with a direction and an up vector. Multiply with a translation matrix to get a camera
