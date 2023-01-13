@@ -309,7 +309,7 @@ expect suspend fun VfsFile.writePixmap(pixmap: Pixmap)
  * Loads a glTF / glb model from the path and converts it to a [Model].
  * @return a new [Model]
  */
-suspend fun VfsFile.readGltfModel(): Model {
+suspend fun VfsFile.readGltfModel(loadTexturesAsynchronously: Boolean = false): Model {
     val file: GltfFile = when {
         isGltf() -> loadGltf()
         isBinaryGltf() -> loadBinaryGltf()
@@ -323,7 +323,7 @@ suspend fun VfsFile.readGltfModel(): Model {
     //  file.images.filter { it.uri != null }.forEach { it.uri = "" }
     file.updateReferences()
 
-    return file.toModel(vfs.context, vfs.context.gl, this)
+    return file.toModel(vfs.context, vfs.context.gl, this, loadTexturesAsynchronously)
 }
 
 private fun VfsFile.isGltf() = path.endsWith(".gltf", true) || path.endsWith(".gltf.gz", true)

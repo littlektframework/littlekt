@@ -1,6 +1,8 @@
 package com.lehaine.littlekt.file.gltf
 
 import com.lehaine.littlekt.Context
+import com.lehaine.littlekt.async.KtScope
+import com.lehaine.littlekt.async.newSingleThreadAsyncContext
 import com.lehaine.littlekt.file.gltf.GltfMeshPrimitive.Companion.ATTRIBUTE_COLOR_0
 import com.lehaine.littlekt.file.gltf.GltfMeshPrimitive.Companion.ATTRIBUTE_JOINTS_0
 import com.lehaine.littlekt.file.gltf.GltfMeshPrimitive.Companion.ATTRIBUTE_NORMAL
@@ -21,10 +23,16 @@ import com.lehaine.littlekt.graphics.util.MeshGeometry
 import com.lehaine.littlekt.log.Logger
 import com.lehaine.littlekt.math.Mat4
 import com.lehaine.littlekt.math.Vec4f
+import kotlinx.coroutines.launch
 
 
-internal suspend fun GltfFile.toModel(context: Context, gl: GL, file: VfsFile): Model {
-    return GltfModelGenerator(context, this, gl, file).toModel(scenes[scene])
+internal suspend fun GltfFile.toModel(
+    context: Context,
+    gl: GL,
+    file: VfsFile,
+    loadTextureAsynchronously: Boolean,
+): Model {
+    return GltfModelGenerator(context, this, gl, file).toModel(scenes[scene], loadTextureAsynchronously)
 }
 
 
@@ -33,12 +41,14 @@ private class GltfModelGenerator(val context: Context, val gltfFile: GltfFile, v
     val modelNodes = mutableMapOf<GltfNode, Node3D>()
     val meshesByMaterial = mutableMapOf<Int, MutableSet<MeshNode>>()
     val meshMaterials = mutableMapOf<MeshNode, GltfMaterial?>()
-    suspend fun toModel(scene: GltfScene): Model {
+    suspend fun toModel(scene: GltfScene, loadTextureAsynchronously: Boolean): Model {
         val model = Model().apply { name = scene.name ?: "model_scene" }
         scene.nodeRefs.forEach { nd -> model += nd.toNode(model) }
         // TODO create transition animations
         // TODO create skins
-        modelNodes.forEach { (gltfNode, node) -> gltfNode.createMeshes(model, node) }
+        modelNodes.forEach { (gltfNode, node) ->
+            gltfNode.createMeshes(model, node, loadTextureAsynchronously)
+        }
         // TODO create morph animations
 
         // TODO apply transforms
@@ -75,7 +85,7 @@ private class GltfModelGenerator(val context: Context, val gltfFile: GltfFile, v
         return node
     }
 
-    suspend fun GltfNode.createMeshes(model: Model, node: Node3D) {
+    suspend fun GltfNode.createMeshes(model: Model, node: Node3D, loadTextureAsynchronously: Boolean) {
         meshRef?.primitives?.forEachIndexed { index, prim ->
             val name = "${meshRef?.name ?: "${node.name}.mesh"}_$index"
             val geometry = prim.toGeometry(gltfFile.accessors)
@@ -88,10 +98,20 @@ private class GltfModelGenerator(val context: Context, val gltfFile: GltfFile, v
             meshesByMaterial.getOrPut(prim.material) { mutableSetOf() } += mesh
             meshMaterials[mesh] = prim.materialRef
 
-            prim.materialRef?.pbrMetallicRoughness?.baseColorTexture?.getTexture(context, gltfFile, root)?.also {
-                mesh.textures["albedo"] = it
+            if (loadTextureAsynchronously) {
+                KtScope.launch(newSingleThreadAsyncContext()) {
+                    mesh.loadTextures(context, prim)
+                }
+            } else {
+                mesh.loadTextures(context, prim)
             }
             model.meshes[name] = mesh
+        }
+    }
+
+    suspend fun MeshNode.loadTextures(context: Context, prim: GltfMeshPrimitive) {
+        prim.materialRef?.pbrMetallicRoughness?.baseColorTexture?.getTexture(context, gltfFile, root)?.also {
+            textures["albedo"] = it
         }
     }
 

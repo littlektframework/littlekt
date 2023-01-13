@@ -4,7 +4,6 @@ import com.lehaine.littlekt.Context
 import com.lehaine.littlekt.ContextListener
 import com.lehaine.littlekt.file.vfs.readGltfModel
 import com.lehaine.littlekt.graph.node.addTo
-import com.lehaine.littlekt.graph.node.node3d.Model
 import com.lehaine.littlekt.graph.node.node3d.camera3d
 import com.lehaine.littlekt.graph.node.node3d.directionalLight
 import com.lehaine.littlekt.graph.node.node3d.meshNode
@@ -37,7 +36,7 @@ class GltfTest(context: Context) : ContextListener(context) {
                 rotate(y = (-90).degrees)
             }.also { it.addTo(this) }
 
-            resourcesVfs["models/flighthelmet/FlightHelmet.gltf"].readGltfModel().apply {
+            resourcesVfs["models/flighthelmet/FlightHelmet.gltf"].readGltfModel(loadTexturesAsynchronously = true).apply {
                 translate(-100f, 0f, 0f)
                 scale(200f)
             }.also { it.addTo(this) }
