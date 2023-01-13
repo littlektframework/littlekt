@@ -105,7 +105,7 @@ interface AnimationNode {
 }
 
 class AnimatedTransformGroup(val target: Node3D) : AnimationNode {
-    override val name: String?
+    override val name: String
         get() = target.name
 
     private val initTranslation = MutableVec3f()

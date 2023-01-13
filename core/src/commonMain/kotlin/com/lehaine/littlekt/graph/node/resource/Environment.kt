@@ -21,6 +21,6 @@ class Environment {
         material.specularStrength = specularStrength
         material.lightColor = ambientColor
 
-        material.lightPosition = lights[0].globalCenter
+        material.lightPosition = lights[0].globalPosition
     }
 }

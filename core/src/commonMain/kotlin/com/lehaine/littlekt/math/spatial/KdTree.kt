@@ -4,7 +4,7 @@ import com.lehaine.littlekt.math.MutableVec3f
 import com.lehaine.littlekt.math.partition
 
 /**
- * @author fabmax
+ * Source from [kool] engine.
  */
 
 open class KdTree<T: Any>(items: List<T>, itemAdapter: ItemAdapter<T>, bucketSz: Int = 10) : SpatialTree<T>(itemAdapter) {

@@ -8,7 +8,7 @@ import kotlin.math.*
 import kotlin.time.Duration
 
 /**
- * @author fabmax
+ * Source from [kool] engine.
  */
 abstract class Animator<V, out T : InterpolatedValue<V>>(val value: T) {
     companion object {

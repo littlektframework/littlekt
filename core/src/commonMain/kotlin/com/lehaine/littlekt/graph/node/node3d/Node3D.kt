@@ -1,162 +1,462 @@
 package com.lehaine.littlekt.graph.node.node3d
 
 import com.lehaine.littlekt.graph.node.Node
-import com.lehaine.littlekt.math.Mat4
-import com.lehaine.littlekt.math.MutableVec3f
-import com.lehaine.littlekt.math.Vec3f
+import com.lehaine.littlekt.math.*
 import com.lehaine.littlekt.math.geom.Angle
-import com.lehaine.littlekt.math.spatial.BoundingBox
 import com.lehaine.littlekt.util.LazyMat4
 
 /**
+ * Based off of the kool engine implementation.
  * @author Colton Daily
  * @date 12/17/2022
  */
 open class Node3D : Node() {
-    protected val childrenBounds = BoundingBox()
+    /**
+     * Global transform. Product of [_transform] and the [_transform] of the parent [Node3D].
+     */
+    val globalTransform: Mat4
+        get() {
+            updateTransform()
+            return _globalTransform
+        }
+
+
+    private val _globalTransform = Mat4()
+
+    val globalToLocalTransform: Mat4
+        get() {
+            (parent as? Node3D)?.let {
+                it.updateTransform()
+                _globalToLocalTransform.set(it.globalInverseTransform)
+            } ?: run {
+                _globalToLocalTransform.setToIdentity()
+            }
+            return _globalToLocalTransform
+        }
+
+    private val _globalToLocalTransform = Mat4()
 
     /**
-     * Axis-aligned bounds of this node in local coordinates.
-     * Implementations should set and refresh their bounds on every frame if applicable.
+     * Local transform based on translation, scale, and rotation.
      */
-    val bounds = BoundingBox()
+    val transform: Mat4
+        get() {
+            updateTransform()
+            return _transform
+        }
+
+    private val _transform = Mat4()
 
     /**
-     * Center point of this node's bounds in global coordinates.
+     * The position of the [Node3D] in global space. If you want to set the [x,y] properties of this [Vec3f] then use
+     * the [globalX], [globalY], and [globalZ] properties of this [Node3D]
      */
-    val globalCenter: Vec3f get() = globalCenterMut
+    var globalPosition: Vec3f
+        get() {
+            updateTransform()
+            (parent as? Node3D)?.let {
+                _globalPosition.set(_localPosition).mul(it._globalPosition)
+            } ?: run {
+                _globalPosition.set(_localPosition)
+            }
+            return _globalPosition
+        }
+        set(value) {
+            globalPosition(value)
+        }
+
+    var globalX: Float
+        get() {
+            return globalPosition.x
+        }
+        set(value) {
+            if (value == _globalPosition.x) return
+            _globalPosition.x = value
+            updateGlobalPosition()
+        }
+    var globalY: Float
+        get() {
+            return globalPosition.y
+        }
+        set(value) {
+            if (value == _globalPosition.y) return
+            _globalPosition.y = value
+            updateGlobalPosition()
+        }
+    var globalZ: Float
+        get() {
+            return globalPosition.z
+        }
+        set(value) {
+            if (value == _globalPosition.z) return
+            _globalPosition.z = value
+            updateGlobalPosition()
+        }
 
     /**
-     * Radius of this node's bounding sphere in global coordinates.
+     * The position of the [Node3D] relative to the parent transform. If the [Node3D] has no parent or if the parent node is NOT
+     * a [Node3D], then it is the same a [globalPosition]. If you want to set the [x,y] properties of this [Vec3f] then use
+     * the [x], [y], and [z] properties of this [Node3D]
      */
-    var globalRadius = 0f
-        protected set
+    var position: Vec3f
+        get() {
+            updateTransform()
+            return _localPosition
+        }
+        set(value) {
+            position(value)
+        }
+
+    var x: Float
+        get() {
+            return position.x
+        }
+        set(value) {
+            if (value == _localPosition.x) {
+                return
+            }
+            _localPosition.x = value
+            setDirty()
+        }
+    var y: Float
+        get() {
+            return position.y
+        }
+        set(value) {
+            if (value == _localPosition.y) {
+                return
+            }
+            _localPosition.y = value
+            setDirty()
+        }
+    var z: Float
+        get() {
+            return position.z
+        }
+        set(value) {
+            if (value == _localPosition.z) {
+                return
+            }
+            _localPosition.z = value
+            setDirty()
+        }
 
 
-    protected val globalCenterMut = MutableVec3f()
-    protected val globalExtentMut = MutableVec3f()
+    /**
+     * The rotation of the [Node3D] in global space as a Quaternion.
+     */
+    var globalRotation: Vec4f
+        get() {
+            updateTransform()
+            return _globalRotation
+        }
+        set(value) {
+            globalRotation(value)
+        }
 
-    val modelMat = Mat4()
 
-    private val modelMatInvLazy = LazyMat4 { modelMat.invert(it) }
-    val modelMatInv: Mat4
-        get() = modelMatInvLazy.get()
+    /**
+     * The rotation of the [Node3D] relative to the parent transform's rotation as a Quaternion.
+     * If the [Node3D] has no parent or if the parent node is NOT a [Node3D], then it is the same a [globalRotation]
+     */
+    var rotation: Vec4f
+        get() {
+            updateTransform()
+            return _localRotation
+        }
+        set(value) {
+            rotation(value)
+        }
 
-    val transform = Mat4()
+    /**
+     * The global scale of the [Node3D]. If you want to set the [x,y] properties of this [Vec3f] then use
+     * the [globalScaleX], [globalScaleY], [globalScaleZ] properties of this [Node3D].
+     */
+    var globalScale: Vec3f
+        get() {
+            updateTransform()
+            return _globalScale
+        }
+        set(value) {
+            globalScale(value)
+        }
 
-    protected val invTransform = LazyMat4 { transform.invert(it) }
-    protected var isIdentity = false
+    /**
+     * The global x-scale of the [Node3D].
+     * @see globalScale
+     */
+    var globalScaleX: Float
+        get() {
+            return _globalScale.x
+        }
+        set(value) {
+            _globalScale.x = value
+            updateScale()
+        }
+
+    /**
+     * The global y-scale of the [Node3D].
+     * @see globalScale
+     */
+    var globalScaleY: Float
+        get() {
+            return _globalScale.y
+        }
+        set(value) {
+            _globalScale.y = value
+            updateScale()
+        }
+
+    /**
+     * The global z-scale of the [Node3D].
+     * @see globalScale
+     */
+    var globalScaleZ: Float
+        get() {
+            return _globalScale.z
+        }
+        set(value) {
+            _globalScale.z = value
+            updateScale()
+        }
+
+
+    /**
+     * The scale of the [Node3D] relative to the parent transform's scales. If the [Node3D] has no parent or if the parent node is NOT
+     * a [Node3D], then it is the same a [globalScale]. If you want to set the [x,y] properties of this [Vec3f] then use
+     * the [scaleX], [scaleY], [scaleZ] properties of this [Node3D].
+     */
+    var scale: Vec3f
+        get() {
+            updateTransform()
+            return _localScale
+        }
+        set(value) {
+            if (value == _localScale) {
+                return
+            }
+            _localScale.set(value)
+            setDirty()
+        }
+
+    /**
+     * The x-scale of the [Node3D] relative to the parent transform's scales.
+     * @see scale
+     */
+    var scaleX: Float
+        get() {
+            return _localScale.x
+        }
+        set(value) {
+            if (_localScale.x == value) return
+            _localScale.x = value
+            setDirty()
+        }
+
+    /**
+     * The y-scale of the [Node3D] relative to the parent transform's scales.
+     * @see scale
+     */
+    var scaleY: Float
+        get() {
+            return _localScale.y
+        }
+        set(value) {
+            if (_localScale.y == value) return
+            _localScale.y = value
+            setDirty()
+        }
+
+    /**
+     * The z-scale of the [Node3D] relative to the parent transform's scales.
+     * @see scale
+     */
+    var scaleZ: Float
+        get() {
+            return _localScale.z
+        }
+        set(value) {
+            if (_localScale.z == value) return
+            _localScale.z = value
+            setDirty()
+        }
+
+    private val globalInverseLazy = LazyMat4 { _globalTransform.invert(it) }
+    private val globalInverseTransform: Mat4
+        get() = globalInverseLazy.get()
+
+    private val invTransform = LazyMat4 { _transform.invert(it) }
+
+    private val _globalPosition = MutableVec3f()
+    private val _globalScale = MutableVec3f(1f, 1f, 1f)
+    private val _globalRotation = MutableVec4f(0f, 0f, 0f, 1f)
+
+    private val _localPosition = MutableVec3f()
+    private val _localScale = MutableVec3f(1f, 1f, 1f)
+    private val _localRotation = MutableVec4f(0f, 0f, 0f, 1f)
+
+    private var _rotationMatrix = Mat4()
+    private var _translationMatrix = Mat4()
+    private var _scaleMatrix = Mat4()
 
     private val tmpTransformVec = MutableVec3f()
-    private val tmpBounds = BoundingBox()
-
-    /**
-     * Determines whether this node is considered for ray-picking tests.
-     */
-    var isPickable = true
-
-    /**
-     * Determines whether this node is checked for visibility during rendering. If true the node is only rendered
-     * if it is within the camera frustum.
-     */
-    var isFrustumChecked = true
-
-    init {
-        setIdentity()
-
-        // be default, frustum culling is disabled for groups. Potential benefit is rather small, and it can cause
-        // problems if group content is not frustum checked as well (e.g. an instaned mesh)
-        isFrustumChecked = false
-
-        onUpdate += {
-            update()
-        }
-    }
 
     fun setDirty() {
         invTransform.isDirty = true
-        isIdentity = false
     }
 
 
-    /**
-     * Updates transforms and bounds.
-     */
-    fun update() {
-        // TODO need to refactor this to be similar to CanvasItem where the matrices and transforms are only updated
-        // when accessing
-        updateModelMat()
+    fun updateTransform() {
+        if (!invTransform.isDirty) return
 
-        // update global center and radius
-        toGlobal(globalCenterMut.set(bounds.center))
-        toGlobal(globalExtentMut.set(bounds.max))
-        globalRadius = globalCenter.distance(globalExtentMut)
-
-        // call update on all children and update group bounding box
-        childrenBounds.clear()
-        children.forEach {
-            if (it is Node3D) {
-                it.update()
-                childrenBounds.add(it.bounds)
-            }
-        }
-
-        // update bounds based on updated children bounds
-        setLocalBounds()
-        globalCenterMut.set(bounds.center)
-        globalExtentMut.set(bounds.max)
-        modelMat.transform(globalCenterMut)
-        modelMat.transform(globalExtentMut)
-        globalRadius = globalCenter.distance(globalExtentMut)
-
-        // transform group bounds
-        if (!bounds.isEmpty && !isIdentity) {
-            tmpBounds.clear()
-            tmpBounds.add(transform.transform(tmpTransformVec.set(bounds.min.x, bounds.min.y, bounds.min.z), 1f))
-            tmpBounds.add(transform.transform(tmpTransformVec.set(bounds.min.x, bounds.min.y, bounds.max.z), 1f))
-            tmpBounds.add(transform.transform(tmpTransformVec.set(bounds.min.x, bounds.max.y, bounds.min.z), 1f))
-            tmpBounds.add(transform.transform(tmpTransformVec.set(bounds.min.x, bounds.max.y, bounds.max.z), 1f))
-            tmpBounds.add(transform.transform(tmpTransformVec.set(bounds.max.x, bounds.min.y, bounds.min.z), 1f))
-            tmpBounds.add(transform.transform(tmpTransformVec.set(bounds.max.x, bounds.min.y, bounds.max.z), 1f))
-            tmpBounds.add(transform.transform(tmpTransformVec.set(bounds.max.x, bounds.max.y, bounds.min.z), 1f))
-            tmpBounds.add(transform.transform(tmpTransformVec.set(bounds.max.x, bounds.max.y, bounds.max.z), 1f))
-            bounds.set(tmpBounds)
-        }
-    }
-
-    fun setLocalBounds() {
-        bounds.set(childrenBounds)
-    }
-
-    fun updateModelMat() {
         val parent = parent as? Node3D
-        modelMat.set(parent?.modelMat ?: MODEL_MAT_IDENTITY)
-        modelMatInvLazy.isDirty = true
 
-        if (!isIdentity) {
-            modelMat.mul(transform)
+        parent?.updateTransform()
+
+        _translationMatrix.setToTranslate(_localPosition)
+        _rotationMatrix.setToRotation(_localRotation)
+        _scaleMatrix.setToScaling(_localScale)
+
+        _transform.set(_translationMatrix).mul(_rotationMatrix).mul(_scaleMatrix)
+
+        if (parent != null) {
+            _globalTransform.set(parent._globalTransform).mul(_transform)
+            _globalRotation.set(parent._globalRotation).add(_localRotation)
+            _globalScale.set(parent._globalScale).set(_localScale)
+
+        } else {
+            _globalTransform.set(_transform)
+            _globalRotation.set(_localRotation)
+            _globalScale.set(_localScale)
         }
     }
 
-    fun getTransform(result: Mat4): Mat4 = result.set(transform)
+    fun getTransform(result: Mat4): Mat4 = result.set(_transform)
 
     fun getInverseTransform(result: Mat4): Mat4 {
         return result.set(invTransform.get())
     }
 
-    override fun onChildAdded(child: Node) {
-        super.onChildAdded(child)
-
-        if (child is Node3D) {
-            bounds.add(child.bounds)
+    /**
+     * Sets the position of the [Node3D] in global space.
+     * @param value the new position
+     * @return the current [Node3D]
+     */
+    fun globalPosition(value: Vec3f): Node3D {
+        if (value == _globalPosition) {
+            return this
         }
+        _globalPosition.set(value)
+        updateGlobalPosition()
+        return this
+    }
+
+    private fun updateGlobalPosition() {
+        _localPosition.set(_globalPosition)
+        updateTransform()
+        if (parent is Node3D) {
+            _localPosition.mul(globalToLocalTransform)
+        }
+        setDirty()
+    }
+
+    /**
+     * Sets the position of the [Node3D] relative to the parent [Node]. If the [Node3D] has no parent or if the parent node is NOT
+     * a [Node3D], then it is the same a [globalPosition]
+     * @param value the new position
+     * @return the current [Node3D]
+     */
+    fun position(value: Vec3f): Node3D {
+        if (value == _localPosition) {
+            return this
+        }
+
+        _localPosition.set(value)
+        setDirty()
+
+        return this
+    }
+
+    /**
+     * Sets the rotation of the [Node3D] in global space to the given Quaternion.
+     * @param quaternion the new quaternion
+     * @return the current [Node3D]
+     */
+    fun globalRotation(quaternion: Vec4f): Node3D {
+        if (_globalRotation == quaternion) {
+            return this
+        }
+        _globalRotation.set(quaternion)
+        (parent as? Node3D)?.let {
+            _localRotation.set(it.globalRotation).add(quaternion)
+        } ?: run {
+            _localRotation.set(quaternion)
+        }
+
+        setDirty()
+
+        return this
+    }
+
+    /**
+     * Sets the rotation of the [Node3D] relative to the parent [Node3D] as a Quaternion.
+     * If the [Node3D] has no parent or if the parent node is NOT [Node3D], then it is the same a [globalRotation]
+     * @param quaternion the rotation quaternion
+     * @return the current [Node3D]
+     */
+    fun rotation(quaternion: Vec4f): Node3D {
+        if (_localRotation == quaternion) {
+            return this
+        }
+        _localRotation.set(quaternion)
+        setDirty()
+        return this
+    }
+
+    /**
+     * Sets the global scale of the [Node3D].
+     * @param value the new scale
+     * @return the current [Node3D]
+     */
+    fun globalScale(value: Vec3f): Node3D {
+        if (_globalScale == value) {
+            return this
+        }
+        _globalScale.set(value)
+        updateScale()
+        return this
+    }
+
+    /**
+     * Sets the global scale of the [Node3D].
+     * @param x the new x scale
+     * @param y the new y scale
+     * @param z the new z scale
+     * @return the current [Node3D]
+     */
+    fun globalScale(x: Float, y: Float): Node3D {
+        if (_globalScale.x == x && _globalScale.y == y && _globalScale.z == z) {
+            return this
+        }
+        _globalScale.set(x, y, z)
+        updateScale()
+        return this
+    }
+
+    private fun updateScale() {
+        _localScale.set(_globalScale)
+        val node3d = parent as? Node3D
+        if (node3d != null) {
+            _localScale /= node3d._globalScale
+        }
+        setDirty()
     }
 
     /**
      * Transforms [vec] in-place from local to global coordinates.
      */
     fun toGlobal(vec: MutableVec3f, w: Float = 1f): MutableVec3f {
-        modelMat.transform(vec, w)
+        _globalTransform.transform(vec, w)
         return vec
     }
 
@@ -164,57 +464,67 @@ open class Node3D : Node() {
      * Transforms [vec] in-place from global to local coordinates.
      */
     fun toLocal(vec: MutableVec3f, w: Float = 1f): MutableVec3f {
-        modelMatInv.transform(vec, w)
+        globalInverseTransform.transform(vec, w)
         return vec
     }
 
-    fun translate(t: Vec3f) = translate(t.x, t.y, t.z)
+    /**
+     * Translates the position by the offset vector in `local` coordinates.
+     * @param offset the amount to translate by
+     */
+    fun translate(offset: Vec3f) = translate(offset.x, offset.y, offset.z)
 
+    /**
+     * Translates the position by the offset vector in `local` coordinates.
+     * @param x the amount to translate x by
+     * @param y the amount to translate y by
+     */
     fun translate(tx: Float, ty: Float, tz: Float): Node3D {
-        transform.translate(tx, ty, tz)
-        setDirty()
+        if (tx != 0f || ty != 0f || tz != 0f) {
+            _localPosition.add(tx, ty, tz)
+            setDirty()
+        }
         return this
     }
 
 
-    fun rotate(axis: Vec3f, angle: Angle) = rotate(axis.x, axis.y, axis.z, angle)
-
-    fun rotate(axX: Float, axY: Float, axZ: Float, angle: Angle): Node3D {
-        transform.rotate(axX, axY, axZ, angle)
-        setDirty()
+    fun rotate(x: Angle = Angle.ZERO, y: Angle = Angle.ZERO, z: Angle = Angle.ZERO): Node3D {
+        if (x != Angle.ZERO || y != Angle.ZERO || z != Angle.ZERO) {
+            tempQuat.setEuler(x, y, z)
+            _localRotation.quatMul(tempQuat)
+            setDirty()
+        }
         return this
     }
 
     fun scale(s: Float) = scale(s, s, s)
 
     fun scale(sx: Float, sy: Float, sz: Float): Node3D {
-        transform.scale(sx, sy, sz)
-        setDirty()
+        if (sx != 1f || sy != 1f || sz != 1f) {
+            _localScale.x *= sx
+            _localScale.y *= sy
+            _localScale.z *= sz
+            setDirty()
+        }
         return this
     }
 
     fun mul(mat: Mat4): Node3D {
-        transform.mul(mat)
+        // TODO remove or rework since transform is overwritten
+        _transform.mul(mat)
         setDirty()
         return this
     }
-
-    fun set(mat: Mat4): Node3D {
-        transform.set(mat)
-        setDirty()
-        return this
-    }
-
 
     fun setIdentity(): Node3D {
-        transform.setToIdentity()
+        // TODO remove or rework since transform is overwritten
+        _transform.setToIdentity()
         invTransform.clear()
-        isIdentity = true
         return this
     }
 
     companion object {
-        private val MODEL_MAT_IDENTITY = Mat4()
+        private val tempQuat = MutableVec4f(0f, 0f, 0f, 1f)
     }
 
 }

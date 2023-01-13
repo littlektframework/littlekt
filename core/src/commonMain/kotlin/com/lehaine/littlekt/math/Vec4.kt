@@ -1,7 +1,9 @@
 package com.lehaine.littlekt.math
 
 import com.lehaine.littlekt.math.geom.Angle
+import com.lehaine.littlekt.math.geom.cosine
 import com.lehaine.littlekt.math.geom.radians
+import com.lehaine.littlekt.math.geom.sine
 import kotlin.math.PI
 import kotlin.math.asin
 import kotlin.math.atan2
@@ -292,6 +294,35 @@ open class MutableVec4f(x: Float, y: Float, z: Float, w: Float) : Vec4f(x, y, z,
         y = xyz.y
         z = xyz.z
         this.w = w
+        return this
+    }
+
+    fun setEuler(pitch: Angle, yaw: Angle, roll: Angle): MutableVec4f {
+        val hr = roll * 0.5f
+        val shr = hr.sine
+        val chr = hr.cosine
+
+        val hp = pitch * 0.5f
+        val shp = hp.sine
+        val chp = hp.cosine
+
+        val hy = yaw * 0.5f
+        val shy = hy.sine
+        val chy = hy.cosine
+
+        val chy_shp = chy * shp
+        val shy_chp = shy * chp
+        val chy_chp = chy * chp
+        val shy_shp = shy * shp
+
+        x =
+            (chy_shp * chr) + (shy_chp * shr) // cos(yaw/2) * sin(pitch/2) * cos(roll/2) + sin(yaw/2) * cos(pitch/2) * sin(roll/2)
+        y =
+            (shy_chp * chr) - (chy_shp * shr) // sin(yaw/2) * cos(pitch/2) * cos(roll/2) - cos(yaw/2) * sin(pitch/2) * sin(roll/2)
+        z =
+            (chy_chp * shr) - (shy_shp * chr) // cos(yaw/2) * cos(pitch/2) * sin(roll/2) - sin(yaw/2) * sin(pitch/2) * cos(roll/2)
+        w =
+            (chy_chp * chr) + (shy_shp * shr) // cos(yaw/2) * cos(pitch/2) * cos(roll/2) + sin(yaw/2) * sin(pitch/2) * sin(roll/2)
         return this
     }
 

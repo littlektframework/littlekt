@@ -8,6 +8,7 @@ import com.lehaine.littlekt.graph.node.annotation.SceneGraphDslMarker
 import com.lehaine.littlekt.graphics.Camera
 import com.lehaine.littlekt.math.MutableVec4f
 import com.lehaine.littlekt.math.Vec3f
+import com.lehaine.littlekt.math.geom.degrees
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
@@ -44,8 +45,6 @@ class Camera3D : VisualInstance() {
     var far: Float = 100f
     var fov: Float = 60f
 
-    private val rotation = MutableVec4f()
-
     /**
      * Disables other cameras sharing the same [CanvasLayer] or [SceneGraph.root].
      */
@@ -72,13 +71,12 @@ class Camera3D : VisualInstance() {
             camera.near = near
             camera.far = far
             camera.fov = fov
-            camera.position.set(globalCenter.x, globalCenter.y, globalCenter.z)
-            transform.getRotation(rotation)
+            camera.position.set(globalPosition.x, globalPosition.y, globalPosition.z)
             camera.direction.set(Vec3f.NEG_Z_AXIS)
             camera.up.set(Vec3f.Y_AXIS)
-            camera.rotate(rotation.pitch, Vec3f.X_AXIS)
-            camera.rotate(rotation.yaw, Vec3f.Y_AXIS)
-            camera.rotate(rotation.roll, Vec3f.NEG_Z_AXIS)
+            camera.rotate(globalRotation.pitch, Vec3f.X_AXIS)
+            camera.rotate(globalRotation.yaw, Vec3f.Y_AXIS)
+            camera.rotate(globalRotation.roll, Vec3f.NEG_Z_AXIS)
 
             camera.update()
         }

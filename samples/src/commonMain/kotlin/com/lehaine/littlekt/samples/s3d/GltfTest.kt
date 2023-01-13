@@ -4,7 +4,10 @@ import com.lehaine.littlekt.Context
 import com.lehaine.littlekt.ContextListener
 import com.lehaine.littlekt.file.vfs.readGltfModel
 import com.lehaine.littlekt.graph.node.addTo
-import com.lehaine.littlekt.graph.node.node3d.*
+import com.lehaine.littlekt.graph.node.node3d.Model
+import com.lehaine.littlekt.graph.node.node3d.camera3d
+import com.lehaine.littlekt.graph.node.node3d.directionalLight
+import com.lehaine.littlekt.graph.node.node3d.meshNode
 import com.lehaine.littlekt.graph.node.ui.control
 import com.lehaine.littlekt.graph.node.ui.label
 import com.lehaine.littlekt.graph.node.ui.paddedContainer
@@ -14,7 +17,6 @@ import com.lehaine.littlekt.graphics.VertexAttribute
 import com.lehaine.littlekt.graphics.gl.ClearBufferMask
 import com.lehaine.littlekt.graphics.mesh
 import com.lehaine.littlekt.input.Key
-import com.lehaine.littlekt.math.Vec3f
 import com.lehaine.littlekt.math.geom.degrees
 import com.lehaine.littlekt.util.seconds
 import kotlin.math.sin
@@ -29,6 +31,18 @@ class GltfTest(context: Context) : ContextListener(context) {
     override suspend fun Context.start() {
 
         val scene = sceneGraph(this) {
+
+            val duck = resourcesVfs["models/duck.glb"].readGltfModel().apply {
+                translate(100f, 0f, 0f)
+                rotate(y = (-90).degrees)
+            }.also { it.addTo(this) }
+
+            resourcesVfs["models/flighthelmet/FlightHelmet.gltf"].readGltfModel().apply {
+                translate(-100f, 0f, 0f)
+                scale(200f)
+            }.also { it.addTo(this) }
+
+
             camera3d {
                 active = true
                 far = 1000f
@@ -37,17 +51,17 @@ class GltfTest(context: Context) : ContextListener(context) {
                 onUpdate += {
                     val speed = 5f * if (input.isKeyPressed(Key.SHIFT_LEFT)) 10f else 1f
                     if (input.isKeyPressed(Key.W)) {
-                        rotate(Vec3f.X_AXIS, 1.degrees)
+                        rotate(1.degrees)
                     }
                     if (input.isKeyPressed(Key.S)) {
-                        rotate(Vec3f.X_AXIS, (-1).degrees)
+                        rotate((-1).degrees)
                     }
 
                     if (input.isKeyPressed(Key.A)) {
-                        rotate(Vec3f.Y_AXIS, 1.degrees)
+                        rotate(y = 1.degrees)
                     }
                     if (input.isKeyPressed(Key.D)) {
-                        rotate(Vec3f.Y_AXIS, (-1).degrees)
+                        rotate(y = (-1).degrees)
                     }
 
                     if (input.isKeyPressed(Key.Q)) {
@@ -56,17 +70,17 @@ class GltfTest(context: Context) : ContextListener(context) {
                     if (input.isKeyPressed(Key.E)) {
                         translate(0f, speed, 0f)
                     }
+
+                    if (input.isKeyPressed(Key.ARROW_UP)) {
+                        duck.z += speed
+                    }
+
+                    if (input.isKeyPressed(Key.ARROW_DOWN)) {
+                        duck.z -= speed
+                    }
+
                 }
             }
-            resourcesVfs["models/duck.glb"].readGltfModel().apply {
-                translate(100f, 0f, 0f)
-                rotate(Vec3f.Y_AXIS, (-90).degrees)
-            }.also { it.addTo(this) }
-
-            resourcesVfs["models/flighthelmet/FlightHelmet.gltf"].readGltfModel().apply {
-                translate(-100f, 0f, 0f)
-                scale(200f)
-            }.also { it.addTo(this) }
 
             meshNode {
                 mesh = mesh(
@@ -99,7 +113,9 @@ class GltfTest(context: Context) : ContextListener(context) {
                 var time = Duration.ZERO
                 translate(1.2f, 1f, 2f)
                 onUpdate += {
-                    transform.setToTranslate(1f + sin(time.seconds) * 2f, sin(time.seconds / 2f) * 1f, 0f)
+                    x = 1f + sin(time.seconds) * 2f
+                    y = sin(time.seconds / 2f) * 1f
+                    z = 0f
                     time += it
                 }
             }

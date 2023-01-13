@@ -237,6 +237,13 @@ open class MutableVec3f(x: Float, y: Float, z: Float) : Vec3f(x, y, z) {
         return this
     }
 
+    fun scale(xFactor: Float, yFactor: Float, zFactor: Float): MutableVec3f {
+        x *= xFactor
+        y *= yFactor
+        z *= zFactor
+        return this
+    }
+
     fun set(x: Float, y: Float, z: Float): MutableVec3f {
         this.x = x
         this.y = y
@@ -260,6 +267,10 @@ open class MutableVec3f(x: Float, y: Float, z: Float) : Vec3f(x, y, z) {
 
     operator fun divAssign(div: Float) {
         scale(1f / div)
+    }
+
+    operator fun divAssign(other: Vec3f) {
+        scale(1f / other.x, 1f / other.y, 1f / other.z)
     }
 
     operator fun minusAssign(other: Vec3f) {

@@ -279,7 +279,7 @@ open class VisualInstance : Node3D() {
 
     protected open fun setMaterialParameters(material: ModelMaterial, camera: Camera) {
         scene?.environment?.updateMaterial(material)
-        material.model = modelMat
+        material.model = globalTransform
         material.projection = camera.viewProjection
         material.viewPosition = camera.position
     }

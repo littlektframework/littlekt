@@ -9,9 +9,7 @@ import kotlin.math.min
 import kotlin.math.sqrt
 
 /**
- * A simple axis-aligned bounding box
- *
- * @author fabmax
+ * Source from [kool] engine.
  */
 open class BoundingBox() {
 
