@@ -66,8 +66,8 @@ class MeshNode : VisualInstance() {
         skin?.let {
             material.useJoints = true
             for (i in 0 until min(it.nodes.size, material.joints?.size ?: 0)) {
-                val join = it.nodes[i]
-                jointTransforms[i].set(join.jointTransform)
+                val joint = it.nodes[i]
+                jointTransforms[i].set(joint.jointTransform)
             }
             material.joints = jointTransforms
         } ?: run {

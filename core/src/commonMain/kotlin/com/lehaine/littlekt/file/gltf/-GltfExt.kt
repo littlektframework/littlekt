@@ -62,7 +62,6 @@ private class GltfModelGenerator(val context: Context, val gltfFile: GltfFile, v
 
         // TODO apply transforms if animations are empty
         // TODO merge meshes by material
-        model.removeEmptyNodes()
         return model
     }
 
@@ -369,7 +368,7 @@ private class GltfModelGenerator(val context: Context, val gltfFile: GltfFile, v
                 node.transform.mul(rotMat)
             }
             if (scale.isNotEmpty()) {
-                node.scale(scale[0], scale[1], scale[2])
+                node.scaling(scale[0], scale[1], scale[2])
             }
         }
 
@@ -542,18 +541,6 @@ private class GltfModelGenerator(val context: Context, val gltfFile: GltfFile, v
 //            verts.generateNormals()
 //        }
         return verts
-    }
-
-    private fun Node3D.removeEmptyNodes() {
-        val children = children.filterIsInstance<Node3D>()
-        val node3dName = Node3D::class.simpleName
-        children.forEach {
-            it.removeEmptyNodes()
-            // hacky - need to only remove empty Node3Ds that aren't a subtype.
-            if (it.children.isEmpty() && it::class.simpleName == node3dName) {
-                removeChild(it)
-            }
-        }
     }
 
 

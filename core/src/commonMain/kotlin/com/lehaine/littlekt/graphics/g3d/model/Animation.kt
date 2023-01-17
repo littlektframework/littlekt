@@ -125,14 +125,9 @@ class AnimatedTransformGroup(val target: Node3D) : AnimationNode {
     private val weightedTransformMat = Mat4()
 
     init {
-        val vec4 = MutableVec4f()
-        target.transform.getCol(3, vec4)
-        initTranslation.set(vec4.x, vec4.y, vec4.z)
+        target.transform.getTranslation(initTranslation)
         target.transform.getRotation(initRotation)
-        val sx = target.transform.getCol(0, vec4).length()
-        val sy = target.transform.getCol(0, vec4).length()
-        val sz = target.transform.getCol(0, vec4).length()
-        initScale.set(sx, sy, sz)
+        target.transform.getScale(initScale)
     }
 
     override fun initTransform() {
@@ -146,7 +141,7 @@ class AnimatedTransformGroup(val target: Node3D) : AnimationNode {
         target.translate(animTranslation)
         quatRotMat.setToRotation(animRotation)
         target.rotation(animRotation)
-        target.setScale(animScale.x, animScale.y, animScale.z)
+        target.scaling(animScale.x, animScale.y, animScale.z)
     }
 
     override fun applyTransformWeighted(weight: Float, firstWeightedTransform: Boolean) {
@@ -174,7 +169,7 @@ class AnimatedTransformGroup(val target: Node3D) : AnimationNode {
         if (!firstWeightedTransform) {
             tempVec3f.add(target.scale)
         }
-        target.setScale(tempVec3f.x, tempVec3f.y, tempVec3f.z)
+        target.scaling(tempVec3f.x, tempVec3f.y, tempVec3f.z)
 
         target.setDirty()
     }

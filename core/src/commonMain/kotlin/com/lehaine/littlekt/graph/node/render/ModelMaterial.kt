@@ -28,6 +28,7 @@ open class ModelMaterial(
             if (value != null) {
                 val shader = checkNotNull(shader) { "Shader is null! Unable to set u_projection." }
                 uProjection?.apply(shader, value)
+                    ?: error("Unable to set u_projection. u_projection uniform was either not created or set correctly.")
             }
         }
 
@@ -38,6 +39,7 @@ open class ModelMaterial(
                 val shader = checkNotNull(shader) { "Shader is null! Unable to set u_texture." }
                 value.bind()
                 uTexture?.apply(shader)
+                    ?: error("Unable to set u_texture. u_texture uniform was either not created or set correctly.")
             }
         }
     var model: Mat4? = null
@@ -46,6 +48,7 @@ open class ModelMaterial(
             if (value != null) {
                 val shader = checkNotNull(shader) { "Shader is null! Unable to set u_model." }
                 uModel?.apply(shader, value)
+                    ?: error("Unable to set u_model. u_model uniform was either not created or set correctly.")
             }
         }
 
@@ -55,6 +58,7 @@ open class ModelMaterial(
             if (value != null) {
                 val shader = checkNotNull(shader) { "Shader is null! Unable to set u_joints." }
                 uJoints?.apply(shader, value)
+                    ?: error("Unable to set u_joints. u_joints uniform was either not created or set correctly.")
             }
         }
 
@@ -64,6 +68,7 @@ open class ModelMaterial(
             field = value
             val shader = checkNotNull(shader) { "Shader is null! Unable to set u_useJoints." }
             uUseJoints?.apply(shader, value)
+                ?: error("Unable to set u_useJoints. u_useJoints uniform was either not created or set correctly.")
 
         }
 
@@ -72,6 +77,7 @@ open class ModelMaterial(
             field = value
             val shader = checkNotNull(shader) { "Shader is null! Unable to set u_lightColor." }
             uLightColor?.apply(shader, value)
+                ?: error("Unable to set u_lightColor. u_lightColor uniform was either not created or set correctly.")
         }
 
     var ambientStrength = 0.1f
@@ -79,13 +85,15 @@ open class ModelMaterial(
             field = value
             val shader = checkNotNull(shader) { "Shader is null! Unable to set u_ambientStrength." }
             uAmbientStrength?.apply(shader, value)
+                ?: error("Unable to set u_ambientStrength. u_ambientStrength uniform was either not created or set correctly.")
         }
 
     var specularStrength = 0.5f
         set(value) {
             field = value
             val shader = checkNotNull(shader) { "Shader is null! Unable to set u_specularStrength." }
-            uAmbientStrength?.apply(shader, value)
+            uSpecularStrength?.apply(shader, value)
+                ?: error("Unable to set u_specularStrength. u_specularStrength uniform was either not created or set correctly.")
         }
 
     var lightPosition: Vec3f? = null
@@ -94,6 +102,7 @@ open class ModelMaterial(
             if (value != null) {
                 val shader = checkNotNull(shader) { "Shader is null! Unable to set u_lightPosition." }
                 uLightPosition?.apply(shader, value)
+                    ?: error("Unable to set u_lightPosition. u_lightPosition uniform was either not created or set correctly.")
             }
         }
 
@@ -103,6 +112,7 @@ open class ModelMaterial(
             if (value != null) {
                 val shader = checkNotNull(shader) { "Shader is null! Unable to set u_viewPosition." }
                 uViewPosition?.apply(shader, value)
+                    ?: error("Unable to set u_viewPosition. u_viewPosition uniform was either not created or set correctly.")
             }
         }
 

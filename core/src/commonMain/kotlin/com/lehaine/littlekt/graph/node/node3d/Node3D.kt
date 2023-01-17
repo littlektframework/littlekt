@@ -178,12 +178,12 @@ open class Node3D : Node() {
             return _globalScale
         }
         set(value) {
-            globalScale(value)
+            globalScaling(value)
         }
 
     /**
      * The global x-scale of the [Node3D].
-     * @see globalScale
+     * @see globalScaling
      */
     var globalScaleX: Float
         get() {
@@ -196,7 +196,7 @@ open class Node3D : Node() {
 
     /**
      * The global y-scale of the [Node3D].
-     * @see globalScale
+     * @see globalScaling
      */
     var globalScaleY: Float
         get() {
@@ -209,7 +209,7 @@ open class Node3D : Node() {
 
     /**
      * The global z-scale of the [Node3D].
-     * @see globalScale
+     * @see globalScaling
      */
     var globalScaleZ: Float
         get() {
@@ -223,7 +223,7 @@ open class Node3D : Node() {
 
     /**
      * The scale of the [Node3D] relative to the parent transform's scales. If the [Node3D] has no parent or if the parent node is NOT
-     * a [Node3D], then it is the same a [globalScale]. If you want to set the [x,y] properties of this [Vec3f] then use
+     * a [Node3D], then it is the same a [globalScaling]. If you want to set the [x,y] properties of this [Vec3f] then use
      * the [scaleX], [scaleY], [scaleZ] properties of this [Node3D].
      */
     var scale: Vec3f
@@ -232,16 +232,12 @@ open class Node3D : Node() {
             return _localScale
         }
         set(value) {
-            if (value == _localScale) {
-                return
-            }
-            _localScale.set(value)
-            setDirty()
+            scaling(value)
         }
 
     /**
      * The x-scale of the [Node3D] relative to the parent transform's scales.
-     * @see scale
+     * @see scaling
      */
     var scaleX: Float
         get() {
@@ -255,7 +251,7 @@ open class Node3D : Node() {
 
     /**
      * The y-scale of the [Node3D] relative to the parent transform's scales.
-     * @see scale
+     * @see scaling
      */
     var scaleY: Float
         get() {
@@ -269,7 +265,7 @@ open class Node3D : Node() {
 
     /**
      * The z-scale of the [Node3D] relative to the parent transform's scales.
-     * @see scale
+     * @see scaling
      */
     var scaleZ: Float
         get() {
@@ -429,7 +425,7 @@ open class Node3D : Node() {
      * @param value the new scale
      * @return the current [Node3D]
      */
-    fun globalScale(value: Vec3f): Node3D {
+    fun globalScaling(value: Vec3f): Node3D {
         if (_globalScale == value) {
             return this
         }
@@ -445,7 +441,7 @@ open class Node3D : Node() {
      * @param z the new z scale
      * @return the current [Node3D]
      */
-    fun globalScale(x: Float, y: Float): Node3D {
+    fun globalScaling(x: Float, y: Float, z: Float): Node3D {
         if (_globalScale.x == x && _globalScale.y == y && _globalScale.z == z) {
             return this
         }
@@ -453,6 +449,44 @@ open class Node3D : Node() {
         updateScale()
         return this
     }
+
+    /**
+     * Sets the local scale of the [Node3D].
+     * @param value the new scale
+     * @return the current [Node3D]
+     */
+    fun scaling(value: Float) = scaling(value, value, value)
+
+    /**
+     * Sets the local scale of the [Node3D].
+     * @param value the new scale
+     * @return the current [Node3D]
+     */
+    fun scaling(value: Vec3f): Node3D {
+        if (_globalScale == value) {
+            return this
+        }
+        _localScale.set(value)
+        setDirty()
+        return this
+    }
+
+    /**
+     * Sets the local of the [Node3D].
+     * @param x the new x scale
+     * @param y the new y scale
+     * @param z the new z scale
+     * @return the current [Node3D]
+     */
+    fun scaling(x: Float, y: Float, z: Float): Node3D {
+        if (_localScale.x == x && _localScale.y == y && _localScale.z == z) {
+            return this
+        }
+        _localScale.set(x, y, z)
+        setDirty()
+        return this
+    }
+
 
     private fun updateScale() {
         _localScale.set(_globalScale)
@@ -487,8 +521,9 @@ open class Node3D : Node() {
 
     /**
      * Translates the position by the offset vector in `local` coordinates.
-     * @param x the amount to translate x by
-     * @param y the amount to translate y by
+     * @param tx the amount to translate x by
+     * @param ty the amount to translate y by
+     * @param tz the amount to translate z by
      */
     fun translate(tx: Float, ty: Float, tz: Float): Node3D {
         if (tx != 0f || ty != 0f || tz != 0f) {
@@ -498,7 +533,32 @@ open class Node3D : Node() {
         return this
     }
 
+    /**
+     * Translates the position by the offset vector in `global` coordinates.
+     * @param offset the amount to translate by
+     */
+    fun globalTranslate(offset: Vec3f) = globalTranslate(offset.x, offset.y, offset.z)
 
+    /**
+     * Translates the position by the offset vector in `global` coordinates.
+     * @param tx the amount to translate x by
+     * @param ty the amount to translate y by
+     * @param tz the amount to translate z by
+     */
+    fun globalTranslate(tx: Float, ty: Float, tz: Float): Node3D {
+        if (tx != 0f || ty != 0f || tz != 0f) {
+            _globalPosition.add(tx, ty, tz)
+            setDirty()
+        }
+        return this
+    }
+
+    /**
+     * Rotates in 'local' coordinates
+     * @param x the angle of the pitch
+     * @param y the angle of the yaw
+     * @param z the angle of the roll
+     */
     fun rotate(x: Angle = Angle.ZERO, y: Angle = Angle.ZERO, z: Angle = Angle.ZERO): Node3D {
         if (x != Angle.ZERO || y != Angle.ZERO || z != Angle.ZERO) {
             tempQuat.setEuler(x, y, z)
@@ -508,8 +568,34 @@ open class Node3D : Node() {
         return this
     }
 
+    /**
+     * Rotates in 'global' coordinates.
+     * @param x the angle of the pitch
+     * @param y the angle of the yaw
+     * @param z the angle of the roll
+     */
+    fun globalRotate(x: Angle = Angle.ZERO, y: Angle = Angle.ZERO, z: Angle = Angle.ZERO): Node3D {
+        if (x != Angle.ZERO || y != Angle.ZERO || z != Angle.ZERO) {
+            tempQuat.setEuler(x, y, z)
+            _globalRotation.quatMul(tempQuat)
+            setDirty()
+        }
+        return this
+    }
+
+    /**
+     * Scales up or down by a factor in 'local' coordinates.
+     * @param s the scale factor
+     */
     fun scale(s: Float) = scale(s, s, s)
 
+
+    /**
+     * Scales up or down by a factor in 'local' coordinates.
+     * @param sx the x-scale factor
+     * @param sy the y-scale factor
+     * @param sz the z-scale factor
+     */
     fun scale(sx: Float, sy: Float, sz: Float): Node3D {
         if (sx != 1f || sy != 1f || sz != 1f) {
             _localScale.x *= sx
@@ -520,15 +606,29 @@ open class Node3D : Node() {
         return this
     }
 
-    fun setScale(sx: Float, sy: Float, sz: Float): Node3D {
+    /**
+     * Scales up or down by a factor in 'global' coordinates.
+     * @param s the scale factor
+     */
+    fun globalScale(s: Float) = globalScale(s, s, s)
+
+
+    /**
+     * Scales up or down by a factor in 'global' coordinates.
+     * @param sx the x-scale factor
+     * @param sy the y-scale factor
+     * @param sz the z-scale factor
+     */
+    fun globalScale(sx: Float, sy: Float, sz: Float): Node3D {
         if (sx != 1f || sy != 1f || sz != 1f) {
-            _localScale.x = sx
-            _localScale.y = sy
-            _localScale.z = sz
-            setDirty()
+            _globalScale.x *= sx
+            _globalScale.y *= sy
+            _globalScale.z *= sz
+            updateScale()
         }
         return this
     }
+
 
     fun setIdentity(): Node3D {
         _localPosition.set(0f, 0f, 0f)

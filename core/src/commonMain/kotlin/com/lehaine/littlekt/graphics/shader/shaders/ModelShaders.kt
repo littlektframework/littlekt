@@ -47,7 +47,7 @@ open class ModelVertexShader(maxJoints: Int = 100, maxJointInfluence: Int = 4) :
         var totalLocalPosition by vec4 { vec4(a_position, 1f).lit }
 
         If(u_useJoints) {
-            totalLocalPosition = vec4(0f, 0f, 0f, 0f).lit
+            totalLocalPosition = vec4(0f, 0f, 0f, 1f).lit
             For(0, maxJointInfluence) { i ->
                 val jointId by int { a_joint[i].int }
                 If(jointId eq -1) {
