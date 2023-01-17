@@ -112,7 +112,7 @@ class GpuFont(
             if (rotation != Angle.ZERO) {
                 temp4.setToIdentity()
                 temp4.translate(tx, ty, 0f)
-                temp4.rotate(0f, 0f, rotation.degrees)
+                temp4.rotate(Angle.ZERO, Angle.ZERO, rotation)
             }
             run.glyphs.forEachIndexed { index, runGlyph ->
                 val char = runGlyph.code.toChar()

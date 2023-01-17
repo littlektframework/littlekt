@@ -46,6 +46,5 @@ class Model : VisualInstance() {
         skins.fastForEach {
             it.updateJointTransforms()
         }
-
     }
 }

@@ -52,6 +52,16 @@ open class ModelMaterial(
             }
         }
 
+    var modelInv: Mat4? = null
+        set(value) {
+            field = value
+            if (value != null) {
+                val shader = checkNotNull(shader) { "Shader is null! Unable to set u_modelInv." }
+                uModelInv?.apply(shader, value)
+                    ?: error("Unable to set u_modelInv. u_modelInv uniform was either not created or set correctly.")
+            }
+        }
+
     var joints: Array<Mat4>? = null
         set(value) {
             field = value
@@ -119,6 +129,7 @@ open class ModelMaterial(
     private var uProjection: ShaderParameter.UniformMat4? = null
     private var uTexture: ShaderParameter.UniformSample2D? = null
     private var uModel: ShaderParameter.UniformMat4? = null
+    private var uModelInv: ShaderParameter.UniformMat4? = null
 
     private var uJoints: ShaderParameter.UniformArrayMat4? = null
     private var uUseJoints: ShaderParameter.UniformBoolean? = null
@@ -136,6 +147,7 @@ open class ModelMaterial(
             when (it.name) {
                 U_PROJ_TRANS -> uProjection = it as ShaderParameter.UniformMat4
                 U_MODEL -> uModel = it as ShaderParameter.UniformMat4
+                U_MODEL_INV -> uModelInv = it as ShaderParameter.UniformMat4
                 U_JOINTS -> uJoints = it as ShaderParameter.UniformArrayMat4
                 U_USE_JOINTS -> uUseJoints = it as ShaderParameter.UniformBoolean
             }
@@ -157,6 +169,7 @@ open class ModelMaterial(
         val U_PROJ_TRANS = "u_projection"
         val U_TEXTURE = ShaderProgram.U_TEXTURE
         val U_MODEL = "u_model"
+        val U_MODEL_INV = "u_modelInv"
         val U_LIGHT_COLOR = "u_lightColor"
         val U_LIGHT_POSITION = "u_lightPosition"
         val U_AMBIENT_STRENGTH = "u_ambientStrength"

@@ -1,7 +1,6 @@
 package com.lehaine.littlekt.graph.node.node3d
 
 import com.lehaine.littlekt.graph.SceneGraph
-import com.lehaine.littlekt.graph.node.CanvasItem
 import com.lehaine.littlekt.graph.node.Node
 import com.lehaine.littlekt.graph.node.addTo
 import com.lehaine.littlekt.graph.node.annotation.SceneGraphDslMarker
@@ -358,7 +357,7 @@ open class Node3D : Node() {
     }
 
 
-    fun updateTransform() {
+    open fun updateTransform() {
         if (!dirty) return
 
         val parent = parent as? Node3D
@@ -469,7 +468,6 @@ open class Node3D : Node() {
             return this
         }
         _localRotation.set(quaternion)
-        _globalPositionDirty = true
         dirty()
         return this
     }
@@ -624,6 +622,11 @@ open class Node3D : Node() {
         if (x != Angle.ZERO || y != Angle.ZERO || z != Angle.ZERO) {
             tempQuat.setEuler(x, y, z)
             _globalRotation.quatMul(tempQuat)
+            (parent as? Node3D)?.let {
+                _localRotation.set(it.globalRotation).add(_globalRotation)
+            } ?: run {
+                _localRotation.set(_globalRotation)
+            }
             dirty()
         }
         return this

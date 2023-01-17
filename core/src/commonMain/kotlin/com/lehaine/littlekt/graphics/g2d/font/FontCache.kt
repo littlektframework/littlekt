@@ -1,12 +1,14 @@
 package com.lehaine.littlekt.graphics.g2d.font
 
 import com.lehaine.littlekt.graph.node.resource.HAlign
-import com.lehaine.littlekt.graphics.*
+import com.lehaine.littlekt.graphics.Color
+import com.lehaine.littlekt.graphics.MutableColor
+import com.lehaine.littlekt.graphics.Texture
 import com.lehaine.littlekt.graphics.g2d.Batch
+import com.lehaine.littlekt.graphics.toFloatBits
 import com.lehaine.littlekt.math.Mat4
 import com.lehaine.littlekt.math.geom.Angle
 import com.lehaine.littlekt.math.geom.cosine
-import com.lehaine.littlekt.math.geom.degrees
 import com.lehaine.littlekt.math.geom.sine
 import com.lehaine.littlekt.util.datastructure.FloatArrayList
 import com.lehaine.littlekt.util.datastructure.Pool
@@ -141,7 +143,7 @@ open class FontCache(val pages: Int = 1) {
         targetWidth: Float = 0f,
         align: HAlign = HAlign.LEFT,
         wrap: Boolean = false,
-        truncate: String? = null
+        truncate: String? = null,
     ) {
         clear()
         addText(font, text, x, y, scaleX, scaleY, rotation, color, targetWidth, align, wrap, truncate)
@@ -197,7 +199,7 @@ open class FontCache(val pages: Int = 1) {
         targetWidth: Float = 0f,
         align: HAlign = HAlign.LEFT,
         wrap: Boolean = false,
-        truncate: String? = null
+        truncate: String? = null,
     ) {
         val layout = layoutPool.alloc()
         pooledLayouts += layout
@@ -221,7 +223,7 @@ open class FontCache(val pages: Int = 1) {
     }
 
     private fun addToCache(
-        layout: GlyphLayout, x: Float, y: Float, scaleX: Float, scaleY: Float, rotation: Angle, color: Color
+        layout: GlyphLayout, x: Float, y: Float, scaleX: Float, scaleY: Float, rotation: Angle, color: Color,
     ) {
         layouts += layout
         layout.runs.forEach { run ->
@@ -232,7 +234,7 @@ open class FontCache(val pages: Int = 1) {
             if (rotation != Angle.ZERO) {
                 temp4.setToIdentity()
                 temp4.translate(tx, ty, 0f)
-                temp4.rotate(0f, 0f, rotation.degrees)
+                temp4.rotate(Angle.ZERO, Angle.ZERO, rotation)
             }
             run.glyphs.forEachIndexed { index, glyph ->
                 tx += run.advances[index]

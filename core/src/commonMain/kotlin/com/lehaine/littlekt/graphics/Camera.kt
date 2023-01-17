@@ -105,8 +105,14 @@ abstract class Camera {
     }
 
     fun rotate(angle: Angle, axis: Vec3f) {
+        if (angle == Angle.ZERO) return
         direction.rotate(angle, axis)
         up.rotate(angle, axis)
+    }
+
+    fun rotate(quaternion:Vec4f) {
+        quaternion.transform(direction, direction)
+        quaternion.transform(up, up)
     }
 
     fun rotateAround(point: Vec3f, axis: Vec3f, angle: Angle) {
@@ -545,7 +551,7 @@ abstract class Camera {
 open class OrthographicCamera(virtualWidth: Float = 0f, virtualHeight: Float = 0f) : Camera() {
     constructor(virtualWidth: Int, virtualHeight: Int) : this(virtualWidth.toFloat(), virtualHeight.toFloat())
 
-    override val direction: MutableVec3f =  MutableVec3f(Vec3f.Z_AXIS)
+    override val direction: MutableVec3f = MutableVec3f(Vec3f.Z_AXIS)
     override val up: MutableVec3f = MutableVec3f(Vec3f.NEG_Y_AXIS)
 
     private val tempCenter = MutableVec3f()
@@ -632,7 +638,7 @@ open class OrthographicCamera(virtualWidth: Float = 0f, virtualHeight: Float = 0
 open class PerspectiveCamera(virtualWidth: Float = 0f, virtualHeight: Float = 0f) : Camera() {
     constructor(virtualWidth: Int, virtualHeight: Int) : this(virtualWidth.toFloat(), virtualHeight.toFloat())
 
-    override val direction: MutableVec3f =  MutableVec3f(Vec3f.NEG_Z_AXIS)
+    override val direction: MutableVec3f = MutableVec3f(Vec3f.NEG_Z_AXIS)
     override val up: MutableVec3f = MutableVec3f(Vec3f.Y_AXIS)
     var fovX = 0f
         private set

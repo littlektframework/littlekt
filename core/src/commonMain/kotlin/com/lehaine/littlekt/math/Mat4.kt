@@ -419,7 +419,7 @@ open class Mat4 {
 
     fun rotate(axis: Vec3f, angle: Angle) = rotate(axis.x, axis.y, axis.z, angle)
 
-    fun rotate(eulerX: Float, eulerY: Float, eulerZ: Float): Mat4 {
+    fun rotate(eulerX: Angle, eulerY: Angle, eulerZ: Angle): Mat4 {
         return lock(tmpMatLock) {
             tmpMatA.setFromEulerAngles(eulerX, eulerY, eulerZ)
             set(mul(tmpMatA, tmpMatB))
@@ -435,7 +435,7 @@ open class Mat4 {
 
     fun rotate(axis: Vec3f, angle: Angle, result: Mat4) = rotate(axis.x, axis.y, axis.z, angle, result)
 
-    fun rotate(eulerX: Float, eulerY: Float, eulerZ: Float, result: Mat4): Mat4 {
+    fun rotate(eulerX: Angle, eulerY: Angle, eulerZ: Angle, result: Mat4): Mat4 {
         result.set(this)
         result.rotate(eulerX, eulerY, eulerZ)
         return result
@@ -444,6 +444,13 @@ open class Mat4 {
     fun rotate(rotationMat: Mat3) {
         return lock(tmpMatLock) {
             tmpMatA.setToIdentity().set(rotationMat)
+            set(mul(tmpMatA, tmpMatB))
+        }
+    }
+
+    fun rotate(quaternion: Vec4f) {
+        return lock(tmpMatLock) {
+            tmpMatA.setToIdentity().set(quaternion)
             set(mul(tmpMatA, tmpMatB))
         }
     }
@@ -940,15 +947,15 @@ open class Mat4 {
 
     /**
      * Sets this matrix to a rotation matrix from the given euler angles.
-     * @param yaw the yaw in degrees
-     * @param pitch the pitch in degrees
-     * @param roll the roll in degrees
+     * @param yaw the yaw
+     * @param pitch the pitch
+     * @param roll the roll
      * @return this matrix
      */
-    fun setFromEulerAngles(yaw: Float, pitch: Float, roll: Float): Mat4 {
-        val a = yaw.toRad()
-        val b = pitch.toRad()
-        val c = roll.toRad()
+    fun setFromEulerAngles(yaw: Angle, pitch: Angle, roll: Angle): Mat4 {
+        val a = yaw.radians
+        val b = pitch.radians
+        val c = roll.radians
 
         val ci = cos(a)
         val cj = cos(b)
@@ -1003,7 +1010,7 @@ open class Mat4 {
      */
     fun setToLookAt(direction: Vec3f, up: Vec3f): Mat4 {
         l_vez.set(direction).norm()
-        l_vex.set(direction).cross(up)
+        l_vex.set(direction).norm().cross(up).norm()
         l_vey.set(l_vex).cross(l_vez).norm()
         setToIdentity()
 
@@ -1042,16 +1049,18 @@ open class Mat4 {
         fy *= rlf
         fz *= rlf
 
-        // compute s = f x up (x means "cross product")
-        var sx = fy * up.z - fz * up.y
-        var sy = fz * up.x - fx * up.z
-        var sz = fx * up.y - fy * up.x
+        // Normalize up
 
-        // and normalize s
-        val rls = 1f / sqrt(sx * sx + sy * sy + sz * sz)
-        sx *= rls
-        sy *= rls
-        sz *= rls
+        val rlup = 1f / sqrt(up.x * up.x + up.y * up.y + up.z * up.z)
+        val upX = up.x * rlup
+        val upY = up.y * rlup
+        val upZ = up.z * rlup
+
+        // compute s = f x up (x means "cross product")
+        val sx = fy * upZ - fz * upY
+        val sy = fz * upX - fx * upZ
+        val sz = fx * upY - fy * upX
+
 
         // compute u = s x f
         val ux = sy * fz - sz * fy
@@ -1279,6 +1288,7 @@ open class Mat4 {
         private val right = MutableVec3f()
         private val tmpForward = MutableVec3f()
         private val tmpUp = MutableVec3f()
+        private val tmpVec = MutableVec3f()
     }
 }
 

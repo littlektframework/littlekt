@@ -19,13 +19,15 @@ import com.lehaine.littlekt.graphics.shader.generator.type.vec.Vec4
 open class ModelVertexShader(maxJoints: Int = 100, maxJointInfluence: Int = 4) : VertexShaderModel() {
     val uProjection get() = parameters[0] as ShaderParameter.UniformMat4
     val uModel get() = parameters[1] as ShaderParameter.UniformMat4
+    val uModelInv get() = parameters[2] as ShaderParameter.UniformMat4
 
-    val uJoints get() = parameters[2] as ShaderParameter.UniformArrayMat4
-    val uUseJoint get() = parameters[3] as ShaderParameter.UniformBoolean
+    val uJoints get() = parameters[3] as ShaderParameter.UniformArrayMat4
+    val uUseJoint get() = parameters[4] as ShaderParameter.UniformBoolean
 
 
     private val u_projection by uniform(::Mat4)
     private val u_model by uniform(::Mat4)
+    private val u_modelInv by uniform(::Mat4)
     private val u_joints by uniformArray(maxJoints, ::Mat4Array)
     private val u_useJoints by uniform(::Bool)
 
@@ -65,7 +67,7 @@ open class ModelVertexShader(maxJoints: Int = 100, maxJointInfluence: Int = 4) :
         }
         //   v_color = a_color
         v_normal =
-            mat3(transpose(inverse(u_model))) * a_normal // TODO pass in the inverted u_model from cpu instead
+            mat3(u_modelInv) * a_normal
         v_fragPosition = vec3(u_model * totalLocalPosition).lit
         gl_Position = u_projection * vec4(v_fragPosition, 1f).lit
     }

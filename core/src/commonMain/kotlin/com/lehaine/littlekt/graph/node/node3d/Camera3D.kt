@@ -71,12 +71,10 @@ class Camera3D : VisualInstance() {
             camera.near = near
             camera.far = far
             camera.fov = fov
-            camera.position.set(globalPosition.x, globalPosition.y, globalPosition.z)
             camera.direction.set(Vec3f.NEG_Z_AXIS)
             camera.up.set(Vec3f.Y_AXIS)
-            camera.rotate(globalRotation.pitch, Vec3f.X_AXIS)
-            camera.rotate(globalRotation.yaw, Vec3f.Y_AXIS)
-            camera.rotate(globalRotation.roll, Vec3f.NEG_Z_AXIS)
+            camera.rotate(globalRotation)
+            camera.position.set(globalPosition.x, globalPosition.y, globalPosition.z)
 
             camera.update()
         }

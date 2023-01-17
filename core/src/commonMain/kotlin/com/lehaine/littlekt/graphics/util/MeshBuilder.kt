@@ -76,7 +76,7 @@ class MeshBuilder(val geometry: MeshGeometry) {
 
     fun rotate(angle: Angle, axX: Float, axY: Float, axZ: Float) = transform.rotate(axX, axY, axZ, angle)
 
-    fun rotate(eulerX: Float, eulerY: Float, eulerZ: Float) = transform.rotate(eulerX, eulerY, eulerZ)
+    fun rotate(eulerX: Angle, eulerY: Angle, eulerZ: Angle) = transform.rotate(eulerX, eulerY, eulerZ)
 
     fun scale(s: Float) = transform.scale(s, s, s)
 

@@ -18,8 +18,6 @@ import com.lehaine.littlekt.graphics.gl.ClearBufferMask
 import com.lehaine.littlekt.graphics.mesh
 import com.lehaine.littlekt.graphics.shader.shaders.ModelVertexShader
 import com.lehaine.littlekt.input.Key
-import com.lehaine.littlekt.math.MutableVec4f
-import com.lehaine.littlekt.math.geom.Angle
 import com.lehaine.littlekt.math.geom.degrees
 import com.lehaine.littlekt.util.seconds
 import kotlin.math.sin
@@ -32,11 +30,9 @@ import kotlin.time.Duration
 class GltfTest(context: Context) : ContextListener(context) {
 
     override suspend fun Context.start() {
-
-        println(ModelVertexShader().generate(this))
         val scene = sceneGraph(this) {
 
-            val duck = resourcesVfs["models/duck.glb"].readGltfModel().apply {
+            resourcesVfs["models/duck.glb"].readGltfModel().apply {
                 translate(100f, 0f, 0f)
                 rotate(y = (-90).degrees)
             }.also { it.addTo(this) }
@@ -58,7 +54,6 @@ class GltfTest(context: Context) : ContextListener(context) {
 
             node3d {
                 onUpdate += {
-                    val speed = 5f * if (input.isKeyPressed(Key.SHIFT_LEFT)) 10f else 1f
                     if (input.isKeyPressed(Key.W)) {
                         rotate(1.degrees)
                     }
@@ -67,78 +62,30 @@ class GltfTest(context: Context) : ContextListener(context) {
                     }
 
                     if (input.isKeyPressed(Key.A)) {
-                        rotate(y=1.degrees)
+                        rotate(y = 1.degrees)
                     }
                     if (input.isKeyPressed(Key.D)) {
-                        rotate(y=(-1).degrees)
+                        rotate(y = (-1).degrees)
                     }
 
-                    if (input.isKeyPressed(Key.Q)) {
-                        translate(0f, -speed, 0f)
-                    }
-                    if (input.isKeyPressed(Key.E)) {
-                        translate(0f, speed, 0f)
-                    }
-
-                    if (input.isKeyPressed(Key.ARROW_UP)) {
-                        duck.z += speed
-                    }
-
-                    if (input.isKeyPressed(Key.ARROW_DOWN)) {
-                        duck.z -= speed
-                    }
                 }
                 camera3d {
                     active = true
                     far = 1000f
                     translate(0f, 0f, 250f)
-                }
-            }
 
-            meshNode {
-                mesh = mesh(
-                    listOf(VertexAttribute.POSITION, VertexAttribute.NORMAL),
-                    grow = true
-                ) {
-                    generate {
-                        cube {
-                            colored()
-                            size.set(50f,50f,50f)
+                    onUpdate += {
+                        val speed = 5f * if (input.isKeyPressed(Key.SHIFT_LEFT)) 10f else 1f
+                        if (input.isKeyPressed(Key.Q)) {
+                            translate(0f, -speed, 0f)
+                        }
+                        if (input.isKeyPressed(Key.E)) {
+                            translate(0f, speed, 0f)
                         }
                     }
                 }
-                translate(0f, -50f, 0f)
-
-                meshNode {
-                    mesh = mesh(
-                        listOf(VertexAttribute.POSITION, VertexAttribute.NORMAL),
-                        grow = true
-                    ) {
-                        generate {
-                            cube {
-                                colored()
-                                size.set(50f,50f,50f)
-                            }
-                        }
-                    }
-                    translate(0f, 50f, 50f)
-                }
-
-                onUpdate += {
-                    if (input.isKeyPressed(Key.I)) {
-                        rotate(1.degrees)
-                    }
-                    if (input.isKeyPressed(Key.K)) {
-                        rotate((-1).degrees)
-                    }
-                    if (input.isKeyPressed(Key.J)) {
-                        rotate(y=1.degrees)
-                    }
-                    if (input.isKeyPressed(Key.L)) {
-                        rotate(y=(-1).degrees)
-                    }
-                }
             }
+
             directionalLight {
                 var time = Duration.ZERO
                 translate(1.2f, 1f, 2f)

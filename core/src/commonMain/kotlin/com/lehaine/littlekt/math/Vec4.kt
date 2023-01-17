@@ -94,14 +94,14 @@ open class Vec4f internal constructor(x: Float, y: Float, z: Float, w: Float, si
         )
 
     /**
-     * Transforms the given vector and outputs the [result].
+     * Transforms the given vector using this quaternion and outputs the [result].
      * @param vec the vector to use in transforming
      * @param result the output of the transformation
      */
     fun transform(vec: Vec3f, result: MutableVec3f): MutableVec3f {
         temp2.set(this)
         temp2.conjugate()
-        temp2.mul(temp1.set(vec.x, vec.y, vec.z, 0f).mul(this))
+        temp2.quatMulLeft(temp1.set(vec.x, vec.y, vec.z, 0f).quatMulLeft(this))
 
         result.x = temp2.x
         result.y = temp2.y
@@ -121,11 +121,30 @@ open class Vec4f internal constructor(x: Float, y: Float, z: Float, w: Float, si
 
     fun norm(result: MutableVec4f): MutableVec4f = result.set(this).norm()
 
+
+    /**
+     * Multiplies this vector as a quaternion with another in the form of `this * other`.
+     * @param otherQuat the quaternion to multiply with
+     * @param result the quaternion to output the result to
+     */
     fun quatMul(otherQuat: Vec4f, result: MutableVec4f): MutableVec4f {
         result.x = w * otherQuat.x + x * otherQuat.w + y * otherQuat.z - z * otherQuat.y
         result.y = w * otherQuat.y + y * otherQuat.w + z * otherQuat.x - x * otherQuat.z
         result.z = w * otherQuat.z + z * otherQuat.w + x * otherQuat.y - y * otherQuat.x
         result.w = w * otherQuat.w - x * otherQuat.x - y * otherQuat.y - z * otherQuat.z
+        return result
+    }
+
+    /**
+     * Multiplies this vector as a quaternion with another in the form of `other * this`.
+     * @param otherQuat the quaternion to multiply with
+     * @param result the quaternion to output the result to
+     */
+    fun quatMulLeft(otherQuat: Vec4f, result: MutableVec4f): MutableVec4f {
+        result.x = otherQuat.w * x + otherQuat.x * w + otherQuat.y * z - otherQuat.z * y
+        result.y = otherQuat.w * y + otherQuat.y * w + otherQuat.z * x - otherQuat.x * z
+        result.z = otherQuat.w * z + otherQuat.z * w + otherQuat.x * y - otherQuat.y * x
+        result.w = otherQuat.w * w - otherQuat.x * x - otherQuat.y * y - otherQuat.z * z
         return result
     }
 
@@ -249,11 +268,28 @@ open class MutableVec4f(x: Float, y: Float, z: Float, w: Float) : Vec4f(x, y, z,
 
     fun norm(): MutableVec4f = scale(1f / length())
 
+    /**
+     * Multiplies this vector as a quaternion with another in the form of `this * other`.
+     * @param otherQuat the quaternion to multiply with
+     */
     fun quatMul(otherQuat: Vec4f): MutableVec4f {
         val px = w * otherQuat.x + x * otherQuat.w + y * otherQuat.z - z * otherQuat.y
         val py = w * otherQuat.y + y * otherQuat.w + z * otherQuat.x - x * otherQuat.z
         val pz = w * otherQuat.z + z * otherQuat.w + x * otherQuat.y - y * otherQuat.x
         val pw = w * otherQuat.w - x * otherQuat.x - y * otherQuat.y - z * otherQuat.z
+        set(px, py, pz, pw)
+        return this
+    }
+
+    /**
+     * Multiplies this vector as a quaternion with another in the form of `other * this`.
+     * @param otherQuat the quaternion to multiply with
+     */
+    fun quatMulLeft(otherQuat: Vec4f): MutableVec4f {
+        val px = otherQuat.w * x + otherQuat.x * w + otherQuat.y * z - otherQuat.z * y
+        val py = otherQuat.w * y + otherQuat.y * w + otherQuat.z * x - otherQuat.x * z
+        val pz = otherQuat.w * z + otherQuat.z * w + otherQuat.x * y - otherQuat.y * x
+        val pw = otherQuat.w * w - otherQuat.x * x - otherQuat.y * y - otherQuat.z * z
         set(px, py, pz, pw)
         return this
     }
