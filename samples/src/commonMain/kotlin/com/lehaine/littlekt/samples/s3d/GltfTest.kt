@@ -7,6 +7,7 @@ import com.lehaine.littlekt.graph.node.addTo
 import com.lehaine.littlekt.graph.node.node3d.camera3d
 import com.lehaine.littlekt.graph.node.node3d.directionalLight
 import com.lehaine.littlekt.graph.node.node3d.meshNode
+import com.lehaine.littlekt.graph.node.node3d.node3d
 import com.lehaine.littlekt.graph.node.ui.control
 import com.lehaine.littlekt.graph.node.ui.label
 import com.lehaine.littlekt.graph.node.ui.paddedContainer
@@ -17,6 +18,8 @@ import com.lehaine.littlekt.graphics.gl.ClearBufferMask
 import com.lehaine.littlekt.graphics.mesh
 import com.lehaine.littlekt.graphics.shader.shaders.ModelVertexShader
 import com.lehaine.littlekt.input.Key
+import com.lehaine.littlekt.math.MutableVec4f
+import com.lehaine.littlekt.math.geom.Angle
 import com.lehaine.littlekt.math.geom.degrees
 import com.lehaine.littlekt.util.seconds
 import kotlin.math.sin
@@ -53,11 +56,7 @@ class GltfTest(context: Context) : ContextListener(context) {
                 }.also { it.addTo(this) }
 
 
-            camera3d {
-                active = true
-                far = 1000f
-                translate(0f, 0f, 250f)
-
+            node3d {
                 onUpdate += {
                     val speed = 5f * if (input.isKeyPressed(Key.SHIFT_LEFT)) 10f else 1f
                     if (input.isKeyPressed(Key.W)) {
@@ -68,10 +67,10 @@ class GltfTest(context: Context) : ContextListener(context) {
                     }
 
                     if (input.isKeyPressed(Key.A)) {
-                        rotate(y = 1.degrees)
+                        rotate(y=1.degrees)
                     }
                     if (input.isKeyPressed(Key.D)) {
-                        rotate(y = (-1).degrees)
+                        rotate(y=(-1).degrees)
                     }
 
                     if (input.isKeyPressed(Key.Q)) {
@@ -88,7 +87,11 @@ class GltfTest(context: Context) : ContextListener(context) {
                     if (input.isKeyPressed(Key.ARROW_DOWN)) {
                         duck.z -= speed
                     }
-
+                }
+                camera3d {
+                    active = true
+                    far = 1000f
+                    translate(0f, 0f, 250f)
                 }
             }
 
@@ -98,11 +101,43 @@ class GltfTest(context: Context) : ContextListener(context) {
                     grow = true
                 ) {
                     generate {
-                        grid { }
+                        cube {
+                            colored()
+                            size.set(50f,50f,50f)
+                        }
                     }
                 }
                 translate(0f, -50f, 0f)
-                scaling(50f)
+
+                meshNode {
+                    mesh = mesh(
+                        listOf(VertexAttribute.POSITION, VertexAttribute.NORMAL),
+                        grow = true
+                    ) {
+                        generate {
+                            cube {
+                                colored()
+                                size.set(50f,50f,50f)
+                            }
+                        }
+                    }
+                    translate(0f, 50f, 50f)
+                }
+
+                onUpdate += {
+                    if (input.isKeyPressed(Key.I)) {
+                        rotate(1.degrees)
+                    }
+                    if (input.isKeyPressed(Key.K)) {
+                        rotate((-1).degrees)
+                    }
+                    if (input.isKeyPressed(Key.J)) {
+                        rotate(y=1.degrees)
+                    }
+                    if (input.isKeyPressed(Key.L)) {
+                        rotate(y=(-1).degrees)
+                    }
+                }
             }
             directionalLight {
                 var time = Duration.ZERO

@@ -1,9 +1,38 @@
 package com.lehaine.littlekt.graph.node.node3d
 
+import com.lehaine.littlekt.graph.SceneGraph
+import com.lehaine.littlekt.graph.node.CanvasItem
 import com.lehaine.littlekt.graph.node.Node
+import com.lehaine.littlekt.graph.node.addTo
+import com.lehaine.littlekt.graph.node.annotation.SceneGraphDslMarker
 import com.lehaine.littlekt.math.*
 import com.lehaine.littlekt.math.geom.Angle
-import com.lehaine.littlekt.util.LazyMat4
+import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.InvocationKind
+import kotlin.contracts.contract
+
+/**
+ * Adds a [Node3D] to the current [Node] as a child and then triggers the [callback]
+ * @param callback the callback that is invoked with a [Node3D] context in order to initialize any values
+ * @return the newly created [Node3D]
+ */
+@OptIn(ExperimentalContracts::class)
+inline fun Node.node3d(callback: @SceneGraphDslMarker Node3D.() -> Unit = {}): Node3D {
+    contract { callsInPlace(callback, InvocationKind.EXACTLY_ONCE) }
+    return Node3D().also(callback).addTo(this)
+}
+
+/**
+ * Adds a [Node3D] to the current [SceneGraph.root] as a child and then triggers the [Node3D]
+ * @param callback the callback that is invoked with a [Node3D] context in order to initialize any values
+ * @return the newly created [Node3D]
+ */
+@OptIn(ExperimentalContracts::class)
+inline fun SceneGraph<*>.node3d(callback: @SceneGraphDslMarker Node3D.() -> Unit = {}): Node3D {
+    contract { callsInPlace(callback, InvocationKind.EXACTLY_ONCE) }
+    return root.node3d(callback)
+}
+
 
 /**
  * Based off of the kool engine implementation.
@@ -25,11 +54,14 @@ open class Node3D : Node() {
 
     val globalToLocalTransform: Mat4
         get() {
-            (parent as? Node3D)?.let {
-                it.updateTransform()
-                _globalToLocalTransform.set(it.globalInverseTransform)
-            } ?: run {
-                _globalToLocalTransform.setToIdentity()
+            if (_globalToLocalDirty) {
+                (parent as? Node3D)?.let {
+                    it.updateTransform()
+                    _globalToLocalTransform.set(it.globalInverseTransform)
+                } ?: run {
+                    _globalToLocalTransform.setToIdentity()
+                }
+                _globalToLocalDirty = false
             }
             return _globalToLocalTransform
         }
@@ -54,10 +86,14 @@ open class Node3D : Node() {
     var globalPosition: Vec3f
         get() {
             updateTransform()
-            (parent as? Node3D)?.let {
-                _globalPosition.set(_localPosition).mul(it._globalPosition)
-            } ?: run {
-                _globalPosition.set(_localPosition)
+            if (_globalPositionDirty) {
+                (parent as? Node3D)?.let {
+                    it.updateTransform()
+                    _globalPosition.set(_localPosition).mul(it._globalTransform)
+                } ?: run {
+                    _globalPosition.set(_localPosition)
+                }
+                _globalPositionDirty = false
             }
             return _globalPosition
         }
@@ -116,7 +152,7 @@ open class Node3D : Node() {
                 return
             }
             _localPosition.x = value
-            setDirty()
+            dirty()
         }
     var y: Float
         get() {
@@ -127,7 +163,7 @@ open class Node3D : Node() {
                 return
             }
             _localPosition.y = value
-            setDirty()
+            dirty()
         }
     var z: Float
         get() {
@@ -138,7 +174,7 @@ open class Node3D : Node() {
                 return
             }
             _localPosition.z = value
-            setDirty()
+            dirty()
         }
 
 
@@ -246,7 +282,7 @@ open class Node3D : Node() {
         set(value) {
             if (_localScale.x == value) return
             _localScale.x = value
-            setDirty()
+            dirty()
         }
 
     /**
@@ -260,7 +296,7 @@ open class Node3D : Node() {
         set(value) {
             if (_localScale.y == value) return
             _localScale.y = value
-            setDirty()
+            dirty()
         }
 
     /**
@@ -274,18 +310,29 @@ open class Node3D : Node() {
         set(value) {
             if (_localScale.z == value) return
             _localScale.z = value
-            setDirty()
+            dirty()
         }
 
-    private val globalInverseLazy = LazyMat4 { _globalTransform.invert(it) }
-    private val globalInverseTransform: Mat4
-        get() = globalInverseLazy.get()
+    private val _globalInverseTransform = Mat4()
+    val globalInverseTransform: Mat4
+        get() {
+            updateTransform()
+            if (_globalInverseDirty) {
+                _globalInverseTransform.set(_globalTransform).invert()
+                _globalInverseDirty = false
+            }
+            return _globalInverseTransform
+        }
 
-    private val invTransform = LazyMat4 { _transform.invert(it) }
+    private var dirty = false
 
     private val _globalPosition = MutableVec3f()
     private val _globalScale = MutableVec3f(1f, 1f, 1f)
     private val _globalRotation = MutableVec4f(0f, 0f, 0f, 1f)
+
+    private var _globalPositionDirty = false
+    private var _globalToLocalDirty = false
+    private var _globalInverseDirty = false
 
     private val _localPosition = MutableVec3f()
     private val _localScale = MutableVec3f(1f, 1f, 1f)
@@ -297,13 +344,22 @@ open class Node3D : Node() {
 
     private val tmpTransformVec = MutableVec3f()
 
-    fun setDirty() {
-        invTransform.isDirty = true
+    fun dirty() {
+        dirty = true
+        nodes.forEach { it.propagateDirty() }
+    }
+
+    private fun Node.propagateDirty() {
+        if (this is Node3D) {
+            dirty()
+        } else {
+            nodes.forEach { it.propagateDirty() }
+        }
     }
 
 
     fun updateTransform() {
-        if (!invTransform.isDirty) return
+        if (!dirty) return
 
         val parent = parent as? Node3D
 
@@ -318,19 +374,17 @@ open class Node3D : Node() {
         if (parent != null) {
             _globalTransform.set(parent._globalTransform).mul(_transform)
             _globalRotation.set(parent._globalRotation).add(_localRotation)
-            _globalScale.set(parent._globalScale).set(_localScale)
-
+            _globalScale.set(parent._globalScale).scale(_localScale.x, _localScale.y, _localScale.z)
         } else {
             _globalTransform.set(_transform)
             _globalRotation.set(_localRotation)
             _globalScale.set(_localScale)
         }
-    }
+        _globalInverseDirty = true
+        _globalPositionDirty = true
+        _globalToLocalDirty = true
 
-    fun getTransform(result: Mat4): Mat4 = result.set(_transform)
-
-    fun getInverseTransform(result: Mat4): Mat4 {
-        return result.set(invTransform.get())
+        dirty = false
     }
 
     /**
@@ -353,7 +407,7 @@ open class Node3D : Node() {
         if (parent is Node3D) {
             _localPosition.mul(globalToLocalTransform)
         }
-        setDirty()
+        dirty()
     }
 
     /**
@@ -379,7 +433,7 @@ open class Node3D : Node() {
         }
 
         _localPosition.set(x, y, z)
-        setDirty()
+        dirty()
 
         return this
     }
@@ -399,8 +453,7 @@ open class Node3D : Node() {
         } ?: run {
             _localRotation.set(quaternion)
         }
-
-        setDirty()
+        dirty()
 
         return this
     }
@@ -416,7 +469,8 @@ open class Node3D : Node() {
             return this
         }
         _localRotation.set(quaternion)
-        setDirty()
+        _globalPositionDirty = true
+        dirty()
         return this
     }
 
@@ -425,14 +479,7 @@ open class Node3D : Node() {
      * @param value the new scale
      * @return the current [Node3D]
      */
-    fun globalScaling(value: Vec3f): Node3D {
-        if (_globalScale == value) {
-            return this
-        }
-        _globalScale.set(value)
-        updateScale()
-        return this
-    }
+    fun globalScaling(value: Vec3f): Node3D = globalScaling(value.x, value.y, value.z)
 
     /**
      * Sets the global scale of the [Node3D].
@@ -462,14 +509,7 @@ open class Node3D : Node() {
      * @param value the new scale
      * @return the current [Node3D]
      */
-    fun scaling(value: Vec3f): Node3D {
-        if (_globalScale == value) {
-            return this
-        }
-        _localScale.set(value)
-        setDirty()
-        return this
-    }
+    fun scaling(value: Vec3f): Node3D = scaling(value.x, value.y, value.z)
 
     /**
      * Sets the local of the [Node3D].
@@ -483,7 +523,7 @@ open class Node3D : Node() {
             return this
         }
         _localScale.set(x, y, z)
-        setDirty()
+        dirty()
         return this
     }
 
@@ -494,7 +534,7 @@ open class Node3D : Node() {
         if (node3d != null) {
             _localScale /= node3d._globalScale
         }
-        setDirty()
+        dirty()
     }
 
     /**
@@ -528,7 +568,7 @@ open class Node3D : Node() {
     fun translate(tx: Float, ty: Float, tz: Float): Node3D {
         if (tx != 0f || ty != 0f || tz != 0f) {
             _localPosition.add(tx, ty, tz)
-            setDirty()
+            dirty()
         }
         return this
     }
@@ -548,7 +588,7 @@ open class Node3D : Node() {
     fun globalTranslate(tx: Float, ty: Float, tz: Float): Node3D {
         if (tx != 0f || ty != 0f || tz != 0f) {
             _globalPosition.add(tx, ty, tz)
-            setDirty()
+            dirty()
         }
         return this
     }
@@ -563,8 +603,14 @@ open class Node3D : Node() {
         if (x != Angle.ZERO || y != Angle.ZERO || z != Angle.ZERO) {
             tempQuat.setEuler(x, y, z)
             _localRotation.quatMul(tempQuat)
-            setDirty()
+            dirty()
         }
+        return this
+    }
+
+    fun rotate(quaternion: Vec4f): Node3D {
+        _localRotation.quatMul(quaternion)
+        dirty()
         return this
     }
 
@@ -578,7 +624,7 @@ open class Node3D : Node() {
         if (x != Angle.ZERO || y != Angle.ZERO || z != Angle.ZERO) {
             tempQuat.setEuler(x, y, z)
             _globalRotation.quatMul(tempQuat)
-            setDirty()
+            dirty()
         }
         return this
     }
@@ -601,7 +647,7 @@ open class Node3D : Node() {
             _localScale.x *= sx
             _localScale.y *= sy
             _localScale.z *= sz
-            setDirty()
+            dirty()
         }
         return this
     }
@@ -634,8 +680,7 @@ open class Node3D : Node() {
         _localPosition.set(0f, 0f, 0f)
         _localScale.set(1f, 1f, 1f)
         _localRotation.set(0f, 0f, 0f, 1f)
-        invTransform.clear()
-        setDirty()
+        dirty()
         return this
     }
 

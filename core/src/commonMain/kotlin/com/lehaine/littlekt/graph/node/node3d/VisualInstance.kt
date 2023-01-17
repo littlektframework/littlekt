@@ -17,7 +17,7 @@ import kotlin.js.JsName
  * @author Colton Daily
  * @date 12/27/2022
  */
-open class VisualInstance : Node3D() {
+abstract class VisualInstance : Node3D() {
     var material: ModelMaterial? = null
 
     /**

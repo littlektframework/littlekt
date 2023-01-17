@@ -171,7 +171,7 @@ class AnimatedTransformGroup(val target: Node3D) : AnimationNode {
         }
         target.scaling(tempVec3f.x, tempVec3f.y, tempVec3f.z)
 
-        target.setDirty()
+        target.dirty()
     }
 
     override fun setTranslation(translation: Vec3f) {
