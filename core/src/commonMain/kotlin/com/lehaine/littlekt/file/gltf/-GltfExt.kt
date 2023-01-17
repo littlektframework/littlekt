@@ -392,6 +392,21 @@ private class GltfModelGenerator(val context: Context, val gltfFile: GltfFile, v
             meshesByMaterial.getOrPut(prim.material) { mutableSetOf() } += mesh
             meshMaterials[mesh] = prim.materialRef
 
+            // apply skin
+            if (skin >= 0) {
+                mesh.skin = model.skins[skin]
+                val skeletonRoot = gltfFile.skins[skin].skeleton
+                if (skeletonRoot > 0) {
+                    node -= mesh
+                    modelNodes[gltfFile.nodes[skeletonRoot]]!! += mesh
+                }
+            }
+
+            // apply morph weights
+            if (prim.targets.isNotEmpty()) {
+                mesh.morphWeights = FloatArray(prim.targets.sumOf { it.size })
+            }
+
             if (loadTextureAsynchronously) {
                 KtScope.launch(newSingleThreadAsyncContext()) {
                     mesh.loadTextures(context, prim)
@@ -452,18 +467,16 @@ private class GltfModelGenerator(val context: Context, val gltfFile: GltfFile, v
 //            attribs += Attribute.TANGENTS
 //            generateTangents = true
 //        }
-//        if (jointAcc != null) {
-//            attribs += Attribute.JOINTS
-//        }
-//        if (weightAcc != null) {
-//            attribs += Attribute.WEIGHTS
-//        }
+        if (jointAcc != null) {
+            attribs += VertexAttribute.JOINT
+        }
+        if (weightAcc != null) {
+            attribs += VertexAttribute.WEIGHT
+        }
 
 //        val morphAccessors = makeMorphTargetAccessors(gltfAccessors)
 //        attribs += morphAccessors.keys
 
-
-//        val verts = IndexedVertexList(attribs)
         val poss = Vec3fAccessor(positionAcc)
         val nrms = if (normalAcc != null) Vec3fAccessor(normalAcc) else null
         val tans = if (tangentAcc != null) Vec4fAccessor(tangentAcc) else null
@@ -483,8 +496,8 @@ private class GltfModelGenerator(val context: Context, val gltfFile: GltfFile, v
                 cols?.next()?.let { col ->
                     color.set(col)
                 }
-                //     jnts?.next(joints)
-                //   wgts?.next(weights)
+                jnts?.next(joints)
+                wgts?.next(weights)
 
 //                if (cfg.setVertexAttribsFromMaterial) {
 //                    metallicRoughness.set(0f, 0.5f)

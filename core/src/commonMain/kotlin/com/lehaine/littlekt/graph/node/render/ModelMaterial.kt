@@ -49,6 +49,24 @@ open class ModelMaterial(
             }
         }
 
+    var joints: Array<Mat4>? = null
+        set(value) {
+            field = value
+            if (value != null) {
+                val shader = checkNotNull(shader) { "Shader is null! Unable to set u_joints." }
+                uJoints?.apply(shader, value)
+            }
+        }
+
+    var useJoints: Boolean = false
+        set(value) {
+            if (field == value) return
+            field = value
+            val shader = checkNotNull(shader) { "Shader is null! Unable to set u_useJoints." }
+            uUseJoints?.apply(shader, value)
+
+        }
+
     var lightColor: Color = Color.WHITE
         set(value) {
             field = value
@@ -92,6 +110,9 @@ open class ModelMaterial(
     private var uTexture: ShaderParameter.UniformSample2D? = null
     private var uModel: ShaderParameter.UniformMat4? = null
 
+    private var uJoints: ShaderParameter.UniformArrayMat4? = null
+    private var uUseJoints: ShaderParameter.UniformBoolean? = null
+
     private var uLightColor: ShaderParameter.UniformVec4? = null
     private var uAmbientStrength: ShaderParameter.UniformFloat? = null
     private var uSpecularStrength: ShaderParameter.UniformFloat? = null
@@ -105,6 +126,8 @@ open class ModelMaterial(
             when (it.name) {
                 U_PROJ_TRANS -> uProjection = it as ShaderParameter.UniformMat4
                 U_MODEL -> uModel = it as ShaderParameter.UniformMat4
+                U_JOINTS -> uJoints = it as ShaderParameter.UniformArrayMat4
+                U_USE_JOINTS -> uUseJoints = it as ShaderParameter.UniformBoolean
             }
         }
 
@@ -129,6 +152,8 @@ open class ModelMaterial(
         val U_AMBIENT_STRENGTH = "u_ambientStrength"
         val U_SPECULAR_STRENGTH = "u_specularStrength"
         val U_VIEW_POSITION = "u_viewPosition"
+        val U_JOINTS = "u_joints"
+        val U_USE_JOINTS = "u_useJoints"
     }
 
 }

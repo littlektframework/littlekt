@@ -50,11 +50,21 @@ class GLFloat(override val builder: GlslGenerator) : GenType {
     infix fun lte(a: GLFloat) = Bool(builder, "(${this.value} <= ${a.value})")
     infix fun lt(a: GLFloat) = Bool(builder, "(${this.value} < ${a.value})")
 
+    infix fun eq(a: Int) = Bool(builder, "(${this.value} == $a)")
+    infix fun gte(a: Int) = Bool(builder, "(${this.value} >= $a)")
+
+
+    infix fun eq(a: GLInt) = Bool(builder, "(${this.value} == ${a.value})")
+    infix fun gte(a: GLInt) = Bool(builder, "(${this.value} >= ${a.value})")
+
     infix fun eq(a: Float) = Bool(builder, "(${this.value} == ${a.str()})")
     infix fun gte(a: Float) = Bool(builder, "(${this.value} >= ${a.str()})")
     infix fun gt(a: Float) = Bool(builder, "(${this.value} > ${a.str()})")
     infix fun lte(a: Float) = Bool(builder, "(${this.value} <= ${a.str()})")
     infix fun lt(a: Float) = Bool(builder, "(${this.value} < ${a.str()})")
+
+
+    val int get() =  GLInt(builder, "int(${this.value})")
 }
 
 fun floatComponent() = ComponentDelegate(::GLFloat)

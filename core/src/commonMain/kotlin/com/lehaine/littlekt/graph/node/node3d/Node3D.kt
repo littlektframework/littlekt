@@ -366,12 +366,23 @@ open class Node3D : Node() {
      * @param value the new position
      * @return the current [Node3D]
      */
-    fun position(value: Vec3f): Node3D {
-        if (value == _localPosition) {
+    fun position(value: Vec3f): Node3D = position(value.x, value.y, value.z)
+
+
+    /**
+     * Sets the position of the [Node3D] relative to the parent [Node]. If the [Node3D] has no parent or if the parent node is NOT
+     * a [Node3D], then it is the same a [globalPosition]
+     * @param x the new x position
+     * @param y the new y position
+     * @param z the new z position
+     * @return the current [Node3D]
+     */
+    fun position(x: Float, y: Float, z: Float): Node3D {
+        if (_localPosition.x == x && _localPosition.y == y && _localPosition.z == z) {
             return this
         }
 
-        _localPosition.set(value)
+        _localPosition.set(x, y, z)
         setDirty()
 
         return this
@@ -509,17 +520,22 @@ open class Node3D : Node() {
         return this
     }
 
-    fun mul(mat: Mat4): Node3D {
-        // TODO remove or rework since transform is overwritten
-        _transform.mul(mat)
-        setDirty()
+    fun setScale(sx: Float, sy: Float, sz: Float): Node3D {
+        if (sx != 1f || sy != 1f || sz != 1f) {
+            _localScale.x = sx
+            _localScale.y = sy
+            _localScale.z = sz
+            setDirty()
+        }
         return this
     }
 
     fun setIdentity(): Node3D {
-        // TODO remove or rework since transform is overwritten
-        _transform.setToIdentity()
+        _localPosition.set(0f, 0f, 0f)
+        _localScale.set(1f, 1f, 1f)
+        _localRotation.set(0f, 0f, 0f, 1f)
         invTransform.clear()
+        setDirty()
         return this
     }
 

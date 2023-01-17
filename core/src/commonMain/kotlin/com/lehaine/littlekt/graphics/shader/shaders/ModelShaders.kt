@@ -3,7 +3,9 @@ package com.lehaine.littlekt.graphics.shader.shaders
 import com.lehaine.littlekt.graphics.shader.FragmentShaderModel
 import com.lehaine.littlekt.graphics.shader.ShaderParameter
 import com.lehaine.littlekt.graphics.shader.VertexShaderModel
+import com.lehaine.littlekt.graphics.shader.generator.type.Bool
 import com.lehaine.littlekt.graphics.shader.generator.type.mat.Mat4
+import com.lehaine.littlekt.graphics.shader.generator.type.mat.Mat4Array
 import com.lehaine.littlekt.graphics.shader.generator.type.sampler.Sampler2D
 import com.lehaine.littlekt.graphics.shader.generator.type.scalar.GLFloat
 import com.lehaine.littlekt.graphics.shader.generator.type.vec.Vec2
@@ -14,17 +16,25 @@ import com.lehaine.littlekt.graphics.shader.generator.type.vec.Vec4
  * @author Colton Daily
  * @date 12/20/2022
  */
-open class ModelVertexShader : VertexShaderModel() {
+open class ModelVertexShader(maxJoints: Int = 100, maxJointInfluence: Int = 4) : VertexShaderModel() {
     val uProjection get() = parameters[0] as ShaderParameter.UniformMat4
     val uModel get() = parameters[1] as ShaderParameter.UniformMat4
 
+    val uJoints get() = parameters[2] as ShaderParameter.UniformArrayMat4
+    val uUseJoint get() = parameters[3] as ShaderParameter.UniformBoolean
+
+
     private val u_projection by uniform(::Mat4)
     private val u_model by uniform(::Mat4)
+    private val u_joints by uniformArray(maxJoints, ::Mat4Array)
+    private val u_useJoints by uniform(::Bool)
 
     private val a_position by attribute(::Vec3)
-
     private val a_normal by attribute(::Vec3)
     private val a_texCoord0 by attribute(::Vec2)
+    private val a_joint by attribute(::Vec4)
+    private val a_weight by attribute(::Vec4)
+
     //  private val a_color by attribute(::Vec4)
 
     //  private var v_color by varying(::Vec4)
@@ -34,9 +44,29 @@ open class ModelVertexShader : VertexShaderModel() {
 
     init {
         v_texCoords = a_texCoord0
+        var totalLocalPosition by vec4 { vec4(a_position, 1f).lit }
+
+        If(u_useJoints) {
+            totalLocalPosition = vec4(0f, 0f, 0f, 0f).lit
+            For(0, maxJointInfluence) { i ->
+                val jointId by int { a_joint[i].int }
+                If(jointId eq -1) {
+                    Continue()
+                }
+                If(jointId gte maxJoints) {
+                    totalLocalPosition = vec4(a_position, 1f).lit
+                    Break()
+                }
+                val uJointMat by mat4 { u_joints[jointId] }
+                val posePosition by vec4 { uJointMat * vec4(a_position, 1f).lit }
+
+                totalLocalPosition += posePosition * a_weight[i]
+            }
+        }
         //   v_color = a_color
-        v_normal = mat3(transpose(inverse(u_model))) * a_normal
-        v_fragPosition = vec3(u_model * vec4(a_position, 1f).lit).lit
+        v_normal =
+            mat3(transpose(inverse(u_model))) * a_normal // TODO pass in the inverted u_model from cpu instead
+        v_fragPosition = vec3(u_model * totalLocalPosition).lit
         gl_Position = u_projection * vec4(v_fragPosition, 1f).lit
     }
 }

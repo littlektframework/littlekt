@@ -15,6 +15,7 @@ import com.lehaine.littlekt.graphics.Color
 import com.lehaine.littlekt.graphics.VertexAttribute
 import com.lehaine.littlekt.graphics.gl.ClearBufferMask
 import com.lehaine.littlekt.graphics.mesh
+import com.lehaine.littlekt.graphics.shader.shaders.ModelVertexShader
 import com.lehaine.littlekt.input.Key
 import com.lehaine.littlekt.math.geom.degrees
 import com.lehaine.littlekt.util.seconds
@@ -29,18 +30,27 @@ class GltfTest(context: Context) : ContextListener(context) {
 
     override suspend fun Context.start() {
 
+        println(ModelVertexShader().generate(this))
         val scene = sceneGraph(this) {
 
-            val duck = resourcesVfs["models/duck.glb"].readGltfModel().apply {
-                translate(100f, 0f, 0f)
-                rotate(y = (-90).degrees)
+//            val duck = resourcesVfs["models/duck.glb"].readGltfModel().apply {
+//                translate(100f, 0f, 0f)
+//                rotate(y = (-90).degrees)
+//            }.also { it.addTo(this) }
+
+            resourcesVfs["models/fox/Fox.gltf"].readGltfModel(loadTexturesAsynchronously = true).apply {
+                enableAnimation(0)
+                onUpdate += {
+                    applyAnimation(it)
+                }
             }.also { it.addTo(this) }
 
-            resourcesVfs["models/flighthelmet/FlightHelmet.gltf"].readGltfModel(loadTexturesAsynchronously = true).apply {
-                translate(-100f, 0f, 0f)
-                scale(200f)
-            }.also { it.addTo(this) }
-
+//            resourcesVfs["models/flighthelmet/FlightHelmet.gltf"].readGltfModel(loadTexturesAsynchronously = true)
+//                .apply {
+//                    translate(-100f, 0f, 0f)
+//                    scale(200f)
+//                }.also { it.addTo(this) }
+//
 
             camera3d {
                 active = true
@@ -70,30 +80,15 @@ class GltfTest(context: Context) : ContextListener(context) {
                         translate(0f, speed, 0f)
                     }
 
-                    if (input.isKeyPressed(Key.ARROW_UP)) {
-                        duck.z += speed
-                    }
-
-                    if (input.isKeyPressed(Key.ARROW_DOWN)) {
-                        duck.z -= speed
-                    }
+//                    if (input.isKeyPressed(Key.ARROW_UP)) {
+//                        duck.z += speed
+//                    }
+//
+//                    if (input.isKeyPressed(Key.ARROW_DOWN)) {
+//                        duck.z -= speed
+//                    }
 
                 }
-            }
-
-            meshNode {
-                mesh = mesh(
-                    listOf(VertexAttribute.POSITION, VertexAttribute.NORMAL),
-                    grow = true
-                ) {
-                    generate {
-                        cube {
-                            colored()
-                            centered()
-                        }
-                    }
-                }
-                scale(50f)
             }
 
             meshNode {

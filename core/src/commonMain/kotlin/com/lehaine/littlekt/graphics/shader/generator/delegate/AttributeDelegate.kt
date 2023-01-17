@@ -12,22 +12,22 @@ import kotlin.reflect.KProperty
  */
 class AttributeDelegate<T : Variable>(
     private val factory: (GlslGenerator) -> T,
-    private val precision: Precision
+    private val precision: Precision,
 ) {
     private lateinit var v: T
 
     operator fun provideDelegate(
         thisRef: GlslGenerator,
-        property: KProperty<*>
+        property: KProperty<*>,
     ): AttributeDelegate<T> {
         v = factory(thisRef)
         v.value = property.name
         thisRef.parameters.add(ShaderParameter.Attribute(property.name))
+        thisRef.attributes.add("${precision.value}${v.typeName} ${property.name}")
         return this
     }
 
     operator fun getValue(thisRef: GlslGenerator, property: KProperty<*>): T {
-        thisRef.attributes.add("${precision.value}${v.typeName} ${property.name}")
         return v
     }
 }
@@ -36,7 +36,7 @@ class AttributeConstructorDelegate<T : Variable>(private val v: T, private val p
 
     operator fun provideDelegate(
         thisRef: Any?,
-        property: KProperty<*>
+        property: KProperty<*>,
     ): AttributeConstructorDelegate<T> {
         v.value = property.name
         return this

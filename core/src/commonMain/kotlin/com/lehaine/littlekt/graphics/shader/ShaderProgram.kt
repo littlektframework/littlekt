@@ -24,7 +24,9 @@ class ShaderProgram<V : VertexShader, F : FragmentShader>(
 
         const val BINORMAL_ATTRIBUTE = "a_binormal"
 
-        const val BONE_WEIGHT_ATTRIBUTE = "a_boneWeight"
+        const val WEIGHT_ATTRIBUTE = "a_weight"
+
+        const val JOINT_ATTRIBUTE = "a_joint"
 
         const val U_PROJ_TRANS_UNIFORM = "u_projTrans"
         const val U_TEXTURE = "u_texture"

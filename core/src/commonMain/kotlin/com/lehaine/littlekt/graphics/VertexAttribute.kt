@@ -15,6 +15,7 @@ data class VertexAttribute(
     val type: VertexAttrType = if (usage == VertexAttrUsage.COLOR_PACKED) VertexAttrType.UNSIGNED_BYTE else VertexAttrType.FLOAT,
     val normalized: Boolean = usage == VertexAttrUsage.COLOR_PACKED,
     val unit: Int = 0,
+    val asInt: Boolean = false,
 ) {
     val sizeInBytes: Int
         get() {
@@ -87,11 +88,17 @@ data class VertexAttribute(
             alias = ShaderProgram.BINORMAL_ATTRIBUTE,
         )
 
-        fun BONE_WEIGHT(unit: Int = 0) = VertexAttribute(
-            usage = VertexAttrUsage.BONE_WEIGHT,
-            numComponents = 2,
-            alias = ShaderProgram.BONE_WEIGHT_ATTRIBUTE + unit,
-            unit = unit
+        val JOINT = VertexAttribute(
+            usage = VertexAttrUsage.JOINT,
+            numComponents = 4,
+            alias = ShaderProgram.JOINT_ATTRIBUTE,
+            asInt = true
+        )
+
+        val WEIGHT = VertexAttribute(
+            usage = VertexAttrUsage.WEIGHT,
+            numComponents = 4,
+            alias = ShaderProgram.WEIGHT_ATTRIBUTE,
         )
     }
 }
@@ -180,8 +187,9 @@ value class VertexAttrUsage(val usage: Int) {
         val NORMAL = VertexAttrUsage(8)
         val TEX_COORDS = VertexAttrUsage(16)
         val GENERIC = VertexAttrUsage(32)
-        val BONE_WEIGHT = VertexAttrUsage(64)
+        val WEIGHT = VertexAttrUsage(64)
         val TANGENT = VertexAttrUsage(128)
         val BINORMAL = VertexAttrUsage(256)
+        val JOINT = VertexAttrUsage(512)
     }
 }

@@ -1,16 +1,16 @@
 package com.lehaine.littlekt.graph.node.node3d
 
-import com.lehaine.littlekt.graph.node.render.ModelMaterial
-import com.lehaine.littlekt.graphics.Camera
-import com.lehaine.littlekt.graphics.Texture
 import com.lehaine.littlekt.graphics.g3d.model.Animation
 import com.lehaine.littlekt.graphics.g3d.model.Skin
+import com.lehaine.littlekt.util.fastForEach
+import com.lehaine.littlekt.util.fastForEachWithIndex
+import kotlin.time.Duration
 
 /**
  * @author Colton Daily
  * @date 12/17/2022
  */
-class Model : Node3D() {
+class Model : VisualInstance() {
 
     val nodes3d = mutableMapOf<String, Node3D>()
     val meshes = mutableMapOf<String, MeshNode>()
@@ -22,28 +22,30 @@ class Model : Node3D() {
         enableAnimation(-1)
     }
 
-    fun enableAnimation(iAnimation: Int) {
-        for (i in animations.indices) {
-            animations[i].weight = if (i == iAnimation) 1f else 0f
+    fun enableAnimation(animationIdx: Int) {
+        animations.fastForEachWithIndex { i, anim ->
+            anim.weight = if (i == animationIdx) 1f else 0f
         }
     }
 
     fun setAnimationWeight(iAnimation: Int, weight: Float) {
-        if (iAnimation in animations.indices) {
-            animations[iAnimation].weight = weight
+        animations.fastForEach {
+            it.weight = weight
         }
     }
 
-    fun applyAnimation(deltaT: Float) {
+    fun applyAnimation(dt: Duration) {
         var firstActive = true
-        for (i in animations.indices) {
-            if (animations[i].weight > 0f) {
-                animations[i].apply(deltaT, firstActive)
+        animations.fastForEach { anim ->
+            if (anim.weight > 0f) {
+                anim.apply(dt, firstActive)
                 firstActive = false
             }
         }
-        for (i in skins.indices) {
-            skins[i].updateJointTransforms()
+
+        skins.fastForEach {
+            it.updateJointTransforms()
         }
+
     }
 }

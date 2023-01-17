@@ -9,9 +9,11 @@ import com.lehaine.littlekt.graphics.Camera
 import com.lehaine.littlekt.graphics.Mesh
 import com.lehaine.littlekt.graphics.Texture
 import com.lehaine.littlekt.graphics.g3d.model.Skin
+import com.lehaine.littlekt.math.Mat4
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
+import kotlin.math.min
 
 /**
  * Adds a [MeshNode] to the current [Node] as a child and then triggers the [callback]
@@ -47,6 +49,7 @@ class MeshNode : VisualInstance() {
     var skin: Skin? = null
     var isOpaque = true
 
+    private val jointTransforms by lazy { Array(skin?.nodes?.size ?: 0) { Mat4() } }
     override fun render(camera: Camera) {
         super.render(camera)
         val material = material ?: scene?.currentMaterial as? ModelMaterial ?: return
@@ -59,6 +62,16 @@ class MeshNode : VisualInstance() {
         super.setMaterialParameters(material, camera)
         textures["albedo"]?.let {
             material.texture = it
+        }
+        skin?.let {
+            material.useJoints = true
+            for (i in 0 until min(it.nodes.size, material.joints?.size ?: 0)) {
+                val join = it.nodes[i]
+                jointTransforms[i].set(join.jointTransform)
+            }
+            material.joints = jointTransforms
+        } ?: run {
+            material.useJoints = false
         }
     }
 }

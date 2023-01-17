@@ -6,6 +6,7 @@ import com.lehaine.littlekt.graphics.VertexAttribute
 import com.lehaine.littlekt.math.MutableVec2f
 import com.lehaine.littlekt.math.MutableVec3f
 import com.lehaine.littlekt.math.MutableVec4f
+import com.lehaine.littlekt.math.MutableVec4i
 
 /**
  * A view of a vertex within the geometry [MeshGeometry].
@@ -20,6 +21,8 @@ class VertexView(val geometry: MeshGeometry, index: Int) : MutableVec3f() {
     val color: MutableColor
     val texCoords: MutableVec2f
     val normal: MutableVec3f
+    val joints: MutableVec4i
+    val weights: MutableVec4f
 
     var index = index
         set(value) {
@@ -41,7 +44,11 @@ class VertexView(val geometry: MeshGeometry, index: Int) : MutableVec3f() {
                 }
 
                 attribute.numComponents == 4 -> {
-                    _attributesViews[attribute.key] = Vec4fView(attribute.offset / 4)
+                    if(attribute.asInt) {
+                        _attributesViews[attribute.key] = Vec4iView(attribute.offset / 4)
+                    } else {
+                        _attributesViews[attribute.key] = Vec4fView(attribute.offset / 4)
+                    }
                 }
 
                 attribute.numComponents == 3 || attribute.usage == VertexAttrUsage.POSITION -> {
@@ -63,6 +70,8 @@ class VertexView(val geometry: MeshGeometry, index: Int) : MutableVec3f() {
         colorPacked = getFloatAttribute(VertexAttribute.COLOR_PACKED) ?: FloatView(-1)
         color = getColorAttribute(VertexAttribute.COLOR_UNPACKED) ?: ColorWrapView(Vec4fView(-1))
         texCoords = getVec2fAttribute(VertexAttribute.TEX_COORDS(0)) ?: Vec2fView(-1)
+        joints = getVec4iAttribute(VertexAttribute.JOINT) ?: Vec4iView(-1)
+        weights = getVec4fAttribute(VertexAttribute.WEIGHT) ?: Vec4fView(-1)
 
     }
 
@@ -103,6 +112,7 @@ class VertexView(val geometry: MeshGeometry, index: Int) : MutableVec3f() {
     fun getVec2fAttribute(attribute: VertexAttribute): MutableVec2f? = attributeViews[attribute.key] as MutableVec2f?
     fun getVec3fAttribute(attribute: VertexAttribute): MutableVec3f? = attributeViews[attribute.key] as MutableVec3f?
     fun getVec4fAttribute(attribute: VertexAttribute): MutableVec4f? = attributeViews[attribute.key] as MutableVec4f?
+    fun getVec4iAttribute(attribute: VertexAttribute): MutableVec4i? = attributeViews[attribute.key] as MutableVec4i?
     fun getColorAttribute(attribute: VertexAttribute): MutableColor? =
         attributeViews[attribute.key]?.let { ColorWrapView(it as Vec4fView) }
 
@@ -167,6 +177,22 @@ class VertexView(val geometry: MeshGeometry, index: Int) : MutableVec3f() {
         override operator fun set(i: Int, v: Float) {
             if (attribOffset >= 0 && i in 0..3) {
                 geometry.vertices[offset + attribOffset + i] = v
+            }
+        }
+    }
+
+    private inner class Vec4iView(val attribOffset: Int) : MutableVec4i() {
+        override operator fun get(i: Int): Int {
+            return if (attribOffset >= 0 && i in 0..3) {
+                geometry.vertices[offset + attribOffset + i].toInt()
+            } else {
+                0
+            }
+        }
+
+        override operator fun set(i: Int, v: Int) {
+            if (attribOffset >= 0 && i in 0..3) {
+                geometry.vertices[offset + attribOffset + i] = v.toFloat()
             }
         }
     }

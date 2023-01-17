@@ -4,6 +4,7 @@ import com.lehaine.littlekt.graphics.shader.generator.GlslGenerator
 import com.lehaine.littlekt.graphics.shader.generator.str
 import com.lehaine.littlekt.graphics.shader.generator.type.Vector
 import com.lehaine.littlekt.graphics.shader.generator.type.scalar.GLFloat
+import com.lehaine.littlekt.graphics.shader.generator.type.scalar.GLInt
 import com.lehaine.littlekt.graphics.shader.generator.type.scalar.floatComponent
 
 /**
@@ -137,6 +138,7 @@ class Vec4(override val builder: GlslGenerator) : Vector {
     operator fun times(a: Vec4) = Vec4(builder, "(${this.value} * ${a.value})")
     operator fun div(a: Vec4) = Vec4(builder, "(${this.value} / ${a.value})")
     operator fun plus(a: Vec4) = Vec4(builder, "(${this.value} + ${a.value})")
+
     operator fun minus(a: Vec4) = Vec4(builder, "(${this.value} - ${a.value})")
 
     operator fun unaryMinus() = Vec4(builder, "-(${this.value})")
@@ -150,4 +152,9 @@ class Vec4(override val builder: GlslGenerator) : Vector {
             else -> throw Error("Index $i out of range [0..3]")
         }
     }
+
+    operator fun get(i: GLInt): GLFloat {
+        return GLFloat(builder, "${this.value}[${i.value}]")
+    }
+
 }

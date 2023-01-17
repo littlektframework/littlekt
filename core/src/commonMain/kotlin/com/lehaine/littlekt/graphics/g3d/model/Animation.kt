@@ -4,7 +4,9 @@ import com.lehaine.littlekt.graph.node.node3d.MeshNode
 import com.lehaine.littlekt.graph.node.node3d.Node3D
 import com.lehaine.littlekt.math.*
 import com.lehaine.littlekt.util.datastructure.TreeMap
+import com.lehaine.littlekt.util.seconds
 import kotlin.math.min
+import kotlin.time.Duration
 
 class Animation(val name: String?) {
     val channels = mutableListOf<AnimationChannel<*>>()
@@ -24,8 +26,8 @@ class Animation(val name: String?) {
         animationNodes += channels.map { it.animationNode }.distinct()
     }
 
-    fun apply(deltaT: Float, firstWeightedTransform: Boolean = true) {
-        progress = (progress + duration + deltaT * speed) % duration
+    fun apply(dt: Duration, firstWeightedTransform: Boolean = true) {
+        progress = (progress + duration + dt.seconds * speed) % duration
 
         for (i in animationNodes.indices) {
             animationNodes[i].initTransform()
@@ -116,12 +118,15 @@ class AnimatedTransformGroup(val target: Node3D) : AnimationNode {
     private val animRotation = MutableVec4f()
     private val animScale = MutableVec3f()
 
+    private val tempVec3f = MutableVec3f()
+    private val tempVec4f = MutableVec4f()
+
     private val quatRotMat = Mat4()
     private val weightedTransformMat = Mat4()
 
     init {
         val vec4 = MutableVec4f()
-        target.transform.setCol(3, vec4)
+        target.transform.getCol(3, vec4)
         initTranslation.set(vec4.x, vec4.y, vec4.z)
         target.transform.getRotation(initRotation)
         val sx = target.transform.getCol(0, vec4).length()
@@ -139,8 +144,9 @@ class AnimatedTransformGroup(val target: Node3D) : AnimationNode {
     override fun applyTransform() {
         target.setIdentity()
         target.translate(animTranslation)
-        target.mul(quatRotMat.setToRotation(animRotation))
-        target.scale(animScale.x, animScale.y, animScale.z)
+        quatRotMat.setToRotation(animRotation)
+        target.rotation(animRotation)
+        target.setScale(animScale.x, animScale.y, animScale.z)
     }
 
     override fun applyTransformWeighted(weight: Float, firstWeightedTransform: Boolean) {
@@ -149,15 +155,27 @@ class AnimatedTransformGroup(val target: Node3D) : AnimationNode {
         weightedTransformMat.mul(quatRotMat.setToRotation(animRotation))
         weightedTransformMat.scale(animScale.x, animScale.y, animScale.z)
 
-        if (firstWeightedTransform) {
-            for (i in 0..15) {
-                target.transform.data[i] = weightedTransformMat.data[i] * weight
-            }
-        } else {
-            for (i in 0..15) {
-                target.transform.data[i] += weightedTransformMat.data[i] * weight
-            }
+        weightedTransformMat.getTranslation(tempVec3f)
+        tempVec3f.scale(weight)
+        if (!firstWeightedTransform) {
+            tempVec3f.add(target.position)
         }
+        target.position(tempVec3f)
+
+        weightedTransformMat.getRotation(tempVec4f)
+        tempVec4f.scale(weight)
+        if (!firstWeightedTransform) {
+            tempVec4f.add(target.rotation)
+        }
+        target.rotation(tempVec4f)
+
+        weightedTransformMat.getScale(tempVec3f)
+        tempVec3f.scale(weight)
+        if (!firstWeightedTransform) {
+            tempVec3f.add(target.scale)
+        }
+        target.setScale(tempVec3f.x, tempVec3f.y, tempVec3f.z)
+
         target.setDirty()
     }
 

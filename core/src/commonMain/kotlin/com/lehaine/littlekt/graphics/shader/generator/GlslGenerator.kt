@@ -9,6 +9,7 @@ import com.lehaine.littlekt.graphics.shader.generator.type.*
 import com.lehaine.littlekt.graphics.shader.generator.type.mat.Mat2
 import com.lehaine.littlekt.graphics.shader.generator.type.mat.Mat3
 import com.lehaine.littlekt.graphics.shader.generator.type.mat.Mat4
+import com.lehaine.littlekt.graphics.shader.generator.type.mat.Mat4Array
 import com.lehaine.littlekt.graphics.shader.generator.type.sampler.Sampler2D
 import com.lehaine.littlekt.graphics.shader.generator.type.sampler.Sampler2DArray
 import com.lehaine.littlekt.graphics.shader.generator.type.sampler.Sampler2DVarArray
@@ -35,6 +36,8 @@ enum class InstructionType {
     ELSE,
     ENDIF,
     DISCARD,
+    CONTINUE,
+    BREAK,
     FUNC_DEFINED,
     INVOKE_FUNC,
     END_FUNC,
@@ -68,9 +71,9 @@ interface GlslProvider {
  * Based off of: https://github.com/dananas/kotlin-glsl
  */
 abstract class GlslGenerator : GlslProvider {
-    internal val uniforms = mutableSetOf<String>()
-    internal val attributes = mutableSetOf<String>()
-    internal val varyings = mutableSetOf<String>()
+    internal val uniforms = linkedSetOf<String>()
+    internal val attributes = linkedSetOf<String>()
+    internal val varyings = linkedSetOf<String>()
 
     internal var addAsFunctionInstruction = false
 
@@ -217,6 +220,8 @@ abstract class GlslGenerator : GlslProvider {
                     "for (${it.result}) {"
                 }
 
+                CONTINUE -> "continue;"
+                BREAK -> "break;"
                 END_FOR -> "}"
                 DISCARD -> "discard;"
                 else -> throw IllegalStateException("Instruction ${it.type} is not valid for the main function instructions!")
@@ -416,7 +421,7 @@ abstract class GlslGenerator : GlslProvider {
                 )
             )
         }
-        body(GLInt(this))
+        body(GLInt(this, "loopIdx"))
         addInstruction(Instruction(END_FOR))
     }
 
@@ -436,8 +441,16 @@ abstract class GlslGenerator : GlslProvider {
                 )
             )
         }
-        body(GLInt(this))
+        body(GLInt(this, "loopIdx"))
         addInstruction(Instruction(END_FOR))
+    }
+
+    fun Continue() {
+        addInstruction(Instruction(CONTINUE))
+    }
+
+    fun Break() {
+        addInstruction(Instruction(BREAK))
     }
 
     fun castMat3(m: Mat4) = Mat3(this, "mat3(${m.value})")
@@ -749,6 +762,7 @@ abstract class GlslGenerator : GlslProvider {
     fun vec4(x: GLFloat, y: GLFloat, z: Float, w: Float) =
         ConstructorDelegate(Vec4(this), ("vec4(${x.value}, ${y.value}, ${z.str()}, ${w.str()})"))
 
+    fun mat4(genValue: (() -> Mat4)? = null) = ConstructorDelegate(Mat4(this), null, genValue)
     fun mat3(genValue: (() -> Mat3)? = null) = ConstructorDelegate(Mat3(this), null, genValue)
     fun mat3(v: Mat4) = Mat3(this, "mat3(${v.value})")
     fun mat2(genValue: (() -> Mat2)? = null) = ConstructorDelegate(Mat2(this), null, genValue)
