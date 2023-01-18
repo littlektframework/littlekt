@@ -596,6 +596,26 @@ class AndroidGL(private val engineStats: EngineStats) : GL {
         GLES20.glUniform4f(uniformLocation.address, x, y, z, w)
     }
 
+    override fun uniform1fv(uniformLocation: UniformLocation, floats: FloatArray) {
+        engineStats.calls++
+        GLES20.glUniform1fv(uniformLocation.address, floats.size, floats, 0)
+    }
+
+    override fun uniform2fv(uniformLocation: UniformLocation, floats: FloatArray) {
+        engineStats.calls++
+        GLES20.glUniform2fv(uniformLocation.address, floats.size, floats, 0)
+    }
+
+    override fun uniform3fv(uniformLocation: UniformLocation, floats: FloatArray) {
+        engineStats.calls++
+        GLES20.glUniform3fv(uniformLocation.address, floats.size, floats, 0)
+    }
+
+    override fun uniform4fv(uniformLocation: UniformLocation, floats: FloatArray) {
+        engineStats.calls++
+        GLES20.glUniform4fv(uniformLocation.address, floats.size, floats, 0)
+    }
+
     override fun drawArrays(mode: Int, offset: Int, count: Int) {
         engineStats.calls++
         engineStats.drawCalls++

@@ -88,9 +88,7 @@ open class Vec4f internal constructor(x: Float, y: Float, z: Float, w: Float, si
      */
     fun isFuzzyEqual(other: Vec4f, eps: Float = FUZZY_EQ_F): Boolean =
         isFuzzyEqual(x, other.x, eps) && isFuzzyEqual(y, other.y, eps) && isFuzzyEqual(z, other.z, eps) && isFuzzyEqual(
-            w,
-            other.w,
-            eps
+            w, other.w, eps
         )
 
     /**
@@ -146,6 +144,64 @@ open class Vec4f internal constructor(x: Float, y: Float, z: Float, w: Float, si
         result.z = otherQuat.w * z + otherQuat.z * w + otherQuat.x * y - otherQuat.y * x
         result.w = otherQuat.w * w - otherQuat.x * x - otherQuat.y * y - otherQuat.z * z
         return result
+    }
+
+    fun lookAt(forward: Vec3f, up: Vec3f, result: MutableVec4f): MutableVec4f {
+        tempVec3A.set(forward).norm() // forward normalized
+        tempVec3B.set(up).cross(tempVec3A).norm() // right normalized
+        tempVec3C.set(tempVec3A).cross(tempVec3B) // new up
+
+        val m00 = tempVec3B.x
+        val m01 = tempVec3B.y
+        val m02 = tempVec3B.z
+
+        val m10 = tempVec3C.x
+        val m11 = tempVec3C.y
+        val m12 = tempVec3C.z
+
+        val m20 = tempVec3A.x
+        val m21 = tempVec3A.y
+        val m22 = tempVec3A.z
+
+        val num8 = (m00 + m11) + m22
+        temp1.set(0f, 0f, 0f, 1f)
+        if (num8 > 0f) {
+            var num = sqrt(num8 + 1f)
+            temp1.w = num * 0.5f
+            num = 0.5f / num
+            temp1.x = (m12 - m21) * num
+            temp1.y = (m20 - m02) * num
+            temp1.z = (m01 - m10) * num
+            return result.set(temp1)
+        }
+
+        if ((m00 >= m11) && (m00 >= m22)) {
+            val num7 = sqrt(((1f + m00) - m11) - m22)
+            val num4 = 0.5f / num7
+            temp1.x = 0.5f * num7
+            temp1.y = (m01 + m10) * num4
+            temp1.z = (m02 + m20) * num4
+            temp1.w = (m12 - m21) * num4
+            return result.set(temp1)
+        }
+
+        if (m11 > m22) {
+            val num6 = sqrt(((1f + m11) - m00) - m22)
+            val num3 = 0.5f / num6
+            temp1.x = (m10 + m01) * num3
+            temp1.y = 0.5f * num6
+            temp1.z = (m21 + m12) * num3
+            temp1.w = (m20 - m02) * num3
+            return result.set(temp1)
+        }
+
+        val num5 = sqrt(((1f + m22) - m00) - m11)
+        val num2 = 0.5f / num5
+        temp1.x = (m20 + m02) * num2
+        temp1.y = (m21 + m12) * num2
+        temp1.z = 0.5f * num5
+        temp1.w = (m01 - m10) * num2
+        return result.set(temp1)
     }
 
     fun scale(factor: Float, result: MutableVec4f): MutableVec4f = result.set(this).scale(factor)
@@ -216,6 +272,10 @@ open class Vec4f internal constructor(x: Float, y: Float, z: Float, w: Float, si
 
         private val temp1 = MutableVec4f()
         private val temp2 = MutableVec4f()
+
+        private val tempVec3A = MutableVec3f()
+        private val tempVec3B = MutableVec3f()
+        private val tempVec3C = MutableVec3f()
     }
 }
 

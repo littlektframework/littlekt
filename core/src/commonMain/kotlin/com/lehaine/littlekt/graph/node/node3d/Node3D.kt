@@ -4,6 +4,7 @@ import com.lehaine.littlekt.graph.SceneGraph
 import com.lehaine.littlekt.graph.node.Node
 import com.lehaine.littlekt.graph.node.addTo
 import com.lehaine.littlekt.graph.node.annotation.SceneGraphDslMarker
+import com.lehaine.littlekt.graphics.shader.generator.type.vec.Vec3
 import com.lehaine.littlekt.math.*
 import com.lehaine.littlekt.math.geom.Angle
 import kotlin.contracts.ExperimentalContracts

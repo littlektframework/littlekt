@@ -1049,18 +1049,16 @@ open class Mat4 {
         fy *= rlf
         fz *= rlf
 
-        // Normalize up
-
-        val rlup = 1f / sqrt(up.x * up.x + up.y * up.y + up.z * up.z)
-        val upX = up.x * rlup
-        val upY = up.y * rlup
-        val upZ = up.z * rlup
-
         // compute s = f x up (x means "cross product")
-        val sx = fy * upZ - fz * upY
-        val sy = fz * upX - fx * upZ
-        val sz = fx * upY - fy * upX
+        var sx = fy * up.z - fz * up.y
+        var sy = fz * up.x - fx * up.z
+        var sz = fx * up.y - fy * up.x
 
+        // and normalize s
+        val rls = 1f / sqrt(sx * sx + sy * sy + sz * sz)
+        sx *= rls
+        sy *= rls
+        sz *= rls
 
         // compute u = s x f
         val ux = sy * fz - sz * fy

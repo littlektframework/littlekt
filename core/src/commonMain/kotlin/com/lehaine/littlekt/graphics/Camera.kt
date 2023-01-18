@@ -110,7 +110,7 @@ abstract class Camera {
         up.rotate(angle, axis)
     }
 
-    fun rotate(quaternion:Vec4f) {
+    fun rotate(quaternion: Vec4f) {
         quaternion.transform(direction, direction)
         quaternion.transform(up, up)
     }

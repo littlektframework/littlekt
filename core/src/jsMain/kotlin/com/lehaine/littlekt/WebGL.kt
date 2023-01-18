@@ -217,6 +217,7 @@ class WebGL(val gl: WebGL2RenderingContext, val platform: Context.Platform, priv
                 data[0] = gl.getParameter(pname) as Int
                 data.flip()
             }
+
             GL.VIEWPORT -> {
                 val array = gl.getParameter(pname) as Int32Array
                 data[0] = array[0]
@@ -225,9 +226,11 @@ class WebGL(val gl: WebGL2RenderingContext, val platform: Context.Platform, priv
                 data[3] = array[3]
                 data.flip()
             }
+
             GL.FRAMEBUFFER_BINDING -> {
                 throw IllegalStateException("WebGL backend unable to return the framebuffer through getInteger. Use getBoundFrameBuffer(Uint32Buffer) method instead!")
             }
+
             else -> throw RuntimeException("getInteger for $pname is not supported by WebGL backend!")
         }
     }
@@ -420,16 +423,19 @@ class WebGL(val gl: WebGL2RenderingContext, val platform: Context.Platform, priv
                 gl.bufferData(target, data.buffer, usage, 0, data.limit)
                 engineStats.bufferAllocated(lastBoundBuffer!!.bufferId, data.capacity * 4)
             }
+
             is ByteBuffer -> {
                 data as ByteBufferImpl
                 gl.bufferData(target, data.buffer, usage, 0, data.limit)
                 engineStats.bufferAllocated(lastBoundBuffer!!.bufferId, data.capacity)
             }
+
             is ShortBuffer -> {
                 data as ShortBufferImpl
                 gl.bufferData(target, data.buffer, usage, 0, data.limit)
                 engineStats.bufferAllocated(lastBoundBuffer!!.bufferId, data.capacity * 2)
             }
+
             is IntBuffer -> {
                 data as IntBufferImpl
                 gl.bufferData(target, data.buffer, usage, 0, data.limit)
@@ -451,14 +457,17 @@ class WebGL(val gl: WebGL2RenderingContext, val platform: Context.Platform, priv
                 data as FloatBufferImpl
                 gl.bufferSubData(target, offset, data.buffer)
             }
+
             is ByteBuffer -> {
                 data as ByteBufferImpl
                 gl.bufferSubData(target, offset, data.buffer)
             }
+
             is ShortBuffer -> {
                 data as ShortBufferImpl
                 gl.bufferSubData(target, offset, data.buffer)
             }
+
             is IntBuffer -> {
                 data as IntBufferImpl
                 gl.bufferSubData(target, offset, data.buffer)
@@ -631,6 +640,26 @@ class WebGL(val gl: WebGL2RenderingContext, val platform: Context.Platform, priv
     override fun uniform4f(uniformLocation: UniformLocation, x: Float, y: Float, z: Float, w: Float) {
         engineStats.calls++
         gl.uniform4f(uniformLocation.delegate, x, y, z, w)
+    }
+
+    override fun uniform1fv(uniformLocation: UniformLocation, floats: FloatArray) {
+        engineStats.calls++
+        gl.uniform1fv(uniformLocation.delegate, floats.toTypedArray())
+    }
+
+    override fun uniform2fv(uniformLocation: UniformLocation, floats: FloatArray) {
+        engineStats.calls++
+        gl.uniform2fv(uniformLocation.delegate, floats.toTypedArray())
+    }
+
+    override fun uniform3fv(uniformLocation: UniformLocation, floats: FloatArray) {
+        engineStats.calls++
+        gl.uniform3fv(uniformLocation.delegate, floats.toTypedArray())
+    }
+
+    override fun uniform4fv(uniformLocation: UniformLocation, floats: FloatArray) {
+        engineStats.calls++
+        gl.uniform4fv(uniformLocation.delegate, floats.toTypedArray())
     }
 
     override fun drawArrays(mode: Int, offset: Int, count: Int) {

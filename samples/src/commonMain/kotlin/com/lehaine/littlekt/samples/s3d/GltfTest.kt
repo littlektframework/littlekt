@@ -6,17 +6,13 @@ import com.lehaine.littlekt.file.vfs.readGltfModel
 import com.lehaine.littlekt.graph.node.addTo
 import com.lehaine.littlekt.graph.node.node3d.camera3d
 import com.lehaine.littlekt.graph.node.node3d.directionalLight
-import com.lehaine.littlekt.graph.node.node3d.meshNode
 import com.lehaine.littlekt.graph.node.node3d.node3d
 import com.lehaine.littlekt.graph.node.ui.control
 import com.lehaine.littlekt.graph.node.ui.label
 import com.lehaine.littlekt.graph.node.ui.paddedContainer
 import com.lehaine.littlekt.graph.sceneGraph
 import com.lehaine.littlekt.graphics.Color
-import com.lehaine.littlekt.graphics.VertexAttribute
 import com.lehaine.littlekt.graphics.gl.ClearBufferMask
-import com.lehaine.littlekt.graphics.mesh
-import com.lehaine.littlekt.graphics.shader.shaders.ModelVertexShader
 import com.lehaine.littlekt.input.Key
 import com.lehaine.littlekt.math.geom.degrees
 import com.lehaine.littlekt.util.seconds
@@ -39,9 +35,15 @@ class GltfTest(context: Context) : ContextListener(context) {
 
             resourcesVfs["models/fox/Fox.gltf"].readGltfModel(loadTexturesAsynchronously = true).apply {
                 enableAnimation(1)
-                rotate(x = (-90).degrees)
+                rotate(x = (-90).degrees, y = 45.degrees)
                 onUpdate += {
                     applyAnimation(it)
+                }
+                onPreRender += {
+                    environment.ambientStrength = 0.8f
+                }
+                onPostRender += {
+                    environment.ambientStrength = 0.1f
                 }
             }.also { it.addTo(this) }
 
@@ -55,17 +57,17 @@ class GltfTest(context: Context) : ContextListener(context) {
             node3d {
                 onUpdate += {
                     if (input.isKeyPressed(Key.W)) {
-                        rotate(1.degrees)
+                        rotate((-1).degrees)
                     }
                     if (input.isKeyPressed(Key.S)) {
-                        rotate((-1).degrees)
+                        rotate((1).degrees)
                     }
 
                     if (input.isKeyPressed(Key.A)) {
-                        rotate(y = 1.degrees)
+                        rotate(y = (-1).degrees)
                     }
                     if (input.isKeyPressed(Key.D)) {
-                        rotate(y = (-1).degrees)
+                        rotate(y = 1.degrees)
                     }
 
                 }

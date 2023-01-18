@@ -581,6 +581,26 @@ class LwjglGL(private val engineStats: EngineStats, private val graphics: Graphi
         glUniform4f(uniformLocation.address, x, y, z, w)
     }
 
+    override fun uniform1fv(uniformLocation: UniformLocation, floats: FloatArray) {
+        engineStats.calls++
+        GL20.glUniform1fv(uniformLocation.address, floats)
+    }
+
+    override fun uniform2fv(uniformLocation: UniformLocation, floats: FloatArray) {
+        engineStats.calls++
+        GL20.glUniform2fv(uniformLocation.address, floats)
+    }
+
+    override fun uniform3fv(uniformLocation: UniformLocation, floats: FloatArray) {
+        engineStats.calls++
+        GL20.glUniform3fv(uniformLocation.address, floats)
+    }
+
+    override fun uniform4fv(uniformLocation: UniformLocation, floats: FloatArray) {
+        engineStats.calls++
+        GL20.glUniform4fv(uniformLocation.address, floats)
+    }
+
     override fun drawArrays(mode: Int, offset: Int, count: Int) {
         engineStats.calls++
         engineStats.drawCalls++

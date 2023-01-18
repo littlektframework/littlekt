@@ -16,14 +16,14 @@ import com.lehaine.littlekt.graphics.shader.generator.type.vec.Vec4
  * @author Colton Daily
  * @date 12/20/2022
  */
-open class ModelVertexShader(maxJoints: Int = 100, maxJointInfluence: Int = 4) : VertexShaderModel() {
+open class ModelVertexShader(maxJoints: Int = 100, maxJointInfluence: Int = 4, maxLights: Int = 5) :
+    VertexShaderModel() {
     val uProjection get() = parameters[0] as ShaderParameter.UniformMat4
     val uModel get() = parameters[1] as ShaderParameter.UniformMat4
     val uModelInv get() = parameters[2] as ShaderParameter.UniformMat4
 
     val uJoints get() = parameters[3] as ShaderParameter.UniformArrayMat4
     val uUseJoint get() = parameters[4] as ShaderParameter.UniformBoolean
-
 
     private val u_projection by uniform(::Mat4)
     private val u_model by uniform(::Mat4)
@@ -47,9 +47,11 @@ open class ModelVertexShader(maxJoints: Int = 100, maxJointInfluence: Int = 4) :
     init {
         v_texCoords = a_texCoord0
         var totalLocalPosition by vec4 { vec4(a_position, 1f).lit }
+        var totalNormal by vec4 { vec4(a_normal, 1f).lit }
 
         If(u_useJoints) {
-            totalLocalPosition = vec4(0f, 0f, 0f, 1f).lit
+            totalLocalPosition = vec4(0f, 0f, 0f, 0f).lit
+            totalNormal = vec4(0f, 0f, 0f, 0f).lit
             For(0, maxJointInfluence) { i ->
                 val jointId by int { a_joint[i].int }
                 If(jointId eq -1) {
@@ -61,13 +63,15 @@ open class ModelVertexShader(maxJoints: Int = 100, maxJointInfluence: Int = 4) :
                 }
                 val uJointMat by mat4 { u_joints[jointId] }
                 val posePosition by vec4 { uJointMat * vec4(a_position, 1f).lit }
+                val poseNormal by vec4 { uJointMat * vec4(a_normal, 0f).lit }
 
                 totalLocalPosition += posePosition * a_weight[i]
+                totalNormal += poseNormal * a_weight[i]
             }
         }
         //   v_color = a_color
         v_normal =
-            mat3(u_modelInv) * a_normal
+            mat3(u_modelInv) * totalNormal.xyz
         v_fragPosition = vec3(u_model * totalLocalPosition).lit
         gl_Position = u_projection * vec4(v_fragPosition, 1f).lit
     }

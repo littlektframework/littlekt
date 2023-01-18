@@ -173,6 +173,80 @@ sealed class ShaderParameter(val name: String) {
         }
     }
 
+    class UniformArrayFloat(name: String) : ShaderParameter(name) {
+        override fun create(program: ShaderProgram<*, *>) {
+            program.createUniform(name)
+        }
+
+        fun apply(program: ShaderProgram<*, *>, f: Array<Float>) {
+            program.gl?.uniform1fv(program.getUniform(name), f)
+        }
+
+        fun apply(program: ShaderProgram<*, *>, f: FloatArray) {
+            program.gl?.uniform1fv(program.getUniform(name), f)
+        }
+
+        fun apply(program: ShaderProgram<*, *>, f: List<Float>) = apply(program, f.toTypedArray())
+    }
+
+    class UniformArrayVec2(name: String) : ShaderParameter(name) {
+        override fun create(program: ShaderProgram<*, *>) {
+            program.createUniform(name)
+        }
+
+        fun apply(program: ShaderProgram<*, *>, f: Array<Float>) {
+            program.gl?.uniform2fv(program.getUniform(name), f)
+        }
+
+        fun apply(program: ShaderProgram<*, *>, f: FloatArray) {
+            program.gl?.uniform2fv(program.getUniform(name), f)
+        }
+
+        fun apply(program: ShaderProgram<*, *>, f: List<Float>) = apply(program, f.toTypedArray())
+    }
+
+    class UniformArrayVec3(name: String) : ShaderParameter(name) {
+        override fun create(program: ShaderProgram<*, *>) {
+            program.createUniform(name)
+        }
+
+        @JvmName("applyArray")
+        fun apply(program: ShaderProgram<*, *>, f: Array<Float>) {
+            program.gl?.uniform3fv(program.getUniform(name), f)
+        }
+
+        @JvmName("applyArray")
+        fun apply(program: ShaderProgram<*, *>, f: FloatArray) {
+            program.gl?.uniform3fv(program.getUniform(name), f)
+        }
+
+        fun apply(program: ShaderProgram<*, *>, f: List<Float>) = apply(program, f.toTypedArray())
+    }
+
+    class UniformArrayVec4(name: String) : ShaderParameter(name) {
+        override fun create(program: ShaderProgram<*, *>) {
+            program.createUniform(name)
+        }
+
+        @JvmName("applyArray")
+        fun apply(program: ShaderProgram<*, *>, f: Array<Float>) {
+            program.gl?.uniform4fv(program.getUniform(name), f)
+        }
+
+        @JvmName("applyArray")
+        fun apply(program: ShaderProgram<*, *>, f: FloatArray) {
+            program.gl?.uniform4fv(program.getUniform(name), f)
+        }
+
+        @JvmName("applyColors")
+        fun apply(program: ShaderProgram<*, *>, colors: List<Color>) {
+            val floats = colors.flatMap { c -> listOf(c.r, c.g, c.b, c.a) }
+            apply(program, floats)
+        }
+
+        fun apply(program: ShaderProgram<*, *>, f: List<Float>) = apply(program, f.toTypedArray())
+    }
+
     class UniformSample2D(name: String) : ShaderParameter(name) {
         override fun create(program: ShaderProgram<*, *>) {
             program.createUniform(name)
