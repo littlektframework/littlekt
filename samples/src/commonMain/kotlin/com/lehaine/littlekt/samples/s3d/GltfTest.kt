@@ -2,20 +2,28 @@ package com.lehaine.littlekt.samples.s3d
 
 import com.lehaine.littlekt.Context
 import com.lehaine.littlekt.ContextListener
+import com.lehaine.littlekt.async.KtScope
 import com.lehaine.littlekt.file.vfs.readGltfModel
+import com.lehaine.littlekt.graph.SceneGraph
 import com.lehaine.littlekt.graph.node.addTo
+import com.lehaine.littlekt.graph.node.node3d.Model
 import com.lehaine.littlekt.graph.node.node3d.camera3d
 import com.lehaine.littlekt.graph.node.node3d.directionalLight
-import com.lehaine.littlekt.graph.node.node3d.node3d
-import com.lehaine.littlekt.graph.node.ui.control
-import com.lehaine.littlekt.graph.node.ui.label
-import com.lehaine.littlekt.graph.node.ui.paddedContainer
+import com.lehaine.littlekt.graph.node.ui.*
 import com.lehaine.littlekt.graph.sceneGraph
 import com.lehaine.littlekt.graphics.Color
 import com.lehaine.littlekt.graphics.gl.ClearBufferMask
+import com.lehaine.littlekt.graphics.shader.shaders.Albedo
+import com.lehaine.littlekt.graphics.shader.shaders.ModelFragmentShader
+import com.lehaine.littlekt.graphics.shader.shaders.ModelVertexShader
 import com.lehaine.littlekt.input.Key
+import com.lehaine.littlekt.math.MutableVec4f
+import com.lehaine.littlekt.math.Vec3f
+import com.lehaine.littlekt.math.Vec4f
+import com.lehaine.littlekt.math.geom.Angle
 import com.lehaine.littlekt.math.geom.degrees
 import com.lehaine.littlekt.util.seconds
+import kotlinx.coroutines.launch
 import kotlin.math.sin
 import kotlin.time.Duration
 
@@ -25,66 +33,60 @@ import kotlin.time.Duration
  */
 class GltfTest(context: Context) : ContextListener(context) {
 
+    private val models = listOf(
+        GltfModel("models/player.glb", Vec3f(100f)),
+        GltfModel("models/duck.glb", rotation = MutableVec4f().setEuler(Angle.ZERO, (-90).degrees, Angle.ZERO)),
+        GltfModel("models/fox/Fox.gltf", animIdx = 0),
+        GltfModel("models/flighthelmet/FlightHelmet.gltf", Vec3f(200f))
+    )
+
+    private var modelIdx = 0
+    private var loadingModel = false
+    private lateinit var model: Model
+
+    private data class GltfModel(
+        val path: String,
+        val scale: Vec3f = Vec3f(1f),
+        val rotation: Vec4f = Vec4f(0f, 0f, 0f, 1f),
+        val animIdx: Int = -1,
+    )
+
     override suspend fun Context.start() {
+        println(ModelVertexShader(albedo = Albedo.VERTEX).generate(this))
+        println()
+        println(ModelFragmentShader(albedo = Albedo.VERTEX).generate(this))
         val scene = sceneGraph(this) {
+            loadGltfModel(models[modelIdx], this)
 
-            resourcesVfs["models/duck.glb"].readGltfModel().apply {
-                translate(100f, 0f, 0f)
-                rotate(y = (-90).degrees)
-            }.also { it.addTo(this) }
+            camera3d {
+                active = true
+                far = 1000f
+                translate(0f, 250f, 250f)
+                rotate((-45).degrees)
 
-            resourcesVfs["models/fox/Fox.gltf"].readGltfModel(loadTexturesAsynchronously = true).apply {
-                enableAnimation(1)
-                rotate(x = (-90).degrees, y = 45.degrees)
                 onUpdate += {
-                    applyAnimation(it)
-                }
-                onPreRender += {
-                    environment.ambientStrength = 0.8f
-                }
-                onPostRender += {
-                    environment.ambientStrength = 0.1f
-                }
-            }.also { it.addTo(this) }
+                    val speed = (5f * if (input.isKeyPressed(Key.SHIFT_LEFT)) 10f else 1f)
+                    if (input.isKeyPressed(Key.Q)) {
+                        model.translate(0f, -speed, 0f)
+                    }
+                    if (input.isKeyPressed(Key.E)) {
+                        model.translate(0f, speed, 0f)
+                    }
 
-            resourcesVfs["models/flighthelmet/FlightHelmet.gltf"].readGltfModel(loadTexturesAsynchronously = true)
-                .apply {
-                    translate(-100f, 0f, 0f)
-                    scale(200f)
-                }.also { it.addTo(this) }
-
-
-            node3d {
-                onUpdate += {
                     if (input.isKeyPressed(Key.W)) {
-                        rotate((-1).degrees)
+                        model.rotate((-1).degrees)
                     }
                     if (input.isKeyPressed(Key.S)) {
-                        rotate((1).degrees)
+                        model.rotate((1).degrees)
                     }
 
                     if (input.isKeyPressed(Key.A)) {
-                        rotate(y = (-1).degrees)
+                        model.rotate(y = (-1).degrees)
                     }
                     if (input.isKeyPressed(Key.D)) {
-                        rotate(y = 1.degrees)
+                        model.rotate(y = 1.degrees)
                     }
 
-                }
-                camera3d {
-                    active = true
-                    far = 1000f
-                    translate(0f, 0f, 250f)
-
-                    onUpdate += {
-                        val speed = 5f * if (input.isKeyPressed(Key.SHIFT_LEFT)) 10f else 1f
-                        if (input.isKeyPressed(Key.Q)) {
-                            translate(0f, -speed, 0f)
-                        }
-                        if (input.isKeyPressed(Key.E)) {
-                            translate(0f, speed, 0f)
-                        }
-                    }
                 }
             }
 
@@ -100,10 +102,47 @@ class GltfTest(context: Context) : ContextListener(context) {
             }
 
             control {
+                anchorRight = 1f
+                anchorBottom = 1f
                 paddedContainer {
                     padding(10)
                     label {
                         text = "glTF Test with Scene Graph"
+                    }
+                }
+                paddedContainer {
+                    padding(10)
+                    anchor(Control.AnchorLayout.TOP_RIGHT)
+                    column {
+                        separation = 10
+                        label {
+                            text = "Select Model"
+                        }
+                        row {
+                            separation = 10
+                            button {
+                                text = "Prev"
+                                onPressed += {
+                                    if (!loadingModel) {
+                                        model.destroy()
+                                        modelIdx--
+                                        if (modelIdx !in models.indices) modelIdx = models.size - 1
+                                        loadGltfModel(models[modelIdx], this@sceneGraph)
+                                    }
+                                }
+                            }
+                            button {
+                                text = "Next"
+                                onPressed += {
+                                    if (!loadingModel) {
+                                        model.destroy()
+                                        modelIdx++
+                                        if (modelIdx !in models.indices) modelIdx = 0
+                                        loadGltfModel(models[modelIdx], this@sceneGraph)
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -133,6 +172,24 @@ class GltfTest(context: Context) : ContextListener(context) {
             if (input.isKeyJustPressed(Key.ESCAPE)) {
                 close()
             }
+        }
+    }
+
+    private fun Context.loadGltfModel(gltfModel: GltfModel, sceneGraph: SceneGraph<*>) {
+        if (loadingModel) return
+        loadingModel = true
+        KtScope.launch {
+            model = resourcesVfs[models[modelIdx].path].readGltfModel().apply {
+                rotation(gltfModel.rotation)
+                scaling(gltfModel.scale)
+                if (gltfModel.animIdx >= 0) {
+                    enableAnimation(gltfModel.animIdx)
+                    onUpdate += {
+                        applyAnimation(it)
+                    }
+                }
+            }.also { it.addTo(sceneGraph) }
+            loadingModel = false
         }
     }
 }

@@ -19,6 +19,7 @@ import com.lehaine.littlekt.graphics.gl.BlendFactor
 import com.lehaine.littlekt.graphics.gl.FaceMode
 import com.lehaine.littlekt.graphics.gl.State
 import com.lehaine.littlekt.graphics.shader.ShaderProgram
+import com.lehaine.littlekt.graphics.shader.shaders.Albedo
 import com.lehaine.littlekt.graphics.shader.shaders.ModelFragmentShader
 import com.lehaine.littlekt.graphics.shader.shaders.ModelVertexShader
 import com.lehaine.littlekt.input.*
@@ -259,7 +260,11 @@ open class SceneGraph<InputType>(
     private var time = (1f / fixedTimesPerSecond).seconds
 
     var defaultMaterial3d =
-        ModelMaterial(ShaderProgram(ModelVertexShader(), ModelFragmentShader()).apply { prepare(context) })
+        ModelMaterial(
+            ShaderProgram(
+                ModelVertexShader(albedo = Albedo.STATIC),
+                ModelFragmentShader(albedo = Albedo.STATIC)
+            ).apply { prepare(context) })
 
     /**
      * Holds the current [Material] of the last rendered [Node] if no changes were made)

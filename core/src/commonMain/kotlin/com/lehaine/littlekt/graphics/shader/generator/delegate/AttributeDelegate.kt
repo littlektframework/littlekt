@@ -13,6 +13,7 @@ import kotlin.reflect.KProperty
 class AttributeDelegate<T : Variable>(
     private val factory: (GlslGenerator) -> T,
     private val precision: Precision,
+    private val predicate: Boolean,
 ) {
     private lateinit var v: T
 
@@ -22,8 +23,10 @@ class AttributeDelegate<T : Variable>(
     ): AttributeDelegate<T> {
         v = factory(thisRef)
         v.value = property.name
-        thisRef.parameters.add(ShaderParameter.Attribute(property.name))
-        thisRef.attributes.add("${precision.value}${v.typeName} ${property.name}")
+        if (predicate) {
+            thisRef.parameters.add(ShaderParameter.Attribute(property.name))
+            thisRef.attributes.add("${precision.value}${v.typeName} ${property.name}")
+        }
         return this
     }
 

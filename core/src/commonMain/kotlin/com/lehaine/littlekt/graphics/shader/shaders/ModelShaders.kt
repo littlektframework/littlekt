@@ -1,5 +1,6 @@
 package com.lehaine.littlekt.graphics.shader.shaders
 
+import com.lehaine.littlekt.graphics.Color
 import com.lehaine.littlekt.graphics.shader.FragmentShaderModel
 import com.lehaine.littlekt.graphics.shader.ShaderParameter
 import com.lehaine.littlekt.graphics.shader.VertexShaderModel
@@ -12,11 +13,21 @@ import com.lehaine.littlekt.graphics.shader.generator.type.vec.Vec2
 import com.lehaine.littlekt.graphics.shader.generator.type.vec.Vec3
 import com.lehaine.littlekt.graphics.shader.generator.type.vec.Vec4
 
+enum class Albedo {
+    VERTEX,
+    TEXTURE,
+    STATIC
+}
+
 /**
  * @author Colton Daily
  * @date 12/20/2022
  */
-open class ModelVertexShader(maxJoints: Int = 100, maxJointInfluence: Int = 4, maxLights: Int = 5) :
+open class ModelVertexShader(
+    maxJoints: Int = 100,
+    maxJointInfluence: Int = 4,
+    albedo: Albedo,
+) :
     VertexShaderModel() {
     val uProjection get() = parameters[0] as ShaderParameter.UniformMat4
     val uModel get() = parameters[1] as ShaderParameter.UniformMat4
@@ -33,13 +44,13 @@ open class ModelVertexShader(maxJoints: Int = 100, maxJointInfluence: Int = 4, m
 
     private val a_position by attribute(::Vec3)
     private val a_normal by attribute(::Vec3)
+    private val a_color by attribute(::Vec4, predicate = albedo == Albedo.VERTEX)
     private val a_texCoord0 by attribute(::Vec2)
     private val a_joint by attribute(::Vec4)
     private val a_weight by attribute(::Vec4)
 
-    //  private val a_color by attribute(::Vec4)
 
-    //  private var v_color by varying(::Vec4)
+    private var v_color by varying(::Vec4, predicate = albedo == Albedo.VERTEX)
     private var v_normal by varying(::Vec3)
     private var v_fragPosition by varying(::Vec3)
     private var v_texCoords by varying(::Vec2)
@@ -69,7 +80,7 @@ open class ModelVertexShader(maxJoints: Int = 100, maxJointInfluence: Int = 4, m
                 totalNormal += poseNormal * a_weight[i]
             }
         }
-        //   v_color = a_color
+        v_color = a_color
         v_normal =
             mat3(u_modelInv) * totalNormal.xyz
         v_fragPosition = vec3(u_model * totalLocalPosition).lit
@@ -77,7 +88,10 @@ open class ModelVertexShader(maxJoints: Int = 100, maxJointInfluence: Int = 4, m
     }
 }
 
-open class ModelFragmentShader : FragmentShaderModel() {
+open class ModelFragmentShader(
+    albedo: Albedo,
+    staticColor: Color = Color.GRAY,
+) : FragmentShaderModel() {
     //  val uTexture get() = parameters[0] as ShaderParameter.UniformSample2D
     val uLightColor get() = parameters[0] as ShaderParameter.UniformVec4
     val uAmbientStrength get() = parameters[1] as ShaderParameter.UniformFloat
@@ -93,7 +107,7 @@ open class ModelFragmentShader : FragmentShaderModel() {
     private val u_lightPosition by uniform(::Vec3)
     private val u_viewPosition by uniform(::Vec3)
 
-    //private val v_color by varying(::Vec4)
+    private val v_color by varying(::Vec4, predicate = albedo == Albedo.VERTEX)
     private val v_normal by varying(::Vec3)
     private val v_fragPos by varying(::Vec3)
     private val v_texCoords by varying(::Vec2)
@@ -114,7 +128,21 @@ open class ModelFragmentShader : FragmentShaderModel() {
         val specFactor by float { pow(max(dot(viewDir, reflectDir), 0f), 32f) }
         val specColor by vec3 { u_specularStrength * specFactor * u_lightColor.xyz }
 
-        val result by vec3 { (ambientColor + diffColor + specColor) * texture2D(u_texture, v_texCoords).xyz }
+        val result by vec3 {
+            (ambientColor + diffColor + specColor) * when (albedo) {
+                Albedo.VERTEX -> v_color.xyz
+                Albedo.STATIC -> vec3(
+                    staticColor.r,
+                    staticColor.g,
+                    staticColor.b
+                ).lit
+
+                Albedo.TEXTURE -> texture2D(
+                    u_texture,
+                    v_texCoords
+                ).xyz
+            }
+        }
 
         gl_FragColor = vec4(result, 1f).lit
     }

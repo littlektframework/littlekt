@@ -284,4 +284,17 @@ abstract class VisualInstance : Node3D() {
         material.projection = camera.viewProjection
         material.viewPosition = camera.position
     }
+
+    override fun onDestroy() {
+        super.onDestroy()
+
+        material?.dispose()
+        
+        onPreRender.clear()
+        onRender.clear()
+        onPostRender.clear()
+        onDebugRender.clear()
+        onVisible.clear()
+        onInvisible.clear()
+    }
 }

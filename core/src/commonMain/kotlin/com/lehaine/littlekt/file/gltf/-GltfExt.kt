@@ -3,6 +3,7 @@ package com.lehaine.littlekt.file.gltf
 import com.lehaine.littlekt.Context
 import com.lehaine.littlekt.async.KtScope
 import com.lehaine.littlekt.async.newSingleThreadAsyncContext
+import com.lehaine.littlekt.async.onRenderingThread
 import com.lehaine.littlekt.file.gltf.GltfMeshPrimitive.Companion.ATTRIBUTE_COLOR_0
 import com.lehaine.littlekt.file.gltf.GltfMeshPrimitive.Companion.ATTRIBUTE_JOINTS_0
 import com.lehaine.littlekt.file.gltf.GltfMeshPrimitive.Companion.ATTRIBUTE_NORMAL
@@ -14,12 +15,17 @@ import com.lehaine.littlekt.file.vfs.VfsFile
 import com.lehaine.littlekt.graph.node.node3d.MeshNode
 import com.lehaine.littlekt.graph.node.node3d.Model
 import com.lehaine.littlekt.graph.node.node3d.Node3D
+import com.lehaine.littlekt.graph.node.render.ModelMaterial
 import com.lehaine.littlekt.graphics.GL
 import com.lehaine.littlekt.graphics.Mesh
 import com.lehaine.littlekt.graphics.VertexAttribute
 import com.lehaine.littlekt.graphics.VertexAttributes
 import com.lehaine.littlekt.graphics.g3d.model.*
 import com.lehaine.littlekt.graphics.gl.Usage
+import com.lehaine.littlekt.graphics.shader.ShaderProgram
+import com.lehaine.littlekt.graphics.shader.shaders.Albedo
+import com.lehaine.littlekt.graphics.shader.shaders.ModelFragmentShader
+import com.lehaine.littlekt.graphics.shader.shaders.ModelVertexShader
 import com.lehaine.littlekt.graphics.util.MeshGeometry
 import com.lehaine.littlekt.log.Logger
 import com.lehaine.littlekt.math.Mat4
@@ -406,18 +412,41 @@ private class GltfModelGenerator(val context: Context, val gltfFile: GltfFile, v
                 mesh.morphWeights = FloatArray(prim.targets.sumOf { it.size })
             }
 
+            val useVertexColor = prim.attributes.containsKey(ATTRIBUTE_COLOR_0)
+
             if (loadTextureAsynchronously) {
                 KtScope.launch(newSingleThreadAsyncContext()) {
-                    mesh.loadTextures(context, prim)
+                    mesh.loadTextures(context, prim, useVertexColor)
+                    val albedoTexture = mesh.textures["albedo"]
+                    val albedo =
+                        if (useVertexColor) Albedo.VERTEX else if (albedoTexture != null) Albedo.TEXTURE else Albedo.STATIC
+                    if (albedo != Albedo.STATIC) {
+                        mesh.material = ModelMaterial(
+                            ShaderProgram(
+                                ModelVertexShader(albedo = albedo),
+                                ModelFragmentShader(albedo = albedo)
+                            ).apply { onRenderingThread { prepare(context) } })
+                    }
                 }
             } else {
-                mesh.loadTextures(context, prim)
+                mesh.loadTextures(context, prim, useVertexColor)
+                val albedoTexture = mesh.textures["albedo"]
+                val albedo =
+                    if (useVertexColor) Albedo.VERTEX else if (albedoTexture != null) Albedo.TEXTURE else Albedo.STATIC
+                if (albedo != Albedo.STATIC) {
+                    mesh.material = ModelMaterial(
+                        ShaderProgram(
+                            ModelVertexShader(albedo = albedo),
+                            ModelFragmentShader(albedo = albedo)
+                        ).apply { onRenderingThread { prepare(context) } })
+                }
             }
+
             model.meshes[name] = mesh
         }
     }
 
-    suspend fun MeshNode.loadTextures(context: Context, prim: GltfMeshPrimitive) {
+    suspend fun MeshNode.loadTextures(context: Context, prim: GltfMeshPrimitive, useVertexColors: Boolean) {
         prim.materialRef?.pbrMetallicRoughness?.baseColorTexture?.getTexture(context, gltfFile, root)?.also {
             textures["albedo"] = it
         }

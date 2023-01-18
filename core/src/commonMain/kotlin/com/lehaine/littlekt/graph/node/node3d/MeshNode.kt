@@ -74,4 +74,10 @@ class MeshNode : VisualInstance() {
             material.useJoints = false
         }
     }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        textures.forEach { it.value.dispose() }
+        mesh?.dispose()
+    }
 }

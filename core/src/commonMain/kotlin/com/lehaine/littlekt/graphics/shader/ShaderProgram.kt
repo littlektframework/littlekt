@@ -147,6 +147,23 @@ class ShaderProgram<V : VertexShader, F : FragmentShader>(
         vertexShaderReference?.let { gl.deleteShader(it) }
         fragmentShaderReference?.let { gl.deleteShader(it) }
         programGl?.let { gl.deleteProgram(it) }
+    }
 
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other == null || this::class != other::class) return false
+
+        other as ShaderProgram<*, *>
+
+        if (vertexShader != other.vertexShader) return false
+        if (fragmentShader != other.fragmentShader) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = vertexShader.hashCode()
+        result = 31 * result + fragmentShader.hashCode()
+        return result
     }
 }
