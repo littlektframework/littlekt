@@ -5,6 +5,7 @@ import com.lehaine.littlekt.async.KtScope
 import com.lehaine.littlekt.async.onRenderingThread
 import com.lehaine.littlekt.file.ByteBuffer
 import com.lehaine.littlekt.file.createByteBuffer
+import com.lehaine.littlekt.graphics.g2d.TextureSlice
 import com.lehaine.littlekt.graphics.gl.DataType
 import com.lehaine.littlekt.graphics.gl.PixmapTextureData
 import com.lehaine.littlekt.graphics.gl.TextureFormat
@@ -29,8 +30,8 @@ class Pixmap(val width: Int, val height: Int, val pixels: ByteBuffer = createByt
         RGBA8888(DataType.UNSIGNED_BYTE, TextureFormat.RGBA);
     }
 
-    val glFormat = TextureFormat.RGBA
-    val glType = DataType.UNSIGNED_BYTE
+    var glFormat = TextureFormat.RGBA
+    var glType = DataType.UNSIGNED_BYTE
 
     fun draw(
         pixmap: Pixmap,
@@ -43,7 +44,7 @@ class Pixmap(val width: Int, val height: Int, val pixels: ByteBuffer = createByt
         dstWidth: Int = srcWidth,
         dstHeight: Int = srcHeight,
         filtering: Boolean = false,
-        blending: Boolean = false
+        blending: Boolean = false,
     ) {
         if (srcWidth == 0 || srcHeight == 0 || dstWidth == 0 || dstHeight == 0) {
             return
@@ -211,7 +212,7 @@ class Pixmap(val width: Int, val height: Int, val pixels: ByteBuffer = createByt
         sliceY: Int,
         sliceWidth: Int,
         sliceHeight: Int,
-        border: Int = 0
+        border: Int = 0,
     ) {
         src.copyTo(sliceX, sliceY, this, x, y, sliceWidth, sliceHeight)
 
@@ -376,6 +377,10 @@ class Pixmap(val width: Int, val height: Int, val pixels: ByteBuffer = createByt
 
     private fun clampWidth(x: Int) = x.clamp(0, width)
     private fun clampHeight(y: Int) = y.clamp(0, height)
+
+    override fun toString(): String {
+        return "Pixmap(width=$width, height=$height, glFormat=$glFormat, glType=$glType)"
+    }
 }
 
 /**
@@ -391,7 +396,7 @@ fun Pixmap.sliceWithBorder(
     sliceWidth: Int,
     sliceHeight: Int,
     border: Int = 1,
-    mipmaps: Boolean = false
+    mipmaps: Boolean = false,
 ): List<TextureSlice> {
     val slices = slice(sliceWidth, sliceHeight).flatten()
     val newWidth = sliceWidth + border * 2
@@ -445,7 +450,7 @@ fun Pixmap.addBorderToSlices(
     sliceWidth: Int,
     sliceHeight: Int,
     border: Int = 1,
-    mipmaps: Boolean = false
+    mipmaps: Boolean = false,
 ): Texture {
     val slices = slice(sliceWidth, sliceHeight).flatten()
     val newWidth = sliceWidth + border * 2
@@ -503,5 +508,5 @@ data class PixmapSlice(
     val x: Int = 0,
     val y: Int = 0,
     val width: Int = pixmap.width,
-    val height: Int = pixmap.height
+    val height: Int = pixmap.height,
 )

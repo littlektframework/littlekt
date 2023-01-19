@@ -375,73 +375,73 @@ class LwjglGL(private val engineStats: EngineStats, private val graphics: Graphi
         glDeleteBuffers(glBuffer.address)
     }
 
-    override fun bufferData(target: Int, data: DataSource, usage: Int) {
+    override fun bufferData(target: Int, data: Buffer, usage: Int) {
         engineStats.calls++
-        val limit = data.buffer.limit
-        val pos = data.buffer.position
-        data.buffer.position = 0
-        data.buffer.limit = data.buffer.capacity
+        val limit = data.limit
+        val pos = data.position
+        data.position = 0
+        data.limit = data.capacity
         engineStats.bufferDeleted(lastBoundBuffer!!.bufferId)
         when (data) {
-            is DataSource.FloatBufferDataSource -> {
-                data.buffer as FloatBufferImpl
-                glBufferData(target, data.buffer.buffer, usage)
-                engineStats.bufferAllocated(lastBoundBuffer!!.bufferId, data.buffer.capacity * 4)
+            is FloatBuffer -> {
+                data as FloatBufferImpl
+                glBufferData(target, data.buffer, usage)
+                engineStats.bufferAllocated(lastBoundBuffer!!.bufferId, data.capacity * 4)
             }
 
-            is DataSource.ByteBufferDataSource -> {
-                data.buffer as ShortBufferImpl
-                glBufferData(target, data.buffer.buffer, usage)
-                engineStats.bufferAllocated(lastBoundBuffer!!.bufferId, data.buffer.capacity)
+            is ByteBuffer -> {
+                data as ByteBufferImpl
+                glBufferData(target, data.buffer, usage)
+                engineStats.bufferAllocated(lastBoundBuffer!!.bufferId, data.capacity)
             }
 
-            is DataSource.ShortBufferDataSource -> {
-                data.buffer as ShortBufferImpl
-                glBufferData(target, data.buffer.buffer, usage)
-                engineStats.bufferAllocated(lastBoundBuffer!!.bufferId, data.buffer.capacity * 2)
+            is ShortBuffer -> {
+                data as ShortBufferImpl
+                glBufferData(target, data.buffer, usage)
+                engineStats.bufferAllocated(lastBoundBuffer!!.bufferId, data.capacity * 2)
             }
 
-            is DataSource.IntBufferDataSource -> {
-                data.buffer as IntBufferImpl
-                glBufferData(target, data.buffer.buffer, usage)
-                engineStats.bufferAllocated(lastBoundBuffer!!.bufferId, data.buffer.capacity * 4)
+            is IntBuffer -> {
+                data as IntBufferImpl
+                glBufferData(target, data.buffer, usage)
+                engineStats.bufferAllocated(lastBoundBuffer!!.bufferId, data.capacity * 4)
             }
         }
 
-        data.buffer.limit = limit
-        data.buffer.position = pos
+        data.limit = limit
+        data.position = pos
     }
 
-    override fun bufferSubData(target: Int, offset: Int, data: DataSource) {
+    override fun bufferSubData(target: Int, offset: Int, data: Buffer) {
         engineStats.calls++
-        val limit = data.buffer.limit
-        val pos = data.buffer.position
-        data.buffer.position = 0
-        data.buffer.limit = data.buffer.capacity
+        val limit = data.limit
+        val pos = data.position
+        data.position = 0
+        data.limit = data.capacity
         when (data) {
-            is DataSource.FloatBufferDataSource -> {
-                data.buffer as FloatBufferImpl
-                GL15.glBufferSubData(target, offset.toLong(), data.buffer.buffer)
+            is FloatBuffer -> {
+                data as FloatBufferImpl
+                GL15.glBufferSubData(target, offset.toLong(), data.buffer)
             }
 
-            is DataSource.ByteBufferDataSource -> {
-                data.buffer as ShortBufferImpl
-                GL15.glBufferSubData(target, offset.toLong(), data.buffer.buffer)
+            is ByteBuffer -> {
+                data as ByteBufferImpl
+                GL15.glBufferSubData(target, offset.toLong(), data.buffer)
             }
 
-            is DataSource.ShortBufferDataSource -> {
-                data.buffer as ShortBufferImpl
-                GL15.glBufferSubData(target, offset.toLong(), data.buffer.buffer)
+            is ShortBuffer -> {
+                data as ShortBufferImpl
+                GL15.glBufferSubData(target, offset.toLong(), data.buffer)
             }
 
-            is DataSource.IntBufferDataSource -> {
-                data.buffer as IntBufferImpl
-                GL15.glBufferSubData(target, offset.toLong(), data.buffer.buffer)
+            is IntBuffer -> {
+                data as IntBufferImpl
+                GL15.glBufferSubData(target, offset.toLong(), data.buffer)
             }
         }
 
-        data.buffer.limit = limit
-        data.buffer.position = pos
+        data.limit = limit
+        data.position = pos
     }
 
     override fun depthFunc(func: Int) {
@@ -579,6 +579,26 @@ class LwjglGL(private val engineStats: EngineStats, private val graphics: Graphi
     override fun uniform4f(uniformLocation: UniformLocation, x: Float, y: Float, z: Float, w: Float) {
         engineStats.calls++
         glUniform4f(uniformLocation.address, x, y, z, w)
+    }
+
+    override fun uniform1fv(uniformLocation: UniformLocation, floats: FloatArray) {
+        engineStats.calls++
+        GL20.glUniform1fv(uniformLocation.address, floats)
+    }
+
+    override fun uniform2fv(uniformLocation: UniformLocation, floats: FloatArray) {
+        engineStats.calls++
+        GL20.glUniform2fv(uniformLocation.address, floats)
+    }
+
+    override fun uniform3fv(uniformLocation: UniformLocation, floats: FloatArray) {
+        engineStats.calls++
+        GL20.glUniform3fv(uniformLocation.address, floats)
+    }
+
+    override fun uniform4fv(uniformLocation: UniformLocation, floats: FloatArray) {
+        engineStats.calls++
+        GL20.glUniform4fv(uniformLocation.address, floats)
     }
 
     override fun drawArrays(mode: Int, offset: Int, count: Int) {

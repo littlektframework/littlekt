@@ -3,10 +3,11 @@ package com.lehaine.littlekt.graph.node
 import com.lehaine.littlekt.graph.SceneGraph
 import com.lehaine.littlekt.graph.node.annotation.SceneGraphDslMarker
 import com.lehaine.littlekt.graph.node.ui.Control
-import com.lehaine.littlekt.graphics.Batch
 import com.lehaine.littlekt.graphics.Camera
 import com.lehaine.littlekt.graphics.OrthographicCamera
-import com.lehaine.littlekt.graphics.shape.ShapeRenderer
+import com.lehaine.littlekt.graphics.PerspectiveCamera
+import com.lehaine.littlekt.graphics.g2d.Batch
+import com.lehaine.littlekt.graphics.g2d.shape.ShapeRenderer
 import com.lehaine.littlekt.math.MutableVec2f
 import com.lehaine.littlekt.math.MutableVec3f
 import com.lehaine.littlekt.util.Signal
@@ -56,6 +57,7 @@ open class CanvasLayer : Node() {
      */
     var viewport: Viewport = Viewport()
     val canvasCamera: OrthographicCamera get() = viewport.camera as OrthographicCamera
+    val canvasCamera3d: PerspectiveCamera = PerspectiveCamera() // TODO refactor use 3d viewport
 
     /**
      * Signal that is emitted when the viewport dimensions are changed by the [CanvasLayer].
@@ -119,6 +121,8 @@ open class CanvasLayer : Node() {
     private val temp = MutableVec2f()
 
     override fun resize(width: Int, height: Int) {
+        canvasCamera3d.virtualWidth = width.toFloat()
+        canvasCamera3d.virtualHeight = height.toFloat()
         canvasCamera.ortho(width, height)
         viewport.width = width
         viewport.height = height
@@ -130,7 +134,7 @@ open class CanvasLayer : Node() {
     open fun render(
         batch: Batch,
         shapeRenderer: ShapeRenderer,
-        renderCallback: ((Node, Batch, Camera, ShapeRenderer) -> Unit)?,
+        renderCallback: ((Node, Batch, Camera, Camera, ShapeRenderer) -> Unit)?,
     ) {
         if (!enabled || isDestroyed) return
         val scene = scene ?: return
@@ -138,11 +142,19 @@ open class CanvasLayer : Node() {
         val prevProjMatrix = batch.projectionMatrix
         canvasCamera.ortho(scene.context.graphics.width, scene.context.graphics.height)
         canvasCamera.update()
+        canvasCamera3d.virtualWidth = scene.context.graphics.width.toFloat()
+        canvasCamera3d.virtualHeight = scene.context.graphics.height.toFloat()
+        canvasCamera3d.update()
         batch.projectionMatrix = canvasCamera.viewProjection
-        if (!batch.drawing) batch.begin()
         nodes.forEach {
-            it.propagateInternalRender(batch, canvasCamera, shapeRenderer, renderCallback)
-            if (scene.showDebugInfo) it.propagateInternalDebugRender(batch, canvasCamera, shapeRenderer, renderCallback)
+            it.propagateInternalRender(batch, canvasCamera, canvasCamera3d, shapeRenderer, renderCallback)
+            if (scene.showDebugInfo) it.propagateInternalDebugRender(
+                batch,
+                canvasCamera,
+                canvasCamera3d,
+                shapeRenderer,
+                renderCallback
+            )
         }
         batch.projectionMatrix = prevProjMatrix
     }
@@ -150,8 +162,9 @@ open class CanvasLayer : Node() {
     override fun propagateInternalRender(
         batch: Batch,
         camera: Camera,
+        camera3d: Camera,
         shapeRenderer: ShapeRenderer,
-        renderCallback: ((Node, Batch, Camera, ShapeRenderer) -> Unit)?,
+        renderCallback: ((Node, Batch, Camera, Camera, ShapeRenderer) -> Unit)?,
     ) {
         render(batch, shapeRenderer, renderCallback)
     }

@@ -6,6 +6,10 @@ import com.lehaine.littlekt.file.vfs.readAtlas
 import com.lehaine.littlekt.file.vfs.readBitmapFont
 import com.lehaine.littlekt.file.vfs.readTexture
 import com.lehaine.littlekt.graphics.*
+import com.lehaine.littlekt.graphics.g2d.AnimatedSprite
+import com.lehaine.littlekt.graphics.g2d.TextureArraySpriteBatch
+import com.lehaine.littlekt.graphics.g2d.getAnimation
+import com.lehaine.littlekt.graphics.g2d.use
 import com.lehaine.littlekt.input.Key
 import com.lehaine.littlekt.util.viewport.ScreenViewport
 

@@ -1,8 +1,8 @@
 package com.lehaine.littlekt.graphics
 
 import com.lehaine.littlekt.Context
+import com.lehaine.littlekt.file.Buffer
 import com.lehaine.littlekt.file.ByteBuffer
-import com.lehaine.littlekt.file.DataSource
 import com.lehaine.littlekt.file.FloatBuffer
 import com.lehaine.littlekt.file.IntBuffer
 import com.lehaine.littlekt.graphics.gl.*
@@ -18,7 +18,7 @@ class GLVersion(
     val platform: Context.Platform,
     version: String = "0.0",
     val vendor: String = "N/A",
-    val renderer: String = "N/A"
+    val renderer: String = "N/A",
 ) {
     val major: Int
     val minor: Int
@@ -39,7 +39,7 @@ class GLVersion(
     fun atleast(major: Int, minor: Int) = major >= this.major && minor >= this.minor
 
     override fun toString(): String {
-        val extra = if(platform.isMobile || platform.isWebGl) " ES " else " "
+        val extra = if (platform.isMobile || platform.isWebGl) " ES " else " "
         return "OpenGL$extra$major.$minor ($vendor - $renderer)"
     }
 }
@@ -165,7 +165,7 @@ interface GL {
         target: Int,
         attachementType: FrameBufferRenderBufferAttachment,
         glTexture: GlTexture,
-        level: Int
+        level: Int,
     )
 
     fun readBuffer(mode: Int)
@@ -178,11 +178,11 @@ interface GL {
     fun bindDefaultBuffer(target: Int)
     fun bindDefaultBuffer(target: BufferTarget) = bindDefaultBuffer(target.glFlag)
     fun deleteBuffer(glBuffer: GlBuffer)
-    fun bufferData(target: Int, data: DataSource, usage: Int)
-    fun bufferData(target: BufferTarget, data: DataSource, usage: Usage) = bufferData(target.glFlag, data, usage.glFlag)
+    fun bufferData(target: Int, data: Buffer, usage: Int)
+    fun bufferData(target: BufferTarget, data: Buffer, usage: Usage) = bufferData(target.glFlag, data, usage.glFlag)
 
-    fun bufferSubData(target: Int, offset: Int, data: DataSource)
-    fun bufferSubData(target: BufferTarget, offset: Int, data: DataSource) =
+    fun bufferSubData(target: Int, offset: Int, data: Buffer)
+    fun bufferSubData(target: BufferTarget, offset: Int, data: Buffer) =
         bufferSubData(target.glFlag, offset, data)
 
     fun depthFunc(func: Int)
@@ -196,7 +196,7 @@ interface GL {
         type: VertexAttrType,
         normalized: Boolean,
         stride: Int,
-        offset: Int
+        offset: Int,
     ) = vertexAttribPointer(index, size, type.glFlag, normalized, stride, offset)
 
     fun enableVertexAttribArray(index: Int)
@@ -220,6 +220,22 @@ interface GL {
     fun uniform2f(uniformLocation: UniformLocation, x: Float, y: Float)
     fun uniform3f(uniformLocation: UniformLocation, x: Float, y: Float, z: Float)
     fun uniform4f(uniformLocation: UniformLocation, x: Float, y: Float, z: Float, w: Float)
+
+    fun uniform1fv(uniformLocation: UniformLocation, floats: FloatArray)
+    fun uniform1fv(uniformLocation: UniformLocation, floats: Array<Float>) =
+        uniform1fv(uniformLocation, floats.toFloatArray())
+
+    fun uniform2fv(uniformLocation: UniformLocation, floats: FloatArray)
+    fun uniform2fv(uniformLocation: UniformLocation, floats: Array<Float>) =
+        uniform2fv(uniformLocation, floats.toFloatArray())
+
+    fun uniform3fv(uniformLocation: UniformLocation, floats: FloatArray)
+    fun uniform3fv(uniformLocation: UniformLocation, floats: Array<Float>) =
+        uniform3fv(uniformLocation, floats.toFloatArray())
+
+    fun uniform4fv(uniformLocation: UniformLocation, floats: FloatArray)
+    fun uniform4fv(uniformLocation: UniformLocation, floats: Array<Float>) =
+        uniform4fv(uniformLocation, floats.toFloatArray())
 
     fun drawArrays(mode: Int, offset: Int, count: Int)
     fun drawArrays(mode: DrawMode, offset: Int, count: Int) = drawArrays(mode.glFlag, offset, count)
@@ -245,7 +261,7 @@ interface GL {
         internalFormat: Int,
         width: Int,
         height: Int,
-        source: ByteBuffer?
+        source: ByteBuffer?,
     )
 
     fun compressedTexImage2D(
@@ -254,7 +270,7 @@ interface GL {
         internalFormat: TextureFormat,
         width: Int,
         height: Int,
-        source: ByteBuffer?
+        source: ByteBuffer?,
     ) = compressedTexImage2D(
         target.glFlag,
         level,
@@ -272,7 +288,7 @@ interface GL {
         width: Int,
         height: Int,
         format: Int,
-        source: ByteBuffer
+        source: ByteBuffer,
     )
 
     fun compressedTexSubImage2D(
@@ -283,7 +299,7 @@ interface GL {
         width: Int,
         height: Int,
         format: TextureFormat,
-        source: ByteBuffer
+        source: ByteBuffer,
     ) = compressedTexSubImage2D(target.glFlag, level, xOffset, yOffset, width, height, format.glFlag, source)
 
     fun copyTexImage2D(
@@ -305,7 +321,7 @@ interface GL {
         y: Int,
         width: Int,
         height: Int,
-        border: Int
+        border: Int,
     ) = copyTexImage2D(target.glFlag, level, internalFormat.glFlag, x, y, width, height, border)
 
     fun copyTexSubImage2D(
@@ -339,7 +355,7 @@ interface GL {
         height: Int,
         format: Int,
         type: Int,
-        source: ByteBuffer
+        source: ByteBuffer,
     )
 
     fun texSubImage2D(
@@ -351,7 +367,7 @@ interface GL {
         height: Int,
         format: TextureFormat,
         type: DataType,
-        source: ByteBuffer
+        source: ByteBuffer,
     ) = texSubImage2D(target.glFlag, level, xOffset, yOffset, width, height, format.glFlag, type.glFlag, source)
 
     fun texImage2D(
@@ -361,28 +377,7 @@ interface GL {
         format: Int,
         width: Int,
         height: Int,
-        type: Int
-    )
-
-    fun texImage2D(
-        target: TextureTarget,
-        level: Int,
-        internalFormat: TextureFormat,
-        format: TextureFormat,
-        width: Int,
-        height: Int,
-        type: DataType
-    ) = texImage2D(target.glFlag, level, internalFormat.glFlag, format.glFlag, width, height, type.glFlag)
-
-    fun texImage2D(
-        target: Int,
-        level: Int,
-        internalFormat: Int,
-        format: Int,
-        width: Int,
-        height: Int,
         type: Int,
-        source: ByteBuffer
     )
 
     fun texImage2D(
@@ -393,7 +388,28 @@ interface GL {
         width: Int,
         height: Int,
         type: DataType,
-        source: ByteBuffer
+    ) = texImage2D(target.glFlag, level, internalFormat.glFlag, format.glFlag, width, height, type.glFlag)
+
+    fun texImage2D(
+        target: Int,
+        level: Int,
+        internalFormat: Int,
+        format: Int,
+        width: Int,
+        height: Int,
+        type: Int,
+        source: ByteBuffer,
+    )
+
+    fun texImage2D(
+        target: TextureTarget,
+        level: Int,
+        internalFormat: TextureFormat,
+        format: TextureFormat,
+        width: Int,
+        height: Int,
+        type: DataType,
+        source: ByteBuffer,
     ) = texImage2D(target.glFlag, level, internalFormat.glFlag, format.glFlag, width, height, type.glFlag, source)
 
 
@@ -404,7 +420,7 @@ interface GL {
         width: Int,
         height: Int,
         depth: Int,
-        source: ByteBuffer?
+        source: ByteBuffer?,
     )
 
     fun compressedTexImage3D(
@@ -414,7 +430,7 @@ interface GL {
         width: Int,
         height: Int,
         depth: Int,
-        source: ByteBuffer?
+        source: ByteBuffer?,
     ) = compressedTexImage3D(
         target.glFlag,
         level,
@@ -435,7 +451,7 @@ interface GL {
         height: Int,
         depth: Int,
         format: Int,
-        source: ByteBuffer
+        source: ByteBuffer,
     )
 
     fun compressedTexSubImage3D(
@@ -448,7 +464,7 @@ interface GL {
         height: Int,
         depth: Int,
         format: TextureFormat,
-        source: ByteBuffer
+        source: ByteBuffer,
     ) = compressedTexSubImage3D(
         target.glFlag,
         level,
@@ -498,7 +514,7 @@ interface GL {
         depth: Int,
         format: Int,
         type: Int,
-        source: ByteBuffer
+        source: ByteBuffer,
     )
 
     fun texSubImage3D(
@@ -512,7 +528,7 @@ interface GL {
         depth: Int,
         format: TextureFormat,
         type: DataType,
-        source: ByteBuffer
+        source: ByteBuffer,
     ) = texSubImage3D(
         target.glFlag,
         level,
@@ -535,30 +551,7 @@ interface GL {
         width: Int,
         height: Int,
         depth: Int,
-        type: Int
-    )
-
-    fun texImage3D(
-        target: TextureTarget,
-        level: Int,
-        internalFormat: TextureFormat,
-        format: TextureFormat,
-        width: Int,
-        height: Int,
-        depth: Int,
-        type: DataType
-    ) = texImage3D(target.glFlag, level, internalFormat.glFlag, format.glFlag, width, height, depth, type.glFlag)
-
-    fun texImage3D(
-        target: Int,
-        level: Int,
-        internalFormat: Int,
-        format: Int,
-        width: Int,
-        height: Int,
-        depth: Int,
         type: Int,
-        source: ByteBuffer
     )
 
     fun texImage3D(
@@ -570,7 +563,30 @@ interface GL {
         height: Int,
         depth: Int,
         type: DataType,
-        source: ByteBuffer
+    ) = texImage3D(target.glFlag, level, internalFormat.glFlag, format.glFlag, width, height, depth, type.glFlag)
+
+    fun texImage3D(
+        target: Int,
+        level: Int,
+        internalFormat: Int,
+        format: Int,
+        width: Int,
+        height: Int,
+        depth: Int,
+        type: Int,
+        source: ByteBuffer,
+    )
+
+    fun texImage3D(
+        target: TextureTarget,
+        level: Int,
+        internalFormat: TextureFormat,
+        format: TextureFormat,
+        width: Int,
+        height: Int,
+        depth: Int,
+        type: DataType,
+        source: ByteBuffer,
     ) = texImage3D(
         target.glFlag,
         level,

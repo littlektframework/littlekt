@@ -2,6 +2,7 @@ package com.lehaine.littlekt.graphics
 
 import com.lehaine.littlekt.Context
 import com.lehaine.littlekt.Disposable
+import com.lehaine.littlekt.graphics.g2d.TextureSlice
 import com.lehaine.littlekt.graphics.gl.*
 
 /**

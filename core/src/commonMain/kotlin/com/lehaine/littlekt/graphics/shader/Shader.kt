@@ -39,9 +39,14 @@ abstract class FragmentShaderModel : GlslGenerator(), FragmentShader {
 
     /**
      * Data coming **IN** from the Vertex Shader.
+     * @param predicate if `true` then this varying will be generated.
      */
-    fun <T : Variable> varying(factory: (GlslGenerator) -> T, precision: Precision = Precision.DEFAULT) =
-        VaryingDelegate(factory, precision)
+    fun <T : Variable> varying(
+        factory: (GlslGenerator) -> T,
+        precision: Precision = Precision.DEFAULT,
+        predicate: Boolean = true,
+    ) =
+        VaryingDelegate(factory, precision, predicate)
 
     /**
      * Data coming **IN** from the Vertex Shader.
@@ -49,13 +54,27 @@ abstract class FragmentShaderModel : GlslGenerator(), FragmentShader {
     @Suppress("UNCHECKED_CAST")
     fun <T : Variable> varyingCtr(
         clazz: KClass<T>,
-        precision: Precision = Precision.DEFAULT
+        precision: Precision = Precision.DEFAULT,
     ): VaryingConstructorDelegate<T> =
         VaryingConstructorDelegate(createVariable(clazz), precision) as VaryingConstructorDelegate<T>
 
 
     fun dFdx(v: GLFloat) = GLFloat(this, "dFdx(${v.value})")
     fun dFdy(v: GLFloat) = GLFloat(this, "dFdy(${v.value})")
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other == null || this::class != other::class) return false
+
+        other as FragmentShaderModel
+
+        if (source != other.source) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        return source.hashCode()
+    }
 }
 
 abstract class VertexShaderModel : GlslGenerator(), VertexShader {
@@ -74,9 +93,14 @@ abstract class VertexShaderModel : GlslGenerator(), VertexShader {
 
     /**
      * Data that may change per vertex. Passed from the OpenGL context to the Vertex Shader.
+     * @param predicate if `true` then this attribute will be generated.
      */
-    fun <T : Variable> attribute(factory: (GlslGenerator) -> T, precision: Precision = Precision.DEFAULT) =
-        AttributeDelegate(factory, precision)
+    fun <T : Variable> attribute(
+        factory: (GlslGenerator) -> T,
+        precision: Precision = Precision.DEFAULT,
+        predicate: Boolean = true,
+    ) =
+        AttributeDelegate(factory, precision, predicate)
 
     /**
      * Data that may change per vertex. Passed from the OpenGL context to the Vertex Shader.
@@ -84,16 +108,20 @@ abstract class VertexShaderModel : GlslGenerator(), VertexShader {
     @Suppress("UNCHECKED_CAST")
     fun <T : Variable> attributeCtr(
         clazz: KClass<T>,
-        precision: Precision = Precision.DEFAULT
+        precision: Precision = Precision.DEFAULT,
     ): AttributeConstructorDelegate<T> =
         AttributeConstructorDelegate(createVariable(clazz), precision) as AttributeConstructorDelegate<T>
 
 
     /**
      * Data going **OUT** to the Fragment Shader.
+     * @param predicate if `true` then this varying will be generated.
      */
-    fun <T : Variable> varying(factory: (GlslGenerator) -> T, precision: Precision = Precision.DEFAULT) =
-        VaryingDelegate(factory, precision)
+    fun <T : Variable> varying(
+        factory: (GlslGenerator) -> T, precision: Precision = Precision.DEFAULT,
+        predicate: Boolean = true,
+    ) =
+        VaryingDelegate(factory, precision, predicate)
 
     /**
      * Data going **OUT** to the Fragment Shader.
@@ -101,9 +129,24 @@ abstract class VertexShaderModel : GlslGenerator(), VertexShader {
     @Suppress("UNCHECKED_CAST")
     fun <T : Variable> varyingCtr(
         clazz: KClass<T>,
-        precision: Precision = Precision.DEFAULT
+        precision: Precision = Precision.DEFAULT,
     ): VaryingConstructorDelegate<T> =
         VaryingConstructorDelegate(createVariable(clazz), precision) as VaryingConstructorDelegate<T>
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other == null || this::class != other::class) return false
+
+        other as VertexShaderModel
+
+        if (source != other.source) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        return source.hashCode()
+    }
 }
 
 

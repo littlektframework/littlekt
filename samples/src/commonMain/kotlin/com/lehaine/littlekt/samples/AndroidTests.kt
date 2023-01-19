@@ -7,11 +7,11 @@ import com.lehaine.littlekt.file.vfs.readAtlas
 import com.lehaine.littlekt.file.vfs.readAudioClip
 import com.lehaine.littlekt.file.vfs.readAudioStream
 import com.lehaine.littlekt.file.vfs.readTexture
-import com.lehaine.littlekt.graphics.AnimatedSprite
-import com.lehaine.littlekt.graphics.SpriteBatch
-import com.lehaine.littlekt.graphics.getAnimation
+import com.lehaine.littlekt.graphics.g2d.AnimatedSprite
+import com.lehaine.littlekt.graphics.g2d.SpriteBatch
+import com.lehaine.littlekt.graphics.g2d.getAnimation
+import com.lehaine.littlekt.graphics.g2d.use
 import com.lehaine.littlekt.graphics.gl.ClearBufferMask
-import com.lehaine.littlekt.graphics.use
 import com.lehaine.littlekt.input.Key
 import com.lehaine.littlekt.util.combine
 import com.lehaine.littlekt.util.viewport.ExtendViewport

@@ -2,14 +2,13 @@ package com.lehaine.littlekt.samples
 
 import com.lehaine.littlekt.Context
 import com.lehaine.littlekt.ContextListener
-import com.lehaine.littlekt.file.vfs.readAtlas
-import com.lehaine.littlekt.graphics.*
+import com.lehaine.littlekt.graphics.Color
+import com.lehaine.littlekt.graphics.Fonts
+import com.lehaine.littlekt.graphics.g2d.SpriteBatch
+import com.lehaine.littlekt.graphics.g2d.use
 import com.lehaine.littlekt.graphics.gl.ClearBufferMask
-import com.lehaine.littlekt.graphics.shape.ShapeRenderer
 import com.lehaine.littlekt.input.Key
-import com.lehaine.littlekt.input.gesture.GestureController
 import com.lehaine.littlekt.input.gesture.gestureController
-import com.lehaine.littlekt.util.combine
 import com.lehaine.littlekt.util.viewport.ExtendViewport
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -28,7 +27,7 @@ class GestureControllerTest(context: Context) : ContextListener(context) {
         var gestureStatus = "TBD"
 
         input.inputProcessor {
-            onTouchDown {screenX, screenY, pointer ->
+            onTouchDown { screenX, screenY, pointer ->
                 inputStatus = "Pointer ${pointer.index} touch down at $screenX, $screenY"
             }
 
@@ -41,7 +40,7 @@ class GestureControllerTest(context: Context) : ContextListener(context) {
             }
         }
 
-        input.gestureController{
+        input.gestureController {
             onTouchDown { screenX, screenY, pointer ->
                 gestureStatus = "Pointer ${pointer.index} touch down at $screenX, $screenY"
             }

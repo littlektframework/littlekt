@@ -3,10 +3,11 @@ package com.lehaine.littlekt.graph.node
 import com.lehaine.littlekt.graph.SceneGraph
 import com.lehaine.littlekt.graph.node.annotation.SceneGraphDslMarker
 import com.lehaine.littlekt.graphics.*
+import com.lehaine.littlekt.graphics.g2d.Batch
+import com.lehaine.littlekt.graphics.g2d.shape.ShapeRenderer
 import com.lehaine.littlekt.graphics.gl.ClearBufferMask
 import com.lehaine.littlekt.graphics.gl.TexMagFilter
 import com.lehaine.littlekt.graphics.gl.TexMinFilter
-import com.lehaine.littlekt.graphics.shape.ShapeRenderer
 import com.lehaine.littlekt.math.Mat4
 import com.lehaine.littlekt.util.SingleSignal
 import com.lehaine.littlekt.util.signal1v
@@ -97,8 +98,11 @@ open class FrameBufferNode : CanvasLayer() {
             ).also { it.prepare(scene.context) }
             viewport.width = width
             viewport.height = height
+            canvasCamera3d.virtualWidth = width.toFloat()
+            canvasCamera3d.virtualHeight = height.toFloat()
             canvasCamera.ortho(width, height)
             canvasCamera.update()
+            canvasCamera3d.update()
             fboTexture?.let { onFboChanged.emit(it) }
             onSizeChanged.emit()
         }
@@ -116,27 +120,29 @@ open class FrameBufferNode : CanvasLayer() {
         val context = scene?.context ?: return
         val gl = context.gl
         if (width == 0 || height == 0) return
-        batch.end()
+        if (batch.drawing) batch.end()
         prevProjection = batch.projectionMatrix
 
         canvasCamera.update()
+        canvasCamera3d.update()
         fbo.begin()
         gl.clearColor(clearColor)
         gl.clear(ClearBufferMask.COLOR_BUFFER_BIT)
-        batch.begin(canvasCamera.viewProjection)
+        batch.projectionMatrix = canvasCamera.viewProjection
     }
 
     override fun propagateInternalRender(
         batch: Batch,
         camera: Camera,
+        camera3d: Camera,
         shapeRenderer: ShapeRenderer,
-        renderCallback: ((Node, Batch, Camera, ShapeRenderer) -> Unit)?,
+        renderCallback: ((Node, Batch, Camera, Camera, ShapeRenderer) -> Unit)?,
     ) {
         if (!enabled || isDestroyed) return
         fbo ?: return
         if (width == 0 || height == 0) return
         begin(batch)
-        nodes.forEach { it.propagateInternalRender(batch, canvasCamera, shapeRenderer, renderCallback) }
+        nodes.forEach { it.propagateInternalRender(batch, canvasCamera, canvasCamera3d, shapeRenderer, renderCallback) }
         end(batch)
     }
 
@@ -147,9 +153,9 @@ open class FrameBufferNode : CanvasLayer() {
         if (!enabled || isDestroyed) return
         val fbo = fbo ?: return
         if (width == 0 || height == 0) return
-        batch.end()
+        if (batch.drawing) batch.end()
         fbo.end()
-        batch.begin(prevProjection)
+        batch.projectionMatrix = prevProjection
     }
 
     override fun onDestroy() {

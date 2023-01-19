@@ -4,17 +4,17 @@ import com.lehaine.littlekt.graph.SceneGraph
 import com.lehaine.littlekt.graph.node.Node
 import com.lehaine.littlekt.graph.node.addTo
 import com.lehaine.littlekt.graph.node.annotation.SceneGraphDslMarker
-import com.lehaine.littlekt.graph.node.component.HAlign
-import com.lehaine.littlekt.graph.node.component.Theme
-import com.lehaine.littlekt.graph.node.component.VAlign
-import com.lehaine.littlekt.graphics.Batch
+import com.lehaine.littlekt.graph.node.resource.HAlign
+import com.lehaine.littlekt.graph.node.resource.Theme
+import com.lehaine.littlekt.graph.node.resource.VAlign
 import com.lehaine.littlekt.graphics.Camera
 import com.lehaine.littlekt.graphics.Color
 import com.lehaine.littlekt.graphics.MutableColor
-import com.lehaine.littlekt.graphics.font.BitmapFont
-import com.lehaine.littlekt.graphics.font.BitmapFontCache
-import com.lehaine.littlekt.graphics.font.GlyphLayout
-import com.lehaine.littlekt.graphics.shape.ShapeRenderer
+import com.lehaine.littlekt.graphics.g2d.Batch
+import com.lehaine.littlekt.graphics.g2d.font.BitmapFont
+import com.lehaine.littlekt.graphics.g2d.font.BitmapFontCache
+import com.lehaine.littlekt.graphics.g2d.font.GlyphLayout
+import com.lehaine.littlekt.graphics.g2d.shape.ShapeRenderer
 import com.lehaine.littlekt.math.MutableVec2f
 import com.lehaine.littlekt.math.Vec2f
 import com.lehaine.littlekt.math.geom.Angle
@@ -217,8 +217,8 @@ open class Label : Control() {
             textWidth = layout.width
             textHeight = layout.height
 
-            if(horizontalAlign != HAlign.LEFT) {
-                if(horizontalAlign == HAlign.RIGHT) {
+            if (horizontalAlign != HAlign.LEFT) {
+                if (horizontalAlign == HAlign.RIGHT) {
                     tx += width - textWidth
                 } else {
                     tx += (width - textWidth) / 2
@@ -233,11 +233,13 @@ open class Label : Control() {
             VAlign.TOP -> {
                 ty += font.metrics.descent
             }
+
             VAlign.BOTTOM -> {
                 ty += height
                 ty -= textHeight
                 ty += font.metrics.descent
             }
+
             else -> {
                 ty += height / 2
                 ty -= textHeight

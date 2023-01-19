@@ -2,7 +2,6 @@ package com.lehaine.littlekt.graphics.shader.generator.delegate
 
 import com.lehaine.littlekt.graphics.shader.ShaderParameter
 import com.lehaine.littlekt.graphics.shader.generator.GlslGenerator
-import com.lehaine.littlekt.graphics.shader.generator.Instruction
 import com.lehaine.littlekt.graphics.shader.generator.Precision
 import com.lehaine.littlekt.graphics.shader.generator.type.Variable
 import kotlin.reflect.KProperty
@@ -13,13 +12,13 @@ import kotlin.reflect.KProperty
  */
 class UniformDelegate<T : Variable>(
     private val factory: (GlslGenerator) -> T,
-    private val precision: Precision
+    private val precision: Precision,
 ) {
     private lateinit var v: T
 
     operator fun provideDelegate(
         thisRef: GlslGenerator,
-        property: KProperty<*>
+        property: KProperty<*>,
     ): UniformDelegate<T> {
         v = factory(thisRef)
         v.value = property.name
@@ -29,14 +28,15 @@ class UniformDelegate<T : Variable>(
             "vec4" -> thisRef.parameters.add(ShaderParameter.UniformVec4(property.name))
             "int" -> thisRef.parameters.add(ShaderParameter.UniformInt(property.name))
             "float" -> thisRef.parameters.add(ShaderParameter.UniformFloat(property.name))
+            "bool" -> thisRef.parameters.add(ShaderParameter.UniformBoolean(property.name))
             "sampler2D" -> thisRef.parameters.add(ShaderParameter.UniformSample2D(property.name))
             "mat4" -> thisRef.parameters.add(ShaderParameter.UniformMat4(property.name))
         }
+        thisRef.uniforms.add("${precision.value}${v.typeName} ${property.name}")
         return this
     }
 
     operator fun getValue(thisRef: GlslGenerator, property: KProperty<*>): T {
-        thisRef.uniforms.add("${precision.value}${v.typeName} ${property.name}")
         return v
     }
 }
@@ -45,7 +45,7 @@ class UniformConstructorDelegate<T : Variable>(private val v: T, private val pre
 
     operator fun provideDelegate(
         thisRef: Any?,
-        property: KProperty<*>
+        property: KProperty<*>,
     ): UniformConstructorDelegate<T> {
         v.value = property.name
         return this

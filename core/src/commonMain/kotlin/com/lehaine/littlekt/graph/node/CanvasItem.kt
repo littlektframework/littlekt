@@ -1,11 +1,11 @@
 package com.lehaine.littlekt.graph.node
 
 import com.lehaine.littlekt.graph.SceneGraph
-import com.lehaine.littlekt.graph.node.component.InputEvent
 import com.lehaine.littlekt.graph.node.render.Material
-import com.lehaine.littlekt.graphics.Batch
+import com.lehaine.littlekt.graph.node.resource.InputEvent
 import com.lehaine.littlekt.graphics.Camera
-import com.lehaine.littlekt.graphics.shape.ShapeRenderer
+import com.lehaine.littlekt.graphics.g2d.Batch
+import com.lehaine.littlekt.graphics.g2d.shape.ShapeRenderer
 import com.lehaine.littlekt.math.Mat3
 import com.lehaine.littlekt.math.Mat4
 import com.lehaine.littlekt.math.MutableVec2f
@@ -144,10 +144,10 @@ abstract class CanvasItem : Node() {
      */
     var globalPosition: Vec2f
         get() {
-            updateHierarchy()
+            updateTransform()
             if (_globalPositionDirty) {
                 (parent as? CanvasItem)?.let {
-                    it.updateHierarchy()
+                    it.updateTransform()
                     _globalPosition.set(_localPosition).mul(it._globalTransform)
                 } ?: run {
                     _globalPosition.set(_localPosition)
@@ -193,7 +193,7 @@ abstract class CanvasItem : Node() {
      */
     var position: Vec2f
         get() {
-            updateHierarchy()
+            updateTransform()
             return _localPosition
         }
         set(value) {
@@ -231,7 +231,7 @@ abstract class CanvasItem : Node() {
      */
     var globalRotation: Angle
         get() {
-            updateHierarchy()
+            updateTransform()
             return _globalRotation
         }
         set(value) {
@@ -244,7 +244,7 @@ abstract class CanvasItem : Node() {
      */
     var rotation: Angle
         get() {
-            updateHierarchy()
+            updateTransform()
             return _localRotation
         }
         set(value) {
@@ -258,7 +258,7 @@ abstract class CanvasItem : Node() {
      */
     var globalScale: Vec2f
         get() {
-            updateHierarchy()
+            updateTransform()
             return _globalScale
         }
         set(value) {
@@ -299,7 +299,7 @@ abstract class CanvasItem : Node() {
      */
     var scale: Vec2f
         get() {
-            updateHierarchy()
+            updateTransform()
             return _localScale
         }
         set(value) {
@@ -336,7 +336,7 @@ abstract class CanvasItem : Node() {
 
     val globalInverseTransform: Mat3
         get() {
-            updateHierarchy()
+            updateTransform()
             if (_globalInverseDirty) {
                 _globalInverseTransform.set(_globalTransform).invert()
                 _globalInverseDirty = false
@@ -346,7 +346,7 @@ abstract class CanvasItem : Node() {
 
     val localToGlobalTransform: Mat3
         get() {
-            updateHierarchy()
+            updateTransform()
             return _globalTransform
         }
 
@@ -360,7 +360,7 @@ abstract class CanvasItem : Node() {
         get() {
             if (_globalToLocalDirty) {
                 (parent as? CanvasItem)?.let {
-                    it.updateHierarchy()
+                    it.updateTransform()
                     _globalToLocalTransform.set(it.globalInverseTransform)
                 } ?: run {
                     _globalToLocalTransform.setToIdentity()
@@ -440,10 +440,11 @@ abstract class CanvasItem : Node() {
     override fun propagateInternalDebugRender(
         batch: Batch,
         camera: Camera,
+        camera3d: Camera,
         shapeRenderer: ShapeRenderer,
-        renderCallback: ((Node, Batch, Camera, ShapeRenderer) -> Unit)?,
+        renderCallback: ((Node, Batch, Camera, Camera, ShapeRenderer) -> Unit)?,
     ) {
-        propagateDebugRender(batch, camera, shapeRenderer, renderCallback)
+        propagateDebugRender(batch, camera, camera3d, shapeRenderer, renderCallback)
     }
 
 
@@ -453,26 +454,28 @@ abstract class CanvasItem : Node() {
     fun propagateDebugRender(
         batch: Batch,
         camera: Camera,
+        camera3d: Camera,
         shapeRenderer: ShapeRenderer,
-        renderCallback: ((Node, Batch, Camera, ShapeRenderer) -> Unit)?,
+        renderCallback: ((Node, Batch, Camera, Camera, ShapeRenderer) -> Unit)?,
     ) {
         if (!enabled || !visible || isDestroyed) return
-        renderCallback?.invoke(this, batch, camera, shapeRenderer)
+        renderCallback?.invoke(this, batch, camera, camera3d, shapeRenderer)
         debugRender(batch, camera, shapeRenderer)
         onDebugRender.emit(batch, camera, shapeRenderer)
         nodes.forEachSorted {
-            it.propagateInternalDebugRender(batch, camera, shapeRenderer, renderCallback)
+            it.propagateInternalDebugRender(batch, camera, camera3d, shapeRenderer, renderCallback)
         }
     }
 
     override fun propagateInternalRender(
         batch: Batch,
         camera: Camera,
+        camera3d: Camera,
         shapeRenderer: ShapeRenderer,
-        renderCallback: ((Node, Batch, Camera, ShapeRenderer) -> Unit)?,
+        renderCallback: ((Node, Batch, Camera, Camera, ShapeRenderer) -> Unit)?,
     ) {
         propagatePreRender(batch, camera, shapeRenderer)
-        propagateRender(batch, camera, shapeRenderer, renderCallback)
+        propagateRender(batch, camera, camera3d, shapeRenderer, renderCallback)
         propagatePostRender(batch, camera, shapeRenderer)
     }
 
@@ -481,6 +484,7 @@ abstract class CanvasItem : Node() {
      */
     fun propagatePreRender(batch: Batch, camera: Camera, shapeRenderer: ShapeRenderer) {
         if (!enabled || !visible || isDestroyed) return
+        if (!batch.drawing) batch.begin()
         preRender(batch, camera, shapeRenderer)
         onPreRender.emit(batch, camera, shapeRenderer)
         nodes.forEachSorted {
@@ -496,15 +500,16 @@ abstract class CanvasItem : Node() {
     fun propagateRender(
         batch: Batch,
         camera: Camera,
+        camera3d: Camera,
         shapeRenderer: ShapeRenderer,
-        renderCallback: ((Node, Batch, Camera, ShapeRenderer) -> Unit)?,
+        renderCallback: ((Node, Batch, Camera, Camera, ShapeRenderer) -> Unit)?,
     ) {
         if (!enabled || !visible || isDestroyed) return
-        renderCallback?.invoke(this, batch, camera, shapeRenderer)
+        renderCallback?.invoke(this, batch, camera, camera3d, shapeRenderer)
         render(batch, camera, shapeRenderer)
         onRender.emit(batch, camera, shapeRenderer)
         nodes.forEachSorted {
-            it.propagateInternalRender(batch, camera, shapeRenderer, renderCallback)
+            it.propagateInternalRender(batch, camera, camera3d, shapeRenderer, renderCallback)
         }
     }
 
@@ -626,7 +631,7 @@ abstract class CanvasItem : Node() {
 
     private fun updateGlobalPosition() {
         _localPosition.set(_globalPosition)
-        updateHierarchy()
+        updateTransform()
         if (parent is CanvasItem) {
             _localPosition.mul(globalToLocalTransform)
         }
@@ -835,11 +840,11 @@ abstract class CanvasItem : Node() {
     protected open fun onHierarchyChanged(flag: Int) {}
 
     /**
-     * Updates the current [CanvasItem] hierarchy if it is dirty.
+     * Updates the current [CanvasItem] transform if it is dirty.
      */
-    open fun updateHierarchy() {
+    open fun updateTransform() {
         if (hierarchyDirty != CLEAN) {
-            (parent as? CanvasItem)?.updateHierarchy()
+            (parent as? CanvasItem)?.updateTransform()
             if (_localDirty) {
                 if (_localPositionDirty) {
                     _translationMatrix.setToTranslate(_localPosition)
@@ -1000,12 +1005,12 @@ abstract class CanvasItem : Node() {
     fun toLocalY(y: Float) = (globalPosition.x * sin(PI) + globalPosition.y * cos(PI) + y).toFloat()
 
     fun copyFrom(node: CanvasItem) {
-        _globalPosition = node.globalPosition.toMutableVec()
-        _localPosition = node.position.toMutableVec()
+        _globalPosition = node.globalPosition.toMutableVec2()
+        _localPosition = node.position.toMutableVec2()
         _globalRotation = node.globalRotation
         _localRotation = node.rotation
-        _globalScale = node.globalScale.toMutableVec()
-        _localScale = node.scale.toMutableVec()
+        _globalScale = node.globalScale.toMutableVec2()
+        _localScale = node.scale.toMutableVec2()
 
         dirty(POSITION_DIRTY)
         dirty(ROTATION_DIRTY)

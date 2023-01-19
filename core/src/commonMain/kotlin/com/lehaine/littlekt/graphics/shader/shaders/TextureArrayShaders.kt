@@ -30,7 +30,7 @@ class TextureArrayVertexShader : VertexShaderModel() {
 
     init {
         v_color = a_color
-        val alpha by float(255f.lit / 254f.lit)
+        val alpha by float { 255f.lit / 254f.lit }
         v_color.w = v_color.w * alpha
         v_texCoords = a_texCoord0
         v_textureIndex = a_textureIndex
@@ -51,6 +51,6 @@ class TextureArrayFragmentShader : FragmentShaderModel() {
     private val v_texCoords by varying(::Vec2)
 
     init {
-        gl_FragColor = v_color * texture(u_textureArray, vec3Lit(v_texCoords, v_textureIndex))
+        gl_FragColor = v_color * texture(u_textureArray, vec3(v_texCoords, v_textureIndex).lit)
     }
 }

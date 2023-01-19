@@ -5,9 +5,12 @@ import com.lehaine.littlekt.ContextListener
 import com.lehaine.littlekt.file.vfs.readPixmap
 import com.lehaine.littlekt.file.vfs.readTexture
 import com.lehaine.littlekt.file.vfs.readTiledMap
-import com.lehaine.littlekt.graphics.*
+import com.lehaine.littlekt.graphics.addBorderToSlices
+import com.lehaine.littlekt.graphics.g2d.SpriteBatch
+import com.lehaine.littlekt.graphics.g2d.tilemap.tiled.TiledMap
+import com.lehaine.littlekt.graphics.g2d.use
 import com.lehaine.littlekt.graphics.gl.ClearBufferMask
-import com.lehaine.littlekt.graphics.tilemap.tiled.TiledMap
+import com.lehaine.littlekt.graphics.slice
 import com.lehaine.littlekt.input.Key
 import com.lehaine.littlekt.util.MutableTextureAtlas
 import com.lehaine.littlekt.util.milliseconds
@@ -22,7 +25,7 @@ class TiledMapTest(context: Context) : ContextListener(context) {
 
     override suspend fun Context.start() {
 
-        val viewport = ExtendViewport(30,16)
+        val viewport = ExtendViewport(30, 16)
         val camera = viewport.camera
 
         val batch = SpriteBatch(context, 8191)

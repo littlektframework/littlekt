@@ -12,13 +12,14 @@ import kotlin.math.sqrt
  * @date 11/23/2021
  */
 
-open class Vec2f(x: Float, y: Float) {
+open class Vec2f internal constructor(x: Float, y: Float, size: Int) {
 
-    protected val fields = FloatArray(2)
+    protected val fields = FloatArray(size)
 
     open val x get() = this[0]
     open val y get() = this[1]
 
+    constructor(x: Float, y: Float) : this(x, y, 2)
     constructor(f: Float) : this(f, f)
     constructor(v: Vec2f) : this(v.x, v.y)
 
@@ -32,8 +33,6 @@ open class Vec2f(x: Float, y: Float) {
     fun distance(other: Vec2f): Float = sqrt(sqrDistance(other))
 
     fun dot(other: Vec2f): Float = x * other.x + y * other.y
-
-    fun dot(other: Vec3f): Float = x * other.x + y * other.y
 
     /**
      * Checks vector components for equality using [com.lehaine.littlekt.math.isFuzzyEqual], that is all components must
@@ -68,7 +67,7 @@ open class Vec2f(x: Float, y: Float) {
         return dx * dx + dy * dy
     }
 
-    fun sqrLength(): Float = x * x + y * y
+   open fun sqrLength(): Float = x * x + y * y
 
     fun subtract(other: Vec2f, result: MutableVec2f): MutableVec2f = result.set(this).subtract(other)
 
@@ -82,11 +81,11 @@ open class Vec2f(x: Float, y: Float) {
 
     override fun toString(): String = "($x, $y)"
 
-    fun toVec(): Vec2f = Vec2f(x, y)
+   fun toVec2(): Vec2f = Vec2f(x, y)
 
-    fun toMutableVec(): MutableVec2f = toMutableVec(MutableVec2f())
+     fun toMutableVec2(): MutableVec2f = toMutableVec2(MutableVec2f())
 
-    fun toMutableVec(result: MutableVec2f): MutableVec2f = result.set(x, y)
+    fun toMutableVec2(result: MutableVec2f): MutableVec2f = result.set(x, y)
 
     /**
      * Checks vector components for equality (using '==' operator). For better numeric stability consider using

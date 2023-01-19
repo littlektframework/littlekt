@@ -44,11 +44,11 @@ class UiPlayground(context: Context) : ContextListener(context) {
                                 separation = 10
                                 label {
                                     text = "----Labels----"
-                                    horizontalAlign = com.lehaine.littlekt.graph.node.component.HAlign.CENTER
+                                    horizontalAlign = com.lehaine.littlekt.graph.node.resource.HAlign.CENTER
                                 }
                                 label {
                                     text = "Different colored label"
-                                    horizontalAlign = com.lehaine.littlekt.graph.node.component.HAlign.CENTER
+                                    horizontalAlign = com.lehaine.littlekt.graph.node.resource.HAlign.CENTER
                                     fontColor = com.lehaine.littlekt.graphics.Color.RED
                                 }
                                 label {
@@ -61,30 +61,30 @@ class UiPlayground(context: Context) : ContextListener(context) {
                                 label { text = "Left" }
                                 label {
                                     text = "Center"
-                                    horizontalAlign = com.lehaine.littlekt.graph.node.component.HAlign.CENTER
+                                    horizontalAlign = com.lehaine.littlekt.graph.node.resource.HAlign.CENTER
                                 }
                                 label {
                                     text = "Right"
-                                    horizontalAlign = com.lehaine.littlekt.graph.node.component.HAlign.RIGHT
+                                    horizontalAlign = com.lehaine.littlekt.graph.node.resource.HAlign.RIGHT
                                 }
 
                                 label { text = "Vertical Alignment:" }
                                 row {
                                     separation = 10
                                     minHeight = 50f
-                                    align = com.lehaine.littlekt.graph.node.component.AlignMode.CENTER
+                                    align = com.lehaine.littlekt.graph.node.resource.AlignMode.CENTER
                                     label {
                                         text = "Top"
                                         verticalSizeFlags = com.lehaine.littlekt.graph.node.ui.Control.SizeFlag.FILL
                                     }
                                     label {
                                         text = "Center"
-                                        verticalAlign = com.lehaine.littlekt.graph.node.component.VAlign.CENTER
+                                        verticalAlign = com.lehaine.littlekt.graph.node.resource.VAlign.CENTER
                                         verticalSizeFlags = com.lehaine.littlekt.graph.node.ui.Control.SizeFlag.FILL
                                     }
                                     label {
                                         text = "Bottom"
-                                        verticalAlign = com.lehaine.littlekt.graph.node.component.VAlign.BOTTOM
+                                        verticalAlign = com.lehaine.littlekt.graph.node.resource.VAlign.BOTTOM
                                         verticalSizeFlags = com.lehaine.littlekt.graph.node.ui.Control.SizeFlag.FILL
                                     }
                                 }
@@ -116,7 +116,7 @@ class UiPlayground(context: Context) : ContextListener(context) {
 
                                 label {
                                     text = "----Buttons----"
-                                    horizontalAlign = com.lehaine.littlekt.graph.node.component.HAlign.CENTER
+                                    horizontalAlign = com.lehaine.littlekt.graph.node.resource.HAlign.CENTER
                                 }
 
                                 separation = 10
@@ -139,12 +139,12 @@ class UiPlayground(context: Context) : ContextListener(context) {
 
                                 button {
                                     text = "Left Align"
-                                    horizontalAlign = com.lehaine.littlekt.graph.node.component.HAlign.LEFT
+                                    horizontalAlign = com.lehaine.littlekt.graph.node.resource.HAlign.LEFT
                                 }
 
                                 button {
                                     text = "Right Align"
-                                    horizontalAlign = com.lehaine.littlekt.graph.node.component.HAlign.RIGHT
+                                    horizontalAlign = com.lehaine.littlekt.graph.node.resource.HAlign.RIGHT
                                 }
 
                                 val panel = panelContainer {
@@ -171,7 +171,7 @@ class UiPlayground(context: Context) : ContextListener(context) {
                                 separation = 10
                                 label {
                                     text = "----Ranges----"
-                                    horizontalAlign = com.lehaine.littlekt.graph.node.component.HAlign.CENTER
+                                    horizontalAlign = com.lehaine.littlekt.graph.node.resource.HAlign.CENTER
                                 }
                                 label { text = "Progress bar:" }
                                 row {
@@ -204,7 +204,7 @@ class UiPlayground(context: Context) : ContextListener(context) {
                                 row {
                                     separation = 10
                                     column {
-                                        align = com.lehaine.littlekt.graph.node.component.AlignMode.CENTER
+                                        align = com.lehaine.littlekt.graph.node.resource.AlignMode.CENTER
                                         button {
                                             text = "-"
                                             onUpdate += {
@@ -298,7 +298,7 @@ class UiPlayground(context: Context) : ContextListener(context) {
                                 separation = 5
                                 label {
                                     text = "----Texture & Ninepatch Rects----"
-                                    horizontalAlign = com.lehaine.littlekt.graph.node.component.HAlign.CENTER
+                                    horizontalAlign = com.lehaine.littlekt.graph.node.resource.HAlign.CENTER
                                 }
 
                                 ninePatchRect {

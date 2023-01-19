@@ -3,7 +3,8 @@ package com.lehaine.littlekt.samples
 import com.lehaine.littlekt.Context
 import com.lehaine.littlekt.ContextListener
 import com.lehaine.littlekt.file.vfs.readAtlas
-import com.lehaine.littlekt.graphics.*
+import com.lehaine.littlekt.graphics.Color
+import com.lehaine.littlekt.graphics.g2d.*
 import com.lehaine.littlekt.graphics.gl.ClearBufferMask
 import com.lehaine.littlekt.input.Key
 import com.lehaine.littlekt.util.viewport.ExtendViewport

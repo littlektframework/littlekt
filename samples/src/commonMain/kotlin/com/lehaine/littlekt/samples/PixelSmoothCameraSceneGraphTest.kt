@@ -12,7 +12,7 @@ import com.lehaine.littlekt.graph.node.node2d.node2d
 import com.lehaine.littlekt.graph.node.render.Material
 import com.lehaine.littlekt.graph.sceneGraph
 import com.lehaine.littlekt.graphics.Color
-import com.lehaine.littlekt.graphics.TextureSlice
+import com.lehaine.littlekt.graphics.g2d.TextureSlice
 import com.lehaine.littlekt.graphics.gl.ClearBufferMask
 import com.lehaine.littlekt.graphics.shader.ShaderProgram
 import com.lehaine.littlekt.input.Key

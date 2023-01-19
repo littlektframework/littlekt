@@ -2,9 +2,10 @@ package com.lehaine.littlekt.graphics
 
 import com.lehaine.littlekt.Context
 import com.lehaine.littlekt.math.*
-import com.lehaine.littlekt.math.geom.Angle
+import com.lehaine.littlekt.math.geom.*
 import com.lehaine.littlekt.util.LazyMat4
 import com.lehaine.littlekt.util.viewport.Viewport
+import kotlin.math.atan
 
 /**
  * @author Colton Daily
@@ -13,9 +14,14 @@ import com.lehaine.littlekt.util.viewport.Viewport
 abstract class Camera {
     val id = nextCameraId++
 
+    /**
+     * @return ratio of `virtualWidth / virtualHeight`
+     */
+    val aspectRatio: Float get() = if (virtualHeight > 0) virtualWidth / virtualHeight else 1f
+
     val position = MutableVec3f(0f)
-    val direction = MutableVec3f(Vec3f.Z_AXIS)
-    val up = MutableVec3f(Vec3f.NEG_Y_AXIS)
+    abstract val direction: MutableVec3f
+    abstract val up: MutableVec3f
     val rightDir: Vec3f get() = rightMut
 
     protected val rightMut = MutableVec3f()
@@ -81,9 +87,9 @@ abstract class Camera {
         tempVec3.set(x, y, z).subtract(position).norm()
         if (tempVec3 != Vec3f.ZERO) {
             val dot = tempVec3.dot(up)
-            if ((dot - 1f).isFuzzyZero(0.000001f)) {
+            if ((dot - 1f).isFuzzyZero(0.000000001f)) {
                 up.set(direction).scale(-1f)
-            } else if ((dot + 1f).isFuzzyZero(0.000001f)) {
+            } else if ((dot + 1f).isFuzzyZero(0.000000001f)) {
                 up.set(direction)
             }
             direction.set(tempVec3)
@@ -99,8 +105,14 @@ abstract class Camera {
     }
 
     fun rotate(angle: Angle, axis: Vec3f) {
+        if (angle == Angle.ZERO) return
         direction.rotate(angle, axis)
         up.rotate(angle, axis)
+    }
+
+    fun rotate(quaternion: Vec4f) {
+        quaternion.transform(direction, direction)
+        quaternion.transform(up, up)
     }
 
     fun rotateAround(point: Vec3f, axis: Vec3f, angle: Angle) {
@@ -539,6 +551,9 @@ abstract class Camera {
 open class OrthographicCamera(virtualWidth: Float = 0f, virtualHeight: Float = 0f) : Camera() {
     constructor(virtualWidth: Int, virtualHeight: Int) : this(virtualWidth.toFloat(), virtualHeight.toFloat())
 
+    override val direction: MutableVec3f = MutableVec3f(Vec3f.Z_AXIS)
+    override val up: MutableVec3f = MutableVec3f(Vec3f.NEG_Y_AXIS)
+
     private val tempCenter = MutableVec3f()
 
     init {
@@ -616,6 +631,76 @@ open class OrthographicCamera(virtualWidth: Float = 0f, virtualHeight: Float = 0
             // sphere is either in front of near or behind far plane
             return false
         }
+        return true
+    }
+}
+
+open class PerspectiveCamera(virtualWidth: Float = 0f, virtualHeight: Float = 0f) : Camera() {
+    constructor(virtualWidth: Int, virtualHeight: Int) : this(virtualWidth.toFloat(), virtualHeight.toFloat())
+
+    override val direction: MutableVec3f = MutableVec3f(Vec3f.NEG_Z_AXIS)
+    override val up: MutableVec3f = MutableVec3f(Vec3f.Y_AXIS)
+    var fovX = 0f
+        private set
+
+    private var sphereFacX = 1f
+    private var sphereFacY = 1f
+    private var tangX = 1f
+    private var tangY = 1f
+
+    private val tempCenter = MutableVec3f()
+
+    init {
+        this.virtualWidth = virtualWidth
+        this.virtualHeight = virtualHeight
+        near = 0.1f
+        fov = 60f
+    }
+
+    override fun updateProjectionMatrix() {
+        projection.setToPerspective(fov, aspectRatio, near, far)
+
+        val angY = fov.degrees / 2f
+        sphereFacX = 1f / angY.cosine
+        tangY = angY.tangent
+
+        val angX = atan(tangY * aspectRatio).radians
+        sphereFacX = 1f / angX.cosine
+        tangX = angX.tangent
+        fovX = (angX * 2).degrees
+    }
+
+    override fun boundsInFrustum(px: Float, py: Float, pz: Float, width: Float, height: Float, length: Float): Boolean {
+        // TODO
+        return true
+    }
+
+    override fun sphereInFrustum(cx: Float, cy: Float, cz: Float, radius: Float): Boolean {
+        tempCenter.set(cx, cy, cz)
+        tempCenter.subtract(position)
+
+        var z = tempCenter.dot(direction)
+        if (z > far + radius || z < near - radius) {
+            // sphere is either front or behind of frustum
+            return false
+        }
+
+        val y = tempCenter.dot(up)
+        var d = radius * sphereFacY
+        z *= tangY
+        if (y > z + d || y < -z - d) {
+            // sphere is either above or below of frustum
+            return false
+        }
+
+        val x = tempCenter.dot(rightDir)
+        d = radius * sphereFacX
+        z *= aspectRatio
+        if (x > z + d || x < -z - d) {
+            // sphere is either left or right of frustum
+            return false
+        }
+
         return true
     }
 }

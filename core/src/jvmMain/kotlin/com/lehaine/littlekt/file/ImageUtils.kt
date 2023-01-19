@@ -24,15 +24,9 @@ internal object ImageUtils {
         }
     }
 
-
-    private fun BufferedImage.toBuffer(dstFormat: TextureFormat?): ByteBuffer {
-        return bufferedImageToBuffer(this, dstFormat, 0, 0)
-    }
-
-    fun bufferedImageToBuffer(image: BufferedImage, dstFmt: TextureFormat?, width: Int, height: Int): ByteBuffer {
+    fun bufferedImageToBuffer(image: BufferedImage, dstFmt: TextureFormat?, width: Int, height: Int): ImageLoadResult {
         val srcFormat = image.format
         val dstFormat = chooseDstFormat(srcFormat, dstFmt)
-
         val w = if (width == 0) {
             image.width
         } else {
@@ -60,9 +54,11 @@ internal object ImageUtils {
                 image.type == BufferedImage.TYPE_4BYTE_ABGR && dstFormat == TextureFormat.RGBA -> {
                     copied = fastCopyImage(image, buffer, dstFormat)
                 }
+
                 image.type == BufferedImage.TYPE_3BYTE_BGR && dstFormat == TextureFormat.RGB -> {
                     copied = fastCopyImage(image, buffer, dstFormat)
                 }
+
                 image.type == BufferedImage.TYPE_BYTE_GRAY && dstFormat == TextureFormat.RED -> {
                     copied = fastCopyImage(image, buffer, dstFormat)
                 }
@@ -75,7 +71,7 @@ internal object ImageUtils {
         }
 
         buffer.flip()
-        return buffer
+        return ImageLoadResult(buffer, dstFormat)
     }
 
     private fun fastCopyImage(image: BufferedImage, target: ByteBuffer, dstFormat: TextureFormat): Boolean {
@@ -118,7 +114,7 @@ internal object ImageUtils {
         target: ByteBuffer,
         dstFormat: TextureFormat,
         width: Int,
-        height: Int
+        height: Int,
     ) {
         val pixel = IntArray(4)
         val model = image.colorModel
@@ -152,24 +148,30 @@ internal object ImageUtils {
                     TextureFormat.RED -> {
                         target.putByte((r * 255f).toInt().toByte())
                     }
+
                     TextureFormat.RG -> {
                         target.putByte((r * 255f).toInt().toByte())
                         target.putByte((g * 255f).toInt().toByte())
                     }
+
                     TextureFormat.RGB -> {
                         target.putByte((r * 255f).toInt().toByte())
                         target.putByte((g * 255f).toInt().toByte())
                         target.putByte((b * 255f).toInt().toByte())
                     }
+
                     TextureFormat.RGBA -> {
                         target.putByte((r * 255f).toInt().toByte())
                         target.putByte((g * 255f).toInt().toByte())
                         target.putByte((b * 255f).toInt().toByte())
                         target.putByte((a * 255f).toInt().toByte())
                     }
+
                     else -> throw IllegalArgumentException("TexFormat not yet implemented: $dstFormat")
                 }
             }
         }
     }
+
+    data class ImageLoadResult(val buffer: ByteBuffer, val format: TextureFormat)
 }

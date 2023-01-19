@@ -1,9 +1,9 @@
 package com.lehaine.littlekt.file.font.ttf
 
-import com.lehaine.littlekt.graphics.font.TtfGlyph
-import com.lehaine.littlekt.graphics.font.GlyphPath
-import com.lehaine.littlekt.graphics.font.GlyphReference
-import com.lehaine.littlekt.graphics.font.ContourPoint
+import com.lehaine.littlekt.graphics.g2d.font.TtfGlyph
+import com.lehaine.littlekt.graphics.g2d.font.GlyphPath
+import com.lehaine.littlekt.graphics.g2d.font.GlyphReference
+import com.lehaine.littlekt.graphics.g2d.font.ContourPoint
 import com.lehaine.littlekt.math.Rect
 
 /**

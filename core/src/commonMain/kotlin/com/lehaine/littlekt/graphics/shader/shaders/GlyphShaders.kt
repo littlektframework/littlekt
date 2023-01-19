@@ -24,7 +24,7 @@ class GlyphVertexShader : VertexShaderModel() {
     init {
         v_texCoords = a_texCoord0
         v_color = a_color
-        gl_Position = u_projTrans * vec4Lit(a_position, 0f, 1f)
+        gl_Position = u_projTrans * vec4(a_position, 0f, 1f).lit
     }
 }
 

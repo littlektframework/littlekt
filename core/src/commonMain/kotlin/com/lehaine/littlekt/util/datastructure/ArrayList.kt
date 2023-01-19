@@ -9,8 +9,7 @@ import kotlin.math.max
 /**
  * Short growable ArrayList without boxing.
  */
-@Suppress("UNCHECKED_CAST")
-class ShortArrayList(capacity: Int = 7) : Collection<Short> {
+class ShortArrayList(capacity: Int = 7, var shouldGrow: Boolean = true) : Collection<Short> {
     companion object
 
     var data: ShortArray = ShortArray(capacity); private set
@@ -32,6 +31,7 @@ class ShortArrayList(capacity: Int = 7) : Collection<Short> {
     }
 
     fun ensure(count: Int) {
+        if (!shouldGrow) return
         if (length + count > data.size) {
             data = data.copyOf(max(length + count, data.size * 3))
         }
@@ -217,7 +217,7 @@ fun ShortArray.toShortArrayList() = ShortArrayList(*this)
  * Int growable ArrayList without boxing.
  */
 @Suppress("UNCHECKED_CAST")
-class IntArrayList(capacity: Int = 7) : Collection<Int> {
+class IntArrayList(capacity: Int = 7, var shouldGrow: Boolean = true) : Collection<Int> {
     companion object
 
     var data: IntArray = IntArray(capacity); private set
@@ -239,6 +239,7 @@ class IntArrayList(capacity: Int = 7) : Collection<Int> {
     }
 
     fun ensure(count: Int) {
+        if (!shouldGrow) return
         if (length + count > data.size) {
             data = data.copyOf(max(length + count, data.size * 3))
         }
@@ -425,7 +426,7 @@ fun IntArray.toIntArrayList() = IntArrayList(*this)
  * Double growable ArrayList without boxing.
  */
 @Suppress("UNCHECKED_CAST")
-class DoubleArrayList(capacity: Int = 7) : Collection<Double> {
+class DoubleArrayList(capacity: Int = 7, var shouldGrow: Boolean = true) : Collection<Double> {
     companion object
 
     var data: DoubleArray = DoubleArray(capacity) as DoubleArray; private set
@@ -447,6 +448,7 @@ class DoubleArrayList(capacity: Int = 7) : Collection<Double> {
     }
 
     private fun ensure(count: Int) {
+        if (!shouldGrow) return
         if (length + count > data.size) {
             data = data.copyOf(max(length + count, data.size * 3)) as DoubleArray
         }
@@ -631,7 +633,7 @@ fun doubleArrayListOf(vararg values: Double) = DoubleArrayList(*values)
  * Float growable ArrayList without boxing.
  */
 @Suppress("UNCHECKED_CAST")
-class FloatArrayList(capacity: Int = 7) : Collection<Float> {
+class FloatArrayList(capacity: Int = 7, var shouldGrow: Boolean = true) : Collection<Float> {
     companion object
 
     var data: FloatArray = FloatArray(capacity)
@@ -654,6 +656,7 @@ class FloatArrayList(capacity: Int = 7) : Collection<Float> {
     }
 
     private fun ensure(count: Int) {
+        if (!shouldGrow) return
         if (length + count > data.size) {
             data = data.copyOf(max(length + count, data.size * 3)) as FloatArray
         }

@@ -61,15 +61,17 @@ actual suspend fun VfsFile.readPixmap(): Pixmap {
 private fun readPixmap(bytes: ByteArray): Pixmap {
     // ImageIO.read is not thread safe!
     val img = synchronized(imageIoLock) {
-        runCatching {
-            ImageIO.read(ByteArrayInputStream(bytes))
-        }.getOrThrow()
+        ImageIO.read(ByteArrayInputStream(bytes))
     }
+    val result =
+        ImageUtils.bufferedImageToBuffer(img, TextureFormat.RGBA, img.width, img.height)
     return Pixmap(
         img.width,
         img.height,
-        ImageUtils.bufferedImageToBuffer(img, TextureFormat.RGBA, img.width, img.height)
-    )
+        result.buffer
+    ).apply {
+        glFormat = result.format
+    }
 }
 
 /**

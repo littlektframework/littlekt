@@ -2,7 +2,7 @@ package com.lehaine.littlekt.file.font.ttf
 
 import com.lehaine.littlekt.file.ByteBuffer
 import com.lehaine.littlekt.file.font.ttf.table.*
-import com.lehaine.littlekt.graphics.font.TtfGlyph
+import com.lehaine.littlekt.graphics.g2d.font.TtfGlyph
 
 /**
  * @author Colton Daily

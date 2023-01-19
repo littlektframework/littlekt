@@ -2,8 +2,6 @@ package com.lehaine.littlekt.math
 
 import com.lehaine.littlekt.file.FloatBuffer
 import com.lehaine.littlekt.math.geom.Angle
-import com.lehaine.littlekt.math.geom.degrees
-import com.lehaine.littlekt.math.geom.radians
 import com.lehaine.littlekt.util.internal.lock
 import kotlin.math.*
 
@@ -283,7 +281,27 @@ open class Mat4 {
     fun set(qx: Float, qy: Float, qz: Float, qw: Float) = set(0f, 0f, 0f, qx, qy, qz, qw)
 
     /**
-     * Sets the matrix to a rotation matrix representing the translation and quaternion.
+     * Sets the matrix to a rotation matrix representing the translation, quaternion, and scale.
+     * @param translation the translation component
+     * @param quaternion the rotation component
+     * @param scale the scale component
+     * @return this matrix
+     */
+    fun set(translation: Vec3f, quaternion: Vec4f, scale: Vec3f) = set(
+        translation.x,
+        translation.y,
+        translation.z,
+        quaternion.x,
+        quaternion.y,
+        quaternion.z,
+        quaternion.w,
+        scale.x,
+        scale.y,
+        scale.z
+    )
+
+    /**
+     * Sets the matrix to a rotation matrix representing the translation, quaternion, and scale.
      * @param tx The X component of the translation that is to be used to set this matrix.
      * @param ty The Y component of the translation that is to be used to set this matrix.
      * @param tz The Z component of the translation that is to be used to set this matrix.
@@ -392,32 +410,32 @@ open class Mat4 {
         return result
     }
 
-    fun rotate(ax: Float, ay: Float, az: Float, degrees: Float): Mat4 {
+    fun rotate(ax: Float, ay: Float, az: Float, angle: Angle): Mat4 {
         return lock(tmpMatLock) {
-            tmpMatA.setToRotation(degrees, ax, ay, az)
+            tmpMatA.setToRotation(ax, ay, az, angle)
             set(mul(tmpMatA, tmpMatB))
         }
     }
 
-    fun rotate(axis: Vec3f, degrees: Float) = rotate(axis.x, axis.y, axis.z, degrees)
+    fun rotate(axis: Vec3f, angle: Angle) = rotate(axis.x, axis.y, axis.z, angle)
 
-    fun rotate(eulerX: Float, eulerY: Float, eulerZ: Float): Mat4 {
+    fun rotate(eulerX: Angle, eulerY: Angle, eulerZ: Angle): Mat4 {
         return lock(tmpMatLock) {
             tmpMatA.setFromEulerAngles(eulerX, eulerY, eulerZ)
             set(mul(tmpMatA, tmpMatB))
         }
     }
 
-    fun rotate(ax: Float, ay: Float, az: Float, degrees: Float, result: Mat4): Mat4 {
+    fun rotate(ax: Float, ay: Float, az: Float, angle: Angle, result: Mat4): Mat4 {
         return lock(tmpMatLock) {
-            tmpMatA.setToRotation(degrees, ax, ay, az)
+            tmpMatA.setToRotation(ax, ay, az, angle)
             mul(tmpMatA, result)
         }
     }
 
-    fun rotate(axis: Vec3f, degrees: Float, result: Mat4) = rotate(axis.x, axis.y, axis.z, degrees, result)
+    fun rotate(axis: Vec3f, angle: Angle, result: Mat4) = rotate(axis.x, axis.y, axis.z, angle, result)
 
-    fun rotate(eulerX: Float, eulerY: Float, eulerZ: Float, result: Mat4): Mat4 {
+    fun rotate(eulerX: Angle, eulerY: Angle, eulerZ: Angle, result: Mat4): Mat4 {
         result.set(this)
         result.rotate(eulerX, eulerY, eulerZ)
         return result
@@ -426,6 +444,13 @@ open class Mat4 {
     fun rotate(rotationMat: Mat3) {
         return lock(tmpMatLock) {
             tmpMatA.setToIdentity().set(rotationMat)
+            set(mul(tmpMatA, tmpMatB))
+        }
+    }
+
+    fun rotate(quaternion: Vec4f) {
+        return lock(tmpMatLock) {
+            tmpMatA.setToIdentity().set(quaternion)
             set(mul(tmpMatA, tmpMatB))
         }
     }
@@ -816,14 +841,7 @@ open class Mat4 {
     fun setToTranslateAndScaling(translation: Vec3f, scale: Vec3f) =
         setToTranslateAndScaling(translation.x, translation.y, translation.z, scale.x, scale.y, scale.z)
 
-    fun setToRotation(axis: Vec3f, degrees: Float): Mat4 = setToRotation(axis, degrees.degrees)
-    fun setToRotationRad(axis: Vec3f, radians: Float): Mat4 = setToRotation(axis, radians.radians)
     fun setToRotation(axis: Vec3f, angle: Angle): Mat4 = setToRotation(axis.x, axis.y, axis.z, angle)
-    fun setToRotation(ax: Float, ay: Float, az: Float, degrees: Float): Mat4 =
-        setToRotation(ax, ay, az, degrees.degrees)
-
-    fun setToRotationRad(ax: Float, ay: Float, az: Float, radians: Float): Mat4 =
-        setToRotation(ax, ay, az, radians.radians)
 
     fun setToRotation(ax: Float, ay: Float, az: Float, angle: Angle): Mat4 {
         val a = angle.radians
@@ -895,17 +913,49 @@ open class Mat4 {
         return this
     }
 
+    fun setToRotation(quaternion: Vec4f): Mat4 {
+        val r = quaternion.w
+        val i = quaternion.x
+        val j = quaternion.y
+        val k = quaternion.z
+
+        var s = sqrt(r * r + i * i + j * j + k * k)
+        s = 1f / (s * s)
+
+        this[0, 0] = 1 - 2 * s * (j * j + k * k)
+        this[0, 1] = 2 * s * (i * j - k * r)
+        this[0, 2] = 2 * s * (i * k + j * r)
+        this[0, 3] = 0f
+
+        this[1, 0] = 2 * s * (i * j + k * r)
+        this[1, 1] = 1 - 2 * s * (i * i + k * k)
+        this[1, 2] = 2 * s * (j * k - i * r)
+        this[1, 3] = 0f
+
+        this[2, 0] = 2 * s * (i * k - j * r)
+        this[2, 1] = 2 * s * (j * k + i * r)
+        this[2, 2] = 1 - 2 * s * (i * i + j * j)
+        this[2, 3] = 0f
+
+        this[3, 0] = 0f
+        this[3, 1] = 0f
+        this[3, 2] = 0f
+        this[3, 3] = 1f
+
+        return this
+    }
+
     /**
      * Sets this matrix to a rotation matrix from the given euler angles.
-     * @param yaw the yaw in degrees
-     * @param pitch the pitch in degrees
-     * @param roll the roll in degrees
+     * @param yaw the yaw
+     * @param pitch the pitch
+     * @param roll the roll
      * @return this matrix
      */
-    fun setFromEulerAngles(yaw: Float, pitch: Float, roll: Float): Mat4 {
-        val a = yaw.toRad()
-        val b = pitch.toRad()
-        val c = roll.toRad()
+    fun setFromEulerAngles(yaw: Angle, pitch: Angle, roll: Angle): Mat4 {
+        val a = yaw.radians
+        val b = pitch.radians
+        val c = roll.radians
 
         val ci = cos(a)
         val cj = cos(b)
@@ -949,6 +999,8 @@ open class Mat4 {
         return this
     }
 
+    fun setToScaling(scale: Vec3f): Mat4 = setToScaling(scale.x, scale.y, scale.z)
+
     /**
      * Sets the matrix to a look at matrix with a direction and an up vector. Multiply with a translation matrix to get a camera
      * model view matrix.
@@ -958,7 +1010,7 @@ open class Mat4 {
      */
     fun setToLookAt(direction: Vec3f, up: Vec3f): Mat4 {
         l_vez.set(direction).norm()
-        l_vex.set(direction).cross(up)
+        l_vex.set(direction).norm().cross(up).norm()
         l_vey.set(l_vex).cross(l_vez).norm()
         setToIdentity()
 
@@ -1107,6 +1159,20 @@ open class Mat4 {
         this[3, col] = w
     }
 
+    fun setCol(col: Int, vec: Vec4f) {
+        this[0, col] = vec.x
+        this[1, col] = vec.y
+        this[2, col] = vec.z
+        this[3, col] = vec.w
+    }
+
+    fun getCol(col: Int, result: MutableVec4f): MutableVec4f {
+        result.x = this[0, col]
+        result.y = this[1, col]
+        result.z = this[2, col]
+        result.w = this[3, col]
+        return result
+    }
 
     fun getOrigin(result: MutableVec3f): MutableVec3f {
         result.x = this[0, 3]
@@ -1220,5 +1286,45 @@ open class Mat4 {
         private val right = MutableVec3f()
         private val tmpForward = MutableVec3f()
         private val tmpUp = MutableVec3f()
+        private val tmpVec = MutableVec3f()
+    }
+}
+
+class Mat4Stack(val stackSize: Int = DEFAULT_STACK_SIZE) : Mat4() {
+    companion object {
+        const val DEFAULT_STACK_SIZE = 32
+    }
+
+    private var stackIndex = 0
+    private val stack = FloatArray(16 * stackSize)
+
+    fun push(): Mat4Stack {
+        if (stackIndex >= stackSize) {
+            throw IllegalStateException("Matrix stack overflow")
+        }
+        val offset = stackIndex * 16
+        for (i in 0..15) {
+            stack[offset + i] = data[i]
+        }
+        stackIndex++
+        return this
+    }
+
+    fun pop(): Mat4Stack {
+        if (stackIndex <= 0) {
+            throw IllegalStateException("Matrix stack underflow")
+        }
+        stackIndex--
+        val offset = stackIndex * 16
+        for (i in 0..15) {
+            data[i] = stack[offset + i]
+        }
+        return this
+    }
+
+    fun reset(): Mat4Stack {
+        stackIndex = 0
+        setToIdentity()
+        return this
     }
 }

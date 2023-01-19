@@ -5,8 +5,8 @@ import com.lehaine.littlekt.ContextListener
 import com.lehaine.littlekt.Experimental
 import com.lehaine.littlekt.file.vfs.readTtfFont
 import com.lehaine.littlekt.graphics.Color
-import com.lehaine.littlekt.graphics.font.VectorFont
-import com.lehaine.littlekt.graphics.font.VectorFont.*
+import com.lehaine.littlekt.graphics.g2d.font.VectorFont
+import com.lehaine.littlekt.graphics.g2d.font.VectorFont.*
 import com.lehaine.littlekt.graphics.gl.ClearBufferMask
 import com.lehaine.littlekt.input.Key
 import com.lehaine.littlekt.util.viewport.ExtendViewport

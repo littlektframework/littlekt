@@ -1,6 +1,8 @@
 package com.lehaine.littlekt.graphics
 
-import com.lehaine.littlekt.graphics.font.BitmapFont
+import com.lehaine.littlekt.graphics.g2d.font.BitmapFont
+import com.lehaine.littlekt.graphics.g2d.TextureAtlas
+import com.lehaine.littlekt.graphics.g2d.TextureSlice
 import com.lehaine.littlekt.graphics.internal.InternalResources
 
 /**

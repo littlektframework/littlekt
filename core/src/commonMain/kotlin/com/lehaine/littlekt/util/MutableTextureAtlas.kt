@@ -4,6 +4,8 @@ import com.lehaine.littlekt.Context
 import com.lehaine.littlekt.file.atlas.AtlasInfo
 import com.lehaine.littlekt.file.atlas.AtlasPage
 import com.lehaine.littlekt.graphics.*
+import com.lehaine.littlekt.graphics.g2d.TextureAtlas
+import com.lehaine.littlekt.graphics.g2d.TextureSlice
 import com.lehaine.littlekt.graphics.gl.PixmapTextureData
 import com.lehaine.littlekt.util.packer.BinRect
 import com.lehaine.littlekt.util.packer.MaxRectsPacker

@@ -1,6 +1,6 @@
 package com.lehaine.littlekt.graph.node.ui
 
-import com.lehaine.littlekt.graph.node.component.InputEvent
+import com.lehaine.littlekt.graph.node.resource.InputEvent
 import com.lehaine.littlekt.util.Signal
 import com.lehaine.littlekt.util.SingleSignal
 import kotlin.js.JsName

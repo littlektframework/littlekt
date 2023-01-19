@@ -3,11 +3,11 @@ package com.lehaine.littlekt.file.ldtk
 import com.lehaine.littlekt.Disposable
 import com.lehaine.littlekt.file.vfs.VfsFile
 import com.lehaine.littlekt.graphics.Color
-import com.lehaine.littlekt.graphics.TextureAtlas
-import com.lehaine.littlekt.graphics.tilemap.ldtk.LDtkEnum
-import com.lehaine.littlekt.graphics.tilemap.ldtk.LDtkEnumValue
-import com.lehaine.littlekt.graphics.tilemap.ldtk.LDtkLevel
-import com.lehaine.littlekt.graphics.tilemap.ldtk.LDtkWorld
+import com.lehaine.littlekt.graphics.g2d.TextureAtlas
+import com.lehaine.littlekt.graphics.g2d.tilemap.ldtk.LDtkEnum
+import com.lehaine.littlekt.graphics.g2d.tilemap.ldtk.LDtkEnumValue
+import com.lehaine.littlekt.graphics.g2d.tilemap.ldtk.LDtkLevel
+import com.lehaine.littlekt.graphics.g2d.tilemap.ldtk.LDtkWorld
 
 /**
  * @author Colton Daily
