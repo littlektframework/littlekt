@@ -13,9 +13,6 @@ import com.lehaine.littlekt.graph.node.ui.*
 import com.lehaine.littlekt.graph.sceneGraph
 import com.lehaine.littlekt.graphics.Color
 import com.lehaine.littlekt.graphics.gl.ClearBufferMask
-import com.lehaine.littlekt.graphics.shader.shaders.Albedo
-import com.lehaine.littlekt.graphics.shader.shaders.ModelFragmentShader
-import com.lehaine.littlekt.graphics.shader.shaders.ModelVertexShader
 import com.lehaine.littlekt.input.Key
 import com.lehaine.littlekt.math.MutableVec4f
 import com.lehaine.littlekt.math.Vec3f
@@ -57,9 +54,6 @@ class GltfTest(context: Context) : ContextListener(context) {
     )
 
     override suspend fun Context.start() {
-        println(ModelVertexShader(albedo = Albedo.VERTEX).generate(this))
-        println()
-        println(ModelFragmentShader(albedo = Albedo.VERTEX).generate(this))
         val scene = sceneGraph(this) {
             loadGltfModel(models[modelIdx], this)
 
@@ -172,9 +166,10 @@ class GltfTest(context: Context) : ContextListener(context) {
         }
 
         var time = Duration.ZERO
+        val clearColor = Color.fromHex("#91afd9")
         onRender { dt ->
             time += dt
-            gl.clearColor(Color.CLEAR)
+            gl.clearColor(clearColor)
             gl.clear(ClearBufferMask.COLOR_DEPTH_BUFFER_BIT)
 
             scene.update(dt)
