@@ -34,10 +34,14 @@ import kotlin.time.Duration
 class GltfTest(context: Context) : ContextListener(context) {
 
     private val models = listOf(
-        GltfModel("models/player.glb", Vec3f(100f)),
-        GltfModel("models/duck.glb", rotation = MutableVec4f().setEuler(Angle.ZERO, (-90).degrees, Angle.ZERO)),
-        GltfModel("models/fox/Fox.gltf", animIdx = 0),
-        GltfModel("models/flighthelmet/FlightHelmet.gltf", Vec3f(200f))
+        GltfModel("models/player.glb", "player.glb", Vec3f(100f)),
+        GltfModel(
+            "models/duck.glb",
+            "duck.glb",
+            rotation = MutableVec4f().setEuler(Angle.ZERO, (-90).degrees, Angle.ZERO)
+        ),
+        GltfModel("models/fox/Fox.gltf", "fox.gltf", animIdx = 1),
+        GltfModel("models/flighthelmet/FlightHelmet.gltf", "FlightHelmet.gltf", Vec3f(200f))
     )
 
     private var modelIdx = 0
@@ -46,6 +50,7 @@ class GltfTest(context: Context) : ContextListener(context) {
 
     private data class GltfModel(
         val path: String,
+        val name: String,
         val scale: Vec3f = Vec3f(1f),
         val rotation: Vec4f = Vec4f(0f, 0f, 0f, 1f),
         val animIdx: Int = -1,
@@ -145,6 +150,20 @@ class GltfTest(context: Context) : ContextListener(context) {
                         }
                     }
                 }
+
+                label {
+                    anchor(Control.AnchorLayout.CENTER)
+                    text = "Loading..."
+
+                    onUpdate += {
+                        visible = loadingModel
+                    }
+
+                    onVisible += {
+                        text = "Loading '${models[modelIdx].name}'..."
+                    }
+                }
+
             }
         }.also { it.initialize() }
 
