@@ -626,7 +626,7 @@ open class SceneGraph<InputType>(
             if (focus.pointer != pointer) {
                 return@fastForEach
             }
-            if (!touchFocuses.contains(focus)) { // focus already gone
+            if (!touchFocuses.remove(focus)) { // focus already gone
                 return@fastForEach
             }
             focus.target?.let {
@@ -637,7 +637,6 @@ open class SceneGraph<InputType>(
                 }
                 it.callUiInput(event)
                 uiInput(it, event)
-                event.handle()
             }
             touchFocusPool.free(focus)
         }
@@ -696,7 +695,6 @@ open class SceneGraph<InputType>(
                 }
                 it.callUiInput(event)
                 uiInput(it, event)
-                event.handle()
             }
         }
 
@@ -740,7 +738,6 @@ open class SceneGraph<InputType>(
             }
             it.callUiInput(event)
             uiInput(it, event)
-            event.handle()
         }
 
         if (event.handled) {
@@ -1168,10 +1165,10 @@ open class SceneGraph<InputType>(
         val uiEnd: InputType? = null,
     )
 
-    private class TouchFocus {
-        var target: Control? = null
-        var pointer: Pointer = Pointer.POINTER1
-
+    private data class TouchFocus(
+        var target: Control? = null,
+        var pointer: Pointer = Pointer.POINTER1,
+    ) {
         fun reset() {
             target = null
         }

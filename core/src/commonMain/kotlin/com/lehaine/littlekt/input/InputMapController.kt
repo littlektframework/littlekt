@@ -16,7 +16,6 @@ import kotlin.math.max
  * Additionally, the strength, distances, and angles of each input can be calculated.
  *
  * @param input the current input of the context
- * @param processor an [InputMapProcessor] that reacts to [InputSignal] action events
  * @see addBinding
  * @see addAxis
  * @see addVector
