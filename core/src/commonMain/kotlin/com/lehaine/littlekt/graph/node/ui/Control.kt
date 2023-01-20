@@ -742,13 +742,10 @@ open class Control : CanvasItem() {
      * @return true if it contains; false otherwise
      */
     fun hasPoint(px: Float, py: Float): Boolean {
-        if (globalRotation.normalized.radians.isFuzzyZero()) {
-            toLocal(px, py, tempVec2f)
-            val x = tempVec2f.x
-            val y = tempVec2f.y
-            return x >= 0f && x < width && y >= 0f && y < height
-        }
-        return false //TODO determine has point when rotated
+        toLocal(px, py, tempVec2f)
+        val x = tempVec2f.x
+        val y = tempVec2f.y
+        return x >= 0f && x < width && y >= 0f && y < height
     }
 
     /**
