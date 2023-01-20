@@ -2,6 +2,27 @@
 
 ## v0.6.0-SNAPSHOT
 
+This version is full of breaking changes, mainly to mesh creation and handling, to make way for adding some basic 3d
+related graphics and handling.
+
+### Highlights
+
+* Basic 3D support:
+    * Adds a few new nodes to the `SceneGraph` to handle rendering 3D meshes and models:
+        * `Node3D`, `VisualInstance`, `Model`, and `Camera3D`.
+    * Extremely basic lighting (this will improve in the future).
+    * Skeletal animation.
+    * glTF loading and basic material rendering: `resourceVfs["myModel.glb"].readGltfModel()`.
+    * New `PerspectiveCamera` class.
+* New `MeshGeometry` class. Replaces the old `MeshBatcher` but doesn't require to make a new `Mesh` instance to create
+  the vertices. An instance can be passed into a `Mesh` for it to use.
+* New `MeshBuilder` class that uses the new `MeshGeometry` class to help facilitate generating meshes and vertices.
+* Various GLSL generator improvements and optimizations
+    * Declare and set value of variable in line.
+    * 3.3 layout locations support.
+    * Add new `predicate` option when declaring an `attribute` or `varying` for conditional shaders.
+* `Vec4` updates to handle `Quaternion` related math
+
 ### Breaking
 
 * Update `BaseButton.buttonGroup` to be private and added a new `setButtonGroup(group)` function to handle setting
@@ -23,6 +44,14 @@
   setButtonGroup(myButtonGroup)
   }
   ```
+
+* Move all 2D graphic related items to new subpackage call `g2d`. To migrate: append `.g2d` to all imports using any 2D
+  related class.
+* Mesh changes:
+    * Removed `MeshBatcher` and replaced with separate `MeshGeometry`.
+    * If you are using a `Mesh` instance that was using the batcher and making use of `Mesh.addVertex` do the following:
+        * Previously: `mesh.addVertex { ... }`. New: `mesh.geometry.addVertex { ... }`
+    * Removed `useBatcher` in favor of using `MeshGeometry` to create a `Mesh` without binding it.
 
 ### Changes
 
