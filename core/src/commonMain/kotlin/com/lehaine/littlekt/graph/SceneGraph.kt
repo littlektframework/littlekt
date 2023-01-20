@@ -488,6 +488,7 @@ open class SceneGraph<InputType>(
                         overLast.toLocal(tempVec, tempVec)
                         localX = tempVec.x
                         localY = tempVec.y
+                        type = InputEvent.Type.MOUSE_EXIT
                         pointer = Pointer.cache[index]
                     }
                     overLast.callUiInput(event)
@@ -595,7 +596,6 @@ open class SceneGraph<InputType>(
 
     override fun touchUp(screenX: Float, screenY: Float, pointer: Pointer): Boolean {
         if (controller.touchUp(screenX, screenY, pointer)) return true
-
         pointerTouched[pointer.ordinal] = false
         pointerScreenX[pointer.ordinal] = screenX
         pointerScreenY[pointer.ordinal] = screenY
