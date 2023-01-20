@@ -9,7 +9,9 @@ import com.lehaine.littlekt.graphics.toFloatBits
 import com.lehaine.littlekt.math.Mat4
 import com.lehaine.littlekt.math.geom.Angle
 import com.lehaine.littlekt.math.geom.cosine
+import com.lehaine.littlekt.math.geom.normalized
 import com.lehaine.littlekt.math.geom.sine
+import com.lehaine.littlekt.math.isFuzzyZero
 import com.lehaine.littlekt.util.datastructure.FloatArrayList
 import com.lehaine.littlekt.util.datastructure.Pool
 import com.lehaine.littlekt.util.datastructure.internal.fill
@@ -265,8 +267,8 @@ open class FontCache(val pages: Int = 1) {
         }
         lastX = tx
         lastY = ty
-        val mx = (if (rotation == Angle.ZERO) tx else temp4[12])
-        val my = (if (rotation == Angle.ZERO) ty else temp4[13])
+        val mx = (if (rotation.normalized.radians.isFuzzyZero()) tx else temp4[12])
+        val my = (if (rotation.normalized.radians.isFuzzyZero()) ty else temp4[13])
 
         val p1x = 0f
         val p1y = glyph.height * scaleY

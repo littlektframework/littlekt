@@ -105,7 +105,7 @@ abstract class Camera {
     }
 
     fun rotate(angle: Angle, axis: Vec3f) {
-        if (angle == Angle.ZERO) return
+        if (angle.normalized.radians.isFuzzyZero()) return
         direction.rotate(angle, axis)
         up.rotate(angle, axis)
     }

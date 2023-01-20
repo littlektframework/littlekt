@@ -15,10 +15,8 @@ import com.lehaine.littlekt.graphics.shader.shaders.GpuTextVertexShader
 import com.lehaine.littlekt.log.Logger
 import com.lehaine.littlekt.math.Mat4
 import com.lehaine.littlekt.math.Vec2f
-import com.lehaine.littlekt.math.geom.Angle
-import com.lehaine.littlekt.math.geom.cosine
-import com.lehaine.littlekt.math.geom.degrees
-import com.lehaine.littlekt.math.geom.sine
+import com.lehaine.littlekt.math.geom.*
+import com.lehaine.littlekt.math.isFuzzyZero
 import com.lehaine.littlekt.util.datastructure.FloatArrayList
 import kotlin.time.measureTimedValue
 
@@ -128,8 +126,8 @@ class GpuFont(
                     }
                     lastX = tx + offsetX
                     lastY = ty - offsetY
-                    val mx = (if (rotation == Angle.ZERO) tx + offsetX else temp4[12])
-                    val my = (if (rotation == Angle.ZERO) ty - offsetY else temp4[13])
+                    val mx = (if (rotation.normalized.radians.isFuzzyZero()) tx + offsetX else temp4[12])
+                    val my = (if (rotation.normalized.radians.isFuzzyZero()) ty - offsetY else temp4[13])
                     val p1x = 0f
                     val p1y = -glyph.height * scale
                     val p2x = glyph.width * scale

@@ -1,12 +1,13 @@
 package com.lehaine.littlekt.graphics.g2d.shape
 
 import com.lehaine.littlekt.Context
-import com.lehaine.littlekt.graphics.*
+import com.lehaine.littlekt.graphics.Color
+import com.lehaine.littlekt.graphics.Textures
 import com.lehaine.littlekt.graphics.g2d.Batch
 import com.lehaine.littlekt.graphics.g2d.TextureSlice
+import com.lehaine.littlekt.graphics.toFloatBits
 import com.lehaine.littlekt.math.*
 import com.lehaine.littlekt.math.geom.*
-import kotlin.math.abs
 
 
 /**
@@ -392,7 +393,8 @@ class ShapeRenderer(val batch: Batch, val slice: TextureSlice = Textures.white) 
         innerColor: Float = colorBits,
         outerColor: Float = colorBits,
     ) {
-        filledPolygonDrawer.polygon(x,
+        filledPolygonDrawer.polygon(
+            x,
             y,
             estimateSidesRequired(rx, ry),
             rx,
@@ -401,7 +403,8 @@ class ShapeRenderer(val batch: Batch, val slice: TextureSlice = Textures.white) 
             0.radians,
             PI2_F,
             innerColor,
-            outerColor)
+            outerColor
+        )
     }
 
     /**
@@ -512,6 +515,7 @@ class ShapeRenderer(val batch: Batch, val slice: TextureSlice = Textures.white) 
      * @param position the position of the bottom left corner of the rectangle
      * @param width the width of the rectangle
      * @param height the height of the rectangle
+     * @param rotation rotation of the rectangle
      * @param thickness the thickness of the line in world units
      * @param joinType the type of join, see [JoinType]
      * @param color the packed color to draw the outline. See [Color.toFloatBits].
@@ -529,6 +533,7 @@ class ShapeRenderer(val batch: Batch, val slice: TextureSlice = Textures.white) 
     /**
      * Draws a rectangle.
      * @param rect the rectangle info
+     * @param rotation rotation of the rectangle
      * @param thickness the thickness of the line in world units
      * @param joinType the type of join, see [JoinType]
      * @param color the packed color to draw the outline. See [Color.toFloatBits].
@@ -547,6 +552,7 @@ class ShapeRenderer(val batch: Batch, val slice: TextureSlice = Textures.white) 
      * @param y y-coord of the bottom left corner of the rectangle
      * @param width the width of the rectangle
      * @param height the height of the rectangle
+     * @param rotation rotation of the rectangle
      * @param thickness the thickness of the line in world units
      * @param joinType the type of join, see [JoinType]
      * @param color the packed color to draw the outline. See [Color.toFloatBits].
@@ -563,14 +569,14 @@ class ShapeRenderer(val batch: Batch, val slice: TextureSlice = Textures.white) 
     ) {
         val old = colorBits
         colorBits = color
-        if (joinType == JoinType.POINTY && rotation.radians.isFuzzyZero()) {
+        if (joinType == JoinType.POINTY && rotation.normalized.radians.isFuzzyZero()) {
             val halfThickness = 0.5f * thickness
             val nx = x + width
             val ny = y + height
             val caching = batchManager.cachingDraws
             lineDrawer.run {
-                pushLine(x + halfThickness, y, nx - halfThickness, y, thickness, false) // bottom
-                pushLine(x + halfThickness, ny, nx - halfThickness, ny, thickness, false) // top
+                pushLine(x + halfThickness, y, nx - halfThickness, y, thickness, false) // top
+                pushLine(x + halfThickness, ny, nx - halfThickness, ny, thickness, false) // bottom
                 pushLine(x, y - halfThickness, x, ny + halfThickness, thickness, false) // left
                 pushLine(nx, y - halfThickness, nx, ny + halfThickness, thickness, false) // right
             }
@@ -591,7 +597,7 @@ class ShapeRenderer(val batch: Batch, val slice: TextureSlice = Textures.white) 
         rectangleCorners[i++] = x
         rectangleCorners[i] = y + height
 
-        if (abs(rotation.radians) > FUZZY_EQ_F) {
+        if (!rotation.normalized.radians.isFuzzyZero()) {
             val centerX = x + width / 2f
             val centerY = y + height / 2f
             val cos = rotation.cosine
@@ -615,6 +621,7 @@ class ShapeRenderer(val batch: Batch, val slice: TextureSlice = Textures.white) 
      * @param position the position of the bottom left corner of the rectangle
      * @param width the width of the rectangle
      * @param height the height of the rectangle
+     * @param rotation rotation of the rectangle
      * @param color the packed color of top right vertex. If no subsequent colors are set
      * then the remaining vertices as well.
      * @param color2 the packed color of top left vertex. If no subsequent colors are set
@@ -660,6 +667,7 @@ class ShapeRenderer(val batch: Batch, val slice: TextureSlice = Textures.white) 
      * @param y y-coord of the bottom left corner of the rectangle
      * @param width the width of the rectangle
      * @param height the height of the rectangle
+     * @param rotation rotation of the rectangle
      * @param color the packed color of top right vertex. If no subsequent colors are set
      * then the remaining vertices as well.
      * @param color2 the packed color of top left vertex. If no subsequent colors are set

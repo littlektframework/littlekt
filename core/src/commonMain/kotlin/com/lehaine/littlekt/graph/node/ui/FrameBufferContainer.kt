@@ -140,8 +140,9 @@ open class FrameBufferContainer : Container() {
         if (!enabled || !insideTree) return
 
         event.apply {
-            localX = toLocalX(event.sceneX)
-            localY = toLocalY(event.sceneY)
+            val localCoords = toLocal(event.sceneX, event.sceneY, tempVec2f)
+            localX = localCoords.x
+            localY = localCoords.y
         }
         onInput.emit(event) // signal is first due to being able to handle the event
         if (event.handled) {
@@ -166,5 +167,9 @@ open class FrameBufferContainer : Container() {
         }
 
         return hit(hx, hy)
+    }
+
+    companion object {
+        private val tempVec2f = MutableVec2f()
     }
 }

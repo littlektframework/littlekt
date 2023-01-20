@@ -6,19 +6,13 @@ import com.lehaine.littlekt.graph.node.resource.InputEvent
 import com.lehaine.littlekt.graphics.Camera
 import com.lehaine.littlekt.graphics.g2d.Batch
 import com.lehaine.littlekt.graphics.g2d.shape.ShapeRenderer
-import com.lehaine.littlekt.math.Mat3
-import com.lehaine.littlekt.math.Mat4
-import com.lehaine.littlekt.math.MutableVec2f
-import com.lehaine.littlekt.math.Vec2f
+import com.lehaine.littlekt.math.*
 import com.lehaine.littlekt.math.geom.Angle
 import com.lehaine.littlekt.util.Signal
 import com.lehaine.littlekt.util.TripleSignal
 import com.lehaine.littlekt.util.signal
 import com.lehaine.littlekt.util.signal3v
 import kotlin.js.JsName
-import kotlin.math.PI
-import kotlin.math.cos
-import kotlin.math.sin
 
 
 /**
@@ -33,6 +27,8 @@ abstract class CanvasItem : Node() {
         const val SCALE_DIRTY = 2
         const val ROTATION_DIRTY = 3
         const val CLEAN = 0
+
+        private val tempVec = MutableVec2f()
     }
 
     var material: Material? = null
@@ -576,8 +572,9 @@ abstract class CanvasItem : Node() {
         if (!enabled || !insideTree || isDestroyed) return
 
         event.apply {
-            localX = toLocalX(event.sceneX)
-            localY = toLocalY(event.sceneY)
+            val localCoords = toLocal(event.sceneX, event.sceneY, tempVec)
+            localX = localCoords.x
+            localY = localCoords.y
         }
         onInput.emit(event) // signal is first due to being able to handle the event
         if (event.handled) {
@@ -590,8 +587,9 @@ abstract class CanvasItem : Node() {
         if (!enabled || !insideTree || isDestroyed) return
 
         event.apply {
-            localX = toLocalX(event.sceneX)
-            localY = toLocalY(event.sceneY)
+            val localCoords = toLocal(event.sceneX, event.sceneY, tempVec)
+            localX = localCoords.x
+            localY = localCoords.y
         }
         onUnhandledInput.emit(event) // signal is first due to being able to handle the event
         if (event.handled) {
@@ -861,7 +859,7 @@ abstract class CanvasItem : Node() {
                     _localScaleDirty = false
                 }
 
-                _localTransform.set(_scaleMatrix).mulLeft(_rotationMatrix).mulLeft(_translationMatrix)
+                _localTransform.set(_translationMatrix).mul(_rotationMatrix).mul(_scaleMatrix)
                 if (parent !is CanvasItem) {
                     _globalTransform.set(_localTransform)
                     _globalRotation = _localRotation
@@ -872,7 +870,7 @@ abstract class CanvasItem : Node() {
             }
 
             (parent as? CanvasItem)?.let {
-                _globalTransform.set(_localTransform).mulLeft(it._globalTransform)
+                _globalTransform.set(it._globalTransform).mul(_localTransform)
 
                 _globalRotation = _localRotation + it._globalRotation
                 _globalScale.set(it._globalScale).scale(_localScale)
@@ -944,23 +942,8 @@ abstract class CanvasItem : Node() {
      * Applying this method to the positions of child nodes will correctly transform their positions into the global coordinate space,
      * but applying it to a node's own position will give an incorrect result, as it will incorporate the node's own transformation into its global position.
      */
-    fun toGlobal(x: Float, y: Float, out: MutableVec2f): MutableVec2f = out.set(toGlobalX(x), toGlobalY(y))
+    fun toGlobal(x: Float, y: Float, out: MutableVec2f): MutableVec2f = localToGlobalTransform.transform(out.set(x, y))
 
-    /**
-     * Transforms the provided local x-position into a position in global coordinate space.
-     * The input is expected to be local relative to the Node2D it is called on. e.g.
-     * Applying this method to the positions of child nodes will correctly transform their positions into the global coordinate space,
-     * but applying it to a node's own position will give an incorrect result, as it will incorporate the node's own transformation into its global position.
-     */
-    fun toGlobalX(x: Float) = ((x - globalPosition.x) * cos(PI) + (y - globalPosition.y) * sin(PI)).toFloat()
-
-    /**
-     * Transforms the provided local y-position into a position in global coordinate space.
-     * The input is expected to be local relative to the Node2D it is called on. e.g.
-     * Applying this method to the positions of child nodes will correctly transform their positions into the global coordinate space,
-     * but applying it to a node's own position will give an incorrect result, as it will incorporate the node's own transformation into its global position.
-     */
-    fun toGlobalY(y: Float) = (-(x - globalPosition.y) * sin(PI) + (y - globalPosition.y) * cos(PI)).toFloat()
 
     /**
      * Transforms the provided global position into a position in local coordinate space.
@@ -988,21 +971,8 @@ abstract class CanvasItem : Node() {
      * The output will be local relative to the Node2D it is called on. e.g. It is appropriate for determining the positions of child nodes,
      * but it is not appropriate for determining its own position relative to its parent.
      */
-    fun toLocal(x: Float, y: Float, out: MutableVec2f): MutableVec2f = out.set(toLocalX(x), toLocalY(y))
+    fun toLocal(x: Float, y: Float, out: MutableVec2f): MutableVec2f = globalInverseTransform.transform(out.set(x, y))
 
-    /**
-     * Transforms the provided global x-position into a position in local coordinate space.
-     * The output will be local relative to the Node2D it is called on. e.g. It is appropriate for determining the positions of child nodes,
-     * but it is not appropriate for determining its own position relative to its parent.
-     */
-    fun toLocalX(x: Float) = (globalPosition.x * cos(PI) - globalPosition.y * sin(PI) + x).toFloat()
-
-    /**
-     * Transforms the provided global y-position into a position in local coordinate space.
-     * The output will be local relative to the Node2D it is called on. e.g. It is appropriate for determining the positions of child nodes,
-     * but it is not appropriate for determining its own position relative to its parent.
-     */
-    fun toLocalY(y: Float) = (globalPosition.x * sin(PI) + globalPosition.y * cos(PI) + y).toFloat()
 
     fun copyFrom(node: CanvasItem) {
         _globalPosition = node.globalPosition.toMutableVec2()

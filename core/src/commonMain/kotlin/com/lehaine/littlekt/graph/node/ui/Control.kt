@@ -10,15 +10,14 @@ import com.lehaine.littlekt.graph.node.resource.InputEvent
 import com.lehaine.littlekt.graph.node.resource.OverrideMap
 import com.lehaine.littlekt.graph.node.resource.Theme
 import com.lehaine.littlekt.graph.node.ui.Control.AnchorLayout.*
-import com.lehaine.littlekt.graphics.g2d.Batch
 import com.lehaine.littlekt.graphics.Camera
 import com.lehaine.littlekt.graphics.Color
+import com.lehaine.littlekt.graphics.g2d.Batch
 import com.lehaine.littlekt.graphics.g2d.font.BitmapFont
 import com.lehaine.littlekt.graphics.g2d.shape.ShapeRenderer
 import com.lehaine.littlekt.graphics.toFloatBits
 import com.lehaine.littlekt.math.*
-import com.lehaine.littlekt.math.geom.Angle
-import com.lehaine.littlekt.math.geom.closestPointsBetweenSegments
+import com.lehaine.littlekt.math.geom.*
 import com.lehaine.littlekt.util.Signal
 import com.lehaine.littlekt.util.SingleSignal
 import com.lehaine.littlekt.util.internal.isFlagSet
@@ -471,14 +470,70 @@ open class Control : CanvasItem() {
 
     override fun debugRender(batch: Batch, camera: Camera, shapeRenderer: ShapeRenderer) {
         super.debugRender(batch, camera, shapeRenderer)
-        shapeRenderer.rectangle(
-            globalPosition,
-            width,
-            height,
-            globalRotation,
-            1,
-            color = debugColor.toFloatBits()
-        )
+        if (globalRotation.normalized.radians.isFuzzyZero()) {
+            shapeRenderer.rectangle(
+                globalPosition,
+                width,
+                height,
+                globalRotation,
+                1,
+                color = debugColor.toFloatBits()
+            )
+        } else {
+            val p1x = 0f
+            val p1y = 0f
+            val p2x = 0f
+            val p2y = height
+            val p3x = width
+            val p3y = height
+
+            var x1: Float
+            var y1: Float
+            var x2: Float
+            var y2: Float
+            var x3: Float
+            var y3: Float
+
+            val cos = rotation.cosine
+            val sin = rotation.sine
+
+            x1 = cos * p1x - sin * p1y
+            y1 = sin * p1x + cos * p1y
+
+            x2 = cos * p2x - sin * p2y
+            y2 = sin * p2x + cos * p2y
+
+            x3 = cos * p3x - sin * p3y
+            y3 = sin * p3x + cos * p3y
+
+            var x4: Float = x1 + (x3 - x2)
+            var y4: Float = y3 - (y2 - y1)
+
+
+            x1 += globalPosition.x
+            y1 += globalPosition.y
+            x2 += globalPosition.x
+            y2 += globalPosition.y
+            x3 += globalPosition.x
+            y3 += globalPosition.y
+            x4 += globalPosition.x
+            y4 += globalPosition.y
+
+            val minX = minOf(x1, x2, x3, x4)
+            val minY = minOf(y1, y2, y3, y4)
+            val maxX = maxOf(x1, x2, x3, x4)
+            val maxY = maxOf(y1, y2, y3, y4)
+
+            shapeRenderer.rectangle(
+                minX,
+                minY,
+                maxX - minX,
+                maxY - minY,
+                Angle.ZERO,
+                1,
+                color = debugColor.toFloatBits()
+            )
+        }
     }
 
     override fun onPositionChanged() {
@@ -506,7 +561,7 @@ open class Control : CanvasItem() {
 
     override fun onEnabled() {
         super.onEnabled()
-       dirty(SIZE_DIRTY)
+        dirty(SIZE_DIRTY)
     }
 
     override fun onDisabled() {
@@ -554,8 +609,9 @@ open class Control : CanvasItem() {
         if (!enabled || !insideTree) return
 
         event.apply {
-            localX = toLocalX(event.sceneX)
-            localY = toLocalY(event.sceneY)
+            val localCoords = toLocal(event.sceneX, event.sceneY, tempVec2f)
+            localX = localCoords.x
+            localY = localCoords.y
         }
         onUiInput.emit(event) // signal is first due to being able to handle the event
         if (event.handled) {
@@ -672,15 +728,11 @@ open class Control : CanvasItem() {
         }
         if (mouseFilter == MouseFilter.IGNORE) return null
 
-        if (globalRotation == Angle.ZERO) {
-            toLocal(hx, hy, tempVec2f)
-            val x = tempVec2f.x
-            val y = tempVec2f.y
-            return if (x >= 0f && x < width && y >= 0f && y < height) this else null
-        }
-        // TODO determine hit target when rotated
+        toLocal(hx, hy, tempVec2f)
+        val x = tempVec2f.x
+        val y = tempVec2f.y
 
-        return null
+        return if (x >= 0f && x < width && y >= 0f && y < height) this else null
     }
 
     /**
@@ -690,7 +742,7 @@ open class Control : CanvasItem() {
      * @return true if it contains; false otherwise
      */
     fun hasPoint(px: Float, py: Float): Boolean {
-        if (globalRotation == Angle.ZERO) {
+        if (globalRotation.normalized.radians.isFuzzyZero()) {
             toLocal(px, py, tempVec2f)
             val x = tempVec2f.x
             val y = tempVec2f.y
@@ -719,8 +771,8 @@ open class Control : CanvasItem() {
         if (parent is Control) {
             tempRect.set(0f, 0f, parent.width, parent.height)
         } else {
-            val width = canvas?.virtualWidth?.toFloat() ?: 0f
-            val height = canvas?.virtualHeight?.toFloat() ?: 0f
+            val width = canvas?.virtualWidth ?: 0f
+            val height = canvas?.virtualHeight ?: 0f
             tempRect.set(
                 canvas?.x?.toFloat() ?: 0f, canvas?.y?.toFloat() ?: 0f, width, height
             )
@@ -1317,7 +1369,10 @@ open class Control : CanvasItem() {
      * @return a [BitmapFont] from the first matching [Theme] in the tree that has a [BitmapFont] with the specified
      * [name] and [type]. If [type] is omitted the class name of the current control is used as the type.
      */
-    fun getThemeFont(name: String, type: String = this::class.simpleName ?: ""): com.lehaine.littlekt.graphics.g2d.font.BitmapFont {
+    fun getThemeFont(
+        name: String,
+        type: String = this::class.simpleName ?: "",
+    ): com.lehaine.littlekt.graphics.g2d.font.BitmapFont {
         fontOverrides[name]?.let { return it }
         fontCache[name]?.let { return it }
         var themeOwner: Control? = this
@@ -1655,7 +1710,6 @@ open class Control : CanvasItem() {
 
         private val tempMat4 = Mat4()
         private val tempVec2f = MutableVec2f()
-        private val tempVec3f = MutableVec3f()
         private val points = Array(4) { MutableVec2f() }
         private val points2 = Array(4) { MutableVec2f() }
         private val controlResult = arrayOfNulls<Control>(1)

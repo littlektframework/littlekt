@@ -9,7 +9,9 @@ import com.lehaine.littlekt.graphics.shader.shaders.TextureArrayVertexShader
 import com.lehaine.littlekt.math.Mat4
 import com.lehaine.littlekt.math.geom.Angle
 import com.lehaine.littlekt.math.geom.cosine
+import com.lehaine.littlekt.math.geom.normalized
 import com.lehaine.littlekt.math.geom.sine
+import com.lehaine.littlekt.math.isFuzzyZero
 
 /**
  * **Requires GLES 3.0!**
@@ -253,7 +255,7 @@ class TextureArraySpriteBatch(
         var x4: Float
         var y4: Float
 
-        if (rotation == Angle.ZERO) {
+        if (rotation.normalized.radians.isFuzzyZero()) {
             x1 = p1x
             y1 = p1y
 
@@ -393,7 +395,7 @@ class TextureArraySpriteBatch(
         var x4: Float
         var y4: Float
 
-        if (rotation == Angle.ZERO) {
+        if (rotation.normalized.radians.isFuzzyZero()) {
             x1 = p1x
             y1 = p1y
 
@@ -536,7 +538,7 @@ class TextureArraySpriteBatch(
         var x4: Float
         var y4: Float
 
-        if (rotation == Angle.ZERO) {
+        if (rotation.normalized.radians.isFuzzyZero()) {
             x1 = p1x
             y1 = p1y
 
