@@ -59,6 +59,16 @@ related graphics and handling.
   buttons.
 * Update `NodeList` to handle `Node.updateInterval` values less than `1`. Anything less than `1` will now not update
   itself or its children.
+* Add `useOriginalSize` option to `TextureRect` node to allow positioning the `TextureSlice` based off the original size
+  before packing and trimming.
+* Fix `SceneGraph` touch focuses not being cleared after a `TOUCH_UP` event being fired resulting in thousands of
+  elements in the list.
+* Fix `SceneGraph` to fire the correct `MOUSE_EXIT` input event with pointers last over an input control.
+* Update `Control.hasPoint` to handle rotated control nodes
+* Fix `CanvasItem.toLocal` and `CanvasItem.toGlobal` to use it's respective matrices for calculation of the coordinates.
+* Fix `Control.hit` not handling rotated nodes in its calculation
+* Update all checks of `rotation == Angle.ZERO` to use a normalized angle and fuzzy zero checking. This results in
+  angles of `360` degrees to satisfy the condition.
 
 ## v0.5.3
 
