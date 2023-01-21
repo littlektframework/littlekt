@@ -69,6 +69,7 @@ related graphics and handling.
 * Fix `Control.hit` not handling rotated nodes in its calculation
 * Update all checks of `rotation == Angle.ZERO` to use a normalized angle and fuzzy zero checking. This results in
   angles of `360` degrees to satisfy the condition.
+* Fix `TOUCH_UP` event not being sent to `input` & `unhandledInput` functions when not clicking on a `Control` node.
 
 ## v0.5.3
 
