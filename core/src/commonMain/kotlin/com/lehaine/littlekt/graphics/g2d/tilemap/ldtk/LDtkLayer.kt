@@ -50,7 +50,7 @@ open class LDtkLayer(
 
     /** Layer opacity (0-1) **/
     val opacity: Float
-) : com.lehaine.littlekt.graphics.g2d.tilemap.TileLayer() {
+) : TileLayer() {
 
     /**
      * @return TRUE if grid-based coordinates are within layer bounds.

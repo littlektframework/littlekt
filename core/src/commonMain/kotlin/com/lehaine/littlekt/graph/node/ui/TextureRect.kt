@@ -4,8 +4,8 @@ import com.lehaine.littlekt.graph.SceneGraph
 import com.lehaine.littlekt.graph.node.Node
 import com.lehaine.littlekt.graph.node.addTo
 import com.lehaine.littlekt.graph.node.annotation.SceneGraphDslMarker
-import com.lehaine.littlekt.graphics.g2d.Batch
 import com.lehaine.littlekt.graphics.Camera
+import com.lehaine.littlekt.graphics.g2d.Batch
 import com.lehaine.littlekt.graphics.g2d.TextureSlice
 import com.lehaine.littlekt.graphics.g2d.shape.ShapeRenderer
 import com.lehaine.littlekt.graphics.toFloatBits
@@ -59,6 +59,17 @@ open class TextureRect : Control() {
     var stretchMode = StretchMode.KEEP
 
     /**
+     * If `true`, then the internal size calculations with use the [TextureSlice.originalWidth] & [TextureSlice.originalHeight] for its
+     * sizing instead of the trimmed width & height. This is useful if a TextureSlice requires the empty margin around it.
+     */
+    var useOriginalSize = false
+        set(value) {
+            if (field == value) return
+            field = value
+            onMinimumSizeChanged()
+        }
+
+    /**
      * The [TextureSlice] that should be displayed by this [TextureRect] node. Sets the origin of the [TextureRect] to the center.
      */
     var slice: TextureSlice?
@@ -82,29 +93,37 @@ open class TextureRect : Control() {
 
             var sliceX = it.x.toFloat()
             var sliceY = it.y.toFloat()
-            var sliceWidth = it.width.toFloat()
-            var sliceHeight = it.height.toFloat()
+            if (useOriginalSize) {
+                sliceX -= it.virtualFrame?.x ?: 0f
+                sliceY -= it.virtualFrame?.y ?: 0f
+            }
+            var sliceWidth = if (useOriginalSize) it.originalWidth.toFloat() else it.width.toFloat()
+            var sliceHeight = if (useOriginalSize) it.originalHeight.toFloat() else it.height.toFloat()
 
             when (stretchMode) {
                 StretchMode.SCALE -> {
                     newWidth = width
                     newHeight = height
                 }
+
                 StretchMode.TILE -> {
                     newWidth = sliceWidth
                     newHeight = sliceHeight
                     tile = true
                 }
+
                 StretchMode.KEEP -> {
                     newWidth = sliceWidth
                     newHeight = sliceHeight
                 }
+
                 StretchMode.KEEP_CENTERED -> {
                     offsetX = (width - sliceWidth) * 0.5f
                     offsetY = (height - sliceHeight) * 0.5f
                     newWidth = sliceWidth
                     newHeight = sliceHeight
                 }
+
                 StretchMode.KEEP_ASPECT, StretchMode.KEEP_ASPECT_CENTERED -> {
                     newWidth = width
                     newHeight = height
@@ -113,7 +132,7 @@ open class TextureRect : Control() {
 
                     if (texWidth > newWidth) {
                         texWidth = newWidth
-                        textHeight = sliceHeight * texWidth / it.width.toFloat()
+                        textHeight = sliceHeight * texWidth / sliceWidth
                     }
 
                     if (stretchMode == StretchMode.KEEP_ASPECT_CENTERED) {
@@ -123,6 +142,7 @@ open class TextureRect : Control() {
                     newWidth = texWidth
                     newHeight = textHeight
                 }
+
                 StretchMode.KEEP_ASPECT_COVERED -> {
                     newWidth = width
                     newHeight = height
@@ -209,8 +229,10 @@ open class TextureRect : Control() {
     override fun calculateMinSize() {
         if (!minSizeInvalid) return
 
-        _internalMinWidth = _slice?.width?.toFloat() ?: 0f
-        _internalMinHeight = _slice?.height?.toFloat() ?: 0f
+        _internalMinWidth =
+            if (useOriginalSize) _slice?.originalWidth?.toFloat() ?: 0f else _slice?.width?.toFloat() ?: 0f
+        _internalMinHeight =
+            if (useOriginalSize) _slice?.originalHeight?.toFloat() ?: 0f else _slice?.height?.toFloat() ?: 0f
 
         minSizeInvalid = false
     }
