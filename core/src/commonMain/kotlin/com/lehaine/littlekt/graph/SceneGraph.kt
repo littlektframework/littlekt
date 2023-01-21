@@ -600,10 +600,6 @@ open class SceneGraph<InputType>(
         pointerScreenX[pointer.ordinal] = screenX
         pointerScreenY[pointer.ordinal] = screenY
 
-        if (touchFocuses.isEmpty()) {
-            return false
-        }
-
         screenToSceneCoordinates(tempVec.set(screenX, screenY))
 
         val sceneX = tempVec.x
