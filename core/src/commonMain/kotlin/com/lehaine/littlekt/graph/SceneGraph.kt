@@ -54,6 +54,7 @@ inline fun sceneGraph(
     ),
     batch: Batch? = null,
     controller: InputMapController<String>? = null,
+    whitePixel: TextureSlice = Textures.white,
     callback: @SceneGraphDslMarker SceneGraph<String>.() -> Unit = {},
 ): SceneGraph<String> {
     contract { callsInPlace(callback, InvocationKind.EXACTLY_ONCE) }
@@ -75,7 +76,8 @@ inline fun sceneGraph(
         viewport,
         batch,
         signals,
-        controller ?: createDefaultSceneGraphController(context.input, signals)
+        controller ?: createDefaultSceneGraphController(context.input, signals),
+        whitePixel
     ).also(callback)
 }
 
@@ -98,6 +100,7 @@ inline fun <InputSignal> sceneGraph(
     batch: Batch? = null,
     uiInputSignals: SceneGraph.UiInputSignals<InputSignal> = SceneGraph.UiInputSignals(),
     controller: InputMapController<InputSignal> = InputMapController(context.input),
+    whitePixel: TextureSlice = Textures.white,
     callback: @SceneGraphDslMarker SceneGraph<InputSignal>.() -> Unit = {},
 ): SceneGraph<InputSignal> {
     contract { callsInPlace(callback, InvocationKind.EXACTLY_ONCE) }
@@ -106,7 +109,8 @@ inline fun <InputSignal> sceneGraph(
         viewport,
         batch,
         uiInputSignals,
-        controller
+        controller,
+        whitePixel
     ).also(callback)
 }
 
