@@ -573,7 +573,7 @@ abstract class CanvasItem : Node() {
         if (!enabled || !insideTree || isDestroyed) return
 
         event.apply {
-            val localCoords = toLocal(event.sceneX, event.sceneY, tempVec)
+            val localCoords = toLocal(event.canvasX, event.canvasY, tempVec)
             localX = localCoords.x
             localY = localCoords.y
         }
@@ -588,7 +588,7 @@ abstract class CanvasItem : Node() {
         if (!enabled || !insideTree || isDestroyed) return
 
         event.apply {
-            val localCoords = toLocal(event.sceneX, event.sceneY, tempVec)
+            val localCoords = toLocal(event.canvasX, event.canvasY, tempVec)
             localX = localCoords.x
             localY = localCoords.y
         }

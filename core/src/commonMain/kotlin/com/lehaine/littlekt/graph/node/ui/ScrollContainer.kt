@@ -153,7 +153,7 @@ class ScrollContainer : Container(), GestureProcessor {
 
             InputEvent.Type.TOUCH_DOWN -> {
                 if (dragToScroll) {
-                    val result = gestureController.touchDown(event.sceneX, event.sceneY, event.pointer)
+                    val result = gestureController.touchDown(event.canvasX, event.canvasY, event.pointer)
                     if (result) {
                         event.handle()
                     }
@@ -162,7 +162,7 @@ class ScrollContainer : Container(), GestureProcessor {
 
             InputEvent.Type.TOUCH_DRAGGED -> {
                 if (dragToScroll) {
-                    val result = gestureController.touchDragged(event.sceneX, event.sceneY, event.pointer)
+                    val result = gestureController.touchDragged(event.canvasX, event.canvasY, event.pointer)
                     if (result) {
                         event.handle()
                     }
@@ -171,7 +171,7 @@ class ScrollContainer : Container(), GestureProcessor {
 
             InputEvent.Type.TOUCH_UP -> {
                 if (dragToScroll) {
-                    val result = gestureController.touchUp(event.sceneX, event.sceneY, event.pointer)
+                    val result = gestureController.touchUp(event.canvasX, event.canvasY, event.pointer)
                     if (result) {
                         event.handle()
                     }

@@ -516,6 +516,9 @@ open class SceneGraph<InputType>(
                     val event = inputEventPool.alloc().apply {
                         sceneX = tempVec.x
                         sceneY = tempVec.y
+                        overLast.canvas?.screenToCanvasCoordinates(tempVec)
+                        canvasX = tempVec.x
+                        canvasY = tempVec.y
                         overLast.toLocal(tempVec, tempVec)
                         localX = tempVec.x
                         localY = tempVec.y
@@ -1048,14 +1051,18 @@ open class SceneGraph<InputType>(
 
         if (overLast != null) {
             val event = inputEventPool.alloc().apply {
+                overLast.canvas?.screenToCanvasCoordinates(
+                    tempVec.set(
+                        screenX,
+                        screenY
+                    )
+                )
                 this.sceneX = sceneX
                 this.sceneY = sceneY
+                this.canvasX = tempVec.x
+                this.canvasY = tempVec.y
                 this.pointer = pointer
-                if (overLast.canvas == sceneCanvas) {
-                    overLast.toLocal(sceneX, sceneY, tempVec)
-                } else {
-
-                }
+                overLast.toLocal(sceneX, sceneY, tempVec)
                 localX = tempVec.x
                 localY = tempVec.y
                 type = InputEvent.Type.MOUSE_EXIT
@@ -1069,8 +1076,16 @@ open class SceneGraph<InputType>(
 
         if (over != null) {
             val event = inputEventPool.alloc().apply {
+                over.canvas?.screenToCanvasCoordinates(
+                    tempVec.set(
+                        screenX,
+                        screenY
+                    )
+                )
                 this.sceneX = sceneX
                 this.sceneY = sceneY
+                this.canvasX = tempVec.x
+                this.canvasY = tempVec.y
                 this.pointer = pointer
                 over.toLocal(sceneX, sceneY, tempVec)
                 localX = tempVec.x
@@ -1113,17 +1128,6 @@ open class SceneGraph<InputType>(
         return false
     }
 
-    private fun Node.propagateInput(event: InputEvent<InputType>): Boolean {
-        nodes.forEachReversed {
-            it.propagateInput(event)
-            if (event.handled) {
-                return true
-            }
-        }
-        callInput(event)
-        return event.handled
-    }
-
     private fun callUnhandledInput(event: InputEvent<InputType>): Boolean {
         root.nodes.forEachReversed {
             if (it.propagateUnhandledInput(event)) {
@@ -1131,17 +1135,6 @@ open class SceneGraph<InputType>(
             }
         }
         return false
-    }
-
-    private fun Node.propagateUnhandledInput(event: InputEvent<InputType>): Boolean {
-        nodes.forEachReversed {
-            it.propagateUnhandledInput(event)
-            if (event.handled) {
-                return true
-            }
-        }
-        callUnhandledInput(event)
-        return event.handled
     }
 
     fun screenToSceneCoordinates(inOut: MutableVec2f) = sceneCanvas.screenToCanvasCoordinates(inOut)

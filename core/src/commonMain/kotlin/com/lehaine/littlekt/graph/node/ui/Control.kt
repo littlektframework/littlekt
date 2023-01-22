@@ -609,7 +609,7 @@ open class Control : CanvasItem() {
         if (!enabled || !insideTree) return
 
         event.apply {
-            val localCoords = toLocal(event.sceneX, event.sceneY, tempVec2f)
+            val localCoords = toLocal(event.canvasX, event.canvasY, tempVec2f)
             localX = localCoords.x
             localY = localCoords.y
         }

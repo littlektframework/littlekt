@@ -556,6 +556,28 @@ open class Node : Comparable<Node> {
         return null
     }
 
+    open fun propagateInput(event: InputEvent<*>): Boolean {
+        nodes.forEachReversed {
+            it.propagateInput(event)
+            if (event.handled) {
+                return true
+            }
+        }
+        callInput(event)
+        return event.handled
+    }
+
+    open fun propagateUnhandledInput(event: InputEvent<*>): Boolean {
+        nodes.forEachReversed {
+            it.propagateUnhandledInput(event)
+            if (event.handled) {
+                return true
+            }
+        }
+        callUnhandledInput(event)
+        return event.handled
+    }
+
     open fun callInput(event: InputEvent<*>) {
         if (!enabled || !insideTree || isDestroyed) return
         onInput.emit(event)

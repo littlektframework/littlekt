@@ -2,6 +2,8 @@ package com.lehaine.littlekt.graph.node
 
 import com.lehaine.littlekt.graph.SceneGraph
 import com.lehaine.littlekt.graph.node.annotation.SceneGraphDslMarker
+import com.lehaine.littlekt.graph.node.resource.InputEvent
+import com.lehaine.littlekt.graph.node.ui.Control
 import com.lehaine.littlekt.graphics.*
 import com.lehaine.littlekt.graphics.g2d.Batch
 import com.lehaine.littlekt.graphics.g2d.shape.ShapeRenderer
@@ -9,6 +11,7 @@ import com.lehaine.littlekt.graphics.gl.ClearBufferMask
 import com.lehaine.littlekt.graphics.gl.TexMagFilter
 import com.lehaine.littlekt.graphics.gl.TexMinFilter
 import com.lehaine.littlekt.math.Mat4
+import com.lehaine.littlekt.math.MutableVec2f
 import com.lehaine.littlekt.util.SingleSignal
 import com.lehaine.littlekt.util.signal1v
 import kotlin.contracts.ExperimentalContracts
@@ -57,6 +60,8 @@ open class FrameBufferNode : CanvasLayer() {
     private var lastHeight = height
 
     private var fbo: FrameBuffer? = null
+
+    private val tempVec = MutableVec2f()
 
     override fun onAddedToScene() {
         super.onAddedToScene()
@@ -156,15 +161,59 @@ open class FrameBufferNode : CanvasLayer() {
         end(batch)
     }
 
-    override fun propagateInternalDebugRender(
-        batch: Batch,
-        camera: Camera,
-        camera3d: Camera,
-        shapeRenderer: ShapeRenderer,
-        renderCallback: ((Node, Batch, Camera, Camera, ShapeRenderer) -> Unit)?
-    ) {
-        // we override this and make it do nothing so that we don't make multiple calls
-        // to debugRender with nested CanvasLayers.
+    override fun propagateHit(hx: Float, hy: Float): Control? {
+        scene ?: return null
+        if (!enabled || isDestroyed) return null
+        tempVec.set(hx - width * 0.5f + canvasCamera.position.x, hy - height * 0.5f + canvasCamera.position.y)
+        // we don't need to convert to canvas coords because the FrameBufferContainer handles
+        // all of that. We just need to pass it down
+        nodes.forEachReversed {
+            val target = it.propagateHit(tempVec.x, tempVec.y)
+            if (target != null) {
+                return target
+            }
+        }
+        return null
+    }
+
+    override fun propagateInput(event: InputEvent<*>): Boolean {
+        scene ?: return false
+        if (!enabled || isDestroyed) return false
+        tempVec.set(
+            event.sceneX - width * 0.5f + canvasCamera.position.x,
+            event.sceneY - height * 0.5f + canvasCamera.position.y
+        )
+        nodes.forEachReversed {
+            // we set canvas coords every iteration just in case a child CanvasLayer changes it
+            event.canvasX = tempVec.x
+            event.canvasY = tempVec.y
+            it.propagateInput(event)
+            if (event.handled) {
+                return true
+            }
+        }
+        callInput(event)
+        return event.handled
+    }
+
+    override fun propagateUnhandledInput(event: InputEvent<*>): Boolean {
+        scene ?: return false
+        if (!enabled || isDestroyed) return false
+        tempVec.set(
+            event.sceneX - width * 0.5f + canvasCamera.position.x,
+            event.sceneY - height * 0.5f + canvasCamera.position.y
+        )
+        nodes.forEachReversed {
+            // we set canvas coords every iteration just in case a child CanvasLayer changes it
+            event.canvasX = tempVec.x
+            event.canvasY = tempVec.y
+            it.propagateUnhandledInput(event)
+            if (event.handled) {
+                return true
+            }
+        }
+        callUnhandledInput(event)
+        return event.handled
     }
 
     /**
@@ -178,6 +227,7 @@ open class FrameBufferNode : CanvasLayer() {
         fbo.end()
         batch.projectionMatrix = prevProjection
     }
+
 
     override fun onDestroy() {
         super.onDestroy()

@@ -510,7 +510,7 @@ class UiPlayground(context: Context) : ContextListener(context) {
             graph.render()
 
             if (input.isKeyJustPressed(Key.ENTER)) {
-                graph.showDebugInfo = !graph.showDebugInfo
+                graph.requestShowDebugInfo = !graph.requestShowDebugInfo
             }
 
             if (input.isKeyJustPressed(Key.R)) {
