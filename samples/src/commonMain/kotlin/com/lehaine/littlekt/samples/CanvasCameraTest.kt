@@ -4,10 +4,10 @@ import com.lehaine.littlekt.Context
 import com.lehaine.littlekt.ContextListener
 import com.lehaine.littlekt.file.vfs.readBitmapFont
 import com.lehaine.littlekt.file.vfs.readTexture
-import com.lehaine.littlekt.graph.node.resource.HAlign
 import com.lehaine.littlekt.graph.node.frameBuffer
 import com.lehaine.littlekt.graph.node.node2d.camera2d
 import com.lehaine.littlekt.graph.node.node2d.node2d
+import com.lehaine.littlekt.graph.node.resource.HAlign
 import com.lehaine.littlekt.graph.node.ui.button
 import com.lehaine.littlekt.graph.node.ui.centerContainer
 import com.lehaine.littlekt.graph.node.ui.frameBufferContainer
@@ -102,6 +102,7 @@ class CanvasCameraTest(context: Context) : ContextListener(context) {
             println(it.sceneCanvas.treeString())
         }
 
+        graph.requestShowDebugInfo = true
         onResize { width, height ->
             graph.resize(width, height, true)
         }
