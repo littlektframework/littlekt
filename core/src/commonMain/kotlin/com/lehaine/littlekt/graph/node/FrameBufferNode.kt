@@ -141,9 +141,30 @@ open class FrameBufferNode : CanvasLayer() {
         if (!enabled || isDestroyed) return
         fbo ?: return
         if (width == 0 || height == 0) return
+        val scene = scene ?: return
         begin(batch)
-        nodes.forEach { it.propagateInternalRender(batch, canvasCamera, canvasCamera3d, shapeRenderer, renderCallback) }
+        nodes.forEach {
+            it.propagateInternalRender(batch, canvasCamera, canvasCamera3d, shapeRenderer, renderCallback)
+            if (scene.showDebugInfo) it.propagateInternalDebugRender(
+                batch,
+                camera,
+                camera3d,
+                shapeRenderer,
+                renderCallback
+            )
+        }
         end(batch)
+    }
+
+    override fun propagateInternalDebugRender(
+        batch: Batch,
+        camera: Camera,
+        camera3d: Camera,
+        shapeRenderer: ShapeRenderer,
+        renderCallback: ((Node, Batch, Camera, Camera, ShapeRenderer) -> Unit)?
+    ) {
+        // we override this and make it do nothing so that we don't make multiple calls
+        // to debugRender with nested CanvasLayers.
     }
 
     /**
