@@ -169,6 +169,18 @@ open class CanvasLayer : Node() {
         render(batch, shapeRenderer, renderCallback)
     }
 
+    override fun propagateInternalDebugRender(
+        batch: Batch,
+        camera: Camera,
+        camera3d: Camera,
+        shapeRenderer: ShapeRenderer,
+        renderCallback: ((Node, Batch, Camera, Camera, ShapeRenderer) -> Unit)?
+    ) {
+        // we override this and make it do nothing so that we don't make multiple calls
+        // to debugRender with nested CanvasLayers.
+    }
+
+
     override fun propagateHit(hx: Float, hy: Float): Control? {
         val scene = scene ?: return null
         if (!enabled || isDestroyed) return null
