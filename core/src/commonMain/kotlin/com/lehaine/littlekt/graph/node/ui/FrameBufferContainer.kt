@@ -6,8 +6,8 @@ import com.lehaine.littlekt.graph.node.Node
 import com.lehaine.littlekt.graph.node.addTo
 import com.lehaine.littlekt.graph.node.annotation.SceneGraphDslMarker
 import com.lehaine.littlekt.graph.node.resource.InputEvent
-import com.lehaine.littlekt.graphics.g2d.Batch
 import com.lehaine.littlekt.graphics.Camera
+import com.lehaine.littlekt.graphics.g2d.Batch
 import com.lehaine.littlekt.graphics.g2d.shape.ShapeRenderer
 import com.lehaine.littlekt.math.MutableVec2f
 import kotlin.contracts.ExperimentalContracts
@@ -96,8 +96,10 @@ open class FrameBufferContainer : Container() {
         if (dirty) {
             nodes.forEach {
                 if (it is FrameBufferNode) {
-                    it.resizeFbo((width / shrink.toFloat()).toInt(),
-                        (height / shrink.toFloat()).toInt())
+                    it.resizeFbo(
+                        (width / shrink.toFloat()).toInt(),
+                        (height / shrink.toFloat()).toInt()
+                    )
                 }
             }
             dirty = false
@@ -140,7 +142,7 @@ open class FrameBufferContainer : Container() {
         if (!enabled || !insideTree) return
 
         event.apply {
-            val localCoords = toLocal(event.sceneX, event.sceneY, tempVec2f)
+            val localCoords = toLocal(event.canvasX, event.canvasY, tempVec2f)
             localX = localCoords.x
             localY = localCoords.y
         }
@@ -157,8 +159,8 @@ open class FrameBufferContainer : Container() {
         if (stretch) {
             canvas.canvasToScreenCoordinates(temp)
             temp.scale(1f / shrink.toFloat())
-            canvas.screenToCanvasCoordinates(temp)
         }
+        canvas.screenToCanvasCoordinates(temp)
         nodes.forEachReversed {
             val target = if (it is FrameBufferNode) it.propagateHit(temp.x, temp.y) else it.propagateHit(hx, hy)
             if (target != null) {
@@ -166,7 +168,53 @@ open class FrameBufferContainer : Container() {
             }
         }
 
-        return hit(hx, hy)
+        return null
+    }
+
+    override fun propagateInput(event: InputEvent<*>): Boolean {
+        scene ?: return false
+        val canvas = canvas ?: return false
+        if (!enabled || isDestroyed) return false
+        temp.set(event.sceneX, event.sceneY)
+        if (stretch) {
+            canvas.canvasToScreenCoordinates(temp)
+            temp.scale(1f / shrink.toFloat())
+        }
+        canvas.screenToCanvasCoordinates(temp)
+        nodes.forEachReversed {
+            // we set canvas coords every iteration just in case a child CanvasLayer changes it
+            event.canvasX = temp.x
+            event.canvasY = temp.y
+            it.propagateInput(event)
+            if (event.handled) {
+                return true
+            }
+        }
+        callInput(event)
+        return event.handled
+    }
+
+    override fun propagateUnhandledInput(event: InputEvent<*>): Boolean {
+        scene ?: return false
+        val canvas = canvas ?: return false
+        if (!enabled || isDestroyed) return false
+        temp.set(event.sceneX, event.sceneY)
+        if (stretch) {
+            canvas.canvasToScreenCoordinates(temp)
+            temp.scale(1f / shrink.toFloat())
+        }
+        canvas.screenToCanvasCoordinates(temp)
+        nodes.forEachReversed {
+            // we set canvas coords every iteration just in case a child CanvasLayer changes it
+            event.canvasX = temp.x
+            event.canvasY = temp.y
+            it.propagateUnhandledInput(event)
+            if (event.handled) {
+                return true
+            }
+        }
+        callUnhandledInput(event)
+        return event.handled
     }
 
     companion object {

@@ -2,6 +2,7 @@ package com.lehaine.littlekt.graph.node
 
 import com.lehaine.littlekt.graph.SceneGraph
 import com.lehaine.littlekt.graph.node.annotation.SceneGraphDslMarker
+import com.lehaine.littlekt.graph.node.resource.InputEvent
 import com.lehaine.littlekt.graph.node.ui.Control
 import com.lehaine.littlekt.graphics.Camera
 import com.lehaine.littlekt.graphics.OrthographicCamera
@@ -174,7 +175,7 @@ open class CanvasLayer : Node() {
         camera: Camera,
         camera3d: Camera,
         shapeRenderer: ShapeRenderer,
-        renderCallback: ((Node, Batch, Camera, Camera, ShapeRenderer) -> Unit)?
+        renderCallback: ((Node, Batch, Camera, Camera, ShapeRenderer) -> Unit)?,
     ) {
         // we override this and make it do nothing so that we don't make multiple calls
         // to debugRender with nested CanvasLayers.
@@ -184,7 +185,7 @@ open class CanvasLayer : Node() {
     override fun propagateHit(hx: Float, hy: Float): Control? {
         val scene = scene ?: return null
         if (!enabled || isDestroyed) return null
-        scene.sceneToScreenCoordinates(temp.set(hx, hy))
+        canvas?.canvasToScreenCoordinates(temp.set(hx, hy))
         canvasCamera.screenToWorld(scene.context, temp, viewport, temp)
         nodes.forEachReversed {
             val target = it.propagateHit(temp.x, temp.y)
@@ -193,6 +194,43 @@ open class CanvasLayer : Node() {
             }
         }
         return null
+    }
+
+
+    override fun propagateInput(event: InputEvent<*>): Boolean {
+        val scene = scene ?: return false
+        if (!enabled || isDestroyed) return false
+        temp.set(event.sceneX, event.sceneY)
+        canvasCamera.screenToWorld(scene.context, temp, viewport, temp)
+        nodes.forEachReversed {
+            // we set canvas coords every iteration just in case a child CanvasLayer changes it
+            event.canvasX = temp.x
+            event.canvasY = temp.y
+            it.propagateInput(event)
+            if (event.handled) {
+                return true
+            }
+        }
+        callInput(event)
+        return event.handled
+    }
+
+    override fun propagateUnhandledInput(event: InputEvent<*>): Boolean {
+        val scene = scene ?: return false
+        if (!enabled || isDestroyed) return false
+        temp.set(event.sceneX, event.sceneY)
+        canvasCamera.screenToWorld(scene.context, temp, viewport, temp)
+        nodes.forEachReversed {
+            // we set canvas coords every iteration just in case a child CanvasLayer changes it
+            event.canvasX = temp.x
+            event.canvasY = temp.y
+            it.propagateUnhandledInput(event)
+            if (event.handled) {
+                return true
+            }
+        }
+        callUnhandledInput(event)
+        return event.handled
     }
 
     override fun onDestroy() {

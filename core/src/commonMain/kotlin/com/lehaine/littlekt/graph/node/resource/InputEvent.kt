@@ -14,9 +14,43 @@ class InputEvent<InputSignal> : Event() {
     var key: Key = Key.ANY_KEY
     var inputType: InputSignal? = null
     var char: Char = Char.MIN_VALUE
+
+    /**
+     * The x-coord of the root scene canvas. Changing this will also set [canvasX] automatically.
+     */
     var sceneX: Float = 0f
+        set(value) {
+            field = value
+            canvasX = value
+        }
+
+    /**
+     * The y-coord of the root scene canvas. Changing this will also set [canvasY] automatically.
+     */
     var sceneY: Float = 0f
+        set(value) {
+            field = value
+            canvasY = value
+        }
+
+    /**
+     * The x-coord of the current canvas. This may be equal to [sceneX] if there are no nested canvases.
+     */
+    var canvasX: Float = 0f
+
+    /**
+     * The y-coord of the current canvas. This may be equal to [sceneY] if there are no nested canvases.
+     */
+    var canvasY: Float = 0f
+
+    /**
+     * The x-coord of the current node in its local coordinates. (i.e a value of `0` will be the left edge)
+     */
     var localX: Float = 0f
+
+    /**
+     * The y-coord of the current node in its local coordinates. (i.e a value of `0` will be the top edge)
+     */
     var localY: Float = 0f
     var scrollAmountX: Float = 0f
     var scrollAmountY: Float = 0f
@@ -28,6 +62,8 @@ class InputEvent<InputSignal> : Event() {
         char = Char.MIN_VALUE
         sceneX = 0f
         sceneY = 0f
+        canvasX = 0f
+        canvasY = 0f
         localX = 0f
         localY = 0f
         scrollAmountX = 0f
@@ -36,7 +72,7 @@ class InputEvent<InputSignal> : Event() {
     }
 
     override fun toString(): String {
-        return "InputEvent(type=$type, pointer=$pointer, button=$button, keyCode=$key, sceneX=$sceneX, sceneY=$sceneY, scrollAmountX=$scrollAmountX, scrollAmountY=$scrollAmountY)"
+        return "InputEvent(type=$type, pointer=$pointer, button=$button, key=$key, inputType=$inputType, char=$char, sceneX=$sceneX, sceneY=$sceneY, canvasX=$canvasX, canvasY=$canvasY, localX=$localX, localY=$localY, scrollAmountX=$scrollAmountX, scrollAmountY=$scrollAmountY)"
     }
 
     enum class Type {

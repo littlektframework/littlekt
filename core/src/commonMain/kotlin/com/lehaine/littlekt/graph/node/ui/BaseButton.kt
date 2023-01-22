@@ -155,7 +155,7 @@ abstract class BaseButton : Control() {
             || event.type == InputEvent.Type.ACTION_UP && event.inputType == uiAccept
         ) {
             if (event.type == InputEvent.Type.ACTION_UP
-                || event.type == InputEvent.Type.TOUCH_UP && !hasPoint(event.sceneX, event.sceneY)
+                || event.type == InputEvent.Type.TOUCH_UP && !hasPoint(event.canvasX, event.canvasY)
             ) {
                 status.hovering = false
             }

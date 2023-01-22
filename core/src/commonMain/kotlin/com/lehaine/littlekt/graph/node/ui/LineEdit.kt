@@ -171,7 +171,7 @@ open class LineEdit : Control() {
 
         if (event.type == InputEvent.Type.TOUCH_DRAGGED) {
             if (lastPointer != event.pointer) return
-            pressed = hasPoint(event.sceneX, event.sceneY)
+            pressed = hasPoint(event.canvasX, event.canvasY)
             moveCaretToPosition(event.localX)
         }
 
