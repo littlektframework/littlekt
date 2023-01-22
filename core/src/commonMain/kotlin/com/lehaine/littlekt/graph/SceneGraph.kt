@@ -218,7 +218,7 @@ open class SceneGraph<InputType>(
      * The time modifier based off of [targetFPS].
      *
      * If [targetFPS] is set to `60` and the application is running at `120` FPS then this value will be `0.5f`
-     * This can be used instead of [dt] to handle frame indepenent logic.
+     * This can be used instead of [dt] to handle frame independent logic.
      */
     var tmod: Float = 1f
         private set
@@ -276,6 +276,11 @@ open class SceneGraph<InputType>(
     var currentMaterial: Material? = null
 
     var environment: Environment = Environment()
+
+    /**
+     * The current frame count.
+     */
+    val frame: Int get() = frameCount
 
     private var frameCount = 0
 
@@ -552,6 +557,8 @@ open class SceneGraph<InputType>(
             }
         }
     }
+
+    internal fun hasMultipleViewportsApplied() = viewportsApplied.size >= 2
 
     override fun touchDown(screenX: Float, screenY: Float, pointer: Pointer): Boolean {
         if (!isInsideViewport(screenX.toInt(), screenY.toInt())) return false
@@ -1022,7 +1029,11 @@ open class SceneGraph<InputType>(
                 this.sceneX = sceneX
                 this.sceneY = sceneY
                 this.pointer = pointer
-                overLast.toLocal(sceneX, sceneY, tempVec)
+                if (overLast.canvas == sceneCanvas) {
+                    overLast.toLocal(sceneX, sceneY, tempVec)
+                } else {
+
+                }
                 localX = tempVec.x
                 localY = tempVec.y
                 type = InputEvent.Type.MOUSE_EXIT

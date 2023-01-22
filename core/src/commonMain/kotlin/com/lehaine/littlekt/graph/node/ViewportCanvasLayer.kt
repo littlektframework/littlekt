@@ -73,4 +73,15 @@ open class ViewportCanvasLayer : CanvasLayer() {
         batch.projectionMatrix = prevProjMatrix
         scene.popViewport()
     }
+
+    override fun propagateInternalDebugRender(
+        batch: Batch,
+        camera: Camera,
+        camera3d: Camera,
+        shapeRenderer: ShapeRenderer,
+        renderCallback: ((Node, Batch, Camera, Camera, ShapeRenderer) -> Unit)?
+    ) {
+        // we override this and make it do nothing so that we don't make multiple calls
+        // to debugRender with nested viewports.
+    }
 }
