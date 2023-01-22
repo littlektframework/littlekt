@@ -75,6 +75,8 @@ related graphics and handling.
 * Update all checks of `rotation == Angle.ZERO` to use a normalized angle and fuzzy zero checking. This results in
   angles of `360` degrees to satisfy the condition.
 * Fix `TOUCH_UP` event not being sent to `input` & `unhandledInput` functions when not clicking on a `Control` node.
+* Fix multiple calls to `debugRender` in the `SceneGraph` when using any nested `CanvasLayer`.
+* Fix `FrameBufferNode` not propagating debug render calls to its children.
 
 ## v0.5.3
 
