@@ -52,6 +52,11 @@ related graphics and handling.
     * If you are using a `Mesh` instance that was using the batcher and making use of `Mesh.addVertex` do the following:
         * Previously: `mesh.addVertex { ... }`. New: `mesh.geometry.addVertex { ... }`
     * Removed `useBatcher` in favor of using `MeshGeometry` to create a `Mesh` without binding it.
+* `SceneGraph.showDebugInfo` is no longer able to be changed. To request debug rendering use the
+  new `SceneGraph.requestShowDebugInfo`. The reason for this change was the `showDebugInfo` was taking effect
+  immediately and throwing exceptions due to the internal `Batch` not being ready to render with `ShapeRenderer` and
+  such. The request will take into effect after the current frame finishes rendering. `SceneGraph.showDebugInfo` will
+  contain the true value of debug rendering.
 
 ### Changes
 

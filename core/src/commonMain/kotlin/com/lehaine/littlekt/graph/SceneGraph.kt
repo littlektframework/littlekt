@@ -256,8 +256,25 @@ open class SceneGraph<InputType>(
 
     /**
      * When `true`, nodes will handle rendering debug related info such as node bounds.
+     * When `false` nodes will not be rendered.
+     *
+     * This will take into effect after the current frame finishes.
      */
-    var showDebugInfo = false
+    var requestShowDebugInfo = false
+        set(value) {
+            if (field == value) return
+            field = value
+            debugInfoDirty = true
+        }
+
+    private var debugInfoDirty = false
+
+    /**
+     * This is the true current value if debugging is rendering.
+     * To change this value see [requestShowDebugInfo].
+     */
+    var showDebugInfo: Boolean = false
+        private set
 
     private var accum = 0.milliseconds
     private var _fixedProgressionRatio = 1f
@@ -332,6 +349,11 @@ open class SceneGraph<InputType>(
         if (!initialized) error("You need to call 'initialize()'once before doing any rendering or updating!")
         sceneCanvas.render(batch, shapeRenderer) { node, _, _, _, _ -> checkNodeMaterial(node) }
         end()
+
+        if (debugInfoDirty) {
+            showDebugInfo = requestShowDebugInfo
+            debugInfoDirty = false
+        }
     }
 
     private fun checkNodeMaterial(node: Node) {
