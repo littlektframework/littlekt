@@ -4,9 +4,12 @@
 [![build](https://github.com/littlektframework/littlekt/actions/workflows/build.yml/badge.svg?branch=master)](https://github.com/littlektframework/littlekt/actions/workflows/build.yml)
 [![Download](https://img.shields.io/maven-central/v/com.lehaine.littlekt/core/0.5.3)](https://search.maven.org/artifact/com.lehaine.littlekt/core/0.5.3/pom)
 
-**Currently in development.**
+**Currently, in development.**
 
-**[Features](https://littlekt.com/features/)** - **[Docs](https://littlekt.com/docs/)** - **[Samples](https://github.com/littlektframework/littlekt-samples)** - **[Ask a Question](https://github.com/littlektframework/littlekt/discussions/categories/q-a)** - **[Changelog](CHANGELOG.md)** - **[Starter Project](https://github.com/littlektframework/littlekt-game-template)**
+**[Features](https://littlekt.com/features/)** - **[Docs](https://littlekt.com/docs/)**
+- **[Samples](https://github.com/littlektframework/littlekt-samples)**
+- **[Ask a Question](https://github.com/littlektframework/littlekt/discussions/categories/q-a)**
+- **[Changelog](CHANGELOG.md)** - **[Starter Project](https://github.com/littlektframework/littlekt-game-template)**
 
 ## A 2D game framework written in Kotlin
 
@@ -92,6 +95,16 @@ sourceSets {
 | Android          |    ✅    | Current version |
 | iOS / Native     | Planned |            v1.0 |
 
+### Showcase
+
+Real world examples instead of the [samples'](https://github.com/littlektframework/littlekt-samples) repo.
+
+#### Glutton for Punishment
+
+**[Source](https://github.com/LeHaine/ggo2022)** - **[Play](https://lehaine.itch.io/glutton-for-punishment)**
+
+![gif](https://github.com/LeHaine/ggo2022/blob/master/itchio/gif1.gif)
+
 ### Acknowledgements
 
 LittleKt was put together based on bits and pieces of features found across multiple engines/frameworks and languages
@@ -107,7 +120,9 @@ built on top of libGDX.
 Carlos Velasco's (soywiz) awesome Kotlin game engine [KorGE](https://github.com/korlibs/korge) which has a bunch of very
 enjoyable features and awesome ideas that were brought over to be used in LittleKt.
 
-Max Thiele's (fabmax) incredible Kotlin OpenGL/Vulkan graphics engine [kool](https://github.com/fabmax/kool) where many features were shamelessly copied and brought over as well which helped get many graphics related features working and allowed me to understand how it worked.
+Max Thiele's (fabmax) incredible Kotlin OpenGL/Vulkan graphics engine [kool](https://github.com/fabmax/kool) where many
+features were shamelessly copied and brought over as well which helped get many graphics related features working and
+allowed me to understand how it worked.
 
 David Wursteisen's excellent multiplatform game framework [MiniGDX](https://github.com/minigdx/minigdx/) that allowed
 LittleKt to get up and running quickly.
