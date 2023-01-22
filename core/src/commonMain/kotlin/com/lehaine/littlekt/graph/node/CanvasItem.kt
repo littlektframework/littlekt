@@ -455,6 +455,7 @@ abstract class CanvasItem : Node() {
         renderCallback: ((Node, Batch, Camera, Camera, ShapeRenderer) -> Unit)?,
     ) {
         if (!enabled || !visible || isDestroyed) return
+        if (!batch.drawing) batch.begin()
         renderCallback?.invoke(this, batch, camera, camera3d, shapeRenderer)
         debugRender(batch, camera, shapeRenderer)
         onDebugRender.emit(batch, camera, shapeRenderer)
