@@ -36,7 +36,7 @@ val littleKtVersion: String by project
 val hash: String by lazy {
     val stdout = java.io.ByteArrayOutputStream()
     rootProject.exec {
-        commandLine("git", "rev-parse", "--verify", "--short", "HEAD")
+        commandLine("git", "rev-parse", "--verify", "--short=7", "HEAD")
         standardOutput = stdout
     }
     stdout.toString().trim()
