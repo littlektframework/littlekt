@@ -180,8 +180,8 @@ open class FrameBufferNode : CanvasLayer() {
         scene ?: return false
         if (!enabled || isDestroyed) return false
         tempVec.set(
-            event.sceneX - width * 0.5f + canvasCamera.position.x,
-            event.sceneY - height * 0.5f + canvasCamera.position.y
+            event.canvasX - width * 0.5f + canvasCamera.position.x,
+            event.canvasY - height * 0.5f + canvasCamera.position.y
         )
         nodes.forEachReversed {
             // we set canvas coords every iteration just in case a child CanvasLayer changes it
@@ -200,8 +200,8 @@ open class FrameBufferNode : CanvasLayer() {
         scene ?: return false
         if (!enabled || isDestroyed) return false
         tempVec.set(
-            event.sceneX - width * 0.5f + canvasCamera.position.x,
-            event.sceneY - height * 0.5f + canvasCamera.position.y
+            event.canvasX - width * 0.5f + canvasCamera.position.x,
+            event.canvasY - height * 0.5f + canvasCamera.position.y
         )
         nodes.forEachReversed {
             // we set canvas coords every iteration just in case a child CanvasLayer changes it
