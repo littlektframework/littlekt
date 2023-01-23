@@ -181,10 +181,17 @@ open class FrameBufferContainer : Container() {
             temp.scale(1f / shrink.toFloat())
         }
         canvas.screenToCanvasCoordinates(temp)
+        val prevCanvasX = event.canvasX
+        val prevCanvasY = event.canvasY
         nodes.forEachReversed {
             // we set canvas coords every iteration just in case a child CanvasLayer changes it
-            event.canvasX = temp.x
-            event.canvasY = temp.y
+            if (it is FrameBufferNode) {
+                event.canvasX = temp.x
+                event.canvasY = temp.y
+            } else {
+                event.canvasX = prevCanvasX
+                event.canvasY = prevCanvasY
+            }
             it.propagateInput(event)
             if (event.handled) {
                 return true
@@ -204,10 +211,17 @@ open class FrameBufferContainer : Container() {
             temp.scale(1f / shrink.toFloat())
         }
         canvas.screenToCanvasCoordinates(temp)
+        val prevCanvasX = event.canvasX
+        val prevCanvasY = event.canvasY
         nodes.forEachReversed {
             // we set canvas coords every iteration just in case a child CanvasLayer changes it
-            event.canvasX = temp.x
-            event.canvasY = temp.y
+            if (it is FrameBufferNode) {
+                event.canvasX = temp.x
+                event.canvasY = temp.y
+            } else {
+                event.canvasX = prevCanvasX
+                event.canvasY = prevCanvasY
+            }
             it.propagateUnhandledInput(event)
             if (event.handled) {
                 return true
