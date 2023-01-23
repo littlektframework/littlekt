@@ -83,21 +83,31 @@ open class Camera2D : Node2D() {
 
     private fun initializeCamera() {
         findClosestCanvas().disableOtherCameras()
+        canvas?.canvasCamera?.updateCameraWithLatest()
+    }
+
+    override fun onPositionChanged() {
+        super.onPositionChanged()
+        canvas?.canvasCamera?.updateCameraWithLatest()
     }
 
     override fun preRender(batch: Batch, camera: Camera, shapeRenderer: ShapeRenderer) {
+       camera.updateCameraWithLatest()
+    }
+
+
+    private fun Camera.updateCameraWithLatest() {
         if (active) {
-            camera.zoom = zoom
-            camera.near = near
-            camera.far = far
+            this.zoom = this@Camera2D.zoom
+            this.near = this@Camera2D.near
+            this.far = this@Camera2D.far
             if (snapToPixel) {
-                camera.position.set(globalX.roundToInt().toFloat(), globalY.roundToInt().toFloat(), 0f)
+                position.set(globalX.roundToInt().toFloat(), globalY.roundToInt().toFloat(), 0f)
             } else {
-                camera.position.set(globalX, globalY, 0f)
+                position.set(globalX, globalY, 0f)
             }
         }
     }
-
     private fun Node.disableOtherCameras() {
         if (this is Camera2D && this != this@Camera2D) {
             if (active) {
