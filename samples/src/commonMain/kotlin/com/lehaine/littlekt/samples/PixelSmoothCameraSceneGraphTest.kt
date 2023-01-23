@@ -7,9 +7,12 @@ import com.lehaine.littlekt.file.vfs.readTexture
 import com.lehaine.littlekt.graph.node.FrameBufferNode
 import com.lehaine.littlekt.graph.node.canvasLayer
 import com.lehaine.littlekt.graph.node.frameBuffer
-import com.lehaine.littlekt.graph.node.node
+import com.lehaine.littlekt.graph.node.node2d.camera2d
 import com.lehaine.littlekt.graph.node.node2d.node2d
 import com.lehaine.littlekt.graph.node.render.Material
+import com.lehaine.littlekt.graph.node.ui.button
+import com.lehaine.littlekt.graph.node.ui.frameBufferContainer
+import com.lehaine.littlekt.graph.node.ui.label
 import com.lehaine.littlekt.graph.sceneGraph
 import com.lehaine.littlekt.graphics.Color
 import com.lehaine.littlekt.graphics.g2d.TextureSlice
@@ -46,35 +49,37 @@ class PixelSmoothCameraSceneGraphTest(context: Context) : ContextListener(contex
         val graph = sceneGraph(context) {
             ppu = 16f
             val fbo: FrameBufferNode
+            var scaledDistX = 0f
+            var scaledDistY = 0f
+            var subpixelX = 0f
+            var subPixelY = 0f
             canvasLayer {
-                var scaledDistX = 0f
-                var scaledDistY = 0f
-                var subpixelX = 0f
-                var subPixelY = 0f
-
                 fbo = frameBuffer {
                     onResize += { width, height ->
                         pxHeight = height / (height / targetHeight)
                         pxWidth = (width / (height / pxHeight))
                         resizeFbo(pxWidth.nextPowerOfTwo, pxHeight.nextPowerOfTwo)
-                        canvasCamera.ortho(this.width * ppuInv, this.height * ppuInv)
+                        canvasCamera.ortho(this@frameBuffer.width * ppuInv, this@frameBuffer.height * ppuInv)
                         canvasCamera.update()
                     }
 
                     node2d {
                         onRender += { batch, camera, shapeRenderer ->
                             world.render(batch, camera, 0f, 0f, ppuInv)
-                            batch.draw(icon,
+                            batch.draw(
+                                icon,
                                 0f,
                                 0f,
                                 scaleX = ppuInv,
                                 scaleY = ppuInv,
-                                rotation = 45.degrees)
+                                rotation = 45.degrees
+                            )
                         }
                     }
 
 
-                    node {
+                    camera2d {
+                        active = true
                         val cameraDir = MutableVec2f()
                         val targetPosition = MutableVec2f()
                         val velocity = MutableVec2f()
@@ -120,8 +125,11 @@ class PixelSmoothCameraSceneGraphTest(context: Context) : ContextListener(contex
                             scaledDistY -= subPixelY
 
                             (parent as? FrameBufferNode)?.let {
-                                it.canvasCamera.position.set(tx, ty, 0f)
-                                    .add(it.width * ppuInv / 2f, it.height * ppuInv / 2f, 0f)
+                                globalX = tx + it.width * ppuInv / 2f
+                                globalY = ty + it.height * ppuInv / 2f
+
+                                // update the camera position immediately
+                                it.canvasCamera.position.set(globalX, globalY, 0f)
 
                                 tempVec2f.x = input.x.toFloat()
                                 tempVec2f.y = input.y.toFloat()
@@ -129,49 +137,57 @@ class PixelSmoothCameraSceneGraphTest(context: Context) : ContextListener(contex
                                 tempVec2f.y = (pxHeight / 100f) * ((100f / graphics.height) * input.y)
                                 tempVec2f.x *= ppuInv
                                 tempVec2f.y *= ppuInv
-                                tempVec2f.x = tempVec2f.x - it.width * ppuInv * 0.5f + it.canvasCamera.position.x
-                                tempVec2f.y = tempVec2f.y - it.height * ppuInv * 0.5f + it.canvasCamera.position.y
+                                tempVec2f.x = tempVec2f.x - it.width * ppuInv * 0.5f + globalX
+                                tempVec2f.y = tempVec2f.y - it.height * ppuInv * 0.5f + globalY
                             }
                             if (input.isKeyJustPressed(Key.B)) {
                                 useBilinearFilter = !useBilinearFilter
                             }
 
-                            if(input.isKeyJustPressed(Key.L)) {
+                            if (input.isKeyJustPressed(Key.L)) {
                                 println(tempVec2f)
                             }
                         }
                     }
                 }
+            }
 
-                node2d {
-                    var slice: TextureSlice? = null
-                    material = Material(pixelSmoothShader)
+            node2d {
+                var slice: TextureSlice? = null
+                material = Material(pixelSmoothShader)
 
-                    fbo.onFboChanged.connect(this) {
-                        slice = TextureSlice(it, 0, it.height-pxHeight, pxWidth, pxHeight)
+                fbo.onFboChanged.connect(this) {
+                    slice = TextureSlice(it, 0, it.height - pxHeight, pxWidth, pxHeight)
+                }
+
+                onRender += { batch, camera, shapeRenderer ->
+                    slice?.let {
+                        pixelSmoothShader.vertexShader.uTextureSizes.apply(
+                            pixelSmoothShader,
+                            fbo.width.toFloat(),
+                            fbo.height.toFloat(),
+                            0f,
+                            0f
+                        )
+                        pixelSmoothShader.vertexShader.uSampleProperties.apply(
+                            pixelSmoothShader,
+                            subpixelX,
+                            subPixelY,
+                            scaledDistX,
+                            scaledDistY
+                        )
+                        batch.draw(
+                            it,
+                            globalX,
+                            globalY,
+                            width = width,
+                            height = height,
+                            scaleX = globalScaleX,
+                            scaleY = globalScaleY,
+                            rotation = globalRotation,
+                            flipY = true
+                        )
                     }
-
-                    onRender += { batch, camera, shapeRenderer ->
-                        slice?.let {
-                            pixelSmoothShader.vertexShader.uTextureSizes.apply(pixelSmoothShader,
-                                fbo.width.toFloat(),
-                                fbo.height.toFloat(),
-                                0f,
-                                0f)
-                            pixelSmoothShader.vertexShader.uSampleProperties.apply(pixelSmoothShader,
-                                subpixelX,
-                                subPixelY,
-                                scaledDistX,
-                                scaledDistY)
-                            batch.draw(it,
-                                0f,
-                                0f,
-                                width = context.graphics.width.toFloat(),
-                                height = context.graphics.height.toFloat(),
-                                flipY = true)
-                        }
-                    }
-
                 }
             }
         }.also { it.initialize() }

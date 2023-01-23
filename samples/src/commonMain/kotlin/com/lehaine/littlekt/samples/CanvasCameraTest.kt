@@ -30,10 +30,7 @@ class CanvasCameraTest(context: Context) : ContextListener(context) {
     override suspend fun Context.start() {
         val pixelFont = resourcesVfs["m5x7_16.fnt"].readBitmapFont()
         val icon = resourcesVfs["icon_16x16.png"].readTexture()
-        val graph = sceneGraph(context, ExtendViewport(240, 136)) {
-            viewport {
-                viewport = ExtendViewport(480, 272)
-
+        val graph = sceneGraph(context, ExtendViewport(480, 270)) {
                 frameBufferContainer {
                     stretch = true
                     shrink = 2
@@ -81,7 +78,6 @@ class CanvasCameraTest(context: Context) : ContextListener(context) {
                         }
                     }
                 }
-            }
 
             centerContainer {
                 anchorRight = 1f
