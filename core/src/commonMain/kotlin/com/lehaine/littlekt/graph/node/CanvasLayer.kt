@@ -200,7 +200,8 @@ open class CanvasLayer : Node() {
     override fun propagateInput(event: InputEvent<*>): Boolean {
         val scene = scene ?: return false
         if (!enabled || isDestroyed) return false
-        temp.set(event.sceneX, event.sceneY)
+        temp.set(event.canvasX, event.canvasY)
+        canvas?.canvasToScreenCoordinates(temp)
         canvasCamera.screenToWorld(scene.context, temp, viewport, temp)
         nodes.forEachReversed {
             // we set canvas coords every iteration just in case a child CanvasLayer changes it
@@ -218,7 +219,8 @@ open class CanvasLayer : Node() {
     override fun propagateUnhandledInput(event: InputEvent<*>): Boolean {
         val scene = scene ?: return false
         if (!enabled || isDestroyed) return false
-        temp.set(event.sceneX, event.sceneY)
+        temp.set(event.canvasX, event.canvasY)
+        canvas?.canvasToScreenCoordinates(temp)
         canvasCamera.screenToWorld(scene.context, temp, viewport, temp)
         nodes.forEachReversed {
             // we set canvas coords every iteration just in case a child CanvasLayer changes it

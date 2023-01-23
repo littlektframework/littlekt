@@ -50,7 +50,8 @@ open class Viewport(
     }
 
     /**
-     * Resize the viewport based new size.
+     * Resize the viewport based new size. If using the base [Viewport] this function must be overridden
+     * for it to do anything other than apply the current viewport size.
      */
     open fun update(width: Int, height: Int, context: Context, centerCamera: Boolean = false) {
         apply(context, centerCamera)
