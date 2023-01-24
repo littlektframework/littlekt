@@ -1,4 +1,5 @@
 import com.github.benmanes.gradle.versions.updates.DependencyUpdatesTask
+import org.jetbrains.dokka.gradle.DokkaTask
 
 val littleKtVersion: String by project
 plugins {
@@ -29,7 +30,9 @@ allprojects {
     // ./gradlew dependencyUpdates
     // Report: build/dependencyUpdates/report.txt
     apply(plugin = "com.github.ben-manes.versions")
-   // apply(plugin = "org.jetbrains.dokka")
+    if(name != "samples") {
+        apply(plugin = "org.jetbrains.dokka")
+    }
 }
 
 //https://github.com/ben-manes/gradle-versions-plugin#rejectversionsif-and-componentselection
