@@ -1,7 +1,9 @@
 import com.github.benmanes.gradle.versions.updates.DependencyUpdatesTask
 
 val littleKtVersion: String by project
-
+plugins {
+    id("org.jetbrains.dokka") version "1.7.20" apply false
+}
 buildscript {
     repositories {
         gradlePluginPortal()
@@ -27,6 +29,7 @@ allprojects {
     // ./gradlew dependencyUpdates
     // Report: build/dependencyUpdates/report.txt
     apply(plugin = "com.github.ben-manes.versions")
+   // apply(plugin = "org.jetbrains.dokka")
 }
 
 //https://github.com/ben-manes/gradle-versions-plugin#rejectversionsif-and-componentselection

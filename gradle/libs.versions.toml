@@ -2,6 +2,7 @@
 plugin-android = "7.2.2"
 plugin-kotlin = "1.7.20"
 plugin-gver = "0.42.0"
+plugin-dokka = "1.7.20"
 
 kotlinx-serialization = "1.4.0"
 kotlinx-coroutines = "1.6.4"
@@ -28,6 +29,9 @@ kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-c
 kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "kotlinx-coroutines" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx-serialization" }
 kotlinx-atomicfu = { module = "org.jetbrains.kotlinx:atomicfu", version.ref = "kotlinx-atomicfu" }
+
+[plugins]
+plugin-dokka = { id = "org.jetbrains.dokka", version.ref = "plugin-dokka" }
 
 [bundles]
 plugins = ["plugin-android", "plugin-kotlin", "plugin-kotlin-serialization", "plugin-gver"]

@@ -6,6 +6,7 @@ plugins {
     kotlin("plugin.serialization")
     id("com.android.library")
     id("littlekt.convention.publication")
+    id("org.jetbrains.dokka")
 }
 
 repositories {

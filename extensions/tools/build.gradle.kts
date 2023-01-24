@@ -5,6 +5,7 @@ plugins {
     kotlin("multiplatform")
     kotlin("plugin.serialization")
     id("littlekt.convention.publication")
+    id("org.jetbrains.dokka")
 }
 
 repositories {
