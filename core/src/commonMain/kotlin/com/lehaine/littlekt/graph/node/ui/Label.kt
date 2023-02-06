@@ -153,6 +153,13 @@ open class Label : Control() {
         verticalSizeFlags = SizeFlag.SHRINK_CENTER
     }
 
+    override fun onHierarchyChanged(flag: Int) {
+        super.onHierarchyChanged(flag)
+        if (flag == SIZE_DIRTY && parent is Container) {
+            onMinimumSizeChanged()
+        }
+    }
+
     override fun render(batch: Batch, camera: Camera, shapeRenderer: ShapeRenderer) {
         cache.let {
             tempColor.set(color).mul(fontColor)
@@ -169,27 +176,13 @@ open class Label : Control() {
         }
     }
 
-    override fun onHierarchyChanged(flag: Int) {
-        super.onHierarchyChanged(flag)
-        if (flag == SIZE_DIRTY) {
-            layout()
-        }
-    }
-
-    override fun onPostEnterScene() {
-        super.onPostEnterScene()
-        layout()
-    }
-
     override fun calculateMinSize() {
         if (!minSizeInvalid) return
 
         layout()
 
-        val text = if (uppercase) text.uppercase() else text
-        minSizeLayout.setText(font, text, scaleX = fontScaleX, scaleY = fontScaleY, wrap = wrap, truncate = ellipsis)
-        _internalMinWidth = minSizeLayout.width
-        _internalMinHeight = minSizeLayout.height
+        _internalMinWidth = layout.width
+        _internalMinHeight = layout.height
 
         minSizeInvalid = false
     }
@@ -210,18 +203,18 @@ open class Label : Control() {
                 width,
                 scaleX = fontScaleX,
                 scaleY = fontScaleY,
-                horizontalAlign,
-                wrap,
-                ellipsis
+                align = horizontalAlign,
+                wrap = wrap,
+                truncate = ellipsis
             )
             textWidth = layout.width
             textHeight = layout.height
 
             if (horizontalAlign != HAlign.LEFT) {
-                if (horizontalAlign == HAlign.RIGHT) {
-                    tx += width - textWidth
+                tx += if (horizontalAlign == HAlign.RIGHT) {
+                    width - textWidth
                 } else {
-                    tx += (width - textWidth) / 2
+                    (width - textWidth) / 2
                 }
             }
         } else {
@@ -258,6 +251,9 @@ open class Label : Control() {
             ellipsis
         )
         cache.setText(layout, tx, ty, fontScaleX, fontScaleY)
+        _internalMinWidth = layout.width
+        _internalMinHeight = layout.height
+
     }
 
     class ThemeVars {
@@ -267,7 +263,6 @@ open class Label : Control() {
 
     companion object {
         private val tempColor = MutableColor()
-        private val minSizeLayout = GlyphLayout()
 
         /**
          * [Theme] related variable names when setting theme values for a [Label]

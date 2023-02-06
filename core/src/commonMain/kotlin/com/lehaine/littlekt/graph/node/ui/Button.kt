@@ -220,22 +220,14 @@ open class Button : BaseButton() {
         }
     }
 
-    override fun onHierarchyChanged(flag: Int) {
-        if (flag == SIZE_DIRTY) {
-            layout()
-        }
-    }
-
     override fun calculateMinSize() {
         if (!minSizeInvalid) return
 
         layout()
 
-        val text = if (uppercase) text.uppercase() else text
-        minSizeLayout.setText(font, text, scaleX = fontScaleX, scaleY = fontScaleY, wrap = wrap, truncate = ellipsis)
         val drawable = getThemeDrawable(themeVars.normal)
-        _internalMinWidth = max(minSizeLayout.width, drawable.minWidth) + padding * 2f
-        _internalMinHeight = max(minSizeLayout.height, drawable.minHeight) + padding * 2f
+        _internalMinWidth = max(layout.width, drawable.minWidth) + padding * 2f
+        _internalMinHeight = max(layout.height, drawable.minHeight) + padding * 2f
 
         minSizeInvalid = false
     }
@@ -315,7 +307,6 @@ open class Button : BaseButton() {
 
     companion object {
         private val tempColor = MutableColor()
-        private val minSizeLayout = GlyphLayout()
 
         /**
          * [Theme] related variable names when setting theme values for a [Button]

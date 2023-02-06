@@ -591,8 +591,7 @@ open class Control : CanvasItem() {
     override fun onPostEnterScene() {
         super.onPostEnterScene()
 
-        minSizeInvalid = true
-        onSizeChanged()
+        onMinimumSizeChanged()
     }
 
     override fun onRemovedFromScene() {
@@ -692,7 +691,6 @@ open class Control : CanvasItem() {
         computeMargins()
         if (insideTree) {
             dirty(SIZE_DIRTY)
-            onSizeChanged()
         }
     }
 
