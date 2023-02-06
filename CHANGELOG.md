@@ -7,7 +7,7 @@ related graphics and handling.
 
 ### Highlights
 
-* Basic 3D support:
+* Basic 3D support **This is experimental and not really meant to be used in a real game yet**:
     * Adds a few new nodes to the `SceneGraph` to handle rendering 3D meshes and models:
         * `Node3D`, `VisualInstance`, `Model`, and `Camera3D`.
     * Extremely basic lighting (this will improve in the future).
@@ -70,13 +70,27 @@ related graphics and handling.
   elements in the list.
 * Fix `SceneGraph` to fire the correct `MOUSE_EXIT` input event with pointers last over an input control.
 * Update `Control.hasPoint` to handle rotated control nodes
-* Fix `CanvasItem.toLocal` and `CanvasItem.toGlobal` to use it's respective matrices for calculation of the coordinates.
+* Fix `CanvasItem.toLocal` and `CanvasItem.toGlobal` to use its respective matrices for calculation of the coordinates.
 * Fix `Control.hit` not handling rotated nodes in its calculation
 * Update all checks of `rotation == Angle.ZERO` to use a normalized angle and fuzzy zero checking. This results in
   angles of `360` degrees to satisfy the condition.
 * Fix `TOUCH_UP` event not being sent to `input` & `unhandledInput` functions when not clicking on a `Control` node.
 * Fix multiple calls to `debugRender` in the `SceneGraph` when using any nested `CanvasLayer`.
 * Fix `FrameBufferNode` not propagating debug render calls to its children.
+* Add new `InputEvent.canvasX` and `InputEvent.canvasY` to get coordinates of the event in the `CanvasItem.canvas`
+  coordinates. This is useful when nesting `Canvas` nodes.
+* Update existing `Control` nodes that use `uiInput` to check against new `InputEvent.canvasX` and `InputEvent.canvasY`
+  coordinates.
+* Fix `GlyphLayout` not calculating glyph advances properly resulting in incorrect wrapping calculations
+* Fix when a `Control` node should calculate its minimum size. This fixes issues with labels not using the correct
+  layout height.
+* Add `getOrNull(Int)` to all variants of `ArrayList` data structure.
+
+### Libraries
+
+* Update `kotlin` to `1.8.10`.
+* Update `kotlinx.serialization` to `1.5.0-RC`.
+* Update `kotlinx.atomicfu` to `0.19.0`.
 
 ## v0.5.3
 
