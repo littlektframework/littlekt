@@ -20,6 +20,9 @@ class MeshBuilder(val geometry: MeshGeometry) {
     var vertexModFun: (VertexView.() -> Unit)? = null
     val hasNormals = geometry.attributes.contains(VertexAttribute.NORMAL)
 
+    /**
+     * Add a vertex to the [geometry].
+     */
     inline fun vertex(block: VertexView.() -> Unit): Int {
         return geometry.addVertex {
             color.set(this@MeshBuilder.color)
@@ -33,7 +36,9 @@ class MeshBuilder(val geometry: MeshGeometry) {
             vertexModFun?.invoke(this)
         }
     }
-
+    /**
+     * Sets the vertex directly to the [geometry].
+     */
     fun vertex(pos: Vec3f, nrm: Vec3f, uv: Vec2f = Vec2f.ZERO) = vertex {
         position.set(pos)
         normal.set(nrm)
@@ -47,7 +52,9 @@ class MeshBuilder(val geometry: MeshGeometry) {
             geometry.addTriIndices(i0, i1, i2)
         }
     }
-
+    /**
+     * Pushes a [transform] and then pops outside the block.
+     */
     inline fun withTransform(block: MeshBuilder.() -> Unit) {
         transform.push()
         this.block()
@@ -88,6 +95,9 @@ class MeshBuilder(val geometry: MeshGeometry) {
         cube(props)
     }
 
+    /**
+     * Generates a cube geometry.
+     */
     fun cube(props: CubeProps) {
         val tmpPos = MutableVec3f()
         props.fixNegativeSize()
@@ -257,12 +267,17 @@ class MeshBuilder(val geometry: MeshGeometry) {
         }
     }
 
+    /**
+     * Generates a grid geometry.
+     */
     inline fun grid(block: GridProps.() -> Unit) {
         val props = GridProps()
         props.block()
         grid(props)
     }
-
+    /**
+     * Generates a grid geometry.
+     */
     fun grid(props: GridProps) {
         val gridNormal = MutableVec3f()
 
@@ -405,12 +420,6 @@ class MeshBuilder(val geometry: MeshGeometry) {
         var stepsX = 10
         var stepsY = 10
         var heightFun: (Int, Int) -> Float = ZERO_HEIGHT
-
-//        fun useHeightMap(heightMap: HeightMap) {
-//            stepsX = heightMap.width - 1
-//            stepsY = heightMap.height - 1
-//            heightFun = { x, y -> heightMap.getHeight(x, y) }
-//        }
 
         companion object {
             val ZERO_HEIGHT: (Int, Int) -> Float = { _, _ -> 0f }

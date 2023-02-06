@@ -9,6 +9,7 @@ import com.lehaine.littlekt.util.datastructure.ShortArrayList
 import kotlin.math.floor
 
 /**
+ * Holds vertex and index data that can be used to render to a mesh.
  * @author Colton Daily
  * @date 12/19/2022
  */
@@ -27,12 +28,21 @@ class MeshGeometry(
     val numIndices: Int
         get() = indices.size
 
+    /**
+     * If the geometry has changed since last update.
+     */
     val dirty: Boolean get() = verticesDirty || indicesDirty
     var verticesDirty = false
     var indicesDirty = false
 
+    /**
+     * Bounds of the mesh.
+     */
     val bounds = BoundingBox()
 
+    /**
+     * `true` if this is mid-batch update.
+     */
     var isBatchUpdate = false
 
     private var rebuildIndicesType: IndicesType = IndicesType.UNKNOWN
@@ -40,6 +50,9 @@ class MeshGeometry(
     @PublishedApi
     internal val view = VertexView(this, 0)
 
+    /**
+     * Mark this geometry as a batch update. This does nothing on its own. Use [isBatchUpdate] to handle.
+     */
     inline fun batchUpdate(rebuildBounds: Boolean = false, block: MeshGeometry.() -> Unit) {
         val wasBatchUpdate = isBatchUpdate
         isBatchUpdate = true
@@ -51,6 +64,9 @@ class MeshGeometry(
         }
     }
 
+    /**
+     * Add a single vertex to the geometry using a [VertexView].
+     */
     inline fun addVertex(action: VertexView.() -> Unit): Int {
         view.index = numVertices++
         view.resetToZero()
@@ -60,6 +76,9 @@ class MeshGeometry(
         return numVertices - 1
     }
 
+    /**
+     * Add a list of existing vertices to the geometry.
+     */
     fun add(newVertices: FloatArray, srcOffset: Int = 0, dstOffset: Int = 0, count: Int = newVertices.size) {
         newVertices.copyInto(vertices.data, dstOffset, srcOffset, srcOffset + count)
         vertices.size = dstOffset + count
@@ -67,23 +86,35 @@ class MeshGeometry(
         verticesDirty = true
     }
 
+    /**
+     * Add an index.
+     */
     fun addIndex(idx: Int) {
         indices += idx.toShort()
         indicesDirty = true
     }
 
+    /**
+     * Adds a list of indices.
+     */
     fun addIndices(vararg indices: Int) {
         for (idx in indices.indices) {
             addIndex(indices[idx])
         }
     }
 
+    /**
+     * Adds a list of indices.
+     */
     fun addIndices(indices: List<Int>) {
         for (idx in indices.indices) {
             addIndex(indices[idx])
         }
     }
 
+    /**
+     * Adds three indices as a "tri".
+     */
     fun addTriIndices(i0: Int, i1: Int, i2: Int) {
         addIndex(i0)
         addIndex(i1)
@@ -131,16 +162,25 @@ class MeshGeometry(
         }
     }
 
+    /**
+     * This moves the current an X amount of vertices from the current vertex index. This takes into account the [vertexSize].
+     */
     fun skip(totalVertices: Int) {
         vertices.size += totalVertices * vertexSize
         numVertices += totalVertices
     }
 
+    /**
+     * Clears the vertices.
+     */
     fun clear() {
         numVertices = 0
         vertices.size = 0
     }
 
+    /**
+     * Clears the indices.
+     */
     fun clearIndices() {
         indices.size = 0
         indicesDirty = true
