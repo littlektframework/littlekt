@@ -5,14 +5,22 @@ import com.lehaine.littlekt.ContextListener
 import com.lehaine.littlekt.file.vfs.readTexture
 import com.lehaine.littlekt.graph.SceneGraph
 import com.lehaine.littlekt.graph.node.node
+import com.lehaine.littlekt.graph.node.resource.AlignMode
+import com.lehaine.littlekt.graph.node.resource.HAlign
+import com.lehaine.littlekt.graph.node.resource.VAlign
 import com.lehaine.littlekt.graph.node.ui.*
 import com.lehaine.littlekt.graph.sceneGraph
 import com.lehaine.littlekt.graphics.Color
+import com.lehaine.littlekt.graphics.Fonts
+import com.lehaine.littlekt.graphics.g2d.SpriteBatch
+import com.lehaine.littlekt.graphics.g2d.font.BitmapFontCache
+import com.lehaine.littlekt.graphics.g2d.use
 import com.lehaine.littlekt.graphics.gl.ClearBufferMask
 import com.lehaine.littlekt.graphics.slice
 import com.lehaine.littlekt.input.Key
 import com.lehaine.littlekt.math.random
 import com.lehaine.littlekt.util.fastForEach
+import com.lehaine.littlekt.util.viewport.ScreenViewport
 
 /**
  * @author Colton Daily
@@ -44,12 +52,12 @@ class UiPlayground(context: Context) : ContextListener(context) {
                                 separation = 10
                                 label {
                                     text = "----Labels----"
-                                    horizontalAlign = com.lehaine.littlekt.graph.node.resource.HAlign.CENTER
+                                    horizontalAlign = HAlign.CENTER
                                 }
                                 label {
                                     text = "Different colored label"
-                                    horizontalAlign = com.lehaine.littlekt.graph.node.resource.HAlign.CENTER
-                                    fontColor = com.lehaine.littlekt.graphics.Color.RED
+                                    horizontalAlign = HAlign.CENTER
+                                    fontColor = Color.RED
                                 }
                                 label {
                                     text = "Truncated long text that has ellipsis to continue"
@@ -57,35 +65,41 @@ class UiPlayground(context: Context) : ContextListener(context) {
                                     width = 150f
                                 }
 
+                                label {
+                                    width = 150f
+                                    text = "Long text that can wrap to the next line or lines"
+                                    wrap = true
+                                }
+
                                 label { text = "Horizontal Alignment:" }
                                 label { text = "Left" }
                                 label {
                                     text = "Center"
-                                    horizontalAlign = com.lehaine.littlekt.graph.node.resource.HAlign.CENTER
+                                    horizontalAlign = HAlign.CENTER
                                 }
                                 label {
                                     text = "Right"
-                                    horizontalAlign = com.lehaine.littlekt.graph.node.resource.HAlign.RIGHT
+                                    horizontalAlign = HAlign.RIGHT
                                 }
 
                                 label { text = "Vertical Alignment:" }
                                 row {
                                     separation = 10
                                     minHeight = 50f
-                                    align = com.lehaine.littlekt.graph.node.resource.AlignMode.CENTER
+                                    align = AlignMode.CENTER
                                     label {
                                         text = "Top"
-                                        verticalSizeFlags = com.lehaine.littlekt.graph.node.ui.Control.SizeFlag.FILL
+                                        verticalSizeFlags = Control.SizeFlag.FILL
                                     }
                                     label {
                                         text = "Center"
-                                        verticalAlign = com.lehaine.littlekt.graph.node.resource.VAlign.CENTER
-                                        verticalSizeFlags = com.lehaine.littlekt.graph.node.ui.Control.SizeFlag.FILL
+                                        verticalAlign = VAlign.CENTER
+                                        verticalSizeFlags = Control.SizeFlag.FILL
                                     }
                                     label {
                                         text = "Bottom"
-                                        verticalAlign = com.lehaine.littlekt.graph.node.resource.VAlign.BOTTOM
-                                        verticalSizeFlags = com.lehaine.littlekt.graph.node.ui.Control.SizeFlag.FILL
+                                        verticalAlign = VAlign.BOTTOM
+                                        verticalSizeFlags = Control.SizeFlag.FILL
                                     }
                                 }
                             }
@@ -116,7 +130,7 @@ class UiPlayground(context: Context) : ContextListener(context) {
 
                                 label {
                                     text = "----Buttons----"
-                                    horizontalAlign = com.lehaine.littlekt.graph.node.resource.HAlign.CENTER
+                                    horizontalAlign = HAlign.CENTER
                                 }
 
                                 separation = 10
@@ -139,12 +153,12 @@ class UiPlayground(context: Context) : ContextListener(context) {
 
                                 button {
                                     text = "Left Align"
-                                    horizontalAlign = com.lehaine.littlekt.graph.node.resource.HAlign.LEFT
+                                    horizontalAlign = HAlign.LEFT
                                 }
 
                                 button {
                                     text = "Right Align"
-                                    horizontalAlign = com.lehaine.littlekt.graph.node.resource.HAlign.RIGHT
+                                    horizontalAlign = HAlign.RIGHT
                                 }
 
                                 val panel = panelContainer {
@@ -171,7 +185,7 @@ class UiPlayground(context: Context) : ContextListener(context) {
                                 separation = 10
                                 label {
                                     text = "----Ranges----"
-                                    horizontalAlign = com.lehaine.littlekt.graph.node.resource.HAlign.CENTER
+                                    horizontalAlign = HAlign.CENTER
                                 }
                                 label { text = "Progress bar:" }
                                 row {
@@ -204,7 +218,7 @@ class UiPlayground(context: Context) : ContextListener(context) {
                                 row {
                                     separation = 10
                                     column {
-                                        align = com.lehaine.littlekt.graph.node.resource.AlignMode.CENTER
+                                        align = AlignMode.CENTER
                                         button {
                                             text = "-"
                                             onUpdate += {
@@ -232,8 +246,8 @@ class UiPlayground(context: Context) : ContextListener(context) {
                                                 progressBar = ninepatchSlice
                                                 background = ninepatchSlice
                                                 ratio = 0.5f
-                                                progressBarColor = com.lehaine.littlekt.graphics.Color.DARK_GREEN
-                                                backgroundColor = com.lehaine.littlekt.graphics.Color.DARK_GRAY
+                                                progressBarColor = Color.DARK_GREEN
+                                                backgroundColor = Color.DARK_GRAY
                                             }
                                         }
 
@@ -244,10 +258,10 @@ class UiPlayground(context: Context) : ContextListener(context) {
                                                 progressBar = ninepatchSlice
                                                 background = ninepatchSlice
                                                 fillMode =
-                                                    com.lehaine.littlekt.graph.node.ui.TextureProgress.FillMode.RIGHT_TO_LEFT
+                                                    TextureProgress.FillMode.RIGHT_TO_LEFT
                                                 ratio = 0.5f
-                                                progressBarColor = com.lehaine.littlekt.graphics.Color.DARK_BLUE
-                                                backgroundColor = com.lehaine.littlekt.graphics.Color.DARK_GRAY
+                                                progressBarColor = Color.DARK_BLUE
+                                                backgroundColor = Color.DARK_GRAY
                                             }
                                         }
 
@@ -258,10 +272,10 @@ class UiPlayground(context: Context) : ContextListener(context) {
                                                 progressBar = ninepatchSlice
                                                 background = ninepatchSlice
                                                 fillMode =
-                                                    com.lehaine.littlekt.graph.node.ui.TextureProgress.FillMode.TOP_TO_BOTTOM
+                                                    TextureProgress.FillMode.TOP_TO_BOTTOM
                                                 ratio = 0.5f
-                                                progressBarColor = com.lehaine.littlekt.graphics.Color.DARK_ORANGE
-                                                backgroundColor = com.lehaine.littlekt.graphics.Color.DARK_GRAY
+                                                progressBarColor = Color.DARK_ORANGE
+                                                backgroundColor = Color.DARK_GRAY
                                             }
                                         }
 
@@ -272,10 +286,10 @@ class UiPlayground(context: Context) : ContextListener(context) {
                                                 progressBar = ninepatchSlice
                                                 background = ninepatchSlice
                                                 fillMode =
-                                                    com.lehaine.littlekt.graph.node.ui.TextureProgress.FillMode.BOTTOM_TO_TOP
+                                                    TextureProgress.FillMode.BOTTOM_TO_TOP
                                                 ratio = 0.5f
-                                                progressBarColor = com.lehaine.littlekt.graphics.Color.DARK_RED
-                                                backgroundColor = com.lehaine.littlekt.graphics.Color.DARK_GRAY
+                                                progressBarColor = Color.DARK_RED
+                                                backgroundColor = Color.DARK_GRAY
                                             }
                                         }
                                     }
@@ -298,7 +312,7 @@ class UiPlayground(context: Context) : ContextListener(context) {
                                 separation = 5
                                 label {
                                     text = "----Texture & Ninepatch Rects----"
-                                    horizontalAlign = com.lehaine.littlekt.graph.node.resource.HAlign.CENTER
+                                    horizontalAlign = HAlign.CENTER
                                 }
 
                                 ninePatchRect {
@@ -309,13 +323,13 @@ class UiPlayground(context: Context) : ContextListener(context) {
                                     bottom = 4
                                     width = 100f
                                     minHeight = 50f
-                                    color = com.lehaine.littlekt.graphics.Color.DARK_GRAY
+                                    color = Color.DARK_GRAY
                                 }
 
                                 textureRect {
                                     slice = ktHeadSlice
                                     stretchMode =
-                                        com.lehaine.littlekt.graph.node.ui.TextureRect.StretchMode.KEEP_CENTERED
+                                        TextureRect.StretchMode.KEEP_CENTERED
                                 }
 
                                 label { text = "Stretch Modes:" }
@@ -332,7 +346,7 @@ class UiPlayground(context: Context) : ContextListener(context) {
                                     textureRect {
                                         slice = ktHeadSlice
                                         stretchMode =
-                                            com.lehaine.littlekt.graph.node.ui.TextureRect.StretchMode.KEEP_ASPECT
+                                            TextureRect.StretchMode.KEEP_ASPECT
                                         minWidth = 64f
                                     }
                                 }
@@ -343,7 +357,7 @@ class UiPlayground(context: Context) : ContextListener(context) {
                                     textureRect {
                                         slice = ktHeadSlice
                                         stretchMode =
-                                            com.lehaine.littlekt.graph.node.ui.TextureRect.StretchMode.KEEP_ASPECT_COVERED
+                                            TextureRect.StretchMode.KEEP_ASPECT_COVERED
                                         minWidth = 64f
                                     }
                                 }
@@ -354,7 +368,7 @@ class UiPlayground(context: Context) : ContextListener(context) {
                                     textureRect {
                                         slice = ktHeadSlice
                                         stretchMode =
-                                            com.lehaine.littlekt.graph.node.ui.TextureRect.StretchMode.KEEP_ASPECT_CENTERED
+                                            TextureRect.StretchMode.KEEP_ASPECT_CENTERED
                                         minWidth = 64f
                                     }
                                 }
@@ -363,7 +377,7 @@ class UiPlayground(context: Context) : ContextListener(context) {
                                     label { text = "Scale:" }
                                     textureRect {
                                         slice = ktHeadSlice
-                                        stretchMode = com.lehaine.littlekt.graph.node.ui.TextureRect.StretchMode.SCALE
+                                        stretchMode = TextureRect.StretchMode.SCALE
                                         minWidth = 64f
                                     }
                                 }
@@ -372,7 +386,7 @@ class UiPlayground(context: Context) : ContextListener(context) {
                                     label { text = "Tile:" }
                                     textureRect {
                                         slice = ktHeadSlice
-                                        stretchMode = com.lehaine.littlekt.graph.node.ui.TextureRect.StretchMode.TILE
+                                        stretchMode = TextureRect.StretchMode.TILE
                                         minWidth = 96f
                                         minHeight = 64f
                                     }
@@ -425,7 +439,8 @@ class UiPlayground(context: Context) : ContextListener(context) {
                                                 onPressed += {
                                                     labels.apply {
                                                         label {
-                                                            text = "I am a new label and placed at ${labels.childCount}"
+                                                            text =
+                                                                "I am a new super long label and placed at ${labels.childCount}"
                                                         }
                                                     }
                                                 }
