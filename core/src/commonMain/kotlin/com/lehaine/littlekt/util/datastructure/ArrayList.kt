@@ -106,6 +106,12 @@ class ShortArrayList(capacity: Int = 7, var shouldGrow: Boolean = true) : Collec
 
     operator fun get(index: Int): Short = data[index]
 
+    fun getOrNull(index: Int): Short? = try {
+        data[index]
+    } catch (e: IndexOutOfBoundsException) {
+        null
+    }
+
     /** Gets an item of the list without boxing */
     fun getAt(index: Int): Short = data[index]
 
@@ -313,6 +319,12 @@ class IntArrayList(capacity: Int = 7, var shouldGrow: Boolean = true) : Collecti
     fun pop() = data[--size]
 
     operator fun get(index: Int): Int = data[index]
+
+    fun getOrNull(index: Int): Int? = try {
+        data[index]
+    } catch (e: IndexOutOfBoundsException) {
+        null
+    }
 
     /** Gets an item of the list without boxing */
     fun getAt(index: Int): Int = data[index]
@@ -522,6 +534,11 @@ class DoubleArrayList(capacity: Int = 7, var shouldGrow: Boolean = true) : Colle
     fun pop() = data[--size]
 
     operator fun get(index: Int): Double = data[index]
+    fun getOrNull(index: Int): Double? = try {
+        data[index]
+    } catch (e: IndexOutOfBoundsException) {
+        null
+    }
 
     /** Gets an item of the list without boxing */
     fun getAt(index: Int): Double = data[index]
@@ -690,6 +707,12 @@ class FloatArrayList(capacity: Int = 7, var shouldGrow: Boolean = true) : Collec
     fun pop() = data[--size]
 
     operator fun get(index: Int): Float = data[index]
+
+    fun getOrNull(index: Int): Float? = try {
+        data[index]
+    } catch (e: IndexOutOfBoundsException) {
+        null
+    }
 
     /** Gets an item of the list without boxing */
     fun getAt(index: Int): Float = data[index]
