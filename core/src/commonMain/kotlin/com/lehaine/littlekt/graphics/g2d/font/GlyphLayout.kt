@@ -62,7 +62,7 @@ class GlyphLayout {
         scaleY: Float = 1f,
         align: HAlign = HAlign.LEFT,
         wrap: Boolean = false,
-        truncate: String? = null
+        truncate: String? = null,
     ) {
         reset()
 
@@ -277,15 +277,18 @@ class GlyphLayout {
             newRun.glyphs = glyphs2
 
             val advances1 = newRun.advances
-            advances1.size = firstEnd
-            advances1.clear()
-            for (i in 0 until firstEnd) {
+            for(i in 0 until firstEnd + 1) {
                 advances1 += advances2[i]
             }
-            advances2.removeAt(0, secondStart)
+            advances2.removeAt(1, secondStart)
+            advances2[0] = -glyphs2.first().left * scale - font.metrics.padding.left
             first.advances = advances1
             newRun.advances = advances2
             second = newRun
+        } else {
+            glyphs2.truncate(firstEnd)
+            advances2.size = firstEnd + 1
+            advances2.clear()
         }
 
         if (firstEnd == 0) {
