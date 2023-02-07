@@ -1,6 +1,6 @@
 # Changelog
 
-## v0.6.0-SNAPSHOT
+## v0.6.0
 
 This version is full of breaking changes, mainly to mesh creation and handling, to make way for adding some basic 3d
 related graphics and handling.
