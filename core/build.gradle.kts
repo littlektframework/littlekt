@@ -114,7 +114,7 @@ kotlin {
                 implementation(libs.kotlinx.coroutines.android)
             }
         }
-        val androidTest by getting
+        val androidUnitTest by getting
 
         val jvmAndroidMain = maybeCreate("jvmAndroidMain")
 
@@ -122,7 +122,7 @@ kotlin {
         androidMain.dependsOn(jvmAndroidMain)
         jvmMain.dependsOn(jvmAndroidMain)
         jsMain.dependsOn(commonMain)
-        androidTest.dependsOn(commonTest)
+        androidUnitTest.dependsOn(commonTest)
         jvmTest.dependsOn(commonTest)
         jsTest.dependsOn(commonTest)
 
