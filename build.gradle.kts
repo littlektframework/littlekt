@@ -1,5 +1,7 @@
 import com.github.benmanes.gradle.versions.updates.DependencyUpdatesTask
-import org.jetbrains.dokka.gradle.DokkaTask
+import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnLockMismatchReport
+import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnPlugin
+import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnRootExtension
 
 val littleKtVersion: String by project
 plugins {
@@ -30,7 +32,7 @@ allprojects {
     // ./gradlew dependencyUpdates
     // Report: build/dependencyUpdates/report.txt
     apply(plugin = "com.github.ben-manes.versions")
-    if(name != "samples") {
+    if (name != "samples") {
         apply(plugin = "org.jetbrains.dokka")
     }
 }
@@ -46,5 +48,10 @@ fun isNonStable(version: String): Boolean {
 tasks.withType<DependencyUpdatesTask> {
     rejectVersionIf {
         isNonStable(candidate.version) && !isNonStable(currentVersion)
+    }
+}
+plugins.withType<YarnPlugin> {
+    the<YarnRootExtension>().apply {
+        yarnLockMismatchReport = YarnLockMismatchReport.WARNING
     }
 }
