@@ -592,6 +592,7 @@ open class Control : CanvasItem() {
         super.onPostEnterScene()
 
         onMinimumSizeChanged()
+        onSizeChanged()
     }
 
     override fun onRemovedFromScene() {
