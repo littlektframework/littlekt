@@ -1,6 +1,7 @@
 package com.lehaine.littlekt
 
 import com.lehaine.littlekt.graphics.Cursor
+import com.lehaine.littlekt.graphics.HdpiMode
 import com.lehaine.littlekt.graphics.SystemCursor
 import org.lwjgl.glfw.GLFW
 
@@ -8,21 +9,21 @@ import org.lwjgl.glfw.GLFW
  * @author Colton Daily
  * @date 11/6/2021
  */
-class LwjglGraphics(val context: LwjglContext, engineStats: EngineStats) : Graphics {
+class LwjglGraphics(private val context: LwjglContext, engineStats: EngineStats) : Graphics {
     private val systemCursors = mutableMapOf<SystemCursor, Long>()
 
-    override val gl: LwjglGL = LwjglGL(engineStats, this)
+    override val gl: LwjglGL = LwjglGL(engineStats, this, context.configuration.hdpiMode)
 
-    internal var _width: Int = 0
-    internal var _height: Int = 0
+    internal var _logicalWidth: Int = 0
+    internal var _logicalHeight: Int = 0
 
     internal var _backBufferWidth: Int = 0
     internal var _backBufferHeight: Int = 0
 
     override val width: Int
-        get() = _width
+        get() = if (context.configuration.hdpiMode == HdpiMode.PIXELS) backBufferWidth else _logicalWidth
     override val height: Int
-        get() = _height
+        get() = if (context.configuration.hdpiMode == HdpiMode.PIXELS) backBufferHeight else _logicalHeight
     override val backBufferWidth: Int
         get() = _backBufferWidth
     override val backBufferHeight: Int

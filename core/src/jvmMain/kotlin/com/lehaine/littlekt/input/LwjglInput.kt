@@ -1,5 +1,7 @@
 package com.lehaine.littlekt.input
 
+import com.lehaine.littlekt.LwjglContext
+import com.lehaine.littlekt.graphics.HdpiMode
 import com.lehaine.littlekt.math.geom.Point
 import com.lehaine.littlekt.util.fastForEachWithIndex
 import org.lwjgl.glfw.GLFW.*
@@ -10,7 +12,7 @@ import java.nio.ByteBuffer
  * @author Colton Daily
  * @date 11/7/2021
  */
-class LwjglInput : Input {
+class LwjglInput(private val context: LwjglContext) : Input {
 
     private val inputCache = InputCache()
 
@@ -33,7 +35,7 @@ class LwjglInput : Input {
     override val catchKeys: MutableList<Key> = mutableListOf()
 
     fun attachToWindow(windowHandle: Long) {
-        glfwSetKeyCallback(windowHandle) { window, key, scancode, action, mods ->
+        glfwSetKeyCallback(windowHandle) { _, key, _, action, _ ->
             when (action) {
                 GLFW_PRESS -> {
                     lastChar = 0.toChar()
@@ -50,25 +52,37 @@ class LwjglInput : Input {
             }
         }
 
-        glfwSetCharCallback(windowHandle) { window, codepoint ->
+        glfwSetCharCallback(windowHandle) { _, codepoint ->
             if (codepoint and 0xff00 == 0xf700) return@glfwSetCharCallback
             lastChar = codepoint.toChar()
             inputCache.onCharTyped(lastChar)
         }
 
-        glfwSetScrollCallback(windowHandle) { window, xoffset, yoffset ->
+        glfwSetScrollCallback(windowHandle) { _, xoffset, yoffset ->
             inputCache.onScroll(-xoffset.toFloat(), -yoffset.toFloat())
         }
 
         var logicalMouseY = 0f
         var logicalMouseX = 0f
-        glfwSetCursorPosCallback(windowHandle) { window, xpos, ypos ->
+        glfwSetCursorPosCallback(windowHandle) { _, xpos, ypos ->
             _deltaX = xpos.toFloat() - logicalMouseX
             _deltaY = ypos.toFloat() - logicalMouseY
             mouseX = xpos.toFloat()
             mouseY = ypos.toFloat()
             logicalMouseX = mouseX
             logicalMouseY = mouseY
+
+            val configuration = context.configuration
+            if (configuration.hdpiMode == HdpiMode.PIXELS) {
+                val graphics = context.graphics
+                val xScale = graphics._backBufferWidth / graphics._logicalWidth.toFloat()
+                val yScale = graphics._backBufferHeight / graphics._logicalHeight.toFloat()
+                _deltaX = deltaX * xScale
+                _deltaY = deltaY * yScale
+                mouseX *= xScale
+                mouseY *= yScale
+            }
+
 
             if (touchedPointers.size > 0) {
                 inputCache.onMove(mouseX, mouseY, touchedPointers.last())
@@ -300,7 +314,17 @@ class LwjglInput : Input {
     }
 
     override fun setCursorPosition(x: Int, y: Int) {
-        TODO("Not yet implemented")
+        var fx = x
+        var fy = y
+        if (context.configuration.hdpiMode == HdpiMode.PIXELS) {
+            val graphics = context.graphics
+            val xScale = graphics._logicalWidth / graphics._backBufferWidth.toFloat()
+            val yScale = graphics._logicalHeight / graphics._backBufferWidth.toFloat()
+            fx = (x * xScale).toInt()
+            fy = (y * yScale).toInt()
+        }
+
+        glfwSetCursorPos(context.windowHandle, fx.toDouble(), fy.toDouble())
     }
 
     override fun addInputProcessor(processor: InputProcessor) {

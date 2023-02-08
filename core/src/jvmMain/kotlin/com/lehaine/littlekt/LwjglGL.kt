@@ -3,6 +3,7 @@ package com.lehaine.littlekt
 import com.lehaine.littlekt.file.*
 import com.lehaine.littlekt.graphics.GL
 import com.lehaine.littlekt.graphics.GLVersion
+import com.lehaine.littlekt.graphics.HdpiMode
 import com.lehaine.littlekt.graphics.gl.*
 import com.lehaine.littlekt.math.Mat3
 import com.lehaine.littlekt.math.Mat4
@@ -14,7 +15,8 @@ import java.nio.ByteBuffer as NioByteBuffer
  * @author Colton Daily
  * @date 9/28/2021
  */
-class LwjglGL(private val engineStats: EngineStats, private val graphics: Graphics) : GL {
+class LwjglGL(private val engineStats: EngineStats, private val graphics: Graphics, private val hdpiMode: HdpiMode) :
+    GL {
     internal var glVersion: GLVersion = GLVersion(Context.Platform.DESKTOP)
     override val version: GLVersion get() = glVersion
 
@@ -260,7 +262,11 @@ class LwjglGL(private val engineStats: EngineStats, private val graphics: Graphi
 
     override fun createFrameBuffer(): GlFrameBuffer {
         engineStats.calls++
-        return GlFrameBuffer(EXTFramebufferObject.glGenFramebuffersEXT())
+        return if (version.major >= 3) {
+            GlFrameBuffer(glGenFramebuffers())
+        } else {
+            GlFrameBuffer(EXTFramebufferObject.glGenFramebuffersEXT())
+        }
     }
 
     override fun createVertexArray(): GlVertexArray {
@@ -280,69 +286,119 @@ class LwjglGL(private val engineStats: EngineStats, private val graphics: Graphi
 
     override fun bindFrameBuffer(glFrameBuffer: GlFrameBuffer) {
         engineStats.calls++
-        EXTFramebufferObject.glBindFramebufferEXT(GL.FRAMEBUFFER, glFrameBuffer.reference)
+        if (version.major >= 3) {
+            glBindFramebuffer(GL.FRAMEBUFFER, glFrameBuffer.reference)
+        } else {
+            EXTFramebufferObject.glBindFramebufferEXT(GL.FRAMEBUFFER, glFrameBuffer.reference)
+        }
     }
 
     override fun bindDefaultFrameBuffer() {
         engineStats.calls++
-        EXTFramebufferObject.glBindFramebufferEXT(GL.FRAMEBUFFER, GL.NONE)
+        if (version.major >= 3) {
+            glBindFramebuffer(GL.FRAMEBUFFER, GL.NONE)
+        } else {
+            EXTFramebufferObject.glBindFramebufferEXT(GL.FRAMEBUFFER, GL.NONE)
+        }
     }
 
     override fun createRenderBuffer(): GlRenderBuffer {
         engineStats.calls++
-        return GlRenderBuffer(EXTFramebufferObject.glGenRenderbuffersEXT())
+        return if (version.major >= 3) {
+            GlRenderBuffer(glGenRenderbuffers())
+        } else {
+            GlRenderBuffer(EXTFramebufferObject.glGenRenderbuffersEXT())
+        }
     }
 
     override fun bindRenderBuffer(glRenderBuffer: GlRenderBuffer) {
         engineStats.calls++
-        EXTFramebufferObject.glBindRenderbufferEXT(GL.RENDERBUFFER, glRenderBuffer.reference)
+        if (version.major >= 3) {
+            glBindRenderbuffer(GL.RENDERBUFFER, glRenderBuffer.reference)
+        } else {
+            EXTFramebufferObject.glBindRenderbufferEXT(GL.RENDERBUFFER, glRenderBuffer.reference)
+        }
     }
 
     override fun bindDefaultRenderBuffer() {
         engineStats.calls++
-        EXTFramebufferObject.glBindRenderbufferEXT(GL.RENDERBUFFER, GL.NONE)
+        if (version.major >= 3) {
+            glBindRenderbuffer(GL.RENDERBUFFER, GL.NONE)
+        } else {
+            EXTFramebufferObject.glBindRenderbufferEXT(GL.RENDERBUFFER, GL.NONE)
+        }
     }
 
     override fun renderBufferStorage(internalFormat: RenderBufferInternalFormat, width: Int, height: Int) {
         engineStats.calls++
-        EXTFramebufferObject.glRenderbufferStorageEXT(GL.RENDERBUFFER, internalFormat.glFlag, width, height)
+        if (version.major >= 3) {
+            glRenderbufferStorage(GL.RENDERBUFFER, internalFormat.glFlag, width, height)
+        } else {
+            EXTFramebufferObject.glRenderbufferStorageEXT(GL.RENDERBUFFER, internalFormat.glFlag, width, height)
+        }
     }
 
     override fun frameBufferRenderBuffer(
         attachementType: FrameBufferRenderBufferAttachment, glRenderBuffer: GlRenderBuffer,
     ) {
         engineStats.calls++
-        EXTFramebufferObject.glFramebufferRenderbufferEXT(
-            GL.FRAMEBUFFER, attachementType.glFlag, GL.RENDERBUFFER, glRenderBuffer.reference
-        )
+        if (version.major >= 3) {
+            glFramebufferRenderbuffer(
+                GL.FRAMEBUFFER, attachementType.glFlag, GL.RENDERBUFFER, glRenderBuffer.reference
+            )
+        } else {
+            EXTFramebufferObject.glFramebufferRenderbufferEXT(
+                GL.FRAMEBUFFER, attachementType.glFlag, GL.RENDERBUFFER, glRenderBuffer.reference
+            )
+        }
     }
 
     override fun deleteFrameBuffer(glFrameBuffer: GlFrameBuffer) {
         engineStats.calls++
-        EXTFramebufferObject.glDeleteFramebuffersEXT(glFrameBuffer.reference)
+        if (version.major >= 3) {
+            glDeleteFramebuffers(glFrameBuffer.reference)
+        } else {
+            EXTFramebufferObject.glDeleteFramebuffersEXT(glFrameBuffer.reference)
+        }
     }
 
     override fun deleteRenderBuffer(glRenderBuffer: GlRenderBuffer) {
         engineStats.calls++
-        EXTFramebufferObject.glDeleteRenderbuffersEXT(glRenderBuffer.reference)
+        if (version.major >= 3) {
+            glDeleteRenderbuffers(glRenderBuffer.reference)
+        } else {
+            EXTFramebufferObject.glDeleteRenderbuffersEXT(glRenderBuffer.reference)
+        }
     }
 
     override fun frameBufferTexture2D(
         attachementType: FrameBufferRenderBufferAttachment, glTexture: GlTexture, level: Int,
     ) {
         engineStats.calls++
-        EXTFramebufferObject.glFramebufferTexture2DEXT(
-            GL.FRAMEBUFFER, attachementType.glFlag, GL.TEXTURE_2D, glTexture.reference, level
-        )
+        if (version.major >= 3) {
+            glFramebufferTexture2D(
+                GL.FRAMEBUFFER, attachementType.glFlag, GL.TEXTURE_2D, glTexture.reference, level
+            )
+        } else {
+            EXTFramebufferObject.glFramebufferTexture2DEXT(
+                GL.FRAMEBUFFER, attachementType.glFlag, GL.TEXTURE_2D, glTexture.reference, level
+            )
+        }
     }
 
     override fun frameBufferTexture2D(
         target: Int, attachementType: FrameBufferRenderBufferAttachment, glTexture: GlTexture, level: Int,
     ) {
         engineStats.calls++
-        EXTFramebufferObject.glFramebufferTexture2DEXT(
-            target, attachementType.glFlag, GL.TEXTURE_2D, glTexture.reference, level
-        )
+        if (version.major >= 3) {
+            glFramebufferTexture2D(
+                target, attachementType.glFlag, GL.TEXTURE_2D, glTexture.reference, level
+            )
+        } else {
+            EXTFramebufferObject.glFramebufferTexture2DEXT(
+                target, attachementType.glFlag, GL.TEXTURE_2D, glTexture.reference, level
+            )
+        }
     }
 
     override fun readBuffer(mode: Int) {
@@ -352,7 +408,11 @@ class LwjglGL(private val engineStats: EngineStats, private val graphics: Graphi
 
     override fun checkFrameBufferStatus(): FrameBufferStatus {
         engineStats.calls++
-        return FrameBufferStatus(EXTFramebufferObject.glCheckFramebufferStatusEXT(GL.FRAMEBUFFER))
+        return if (version.major >= 3) {
+            FrameBufferStatus(glCheckFramebufferStatus(GL.FRAMEBUFFER))
+        } else {
+            FrameBufferStatus(EXTFramebufferObject.glCheckFramebufferStatusEXT(GL.FRAMEBUFFER))
+        }
     }
 
     override fun bindBuffer(target: Int, glBuffer: GlBuffer) {
@@ -501,7 +561,7 @@ class LwjglGL(private val engineStats: EngineStats, private val graphics: Graphi
 
     override fun scissor(x: Int, y: Int, width: Int, height: Int) {
         engineStats.calls++
-        if (graphics.width != graphics.backBufferWidth || graphics.height != graphics.backBufferHeight) {
+        if (hdpiMode == HdpiMode.LOGICAL && (graphics.width != graphics.backBufferWidth || graphics.height != graphics.backBufferHeight)) {
             with(graphics) {
                 glScissor(x.toBackBufferX, y.toBackBufferY, width.toBackBufferX, height.toBackBufferY)
             }
@@ -624,7 +684,7 @@ class LwjglGL(private val engineStats: EngineStats, private val graphics: Graphi
         engineStats.calls++
 
         // handle hdpi related viewports here as well
-        if (graphics.width != graphics.backBufferWidth || graphics.height != graphics.backBufferHeight) {
+        if (hdpiMode == HdpiMode.LOGICAL && (graphics.width != graphics.backBufferWidth || graphics.height != graphics.backBufferHeight)) {
             with(graphics) {
                 glViewport(x.toBackBufferX, y.toBackBufferY, width.toBackBufferX, height.toBackBufferY)
             }
