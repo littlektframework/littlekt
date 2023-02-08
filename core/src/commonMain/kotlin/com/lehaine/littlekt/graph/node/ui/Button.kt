@@ -154,6 +154,12 @@ open class Button : BaseButton() {
     init {
         focusMode = FocusMode.ALL
     }
+    override fun onHierarchyChanged(flag: Int) {
+        super.onHierarchyChanged(flag)
+        if (flag == SIZE_DIRTY && parent is Container) {
+            onMinimumSizeChanged()
+        }
+    }
 
     override fun render(batch: Batch, camera: Camera, shapeRenderer: ShapeRenderer) {
         val drawable: Drawable
