@@ -23,6 +23,8 @@ class GLVersion(
     val major: Int
     val minor: Int
 
+    val combined: Int
+
     init {
         val regex = ("(\\d(\\.\\d){0,2})").toRegex()
         val matchResult = regex.find(version)
@@ -34,9 +36,10 @@ class GLVersion(
             major = 2
             minor = 0
         }
+        combined = "$major$minor".toInt()
     }
 
-    fun atleast(major: Int, minor: Int) = major >= this.major && minor >= this.minor
+    fun atleast(major: Int, minor: Int) = "$major$minor".toInt() >= combined
 
     override fun toString(): String {
         val extra = if (platform.isMobile || platform.isWebGl) " ES " else " "
