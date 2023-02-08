@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.6.3
+
+* Fix an issue with `Button` not calculating label sizing when added after scene creation.
+
 ## v0.6.2
 
 This contains only a single change related to the `GLSLGenerator`.
