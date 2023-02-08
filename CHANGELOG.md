@@ -1,12 +1,22 @@
 # Changelog
 
+## v0.6.2
+
+This contains only a single change related to the `GLSLGenerator`.
+
+* Update `GLSLGenerator` uniform delegates to only add to the `Shader.paremeters` only when has its value used in the
+  source. Due to some static conditions some uniforms may not be used while still being defined in the `paramters` list.
+  When creating a `ShaderProgram` with WebGL, it would throw shader compilation error due to not finding in the glsl
+  source. This was preventing a `SceneGraph` from being rendered on the Web due to the default 3D model shader.
+
 ## v0.6.1
 
 This contains fixes for Mac support.
 
 ### Fixes
 
-* Add new HdpiMode for JVM platforms. Setting to HdpiMode.PIXELS will allow correct display on Macs with retina displays.
+* Add new HdpiMode for JVM platforms. Setting to HdpiMode.PIXELS will allow correct display on Macs with retina
+  displays.
 * Update GlVersion to handle comparisons of versions correctly. This fixes issues in the `GlslGenerator`.
 * Update `LjwglGL` to only use the extension framebuffer and renderbuffer calls if the OpenGL version is `< 3`.
 * Fix shader compilation errors on Macs.
