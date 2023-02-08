@@ -203,12 +203,12 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context() {
 
         GLFW.glfwSetFramebufferSizeCallback(windowHandle) { _, _, _ ->
             updateFramebufferInfo()
-            graphics.gl.viewport(0, 0, graphics.width, graphics.height)
+            graphics.gl.viewport(0, 0, graphics.backBufferWidth, graphics.backBufferHeight)
 
             resizeCalls.fastForEach { resize ->
                 resize(
-                    graphics.backBufferWidth,
-                    graphics.backBufferHeight
+                    graphics.width,
+                    graphics.height
                 )
             }
         }
@@ -218,8 +218,8 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context() {
             updateFramebufferInfo()
             resizeCalls.fastForEach { resize ->
                 resize(
-                    graphics.backBufferWidth,
-                    graphics.backBufferHeight
+                    graphics.width,
+                    graphics.height
                 )
             }
         }
