@@ -1,5 +1,16 @@
 # Changelog
 
+## v0.6.1
+
+This contains fixes for Mac support.
+
+### Fixes
+
+* Add new HdpiMode for JVM platforms. Setting to HdpiMode.PIXELS will allow correct display on Macs with retina displays.
+* Update GlVersion to handle comparisons of versions correctly. This fixes issues in the `GlslGenerator`.
+* Update `LjwglGL` to only use the extension framebuffer and renderbuffer calls if the OpenGL version is `< 3`.
+* Fix shader compilation errors on Macs.
+
 ## v0.6.0
 
 This version is full of breaking changes, mainly to mesh creation and handling, to make way for adding some basic 3d
