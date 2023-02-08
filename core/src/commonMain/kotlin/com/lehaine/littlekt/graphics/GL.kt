@@ -39,7 +39,7 @@ class GLVersion(
         combined = "$major$minor".toInt()
     }
 
-    fun atleast(major: Int, minor: Int) = "$major$minor".toInt() >= combined
+    fun atleast(major: Int, minor: Int) = combined >= "$major$minor".toInt()
 
     override fun toString(): String {
         val extra = if (platform.isMobile || platform.isWebGl) " ES " else " "
