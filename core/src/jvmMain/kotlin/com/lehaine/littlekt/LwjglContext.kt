@@ -22,7 +22,6 @@ import org.lwjgl.glfw.GLFWErrorCallback
 import org.lwjgl.glfw.GLFWImage
 import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL30
-import org.lwjgl.opengl.GLCapabilities
 import org.lwjgl.system.MemoryStack
 import org.lwjgl.system.MemoryUtil
 import java.nio.IntBuffer
@@ -79,9 +78,18 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context() {
         // Initialize GLFW. Most GLFW functions will not work before doing this.
         check(GLFW.glfwInit()) { "Unable to initialize GLFW" }
 
+        GLFW.glfwDefaultWindowHints()
         GLFW.glfwWindowHint(GLFW.GLFW_VISIBLE, GLFW.GLFW_FALSE) // the window will stay hidden after creation
         GLFW.glfwWindowHint(GLFW.GLFW_RESIZABLE, configuration.resizeable.glfw) // the window will be resizable
         GLFW.glfwWindowHint(GLFW.GLFW_MAXIMIZED, configuration.maximized.glfw)
+
+        val isMac = System.getProperty("os.name").lowercase().contains("mac")
+        if (isMac) {
+            GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MAJOR, 3)
+            GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MINOR, 2)
+            GLFW.glfwWindowHint(GLFW.GLFW_OPENGL_PROFILE, GLFW.GLFW_OPENGL_CORE_PROFILE)
+            GLFW.glfwWindowHint(GLFW.GLFW_OPENGL_FORWARD_COMPAT, GL30.GL_TRUE)
+        }
 
         // Create the window
         windowHandle = GLFW.glfwCreateWindow(
@@ -112,15 +120,6 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context() {
         GLFW.glfwMakeContextCurrent(windowHandle)
 
         LWJGL.createCapabilities()
-
-        GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MAJOR, 3)
-        GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MINOR, 2)
-
-        val isMac = System.getProperty("os.name").contains("Mac")
-        if (isMac) {
-            GLFW.glfwWindowHint(GLFW.GLFW_OPENGL_PROFILE, GLFW.GLFW_OPENGL_CORE_PROFILE)
-            GLFW.glfwWindowHint(GLFW.GLFW_OPENGL_FORWARD_COMPAT, GL30.GL_TRUE)
-        }
 
         val versionString = GL11.glGetString(GL11.GL_VERSION) ?: ""
         val vendorString = GL11.glGetString(GL11.GL_VENDOR) ?: ""
