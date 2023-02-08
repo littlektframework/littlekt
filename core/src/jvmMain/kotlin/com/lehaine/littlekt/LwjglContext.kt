@@ -79,44 +79,9 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context() {
         // Initialize GLFW. Most GLFW functions will not work before doing this.
         check(GLFW.glfwInit()) { "Unable to initialize GLFW" }
 
-        // Create temporary window for getting OpenGL Version
-        GLFW.glfwDefaultWindowHints()
-        GLFW.glfwWindowHint(GLFW.GLFW_VISIBLE, GLFW.GLFW_FALSE)
-
         // set minimum to 3.0
         GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MAJOR, 3)
         GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MINOR, 0)
-
-        val temp: Long = GLFW.glfwCreateWindow(1, 1, "", MemoryUtil.NULL, MemoryUtil.NULL)
-        GLFW.glfwMakeContextCurrent(temp)
-
-        LWJGL.createCapabilities()
-        val caps: GLCapabilities = LWJGL.getCapabilities()
-        val versionString = GL11.glGetString(GL11.GL_VERSION) ?: ""
-        val vendorString = GL11.glGetString(GL11.GL_VENDOR) ?: ""
-        val rendererString = GL11.glGetString(GL11.GL_RENDERER) ?: ""
-        graphics.gl.glVersion = GLVersion(platform, versionString, vendorString, rendererString)
-
-        GLFW.glfwDestroyWindow(temp)
-
-        // Configure GLFW
-        GLFW.glfwDefaultWindowHints() // optional, the current window hints are already the default
-
-        when {
-            caps.OpenGL32 -> {
-                GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MAJOR, 3)
-                GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MINOR, 2)
-                GLFW.glfwWindowHint(GLFW.GLFW_OPENGL_PROFILE, GLFW.GLFW_OPENGL_CORE_PROFILE)
-                GLFW.glfwWindowHint(GLFW.GLFW_OPENGL_FORWARD_COMPAT, GL30.GL_TRUE)
-            }
-
-            caps.OpenGL30 -> {
-                GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MAJOR, 3)
-                GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MINOR, 0)
-                GLFW.glfwWindowHint(GLFW.GLFW_OPENGL_PROFILE, GLFW.GLFW_OPENGL_CORE_PROFILE)
-                GLFW.glfwWindowHint(GLFW.GLFW_OPENGL_FORWARD_COMPAT, GL30.GL_TRUE)
-            }
-        }
 
         GLFW.glfwWindowHint(GLFW.GLFW_VISIBLE, GLFW.GLFW_FALSE) // the window will stay hidden after creation
         GLFW.glfwWindowHint(GLFW.GLFW_RESIZABLE, configuration.resizeable.glfw) // the window will be resizable
@@ -149,6 +114,12 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context() {
 
         // Make the OpenGL context current
         GLFW.glfwMakeContextCurrent(windowHandle)
+
+//        val versionString = GL11.glGetString(GL11.GL_VERSION) ?: ""
+//        val vendorString = GL11.glGetString(GL11.GL_VENDOR) ?: ""
+//        val rendererString = GL11.glGetString(GL11.GL_RENDERER) ?: ""
+//        graphics.gl.glVersion = GLVersion(platform, versionString, vendorString, rendererString)
+//        println(graphics.gl.glVersion)
 
         if (configuration.vSync) {
             // Enable v-sync
@@ -191,6 +162,29 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context() {
         input.attachToWindow(windowHandle)
 
         LWJGL.createCapabilities()
+        val caps: GLCapabilities = LWJGL.getCapabilities()
+
+        when {
+            caps.OpenGL32 -> {
+                GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MAJOR, 3)
+                GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MINOR, 2)
+                GLFW.glfwWindowHint(GLFW.GLFW_OPENGL_PROFILE, GLFW.GLFW_OPENGL_CORE_PROFILE)
+                GLFW.glfwWindowHint(GLFW.GLFW_OPENGL_FORWARD_COMPAT, GL30.GL_TRUE)
+            }
+
+            caps.OpenGL30 -> {
+                GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MAJOR, 3)
+                GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MINOR, 0)
+                GLFW.glfwWindowHint(GLFW.GLFW_OPENGL_PROFILE, GLFW.GLFW_OPENGL_CORE_PROFILE)
+                GLFW.glfwWindowHint(GLFW.GLFW_OPENGL_FORWARD_COMPAT, GL30.GL_TRUE)
+            }
+        }
+
+        val versionString = GL11.glGetString(GL11.GL_VERSION) ?: ""
+        val vendorString = GL11.glGetString(GL11.GL_VENDOR) ?: ""
+        val rendererString = GL11.glGetString(GL11.GL_RENDERER) ?: ""
+        graphics.gl.glVersion = GLVersion(platform, versionString, vendorString, rendererString)
+
         // GLUtil.setupDebugMessageCallback()
 
         gl.clearColor(configuration.backgroundColor)
