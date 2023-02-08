@@ -109,13 +109,13 @@ open class ModelFragmentShader(
 
     private val v_color by varying(::Vec4, predicate = albedo == Albedo.VERTEX)
     private val v_normal by varying(::Vec3)
-    private val v_fragPos by varying(::Vec3)
+    private val v_fragPosition by varying(::Vec3)
     private val v_texCoords by varying(::Vec2)
 
     init {
         // diffuse light
         val norm by vec3 { normalize(v_normal) }
-        val lightDir by vec3 { normalize(u_lightPosition - v_fragPos) }
+        val lightDir by vec3 { normalize(u_lightPosition - v_fragPosition) }
         val diffFactor by float { max(dot(norm, lightDir), 0f) }
         val diffColor by vec3 { diffFactor * u_lightColor.xyz }
 
@@ -123,7 +123,7 @@ open class ModelFragmentShader(
         val ambientColor by vec3 { u_ambientStrength * u_lightColor.xyz }
 
         // specular light
-        val viewDir by vec3 { normalize(u_viewPosition - v_fragPos) }
+        val viewDir by vec3 { normalize(u_viewPosition - v_fragPosition) }
         val reflectDir by vec3 { reflect(-lightDir, norm) }
         val specFactor by float { pow(max(dot(viewDir, reflectDir), 0f), 32f) }
         val specColor by vec3 { u_specularStrength * specFactor * u_lightColor.xyz }
