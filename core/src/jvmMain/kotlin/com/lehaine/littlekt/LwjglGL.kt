@@ -3,6 +3,7 @@ package com.lehaine.littlekt
 import com.lehaine.littlekt.file.*
 import com.lehaine.littlekt.graphics.GL
 import com.lehaine.littlekt.graphics.GLVersion
+import com.lehaine.littlekt.graphics.HdpiMode
 import com.lehaine.littlekt.graphics.gl.*
 import com.lehaine.littlekt.math.Mat3
 import com.lehaine.littlekt.math.Mat4
@@ -14,7 +15,8 @@ import java.nio.ByteBuffer as NioByteBuffer
  * @author Colton Daily
  * @date 9/28/2021
  */
-class LwjglGL(private val engineStats: EngineStats, private val graphics: Graphics) : GL {
+class LwjglGL(private val engineStats: EngineStats, private val graphics: Graphics, private val hdpiMode: HdpiMode) :
+    GL {
     internal var glVersion: GLVersion = GLVersion(Context.Platform.DESKTOP)
     override val version: GLVersion get() = glVersion
 
@@ -501,7 +503,7 @@ class LwjglGL(private val engineStats: EngineStats, private val graphics: Graphi
 
     override fun scissor(x: Int, y: Int, width: Int, height: Int) {
         engineStats.calls++
-        if (graphics.width != graphics.backBufferWidth || graphics.height != graphics.backBufferHeight) {
+        if (hdpiMode == HdpiMode.LOGICAL && (graphics.width != graphics.backBufferWidth || graphics.height != graphics.backBufferHeight)) {
             with(graphics) {
                 glScissor(x.toBackBufferX, y.toBackBufferY, width.toBackBufferX, height.toBackBufferY)
             }
@@ -624,7 +626,7 @@ class LwjglGL(private val engineStats: EngineStats, private val graphics: Graphi
         engineStats.calls++
 
         // handle hdpi related viewports here as well
-        if (graphics.width != graphics.backBufferWidth || graphics.height != graphics.backBufferHeight) {
+        if (hdpiMode == HdpiMode.LOGICAL && (graphics.width != graphics.backBufferWidth || graphics.height != graphics.backBufferHeight)) {
             with(graphics) {
                 glViewport(x.toBackBufferX, y.toBackBufferY, width.toBackBufferX, height.toBackBufferY)
             }

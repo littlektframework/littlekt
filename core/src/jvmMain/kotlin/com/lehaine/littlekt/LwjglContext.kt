@@ -40,7 +40,7 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context() {
     override val stats: AppStats = AppStats()
     override val graphics: LwjglGraphics = LwjglGraphics(this, stats.engineStats)
     override val logger: Logger = Logger(configuration.title)
-    override val input: LwjglInput = LwjglInput()
+    override val input: LwjglInput = LwjglInput(this)
     override val vfs = JvmVfs(this, logger, "./.storage", ".")
     override val resourcesVfs: VfsFile get() = vfs.root
     override val storageVfs: VfsFile get() = VfsFile(vfs, "./.storage")
@@ -237,8 +237,8 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context() {
     private fun updateFramebufferInfo() {
         GLFW.glfwGetWindowSize(windowHandle, tempBuffer, tempBuffer2)
 
-        graphics._width = tempBuffer[0]
-        graphics._height = tempBuffer2[0]
+        graphics._logicalWidth = tempBuffer[0]
+        graphics._logicalHeight = tempBuffer2[0]
 
         GLFW.glfwGetFramebufferSize(windowHandle, tempBuffer, tempBuffer2)
 
