@@ -79,10 +79,6 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context() {
         // Initialize GLFW. Most GLFW functions will not work before doing this.
         check(GLFW.glfwInit()) { "Unable to initialize GLFW" }
 
-        // set minimum to 3.0
-        GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MAJOR, 3)
-        GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MINOR, 0)
-
         GLFW.glfwWindowHint(GLFW.GLFW_VISIBLE, GLFW.GLFW_FALSE) // the window will stay hidden after creation
         GLFW.glfwWindowHint(GLFW.GLFW_RESIZABLE, configuration.resizeable.glfw) // the window will be resizable
         GLFW.glfwWindowHint(GLFW.GLFW_MAXIMIZED, configuration.maximized.glfw)
