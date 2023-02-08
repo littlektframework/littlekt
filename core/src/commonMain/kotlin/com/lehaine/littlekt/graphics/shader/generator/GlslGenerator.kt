@@ -114,8 +114,8 @@ abstract class GlslGenerator : GlslProvider {
                 glVersion.platform == Context.Platform.WEBGL2
                         || glVersion.major >= 3 && glVersion.platform.isMobile -> "300 es"
 
-                glVersion.major >= 3 && glVersion.minor >= 3 -> "330"
-                glVersion.major >= 3 && glVersion.minor >= 2 -> "150"
+                glVersion.atleast(3,3)-> "330"
+                glVersion.atleast(3,2)-> "150"
                 glVersion.major >= 3 && !glVersion.platform.isWebGl -> "130"
                 else -> throw IllegalStateException("${context.graphics.glVersion} isn't not considered at least GL 3.0+")
             }
@@ -146,7 +146,7 @@ abstract class GlslGenerator : GlslProvider {
         }
         attributes.forEachIndexed { index, attr ->
             if (context.graphics.isGL30) {
-                if (glVersion.major >= 3 && glVersion.minor >= 3) {
+                if (glVersion.atleast(3,3)) {
                     sb.appendLine("layout(location = $index) in $attr;")
                 } else {
                     sb.appendLine("in $attr;")
@@ -247,7 +247,8 @@ abstract class GlslGenerator : GlslProvider {
                 glVersion.platform == Context.Platform.WEBGL2
                         || glVersion.major >= 3 && glVersion.platform.isMobile -> "300 es"
 
-                glVersion.major >= 3 && glVersion.minor >= 2 -> "150"
+                glVersion.atleast(3,3)-> "330"
+                glVersion.atleast(3,2)-> "150"
                 glVersion.major >= 3 && !glVersion.platform.isWebGl -> "130"
                 else -> throw IllegalStateException("${context.graphics.glVersion} isn't not considered at least GL 3.0+")
             }

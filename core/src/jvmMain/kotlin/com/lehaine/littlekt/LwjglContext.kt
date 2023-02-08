@@ -22,7 +22,6 @@ import org.lwjgl.glfw.GLFWErrorCallback
 import org.lwjgl.glfw.GLFWImage
 import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL30
-import org.lwjgl.opengl.GLCapabilities
 import org.lwjgl.system.MemoryStack
 import org.lwjgl.system.MemoryUtil
 import java.nio.IntBuffer
@@ -40,7 +39,7 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context() {
     override val stats: AppStats = AppStats()
     override val graphics: LwjglGraphics = LwjglGraphics(this, stats.engineStats)
     override val logger: Logger = Logger(configuration.title)
-    override val input: LwjglInput = LwjglInput()
+    override val input: LwjglInput = LwjglInput(this)
     override val vfs = JvmVfs(this, logger, "./.storage", ".")
     override val resourcesVfs: VfsFile get() = vfs.root
     override val storageVfs: VfsFile get() = VfsFile(vfs, "./.storage")
@@ -79,49 +78,18 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context() {
         // Initialize GLFW. Most GLFW functions will not work before doing this.
         check(GLFW.glfwInit()) { "Unable to initialize GLFW" }
 
-        // Create temporary window for getting OpenGL Version
         GLFW.glfwDefaultWindowHints()
-        GLFW.glfwWindowHint(GLFW.GLFW_VISIBLE, GLFW.GLFW_FALSE)
-
-        val temp: Long = GLFW.glfwCreateWindow(1, 1, "", MemoryUtil.NULL, MemoryUtil.NULL)
-        GLFW.glfwMakeContextCurrent(temp)
-
-        LWJGL.createCapabilities()
-        val caps: GLCapabilities = LWJGL.getCapabilities()
-        val versionString = GL11.glGetString(GL11.GL_VERSION) ?: ""
-        val vendorString = GL11.glGetString(GL11.GL_VENDOR) ?: ""
-        val rendererString = GL11.glGetString(GL11.GL_RENDERER) ?: ""
-        graphics.gl.glVersion = GLVersion(platform, versionString, vendorString, rendererString)
-
-        GLFW.glfwDestroyWindow(temp)
-
-        // Configure GLFW
-        GLFW.glfwDefaultWindowHints() // optional, the current window hints are already the default
-
-        when {
-            caps.OpenGL32 -> {
-                GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MAJOR, 3)
-                GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MINOR, 2)
-                GLFW.glfwWindowHint(GLFW.GLFW_OPENGL_PROFILE, GLFW.GLFW_OPENGL_CORE_PROFILE)
-                GLFW.glfwWindowHint(GLFW.GLFW_OPENGL_FORWARD_COMPAT, GL30.GL_TRUE)
-            }
-
-            caps.OpenGL30 -> {
-                GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MAJOR, 3)
-                GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MINOR, 0)
-                GLFW.glfwWindowHint(GLFW.GLFW_OPENGL_PROFILE, GLFW.GLFW_OPENGL_CORE_PROFILE)
-                GLFW.glfwWindowHint(GLFW.GLFW_OPENGL_FORWARD_COMPAT, GL30.GL_TRUE)
-            }
-
-            caps.OpenGL21 -> {
-                GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MAJOR, 2)
-                GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MINOR, 1)
-            }
-        }
-
         GLFW.glfwWindowHint(GLFW.GLFW_VISIBLE, GLFW.GLFW_FALSE) // the window will stay hidden after creation
         GLFW.glfwWindowHint(GLFW.GLFW_RESIZABLE, configuration.resizeable.glfw) // the window will be resizable
         GLFW.glfwWindowHint(GLFW.GLFW_MAXIMIZED, configuration.maximized.glfw)
+
+        val isMac = System.getProperty("os.name").lowercase().contains("mac")
+        if (isMac) {
+            GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MAJOR, 3)
+            GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MINOR, 2)
+            GLFW.glfwWindowHint(GLFW.GLFW_OPENGL_PROFILE, GLFW.GLFW_OPENGL_CORE_PROFILE)
+            GLFW.glfwWindowHint(GLFW.GLFW_OPENGL_FORWARD_COMPAT, GL30.GL_TRUE)
+        }
 
         // Create the window
         windowHandle = GLFW.glfwCreateWindow(
@@ -151,6 +119,13 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context() {
         // Make the OpenGL context current
         GLFW.glfwMakeContextCurrent(windowHandle)
 
+        LWJGL.createCapabilities()
+
+        val versionString = GL11.glGetString(GL11.GL_VERSION) ?: ""
+        val vendorString = GL11.glGetString(GL11.GL_VENDOR) ?: ""
+        val rendererString = GL11.glGetString(GL11.GL_RENDERER) ?: ""
+        graphics.gl.glVersion = GLVersion(platform, versionString, vendorString, rendererString)
+
         if (configuration.vSync) {
             // Enable v-sync
             GLFW.glfwSwapInterval(1)
@@ -158,7 +133,6 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context() {
             GLFW.glfwSwapInterval(0)
         }
 
-        val isMac = System.getProperty("os.name").contains("Mac")
 
         // set window icon
         if (!isMac) {
@@ -191,7 +165,6 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context() {
         GLFW.glfwShowWindow(windowHandle)
         input.attachToWindow(windowHandle)
 
-        LWJGL.createCapabilities()
         // GLUtil.setupDebugMessageCallback()
 
         gl.clearColor(configuration.backgroundColor)
@@ -203,12 +176,12 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context() {
 
         GLFW.glfwSetFramebufferSizeCallback(windowHandle) { _, _, _ ->
             updateFramebufferInfo()
-            graphics.gl.viewport(0, 0, graphics.width, graphics.height)
+            graphics.gl.viewport(0, 0, graphics.backBufferWidth, graphics.backBufferHeight)
 
             resizeCalls.fastForEach { resize ->
                 resize(
-                    graphics.backBufferWidth,
-                    graphics.backBufferHeight
+                    graphics.width,
+                    graphics.height
                 )
             }
         }
@@ -218,8 +191,8 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context() {
             updateFramebufferInfo()
             resizeCalls.fastForEach { resize ->
                 resize(
-                    graphics.backBufferWidth,
-                    graphics.backBufferHeight
+                    graphics.width,
+                    graphics.height
                 )
             }
         }
@@ -237,8 +210,8 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context() {
     private fun updateFramebufferInfo() {
         GLFW.glfwGetWindowSize(windowHandle, tempBuffer, tempBuffer2)
 
-        graphics._width = tempBuffer[0]
-        graphics._height = tempBuffer2[0]
+        graphics._logicalWidth = tempBuffer[0]
+        graphics._logicalHeight = tempBuffer2[0]
 
         GLFW.glfwGetFramebufferSize(windowHandle, tempBuffer, tempBuffer2)
 
