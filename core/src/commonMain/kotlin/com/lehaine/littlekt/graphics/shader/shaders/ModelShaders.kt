@@ -92,7 +92,6 @@ open class ModelFragmentShader(
     albedo: Albedo,
     staticColor: Color = Color.GRAY,
 ) : FragmentShaderModel() {
-    //  val uTexture get() = parameters[0] as ShaderParameter.UniformSample2D
     val uLightColor get() = parameters[0] as ShaderParameter.UniformVec4
     val uAmbientStrength get() = parameters[1] as ShaderParameter.UniformFloat
     val uSpecularStrength get() = parameters[2] as ShaderParameter.UniformFloat
@@ -100,12 +99,12 @@ open class ModelFragmentShader(
     val uViewPosition get() = parameters[4] as ShaderParameter.UniformVec3
     val uTexture get() = parameters[5] as ShaderParameter.UniformSample2D
 
-    private val u_texture by uniform(::Sampler2D)
     private val u_lightColor by uniform(::Vec4)
     private val u_ambientStrength by uniform(::GLFloat)
     private val u_specularStrength by uniform(::GLFloat)
     private val u_lightPosition by uniform(::Vec3)
     private val u_viewPosition by uniform(::Vec3)
+    private val u_texture by uniform(::Sampler2D)
 
     private val v_color by varying(::Vec4, predicate = albedo == Albedo.VERTEX)
     private val v_normal by varying(::Vec3)

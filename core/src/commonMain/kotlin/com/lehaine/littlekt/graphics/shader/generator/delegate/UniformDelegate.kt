@@ -22,6 +22,11 @@ class UniformDelegate<T : Variable>(
     ): UniformDelegate<T> {
         v = factory(thisRef)
         v.value = property.name
+        return this
+    }
+
+    operator fun getValue(thisRef: GlslGenerator, property: KProperty<*>): T {
+        // only add to parameters when this is actually used
         when (v.typeName) {
             "vec2" -> thisRef.parameters.add(ShaderParameter.UniformVec2(property.name))
             "vec3" -> thisRef.parameters.add(ShaderParameter.UniformVec3(property.name))
@@ -33,10 +38,6 @@ class UniformDelegate<T : Variable>(
             "mat4" -> thisRef.parameters.add(ShaderParameter.UniformMat4(property.name))
         }
         thisRef.uniforms.add("${precision.value}${v.typeName} ${property.name}")
-        return this
-    }
-
-    operator fun getValue(thisRef: GlslGenerator, property: KProperty<*>): T {
         return v
     }
 }
