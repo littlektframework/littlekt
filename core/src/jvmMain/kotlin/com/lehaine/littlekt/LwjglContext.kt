@@ -111,11 +111,21 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context() {
         // Make the OpenGL context current
         GLFW.glfwMakeContextCurrent(windowHandle)
 
-//        val versionString = GL11.glGetString(GL11.GL_VERSION) ?: ""
-//        val vendorString = GL11.glGetString(GL11.GL_VENDOR) ?: ""
-//        val rendererString = GL11.glGetString(GL11.GL_RENDERER) ?: ""
-//        graphics.gl.glVersion = GLVersion(platform, versionString, vendorString, rendererString)
-//        println(graphics.gl.glVersion)
+        LWJGL.createCapabilities()
+
+        GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MAJOR, 3)
+        GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MINOR, 2)
+
+        val isMac = System.getProperty("os.name").contains("Mac")
+        if (isMac) {
+            GLFW.glfwWindowHint(GLFW.GLFW_OPENGL_PROFILE, GLFW.GLFW_OPENGL_CORE_PROFILE)
+            GLFW.glfwWindowHint(GLFW.GLFW_OPENGL_FORWARD_COMPAT, GL30.GL_TRUE)
+        }
+
+        val versionString = GL11.glGetString(GL11.GL_VERSION) ?: ""
+        val vendorString = GL11.glGetString(GL11.GL_VENDOR) ?: ""
+        val rendererString = GL11.glGetString(GL11.GL_RENDERER) ?: ""
+        graphics.gl.glVersion = GLVersion(platform, versionString, vendorString, rendererString)
 
         if (configuration.vSync) {
             // Enable v-sync
@@ -124,7 +134,6 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context() {
             GLFW.glfwSwapInterval(0)
         }
 
-        val isMac = System.getProperty("os.name").contains("Mac")
 
         // set window icon
         if (!isMac) {
@@ -156,30 +165,6 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context() {
         // Make the window visible
         GLFW.glfwShowWindow(windowHandle)
         input.attachToWindow(windowHandle)
-
-        LWJGL.createCapabilities()
-        val caps: GLCapabilities = LWJGL.getCapabilities()
-
-        when {
-            caps.OpenGL32 -> {
-                GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MAJOR, 3)
-                GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MINOR, 2)
-                GLFW.glfwWindowHint(GLFW.GLFW_OPENGL_PROFILE, GLFW.GLFW_OPENGL_CORE_PROFILE)
-                GLFW.glfwWindowHint(GLFW.GLFW_OPENGL_FORWARD_COMPAT, GL30.GL_TRUE)
-            }
-
-            caps.OpenGL30 -> {
-                GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MAJOR, 3)
-                GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MINOR, 0)
-                GLFW.glfwWindowHint(GLFW.GLFW_OPENGL_PROFILE, GLFW.GLFW_OPENGL_CORE_PROFILE)
-                GLFW.glfwWindowHint(GLFW.GLFW_OPENGL_FORWARD_COMPAT, GL30.GL_TRUE)
-            }
-        }
-
-        val versionString = GL11.glGetString(GL11.GL_VERSION) ?: ""
-        val vendorString = GL11.glGetString(GL11.GL_VENDOR) ?: ""
-        val rendererString = GL11.glGetString(GL11.GL_RENDERER) ?: ""
-        graphics.gl.glVersion = GLVersion(platform, versionString, vendorString, rendererString)
 
         // GLUtil.setupDebugMessageCallback()
 
