@@ -7,6 +7,7 @@ import com.lehaine.littlekt.graphics.g2d.Batch
 import com.lehaine.littlekt.graphics.Camera
 import com.lehaine.littlekt.graphics.Color
 import com.lehaine.littlekt.graphics.Texture
+import com.lehaine.littlekt.graphics.g2d.tilemap.TileMap
 import com.lehaine.littlekt.math.Rect
 import com.lehaine.littlekt.math.geom.Angle
 
@@ -28,7 +29,7 @@ class TiledMap(
     val tileHeight: Int,
     val tileSets: List<TiledTileset>,
     private val textures: MutableList<Texture>
-) : com.lehaine.littlekt.graphics.g2d.tilemap.TileMap(), Disposable {
+) : TileMap(), Disposable {
     val layersByName by lazy { layers.associateBy { it.name } }
     val layersById by lazy { layers.associateBy { it.id } }
 
