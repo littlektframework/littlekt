@@ -29,7 +29,7 @@ abstract class TiledLayer(
     val tintColor: Color?,
     val opacity: Float,
     val properties: Map<String, TiledMap.Property>
-) : com.lehaine.littlekt.graphics.g2d.tilemap.TileLayer() {
+) : TileLayer() {
 
     protected val colorBits = (tintColor?.toMutableColor() ?: Color.WHITE.toMutableColor()).apply {
         a *= opacity

@@ -1,6 +1,7 @@
 package com.lehaine.littlekt.graphics.g2d.tilemap.tiled
 
 import com.lehaine.littlekt.graphics.g2d.TextureSlice
+import com.lehaine.littlekt.graphics.g2d.tilemap.TileSet
 import kotlin.time.Duration
 
 /**
@@ -11,7 +12,7 @@ class TiledTileset(
     val tileWidth: Int,
     val tileHeight: Int,
     val tiles: List<Tile>
-) : com.lehaine.littlekt.graphics.g2d.tilemap.TileSet {
+) : TileSet {
 
     data class Tile(
         val slice: TextureSlice,
