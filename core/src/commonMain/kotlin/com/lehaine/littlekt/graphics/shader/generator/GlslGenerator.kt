@@ -430,14 +430,14 @@ abstract class GlslGenerator : GlslProvider {
             addInstruction(
                 Instruction(
                     FOR,
-                    "int loopIdx = $start; loopIdx < $until; ${if (step == 1) "loopIdx++" else "forIndex += step"}"
+                    "int loopIdx = ${start.value}; loopIdx < ${until.value}; ${if (step == 1) "loopIdx++" else "forIndex += step"}"
                 )
             )
         } else {
             addInstruction(
                 Instruction(
                     FOR,
-                    "int loopIdx = $start; loopIdx > $until; ${if (step == -1) "loopIdx--" else "forIndex -= step"}"
+                    "int loopIdx = ${start.value}; loopIdx > ${until.value}; ${if (step == -1) "loopIdx--" else "forIndex -= step"}"
                 )
             )
         }
