@@ -9,7 +9,6 @@ import com.lehaine.littlekt.graphics.shader.generator.type.*
 import com.lehaine.littlekt.graphics.shader.generator.type.mat.Mat2
 import com.lehaine.littlekt.graphics.shader.generator.type.mat.Mat3
 import com.lehaine.littlekt.graphics.shader.generator.type.mat.Mat4
-import com.lehaine.littlekt.graphics.shader.generator.type.mat.Mat4Array
 import com.lehaine.littlekt.graphics.shader.generator.type.sampler.Sampler2D
 import com.lehaine.littlekt.graphics.shader.generator.type.sampler.Sampler2DArray
 import com.lehaine.littlekt.graphics.shader.generator.type.sampler.Sampler2DVarArray
@@ -114,8 +113,8 @@ abstract class GlslGenerator : GlslProvider {
                 glVersion.platform == Context.Platform.WEBGL2
                         || glVersion.major >= 3 && glVersion.platform.isMobile -> "300 es"
 
-                glVersion.atleast(3,3)-> "330"
-                glVersion.atleast(3,2)-> "150"
+                glVersion.atleast(3, 3) -> "330"
+                glVersion.atleast(3, 2) -> "150"
                 glVersion.major >= 3 && !glVersion.platform.isWebGl -> "130"
                 else -> throw IllegalStateException("${context.graphics.glVersion} isn't not considered at least GL 3.0+")
             }
@@ -146,7 +145,7 @@ abstract class GlslGenerator : GlslProvider {
         }
         attributes.forEachIndexed { index, attr ->
             if (context.graphics.isGL30) {
-                if (glVersion.atleast(3,3)) {
+                if (glVersion.atleast(3, 3)) {
                     sb.appendLine("layout(location = $index) in $attr;")
                 } else {
                     sb.appendLine("in $attr;")
@@ -247,8 +246,8 @@ abstract class GlslGenerator : GlslProvider {
                 glVersion.platform == Context.Platform.WEBGL2
                         || glVersion.major >= 3 && glVersion.platform.isMobile -> "300 es"
 
-                glVersion.atleast(3,3)-> "330"
-                glVersion.atleast(3,2)-> "150"
+                glVersion.atleast(3, 3) -> "330"
+                glVersion.atleast(3, 2) -> "150"
                 glVersion.major >= 3 && !glVersion.platform.isWebGl -> "130"
                 else -> throw IllegalStateException("${context.graphics.glVersion} isn't not considered at least GL 3.0+")
             }
@@ -502,10 +501,10 @@ abstract class GlslGenerator : GlslProvider {
     fun acos(v: Vec3) = Vec3(this, "acos(${v.value})")
     fun acos(v: Vec4) = Vec4(this, "acos(${v.value})")
 
-    fun atan(v: GLFloat) = GLFloat(this, "atan(${v.value})")
-    fun atan(v: Vec2) = Vec2(this, "atan(${v.value})")
-    fun atan(v: Vec3) = Vec3(this, "atan(${v.value})")
-    fun atan(v: Vec4) = Vec4(this, "atan(${v.value})")
+    fun atan(y: GLFloat, x: GLFloat) = GLFloat(this, "atan(${y.value}, ${x.value})")
+    fun atan(y: Float, x: Float) = atan(y.lit, x.lit)
+    fun atan(y: Float, x: GLFloat) = atan(y.lit, x)
+    fun atan(y: GLFloat, x: Float) = atan(y, x.lit)
 
     fun exp(v: GLFloat) = GLFloat(this, "exp(${v.value})")
     fun exp(v: Vec2) = Vec2(this, "exp(${v.value})")
