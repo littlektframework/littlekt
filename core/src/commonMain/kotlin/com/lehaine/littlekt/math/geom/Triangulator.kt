@@ -51,7 +51,7 @@ class Triangulator {
         indicesArray.clear()
         indicesArray.ensure(vertexCount)
         indicesArray.size = vertexCount
-        val indices = indicesArray.data
+        indices = indicesArray.data
         if (isClockwise(vertices, offset, count)) {
             for (i in 0 until vertexCount) {
                 indices[i] = (vertexOffset + i).toShort()
