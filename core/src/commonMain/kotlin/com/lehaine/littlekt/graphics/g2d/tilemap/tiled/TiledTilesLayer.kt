@@ -35,7 +35,7 @@ class TiledTilesLayer(
     private val staggerAxis: TiledMap.StaggerAxis?,
     private val orientation: TiledMap.Orientation,
     private val tileData: IntArray,
-    private val tiles: Map<Int, TiledTileset.Tile>
+    private val tiles: Map<Int, TiledTileset.Tile>,
 ) : TiledLayer(
     type, name, id, visible, width, height, offsetX, offsetY, tileWidth, tileHeight, tintColor, opacity, properties
 ) {
@@ -45,7 +45,9 @@ class TiledTilesLayer(
 
     private val screenPos = MutableVec3f()
     private val topLeft = MutableVec2f()
+    private val topRight = MutableVec2f()
     private val bottomRight = MutableVec2f()
+    private val bottomLeft = MutableVec2f()
 
     override fun render(batch: Batch, viewBounds: Rect, x: Float, y: Float, scale: Float, displayObjects: Boolean) {
         if (!visible) return
@@ -107,17 +109,17 @@ class TiledTilesLayer(
         val offsetY = offsetY * scale
 
         topLeft.set(viewBounds.x - x - offsetX, viewBounds.y - y - offsetY)
+        topRight.set(viewBounds.x2 - x - offsetX, viewBounds.y - y - offsetY)
         bottomRight.set(
-            viewBounds.x + viewBounds.width - x - offsetX,
-            viewBounds.y + viewBounds.height - y - offsetY
+            viewBounds.x2 - x - offsetX,
+            viewBounds.y2 - y - offsetY
         )
+        bottomLeft.set(viewBounds.x - x - offsetX, viewBounds.y2 - y - offsetY)
 
-        val widthHeightRatio = ((width + height) * 0.5f).toInt()
-        val minX = (topLeft.toIso().x / tileWidth).toInt() - widthHeightRatio
-        val maxX = (bottomRight.toIso().x / tileWidth).toInt() + widthHeightRatio
-        val minY = (topLeft.toIso().y / tileHeight).toInt() - widthHeightRatio * 2
-        val maxY = (bottomRight.toIso().y / tileHeight).toInt() + widthHeightRatio
-
+        val minX = (topLeft.toIso().x / tileWidth).toInt() - 2
+        val maxX = (bottomRight.toIso().x / tileWidth).toInt() + 2
+        val minY = (topRight.toIso().y / tileWidth).toInt() - 2
+        val maxY = (bottomLeft.toIso().y / tileWidth).toInt() + 2
 
         if (maxX < 0 || maxY < 0) return
         if (minX > width || minY > height) return
@@ -133,7 +135,7 @@ class TiledTilesLayer(
                         val halfHeight = tileHeight * 0.5f
 
                         val tx =
-                            (cx * halfWidth) - (cy * halfWidth) + (height - 1) * halfWidth + offsetX + x + it.offsetX * scale
+                            (cx * halfWidth) - (cy * halfWidth) + offsetX + x + it.offsetX * scale
                         val ty = (cy * halfHeight) + (cx * halfHeight) + offsetY + y + it.offsetY * scale
 
                         if (viewBounds.intersects(tx, ty, tx + it.width.toFloat(), ty + it.height.toFloat())) {
@@ -228,16 +230,16 @@ class TiledTilesLayer(
 
     private fun MutableVec2f.toIso(): Vec3f {
         screenPos.set(x, y, 0f)
-        screenPos.mul(isoTransform)
+        screenPos.mul(invIsoTransform)
         return screenPos
     }
 
     companion object {
-        private val isoTransform by lazy {
+        private val invIsoTransform by lazy {
             Mat4()
                 .setToIdentity()
                 .scale(sqrt(2f) / 2f, sqrt(2f) / 4f, 1f)
-                .rotate(0f, 0f, 1f, (-45).degrees)
+                .rotate(0f, 0f, 1f, 45.degrees)
                 .invert()
         }
     }
