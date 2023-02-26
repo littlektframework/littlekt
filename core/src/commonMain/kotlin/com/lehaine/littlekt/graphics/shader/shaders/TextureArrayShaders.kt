@@ -51,6 +51,6 @@ class TextureArrayFragmentShader : FragmentShaderModel() {
     private val v_texCoords by varying(::Vec2)
 
     init {
-        gl_FragColor = v_color * texture(u_textureArray, vec3(v_texCoords, v_textureIndex).lit)
+        gl_FragColor = v_color * texture(u_textureArray, vec3(v_texCoords, v_textureIndex).lit).lit
     }
 }

@@ -683,9 +683,14 @@ abstract class GlslGenerator : GlslProvider {
     fun inverse(v: Mat3) = Mat3(this, "inverse(${v.value})")
     fun inverse(v: Mat4) = Mat4(this, "inverse(${v.value})")
 
-    fun shadow2D(sampler: ShadowTexture2D, v: Vec2) = Vec4(this, "shadow2D(${sampler.value}, ${v.value})")
-    fun texture2D(sampler: Sampler2D, v: Vec2) = Vec4(this, "texture2D(${sampler.value}, ${v.value})")
-    fun texture(sampler: Sampler2DArray, v: Vec3) = Vec4(this, "texture(${sampler.value}, ${v.value})")
+    fun shadow2D(sampler: ShadowTexture2D, v: Vec2) =
+        ConstructorDelegate(Vec4(this), "shadow2D(${sampler.value}, ${v.value})")
+
+    fun texture2D(sampler: Sampler2D, v: Vec2) =
+        ConstructorDelegate(Vec4(this), "texture2D(${sampler.value}, ${v.value})")
+
+    fun texture(sampler: Sampler2DArray, v: Vec3) =
+        ConstructorDelegate(Vec4(this), "texture(${sampler.value}, ${v.value})")
 
     fun float(genValue: (() -> GLFloat)? = null) = ConstructorDelegate(GLFloat(this), null, genValue)
     fun float(x: Float) = ConstructorDelegate(GLFloat(this), x.str())

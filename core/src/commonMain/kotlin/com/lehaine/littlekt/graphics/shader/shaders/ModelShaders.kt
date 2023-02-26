@@ -139,7 +139,7 @@ open class ModelFragmentShader(
                 Albedo.TEXTURE -> texture2D(
                     u_texture,
                     v_texCoords
-                ).xyz
+                ).lit.xyz
             }
         }
 

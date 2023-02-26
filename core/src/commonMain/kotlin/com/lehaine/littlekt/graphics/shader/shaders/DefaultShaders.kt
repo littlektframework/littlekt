@@ -48,6 +48,6 @@ class DefaultFragmentShader : FragmentShaderModel() {
     private val v_texCoords by varying(::Vec2)
 
     init {
-        gl_FragColor = v_color * texture2D(u_texture, v_texCoords)
+        gl_FragColor = v_color * texture2D(u_texture, v_texCoords).lit
     }
 }
