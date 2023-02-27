@@ -17,6 +17,21 @@ import kotlin.jvm.JvmName
 sealed class ShaderParameter(val name: String) {
     abstract fun create(program: ShaderProgram<*, *>)
 
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other == null || this::class != other::class) return false
+
+        other as ShaderParameter
+
+        if (name != other.name) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        return name.hashCode()
+    }
+
     class UniformMat3(name: String) : ShaderParameter(name) {
         override fun create(program: ShaderProgram<*, *>) {
             program.createUniform(name)

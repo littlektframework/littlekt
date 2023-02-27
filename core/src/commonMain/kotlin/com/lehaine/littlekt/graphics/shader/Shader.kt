@@ -14,7 +14,7 @@ import kotlin.reflect.KClass
  */
 interface Shader {
     var source: String
-    val parameters: List<ShaderParameter>
+    val parameters: Set<ShaderParameter>
 }
 
 interface FragmentShader : Shader

@@ -16,8 +16,8 @@ class GpuTextVertexShader : VertexShaderModel() {
     val aColor = ShaderParameter.Attribute("a_color")
     val aTexCoord0 = ShaderParameter.Attribute("a_texCoord0")
 
-    override val parameters: MutableList<ShaderParameter> =
-        mutableListOf(
+    override val parameters: LinkedHashSet<ShaderParameter> =
+        linkedSetOf(
             uTexture, uTexelSize, uProjTrans, aPosition, aColor, aTexCoord0
         )
 
@@ -69,8 +69,8 @@ class GpuTextFragmentShader : FragmentShaderModel() {
     val uTextureWidth = ShaderParameter.UniformInt("u_textureWidth")
     val uTexelSize = ShaderParameter.UniformVec2("u_texelSize")
 
-    override val parameters: MutableList<ShaderParameter> =
-        mutableListOf(uTexture, uTextureWidth, uTexelSize)
+    override val parameters: LinkedHashSet<ShaderParameter> =
+        linkedSetOf(uTexture, uTextureWidth, uTexelSize)
 
     // language=GLSL
     override var source: String = """

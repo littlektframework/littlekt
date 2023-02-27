@@ -82,8 +82,7 @@ abstract class GlslGenerator : GlslProvider {
     @PublishedApi
     internal val instructions = mutableListOf<Instruction>()
 
-    open val parameters = mutableListOf<ShaderParameter>()
-
+    open val parameters = linkedSetOf<ShaderParameter>()
 
     @PublishedApi
     internal fun addInstruction(instruction: Instruction) {
@@ -822,6 +821,8 @@ abstract class GlslGenerator : GlslProvider {
     operator fun Int.plus(a: Vec2) = Vec2(a.builder, "(${this} + ${a.value})")
     operator fun Int.plus(a: Vec3) = Vec3(a.builder, "(${this} + ${a.value})")
     operator fun Int.plus(a: Vec4) = Vec4(a.builder, "(${this} + ${a.value})")
+
+    operator fun <T> Set<T>.get(idx: Int) = elementAt(idx)
 }
 
 fun Float.str(): String {
