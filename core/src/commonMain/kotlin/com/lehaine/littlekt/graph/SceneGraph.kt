@@ -15,6 +15,7 @@ import com.lehaine.littlekt.graphics.g2d.Batch
 import com.lehaine.littlekt.graphics.g2d.SpriteBatch
 import com.lehaine.littlekt.graphics.g2d.TextureSlice
 import com.lehaine.littlekt.graphics.g2d.shape.ShapeRenderer
+import com.lehaine.littlekt.graphics.gl.BlendEquationMode
 import com.lehaine.littlekt.graphics.gl.BlendFactor
 import com.lehaine.littlekt.graphics.gl.FaceMode
 import com.lehaine.littlekt.graphics.gl.State
@@ -417,6 +418,8 @@ open class SceneGraph<InputType>(
             BlendFactor.SRC_ALPHA,
             BlendFactor.ONE_MINUS_SRC_ALPHA
         )
+        val gl = context.gl
+        gl.blendEquationSeparate(BlendEquationMode.FUNC_ADD, BlendEquationMode.FUNC_ADD)
     }
 
     private fun setMaterialGlFunctions(material: Material) {
@@ -424,6 +427,7 @@ open class SceneGraph<InputType>(
         val blendMode = material.blendMode
         val depthStencilMode = material.depthStencilMode
 
+        gl.blendEquationSeparate(blendMode.colorBlendFunction, blendMode.alphaBlendFunction)
         batch.setBlendFunctionSeparate(
             blendMode.colorSourceBlend,
             blendMode.colorDestinationBlend,
