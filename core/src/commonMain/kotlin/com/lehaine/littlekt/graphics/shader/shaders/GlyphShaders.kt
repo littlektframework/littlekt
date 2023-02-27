@@ -12,7 +12,7 @@ import com.lehaine.littlekt.graphics.shader.generator.type.vec.Vec4
  * @date 11/29/2021
  */
 class GlyphVertexShader : VertexShaderModel() {
-    val uProjTrans get() = parameters[0] as ShaderParameter.UniformMat4
+    val uProjTrans get() = parameters["u_projTrans"] as ShaderParameter.UniformMat4
 
     private val u_projTrans by uniform(::Mat4)
     private val a_position by attribute(::Vec2)

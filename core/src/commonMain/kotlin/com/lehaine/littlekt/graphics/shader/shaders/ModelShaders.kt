@@ -29,12 +29,12 @@ open class ModelVertexShader(
     albedo: Albedo,
 ) :
     VertexShaderModel() {
-    val uProjection get() = parameters[0] as ShaderParameter.UniformMat4
-    val uModel get() = parameters[1] as ShaderParameter.UniformMat4
-    val uModelInv get() = parameters[2] as ShaderParameter.UniformMat4
+    val uProjection get() = parameters["u_projTrans"] as ShaderParameter.UniformMat4
+    val uModel get() = parameters["u_model"] as ShaderParameter.UniformMat4
+    val uModelInv get() = parameters["u_modelInv"] as ShaderParameter.UniformMat4
 
-    val uJoints get() = parameters[3] as ShaderParameter.UniformArrayMat4
-    val uUseJoint get() = parameters[4] as ShaderParameter.UniformBoolean
+    val uJoints get() = parameters["u_joints"] as ShaderParameter.UniformArrayMat4
+    val uUseJoint get() = parameters["u_useJoints"] as ShaderParameter.UniformBoolean
 
     private val u_projection by uniform(::Mat4)
     private val u_model by uniform(::Mat4)
@@ -92,12 +92,12 @@ open class ModelFragmentShader(
     albedo: Albedo,
     staticColor: Color = Color.GRAY,
 ) : FragmentShaderModel() {
-    val uLightColor get() = parameters[0] as ShaderParameter.UniformVec4
-    val uAmbientStrength get() = parameters[1] as ShaderParameter.UniformFloat
-    val uSpecularStrength get() = parameters[2] as ShaderParameter.UniformFloat
-    val uLightPosition get() = parameters[3] as ShaderParameter.UniformVec3
-    val uViewPosition get() = parameters[4] as ShaderParameter.UniformVec3
-    val uTexture get() = parameters[5] as ShaderParameter.UniformSample2D
+    val uLightColor get() = parameters["u_lightColor"] as ShaderParameter.UniformVec4
+    val uAmbientStrength get() = parameters["u_ambientStrength"] as ShaderParameter.UniformFloat
+    val uSpecularStrength get() = parameters["u_specularStrength"] as ShaderParameter.UniformFloat
+    val uLightPosition get() = parameters["u_lightPosition"] as ShaderParameter.UniformVec3
+    val uViewPosition get() = parameters["u_viewPosition"] as ShaderParameter.UniformVec3
+    val uTexture get() = parameters["u_texture"] as ShaderParameter.UniformSample2D
 
     private val u_lightColor by uniform(::Vec4)
     private val u_ambientStrength by uniform(::GLFloat)

@@ -15,7 +15,7 @@ import com.lehaine.littlekt.graphics.shader.generator.type.vec.Vec4
  * @date 2/9/2022
  */
 class TextureArrayVertexShader : VertexShaderModel() {
-    val uProjTrans get() = parameters[0] as ShaderParameter.UniformMat4
+    val uProjTrans get() = parameters["u_projTrans"] as ShaderParameter.UniformMat4
 
     private val u_projTrans by uniform(::Mat4)
 
