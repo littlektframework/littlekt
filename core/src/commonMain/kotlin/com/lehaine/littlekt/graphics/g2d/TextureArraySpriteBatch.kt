@@ -751,26 +751,26 @@ class TextureArraySpriteBatch(
      * @param slot the slot of the texture array to copy the texture to
      */
     private fun copyTextureIntoArrayTexture(texture: Texture, slot: Int) {
-        copyFrameBuffer.begin()
-        gl.frameBufferTexture2D(
-            GL.READ_FRAMEBUFFER,
-            FrameBufferRenderBufferAttachment.COLOR_ATTACHMENT(0),
-            texture.glTexture ?: error("Texture doesn't have a 'glTexture' handle!"),
-            0
-        )
-        gl.readBuffer(FrameBufferRenderBufferAttachment.COLOR_ATTACHMENT(0).glFlag)
-        gl.copyTexSubImage3D(
-            TextureTarget._2D_ARRAY,
-            0,
-            0,
-            0,
-            slot,
-            0,
-            0,
-            copyFrameBuffer.width,
-            copyFrameBuffer.height
-        )
-        copyFrameBuffer.end()
+        copyFrameBuffer.use {
+            gl.frameBufferTexture2D(
+                GL.READ_FRAMEBUFFER,
+                FrameBufferRenderBufferAttachment.COLOR_ATTACHMENT(0),
+                texture.glTexture ?: error("Texture doesn't have a 'glTexture' handle!"),
+                0
+            )
+            gl.readBuffer(FrameBufferRenderBufferAttachment.COLOR_ATTACHMENT(0).glFlag)
+            gl.copyTexSubImage3D(
+                TextureTarget._2D_ARRAY,
+                0,
+                0,
+                0,
+                slot,
+                0,
+                0,
+                copyFrameBuffer.width,
+                copyFrameBuffer.height
+            )
+        }
 
         if (useMipMaps) {
             mipMapsDirty = true

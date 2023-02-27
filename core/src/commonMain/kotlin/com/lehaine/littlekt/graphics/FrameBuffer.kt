@@ -5,6 +5,9 @@ import com.lehaine.littlekt.Disposable
 import com.lehaine.littlekt.file.createIntBuffer
 import com.lehaine.littlekt.graphics.gl.*
 import com.lehaine.littlekt.math.MutableVec4i
+import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.InvocationKind
+import kotlin.contracts.contract
 
 /**
  * Encapsulates OpenGL frame buffer objects.
@@ -24,7 +27,7 @@ class FrameBuffer(
     var hasPackedDepthStencil: Boolean = false,
     val format: Pixmap.Format = Pixmap.Format.RGBA8888,
     val minFilter: TexMinFilter = TexMinFilter.LINEAR,
-    val magFilter: TexMagFilter = TexMagFilter.LINEAR
+    val magFilter: TexMagFilter = TexMagFilter.LINEAR,
 ) : Preparable, Disposable {
 
     /**
@@ -230,4 +233,12 @@ class FrameBuffer(
             result[3] = intBuffer[3]
         }
     }
+}
+
+@OptIn(ExperimentalContracts::class)
+inline fun FrameBuffer.use(action: (FrameBuffer) -> Unit) {
+    contract { callsInPlace(action, InvocationKind.EXACTLY_ONCE) }
+    begin()
+    action(this)
+    end()
 }

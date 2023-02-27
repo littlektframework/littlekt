@@ -1,5 +1,9 @@
 package com.lehaine.littlekt
 
+import com.lehaine.littlekt.graphics.shader.FragmentShader
+import com.lehaine.littlekt.graphics.shader.ShaderProgram
+import com.lehaine.littlekt.graphics.shader.VertexShader
+
 /**
  * A [ContextListener] is the base of an [Context] when it is created, rendering, or destroyed.
  * @author Colton Daily
@@ -16,3 +20,14 @@ abstract class ContextListener(val context: Context) {
      */
     open suspend fun Context.start() {}
 }
+
+
+/**
+ * Creates a new [ShaderProgram] for the specified shaders.
+ * @param vertexShader the vertex shader to use.
+ * @param fragmentShader the fragment shader to use.
+ */
+fun <T : ContextListener, V : VertexShader, F : FragmentShader> T.createShader(
+    vertexShader: V,
+    fragmentShader: F,
+) = ShaderProgram(vertexShader, fragmentShader).also { it.prepare(context) }

@@ -15,6 +15,7 @@ import com.lehaine.littlekt.graphics.gl.State
 import com.lehaine.littlekt.graphics.gl.TexMagFilter
 import com.lehaine.littlekt.graphics.gl.TexMinFilter
 import com.lehaine.littlekt.graphics.shader.ShaderProgram
+import com.lehaine.littlekt.graphics.use
 import com.lehaine.littlekt.input.Key
 import com.lehaine.littlekt.math.MutableVec2f
 import com.lehaine.littlekt.math.Vec2f
@@ -52,10 +53,9 @@ class PixelSmoothCameraTest(context: Context) : ContextListener(context) {
         val pixelSmoothShader =
             ShaderProgram(PixelSmoothVertexShader(), PixelSmoothFragmentShader()).also { it.prepare(this) }
 
-        var fbo =
-            FrameBuffer(1, 1, minFilter = TexMinFilter.NEAREST, magFilter = TexMagFilter.NEAREST).also {
-                it.prepare(this)
-            }
+        var fbo = FrameBuffer(1, 1, minFilter = TexMinFilter.NEAREST, magFilter = TexMagFilter.NEAREST).also {
+            it.prepare(this)
+        }
 
         var fboRegion = TextureSlice(fbo.colorBufferTexture, 0, 0, fbo.width, fbo.height)
         val cameraDir = MutableVec2f()
@@ -69,15 +69,14 @@ class PixelSmoothCameraTest(context: Context) : ContextListener(context) {
             pxHeight = height / (height / targetHeight)
             pxWidth = (width / (height / pxHeight))
             fbo.dispose()
-            fbo =
-                FrameBuffer(
-                    pxWidth.nextPowerOfTwo,
-                    pxHeight.nextPowerOfTwo,
-                    minFilter = TexMinFilter.NEAREST,
-                    magFilter = TexMagFilter.NEAREST
-                ).also {
-                    it.prepare(this)
-                }
+            fbo = FrameBuffer(
+                pxWidth.nextPowerOfTwo,
+                pxHeight.nextPowerOfTwo,
+                minFilter = TexMinFilter.NEAREST,
+                magFilter = TexMagFilter.NEAREST
+            ).also {
+                it.prepare(this)
+            }
             fboRegion = TextureSlice(fbo.colorBufferTexture, 0, fbo.height - pxHeight, pxWidth, pxHeight)
             sceneCamera.ortho(fbo.width * worldUnitInvScale, fbo.height * worldUnitInvScale)
         }
@@ -137,14 +136,16 @@ class PixelSmoothCameraTest(context: Context) : ContextListener(context) {
             tempVec2f.x = tempVec2f.x - fbo.width * worldUnitInvScale * 0.5f + sceneCamera.position.x
             tempVec2f.y = tempVec2f.y - fbo.height * worldUnitInvScale * 0.5f + sceneCamera.position.y
 
-            fbo.begin()
-            gl.clear(ClearBufferMask.COLOR_BUFFER_BIT)
-            batch.use(sceneCamera.viewProjection) {
-                world.render(it, sceneCamera, 0f, 0f, worldUnitInvScale)
-                it.draw(icon, 0f, 0f, scaleX = worldUnitInvScale, scaleY = worldUnitInvScale, rotation = 45.degrees)
-                it.draw(icon, 10f, 10f, scaleX = worldUnitInvScale, scaleY = worldUnitInvScale, rotation = 45.degrees)
+            fbo.use {
+                gl.clear(ClearBufferMask.COLOR_BUFFER_BIT)
+                batch.use(sceneCamera.viewProjection) {
+                    world.render(it, sceneCamera, 0f, 0f, worldUnitInvScale)
+                    it.draw(icon, 0f, 0f, scaleX = worldUnitInvScale, scaleY = worldUnitInvScale, rotation = 45.degrees)
+                    it.draw(
+                        icon, 10f, 10f, scaleX = worldUnitInvScale, scaleY = worldUnitInvScale, rotation = 45.degrees
+                    )
+                }
             }
-            fbo.end()
 
             batch.shader = pixelSmoothShader
             viewportCamera.ortho(graphics.width, graphics.height)
@@ -152,18 +153,10 @@ class PixelSmoothCameraTest(context: Context) : ContextListener(context) {
 
             batch.use(viewportCamera.viewProjection) {
                 pixelSmoothShader.vertexShader.uTextureSizes.apply(
-                    pixelSmoothShader,
-                    fbo.width.toFloat(),
-                    fbo.height.toFloat(),
-                    0f,
-                    0f
+                    pixelSmoothShader, fbo.width.toFloat(), fbo.height.toFloat(), 0f, 0f
                 )
                 pixelSmoothShader.vertexShader.uSampleProperties.apply(
-                    pixelSmoothShader,
-                    subpixelX,
-                    subPixelY,
-                    scaledDistX,
-                    scaledDistY
+                    pixelSmoothShader, subpixelX, subPixelY, scaledDistX, scaledDistY
                 )
                 it.draw(
                     fboRegion,

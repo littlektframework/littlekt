@@ -69,13 +69,13 @@ class FBOTest(context: Context) : ContextListener(context) {
                 fboCamera.position.y = y
             }
             fboCamera.update()
-            fbo.begin()
-            gl.clearColor(0.5f, 0f, 0f, 1f)
-            gl.clear(ClearBufferMask.COLOR_BUFFER_BIT)
-            batch.use(fboCamera.viewProjection) {
-                it.draw(Textures.white, x, y, scaleX = 10f, scaleY = 10f, rotation = rotation)
+            fbo.use {
+                gl.clearColor(0.5f, 0f, 0f, 1f)
+                gl.clear(ClearBufferMask.COLOR_BUFFER_BIT)
+                batch.use(fboCamera.viewProjection) {
+                    it.draw(Textures.white, x, y, scaleX = 10f, scaleY = 10f, rotation = rotation)
+                }
             }
-            fbo.end()
 
             gl.clearColor(Color.CLEAR)
             gl.clear(ClearBufferMask.COLOR_BUFFER_BIT)

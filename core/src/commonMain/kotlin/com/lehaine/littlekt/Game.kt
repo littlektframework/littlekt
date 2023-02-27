@@ -220,14 +220,3 @@ open class Game<SceneType : Scene>(context: Context, firstScene: SceneType? = nu
         protected val logger = Logger<Game<*>>()
     }
 }
-
-/**
- * Creates a new [ShaderProgram] for the specified shaders.
- * @param vertexShader the vertex shader to use. Defaults to [DefaultVertexShader].
- * @param fragmentShader the fragment shader to use. Defaults to [DefaultFragmentShader].
- */
-fun <T : ContextListener> T.createShader(
-    vertexShader: VertexShader = DefaultVertexShader(),
-    fragmentShader: FragmentShader = DefaultFragmentShader()
-) =
-    ShaderProgram(vertexShader, fragmentShader).also { it.prepare(context) }
