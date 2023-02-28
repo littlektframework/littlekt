@@ -84,34 +84,44 @@ open class LDtkLayer(
         x: Float = 0f,
         y: Float = 0f,
         scale: Float = 1f,
+        paddingX: Int = 0,
+        paddingY: Int = 0,
         action: (cx: Int, cy: Int) -> Unit,
     ) {
         viewBounds.calculateViewBounds(camera)
-        forEachTileInView(viewBounds, x, y, scale, action)
+        forEachTileInView(viewBounds, x, y, scale, paddingX, paddingY, action)
     }
 
     /**
      * Iterate through the tiles in view.
+     * @param viewBounds the viewBounds rectangle
+     * @param x the x position of the layer
+     * @param y the y position of the layer
+     * @param scale the scale of the layer
+     * @param paddingX amount of extra cells on the x-axis to iterate through. This handles for -x & +x directions.
+     * @param paddingY amount of extra cells on the y-axis to iterate through. This handles for -y & +y directions.
      */
     inline fun forEachTileInView(
         viewBounds: Rect,
         x: Float = 0f,
         y: Float = 0f,
         scale: Float = 1f,
+        paddingX: Int = 0,
+        paddingY: Int = 0,
         action: (cx: Int, cy: Int) -> Unit,
     ) {
         val cellSize = cellSize * scale
         val pxTotalOffsetX = pxTotalOffsetX * scale
         val pxTotalOffsetY = pxTotalOffsetY * scale
-        val minX = max(0, ((viewBounds.x - x - pxTotalOffsetX) / cellSize).toInt())
+        val minX = max(0, ((viewBounds.x - x - pxTotalOffsetX) / cellSize).toInt() - paddingX)
         val maxX = min(
             gridWidth,
-            ((viewBounds.x2 - x - pxTotalOffsetX) / cellSize).toInt()
+            ((viewBounds.x2 - x - pxTotalOffsetX) / cellSize).toInt() + paddingX
         )
-        val minY = max(0, ((viewBounds.y - y - pxTotalOffsetY) / cellSize).toInt())
+        val minY = max(0, ((viewBounds.y - y - pxTotalOffsetY) / cellSize).toInt() - paddingY)
         val maxY = min(
             gridHeight,
-            ((viewBounds.y2 - y - pxTotalOffsetY) / cellSize).toInt()
+            ((viewBounds.y2 - y - pxTotalOffsetY) / cellSize).toInt() + paddingY
         )
 
         for (cy in minY..maxY) {
