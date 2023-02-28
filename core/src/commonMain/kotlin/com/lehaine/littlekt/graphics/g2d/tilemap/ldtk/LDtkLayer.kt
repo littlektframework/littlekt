@@ -115,12 +115,12 @@ open class LDtkLayer(
         val pxTotalOffsetY = pxTotalOffsetY * scale
         val minX = max(0, ((viewBounds.x - x - pxTotalOffsetX) / cellSize).toInt() - paddingX)
         val maxX = min(
-            gridWidth,
+            gridWidth - 1,
             ((viewBounds.x2 - x - pxTotalOffsetX) / cellSize).toInt() + paddingX
         )
         val minY = max(0, ((viewBounds.y - y - pxTotalOffsetY) / cellSize).toInt() - paddingY)
         val maxY = min(
-            gridHeight,
+            gridHeight - 1,
             ((viewBounds.y2 - y - pxTotalOffsetY) / cellSize).toInt() + paddingY
         )
 
