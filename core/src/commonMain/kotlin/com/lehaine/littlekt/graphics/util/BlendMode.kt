@@ -1,9 +1,16 @@
-package com.lehaine.littlekt.graph.node.render
+package com.lehaine.littlekt.graphics.util
 
 import com.lehaine.littlekt.graphics.gl.BlendEquationMode
 import com.lehaine.littlekt.graphics.gl.BlendFactor
+import com.lehaine.littlekt.graphics.GL
 
 /**
+ * A utility class that encapsulates the data needed for common blending options.
+ *
+ * @see GL.blendFunc
+ * @see GL.blendFuncSeparate
+ * @see GL.blendEquation
+ * @see GL.blendEquationSeparate
  * @author Colton Daily
  * @date 3/10/2022
  */

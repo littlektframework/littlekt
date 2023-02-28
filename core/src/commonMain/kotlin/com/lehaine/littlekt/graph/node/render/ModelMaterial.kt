@@ -4,6 +4,7 @@ import com.lehaine.littlekt.graphics.Color
 import com.lehaine.littlekt.graphics.Texture
 import com.lehaine.littlekt.graphics.shader.ShaderParameter
 import com.lehaine.littlekt.graphics.shader.ShaderProgram
+import com.lehaine.littlekt.graphics.util.DepthStencilMode
 import com.lehaine.littlekt.math.Mat4
 import com.lehaine.littlekt.math.Vec3f
 

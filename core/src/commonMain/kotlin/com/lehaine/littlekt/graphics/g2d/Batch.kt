@@ -5,6 +5,7 @@ import com.lehaine.littlekt.graphics.Color
 import com.lehaine.littlekt.graphics.Texture
 import com.lehaine.littlekt.graphics.gl.BlendFactor
 import com.lehaine.littlekt.graphics.shader.ShaderProgram
+import com.lehaine.littlekt.graphics.util.BlendMode
 import com.lehaine.littlekt.math.Mat4
 import com.lehaine.littlekt.math.geom.Angle
 import kotlin.contracts.ExperimentalContracts
@@ -125,6 +126,13 @@ interface Batch : Disposable {
         dstFuncColor: BlendFactor,
         srcFuncAlpha: BlendFactor,
         dstFuncAlpha: BlendFactor,
+    )
+
+    fun setBlendFunction(blendMode: BlendMode) = setBlendFunctionSeparate(
+        blendMode.colorSourceBlend,
+        blendMode.colorDestinationBlend,
+        blendMode.alphaSourceBlend,
+        blendMode.alphaDestinationBlend
     )
 
     fun setToPreviousBlendFunction()

@@ -2,6 +2,8 @@ package com.lehaine.littlekt.graph.node.render
 
 import com.lehaine.littlekt.Disposable
 import com.lehaine.littlekt.graphics.shader.ShaderProgram
+import com.lehaine.littlekt.graphics.util.BlendMode
+import com.lehaine.littlekt.graphics.util.DepthStencilMode
 
 /**
  * @author Colton Daily

@@ -1,9 +1,10 @@
-package com.lehaine.littlekt.graph.node.render
+package com.lehaine.littlekt.graphics.util
 
 import com.lehaine.littlekt.graphics.gl.CompareFunction
 import com.lehaine.littlekt.graphics.gl.StencilAction
 
 /**
+ * A utility class that encapsulates the data needed for common depth/stencil options.
  * @author Colton Daily
  * @date 3/23/2022
  */
