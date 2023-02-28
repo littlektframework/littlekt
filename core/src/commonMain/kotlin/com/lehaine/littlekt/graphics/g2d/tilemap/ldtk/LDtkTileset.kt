@@ -2,6 +2,7 @@ package com.lehaine.littlekt.graphics.g2d.tilemap.ldtk
 
 import com.lehaine.littlekt.graphics.Texture
 import com.lehaine.littlekt.graphics.g2d.TextureSlice
+import com.lehaine.littlekt.graphics.g2d.tilemap.TileSet
 import com.lehaine.littlekt.graphics.gl.DataType
 import com.lehaine.littlekt.graphics.gl.GLTextureData
 import com.lehaine.littlekt.graphics.gl.TextureFormat
@@ -17,8 +18,8 @@ class LDtkTileset(
     val cellSize: Int,
     val pxWidth: Int,
     val pxHeight: Int,
-    val tiles: List<TextureSlice>
-) : com.lehaine.littlekt.graphics.g2d.tilemap.TileSet {
+    val tiles: List<TextureSlice>,
+) : TileSet {
 
     val gridWidth get() = ceil((pxWidth / cellSize).toFloat()).toInt()
 
@@ -67,18 +68,22 @@ class LDtkTileset(
                 flipX = false
                 flipY = false
             }
+
             1 -> temp.apply {
                 flipX = true
                 flipY = false
             }
+
             2 -> temp.apply {
                 flipX = false
                 flipY = true
             }
+
             3 -> temp.apply {
                 flipX = true
                 flipY = true
             }
+
             else -> error("Unsupported flipBits value")
         }
     }

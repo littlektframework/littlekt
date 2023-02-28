@@ -19,7 +19,7 @@ class LDtkWorld(
     val tilesets: Map<Int, LDtkTileset>,
     val enums: Map<String, LDtkEnum>,
     val entities: Map<String, LDtkEntityDefinition>
-) : com.lehaine.littlekt.graphics.g2d.tilemap.TileMap(), Disposable {
+) : TileMap(), Disposable {
     val levelsMap: Map<String, LDtkLevel> by lazy { levels.associateBy { it.identifier } }
 
     internal var onDispose = {}

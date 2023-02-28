@@ -3,8 +3,6 @@ package com.lehaine.littlekt.graphics.g2d.tilemap.ldtk
 import com.lehaine.littlekt.graphics.g2d.Batch
 import com.lehaine.littlekt.math.Rect
 import com.lehaine.littlekt.math.geom.Angle
-import kotlin.math.max
-import kotlin.math.min
 
 /**
  * @author Colton Daily
@@ -42,37 +40,25 @@ open class LDtkTilesLayer(
         val cellSize = cellSize * scale
         val pxTotalOffsetX = pxTotalOffsetX * scale
         val pxTotalOffsetY = pxTotalOffsetY * scale
-        val minX = max(0, ((viewBounds.x - x - pxTotalOffsetX) / cellSize).toInt())
-        val maxX = min(
-            gridWidth,
-            ((viewBounds.x + viewBounds.width - x - pxTotalOffsetX) / cellSize).toInt()
-        )
-        val minY = max(0, ((viewBounds.y - y - pxTotalOffsetY) / cellSize).toInt())
-        val maxY = min(
-            gridHeight,
-            ((viewBounds.y + viewBounds.height - y - pxTotalOffsetY) / cellSize).toInt()
-        )
 
-        for (cy in minY..maxY) {
-            for (cx in minX..maxX) {
-                if (hasAnyTileAt(cx, cy)) {
-                    getTileStackAt(cx, cy).forEach { tileInfo ->
-                        tileset.getLDtkTile(
-                            tileInfo.tileId, tileInfo.flipBits
-                        )?.also {
-                            batch.draw(
-                                slice = it.slice,
-                                x = cx * cellSize + pxTotalOffsetX + x,
-                                y = cy * cellSize + pxTotalOffsetY + y,
-                                originX = 0f,
-                                originY = 0f,
-                                scaleX = scale,
-                                scaleY = scale,
-                                rotation = Angle.ZERO,
-                                flipX = it.flipX,
-                                flipY = it.flipY
-                            )
-                        }
+        forEachTileInView(viewBounds, x, y, scale) { cx, cy ->
+            if (hasAnyTileAt(cx, cy)) {
+                getTileStackAt(cx, cy).forEach { tileInfo ->
+                    tileset.getLDtkTile(
+                        tileInfo.tileId, tileInfo.flipBits
+                    )?.also {
+                        batch.draw(
+                            slice = it.slice,
+                            x = cx * cellSize + pxTotalOffsetX + x,
+                            y = cy * cellSize + pxTotalOffsetY + y,
+                            originX = 0f,
+                            originY = 0f,
+                            scaleX = scale,
+                            scaleY = scale,
+                            rotation = Angle.ZERO,
+                            flipX = it.flipX,
+                            flipY = it.flipY
+                        )
                     }
                 }
             }
