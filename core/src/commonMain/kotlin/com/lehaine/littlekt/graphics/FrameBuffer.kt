@@ -19,7 +19,7 @@ import kotlin.contracts.contract
  * @author Colton Daily
  * @date 11/25/2021
  */
-class FrameBuffer(
+open class FrameBuffer(
     val width: Int,
     val height: Int,
     val hasDepth: Boolean = false,
