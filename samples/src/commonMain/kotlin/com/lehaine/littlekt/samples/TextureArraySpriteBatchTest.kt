@@ -5,11 +5,12 @@ import com.lehaine.littlekt.ContextListener
 import com.lehaine.littlekt.file.vfs.readAtlas
 import com.lehaine.littlekt.file.vfs.readBitmapFont
 import com.lehaine.littlekt.file.vfs.readTexture
-import com.lehaine.littlekt.graphics.*
+import com.lehaine.littlekt.graphics.Color
 import com.lehaine.littlekt.graphics.g2d.AnimatedSprite
 import com.lehaine.littlekt.graphics.g2d.TextureArraySpriteBatch
 import com.lehaine.littlekt.graphics.g2d.getAnimation
 import com.lehaine.littlekt.graphics.g2d.use
+import com.lehaine.littlekt.graphics.gl.ClearBufferMask
 import com.lehaine.littlekt.input.Key
 import com.lehaine.littlekt.util.viewport.ScreenViewport
 
@@ -34,20 +35,20 @@ class TextureArraySpriteBatchTest(context: Context) : ContextListener(context) {
 
         val viewport = ScreenViewport(graphics.width, graphics.height)
         val camera = viewport.camera
-        val batch =
-            TextureArraySpriteBatch(this, maxTextureSlots = 3, maxTextureWidth = 256, maxTextureHeight = 1024)
+        val batch = TextureArraySpriteBatch(this, maxTextureSlots = 3, maxTextureWidth = 256, maxTextureHeight = 1024)
 
         onResize { width, height ->
             viewport.update(width, height, context)
         }
         onRender { dt ->
             gl.clearColor(Color.DARK_GRAY)
-            camera.update()
+            gl.clear(ClearBufferMask.COLOR_BUFFER_BIT)
+            viewport.apply(context, true)
             boss.update(dt)
             batch.use(camera.viewProjection) {
-                font.draw(it, "test! --- TEST!!!", 50f, 50f)
                 boss.render(it)
-                it.draw(person, 50f, 200f)
+                it.draw(person, 50f, 200f, scaleX = 5f, scaleY = 5f)
+                font.draw(it, "test! --- TEST!!!", 50f, 50f, color = Color.WHITE)
             }
 
             if (input.isKeyJustPressed(Key.P)) {
