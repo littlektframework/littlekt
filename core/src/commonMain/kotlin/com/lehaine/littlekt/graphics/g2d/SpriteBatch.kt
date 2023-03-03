@@ -35,7 +35,7 @@ class SpriteBatch(
         private const val SPRITE_SIZE = 4 * VERTEX_SIZE
     }
 
-    private val maxVertices = size * 4
+    private val maxVertices = size * SPRITE_SIZE
 
     private val gl get() = context.graphics.gl
     val defaultShader = ShaderProgram(DefaultVertexShader(), DefaultFragmentShader()).also { it.prepare(context) }
