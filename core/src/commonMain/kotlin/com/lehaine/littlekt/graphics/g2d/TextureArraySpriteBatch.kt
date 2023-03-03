@@ -12,12 +12,16 @@ import com.lehaine.littlekt.math.geom.cosine
 import com.lehaine.littlekt.math.geom.normalized
 import com.lehaine.littlekt.math.geom.sine
 import com.lehaine.littlekt.math.isFuzzyZero
+import kotlin.math.min
 
 /**
  * **Requires GLES 3.0!**
  *
  * Creates a new [TextureArraySpriteBatch] that is an optimized version of the [SpriteBatch] that maintains
  * a texture-cache inside a [GL.TEXTURE_2D_ARRAY] to combine draw calls with different textures effectively.
+ *
+ * Based on a [PR](https://github.com/libgdx/libgdx/pull/5914) by `VaTTeRGeR`.
+ *
  * @param context the context
  * @param size the max number of sprites in a single batch. Max of 8191.
  * @param maxTextureSlots the expected number of textures to be in use.
@@ -41,6 +45,8 @@ class TextureArraySpriteBatch(
         private const val VERTEX_SIZE = 2 + 1 + 2 + 1
         private const val SPRITE_SIZE = 4 * VERTEX_SIZE
     }
+
+    private val maxVertices = size * SPRITE_SIZE
 
     private val gl get() = context.graphics.gl
 
@@ -113,9 +119,10 @@ class TextureArraySpriteBatch(
     private val mesh = mesh(
         context.gl,
         listOf(
-            VertexAttribute.POSITION, VertexAttribute.COLOR_PACKED, VertexAttribute.TEX_COORDS(0),
+            VertexAttribute.POSITION_2D, VertexAttribute.COLOR_PACKED, VertexAttribute.TEX_COORDS(0),
             textureIndexAttribute
-        )
+        ),
+        maxVertices
     ) {
         geometry.indicesAsQuad()
     }
@@ -138,9 +145,7 @@ class TextureArraySpriteBatch(
     private var usedTexturesNextSwapSlot = 0
 
     private val textureArrayHandle: GlTexture = initializeArrayTexture()
-    private val useMipMaps =
-        (textureArrayMagFilter.glFlag >= GL.NEAREST_MIPMAP_NEAREST && textureArrayMagFilter.glFlag <= GL.LINEAR_MIPMAP_LINEAR)
-                || (textureArrayMinFilter.glFlag >= GL.NEAREST_MIPMAP_NEAREST || textureArrayMinFilter.glFlag <= GL.LINEAR_MIPMAP_LINEAR)
+    private val useMipMaps = false
 
     private var mipMapsDirty: Boolean = false
 
@@ -154,6 +159,11 @@ class TextureArraySpriteBatch(
     private var blendDstFuncAlpha = prevBlendDstFuncAlpha
 
     private val copyFrameBuffer = FrameBuffer(maxTextureWidth, maxTextureHeight).also { it.prepare(context) }
+
+    init {
+        // 32767 is max vertex index, so 32767 / 4 vertices per sprite = 8191 sprites max
+        check(size <= 8191) { "A batch must be 8191 sprites or fewer: $size" }
+    }
 
     private fun initializeArrayTexture(): GlTexture {
         val texture = gl.createTexture()
@@ -216,7 +226,7 @@ class TextureArraySpriteBatch(
         flipY: Boolean,
     ) {
         if (!_drawing) {
-            throw IllegalStateException("SpriteBatch.begin must be called before draw.")
+            throw IllegalStateException("TextureArraySpriteBatch.begin must be called before draw.")
         }
 
         flushIfFull()
@@ -300,7 +310,7 @@ class TextureArraySpriteBatch(
 
         mesh.geometry.run {
             addVertex { // bottom left
-                this.x = x1
+                position.x = x1
                 position.y = y1
                 colorPacked.value = colorBits
                 texCoords.x = u
@@ -308,7 +318,7 @@ class TextureArraySpriteBatch(
                 getFloatAttribute(textureIndexAttribute)?.value = ti
             }
             addVertex { // top left
-                this.x = x2
+                position.x = x2
                 position.y = y2
                 colorPacked.value = colorBits
                 texCoords.x = if (slice.rotated) u2 else u
@@ -316,7 +326,7 @@ class TextureArraySpriteBatch(
                 getFloatAttribute(textureIndexAttribute)?.value = ti
             }
             addVertex { // top right
-                this.x = x3
+                position.x = x3
                 position.y = y3
                 colorPacked.value = colorBits
                 texCoords.x = u2
@@ -324,7 +334,7 @@ class TextureArraySpriteBatch(
                 getFloatAttribute(textureIndexAttribute)?.value = ti
             }
             addVertex { // bottom right
-                this.x = x4
+                position.x = x4
                 position.y = y4
                 colorPacked.value = colorBits
                 texCoords.x = if (slice.rotated) u else u2
@@ -356,7 +366,7 @@ class TextureArraySpriteBatch(
         flipY: Boolean,
     ) {
         if (!_drawing) {
-            throw IllegalStateException("SpriteBatch.begin must be called before draw.")
+            throw IllegalStateException("TextureArraySpriteBatch.begin must be called before draw.")
         }
 
         flushIfFull()
@@ -501,7 +511,7 @@ class TextureArraySpriteBatch(
         flipY: Boolean,
     ) {
         if (!_drawing) {
-            throw IllegalStateException("SpriteBatch.begin must be called before draw.")
+            throw IllegalStateException("TextureArraySpriteBatch.begin must be called before draw.")
         }
 
         flushIfFull()
@@ -639,19 +649,43 @@ class TextureArraySpriteBatch(
 
         val ti = activateTexture(texture).toFloat()
 
-        for (srcPos in 0 until count step VERTEX_SIZE - 1) {
+        val verticesLength: Int = mesh.geometry.vertices.capacity
+        val remainingVertices = verticesLength - idx
+
+        val extraCount = count / VERTEX_SIZE
+        var copyCount = min(remainingVertices, count + extraCount)
+        for (srcPos in offset until copyCount step VERTEX_SIZE - 1) {
             mesh.geometry.add(spriteVertices, srcPos, idx, VERTEX_SIZE - 1)
-            idx += VERTEX_SIZE - 3
-            mesh.geometry.vertices[idx++] *= subImageScaleWidth
-            mesh.geometry.vertices[idx++] *= subImageScaleHeight
-            mesh.geometry.vertices += ti
-            idx++
+            idx += 3
+            mesh.geometry.apply {
+                vertices[idx++] *= subImageScaleWidth
+                vertices[idx++] *= subImageScaleHeight
+                vertices[idx++] = ti
+            }
+        }
+
+        var remainingCount = (count + extraCount) - copyCount
+        var currOffset = offset
+        while (remainingCount > 0) {
+            currOffset += copyCount
+            flush()
+            copyCount = min(verticesLength, remainingCount)
+            for (srcPos in currOffset until copyCount step VERTEX_SIZE - 1) {
+                mesh.geometry.add(spriteVertices, srcPos, idx, VERTEX_SIZE - 1)
+                idx += 3
+                mesh.geometry.apply {
+                    vertices[idx++] *= subImageScaleWidth
+                    vertices[idx++] *= subImageScaleHeight
+                    vertices[idx++] = ti
+                }
+            }
+            remainingCount -= copyCount
         }
     }
 
     override fun end() {
         if (!_drawing) {
-            throw IllegalStateException("SpriteBatch.begin must be called before end.")
+            throw IllegalStateException("TextureArraySpriteBatch.begin must be called before end.")
         }
         if (idx > 0) {
             flush()
@@ -662,7 +696,7 @@ class TextureArraySpriteBatch(
     }
 
     private fun flushIfFull() {
-        if (mesh.geometry.vertices.capacity - idx < SPRITE_SIZE / VERTEX_SIZE) {
+        if (idx >= maxVertices) {
             flush()
         }
     }
@@ -759,6 +793,7 @@ class TextureArraySpriteBatch(
                 0
             )
             gl.readBuffer(FrameBufferRenderBufferAttachment.COLOR_ATTACHMENT(0).glFlag)
+            gl.bindTexture(TextureTarget._2D_ARRAY, textureArrayHandle)
             gl.copyTexSubImage3D(
                 TextureTarget._2D_ARRAY,
                 0,
