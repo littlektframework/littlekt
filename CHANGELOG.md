@@ -1,5 +1,33 @@
 # Changelog
 
+## v0.7.0
+
+### Changes
+
+* Update `FrameBuffer` class is now `open`.
+* Add new `forEachTileInView` to `LdtkLayer` to iterate over tiles current in the view bounds without rendering.
+* **Breaking**: Move `BlendMode` and `DepthStencilMode` out of the `graph` package and into the `graphics.utils`.
+* Add new `setBlendFunction(blendMode)` to `Batch`.
+* **Breaking**: update `createShader` to return the type of vertex and fragment shaders instead of the super class.
+* Add `FrameBuffer.use` extension similar to `Batch.use`.
+* **Breaking**: `Shader.parameters` are now to be used with a `LinkedHashSet` instead of a `MutableList()`. `mutableListOf(param1, param2) -> linkedSetOf(param1, param2)`.
+* **Breaking**: Update `Shader.parameters` to grab parameters by variable name instead of index. `parameters[0] -> parameters["u_texture"]`
+* **Breaking**: `GlslGenerator.texture2D`, `GlslGenerator.shadow2D`, and `GlslGenerator.texture` now returns a constructor delegate instead of a literal. `val color = texture2D(...) -> val color by texture2D(...)`
+
+
+### Fixes
+
+* Fix `TextureArraySpriteBatch.draw(spriteVertices)` to manually increase `Mesh.geometry.numVertices` to prevent data
+  from being overwritten with `geometry.addVertex`.
+* Fix `TextureArraySpriteBatch` to use the correct `VertexAttribute` for 2D positions.
+* Fix `TextureArraySpriteBatch.maxVertices` calculation.
+* Fix `LDtkLayer` rendering to calculate the correct maximum cells in both x & y axes.
+* Fix `SceneGraph` to set the correct blend equation off a material `BlendMode`.
+* Fix `GlslGenerator` not removing unused definitions from functions.
+* Fix `Tiled` row & column calculations & iso transform to use correct view bound points.
+* Fix `GlslGenerator.For` not using `GLInt` value directly
+* Fix `GlslGenerator.atan` to use correct parameters (was only allowing one parameter to be passed in)
+
 ## v0.6.3
 
 * Fix an issue with `Button` not calculating label sizing when added after scene creation.
@@ -58,15 +86,15 @@ related graphics and handling.
   ```kotlin
   val myButtonGroup = ButtonGroup()
   button {
-  buttonGroup = myButtonGroup
-  buttonGroup.buttons += this
+    buttonGroup = myButtonGroup
+    buttonGroup.buttons += this
   }
   ```
   **New**:
   ```kotlin
   val myButtonGroup = ButtonGroup()
   button {
-  setButtonGroup(myButtonGroup)
+    setButtonGroup(myButtonGroup)
   }
   ```
 
