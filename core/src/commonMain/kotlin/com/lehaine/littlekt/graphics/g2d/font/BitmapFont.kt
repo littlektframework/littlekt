@@ -116,7 +116,7 @@ class BitmapFont(
         wrap: Boolean = false,
     ) {
         cache.setText(text, x, y, 1f, 1f, rotation, color, targetWidth, align, wrap)
-        cache.draw(batch) // TODO impl multiple page font
+        cache.draw(batch)
     }
 
     override fun dispose() {

@@ -44,7 +44,7 @@ class VertexView(val geometry: MeshGeometry, index: Int) : MutableVec3f() {
                 }
 
                 attribute.numComponents == 4 -> {
-                    if(attribute.asInt) {
+                    if (attribute.asInt) {
                         _attributesViews[attribute.key] = Vec4iView(attribute.offset / 4)
                     } else {
                         _attributesViews[attribute.key] = Vec4fView(attribute.offset / 4)
@@ -72,7 +72,6 @@ class VertexView(val geometry: MeshGeometry, index: Int) : MutableVec3f() {
         texCoords = getVec2fAttribute(VertexAttribute.TEX_COORDS(0)) ?: Vec2fView(-1)
         joints = getVec4iAttribute(VertexAttribute.JOINT) ?: Vec4iView(-1)
         weights = getVec4fAttribute(VertexAttribute.WEIGHT) ?: Vec4fView(-1)
-
     }
 
     override fun get(i: Int) = position[i]
