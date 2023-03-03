@@ -7,6 +7,7 @@ import com.lehaine.littlekt.math.spatial.BoundingBox
 import com.lehaine.littlekt.util.datastructure.FloatArrayList
 import com.lehaine.littlekt.util.datastructure.ShortArrayList
 import kotlin.math.floor
+import kotlin.math.min
 
 /**
  * Holds vertex and index data that can be used to render to a mesh.
@@ -77,12 +78,14 @@ class MeshGeometry(
     }
 
     /**
-     * Add a list of existing vertices to the geometry.
+     * Add a list of existing vertices to the geometry. This sets [numVertices] based off the data based in [newVertices].
      */
     fun add(newVertices: FloatArray, srcOffset: Int = 0, dstOffset: Int = 0, count: Int = newVertices.size) {
         newVertices.copyInto(vertices.data, dstOffset, srcOffset, srcOffset + count)
-        vertices.size = dstOffset + count
-        numVertices = vertices.size / vertexSize
+        if (vertices.size < dstOffset + count) {
+            vertices.size = dstOffset + count
+        }
+        numVertices = min(numVertices + (dstOffset + count) / vertexSize, vertices.size / vertexSize)
         verticesDirty = true
     }
 
