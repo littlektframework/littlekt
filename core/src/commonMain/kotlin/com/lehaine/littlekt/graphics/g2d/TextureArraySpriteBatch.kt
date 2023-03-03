@@ -662,6 +662,8 @@ class TextureArraySpriteBatch(
                 vertices[idx++] *= subImageScaleHeight
                 vertices[idx++] = ti
             }
+            // we need to manually increase the number of vertices since geometry.add is only adding a partial vertex
+            mesh.geometry.numVertices++
         }
 
         var remainingCount = (count + extraCount) - copyCount
@@ -678,6 +680,8 @@ class TextureArraySpriteBatch(
                     vertices[idx++] *= subImageScaleHeight
                     vertices[idx++] = ti
                 }
+                // we need to manually increase the number of vertices since geometry.add is only adding a partial vertex
+                mesh.geometry.numVertices++
             }
             remainingCount -= copyCount
         }
