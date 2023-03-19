@@ -31,7 +31,7 @@ class InputMapController<InputSignal>(
 
     private val keyBindings = mutableMapOf<InputSignal, List<Key>>()
     private val keyBindingsWithModifiers =
-        mutableMapOf<InputSignal, MutableMap<Key, KeyBindingWithModifiers<InputSignal>>>()
+        mutableMapOf<InputSignal, KeyBindingWithModifiers<InputSignal>>()
     private val keyToType = mutableMapOf<Key, MutableList<InputSignal>>()
     private val keyModifiersToType = mutableMapOf<Key, MutableList<KeyBindingWithModifiers<InputSignal>>>()
     private val buttonBindings = mutableMapOf<InputSignal, List<GameButton>>()
@@ -80,7 +80,7 @@ class InputMapController<InputSignal>(
         keyModifiers: List<KeyModifier> = emptyList(),
         buttons: List<GameButton> = emptyList(),
         axes: List<GameAxis> = emptyList(),
-        pointers: List<Pointer> = emptyList()
+        pointers: List<Pointer> = emptyList(),
     ) {
         if (keyModifiers.isEmpty()) {
             keyBindings[type] = keys.toList()
@@ -88,10 +88,14 @@ class InputMapController<InputSignal>(
                 keyToType.getOrPut(it) { mutableListOf() }.add(type)
             }
         } else {
-            val map = keyBindingsWithModifiers.getOrPut(type) { mutableMapOf() }
-            val modifier = KeyBindingWithModifiers(type, keyModifiers.toList())
+            val modifier = keyBindingsWithModifiers.getOrPut(type) {
+                KeyBindingWithModifiers(
+                    type,
+                    keys.toList(),
+                    keyModifiers.toList()
+                )
+            }
             keys.forEach {
-                map[it] = modifier
                 keyModifiersToType.getOrPut(it) { mutableListOf() }.add(modifier)
             }
         }
@@ -141,7 +145,7 @@ class InputMapController<InputSignal>(
         positiveX: InputSignal,
         positiveY: InputSignal,
         negativeX: InputSignal,
-        negativeY: InputSignal
+        negativeY: InputSignal,
     ) {
         vectors[type] = InputVector(positiveX, positiveY, negativeX, negativeY)
     }
@@ -157,9 +161,33 @@ class InputMapController<InputSignal>(
         return if (mode == InputMode.GAMEPAD) {
             getGamepadButtonEvent(type) { input.isGamepadButtonPressed(it) }
         } else {
-            return getKeyEvent(type) { input.isKeyPressed(it) } || getPointerEvent(type) { input.isTouching(it) }
-        }
+            return getKeyEvent(
+                type,
+                singleKey = { key -> input.isKeyPressed(key) }
+            ) { modifiers, keys ->
+                modifiers.forEach { keyModifier ->
+                    var modHandled = false
+                    keyModifier.keys.forEach {
+                        if (input.isKeyPressed(it)) {
+                            modHandled = true
+                        }
+                    }
+                    if (!modHandled) return@getKeyEvent false
+                }
+                // if we get here then all the modifiers are met
+                keys.fastForEach {
+                    var keyHandled = false
+                    if (input.isKeyPressed(it)) {
+                        keyHandled = true
+                    }
+                    if (!keyHandled) return@getKeyEvent false
+                }
+                // if we get here then all modifiers & keys are met
+                return@getKeyEvent true
+            }
+        } || getPointerEvent(type) { input.isTouching(it) }
     }
+
 
     /**
      * Checks to see if the [InputSignal] is just pressed for all inputs. This does not trigger for [GameAxis].
@@ -169,8 +197,39 @@ class InputMapController<InputSignal>(
         return if (mode == InputMode.GAMEPAD) {
             getGamepadButtonEvent(type) { input.isGamepadButtonJustPressed(it) }
         } else {
-            getKeyEvent(type) { input.isKeyJustPressed(it) } || getPointerEvent(type) { input.isJustTouched(it) }
-        }
+            return getKeyEvent(
+                type,
+                singleKey = { key ->
+                    input.isKeyJustPressed(key)
+                }
+            ) { modifiers, keys ->
+                var anyJustPressed = false
+                modifiers.forEach { keyModifier ->
+                    var modHandled = false
+                    keyModifier.keys.forEach {
+                        if (input.isKeyJustPressed(it)) {
+                            anyJustPressed = true
+                            modHandled = true
+                        } else if (input.isKeyPressed(it)) {
+                            modHandled = true
+                        }
+                    }
+                    if (!modHandled) return@getKeyEvent false
+                }
+                // if we get here then all the modifiers are met
+                keys.fastForEach {
+                    var keyHandled = false
+                    if (input.isKeyJustPressed(it)) {
+                        anyJustPressed = true
+                        keyHandled = true
+                    } else if (input.isKeyPressed(it)) {
+                        keyHandled = true
+                    }
+                    if (!keyHandled) return@getKeyEvent false
+                }
+                return@getKeyEvent anyJustPressed
+            }
+        } || getPointerEvent(type) { input.isJustTouched(it) }
     }
 
     /**
@@ -181,8 +240,39 @@ class InputMapController<InputSignal>(
         return if (mode == InputMode.GAMEPAD) {
             getGamepadButtonEvent(type) { input.isGamepadButtonJustReleased(it) }
         } else {
-            getKeyEvent(type) { input.isKeyJustReleased(it) } || getPointerEvent(type) { input.isTouchJustReleased(it) }
-        }
+            return getKeyEvent(
+                type,
+                singleKey = { key ->
+                    input.isKeyJustReleased(key)
+                }
+            ) { modifiers, keys ->
+                var anyJustReleased = false
+                modifiers.forEach { keyModifier ->
+                    var modHandled = false
+                    keyModifier.keys.forEach {
+                        if (input.isKeyJustReleased(it)) {
+                            anyJustReleased = true
+                            modHandled = true
+                        } else if (input.isKeyPressed(it)) {
+                            modHandled = true
+                        }
+                        if (!modHandled) return@getKeyEvent false
+                    }
+                }
+                // if we get here then all the modifiers are met
+                keys.fastForEach {
+                    var keyHandled = false
+                    if (input.isKeyJustReleased(it)) {
+                        anyJustReleased = true
+                        keyHandled = true
+                    } else if (input.isKeyPressed(it)) {
+                        keyHandled = true
+                    }
+                    if (!keyHandled) return@getKeyEvent false
+                }
+                return@getKeyEvent anyJustReleased
+            }
+        } || getPointerEvent(type) { input.isTouchJustReleased(it) }
     }
 
     override fun charTyped(character: Char): Boolean {
@@ -316,7 +406,7 @@ class InputMapController<InputSignal>(
 
     private inline fun getGamepadButtonEvent(
         type: InputSignal,
-        predicate: (button: GameButton) -> Boolean
+        predicate: (button: GameButton) -> Boolean,
     ): Boolean {
         if (input.connectedGamepads.isNotEmpty()) {
             input.gamepads.fastForEach {
@@ -331,7 +421,7 @@ class InputMapController<InputSignal>(
     }
 
     private inline fun getButtonStrength(
-        type: InputSignal, predicate: (strength: Float, isAxis: Boolean) -> Boolean
+        type: InputSignal, predicate: (strength: Float, isAxis: Boolean) -> Boolean,
     ): Float {
         if (input.connectedGamepads.isNotEmpty()) {
             input.gamepads.fastForEach { gamepad ->
@@ -355,7 +445,7 @@ class InputMapController<InputSignal>(
     }
 
     private inline fun getButtonAxisStrength(
-        type: InputSignal, positive: Boolean, predicate: (strength: Float, isAxis: Boolean) -> Boolean
+        type: InputSignal, positive: Boolean, predicate: (strength: Float, isAxis: Boolean) -> Boolean,
     ): Float {
         if (input.connectedGamepads.isNotEmpty()) {
             input.gamepads.fastForEach { gamepad ->
@@ -392,19 +482,41 @@ class InputMapController<InputSignal>(
         return 0f
     }
 
-    private inline fun getKeyStrength(type: InputSignal, predicate: (Key) -> Boolean): Float {
+    private inline fun getKeyStrength(
+        type: InputSignal,
+        singleKey: (Key) -> Boolean,
+        modifierKey: (List<KeyModifier>, List<Key>) -> Boolean,
+    ): Float {
         keyBindings[type]?.fastForEach {
-            if (predicate(it)) {
+            if (singleKey(it)) {
+                return 1f
+            }
+        }
+        keyBindingsWithModifiers[type]?.let outside@{ binding ->
+            if (modifierKey(binding.modifiers, binding.keys)) {
                 return 1f
             }
         }
         return 0f
     }
 
-    private inline fun getKeyEvent(type: InputSignal, predicate: (Key) -> Boolean): Boolean {
-        keyBindings[type]?.fastForEach {
-            if (predicate(it)) {
-                return true
+    private inline fun getKeyEvent(
+        type: InputSignal,
+        singleKey: (Key) -> Boolean,
+        modifierKey: (List<KeyModifier>, List<Key>) -> Boolean,
+    ): Boolean {
+        if (anyModifierPressed) {
+            keyBindingsWithModifiers[type]?.let outside@{ binding ->
+                return modifierKey(binding.modifiers, binding.keys)
+            }
+        } else {
+            keyBindings[type]?.fastForEach {
+                if (singleKey(it)) {
+                    return true
+                }
+            }
+            keyBindingsWithModifiers[type]?.let outside@{ binding ->
+                return modifierKey(binding.modifiers, binding.keys)
             }
         }
         return false
@@ -443,7 +555,27 @@ class InputMapController<InputSignal>(
      */
     fun strength(type: InputSignal, deadZone: Float = axisDeadZone): Float {
         return if (mode == InputMode.KEYBOARD) {
-            getKeyStrength(type) { input.isKeyPressed(it) }
+            getKeyStrength(type, singleKey = { input.isKeyPressed(it) }) { modifiers, keys ->
+                modifiers.forEach { keyModifier ->
+                    var modHandled = false
+                    keyModifier.keys.forEach {
+                        if (input.isKeyPressed(it)) {
+                            modHandled = true
+                        }
+                    }
+                    if (!modHandled) return@getKeyStrength false
+                }
+                // if we get here then all the modifiers are met
+                keys.fastForEach {
+                    var keyHandled = false
+                    if (input.isKeyPressed(it)) {
+                        keyHandled = true
+                    }
+                    if (!keyHandled) return@getKeyStrength false
+                }
+                // if we get here then all modifiers & keys are met
+                return@getKeyStrength true
+            }
         } else {
             getButtonStrength(type) { strength, isAxis ->
                 (isAxis && abs(strength) >= deadZone) || !isAxis && strength != 0f
@@ -565,5 +697,6 @@ private data class InputVector<T>(val positiveX: T, val positiveY: T, val negati
 
 private data class KeyBindingWithModifiers<T>(
     val input: T,
-    val modifiers: List<InputMapController.KeyModifier>
+    val keys: List<Key>,
+    val modifiers: List<InputMapController.KeyModifier>,
 )
