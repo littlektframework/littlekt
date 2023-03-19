@@ -27,6 +27,8 @@
 * Fix `Tiled` row & column calculations & iso transform to use correct view bound points.
 * Fix `GlslGenerator.For` not using `GLInt` value directly
 * Fix `GlslGenerator.atan` to use correct parameters (was only allowing one parameter to be passed in)
+* Fix `InputMapController.addBinding` to check for key modifiers for `down()`, `pressed()`, and `released()` functions
+
 
 ## v0.6.3
 
