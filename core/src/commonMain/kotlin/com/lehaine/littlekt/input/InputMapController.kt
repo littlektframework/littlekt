@@ -184,8 +184,8 @@ class InputMapController<InputSignal>(
                 }
                 // if we get here then all modifiers & keys are met
                 return@getKeyEvent true
-            }
-        } || getPointerEvent(type) { input.isTouching(it) }
+            } || getPointerEvent(type) { input.isTouching(it) }
+        }
     }
 
 
@@ -228,8 +228,8 @@ class InputMapController<InputSignal>(
                     if (!keyHandled) return@getKeyEvent false
                 }
                 return@getKeyEvent anyJustPressed
-            }
-        } || getPointerEvent(type) { input.isJustTouched(it) }
+            } || getPointerEvent(type) { input.isJustTouched(it) }
+        }
     }
 
     /**
@@ -271,8 +271,8 @@ class InputMapController<InputSignal>(
                     if (!keyHandled) return@getKeyEvent false
                 }
                 return@getKeyEvent anyJustReleased
-            }
-        } || getPointerEvent(type) { input.isTouchJustReleased(it) }
+            } || getPointerEvent(type) { input.isTouchJustReleased(it) }
+        }
     }
 
     override fun charTyped(character: Char): Boolean {
@@ -493,8 +493,10 @@ class InputMapController<InputSignal>(
             }
         }
         keyBindingsWithModifiers[type]?.let outside@{ binding ->
-            if (modifierKey(binding.modifiers, binding.keys)) {
-                return 1f
+            if (binding.modifiers.isNotEmpty() && binding.keys.isNotEmpty()) {
+                if (modifierKey(binding.modifiers, binding.keys)) {
+                    return 1f
+                }
             }
         }
         return 0f
@@ -516,7 +518,9 @@ class InputMapController<InputSignal>(
                 }
             }
             keyBindingsWithModifiers[type]?.let outside@{ binding ->
-                return modifierKey(binding.modifiers, binding.keys)
+                if (binding.modifiers.isNotEmpty() && binding.keys.isNotEmpty()) {
+                    return modifierKey(binding.modifiers, binding.keys)
+                }
             }
         }
         return false
