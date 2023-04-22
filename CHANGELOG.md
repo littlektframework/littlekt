@@ -4,6 +4,7 @@
 
 ### Changes
 
+* Update Kotlin to `1.8.20`.
 * Update `FrameBuffer` class is now `open`.
 * Add new `forEachTileInView` to `LdtkLayer` to iterate over tiles current in the view bounds without rendering.
 * **Breaking**: Move `BlendMode` and `DepthStencilMode` out of the `graph` package and into the `graphics.utils`.
