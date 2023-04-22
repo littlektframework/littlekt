@@ -1,6 +1,6 @@
 [versions]
 plugin-android = "7.2.2"
-plugin-kotlin = "1.8.10"
+plugin-kotlin = "1.8.20"
 plugin-gver = "0.42.0"
 plugin-dokka = "1.7.20"
 
