@@ -14,7 +14,9 @@ import com.lehaine.littlekt.graphics.Fonts
 import com.lehaine.littlekt.graphics.g2d.SpriteBatch
 import com.lehaine.littlekt.graphics.g2d.use
 import com.lehaine.littlekt.graphics.gl.ClearBufferMask
+import com.lehaine.littlekt.input.InputMapController
 import com.lehaine.littlekt.input.Key
+import com.lehaine.littlekt.input.Pointer
 import com.lehaine.littlekt.util.viewport.ExtendViewport
 
 /**
@@ -29,6 +31,13 @@ class UiTest(context: Context) : ContextListener(context) {
         val icon = resourcesVfs["icon_16x16.png"].readTexture()
         val viewport = ExtendViewport(480, 270)
         val camera = viewport.camera
+
+        val controller = InputMapController<String>(input)
+        controller.addBinding("reset", listOf(Key.R, Key.T), keyModifiers = listOf(InputMapController.KeyModifier.SHIFT))
+        controller.addBinding("test", listOf(Key.T))
+        controller.addBinding("pressed", pointers = listOf(Pointer.MOUSE_LEFT))
+
+        input.addInputProcessor(controller)
 
         val graph = sceneGraph(context, ExtendViewport(480, 270)) {
 
@@ -78,6 +87,7 @@ class UiTest(context: Context) : ContextListener(context) {
             }
         }.also { it.initialize() }
 
+
         onResize { width, height ->
             viewport.update(width, height, this)
             graph.resize(width, height, true)
@@ -89,6 +99,19 @@ class UiTest(context: Context) : ContextListener(context) {
             viewport.apply(this)
             batch.use(camera.viewProjection) {
                 Fonts.default.draw(it, "My Label\nMiddle", 0f, 0f, targetWidth = 480f, align = HAlign.CENTER)
+                Fonts.default.draw(it, "FPS: ${context.stats.fps.toInt()}", 35f, 50f)
+            }
+
+            if(controller.down("pressed")) {
+                println("POINTER DOWN")
+            }
+
+            if(controller.pressed("pressed")) {
+                println("POINTER PRESSED")
+            }
+
+            if(controller.released("pressed")) {
+                println("POINTER RELEASED")
             }
 
             graph.update(dt)
@@ -99,7 +122,7 @@ class UiTest(context: Context) : ContextListener(context) {
             }
 
             if (input.isKeyJustPressed(Key.T)) {
-                logger.info { "\n" + graph.root.treeString() }
+        //        logger.info { "\n" + graph.root.treeString() }
             }
 
             if (input.isKeyJustPressed(Key.P)) {
