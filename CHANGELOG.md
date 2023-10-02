@@ -2,6 +2,10 @@
 
 ## 0.8.0
 
+### Breaking
+
+* Removed all experimental GLTF and 3D rendering graphics.
+
 ### Changes
 
 * Update Kotlin to `1.9.10`.
