@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.8.0
+
+### Changes
+
+* Update Kotlin to `1.9.10`.
+* Update `Kotlinx.coroutines` to `1.7.3`.
+* Update `Kotlinx.atomicfu` to `0.22.0`.
+* Update `Kotlinx.serialization` to `1.6.0`.
+* Update `LWJGL` to `3.3.3`.
+* Update Android Gradle plugin to `7.3.1`.
+* Update Gradle version plugin to `0.48.0`.
+* Update Dokka gradle plugin to `1.9.0`.
+
+
+### Fixes
+* Fix `Button` label not calculating layout correctly when adding directly to a `Control` node.
+
 ## v0.7.0
 
 ### Changes
