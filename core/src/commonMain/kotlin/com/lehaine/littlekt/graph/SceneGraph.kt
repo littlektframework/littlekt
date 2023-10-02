@@ -4,13 +4,11 @@ import com.lehaine.littlekt.Context
 import com.lehaine.littlekt.Disposable
 import com.lehaine.littlekt.graph.node.*
 import com.lehaine.littlekt.graph.node.annotation.SceneGraphDslMarker
-import com.lehaine.littlekt.graph.node.node3d.VisualInstance
 import com.lehaine.littlekt.graph.node.render.Material
-import com.lehaine.littlekt.graph.node.render.ModelMaterial
-import com.lehaine.littlekt.graph.node.resource.Environment
 import com.lehaine.littlekt.graph.node.resource.InputEvent
 import com.lehaine.littlekt.graph.node.ui.Control
-import com.lehaine.littlekt.graphics.*
+import com.lehaine.littlekt.graphics.OrthographicCamera
+import com.lehaine.littlekt.graphics.Textures
 import com.lehaine.littlekt.graphics.g2d.Batch
 import com.lehaine.littlekt.graphics.g2d.SpriteBatch
 import com.lehaine.littlekt.graphics.g2d.TextureSlice
@@ -19,10 +17,6 @@ import com.lehaine.littlekt.graphics.gl.BlendEquationMode
 import com.lehaine.littlekt.graphics.gl.BlendFactor
 import com.lehaine.littlekt.graphics.gl.FaceMode
 import com.lehaine.littlekt.graphics.gl.State
-import com.lehaine.littlekt.graphics.shader.ShaderProgram
-import com.lehaine.littlekt.graphics.shader.shaders.Albedo
-import com.lehaine.littlekt.graphics.shader.shaders.ModelFragmentShader
-import com.lehaine.littlekt.graphics.shader.shaders.ModelVertexShader
 import com.lehaine.littlekt.input.*
 import com.lehaine.littlekt.math.MutableVec2f
 import com.lehaine.littlekt.util.datastructure.Pool
@@ -281,19 +275,10 @@ open class SceneGraph<InputType>(
     private var _fixedProgressionRatio = 1f
     private var time = (1f / fixedTimesPerSecond).seconds
 
-    var defaultMaterial3d =
-        ModelMaterial(
-            ShaderProgram(
-                ModelVertexShader(albedo = Albedo.STATIC),
-                ModelFragmentShader(albedo = Albedo.STATIC)
-            ).apply { prepare(context) })
-
     /**
      * Holds the current [Material] of the last rendered [Node] if no changes were made)
      */
     var currentMaterial: Material? = null
-
-    var environment: Environment = Environment()
 
     /**
      * The current frame count.
@@ -358,28 +343,15 @@ open class SceneGraph<InputType>(
     }
 
     private fun checkNodeMaterial(node: Node) {
-        if (node !is CanvasItem && node !is VisualInstance) return
+        if (node !is CanvasItem) return
 
         var materialChanged = false
-        if (node is CanvasItem) {
-            // check for Material changes
-            if (node.material != currentMaterial) {
-                currentMaterial = node.material
-                materialChanged = true
-            }
-        } else if (node is VisualInstance) {
-            // check for Material changes
-            if ((node.material != null && node.material != currentMaterial)
-                || (node.material == null && currentMaterial == null)
-            ) {
-                currentMaterial = node.material
-                if (currentMaterial == null) {
-                    currentMaterial = defaultMaterial3d
-                }
-
-                materialChanged = true
-            }
+        // check for Material changes
+        if (node.material != currentMaterial) {
+            currentMaterial = node.material
+            materialChanged = true
         }
+
         if (materialChanged) {
             currentMaterial?.let { mat ->
                 mat.shader?.let {
@@ -397,13 +369,7 @@ open class SceneGraph<InputType>(
         batch.useDefaultShader()
         currentMaterial?.let { mat ->
             setMaterialGlFunctions(mat)
-            if (mat !is ModelMaterial) {
-                mat.shader?.let {
-                    batch.shader = it
-                }
-            } else {
-                mat.shader?.bind()
-            }
+            mat.shader?.bind()
         }
         if (wasDrawing) {
             batch.begin()

@@ -6,13 +6,10 @@ import com.lehaine.littlekt.file.UnsupportedFileTypeException
 import com.lehaine.littlekt.file.atlas.AtlasInfo
 import com.lehaine.littlekt.file.atlas.AtlasPage
 import com.lehaine.littlekt.file.createByteBuffer
-import com.lehaine.littlekt.file.gltf.GltfFile
-import com.lehaine.littlekt.file.gltf.toModel
 import com.lehaine.littlekt.file.ldtk.LDtkMapData
 import com.lehaine.littlekt.file.ldtk.LDtkMapLoader
 import com.lehaine.littlekt.file.tiled.TiledMapData
 import com.lehaine.littlekt.file.tiled.TiledMapLoader
-import com.lehaine.littlekt.graph.node.node3d.Model
 import com.lehaine.littlekt.graphics.Pixmap
 import com.lehaine.littlekt.graphics.Texture
 import com.lehaine.littlekt.graphics.g2d.TextureAtlas
@@ -304,78 +301,3 @@ expect suspend fun VfsFile.readAudioStream(): AudioStream
  * Write pixmap to disk.
  */
 expect suspend fun VfsFile.writePixmap(pixmap: Pixmap)
-
-/**
- * Loads a glTF / glb model from the path and converts it to a [Model].
- * @return a new [Model]
- */
-suspend fun VfsFile.readGltfModel(loadTexturesAsynchronously: Boolean = false): Model {
-    val file: GltfFile = when {
-        isGltf() -> loadGltf()
-        isBinaryGltf() -> loadBinaryGltf()
-        else -> throw IllegalArgumentException("Unknown glTF type: $path")
-    }
-    file.buffers.filter { it.uri != null }.forEach {
-        val uri = it.uri!!
-        val bufferPath = if (uri.startsWith("data:", true)) VfsFile(vfs, uri) else VfsFile(vfs, "${parent.path}/$uri")
-        it.data = bufferPath.read()
-    }
-    //  file.images.filter { it.uri != null }.forEach { it.uri = "" }
-    file.updateReferences()
-
-    return file.toModel(vfs.context, vfs.context.gl, this, loadTexturesAsynchronously)
-}
-
-private fun VfsFile.isGltf() = path.endsWith(".gltf", true) || path.endsWith(".gltf.gz", true)
-private fun VfsFile.isBinaryGltf() = path.endsWith(".glb", true) || path.endsWith(".glb.gz", true)
-
-private suspend fun VfsFile.loadGltf(): GltfFile {
-    if (path.endsWith(".gz", true)) {
-        TODO("Implement gzip inflation")
-    }
-    return decodeFromString()
-}
-
-private suspend fun VfsFile.loadBinaryGltf(): GltfFile {
-    if (path.endsWith(".gz", true)) {
-        TODO("Implement gzip inflation")
-    }
-    val stream = readStream()
-
-    val magic = stream.readUInt()
-    val version = stream.readUInt()
-    val length = stream.readUInt()
-    if (magic != GltfFile.GLB_FILE_MAGIC) {
-        throw IllegalStateException("Unexpected glTF magic number: $magic. Expected: ${GltfFile.GLB_FILE_MAGIC} / 'glTF'.")
-    }
-
-    if (version != 2) {
-        vfs.logger.warn { "Unexpected glTF version: $version. Expected: version 2." }
-    }
-
-    var chunkLength = stream.readUInt()
-    var chunkType = stream.readUInt()
-    if (chunkType != GltfFile.GLB_CHUNK_MAGIC_JSON) {
-        throw IllegalStateException("Unexpected chunk type for chunk 0: $chunkType. Expected: ${GltfFile.GLB_CHUNK_MAGIC_JSON} / 'JSON'.")
-    }
-
-    val jsonData = stream.readChunk(chunkLength)
-
-    val gltf = vfs.json.decodeFromString<GltfFile>(jsonData.decodeToString())
-
-    var chunk = 1
-    while (stream.hasRemaining()) {
-        chunkLength = stream.readUInt()
-        chunkType = stream.readUInt()
-        if (chunkType != GltfFile.GLB_CHUNK_MAGIC_BIN) {
-            vfs.logger.warn { "Unexpected chunk type for chunk $chunk: $chunkType. Expected: ${GltfFile.GLB_CHUNK_MAGIC_BIN} / 'BIN'." }
-            stream.readChunk(chunkLength)
-        } else {
-            gltf.buffers[chunk - 1].data = createByteBuffer(stream.readChunk(chunkLength))
-        }
-        chunk++
-    }
-
-    vfs.logger.info { "Fully loaded glTF $path (${(length / 1024.0 / 1024.0).toString(2)} mb)" }
-    return gltf
-}
