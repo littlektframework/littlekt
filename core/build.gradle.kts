@@ -13,7 +13,7 @@ repositories {
 }
 
 kotlin {
-    android {
+    androidTarget {
         publishLibraryVariants("release", "debug")
     }
     jvm {
@@ -27,11 +27,11 @@ kotlin {
     js(KotlinJsCompilerType.IR) {
         browser {
             binaries.executable()
-            testTask {
+            testTask(Action {
                 useKarma {
                     useChromeHeadless()
                 }
-            }
+            })
         }
 
         this.attributes.attribute(
