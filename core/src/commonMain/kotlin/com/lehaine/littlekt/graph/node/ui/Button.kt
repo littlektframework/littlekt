@@ -154,9 +154,10 @@ open class Button : BaseButton() {
     init {
         focusMode = FocusMode.ALL
     }
+
     override fun onHierarchyChanged(flag: Int) {
         super.onHierarchyChanged(flag)
-        if (flag == SIZE_DIRTY && parent is Container) {
+        if (flag == SIZE_DIRTY) {
             onMinimumSizeChanged()
         }
     }
@@ -167,15 +168,19 @@ open class Button : BaseButton() {
             DrawMode.NORMAL -> {
                 drawable = getThemeDrawable(themeVars.normal)
             }
+
             DrawMode.PRESSED -> {
                 drawable = getThemeDrawable(themeVars.pressed)
             }
+
             DrawMode.HOVER -> {
                 drawable = getThemeDrawable(themeVars.hover)
             }
+
             DrawMode.DISABLED -> {
                 drawable = getThemeDrawable(themeVars.disabled)
             }
+
             DrawMode.HOVER_PRESSED -> {
                 drawable = if (hasThemeDrawable(themeVars.hoverPressed)) {
                     getThemeDrawable(themeVars.hoverPressed)
@@ -260,8 +265,8 @@ open class Button : BaseButton() {
         val textWidth: Float = max(layout.width, width)
         val textHeight: Float = if (wrap || text.contains("\n")) layout.height else font.capHeight
 
-        if(horizontalAlign != HAlign.LEFT) {
-            tx += if(horizontalAlign == HAlign.RIGHT) {
+        if (horizontalAlign != HAlign.LEFT) {
+            tx += if (horizontalAlign == HAlign.RIGHT) {
                 width - textWidth
             } else {
                 (width - textWidth) / 2
@@ -273,12 +278,14 @@ open class Button : BaseButton() {
                 ty += font.metrics.descent
                 ty += padding
             }
+
             VAlign.BOTTOM -> {
                 ty += height
                 ty -= textHeight
                 ty -= padding
                 ty += font.metrics.descent
             }
+
             else -> {
                 ty += height / 2
                 ty -= textHeight
