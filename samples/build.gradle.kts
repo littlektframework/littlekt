@@ -9,12 +9,13 @@ plugins {
 
 repositories {
     mavenCentral()
+    maven(url = "https://maven.pkg.jetbrains.space/kotlin/p/wasm/experimental")
     maven(url = "https://maven.pkg.jetbrains.space/public/p/kotlinx-html/maven")
 }
 
 
 kotlin {
-    android()
+    androidTarget()
     jvm {
         compilations {
             val main by getting
@@ -75,33 +76,45 @@ kotlin {
         }
     }
 
+    @OptIn(org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl::class)
+    wasm {
+        binaries.executable()
+        browser {
+            commonWebpackConfig(Action {
+                devServer =
+                    (devServer ?: org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpackConfig.DevServer()).copy(
+                        open = mapOf(
+                            "app" to mapOf(
+                                "name" to "firefox"
+                            )
+                        ),
+                    )
+            })
+        }
+    }
+
     sourceSets {
         val commonMain by getting {
             dependencies {
                 implementation(project(":core"))
-                implementation(libs.kotlinx.coroutines.core)
+              //  implementation(libs.kotlinx.coroutines.core)
+                implementation(libs.kotlinx.coroutines.core.wasm)
             }
         }
-        val commonTest by getting {
-            dependencies {
-                implementation(kotlin("test"))
-            }
-        }
-        val jvmMain by getting {
-            dependencies {
-                implementation(project(":core"))
-            }
-        }
+        val commonTest by getting
+
+        val jvmMain by getting
         val jvmTest by getting
         val jsMain by getting {
             dependencies {
-                val kotlinxHtmlVersion = "0.7.2"
-                implementation(project(":core"))
-                implementation("org.jetbrains.kotlinx:kotlinx-html-js:$kotlinxHtmlVersion")
+                implementation(libs.kotlinx.html.js)
             }
 
         }
         val jsTest by getting
+
+        val wasmMain by getting
+        val wasmTest by getting
 
         val androidMain by getting
 
