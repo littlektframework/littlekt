@@ -246,10 +246,16 @@ class WebGL(val gl: WebGL2RenderingContext, val platform: Context.Platform, priv
         return gl.getProgramParameter(glShaderProgram.delegate, pname)!!
     }
 
+    override fun getProgramParameterB(glShaderProgram: GlShaderProgram, pname: Int): Boolean =
+        getProgramParameter(glShaderProgram, pname).toString().toBoolean()
+
     override fun getShaderParameter(glShader: GlShader, pname: Int): Any {
         engineStats.calls++
         return gl.getShaderParameter(glShader.delegate, pname)!!
     }
+
+    override fun getShaderParameterB(glShader: GlShader, pname: Int): Boolean =
+        getShaderParameter(glShader, pname).toString().toBoolean()
 
     override fun createShader(type: Int): GlShader {
         engineStats.calls++

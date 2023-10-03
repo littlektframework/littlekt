@@ -19,7 +19,7 @@ import kotlin.time.Duration.Companion.milliseconds
  * @author Colton Daily
  * @date 10/4/2021
  */
-class WebGLContext(override val configuration: JsConfiguration) : Context() {
+class WebGLContext(override val configuration: WasmConfiguration) : Context() {
 
     private val canvas = document.getElementById(configuration.canvasId) as HTMLCanvasElement
 

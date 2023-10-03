@@ -20,7 +20,7 @@ actual fun createLittleKtApp(action: LittleKtProps.() -> Unit): LittleKtApp {
     props.action()
     return LittleKtApp(
         WebGLContext(
-            JsConfiguration(
+            WasmConfiguration(
                 props.title,
                 props.canvasId,
                 props.assetsDir,
@@ -34,7 +34,7 @@ actual fun createLittleKtApp(action: LittleKtProps.() -> Unit): LittleKtApp {
  * @author Colton Daily
  * @date 11/17/2021
  */
-class JsConfiguration(
+class WasmConfiguration(
     override val title: String = "LittleKt - JS",
     val canvasId: String = "canvas",
     val rootPath: String = "./",
