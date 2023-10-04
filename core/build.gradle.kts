@@ -133,6 +133,7 @@ kotlin {
 
         val jvmAndroidMain = maybeCreate("jvmAndroidMain")
 
+        jvmAndroidMain.dependsOn(commonMain)
         androidMain.dependsOn(jvmAndroidMain)
         jvmMain.dependsOn(jvmAndroidMain)
         androidUnitTest.dependsOn(commonTest)
