@@ -35,7 +35,11 @@ class WebVfs(
     private suspend fun loadRaw(url: String): ByteBuffer? {
         val data = CompletableDeferred<ByteBuffer?>(job)
         val req = XMLHttpRequest()
-        req.responseType = XMLHttpRequestResponseType.ARRAYBUFFER
+        /**
+         * Note: [XMLHttpRequestResponseType] throws a [NullPointerException] just by referencing it.
+         * This is why we must convert to a JS string and the cast it unsafely.
+         */
+        req.responseType = "arraybuffer".toJsString().unsafeCast()
         req.onload = {
             val array = Uint8Array(req.response as ArrayBuffer)
             data.complete(ByteBufferImpl(array))
