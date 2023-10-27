@@ -20,7 +20,7 @@ if (secretPropsFile.exists()) {
         ext[name.toString()] = value
     }
 } else {
-    ext["secretKey"]  = System.getenv("SIGNING_SECRET_KEY")
+    ext["secretKey"] = System.getenv("SIGNING_SECRET_KEY")
     ext["signingPassword"] = System.getenv("SIGNING_PASSWORD")
     ext["ossrhUsername"] = System.getenv("OSSRH_USERNAME")
     ext["ossrhPassword"] = System.getenv("OSSRH_PASSWORD")
@@ -42,48 +42,49 @@ val hash: String by lazy {
     stdout.toString().trim()
 }
 
-
-publishing {
-    repositories {
-        maven {
-            name = "sonatype"
-            val releasesRepoUrl = uri("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/")
-            val snapshotsRepoUrl = uri("https://s01.oss.sonatype.org/content/repositories/snapshots/")
-            url = if (project.extra["isReleaseVersion"] as Boolean) releasesRepoUrl else snapshotsRepoUrl
-            credentials {
-                username = getExtraString("ossrhUsername")
-                password = getExtraString("ossrhPassword")
+afterEvaluate {
+    publishing {
+        repositories {
+            maven {
+                name = "sonatype"
+                val releasesRepoUrl = uri("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/")
+                val snapshotsRepoUrl = uri("https://s01.oss.sonatype.org/content/repositories/snapshots/")
+                url = if (project.extra["isReleaseVersion"] as Boolean) releasesRepoUrl else snapshotsRepoUrl
+                credentials {
+                    username = getExtraString("ossrhUsername")
+                    password = getExtraString("ossrhPassword")
+                }
             }
         }
-    }
 
-    // Configure all publications
-    publications.withType<MavenPublication> {
+        // Configure all publications
+        publications.withType<MavenPublication> {
 
-        // Stub javadoc.jar artifact
-        artifact(javadocJar.get())
+            // Stub javadoc.jar artifact
+            artifact(javadocJar.get())
 
-        pom {
-            name.set("LittleKt Game Framework")
-            description.set("Kotlin Multiplatform 2D Game Framework")
-            url.set("https://littlekt.com")
+            pom {
+                name.set("LittleKt Game Framework")
+                description.set("Kotlin Multiplatform 2D Game Framework")
+                url.set("https://littlekt.com")
 
-            licenses {
-                license {
-                    name.set("Apache 2.0")
-                    url.set("https://github.com/littlektframework/littlekt/blob/master/LICENSE")
+                licenses {
+                    license {
+                        name.set("Apache 2.0")
+                        url.set("https://github.com/littlektframework/littlekt/blob/master/LICENSE")
+                    }
                 }
-            }
-            developers {
-                developer {
-                    id.set("LeHaine")
-                    name.set("Colt Daily")
+                developers {
+                    developer {
+                        id.set("LeHaine")
+                        name.set("Colt Daily")
+                    }
                 }
-            }
-            scm {
-                url.set("https://github.com/littlektframework/littlekt")
-            }
+                scm {
+                    url.set("https://github.com/littlektframework/littlekt")
+                }
 
+            }
         }
     }
 }
@@ -93,6 +94,14 @@ tasks.withType<PublishToMavenRepository> {
         version = littleKtVersion.removeSuffix("-SNAPSHOT") + ".$hash-SNAPSHOT"
     }
 }
+
+//region Fix Gradle warning about signing tasks using publishing task outputs without explicit dependencies
+// https://github.com/gradle/gradle/issues/26091
+tasks.withType<AbstractPublishToMaven>().configureEach {
+    val signingTasks = tasks.withType<Sign>()
+    mustRunAfter(signingTasks)
+}
+//endregion
 
 signing {
     setRequired({
