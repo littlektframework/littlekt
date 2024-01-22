@@ -8,6 +8,7 @@
 * Update `Kotlinx.atomicfu` to `0.23.1`.
 * Update `Kotlinx.serialization` to `1.6.2`.
 * Update Dokka gradle plugin to `1.9.10`.
+* Remove remaining 3D spatial graphic classes that were accidentally left over from `0.8.0`.
 
 ## 0.8.0
 
