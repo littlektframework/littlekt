@@ -1,4 +1,13 @@
 # Changelog
+## 0.8.1
+
+### Changes
+
+* Update Kotlin to `1.9.21`.
+* Update `Kotlinx.coroutines` to `1.8.0-RC2`.
+* Update `Kotlinx.atomicfu` to `0.23.1`.
+* Update `Kotlinx.serialization` to `1.6.2`.
+* Update Dokka gradle plugin to `1.9.10`.
 
 ## 0.8.0
 
@@ -14,7 +23,7 @@
 * Update `Kotlinx.serialization` to `1.6.0`.
 * Update `LWJGL` to `3.3.3`.
 * Update Android Gradle plugin to `7.3.1`.
-* Update Gradle version plugin to `0.48.0`.
+* Update Gradle Version (gver) plugin to `0.48.0`.
 * Update Dokka gradle plugin to `1.9.0`.
 
 
