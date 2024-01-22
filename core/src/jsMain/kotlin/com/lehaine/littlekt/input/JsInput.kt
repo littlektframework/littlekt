@@ -101,7 +101,7 @@ class JsInput(val canvas: HTMLCanvasElement) : Input {
             val rect = canvas.getBoundingClientRect()
             val x = touchEvent.clientX.toFloat() - rect.left.toFloat()
             val y = touchEvent.clientY.toFloat() - rect.top.toFloat()
-            inputCache.onMove(x, y, touchedPointers.last())
+            inputCache.onMove(x, y, touchedPointers.lastOrNull() ?: Pointer.POINTER1)
         }
     }
 
@@ -146,11 +146,7 @@ class JsInput(val canvas: HTMLCanvasElement) : Input {
         logicalMouseX = mouseX
         logicalMouseY = mouseY
 
-        if (touchedPointers.isNotEmpty()) {
-            inputCache.onMove(mouseX, mouseY, touchedPointers.last())
-        } else {
-            inputCache.onMove(mouseX, mouseY, Pointer.POINTER1)
-        }
+        inputCache.onMove(mouseX, mouseY, touchedPointers.lastOrNull() ?: Pointer.POINTER1)
     }
 
 
