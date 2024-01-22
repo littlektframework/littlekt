@@ -4,25 +4,21 @@ import com.lehaine.littlekt.math.MutableVec3f
 import com.lehaine.littlekt.math.partition
 
 /**
- * Source from [kool] engine.
+ * Source from [kool](https://github.com/fabmax/kool) engine.
  */
 
-open class KdTree<T: Any>(items: List<T>, itemAdapter: ItemAdapter<T>, bucketSz: Int = 10) : SpatialTree<T>(itemAdapter) {
-
-    override val root: KdNode
-    override val size: Int
-        get() = items.size
+open class KdTree<T : Any>(items: List<T>, itemAdapter: ItemAdapter<T>, bucketSz: Int = 10) :
+    SpatialTree<T>(itemAdapter) {
 
     private val items = MutableList(items.size, items::get)
+
+    override val root: KdNode = KdNode(items.indices, bucketSz)
+    override val size: Int
+        get() = items.size
 
     private val cmpX: (T, T) -> Int = { a, b -> itemAdapter.getMinX(a).compareTo(itemAdapter.getMinX(b)) }
     private val cmpY: (T, T) -> Int = { a, b -> itemAdapter.getMinY(a).compareTo(itemAdapter.getMinY(b)) }
     private val cmpZ: (T, T) -> Int = { a, b -> itemAdapter.getMinZ(a).compareTo(itemAdapter.getMinZ(b)) }
-
-    init {
-        @Suppress("LeakingThis")
-        root = KdNode(items.indices, bucketSz)
-    }
 
     override fun contains(element: T) = root.contains(element)
 
