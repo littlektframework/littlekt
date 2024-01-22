@@ -83,12 +83,7 @@ class LwjglInput(private val context: LwjglContext) : Input {
                 mouseY *= yScale
             }
 
-
-            if (touchedPointers.size > 0) {
-                inputCache.onMove(mouseX, mouseY, touchedPointers.last())
-            } else {
-                inputCache.onMove(mouseX, mouseY, Pointer.POINTER1)
-            }
+            inputCache.onMove(mouseX, mouseY, touchedPointers.lastOrNull() ?: Pointer.POINTER1)
         }
 
         glfwSetMouseButtonCallback(windowHandle) { window, button, action, mods ->
