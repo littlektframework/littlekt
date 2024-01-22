@@ -11,7 +11,7 @@
 * Update Dokka gradle plugin to `1.9.10`.
 
 ### Fixes
-* Fix `NoSuchElementException` being thrown when testing touch input in chrome's device-mode.
+* Fix `NoSuchElementException` being thrown when testing touch input in browsers simulated device-mode.
 
 ## 0.8.0
 
