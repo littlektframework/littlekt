@@ -9,6 +9,10 @@
 * Update `Kotlinx.atomicfu` to `0.23.1`.
 * Update `Kotlinx.serialization` to `1.6.2`.
 * Update Dokka gradle plugin to `1.9.10`.
+
+### Fixes
+* Fix `NoSuchElementException` being thrown when testing touch input in chrome's device-mode.
+
 ## 0.8.0
 
 ### Breaking
