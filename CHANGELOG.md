@@ -2,14 +2,13 @@
 ## 0.8.1
 
 ### Changes
-
+* Remove remaining 3D spatial graphic classes that were accidentally left over from `0.8.0`.
+* Update LDtk to handle changes up to LDtk `1.5.3`.
 * Update Kotlin to `1.9.21`.
 * Update `Kotlinx.coroutines` to `1.8.0-RC2`.
 * Update `Kotlinx.atomicfu` to `0.23.1`.
 * Update `Kotlinx.serialization` to `1.6.2`.
 * Update Dokka gradle plugin to `1.9.10`.
-* Remove remaining 3D spatial graphic classes that were accidentally left over from `0.8.0`.
-
 ## 0.8.0
 
 ### Breaking
