@@ -39,7 +39,7 @@ class PixelSmoothCameraSceneGraphTest(context: Context) : ContextListener(contex
     val targetHeight = 160
 
     override suspend fun Context.start() {
-        val mapLoader = resourcesVfs["ldtk/world.ldtk"].readLDtkMapLoader()
+        val mapLoader = resourcesVfs["ldtk/world-1.5.3.ldtk"].readLDtkMapLoader()
         val icon = resourcesVfs["icon_16x16.png"].readTexture()
         val world = mapLoader.loadLevel(0)
 
