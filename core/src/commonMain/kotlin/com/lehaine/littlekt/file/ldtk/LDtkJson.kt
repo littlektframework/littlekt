@@ -69,6 +69,10 @@ data class LDtkMapData(
      */
     val externalLevels: Boolean,
 
+    /**
+     * Unique project identifier
+     */
+    val iid: String = "",
 
     /**
      * File format version
@@ -82,6 +86,11 @@ data class LDtkMapData(
      */
     @SerialName("levels")
     val levelDefinitions: List<LDtkLevelDefinition>,
+
+    /**
+     * All instances of entities that have their exportToToc flag enabled are listed in this list.
+     */
+    val toc: List<LDtkEntityTocData> = emptyList(),
 
     /**
      * If TRUE, the Json is partially minified (no indentation, nor line breaks, default is
@@ -124,7 +133,7 @@ data class LDtkMapData(
      * after the "Multiple worlds" update, there will be a worlds array in root, each world containing levels and layout settings.
      * Basically, it's pretty much only about moving the levels array to the worlds array, along with world layout related values (eg. worldGridWidth etc).
      */
-    val worlds: List<LDtkWorldData> = emptyList()
+    val worlds: List<LDtkWorldData> = emptyList(),
 )
 
 @Serializable
@@ -191,7 +200,7 @@ data class Definitions(
      */
     val levelFields: List<LDtkFieldDefinition>,
 
-    val tilesets: List<LDtkTilesetDefinition>
+    val tilesets: List<LDtkTilesetDefinition>,
 )
 
 @Serializable
@@ -288,7 +297,7 @@ data class LDtkEntityDefinition(
     /**
      * An object representing a rectangle from an existing tileset
      */
-    val tileRect: LDtkTileRect? = null
+    val tileRect: LDtkTileRect? = null,
 )
 
 /**
@@ -360,7 +369,7 @@ data class LDtkFieldDefinition(
     /**
      * Unique Intidentifier
      */
-    val uid: Int
+    val uid: Int,
 )
 
 @Serializable
@@ -398,17 +407,15 @@ data class LDtkEnumDefinition(
     /**
      * A list of user-defined tags to organize the Enums
      */
-    val tags: List<String> = emptyList()
+    val tags: List<String> = emptyList(),
 )
 
 @Serializable
 data class LDtkEnumValueDefinition(
     /**
-     * An array of 4 Int values that refers to the tile in the tileset image: `[ x, y, width,
-     * height ]`
+     * The color value of the enum value
      */
-    @SerialName("__tileSrcRect")
-    val tileSrcRect: List<Int>?,
+    val color: Int,
 
     /**
      * Enum value
@@ -416,15 +423,24 @@ data class LDtkEnumValueDefinition(
     val id: String,
 
     /**
+     * Optional tileset rectangle to represents this value.
+     */
+    val tileRect: LDtkTileRect? = null,
+
+    /**
      * The optional ID of the tile
      */
+    @Deprecated("No longer exported since version 1.4.0.", ReplaceWith("tileRect"))
     @SerialName("tileId")
     val tileID: Int? = null,
 
     /**
-     * The color value of the enum value
+     * An array of 4 Int values that refers to the tile in the tileset image: `[ x, y, width,
+     * height ]`
      */
-    val color: Int
+    @SerialName("__tileSrcRect")
+    @Deprecated("No longer exported since version 1.4.0.", ReplaceWith("tileRect"))
+    val tileSrcRect: List<Int>?,
 )
 
 @Serializable
@@ -554,14 +570,24 @@ data class LDtkIntGridValueDefinition(
     val color: String,
 
     /**
+     * Parent group identifier (0 if none)
+     */
+    val groupUid: Int = 0,
+
+    /**
      * Unique String identifier
      */
     val identifier: String? = null,
 
     /**
+     * Tileset Rectangle.
+     */
+    val tile: LDtkTileRect? = null,
+
+    /**
      * The IntGrid value itself
      */
-    val value: Int
+    val value: Int,
 )
 
 /**
@@ -645,7 +671,7 @@ data class LDtkTilesetDefinition(
      *
      * Possible values: `null`, `LdtkIcons`
      */
-    val embedAtlas: String? = null
+    val embedAtlas: String? = null,
 )
 
 /**
@@ -801,7 +827,7 @@ data class LDtkLevelBackgroundPositionData(
      * An array containing the `[x,y]` pixel coordinates of the top-left corner of the
      * **cropped** background image, depending on `bgPos` option.
      */
-    val topLeftPx: List<Int>
+    val topLeftPx: List<Int>,
 )
 
 @Serializable
@@ -834,7 +860,7 @@ data class LDtkFieldInstance(
      * Optional TilesetRect used to display this field (this can be the field own Tile, or some other Tile guessed from the value, like an Enum)
      */
     @SerialName("__tile")
-    val tile: LDtkTileRect? = null
+    val tile: LDtkTileRect? = null,
 )
 
 @Serializable(with = MultiAssociatedValueSerializer::class)
@@ -842,7 +868,7 @@ data class MultiAssociatedValue(
     val stringList: List<String>? = null,
     val stringMapList: List<Map<String, String>>? = null,
     val stringMap: Map<String, String>? = null,
-    val content: String? = null
+    val content: String? = null,
 )
 
 private object MultiAssociatedValueSerializer : KSerializer<MultiAssociatedValue> {
@@ -966,7 +992,7 @@ data class LDtkLayerInstance(
      * **WARNING**: this deprecated value will be *removed* completely on version 0.9.0+
      * Replaced by: `intGridCsv`
      */
-    @Deprecated("Removed in versions 0.9.0+", replaceWith = ReplaceWith("this.intGridCsv"))
+    @Deprecated("Removed in versions 0.9.0+", replaceWith = ReplaceWith("intGridCsv"))
     val intGrid: List<LDtkIntGridValueInstance>? = null,
 
     /**
@@ -1027,6 +1053,11 @@ data class LDtkLayerInstance(
 @Serializable
 data class LDtkTileInstance(
     /**
+     * Alpha/opacity of the tile (0-1, defaults to 1)
+     */
+    val a: Float = 1f,
+
+    /**
      * Internal data used by the editor.
      *
      * For auto-layer tiles: `(ruleId, coordId)`.
@@ -1057,7 +1088,7 @@ data class LDtkTileInstance(
     /**
      * The *Tile ID* in the corresponding tileset.
      */
-    val t: Int
+    val t: Int,
 )
 
 @Serializable
@@ -1086,6 +1117,18 @@ data class LDtkEntityInstance(
      */
     @SerialName("__tile")
     val tile: LDtkTileRect? = null,
+
+    /**
+     * X world coordinate in pixels. Only available in GridVania or Free world layouts.
+     */
+    @SerialName("__worldX")
+    val worldX: Int? = null,
+
+    /**
+     * Y world coordinate in pixels. Only available in GridVania or Free world layouts.
+     */
+    @SerialName("__worldY")
+    val worldY: Int? = null,
 
     /**
      * Reference of the **Entity definition** UID
@@ -1127,6 +1170,44 @@ data class LDtkEntityInstance(
     val iid: String = "",
 )
 
+@Serializable
+data class LDtkEntityTocData(
+    val identifier: String,
+    val instancesData: List<LDtkEntityTocInstanceData>,
+    @Deprecated("This will be removed completely on version 1.7.0+.", ReplaceWith("instancesData", "com."))
+    val instances: List<LDtkEntityInstanceReference>,
+)
+
+@Serializable
+data class LDtkEntityInstanceReference(
+    /**
+     * IID of the referred [LDtkEntityInstance]
+     */
+    val entityIid: String,
+    /**
+     * IID of the [LDtkLayerInstance] containing the referred [LDtkEntityInstance]
+     */
+    val layerIid: String,
+    /**
+     * IID of the [LDtkLevelDefinition] containing the referred [LDtkEntityInstance]
+     */
+    val levelIid: String,
+    /**
+     * IID of the [LDtkWorldData] containing the referred [LDtkEntityInstance]
+     */
+    val worldIid: String,
+)
+
+@Serializable
+data class LDtkEntityTocInstanceData(
+    val fields: MultiAssociatedValue,
+    val heiPx: Int,
+    val iids: LDtkEntityInstance,
+    val widPx: Int,
+    val worldX: Int,
+    val worldY: Int,
+)
+
 /**
  * Tile data in an Entity instance
  */
@@ -1136,7 +1217,7 @@ data class LDtkTileRect(
      * A list of 4 Int values that refers to the tile in the tileset image: `[ x, y, width,
      * height ]`
      */
-    @Deprecated("Removed in version 1.0.0", replaceWith = ReplaceWith("this.x\nthis.y\nthis.w\nthis.h"))
+    @Deprecated("Removed in version 1.0.0", replaceWith = ReplaceWith("x\ny\nw\nh"))
     val srcRect: List<Int> = emptyList(),
 
     /**
@@ -1179,7 +1260,7 @@ data class LDtkIntGridValueInstance(
     /**
      * IntGrid value
      */
-    val v: Int
+    val v: Int,
 )
 
 @Serializable
@@ -1215,8 +1296,9 @@ enum class LDtkBgPos(val value: String) {
 @Serializable
 data class LDtkNeighbourLevelData(
     /**
-     * A single lowercase character tipping on the level location (`n`orth, `s`outh, `w`est,
-     * `e`ast).
+     * A lowercase string tipping on the level location (`n`orth, `s`outh, `w`est, `e`ast).
+     * Since 1.4.0, this value can also be `<` (neighbour depth is lower), `>` (neighbour depth is greater) or `o` (levels overlap and share the same world depth).
+     * Since 1.5.3, this value can also be `nw`, `ne`, `sw` or `se` for levels only touching corners.
      */
     val dir: String,
 
@@ -1226,7 +1308,7 @@ data class LDtkNeighbourLevelData(
     val levelIid: String = "",
 
     @Deprecated("Will be removed completely in LDtk '1.2.0+'", replaceWith = ReplaceWith("levelIid"))
-    val levelUid: Int = 0
+    val levelUid: Int = 0,
 )
 
 /**

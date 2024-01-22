@@ -1,8 +1,8 @@
 package com.lehaine.littlekt.graphics.g2d.tilemap.ldtk
 
 import com.lehaine.littlekt.file.ldtk.LDtkLevelBackgroundPositionData
-import com.lehaine.littlekt.graphics.g2d.Batch
 import com.lehaine.littlekt.graphics.Camera
+import com.lehaine.littlekt.graphics.g2d.Batch
 import com.lehaine.littlekt.graphics.g2d.TextureSlice
 import com.lehaine.littlekt.math.Rect
 import com.lehaine.littlekt.math.geom.Angle
@@ -25,7 +25,7 @@ class LDtkLevel(
     val entities: List<LDtkEntity>,
     val backgroundColor: String,
     levelBackgroundPos: LDtkLevelBackgroundPositionData? = null,
-    bgImageTexture: TextureSlice? = null
+    bgImageTexture: TextureSlice? = null,
 ) {
     val layersByIdentifier by lazy { layers.associateBy { it.identifier } }
     val layersByIid by lazy { layers.associateBy { it.iid } }
@@ -68,7 +68,7 @@ class LDtkLevel(
         camera: Camera,
         x: Float = worldX.toFloat(),
         y: Float = worldY.toFloat(),
-        scale: Float = 1f
+        scale: Float = 1f,
     ) {
         viewBounds.calculateViewBounds(camera)
         render(batch, viewBounds, x, y, scale)
@@ -79,7 +79,7 @@ class LDtkLevel(
         viewBounds: Rect,
         x: Float = worldX.toFloat(),
         y: Float = worldY.toFloat(),
-        scale: Float = 1f
+        scale: Float = 1f,
     ) {
         levelBackgroundImage?.render(batch, x, y, scale)
         // need to render back to front - layers last in the list need to render first
@@ -104,9 +104,16 @@ class LDtkLevel(
 
     enum class NeighborDirection {
         North,
+        NorthWest,
+        NorthEast,
         South,
+        SouthWest,
+        SouthEast,
         West,
-        East;
+        East,
+        DepthLower,
+        DepthGreater,
+        Overlap;
 
         companion object {
             fun fromDir(dir: String): NeighborDirection {
@@ -115,6 +122,13 @@ class LDtkLevel(
                     "e" -> East
                     "s" -> South
                     "w" -> West
+                    "ne" -> NorthEast
+                    "se" -> SouthEast
+                    "sw" -> SouthWest
+                    "nw" -> NorthWest
+                    "<" -> DepthLower
+                    ">" -> DepthGreater
+                    "o" -> Overlap
                     else -> {
                         println("WARNING: unknown neighbor level direction: $dir")
                         North
@@ -134,7 +148,7 @@ class LDtkLevel(
         val scaleX: Float,
         val scaleY: Float,
         val cropRect: CropRect,
-        val slice: TextureSlice
+        val slice: TextureSlice,
     ) {
 
         fun render(batch: Batch, x: Float, y: Float, scale: Float = 1f) {
