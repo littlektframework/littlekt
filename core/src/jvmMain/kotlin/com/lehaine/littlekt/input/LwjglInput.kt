@@ -86,7 +86,7 @@ class LwjglInput(private val context: LwjglContext) : Input {
             inputCache.onMove(mouseX, mouseY, touchedPointers.lastOrNull() ?: Pointer.POINTER1)
         }
 
-        glfwSetMouseButtonCallback(windowHandle) { window, button, action, mods ->
+        glfwSetMouseButtonCallback(windowHandle) { _, button, action, _ ->
             if (action == GLFW_PRESS) {
                 inputCache.onTouchDown(mouseX, mouseY, button.getPointer)
                 touchedPointers += button.getPointer
@@ -124,7 +124,7 @@ class LwjglInput(private val context: LwjglContext) : Input {
         _deltaY = 0f
     }
 
-    fun checkForGamepads() {
+    private fun checkForGamepads() {
         for (i in gamepads.indices) {
             if (!glfwJoystickPresent(i)) {
                 if (gamepads[i].connected) {
@@ -141,7 +141,7 @@ class LwjglInput(private val context: LwjglContext) : Input {
         }
     }
 
-    val state = GLFWGamepadState(ByteBuffer.allocateDirect(64))
+    private val state = GLFWGamepadState(ByteBuffer.allocateDirect(64))
     private fun updateGamepads() {
         if (connectedGamepads.isEmpty()) return
 
