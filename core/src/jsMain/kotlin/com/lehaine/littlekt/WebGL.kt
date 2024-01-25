@@ -124,6 +124,17 @@ class WebGL(val gl: WebGL2RenderingContext, val platform: Context.Platform, priv
         return GlShaderProgram(gl.createProgram()!!)
     }
 
+    override fun getActiveAttrib(
+        glShaderProgram: GlShaderProgram,
+        index: Int,
+        size: IntBuffer,
+        type: IntBuffer,
+    ): String {
+        engineStats.calls++
+        return gl.getActiveAttrib(glShaderProgram.delegate, index)?.name
+            ?: throw RuntimeException("WebGL: getActiveAttrib returned a null attribute name!")
+    }
+
     override fun getAttribLocation(glShaderProgram: GlShaderProgram, name: String): Int {
         engineStats.calls++
         return gl.getAttribLocation(glShaderProgram.delegate, name)
@@ -135,6 +146,17 @@ class WebGL(val gl: WebGL2RenderingContext, val platform: Context.Platform, priv
             gl.getUniformLocation(glShaderProgram.delegate, name)
                 ?: throw RuntimeException("Uniform $name has not been created.")
         )
+    }
+
+    override fun getActiveUniform(
+        glShaderProgram: GlShaderProgram,
+        index: Int,
+        size: IntBuffer,
+        type: IntBuffer,
+    ): String {
+        engineStats.calls++
+        return gl.getActiveUniform(glShaderProgram.delegate, index)?.name
+            ?: throw RuntimeException("WebGL: getActiveUniform returned a null attribute name!")
     }
 
     override fun attachShader(glShaderProgram: GlShaderProgram, glShader: GlShader) {
@@ -155,6 +177,17 @@ class WebGL(val gl: WebGL2RenderingContext, val platform: Context.Platform, priv
     override fun deleteProgram(glShaderProgram: GlShaderProgram) {
         engineStats.calls++
         gl.deleteProgram(glShaderProgram.delegate)
+    }
+
+    override fun getProgramiv(glShaderProgram: GlShaderProgram, pname: Int, params: IntBuffer) {
+        engineStats.calls++
+        if (pname == GetProgram.DELETE_STATUS.glFlag || pname == GetProgram.LINK_STATUS.glFlag || pname == GetProgram.VALIDATE_STATUS.glFlag) {
+            val result: Boolean = gl.getProgramParameter(glShaderProgram.delegate, pname) as Boolean
+            params.put(if (result) GL.TRUE else GL.FALSE)
+        } else {
+            params.put(gl.getProgramParameter(glShaderProgram.delegate, pname) as Int)
+        }
+        params.flip()
     }
 
     override fun getString(pname: Int): String? {

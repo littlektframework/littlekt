@@ -15,7 +15,6 @@ import kotlin.jvm.JvmName
  * @date 9/28/2021
  */
 sealed class ShaderParameter(val name: String) {
-    abstract fun create(program: ShaderProgram<*, *>)
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -33,20 +32,12 @@ sealed class ShaderParameter(val name: String) {
     }
 
     class UniformMat3(name: String) : ShaderParameter(name) {
-        override fun create(program: ShaderProgram<*, *>) {
-            program.createUniform(name)
-        }
-
         fun apply(program: ShaderProgram<*, *>, matrix: Mat3) {
             program.gl?.uniformMatrix3fv(program.getUniform(name), false, matrix)
         }
     }
 
     class UniformArrayMat3(name: String) : ShaderParameter(name) {
-        override fun create(program: ShaderProgram<*, *>) {
-            program.createUniform(name)
-        }
-
         @JvmName("applyArray")
         fun apply(program: ShaderProgram<*, *>, matrix: Array<Mat3>) = apply(program, *matrix)
 
@@ -66,19 +57,12 @@ sealed class ShaderParameter(val name: String) {
     }
 
     class UniformMat4(name: String) : ShaderParameter(name) {
-        override fun create(program: ShaderProgram<*, *>) {
-            program.createUniform(name)
-        }
-
         fun apply(program: ShaderProgram<*, *>, matrix: Mat4) {
             program.gl?.uniformMatrix4fv(program.getUniform(name), false, matrix)
         }
     }
 
     class UniformArrayMat4(name: String) : ShaderParameter(name) {
-        override fun create(program: ShaderProgram<*, *>) {
-            program.createUniform(name)
-        }
 
         @JvmName("applyArray")
         fun apply(program: ShaderProgram<*, *>, matrix: Array<Mat4>) = apply(program, *matrix)
@@ -99,9 +83,6 @@ sealed class ShaderParameter(val name: String) {
     }
 
     class UniformInt(name: String) : ShaderParameter(name) {
-        override fun create(program: ShaderProgram<*, *>) {
-            program.createUniform(name)
-        }
 
         fun apply(program: ShaderProgram<*, *>, vararg value: Int) {
             when (value.size) {
@@ -114,9 +95,6 @@ sealed class ShaderParameter(val name: String) {
     }
 
     class UniformVec2(name: String) : ShaderParameter(name) {
-        override fun create(program: ShaderProgram<*, *>) {
-            program.createUniform(name)
-        }
 
         fun apply(program: ShaderProgram<*, *>, vec2: Vec2f) = apply(program, vec2.x, vec2.y)
 
@@ -129,9 +107,6 @@ sealed class ShaderParameter(val name: String) {
     }
 
     class UniformVec3(name: String) : ShaderParameter(name) {
-        override fun create(program: ShaderProgram<*, *>) {
-            program.createUniform(name)
-        }
 
         fun apply(program: ShaderProgram<*, *>, vec3: Vec3f) = apply(program, vec3.x, vec3.y, vec3.z)
 
@@ -144,9 +119,6 @@ sealed class ShaderParameter(val name: String) {
     }
 
     class UniformVec4(name: String) : ShaderParameter(name) {
-        override fun create(program: ShaderProgram<*, *>) {
-            program.createUniform(name)
-        }
 
         fun apply(program: ShaderProgram<*, *>, color: Color) = apply(
             program,
@@ -173,9 +145,6 @@ sealed class ShaderParameter(val name: String) {
     }
 
     class UniformFloat(name: String) : ShaderParameter(name) {
-        override fun create(program: ShaderProgram<*, *>) {
-            program.createUniform(name)
-        }
 
         fun apply(program: ShaderProgram<*, *>, vararg value: Float) {
             when (value.size) {
@@ -189,9 +158,6 @@ sealed class ShaderParameter(val name: String) {
     }
 
     class UniformArrayFloat(name: String) : ShaderParameter(name) {
-        override fun create(program: ShaderProgram<*, *>) {
-            program.createUniform(name)
-        }
 
         fun apply(program: ShaderProgram<*, *>, f: Array<Float>) {
             program.gl?.uniform1fv(program.getUniform(name), f)
@@ -205,9 +171,6 @@ sealed class ShaderParameter(val name: String) {
     }
 
     class UniformArrayVec2(name: String) : ShaderParameter(name) {
-        override fun create(program: ShaderProgram<*, *>) {
-            program.createUniform(name)
-        }
 
         fun apply(program: ShaderProgram<*, *>, f: Array<Float>) {
             program.gl?.uniform2fv(program.getUniform(name), f)
@@ -221,9 +184,6 @@ sealed class ShaderParameter(val name: String) {
     }
 
     class UniformArrayVec3(name: String) : ShaderParameter(name) {
-        override fun create(program: ShaderProgram<*, *>) {
-            program.createUniform(name)
-        }
 
         @JvmName("applyArray")
         fun apply(program: ShaderProgram<*, *>, f: Array<Float>) {
@@ -239,9 +199,6 @@ sealed class ShaderParameter(val name: String) {
     }
 
     class UniformArrayVec4(name: String) : ShaderParameter(name) {
-        override fun create(program: ShaderProgram<*, *>) {
-            program.createUniform(name)
-        }
 
         @JvmName("applyArray")
         fun apply(program: ShaderProgram<*, *>, f: Array<Float>) {
@@ -263,9 +220,6 @@ sealed class ShaderParameter(val name: String) {
     }
 
     class UniformSample2D(name: String) : ShaderParameter(name) {
-        override fun create(program: ShaderProgram<*, *>) {
-            program.createUniform(name)
-        }
 
         fun apply(program: ShaderProgram<*, *>, glTexture: GlTexture, unit: Int = 0) {
             program.gl?.activeTexture(GL.TEXTURE0 + unit)
@@ -279,18 +233,11 @@ sealed class ShaderParameter(val name: String) {
     }
 
     class UniformBoolean(name: String) : ShaderParameter(name) {
-        override fun create(program: ShaderProgram<*, *>) {
-            program.createUniform(name)
-        }
 
         fun apply(program: ShaderProgram<*, *>, value: Boolean) {
             program.gl?.uniform1i(program.getUniform(name), if (value) 1 else 0)
         }
     }
 
-    class Attribute(name: String) : ShaderParameter(name) {
-        override fun create(program: ShaderProgram<*, *>) {
-            program.createAttrib(name)
-        }
-    }
+    class Attribute(name: String) : ShaderParameter(name)
 }
