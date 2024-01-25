@@ -114,8 +114,10 @@ interface GL {
         stencilOpSeparate(face.glFlag, fail.glFlag, zfail.glFlag, zpass.glFlag)
 
     fun createProgram(): GlShaderProgram
+    fun getActiveAttrib(glShaderProgram: GlShaderProgram, index: Int, size: IntBuffer, type: IntBuffer): String
     fun getAttribLocation(glShaderProgram: GlShaderProgram, name: String): Int
     fun getUniformLocation(glShaderProgram: GlShaderProgram, name: String): UniformLocation
+    fun getActiveUniform(glShaderProgram: GlShaderProgram, index: Int, size: IntBuffer, type: IntBuffer): String
     fun attachShader(glShaderProgram: GlShaderProgram, glShader: GlShader)
     fun detachShader(glShaderProgram: GlShaderProgram, glShader: GlShader)
     fun useProgram(glShaderProgram: GlShaderProgram)
@@ -124,6 +126,9 @@ interface GL {
     fun linkProgram(glShaderProgram: GlShaderProgram)
     fun deleteProgram(glShaderProgram: GlShaderProgram)
 
+    fun getProgramiv(glShaderProgram: GlShaderProgram, pname: Int, params: IntBuffer)
+    fun getProgramiv(glShaderProgram: GlShaderProgram, pname: GetProgram, params: IntBuffer) =
+        getProgramiv(glShaderProgram, pname.glFlag, params)
 
     fun getProgramParameter(glShaderProgram: GlShaderProgram, pname: Int): Any
     fun getProgramParameterB(glShaderProgram: GlShaderProgram, pname: Int): Boolean =
@@ -148,6 +153,7 @@ interface GL {
     fun getShaderInfoLog(glShader: GlShader): String
     fun deleteShader(glShader: GlShader)
     fun getProgramInfoLog(glShader: GlShaderProgram): String
+
     fun createVertexArray(): GlVertexArray
     fun bindVertexArray(glVertexArray: GlVertexArray)
     fun bindDefaultVertexArray()

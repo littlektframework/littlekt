@@ -129,6 +129,18 @@ class LwjglGL(private val engineStats: EngineStats, private val graphics: Graphi
         return GlShaderProgram(glCreateProgram())
     }
 
+    override fun getActiveAttrib(
+        glShaderProgram: GlShaderProgram,
+        index: Int,
+        size: IntBuffer,
+        type: IntBuffer,
+    ): String {
+        engineStats.calls++
+        size as IntBufferImpl
+        type as IntBufferImpl
+        return GL20.glGetActiveAttrib(glShaderProgram.address, index, 256, size.buffer, type.buffer)
+    }
+
     override fun getAttribLocation(glShaderProgram: GlShaderProgram, name: String): Int {
         engineStats.calls++
         return glGetAttribLocation(glShaderProgram.address, name)
@@ -137,6 +149,18 @@ class LwjglGL(private val engineStats: EngineStats, private val graphics: Graphi
     override fun getUniformLocation(glShaderProgram: GlShaderProgram, name: String): UniformLocation {
         engineStats.calls++
         return UniformLocation(glGetUniformLocation(glShaderProgram.address, name))
+    }
+
+    override fun getActiveUniform(
+        glShaderProgram: GlShaderProgram,
+        index: Int,
+        size: IntBuffer,
+        type: IntBuffer,
+    ): String {
+        engineStats.calls++
+        size as IntBufferImpl
+        type as IntBufferImpl
+        return GL20.glGetActiveUniform(glShaderProgram.address, index, 256, size.buffer, type.buffer)
     }
 
     override fun attachShader(glShaderProgram: GlShaderProgram, glShader: GlShader) {
@@ -157,6 +181,12 @@ class LwjglGL(private val engineStats: EngineStats, private val graphics: Graphi
     override fun deleteProgram(glShaderProgram: GlShaderProgram) {
         engineStats.calls++
         glDeleteProgram(glShaderProgram.address)
+    }
+
+    override fun getProgramiv(glShaderProgram: GlShaderProgram, pname: Int, params: IntBuffer) {
+        engineStats.calls++
+        params as IntBufferImpl
+        return GL20.glGetProgramiv(glShaderProgram.address, pname, params.buffer)
     }
 
     override fun getProgramParameter(glShaderProgram: GlShaderProgram, pname: Int): Any {

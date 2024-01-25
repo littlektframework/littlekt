@@ -130,6 +130,18 @@ class AndroidGL(private val engineStats: EngineStats) : GL {
         return GlShaderProgram(GLES20.glCreateProgram())
     }
 
+    override fun getActiveAttrib(
+        glShaderProgram: GlShaderProgram,
+        index: Int,
+        size: IntBuffer,
+        type: IntBuffer,
+    ): String {
+        engineStats.calls++
+        size as IntBufferImpl
+        type as IntBufferImpl
+        return GLES20.glGetActiveAttrib(glShaderProgram.address, index, size.buffer, type.buffer)
+    }
+
     override fun getAttribLocation(glShaderProgram: GlShaderProgram, name: String): Int {
         engineStats.calls++
         return GLES20.glGetAttribLocation(glShaderProgram.address, name)
@@ -138,6 +150,18 @@ class AndroidGL(private val engineStats: EngineStats) : GL {
     override fun getUniformLocation(glShaderProgram: GlShaderProgram, name: String): UniformLocation {
         engineStats.calls++
         return UniformLocation(GLES20.glGetUniformLocation(glShaderProgram.address, name))
+    }
+
+    override fun getActiveUniform(
+        glShaderProgram: GlShaderProgram,
+        index: Int,
+        size: IntBuffer,
+        type: IntBuffer,
+    ): String {
+        engineStats.calls++
+        size as IntBufferImpl
+        type as IntBufferImpl
+        return GLES20.glGetActiveUniform(glShaderProgram.address, index, size.buffer, type.buffer)
     }
 
     override fun attachShader(glShaderProgram: GlShaderProgram, glShader: GlShader) {
@@ -158,6 +182,12 @@ class AndroidGL(private val engineStats: EngineStats) : GL {
     override fun deleteProgram(glShaderProgram: GlShaderProgram) {
         engineStats.calls++
         GLES20.glDeleteProgram(glShaderProgram.address)
+    }
+
+    override fun getProgramiv(glShaderProgram: GlShaderProgram, pname: Int, params: IntBuffer) {
+        engineStats.calls++
+        params as IntBufferImpl
+        GLES20.glGetProgramiv(glShaderProgram.address, pname, params.buffer)
     }
 
     override fun getProgramParameter(glShaderProgram: GlShaderProgram, pname: Int): Any {

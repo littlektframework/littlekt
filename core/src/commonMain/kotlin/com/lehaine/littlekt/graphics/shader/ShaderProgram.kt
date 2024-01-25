@@ -2,6 +2,7 @@ package com.lehaine.littlekt.graphics.shader
 
 import com.lehaine.littlekt.Context
 import com.lehaine.littlekt.Disposable
+import com.lehaine.littlekt.file.createIntBuffer
 import com.lehaine.littlekt.graphics.GL
 import com.lehaine.littlekt.graphics.Preparable
 import com.lehaine.littlekt.graphics.gl.*
@@ -79,14 +80,54 @@ class ShaderProgram<V : VertexShader, F : FragmentShader>(
             if (it.name == U_PROJ_TRANS_UNIFORM) {
                 uProjTrans = it as ShaderParameter.UniformMat4
             }
-            it.create(this)
         }
 
         fragmentShader.parameters.forEach {
             if (it.name == U_TEXTURE) {
                 uTexture = it as ShaderParameter.UniformSample2D
             }
-            it.create(this)
+        }
+
+        fetchUniforms()
+        fetchAttributes()
+    }
+
+    private val params = createIntBuffer(1)
+    private val type = createIntBuffer(1)
+
+    private fun fetchUniforms() {
+        val gl = gl
+        val programGl = programGl
+        check(isPrepared && programGl != null && gl != null) { "ShaderProgram is not prepared! Make sure to call prepare(context)." }
+        params.clear()
+        gl.getProgramiv(programGl, GetProgram.ACTIVE_UNIFORMS, params)
+        val numUniforms = params[0]
+        uniforms.clear()
+        for (i in 0 until numUniforms) {
+            params.clear()
+            params[0] = 1
+            type.clear()
+            val name = gl.getActiveUniform(programGl, i, params, type)
+            val location = gl.getUniformLocation(programGl, name)
+            uniforms[name] = location
+        }
+    }
+
+    private fun fetchAttributes() {
+        val gl = gl
+        val programGl = programGl
+        check(isPrepared && programGl != null && gl != null) { "ShaderProgram is not prepared! Make sure to call prepare(context)." }
+        params.clear()
+        gl.getProgramiv(programGl, GetProgram.ACTIVE_ATTRIBUTES, params)
+        val numAttributes = params[0]
+        attributes.clear()
+        for (i in 0 until numAttributes) {
+            params.clear()
+            params[0] = 1
+            type.clear()
+            val name = gl.getActiveAttrib(programGl, i, params, type)
+            val location = gl.getAttribLocation(programGl, name)
+            attributes[name] = location
         }
     }
 
