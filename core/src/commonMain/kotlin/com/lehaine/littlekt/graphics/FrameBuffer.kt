@@ -22,13 +22,25 @@ import kotlin.contracts.contract
 open class FrameBuffer(
     val width: Int,
     val height: Int,
+    val colorAttachments: List<ColorAttachment> = listOf(ColorAttachment()),
     val hasDepth: Boolean = false,
     val hasStencil: Boolean = false,
     var hasPackedDepthStencil: Boolean = false,
-    val format: Pixmap.Format = Pixmap.Format.RGBA8888,
-    val minFilter: TexMinFilter = TexMinFilter.LINEAR,
-    val magFilter: TexMagFilter = TexMagFilter.LINEAR,
 ) : Preparable, Disposable {
+
+    /**
+     * A color attachment to be used in [FrameBuffer].
+     * @param format format of the color buffer
+     * @param minFilter texture min filter
+     * @param magFilter texture mag filter
+     * @param wrap format for UV texture wrap
+     */
+    class ColorAttachment(
+        val format: Pixmap.Format = Pixmap.Format.RGBA8888,
+        val minFilter: TexMinFilter = TexMinFilter.LINEAR,
+        val magFilter: TexMagFilter = TexMagFilter.LINEAR,
+        val wrap: TexWrap = TexWrap.CLAMP_TO_EDGE,
+    )
 
     /**
      * Gets set when the frame buffer is prepared by the application
@@ -45,8 +57,8 @@ open class FrameBuffer(
     private var isBound = false
     private var isPrepared = false
 
-    var texture: Texture? = null
-    val colorBufferTexture get() = texture!!
+    private val _textures = mutableListOf<Texture>()
+    val textures: List<Texture> get() = _textures
 
     override val prepared: Boolean
         get() = isPrepared
@@ -81,15 +93,30 @@ open class FrameBuffer(
                 gl.renderBufferStorage(RenderBufferInternalFormat.DEPTH24_STENCIL8, width, height)
             }
         }
-        texture = Texture(GLTextureData(width, height, 0, format.glFormat, format.glFormat, format.glType)).apply {
-            minFilter = this@FrameBuffer.minFilter
-            magFilter = this@FrameBuffer.magFilter
-            uWrap = TexWrap.CLAMP_TO_EDGE
-            vWrap = TexWrap.CLAMP_TO_EDGE
-        }.also { it.prepare(context) } // preparing the texture will also bind it
 
-        texture?.glTexture?.let {
-            gl.frameBufferTexture2D(FrameBufferRenderBufferAttachment.COLOR_ATTACHMENT(), it, 0)
+        colorAttachments.forEachIndexed { i, colorAttachment ->
+            _textures += Texture(
+                GLTextureData(
+                    width,
+                    height,
+                    0,
+                    colorAttachment.format.glFormat,
+                    colorAttachment.format.glFormat,
+                    colorAttachment.format.glType
+                )
+            ).apply {
+                minFilter = colorAttachment.minFilter
+                magFilter = colorAttachment.magFilter
+                uWrap = colorAttachment.wrap
+                vWrap = colorAttachment.wrap
+            }.also { texture ->
+                texture.prepare(context) // preparing the texture will also bind it
+                gl.frameBufferTexture2D(FrameBufferRenderBufferAttachment.COLOR_ATTACHMENT(i),
+                    texture.glTexture
+                        ?: throw RuntimeException("FrameBuffer failed on attempting to add color attachment($i)!"),
+                    0
+                )
+            }
         }
 
         depthBufferHandle?.let {
@@ -104,9 +131,6 @@ open class FrameBuffer(
         }
 
         gl.bindDefaultRenderBuffer()
-        texture?.glTexture?.let {
-            gl.bindTexture(TextureTarget._2D, it)
-        }
 
         var result = gl.checkFrameBufferStatus()
         if (result == FrameBufferStatus.FRAMEBUFFER_UNSUPPORTED && hasDepth && hasStencil &&
@@ -190,7 +214,9 @@ open class FrameBuffer(
     }
 
     override fun dispose() {
-        texture?.dispose()
+        _textures.forEach {
+            it.dispose()
+        }
 
         if (hasDepth) {
             depthBufferHandle?.let {

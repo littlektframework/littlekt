@@ -705,6 +705,15 @@ class LwjglGL(private val engineStats: EngineStats, private val graphics: Graphi
         glDrawElements(mode, count, type, offset.toLong())
     }
 
+    override fun drawBuffers(size: Int, buffers: IntBuffer) {
+        engineStats.calls++
+        buffers as IntBufferImpl
+        val limit = buffers.limit
+        buffers.limit = size
+        GL20.glDrawBuffers(buffers.buffer)
+        buffers.limit = limit
+    }
+
     override fun pixelStorei(pname: Int, param: Int) {
         engineStats.calls++
         glPixelStorei(pname, param)

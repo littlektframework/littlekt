@@ -53,11 +53,15 @@ class PixelSmoothCameraTest(context: Context) : ContextListener(context) {
         val pixelSmoothShader =
             ShaderProgram(PixelSmoothVertexShader(), PixelSmoothFragmentShader()).also { it.prepare(this) }
 
-        var fbo = FrameBuffer(1, 1, minFilter = TexMinFilter.NEAREST, magFilter = TexMagFilter.NEAREST).also {
+        var fbo = FrameBuffer(
+            1,
+            1,
+            listOf(FrameBuffer.ColorAttachment(minFilter = TexMinFilter.NEAREST, magFilter = TexMagFilter.NEAREST))
+        ).also {
             it.prepare(this)
         }
 
-        var fboRegion = TextureSlice(fbo.colorBufferTexture, 0, 0, fbo.width, fbo.height)
+        var fboRegion = TextureSlice(fbo.textures[0], 0, 0, fbo.width, fbo.height)
         val cameraDir = MutableVec2f()
         val targetPosition = MutableVec2f()
         val velocity = MutableVec2f()
@@ -72,12 +76,11 @@ class PixelSmoothCameraTest(context: Context) : ContextListener(context) {
             fbo = FrameBuffer(
                 pxWidth.nextPowerOfTwo,
                 pxHeight.nextPowerOfTwo,
-                minFilter = TexMinFilter.NEAREST,
-                magFilter = TexMagFilter.NEAREST
+                listOf(FrameBuffer.ColorAttachment(minFilter = TexMinFilter.NEAREST, magFilter = TexMagFilter.NEAREST))
             ).also {
                 it.prepare(this)
             }
-            fboRegion = TextureSlice(fbo.colorBufferTexture, 0, fbo.height - pxHeight, pxWidth, pxHeight)
+            fboRegion = TextureSlice(fbo.textures[0], 0, fbo.height - pxHeight, pxWidth, pxHeight)
             sceneCamera.ortho(fbo.width * worldUnitInvScale, fbo.height * worldUnitInvScale)
         }
         onRender { dt ->

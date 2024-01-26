@@ -210,8 +210,16 @@ internal class ByteBufferImpl(buffer: ArrayBuffer) : ByteBuffer, GenericBuffer<D
         return buffer.getInt8(offset)
     }
 
+    fun getUInt8Array(out: Uint8Array): Uint8Array {
+        check(out.length >= capacity) { "out must be >= the buffer capacity!" }
+        for (i in 0 until capacity) {
+            out[i] = getByte(i)
+        }
+        return out
+    }
+
     override fun getByteArray(startOffset: Int, endOffset: Int): ByteArray {
-        check(endOffset >= endOffset) { "endOffset must be >= the startOffset!" }
+        check(endOffset >= startOffset) { "endOffset must be >= the startOffset!" }
         val bytes = ByteArray(endOffset - startOffset)
         for (i in startOffset until endOffset) {
             bytes[i - startOffset] = buffer.getInt8(i)

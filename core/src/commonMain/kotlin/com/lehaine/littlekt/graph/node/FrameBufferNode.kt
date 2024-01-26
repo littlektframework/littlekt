@@ -4,7 +4,10 @@ import com.lehaine.littlekt.graph.SceneGraph
 import com.lehaine.littlekt.graph.node.annotation.SceneGraphDslMarker
 import com.lehaine.littlekt.graph.node.resource.InputEvent
 import com.lehaine.littlekt.graph.node.ui.Control
-import com.lehaine.littlekt.graphics.*
+import com.lehaine.littlekt.graphics.Camera
+import com.lehaine.littlekt.graphics.Color
+import com.lehaine.littlekt.graphics.FrameBuffer
+import com.lehaine.littlekt.graphics.Texture
 import com.lehaine.littlekt.graphics.g2d.Batch
 import com.lehaine.littlekt.graphics.g2d.shape.ShapeRenderer
 import com.lehaine.littlekt.graphics.gl.ClearBufferMask
@@ -49,7 +52,7 @@ open class FrameBufferNode : CanvasLayer() {
     /**
      * The color buffer texture from the [FrameBuffer].
      */
-    val fboTexture: Texture? get() = fbo?.colorBufferTexture
+    val fboTexture: Texture? get() = fbo?.textures?.getOrNull(0)
 
     /**
      * Signal that is emitted when the [FrameBuffer] is resized and recreated.
@@ -98,8 +101,12 @@ open class FrameBufferNode : CanvasLayer() {
             fbo = FrameBuffer(
                 width,
                 height,
-                minFilter = TexMinFilter.NEAREST,
-                magFilter = TexMagFilter.NEAREST
+                colorAttachments = listOf(
+                    FrameBuffer.ColorAttachment(
+                        minFilter = TexMinFilter.NEAREST,
+                        magFilter = TexMagFilter.NEAREST
+                    )
+                ),
             ).also { it.prepare(scene.context) }
             viewport.width = width
             viewport.height = height

@@ -3,10 +3,7 @@ package com.lehaine.littlekt
 import com.lehaine.littlekt.graphics.Cursor
 import com.lehaine.littlekt.graphics.SystemCursor
 import com.lehaine.littlekt.util.internal.jsObject
-import org.khronos.webgl.ArrayBufferView
-import org.khronos.webgl.Float32Array
-import org.khronos.webgl.WebGLObject
-import org.khronos.webgl.WebGLRenderingContext
+import org.khronos.webgl.*
 import org.w3c.dom.Element
 import org.w3c.dom.HTMLCanvasElement
 import org.w3c.dom.HTMLImageElement
@@ -124,6 +121,7 @@ abstract external class WebGL2RenderingContext : WebGLRenderingContext {
     fun bufferData(target: Int, srcData: ArrayBufferView, usage: Int, srcOffset: Int, length: Int)
     fun clearBufferfv(buffer: Int, drawBuffer: Int, values: Float32Array)
     fun drawBuffers(buffers: IntArray)
+    fun drawBuffers(buffers: Uint32Array)
     fun drawElementsInstanced(mode: Int, count: Int, type: Int, offset: Int, instanceCount: Int)
     fun readBuffer(src: Int)
     fun renderbufferStorageMultisample(target: Int, samples: Int, internalformat: Int, width: Int, height: Int)

@@ -63,7 +63,7 @@ class VectorFont(private val font: TtfFont) : Preparable {
             context.graphics.width,
             context.graphics.height,
         ).apply { prepare(context) }
-        fboSlice = fbo.colorBufferTexture.slice()
+        fboSlice = fbo.textures[0].slice()
         isPrepared = true
     }
 
@@ -76,7 +76,7 @@ class VectorFont(private val font: TtfFont) : Preparable {
         fbo = FrameBuffer(
             width, height
         ).apply { prepare(context) }
-        fboSlice = fbo.colorBufferTexture.slice()
+        fboSlice = fbo.textures[0].slice()
     }
 
     /**

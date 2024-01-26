@@ -32,10 +32,14 @@ class FBOTest(context: Context) : ContextListener(context) {
         val fboCamera = OrthographicCamera(240, 135).apply {
             position.set(240 / 2f, 135 / 2f, 0f)
         }
-        val fbo = FrameBuffer(240, 135, minFilter = TexMinFilter.NEAREST, magFilter = TexMagFilter.NEAREST).also {
+        val fbo = FrameBuffer(
+            240,
+            135,
+            listOf(FrameBuffer.ColorAttachment(minFilter = TexMinFilter.NEAREST, magFilter = TexMagFilter.NEAREST))
+        ).also {
             it.prepare(context)
         }
-        val slice = fbo.colorBufferTexture.slice()
+        val slice = fbo.textures[0].slice()
 
         var x = 0f
         var y = 0f

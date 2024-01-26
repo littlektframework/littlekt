@@ -660,6 +660,12 @@ class AndroidGL(private val engineStats: EngineStats) : GL {
         GLES20.glDrawElements(mode, count, type, offset)
     }
 
+    override fun drawBuffers(size: Int, buffers: IntBuffer) {
+        engineStats.calls++
+        buffers as IntBufferImpl
+        GLES30.glDrawBuffers(size, buffers.buffer)
+    }
+
     override fun pixelStorei(pname: Int, param: Int) {
         engineStats.calls++
         GLES20.glPixelStorei(pname, param)
