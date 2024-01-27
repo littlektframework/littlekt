@@ -234,21 +234,21 @@ abstract class GlslGenerator : GlslProvider {
         var result = sb.toString()
         if (context.graphics.isGL30) {
             val fragColorsSb = StringBuilder()
-            if (result.contains("gl_FragColor") || result.contains("gl_FragData\\[0]".toRegex())) {
+            if (result.contains("gl_FragColor") || result.contains("gl_FragData\\[0\\]".toRegex())) {
                 fragColorsSb.appendLine("out lowp vec4 fragColor;")
             }
             for (i in 1 until 15) {
-                if (result.contains("gl_FragData\\[$i]".toRegex())) {
+                if (result.contains("gl_FragData\\[$i\\]".toRegex())) {
                     fragColorsSb.appendLine("out lowp vec4 fragColor_$i;")
                 }
             }
             result = result.replace("texture2D\\(".toRegex(), "texture(")
                 .replace("textureCube\\(".toRegex(), "texture(")
                 .replace("gl_FragColor".toRegex(), "fragColor")
-                .replace("gl_FragData\\[0]".toRegex(), "fragColor")
+                .replace("gl_FragData\\[0\\]".toRegex(), "fragColor")
                 .replace("{replaceFragColors}", fragColorsSb.toString())
             for (i in 1 until 15) {
-                result = result.replace("gl_FragData\\[$i]".toRegex(), "fragColor_$i")
+                result = result.replace("gl_FragData\\[$i\\]".toRegex(), "fragColor_$i")
             }
         }
         return result
@@ -302,21 +302,22 @@ abstract class GlslGenerator : GlslProvider {
             }
 
             val fragColorsSb = StringBuilder()
-            if (result.contains("gl_FragColor") || result.contains("gl_FragData\\[0]".toRegex())) {
+            if (result.contains("gl_FragColor") || result.contains("gl_FragData\\[0\\]".toRegex())) {
                 fragColorsSb.appendLine("out lowp vec4 fragColor;")
             }
             for (i in 1 until 15) {
-                if (result.contains("gl_FragData\\[$i]".toRegex())) {
+                if (result.contains("gl_FragData\\[$i\\]".toRegex())) {
                     fragColorsSb.appendLine("out lowp vec4 fragColor_$i;")
                 }
             }
-            result = result.replace("texture2D\\(".toRegex(), "texture(")
+            result = result.replace("attribute ".toRegex(), "in ")
+                .replace("texture2D\\(".toRegex(), "texture(")
                 .replace("textureCube\\(".toRegex(), "texture(")
                 .replace("gl_FragColor".toRegex(), "fragColor")
-                .replace("gl_FragData\\[0]".toRegex(), "fragColor")
+                .replace("gl_FragData\\[0\\]".toRegex(), "fragColor")
                 .replace("{replaceFragColors}", fragColorsSb.toString())
             for (i in 1 until 15) {
-                result = result.replace("gl_FragData\\[$i]".toRegex(), "fragColor_$i")
+                result = result.replace("gl_FragData\\[$i\\]".toRegex(), "fragColor_$i")
             }
         }
         return result
