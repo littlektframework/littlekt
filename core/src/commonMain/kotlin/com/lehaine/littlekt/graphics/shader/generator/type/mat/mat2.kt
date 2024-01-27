@@ -2,6 +2,7 @@ package com.lehaine.littlekt.graphics.shader.generator.type.mat
 
 import com.lehaine.littlekt.graphics.shader.generator.GlslGenerator
 import com.lehaine.littlekt.graphics.shader.generator.str
+import com.lehaine.littlekt.graphics.shader.generator.type.ArrayItemDelegate
 import com.lehaine.littlekt.graphics.shader.generator.type.Matrix
 import com.lehaine.littlekt.graphics.shader.generator.type.vec.Vec2
 
@@ -15,22 +16,14 @@ class Mat2(override val builder: GlslGenerator) : Matrix {
     override val typeName: String = "mat2"
     override var value: String? = null
 
-    private var column1 by MatrixColumnDelegate(0, ::Vec2)
-    private var column2 by MatrixColumnDelegate(1, ::Vec2)
+    private var column1 by ArrayItemDelegate(0, ::Vec2)
+    private var column2 by ArrayItemDelegate(1, ::Vec2)
 
     constructor(builder: GlslGenerator, value: String) : this(builder) {
         this.value = value
     }
 
     operator fun get(i: Int): Vec2 {
-        return when (i) {
-            0 -> column1
-            1 -> column2
-            else -> throw Error("Column index $i out of range [0..1]")
-        }
-    }
-
-    operator fun set(i: Int, value:Vec2): Vec2 {
         return when (i) {
             0 -> column1
             1 -> column2

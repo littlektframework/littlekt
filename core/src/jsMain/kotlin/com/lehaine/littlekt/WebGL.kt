@@ -27,7 +27,7 @@ class WebGL(
 
     private fun copy(buffer: ByteBuffer): Uint8Array {
         buffer as ByteBufferImpl
-
+        ensureCapacity(buffer)
         return buffer.getUInt8Array(uInt8Array).subarray(buffer.position, buffer.remaining)
     }
 

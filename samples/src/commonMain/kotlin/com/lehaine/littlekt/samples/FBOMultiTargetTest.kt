@@ -9,6 +9,12 @@ import com.lehaine.littlekt.graphics.g2d.use
 import com.lehaine.littlekt.graphics.gl.ClearBufferMask
 import com.lehaine.littlekt.graphics.gl.TexMagFilter
 import com.lehaine.littlekt.graphics.gl.TexMinFilter
+import com.lehaine.littlekt.graphics.shader.FragmentShaderModel
+import com.lehaine.littlekt.graphics.shader.ShaderParameter
+import com.lehaine.littlekt.graphics.shader.generator.Precision
+import com.lehaine.littlekt.graphics.shader.generator.type.sampler.Sampler2D
+import com.lehaine.littlekt.graphics.shader.generator.type.vec.Vec2
+import com.lehaine.littlekt.graphics.shader.generator.type.vec.Vec4
 import com.lehaine.littlekt.input.Key
 import com.lehaine.littlekt.math.geom.Angle
 import com.lehaine.littlekt.math.geom.radians
@@ -27,6 +33,7 @@ class FBOMultiTargetTest(context: Context) : ContextListener(context) {
 
     override suspend fun Context.start() {
         val batch = SpriteBatch(this)
+
         val viewport = ScreenViewport(context.graphics.width, context.graphics.height)
         val camera = viewport.camera
 
@@ -104,7 +111,7 @@ class FBOMultiTargetTest(context: Context) : ContextListener(context) {
                 sy = floor(sy)
 
                 val scale = max(1f, min(sx, sy))
-                it.draw(slice, 0f, 0f, scaleX = scale, scaleY = scale, flipY = true)
+             //   it.draw(slice, 0f, 0f, scaleX = scale, scaleY = scale, flipY = true)
                 it.draw(slice2, 0f, 0f, scaleX = scale * 0.5f, scaleY = scale * 0.5f, flipY = true)
             }
 
