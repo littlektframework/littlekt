@@ -1,15 +1,14 @@
-package com.lehaine.littlekt.graphics.shader.generator.type.mat
+package com.lehaine.littlekt.graphics.shader.generator.type
 
 import com.lehaine.littlekt.graphics.shader.generator.Instruction
 import com.lehaine.littlekt.graphics.shader.generator.GlslGenerator
-import com.lehaine.littlekt.graphics.shader.generator.type.Variable
 import kotlin.reflect.KProperty
 
 /**
  * @author Colton Daily
  * @date 11/25/2021
  */
-class MatrixColumnDelegate<T : Variable>(
+class ArrayItemDelegate<T : Variable>(
     private val index: Int,
     private val factory: (builder: GlslGenerator) -> T
 ) {
@@ -18,7 +17,7 @@ class MatrixColumnDelegate<T : Variable>(
     operator fun provideDelegate(
         thisRef: Variable,
         property: KProperty<*>
-    ): MatrixColumnDelegate<T> {
+    ): ArrayItemDelegate<T> {
         v = factory(thisRef.builder)
         return this
     }

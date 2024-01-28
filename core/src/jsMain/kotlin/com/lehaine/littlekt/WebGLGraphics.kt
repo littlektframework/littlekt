@@ -3,10 +3,7 @@ package com.lehaine.littlekt
 import com.lehaine.littlekt.graphics.Cursor
 import com.lehaine.littlekt.graphics.SystemCursor
 import com.lehaine.littlekt.util.internal.jsObject
-import org.khronos.webgl.ArrayBufferView
-import org.khronos.webgl.Float32Array
-import org.khronos.webgl.WebGLObject
-import org.khronos.webgl.WebGLRenderingContext
+import org.khronos.webgl.*
 import org.w3c.dom.Element
 import org.w3c.dom.HTMLCanvasElement
 import org.w3c.dom.HTMLImageElement
@@ -122,8 +119,12 @@ external class Touch {
 
 abstract external class WebGL2RenderingContext : WebGLRenderingContext {
     fun bufferData(target: Int, srcData: ArrayBufferView, usage: Int, srcOffset: Int, length: Int)
+    fun clearBufferiv(buffer: Int, drawBuffer: Int, values: Int32Array)
+    fun clearBufferuiv(buffer: Int, drawBuffer: Int, values: Uint32Array)
     fun clearBufferfv(buffer: Int, drawBuffer: Int, values: Float32Array)
+    fun clearBufferfi(buffer: Int, drawBuffer: Int, depth: Float, stencil: Int)
     fun drawBuffers(buffers: IntArray)
+    fun drawBuffers(buffers: Uint32Array)
     fun drawElementsInstanced(mode: Int, count: Int, type: Int, offset: Int, instanceCount: Int)
     fun readBuffer(src: Int)
     fun renderbufferStorageMultisample(target: Int, samples: Int, internalformat: Int, width: Int, height: Int)
@@ -136,7 +137,7 @@ abstract external class WebGL2RenderingContext : WebGLRenderingContext {
         height: Int,
         depth: Int,
         border: Int,
-        srcData: ArrayBufferView?
+        srcData: ArrayBufferView?,
     )
 
     fun compressedTexSubImage3D(
@@ -149,7 +150,7 @@ abstract external class WebGL2RenderingContext : WebGLRenderingContext {
         height: Int,
         depth: Int,
         format: Int,
-        srcData: ArrayBufferView?
+        srcData: ArrayBufferView?,
     )
 
     fun copyTexSubImage3D(
@@ -161,7 +162,7 @@ abstract external class WebGL2RenderingContext : WebGLRenderingContext {
         x: Int,
         y: Int,
         width: Int,
-        height: Int
+        height: Int,
     )
 
     fun texImage3D(
@@ -174,7 +175,7 @@ abstract external class WebGL2RenderingContext : WebGLRenderingContext {
         border: Int,
         format: Int,
         type: Int,
-        srcData: ArrayBufferView?
+        srcData: ArrayBufferView?,
     )
 
     fun texImage3D(
@@ -187,7 +188,7 @@ abstract external class WebGL2RenderingContext : WebGLRenderingContext {
         border: Int,
         format: Int,
         type: Int,
-        source: HTMLImageElement?
+        source: HTMLImageElement?,
     )
 
     fun texSubImage3D(
@@ -201,7 +202,7 @@ abstract external class WebGL2RenderingContext : WebGLRenderingContext {
         depth: Int,
         format: Int,
         type: Int,
-        pixels: ImageData?
+        pixels: ImageData?,
     )
 
     fun texSubImage3D(
@@ -215,7 +216,7 @@ abstract external class WebGL2RenderingContext : WebGLRenderingContext {
         depth: Int,
         format: Int,
         type: Int,
-        pixels: ArrayBufferView?
+        pixels: ArrayBufferView?,
     )
 
 

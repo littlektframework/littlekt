@@ -5,7 +5,10 @@ import com.lehaine.littlekt.graphics.shader.FragmentShader
 import com.lehaine.littlekt.graphics.shader.ShaderParameter
 import com.lehaine.littlekt.graphics.shader.generator.InstructionType.*
 import com.lehaine.littlekt.graphics.shader.generator.delegate.*
-import com.lehaine.littlekt.graphics.shader.generator.type.*
+import com.lehaine.littlekt.graphics.shader.generator.type.Bool
+import com.lehaine.littlekt.graphics.shader.generator.type.Func
+import com.lehaine.littlekt.graphics.shader.generator.type.GenType
+import com.lehaine.littlekt.graphics.shader.generator.type.Variable
 import com.lehaine.littlekt.graphics.shader.generator.type.mat.Mat2
 import com.lehaine.littlekt.graphics.shader.generator.type.mat.Mat3
 import com.lehaine.littlekt.graphics.shader.generator.type.mat.Mat4
@@ -120,7 +123,14 @@ abstract class GlslGenerator : GlslProvider {
             sb.appendLine("#version $version")
         }
         if (this is FragmentShader) {
+            val requiresAndSupportsGlExtDrawBuffers =
+                !context.graphics.isGL30 && (context.platform.isMobile || context.platform.isWebGl) && context.graphics.supportsExtension(
+                    "GL_EXT_draw_buffers"
+                )
             sb.run {
+                if (requiresAndSupportsGlExtDrawBuffers) {
+                    appendLine("#extension GL_EXT_draw_buffers : enable")
+                }
                 appendLine("#ifdef GL_ES")
                 appendLine("precision highp float;")
                 appendLine("precision mediump int;")
@@ -166,7 +176,7 @@ abstract class GlslGenerator : GlslProvider {
         }
 
         if (context.graphics.isGL30 && this is FragmentShader) {
-            sb.appendLine("out lowp vec4 fragColor;")
+            sb.appendLine("{replaceFragColors}")
         }
 
         functionInstructions.forEach {
@@ -230,9 +240,32 @@ abstract class GlslGenerator : GlslProvider {
 
         var result = sb.toString()
         if (context.graphics.isGL30) {
+            var colorIdx = 0
+            val fragColorsSb = StringBuilder()
+            if (result.contains("gl_FragColor") || result.contains("gl_FragData\\[0\\]".toRegex())) {
+                if (glVersion.platform.isMobile) {
+                    fragColorsSb.appendLine("layout(location = ${colorIdx++}) out lowp vec4 fragColor;")
+                } else {
+                    fragColorsSb.appendLine("out lowp vec4 fragColor;")
+                }
+            }
+            for (i in 1 until 15) {
+                if (result.contains("gl_FragData\\[$i\\]".toRegex())) {
+                    if (glVersion.platform.isMobile) {
+                        fragColorsSb.appendLine("layout(location = ${colorIdx++}) out lowp vec4 fragColor_$i;")
+                    } else {
+                        fragColorsSb.appendLine("out lowp vec4 fragColor_$i;")
+                    }
+                }
+            }
             result = result.replace("texture2D\\(".toRegex(), "texture(")
                 .replace("textureCube\\(".toRegex(), "texture(")
                 .replace("gl_FragColor".toRegex(), "fragColor")
+                .replace("gl_FragData\\[0\\]".toRegex(), "fragColor")
+                .replace("{replaceFragColors}", fragColorsSb.toString())
+            for (i in 1 until 15) {
+                result = result.replace("gl_FragData\\[$i\\]".toRegex(), "fragColor_$i")
+            }
         }
         return result
     }
@@ -253,7 +286,14 @@ abstract class GlslGenerator : GlslProvider {
             sb.appendLine("#version $version")
         }
         if (this is FragmentShader) {
+            val requiresAndSupportsGlExtDrawBuffers =
+                !context.graphics.isGL30 && (context.platform.isMobile || context.platform.isWebGl) && context.graphics.supportsExtension(
+                    "GL_EXT_draw_buffers"
+                )
             sb.run {
+                if (requiresAndSupportsGlExtDrawBuffers) {
+                    appendLine("#extension GL_EXT_draw_buffers : enable")
+                }
                 appendLine("#ifdef GL_ES")
                 appendLine("precision highp float;")
                 appendLine("precision mediump int;")
@@ -264,7 +304,7 @@ abstract class GlslGenerator : GlslProvider {
                 appendLine("#endif")
             }
             if (context.graphics.isGL30) {
-                sb.appendLine("out lowp vec4 fragColor;")
+                sb.appendLine("{replaceFragColors}")
             }
         } else {
             sb.run {
@@ -284,10 +324,25 @@ abstract class GlslGenerator : GlslProvider {
                 result.replace("varying ".toRegex(), "out ")
             }
 
+            var colorIdx = 0
+            val fragColorsSb = StringBuilder()
+            if (result.contains("gl_FragColor") || result.contains("gl_FragData\\[0\\]".toRegex())) {
+                fragColorsSb.appendLine("layout(location = ${colorIdx++}) out lowp vec4 fragColor;")
+            }
+            for (i in 1 until 15) {
+                if (result.contains("gl_FragData\\[$i\\]".toRegex())) {
+                    fragColorsSb.appendLine("layout(location = ${colorIdx++}) out lowp vec4 fragColor_$i;")
+                }
+            }
             result = result.replace("attribute ".toRegex(), "in ")
                 .replace("texture2D\\(".toRegex(), "texture(")
                 .replace("textureCube\\(".toRegex(), "texture(")
                 .replace("gl_FragColor".toRegex(), "fragColor")
+                .replace("gl_FragData\\[0\\]".toRegex(), "fragColor")
+                .replace("{replaceFragColors}", fragColorsSb.toString())
+            for (i in 1 until 15) {
+                result = result.replace("gl_FragData\\[$i\\]".toRegex(), "fragColor_$i")
+            }
         }
         return result
     }

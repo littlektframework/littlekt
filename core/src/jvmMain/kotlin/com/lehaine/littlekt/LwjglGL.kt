@@ -44,6 +44,29 @@ class LwjglGL(private val engineStats: EngineStats, private val graphics: Graphi
         glClearStencil(stencil)
     }
 
+    override fun clearBufferiv(buffer: Int, drawBuffer: Int, value: IntBuffer) {
+        engineStats.calls++
+        value as IntBufferImpl
+        glClearBufferiv(buffer, drawBuffer, value.buffer)
+    }
+
+    override fun clearBufferuiv(buffer: Int, drawBuffer: Int, value: IntBuffer) {
+        engineStats.calls++
+        value as IntBufferImpl
+        glClearBufferuiv(buffer, drawBuffer, value.buffer)
+    }
+
+    override fun clearBufferfv(buffer: Int, drawBuffer: Int, value: FloatBuffer) {
+        engineStats.calls++
+        value as FloatBufferImpl
+        glClearBufferfv(buffer, drawBuffer, value.buffer)
+    }
+
+    override fun clearBufferfi(buffer: Int, drawBuffer: Int, depth: Float, stencil: Int) {
+        engineStats.calls++
+        glClearBufferfi(buffer, drawBuffer, depth, stencil)
+    }
+
     override fun colorMask(red: Boolean, green: Boolean, blue: Boolean, alpha: Boolean) {
         engineStats.calls++
         glColorMask(red, green, blue, alpha)
@@ -703,6 +726,15 @@ class LwjglGL(private val engineStats: EngineStats, private val graphics: Graphi
         engineStats.drawCalls++
         engineStats.vertices += count
         glDrawElements(mode, count, type, offset.toLong())
+    }
+
+    override fun drawBuffers(size: Int, buffers: IntBuffer) {
+        engineStats.calls++
+        buffers as IntBufferImpl
+        val limit = buffers.limit
+        buffers.limit = size
+        GL20.glDrawBuffers(buffers.buffer)
+        buffers.limit = limit
     }
 
     override fun pixelStorei(pname: Int, param: Int) {

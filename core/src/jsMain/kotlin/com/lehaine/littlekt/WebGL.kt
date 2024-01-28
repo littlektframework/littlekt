@@ -12,12 +12,48 @@ import org.khronos.webgl.*
  * @author Colton Daily
  * @date 9/28/2021
  */
-class WebGL(val gl: WebGL2RenderingContext, val platform: Context.Platform, private val engineStats: EngineStats) : GL {
+class WebGL(
+    val gl: WebGL2RenderingContext,
+    private val platform: Context.Platform,
+    private val engineStats: EngineStats,
+) : GL {
     override val version: GLVersion = GLVersion(platform, if (platform == Context.Platform.WEBGL2) "3.0" else "2.0")
 
     private var lastBoundBuffer: GlBuffer? = null
     private var lastBoundShader: GlShaderProgram? = null
     private var lastBoundTexture: GlTexture? = null
+
+    private var uInt8Array = Uint8Array(2000 * 6)
+    private var int32Array = Int32Array(2000 * 6)
+
+    private fun copy(buffer: ByteBuffer): Uint8Array {
+        buffer as ByteBufferImpl
+        ensureCapacity(buffer)
+        return buffer.getUInt8Array(uInt8Array).subarray(buffer.position, buffer.remaining)
+    }
+
+    private fun copy(buffer: IntBuffer): Uint32Array {
+        buffer as IntBufferImpl
+        return buffer.buffer.subarray(buffer.position, buffer.remaining)
+    }
+
+    private fun copyInt32(buffer: IntBuffer): Int32Array {
+        buffer as IntBufferImpl
+        ensureCapacityInt32(buffer)
+        return buffer.getInt32Array(int32Array).subarray(buffer.position, buffer.remaining)
+    }
+
+    private fun ensureCapacity(buffer: ByteBuffer) {
+        if (buffer.capacity > uInt8Array.length) {
+            uInt8Array = Uint8Array(buffer.capacity)
+        }
+    }
+
+    private fun ensureCapacityInt32(buffer: IntBuffer) {
+        if (buffer.capacity > int32Array.length) {
+            int32Array = Int32Array(buffer.capacity)
+        }
+    }
 
     override fun clearColor(r: Float, g: Float, b: Float, a: Float) {
         engineStats.calls++
@@ -37,6 +73,29 @@ class WebGL(val gl: WebGL2RenderingContext, val platform: Context.Platform, priv
     override fun clearStencil(stencil: Int) {
         engineStats.calls++
         gl.clearStencil(stencil)
+    }
+
+    override fun clearBufferiv(buffer: Int, drawBuffer: Int, value: IntBuffer) {
+        engineStats.calls++
+        value as IntBufferImpl
+        gl.clearBufferiv(buffer, drawBuffer, copyInt32(value))
+    }
+
+    override fun clearBufferuiv(buffer: Int, drawBuffer: Int, value: IntBuffer) {
+        engineStats.calls++
+        value as IntBufferImpl
+        gl.clearBufferuiv(buffer, drawBuffer, copy(value))
+    }
+
+    override fun clearBufferfv(buffer: Int, drawBuffer: Int, value: FloatBuffer) {
+        engineStats.calls++
+        value as FloatBufferImpl
+        gl.clearBufferfv(buffer, drawBuffer, value.buffer)
+    }
+
+    override fun clearBufferfi(buffer: Int, drawBuffer: Int, depth: Float, stencil: Int) {
+        engineStats.calls++
+        gl.clearBufferfi(buffer, drawBuffer, depth, stencil)
     }
 
     override fun colorMask(red: Boolean, green: Boolean, blue: Boolean, alpha: Boolean) {
@@ -709,6 +768,14 @@ class WebGL(val gl: WebGL2RenderingContext, val platform: Context.Platform, priv
         gl.drawElements(mode, count, type, offset)
     }
 
+    override fun drawBuffers(size: Int, buffers: IntBuffer) {
+        engineStats.calls++
+        buffers as IntBufferImpl
+        val startPos = buffers.position
+        gl.drawBuffers(copy(buffers).subarray(0, size))
+        buffers.position = startPos
+    }
+
     override fun pixelStorei(pname: Int, param: Int) {
         engineStats.calls++
         gl.pixelStorei(pname, param)
@@ -728,7 +795,7 @@ class WebGL(val gl: WebGL2RenderingContext, val platform: Context.Platform, priv
         source: ByteBuffer?,
     ) {
         engineStats.calls++
-        val dataView = (source as? ByteBufferImpl)?.buffer ?: Uint8Array(0)
+        val dataView = (source as? ByteBufferImpl)?.buffer ?: EMPTY_UINT8ARRAY
         gl.compressedTexImage2D(target, level, internalFormat, width, height, 0, dataView)
     }
 
@@ -819,7 +886,7 @@ class WebGL(val gl: WebGL2RenderingContext, val platform: Context.Platform, priv
         source as ByteBufferImpl
         gl.texImage2D(
             target, level, internalFormat, width, height, 0, format, type,
-            Uint8Array(source.toArray().toTypedArray()) // convert it to a uint8array or else webgl fails to render
+            copy(source) // convert it to a uint8array or else webgl fails to render
         )
     }
 
@@ -833,7 +900,7 @@ class WebGL(val gl: WebGL2RenderingContext, val platform: Context.Platform, priv
         source: ByteBuffer?,
     ) {
         engineStats.calls++
-        val dataView = (source as? ByteBufferImpl)?.buffer ?: Uint8Array(0)
+        val dataView = (source as? ByteBufferImpl)?.buffer ?: EMPTY_UINT8ARRAY
         gl.compressedTexImage3D(target, level, internalFormat, width, height, depth, 0, dataView)
     }
 
@@ -928,7 +995,7 @@ class WebGL(val gl: WebGL2RenderingContext, val platform: Context.Platform, priv
 
         gl.texImage3D(
             target, level, internalFormat, width, height, depth, 0, format, type,
-            Uint8Array(source.toArray().toTypedArray()) // convert it to a uint8array or else webgl fails to render
+            copy(source)  // convert it to a uint8array or else webgl fails to render
         )
     }
 
@@ -947,4 +1014,7 @@ class WebGL(val gl: WebGL2RenderingContext, val platform: Context.Platform, priv
         gl.generateMipmap(target)
     }
 
+    companion object {
+        private val EMPTY_UINT8ARRAY = Uint8Array(0)
+    }
 }

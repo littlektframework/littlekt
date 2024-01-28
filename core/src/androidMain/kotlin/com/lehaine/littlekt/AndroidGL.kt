@@ -45,6 +45,29 @@ class AndroidGL(private val engineStats: EngineStats) : GL {
         GLES20.glClearStencil(stencil)
     }
 
+    override fun clearBufferiv(buffer: Int, drawBuffer: Int, value: IntBuffer) {
+        engineStats.calls++
+        value as IntBufferImpl
+        GLES30.glClearBufferiv(buffer, drawBuffer, value.buffer)
+    }
+
+    override fun clearBufferuiv(buffer: Int, drawBuffer: Int, value: IntBuffer) {
+        engineStats.calls++
+        value as IntBufferImpl
+        GLES30.glClearBufferuiv(buffer, drawBuffer, value.buffer)
+    }
+
+    override fun clearBufferfv(buffer: Int, drawBuffer: Int, value: FloatBuffer) {
+        engineStats.calls++
+        value as FloatBufferImpl
+        GLES30.glClearBufferfv(buffer, drawBuffer, value.buffer)
+    }
+
+    override fun clearBufferfi(buffer: Int, drawBuffer: Int, depth: Float, stencil: Int) {
+        engineStats.calls++
+        GLES30.glClearBufferfi(buffer, drawBuffer, depth, stencil)
+    }
+
     override fun colorMask(red: Boolean, green: Boolean, blue: Boolean, alpha: Boolean) {
         engineStats.calls++
         GLES20.glColorMask(red, green, blue, alpha)
@@ -658,6 +681,12 @@ class AndroidGL(private val engineStats: EngineStats) : GL {
         engineStats.drawCalls++
         engineStats.vertices += count
         GLES20.glDrawElements(mode, count, type, offset)
+    }
+
+    override fun drawBuffers(size: Int, buffers: IntBuffer) {
+        engineStats.calls++
+        buffers as IntBufferImpl
+        GLES30.glDrawBuffers(size, buffers.buffer)
     }
 
     override fun pixelStorei(pname: Int, param: Int) {

@@ -32,6 +32,8 @@ fun main() {
             addSample("LDtk Map Test") { LDtkMapTest(it) }
             addSample("Pixel Smooth Camera Test") { PixelSmoothCameraTest(it) }
             addSample("Gesture Controller Test") { GestureControllerTest(it) }
+            addSample("FBO Multi Target Test") { FBOMultiTargetTest(it) }
+            addSample("Shaders Console output Test") { ShadersTest(it) }
         }
     }
 }
