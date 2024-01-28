@@ -61,7 +61,7 @@ class PixelSmoothCameraTest(context: Context) : ContextListener(context) {
             it.prepare(this)
         }
 
-        var fboRegion = TextureSlice(fbo.textures[0], 0, 0, fbo.width, fbo.height)
+        var fboRegion = TextureSlice(fbo.colorBufferTexture, 0, 0, fbo.width, fbo.height)
         val cameraDir = MutableVec2f()
         val targetPosition = MutableVec2f()
         val velocity = MutableVec2f()
@@ -80,7 +80,7 @@ class PixelSmoothCameraTest(context: Context) : ContextListener(context) {
             ).also {
                 it.prepare(this)
             }
-            fboRegion = TextureSlice(fbo.textures[0], 0, fbo.height - pxHeight, pxWidth, pxHeight)
+            fboRegion = TextureSlice(fbo.colorBufferTexture, 0, fbo.height - pxHeight, pxWidth, pxHeight)
             sceneCamera.ortho(fbo.width * worldUnitInvScale, fbo.height * worldUnitInvScale)
         }
         onRender { dt ->
