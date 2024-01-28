@@ -2,6 +2,7 @@ package com.lehaine.littlekt.samples
 
 import com.lehaine.littlekt.Context
 import com.lehaine.littlekt.ContextListener
+import com.lehaine.littlekt.createShader
 import com.lehaine.littlekt.file.createIntBuffer
 import com.lehaine.littlekt.graphics.*
 import com.lehaine.littlekt.graphics.g2d.SpriteBatch
@@ -15,6 +16,7 @@ import com.lehaine.littlekt.graphics.shader.generator.Precision
 import com.lehaine.littlekt.graphics.shader.generator.type.sampler.Sampler2D
 import com.lehaine.littlekt.graphics.shader.generator.type.vec.Vec2
 import com.lehaine.littlekt.graphics.shader.generator.type.vec.Vec4
+import com.lehaine.littlekt.graphics.shader.shaders.DefaultVertexShader
 import com.lehaine.littlekt.input.Key
 import com.lehaine.littlekt.math.geom.Angle
 import com.lehaine.littlekt.math.geom.radians
@@ -33,6 +35,7 @@ class FBOMultiTargetTest(context: Context) : ContextListener(context) {
 
     override suspend fun Context.start() {
         val batch = SpriteBatch(this)
+        val shader = createShader(DefaultVertexShader(), TestMultiTargetFragmentShader())
 
         val viewport = ScreenViewport(context.graphics.width, context.graphics.height)
         val camera = viewport.camera
@@ -94,6 +97,7 @@ class FBOMultiTargetTest(context: Context) : ContextListener(context) {
                 gl.drawBuffers(2, buffersToDraw)
                 gl.clearColor(0.5f, 0f, 0f, 1f)
                 gl.clear(ClearBufferMask.COLOR_BUFFER_BIT)
+                batch.shader = shader
                 batch.use(fboCamera.viewProjection) {
                     it.draw(Textures.white, x, y, scaleX = 10f, scaleY = 10f, rotation = rotation)
                     it.draw(Textures.white, x + 20f, y + 20f, scaleX = 5f, scaleY = 5f, rotation = rotation)
@@ -104,6 +108,7 @@ class FBOMultiTargetTest(context: Context) : ContextListener(context) {
             gl.clear(ClearBufferMask.COLOR_BUFFER_BIT)
 
             camera.update()
+            batch.useDefaultShader()
             batch.use(camera.viewProjection) {
                 var sx = graphics.width / 240f
                 var sy = graphics.height / 135f
@@ -111,7 +116,7 @@ class FBOMultiTargetTest(context: Context) : ContextListener(context) {
                 sy = floor(sy)
 
                 val scale = max(1f, min(sx, sy))
-             //   it.draw(slice, 0f, 0f, scaleX = scale, scaleY = scale, flipY = true)
+                it.draw(slice, 0f, 0f, scaleX = scale, scaleY = scale, flipY = true)
                 it.draw(slice2, 0f, 0f, scaleX = scale * 0.5f, scaleY = scale * 0.5f, flipY = true)
             }
 
@@ -125,4 +130,19 @@ class FBOMultiTargetTest(context: Context) : ContextListener(context) {
             }
         }
     }
+
+    private class TestMultiTargetFragmentShader : FragmentShaderModel() {
+        val uTexture get() = parameters["u_texture"] as ShaderParameter.UniformSample2D
+
+        private val u_texture by uniform(::Sampler2D)
+
+        private val v_color by varying(::Vec4, Precision.LOW)
+        private val v_texCoords by varying(::Vec2)
+
+        init {
+            gl_FragData[0] = v_color * texture2D(u_texture, v_texCoords).lit
+            gl_FragData[1] = vec4(0f, 1f, 0f, 1f).lit * texture2D(u_texture, v_texCoords).lit
+        }
+    }
 }
+
