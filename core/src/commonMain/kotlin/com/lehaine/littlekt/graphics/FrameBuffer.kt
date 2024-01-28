@@ -3,6 +3,7 @@ package com.lehaine.littlekt.graphics
 import com.lehaine.littlekt.Context
 import com.lehaine.littlekt.Disposable
 import com.lehaine.littlekt.file.createIntBuffer
+import com.lehaine.littlekt.graphics.FrameBuffer.ColorAttachment
 import com.lehaine.littlekt.graphics.gl.*
 import com.lehaine.littlekt.math.MutableVec4i
 import kotlin.contracts.ExperimentalContracts
@@ -13,9 +14,10 @@ import kotlin.contracts.contract
  * Encapsulates OpenGL frame buffer objects.
  * @param width the width of the framebuffer in pixels
  * @param height the height of the framebuffer in pixels
+ * @param colorAttachments the list of [ColorAttachment] to attach to the FrameBuffer.
  * @param hasDepth whether to attach a depth buffer. Defaults to false.
  * @param hasStencil whether to attach a stencil buffer. Defaults to false.
- * @param format the format of the color buffer
+ * @param hasPackedDepthStencil whether to attach a packed depth/stencil buffer. Defaults to false.
  * @author Colton Daily
  * @date 11/25/2021
  */
@@ -27,6 +29,37 @@ open class FrameBuffer(
     val hasStencil: Boolean = false,
     var hasPackedDepthStencil: Boolean = false,
 ) : Preparable, Disposable {
+
+    /**
+     * Encapsulates OpenGL frame buffer objects.
+     * @param width the width of the framebuffer in pixels
+     * @param height the height of the framebuffer in pixels
+     * @param format format of the color buffer
+     * @param hasDepth whether to attach a depth buffer. Defaults to false.
+     * @param hasStencil whether to attach a stencil buffer. Defaults to false.
+     * @param hasPackedDepthStencil whether to attach a packed depth/stencil buffer. Defaults to false.
+     * @param minFilter texture min filter
+     * @param magFilter texture mag filter
+     * @param wrap format for UV texture wrap
+     */
+    constructor(
+        width: Int,
+        height: Int,
+        hasDepth: Boolean = false,
+        hasStencil: Boolean = false,
+        hasPackedDepthStencil: Boolean = false,
+        format: Pixmap.Format = Pixmap.Format.RGBA8888,
+        minFilter: TexMinFilter = TexMinFilter.LINEAR,
+        magFilter: TexMagFilter = TexMagFilter.LINEAR,
+        wrap: TexWrap = TexWrap.CLAMP_TO_EDGE,
+    ) : this(
+        width,
+        height,
+        listOf(ColorAttachment(format, minFilter, magFilter, wrap)),
+        hasDepth,
+        hasStencil,
+        hasPackedDepthStencil
+    )
 
     /**
      * A color attachment to be used in [FrameBuffer].
@@ -59,6 +92,16 @@ open class FrameBuffer(
 
     private val _textures = mutableListOf<Texture>()
     val textures: List<Texture> get() = _textures
+
+    /**
+     * Alias for `textures.getOrNull(0)`.
+     */
+    val texture: Texture? get() = textures.getOrNull(0)
+
+    /**
+     * Alias for `textures[0]`.
+     */
+    val colorBufferTexture: Texture get() = textures[0]
 
     override val prepared: Boolean
         get() = isPrepared
@@ -111,7 +154,8 @@ open class FrameBuffer(
                 vWrap = colorAttachment.wrap
             }.also { texture ->
                 texture.prepare(context) // preparing the texture will also bind it
-                gl.frameBufferTexture2D(FrameBufferRenderBufferAttachment.COLOR_ATTACHMENT(i),
+                gl.frameBufferTexture2D(
+                    FrameBufferRenderBufferAttachment.COLOR_ATTACHMENT(i),
                     texture.glTexture
                         ?: throw RuntimeException("FrameBuffer failed on attempting to add color attachment($i)!"),
                     0
