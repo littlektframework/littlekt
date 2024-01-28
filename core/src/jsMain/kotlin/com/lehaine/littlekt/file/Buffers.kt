@@ -88,6 +88,14 @@ internal class IntBufferImpl(capacity: Int) : IntBuffer, GenericBuffer<Uint32Arr
         return buffer[i]
     }
 
+    fun getInt32Array(out: Int32Array): Int32Array {
+        check(out.length >= capacity) { "out must be >= the buffer capacity!" }
+        for (i in 0 until capacity) {
+            out[i] = get(i)
+        }
+        return out
+    }
+
     override fun set(i: Int, value: Int) {
         dirty = true
         buffer[i] = value
@@ -118,6 +126,8 @@ internal class IntBufferImpl(capacity: Int) : IntBuffer, GenericBuffer<Uint32Arr
         }
         return this
     }
+
+
 }
 
 /**

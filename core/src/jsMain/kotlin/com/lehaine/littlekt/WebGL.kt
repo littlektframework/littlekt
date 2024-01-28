@@ -24,6 +24,7 @@ class WebGL(
     private var lastBoundTexture: GlTexture? = null
 
     private var uInt8Array = Uint8Array(2000 * 6)
+    private var int32Array = Int32Array(2000 * 6)
 
     private fun copy(buffer: ByteBuffer): Uint8Array {
         buffer as ByteBufferImpl
@@ -36,9 +37,21 @@ class WebGL(
         return buffer.buffer.subarray(buffer.position, buffer.remaining)
     }
 
+    private fun copyInt32(buffer: IntBuffer): Int32Array {
+        buffer as IntBufferImpl
+        ensureCapacityInt32(buffer)
+        return buffer.getInt32Array(int32Array).subarray(buffer.position, buffer.remaining)
+    }
+
     private fun ensureCapacity(buffer: ByteBuffer) {
         if (buffer.capacity > uInt8Array.length) {
             uInt8Array = Uint8Array(buffer.capacity)
+        }
+    }
+
+    private fun ensureCapacityInt32(buffer: IntBuffer) {
+        if (buffer.capacity > int32Array.length) {
+            int32Array = Int32Array(buffer.capacity)
         }
     }
 
@@ -60,6 +73,29 @@ class WebGL(
     override fun clearStencil(stencil: Int) {
         engineStats.calls++
         gl.clearStencil(stencil)
+    }
+
+    override fun clearBufferiv(buffer: Int, drawBuffer: Int, value: IntBuffer) {
+        engineStats.calls++
+        value as IntBufferImpl
+        gl.clearBufferiv(buffer, drawBuffer, copyInt32(value))
+    }
+
+    override fun clearBufferuiv(buffer: Int, drawBuffer: Int, value: IntBuffer) {
+        engineStats.calls++
+        value as IntBufferImpl
+        gl.clearBufferuiv(buffer, drawBuffer, copy(value))
+    }
+
+    override fun clearBufferfv(buffer: Int, drawBuffer: Int, value: FloatBuffer) {
+        engineStats.calls++
+        value as FloatBufferImpl
+        gl.clearBufferfv(buffer, drawBuffer, value.buffer)
+    }
+
+    override fun clearBufferfi(buffer: Int, drawBuffer: Int, depth: Float, stencil: Int) {
+        engineStats.calls++
+        gl.clearBufferfi(buffer, drawBuffer, depth, stencil)
     }
 
     override fun colorMask(red: Boolean, green: Boolean, blue: Boolean, alpha: Boolean) {
