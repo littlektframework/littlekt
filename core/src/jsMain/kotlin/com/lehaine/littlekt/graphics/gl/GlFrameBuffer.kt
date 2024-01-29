@@ -6,7 +6,15 @@ import org.khronos.webgl.WebGLFramebuffer
  * @author Colton Daily
  * @date 9/28/2021
  */
-actual class GlFrameBuffer(val delegate: WebGLFramebuffer?) {
+actual class GlFrameBuffer(var delegate: WebGLFramebuffer?) {
+    /**
+     * Copy another [GlFrameBuffer].
+     * @param glFrameBuffer the frame buffer to copy from
+     */
+    actual fun copy(glFrameBuffer: GlFrameBuffer): GlFrameBuffer {
+        delegate = glFrameBuffer.delegate
+        return this
+    }
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -14,9 +22,7 @@ actual class GlFrameBuffer(val delegate: WebGLFramebuffer?) {
 
         other as GlFrameBuffer
 
-        if (delegate != other.delegate) return false
-
-        return true
+        return delegate == other.delegate
     }
 
     override fun hashCode(): Int {
@@ -25,5 +31,12 @@ actual class GlFrameBuffer(val delegate: WebGLFramebuffer?) {
 
     override fun toString(): String {
         return "GlFrameBuffer(delegate=$delegate)"
+    }
+
+    actual companion object {
+        /**
+         * Generate an empty [GlFrameBuffer].
+         */
+        actual fun EmptyGlFrameBuffer(): GlFrameBuffer = GlFrameBuffer(null)
     }
 }

@@ -327,10 +327,10 @@ class WebGL(
         }
     }
 
-    override fun getBoundFrameBuffer(data: IntBuffer): GlFrameBuffer {
+    override fun getBoundFrameBuffer(data: IntBuffer, out: GlFrameBuffer): GlFrameBuffer {
         engineStats.calls++
         val result = gl.getParameter(GL.FRAMEBUFFER_BINDING) as WebGLFramebuffer?
-        return GlFrameBuffer(result)
+        return out.apply { delegate = result }
     }
 
     override fun getProgramParameter(glShaderProgram: GlShaderProgram, pname: Int): Any {

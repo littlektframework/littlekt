@@ -170,7 +170,7 @@ interface GL {
     fun bindDefaultRenderBuffer()
     fun renderBufferStorage(internalFormat: RenderBufferInternalFormat, width: Int, height: Int)
     fun frameBufferRenderBuffer(attachementType: FrameBufferRenderBufferAttachment, glRenderBuffer: GlRenderBuffer)
-    fun getBoundFrameBuffer(data: IntBuffer): GlFrameBuffer
+    fun getBoundFrameBuffer(data: IntBuffer, out: GlFrameBuffer = GlFrameBuffer.EmptyGlFrameBuffer()): GlFrameBuffer
     fun deleteFrameBuffer(glFrameBuffer: GlFrameBuffer)
     fun deleteRenderBuffer(glRenderBuffer: GlRenderBuffer)
     fun frameBufferTexture2D(attachementType: FrameBufferRenderBufferAttachment, glTexture: GlTexture, level: Int)

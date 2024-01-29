@@ -86,6 +86,8 @@ open class FrameBuffer(
     private var depthStencilPackedBufferHandle: GlRenderBuffer? = null
 
     private var previousFboHandle: GlFrameBuffer? = null
+    private val tempFboHandle: GlFrameBuffer = GlFrameBuffer.EmptyGlFrameBuffer()
+    private val tempFboHandle2: GlFrameBuffer = GlFrameBuffer.EmptyGlFrameBuffer()
     private val previousViewport = MutableVec4i()
     private var isBound = false
     private var isPrepared = false
@@ -233,7 +235,7 @@ open class FrameBuffer(
         check(!isBound) { "end() must be called before another draw can begin." }
         isBound = true
 
-        previousFboHandle = getBoundFrameBuffer(gl)
+        previousFboHandle = getBoundFrameBuffer(gl, tempFboHandle)
         gl.bindFrameBuffer(fboHandle)
 
         getViewport(gl, previousViewport)
@@ -246,7 +248,7 @@ open class FrameBuffer(
         check(isBound) { "begin() must be called first!" }
 
         isBound = false
-        val currentFbo = getBoundFrameBuffer(gl)
+        val currentFbo = getBoundFrameBuffer(gl, tempFboHandle2)
         check(currentFbo == fboHandle) {
             "The current bound framebuffer ($currentFbo) doesn't match this one. " +
                     "Ensure that the frame buffers are closed in the same order they were opened in."
@@ -291,8 +293,8 @@ open class FrameBuffer(
          */
         private val intBuffer = createIntBuffer(16 * Int.SIZE_BYTES)
 
-        private fun getBoundFrameBuffer(gl: GL): GlFrameBuffer {
-            return gl.getBoundFrameBuffer(intBuffer)
+        private fun getBoundFrameBuffer(gl: GL, out: GlFrameBuffer): GlFrameBuffer {
+            return gl.getBoundFrameBuffer(intBuffer, out)
         }
 
         private fun getViewport(gl: GL, result: MutableVec4i) {

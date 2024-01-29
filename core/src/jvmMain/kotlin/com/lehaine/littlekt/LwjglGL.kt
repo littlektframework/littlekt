@@ -268,9 +268,9 @@ class LwjglGL(private val engineStats: EngineStats, private val graphics: Graphi
         glGetIntegerv(pname, data.buffer)
     }
 
-    override fun getBoundFrameBuffer(data: IntBuffer): GlFrameBuffer {
+    override fun getBoundFrameBuffer(data: IntBuffer, out: GlFrameBuffer): GlFrameBuffer {
         getIntegerv(GL.FRAMEBUFFER_BINDING, data)
-        return GlFrameBuffer(data[0])
+        return out.apply { reference = data[0] }
     }
 
     override fun getShaderParameterB(glShader: GlShader, pname: Int): Boolean {
