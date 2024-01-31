@@ -3,7 +3,7 @@ package com.lehaine.littlekt.graphics
 import com.lehaine.littlekt.Context
 import com.lehaine.littlekt.Disposable
 import com.lehaine.littlekt.file.createIntBuffer
-import com.lehaine.littlekt.graphics.FrameBuffer.ColorAttachment
+import com.lehaine.littlekt.graphics.FrameBuffer.TextureAttachment
 import com.lehaine.littlekt.graphics.gl.*
 import com.lehaine.littlekt.math.MutableVec4i
 import kotlin.contracts.ExperimentalContracts
@@ -14,7 +14,7 @@ import kotlin.contracts.contract
  * Encapsulates OpenGL frame buffer objects.
  * @param width the width of the framebuffer in pixels
  * @param height the height of the framebuffer in pixels
- * @param colorAttachments the list of [ColorAttachment] to attach to the FrameBuffer.
+ * @param textureAttachments the list of [TextureAttachment] to attach to the FrameBuffer.
  * @param hasDepth whether to attach a depth buffer. Defaults to false.
  * @param hasStencil whether to attach a stencil buffer. Defaults to false.
  * @param hasPackedDepthStencil whether to attach a packed depth/stencil buffer. Defaults to false.
@@ -24,7 +24,7 @@ import kotlin.contracts.contract
 open class FrameBuffer(
     val width: Int,
     val height: Int,
-    val colorAttachments: List<ColorAttachment> = listOf(ColorAttachment()),
+    val textureAttachments: List<TextureAttachment> = listOf(TextureAttachment()),
     val hasDepth: Boolean = false,
     val hasStencil: Boolean = false,
     var hasPackedDepthStencil: Boolean = false,
@@ -55,7 +55,7 @@ open class FrameBuffer(
     ) : this(
         width,
         height,
-        listOf(ColorAttachment(format, minFilter, magFilter, wrap)),
+        listOf(TextureAttachment(format, minFilter, magFilter, wrap)),
         hasDepth,
         hasStencil,
         hasPackedDepthStencil
@@ -67,13 +67,19 @@ open class FrameBuffer(
      * @param minFilter texture min filter
      * @param magFilter texture mag filter
      * @param wrap format for UV texture wrap
+     * @param isDepth `true` if texture depth attachment; `false` otherwise
+     * @param isStencil `true` if texture is a stencil attachment; `false` otherwise
      */
-    class ColorAttachment(
+    data class TextureAttachment(
         val format: Pixmap.Format = Pixmap.Format.RGBA8888,
         val minFilter: TexMinFilter = TexMinFilter.LINEAR,
         val magFilter: TexMagFilter = TexMagFilter.LINEAR,
         val wrap: TexWrap = TexWrap.CLAMP_TO_EDGE,
-    )
+        val isDepth: Boolean = false,
+        val isStencil: Boolean = false,
+    ) {
+        val isColorTexture: Boolean get() = !isDepth && !isStencil
+    }
 
     /**
      * Gets set when the frame buffer is prepared by the application
@@ -139,29 +145,45 @@ open class FrameBuffer(
             }
         }
 
-        colorAttachments.forEachIndexed { i, colorAttachment ->
+        textureAttachments.forEachIndexed { i, attachment ->
             _textures += Texture(
                 GLTextureData(
                     width,
                     height,
                     0,
-                    colorAttachment.format.glFormat,
-                    colorAttachment.format.glFormat,
-                    colorAttachment.format.glType
+                    attachment.format.glFormat,
+                    attachment.format.glFormat,
+                    attachment.format.glType
                 )
             ).apply {
-                minFilter = colorAttachment.minFilter
-                magFilter = colorAttachment.magFilter
-                uWrap = colorAttachment.wrap
-                vWrap = colorAttachment.wrap
+                minFilter = attachment.minFilter
+                magFilter = attachment.magFilter
+                uWrap = attachment.wrap
+                vWrap = attachment.wrap
             }.also { texture ->
                 texture.prepare(context) // preparing the texture will also bind it
-                gl.frameBufferTexture2D(
-                    FrameBufferRenderBufferAttachment.COLOR_ATTACHMENT(i),
-                    texture.glTexture
-                        ?: throw RuntimeException("FrameBuffer failed on attempting to add color attachment($i)!"),
-                    0
-                )
+                if (attachment.isColorTexture) {
+                    gl.frameBufferTexture2D(
+                        FrameBufferRenderBufferAttachment.COLOR_ATTACHMENT(i),
+                        texture.glTexture
+                            ?: throw RuntimeException("FrameBuffer failed on attempting to add color attachment($i)!"),
+                        0
+                    )
+                } else if (attachment.isDepth) {
+                    gl.frameBufferTexture2D(
+                        FrameBufferRenderBufferAttachment.DEPTH_ATTACHMENT,
+                        texture.glTexture
+                            ?: throw RuntimeException("FrameBuffer failed on attempting to add depth attachment!"),
+                        0
+                    )
+                } else if (attachment.isStencil) {
+                    gl.frameBufferTexture2D(
+                        FrameBufferRenderBufferAttachment.STENCIL_ATTACHMENT,
+                        texture.glTexture
+                            ?: throw RuntimeException("FrameBuffer failed on attempting to add stencil attachment!"),
+                        0
+                    )
+                }
             }
         }
 

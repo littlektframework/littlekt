@@ -56,7 +56,7 @@ class PixelSmoothCameraTest(context: Context) : ContextListener(context) {
         var fbo = FrameBuffer(
             1,
             1,
-            listOf(FrameBuffer.ColorAttachment(minFilter = TexMinFilter.NEAREST, magFilter = TexMagFilter.NEAREST))
+            listOf(FrameBuffer.TextureAttachment(minFilter = TexMinFilter.NEAREST, magFilter = TexMagFilter.NEAREST))
         ).also {
             it.prepare(this)
         }
@@ -76,7 +76,7 @@ class PixelSmoothCameraTest(context: Context) : ContextListener(context) {
             fbo = FrameBuffer(
                 pxWidth.nextPowerOfTwo,
                 pxHeight.nextPowerOfTwo,
-                listOf(FrameBuffer.ColorAttachment(minFilter = TexMinFilter.NEAREST, magFilter = TexMagFilter.NEAREST))
+                listOf(FrameBuffer.TextureAttachment(minFilter = TexMinFilter.NEAREST, magFilter = TexMagFilter.NEAREST))
             ).also {
                 it.prepare(this)
             }

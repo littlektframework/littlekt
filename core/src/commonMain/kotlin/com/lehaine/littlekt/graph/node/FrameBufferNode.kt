@@ -101,8 +101,8 @@ open class FrameBufferNode : CanvasLayer() {
             fbo = FrameBuffer(
                 width,
                 height,
-                colorAttachments = listOf(
-                    FrameBuffer.ColorAttachment(
+                textureAttachments = listOf(
+                    FrameBuffer.TextureAttachment(
                         minFilter = TexMinFilter.NEAREST,
                         magFilter = TexMagFilter.NEAREST
                     )

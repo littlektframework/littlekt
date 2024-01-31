@@ -47,8 +47,8 @@ class FBOMultiTargetTest(context: Context) : ContextListener(context) {
             240,
             135,
             listOf(
-                FrameBuffer.ColorAttachment(minFilter = TexMinFilter.NEAREST, magFilter = TexMagFilter.NEAREST),
-                FrameBuffer.ColorAttachment(minFilter = TexMinFilter.NEAREST, magFilter = TexMagFilter.NEAREST)
+                FrameBuffer.TextureAttachment(minFilter = TexMinFilter.NEAREST, magFilter = TexMagFilter.NEAREST),
+                FrameBuffer.TextureAttachment(minFilter = TexMinFilter.NEAREST, magFilter = TexMagFilter.NEAREST)
             )
         ).also {
             it.prepare(context)
