@@ -262,7 +262,7 @@ open class FrameBuffer(
     //    previousFboHandle = getBoundFrameBuffer(gl, tempFboHandle)
         gl.bindFrameBuffer(fboHandle)
 
-        getViewport(gl, previousViewport)
+        //getViewport(gl, previousViewport)
         gl.viewport(0, 0, width, height)
     }
 
