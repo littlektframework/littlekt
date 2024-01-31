@@ -51,7 +51,10 @@ class ShaderProgram<V : VertexShader, F : FragmentShader>(
 
     private var isPrepared = false
 
-
+    /**
+     * Generates the source for each shader and compiles them. A shader program is created, the shaders attached,
+     * and the program linked. Lastly, the uniforms and attributes are fetched.
+     */
     override fun prepare(context: Context) {
         val gl = context.gl.also { gl = it }
         if (vertexShader is VertexShaderModel) {
@@ -131,27 +134,24 @@ class ShaderProgram<V : VertexShader, F : FragmentShader>(
         }
     }
 
-    fun createAttrib(name: String) {
-        val gl = gl
-        val programGl = programGl
-        check(isPrepared && programGl != null && gl != null) { "ShaderProgram is not prepared! Make sure to call prepare(context)." }
-        attributes[name] = gl.getAttribLocation(programGl, name)
-    }
-
-    fun createUniform(name: String) {
-        val gl = gl
-        val programGl = programGl
-        check(isPrepared && programGl != null && gl != null) { "ShaderProgram is not prepared! Make sure to call prepare(context)." }
-        uniforms[name] = gl.getUniformLocation(programGl, name)
-    }
-
+    /**
+     * @param name the name of the attribute
+     * @return the attribute location if it exists; `-1` otherwise
+     */
     fun getAttrib(name: String): Int =
-        attributes[name] ?: throw IllegalStateException("Attributes '$name' not created!")
+        attributes[name] ?: -1
 
-    fun getUniform(name: String): UniformLocation {
-        return uniforms[name] ?: throw IllegalStateException("Uniform '$name' not created!")
+    /**
+     * @param name the name of the uniform
+     * @return the [UniformLocation] if it exists; `null` otherwise
+     */
+    fun getUniform(name: String): UniformLocation? {
+        return uniforms[name]
     }
 
+    /**
+     * Binds the shader program after it has been prepared.
+     */
     fun bind() {
         val gl = gl
         val programGl = programGl
