@@ -4,7 +4,7 @@
 
 ### Changes
 
-* Update `FrameBuffer` to allow for multiple color attachments to be used.
+* Update `FrameBuffer` to allow for multiple texture attachments to be used.
 * Update `GLSlGenerator` to support `gl_FragData[]`.
 * Update `GL` with new `drawBuffer` and `clearBuffer[fuiv]` functions.
 * Update `GL` with new `getActiveAttrib` and `getActiveUniform` related functions.
