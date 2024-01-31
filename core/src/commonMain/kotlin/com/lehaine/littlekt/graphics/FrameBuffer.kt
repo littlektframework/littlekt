@@ -2,10 +2,8 @@ package com.lehaine.littlekt.graphics
 
 import com.lehaine.littlekt.Context
 import com.lehaine.littlekt.Disposable
-import com.lehaine.littlekt.file.createIntBuffer
 import com.lehaine.littlekt.graphics.FrameBuffer.TextureAttachment
 import com.lehaine.littlekt.graphics.gl.*
-import com.lehaine.littlekt.math.MutableVec4i
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
@@ -85,17 +83,13 @@ open class FrameBuffer(
      * Gets set when the frame buffer is prepared by the application
      */
     private lateinit var gl: GL
+    private lateinit var context: Context
 
     private var fboHandle: GlFrameBuffer? = null
     private var depthBufferHandle: GlRenderBuffer? = null
     private var stencilBufferHandle: GlRenderBuffer? = null
     private var depthStencilPackedBufferHandle: GlRenderBuffer? = null
 
-    private var previousFboHandle: GlFrameBuffer? = null
-    private val tempFboHandle: GlFrameBuffer = GlFrameBuffer.EmptyGlFrameBuffer()
-    private val tempFboHandle2: GlFrameBuffer = GlFrameBuffer.EmptyGlFrameBuffer()
-    private val previousViewport = MutableVec4i()
-    private var isBound = false
     private var isPrepared = false
 
     private val _textures = mutableListOf<Texture>()
@@ -117,6 +111,7 @@ open class FrameBuffer(
 
     override fun prepare(context: Context) {
         gl = context.gl
+        this.context = context
         val fboHandle = gl.createFrameBuffer()
         this.fboHandle = fboHandle
 
@@ -251,34 +246,35 @@ open class FrameBuffer(
         isPrepared = true
     }
 
+    /**
+     * Binds the frame buffer and sets the viewport to the [width] and [height].
+     */
     fun begin() {
         val fboHandle = fboHandle
         check(isPrepared && fboHandle != null) { "The framebuffer has not been prepared yet! Ensure you called prepare() sometime before you call begin()" }
-        check(!isBound) { "end() must be called before another draw can begin." }
-        isBound = true
 
-        previousFboHandle = getBoundFrameBuffer(gl, tempFboHandle)
         gl.bindFrameBuffer(fboHandle)
-
-        getViewport(gl, previousViewport)
         gl.viewport(0, 0, width, height)
     }
 
-    fun end() {
+    /**
+     * Binds the default framebuffer and sets the [GL.viewport] with the given position and size.
+     * @param x the viewport x
+     * @param y the viewport y
+     * @param width the viewport width
+     * @param height the viewport height
+     */
+    fun end(
+        x: Int = 0,
+        y: Int = 0,
+        width: Int = context.graphics.backBufferWidth,
+        height: Int = context.graphics.backBufferHeight,
+    ) {
         val fboHandle = fboHandle
         check(isPrepared && fboHandle != null) { "The framebuffer has not been prepared yet! Ensure you called prepare() sometime before you call end()" }
-        check(isBound) { "begin() must be called first!" }
 
-        isBound = false
-        val currentFbo = getBoundFrameBuffer(gl, tempFboHandle2)
-        check(currentFbo == fboHandle) {
-            "The current bound framebuffer ($currentFbo) doesn't match this one. " +
-                    "Ensure that the frame buffers are closed in the same order they were opened in."
-        }
-        val previousFboHandle = previousFboHandle
-        check(previousFboHandle != null) { "The previous framebuffer object is null. That means it was not found for some unknown reason." }
-        gl.bindFrameBuffer(previousFboHandle)
-        gl.viewport(previousViewport[0], previousViewport[1], previousViewport[2], previousViewport[3])
+        gl.bindDefaultFrameBuffer()
+        gl.viewport(x, y, width, height)
     }
 
     override fun dispose() {
@@ -305,27 +301,6 @@ open class FrameBuffer(
             depthStencilPackedBufferHandle = null
         }
         fboHandle?.let { gl.deleteFrameBuffer(it) }
-    }
-
-
-    companion object {
-        /**
-         * Internal buffer used to handle checking for current bound frame buffer and viewports.
-         * Max size of 64 bytes required as at most 16 integer elements can be returned.
-         */
-        private val intBuffer = createIntBuffer(16 * Int.SIZE_BYTES)
-
-        private fun getBoundFrameBuffer(gl: GL, out: GlFrameBuffer): GlFrameBuffer {
-            return gl.getBoundFrameBuffer(intBuffer, out)
-        }
-
-        private fun getViewport(gl: GL, result: MutableVec4i) {
-            gl.getIntegerv(GL.VIEWPORT, intBuffer)
-            result[0] = intBuffer[0]
-            result[1] = intBuffer[1]
-            result[2] = intBuffer[2]
-            result[3] = intBuffer[3]
-        }
     }
 }
 
