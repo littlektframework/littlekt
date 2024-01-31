@@ -1,6 +1,10 @@
 # Changelog
 
-## 0.8.2 (SNAPSHOT)
+## 0.9.0 (SNAPSHOT)
+
+### Breaking
+* `ShaderProgram.getAttrib()` can now return a `-1` instead of throwing an `IllegalStateException` if the attribute name doesn't exist.
+* `ShaderProgram.getUniformLocation` can now return a `null` instead of the `UniformLocation` if the uniform name doesn't exist.
 
 ### Changes
 
