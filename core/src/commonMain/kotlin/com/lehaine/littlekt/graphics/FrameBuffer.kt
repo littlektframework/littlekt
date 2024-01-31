@@ -85,6 +85,7 @@ open class FrameBuffer(
      * Gets set when the frame buffer is prepared by the application
      */
     private lateinit var gl: GL
+    private lateinit var context: Context
 
     private var fboHandle: GlFrameBuffer? = null
     private var depthBufferHandle: GlRenderBuffer? = null
@@ -117,6 +118,7 @@ open class FrameBuffer(
 
     override fun prepare(context: Context) {
         gl = context.gl
+        this.context = context
         val fboHandle = gl.createFrameBuffer()
         this.fboHandle = fboHandle
 
@@ -257,7 +259,7 @@ open class FrameBuffer(
         check(!isBound) { "end() must be called before another draw can begin." }
         isBound = true
 
-        previousFboHandle = getBoundFrameBuffer(gl, tempFboHandle)
+    //    previousFboHandle = getBoundFrameBuffer(gl, tempFboHandle)
         gl.bindFrameBuffer(fboHandle)
 
         getViewport(gl, previousViewport)
@@ -270,15 +272,17 @@ open class FrameBuffer(
         check(isBound) { "begin() must be called first!" }
 
         isBound = false
-        val currentFbo = getBoundFrameBuffer(gl, tempFboHandle2)
-        check(currentFbo == fboHandle) {
-            "The current bound framebuffer ($currentFbo) doesn't match this one. " +
-                    "Ensure that the frame buffers are closed in the same order they were opened in."
-        }
-        val previousFboHandle = previousFboHandle
-        check(previousFboHandle != null) { "The previous framebuffer object is null. That means it was not found for some unknown reason." }
-        gl.bindFrameBuffer(previousFboHandle)
-        gl.viewport(previousViewport[0], previousViewport[1], previousViewport[2], previousViewport[3])
+//        val currentFbo = getBoundFrameBuffer(gl, tempFboHandle2)
+//        check(currentFbo == fboHandle) {
+//            "The current bound framebuffer ($currentFbo) doesn't match this one. " +
+//                    "Ensure that the frame buffers are closed in the same order they were opened in."
+//        }
+//        val previousFboHandle = previousFboHandle
+//        check(previousFboHandle != null) { "The previous framebuffer object is null. That means it was not found for some unknown reason." }
+//        gl.bindFrameBuffer(previousFboHandle)
+        gl.bindDefaultFrameBuffer()
+        gl.viewport(0, 0, context.graphics.backBufferWidth, context.graphics.backBufferHeight)
+       // gl.viewport(previousViewport[0], previousViewport[1], previousViewport[2], previousViewport[3])
     }
 
     override fun dispose() {
