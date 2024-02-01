@@ -20,7 +20,9 @@
 
 ### Fixes
 
-* Fix `InputQueueProcessor` to clear events pool even when no `InputProcessor` exists
+* Fix `InputQueueProcessor` to clear events pool even when no `InputProcessor` exists.
+* Fix `SpriteBatch` default size to be back to 1000 sprites instead of 8191 sprites.
+  * This makes it consistent with `TextureArraySpriteBatch` as well as increases performance if using the default size and using less than 8191 sprites.
 
 ## 0.8.1
 
