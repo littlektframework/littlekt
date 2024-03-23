@@ -9,7 +9,6 @@ plugins {
 
 repositories {
     mavenCentral()
-    maven(url = "https://maven.pkg.jetbrains.space/kotlin/p/wasm/experimental")
     maven(url = "https://maven.pkg.jetbrains.space/public/p/kotlinx-html/maven")
 }
 
