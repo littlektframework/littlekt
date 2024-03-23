@@ -1,8 +1,8 @@
 [versions]
 plugin-android = "7.3.1"
-plugin-kotlin = "1.9.21"
+plugin-kotlin = "1.9.23"
 plugin-gver = "0.48.0"
-plugin-dokka = "1.9.10"
+plugin-dokka = "1.9.20"
 
 kotlinx-serialization = "1.6.2"
 kotlinx-coroutines = "1.7.3"
