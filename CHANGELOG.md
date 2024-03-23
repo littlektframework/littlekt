@@ -18,6 +18,10 @@
 * Optimize `WebGL` to prevent creating a new array on certain `GL` calls.
 * Update `ShaderProgram` to handle finding and setting active uniforms and attributes instead relying on
   the `ShaderParameter` to do so.
+* Update `AGP` to `8.2.0`.
+* Update Kotlin to `1.9.23`.
+* Update `kotlinx-coroutines` to `1.8.0`.
+* Update Dokka gradle plugin to `1.9.20`.
 
 ### Fixes
 
