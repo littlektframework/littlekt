@@ -4,9 +4,11 @@ import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnPlugin
 import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnRootExtension
 
 val littleKtVersion: String by project
+
 plugins {
-    id("org.jetbrains.dokka") version "1.7.20" apply false
+    alias(libs.plugins.plugin.dokka) apply false
 }
+
 buildscript {
     repositories {
         gradlePluginPortal()
