@@ -122,8 +122,12 @@ external class Touch {
 
 abstract external class WebGL2RenderingContext : WebGLRenderingContext {
     fun bufferData(target: Int, srcData: ArrayBufferView, usage: Int, srcOffset: Int, length: Int)
+    fun clearBufferiv(buffer: Int, drawBuffer: Int, values: Int32Array)
+    fun clearBufferuiv(buffer: Int, drawBuffer: Int, values: Uint32Array)
     fun clearBufferfv(buffer: Int, drawBuffer: Int, values: Float32Array)
+    fun clearBufferfi(buffer: Int, drawBuffer: Int, depth: Float, stencil: Int)
     fun drawBuffers(buffers: Int32Array)
+    fun drawBuffers(buffers: Uint32Array)
     fun drawElementsInstanced(mode: Int, count: Int, type: Int, offset: Int, instanceCount: Int)
     fun readBuffer(src: Int)
     fun renderbufferStorageMultisample(target: Int, samples: Int, internalformat: Int, width: Int, height: Int)

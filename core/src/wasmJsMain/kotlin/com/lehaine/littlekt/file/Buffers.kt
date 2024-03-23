@@ -118,6 +118,14 @@ internal class IntBufferImpl(capacity: Int) : IntBuffer, GenericBuffer<Uint32Arr
         }
         return this
     }
+
+    fun getInt32Array(out: Int32Array): Int32Array {
+        check(out.length >= capacity) { "out must be >= the buffer capacity!" }
+        for (i in 0 until capacity) {
+            out[i] = get(i)
+        }
+        return out
+    }
 }
 
 /**
@@ -208,6 +216,14 @@ internal class ByteBufferImpl(buffer: ArrayBuffer) : ByteBuffer, GenericBuffer<D
 
     override fun getByte(offset: Int): Byte {
         return buffer.getInt8(offset)
+    }
+
+    fun getUInt8Array(out: Uint8Array): Uint8Array {
+        check(out.length >= capacity) { "out must be >= the buffer capacity!" }
+        for (i in 0 until capacity) {
+            out[i] = getByte(i)
+        }
+        return out
     }
 
     override fun getByteArray(startOffset: Int, endOffset: Int): ByteArray {

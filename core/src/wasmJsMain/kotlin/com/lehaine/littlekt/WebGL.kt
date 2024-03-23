@@ -19,6 +19,38 @@ class WebGL(val gl: WebGL2RenderingContext, val platform: Context.Platform, priv
     private var lastBoundShader: GlShaderProgram? = null
     private var lastBoundTexture: GlTexture? = null
 
+    private var uInt8Array = Uint8Array(2000 * 6)
+    private var int32Array = Int32Array(2000 * 6)
+
+    private fun copy(buffer: ByteBuffer): Uint8Array {
+        buffer as ByteBufferImpl
+        ensureCapacity(buffer)
+        return buffer.getUInt8Array(uInt8Array).subarray(buffer.position, buffer.remaining)
+    }
+
+    private fun copy(buffer: IntBuffer): Uint32Array {
+        buffer as IntBufferImpl
+        return buffer.buffer.subarray(buffer.position, buffer.remaining)
+    }
+
+    private fun copyInt32(buffer: IntBuffer): Int32Array {
+        buffer as IntBufferImpl
+        ensureCapacityInt32(buffer)
+        return buffer.getInt32Array(int32Array).subarray(buffer.position, buffer.remaining)
+    }
+
+    private fun ensureCapacity(buffer: ByteBuffer) {
+        if (buffer.capacity > uInt8Array.length) {
+            uInt8Array = Uint8Array(buffer.capacity)
+        }
+    }
+
+    private fun ensureCapacityInt32(buffer: IntBuffer) {
+        if (buffer.capacity > int32Array.length) {
+            int32Array = Int32Array(buffer.capacity)
+        }
+    }
+
     override fun clearColor(r: Float, g: Float, b: Float, a: Float) {
         engineStats.calls++
         gl.clearColor(r, g, b, a)
@@ -37,6 +69,29 @@ class WebGL(val gl: WebGL2RenderingContext, val platform: Context.Platform, priv
     override fun clearStencil(stencil: Int) {
         engineStats.calls++
         gl.clearStencil(stencil)
+    }
+
+    override fun clearBufferiv(buffer: Int, drawBuffer: Int, value: IntBuffer) {
+        engineStats.calls++
+        value as IntBufferImpl
+        gl.clearBufferiv(buffer, drawBuffer, copyInt32(value))
+    }
+
+    override fun clearBufferuiv(buffer: Int, drawBuffer: Int, value: IntBuffer) {
+        engineStats.calls++
+        value as IntBufferImpl
+        gl.clearBufferuiv(buffer, drawBuffer, copy(value))
+    }
+
+    override fun clearBufferfv(buffer: Int, drawBuffer: Int, value: FloatBuffer) {
+        engineStats.calls++
+        value as FloatBufferImpl
+        gl.clearBufferfv(buffer, drawBuffer, value.buffer)
+    }
+
+    override fun clearBufferfi(buffer: Int, drawBuffer: Int, depth: Float, stencil: Int) {
+        engineStats.calls++
+        gl.clearBufferfi(buffer, drawBuffer, depth, stencil)
     }
 
     override fun colorMask(red: Boolean, green: Boolean, blue: Boolean, alpha: Boolean) {
@@ -124,6 +179,17 @@ class WebGL(val gl: WebGL2RenderingContext, val platform: Context.Platform, priv
         return GlShaderProgram(gl.createProgram()!!)
     }
 
+    override fun getActiveAttrib(
+        glShaderProgram: GlShaderProgram,
+        index: Int,
+        size: IntBuffer,
+        type: IntBuffer,
+    ): String {
+        engineStats.calls++
+        return gl.getActiveAttrib(glShaderProgram.delegate, index)?.name
+            ?: throw RuntimeException("WebGL: getActiveAttrib returned a null attribute name!")
+    }
+
     override fun getAttribLocation(glShaderProgram: GlShaderProgram, name: String): Int {
         engineStats.calls++
         return gl.getAttribLocation(glShaderProgram.delegate, name)
@@ -135,6 +201,17 @@ class WebGL(val gl: WebGL2RenderingContext, val platform: Context.Platform, priv
             gl.getUniformLocation(glShaderProgram.delegate, name)
                 ?: throw RuntimeException("Uniform $name has not been created.")
         )
+    }
+
+    override fun getActiveUniform(
+        glShaderProgram: GlShaderProgram,
+        index: Int,
+        size: IntBuffer,
+        type: IntBuffer,
+    ): String {
+        engineStats.calls++
+        return gl.getActiveUniform(glShaderProgram.delegate, index)?.name
+            ?: throw RuntimeException("WebGL: getActiveUniform returned a null attribute name!")
     }
 
     override fun attachShader(glShaderProgram: GlShaderProgram, glShader: GlShader) {
@@ -155,6 +232,17 @@ class WebGL(val gl: WebGL2RenderingContext, val platform: Context.Platform, priv
     override fun deleteProgram(glShaderProgram: GlShaderProgram) {
         engineStats.calls++
         gl.deleteProgram(glShaderProgram.delegate)
+    }
+
+    override fun getProgramiv(glShaderProgram: GlShaderProgram, pname: Int, params: IntBuffer) {
+        engineStats.calls++
+        if (pname == GetProgram.DELETE_STATUS.glFlag || pname == GetProgram.LINK_STATUS.glFlag || pname == GetProgram.VALIDATE_STATUS.glFlag) {
+            val result: Boolean = (gl.getProgramParameter(glShaderProgram.delegate, pname) as JsBoolean).toBoolean()
+            params.put(if (result) GL.TRUE else GL.FALSE)
+        } else {
+            params.put((gl.getProgramParameter(glShaderProgram.delegate, pname) as JsNumber).toInt())
+        }
+        params.flip()
     }
 
     override fun getString(pname: Int): String? {
@@ -235,10 +323,10 @@ class WebGL(val gl: WebGL2RenderingContext, val platform: Context.Platform, priv
         }
     }
 
-    override fun getBoundFrameBuffer(data: IntBuffer): GlFrameBuffer {
+    override fun getBoundFrameBuffer(data: IntBuffer, out: GlFrameBuffer): GlFrameBuffer {
         engineStats.calls++
         val result = gl.getParameter(GL.FRAMEBUFFER_BINDING) as WebGLFramebuffer?
-        return GlFrameBuffer(result)
+        return out.apply { delegate = result }
     }
 
     override fun getProgramParameter(glShaderProgram: GlShaderProgram, pname: Int): Any {
@@ -682,6 +770,14 @@ class WebGL(val gl: WebGL2RenderingContext, val platform: Context.Platform, priv
         gl.drawElements(mode, count, type, offset)
     }
 
+    override fun drawBuffers(size: Int, buffers: IntBuffer) {
+        engineStats.calls++
+        buffers as IntBufferImpl
+        val startPos = buffers.position
+        gl.drawBuffers(copy(buffers).subarray(0, size))
+        buffers.position = startPos
+    }
+
     override fun pixelStorei(pname: Int, param: Int) {
         engineStats.calls++
         gl.pixelStorei(pname, param)
@@ -792,7 +888,7 @@ class WebGL(val gl: WebGL2RenderingContext, val platform: Context.Platform, priv
         source as ByteBufferImpl
         gl.texImage2D(
             target, level, internalFormat, width, height, 0, format, type,
-            source.toArray().toUint8Array() // convert it to a uint8array or else webgl fails to render
+            copy(source) // convert it to a uint8array or else webgl fails to render
         )
     }
 

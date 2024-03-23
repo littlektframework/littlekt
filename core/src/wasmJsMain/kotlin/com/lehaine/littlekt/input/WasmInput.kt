@@ -37,27 +37,27 @@ class WasmInput(val canvas: HTMLCanvasElement) : Input {
     override val catchKeys: MutableList<Key> = mutableListOf()
 
     init {
-        document.addEventListener("keydown", ::keyDown, false.toJsBoolean())
-        document.addEventListener("keyup", ::keyUp, false.toJsBoolean())
-        document.addEventListener("keypress", ::keyPress, false.toJsBoolean())
-        canvas.addEventListener("touchstart", ::touchStart, false.toJsBoolean())
-        canvas.addEventListener("touchmove", ::touchMove, false.toJsBoolean())
-        canvas.addEventListener("touchend", ::touchEnd, false.toJsBoolean())
-        canvas.addEventListener("mousedown", ::mouseDown, false.toJsBoolean())
-        canvas.addEventListener("mouseup", ::mouseUp, false.toJsBoolean())
-        canvas.addEventListener("mousemove", ::mouseMove, false.toJsBoolean())
-        canvas.addEventListener("wheel", ::scroll, false.toJsBoolean())
+        document.addEventListener("keydown", ::keyDown, false)
+        document.addEventListener("keyup", ::keyUp, false)
+        document.addEventListener("keypress", ::keyPress, false)
+        canvas.addEventListener("touchstart", ::touchStart, false)
+        canvas.addEventListener("touchmove", ::touchMove, false)
+        canvas.addEventListener("touchend", ::touchEnd, false)
+        canvas.addEventListener("mousedown", ::mouseDown, false)
+        canvas.addEventListener("mouseup", ::mouseUp, false)
+        canvas.addEventListener("mousemove", ::mouseMove, false)
+        canvas.addEventListener("wheel", ::scroll, false)
 
-        window.addEventListener("gamepadconnected", { e ->
+        window.addEventListener("gamepadconnected") { e ->
             val ge = e.unsafeCast<JsGamepadEvent>()
             gamepads[ge.gamepad.index].connected = true
             _connectedGamepads += gamepads[ge.gamepad.index]
-        })
-        window.addEventListener("gamepaddisconnected", { e ->
+        }
+        window.addEventListener("gamepaddisconnected") { e ->
             val ge = e.unsafeCast<JsGamepadEvent>()
             gamepads[ge.gamepad.index].connected = false
             _connectedGamepads -= gamepads[ge.gamepad.index]
-        })
+        }
         checkForGamepads()
     }
 
