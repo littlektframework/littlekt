@@ -2,6 +2,7 @@ package com.lehaine.littlekt.graphics.shader
 
 import com.lehaine.littlekt.Context
 import com.lehaine.littlekt.Disposable
+import com.lehaine.littlekt.file.createIntBuffer
 import com.lehaine.littlekt.graphics.GL
 import com.lehaine.littlekt.graphics.Preparable
 import com.lehaine.littlekt.graphics.gl.*
@@ -50,7 +51,10 @@ class ShaderProgram<V : VertexShader, F : FragmentShader>(
 
     private var isPrepared = false
 
-
+    /**
+     * Generates the source for each shader and compiles them. A shader program is created, the shaders attached,
+     * and the program linked. Lastly, the uniforms and attributes are fetched.
+     */
     override fun prepare(context: Context) {
         val gl = context.gl.also { gl = it }
         if (vertexShader is VertexShaderModel) {
@@ -79,38 +83,75 @@ class ShaderProgram<V : VertexShader, F : FragmentShader>(
             if (it.name == U_PROJ_TRANS_UNIFORM) {
                 uProjTrans = it as ShaderParameter.UniformMat4
             }
-            it.create(this)
         }
 
         fragmentShader.parameters.forEach {
             if (it.name == U_TEXTURE) {
                 uTexture = it as ShaderParameter.UniformSample2D
             }
-            it.create(this)
+        }
+
+        fetchUniforms()
+        fetchAttributes()
+    }
+
+    private val params = createIntBuffer(1)
+    private val type = createIntBuffer(1)
+
+    private fun fetchUniforms() {
+        val gl = gl
+        val programGl = programGl
+        check(isPrepared && programGl != null && gl != null) { "ShaderProgram is not prepared! Make sure to call prepare(context)." }
+        params.clear()
+        gl.getProgramiv(programGl, GetProgram.ACTIVE_UNIFORMS, params)
+        val numUniforms = params[0]
+        uniforms.clear()
+        for (i in 0 until numUniforms) {
+            params.clear()
+            params[0] = 1
+            type.clear()
+            val name = gl.getActiveUniform(programGl, i, params, type)
+            val location = gl.getUniformLocation(programGl, name)
+            uniforms[name] = location
         }
     }
 
-    fun createAttrib(name: String) {
+    private fun fetchAttributes() {
         val gl = gl
         val programGl = programGl
         check(isPrepared && programGl != null && gl != null) { "ShaderProgram is not prepared! Make sure to call prepare(context)." }
-        attributes[name] = gl.getAttribLocation(programGl, name)
+        params.clear()
+        gl.getProgramiv(programGl, GetProgram.ACTIVE_ATTRIBUTES, params)
+        val numAttributes = params[0]
+        attributes.clear()
+        for (i in 0 until numAttributes) {
+            params.clear()
+            params[0] = 1
+            type.clear()
+            val name = gl.getActiveAttrib(programGl, i, params, type)
+            val location = gl.getAttribLocation(programGl, name)
+            attributes[name] = location
+        }
     }
 
-    fun createUniform(name: String) {
-        val gl = gl
-        val programGl = programGl
-        check(isPrepared && programGl != null && gl != null) { "ShaderProgram is not prepared! Make sure to call prepare(context)." }
-        uniforms[name] = gl.getUniformLocation(programGl, name)
-    }
-
+    /**
+     * @param name the name of the attribute
+     * @return the attribute location if it exists; `-1` otherwise
+     */
     fun getAttrib(name: String): Int =
-        attributes[name] ?: throw IllegalStateException("Attributes '$name' not created!")
+        attributes[name] ?: -1
 
-    fun getUniform(name: String): UniformLocation {
-        return uniforms[name] ?: throw IllegalStateException("Uniform '$name' not created!")
+    /**
+     * @param name the name of the uniform
+     * @return the [UniformLocation] if it exists; `null` otherwise
+     */
+    fun getUniform(name: String): UniformLocation? {
+        return uniforms[name]
     }
 
+    /**
+     * Binds the shader program after it has been prepared.
+     */
     fun bind() {
         val gl = gl
         val programGl = programGl

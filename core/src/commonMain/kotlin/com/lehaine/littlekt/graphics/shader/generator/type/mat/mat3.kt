@@ -2,6 +2,7 @@ package com.lehaine.littlekt.graphics.shader.generator.type.mat
 
 import com.lehaine.littlekt.graphics.shader.generator.GlslGenerator
 import com.lehaine.littlekt.graphics.shader.generator.str
+import com.lehaine.littlekt.graphics.shader.generator.type.ArrayItemDelegate
 import com.lehaine.littlekt.graphics.shader.generator.type.Matrix
 import com.lehaine.littlekt.graphics.shader.generator.type.vec.Vec3
 
@@ -14,10 +15,10 @@ class Mat3(override val builder: GlslGenerator) : Matrix {
     override val typeName: String = "mat3"
     override var value: String? = null
 
-    private var column1 by MatrixColumnDelegate(0, ::Vec3)
-    private var column2 by MatrixColumnDelegate(1, ::Vec3)
+    private var column1 by ArrayItemDelegate(0, ::Vec3)
+    private var column2 by ArrayItemDelegate(1, ::Vec3)
 
-    private var column3 by MatrixColumnDelegate(2, ::Vec3)
+    private var column3 by ArrayItemDelegate(2, ::Vec3)
 
     constructor(builder: GlslGenerator, value: String) : this(builder) {
         this.value = value

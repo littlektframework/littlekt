@@ -25,6 +25,7 @@ abstract class FragmentShaderModel : GlslGenerator(), FragmentShader {
 
     var gl_FragCoord by BuiltinVarDelegate()
     var gl_FragColor by BuiltinVarDelegate()
+    val gl_FragData by BuiltInVec4ArrayDelegate()
 
     val gl_FrontFacing = "gl_FrontFacing".bool
 
@@ -67,9 +68,7 @@ abstract class FragmentShaderModel : GlslGenerator(), FragmentShader {
 
         other as FragmentShaderModel
 
-        if (source != other.source) return false
-
-        return true
+        return source == other.source
     }
 
     override fun hashCode(): Int {

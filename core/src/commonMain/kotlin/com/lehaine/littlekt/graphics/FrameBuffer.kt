@@ -2,9 +2,8 @@ package com.lehaine.littlekt.graphics
 
 import com.lehaine.littlekt.Context
 import com.lehaine.littlekt.Disposable
-import com.lehaine.littlekt.file.createIntBuffer
+import com.lehaine.littlekt.graphics.FrameBuffer.TextureAttachment
 import com.lehaine.littlekt.graphics.gl.*
-import com.lehaine.littlekt.math.MutableVec4i
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
@@ -13,40 +12,98 @@ import kotlin.contracts.contract
  * Encapsulates OpenGL frame buffer objects.
  * @param width the width of the framebuffer in pixels
  * @param height the height of the framebuffer in pixels
+ * @param textureAttachments the list of [TextureAttachment] to attach to the FrameBuffer.
  * @param hasDepth whether to attach a depth buffer. Defaults to false.
  * @param hasStencil whether to attach a stencil buffer. Defaults to false.
- * @param format the format of the color buffer
+ * @param hasPackedDepthStencil whether to attach a packed depth/stencil buffer. Defaults to false.
  * @author Colton Daily
  * @date 11/25/2021
  */
 open class FrameBuffer(
     val width: Int,
     val height: Int,
+    val textureAttachments: List<TextureAttachment> = listOf(TextureAttachment()),
     val hasDepth: Boolean = false,
     val hasStencil: Boolean = false,
     var hasPackedDepthStencil: Boolean = false,
-    val format: Pixmap.Format = Pixmap.Format.RGBA8888,
-    val minFilter: TexMinFilter = TexMinFilter.LINEAR,
-    val magFilter: TexMagFilter = TexMagFilter.LINEAR,
 ) : Preparable, Disposable {
+
+    /**
+     * Encapsulates OpenGL frame buffer objects.
+     * @param width the width of the framebuffer in pixels
+     * @param height the height of the framebuffer in pixels
+     * @param format format of the color buffer
+     * @param hasDepth whether to attach a depth buffer. Defaults to false.
+     * @param hasStencil whether to attach a stencil buffer. Defaults to false.
+     * @param hasPackedDepthStencil whether to attach a packed depth/stencil buffer. Defaults to false.
+     * @param minFilter texture min filter
+     * @param magFilter texture mag filter
+     * @param wrap format for UV texture wrap
+     */
+    constructor(
+        width: Int,
+        height: Int,
+        hasDepth: Boolean = false,
+        hasStencil: Boolean = false,
+        hasPackedDepthStencil: Boolean = false,
+        format: Pixmap.Format = Pixmap.Format.RGBA8888,
+        minFilter: TexMinFilter = TexMinFilter.LINEAR,
+        magFilter: TexMagFilter = TexMagFilter.LINEAR,
+        wrap: TexWrap = TexWrap.CLAMP_TO_EDGE,
+    ) : this(
+        width,
+        height,
+        listOf(TextureAttachment(format, minFilter, magFilter, wrap)),
+        hasDepth,
+        hasStencil,
+        hasPackedDepthStencil
+    )
+
+    /**
+     * A color attachment to be used in [FrameBuffer].
+     * @param format format of the color buffer
+     * @param minFilter texture min filter
+     * @param magFilter texture mag filter
+     * @param wrap format for UV texture wrap
+     * @param isDepth `true` if texture depth attachment; `false` otherwise
+     * @param isStencil `true` if texture is a stencil attachment; `false` otherwise
+     */
+    data class TextureAttachment(
+        val format: Pixmap.Format = Pixmap.Format.RGBA8888,
+        val minFilter: TexMinFilter = TexMinFilter.LINEAR,
+        val magFilter: TexMagFilter = TexMagFilter.LINEAR,
+        val wrap: TexWrap = TexWrap.CLAMP_TO_EDGE,
+        val isDepth: Boolean = false,
+        val isStencil: Boolean = false,
+    ) {
+        val isColorTexture: Boolean get() = !isDepth && !isStencil
+    }
 
     /**
      * Gets set when the frame buffer is prepared by the application
      */
     private lateinit var gl: GL
+    private lateinit var context: Context
 
     private var fboHandle: GlFrameBuffer? = null
     private var depthBufferHandle: GlRenderBuffer? = null
     private var stencilBufferHandle: GlRenderBuffer? = null
     private var depthStencilPackedBufferHandle: GlRenderBuffer? = null
 
-    private var previousFboHandle: GlFrameBuffer? = null
-    private val previousViewport = MutableVec4i()
-    private var isBound = false
     private var isPrepared = false
 
-    var texture: Texture? = null
-    val colorBufferTexture get() = texture!!
+    private val _textures = mutableListOf<Texture>()
+    val textures: List<Texture> get() = _textures
+
+    /**
+     * Alias for `textures.getOrNull(0)`.
+     */
+    val texture: Texture? get() = textures.getOrNull(0)
+
+    /**
+     * Alias for `textures[0]`.
+     */
+    val colorBufferTexture: Texture get() = textures[0]
 
     override val prepared: Boolean
         get() = isPrepared
@@ -54,6 +111,7 @@ open class FrameBuffer(
 
     override fun prepare(context: Context) {
         gl = context.gl
+        this.context = context
         val fboHandle = gl.createFrameBuffer()
         this.fboHandle = fboHandle
 
@@ -81,15 +139,47 @@ open class FrameBuffer(
                 gl.renderBufferStorage(RenderBufferInternalFormat.DEPTH24_STENCIL8, width, height)
             }
         }
-        texture = Texture(GLTextureData(width, height, 0, format.glFormat, format.glFormat, format.glType)).apply {
-            minFilter = this@FrameBuffer.minFilter
-            magFilter = this@FrameBuffer.magFilter
-            uWrap = TexWrap.CLAMP_TO_EDGE
-            vWrap = TexWrap.CLAMP_TO_EDGE
-        }.also { it.prepare(context) } // preparing the texture will also bind it
 
-        texture?.glTexture?.let {
-            gl.frameBufferTexture2D(FrameBufferRenderBufferAttachment.COLOR_ATTACHMENT(), it, 0)
+        textureAttachments.forEachIndexed { i, attachment ->
+            _textures += Texture(
+                GLTextureData(
+                    width,
+                    height,
+                    0,
+                    attachment.format.glFormat,
+                    attachment.format.glFormat,
+                    attachment.format.glType
+                )
+            ).apply {
+                minFilter = attachment.minFilter
+                magFilter = attachment.magFilter
+                uWrap = attachment.wrap
+                vWrap = attachment.wrap
+            }.also { texture ->
+                texture.prepare(context) // preparing the texture will also bind it
+                if (attachment.isColorTexture) {
+                    gl.frameBufferTexture2D(
+                        FrameBufferRenderBufferAttachment.COLOR_ATTACHMENT(i),
+                        texture.glTexture
+                            ?: throw RuntimeException("FrameBuffer failed on attempting to add color attachment($i)!"),
+                        0
+                    )
+                } else if (attachment.isDepth) {
+                    gl.frameBufferTexture2D(
+                        FrameBufferRenderBufferAttachment.DEPTH_ATTACHMENT,
+                        texture.glTexture
+                            ?: throw RuntimeException("FrameBuffer failed on attempting to add depth attachment!"),
+                        0
+                    )
+                } else if (attachment.isStencil) {
+                    gl.frameBufferTexture2D(
+                        FrameBufferRenderBufferAttachment.STENCIL_ATTACHMENT,
+                        texture.glTexture
+                            ?: throw RuntimeException("FrameBuffer failed on attempting to add stencil attachment!"),
+                        0
+                    )
+                }
+            }
         }
 
         depthBufferHandle?.let {
@@ -104,9 +194,6 @@ open class FrameBuffer(
         }
 
         gl.bindDefaultRenderBuffer()
-        texture?.glTexture?.let {
-            gl.bindTexture(TextureTarget._2D, it)
-        }
 
         var result = gl.checkFrameBufferStatus()
         if (result == FrameBufferStatus.FRAMEBUFFER_UNSUPPORTED && hasDepth && hasStencil &&
@@ -159,38 +246,41 @@ open class FrameBuffer(
         isPrepared = true
     }
 
+    /**
+     * Binds the frame buffer and sets the viewport to the [width] and [height].
+     */
     fun begin() {
         val fboHandle = fboHandle
         check(isPrepared && fboHandle != null) { "The framebuffer has not been prepared yet! Ensure you called prepare() sometime before you call begin()" }
-        check(!isBound) { "end() must be called before another draw can begin." }
-        isBound = true
 
-        previousFboHandle = getBoundFrameBuffer(gl)
         gl.bindFrameBuffer(fboHandle)
-
-        getViewport(gl, previousViewport)
         gl.viewport(0, 0, width, height)
     }
 
-    fun end() {
+    /**
+     * Binds the default framebuffer and sets the [GL.viewport] with the given position and size.
+     * @param x the viewport x
+     * @param y the viewport y
+     * @param width the viewport width
+     * @param height the viewport height
+     */
+    fun end(
+        x: Int = 0,
+        y: Int = 0,
+        width: Int = context.graphics.backBufferWidth,
+        height: Int = context.graphics.backBufferHeight,
+    ) {
         val fboHandle = fboHandle
         check(isPrepared && fboHandle != null) { "The framebuffer has not been prepared yet! Ensure you called prepare() sometime before you call end()" }
-        check(isBound) { "begin() must be called first!" }
 
-        isBound = false
-        val currentFbo = getBoundFrameBuffer(gl)
-        check(currentFbo == fboHandle) {
-            "The current bound framebuffer ($currentFbo) doesn't match this one. " +
-                    "Ensure that the frame buffers are closed in the same order they were opened in."
-        }
-        val previousFboHandle = previousFboHandle
-        check(previousFboHandle != null) { "The previous framebuffer object is null. That means it was not found for some unknown reason." }
-        gl.bindFrameBuffer(previousFboHandle)
-        gl.viewport(previousViewport[0], previousViewport[1], previousViewport[2], previousViewport[3])
+        gl.bindDefaultFrameBuffer()
+        gl.viewport(x, y, width, height)
     }
 
     override fun dispose() {
-        texture?.dispose()
+        _textures.forEach {
+            it.dispose()
+        }
 
         if (hasDepth) {
             depthBufferHandle?.let {
@@ -211,27 +301,6 @@ open class FrameBuffer(
             depthStencilPackedBufferHandle = null
         }
         fboHandle?.let { gl.deleteFrameBuffer(it) }
-    }
-
-
-    companion object {
-        /**
-         * Internal buffer used to handle checking for current bound frame buffer and viewports.
-         * Max size of 64 bytes required as at most 16 integer elements can be returned.
-         */
-        private val intBuffer = createIntBuffer(16 * Int.SIZE_BYTES)
-
-        private fun getBoundFrameBuffer(gl: GL): GlFrameBuffer {
-            return gl.getBoundFrameBuffer(intBuffer)
-        }
-
-        private fun getViewport(gl: GL, result: MutableVec4i) {
-            gl.getIntegerv(GL.VIEWPORT, intBuffer)
-            result[0] = intBuffer[0]
-            result[1] = intBuffer[1]
-            result[2] = intBuffer[2]
-            result[3] = intBuffer[3]
-        }
     }
 }
 

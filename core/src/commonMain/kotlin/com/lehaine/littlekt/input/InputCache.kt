@@ -11,8 +11,8 @@ import kotlin.math.max
  */
 class InputCache {
 
-    private val pointerCache = Pointer.values()
-    private val keyCache = Key.values()
+    private val pointerCache = Pointer.entries.toTypedArray()
+    private val keyCache = Key.entries.toTypedArray()
 
     private val pointersTouching = mutableMapOf<Pointer, Boolean>()
     private val pointersJustTouched = mutableMapOf<Pointer, Boolean>()

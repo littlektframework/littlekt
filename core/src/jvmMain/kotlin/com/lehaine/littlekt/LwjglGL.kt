@@ -44,6 +44,29 @@ class LwjglGL(private val engineStats: EngineStats, private val graphics: Graphi
         glClearStencil(stencil)
     }
 
+    override fun clearBufferiv(buffer: Int, drawBuffer: Int, value: IntBuffer) {
+        engineStats.calls++
+        value as IntBufferImpl
+        glClearBufferiv(buffer, drawBuffer, value.buffer)
+    }
+
+    override fun clearBufferuiv(buffer: Int, drawBuffer: Int, value: IntBuffer) {
+        engineStats.calls++
+        value as IntBufferImpl
+        glClearBufferuiv(buffer, drawBuffer, value.buffer)
+    }
+
+    override fun clearBufferfv(buffer: Int, drawBuffer: Int, value: FloatBuffer) {
+        engineStats.calls++
+        value as FloatBufferImpl
+        glClearBufferfv(buffer, drawBuffer, value.buffer)
+    }
+
+    override fun clearBufferfi(buffer: Int, drawBuffer: Int, depth: Float, stencil: Int) {
+        engineStats.calls++
+        glClearBufferfi(buffer, drawBuffer, depth, stencil)
+    }
+
     override fun colorMask(red: Boolean, green: Boolean, blue: Boolean, alpha: Boolean) {
         engineStats.calls++
         glColorMask(red, green, blue, alpha)
@@ -129,6 +152,18 @@ class LwjglGL(private val engineStats: EngineStats, private val graphics: Graphi
         return GlShaderProgram(glCreateProgram())
     }
 
+    override fun getActiveAttrib(
+        glShaderProgram: GlShaderProgram,
+        index: Int,
+        size: IntBuffer,
+        type: IntBuffer,
+    ): String {
+        engineStats.calls++
+        size as IntBufferImpl
+        type as IntBufferImpl
+        return GL20.glGetActiveAttrib(glShaderProgram.address, index, 256, size.buffer, type.buffer)
+    }
+
     override fun getAttribLocation(glShaderProgram: GlShaderProgram, name: String): Int {
         engineStats.calls++
         return glGetAttribLocation(glShaderProgram.address, name)
@@ -137,6 +172,18 @@ class LwjglGL(private val engineStats: EngineStats, private val graphics: Graphi
     override fun getUniformLocation(glShaderProgram: GlShaderProgram, name: String): UniformLocation {
         engineStats.calls++
         return UniformLocation(glGetUniformLocation(glShaderProgram.address, name))
+    }
+
+    override fun getActiveUniform(
+        glShaderProgram: GlShaderProgram,
+        index: Int,
+        size: IntBuffer,
+        type: IntBuffer,
+    ): String {
+        engineStats.calls++
+        size as IntBufferImpl
+        type as IntBufferImpl
+        return GL20.glGetActiveUniform(glShaderProgram.address, index, 256, size.buffer, type.buffer)
     }
 
     override fun attachShader(glShaderProgram: GlShaderProgram, glShader: GlShader) {
@@ -157,6 +204,12 @@ class LwjglGL(private val engineStats: EngineStats, private val graphics: Graphi
     override fun deleteProgram(glShaderProgram: GlShaderProgram) {
         engineStats.calls++
         glDeleteProgram(glShaderProgram.address)
+    }
+
+    override fun getProgramiv(glShaderProgram: GlShaderProgram, pname: Int, params: IntBuffer) {
+        engineStats.calls++
+        params as IntBufferImpl
+        return GL20.glGetProgramiv(glShaderProgram.address, pname, params.buffer)
     }
 
     override fun getProgramParameter(glShaderProgram: GlShaderProgram, pname: Int): Any {
@@ -215,9 +268,9 @@ class LwjglGL(private val engineStats: EngineStats, private val graphics: Graphi
         glGetIntegerv(pname, data.buffer)
     }
 
-    override fun getBoundFrameBuffer(data: IntBuffer): GlFrameBuffer {
+    override fun getBoundFrameBuffer(data: IntBuffer, out: GlFrameBuffer): GlFrameBuffer {
         getIntegerv(GL.FRAMEBUFFER_BINDING, data)
-        return GlFrameBuffer(data[0])
+        return out.apply { reference = data[0] }
     }
 
     override fun getShaderParameterB(glShader: GlShader, pname: Int): Boolean {
@@ -673,6 +726,15 @@ class LwjglGL(private val engineStats: EngineStats, private val graphics: Graphi
         engineStats.drawCalls++
         engineStats.vertices += count
         glDrawElements(mode, count, type, offset.toLong())
+    }
+
+    override fun drawBuffers(size: Int, buffers: IntBuffer) {
+        engineStats.calls++
+        buffers as IntBufferImpl
+        val limit = buffers.limit
+        buffers.limit = size
+        GL20.glDrawBuffers(buffers.buffer)
+        buffers.limit = limit
     }
 
     override fun pixelStorei(pname: Int, param: Int) {

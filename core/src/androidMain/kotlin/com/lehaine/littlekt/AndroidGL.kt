@@ -45,6 +45,29 @@ class AndroidGL(private val engineStats: EngineStats) : GL {
         GLES20.glClearStencil(stencil)
     }
 
+    override fun clearBufferiv(buffer: Int, drawBuffer: Int, value: IntBuffer) {
+        engineStats.calls++
+        value as IntBufferImpl
+        GLES30.glClearBufferiv(buffer, drawBuffer, value.buffer)
+    }
+
+    override fun clearBufferuiv(buffer: Int, drawBuffer: Int, value: IntBuffer) {
+        engineStats.calls++
+        value as IntBufferImpl
+        GLES30.glClearBufferuiv(buffer, drawBuffer, value.buffer)
+    }
+
+    override fun clearBufferfv(buffer: Int, drawBuffer: Int, value: FloatBuffer) {
+        engineStats.calls++
+        value as FloatBufferImpl
+        GLES30.glClearBufferfv(buffer, drawBuffer, value.buffer)
+    }
+
+    override fun clearBufferfi(buffer: Int, drawBuffer: Int, depth: Float, stencil: Int) {
+        engineStats.calls++
+        GLES30.glClearBufferfi(buffer, drawBuffer, depth, stencil)
+    }
+
     override fun colorMask(red: Boolean, green: Boolean, blue: Boolean, alpha: Boolean) {
         engineStats.calls++
         GLES20.glColorMask(red, green, blue, alpha)
@@ -130,6 +153,18 @@ class AndroidGL(private val engineStats: EngineStats) : GL {
         return GlShaderProgram(GLES20.glCreateProgram())
     }
 
+    override fun getActiveAttrib(
+        glShaderProgram: GlShaderProgram,
+        index: Int,
+        size: IntBuffer,
+        type: IntBuffer,
+    ): String {
+        engineStats.calls++
+        size as IntBufferImpl
+        type as IntBufferImpl
+        return GLES20.glGetActiveAttrib(glShaderProgram.address, index, size.buffer, type.buffer)
+    }
+
     override fun getAttribLocation(glShaderProgram: GlShaderProgram, name: String): Int {
         engineStats.calls++
         return GLES20.glGetAttribLocation(glShaderProgram.address, name)
@@ -138,6 +173,18 @@ class AndroidGL(private val engineStats: EngineStats) : GL {
     override fun getUniformLocation(glShaderProgram: GlShaderProgram, name: String): UniformLocation {
         engineStats.calls++
         return UniformLocation(GLES20.glGetUniformLocation(glShaderProgram.address, name))
+    }
+
+    override fun getActiveUniform(
+        glShaderProgram: GlShaderProgram,
+        index: Int,
+        size: IntBuffer,
+        type: IntBuffer,
+    ): String {
+        engineStats.calls++
+        size as IntBufferImpl
+        type as IntBufferImpl
+        return GLES20.glGetActiveUniform(glShaderProgram.address, index, size.buffer, type.buffer)
     }
 
     override fun attachShader(glShaderProgram: GlShaderProgram, glShader: GlShader) {
@@ -158,6 +205,12 @@ class AndroidGL(private val engineStats: EngineStats) : GL {
     override fun deleteProgram(glShaderProgram: GlShaderProgram) {
         engineStats.calls++
         GLES20.glDeleteProgram(glShaderProgram.address)
+    }
+
+    override fun getProgramiv(glShaderProgram: GlShaderProgram, pname: Int, params: IntBuffer) {
+        engineStats.calls++
+        params as IntBufferImpl
+        GLES20.glGetProgramiv(glShaderProgram.address, pname, params.buffer)
     }
 
     override fun getProgramParameter(glShaderProgram: GlShaderProgram, pname: Int): Any {
@@ -220,9 +273,9 @@ class AndroidGL(private val engineStats: EngineStats) : GL {
         GLES20.glGetIntegerv(pname, data.buffer)
     }
 
-    override fun getBoundFrameBuffer(data: IntBuffer): GlFrameBuffer {
+    override fun getBoundFrameBuffer(data: IntBuffer, out: GlFrameBuffer): GlFrameBuffer {
         getIntegerv(GL.FRAMEBUFFER_BINDING, data)
-        return GlFrameBuffer(data[0])
+        return out.apply { reference = data[0] }
     }
 
     override fun getShaderParameterB(glShader: GlShader, pname: Int): Boolean {
@@ -628,6 +681,12 @@ class AndroidGL(private val engineStats: EngineStats) : GL {
         engineStats.drawCalls++
         engineStats.vertices += count
         GLES20.glDrawElements(mode, count, type, offset)
+    }
+
+    override fun drawBuffers(size: Int, buffers: IntBuffer) {
+        engineStats.calls++
+        buffers as IntBufferImpl
+        GLES30.glDrawBuffers(size, buffers.buffer)
     }
 
     override fun pixelStorei(pname: Int, param: Int) {

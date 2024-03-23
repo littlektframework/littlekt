@@ -1,5 +1,45 @@
 # Changelog
 
+## 0.9.0 (SNAPSHOT)
+
+### Breaking
+* `ShaderProgram.getAttrib()` can now return a `-1` instead of throwing an `IllegalStateException` if the attribute name doesn't exist.
+* `ShaderProgram.getUniformLocation` can now return a `null` instead of the `UniformLocation` if the uniform name doesn't exist.
+
+### Changes
+
+* Update `FrameBuffer` to allow for multiple texture attachments to be used.
+* Remove nest-ability from `FrameBuffer` due to poor performance with multiple calls to get currently bound frame buffer.
+  * `FrameBuffer.end()` will now bind to the default frame buffer instead with optional viewport position and size parametes.
+* Update `GLSlGenerator` to support `gl_FragData[]`.
+* Update `GL` with new `drawBuffer` and `clearBuffer[fuiv]` functions.
+* Update `GL` with new `getActiveAttrib` and `getActiveUniform` related functions.
+* Optimize `WebGL` to prevent creating a new array on certain `GL` calls.
+* Update `ShaderProgram` to handle finding and setting active uniforms and attributes instead relying on
+  the `ShaderParameter` to do so.
+
+### Fixes
+
+* Fix `InputQueueProcessor` to clear events pool even when no `InputProcessor` exists.
+* Fix `SpriteBatch` default size to be back to 1000 sprites instead of 8191 sprites.
+  * This makes it consistent with `TextureArraySpriteBatch` as well as increases performance if using the default size and using less than 8191 sprites.
+
+## 0.8.1
+
+### Changes
+
+* Remove remaining 3D spatial graphic classes that were accidentally left over from `0.8.0`.
+* Update LDtk to handle changes up to LDtk `1.5.3`.
+* Update Kotlin to `1.9.21`.
+* Update `Kotlinx.coroutines` to `1.8.0-RC2`.
+* Update `Kotlinx.atomicfu` to `0.23.1`.
+* Update `Kotlinx.serialization` to `1.6.2`.
+* Update Dokka gradle plugin to `1.9.10`.
+
+### Fixes
+
+* Fix `NoSuchElementException` being thrown when testing touch input in browsers simulated device-mode.
+
 ## 0.8.0
 
 ### Breaking
@@ -14,11 +54,11 @@
 * Update `Kotlinx.serialization` to `1.6.0`.
 * Update `LWJGL` to `3.3.3`.
 * Update Android Gradle plugin to `7.3.1`.
-* Update Gradle version plugin to `0.48.0`.
+* Update Gradle Version (gver) plugin to `0.48.0`.
 * Update Dokka gradle plugin to `1.9.0`.
 
-
 ### Fixes
+
 * Fix `Button` label not calculating layout correctly when adding directly to a `Control` node.
 
 ## v0.7.0
@@ -32,10 +72,12 @@
 * Add new `setBlendFunction(blendMode)` to `Batch`.
 * **Breaking**: update `createShader` to return the type of vertex and fragment shaders instead of the super class.
 * Add `FrameBuffer.use` extension similar to `Batch.use`.
-* **Breaking**: `Shader.parameters` are now to be used with a `LinkedHashSet` instead of a `MutableList()`. `mutableListOf(param1, param2) -> linkedSetOf(param1, param2)`.
-* **Breaking**: Update `Shader.parameters` to grab parameters by variable name instead of index. `parameters[0] -> parameters["u_texture"]`
-* **Breaking**: `GlslGenerator.texture2D`, `GlslGenerator.shadow2D`, and `GlslGenerator.texture` now returns a constructor delegate instead of a literal. `val color = texture2D(...) -> val color by texture2D(...)`
-
+* **Breaking**: `Shader.parameters` are now to be used with a `LinkedHashSet` instead of
+  a `MutableList()`. `mutableListOf(param1, param2) -> linkedSetOf(param1, param2)`.
+* **Breaking**: Update `Shader.parameters` to grab parameters by variable name instead of
+  index. `parameters[0] -> parameters["u_texture"]`
+* **Breaking**: `GlslGenerator.texture2D`, `GlslGenerator.shadow2D`, and `GlslGenerator.texture` now returns a
+  constructor delegate instead of a literal. `val color = texture2D(...) -> val color by texture2D(...)`
 
 ### Fixes
 
@@ -50,7 +92,6 @@
 * Fix `GlslGenerator.For` not using `GLInt` value directly
 * Fix `GlslGenerator.atan` to use correct parameters (was only allowing one parameter to be passed in)
 * Fix `InputMapController.addBinding` to check for key modifiers for `down()`, `pressed()`, and `released()` functions
-
 
 ## v0.6.3
 

@@ -23,7 +23,7 @@ class LDtkMapTest(context: Context) : ContextListener(context) {
 
         val batch = SpriteBatch(context, 8191)
 
-        val mapLoader = resourcesVfs["ldtk/world.ldtk"].readLDtkMapLoader()
+        val mapLoader = resourcesVfs["ldtk/world-1.5.3.ldtk"].readLDtkMapLoader()
         val level = mapLoader.loadLevel(2)
         val tempVec2f = MutableVec2f()
 

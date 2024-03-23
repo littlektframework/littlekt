@@ -4,20 +4,13 @@ import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnPlugin
 import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnRootExtension
 
 val littleKtVersion: String by project
-plugins {
-    id("org.jetbrains.dokka") version "1.7.20" apply false
-}
-buildscript {
-    repositories {
-        gradlePluginPortal()
-        google()
-        mavenCentral()
-    }
-    dependencies {
-        classpath(libs.bundles.plugins)
-    }
-}
 
+plugins {
+    alias(libs.plugins.android.library) apply false
+    alias(libs.plugins.dokka) apply false
+    alias(libs.plugins.kotlinx.serialization) apply false
+    alias(libs.plugins.kotlin.multiplatform) apply false
+}
 
 allprojects {
     repositories {
@@ -33,7 +26,7 @@ allprojects {
     // Report: build/dependencyUpdates/report.txt
     apply(plugin = "com.github.ben-manes.versions")
     if (name != "samples") {
-        apply(plugin = "org.jetbrains.dokka")
+        apply(libs.plugins.dokka)
     }
 }
 

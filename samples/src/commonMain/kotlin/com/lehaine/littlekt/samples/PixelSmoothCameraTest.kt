@@ -53,7 +53,11 @@ class PixelSmoothCameraTest(context: Context) : ContextListener(context) {
         val pixelSmoothShader =
             ShaderProgram(PixelSmoothVertexShader(), PixelSmoothFragmentShader()).also { it.prepare(this) }
 
-        var fbo = FrameBuffer(1, 1, minFilter = TexMinFilter.NEAREST, magFilter = TexMagFilter.NEAREST).also {
+        var fbo = FrameBuffer(
+            1,
+            1,
+            listOf(FrameBuffer.TextureAttachment(minFilter = TexMinFilter.NEAREST, magFilter = TexMagFilter.NEAREST))
+        ).also {
             it.prepare(this)
         }
 
@@ -72,8 +76,7 @@ class PixelSmoothCameraTest(context: Context) : ContextListener(context) {
             fbo = FrameBuffer(
                 pxWidth.nextPowerOfTwo,
                 pxHeight.nextPowerOfTwo,
-                minFilter = TexMinFilter.NEAREST,
-                magFilter = TexMagFilter.NEAREST
+                listOf(FrameBuffer.TextureAttachment(minFilter = TexMinFilter.NEAREST, magFilter = TexMagFilter.NEAREST))
             ).also {
                 it.prepare(this)
             }

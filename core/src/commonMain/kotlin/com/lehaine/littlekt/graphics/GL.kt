@@ -63,6 +63,10 @@ interface GL {
     fun clear(mask: ClearBufferMask) = clear(mask.glFlag)
     fun clearDepth(depth: Float)
     fun clearStencil(stencil: Int)
+    fun clearBufferiv(buffer: Int, drawBuffer: Int, value: IntBuffer)
+    fun clearBufferuiv(buffer: Int, drawBuffer: Int, value: IntBuffer)
+    fun clearBufferfv(buffer: Int, drawBuffer: Int, value: FloatBuffer)
+    fun clearBufferfi(buffer: Int, drawBuffer: Int, depth: Float, stencil: Int)
     fun colorMask(red: Boolean, green: Boolean, blue: Boolean, alpha: Boolean)
     fun cullFace(mode: Int)
     fun cullFace(mode: CullFaceMode) = cullFace(mode.glFlag)
@@ -114,8 +118,10 @@ interface GL {
         stencilOpSeparate(face.glFlag, fail.glFlag, zfail.glFlag, zpass.glFlag)
 
     fun createProgram(): GlShaderProgram
+    fun getActiveAttrib(glShaderProgram: GlShaderProgram, index: Int, size: IntBuffer, type: IntBuffer): String
     fun getAttribLocation(glShaderProgram: GlShaderProgram, name: String): Int
     fun getUniformLocation(glShaderProgram: GlShaderProgram, name: String): UniformLocation
+    fun getActiveUniform(glShaderProgram: GlShaderProgram, index: Int, size: IntBuffer, type: IntBuffer): String
     fun attachShader(glShaderProgram: GlShaderProgram, glShader: GlShader)
     fun detachShader(glShaderProgram: GlShaderProgram, glShader: GlShader)
     fun useProgram(glShaderProgram: GlShaderProgram)
@@ -124,6 +130,9 @@ interface GL {
     fun linkProgram(glShaderProgram: GlShaderProgram)
     fun deleteProgram(glShaderProgram: GlShaderProgram)
 
+    fun getProgramiv(glShaderProgram: GlShaderProgram, pname: Int, params: IntBuffer)
+    fun getProgramiv(glShaderProgram: GlShaderProgram, pname: GetProgram, params: IntBuffer) =
+        getProgramiv(glShaderProgram, pname.glFlag, params)
 
     fun getProgramParameter(glShaderProgram: GlShaderProgram, pname: Int): Any
     fun getProgramParameterB(glShaderProgram: GlShaderProgram, pname: Int): Boolean =
@@ -148,6 +157,7 @@ interface GL {
     fun getShaderInfoLog(glShader: GlShader): String
     fun deleteShader(glShader: GlShader)
     fun getProgramInfoLog(glShader: GlShaderProgram): String
+
     fun createVertexArray(): GlVertexArray
     fun bindVertexArray(glVertexArray: GlVertexArray)
     fun bindDefaultVertexArray()
@@ -160,7 +170,7 @@ interface GL {
     fun bindDefaultRenderBuffer()
     fun renderBufferStorage(internalFormat: RenderBufferInternalFormat, width: Int, height: Int)
     fun frameBufferRenderBuffer(attachementType: FrameBufferRenderBufferAttachment, glRenderBuffer: GlRenderBuffer)
-    fun getBoundFrameBuffer(data: IntBuffer): GlFrameBuffer
+    fun getBoundFrameBuffer(data: IntBuffer, out: GlFrameBuffer = GlFrameBuffer.EmptyGlFrameBuffer()): GlFrameBuffer
     fun deleteFrameBuffer(glFrameBuffer: GlFrameBuffer)
     fun deleteRenderBuffer(glRenderBuffer: GlRenderBuffer)
     fun frameBufferTexture2D(attachementType: FrameBufferRenderBufferAttachment, glTexture: GlTexture, level: Int)
@@ -226,25 +236,28 @@ interface GL {
 
     fun uniform1fv(uniformLocation: UniformLocation, floats: FloatArray)
     fun uniform1fv(uniformLocation: UniformLocation, floats: Array<Float>) =
-        uniform1fv(uniformLocation, floats.toFloatArray())
+        uniform1fv(uniformLocation, floats.toFloatArray()) // TODO optimize this so it doesn't create a new array
 
     fun uniform2fv(uniformLocation: UniformLocation, floats: FloatArray)
     fun uniform2fv(uniformLocation: UniformLocation, floats: Array<Float>) =
-        uniform2fv(uniformLocation, floats.toFloatArray())
+        uniform2fv(uniformLocation, floats.toFloatArray()) // TODO optimize this so it doesn't create a new array
 
     fun uniform3fv(uniformLocation: UniformLocation, floats: FloatArray)
     fun uniform3fv(uniformLocation: UniformLocation, floats: Array<Float>) =
-        uniform3fv(uniformLocation, floats.toFloatArray())
+        uniform3fv(uniformLocation, floats.toFloatArray()) // TODO optimize this so it doesn't create a new array
 
     fun uniform4fv(uniformLocation: UniformLocation, floats: FloatArray)
     fun uniform4fv(uniformLocation: UniformLocation, floats: Array<Float>) =
-        uniform4fv(uniformLocation, floats.toFloatArray())
+        uniform4fv(uniformLocation, floats.toFloatArray()) // TODO optimize this so it doesn't create a new array
 
     fun drawArrays(mode: Int, offset: Int, count: Int)
     fun drawArrays(mode: DrawMode, offset: Int, count: Int) = drawArrays(mode.glFlag, offset, count)
     fun drawElements(mode: Int, count: Int, type: Int, offset: Int)
     fun drawElements(mode: DrawMode, count: Int, type: IndexType, offset: Int) =
         drawElements(mode.glFlag, count, type.glFlag, offset)
+
+    fun drawBuffers(size: Int, buffers: IntBuffer)
+    fun drawBuffers(buffers: IntBuffer) = drawBuffers(buffers.limit, buffers)
 
     fun pixelStorei(pname: Int, param: Int)
     fun pixelStorei(pname: PixelStoreParameter, param: Int) = pixelStorei(pname.glFlag, param)

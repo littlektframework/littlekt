@@ -21,6 +21,7 @@ class InputQueueProcessor {
 
     fun drain(processors: List<InputProcessor>) {
         if (processors.isEmpty()) {
+            eventsPool.free(queue)
             queue.clear()
             return
         }
@@ -44,16 +45,19 @@ class InputQueueProcessor {
                     it.gamepadButtonPressure,
                     it.gamepad.index
                 )
+
                 InternalInputEventType.GAMEPAD_BUTTON_UP -> processors.gamepadButtonReleased(
                     it.gamepadButton,
                     it.gamepad.index
                 )
+
                 InternalInputEventType.GAMEPAD_JOYSTICK_MOVED -> processors.gamepadJoystickMoved(
                     it.gamepadStick,
                     it.x,
                     it.y,
                     it.gamepad.index
                 )
+
                 InternalInputEventType.GAMEPAD_TRIGGER_CHANGED -> processors.gamepadTriggerChanged(
                     it.gamepadButton,
                     it.gamepadButtonPressure,
