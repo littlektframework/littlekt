@@ -1,11 +1,11 @@
 [versions]
-agp = "7.3.1"
+agp = "8.2.0"
+dependencyUpdates = "0.51.0"
 dokka = "1.9.20"
-gver = "0.48.0"
 kotlin = "1.9.23"
 kotlinxHtmlVersion = "0.9.1"
 kotlinx-atomicfu = "0.23.1"
-kotlinx-coroutines = "1.7.3"
+kotlinx-coroutines = "1.8.0"
 kotlinx-serialization = "1.6.2"
 lwjgl = "3.3.3"
 mp3-decoder = "1.0.1"
@@ -23,7 +23,9 @@ lwjgl-openal = { module = "org.lwjgl:lwjgl-openal", version.ref = "lwjgl" }
 mp3-decoder = { module = "fr.delthas:javamp3", version.ref = "mp3-decoder" }
 
 [plugins]
+android-application = { id = "com.android.application", version.ref = "agp" }
 android-library = { id = "com.android.library", version.ref = "agp" }
 dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 kotlinx-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+dependencyUpdates = { id = "com.github.ben-manes.versions", version.ref = "dependencyUpdates" }

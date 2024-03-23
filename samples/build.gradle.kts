@@ -2,9 +2,9 @@ import org.jetbrains.kotlin.gradle.plugin.KotlinJsCompilerType
 import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
 
 plugins {
-    kotlin("multiplatform")
-    kotlin("plugin.serialization")
-    id("com.android.application")
+    alias(libs.plugins.android.application)
+    alias(libs.plugins.kotlin.multiplatform)
+    alias(libs.plugins.kotlinx.serialization)
 }
 
 repositories {
@@ -12,7 +12,6 @@ repositories {
     maven(url = "https://maven.pkg.jetbrains.space/kotlin/p/wasm/experimental")
     maven(url = "https://maven.pkg.jetbrains.space/public/p/kotlinx-html/maven")
 }
-
 
 kotlin {
     androidTarget()
@@ -76,8 +75,7 @@ kotlin {
         }
     }
 
-    @OptIn(org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl::class)
-    wasm {
+    wasmJs {
         binaries.executable()
         browser {
             commonWebpackConfig(Action {
@@ -97,8 +95,7 @@ kotlin {
         val commonMain by getting {
             dependencies {
                 implementation(project(":core"))
-              //  implementation(libs.kotlinx.coroutines.core)
-                implementation(libs.kotlinx.coroutines.core.wasm)
+                implementation(libs.kotlinx.coroutines.core)
             }
         }
         val commonTest by getting
@@ -113,8 +110,8 @@ kotlin {
         }
         val jsTest by getting
 
-        val wasmMain by getting
-        val wasmTest by getting
+        val wasmJsMain by getting
+        val wasmJsTest by getting
 
         val androidMain by getting
 
@@ -133,6 +130,7 @@ kotlin {
 }
 
 android {
+    namespace = "com.lehaine.littlekt.samples"
     sourceSets["main"].apply {
         manifest.srcFile("src/androidMain/AndroidManifest.xml")
         assets.srcDirs("src/commonMain/resources")
