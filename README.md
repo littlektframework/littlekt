@@ -30,7 +30,7 @@ repositories {
 kotlin {
     jvm {
         compilations.all {
-            kotlinOptions.jvmTarget = "11" // littlekt targets jvm 11 so we must target atleast 11
+            kotlinOptions.jvmTarget = "11" // littlekt targets jvm 11 so we must target at least 11
         }
     }
 }
@@ -65,12 +65,12 @@ repositories {
 kotlin {
     jvm {
         compilations.all {
-            kotlinOptions.jvmTarget = "11" // littlekt targets jvm 11 so we must target atleast 11
+            kotlinOptions.jvmTarget = "17" // littlekt targets jvm 17 so we must target at least 17
         }
     }
 }
 
-val littleKtVersion = "0.5.0.af4fdbf-SNAPSHOT" // or whichever hash you are using
+val littleKtVersion = "0.9.0.135d970-SNAPSHOT" // or whichever hash you are using
 val kotlinCoroutinesVersion = "1.6.0" // or whatever version you are using
 
 sourceSets {
