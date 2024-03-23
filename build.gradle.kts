@@ -6,27 +6,19 @@ import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnRootExtension
 val littleKtVersion: String by project
 
 plugins {
-    alias(libs.plugins.plugin.dokka) apply false
+    alias(libs.plugins.android.application) apply false
+    alias(libs.plugins.android.library) apply false
+    alias(libs.plugins.dependencyUpdates) apply false
+    alias(libs.plugins.dokka) apply false
+    alias(libs.plugins.kotlin.multiplatform) apply false
+    alias(libs.plugins.kotlinx.serialization) apply false
 }
-
-buildscript {
-    repositories {
-        gradlePluginPortal()
-        google()
-        mavenCentral()
-    }
-    dependencies {
-        classpath(libs.bundles.plugins)
-    }
-}
-
 
 allprojects {
     repositories {
         google()
         mavenCentral()
     }
-
     group = "com.lehaine.littlekt"
     version = littleKtVersion
     extra["isReleaseVersion"] = !littleKtVersion.endsWith("SNAPSHOT")
@@ -34,9 +26,6 @@ allprojects {
     // ./gradlew dependencyUpdates
     // Report: build/dependencyUpdates/report.txt
     apply(plugin = "com.github.ben-manes.versions")
-    if (name != "samples") {
-        apply(plugin = "org.jetbrains.dokka")
-    }
 }
 
 //https://github.com/ben-manes/gradle-versions-plugin#rejectversionsif-and-componentselection

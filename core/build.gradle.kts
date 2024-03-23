@@ -1,15 +1,12 @@
 import org.jetbrains.kotlin.gradle.plugin.KotlinJsCompilerType
 import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
+import org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl
 
 plugins {
-    kotlin("multiplatform")
-    kotlin("plugin.serialization")
-    id("com.android.library")
+    alias(libs.plugins.android.library)
+    alias(libs.plugins.kotlin.multiplatform)
+    alias(libs.plugins.kotlinx.serialization)
     id("littlekt.convention.publication")
-}
-
-repositories {
-    mavenCentral()
 }
 
 kotlin {
@@ -42,6 +39,16 @@ kotlin {
         compilations.all {
             kotlinOptions.sourceMap = true
         }
+    }
+
+    @OptIn(ExperimentalWasmDsl::class)
+    wasmJs {
+        compilations.all {
+            kotlinOptions {
+                freeCompilerArgs += "-opt-in=kotlin.RequiresOptIn"
+            }
+        }
+        binaries.executable()
     }
 
     sourceSets {
@@ -86,7 +93,6 @@ kotlin {
                 implementation("$lwjglGlfwModule:natives-macos")
                 implementation("$lwjglGlfwModule:natives-macos-arm64")
 
-
                 implementation(libs.lwjgl.opengl)
                 implementation("$lwjglOpenGlModule:natives-windows")
                 implementation("$lwjglOpenGlModule:natives-windows-arm64")
@@ -109,6 +115,8 @@ kotlin {
         val jvmTest by getting
         val jsMain by getting
         val jsTest by getting
+        val wasmJsMain by getting
+        val wasmJsTest by getting
         val androidMain by getting {
             dependencies {
                 implementation(libs.kotlinx.coroutines.android)
@@ -121,7 +129,6 @@ kotlin {
         jvmAndroidMain.dependsOn(commonMain)
         androidMain.dependsOn(jvmAndroidMain)
         jvmMain.dependsOn(jvmAndroidMain)
-        jsMain.dependsOn(commonMain)
         androidUnitTest.dependsOn(commonTest)
         jvmTest.dependsOn(commonTest)
         jsTest.dependsOn(commonTest)
@@ -137,6 +144,7 @@ kotlin {
 }
 
 android {
+    namespace = "com.lehaine.littlekt.core"
     sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
     compileSdk = (findProperty("android.compileSdk") as String).toInt()
 

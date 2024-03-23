@@ -2,16 +2,15 @@ import org.jetbrains.kotlin.gradle.plugin.KotlinJsCompilerType
 import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
 
 plugins {
-    kotlin("multiplatform")
-    kotlin("plugin.serialization")
-    id("com.android.application")
+    alias(libs.plugins.android.application)
+    alias(libs.plugins.kotlin.multiplatform)
+    alias(libs.plugins.kotlinx.serialization)
 }
 
 repositories {
     mavenCentral()
     maven(url = "https://maven.pkg.jetbrains.space/public/p/kotlinx-html/maven")
 }
-
 
 kotlin {
     androidTarget()
@@ -75,6 +74,22 @@ kotlin {
         }
     }
 
+    wasmJs {
+        binaries.executable()
+        browser {
+            commonWebpackConfig(Action {
+                devServer =
+                    (devServer ?: org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpackConfig.DevServer()).copy(
+                        open = mapOf(
+                            "app" to mapOf(
+                                "name" to "firefox"
+                            )
+                        ),
+                    )
+            })
+        }
+    }
+
     sourceSets {
         val commonMain by getting {
             dependencies {
@@ -82,26 +97,20 @@ kotlin {
                 implementation(libs.kotlinx.coroutines.core)
             }
         }
-        val commonTest by getting {
-            dependencies {
-                implementation(kotlin("test"))
-            }
-        }
-        val jvmMain by getting {
-            dependencies {
-                implementation(project(":core"))
-            }
-        }
+        val commonTest by getting
+
+        val jvmMain by getting
         val jvmTest by getting
         val jsMain by getting {
             dependencies {
-                val kotlinxHtmlVersion = "0.7.2"
-                implementation(project(":core"))
-                implementation("org.jetbrains.kotlinx:kotlinx-html-js:$kotlinxHtmlVersion")
+                implementation(libs.kotlinx.html.js)
             }
 
         }
         val jsTest by getting
+
+        val wasmJsMain by getting
+        val wasmJsTest by getting
 
         val androidMain by getting
 
@@ -120,6 +129,7 @@ kotlin {
 }
 
 android {
+    namespace = "com.lehaine.littlekt.samples"
     sourceSets["main"].apply {
         manifest.srcFile("src/androidMain/AndroidManifest.xml")
         assets.srcDirs("src/commonMain/resources")
