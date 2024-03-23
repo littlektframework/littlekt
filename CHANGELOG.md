@@ -12,7 +12,7 @@
 * Add WASM as an official platform target.
 * Update `FrameBuffer` to allow for multiple texture attachments to be used.
 * Remove nest-ability from `FrameBuffer` due to poor performance with multiple calls to get currently bound frame buffer.
-  * `FrameBuffer.end()` will now bind to the default frame buffer instead with optional viewport position and size parametes.
+  * `FrameBuffer.end()` will now bind to the default frame buffer instead with optional viewport position and size parameters.
 * Update `GLSlGenerator` to support `gl_FragData[]`.
 * Update `GL` with new `drawBuffer` and `clearBuffer[fuiv]` functions.
 * Update `GL` with new `getActiveAttrib` and `getActiveUniform` related functions.
