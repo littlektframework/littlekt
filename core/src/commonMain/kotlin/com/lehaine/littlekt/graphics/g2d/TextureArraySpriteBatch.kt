@@ -94,11 +94,11 @@ class TextureArraySpriteBatch(
     override var projectionMatrix = Mat4().setToOrthographic(
         left = 0f,
         right = context.graphics.width.toFloat(),
-        bottom = 0f,
-        top = context.graphics.height.toFloat(),
+        bottom = context.graphics.height.toFloat(),
+        top = 0f,
         near = -1f,
         far = 1f
-    )
+    ).translate(0f, -context.graphics.height * 0.5f, 0f)
         set(value) {
             if (_drawing) {
                 flush()
