@@ -2,7 +2,7 @@
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://github.com/littlektframework/littlekt/blob/master/LICENSE)
 [![build](https://github.com/littlektframework/littlekt/actions/workflows/build.yml/badge.svg?branch=master)](https://github.com/littlektframework/littlekt/actions/workflows/build.yml)
-[![Download](https://img.shields.io/maven-central/v/com.lehaine.littlekt/core/0.8.1)](https://search.maven.org/artifact/com.lehaine.littlekt/core/0.8.1/pom)
+[![Download](https://img.shields.io/maven-central/v/com.lehaine.littlekt/core/0.9.0)](https://search.maven.org/artifact/com.lehaine.littlekt/core/0.9.0/pom)
 
 **Currently, in development.**
 
@@ -30,13 +30,13 @@ repositories {
 kotlin {
     jvm {
         compilations.all {
-            kotlinOptions.jvmTarget = "11" // littlekt targets jvm 11 so we must target at least 11
+            kotlinOptions.jvmTarget = "17" // littlekt targets jvm 17 so we must target at least 17
         }
     }
 }
 
-val littleKtVersion = "0.8.1" // get the latest release at the top
-val kotlinCoroutinesVersion = "1.8.0-RC2" // or whatever version you are using
+val littleKtVersion = "0.9.0" // get the latest release at the top
+val kotlinCoroutinesVersion = "1.8.0" // or whatever version you are using
 
 sourceSets {
     val commonMain by getting {
