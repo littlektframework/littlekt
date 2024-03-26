@@ -36,10 +36,41 @@ open class Rect(var x: Float = 0f, var y: Float = 0f, var width: Float = 0f, var
         return true
     }
 
+    /**
+     * Returns true if all of the Rect()s in the list intersect with this rect
+     */
+    fun intersectsListAll(list: List<Rect>): Boolean {
+        for(rect in list) {
+            if(!this.intersects(rect)) { return false }
+        }
+        return true
+    }
+
+    /**
+     * Returns true if any of the rectangles intersect with this one.
+     */
+    fun intersectsListAny(list: List<Rect>): Boolean {
+        var foundIntersection = false
+        for(rect in list) {
+            if(this.intersects(rect)) { foundIntersection = true }
+        }
+        return foundIntersection
+    }
+
+    /**
+     * Returns all of the Rect()s that intersect with this rect.
+     */
+    fun getIntersectingRects(list: List<Rect>): List<Rect> {
+        var rectsFound = mutableListOf<Rect>()
+        for(rect in list) {
+            if(this.intersects(rect)) { rectsFound += rect }
+        }
+        return rectsFound
+    }
+
     override fun toString(): String {
         return "Rect(x=$x, y=$y, width=$width, height=$height, x2=$x2, y2=$y2)"
     }
-
 
     companion object {
         fun fromBounds(x: Float, y: Float, x2: Float, y2: Float) = Rect(x, y, x2 - x, y2 - y)
