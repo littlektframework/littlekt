@@ -32,6 +32,10 @@ class TestRect {
     }
 
     @Test
+    // For some reason JUnit was treating two identical Rect()s as different,
+    // so I'm using the amount of intersecting rects returned.
+    // The first check has one intersecting, and one not intersecting,
+    // while the second check has both intersecting.
     fun TestGetIntersectingRects() {
         expect(1) {
             Rect(0f, 0f, 10f, 10f).getIntersectingRects(listOf(
