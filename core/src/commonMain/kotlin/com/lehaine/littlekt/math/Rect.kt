@@ -59,6 +59,7 @@ open class Rect(var x: Float = 0f, var y: Float = 0f, var width: Float = 0f, var
 
     /**
      * Returns all of the Rect()s that intersect with this rect.
+     * @return List<Rect>
      */
     fun getIntersectingRects(list: List<Rect>): List<Rect> {
         var rectsFound = mutableListOf<Rect>()
@@ -70,7 +71,7 @@ open class Rect(var x: Float = 0f, var y: Float = 0f, var width: Float = 0f, var
 
     /**
      * You pass in a Map of <T, Rect> and it returns the keys
-     * of any rects that intersect with this one.
+     * of any rects that intersect with this one. (in a List())
      */
     fun <T> getIntersectingRectIds(rects:Map<T,Rect>):List<T> {
         var idsFound = mutableListOf<T>()
