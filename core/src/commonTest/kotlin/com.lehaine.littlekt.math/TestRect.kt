@@ -49,5 +49,18 @@ class TestRect {
                 Rect(2f, 2f, 10f, 10f)
             )).size
         }
+
+
+
+    }
+
+    @Test
+    fun TestGetIntersectingRectIds() {
+        val result = Rect(0f, 0f, 10f, 10f).getIntersectingRectIds(mapOf(
+            "hi" to Rect(1f, 1f, 10f, 10f),
+            "hi2" to Rect(11f, 11f, 10f, 10f)
+        ))
+        expect(true) { result.contains("hi") }
+        expect(false) { result.contains("hi2") }
     }
 }

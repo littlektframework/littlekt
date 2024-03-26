@@ -68,6 +68,20 @@ open class Rect(var x: Float = 0f, var y: Float = 0f, var width: Float = 0f, var
         return rectsFound
     }
 
+    /**
+     * You pass in a Map of <T, Rect> and it returns the keys
+     * of any rects that intersect with this one.
+     */
+    fun <T> getIntersectingRectIds(rects:Map<T,Rect>):List<T> {
+        var idsFound = mutableListOf<T>()
+        for(key in rects.keys) {
+            if(rects[key]?.let { intersects(it) } == true) {
+                idsFound += key
+            }
+        }
+        return idsFound
+    }
+
     override fun toString(): String {
         return "Rect(x=$x, y=$y, width=$width, height=$height, x2=$x2, y2=$y2)"
     }
