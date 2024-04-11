@@ -35,7 +35,7 @@ class TiledTilesLayer(
     private val staggerAxis: TiledMap.StaggerAxis?,
     private val orientation: TiledMap.Orientation,
     private val tileData: IntArray,
-    private val tiles: Map<Int, TiledTileset.Tile>,
+    val tiles: Map<Int, TiledTileset.Tile>,
 ) : TiledLayer(
     type, name, id, visible, width, height, offsetX, offsetY, tileWidth, tileHeight, tintColor, opacity, properties
 ) {
