@@ -4,6 +4,8 @@
 [![build](https://github.com/littlektframework/littlekt/actions/workflows/build.yml/badge.svg?branch=master)](https://github.com/littlektframework/littlekt/actions/workflows/build.yml)
 [![Download](https://img.shields.io/maven-central/v/com.lehaine.littlekt/core/0.9.0)](https://search.maven.org/artifact/com.lehaine.littlekt/core/0.9.0/pom)
 
+### This is the WebGPU version of Littlekt!
+
 **Currently, in development.**
 
 **[Features](https://littlekt.com/features/)** - **[Docs](https://littlekt.com/docs/)** - **[Dokka / KDocs](https://littlekt.com/dokka/)** - **[Samples](https://github.com/littlektframework/littlekt-samples)** -**[Showcase](#showcase)** - **[Ask a Question](https://github.com/littlektframework/littlekt/discussions/categories/q-a)** - **[Changelog](CHANGELOG.md)** - **[Starter Project](https://github.com/littlektframework/littlekt-game-template)**

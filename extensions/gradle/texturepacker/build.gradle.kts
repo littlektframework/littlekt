@@ -2,19 +2,18 @@ plugins {
     kotlin("jvm")
     java
     `java-gradle-plugin`
-    id("littlekt.convention.publication")
+    id("module.publication")
 }
+
 val littleKtVersion: String by project
-group = "com.lehaine.littlekt.gradle"
+
+group = "com.littlekt.gradle"
+
 version = littleKtVersion
 
-java {
-    withSourcesJar()
-}
+java { withSourcesJar() }
 
-repositories {
-    gradlePluginPortal()
-}
+repositories { gradlePluginPortal() }
 
 dependencies {
     implementation(kotlin("gradle-plugin"))
@@ -35,14 +34,13 @@ dependencies {
     compileOnly(gradleKotlinDsl())
 }
 
-
 gradlePlugin {
     plugins {
         create("littlektTexturePacker") {
-            id = "com.lehaine.littlekt.gradle.texturepacker"
+            id = "com.littlekt.gradle.texturepacker"
             displayName = "LittleKt Texture Packer Plugin"
             description = "A Gradle plugin that adds packing textures into an atlas"
-            implementationClass = "com.lehaine.littlekt.gradle.texturepacker.LittleKtTexturePackerPlugin"
+            implementationClass = "com.littlekt.gradle.texturepacker.LittleKtTexturePackerPlugin"
         }
     }
 }
@@ -50,27 +48,30 @@ gradlePlugin {
 tasks {
     val publishAllPublications = false
 
-    val publishJvmPublicationToMavenLocal by creating(Task::class) {
-        dependsOn(when {
-            publishAllPublications -> "publishToMavenLocal"
-            else -> "publishPluginMavenPublicationToMavenLocal"
-        })
-    }
+    val publishJvmPublicationToMavenLocal by
+        creating(Task::class) {
+            dependsOn(
+                when {
+                    publishAllPublications -> "publishToMavenLocal"
+                    else -> "publishPluginMavenPublicationToMavenLocal"
+                }
+            )
+        }
 
     afterEvaluate {
-        val publishTaskOrNull = project.tasks.findByName(when {
-            publishAllPublications -> "publishAllPublicationsToMavenRepository"
-            else -> "publishPluginMavenPublicationToMavenRepository"
-        })
+        val publishTaskOrNull =
+            project.tasks.findByName(
+                when {
+                    publishAllPublications -> "publishAllPublicationsToMavenRepository"
+                    else -> "publishPluginMavenPublicationToMavenRepository"
+                }
+            )
 
         if (publishTaskOrNull != null) {
-            val publishJvmPublicationToMavenRepository by creating(Task::class) {
-                dependsOn(publishTaskOrNull)
-            }
+            val publishJvmPublicationToMavenRepository by
+                creating(Task::class) { dependsOn(publishTaskOrNull) }
         }
     }
 
-    val jvmTest by creating(Task::class) {
-        dependsOn("test")
-    }
+    val jvmTest by creating(Task::class) { dependsOn("test") }
 }

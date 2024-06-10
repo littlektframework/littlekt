@@ -3,41 +3,26 @@ import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
 
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
-    alias(libs.plugins.kotlinx.serialization)
-    id("littlekt.convention.publication")
+    alias(libs.plugins.kotlin.serialization)
+    id("module.publication")
 }
 
-repositories {
-    mavenCentral()
-}
+repositories { mavenCentral() }
 
 kotlin {
     jvm {
-        compilations.all {
-            kotlinOptions.jvmTarget = "11"
-        }
-        testRuns["test"].executionTask.configure {
-            useJUnit()
-        }
+        compilations.all { kotlinOptions.jvmTarget = "11" }
+        testRuns["test"].executionTask.configure { useJUnit() }
     }
     js(KotlinJsCompilerType.IR) {
         browser {
             binaries.executable()
-            testTask {
-                useKarma {
-                    useChromeHeadless()
-                }
-            }
+            testTask { useKarma { useChromeHeadless() } }
         }
 
-        this.attributes.attribute(
-            KotlinPlatformType.attribute,
-            KotlinPlatformType.js
-        )
+        this.attributes.attribute(KotlinPlatformType.attribute, KotlinPlatformType.js)
 
-        compilations.all {
-            kotlinOptions.sourceMap = true
-        }
+        compilations.all { kotlinOptions.sourceMap = true }
     }
 
     sourceSets {
@@ -47,10 +32,9 @@ kotlin {
                 implementation(project(":core"))
             }
         }
-        val commonTest by getting {
-            dependencies {
-                implementation(kotlin("test"))
-            }
-        }
+        val commonTest by getting { dependencies { implementation(kotlin("test")) } }
     }
+
+    task("testClasses")
+    task("compileJava")
 }

@@ -1,9 +1,11 @@
 [versions]
 agp = "8.2.0"
-dependencyUpdates = "0.51.0"
-dokka = "1.9.20"
+android-minSdk = "24"
+android-compileSdk = "34"
+download-gradle = "5.6.0"
+javax-annotations = "2.1.1"
 kotlin = "1.9.23"
-kotlinxHtmlVersion = "0.9.1"
+kotlinxHtmlVersion = "0.11.0"
 kotlinx-atomicfu = "0.23.1"
 kotlinx-coroutines = "1.8.0"
 kotlinx-serialization = "1.6.2"
@@ -11,21 +13,23 @@ lwjgl = "3.3.3"
 mp3-decoder = "1.0.1"
 
 [libraries]
+javax-annotations = { module = "jakarta.annotation:jakarta.annotation-api", version.ref = "javax-annotations" }
+kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
 kotlinx-atomicfu = { module = "org.jetbrains.kotlinx:atomicfu", version.ref = "kotlinx-atomicfu" }
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinx-coroutines" }
 kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "kotlinx-coroutines" }
 kotlinx-html-js = { module = "org.jetbrains.kotlinx:kotlinx-html-js", version.ref = "kotlinxHtmlVersion" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx-serialization" }
-lwjgl = { module = "org.lwjgl:lwjgl", version.ref = "lwjgl" }
+lwjgl-core = { module = "org.lwjgl:lwjgl", version.ref = "lwjgl" }
 lwjgl-glfw = { module = "org.lwjgl:lwjgl-glfw", version.ref = "lwjgl" }
-lwjgl-opengl = { module = "org.lwjgl:lwjgl-opengl", version.ref = "lwjgl" }
 lwjgl-openal = { module = "org.lwjgl:lwjgl-openal", version.ref = "lwjgl" }
+lwjgl-stb = { module = "org.lwjgl:lwjgl-stb", version.ref = "lwjgl" }
 mp3-decoder = { module = "fr.delthas:javamp3", version.ref = "mp3-decoder" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 android-library = { id = "com.android.library", version.ref = "agp" }
-dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
+download = { id = "de.undercouch.download", version.ref = "download-gradle" }
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
-kotlinx-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
-dependencyUpdates = { id = "com.github.ben-manes.versions", version.ref = "dependencyUpdates" }
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
