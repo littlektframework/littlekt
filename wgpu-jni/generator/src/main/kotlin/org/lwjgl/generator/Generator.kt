@@ -276,8 +276,8 @@ class Generator(val srcPath: String, val trgPath: String) {
         Files.list(packageDirectory)
             .filter { KOTLIN_PATH_MATCHER.matches(it) }
             .sorted()
-            .also {
-                it.forEach {
+            .also { stream ->
+                stream.forEach {
                     try {
                         Class.forName(
                                 "$packageName.${it.fileName.toString().substringBeforeLast('.').upperCaseFirst}Kt"
@@ -289,7 +289,7 @@ class Generator(val srcPath: String, val trgPath: String) {
                         // ignore
                     }
                 }
-                it.close()
+                stream.close()
             }
     }
 
@@ -446,7 +446,7 @@ internal fun Path.lastModified(
 ): Long {
     if (!Files.isDirectory(this)) throw IllegalStateException()
 
-    return Files.find(this, maxDepth, BiPredicate { path, _ -> matcher.matches(path) })
+    return Files.find(this, maxDepth, { path, _ -> matcher.matches(path) })
         .mapToLong(Path::lastModified)
         .reduce(0L, Math::max)
 }
@@ -549,5 +549,5 @@ internal fun <T> Sequence<T>.forEachWithMore(
 /** Returns the string with the first letter uppercase. */
 internal val String.upperCaseFirst
     get() =
-        if (this.length <= 1) this.toUpperCase()
+        if (this.length <= 1) this.uppercase()
         else "${Character.toUpperCase(this[0])}${this.substring(1)}"

@@ -35,5 +35,3 @@ include("extensions:gradle:texturepacker")
 include("wgpu-jni:generator")
 
 include("wgpu-jni:core")
-include("wgpu-jni:templates")
-findProject(":wgpu-jni:templates")?.name = "templates"

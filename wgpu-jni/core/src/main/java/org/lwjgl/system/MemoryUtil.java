@@ -8,7 +8,6 @@ import org.lwjgl.PointerBuffer;
 import org.lwjgl.system.MemoryAccess.MemoryAccessor;
 import org.lwjgl.system.MemoryManage.DebugAllocator;
 import org.lwjgl.system.MemoryUtil.MemoryAllocationReport.Aggregate;
-import org.lwjgl.system.jni.JNINativeInterface;
 
 import java.nio.*;
 import java.util.Objects;
@@ -18,7 +17,6 @@ import static org.lwjgl.system.APIUtil.apiLog;
 import static org.lwjgl.system.MemoryUtil.LazyInit.ALLOCATOR;
 import static org.lwjgl.system.MemoryUtil.LazyInit.ALLOCATOR_IMPL;
 import static org.lwjgl.system.Pointer.*;
-import static org.lwjgl.system.jni.JNINativeInterface.*;
 
 /**
  * This class provides functionality for managing native memory.
@@ -84,9 +82,7 @@ public final class MemoryUtil {
 
         static {
             ALLOCATOR_IMPL = MemoryManage.getInstance();
-            ALLOCATOR = Configuration.DEBUG_MEMORY_ALLOCATOR.get(false)
-                    ? new DebugAllocator(ALLOCATOR_IMPL)
-                    : ALLOCATOR_IMPL;
+            ALLOCATOR = Configuration.DEBUG_MEMORY_ALLOCATOR.get(false) ? new DebugAllocator(ALLOCATOR_IMPL) : ALLOCATOR_IMPL;
 
             apiLog("MemoryUtil allocator: " + ALLOCATOR.getClass().getSimpleName());
         }
@@ -1317,38 +1313,6 @@ public final class MemoryUtil {
      */
     public static native <T> T memGlobalRefToObject(long globalRef);
 
-    /**
-     * Deprecated, use {@link JNINativeInterface#NewGlobalRef} instead.
-     */
-    @Deprecated
-    public static long memNewGlobalRef(Object obj) {
-        return NewGlobalRef(obj);
-    }
-
-    /**
-     * Deprecated, use {@link JNINativeInterface#DeleteGlobalRef} instead.
-     */
-    @Deprecated
-    public static void memDeleteGlobalRef(long globalRef) {
-        DeleteGlobalRef(globalRef);
-    }
-
-    /**
-     * Deprecated, use {@link JNINativeInterface#NewWeakGlobalRef} instead.
-     */
-    @Deprecated
-    public static long memNewWeakGlobalRef(Object obj) {
-        return NewWeakGlobalRef(obj);
-    }
-
-    /**
-     * Deprecated, use {@link JNINativeInterface#DeleteWeakGlobalRef} instead.
-     */
-    @Deprecated
-    public static void memDeleteWeakGlobalRef(long globalRef) {
-        DeleteWeakGlobalRef(globalRef);
-    }
-
     /*  -------------------------------------
         -------------------------------------
                   TEXT ENCODING API
@@ -1561,9 +1525,7 @@ public final class MemoryUtil {
         ------------------------------------- */
 
     private static int memLengthNT1(long address, int maxLength) {
-        return BITS64
-                ? TEXT_UTIL.strlen64NT1(address, maxLength)
-                : TEXT_UTIL.strlen32NT1(address, maxLength);
+        return BITS64 ? TEXT_UTIL.strlen64NT1(address, maxLength) : TEXT_UTIL.strlen32NT1(address, maxLength);
     }
 
     /**
@@ -1580,9 +1542,7 @@ public final class MemoryUtil {
     }
 
     private static int memLengthNT2(long address, int maxLength) {
-        return BITS64
-                ? TEXT_UTIL.strlen64NT2(address, maxLength)
-                : TEXT_UTIL.strlen32NT2(address, maxLength);
+        return BITS64 ? TEXT_UTIL.strlen64NT2(address, maxLength) : TEXT_UTIL.strlen32NT2(address, maxLength);
     }
 
     /**
