@@ -17,3 +17,5 @@ kotlin-js-store/
 hs_err_pid*
 
 /wgpu-jni/core/src/generated
+
+.kotlin
