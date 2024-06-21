@@ -13,7 +13,7 @@
 JavaVM *jvm;
 
 #ifdef LWJGL_ANDROID
-    #define JNI_VERSION JNI_VERSION_1_6
+    #define JNI_VERSION JNI_VERSION_1_8
     #define ATTACH_ENV_CAST
 #else
     #define JNI_VERSION JNI_VERSION_1_8
