@@ -11,9 +11,9 @@ tasks {
         val webgpuHeadersSHA: String by rootProject.extra
         val wgpuNativeVersion: String by rootProject.extra
         val webgpuHeaderUrl =
-            "https://github.com/webgpu-native/webgpu-headers/blob/$webgpuHeadersSHA/webgpu.h"
+            "https://raw.githubusercontent.com/webgpu-native/webgpu-headers/$webgpuHeadersSHA/webgpu.h"
         val wgpuHeaderUrl =
-            "https://github.com/gfx-rs/wgpu-native/blob/v$wgpuNativeVersion/ffi/wgpu.h"
+            "https://raw.githubusercontent.com/gfx-rs/wgpu-native/v$wgpuNativeVersion/ffi/wgpu.h"
 
         onlyIfModified(true)
         src(listOf(webgpuHeaderUrl, wgpuHeaderUrl))
@@ -21,7 +21,7 @@ tasks {
     }
 
     register("installWgpuNativeHeaders", Copy::class) {
-        dependsOn("downloadWgpuNativeBinaries")
+        dependsOn("downloadWgpuNativeHeaders")
         val buildDir = layout.buildDirectory.asFile.get().path
 
         from("$buildDir/wgpu_headers") { include("**.h") }
