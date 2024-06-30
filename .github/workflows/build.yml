@@ -6,16 +6,18 @@ on:
     paths-ignore:
       - 'README.md'
       - 'CHANGELOG.md'
-      - 'samples/'
+      - 'examples/'
       - 'art/'
+      - '.run/'
   pull_request:
     branches: [ master ]
-    types: [opened, synchronize, reopened, ready_for_review]
+    types: [ opened, synchronize, reopened, ready_for_review ]
     paths-ignore:
       - 'README.md'
       - 'CHANGELOG.md'
-      - 'samples/'
+      - 'examples/'
       - 'art/'
+      - '.run/'
 
 jobs:
   build:
