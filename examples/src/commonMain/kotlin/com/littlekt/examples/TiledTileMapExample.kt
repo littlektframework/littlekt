@@ -1,0 +1,128 @@
+package com.littlekt.examples
+
+import com.littlekt.Context
+import com.littlekt.ContextListener
+import com.littlekt.file.vfs.readTiledMap
+import com.littlekt.graphics.Color
+import com.littlekt.graphics.g2d.SpriteBatch
+import com.littlekt.graphics.g2d.shape.ShapeRenderer
+import com.littlekt.graphics.g2d.use
+import com.littlekt.graphics.webgpu.*
+import com.littlekt.util.viewport.ExtendViewport
+import com.littlekt.util.viewport.setViewport
+
+/**
+ * Load and render a Tiled map.
+ *
+ * @author Colton Daily
+ * @date 4/16/2024
+ */
+class TiledTileMapExample(context: Context) : ContextListener(context) {
+
+    override suspend fun Context.start() {
+        addStatsHandler()
+        addCloseOnEsc()
+        val device = graphics.device
+
+        val map = resourcesVfs["tiled/ortho-tiled-world.tmj"].readTiledMap()
+        val surfaceCapabilities = graphics.surfaceCapabilities
+        val preferredFormat = graphics.preferredFormat
+
+        graphics.configureSurface(
+            TextureUsage.RENDER_ATTACHMENT,
+            preferredFormat,
+            PresentMode.FIFO,
+            surfaceCapabilities.alphaModes[0]
+        )
+
+        val batch = SpriteBatch(device, graphics, preferredFormat, 2000)
+        val shapeRenderer = ShapeRenderer(batch)
+        val viewport = ExtendViewport(30, 16)
+        val camera = viewport.camera
+        var bgColor = map.backgroundColor ?: Color.DARK_GRAY
+        if (preferredFormat.srgb) {
+            bgColor = bgColor.toLinear()
+        }
+
+        onResize { width, height ->
+            viewport.update(width, height)
+            graphics.configureSurface(
+                TextureUsage.RENDER_ATTACHMENT,
+                preferredFormat,
+                PresentMode.FIFO,
+                surfaceCapabilities.alphaModes[0]
+            )
+        }
+
+        addWASDMovement(camera, 0.05f)
+        onUpdate {
+            val surfaceTexture = graphics.surface.getCurrentTexture()
+            when (val status = surfaceTexture.status) {
+                TextureStatus.SUCCESS -> {
+                    // all good, could check for `surfaceTexture.suboptimal` here.
+                }
+                TextureStatus.TIMEOUT,
+                TextureStatus.OUTDATED,
+                TextureStatus.LOST -> {
+                    surfaceTexture.texture?.release()
+                    logger.info { "getCurrentTexture status=$status" }
+                    return@onUpdate
+                }
+                else -> {
+                    // fatal
+                    logger.fatal { "getCurrentTexture status=$status" }
+                    close()
+                    return@onUpdate
+                }
+            }
+            val swapChainTexture = checkNotNull(surfaceTexture.texture)
+            val frame = swapChainTexture.createView()
+
+            val commandEncoder = device.createCommandEncoder()
+            val renderPassEncoder =
+                commandEncoder.beginRenderPass(
+                    desc =
+                        RenderPassDescriptor(
+                            listOf(
+                                RenderPassColorAttachmentDescriptor(
+                                    view = frame,
+                                    loadOp = LoadOp.CLEAR,
+                                    storeOp = StoreOp.STORE,
+                                    clearColor = bgColor
+                                )
+                            )
+                        )
+                )
+            renderPassEncoder.setViewport(viewport)
+            camera.update()
+
+            batch.use(renderPassEncoder, camera.viewProjection) {
+                shapeRenderer.updatePixelSize(graphics.width)
+                map.render(
+                    it,
+                    camera,
+                    scale = 1 / 8f,
+                    displayObjects = true,
+                    shapeRenderer = shapeRenderer
+                )
+            }
+            renderPassEncoder.end()
+
+            val commandBuffer = commandEncoder.finish()
+
+            device.queue.submit(commandBuffer)
+            graphics.surface.present()
+
+            commandBuffer.release()
+            renderPassEncoder.release()
+            commandEncoder.release()
+            frame.release()
+            swapChainTexture.release()
+        }
+
+        onRelease {
+            batch.release()
+            map.release()
+        }
+    }
+}

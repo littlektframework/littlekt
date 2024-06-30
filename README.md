@@ -4,13 +4,15 @@
 [![build](https://github.com/littlektframework/littlekt/actions/workflows/build.yml/badge.svg?branch=master)](https://github.com/littlektframework/littlekt/actions/workflows/build.yml)
 [![Download](https://img.shields.io/maven-central/v/com.lehaine.littlekt/core/0.9.0)](https://search.maven.org/artifact/com.lehaine.littlekt/core/0.9.0/pom)
 
-**Currently, in development.** Check out the [webgpu](https://github.com/littlektframework/littlekt/tree/webgpu) branch!
+Requires JDK 21+ in order to use due to the usage of the new Java FFM API.
+
+**Currently, in development.**
 
 **[Features](https://littlekt.com/features/)** - **[Docs](https://littlekt.com/docs/)** - **[Dokka / KDocs](https://littlekt.com/dokka/)** - **[Samples](https://github.com/littlektframework/littlekt-samples)** -**[Showcase](#showcase)** - **[Ask a Question](https://github.com/littlektframework/littlekt/discussions/categories/q-a)** - **[Changelog](CHANGELOG.md)** - **[Starter Project](https://github.com/littlektframework/littlekt-game-template)**
 
 ## A 2D game framework written in Kotlin
 
-**LittleKt (Little Kotlin) is a Kotlin multiplatform 2D game development framework based on OpenGL** that is inspired by
+**LittleKt (Little Kotlin) is a Kotlin multiplatform 2D game development framework based on WebGPU** that is inspired by
 libGDX and KorGE. The goal of this project is to allow the freedom and flexibility that libGDX offers with enjoyable
 idiomatic features coded in Kotlin that KorGE has to offer.
 
