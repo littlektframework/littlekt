@@ -130,13 +130,6 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context() {
             configuration.windowPosY ?: ((vidmode.height() - graphics.height) / 2)
         )
 
-        if (configuration.vSync) {
-            // Enable v-sync
-            //   GLFW.glfwSwapInterval(1)
-        } else {
-            //   GLFW.glfwSwapInterval(0)
-        }
-
         // set window icon
         if (!isMac) {
             if (configuration.icons.isNotEmpty()) {
