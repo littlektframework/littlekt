@@ -31,7 +31,3 @@ include("scene-graph")
 include("extensions:tools")
 
 include("extensions:gradle:texturepacker")
-
-include("wgpu-jni:generator")
-
-include("wgpu-jni:core")

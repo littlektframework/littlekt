@@ -1,9 +1,5 @@
 [versions]
-agp = "8.2.0"
-android-minSdk = "24"
-android-compileSdk = "34"
 download-gradle = "5.6.0"
-javax-annotations = "2.1.1"
 kotlin = "2.0.0"
 kotlinxHtmlVersion = "0.11.0"
 kotlinx-atomicfu = "0.24.0"
@@ -13,11 +9,9 @@ lwjgl = "3.3.3"
 mp3-decoder = "1.0.1"
 
 [libraries]
-javax-annotations = { module = "jakarta.annotation:jakarta.annotation-api", version.ref = "javax-annotations" }
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
 kotlinx-atomicfu = { module = "org.jetbrains.kotlinx:atomicfu", version.ref = "kotlinx-atomicfu" }
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinx-coroutines" }
-kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "kotlinx-coroutines" }
 kotlinx-html-js = { module = "org.jetbrains.kotlinx:kotlinx-html-js", version.ref = "kotlinxHtmlVersion" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx-serialization" }
 lwjgl-core = { module = "org.lwjgl:lwjgl", version.ref = "lwjgl" }
@@ -27,8 +21,6 @@ lwjgl-stb = { module = "org.lwjgl:lwjgl-stb", version.ref = "lwjgl" }
 mp3-decoder = { module = "fr.delthas:javamp3", version.ref = "mp3-decoder" }
 
 [plugins]
-android-application = { id = "com.android.application", version.ref = "agp" }
-android-library = { id = "com.android.library", version.ref = "agp" }
 download = { id = "de.undercouch.download", version.ref = "download-gradle" }
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }

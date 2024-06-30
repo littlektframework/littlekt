@@ -1,15 +1,11 @@
 import org.apache.tools.ant.taskdefs.condition.Os
 import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
 
-plugins {
-    alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.multiplatform)
-}
+plugins { alias(libs.plugins.kotlin.multiplatform) }
 
 repositories { maven(url = "https://maven.pkg.jetbrains.space/public/p/kotlinx-html/maven") }
 
 kotlin {
-    applyDefaultHierarchyTemplate()
     tasks.withType<JavaExec> { jvmArgs("--enable-preview", "--enable-native-access=ALL-UNNAMED") }
     jvm {
         compilations.all { kotlinOptions.jvmTarget = "21" }
@@ -80,10 +76,6 @@ kotlin {
         compilations.all { kotlinOptions.sourceMap = true }
     }
 
-    androidTarget()
-    iosX64()
-    iosArm64()
-    iosSimulatorArm64()
     sourceSets {
         val commonMain by getting {
             dependencies {
@@ -94,15 +86,5 @@ kotlin {
         }
 
         val jsMain by getting { dependencies { implementation(libs.kotlinx.html.js) } }
-    }
-}
-
-android {
-    namespace = "com.littlekt.examples"
-    compileSdk = libs.versions.android.compileSdk.get().toInt()
-    defaultConfig { minSdk = libs.versions.android.minSdk.get().toInt() }
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_21
-        targetCompatibility = JavaVersion.VERSION_21
     }
 }

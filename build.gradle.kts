@@ -1,11 +1,8 @@
-// import com.github.benmanes.gradle.versions.updates.DependencyUpdatesTask
 import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnLockMismatchReport
 import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnPlugin
 import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnRootExtension
 
 plugins {
-    alias(libs.plugins.android.application).apply(false)
-    alias(libs.plugins.android.library).apply(false)
     alias(libs.plugins.download).apply(false)
     alias(libs.plugins.kotlin.multiplatform).apply(false)
     alias(libs.plugins.kotlin.serialization).apply(false)

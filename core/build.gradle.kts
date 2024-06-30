@@ -2,14 +2,12 @@ import org.jetbrains.kotlin.gradle.plugin.KotlinJsCompilerType
 import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
 
 plugins {
-    alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.multiplatform)
     alias(libs.plugins.kotlin.serialization)
     id("module.publication")
 }
 
 kotlin {
-    applyDefaultHierarchyTemplate()
     tasks.withType<Test> {
         var env = project.properties["env"] as? String
         if (env == null) {
@@ -34,13 +32,6 @@ kotlin {
 
         compilations.all { kotlinOptions.sourceMap = true }
     }
-    androidTarget {
-        publishLibraryVariants("release")
-        compilations.all { kotlinOptions { jvmTarget = "11" } }
-    }
-    iosX64()
-    iosArm64()
-    iosSimulatorArm64()
 
     sourceSets {
         val commonMain by getting {
@@ -84,17 +75,11 @@ kotlin {
         val jvmTest by getting
         val jsMain by getting
         val jsTest by getting
-        val androidMain by getting {
-            dependencies { implementation(libs.kotlinx.coroutines.android) }
-        }
-        val androidUnitTest by getting
 
         val jvmAndroidMain = maybeCreate("jvmAndroidMain")
 
         jvmAndroidMain.dependsOn(commonMain)
-        androidMain.dependsOn(jvmAndroidMain)
         jvmMain.dependsOn(jvmAndroidMain)
-        androidUnitTest.dependsOn(commonTest)
         jvmTest.dependsOn(commonTest)
         jsTest.dependsOn(commonTest)
 
@@ -111,15 +96,5 @@ kotlin {
                 compilerOptions.configure { freeCompilerArgs.add("-Xexpect-actual-classes") }
             }
         }
-    }
-}
-
-android {
-    namespace = "com.littlekt.core"
-    compileSdk = libs.versions.android.compileSdk.get().toInt()
-    defaultConfig { minSdk = libs.versions.android.minSdk.get().toInt() }
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_21
-        targetCompatibility = JavaVersion.VERSION_21
     }
 }
