@@ -15,19 +15,36 @@ import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
 /**
+ * Allocates and simulates the CPU-based [Particle].
+ *
+ * @param maxParticles maximum number of particles that are allowed to be allocated.
  * @author Colton Daily
  * @date 12/29/2021
  */
 class ParticleSimulator(maxParticles: Int) {
 
+    /** The list of particles currently allocated. */
     val particles = List(maxParticles) { init(Particle(Textures.white).apply { index = it }) }
 
+    /** The current number of particles allocated. */
     var numAlloc = 0
         private set
 
+    /**
+     * The current number of particles currently alive.
+     *
+     * @see [Particle.alive]
+     */
     var totalAlive = 0
         private set
 
+    /**
+     * Resets a dead particle from [particles] or allocates a new [Particle] with the given info.
+     *
+     * @param slice initial [TextureSlice] of the particle
+     * @param x initial x-position of the particle
+     * @param y initial y-position of the particle
+     */
     fun alloc(slice: TextureSlice, x: Float, y: Float): Particle {
         return if (numAlloc < particles.size - 1) {
                 val particle =
@@ -187,6 +204,12 @@ class ParticleSimulator(maxParticles: Int) {
         }
     }
 
+    /**
+     * Updates the particle simulation.
+     *
+     * @param dt delta time since last frame
+     * @param optionalTmod an optional tmod for simulating. Defaults to `-1f`, which is disabled.
+     */
     fun update(dt: Duration, optionalTmod: Float = -1f) {
         val tmod =
             if (optionalTmod < 0) {
@@ -201,6 +224,7 @@ class ParticleSimulator(maxParticles: Int) {
     }
 }
 
+/** Draw the list of [ParticleSimulator.particles] with the given [Batch]. */
 fun ParticleSimulator.draw(batch: Batch) {
     for (i in 0..numAlloc) {
         particles[i].draw(batch)
