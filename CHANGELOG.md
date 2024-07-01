@@ -14,6 +14,7 @@
   dependencies.
     * Remove `FrameBufferNode` and related UI classes. Use `CanvasLayerContainer` and `CanvasLayer` for FBO related
       purposes.
+* Remove `FrameBuffer` class. WebGPUs `RenderPass` is essentially a Framebuffer / Render target.
 * Remove `GlslGenerator` and all related classes. Use `WGSL` for your shader needs, either by loading them from a file
   or directly in a string.
 * Remove `vSync` and `backgroundColor` configuration options.
