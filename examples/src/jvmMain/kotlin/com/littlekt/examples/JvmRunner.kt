@@ -3,7 +3,6 @@ package com.littlekt.examples
 import com.littlekt.Context
 import com.littlekt.ContextListener
 import com.littlekt.createLittleKtApp
-import com.littlekt.graphics.Color
 import com.littlekt.log.Logger
 
 /**
@@ -34,7 +33,6 @@ private fun createApp(title: String, start: (Context) -> ContextListener) =
             width = 960
             height = 540
             this.title = title
-            backgroundColor = Color.DARK_GRAY
             traceWgpu = false
             enableWGPULogging = false
         }
