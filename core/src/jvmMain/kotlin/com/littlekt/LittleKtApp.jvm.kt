@@ -1,6 +1,5 @@
 package com.littlekt
 
-import com.littlekt.graphics.Color
 import com.littlekt.graphics.HdpiMode
 import com.littlekt.graphics.webgpu.Backend
 
@@ -16,7 +15,6 @@ actual class LittleKtProps {
     var height: Int = 540
     var title: String = "LitteKt"
     var icons: List<String> = listOf()
-    var backgroundColor = Color.CLEAR
     var resizeable = true
     var maximized = false
 

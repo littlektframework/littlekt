@@ -33,7 +33,6 @@ private fun createApp(title: String, start: (Context) -> ContextListener) =
     createLittleKtApp {
             width = 960
             height = 540
-            vSync = true
             this.title = title
             backgroundColor = Color.DARK_GRAY
             traceWgpu = false
