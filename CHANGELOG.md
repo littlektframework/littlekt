@@ -17,6 +17,8 @@
 * Remove `GlslGenerator` and all related classes. Use `WGSL` for your shader needs, either by loading them from a file
   or directly in a string.
 * Remove `vSync` and `backgroundColor` configuration options.
+* Remove `Game<T>` and `Scene<T>` classes as they aren't in scope of the framework.
+* Rename `Disposable` to be `Releasable` as well as `dispose()` to `release()`.
 
 ### Changes
 
