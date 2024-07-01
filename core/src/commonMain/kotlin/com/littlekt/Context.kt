@@ -19,13 +19,22 @@ import kotlin.time.Duration.Companion.milliseconds
  */
 abstract class Context {
 
+    /** Denotes the platform the context is currently running on. */
     enum class Platform {
+        /** Desktop (e.g JVM) */
         DESKTOP,
+
+        /** Web browser. */
         WEB,
+
+        /** Android mobile platform. */
         ANDROID,
+
+        /** iOS mobile platform. */
         IOS;
 
-        val isMobile
+        /** @return `true` if the value is either [ANDROID] or [IOS]. */
+        val isMobile: Boolean
             get() = this == ANDROID || this == IOS
     }
 
@@ -165,4 +174,5 @@ abstract class Context {
     companion object
 }
 
+/** A lambda that can be invoked to remove a callback from a [Context]. */
 typealias RemoveContextCallback = () -> Unit

@@ -24,16 +24,25 @@ interface Graphics {
     /** @return the height of the back framebuffer in physical pixels */
     val backBufferHeight: Int
 
+    /** @return the underlying [Surface] of the graphics. */
     val surface: Surface
 
+    /** @return the underlying [Adapter] of the graphics. */
     val adapter: Adapter
 
+    /** @return the underlying [Device] */
     val device: Device
 
+    /** @return the preferred [TextureFormat] of the underlying [surface]. */
     val preferredFormat: TextureFormat
 
+    /** @return the capability of the underlying [surface] */
     val surfaceCapabilities: SurfaceCapabilities
 
+    /**
+     * Configures the underlying [surface], via [Surface.configure], which initializes the surface
+     * for presentation.
+     */
     fun configureSurface(
         usage: TextureUsage = TextureUsage.RENDER_ATTACHMENT,
         format: TextureFormat = preferredFormat,
