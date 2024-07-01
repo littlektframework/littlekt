@@ -1,6 +1,5 @@
 package com.littlekt
 
-import com.littlekt.graphics.Color
 import com.littlekt.graphics.HdpiMode
 import com.littlekt.graphics.webgpu.Backend
 
@@ -15,9 +14,7 @@ actual class LittleKtProps {
     var width: Int = 960
     var height: Int = 540
     var title: String = "LitteKt"
-    var vSync: Boolean = true
     var icons: List<String> = listOf()
-    var backgroundColor = Color.CLEAR
     var resizeable = true
     var maximized = false
 
@@ -51,9 +48,7 @@ actual fun createLittleKtApp(action: LittleKtProps.() -> Unit): LittleKtApp {
                 props.title,
                 props.width,
                 props.height,
-                props.vSync,
                 props.icons,
-                props.backgroundColor,
                 props.resizeable,
                 props.maximized,
                 props.windowPosX,
@@ -80,9 +75,7 @@ class JvmConfiguration(
     override val title: String,
     val width: Int,
     val height: Int,
-    val vSync: Boolean,
     val icons: List<String>,
-    val backgroundColor: Color,
     val resizeable: Boolean,
     val maximized: Boolean,
     val windowPosX: Int?,
