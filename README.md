@@ -90,12 +90,12 @@ sourceSets {
 
 ### Current targets
 
-| Platform      | Support |     Expected By |
-|---------------|:-------:|----------------:|
-| Desktop (JVM) |    ✅    | Current version |
-| Web (JS/WASM) |    ✅    | Current version |
-| Android       | Planned |            v1.0 |
-| iOS / Native  | Planned |            v1.0 |
+| Platform      | Support | Implementation                                                                                                                                      |     Expected By |
+|---------------|:-------:|-----------------------------------------------------------------------------------------------------------------------------------------------------|----------------:|
+| Desktop (JVM) |    ✅    | [wgpu-native](https://github.com/gfx-rs/wgpu-native) via [FFM](https://docs.oracle.com/en/java/javase/21/core/foreign-function-and-memory-api.html) | Current version |
+| Web (JS)      |    ✅    | [webgpu](https://www.w3.org/TR/webgpu/)                                                                                                             | Current version |
+| Android       | Planned | Planned: [wgpu-native](https://github.com/gfx-rs/wgpu-native) via JNI                                                                               |            v1.0 |
+| iOS / Native  | Planned | Planned: [wgpu-native](https://github.com/gfx-rs/wgpu-native)                                                                                       |            v1.0 |
 
 ### Showcase
 
