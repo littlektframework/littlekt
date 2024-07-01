@@ -11,10 +11,7 @@ import java.lang.foreign.Arena
 import java.lang.foreign.MemorySegment
 import kotlinx.atomicfu.atomic
 import kotlinx.atomicfu.update
-import org.lwjgl.glfw.GLFW
-import org.lwjgl.glfw.GLFWNativeCocoa
-import org.lwjgl.glfw.GLFWNativeWin32
-import org.lwjgl.glfw.GLFWNativeX11
+import org.lwjgl.glfw.*
 import org.lwjgl.system.JNI.*
 import org.lwjgl.system.macosx.ObjCRuntime.*
 
@@ -179,8 +176,64 @@ class LwjglGraphics(private val context: LwjglContext) : Graphics, Releasable {
                         }
                     }
                     isLinux -> {
-                        val osHandle = GLFWNativeX11.glfwGetX11Window(windowHandle)
-                        TODO("impl linux")
+                        val platform = GLFW.glfwGetPlatform()
+                        when (platform) {
+                            GLFW.GLFW_PLATFORM_X11 -> {
+                                Arena.ofConfined().use { scope ->
+                                    val display = GLFWNativeX11.glfwGetX11Display()
+                                    val osHandle = GLFWNativeX11.glfwGetX11Window(windowHandle)
+                                    val desc = WGPUSurfaceDescriptor.allocate(scope)
+                                    val windowsDesc =
+                                        WGPUSurfaceDescriptorFromXlibWindow.allocate(scope)
+                                    WGPUSurfaceDescriptorFromXlibWindow.display(
+                                        windowsDesc,
+                                        MemorySegment.ofAddress(display)
+                                    )
+                                    WGPUSurfaceDescriptorFromXlibWindow.window(
+                                        windowsDesc,
+                                        osHandle
+                                    )
+                                    WGPUChainedStruct.sType(
+                                        WGPUSurfaceDescriptorFromXlibWindow.chain(windowsDesc),
+                                        WGPUSType_SurfaceDescriptorFromXlibWindow()
+                                    )
+                                    WGPUSurfaceDescriptor.label(desc, WGPU_NULL)
+                                    WGPUSurfaceDescriptor.nextInChain(desc, windowsDesc)
+                                    wgpuInstanceCreateSurface(instance.segment, desc)
+                                }
+                            }
+                            GLFW.GLFW_PLATFORM_WAYLAND -> {
+                                Arena.ofConfined().use { scope ->
+                                    val display = GLFWNativeWayland.glfwGetWaylandDisplay()
+                                    val osHandle =
+                                        GLFWNativeWayland.glfwGetWaylandWindow(windowHandle)
+                                    val desc = WGPUSurfaceDescriptor.allocate(scope)
+                                    val windowsDesc =
+                                        WGPUSurfaceDescriptorFromWaylandSurface.allocate(scope)
+                                    WGPUSurfaceDescriptorFromWaylandSurface.display(
+                                        windowsDesc,
+                                        MemorySegment.ofAddress(display)
+                                    )
+                                    WGPUSurfaceDescriptorFromWaylandSurface.surface(
+                                        windowsDesc,
+                                        MemorySegment.ofAddress(osHandle)
+                                    )
+                                    WGPUChainedStruct.sType(
+                                        WGPUSurfaceDescriptorFromWaylandSurface.chain(windowsDesc),
+                                        WGPUSType_SurfaceDescriptorFromWaylandSurface()
+                                    )
+                                    WGPUSurfaceDescriptor.label(desc, WGPU_NULL)
+                                    WGPUSurfaceDescriptor.nextInChain(desc, windowsDesc)
+                                    wgpuInstanceCreateSurface(instance.segment, desc)
+                                }
+                            }
+                            else -> {
+                                logger.log(Logger.Level.ERROR) {
+                                    "Linux platform not supported. Supported backends: [X11, Wayland]"
+                                }
+                                WGPU_NULL
+                            }
+                        }
                     }
                     isMac -> {
                         val osHandle = GLFWNativeCocoa.glfwGetCocoaWindow(windowHandle)
