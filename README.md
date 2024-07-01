@@ -8,10 +8,8 @@ Requires JDK 21+ in order to use due to the usage of the new Java FFM API.
 
 **Currently, in development.**
 
-**[Features](https://littlekt.com/features/)** - **[Docs](https://littlekt.com/docs/)** - *
-*[Dokka / KDocs](https://littlekt.com/dokka/)** - **[Samples](https://github.com/littlektframework/littlekt-samples)** -
-**[Showcase](#showcase)** - **[Ask a Question](https://github.com/littlektframework/littlekt/discussions/categories/q-a)
-** - **[Changelog](CHANGELOG.md)** - **[Starter Project](https://github.com/littlektframework/littlekt-game-template)**
+[Features](https://littlekt.com/features/) - [Docs](https://littlekt.com/docs/) - [Dokka / KDocs](https://littlekt.com/dokka/) - [Samples](https://github.com/littlektframework/littlekt-samples) -
+[Showcase](#showcase) - [Ask a Question](https://github.com/littlektframework/littlekt/discussions/categories/q-a) - [Changelog](CHANGELOG.md) - [Starter Project](https://github.com/littlektframework/littlekt-game-template)
 
 ## A 2D game framework written in Kotlin
 
@@ -20,6 +18,9 @@ libGDX and KorGE. The goal of this project is to allow the freedom and flexibili
 idiomatic features coded in Kotlin that KorGE has to offer.
 
 Check out some planned [features](https://github.com/littlektframework/littlekt/labels/enhancement)
+
+If you are looking for the **OpenGL** version, check out
+this [branch](https://github.com/littlektframework/littlekt/tree/opengl). Note: this branch is deprecated.
 
 ### Install
 
@@ -90,12 +91,12 @@ sourceSets {
 
 ### Current targets
 
-| Platform      | Support | Implementation                                                                                                                                      |     Expected By |
-|---------------|:-------:|-----------------------------------------------------------------------------------------------------------------------------------------------------|----------------:|
-| Desktop (JVM) |    ✅    | [wgpu-native](https://github.com/gfx-rs/wgpu-native) via [FFM](https://docs.oracle.com/en/java/javase/21/core/foreign-function-and-memory-api.html) | Current version |
-| Web (JS)      |    ✅    | [webgpu](https://www.w3.org/TR/webgpu/)                                                                                                             | Current version |
+| Platform      |                                     Support                                      | Implementation                                                                                                                                      |     Expected By |
+|---------------|:--------------------------------------------------------------------------------:|-----------------------------------------------------------------------------------------------------------------------------------------------------|----------------:|
+| Desktop (JVM) |                                        ✅                                         | [wgpu-native](https://github.com/gfx-rs/wgpu-native) via [FFM](https://docs.oracle.com/en/java/javase/21/core/foreign-function-and-memory-api.html) | Current version |
+| Web (JS)      |                                        ✅                                         | [webgpu](https://www.w3.org/TR/webgpu/)                                                                                                             | Current version |
 | Android       | [In Progress](https://github.com/littlektframework/littlekt/tree/webgpu-android) | Planned: [wgpu-native](https://github.com/gfx-rs/wgpu-native) via JNI                                                                               |            v1.0 |
-| iOS / Native  | Planned | Planned: [wgpu-native](https://github.com/gfx-rs/wgpu-native)                                                                                       |            v1.0 |
+| iOS / Native  |                                     Planned                                      | Planned: [wgpu-native](https://github.com/gfx-rs/wgpu-native)                                                                                       |            v1.0 |
 
 ### Showcase
 
