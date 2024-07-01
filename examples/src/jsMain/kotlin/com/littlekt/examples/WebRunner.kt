@@ -3,7 +3,6 @@ package com.littlekt.examples
 import com.littlekt.Context
 import com.littlekt.ContextListener
 import com.littlekt.createLittleKtApp
-import com.littlekt.graphics.Color
 import com.littlekt.log.Logger
 import kotlinx.browser.document
 import kotlinx.browser.window
@@ -51,6 +50,5 @@ private fun createApp(title: String, start: (Context) -> ContextListener) =
             height = 540
             this.title = title
             canvasId = "canvas"
-            backgroundColor = Color.DARK_GRAY
         }
         .start(start)
