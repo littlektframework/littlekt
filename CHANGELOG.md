@@ -1,18 +1,65 @@
 # Changelog
 
-## 0.9.0 (SNAPSHOT)
+## 0.10.0 (SNAPSHOT)
 
 ### Breaking
-* `ShaderProgram.getAttrib()` can now return a `-1` instead of throwing an `IllegalStateException` if the attribute name doesn't exist.
-* `ShaderProgram.getUniformLocation` can now return a `null` instead of the `UniformLocation` if the uniform name doesn't exist.
+
+* Replace all of **OpenGL** with **WebGPU**. The overall API is mostly the same, save for the specifics of having to use
+  WebGPU. These changes are too large to fit in a changelog but can be checked out on the documentation and migrated.
+    * Much of the API under `graphics.*` has changed but stayed relatively the same. E.g. `SpriteBatch` contains the
+      same `begin() -> draw() -> end()` flow but requires WebGPU specific classes.
+    * `graphics.gl.*` classes replaced with `graphics.webgpu.*`
+* Remove the Android target until a generator can be created for the WGPU natives for JNI (Future update).
+* The **scene-graph** module has been extracted into its own package and will explicitly be defined in your
+  dependencies.
+    * Remove `FrameBufferNode` and related UI classes. Use `CanvasLayerContainer` and `CanvasLayer` for FBO related
+      purposes.
+* Remove `GlslGenerator` and all related classes. Use `WGSL` for your shader needs, either by loading them from a file
+  or directly in a string.
+* Remove `vSync` and `backgroundColor` configuration options.
+
+### Changes
+
+* Add new `wgpu-ffm` module.
+* Add new `wgpu-natives` module.
+* Add new `SpriteCache` renderer.
+* Update Kotlin to `2.0.0`
+* Update `Kotlin.coroutines` to `1.9.0-RC`
+* Update `Kotlin.atomicfu` to `0.24.0`
+* Update `Kotlinx.serialization` to `1.7.0`
+* Update `Kotlinx.html` to `0.11.0`
+* Add documentation to most of the framework.
+* Dozens of other minor misc. changes all across the framework.
+
+### Fixes
+
+* Dozens of fixes related to the **scene-graph**:
+    * Layout miscalculations
+    * Optimizations
+    * Scrolling fixes
+    * Scissor fixes
+* Fix LDtk tilemap rendering issues
+* Fix Tiled tilemap rendering issues
+* Dozens of other minor misc. fixes all across the framework.
+
+## 0.9.0
+
+### Breaking
+
+* `ShaderProgram.getAttrib()` can now return a `-1` instead of throwing an `IllegalStateException` if the attribute name
+  doesn't exist.
+* `ShaderProgram.getUniformLocation` can now return a `null` instead of the `UniformLocation` if the uniform name
+  doesn't exist.
 * Update JVM target to 17 from 11.
 
 ### Changes
 
 * Add WASM as an official platform target.
 * Update `FrameBuffer` to allow for multiple texture attachments to be used.
-* Remove nest-ability from `FrameBuffer` due to poor performance with multiple calls to get currently bound frame buffer.
-  * `FrameBuffer.end()` will now bind to the default frame buffer instead with optional viewport position and size parameters.
+* Remove nest-ability from `FrameBuffer` due to poor performance with multiple calls to get currently bound frame
+  buffer.
+    * `FrameBuffer.end()` will now bind to the default frame buffer instead with optional viewport position and size
+      parameters.
 * Update `GLSlGenerator` to support `gl_FragData[]`.
 * Update `GL` with new `drawBuffer` and `clearBuffer[fuiv]` functions.
 * Update `GL` with new `getActiveAttrib` and `getActiveUniform` related functions.
@@ -28,7 +75,8 @@
 
 * Fix `InputQueueProcessor` to clear events pool even when no `InputProcessor` exists.
 * Fix `SpriteBatch` default size to be back to 1000 sprites instead of 8191 sprites.
-  * This makes it consistent with `TextureArraySpriteBatch` as well as increases performance if using the default size and using less than 8191 sprites.
+    * This makes it consistent with `TextureArraySpriteBatch` as well as increases performance if using the default size
+      and using less than 8191 sprites.
 
 ## 0.8.1
 
