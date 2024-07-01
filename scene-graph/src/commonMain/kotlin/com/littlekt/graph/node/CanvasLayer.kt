@@ -456,8 +456,8 @@ open class CanvasLayer : Node() {
         }
         val scissorX = if (x < 0) 0 else x
         val scissorY = if (y < 0) 0 else y
-        val scissorWidth = if (x2 < this.width) x2 - scissorX else this.width - x
-        val scissorHeight = if (y2 < this.height) y2 - scissorY else this.height - y
+        val scissorWidth = if (x2 < this.width) x2 - scissorX else this.width - scissorX
+        val scissorHeight = if (y2 < this.height) y2 - scissorY else this.height - scissorY
 
         renderPass.setScissorRect(scissorX, scissorY, scissorWidth, scissorHeight)
     }
