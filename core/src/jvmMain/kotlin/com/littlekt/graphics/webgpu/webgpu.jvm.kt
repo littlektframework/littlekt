@@ -428,6 +428,17 @@ actual class Device(val segment: MemorySegment) : Releasable {
 }
 
 actual class Adapter(var segment: MemorySegment) : Releasable {
+    /** The features which can be used to create devices on this adapter. */
+    actual val features: List<Feature> by lazy {
+        val list = mutableListOf<Feature>()
+        Feature.entries.forEach {
+            val result = wgpuAdapterHasFeature(segment, it.nativeVal)
+            if (result == 1) {
+                list += it
+            }
+        }
+        list.toList()
+    }
 
     actual suspend fun requestDevice(): Device {
         val output = atomic(WGPU_NULL)

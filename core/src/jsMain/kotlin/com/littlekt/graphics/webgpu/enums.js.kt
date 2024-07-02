@@ -382,3 +382,21 @@ val StoreOp.nativeVal: String
             StoreOp.DISCARD -> "discard"
             StoreOp.STORE -> "store"
         }
+
+val Feature.nativeVal: String
+    get() =
+        when (this) {
+            Feature.DEPTH_CLIP_CONTROL -> "depth-clip-control"
+            Feature.DEPTH32FOAT_STENCIL18 -> "depth32float-stencil8"
+            Feature.TEXTURE_COMPRESSION_BC -> "texture-compression-bc"
+            Feature.TEXTURE_COMPRESSION_ETC2 -> "texture-compression-etc2"
+            Feature.TEXTURE_COMPRESSION_ASTC -> "texture-compression-astc"
+            Feature.TIMESTAMP_QUERY -> "timestamp-query"
+            Feature.INDIRECT_FIRST_INSTANCE -> "indirect-first-instance"
+            Feature.SHADER_F16 -> "shader-f16"
+            Feature.RG11B10UFLOAT_RENDERABLE -> "rg11b10ufloat-renderable"
+            Feature.BGRA8UNORM_STORAGE -> "bgra8unorm-storage"
+            Feature.FLOAT32_FILTERABLE -> "float32-filterable"
+            Feature.CLIP_DISTANCES -> "clip-distances"
+            Feature.DUAL_SOURCE_BLENDING -> "dual-source-blending"
+        }

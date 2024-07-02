@@ -84,6 +84,9 @@ expect class Device : Releasable {
 
 /** A handle to a physical graphics and/or compute device. */
 expect class Adapter : Releasable {
+    /** The features which can be used to create devices on this adapter. */
+    val features: List<Feature>
+
     /**
      * Requests a connection to a physical device, creating a logical device.
      *

@@ -436,3 +436,23 @@ value class Backend(val flag: Int) {
         private val all = VULKAN or GL or METAL or DX11 or DX12
     }
 }
+
+val Feature.nativeVal: Int
+    get() =
+        when (this) {
+            Feature.DEPTH_CLIP_CONTROL -> WGPUFeatureName_DepthClipControl()
+            Feature.DEPTH32FOAT_STENCIL18 -> WGPUFeatureName_Depth32FloatStencil8()
+            Feature.TEXTURE_COMPRESSION_BC -> WGPUFeatureName_TextureCompressionBC()
+            Feature.TEXTURE_COMPRESSION_ETC2 -> WGPUFeatureName_TextureCompressionETC2()
+            Feature.TEXTURE_COMPRESSION_ASTC -> WGPUFeatureName_TextureCompressionASTC()
+            Feature.TIMESTAMP_QUERY -> WGPUFeatureName_TimestampQuery()
+            Feature.INDIRECT_FIRST_INSTANCE -> WGPUFeatureName_IndirectFirstInstance()
+            Feature.SHADER_F16 -> WGPUFeatureName_ShaderF16()
+            Feature.RG11B10UFLOAT_RENDERABLE -> WGPUFeatureName_RG11B10UfloatRenderable()
+            Feature.BGRA8UNORM_STORAGE -> WGPUFeatureName_BGRA8UnormStorage()
+            Feature.FLOAT32_FILTERABLE -> WGPUFeatureName_Float32Filterable()
+            Feature.CLIP_DISTANCES ->
+                WGPUFeatureName_Undefined() // TODO check if this exists in WGPU in the future
+            Feature.DUAL_SOURCE_BLENDING ->
+                WGPUFeatureName_Undefined() // TODO check if this exists in WGPU in the future
+        }

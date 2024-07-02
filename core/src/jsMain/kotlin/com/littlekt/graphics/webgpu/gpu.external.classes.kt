@@ -29,6 +29,10 @@ external class GPUCanvasContext {
 open external class GPUAdapter {
     val name: String
 
+    val features: List<String>
+
+    val limits: List<String>
+
     fun requestDevice(): Promise<GPUDevice>
 }
 

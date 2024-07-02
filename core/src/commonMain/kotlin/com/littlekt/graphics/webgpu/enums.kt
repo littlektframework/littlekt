@@ -944,3 +944,67 @@ value class ShaderStage(val usageFlag: Int) {
         val COMPUTE: ShaderStage = ShaderStage(0x4)
     }
 }
+
+/**
+ * Each Feature identifies a set of functionality which, if available, allows additional usages of
+ * WebGPU that would have otherwise been invalid.
+ */
+enum class Feature {
+    /** Allows depth clipping to be disabled. */
+    DEPTH_CLIP_CONTROL,
+
+    /** Allows for explicit creation of textures of format "depth32float-stencil8". */
+    DEPTH32FOAT_STENCIL18,
+
+    /**
+     * Allows for explicit creation of textures of BC compressed formats. Supports both 2D and 3D
+     * textures.
+     */
+    TEXTURE_COMPRESSION_BC,
+
+    /**
+     * Allows for explicit creation of textures of ETC2 compressed formats. Only supports 2D
+     * textures.
+     */
+    TEXTURE_COMPRESSION_ETC2,
+
+    /**
+     * Allows for explicit creation of textures of ASTC compressed formats. Only supports 2D
+     * textures.
+     */
+    TEXTURE_COMPRESSION_ASTC,
+
+    /** Adds the ability to query timestamps from GPU command buffers. */
+    TIMESTAMP_QUERY,
+
+    /**
+     * Allows the use of non-zero firstInstance values in indirect draw parameters and indirect
+     * drawIndexed parameters.
+     */
+    INDIRECT_FIRST_INSTANCE,
+
+    /** Allows the use of the half-precision floating-point type f16 in WGSL. */
+    SHADER_F16,
+
+    /**
+     * Allows the RENDER_ATTACHMENT usage on textures with format "rg11b10ufloat", and also allows
+     * textures of that format to be blended and multisampled.
+     */
+    RG11B10UFLOAT_RENDERABLE,
+
+    /** Allows the STORAGE_BINDING usage on textures with format "bgra8unorm". */
+    BGRA8UNORM_STORAGE,
+
+    /** Makes textures with formats "r32float", "rg32float", and "rgba32float" filterable. */
+    FLOAT32_FILTERABLE,
+
+    /** Allows the use of clip_distances in WGSL. */
+    CLIP_DISTANCES,
+
+    /**
+     * Allows the use of blend_src in WGSL and simultaneously using both pixel shader outputs
+     * (@blend_src(0) and @blend_src(1)) as inputs to a blending operation with the single color
+     * attachment at location 0.
+     */
+    DUAL_SOURCE_BLENDING
+}

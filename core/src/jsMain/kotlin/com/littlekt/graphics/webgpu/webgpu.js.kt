@@ -2,7 +2,6 @@ package com.littlekt.graphics.webgpu
 
 import com.littlekt.Releasable
 import com.littlekt.file.*
-import com.littlekt.file.ByteBufferImpl
 import com.littlekt.resources.BufferResourceInfo
 import com.littlekt.resources.TextureResourceInfo
 import kotlinx.coroutines.await
@@ -105,6 +104,19 @@ actual class Device(val delegate: GPUDevice) : Releasable {
 }
 
 actual class Adapter(val delegate: GPUAdapter) : Releasable {
+
+    /** The features which can be used to create devices on this adapter. */
+    actual val features: List<Feature> by lazy {
+        val results = mutableListOf<Feature>()
+        delegate.features.map { jsFeature ->
+            Feature.entries.forEach { feature ->
+                if (feature.nativeVal == jsFeature) {
+                    results += feature
+                }
+            }
+        }
+        results.toList()
+    }
 
     actual suspend fun requestDevice(): Device {
         return Device(delegate.requestDevice().await())
