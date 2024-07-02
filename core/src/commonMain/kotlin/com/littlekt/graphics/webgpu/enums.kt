@@ -954,7 +954,7 @@ enum class Feature {
     DEPTH_CLIP_CONTROL,
 
     /** Allows for explicit creation of textures of format "depth32float-stencil8". */
-    DEPTH32FOAT_STENCIL18,
+    DEPTH32FLOAT_STENCIL18,
 
     /**
      * Allows for explicit creation of textures of BC compressed formats. Supports both 2D and 3D

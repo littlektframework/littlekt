@@ -387,7 +387,7 @@ val Feature.nativeVal: String
     get() =
         when (this) {
             Feature.DEPTH_CLIP_CONTROL -> "depth-clip-control"
-            Feature.DEPTH32FOAT_STENCIL18 -> "depth32float-stencil8"
+            Feature.DEPTH32FLOAT_STENCIL18 -> "depth32float-stencil8"
             Feature.TEXTURE_COMPRESSION_BC -> "texture-compression-bc"
             Feature.TEXTURE_COMPRESSION_ETC2 -> "texture-compression-etc2"
             Feature.TEXTURE_COMPRESSION_ASTC -> "texture-compression-astc"

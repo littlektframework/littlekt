@@ -441,7 +441,7 @@ val Feature.nativeVal: Int
     get() =
         when (this) {
             Feature.DEPTH_CLIP_CONTROL -> WGPUFeatureName_DepthClipControl()
-            Feature.DEPTH32FOAT_STENCIL18 -> WGPUFeatureName_Depth32FloatStencil8()
+            Feature.DEPTH32FLOAT_STENCIL18 -> WGPUFeatureName_Depth32FloatStencil8()
             Feature.TEXTURE_COMPRESSION_BC -> WGPUFeatureName_TextureCompressionBC()
             Feature.TEXTURE_COMPRESSION_ETC2 -> WGPUFeatureName_TextureCompressionETC2()
             Feature.TEXTURE_COMPRESSION_ASTC -> WGPUFeatureName_TextureCompressionASTC()
