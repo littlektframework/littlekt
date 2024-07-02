@@ -207,8 +207,8 @@ actual class Adapter(val delegate: GPUAdapter) : Releasable {
         )
     }
 
-    actual suspend fun requestDevice(): Device {
-        return Device(delegate.requestDevice().await())
+    actual suspend fun requestDevice(descriptor: DeviceDescriptor?): Device {
+        return Device(delegate.requestDevice(descriptor?.toNative()).await())
     }
 
     actual override fun release() {}

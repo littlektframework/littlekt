@@ -9,6 +9,65 @@ fun GPURequestAdapterOptions(
     init: GPURequestAdapterOptions.() -> Unit = {}
 ): GPURequestAdapterOptions = jsObject(init).unsafeCast<GPURequestAdapterOptions>()
 
+fun GPUDeviceDescriptor(init: GPUDeviceDescriptor.() -> Unit = {}): GPUDeviceDescriptor =
+    jsObject(init).unsafeCast<GPUDeviceDescriptor>()
+
+fun DeviceDescriptor.toNative(): GPUDeviceDescriptor = GPUDeviceDescriptor {
+    val it = this@toNative
+    if (it.requiredFeatures != null) {
+        requiredFeatures = it.requiredFeatures.map { it.nativeVal }.toTypedArray()
+    }
+    if (it.requiredLimits != null) {
+        val requiredLimits = it.requiredLimits
+        val map = mutableMapOf<String, Long>()
+        requiredLimits.maxTextureDimension1D?.let { map["maxTextureDimension1D"] = it.toLong() }
+        requiredLimits.maxTextureDimension2D?.let { map["maxTextureDimension2D"] = it.toLong() }
+        requiredLimits.maxTextureDimension3D?.let { map["maxTextureDimension3D"] = it.toLong() }
+        requiredLimits.maxTextureArrayLayers?.let { map["maxTextureArrayLayers"] = it.toLong() }
+        requiredLimits.maxBindGroups?.let { map["maxBindGroups"] = it.toLong() }
+        requiredLimits.maxBindGroupsPlusVertexBuffers?.let {
+            map["maxBindGroupsPlusVertexBuffers"] = it.toLong()
+        }
+        requiredLimits.maxBindingsPerBindGroup?.let { map["maxBindingsPerBindGroup"] = it.toLong() }
+        requiredLimits.maxDynamicUniformBuffersPerPipelineLayout?.let {
+            map["maxDynamicUniformBuffersPerPipelineLayout"] = it.toLong()
+        }
+        requiredLimits.maxDynamicStorageBuffersPerPipelineLayout?.let {
+            map["maxDynamicStorageBuffersPerPipelineLayout"] = it.toLong()
+        }
+        requiredLimits.maxSampledTexturesPerShaderStage?.let {
+            map["maxSampledTexturesPerShaderStage"] = it.toLong()
+        }
+        requiredLimits.maxSamplersPerShaderStage?.let {
+            map["maxSamplersPerShaderStage"] = it.toLong()
+        }
+        requiredLimits.maxStorageBuffersPerShaderStage?.let {
+            map["maxStorageBuffersPerShaderStage"] = it.toLong()
+        }
+        requiredLimits.maxStorageTexturesPerShaderStage?.let {
+            map["maxStorageTexturesPerShaderStage"] = it.toLong()
+        }
+        requiredLimits.maxUniformBuffersPerShaderStage?.let {
+            map["maxUniformBuffersPerShaderStage"] = it.toLong()
+        }
+        requiredLimits.maxUniformBufferBindingSize?.let { map["maxUniformBufferBindingSize"] = it }
+        requiredLimits.maxStorageBufferBindingSize?.let { map["maxStorageBufferBindingSize"] = it }
+        requiredLimits.minUniformBufferOffsetAlignment?.let {
+            map["minUniformBufferOffsetAlignment"] = it.toLong()
+        }
+        requiredLimits.minStorageBufferOffsetAlignment?.let {
+            map["minStorageBufferOffsetAlignment"] = it.toLong()
+        }
+        requiredLimits.maxVertexBuffers?.let { map["maxVertexBuffers"] = it.toLong() }
+        requiredLimits.maxBufferSize?.let { map["maxBufferSize"] = it }
+        requiredLimits.maxVertexAttributes?.let { map["maxVertexAttributes"] = it.toLong() }
+        requiredLimits.maxVertexBufferArrayStride?.let {
+            map["maxVertexBufferArrayStride"] = it.toLong()
+        }
+        this.requiredLimits = map
+    }
+}
+
 fun GPUCanvasConfiguration(init: GPUCanvasConfiguration.() -> Unit = {}): GPUCanvasConfiguration =
     jsObject(init).unsafeCast<GPUCanvasConfiguration>()
 

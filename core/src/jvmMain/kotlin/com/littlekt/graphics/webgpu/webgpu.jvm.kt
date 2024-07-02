@@ -71,8 +71,7 @@ actual class Device(val segment: MemorySegment) : Releasable {
                 maxComputeWorkgroupSizeX = WGPULimits.maxComputeWorkgroupSizeX(desc),
                 maxComputeWorkgroupSizeY = WGPULimits.maxComputeWorkgroupSizeY(desc),
                 maxComputeWorkgroupSizeZ = WGPULimits.maxComputeWorkgroupSizeZ(desc),
-                maxComputeWorkgroupsPerDimension =
-                    WGPULimits.maxComputeWorkgroupsPerDimension(desc),
+                maxComputeWorkgroupsPerDimension = WGPULimits.maxComputeWorkgroupsPerDimension(desc)
             )
         }
     }
@@ -551,7 +550,7 @@ actual class Adapter(var segment: MemorySegment) : Releasable {
         }
     }
 
-    actual suspend fun requestDevice(): Device {
+    actual suspend fun requestDevice(descriptor: DeviceDescriptor?): Device {
         val output = atomic(WGPU_NULL)
         Arena.ofConfined().use { scope ->
             val desc = WGPUDeviceDescriptor.allocate(scope)
@@ -573,6 +572,86 @@ actual class Adapter(var segment: MemorySegment) : Releasable {
 
             WGPUChainedStruct.sType(chainedStruct, WGPUSType_DeviceExtras())
             WGPUDeviceDescriptor.nextInChain(desc, deviceExtras)
+            if (descriptor != null) {
+                descriptor.label?.let { WGPUDeviceDescriptor.label(desc, it.toNativeString(scope)) }
+                descriptor.requiredFeatures?.let {
+                    val nativeArray = scope.allocateArray(ValueLayout.JAVA_INT, it.size.toLong())
+                    it.forEachIndexed { index, jvmEntry ->
+                        val nativeEntry = nativeArray.asSlice((Int.SIZE_BYTES * index).toLong())
+
+                        nativeEntry.set(ValueLayout.JAVA_INT, 0L, jvmEntry.nativeVal)
+                    }
+                    WGPUDeviceDescriptor.requiredFeatureCount(desc, it.size.toLong())
+                    WGPUDeviceDescriptor.requiredFeatures(desc, nativeArray)
+                }
+                descriptor.requiredLimits?.let { requiredLimits ->
+                    val nativeLimits = WGPULimits.allocate(scope)
+                    requiredLimits.maxTextureDimension1D?.let {
+                        WGPULimits.maxTextureDimension1D(nativeLimits)
+                    }
+                    requiredLimits.maxTextureDimension2D?.let {
+                        WGPULimits.maxTextureDimension2D(nativeLimits)
+                    }
+                    requiredLimits.maxTextureDimension3D?.let {
+                        WGPULimits.maxTextureDimension3D(nativeLimits)
+                    }
+                    requiredLimits.maxTextureArrayLayers?.let {
+                        WGPULimits.maxTextureArrayLayers(nativeLimits)
+                    }
+                    requiredLimits.maxBindGroups?.let { WGPULimits.maxBindGroups(nativeLimits) }
+                    requiredLimits.maxBindGroupsPlusVertexBuffers?.let {
+                        WGPULimits.maxBindGroupsPlusVertexBuffers(nativeLimits)
+                    }
+                    requiredLimits.maxBindingsPerBindGroup?.let {
+                        WGPULimits.maxBindingsPerBindGroup(nativeLimits)
+                    }
+                    requiredLimits.maxDynamicUniformBuffersPerPipelineLayout?.let {
+                        WGPULimits.maxDynamicUniformBuffersPerPipelineLayout(nativeLimits)
+                    }
+                    requiredLimits.maxDynamicStorageBuffersPerPipelineLayout?.let {
+                        WGPULimits.maxDynamicStorageBuffersPerPipelineLayout(nativeLimits)
+                    }
+                    requiredLimits.maxSampledTexturesPerShaderStage?.let {
+                        WGPULimits.maxSampledTexturesPerShaderStage(nativeLimits)
+                    }
+                    requiredLimits.maxSamplersPerShaderStage?.let {
+                        WGPULimits.maxSamplersPerShaderStage(nativeLimits)
+                    }
+                    requiredLimits.maxStorageBuffersPerShaderStage?.let {
+                        WGPULimits.maxStorageBuffersPerShaderStage(nativeLimits)
+                    }
+                    requiredLimits.maxStorageTexturesPerShaderStage?.let {
+                        WGPULimits.maxStorageTexturesPerShaderStage(nativeLimits)
+                    }
+                    requiredLimits.maxUniformBuffersPerShaderStage?.let {
+                        WGPULimits.maxUniformBuffersPerShaderStage(nativeLimits)
+                    }
+                    requiredLimits.maxUniformBufferBindingSize?.let {
+                        WGPULimits.maxUniformBufferBindingSize(nativeLimits)
+                    }
+                    requiredLimits.maxStorageBufferBindingSize?.let {
+                        WGPULimits.maxStorageBufferBindingSize(nativeLimits)
+                    }
+                    requiredLimits.minUniformBufferOffsetAlignment?.let {
+                        WGPULimits.minUniformBufferOffsetAlignment(nativeLimits)
+                    }
+                    requiredLimits.minStorageBufferOffsetAlignment?.let {
+                        WGPULimits.minStorageBufferOffsetAlignment(nativeLimits)
+                    }
+                    requiredLimits.maxVertexBuffers?.let {
+                        WGPULimits.maxVertexBuffers(nativeLimits)
+                    }
+                    requiredLimits.maxBufferSize?.let { WGPULimits.maxBufferSize(nativeLimits) }
+                    requiredLimits.maxVertexAttributes?.let {
+                        WGPULimits.maxVertexAttributes(nativeLimits)
+                    }
+                    requiredLimits.maxVertexBufferArrayStride?.let {
+                        WGPULimits.maxVertexBufferArrayStride(nativeLimits)
+                    }
+                    val nativeRequiredLimits = WGPURequiredLimits.allocate(scope)
+                    WGPURequiredLimits.limits(nativeRequiredLimits, nativeLimits)
+                }
+            }
 
             wgpuAdapterRequestDevice(segment, desc, callback, WGPU_NULL)
         }

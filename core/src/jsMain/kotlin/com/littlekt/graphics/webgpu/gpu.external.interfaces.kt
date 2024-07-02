@@ -44,6 +44,11 @@ external interface GPURequestAdapterOptions {
     var forceFallbackAdapter: Boolean
 }
 
+external interface GPUDeviceDescriptor : GPUObjectBase {
+    var requiredFeatures: Array<String>
+    var requiredLimits: Map<String, Long>
+}
+
 external interface GPUCanvasConfiguration : GPUObjectBase {
     var device: GPUDevice
     var format: String

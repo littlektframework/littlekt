@@ -33,7 +33,7 @@ open external class GPUAdapter {
 
     val limits: GPUSupportedLimits
 
-    fun requestDevice(): Promise<GPUDevice>
+    fun requestDevice(device: GPUDeviceDescriptor?): Promise<GPUDevice>
 }
 
 external class GPUDevice {
