@@ -2,7 +2,7 @@ name: publish-release
 
 on:
   release:
-    types: [published]
+    types: [ published ]
 
 env:
   SIGNING_SECRET_KEY: ${{ secrets.OSSRH_GPG_SECRET_KEY }}
@@ -16,10 +16,10 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - name: Setup Java JDK 17
-        uses: actions/setup-java@v2.5.0
+      - name: Setup Java JDK 21
+        uses: actions/setup-java@v4.2.1
         with:
-          java-version: 17
+          java-version: 21
           distribution: adopt
       - name: Grant gradlew execution permissions
         run: chmod +x gradlew
