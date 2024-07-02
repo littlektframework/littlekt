@@ -4,9 +4,49 @@ external interface GPUObjectBase {
     var label: String?
 }
 
+external interface GPUSupportedLimits {
+    var maxTextureDimension1D: Int
+    var maxTextureDimension2D: Int
+    var maxTextureDimension3D: Int
+    var maxTextureArrayLayers: Int
+    var maxBindGroups: Int
+    var maxBindGroupsPlusVertexBuffers: Int
+    var maxBindingsPerBindGroup: Int
+    var maxDynamicUniformBuffersPerPipelineLayout: Int
+    var maxDynamicStorageBuffersPerPipelineLayout: Int
+    var maxSampledTexturesPerShaderStage: Int
+    var maxSamplersPerShaderStage: Int
+    var maxStorageBuffersPerShaderStage: Int
+    var maxStorageTexturesPerShaderStage: Int
+    var maxUniformBuffersPerShaderStage: Int
+    var maxUniformBufferBindingSize: Long
+    var maxStorageBufferBindingSize: Long
+    var minUniformBufferOffsetAlignment: Int
+    var minStorageBufferOffsetAlignment: Int
+    var maxVertexBuffers: Int
+    var maxBufferSize: Long
+    var maxVertexAttributes: Int
+    var maxVertexBufferArrayStride: Int
+    var maxInterStageShaderComponents: Int
+    var maxInterStageShaderVariables: Int
+    var maxColorAttachments: Int
+    var maxColorAttachmentBytesPerSample: Int
+    var maxComputeWorkgroupStorageSize: Int
+    var maxComputeInvocationsPerWorkgroup: Int
+    var maxComputeWorkgroupSizeX: Int
+    var maxComputeWorkgroupSizeY: Int
+    var maxComputeWorkgroupSizeZ: Int
+    var maxComputeWorkgroupsPerDimension: Int
+}
+
 external interface GPURequestAdapterOptions {
     var powerPreference: String
     var forceFallbackAdapter: Boolean
+}
+
+external interface GPUDeviceDescriptor : GPUObjectBase {
+    var requiredFeatures: Array<String>
+    var requiredLimits: Map<String, Long>
 }
 
 external interface GPUCanvasConfiguration : GPUObjectBase {
