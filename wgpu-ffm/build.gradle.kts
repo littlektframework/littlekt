@@ -12,3 +12,5 @@ java {
     targetCompatibility = JavaVersion.VERSION_21
     withSourcesJar()
 }
+
+publishing { publications { create<MavenPublication>("wgpu-ffm") { from(components["java"]) } } }

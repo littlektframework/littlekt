@@ -73,3 +73,7 @@ kotlin {
 
     tasks.test { useJUnitPlatform() }
 }
+
+publishing {
+    publications { create<MavenPublication>("wgpu-natives") { from(components["java"]) } }
+}

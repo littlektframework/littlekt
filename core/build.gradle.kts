@@ -8,6 +8,7 @@ plugins {
 }
 
 kotlin {
+    applyDefaultHierarchyTemplate()
     tasks.withType<Test> {
         var env = project.properties["env"] as? String
         if (env == null) {
@@ -80,8 +81,6 @@ kotlin {
 
         jvmAndroidMain.dependsOn(commonMain)
         jvmMain.dependsOn(jvmAndroidMain)
-        jvmTest.dependsOn(commonTest)
-        jsTest.dependsOn(commonTest)
 
         all {
             languageSettings.apply {
