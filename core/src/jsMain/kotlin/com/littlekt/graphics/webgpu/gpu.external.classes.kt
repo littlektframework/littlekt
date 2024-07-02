@@ -29,15 +29,18 @@ external class GPUCanvasContext {
 open external class GPUAdapter {
     val name: String
 
-    val features: List<String>
+    val features: dynamic
 
-    val limits: List<String>
+    val limits: GPUSupportedLimits
 
     fun requestDevice(): Promise<GPUDevice>
 }
 
 external class GPUDevice {
-    val limits: Any
+    val features: dynamic
+
+    val limits: GPUSupportedLimits
+
     val queue: GPUQueue
 
     fun createShaderModule(desc: GPUShaderModuleDescriptor): GPUShaderModule
