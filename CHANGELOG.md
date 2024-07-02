@@ -20,6 +20,7 @@
 * Remove `vSync` and `backgroundColor` configuration options.
 * Remove `Game<T>` and `Scene<T>` classes as they aren't in scope of the framework.
 * Rename `Disposable` to be `Releasable` as well as `dispose()` to `release()`.
+* Remove `FitViewport` and `FillViewport` as they don't work with the current viewport limitations WebGPU imposes.
 
 ### Changes
 
