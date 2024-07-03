@@ -71,7 +71,7 @@ open class CanvasLayer : Node() {
      * Viewport instance that can be used for rendering children nodes in inherited classes. This is
      * not used directly in the base [CanvasLayer] class.
      *
-     * @see ViewportCanvasLayer
+     * @see CanvasLayerContainer
      */
     var viewport: Viewport = Viewport()
 

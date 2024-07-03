@@ -184,14 +184,16 @@ open class SceneGraph<InputType>(
     val shapeRenderer: ShapeRenderer = ShapeRenderer(this.batch, whitePixel)
 
     /**
-     * The root [ViewportCanvasLayer] that is used for rendering all the children in the graph. Do
-     * not add children directly to this node. Instead, add children to the [root] node.
+     * The root [CanvasLayer] that is used for rendering all the children in the graph. Do not add
+     * children directly to this node. Instead, add children to the [root] node.
      */
     val sceneCanvas: CanvasLayer by lazy {
         CanvasLayer().apply {
             name = "Scene Viewport"
             this.viewport = viewport
-            spriteShader = this@SceneGraph.batch.defaultShader
+            if (ownsBatch) {
+                spriteShader = this@SceneGraph.batch.defaultShader
+            }
             resizeAutomatically = false
         }
     }
