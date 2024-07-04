@@ -125,8 +125,9 @@ class SpriteBatch(
         check(size > 0) { "A batch must be greater than zero sprites!" }
     }
 
-    override fun begin() {
+    override fun begin(viewProjection: Mat4?) {
         check(!drawing) { "SpriteBatch.end must be called before begin." }
+        viewProjection?.let { this.viewProjection = it }
         drawing = true
     }
 
