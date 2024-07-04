@@ -7,9 +7,9 @@ import com.littlekt.graph.node.ui.centerContainer
 import com.littlekt.graph.node.ui.label
 import com.littlekt.graph.sceneGraph
 import com.littlekt.graphics.g2d.SpriteBatch
+import com.littlekt.graphics.g2d.use
 import com.littlekt.graphics.webgpu.*
 import com.littlekt.util.viewport.ExtendViewport
-import com.littlekt.util.viewport.setViewport
 
 /**
  * An example using a render pass for the game world and a render pass for the UI.
@@ -46,7 +46,7 @@ class GameWorldAndUIViewports(context: Context) : ContextListener(context) {
             if (preferredFormat.srgb) world.defaultLevelBackgroundColor.toLinear()
             else world.defaultLevelBackgroundColor
         val graph =
-            sceneGraph(this, ExtendViewport(480, 270), batch = batch) {
+            sceneGraph(this, viewport = ExtendViewport(960, 540)) {
                     centerContainer {
                         anchorRight = 1f
                         anchorTop = 1f
@@ -56,6 +56,7 @@ class GameWorldAndUIViewports(context: Context) : ContextListener(context) {
                 .also { it.initialize() }
 
         graph.requestShowDebugInfo = true
+
         onResize { width, height ->
             graph.resize(width, height)
             worldViewport.update(width, height)
@@ -106,13 +107,11 @@ class GameWorldAndUIViewports(context: Context) : ContextListener(context) {
                             )
                         )
                 )
-            worldRenderPass.setViewport(worldViewport)
+            //    worldRenderPass.setViewport(worldViewport)
             worldCamera.update()
-
-            batch.begin()
-            world.render(batch, worldCamera, scale = 1f)
-            batch.flush(worldRenderPass, worldCamera.viewProjection)
-
+            batch.use(worldRenderPass, worldCamera.viewProjection) {
+                world.render(batch, worldCamera, scale = 1f)
+            }
             worldRenderPass.end()
             worldRenderPass.release()
 
@@ -130,7 +129,6 @@ class GameWorldAndUIViewports(context: Context) : ContextListener(context) {
 
             graph.update(dt)
             graph.render(commandEncoder, uiRenderPassDescriptor)
-            batch.end()
 
             val commandBuffer = commandEncoder.finish()
 

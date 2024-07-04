@@ -18,7 +18,6 @@ import com.littlekt.math.Mat4
 import com.littlekt.math.MutableVec2f
 import com.littlekt.math.MutableVec3f
 import com.littlekt.util.viewport.Viewport
-import com.littlekt.util.viewport.setViewport
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
@@ -262,7 +261,9 @@ open class CanvasLayer : Node() {
         width = newWidth
         height = newHeight
 
+        resize(width, height)
         fbo.resize(width, height)
+
         canvasRenderPassDescriptor =
             RenderPassDescriptor(
                 colorAttachments =
@@ -276,8 +277,6 @@ open class CanvasLayer : Node() {
                     ),
                 label = "Canvas Layer Pass"
             )
-
-        resize(width, height)
     }
 
     /** Begins drawing to the [EmptyTexture]. */
@@ -413,7 +412,8 @@ open class CanvasLayer : Node() {
         if (!enabled || isDestroyed) return
         if (width == 0 || height == 0) return
         if (batch.drawing) {
-            batch.flush(renderPass)
+            canvasCamera.update()
+            batch.flush(renderPass, canvasCamera.viewProjection)
         }
         batch.viewProjection = prevProjection
         batch.shader =
@@ -490,7 +490,7 @@ open class CanvasLayer : Node() {
                 ?: error("Command encoder has not been set on the graph!")
         renderPasses += result
         renderPassOrNull = result
-        result.setViewport(viewport)
+        //   result.setViewport(viewport)
     }
 
     /**

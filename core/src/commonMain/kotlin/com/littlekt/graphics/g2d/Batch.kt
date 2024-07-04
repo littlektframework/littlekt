@@ -53,7 +53,7 @@ interface Batch : Releasable {
      * Invoke this to begin a [Batch] pass. Calls to [draw], [flush], and [end] cannot happen until
      * [begin] is called.
      */
-    fun begin()
+    fun begin(viewProjection: Mat4? = null)
 
     /**
      * Draws a textured quad.
@@ -246,6 +246,9 @@ interface Batch : Releasable {
      *
      * @param renderPassEncoder the encoder to use for the render pass.
      * @param viewProjection an optional view projection matrix to begin the initial render pass.
+     *   **Note**: this does NOT draw or render the queued draw calls with this matrix! If the
+     *   required matrix is needed for rendering then set [viewProjection] directly prior to any
+     *   [draw] calls.
      */
     fun flush(renderPassEncoder: RenderPassEncoder, viewProjection: Mat4? = null)
 
