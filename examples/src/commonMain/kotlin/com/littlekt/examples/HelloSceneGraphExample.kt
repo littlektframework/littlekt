@@ -46,12 +46,11 @@ class HelloSceneGraphExample(context: Context) : ContextListener(context) {
             sceneGraph(this, ExtendViewport(960, 540)) {
                     canvasLayerContainer {
                         stretch = true
-                        shrink = 1
+                        shrink = 2
                         anchorRight = 1f
                         anchorTop = 1f
 
                         canvasLayer {
-                            viewport = ExtendViewport(270, 135)
                             scrollContainer {
                                 minWidth = 100f
                                 minHeight = 100f
@@ -61,7 +60,6 @@ class HelloSceneGraphExample(context: Context) : ContextListener(context) {
                                     }
                                 }
                             }
-                            //       button { text = "test" }
                             node2d {
                                 rotation = 45.degrees
                                 onReady += { println("$name: $canvas") }

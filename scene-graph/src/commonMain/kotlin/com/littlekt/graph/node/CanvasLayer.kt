@@ -261,7 +261,6 @@ open class CanvasLayer : Node() {
 
         resize(width, height)
         fbo.resize(width, height)
-        println("$width,$height -- $virtualWidth,$virtualHeight")
 
         canvasRenderPassDescriptor =
             RenderPassDescriptor(
@@ -352,8 +351,8 @@ open class CanvasLayer : Node() {
         scene ?: return null
         if (!enabled || isDestroyed) return null
         tempVec.set(
-            hx - width * 0.5f + canvasCamera.position.x,
-            hy - height * 0.5f + canvasCamera.position.y
+            hx - virtualWidth * 0.5f + canvasCamera.position.x,
+            hy - virtualHeight * 0.5f + canvasCamera.position.y
         )
         // we don't need to convert to canvas coords because the FrameBufferContainer handles
         // all of that. We just need to pass it down
@@ -370,8 +369,8 @@ open class CanvasLayer : Node() {
         scene ?: return false
         if (!enabled || isDestroyed) return false
         tempVec.set(
-            event.canvasX - width * 0.5f + canvasCamera.position.x,
-            event.canvasY - height * 0.5f + canvasCamera.position.y
+            event.canvasX - virtualWidth * 0.5f + canvasCamera.position.x,
+            event.canvasY - virtualHeight * 0.5f + canvasCamera.position.y
         )
         nodes.forEachReversed {
             // we set canvas coords every iteration just in case a child CanvasLayer changes it
@@ -390,8 +389,8 @@ open class CanvasLayer : Node() {
         scene ?: return false
         if (!enabled || isDestroyed) return false
         tempVec.set(
-            event.canvasX - width * 0.5f + canvasCamera.position.x,
-            event.canvasY - height * 0.5f + canvasCamera.position.y
+            event.canvasX - virtualWidth * 0.5f + canvasCamera.position.x,
+            event.canvasY - virtualHeight * 0.5f + canvasCamera.position.y
         )
         nodes.forEachReversed {
             // we set canvas coords every iteration just in case a child CanvasLayer changes it
