@@ -7,7 +7,6 @@ import com.littlekt.graphics.Color
 import com.littlekt.graphics.g2d.SpriteBatch
 import com.littlekt.graphics.webgpu.*
 import com.littlekt.util.viewport.ExtendViewport
-import com.littlekt.util.viewport.setViewport
 
 /**
  * An example using a simple Orthographic camera to move around a texture.
@@ -88,7 +87,6 @@ class SimpleCameraExample(context: Context) : ContextListener(context) {
                             )
                         )
                 )
-            renderPassEncoder.setViewport(viewport)
             camera.update()
             batch.begin()
             batch.draw(logoTexture, 0f, 0f)

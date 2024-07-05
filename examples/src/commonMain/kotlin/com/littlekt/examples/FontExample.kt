@@ -10,7 +10,6 @@ import com.littlekt.graphics.g2d.use
 import com.littlekt.graphics.webgpu.*
 import com.littlekt.resources.Fonts
 import com.littlekt.util.viewport.ExtendViewport
-import com.littlekt.util.viewport.setViewport
 
 /**
  * @author Colton Daily
@@ -89,7 +88,6 @@ class FontExample(context: Context) : ContextListener(context) {
                             )
                         )
                 )
-            renderPassEncoder.setViewport(viewport)
             camera.update()
 
             batch.use(renderPassEncoder, camera.viewProjection) {

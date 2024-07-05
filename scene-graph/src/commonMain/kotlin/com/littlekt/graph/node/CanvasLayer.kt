@@ -17,6 +17,7 @@ import com.littlekt.log.Logger
 import com.littlekt.math.Mat4
 import com.littlekt.math.MutableVec2f
 import com.littlekt.math.MutableVec3f
+import com.littlekt.util.viewport.ScreenViewport
 import com.littlekt.util.viewport.Viewport
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
@@ -72,7 +73,7 @@ open class CanvasLayer : Node() {
      *
      * @see CanvasLayerContainer
      */
-    var viewport: Viewport = Viewport()
+    var viewport: Viewport = ScreenViewport(0, 0)
 
     /** The [OrthographicCamera] of this [CanvasLayer]. This may be manipulated. */
     val canvasCamera: OrthographicCamera
@@ -236,9 +237,6 @@ open class CanvasLayer : Node() {
         viewport.update(width, height, true)
         canvasCamera3d.virtualWidth = width.toFloat()
         canvasCamera3d.virtualHeight = height.toFloat()
-        canvasCamera.ortho(width, height)
-        viewport.width = width
-        viewport.height = height
         onSizeChanged.emit()
 
         super.resize(width, height)
@@ -263,6 +261,7 @@ open class CanvasLayer : Node() {
 
         resize(width, height)
         fbo.resize(width, height)
+        println("$width,$height -- $virtualWidth,$virtualHeight")
 
         canvasRenderPassDescriptor =
             RenderPassDescriptor(
@@ -290,11 +289,11 @@ open class CanvasLayer : Node() {
         if (canvasRenderPass != null && batch.drawing) {
             batch.flush(canvasRenderPass)
         }
+        canvas?.let { popAndEndCanvasRenderPass() }
         batch.shader = spriteShader
         canvasCamera.update()
         canvasCamera3d.update()
         batch.viewProjection = canvasCamera.viewProjection
-        canvas?.let { popAndEndCanvasRenderPass() }
         pushRenderPass(renderPassDescriptor.label, renderPassDescriptor)
     }
 
@@ -412,13 +411,12 @@ open class CanvasLayer : Node() {
         if (!enabled || isDestroyed) return
         if (width == 0 || height == 0) return
         if (batch.drawing) {
-            canvasCamera.update()
-            batch.flush(renderPass, canvasCamera.viewProjection)
+            batch.flush(renderPass)
         }
+        popAndEndRenderPass()
         batch.viewProjection = prevProjection
         batch.shader =
             prevShader ?: error("Unable to set Batch.shader back to its previous shader!")
-        popAndEndRenderPass()
         canvas?.let { pushRenderPassToCanvas("${canvas?.name} pass") }
         if (renderPasses.isNotEmpty()) {
             logger.warn {
@@ -490,7 +488,6 @@ open class CanvasLayer : Node() {
                 ?: error("Command encoder has not been set on the graph!")
         renderPasses += result
         renderPassOrNull = result
-        //   result.setViewport(viewport)
     }
 
     /**

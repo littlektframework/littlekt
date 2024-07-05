@@ -16,6 +16,7 @@ import com.littlekt.input.Key
 import com.littlekt.math.geom.Angle
 import com.littlekt.math.geom.degrees
 import com.littlekt.math.geom.radians
+import com.littlekt.util.viewport.ExtendViewport
 
 /**
  * An example using a [sceneGraph]
@@ -42,14 +43,15 @@ class HelloSceneGraphExample(context: Context) : ContextListener(context) {
         )
 
         val graph =
-            sceneGraph(this) {
+            sceneGraph(this, ExtendViewport(960, 540)) {
                     canvasLayerContainer {
                         stretch = true
-                        shrink = 2
+                        shrink = 1
                         anchorRight = 1f
                         anchorTop = 1f
 
                         canvasLayer {
+                            viewport = ExtendViewport(270, 135)
                             scrollContainer {
                                 minWidth = 100f
                                 minHeight = 100f

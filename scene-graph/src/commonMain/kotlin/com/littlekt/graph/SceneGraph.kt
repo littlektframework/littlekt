@@ -337,29 +337,8 @@ open class SceneGraph<InputType>(
         }
 
         this.commandEncoder = commandEncoder
-        if (dirty) {
-            sceneCanvas.resizeFbo(width.toInt(), height.toInt())
-            dirty = false
-        }
+        sceneCanvas.canvasRenderPassDescriptor = renderPassDescriptor
         sceneCanvas.render(batch, shapeRenderer) { node, _, _, _, _ -> checkNodeMaterial(node) }
-
-        if (batch.drawing) {
-            batch.setBlendState(BlendState.NonPreMultiplied)
-            batch.useDefaultShader()
-            val graphPass = commandEncoder.beginRenderPass(desc = renderPassDescriptor)
-            batch.viewProjection = sceneCanvas.canvasCamera.viewProjection
-            batch.draw(
-                texture = sceneCanvas.target,
-                x = 0f,
-                y = 0f,
-                width = sceneCanvas.width.toFloat(),
-                height = sceneCanvas.height.toFloat()
-            )
-            batch.flush(graphPass)
-            graphPass.end()
-            graphPass.release()
-        }
-
         flush()
 
         if (debugInfoDirty) {

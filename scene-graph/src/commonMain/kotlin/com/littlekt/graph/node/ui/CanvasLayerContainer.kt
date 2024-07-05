@@ -172,6 +172,7 @@ open class CanvasLayerContainer : Container() {
         if (stretch) {
             temp.scale(1f / shrink.toFloat())
         }
+        temp.scale(1f / globalScaleX, 1f / globalScaleY)
         nodes.forEachReversed {
             val target =
                 if (it is CanvasLayer) {
@@ -194,6 +195,7 @@ open class CanvasLayerContainer : Container() {
         if (stretch) {
             temp.scale(1f / shrink.toFloat())
         }
+        temp.scale(1f / globalScaleX, 1f / globalScaleY)
         val prevCanvasX = event.canvasX
         val prevCanvasY = event.canvasY
         nodes.forEachReversed {
@@ -221,6 +223,7 @@ open class CanvasLayerContainer : Container() {
         if (stretch) {
             temp.scale(1f / shrink.toFloat())
         }
+        temp.scale(1f / globalScaleX, 1f / globalScaleY)
         val prevCanvasX = event.canvasX
         val prevCanvasY = event.canvasY
         nodes.forEachReversed {
