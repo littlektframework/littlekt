@@ -7,7 +7,6 @@ import com.littlekt.graphics.Color
 import com.littlekt.graphics.g2d.SpriteCache
 import com.littlekt.graphics.webgpu.*
 import com.littlekt.util.viewport.ExtendViewport
-import com.littlekt.util.viewport.setViewport
 
 /**
  * Load and render a Tiled map using a [SpriteCache].
@@ -91,7 +90,6 @@ class TiledTileMapCacheExample(context: Context) : ContextListener(context) {
                             )
                         )
                 )
-            renderPassEncoder.setViewport(viewport)
             camera.update()
             map.updateCachedAnimationTiles(cache)
             cache.render(renderPassEncoder, camera.viewProjection)

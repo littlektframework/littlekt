@@ -33,6 +33,7 @@ import kotlin.time.Duration.Companion.milliseconds
  *
  * @param context the current context
  * @param viewport the viewport that the camera of the scene graph will own
+ * @param batch an option sprite batch. If omitted, the scene graph will create and manage its own.
  * @param callback the callback that is invoked with a [SceneGraph] context in order to initialize
  *   any values and create nodes
  * @return the newly created [SceneGraph]
@@ -41,6 +42,7 @@ import kotlin.time.Duration.Companion.milliseconds
 inline fun sceneGraph(
     context: Context,
     viewport: Viewport = ScreenViewport(context.graphics.width, context.graphics.height),
+    batch: Batch? = null,
     controller: InputMapController<String>? = null,
     whitePixel: TextureSlice = Textures.white,
     callback: @SceneGraphDslMarker SceneGraph<String>.() -> Unit = {},
@@ -63,6 +65,7 @@ inline fun sceneGraph(
     return SceneGraph(
             context,
             viewport,
+            batch,
             signals,
             controller ?: createDefaultSceneGraphController(context.input, signals),
             whitePixel
@@ -75,6 +78,7 @@ inline fun sceneGraph(
  *
  * @param context the current context
  * @param viewport the viewport that the camera of the scene graph will own
+ * @param batch an option sprite batch. If omitted, the scene graph will create and manage its own.
  * @param callback the callback that is invoked with a [SceneGraph] context in order to initialize
  *   any values and create nodes
  * @return the newly created [SceneGraph]
@@ -83,13 +87,15 @@ inline fun sceneGraph(
 inline fun <InputSignal> sceneGraph(
     context: Context,
     viewport: Viewport = ScreenViewport(context.graphics.width, context.graphics.height),
+    batch: Batch? = null,
     uiInputSignals: SceneGraph.UiInputSignals<InputSignal> = SceneGraph.UiInputSignals(),
     controller: InputMapController<InputSignal> = InputMapController(context.input),
     whitePixel: TextureSlice = Textures.white,
     callback: @SceneGraphDslMarker SceneGraph<InputSignal>.() -> Unit = {},
 ): SceneGraph<InputSignal> {
     contract { callsInPlace(callback, InvocationKind.EXACTLY_ONCE) }
-    return SceneGraph(context, viewport, uiInputSignals, controller, whitePixel).also(callback)
+    return SceneGraph(context, viewport, batch, uiInputSignals, controller, whitePixel)
+        .also(callback)
 }
 
 /**
@@ -146,11 +152,11 @@ fun <InputSignal> createDefaultSceneGraphController(
     InputMapController<InputSignal>(input).also { it.addDefaultUiInput(uiInputSignals) }
 
 /**
- * A class for creating a scene graph of nodes. The scene graph manages its own [Batch] and handles
- * creating, ending, and releasing [RenderPassEncoder].
+ * A class for creating a scene graph of nodes.
  *
  * @param context the current context
  * @param viewport the viewport that the camera of the scene graph will own
+ * @param batch an option sprite batch. If omitted, the scene graph will create and manage its own.
  * @param uiInputSignals the input signals mapped to the UI input of type [InputType].
  * @param controller the input map controller for the scene graph
  * @param whitePixel a white 1x1 pixel [TextureSlice] that is used for rendering with
@@ -161,18 +167,25 @@ fun <InputSignal> createDefaultSceneGraphController(
 open class SceneGraph<InputType>(
     val context: Context,
     viewport: Viewport = ScreenViewport(context.graphics.width, context.graphics.height),
+    batch: Batch? = null,
     val uiInputSignals: UiInputSignals<InputType> = UiInputSignals(),
     val controller: InputMapController<InputType> =
         createDefaultSceneGraphController(context.input, uiInputSignals),
     whitePixel: TextureSlice = Textures.white,
 ) : InputMapProcessor<InputType>, Releasable {
 
+    private var ownsBatch = true
     /**
      * The [Batch] being used by the scene graph. This batch may be managed by the scene graph or
      * could be optional passed in via the constructor.
      */
     val batch: Batch =
-        SpriteBatch(context.graphics.device, context.graphics, context.graphics.preferredFormat)
+        batch?.also { ownsBatch = false }
+            ?: SpriteBatch(
+                context.graphics.device,
+                context.graphics,
+                context.graphics.preferredFormat
+            )
 
     /** The [ShapeRenderer] managed by the scene graph. This uses the [batch] for drawing. */
     val shapeRenderer: ShapeRenderer = ShapeRenderer(this.batch, whitePixel)
@@ -185,7 +198,6 @@ open class SceneGraph<InputType>(
         CanvasLayer().apply {
             name = "Scene Viewport"
             this.viewport = viewport
-            spriteShader = this@SceneGraph.batch.defaultShader
             resizeAutomatically = false
         }
     }
@@ -337,29 +349,8 @@ open class SceneGraph<InputType>(
         }
 
         this.commandEncoder = commandEncoder
-        if (dirty) {
-            sceneCanvas.resizeFbo(width.toInt(), height.toInt())
-            dirty = false
-        }
+        sceneCanvas.canvasRenderPassDescriptor = renderPassDescriptor
         sceneCanvas.render(batch, shapeRenderer) { node, _, _, _, _ -> checkNodeMaterial(node) }
-
-        if (batch.drawing) {
-            batch.setBlendState(BlendState.NonPreMultiplied)
-            batch.useDefaultShader()
-            val graphPass = commandEncoder.beginRenderPass(desc = renderPassDescriptor)
-            batch.viewProjection = sceneCanvas.canvasCamera.viewProjection
-            batch.draw(
-                texture = sceneCanvas.target,
-                x = 0f,
-                y = 0f,
-                width = sceneCanvas.width.toFloat(),
-                height = sceneCanvas.height.toFloat()
-            )
-            batch.flush(graphPass)
-            graphPass.end()
-            graphPass.release()
-        }
-
         flush()
 
         if (debugInfoDirty) {
@@ -384,7 +375,7 @@ open class SceneGraph<InputType>(
 
         commandEncoder = null
 
-        if (batch.drawing) {
+        if (ownsBatch && batch.drawing) {
             batch.end()
         }
     }
@@ -1092,7 +1083,9 @@ open class SceneGraph<InputType>(
      */
     override fun release() {
         sceneCanvas.destroy()
-        batch.release()
+        if (ownsBatch) {
+            batch.release()
+        }
 
         controller.removeInputMapProcessor(this)
         context.input.removeInputProcessor(this)

@@ -17,6 +17,7 @@ import com.littlekt.log.Logger
 import com.littlekt.math.Mat4
 import com.littlekt.math.MutableVec2f
 import com.littlekt.math.MutableVec3f
+import com.littlekt.util.viewport.ScreenViewport
 import com.littlekt.util.viewport.Viewport
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
@@ -72,7 +73,7 @@ open class CanvasLayer : Node() {
      *
      * @see CanvasLayerContainer
      */
-    var viewport: Viewport = Viewport()
+    var viewport: Viewport = ScreenViewport(0, 0)
 
     /** The [OrthographicCamera] of this [CanvasLayer]. This may be manipulated. */
     val canvasCamera: OrthographicCamera
@@ -236,9 +237,6 @@ open class CanvasLayer : Node() {
         viewport.update(width, height, true)
         canvasCamera3d.virtualWidth = width.toFloat()
         canvasCamera3d.virtualHeight = height.toFloat()
-        canvasCamera.ortho(width, height)
-        viewport.width = width
-        viewport.height = height
         onSizeChanged.emit()
 
         super.resize(width, height)
@@ -290,11 +288,11 @@ open class CanvasLayer : Node() {
         if (canvasRenderPass != null && batch.drawing) {
             batch.flush(canvasRenderPass)
         }
+        canvas?.let { popAndEndCanvasRenderPass() }
         batch.shader = spriteShader
         canvasCamera.update()
         canvasCamera3d.update()
         batch.viewProjection = canvasCamera.viewProjection
-        canvas?.let { popAndEndCanvasRenderPass() }
         pushRenderPass(renderPassDescriptor.label, renderPassDescriptor)
     }
 
@@ -353,8 +351,8 @@ open class CanvasLayer : Node() {
         scene ?: return null
         if (!enabled || isDestroyed) return null
         tempVec.set(
-            hx - width * 0.5f + canvasCamera.position.x,
-            hy - height * 0.5f + canvasCamera.position.y
+            hx - virtualWidth * 0.5f + canvasCamera.position.x,
+            hy - virtualHeight * 0.5f + canvasCamera.position.y
         )
         // we don't need to convert to canvas coords because the FrameBufferContainer handles
         // all of that. We just need to pass it down
@@ -371,8 +369,8 @@ open class CanvasLayer : Node() {
         scene ?: return false
         if (!enabled || isDestroyed) return false
         tempVec.set(
-            event.canvasX - width * 0.5f + canvasCamera.position.x,
-            event.canvasY - height * 0.5f + canvasCamera.position.y
+            event.canvasX - virtualWidth * 0.5f + canvasCamera.position.x,
+            event.canvasY - virtualHeight * 0.5f + canvasCamera.position.y
         )
         nodes.forEachReversed {
             // we set canvas coords every iteration just in case a child CanvasLayer changes it
@@ -391,8 +389,8 @@ open class CanvasLayer : Node() {
         scene ?: return false
         if (!enabled || isDestroyed) return false
         tempVec.set(
-            event.canvasX - width * 0.5f + canvasCamera.position.x,
-            event.canvasY - height * 0.5f + canvasCamera.position.y
+            event.canvasX - virtualWidth * 0.5f + canvasCamera.position.x,
+            event.canvasY - virtualHeight * 0.5f + canvasCamera.position.y
         )
         nodes.forEachReversed {
             // we set canvas coords every iteration just in case a child CanvasLayer changes it
@@ -412,13 +410,12 @@ open class CanvasLayer : Node() {
         if (!enabled || isDestroyed) return
         if (width == 0 || height == 0) return
         if (batch.drawing) {
-            canvasCamera.update()
-            batch.flush(renderPass, canvasCamera.viewProjection)
+            batch.flush(renderPass)
         }
+        popAndEndRenderPass()
         batch.viewProjection = prevProjection
         batch.shader =
             prevShader ?: error("Unable to set Batch.shader back to its previous shader!")
-        popAndEndRenderPass()
         canvas?.let { pushRenderPassToCanvas("${canvas?.name} pass") }
         if (renderPasses.isNotEmpty()) {
             logger.warn {
@@ -490,7 +487,6 @@ open class CanvasLayer : Node() {
                 ?: error("Command encoder has not been set on the graph!")
         renderPasses += result
         renderPassOrNull = result
-        //   result.setViewport(viewport)
     }
 
     /**

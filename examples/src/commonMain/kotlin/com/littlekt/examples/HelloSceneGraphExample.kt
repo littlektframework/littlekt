@@ -16,6 +16,7 @@ import com.littlekt.input.Key
 import com.littlekt.math.geom.Angle
 import com.littlekt.math.geom.degrees
 import com.littlekt.math.geom.radians
+import com.littlekt.util.viewport.ExtendViewport
 
 /**
  * An example using a [sceneGraph]
@@ -42,7 +43,7 @@ class HelloSceneGraphExample(context: Context) : ContextListener(context) {
         )
 
         val graph =
-            sceneGraph(this) {
+            sceneGraph(this, ExtendViewport(960, 540)) {
                     canvasLayerContainer {
                         stretch = true
                         shrink = 2
@@ -59,7 +60,6 @@ class HelloSceneGraphExample(context: Context) : ContextListener(context) {
                                     }
                                 }
                             }
-                            //       button { text = "test" }
                             node2d {
                                 rotation = 45.degrees
                                 onReady += { println("$name: $canvas") }
