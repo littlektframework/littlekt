@@ -2,7 +2,6 @@ package com.littlekt.graphics
 
 import com.littlekt.Releasable
 import com.littlekt.graphics.webgpu.*
-import com.littlekt.postRunnable
 import kotlinx.atomicfu.atomic
 
 /**
@@ -65,7 +64,7 @@ interface Texture : Releasable {
         view.release()
         sampler.release()
         // destroy after any update/postUpdate calls to ensure we aren't in the middle of a pass!
-        postRunnable { gpuTexture.destroy() }
+        gpuTexture.release()
     }
 
     companion object {

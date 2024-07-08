@@ -830,7 +830,7 @@ actual class Surface(val segment: MemorySegment) : Releasable {
         wgpuSurfaceGetCurrentTexture(segment, surfaceTexture)
         val texture =
             WGPUSurfaceTexture.texture(surfaceTexture).let {
-                if (it == WGPU_NULL) null else WebGPUTexture(it, 0L)
+                if (it == WGPU_NULL) null else WebGPUTexture(it, it.byteSize())
             }
         val status =
             WGPUSurfaceTexture.status(surfaceTexture).let {

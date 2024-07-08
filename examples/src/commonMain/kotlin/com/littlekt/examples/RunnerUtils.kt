@@ -23,5 +23,6 @@ val availableExamples =
         "-helloSceneGraph" to Pair("Hello Scene Graph", ::HelloSceneGraphExample),
         "-renderTarget" to Pair("Render Target", ::RenderTargetExample),
         "-computeBoids" to Pair("Compute Boids", ::ComputeBoidsExample),
-        "-worldAndUiViewports" to Pair("Game World and UI Viewports", ::GameWorldAndUIViewports)
+        "-worldAndUiViewports" to Pair("Game World and UI Viewports", ::GameWorldAndUIViewports),
+        "-assetProvider" to Pair("Asset Provider", ::AssetProviderExample)
     )
