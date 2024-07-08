@@ -2,7 +2,6 @@ package com.littlekt.graphics
 
 import com.littlekt.graphics.Texture.Companion.nextId
 import com.littlekt.graphics.webgpu.*
-import com.littlekt.postRunnable
 
 /**
  * A [Texture] that doesn't contain any underlying raw image data, but instead, is intended to be
@@ -39,7 +38,7 @@ class EmptyTexture(val device: Device, preferredFormat: TextureFormat, width: In
         set(value) {
             field = value
             val textureToDestroy = gpuTexture
-            postRunnable { textureToDestroy.destroy() }
+            textureToDestroy.release()
             gpuTexture = device.createTexture(field)
         }
 

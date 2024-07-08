@@ -75,7 +75,6 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context() {
         if (configuration.enableWGPULogging) {
             initLogging()
         }
-        ownedContext = this
     }
 
     override fun start(build: (app: Context) -> ContextListener) = runBlocking {
