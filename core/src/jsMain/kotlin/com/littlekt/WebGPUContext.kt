@@ -46,7 +46,6 @@ class WebGPUContext(override val configuration: JsConfiguration) : Context() {
 
     init {
         KtScope.initiate()
-        ownedContext = this
     }
 
     override fun start(build: (app: Context) -> ContextListener) {
