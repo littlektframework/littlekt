@@ -2,7 +2,6 @@ package com.littlekt.graphics
 
 import com.littlekt.graphics.Texture.Companion.nextId
 import com.littlekt.graphics.webgpu.*
-import com.littlekt.postRunnable
 
 /**
  * A [Texture] that uses a [Pixmap] as the underlying data.
@@ -35,10 +34,9 @@ class PixmapTexture(val device: Device, preferredFormat: TextureFormat, val pixm
             field = value
             val textureToDestroy = gpuTexture
             val viewToDestroy = view
-            postRunnable {
-                viewToDestroy.release()
-                textureToDestroy.destroy()
-            }
+            viewToDestroy.release()
+            textureToDestroy.release()
+
             gpuTexture = device.createTexture(textureDescriptor)
         }
 
