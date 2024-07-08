@@ -125,8 +125,9 @@ class SpriteBatch(
         check(size > 0) { "A batch must be greater than zero sprites!" }
     }
 
-    override fun begin() {
+    override fun begin(viewProjection: Mat4?) {
         check(!drawing) { "SpriteBatch.end must be called before begin." }
+        viewProjection?.let { this.viewProjection = it }
         drawing = true
     }
 
@@ -549,10 +550,6 @@ class SpriteBatch(
         spriteIdx += total
     }
 
-    /**
-     * Updates the internal mesh and submits all queued draw calls to the [RenderPassEncoder] and
-     * clears the draw call queue.
-     */
     override fun flush(renderPassEncoder: RenderPassEncoder, viewProjection: Mat4?) {
         check(drawing) { "SpriteBatch.begin must be called before draw." }
         viewProjection?.let { this.viewProjection = it }
@@ -612,17 +609,12 @@ class SpriteBatch(
         drawing = false
     }
 
-    /** Sets the blend state to the new blend state. */
     override fun setBlendState(newBlendState: BlendState) {
         if (blendState == newBlendState) return
         prevBlendState = blendState
         blendState = newBlendState
     }
 
-    /**
-     * Sets this blend state back to the previous blend state. Calling this function in succession
-     * will swap back the blend states back and forth
-     */
     override fun swapToPreviousBlendState() {
         if (blendState == prevBlendState) return
         setBlendState(prevBlendState)

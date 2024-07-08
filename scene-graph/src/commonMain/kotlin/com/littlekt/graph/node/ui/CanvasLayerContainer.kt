@@ -49,8 +49,14 @@ open class CanvasLayerContainer : Container() {
 
     private val temp = MutableVec2f()
     private var dirty = true
+
+    /** An x-offset of the CanvasLayer's x-position, when rendering. */
     var offsetX = 0f
+
+    /** A y-offset of the CanvasLayer's y-position, when rendering. */
     var offsetY = 0f
+
+    /** A margin that is added to each side of the canvas layer, during rendering. */
     var margin = 0f
 
     /** If `true`, the frame buffer will be scaled to this [Control] size. */
@@ -74,7 +80,7 @@ open class CanvasLayerContainer : Container() {
     var shrink: Int = 1
         set(value) {
             if (field == value) return
-            check(shrink >= 1) { "Stretch must be >= 1" }
+            check(shrink >= 1) { "Shrink must be >= 1" }
             field = value
             if (!stretch) return
             dirty = true
@@ -166,9 +172,14 @@ open class CanvasLayerContainer : Container() {
         if (stretch) {
             temp.scale(1f / shrink.toFloat())
         }
+        temp.scale(1f / globalScaleX, 1f / globalScaleY)
         nodes.forEachReversed {
             val target =
                 if (it is CanvasLayer) {
+                    temp.scale(
+                        1f / (width / it.virtualWidth) * shrink,
+                        1f / (height / it.virtualHeight) * shrink
+                    )
                     it.propagateHit(temp.x, temp.y)
                 } else {
                     it.propagateHit(hx, hy)
@@ -188,11 +199,16 @@ open class CanvasLayerContainer : Container() {
         if (stretch) {
             temp.scale(1f / shrink.toFloat())
         }
+        temp.scale(1f / globalScaleX, 1f / globalScaleY)
         val prevCanvasX = event.canvasX
         val prevCanvasY = event.canvasY
         nodes.forEachReversed {
             // we set canvas coords every iteration just in case a child CanvasLayer changes it
             if (it is CanvasLayer) {
+                temp.scale(
+                    1f / (width / it.virtualWidth) * shrink,
+                    1f / (height / it.virtualHeight) * shrink
+                )
                 event.canvasX = temp.x
                 event.canvasY = temp.y
             } else {
@@ -215,11 +231,16 @@ open class CanvasLayerContainer : Container() {
         if (stretch) {
             temp.scale(1f / shrink.toFloat())
         }
+        temp.scale(1f / globalScaleX, 1f / globalScaleY)
         val prevCanvasX = event.canvasX
         val prevCanvasY = event.canvasY
         nodes.forEachReversed {
             // we set canvas coords every iteration just in case a child CanvasLayer changes it
             if (it is CanvasLayer) {
+                temp.scale(
+                    1f / (width / it.virtualWidth) * shrink,
+                    1f / (height / it.virtualHeight) * shrink
+                )
                 event.canvasX = temp.x
                 event.canvasY = temp.y
             } else {

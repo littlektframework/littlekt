@@ -12,8 +12,8 @@ import com.littlekt.util.datastructure.fastForEach
  * @param src the WGSL shader source code
  * @param layout a list of [BindGroupLayoutDescriptor] in order to create [BindGroupLayout]s for the
  *   [PipelineLayout]. The order should match the index of the [BindGroupLayout].
- * @param vertexEntryPoint the entry point for the Vertex shader
- * @param fragmentEntryPoint the entry point for the Fragment shader.
+ * @param vertexEntryPoint the entry point for the Vertex shader. Defaults to `vs_main`.
+ * @param fragmentEntryPoint the entry point for the Fragment shader. Defaults to `fs_main`
  * @author Colton Daily
  * @date 4/14/2024
  */

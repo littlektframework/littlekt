@@ -21,13 +21,18 @@ class Animation<KeyFrameType>(
     /** The amount of time spent displaying each frame. */
     val frameTimes: List<Duration>,
 ) {
+    /** The id of this animation. */
     val id = nextAnimId++
+
+    /** The amount of frames in the stack. Alias for `frames.size`. */
     val frameStackSize: Int
         get() = frames.size
 
+    /** The total frames to play. Alias for `frameIndices.size`. */
     val totalFrames: Int
         get() = frameIndices.size
 
+    /** The first frame in the stack. Alias for `frames[0]`. */
     val firstFrame: KeyFrameType
         get() = frames[0]
 
@@ -35,6 +40,10 @@ class Animation<KeyFrameType>(
     val duration =
         if (frameTimes.isEmpty()) Duration.ZERO else frameTimes.reduce { acc, ft -> acc + ft }
 
+    /**
+     * @param time the elapsed time of the animation.
+     * @return the frame that corresponds the time elapsed
+     */
     fun getFrame(time: Duration): KeyFrameType {
         var counter = time
         var index = 0
@@ -45,8 +54,16 @@ class Animation<KeyFrameType>(
         return getFrame(index)
     }
 
+    /**
+     * @param index the index of the frame.
+     * @return the frame that corresponds to index.
+     */
     fun getFrame(index: Int): KeyFrameType = frames[frameIndices[index umod frames.size]]
 
+    /**
+     * @param index the index of the frame.
+     * @return the frame time of the frame.
+     */
     fun getFrameTime(index: Int): Duration = frameTimes[frameIndices[index umod frames.size]]
 
     /**
@@ -61,9 +78,7 @@ class Animation<KeyFrameType>(
 
         other as Animation<*>
 
-        if (id != other.id) return false
-
-        return true
+        return id == other.id
     }
 
     override fun hashCode(): Int {
@@ -86,6 +101,18 @@ class AnimationBuilder<T>(private val frames: List<T>) {
     private val frameIndices = arrayListOf<Int>()
     private val frameTimes = arrayListOf<Duration>()
 
+    /**
+     * Add a list of frame indices based of the list of [frames] to be used in the animation.
+     *
+     * ```
+     * frames(indices = 2..5) // adds frames 2 through 5 once
+     * frames(indices = 2..5, repeats = 1) // adds frames 2 through 5 twice
+     * ```
+     *
+     * @param indices range of indices that correspond to the frame in [frames]
+     * @param repeats number of times this repeats
+     * @param frameTime time to display each frame
+     */
     fun frames(
         indices: IntRange = 0..frames.size,
         repeats: Int = 0,
@@ -97,9 +124,26 @@ class AnimationBuilder<T>(private val frames: List<T>) {
         }
     }
 
+    /**
+     * Add a single frame index based of the list of [frames] to be used in the animation.
+     *
+     * ```
+     * frames(index = 3) // adds frame 3 once
+     * frames(indices = 3, repeats = 1) // adds frame 3 twice
+     * ```
+     *
+     * @param index index that correspond to the frame in [frames]
+     * @param repeats number of times this repeats
+     * @param frameTime time to display each frame
+     */
     fun frames(index: Int = 0, repeats: Int = 0, frameTime: Duration = 100.milliseconds) =
         frames(index..index, repeats, frameTime)
 
+    /**
+     * Builds the complete [Animation].
+     *
+     * @return newly created [Animation].
+     */
     fun build(): Animation<T> = Animation(frames, frameIndices, frameTimes)
 }
 

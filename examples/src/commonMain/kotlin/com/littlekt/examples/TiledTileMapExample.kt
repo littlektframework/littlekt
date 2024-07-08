@@ -9,7 +9,6 @@ import com.littlekt.graphics.g2d.shape.ShapeRenderer
 import com.littlekt.graphics.g2d.use
 import com.littlekt.graphics.webgpu.*
 import com.littlekt.util.viewport.ExtendViewport
-import com.littlekt.util.viewport.setViewport
 
 /**
  * Load and render a Tiled map.
@@ -93,7 +92,6 @@ class TiledTileMapExample(context: Context) : ContextListener(context) {
                             )
                         )
                 )
-            renderPassEncoder.setViewport(viewport)
             camera.update()
 
             batch.use(renderPassEncoder, camera.viewProjection) {

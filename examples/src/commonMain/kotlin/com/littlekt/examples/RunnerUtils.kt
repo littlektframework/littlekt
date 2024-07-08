@@ -22,5 +22,7 @@ val availableExamples =
         "-font" to Pair("Font", ::FontExample),
         "-helloSceneGraph" to Pair("Hello Scene Graph", ::HelloSceneGraphExample),
         "-renderTarget" to Pair("Render Target", ::RenderTargetExample),
-        "-computeBoids" to Pair("Compute Boids", ::ComputeBoidsExample)
+        "-computeBoids" to Pair("Compute Boids", ::ComputeBoidsExample),
+        "-worldAndUiViewports" to Pair("Game World and UI Viewports", ::GameWorldAndUIViewports),
+        "-assetProvider" to Pair("Asset Provider", ::AssetProviderExample)
     )

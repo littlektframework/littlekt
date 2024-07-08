@@ -43,13 +43,13 @@ class MutableTextureAtlas(val context: Context, options: PackingOptions = Packin
     private data class Entry(val slice: TextureSlice, val name: String) :
         BinRect(0, 0, slice.width, slice.height)
 
-    val size
+    val size: Int
         get() = entries.size
 
-    val width
+    val width: Int
         get() = packer.width
 
-    val height
+    val height: Int
         get() = packer.height
 
     fun add(slice: TextureSlice, name: String = "slice$size"): MutableTextureAtlas {
@@ -103,6 +103,8 @@ class MutableTextureAtlas(val context: Context, options: PackingOptions = Packin
             pages += AtlasPage(meta, frames = frames)
             textures["texture_$index"] = PixmapTexture(context.graphics.device, format, pixmap)
         }
+        entries.clear()
+        packer.reset()
         return TextureAtlas(textures, AtlasInfo(AtlasPage.Meta(), pages))
     }
 }

@@ -7,7 +7,6 @@ import com.littlekt.graphics.g2d.SpriteBatch
 import com.littlekt.graphics.g2d.use
 import com.littlekt.graphics.webgpu.*
 import com.littlekt.util.viewport.ExtendViewport
-import com.littlekt.util.viewport.setViewport
 
 /**
  * Load and render an LDtk map.
@@ -93,7 +92,6 @@ class LDtkTileMapExample(context: Context) : ContextListener(context) {
                             )
                         )
                 )
-            renderPassEncoder.setViewport(viewport)
             camera.update()
 
             batch.use(renderPassEncoder, camera.viewProjection) {

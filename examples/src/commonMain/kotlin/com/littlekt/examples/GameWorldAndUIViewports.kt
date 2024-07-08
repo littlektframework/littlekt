@@ -2,26 +2,31 @@ package com.littlekt.examples
 
 import com.littlekt.Context
 import com.littlekt.ContextListener
-import com.littlekt.file.vfs.readTiledMap
-import com.littlekt.graphics.Color
-import com.littlekt.graphics.g2d.SpriteCache
+import com.littlekt.file.vfs.readLDtkMapLoader
+import com.littlekt.graph.node.ui.centerContainer
+import com.littlekt.graph.node.ui.label
+import com.littlekt.graph.sceneGraph
+import com.littlekt.graphics.g2d.SpriteBatch
 import com.littlekt.graphics.webgpu.*
 import com.littlekt.util.viewport.ExtendViewport
 
 /**
- * Load and render a Tiled map using a [SpriteCache].
+ * An example using a render pass for the game world and a render pass for the UI.
  *
  * @author Colton Daily
- * @date 5/1/2024
+ * @date 5/2/2024
  */
-class TiledTileMapCacheExample(context: Context) : ContextListener(context) {
+class GameWorldAndUIViewports(context: Context) : ContextListener(context) {
 
     override suspend fun Context.start() {
         addStatsHandler()
         addCloseOnEsc()
         val device = graphics.device
-
-        val map = resourcesVfs["tiled/ortho-tiled-world.tmj"].readTiledMap()
+        val mapLoader = resourcesVfs["ldtk/world-1.5.3.ldtk"].readLDtkMapLoader()
+        // we are only loading the first level
+        // we can load additional levels by doing:
+        // mapLoader.loadLevel(levelIdx)
+        val world = mapLoader.loadMap(false, 0)
         val surfaceCapabilities = graphics.surfaceCapabilities
         val preferredFormat = graphics.preferredFormat
 
@@ -32,17 +37,28 @@ class TiledTileMapCacheExample(context: Context) : ContextListener(context) {
             surfaceCapabilities.alphaModes[0]
         )
 
-        val cache = SpriteCache(device, preferredFormat)
-        map.addToCache(cache, 0f, 0f, 1 / 8f)
-        val viewport = ExtendViewport(30, 16)
-        val camera = viewport.camera
-        var bgColor = map.backgroundColor ?: Color.DARK_GRAY
-        if (preferredFormat.srgb) {
-            bgColor = bgColor.toLinear()
-        }
+        val batch = SpriteBatch(device, graphics, preferredFormat, size = 400)
+        val worldViewport = ExtendViewport(270, 135)
+        val worldCamera = worldViewport.camera
+        addWASDMovement(worldCamera, 0.05f)
+        val bgColor =
+            if (preferredFormat.srgb) world.defaultLevelBackgroundColor.toLinear()
+            else world.defaultLevelBackgroundColor
+        val graph =
+            sceneGraph(this, viewport = ExtendViewport(960, 540), batch = batch) {
+                    centerContainer {
+                        anchorRight = 1f
+                        anchorTop = 1f
+                        label { text = "This is my UI!" }
+                    }
+                }
+                .also { it.initialize() }
+
+        graph.requestShowDebugInfo = true
 
         onResize { width, height ->
-            viewport.update(width, height)
+            graph.resize(width, height)
+            worldViewport.update(width, height)
             graphics.configureSurface(
                 TextureUsage.RENDER_ATTACHMENT,
                 preferredFormat,
@@ -51,8 +67,7 @@ class TiledTileMapCacheExample(context: Context) : ContextListener(context) {
             )
         }
 
-        addWASDMovement(camera, 0.05f)
-        onUpdate {
+        onUpdate { dt ->
             val surfaceTexture = graphics.surface.getCurrentTexture()
             when (val status = surfaceTexture.status) {
                 TextureStatus.SUCCESS -> {
@@ -75,8 +90,9 @@ class TiledTileMapCacheExample(context: Context) : ContextListener(context) {
             val swapChainTexture = checkNotNull(surfaceTexture.texture)
             val frame = swapChainTexture.createView()
 
-            val commandEncoder = device.createCommandEncoder()
-            val renderPassEncoder =
+            val commandEncoder = device.createCommandEncoder("command encoder")
+
+            val worldRenderPass =
                 commandEncoder.beginRenderPass(
                     desc =
                         RenderPassDescriptor(
@@ -90,10 +106,28 @@ class TiledTileMapCacheExample(context: Context) : ContextListener(context) {
                             )
                         )
                 )
-            camera.update()
-            map.updateCachedAnimationTiles(cache)
-            cache.render(renderPassEncoder, camera.viewProjection)
-            renderPassEncoder.end()
+            worldCamera.update()
+            batch.begin(worldCamera.viewProjection)
+            world.render(batch, worldCamera, scale = 1f)
+            batch.flush(worldRenderPass)
+            worldRenderPass.end()
+            worldRenderPass.release()
+
+            val uiRenderPassDescriptor =
+                RenderPassDescriptor(
+                    listOf(
+                        RenderPassColorAttachmentDescriptor(
+                            view = frame,
+                            loadOp = LoadOp.LOAD,
+                            storeOp = StoreOp.STORE
+                        )
+                    ),
+                    label = "Init render pass"
+                )
+
+            graph.update(dt)
+            graph.render(commandEncoder, uiRenderPassDescriptor)
+            batch.end()
 
             val commandBuffer = commandEncoder.finish()
 
@@ -101,15 +135,11 @@ class TiledTileMapCacheExample(context: Context) : ContextListener(context) {
             graphics.surface.present()
 
             commandBuffer.release()
-            renderPassEncoder.release()
             commandEncoder.release()
             frame.release()
             swapChainTexture.release()
         }
 
-        onRelease {
-            cache.release()
-            map.release()
-        }
+        onRelease { batch.release() }
     }
 }

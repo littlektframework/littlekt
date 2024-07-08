@@ -6,7 +6,6 @@ import com.littlekt.file.vfs.readLDtkMapLoader
 import com.littlekt.graphics.g2d.SpriteCache
 import com.littlekt.graphics.webgpu.*
 import com.littlekt.util.viewport.ExtendViewport
-import com.littlekt.util.viewport.setViewport
 
 /**
  * Load and render an entire world of LDtk.
@@ -97,7 +96,6 @@ class LDtkTileMapCacheExample(context: Context) : ContextListener(context) {
                         )
                 )
 
-            renderPassEncoder.setViewport(viewport)
             camera.update()
 
             cache.render(renderPassEncoder, camera.viewProjection)

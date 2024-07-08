@@ -1,27 +1,36 @@
 package com.littlekt.examples
 
+import com.littlekt.AssetProvider
 import com.littlekt.Context
 import com.littlekt.ContextListener
-import com.littlekt.file.vfs.readTiledMap
+import com.littlekt.file.ldtk.LDtkMapLoader
 import com.littlekt.graphics.Color
-import com.littlekt.graphics.g2d.SpriteCache
+import com.littlekt.graphics.HAlign
+import com.littlekt.graphics.g2d.SpriteBatch
+import com.littlekt.graphics.g2d.font.BitmapFont
+import com.littlekt.graphics.g2d.tilemap.ldtk.LDtkWorld
+import com.littlekt.graphics.g2d.use
 import com.littlekt.graphics.webgpu.*
+import com.littlekt.resources.Fonts
 import com.littlekt.util.viewport.ExtendViewport
 
 /**
- * Load and render a Tiled map using a [SpriteCache].
- *
  * @author Colton Daily
- * @date 5/1/2024
+ * @date 7/7/2024
  */
-class TiledTileMapCacheExample(context: Context) : ContextListener(context) {
-
+class AssetProviderExample(context: Context) : ContextListener(context) {
     override suspend fun Context.start() {
         addStatsHandler()
         addCloseOnEsc()
+        val assets = AssetProvider(this)
+
+        val pixelFont: BitmapFont by assets.load(resourcesVfs["m5x7_32.fnt"])
+        val arialFont: BitmapFont by assets.load(resourcesVfs["arial_32.fnt"])
+        val mapLoader: LDtkMapLoader by assets.load(resourcesVfs["ldtk/world-1.5.3.ldtk"])
+        val world: LDtkWorld by assets.prepare { mapLoader.loadMap(true) }
+
         val device = graphics.device
 
-        val map = resourcesVfs["tiled/ortho-tiled-world.tmj"].readTiledMap()
         val surfaceCapabilities = graphics.surfaceCapabilities
         val preferredFormat = graphics.preferredFormat
 
@@ -32,14 +41,9 @@ class TiledTileMapCacheExample(context: Context) : ContextListener(context) {
             surfaceCapabilities.alphaModes[0]
         )
 
-        val cache = SpriteCache(device, preferredFormat)
-        map.addToCache(cache, 0f, 0f, 1 / 8f)
-        val viewport = ExtendViewport(30, 16)
+        val batch = SpriteBatch(device, graphics, preferredFormat)
+        val viewport = ExtendViewport(960, 540)
         val camera = viewport.camera
-        var bgColor = map.backgroundColor ?: Color.DARK_GRAY
-        if (preferredFormat.srgb) {
-            bgColor = bgColor.toLinear()
-        }
 
         onResize { width, height ->
             viewport.update(width, height)
@@ -52,7 +56,13 @@ class TiledTileMapCacheExample(context: Context) : ContextListener(context) {
         }
 
         addWASDMovement(camera, 0.05f)
+
         onUpdate {
+            if (!assets.fullyLoaded) {
+                assets.update()
+                return@onUpdate
+            }
+
             val surfaceTexture = graphics.surface.getCurrentTexture()
             when (val status = surfaceTexture.status) {
                 TextureStatus.SUCCESS -> {
@@ -85,14 +95,22 @@ class TiledTileMapCacheExample(context: Context) : ContextListener(context) {
                                     view = frame,
                                     loadOp = LoadOp.CLEAR,
                                     storeOp = StoreOp.STORE,
-                                    clearColor = bgColor
+                                    clearColor =
+                                        if (preferredFormat.srgb) Color.DARK_GRAY.toLinear()
+                                        else Color.DARK_GRAY
                                 )
                             )
                         )
                 )
             camera.update()
-            map.updateCachedAnimationTiles(cache)
-            cache.render(renderPassEncoder, camera.viewProjection)
+
+            batch.use(renderPassEncoder, camera.viewProjection) {
+                world.levels[0].render(it, camera, scale = 1f)
+                pixelFont.draw(it, "Hello\nLittleKt!", 0f, 0f, align = HAlign.CENTER)
+                arialFont.draw(it, "Hello\nLittleKt!", -300f, 0f)
+                Fonts.default.draw(it, "Hello\nLittleKt!", 150f, 0f, align = HAlign.RIGHT)
+            }
+
             renderPassEncoder.end()
 
             val commandBuffer = commandEncoder.finish()
@@ -107,9 +125,6 @@ class TiledTileMapCacheExample(context: Context) : ContextListener(context) {
             swapChainTexture.release()
         }
 
-        onRelease {
-            cache.release()
-            map.release()
-        }
+        onRelease { batch.release() }
     }
 }

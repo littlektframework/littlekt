@@ -43,6 +43,7 @@ open class AnimationPlayer<KeyFrameType> {
             onFrameChange?.invoke(field)
         }
 
+    /** The current key frame of [currentAnimation], if available. */
     val currentKeyFrame: KeyFrameType?
         get() = currentAnimation?.getFrame(currentFrameIdx)
 
@@ -95,9 +96,6 @@ open class AnimationPlayer<KeyFrameType> {
 
     private var lastAnimation: Animation<KeyFrameType>? = null
     private var lastAnimationType: AnimationType? = null
-
-    var overlapPlaying: Boolean = false
-        private set
 
     private val tempFrames = mutableListOf<KeyFrameType>()
     private val tempIndices = mutableListOf<Int>()
@@ -242,6 +240,7 @@ open class AnimationPlayer<KeyFrameType> {
             nextFrame(dt)
         }
     }
+
     /**
      * Starts any currently stopped animation from the beginning. This only does something when an
      * animation is stopped with [stop].
@@ -315,8 +314,13 @@ open class AnimationPlayer<KeyFrameType> {
     }
 
     /**
-     * Priority is represented by the deepest. The deepest has top priority while the shallowest has
-     * lowest.
+     * Add a new animation state.
+     *
+     * @param anim the animation to register
+     * @param priority the priority of the animation, relative to other states. Priority is
+     *   represented by the deepest. The deepest has top priority while the shallowest has lowest.
+     * @param loop if `true`, the animation will loop
+     * @param reason the condition that this state requires to meet in order to play the animation.
      */
     fun registerState(
         anim: Animation<KeyFrameType>,
@@ -329,10 +333,12 @@ open class AnimationPlayer<KeyFrameType> {
         states.sortByDescending { priority }
     }
 
+    /** Remove the specified animation from current list of states. */
     fun removeState(anim: Animation<KeyFrameType>) {
         states.find { it.anim == anim }?.also { states.remove(it) }
     }
 
+    /** Clears the state list. */
     fun removeAllStates() {
         states.clear()
     }

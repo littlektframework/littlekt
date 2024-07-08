@@ -26,7 +26,7 @@ object EngineStats {
     var totalBufferSize = 0L
         private set
 
-    /** The total size of all buffers */
+    /** The total size of all textures */
     var totalTextureSize = 0L
         private set
 
@@ -34,7 +34,7 @@ object EngineStats {
     var triangles = 0
         internal set
 
-    /** The total OpenGL draw calls invoked. */
+    /** The total draw calls invoked. */
     var drawCalls = 0
         internal set
 

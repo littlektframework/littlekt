@@ -173,7 +173,12 @@ open class SceneGraph<InputType>(
         createDefaultSceneGraphController(context.input, uiInputSignals),
     whitePixel: TextureSlice = Textures.white,
 ) : InputMapProcessor<InputType>, Releasable {
+
     private var ownsBatch = true
+    /**
+     * The [Batch] being used by the scene graph. This batch may be managed by the scene graph or
+     * could be optional passed in via the constructor.
+     */
     val batch: Batch =
         batch?.also { ownsBatch = false }
             ?: SpriteBatch(
@@ -181,17 +186,18 @@ open class SceneGraph<InputType>(
                 context.graphics,
                 context.graphics.preferredFormat
             )
+
+    /** The [ShapeRenderer] managed by the scene graph. This uses the [batch] for drawing. */
     val shapeRenderer: ShapeRenderer = ShapeRenderer(this.batch, whitePixel)
 
     /**
-     * The root [ViewportCanvasLayer] that is used for rendering all the children in the graph. Do
-     * not add children directly to this node. Instead, add children to the [root] node.
+     * The root [CanvasLayer] that is used for rendering all the children in the graph. Do not add
+     * children directly to this node. Instead, add children to the [root] node.
      */
     val sceneCanvas: CanvasLayer by lazy {
         CanvasLayer().apply {
             name = "Scene Viewport"
             this.viewport = viewport
-            spriteShader = this@SceneGraph.batch.defaultShader
             resizeAutomatically = false
         }
     }
@@ -304,6 +310,7 @@ open class SceneGraph<InputType>(
     private var initialized = false
 
     private val unhandledInputQueue = ArrayDeque<InputEvent<InputType>>(20)
+    private var dirty = true
 
     /**
      * Resizes the internal graph's [OrthographicCamera] and [CanvasLayer].
@@ -312,6 +319,7 @@ open class SceneGraph<InputType>(
      *   viewport
      */
     open fun resize(width: Int, height: Int, centerCamera: Boolean = false) {
+        dirty = true
         sceneCanvas.propagateResize(width, height, centerCamera)
     }
 
@@ -1078,6 +1086,7 @@ open class SceneGraph<InputType>(
         if (ownsBatch) {
             batch.release()
         }
+
         controller.removeInputMapProcessor(this)
         context.input.removeInputProcessor(this)
     }

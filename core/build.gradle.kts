@@ -93,8 +93,6 @@ kotlin {
 
         jvmAndroidMain.dependsOn(commonMain)
         jvmMain.dependsOn(jvmAndroidMain)
-        jvmTest.dependsOn(commonTest)
-        jsTest.dependsOn(commonTest)
 
         all {
             languageSettings.apply {

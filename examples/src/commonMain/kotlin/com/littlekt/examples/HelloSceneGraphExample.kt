@@ -11,13 +11,12 @@ import com.littlekt.graph.sceneGraph
 import com.littlekt.graphics.Color
 import com.littlekt.graphics.HAlign
 import com.littlekt.graphics.VAlign
-import com.littlekt.graphics.g2d.SpriteBatch
-import com.littlekt.graphics.g2d.use
 import com.littlekt.graphics.webgpu.*
 import com.littlekt.input.Key
 import com.littlekt.math.geom.Angle
 import com.littlekt.math.geom.degrees
 import com.littlekt.math.geom.radians
+import com.littlekt.util.viewport.ExtendViewport
 
 /**
  * An example using a [sceneGraph]
@@ -43,9 +42,8 @@ class HelloSceneGraphExample(context: Context) : ContextListener(context) {
             surfaceCapabilities.alphaModes[0]
         )
 
-        val batch = SpriteBatch(device, graphics, preferredFormat)
         val graph =
-            sceneGraph(this, batch = batch) {
+            sceneGraph(this, ExtendViewport(960, 540)) {
                     canvasLayerContainer {
                         stretch = true
                         shrink = 2
@@ -62,7 +60,6 @@ class HelloSceneGraphExample(context: Context) : ContextListener(context) {
                                     }
                                 }
                             }
-                            //       button { text = "test" }
                             node2d {
                                 rotation = 45.degrees
                                 onReady += { println("$name: $canvas") }
@@ -177,10 +174,8 @@ class HelloSceneGraphExample(context: Context) : ContextListener(context) {
                     ),
                     label = "Init render pass"
                 )
-            batch.use {
-                graph.update(dt)
-                graph.render(commandEncoder, renderPassDescriptor)
-            }
+            graph.update(dt)
+            graph.render(commandEncoder, renderPassDescriptor)
 
             val commandBuffer = commandEncoder.finish()
 
@@ -193,6 +188,6 @@ class HelloSceneGraphExample(context: Context) : ContextListener(context) {
             swapChainTexture.release()
         }
 
-        onRelease { batch.release() }
+        onRelease { graph.release() }
     }
 }
