@@ -14,11 +14,17 @@ import com.littlekt.util.align
  * @param src the WGSL shader source code
  * @param layout a list of [BindGroupLayoutDescriptor] in order to create [BindGroupLayout]s for the
  *   [PipelineLayout]. The order should match the index of the [BindGroupLayout].
+ * @param cameraDynamicSize the size in which the underlying [cameraUniformBuffer] should be
+ *   multiplied by to handle dynamic camera uniform values.
  * @author Colton Daily
  * @date 4/14/2024
  */
-abstract class SpriteShader(device: Device, src: String, layout: List<BindGroupLayoutDescriptor>) :
-    Shader(device, src, layout) {
+abstract class SpriteShader(
+    device: Device,
+    src: String,
+    layout: List<BindGroupLayoutDescriptor>,
+    cameraDynamicSize: Int = 5
+) : Shader(device, src, layout) {
 
     private val camFloatBuffer = FloatBuffer(16)
 
@@ -32,7 +38,9 @@ abstract class SpriteShader(device: Device, src: String, layout: List<BindGroupL
             device.createBuffer(
                 BufferDescriptor(
                     "viewProj",
-                    (Float.SIZE_BYTES * 16).align(256).toLong() * 5,
+                    (Float.SIZE_BYTES * 16)
+                        .align(device.limits.minUniformBufferOffsetAlignment)
+                        .toLong() * cameraDynamicSize,
                     BufferUsage.UNIFORM or BufferUsage.COPY_DST,
                     true
                 )
@@ -47,7 +55,10 @@ abstract class SpriteShader(device: Device, src: String, layout: List<BindGroupL
     protected val cameraUniformBufferBinding =
         BufferBinding(
             cameraUniformBuffer,
-            size = (Float.SIZE_BYTES * 16).align(256).toLong(),
+            size =
+                (Float.SIZE_BYTES * 16)
+                    .align(device.limits.minUniformBufferOffsetAlignment)
+                    .toLong(),
         )
 
     private var lastDynamicOffset: Long = -1
@@ -105,7 +116,7 @@ abstract class SpriteShader(device: Device, src: String, layout: List<BindGroupL
         device.queue.writeBuffer(
             cameraUniformBuffer,
             viewProjection.toBuffer(camFloatBuffer),
-            offset = dynamicOffset * 256,
+            offset = dynamicOffset * device.limits.minStorageBufferOffsetAlignment,
         )
 
     override fun release() {

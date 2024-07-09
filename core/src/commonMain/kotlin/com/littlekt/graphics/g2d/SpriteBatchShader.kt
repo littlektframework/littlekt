@@ -65,7 +65,10 @@ class SpriteBatchShader(
                             ShaderStage.VERTEX,
                             BufferBindingLayout(
                                 hasDynamicOffset = true,
-                                minBindingSize = (Float.SIZE_BYTES * 16).align(256).toLong()
+                                minBindingSize =
+                                    (Float.SIZE_BYTES * 16)
+                                        .align(device.limits.minUniformBufferOffsetAlignment)
+                                        .toLong()
                             )
                         )
                     )

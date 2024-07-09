@@ -593,7 +593,8 @@ class SpriteBatch(
             }
             if (lastBindGroupsSet != bindGroups || lastShader != shader) {
                 lastBindGroupsSet = bindGroups
-                lastDynamicMeshOffsets[0] = lastDynamicOffsetIndex * 256
+                lastDynamicMeshOffsets[0] =
+                    lastDynamicOffsetIndex * device.limits.minUniformBufferOffsetAlignment
                 shader.setBindGroups(renderPassEncoder, bindGroups, lastDynamicMeshOffsets)
                 lastShader = shader
             }
