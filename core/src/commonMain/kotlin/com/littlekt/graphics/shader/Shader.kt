@@ -87,8 +87,13 @@ open class Shader(
      * @param encoder the [RenderPassEncoder] to encode draw commands with
      * @param bindGroups the list of bind groups to bind. This assumes the bind list of bind groups
      *   were created with [createBindGroups] and are in the correct order.
+     * @param dynamicOffsets the list of offsets, for any dynamic bind groups, if applicable
      */
-    open fun setBindGroups(encoder: RenderPassEncoder, bindGroups: List<BindGroup>) = Unit
+    open fun setBindGroups(
+        encoder: RenderPassEncoder,
+        bindGroups: List<BindGroup>,
+        dynamicOffsets: List<Long> = emptyList()
+    ) = Unit
 
     override fun release() {
         shaderModule.release()
