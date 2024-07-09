@@ -587,66 +587,66 @@ actual class Adapter(var segment: MemorySegment) : Releasable {
                 descriptor.requiredLimits?.let { requiredLimits ->
                     val nativeLimits = WGPULimits.allocate(scope)
                     requiredLimits.maxTextureDimension1D?.let {
-                        WGPULimits.maxTextureDimension1D(nativeLimits)
+                        WGPULimits.maxTextureDimension1D(nativeLimits, it)
                     }
                     requiredLimits.maxTextureDimension2D?.let {
-                        WGPULimits.maxTextureDimension2D(nativeLimits)
+                        WGPULimits.maxTextureDimension2D(nativeLimits, it)
                     }
                     requiredLimits.maxTextureDimension3D?.let {
-                        WGPULimits.maxTextureDimension3D(nativeLimits)
+                        WGPULimits.maxTextureDimension3D(nativeLimits, it)
                     }
                     requiredLimits.maxTextureArrayLayers?.let {
-                        WGPULimits.maxTextureArrayLayers(nativeLimits)
+                        WGPULimits.maxTextureArrayLayers(nativeLimits, it)
                     }
-                    requiredLimits.maxBindGroups?.let { WGPULimits.maxBindGroups(nativeLimits) }
+                    requiredLimits.maxBindGroups?.let { WGPULimits.maxBindGroups(nativeLimits, it) }
                     requiredLimits.maxBindGroupsPlusVertexBuffers?.let {
-                        WGPULimits.maxBindGroupsPlusVertexBuffers(nativeLimits)
+                        WGPULimits.maxBindGroupsPlusVertexBuffers(nativeLimits, it)
                     }
                     requiredLimits.maxBindingsPerBindGroup?.let {
-                        WGPULimits.maxBindingsPerBindGroup(nativeLimits)
+                        WGPULimits.maxBindingsPerBindGroup(nativeLimits, it)
                     }
                     requiredLimits.maxDynamicUniformBuffersPerPipelineLayout?.let {
-                        WGPULimits.maxDynamicUniformBuffersPerPipelineLayout(nativeLimits)
+                        WGPULimits.maxDynamicUniformBuffersPerPipelineLayout(nativeLimits, it)
                     }
                     requiredLimits.maxDynamicStorageBuffersPerPipelineLayout?.let {
-                        WGPULimits.maxDynamicStorageBuffersPerPipelineLayout(nativeLimits)
+                        WGPULimits.maxDynamicStorageBuffersPerPipelineLayout(nativeLimits, it)
                     }
                     requiredLimits.maxSampledTexturesPerShaderStage?.let {
-                        WGPULimits.maxSampledTexturesPerShaderStage(nativeLimits)
+                        WGPULimits.maxSampledTexturesPerShaderStage(nativeLimits, it)
                     }
                     requiredLimits.maxSamplersPerShaderStage?.let {
-                        WGPULimits.maxSamplersPerShaderStage(nativeLimits)
+                        WGPULimits.maxSamplersPerShaderStage(nativeLimits, it)
                     }
                     requiredLimits.maxStorageBuffersPerShaderStage?.let {
-                        WGPULimits.maxStorageBuffersPerShaderStage(nativeLimits)
+                        WGPULimits.maxStorageBuffersPerShaderStage(nativeLimits, it)
                     }
                     requiredLimits.maxStorageTexturesPerShaderStage?.let {
-                        WGPULimits.maxStorageTexturesPerShaderStage(nativeLimits)
+                        WGPULimits.maxStorageTexturesPerShaderStage(nativeLimits, it)
                     }
                     requiredLimits.maxUniformBuffersPerShaderStage?.let {
-                        WGPULimits.maxUniformBuffersPerShaderStage(nativeLimits)
+                        WGPULimits.maxUniformBuffersPerShaderStage(nativeLimits, it)
                     }
                     requiredLimits.maxUniformBufferBindingSize?.let {
-                        WGPULimits.maxUniformBufferBindingSize(nativeLimits)
+                        WGPULimits.maxUniformBufferBindingSize(nativeLimits, it)
                     }
                     requiredLimits.maxStorageBufferBindingSize?.let {
-                        WGPULimits.maxStorageBufferBindingSize(nativeLimits)
+                        WGPULimits.maxStorageBufferBindingSize(nativeLimits, it)
                     }
                     requiredLimits.minUniformBufferOffsetAlignment?.let {
-                        WGPULimits.minUniformBufferOffsetAlignment(nativeLimits)
+                        WGPULimits.minUniformBufferOffsetAlignment(nativeLimits, it)
                     }
                     requiredLimits.minStorageBufferOffsetAlignment?.let {
-                        WGPULimits.minStorageBufferOffsetAlignment(nativeLimits)
+                        WGPULimits.minStorageBufferOffsetAlignment(nativeLimits, it)
                     }
                     requiredLimits.maxVertexBuffers?.let {
-                        WGPULimits.maxVertexBuffers(nativeLimits)
+                        WGPULimits.maxVertexBuffers(nativeLimits, it)
                     }
-                    requiredLimits.maxBufferSize?.let { WGPULimits.maxBufferSize(nativeLimits) }
+                    requiredLimits.maxBufferSize?.let { WGPULimits.maxBufferSize(nativeLimits, it) }
                     requiredLimits.maxVertexAttributes?.let {
-                        WGPULimits.maxVertexAttributes(nativeLimits)
+                        WGPULimits.maxVertexAttributes(nativeLimits, it)
                     }
                     requiredLimits.maxVertexBufferArrayStride?.let {
-                        WGPULimits.maxVertexBufferArrayStride(nativeLimits)
+                        WGPULimits.maxVertexBufferArrayStride(nativeLimits, it)
                     }
                     val nativeRequiredLimits = WGPURequiredLimits.allocate(scope)
                     WGPURequiredLimits.limits(nativeRequiredLimits, nativeLimits)
