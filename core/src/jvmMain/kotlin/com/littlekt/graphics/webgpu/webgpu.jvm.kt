@@ -31,8 +31,9 @@ actual class Device(val segment: MemorySegment) : Releasable {
 
     actual val limits: Limits by lazy {
         Arena.ofConfined().use { scope ->
-            val desc = WGPULimits.allocate(scope)
-            wgpuDeviceGetLimits(segment, desc)
+            val supported = WGPUSupportedLimits.allocate(scope)
+            wgpuDeviceGetLimits(segment, supported)
+            val desc = WGPUSupportedLimits.limits(supported)
             Limits(
                 maxTextureDimension1D = WGPULimits.maxTextureDimension1D(desc),
                 maxTextureDimension2D = WGPULimits.maxTextureDimension2D(desc),
@@ -504,8 +505,10 @@ actual class Adapter(var segment: MemorySegment) : Releasable {
      */
     actual val limits: Limits by lazy {
         Arena.ofConfined().use { scope ->
-            val desc = WGPULimits.allocate(scope)
-            wgpuAdapterGetLimits(segment, desc)
+            val supported = WGPUSupportedLimits.allocate(scope)
+            wgpuAdapterGetLimits(segment, supported)
+            val desc = WGPUSupportedLimits.limits(supported)
+
             Limits(
                 maxTextureDimension1D = WGPULimits.maxTextureDimension1D(desc),
                 maxTextureDimension2D = WGPULimits.maxTextureDimension2D(desc),
