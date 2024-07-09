@@ -1,15 +1,19 @@
 package com.littlekt.util
 
-/** Align this value with the given [alignment] and return the new value. */
+/**
+ * Align this value with the given [alignment] by rounding this value up to the next multiplier of
+ * [alignment] and return the new value.
+ */
 fun Int.align(alignment: Int): Int {
-    var result = this
-    while (result % alignment != 0) result++
-    return result
+    val divideAndCeil = this / alignment + if (this % alignment == 0) 0 else 1
+    return this * divideAndCeil
 }
 
-/** Align this value with the given [alignment] and return the new value. */
+/**
+ * Align this value with the given [alignment] by rounding this value up to the next multiplier of
+ * [alignment] and return the new value.
+ */
 fun Long.align(alignment: Long): Long {
-    var result = this
-    while (result % alignment != 0L) result++
-    return result
+    val divideAndCeil = this / alignment + if (this % alignment == 0L) 0L else 1L
+    return this * divideAndCeil
 }

@@ -40,7 +40,7 @@ class SpriteBatchMultiPassExample(context: Context) : ContextListener(context) {
         )
 
         val batch = SpriteBatch(device, graphics, preferredFormat)
-        val viewport = ExtendViewport(480, 270)
+        val viewport = ExtendViewport(270, 135)
         val camera = viewport.camera
         val uiViewport = ExtendViewport(960, 540)
         val uiCam = uiViewport.camera

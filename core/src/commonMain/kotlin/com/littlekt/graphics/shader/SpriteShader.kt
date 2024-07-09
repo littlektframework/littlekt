@@ -61,8 +61,6 @@ abstract class SpriteShader(
                     .toLong(),
         )
 
-    private var lastDynamicOffset: Long = -1
-
     /** @see [createBindGroupsWithTexture] to override. */
     final override fun MutableList<BindGroup>.createBindGroupsInternal(data: Map<String, Any>) {
         val texture =
@@ -101,10 +99,7 @@ abstract class SpriteShader(
                     "${this::class.simpleName} requires data[\"${VIEW_PROJECTION}\", mat4] to be set. No matrix was found! Ensure the name is correct by using SpriteShader.VIEW_PROJECTION."
                 )
         val dynamicOffset = data[CAMERA_UNIFORM_DYNAMIC_OFFSET] as? Long ?: 0L
-        if (lastDynamicOffset != dynamicOffset) {
-            lastDynamicOffset = dynamicOffset
-            updateCameraUniform(viewProjectionMatrix, dynamicOffset)
-        }
+        updateCameraUniform(viewProjectionMatrix, dynamicOffset)
     }
 
     /**

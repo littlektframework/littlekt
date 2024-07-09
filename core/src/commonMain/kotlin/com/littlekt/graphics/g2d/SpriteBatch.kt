@@ -18,7 +18,7 @@ import com.littlekt.math.geom.normalized
 import com.littlekt.math.geom.sine
 import com.littlekt.math.isFuzzyZero
 import com.littlekt.util.LazyMat4
-import com.littlekt.util.datastructure.fastForEachWithIndex
+import com.littlekt.util.datastructure.fastForEach
 import com.littlekt.util.datastructure.pool
 
 /**
@@ -572,7 +572,7 @@ class SpriteBatch(
         var lastCombinedMatrixSet: Mat4? = null
         var lastBindGroupsSet: List<BindGroup>? = null
         var lastShader: Shader? = null
-        drawCalls.fastForEachWithIndex { index, drawCall ->
+        drawCalls.fastForEach { drawCall ->
             val shader = drawCall.renderInfo.shader
             val renderPipeline =
                 renderPipelineByBlendState.getOrPut(drawCall.renderInfo) {
