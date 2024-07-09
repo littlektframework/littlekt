@@ -94,7 +94,11 @@ class RenderSpriteBatchAndMultipleShadersExample(context: Context) : ContextList
             )
         }
 
-        override fun setBindGroups(encoder: RenderPassEncoder, bindGroups: List<BindGroup>) {
+        override fun setBindGroups(
+            encoder: RenderPassEncoder,
+            bindGroups: List<BindGroup>,
+            dynamicOffsets: List<Long>
+        ) {
             encoder.setBindGroup(0, bindGroups[0])
             encoder.setBindGroup(1, bindGroups[1])
         }

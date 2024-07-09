@@ -7,6 +7,7 @@ import com.littlekt.wgpu.WGPU.*
 import java.lang.foreign.Arena
 import java.lang.foreign.MemorySegment
 import java.lang.foreign.SegmentAllocator
+import java.lang.foreign.ValueLayout
 
 actual class RenderPipeline(val segment: MemorySegment) : Releasable {
 
@@ -283,8 +284,22 @@ actual class RenderPassEncoder(val segment: MemorySegment, actual val label: Str
         )
     }
 
-    actual fun setBindGroup(index: Int, bindGroup: BindGroup) {
-        wgpuRenderPassEncoderSetBindGroup(segment, index, bindGroup.segment, 0, WGPU_NULL)
+    actual fun setBindGroup(index: Int, bindGroup: BindGroup, dynamicOffsets: List<Long>) {
+        if (dynamicOffsets.isNotEmpty()) {
+            Arena.ofConfined().use { scope ->
+                val offsets =
+                    scope.allocateArray(ValueLayout.JAVA_LONG, *dynamicOffsets.toLongArray())
+                wgpuRenderPassEncoderSetBindGroup(
+                    segment,
+                    index,
+                    bindGroup.segment,
+                    dynamicOffsets.size.toLong(),
+                    offsets
+                )
+            }
+        } else {
+            wgpuRenderPassEncoderSetBindGroup(segment, index, bindGroup.segment, 0, WGPU_NULL)
+        }
     }
 
     actual override fun release() {

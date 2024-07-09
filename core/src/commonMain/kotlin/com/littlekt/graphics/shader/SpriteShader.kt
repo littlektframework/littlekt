@@ -4,6 +4,7 @@ import com.littlekt.file.FloatBuffer
 import com.littlekt.graphics.Texture
 import com.littlekt.graphics.webgpu.*
 import com.littlekt.math.Mat4
+import com.littlekt.util.align
 
 /**
  * A base shader class to handle creating a camera uniform [GPUBuffer] and expecting a texture to
@@ -26,15 +27,30 @@ abstract class SpriteShader(device: Device, src: String, layout: List<BindGroupL
      *
      * @see updateCameraUniform
      */
-    protected val cameraUniformBuffer =
-        device.createGPUFloatBuffer(
-            "viewProj",
-            camFloatBuffer.toArray(),
-            BufferUsage.UNIFORM or BufferUsage.COPY_DST
-        )
+    protected val cameraUniformBuffer = run {
+        val buffer =
+            device.createBuffer(
+                BufferDescriptor(
+                    "viewProj",
+                    (Float.SIZE_BYTES * 16).align(256).toLong() * 5,
+                    BufferUsage.UNIFORM or BufferUsage.COPY_DST,
+                    true
+                )
+            )
+        buffer.getMappedRange().putFloat(camFloatBuffer.toArray())
+        buffer.unmap()
+
+        buffer
+    }
 
     /** The [BufferBinding] for [cameraUniformBufferBinding]. */
-    protected val cameraUniformBufferBinding = BufferBinding(cameraUniformBuffer)
+    protected val cameraUniformBufferBinding =
+        BufferBinding(
+            cameraUniformBuffer,
+            size = (Float.SIZE_BYTES * 16).align(256).toLong(),
+        )
+
+    private var lastDynamicOffset: Long = -1
 
     /** @see [createBindGroupsWithTexture] to override. */
     final override fun MutableList<BindGroup>.createBindGroupsInternal(data: Map<String, Any>) {
@@ -71,17 +87,26 @@ abstract class SpriteShader(device: Device, src: String, layout: List<BindGroupL
         val viewProjectionMatrix =
             data[VIEW_PROJECTION] as? Mat4
                 ?: error(
-                    "${this::class.simpleName} requires data[\"viewProjection\", mat4] to be set. No matrix was found! Ensure the name is correct by using SpriteShader.VIEW_PROJECTION."
+                    "${this::class.simpleName} requires data[\"${VIEW_PROJECTION}\", mat4] to be set. No matrix was found! Ensure the name is correct by using SpriteShader.VIEW_PROJECTION."
                 )
-        updateCameraUniform(viewProjectionMatrix)
+        val dynamicOffset = data[CAMERA_UNIFORM_DYNAMIC_OFFSET] as? Long ?: 0L
+        if (lastDynamicOffset != dynamicOffset) {
+            lastDynamicOffset = dynamicOffset
+            updateCameraUniform(viewProjectionMatrix, dynamicOffset)
+        }
     }
+
     /**
      * Update this [cameraUniformBuffer] with the given view-projection matrix.
      *
      * @param viewProjection the matrix to update the camera
      */
-    fun updateCameraUniform(viewProjection: Mat4) =
-        device.queue.writeBuffer(cameraUniformBuffer, viewProjection.toBuffer(camFloatBuffer))
+    fun updateCameraUniform(viewProjection: Mat4, dynamicOffset: Long = 0) =
+        device.queue.writeBuffer(
+            cameraUniformBuffer,
+            viewProjection.toBuffer(camFloatBuffer),
+            offset = dynamicOffset * 256,
+        )
 
     override fun release() {
         super.release()
@@ -91,5 +116,6 @@ abstract class SpriteShader(device: Device, src: String, layout: List<BindGroupL
     companion object {
         const val TEXTURE = "texture"
         const val VIEW_PROJECTION = "viewProjection"
+        const val CAMERA_UNIFORM_DYNAMIC_OFFSET = "cameraUniformDynamicOffset"
     }
 }

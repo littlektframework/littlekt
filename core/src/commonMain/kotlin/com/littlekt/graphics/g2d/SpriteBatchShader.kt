@@ -3,6 +3,7 @@ package com.littlekt.graphics.g2d
 import com.littlekt.graphics.Texture
 import com.littlekt.graphics.shader.SpriteShader
 import com.littlekt.graphics.webgpu.*
+import com.littlekt.util.align
 
 /**
  * The default [SpriteShader] that is used [SpriteBatch].
@@ -58,7 +59,16 @@ class SpriteBatchShader(
         layout =
             listOf(
                 BindGroupLayoutDescriptor(
-                    listOf(BindGroupLayoutEntry(0, ShaderStage.VERTEX, BufferBindingLayout()))
+                    listOf(
+                        BindGroupLayoutEntry(
+                            0,
+                            ShaderStage.VERTEX,
+                            BufferBindingLayout(
+                                hasDynamicOffset = true,
+                                minBindingSize = (Float.SIZE_BYTES * 16).align(256).toLong()
+                            )
+                        )
+                    )
                 ),
                 BindGroupLayoutDescriptor(
                     listOf(
@@ -91,8 +101,12 @@ class SpriteBatchShader(
         )
     }
 
-    override fun setBindGroups(encoder: RenderPassEncoder, bindGroups: List<BindGroup>) {
-        encoder.setBindGroup(0, bindGroups[0])
+    override fun setBindGroups(
+        encoder: RenderPassEncoder,
+        bindGroups: List<BindGroup>,
+        dynamicOffsets: List<Long>
+    ) {
+        encoder.setBindGroup(0, bindGroups[0], dynamicOffsets)
         encoder.setBindGroup(1, bindGroups[1])
     }
 }

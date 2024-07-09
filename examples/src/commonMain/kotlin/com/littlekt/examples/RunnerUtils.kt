@@ -24,5 +24,6 @@ val availableExamples =
         "-renderTarget" to Pair("Render Target", ::RenderTargetExample),
         "-computeBoids" to Pair("Compute Boids", ::ComputeBoidsExample),
         "-worldAndUiViewports" to Pair("Game World and UI Viewports", ::GameWorldAndUIViewports),
-        "-assetProvider" to Pair("Asset Provider", ::AssetProviderExample)
+        "-assetProvider" to Pair("Asset Provider", ::AssetProviderExample),
+        "-spriteBatchMultiPass" to Pair("SpriteBatch Multi Pass", ::SpriteBatchMultiPassExample)
     )
