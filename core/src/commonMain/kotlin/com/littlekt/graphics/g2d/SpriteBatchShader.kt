@@ -8,12 +8,13 @@ import com.littlekt.util.align
 /**
  * The default [SpriteShader] that is used [SpriteBatch].
  *
+ * @param device the current [Device]
+ * @param cameraDynamicSize the size in which the underlying [cameraUniformBuffer] should be
+ *   multiplied by to handle dynamic camera uniform values.
  * @author Colton Daily
  * @date 4/15/2024
  */
-class SpriteBatchShader(
-    device: Device,
-) :
+class SpriteBatchShader(device: Device, cameraDynamicSize: Int = 5) :
     SpriteShader(
         device,
         // language=wgsl
@@ -79,7 +80,8 @@ class SpriteBatchShader(
                         BindGroupLayoutEntry(1, ShaderStage.FRAGMENT, SamplerBindingLayout())
                     )
                 )
-            )
+            ),
+        cameraDynamicSize = cameraDynamicSize
     ) {
 
     override fun MutableList<BindGroup>.createBindGroupsWithTexture(

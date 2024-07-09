@@ -10,6 +10,7 @@ import com.littlekt.graphics.shader.SpriteShader
 import com.littlekt.graphics.textureIndexedMesh
 import com.littlekt.graphics.util.CommonIndexedMeshGeometry
 import com.littlekt.graphics.webgpu.*
+import com.littlekt.log.Logger
 import com.littlekt.math.Mat4
 import com.littlekt.math.geom.Angle
 import com.littlekt.math.geom.cosine
@@ -29,6 +30,8 @@ import com.littlekt.util.datastructure.pool
  * @param format the texture format to be used for each [RenderPipeline].
  * @param size the initial number of quads to be used by the buffers in the internal mesh. The mesh
  *   will automatically grow if needed.
+ * @param cameraDynamicSize the size in which the underlying [defaultShader] should be multiplied by
+ *   to handle dynamic camera uniform values.
  * @author Colton Daily
  * @date 4/11/2024
  */
@@ -37,15 +40,17 @@ class SpriteBatch(
     initWidth: Int,
     initHeight: Int,
     val format: TextureFormat,
-    private val size: Int = 1000
+    private val size: Int = 1000,
+    private val cameraDynamicSize: Int = 5
 ) : Batch {
 
     constructor(
         device: Device,
         graphics: Graphics,
         format: TextureFormat,
-        size: Int = 1000
-    ) : this(device, graphics.width, graphics.height, format, size)
+        size: Int = 1000,
+        cameraDynamicSize: Int = 5
+    ) : this(device, graphics.width, graphics.height, format, size, cameraDynamicSize)
 
     /**
      * The transform matrix that can be used to multiply against the [viewProjection] matrix. This
@@ -88,7 +93,7 @@ class SpriteBatch(
     private val mesh: IndexedMesh<CommonIndexedMeshGeometry>
         get() = meshes[lastMeshIdx]
 
-    override val defaultShader: Shader = SpriteBatchShader(device)
+    override val defaultShader: Shader = SpriteBatchShader(device, cameraDynamicSize)
 
     override var shader: Shader = defaultShader
 
@@ -122,11 +127,12 @@ class SpriteBatch(
     private var invTexHeight = 0f
 
     private val dataMap = mutableMapOf<String, Any>()
-    private val lastDynamicMeshOffsets = MutableList(1) { 0L }
+    private val lastDynamicMeshOffsets: MutableList<Long> = MutableList(1) { 0L }
     private var lastDynamicOffsetIndex: Long = -1
 
     init {
         check(size > 0) { "A batch must be greater than zero sprites!" }
+        check(cameraDynamicSize >= 1) { "SpriteBatch: 'cameraDynamicSize' must be >= 1!" }
     }
 
     override fun begin(viewProjection: Mat4?) {
@@ -583,7 +589,13 @@ class SpriteBatch(
                 lastCombinedMatrixSet = drawCall.combinedMatrix
                 dataMap.clear()
                 dataMap[SpriteShader.VIEW_PROJECTION] = drawCall.combinedMatrix
-                lastDynamicOffsetIndex++
+                if (lastDynamicOffsetIndex < cameraDynamicSize - 1) {
+                    lastDynamicOffsetIndex++
+                } else {
+                    logger.warn {
+                        "SpriteBatch wants to update the SpriteShader.CAMERA_UNIFORM_DYNAMIC_OFFSET but is unable to due to SpriteBatch.cameraDynamicSize being too small! If you are setting the Batch.viewProjection multiple times per render pass then increase this value!"
+                    }
+                }
                 dataMap[SpriteShader.CAMERA_UNIFORM_DYNAMIC_OFFSET] = lastDynamicOffsetIndex
                 shader.update(dataMap)
             }
@@ -754,6 +766,7 @@ class SpriteBatch(
 
     companion object {
         private const val QUAD_STATS_NAME = "SpriteBatch Quads"
+        private val logger = Logger<SpriteBatch>()
     }
 
     private data class RenderInfo(val shader: Shader, val blendState: BlendState)
