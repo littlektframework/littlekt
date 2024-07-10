@@ -14,7 +14,7 @@ import com.littlekt.util.align
  * @author Colton Daily
  * @date 4/15/2024
  */
-class SpriteBatchShader(device: Device, cameraDynamicSize: Int = 5) :
+class SpriteBatchShader(device: Device, cameraDynamicSize: Int = 10) :
     SpriteShader(
         device,
         // language=wgsl
