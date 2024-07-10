@@ -122,13 +122,13 @@ class SpriteBatch(
     private var lastTexture: Texture? = null
     private var lastBlendState: BlendState = blendState
     private var lastShader: Shader = shader
-    private var lastCombinedMatrix: Mat4 = Mat4()
+    private val lastCombinedMatrix: Mat4 = matPool.alloc().set(combinedMatrix.get())
     private var invTexWidth = 0f
     private var invTexHeight = 0f
 
     private val dataMap = mutableMapOf<String, Any>()
     private val lastDynamicMeshOffsets: MutableList<Long> = MutableList(1) { 0L }
-    private var lastDynamicOffsetIndex: Long = -1
+    private val shaderDynamicOffsets = mutableMapOf<Shader, Long>()
 
     init {
         check(size > 0) { "A batch must be greater than zero sprites!" }
@@ -574,6 +574,7 @@ class SpriteBatch(
         var lastShader: Shader? = null
         drawCalls.fastForEach { drawCall ->
             val shader = drawCall.renderInfo.shader
+            var lastDynamicOffsetIndex = shaderDynamicOffsets.getOrPut(shader) { -1L }
             val renderPipeline =
                 renderPipelineByBlendState.getOrPut(drawCall.renderInfo) {
                     device.createRenderPipeline(createRenderPipelineDescriptor(drawCall.renderInfo))
@@ -596,6 +597,7 @@ class SpriteBatch(
                     }
                 }
                 dataMap[SpriteShader.CAMERA_UNIFORM_DYNAMIC_OFFSET] = lastDynamicOffsetIndex
+                shaderDynamicOffsets[shader] = lastDynamicOffsetIndex
                 shader.update(dataMap)
             }
             if (lastPipelineSet != renderPipeline) {
@@ -629,7 +631,7 @@ class SpriteBatch(
     override fun end() {
         check(drawing) { "SpriteBatch.begin must be called before draw." }
         lastMeshIdx = 0
-        lastDynamicOffsetIndex = -1
+        shaderDynamicOffsets.clear()
         meshes.forEach { it.clearVertices() }
         spriteIndices.keys.forEach { spriteIndices[it] = 0 }
         drawing = false
@@ -686,7 +688,7 @@ class SpriteBatch(
 
     private fun ensureMatrices() {
         if (combinedMatrix.get() != lastCombinedMatrix) {
-            lastCombinedMatrix = matPool.alloc().set(combinedMatrix.get())
+            lastCombinedMatrix.set(combinedMatrix.get())
             createDrawCall()
         }
     }
@@ -701,7 +703,7 @@ class SpriteBatch(
                 DrawCall(
                     texture = texture,
                     renderInfo = RenderInfo(lastShader, lastBlendState),
-                    combinedMatrix = lastCombinedMatrix,
+                    combinedMatrix = matPool.alloc().set(lastCombinedMatrix),
                     offset = spriteIdx
                 )
         } else {
@@ -709,7 +711,7 @@ class SpriteBatch(
                 DrawCall(
                     texture = texture,
                     renderInfo = RenderInfo(lastShader, lastBlendState),
-                    combinedMatrix = lastCombinedMatrix,
+                    combinedMatrix = matPool.alloc().set(lastCombinedMatrix),
                     offset = spriteIdx
                 )
         }
