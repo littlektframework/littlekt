@@ -41,7 +41,7 @@ class SpriteBatch(
     initHeight: Int,
     val format: TextureFormat,
     private val size: Int = 1000,
-    private val cameraDynamicSize: Int = 5
+    private val cameraDynamicSize: Int = 10
 ) : Batch {
 
     constructor(
@@ -49,7 +49,7 @@ class SpriteBatch(
         graphics: Graphics,
         format: TextureFormat,
         size: Int = 1000,
-        cameraDynamicSize: Int = 5
+        cameraDynamicSize: Int = 10
     ) : this(device, graphics.width, graphics.height, format, size, cameraDynamicSize)
 
     /**
@@ -86,7 +86,7 @@ class SpriteBatch(
     override var lastMeshIdx: Int = 0
 
     private var combinedMatrix = LazyMat4 { it.set(viewProjection).mul(transformMatrix) }
-    private val matPool = pool { Mat4() }
+    private val matPool = pool(reset = { it.setToIdentity() }) { Mat4() }
 
     private val meshes: MutableList<IndexedMesh<CommonIndexedMeshGeometry>> =
         mutableListOf(textureIndexedMesh(device, size) { indicesAsQuad() })
@@ -122,7 +122,7 @@ class SpriteBatch(
     private var lastTexture: Texture? = null
     private var lastBlendState: BlendState = blendState
     private var lastShader: Shader = shader
-    private var lastCombinedMatrix: Mat4 = viewProjection
+    private var lastCombinedMatrix: Mat4 = Mat4()
     private var invTexWidth = 0f
     private var invTexHeight = 0f
 
@@ -586,7 +586,6 @@ class SpriteBatch(
                     shader.createBindGroups(dataMap)
                 }
             if (lastCombinedMatrixSet != drawCall.combinedMatrix || lastShader != shader) {
-                lastCombinedMatrixSet = drawCall.combinedMatrix
                 dataMap.clear()
                 dataMap[SpriteShader.VIEW_PROJECTION] = drawCall.combinedMatrix
                 if (lastDynamicOffsetIndex < cameraDynamicSize - 1) {
@@ -603,12 +602,17 @@ class SpriteBatch(
                 renderPassEncoder.setPipeline(renderPipeline)
                 lastPipelineSet = renderPipeline
             }
-            if (lastBindGroupsSet != bindGroups || lastShader != shader) {
+            if (
+                lastBindGroupsSet != bindGroups ||
+                    lastShader != shader ||
+                    lastCombinedMatrixSet != drawCall.combinedMatrix
+            ) {
                 lastBindGroupsSet = bindGroups
                 lastDynamicMeshOffsets[0] =
                     lastDynamicOffsetIndex * device.limits.minUniformBufferOffsetAlignment
                 shader.setBindGroups(renderPassEncoder, bindGroups, lastDynamicMeshOffsets)
                 lastShader = shader
+                lastCombinedMatrixSet = drawCall.combinedMatrix
             }
             val indexCount = drawCall.instances * 6
             EngineStats.extra(QUAD_STATS_NAME, drawCall.instances)
@@ -692,7 +696,7 @@ class SpriteBatch(
         if (drawCalls.isNotEmpty() && drawCalls.last().instances == 0) {
             // we created a new draw call, but we haven't drawn yet. So we can just
             // update the last created draw call and update its info
-            drawCalls.removeLast()
+            drawCalls.removeLast().also { matPool.free(it.combinedMatrix) }
             drawCalls +=
                 DrawCall(
                     texture = texture,

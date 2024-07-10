@@ -23,7 +23,7 @@ abstract class SpriteShader(
     device: Device,
     src: String,
     layout: List<BindGroupLayoutDescriptor>,
-    cameraDynamicSize: Int = 5
+    cameraDynamicSize: Int = 10
 ) : Shader(device, src, layout) {
 
     private val camFloatBuffer = FloatBuffer(16)
@@ -98,7 +98,10 @@ abstract class SpriteShader(
                 ?: error(
                     "${this::class.simpleName} requires data[\"${VIEW_PROJECTION}\", mat4] to be set. No matrix was found! Ensure the name is correct by using SpriteShader.VIEW_PROJECTION."
                 )
-        val dynamicOffset = data[CAMERA_UNIFORM_DYNAMIC_OFFSET] as? Long ?: 0L
+        val dynamicOffset =
+            data[CAMERA_UNIFORM_DYNAMIC_OFFSET] as? Long
+                ?: (data[CAMERA_UNIFORM_DYNAMIC_OFFSET] as? Int)?.toLong()
+                ?: 0L
         updateCameraUniform(viewProjectionMatrix, dynamicOffset)
     }
 
@@ -111,7 +114,7 @@ abstract class SpriteShader(
         device.queue.writeBuffer(
             cameraUniformBuffer,
             viewProjection.toBuffer(camFloatBuffer),
-            offset = dynamicOffset * device.limits.minStorageBufferOffsetAlignment,
+            offset = dynamicOffset * device.limits.minUniformBufferOffsetAlignment,
         )
 
     override fun release() {
