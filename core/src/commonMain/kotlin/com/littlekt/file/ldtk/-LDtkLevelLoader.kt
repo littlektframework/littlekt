@@ -71,9 +71,8 @@ internal class LDtkLevelLoader(
                     )
                 } ?: listOf(),
             layers =
-                levelDef.layerInstances?.map {
-                    instantiateLayer(it, entities, tilesets, enums, maxHeight)
-                } ?: listOf(),
+                levelDef.layerInstances?.map { instantiateLayer(it, entities, tilesets, enums) }
+                    ?: listOf(),
             entities = entities,
             backgroundColor = Color.fromHex(levelDef.bgColor),
             levelBackgroundPos = levelDef.bgPos,
@@ -93,7 +92,6 @@ internal class LDtkLevelLoader(
         entities: MutableList<LDtkEntity>,
         tilesets: Map<Int, LDtkTileset>,
         enums: Map<String, LDtkEnum>,
-        maxHeight: Int
     ): LDtkLayer {
         return when (json.type) { // IntGrid, Entities, Tiles or AutoLayer
             "IntGrid" -> {
