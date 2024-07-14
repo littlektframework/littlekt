@@ -40,8 +40,10 @@
         }],
  "nextlayerid":4,
  "nextobjectid":1,
- "orientation":"orthogonal",
+ "orientation":"staggered",
  "renderorder":"right-down",
+ "staggeraxis":"x",
+ "staggerindex":"odd",
  "tiledversion":"1.8.2",
  "tileheight":12,
  "tilesets":[
