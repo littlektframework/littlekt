@@ -102,7 +102,8 @@ class SpriteCache(val device: Device, val format: TextureFormat, size: Int = 100
     private val dirty: Boolean
         get() = staticDirty || dynamicDirty
 
-    private val dataMap = mutableMapOf<String, Any>()
+    private val dataMap: MutableMap<String, Any> = mutableMapOf()
+    private val lastDynamicMeshOffsets: List<Long> = listOf(0L)
 
     /**
      * Create a new sprite and add it to the cache. The order the sprites are added are the order
@@ -226,7 +227,7 @@ class SpriteCache(val device: Device, val format: TextureFormat, size: Int = 100
             }
             if (lastBindGroupsSet != bindGroups) {
                 lastBindGroupsSet = bindGroups
-                shader.setBindGroups(encoder, bindGroups)
+                shader.setBindGroups(encoder, bindGroups, lastDynamicMeshOffsets)
             }
             EngineStats.extra(QUAD_STATS_NAME, 1)
             EngineStats.extra(INSTANCES_STATS_NAME, drawCall.instances)

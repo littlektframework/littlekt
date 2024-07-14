@@ -27,6 +27,8 @@ class LDtkWorld(
     val entities: Map<String, LDtkEntityDefinition>
 ) : TileMap(), Releasable {
     val levelsMap: Map<String, LDtkLevel> by lazy { levels.associateBy { it.identifier } }
+    val maxWidth: Int = levels.maxOf { it.worldX + it.pxWidth }
+    val maxHeight: Int = levels.maxOf { it.worldY + it.pxHeight }
 
     internal var onRelease = {}
 

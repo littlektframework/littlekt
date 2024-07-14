@@ -21,23 +21,24 @@ internal class LDtkLevelLoader(
     private val atlas: TextureAtlas? = null,
     private val sliceBorder: Int = 2,
 ) : Releasable {
-
     private val assetCache = mutableMapOf<VfsFile, TextureSlice>()
     internal val tilesets = mutableMapOf<Int, LDtkTileset>()
 
     suspend fun loadLevel(
         root: VfsFile,
         externalRelPath: String,
-        enums: Map<String, LDtkEnum>
+        enums: Map<String, LDtkEnum>,
+        maxHeight: Int
     ): LDtkLevel {
         val levelDef: LDtkLevelDefinition = root[externalRelPath].decodeFromString()
-        return loadLevel(root, levelDef, enums)
+        return loadLevel(root, levelDef, enums, maxHeight)
     }
 
     suspend fun loadLevel(
         root: VfsFile,
         levelDef: LDtkLevelDefinition,
-        enums: Map<String, LDtkEnum>
+        enums: Map<String, LDtkEnum>,
+        maxHeight: Int
     ): LDtkLevel {
         levelDef.layerInstances?.forEach { layerInstance ->
             mapData.defs.tilesets
@@ -60,7 +61,7 @@ internal class LDtkLevelLoader(
             pxHeight = levelDef.pxHei,
             worldX = levelDef.worldX,
             // flip it from y-down to y-up coords
-            worldY = -levelDef.worldY - levelDef.pxHei,
+            worldY = maxHeight - (levelDef.worldY + levelDef.pxHei),
             neighbors =
                 levelDef.neighbours?.map {
                     LDtkLevel.Neighbor(
@@ -119,7 +120,7 @@ internal class LDtkLevelLoader(
                         gridWidth = json.cWid,
                         gridHeight = json.cHei,
                         pxTotalOffsetX = json.pxTotalOffsetX,
-                        pxTotalOffsetY = -json.pxTotalOffsetY,
+                        pxTotalOffsetY = json.pxTotalOffsetY,
                         opacity = json.opacity
                     )
                 } else {
@@ -148,7 +149,7 @@ internal class LDtkLevelLoader(
                         gridWidth = json.cWid,
                         gridHeight = json.cHei,
                         pxTotalOffsetX = json.pxTotalOffsetX,
-                        pxTotalOffsetY = -json.pxTotalOffsetY,
+                        pxTotalOffsetY = json.pxTotalOffsetY,
                         opacity = json.opacity
                     )
                 }
@@ -578,7 +579,7 @@ internal class LDtkLevelLoader(
                     gridWidth = json.cWid,
                     gridHeight = json.cHei,
                     pxTotalOffsetX = json.pxTotalOffsetX,
-                    pxTotalOffsetY = -json.pxTotalOffsetY,
+                    pxTotalOffsetY = json.pxTotalOffsetY,
                     opacity = json.opacity
                 )
             }
@@ -612,7 +613,7 @@ internal class LDtkLevelLoader(
                     gridWidth = json.cWid,
                     gridHeight = json.cHei,
                     pxTotalOffsetX = json.pxTotalOffsetX,
-                    pxTotalOffsetY = -json.pxTotalOffsetY,
+                    pxTotalOffsetY = json.pxTotalOffsetY,
                     opacity = json.opacity
                 )
             }
@@ -640,7 +641,7 @@ internal class LDtkLevelLoader(
                     gridWidth = json.cWid,
                     gridHeight = json.cHei,
                     pxTotalOffsetX = json.pxTotalOffsetX,
-                    pxTotalOffsetY = -json.pxTotalOffsetY,
+                    pxTotalOffsetY = json.pxTotalOffsetY,
                     opacity = json.opacity
                 )
             }

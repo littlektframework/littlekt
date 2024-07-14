@@ -137,15 +137,36 @@ class TiledTilesLayer(
     }
 
     private fun updateCacheIsometrically(cache: SpriteCache) {
-        TODO("Not yet implemented")
+        cacheAnimatedTilesIds.forEach { (id, tileDataId) ->
+            tiles[tileDataId]?.let {
+                val slice = it.updateFramesAndGetSlice()
+                cache.updateSprite(id, slice) {
+                    // do nothing since we only want to update the slice and not anything else
+                }
+            }
+        }
     }
 
     private fun updateCacheStaggeredXAxis(cache: SpriteCache) {
-        TODO("Not yet implemented")
+        cacheAnimatedTilesIds.forEach { (id, tileDataId) ->
+            tiles[tileDataId]?.let {
+                val slice = it.updateFramesAndGetSlice()
+                cache.updateSprite(id, slice) {
+                    // do nothing since we only want to update the slice and not anything else
+                }
+            }
+        }
     }
 
     private fun updateCacheStaggeredYAxis(cache: SpriteCache) {
-        TODO("Not yet implemented")
+        cacheAnimatedTilesIds.forEach { (id, tileDataId) ->
+            tiles[tileDataId]?.let {
+                val slice = it.updateFramesAndGetSlice()
+                cache.updateSprite(id, slice) {
+                    // do nothing since we only want to update the slice and not anything else
+                }
+            }
+        }
     }
 
     private fun addToCacheOrthographically(cache: SpriteCache, x: Float, y: Float, scale: Float) {
@@ -194,15 +215,160 @@ class TiledTilesLayer(
     }
 
     private fun addToCacheIsometrically(cache: SpriteCache, x: Float, y: Float, scale: Float) {
-        TODO("Not yet implemented")
+        val tileWidth = tileWidth * scale
+        val tileHeight = tileHeight * scale
+        val offsetX = offsetX * scale
+        val offsetY = offsetY * scale
+
+        for (cy in height downTo 0) {
+            for (cx in 0 until width) {
+                val cid = getCoordId(cx, cy)
+                if (cid in tileData.indices) {
+                    val tileData = tileData[cid].bitsToTileData(flipData)
+                    tiles[tileData.id]?.let {
+                        val slice = it.updateFramesAndGetSlice()
+                        val spriteId =
+                            cache.add(slice) {
+                                val halfWidth = tileWidth * 0.5f
+                                val halfHeight = tileHeight * 0.5f
+
+                                val tx =
+                                    (cx * halfWidth) +
+                                        (cy * halfWidth) +
+                                        offsetX +
+                                        x +
+                                        it.offsetX * scale
+                                val ty =
+                                    (cy * halfHeight) - (cx * halfHeight) +
+                                        offsetY +
+                                        y +
+                                        it.offsetY * scale
+
+                                val scaleX = if (tileData.flipX) -scale else scale
+                                val scaleY = if (tileData.flipY) -scale else scale
+                                position.set(tx, ty)
+                                this.scale.set(scaleX, scaleY)
+                                rotation = tileData.rotation
+                                color.set(tintColor ?: Color.WHITE)
+                            }
+                        if (it.frames.isNotEmpty()) {
+                            cacheAnimatedTilesIds[spriteId] = tileData.id
+                        }
+                        cacheIds += spriteId
+                    }
+                }
+            }
+        }
     }
 
     private fun addToCacheStaggeredXAxis(cache: SpriteCache, x: Float, y: Float, scale: Float) {
-        TODO("Not yet implemented")
+        val tileWidth = tileWidth * scale
+        val tileHeight = tileHeight * scale
+        val offsetX = offsetX * scale
+        val offsetY = offsetY * scale
+        val staggerIndexEven = staggerIndex == TiledMap.StaggerIndex.EVEN
+        val minXA = if (staggerIndexEven) 1 else 0
+        val minXB = if (staggerIndexEven) 0 else 1
+        for (cy in height downTo 0) {
+            for (cx in minXA until width step 2) {
+                val cid = getCoordId(cx, cy)
+                if (cid in tileData.indices) {
+                    val tileData = tileData[cid].bitsToTileData(flipData)
+                    tiles[tileData.id]?.let {
+                        val slice = it.updateFramesAndGetSlice()
+                        val spriteId =
+                            cache.add(slice) {
+                                val halfWidth = tileWidth * 0.5f
+                                val halfHeight = tileHeight * 0.5f
+                                val tx = cx * halfWidth + offsetX + x + it.offsetX * scale
+                                val ty =
+                                    (cy * tileHeight) +
+                                        halfHeight +
+                                        offsetY +
+                                        y +
+                                        it.offsetY * scale
+
+                                val scaleX = if (tileData.flipX) -scale else scale
+                                val scaleY = if (tileData.flipY) -scale else scale
+                                position.set(tx, ty)
+                                this.scale.set(scaleX, scaleY)
+                                rotation = tileData.rotation
+                                color.set(tintColor ?: Color.WHITE)
+                            }
+                        if (it.frames.isNotEmpty()) {
+                            cacheAnimatedTilesIds[spriteId] = tileData.id
+                        }
+                        cacheIds += spriteId
+                    }
+                }
+            }
+            for (cx in minXB until width step 2) {
+                val cid = getCoordId(cx, cy)
+                if (cid in tileData.indices) {
+                    val tileData = tileData[cid].bitsToTileData(flipData)
+                    tiles[tileData.id]?.let {
+                        val slice = it.updateFramesAndGetSlice()
+                        val spriteId =
+                            cache.add(slice) {
+                                val halfWidth = tileWidth * 0.5f
+                                val tx = cx * halfWidth + offsetX + x + it.offsetX * scale
+                                val ty = cy * tileHeight + offsetY + y + it.offsetY * scale
+
+                                val scaleX = if (tileData.flipX) -scale else scale
+                                val scaleY = if (tileData.flipY) -scale else scale
+                                position.set(tx, ty)
+                                this.scale.set(scaleX, scaleY)
+                                rotation = tileData.rotation
+                                color.set(tintColor ?: Color.WHITE)
+                            }
+                        if (it.frames.isNotEmpty()) {
+                            cacheAnimatedTilesIds[spriteId] = tileData.id
+                        }
+                        cacheIds += spriteId
+                    }
+                }
+            }
+        }
     }
 
     private fun addToCacheStaggeredYAxis(cache: SpriteCache, x: Float, y: Float, scale: Float) {
-        TODO("Not yet implemented")
+        val tileWidth = tileWidth * scale
+        val tileHeight = tileHeight * scale
+        val offsetX = offsetX * scale
+        val offsetY = offsetY * scale
+        val halfWidth = tileWidth * 0.5f
+        val halfHeight = tileHeight * 0.5f
+        val staggerIndexValue = if (staggerIndex == TiledMap.StaggerIndex.EVEN) 0 else 1
+
+        for (cy in height downTo 0) {
+            val tileOffsetX = if (cy % 2 == staggerIndexValue) halfWidth else 0f
+            for (cx in 0 until width) {
+                val cid = getCoordId(cx, cy)
+                if (cid in tileData.indices) {
+                    val tileData = tileData[cid].bitsToTileData(flipData)
+                    tiles[tileData.id]?.let {
+                        val slice = it.updateFramesAndGetSlice()
+                        val spriteId =
+                            cache.add(slice) {
+                                val tx =
+                                    cx * tileWidth - tileOffsetX + offsetX + x + it.offsetX * scale
+                                val ty = cy * halfHeight + offsetY + y + it.offsetY * scale
+
+                                val scaleX = if (tileData.flipX) -scale else scale
+                                val scaleY = if (tileData.flipY) -scale else scale
+                                position.set(tx, ty)
+                                this.scale.set(scaleX, scaleY)
+                                rotation = tileData.rotation
+                                color.set(tintColor ?: Color.WHITE)
+                            }
+                        if (it.frames.isNotEmpty()) {
+                            cacheAnimatedTilesIds[spriteId] = tileData.id
+                        }
+                        cacheIds += spriteId
+                    }
+                }
+            }
+        }
     }
 
     private fun renderOrthographically(

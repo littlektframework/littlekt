@@ -172,7 +172,11 @@ external class GPURenderPassEncoder {
 
     fun setIndexBuffer(buffer: GPUBufferJs, format: String?, offset: Long, size: Long)
 
-    fun setBindGroup(index: Int, bindGroup: GPUBindGroup)
+    fun setBindGroup(
+        index: Int,
+        bindGroup: GPUBindGroup,
+        dynamicOffsets: LongArray = definedExternally
+    )
 
     fun setViewport(x: Int, y: Int, width: Int, height: Int, minDepth: Float, maxDepth: Float)
 

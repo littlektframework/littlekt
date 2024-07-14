@@ -4,6 +4,7 @@ import com.littlekt.file.FloatBuffer
 import com.littlekt.graphics.Texture
 import com.littlekt.graphics.webgpu.*
 import com.littlekt.math.Mat4
+import com.littlekt.util.align
 
 /**
  * A base shader class to handle creating a camera uniform [GPUBuffer] and expecting a texture to
@@ -13,11 +14,17 @@ import com.littlekt.math.Mat4
  * @param src the WGSL shader source code
  * @param layout a list of [BindGroupLayoutDescriptor] in order to create [BindGroupLayout]s for the
  *   [PipelineLayout]. The order should match the index of the [BindGroupLayout].
+ * @param cameraDynamicSize the size in which the underlying [cameraUniformBuffer] should be
+ *   multiplied by to handle dynamic camera uniform values.
  * @author Colton Daily
  * @date 4/14/2024
  */
-abstract class SpriteShader(device: Device, src: String, layout: List<BindGroupLayoutDescriptor>) :
-    Shader(device, src, layout) {
+abstract class SpriteShader(
+    device: Device,
+    src: String,
+    layout: List<BindGroupLayoutDescriptor>,
+    cameraDynamicSize: Int = 10
+) : Shader(device, src, layout) {
 
     private val camFloatBuffer = FloatBuffer(16)
 
@@ -26,15 +33,33 @@ abstract class SpriteShader(device: Device, src: String, layout: List<BindGroupL
      *
      * @see updateCameraUniform
      */
-    protected val cameraUniformBuffer =
-        device.createGPUFloatBuffer(
-            "viewProj",
-            camFloatBuffer.toArray(),
-            BufferUsage.UNIFORM or BufferUsage.COPY_DST
-        )
+    protected val cameraUniformBuffer = run {
+        val buffer =
+            device.createBuffer(
+                BufferDescriptor(
+                    "viewProj",
+                    (Float.SIZE_BYTES * 16)
+                        .align(device.limits.minUniformBufferOffsetAlignment)
+                        .toLong() * cameraDynamicSize,
+                    BufferUsage.UNIFORM or BufferUsage.COPY_DST,
+                    true
+                )
+            )
+        buffer.getMappedRange().putFloat(camFloatBuffer.toArray())
+        buffer.unmap()
+
+        buffer
+    }
 
     /** The [BufferBinding] for [cameraUniformBufferBinding]. */
-    protected val cameraUniformBufferBinding = BufferBinding(cameraUniformBuffer)
+    protected val cameraUniformBufferBinding =
+        BufferBinding(
+            cameraUniformBuffer,
+            size =
+                (Float.SIZE_BYTES * 16)
+                    .align(device.limits.minUniformBufferOffsetAlignment)
+                    .toLong(),
+        )
 
     /** @see [createBindGroupsWithTexture] to override. */
     final override fun MutableList<BindGroup>.createBindGroupsInternal(data: Map<String, Any>) {
@@ -71,17 +96,26 @@ abstract class SpriteShader(device: Device, src: String, layout: List<BindGroupL
         val viewProjectionMatrix =
             data[VIEW_PROJECTION] as? Mat4
                 ?: error(
-                    "${this::class.simpleName} requires data[\"viewProjection\", mat4] to be set. No matrix was found! Ensure the name is correct by using SpriteShader.VIEW_PROJECTION."
+                    "${this::class.simpleName} requires data[\"${VIEW_PROJECTION}\", mat4] to be set. No matrix was found! Ensure the name is correct by using SpriteShader.VIEW_PROJECTION."
                 )
-        updateCameraUniform(viewProjectionMatrix)
+        val dynamicOffset =
+            data[CAMERA_UNIFORM_DYNAMIC_OFFSET] as? Long
+                ?: (data[CAMERA_UNIFORM_DYNAMIC_OFFSET] as? Int)?.toLong()
+                ?: 0L
+        updateCameraUniform(viewProjectionMatrix, dynamicOffset)
     }
+
     /**
      * Update this [cameraUniformBuffer] with the given view-projection matrix.
      *
      * @param viewProjection the matrix to update the camera
      */
-    fun updateCameraUniform(viewProjection: Mat4) =
-        device.queue.writeBuffer(cameraUniformBuffer, viewProjection.toBuffer(camFloatBuffer))
+    fun updateCameraUniform(viewProjection: Mat4, dynamicOffset: Long = 0) =
+        device.queue.writeBuffer(
+            cameraUniformBuffer,
+            viewProjection.toBuffer(camFloatBuffer),
+            offset = dynamicOffset * device.limits.minUniformBufferOffsetAlignment,
+        )
 
     override fun release() {
         super.release()
@@ -91,5 +125,6 @@ abstract class SpriteShader(device: Device, src: String, layout: List<BindGroupL
     companion object {
         const val TEXTURE = "texture"
         const val VIEW_PROJECTION = "viewProjection"
+        const val CAMERA_UNIFORM_DYNAMIC_OFFSET = "cameraUniformDynamicOffset"
     }
 }

@@ -100,8 +100,8 @@ actual class RenderPassEncoder(
         delegate.setIndexBuffer(buffer.delegate, indexFormat.nativeVal, offset, size)
     }
 
-    actual fun setBindGroup(index: Int, bindGroup: BindGroup) {
-        delegate.setBindGroup(index, bindGroup.delegate)
+    actual fun setBindGroup(index: Int, bindGroup: BindGroup, dynamicOffsets: List<Long>) {
+        delegate.setBindGroup(index, bindGroup.delegate, dynamicOffsets.toLongArray())
     }
 
     actual fun setViewport(

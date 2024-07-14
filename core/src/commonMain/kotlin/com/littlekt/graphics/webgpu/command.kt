@@ -641,9 +641,11 @@ expect class RenderPassEncoder : Releasable {
      * Sets the active bind group for a given bind group index. The bind group layout in the active
      * pipeline when any `draw*()` method is called must match the layout of this bind group.
      *
+     * If the bind group have dynamic offsets, provide them in binding order.
+     *
      * Subsequent draw calls’ shader executions will be able to access data in these bind groups.
      */
-    fun setBindGroup(index: Int, bindGroup: BindGroup)
+    fun setBindGroup(index: Int, bindGroup: BindGroup, dynamicOffsets: List<Long> = emptyList())
 
     /**
      * Sets the viewport used during the rasterization stage to linear map from normalized device

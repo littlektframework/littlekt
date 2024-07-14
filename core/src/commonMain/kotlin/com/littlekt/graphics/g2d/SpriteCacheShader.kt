@@ -152,7 +152,11 @@ class SpriteCacheShader(
                         BindGroupLayoutEntry(
                             0,
                             ShaderStage.VERTEX,
-                            BufferBindingLayout(type = BufferBindingType.UNIFORM)
+                            BufferBindingLayout(
+                                type = BufferBindingType.UNIFORM,
+                                hasDynamicOffset = true,
+                                minBindingSize = Float.SIZE_BYTES * 16L
+                            )
                         ),
                         BindGroupLayoutEntry(
                             1,
@@ -229,8 +233,12 @@ class SpriteCacheShader(
         )
     }
 
-    override fun setBindGroups(encoder: RenderPassEncoder, bindGroups: List<BindGroup>) {
-        encoder.setBindGroup(0, bindGroups[0])
+    override fun setBindGroups(
+        encoder: RenderPassEncoder,
+        bindGroups: List<BindGroup>,
+        dynamicOffsets: List<Long>
+    ) {
+        encoder.setBindGroup(0, bindGroups[0], dynamicOffsets)
         encoder.setBindGroup(1, bindGroups[1])
     }
 

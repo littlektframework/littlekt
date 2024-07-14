@@ -21,7 +21,7 @@ class LDtkTileMapCacheExample(context: Context) : ContextListener(context) {
         val device = graphics.device
 
         val mapLoader = resourcesVfs["ldtk/sample-1.0.ldtk"].readLDtkMapLoader()
-        val world = mapLoader.loadMap(true)
+        val world = mapLoader.loadMap()
         val surfaceCapabilities = graphics.surfaceCapabilities
         val preferredFormat = graphics.preferredFormat
 

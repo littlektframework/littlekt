@@ -17,9 +17,9 @@ inline fun <T : Batch> T.use(
     action: (T) -> Unit
 ) {
     contract { callsInPlace(action, InvocationKind.EXACTLY_ONCE) }
-    begin()
+    begin(projectionMatrix)
     action(this)
-    flush(renderPassEncoder, projectionMatrix)
+    flush(renderPassEncoder)
     end()
 }
 
@@ -28,9 +28,9 @@ inline fun <T : Batch> T.use(
  * [Batch.flush]. This only begins and ends this batch.
  */
 @OptIn(ExperimentalContracts::class)
-inline fun <T : Batch> T.use(action: (T) -> Unit) {
+inline fun <T : Batch> T.use(projectionMatrix: Mat4? = null, action: (T) -> Unit) {
     contract { callsInPlace(action, InvocationKind.EXACTLY_ONCE) }
-    begin()
+    begin(projectionMatrix)
     action(this)
     end()
 }

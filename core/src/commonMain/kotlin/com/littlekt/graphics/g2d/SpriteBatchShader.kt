@@ -3,16 +3,18 @@ package com.littlekt.graphics.g2d
 import com.littlekt.graphics.Texture
 import com.littlekt.graphics.shader.SpriteShader
 import com.littlekt.graphics.webgpu.*
+import com.littlekt.util.align
 
 /**
  * The default [SpriteShader] that is used [SpriteBatch].
  *
+ * @param device the current [Device]
+ * @param cameraDynamicSize the size in which the underlying [cameraUniformBuffer] should be
+ *   multiplied by to handle dynamic camera uniform values.
  * @author Colton Daily
  * @date 4/15/2024
  */
-class SpriteBatchShader(
-    device: Device,
-) :
+class SpriteBatchShader(device: Device, cameraDynamicSize: Int = 10) :
     SpriteShader(
         device,
         // language=wgsl
@@ -58,7 +60,19 @@ class SpriteBatchShader(
         layout =
             listOf(
                 BindGroupLayoutDescriptor(
-                    listOf(BindGroupLayoutEntry(0, ShaderStage.VERTEX, BufferBindingLayout()))
+                    listOf(
+                        BindGroupLayoutEntry(
+                            0,
+                            ShaderStage.VERTEX,
+                            BufferBindingLayout(
+                                hasDynamicOffset = true,
+                                minBindingSize =
+                                    (Float.SIZE_BYTES * 16)
+                                        .align(device.limits.minUniformBufferOffsetAlignment)
+                                        .toLong()
+                            )
+                        )
+                    )
                 ),
                 BindGroupLayoutDescriptor(
                     listOf(
@@ -66,7 +80,8 @@ class SpriteBatchShader(
                         BindGroupLayoutEntry(1, ShaderStage.FRAGMENT, SamplerBindingLayout())
                     )
                 )
-            )
+            ),
+        cameraDynamicSize = cameraDynamicSize
     ) {
 
     override fun MutableList<BindGroup>.createBindGroupsWithTexture(
@@ -91,8 +106,12 @@ class SpriteBatchShader(
         )
     }
 
-    override fun setBindGroups(encoder: RenderPassEncoder, bindGroups: List<BindGroup>) {
-        encoder.setBindGroup(0, bindGroups[0])
+    override fun setBindGroups(
+        encoder: RenderPassEncoder,
+        bindGroups: List<BindGroup>,
+        dynamicOffsets: List<Long>
+    ) {
+        encoder.setBindGroup(0, bindGroups[0], dynamicOffsets)
         encoder.setBindGroup(1, bindGroups[1])
     }
 }
