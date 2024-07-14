@@ -25,7 +25,7 @@ class SpriteBatchMultiPassExample(context: Context) : ContextListener(context) {
 
         val pixelFont: BitmapFont by assets.load(resourcesVfs["m5x7_32.fnt"])
         val mapLoader: LDtkMapLoader by assets.load(resourcesVfs["ldtk/world-1.5.3.ldtk"])
-        val world: LDtkWorld by assets.prepare { mapLoader.loadMap(false, 0) }
+        val world: LDtkWorld by assets.prepare { mapLoader.loadMap(0) }
 
         val device = graphics.device
 

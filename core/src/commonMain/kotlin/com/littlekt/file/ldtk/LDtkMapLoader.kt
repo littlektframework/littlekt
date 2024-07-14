@@ -34,48 +34,73 @@ class LDtkMapLoader(
     private val entityDefinitions = mapData.defs.entities.associateBy { it.identifier }
 
     /**
-     * Load the LDtk tilemap into a [LDtkWorld].
+     * Load the LDtk tilemap into a [LDtkWorld] and load the specified level index..
      *
-     * @param loadAllLevels load all levels and assets if true; otherwise load only the [levelIdx].
-     * @param levelIdx the index of the level to load if [loadAllLevels] is false.
+     * @param levelIdx the index of the level to load.
+     * @param translateMapHeight if true, the loader will translate each levels 'y' coordinate by
+     *   the height of the entire map. Set this to false, if loading individual levels and rendering
+     *   them only one at a time in order to have the level base off of the 0,0 coordinate.
      * @return the loaded [LDtkWorld]
+     * @see loadLevel
      */
-    suspend fun loadMap(loadAllLevels: Boolean, levelIdx: Int = 0): LDtkWorld {
+    suspend fun loadMap(levelIdx: Int, translateMapHeight: Boolean = true): LDtkWorld {
         val parent = root.parent
         val levels = mutableListOf<LDtkLevel>()
+        val level = mapData.levelDefinitions[levelIdx]
+        val maxHeight =
+            if (translateMapHeight) mapData.levelDefinitions.maxOf { it.worldY + it.pxHei }
+            else level.worldY + level.pxHei
+        levels +=
+            if (mapData.externalLevels) {
+                val path = level.externalRelPath
+                levelLoader.loadLevel(
+                    parent,
+                    path ?: error("Unable to load external level: ${level.identifier}"),
+                    enums,
+                    maxHeight
+                )
+            } else {
+                levelLoader.loadLevel(parent, level, enums, maxHeight)
+            }
 
-        when {
-            loadAllLevels -> {
-                mapData.levelDefinitions.forEach {
-                    levels +=
-                        if (mapData.externalLevels) {
-                            levelLoader.loadLevel(
-                                parent,
-                                it.externalRelPath
-                                    ?: error("Unable to load external level: ${it.identifier}"),
-                                enums
-                            )
-                        } else {
-                            levelLoader.loadLevel(parent, it, enums)
-                        }
+        return LDtkWorld(
+            mapData.worldLayout ?: error("World Layout is not set."),
+            Color.fromHex(mapData.bgColor),
+            Color.fromHex(mapData.defaultLevelBgColor),
+            levels,
+            levelLoader.tilesets,
+            enums,
+            entityDefinitions
+        )
+    }
+
+    /**
+     * Load the LDtk tilemap into a [LDtkWorld] by loading all levels.
+     *
+     * @param translateMapHeight if true, the loader will translate each levels 'y' coordinate by
+     *   the height of the entire map. Set this to false, if loading individual levels and rendering
+     *   them only one at a time in order to have the level base off of the 0,0 coordinate.
+     * @return the loaded [LDtkWorld]
+     */
+    suspend fun loadMap(translateMapHeight: Boolean = true): LDtkWorld {
+        val parent = root.parent
+        val levels = mutableListOf<LDtkLevel>()
+        val mapHeight = mapData.levelDefinitions.maxOf { it.worldY + it.pxHei }
+        mapData.levelDefinitions.forEach {
+            val maxHeight = if (translateMapHeight) mapHeight else it.worldY + it.pxHei
+            levels +=
+                if (mapData.externalLevels) {
+                    levelLoader.loadLevel(
+                        parent,
+                        it.externalRelPath
+                            ?: error("Unable to load external level: ${it.identifier}"),
+                        enums,
+                        maxHeight
+                    )
+                } else {
+                    levelLoader.loadLevel(parent, it, enums, maxHeight)
                 }
-            }
-            else -> {
-                val level = mapData.levelDefinitions[levelIdx]
-                levels +=
-                    if (mapData.externalLevels) {
-                        val path = level.externalRelPath
-                        levelLoader.loadLevel(
-                            parent,
-                            path ?: error("Unable to load external level: ${level.identifier}"),
-                            enums
-                        )
-                    } else {
-                        levelLoader.loadLevel(parent, level, enums)
-                    }
-            }
         }
-
         return LDtkWorld(
             mapData.worldLayout ?: error("World Layout is not set."),
             Color.fromHex(mapData.bgColor),
@@ -91,21 +116,28 @@ class LDtkMapLoader(
      * Load a specific level from LDtk.
      *
      * @param levelIdx the index of the level to load
+     * @param translateMapHeight if true, the loader will translate each levels 'y' coordinate by
+     *   the height of the entire map. Set this to false, if loading individual levels and rendering
+     *   them only one at a time in order to have the level base off of the 0,0 coordinate.
      * @return the loaded [LDtkLevel]
      */
-    suspend fun loadLevel(levelIdx: Int): LDtkLevel {
+    suspend fun loadLevel(levelIdx: Int, translateMapHeight: Boolean = true): LDtkLevel {
         val parent = root.parent
         val level = mapData.levelDefinitions[levelIdx]
+        val maxHeight =
+            if (translateMapHeight) mapData.levelDefinitions.maxOf { it.worldY + it.pxHei }
+            else level.worldY + level.pxHei
 
         return if (mapData.externalLevels) {
             val path = level.externalRelPath
             levelLoader.loadLevel(
                 parent,
                 path ?: error("Unable to load external level: ${level.identifier}"),
-                enums
+                enums,
+                maxHeight
             )
         } else {
-            levelLoader.loadLevel(parent, level, enums)
+            levelLoader.loadLevel(parent, level, enums, maxHeight)
         }
     }
 

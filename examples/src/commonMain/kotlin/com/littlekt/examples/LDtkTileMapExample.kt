@@ -21,11 +21,11 @@ class LDtkTileMapExample(context: Context) : ContextListener(context) {
         addCloseOnEsc()
         val device = graphics.device
 
-        val mapLoader = resourcesVfs["ldtk/world-1.5.3.ldtk"].readLDtkMapLoader()
+        val mapLoader = resourcesVfs["ldtk/sample-1.0.ldtk"].readLDtkMapLoader()
         // we are only loading the first level
         // we can load additional levels by doing:
         // mapLoader.loadLevel(levelIdx)
-        val world = mapLoader.loadMap(false, 0)
+        val world = mapLoader.loadMap()
         val surfaceCapabilities = graphics.surfaceCapabilities
         val preferredFormat = graphics.preferredFormat
 
