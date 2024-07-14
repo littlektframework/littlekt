@@ -27,7 +27,7 @@ class AssetProviderExample(context: Context) : ContextListener(context) {
         val pixelFont: BitmapFont by assets.load(resourcesVfs["m5x7_32.fnt"])
         val arialFont: BitmapFont by assets.load(resourcesVfs["arial_32.fnt"])
         val mapLoader: LDtkMapLoader by assets.load(resourcesVfs["ldtk/world-1.5.3.ldtk"])
-        val world: LDtkWorld by assets.prepare { mapLoader.loadMap(true) }
+        val world: LDtkWorld by assets.prepare { mapLoader.loadMap() }
 
         val device = graphics.device
 

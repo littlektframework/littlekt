@@ -78,6 +78,10 @@ class LDtkLevel(
 
     private val viewBounds = Rect()
 
+    init {
+        layers.forEach { it.level = this }
+    }
+
     fun addToCache(cache: SpriteCache, x: Float = 0f, y: Float = 0f, scale: Float = 1f) {
         levelBackgroundImage?.addToCache(cache, x, y, scale)
         for (i in layers.size - 1 downTo 0) {

@@ -51,6 +51,9 @@ open class LDtkLayer(
     /** Layer opacity (0-1) * */
     val opacity: Float,
 ) : TileLayer() {
+    lateinit var level: LDtkLevel
+        internal set
+
     protected val cacheIds by lazy { mutableListOf<SpriteId>() }
 
     /** @return TRUE if grid-based coordinates are within layer bounds. */
