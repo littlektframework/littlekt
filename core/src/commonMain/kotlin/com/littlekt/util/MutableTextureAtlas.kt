@@ -89,15 +89,15 @@ class MutableTextureAtlas(val context: Context, options: PackingOptions = Packin
                         it.isRotated,
                         slice.offsetX != 0 ||
                             slice.offsetY != 0 ||
-                            slice.packedWidth != slice.width ||
-                            slice.packedHeight != slice.height,
+                            slice.trimmedWidth != slice.width ||
+                            slice.trimmedHeight != slice.height,
                         AtlasPage.Rect(
                             slice.offsetX,
                             slice.offsetY,
-                            slice.packedWidth,
-                            slice.packedHeight
+                            slice.trimmedWidth,
+                            slice.trimmedHeight
                         ),
-                        AtlasPage.Size(slice.originalWidth, slice.originalHeight)
+                        AtlasPage.Size(slice.actualWidth, slice.actualHeight)
                     )
             }
             pages += AtlasPage(meta, frames = frames)

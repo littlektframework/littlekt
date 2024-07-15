@@ -61,8 +61,8 @@ open class TextureRect : Control() {
     var stretchMode = StretchMode.KEEP
 
     /**
-     * If `true`, then the internal size calculations with use the [TextureSlice.originalWidth] &
-     * [TextureSlice.originalHeight] for its sizing instead of the trimmed width & height. This is
+     * If `true`, then the internal size calculations with use the [TextureSlice.actualWidth] &
+     * [TextureSlice.actualHeight] for its sizing instead of the trimmed width & height. This is
      * useful if a TextureSlice requires the empty margin around it.
      */
     var useOriginalSize = false
@@ -103,9 +103,9 @@ open class TextureRect : Control() {
                 sliceX -= it.virtualFrame?.x ?: 0f
                 sliceY -= it.virtualFrame?.y ?: 0f
             }
-            var sliceWidth = if (useOriginalSize) it.originalWidth.toFloat() else it.width.toFloat()
+            var sliceWidth = if (useOriginalSize) it.actualWidth.toFloat() else it.width.toFloat()
             var sliceHeight =
-                if (useOriginalSize) it.originalHeight.toFloat() else it.height.toFloat()
+                if (useOriginalSize) it.actualHeight.toFloat() else it.height.toFloat()
 
             when (stretchMode) {
                 StretchMode.SCALE -> {
@@ -233,10 +233,10 @@ open class TextureRect : Control() {
         if (!minSizeInvalid) return
 
         _internalMinWidth =
-            if (useOriginalSize) _slice?.originalWidth?.toFloat() ?: 0f
+            if (useOriginalSize) _slice?.actualWidth?.toFloat() ?: 0f
             else _slice?.width?.toFloat() ?: 0f
         _internalMinHeight =
-            if (useOriginalSize) _slice?.originalHeight?.toFloat() ?: 0f
+            if (useOriginalSize) _slice?.actualHeight?.toFloat() ?: 0f
             else _slice?.height?.toFloat() ?: 0f
 
         minSizeInvalid = false
