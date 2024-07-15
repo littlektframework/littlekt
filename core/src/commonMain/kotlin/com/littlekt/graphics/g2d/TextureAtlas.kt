@@ -25,6 +25,7 @@ internal constructor(private val textures: Map<String, Texture>, info: AtlasInfo
             .flatMap { page -> page.frames.map { frame -> Entry(frame, page) } }
             .sortedWith { o1, o2 -> o1.name.compareName(o2.name) }
 
+    /** A map of all [entries] in the atlas, associated by its name. */
     val entriesMap = entries.associateBy { it.name }
 
     /**
@@ -51,12 +52,14 @@ internal constructor(private val textures: Map<String, Texture>, info: AtlasInfo
                         virtualFrame =
                             Rect(
                                 frame.spriteSourceSize.x.toFloat(),
-                                frame.spriteSourceSize.y.toFloat(),
+                                frame.sourceSize.h -
+                                    frame.frame.h -
+                                    frame.spriteSourceSize.y.toFloat(),
                                 frame.spriteSourceSize.w.toFloat(),
                                 frame.spriteSourceSize.h.toFloat()
                             )
-                        originalWidth = frame.sourceSize.w
-                        originalHeight = frame.sourceSize.h
+                        actualWidth = frame.sourceSize.w
+                        actualHeight = frame.sourceSize.h
                     }
                 }
         val name

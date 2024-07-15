@@ -160,7 +160,7 @@ class SpriteBatch(
         ensureDrawCall(slice.texture)
 
         var fx = -(originX - slice.offsetX)
-        var fy = -originY
+        var fy = -(originY - slice.offsetY)
         val w = if (slice.rotated) height else width
         val h = if (slice.rotated) width else height
         var fx2 = w + fx
@@ -292,7 +292,7 @@ class SpriteBatch(
         ensureDrawCall(slice.texture)
 
         var fx = -(originX - slice.offsetX)
-        var fy = -originY
+        var fy = -(originY - slice.offsetY)
         val w = if (slice.rotated) height else width
         val h = if (slice.rotated) width else height
         var fx2 = w + fx

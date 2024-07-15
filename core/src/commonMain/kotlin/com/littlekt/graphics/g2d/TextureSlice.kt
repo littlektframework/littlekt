@@ -122,29 +122,45 @@ open class TextureSlice(
     val isFlipV: Boolean
         get() = v > v1
 
+    /** The virtual drawing frame of the trimmed image, if applicable. */
     var virtualFrame: Rect? = null
 
+    /**
+     * The offset from the left of the unpacked image to the left of the packed image after
+     * whitespace was trimmed.
+     */
     val offsetX: Int
         get() = virtualFrame?.x?.toInt() ?: 0
 
+    /**
+     * The offset from the bottom of the unpacked image to the bottom of the packed image after
+     * whitespace was removed.
+     */
     val offsetY: Int
         get() = virtualFrame?.y?.toInt() ?: 0
 
-    val packedWidth: Int
+    /** The width after whitespace was trimmed. */
+    val trimmedWidth: Int
         get() = virtualFrame?.width?.toInt() ?: width
 
-    val packedHeight: Int
+    /** The height after whitespace was trimmed. */
+    val trimmedHeight: Int
         get() = virtualFrame?.height?.toInt() ?: height
 
-    var originalWidth: Int = abs(width)
-    var originalHeight: Int = abs(height)
+    /** The width before whitespace was trimmed. */
+    var actualWidth: Int = abs(width)
 
+    /** The height before whitespace was trimmed. */
+    var actualHeight: Int = abs(height)
+
+    /** if true, indicates this slice was rotated 90 degrees CCW. */
     var rotated: Boolean = false
 
     init {
         setSlice(x, y, width, height)
     }
 
+    /** Set this slice's UV coordinates and width / height based on the region specified. */
     fun setSlice(x: Int, y: Int, width: Int, height: Int) {
         val invTexWidth = 1f / texture.width
         val invTexHeight = 1f / texture.height
@@ -158,6 +174,9 @@ open class TextureSlice(
         this.height = abs(height)
     }
 
+    /**
+     * Set this slice's UV coordinates. Width & height will be calculated from the new coordinates.
+     */
     fun setSlice(u: Float, v: Float, u2: Float, v2: Float) {
         width = (abs(u2 - u) * texture.width).roundToInt()
         height = (abs(v2 - v) * texture.height).roundToInt()
@@ -168,22 +187,29 @@ open class TextureSlice(
         this.v1 = v2
     }
 
+    /** Set this slice to match the specified [slice] coordinates. */
     fun setSlice(slice: TextureSlice) {
         texture = slice.texture
         setSlice(slice.u, slice.v, slice.u1, slice.v1)
     }
 
+    /**
+     * Set this slice to match the specified [slice] coordinates plus an additional offset and using
+     * specified size.
+     */
     fun setSlice(slice: TextureSlice, x: Int, y: Int, width: Int, height: Int) {
         texture = slice.texture
         setSlice(slice.x + x, slice.y + y, width, height)
     }
 
+    /** Flip the UV coordinates horizontally. */
     fun flipH() {
         val temp = u
         u = u1
         u1 = temp
     }
 
+    /** Flip the UV coordinates vertically. */
     fun flipV() {
         val temp = v
         v = v1
