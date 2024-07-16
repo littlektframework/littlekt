@@ -36,18 +36,19 @@ repositories {
 kotlin {
     jvm {
         compilations.all {
-            kotlinOptions.jvmTarget = "17" // littlekt targets jvm 17 so we must target at least 17
+            kotlinOptions.jvmTarget = "21" // littlekt targets jvm 21 so we must target at least 21
         }
     }
 }
 
-val littleKtVersion = "0.9.0" // get the latest release at the top
-val kotlinCoroutinesVersion = "1.8.0" // or whatever version you are using
+val littleKtVersion = "0.10.0" // get the latest release at the top
+val kotlinCoroutinesVersion = "1.9.0-RC" // or whatever version you are using
 
 sourceSets {
     val commonMain by getting {
         dependencies {
-            implementation("com.lehaine.littlekt:core:$littleKtVersion")
+            implementation("com.littlekt:core:$littleKtVersion")
+            implementation("com.littlekt:scene-graph:$littleKtVersion") // optional scene-graph module
             implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinCoroutinesVersion")  // littlekt requires coroutines library on the classpath
         }
     }
@@ -71,18 +72,19 @@ repositories {
 kotlin {
     jvm {
         compilations.all {
-            kotlinOptions.jvmTarget = "17" // littlekt targets jvm 17 so we must target at least 17
+            kotlinOptions.jvmTarget = "21" // littlekt targets jvm 21 so we must target at least 17
         }
     }
 }
 
-val littleKtVersion = "0.9.0.135d970-SNAPSHOT" // or whichever hash you are using
-val kotlinCoroutinesVersion = "1.8.0" // or whatever version you are using
+val littleKtVersion = "0.10.0.a9529eb-SNAPSHOT" // or whichever hash you are using
+val kotlinCoroutinesVersion = "1.9.0-RC" // or whatever version you are using
 
 sourceSets {
     val commonMain by getting {
         dependencies {
-            implementation("com.lehaine.littlekt:core:$littleKtVersion")
+            implementation("com.littlekt:core:$littleKtVersion")
+            implementation("com.littlekt:scene-graph:$littleKtVersion") // optional scene-graph module
             implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinCoroutinesVersion")  // littlekt requires coroutines library on the classpath
         }
     }
