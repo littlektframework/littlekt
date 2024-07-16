@@ -23,7 +23,7 @@ abstract class SpriteShader(
     device: Device,
     src: String,
     layout: List<BindGroupLayoutDescriptor>,
-    cameraDynamicSize: Int = 10
+    cameraDynamicSize: Int = 50
 ) : Shader(device, src, layout) {
 
     private val camFloatBuffer = FloatBuffer(16)

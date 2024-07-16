@@ -41,7 +41,7 @@ class SpriteBatch(
     initHeight: Int,
     val format: TextureFormat,
     private val size: Int = 1000,
-    private val cameraDynamicSize: Int = 10
+    private val cameraDynamicSize: Int = 50
 ) : Batch {
 
     constructor(
@@ -49,7 +49,7 @@ class SpriteBatch(
         graphics: Graphics,
         format: TextureFormat,
         size: Int = 1000,
-        cameraDynamicSize: Int = 10
+        cameraDynamicSize: Int = 50
     ) : this(device, graphics.width, graphics.height, format, size, cameraDynamicSize)
 
     /**
