@@ -15,9 +15,6 @@ open class Material(
     /** The [BlendState] this material uses. Defaults to [BlendState.NonPreMultiplied]. */
     var blendMode: BlendState = BlendState.NonPreMultiplied
 
-    //    /** The [DepthStencilMode] this material uses. Defaults to [DepthStencilMode.None]. */
-    //    var depthStencilMode: DepthStencilState = DepthStencilState.None
-
     /** Can be used to set shader uniforms and such right before rendering. */
     open fun onPreRender() = Unit
 

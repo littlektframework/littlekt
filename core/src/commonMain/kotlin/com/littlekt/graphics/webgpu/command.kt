@@ -189,7 +189,39 @@ data class DepthStencilState(
     val stencil: StencilState =
         StencilState(StencilFaceState.IGNORE, StencilFaceState.IGNORE, 0xF, 0Xf),
     val bias: DepthBiasState = DepthBiasState(0, 0f, 0f)
-)
+) {
+    companion object {
+        fun depthWrite(format: TextureFormat): DepthStencilState =
+            DepthStencilState(
+                format = format,
+                depthWriteEnabled = true,
+                depthCompare = CompareFunction.LESS_EQUAL
+            )
+
+        fun depthRead(format: TextureFormat): DepthStencilState =
+            DepthStencilState(
+                format = format,
+                depthWriteEnabled = false,
+                depthCompare = CompareFunction.LESS_EQUAL
+            )
+
+        fun stencilWrite(format: TextureFormat): DepthStencilState =
+            DepthStencilState(
+                format = format,
+                depthWriteEnabled = true,
+                depthCompare = CompareFunction.LESS_EQUAL,
+                stencil = StencilState(StencilFaceState.WRITE, StencilFaceState.WRITE, 0xF, 0xF)
+            )
+
+        fun stencilRead(format: TextureFormat): DepthStencilState =
+            DepthStencilState(
+                format = format,
+                depthWriteEnabled = true,
+                depthCompare = CompareFunction.LESS_EQUAL,
+                stencil = StencilState(StencilFaceState.READ, StencilFaceState.READ, 0xF, 0xF)
+            )
+    }
+}
 
 /**
  * State of the stencil operation (fixed-pipeline stage).
@@ -232,10 +264,28 @@ data class StencilFaceState(
         /** Ignore the stencil state for the face. */
         val IGNORE: StencilFaceState =
             StencilFaceState(
-                CompareFunction.ALWAYS,
-                StencilOperation.KEEP,
-                StencilOperation.KEEP,
-                StencilOperation.KEEP
+                compare = CompareFunction.ALWAYS,
+                failOp = StencilOperation.KEEP,
+                depthFailOp = StencilOperation.KEEP,
+                passOp = StencilOperation.KEEP
+            )
+
+        /** Write stencil state for the face. */
+        val WRITE: StencilFaceState =
+            StencilFaceState(
+                compare = CompareFunction.ALWAYS,
+                failOp = StencilOperation.KEEP,
+                depthFailOp = StencilOperation.KEEP,
+                passOp = StencilOperation.REPLACE
+            )
+
+        /** Read stencil state for the face. */
+        val READ: StencilFaceState =
+            StencilFaceState(
+                compare = CompareFunction.EQUAL,
+                failOp = StencilOperation.KEEP,
+                depthFailOp = StencilOperation.KEEP,
+                passOp = StencilOperation.KEEP
             )
     }
 }
