@@ -365,7 +365,13 @@ open class SceneGraph<InputType>(
         // check for Material changes
         if (node.material != currentMaterial) {
             currentMaterial = node.material
-            currentMaterial?.let { mat -> mat.shader?.let { mat.onPreRender() } }
+            currentMaterial?.let { mat ->
+                batch.setBlendState(mat.blendMode)
+                mat.shader?.let {
+                    mat.onPreRender()
+                    batch.shader = it
+                }
+            }
         }
     }
 
