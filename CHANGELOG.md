@@ -10,10 +10,11 @@
       same `begin() -> draw() -> end()` flow but requires WebGPU specific classes.
     * `graphics.gl.*` classes replaced with `graphics.webgpu.*`
 * Remove the Android target until a generator can be created for the WGPU natives for JNI (Future update).
+* The module group id, for defining in dependencies, has been changed from `com.lehaine.littlekt` to `com.littlekt`.
 * The **scene-graph** module has been extracted into its own package and will explicitly be defined in your
-  dependencies.
-    * Remove `FrameBufferNode` and related UI classes. Use `CanvasLayerContainer` and `CanvasLayer` for FBO related
-      purposes.
+  dependencies: `com.littlekt:scene-graph`
+* Remove `FrameBufferNode` and related UI classes. Use `CanvasLayerContainer` and `CanvasLayer` for FBO related
+  purposes.
 * Remove `FrameBuffer` class. WebGPUs `RenderPass` is essentially a Framebuffer / Render target.
 * Remove `GlslGenerator` and all related classes. Use `WGSL` for your shader needs, either by loading them from a file
   or directly in a string.
@@ -23,6 +24,8 @@
 * Remove `FitViewport` and `FillViewport` as they don't work with the current viewport limitations WebGPU imposes.
   WebGPU doesn't allow out-of-bounds viewports which causes a fatal error. There is no workaround without getting clever
   with shaders.
+* Update `TextureSlice.originalWidth/Height` & `TextureSlice.packedWidth/Height` to `actualWidth/Height`
+  and `trimmedWidth/Height`, respecitively.
 
 ### Changes
 
