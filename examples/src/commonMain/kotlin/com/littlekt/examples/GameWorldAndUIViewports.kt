@@ -26,7 +26,7 @@ class GameWorldAndUIViewports(context: Context) : ContextListener(context) {
         // we are only loading the first level
         // we can load additional levels by doing:
         // mapLoader.loadLevel(levelIdx)
-        val world = mapLoader.loadMap(0)
+        val world = mapLoader.loadMap(0, translateMapHeight = false)
         val surfaceCapabilities = graphics.surfaceCapabilities
         val preferredFormat = graphics.preferredFormat
 
