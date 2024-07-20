@@ -919,7 +919,7 @@ open class Control : CanvasItem() {
                 RIGHT_WIDE,
                 TOP_WIDE,
                 VCENTER_WIDE,
-                FULL -> parentRect.height * (1f - _anchorTop) + combinedMinHeight + parentRect.y
+                FULL -> parentRect.height * (1f - _anchorTop) + parentRect.y
                 CENTER_LEFT,
                 CENTER_RIGHT,
                 CENTER,
