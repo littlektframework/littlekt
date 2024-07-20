@@ -63,11 +63,12 @@ open class AssetProvider(val context: Context) {
     /** Updates to check if all assets have been loaded, and if so, prepare them. */
     fun update() {
         if (totalAssetsLoading.value > 0) return
-        if (job?.isActive != true) {
+        if (job?.isActive != true && assetsToPrepare.isNotEmpty()) {
+            val prepare = assetsToPrepare.toList()
+            assetsToPrepare.clear()
             job =
                 KtScope.launch {
-                    assetsToPrepare.fastForEach { it.prepare() }
-                    assetsToPrepare.clear()
+                    prepare.fastForEach { it.prepare() }
                     onFullyLoaded?.invoke()
                 }
         }
