@@ -2,6 +2,10 @@
 
 ## 0.10.1 (SNAPSHOT)
 
+### Changes
+
+- Fix miscalculation for **scene-graph** `Cotnrol.anchor()` for `TOP_*` related layouts.
+
 ## 0.10.0
 
 ### Breaking
