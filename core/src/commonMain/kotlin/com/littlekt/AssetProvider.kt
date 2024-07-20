@@ -51,32 +51,23 @@ open class AssetProvider(val context: Context) {
     val assets: Map<KClass<*>, Map<VfsFile, GameAsset<*>>>
         get() = _assets
 
-    /**
-     * Holds the current state of assets being prepared.
-     *
-     * @see prepare
-     */
-    var prepared = false
-        protected set
-
     /** A lambda that is invoked once all assets have been loaded and prepared. */
     var onFullyLoaded: (() -> Unit)? = null
 
     /** Determines if it has been fully loaded. */
     val fullyLoaded: Boolean
-        get() = totalAssetsLoading.value == 0 && prepared
+        get() = totalAssetsLoading.value == 0 && assetsToPrepare.isEmpty()
 
     private var job: Job? = null
 
     /** Updates to check if all assets have been loaded, and if so, prepare them. */
     fun update() {
         if (totalAssetsLoading.value > 0) return
-        if (!prepared && job?.isActive != true) {
+        if (job?.isActive != true) {
             job =
                 KtScope.launch {
                     assetsToPrepare.fastForEach { it.prepare() }
                     assetsToPrepare.clear()
-                    prepared = true
                     onFullyLoaded?.invoke()
                 }
         }
