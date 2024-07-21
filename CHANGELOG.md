@@ -5,6 +5,7 @@
 ### Changes
 
 - Fix miscalculation for **scene-graph** `Cotnrol.anchor()` for `TOP_*` related layouts.
+- Fix `AssetProvider` to asset preparation logic not preparing additional assets after the initial preparation.
 
 ## 0.10.0
 
