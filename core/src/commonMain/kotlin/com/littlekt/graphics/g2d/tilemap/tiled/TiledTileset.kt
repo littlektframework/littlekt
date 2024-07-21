@@ -20,7 +20,8 @@ class TiledTileset(val tileWidth: Int, val tileHeight: Int, val tiles: List<Tile
         val offsetX: Int,
         val offsetY: Int,
         val frames: List<AnimatedTile>,
-        val properties: Map<String, TiledMap.Property>
+        val properties: Map<String, TiledMap.Property>,
+        val objectGroup: TiledObjectLayer?,
     )
 
     data class AnimatedTile(
