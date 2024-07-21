@@ -68,6 +68,10 @@ class TiledTilesLayer(
     private val bottomRight = MutableVec2f()
     private val bottomLeft = MutableVec2f()
 
+    /** Returns [TileData.id] of a tile with coordinates of [x], [y]. */
+    fun getTileId(x: Int, y: Int): Int =
+        tileData[getCoordId(x, y)].bitsToTileId()
+
     override fun render(
         batch: Batch,
         viewBounds: Rect,
