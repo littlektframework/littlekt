@@ -35,7 +35,7 @@ class OpenALAudioStream(
 
     override var volume: Float = 1f
         set(value) {
-            check(value > 0) { "Volume must be greater than 0!" }
+            check(value >= 0) { "Volume must not be less than 0!" }
             field = value
             if (NO_DEVICE) return
             if (sourceID != -1) {
