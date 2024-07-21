@@ -28,7 +28,7 @@ abstract class TiledLayer(
     /** This layers identifier. */
     val id: Int,
     /** If this layer is visible or hidden. */
-    val visible: Boolean,
+    var visible: Boolean,
     /** The width of this layer in cells. */
     val width: Int,
     /** The height of this layer in cells. */
