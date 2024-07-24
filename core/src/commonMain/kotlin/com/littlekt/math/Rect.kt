@@ -44,7 +44,7 @@ open class Rect(
     }
 
     /** @return true if this [Rect] intersects with the target [rect]. */
-    fun intersects(rect: Rect) = intersects(left = rect.x, rect.y, rect.x2, rect.y2)
+    fun intersects(rect: Rect) = intersects(left = rect.x, rect.y2, rect.x2, rect.y)
 
     /**
      * @param left the left-most coordinates
