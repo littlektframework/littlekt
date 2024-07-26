@@ -79,8 +79,34 @@ class InputMapController<InputSignal>(
     /**
      * Create a binding of multiple keys and buttons into a single [InputSignal].
      *
+     * Examples:
+     *
+     * **Add a key binding that will trigger whenever any of the following keys are pressed: SPACE,
+     * W, or ARROW_UP**
+     *
+     * ```
+     * controller.addBinding(GameInput.JUMP, keys = listOf(Key.SPACE, Key.W, Key.ARROW_UP))
+     * ```
+     *
+     * **Add a key binding that will trigger whenever ALL of the following keys are pressed: CTRL +
+     * SHIFT + S**
+     *
+     * ```
+     * controller.addBinding(GameInput.SAVE, keys = listOf(Key.S), keyModifiers = listOf(KeyModifier.SHIFT, KeyModifier.CTRL))
+     * ```
+     *
+     * **Add a key binding that will trigger whenever ALL of the following keys are pressed: CTRL +
+     * SHIFT + S + R**
+     *
+     * ```
+     * controller.addBinding(GameInput.RESTART, keys = listOf(Key.S, Key.R), keyModifiers = listOf(KeyModifier.SHIFT, KeyModifier.CTRL))
+     * ```
+     *
      * @param type the [InputSignal] that is triggered by one of the keys or buttons
      * @param keys a list of [Key] types that triggers the [InputSignal]
+     * @param keyModifiers a list of [KeyModifier] that are used in combination with [keys]. When
+     *   this list is NOT empty then all of items in [keys] and [keyModifiers] must be pressed in
+     *   order for [type] to trigger.
      * @param buttons a list of [GameButton] types that triggers the [InputSignal]
      * @param axes a list of [GameAxis] types that triggers the [InputSignal]
      * @see [Key]
