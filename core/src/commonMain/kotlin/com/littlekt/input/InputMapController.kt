@@ -149,10 +149,10 @@ class InputMapController<InputSignal>(
         vectors[type] = InputVector(positiveX, positiveY, negativeX, negativeY)
     }
 
-    val isTouching
+    val isTouching: Boolean
         get() = input.isTouching
 
-    val justTouched
+    val justTouched: Boolean
         get() = input.justTouched
 
     /**
@@ -328,14 +328,15 @@ class InputMapController<InputSignal>(
                     if (handled) return true
                 }
             }
-        } else {
-            keyToType[key]?.forEach {
-                processors.forEach { processor ->
-                    val handled = processor.onActionDown(it)
-                    if (handled) return true
-                }
+        }
+
+        keyToType[key]?.forEach {
+            processors.forEach { processor ->
+                val handled = processor.onActionDown(it)
+                if (handled) return true
             }
         }
+
         return false
     }
 
@@ -490,16 +491,19 @@ class InputMapController<InputSignal>(
         singleKey: (Key) -> Boolean,
         modifierKey: (List<KeyModifier>, List<Key>) -> Boolean,
     ): Float {
+        if (anyModifierPressed) {
+            keyBindingsWithModifiers[type]?.let outside@{ binding ->
+                if (binding.modifiers.isNotEmpty() && binding.keys.isNotEmpty()) {
+                    if (modifierKey(binding.modifiers, binding.keys)) {
+                        return 1f
+                    }
+                }
+            }
+        }
+
         keyBindings[type]?.fastForEach {
             if (singleKey(it)) {
                 return 1f
-            }
-        }
-        keyBindingsWithModifiers[type]?.let outside@{ binding ->
-            if (binding.modifiers.isNotEmpty() && binding.keys.isNotEmpty()) {
-                if (modifierKey(binding.modifiers, binding.keys)) {
-                    return 1f
-                }
             }
         }
         return 0f
@@ -514,18 +518,14 @@ class InputMapController<InputSignal>(
             keyBindingsWithModifiers[type]?.let outside@{ binding ->
                 return modifierKey(binding.modifiers, binding.keys)
             }
-        } else {
-            keyBindings[type]?.fastForEach {
-                if (singleKey(it)) {
-                    return true
-                }
-            }
-            keyBindingsWithModifiers[type]?.let outside@{ binding ->
-                if (binding.modifiers.isNotEmpty() && binding.keys.isNotEmpty()) {
-                    return modifierKey(binding.modifiers, binding.keys)
-                }
+        }
+
+        keyBindings[type]?.fastForEach {
+            if (singleKey(it)) {
+                return true
             }
         }
+
         return false
     }
 
