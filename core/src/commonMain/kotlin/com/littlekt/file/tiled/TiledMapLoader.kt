@@ -6,9 +6,20 @@ import com.littlekt.file.vfs.VfsFile
 import com.littlekt.file.vfs.baseName
 import com.littlekt.file.vfs.pathInfo
 import com.littlekt.file.vfs.readTexture
-import com.littlekt.graphics.*
+import com.littlekt.graphics.Color
+import com.littlekt.graphics.HAlign
+import com.littlekt.graphics.Texture
+import com.littlekt.graphics.VAlign
 import com.littlekt.graphics.g2d.TextureAtlas
-import com.littlekt.graphics.g2d.tilemap.tiled.*
+import com.littlekt.graphics.g2d.tilemap.tiled.TiledGroupLayer
+import com.littlekt.graphics.g2d.tilemap.tiled.TiledImageLayer
+import com.littlekt.graphics.g2d.tilemap.tiled.TiledLayer
+import com.littlekt.graphics.g2d.tilemap.tiled.TiledMap
+import com.littlekt.graphics.g2d.tilemap.tiled.TiledObjectLayer
+import com.littlekt.graphics.g2d.tilemap.tiled.TiledTilesLayer
+import com.littlekt.graphics.g2d.tilemap.tiled.TiledTileset
+import com.littlekt.graphics.slice
+import com.littlekt.graphics.sliceWithBorder
 import com.littlekt.math.Rect
 import com.littlekt.math.geom.Point
 import com.littlekt.math.geom.degrees
@@ -98,92 +109,7 @@ internal constructor(
                         },
                     tiles = tiles
                 )
-            "objectgroup" -> {
-                TiledObjectLayer(
-                    type = layerData.type,
-                    name = layerData.name,
-                    id = layerData.id,
-                    visible = layerData.visible,
-                    width = layerData.width,
-                    height = layerData.height,
-                    offsetX = layerData.offsetx,
-                    offsetY = -layerData.offsety,
-                    tileWidth = mapData.tilewidth,
-                    tileHeight = mapData.tileheight,
-                    tintColor = layerData.tintcolor?.let { Color.fromHex(it) },
-                    opacity = layerData.opacity,
-                    drawOrder = layerData.draworder?.toDrawOrder(),
-                    objects =
-                        layerData.objects.map { objectData ->
-                            TiledMap.Object(
-                                id = objectData.id,
-                                gid = objectData.gid,
-                                name = objectData.name,
-                                type = objectData.type,
-                                bounds =
-                                    Rect(
-                                        objectData.x,
-                                        mapData.height * mapData.tileheight - objectData.y,
-                                        objectData.width,
-                                        objectData.height
-                                    ),
-                                rotation = objectData.rotation.degrees,
-                                visible = objectData.visible,
-                                shape =
-                                    when {
-                                        objectData.ellipse ->
-                                            TiledMap.Object.Shape.Ellipse(
-                                                objectData.width,
-                                                objectData.height
-                                            )
-                                        objectData.point -> TiledMap.Object.Shape.Point
-                                        objectData.polygon != null ->
-                                            TiledMap.Object.Shape.Polygon(
-                                                objectData.polygon.map { Point(it.x, -it.y) }
-                                            )
-                                        objectData.polyline != null ->
-                                            TiledMap.Object.Shape.Polyline(
-                                                objectData.polyline.map { Point(it.x, -it.y) }
-                                            )
-                                        objectData.text != null ->
-                                            TiledMap.Object.Shape.Text(
-                                                fontFamily = objectData.text.fontfamily,
-                                                pixelSize = objectData.text.pixelsize,
-                                                wordWrap = objectData.text.wrap,
-                                                color = Color.fromHex(objectData.text.color),
-                                                bold = objectData.text.bold,
-                                                italic = objectData.text.italic,
-                                                underline = objectData.text.underline,
-                                                strikeout = objectData.text.strikeout,
-                                                kerning = objectData.text.kerning,
-                                                hAlign =
-                                                    when (objectData.text.halign) {
-                                                        "left" -> HAlign.LEFT
-                                                        "center" -> HAlign.CENTER
-                                                        "right" -> HAlign.RIGHT
-                                                        else -> HAlign.LEFT
-                                                    },
-                                                vAlign =
-                                                    when (objectData.text.valign) {
-                                                        "top" -> VAlign.TOP
-                                                        "center" -> VAlign.CENTER
-                                                        "bottom" -> VAlign.BOTTOM
-                                                        else -> VAlign.TOP
-                                                    }
-                                            )
-                                        else ->
-                                            TiledMap.Object.Shape.Rectangle(
-                                                objectData.width,
-                                                objectData.height
-                                            )
-                                    },
-                                properties = objectData.properties.toTiledMapProperty()
-                            )
-                        },
-                    properties = layerData.properties.toTiledMapProperty(),
-                    tiles = tiles
-                )
-            }
+            "objectgroup" -> layerData.toObjectLayer(mapData, tiles)
             "imagelayer" -> {
                 TiledImageLayer(
                     type = layerData.type,
@@ -283,7 +209,8 @@ internal constructor(
                                     offsetY = offsetY,
                                 )
                             } ?: emptyList(),
-                        properties = tileData?.properties?.toTiledMapProperty() ?: emptyMap()
+                        properties = tileData?.properties?.toTiledMapProperty() ?: emptyMap(),
+                        objectGroup = tileData?.objectgroup?.toObjectLayer(mapData, emptyMap())
                     )
                 }
         )
@@ -340,4 +267,96 @@ internal constructor(
             "topdown" -> TiledMap.Object.DrawOrder.TOP_DOWN
             else -> null
         }
+
+    private fun TiledLayerData.toObjectLayer(
+        mapData: TiledMapData,
+        tiles: Map<Int, TiledTileset.Tile>
+    ) = TiledObjectLayer(
+        type = type,
+        name = name,
+        id = id,
+        visible = visible,
+        width = width,
+        height = height,
+        offsetX = offsetx,
+        offsetY = -offsety,
+        tileWidth = mapData.tilewidth,
+        tileHeight = mapData.tileheight,
+        tintColor = tintcolor?.let { Color.fromHex(it) },
+        opacity = opacity,
+        drawOrder = draworder?.toDrawOrder(),
+        objects =
+            objects.map { objectData ->
+                TiledMap.Object(
+                    id = objectData.id,
+                    gid = objectData.gid,
+                    name = objectData.name,
+                    type = objectData.type,
+                    bounds =
+                    Rect(
+                        objectData.x,
+                        mapData.height * mapData.tileheight - objectData.y,
+                        objectData.width,
+                        objectData.height
+                    ),
+                    rotation = objectData.rotation.degrees,
+                    visible = objectData.visible,
+                    shape =
+                    when {
+                        objectData.ellipse ->
+                            TiledMap.Object.Shape.Ellipse(
+                                objectData.width,
+                                objectData.height
+                            )
+
+                        objectData.point -> TiledMap.Object.Shape.Point
+                        objectData.polygon != null ->
+                            TiledMap.Object.Shape.Polygon(
+                                objectData.polygon.map { Point(it.x, -it.y) }
+                            )
+
+                        objectData.polyline != null ->
+                            TiledMap.Object.Shape.Polyline(
+                                objectData.polyline.map { Point(it.x, -it.y) }
+                            )
+
+                        objectData.text != null ->
+                            TiledMap.Object.Shape.Text(
+                                fontFamily = objectData.text.fontfamily,
+                                pixelSize = objectData.text.pixelsize,
+                                wordWrap = objectData.text.wrap,
+                                color = Color.fromHex(objectData.text.color),
+                                bold = objectData.text.bold,
+                                italic = objectData.text.italic,
+                                underline = objectData.text.underline,
+                                strikeout = objectData.text.strikeout,
+                                kerning = objectData.text.kerning,
+                                hAlign =
+                                when (objectData.text.halign) {
+                                    "left" -> HAlign.LEFT
+                                    "center" -> HAlign.CENTER
+                                    "right" -> HAlign.RIGHT
+                                    else -> HAlign.LEFT
+                                },
+                                vAlign =
+                                when (objectData.text.valign) {
+                                    "top" -> VAlign.TOP
+                                    "center" -> VAlign.CENTER
+                                    "bottom" -> VAlign.BOTTOM
+                                    else -> VAlign.TOP
+                                }
+                            )
+
+                        else ->
+                            TiledMap.Object.Shape.Rectangle(
+                                objectData.width,
+                                objectData.height
+                            )
+                    },
+                    properties = objectData.properties.toTiledMapProperty()
+                )
+            },
+        properties = properties.toTiledMapProperty(),
+        tiles = tiles
+    )
 }

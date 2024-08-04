@@ -115,12 +115,15 @@ abstract class TiledLayer(
      */
     fun getCoordId(cx: Int, cy: Int) = cx + (height - 1 - cy) * width
 
+    internal fun Int.bitsToTileId(): Int =
+        this and TiledMap.MASK_CLEAR.inv()
+
     internal fun Int.bitsToTileData(result: TileData): TileData {
         val bits = this
         val flipHorizontally = (bits and TiledMap.FLAG_FLIP_HORIZONTALLY) != 0
         val flipVertically = (bits and TiledMap.FLAG_FLIP_VERTICALLY) != 0
         val flipDiagonally = (bits and TiledMap.FLAG_FLIP_DIAGONALLY) != 0
-        val tileId = bits and TiledMap.MASK_CLEAR.inv()
+        val tileId = bits.bitsToTileId()
 
         var flipX = false
         var flipY = false
