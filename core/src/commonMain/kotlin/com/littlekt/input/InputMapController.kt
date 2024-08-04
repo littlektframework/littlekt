@@ -575,7 +575,7 @@ class InputMapController<InputSignal>(
                 (isAxis && abs(strength) >= deadZone) || !isAxis && strength != 0f
             }
             getButtonAxisStrength(positive, true, predicate) -
-                getButtonAxisStrength(positive, false, predicate)
+                getButtonAxisStrength(negative, false, predicate)
         }
     }
 
