@@ -58,13 +58,13 @@ class Animation<KeyFrameType>(
      * @param index the index of the frame.
      * @return the frame that corresponds to index.
      */
-    fun getFrame(index: Int): KeyFrameType = frames[frameIndices[index umod frames.size]]
+    fun getFrame(index: Int): KeyFrameType = frames[frameIndices[index umod frameIndices.size] umod frames.size]
 
     /**
      * @param index the index of the frame.
      * @return the frame time of the frame.
      */
-    fun getFrameTime(index: Int): Duration = frameTimes[frameIndices[index umod frames.size]]
+    fun getFrameTime(index: Int): Duration = frameTimes[frameIndices[index umod frameIndices.size] umod frameTimes.size]
 
     /**
      * @param index the index of the key frame
