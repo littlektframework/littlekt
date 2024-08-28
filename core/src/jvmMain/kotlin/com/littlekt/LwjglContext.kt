@@ -4,8 +4,8 @@ import com.littlekt.async.KtScope
 import com.littlekt.async.MainDispatcher
 import com.littlekt.async.mainThread
 import com.littlekt.audio.OpenALAudioContext
+import com.littlekt.file.*
 import com.littlekt.file.Base64.decodeFromBase64
-import com.littlekt.file.JvmVfs
 import com.littlekt.file.vfs.VfsFile
 import com.littlekt.file.vfs.readPixmap
 import com.littlekt.graphics.webgpu.WGPU_NULL
@@ -38,13 +38,20 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context() {
     override val stats: AppStats = AppStats()
     override val graphics: LwjglGraphics = LwjglGraphics(this)
     override val logger: Logger = Logger(configuration.title)
+    override val vfsResources: Vfs = JvmResourcesVfs(this, logger)
+    override val vfsUrl: Vfs = JvmUrlVfs(this, logger)
+    override val vfsApplication: Vfs = JvmApplicationVfs(this, logger, ".")
     override val input: LwjglInput = LwjglInput(this)
-    override val vfs = JvmVfs(this, logger, "./.storage", ".")
     override val resourcesVfs: VfsFile
-        get() = vfs.root
+        get() = vfsResources.root
 
-    override val storageVfs: VfsFile
-        get() = VfsFile(vfs, "./.storage")
+    override val urlVfs: VfsFile
+        get() = vfsUrl.root
+
+    override val applicationVfs: VfsFile
+        get() = vfsApplication.root
+
+    override val kvStorage: KeyValueStorage = JvmKeyValueStorage(logger, "./.storage")
 
     override val platform: Platform = Platform.DESKTOP
 

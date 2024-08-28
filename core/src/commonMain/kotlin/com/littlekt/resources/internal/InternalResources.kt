@@ -50,7 +50,7 @@ internal class InternalResources private constructor(private val context: Contex
             else TextureFormat.RGBA8_UNORM
         val device = context.graphics.device
         val page =
-            context.vfs.json.decodeFromString<AtlasPage>(
+            context.vfsUrl.json.decodeFromString<AtlasPage>(
                 defaultTilesJson.decodeFromBase64().decodeToString()
             )
         val info = AtlasInfo(page.meta, listOf(page))

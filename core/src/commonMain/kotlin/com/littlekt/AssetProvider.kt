@@ -91,7 +91,7 @@ open class AssetProvider(val context: Context) {
         parameters: GameAssetParameters = EmptyGameAssetParameter(),
     ): GameAsset<T> {
         val sceneAsset = checkOrCreateNewSceneAsset(file, clazz)
-        context.vfs.launch { loadVfsFile(sceneAsset, file, clazz, parameters) }
+        file.vfs.launch { loadVfsFile(sceneAsset, file, clazz, parameters) }
         return sceneAsset
     }
 

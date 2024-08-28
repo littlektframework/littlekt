@@ -1,5 +1,6 @@
 package com.littlekt
 
+import com.littlekt.file.KeyValueStorage
 import com.littlekt.file.Vfs
 import com.littlekt.file.vfs.VfsFile
 import com.littlekt.input.Input
@@ -67,13 +68,28 @@ abstract class Context {
     abstract val logger: Logger
 
     /** The virtual file system access property. */
-    abstract val vfs: Vfs
+    abstract val vfsResources: Vfs
+
+    /** The virtual file system access property. */
+    abstract val vfsUrl: Vfs
+
+    /** The virtual file system access property. */
+    abstract val vfsApplication: Vfs
 
     /** A [VfsFile] used for accessing data based on the **resources** directory. */
     abstract val resourcesVfs: VfsFile
 
-    /** A [VfsFile] used for storing and reading data based on the **storage** directory. */
-    abstract val storageVfs: VfsFile
+    /** A [VfsFile] used for accessing data from the web or data urls. */
+    abstract val urlVfs: VfsFile
+
+    /** A [VfsFile] used for accessing data based on the application working directory. */
+    abstract val applicationVfs: VfsFile
+
+    /**
+     * A [KeyValueStorage] used for storing and reading simple key-value data based on the
+     * **storage** directory.
+     */
+    abstract val kvStorage: KeyValueStorage
 
     /** The [Platform] this context is running on. */
     abstract val platform: Platform

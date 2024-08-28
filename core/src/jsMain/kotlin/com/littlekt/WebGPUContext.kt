@@ -2,7 +2,7 @@ package com.littlekt
 
 import com.littlekt.async.KT
 import com.littlekt.async.KtScope
-import com.littlekt.file.WebVfs
+import com.littlekt.file.*
 import com.littlekt.file.vfs.VfsFile
 import com.littlekt.graphics.webgpu.Adapter
 import com.littlekt.graphics.webgpu.GPURequestAdapterOptions
@@ -31,12 +31,20 @@ class WebGPUContext(override val configuration: JsConfiguration) : Context() {
     override val graphics: WebGPUGraphics = WebGPUGraphics(canvas)
     override val input: JsInput = JsInput(canvas)
     override val logger: Logger = Logger(configuration.title)
-    override val vfs = WebVfs(this, logger, configuration.rootPath)
-    override val resourcesVfs: VfsFile
-        get() = vfs.root
+    override val vfsResources: Vfs = WebLocalVfs(this, logger, configuration.resourcesPath)
+    override val vfsUrl: Vfs = WebUrlVfs(this, logger)
+    override val vfsApplication: Vfs = WebLocalVfs(this, logger, configuration.applicationPath)
 
-    override val storageVfs: VfsFile
-        get() = vfs.root
+    override val resourcesVfs: VfsFile
+        get() = vfsResources.root
+
+    override val urlVfs: VfsFile
+        get() = vfsUrl.root
+
+    override val applicationVfs: VfsFile
+        get() = vfsApplication.root
+
+    override val kvStorage: KeyValueStorage = WebKeyValueStorage(logger)
 
     override val platform: Platform = Platform.WEB
     override val clipboard: JsClipboard = JsClipboard()
