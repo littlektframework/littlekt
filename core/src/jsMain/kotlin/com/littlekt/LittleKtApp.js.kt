@@ -6,7 +6,8 @@ actual class LittleKtProps {
     var height: Int = 540
     var canvasId: String = "canvas"
     var title: String = "LitteKt"
-    var assetsDir: String = "./"
+    var resourcesDir: String = "./"
+    var applicationDir: String = "./"
     var powerPreference = PowerPreference.HIGH_POWER
 }
 
@@ -19,7 +20,13 @@ actual fun createLittleKtApp(action: LittleKtProps.() -> Unit): LittleKtApp {
     props.action()
     return LittleKtApp(
         WebGPUContext(
-            JsConfiguration(props.title, props.canvasId, props.assetsDir, props.powerPreference)
+            JsConfiguration(
+                title = props.title,
+                canvasId = props.canvasId,
+                resourcesPath = props.resourcesDir,
+                applicationPath = props.applicationDir,
+                powerPreference = props.powerPreference
+            )
         )
     )
 }
@@ -31,7 +38,8 @@ actual fun createLittleKtApp(action: LittleKtProps.() -> Unit): LittleKtApp {
 class JsConfiguration(
     override val title: String = "LittleKt - JS",
     val canvasId: String = "canvas",
-    val rootPath: String = "./",
+    val resourcesPath: String = "./",
+    val applicationPath: String = "./",
     val powerPreference: PowerPreference = PowerPreference.HIGH_POWER
 ) : ContextConfiguration()
 
