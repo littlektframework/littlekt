@@ -35,14 +35,6 @@ data class VfsFile(val vfs: Vfs, val path: String) : VfsNamed(path.pathInfo) {
 
     suspend inline fun <reified T> decodeFromString() = vfs.json.decodeFromString<T>(readString())
 
-    fun writeKeystore(data: ByteArray) = vfs.store(pathInfo.baseName, data)
-
-    fun writeKeystore(data: String) = vfs.store(pathInfo.baseName, data)
-
-    fun readKeystore() = vfs.loadString(pathInfo.baseName)
-
-    fun readKeystoreBytes() = vfs.load(pathInfo.baseName)
-
     fun relativePathTo(relative: VfsFile): String? {
         if (relative.vfs != this.vfs) return null
         return this.pathInfo.relativePathTo(relative.pathInfo)

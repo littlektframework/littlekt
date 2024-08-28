@@ -3,10 +3,6 @@ package com.littlekt.file.vfs
 import kotlin.jvm.JvmInline
 import kotlin.math.min
 
-/**
- * @author Colton Daily
- * @date 12/20/2021
- */
 @JvmInline value class PathInfo(val fullPath: String)
 
 fun PathInfo.relativePathTo(relative: PathInfo): String? {
