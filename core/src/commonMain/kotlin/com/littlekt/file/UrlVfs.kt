@@ -13,6 +13,8 @@ import kotlinx.coroutines.selects.select
 import kotlinx.serialization.json.Json
 
 /**
+ * A [Vfs] that handles reading from files from a URL.
+ *
  * @author Colton Daily
  * @date 8/26/2024
  */

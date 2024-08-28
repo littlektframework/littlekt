@@ -15,6 +15,8 @@ import kotlinx.coroutines.selects.select
 import kotlinx.serialization.json.Json
 
 /**
+ * A [Vfs] that handles reading from files on the local file system.
+ *
  * @author Colton Daily
  * @date 8/26/2024
  */
