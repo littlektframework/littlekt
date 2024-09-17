@@ -25,6 +25,9 @@ class JsInput(val canvas: HTMLCanvasElement) : Input {
     private var _deltaY = 0f
     private val touchedPointers = mutableListOf<Pointer>()
 
+    /** Holds the references to active touch identifiers indexed by assigned pointer number. */
+    private val touchIdentifiers = IntArray(20) { -1 }
+
     private val _inputProcessors = mutableListOf<InputProcessor>()
     override val inputProcessors: List<InputProcessor>
         get() = _inputProcessors
@@ -103,35 +106,53 @@ class JsInput(val canvas: HTMLCanvasElement) : Input {
     }
 
     private fun touchStart(event: Event) {
+        event.stopPropagation()
+        event.preventDefault()
         event as TouchEvent
-        (0 until event.targetTouches.length).forEach {
-            val touchEvent = event.targetTouches.item(it)!!
+        (0 until event.changedTouches.length).forEach {
+            val touchEvent = event.changedTouches.item(it)!!
             val rect = canvas.getBoundingClientRect()
             val x = touchEvent.clientX.toFloat() - rect.left.toFloat()
             val y = touchEvent.clientY.toFloat() - rect.top.toFloat()
-            inputCache.onTouchDown(x, y, it.getPointer)
+            val pointerIndex = touchIdentifiers.indexOf(-1)
+            if (pointerIndex >= 0) {
+                touchIdentifiers[pointerIndex] = touchEvent.identifier
+                inputCache.onTouchDown(x, y, pointerIndex.getPointer)
+            }
         }
     }
 
     private fun touchMove(event: Event) {
+        event.stopPropagation()
+        event.preventDefault()
         event as TouchEvent
-        (0 until event.targetTouches.length).forEach {
-            val touchEvent = event.targetTouches.item(it)!!
+        (0 until event.changedTouches.length).forEach {
+            val touchEvent = event.changedTouches.item(it)!!
             val rect = canvas.getBoundingClientRect()
             val x = touchEvent.clientX.toFloat() - rect.left.toFloat()
             val y = touchEvent.clientY.toFloat() - rect.top.toFloat()
-            inputCache.onMove(x, y, touchedPointers.lastOrNull() ?: Pointer.POINTER1)
+            val pointerIndex = touchIdentifiers.indexOf(touchEvent.identifier)
+            if (pointerIndex >= 0) {
+                inputCache.onMove(x, y, pointerIndex.getPointer)
+            }
         }
     }
 
     private fun touchEnd(event: Event) {
+        event.stopPropagation()
+        event.preventDefault()
         event as TouchEvent
-        (0 until event.targetTouches.length).forEach {
-            val touchEvent = event.targetTouches.item(it)!!
+        (0 until event.changedTouches.length).forEach {
+            val touchEvent = event.changedTouches.item(it)!!
             val rect = canvas.getBoundingClientRect()
             val x = touchEvent.clientX.toFloat() - rect.left.toFloat()
             val y = touchEvent.clientY.toFloat() - rect.top.toFloat()
-            inputCache.onTouchUp(x, y, it.getPointer)
+            val pointerIndex = touchIdentifiers.indexOf(touchEvent.identifier)
+            if (pointerIndex >= 0) {
+                touchIdentifiers[pointerIndex] = -1
+                inputCache.onTouchUp(x, y, pointerIndex.getPointer)
+            }
+
         }
     }
 
