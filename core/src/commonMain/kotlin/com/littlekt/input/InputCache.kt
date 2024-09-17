@@ -102,7 +102,7 @@ class InputCache {
     }
 
     fun isGamepadButtonPressed(button: GameButton, gamepad: Int): Boolean {
-        return gamepadButtonsLastState.getOrPut(gamepad) { mutableMapOf() }[button] != 0f
+        return gamepadButtonsLastState.getOrPut(gamepad) { mutableMapOf() }[button] == 1f
     }
 
     fun isGamepadButtonJustReleased(button: GameButton, gamepad: Int): Boolean {
