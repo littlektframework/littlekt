@@ -1,7 +1,17 @@
 package com.littlekt.graphics
 
 import com.littlekt.graphics.Texture.Companion.nextId
-import com.littlekt.graphics.webgpu.*
+import io.ygdrasil.wgpu.Texture as WebGPUTexture
+import io.ygdrasil.wgpu.Device
+import io.ygdrasil.wgpu.Sampler
+import io.ygdrasil.wgpu.SamplerDescriptor
+import io.ygdrasil.wgpu.Size3D
+import io.ygdrasil.wgpu.TextureDescriptor
+import io.ygdrasil.wgpu.TextureDimension
+import io.ygdrasil.wgpu.TextureFormat
+import io.ygdrasil.wgpu.TextureUsage
+import io.ygdrasil.wgpu.TextureView
+import io.ygdrasil.wgpu.TextureViewDescriptor
 
 /**
  * A [Texture] that uses a [Pixmap] as the underlying data.
@@ -17,7 +27,7 @@ class PixmapTexture(val device: Device, preferredFormat: TextureFormat, val pixm
     /**
      * The [Extent3D] size of the texture. Uses [Pixmap.width], [Pixmap.height] and a depth of `1`.
      */
-    override val size: Extent3D = Extent3D(pixmap.width, pixmap.height, 1)
+    override val size: Size3D = Size3D(pixmap.width, pixmap.height, 1)
     override var id: Int = nextId()
         private set
 
@@ -26,16 +36,16 @@ class PixmapTexture(val device: Device, preferredFormat: TextureFormat, val pixm
             size,
             1,
             1,
-            TextureDimension.D2,
+            TextureDimension._2d,
             preferredFormat,
-            TextureUsage.TEXTURE or TextureUsage.COPY_DST
+            TextureUsage.texturebinding or TextureUsage.copydst
         )
         set(value) {
             field = value
             val textureToDestroy = gpuTexture
             val viewToDestroy = view
-            viewToDestroy.release()
-            textureToDestroy.release()
+            viewToDestroy.close()
+            textureToDestroy.close()
 
             gpuTexture = device.createTexture(textureDescriptor)
         }
@@ -50,7 +60,7 @@ class PixmapTexture(val device: Device, preferredFormat: TextureFormat, val pixm
     override var textureViewDescriptor: TextureViewDescriptor? = null
         set(value) {
             field = value
-            view.release()
+            view.close()
             view = gpuTexture.createView(value)
         }
 
@@ -65,7 +75,7 @@ class PixmapTexture(val device: Device, preferredFormat: TextureFormat, val pixm
     override var samplerDescriptor: SamplerDescriptor = SamplerDescriptor()
         set(value) {
             field = value
-            sampler.release()
+            sampler.close()
             sampler = device.createSampler(value)
         }
 

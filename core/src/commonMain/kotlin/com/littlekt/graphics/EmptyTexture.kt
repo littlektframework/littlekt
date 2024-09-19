@@ -1,7 +1,18 @@
 package com.littlekt.graphics
 
 import com.littlekt.graphics.Texture.Companion.nextId
-import com.littlekt.graphics.webgpu.*
+import io.ygdrasil.wgpu.Device
+import io.ygdrasil.wgpu.Sampler
+import io.ygdrasil.wgpu.SamplerDescriptor
+import io.ygdrasil.wgpu.Size3D
+import io.ygdrasil.wgpu.TextureDescriptor
+import io.ygdrasil.wgpu.TextureDimension
+import io.ygdrasil.wgpu.TextureFormat
+import io.ygdrasil.wgpu.TextureUsage
+import io.ygdrasil.wgpu.TextureView
+import io.ygdrasil.wgpu.TextureViewDescriptor
+
+import io.ygdrasil.wgpu.Texture as WebGPUTexture
 
 /**
  * A [Texture] that doesn't contain any underlying raw image data, but instead, is intended to be
@@ -19,7 +30,7 @@ class EmptyTexture(val device: Device, preferredFormat: TextureFormat, width: In
      * The [Extent3D] size of the texture. Uses the initial width & height from the constructor and
      * a depth of `1`.
      */
-    override var size: Extent3D = Extent3D(width, height, 1)
+    override var size: Size3D = Size3D(width, height, 1)
         private set
 
     override var id: Int = nextId()
@@ -29,16 +40,13 @@ class EmptyTexture(val device: Device, preferredFormat: TextureFormat, width: In
     override var textureDescriptor: TextureDescriptor =
         TextureDescriptor(
             size,
-            1,
-            1,
-            TextureDimension.D2,
             preferredFormat,
-            TextureUsage.TEXTURE or TextureUsage.RENDER_ATTACHMENT
+            setOf(TextureUsage.texturebinding, TextureUsage.renderattachment)
         )
         set(value) {
             field = value
             val textureToDestroy = gpuTexture
-            textureToDestroy.release()
+            textureToDestroy.close()
             gpuTexture = device.createTexture(field)
         }
 
@@ -46,7 +54,7 @@ class EmptyTexture(val device: Device, preferredFormat: TextureFormat, width: In
     override var gpuTexture: WebGPUTexture = device.createTexture(textureDescriptor)
         set(value) {
             field = value
-            view.release()
+            view.close()
             view = field.createView(textureViewDescriptor)
         }
 
@@ -54,7 +62,7 @@ class EmptyTexture(val device: Device, preferredFormat: TextureFormat, width: In
     override var textureViewDescriptor: TextureViewDescriptor? = null
         set(value) {
             field = value
-            view.release()
+            view.close()
             view = gpuTexture.createView(value)
         }
 
@@ -71,7 +79,7 @@ class EmptyTexture(val device: Device, preferredFormat: TextureFormat, width: In
     override var samplerDescriptor: SamplerDescriptor = SamplerDescriptor()
         set(value) {
             field = value
-            sampler.release()
+            sampler.close()
             sampler = device.createSampler(value)
         }
 
@@ -89,7 +97,7 @@ class EmptyTexture(val device: Device, preferredFormat: TextureFormat, width: In
      * creating a whole new one.
      */
     fun resize(width: Int, height: Int) {
-        size = Extent3D(width, height, 1)
+        size = Size3D(width, height, 1)
         textureDescriptor = textureDescriptor.copy(size = size)
     }
 

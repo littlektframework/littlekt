@@ -9,7 +9,7 @@ import com.littlekt.file.ByteBufferImpl
 import com.littlekt.graphics.Pixmap
 import com.littlekt.graphics.PixmapTexture
 import com.littlekt.graphics.Texture
-import com.littlekt.graphics.webgpu.TextureFormat
+import io.ygdrasil.wgpu.TextureFormat
 import kotlinx.browser.document
 import kotlinx.coroutines.CompletableDeferred
 import org.w3c.dom.*

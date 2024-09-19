@@ -8,8 +8,6 @@ plugins {
     id("module.publication")
 }
 
-repositories { mavenCentral() }
-
 kotlin {
     jvm {
         compilerOptions { jvmTarget = JvmTarget.JVM_22 }

@@ -76,7 +76,6 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
-                implementation(libs.wgpu4k)
                 implementation(libs.kotlinx.coroutines.core)
                 implementation(project(":core"))
                 implementation(project(":scene-graph"))

@@ -2,21 +2,18 @@ package com.littlekt
 
 import com.littlekt.graphics.Cursor
 import com.littlekt.graphics.SystemCursor
-import com.littlekt.graphics.webgpu.Adapter
-import com.littlekt.graphics.webgpu.AlphaMode
-import com.littlekt.graphics.webgpu.Device
-import com.littlekt.graphics.webgpu.GPU
-import com.littlekt.graphics.webgpu.GPUAdapter
-import com.littlekt.graphics.webgpu.GPUCanvasContext
-import com.littlekt.graphics.webgpu.GPUDevice
-import com.littlekt.graphics.webgpu.PresentMode
-import com.littlekt.graphics.webgpu.Surface
-import com.littlekt.graphics.webgpu.SurfaceCapabilities
-import com.littlekt.graphics.webgpu.SurfaceConfiguration
-import com.littlekt.graphics.webgpu.TextureFormat
-import com.littlekt.graphics.webgpu.TextureUsage
-import com.littlekt.util.internal.jsObject
-import kotlinx.browser.window
+import io.ygdrasil.wgpu.Adapter
+import io.ygdrasil.wgpu.Device
+import io.ygdrasil.wgpu.Surface
+import io.ygdrasil.wgpu.requestAdapter
+import io.ygdrasil.wgpu.TextureFormat
+import io.ygdrasil.wgpu.TextureUsage
+import io.ygdrasil.wgpu.CanvasConfiguration
+import io.ygdrasil.wgpu.CompositeAlphaMode
+import io.ygdrasil.wgpu.PresentMode
+import io.ygdrasil.wgpu.getSurface
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.async
 import org.w3c.dom.Element
 import org.w3c.dom.HTMLCanvasElement
 import org.w3c.dom.events.Event
@@ -31,9 +28,10 @@ class WebGPUGraphics(val canvas: HTMLCanvasElement) : Graphics {
     internal var _width: Int = 0
     internal var _height: Int = 0
 
-    private val canvasContext =
-        canvas.getContext("webgpu").unsafeCast<GPUCanvasContext?>()
-            ?: error("WebGPU context required")
+    override lateinit var adapter: Adapter
+    override lateinit var device: Device
+    override val surface: Surface = canvas.getSurface() ?: error("fail to get context")
+    override val preferredFormat: TextureFormat = surface.preferredCanvasFormat  ?: error("fail to get preferredCanvasFormat")
 
     init {
         // suppress context menu
@@ -42,6 +40,11 @@ class WebGPUGraphics(val canvas: HTMLCanvasElement) : Graphics {
 
         _width = canvas.clientWidth
         _height = canvas.clientHeight
+
+        GlobalScope.async {
+            adapter = requestAdapter() ?: error("No appropriate Adapter found.")
+            device = adapter.requestDevice() ?: error("No appropriate Device found.")
+        }.onAwait
     }
 
     override val width: Int
@@ -56,27 +59,14 @@ class WebGPUGraphics(val canvas: HTMLCanvasElement) : Graphics {
     override val backBufferHeight: Int
         get() = height
 
-    override val surface: Surface =
-        Surface(window.navigator.asDynamic().gpu.unsafeCast<GPU>(), canvasContext)
-
-    override var adapter: Adapter = Adapter(jsObject().unsafeCast<GPUAdapter>())
-
-    override var device: Device = Device(jsObject().unsafeCast<GPUDevice>())
-
-    override val preferredFormat: TextureFormat by lazy { surface.getPreferredFormat(adapter) }
-
-    override val surfaceCapabilities: SurfaceCapabilities by lazy {
-        surface.getCapabilities(adapter)
-    }
-
     override fun configureSurface(
-        usage: TextureUsage,
+        usages: Set<TextureUsage>,
         format: TextureFormat,
         presentMode: PresentMode,
-        alphaMode: AlphaMode
+        alphaMode: CompositeAlphaMode
     ) {
         surface.configure(
-            SurfaceConfiguration(device, usage, format, presentMode, alphaMode, width, height)
+            CanvasConfiguration(device, format,usages, alphaMode = alphaMode)
         )
     }
 

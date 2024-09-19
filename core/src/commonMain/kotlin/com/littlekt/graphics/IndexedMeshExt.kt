@@ -3,9 +3,9 @@ package com.littlekt.graphics
 import com.littlekt.ContextListener
 import com.littlekt.graphics.util.CommonIndexedMeshBuilder
 import com.littlekt.graphics.util.CommonIndexedMeshGeometry
-import com.littlekt.graphics.webgpu.Device
 import com.littlekt.graphics.webgpu.VertexFormat
 import com.littlekt.graphics.webgpu.VertexStepMode
+import io.ygdrasil.wgpu.Device
 
 /** Creates a new indexed mesh using the list of [VertexAttribute]. */
 inline fun indexedMesh(

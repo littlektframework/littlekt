@@ -2,7 +2,7 @@ package com.littlekt.graphics
 
 import com.littlekt.graphics.util.IndexedMeshGeometry
 import com.littlekt.graphics.webgpu.BufferUsage
-import com.littlekt.graphics.webgpu.Device
+import io.ygdrasil.wgpu.Device
 import kotlin.math.min
 
 /**

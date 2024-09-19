@@ -16,9 +16,9 @@ import com.littlekt.graphics.g2d.TextureSlice
 import com.littlekt.graphics.g2d.font.*
 import com.littlekt.graphics.g2d.tilemap.ldtk.LDtkWorld
 import com.littlekt.graphics.g2d.tilemap.tiled.TiledMap
-import com.littlekt.graphics.webgpu.TextureFormat
 import com.littlekt.math.MutableVec4i
 import com.littlekt.util.internal.unquote
+import io.ygdrasil.wgpu.TextureFormat
 import kotlin.math.max
 
 /**
@@ -308,9 +308,8 @@ expect suspend fun VfsFile.readPixmap(): Pixmap
  * @return the loaded texture
  */
 expect suspend fun VfsFile.readTexture(
-    preferredFormat: TextureFormat =
-        if (vfs.context.graphics.preferredFormat.srgb) TextureFormat.RGBA8_UNORM_SRGB
-        else TextureFormat.RGBA8_UNORM
+    preferredFormat: TextureFormat = vfs.context.graphics.preferredFormat
+
 ): Texture
 
 /**

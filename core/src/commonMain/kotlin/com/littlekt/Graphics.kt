@@ -2,7 +2,13 @@ package com.littlekt
 
 import com.littlekt.graphics.Cursor
 import com.littlekt.graphics.SystemCursor
-import com.littlekt.graphics.webgpu.*
+import io.ygdrasil.wgpu.Adapter
+import io.ygdrasil.wgpu.Device
+import io.ygdrasil.wgpu.PresentMode
+import io.ygdrasil.wgpu.TextureFormat
+import io.ygdrasil.wgpu.TextureUsage
+import io.ygdrasil.wgpu.CompositeAlphaMode
+import io.ygdrasil.wgpu.Surface
 
 /**
  * Contains graphic related properties and methods.
@@ -36,18 +42,15 @@ interface Graphics {
     /** @return the preferred [TextureFormat] of the underlying [surface]. */
     val preferredFormat: TextureFormat
 
-    /** @return the capability of the underlying [surface] */
-    val surfaceCapabilities: SurfaceCapabilities
-
     /**
      * Configures the underlying [surface], via [Surface.configure], which initializes the surface
      * for presentation.
      */
     fun configureSurface(
-        usage: TextureUsage = TextureUsage.RENDER_ATTACHMENT,
+        usage: Set<TextureUsage> = setOf(TextureUsage.renderattachment),
         format: TextureFormat = preferredFormat,
-        presentMode: PresentMode = PresentMode.FIFO,
-        alphaMode: AlphaMode = surfaceCapabilities.alphaModes[0]
+        presentMode: PresentMode = PresentMode.fifo,
+        alphaMode: CompositeAlphaMode = surface.supportedAlphaMode.first()
     )
 
     /**
