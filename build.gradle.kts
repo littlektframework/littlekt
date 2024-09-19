@@ -12,10 +12,6 @@ plugins {
 val littleKtVersion: String by project
 
 allprojects {
-    repositories {
-        google()
-        mavenCentral()
-    }
     group = "com.littlekt"
     version = littleKtVersion
     extra["isReleaseVersion"] = !littleKtVersion.endsWith("SNAPSHOT")

@@ -577,7 +577,7 @@ actual class Adapter(var segment: MemorySegment) : Releasable {
             if (descriptor != null) {
                 descriptor.label?.let { WGPUDeviceDescriptor.label(desc, it.toNativeString(scope)) }
                 descriptor.requiredFeatures?.let {
-                    val nativeArray = scope.allocateFrom(ValueLayout.JAVA_INT, it.size)
+                    val nativeArray = scope.allocate(ValueLayout.JAVA_INT, it.size.toLong())
                     it.forEachIndexed { index, jvmEntry ->
                         val nativeEntry = nativeArray.asSlice((Int.SIZE_BYTES * index).toLong())
 

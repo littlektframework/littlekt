@@ -4,8 +4,6 @@ import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
 
 plugins { alias(libs.plugins.kotlin.multiplatform) }
 
-repositories { maven(url = "https://maven.pkg.jetbrains.space/public/p/kotlinx-html/maven") }
-
 kotlin {
     tasks.withType<JavaExec> { jvmArgs("--enable-native-access=ALL-UNNAMED") }
     jvm {
@@ -78,6 +76,7 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
+                implementation(libs.wgpu4k)
                 implementation(libs.kotlinx.coroutines.core)
                 implementation(project(":core"))
                 implementation(project(":scene-graph"))

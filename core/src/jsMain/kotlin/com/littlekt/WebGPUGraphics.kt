@@ -2,7 +2,19 @@ package com.littlekt
 
 import com.littlekt.graphics.Cursor
 import com.littlekt.graphics.SystemCursor
-import com.littlekt.graphics.webgpu.*
+import com.littlekt.graphics.webgpu.Adapter
+import com.littlekt.graphics.webgpu.AlphaMode
+import com.littlekt.graphics.webgpu.Device
+import com.littlekt.graphics.webgpu.GPU
+import com.littlekt.graphics.webgpu.GPUAdapter
+import com.littlekt.graphics.webgpu.GPUCanvasContext
+import com.littlekt.graphics.webgpu.GPUDevice
+import com.littlekt.graphics.webgpu.PresentMode
+import com.littlekt.graphics.webgpu.Surface
+import com.littlekt.graphics.webgpu.SurfaceCapabilities
+import com.littlekt.graphics.webgpu.SurfaceConfiguration
+import com.littlekt.graphics.webgpu.TextureFormat
+import com.littlekt.graphics.webgpu.TextureUsage
 import com.littlekt.util.internal.jsObject
 import kotlinx.browser.window
 import org.w3c.dom.Element
