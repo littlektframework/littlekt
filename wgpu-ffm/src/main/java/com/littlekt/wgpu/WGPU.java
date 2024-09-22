@@ -4,13 +4,10 @@ package com.littlekt.wgpu;
 
 import java.lang.invoke.*;
 import java.lang.foreign.*;
-import java.nio.ByteOrder;
 import java.util.*;
-import java.util.function.*;
 import java.util.stream.*;
 
 import static java.lang.foreign.ValueLayout.*;
-import static java.lang.foreign.MemoryLayout.PathElement.*;
 
 public class WGPU {
 
@@ -18,7 +15,6 @@ public class WGPU {
         // Should not be called directly
     }
 
-    static final Arena LIBRARY_ARENA = Arena.ofAuto();
     static final boolean TRACE_DOWNCALLS = Boolean.getBoolean("jextract.trace.downcalls");
 
     static void traceDowncall(String name, Object... args) {
@@ -41,20 +37,6 @@ public class WGPU {
         }
     }
 
-    static MemoryLayout align(MemoryLayout layout, long align) {
-        return switch (layout) {
-            case PaddingLayout p -> p;
-            case ValueLayout v -> v.withByteAlignment(align);
-            case GroupLayout g -> {
-                MemoryLayout[] alignedMembers = g.memberLayouts().stream()
-                        .map(m -> align(m, align)).toArray(MemoryLayout[]::new);
-                yield g instanceof StructLayout ?
-                        MemoryLayout.structLayout(alignedMembers) : MemoryLayout.unionLayout(alignedMembers);
-            }
-            case SequenceLayout s -> MemoryLayout.sequenceLayout(s.elementCount(), align(s.elementLayout(), align));
-        };
-    }
-
     static final SymbolLookup SYMBOL_LOOKUP = SymbolLookup.loaderLookup()
             .or(Linker.nativeLinker().defaultLookup());
 
@@ -67,116 +49,18 @@ public class WGPU {
     public static final ValueLayout.OfDouble C_DOUBLE = ValueLayout.JAVA_DOUBLE;
     public static final AddressLayout C_POINTER = ValueLayout.ADDRESS
             .withTargetLayout(MemoryLayout.sequenceLayout(java.lang.Long.MAX_VALUE, JAVA_BYTE));
-    public static final ValueLayout.OfInt C_LONG = ValueLayout.JAVA_INT;
-    public static final ValueLayout.OfDouble C_LONG_DOUBLE = ValueLayout.JAVA_DOUBLE;
     private static final int _VCRT_COMPILER_PREPROCESSOR = (int)1L;
-    /**
-     * {@snippet lang=c :
-     * #define _VCRT_COMPILER_PREPROCESSOR 1
-     * }
-     */
-    public static int _VCRT_COMPILER_PREPROCESSOR() {
-        return _VCRT_COMPILER_PREPROCESSOR;
-    }
     private static final int _SAL_VERSION = (int)20L;
-    /**
-     * {@snippet lang=c :
-     * #define _SAL_VERSION 20
-     * }
-     */
-    public static int _SAL_VERSION() {
-        return _SAL_VERSION;
-    }
     private static final int __SAL_H_VERSION = (int)180000000L;
-    /**
-     * {@snippet lang=c :
-     * #define __SAL_H_VERSION 180000000
-     * }
-     */
-    public static int __SAL_H_VERSION() {
-        return __SAL_H_VERSION;
-    }
     private static final int _USE_DECLSPECS_FOR_SAL = (int)0L;
-    /**
-     * {@snippet lang=c :
-     * #define _USE_DECLSPECS_FOR_SAL 0
-     * }
-     */
-    public static int _USE_DECLSPECS_FOR_SAL() {
-        return _USE_DECLSPECS_FOR_SAL;
-    }
     private static final int _USE_ATTRIBUTES_FOR_SAL = (int)0L;
-    /**
-     * {@snippet lang=c :
-     * #define _USE_ATTRIBUTES_FOR_SAL 0
-     * }
-     */
-    public static int _USE_ATTRIBUTES_FOR_SAL() {
-        return _USE_ATTRIBUTES_FOR_SAL;
-    }
     private static final int _CRT_PACKING = (int)8L;
-    /**
-     * {@snippet lang=c :
-     * #define _CRT_PACKING 8
-     * }
-     */
-    public static int _CRT_PACKING() {
-        return _CRT_PACKING;
-    }
     private static final int _HAS_EXCEPTIONS = (int)1L;
-    /**
-     * {@snippet lang=c :
-     * #define _HAS_EXCEPTIONS 1
-     * }
-     */
-    public static int _HAS_EXCEPTIONS() {
-        return _HAS_EXCEPTIONS;
-    }
     private static final int _HAS_CXX17 = (int)0L;
-    /**
-     * {@snippet lang=c :
-     * #define _HAS_CXX17 0
-     * }
-     */
-    public static int _HAS_CXX17() {
-        return _HAS_CXX17;
-    }
     private static final int _HAS_CXX20 = (int)0L;
-    /**
-     * {@snippet lang=c :
-     * #define _HAS_CXX20 0
-     * }
-     */
-    public static int _HAS_CXX20() {
-        return _HAS_CXX20;
-    }
     private static final int _HAS_NODISCARD = (int)0L;
-    /**
-     * {@snippet lang=c :
-     * #define _HAS_NODISCARD 0
-     * }
-     */
-    public static int _HAS_NODISCARD() {
-        return _HAS_NODISCARD;
-    }
     private static final int WCHAR_MIN = (int)0L;
-    /**
-     * {@snippet lang=c :
-     * #define WCHAR_MIN 0
-     * }
-     */
-    public static int WCHAR_MIN() {
-        return WCHAR_MIN;
-    }
     private static final int WCHAR_MAX = (int)65535L;
-    /**
-     * {@snippet lang=c :
-     * #define WCHAR_MAX 65535
-     * }
-     */
-    public static int WCHAR_MAX() {
-        return WCHAR_MAX;
-    }
     private static final int WINT_MIN = (int)0L;
     /**
      * {@snippet lang=c :
@@ -187,14 +71,6 @@ public class WGPU {
         return WINT_MIN;
     }
     private static final int WINT_MAX = (int)65535L;
-    /**
-     * {@snippet lang=c :
-     * #define WINT_MAX 65535
-     * }
-     */
-    public static int WINT_MAX() {
-        return WINT_MAX;
-    }
     /**
      * {@snippet lang=c :
      * typedef unsigned long long uintptr_t
@@ -431,66 +307,9 @@ public class WGPU {
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
 
-    /**
-     * Function descriptor for:
-     * {@snippet lang=c :
-     * void __report_gsfailure(uintptr_t _StackCookie)
-     * }
-     */
-    public static FunctionDescriptor __report_gsfailure$descriptor() {
-        return __report_gsfailure.DESC;
-    }
-
-    /**
-     * Downcall method handle for:
-     * {@snippet lang=c :
-     * void __report_gsfailure(uintptr_t _StackCookie)
-     * }
-     */
-    public static MethodHandle __report_gsfailure$handle() {
-        return __report_gsfailure.HANDLE;
-    }
-
-    /**
-     * Address for:
-     * {@snippet lang=c :
-     * void __report_gsfailure(uintptr_t _StackCookie)
-     * }
-     */
-    public static MemorySegment __report_gsfailure$address() {
-        return __report_gsfailure.ADDR;
-    }
-
-    /**
-     * {@snippet lang=c :
-     * void __report_gsfailure(uintptr_t _StackCookie)
-     * }
-     */
-    public static void __report_gsfailure(long _StackCookie) {
-        var mh$ = __report_gsfailure.HANDLE;
-        try {
-            if (TRACE_DOWNCALLS) {
-                traceDowncall("__report_gsfailure", _StackCookie);
-            }
-            mh$.invokeExact(_StackCookie);
-        } catch (Throwable ex$) {
-           throw new AssertionError("should not reach here", ex$);
-        }
-    }
-
     private static class __security_cookie$constants {
         public static final OfLong LAYOUT = WGPU.C_LONG_LONG;
         public static final MemorySegment SEGMENT = WGPU.findOrThrow("__security_cookie").reinterpret(LAYOUT.byteSize());
-    }
-
-    /**
-     * Layout for variable:
-     * {@snippet lang=c :
-     * extern uintptr_t __security_cookie
-     * }
-     */
-    public static OfLong __security_cookie$layout() {
-        return __security_cookie$constants.LAYOUT;
     }
 
     /**
@@ -17423,22 +17242,6 @@ public class WGPU {
         return WGPU_QUERY_SET_INDEX_UNDEFINED;
     }
     private static final long WGPU_WHOLE_MAP_SIZE = -1L;
-    /**
-     * {@snippet lang=c :
-     * #define WGPU_WHOLE_MAP_SIZE -1
-     * }
-     */
-    public static long WGPU_WHOLE_MAP_SIZE() {
-        return WGPU_WHOLE_MAP_SIZE;
-    }
     private static final long WGPU_WHOLE_SIZE = -1L;
-    /**
-     * {@snippet lang=c :
-     * #define WGPU_WHOLE_SIZE -1
-     * }
-     */
-    public static long WGPU_WHOLE_SIZE() {
-        return WGPU_WHOLE_SIZE;
-    }
 }
 

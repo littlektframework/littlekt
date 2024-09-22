@@ -1,7 +1,7 @@
 package com.littlekt.graphics
 
 import com.littlekt.graphics.util.IndexedMeshGeometry
-import com.littlekt.graphics.webgpu.BufferUsage
+import io.ygdrasil.wgpu.BufferUsage
 import io.ygdrasil.wgpu.Device
 import kotlin.math.min
 
@@ -18,11 +18,10 @@ class IndexedMesh<T : IndexedMeshGeometry>(device: Device, geometry: T) :
     Mesh<T>(device, geometry) {
 
     /** The GPU index buffer for this mesh, if created. */
-    var ibo =
-        device.createGPUShortBuffer(
+    var ibo = device.createGPUShortBuffer(
             "ibo",
             geometry.indices.toArray(),
-            BufferUsage.INDEX or BufferUsage.COPY_DST
+            setOf(BufferUsage.index, BufferUsage.copydst)
         )
         private set
 
@@ -38,13 +37,12 @@ class IndexedMesh<T : IndexedMeshGeometry>(device: Device, geometry: T) :
                     logger.trace {
                         "Destroying and creating VBO from size: ${vbo.size} to  size: ${geometry.vertices.capacity}"
                     }
-                    vbo.destroy()
-                    vbo.release()
+                    vbo.close()
                     vbo =
                         device.createGPUFloatBuffer(
                             "vbo",
                             geometry.vertices.toArray(),
-                            BufferUsage.VERTEX or BufferUsage.COPY_DST
+                            setOf(BufferUsage.vertex,BufferUsage.copydst)
                         )
                     // need to remake ibo because indices won't correspond correctly to the new
                     // vertices
@@ -54,10 +52,10 @@ class IndexedMesh<T : IndexedMeshGeometry>(device: Device, geometry: T) :
                         min(
                             vbo.size / Float.SIZE_BYTES,
                             geometry.numVertices *
-                                geometry.layout.attributes.calculateComponents().toLong()
+                                    geometry.layout.attributes.calculateComponents().toLong()
                         )
                     logger.trace { "Writing VBO to queue of size: $size" }
-                    device.queue.writeBuffer(vbo, geometry.vertices, size = size)
+                    device.queue.writeBuffer(vbo, 0L, geometry.vertices.toArray(), size = size)
                 }
             }
             if (geometry.indicesDirty) {
@@ -66,7 +64,7 @@ class IndexedMesh<T : IndexedMeshGeometry>(device: Device, geometry: T) :
                 } else {
                     val size = min(ibo.size / Short.SIZE_BYTES, geometry.indices.limit.toLong())
                     logger.trace { "Writing IBO to queue of size: $size" }
-                    device.queue.writeBuffer(ibo, geometry.indices, size = size)
+                    device.queue.writeBuffer(ibo, 0L, geometry.indices.toArray(), size)
                 }
                 geometry.indicesDirty = false
             }
@@ -75,8 +73,8 @@ class IndexedMesh<T : IndexedMeshGeometry>(device: Device, geometry: T) :
 
     private fun destroyAndRecreateIbo() {
         logger.trace { "Destroy and recreating IBO." }
-        ibo.destroy()
-        ibo.release()
+        ibo.close()
+        ibo.close()
         if (geometry.indicesType == IndexedMeshGeometry.IndicesType.QUAD) {
             logger.trace { "Regenerating indices as quads." }
             geometry.indicesAsQuad()
@@ -89,14 +87,13 @@ class IndexedMesh<T : IndexedMeshGeometry>(device: Device, geometry: T) :
             device.createGPUShortBuffer(
                 "ibo",
                 geometry.indices.toArray(),
-                BufferUsage.INDEX or BufferUsage.COPY_DST
+                setOf( BufferUsage.index, BufferUsage.copydst)
             )
     }
 
     override fun release() {
-        vbo.destroy()
-        ibo.destroy()
-        vbo.release()
-        ibo.release()
+        ibo.close()
+        vbo.close()
+        ibo.close()
     }
 }

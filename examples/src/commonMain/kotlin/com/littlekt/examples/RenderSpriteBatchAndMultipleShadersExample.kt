@@ -7,7 +7,7 @@ import com.littlekt.graphics.Color
 import com.littlekt.graphics.Texture
 import com.littlekt.graphics.g2d.SpriteBatch
 import com.littlekt.graphics.shader.SpriteShader
-import com.littlekt.graphics.webgpu.*
+import com.littlekt.graphics.webgpu.Device
 
 /**
  * An example showing a [SpriteBatch] drawing multiple textures and using different shaders to

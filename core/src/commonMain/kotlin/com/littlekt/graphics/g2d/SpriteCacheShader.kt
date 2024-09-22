@@ -3,8 +3,11 @@ package com.littlekt.graphics.g2d
 import com.littlekt.file.FloatBuffer
 import com.littlekt.graphics.Texture
 import com.littlekt.graphics.shader.SpriteShader
-import com.littlekt.graphics.webgpu.*
+import com.littlekt.graphics.webgpu.TextureBindingLayout
 import com.littlekt.log.Logger
+import io.ygdrasil.wgpu.*
+import io.ygdrasil.wgpu.BindGroupLayoutDescriptor.Entry
+import io.ygdrasil.wgpu.BindGroupLayoutDescriptor.Entry.BufferBindingLayout
 import kotlin.math.min
 
 /**
@@ -149,31 +152,31 @@ class SpriteCacheShader(
             listOf(
                 BindGroupLayoutDescriptor(
                     listOf(
-                        BindGroupLayoutEntry(
+                        Entry(
                             0,
-                            ShaderStage.VERTEX,
+                            ShaderStage.vertex,
                             BufferBindingLayout(
-                                type = BufferBindingType.UNIFORM,
+                                type = BufferBindingType.uniform,
                                 hasDynamicOffset = true,
                                 minBindingSize = Float.SIZE_BYTES * 16L
                             )
                         ),
-                        BindGroupLayoutEntry(
+                        Entry(
                             1,
-                            ShaderStage.VERTEX,
-                            BufferBindingLayout(type = BufferBindingType.READ_ONLY_STORAGE)
+                            ShaderStage.vertex,
+                            BufferBindingLayout(type = BufferBindingType.readonlystorage)
                         ),
-                        BindGroupLayoutEntry(
+                        Entry(
                             2,
-                            ShaderStage.VERTEX,
-                            BufferBindingLayout(type = BufferBindingType.READ_ONLY_STORAGE)
+                            ShaderStage.vertex,
+                            BufferBindingLayout(type = BufferBindingType.readonlystorage)
                         )
                     )
                 ),
                 BindGroupLayoutDescriptor(
                     listOf(
-                        BindGroupLayoutEntry(0, ShaderStage.FRAGMENT, TextureBindingLayout()),
-                        BindGroupLayoutEntry(1, ShaderStage.FRAGMENT, SamplerBindingLayout())
+                        Entry(0, setOf(ShaderStage.fragment), TextureBindingLayout()),
+                        Entry(1, setOf(ShaderStage.fragment), Entry.SamplerBindingLayout())
                     )
                 )
             )

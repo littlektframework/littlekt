@@ -1,8 +1,8 @@
 package com.littlekt.graphics.shader
 
 import com.littlekt.Releasable
-import com.littlekt.graphics.webgpu.*
 import com.littlekt.util.datastructure.fastForEach
+import io.ygdrasil.wgpu.*
 
 /**
  * A base shader class to handle creating and customizing the required bind groups without the need
@@ -28,7 +28,7 @@ open class Shader(
     val id: Int = lastId++
 
     /** The [ShaderModule]/ */
-    val shaderModule = device.createShaderModule(src)
+    val shaderModule = device.createShaderModule(ShaderModuleDescriptor(src))
 
     /** The list of [BindGroupLayout]s described by the layout */
     val layouts = layout.map { device.createBindGroupLayout(it) }
@@ -96,10 +96,10 @@ open class Shader(
     ) = Unit
 
     override fun release() {
-        shaderModule.release()
-        layouts.fastForEach { it.release() }
-        pipelineLayout.release()
-        bindGroups.forEach { it.release() }
+        shaderModule.close()
+        layouts.fastForEach { it.close() }
+        pipelineLayout.close()
+        bindGroups.forEach { it.close() }
         bindGroups.clear()
     }
 

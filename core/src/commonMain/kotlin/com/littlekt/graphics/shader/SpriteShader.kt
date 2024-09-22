@@ -2,9 +2,9 @@ package com.littlekt.graphics.shader
 
 import com.littlekt.file.FloatBuffer
 import com.littlekt.graphics.Texture
-import com.littlekt.graphics.webgpu.*
 import com.littlekt.math.Mat4
 import com.littlekt.util.align
+import io.ygdrasil.wgpu.*
 
 /**
  * A base shader class to handle creating a camera uniform [GPUBuffer] and expecting a texture to
@@ -37,15 +37,15 @@ abstract class SpriteShader(
         val buffer =
             device.createBuffer(
                 BufferDescriptor(
-                    "viewProj",
-                    (Float.SIZE_BYTES * 16)
+                    label = "viewProj",
+                    size = (Float.SIZE_BYTES * 16)
                         .align(device.limits.minUniformBufferOffsetAlignment)
                         .toLong() * cameraDynamicSize,
-                    BufferUsage.UNIFORM or BufferUsage.COPY_DST,
-                    true
+                    usage = setOf(BufferUsage.uniform, BufferUsage.copydst),
+                    mappedAtCreation = true
                 )
             )
-        buffer.getMappedRange().putFloat(camFloatBuffer.toArray())
+        buffer.mapFrom(camFloatBuffer.toArray())
         buffer.unmap()
 
         buffer
@@ -119,7 +119,7 @@ abstract class SpriteShader(
 
     override fun release() {
         super.release()
-        cameraUniformBuffer.release()
+        cameraUniformBuffer.close()
     }
 
     companion object {
