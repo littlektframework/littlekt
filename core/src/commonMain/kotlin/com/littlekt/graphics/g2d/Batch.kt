@@ -4,12 +4,11 @@ import com.littlekt.Releasable
 import com.littlekt.graphics.Color
 import com.littlekt.graphics.Texture
 import com.littlekt.graphics.shader.Shader
-import com.littlekt.graphics.webgpu.BlendState
-import com.littlekt.graphics.webgpu.CommandEncoder
-import com.littlekt.graphics.webgpu.Queue
-import com.littlekt.graphics.webgpu.RenderPassEncoder
 import com.littlekt.math.Mat4
 import com.littlekt.math.geom.Angle
+import io.ygdrasil.wgpu.RenderPassEncoder
+import io.ygdrasil.wgpu.RenderPipelineDescriptor
+import io.ygdrasil.wgpu.RenderPipelineDescriptor.FragmentState.ColorTargetState.BlendState
 
 /**
  * An interface for creating batch renderers.

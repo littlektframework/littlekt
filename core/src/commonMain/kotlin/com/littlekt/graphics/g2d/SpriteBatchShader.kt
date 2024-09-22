@@ -2,8 +2,11 @@ package com.littlekt.graphics.g2d
 
 import com.littlekt.graphics.Texture
 import com.littlekt.graphics.shader.SpriteShader
-import com.littlekt.graphics.webgpu.*
+import com.littlekt.graphics.webgpu.BindGroupLayoutEntry
+import io.ygdrasil.wgpu.Device
 import com.littlekt.util.align
+import io.ygdrasil.wgpu.BindGroupLayoutDescriptor
+import io.ygdrasil.wgpu.ShaderStage
 
 /**
  * The default [SpriteShader] that is used [SpriteBatch].
@@ -63,13 +66,13 @@ class SpriteBatchShader(device: Device, cameraDynamicSize: Int = 50) :
                     listOf(
                         BindGroupLayoutEntry(
                             0,
-                            ShaderStage.VERTEX,
-                            BufferBindingLayout(
+                            ShaderStage.vertex,
+                            BindGroupLayoutDescriptor.Entry.BufferBindingLayout(
                                 hasDynamicOffset = true,
                                 minBindingSize =
-                                    (Float.SIZE_BYTES * 16)
-                                        .align(device.limits.minUniformBufferOffsetAlignment)
-                                        .toLong()
+                                (Float.SIZE_BYTES * 16)
+                                    .align(device.limits.minUniformBufferOffsetAlignment)
+                                    .toLong()
                             )
                         )
                     )

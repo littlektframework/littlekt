@@ -2,9 +2,15 @@ package com.littlekt.graphics.shader
 
 import com.littlekt.file.FloatBuffer
 import com.littlekt.graphics.Texture
+import io.ygdrasil.wgpu.Device
 import com.littlekt.math.Mat4
 import com.littlekt.util.align
-import io.ygdrasil.wgpu.*
+import io.ygdrasil.wgpu.BindGroup
+import io.ygdrasil.wgpu.BindGroupDescriptor
+import io.ygdrasil.wgpu.BindGroupDescriptor.BufferBinding
+import io.ygdrasil.wgpu.BindGroupLayoutDescriptor
+import io.ygdrasil.wgpu.BufferDescriptor
+import io.ygdrasil.wgpu.BufferUsage
 
 /**
  * A base shader class to handle creating a camera uniform [GPUBuffer] and expecting a texture to
@@ -54,11 +60,11 @@ abstract class SpriteShader(
     /** The [BufferBinding] for [cameraUniformBufferBinding]. */
     protected val cameraUniformBufferBinding =
         BufferBinding(
-            cameraUniformBuffer,
+            buffer = cameraUniformBuffer,
             size =
-                (Float.SIZE_BYTES * 16)
-                    .align(device.limits.minUniformBufferOffsetAlignment)
-                    .toLong(),
+            (Float.SIZE_BYTES * 16)
+                .align(device.limits.minUniformBufferOffsetAlignment)
+                .toLong(),
         )
 
     /** @see [createBindGroupsWithTexture] to override. */

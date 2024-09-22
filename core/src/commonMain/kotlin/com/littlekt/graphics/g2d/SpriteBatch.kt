@@ -22,6 +22,7 @@ import com.littlekt.util.datastructure.pool
 import io.ygdrasil.wgpu.*
 import io.ygdrasil.wgpu.RenderPipelineDescriptor.*
 import io.ygdrasil.wgpu.RenderPipelineDescriptor.FragmentState.ColorTargetState
+import io.ygdrasil.wgpu.RenderPipelineDescriptor.FragmentState.ColorTargetState.BlendState
 
 /**
  * Draws batched quads using indices.
@@ -744,7 +745,7 @@ class SpriteBatch(
             primitive = PrimitiveState(topology = PrimitiveTopology.trianglelist),
             depthStencil = null,
             multisample =
-            MultisampleState(count = 1, mask = 0xFFFFFFF, alphaToCoverageEnabled = false)
+            MultisampleState(count = 1, mask = 0xFFFFFFFu, alphaToCoverageEnabled = false)
         )
     }
 
@@ -758,7 +759,7 @@ class SpriteBatch(
         lastTexture = null
         mesh.release()
         defaultShader.release()
-        renderPipelineByBlendState.values.forEach { it.release() }
+        renderPipelineByBlendState.values.forEach { it.close() }
         renderPipelineByBlendState.clear()
         drawCalls.clear()
     }
