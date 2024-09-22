@@ -1,8 +1,7 @@
 package com.littlekt.graphics
 
-import com.littlekt.graphics.webgpu.VertexState
-import com.littlekt.graphics.webgpu.VertexStepMode
-import com.littlekt.graphics.webgpu.WebGPUVertexBufferLayout
+import io.ygdrasil.wgpu.VertexStepMode
+
 
 /**
  * A wrapper around a [WebGPUVertexBufferLayout] describes how the vertex buffer is interpreted.

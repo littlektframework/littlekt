@@ -5,8 +5,6 @@ import com.littlekt.graphics.HdpiMode
 import com.littlekt.graphics.SystemCursor
 import com.littlekt.graphics.webgpu.*
 import com.littlekt.log.Logger
-import com.littlekt.wgpu.*
-import com.littlekt.wgpu.WGPU.*
 import java.lang.foreign.Arena
 import java.lang.foreign.MemorySegment
 import kotlinx.atomicfu.atomic
@@ -280,23 +278,8 @@ class LwjglGraphics(private val context: LwjglContext) : Graphics, Releasable {
     }
 
     override fun release() {
-        if (device.queue.segment != WGPU_NULL) {
-            device.queue.release()
-        }
-        if (device.segment != WGPU_NULL) {
-            device.release()
-        }
-        if (adapter.segment != WGPU_NULL) {
-            adapter.release()
-        }
 
-        if (surface.segment != WGPU_NULL) {
-            surface.release()
-        }
 
-        if (instance.segment != WGPU_NULL) {
-            wgpuInstanceRelease(instance.segment)
-        }
     }
 
     companion object {

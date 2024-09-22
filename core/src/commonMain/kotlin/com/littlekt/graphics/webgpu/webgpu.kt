@@ -16,20 +16,6 @@ import com.littlekt.graphics.webgpu.*
  * A device may be requested from an adapter with [Adapter.requestDevice]
  */
 expect class Device : Releasable {
-    /** A [Queue] that has been ready from same adapter this device was created with. */
-    val queue: Queue
-
-    /**
-     * A set containing the [Feature] values of the features supported by the device (i.e. the ones
-     * with which it was created).
-     */
-    val features: List<Feature>
-
-    /**
-     * Exposes the [Limits] supported by the device (which are exactly the ones with which it was
-     * created).
-     */
-    val limits: Limits
 
     /** @return a newly created [ShaderModule] using WGSL source code. */
     fun createShaderModule(src: String): ShaderModule
@@ -632,13 +618,7 @@ expect class Queue : Releasable {
     override fun release()
 }
 
-/**
- * Handle to a compiled shader module.
- *
- * A `ShaderModule` represents a compiled shader module on the GPU. It can be created by pass source
- * code to [Device.createShaderModule]. Shader modules are used to define programmable stages of a
- * pipeline.
- */
+
 expect class ShaderModule : Releasable {
     override fun release()
 }

@@ -4,6 +4,7 @@ import com.littlekt.ContextListener
 import com.littlekt.graphics.util.CommonIndexedMeshBuilder
 import com.littlekt.graphics.util.CommonIndexedMeshGeometry
 import io.ygdrasil.wgpu.Device
+import io.ygdrasil.wgpu.VertexFormat
 import io.ygdrasil.wgpu.VertexStepMode
 
 /** Creates a new indexed mesh using the list of [VertexAttribute]. */
@@ -39,10 +40,10 @@ fun colorIndexedMesh(
     return indexedMesh(
         device,
         listOf(
-            VertexAttribute(VertexFormat.FLOAT32x3, 0, 0, VertexAttrUsage.POSITION),
+            VertexAttribute(VertexFormat.float32x3, 0, 0, VertexAttrUsage.POSITION),
             VertexAttribute(
-                VertexFormat.FLOAT32x4,
-                VertexFormat.FLOAT32x3.bytes.toLong(),
+                VertexFormat.float32x4,
+                VertexFormat.float32x3.sizeInByte.toLong(),
                 1,
                 VertexAttrUsage.COLOR
             )

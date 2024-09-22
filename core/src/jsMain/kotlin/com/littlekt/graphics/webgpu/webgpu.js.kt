@@ -9,58 +9,6 @@ import org.khronos.webgl.ArrayBuffer
 import org.khronos.webgl.Uint8Array
 
 actual class Device(val delegate: GPUDevice) : Releasable {
-    actual val queue: Queue by lazy { Queue(delegate.queue) }
-
-    actual val features: List<Feature> by lazy {
-        val results = mutableListOf<Feature>()
-        val jsFeatures = delegate.features
-        Feature.entries.forEach { feature ->
-            if (jsFeatures.has(feature.nativeVal) as Boolean) {
-                results += feature
-            }
-        }
-        results.toList()
-    }
-
-    actual val limits: Limits by lazy {
-        val jsLimits = delegate.limits
-        Limits(
-            maxTextureDimension1D = jsLimits.maxTextureDimension1D,
-            maxTextureDimension2D = jsLimits.maxTextureDimension2D,
-            maxTextureDimension3D = jsLimits.maxTextureDimension3D,
-            maxTextureArrayLayers = jsLimits.maxTextureArrayLayers,
-            maxBindGroups = jsLimits.maxBindGroups,
-            maxBindGroupsPlusVertexBuffers = jsLimits.maxBindGroupsPlusVertexBuffers,
-            maxBindingsPerBindGroup = jsLimits.maxBindingsPerBindGroup,
-            maxDynamicUniformBuffersPerPipelineLayout =
-                jsLimits.maxDynamicUniformBuffersPerPipelineLayout,
-            maxDynamicStorageBuffersPerPipelineLayout =
-                jsLimits.maxDynamicStorageBuffersPerPipelineLayout,
-            maxSampledTexturesPerShaderStage = jsLimits.maxSampledTexturesPerShaderStage,
-            maxSamplersPerShaderStage = jsLimits.maxSamplersPerShaderStage,
-            maxStorageBuffersPerShaderStage = jsLimits.maxStorageBuffersPerShaderStage,
-            maxStorageTexturesPerShaderStage = jsLimits.maxStorageTexturesPerShaderStage,
-            maxUniformBuffersPerShaderStage = jsLimits.maxUniformBuffersPerShaderStage,
-            maxUniformBufferBindingSize = jsLimits.maxUniformBufferBindingSize,
-            maxStorageBufferBindingSize = jsLimits.maxStorageBufferBindingSize,
-            minUniformBufferOffsetAlignment = jsLimits.minUniformBufferOffsetAlignment,
-            minStorageBufferOffsetAlignment = jsLimits.minStorageBufferOffsetAlignment,
-            maxVertexBuffers = jsLimits.maxVertexBuffers,
-            maxBufferSize = jsLimits.maxBufferSize,
-            maxVertexAttributes = jsLimits.maxVertexAttributes,
-            maxVertexBufferArrayStride = jsLimits.maxVertexBufferArrayStride,
-            maxInterStageShaderComponents = jsLimits.maxInterStageShaderComponents,
-            maxInterStageShaderVariables = jsLimits.maxInterStageShaderVariables,
-            maxColorAttachments = jsLimits.maxColorAttachments,
-            maxColorAttachmentBytesPerSample = jsLimits.maxColorAttachmentBytesPerSample,
-            maxComputeWorkgroupStorageSize = jsLimits.maxComputeWorkgroupStorageSize,
-            maxComputeInvocationsPerWorkgroup = jsLimits.maxComputeInvocationsPerWorkgroup,
-            maxComputeWorkgroupSizeX = jsLimits.maxComputeWorkgroupSizeX,
-            maxComputeWorkgroupSizeY = jsLimits.maxComputeWorkgroupSizeY,
-            maxComputeWorkgroupSizeZ = jsLimits.maxComputeWorkgroupSizeZ,
-            maxComputeWorkgroupsPerDimension = jsLimits.maxComputeWorkgroupsPerDimension,
-        )
-    }
 
     actual fun createShaderModule(src: String): ShaderModule {
         return ShaderModule(delegate.createShaderModule(GPUShaderModuleDescriptor { code = src }))
