@@ -47,7 +47,7 @@ interface Graphics {
      * for presentation.
      */
     fun configureSurface(
-        usage: Set<TextureUsage> = setOf(TextureUsage.renderattachment),
+        usage: Set<TextureUsage> = setOf(TextureUsage.renderAttachment),
         format: TextureFormat = preferredFormat,
         presentMode: PresentMode = PresentMode.fifo,
         alphaMode: CompositeAlphaMode = surface.supportedAlphaMode.first()

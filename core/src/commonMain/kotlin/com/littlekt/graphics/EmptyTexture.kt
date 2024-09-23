@@ -41,7 +41,7 @@ class EmptyTexture(val device: Device, preferredFormat: TextureFormat, width: In
         TextureDescriptor(
             size,
             preferredFormat,
-            setOf(TextureUsage.texturebinding, TextureUsage.renderattachment)
+            setOf(TextureUsage.textureBinding, TextureUsage.renderAttachment)
         )
         set(value) {
             field = value

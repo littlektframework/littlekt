@@ -3,8 +3,8 @@ package com.littlekt.graphics
 import com.littlekt.ContextListener
 import com.littlekt.graphics.util.CommonMeshGeometry
 import com.littlekt.graphics.webgpu.VertexFormat
-import com.littlekt.graphics.webgpu.VertexStepMode
 import io.ygdrasil.wgpu.Device
+import io.ygdrasil.wgpu.VertexStepMode
 
 /**
  * Creates a new mesh using the list of [VertexAttribute].
@@ -21,7 +21,7 @@ inline fun mesh(
         CommonMeshGeometry(
             VertexBufferLayout(
                 attributes.calculateStride().toLong(),
-                VertexStepMode.VERTEX,
+                VertexStepMode.vertex,
                 attributes
             ),
             size

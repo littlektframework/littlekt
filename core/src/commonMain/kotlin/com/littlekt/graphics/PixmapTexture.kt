@@ -35,7 +35,7 @@ class PixmapTexture(val device: Device, preferredFormat: TextureFormat, val pixm
         TextureDescriptor(
             size,
             preferredFormat,
-            setOf(TextureUsage.texturebinding, TextureUsage.copydst)
+            setOf(TextureUsage.textureBinding, TextureUsage.copyDst)
         )
         set(value) {
             field = value

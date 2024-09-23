@@ -6,6 +6,7 @@ import com.littlekt.graphics.shader.SpriteShader
 import com.littlekt.graphics.webgpu.TextureBindingLayout
 import com.littlekt.log.Logger
 import io.ygdrasil.wgpu.*
+import io.ygdrasil.wgpu.BindGroupDescriptor.BufferBinding
 import io.ygdrasil.wgpu.BindGroupLayoutDescriptor.Entry
 import io.ygdrasil.wgpu.BindGroupLayoutDescriptor.Entry.BufferBindingLayout
 import kotlin.math.min
@@ -154,7 +155,7 @@ class SpriteCacheShader(
                     listOf(
                         Entry(
                             0,
-                            ShaderStage.vertex,
+                            setOf(ShaderStage.vertex),
                             BufferBindingLayout(
                                 type = BufferBindingType.uniform,
                                 hasDynamicOffset = true,
@@ -163,12 +164,12 @@ class SpriteCacheShader(
                         ),
                         Entry(
                             1,
-                            ShaderStage.vertex,
+                            setOf(ShaderStage.vertex),
                             BufferBindingLayout(type = BufferBindingType.readonlystorage)
                         ),
                         Entry(
                             2,
-                            ShaderStage.vertex,
+                            setOf(ShaderStage.vertex),
                             BufferBindingLayout(type = BufferBindingType.readonlystorage)
                         )
                     )
