@@ -6,7 +6,6 @@ import com.littlekt.file.*
 import com.littlekt.file.vfs.VfsFile
 import com.littlekt.graphics.webgpu.Adapter
 import com.littlekt.graphics.webgpu.GPURequestAdapterOptions
-import com.littlekt.graphics.webgpu.navigator
 import com.littlekt.input.JsInput
 import com.littlekt.log.Logger
 import com.littlekt.resources.internal.InternalResources
@@ -15,7 +14,6 @@ import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.browser.document
 import kotlinx.browser.window
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.await
 import kotlinx.coroutines.launch
 import org.w3c.dom.HTMLCanvasElement
 
@@ -64,7 +62,7 @@ class WebGPUContext(override val configuration: JsConfiguration) : Context() {
             val adapterOptions = GPURequestAdapterOptions {
                 powerPreference = configuration.powerPreference.nativeFlag
             }
-            graphics.adapter = Adapter(navigator.gpu.requestAdapter(adapterOptions).await())
+            graphics.adapter = Adapter()
             graphics.device = graphics.adapter.requestDevice()
             if (configuration.loadInternalResources) {
                 InternalResources.createInstance(this@WebGPUContext)

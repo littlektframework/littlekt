@@ -7,7 +7,21 @@ import com.littlekt.graphics.Color
 import com.littlekt.graphics.Texture
 import com.littlekt.graphics.g2d.SpriteBatch
 import com.littlekt.graphics.shader.SpriteShader
-import com.littlekt.graphics.webgpu.Device
+import io.ygdrasil.wgpu.BindGroup
+import io.ygdrasil.wgpu.BindGroupDescriptor
+import io.ygdrasil.wgpu.BindGroupDescriptor.BindGroupEntry
+import io.ygdrasil.wgpu.BindGroupLayoutDescriptor
+import io.ygdrasil.wgpu.BindGroupLayoutDescriptor.Entry
+import io.ygdrasil.wgpu.BindGroupLayoutDescriptor.Entry.SamplerBindingLayout
+import io.ygdrasil.wgpu.BindGroupLayoutDescriptor.Entry.TextureBindingLayout
+import io.ygdrasil.wgpu.Device
+import io.ygdrasil.wgpu.LoadOp
+import io.ygdrasil.wgpu.PresentMode
+import io.ygdrasil.wgpu.RenderPassDescriptor
+import io.ygdrasil.wgpu.RenderPassEncoder
+import io.ygdrasil.wgpu.ShaderStage
+import io.ygdrasil.wgpu.StoreOp
+import io.ygdrasil.wgpu.TextureUsage
 
 /**
  * An example showing a [SpriteBatch] drawing multiple textures and using different shaders to
@@ -62,12 +76,16 @@ class RenderSpriteBatchAndMultipleShadersExample(context: Context) : ContextList
             layout =
                 listOf(
                     BindGroupLayoutDescriptor(
-                        listOf(BindGroupLayoutEntry(0, ShaderStage.VERTEX, BufferBindingLayout()))
+                        listOf(Entry(0, ShaderStage.vertex, Entry.BufferBindingLayout()))
                     ),
                     BindGroupLayoutDescriptor(
                         listOf(
-                            BindGroupLayoutEntry(0, ShaderStage.FRAGMENT, TextureBindingLayout()),
-                            BindGroupLayoutEntry(1, ShaderStage.FRAGMENT, SamplerBindingLayout()),
+                            Entry(0, ShaderStage.fragment,
+                                TextureBindingLayout()
+                            ),
+                            Entry(1, ShaderStage.fragment,
+                                SamplerBindingLayout()
+                            )
                         )
                     ),
                 ),
@@ -117,10 +135,10 @@ class RenderSpriteBatchAndMultipleShadersExample(context: Context) : ContextList
         val coloredShader = ColorShader(device)
 
         graphics.configureSurface(
-            TextureUsage.RENDER_ATTACHMENT,
+            TextureUsage.renderAttachment,
             preferredFormat,
-            PresentMode.FIFO,
-            surfaceCapabilities.alphaModes[0],
+            PresentMode.fifo,
+            surfaceCapabilities.alphaModes[0]
         )
 
         val batch = SpriteBatch(device, graphics, preferredFormat)
@@ -136,10 +154,10 @@ class RenderSpriteBatchAndMultipleShadersExample(context: Context) : ContextList
                     far = 1f,
                 )
             graphics.configureSurface(
-                TextureUsage.RENDER_ATTACHMENT,
+                TextureUsage.renderAttachment,
                 preferredFormat,
-                PresentMode.FIFO,
-                surfaceCapabilities.alphaModes[0],
+                PresentMode.fifo,
+                surfaceCapabilities.alphaModes[0]
             )
         }
 
@@ -163,20 +181,18 @@ class RenderSpriteBatchAndMultipleShadersExample(context: Context) : ContextList
                     return@onUpdate
                 }
             }
-            val swapChainTexture = checkNotNull(surfaceTexture.texture)
-            val frame = swapChainTexture.createView()
+            val frame = surfaceTexture.createView()
 
             val commandEncoder = device.createCommandEncoder()
             val renderPassEncoder =
                 commandEncoder.beginRenderPass(
-                    desc =
                         RenderPassDescriptor(
                             listOf(
-                                RenderPassColorAttachmentDescriptor(
+                                RenderPassDescriptor.ColorAttachment(
                                     view = frame,
-                                    loadOp = LoadOp.CLEAR,
-                                    storeOp = StoreOp.STORE,
-                                    clearColor = Color.DARK_GRAY.toLinear(),
+                                    loadOp = LoadOp.clear,
+                                    storeOp = StoreOp.store,
+                                    clearValue = Color.DARK_GRAY.toLinear()
                                 )
                             )
                         )
@@ -194,13 +210,13 @@ class RenderSpriteBatchAndMultipleShadersExample(context: Context) : ContextList
 
             val commandBuffer = commandEncoder.finish()
 
-            device.queue.submit(commandBuffer)
+            device.queue.submit(listOf(commandBuffer))
             graphics.surface.present()
 
-            commandBuffer.release()
-            commandEncoder.release()
-            frame.release()
-            swapChainTexture.release()
+            commandBuffer.close()
+            commandEncoder.close()
+            frame.close()
+            surfaceTexture.close()
         }
 
         onRelease {

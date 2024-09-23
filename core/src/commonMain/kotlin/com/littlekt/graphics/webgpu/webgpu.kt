@@ -18,20 +18,8 @@ import com.littlekt.graphics.webgpu.*
 expect class Device : Releasable {
 
 
-    /**
-     * @param debug label for a [CommandEncoder].
-     * @return a newly created, empty [CommandEncoder].
-     */
-    fun createCommandEncoder(label: String? = null): CommandEncoder
-
     /** @return a newly created [GPUBuffer]. */
     fun createBuffer(desc: BufferDescriptor): GPUBuffer
-
-    /** @return a newly created [BindGroupLayout]. */
-    fun createBindGroupLayout(desc: BindGroupLayoutDescriptor): BindGroupLayout
-
-    /** @return a newly created [BindGroup]. */
-    fun createBindGroup(desc: BindGroupDescriptor): BindGroup
 
     /** @return a newly created [Sampler]. */
     fun createSampler(desc: SamplerDescriptor): Sampler
@@ -39,55 +27,12 @@ expect class Device : Releasable {
     /** @return a newly created [WebGPUTexture]. */
     fun createTexture(desc: TextureDescriptor): WebGPUTexture
 
-    /**
-     * This uses [createBuffer] internally, maps it at creation, and unmaps it immediately.
-     *
-     * @return a newly created [GPUBuffer] using an [ShortArray].
-     */
-    fun createGPUShortBuffer(label: String, data: ShortArray, usage: BufferUsage): GPUBuffer
-
-    /**
-     * This uses [createBuffer] internally, maps it at creation, and unmaps it immediately.
-     *
-     * @return a newly created [GPUBuffer] using a [FloatArray].
-     */
-    fun createGPUFloatBuffer(label: String, data: FloatArray, usage: BufferUsage): GPUBuffer
-
-    /**
-     * This uses [createBuffer] internally, maps it at creation, and unmaps it immediately.
-     *
-     * @return a newly created [GPUBuffer] using an [IntArray].
-     */
-    fun createGPUIntBuffer(label: String, data: IntArray, usage: BufferUsage): GPUBuffer
-
-    /**
-     * This uses [createBuffer] internally, maps it at creation, and unmaps it immediately.
-     *
-     * @return a newly created [GPUBuffer] using a [ByteArray].
-     */
-    fun createGPUByteBuffer(label: String, data: ByteArray, usage: BufferUsage): GPUBuffer
-
     override fun release()
 }
 
 /** A handle to a physical graphics and/or compute device. */
 expect class Adapter : Releasable {
-    /** The features which can be used to create devices on this adapter. */
-    val features: List<Feature>
 
-    /**
-     * The best limits which can be used to create devices on this adapter. Each adapter limit must
-     * be the same or better than its default value in supported limits.
-     */
-    val limits: Limits
-
-    /**
-     * Requests a connection to a physical device, creating a logical device.
-     *
-     * @param descriptor a [DeviceDescriptor] describing the required support a [Device] should have
-     * @return the [Device] together with a [Queue] that executes command buffers.
-     */
-    suspend fun requestDevice(descriptor: DeviceDescriptor? = null): Device
 
     /** Release the memory held by the adapter. */
     override fun release()
@@ -631,81 +576,6 @@ data class Extent3D(val width: Int, val height: Int, val depth: Int)
 data class Origin3D(val x: Int, val y: Int, val z: Int)
 
 /**
- * A handle to a presentable surface.
- *
- * A `Surface` represents a platform-specific surface (e.g. a window) onto which rendered images may
- * be presented.
- */
-expect class Surface : Releasable {
-
-    /** Initializes [Surface] for presentation. */
-    fun configure(configuration: SurfaceConfiguration)
-
-    /** @return the capabilities of the surface when used with the given [adapter]. */
-    fun getCapabilities(adapter: Adapter): SurfaceCapabilities
-
-    /** @return the optimal [TextureFormat] for displaying on the given [Adapter] */
-    fun getPreferredFormat(adapter: Adapter): TextureFormat
-
-    /**
-     * In order to present the [SurfaceTexture] returned by this function, first a [Queue.submit]
-     * needs to be done with some work rendering to this texture. Then [present] needs to be called.
-     *
-     * @return the next [SurfaceTexture] to be presented by the swapchain for drawing.
-     */
-    fun getCurrentTexture(): SurfaceTexture
-
-    /**
-     * Schedule the underlying [SurfaceTexture] to be presented on this surface.
-     *
-     * Needs to be called after any work on the texture is scheduled via [Queue.submit]
-     */
-    fun present()
-
-    /** Release this memory held by this surface. */
-    override fun release()
-}
-
-/** Defines the capabilities of a given surface and adapter. */
-expect class SurfaceCapabilities {
-    /**
-     * List of supported formats to use with a given adapter. The first format is usually the
-     * preferred.
-     */
-    val formats: List<TextureFormat>
-
-    /** List of supported presentation modes to use with the given adapter. */
-    val alphaModes: List<AlphaMode>
-}
-
-/**
- * Describes a [Surface]. For use with [Surface.configure].
- *
- * @param device the device of the surface
- * @param usage the usage of the swap chain. The only supported usage is
- *   [TextureUsage.RENDER_ATTACHMENT].
- * @param format the texture format of the swap chain. The only formats that are guaranteed are
- *   [TextureFormat.BGRA8_UNORM] and [TextureFormat.BGRA8_UNORM_SRGB].
- * @param presentMode Presentation mode of the swap chain. Fifo is the only mode guaranteed to be
- *   supported. FifoRelaxed, Imeediate, and Mailbox will crash if unsupported, while AutoVsync and
- *   AutoNoVsync will gracefully do a designed sets of fallbacks if their primary modes are
- *   unsupported.
- * @param alphaMode specifies how the alpha channel of textures should be handled during
- *   compositing.
- * @param width width of the swap chain
- * @param height height of the swap chain
- */
-data class SurfaceConfiguration(
-    val device: Device,
-    val usage: TextureUsage,
-    val format: TextureFormat,
-    val presentMode: PresentMode,
-    val alphaMode: AlphaMode,
-    val width: Int,
-    val height: Int,
-)
-
-/**
  * Describes a [TextureView].
  *
  * @param format the format of the texture view. Either must be the same as the texture format or in
@@ -760,19 +630,8 @@ data class TextureDescriptor(
     val label: String? = null
 )
 
-/** A texture that can be rendered to. Result of a successful call to [Surface.getCurrentTexture] */
-expect class SurfaceTexture {
-    /** The accessible view of the frame. */
-    val texture: WebGPUTexture?
-
-    /** The current status of the texture */
-    val status: TextureStatus
-}
-
 /** Handle to a texture on the GPU. It can be created with [Device.createTexture]. */
 expect class WebGPUTexture : Releasable {
-    /** Creates a view of this texture. */
-    fun createView(desc: TextureViewDescriptor? = null): TextureView
 
     override fun release()
 

@@ -4,42 +4,13 @@ import com.littlekt.Releasable
 import com.littlekt.file.*
 import com.littlekt.resources.BufferResourceInfo
 import com.littlekt.resources.TextureResourceInfo
-import kotlinx.coroutines.await
 import org.khronos.webgl.ArrayBuffer
 import org.khronos.webgl.Uint8Array
 
 actual class Device(val delegate: GPUDevice) : Releasable {
 
-    actual fun createShaderModule(src: String): ShaderModule {
-        return ShaderModule(delegate.createShaderModule(GPUShaderModuleDescriptor { code = src }))
-    }
-
-    actual fun createRenderPipeline(desc: RenderPipelineDescriptor): RenderPipeline {
-        return RenderPipeline(delegate.createRenderPipeline(desc.toNative()))
-    }
-
-    actual fun createComputePipeline(desc: ComputePipelineDescriptor): ComputePipeline {
-        return ComputePipeline(delegate.createComputePipeline(desc.toNative()))
-    }
-
-    actual fun createPipelineLayout(desc: PipelineLayoutDescriptor): PipelineLayout {
-        return PipelineLayout(delegate.createPipelineLayout(desc.toNative()))
-    }
-
-    actual fun createCommandEncoder(label: String?): CommandEncoder {
-        return CommandEncoder(delegate.createCommandEncoder(GPUObjectBase { this.label = label }))
-    }
-
     actual fun createBuffer(desc: BufferDescriptor): GPUBuffer {
         return GPUBuffer(delegate.createBuffer(desc.toNative()), desc.size)
-    }
-
-    actual fun createBindGroupLayout(desc: BindGroupLayoutDescriptor): BindGroupLayout {
-        return BindGroupLayout(delegate.createBindGroupLayout(desc.toNative()))
-    }
-
-    actual fun createBindGroup(desc: BindGroupDescriptor): BindGroup {
-        return BindGroup(delegate.createBindGroup(desc.toNative()))
     }
 
     actual fun createSampler(desc: SamplerDescriptor): Sampler {
@@ -52,112 +23,10 @@ actual class Device(val delegate: GPUDevice) : Releasable {
         return WebGPUTexture(delegate.createTexture(desc.toNative()), textureSize)
     }
 
-    actual fun createGPUShortBuffer(
-        label: String,
-        data: ShortArray,
-        usage: BufferUsage
-    ): GPUBuffer {
-        val buffer =
-            createBuffer(
-                BufferDescriptor(label, data.size.toLong() * Short.SIZE_BYTES, usage, true)
-            )
-        buffer.getMappedRange(0, buffer.size).putShort(data)
-        buffer.unmap()
-
-        return buffer
-    }
-
-    actual fun createGPUFloatBuffer(
-        label: String,
-        data: FloatArray,
-        usage: BufferUsage
-    ): GPUBuffer {
-        val buffer =
-            createBuffer(
-                BufferDescriptor(label, data.size.toLong() * Float.SIZE_BYTES, usage, true)
-            )
-        buffer.getMappedRange(0, buffer.size).putFloat(data)
-        buffer.unmap()
-
-        return buffer
-    }
-
-    actual fun createGPUIntBuffer(label: String, data: IntArray, usage: BufferUsage): GPUBuffer {
-        val buffer =
-            createBuffer(BufferDescriptor(label, data.size.toLong() * Int.SIZE_BYTES, usage, true))
-        buffer.getMappedRange(0, buffer.size).putInt(data)
-        buffer.unmap()
-
-        return buffer
-    }
-
-    actual fun createGPUByteBuffer(label: String, data: ByteArray, usage: BufferUsage): GPUBuffer {
-        val buffer = createBuffer(BufferDescriptor(label, data.size.toLong(), usage, true))
-        buffer.getMappedRange(0, buffer.size).putByte(data)
-        buffer.unmap()
-
-        return buffer
-    }
-
     actual override fun release() {}
 }
 
-actual class Adapter(val delegate: GPUAdapter) : Releasable {
-
-    actual val features: List<Feature> by lazy {
-        val results = mutableListOf<Feature>()
-        val jsFeatures = delegate.features
-        Feature.entries.forEach { feature ->
-            if (jsFeatures.has(feature.nativeVal) as Boolean) {
-                results += feature
-            }
-        }
-        results.toList()
-    }
-
-    actual val limits: Limits by lazy {
-        val jsLimits = delegate.limits
-        Limits(
-            maxTextureDimension1D = jsLimits.maxTextureDimension1D,
-            maxTextureDimension2D = jsLimits.maxTextureDimension2D,
-            maxTextureDimension3D = jsLimits.maxTextureDimension3D,
-            maxTextureArrayLayers = jsLimits.maxTextureArrayLayers,
-            maxBindGroups = jsLimits.maxBindGroups,
-            maxBindGroupsPlusVertexBuffers = jsLimits.maxBindGroupsPlusVertexBuffers,
-            maxBindingsPerBindGroup = jsLimits.maxBindingsPerBindGroup,
-            maxDynamicUniformBuffersPerPipelineLayout =
-                jsLimits.maxDynamicUniformBuffersPerPipelineLayout,
-            maxDynamicStorageBuffersPerPipelineLayout =
-                jsLimits.maxDynamicStorageBuffersPerPipelineLayout,
-            maxSampledTexturesPerShaderStage = jsLimits.maxSampledTexturesPerShaderStage,
-            maxSamplersPerShaderStage = jsLimits.maxSamplersPerShaderStage,
-            maxStorageBuffersPerShaderStage = jsLimits.maxStorageBuffersPerShaderStage,
-            maxStorageTexturesPerShaderStage = jsLimits.maxStorageTexturesPerShaderStage,
-            maxUniformBuffersPerShaderStage = jsLimits.maxUniformBuffersPerShaderStage,
-            maxUniformBufferBindingSize = jsLimits.maxUniformBufferBindingSize,
-            maxStorageBufferBindingSize = jsLimits.maxStorageBufferBindingSize,
-            minUniformBufferOffsetAlignment = jsLimits.minUniformBufferOffsetAlignment,
-            minStorageBufferOffsetAlignment = jsLimits.minStorageBufferOffsetAlignment,
-            maxVertexBuffers = jsLimits.maxVertexBuffers,
-            maxBufferSize = jsLimits.maxBufferSize,
-            maxVertexAttributes = jsLimits.maxVertexAttributes,
-            maxVertexBufferArrayStride = jsLimits.maxVertexBufferArrayStride,
-            maxInterStageShaderComponents = jsLimits.maxInterStageShaderComponents,
-            maxInterStageShaderVariables = jsLimits.maxInterStageShaderVariables,
-            maxColorAttachments = jsLimits.maxColorAttachments,
-            maxColorAttachmentBytesPerSample = jsLimits.maxColorAttachmentBytesPerSample,
-            maxComputeWorkgroupStorageSize = jsLimits.maxComputeWorkgroupStorageSize,
-            maxComputeInvocationsPerWorkgroup = jsLimits.maxComputeInvocationsPerWorkgroup,
-            maxComputeWorkgroupSizeX = jsLimits.maxComputeWorkgroupSizeX,
-            maxComputeWorkgroupSizeY = jsLimits.maxComputeWorkgroupSizeY,
-            maxComputeWorkgroupSizeZ = jsLimits.maxComputeWorkgroupSizeZ,
-            maxComputeWorkgroupsPerDimension = jsLimits.maxComputeWorkgroupsPerDimension,
-        )
-    }
-
-    actual suspend fun requestDevice(descriptor: DeviceDescriptor?): Device {
-        return Device(delegate.requestDevice(descriptor?.toNative()).await())
-    }
+actual class Adapter : Releasable {
 
     actual override fun release() {}
 }
@@ -252,51 +121,9 @@ actual class ShaderModule(val delegate: GPUShaderModule) : Releasable {
     actual override fun release() {}
 }
 
-actual class Surface(val delegate: GPU, val canvas: GPUCanvasContext) : Releasable {
-    actual fun configure(configuration: SurfaceConfiguration) {
-        canvas.configure(configuration.toNative())
-    }
-
-    actual fun getCapabilities(adapter: Adapter): SurfaceCapabilities {
-        return SURFACE_CAPABILITIES
-    }
-
-    actual fun getPreferredFormat(adapter: Adapter): TextureFormat {
-        val format = delegate.getPreferredCanvasFormat()
-        return TextureFormat.from(format) ?: error("Unsupported canvas format: $format")
-    }
-
-    actual fun getCurrentTexture(): SurfaceTexture {
-        return SurfaceTexture(WebGPUTexture(canvas.getCurrentTexture(), 0L))
-    }
-
-    actual fun present() {}
-
-    actual override fun release() {}
-
-    companion object {
-        private val SURFACE_CAPABILITIES = SurfaceCapabilities()
-    }
-}
-
-actual class SurfaceCapabilities {
-    actual val formats: List<TextureFormat> =
-        listOf(TextureFormat.BGRA8_UNORM, TextureFormat.RGBA8_UNORM, TextureFormat.RGBA16_FLOAT)
-
-    actual val alphaModes: List<AlphaMode> = listOf(AlphaMode.OPAQUE, AlphaMode.PREMULTIPLIED)
-}
-
-actual class SurfaceTexture(actual val texture: WebGPUTexture?) {
-    actual val status: TextureStatus = TextureStatus.SUCCESS
-}
-
 actual class WebGPUTexture(val delegate: GPUTexture, size: Long) : Releasable {
 
     private val info = TextureResourceInfo(this, size)
-
-    actual fun createView(desc: TextureViewDescriptor?): TextureView {
-        return TextureView(delegate.createView(desc?.toNative()))
-    }
 
     actual override fun release() {
         destroy()
