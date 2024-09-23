@@ -3,8 +3,12 @@ package com.littlekt
 import com.littlekt.graphics.Cursor
 import com.littlekt.graphics.HdpiMode
 import com.littlekt.graphics.SystemCursor
-import com.littlekt.graphics.webgpu.*
 import com.littlekt.log.Logger
+import io.ygdrasil.wgpu.Adapter
+import io.ygdrasil.wgpu.Device
+import io.ygdrasil.wgpu.Surface
+import io.ygdrasil.wgpu.WGPU
+import io.ygdrasil.wgpu.WGPU.Companion
 import java.lang.foreign.Arena
 import java.lang.foreign.MemorySegment
 import kotlinx.atomicfu.atomic
@@ -42,7 +46,7 @@ class LwjglGraphics(private val context: LwjglContext) : Graphics, Releasable {
     override val backBufferHeight: Int
         get() = _backBufferHeight
 
-    internal var instance: Instance = Instance(WGPU_NULL)
+    internal var instance: Instance = WGPU.createInstance() ?: error("fail to wgpu instance")
 
     override var surface: Surface = Surface(WGPU_NULL)
     override var adapter: Adapter = Adapter(WGPU_NULL)

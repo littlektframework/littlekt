@@ -159,7 +159,7 @@ class ComputeBoidsExample(context: Context) : ContextListener(context) {
             )
         val computePipelineLayout =
             device.createPipelineLayout(
-                PipelineLayoutDescriptor(computeBindGroupLayout, "compute pipeline layout")
+                PipelineLayoutDescriptor(listOf(computeBindGroupLayout), "compute pipeline layout")
             )
         val computePipeline =
             device.createComputePipeline(
@@ -259,7 +259,7 @@ class ComputeBoidsExample(context: Context) : ContextListener(context) {
 
         onResize { width, height ->
             graphics.configureSurface(
-                setOf(TextureUsage.renderattachment),
+                setOf(TextureUsage.renderAttachment),
                 preferredFormat,
                 PresentMode.fifo,
                 surfaceCapabilities.alphaModes[0]
@@ -294,13 +294,11 @@ class ComputeBoidsExample(context: Context) : ContextListener(context) {
             val renderPassDescriptor =
                 RenderPassDescriptor(
                     listOf(
-                        RenderPassColorAttachmentDescriptor(
+                        RenderPassDescriptor.ColorAttachment(
                             view = frame,
                             loadOp = LoadOp.clear,
                             storeOp = StoreOp.store,
-                            clearColor =
-                                if (preferredFormat.srgb) Color.DARK_GRAY.toLinear()
-                                else Color.DARK_GRAY
+                            clearValue = Color.DARK_GRAY
                         )
                     ),
                     label = "Init render pass"
@@ -322,12 +320,11 @@ class ComputeBoidsExample(context: Context) : ContextListener(context) {
                 passEncoder.setVertexBuffer(1, spriteVertexBuffer)
                 passEncoder.draw(3, numParticles, 0, 0)
                 passEncoder.end()
-                passEncoder.close()
             }
 
             val commandBuffer = commandEncoder.finish()
 
-            device.queue.submit(commandBuffer)
+            device.queue.submit(listOf(commandBuffer))
             graphics.surface.present()
 
             fidx++

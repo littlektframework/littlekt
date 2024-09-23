@@ -8,7 +8,7 @@ import com.littlekt.graphics.webgpu.VertexFormat
  *
  * @see VertexFormat.bytes
  */
-fun List<VertexAttribute>.calculateStride(): Int = sumOf { it.format.bytes }
+fun List<VertexAttribute>.calculateStride(): Int = sumOf { it.format.sizeInByte }
 
 /**
  * Calculates the number of components in the list of [VertexAttribute] by summing up the components

@@ -2,10 +2,15 @@ package com.littlekt.graphics.g2d
 
 import com.littlekt.graphics.Texture
 import com.littlekt.graphics.shader.SpriteShader
-import com.littlekt.graphics.webgpu.BindGroupLayoutEntry
 import io.ygdrasil.wgpu.Device
 import com.littlekt.util.align
+import io.ygdrasil.wgpu.BindGroup
+import io.ygdrasil.wgpu.BindGroupDescriptor
+import io.ygdrasil.wgpu.BindGroupDescriptor.BindGroupEntry
 import io.ygdrasil.wgpu.BindGroupLayoutDescriptor
+import io.ygdrasil.wgpu.BindGroupLayoutDescriptor.Entry
+import io.ygdrasil.wgpu.BindGroupLayoutDescriptor.Entry.*
+import io.ygdrasil.wgpu.RenderPassEncoder
 import io.ygdrasil.wgpu.ShaderStage
 
 /**
@@ -64,10 +69,10 @@ class SpriteBatchShader(device: Device, cameraDynamicSize: Int = 50) :
             listOf(
                 BindGroupLayoutDescriptor(
                     listOf(
-                        BindGroupLayoutEntry(
+                        Entry(
                             0,
-                            ShaderStage.vertex,
-                            BindGroupLayoutDescriptor.Entry.BufferBindingLayout(
+                            setOf(ShaderStage.vertex),
+                            BufferBindingLayout(
                                 hasDynamicOffset = true,
                                 minBindingSize =
                                 (Float.SIZE_BYTES * 16)
@@ -79,8 +84,12 @@ class SpriteBatchShader(device: Device, cameraDynamicSize: Int = 50) :
                 ),
                 BindGroupLayoutDescriptor(
                     listOf(
-                        BindGroupLayoutEntry(0, ShaderStage.FRAGMENT, TextureBindingLayout()),
-                        BindGroupLayoutEntry(1, ShaderStage.FRAGMENT, SamplerBindingLayout())
+                        Entry(0, setOf(ShaderStage.fragment),
+                            TextureBindingLayout()
+                        ),
+                        Entry(1, setOf(ShaderStage.fragment),
+                            SamplerBindingLayout()
+                        )
                     )
                 )
             ),

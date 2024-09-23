@@ -1,7 +1,7 @@
 package com.littlekt.graphics.g2d
 
-import com.littlekt.graphics.webgpu.RenderPassEncoder
 import com.littlekt.math.Mat4
+import io.ygdrasil.wgpu.RenderPassEncoder
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract

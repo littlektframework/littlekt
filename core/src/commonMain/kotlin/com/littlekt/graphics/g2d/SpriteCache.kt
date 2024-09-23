@@ -20,8 +20,13 @@ import com.littlekt.math.geom.radians
 import com.littlekt.util.datastructure.fastForEach
 import io.ygdrasil.wgpu.BindGroup
 import io.ygdrasil.wgpu.BufferUsage
+import io.ygdrasil.wgpu.ColorWriteMask
 import io.ygdrasil.wgpu.Device
+import io.ygdrasil.wgpu.PrimitiveTopology
+import io.ygdrasil.wgpu.RenderPipelineDescriptor
+import io.ygdrasil.wgpu.RenderPipelineDescriptor.FragmentState
 import io.ygdrasil.wgpu.RenderPipelineDescriptor.FragmentState.ColorTargetState.BlendState
+import io.ygdrasil.wgpu.RenderPipelineDescriptor.VertexState
 import io.ygdrasil.wgpu.TextureFormat
 import io.ygdrasil.wgpu.VertexFormat
 import kotlinx.atomicfu.atomic
@@ -55,8 +60,8 @@ class SpriteCache(val device: Device, val format: TextureFormat, size: Int = 100
                     usage = VertexAttrUsage.POSITION
                 ),
                 VertexAttribute(
-                    format = VertexFormat.FLOAT32x2,
-                    offset = VertexFormat.FLOAT32x3.bytes.toLong(),
+                    format = VertexFormat.float32x2,
+                    offset = VertexFormat.float32x3.sizeInByte.toLong(),
                     shaderLocation = 1,
                     usage = VertexAttrUsage.TEX_COORDS
                 )
@@ -473,23 +478,23 @@ class SpriteCache(val device: Device, val format: TextureFormat, size: Int = 100
             VertexState(
                 module = shader.shaderModule,
                 entryPoint = shader.vertexEntryPoint,
-                buffer = mesh.geometry.layout.gpuVertexBufferLayout
+                buffers = listOf(mesh.geometry.layout.gpuVertexBufferLayout)
             ),
             fragment =
             FragmentState(
                 module = shader.shaderModule,
                 entryPoint = shader.fragmentEntryPoint,
-                target =
-                ColorTargetState(
-                    format = format,
-                    blendState = blendState,
-                    writeMask = ColorWriteMask.ALL
-                )
+                targets = listOf(
+                    FragmentState.ColorTargetState(
+                        format = format,
+                        blend = blendState,
+                        writeMask = ColorWriteMask.all
+                    ))
             ),
-            primitive = PrimitiveState(topology = PrimitiveTopology.TRIANGLE_LIST),
+            primitive = RenderPipelineDescriptor.PrimitiveState(topology = PrimitiveTopology.trianglelist),
             depthStencil = null,
             multisample =
-            MultisampleState(count = 1, mask = 0xFFFFFFF, alphaToCoverageEnabled = false)
+            RenderPipelineDescriptor.MultisampleState(count = 1, mask = 0xFFFFFFFu, alphaToCoverageEnabled = false)
         )
     }
 

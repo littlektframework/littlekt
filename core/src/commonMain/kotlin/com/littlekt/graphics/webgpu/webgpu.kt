@@ -17,17 +17,6 @@ import com.littlekt.graphics.webgpu.*
  */
 expect class Device : Releasable {
 
-    /** @return a newly created [ShaderModule] using WGSL source code. */
-    fun createShaderModule(src: String): ShaderModule
-
-    /** @return a newly created [RenderPipeline]. */
-    fun createRenderPipeline(desc: RenderPipelineDescriptor): RenderPipeline
-
-    /** @return a newly created [ComputePipeline] */
-    fun createComputePipeline(desc: ComputePipelineDescriptor): ComputePipeline
-
-    /** @return a newly created [PipelineLayout]. */
-    fun createPipelineLayout(desc: PipelineLayoutDescriptor): PipelineLayout
 
     /**
      * @param debug label for a [CommandEncoder].
@@ -819,16 +808,6 @@ data class BufferDescriptor(
     val mappedAtCreation: Boolean
 )
 
-/**
- * Handle to a GPU-accessible buffer.
- *
- * Create with [Device.createBuffer].
- *
- * @see [Device.createGPUFloatBuffer]
- * @see [Device.createGPUIntBuffer]
- * @see [Device.createGPUShortBuffer]
- * @see [Device.createGPUByteBuffer]
- */
 expect class GPUBuffer : Releasable {
 
     /** The length of the buffer allocation in bytes. */
