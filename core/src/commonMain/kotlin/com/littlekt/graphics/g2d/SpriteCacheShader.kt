@@ -2,11 +2,11 @@ package com.littlekt.graphics.g2d
 
 import com.littlekt.file.FloatBuffer
 import com.littlekt.graphics.Texture
+import com.littlekt.graphics.createGPUFloatBuffer
 import com.littlekt.graphics.shader.SpriteShader
-import com.littlekt.graphics.webgpu.TextureBindingLayout
 import com.littlekt.log.Logger
 import io.ygdrasil.wgpu.*
-import io.ygdrasil.wgpu.BindGroupDescriptor.BufferBinding
+import io.ygdrasil.wgpu.BindGroupDescriptor.*
 import io.ygdrasil.wgpu.BindGroupLayoutDescriptor.Entry
 import io.ygdrasil.wgpu.BindGroupLayoutDescriptor.Entry.BufferBindingLayout
 import kotlin.math.min
@@ -29,7 +29,7 @@ class SpriteCacheShader(
         device,
         // language=wgsl
         src =
-            """
+        """
         struct CameraUniform {
             view_proj: mat4x4<f32>
         };
@@ -148,39 +148,39 @@ class SpriteCacheShader(
             return textureSample(my_texture, my_sampler, in.uv) * in.color;
         }
         """
-                .trimIndent(),
+            .trimIndent(),
         layout =
-            listOf(
-                BindGroupLayoutDescriptor(
-                    listOf(
-                        Entry(
-                            0,
-                            setOf(ShaderStage.vertex),
-                            BufferBindingLayout(
-                                type = BufferBindingType.uniform,
-                                hasDynamicOffset = true,
-                                minBindingSize = Float.SIZE_BYTES * 16L
-                            )
-                        ),
-                        Entry(
-                            1,
-                            setOf(ShaderStage.vertex),
-                            BufferBindingLayout(type = BufferBindingType.readonlystorage)
-                        ),
-                        Entry(
-                            2,
-                            setOf(ShaderStage.vertex),
-                            BufferBindingLayout(type = BufferBindingType.readonlystorage)
+        listOf(
+            BindGroupLayoutDescriptor(
+                listOf(
+                    Entry(
+                        0,
+                        setOf(ShaderStage.vertex),
+                        BufferBindingLayout(
+                            type = BufferBindingType.uniform,
+                            hasDynamicOffset = true,
+                            minBindingSize = Float.SIZE_BYTES * 16L
                         )
-                    )
-                ),
-                BindGroupLayoutDescriptor(
-                    listOf(
-                        Entry(0, setOf(ShaderStage.fragment), TextureBindingLayout()),
-                        Entry(1, setOf(ShaderStage.fragment), Entry.SamplerBindingLayout())
+                    ),
+                    Entry(
+                        1,
+                        setOf(ShaderStage.vertex),
+                        BufferBindingLayout(type = BufferBindingType.readonlystorage)
+                    ),
+                    Entry(
+                        2,
+                        setOf(ShaderStage.vertex),
+                        BufferBindingLayout(type = BufferBindingType.readonlystorage)
                     )
                 )
+            ),
+            BindGroupLayoutDescriptor(
+                listOf(
+                    Entry(0, setOf(ShaderStage.fragment), Entry.TextureBindingLayout()),
+                    Entry(1, setOf(ShaderStage.fragment), Entry.SamplerBindingLayout())
+                )
             )
+        )
     ) {
 
     /**
@@ -192,7 +192,7 @@ class SpriteCacheShader(
         device.createGPUFloatBuffer(
             "static sprite storage buffer",
             FloatArray(staticSize),
-            BufferUsage.STORAGE or BufferUsage.COPY_DST
+            setOf(BufferUsage.storage, BufferUsage.copydst)
         )
 
     private var staticSpriteStorageBufferBinding = BufferBinding(spriteStaticStorage)
@@ -206,7 +206,7 @@ class SpriteCacheShader(
         device.createGPUFloatBuffer(
             "dynamic sprite storage buffer",
             FloatArray(dynamicSize),
-            BufferUsage.STORAGE or BufferUsage.COPY_DST
+            setOf(BufferUsage.storage, BufferUsage.copydst)
         )
 
     private var dynamicSpriteStorageBufferBinding = BufferBinding(spriteDynamicStorage)
@@ -231,7 +231,7 @@ class SpriteCacheShader(
             device.createBindGroup(
                 BindGroupDescriptor(
                     layouts[1],
-                    listOf(BindGroupEntry(0, texture.view), BindGroupEntry(1, texture.sampler))
+                    listOf(BindGroupEntry(0, TextureViewBinding(texture.view)), BindGroupEntry(1, SamplerBinding(texture.sampler)))
                 )
             )
         )
@@ -257,20 +257,20 @@ class SpriteCacheShader(
             logger.debug {
                 "Attempting to write data to static sprite storage buffer that exceeds its current size. Destroying and recreating the buffer..."
             }
-            spriteStaticStorage.destroy()
-            spriteStaticStorage.release()
+            spriteStaticStorage.close()
             spriteStaticStorage =
                 device.createGPUFloatBuffer(
                     "static sprite storage buffer",
                     data.toArray(),
-                    BufferUsage.STORAGE or BufferUsage.COPY_DST
+                    setOf(BufferUsage.storage, BufferUsage.copydst)
                 )
             staticSpriteStorageBufferBinding = BufferBinding(spriteStaticStorage)
             return true
         } else {
             device.queue.writeBuffer(
                 spriteStaticStorage,
-                data,
+                0L,
+                data.toArray(),
                 size = min(spriteStaticStorage.size / Float.SIZE_BYTES, data.limit.toLong())
             )
         }
@@ -288,20 +288,20 @@ class SpriteCacheShader(
             logger.debug {
                 "Attempting to write data to dynamic sprite storage buffer that exceeds its current size. Destroying and recreating the buffer..."
             }
-            spriteDynamicStorage.destroy()
-            spriteDynamicStorage.release()
+            spriteDynamicStorage.close()
             spriteDynamicStorage =
                 device.createGPUFloatBuffer(
                     "dynamic sprite storage buffer",
                     data.toArray(),
-                    BufferUsage.STORAGE or BufferUsage.COPY_DST
+                    setOf(BufferUsage.storage, BufferUsage.copydst)
                 )
             dynamicSpriteStorageBufferBinding = BufferBinding(spriteDynamicStorage)
             return true
         } else {
             device.queue.writeBuffer(
                 spriteDynamicStorage,
-                data,
+                0L,
+                data.toArray(),
                 size = min(spriteDynamicStorage.size / Float.SIZE_BYTES, data.limit.toLong())
             )
         }

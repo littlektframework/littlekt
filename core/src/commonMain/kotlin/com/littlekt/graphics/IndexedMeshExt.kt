@@ -65,16 +65,16 @@ fun textureIndexedMesh(
     return indexedMesh(
         device,
         listOf(
-            VertexAttribute(VertexFormat.FLOAT32x3, 0, 0, VertexAttrUsage.POSITION),
+            VertexAttribute(VertexFormat.float32x3, 0, 0, VertexAttrUsage.POSITION),
             VertexAttribute(
-                VertexFormat.FLOAT32x4,
-                VertexFormat.FLOAT32x3.bytes.toLong(),
+                VertexFormat.float32x4,
+                VertexFormat.float32x3.sizeInByte.toLong(),
                 1,
                 VertexAttrUsage.COLOR
             ),
             VertexAttribute(
-                VertexFormat.FLOAT32x2,
-                VertexFormat.FLOAT32x4.bytes.toLong() + VertexFormat.FLOAT32x3.bytes.toLong(),
+                VertexFormat.float32x2,
+                VertexFormat.float32x4.sizeInByte.toLong() + VertexFormat.float32x3.sizeInByte.toLong(),
                 2,
                 VertexAttrUsage.TEX_COORDS
             )
@@ -92,7 +92,7 @@ fun positionIndexedMesh(
 ): IndexedMesh<CommonIndexedMeshGeometry> {
     return indexedMesh(
         device,
-        listOf(VertexAttribute(VertexFormat.FLOAT32x3, 0, 0, VertexAttrUsage.POSITION)),
+        listOf(VertexAttribute(VertexFormat.float32x3, 0, 0, VertexAttrUsage.POSITION)),
         size,
         generate
     )

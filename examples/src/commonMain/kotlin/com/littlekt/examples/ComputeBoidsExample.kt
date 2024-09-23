@@ -5,9 +5,7 @@ import com.littlekt.ContextListener
 import com.littlekt.file.FloatBuffer
 import com.littlekt.graphics.*
 import com.littlekt.graphics.shader.Shader
-import com.littlekt.graphics.webgpu.RenderPassColorAttachmentDescriptor
 import com.littlekt.graphics.webgpu.TextureStatus
-import com.littlekt.graphics.webgpu.VertexState
 import io.ygdrasil.wgpu.BindGroupDescriptor
 import io.ygdrasil.wgpu.BindGroupDescriptor.BindGroupEntry
 import io.ygdrasil.wgpu.BindGroupDescriptor.BufferBinding
@@ -25,6 +23,7 @@ import io.ygdrasil.wgpu.PipelineLayoutDescriptor
 import io.ygdrasil.wgpu.PresentMode
 import io.ygdrasil.wgpu.RenderPassDescriptor
 import io.ygdrasil.wgpu.RenderPipelineDescriptor
+import io.ygdrasil.wgpu.RenderPipelineDescriptor.VertexState
 import io.ygdrasil.wgpu.ShaderModuleDescriptor
 import io.ygdrasil.wgpu.ShaderStage
 import io.ygdrasil.wgpu.StoreOp
@@ -51,10 +50,10 @@ class ComputeBoidsExample(context: Context) : ContextListener(context) {
         val preferredFormat = graphics.preferredFormat
 
         graphics.configureSurface(
-            setOf(TextureUsage.renderattachment),
+            setOf(TextureUsage.renderAttachment),
             preferredFormat,
             PresentMode.fifo,
-            surfaceCapabilities.alphaModes[0]
+            graphics.surface.supportedAlphaMode.first()
         )
 
         val spriteShader = Shader(device, SPRITE_WGSL_SRC, emptyList())
@@ -63,58 +62,59 @@ class ComputeBoidsExample(context: Context) : ContextListener(context) {
                     RenderPipelineDescriptor(
                         layout = spriteShader.pipelineLayout,
                         vertex =
-                            VertexState(
-                                module = spriteShader.shaderModule,
-                                entryPoint = spriteShader.vertexEntryPoint,
-                                buffers =
+                        VertexState(
+                            module = spriteShader.shaderModule,
+                            entryPoint = spriteShader.vertexEntryPoint,
+                            buffers =
+                            listOf(
+                                VertexBufferLayout(
+                                    arrayStride = 4 * 4,
+                                    stepMode = VertexStepMode.instance,
+                                    attributes =
                                     listOf(
-                                        VertexBufferLayout(
-                                                arrayStride = 4 * 4,
-                                                stepMode = VertexStepMode.instance,
-                                                attributes =
-                                                    listOf(
-                                                        VertexAttribute(
-                                                            format = VertexFormat.float32x2,
-                                                            offset = 0L,
-                                                            shaderLocation = 0,
-                                                            usage = VertexAttrUsage.POSITION
-                                                        ),
-                                                        VertexAttribute(
-                                                            format = VertexFormat.float32x2,
-                                                            offset =
-                                                                VertexFormat.float32x2.sizeInByte
-                                                                    .toLong(),
-                                                            shaderLocation = 1,
-                                                            usage = VertexAttrUsage.GENERIC
-                                                        ),
-                                                    )
-                                            )
-                                            .gpuVertexBufferLayout,
-                                        VertexBufferLayout(
-                                                arrayStride = 2 * 4,
-                                                stepMode = VertexStepMode.vertex,
-                                                attributes =
-                                                    listOf(
-                                                        VertexAttribute(
-                                                            format = VertexFormat.float32x2,
-                                                            offset = 0,
-                                                            shaderLocation = 2,
-                                                            usage = VertexAttrUsage.GENERIC
-                                                        ),
-                                                    )
-                                            )
-                                            .gpuVertexBufferLayout
+                                        VertexAttribute(
+                                            format = VertexFormat.float32x2,
+                                            offset = 0L,
+                                            shaderLocation = 0,
+                                            usage = VertexAttrUsage.POSITION
+                                        ),
+                                        VertexAttribute(
+                                            format = VertexFormat.float32x2,
+                                            offset =
+                                            VertexFormat.float32x2.sizeInByte
+                                                .toLong(),
+                                            shaderLocation = 1,
+                                            usage = VertexAttrUsage.GENERIC
+                                        ),
                                     )
-                            ),
+                                )
+                                    .gpuVertexBufferLayout,
+                                VertexBufferLayout(
+                                    arrayStride = 2 * 4,
+                                    stepMode = VertexStepMode.vertex,
+                                    attributes =
+                                    listOf(
+                                        VertexAttribute(
+                                            format = VertexFormat.float32x2,
+                                            offset = 0,
+                                            shaderLocation = 2,
+                                            usage = VertexAttrUsage.GENERIC
+                                        ),
+                                    )
+                                )
+                                    .gpuVertexBufferLayout
+                            )
+                        ),
                         fragment =
                         RenderPipelineDescriptor.FragmentState(
                             module = spriteShader.shaderModule,
                             entryPoint = spriteShader.fragmentEntryPoint,
-                            target =
-                            RenderPipelineDescriptor.FragmentState.ColorTargetState(
-                                format = preferredFormat,
-                                blendState = RenderPipelineDescriptor.FragmentState.ColorTargetState.BlendState.NonPreMultiplied,
-                                writeMask = ColorWriteMask.all
+                            targets = listOf(
+                                RenderPipelineDescriptor.FragmentState.ColorTargetState(
+                                    format = preferredFormat,
+                                    blend = RenderPipelineDescriptor.FragmentState.ColorTargetState.BlendState.NonPreMultiplied,
+                                    writeMask = ColorWriteMask.all
+                                )
                             )
                         )
                     )

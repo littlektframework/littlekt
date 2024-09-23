@@ -1,8 +1,8 @@
 package com.littlekt.graphics
 
 import com.littlekt.graphics.util.CommonVertexView
-import com.littlekt.graphics.webgpu.VertexFormat
 import com.littlekt.graphics.webgpu.WebGPUVertexAttribute
+import io.ygdrasil.wgpu.VertexFormat
 
 /**
  * Wraps a [WebGPUVertexAttribute] and tracks a [VertexAttrUsage].
