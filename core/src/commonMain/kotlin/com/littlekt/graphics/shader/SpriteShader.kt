@@ -6,7 +6,6 @@ import io.ygdrasil.wgpu.Device
 import com.littlekt.math.Mat4
 import com.littlekt.util.align
 import io.ygdrasil.wgpu.BindGroup
-import io.ygdrasil.wgpu.BindGroupDescriptor
 import io.ygdrasil.wgpu.BindGroupDescriptor.BufferBinding
 import io.ygdrasil.wgpu.BindGroupLayoutDescriptor
 import io.ygdrasil.wgpu.BufferDescriptor
@@ -119,8 +118,8 @@ abstract class SpriteShader(
     fun updateCameraUniform(viewProjection: Mat4, dynamicOffset: Long = 0) =
         device.queue.writeBuffer(
             cameraUniformBuffer,
-            viewProjection.toBuffer(camFloatBuffer),
-            offset = dynamicOffset * device.limits.minUniformBufferOffsetAlignment,
+            dynamicOffset * device.limits.minUniformBufferOffsetAlignment.toLong(),
+            viewProjection.toBuffer(camFloatBuffer).toArray()
         )
 
     override fun release() {

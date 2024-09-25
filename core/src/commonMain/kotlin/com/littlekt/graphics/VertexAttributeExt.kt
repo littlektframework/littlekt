@@ -1,7 +1,5 @@
 package com.littlekt.graphics
 
-import com.littlekt.graphics.webgpu.VertexFormat
-
 /**
  * Calculates the stride of a list [VertexAttribute] by summing up the bytes of
  * [VertexAttribute.format].

@@ -3,9 +3,11 @@ package com.littlekt.graphics
 import com.littlekt.graphics.Texture.Companion.nextId
 import io.ygdrasil.wgpu.Texture as WebGPUTexture
 import io.ygdrasil.wgpu.Device
+import io.ygdrasil.wgpu.ImageCopyTexture
 import io.ygdrasil.wgpu.Sampler
 import io.ygdrasil.wgpu.SamplerDescriptor
 import io.ygdrasil.wgpu.Size3D
+import io.ygdrasil.wgpu.TextureDataLayout
 import io.ygdrasil.wgpu.TextureDescriptor
 import io.ygdrasil.wgpu.TextureDimension
 import io.ygdrasil.wgpu.TextureFormat
@@ -85,9 +87,9 @@ class PixmapTexture(val device: Device, preferredFormat: TextureFormat, val pixm
 
     override fun writeDataToBuffer() {
         device.queue.writeTexture(
+            ImageCopyTexture(gpuTexture),
             pixmap.pixels.toArray(),
-            TextureCopyView(gpuTexture),
-            TextureDataLayout(4 * pixmap.width, pixmap.height),
+            TextureDataLayout((4 * pixmap.width).toLong(), pixmap.height),
             size
         )
     }

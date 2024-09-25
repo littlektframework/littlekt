@@ -742,7 +742,7 @@ class SpriteBatch(
                     )
                 )
             ),
-            primitive = PrimitiveState(topology = PrimitiveTopology.trianglelist),
+            primitive = PrimitiveState(topology = PrimitiveTopology.triangleList),
             depthStencil = null,
             multisample =
             MultisampleState(count = 1, mask = 0xFFFFFFFu, alphaToCoverageEnabled = false)

@@ -494,7 +494,7 @@ class SpriteCache(val device: Device, val format: TextureFormat, size: Int = 100
                         writeMask = ColorWriteMask.all
                     ))
             ),
-            primitive = RenderPipelineDescriptor.PrimitiveState(topology = PrimitiveTopology.trianglelist),
+            primitive = RenderPipelineDescriptor.PrimitiveState(topology = PrimitiveTopology.triangleList),
             depthStencil = null,
             multisample =
             RenderPipelineDescriptor.MultisampleState(count = 1, mask = 0xFFFFFFFu, alphaToCoverageEnabled = false)
