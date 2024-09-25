@@ -22,7 +22,10 @@ import io.ygdrasil.wgpu.BindGroup
 import io.ygdrasil.wgpu.BufferUsage
 import io.ygdrasil.wgpu.ColorWriteMask
 import io.ygdrasil.wgpu.Device
+import io.ygdrasil.wgpu.IndexFormat
 import io.ygdrasil.wgpu.PrimitiveTopology
+import io.ygdrasil.wgpu.RenderPassEncoder
+import io.ygdrasil.wgpu.RenderPipeline
 import io.ygdrasil.wgpu.RenderPipelineDescriptor
 import io.ygdrasil.wgpu.RenderPipelineDescriptor.FragmentState
 import io.ygdrasil.wgpu.RenderPipelineDescriptor.FragmentState.ColorTargetState.BlendState
@@ -216,7 +219,7 @@ class SpriteCache(val device: Device, val format: TextureFormat, size: Int = 100
             staticDirty = false
             dynamicDirty = false
         }
-        encoder.setIndexBuffer(mesh.ibo, IndexFormat.UINT16)
+        encoder.setIndexBuffer(mesh.ibo, IndexFormat.uint16)
         encoder.setVertexBuffer(0, mesh.vbo)
         var lastPipelineSet: RenderPipeline? = null
         var lastCombinedMatrixSet: Mat4? = null
@@ -509,7 +512,7 @@ class SpriteCache(val device: Device, val format: TextureFormat, size: Int = 100
     }
 
     override fun release() {
-        spriteBuffer.release()
+        spriteBuffer.close()
         staticData.clear()
         spriteIndices.clear()
     }
