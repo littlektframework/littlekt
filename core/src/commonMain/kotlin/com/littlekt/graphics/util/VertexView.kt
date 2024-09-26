@@ -3,7 +3,6 @@ package com.littlekt.graphics.util
 import com.littlekt.file.FloatBuffer
 import com.littlekt.graphics.MutableColor
 import com.littlekt.graphics.VertexAttributeView
-import com.littlekt.graphics.webgpu.WebGPUVertexAttribute
 import com.littlekt.math.*
 import io.ygdrasil.wgpu.VertexFormat
 
@@ -40,7 +39,7 @@ open class VertexView(
 
     private val _attributesViews = mutableMapOf<Int, Any>()
 
-    /** A view into the vertex attribute, mapped by [WebGPUVertexAttribute.shaderLocation]. */
+    /** A view into the vertex attribute, mapped by [VertexAttribute.shaderLocation]. */
     val attributeViews: Map<Int, Any>
         get() = _attributesViews
 

@@ -7,7 +7,6 @@ import com.littlekt.graph.node.ui.centerContainer
 import com.littlekt.graph.node.ui.label
 import com.littlekt.graph.sceneGraph
 import com.littlekt.graphics.g2d.SpriteBatch
-import com.littlekt.graphics.webgpu.*
 import com.littlekt.util.viewport.ExtendViewport
 
 /**

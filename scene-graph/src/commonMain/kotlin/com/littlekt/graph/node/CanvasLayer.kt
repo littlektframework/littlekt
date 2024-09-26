@@ -12,7 +12,6 @@ import com.littlekt.graphics.g2d.Batch
 import com.littlekt.graphics.g2d.SpriteBatchShader
 import com.littlekt.graphics.g2d.shape.ShapeRenderer
 import com.littlekt.graphics.shader.Shader
-import com.littlekt.graphics.webgpu.*
 import com.littlekt.log.Logger
 import com.littlekt.math.Mat4
 import com.littlekt.math.MutableVec2f

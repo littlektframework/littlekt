@@ -10,7 +10,6 @@ import com.littlekt.graph.util.*
 import com.littlekt.graphics.Camera
 import com.littlekt.graphics.g2d.Batch
 import com.littlekt.graphics.g2d.shape.ShapeRenderer
-import com.littlekt.graphics.webgpu.RenderPassEncoder
 import com.littlekt.util.datastructure.fastForEach
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind

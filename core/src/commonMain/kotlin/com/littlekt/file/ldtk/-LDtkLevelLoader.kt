@@ -8,7 +8,6 @@ import com.littlekt.graphics.g2d.TextureSlice
 import com.littlekt.graphics.g2d.tilemap.ldtk.*
 import com.littlekt.graphics.slice
 import com.littlekt.graphics.sliceWithBorderToTexture
-import com.littlekt.graphics.webgpu.TextureFormat
 import com.littlekt.log.Logger
 import com.littlekt.math.geom.Point
 

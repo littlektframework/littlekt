@@ -4,12 +4,13 @@ import com.littlekt.async.KT
 import com.littlekt.async.KtScope
 import com.littlekt.file.*
 import com.littlekt.file.vfs.VfsFile
-import com.littlekt.graphics.webgpu.Adapter
-import com.littlekt.graphics.webgpu.GPURequestAdapterOptions
 import com.littlekt.input.JsInput
 import com.littlekt.log.Logger
 import com.littlekt.resources.internal.InternalResources
 import com.littlekt.util.datastructure.fastForEach
+import com.littlekt.util.internal.jsObject
+import io.ygdrasil.wgpu.internal.js.GPURequestAdapterOptions
+import io.ygdrasil.wgpu.requestAdapter
 import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.browser.document
 import kotlinx.browser.window
@@ -59,11 +60,11 @@ class WebGPUContext(override val configuration: JsConfiguration) : Context() {
         graphics._height = canvas.clientHeight
 
         KtScope.launch {
-            val adapterOptions = GPURequestAdapterOptions {
+            val adapterOptions = jsObject {
                 powerPreference = configuration.powerPreference.nativeFlag
             }
-            graphics.adapter = Adapter()
-            graphics.device = graphics.adapter.requestDevice()
+            graphics.adapter = requestAdapter() ?: error("No appropriate Adapter found.")
+            graphics.device = graphics.adapter.requestDevice() ?: error("No appropriate Device found.")
             if (configuration.loadInternalResources) {
                 InternalResources.createInstance(this@WebGPUContext)
                 InternalResources.INSTANCE.load()

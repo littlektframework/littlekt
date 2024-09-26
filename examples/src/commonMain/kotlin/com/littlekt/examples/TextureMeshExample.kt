@@ -5,7 +5,6 @@ import com.littlekt.ContextListener
 import com.littlekt.file.vfs.readPixmap
 import com.littlekt.graphics.Color
 import com.littlekt.graphics.textureIndexedMesh
-import com.littlekt.graphics.webgpu.*
 
 /**
  * An example showing drawing a texture with a [textureIndexedMesh].

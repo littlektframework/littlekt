@@ -242,7 +242,7 @@ class SpriteCacheShader(
         bindGroups: List<BindGroup>,
         dynamicOffsets: List<Long>
     ) {
-        encoder.setBindGroup(0, bindGroups[0], dynamicOffsets)
+        encoder.setBindGroup(0, bindGroups[0], dynamicOffsets.map { it.toInt() })
         encoder.setBindGroup(1, bindGroups[1])
     }
 

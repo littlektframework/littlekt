@@ -3,7 +3,6 @@ package com.littlekt.examples
 import com.littlekt.Context
 import com.littlekt.ContextListener
 import com.littlekt.graphics.Color
-import com.littlekt.graphics.webgpu.*
 
 /**
  * An example rendering a simple triangle in pure WebGPU.

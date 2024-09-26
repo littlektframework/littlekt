@@ -8,9 +8,9 @@ import io.ygdrasil.wgpu.Surface
 import io.ygdrasil.wgpu.requestAdapter
 import io.ygdrasil.wgpu.TextureFormat
 import io.ygdrasil.wgpu.TextureUsage
-import io.ygdrasil.wgpu.CanvasConfiguration
 import io.ygdrasil.wgpu.CompositeAlphaMode
 import io.ygdrasil.wgpu.PresentMode
+import io.ygdrasil.wgpu.SurfaceConfiguration
 import io.ygdrasil.wgpu.getSurface
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
@@ -66,7 +66,7 @@ class WebGPUGraphics(val canvas: HTMLCanvasElement) : Graphics {
         alphaMode: CompositeAlphaMode
     ) {
         surface.configure(
-            CanvasConfiguration(device, format,usages, alphaMode = alphaMode)
+            SurfaceConfiguration(device, format,usages, alphaMode = alphaMode)
         )
     }
 

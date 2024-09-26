@@ -8,7 +8,6 @@ import com.littlekt.file.*
 import com.littlekt.file.Base64.decodeFromBase64
 import com.littlekt.file.vfs.VfsFile
 import com.littlekt.file.vfs.readPixmap
-import com.littlekt.graphics.webgpu.WGPU_NULL
 import com.littlekt.input.LwjglInput
 import com.littlekt.log.Logger
 import com.littlekt.resources.internal.InternalResources
@@ -224,7 +223,7 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context() {
                 wgpuLogger.log(logLevel) { messageJvm }
             }
 
-        wgpuSetLogCallback(WGPULogCallback.allocate(callback, scope), WGPU_NULL)
+        wgpuSetLogCallback(WGPULogCallback.allocate(callback, scope), NULL())
         wgpuSetLogLevel(WGPULogLevel_Trace())
     }
 
