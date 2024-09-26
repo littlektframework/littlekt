@@ -41,141 +41,144 @@ fun Device.createGPUFloatBuffer(label: String, data: FloatArray, usages: Set<Buf
     return buffer
 }
 
-/** Standard alpha blending. */
-val BlendState.Alpha: BlendState
-    get() = BlendState(
-        color = BlendComponent(dstFactor = BlendFactor.oneminussrcalpha),
-        alpha = BlendComponent(dstFactor = BlendFactor.oneminussrcalpha)
-    )
-
-/** Fully oqaque, no alpha, blending. */
-val BlendState.Opaque: BlendState
-    get() = BlendState()
-
-
-/** Non-premultiplied, alpha blending. */
-val BlendState.NonPreMultiplied: BlendState
-    get() = BlendState(
-        color =
-        BlendComponent(
-            srcFactor = BlendFactor.srcalpha,
-            dstFactor = BlendFactor.oneminussrcalpha
-        ),
-        alpha =
-        BlendComponent(
-            srcFactor = BlendFactor.srcalpha,
-            dstFactor = BlendFactor.oneminussrcalpha
+object BlendStates {
+    /** Standard alpha blending. */
+    val Alpha: BlendState
+        get() = BlendState(
+            color = BlendComponent(dstFactor = BlendFactor.oneminussrcalpha),
+            alpha = BlendComponent(dstFactor = BlendFactor.oneminussrcalpha)
         )
-    )
 
-val BlendState.Add: BlendState
-    get() = BlendState(
-        color =
-        BlendComponent(srcFactor = BlendFactor.srcalpha, dstFactor = BlendFactor.one),
-        alpha =
-        BlendComponent(srcFactor = BlendFactor.srcalpha, dstFactor = BlendFactor.one)
-    )
+    /** Fully oqaque, no alpha, blending. */
+    val Opaque: BlendState
+        get() = BlendState()
 
-val BlendState.Subtract: BlendState
-    get() = BlendState(
-        color =
-        BlendComponent(
-            srcFactor = BlendFactor.srcalpha,
-            dstFactor = BlendFactor.one,
-            operation = BlendOperation.reversesubtract
-        ),
-        alpha =
-        BlendComponent(
-            srcFactor = BlendFactor.srcalpha,
-            dstFactor = BlendFactor.one,
-            operation = BlendOperation.reversesubtract
-        ),
-    )
 
-val BlendState.Difference: BlendState
-    get() = BlendState(
-        color =
-        BlendComponent(
-            srcFactor = BlendFactor.ONE_MINUS_DST_COLOR,
-            dstFactor = BlendFactor.ONE_MINUS_SRC_COLOR,
-            operation = BlendOperation.add
-        ),
-    )
-
-val BlendState.Multiply: BlendState
-    get() = BlendState(
-        color =
-        BlendComponent(
-            srcFactor = BlendFactor.DST_COLOR,
-            dstFactor = BlendFactor.zero,
-            operation = BlendOperation.add
-        ),
-        alpha =
-        BlendComponent(
-            srcFactor = BlendFactor.dstalpha,
-            dstFactor = BlendFactor.zero,
-            operation = BlendOperation.add
+    /** Non-premultiplied, alpha blending. */
+    val NonPreMultiplied: BlendState
+        get() = BlendState(
+            color =
+            BlendComponent(
+                srcFactor = BlendFactor.srcalpha,
+                dstFactor = BlendFactor.oneminussrcalpha
+            ),
+            alpha =
+            BlendComponent(
+                srcFactor = BlendFactor.srcalpha,
+                dstFactor = BlendFactor.oneminussrcalpha
+            )
         )
-    )
 
-val BlendState.Lighten: BlendState
-    get() = BlendState(
-        color =
-        BlendComponent(
-            srcFactor = BlendFactor.one,
-            dstFactor = BlendFactor.one,
-            operation = BlendOperation.max
-        ),
-        alpha =
-        BlendComponent(
-            srcFactor = BlendFactor.one,
-            dstFactor = BlendFactor.one,
-            operation = BlendOperation.max
-        ),
-    )
-
-val BlendState.Darken: BlendState
-    get() = BlendState(
-        color =
-        BlendComponent(
-            srcFactor = BlendFactor.one,
-            dstFactor = BlendFactor.one,
-            operation = BlendOperation.min
-        ),
-        alpha =
-        BlendComponent(
-            srcFactor = BlendFactor.one,
-            dstFactor = BlendFactor.one,
-            operation = BlendOperation.min
-        ),
-    )
-
-val BlendState.Screen: BlendState
-    get() = BlendState(
-        color =
-        BlendComponent(
-            srcFactor = BlendFactor.ONE_MINUS_DST_COLOR,
-            dstFactor = BlendFactor.one,
-            operation = BlendOperation.add
+    val Add: BlendState
+        get() = BlendState(
+            color =
+            BlendComponent(srcFactor = BlendFactor.srcalpha, dstFactor = BlendFactor.one),
+            alpha =
+            BlendComponent(srcFactor = BlendFactor.srcalpha, dstFactor = BlendFactor.one)
         )
-    )
 
-val BlendState.LinearDodge: BlendState
-    get() = BlendState(
-        color =
-        BlendComponent(
-            srcFactor = BlendFactor.one,
-            dstFactor = BlendFactor.one,
-            operation = BlendOperation.add
+    val Subtract: BlendState
+        get() = BlendState(
+            color =
+            BlendComponent(
+                srcFactor = BlendFactor.srcalpha,
+                dstFactor = BlendFactor.one,
+                operation = BlendOperation.reversesubtract
+            ),
+            alpha =
+            BlendComponent(
+                srcFactor = BlendFactor.srcalpha,
+                dstFactor = BlendFactor.one,
+                operation = BlendOperation.reversesubtract
+            ),
         )
-    )
 
-val BlendState.LinearBurn: BlendState
-    get() = BlendState(
-        color =
-        BlendComponent(
-            srcFactor = BlendFactor.one,
-            dstFactor = BlendFactor.one,
-            operation = BlendOperation.reversesubtract
+    val Difference: BlendState
+        get() = BlendState(
+            color =
+            BlendComponent(
+                srcFactor = BlendFactor.oneminusdst,
+                dstFactor = BlendFactor.oneminussrc,
+                operation = BlendOperation.add
+            ),
         )
-    )
+
+    val Multiply: BlendState
+        get() = BlendState(
+            color =
+            BlendComponent(
+                srcFactor = BlendFactor.dst,
+                dstFactor = BlendFactor.zero,
+                operation = BlendOperation.add
+            ),
+            alpha =
+            BlendComponent(
+                srcFactor = BlendFactor.dstalpha,
+                dstFactor = BlendFactor.zero,
+                operation = BlendOperation.add
+            )
+        )
+
+    val Lighten: BlendState
+        get() = BlendState(
+            color =
+            BlendComponent(
+                srcFactor = BlendFactor.one,
+                dstFactor = BlendFactor.one,
+                operation = BlendOperation.max
+            ),
+            alpha =
+            BlendComponent(
+                srcFactor = BlendFactor.one,
+                dstFactor = BlendFactor.one,
+                operation = BlendOperation.max
+            ),
+        )
+
+    val Darken: BlendState
+        get() = BlendState(
+            color =
+            BlendComponent(
+                srcFactor = BlendFactor.one,
+                dstFactor = BlendFactor.one,
+                operation = BlendOperation.min
+            ),
+            alpha =
+            BlendComponent(
+                srcFactor = BlendFactor.one,
+                dstFactor = BlendFactor.one,
+                operation = BlendOperation.min
+            ),
+        )
+
+    val Screen: BlendState
+        get() = BlendState(
+            color =
+            BlendComponent(
+                srcFactor = BlendFactor.oneminusdst,
+                dstFactor = BlendFactor.one,
+                operation = BlendOperation.add
+            )
+        )
+
+    val LinearDodge: BlendState
+        get() = BlendState(
+            color =
+            BlendComponent(
+                srcFactor = BlendFactor.one,
+                dstFactor = BlendFactor.one,
+                operation = BlendOperation.add
+            )
+        )
+
+    val LinearBurn: BlendState
+        get() = BlendState(
+            color =
+            BlendComponent(
+                srcFactor = BlendFactor.one,
+                dstFactor = BlendFactor.one,
+                operation = BlendOperation.reversesubtract
+            )
+        )
+
+}

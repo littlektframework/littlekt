@@ -3,10 +3,11 @@ package com.littlekt.graphics.g2d
 import com.littlekt.EngineStats
 import com.littlekt.Releasable
 import com.littlekt.file.FloatBuffer
+import com.littlekt.graphics.BlendStates
 import com.littlekt.graphics.MutableColor
 import com.littlekt.graphics.Texture
 import com.littlekt.graphics.VertexAttrUsage
-import com.littlekt.graphics.VertexAttribute
+import com.littlekt.graphics.VertexAttributeView
 import com.littlekt.graphics.createGPUFloatBuffer
 import com.littlekt.graphics.indexedMesh
 import com.littlekt.graphics.shader.Shader
@@ -56,13 +57,13 @@ class SpriteCache(val device: Device, val format: TextureFormat, size: Int = 100
         indexedMesh(
             device,
             listOf(
-                VertexAttribute(
+                VertexAttributeView(
                     format = VertexFormat.float32x3,
                     offset = 0,
                     shaderLocation = 0,
                     usage = VertexAttrUsage.POSITION
                 ),
-                VertexAttribute(
+                VertexAttributeView(
                     format = VertexFormat.float32x2,
                     offset = VertexFormat.float32x3.sizeInByte.toLong(),
                     shaderLocation = 1,
@@ -101,7 +102,7 @@ class SpriteCache(val device: Device, val format: TextureFormat, size: Int = 100
     private val drawCalls: MutableList<DrawCall> = mutableListOf()
 
     private var blendState =
-        BlendState.NonPreMultiplied
+        BlendStates.NonPreMultiplied
     private val renderPipeline =
         device.createRenderPipeline(createRenderPipelineDescriptor(shader, blendState))
 

@@ -4,10 +4,10 @@ import com.littlekt.Context
 import com.littlekt.ContextListener
 import com.littlekt.file.FloatBuffer
 import com.littlekt.graphics.Color
-import com.littlekt.graphics.webgpu.*
 import com.littlekt.math.Mat4
 import com.littlekt.math.geom.radians
 import com.littlekt.util.now
+import io.ygdrasil.wgpu.BufferUsage
 import kotlin.math.cos
 import kotlin.math.sin
 
@@ -455,7 +455,7 @@ class RotatingCubeExample(context: Context) : ContextListener(context) {
             device.createGPUFloatBuffer(
                 "mvp buffer",
                 modelViewProjMatrix.data,
-                BufferUsage.UNIFORM or BufferUsage.COPY_DST,
+                BufferUsage.uniform or BufferUsage.copydst
             )
 
         val shader = device.createShaderModule(shaderSrc)

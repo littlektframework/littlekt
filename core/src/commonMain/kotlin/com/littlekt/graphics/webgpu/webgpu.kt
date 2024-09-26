@@ -18,9 +18,6 @@ import com.littlekt.graphics.webgpu.*
 expect class Device : Releasable {
 
 
-    /** @return a newly created [GPUBuffer]. */
-    fun createBuffer(desc: BufferDescriptor): GPUBuffer
-
     /** @return a newly created [Sampler]. */
     fun createSampler(desc: SamplerDescriptor): Sampler
 
@@ -648,24 +645,6 @@ expect class WebGPUTexture : Releasable {
 expect class TextureView : IntoBindingResource {
     fun release()
 }
-
-/**
- * Describes a [GPUBuffer]. For use with [Device.createBuffer].
- *
- * @param label debug label of a buffer.
- * @param size size of a buffer, in bytes.
- * @param usage usages of a buffer. If the buffer is used in any way that isn't specified here, the
- *   operation will fail.
- * @param mappedAtCreation allows a buffer to be mapped immediately after they are made. It does not
- *   have to [BufferUsage.MAP_READ] or [BufferUsage.MAP_WRITE], all buffers are allowed to be mapped
- *   at creation. If this is `true`, [size] must be a multiple of `4`.
- */
-data class BufferDescriptor(
-    val label: String,
-    val size: Long,
-    val usage: BufferUsage,
-    val mappedAtCreation: Boolean
-)
 
 expect class GPUBuffer : Releasable {
 

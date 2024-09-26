@@ -7,19 +7,19 @@ import io.ygdrasil.wgpu.VertexFormat
 import io.ygdrasil.wgpu.VertexStepMode
 
 /**
- * Creates a new mesh using the list of [VertexAttribute].
+ * Creates a new mesh using the list of [VertexAttributeView].
  *
  * @see indexedMesh
  */
 inline fun mesh(
     device: Device,
-    attributes: List<VertexAttribute>,
+    attributes: List<VertexAttributeView>,
     size: Int = 1000,
     generate: CommonMeshGeometry.() -> Unit = {},
 ): Mesh<CommonMeshGeometry> {
     val geometry =
         CommonMeshGeometry(
-            VertexBufferLayout(
+            VertexBufferLayoutView(
                 attributes.calculateStride().toLong(),
                 VertexStepMode.vertex,
                 attributes
@@ -43,8 +43,8 @@ fun colorMesh(
     return mesh(
         device,
         listOf(
-            VertexAttribute(VertexFormat.float32x3, 0, 0, VertexAttrUsage.POSITION),
-            VertexAttribute(
+            VertexAttributeView(VertexFormat.float32x3, 0, 0, VertexAttrUsage.POSITION),
+            VertexAttributeView(
                 VertexFormat.float32x4,
                 VertexFormat.float32x3.sizeInByte.toLong(),
                 1,
@@ -70,14 +70,14 @@ fun textureMesh(
     return mesh(
         device,
         listOf(
-            VertexAttribute(VertexFormat.float32x3, 0, 0, VertexAttrUsage.POSITION),
-            VertexAttribute(
+            VertexAttributeView(VertexFormat.float32x3, 0, 0, VertexAttrUsage.POSITION),
+            VertexAttributeView(
                 VertexFormat.float32x4,
                 VertexFormat.float32x3.sizeInByte.toLong(),
                 1,
                 VertexAttrUsage.COLOR
             ),
-            VertexAttribute(
+            VertexAttributeView(
                 VertexFormat.float32x2,
                 VertexFormat.float32x4.sizeInByte.toLong() + VertexFormat.float32x3.sizeInByte.toLong(),
                 2,
@@ -101,19 +101,19 @@ fun positionMesh(
 ): Mesh<CommonMeshGeometry> {
     return mesh(
         device,
-        listOf(VertexAttribute(VertexFormat.float32x3, 0, 0, VertexAttrUsage.POSITION)),
+        listOf(VertexAttributeView(VertexFormat.float32x3, 0, 0, VertexAttrUsage.POSITION)),
         size,
         generate
     )
 }
 
 /**
- * Creates a new mesh using the list of [VertexAttribute].
+ * Creates a new mesh using the list of [VertexAttributeView].
  *
  * @see indexedMesh
  */
 fun <T : ContextListener> T.mesh(
-    attributes: List<VertexAttribute>,
+    attributes: List<VertexAttributeView>,
     size: Int = 1000,
     generate: CommonMeshGeometry.() -> Unit = {},
 ): Mesh<CommonMeshGeometry> {

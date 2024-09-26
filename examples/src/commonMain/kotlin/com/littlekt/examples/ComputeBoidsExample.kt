@@ -67,18 +67,18 @@ class ComputeBoidsExample(context: Context) : ContextListener(context) {
                             entryPoint = spriteShader.vertexEntryPoint,
                             buffers =
                             listOf(
-                                VertexBufferLayout(
+                                VertexBufferLayoutView(
                                     arrayStride = 4 * 4,
                                     stepMode = VertexStepMode.instance,
                                     attributes =
                                     listOf(
-                                        VertexAttribute(
+                                        VertexAttributeView(
                                             format = VertexFormat.float32x2,
                                             offset = 0L,
                                             shaderLocation = 0,
                                             usage = VertexAttrUsage.POSITION
                                         ),
-                                        VertexAttribute(
+                                        VertexAttributeView(
                                             format = VertexFormat.float32x2,
                                             offset =
                                             VertexFormat.float32x2.sizeInByte
@@ -89,12 +89,12 @@ class ComputeBoidsExample(context: Context) : ContextListener(context) {
                                     )
                                 )
                                     .gpuVertexBufferLayout,
-                                VertexBufferLayout(
+                                VertexBufferLayoutView(
                                     arrayStride = 2 * 4,
                                     stepMode = VertexStepMode.vertex,
                                     attributes =
                                     listOf(
-                                        VertexAttribute(
+                                        VertexAttributeView(
                                             format = VertexFormat.float32x2,
                                             offset = 0,
                                             shaderLocation = 2,

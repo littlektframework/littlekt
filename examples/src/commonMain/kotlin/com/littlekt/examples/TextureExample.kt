@@ -6,7 +6,6 @@ import com.littlekt.file.FloatBuffer
 import com.littlekt.file.ShortBuffer
 import com.littlekt.file.vfs.readPixmap
 import com.littlekt.graphics.Color
-import com.littlekt.graphics.webgpu.*
 
 /**
  * An example showing drawing a texture with pure WebGPU.

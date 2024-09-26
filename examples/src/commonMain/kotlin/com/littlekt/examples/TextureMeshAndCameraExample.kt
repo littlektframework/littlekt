@@ -6,8 +6,9 @@ import com.littlekt.file.FloatBuffer
 import com.littlekt.file.vfs.readTexture
 import com.littlekt.graphics.Color
 import com.littlekt.graphics.OrthographicCamera
+import com.littlekt.graphics.createGPUFloatBuffer
 import com.littlekt.graphics.textureIndexedMesh
-import com.littlekt.graphics.webgpu.*
+import io.ygdrasil.wgpu.BufferUsage
 
 /**
  * An example showing drawing a texture with a [textureIndexedMesh] and using an
@@ -93,7 +94,7 @@ class TextureMeshAndCameraExample(context: Context) : ContextListener(context) {
             device.createGPUFloatBuffer(
                 "camera uniform buffer",
                 cameraFloatBuffer.toArray(),
-                BufferUsage.UNIFORM or BufferUsage.COPY_DST,
+                setOf(BufferUsage.uniform, BufferUsage.copydst)
             )
 
         val shader = device.createShaderModule(textureShader)

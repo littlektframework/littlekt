@@ -2,9 +2,14 @@ package com.littlekt.graphics.util
 
 import com.littlekt.file.FloatBuffer
 import com.littlekt.graphics.MutableColor
-import com.littlekt.graphics.VertexAttribute
+import com.littlekt.graphics.VertexAttributeView
 import com.littlekt.graphics.webgpu.WebGPUVertexAttribute
 import com.littlekt.math.*
+import io.ygdrasil.wgpu.VertexFormat
+
+private val VertexFormat.isInt: Boolean
+    get() = name.lowercase().contains("int")
+
 
 /**
  * A view of a vertex within the geometry [IndexedMeshGeometry]. If there are multiple vertex usages
@@ -22,7 +27,7 @@ import com.littlekt.math.*
 open class VertexView(
     val vertexSize: Int,
     var vertices: FloatBuffer,
-    val attributes: List<VertexAttribute>,
+    val attributes: List<VertexAttributeView>,
     index: Int,
 ) : MutableVec3f() {
 
@@ -116,32 +121,32 @@ open class VertexView(
         }
     }
 
-    /** @return a [FloatView] of the given [VertexAttribute], if it exists; `null` otherwise. */
-    fun getFloatAttribute(attribute: VertexAttribute): FloatView? =
+    /** @return a [FloatView] of the given [VertexAttributeView], if it exists; `null` otherwise. */
+    fun getFloatAttribute(attribute: VertexAttributeView): FloatView? =
         attributeViews[attribute.key] as FloatView?
 
-    /** @return a [IntView] of the given [VertexAttribute], if it exists; `null` otherwise. */
-    fun getIntAttribute(attribute: VertexAttribute): IntView? =
+    /** @return a [IntView] of the given [VertexAttributeView], if it exists; `null` otherwise. */
+    fun getIntAttribute(attribute: VertexAttributeView): IntView? =
         attributeViews[attribute.shaderLocation] as IntView?
 
-    /** @return a [MutableVec2f] of the given [VertexAttribute], if it exists; `null` otherwise. */
-    fun getVec2fAttribute(attribute: VertexAttribute): MutableVec2f? =
+    /** @return a [MutableVec2f] of the given [VertexAttributeView], if it exists; `null` otherwise. */
+    fun getVec2fAttribute(attribute: VertexAttributeView): MutableVec2f? =
         attributeViews[attribute.key] as MutableVec2f?
 
-    /** @return a [MutableVec3f] of the given [VertexAttribute], if it exists; `null` otherwise. */
-    fun getVec3fAttribute(attribute: VertexAttribute): MutableVec3f? =
+    /** @return a [MutableVec3f] of the given [VertexAttributeView], if it exists; `null` otherwise. */
+    fun getVec3fAttribute(attribute: VertexAttributeView): MutableVec3f? =
         attributeViews[attribute.key] as MutableVec3f?
 
-    /** @return a [MutableVec4f] of the given [VertexAttribute], if it exists; `null` otherwise. */
-    fun getVec4fAttribute(attribute: VertexAttribute): MutableVec4f? =
+    /** @return a [MutableVec4f] of the given [VertexAttributeView], if it exists; `null` otherwise. */
+    fun getVec4fAttribute(attribute: VertexAttributeView): MutableVec4f? =
         attributeViews[attribute.key] as MutableVec4f?
 
-    /** @return a [MutableVec4i] of the given [VertexAttribute], if it exists; `null` otherwise. */
-    fun getVec4iAttribute(attribute: VertexAttribute): MutableVec4i? =
+    /** @return a [MutableVec4i] of the given [VertexAttributeView], if it exists; `null` otherwise. */
+    fun getVec4iAttribute(attribute: VertexAttributeView): MutableVec4i? =
         attributeViews[attribute.key] as MutableVec4i?
 
-    /** @return a [MutableColor] of the given [VertexAttribute], if it exists; `null` otherwise. */
-    fun getColorAttribute(attribute: VertexAttribute): MutableColor? =
+    /** @return a [MutableColor] of the given [VertexAttributeView], if it exists; `null` otherwise. */
+    fun getColorAttribute(attribute: VertexAttributeView): MutableColor? =
         attributeViews[attribute.key]?.let { ColorWrapView(it as Vec4fView) }
 
     /** A view wrapper around a [Float]. */

@@ -2,6 +2,7 @@ package com.littlekt.graphics.webgpu
 
 import com.littlekt.Releasable
 import com.littlekt.graphics.Color
+import io.ygdrasil.wgpu.VertexFormat
 
 /**
  * A handle to a command buffer on the GPU.

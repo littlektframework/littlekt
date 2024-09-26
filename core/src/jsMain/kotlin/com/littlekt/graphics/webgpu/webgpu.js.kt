@@ -9,10 +9,6 @@ import org.khronos.webgl.Uint8Array
 
 actual class Device(val delegate: GPUDevice) : Releasable {
 
-    actual fun createBuffer(desc: BufferDescriptor): GPUBuffer {
-        return GPUBuffer(delegate.createBuffer(desc.toNative()), desc.size)
-    }
-
     actual fun createSampler(desc: SamplerDescriptor): Sampler {
         return Sampler(delegate.createSampler(desc.toNative()))
     }

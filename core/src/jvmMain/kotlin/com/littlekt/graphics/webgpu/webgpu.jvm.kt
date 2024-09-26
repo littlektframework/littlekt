@@ -14,18 +14,6 @@ import java.lang.foreign.ValueLayout
 
 actual class Device(val segment: MemorySegment) : Releasable {
 
-    actual fun createBuffer(desc: BufferDescriptor): GPUBuffer {
-        return Arena.ofConfined().use { scope ->
-            val descriptor = WGPUBufferDescriptor.allocate(scope)
-            WGPUBufferDescriptor.nextInChain(descriptor, WGPU_NULL)
-            WGPUBufferDescriptor.usage(descriptor, desc.usage.usageFlag)
-            WGPUBufferDescriptor.size(descriptor, desc.size)
-            WGPUBufferDescriptor.mappedAtCreation(descriptor, desc.mappedAtCreation.toInt())
-            WGPUBufferDescriptor.label(descriptor, desc.label.toNativeString(scope))
-            GPUBuffer(wgpuDeviceCreateBuffer(segment, descriptor).asSlice(0, desc.size), desc.size)
-        }
-    }
-
     actual fun createSampler(desc: SamplerDescriptor): Sampler {
         return Arena.ofConfined().use { scope ->
             val descriptor = WGPUSamplerDescriptor.allocate(scope)

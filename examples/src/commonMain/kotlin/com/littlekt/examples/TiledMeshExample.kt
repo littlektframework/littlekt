@@ -6,10 +6,11 @@ import com.littlekt.EngineStats
 import com.littlekt.file.FloatBuffer
 import com.littlekt.graphics.Color
 import com.littlekt.graphics.OrthographicCamera
+import com.littlekt.graphics.createGPUFloatBuffer
 import com.littlekt.graphics.textureIndexedMesh
-import com.littlekt.graphics.webgpu.*
 import com.littlekt.math.Vec4f
 import com.littlekt.resources.Textures
+import io.ygdrasil.wgpu.BufferUsage
 import kotlin.random.Random
 
 /**
@@ -111,7 +112,7 @@ class TiledMeshExample(context: Context) : ContextListener(context) {
             device.createGPUFloatBuffer(
                 "camera uniform buffer",
                 cameraFloatBuffer.toArray(),
-                BufferUsage.UNIFORM or BufferUsage.COPY_DST,
+                setOf(BufferUsage.uniform, BufferUsage.copydst)
             )
 
         val shader = device.createShaderModule(textureShader)

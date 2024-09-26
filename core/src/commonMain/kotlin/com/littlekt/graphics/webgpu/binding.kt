@@ -122,12 +122,6 @@ expect class BindGroupLayoutEntry(
     bindingLayout: BindingLayout
 )
 
-/**
- * Describes a [BindGroupLayout]. For use with [Device.createBindGroupLayout].
- *
- * @param entries a list of entries in this [BindGroupLayout].
- * @param label debug label of a [BindGroupLayout].
- */
 data class BindGroupLayoutDescriptor(
     val entries: List<BindGroupLayoutEntry>,
     val label: String? = null
@@ -135,16 +129,7 @@ data class BindGroupLayoutDescriptor(
     constructor(entry: BindGroupLayoutEntry) : this(listOf(entry))
 }
 
-/**
- * Handle to a binding group layout.
- *
- * A `BindGroupLayout` is a handle to the GPU-side layout of a binding group. It can be used to
- * create a [BindGroupDescriptor] object, which in turn can be used to create a [BindGroup] object
- * with [Device.createBindGroup]. A series of `BindGroupLayout`s can also be sued to create a
- * [PipelineLayoutDescriptor], which can be used to create a [PipelineLayout].
- *
- * It can be created with [Device.createBindGroupLayout].
- */
+
 expect class BindGroupLayout : Releasable {
     override fun release()
 }
@@ -159,15 +144,6 @@ expect class PipelineLayout : Releasable {
     override fun release()
 }
 
-/**
- * Describes a [PipelineLayout].
- *
- * For use with [Device.createPipelineLayout].
- *
- * @param bindGroupLayouts bind groups that this pipeline uses. The first entry will provide all the
- *   bindings for "set = 0", second entry will provide all the binding for "set = 1" etc.
- * @param label debug label of a [PipelineLayout].
- */
 expect class PipelineLayoutDescriptor(
     bindGroupLayouts: List<BindGroupLayout> = emptyList(),
     label: String? = null

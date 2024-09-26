@@ -2,6 +2,7 @@ package com.littlekt.graphics.g2d
 
 import com.littlekt.EngineStats
 import com.littlekt.Graphics
+import com.littlekt.graphics.BlendStates
 import com.littlekt.graphics.Color
 import com.littlekt.graphics.IndexedMesh
 import com.littlekt.graphics.Texture
@@ -104,7 +105,7 @@ class SpriteBatch(
         mutableMapOf()
     private val drawCalls: MutableList<DrawCall> = mutableListOf()
 
-    private var blendState = BlendState.NonPreMultiplied
+    private var blendState = BlendStates.NonPreMultiplied
     private var prevBlendState = blendState
 
     private val renderPipelineByBlendState: MutableMap<RenderInfo, RenderPipeline> =
@@ -727,7 +728,7 @@ class SpriteBatch(
             vertex = VertexState(
                 module = shader.shaderModule,
                 entryPoint = shader.vertexEntryPoint,
-                mesh.geometry.layout.gpuVertexBufferLayout
+                buffers = listOf(mesh.geometry.layout.gpuVertexBufferLayout)
             ),
             fragment =
             FragmentState(

@@ -4,7 +4,6 @@ import com.littlekt.Context
 import com.littlekt.ContextListener
 import com.littlekt.file.vfs.readPixmap
 import com.littlekt.graphics.Color
-import com.littlekt.graphics.webgpu.*
 
 /**
  * An example rendering a texture using a [CommandEncoder] in pure WebGPU.

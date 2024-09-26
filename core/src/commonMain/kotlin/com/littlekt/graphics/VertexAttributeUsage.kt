@@ -3,7 +3,7 @@ package com.littlekt.graphics
 import kotlin.jvm.JvmInline
 
 /**
- * A value class used to designate a usage for a [VertexAttribute] in a shader. Custom attributes
+ * A value class used to designate a usage for a [VertexAttributeView] in a shader. Custom attributes
  * may be created.
  *
  * @see POSITION

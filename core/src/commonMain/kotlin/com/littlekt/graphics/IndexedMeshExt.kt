@@ -7,16 +7,16 @@ import io.ygdrasil.wgpu.Device
 import io.ygdrasil.wgpu.VertexFormat
 import io.ygdrasil.wgpu.VertexStepMode
 
-/** Creates a new indexed mesh using the list of [VertexAttribute]. */
+/** Creates a new indexed mesh using the list of [VertexAttributeView]. */
 inline fun indexedMesh(
     device: Device,
-    attributes: List<VertexAttribute>,
+    attributes: List<VertexAttributeView>,
     size: Int = 1000,
     generate: CommonIndexedMeshGeometry.() -> Unit = {},
 ): IndexedMesh<CommonIndexedMeshGeometry> {
     val geometry =
         CommonIndexedMeshGeometry(
-            VertexBufferLayout(
+            VertexBufferLayoutView(
                 attributes.calculateStride().toLong(),
                 VertexStepMode.vertex,
                 attributes
@@ -40,8 +40,8 @@ fun colorIndexedMesh(
     return indexedMesh(
         device,
         listOf(
-            VertexAttribute(VertexFormat.float32x3, 0, 0, VertexAttrUsage.POSITION),
-            VertexAttribute(
+            VertexAttributeView(VertexFormat.float32x3, 0, 0, VertexAttrUsage.POSITION),
+            VertexAttributeView(
                 VertexFormat.float32x4,
                 VertexFormat.float32x3.sizeInByte.toLong(),
                 1,
@@ -65,14 +65,14 @@ fun textureIndexedMesh(
     return indexedMesh(
         device,
         listOf(
-            VertexAttribute(VertexFormat.float32x3, 0, 0, VertexAttrUsage.POSITION),
-            VertexAttribute(
+            VertexAttributeView(VertexFormat.float32x3, 0, 0, VertexAttrUsage.POSITION),
+            VertexAttributeView(
                 VertexFormat.float32x4,
                 VertexFormat.float32x3.sizeInByte.toLong(),
                 1,
                 VertexAttrUsage.COLOR
             ),
-            VertexAttribute(
+            VertexAttributeView(
                 VertexFormat.float32x2,
                 VertexFormat.float32x4.sizeInByte.toLong() + VertexFormat.float32x3.sizeInByte.toLong(),
                 2,
@@ -92,15 +92,15 @@ fun positionIndexedMesh(
 ): IndexedMesh<CommonIndexedMeshGeometry> {
     return indexedMesh(
         device,
-        listOf(VertexAttribute(VertexFormat.float32x3, 0, 0, VertexAttrUsage.POSITION)),
+        listOf(VertexAttributeView(VertexFormat.float32x3, 0, 0, VertexAttrUsage.POSITION)),
         size,
         generate
     )
 }
 
-/** Creates a new indexed mesh using the list of [VertexAttribute]. */
+/** Creates a new indexed mesh using the list of [VertexAttributeView]. */
 fun <T : ContextListener> T.indexedMesh(
-    attributes: List<VertexAttribute>,
+    attributes: List<VertexAttributeView>,
     size: Int = 1000,
     generate: CommonIndexedMeshGeometry.() -> Unit = {},
 ): IndexedMesh<CommonIndexedMeshGeometry> {

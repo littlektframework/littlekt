@@ -1,18 +1,18 @@
 package com.littlekt.graphics.util
 
-import com.littlekt.graphics.VertexBufferLayout
+import com.littlekt.graphics.VertexBufferLayoutView
 import com.littlekt.math.spatial.BoundingBox
 
 /**
  * A [IndexedMeshGeometry] that calculates the [BoundingBox] of the geometry as well as using
  * [CommonVertexView] when adding a vertex.
  *
- * @param layout a [VertexBufferLayout] describing the vertex buffer.
+ * @param layout a [VertexBufferLayoutView] describing the vertex buffer.
  * @param size the initial size of the vertices and indices buffers
  * @author Colton Daily
  * @date 4/10/2024
  */
-class CommonIndexedMeshGeometry(layout: VertexBufferLayout, size: Int = INITIAL_SIZE) :
+class CommonIndexedMeshGeometry(layout: VertexBufferLayoutView, size: Int = INITIAL_SIZE) :
     IndexedMeshGeometry(layout, size) {
     /** Bounds of the mesh. */
     val bounds = BoundingBox()

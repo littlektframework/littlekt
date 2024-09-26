@@ -1,5 +1,6 @@
 package com.littlekt.graphics
 
+import io.ygdrasil.wgpu.RenderPipelineDescriptor
 import io.ygdrasil.wgpu.VertexStepMode
 
 
@@ -14,12 +15,15 @@ import io.ygdrasil.wgpu.VertexStepMode
  * @author Colton Daily
  * @date 4/10/2024
  */
-data class VertexBufferLayout(
+data class VertexBufferLayoutView(
     val arrayStride: Long,
     val stepMode: VertexStepMode,
-    val attributes: List<VertexAttribute>
+    val attributes: List<VertexAttributeView>
 ) {
     /** The underlying GPU vertex buffer layout. */
     val gpuVertexBufferLayout =
-        WebGPUVertexBufferLayout(arrayStride, stepMode, attributes.map { it.gpuVertexAttribute })
+        RenderPipelineDescriptor.VertexState.VertexBufferLayout(
+            arrayStride,
+            attributes.map { it.gpuVertexAttribute },
+            stepMode)
 }
