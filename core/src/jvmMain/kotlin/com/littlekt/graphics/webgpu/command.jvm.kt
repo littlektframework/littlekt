@@ -9,17 +9,6 @@ import java.lang.foreign.MemorySegment
 import java.lang.foreign.SegmentAllocator
 import java.lang.foreign.ValueLayout
 
-actual class RenderPipeline(val segment: MemorySegment) : Releasable {
-
-    actual override fun release() {
-        wgpuRenderPipelineRelease(segment)
-    }
-
-    override fun toString(): String {
-        return "RenderPipeline"
-    }
-}
-
 actual class CommandBuffer(val segment: MemorySegment) : Releasable {
     actual override fun release() {
         wgpuCommandBufferRelease(segment)
@@ -208,7 +197,7 @@ actual class CommandEncoder(val segment: MemorySegment) : Releasable {
         destination: GPUBuffer,
         sourceOffset: Int,
         destinationOffset: Int,
-        size: Long,
+        size: Long
     ) {
         wgpuCommandEncoderCopyBufferToBuffer(
             segment,
@@ -216,7 +205,7 @@ actual class CommandEncoder(val segment: MemorySegment) : Releasable {
             sourceOffset.toLong(),
             destination.segment,
             destinationOffset.toLong(),
-            size,
+            size
         )
     }
 
@@ -231,11 +220,6 @@ actual class CommandEncoder(val segment: MemorySegment) : Releasable {
 
 actual class RenderPassEncoder(val segment: MemorySegment, actual val label: String? = null) :
     Releasable {
-
-    actual fun setPipeline(pipeline: RenderPipeline) {
-        wgpuRenderPassEncoderSetPipeline(segment, pipeline.segment)
-        EngineStats.setPipelineCalls++
-    }
 
     actual fun draw(vertexCount: Int, instanceCount: Int, firstVertex: Int, firstInstance: Int) {
         EngineStats.drawCalls++
@@ -287,46 +271,8 @@ actual class RenderPassEncoder(val segment: MemorySegment, actual val label: Str
         EngineStats.setBufferCalls++
     }
 
-    actual fun setBindGroup(index: Int, bindGroup: BindGroup, dynamicOffsets: List<Long>) {
-        if (dynamicOffsets.isNotEmpty()) {
-            Arena.ofConfined().use { scope ->
-                val offsets =
-                    scope.allocateFrom(ValueLayout.JAVA_LONG, *dynamicOffsets.toLongArray())
-                wgpuRenderPassEncoderSetBindGroup(
-                    segment,
-                    index,
-                    bindGroup.segment,
-                    dynamicOffsets.size.toLong(),
-                    offsets,
-                )
-            }
-        } else {
-            wgpuRenderPassEncoderSetBindGroup(segment, index, bindGroup.segment, 0, WGPU_NULL)
-        }
-        EngineStats.setBindGroupCalls++
-    }
-
     actual override fun release() {
         wgpuRenderPassEncoderRelease(segment)
-    }
-
-    actual fun setViewport(
-        x: Int,
-        y: Int,
-        width: Int,
-        height: Int,
-        minDepth: Float,
-        maxDepth: Float,
-    ) {
-        wgpuRenderPassEncoderSetViewport(
-            segment,
-            x.toFloat(),
-            y.toFloat(),
-            width.toFloat(),
-            height.toFloat(),
-            minDepth,
-            maxDepth,
-        )
     }
 
     actual fun setScissorRect(x: Int, y: Int, width: Int, height: Int) {
@@ -349,15 +295,6 @@ actual class ComputePipeline(val segment: MemorySegment) : Releasable {
 }
 
 actual class ComputePassEncoder(val segment: MemorySegment) : Releasable {
-    actual fun setPipeline(pipeline: ComputePipeline) {
-        wgpuComputePassEncoderSetPipeline(segment, pipeline.segment)
-        EngineStats.setPipelineCalls++
-    }
-
-    actual fun setBindGroup(index: Int, bindGroup: BindGroup) {
-        wgpuComputePassEncoderSetBindGroup(segment, index, bindGroup.segment, 0, WGPU_NULL)
-        EngineStats.setBindGroupCalls++
-    }
 
     actual fun dispatchWorkgroups(
         workgroupCountX: Int,
@@ -370,10 +307,6 @@ actual class ComputePassEncoder(val segment: MemorySegment) : Releasable {
             workgroupCountY,
             workgroupCountZ,
         )
-    }
-
-    actual fun end() {
-        wgpuComputePassEncoderEnd(segment)
     }
 
     actual override fun release() {

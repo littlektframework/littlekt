@@ -1,12 +1,12 @@
 package com.littlekt.graphics
 
 import com.littlekt.graphics.util.CommonVertexView
-import com.littlekt.graphics.webgpu.WebGPUVertexAttribute
 import io.ygdrasil.wgpu.RenderPipelineDescriptor
+import io.ygdrasil.wgpu.RenderPipelineDescriptor.VertexState.VertexBufferLayout.VertexAttribute
 import io.ygdrasil.wgpu.VertexFormat
 
 /**
- * Wraps a [WebGPUVertexAttribute] and tracks a [VertexAttrUsage].
+ * Wraps a [VertexAttribute] and tracks a [VertexAttrUsage].
  *
  * @param format the format of the input
  * @param offset byte offset of the start of the input
@@ -25,7 +25,7 @@ data class VertexAttributeView(
 ) {
     private val usageIndex = usage.usage.countTrailingZeroBits()
     val gpuVertexAttribute =
-        RenderPipelineDescriptor.VertexState.VertexBufferLayout.VertexAttribute(format, offset, shaderLocation)
+        VertexAttribute(format, offset, shaderLocation)
 
     val key: Int = (usageIndex shl 8) + (shaderLocation and 0xFF)
 }
