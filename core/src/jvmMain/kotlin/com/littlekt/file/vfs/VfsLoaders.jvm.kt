@@ -12,6 +12,7 @@ import com.littlekt.graphics.PixmapTexture
 import com.littlekt.graphics.Texture
 import com.littlekt.log.Logger
 import fr.delthas.javamp3.Sound
+import io.ygdrasil.wgpu.TextureFormat
 import java.io.ByteArrayInputStream
 import java.nio.ByteBuffer
 import java.nio.IntBuffer

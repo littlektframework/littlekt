@@ -53,6 +53,10 @@ kotlin {
 
                 implementation(libs.mp3.decoder)
 
+                // Helper to create surface
+                implementation(libs.rococoa)
+                implementation(libs.jnaPlatform)
+
                 implementation(libs.lwjgl.core)
                 implementation(libs.lwjgl.glfw)
                 implementation(libs.lwjgl.openal)

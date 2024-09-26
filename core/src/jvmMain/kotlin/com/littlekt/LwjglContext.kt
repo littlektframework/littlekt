@@ -117,7 +117,6 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context() {
         if (windowHandle == MemoryUtil.NULL)
             throw RuntimeException("Failed to create the GLFW window")
 
-        graphics.createInstance(configuration)
         graphics.configureSurfaceToWindow(windowHandle)
         graphics.requestAdapterAndDevice(configuration.powerPreference)
 
