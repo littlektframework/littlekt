@@ -25,10 +25,10 @@ class TextureBlendsExample(context: Context) : ContextListener(context) {
         val preferredFormat = graphics.preferredFormat
 
         graphics.configureSurface(
-            TextureUsage.RENDER_ATTACHMENT,
+            setOf(TextureUsage.renderAttachment),
             preferredFormat,
-            PresentMode.FIFO,
-            surfaceCapabilities.alphaModes[0],
+            PresentMode.fifo,
+            graphics.surface.supportedAlphaMode.first()
         )
 
         val batch = SpriteBatch(device, graphics, preferredFormat)
@@ -44,23 +44,23 @@ class TextureBlendsExample(context: Context) : ContextListener(context) {
                     far = 1f,
                 )
             graphics.configureSurface(
-                TextureUsage.RENDER_ATTACHMENT,
+                setOf(TextureUsage.renderAttachment),
                 preferredFormat,
-                PresentMode.FIFO,
-                surfaceCapabilities.alphaModes[0],
+                PresentMode.fifo,
+                graphics.surface.supportedAlphaMode.first()
             )
         }
 
         onUpdate {
             val surfaceTexture = graphics.surface.getCurrentTexture()
             when (val status = surfaceTexture.status) {
-                TextureStatus.SUCCESS -> {
+                SurfaceTextureStatus.success -> {
                     // all good, could check for `surfaceTexture.suboptimal` here.
                 }
-                TextureStatus.TIMEOUT,
-                TextureStatus.OUTDATED,
-                TextureStatus.LOST -> {
-                    surfaceTexture.texture?.release()
+                SurfaceTextureStatus.timeout,
+                SurfaceTextureStatus.outdated,
+                SurfaceTextureStatus.lost -> {
+                    surfaceTexture.texture.close()
                     logger.info { "getCurrentTexture status=$status" }
                     return@onUpdate
                 }
@@ -80,11 +80,11 @@ class TextureBlendsExample(context: Context) : ContextListener(context) {
                     desc =
                         RenderPassDescriptor(
                             listOf(
-                                RenderPassColorAttachmentDescriptor(
+                                RenderPassDescriptor.ColorAttachment(
                                     view = frame,
-                                    loadOp = LoadOp.CLEAR,
-                                    storeOp = StoreOp.STORE,
-                                    clearColor = Color.DARK_GRAY,
+                                    loadOp = LoadOp.clear,
+                                    storeOp = StoreOp.store,
+                                    clearColor = Color.DARK_GRAY
                                 )
                             )
                         )

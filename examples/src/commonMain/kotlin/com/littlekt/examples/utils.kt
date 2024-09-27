@@ -6,17 +6,18 @@ import com.littlekt.input.Key
 import com.littlekt.util.milliseconds
 import io.ygdrasil.wgpu.SurfaceTexture
 import io.ygdrasil.wgpu.SurfaceConfiguration
+import io.ygdrasil.wgpu.SurfaceTextureStatus
 
 fun SurfaceTexture.isValid(context: Context, onConfigure: () -> SurfaceConfiguration): Boolean {
     val surfaceTexture = this
     when (val status = surfaceTexture.status) {
-        TextureStatus.SUCCESS -> {
+        SurfaceTextureStatus.success -> {
             // all good, could check for `surfaceTexture.suboptimal` here.
         }
-        TextureStatus.TIMEOUT,
-        TextureStatus.OUTDATED,
-        TextureStatus.LOST -> {
-            surfaceTexture.texture?.release()
+        SurfaceTextureStatus.timeout,
+        SurfaceTextureStatus.outdated,
+        SurfaceTextureStatus.lost -> {
+            surfaceTexture.texture.close()
             context.graphics.surface.configure(onConfigure())
             context.logger.info { "getCurrentTexture status=$status" }
             return false

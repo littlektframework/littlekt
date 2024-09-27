@@ -5,7 +5,6 @@ import com.littlekt.ContextListener
 import com.littlekt.file.FloatBuffer
 import com.littlekt.graphics.*
 import com.littlekt.graphics.shader.Shader
-import com.littlekt.graphics.webgpu.TextureStatus
 import io.ygdrasil.wgpu.BindGroupDescriptor
 import io.ygdrasil.wgpu.BindGroupDescriptor.BindGroupEntry
 import io.ygdrasil.wgpu.BindGroupDescriptor.BufferBinding
@@ -16,6 +15,7 @@ import io.ygdrasil.wgpu.BufferBindingType
 import io.ygdrasil.wgpu.BufferDescriptor
 import io.ygdrasil.wgpu.BufferUsage
 import io.ygdrasil.wgpu.ColorWriteMask
+import io.ygdrasil.wgpu.CommandEncoderDescriptor
 import io.ygdrasil.wgpu.ComputePipelineDescriptor
 import io.ygdrasil.wgpu.ComputePipelineDescriptor.ProgrammableStage
 import io.ygdrasil.wgpu.LoadOp
@@ -27,6 +27,7 @@ import io.ygdrasil.wgpu.RenderPipelineDescriptor.VertexState
 import io.ygdrasil.wgpu.ShaderModuleDescriptor
 import io.ygdrasil.wgpu.ShaderStage
 import io.ygdrasil.wgpu.StoreOp
+import io.ygdrasil.wgpu.SurfaceTextureStatus
 import io.ygdrasil.wgpu.TextureUsage
 import io.ygdrasil.wgpu.VertexFormat
 import io.ygdrasil.wgpu.VertexStepMode
@@ -46,7 +47,6 @@ class ComputeBoidsExample(context: Context) : ContextListener(context) {
         addCloseOnEsc()
         val device = graphics.device
 
-        val surfaceCapabilities = graphics.surfaceCapabilities
         val preferredFormat = graphics.preferredFormat
 
         graphics.configureSurface(
@@ -112,7 +112,7 @@ class ComputeBoidsExample(context: Context) : ContextListener(context) {
                             targets = listOf(
                                 RenderPipelineDescriptor.FragmentState.ColorTargetState(
                                     format = preferredFormat,
-                                    blend = RenderPipelineDescriptor.FragmentState.ColorTargetState.BlendState.NonPreMultiplied,
+                                    blend = BlendStates.NonPreMultiplied,
                                     writeMask = ColorWriteMask.all
                                 )
                             )
@@ -213,7 +213,7 @@ class ComputeBoidsExample(context: Context) : ContextListener(context) {
                 simParams.rule3Scale
             )
         )
-        device.queue.writeBuffer(simParamBuffer, simParamBufferData)
+        device.queue.writeBuffer(simParamBuffer, 0L, simParamBufferData.toArray())
 
         val numParticles = 1500
         val initialParticleData = FloatArray(numParticles * 4)
@@ -262,7 +262,7 @@ class ComputeBoidsExample(context: Context) : ContextListener(context) {
                 setOf(TextureUsage.renderAttachment),
                 preferredFormat,
                 PresentMode.fifo,
-                surfaceCapabilities.alphaModes[0]
+                graphics.surface.supportedAlphaMode.first()
             )
         }
 
@@ -270,13 +270,13 @@ class ComputeBoidsExample(context: Context) : ContextListener(context) {
         onUpdate { dt ->
             val surfaceTexture = graphics.surface.getCurrentTexture()
             when (val status = surfaceTexture.status) {
-                TextureStatus.SUCCESS -> {
+                SurfaceTextureStatus.success -> {
                     // all good, could check for `surfaceTexture.suboptimal` here.
                 }
-                TextureStatus.TIMEOUT,
-                TextureStatus.OUTDATED,
-                TextureStatus.LOST -> {
-                    surfaceTexture.texture?.release()
+                SurfaceTextureStatus.timeout,
+                SurfaceTextureStatus.outdated,
+                SurfaceTextureStatus.lost -> {
+                    surfaceTexture.texture.close()
                     logger.info { "getCurrentTexture status=$status" }
                     return@onUpdate
                 }
@@ -290,7 +290,7 @@ class ComputeBoidsExample(context: Context) : ContextListener(context) {
             val swapChainTexture = checkNotNull(surfaceTexture.texture)
             val frame = swapChainTexture.createView()
 
-            val commandEncoder = device.createCommandEncoder("scenegraph command encoder")
+            val commandEncoder = device.createCommandEncoder(CommandEncoderDescriptor("scenegraph command encoder"))
             val renderPassDescriptor =
                 RenderPassDescriptor(
                     listOf(
@@ -298,7 +298,7 @@ class ComputeBoidsExample(context: Context) : ContextListener(context) {
                             view = frame,
                             loadOp = LoadOp.clear,
                             storeOp = StoreOp.store,
-                            clearValue = Color.DARK_GRAY
+                            clearValue = Color.DARK_GRAY.toWebGPUColor()
                         )
                     ),
                     label = "Init render pass"
@@ -331,8 +331,8 @@ class ComputeBoidsExample(context: Context) : ContextListener(context) {
 
             commandBuffer.close()
             commandEncoder.close()
-            frame.release()
-            swapChainTexture.release()
+            frame.close()
+            swapChainTexture.close()
         }
 
         onRelease {}

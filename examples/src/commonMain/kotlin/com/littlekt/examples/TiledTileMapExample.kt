@@ -28,10 +28,10 @@ class TiledTileMapExample(context: Context) : ContextListener(context) {
         val preferredFormat = graphics.preferredFormat
 
         graphics.configureSurface(
-            TextureUsage.RENDER_ATTACHMENT,
+            setOf(TextureUsage.renderAttachment),
             preferredFormat,
-            PresentMode.FIFO,
-            surfaceCapabilities.alphaModes[0],
+            PresentMode.fifo,
+            graphics.surface.supportedAlphaMode.first()
         )
 
         val batch = SpriteBatch(device, graphics, preferredFormat, 2000)
@@ -46,10 +46,10 @@ class TiledTileMapExample(context: Context) : ContextListener(context) {
         onResize { width, height ->
             viewport.update(width, height)
             graphics.configureSurface(
-                TextureUsage.RENDER_ATTACHMENT,
+                setOf(TextureUsage.renderAttachment),
                 preferredFormat,
-                PresentMode.FIFO,
-                surfaceCapabilities.alphaModes[0],
+                PresentMode.fifo,
+                graphics.surface.supportedAlphaMode.first()
             )
         }
 
@@ -57,13 +57,13 @@ class TiledTileMapExample(context: Context) : ContextListener(context) {
         onUpdate {
             val surfaceTexture = graphics.surface.getCurrentTexture()
             when (val status = surfaceTexture.status) {
-                TextureStatus.SUCCESS -> {
+                SurfaceTextureStatus.success -> {
                     // all good, could check for `surfaceTexture.suboptimal` here.
                 }
-                TextureStatus.TIMEOUT,
-                TextureStatus.OUTDATED,
-                TextureStatus.LOST -> {
-                    surfaceTexture.texture?.release()
+                SurfaceTextureStatus.timeout,
+                SurfaceTextureStatus.outdated,
+                SurfaceTextureStatus.lost -> {
+                    surfaceTexture.texture.close()
                     logger.info { "getCurrentTexture status=$status" }
                     return@onUpdate
                 }
@@ -83,11 +83,11 @@ class TiledTileMapExample(context: Context) : ContextListener(context) {
                     desc =
                         RenderPassDescriptor(
                             listOf(
-                                RenderPassColorAttachmentDescriptor(
+                                RenderPassDescriptor.ColorAttachment(
                                     view = frame,
-                                    loadOp = LoadOp.CLEAR,
-                                    storeOp = StoreOp.STORE,
-                                    clearColor = bgColor,
+                                    loadOp = LoadOp.clear,
+                                    storeOp = StoreOp.store,
+                                    clearColor = bgColor
                                 )
                             )
                         )

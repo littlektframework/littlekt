@@ -5,8 +5,13 @@ import com.littlekt.ContextListener
 import com.littlekt.graphics.Color
 import com.littlekt.graphics.OrthographicCamera
 import com.littlekt.graphics.g2d.SpriteCache
-import com.littlekt.graphics.webgpu.*
 import com.littlekt.resources.Textures
+import io.ygdrasil.wgpu.LoadOp
+import io.ygdrasil.wgpu.PresentMode
+import io.ygdrasil.wgpu.RenderPassDescriptor
+import io.ygdrasil.wgpu.StoreOp
+import io.ygdrasil.wgpu.SurfaceTextureStatus
+import io.ygdrasil.wgpu.TextureUsage
 import kotlin.random.Random
 
 /**
@@ -22,7 +27,6 @@ class SpriteCacheQuadsExample(context: Context) : ContextListener(context) {
         addCloseOnEsc()
         val device = graphics.device
         val queue = device.queue
-        val surfaceCapabilities = graphics.surfaceCapabilities
         val preferredFormat = graphics.preferredFormat
 
         val camera = OrthographicCamera()
@@ -41,19 +45,19 @@ class SpriteCacheQuadsExample(context: Context) : ContextListener(context) {
             }
         }
         graphics.configureSurface(
-            TextureUsage.RENDER_ATTACHMENT,
+            setOf(TextureUsage.renderAttachment),
             preferredFormat,
-            PresentMode.FIFO,
-            surfaceCapabilities.alphaModes[0],
+            PresentMode.fifo,
+            graphics.surface.supportedAlphaMode.first()
         )
 
         onResize { width, height ->
             camera.ortho(width, height)
             graphics.configureSurface(
-                TextureUsage.RENDER_ATTACHMENT,
+                setOf(TextureUsage.renderAttachment),
                 preferredFormat,
-                PresentMode.FIFO,
-                surfaceCapabilities.alphaModes[0],
+                PresentMode.fifo,
+                graphics.surface.supportedAlphaMode.first()
             )
         }
 
@@ -61,13 +65,13 @@ class SpriteCacheQuadsExample(context: Context) : ContextListener(context) {
         onUpdate {
             val surfaceTexture = graphics.surface.getCurrentTexture()
             when (val status = surfaceTexture.status) {
-                TextureStatus.SUCCESS -> {
+                SurfaceTextureStatus.success -> {
                     // all good, could check for `surfaceTexture.suboptimal` here.
                 }
-                TextureStatus.TIMEOUT,
-                TextureStatus.OUTDATED,
-                TextureStatus.LOST -> {
-                    surfaceTexture.texture?.release()
+                SurfaceTextureStatus.timeout,
+                SurfaceTextureStatus.outdated,
+                SurfaceTextureStatus.lost -> {
+                    surfaceTexture.texture.close()
                     logger.info { "getCurrentTexture status=$status" }
                     return@onUpdate
                 }
@@ -86,16 +90,13 @@ class SpriteCacheQuadsExample(context: Context) : ContextListener(context) {
             val commandEncoder = device.createCommandEncoder()
             val renderPassEncoder =
                 commandEncoder.beginRenderPass(
-                    desc =
                         RenderPassDescriptor(
                             listOf(
-                                RenderPassColorAttachmentDescriptor(
+                                RenderPassDescriptor.ColorAttachment(
                                     view = frame,
-                                    loadOp = LoadOp.CLEAR,
-                                    storeOp = StoreOp.STORE,
-                                    clearColor =
-                                        if (preferredFormat.srgb) Color.DARK_GRAY.toLinear()
-                                        else Color.DARK_GRAY,
+                                    loadOp = LoadOp.clear,
+                                    storeOp = StoreOp.store,
+                                    clearValue = Color.DARK_GRAY.toWebGPUColor()
                                 )
                             )
                         )
@@ -106,13 +107,13 @@ class SpriteCacheQuadsExample(context: Context) : ContextListener(context) {
 
             val commandBuffer = commandEncoder.finish()
 
-            queue.submit(commandBuffer)
+            queue.submit(listOf(commandBuffer))
             graphics.surface.present()
 
-            commandBuffer.release()
-            commandEncoder.release()
-            frame.release()
-            swapChainTexture.release()
+            commandBuffer.close()
+            commandEncoder.close()
+            frame.close()
+            swapChainTexture.close()
         }
 
         onRelease { cache.release() }

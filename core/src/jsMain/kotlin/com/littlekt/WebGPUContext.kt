@@ -60,10 +60,10 @@ class WebGPUContext(override val configuration: JsConfiguration) : Context() {
         graphics._height = canvas.clientHeight
 
         KtScope.launch {
-            val adapterOptions = jsObject {
-                powerPreference = configuration.powerPreference.nativeFlag
+            val adapterOptions: GPURequestAdapterOptions = jsObject {
+                powerPreference = configuration.powerPreference.value
             }
-            graphics.adapter = requestAdapter() ?: error("No appropriate Adapter found.")
+            graphics.adapter = requestAdapter(adapterOptions) ?: error("No appropriate Adapter found.")
             graphics.device = graphics.adapter.requestDevice() ?: error("No appropriate Device found.")
             if (configuration.loadInternalResources) {
                 InternalResources.createInstance(this@WebGPUContext)

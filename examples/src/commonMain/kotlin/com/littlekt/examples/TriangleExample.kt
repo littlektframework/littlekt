@@ -2,7 +2,19 @@ package com.littlekt.examples
 
 import com.littlekt.Context
 import com.littlekt.ContextListener
+import com.littlekt.graphics.BlendStates
 import com.littlekt.graphics.Color
+import io.ygdrasil.wgpu.ColorWriteMask
+import io.ygdrasil.wgpu.LoadOp
+import io.ygdrasil.wgpu.PipelineLayoutDescriptor
+import io.ygdrasil.wgpu.PresentMode
+import io.ygdrasil.wgpu.PrimitiveTopology
+import io.ygdrasil.wgpu.RenderPassDescriptor
+import io.ygdrasil.wgpu.RenderPipelineDescriptor
+import io.ygdrasil.wgpu.ShaderModuleDescriptor
+import io.ygdrasil.wgpu.StoreOp
+import io.ygdrasil.wgpu.SurfaceTextureStatus
+import io.ygdrasil.wgpu.TextureUsage
 
 /**
  * An example rendering a simple triangle in pure WebGPU.
@@ -32,53 +44,53 @@ class TriangleExample(context: Context) : ContextListener(context) {
         addStatsHandler()
         val device = graphics.device
         val queue = device.queue
-        val shader = device.createShaderModule(shaderSrc)
+        val shader = device.createShaderModule(ShaderModuleDescriptor(shaderSrc))
         val pipelineLayout = device.createPipelineLayout(PipelineLayoutDescriptor())
-        val surfaceCapabilities = graphics.surfaceCapabilities
         val preferredFormat = graphics.preferredFormat
         val renderPipelineDesc =
             RenderPipelineDescriptor(
                 layout = pipelineLayout,
-                vertex = VertexState(module = shader, entryPoint = "vs_main"),
+                vertex = RenderPipelineDescriptor.VertexState(module = shader, entryPoint = "vs_main"),
                 fragment =
-                    FragmentState(
-                        module = shader,
-                        entryPoint = "fs_main",
-                        target =
-                            ColorTargetState(
-                                format = preferredFormat,
-                                blendState = BlendState.Opaque,
-                                writeMask = ColorWriteMask.ALL,
-                            ),
-                    ),
-                primitive = PrimitiveState(topology = PrimitiveTopology.TRIANGLE_LIST),
+                RenderPipelineDescriptor.FragmentState(
+                    module = shader,
+                    entryPoint = "fs_main",
+                    targets = listOf(
+                        RenderPipelineDescriptor.FragmentState.ColorTargetState(
+                            format = preferredFormat,
+                            blend = BlendStates.Opaque,
+                            writeMask = ColorWriteMask.all
+                        )
+                    )
+                ),
+                primitive = RenderPipelineDescriptor.PrimitiveState(topology = PrimitiveTopology.triangleList),
                 depthStencil = null,
                 multisample =
-                    MultisampleState(count = 1, mask = 0xFFFFFFF, alphaToCoverageEnabled = false),
+                RenderPipelineDescriptor.MultisampleState(count = 1, mask = 0xFFFFFFFu, alphaToCoverageEnabled = false)
             )
         val renderPipeline = device.createRenderPipeline(renderPipelineDesc)
         graphics.configureSurface(
-            TextureUsage.RENDER_ATTACHMENT,
+            setOf(TextureUsage.renderAttachment),
             preferredFormat,
-            PresentMode.FIFO,
-            surfaceCapabilities.alphaModes[0],
+            PresentMode.fifo,
+            graphics.surface.supportedAlphaMode.first()
         )
 
         onUpdate {
             val surfaceTexture = graphics.surface.getCurrentTexture()
             when (val status = surfaceTexture.status) {
-                TextureStatus.SUCCESS -> {
+                SurfaceTextureStatus.success -> {
                     // all good, could check for `surfaceTexture.suboptimal` here.
                 }
-                TextureStatus.TIMEOUT,
-                TextureStatus.OUTDATED,
-                TextureStatus.LOST -> {
-                    surfaceTexture.texture?.release()
+                SurfaceTextureStatus.timeout,
+                SurfaceTextureStatus.outdated,
+                SurfaceTextureStatus.lost -> {
+                    surfaceTexture.texture.close()
                     graphics.configureSurface(
-                        TextureUsage.RENDER_ATTACHMENT,
+                        setOf(TextureUsage.renderAttachment),
                         preferredFormat,
-                        PresentMode.FIFO,
-                        surfaceCapabilities.alphaModes[0],
+                        PresentMode.fifo,
+                        graphics.surface.supportedAlphaMode.first()
                     )
                     logger.info { "getCurrentTexture status=$status" }
                     return@onUpdate
@@ -95,14 +107,13 @@ class TriangleExample(context: Context) : ContextListener(context) {
             val commandEncoder = device.createCommandEncoder()
             val renderPassEncoder =
                 commandEncoder.beginRenderPass(
-                    desc =
                         RenderPassDescriptor(
                             listOf(
-                                RenderPassColorAttachmentDescriptor(
+                                RenderPassDescriptor.ColorAttachment(
                                     view = frame,
-                                    loadOp = LoadOp.CLEAR,
-                                    storeOp = StoreOp.STORE,
-                                    clearColor = Color.CLEAR,
+                                    loadOp = LoadOp.clear,
+                                    storeOp = StoreOp.store,
+                                    clearValue = Color.CLEAR.toWebGPUColor()
                                 )
                             )
                         )
@@ -114,19 +125,19 @@ class TriangleExample(context: Context) : ContextListener(context) {
 
             val commandBuffer = commandEncoder.finish()
 
-            queue.submit(commandBuffer)
+            queue.submit(listOf(commandBuffer))
             graphics.surface.present()
 
-            commandBuffer.release()
-            commandEncoder.release()
-            frame.release()
-            texture.release()
+            commandBuffer.close()
+            commandEncoder.close()
+            frame.close()
+            texture.close()
         }
 
         onRelease {
-            renderPipeline.release()
-            pipelineLayout.release()
-            shader.release()
+            renderPipeline.close()
+            pipelineLayout.close()
+            shader.close()
         }
     }
 }

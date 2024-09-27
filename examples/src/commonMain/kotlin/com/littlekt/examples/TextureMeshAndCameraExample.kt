@@ -106,7 +106,7 @@ class TextureMeshAndCameraExample(context: Context) : ContextListener(context) {
         val vertexGroupLayout =
             device.createBindGroupLayout(
                 BindGroupLayoutDescriptor(
-                    listOf(BindGroupLayoutEntry(0, ShaderStage.VERTEX, BufferBindingLayout()))
+                    listOf(BindGroupLayoutEntry(0, ShaderStage.vertex, BufferBindingLayout()))
                 )
             )
         val vertexBindGroup =
@@ -154,29 +154,29 @@ class TextureMeshAndCameraExample(context: Context) : ContextListener(context) {
                             ColorTargetState(
                                 format = preferredFormat,
                                 blendState = BlendState.NonPreMultiplied,
-                                writeMask = ColorWriteMask.ALL,
-                            ),
+                                writeMask = ColorWriteMask.all
+                            )
                     ),
-                primitive = PrimitiveState(topology = PrimitiveTopology.TRIANGLE_LIST),
+                primitive = PrimitiveState(topology = PrimitiveTopology.triangleList),
                 depthStencil = null,
                 multisample =
                     MultisampleState(count = 1, mask = 0xFFFFFFF, alphaToCoverageEnabled = false),
             )
         val renderPipeline = device.createRenderPipeline(renderPipelineDesc)
         graphics.configureSurface(
-            TextureUsage.RENDER_ATTACHMENT,
+            setOf(TextureUsage.renderAttachment),
             preferredFormat,
-            PresentMode.FIFO,
-            surfaceCapabilities.alphaModes[0],
+            PresentMode.fifo,
+            graphics.surface.supportedAlphaMode.first()
         )
 
         onResize { width, height ->
             camera.ortho(width, height)
             graphics.configureSurface(
-                TextureUsage.RENDER_ATTACHMENT,
+                setOf(TextureUsage.renderAttachment),
                 preferredFormat,
-                PresentMode.FIFO,
-                surfaceCapabilities.alphaModes[0],
+                PresentMode.fifo,
+                graphics.surface.supportedAlphaMode.first()
             )
         }
 
@@ -184,13 +184,13 @@ class TextureMeshAndCameraExample(context: Context) : ContextListener(context) {
         onUpdate {
             val surfaceTexture = graphics.surface.getCurrentTexture()
             when (val status = surfaceTexture.status) {
-                TextureStatus.SUCCESS -> {
+                SurfaceTextureStatus.success -> {
                     // all good, could check for `surfaceTexture.suboptimal` here.
                 }
-                TextureStatus.TIMEOUT,
-                TextureStatus.OUTDATED,
-                TextureStatus.LOST -> {
-                    surfaceTexture.texture?.release()
+                SurfaceTextureStatus.timeout,
+                SurfaceTextureStatus.outdated,
+                SurfaceTextureStatus.lost -> {
+                    surfaceTexture.texture.close()
                     logger.info { "getCurrentTexture status=$status" }
                     return@onUpdate
                 }
@@ -214,10 +214,10 @@ class TextureMeshAndCameraExample(context: Context) : ContextListener(context) {
                     desc =
                         RenderPassDescriptor(
                             listOf(
-                                RenderPassColorAttachmentDescriptor(
+                                RenderPassDescriptor.ColorAttachment(
                                     view = frame,
-                                    loadOp = LoadOp.CLEAR,
-                                    storeOp = StoreOp.STORE,
+                                    loadOp = LoadOp.clear,
+                                    storeOp = StoreOp.store,
                                     clearColor =
                                         if (preferredFormat.srgb) Color.DARK_GRAY.toLinear()
                                         else Color.DARK_GRAY,

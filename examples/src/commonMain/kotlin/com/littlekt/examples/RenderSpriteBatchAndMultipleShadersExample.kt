@@ -9,7 +9,7 @@ import com.littlekt.graphics.g2d.SpriteBatch
 import com.littlekt.graphics.shader.SpriteShader
 import io.ygdrasil.wgpu.BindGroup
 import io.ygdrasil.wgpu.BindGroupDescriptor
-import io.ygdrasil.wgpu.BindGroupDescriptor.BindGroupEntry
+import io.ygdrasil.wgpu.BindGroupDescriptor.*
 import io.ygdrasil.wgpu.BindGroupLayoutDescriptor
 import io.ygdrasil.wgpu.BindGroupLayoutDescriptor.Entry
 import io.ygdrasil.wgpu.BindGroupLayoutDescriptor.Entry.SamplerBindingLayout
@@ -21,6 +21,7 @@ import io.ygdrasil.wgpu.RenderPassDescriptor
 import io.ygdrasil.wgpu.RenderPassEncoder
 import io.ygdrasil.wgpu.ShaderStage
 import io.ygdrasil.wgpu.StoreOp
+import io.ygdrasil.wgpu.SurfaceTextureStatus
 import io.ygdrasil.wgpu.TextureUsage
 
 /**
@@ -76,14 +77,14 @@ class RenderSpriteBatchAndMultipleShadersExample(context: Context) : ContextList
             layout =
                 listOf(
                     BindGroupLayoutDescriptor(
-                        listOf(Entry(0, ShaderStage.vertex, Entry.BufferBindingLayout()))
+                        listOf(Entry(0, setOf(ShaderStage.vertex), Entry.BufferBindingLayout()))
                     ),
                     BindGroupLayoutDescriptor(
                         listOf(
-                            Entry(0, ShaderStage.fragment,
+                            Entry(0, setOf(ShaderStage.fragment),
                                 TextureBindingLayout()
                             ),
-                            Entry(1, ShaderStage.fragment,
+                            Entry(1, setOf(ShaderStage.fragment),
                                 SamplerBindingLayout()
                             )
                         )
@@ -106,7 +107,10 @@ class RenderSpriteBatchAndMultipleShadersExample(context: Context) : ContextList
                 device.createBindGroup(
                     BindGroupDescriptor(
                         layouts[1],
-                        listOf(BindGroupEntry(0, texture.view), BindGroupEntry(1, texture.sampler)),
+                        listOf(
+                            BindGroupEntry(0, TextureViewBinding(texture.view)),
+                            BindGroupEntry(1, SamplerBinding(texture.sampler))
+                        )
                     )
                 )
             )
@@ -130,15 +134,14 @@ class RenderSpriteBatchAndMultipleShadersExample(context: Context) : ContextList
         val logoTexture = resourcesVfs["logo.png"].readTexture()
         val pikaTexture = resourcesVfs["pika.png"].readTexture()
 
-        val surfaceCapabilities = graphics.surfaceCapabilities
         val preferredFormat = graphics.preferredFormat
         val coloredShader = ColorShader(device)
 
         graphics.configureSurface(
-            TextureUsage.renderAttachment,
+            setOf(TextureUsage.renderAttachment),
             preferredFormat,
             PresentMode.fifo,
-            surfaceCapabilities.alphaModes[0]
+            graphics.surface.supportedAlphaMode.first()
         )
 
         val batch = SpriteBatch(device, graphics, preferredFormat)
@@ -154,23 +157,23 @@ class RenderSpriteBatchAndMultipleShadersExample(context: Context) : ContextList
                     far = 1f,
                 )
             graphics.configureSurface(
-                TextureUsage.renderAttachment,
+                setOf(TextureUsage.renderAttachment),
                 preferredFormat,
                 PresentMode.fifo,
-                surfaceCapabilities.alphaModes[0]
+                graphics.surface.supportedAlphaMode.first()
             )
         }
 
         onUpdate {
             val surfaceTexture = graphics.surface.getCurrentTexture()
             when (val status = surfaceTexture.status) {
-                TextureStatus.SUCCESS -> {
+                SurfaceTextureStatus.success -> {
                     // all good, could check for `surfaceTexture.suboptimal` here.
                 }
-                TextureStatus.TIMEOUT,
-                TextureStatus.OUTDATED,
-                TextureStatus.LOST -> {
-                    surfaceTexture.texture?.release()
+                SurfaceTextureStatus.timeout,
+                SurfaceTextureStatus.outdated,
+                SurfaceTextureStatus.lost -> {
+                    surfaceTexture.texture.close()
                     logger.info { "getCurrentTexture status=$status" }
                     return@onUpdate
                 }
@@ -181,7 +184,7 @@ class RenderSpriteBatchAndMultipleShadersExample(context: Context) : ContextList
                     return@onUpdate
                 }
             }
-            val frame = surfaceTexture.createView()
+            val frame = surfaceTexture.texture.createView()
 
             val commandEncoder = device.createCommandEncoder()
             val renderPassEncoder =
@@ -192,7 +195,7 @@ class RenderSpriteBatchAndMultipleShadersExample(context: Context) : ContextList
                                     view = frame,
                                     loadOp = LoadOp.clear,
                                     storeOp = StoreOp.store,
-                                    clearValue = Color.DARK_GRAY.toLinear()
+                                    clearValue = Color.DARK_GRAY.toLinear().toWebGPUColor()
                                 )
                             )
                         )
@@ -216,7 +219,7 @@ class RenderSpriteBatchAndMultipleShadersExample(context: Context) : ContextList
             commandBuffer.close()
             commandEncoder.close()
             frame.close()
-            surfaceTexture.close()
+            surfaceTexture.texture.close()
         }
 
         onRelease {

@@ -7,9 +7,14 @@ import com.littlekt.graphics.Color
 import com.littlekt.graphics.HAlign
 import com.littlekt.graphics.g2d.SpriteBatch
 import com.littlekt.graphics.g2d.use
-import com.littlekt.graphics.webgpu.*
 import com.littlekt.resources.Fonts
 import com.littlekt.util.viewport.ExtendViewport
+import io.ygdrasil.wgpu.LoadOp
+import io.ygdrasil.wgpu.PresentMode
+import io.ygdrasil.wgpu.RenderPassDescriptor
+import io.ygdrasil.wgpu.StoreOp
+import io.ygdrasil.wgpu.SurfaceTextureStatus
+import io.ygdrasil.wgpu.TextureUsage
 
 /**
  * @author Colton Daily
@@ -23,14 +28,13 @@ class FontExample(context: Context) : ContextListener(context) {
         val arialFont = resourcesVfs["arial_32.fnt"].readBitmapFont()
         val device = graphics.device
 
-        val surfaceCapabilities = graphics.surfaceCapabilities
         val preferredFormat = graphics.preferredFormat
 
         graphics.configureSurface(
-            TextureUsage.RENDER_ATTACHMENT,
+            setOf(TextureUsage.renderAttachment),
             preferredFormat,
-            PresentMode.FIFO,
-            surfaceCapabilities.alphaModes[0],
+            PresentMode.fifo,
+            graphics.surface.supportedAlphaMode.first()
         )
 
         val batch = SpriteBatch(device, graphics, preferredFormat)
@@ -40,10 +44,10 @@ class FontExample(context: Context) : ContextListener(context) {
         onResize { width, height ->
             viewport.update(width, height)
             graphics.configureSurface(
-                TextureUsage.RENDER_ATTACHMENT,
+                setOf(TextureUsage.renderAttachment),
                 preferredFormat,
-                PresentMode.FIFO,
-                surfaceCapabilities.alphaModes[0],
+                PresentMode.fifo,
+                graphics.surface.supportedAlphaMode.first()
             )
         }
 
@@ -51,13 +55,13 @@ class FontExample(context: Context) : ContextListener(context) {
         onUpdate {
             val surfaceTexture = graphics.surface.getCurrentTexture()
             when (val status = surfaceTexture.status) {
-                TextureStatus.SUCCESS -> {
+                SurfaceTextureStatus.success -> {
                     // all good, could check for `surfaceTexture.suboptimal` here.
                 }
-                TextureStatus.TIMEOUT,
-                TextureStatus.OUTDATED,
-                TextureStatus.LOST -> {
-                    surfaceTexture.texture?.release()
+                SurfaceTextureStatus.timeout,
+                SurfaceTextureStatus.outdated,
+                SurfaceTextureStatus.lost -> {
+                    surfaceTexture.texture.close()
                     logger.info { "getCurrentTexture status=$status" }
                     return@onUpdate
                 }
@@ -74,16 +78,13 @@ class FontExample(context: Context) : ContextListener(context) {
             val commandEncoder = device.createCommandEncoder()
             val renderPassEncoder =
                 commandEncoder.beginRenderPass(
-                    desc =
                         RenderPassDescriptor(
                             listOf(
-                                RenderPassColorAttachmentDescriptor(
+                                RenderPassDescriptor.ColorAttachment(
                                     view = frame,
-                                    loadOp = LoadOp.CLEAR,
-                                    storeOp = StoreOp.STORE,
-                                    clearColor =
-                                        if (preferredFormat.srgb) Color.DARK_GRAY.toLinear()
-                                        else Color.DARK_GRAY,
+                                    loadOp = LoadOp.clear,
+                                    storeOp = StoreOp.store,
+                                    clearValue = Color.DARK_GRAY.toWebGPUColor()
                                 )
                             )
                         )
@@ -101,13 +102,13 @@ class FontExample(context: Context) : ContextListener(context) {
 
             val commandBuffer = commandEncoder.finish()
 
-            device.queue.submit(commandBuffer)
+            device.queue.submit(listOf(commandBuffer))
             graphics.surface.present()
 
-            commandBuffer.release()
-            commandEncoder.release()
-            frame.release()
-            swapChainTexture.release()
+            commandBuffer.close()
+            commandEncoder.close()
+            frame.close()
+            swapChainTexture.close()
         }
 
         onRelease { batch.release() }

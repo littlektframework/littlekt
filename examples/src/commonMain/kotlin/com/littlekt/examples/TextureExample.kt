@@ -73,7 +73,7 @@ class TextureExample(context: Context) : ContextListener(context) {
         val indices = ShortBuffer(shortArrayOf(0, 1, 2, 0, 2, 3))
         val image = resourcesVfs["logo.png"].readPixmap()
         val device = graphics.device
-        val vbo = device.createGPUFloatBuffer("vbo", vertices.toArray(), BufferUsage.VERTEX)
+        val vbo = device.createGPUFloatBuffer("vbo", vertices.toArray(), BufferUsage.vertex)
         val ibo = device.createGPUShortBuffer("ibo", indices.toArray(), BufferUsage.INDEX)
         val shader = device.createShaderModule(textureShader)
         val surfaceCapabilities = graphics.surfaceCapabilities
@@ -147,37 +147,37 @@ class TextureExample(context: Context) : ContextListener(context) {
                             ColorTargetState(
                                 format = preferredFormat,
                                 blendState = BlendState.NonPreMultiplied,
-                                writeMask = ColorWriteMask.ALL,
-                            ),
+                                writeMask = ColorWriteMask.all
+                            )
                     ),
-                primitive = PrimitiveState(topology = PrimitiveTopology.TRIANGLE_LIST),
+                primitive = PrimitiveState(topology = PrimitiveTopology.triangleList),
                 depthStencil = null,
                 multisample =
                     MultisampleState(count = 1, mask = 0xFFFFFFF, alphaToCoverageEnabled = false),
             )
         val renderPipeline = device.createRenderPipeline(renderPipelineDesc)
         graphics.configureSurface(
-            TextureUsage.RENDER_ATTACHMENT,
+            setOf(TextureUsage.renderAttachment),
             preferredFormat,
-            PresentMode.FIFO,
-            surfaceCapabilities.alphaModes[0],
+            PresentMode.fifo,
+            graphics.surface.supportedAlphaMode.first()
         )
 
         onUpdate {
             val surfaceTexture = graphics.surface.getCurrentTexture()
             when (val status = surfaceTexture.status) {
-                TextureStatus.SUCCESS -> {
+                SurfaceTextureStatus.success -> {
                     // all good, could check for `surfaceTexture.suboptimal` here.
                 }
-                TextureStatus.TIMEOUT,
-                TextureStatus.OUTDATED,
-                TextureStatus.LOST -> {
-                    surfaceTexture.texture?.release()
+                SurfaceTextureStatus.timeout,
+                SurfaceTextureStatus.outdated,
+                SurfaceTextureStatus.lost -> {
+                    surfaceTexture.texture.close()
                     graphics.configureSurface(
-                        TextureUsage.RENDER_ATTACHMENT,
+                        setOf(TextureUsage.renderAttachment),
                         preferredFormat,
-                        PresentMode.FIFO,
-                        surfaceCapabilities.alphaModes[0],
+                        PresentMode.fifo,
+                        graphics.surface.supportedAlphaMode.first()
                     )
                     logger.info { "getCurrentTexture status=$status" }
                     return@onUpdate
@@ -198,10 +198,10 @@ class TextureExample(context: Context) : ContextListener(context) {
                     desc =
                         RenderPassDescriptor(
                             listOf(
-                                RenderPassColorAttachmentDescriptor(
+                                RenderPassDescriptor.ColorAttachment(
                                     view = frame,
-                                    loadOp = LoadOp.CLEAR,
-                                    storeOp = StoreOp.STORE,
+                                    loadOp = LoadOp.clear,
+                                    storeOp = StoreOp.store,
                                     clearColor =
                                         if (preferredFormat.srgb) Color.DARK_GRAY.toLinear()
                                         else Color.DARK_GRAY,

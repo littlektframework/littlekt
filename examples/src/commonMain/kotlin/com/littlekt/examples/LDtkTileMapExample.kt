@@ -5,8 +5,13 @@ import com.littlekt.ContextListener
 import com.littlekt.file.vfs.readLDtkMapLoader
 import com.littlekt.graphics.g2d.SpriteBatch
 import com.littlekt.graphics.g2d.use
-import com.littlekt.graphics.webgpu.*
 import com.littlekt.util.viewport.ExtendViewport
+import io.ygdrasil.wgpu.LoadOp
+import io.ygdrasil.wgpu.PresentMode
+import io.ygdrasil.wgpu.RenderPassDescriptor
+import io.ygdrasil.wgpu.StoreOp
+import io.ygdrasil.wgpu.SurfaceTextureStatus
+import io.ygdrasil.wgpu.TextureUsage
 
 /**
  * Load and render an LDtk map.
@@ -26,30 +31,27 @@ class LDtkTileMapExample(context: Context) : ContextListener(context) {
         // we can load additional levels by doing:
         // mapLoader.loadLevel(levelIdx)
         val world = mapLoader.loadMap()
-        val surfaceCapabilities = graphics.surfaceCapabilities
         val preferredFormat = graphics.preferredFormat
 
         graphics.configureSurface(
-            TextureUsage.RENDER_ATTACHMENT,
+            setOf(TextureUsage.renderAttachment),
             preferredFormat,
-            PresentMode.FIFO,
-            surfaceCapabilities.alphaModes[0],
+            PresentMode.fifo,
+            graphics.surface.supportedAlphaMode.first()
         )
 
         val batch = SpriteBatch(device, graphics, preferredFormat, size = 400)
         val viewport = ExtendViewport(270, 135)
         val camera = viewport.camera
-        val bgColor =
-            if (preferredFormat.srgb) world.defaultLevelBackgroundColor.toLinear()
-            else world.defaultLevelBackgroundColor
+        val bgColor = world.defaultLevelBackgroundColor
 
         onResize { width, height ->
             viewport.update(width, height)
             graphics.configureSurface(
-                TextureUsage.RENDER_ATTACHMENT,
+                setOf(TextureUsage.renderAttachment),
                 preferredFormat,
-                PresentMode.FIFO,
-                surfaceCapabilities.alphaModes[0],
+                PresentMode.fifo,
+                graphics.surface.supportedAlphaMode.first()
             )
         }
 
@@ -57,13 +59,13 @@ class LDtkTileMapExample(context: Context) : ContextListener(context) {
         onUpdate {
             val surfaceTexture = graphics.surface.getCurrentTexture()
             when (val status = surfaceTexture.status) {
-                TextureStatus.SUCCESS -> {
+                SurfaceTextureStatus.success -> {
                     // all good, could check for `surfaceTexture.suboptimal` here.
                 }
-                TextureStatus.TIMEOUT,
-                TextureStatus.OUTDATED,
-                TextureStatus.LOST -> {
-                    surfaceTexture.texture?.release()
+                SurfaceTextureStatus.timeout,
+                SurfaceTextureStatus.outdated,
+                SurfaceTextureStatus.lost -> {
+                    surfaceTexture.texture.close()
                     logger.info { "getCurrentTexture status=$status" }
                     return@onUpdate
                 }
@@ -80,14 +82,13 @@ class LDtkTileMapExample(context: Context) : ContextListener(context) {
             val commandEncoder = device.createCommandEncoder()
             val renderPassEncoder =
                 commandEncoder.beginRenderPass(
-                    desc =
                         RenderPassDescriptor(
                             listOf(
-                                RenderPassColorAttachmentDescriptor(
+                                RenderPassDescriptor.ColorAttachment(
                                     view = frame,
-                                    loadOp = LoadOp.CLEAR,
-                                    storeOp = StoreOp.STORE,
-                                    clearColor = bgColor,
+                                    loadOp = LoadOp.clear,
+                                    storeOp = StoreOp.store,
+                                    clearValue = bgColor.toWebGPUColor()
                                 )
                             )
                         )
@@ -102,13 +103,13 @@ class LDtkTileMapExample(context: Context) : ContextListener(context) {
 
             val commandBuffer = commandEncoder.finish()
 
-            device.queue.submit(commandBuffer)
+            device.queue.submit(listOf(commandBuffer))
             graphics.surface.present()
 
-            commandBuffer.release()
-            commandEncoder.release()
-            frame.release()
-            swapChainTexture.release()
+            commandBuffer.close()
+            commandEncoder.close()
+            frame.close()
+            swapChainTexture.close()
         }
 
         onRelease {
