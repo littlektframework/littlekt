@@ -30,7 +30,7 @@ fun Device.createGPUFloatBuffer(label: String, data: FloatArray, usages: Set<Buf
     val buffer = createBuffer(
         BufferDescriptor(
             label = label,
-            size = data.size.toLong() * Short.SIZE_BYTES,
+            size = data.size.toLong() * Float.SIZE_BYTES,
             usage = usages,
             mappedAtCreation = true
         )
