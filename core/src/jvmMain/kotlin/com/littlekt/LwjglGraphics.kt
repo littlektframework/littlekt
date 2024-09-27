@@ -71,7 +71,7 @@ class LwjglGraphics(private val context: LwjglContext) : Graphics, Releasable {
     override lateinit var device: Device
 
 
-    override val preferredFormat by lazy { surface.preferredCanvasFormat  ?: error("fail to get preferredCanvasFormat") }
+    override val preferredFormat by lazy { surface.preferredCanvasFormat  ?: surface.supportedFormats.first() }
     private var hasSurfaceCapabilities = false
 
     override fun configureSurface(
@@ -87,6 +87,7 @@ class LwjglGraphics(private val context: LwjglContext) : Graphics, Releasable {
 
     internal suspend fun requestAdapterAndDevice(powerPreference: PowerPreference) {
         adapter = instance.requestAdapter(surface, powerPreference) ?: error("No adapter found.")
+        surface.computeSurfaceCapabilities(adapter)
         requestDevice()
     }
 

@@ -13,8 +13,9 @@ import com.littlekt.log.Logger
 import com.littlekt.resources.internal.InternalResources
 import com.littlekt.util.datastructure.fastForEach
 import com.littlekt.util.now
-import com.littlekt.wgpu.WGPU.*
-import com.littlekt.wgpu.WGPULogCallback
+import io.ygdrasil.wgpu.internal.jvm.panama.WGPULogCallback
+import io.ygdrasil.wgpu.internal.jvm.panama.wgpu_h
+import io.ygdrasil.wgpu.internal.jvm.panama.wgpu_h.*
 import java.lang.foreign.Arena
 import java.nio.ByteBuffer
 import java.nio.IntBuffer
@@ -27,6 +28,7 @@ import org.lwjgl.glfw.GLFWErrorCallback
 import org.lwjgl.glfw.GLFWImage
 import org.lwjgl.system.MemoryStack
 import org.lwjgl.system.MemoryUtil
+import java.lang.foreign.MemorySegment
 
 /**
  * @author Colton Daily
@@ -224,6 +226,7 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context() {
 
         wgpuSetLogCallback(WGPULogCallback.allocate(callback, scope), NULL())
         wgpuSetLogLevel(WGPULogLevel_Trace())
+
     }
 
     private fun updateFramebufferInfo() {
