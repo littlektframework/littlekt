@@ -89,7 +89,7 @@ class PixmapTexture(val device: Device, preferredFormat: TextureFormat, val pixm
         device.queue.writeTexture(
             ImageCopyTexture(gpuTexture),
             pixmap.pixels.toArray(),
-            TextureDataLayout((4 * pixmap.width).toLong(), pixmap.height),
+            TextureDataLayout(0L, 4 * pixmap.width, pixmap.height),
             size
         )
     }

@@ -115,7 +115,7 @@ class TextureMeshExample(context: Context) : ContextListener(context) {
         queue.writeTexture(
             data = image.pixels.toArray(),
             destination = ImageCopyTexture(texture),
-            dataLayout = TextureDataLayout((image.width * 4).toLong(), image.height),
+            dataLayout = TextureDataLayout(0L, image.width * 4, image.height),
             size = Size3D(image.width, image.height, 1)
         )
 
