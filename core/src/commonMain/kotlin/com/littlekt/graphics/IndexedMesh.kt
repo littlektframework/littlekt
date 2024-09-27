@@ -64,7 +64,7 @@ class IndexedMesh<T : IndexedMeshGeometry>(device: Device, geometry: T) :
                 } else {
                     val size = min(ibo.size / Short.SIZE_BYTES, geometry.indices.limit.toLong())
                     logger.trace { "Writing IBO to queue of size: $size" }
-                    device.queue.writeBuffer(ibo, 0L, geometry.indices.toArray(), size)
+                    device.queue.writeBuffer(ibo, 0L, geometry.indices.toArray(), size = size)
                 }
                 geometry.indicesDirty = false
             }
