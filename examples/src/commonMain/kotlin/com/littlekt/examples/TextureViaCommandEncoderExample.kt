@@ -3,7 +3,44 @@ package com.littlekt.examples
 import com.littlekt.Context
 import com.littlekt.ContextListener
 import com.littlekt.file.vfs.readPixmap
+import com.littlekt.graphics.BlendStates
 import com.littlekt.graphics.Color
+import com.littlekt.graphics.createGPUByteBuffer
+import com.littlekt.graphics.createGPUFloatBuffer
+import com.littlekt.graphics.createGPUShortBuffer
+import io.ygdrasil.wgpu.BindGroupDescriptor
+import io.ygdrasil.wgpu.BindGroupDescriptor.*
+import io.ygdrasil.wgpu.BindGroupLayoutDescriptor
+import io.ygdrasil.wgpu.BindGroupLayoutDescriptor.*
+import io.ygdrasil.wgpu.BindGroupLayoutDescriptor.Entry.*
+import io.ygdrasil.wgpu.BufferUsage
+import io.ygdrasil.wgpu.ColorWriteMask
+import io.ygdrasil.wgpu.ImageCopyBuffer
+import io.ygdrasil.wgpu.ImageCopyTexture
+import io.ygdrasil.wgpu.IndexFormat
+import io.ygdrasil.wgpu.LoadOp
+import io.ygdrasil.wgpu.PipelineLayoutDescriptor
+import io.ygdrasil.wgpu.PresentMode
+import io.ygdrasil.wgpu.PrimitiveTopology
+import io.ygdrasil.wgpu.RenderPassDescriptor
+import io.ygdrasil.wgpu.RenderPipelineDescriptor
+import io.ygdrasil.wgpu.RenderPipelineDescriptor.*
+import io.ygdrasil.wgpu.RenderPipelineDescriptor.FragmentState.*
+import io.ygdrasil.wgpu.RenderPipelineDescriptor.VertexState.VertexBufferLayout
+import io.ygdrasil.wgpu.RenderPipelineDescriptor.VertexState.VertexBufferLayout.*
+import io.ygdrasil.wgpu.SamplerDescriptor
+import io.ygdrasil.wgpu.ShaderModuleDescriptor
+import io.ygdrasil.wgpu.ShaderStage
+import io.ygdrasil.wgpu.Size3D
+import io.ygdrasil.wgpu.StoreOp
+import io.ygdrasil.wgpu.SurfaceTextureStatus
+import io.ygdrasil.wgpu.TextureDataLayout
+import io.ygdrasil.wgpu.TextureDescriptor
+import io.ygdrasil.wgpu.TextureDimension
+import io.ygdrasil.wgpu.TextureFormat
+import io.ygdrasil.wgpu.TextureUsage
+import io.ygdrasil.wgpu.VertexFormat
+import io.ygdrasil.wgpu.VertexStepMode
 
 /**
  * An example rendering a texture using a [CommandEncoder] in pure WebGPU.
@@ -71,35 +108,31 @@ class TextureViaCommandEncoderExample(context: Context) : ContextListener(contex
         // @formatter:on
         val image = resourcesVfs["pika.png"].readPixmap()
         val device = graphics.device
-        val vbo = device.createGPUFloatBuffer("vbo", vertices, BufferUsage.vertex)
-        val ibo = device.createGPUShortBuffer("ibo", indices, BufferUsage.INDEX)
-        val shader = device.createShaderModule(textureShader)
-        val surfaceCapabilities = graphics.surfaceCapabilities
+        val vbo = device.createGPUFloatBuffer("vbo", vertices, setOf(BufferUsage.vertex))
+        val ibo = device.createGPUShortBuffer("ibo", indices, setOf(BufferUsage.index))
+        val shader = device.createShaderModule(ShaderModuleDescriptor(textureShader))
         val preferredFormat = graphics.preferredFormat
         val texture =
             device.createTexture(
                 TextureDescriptor(
-                    Extent3D(image.width, image.height, 1),
-                    1,
-                    1,
-                    TextureDimension.D2,
-                    TextureFormat.RGBA8_UNORM_SRGB,
-                    TextureUsage.COPY_DST or TextureUsage.TEXTURE,
+                    Size3D(image.width, image.height),
+                    TextureFormat.rgba8unormsrgb,
+                    setOf(TextureUsage.copyDst, TextureUsage.textureBinding)
                 )
             )
 
         val queue = device.queue
         run {
             val textureBuffer =
-                device.createGPUByteBuffer("tex temp", image.pixels.toArray(), BufferUsage.COPY_SRC)
+                device.createGPUByteBuffer("tex temp", image.pixels.toArray(), setOf(BufferUsage.copysrc))
             val commandEncoder = device.createCommandEncoder()
             commandEncoder.copyBufferToTexture(
-                BufferCopyView(textureBuffer, TextureDataLayout(image.width * 4, image.height)),
-                TextureCopyView(texture),
-                Extent3D(image.width, image.height, 1),
+                ImageCopyBuffer(textureBuffer, 0L, image.width * 4, image.height),
+                ImageCopyTexture(texture),
+                Size3D(image.width, image.height)
             )
-            queue.submit(commandEncoder.finish())
-            textureBuffer.destroy()
+            queue.submit(listOf(commandEncoder.finish()))
+            textureBuffer.close()
         }
 
         val sampler = device.createSampler(SamplerDescriptor())
@@ -108,55 +141,61 @@ class TextureViaCommandEncoderExample(context: Context) : ContextListener(contex
             device.createBindGroupLayout(
                 BindGroupLayoutDescriptor(
                     listOf(
-                        BindGroupLayoutEntry(0, ShaderStage.FRAGMENT, TextureBindingLayout()),
-                        BindGroupLayoutEntry(1, ShaderStage.FRAGMENT, SamplerBindingLayout()),
+                        Entry(0, setOf(ShaderStage.fragment), TextureBindingLayout()),
+                        Entry(1, setOf(ShaderStage.fragment), SamplerBindingLayout())
                     )
                 )
             )
         val bindGroup =
             device.createBindGroup(
-                desc =
                     BindGroupDescriptor(
                         bindGroupLayout,
-                        listOf(BindGroupEntry(0, textureView), BindGroupEntry(1, sampler)),
+                        listOf(
+                            BindGroupEntry(0, TextureViewBinding(textureView)),
+                            BindGroupEntry(1, SamplerBinding(sampler))
+                        )
                     )
             )
-        val pipelineLayout = device.createPipelineLayout(PipelineLayoutDescriptor(bindGroupLayout))
+        val pipelineLayout = device.createPipelineLayout(PipelineLayoutDescriptor(listOf(bindGroupLayout)))
         val renderPipelineDesc =
             RenderPipelineDescriptor(
                 layout = pipelineLayout,
                 vertex =
-                    VertexState(
-                        module = shader,
-                        entryPoint = "vs_main",
-                        WebGPUVertexBufferLayout(
+                VertexState(
+                    module = shader,
+                    entryPoint = "vs_main",
+                    buffers = listOf(
+                        VertexBufferLayout(
                             4L * Float.SIZE_BYTES,
-                            VertexStepMode.VERTEX,
                             listOf(
-                                WebGPUVertexAttribute(VertexFormat.FLOAT32x2, 0, 0),
-                                WebGPUVertexAttribute(
-                                    VertexFormat.FLOAT32x2,
+                                VertexAttribute(VertexFormat.float32x2, 0, 0),
+                                VertexAttribute(
+                                    VertexFormat.float32x2,
                                     2L * Float.SIZE_BYTES,
-                                    1,
-                                ),
+                                    1
+                                )
                             ),
-                        ),
-                    ),
+                            VertexStepMode.vertex,
+                        )
+                    )
+                ),
                 fragment =
-                    FragmentState(
-                        module = shader,
-                        entryPoint = "fs_main",
-                        target =
-                            ColorTargetState(
-                                format = preferredFormat,
-                                blendState = BlendState.NonPreMultiplied,
-                                writeMask = ColorWriteMask.all
-                            )
-                    ),
+                FragmentState(
+                    module = shader,
+                    entryPoint = "fs_main",
+                    targets =
+                    listOf(
+                        ColorTargetState(
+                            format = preferredFormat,
+                            blend = BlendStates.NonPreMultiplied,
+                            writeMask = ColorWriteMask.all
+                        )
+                    )
+                ),
                 primitive = PrimitiveState(topology = PrimitiveTopology.triangleList),
                 depthStencil = null,
                 multisample =
-                    MultisampleState(count = 1, mask = 0xFFFFFFF, alphaToCoverageEnabled = false),
+                    MultisampleState(count = 1, mask = 0xFFFFFFFu, alphaToCoverageEnabled = false)
             )
         val renderPipeline = device.createRenderPipeline(renderPipelineDesc)
         graphics.configureSurface(
@@ -198,14 +237,13 @@ class TextureViaCommandEncoderExample(context: Context) : ContextListener(contex
             val commandEncoder = device.createCommandEncoder()
             val renderPassEncoder =
                 commandEncoder.beginRenderPass(
-                    desc =
                         RenderPassDescriptor(
                             listOf(
                                 RenderPassDescriptor.ColorAttachment(
                                     view = frame,
                                     loadOp = LoadOp.clear,
                                     storeOp = StoreOp.store,
-                                    clearColor = Color.CLEAR
+                                    clearValue = Color.CLEAR.toWebGPUColor()
                                 )
                             )
                         )
@@ -213,34 +251,34 @@ class TextureViaCommandEncoderExample(context: Context) : ContextListener(contex
             renderPassEncoder.setPipeline(renderPipeline)
             renderPassEncoder.setBindGroup(0, bindGroup)
             renderPassEncoder.setVertexBuffer(0, vbo)
-            renderPassEncoder.setIndexBuffer(ibo, IndexFormat.UINT16)
+            renderPassEncoder.setIndexBuffer(ibo, IndexFormat.uint16)
             renderPassEncoder.drawIndexed(indices.size, 1)
             renderPassEncoder.end()
             renderPassEncoder.release()
 
             val commandBuffer = commandEncoder.finish()
 
-            queue.submit(commandBuffer)
+            queue.submit(listOf(commandBuffer))
             graphics.surface.present()
 
-            commandBuffer.release()
-            commandEncoder.release()
-            frame.release()
-            swapChainTexture.release()
+            commandBuffer.close()
+            commandEncoder.close()
+            frame.close()
+            swapChainTexture.close()
         }
 
         onRelease {
-            renderPipeline.release()
-            pipelineLayout.release()
-            bindGroup.release()
-            bindGroupLayout.release()
-            sampler.release()
-            textureView.release()
-            texture.release()
-            ibo.release()
-            vbo.release()
-            texture.release()
-            shader.release()
+            renderPipeline.close()
+            pipelineLayout.close()
+            bindGroup.close()
+            bindGroupLayout.close()
+            sampler.close()
+            textureView.close()
+            texture.close()
+            ibo.close()
+            vbo.close()
+            texture.close()
+            shader.close()
         }
     }
 }

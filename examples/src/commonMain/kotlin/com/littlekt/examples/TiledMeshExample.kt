@@ -4,13 +4,35 @@ import com.littlekt.Context
 import com.littlekt.ContextListener
 import com.littlekt.EngineStats
 import com.littlekt.file.FloatBuffer
+import com.littlekt.graphics.BlendStates
 import com.littlekt.graphics.Color
 import com.littlekt.graphics.OrthographicCamera
 import com.littlekt.graphics.createGPUFloatBuffer
 import com.littlekt.graphics.textureIndexedMesh
 import com.littlekt.math.Vec4f
 import com.littlekt.resources.Textures
+import io.ygdrasil.wgpu.BindGroupDescriptor
+import io.ygdrasil.wgpu.BindGroupDescriptor.*
+import io.ygdrasil.wgpu.BindGroupLayoutDescriptor
+import io.ygdrasil.wgpu.BindGroupLayoutDescriptor.Entry
+import io.ygdrasil.wgpu.BindGroupLayoutDescriptor.Entry.SamplerBindingLayout
+import io.ygdrasil.wgpu.BindGroupLayoutDescriptor.Entry.TextureBindingLayout
 import io.ygdrasil.wgpu.BufferUsage
+import io.ygdrasil.wgpu.ColorWriteMask
+import io.ygdrasil.wgpu.IndexFormat
+import io.ygdrasil.wgpu.LoadOp
+import io.ygdrasil.wgpu.PipelineLayoutDescriptor
+import io.ygdrasil.wgpu.PresentMode
+import io.ygdrasil.wgpu.PrimitiveTopology
+import io.ygdrasil.wgpu.RenderPassDescriptor
+import io.ygdrasil.wgpu.RenderPipelineDescriptor
+import io.ygdrasil.wgpu.RenderPipelineDescriptor.*
+import io.ygdrasil.wgpu.RenderPipelineDescriptor.FragmentState.ColorTargetState
+import io.ygdrasil.wgpu.ShaderModuleDescriptor
+import io.ygdrasil.wgpu.ShaderStage
+import io.ygdrasil.wgpu.StoreOp
+import io.ygdrasil.wgpu.SurfaceTextureStatus
+import io.ygdrasil.wgpu.TextureUsage
 import kotlin.random.Random
 
 /**
@@ -115,8 +137,7 @@ class TiledMeshExample(context: Context) : ContextListener(context) {
                 setOf(BufferUsage.uniform, BufferUsage.copydst)
             )
 
-        val shader = device.createShaderModule(textureShader)
-        val surfaceCapabilities = graphics.surfaceCapabilities
+        val shader = device.createShaderModule(ShaderModuleDescriptor(textureShader))
         val preferredFormat = graphics.preferredFormat
 
         val queue = device.queue
@@ -124,7 +145,7 @@ class TiledMeshExample(context: Context) : ContextListener(context) {
         val vertexGroupLayout =
             device.createBindGroupLayout(
                 BindGroupLayoutDescriptor(
-                    listOf(BindGroupLayoutEntry(0, ShaderStage.vertex, BufferBindingLayout()))
+                    listOf(Entry(0, setOf(ShaderStage.vertex), Entry.BufferBindingLayout()))
                 )
             )
         val vertexBindGroup =
@@ -138,20 +159,19 @@ class TiledMeshExample(context: Context) : ContextListener(context) {
             device.createBindGroupLayout(
                 BindGroupLayoutDescriptor(
                     listOf(
-                        BindGroupLayoutEntry(0, ShaderStage.FRAGMENT, TextureBindingLayout()),
-                        BindGroupLayoutEntry(1, ShaderStage.FRAGMENT, SamplerBindingLayout()),
+                        Entry(0, setOf(ShaderStage.fragment), TextureBindingLayout()),
+                        Entry(1, setOf(ShaderStage.fragment), SamplerBindingLayout())
                     )
                 )
             )
         val fragmentBindGroup =
             device.createBindGroup(
-                desc =
                     BindGroupDescriptor(
                         fragmentGroupLayout,
                         listOf(
-                            BindGroupEntry(0, Textures.white.texture.view),
-                            BindGroupEntry(1, Textures.white.texture.sampler),
-                        ),
+                            BindGroupEntry(0, TextureViewBinding(Textures.white.texture.view)),
+                            BindGroupEntry(1, SamplerBinding(Textures.white.texture.sampler))
+                        )
                     )
             )
         val pipelineLayout =
@@ -162,26 +182,27 @@ class TiledMeshExample(context: Context) : ContextListener(context) {
             RenderPipelineDescriptor(
                 layout = pipelineLayout,
                 vertex =
-                    VertexState(
-                        module = shader,
-                        entryPoint = "vs_main",
-                        mesh.geometry.layout.gpuVertexBufferLayout,
-                    ),
+                VertexState(
+                    module = shader,
+                    entryPoint = "vs_main",
+                    buffers = listOf(mesh.geometry.layout.gpuVertexBufferLayout)
+                ),
                 fragment =
-                    FragmentState(
-                        module = shader,
-                        entryPoint = "fs_main",
-                        target =
-                            ColorTargetState(
-                                format = preferredFormat,
-                                blendState = BlendState.NonPreMultiplied,
-                                writeMask = ColorWriteMask.all
-                            )
-                    ),
+                RenderPipelineDescriptor.FragmentState(
+                    module = shader,
+                    entryPoint = "fs_main",
+                    targets =
+                    listOf(
+                        ColorTargetState(
+                            format = preferredFormat,
+                            blend = BlendStates.NonPreMultiplied,
+                            writeMask = ColorWriteMask.all
+                        )
+                    )
+                ),
                 primitive = PrimitiveState(topology = PrimitiveTopology.triangleList),
                 depthStencil = null,
-                multisample =
-                    MultisampleState(count = 1, mask = 0xFFFFFFF, alphaToCoverageEnabled = false),
+                multisample = MultisampleState(count = 1, mask = 0xFFFFFFFu, alphaToCoverageEnabled = false)
             )
         val renderPipeline = device.createRenderPipeline(renderPipelineDesc)
         graphics.configureSurface(
@@ -225,7 +246,7 @@ class TiledMeshExample(context: Context) : ContextListener(context) {
             }
             camera.update()
             camera.viewProjection.toBuffer(cameraFloatBuffer)
-            device.queue.writeBuffer(cameraUniformBuffer, cameraFloatBuffer)
+            device.queue.writeBuffer(cameraUniformBuffer, 0L, cameraFloatBuffer.toArray())
 
             val swapChainTexture = checkNotNull(surfaceTexture.texture)
             val frame = swapChainTexture.createView()
@@ -233,16 +254,13 @@ class TiledMeshExample(context: Context) : ContextListener(context) {
             val commandEncoder = device.createCommandEncoder()
             val renderPassEncoder =
                 commandEncoder.beginRenderPass(
-                    desc =
                         RenderPassDescriptor(
                             listOf(
                                 RenderPassDescriptor.ColorAttachment(
                                     view = frame,
                                     loadOp = LoadOp.clear,
                                     storeOp = StoreOp.store,
-                                    clearColor =
-                                        if (preferredFormat.srgb) Color.DARK_GRAY.toLinear()
-                                        else Color.DARK_GRAY,
+                                    clearValue = Color.DARK_GRAY.toWebGPUColor()
                                 )
                             )
                         )
@@ -251,7 +269,7 @@ class TiledMeshExample(context: Context) : ContextListener(context) {
             renderPassEncoder.setBindGroup(0, vertexBindGroup)
             renderPassEncoder.setBindGroup(1, fragmentBindGroup)
             renderPassEncoder.setVertexBuffer(0, mesh.vbo)
-            renderPassEncoder.setIndexBuffer(mesh.ibo, IndexFormat.UINT16)
+            renderPassEncoder.setIndexBuffer(mesh.ibo, IndexFormat.uint16)
             EngineStats.extra("Quads", totalQuads)
             renderPassEncoder.drawIndexed(totalQuads * 6, 1)
             renderPassEncoder.end()
@@ -259,22 +277,22 @@ class TiledMeshExample(context: Context) : ContextListener(context) {
 
             val commandBuffer = commandEncoder.finish()
 
-            queue.submit(commandBuffer)
+            queue.submit(listOf(commandBuffer))
             graphics.surface.present()
 
-            commandBuffer.release()
-            commandEncoder.release()
-            frame.release()
-            swapChainTexture.release()
+            commandBuffer.close()
+            commandEncoder.close()
+            frame.close()
+            swapChainTexture.close()
         }
 
         onRelease {
-            renderPipeline.release()
-            pipelineLayout.release()
-            fragmentBindGroup.release()
-            fragmentGroupLayout.release()
+            renderPipeline.close()
+            pipelineLayout.close()
+            fragmentBindGroup.close()
+            fragmentGroupLayout.close()
             mesh.release()
-            shader.release()
+            shader.close()
         }
     }
 }

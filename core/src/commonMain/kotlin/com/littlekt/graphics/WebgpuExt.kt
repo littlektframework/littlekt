@@ -41,6 +41,21 @@ fun Device.createGPUFloatBuffer(label: String, data: FloatArray, usages: Set<Buf
     return buffer
 }
 
+fun Device.createGPUByteBuffer(label: String, data: ByteArray, usages: Set<BufferUsage>): Buffer {
+    val buffer = createBuffer(
+        BufferDescriptor(
+            label = label,
+            size = data.size.toLong() * Byte.SIZE_BYTES,
+            usage = usages,
+            mappedAtCreation = true
+        )
+    )
+    buffer.mapFrom(data)
+    buffer.unmap()
+
+    return buffer
+}
+
 object BlendStates {
     /** Standard alpha blending. */
     val Alpha: BlendState

@@ -17,7 +17,7 @@ import io.ygdrasil.wgpu.Texture as WebGPUTexture
 /**
  * A [Texture] that doesn't contain any underlying raw image data, but instead, is intended to be
  * used in a render pass as an output. By default, the [textureDescriptor] uses
- * `TextureUsage.TEXTURE or TextureUsage.renderAttachment` as usage.
+ * `TextureUsage.textureBinding or TextureUsage.renderAttachment` as usage.
  *
  * @param device the device for underlying GPU buffers creation
  * @param preferredFormat the preferred [TextureFormat]

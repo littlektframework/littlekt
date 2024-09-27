@@ -3,9 +3,15 @@ package com.littlekt.examples
 import com.littlekt.Context
 import com.littlekt.ContextListener
 import com.littlekt.file.vfs.readTexture
+import com.littlekt.graphics.BlendStates
 import com.littlekt.graphics.Color
 import com.littlekt.graphics.g2d.SpriteBatch
-import com.littlekt.graphics.webgpu.*
+import io.ygdrasil.wgpu.LoadOp
+import io.ygdrasil.wgpu.PresentMode
+import io.ygdrasil.wgpu.RenderPassDescriptor
+import io.ygdrasil.wgpu.StoreOp
+import io.ygdrasil.wgpu.SurfaceTextureStatus
+import io.ygdrasil.wgpu.TextureUsage
 
 /**
  * An example showing drawing textures with different blending.
@@ -21,7 +27,6 @@ class TextureBlendsExample(context: Context) : ContextListener(context) {
         val logoTexture = resourcesVfs["logo.png"].readTexture()
         val pikaTexture = resourcesVfs["pika.png"].readTexture()
 
-        val surfaceCapabilities = graphics.surfaceCapabilities
         val preferredFormat = graphics.preferredFormat
 
         graphics.configureSurface(
@@ -77,14 +82,13 @@ class TextureBlendsExample(context: Context) : ContextListener(context) {
             val commandEncoder = device.createCommandEncoder()
             val renderPassEncoder =
                 commandEncoder.beginRenderPass(
-                    desc =
                         RenderPassDescriptor(
                             listOf(
                                 RenderPassDescriptor.ColorAttachment(
                                     view = frame,
                                     loadOp = LoadOp.clear,
                                     storeOp = StoreOp.store,
-                                    clearColor = Color.DARK_GRAY
+                                    clearValue = Color.DARK_GRAY.toWebGPUColor()
                                 )
                             )
                         )
@@ -92,7 +96,7 @@ class TextureBlendsExample(context: Context) : ContextListener(context) {
             batch.begin()
             batch.draw(logoTexture, -graphics.width * 0.5f, 0f, scaleX = 0.1f, scaleY = 0.1f)
             batch.draw(pikaTexture, -graphics.width * 0.5f, -pikaTexture.height - 10f)
-            batch.setBlendState(BlendState.Darken)
+            batch.setBlendState(BlendStates.Darken)
             batch.draw(logoTexture, 0f, 0f, scaleX = 0.1f, scaleY = 0.1f)
             batch.draw(pikaTexture, 0f, -pikaTexture.height - 10f)
             batch.swapToPreviousBlendState()
@@ -115,13 +119,13 @@ class TextureBlendsExample(context: Context) : ContextListener(context) {
 
             val commandBuffer = commandEncoder.finish()
 
-            device.queue.submit(commandBuffer)
+            device.queue.submit(listOf(commandBuffer))
             graphics.surface.present()
 
-            commandBuffer.release()
-            commandEncoder.release()
-            frame.release()
-            swapChainTexture.release()
+            commandBuffer.close()
+            commandEncoder.close()
+            frame.close()
+            swapChainTexture.close()
         }
 
         onRelease {
