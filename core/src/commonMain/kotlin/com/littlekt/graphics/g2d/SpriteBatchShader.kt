@@ -2,8 +2,16 @@ package com.littlekt.graphics.g2d
 
 import com.littlekt.graphics.Texture
 import com.littlekt.graphics.shader.SpriteShader
-import com.littlekt.graphics.webgpu.*
 import com.littlekt.util.align
+import io.ygdrasil.wgpu.BindGroup
+import io.ygdrasil.wgpu.BindGroupDescriptor
+import io.ygdrasil.wgpu.BindGroupDescriptor.*
+import io.ygdrasil.wgpu.BindGroupLayoutDescriptor
+import io.ygdrasil.wgpu.BindGroupLayoutDescriptor.Entry
+import io.ygdrasil.wgpu.BindGroupLayoutDescriptor.Entry.*
+import io.ygdrasil.wgpu.Device
+import io.ygdrasil.wgpu.RenderPassEncoder
+import io.ygdrasil.wgpu.ShaderStage
 
 /**
  * The default [SpriteShader] that is used [SpriteBatch].
@@ -19,7 +27,7 @@ class SpriteBatchShader(device: Device, cameraDynamicSize: Int = 50) :
         device,
         // language=wgsl
         src =
-            """
+        """
         struct CameraUniform {
             view_proj: mat4x4<f32>
         };
@@ -56,31 +64,37 @@ class SpriteBatchShader(device: Device, cameraDynamicSize: Int = 50) :
             return textureSample(my_texture, my_sampler, in.uv) * in.color;
         }
         """
-                .trimIndent(),
+            .trimIndent(),
         layout =
-            listOf(
-                BindGroupLayoutDescriptor(
-                    listOf(
-                        BindGroupLayoutEntry(
-                            0,
-                            ShaderStage.VERTEX,
-                            BufferBindingLayout(
-                                hasDynamicOffset = true,
-                                minBindingSize =
-                                    (Float.SIZE_BYTES * 16)
-                                        .align(device.limits.minUniformBufferOffsetAlignment)
-                                        .toLong()
-                            )
+        listOf(
+            BindGroupLayoutDescriptor(
+                listOf(
+                    Entry(
+                        0,
+                        setOf(ShaderStage.vertex),
+                        BufferBindingLayout(
+                            hasDynamicOffset = true,
+                            minBindingSize =
+                            (Float.SIZE_BYTES * 16)
+                                .align(device.limits.minUniformBufferOffsetAlignment)
+                                .toLong()
                         )
-                    )
-                ),
-                BindGroupLayoutDescriptor(
-                    listOf(
-                        BindGroupLayoutEntry(0, ShaderStage.FRAGMENT, TextureBindingLayout()),
-                        BindGroupLayoutEntry(1, ShaderStage.FRAGMENT, SamplerBindingLayout())
                     )
                 )
             ),
+            BindGroupLayoutDescriptor(
+                listOf(
+                    Entry(
+                        0, setOf(ShaderStage.fragment),
+                        TextureBindingLayout()
+                    ),
+                    Entry(
+                        1, setOf(ShaderStage.fragment),
+                        SamplerBindingLayout()
+                    )
+                )
+            )
+        ),
         cameraDynamicSize = cameraDynamicSize
     ) {
 
@@ -100,7 +114,10 @@ class SpriteBatchShader(device: Device, cameraDynamicSize: Int = 50) :
             device.createBindGroup(
                 BindGroupDescriptor(
                     layouts[1],
-                    listOf(BindGroupEntry(0, texture.view), BindGroupEntry(1, texture.sampler))
+                    listOf(
+                        BindGroupEntry(0, TextureViewBinding(texture.view)),
+                        BindGroupEntry(1, SamplerBinding(texture.sampler))
+                    )
                 )
             )
         )
@@ -111,7 +128,7 @@ class SpriteBatchShader(device: Device, cameraDynamicSize: Int = 50) :
         bindGroups: List<BindGroup>,
         dynamicOffsets: List<Long>
     ) {
-        encoder.setBindGroup(0, bindGroups[0], dynamicOffsets)
+        encoder.setBindGroup(0, bindGroups[0], dynamicOffsets.map { it.toInt() })
         encoder.setBindGroup(1, bindGroups[1])
     }
 }

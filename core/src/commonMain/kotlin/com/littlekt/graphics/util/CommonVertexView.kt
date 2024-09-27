@@ -3,7 +3,7 @@ package com.littlekt.graphics.util
 import com.littlekt.file.FloatBuffer
 import com.littlekt.graphics.MutableColor
 import com.littlekt.graphics.VertexAttrUsage
-import com.littlekt.graphics.VertexAttribute
+import com.littlekt.graphics.VertexAttributeView
 import com.littlekt.log.Logger
 import com.littlekt.math.MutableVec2f
 import com.littlekt.math.MutableVec3f
@@ -24,7 +24,7 @@ import com.littlekt.math.MutableVec4i
 class CommonVertexView(
     vertexSize: Int,
     vertices: FloatBuffer,
-    attributes: List<VertexAttribute>,
+    attributes: List<VertexAttributeView>,
     index: Int
 ) : VertexView(vertexSize, vertices, attributes, index) {
     /** The position attribute vector view */

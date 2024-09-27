@@ -1,13 +1,13 @@
 package com.littlekt.resources
 
 import com.littlekt.EngineStats
-import com.littlekt.graphics.webgpu.WebGPUTexture
+import io.ygdrasil.wgpu.Texture
 
 /**
  * @author Colton Daily
  * @date 4/14/2024
  */
-class TextureResourceInfo(val texture: WebGPUTexture, val size: Long = 0L) : ResourceInfo() {
+class TextureResourceInfo(val texture: Texture, val size: Long = 0L) : ResourceInfo() {
     init {
         EngineStats.textureAllocated(this)
     }

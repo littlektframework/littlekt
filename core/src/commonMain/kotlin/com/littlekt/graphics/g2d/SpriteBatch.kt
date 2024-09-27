@@ -2,6 +2,7 @@ package com.littlekt.graphics.g2d
 
 import com.littlekt.EngineStats
 import com.littlekt.Graphics
+import com.littlekt.graphics.BlendStates
 import com.littlekt.graphics.Color
 import com.littlekt.graphics.IndexedMesh
 import com.littlekt.graphics.Texture
@@ -9,7 +10,6 @@ import com.littlekt.graphics.shader.Shader
 import com.littlekt.graphics.shader.SpriteShader
 import com.littlekt.graphics.textureIndexedMesh
 import com.littlekt.graphics.util.CommonIndexedMeshGeometry
-import com.littlekt.graphics.webgpu.*
 import com.littlekt.log.Logger
 import com.littlekt.math.Mat4
 import com.littlekt.math.geom.Angle
@@ -20,6 +20,10 @@ import com.littlekt.math.isFuzzyZero
 import com.littlekt.util.LazyMat4
 import com.littlekt.util.datastructure.fastForEach
 import com.littlekt.util.datastructure.pool
+import io.ygdrasil.wgpu.*
+import io.ygdrasil.wgpu.RenderPipelineDescriptor.*
+import io.ygdrasil.wgpu.RenderPipelineDescriptor.FragmentState.ColorTargetState
+import io.ygdrasil.wgpu.RenderPipelineDescriptor.FragmentState.ColorTargetState.BlendState
 
 /**
  * Draws batched quads using indices.
@@ -101,15 +105,15 @@ class SpriteBatch(
         mutableMapOf()
     private val drawCalls: MutableList<DrawCall> = mutableListOf()
 
-    private var blendState = BlendState.NonPreMultiplied
+    private var blendState = BlendStates.NonPreMultiplied
     private var prevBlendState = blendState
 
     private val renderPipelineByBlendState: MutableMap<RenderInfo, RenderPipeline> =
         mutableMapOf(
             RenderInfo(shader, blendState) to
-                device.createRenderPipeline(
-                    createRenderPipelineDescriptor(RenderInfo(shader, blendState))
-                )
+                    device.createRenderPipeline(
+                        createRenderPipelineDescriptor(RenderInfo(shader, blendState))
+                    )
         )
 
     private val spriteIndices = mutableMapOf(lastMeshIdx to 0)
@@ -566,7 +570,7 @@ class SpriteBatch(
         if (spriteIdx == 0) return
 
         mesh.update()
-        renderPassEncoder.setIndexBuffer(mesh.ibo, IndexFormat.UINT16)
+        renderPassEncoder.setIndexBuffer(mesh.ibo, IndexFormat.uint16)
         renderPassEncoder.setVertexBuffer(0, mesh.vbo)
         var lastPipelineSet: RenderPipeline? = null
         var lastCombinedMatrixSet: Mat4? = null
@@ -606,8 +610,8 @@ class SpriteBatch(
             }
             if (
                 lastBindGroupsSet != bindGroups ||
-                    lastShader != shader ||
-                    lastCombinedMatrixSet != drawCall.combinedMatrix
+                lastShader != shader ||
+                lastCombinedMatrixSet != drawCall.combinedMatrix
             ) {
                 lastBindGroupsSet = bindGroups
                 lastDynamicMeshOffsets[0] =
@@ -721,27 +725,28 @@ class SpriteBatch(
         val (shader, blendState) = renderInfo
         return RenderPipelineDescriptor(
             layout = shader.pipelineLayout,
-            vertex =
-                VertexState(
-                    module = shader.shaderModule,
-                    entryPoint = shader.vertexEntryPoint,
-                    mesh.geometry.layout.gpuVertexBufferLayout
-                ),
+            vertex = VertexState(
+                module = shader.shaderModule,
+                entryPoint = shader.vertexEntryPoint,
+                buffers = listOf(mesh.geometry.layout.gpuVertexBufferLayout)
+            ),
             fragment =
-                FragmentState(
-                    module = shader.shaderModule,
-                    entryPoint = shader.fragmentEntryPoint,
-                    target =
-                        ColorTargetState(
-                            format = format,
-                            blendState = blendState,
-                            writeMask = ColorWriteMask.ALL
-                        )
-                ),
-            primitive = PrimitiveState(topology = PrimitiveTopology.TRIANGLE_LIST),
+            FragmentState(
+                module = shader.shaderModule,
+                entryPoint = shader.fragmentEntryPoint,
+                targets = listOf
+                    (
+                    ColorTargetState(
+                        format = format,
+                        blend = blendState,
+                        writeMask = ColorWriteMask.all
+                    )
+                )
+            ),
+            primitive = PrimitiveState(topology = PrimitiveTopology.triangleList),
             depthStencil = null,
             multisample =
-                MultisampleState(count = 1, mask = 0xFFFFFFF, alphaToCoverageEnabled = false)
+            MultisampleState(count = 1, mask = 0xFFFFFFFu, alphaToCoverageEnabled = false)
         )
     }
 
@@ -755,7 +760,7 @@ class SpriteBatch(
         lastTexture = null
         mesh.release()
         defaultShader.release()
-        renderPipelineByBlendState.values.forEach { it.release() }
+        renderPipelineByBlendState.values.forEach { it.close() }
         renderPipelineByBlendState.clear()
         drawCalls.clear()
     }

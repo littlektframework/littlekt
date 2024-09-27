@@ -1,7 +1,7 @@
 package com.littlekt.graphics.util
 
 import com.littlekt.file.ShortBuffer
-import com.littlekt.graphics.VertexBufferLayout
+import com.littlekt.graphics.VertexBufferLayoutView
 import kotlin.math.floor
 import kotlin.math.max
 import kotlin.math.round
@@ -9,12 +9,12 @@ import kotlin.math.round
 /**
  * Holds vertex and index data that can be used to render to a mesh.
  *
- * @param layout a [VertexBufferLayout] describing the vertex buffer.
+ * @param layout a [VertexBufferLayoutView] describing the vertex buffer.
  * @param size the initial size of the vertices and indices buffers
  * @author Colton Daily
  * @date 12/19/2022
  */
-open class IndexedMeshGeometry(layout: VertexBufferLayout, size: Int = INITIAL_SIZE) :
+open class IndexedMeshGeometry(layout: VertexBufferLayoutView, size: Int = INITIAL_SIZE) :
     MeshGeometry(layout, size) {
     /** The indices buffer. */
     var indices = ShortBuffer(floor(size * 1.5f).toInt())

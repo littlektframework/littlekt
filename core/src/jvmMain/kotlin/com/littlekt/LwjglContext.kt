@@ -8,14 +8,14 @@ import com.littlekt.file.*
 import com.littlekt.file.Base64.decodeFromBase64
 import com.littlekt.file.vfs.VfsFile
 import com.littlekt.file.vfs.readPixmap
-import com.littlekt.graphics.webgpu.WGPU_NULL
 import com.littlekt.input.LwjglInput
 import com.littlekt.log.Logger
 import com.littlekt.resources.internal.InternalResources
 import com.littlekt.util.datastructure.fastForEach
 import com.littlekt.util.now
-import com.littlekt.wgpu.WGPU.*
-import com.littlekt.wgpu.WGPULogCallback
+import io.ygdrasil.wgpu.internal.jvm.panama.WGPULogCallback
+import io.ygdrasil.wgpu.internal.jvm.panama.wgpu_h
+import io.ygdrasil.wgpu.internal.jvm.panama.wgpu_h.*
 import java.lang.foreign.Arena
 import java.nio.ByteBuffer
 import java.nio.IntBuffer
@@ -28,6 +28,7 @@ import org.lwjgl.glfw.GLFWErrorCallback
 import org.lwjgl.glfw.GLFWImage
 import org.lwjgl.system.MemoryStack
 import org.lwjgl.system.MemoryUtil
+import java.lang.foreign.MemorySegment
 
 /**
  * @author Colton Daily
@@ -118,7 +119,6 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context() {
         if (windowHandle == MemoryUtil.NULL)
             throw RuntimeException("Failed to create the GLFW window")
 
-        graphics.createInstance(configuration)
         graphics.configureSurfaceToWindow(windowHandle)
         graphics.requestAdapterAndDevice(configuration.powerPreference)
 
@@ -211,7 +211,7 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context() {
     private fun initLogging() {
         val callback =
             WGPULogCallback.Function { level, message, _ ->
-                val messageJvm = message.getUtf8String(0)
+                val messageJvm = message.getString(0)
                 val logLevel =
                     when (level) {
                         WGPULogLevel_Error() -> Logger.Level.ERROR
@@ -224,8 +224,9 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context() {
                 wgpuLogger.log(logLevel) { messageJvm }
             }
 
-        wgpuSetLogCallback(WGPULogCallback.allocate(callback, scope), WGPU_NULL)
+        wgpuSetLogCallback(WGPULogCallback.allocate(callback, scope), NULL())
         wgpuSetLogLevel(WGPULogLevel_Trace())
+
     }
 
     private fun updateFramebufferInfo() {

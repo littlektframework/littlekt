@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.plugin.KotlinJsCompilerType
 import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
 
@@ -7,11 +9,11 @@ plugins {
 }
 
 kotlin {
-    tasks.withType<JavaExec> { jvmArgs("--enable-preview", "--enable-native-access=ALL-UNNAMED") }
+    tasks.withType<JavaExec> { jvmArgs("--enable-native-access=ALL-UNNAMED") }
     jvm {
-        compilations.all {
-            kotlinOptions.jvmTarget = "11"
-            compileJavaTaskProvider?.get()?.options?.compilerArgs?.add("--enable-preview")
+        @OptIn(ExperimentalKotlinGradlePluginApi::class)
+        compilerOptions {
+            jvmTarget = JvmTarget.JVM_22
         }
     }
     js(KotlinJsCompilerType.IR) {
