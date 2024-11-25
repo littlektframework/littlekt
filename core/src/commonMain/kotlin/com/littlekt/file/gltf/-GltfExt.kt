@@ -7,8 +7,8 @@ import com.littlekt.file.gltf.GltfPrimitive.Companion.ATTRIBUTE_POSITION
 import com.littlekt.file.gltf.GltfPrimitive.Companion.ATTRIBUTE_TANGENT
 import com.littlekt.file.gltf.GltfPrimitive.Companion.ATTRIBUTE_TEXCOORD_0
 import com.littlekt.file.gltf.GltfPrimitive.Companion.ATTRIBUTE_WEIGHTS_0
-import com.littlekt.file.vfs.VfsFile
 import com.littlekt.graphics.*
+import com.littlekt.graphics.g3d.MeshNode
 import com.littlekt.graphics.g3d.Model
 import com.littlekt.graphics.g3d.Node3D
 import com.littlekt.graphics.g3d.Skin
@@ -21,11 +21,11 @@ import com.littlekt.log.Logger
 import com.littlekt.math.Mat4
 import com.littlekt.math.Vec4f
 
-internal suspend fun GltfData.toModel(device: Device, file: VfsFile): Model {
-    return GltfModelGenerator(this, file).toModel(device, scenes[scene])
+suspend fun GltfData.toModel(device: Device): Model {
+    return GltfModelGenerator(this).toModel(device, scenes[scene])
 }
 
-private class GltfModelGenerator(val gltfFile: GltfData, val root: VfsFile) {
+private class GltfModelGenerator(val gltfFile: GltfData) {
     val modelNodes = mutableMapOf<GltfNode, Node3D>()
     val meshesByMaterial = mutableMapOf<Int, MutableSet<Mesh<*>>>()
     val meshMaterials = mutableMapOf<Mesh<*>, GltfMaterial?>()
@@ -121,7 +121,9 @@ private class GltfModelGenerator(val gltfFile: GltfData, val root: VfsFile) {
 
             val useVertexColor = prim.attributes.containsKey(ATTRIBUTE_COLOR_0)
 
-            model.meshes[name] = mesh
+            val meshNode = MeshNode(mesh)
+            model.meshes[name] = meshNode
+            model += meshNode
         }
     }
 
@@ -171,12 +173,12 @@ private class GltfModelGenerator(val gltfFile: GltfData, val root: VfsFile) {
         //            generateTangents = true
         //        }
         if (jointAcc != null) {
-            attribs += VertexAttribute(VertexFormat.FLOAT32x3, offset, 4, VertexAttrUsage.JOINT)
-            offset += 3L * Float.SIZE_BYTES
+            attribs += VertexAttribute(VertexFormat.SINT32x4, offset, 4, VertexAttrUsage.JOINT)
+            offset += 4L * Int.SIZE_BYTES
         }
         if (weightAcc != null) {
-            attribs += VertexAttribute(VertexFormat.FLOAT32x3, offset, 5, VertexAttrUsage.WEIGHT)
-            offset += 3L * Float.SIZE_BYTES
+            attribs += VertexAttribute(VertexFormat.FLOAT32x4, offset, 5, VertexAttrUsage.WEIGHT)
+            offset += 4L * Float.SIZE_BYTES
         }
 
         //        val morphAccessors = makeMorphTargetAccessors(gltfAccessors)
