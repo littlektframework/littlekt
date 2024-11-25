@@ -12,13 +12,16 @@ import com.littlekt.graphics.g2d.Batch
 import com.littlekt.graphics.g2d.SpriteBatchShader
 import com.littlekt.graphics.g2d.shape.ShapeRenderer
 import com.littlekt.graphics.shader.Shader
-import com.littlekt.graphics.webgpu.*
 import com.littlekt.log.Logger
 import com.littlekt.math.Mat4
 import com.littlekt.math.MutableVec2f
 import com.littlekt.math.MutableVec3f
 import com.littlekt.util.viewport.ScreenViewport
 import com.littlekt.util.viewport.Viewport
+import io.ygdrasil.wgpu.LoadOp
+import io.ygdrasil.wgpu.RenderPassDescriptor
+import io.ygdrasil.wgpu.RenderPassEncoder
+import io.ygdrasil.wgpu.StoreOp
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
@@ -266,11 +269,11 @@ open class CanvasLayer : Node() {
             RenderPassDescriptor(
                 colorAttachments =
                     listOf(
-                        RenderPassColorAttachmentDescriptor(
+                        RenderPassDescriptor.ColorAttachment(
                             view = fbo.view,
-                            loadOp = LoadOp.CLEAR,
-                            storeOp = StoreOp.STORE,
-                            clearColor = clearColor
+                            loadOp = LoadOp.clear,
+                            storeOp = StoreOp.store,
+                            clearValue = clearColor.toWebGPUColor()
                         )
                     ),
                 label = "Canvas Layer Pass"
@@ -423,7 +426,6 @@ open class CanvasLayer : Node() {
             }
             renderPasses.forEach {
                 it.end()
-                it.release()
             }
         }
         renderPasses.clear()
@@ -434,7 +436,6 @@ open class CanvasLayer : Node() {
         onSizeChanged.clear()
         fbo.release()
         _spriteShader?.release()
-        renderPasses.forEach { it.release() }
     }
 
     /**
@@ -465,19 +466,19 @@ open class CanvasLayer : Node() {
      * previous render pass. This assumes multiple render passes in a single command pass. Hence,
      * the default descriptor will automatically default the previous render passes
      * [RenderPassDescriptor] while also setting the color attachments
-     * [RenderPassColorAttachmentDescriptor.loadOp] to [LoadOp.LOAD]. You are responsible for
+     * [RenderPassDescriptor.ColorAttachment.loadOp] to [LoadOp.load]. You are responsible for
      * calling [popAndEndRenderPass] with this new render pass, as this a helper method to create
      * one.
      *
      * @param label a label for the render pass
-     * @param descriptor the default descriptor assumes the color attachments to use [LoadOp.LOAD].
+     * @param descriptor the default descriptor assumes the color attachments to use [LoadOp.load].
      * @return the newly created [RenderPassEncoder].
      */
     fun pushRenderPass(
         label: String? = null,
         descriptor: RenderPassDescriptor = run {
             val initDesc = renderPassDescriptor
-            val colorAttachments = initDesc.colorAttachments.map { it.copy(loadOp = LoadOp.LOAD) }
+            val colorAttachments = initDesc.colorAttachments.map { it.copy(loadOp = LoadOp.load) }
             initDesc.copy(colorAttachments = colorAttachments, label = label)
         }
     ) {
@@ -498,7 +499,6 @@ open class CanvasLayer : Node() {
         if (renderPasses.isNotEmpty()) {
             val removed = renderPasses.removeLast()
             removed.end()
-            removed.release()
             renderPassOrNull = null
             if (renderPasses.isNotEmpty()) {
                 renderPassOrNull = renderPasses.last()

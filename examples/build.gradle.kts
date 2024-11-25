@@ -1,14 +1,18 @@
 import org.apache.tools.ant.taskdefs.condition.Os
+import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
 
 plugins { alias(libs.plugins.kotlin.multiplatform) }
 
-repositories { maven(url = "https://maven.pkg.jetbrains.space/public/p/kotlinx-html/maven") }
-
 kotlin {
-    tasks.withType<JavaExec> { jvmArgs("--enable-preview", "--enable-native-access=ALL-UNNAMED") }
+    tasks.withType<JavaExec> { jvmArgs("--enable-native-access=ALL-UNNAMED") }
     jvm {
-        compilations.all { kotlinOptions.jvmTarget = "21" }
+        @OptIn(ExperimentalKotlinGradlePluginApi::class)
+        compilerOptions {
+            jvmTarget = JvmTarget.JVM_22
+        }
+
         compilations {
             val main by getting
             val mainClassName = "com.littlekt.examples.JvmRunnerKt"
@@ -40,7 +44,11 @@ kotlin {
                 }
                 if (Os.isFamily(Os.FAMILY_MAC)) {
                     register<JavaExec>("jvmRun") {
-                        jvmArgs("-XstartOnFirstThread")
+                        jvmArgs(
+                            "-XstartOnFirstThread",
+                            "--add-opens=java.base/java.lang=ALL-UNNAMED",
+                            "--enable-native-access=ALL-UNNAMED"
+                        )
                         mainClass.set(mainClassName)
                         kotlin {
                             val mainCompile = targets["jvm"].compilations["main"]
@@ -63,8 +71,8 @@ kotlin {
             commonWebpackConfig {
                 devServer =
                     (devServer
-                            ?: org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpackConfig
-                                .DevServer())
+                        ?: org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpackConfig
+                            .DevServer())
                         .copy(
                             open = mapOf("app" to mapOf("name" to "chrome")),
                         )

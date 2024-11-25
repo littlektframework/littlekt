@@ -2,9 +2,14 @@ package com.littlekt.graphics.shader
 
 import com.littlekt.file.FloatBuffer
 import com.littlekt.graphics.Texture
-import com.littlekt.graphics.webgpu.*
+import io.ygdrasil.wgpu.Device
 import com.littlekt.math.Mat4
 import com.littlekt.util.align
+import io.ygdrasil.wgpu.BindGroup
+import io.ygdrasil.wgpu.BindGroupDescriptor.BufferBinding
+import io.ygdrasil.wgpu.BindGroupLayoutDescriptor
+import io.ygdrasil.wgpu.BufferDescriptor
+import io.ygdrasil.wgpu.BufferUsage
 
 /**
  * A base shader class to handle creating a camera uniform [GPUBuffer] and expecting a texture to
@@ -37,15 +42,15 @@ abstract class SpriteShader(
         val buffer =
             device.createBuffer(
                 BufferDescriptor(
-                    "viewProj",
-                    (Float.SIZE_BYTES * 16)
+                    label = "viewProj",
+                    size = (Float.SIZE_BYTES * 16)
                         .align(device.limits.minUniformBufferOffsetAlignment)
                         .toLong() * cameraDynamicSize,
-                    BufferUsage.UNIFORM or BufferUsage.COPY_DST,
-                    true
+                    usage = setOf(BufferUsage.uniform, BufferUsage.copydst),
+                    mappedAtCreation = true
                 )
             )
-        buffer.getMappedRange().putFloat(camFloatBuffer.toArray())
+        buffer.mapFrom(camFloatBuffer.toArray())
         buffer.unmap()
 
         buffer
@@ -54,11 +59,11 @@ abstract class SpriteShader(
     /** The [BufferBinding] for [cameraUniformBufferBinding]. */
     protected val cameraUniformBufferBinding =
         BufferBinding(
-            cameraUniformBuffer,
+            buffer = cameraUniformBuffer,
             size =
-                (Float.SIZE_BYTES * 16)
-                    .align(device.limits.minUniformBufferOffsetAlignment)
-                    .toLong(),
+            (Float.SIZE_BYTES * 16)
+                .align(device.limits.minUniformBufferOffsetAlignment)
+                .toLong(),
         )
 
     /** @see [createBindGroupsWithTexture] to override. */
@@ -113,13 +118,13 @@ abstract class SpriteShader(
     fun updateCameraUniform(viewProjection: Mat4, dynamicOffset: Long = 0) =
         device.queue.writeBuffer(
             cameraUniformBuffer,
-            viewProjection.toBuffer(camFloatBuffer),
-            offset = dynamicOffset * device.limits.minUniformBufferOffsetAlignment,
+            dynamicOffset * device.limits.minUniformBufferOffsetAlignment.toLong(),
+            viewProjection.toBuffer(camFloatBuffer).toArray()
         )
 
     override fun release() {
         super.release()
-        cameraUniformBuffer.release()
+        cameraUniformBuffer.close()
     }
 
     companion object {

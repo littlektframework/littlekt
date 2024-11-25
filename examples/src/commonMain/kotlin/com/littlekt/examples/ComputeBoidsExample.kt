@@ -5,7 +5,32 @@ import com.littlekt.ContextListener
 import com.littlekt.file.FloatBuffer
 import com.littlekt.graphics.*
 import com.littlekt.graphics.shader.Shader
-import com.littlekt.graphics.webgpu.*
+import io.ygdrasil.wgpu.BindGroupDescriptor
+import io.ygdrasil.wgpu.BindGroupDescriptor.BindGroupEntry
+import io.ygdrasil.wgpu.BindGroupDescriptor.BufferBinding
+import io.ygdrasil.wgpu.BindGroupLayoutDescriptor
+import io.ygdrasil.wgpu.BindGroupLayoutDescriptor.Entry
+import io.ygdrasil.wgpu.BindGroupLayoutDescriptor.Entry.BufferBindingLayout
+import io.ygdrasil.wgpu.BufferBindingType
+import io.ygdrasil.wgpu.BufferDescriptor
+import io.ygdrasil.wgpu.BufferUsage
+import io.ygdrasil.wgpu.ColorWriteMask
+import io.ygdrasil.wgpu.CommandEncoderDescriptor
+import io.ygdrasil.wgpu.ComputePipelineDescriptor
+import io.ygdrasil.wgpu.ComputePipelineDescriptor.ProgrammableStage
+import io.ygdrasil.wgpu.LoadOp
+import io.ygdrasil.wgpu.PipelineLayoutDescriptor
+import io.ygdrasil.wgpu.PresentMode
+import io.ygdrasil.wgpu.RenderPassDescriptor
+import io.ygdrasil.wgpu.RenderPipelineDescriptor
+import io.ygdrasil.wgpu.RenderPipelineDescriptor.VertexState
+import io.ygdrasil.wgpu.ShaderModuleDescriptor
+import io.ygdrasil.wgpu.ShaderStage
+import io.ygdrasil.wgpu.StoreOp
+import io.ygdrasil.wgpu.SurfaceTextureStatus
+import io.ygdrasil.wgpu.TextureUsage
+import io.ygdrasil.wgpu.VertexFormat
+import io.ygdrasil.wgpu.VertexStepMode
 import kotlin.math.ceil
 import kotlin.random.Random
 
@@ -22,92 +47,93 @@ class ComputeBoidsExample(context: Context) : ContextListener(context) {
         addCloseOnEsc()
         val device = graphics.device
 
-        val surfaceCapabilities = graphics.surfaceCapabilities
         val preferredFormat = graphics.preferredFormat
 
         graphics.configureSurface(
-            TextureUsage.RENDER_ATTACHMENT,
+            setOf(TextureUsage.renderAttachment),
             preferredFormat,
-            PresentMode.FIFO,
-            surfaceCapabilities.alphaModes[0]
+            PresentMode.fifo,
+            graphics.surface.supportedAlphaMode.first()
         )
 
         val spriteShader = Shader(device, SPRITE_WGSL_SRC, emptyList())
         val renderPipeline =
             device.createRenderPipeline(
-                desc =
                     RenderPipelineDescriptor(
                         layout = spriteShader.pipelineLayout,
                         vertex =
-                            VertexState(
-                                module = spriteShader.shaderModule,
-                                entryPoint = spriteShader.vertexEntryPoint,
-                                buffers =
+                        VertexState(
+                            module = spriteShader.shaderModule,
+                            entryPoint = spriteShader.vertexEntryPoint,
+                            buffers =
+                            listOf(
+                                VertexBufferLayoutView(
+                                    arrayStride = 4 * 4,
+                                    stepMode = VertexStepMode.instance,
+                                    attributes =
                                     listOf(
-                                        VertexBufferLayout(
-                                                arrayStride = 4 * 4,
-                                                stepMode = VertexStepMode.INSTANCE,
-                                                attributes =
-                                                    listOf(
-                                                        VertexAttribute(
-                                                            format = VertexFormat.FLOAT32x2,
-                                                            offset = 0L,
-                                                            shaderLocation = 0,
-                                                            usage = VertexAttrUsage.POSITION
-                                                        ),
-                                                        VertexAttribute(
-                                                            format = VertexFormat.FLOAT32x2,
-                                                            offset =
-                                                                VertexFormat.FLOAT32x2.bytes
-                                                                    .toLong(),
-                                                            shaderLocation = 1,
-                                                            usage = VertexAttrUsage.GENERIC
-                                                        ),
-                                                    )
-                                            )
-                                            .gpuVertexBufferLayout,
-                                        VertexBufferLayout(
-                                                arrayStride = 2 * 4,
-                                                stepMode = VertexStepMode.VERTEX,
-                                                attributes =
-                                                    listOf(
-                                                        VertexAttribute(
-                                                            format = VertexFormat.FLOAT32x2,
-                                                            offset = 0,
-                                                            shaderLocation = 2,
-                                                            usage = VertexAttrUsage.GENERIC
-                                                        ),
-                                                    )
-                                            )
-                                            .gpuVertexBufferLayout
+                                        VertexAttributeView(
+                                            format = VertexFormat.float32x2,
+                                            offset = 0L,
+                                            shaderLocation = 0,
+                                            usage = VertexAttrUsage.POSITION
+                                        ),
+                                        VertexAttributeView(
+                                            format = VertexFormat.float32x2,
+                                            offset =
+                                            VertexFormat.float32x2.sizeInByte
+                                                .toLong(),
+                                            shaderLocation = 1,
+                                            usage = VertexAttrUsage.GENERIC
+                                        ),
                                     )
-                            ),
-                        fragment =
-                            FragmentState(
-                                module = spriteShader.shaderModule,
-                                entryPoint = spriteShader.fragmentEntryPoint,
-                                target =
-                                    ColorTargetState(
-                                        format = preferredFormat,
-                                        blendState = BlendState.NonPreMultiplied,
-                                        writeMask = ColorWriteMask.ALL
+                                )
+                                    .gpuVertexBufferLayout,
+                                VertexBufferLayoutView(
+                                    arrayStride = 2 * 4,
+                                    stepMode = VertexStepMode.vertex,
+                                    attributes =
+                                    listOf(
+                                        VertexAttributeView(
+                                            format = VertexFormat.float32x2,
+                                            offset = 0,
+                                            shaderLocation = 2,
+                                            usage = VertexAttrUsage.GENERIC
+                                        ),
                                     )
+                                )
+                                    .gpuVertexBufferLayout
                             )
+                        ),
+                        fragment =
+                        RenderPipelineDescriptor.FragmentState(
+                            module = spriteShader.shaderModule,
+                            entryPoint = spriteShader.fragmentEntryPoint,
+                            targets = listOf(
+                                RenderPipelineDescriptor.FragmentState.ColorTargetState(
+                                    format = preferredFormat,
+                                    blend = BlendStates.NonPreMultiplied,
+                                    writeMask = ColorWriteMask.all
+                                )
+                            )
+                        )
                     )
             )
         val computeBindGroupLayoutDesc =
             BindGroupLayoutDescriptor(
                 listOf(
-                    BindGroupLayoutEntry(0, ShaderStage.COMPUTE, BufferBindingLayout()),
-                    BindGroupLayoutEntry(
-                        1,
-                        ShaderStage.COMPUTE,
-                        BufferBindingLayout(BufferBindingType.READ_ONLY_STORAGE)
+                    Entry(0, setOf(ShaderStage.compute),
+                        BufferBindingLayout()
                     ),
-                    BindGroupLayoutEntry(
+                    Entry(
+                        1,
+                        setOf(ShaderStage.compute),
+                        BufferBindingLayout(BufferBindingType.readonlystorage)
+                    ),
+                    Entry(
                         2,
-                        ShaderStage.COMPUTE,
-                        BufferBindingLayout(BufferBindingType.STORAGE)
+                        setOf(ShaderStage.compute),
+                        BufferBindingLayout(BufferBindingType.storage)
                     )
                 ),
                 "compute bind group"
@@ -116,16 +142,16 @@ class ComputeBoidsExample(context: Context) : ContextListener(context) {
             device.createBindGroupLayout(
                 BindGroupLayoutDescriptor(
                     listOf(
-                        BindGroupLayoutEntry(0, ShaderStage.COMPUTE, BufferBindingLayout()),
-                        BindGroupLayoutEntry(
+                        Entry(0, setOf(ShaderStage.compute), BufferBindingLayout()),
+                        Entry(
                             1,
-                            ShaderStage.COMPUTE,
-                            BufferBindingLayout(BufferBindingType.READ_ONLY_STORAGE)
+                            setOf(ShaderStage.compute),
+                            BufferBindingLayout(BufferBindingType.readonlystorage)
                         ),
-                        BindGroupLayoutEntry(
+                        Entry(
                             2,
-                            ShaderStage.COMPUTE,
-                            BufferBindingLayout(BufferBindingType.STORAGE)
+                            setOf(ShaderStage.compute),
+                            BufferBindingLayout(BufferBindingType.storage)
                         )
                     ),
                     "compute bind group"
@@ -133,18 +159,17 @@ class ComputeBoidsExample(context: Context) : ContextListener(context) {
             )
         val computePipelineLayout =
             device.createPipelineLayout(
-                PipelineLayoutDescriptor(computeBindGroupLayout, "compute pipeline layout")
+                PipelineLayoutDescriptor(listOf(computeBindGroupLayout), "compute pipeline layout")
             )
         val computePipeline =
             device.createComputePipeline(
-                desc =
                     ComputePipelineDescriptor(
                         layout = computePipelineLayout,
                         compute =
-                            ProgrammableStage(
-                                module = device.createShaderModule(UPDATE_SPRITES_WGSL_SRC),
-                                entryPoint = "main"
-                            )
+                        ProgrammableStage(
+                            module = device.createShaderModule(ShaderModuleDescriptor(UPDATE_SPRITES_WGSL_SRC)),
+                            entryPoint = "main"
+                        )
                     )
             )
 
@@ -153,7 +178,7 @@ class ComputeBoidsExample(context: Context) : ContextListener(context) {
             device.createGPUFloatBuffer(
                 "sprite vertex buffer",
                 vertexBufferData,
-                BufferUsage.VERTEX
+                setOf( BufferUsage.vertex)
             )
         val simParams =
             SimParams(
@@ -170,10 +195,10 @@ class ComputeBoidsExample(context: Context) : ContextListener(context) {
         val simParamBuffer =
             device.createBuffer(
                 BufferDescriptor(
-                    "sim param buffer",
-                    simParamBufferSize,
-                    BufferUsage.UNIFORM or BufferUsage.COPY_DST,
-                    false
+                    label = "sim param buffer",
+                    size = simParamBufferSize,
+                    usage = setOf(BufferUsage.uniform, BufferUsage.copydst),
+                    mappedAtCreation = false
                 )
             )
         val simParamBufferData = FloatBuffer(7)
@@ -188,7 +213,7 @@ class ComputeBoidsExample(context: Context) : ContextListener(context) {
                 simParams.rule3Scale
             )
         )
-        device.queue.writeBuffer(simParamBuffer, simParamBufferData)
+        device.queue.writeBuffer(simParamBuffer, 0L, simParamBufferData.toArray())
 
         val numParticles = 1500
         val initialParticleData = FloatArray(numParticles * 4)
@@ -204,7 +229,7 @@ class ComputeBoidsExample(context: Context) : ContextListener(context) {
                 device.createGPUFloatBuffer(
                     "particle buffer $it",
                     initialParticleData,
-                    BufferUsage.VERTEX or BufferUsage.STORAGE
+                    setOf(BufferUsage.vertex, BufferUsage.storage)
                 )
             }
 
@@ -234,10 +259,10 @@ class ComputeBoidsExample(context: Context) : ContextListener(context) {
 
         onResize { width, height ->
             graphics.configureSurface(
-                TextureUsage.RENDER_ATTACHMENT,
+                setOf(TextureUsage.renderAttachment),
                 preferredFormat,
-                PresentMode.FIFO,
-                surfaceCapabilities.alphaModes[0]
+                PresentMode.fifo,
+                graphics.surface.supportedAlphaMode.first()
             )
         }
 
@@ -245,13 +270,13 @@ class ComputeBoidsExample(context: Context) : ContextListener(context) {
         onUpdate { dt ->
             val surfaceTexture = graphics.surface.getCurrentTexture()
             when (val status = surfaceTexture.status) {
-                TextureStatus.SUCCESS -> {
+                SurfaceTextureStatus.success -> {
                     // all good, could check for `surfaceTexture.suboptimal` here.
                 }
-                TextureStatus.TIMEOUT,
-                TextureStatus.OUTDATED,
-                TextureStatus.LOST -> {
-                    surfaceTexture.texture?.release()
+                SurfaceTextureStatus.timeout,
+                SurfaceTextureStatus.outdated,
+                SurfaceTextureStatus.lost -> {
+                    surfaceTexture.texture.close()
                     logger.info { "getCurrentTexture status=$status" }
                     return@onUpdate
                 }
@@ -265,17 +290,15 @@ class ComputeBoidsExample(context: Context) : ContextListener(context) {
             val swapChainTexture = checkNotNull(surfaceTexture.texture)
             val frame = swapChainTexture.createView()
 
-            val commandEncoder = device.createCommandEncoder("scenegraph command encoder")
+            val commandEncoder = device.createCommandEncoder(CommandEncoderDescriptor("scenegraph command encoder"))
             val renderPassDescriptor =
                 RenderPassDescriptor(
                     listOf(
-                        RenderPassColorAttachmentDescriptor(
+                        RenderPassDescriptor.ColorAttachment(
                             view = frame,
-                            loadOp = LoadOp.CLEAR,
-                            storeOp = StoreOp.STORE,
-                            clearColor =
-                                if (preferredFormat.srgb) Color.DARK_GRAY.toLinear()
-                                else Color.DARK_GRAY
+                            loadOp = LoadOp.clear,
+                            storeOp = StoreOp.store,
+                            clearValue = Color.DARK_GRAY.toWebGPUColor()
                         )
                     ),
                     label = "Init render pass"
@@ -287,7 +310,7 @@ class ComputeBoidsExample(context: Context) : ContextListener(context) {
                 passEncoder.setBindGroup(0, particleBindGroups[fidx % 2])
                 passEncoder.dispatchWorkgroups(ceil(numParticles / 64f).toInt())
                 passEncoder.end()
-                passEncoder.release()
+                passEncoder.close()
             }
 
             run renderPass@{
@@ -297,20 +320,19 @@ class ComputeBoidsExample(context: Context) : ContextListener(context) {
                 passEncoder.setVertexBuffer(1, spriteVertexBuffer)
                 passEncoder.draw(3, numParticles, 0, 0)
                 passEncoder.end()
-                passEncoder.release()
             }
 
             val commandBuffer = commandEncoder.finish()
 
-            device.queue.submit(commandBuffer)
+            device.queue.submit(listOf(commandBuffer))
             graphics.surface.present()
 
             fidx++
 
-            commandBuffer.release()
-            commandEncoder.release()
-            frame.release()
-            swapChainTexture.release()
+            commandBuffer.close()
+            commandEncoder.close()
+            frame.close()
+            swapChainTexture.close()
         }
 
         onRelease {}

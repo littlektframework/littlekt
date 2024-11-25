@@ -1,5 +1,7 @@
 package com.littlekt
 
+import io.ygdrasil.wgpu.PowerPreference
+
 /** Properties related to creating a [LittleKtApp] */
 actual class LittleKtProps {
     var width: Int = 960
@@ -8,7 +10,7 @@ actual class LittleKtProps {
     var title: String = "LitteKt"
     var resourcesDir: String = "./"
     var applicationDir: String = "./"
-    var powerPreference = PowerPreference.HIGH_POWER
+    var powerPreference = PowerPreference.highPerformance
 }
 
 /**
@@ -40,12 +42,6 @@ class JsConfiguration(
     val canvasId: String = "canvas",
     val resourcesPath: String = "./",
     val applicationPath: String = "./",
-    val powerPreference: PowerPreference = PowerPreference.HIGH_POWER
+    val powerPreference: PowerPreference = PowerPreference.highPerformance
 ) : ContextConfiguration()
 
-val PowerPreference.nativeFlag: String
-    get() =
-        when (this) {
-            PowerPreference.LOW_POWER -> "low-power"
-            PowerPreference.HIGH_POWER -> "high-performance"
-        }
