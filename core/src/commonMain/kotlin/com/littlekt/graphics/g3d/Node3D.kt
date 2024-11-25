@@ -8,6 +8,8 @@ import com.littlekt.math.geom.Angle
  * @date 11/24/2024
  */
 open class Node3D {
+    var name: String = this::class.simpleName ?: "Node3D"
+
     /** The parent [Node3D], if any. */
     var parent: Node3D?
         get() = _parent
@@ -17,22 +19,17 @@ open class Node3D {
 
     protected var _parent: Node3D? = null
 
-    /** The current child count for this [Node3D]. Alias for [nodes.size]. */
+    /** The current child count for this [Node3D]. Alias for [children.size]. */
     val childCount: Int
-        get() = nodes.size
+        get() = children.size
 
-    private val _nodes = mutableListOf<Node3D>()
+    private val _children = mutableListOf<Node3D>()
 
     /** The list of [Node3D]s in this scene. */
-    val nodes: List<Node3D> get() = _nodes
-
-    /** The children of this [Node3D]. Alias for [nodes]. */
     val children: List<Node3D>
-        get() = nodes
+        get() = _children
 
-    /**
-     * Global transform. Product of [_transform] and the [_transform] of the parent [Node3D].
-     */
+    /** Global transform. Product of [_transform] and the [_transform] of the parent [Node3D]. */
     val globalTransform: Mat4
         get() {
             updateTransform()
@@ -47,9 +44,7 @@ open class Node3D {
                 (parent as? Node3D)?.let {
                     it.updateTransform()
                     _globalToLocalTransform.set(it.globalInverseTransform)
-                } ?: run {
-                    _globalToLocalTransform.setToIdentity()
-                }
+                } ?: run { _globalToLocalTransform.setToIdentity() }
                 _globalToLocalDirty = false
             }
             return _globalToLocalTransform
@@ -57,9 +52,7 @@ open class Node3D {
 
     private val _globalToLocalTransform = Mat4()
 
-    /**
-     * Local transform based on translation, scale, and rotation.
-     */
+    /** Local transform based on translation, scale, and rotation. */
     val transform: Mat4
         get() {
             updateTransform()
@@ -69,8 +62,8 @@ open class Node3D {
     private val _transform = Mat4()
 
     /**
-     * The position of the [Node3D] in global space. If you want to set the [x,y] properties of this [Vec3f] then use
-     * the [globalX], [globalY], and [globalZ] properties of this [Node3D]
+     * The position of the [Node3D] in global space. If you want to set the [x,y] properties of this
+     * [Vec3f] then use the [globalX], [globalY], and [globalZ] properties of this [Node3D]
      */
     var globalPosition: Vec3f
         get() {
@@ -79,9 +72,7 @@ open class Node3D {
                 (parent as? Node3D)?.let {
                     it.updateTransform()
                     _globalPosition.set(_localPosition).mul(it._globalTransform)
-                } ?: run {
-                    _globalPosition.set(_localPosition)
-                }
+                } ?: run { _globalPosition.set(_localPosition) }
                 _globalPositionDirty = false
             }
             return _globalPosition
@@ -99,6 +90,7 @@ open class Node3D {
             _globalPosition.x = value
             updateGlobalPosition()
         }
+
     var globalY: Float
         get() {
             return globalPosition.y
@@ -108,6 +100,7 @@ open class Node3D {
             _globalPosition.y = value
             updateGlobalPosition()
         }
+
     var globalZ: Float
         get() {
             return globalPosition.z
@@ -119,9 +112,10 @@ open class Node3D {
         }
 
     /**
-     * The position of the [Node3D] relative to the parent transform. If the [Node3D] has no parent or if the parent node is NOT
-     * a [Node3D], then it is the same a [globalPosition]. If you want to set the [x,y] properties of this [Vec3f] then use
-     * the [x], [y], and [z] properties of this [Node3D]
+     * The position of the [Node3D] relative to the parent transform. If the [Node3D] has no parent
+     * or if the parent node is NOT a [Node3D], then it is the same a [globalPosition]. If you want
+     * to set the [x,y] properties of this [Vec3f] then use the [x], [y], and [z] properties of this
+     * [Node3D]
      */
     var position: Vec3f
         get() {
@@ -143,6 +137,7 @@ open class Node3D {
             _localPosition.x = value
             dirty()
         }
+
     var y: Float
         get() {
             return position.y
@@ -154,6 +149,7 @@ open class Node3D {
             _localPosition.y = value
             dirty()
         }
+
     var z: Float
         get() {
             return position.z
@@ -166,9 +162,7 @@ open class Node3D {
             dirty()
         }
 
-    /**
-     * The rotation of the [Node3D] in global space as a Quaternion.
-     */
+    /** The rotation of the [Node3D] in global space as a Quaternion. */
     var globalRotation: Vec4f
         get() {
             updateTransform()
@@ -179,8 +173,9 @@ open class Node3D {
         }
 
     /**
-     * The rotation of the [Node3D] relative to the parent transform's rotation as a Quaternion.
-     * If the [Node3D] has no parent or if the parent node is NOT a [Node3D], then it is the same a [globalRotation]
+     * The rotation of the [Node3D] relative to the parent transform's rotation as a Quaternion. If
+     * the [Node3D] has no parent or if the parent node is NOT a [Node3D], then it is the same a
+     * [globalRotation]
      */
     var rotation: Vec4f
         get() {
@@ -192,8 +187,8 @@ open class Node3D {
         }
 
     /**
-     * The global scale of the [Node3D]. If you want to set the [x,y] properties of this [Vec3f] then use
-     * the [globalScaleX], [globalScaleY], [globalScaleZ] properties of this [Node3D].
+     * The global scale of the [Node3D]. If you want to set the [x,y] properties of this [Vec3f]
+     * then use the [globalScaleX], [globalScaleY], [globalScaleZ] properties of this [Node3D].
      */
     var globalScale: Vec3f
         get() {
@@ -206,6 +201,7 @@ open class Node3D {
 
     /**
      * The global x-scale of the [Node3D].
+     *
      * @see globalScaling
      */
     var globalScaleX: Float
@@ -219,6 +215,7 @@ open class Node3D {
 
     /**
      * The global y-scale of the [Node3D].
+     *
      * @see globalScaling
      */
     var globalScaleY: Float
@@ -232,6 +229,7 @@ open class Node3D {
 
     /**
      * The global z-scale of the [Node3D].
+     *
      * @see globalScaling
      */
     var globalScaleZ: Float
@@ -244,9 +242,10 @@ open class Node3D {
         }
 
     /**
-     * The scale of the [Node3D] relative to the parent transform's scales. If the [Node3D] has no parent or if the parent node is NOT
-     * a [Node3D], then it is the same a [globalScaling]. If you want to set the [x,y] properties of this [Vec3f] then use
-     * the [scaleX], [scaleY], [scaleZ] properties of this [Node3D].
+     * The scale of the [Node3D] relative to the parent transform's scales. If the [Node3D] has no
+     * parent or if the parent node is NOT a [Node3D], then it is the same a [globalScaling]. If you
+     * want to set the [x,y] properties of this [Vec3f] then use the [scaleX], [scaleY], [scaleZ]
+     * properties of this [Node3D].
      */
     var scale: Vec3f
         get() {
@@ -259,6 +258,7 @@ open class Node3D {
 
     /**
      * The x-scale of the [Node3D] relative to the parent transform's scales.
+     *
      * @see scaling
      */
     var scaleX: Float
@@ -273,6 +273,7 @@ open class Node3D {
 
     /**
      * The y-scale of the [Node3D] relative to the parent transform's scales.
+     *
      * @see scaling
      */
     var scaleY: Float
@@ -287,6 +288,7 @@ open class Node3D {
 
     /**
      * The z-scale of the [Node3D] relative to the parent transform's scales.
+     *
      * @see scaling
      */
     var scaleZ: Float
@@ -332,7 +334,7 @@ open class Node3D {
 
     fun dirty() {
         dirty = true
-        nodes.forEach { it.propagateDirty() }
+        children.forEach { it.propagateDirty() }
     }
 
     private fun Node3D.propagateDirty() {
@@ -353,13 +355,23 @@ open class Node3D {
         return this
     }
 
+    /** @see addChild */
+    operator fun plusAssign(child: Node3D) {
+        addChild(child)
+    }
+
+    /** @see removeChild */
+    operator fun minusAssign(child: Node3D) {
+        removeChild(child)
+    }
+
     /**
      * Sets the parent of the child to this [Node3D].
      *
      * @param child the child to add
      */
     fun addChild(child: Node3D): Node3D {
-        _nodes.add(child)
+        _children.add(child)
         child._parent = this
 
         return this
@@ -384,7 +396,7 @@ open class Node3D {
         if (child.parent != this) return this
 
         child._parent = null
-        _nodes.remove(child)
+        _children.remove(child)
 
         return this
     }
@@ -420,6 +432,7 @@ open class Node3D {
 
     /**
      * Sets the position of the [Node3D] in global space.
+     *
      * @param value the new position
      * @return the current [Node3D]
      */
@@ -442,16 +455,18 @@ open class Node3D {
     }
 
     /**
-     * Sets the position of the [Node3D] relative to the parent [Node]. If the [Node3D] has no parent or if the parent node is NOT
-     * a [Node3D], then it is the same a [globalPosition]
+     * Sets the position of the [Node3D] relative to the parent [Node]. If the [Node3D] has no
+     * parent or if the parent node is NOT a [Node3D], then it is the same a [globalPosition]
+     *
      * @param value the new position
      * @return the current [Node3D]
      */
     fun position(value: Vec3f): Node3D = position(value.x, value.y, value.z)
 
     /**
-     * Sets the position of the [Node3D] relative to the parent [Node]. If the [Node3D] has no parent or if the parent node is NOT
-     * a [Node3D], then it is the same a [globalPosition]
+     * Sets the position of the [Node3D] relative to the parent [Node]. If the [Node3D] has no
+     * parent or if the parent node is NOT a [Node3D], then it is the same a [globalPosition]
+     *
      * @param x the new x position
      * @param y the new y position
      * @param z the new z position
@@ -470,6 +485,7 @@ open class Node3D {
 
     /**
      * Sets the rotation of the [Node3D] in global space to the given Quaternion.
+     *
      * @param quaternion the new quaternion
      * @return the current [Node3D]
      */
@@ -478,19 +494,18 @@ open class Node3D {
             return this
         }
         _globalRotation.set(quaternion)
-        (parent as? Node3D)?.let {
-            _localRotation.set(it.globalRotation).add(quaternion)
-        } ?: run {
-            _localRotation.set(quaternion)
-        }
+        (parent as? Node3D)?.let { _localRotation.set(it.globalRotation).add(quaternion) }
+            ?: run { _localRotation.set(quaternion) }
         dirty()
 
         return this
     }
 
     /**
-     * Sets the rotation of the [Node3D] relative to the parent [Node3D] as a Quaternion.
-     * If the [Node3D] has no parent or if the parent node is NOT [Node3D], then it is the same a [globalRotation]
+     * Sets the rotation of the [Node3D] relative to the parent [Node3D] as a Quaternion. If the
+     * [Node3D] has no parent or if the parent node is NOT [Node3D], then it is the same a
+     * [globalRotation]
+     *
      * @param quaternion the rotation quaternion
      * @return the current [Node3D]
      */
@@ -505,6 +520,7 @@ open class Node3D {
 
     /**
      * Sets the global scale of the [Node3D].
+     *
      * @param value the new scale
      * @return the current [Node3D]
      */
@@ -512,6 +528,7 @@ open class Node3D {
 
     /**
      * Sets the global scale of the [Node3D].
+     *
      * @param x the new x scale
      * @param y the new y scale
      * @param z the new z scale
@@ -528,6 +545,7 @@ open class Node3D {
 
     /**
      * Sets the local scale of the [Node3D].
+     *
      * @param value the new scale
      * @return the current [Node3D]
      */
@@ -535,6 +553,7 @@ open class Node3D {
 
     /**
      * Sets the local scale of the [Node3D].
+     *
      * @param value the new scale
      * @return the current [Node3D]
      */
@@ -542,6 +561,7 @@ open class Node3D {
 
     /**
      * Sets the local of the [Node3D].
+     *
      * @param x the new x scale
      * @param y the new y scale
      * @param z the new z scale
@@ -565,17 +585,13 @@ open class Node3D {
         dirty()
     }
 
-    /**
-     * Transforms [vec] in-place from local to global coordinates.
-     */
+    /** Transforms [vec] in-place from local to global coordinates. */
     fun toGlobal(vec: MutableVec3f, w: Float = 1f): MutableVec3f {
         _globalTransform.transform(vec, w)
         return vec
     }
 
-    /**
-     * Transforms [vec] in-place from global to local coordinates.
-     */
+    /** Transforms [vec] in-place from global to local coordinates. */
     fun toLocal(vec: MutableVec3f, w: Float = 1f): MutableVec3f {
         globalInverseTransform.transform(vec, w)
         return vec
@@ -583,12 +599,14 @@ open class Node3D {
 
     /**
      * Translates the position by the offset vector in `local` coordinates.
+     *
      * @param offset the amount to translate by
      */
     fun translate(offset: Vec3f) = translate(offset.x, offset.y, offset.z)
 
     /**
      * Translates the position by the offset vector in `local` coordinates.
+     *
      * @param tx the amount to translate x by
      * @param ty the amount to translate y by
      * @param tz the amount to translate z by
@@ -603,12 +621,14 @@ open class Node3D {
 
     /**
      * Translates the position by the offset vector in `global` coordinates.
+     *
      * @param offset the amount to translate by
      */
     fun globalTranslate(offset: Vec3f) = globalTranslate(offset.x, offset.y, offset.z)
 
     /**
      * Translates the position by the offset vector in `global` coordinates.
+     *
      * @param tx the amount to translate x by
      * @param ty the amount to translate y by
      * @param tz the amount to translate z by
@@ -623,6 +643,7 @@ open class Node3D {
 
     /**
      * Rotates in 'local' coordinates
+     *
      * @param x the angle of the pitch
      * @param y the angle of the yaw
      * @param z the angle of the roll
@@ -644,6 +665,7 @@ open class Node3D {
 
     /**
      * Rotates in 'global' coordinates.
+     *
      * @param x the angle of the pitch
      * @param y the angle of the yaw
      * @param z the angle of the roll
@@ -652,11 +674,8 @@ open class Node3D {
         if (x != Angle.ZERO || y != Angle.ZERO || z != Angle.ZERO) {
             tempQuat.setEuler(x, y, z)
             _globalRotation.quatMul(tempQuat)
-            parent?.let {
-                _localRotation.set(it.globalRotation).add(_globalRotation)
-            } ?: run {
-                _localRotation.set(_globalRotation)
-            }
+            parent?.let { _localRotation.set(it.globalRotation).add(_globalRotation) }
+                ?: run { _localRotation.set(_globalRotation) }
             dirty()
         }
         return this
@@ -664,12 +683,14 @@ open class Node3D {
 
     /**
      * Scales up or down by a factor in 'local' coordinates.
+     *
      * @param s the scale factor
      */
     fun scale(s: Float) = scale(s, s, s)
 
     /**
      * Scales up or down by a factor in 'local' coordinates.
+     *
      * @param sx the x-scale factor
      * @param sy the y-scale factor
      * @param sz the z-scale factor
@@ -686,12 +707,14 @@ open class Node3D {
 
     /**
      * Scales up or down by a factor in 'global' coordinates.
+     *
      * @param s the scale factor
      */
     fun globalScale(s: Float) = globalScale(s, s, s)
 
     /**
      * Scales up or down by a factor in 'global' coordinates.
+     *
      * @param sx the x-scale factor
      * @param sy the y-scale factor
      * @param sz the z-scale factor
@@ -717,5 +740,4 @@ open class Node3D {
     companion object {
         private val tempQuat = MutableVec4f(0f, 0f, 0f, 1f)
     }
-
 }

@@ -1,84 +1,204 @@
 package com.littlekt.file.gltf
 
 import com.littlekt.file.ByteBuffer
+import com.littlekt.file.vfs.VfsFile
+import com.littlekt.file.vfs.readPixmap
+import com.littlekt.graphics.PixmapTexture
+import com.littlekt.graphics.Texture
+import com.littlekt.graphics.webgpu.Device
+import com.littlekt.graphics.webgpu.TextureFormat
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 
 @Serializable
-internal data class GltfData(
+data class GltfData(
     val asset: GltfAsset,
-    val accessors: List<GltfAccessor>,
-    val animations: List<GltfAnimation>? = null,
-    val bufferViews: List<GltfBufferView>,
-    val buffers: List<GltfBuffer>,
-    val images: List<GltfImage>? = null,
-    val materials: List<GltfMaterial>? = null,
-    val meshes: List<GltfMesh>,
-    val nodes: List<GltfNode>,
-    val samplers: List<GltfSampler>? = null,
-    val scene: Int,
-    val scenes: List<GltfScene>,
-    val skins: List<GltfSkin>? = null,
-    val textures: List<GltfTexture>? = null,
-    val extensionsUsed: List<String>? = null,
-    val cameras: List<GltfCamera>? = null,
-    val extensions: GLTFExtensions? = null,
-)
+    val accessors: List<GltfAccessor> = emptyList(),
+    val animations: List<GltfAnimation> = emptyList(),
+    val bufferViews: List<GltfBufferView> = emptyList(),
+    val buffers: List<GltfBuffer> = emptyList(),
+    val images: List<GltfImage> = emptyList(),
+    val materials: List<GltfMaterial> = emptyList(),
+    val meshes: List<GltfMesh> = emptyList(),
+    val nodes: List<GltfNode> = emptyList(),
+    val samplers: List<GltfSampler> = emptyList(),
+    val scene: Int = 0,
+    val scenes: List<GltfScene> = emptyList(),
+    val skins: List<GltfSkin> = emptyList(),
+    val textures: List<GltfTexture> = emptyList(),
+    val extensionRequired: List<String> = emptyList(),
+    val extensionsUsed: List<String> = emptyList(),
+    val cameras: List<GltfCamera> = emptyList(),
+) {
+
+    fun updateReferences() {
+        accessors.forEach {
+            if (it.bufferView >= 0) {
+                it.bufferViewRef = bufferViews[it.bufferView]
+            }
+            it.sparse?.let { sparse ->
+                sparse.indices.bufferViewRef = bufferViews[sparse.indices.bufferView]
+                sparse.values.bufferViewRef = bufferViews[sparse.values.bufferView]
+            }
+        }
+        animations.forEach { anim ->
+            anim.samplers.forEach {
+                it.inputAccessorRef = accessors[it.input]
+                it.outputAccessorRef = accessors[it.output]
+            }
+            anim.channels.forEach {
+                it.samplerRef = anim.samplers[it.sampler]
+                if (it.target.node >= 0) {
+                    it.target.nodeRef = nodes[it.target.node]
+                }
+            }
+        }
+        bufferViews.forEach { it.bufferRef = buffers[it.buffer] }
+        images
+            .filter { it.bufferView >= 0 }
+            .forEach { it.bufferViewRef = bufferViews[it.bufferView] }
+        meshes.forEach { mesh ->
+            mesh.primitives.forEach {
+                if (it.material >= 0) {
+                    it.materialRef = materials[it.material]
+                }
+            }
+        }
+        nodes.forEach {
+            it.childRefs = it.children.map { iNd -> nodes[iNd] }
+            if (it.mesh >= 0) {
+                it.meshRef = meshes[it.mesh]
+            }
+            if (it.skin >= 0) {
+                it.skinRef = skins[it.skin]
+            }
+        }
+        scenes.forEach { it.nodeRefs = it.nodes.map { iNd -> nodes[iNd] } }
+        skins.forEach {
+            if (it.inverseBindMatrices >= 0) {
+                it.inverseBindMatrixAccessorRef = accessors[it.inverseBindMatrices]
+            }
+            it.jointRefs = it.joints.map { iJt -> nodes[iJt] }
+        }
+        textures.forEach { it.imageRef = images[it.source] }
+    }
+}
 
 @Serializable
-internal data class GltfAccessor(
-    val bufferView: Int,
+data class GltfAccessor(
+    val bufferView: Int = -1,
+    val byteOffset: Int = 0,
     val componentType: Int,
     val count: Int,
     val type: GltfAccessorType,
-    val byteOffset: Int = 0,
-    val min: List<Float>? = null,
-    val max: List<Float>? = null,
+    val min: List<Float> = emptyList(),
+    val max: List<Float> = emptyList(),
     val name: String? = null,
+    val normalized: Boolean = false,
+    val sparse: GltfAccessorSparse? = null,
+) {
+    @Transient var bufferViewRef: GltfBufferView? = null
+
+    companion object {
+        const val COMP_TYPE_BYTE = 5120
+        const val COMP_TYPE_UNSIGNED_BYTE = 5121
+        const val COMP_TYPE_SHORT = 5122
+        const val COMP_TYPE_UNSIGNED_SHORT = 5123
+        const val COMP_TYPE_INT = 5124
+        const val COMP_TYPE_UNSIGNED_INT = 5125
+        const val COMP_TYPE_FLOAT = 5126
+
+        val COMP_INT_TYPES =
+            setOf(
+                COMP_TYPE_BYTE,
+                COMP_TYPE_UNSIGNED_BYTE,
+                COMP_TYPE_SHORT,
+                COMP_TYPE_UNSIGNED_SHORT,
+                COMP_TYPE_INT,
+                COMP_TYPE_UNSIGNED_INT,
+            )
+    }
+}
+
+@Serializable
+data class GltfAccessorSparse(
+    val count: Int,
+    val indices: GltfAccessorSparseIndices,
+    val values: GltfAccessorSparseValues,
 )
 
 @Serializable
-internal enum class GltfAccessorType(val value: String) {
-    @SerialName("MAT4") Mat4("MAT4"),
+data class GltfAccessorSparseIndices(
+    val bufferView: Int,
+    val byteOffset: Int = 0,
+    val componentType: Int,
+) {
+    @Transient lateinit var bufferViewRef: GltfBufferView
+}
+
+@Serializable
+data class GltfAccessorSparseValues(val bufferView: Int, val byteOffset: Int = 0) {
+
+    @Transient lateinit var bufferViewRef: GltfBufferView
+}
+
+@Serializable
+enum class GltfAccessorType(val value: String) {
     @SerialName("SCALAR") Scalar("SCALAR"),
     @SerialName("VEC2") Vec2("VEC2"),
     @SerialName("VEC3") Vec3("VEC3"),
     @SerialName("VEC4") Vec4("VEC4"),
+    @SerialName("MAT2") Mat2("MAT2"),
+    @SerialName("MAT3") Mat3("MAT3"),
+    @SerialName("MAT4") Mat4("MAT4"),
 }
 
 @Serializable
-internal data class GltfAnimation(
+data class GltfAnimation(
     val channels: List<GltfChannel>,
     val samplers: List<GltfAnimationSampler>,
     val name: String? = null,
 )
 
-@Serializable internal data class GltfChannel(val sampler: Int, val target: GltfTarget)
-
-@Serializable internal data class GltfTarget(val node: Int, val path: GltfPath)
+@Serializable
+data class GltfChannel(val sampler: Int, val target: GltfTarget) {
+    @Transient lateinit var samplerRef: GltfAnimationSampler
+}
 
 @Serializable
-internal enum class GltfPath(val value: String) {
+data class GltfTarget(val node: Int = -1, val path: GltfPath) {
+    @Transient var nodeRef: GltfNode? = null
+}
+
+@Serializable
+enum class GltfPath(val value: String) {
     @SerialName("rotation") Rotation("rotation"),
     @SerialName("scale") Scale("scale"),
     @SerialName("translation") Translation("translation"),
+    @SerialName("weights") Weights("weights"),
 }
 
 @Serializable
-internal data class GltfAnimationSampler(
+data class GltfAnimationSampler(
     val input: Int,
     val output: Int,
-    val interpolation: GltfInterpolation? = null,
-)
+    val interpolation: GltfInterpolation = GltfInterpolation.Linear,
+) {
+    @Transient lateinit var inputAccessorRef: GltfAccessor
 
-@Serializable
-internal enum class GltfInterpolation(val value: String) {
-    @SerialName("LINEAR") Linear("LINEAR")
+    @Transient lateinit var outputAccessorRef: GltfAccessor
 }
 
 @Serializable
-internal data class GltfAsset(
+enum class GltfInterpolation(val value: String) {
+    @SerialName("LINEAR") Linear("LINEAR"),
+    @SerialName("STEP") Step("STEP"),
+    @SerialName("CUBICSPLINE") CubicSpline("CUBICSPLINE"),
+}
+
+@Serializable
+data class GltfAsset(
     val copyright: String? = null,
     val version: String,
     val generator: String? = null,
@@ -86,7 +206,7 @@ internal data class GltfAsset(
 )
 
 @Serializable
-internal data class GltfExtras(
+data class GltfExtras(
     val author: String,
     val license: String,
     val source: String,
@@ -94,7 +214,7 @@ internal data class GltfExtras(
 )
 
 @Serializable
-internal data class GltfBufferView(
+data class GltfBufferView(
     val buffer: Int,
     val byteOffset: Int = 0,
     val byteLength: Int,
@@ -112,19 +232,19 @@ internal data class GltfBufferView(
 }
 
 @Serializable
-internal data class GltfBuffer(val uri: String, val byteLength: Int, val name: String? = null) {
+data class GltfBuffer(val uri: String? = null, val byteLength: Int, val name: String? = null) {
     @Transient lateinit var data: ByteBuffer
 }
 
 @Serializable
-internal data class GltfCamera(
+data class GltfCamera(
     val perspective: GltfPerspective,
     val type: GltfCameraType,
     val name: String? = null,
 )
 
 @Serializable
-internal data class GltfPerspective(
+data class GltfPerspective(
     val yfov: Float,
     val zfar: Int,
     val znear: Float,
@@ -132,27 +252,30 @@ internal data class GltfPerspective(
 )
 
 @Serializable
-internal enum class GltfCameraType(val value: String) {
+enum class GltfCameraType(val value: String) {
     @SerialName("perspective") Perspective("perspective")
 }
 
-@Serializable internal class GLTFExtensions()
+@Serializable class GLTFExtensions()
 
 @Serializable
-internal data class GltfImage(
-    val uri: String,
+data class GltfImage(
+    val bufferView: Int = -1,
+    val uri: String? = null,
     val mimeType: GltfMIMEType? = null,
     val name: String? = null,
-)
+) {
+    @Transient var bufferViewRef: GltfBufferView? = null
+}
 
 @Serializable
-internal enum class GltfMIMEType(val value: String) {
+enum class GltfMIMEType(val value: String) {
     @SerialName("image/jpeg") ImageJPEG("image/jpeg"),
     @SerialName("image/png") ImagePNG("image/png"),
 }
 
 @Serializable
-internal data class GltfMaterial(
+data class GltfMaterial(
     val name: String? = null,
     val pbrMetallicRoughness: GltfPbrMetallicRoughness,
     val normalTexture: GltfNormalTexture? = null,
@@ -165,11 +288,10 @@ internal data class GltfMaterial(
     val alphaCutoff: Float? = null,
 )
 
-@Serializable
-internal data class GltfEmissiveTextureClass(val index: Int, val texCoord: Int? = null)
+@Serializable data class GltfEmissiveTextureClass(val index: Int, val texCoord: Int? = null)
 
 @Serializable
-internal data class GltfMaterialExtensions(
+data class GltfMaterialExtensions(
     @SerialName("KHR_materials_transmission")
     val khrMaterialsTransmission: GltfKHRMaterialsTransmission? = null,
     @SerialName("KHR_materials_volume") val khrMaterialsVolume: GltfKHRMaterialsVolume? = null,
@@ -186,17 +308,17 @@ internal data class GltfMaterialExtensions(
 )
 
 @Serializable
-internal data class GltfKHRMaterialsClearcoat(
+data class GltfKHRMaterialsClearcoat(
     val clearcoatFactor: Int,
     val clearcoatTexture: GltfEmissiveTextureClass,
 )
 
-@Serializable internal data class GltfKHRMaterialsEmissiveStrength(val emissiveStrength: Int)
+@Serializable data class GltfKHRMaterialsEmissiveStrength(val emissiveStrength: Int)
 
-@Serializable internal data class GltfKHRMaterialsIor(val ior: Float)
+@Serializable data class GltfKHRMaterialsIor(val ior: Float)
 
 @Serializable
-internal data class GltfKHRMaterialsIridescence(
+data class GltfKHRMaterialsIridescence(
     val iridescenceFactor: Int,
     val iridescenceIor: Float,
     val iridescenceThicknessMaximum: Int,
@@ -204,32 +326,29 @@ internal data class GltfKHRMaterialsIridescence(
     val iridescenceThicknessTexture: GltfIridescenceThicknessTextureClass,
 )
 
-@Serializable internal data class GltfIridescenceThicknessTextureClass(val index: Int)
+@Serializable data class GltfIridescenceThicknessTextureClass(val index: Int)
 
 @Serializable
-internal data class GltfKHRMaterialsSheen(
-    val sheenRoughnessFactor: Float,
-    val sheenColorFactor: List<Int>,
-)
+data class GltfKHRMaterialsSheen(val sheenRoughnessFactor: Float, val sheenColorFactor: List<Int>)
 
 @Serializable
-internal data class GltfKHRMaterialsSpecular(
+data class GltfKHRMaterialsSpecular(
     val specularFactor: Float? = null,
     val specularTexture: GltfIridescenceThicknessTextureClass? = null,
     val specularColorFactor: List<Float>? = null,
     val specularColorTexture: GltfIridescenceThicknessTextureClass? = null,
 )
 
-@Serializable internal data class GltfKHRMaterialsTransmission(val transmissionFactor: Float)
+@Serializable data class GltfKHRMaterialsTransmission(val transmissionFactor: Float)
 
 @Serializable
-internal data class GltfKHRMaterialsVolume(
+data class GltfKHRMaterialsVolume(
     val thicknessFactor: Float,
     val attenuationColor: List<Float>? = null,
 )
 
 @Serializable
-internal data class GltfNormalTexture(
+data class GltfNormalTexture(
     val index: Int,
     val extensions: GltfNormalTextureExtensions? = null,
     val scale: Int? = null,
@@ -237,12 +356,12 @@ internal data class GltfNormalTexture(
 )
 
 @Serializable
-internal data class GltfNormalTextureExtensions(
+data class GltfNormalTextureExtensions(
     @SerialName("KHR_texture_transform") val khrTextureTransform: GltfKHRTextureTransform
 )
 
 @Serializable
-internal data class GltfKHRTextureTransform(
+data class GltfKHRTextureTransform(
     val offset: List<Float>? = null,
     val scale: List<Float>? = null,
     val texCoord: Int? = null,
@@ -250,13 +369,13 @@ internal data class GltfKHRTextureTransform(
 )
 
 @Serializable
-internal data class GltfOcclusionTexture(
+data class GltfOcclusionTexture(
     val index: Int,
     val extensions: GltfNormalTextureExtensions? = null,
 )
 
 @Serializable
-internal data class GltfPbrMetallicRoughness(
+data class GltfPbrMetallicRoughness(
     val baseColorTexture: GltfBaseColorTexture? = null,
     val metallicFactor: Float? = null,
     val roughnessFactor: Float? = null,
@@ -265,29 +384,30 @@ internal data class GltfPbrMetallicRoughness(
 )
 
 @Serializable
-internal data class GltfBaseColorTexture(
+data class GltfBaseColorTexture(
     val index: Int,
     val extensions: GltfNormalTextureExtensions? = null,
     val texCoord: Int? = null,
 )
 
 @Serializable
-internal data class GltfMesh(
+data class GltfMesh(
     val primitives: List<GltfPrimitive>,
-    val weights: List<Float>? = null,
+    val weights: List<Float> = emptyList(),
     val name: String? = null,
 )
 
 @Serializable
-internal data class GltfPrimitive(
+data class GltfPrimitive(
     val attributes: Map<String, Int>,
     val material: Int = -1,
     val indices: Int = -1,
     val mode: Int = MODE_TRIANGLES,
+    val targets: List<Map<String, Int>> = emptyList(),
 ) {
     @Transient var materialRef: GltfMaterial? = null
 
-    internal companion object {
+    companion object {
         const val MODE_POINTS = 0
         const val MODE_LINES = 1
         const val MODE_LINE_LOOP = 2
@@ -311,15 +431,16 @@ internal data class GltfPrimitive(
 }
 
 @Serializable
-internal data class GltfNode(
+data class GltfNode(
     val children: List<Int> = emptyList(),
     val name: String? = null,
     val mesh: Int = -1,
     val skin: Int = -1,
-    val rotation: List<Float>? = null,
-    val translation: List<Float>? = null,
-    val matrix: List<Float>? = null,
-    val scale: List<Float>? = null,
+    val rotation: List<Float> = emptyList(),
+    val translation: List<Float> = emptyList(),
+    val matrix: List<Float> = emptyList(),
+    val scale: List<Float> = emptyList(),
+    val weights: List<Float> = emptyList(),
     val camera: Int = -1,
 ) {
     @Transient lateinit var childRefs: List<GltfNode>
@@ -330,26 +451,44 @@ internal data class GltfNode(
 }
 
 @Serializable
-internal data class GltfSampler(
+data class GltfSampler(
     val magFilter: Int? = null,
     val minFilter: Int? = null,
     val wrapS: Int? = null,
     val wrapT: Int? = null,
 )
 
-@Serializable internal data class GltfScene(val nodes: List<Int>, val name: String? = null)
+@Serializable
+data class GltfScene(val nodes: List<Int>, val name: String? = null) {
+    @Transient lateinit var nodeRefs: List<GltfNode>
+}
 
 @Serializable
-internal data class GltfSkin(
-    val inverseBindMatrices: Int,
+data class GltfSkin(
+    val inverseBindMatrices: Int = -1,
     val joints: List<Int>,
-    val skeleton: Int? = null,
+    val skeleton: Int = -1,
     val name: String? = null,
-)
+) {
+    @Transient var inverseBindMatrixAccessorRef: GltfAccessor? = null
+
+    @Transient lateinit var jointRefs: List<GltfNode>
+}
 
 @Serializable
-internal data class GltfTexture(
-    val sampler: Int? = null,
-    val source: Int,
-    val name: String? = null,
-)
+data class GltfTexture(val sampler: Int = -1, val source: Int = 0, val name: String? = null) {
+    @Transient lateinit var imageRef: GltfImage
+
+    @Transient private var texture: Texture? = null
+
+    suspend fun toTexture(root: VfsFile, device: Device, preferredFormat: TextureFormat): Texture {
+        if (texture == null) {
+            val uri = imageRef.uri
+            if (uri != null) {
+                val pixmap = VfsFile(root.vfs, "${root.parent.path}/$uri").readPixmap()
+                texture = PixmapTexture(device, preferredFormat, pixmap)
+            }
+        }
+        return texture ?: error("Unable to convert the GltfTexture to a Texture!")
+    }
+}

@@ -18,7 +18,9 @@ internal object GltfLoader {
         val data = file.readStream()
         val magic = data.readUInt()
         if (magic != GLTF_MAGIC_NUMBER) {
-            error("Unexpected glTF magic number: '$magic'. Expected magic should be '$GLTF_MAGIC_NUMBER'.")
+            error(
+                "Unexpected glTF magic number: '$magic'. Expected magic should be '$GLTF_MAGIC_NUMBER'."
+            )
         }
         val version = data.readUInt()
 
@@ -26,13 +28,18 @@ internal object GltfLoader {
             error("Unsupported glTF version found: '$version'. Only glTF 2.0 is supported.")
         }
 
+        data.readUInt()
+
         var chunkLength = data.readUInt()
         var chunkType = data.readUInt()
         if (chunkType != GLTF_CHUNK_JSON) {
-            error("Unexpected chunk type for chunk 0: '$chunkType'. Expected chunk type to be $GLTF_CHUNK_JSON / 'JSON'")
+            error(
+                "Unexpected chunk type for chunk 0: '$chunkType'. Expected chunk type to be $GLTF_CHUNK_JSON / 'JSON'"
+            )
         }
 
-        val gltfData = file.vfs.json.decodeFromString<GltfData>(data.readChunk(chunkLength).toString())
+        val gltfData =
+            file.vfs.json.decodeFromString<GltfData>(data.readChunk(chunkLength).decodeToString())
 
         var chunk = 1
         while (data.hasRemaining()) {
@@ -41,7 +48,9 @@ internal object GltfLoader {
             if (chunkType == GLTF_CHUNK_BIN) {
                 gltfData.buffers[chunk - 1].data = ByteBuffer(data.readChunk(chunkLength))
             } else {
-                logger.warn { "Unexpected chunk type for chunk $chunk: '$chunkType'. Expected chunk type to be $GLTF_CHUNK_BIN / 'BIN'" }
+                logger.warn {
+                    "Unexpected chunk type for chunk $chunk: '$chunkType'. Expected chunk type to be $GLTF_CHUNK_BIN / 'BIN'"
+                }
                 data.skip(chunkLength)
             }
             chunk++
@@ -49,5 +58,4 @@ internal object GltfLoader {
 
         return gltfData
     }
-
 }

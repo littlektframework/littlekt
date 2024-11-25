@@ -5,6 +5,8 @@ import com.littlekt.audio.AudioStream
 import com.littlekt.file.UnsupportedFileTypeException
 import com.littlekt.file.atlas.AtlasInfo
 import com.littlekt.file.atlas.AtlasPage
+import com.littlekt.file.gltf.GltfData
+import com.littlekt.file.gltf.GltfLoader
 import com.littlekt.file.ldtk.LDtkMapData
 import com.littlekt.file.ldtk.LDtkMapLoader
 import com.littlekt.file.tiled.TiledMapData
@@ -67,9 +69,7 @@ suspend fun VfsFile.readTtfFont(chars: String = CharacterSets.LATIN_ALL): TtfFon
  *   atlas. Each slice in the list is considered a page in the bitmap font. Disposing a [BitmapFont]
  *   that uses preloaded textures will not dispose of the textures.
  */
-suspend fun VfsFile.readBitmapFont(
-    preloadedTextures: List<TextureSlice> = listOf(),
-): BitmapFont {
+suspend fun VfsFile.readBitmapFont(preloadedTextures: List<TextureSlice> = listOf()): BitmapFont {
     val data = readString()
     val textures = mutableMapOf<Int, Texture>()
     var pages = 0
@@ -84,7 +84,7 @@ suspend fun VfsFile.readBitmapFont(
             this,
             textures,
             preloadedTextures,
-            preloadedTextures.isEmpty()
+            preloadedTextures.isEmpty(),
         )
     } else {
         TODO("Unsupported font type.")
@@ -134,7 +134,7 @@ private suspend fun readBitmapFontTxt(
             'W',
             'X',
             'Y',
-            'Z'
+            'Z',
         )
     var capHeightFound = false
     var capHeight = 1
@@ -195,7 +195,7 @@ private suspend fun readBitmapFontTxt(
                                 map["x"]?.toIntOrNull() ?: 0,
                                 map["y"]?.toIntOrNull() ?: 0,
                                 width,
-                                height
+                                height,
                             )
                         }
                         preloadedTextures.isNotEmpty() -> {
@@ -204,7 +204,7 @@ private suspend fun readBitmapFontTxt(
                                 map["x"]?.toIntOrNull() ?: 0,
                                 map["y"]?.toIntOrNull() ?: 0,
                                 width,
-                                height
+                                height,
                             )
                         }
                         else -> {
@@ -223,7 +223,7 @@ private suspend fun readBitmapFontTxt(
                         xadvance = map["xadvance"]?.toIntOrNull() ?: 0,
                         width = width,
                         height = height,
-                        page = page
+                        page = page,
                     )
             }
             line.startsWith("kerning ") -> {
@@ -231,7 +231,7 @@ private suspend fun readBitmapFontTxt(
                     Kerning(
                         first = map["first"]?.toIntOrNull() ?: 0,
                         second = map["second"]?.toIntOrNull() ?: 0,
-                        amount = map["amount"]?.toIntOrNull() ?: 0
+                        amount = map["amount"]?.toIntOrNull() ?: 0,
                     )
             }
         }
@@ -248,7 +248,7 @@ private suspend fun readBitmapFontTxt(
         textures = textures.values.toList(),
         glyphs = glyphs.associateBy { it.id },
         kernings = kernings.associateBy { Kerning.buildKey(it.first, it.second) },
-        pages = pages
+        pages = pages,
     )
 }
 
@@ -266,7 +266,7 @@ private suspend fun readBitmapFontTxt(
  */
 suspend fun VfsFile.readLDtkMapLoader(
     atlas: TextureAtlas? = null,
-    tilesetBorder: Int = 2
+    tilesetBorder: Int = 2,
 ): LDtkMapLoader {
     val mapData = decodeFromString<LDtkMapData>()
     return LDtkMapLoader(this, mapData, atlas, tilesetBorder)
@@ -326,3 +326,19 @@ expect suspend fun VfsFile.readAudioClip(): AudioClip
  * @return a new [AudioStream]
  */
 expect suspend fun VfsFile.readAudioStream(): AudioStream
+
+/**
+ * Reads a `.glb` or `.gltf` into a `GltfData` object. This object on its own doesn't do anything.
+ * It will need to be combined with the `.toModel()` extension or the meshes, skins, and animation
+ * will need created on their own.
+ */
+suspend fun VfsFile.readGltf(): GltfData {
+    val gltfData =
+        if (extension == "glb") {
+            GltfLoader.loadGlb(this)
+        } else {
+            decodeFromString<GltfData>()
+        }
+    gltfData.updateReferences()
+    return gltfData
+}

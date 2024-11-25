@@ -5,7 +5,7 @@ import kotlin.math.min
 
 @JvmInline value class PathInfo(val fullPath: String)
 
-fun PathInfo.relativePathTo(relative: PathInfo): String? {
+fun PathInfo.relativePathTo(relative: PathInfo): String {
     val thisParts = this.parts().toMutableList()
     val relativeParts = relative.parts().toMutableList()
     val maxNumParts = min(thisParts.size, relativeParts.size)
@@ -48,7 +48,7 @@ val PathInfo.fullPathWithoutExtension: String
         val startIndex = fullPathNormalized.lastIndexOfOrNull('/')?.plus(1) ?: 0
         return fullPath.substring(
             0,
-            fullPathNormalized.indexOfOrNull('.', startIndex) ?: fullPathNormalized.length
+            fullPathNormalized.indexOfOrNull('.', startIndex) ?: fullPathNormalized.length,
         )
     }
 
