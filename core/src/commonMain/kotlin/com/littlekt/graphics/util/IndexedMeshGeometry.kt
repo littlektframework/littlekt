@@ -135,7 +135,7 @@ open class IndexedMeshGeometry(layout: VertexBufferLayout, size: Int = INITIAL_S
      * @return true if buffers were grown; false otherwise.
      */
     fun ensureIndices(required: Int = 1): Boolean {
-        if (indices.capacity < required) {
+        if (indices.capacity - numIndices < required) {
             increaseIndices(
                 max(round(indices.capacity * GROW_FACTOR).toInt(), numIndices + required)
             )
@@ -155,7 +155,7 @@ open class IndexedMeshGeometry(layout: VertexBufferLayout, size: Int = INITIAL_S
     enum class IndicesType {
         TRI,
         QUAD,
-        UNKNOWN
+        UNKNOWN,
     }
 
     companion object {
