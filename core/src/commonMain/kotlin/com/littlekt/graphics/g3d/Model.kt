@@ -1,6 +1,6 @@
 package com.littlekt.graphics.g3d
 
-import com.littlekt.graphics.webgpu.*
+import com.littlekt.graphics.Mesh
 
 /**
  * @author Colton Daily
@@ -8,6 +8,6 @@ import com.littlekt.graphics.webgpu.*
  */
 open class Model : VisualInstance() {
     val nodes = mutableMapOf<String, Node3D>()
-    val meshes = mutableMapOf<String, MeshNode>()
+    val meshes = mutableMapOf<String, Mesh<*>>()
     val skins = mutableListOf<Skin>()
 }

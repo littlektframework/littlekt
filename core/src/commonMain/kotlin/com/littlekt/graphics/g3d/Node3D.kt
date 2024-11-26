@@ -41,6 +41,12 @@ open class Node3D {
         }
         set(value) {
             _globalTransform = value
+            _globalTransform.getTranslation(_globalPosition)
+            updateGlobalPosition()
+            _globalTransform.getRotation(_globalRotation)
+            updateGlobalRotation()
+            _globalTransform.getScale(_globalScale)
+            updateGlobalScale()
             dirty()
         }
 
@@ -72,6 +78,9 @@ open class Node3D {
         }
         set(value) {
             _transform = value
+            _transform.getTranslation(_localPosition)
+            _transform.getRotation(_localRotation)
+            _transform.getScale(_localScale)
             dirty()
         }
 
@@ -226,7 +235,7 @@ open class Node3D {
         }
         set(value) {
             _globalScale.x = value
-            updateScale()
+            updateGlobalScale()
         }
 
     /**
@@ -240,7 +249,7 @@ open class Node3D {
         }
         set(value) {
             _globalScale.y = value
-            updateScale()
+            updateGlobalScale()
         }
 
     /**
@@ -254,7 +263,7 @@ open class Node3D {
         }
         set(value) {
             _globalScale.z = value
-            updateScale()
+            updateGlobalScale()
         }
 
     /**
@@ -514,11 +523,14 @@ open class Node3D {
             return this
         }
         _globalRotation.set(quaternion)
-        (parent as? Node3D)?.let { _localRotation.set(it.globalRotation).add(quaternion) }
-            ?: run { _localRotation.set(quaternion) }
-        dirty()
-
+        updateGlobalRotation()
         return this
+    }
+
+    private fun updateGlobalRotation() {
+        _localRotation.set(_globalRotation)
+        parent?.let { _localRotation.add(it.globalRotation) }
+        dirty()
     }
 
     /**
@@ -559,7 +571,7 @@ open class Node3D {
             return this
         }
         _globalScale.set(x, y, z)
-        updateScale()
+        updateGlobalScale()
         return this
     }
 
@@ -596,9 +608,9 @@ open class Node3D {
         return this
     }
 
-    private fun updateScale() {
+    private fun updateGlobalScale() {
         _localScale.set(_globalScale)
-        val node3d = parent as? Node3D
+        val node3d = parent
         if (node3d != null) {
             _localScale /= node3d._globalScale
         }
@@ -744,7 +756,7 @@ open class Node3D {
             _globalScale.x *= sx
             _globalScale.y *= sy
             _globalScale.z *= sz
-            updateScale()
+            updateGlobalScale()
         }
         return this
     }
@@ -755,6 +767,35 @@ open class Node3D {
         _localRotation.set(0f, 0f, 0f, 1f)
         dirty()
         return this
+    }
+
+    /** @return a tree string for all the child nodes under this [Node3D]. */
+    fun treeString(): String {
+        val builder = StringBuilder()
+        internalToTreeString(builder, "", "")
+        return builder.toString()
+    }
+
+    private fun internalToTreeString(
+        builder: StringBuilder,
+        prefix: String,
+        childrenPrefix: String,
+    ) {
+        builder.run {
+            append(prefix)
+            append(name)
+            if (name != this@Node3D::class.simpleName) {
+                append(" (${this@Node3D::class.simpleName})")
+            }
+            appendLine()
+            children.forEachIndexed { index, node ->
+                if (index < children.size - 1) {
+                    node.internalToTreeString(builder, "$childrenPrefix├── ", "$childrenPrefix│   ")
+                } else {
+                    node.internalToTreeString(builder, "$childrenPrefix└── ", "$childrenPrefix    ")
+                }
+            }
+        }
     }
 
     companion object {

@@ -57,8 +57,6 @@ class SimpleGltfExample(context: Context) : ContextListener(context) {
 
         @fragment
         fn fs_main(in: VertexOutput) -> @location(0) float4 {
-            // Compute the normal by taking the cross product of the
-            // dx & dy vectors computed through fragment derivatives
             let dx = dpdx(in.world_pos);
             let dy = dpdy(in.world_pos);
             let n = normalize(cross(dx, dy));
@@ -139,7 +137,7 @@ class SimpleGltfExample(context: Context) : ContextListener(context) {
             depthTexture =
                 device.createTexture(
                     TextureDescriptor(
-                        Extent3D(graphics.width, graphics.height, 1),
+                        Extent3D(width, height, 1),
                         1,
                         1,
                         TextureDimension.D2,

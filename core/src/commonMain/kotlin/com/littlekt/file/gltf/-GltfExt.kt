@@ -19,6 +19,7 @@ import com.littlekt.graphics.webgpu.VertexFormat
 import com.littlekt.graphics.webgpu.VertexStepMode
 import com.littlekt.log.Logger
 import com.littlekt.math.Mat4
+import com.littlekt.math.MutableVec3f
 import com.littlekt.math.Vec4f
 
 suspend fun GltfData.toModel(device: Device): Model {
@@ -70,13 +71,17 @@ private class GltfModelGenerator(val gltfFile: GltfData) {
     }
 
     fun GltfNode.toNode(model: Model): Node3D {
-        val modelNdName = name ?: "node_${model.nodes.size}"
-        val node = Node3D().apply { name = modelNdName }
+        val nodeName = name ?: "node_${model.nodes.size}"
+        val node = Node3D().apply { name = nodeName }
         modelNodes[this] = node
-        model.nodes[modelNdName] = node
+        model.nodes[nodeName] = node
 
         if (matrix.isNotEmpty()) {
-            node.transform = Mat4().set(matrix.map { it })
+            node.globalTransform =
+                Mat4().set(matrix.map { it }).also {
+                    it.getTranslation(MutableVec3f()).let { println(it) }
+                }
+            println(node.globalPosition)
         } else {
             if (translation.isNotEmpty()) {
                 node.translate(translation[0], translation[1], translation[2])
@@ -89,10 +94,7 @@ private class GltfModelGenerator(val gltfFile: GltfData) {
             }
         }
 
-        childRefs.forEach {
-            val child = it.toNode(model)
-            node += child
-        }
+        childRefs.forEach { node += it.toNode(model) }
         return node
     }
 
@@ -104,12 +106,14 @@ private class GltfModelGenerator(val gltfFile: GltfData) {
 
             meshesByMaterial.getOrPut(prim.material) { mutableSetOf() } += mesh
             meshMaterials[mesh] = prim.materialRef
-
+            val meshNode = MeshNode(mesh)
+            node += meshNode
             // apply skin
             if (skin >= 0) {
                 //  mesh.skin = model.skins[skin]
                 val skeletonRoot = gltfFile.skins[skin].skeleton
                 if (skeletonRoot > 0) {
+                    //     node -= meshNode
                     //    modelNodes[gltfFile.nodes[skeletonRoot]]!! += mesh
                 }
             }
@@ -121,9 +125,7 @@ private class GltfModelGenerator(val gltfFile: GltfData) {
 
             val useVertexColor = prim.attributes.containsKey(ATTRIBUTE_COLOR_0)
 
-            val meshNode = MeshNode(mesh)
-            model.meshes[name] = meshNode
-            model += meshNode
+            model.meshes[name] = mesh
         }
     }
 
