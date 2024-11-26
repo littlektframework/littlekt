@@ -246,7 +246,7 @@ data class GltfCamera(
 @Serializable
 data class GltfPerspective(
     val yfov: Float,
-    val zfar: Int,
+    val zfar: Float,
     val znear: Float,
     val aspectRatio: Float? = null,
 )

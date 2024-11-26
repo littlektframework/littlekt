@@ -1,5 +1,6 @@
 package com.littlekt.graphics.g3d
 
+import com.littlekt.file.FloatBuffer
 import com.littlekt.graphics.IndexedMesh
 import com.littlekt.graphics.Mesh
 import com.littlekt.graphics.webgpu.*
@@ -10,18 +11,52 @@ import com.littlekt.graphics.webgpu.*
  */
 open class MeshNode(val mesh: Mesh<*>) : VisualInstance() {
     private var renderPipeline: RenderPipeline? = null
+    private val modelFloatBuffer = FloatBuffer(16)
+    private lateinit var modelUniformBuffer: GPUBuffer
+    private lateinit var modelBindGroup: BindGroup
 
     override fun build(
         device: Device,
         shader: ShaderModule,
-        bindGroupLayout: BindGroupLayout,
+        uniformsBindGroupLayout: BindGroupLayout,
         colorFormat: TextureFormat,
         depthFormat: TextureFormat,
         vertexShaderEntryPoint: String,
         fragmentShaderEntryPoint: String,
     ) {
+        super.build(
+            device,
+            shader,
+            uniformsBindGroupLayout,
+            colorFormat,
+            depthFormat,
+            vertexShaderEntryPoint,
+            fragmentShaderEntryPoint,
+        )
+        globalTransform.toBuffer(modelFloatBuffer)
+        modelUniformBuffer =
+            device.createGPUFloatBuffer(
+                "model uniform buffer",
+                modelFloatBuffer.toArray(),
+                BufferUsage.UNIFORM or BufferUsage.COPY_DST,
+            )
+        val modelBindGroupLayout =
+            device.createBindGroupLayout(
+                BindGroupLayoutDescriptor(
+                    listOf(BindGroupLayoutEntry(0, ShaderStage.VERTEX, BufferBindingLayout()))
+                )
+            )
+        modelBindGroup =
+            device.createBindGroup(
+                BindGroupDescriptor(
+                    modelBindGroupLayout,
+                    listOf(BindGroupEntry(0, BufferBinding(modelUniformBuffer))),
+                )
+            )
         val pipelineLayout =
-            device.createPipelineLayout(PipelineLayoutDescriptor(listOf(bindGroupLayout)))
+            device.createPipelineLayout(
+                PipelineLayoutDescriptor(listOf(uniformsBindGroupLayout, modelBindGroupLayout))
+            )
         val renderPipelineDesc =
             RenderPipelineDescriptor(
                 layout = pipelineLayout,
@@ -55,12 +90,20 @@ open class MeshNode(val mesh: Mesh<*>) : VisualInstance() {
         renderPipeline = device.createRenderPipeline(renderPipelineDesc)
     }
 
+    override fun update(device: Device) {
+        globalTransform.toBuffer(modelFloatBuffer)
+        device.queue.writeBuffer(modelUniformBuffer, modelFloatBuffer)
+        super.update(device)
+    }
+
     override fun render(renderPassEncoder: RenderPassEncoder, bindGroup: BindGroup) {
+        super.render(renderPassEncoder, bindGroup)
         val renderPipeline =
             renderPipeline
                 ?: error("$name hasn't been built yet! Call 'build()' once before rendering.")
         renderPassEncoder.setPipeline(renderPipeline)
         renderPassEncoder.setBindGroup(0, bindGroup)
+        renderPassEncoder.setBindGroup(1, modelBindGroup)
         renderPassEncoder.setVertexBuffer(0, mesh.vbo)
         if (mesh is IndexedMesh<*>) {
             renderPassEncoder.setIndexBuffer(mesh.ibo, IndexFormat.UINT16)

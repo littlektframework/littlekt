@@ -26,6 +26,7 @@ abstract class LocalVfs(context: Context, logger: Logger, baseDir: String) :
     override val json = Json {
         ignoreUnknownKeys = true
         isLenient = true
+        allowSpecialFloatingPointValues = true
     }
 
     protected val job = Job()
@@ -64,7 +65,7 @@ abstract class LocalVfs(context: Context, logger: Logger, baseDir: String) :
 
     private fun loadWorker(
         assetRefs: ReceiveChannel<AssetRef>,
-        loadedAssets: SendChannel<LoadedAsset>
+        loadedAssets: SendChannel<LoadedAsset>,
     ) = launch {
         for (ref in assetRefs) {
             loadedAssets.send(readBytes(ref))
@@ -149,7 +150,7 @@ abstract class LocalVfs(context: Context, logger: Logger, baseDir: String) :
 
     protected inner class AwaitedAsset(
         val ref: AssetRef,
-        val awaiting: CompletableDeferred<LoadedAsset> = CompletableDeferred(job)
+        val awaiting: CompletableDeferred<LoadedAsset> = CompletableDeferred(job),
     )
 
     companion object {

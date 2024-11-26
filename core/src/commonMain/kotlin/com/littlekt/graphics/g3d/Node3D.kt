@@ -1,5 +1,6 @@
 package com.littlekt.graphics.g3d
 
+import com.littlekt.graphics.webgpu.Device
 import com.littlekt.math.*
 import com.littlekt.math.geom.Angle
 
@@ -29,19 +30,26 @@ open class Node3D {
     val children: List<Node3D>
         get() = _children
 
-    /** Global transform. Product of [_transform] and the [_transform] of the parent [Node3D]. */
-    val globalTransform: Mat4
+    /**
+     * Global transform. Don't call `globalTransform.set` directly, the data won't be marked dirty.
+     * Set the globalTransform directly with `globalTransform = myMat4`.
+     */
+    var globalTransform: Mat4
         get() {
             updateTransform()
             return _globalTransform
         }
+        set(value) {
+            _globalTransform = value
+            dirty()
+        }
 
-    private val _globalTransform = Mat4()
+    private var _globalTransform = Mat4()
 
     val globalToLocalTransform: Mat4
         get() {
             if (_globalToLocalDirty) {
-                (parent as? Node3D)?.let {
+                parent?.let {
                     it.updateTransform()
                     _globalToLocalTransform.set(it.globalInverseTransform)
                 } ?: run { _globalToLocalTransform.setToIdentity() }
@@ -52,14 +60,22 @@ open class Node3D {
 
     private val _globalToLocalTransform = Mat4()
 
-    /** Local transform based on translation, scale, and rotation. */
-    val transform: Mat4
+    /**
+     * Local transform based on translation, scale, and rotation. Don't call `transform.set`
+     * directly, the data won't be marked dirty. Set the transform directly with `transform =
+     * myMat4`.
+     */
+    var transform: Mat4
         get() {
             updateTransform()
             return _transform
         }
+        set(value) {
+            _transform = value
+            dirty()
+        }
 
-    private val _transform = Mat4()
+    private var _transform = Mat4()
 
     /**
      * The position of the [Node3D] in global space. If you want to set the [x,y] properties of this
@@ -69,7 +85,7 @@ open class Node3D {
         get() {
             updateTransform()
             if (_globalPositionDirty) {
-                (parent as? Node3D)?.let {
+                parent?.let {
                     it.updateTransform()
                     _globalPosition.set(_localPosition).mul(it._globalTransform)
                 } ?: run { _globalPosition.set(_localPosition) }
@@ -401,10 +417,14 @@ open class Node3D {
         return this
     }
 
+    open fun update(device: Device) {
+        children.forEach { it.update(device) }
+    }
+
     open fun updateTransform() {
         if (!dirty) return
 
-        val parent = parent as? Node3D
+        val parent = parent
 
         parent?.updateTransform()
 

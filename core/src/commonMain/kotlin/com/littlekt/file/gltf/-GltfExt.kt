@@ -32,11 +32,10 @@ private class GltfModelGenerator(val gltfFile: GltfData) {
 
     fun toModel(device: Device, scene: GltfScene): Model {
         val model = Model().apply { name = scene.name ?: "model_scene" }
-        scene.nodeRefs.forEach { nd -> model += nd.toNode(model) }
+        scene.nodeRefs.forEach { node -> model += node.toNode(model) }
 
         createSkins(model)
         modelNodes.forEach { (gltfNode, node) -> gltfNode.createMeshes(device, model, node) }
-
         return model
     }
 
@@ -77,22 +76,23 @@ private class GltfModelGenerator(val gltfFile: GltfData) {
         model.nodes[modelNdName] = node
 
         if (matrix.isNotEmpty()) {
-            node.transform.set(matrix.map { it })
+            node.transform = Mat4().set(matrix.map { it })
         } else {
             if (translation.isNotEmpty()) {
                 node.translate(translation[0], translation[1], translation[2])
             }
             if (rotation.isNotEmpty()) {
-                val rotMat =
-                    Mat4().setToRotation(Vec4f(rotation[0], rotation[1], rotation[2], rotation[3]))
-                node.transform.mul(rotMat)
+                node.rotate(Vec4f(rotation[0], rotation[1], rotation[2], rotation[3]))
             }
             if (scale.isNotEmpty()) {
                 node.scaling(scale[0], scale[1], scale[2])
             }
         }
 
-        childRefs.forEach { node += it.toNode(model) }
+        childRefs.forEach {
+            val child = it.toNode(model)
+            node += child
+        }
         return node
     }
 
@@ -128,41 +128,44 @@ private class GltfModelGenerator(val gltfFile: GltfData) {
     }
 
     private fun GltfPrimitive.toGeometry(gltfAccessors: List<GltfAccessor>): IndexedMeshGeometry {
-        val indexAccessor = if (indices >= 0) gltfAccessors[indices] else null
+        val indexGltfAccessor = if (indices >= 0) gltfAccessors[indices] else null
 
-        val positionAcc = attributes[ATTRIBUTE_POSITION]?.let { gltfAccessors[it] }
-        val normalAcc = attributes[ATTRIBUTE_NORMAL]?.let { gltfAccessors[it] }
-        val tangentAcc = attributes[ATTRIBUTE_TANGENT]?.let { gltfAccessors[it] }
-        val texCoordAcc = attributes[ATTRIBUTE_TEXCOORD_0]?.let { gltfAccessors[it] }
-        val colorAcc = attributes[ATTRIBUTE_COLOR_0]?.let { gltfAccessors[it] }
-        val jointAcc = attributes[ATTRIBUTE_JOINTS_0]?.let { gltfAccessors[it] }
-        val weightAcc = attributes[ATTRIBUTE_WEIGHTS_0]?.let { gltfAccessors[it] }
+        val positionGltfAccessor = attributes[ATTRIBUTE_POSITION]?.let { gltfAccessors[it] }
+        val normalGltfAccessor = attributes[ATTRIBUTE_NORMAL]?.let { gltfAccessors[it] }
+        val tangentGltfAccessor = attributes[ATTRIBUTE_TANGENT]?.let { gltfAccessors[it] }
+        val texCoordGltfAccessor = attributes[ATTRIBUTE_TEXCOORD_0]?.let { gltfAccessors[it] }
+        val colorGltfAccessor = attributes[ATTRIBUTE_COLOR_0]?.let { gltfAccessors[it] }
+        val jointGltfAccessor = attributes[ATTRIBUTE_JOINTS_0]?.let { gltfAccessors[it] }
+        val weightGltfAccessor = attributes[ATTRIBUTE_WEIGHTS_0]?.let { gltfAccessors[it] }
 
-        if (positionAcc == null) {
+        if (positionGltfAccessor == null) {
             logger.warn { "GltfPrimitive without position attribute." }
             return IndexedMeshGeometry(VertexBufferLayout(0, VertexStepMode.VERTEX, emptyList()), 0)
         }
 
         var generateTangents = false
 
-        val attribs = mutableListOf<VertexAttribute>()
+        val vertexAttributes = mutableListOf<VertexAttribute>()
 
         var offset: Long = 0
-        attribs += VertexAttribute(VertexFormat.FLOAT32x3, offset, 0, VertexAttrUsage.POSITION)
+        vertexAttributes +=
+            VertexAttribute(VertexFormat.FLOAT32x3, offset, 0, VertexAttrUsage.POSITION)
         offset += 3L * Float.SIZE_BYTES
-        attribs += VertexAttribute(VertexFormat.FLOAT32x3, offset, 1, VertexAttrUsage.NORMAL)
+        vertexAttributes +=
+            VertexAttribute(VertexFormat.FLOAT32x3, offset, 1, VertexAttrUsage.NORMAL)
         offset += 3L * Float.SIZE_BYTES
 
-        if (colorAcc != null) {
-            attribs += VertexAttribute(VertexFormat.FLOAT32x4, offset, 2, VertexAttrUsage.COLOR)
+        if (colorGltfAccessor != null) {
+            vertexAttributes +=
+                VertexAttribute(VertexFormat.FLOAT32x4, offset, 2, VertexAttrUsage.COLOR)
             offset += 4L * Float.SIZE_BYTES
         }
         //        if (cfg.setVertexAttribsFromMaterial) {
         //            attribs += Attribute.EMISSIVE_COLOR
         //            attribs += Attribute.METAL_ROUGH
         //        }
-        if (texCoordAcc != null) {
-            attribs +=
+        if (texCoordGltfAccessor != null) {
+            vertexAttributes +=
                 VertexAttribute(VertexFormat.FLOAT32x2, offset, 3, VertexAttrUsage.TEX_COORDS)
             offset += 2L * Float.SIZE_BYTES
         }
@@ -172,50 +175,58 @@ private class GltfModelGenerator(val gltfFile: GltfData) {
         //            attribs += Attribute.TANGENTS
         //            generateTangents = true
         //        }
-        if (jointAcc != null) {
-            attribs += VertexAttribute(VertexFormat.SINT32x4, offset, 4, VertexAttrUsage.JOINT)
+        if (jointGltfAccessor != null) {
+            vertexAttributes +=
+                VertexAttribute(VertexFormat.SINT32x4, offset, 4, VertexAttrUsage.JOINT)
             offset += 4L * Int.SIZE_BYTES
         }
-        if (weightAcc != null) {
-            attribs += VertexAttribute(VertexFormat.FLOAT32x4, offset, 5, VertexAttrUsage.WEIGHT)
+        if (weightGltfAccessor != null) {
+            vertexAttributes +=
+                VertexAttribute(VertexFormat.FLOAT32x4, offset, 5, VertexAttrUsage.WEIGHT)
             offset += 4L * Float.SIZE_BYTES
         }
 
         //        val morphAccessors = makeMorphTargetAccessors(gltfAccessors)
         //        attribs += morphAccessors.keys
 
-        val poss = GltfVec3fAccessor(positionAcc)
-        val nrms = if (normalAcc != null) GltfVec3fAccessor(normalAcc) else null
-        val tans = if (tangentAcc != null) GltfVec4fAccessor(tangentAcc) else null
-        val texs = if (texCoordAcc != null) GltfVec2fAccessor(texCoordAcc) else null
-        val cols = if (colorAcc != null) GltfVec4fAccessor(colorAcc) else null
-        val jnts = if (jointAcc != null) GltfVec4iAccessor(jointAcc) else null
-        val wgts = if (weightAcc != null) GltfVec4fAccessor(weightAcc) else null
+        val positionAccessor = GltfVec3fAccessor(positionGltfAccessor)
+        val normalAccessor =
+            if (normalGltfAccessor != null) GltfVec3fAccessor(normalGltfAccessor) else null
+        val tangentAccessor =
+            if (tangentGltfAccessor != null) GltfVec4fAccessor(tangentGltfAccessor) else null
+        val texCoordAccessor =
+            if (texCoordGltfAccessor != null) GltfVec2fAccessor(texCoordGltfAccessor) else null
+        val colorAccessor =
+            if (colorGltfAccessor != null) GltfVec4fAccessor(colorGltfAccessor) else null
+        val jointAccessor =
+            if (jointGltfAccessor != null) GltfVec4iAccessor(jointGltfAccessor) else null
+        val weightAccessor =
+            if (weightGltfAccessor != null) GltfVec4fAccessor(weightGltfAccessor) else null
 
         val geometry =
             CommonIndexedMeshGeometry(
                 VertexBufferLayout(
-                    attribs.calculateStride().toLong(),
+                    vertexAttributes.calculateStride().toLong(),
                     VertexStepMode.VERTEX,
-                    attribs,
+                    vertexAttributes,
                 )
             )
 
-        repeat(positionAcc.count) { i ->
+        repeat(positionGltfAccessor.count) { i ->
             geometry.addVertex {
-                poss.next(position)
-                nrms?.next(normal)
-                texs?.next(texCoords)
-                cols?.next()?.let { col -> color.set(col) }
-                jnts?.next(joints)
-                wgts?.next(weights)
+                positionAccessor.next(position)
+                normalAccessor?.next(normal)
+                texCoordAccessor?.next(texCoords)
+                colorAccessor?.next()?.let { col -> color.set(col) }
+                jointAccessor?.next(joints)
+                weightAccessor?.next(weights)
             }
         }
-        if (indexAccessor != null) {
-            val inds = GltfIntAccessor(indexAccessor)
-            repeat(indexAccessor.count) { geometry.addIndex(inds.next()) }
+        if (indexGltfAccessor != null) {
+            val indexAccessor = GltfIntAccessor(indexGltfAccessor)
+            repeat(indexGltfAccessor.count) { geometry.addIndex(indexAccessor.next()) }
         } else {
-            repeat(positionAcc.count) { i -> geometry.addIndex(i) }
+            repeat(positionGltfAccessor.count) { i -> geometry.addIndex(i) }
         }
 
         return geometry

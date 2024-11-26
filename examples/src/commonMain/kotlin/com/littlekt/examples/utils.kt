@@ -5,6 +5,7 @@ import com.littlekt.graphics.Camera
 import com.littlekt.graphics.webgpu.SurfaceConfiguration
 import com.littlekt.graphics.webgpu.SurfaceTexture
 import com.littlekt.graphics.webgpu.TextureStatus
+import com.littlekt.input.InputProcessor
 import com.littlekt.input.Key
 import com.littlekt.util.milliseconds
 
@@ -67,5 +68,18 @@ fun Context.addWASDMovement(camera: Camera, speed: Float) {
         if (input.isKeyPressed(Key.A)) {
             camera.position.x -= ultimateSpeed * dt.milliseconds
         }
+    }
+}
+
+fun Context.addZoom(camera: Camera, speed: Float) {
+    onUpdate { dt ->
+        input.addInputProcessor(
+            object : InputProcessor {
+                override fun scrolled(amountX: Float, amountY: Float): Boolean {
+                    camera.translate(0f, 0f, -amountY * speed * dt.milliseconds)
+                    return true
+                }
+            }
+        )
     }
 }

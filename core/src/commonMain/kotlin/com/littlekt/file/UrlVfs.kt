@@ -23,6 +23,7 @@ abstract class UrlVfs(context: Context, logger: Logger) : Vfs(context, logger, "
     override val json = Json {
         ignoreUnknownKeys = true
         isLenient = true
+        allowSpecialFloatingPointValues = true
     }
 
     protected val job = Job()
@@ -61,7 +62,7 @@ abstract class UrlVfs(context: Context, logger: Logger) : Vfs(context, logger, "
 
     private fun loadWorker(
         assetRefs: ReceiveChannel<AssetRef>,
-        loadedAssets: SendChannel<LoadedAsset>
+        loadedAssets: SendChannel<LoadedAsset>,
     ) = launch {
         for (ref in assetRefs) {
             loadedAssets.send(readBytes(ref))
@@ -130,7 +131,7 @@ abstract class UrlVfs(context: Context, logger: Logger) : Vfs(context, logger, "
 
     protected inner class AwaitedAsset(
         val ref: AssetRef,
-        val awaiting: CompletableDeferred<LoadedAsset> = CompletableDeferred(job)
+        val awaiting: CompletableDeferred<LoadedAsset> = CompletableDeferred(job),
     )
 
     companion object {

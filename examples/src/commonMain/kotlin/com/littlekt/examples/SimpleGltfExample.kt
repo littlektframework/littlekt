@@ -8,6 +8,8 @@ import com.littlekt.file.vfs.readGltf
 import com.littlekt.graphics.Color
 import com.littlekt.graphics.PerspectiveCamera
 import com.littlekt.graphics.webgpu.*
+import com.littlekt.math.geom.degrees
+import com.littlekt.util.milliseconds
 
 /**
  * An example using a simple Orthographic camera to move around a texture.
@@ -35,14 +37,20 @@ class SimpleGltfExample(context: Context) : ContextListener(context) {
         struct ViewParams {
             view_proj: mat4x4<f32>,
         };
+        
+        struct NodeParams {
+            transform: mat4x4<f32>,
+        };
 
         @group(0) @binding(0)
         var<uniform> view_params: ViewParams;
+        @group(1) @binding(0)
+        var<uniform> node_params: NodeParams;
 
         @vertex
         fn vs_main(vert: VertexInput) -> VertexOutput {
             var out: VertexOutput;
-            out.position = view_params.view_proj * float4(vert.position, 1.0);
+            out.position = view_params.view_proj * node_params.transform * float4(vert.position, 1.0);
             out.world_pos = vert.position.xyz;
             return out;
         };
@@ -108,8 +116,8 @@ class SimpleGltfExample(context: Context) : ContextListener(context) {
                     TextureUsage.RENDER_ATTACHMENT,
                 )
             )
-        val fox =
-            resourcesVfs["Fox.glb"].readGltf().toModel(device).apply {
+        val model =
+            resourcesVfs["2CylinderEngine.glb"].readGltf().toModel(device).apply {
                 build(device, shader, vertexGroupLayout, preferredFormat, depthFormat)
             }
 
@@ -130,6 +138,11 @@ class SimpleGltfExample(context: Context) : ContextListener(context) {
         }
 
         addWASDMovement(camera, 0.5f)
+        addZoom(camera, 0.01f)
+        onUpdate { dt ->
+            model.rotate(y = 0.1.degrees * dt.milliseconds)
+            model.update(device)
+        }
         onUpdate {
             val surfaceTexture = graphics.surface.getCurrentTexture()
             when (val status = surfaceTexture.status) {
@@ -186,7 +199,7 @@ class SimpleGltfExample(context: Context) : ContextListener(context) {
                         )
                 )
 
-            fox.render(renderPassEncoder, vertexBindGroup)
+            model.render(renderPassEncoder, vertexBindGroup)
             renderPassEncoder.end()
 
             val commandBuffer = commandEncoder.finish()
