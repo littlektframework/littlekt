@@ -81,7 +81,6 @@ private class GltfModelGenerator(val gltfFile: GltfData) {
                 Mat4().set(matrix.map { it }).also {
                     it.getTranslation(MutableVec3f()).let { println(it) }
                 }
-            println(node.globalPosition)
         } else {
             if (translation.isNotEmpty()) {
                 node.translate(translation[0], translation[1], translation[2])
