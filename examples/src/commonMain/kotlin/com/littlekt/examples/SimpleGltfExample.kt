@@ -105,7 +105,7 @@ class SimpleGltfExample(context: Context) : ContextListener(context) {
             )
 
         val depthFormat = TextureFormat.DEPTH24_PLUS_STENCIL8
-        val depthTexture =
+        var depthTexture =
             device.createTexture(
                 TextureDescriptor(
                     Extent3D(graphics.width, graphics.height, 1),
@@ -135,6 +135,18 @@ class SimpleGltfExample(context: Context) : ContextListener(context) {
                 PresentMode.FIFO,
                 surfaceCapabilities.alphaModes[0],
             )
+            depthTexture.release()
+            depthTexture =
+                device.createTexture(
+                    TextureDescriptor(
+                        Extent3D(graphics.width, graphics.height, 1),
+                        1,
+                        1,
+                        TextureDimension.D2,
+                        depthFormat,
+                        TextureUsage.RENDER_ATTACHMENT,
+                    )
+                )
         }
 
         addWASDMovement(camera, 0.5f)
