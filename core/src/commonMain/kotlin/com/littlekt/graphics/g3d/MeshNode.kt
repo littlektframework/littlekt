@@ -3,6 +3,7 @@ package com.littlekt.graphics.g3d
 import com.littlekt.file.FloatBuffer
 import com.littlekt.graphics.IndexedMesh
 import com.littlekt.graphics.Mesh
+import com.littlekt.graphics.Texture
 import com.littlekt.graphics.webgpu.*
 
 /**
@@ -10,6 +11,7 @@ import com.littlekt.graphics.webgpu.*
  * @date 11/25/2024
  */
 open class MeshNode(val mesh: Mesh<*>) : VisualInstance() {
+    val textures = mutableMapOf<String, Texture>()
     private var renderPipeline: RenderPipeline? = null
     private val modelFloatBuffer = FloatBuffer(16)
     private lateinit var modelUniformBuffer: GPUBuffer

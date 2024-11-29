@@ -1,5 +1,6 @@
 package com.littlekt.file.gltf
 
+import com.littlekt.file.vfs.VfsFile
 import com.littlekt.graphics.*
 import com.littlekt.graphics.g3d.MeshNode
 import com.littlekt.graphics.g3d.Model
@@ -8,27 +9,40 @@ import com.littlekt.graphics.g3d.Skin
 import com.littlekt.graphics.util.CommonIndexedMeshGeometry
 import com.littlekt.graphics.util.IndexedMeshGeometry
 import com.littlekt.graphics.webgpu.Device
+import com.littlekt.graphics.webgpu.TextureFormat
 import com.littlekt.graphics.webgpu.VertexFormat
 import com.littlekt.graphics.webgpu.VertexStepMode
 import com.littlekt.log.Logger
 import com.littlekt.math.Mat4
 import com.littlekt.math.Vec4f
 
-suspend fun GltfData.toModel(device: Device): Model {
-    return GltfModelGenerator(this).toModel(device, scenes[scene])
+/**
+ * Converts a [GltfData] to a [Model] ready for rendering. This will load underlying buffers and
+ * textures.
+ */
+suspend fun GltfData.toModel(
+    device: Device = root.vfs.context.graphics.device,
+    preferredFormat: TextureFormat =
+        if (root.vfs.context.graphics.preferredFormat.srgb) TextureFormat.RGBA8_UNORM_SRGB
+        else TextureFormat.RGBA8_UNORM,
+): Model {
+    return GltfModelGenerator(this).toModel(device, preferredFormat, scenes[scene])
 }
 
 private class GltfModelGenerator(val gltfFile: GltfData) {
+    val root: VfsFile = gltfFile.root
     val modelNodes = mutableMapOf<GltfNode, Node3D>()
     val meshesByMaterial = mutableMapOf<Int, MutableSet<Mesh<*>>>()
     val meshMaterials = mutableMapOf<Mesh<*>, GltfMaterial?>()
 
-    fun toModel(device: Device, scene: GltfScene): Model {
+    suspend fun toModel(device: Device, preferredFormat: TextureFormat, scene: GltfScene): Model {
         val model = Model().apply { name = scene.name ?: "model_scene" }
         scene.nodeRefs.forEach { node -> model += node.toNode(model) }
 
         createSkins(model)
-        modelNodes.forEach { (gltfNode, node) -> gltfNode.createMeshes(device, model, node) }
+        modelNodes.forEach { (gltfNode, node) ->
+            gltfNode.createMeshes(device, preferredFormat, model, node)
+        }
         return model
     }
 
@@ -86,7 +100,12 @@ private class GltfModelGenerator(val gltfFile: GltfData) {
         return node
     }
 
-    fun GltfNode.createMeshes(device: Device, model: Model, node: Node3D) {
+    suspend fun GltfNode.createMeshes(
+        device: Device,
+        preferredFormat: TextureFormat,
+        model: Model,
+        node: Node3D,
+    ) {
         meshRef?.primitives?.forEachIndexed { index, prim ->
             val name = "${meshRef?.name ?: "${node.name}.mesh"}_$index"
             val geometry = prim.toGeometry(gltfFile.accessors)
@@ -111,7 +130,7 @@ private class GltfModelGenerator(val gltfFile: GltfData) {
                 //     mesh.morphWeights = FloatArray(prim.targets.sumOf { it.size })
             }
 
-            val useVertexColor = prim.attributes.containsKey(GltfAttribute.Color0)
+            meshNode.loadTextures(device, prim, preferredFormat)
 
             model.meshes[name] = mesh
         }
@@ -220,6 +239,18 @@ private class GltfModelGenerator(val gltfFile: GltfData) {
         }
 
         return geometry
+    }
+
+    private suspend fun MeshNode.loadTextures(
+        device: Device,
+        prim: GltfPrimitive,
+        preferredFormat: TextureFormat,
+    ) {
+        prim.materialRef
+            ?.pbrMetallicRoughness
+            ?.baseColorTexture
+            ?.getTexture(gltfFile, root, device, preferredFormat)
+            ?.also { textures["albedo"] = it }
     }
 
     companion object {

@@ -31,6 +31,8 @@ data class GltfData(
     val extensionsUsed: List<String> = emptyList(),
     val cameras: List<GltfCamera> = emptyList(),
 ) {
+    @Transient lateinit var root: VfsFile
+
     init {
         updateReferences()
     }
@@ -255,8 +257,6 @@ enum class GltfCameraType(val value: String) {
     @SerialName("perspective") Perspective("perspective")
 }
 
-@Serializable class GLTFExtensions()
-
 @Serializable
 data class GltfImage(
     val bufferView: Int = -1,
@@ -278,7 +278,8 @@ data class GltfMaterial(
     val alphaCutoff: Float = 0.5f,
     val alphaMode: GltfAlphaMode = GltfAlphaMode.Opaque,
     val name: String? = null,
-    val pbrMetallicRoughness: GltfPbrMetallicRoughness,
+    val pbrMetallicRoughness: GltfPbrMetallicRoughness =
+        GltfPbrMetallicRoughness(baseColorFactor = listOf(0.5f, 0.5f, 0.5f, 1f)),
     val normalTexture: GltfTextureInfo? = null,
     val occlusionTexture: GltfTextureInfo? = null,
     val doubleSided: Boolean = false,
@@ -300,8 +301,15 @@ data class GltfTextureInfo(
     val texCoord: Int = 0,
     val strength: Float = 1f,
     val scale: Float = 1f,
-    val extensions: List<GltfTextureExtensions>,
-)
+    val extensions: List<GltfTextureExtensions>? = null,
+) {
+    suspend fun getTexture(
+        gltfData: GltfData,
+        root: VfsFile,
+        device: Device,
+        preferredFormat: TextureFormat,
+    ): Texture = gltfData.textures[index].toTexture(root, device, preferredFormat)
+}
 
 @Serializable
 data class GltfMaterialExtensions(
@@ -377,9 +385,9 @@ data class GltfKHRTextureTransform(
 data class GltfPbrMetallicRoughness(
     val baseColorFactor: List<Float> = listOf(1f, 1f, 1f, 1f),
     val baseColorTexture: GltfTextureInfo? = null,
-    val metallicFactor: Float? = null,
-    val roughnessFactor: Float? = null,
+    val metallicFactor: Float = 1f,
     val metallicRoughnessTexture: GltfTextureInfo? = null,
+    val roughnessFactor: Float = 1f,
 )
 
 @Serializable
@@ -503,10 +511,14 @@ data class GltfTexture(val sampler: Int = -1, val source: Int = 0, val name: Str
     suspend fun toTexture(root: VfsFile, device: Device, preferredFormat: TextureFormat): Texture {
         if (texture == null) {
             val uri = imageRef.uri
-            if (uri != null) {
-                val pixmap = VfsFile(root.vfs, "${root.parent.path}/$uri").readPixmap()
-                texture = PixmapTexture(device, preferredFormat, pixmap)
-            }
+            val pixmap =
+                if (uri != null) {
+                    VfsFile(root.vfs, "${root.parent.path}/$uri").readPixmap()
+                } else {
+                    imageRef.bufferViewRef?.getData()?.toArray()?.readPixmap()
+                        ?: error("Unable to read GltfTexture data!")
+                }
+            texture = PixmapTexture(device, preferredFormat, pixmap)
         }
         return texture ?: error("Unable to convert the GltfTexture to a Texture!")
     }

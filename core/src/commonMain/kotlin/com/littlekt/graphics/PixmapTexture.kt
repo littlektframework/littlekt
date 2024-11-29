@@ -28,7 +28,7 @@ class PixmapTexture(val device: Device, preferredFormat: TextureFormat, val pixm
             1,
             TextureDimension.D2,
             preferredFormat,
-            TextureUsage.TEXTURE or TextureUsage.COPY_DST
+            TextureUsage.TEXTURE or TextureUsage.COPY_DST,
         )
         set(value) {
             field = value
@@ -80,8 +80,8 @@ class PixmapTexture(val device: Device, preferredFormat: TextureFormat, val pixm
         device.queue.writeTexture(
             pixmap.pixels.toArray(),
             TextureCopyView(gpuTexture),
-            TextureDataLayout(4 * pixmap.width, pixmap.height),
-            size
+            TextureDataLayout(textureDescriptor.format.bytes * pixmap.width, pixmap.height),
+            size,
         )
     }
 

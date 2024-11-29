@@ -115,7 +115,7 @@ class SimpleGltfExample(context: Context) : ContextListener(context) {
                 )
             )
         val model =
-            resourcesVfs["2CylinderEngine.glb"].readGltf().toModel(device).apply {
+            resourcesVfs["Fox.glb"].readGltf().toModel().apply {
                 build(device, shader, vertexGroupLayout, preferredFormat, depthFormat)
             }
 

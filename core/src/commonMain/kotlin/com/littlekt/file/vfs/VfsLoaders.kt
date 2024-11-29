@@ -2,11 +2,12 @@ package com.littlekt.file.vfs
 
 import com.littlekt.audio.AudioClip
 import com.littlekt.audio.AudioStream
+import com.littlekt.file.ByteBuffer
 import com.littlekt.file.UnsupportedFileTypeException
 import com.littlekt.file.atlas.AtlasInfo
 import com.littlekt.file.atlas.AtlasPage
 import com.littlekt.file.gltf.GltfData
-import com.littlekt.file.gltf.GltfLoader
+import com.littlekt.file.gltf.toModel
 import com.littlekt.file.ldtk.LDtkMapData
 import com.littlekt.file.ldtk.LDtkMapLoader
 import com.littlekt.file.tiled.TiledMapData
@@ -18,6 +19,7 @@ import com.littlekt.graphics.g2d.TextureSlice
 import com.littlekt.graphics.g2d.font.*
 import com.littlekt.graphics.g2d.tilemap.ldtk.LDtkWorld
 import com.littlekt.graphics.g2d.tilemap.tiled.TiledMap
+import com.littlekt.graphics.g3d.Model
 import com.littlekt.graphics.webgpu.TextureFormat
 import com.littlekt.math.MutableVec4i
 import com.littlekt.util.internal.unquote
@@ -334,10 +336,92 @@ expect suspend fun VfsFile.readAudioStream(): AudioStream
  */
 suspend fun VfsFile.readGltf(): GltfData {
     val gltfData =
-        if (extension == "glb") {
-            GltfLoader.loadGlb(this)
-        } else {
-            decodeFromString<GltfData>()
+        when {
+            isGltf() -> loadGltf()
+            isBinaryGltf() -> loadBinaryGltf()
+            else -> throw IllegalArgumentException("Unknown glTF type: $path")
         }
+    gltfData.buffers
+        .filter { it.uri != null }
+        .forEach {
+            val uri = it.uri!!
+            val bufferPath =
+                if (uri.startsWith("data:", true)) VfsFile(vfs, uri)
+                else VfsFile(vfs, "${parent.path}/$uri")
+            it.data = bufferPath.read()
+        }
+
+    return gltfData
+}
+
+/**
+ * Reads a `.glb` or `.gltf` into a `GltfData` object and then converts it to a [Model].
+ *
+ * @param preferredFormat the preferred [TextureFormat] to be used when loading the model texture.
+ */
+suspend fun VfsFile.readGltfModel(
+    preferredFormat: TextureFormat =
+        if (vfs.context.graphics.preferredFormat.srgb) TextureFormat.RGBA8_UNORM_SRGB
+        else TextureFormat.RGBA8_UNORM
+): Model {
+    val gltfData = readGltf()
+    return gltfData.toModel(vfs.context.graphics.device, preferredFormat)
+}
+
+private fun VfsFile.isGltf() = path.endsWith(".gltf", true) || path.endsWith(".gltf.gz", true)
+
+private fun VfsFile.isBinaryGltf() = path.endsWith(".glb", true) || path.endsWith(".glb.gz", true)
+
+private suspend fun VfsFile.loadGltf(): GltfData {
+    if (path.endsWith(".gz", true)) {
+        TODO("Implement gzip inflation")
+    }
+    return decodeFromString<GltfData>().also { it.root = this }
+}
+
+private suspend fun VfsFile.loadBinaryGltf(): GltfData {
+    val magicNumber = 0x46546C67
+    val chunkJson = 0x4E4F534A
+    val chunkBin = 0x004E4942
+
+    val data = readStream()
+    val magic = data.readUInt()
+    if (magic != magicNumber) {
+        error("Unexpected glTF magic number: '$magic'. Expected magic should be '$magicNumber'.")
+    }
+    val version = data.readUInt()
+
+    if (version != 2) {
+        error("Unsupported glTF version found: '$version'. Only glTF 2.0 is supported.")
+    }
+
+    data.readUInt()
+
+    var chunkLength = data.readUInt()
+    var chunkType = data.readUInt()
+    if (chunkType != chunkJson) {
+        error(
+            "Unexpected chunk type for chunk 0: '$chunkType'. Expected chunk type to be $chunkJson / 'JSON'"
+        )
+    }
+
+    val gltfData = vfs.json.decodeFromString<GltfData>(data.readChunk(chunkLength).decodeToString())
+
+    var chunk = 1
+    while (data.hasRemaining()) {
+        chunkLength = data.readUInt()
+        chunkType = data.readUInt()
+        if (chunkType == chunkBin) {
+            gltfData.buffers[chunk - 1].data = ByteBuffer(data.readChunk(chunkLength))
+        } else {
+            vfs.logger.warn {
+                "Unexpected chunk type for chunk $chunk: '$chunkType'. Expected chunk type to be $chunkBin / 'BIN'"
+            }
+            data.skip(chunkLength)
+        }
+        chunk++
+    }
+
+    gltfData.root = this
     return gltfData
 }
