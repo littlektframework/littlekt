@@ -6,33 +6,25 @@ import com.littlekt.audio.AudioStream
 import com.littlekt.audio.OpenALAudioClip
 import com.littlekt.audio.OpenALAudioStream
 import com.littlekt.file.ByteBufferImpl
-import com.littlekt.file.ImageUtils
 import com.littlekt.file.JvmByteSequenceStream
 import com.littlekt.graphics.Pixmap
 import com.littlekt.graphics.PixmapTexture
 import com.littlekt.graphics.Texture
 import com.littlekt.graphics.webgpu.TextureFormat
 import com.littlekt.log.Logger
-import fr.delthas.javamp3.Sound
+import fr.delthas.javamp3.Soundgit
 import java.io.ByteArrayInputStream
 import java.nio.ByteBuffer
 import java.nio.IntBuffer
-import javax.imageio.ImageIO
 import javax.sound.sampled.AudioSystem
 import org.lwjgl.stb.STBImage.*
 import org.lwjgl.system.MemoryStack
 import org.lwjgl.system.MemoryUtil
 
 private val logger = Logger("VfsLoaders")
-private val imageIoLock = Any()
 
 /** Reads Base64 encoded ByteArray for embedded images. */
-internal actual suspend fun ByteArray.readPixmap(): Pixmap {
-    // ImageIO.read is not thread safe!
-    val img = synchronized(imageIoLock) { ImageIO.read(ByteArrayInputStream(this)) }
-    val result = ImageUtils.bufferedImageToBuffer(img, "RGBA", img.width, img.height)
-    return Pixmap(img.width, img.height, result.buffer)
-}
+internal actual suspend fun ByteArray.readPixmap(): Pixmap = readPixmap(this)
 
 /**
  * Loads an image from the path as a [Pixmap].
@@ -128,7 +120,7 @@ private suspend fun VfsFile.createAudioStreamMp3(): OpenALAudioStream {
         read,
         reset,
         channels,
-        decoder.samplingFrequency
+        decoder.samplingFrequency,
     )
 }
 
@@ -153,6 +145,6 @@ private suspend fun VfsFile.createAudioStreamWav(): OpenALAudioStream {
         read,
         reset,
         clip.format.channels,
-        clip.format.sampleRate.toInt()
+        clip.format.sampleRate.toInt(),
     )
 }
