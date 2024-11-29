@@ -339,6 +339,5 @@ suspend fun VfsFile.readGltf(): GltfData {
         } else {
             decodeFromString<GltfData>()
         }
-    gltfData.updateReferences()
     return gltfData
 }

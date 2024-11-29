@@ -31,8 +31,11 @@ data class GltfData(
     val extensionsUsed: List<String> = emptyList(),
     val cameras: List<GltfCamera> = emptyList(),
 ) {
+    init {
+        updateReferences()
+    }
 
-    fun updateReferences() {
+    private fun updateReferences() {
         accessors.forEach {
             if (it.bufferView >= 0) {
                 it.bufferViewRef = bufferViews[it.bufferView]
@@ -272,19 +275,33 @@ enum class GltfMIMEType(val value: String) {
 
 @Serializable
 data class GltfMaterial(
+    val alphaCutoff: Float = 0.5f,
+    val alphaMode: GltfAlphaMode = GltfAlphaMode.Opaque,
     val name: String? = null,
     val pbrMetallicRoughness: GltfPbrMetallicRoughness,
-    val normalTexture: GltfNormalTexture? = null,
-    val occlusionTexture: GltfOcclusionTexture? = null,
-    val doubleSided: Boolean? = null,
-    val alphaMode: String? = null,
-    val emissiveFactor: List<Float>? = null,
-    val emissiveTexture: GltfEmissiveTextureClass? = null,
-    val extensions: GltfMaterialExtensions? = null,
-    val alphaCutoff: Float? = null,
+    val normalTexture: GltfTextureInfo? = null,
+    val occlusionTexture: GltfTextureInfo? = null,
+    val doubleSided: Boolean = false,
+    val emissiveFactor: List<Float> = emptyList(),
+    val emissiveTexture: GltfTextureInfo? = null,
+    val extensions: List<GltfMaterialExtensions>? = null,
 )
 
-@Serializable data class GltfEmissiveTextureClass(val index: Int, val texCoord: Int? = null)
+@Serializable
+enum class GltfAlphaMode(val value: String) {
+    @SerialName("BLEND") Blend("BLEND"),
+    @SerialName("MASK") Mask("MASK"),
+    @SerialName("OPAQUE") Opaque("OPAQUE"),
+}
+
+@Serializable
+data class GltfTextureInfo(
+    val index: Int,
+    val texCoord: Int = 0,
+    val strength: Float = 1f,
+    val scale: Float = 1f,
+    val extensions: List<GltfTextureExtensions>,
+)
 
 @Serializable
 data class GltfMaterialExtensions(
@@ -306,7 +323,7 @@ data class GltfMaterialExtensions(
 @Serializable
 data class GltfKHRMaterialsClearcoat(
     val clearcoatFactor: Int,
-    val clearcoatTexture: GltfEmissiveTextureClass,
+    val clearcoatTexture: GltfTextureInfo,
 )
 
 @Serializable data class GltfKHRMaterialsEmissiveStrength(val emissiveStrength: Int)
@@ -344,15 +361,7 @@ data class GltfKHRMaterialsVolume(
 )
 
 @Serializable
-data class GltfNormalTexture(
-    val index: Int,
-    val extensions: GltfNormalTextureExtensions? = null,
-    val scale: Int? = null,
-    val texCoord: Int? = null,
-)
-
-@Serializable
-data class GltfNormalTextureExtensions(
+data class GltfTextureExtensions(
     @SerialName("KHR_texture_transform") val khrTextureTransform: GltfKHRTextureTransform
 )
 
@@ -365,25 +374,12 @@ data class GltfKHRTextureTransform(
 )
 
 @Serializable
-data class GltfOcclusionTexture(
-    val index: Int,
-    val extensions: GltfNormalTextureExtensions? = null,
-)
-
-@Serializable
 data class GltfPbrMetallicRoughness(
-    val baseColorTexture: GltfBaseColorTexture? = null,
+    val baseColorFactor: List<Float> = listOf(1f, 1f, 1f, 1f),
+    val baseColorTexture: GltfTextureInfo? = null,
     val metallicFactor: Float? = null,
     val roughnessFactor: Float? = null,
-    val metallicRoughnessTexture: GltfEmissiveTextureClass? = null,
-    val baseColorFactor: List<Float>? = null,
-)
-
-@Serializable
-data class GltfBaseColorTexture(
-    val index: Int,
-    val extensions: GltfNormalTextureExtensions? = null,
-    val texCoord: Int? = null,
+    val metallicRoughnessTexture: GltfTextureInfo? = null,
 )
 
 @Serializable
