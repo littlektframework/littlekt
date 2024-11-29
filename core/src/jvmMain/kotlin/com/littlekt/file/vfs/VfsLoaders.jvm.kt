@@ -24,9 +24,7 @@ import org.lwjgl.system.MemoryUtil
 private val logger = Logger("VfsLoaders")
 
 /** Reads Base64 encoded ByteArray for embedded images. */
-internal actual suspend fun ByteArray.readPixmap(): Pixmap {
-    return readPixmap(this)
-}
+internal actual suspend fun ByteArray.readPixmap(): Pixmap = readPixmap(this)
 
 /**
  * Loads an image from the path as a [Pixmap].
