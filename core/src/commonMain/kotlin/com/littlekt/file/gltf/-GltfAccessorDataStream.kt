@@ -21,7 +21,7 @@ internal abstract class GltfAccessorDataStream(val accessor: GltfAccessor) {
 
     private val sparseIndexStream: IndexedByteSequenceStream?
     private val sparseValueStream: IndexedByteSequenceStream?
-    private val sparseIndexType: Int
+    private val sparseIndexType: GltfComponentType
     private var nextSparseIndex: Int
 
     var index: Int = 0
@@ -31,7 +31,6 @@ internal abstract class GltfAccessorDataStream(val accessor: GltfAccessor) {
         }
 
     init {
-
         if (accessor.sparse != null) {
             sparseIndexStream =
                 IndexedByteSequenceStream(
@@ -48,24 +47,11 @@ internal abstract class GltfAccessorDataStream(val accessor: GltfAccessor) {
         } else {
             sparseIndexStream = null
             sparseValueStream = null
-            sparseIndexType = 0
+            sparseIndexType = GltfComponentType.Unknown
             nextSparseIndex = -1
         }
 
-        val compByteSize =
-            when (accessor.componentType) {
-                GltfAccessor.COMP_TYPE_BYTE -> 1
-                GltfAccessor.COMP_TYPE_UNSIGNED_BYTE -> 1
-                GltfAccessor.COMP_TYPE_SHORT -> 2
-                GltfAccessor.COMP_TYPE_UNSIGNED_SHORT -> 2
-                GltfAccessor.COMP_TYPE_INT -> 4
-                GltfAccessor.COMP_TYPE_UNSIGNED_INT -> 4
-                GltfAccessor.COMP_TYPE_FLOAT -> 4
-                else ->
-                    throw IllegalArgumentException(
-                        "Unknown accessor component type: ${accessor.componentType}"
-                    )
-            }
+        val compByteSize = accessor.componentType.byteSize
         val numComponents =
             when (accessor.type) {
                 GltfAccessorType.Scalar -> 1
@@ -96,7 +82,7 @@ internal abstract class GltfAccessorDataStream(val accessor: GltfAccessor) {
     }
 
     protected fun nextFloat(): Float {
-        if (accessor.componentType == GltfAccessor.COMP_TYPE_FLOAT) {
+        if (accessor.componentType == GltfComponentType.Float) {
             if (index < accessor.count) {
                 return selectDataStream()?.readFloat() ?: 0f
             } else {
@@ -106,12 +92,12 @@ internal abstract class GltfAccessorDataStream(val accessor: GltfAccessor) {
             // implicitly convert int type to normalized float
             return nextInt() /
                 when (accessor.componentType) {
-                    GltfAccessor.COMP_TYPE_BYTE -> 128f
-                    GltfAccessor.COMP_TYPE_UNSIGNED_BYTE -> 255f
-                    GltfAccessor.COMP_TYPE_SHORT -> 32767f
-                    GltfAccessor.COMP_TYPE_UNSIGNED_SHORT -> 65535f
-                    GltfAccessor.COMP_TYPE_INT -> 2.14748365E9f
-                    GltfAccessor.COMP_TYPE_UNSIGNED_INT -> 4.2949673E9f
+                    GltfComponentType.Byte -> 128f
+                    GltfComponentType.UnsignedByte -> 255f
+                    GltfComponentType.Short -> 32767f
+                    GltfComponentType.UnsignedShort -> 65535f
+                    GltfComponentType.Int -> 2.14748365E9f
+                    GltfComponentType.UnsignedInt -> 4.2949673E9f
                     else ->
                         throw IllegalStateException(
                             "Unknown component type: ${accessor.componentType}"
@@ -120,14 +106,14 @@ internal abstract class GltfAccessorDataStream(val accessor: GltfAccessor) {
         }
     }
 
-    private fun ByteSequenceStream.nextIntComponent(componentType: Int): Int {
+    private fun ByteSequenceStream.nextIntComponent(componentType: GltfComponentType): Int {
         return when (componentType) {
-            GltfAccessor.COMP_TYPE_BYTE -> readByte()
-            GltfAccessor.COMP_TYPE_UNSIGNED_BYTE -> readUByte()
-            GltfAccessor.COMP_TYPE_SHORT -> readShort()
-            GltfAccessor.COMP_TYPE_UNSIGNED_SHORT -> readUShort()
-            GltfAccessor.COMP_TYPE_INT -> readInt()
-            GltfAccessor.COMP_TYPE_UNSIGNED_INT -> readUInt()
+            GltfComponentType.Byte -> readByte()
+            GltfComponentType.UnsignedByte -> readUByte()
+            GltfComponentType.Short -> readShort()
+            GltfComponentType.UnsignedShort -> readUShort()
+            GltfComponentType.Int -> readInt()
+            GltfComponentType.UnsignedInt -> readUInt()
             else -> throw IllegalArgumentException("Invalid component type: $componentType")
         }
     }
@@ -154,7 +140,7 @@ internal class GltfIntAccessor(accessor: GltfAccessor) : GltfAccessorDataStream(
                 "GltfIntAccessor requires accessor type ${GltfAccessorType.Scalar.value}, provided was ${accessor.type}"
             )
         }
-        if (accessor.componentType !in GltfAccessor.COMP_INT_TYPES) {
+        if (accessor.componentType !in GltfComponentType.IntTypes) {
             throw IllegalArgumentException(
                 "GltfIntAccessor requires a (byte / short / int) component type, provided was ${accessor.componentType}"
             )
@@ -286,7 +272,7 @@ internal class GltfVec4iAccessor(accessor: GltfAccessor) : GltfAccessorDataStrea
                 "GltfVec4iAccessor requires accessor type ${GltfAccessorType.Vec4.value}, provided was ${accessor.type}"
             )
         }
-        if (accessor.componentType !in GltfAccessor.COMP_INT_TYPES) {
+        if (accessor.componentType !in GltfComponentType.IntTypes) {
             throw IllegalArgumentException(
                 "GltfVec4iAccessor requires a (byte / short / int) component type, provided was ${accessor.componentType}"
             )
@@ -318,7 +304,7 @@ internal class GltfMat4Accessor(accessor: GltfAccessor) : GltfAccessorDataStream
                 "GltfMat4Accessor requires accessor type ${GltfAccessorType.Mat4}, provided was ${accessor.type}"
             )
         }
-        if (accessor.componentType != GltfAccessor.COMP_TYPE_FLOAT) {
+        if (accessor.componentType != GltfComponentType.Float) {
             throw IllegalArgumentException(
                 "GltfMat4Accessor requires a float component type, provided was ${accessor.componentType}"
             )

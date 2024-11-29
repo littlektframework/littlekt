@@ -1,12 +1,5 @@
 package com.littlekt.file.gltf
 
-import com.littlekt.file.gltf.GltfPrimitive.Companion.ATTRIBUTE_COLOR_0
-import com.littlekt.file.gltf.GltfPrimitive.Companion.ATTRIBUTE_JOINTS_0
-import com.littlekt.file.gltf.GltfPrimitive.Companion.ATTRIBUTE_NORMAL
-import com.littlekt.file.gltf.GltfPrimitive.Companion.ATTRIBUTE_POSITION
-import com.littlekt.file.gltf.GltfPrimitive.Companion.ATTRIBUTE_TANGENT
-import com.littlekt.file.gltf.GltfPrimitive.Companion.ATTRIBUTE_TEXCOORD_0
-import com.littlekt.file.gltf.GltfPrimitive.Companion.ATTRIBUTE_WEIGHTS_0
 import com.littlekt.graphics.*
 import com.littlekt.graphics.g3d.MeshNode
 import com.littlekt.graphics.g3d.Model
@@ -19,7 +12,6 @@ import com.littlekt.graphics.webgpu.VertexFormat
 import com.littlekt.graphics.webgpu.VertexStepMode
 import com.littlekt.log.Logger
 import com.littlekt.math.Mat4
-import com.littlekt.math.MutableVec3f
 import com.littlekt.math.Vec4f
 
 suspend fun GltfData.toModel(device: Device): Model {
@@ -77,10 +69,7 @@ private class GltfModelGenerator(val gltfFile: GltfData) {
         model.nodes[nodeName] = node
 
         if (matrix.isNotEmpty()) {
-            node.globalTransform =
-                Mat4().set(matrix.map { it }).also {
-                    it.getTranslation(MutableVec3f()).let { println(it) }
-                }
+            node.globalTransform = Mat4().set(matrix.map { it })
         } else {
             if (translation.isNotEmpty()) {
                 node.translate(translation[0], translation[1], translation[2])
@@ -122,7 +111,7 @@ private class GltfModelGenerator(val gltfFile: GltfData) {
                 //     mesh.morphWeights = FloatArray(prim.targets.sumOf { it.size })
             }
 
-            val useVertexColor = prim.attributes.containsKey(ATTRIBUTE_COLOR_0)
+            val useVertexColor = prim.attributes.containsKey(GltfAttribute.Color0)
 
             model.meshes[name] = mesh
         }
@@ -131,13 +120,13 @@ private class GltfModelGenerator(val gltfFile: GltfData) {
     private fun GltfPrimitive.toGeometry(gltfAccessors: List<GltfAccessor>): IndexedMeshGeometry {
         val indexGltfAccessor = if (indices >= 0) gltfAccessors[indices] else null
 
-        val positionGltfAccessor = attributes[ATTRIBUTE_POSITION]?.let { gltfAccessors[it] }
-        val normalGltfAccessor = attributes[ATTRIBUTE_NORMAL]?.let { gltfAccessors[it] }
-        val tangentGltfAccessor = attributes[ATTRIBUTE_TANGENT]?.let { gltfAccessors[it] }
-        val texCoordGltfAccessor = attributes[ATTRIBUTE_TEXCOORD_0]?.let { gltfAccessors[it] }
-        val colorGltfAccessor = attributes[ATTRIBUTE_COLOR_0]?.let { gltfAccessors[it] }
-        val jointGltfAccessor = attributes[ATTRIBUTE_JOINTS_0]?.let { gltfAccessors[it] }
-        val weightGltfAccessor = attributes[ATTRIBUTE_WEIGHTS_0]?.let { gltfAccessors[it] }
+        val positionGltfAccessor = attributes[GltfAttribute.Position]?.let { gltfAccessors[it] }
+        val normalGltfAccessor = attributes[GltfAttribute.Normal]?.let { gltfAccessors[it] }
+        val tangentGltfAccessor = attributes[GltfAttribute.Tangent]?.let { gltfAccessors[it] }
+        val texCoordGltfAccessor = attributes[GltfAttribute.TexCoord0]?.let { gltfAccessors[it] }
+        val colorGltfAccessor = attributes[GltfAttribute.Color0]?.let { gltfAccessors[it] }
+        val jointGltfAccessor = attributes[GltfAttribute.Joints0]?.let { gltfAccessors[it] }
+        val weightGltfAccessor = attributes[GltfAttribute.Weights0]?.let { gltfAccessors[it] }
 
         if (positionGltfAccessor == null) {
             logger.warn { "GltfPrimitive without position attribute." }

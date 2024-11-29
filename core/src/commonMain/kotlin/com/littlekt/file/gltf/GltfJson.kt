@@ -89,7 +89,7 @@ data class GltfData(
 data class GltfAccessor(
     val bufferView: Int = -1,
     val byteOffset: Int = 0,
-    val componentType: Int,
+    val componentType: GltfComponentType,
     val count: Int,
     val type: GltfAccessorType,
     val min: List<Float> = emptyList(),
@@ -99,25 +99,21 @@ data class GltfAccessor(
     val sparse: GltfAccessorSparse? = null,
 ) {
     @Transient var bufferViewRef: GltfBufferView? = null
+}
+
+@Serializable
+enum class GltfComponentType(val value: String, val byteSize: kotlin.Int) {
+    @SerialName("5120") Byte("5120", 1),
+    @SerialName("5121") UnsignedByte("5121", 1),
+    @SerialName("5122") Short("5122", 2),
+    @SerialName("5123") UnsignedShort("5123", 2),
+    @SerialName("5124") Int("5124", 4),
+    @SerialName("5125") UnsignedInt("5125", 4),
+    @SerialName("5126") Float("5126", 4),
+    @SerialName("0") Unknown("0", 0);
 
     companion object {
-        const val COMP_TYPE_BYTE = 5120
-        const val COMP_TYPE_UNSIGNED_BYTE = 5121
-        const val COMP_TYPE_SHORT = 5122
-        const val COMP_TYPE_UNSIGNED_SHORT = 5123
-        const val COMP_TYPE_INT = 5124
-        const val COMP_TYPE_UNSIGNED_INT = 5125
-        const val COMP_TYPE_FLOAT = 5126
-
-        val COMP_INT_TYPES =
-            setOf(
-                COMP_TYPE_BYTE,
-                COMP_TYPE_UNSIGNED_BYTE,
-                COMP_TYPE_SHORT,
-                COMP_TYPE_UNSIGNED_SHORT,
-                COMP_TYPE_INT,
-                COMP_TYPE_UNSIGNED_INT,
-            )
+        val IntTypes = setOf(Byte, UnsignedByte, Short, UnsignedShort, Int, UnsignedInt)
     }
 }
 
@@ -132,7 +128,7 @@ data class GltfAccessorSparse(
 data class GltfAccessorSparseIndices(
     val bufferView: Int,
     val byteOffset: Int = 0,
-    val componentType: Int,
+    val componentType: GltfComponentType,
 ) {
     @Transient lateinit var bufferViewRef: GltfBufferView
 }
@@ -399,35 +395,45 @@ data class GltfMesh(
 
 @Serializable
 data class GltfPrimitive(
-    val attributes: Map<String, Int>,
+    val attributes: Map<GltfAttribute, Int>,
     val material: Int = -1,
     val indices: Int = -1,
-    val mode: Int = MODE_TRIANGLES,
+    val mode: GltfRenderMode = GltfRenderMode.Triangles,
     val targets: List<Map<String, Int>> = emptyList(),
 ) {
     @Transient var materialRef: GltfMaterial? = null
+}
 
-    companion object {
-        const val MODE_POINTS = 0
-        const val MODE_LINES = 1
-        const val MODE_LINE_LOOP = 2
-        const val MODE_LINE_STRIP = 3
-        const val MODE_TRIANGLES = 4
-        const val MODE_TRIANGLE_STRIP = 5
-        const val MODE_TRIANGLE_FAN = 6
-        const val MODE_QUADS = 7
-        const val MODE_QUAD_STRIP = 8
-        const val MODE_POLYGON = 9
+@Serializable
+enum class GltfAttribute(val value: String) {
+    @SerialName("POSITION") Position("POSITION"),
+    @SerialName("NORMAL") Normal("NORMAL"),
+    @SerialName("TANGENT") Tangent("TANGENT"),
+    @SerialName("TEXCOORD_0") TexCoord0("TEXCOORD_0"),
+    @SerialName("TEXCOORD_1") TexCoord1("TEXCOORD_1"),
+    @SerialName("TEXCOORD_2") TexCoord2("TEXCOORD_2"),
+    @SerialName("TEXCOORD_3") TexCoord3("TEXCOORD_3"),
+    @SerialName("TEXCOORD_4") TexCoord4("TEXCOORD_4"),
+    @SerialName("COLOR_0") Color0("COLOR_0"),
+    @SerialName("COLOR_1") Color1("COLOR_0"),
+    @SerialName("COLOR_2") Color2("COLOR_0"),
+    @SerialName("COLOR_3") Color3("COLOR_0"),
+    @SerialName("COLOR_4") Color4("COLOR_0"),
+    @SerialName("JOINTS_0") Joints0("JOINTS_0"),
+    @SerialName("WEIGHTS_0") Weights0("WEIGHTS_0"),
+}
 
-        const val ATTRIBUTE_POSITION = "POSITION"
-        const val ATTRIBUTE_NORMAL = "NORMAL"
-        const val ATTRIBUTE_TANGENT = "TANGENT"
-        const val ATTRIBUTE_TEXCOORD_0 = "TEXCOORD_0"
-        const val ATTRIBUTE_TEXCOORD_1 = "TEXCOORD_1"
-        const val ATTRIBUTE_COLOR_0 = "COLOR_0"
-        const val ATTRIBUTE_JOINTS_0 = "JOINTS_0"
-        const val ATTRIBUTE_WEIGHTS_0 = "WEIGHTS_0"
-    }
+@Serializable
+enum class GltfRenderMode(val value: String) {
+    @SerialName("0") Points("0"),
+    @SerialName("1") Lines("1"),
+    @SerialName("2") LineLoop("2"),
+    @SerialName("3") Triangles("3"),
+    @SerialName("4") TriangleStrip("4"),
+    @SerialName("5") TriangleFan("5"),
+    @SerialName("6") Quads("6"),
+    @SerialName("7") QuadStrip("7"),
+    @SerialName("8") Polygon("8"),
 }
 
 @Serializable
@@ -452,11 +458,28 @@ data class GltfNode(
 
 @Serializable
 data class GltfSampler(
-    val magFilter: Int? = null,
-    val minFilter: Int? = null,
-    val wrapS: Int? = null,
-    val wrapT: Int? = null,
+    val magFilter: GltfTextureFilter? = null,
+    val minFilter: GltfTextureFilter? = null,
+    val wrapS: GltfTextureWrap? = null,
+    val wrapT: GltfTextureWrap? = null,
 )
+
+@Serializable
+enum class GltfTextureFilter(val value: String) {
+    @SerialName("9728") Nearest("9728"),
+    @SerialName("9729") Linear("9729"),
+    @SerialName("9984") NearestMipMapNearest("9984"),
+    @SerialName("9985") LinearMipMapNearest("9985"),
+    @SerialName("9986") NearestMipMapLinear("9986"),
+    @SerialName("9987") LinearMipMapLinear("9987"),
+}
+
+@Serializable
+enum class GltfTextureWrap(val value: String) {
+    @SerialName("10497") Repeat("10497"),
+    @SerialName("33071") ClampToEdge("33071"),
+    @SerialName("33648") MirroredRepeat("33648"),
+}
 
 @Serializable
 data class GltfScene(val nodes: List<Int>, val name: String? = null) {
