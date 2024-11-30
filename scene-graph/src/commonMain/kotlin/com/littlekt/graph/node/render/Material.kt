@@ -1,8 +1,9 @@
 package com.littlekt.graph.node.render
 
 import com.littlekt.Releasable
+import com.littlekt.graphics.BlendStates
 import com.littlekt.graphics.shader.Shader
-import com.littlekt.graphics.webgpu.BlendState
+import io.ygdrasil.wgpu.RenderPipelineDescriptor
 
 /**
  * @author Colton Daily
@@ -13,7 +14,7 @@ open class Material(
     val shader: Shader? = null,
 ) : Releasable {
     /** The [BlendState] this material uses. Defaults to [BlendState.NonPreMultiplied]. */
-    var blendMode: BlendState = BlendState.NonPreMultiplied
+    var blendMode: RenderPipelineDescriptor.FragmentState.ColorTargetState.BlendState = BlendStates.NonPreMultiplied
 
     /** Can be used to set shader uniforms and such right before rendering. */
     open fun onPreRender() = Unit

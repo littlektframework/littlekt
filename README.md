@@ -4,7 +4,7 @@
 [![build](https://github.com/littlektframework/littlekt/actions/workflows/build.yml/badge.svg?branch=master)](https://github.com/littlektframework/littlekt/actions/workflows/build.yml)
 [![Download](https://img.shields.io/maven-central/v/com.littlekt/core/0.10.1)](https://search.maven.org/artifact/com.littlekt/core/0.10.1/pom)
 
-Requires JDK 21+ in order to use due to the usage of the new Java FFM API.
+Requires JDK 22+ in order to use due to the usage of the new Java FFM API.
 
 **Currently, in development.**
 
@@ -36,13 +36,13 @@ repositories {
 kotlin {
     jvm {
         compilations.all {
-            kotlinOptions.jvmTarget = "21" // littlekt targets jvm 21 so we must target at least 21
+            kotlinOptions.jvmTarget = "22" // littlekt targets jvm 21 so we must target at least 21
         }
     }
 }
 
 val littleKtVersion = "0.10.1" // get the latest release at the top
-val kotlinCoroutinesVersion = "1.9.0-RC" // or whatever version you are using
+val kotlinCoroutinesVersion = "1.9.0" // or whatever version you are using
 
 sourceSets {
     val commonMain by getting {

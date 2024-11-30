@@ -10,9 +10,9 @@ import com.littlekt.file.JvmByteSequenceStream
 import com.littlekt.graphics.Pixmap
 import com.littlekt.graphics.PixmapTexture
 import com.littlekt.graphics.Texture
-import com.littlekt.graphics.webgpu.TextureFormat
 import com.littlekt.log.Logger
 import fr.delthas.javamp3.Sound
+import io.ygdrasil.wgpu.TextureFormat
 import java.io.ByteArrayInputStream
 import java.nio.ByteBuffer
 import java.nio.IntBuffer

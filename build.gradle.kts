@@ -12,10 +12,6 @@ plugins {
 val littleKtVersion: String by project
 
 allprojects {
-    repositories {
-        google()
-        mavenCentral()
-    }
     group = "com.littlekt"
     version = littleKtVersion
     extra["isReleaseVersion"] = !littleKtVersion.endsWith("SNAPSHOT")
@@ -23,4 +19,12 @@ allprojects {
 
 plugins.withType<YarnPlugin> {
     the<YarnRootExtension>().apply { yarnLockMismatchReport = YarnLockMismatchReport.WARNING }
+}
+
+// TODO: remove later
+configurations.all {
+    resolutionStrategy {
+        cacheChangingModulesFor(0, "seconds")
+        cacheDynamicVersionsFor(0, "minutes")
+    }
 }

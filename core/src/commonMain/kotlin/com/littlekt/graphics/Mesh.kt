@@ -2,10 +2,10 @@ package com.littlekt.graphics
 
 import com.littlekt.Releasable
 import com.littlekt.graphics.util.MeshGeometry
-import com.littlekt.graphics.webgpu.BufferUsage
-import com.littlekt.graphics.webgpu.Device
-import com.littlekt.graphics.webgpu.GPUBuffer
+import io.ygdrasil.wgpu.Device
 import com.littlekt.log.Logger
+import io.ygdrasil.wgpu.Buffer
+import io.ygdrasil.wgpu.BufferUsage
 import kotlin.jvm.JvmStatic
 import kotlin.math.min
 
@@ -22,11 +22,11 @@ import kotlin.math.min
 open class Mesh<T : MeshGeometry>(val device: Device, val geometry: T) : Releasable {
 
     /** The GPU Vertex buffer for this mesh. */
-    var vbo: GPUBuffer =
+    var vbo: Buffer =
         device.createGPUFloatBuffer(
             "vbo",
             geometry.vertices.toArray(),
-            BufferUsage.VERTEX or BufferUsage.COPY_DST
+            setOf(BufferUsage.vertex, BufferUsage.copydst)
         )
         protected set
 
@@ -42,13 +42,12 @@ open class Mesh<T : MeshGeometry>(val device: Device, val geometry: T) : Releasa
                     logger.trace {
                         "Destroying and creating VBO from size: ${vbo.size} to  size: ${geometry.vertices.capacity}"
                     }
-                    vbo.destroy()
-                    vbo.release()
+                    vbo.close()
                     vbo =
                         device.createGPUFloatBuffer(
                             "vbo",
                             geometry.vertices.toArray(),
-                            BufferUsage.VERTEX or BufferUsage.COPY_DST
+                            setOf(BufferUsage.vertex, BufferUsage.copydst)
                         )
                 } else {
                     val size =
@@ -58,7 +57,7 @@ open class Mesh<T : MeshGeometry>(val device: Device, val geometry: T) : Releasa
                                 geometry.layout.attributes.calculateComponents().toLong()
                         )
                     logger.trace { "Writing VBO to queue of size: $size" }
-                    device.queue.writeBuffer(vbo, geometry.vertices, size = size)
+                    device.queue.writeBuffer(vbo, 0L, geometry.vertices.toArray(), size = size)
                 }
             }
         }
@@ -70,8 +69,7 @@ open class Mesh<T : MeshGeometry>(val device: Device, val geometry: T) : Releasa
     }
 
     override fun release() {
-        vbo.destroy()
-        vbo.release()
+        vbo.close()
     }
 
     companion object {

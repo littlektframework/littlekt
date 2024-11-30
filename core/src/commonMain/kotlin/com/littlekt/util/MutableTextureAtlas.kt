@@ -9,10 +9,10 @@ import com.littlekt.graphics.Texture
 import com.littlekt.graphics.drawSlice
 import com.littlekt.graphics.g2d.TextureAtlas
 import com.littlekt.graphics.g2d.TextureSlice
-import com.littlekt.graphics.webgpu.TextureFormat
 import com.littlekt.util.packer.BinRect
 import com.littlekt.util.packer.MaxRectsPacker
 import com.littlekt.util.packer.PackingOptions
+import io.ygdrasil.wgpu.TextureFormat
 
 /**
  * Allows building of a [TextureAtlas] by combining existing textures, texture slices, and texture
@@ -65,9 +65,7 @@ class MutableTextureAtlas(val context: Context, options: PackingOptions = Packin
     }
 
     fun toImmutable(
-        format: TextureFormat =
-            if (context.graphics.preferredFormat.srgb) TextureFormat.RGBA8_UNORM_SRGB
-            else TextureFormat.RGBA8_UNORM,
+        format: TextureFormat = context.graphics.preferredFormat,
         useMiMaps: Boolean = true
     ): TextureAtlas {
         packer.add(entries)

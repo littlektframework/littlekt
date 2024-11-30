@@ -7,12 +7,12 @@ import com.littlekt.graph.node.annotation.SceneGraphDslMarker
 import com.littlekt.graph.node.render.Material
 import com.littlekt.graph.node.resource.InputEvent
 import com.littlekt.graph.node.ui.Control
+import com.littlekt.graphics.BlendStates
 import com.littlekt.graphics.OrthographicCamera
 import com.littlekt.graphics.g2d.Batch
 import com.littlekt.graphics.g2d.SpriteBatch
 import com.littlekt.graphics.g2d.TextureSlice
 import com.littlekt.graphics.g2d.shape.ShapeRenderer
-import com.littlekt.graphics.webgpu.*
 import com.littlekt.input.*
 import com.littlekt.math.MutableVec2f
 import com.littlekt.resources.Textures
@@ -22,6 +22,8 @@ import com.littlekt.util.milliseconds
 import com.littlekt.util.seconds
 import com.littlekt.util.viewport.ScreenViewport
 import com.littlekt.util.viewport.Viewport
+import io.ygdrasil.wgpu.CommandEncoder
+import io.ygdrasil.wgpu.RenderPassDescriptor
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
@@ -376,7 +378,7 @@ open class SceneGraph<InputType>(
     }
 
     protected fun flush() {
-        batch.setBlendState(BlendState.NonPreMultiplied)
+        batch.setBlendState(BlendStates.NonPreMultiplied)
         batch.useDefaultShader()
 
         commandEncoder = null

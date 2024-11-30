@@ -8,7 +8,6 @@ import com.littlekt.graphics.g2d.TextureSlice
 import com.littlekt.graphics.g2d.tilemap.ldtk.*
 import com.littlekt.graphics.slice
 import com.littlekt.graphics.sliceWithBorderToTexture
-import com.littlekt.graphics.webgpu.TextureFormat
 import com.littlekt.log.Logger
 import com.littlekt.math.geom.Point
 
@@ -666,10 +665,7 @@ internal class LDtkLevelLoader(
                         .readPixmap()
                         .sliceWithBorderToTexture(
                             device = vfs.vfs.context.graphics.device,
-                            preferredFormat =
-                                if (vfs.vfs.context.graphics.preferredFormat.srgb)
-                                    TextureFormat.RGBA8_UNORM_SRGB
-                                else TextureFormat.RGBA8_UNORM,
+                            preferredFormat = vfs.vfs.context.graphics.preferredFormat,
                             sliceWidth = tilesetDef.tileGridSize,
                             sliceHeight = tilesetDef.tileGridSize,
                             border = sliceBorder

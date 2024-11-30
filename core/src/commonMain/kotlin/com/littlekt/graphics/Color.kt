@@ -101,6 +101,7 @@ open class Color(r: Float, g: Float, b: Float, a: Float = 1f) : Vec4f(r, g, b, a
 
     /** @return a new [MutableColor] using the color values of this color. */
     fun toMutableColor(result: MutableColor = MutableColor()) = result.set(r, g, b, a)
+    fun toWebGPUColor() = io.ygdrasil.wgpu.Color(r.toDouble(), g.toDouble(), b.toDouble(), a.toDouble())
 
     companion object {
         val CLEAR = Color(0f, 0f, 0f, 0f)
