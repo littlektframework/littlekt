@@ -2,10 +2,7 @@ package com.littlekt.file.gltf
 
 import com.littlekt.file.vfs.VfsFile
 import com.littlekt.graphics.*
-import com.littlekt.graphics.g3d.MeshNode
-import com.littlekt.graphics.g3d.Model
-import com.littlekt.graphics.g3d.Node3D
-import com.littlekt.graphics.g3d.Skin
+import com.littlekt.graphics.g3d.*
 import com.littlekt.graphics.util.CommonIndexedMeshGeometry
 import com.littlekt.graphics.util.IndexedMeshGeometry
 import com.littlekt.graphics.webgpu.Device
@@ -113,7 +110,33 @@ private class GltfModelGenerator(val gltfFile: GltfData) {
 
             meshesByMaterial.getOrPut(prim.material) { mutableSetOf() } += mesh
             meshMaterials[mesh] = prim.materialRef
-            val meshNode = MeshNode(mesh)
+            val material =
+                prim.materialRef?.let { gltfMaterial ->
+                    val baseColorFactor = gltfMaterial.pbrMetallicRoughness.baseColorFactor
+                    MeshMaterial(
+                        Color(
+                            baseColorFactor[0],
+                            baseColorFactor[1],
+                            baseColorFactor[2],
+                            baseColorFactor[3],
+                        ),
+                        gltfMaterial.pbrMetallicRoughness.baseColorTexture?.loadTexture(
+                            device,
+                            preferredFormat,
+                        ),
+                        gltfMaterial.pbrMetallicRoughness.metallicFactor,
+                        gltfMaterial.pbrMetallicRoughness.roughnessFactor,
+                        gltfMaterial.pbrMetallicRoughness.metallicRoughnessTexture?.loadTexture(
+                            device,
+                            preferredFormat,
+                        ),
+                    )
+                } ?: MeshMaterial()
+            val indexFormat =
+                if (prim.indices >= 0)
+                    gltfFile.accessors[prim.indices].componentType.toIndexFormat()
+                else null
+            val meshNode = MeshNode(mesh, material, prim.mode.toTopology(), indexFormat)
             node += meshNode
             // apply skin
             if (skin >= 0) {
@@ -129,8 +152,6 @@ private class GltfModelGenerator(val gltfFile: GltfData) {
             if (prim.targets.isNotEmpty()) {
                 //     mesh.morphWeights = FloatArray(prim.targets.sumOf { it.size })
             }
-
-            meshNode.loadTextures(device, prim, preferredFormat)
 
             model.meshes[name] = mesh
         }
@@ -160,22 +181,22 @@ private class GltfModelGenerator(val gltfFile: GltfData) {
         vertexAttributes +=
             VertexAttribute(VertexFormat.FLOAT32x3, offset, 0, VertexAttrUsage.POSITION)
         offset += 3L * Float.SIZE_BYTES
-        vertexAttributes +=
-            VertexAttribute(VertexFormat.FLOAT32x3, offset, 1, VertexAttrUsage.NORMAL)
-        offset += 3L * Float.SIZE_BYTES
+        //        vertexAttributes +=
+        //            VertexAttribute(VertexFormat.FLOAT32x3, offset, 1, VertexAttrUsage.NORMAL)
+        //        offset += 3L * Float.SIZE_BYTES
 
-        if (colorGltfAccessor != null) {
-            vertexAttributes +=
-                VertexAttribute(VertexFormat.FLOAT32x4, offset, 2, VertexAttrUsage.COLOR)
-            offset += 4L * Float.SIZE_BYTES
-        }
+        //        if (colorGltfAccessor != null) {
+        //            vertexAttributes +=
+        //                VertexAttribute(VertexFormat.FLOAT32x4, offset, 2, VertexAttrUsage.COLOR)
+        //            offset += 4L * Float.SIZE_BYTES
+        //        }
         //        if (cfg.setVertexAttribsFromMaterial) {
         //            attribs += Attribute.EMISSIVE_COLOR
         //            attribs += Attribute.METAL_ROUGH
         //        }
         if (texCoordGltfAccessor != null) {
             vertexAttributes +=
-                VertexAttribute(VertexFormat.FLOAT32x2, offset, 3, VertexAttrUsage.TEX_COORDS)
+                VertexAttribute(VertexFormat.FLOAT32x2, offset, 1, VertexAttrUsage.TEX_COORDS)
             offset += 2L * Float.SIZE_BYTES
         }
         //        if (tangentAcc != null) {
@@ -184,16 +205,16 @@ private class GltfModelGenerator(val gltfFile: GltfData) {
         //            attribs += Attribute.TANGENTS
         //            generateTangents = true
         //        }
-        if (jointGltfAccessor != null) {
-            vertexAttributes +=
-                VertexAttribute(VertexFormat.SINT32x4, offset, 4, VertexAttrUsage.JOINT)
-            offset += 4L * Int.SIZE_BYTES
-        }
-        if (weightGltfAccessor != null) {
-            vertexAttributes +=
-                VertexAttribute(VertexFormat.FLOAT32x4, offset, 5, VertexAttrUsage.WEIGHT)
-            offset += 4L * Float.SIZE_BYTES
-        }
+        //        if (jointGltfAccessor != null) {
+        //            vertexAttributes +=
+        //                VertexAttribute(VertexFormat.SINT32x4, offset, 4, VertexAttrUsage.JOINT)
+        //            offset += 4L * Int.SIZE_BYTES
+        //        }
+        //        if (weightGltfAccessor != null) {
+        //            vertexAttributes +=
+        //                VertexAttribute(VertexFormat.FLOAT32x4, offset, 5, VertexAttrUsage.WEIGHT)
+        //            offset += 4L * Float.SIZE_BYTES
+        //        }
 
         //        val morphAccessors = makeMorphTargetAccessors(gltfAccessors)
         //        attribs += morphAccessors.keys
@@ -224,11 +245,11 @@ private class GltfModelGenerator(val gltfFile: GltfData) {
         repeat(positionGltfAccessor.count) { i ->
             geometry.addVertex {
                 positionAccessor.next(position)
-                normalAccessor?.next(normal)
+                //                normalAccessor?.next(normal)
                 texCoordAccessor?.next(texCoords)
-                colorAccessor?.next()?.let { col -> color.set(col) }
-                jointAccessor?.next(joints)
-                weightAccessor?.next(weights)
+                //                colorAccessor?.next()?.let { col -> color.set(col) }
+                //                jointAccessor?.next(joints)
+                //                weightAccessor?.next(weights)
             }
         }
         if (indexGltfAccessor != null) {
@@ -241,17 +262,10 @@ private class GltfModelGenerator(val gltfFile: GltfData) {
         return geometry
     }
 
-    private suspend fun MeshNode.loadTextures(
+    private suspend fun GltfTextureInfo?.loadTexture(
         device: Device,
-        prim: GltfPrimitive,
         preferredFormat: TextureFormat,
-    ) {
-        prim.materialRef
-            ?.pbrMetallicRoughness
-            ?.baseColorTexture
-            ?.getTexture(gltfFile, root, device, preferredFormat)
-            ?.also { textures["albedo"] = it }
-    }
+    ): Texture? = this?.getTexture(gltfFile, root, device, preferredFormat)
 
     companion object {
         private val logger = Logger<GltfModelGenerator>()

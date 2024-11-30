@@ -5,8 +5,7 @@ import com.littlekt.file.vfs.VfsFile
 import com.littlekt.file.vfs.readPixmap
 import com.littlekt.graphics.PixmapTexture
 import com.littlekt.graphics.Texture
-import com.littlekt.graphics.webgpu.Device
-import com.littlekt.graphics.webgpu.TextureFormat
+import com.littlekt.graphics.webgpu.*
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
@@ -86,7 +85,10 @@ data class GltfData(
             }
             it.jointRefs = it.joints.map { iJt -> nodes[iJt] }
         }
-        textures.forEach { it.imageRef = images[it.source] }
+        textures.forEach {
+            it.imageRef = images[it.source]
+            it.samplerRef = samplers[it.sampler]
+        }
     }
 }
 
@@ -121,6 +123,14 @@ enum class GltfComponentType(val value: String, val byteSize: kotlin.Int) {
         val IntTypes = setOf(Byte, UnsignedByte, Short, UnsignedShort, Int, UnsignedInt)
     }
 }
+
+/** @return an [IndexFormat] for this [GltfComponentType], if applicable; otherwise `null`. */
+fun GltfComponentType.toIndexFormat(): IndexFormat? =
+    when (this) {
+        GltfComponentType.UnsignedShort -> IndexFormat.UINT16
+        GltfComponentType.UnsignedInt -> IndexFormat.UINT32
+        else -> null
+    }
 
 @Serializable
 data class GltfAccessorSparse(
@@ -440,6 +450,20 @@ enum class GltfRenderMode(val value: String) {
     @SerialName("8") Polygon("8"),
 }
 
+/** Converts the [GltfRenderMode] to it's respective [PrimitiveTopology]. */
+fun GltfRenderMode.toTopology(): PrimitiveTopology =
+    when (this) {
+        GltfRenderMode.Points -> PrimitiveTopology.POINT_LIST
+        GltfRenderMode.Lines -> PrimitiveTopology.LINE_LIST
+        GltfRenderMode.LineLoop -> PrimitiveTopology.LINE_STRIP
+        GltfRenderMode.Triangles -> PrimitiveTopology.TRIANGLE_LIST
+        GltfRenderMode.TriangleStrip -> PrimitiveTopology.TRIANGLE_STRIP
+        else ->
+            error(
+                "Unsupported GLtf Render Mode: ${this.name}. Supported modes are: [Points, Lines, LineLoop, Triangles, TriangleStrip]."
+            )
+    }
+
 @Serializable
 data class GltfNode(
     val children: List<Int> = emptyList(),
@@ -485,6 +509,34 @@ enum class GltfTextureWrap(val value: String) {
     @SerialName("33648") MirroredRepeat("33648"),
 }
 
+/**
+ * Maps this [GltfTextureWrap] to [AddressMode]. If `null`, it will default to [AddressMode.REPEAT].
+ */
+fun GltfTextureWrap?.toAddressMode(): AddressMode =
+    when (this) {
+        GltfTextureWrap.Repeat -> AddressMode.REPEAT
+        GltfTextureWrap.ClampToEdge -> AddressMode.CLAMP_TO_EDGE
+        GltfTextureWrap.MirroredRepeat -> AddressMode.MIRROR_REPEAT
+        null -> AddressMode.REPEAT
+    }
+
+/**
+ * Maps this [GltfTextureWrap] to a pair [FilterMode]. The first in the pair is for the respective
+ * filter (`min`/`mag`) and the second in the pair is for the mipmap. For Example, `Gltf.Nearest`
+ * will map to `Pair(FilterMode.NEAREST, FilterMode.NEAREST)`. If `null`, it will default to
+ * `Pair(FilterMode.NEAREST, FilterMode.NEAREST)`.
+ */
+fun GltfTextureFilter?.toFilterMode(): Pair<FilterMode, FilterMode> =
+    when (this) {
+        GltfTextureFilter.Nearest,
+        GltfTextureFilter.NearestMipMapNearest -> FilterMode.NEAREST to FilterMode.NEAREST
+        GltfTextureFilter.Linear,
+        GltfTextureFilter.LinearMipMapLinear -> FilterMode.LINEAR to FilterMode.LINEAR
+        GltfTextureFilter.LinearMipMapNearest -> FilterMode.LINEAR to FilterMode.NEAREST
+        GltfTextureFilter.NearestMipMapLinear -> FilterMode.NEAREST to FilterMode.LINEAR
+        null -> FilterMode.LINEAR to FilterMode.LINEAR
+    }
+
 @Serializable
 data class GltfScene(val nodes: List<Int>, val name: String? = null) {
     @Transient lateinit var nodeRefs: List<GltfNode>
@@ -505,6 +557,7 @@ data class GltfSkin(
 @Serializable
 data class GltfTexture(val sampler: Int = -1, val source: Int = 0, val name: String? = null) {
     @Transient lateinit var imageRef: GltfImage
+    @Transient lateinit var samplerRef: GltfSampler
 
     @Transient private var texture: Texture? = null
 
@@ -518,7 +571,19 @@ data class GltfTexture(val sampler: Int = -1, val source: Int = 0, val name: Str
                     imageRef.bufferViewRef?.getData()?.toArray()?.readPixmap()
                         ?: error("Unable to read GltfTexture data!")
                 }
-            texture = PixmapTexture(device, preferredFormat, pixmap)
+            texture =
+                PixmapTexture(device, preferredFormat, pixmap).apply {
+                    val minFilters = samplerRef.minFilter.toFilterMode()
+                    val magFilters = samplerRef.magFilter.toFilterMode()
+                    samplerDescriptor =
+                        samplerDescriptor.copy(
+                            addressModeU = samplerRef.wrapS.toAddressMode(),
+                            addressModeV = samplerRef.wrapT.toAddressMode(),
+                            minFilter = minFilters.first,
+                            magFilter = magFilters.first,
+                            mipmapFilter = minFilters.second,
+                        )
+                }
         }
         return texture ?: error("Unable to convert the GltfTexture to a Texture!")
     }

@@ -3,19 +3,32 @@ package com.littlekt.graphics.g3d
 import com.littlekt.file.FloatBuffer
 import com.littlekt.graphics.IndexedMesh
 import com.littlekt.graphics.Mesh
-import com.littlekt.graphics.Texture
 import com.littlekt.graphics.webgpu.*
 
 /**
  * @author Colton Daily
  * @date 11/25/2024
  */
-open class MeshNode(val mesh: Mesh<*>) : VisualInstance() {
-    val textures = mutableMapOf<String, Texture>()
+open class MeshNode(
+    val mesh: Mesh<*>,
+    val material: MeshMaterial,
+    val topology: PrimitiveTopology = PrimitiveTopology.TRIANGLE_LIST,
+    val stripIndexFormat: IndexFormat? = null,
+) : VisualInstance() {
     private var renderPipeline: RenderPipeline? = null
     private val modelFloatBuffer = FloatBuffer(16)
     private lateinit var modelUniformBuffer: GPUBuffer
     private lateinit var modelBindGroup: BindGroup
+
+    init {
+        if (
+            topology == PrimitiveTopology.TRIANGLE_STRIP || topology == PrimitiveTopology.LINE_STRIP
+        ) {
+            check(stripIndexFormat != null) {
+                error("MeshNode.stripIndexFormat is required to be set for strip topologies!")
+            }
+        }
+    }
 
     override fun build(
         device: Device,
@@ -35,6 +48,7 @@ open class MeshNode(val mesh: Mesh<*>) : VisualInstance() {
             vertexShaderEntryPoint,
             fragmentShaderEntryPoint,
         )
+        material.upload(device)
         globalTransform.toBuffer(modelFloatBuffer)
         modelUniformBuffer =
             device.createGPUFloatBuffer(
@@ -57,7 +71,9 @@ open class MeshNode(val mesh: Mesh<*>) : VisualInstance() {
             )
         val pipelineLayout =
             device.createPipelineLayout(
-                PipelineLayoutDescriptor(listOf(uniformsBindGroupLayout, modelBindGroupLayout))
+                PipelineLayoutDescriptor(
+                    listOf(uniformsBindGroupLayout, modelBindGroupLayout, material.bindGroupLayout)
+                )
             )
         val renderPipelineDesc =
             RenderPipelineDescriptor(
@@ -66,7 +82,7 @@ open class MeshNode(val mesh: Mesh<*>) : VisualInstance() {
                     VertexState(
                         module = shader,
                         entryPoint = vertexShaderEntryPoint,
-                        mesh.geometry.layout.gpuVertexBufferLayout,
+                        buffer = mesh.geometry.layout.gpuVertexBufferLayout,
                     ),
                 fragment =
                     FragmentState(
@@ -79,7 +95,8 @@ open class MeshNode(val mesh: Mesh<*>) : VisualInstance() {
                                 writeMask = ColorWriteMask.ALL,
                             ),
                     ),
-                primitive = PrimitiveState(topology = PrimitiveTopology.TRIANGLE_LIST),
+                primitive =
+                    PrimitiveState(topology = topology, stripIndexFormat = stripIndexFormat),
                 depthStencil =
                     DepthStencilState(
                         depthFormat,
@@ -106,9 +123,10 @@ open class MeshNode(val mesh: Mesh<*>) : VisualInstance() {
         renderPassEncoder.setPipeline(renderPipeline)
         renderPassEncoder.setBindGroup(0, bindGroup)
         renderPassEncoder.setBindGroup(1, modelBindGroup)
+        renderPassEncoder.setBindGroup(2, material.bindGroup)
         renderPassEncoder.setVertexBuffer(0, mesh.vbo)
         if (mesh is IndexedMesh<*>) {
-            renderPassEncoder.setIndexBuffer(mesh.ibo, IndexFormat.UINT16)
+            renderPassEncoder.setIndexBuffer(mesh.ibo, stripIndexFormat ?: IndexFormat.UINT16)
             renderPassEncoder.drawIndexed(mesh.geometry.numIndices, 1)
         } else {
             renderPassEncoder.draw(mesh.geometry.numVertices, 1)

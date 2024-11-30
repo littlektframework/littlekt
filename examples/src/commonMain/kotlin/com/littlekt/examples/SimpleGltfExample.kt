@@ -79,6 +79,7 @@ class SimpleGltfExample(context: Context) : ContextListener(context) {
             out.position = view_params.view_proj * node_params.transform * float4(vert.position, 1.0);
             out.world_pos = vert.position.xyz;
             out.texcoords = vert.texcoords;
+            return out;
         };
 
         @fragment
@@ -147,10 +148,12 @@ class SimpleGltfExample(context: Context) : ContextListener(context) {
                     TextureUsage.RENDER_ATTACHMENT,
                 )
             )
+        var depthFrame = depthTexture.createView()
         val model =
-            resourcesVfs["Fox.glb"].readGltf().toModel().apply {
+            resourcesVfs["Duck.glb"].readGltf().toModel().apply {
                 build(device, shader, vertexGroupLayout, preferredFormat, depthFormat)
             }
+        model.scale(20f)
 
         graphics.configureSurface(
             TextureUsage.RENDER_ATTACHMENT,
@@ -166,6 +169,7 @@ class SimpleGltfExample(context: Context) : ContextListener(context) {
                 PresentMode.FIFO,
                 surfaceCapabilities.alphaModes[0],
             )
+            depthFrame.release()
             depthTexture.release()
             depthTexture =
                 device.createTexture(
@@ -178,6 +182,7 @@ class SimpleGltfExample(context: Context) : ContextListener(context) {
                         TextureUsage.RENDER_ATTACHMENT,
                     )
                 )
+            depthFrame = depthTexture.createView()
         }
 
         addWASDMovement(camera, 0.5f)
@@ -212,7 +217,6 @@ class SimpleGltfExample(context: Context) : ContextListener(context) {
 
             val swapChainTexture = checkNotNull(surfaceTexture.texture)
             val frame = swapChainTexture.createView()
-            val depthFrame = depthTexture.createView()
 
             val commandEncoder = device.createCommandEncoder()
             val renderPassEncoder =
@@ -254,7 +258,6 @@ class SimpleGltfExample(context: Context) : ContextListener(context) {
             renderPassEncoder.release()
             commandEncoder.release()
             frame.release()
-            depthFrame.release()
             swapChainTexture.release()
         }
 
