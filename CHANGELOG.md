@@ -22,6 +22,7 @@
 - Update internal JVM `readPixmap` to use `stbimage` instead of `ImageIO`
 - Fix `IndexedMeshGeometry` index buffer size calculation
 - Add `Compression` interface with `CompressionGZIP` implementations for jvmAndroid & js.
+- Fix `AssetProvider.fullyLoaded` calculation to take into account the active job
 - Update `kotlin` from `2.0.0` to `2.1.0`
 - Update `kotlinx.serialization` from `1.7.0` to `1.7.3`
 - Update `kotlinx.atomicfu` from `0.24.0` to `0.26.1`
