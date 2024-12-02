@@ -1,5 +1,6 @@
 package com.littlekt.file.compression
 
+import com.littlekt.file.ByteBuffer
 import kotlinx.coroutines.await
 import org.khronos.webgl.Uint8Array
 import org.khronos.webgl.get
@@ -11,8 +12,10 @@ import org.khronos.webgl.get
  * @date 12/2/2024
  */
 actual class CompressionGZIP : Compression {
+    actual override suspend fun compress(input: ByteBuffer): ByteBuffer =
+        ByteBuffer(compress(input.toArray()))
 
-    override suspend fun compress(input: ByteArray): ByteArray {
+    actual override suspend fun compress(input: ByteArray): ByteArray {
         val uint8Array = Uint8Array(input.toTypedArray())
         val readableStream =
             ReadableStream(
@@ -38,7 +41,10 @@ actual class CompressionGZIP : Compression {
         return ByteArray(output.length) { output[it] }
     }
 
-    override suspend fun decompress(input: ByteArray): ByteArray {
+    actual override suspend fun decompress(input: ByteBuffer): ByteBuffer =
+        ByteBuffer(decompress(input.toArray()))
+
+    actual override suspend fun decompress(input: ByteArray): ByteArray {
         val uint8Array = Uint8Array(input.toTypedArray())
         val readableStream =
             ReadableStream(

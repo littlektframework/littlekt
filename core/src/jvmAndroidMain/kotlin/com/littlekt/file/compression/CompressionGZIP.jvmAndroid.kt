@@ -1,5 +1,6 @@
 package com.littlekt.file.compression
 
+import com.littlekt.file.ByteBuffer
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.util.zip.GZIPInputStream
@@ -14,8 +15,10 @@ import kotlinx.coroutines.withContext
  * @date 12/2/2024
  */
 actual class CompressionGZIP : Compression {
+    actual override suspend fun compress(input: ByteBuffer): ByteBuffer =
+        ByteBuffer(compress(input.toArray()))
 
-    override suspend fun compress(input: ByteArray): ByteArray {
+    actual override suspend fun compress(input: ByteArray): ByteArray {
         val compressedData =
             withContext(Dispatchers.IO) {
                 ByteArrayOutputStream(input.size).use { outputStream ->
@@ -26,7 +29,10 @@ actual class CompressionGZIP : Compression {
         return compressedData
     }
 
-    override suspend fun decompress(input: ByteArray): ByteArray {
+    actual override suspend fun decompress(input: ByteBuffer): ByteBuffer =
+        ByteBuffer(decompress(input.toArray()))
+
+    actual override suspend fun decompress(input: ByteArray): ByteArray {
         val uncompressData =
             withContext(Dispatchers.IO) {
                 ByteArrayInputStream(input).use { inputStream ->

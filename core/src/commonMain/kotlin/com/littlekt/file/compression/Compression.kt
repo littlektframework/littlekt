@@ -16,7 +16,7 @@ interface Compression {
      * @param input uncompressed data.
      * @return compressed data ByteBuffer.
      */
-    suspend fun compress(input: ByteBuffer): ByteBuffer = ByteBuffer(compress(input.toArray()))
+    suspend fun compress(input: ByteBuffer): ByteBuffer
 
     /**
      * Compress a block of data
@@ -32,7 +32,7 @@ interface Compression {
      * @param input compressed data
      * @return decompressed data ByteBuffer.
      */
-    suspend fun decompress(input: ByteBuffer): ByteBuffer = ByteBuffer(decompress(input.toArray()))
+    suspend fun decompress(input: ByteBuffer): ByteBuffer
 
     /**
      * Decompress a block of data
