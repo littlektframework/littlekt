@@ -21,6 +21,10 @@
         3. `applicationVfs` for loading files at the root of the application working directory.
 - Update internal JVM `readPixmap` to use `stbimage` instead of `ImageIO`
 - Add `Compression` interface with `CompressionGZIP` implementations for jvmAndroid & js.
+- Update `kotlin` from `2.0.0` to `2.1.0`
+- Update `kotlinx-serialization` from `1.7.0` to `1.7.3`
+- Update `kotlinx.atomicfu` from `0.24.0` to `0.26.1`
+- Update `LWJGL` from `3.3.3` to `3.3.4`
 - Internal code clean up
 - Documentation tweaks and clean up
 
