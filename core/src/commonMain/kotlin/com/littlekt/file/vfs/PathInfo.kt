@@ -48,7 +48,7 @@ val PathInfo.fullPathWithoutExtension: String
         val startIndex = fullPathNormalized.lastIndexOfOrNull('/')?.plus(1) ?: 0
         return fullPath.substring(
             0,
-            fullPathNormalized.indexOfOrNull('.', startIndex) ?: fullPathNormalized.length
+            fullPathNormalized.indexOfOrNull('.', startIndex) ?: fullPathNormalized.length,
         )
     }
 
@@ -95,7 +95,7 @@ val PathInfo.compoundExtension: String
 
 /** /path\to/file.1.EXT -> 1.ext */
 val PathInfo.compoundExtensionLC: String
-    get() = compoundExtension.toLowerCase()
+    get() = compoundExtension.lowercase()
 
 /** /path\to/file.1.jpg -> MimeType("image/jpeg", listOf("jpg", "jpeg")) */
 val PathInfo.mimeTypeByExtension
