@@ -13,8 +13,9 @@ open class MeshNode(
     val mesh: Mesh<*>,
     val material: MeshMaterial,
     val topology: PrimitiveTopology = PrimitiveTopology.TRIANGLE_LIST,
-    val stripIndexFormat: IndexFormat? = null,
+    private val stripIndexFormat: IndexFormat? = null,
 ) : VisualInstance() {
+    private val indexedMesh = mesh as? IndexedMesh<*>
     private var renderPipeline: RenderPipeline? = null
     private val modelFloatBuffer = FloatBuffer(16)
     private lateinit var modelUniformBuffer: GPUBuffer
@@ -125,9 +126,12 @@ open class MeshNode(
         renderPassEncoder.setBindGroup(1, modelBindGroup)
         renderPassEncoder.setBindGroup(2, material.bindGroup)
         renderPassEncoder.setVertexBuffer(0, mesh.vbo)
-        if (mesh is IndexedMesh<*>) {
-            renderPassEncoder.setIndexBuffer(mesh.ibo, stripIndexFormat ?: IndexFormat.UINT16)
-            renderPassEncoder.drawIndexed(mesh.geometry.numIndices, 1)
+        if (indexedMesh != null) {
+            renderPassEncoder.setIndexBuffer(
+                indexedMesh.ibo,
+                stripIndexFormat ?: IndexFormat.UINT16,
+            )
+            renderPassEncoder.drawIndexed(indexedMesh.geometry.numIndices, 1)
         } else {
             renderPassEncoder.draw(mesh.geometry.numVertices, 1)
         }

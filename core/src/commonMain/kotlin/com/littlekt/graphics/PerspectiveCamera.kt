@@ -12,7 +12,7 @@ import kotlin.math.atan
 open class PerspectiveCamera(virtualWidth: Float = 0f, virtualHeight: Float = 0f) : Camera() {
     constructor(
         virtualWidth: Int,
-        virtualHeight: Int
+        virtualHeight: Int,
     ) : this(virtualWidth.toFloat(), virtualHeight.toFloat())
 
     override val direction: MutableVec3f = MutableVec3f(Vec3f.NEG_Z_AXIS)
@@ -31,6 +31,7 @@ open class PerspectiveCamera(virtualWidth: Float = 0f, virtualHeight: Float = 0f
         this.virtualWidth = virtualWidth
         this.virtualHeight = virtualHeight
         near = 0.1f
+        far = 10000f
         fov = 60f
     }
 
@@ -53,7 +54,7 @@ open class PerspectiveCamera(virtualWidth: Float = 0f, virtualHeight: Float = 0f
         pz: Float,
         width: Float,
         height: Float,
-        length: Float
+        length: Float,
     ): Boolean {
         // TODO
         return true

@@ -104,7 +104,6 @@ class SimpleGltfExample(context: Context) : ContextListener(context) {
         addCloseOnEsc()
         val device = graphics.device
         val camera = PerspectiveCamera()
-        camera.far = 1000f
         camera.translate(0f, 25f, 150f)
 
         val cameraFloatBuffer = FloatBuffer(16)
@@ -149,11 +148,15 @@ class SimpleGltfExample(context: Context) : ContextListener(context) {
                 )
             )
         var depthFrame = depthTexture.createView()
-        val model =
-            resourcesVfs["Duck.glb"].readGltf().toModel().apply {
-                build(device, shader, vertexGroupLayout, preferredFormat, depthFormat)
-            }
-        model.scale(20f)
+        val models =
+            listOf(
+                resourcesVfs["Duck.glb"].readGltf().toModel().apply {
+                    scale(20f)
+                    translate(-30f, 0f, 0f)
+                },
+                resourcesVfs["Fox.glb"].readGltf().toModel().apply { translate(30f, 0f, 0f) },
+            )
+        models.forEach { it.build(device, shader, vertexGroupLayout, preferredFormat, depthFormat) }
 
         graphics.configureSurface(
             TextureUsage.RENDER_ATTACHMENT,
@@ -188,8 +191,10 @@ class SimpleGltfExample(context: Context) : ContextListener(context) {
         addWASDMovement(camera, 0.5f)
         addZoom(camera, 0.01f)
         onUpdate { dt ->
-            model.rotate(y = 0.1.degrees * dt.milliseconds)
-            model.update(device)
+            models.forEach { model ->
+                model.rotate(y = 0.1.degrees * dt.milliseconds)
+                model.update(device)
+            }
         }
         onUpdate {
             val surfaceTexture = graphics.surface.getCurrentTexture()
@@ -246,7 +251,7 @@ class SimpleGltfExample(context: Context) : ContextListener(context) {
                         )
                 )
 
-            model.render(renderPassEncoder, vertexBindGroup)
+            models.forEach { model -> model.render(renderPassEncoder, vertexBindGroup) }
             renderPassEncoder.end()
 
             val commandBuffer = commandEncoder.finish()
