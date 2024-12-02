@@ -42,7 +42,12 @@ kotlin {
                 implementation(libs.kotlinx.serialization.json)
             }
         }
-        val commonTest by getting { dependencies { implementation(libs.kotlin.test) } }
+        val commonTest by getting {
+            dependencies {
+                implementation(libs.kotlin.test)
+                implementation(libs.kotlinx.coroutines.test)
+            }
+        }
 
         //noinspection UseTomlInstead
         val jvmMain by getting {
@@ -63,7 +68,7 @@ kotlin {
                         "natives-linux",
                         "natives-linux-arm64",
                         "natives-macos",
-                        "natives-macos-arm64"
+                        "natives-macos-arm64",
                     )
                     .forEach { platform ->
                         runtimeOnly("${libs.lwjgl.core.get()}:$platform")
