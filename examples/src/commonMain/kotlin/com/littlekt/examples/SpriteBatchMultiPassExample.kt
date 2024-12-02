@@ -36,7 +36,7 @@ class SpriteBatchMultiPassExample(context: Context) : ContextListener(context) {
             TextureUsage.RENDER_ATTACHMENT,
             preferredFormat,
             PresentMode.FIFO,
-            surfaceCapabilities.alphaModes[0]
+            surfaceCapabilities.alphaModes[0],
         )
 
         val batch = SpriteBatch(device, graphics, preferredFormat)
@@ -52,7 +52,7 @@ class SpriteBatchMultiPassExample(context: Context) : ContextListener(context) {
                 TextureUsage.RENDER_ATTACHMENT,
                 preferredFormat,
                 PresentMode.FIFO,
-                surfaceCapabilities.alphaModes[0]
+                surfaceCapabilities.alphaModes[0],
             )
         }
 
@@ -98,7 +98,7 @@ class SpriteBatchMultiPassExample(context: Context) : ContextListener(context) {
                                     storeOp = StoreOp.STORE,
                                     clearColor =
                                         if (preferredFormat.srgb) Color.DARK_GRAY.toLinear()
-                                        else Color.DARK_GRAY
+                                        else Color.DARK_GRAY,
                                 )
                             )
                         )
@@ -107,7 +107,7 @@ class SpriteBatchMultiPassExample(context: Context) : ContextListener(context) {
             uiCam.update()
 
             batch.use(renderPassEncoder, camera.viewProjection) {
-                world.levels[0].render(batch, camera, scale = 1f)
+                world.levels[0].render(batch, camera, 0f, 0f)
                 batch.viewProjection = uiCam.viewProjection
                 pixelFont.draw(batch, "Hello\nLittleKt!", 0f, 0f, align = HAlign.CENTER)
             }
