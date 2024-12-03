@@ -8,8 +8,10 @@ Requires JDK 21+ in order to use due to the usage of the new Java FFM API.
 
 **Currently, in development.**
 
+Join the [Discord](https://discord.gg/8VCZEQVBvt) server!
+
 [Features](https://littlekt.com/features/) - [Docs](https://littlekt.com/docs/) - [Dokka / KDocs](https://littlekt.com/dokka/) - [Samples](https://github.com/littlektframework/littlekt-samples) -
-[Showcase](#showcase) - [Ask a Question](https://github.com/littlektframework/littlekt/discussions/categories/q-a) - [Changelog](CHANGELOG.md) - [Starter Project](https://github.com/littlektframework/littlekt-game-template)
+[Showcase](#showcase) - [Ask a Question](https://github.com/littlektframework/littlekt/discussions/categories/q-a) - [Changelog](CHANGELOG.md) - [Starter Project](https://github.com/littlektframework/littlekt-game-template) - [Discord](https://discord.gg/8VCZEQVBvt)
 
 ## A 2D game framework written in Kotlin
 
