@@ -40,11 +40,11 @@ class MimeType(val mime: String, val exts: List<String>) {
                 TEXT_HTML,
                 TEXT_PLAIN,
                 TEXT_CSS,
-                TEXT_JS
+                TEXT_JS,
             )
         }
 
         fun getByExtension(ext: String, default: MimeType = APPLICATION_OCTET_STREAM): MimeType =
-            MimeType_byExtensions[ext.toLowerCase()] ?: default
+            MimeType_byExtensions[ext.lowercase()] ?: default
     }
 }

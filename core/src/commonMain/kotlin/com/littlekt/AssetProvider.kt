@@ -56,7 +56,7 @@ open class AssetProvider(val context: Context) {
 
     /** Determines if it has been fully loaded. */
     val fullyLoaded: Boolean
-        get() = totalAssetsLoading.value == 0 && assetsToPrepare.isEmpty()
+        get() = totalAssetsLoading.value == 0 && assetsToPrepare.isEmpty() && job?.isActive != true
 
     private var job: Job? = null
 

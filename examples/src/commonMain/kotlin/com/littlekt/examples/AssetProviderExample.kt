@@ -38,7 +38,7 @@ class AssetProviderExample(context: Context) : ContextListener(context) {
             TextureUsage.RENDER_ATTACHMENT,
             preferredFormat,
             PresentMode.FIFO,
-            surfaceCapabilities.alphaModes[0]
+            surfaceCapabilities.alphaModes[0],
         )
 
         val batch = SpriteBatch(device, graphics, preferredFormat)
@@ -51,7 +51,7 @@ class AssetProviderExample(context: Context) : ContextListener(context) {
                 TextureUsage.RENDER_ATTACHMENT,
                 preferredFormat,
                 PresentMode.FIFO,
-                surfaceCapabilities.alphaModes[0]
+                surfaceCapabilities.alphaModes[0],
             )
         }
 
@@ -97,7 +97,7 @@ class AssetProviderExample(context: Context) : ContextListener(context) {
                                     storeOp = StoreOp.STORE,
                                     clearColor =
                                         if (preferredFormat.srgb) Color.DARK_GRAY.toLinear()
-                                        else Color.DARK_GRAY
+                                        else Color.DARK_GRAY,
                                 )
                             )
                         )
@@ -105,7 +105,7 @@ class AssetProviderExample(context: Context) : ContextListener(context) {
             camera.update()
 
             batch.use(renderPassEncoder, camera.viewProjection) {
-                world.levels[0].render(it, camera, scale = 1f)
+                world.levels[0].render(it, camera, 0f, 0f, 1f)
                 pixelFont.draw(it, "Hello\nLittleKt!", 0f, 0f, align = HAlign.CENTER)
                 arialFont.draw(it, "Hello\nLittleKt!", -300f, 0f)
                 Fonts.default.draw(it, "Hello\nLittleKt!", 150f, 0f, align = HAlign.RIGHT)

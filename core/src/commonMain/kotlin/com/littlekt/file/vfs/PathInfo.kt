@@ -95,7 +95,7 @@ val PathInfo.compoundExtension: String
 
 /** /path\to/file.1.EXT -> 1.ext */
 val PathInfo.compoundExtensionLC: String
-    get() = compoundExtension.toLowerCase()
+    get() = compoundExtension.lowercase()
 
 /** /path\to/file.1.jpg -> MimeType("image/jpeg", listOf("jpg", "jpeg")) */
 val PathInfo.mimeTypeByExtension

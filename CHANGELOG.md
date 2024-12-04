@@ -1,6 +1,37 @@
 # Changelog
 
-## 0.10.2 (SNAPSHOT)
+## 0.10.3 (SNAPSHOT)
+
+## 0.10.2
+
+### Changes
+
+- Fix `Rect.intersects` to use correct top & bottom coordinate during calculation.
+- Fix `InputMapController` bindings are triggered without modifiers when a modifier is pressed.
+- Fix jvm `AudioStream` volume not being able to be set to `0`.
+- Update `TiledLayer.visible` to be mutable.
+- Add support for object within a tile in `Tiled` maps
+- Add fetching tile ID by coordinates in `TiledLayer`.
+- Fix GamePad button axis strength calculation not using the negative input resulting in buttons not affecting axis
+  strength
+- Fix `Animation.getFrame(index)` and `Animation.getFrameTime(index)` from being able to go out index bounds.
+- Add new `Vfs` subtypes: `UrlVfs` and `LocalVfs`.
+    - `Context` now has three `Vfs` types:
+        1. `resourcesVfs` for loading from the `resources` directory. This handles loading from fat JARs fine now (fixes
+           #275)
+        2. `urlVfs` for loading directly from a URL or data URL.
+        3. `applicationVfs` for loading files at the root of the application working directory.
+- Update internal JVM `readPixmap` to use `stbimage` instead of `ImageIO`
+- Fix `IndexedMeshGeometry` index buffer size calculation
+- Add `Compression` interface with `CompressionGZIP` implementations for jvmAndroid & js.
+- Fix `AssetProvider.fullyLoaded` calculation to take into account the active job
+- Update `kotlin` from `2.0.0` to `2.1.0`
+- Update `kotlinx.serialization` from `1.7.0` to `1.7.3`
+- Update `kotlinx.atomicfu` from `0.24.0` to `0.26.1`
+- Update `kotlinx.coroutines` from `1.9.0-RC` to `1.9.0`
+- Update `LWJGL` from `3.3.3` to `3.3.4`
+- Internal code clean up
+- Documentation tweaks and clean up
 
 ## 0.10.1
 
