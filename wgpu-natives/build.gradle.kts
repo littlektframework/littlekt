@@ -34,10 +34,10 @@ tasks {
         onlyIfModified(true)
         src(
             listOf(
-                "$baseUrl/wgpu-windows-x86_64-release.zip",
+                "$baseUrl/wgpu-windows-x86_64-msvc-release.zip",
                 "$baseUrl/wgpu-macos-x86_64-release.zip ",
                 "$baseUrl/wgpu-macos-aarch64-release.zip ",
-                "$baseUrl/wgpu-linux-x86_64-release.zip"
+                "$baseUrl/wgpu-linux-x86_64-release.zip",
             )
         )
         dest(layout.buildDirectory.asFile.get())
@@ -47,7 +47,7 @@ tasks {
         dependsOn("downloadWgpuNativeBinaries")
         val buildDir = layout.buildDirectory.asFile.get().path
 
-        from(zipTree("$buildDir/wgpu-windows-x86_64-release.zip")) { include("**.dll") }
+        from(zipTree("$buildDir/wgpu-windows-x86_64-msvc-release.zip")) { include("**.dll") }
         from(zipTree("$buildDir/wgpu-macos-x86_64-release.zip")) { include("**.dylib") }
         from(zipTree("$buildDir/wgpu-macos-aarch64-release.zip")) {
             include("**.dylib")

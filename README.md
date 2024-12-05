@@ -74,12 +74,12 @@ repositories {
 kotlin {
     jvm {
         compilations.all {
-            kotlinOptions.jvmTarget = "21" // littlekt targets jvm 21 so we must target at least 17
+            kotlinOptions.jvmTarget = "22" // littlekt snapshot targets jvm 22 
         }
     }
 }
 
-val littleKtVersion = "0.10.0.a9529eb-SNAPSHOT" // or whichever hash you are using
+val littleKtVersion = "0.11.0.a9529eb-SNAPSHOT" // or whichever hash you are using
 val kotlinCoroutinesVersion = "1.9.1" // or whatever version you are using
 
 sourceSets {

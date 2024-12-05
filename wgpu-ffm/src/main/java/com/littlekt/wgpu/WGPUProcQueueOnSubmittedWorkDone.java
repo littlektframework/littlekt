@@ -14,7 +14,7 @@ import static java.lang.foreign.MemoryLayout.PathElement.*;
 
 /**
  * {@snippet lang=c :
- * typedef void (*WGPUProcQueueOnSubmittedWorkDone)(WGPUQueue, WGPUQueueWorkDoneCallback, void *)
+ * typedef void (*WGPUProcQueueOnSubmittedWorkDone)(WGPUQueue, WGPUQueueOnSubmittedWorkDoneCallback, void *)
  * }
  */
 public class WGPUProcQueueOnSubmittedWorkDone {

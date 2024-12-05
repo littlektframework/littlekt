@@ -23,6 +23,7 @@ import static java.lang.foreign.MemoryLayout.PathElement.*;
  *     WGPUQueueDescriptor defaultQueue;
  *     WGPUDeviceLostCallback deviceLostCallback;
  *     void *deviceLostUserdata;
+ *     WGPUUncapturedErrorCallbackInfo uncapturedErrorCallbackInfo;
  * }
  * }
  */
@@ -40,7 +41,8 @@ public class WGPUDeviceDescriptor {
         WGPU.C_POINTER.withName("requiredLimits"),
         WGPUQueueDescriptor.layout().withName("defaultQueue"),
         WGPU.C_POINTER.withName("deviceLostCallback"),
-        WGPU.C_POINTER.withName("deviceLostUserdata")
+        WGPU.C_POINTER.withName("deviceLostUserdata"),
+        WGPUUncapturedErrorCallbackInfo.layout().withName("uncapturedErrorCallbackInfo")
     ).withName("WGPUDeviceDescriptor");
 
     /**
@@ -400,6 +402,50 @@ public class WGPUDeviceDescriptor {
      */
     public static void deviceLostUserdata(MemorySegment struct, MemorySegment fieldValue) {
         struct.set(deviceLostUserdata$LAYOUT, deviceLostUserdata$OFFSET, fieldValue);
+    }
+
+    private static final GroupLayout uncapturedErrorCallbackInfo$LAYOUT = (GroupLayout)$LAYOUT.select(groupElement("uncapturedErrorCallbackInfo"));
+
+    /**
+     * Layout for field:
+     * {@snippet lang=c :
+     * WGPUUncapturedErrorCallbackInfo uncapturedErrorCallbackInfo
+     * }
+     */
+    public static final GroupLayout uncapturedErrorCallbackInfo$layout() {
+        return uncapturedErrorCallbackInfo$LAYOUT;
+    }
+
+    private static final long uncapturedErrorCallbackInfo$OFFSET = 72;
+
+    /**
+     * Offset for field:
+     * {@snippet lang=c :
+     * WGPUUncapturedErrorCallbackInfo uncapturedErrorCallbackInfo
+     * }
+     */
+    public static final long uncapturedErrorCallbackInfo$offset() {
+        return uncapturedErrorCallbackInfo$OFFSET;
+    }
+
+    /**
+     * Getter for field:
+     * {@snippet lang=c :
+     * WGPUUncapturedErrorCallbackInfo uncapturedErrorCallbackInfo
+     * }
+     */
+    public static MemorySegment uncapturedErrorCallbackInfo(MemorySegment struct) {
+        return struct.asSlice(uncapturedErrorCallbackInfo$OFFSET, uncapturedErrorCallbackInfo$LAYOUT.byteSize());
+    }
+
+    /**
+     * Setter for field:
+     * {@snippet lang=c :
+     * WGPUUncapturedErrorCallbackInfo uncapturedErrorCallbackInfo
+     * }
+     */
+    public static void uncapturedErrorCallbackInfo(MemorySegment struct, MemorySegment fieldValue) {
+        MemorySegment.copy(fieldValue, 0L, struct, uncapturedErrorCallbackInfo$OFFSET, uncapturedErrorCallbackInfo$LAYOUT.byteSize());
     }
 
     /**

@@ -14,7 +14,7 @@ import static java.lang.foreign.MemoryLayout.PathElement.*;
 
 /**
  * {@snippet lang=c :
- * typedef void (*WGPUProcInstanceRequestAdapter)(WGPUInstance, const WGPURequestAdapterOptions *, WGPURequestAdapterCallback, void *)
+ * typedef void (*WGPUProcInstanceRequestAdapter)(WGPUInstance, const WGPURequestAdapterOptions *, WGPUInstanceRequestAdapterCallback, void *)
  * }
  */
 public class WGPUProcInstanceRequestAdapter {

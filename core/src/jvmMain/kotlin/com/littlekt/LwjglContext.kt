@@ -95,11 +95,11 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context() {
         GLFW.glfwDefaultWindowHints()
         GLFW.glfwWindowHint(
             GLFW.GLFW_VISIBLE,
-            GLFW.GLFW_FALSE
+            GLFW.GLFW_FALSE,
         ) // the window will stay hidden after creation
         GLFW.glfwWindowHint(
             GLFW.GLFW_RESIZABLE,
-            configuration.resizeable.glfw
+            configuration.resizeable.glfw,
         ) // the window will be resizable
         GLFW.glfwWindowHint(GLFW.GLFW_MAXIMIZED, configuration.maximized.glfw)
         GLFW.glfwWindowHint(GLFW.GLFW_CLIENT_API, GLFW.GLFW_NO_API) // prevent opengl
@@ -113,7 +113,7 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context() {
                 configuration.height,
                 configuration.title,
                 MemoryUtil.NULL,
-                MemoryUtil.NULL
+                MemoryUtil.NULL,
             )
         if (windowHandle == MemoryUtil.NULL)
             throw RuntimeException("Failed to create the GLFW window")
@@ -133,7 +133,7 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context() {
         GLFW.glfwSetWindowPos(
             windowHandle,
             configuration.windowPosX ?: ((vidmode.width() - graphics.width) / 2),
-            configuration.windowPosY ?: ((vidmode.height() - graphics.height) / 2)
+            configuration.windowPosY ?: ((vidmode.height() - graphics.height) / 2),
         )
 
         // set window icon
@@ -148,7 +148,7 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context() {
                         pixmap.height,
                         ByteBuffer.allocateDirect(pixmap.pixels.capacity)
                             .put(pixmap.pixels.toArray())
-                            .flip()
+                            .flip(),
                     )
                     buffer.put(icon)
                     icon.free()
@@ -164,7 +164,7 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context() {
                     pixmap.height,
                     ByteBuffer.allocateDirect(pixmap.pixels.capacity)
                         .put(pixmap.pixels.toArray())
-                        .flip()
+                        .flip(),
                 )
                 val buffer = GLFWImage.malloc(1)
                 buffer.put(icon)
@@ -211,7 +211,7 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context() {
     private fun initLogging() {
         val callback =
             WGPULogCallback.Function { level, message, _ ->
-                val messageJvm = message.getUtf8String(0)
+                val messageJvm = message.getString(0)
                 val logLevel =
                     when (level) {
                         WGPULogLevel_Error() -> Logger.Level.ERROR

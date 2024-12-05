@@ -44,7 +44,7 @@ class SpriteCacheQuadsExample(context: Context) : ContextListener(context) {
             TextureUsage.RENDER_ATTACHMENT,
             preferredFormat,
             PresentMode.FIFO,
-            surfaceCapabilities.alphaModes[0]
+            surfaceCapabilities.alphaModes[0],
         )
 
         onResize { width, height ->
@@ -53,7 +53,7 @@ class SpriteCacheQuadsExample(context: Context) : ContextListener(context) {
                 TextureUsage.RENDER_ATTACHMENT,
                 preferredFormat,
                 PresentMode.FIFO,
-                surfaceCapabilities.alphaModes[0]
+                surfaceCapabilities.alphaModes[0],
             )
         }
 
@@ -95,13 +95,14 @@ class SpriteCacheQuadsExample(context: Context) : ContextListener(context) {
                                     storeOp = StoreOp.STORE,
                                     clearColor =
                                         if (preferredFormat.srgb) Color.DARK_GRAY.toLinear()
-                                        else Color.DARK_GRAY
+                                        else Color.DARK_GRAY,
                                 )
                             )
                         )
                 )
             cache.render(renderPassEncoder, camera.viewProjection)
             renderPassEncoder.end()
+            renderPassEncoder.release()
 
             val commandBuffer = commandEncoder.finish()
 
@@ -109,7 +110,6 @@ class SpriteCacheQuadsExample(context: Context) : ContextListener(context) {
             graphics.surface.present()
 
             commandBuffer.release()
-            renderPassEncoder.release()
             commandEncoder.release()
             frame.release()
             swapChainTexture.release()

@@ -72,7 +72,7 @@ actual class Device(val segment: MemorySegment) : Releasable {
                 maxComputeWorkgroupSizeX = WGPULimits.maxComputeWorkgroupSizeX(desc),
                 maxComputeWorkgroupSizeY = WGPULimits.maxComputeWorkgroupSizeY(desc),
                 maxComputeWorkgroupSizeZ = WGPULimits.maxComputeWorkgroupSizeZ(desc),
-                maxComputeWorkgroupsPerDimension = WGPULimits.maxComputeWorkgroupsPerDimension(desc)
+                maxComputeWorkgroupsPerDimension = WGPULimits.maxComputeWorkgroupsPerDimension(desc),
             )
         }
     }
@@ -85,7 +85,7 @@ actual class Device(val segment: MemorySegment) : Releasable {
 
             WGPUChainedStruct.next(wgslChain, WGPU_NULL)
             WGPUChainedStruct.sType(wgslChain, WGPUSType_ShaderModuleWGSLDescriptor())
-            WGPUShaderModuleWGSLDescriptor.code(wgsl, scope.allocateUtf8String(src))
+            WGPUShaderModuleWGSLDescriptor.code(wgsl, scope.allocateFrom(src))
             WGPUShaderModuleDescriptor.nextInChain(desc, wgslChain)
             ShaderModule(wgpuDeviceCreateShaderModule(segment, desc))
         }
@@ -99,13 +99,13 @@ actual class Device(val segment: MemorySegment) : Releasable {
                     WGPUFragmentState.module(fragDesc, desc.fragment.module.segment)
                     WGPUFragmentState.entryPoint(
                         fragDesc,
-                        desc.fragment.entryPoint.toNativeString(scope)
+                        desc.fragment.entryPoint.toNativeString(scope),
                     )
 
                     val targets =
                         WGPUColorTargetState.allocateArray(
                             desc.fragment.targets.size.toLong(),
-                            scope
+                            scope,
                         )
                     desc.fragment.targets.forEach { colorTargetState ->
                         if (colorTargetState.blendState == null) {
@@ -116,33 +116,33 @@ actual class Device(val segment: MemorySegment) : Releasable {
                         val alphaBlend = WGPUBlendState.alpha(blendState)
                         WGPUBlendComponent.srcFactor(
                             colorBlend,
-                            colorTargetState.blendState.color.srcFactor.nativeVal
+                            colorTargetState.blendState.color.srcFactor.nativeVal,
                         )
                         WGPUBlendComponent.dstFactor(
                             colorBlend,
-                            colorTargetState.blendState.color.dstFactor.nativeVal
+                            colorTargetState.blendState.color.dstFactor.nativeVal,
                         )
                         WGPUBlendComponent.operation(
                             colorBlend,
-                            colorTargetState.blendState.color.operation.nativeVal
+                            colorTargetState.blendState.color.operation.nativeVal,
                         )
                         WGPUBlendComponent.srcFactor(
                             alphaBlend,
-                            colorTargetState.blendState.alpha.srcFactor.nativeVal
+                            colorTargetState.blendState.alpha.srcFactor.nativeVal,
                         )
                         WGPUBlendComponent.dstFactor(
                             alphaBlend,
-                            colorTargetState.blendState.alpha.dstFactor.nativeVal
+                            colorTargetState.blendState.alpha.dstFactor.nativeVal,
                         )
                         WGPUBlendComponent.operation(
                             alphaBlend,
-                            colorTargetState.blendState.alpha.operation.nativeVal
+                            colorTargetState.blendState.alpha.operation.nativeVal,
                         )
 
                         WGPUColorTargetState.format(targets, colorTargetState.format.nativeVal)
                         WGPUColorTargetState.writeMask(
                             targets,
-                            colorTargetState.writeMask.usageFlag
+                            colorTargetState.writeMask.usageFlag,
                         )
                         WGPUColorTargetState.blend(targets, blendState)
                     }
@@ -157,17 +157,17 @@ actual class Device(val segment: MemorySegment) : Releasable {
                 desc.vertex.buffers.mapToNativeEntries(
                     scope,
                     WGPUVertexBufferLayout.sizeof(),
-                    WGPUVertexBufferLayout::allocateArray
+                    WGPUVertexBufferLayout::allocateArray,
                 ) { bufferLayout, nativeBufferLayout ->
                     val attributes =
                         bufferLayout.attributes.mapToNativeEntries(
                             scope,
                             WGPUVertexAttribute.sizeof(),
-                            WGPUVertexAttribute::allocateArray
+                            WGPUVertexAttribute::allocateArray,
                         ) { attribute, nativeAttribute ->
                             WGPUVertexAttribute.shaderLocation(
                                 nativeAttribute,
-                                attribute.shaderLocation
+                                attribute.shaderLocation,
                             )
                             WGPUVertexAttribute.format(nativeAttribute, attribute.format.nativeVal)
                             WGPUVertexAttribute.offset(nativeAttribute, attribute.offset)
@@ -176,11 +176,11 @@ actual class Device(val segment: MemorySegment) : Releasable {
                     WGPUVertexBufferLayout.arrayStride(nativeBufferLayout, bufferLayout.arrayStride)
                     WGPUVertexBufferLayout.stepMode(
                         nativeBufferLayout,
-                        bufferLayout.stepMode.nativeVal
+                        bufferLayout.stepMode.nativeVal,
                     )
                     WGPUVertexBufferLayout.attributeCount(
                         nativeBufferLayout,
-                        bufferLayout.attributes.size.toLong()
+                        bufferLayout.attributes.size.toLong(),
                     )
                     WGPUVertexBufferLayout.attributes(nativeBufferLayout, attributes)
                 }
@@ -192,7 +192,7 @@ actual class Device(val segment: MemorySegment) : Releasable {
 
             WGPURenderPipelineDescriptor.label(
                 descriptor,
-                desc.label?.toNativeString(scope) ?: WGPU_NULL
+                desc.label?.toNativeString(scope) ?: WGPU_NULL,
             )
             WGPURenderPipelineDescriptor.layout(descriptor, desc.layout.segment)
 
@@ -204,7 +204,7 @@ actual class Device(val segment: MemorySegment) : Releasable {
             WGPUPrimitiveState.topology(primitiveState, desc.primitive.topology.nativeVal)
             WGPUPrimitiveState.stripIndexFormat(
                 primitiveState,
-                desc.primitive.stripIndexFormat?.nativeVal ?: WGPUIndexFormat_Undefined()
+                desc.primitive.stripIndexFormat?.nativeVal ?: WGPUIndexFormat_Undefined(),
             )
             WGPUPrimitiveState.frontFace(primitiveState, desc.primitive.frontFace.nativeVal)
             WGPUPrimitiveState.cullMode(primitiveState, desc.primitive.cullMode.nativeVal)
@@ -214,7 +214,7 @@ actual class Device(val segment: MemorySegment) : Releasable {
                 WGPUDepthStencilState.format(depthStencilState, it.format.nativeVal)
                 WGPUDepthStencilState.depthWriteEnabled(
                     depthStencilState,
-                    it.depthWriteEnabled.toInt()
+                    it.depthWriteEnabled.toInt(),
                 )
                 WGPUDepthStencilState.depthCompare(depthStencilState, it.depthCompare.nativeVal)
                 WGPUDepthStencilState.stencilReadMask(depthStencilState, it.stencil.readMask)
@@ -228,7 +228,7 @@ actual class Device(val segment: MemorySegment) : Releasable {
                 WGPUStencilFaceState.failOp(stencilFront, it.stencil.front.failOp.nativeVal)
                 WGPUStencilFaceState.depthFailOp(
                     stencilFront,
-                    it.stencil.front.depthFailOp.nativeVal
+                    it.stencil.front.depthFailOp.nativeVal,
                 )
                 WGPUStencilFaceState.passOp(stencilFront, it.stencil.front.passOp.nativeVal)
 
@@ -245,7 +245,7 @@ actual class Device(val segment: MemorySegment) : Releasable {
             WGPUMultisampleState.mask(multisampleState, desc.multisample.mask)
             WGPUMultisampleState.alphaToCoverageEnabled(
                 multisampleState,
-                desc.multisample.alphaToCoverageEnabled.toInt()
+                desc.multisample.alphaToCoverageEnabled.toInt(),
             )
 
             WGPURenderPipelineDescriptor.fragment(descriptor, fragDesc)
@@ -261,7 +261,7 @@ actual class Device(val segment: MemorySegment) : Releasable {
             val computeDesc = WGPUProgrammableStageDescriptor.allocate(scope)
             WGPUProgrammableStageDescriptor.entryPoint(
                 computeDesc,
-                desc.compute.entryPoint.toNativeString(scope)
+                desc.compute.entryPoint.toNativeString(scope),
             )
             WGPUProgrammableStageDescriptor.module(computeDesc, desc.compute.module.segment)
 
@@ -269,7 +269,7 @@ actual class Device(val segment: MemorySegment) : Releasable {
             WGPUComputePipelineDescriptor.compute(wgpuDesc, computeDesc)
             WGPUComputePipelineDescriptor.label(
                 wgpuDesc,
-                desc.label?.toNativeString(scope) ?: WGPU_NULL
+                desc.label?.toNativeString(scope) ?: WGPU_NULL,
             )
 
             ComputePipeline(wgpuDeviceCreateComputePipeline(segment, wgpuDesc))
@@ -281,12 +281,12 @@ actual class Device(val segment: MemorySegment) : Releasable {
             val wgpuDesc = WGPUPipelineLayoutDescriptor.allocate(scope)
             WGPUPipelineLayoutDescriptor.bindGroupLayouts(
                 wgpuDesc,
-                desc.segments.toNativeArray(scope)
+                desc.segments.toNativeArray(scope),
             )
             WGPUPipelineLayoutDescriptor.bindGroupLayoutCount(wgpuDesc, desc.segments.size.toLong())
             WGPUPipelineLayoutDescriptor.label(
                 wgpuDesc,
-                desc.label?.toNativeString(scope) ?: WGPU_NULL
+                desc.label?.toNativeString(scope) ?: WGPU_NULL,
             )
             PipelineLayout(wgpuDeviceCreatePipelineLayout(segment, wgpuDesc))
         }
@@ -297,7 +297,7 @@ actual class Device(val segment: MemorySegment) : Releasable {
             val descriptor = WGPUCommandEncoderDescriptor.allocate(scope)
             WGPUCommandEncoderDescriptor.label(
                 descriptor,
-                label?.toNativeString(scope) ?: WGPU_NULL
+                label?.toNativeString(scope) ?: WGPU_NULL,
             )
             CommandEncoder(wgpuDeviceCreateCommandEncoder(segment, descriptor))
         }
@@ -320,13 +320,13 @@ actual class Device(val segment: MemorySegment) : Releasable {
             val descriptor = WGPUBindGroupLayoutDescriptor.allocate(scope)
             WGPUBindGroupLayoutDescriptor.label(
                 descriptor,
-                desc.label?.toNativeString(scope) ?: WGPU_NULL
+                desc.label?.toNativeString(scope) ?: WGPU_NULL,
             )
             val entries =
                 desc.entries.mapToNativeEntries(
                     scope,
                     WGPUBindGroupLayoutEntry.sizeof(),
-                    WGPUBindGroupLayoutEntry::allocateArray
+                    WGPUBindGroupLayoutEntry::allocateArray,
                 ) { entry, nativeEntry ->
                     WGPUBindGroupLayoutEntry.binding(nativeEntry, entry.binding)
                     WGPUBindGroupLayoutEntry.visibility(nativeEntry, entry.visibility.usageFlag)
@@ -339,22 +339,22 @@ actual class Device(val segment: MemorySegment) : Releasable {
                     WGPUBufferBindingLayout.type(bufferBinding, WGPUBufferBindingType_Undefined())
                     WGPUSamplerBindingLayout.type(
                         samplerBinding,
-                        WGPUSamplerBindingType_Undefined()
+                        WGPUSamplerBindingType_Undefined(),
                     )
                     WGPUTextureBindingLayout.sampleType(
                         textureBinding,
-                        WGPUTextureSampleType_Undefined()
+                        WGPUTextureSampleType_Undefined(),
                     )
                     WGPUStorageTextureBindingLayout.access(
                         storageTextureBinding,
-                        WGPUStorageTextureAccess_Undefined()
+                        WGPUStorageTextureAccess_Undefined(),
                     )
 
                     entry.bindingLayout.intoNative(
                         bufferBinding,
                         samplerBinding,
                         textureBinding,
-                        storageTextureBinding
+                        storageTextureBinding,
                     )
                 }
             WGPUBindGroupLayoutDescriptor.entries(descriptor, entries)
@@ -370,14 +370,14 @@ actual class Device(val segment: MemorySegment) : Releasable {
                 desc.entries.mapToNativeEntries(
                     scope,
                     WGPUBindGroupEntry.sizeof(),
-                    WGPUBindGroupEntry::allocateArray
+                    WGPUBindGroupEntry::allocateArray,
                 ) { entry, nativeEntry ->
                     WGPUBindGroupEntry.binding(nativeEntry, entry.binding)
                     entry.resource.intoBindingResource(nativeEntry)
                 }
             WGPUBindGroupDescriptor.label(
                 descriptor,
-                desc.label?.toNativeString(scope) ?: WGPU_NULL
+                desc.label?.toNativeString(scope) ?: WGPU_NULL,
             )
             WGPUBindGroupDescriptor.layout(descriptor, desc.layout.segment)
             WGPUBindGroupDescriptor.entries(descriptor, entries)
@@ -401,7 +401,7 @@ actual class Device(val segment: MemorySegment) : Releasable {
             WGPUSamplerDescriptor.lodMaxClamp(descriptor, desc.lodMaxClamp)
             WGPUSamplerDescriptor.compare(
                 descriptor,
-                desc.compare?.nativeVal ?: WGPUCompareFunction_Undefined()
+                desc.compare?.nativeVal ?: WGPUCompareFunction_Undefined(),
             )
             WGPUSamplerDescriptor.maxAnisotropy(descriptor, desc.maxAnisotropy)
 
@@ -433,7 +433,7 @@ actual class Device(val segment: MemorySegment) : Releasable {
     actual fun createGPUShortBuffer(
         label: String,
         data: ShortArray,
-        usage: BufferUsage
+        usage: BufferUsage,
     ): GPUBuffer {
         val buffer =
             createBuffer(
@@ -448,7 +448,7 @@ actual class Device(val segment: MemorySegment) : Releasable {
     actual fun createGPUFloatBuffer(
         label: String,
         data: FloatArray,
-        usage: BufferUsage
+        usage: BufferUsage,
     ): GPUBuffer {
         val buffer =
             createBuffer(
@@ -547,8 +547,7 @@ actual class Adapter(var segment: MemorySegment) : Releasable {
                 maxComputeWorkgroupSizeX = WGPULimits.maxComputeWorkgroupSizeX(desc),
                 maxComputeWorkgroupSizeY = WGPULimits.maxComputeWorkgroupSizeY(desc),
                 maxComputeWorkgroupSizeZ = WGPULimits.maxComputeWorkgroupSizeZ(desc),
-                maxComputeWorkgroupsPerDimension =
-                    WGPULimits.maxComputeWorkgroupsPerDimension(desc),
+                maxComputeWorkgroupsPerDimension = WGPULimits.maxComputeWorkgroupsPerDimension(desc),
             )
         }
     }
@@ -560,17 +559,17 @@ actual class Adapter(var segment: MemorySegment) : Releasable {
             val deviceExtras = WGPUDeviceExtras.allocate(scope)
             val chainedStruct = WGPUDeviceExtras.chain(deviceExtras)
             val callback =
-                WGPURequestDeviceCallback.allocate(
+                WGPUAdapterRequestDeviceCallback.allocate(
                     { status, device, message, _ ->
                         if (status == WGPURequestAdapterStatus_Success()) {
                             output.update { device }
                         } else {
                             logger.log(Logger.Level.ERROR) {
-                                "requestDevice status=$status, message=${message.getUtf8String(0)}"
+                                "requestDevice status=$status, message=${message.getString(0)}"
                             }
                         }
                     },
-                    scope
+                    scope,
                 )
 
             WGPUChainedStruct.sType(chainedStruct, WGPUSType_DeviceExtras())
@@ -578,7 +577,7 @@ actual class Adapter(var segment: MemorySegment) : Releasable {
             if (descriptor != null) {
                 descriptor.label?.let { WGPUDeviceDescriptor.label(desc, it.toNativeString(scope)) }
                 descriptor.requiredFeatures?.let {
-                    val nativeArray = scope.allocateArray(ValueLayout.JAVA_INT, it.size.toLong())
+                    val nativeArray = scope.allocateFrom(ValueLayout.JAVA_INT, it.size)
                     it.forEachIndexed { index, jvmEntry ->
                         val nativeEntry = nativeArray.asSlice((Int.SIZE_BYTES * index).toLong())
 
@@ -681,7 +680,7 @@ actual class Queue(val segment: MemorySegment) : Releasable {
             wgpuQueueSubmit(
                 segment,
                 cmdBuffers.size.toLong(),
-                cmdBuffers.map { it.segment }.toNativeArray(scope)
+                cmdBuffers.map { it.segment }.toNativeArray(scope),
             )
         }
     }
@@ -701,7 +700,7 @@ actual class Queue(val segment: MemorySegment) : Releasable {
                 data.segment,
                 size,
                 layout.toNative(scope),
-                copySize.toNative(scope)
+                copySize.toNative(scope),
             )
         }
     }
@@ -711,7 +710,7 @@ actual class Queue(val segment: MemorySegment) : Releasable {
         data: ShortBuffer,
         offset: Long,
         dataOffset: Long,
-        size: Long
+        size: Long,
     ) {
         data as ShortBufferImpl
         wgpuQueueWriteBuffer(
@@ -719,7 +718,7 @@ actual class Queue(val segment: MemorySegment) : Releasable {
             buffer.segment,
             offset,
             if (dataOffset > 0) data.segment.asSlice(dataOffset) else data.segment,
-            size * Short.SIZE_BYTES
+            size * Short.SIZE_BYTES,
         )
     }
 
@@ -728,7 +727,7 @@ actual class Queue(val segment: MemorySegment) : Releasable {
         data: IntBuffer,
         offset: Long,
         dataOffset: Long,
-        size: Long
+        size: Long,
     ) {
         data as IntBufferImpl
         wgpuQueueWriteBuffer(
@@ -736,7 +735,7 @@ actual class Queue(val segment: MemorySegment) : Releasable {
             buffer.segment,
             offset,
             if (dataOffset > 0) data.segment.asSlice(dataOffset) else data.segment,
-            size * Int.SIZE_BYTES
+            size * Int.SIZE_BYTES,
         )
     }
 
@@ -745,7 +744,7 @@ actual class Queue(val segment: MemorySegment) : Releasable {
         data: FloatBuffer,
         offset: Long,
         dataOffset: Long,
-        size: Long
+        size: Long,
     ) {
         data as FloatBufferImpl
         wgpuQueueWriteBuffer(
@@ -753,7 +752,7 @@ actual class Queue(val segment: MemorySegment) : Releasable {
             buffer.segment,
             offset,
             if (dataOffset > 0) data.segment.asSlice(dataOffset) else data.segment,
-            size * Float.SIZE_BYTES
+            size * Float.SIZE_BYTES,
         )
     }
 
@@ -762,7 +761,7 @@ actual class Queue(val segment: MemorySegment) : Releasable {
         data: ByteBuffer,
         offset: Long,
         dataOffset: Long,
-        size: Long
+        size: Long,
     ) {
         data as ByteBufferImpl
         wgpuQueueWriteBuffer(
@@ -770,7 +769,7 @@ actual class Queue(val segment: MemorySegment) : Releasable {
             buffer.segment,
             offset,
             if (dataOffset > 0) data.segment.asSlice(dataOffset) else data.segment,
-            size
+            size,
         )
     }
 
@@ -779,16 +778,16 @@ actual class Queue(val segment: MemorySegment) : Releasable {
         destination: TextureCopyView,
         layout: TextureDataLayout,
         copySize: Extent3D,
-        size: Long
+        size: Long,
     ) {
         Arena.ofConfined().use { scope ->
             wgpuQueueWriteTexture(
                 segment,
                 destination.toNative(scope),
-                scope.allocateArray(ValueLayout.JAVA_BYTE, *data),
+                scope.allocateFrom(ValueLayout.JAVA_BYTE, *data),
                 size,
                 layout.toNative(scope),
-                copySize.toNative(scope)
+                copySize.toNative(scope),
             )
         }
     }
@@ -829,17 +828,19 @@ actual class Surface(val segment: MemorySegment) : Releasable {
     }
 
     actual fun getCurrentTexture(): SurfaceTexture {
-        val surfaceTexture: MemorySegment = WGPUSurfaceTexture.allocate(Arena.ofConfined())
-        wgpuSurfaceGetCurrentTexture(segment, surfaceTexture)
-        val texture =
-            WGPUSurfaceTexture.texture(surfaceTexture).let {
-                if (it == WGPU_NULL) null else WebGPUTexture(it, it.byteSize())
-            }
-        val status =
-            WGPUSurfaceTexture.status(surfaceTexture).let {
-                TextureStatus.from(it) ?: error("Invalid texture status: $it")
-            }
-        return SurfaceTexture(surfaceTexture, texture, status)
+        return Arena.ofConfined().use { scope ->
+            val surfaceTexture: MemorySegment = WGPUSurfaceTexture.allocate(scope)
+            wgpuSurfaceGetCurrentTexture(segment, surfaceTexture)
+            val texture =
+                WGPUSurfaceTexture.texture(surfaceTexture).let {
+                    if (it == WGPU_NULL) null else WebGPUTexture(it, it.byteSize())
+                }
+            val status =
+                WGPUSurfaceTexture.status(surfaceTexture).let {
+                    TextureStatus.from(it) ?: error("Invalid texture status: $it")
+                }
+            SurfaceTexture(surfaceTexture, texture, status)
+        }
     }
 
     actual fun present() {
@@ -851,21 +852,19 @@ actual class Surface(val segment: MemorySegment) : Releasable {
             val surfaceCapabilities = WGPUSurfaceCapabilities.allocate(scope)
             wgpuSurfaceGetCapabilities(segment, adapter.segment, surfaceCapabilities)
             val formats =
-                WGPUSurfaceCapabilities.formats(surfaceCapabilities).mapFromIntUntilNull {
-                    TextureFormat.from(it)
-                }
+                WGPUSurfaceCapabilities.formats(surfaceCapabilities)
+                    .mapFromIntUntilNull { TextureFormat.from(it) }
+                    .distinct()
             val alphaModes =
-                WGPUSurfaceCapabilities.alphaModes(surfaceCapabilities).mapFromIntUntilNull {
-                    AlphaMode.from(it)
-                }
+                WGPUSurfaceCapabilities.alphaModes(surfaceCapabilities)
+                    .mapFromIntUntilNull { AlphaMode.from(it) }
+                    .distinct()
             SurfaceCapabilities(surfaceCapabilities, formats, alphaModes)
         }
     }
 
     actual fun getPreferredFormat(adapter: Adapter): TextureFormat {
-        return wgpuSurfaceGetPreferredFormat(segment, adapter.segment).let {
-            TextureFormat.from(it) ?: error("Invalid TextureFormat: $")
-        }
+        return getCapabilities(adapter).formats[0]
     }
 
     actual override fun release() {
@@ -884,7 +883,7 @@ actual class WebGPUTexture(val segment: MemorySegment, val size: Long) : Releasa
                     WGPUTextureViewDescriptor.allocate(scope).also {
                         WGPUTextureViewDescriptor.label(
                             it,
-                            desc.label?.toNativeString(scope) ?: WGPU_NULL
+                            desc.label?.toNativeString(scope) ?: WGPU_NULL,
                         )
                         WGPUTextureViewDescriptor.format(it, desc.format.nativeVal)
                         WGPUTextureViewDescriptor.dimension(it, desc.dimension.nativeVal)
@@ -972,11 +971,11 @@ fun Extent3D.toNative(scope: SegmentAllocator): MemorySegment {
 actual class SurfaceCapabilities(
     val segment: MemorySegment,
     actual val formats: List<TextureFormat>,
-    actual val alphaModes: List<AlphaMode>
+    actual val alphaModes: List<AlphaMode>,
 ) {}
 
 actual class SurfaceTexture(
     val segment: MemorySegment,
     actual val texture: WebGPUTexture?,
-    actual val status: TextureStatus
+    actual val status: TextureStatus,
 )

@@ -29,7 +29,7 @@ class LDtkTileMapCacheExample(context: Context) : ContextListener(context) {
             TextureUsage.RENDER_ATTACHMENT,
             preferredFormat,
             PresentMode.FIFO,
-            surfaceCapabilities.alphaModes[0]
+            surfaceCapabilities.alphaModes[0],
         )
 
         val cache = SpriteCache(device, preferredFormat)
@@ -46,7 +46,7 @@ class LDtkTileMapCacheExample(context: Context) : ContextListener(context) {
                 TextureUsage.RENDER_ATTACHMENT,
                 preferredFormat,
                 PresentMode.FIFO,
-                surfaceCapabilities.alphaModes[0]
+                surfaceCapabilities.alphaModes[0],
             )
         }
 
@@ -65,7 +65,7 @@ class LDtkTileMapCacheExample(context: Context) : ContextListener(context) {
                         TextureUsage.RENDER_ATTACHMENT,
                         preferredFormat,
                         PresentMode.FIFO,
-                        surfaceCapabilities.alphaModes[0]
+                        surfaceCapabilities.alphaModes[0],
                     )
                     logger.info { "getCurrentTexture status=$status" }
                     return@onUpdate
@@ -90,7 +90,7 @@ class LDtkTileMapCacheExample(context: Context) : ContextListener(context) {
                                     view = frame,
                                     loadOp = LoadOp.CLEAR,
                                     storeOp = StoreOp.STORE,
-                                    clearColor = bgColor
+                                    clearColor = bgColor,
                                 )
                             )
                         )
@@ -100,6 +100,7 @@ class LDtkTileMapCacheExample(context: Context) : ContextListener(context) {
 
             cache.render(renderPassEncoder, camera.viewProjection)
             renderPassEncoder.end()
+            renderPassEncoder.release()
 
             val commandBuffer = commandEncoder.finish()
 
@@ -107,7 +108,6 @@ class LDtkTileMapCacheExample(context: Context) : ContextListener(context) {
             graphics.surface.present()
 
             commandBuffer.release()
-            renderPassEncoder.release()
             commandEncoder.release()
             frame.release()
             swapChainTexture.release()

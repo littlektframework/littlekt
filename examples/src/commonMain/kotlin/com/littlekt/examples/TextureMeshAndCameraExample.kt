@@ -93,7 +93,7 @@ class TextureMeshAndCameraExample(context: Context) : ContextListener(context) {
             device.createGPUFloatBuffer(
                 "camera uniform buffer",
                 cameraFloatBuffer.toArray(),
-                BufferUsage.UNIFORM or BufferUsage.COPY_DST
+                BufferUsage.UNIFORM or BufferUsage.COPY_DST,
             )
 
         val shader = device.createShaderModule(textureShader)
@@ -112,7 +112,7 @@ class TextureMeshAndCameraExample(context: Context) : ContextListener(context) {
             device.createBindGroup(
                 BindGroupDescriptor(
                     vertexGroupLayout,
-                    listOf(BindGroupEntry(0, BufferBinding(cameraUniformBuffer)))
+                    listOf(BindGroupEntry(0, BufferBinding(cameraUniformBuffer))),
                 )
             )
         val fragmentGroupLayout =
@@ -120,7 +120,7 @@ class TextureMeshAndCameraExample(context: Context) : ContextListener(context) {
                 BindGroupLayoutDescriptor(
                     listOf(
                         BindGroupLayoutEntry(0, ShaderStage.FRAGMENT, TextureBindingLayout()),
-                        BindGroupLayoutEntry(1, ShaderStage.FRAGMENT, SamplerBindingLayout())
+                        BindGroupLayoutEntry(1, ShaderStage.FRAGMENT, SamplerBindingLayout()),
                     )
                 )
             )
@@ -129,7 +129,7 @@ class TextureMeshAndCameraExample(context: Context) : ContextListener(context) {
                 desc =
                     BindGroupDescriptor(
                         fragmentGroupLayout,
-                        listOf(BindGroupEntry(0, texture.view), BindGroupEntry(1, texture.sampler))
+                        listOf(BindGroupEntry(0, texture.view), BindGroupEntry(1, texture.sampler)),
                     )
             )
         val pipelineLayout =
@@ -143,7 +143,7 @@ class TextureMeshAndCameraExample(context: Context) : ContextListener(context) {
                     VertexState(
                         module = shader,
                         entryPoint = "vs_main",
-                        mesh.geometry.layout.gpuVertexBufferLayout
+                        mesh.geometry.layout.gpuVertexBufferLayout,
                     ),
                 fragment =
                     FragmentState(
@@ -153,20 +153,20 @@ class TextureMeshAndCameraExample(context: Context) : ContextListener(context) {
                             ColorTargetState(
                                 format = preferredFormat,
                                 blendState = BlendState.NonPreMultiplied,
-                                writeMask = ColorWriteMask.ALL
-                            )
+                                writeMask = ColorWriteMask.ALL,
+                            ),
                     ),
                 primitive = PrimitiveState(topology = PrimitiveTopology.TRIANGLE_LIST),
                 depthStencil = null,
                 multisample =
-                    MultisampleState(count = 1, mask = 0xFFFFFFF, alphaToCoverageEnabled = false)
+                    MultisampleState(count = 1, mask = 0xFFFFFFF, alphaToCoverageEnabled = false),
             )
         val renderPipeline = device.createRenderPipeline(renderPipelineDesc)
         graphics.configureSurface(
             TextureUsage.RENDER_ATTACHMENT,
             preferredFormat,
             PresentMode.FIFO,
-            surfaceCapabilities.alphaModes[0]
+            surfaceCapabilities.alphaModes[0],
         )
 
         onResize { width, height ->
@@ -175,7 +175,7 @@ class TextureMeshAndCameraExample(context: Context) : ContextListener(context) {
                 TextureUsage.RENDER_ATTACHMENT,
                 preferredFormat,
                 PresentMode.FIFO,
-                surfaceCapabilities.alphaModes[0]
+                surfaceCapabilities.alphaModes[0],
             )
         }
 
@@ -219,7 +219,7 @@ class TextureMeshAndCameraExample(context: Context) : ContextListener(context) {
                                     storeOp = StoreOp.STORE,
                                     clearColor =
                                         if (preferredFormat.srgb) Color.DARK_GRAY.toLinear()
-                                        else Color.DARK_GRAY
+                                        else Color.DARK_GRAY,
                                 )
                             )
                         )
@@ -231,6 +231,7 @@ class TextureMeshAndCameraExample(context: Context) : ContextListener(context) {
             renderPassEncoder.setIndexBuffer(mesh.ibo, IndexFormat.UINT16)
             renderPassEncoder.drawIndexed(6, 1)
             renderPassEncoder.end()
+            renderPassEncoder.release()
 
             val commandBuffer = commandEncoder.finish()
 
@@ -238,7 +239,6 @@ class TextureMeshAndCameraExample(context: Context) : ContextListener(context) {
             graphics.surface.present()
 
             commandBuffer.release()
-            renderPassEncoder.release()
             commandEncoder.release()
             frame.release()
             swapChainTexture.release()

@@ -1,6 +1,8 @@
 # Changelog
 
-## 0.10.3 (SNAPSHOT)
+## 0.11.0 (SNAPSHOT)
+
+- Update `wgpu` from `0.19.4.1` to `22.1.0.5`.
 
 ## 0.10.2
 

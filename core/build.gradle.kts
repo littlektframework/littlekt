@@ -1,3 +1,4 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.plugin.KotlinJsCompilerType
 import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
 
@@ -15,14 +16,8 @@ kotlin {
             env = System.getProperty("env")
         }
         systemProperty("env", env ?: "dev")
-        jvmArgs("--enable-preview")
     }
-    jvm {
-        compilations.all {
-            kotlinOptions.jvmTarget = "11"
-            compileJavaTaskProvider?.get()?.options?.compilerArgs?.add("--enable-preview")
-        }
-    }
+    jvm { compilerOptions { jvmTarget = JvmTarget.JVM_22 } }
     js(KotlinJsCompilerType.IR) {
         browser {
             binaries.executable()

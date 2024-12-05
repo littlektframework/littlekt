@@ -28,7 +28,7 @@ class TextureBlendsExample(context: Context) : ContextListener(context) {
             TextureUsage.RENDER_ATTACHMENT,
             preferredFormat,
             PresentMode.FIFO,
-            surfaceCapabilities.alphaModes[0]
+            surfaceCapabilities.alphaModes[0],
         )
 
         val batch = SpriteBatch(device, graphics, preferredFormat)
@@ -41,13 +41,13 @@ class TextureBlendsExample(context: Context) : ContextListener(context) {
                     bottom = -height * 0.5f,
                     top = height * 0.5f,
                     near = 0f,
-                    far = 1f
+                    far = 1f,
                 )
             graphics.configureSurface(
                 TextureUsage.RENDER_ATTACHMENT,
                 preferredFormat,
                 PresentMode.FIFO,
-                surfaceCapabilities.alphaModes[0]
+                surfaceCapabilities.alphaModes[0],
             )
         }
 
@@ -84,7 +84,7 @@ class TextureBlendsExample(context: Context) : ContextListener(context) {
                                     view = frame,
                                     loadOp = LoadOp.CLEAR,
                                     storeOp = StoreOp.STORE,
-                                    clearColor = Color.DARK_GRAY
+                                    clearColor = Color.DARK_GRAY,
                                 )
                             )
                         )
@@ -101,16 +101,17 @@ class TextureBlendsExample(context: Context) : ContextListener(context) {
                 graphics.width * 0.5f - logoTexture.width * 0.5f * 0.1f,
                 0f,
                 scaleX = 0.1f,
-                scaleY = 0.1f
+                scaleY = 0.1f,
             )
             batch.draw(
                 pikaTexture,
                 graphics.width * 0.5f - pikaTexture.width * 0.5f,
-                -pikaTexture.height - 10f
+                -pikaTexture.height - 10f,
             )
             batch.flush(renderPassEncoder)
             batch.end()
             renderPassEncoder.end()
+            renderPassEncoder.release()
 
             val commandBuffer = commandEncoder.finish()
 
@@ -118,7 +119,6 @@ class TextureBlendsExample(context: Context) : ContextListener(context) {
             graphics.surface.present()
 
             commandBuffer.release()
-            renderPassEncoder.release()
             commandEncoder.release()
             frame.release()
             swapChainTexture.release()

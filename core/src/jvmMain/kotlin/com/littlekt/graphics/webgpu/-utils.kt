@@ -9,7 +9,7 @@ internal fun <T> Array<T>.mapToNativeEntries(
     scope: SegmentAllocator,
     nativeSize: Long,
     allocator: (Long, SegmentAllocator) -> MemorySegment,
-    action: (entry: T, nativeEntry: MemorySegment) -> Unit
+    action: (entry: T, nativeEntry: MemorySegment) -> Unit,
 ): MemorySegment {
     val nativeArray = allocator(this.size.toLong(), scope)
     forEachIndexed { index, jvmEntry ->
@@ -25,7 +25,7 @@ internal fun <T> Collection<T>.mapToNativeEntries(
     scope: SegmentAllocator,
     nativeSize: Long,
     allocator: (Long, SegmentAllocator) -> MemorySegment,
-    action: (entry: T, nativeEntry: MemorySegment) -> Unit
+    action: (entry: T, nativeEntry: MemorySegment) -> Unit,
 ): MemorySegment {
     val nativeArray = allocator(this.size.toLong(), scope)
     forEachIndexed { index, jvmEntry ->
@@ -40,15 +40,15 @@ internal fun <T> Collection<T>.mapToNativeEntries(
 internal val WGPU_NULL: MemorySegment = WGPU.NULL()
 
 internal fun List<MemorySegment>.toNativeArray(scope: SegmentAllocator) =
-    scope.allocateArray(ValueLayout.JAVA_LONG, *map { it.address() }.toLongArray())
+    scope.allocateFrom(ValueLayout.JAVA_LONG, *map { it.address() }.toLongArray())
 
-internal fun String.toNativeString(scope: SegmentAllocator) = scope.allocateUtf8String(this)
+internal fun String.toNativeString(scope: SegmentAllocator) = scope.allocateFrom(this)
 
 internal fun Boolean.toInt() = if (this) 1 else 0
 
 /**
  * Allocated WGPU [MemorySegment] may have a max size of [Long.MAX_VALUE]. This isn't helpful when
- * we are trying to
+ * we are trying to create arrays or lists of items that may be small.
  */
 internal fun <T> MemorySegment.mapFromIntUntilNull(transform: (Int) -> T): List<T & Any> {
     val results = mutableListOf<T>()

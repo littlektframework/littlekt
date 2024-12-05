@@ -33,7 +33,7 @@ enum class PrimitiveTopology {
      *
      * Vertices `0 1 2 3 4 5` create four triangles `0 1 2`, `2 1 3`, `2 3 4`, and `4 3 5`.
      */
-    TRIANGLE_STRIP
+    TRIANGLE_STRIP,
 }
 
 /** Vertex winding order which classifies the "front" face of a triangle. */
@@ -50,7 +50,7 @@ enum class FrontFace {
      *
      * This is the default with left-handed coordinate spaces.
      */
-    CW
+    CW,
 }
 
 /** Face of a vertex. */
@@ -62,7 +62,7 @@ enum class CullMode {
     FRONT,
 
     /** Back face. */
-    BACK
+    BACK,
 }
 
 /**
@@ -114,7 +114,7 @@ enum class TextureViewDimension {
     CUBE_ARRAY,
 
     /** A three-dimensional texture. */
-    D3
+    D3,
 }
 
 /** Type of data the texture holds. */
@@ -126,7 +126,7 @@ enum class TextureAspect {
     STENCIL_ONLY,
 
     /** Depth only. */
-    DEPTH_ONLY
+    DEPTH_ONLY,
 }
 
 /** Dimensionality of a texture. */
@@ -138,7 +138,7 @@ enum class TextureDimension {
     D2,
 
     /** 3D texture. */
-    D3
+    D3,
 }
 
 /**
@@ -313,7 +313,7 @@ enum class BlendOperation {
     MIN,
 
     /** max(Src, Dst) */
-    MAX
+    MAX,
 }
 
 /** Operation to perform on the stencil value. */
@@ -341,7 +341,7 @@ enum class StencilOperation {
     /** Increments stencil value by one, wrapping on overflow. */
     INCREMENT_WRAP,
     /** Decrements stencil value by one, wrapping on underflow. */
-    DECREMENT_WRAP
+    DECREMENT_WRAP,
 }
 
 /** Alpha blend factor. */
@@ -383,7 +383,7 @@ enum class BlendFactor {
     CONSTANT_COLOR,
 
     /** 1.0 - Constant */
-    ONE_MINUS_CONSTANT_COLOR
+    ONE_MINUS_CONSTANT_COLOR,
 }
 
 /** Format of indices used with pipeline. */
@@ -402,7 +402,7 @@ enum class VertexFormat(
     /** The byte size of the format. */
     val bytes: Int,
     /** If the format uses integer or float. */
-    val isInt: Boolean = false
+    val isInt: Boolean = false,
 ) {
     /** Two unsigned bytes. uvec2 in shaders */
     UINT8x2(2, 2, true),
@@ -492,7 +492,7 @@ enum class VertexFormat(
     SINT32x3(3, 12, true),
 
     /** four signed ints. ivec2 in shaders */
-    SINT32x4(4, 16, true)
+    SINT32x4(4, 16, true),
 }
 
 /** Whether a vertex buffer is indexed by vertex or by instance. */
@@ -501,7 +501,7 @@ enum class VertexStepMode {
     VERTEX,
 
     /** Vertex data is advanced every instance. */
-    INSTANCE
+    INSTANCE,
 }
 
 /** Operation to perform to the output attachment at the start of a render pass. */
@@ -520,7 +520,7 @@ enum class LoadOp {
     CLEAR,
 
     /** Loads the existing value for this attachment into the render pass. */
-    LOAD
+    LOAD,
 }
 
 /** Operation to perform to the output attachment at the end of a render pass. */
@@ -538,7 +538,7 @@ enum class StoreOp {
     DISCARD,
 
     /** Stores the resulting value of the render pass for this attachment. */
-    STORE
+    STORE,
 }
 
 /** Specific type of a buffer binding. */
@@ -575,18 +575,18 @@ enum class BufferBindingType {
      * var<storage, read> my_element: array<vec4<f32>>;
      * ```
      */
-    READ_ONLY_STORAGE
+    READ_ONLY_STORAGE,
 }
 
 enum class AddressMode {
     CLAMP_TO_EDGE,
     REPEAT,
-    MIRROR_REPEAT
+    MIRROR_REPEAT,
 }
 
 enum class FilterMode {
     NEAREST,
-    LINEAR
+    LINEAR,
 }
 
 /** Comparison function used for depth and stencil operations. */
@@ -620,7 +620,7 @@ enum class CompareFunction {
     GREATER_EQUAL,
 
     /** Function always passes. */
-    ALWAYS
+    ALWAYS,
 }
 
 /** Specific type of a sample in a texture binding. */
@@ -664,7 +664,7 @@ enum class TextureSampleType {
      * var t: texture_2d<u32>;
      * ```
      */
-    UINT
+    UINT,
 }
 
 /** Specific type of a sampler binding. */
@@ -683,7 +683,7 @@ enum class SamplerBindingType {
      * analogous functionality in
      * [OpenGL](https://www.khronos.org/opengl/wiki/Sampler_Object#Comparison_mode).
      */
-    COMPARISON
+    COMPARISON,
 }
 
 /** A color write mask. Disabled color channels will not be written to. */
@@ -720,7 +720,7 @@ value class ColorWriteMask(val usageFlag: Int) {
 /** Specifies how the alpha channel of the texture should be handled during compositing. */
 enum class AlphaMode {
     /**
-     * Chooses either [Opaque] or [Inherit] automatically，depending on the `alphaMode` that the
+     * Chooses either [OPAQUE] or [INHERIT] automatically，depending on the `alphaMode` that the
      * current surface can support.
      */
     AUTO,
@@ -821,7 +821,7 @@ enum class PresentMode {
      *
      * This is traditionally called “Fast Vsync”
      */
-    MAILBOX
+    MAILBOX,
 }
 
 /** Status of the received surface texture. */
@@ -1006,5 +1006,5 @@ enum class Feature {
      * (@blend_src(0) and @blend_src(1)) as inputs to a blending operation with the single color
      * attachment at location 0.
      */
-    DUAL_SOURCE_BLENDING
+    DUAL_SOURCE_BLENDING,
 }
