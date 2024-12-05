@@ -6,7 +6,6 @@ package com.littlekt.file
  * @date 1/12/2022
  */
 class JsByteSequenceStream(val buffer: ByteBuffer) : ByteSequenceStream {
-    private var chunkPosition = 0
     private var closed = false
 
     override fun iterator(): Iterator<Byte> {
@@ -73,7 +72,6 @@ class JsByteSequenceStream(val buffer: ByteBuffer) : ByteSequenceStream {
     override fun reset() {
         check(!closed) { "Stream already closed!" }
         buffer.flip()
-        chunkPosition = 0
     }
 
     override fun close() {
