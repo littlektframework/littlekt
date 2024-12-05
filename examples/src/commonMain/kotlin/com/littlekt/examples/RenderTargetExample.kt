@@ -30,7 +30,7 @@ class RenderTargetExample(context: Context) : ContextListener(context) {
             TextureUsage.RENDER_ATTACHMENT,
             preferredFormat,
             PresentMode.FIFO,
-            surfaceCapabilities.alphaModes[0]
+            surfaceCapabilities.alphaModes[0],
         )
 
         val batch = SpriteBatch(device, graphics, preferredFormat)
@@ -39,7 +39,7 @@ class RenderTargetExample(context: Context) : ContextListener(context) {
                 TextureUsage.RENDER_ATTACHMENT,
                 preferredFormat,
                 PresentMode.FIFO,
-                surfaceCapabilities.alphaModes[0]
+                surfaceCapabilities.alphaModes[0],
             )
         }
 
@@ -77,10 +77,10 @@ class RenderTargetExample(context: Context) : ContextListener(context) {
                                 storeOp = StoreOp.STORE,
                                 clearColor =
                                     if (preferredFormat.srgb) Color.YELLOW.toLinear()
-                                    else Color.YELLOW
+                                    else Color.YELLOW,
                             )
                         ),
-                        label = "Surface render pass"
+                        label = "Surface render pass",
                     )
                 )
 
@@ -88,6 +88,7 @@ class RenderTargetExample(context: Context) : ContextListener(context) {
             batch.draw(icon, 0f, 0f)
             batch.flush(renderTargetRenderPass)
             renderTargetRenderPass.end()
+            renderTargetRenderPass.release()
 
             val surfaceRenderPass =
                 commandEncoder.beginRenderPass(
@@ -99,10 +100,10 @@ class RenderTargetExample(context: Context) : ContextListener(context) {
                                 storeOp = StoreOp.STORE,
                                 clearColor =
                                     if (preferredFormat.srgb) Color.DARK_GRAY.toLinear()
-                                    else Color.DARK_GRAY
+                                    else Color.DARK_GRAY,
                             )
                         ),
-                        label = "Surface render pass"
+                        label = "Surface render pass",
                     )
                 )
             batch.draw(
@@ -115,14 +116,13 @@ class RenderTargetExample(context: Context) : ContextListener(context) {
             batch.flush(surfaceRenderPass)
             batch.end()
             surfaceRenderPass.end()
+            surfaceRenderPass.release()
 
             val commandBuffer = commandEncoder.finish()
 
             device.queue.submit(commandBuffer)
             graphics.surface.present()
 
-            renderTargetRenderPass.release()
-            surfaceRenderPass.release()
             commandBuffer.release()
             commandEncoder.release()
             frame.release()

@@ -67,20 +67,20 @@ class RenderSpriteBatchAndMultipleShadersExample(context: Context) : ContextList
                     BindGroupLayoutDescriptor(
                         listOf(
                             BindGroupLayoutEntry(0, ShaderStage.FRAGMENT, TextureBindingLayout()),
-                            BindGroupLayoutEntry(1, ShaderStage.FRAGMENT, SamplerBindingLayout())
+                            BindGroupLayoutEntry(1, ShaderStage.FRAGMENT, SamplerBindingLayout()),
                         )
-                    )
-                )
+                    ),
+                ),
         ) {
         override fun MutableList<BindGroup>.createBindGroupsWithTexture(
             texture: Texture,
-            data: Map<String, Any>
+            data: Map<String, Any>,
         ) {
             add(
                 device.createBindGroup(
                     BindGroupDescriptor(
                         layouts[0],
-                        listOf(BindGroupEntry(0, cameraUniformBufferBinding))
+                        listOf(BindGroupEntry(0, cameraUniformBufferBinding)),
                     )
                 )
             )
@@ -88,7 +88,7 @@ class RenderSpriteBatchAndMultipleShadersExample(context: Context) : ContextList
                 device.createBindGroup(
                     BindGroupDescriptor(
                         layouts[1],
-                        listOf(BindGroupEntry(0, texture.view), BindGroupEntry(1, texture.sampler))
+                        listOf(BindGroupEntry(0, texture.view), BindGroupEntry(1, texture.sampler)),
                     )
                 )
             )
@@ -97,7 +97,7 @@ class RenderSpriteBatchAndMultipleShadersExample(context: Context) : ContextList
         override fun setBindGroups(
             encoder: RenderPassEncoder,
             bindGroups: List<BindGroup>,
-            dynamicOffsets: List<Long>
+            dynamicOffsets: List<Long>,
         ) {
             encoder.setBindGroup(0, bindGroups[0])
             encoder.setBindGroup(1, bindGroups[1])
@@ -120,7 +120,7 @@ class RenderSpriteBatchAndMultipleShadersExample(context: Context) : ContextList
             TextureUsage.RENDER_ATTACHMENT,
             preferredFormat,
             PresentMode.FIFO,
-            surfaceCapabilities.alphaModes[0]
+            surfaceCapabilities.alphaModes[0],
         )
 
         val batch = SpriteBatch(device, graphics, preferredFormat)
@@ -133,13 +133,13 @@ class RenderSpriteBatchAndMultipleShadersExample(context: Context) : ContextList
                     bottom = -height * 0.5f,
                     top = height * 0.5f,
                     near = 0f,
-                    far = 1f
+                    far = 1f,
                 )
             graphics.configureSurface(
                 TextureUsage.RENDER_ATTACHMENT,
                 preferredFormat,
                 PresentMode.FIFO,
-                surfaceCapabilities.alphaModes[0]
+                surfaceCapabilities.alphaModes[0],
             )
         }
 
@@ -176,7 +176,7 @@ class RenderSpriteBatchAndMultipleShadersExample(context: Context) : ContextList
                                     view = frame,
                                     loadOp = LoadOp.CLEAR,
                                     storeOp = StoreOp.STORE,
-                                    clearColor = Color.DARK_GRAY.toLinear()
+                                    clearColor = Color.DARK_GRAY.toLinear(),
                                 )
                             )
                         )
@@ -190,6 +190,7 @@ class RenderSpriteBatchAndMultipleShadersExample(context: Context) : ContextList
             batch.flush(renderPassEncoder)
             batch.end()
             renderPassEncoder.end()
+            renderPassEncoder.release()
 
             val commandBuffer = commandEncoder.finish()
 
@@ -197,7 +198,6 @@ class RenderSpriteBatchAndMultipleShadersExample(context: Context) : ContextList
             graphics.surface.present()
 
             commandBuffer.release()
-            renderPassEncoder.release()
             commandEncoder.release()
             frame.release()
             swapChainTexture.release()

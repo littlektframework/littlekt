@@ -110,8 +110,8 @@ class AssetProviderExample(context: Context) : ContextListener(context) {
                 arialFont.draw(it, "Hello\nLittleKt!", -300f, 0f)
                 Fonts.default.draw(it, "Hello\nLittleKt!", 150f, 0f, align = HAlign.RIGHT)
             }
-
             renderPassEncoder.end()
+            renderPassEncoder.release()
 
             val commandBuffer = commandEncoder.finish()
 
@@ -119,7 +119,6 @@ class AssetProviderExample(context: Context) : ContextListener(context) {
             graphics.surface.present()
 
             commandBuffer.release()
-            renderPassEncoder.release()
             commandEncoder.release()
             frame.release()
             swapChainTexture.release()

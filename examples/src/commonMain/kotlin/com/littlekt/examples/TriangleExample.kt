@@ -49,20 +49,20 @@ class TriangleExample(context: Context) : ContextListener(context) {
                             ColorTargetState(
                                 format = preferredFormat,
                                 blendState = BlendState.Opaque,
-                                writeMask = ColorWriteMask.ALL
-                            )
+                                writeMask = ColorWriteMask.ALL,
+                            ),
                     ),
                 primitive = PrimitiveState(topology = PrimitiveTopology.TRIANGLE_LIST),
                 depthStencil = null,
                 multisample =
-                    MultisampleState(count = 1, mask = 0xFFFFFFF, alphaToCoverageEnabled = false)
+                    MultisampleState(count = 1, mask = 0xFFFFFFF, alphaToCoverageEnabled = false),
             )
         val renderPipeline = device.createRenderPipeline(renderPipelineDesc)
         graphics.configureSurface(
             TextureUsage.RENDER_ATTACHMENT,
             preferredFormat,
             PresentMode.FIFO,
-            surfaceCapabilities.alphaModes[0]
+            surfaceCapabilities.alphaModes[0],
         )
 
         onUpdate {
@@ -79,7 +79,7 @@ class TriangleExample(context: Context) : ContextListener(context) {
                         TextureUsage.RENDER_ATTACHMENT,
                         preferredFormat,
                         PresentMode.FIFO,
-                        surfaceCapabilities.alphaModes[0]
+                        surfaceCapabilities.alphaModes[0],
                     )
                     logger.info { "getCurrentTexture status=$status" }
                     return@onUpdate
@@ -103,7 +103,7 @@ class TriangleExample(context: Context) : ContextListener(context) {
                                     view = frame,
                                     loadOp = LoadOp.CLEAR,
                                     storeOp = StoreOp.STORE,
-                                    clearColor = Color.CLEAR
+                                    clearColor = Color.CLEAR,
                                 )
                             )
                         )
@@ -111,6 +111,7 @@ class TriangleExample(context: Context) : ContextListener(context) {
             renderPassEncoder.setPipeline(renderPipeline)
             renderPassEncoder.draw(3, 1, 0, 0)
             renderPassEncoder.end()
+            renderPassEncoder.release()
 
             val commandBuffer = commandEncoder.finish()
 
@@ -118,7 +119,6 @@ class TriangleExample(context: Context) : ContextListener(context) {
             graphics.surface.present()
 
             commandBuffer.release()
-            renderPassEncoder.release()
             commandEncoder.release()
             frame.release()
             texture.release()

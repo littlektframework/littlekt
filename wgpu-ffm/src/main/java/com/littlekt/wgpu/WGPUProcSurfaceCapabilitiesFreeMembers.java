@@ -27,7 +27,7 @@ public class WGPUProcSurfaceCapabilitiesFreeMembers {
      * The function pointer signature, expressed as a functional interface
      */
     public interface Function {
-        void apply(MemorySegment capabilities);
+        void apply(MemorySegment surfaceCapabilities);
     }
 
     private static final FunctionDescriptor $DESC = FunctionDescriptor.ofVoid(
@@ -56,9 +56,9 @@ public class WGPUProcSurfaceCapabilitiesFreeMembers {
     /**
      * Invoke the upcall stub {@code funcPtr}, with given parameters
      */
-    public static void invoke(MemorySegment funcPtr,MemorySegment capabilities) {
+    public static void invoke(MemorySegment funcPtr,MemorySegment surfaceCapabilities) {
         try {
-             DOWN$MH.invokeExact(funcPtr, capabilities);
+             DOWN$MH.invokeExact(funcPtr, surfaceCapabilities);
         } catch (Throwable ex$) {
             throw new AssertionError("should not reach here", ex$);
         }

@@ -16,7 +16,7 @@ import static java.lang.foreign.MemoryLayout.PathElement.*;
  * {@snippet lang=c :
  * struct WGPUSurfaceConfigurationExtras {
  *     WGPUChainedStruct chain;
- *     WGPUBool desiredMaximumFrameLatency;
+ *     uint32_t desiredMaximumFrameLatency;
  * }
  * }
  */
@@ -88,7 +88,7 @@ public class WGPUSurfaceConfigurationExtras {
     /**
      * Layout for field:
      * {@snippet lang=c :
-     * WGPUBool desiredMaximumFrameLatency
+     * uint32_t desiredMaximumFrameLatency
      * }
      */
     public static final OfInt desiredMaximumFrameLatency$layout() {
@@ -100,7 +100,7 @@ public class WGPUSurfaceConfigurationExtras {
     /**
      * Offset for field:
      * {@snippet lang=c :
-     * WGPUBool desiredMaximumFrameLatency
+     * uint32_t desiredMaximumFrameLatency
      * }
      */
     public static final long desiredMaximumFrameLatency$offset() {
@@ -110,7 +110,7 @@ public class WGPUSurfaceConfigurationExtras {
     /**
      * Getter for field:
      * {@snippet lang=c :
-     * WGPUBool desiredMaximumFrameLatency
+     * uint32_t desiredMaximumFrameLatency
      * }
      */
     public static int desiredMaximumFrameLatency(MemorySegment struct) {
@@ -120,7 +120,7 @@ public class WGPUSurfaceConfigurationExtras {
     /**
      * Setter for field:
      * {@snippet lang=c :
-     * WGPUBool desiredMaximumFrameLatency
+     * uint32_t desiredMaximumFrameLatency
      * }
      */
     public static void desiredMaximumFrameLatency(MemorySegment struct, int fieldValue) {

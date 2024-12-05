@@ -112,6 +112,7 @@ class SpriteBatchMultiPassExample(context: Context) : ContextListener(context) {
                 pixelFont.draw(batch, "Hello\nLittleKt!", 0f, 0f, align = HAlign.CENTER)
             }
             renderPassEncoder.end()
+            renderPassEncoder.release()
 
             val commandBuffer = commandEncoder.finish()
 
@@ -119,7 +120,6 @@ class SpriteBatchMultiPassExample(context: Context) : ContextListener(context) {
             graphics.surface.present()
 
             commandBuffer.release()
-            renderPassEncoder.release()
             commandEncoder.release()
             frame.release()
             swapChainTexture.release()

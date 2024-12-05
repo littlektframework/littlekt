@@ -14,7 +14,7 @@ import static java.lang.foreign.MemoryLayout.PathElement.*;
 
 /**
  * {@snippet lang=c :
- * typedef void (*WGPUProcAdapterRequestDevice)(WGPUAdapter, const WGPUDeviceDescriptor *, WGPURequestDeviceCallback, void *)
+ * typedef void (*WGPUProcAdapterRequestDevice)(WGPUAdapter, const WGPUDeviceDescriptor *, WGPUAdapterRequestDeviceCallback, void *)
  * }
  */
 public class WGPUProcAdapterRequestDevice {
