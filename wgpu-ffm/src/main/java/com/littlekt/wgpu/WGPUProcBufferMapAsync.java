@@ -14,7 +14,7 @@ import static java.lang.foreign.MemoryLayout.PathElement.*;
 
 /**
  * {@snippet lang=c :
- * typedef void (*WGPUProcBufferMapAsync)(WGPUBuffer, WGPUMapModeFlags, size_t, size_t, WGPUBufferMapCallback, void *)
+ * typedef void (*WGPUProcBufferMapAsync)(WGPUBuffer, WGPUMapModeFlags, size_t, size_t, WGPUBufferMapAsyncCallback, void *)
  * }
  */
 public class WGPUProcBufferMapAsync {

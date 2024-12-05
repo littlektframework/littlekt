@@ -66,7 +66,7 @@ class TextureViaCommandEncoderExample(context: Context) : ContextListener(contex
                 0.5f,
                 -0.5f,
                 1f,
-                1f
+                1f,
             )
         val indices = shortArrayOf(0, 1, 2, 0, 2, 3)
         // @formatter:on
@@ -85,7 +85,7 @@ class TextureViaCommandEncoderExample(context: Context) : ContextListener(contex
                     1,
                     TextureDimension.D2,
                     TextureFormat.RGBA8_UNORM_SRGB,
-                    TextureUsage.COPY_DST or TextureUsage.TEXTURE
+                    TextureUsage.COPY_DST or TextureUsage.TEXTURE,
                 )
             )
 
@@ -97,7 +97,7 @@ class TextureViaCommandEncoderExample(context: Context) : ContextListener(contex
             commandEncoder.copyBufferToTexture(
                 BufferCopyView(textureBuffer, TextureDataLayout(image.width * 4, image.height)),
                 TextureCopyView(texture),
-                Extent3D(image.width, image.height, 1)
+                Extent3D(image.width, image.height, 1),
             )
             queue.submit(commandEncoder.finish())
             textureBuffer.destroy()
@@ -110,7 +110,7 @@ class TextureViaCommandEncoderExample(context: Context) : ContextListener(contex
                 BindGroupLayoutDescriptor(
                     listOf(
                         BindGroupLayoutEntry(0, ShaderStage.FRAGMENT, TextureBindingLayout()),
-                        BindGroupLayoutEntry(1, ShaderStage.FRAGMENT, SamplerBindingLayout())
+                        BindGroupLayoutEntry(1, ShaderStage.FRAGMENT, SamplerBindingLayout()),
                     )
                 )
             )
@@ -119,7 +119,7 @@ class TextureViaCommandEncoderExample(context: Context) : ContextListener(contex
                 desc =
                     BindGroupDescriptor(
                         bindGroupLayout,
-                        listOf(BindGroupEntry(0, textureView), BindGroupEntry(1, sampler))
+                        listOf(BindGroupEntry(0, textureView), BindGroupEntry(1, sampler)),
                     )
             )
         val pipelineLayout = device.createPipelineLayout(PipelineLayoutDescriptor(bindGroupLayout))
@@ -138,10 +138,10 @@ class TextureViaCommandEncoderExample(context: Context) : ContextListener(contex
                                 WebGPUVertexAttribute(
                                     VertexFormat.FLOAT32x2,
                                     2L * Float.SIZE_BYTES,
-                                    1
-                                )
-                            )
-                        )
+                                    1,
+                                ),
+                            ),
+                        ),
                     ),
                 fragment =
                     FragmentState(
@@ -151,20 +151,20 @@ class TextureViaCommandEncoderExample(context: Context) : ContextListener(contex
                             ColorTargetState(
                                 format = preferredFormat,
                                 blendState = BlendState.NonPreMultiplied,
-                                writeMask = ColorWriteMask.ALL
-                            )
+                                writeMask = ColorWriteMask.ALL,
+                            ),
                     ),
                 primitive = PrimitiveState(topology = PrimitiveTopology.TRIANGLE_LIST),
                 depthStencil = null,
                 multisample =
-                    MultisampleState(count = 1, mask = 0xFFFFFFF, alphaToCoverageEnabled = false)
+                    MultisampleState(count = 1, mask = 0xFFFFFFF, alphaToCoverageEnabled = false),
             )
         val renderPipeline = device.createRenderPipeline(renderPipelineDesc)
         graphics.configureSurface(
             TextureUsage.RENDER_ATTACHMENT,
             preferredFormat,
             PresentMode.FIFO,
-            surfaceCapabilities.alphaModes[0]
+            surfaceCapabilities.alphaModes[0],
         )
 
         onUpdate {
@@ -181,7 +181,7 @@ class TextureViaCommandEncoderExample(context: Context) : ContextListener(contex
                         TextureUsage.RENDER_ATTACHMENT,
                         preferredFormat,
                         PresentMode.FIFO,
-                        surfaceCapabilities.alphaModes[0]
+                        surfaceCapabilities.alphaModes[0],
                     )
                     logger.info { "getCurrentTexture status=$status" }
                     return@onUpdate
@@ -206,7 +206,7 @@ class TextureViaCommandEncoderExample(context: Context) : ContextListener(contex
                                     view = frame,
                                     loadOp = LoadOp.CLEAR,
                                     storeOp = StoreOp.STORE,
-                                    clearColor = Color.CLEAR
+                                    clearColor = Color.CLEAR,
                                 )
                             )
                         )
@@ -217,6 +217,7 @@ class TextureViaCommandEncoderExample(context: Context) : ContextListener(contex
             renderPassEncoder.setIndexBuffer(ibo, IndexFormat.UINT16)
             renderPassEncoder.drawIndexed(indices.size, 1)
             renderPassEncoder.end()
+            renderPassEncoder.release()
 
             val commandBuffer = commandEncoder.finish()
 
@@ -224,7 +225,6 @@ class TextureViaCommandEncoderExample(context: Context) : ContextListener(contex
             graphics.surface.present()
 
             commandBuffer.release()
-            renderPassEncoder.release()
             commandEncoder.release()
             frame.release()
             swapChainTexture.release()

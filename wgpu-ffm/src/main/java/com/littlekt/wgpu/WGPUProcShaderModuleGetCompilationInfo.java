@@ -14,7 +14,7 @@ import static java.lang.foreign.MemoryLayout.PathElement.*;
 
 /**
  * {@snippet lang=c :
- * typedef void (*WGPUProcShaderModuleGetCompilationInfo)(WGPUShaderModule, WGPUCompilationInfoCallback, void *)
+ * typedef void (*WGPUProcShaderModuleGetCompilationInfo)(WGPUShaderModule, WGPUShaderModuleGetCompilationInfoCallback, void *)
  * }
  */
 public class WGPUProcShaderModuleGetCompilationInfo {

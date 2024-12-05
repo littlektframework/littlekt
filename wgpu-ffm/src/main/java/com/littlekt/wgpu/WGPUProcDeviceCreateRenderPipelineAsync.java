@@ -14,7 +14,7 @@ import static java.lang.foreign.MemoryLayout.PathElement.*;
 
 /**
  * {@snippet lang=c :
- * typedef void (*WGPUProcDeviceCreateRenderPipelineAsync)(WGPUDevice, const WGPURenderPipelineDescriptor *, WGPUCreateRenderPipelineAsyncCallback, void *)
+ * typedef void (*WGPUProcDeviceCreateRenderPipelineAsync)(WGPUDevice, const WGPURenderPipelineDescriptor *, WGPUDeviceCreateRenderPipelineAsyncCallback, void *)
  * }
  */
 public class WGPUProcDeviceCreateRenderPipelineAsync {

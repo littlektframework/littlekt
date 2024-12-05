@@ -68,30 +68,30 @@ actual class CommandEncoder(val segment: MemorySegment) : Releasable {
             WGPURenderPassDescriptor.allocate(scope).let { renderPassDesc ->
                 WGPURenderPassDescriptor.label(
                     renderPassDesc,
-                    desc.label?.toNativeString(scope) ?: WGPU_NULL
+                    desc.label?.toNativeString(scope) ?: WGPU_NULL,
                 )
                 WGPURenderPassDescriptor.colorAttachmentCount(
                     renderPassDesc,
-                    desc.colorAttachments.size.toLong()
+                    desc.colorAttachments.size.toLong(),
                 )
                 WGPURenderPassDescriptor.colorAttachments(
                     renderPassDesc,
                     desc.colorAttachments.mapToNativeEntries(
                         scope,
                         WGPURenderPassColorAttachment.sizeof(),
-                        WGPURenderPassColorAttachment::allocateArray
+                        WGPURenderPassColorAttachment::allocateArray,
                     ) { colorAttachment, nativeColorAttachment ->
                         WGPURenderPassColorAttachment.view(
                             nativeColorAttachment,
-                            colorAttachment.view.segment
+                            colorAttachment.view.segment,
                         )
                         WGPURenderPassColorAttachment.loadOp(
                             nativeColorAttachment,
-                            colorAttachment.loadOp.nativeVal
+                            colorAttachment.loadOp.nativeVal,
                         )
                         WGPURenderPassColorAttachment.storeOp(
                             nativeColorAttachment,
-                            colorAttachment.storeOp.nativeVal
+                            colorAttachment.storeOp.nativeVal,
                         )
                         colorAttachment.clearColor?.let { clearColor ->
                             WGPUColor.allocate(scope)
@@ -104,11 +104,11 @@ actual class CommandEncoder(val segment: MemorySegment) : Releasable {
                                 .let {
                                     WGPURenderPassColorAttachment.clearValue(
                                         nativeColorAttachment,
-                                        it
+                                        it,
                                     )
                                 }
                         }
-                    }
+                    },
                 )
 
                 desc.depthStencilAttachment?.let { depthStencilAttachment ->
@@ -117,60 +117,60 @@ actual class CommandEncoder(val segment: MemorySegment) : Releasable {
 
                     WGPURenderPassDepthStencilAttachment.view(
                         nativeDepthStencilAttachment,
-                        depthStencilAttachment.view.segment
+                        depthStencilAttachment.view.segment,
                     )
                     WGPURenderPassDepthStencilAttachment.depthClearValue(
                         nativeDepthStencilAttachment,
-                        depthStencilAttachment.depthClearValue
+                        depthStencilAttachment.depthClearValue,
                     )
                     depthStencilAttachment.depthLoadOp?.nativeVal?.let {
                         WGPURenderPassDepthStencilAttachment.depthLoadOp(
                             nativeDepthStencilAttachment,
-                            it
+                            it,
                         )
                     }
 
                     depthStencilAttachment.depthStoreOp?.nativeVal?.let {
                         WGPURenderPassDepthStencilAttachment.depthStoreOp(
                             nativeDepthStencilAttachment,
-                            it
+                            it,
                         )
                     }
                     WGPURenderPassDepthStencilAttachment.depthReadOnly(
                         nativeDepthStencilAttachment,
-                        depthStencilAttachment.depthReadOnly.toInt()
+                        depthStencilAttachment.depthReadOnly.toInt(),
                     )
                     WGPURenderPassDepthStencilAttachment.stencilClearValue(
                         nativeDepthStencilAttachment,
-                        depthStencilAttachment.stencilClearValue
+                        depthStencilAttachment.stencilClearValue,
                     )
 
                     depthStencilAttachment.stencilLoadOp?.nativeVal?.let {
                         WGPURenderPassDepthStencilAttachment.stencilLoadOp(
                             nativeDepthStencilAttachment,
-                            it
+                            it,
                         )
                     }
 
                     depthStencilAttachment.stencilStoreOp?.nativeVal?.let {
                         WGPURenderPassDepthStencilAttachment.stencilStoreOp(
                             nativeDepthStencilAttachment,
-                            it
+                            it,
                         )
                     }
                     WGPURenderPassDepthStencilAttachment.depthReadOnly(
                         nativeDepthStencilAttachment,
-                        depthStencilAttachment.stencilReadOnly.toInt()
+                        depthStencilAttachment.stencilReadOnly.toInt(),
                     )
 
                     WGPURenderPassDescriptor.depthStencilAttachment(
                         renderPassDesc,
-                        nativeDepthStencilAttachment
+                        nativeDepthStencilAttachment,
                     )
                 }
                 RenderPassEncoder(
                     wgpuCommandEncoderBeginRenderPass(segment, renderPassDesc),
-                    desc.label
+                    desc.label,
                 )
             }
         }
@@ -183,14 +183,14 @@ actual class CommandEncoder(val segment: MemorySegment) : Releasable {
     actual fun copyBufferToTexture(
         source: BufferCopyView,
         destination: TextureCopyView,
-        copySize: Extent3D
+        copySize: Extent3D,
     ) {
         Arena.ofConfined().use { scope ->
             wgpuCommandEncoderCopyBufferToTexture(
                 segment,
                 source.toNative(scope),
                 destination.toNative(scope),
-                copySize.toNative(scope)
+                copySize.toNative(scope),
             )
         }
     }
@@ -208,7 +208,7 @@ actual class CommandEncoder(val segment: MemorySegment) : Releasable {
         destination: GPUBuffer,
         sourceOffset: Int,
         destinationOffset: Int,
-        size: Long
+        size: Long,
     ) {
         wgpuCommandEncoderCopyBufferToBuffer(
             segment,
@@ -216,7 +216,7 @@ actual class CommandEncoder(val segment: MemorySegment) : Releasable {
             sourceOffset.toLong(),
             destination.segment,
             destinationOffset.toLong(),
-            size
+            size,
         )
     }
 
@@ -255,7 +255,7 @@ actual class RenderPassEncoder(val segment: MemorySegment, actual val label: Str
         instanceCount: Int,
         firstIndex: Int,
         baseVertex: Int,
-        firstInstance: Int
+        firstInstance: Int,
     ) {
         EngineStats.drawCalls++
         EngineStats.triangles += (indexCount / 3) * instanceCount
@@ -265,7 +265,7 @@ actual class RenderPassEncoder(val segment: MemorySegment, actual val label: Str
             instanceCount,
             firstIndex,
             baseVertex,
-            firstInstance
+            firstInstance,
         )
     }
 
@@ -273,14 +273,14 @@ actual class RenderPassEncoder(val segment: MemorySegment, actual val label: Str
         buffer: GPUBuffer,
         indexFormat: IndexFormat,
         offset: Long,
-        size: Long
+        size: Long,
     ) {
         wgpuRenderPassEncoderSetIndexBuffer(
             segment,
             buffer.segment,
             indexFormat.nativeVal,
             offset,
-            size
+            size,
         )
     }
 
@@ -288,13 +288,13 @@ actual class RenderPassEncoder(val segment: MemorySegment, actual val label: Str
         if (dynamicOffsets.isNotEmpty()) {
             Arena.ofConfined().use { scope ->
                 val offsets =
-                    scope.allocateArray(ValueLayout.JAVA_LONG, *dynamicOffsets.toLongArray())
+                    scope.allocateFrom(ValueLayout.JAVA_LONG, *dynamicOffsets.toLongArray())
                 wgpuRenderPassEncoderSetBindGroup(
                     segment,
                     index,
                     bindGroup.segment,
                     dynamicOffsets.size.toLong(),
-                    offsets
+                    offsets,
                 )
             }
         } else {
@@ -312,7 +312,7 @@ actual class RenderPassEncoder(val segment: MemorySegment, actual val label: Str
         width: Int,
         height: Int,
         minDepth: Float,
-        maxDepth: Float
+        maxDepth: Float,
     ) {
         wgpuRenderPassEncoderSetViewport(
             segment,
@@ -321,7 +321,7 @@ actual class RenderPassEncoder(val segment: MemorySegment, actual val label: Str
             width.toFloat(),
             height.toFloat(),
             minDepth,
-            maxDepth
+            maxDepth,
         )
     }
 
@@ -356,13 +356,13 @@ actual class ComputePassEncoder(val segment: MemorySegment) : Releasable {
     actual fun dispatchWorkgroups(
         workgroupCountX: Int,
         workgroupCountY: Int,
-        workgroupCountZ: Int
+        workgroupCountZ: Int,
     ) {
         wgpuComputePassEncoderDispatchWorkgroups(
             segment,
             workgroupCountX,
             workgroupCountY,
-            workgroupCountZ
+            workgroupCountZ,
         )
     }
 

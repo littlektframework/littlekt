@@ -61,7 +61,7 @@ class LwjglGraphics(private val context: LwjglContext) : Graphics, Releasable {
         usage: TextureUsage,
         format: TextureFormat,
         presentMode: PresentMode,
-        alphaMode: AlphaMode
+        alphaMode: AlphaMode,
     ) {
         surface.configure(
             SurfaceConfiguration(device, usage, format, presentMode, alphaMode, width, height)
@@ -74,17 +74,17 @@ class LwjglGraphics(private val context: LwjglContext) : Graphics, Releasable {
         Arena.ofConfined().use { scope ->
             val options = WGPURequestAdapterOptions.allocate(scope)
             val callback =
-                WGPURequestAdapterCallback.allocate(
+                WGPUInstanceRequestAdapterCallback.allocate(
                     { status, adapter, message, _ ->
                         if (status == WGPURequestAdapterStatus_Success()) {
                             output.update { adapter }
                         } else {
                             logger.error {
-                                "requestAdapter status=$status, message=${message.getUtf8String(0)}"
+                                "requestAdapter status=$status, message=${message.getString(0)}"
                             }
                         }
                     },
-                    scope
+                    scope,
                 )
             WGPURequestAdapterOptions.powerPreference(options, powerPreference.nativeVal)
             WGPURequestAdapterOptions.compatibleSurface(options, surface.segment)
@@ -142,7 +142,7 @@ class LwjglGraphics(private val context: LwjglContext) : Graphics, Releasable {
                 }
                 WGPUChainedStruct.sType(
                     WGPUInstanceExtras.chain(extras),
-                    WGPUSType_InstanceExtras()
+                    WGPUSType_InstanceExtras(),
                 )
                 WGPUInstanceDescriptor.nextInChain(instanceDesc, extras)
                 Instance(wgpuCreateInstance(instanceDesc))
@@ -163,12 +163,12 @@ class LwjglGraphics(private val context: LwjglContext) : Graphics, Releasable {
                             val windowsDesc = WGPUSurfaceDescriptorFromWindowsHWND.allocate(scope)
                             WGPUSurfaceDescriptorFromWindowsHWND.hwnd(
                                 windowsDesc,
-                                MemorySegment.ofAddress(osHandle)
+                                MemorySegment.ofAddress(osHandle),
                             )
                             WGPUSurfaceDescriptorFromWindowsHWND.hinstance(windowsDesc, WGPU_NULL)
                             WGPUChainedStruct.sType(
                                 WGPUSurfaceDescriptorFromWindowsHWND.chain(windowsDesc),
-                                WGPUSType_SurfaceDescriptorFromWindowsHWND()
+                                WGPUSType_SurfaceDescriptorFromWindowsHWND(),
                             )
                             WGPUSurfaceDescriptor.label(desc, WGPU_NULL)
                             WGPUSurfaceDescriptor.nextInChain(desc, windowsDesc)
@@ -187,15 +187,15 @@ class LwjglGraphics(private val context: LwjglContext) : Graphics, Releasable {
                                         WGPUSurfaceDescriptorFromXlibWindow.allocate(scope)
                                     WGPUSurfaceDescriptorFromXlibWindow.display(
                                         windowsDesc,
-                                        MemorySegment.ofAddress(display)
+                                        MemorySegment.ofAddress(display),
                                     )
                                     WGPUSurfaceDescriptorFromXlibWindow.window(
                                         windowsDesc,
-                                        osHandle
+                                        osHandle,
                                     )
                                     WGPUChainedStruct.sType(
                                         WGPUSurfaceDescriptorFromXlibWindow.chain(windowsDesc),
-                                        WGPUSType_SurfaceDescriptorFromXlibWindow()
+                                        WGPUSType_SurfaceDescriptorFromXlibWindow(),
                                     )
                                     WGPUSurfaceDescriptor.label(desc, WGPU_NULL)
                                     WGPUSurfaceDescriptor.nextInChain(desc, windowsDesc)
@@ -212,15 +212,15 @@ class LwjglGraphics(private val context: LwjglContext) : Graphics, Releasable {
                                         WGPUSurfaceDescriptorFromWaylandSurface.allocate(scope)
                                     WGPUSurfaceDescriptorFromWaylandSurface.display(
                                         windowsDesc,
-                                        MemorySegment.ofAddress(display)
+                                        MemorySegment.ofAddress(display),
                                     )
                                     WGPUSurfaceDescriptorFromWaylandSurface.surface(
                                         windowsDesc,
-                                        MemorySegment.ofAddress(osHandle)
+                                        MemorySegment.ofAddress(osHandle),
                                     )
                                     WGPUChainedStruct.sType(
                                         WGPUSurfaceDescriptorFromWaylandSurface.chain(windowsDesc),
-                                        WGPUSType_SurfaceDescriptorFromWaylandSurface()
+                                        WGPUSType_SurfaceDescriptorFromWaylandSurface(),
                                     )
                                     WGPUSurfaceDescriptor.label(desc, WGPU_NULL)
                                     WGPUSurfaceDescriptor.nextInChain(desc, windowsDesc)
@@ -252,18 +252,18 @@ class LwjglGraphics(private val context: LwjglContext) : Graphics, Releasable {
                                 contentView,
                                 sel_getUid("setLayer:"),
                                 metal_layer,
-                                objc_msgSend
+                                objc_msgSend,
                             )
 
                             val desc = WGPUSurfaceDescriptor.allocate(scope)
                             val metalDesc = WGPUSurfaceDescriptorFromMetalLayer.allocate(scope)
                             WGPUSurfaceDescriptorFromMetalLayer.layer(
                                 metalDesc,
-                                MemorySegment.ofAddress(metal_layer)
+                                MemorySegment.ofAddress(metal_layer),
                             )
                             WGPUChainedStruct.sType(
                                 WGPUSurfaceDescriptorFromMetalLayer.chain(metalDesc),
-                                WGPUSType_SurfaceDescriptorFromMetalLayer()
+                                WGPUSType_SurfaceDescriptorFromMetalLayer(),
                             )
                             WGPUSurfaceDescriptor.label(desc, WGPU_NULL)
                             WGPUSurfaceDescriptor.nextInChain(desc, metalDesc)

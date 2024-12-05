@@ -1,4 +1,5 @@
 import org.apache.tools.ant.taskdefs.condition.Os
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
 
 plugins { alias(libs.plugins.kotlin.multiplatform) }
@@ -6,9 +7,9 @@ plugins { alias(libs.plugins.kotlin.multiplatform) }
 repositories { maven(url = "https://maven.pkg.jetbrains.space/public/p/kotlinx-html/maven") }
 
 kotlin {
-    tasks.withType<JavaExec> { jvmArgs("--enable-preview", "--enable-native-access=ALL-UNNAMED") }
+    tasks.withType<JavaExec> { jvmArgs("--enable-native-access=ALL-UNNAMED") }
     jvm {
-        compilations.all { kotlinOptions.jvmTarget = "21" }
+        compilerOptions { jvmTarget = JvmTarget.JVM_22 }
         compilations {
             val main by getting
             val mainClassName = "com.littlekt.examples.JvmRunnerKt"
@@ -30,7 +31,7 @@ kotlin {
                     destinationDirectory.set(File("${layout.buildDirectory.asFile.get()}/publish/"))
                     from(
                         main.runtimeDependencyFiles.map { if (it.isDirectory) it else zipTree(it) },
-                        main.output.classesDirs
+                        main.output.classesDirs,
                     )
                     doLast {
                         logger.lifecycle(
@@ -47,7 +48,7 @@ kotlin {
                             dependsOn(mainCompile.compileAllTaskName)
                             classpath(
                                 { mainCompile.output.allOutputs.files },
-                                (configurations["jvmRuntimeClasspath"])
+                                (configurations["jvmRuntimeClasspath"]),
                             )
                         }
                     }
@@ -65,15 +66,13 @@ kotlin {
                     (devServer
                             ?: org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpackConfig
                                 .DevServer())
-                        .copy(
-                            open = mapOf("app" to mapOf("name" to "chrome")),
-                        )
+                        .copy(open = mapOf("app" to mapOf("name" to "chrome")))
             }
         }
 
         this.attributes.attribute(KotlinPlatformType.attribute, KotlinPlatformType.js)
 
-        compilations.all { kotlinOptions.sourceMap = true }
+        compilerOptions { sourceMap = true }
     }
 
     sourceSets {

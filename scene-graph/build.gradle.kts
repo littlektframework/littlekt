@@ -1,3 +1,4 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.plugin.KotlinJsCompilerType
 import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
 
@@ -7,13 +8,8 @@ plugins {
 }
 
 kotlin {
-    tasks.withType<JavaExec> { jvmArgs("--enable-preview", "--enable-native-access=ALL-UNNAMED") }
-    jvm {
-        compilations.all {
-            kotlinOptions.jvmTarget = "11"
-            compileJavaTaskProvider?.get()?.options?.compilerArgs?.add("--enable-preview")
-        }
-    }
+    tasks.withType<JavaExec> { jvmArgs("--enable-native-access=ALL-UNNAMED") }
+    jvm { compilerOptions { jvmTarget = JvmTarget.JVM_22 } }
     js(KotlinJsCompilerType.IR) {
         browser {
             binaries.executable()
@@ -22,7 +18,7 @@ kotlin {
 
         this.attributes.attribute(KotlinPlatformType.attribute, KotlinPlatformType.js)
 
-        compilations.all { kotlinOptions.sourceMap = true }
+        compilerOptions { sourceMap = true }
     }
 
     sourceSets {

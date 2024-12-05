@@ -433,7 +433,7 @@ class RotatingCubeExample(context: Context) : ContextListener(context) {
             TextureUsage.RENDER_ATTACHMENT,
             preferredFormat,
             PresentMode.FIFO,
-            AlphaMode.OPAQUE
+            AlphaMode.OPAQUE,
         )
 
         val projMatrix =
@@ -455,7 +455,7 @@ class RotatingCubeExample(context: Context) : ContextListener(context) {
             device.createGPUFloatBuffer(
                 "mvp buffer",
                 modelViewProjMatrix.data,
-                BufferUsage.UNIFORM or BufferUsage.COPY_DST
+                BufferUsage.UNIFORM or BufferUsage.COPY_DST,
             )
 
         val shader = device.createShaderModule(shaderSrc)
@@ -487,15 +487,15 @@ class RotatingCubeExample(context: Context) : ContextListener(context) {
                                             WebGPUVertexAttribute(
                                                 VertexFormat.FLOAT32x4,
                                                 cubePositionOffset,
-                                                0
+                                                0,
                                             ),
                                             WebGPUVertexAttribute(
                                                 VertexFormat.FLOAT32x2,
                                                 cubeUVOffset,
-                                                1
-                                            )
-                                        )
-                                )
+                                                1,
+                                            ),
+                                        ),
+                                ),
                         ),
                     fragment =
                         FragmentState(
@@ -505,8 +505,8 @@ class RotatingCubeExample(context: Context) : ContextListener(context) {
                                 ColorTargetState(
                                     preferredFormat,
                                     BlendState.Opaque,
-                                    ColorWriteMask.ALL
-                                )
+                                    ColorWriteMask.ALL,
+                                ),
                         ),
                     primitive =
                         PrimitiveState(PrimitiveTopology.TRIANGLE_LIST, cullMode = CullMode.BACK),
@@ -514,9 +514,9 @@ class RotatingCubeExample(context: Context) : ContextListener(context) {
                         DepthStencilState(
                             format = TextureFormat.DEPTH24_PLUS,
                             true,
-                            CompareFunction.LESS
+                            CompareFunction.LESS,
                         ),
-                    multisample = MultisampleState(1, 0xFFFFFFF, false)
+                    multisample = MultisampleState(1, 0xFFFFFFF, false),
                 )
             )
         var depthTexture =
@@ -527,7 +527,7 @@ class RotatingCubeExample(context: Context) : ContextListener(context) {
                     1,
                     TextureDimension.D2,
                     TextureFormat.DEPTH24_PLUS,
-                    TextureUsage.RENDER_ATTACHMENT
+                    TextureUsage.RENDER_ATTACHMENT,
                 )
             )
         var depthTextureView = depthTexture.createView()
@@ -547,7 +547,7 @@ class RotatingCubeExample(context: Context) : ContextListener(context) {
                                 1,
                                 TextureDimension.D2,
                                 TextureFormat.DEPTH24_PLUS,
-                                TextureUsage.RENDER_ATTACHMENT
+                                TextureUsage.RENDER_ATTACHMENT,
                             )
                         )
                     depthTextureView = depthTexture.createView()
@@ -558,7 +558,7 @@ class RotatingCubeExample(context: Context) : ContextListener(context) {
                         PresentMode.FIFO,
                         AlphaMode.OPAQUE,
                         graphics.width,
-                        graphics.height
+                        graphics.height,
                     )
                 }
             if (!valid) return@onUpdate
@@ -577,7 +577,7 @@ class RotatingCubeExample(context: Context) : ContextListener(context) {
                                     view = frame,
                                     loadOp = LoadOp.CLEAR,
                                     storeOp = StoreOp.STORE,
-                                    clearColor = Color.BLACK
+                                    clearColor = Color.BLACK,
                                 )
                             ),
                             depthStencilAttachment =
@@ -585,8 +585,8 @@ class RotatingCubeExample(context: Context) : ContextListener(context) {
                                     depthTextureView,
                                     depthClearValue = 1f,
                                     depthLoadOp = LoadOp.CLEAR,
-                                    depthStoreOp = StoreOp.STORE
-                                )
+                                    depthStoreOp = StoreOp.STORE,
+                                ),
                         )
                 )
             renderPassEncoder.setPipeline(renderPipeline)
@@ -594,6 +594,7 @@ class RotatingCubeExample(context: Context) : ContextListener(context) {
             renderPassEncoder.setVertexBuffer(0, vertexBuffer)
             renderPassEncoder.draw(cubeVertexCount, 1)
             renderPassEncoder.end()
+            renderPassEncoder.release()
 
             val commandBuffer = commandEncoder.finish()
 
@@ -601,7 +602,6 @@ class RotatingCubeExample(context: Context) : ContextListener(context) {
             graphics.surface.present()
 
             commandBuffer.release()
-            renderPassEncoder.release()
             commandEncoder.release()
             frame.release()
             swapChainTexture.release()

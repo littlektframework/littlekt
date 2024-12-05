@@ -68,7 +68,7 @@ class TextureExample(context: Context) : ContextListener(context) {
                     0.5f,
                     -0.5f,
                     1f,
-                    1f
+                    1f,
                 )
             )
         val indices = ShortBuffer(shortArrayOf(0, 1, 2, 0, 2, 3))
@@ -88,7 +88,7 @@ class TextureExample(context: Context) : ContextListener(context) {
                     TextureDimension.D2,
                     if (preferredFormat.srgb) TextureFormat.RGBA8_UNORM_SRGB
                     else TextureFormat.RGBA8_UNORM,
-                    TextureUsage.COPY_DST or TextureUsage.TEXTURE
+                    TextureUsage.COPY_DST or TextureUsage.TEXTURE,
                 )
             )
 
@@ -97,7 +97,7 @@ class TextureExample(context: Context) : ContextListener(context) {
             data = image.pixels.toArray(),
             destination = TextureCopyView(texture),
             layout = TextureDataLayout(image.width * 4, image.height),
-            copySize = Extent3D(image.width, image.height, 1)
+            copySize = Extent3D(image.width, image.height, 1),
         )
 
         val sampler = device.createSampler(SamplerDescriptor())
@@ -107,7 +107,7 @@ class TextureExample(context: Context) : ContextListener(context) {
                 BindGroupLayoutDescriptor(
                     listOf(
                         BindGroupLayoutEntry(0, ShaderStage.FRAGMENT, TextureBindingLayout()),
-                        BindGroupLayoutEntry(1, ShaderStage.FRAGMENT, SamplerBindingLayout())
+                        BindGroupLayoutEntry(1, ShaderStage.FRAGMENT, SamplerBindingLayout()),
                     )
                 )
             )
@@ -116,7 +116,7 @@ class TextureExample(context: Context) : ContextListener(context) {
                 desc =
                     BindGroupDescriptor(
                         bindGroupLayout,
-                        listOf(BindGroupEntry(0, textureView), BindGroupEntry(1, sampler))
+                        listOf(BindGroupEntry(0, textureView), BindGroupEntry(1, sampler)),
                     )
             )
         val pipelineLayout = device.createPipelineLayout(PipelineLayoutDescriptor(bindGroupLayout))
@@ -135,10 +135,10 @@ class TextureExample(context: Context) : ContextListener(context) {
                                 WebGPUVertexAttribute(
                                     VertexFormat.FLOAT32x2,
                                     2L * Float.SIZE_BYTES,
-                                    1
-                                )
-                            )
-                        )
+                                    1,
+                                ),
+                            ),
+                        ),
                     ),
                 fragment =
                     FragmentState(
@@ -148,20 +148,20 @@ class TextureExample(context: Context) : ContextListener(context) {
                             ColorTargetState(
                                 format = preferredFormat,
                                 blendState = BlendState.NonPreMultiplied,
-                                writeMask = ColorWriteMask.ALL
-                            )
+                                writeMask = ColorWriteMask.ALL,
+                            ),
                     ),
                 primitive = PrimitiveState(topology = PrimitiveTopology.TRIANGLE_LIST),
                 depthStencil = null,
                 multisample =
-                    MultisampleState(count = 1, mask = 0xFFFFFFF, alphaToCoverageEnabled = false)
+                    MultisampleState(count = 1, mask = 0xFFFFFFF, alphaToCoverageEnabled = false),
             )
         val renderPipeline = device.createRenderPipeline(renderPipelineDesc)
         graphics.configureSurface(
             TextureUsage.RENDER_ATTACHMENT,
             preferredFormat,
             PresentMode.FIFO,
-            surfaceCapabilities.alphaModes[0]
+            surfaceCapabilities.alphaModes[0],
         )
 
         onUpdate {
@@ -178,7 +178,7 @@ class TextureExample(context: Context) : ContextListener(context) {
                         TextureUsage.RENDER_ATTACHMENT,
                         preferredFormat,
                         PresentMode.FIFO,
-                        surfaceCapabilities.alphaModes[0]
+                        surfaceCapabilities.alphaModes[0],
                     )
                     logger.info { "getCurrentTexture status=$status" }
                     return@onUpdate
@@ -205,7 +205,7 @@ class TextureExample(context: Context) : ContextListener(context) {
                                     storeOp = StoreOp.STORE,
                                     clearColor =
                                         if (preferredFormat.srgb) Color.DARK_GRAY.toLinear()
-                                        else Color.DARK_GRAY
+                                        else Color.DARK_GRAY,
                                 )
                             )
                         )
@@ -216,6 +216,7 @@ class TextureExample(context: Context) : ContextListener(context) {
             renderPassEncoder.setIndexBuffer(ibo, IndexFormat.UINT16)
             renderPassEncoder.drawIndexed(indices.capacity, 1)
             renderPassEncoder.end()
+            renderPassEncoder.release()
 
             val commandBuffer = commandEncoder.finish()
 
@@ -223,7 +224,6 @@ class TextureExample(context: Context) : ContextListener(context) {
             graphics.surface.present()
 
             commandBuffer.release()
-            renderPassEncoder.release()
             commandEncoder.release()
             frame.release()
             swapChainTexture.release()

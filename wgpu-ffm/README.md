@@ -4,4 +4,4 @@
 
 **JDK22: cmd.exe**
 
-`jextract -t com.littlekt.wgpu --output ./wgpuj/src/main/java --header-class-name WGPU wgpu-natives/src/main/c/wgpu.h`
+`jextract -t com.littlekt.wgpu --output ./wgpu-ffm/src/main/java --header-class-name WGPU wgpu-natives/src/main/c/wgpu.h`
