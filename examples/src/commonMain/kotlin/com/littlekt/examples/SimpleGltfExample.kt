@@ -253,6 +253,7 @@ class SimpleGltfExample(context: Context) : ContextListener(context) {
 
             models.forEach { model -> model.render(renderPassEncoder, vertexBindGroup) }
             renderPassEncoder.end()
+            renderPassEncoder.release()
 
             val commandBuffer = commandEncoder.finish()
 
@@ -260,7 +261,6 @@ class SimpleGltfExample(context: Context) : ContextListener(context) {
             graphics.surface.present()
 
             commandBuffer.release()
-            renderPassEncoder.release()
             commandEncoder.release()
             frame.release()
             swapChainTexture.release()
