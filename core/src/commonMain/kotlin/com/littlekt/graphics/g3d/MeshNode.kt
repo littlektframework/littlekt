@@ -123,12 +123,7 @@ open class MeshNode(
                         stripIndexFormat =
                             if (topology.isStripTopology()) stripIndexFormat else null,
                     ),
-                depthStencil =
-                    DepthStencilState(
-                        format = depthFormat,
-                        depthWriteEnabled = true,
-                        depthCompare = CompareFunction.LESS,
-                    ),
+                depthStencil = DepthStencilState.depthWrite(depthFormat),
             )
         renderPipeline = device.createRenderPipeline(renderPipelineDesc)
     }

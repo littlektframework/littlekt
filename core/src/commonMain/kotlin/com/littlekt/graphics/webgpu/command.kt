@@ -191,6 +191,17 @@ data class DepthStencilState(
     val bias: DepthBiasState = DepthBiasState(0, 0f, 0f),
 ) {
     companion object {
+        /**
+         * Creates a new [DepthStencilState] meant for depth writes.
+         *
+         * ```
+         * DepthStencilState(
+         *                 format = format,
+         *                 depthWriteEnabled = true,
+         *                 depthCompare = CompareFunction.LESS_EQUAL,
+         *             )
+         * ```
+         */
         fun depthWrite(format: TextureFormat): DepthStencilState =
             DepthStencilState(
                 format = format,
@@ -198,6 +209,17 @@ data class DepthStencilState(
                 depthCompare = CompareFunction.LESS_EQUAL,
             )
 
+        /**
+         * Creates a new [DepthStencilState] meant for depth reads.
+         *
+         * ```
+         * DepthStencilState(
+         *                 format = format,
+         *                 depthWriteEnabled = false,
+         *                 depthCompare = CompareFunction.LESS_EQUAL,
+         *             )
+         * ```
+         */
         fun depthRead(format: TextureFormat): DepthStencilState =
             DepthStencilState(
                 format = format,
@@ -205,6 +227,18 @@ data class DepthStencilState(
                 depthCompare = CompareFunction.LESS_EQUAL,
             )
 
+        /**
+         * Creates a new [DepthStencilState] meant for stencil writes.
+         *
+         * ```
+         *     DepthStencilState(
+         *                 format = format,
+         *                 depthWriteEnabled = true,
+         *                 depthCompare = CompareFunction.LESS_EQUAL,
+         *                 stencil = StencilState(StencilFaceState.WRITE, StencilFaceState.WRITE, 0xF, 0xF),
+         *             )
+         * ```
+         */
         fun stencilWrite(format: TextureFormat): DepthStencilState =
             DepthStencilState(
                 format = format,
@@ -213,6 +247,18 @@ data class DepthStencilState(
                 stencil = StencilState(StencilFaceState.WRITE, StencilFaceState.WRITE, 0xF, 0xF),
             )
 
+        /**
+         * Creates a new [DepthStencilState] meant for stencil reads.
+         *
+         * ```
+         *  DepthStencilState(
+         *                 format = format,
+         *                 depthWriteEnabled = true,
+         *                 depthCompare = CompareFunction.LESS_EQUAL,
+         *                 stencil = StencilState(StencilFaceState.READ, StencilFaceState.READ, 0xF, 0xF),
+         *             )
+         * ```
+         */
         fun stencilRead(format: TextureFormat): DepthStencilState =
             DepthStencilState(
                 format = format,
