@@ -235,11 +235,12 @@ private class GltfModelGenerator(val gltfFile: GltfData) {
 
         val geometry =
             CommonIndexedMeshGeometry(
-                VertexBufferLayout(
-                    vertexAttributes.calculateStride().toLong(),
-                    VertexStepMode.VERTEX,
-                    vertexAttributes,
-                )
+                layout =
+                    VertexBufferLayout(
+                        arrayStride = vertexAttributes.calculateStride().toLong(),
+                        stepMode = VertexStepMode.VERTEX,
+                        attributes = vertexAttributes,
+                    )
             )
 
         repeat(positionGltfAccessor.count) { i ->

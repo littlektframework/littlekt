@@ -53,28 +53,49 @@ open class MeshNode(
         globalTransform.toBuffer(modelFloatBuffer)
         modelUniformBuffer =
             device.createGPUFloatBuffer(
-                "model uniform buffer",
-                modelFloatBuffer.toArray(),
-                BufferUsage.UNIFORM or BufferUsage.COPY_DST,
+                label = "model uniform buffer",
+                data = modelFloatBuffer.toArray(),
+                usage = BufferUsage.UNIFORM or BufferUsage.COPY_DST,
             )
         val modelBindGroupLayout =
             device.createBindGroupLayout(
-                BindGroupLayoutDescriptor(
-                    listOf(BindGroupLayoutEntry(0, ShaderStage.VERTEX, BufferBindingLayout()))
-                )
+                desc =
+                    BindGroupLayoutDescriptor(
+                        entries =
+                            listOf(
+                                BindGroupLayoutEntry(
+                                    binding = 0,
+                                    visibility = ShaderStage.VERTEX,
+                                    bindingLayout = BufferBindingLayout(),
+                                )
+                            )
+                    )
             )
         modelBindGroup =
             device.createBindGroup(
-                BindGroupDescriptor(
-                    modelBindGroupLayout,
-                    listOf(BindGroupEntry(0, BufferBinding(modelUniformBuffer))),
-                )
+                desc =
+                    BindGroupDescriptor(
+                        layout = modelBindGroupLayout,
+                        entries =
+                            listOf(
+                                BindGroupEntry(
+                                    binding = 0,
+                                    resource = BufferBinding(modelUniformBuffer),
+                                )
+                            ),
+                    )
             )
         val pipelineLayout =
             device.createPipelineLayout(
-                PipelineLayoutDescriptor(
-                    listOf(uniformsBindGroupLayout, modelBindGroupLayout, material.bindGroupLayout)
-                )
+                desc =
+                    PipelineLayoutDescriptor(
+                        bindGroupLayouts =
+                            listOf(
+                                uniformsBindGroupLayout,
+                                modelBindGroupLayout,
+                                material.bindGroupLayout,
+                            )
+                    )
             )
         val renderPipelineDesc =
             RenderPipelineDescriptor(
@@ -97,15 +118,17 @@ open class MeshNode(
                             ),
                     ),
                 primitive =
-                    PrimitiveState(topology = topology, stripIndexFormat = stripIndexFormat),
+                    PrimitiveState(
+                        topology = topology,
+                        stripIndexFormat =
+                            if (topology.isStripTopology()) stripIndexFormat else null,
+                    ),
                 depthStencil =
                     DepthStencilState(
-                        depthFormat,
+                        format = depthFormat,
                         depthWriteEnabled = true,
                         depthCompare = CompareFunction.LESS,
                     ),
-                multisample =
-                    MultisampleState(count = 1, mask = 0xFFFFFFF, alphaToCoverageEnabled = false),
             )
         renderPipeline = device.createRenderPipeline(renderPipelineDesc)
     }

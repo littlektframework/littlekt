@@ -33,7 +33,15 @@ enum class PrimitiveTopology {
      *
      * Vertices `0 1 2 3 4 5` create four triangles `0 1 2`, `2 1 3`, `2 3 4`, and `4 3 5`.
      */
-    TRIANGLE_STRIP,
+    TRIANGLE_STRIP;
+
+    /** Determines if this [PrimitiveTopology] is considered a "strip" topology. */
+    fun isStripTopology(): Boolean =
+        when (this) {
+            LINE_STRIP,
+            TRIANGLE_STRIP -> true
+            else -> false
+        }
 }
 
 /** Vertex winding order which classifies the "front" face of a triangle. */

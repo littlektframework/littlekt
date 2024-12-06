@@ -155,14 +155,14 @@ data class GltfAccessorSparseValues(val bufferView: Int, val byteOffset: Int = 0
 }
 
 @Serializable
-enum class GltfAccessorType(val value: String) {
-    @SerialName("SCALAR") Scalar("SCALAR"),
-    @SerialName("VEC2") Vec2("VEC2"),
-    @SerialName("VEC3") Vec3("VEC3"),
-    @SerialName("VEC4") Vec4("VEC4"),
-    @SerialName("MAT2") Mat2("MAT2"),
-    @SerialName("MAT3") Mat3("MAT3"),
-    @SerialName("MAT4") Mat4("MAT4"),
+enum class GltfAccessorType(val value: String, val numComponents: Int) {
+    @SerialName("SCALAR") Scalar("SCALAR", 1),
+    @SerialName("VEC2") Vec2("VEC2", 2),
+    @SerialName("VEC3") Vec3("VEC3", 3),
+    @SerialName("VEC4") Vec4("VEC4", 4),
+    @SerialName("MAT2") Mat2("MAT2", 4),
+    @SerialName("MAT3") Mat3("MAT3", 9),
+    @SerialName("MAT4") Mat4("MAT4", 16),
 }
 
 @Serializable
@@ -442,20 +442,22 @@ enum class GltfRenderMode(val value: String) {
     @SerialName("0") Points("0"),
     @SerialName("1") Lines("1"),
     @SerialName("2") LineLoop("2"),
-    @SerialName("3") Triangles("3"),
-    @SerialName("4") TriangleStrip("4"),
-    @SerialName("5") TriangleFan("5"),
-    @SerialName("6") Quads("6"),
-    @SerialName("7") QuadStrip("7"),
-    @SerialName("8") Polygon("8"),
+    @SerialName("3") LineStrip("3"),
+    @SerialName("4") Triangles("4"),
+    @SerialName("5") TriangleStrip("5"),
+    @SerialName("6") TriangleFan("6"),
+    @SerialName("7") Quads("7"),
+    @SerialName("8") QuadStrip("8"),
+    @SerialName("9") Polygon("9"),
 }
 
-/** Converts the [GltfRenderMode] to it's respective [PrimitiveTopology]. */
+/** Converts the [GltfRenderMode] to its respective [PrimitiveTopology]. */
 fun GltfRenderMode.toTopology(): PrimitiveTopology =
     when (this) {
         GltfRenderMode.Points -> PrimitiveTopology.POINT_LIST
         GltfRenderMode.Lines -> PrimitiveTopology.LINE_LIST
-        GltfRenderMode.LineLoop -> PrimitiveTopology.LINE_STRIP
+        GltfRenderMode.LineLoop,
+        GltfRenderMode.LineStrip -> PrimitiveTopology.LINE_STRIP
         GltfRenderMode.Triangles -> PrimitiveTopology.TRIANGLE_LIST
         GltfRenderMode.TriangleStrip -> PrimitiveTopology.TRIANGLE_STRIP
         else ->

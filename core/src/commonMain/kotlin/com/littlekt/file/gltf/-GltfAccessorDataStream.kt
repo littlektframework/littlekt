@@ -52,16 +52,7 @@ internal abstract class GltfAccessorDataStream(val accessor: GltfAccessor) {
         }
 
         val compByteSize = accessor.componentType.byteSize
-        val numComponents =
-            when (accessor.type) {
-                GltfAccessorType.Scalar -> 1
-                GltfAccessorType.Vec2 -> 2
-                GltfAccessorType.Vec3 -> 3
-                GltfAccessorType.Vec4 -> 4
-                GltfAccessorType.Mat2 -> 4
-                GltfAccessorType.Mat3 -> 9
-                GltfAccessorType.Mat4 -> 16
-            }
+        val numComponents = accessor.type.numComponents
         elemByteSize = compByteSize * numComponents
         byteStride =
             if (buffer != null && buffer.byteStride > 0) {
@@ -96,7 +87,7 @@ internal abstract class GltfAccessorDataStream(val accessor: GltfAccessor) {
                     GltfComponentType.UnsignedByte -> 255f
                     GltfComponentType.Short -> 32767f
                     GltfComponentType.UnsignedShort -> 65535f
-                    GltfComponentType.Int -> 2.14748365E9f
+                    GltfComponentType.Int -> 2.1474836E9f
                     GltfComponentType.UnsignedInt -> 4.2949673E9f
                     else ->
                         throw IllegalStateException(

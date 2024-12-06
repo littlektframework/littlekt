@@ -43,7 +43,7 @@ class SimpleGltfExample(context: Context) : ContextListener(context) {
             roughness_factor: f32,
         };
 
-        struct ViewParams {
+        struct CameraUniform {
             view_proj: mat4x4<f32>,
         };
         
@@ -52,7 +52,7 @@ class SimpleGltfExample(context: Context) : ContextListener(context) {
         };
 
         @group(0) @binding(0)
-        var<uniform> view_params: ViewParams;
+        var<uniform> camera: CameraUniform;
         
         @group(1) @binding(0)
         var<uniform> node_params: NodeParams;
@@ -76,7 +76,7 @@ class SimpleGltfExample(context: Context) : ContextListener(context) {
         @vertex
         fn vs_main(vert: VertexInput) -> VertexOutput {
             var out: VertexOutput;
-            out.position = view_params.view_proj * node_params.transform * float4(vert.position, 1.0);
+            out.position = camera.view_proj * node_params.transform * float4(vert.position, 1.0);
             out.world_pos = vert.position.xyz;
             out.texcoords = vert.texcoords;
             return out;
@@ -153,8 +153,8 @@ class SimpleGltfExample(context: Context) : ContextListener(context) {
                 resourcesVfs["Duck.glb"].readGltf().toModel().apply {
                     scale(20f)
                     translate(-30f, 0f, 0f)
-                },
-                resourcesVfs["Fox.glb"].readGltf().toModel().apply { translate(30f, 0f, 0f) },
+                }
+                //    resourcesVfs["Fox.glb"].readGltf().toModel().apply { translate(30f, 0f, 0f) },
             )
         models.forEach { it.build(device, shader, vertexGroupLayout, preferredFormat, depthFormat) }
 
