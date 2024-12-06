@@ -24,7 +24,7 @@ expect class CommandBuffer : Releasable {
 data class TextureCopyView(
     val texture: WebGPUTexture,
     val mipLevel: Int = 0,
-    val origin: Origin3D = Origin3D(0, 0, 0)
+    val origin: Origin3D = Origin3D(0, 0, 0),
 )
 
 /**
@@ -92,7 +92,7 @@ expect class CommandEncoder : Releasable {
     fun copyBufferToTexture(
         source: BufferCopyView,
         destination: TextureCopyView,
-        copySize: Extent3D
+        copySize: Extent3D,
     )
 
     /**
@@ -109,7 +109,7 @@ expect class CommandEncoder : Releasable {
         destination: GPUBuffer,
         sourceOffset: Int = 0,
         destinationOffset: Int = 0,
-        size: Long = destination.size - destinationOffset
+        size: Long = destination.size - destinationOffset,
     )
 
     /** Copy data from a texture to a buffer. */
@@ -149,7 +149,7 @@ data class RenderPipelineDescriptor(
     val primitive: PrimitiveState = PrimitiveState(),
     val depthStencil: DepthStencilState? = null,
     val multisample: MultisampleState = MultisampleState(),
-    val label: String? = null
+    val label: String? = null,
 )
 
 /**
@@ -188,21 +188,21 @@ data class DepthStencilState(
     val depthCompare: CompareFunction,
     val stencil: StencilState =
         StencilState(StencilFaceState.IGNORE, StencilFaceState.IGNORE, 0xF, 0Xf),
-    val bias: DepthBiasState = DepthBiasState(0, 0f, 0f)
+    val bias: DepthBiasState = DepthBiasState(0, 0f, 0f),
 ) {
     companion object {
         fun depthWrite(format: TextureFormat): DepthStencilState =
             DepthStencilState(
                 format = format,
                 depthWriteEnabled = true,
-                depthCompare = CompareFunction.LESS_EQUAL
+                depthCompare = CompareFunction.LESS_EQUAL,
             )
 
         fun depthRead(format: TextureFormat): DepthStencilState =
             DepthStencilState(
                 format = format,
                 depthWriteEnabled = false,
-                depthCompare = CompareFunction.LESS_EQUAL
+                depthCompare = CompareFunction.LESS_EQUAL,
             )
 
         fun stencilWrite(format: TextureFormat): DepthStencilState =
@@ -210,7 +210,7 @@ data class DepthStencilState(
                 format = format,
                 depthWriteEnabled = true,
                 depthCompare = CompareFunction.LESS_EQUAL,
-                stencil = StencilState(StencilFaceState.WRITE, StencilFaceState.WRITE, 0xF, 0xF)
+                stencil = StencilState(StencilFaceState.WRITE, StencilFaceState.WRITE, 0xF, 0xF),
             )
 
         fun stencilRead(format: TextureFormat): DepthStencilState =
@@ -218,7 +218,7 @@ data class DepthStencilState(
                 format = format,
                 depthWriteEnabled = true,
                 depthCompare = CompareFunction.LESS_EQUAL,
-                stencil = StencilState(StencilFaceState.READ, StencilFaceState.READ, 0xF, 0xF)
+                stencil = StencilState(StencilFaceState.READ, StencilFaceState.READ, 0xF, 0xF),
             )
     }
 }
@@ -239,7 +239,7 @@ data class StencilState(
     val front: StencilFaceState,
     val back: StencilFaceState,
     val readMask: Int,
-    val writeMask: Int
+    val writeMask: Int,
 )
 
 /**
@@ -258,7 +258,7 @@ data class StencilFaceState(
     /** Operation that is performed when depth test fails but stencil test succeeds. */
     val depthFailOp: StencilOperation,
     /** Operation that is performed when stencil test succeeds. */
-    val passOp: StencilOperation
+    val passOp: StencilOperation,
 ) {
     companion object {
         /** Ignore the stencil state for the face. */
@@ -267,7 +267,7 @@ data class StencilFaceState(
                 compare = CompareFunction.ALWAYS,
                 failOp = StencilOperation.KEEP,
                 depthFailOp = StencilOperation.KEEP,
-                passOp = StencilOperation.KEEP
+                passOp = StencilOperation.KEEP,
             )
 
         /** Write stencil state for the face. */
@@ -276,7 +276,7 @@ data class StencilFaceState(
                 compare = CompareFunction.ALWAYS,
                 failOp = StencilOperation.KEEP,
                 depthFailOp = StencilOperation.KEEP,
-                passOp = StencilOperation.REPLACE
+                passOp = StencilOperation.REPLACE,
             )
 
         /** Read stencil state for the face. */
@@ -285,7 +285,7 @@ data class StencilFaceState(
                 compare = CompareFunction.EQUAL,
                 failOp = StencilOperation.KEEP,
                 depthFailOp = StencilOperation.KEEP,
-                passOp = StencilOperation.KEEP
+                passOp = StencilOperation.KEEP,
             )
     }
 }
@@ -314,12 +314,23 @@ data class DepthBiasState(val constant: Int, val slopeScale: Float, val clamp: F
 data class VertexState(
     val module: ShaderModule,
     val entryPoint: String,
-    val buffers: List<WebGPUVertexBufferLayout> = emptyList()
+    val buffers: List<WebGPUVertexBufferLayout> = emptyList(),
 ) {
+
+    /**
+     * Describes the vertex processing in a render pipeline.
+     *
+     * For use in [RenderPipelineDescriptor].
+     *
+     * @param module the compiled shader module for this stage
+     * @param entryPoint The name of the entry point in the compiled shader. There must be a
+     *   function with this name in the shader.
+     * @param buffer The format of any vertex buffers used with this pipeline.
+     */
     constructor(
         module: ShaderModule,
         entryPoint: String,
-        buffer: WebGPUVertexBufferLayout
+        buffer: WebGPUVertexBufferLayout,
     ) : this(module, entryPoint, listOf(buffer))
 }
 
@@ -349,16 +360,28 @@ data class PrimitiveState(
  * @param entryPoint the name of the entry point in the compiled shader. There must be a function
  *   with this name in the shader.
  * @param targets the color state of the render targets.
+ * @param targets the color state of the render targets.
  */
 data class FragmentState(
     val module: ShaderModule,
     val entryPoint: String,
-    val targets: List<ColorTargetState>
+    val targets: List<ColorTargetState>,
 ) {
+
+    /**
+     * Describes the fragment processing in a render pipeline.
+     *
+     * For use in [RenderPipelineDescriptor].
+     *
+     * @param module the compiled shader module for this stage.
+     * @param entryPoint the name of the entry point in the compiled shader. There must be a
+     *   function with this name in the shader.
+     * @param target the color state of the render targets.
+     */
     constructor(
         module: ShaderModule,
         entryPoint: String,
-        target: ColorTargetState
+        target: ColorTargetState,
     ) : this(module, entryPoint, listOf(target))
 }
 
@@ -373,7 +396,7 @@ data class FragmentState(
 data class ColorTargetState(
     val format: TextureFormat,
     val blendState: BlendState?,
-    val writeMask: ColorWriteMask
+    val writeMask: ColorWriteMask,
 )
 
 /**
@@ -384,14 +407,14 @@ data class ColorTargetState(
  */
 data class BlendState(
     val color: BlendComponent = BlendComponent(),
-    val alpha: BlendComponent = BlendComponent()
+    val alpha: BlendComponent = BlendComponent(),
 ) {
     companion object {
         /** Standard alpha blending. */
         val Alpha: BlendState =
             BlendState(
                 color = BlendComponent(dstFactor = BlendFactor.ONE_MINUS_SRC_ALPHA),
-                alpha = BlendComponent(dstFactor = BlendFactor.ONE_MINUS_SRC_ALPHA)
+                alpha = BlendComponent(dstFactor = BlendFactor.ONE_MINUS_SRC_ALPHA),
             )
 
         /** Fully oqaque, no alpha, blending. */
@@ -403,13 +426,13 @@ data class BlendState(
                 color =
                     BlendComponent(
                         srcFactor = BlendFactor.SRC_ALPHA,
-                        dstFactor = BlendFactor.ONE_MINUS_SRC_ALPHA
+                        dstFactor = BlendFactor.ONE_MINUS_SRC_ALPHA,
                     ),
                 alpha =
                     BlendComponent(
                         srcFactor = BlendFactor.SRC_ALPHA,
-                        dstFactor = BlendFactor.ONE_MINUS_SRC_ALPHA
-                    )
+                        dstFactor = BlendFactor.ONE_MINUS_SRC_ALPHA,
+                    ),
             )
 
         val Add: BlendState =
@@ -417,7 +440,7 @@ data class BlendState(
                 color =
                     BlendComponent(srcFactor = BlendFactor.SRC_ALPHA, dstFactor = BlendFactor.ONE),
                 alpha =
-                    BlendComponent(srcFactor = BlendFactor.SRC_ALPHA, dstFactor = BlendFactor.ONE)
+                    BlendComponent(srcFactor = BlendFactor.SRC_ALPHA, dstFactor = BlendFactor.ONE),
             )
 
         val Subtract: BlendState =
@@ -426,13 +449,13 @@ data class BlendState(
                     BlendComponent(
                         srcFactor = BlendFactor.SRC_ALPHA,
                         dstFactor = BlendFactor.ONE,
-                        operation = BlendOperation.REVERSE_SUBTRACT
+                        operation = BlendOperation.REVERSE_SUBTRACT,
                     ),
                 alpha =
                     BlendComponent(
                         srcFactor = BlendFactor.SRC_ALPHA,
                         dstFactor = BlendFactor.ONE,
-                        operation = BlendOperation.REVERSE_SUBTRACT
+                        operation = BlendOperation.REVERSE_SUBTRACT,
                     ),
             )
 
@@ -442,8 +465,8 @@ data class BlendState(
                     BlendComponent(
                         srcFactor = BlendFactor.ONE_MINUS_DST_COLOR,
                         dstFactor = BlendFactor.ONE_MINUS_SRC_COLOR,
-                        operation = BlendOperation.ADD
-                    ),
+                        operation = BlendOperation.ADD,
+                    )
             )
 
         val Multiply: BlendState =
@@ -452,14 +475,14 @@ data class BlendState(
                     BlendComponent(
                         srcFactor = BlendFactor.DST_COLOR,
                         dstFactor = BlendFactor.ZERO,
-                        operation = BlendOperation.ADD
+                        operation = BlendOperation.ADD,
                     ),
                 alpha =
                     BlendComponent(
                         srcFactor = BlendFactor.DST_ALPHA,
                         dstFactor = BlendFactor.ZERO,
-                        operation = BlendOperation.ADD
-                    )
+                        operation = BlendOperation.ADD,
+                    ),
             )
 
         val Lighten: BlendState =
@@ -468,13 +491,13 @@ data class BlendState(
                     BlendComponent(
                         srcFactor = BlendFactor.ONE,
                         dstFactor = BlendFactor.ONE,
-                        operation = BlendOperation.MAX
+                        operation = BlendOperation.MAX,
                     ),
                 alpha =
                     BlendComponent(
                         srcFactor = BlendFactor.ONE,
                         dstFactor = BlendFactor.ONE,
-                        operation = BlendOperation.MAX
+                        operation = BlendOperation.MAX,
                     ),
             )
 
@@ -484,13 +507,13 @@ data class BlendState(
                     BlendComponent(
                         srcFactor = BlendFactor.ONE,
                         dstFactor = BlendFactor.ONE,
-                        operation = BlendOperation.MIN
+                        operation = BlendOperation.MIN,
                     ),
                 alpha =
                     BlendComponent(
                         srcFactor = BlendFactor.ONE,
                         dstFactor = BlendFactor.ONE,
-                        operation = BlendOperation.MIN
+                        operation = BlendOperation.MIN,
                     ),
             )
 
@@ -500,7 +523,7 @@ data class BlendState(
                     BlendComponent(
                         srcFactor = BlendFactor.ONE_MINUS_DST_COLOR,
                         dstFactor = BlendFactor.ONE,
-                        operation = BlendOperation.ADD
+                        operation = BlendOperation.ADD,
                     )
             )
 
@@ -510,7 +533,7 @@ data class BlendState(
                     BlendComponent(
                         srcFactor = BlendFactor.ONE,
                         dstFactor = BlendFactor.ONE,
-                        operation = BlendOperation.ADD
+                        operation = BlendOperation.ADD,
                     )
             )
 
@@ -520,7 +543,7 @@ data class BlendState(
                     BlendComponent(
                         srcFactor = BlendFactor.ONE,
                         dstFactor = BlendFactor.ONE,
-                        operation = BlendOperation.REVERSE_SUBTRACT
+                        operation = BlendOperation.REVERSE_SUBTRACT,
                     )
             )
     }
@@ -536,7 +559,7 @@ data class BlendState(
 data class WebGPUVertexAttribute(
     val format: VertexFormat,
     val offset: Long,
-    val shaderLocation: Int
+    val shaderLocation: Int,
 )
 
 /**
@@ -551,12 +574,12 @@ data class WebGPUVertexAttribute(
 data class WebGPUVertexBufferLayout(
     val arrayStride: Long,
     val stepMode: VertexStepMode,
-    val attributes: List<WebGPUVertexAttribute>
+    val attributes: List<WebGPUVertexAttribute>,
 ) {
     constructor(
         arrayStride: Long,
         stepMode: VertexStepMode,
-        attribute: WebGPUVertexAttribute
+        attribute: WebGPUVertexAttribute,
     ) : this(arrayStride, stepMode, listOf(attribute))
 }
 
@@ -571,7 +594,7 @@ data class WebGPUVertexBufferLayout(
 data class BlendComponent(
     var srcFactor: BlendFactor = BlendFactor.ONE,
     var dstFactor: BlendFactor = BlendFactor.ZERO,
-    var operation: BlendOperation = BlendOperation.ADD
+    var operation: BlendOperation = BlendOperation.ADD,
 )
 
 /**
@@ -645,7 +668,7 @@ expect class RenderPassEncoder : Releasable {
         slot: Int,
         buffer: GPUBuffer,
         offset: Long = 0,
-        size: Long = buffer.size - offset
+        size: Long = buffer.size - offset,
     )
 
     /**
@@ -671,7 +694,7 @@ expect class RenderPassEncoder : Releasable {
         instanceCount: Int,
         firstIndex: Int = 0,
         baseVertex: Int = 0,
-        firstInstance: Int = 0
+        firstInstance: Int = 0,
     )
 
     /**
@@ -684,7 +707,7 @@ expect class RenderPassEncoder : Releasable {
         buffer: GPUBuffer,
         indexFormat: IndexFormat,
         offset: Long = 0,
-        size: Long = buffer.size - offset
+        size: Long = buffer.size - offset,
     )
 
     /**
@@ -714,7 +737,7 @@ expect class RenderPassEncoder : Releasable {
         width: Int,
         height: Int,
         minDepth: Float = 0f,
-        maxDepth: Float = 1f
+        maxDepth: Float = 1f,
     )
 
     /**
@@ -749,7 +772,7 @@ data class RenderPassColorAttachmentDescriptor(
     val loadOp: LoadOp,
     val storeOp: StoreOp,
     val clearColor: Color? = null,
-    val resolveTarget: TextureView? = null
+    val resolveTarget: TextureView? = null,
 )
 
 /**
@@ -782,7 +805,7 @@ data class RenderPassDepthStencilAttachmentDescriptor(
     val stencilClearValue: Int = 0,
     val stencilLoadOp: LoadOp? = null,
     val stencilStoreOp: StoreOp? = null,
-    val stencilReadOnly: Boolean = false
+    val stencilReadOnly: Boolean = false,
 )
 
 /**
@@ -797,7 +820,7 @@ data class RenderPassDepthStencilAttachmentDescriptor(
 data class RenderPassDescriptor(
     val colorAttachments: List<RenderPassColorAttachmentDescriptor>,
     val depthStencilAttachment: RenderPassDepthStencilAttachmentDescriptor? = null,
-    val label: String? = null
+    val label: String? = null,
 )
 
 /**
@@ -810,7 +833,7 @@ data class RenderPassDescriptor(
 data class ComputePipelineDescriptor(
     val layout: PipelineLayout,
     val compute: ProgrammableStage,
-    val label: String? = null
+    val label: String? = null,
 )
 
 /**
