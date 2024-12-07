@@ -20,7 +20,7 @@ actual class CommandEncoder(val delegate: GPUCommandEncoder) : Releasable {
     actual fun copyBufferToTexture(
         source: BufferCopyView,
         destination: TextureCopyView,
-        copySize: Extent3D
+        copySize: Extent3D,
     ) {
         delegate.copyBufferToTexture(source.toNative(), destination.toNative(), copySize.toNative())
     }
@@ -34,14 +34,14 @@ actual class CommandEncoder(val delegate: GPUCommandEncoder) : Releasable {
         destination: GPUBuffer,
         sourceOffset: Int,
         destinationOffset: Int,
-        size: Long
+        size: Long,
     ) {
         delegate.copyBufferToBuffer(
             source.delegate,
             sourceOffset,
             destination.delegate,
             destinationOffset,
-            size
+            size,
         )
     }
 
@@ -58,11 +58,12 @@ actual class RenderPipeline(val delegate: GPURenderPipeline) : Releasable {
 
 actual class RenderPassEncoder(
     val delegate: GPURenderPassEncoder,
-    actual val label: String? = null
+    actual val label: String? = null,
 ) : Releasable {
 
     actual fun setPipeline(pipeline: RenderPipeline) {
         delegate.setPipeline(pipeline.delegate)
+        EngineStats.setPipelineCalls++
     }
 
     actual fun draw(vertexCount: Int, instanceCount: Int, firstVertex: Int, firstInstance: Int) {
@@ -77,6 +78,7 @@ actual class RenderPassEncoder(
 
     actual fun setVertexBuffer(slot: Int, buffer: GPUBuffer, offset: Long, size: Long) {
         delegate.setVertexBuffer(slot.toLong(), buffer.delegate, offset, size)
+        EngineStats.setBufferCalls++
     }
 
     actual fun drawIndexed(
@@ -84,7 +86,7 @@ actual class RenderPassEncoder(
         instanceCount: Int,
         firstIndex: Int,
         baseVertex: Int,
-        firstInstance: Int
+        firstInstance: Int,
     ) {
         EngineStats.drawCalls++
         EngineStats.triangles += (indexCount / 3) * instanceCount
@@ -95,13 +97,15 @@ actual class RenderPassEncoder(
         buffer: GPUBuffer,
         indexFormat: IndexFormat,
         offset: Long,
-        size: Long
+        size: Long,
     ) {
         delegate.setIndexBuffer(buffer.delegate, indexFormat.nativeVal, offset, size)
+        EngineStats.setBufferCalls++
     }
 
     actual fun setBindGroup(index: Int, bindGroup: BindGroup, dynamicOffsets: List<Long>) {
         delegate.setBindGroup(index, bindGroup.delegate, dynamicOffsets.toLongArray())
+        EngineStats.setBindGroupCalls++
     }
 
     actual fun setViewport(
@@ -110,7 +114,7 @@ actual class RenderPassEncoder(
         width: Int,
         height: Int,
         minDepth: Float,
-        maxDepth: Float
+        maxDepth: Float,
     ) {
         delegate.setViewport(x, y, width, height, minDepth, maxDepth)
     }
@@ -133,16 +137,18 @@ actual class ComputePipeline(val delegate: GPUComputePipeline) : Releasable {
 actual class ComputePassEncoder(val delegate: GPUComputePassEncoder) : Releasable {
     actual fun setPipeline(pipeline: ComputePipeline) {
         delegate.setPipeline(pipeline.delegate)
+        EngineStats.setPipelineCalls++
     }
 
     actual fun setBindGroup(index: Int, bindGroup: BindGroup) {
         delegate.setBindGroup(index, bindGroup.delegate)
+        EngineStats.setBindGroupCalls++
     }
 
     actual fun dispatchWorkgroups(
         workgroupCountX: Int,
         workgroupCountY: Int,
-        workgroupCountZ: Int
+        workgroupCountZ: Int,
     ) {
         delegate.dispatchWorkgroups(workgroupCountX, workgroupCountY, workgroupCountZ)
     }
