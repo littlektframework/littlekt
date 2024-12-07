@@ -180,7 +180,7 @@ private class GltfModelGenerator(val gltfFile: GltfData) {
         var offset: Long = 0
         vertexAttributes +=
             VertexAttribute(VertexFormat.FLOAT32x3, offset, 0, VertexAttrUsage.POSITION)
-        offset += 3L * Float.SIZE_BYTES
+        offset += VertexFormat.FLOAT32x3.bytes
         //        vertexAttributes +=
         //            VertexAttribute(VertexFormat.FLOAT32x3, offset, 1, VertexAttrUsage.NORMAL)
         //        offset += 3L * Float.SIZE_BYTES
@@ -197,7 +197,7 @@ private class GltfModelGenerator(val gltfFile: GltfData) {
         if (texCoordGltfAccessor != null) {
             vertexAttributes +=
                 VertexAttribute(VertexFormat.FLOAT32x2, offset, 1, VertexAttrUsage.TEX_COORDS)
-            offset += 2L * Float.SIZE_BYTES
+            offset += VertexFormat.FLOAT32x2.bytes
         }
         //        if (tangentAcc != null) {
         //            attribs += Attribute.TANGENTS

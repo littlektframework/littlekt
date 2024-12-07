@@ -150,11 +150,17 @@ class SimpleGltfExample(context: Context) : ContextListener(context) {
         var depthFrame = depthTexture.createView()
         val models =
             listOf(
-                resourcesVfs["Duck.glb"].readGltf().toModel().apply {
+                resourcesVfs["models/Duck.glb"].readGltf().toModel().apply {
                     scale(20f)
                     translate(-30f, 0f, 0f)
-                }
-                //    resourcesVfs["Fox.glb"].readGltf().toModel().apply { translate(30f, 0f, 0f) },
+                },
+                resourcesVfs["models/Fox.glb"].readGltf().toModel().apply {
+                    translate(30f, 0f, 0f)
+                },
+                resourcesVfs["models/flighthelmet/FlightHelmet.gltf"].readGltf().toModel().apply {
+                    scale(200f)
+                    translate(90f, 0f, 0f)
+                },
             )
         models.forEach { it.build(device, shader, vertexGroupLayout, preferredFormat, depthFormat) }
 

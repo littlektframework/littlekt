@@ -11,7 +11,7 @@ import com.littlekt.graphics.webgpu.*
  */
 open class MeshNode(
     val mesh: Mesh<*>,
-    val material: MeshMaterial,
+    val material: MeshMaterial = MeshMaterial(),
     val topology: PrimitiveTopology = PrimitiveTopology.TRIANGLE_LIST,
     private val stripIndexFormat: IndexFormat? = null,
 ) : VisualInstance() {
