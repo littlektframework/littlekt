@@ -234,6 +234,7 @@ actual class RenderPassEncoder(val segment: MemorySegment, actual val label: Str
 
     actual fun setPipeline(pipeline: RenderPipeline) {
         wgpuRenderPassEncoderSetPipeline(segment, pipeline.segment)
+        EngineStats.setPipelineCalls++
     }
 
     actual fun draw(vertexCount: Int, instanceCount: Int, firstVertex: Int, firstInstance: Int) {
@@ -248,6 +249,7 @@ actual class RenderPassEncoder(val segment: MemorySegment, actual val label: Str
 
     actual fun setVertexBuffer(slot: Int, buffer: GPUBuffer, offset: Long, size: Long) {
         wgpuRenderPassEncoderSetVertexBuffer(segment, slot, buffer.segment, offset, size)
+        EngineStats.setBufferCalls++
     }
 
     actual fun drawIndexed(
@@ -282,6 +284,7 @@ actual class RenderPassEncoder(val segment: MemorySegment, actual val label: Str
             offset,
             size,
         )
+        EngineStats.setBufferCalls++
     }
 
     actual fun setBindGroup(index: Int, bindGroup: BindGroup, dynamicOffsets: List<Long>) {
@@ -300,6 +303,7 @@ actual class RenderPassEncoder(val segment: MemorySegment, actual val label: Str
         } else {
             wgpuRenderPassEncoderSetBindGroup(segment, index, bindGroup.segment, 0, WGPU_NULL)
         }
+        EngineStats.setBindGroupCalls++
     }
 
     actual override fun release() {
@@ -347,10 +351,12 @@ actual class ComputePipeline(val segment: MemorySegment) : Releasable {
 actual class ComputePassEncoder(val segment: MemorySegment) : Releasable {
     actual fun setPipeline(pipeline: ComputePipeline) {
         wgpuComputePassEncoderSetPipeline(segment, pipeline.segment)
+        EngineStats.setPipelineCalls++
     }
 
     actual fun setBindGroup(index: Int, bindGroup: BindGroup) {
         wgpuComputePassEncoderSetBindGroup(segment, index, bindGroup.segment, 0, WGPU_NULL)
+        EngineStats.setBindGroupCalls++
     }
 
     actual fun dispatchWorkgroups(

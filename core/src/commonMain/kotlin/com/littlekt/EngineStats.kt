@@ -38,6 +38,18 @@ object EngineStats {
     var drawCalls = 0
         internal set
 
+    /** There total number of `setPipeline` calls. */
+    var setPipelineCalls = 0
+        internal set
+
+    /** There total number of `setBindGroup` calls. */
+    var setBindGroupCalls = 0
+        internal set
+
+    /** There total number of `setBuffer` calls. */
+    var setBufferCalls = 0
+        internal set
+
     private val extras = mutableMapOf<String, Int>()
 
     /** Inform the engine stats that a new buffer has been allocated and the size of the buffer. */
@@ -80,6 +92,9 @@ object EngineStats {
     fun resetPerFrameCounts() {
         drawCalls = 0
         triangles = 0
+        setPipelineCalls = 0
+        setBindGroupCalls = 0
+        setBufferCalls = 0
         extras.clear()
     }
 
@@ -92,6 +107,9 @@ object EngineStats {
     internal fun statsString(): String {
         val stats = buildString {
             appendLine("Draw calls: $drawCalls")
+            appendLine("setPipeline calls: $setPipelineCalls")
+            appendLine("setBindGroup calls: $setPipelineCalls")
+            appendLine("setBuffer calls: $setBufferCalls")
             appendLine("~Triangles: $triangles")
             appendLine(
                 "Buffers: ${bufferAllocations.size} with memory usage of ${(totalBufferSize.toDouble() / (1024.0 * 1024.0)).toString(1)}M"
