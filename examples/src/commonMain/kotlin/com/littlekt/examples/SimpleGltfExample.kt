@@ -22,23 +22,21 @@ class SimpleGltfExample(context: Context) : ContextListener(context) {
     // language=wgsl
     private val shaderSrc =
         """
-        alias float4 = vec4<f32>;
-        alias float3 = vec3<f32>;
-        alias float2 = vec2<f32>;
-
         struct VertexInput {
-            @location(0) position: float3,
-            @location(1) texcoords: float2,
+            @location(0) position: vec3f,
+            @location(1) normal: vec3f,
+            @location(2) texcoords: vec2f,
         };
         
         struct VertexOutput {
-            @builtin(position) position: float4,
-            @location(0) world_pos: float3,
-            @location(1) texcoords: float2,
+            @builtin(position) position: vec4f,
+            @location(0) world_pos: vec3f,
+            @location(1) normal: vec3f,
+            @location(2) texcoords: vec2f,
         };
         
         struct MaterialParams {
-            base_color_factor: float4,
+            base_color_factor: vec4f,
             metallic_factor: f32,
             roughness_factor: f32,
         };
@@ -76,25 +74,33 @@ class SimpleGltfExample(context: Context) : ContextListener(context) {
         @vertex
         fn vs_main(vert: VertexInput) -> VertexOutput {
             var out: VertexOutput;
-            out.position = camera.view_proj * node_params.transform * float4(vert.position, 1.0);
+            out.position = camera.view_proj * node_params.transform * vec4f(vert.position, 1.0);
+            out.normal = (camera.view_proj * vec4f(vert.normal, 0)).xyz;
             out.world_pos = vert.position.xyz;
             out.texcoords = vert.texcoords;
             return out;
         };
+        
+        const lightDir = vec3f(0.25, 0.5, 1);
+        const lightColor = vec3f(1);
+        const ambientColor = vec3f(0.1);
 
         @fragment
-        fn fs_main(in: VertexOutput) -> @location(0) float4 {
+        fn fs_main(in: VertexOutput) -> @location(0) vec4f {
             let dx = dpdx(in.world_pos);
             let dy = dpdy(in.world_pos);
             let n = normalize(cross(dx, dy));
             let base_color = textureSample(base_color_texture, base_color_sampler, in.texcoords);
+            let N = normalize(in.normal);
+            let L = normalize(lightDir);
+            let NDotL = max(dot(N, L), 0.0);
             var color = material_params.base_color_factor * base_color;
         
-            color.x = linear_to_srgb(color.x);
-            color.y = linear_to_srgb(color.y);
-            color.z = linear_to_srgb(color.z);
-            color.w = 1.0;
-            return color;
+            color.r = linear_to_srgb(color.r);
+            color.g = linear_to_srgb(color.g);
+            color.b = linear_to_srgb(color.b);
+            let surfaceColor = (color.rgb * ambientColor) + (color.rgb * NDotL);
+            return vec4f(surfaceColor, color.a);
         }
     """
             .trimIndent()

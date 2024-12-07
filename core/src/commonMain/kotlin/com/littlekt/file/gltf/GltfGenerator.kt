@@ -181,9 +181,9 @@ private class GltfModelGenerator(val gltfFile: GltfData) {
         vertexAttributes +=
             VertexAttribute(VertexFormat.FLOAT32x3, offset, 0, VertexAttrUsage.POSITION)
         offset += VertexFormat.FLOAT32x3.bytes
-        //        vertexAttributes +=
-        //            VertexAttribute(VertexFormat.FLOAT32x3, offset, 1, VertexAttrUsage.NORMAL)
-        //        offset += 3L * Float.SIZE_BYTES
+        vertexAttributes +=
+            VertexAttribute(VertexFormat.FLOAT32x3, offset, 1, VertexAttrUsage.NORMAL)
+        offset += VertexFormat.FLOAT32x3.bytes
 
         //        if (colorGltfAccessor != null) {
         //            vertexAttributes +=
@@ -196,7 +196,7 @@ private class GltfModelGenerator(val gltfFile: GltfData) {
         //        }
         if (texCoordGltfAccessor != null) {
             vertexAttributes +=
-                VertexAttribute(VertexFormat.FLOAT32x2, offset, 1, VertexAttrUsage.TEX_COORDS)
+                VertexAttribute(VertexFormat.FLOAT32x2, offset, 2, VertexAttrUsage.TEX_COORDS)
             offset += VertexFormat.FLOAT32x2.bytes
         }
         //        if (tangentAcc != null) {
@@ -246,7 +246,7 @@ private class GltfModelGenerator(val gltfFile: GltfData) {
         repeat(positionGltfAccessor.count) { i ->
             geometry.addVertex {
                 positionAccessor.next(position)
-                //                normalAccessor?.next(normal)
+                normalAccessor?.next(normal)
                 texCoordAccessor?.next(texCoords)
                 //                colorAccessor?.next()?.let { col -> color.set(col) }
                 //                jointAccessor?.next(joints)
