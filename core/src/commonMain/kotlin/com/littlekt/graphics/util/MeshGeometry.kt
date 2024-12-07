@@ -3,6 +3,7 @@ package com.littlekt.graphics.util
 import com.littlekt.file.FloatBuffer
 import com.littlekt.graphics.VertexBufferLayout
 import com.littlekt.log.Logger
+import kotlin.jvm.JvmStatic
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.round
@@ -68,7 +69,7 @@ open class MeshGeometry(val layout: VertexBufferLayout, size: Int = INITIAL_SIZE
         newVertices: FloatArray,
         srcOffset: Int = 0,
         dstOffset: Int = 0,
-        count: Int = newVertices.size - srcOffset
+        count: Int = newVertices.size - srcOffset,
     ) {
         ensureVertices(count / vertexSize)
         vertices.put(data = newVertices, dstOffset = dstOffset, srcOffset = srcOffset, len = count)
@@ -85,6 +86,7 @@ open class MeshGeometry(val layout: VertexBufferLayout, size: Int = INITIAL_SIZE
      * account the [vertexSize].
      */
     fun skip(totalVertices: Int) {
+        ensureVertices(totalVertices)
         vertices.position += totalVertices * vertexSize
         numVertices += totalVertices
     }
@@ -106,7 +108,7 @@ open class MeshGeometry(val layout: VertexBufferLayout, size: Int = INITIAL_SIZE
             increaseVertices(
                 max(
                     round(vertices.capacity * GROW_FACTOR).toInt(),
-                    (numVertices + required) * vertexSize
+                    (numVertices + required) * vertexSize,
                 )
             )
             return true
@@ -115,16 +117,18 @@ open class MeshGeometry(val layout: VertexBufferLayout, size: Int = INITIAL_SIZE
     }
 
     private fun increaseVertices(newSize: Int) {
+        logger.debug { "Increasing vertices buffer size to $newSize" }
+        val oldPos = vertices.position
         val newData = FloatBuffer(newSize)
+        vertices.position = 0
         newData.put(vertices)
         vertices = newData
-        vertices.position = 0
-        logger.debug { "Increasing vertices buffer size to $newSize" }
+        vertices.position = oldPos
     }
 
     companion object {
         private const val INITIAL_SIZE = 1000
         private const val GROW_FACTOR = 2f
-        private val logger = Logger<MeshGeometry>()
+        @JvmStatic protected val logger = Logger<MeshGeometry>()
     }
 }
