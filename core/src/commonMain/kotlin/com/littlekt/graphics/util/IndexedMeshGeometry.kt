@@ -22,6 +22,7 @@ open class IndexedMeshGeometry(layout: VertexBufferLayout, size: Int = INITIAL_S
 
     /** The number of indices added to the [indices] buffer. */
     var numIndices: Int = 0
+        private set
 
     /** If the geometry has changed since last update. */
     override val dirty: Boolean
@@ -145,10 +146,13 @@ open class IndexedMeshGeometry(layout: VertexBufferLayout, size: Int = INITIAL_S
     }
 
     private fun increaseIndices(newSize: Int) {
+        logger.debug { "Increasing indices buffer size to $newSize" }
+        val oldPosition = indices.position
+        indices.position = 0
         val newData = ShortBuffer(newSize)
         newData.put(indices)
         indices = newData
-        indices.position = 0
+        indices.position = oldPosition
     }
 
     /** The type of shape indices buffer are used for. */
