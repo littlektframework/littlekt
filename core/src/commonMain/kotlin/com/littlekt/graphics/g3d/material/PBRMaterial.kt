@@ -1,4 +1,4 @@
-package com.littlekt.graphics.g3d
+package com.littlekt.graphics.g3d.material
 
 import com.littlekt.graphics.Color
 import com.littlekt.graphics.Texture

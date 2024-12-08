@@ -1,6 +1,5 @@
-package com.littlekt.graphics.g3d
+package com.littlekt.graphics.g3d.material
 
-import com.littlekt.Releasable
 import com.littlekt.graphics.Color
 import com.littlekt.graphics.Texture
 import com.littlekt.graphics.webgpu.*
@@ -16,7 +15,7 @@ open class UnlitMaterial(
     val doubleSided: Boolean = false,
     val alphaCutoff: Float = 0f,
     val castShadows: Boolean = true,
-) : Releasable {
+) : Material() {
     protected lateinit var paramBuffer: GPUBuffer
 
     lateinit var bindGroupLayout: BindGroupLayout

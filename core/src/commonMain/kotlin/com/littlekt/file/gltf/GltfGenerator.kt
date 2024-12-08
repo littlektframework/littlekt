@@ -3,6 +3,7 @@ package com.littlekt.file.gltf
 import com.littlekt.file.vfs.VfsFile
 import com.littlekt.graphics.*
 import com.littlekt.graphics.g3d.*
+import com.littlekt.graphics.g3d.material.UnlitMaterial
 import com.littlekt.graphics.util.CommonIndexedMeshGeometry
 import com.littlekt.graphics.util.IndexedMeshGeometry
 import com.littlekt.graphics.webgpu.Device

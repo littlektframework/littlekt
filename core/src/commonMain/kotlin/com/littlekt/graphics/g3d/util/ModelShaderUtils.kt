@@ -1,12 +1,12 @@
-package com.littlekt.graphics.g3d.shader
+package com.littlekt.graphics.g3d.util
 
 import com.littlekt.graphics.Camera
 import com.littlekt.graphics.VertexAttrUsage
 import com.littlekt.graphics.VertexAttribute
 import com.littlekt.graphics.g3d.Model
 import com.littlekt.graphics.g3d.Node3D
-import com.littlekt.graphics.g3d.UnlitMaterial
-import com.littlekt.graphics.g3d.shader.ModelShaderUtils.Unlit
+import com.littlekt.graphics.g3d.material.UnlitMaterial
+import com.littlekt.graphics.g3d.util.ModelShaderUtils.Unlit
 
 /**
  * Utilities for creating shaders to be used rendering a [Model].

@@ -3,6 +3,7 @@ package com.littlekt.graphics.g3d
 import com.littlekt.file.FloatBuffer
 import com.littlekt.graphics.IndexedMesh
 import com.littlekt.graphics.Mesh
+import com.littlekt.graphics.g3d.material.UnlitMaterial
 import com.littlekt.graphics.webgpu.*
 
 /**

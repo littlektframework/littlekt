@@ -1,7 +1,7 @@
 package com.littlekt.file.gltf
 
 import com.littlekt.graphics.g3d.PBRMaterial
-import com.littlekt.graphics.g3d.UnlitMaterial
+import com.littlekt.graphics.g3d.material.UnlitMaterial
 
 /**
  * A configuration class that is used when generating a GLtf model.
