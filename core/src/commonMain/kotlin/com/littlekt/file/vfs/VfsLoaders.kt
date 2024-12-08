@@ -7,6 +7,8 @@ import com.littlekt.file.UnsupportedFileTypeException
 import com.littlekt.file.atlas.AtlasInfo
 import com.littlekt.file.atlas.AtlasPage
 import com.littlekt.file.gltf.GltfData
+import com.littlekt.file.gltf.GltfModelConfig
+import com.littlekt.file.gltf.GltfModelPbrConfig
 import com.littlekt.file.gltf.toModel
 import com.littlekt.file.ldtk.LDtkMapData
 import com.littlekt.file.ldtk.LDtkMapLoader
@@ -357,15 +359,18 @@ suspend fun VfsFile.readGltf(): GltfData {
 /**
  * Reads a `.glb` or `.gltf` into a `GltfData` object and then converts it to a [Model].
  *
+ * @param config the configuration to use when generating the [Model]. Defaults to
+ *   [GltfModelPbrConfig].
  * @param preferredFormat the preferred [TextureFormat] to be used when loading the model texture.
  */
 suspend fun VfsFile.readGltfModel(
+    config: GltfModelConfig = GltfModelPbrConfig(),
     preferredFormat: TextureFormat =
         if (vfs.context.graphics.preferredFormat.srgb) TextureFormat.RGBA8_UNORM_SRGB
-        else TextureFormat.RGBA8_UNORM
+        else TextureFormat.RGBA8_UNORM,
 ): Model {
     val gltfData = readGltf()
-    return gltfData.toModel(vfs.context.graphics.device, preferredFormat)
+    return gltfData.toModel(config, preferredFormat)
 }
 
 private fun VfsFile.isGltf() = path.endsWith(".gltf", true) || path.endsWith(".gltf.gz", true)

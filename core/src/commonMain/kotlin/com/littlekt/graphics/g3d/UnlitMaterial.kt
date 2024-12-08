@@ -9,21 +9,21 @@ import com.littlekt.graphics.webgpu.*
  * @author Colton Daily
  * @date 11/29/2024
  */
-open class MeshMaterial(
+open class UnlitMaterial(
     val baseColorFactor: Color = Color.WHITE,
     val baseColorTexture: Texture? = null,
-    val metallicFactor: Float = 1f,
-    val roughnessFactor: Float = 1f,
-    val metallicRoughnessTexture: Texture? = null,
+    val transparent: Boolean = false,
+    val doubleSided: Boolean = false,
+    val alphaCutoff: Float = 0f,
+    val castShadows: Boolean = true,
 ) : Releasable {
-    private lateinit var paramBuffer: GPUBuffer
-        private set
+    protected lateinit var paramBuffer: GPUBuffer
 
     lateinit var bindGroupLayout: BindGroupLayout
-        private set
+        protected set
 
     lateinit var bindGroup: BindGroup
-        private set
+        protected set
 
     open fun upload(device: Device) {
         val paramBuffer =
@@ -34,9 +34,9 @@ open class MeshMaterial(
                     baseColorFactor.g,
                     baseColorFactor.b,
                     baseColorFactor.a,
-                    metallicFactor,
-                    roughnessFactor,
+                    alphaCutoff,
                     // padding
+                    0f,
                     0f,
                     0f,
                 ),
@@ -52,13 +52,6 @@ open class MeshMaterial(
             bgLayoutEntries += BindGroupLayoutEntry(2, ShaderStage.FRAGMENT, TextureBindingLayout())
             bgEntries += BindGroupEntry(1, baseColorTexture.sampler)
             bgEntries += BindGroupEntry(2, baseColorTexture.view)
-        }
-
-        metallicRoughnessTexture?.let { metallicRoughnessTexture ->
-            bgLayoutEntries += BindGroupLayoutEntry(3, ShaderStage.FRAGMENT, SamplerBindingLayout())
-            bgLayoutEntries += BindGroupLayoutEntry(4, ShaderStage.FRAGMENT, TextureBindingLayout())
-            bgEntries += BindGroupEntry(3, metallicRoughnessTexture.sampler)
-            bgEntries += BindGroupEntry(4, metallicRoughnessTexture.view)
         }
 
         val bindGroupLayout =

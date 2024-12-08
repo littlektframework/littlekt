@@ -11,7 +11,7 @@ import com.littlekt.graphics.webgpu.*
  */
 open class MeshNode(
     val mesh: Mesh<*>,
-    val material: MeshMaterial = MeshMaterial(),
+    val material: UnlitMaterial = UnlitMaterial(),
     val topology: PrimitiveTopology = PrimitiveTopology.TRIANGLE_LIST,
     private val stripIndexFormat: IndexFormat? = null,
 ) : VisualInstance() {
@@ -122,6 +122,7 @@ open class MeshNode(
                         topology = topology,
                         stripIndexFormat =
                             if (topology.isStripTopology()) stripIndexFormat else null,
+                        cullMode = if (material.doubleSided) CullMode.NONE else CullMode.BACK,
                     ),
                 depthStencil = DepthStencilState.depthWrite(depthFormat),
             )
@@ -144,6 +145,7 @@ open class MeshNode(
         renderPassEncoder.setBindGroup(1, modelBindGroup)
         renderPassEncoder.setBindGroup(2, material.bindGroup)
         renderPassEncoder.setVertexBuffer(0, mesh.vbo)
+        // TODO check for any MeshInstance children
         if (indexedMesh != null) {
             renderPassEncoder.setIndexBuffer(
                 indexedMesh.ibo,

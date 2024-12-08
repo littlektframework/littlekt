@@ -10,6 +10,7 @@ import kotlin.jvm.JvmInline
  * @see COLOR
  * @see NORMAL
  * @see TEX_COORDS
+ * @see TEX_COORDS2
  * @see GENERIC
  * @see WEIGHT
  * @see TANGENT
@@ -47,5 +48,8 @@ value class VertexAttrUsage(val usage: Int) {
 
         /** Used for joints. */
         val JOINT = VertexAttrUsage(256)
+
+        /** Used for second set of UV coords. */
+        val TEX_COORDS2 = VertexAttrUsage(512)
     }
 }

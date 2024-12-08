@@ -11,19 +11,25 @@ import com.littlekt.graphics.webgpu.VertexFormat
 import com.littlekt.graphics.webgpu.VertexStepMode
 import com.littlekt.log.Logger
 import com.littlekt.math.Mat4
+import com.littlekt.math.Vec3f
 import com.littlekt.math.Vec4f
 
 /**
  * Converts a [GltfData] to a [Model] ready for rendering. This will load underlying buffers and
  * textures.
+ *
+ * @param config the configuration to use when generating the [Model]. Defaults to
+ *   [GltfModelPbrConfig].
+ * @param preferredFormat the preferred [TextureFormat] to be used when loading the model texture.
  */
 suspend fun GltfData.toModel(
-    device: Device = root.vfs.context.graphics.device,
+    config: GltfModelConfig = GltfModelPbrConfig(),
     preferredFormat: TextureFormat =
         if (root.vfs.context.graphics.preferredFormat.srgb) TextureFormat.RGBA8_UNORM_SRGB
         else TextureFormat.RGBA8_UNORM,
 ): Model {
-    return GltfModelGenerator(this).toModel(device, preferredFormat, scenes[scene])
+    return GltfModelGenerator(this)
+        .toModel(config, root.vfs.context.graphics.device, preferredFormat, scenes[scene])
 }
 
 private class GltfModelGenerator(val gltfFile: GltfData) {
@@ -32,13 +38,18 @@ private class GltfModelGenerator(val gltfFile: GltfData) {
     val meshesByMaterial = mutableMapOf<Int, MutableSet<Mesh<*>>>()
     val meshMaterials = mutableMapOf<Mesh<*>, GltfMaterial?>()
 
-    suspend fun toModel(device: Device, preferredFormat: TextureFormat, scene: GltfScene): Model {
+    suspend fun toModel(
+        config: GltfModelConfig,
+        device: Device,
+        preferredFormat: TextureFormat,
+        scene: GltfScene,
+    ): Model {
         val model = Model().apply { name = scene.name ?: "model_scene" }
         scene.nodeRefs.forEach { node -> model += node.toNode(model) }
 
         createSkins(model)
         modelNodes.forEach { (gltfNode, node) ->
-            gltfNode.createMeshes(device, preferredFormat, model, node)
+            gltfNode.createMeshes(config, device, preferredFormat, model, node)
         }
         return model
     }
@@ -98,6 +109,7 @@ private class GltfModelGenerator(val gltfFile: GltfData) {
     }
 
     suspend fun GltfNode.createMeshes(
+        config: GltfModelConfig,
         device: Device,
         preferredFormat: TextureFormat,
         model: Model,
@@ -113,25 +125,61 @@ private class GltfModelGenerator(val gltfFile: GltfData) {
             val material =
                 prim.materialRef?.let { gltfMaterial ->
                     val baseColorFactor = gltfMaterial.pbrMetallicRoughness.baseColorFactor
-                    MeshMaterial(
-                        Color(
-                            baseColorFactor[0],
-                            baseColorFactor[1],
-                            baseColorFactor[2],
-                            baseColorFactor[3],
-                        ),
-                        gltfMaterial.pbrMetallicRoughness.baseColorTexture?.loadTexture(
-                            device,
-                            preferredFormat,
-                        ),
-                        gltfMaterial.pbrMetallicRoughness.metallicFactor,
-                        gltfMaterial.pbrMetallicRoughness.roughnessFactor,
-                        gltfMaterial.pbrMetallicRoughness.metallicRoughnessTexture?.loadTexture(
-                            device,
-                            preferredFormat,
-                        ),
-                    )
-                } ?: MeshMaterial()
+                    if (config.pbr) {
+                        PBRMaterial(
+                            metallicFactor = gltfMaterial.pbrMetallicRoughness.metallicFactor,
+                            roughnessFactor = gltfMaterial.pbrMetallicRoughness.roughnessFactor,
+                            metallicRoughnessTexture =
+                                gltfMaterial.pbrMetallicRoughness.metallicRoughnessTexture
+                                    ?.loadTexture(device, preferredFormat),
+                            normalTexture =
+                                gltfMaterial.normalTexture?.loadTexture(device, preferredFormat),
+                            emissiveFactor =
+                                if (gltfMaterial.emissiveFactor.isNotEmpty()) {
+                                    Vec3f(
+                                        gltfMaterial.emissiveFactor[0],
+                                        gltfMaterial.emissiveFactor[1],
+                                        gltfMaterial.emissiveFactor[2],
+                                    )
+                                } else {
+                                    Vec3f(0f)
+                                },
+                            emissiveTexture =
+                                gltfMaterial.emissiveTexture.loadTexture(device, preferredFormat),
+                            baseColorFactor =
+                                Color(
+                                    baseColorFactor[0],
+                                    baseColorFactor[1],
+                                    baseColorFactor[2],
+                                    baseColorFactor[3],
+                                ),
+                            baseColorTexture =
+                                gltfMaterial.pbrMetallicRoughness.baseColorTexture?.loadTexture(
+                                    device,
+                                    preferredFormat,
+                                ),
+                            transparent = gltfMaterial.alphaMode == GltfAlphaMode.Blend,
+                            doubleSided = gltfMaterial.doubleSided,
+                            alphaCutoff = gltfMaterial.alphaCutoff,
+                            castShadows = config.castShadows,
+                        )
+                    } else {
+                        UnlitMaterial(
+                            baseColorFactor =
+                                Color(
+                                    baseColorFactor[0],
+                                    baseColorFactor[1],
+                                    baseColorFactor[2],
+                                    baseColorFactor[3],
+                                ),
+                            baseColorTexture =
+                                gltfMaterial.pbrMetallicRoughness.baseColorTexture?.loadTexture(
+                                    device,
+                                    preferredFormat,
+                                ),
+                        )
+                    }
+                } ?: UnlitMaterial()
             val indexFormat =
                 if (prim.indices >= 0)
                     gltfFile.accessors[prim.indices].componentType.toIndexFormat()
