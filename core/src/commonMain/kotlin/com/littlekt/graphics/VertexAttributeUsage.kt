@@ -48,8 +48,5 @@ value class VertexAttrUsage(val usage: Int) {
 
         /** Used for joints. */
         val JOINT = VertexAttrUsage(256)
-
-        /** Used for second set of UV coords. */
-        val TEX_COORDS2 = VertexAttrUsage(512)
     }
 }

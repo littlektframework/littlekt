@@ -192,14 +192,14 @@ object ModelShaderUtils {
                 }    
             }
             ${
-                if (layout.any { it.usage == VertexAttrUsage.TEX_COORDS }) {
+                if (layout.any { it.usage == VertexAttrUsage.TEX_COORDS && it.index == 0}) {
                     """
                         output.uv = input.uv;
                     """.trimIndent()
                 } else ""
             }
             ${
-                if (layout.any { it.usage == VertexAttrUsage.TEX_COORDS2 }) {
+                if (layout.any { it.usage == VertexAttrUsage.TEX_COORDS && it.index == 1 }) {
                     """
                         output.uv2 = input.uv2;
                     """.trimIndent()
