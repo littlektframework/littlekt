@@ -4,6 +4,7 @@ import com.littlekt.graphics.Camera
 import com.littlekt.graphics.VertexAttrUsage
 import com.littlekt.graphics.VertexAttribute
 import com.littlekt.graphics.g3d.Model
+import com.littlekt.graphics.g3d.Node3D
 import com.littlekt.graphics.g3d.UnlitMaterial
 import com.littlekt.graphics.g3d.shader.ModelShaderUtils.Unlit
 
@@ -29,6 +30,22 @@ object ModelShaderUtils {
         };
         @group($group) @binding($binding)
         var<uniform> camera: Camera;
+        """
+            .trimIndent()
+
+    /**
+     * Creates a WGSL struct for passing in a [Node3D.globalTransform] matrix.
+     *
+     * @param group wgsl group the uniform belongs to
+     * @param binding wgsl binding order the un
+     */
+    fun createModelStruct(group: Int = 1, binding: Int = 0) =
+        """
+        struct Model {
+            transform: mat4x4<f32>,
+        };
+        @group($group) @binding($binding)
+        var<uniform> model: Model;
         """
             .trimIndent()
 
@@ -108,7 +125,7 @@ object ModelShaderUtils {
      */
     fun createLinearToSRGBFunction(useApproximateSrgb: Boolean = true, gamma: Float = 2.2f) =
         """
-        fn linearTosRGB(linear : vec3f) -> vec3f {
+        fn linear_to_sRGB(linear : vec3f) -> vec3f {
             ${
                 if(useApproximateSrgb) {
                     """
@@ -138,11 +155,61 @@ object ModelShaderUtils {
         ${createVertexInputStruct(layout)}
         ${createVertexOutputStruct(layout)}
         ${createCameraStruct()}
+        ${createModelStruct()}
         
         @vertex
         fn $entryPoint(input: VertexInput) -> VertexOutput {
             var output: VertexOutput;
-            
+            let model_matrix = model.transform;
+            ${
+                if (layout.any { it.usage == VertexAttrUsage.NORMAL }) {
+                    """
+                        output.normal = normalize((model_matrix * vec4(input.normal, 0.0)).xyz);
+                    """.trimIndent()
+                } else {
+                    """
+                        output.normal = normalize((model_matrix * vec4(0.0, 0.0, 1.0, 0.0)).xyz);
+                    """.trimIndent()
+                }    
+            }
+            ${
+                if (layout.any { it.usage == VertexAttrUsage.TANGENT }) {
+                    """
+                        output.tangent = normalize((model_matrix * vec4(input.tangent.xyz, 0.0)).xyz);
+                        output.bitangent = cross(output.normal, output.tangent) * input.tangent.w;
+                    """.trimIndent()
+                } else ""
+            }
+            ${
+                if (layout.any { it.usage == VertexAttrUsage.COLOR }) {
+                    """
+                        output.color = input.color;
+                    """.trimIndent()
+                } else {
+                    """
+                        output.color = vec4(1.0);
+                    """.trimIndent()
+                }    
+            }
+            ${
+                if (layout.any { it.usage == VertexAttrUsage.TEX_COORDS }) {
+                    """
+                        output.uv = input.uv;
+                    """.trimIndent()
+                } else ""
+            }
+            ${
+                if (layout.any { it.usage == VertexAttrUsage.TEX_COORDS2 }) {
+                    """
+                        output.uv2 = input.uv2;
+                    """.trimIndent()
+                } else ""
+            }
+            let model_pos = model_matrix * input.position;
+            output.world_pos = model_pos.xyz;
+            output.view = camera.position - model_pos.xyz;
+            output.position = camera.view_proj * model_pos;
+            return output;
         }
     """
             .trimIndent()
@@ -154,13 +221,13 @@ object ModelShaderUtils {
             // language=wgsl
             """
         struct Material {
-            baseColorFactor : vec4<f32>,
-            alphaCutoff : f32,
+            base_color_factor : vec4<f32>,
+            alpha_cutoff : f32,
         };
         @group($group) @binding(0) var<uniform> material : Material;
         
-        @group($group) @binding(1) var baseColorTexture : texture_2d<f32>;
-        @group($group) @binding(2) var baseColorSampler : sampler;
+        @group($group) @binding(1) var base_color_texture : texture_2d<f32>;
+        @group($group) @binding(2) var base_color_sampler : sampler;
     """
                 .trimIndent()
 
@@ -174,12 +241,12 @@ object ModelShaderUtils {
             """
         @fragment
         fn $entryPoint(input : VertexOutput) -> @location(0) vec4<f32> {
-            let baseColorMap = textureSample(baseColorTexture, baseColorSampler, input.texcoord);
-            if (baseColorMap.a < material.alphaCutoff) {
+            let base_color_map = textureSample(base_color_texture, base_color_sampler, input.uv);
+            if (base_color_map.a < material.alpha_cutoff) {
               discard;
             }
-            let baseColor = input.color * material.baseColorFactor * baseColorMap;
-            return vec4(linearTosRGB(baseColor.rgb), baseColor.a);
+            let base_color = input.color * material.base_color_factor * base_color_map;
+            return vec4(linear_to_sRGB(base_color.rgb), base_color.a);
         };
     """
                 .trimIndent()
