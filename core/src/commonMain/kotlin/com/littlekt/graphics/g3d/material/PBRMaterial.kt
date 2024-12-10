@@ -2,6 +2,7 @@ package com.littlekt.graphics.g3d.material
 
 import com.littlekt.graphics.Color
 import com.littlekt.graphics.Texture
+import com.littlekt.graphics.VertexAttribute
 import com.littlekt.graphics.webgpu.*
 import com.littlekt.math.Vec3f
 
@@ -10,6 +11,8 @@ import com.littlekt.math.Vec3f
  * @date 12/8/2024
  */
 open class PBRMaterial(
+    device: Device,
+    layout: List<VertexAttribute>,
     val metallicFactor: Float = 1f,
     val roughnessFactor: Float = 1f,
     val metallicRoughnessTexture: Texture? = null,
@@ -26,6 +29,8 @@ open class PBRMaterial(
     castShadows: Boolean = true,
 ) :
     UnlitMaterial(
+        device,
+        layout,
         baseColorFactor,
         baseColorTexture,
         transparent,
@@ -96,7 +101,7 @@ open class PBRMaterial(
         val bindGroup = device.createBindGroup(BindGroupDescriptor(bindGroupLayout, bgEntries))
 
         this.paramBuffer = paramBuffer
-        this.bindGroupLayout = bindGroupLayout
-        this.bindGroup = bindGroup
+        // this.bindGroupLayout = bindGroupLayout
+        // this.bindGroup = bindGroup
     }
 }

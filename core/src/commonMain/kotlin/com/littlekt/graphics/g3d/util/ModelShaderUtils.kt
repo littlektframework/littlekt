@@ -150,7 +150,7 @@ object ModelShaderUtils {
      *
      * @param entryPoint name of the vertex function entry point.
      */
-    fun createVertexSource(entryPoint: String = "vs_main", layout: List<VertexAttribute>) =
+    fun createVertexSource(layout: List<VertexAttribute>, entryPoint: String = "vs_main") =
         """
         ${createVertexInputStruct(layout)}
         ${createVertexOutputStruct(layout)}
@@ -236,19 +236,21 @@ object ModelShaderUtils {
          *
          * @param entryPoint name of the fragment function entry point
          */
-        fun createFragmentSource(entryPoint: String = "fs_Main") =
+        fun createFragmentSource(layout: List<VertexAttribute>, entryPoint: String = "fs_Main") =
             // language=wgsl
             """
-        @fragment
-        fn $entryPoint(input : VertexOutput) -> @location(0) vec4<f32> {
-            let base_color_map = textureSample(base_color_texture, base_color_sampler, input.uv);
-            if (base_color_map.a < material.alpha_cutoff) {
-              discard;
-            }
-            let base_color = input.color * material.base_color_factor * base_color_map;
-            return vec4(linear_to_sRGB(base_color.rgb), base_color.a);
-        };
-    """
+            ${createVertexOutputStruct(layout)}
+            ${createMaterialStruct(0)}
+            @fragment
+            fn $entryPoint(input : VertexOutput) -> @location(0) vec4<f32> {
+                let base_color_map = textureSample(base_color_texture, base_color_sampler, input.uv);
+                if (base_color_map.a < material.alpha_cutoff) {
+                  discard;
+                }
+                let base_color = input.color * material.base_color_factor * base_color_map;
+                return vec4(linear_to_sRGB(base_color.rgb), base_color.a);
+            };
+            """
                 .trimIndent()
     }
 }

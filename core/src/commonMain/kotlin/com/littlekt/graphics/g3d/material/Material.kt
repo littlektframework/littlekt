@@ -1,18 +1,16 @@
 package com.littlekt.graphics.g3d.material
 
 import com.littlekt.Releasable
-import com.littlekt.graphics.VertexAttribute
-import com.littlekt.graphics.webgpu.RenderPipeline
-import com.littlekt.graphics.webgpu.RenderPipelineDescriptor
+import com.littlekt.graphics.shader.Shader
+import com.littlekt.graphics.webgpu.*
 
 /**
  * @author Colton Daily
  * @date 12/8/2024
  */
-open class Material(
-    var pipeline: RenderPipeline? = null,
-    var pipelineDesc: RenderPipelineDescriptor? = null,
-    var attributes: List<VertexAttribute>? = null,
-) : Releasable {
-    override fun release() = Unit
+open class Material(val shader: Shader) : Releasable {
+
+    open fun upload(device: Device) = Unit
+
+    override fun release() {}
 }

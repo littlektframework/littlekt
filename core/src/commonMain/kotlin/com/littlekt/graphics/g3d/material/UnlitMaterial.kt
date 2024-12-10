@@ -2,6 +2,9 @@ package com.littlekt.graphics.g3d.material
 
 import com.littlekt.graphics.Color
 import com.littlekt.graphics.Texture
+import com.littlekt.graphics.VertexAttribute
+import com.littlekt.graphics.g3d.util.ModelShaderUtils
+import com.littlekt.graphics.shader.Shader
 import com.littlekt.graphics.webgpu.*
 
 /**
@@ -9,22 +12,52 @@ import com.littlekt.graphics.webgpu.*
  * @date 11/29/2024
  */
 open class UnlitMaterial(
+    val device: Device,
+    layout: List<VertexAttribute>,
     val baseColorFactor: Color = Color.WHITE,
     val baseColorTexture: Texture? = null,
     val transparent: Boolean = false,
     val doubleSided: Boolean = false,
     val alphaCutoff: Float = 0f,
     val castShadows: Boolean = true,
-) : Material() {
+    vertexEntryPoint: String = "vs_main",
+    fragmentEntryPoint: String = "fs_main",
+    vertexSrc: String = ModelShaderUtils.createVertexSource(layout, vertexEntryPoint),
+    fragmentSrc: String = ModelShaderUtils.Unlit.createFragmentSource(layout, fragmentEntryPoint),
+    bindGroupLayout: List<BindGroupLayoutDescriptor> =
+        listOf(
+            BindGroupLayoutDescriptor(
+                listOf(
+                    // camera
+                    BindGroupLayoutEntry(0, ShaderStage.VERTEX, BufferBindingLayout()),
+                    // model
+                    BindGroupLayoutEntry(1, ShaderStage.VERTEX, BufferBindingLayout()),
+                )
+            ),
+            BindGroupLayoutDescriptor(
+                listOf(
+                    // material uniform
+                    BindGroupLayoutEntry(0, ShaderStage.FRAGMENT, BufferBindingLayout()),
+                    // baseColorTexture
+                    BindGroupLayoutEntry(1, ShaderStage.FRAGMENT, TextureBindingLayout()),
+                    // baseColorSampler
+                    BindGroupLayoutEntry(2, ShaderStage.FRAGMENT, SamplerBindingLayout()),
+                )
+            ),
+        ),
+) :
+    Material(
+        Shader(
+            device = device,
+            src = "$vertexSrc\n$fragmentSrc",
+            layout = bindGroupLayout,
+            vertexEntryPoint = vertexEntryPoint,
+            fragmentEntryPoint = fragmentEntryPoint,
+        )
+    ) {
     protected lateinit var paramBuffer: GPUBuffer
 
-    lateinit var bindGroupLayout: BindGroupLayout
-        protected set
-
-    lateinit var bindGroup: BindGroup
-        protected set
-
-    open fun upload(device: Device) {
+    override fun upload(device: Device) {
         val paramBuffer =
             device.createGPUFloatBuffer(
                 "param buffer",
@@ -58,13 +91,12 @@ open class UnlitMaterial(
         val bindGroup = device.createBindGroup(BindGroupDescriptor(bindGroupLayout, bgEntries))
 
         this.paramBuffer = paramBuffer
-        this.bindGroupLayout = bindGroupLayout
-        this.bindGroup = bindGroup
+        //    this.bindGroupLayout = bindGroupLayout
+        //    this.bindGroup = bindGroup
     }
 
     override fun release() {
         paramBuffer.release()
-        bindGroupLayout.release()
-        bindGroup.release()
+        super.release()
     }
 }
