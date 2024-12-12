@@ -3,7 +3,7 @@ package com.littlekt.graphics.g3d
 import com.littlekt.file.FloatBuffer
 import com.littlekt.graphics.IndexedMesh
 import com.littlekt.graphics.Mesh
-import com.littlekt.graphics.g3d.material.UnlitMaterial
+import com.littlekt.graphics.g3d.material.Material
 import com.littlekt.graphics.webgpu.*
 
 /**
@@ -12,9 +12,9 @@ import com.littlekt.graphics.webgpu.*
  */
 open class MeshNode(
     val mesh: Mesh<*>,
-    val material: UnlitMaterial = UnlitMaterial(),
+    val material: Material,
     val topology: PrimitiveTopology = PrimitiveTopology.TRIANGLE_LIST,
-    private val stripIndexFormat: IndexFormat? = null,
+    val stripIndexFormat: IndexFormat? = null,
 ) : VisualInstance() {
     private val indexedMesh = mesh as? IndexedMesh<*>
     private var renderPipeline: RenderPipeline? = null

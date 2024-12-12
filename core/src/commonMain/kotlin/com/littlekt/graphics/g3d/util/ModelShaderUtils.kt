@@ -66,10 +66,12 @@ object ModelShaderUtils {
                         "@location(${attribute.shaderLocation}) normal: vec3f,"
                     VertexAttrUsage.TANGENT ->
                         "@location(${attribute.shaderLocation}) tangent: vec4f,"
-                    VertexAttrUsage.TEX_COORDS ->
-                        "@location(${attribute.shaderLocation}) uv: vec2f,"
-                    VertexAttrUsage.TEX_COORDS ->
-                        "@location(${attribute.shaderLocation}) uv2: vec2f,"
+                    VertexAttrUsage.TEX_COORDS -> {
+                        if (attribute.index == 0)
+                            "@location(${attribute.shaderLocation}) uv: vec2f,"
+                        else "@location(${attribute.shaderLocation}) uv2: vec2f,"
+                    }
+
                     VertexAttrUsage.JOINT -> "@location(${attribute.shaderLocation}) joints: vec4u,"
                     VertexAttrUsage.WEIGHT ->
                         "@location(${attribute.shaderLocation}) weight: vec4f,"

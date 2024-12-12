@@ -3,6 +3,7 @@ package com.littlekt.file.gltf
 import com.littlekt.file.vfs.VfsFile
 import com.littlekt.graphics.*
 import com.littlekt.graphics.g3d.*
+import com.littlekt.graphics.g3d.material.PBRMaterial
 import com.littlekt.graphics.g3d.material.UnlitMaterial
 import com.littlekt.graphics.util.CommonIndexedMeshGeometry
 import com.littlekt.graphics.util.IndexedMeshGeometry
@@ -158,7 +159,7 @@ private class GltfModelGenerator(val gltfFile: GltfData) {
                                 gltfMaterial.pbrMetallicRoughness.baseColorTexture?.loadTexture(
                                     device,
                                     preferredFormat,
-                                ),
+                                ) ?: EmptyTexture(device, preferredFormat, 0, 0),
                             transparent = gltfMaterial.alphaMode == GltfAlphaMode.Blend,
                             doubleSided = gltfMaterial.doubleSided,
                             alphaCutoff = gltfMaterial.alphaCutoff,
@@ -177,10 +178,10 @@ private class GltfModelGenerator(val gltfFile: GltfData) {
                                 gltfMaterial.pbrMetallicRoughness.baseColorTexture?.loadTexture(
                                     device,
                                     preferredFormat,
-                                ),
+                                ) ?: EmptyTexture(device, preferredFormat, 0, 0),
                         )
                     }
-                } ?: UnlitMaterial()
+                } ?: UnlitMaterial(EmptyTexture(device, preferredFormat, 0, 0))
             val indexFormat =
                 if (prim.indices >= 0)
                     gltfFile.accessors[prim.indices].componentType.toIndexFormat()

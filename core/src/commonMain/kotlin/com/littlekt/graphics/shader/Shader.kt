@@ -22,7 +22,7 @@ open class Shader(
     val src: String,
     layout: List<BindGroupLayoutDescriptor>,
     val vertexEntryPoint: String = "vs_main",
-    val fragmentEntryPoint: String = "fs_main"
+    val fragmentEntryPoint: String = "fs_main",
 ) : Releasable {
     /** The id of this shader. */
     val id: Int = lastId++
@@ -82,7 +82,9 @@ open class Shader(
         Unit
 
     /**
-     * Set the [BindGroup]s to the correct binding index on the given [RenderPassEncoder].
+     * Set the [BindGroup]s to the correct binding index on the given [RenderPassEncoder]. By
+     * default, this will set the bind groups in list order omitting the use of [dynamicOffsets].
+     * Override this to set own bind group order / functionality.
      *
      * @param encoder the [RenderPassEncoder] to encode draw commands with
      * @param bindGroups the list of bind groups to bind. This assumes the bind list of bind groups
@@ -92,8 +94,10 @@ open class Shader(
     open fun setBindGroups(
         encoder: RenderPassEncoder,
         bindGroups: List<BindGroup>,
-        dynamicOffsets: List<Long> = emptyList()
-    ) = Unit
+        dynamicOffsets: List<Long> = emptyList(),
+    ) {
+        bindGroups.forEachIndexed { index, bindGroup -> encoder.setBindGroup(index, bindGroup) }
+    }
 
     override fun release() {
         shaderModule.release()

@@ -22,6 +22,8 @@ open class UnlitShader(
     val doubleSided: Boolean = false,
     val alphaCutoff: Float = 0f,
     val castShadows: Boolean = true,
+    val depthWrite: Boolean = true,
+    val depthCompareFunction: CompareFunction = CompareFunction.LESS,
     vertexEntryPoint: String = "vs_main",
     fragmentEntryPoint: String = "fs_main",
     vertexSrc: String = ModelShaderUtils.createVertexSource(layout, vertexEntryPoint),
@@ -61,6 +63,18 @@ open class UnlitShader(
     ) {
     private val camFloatBuffer = FloatBuffer(16)
     private val modelFloatBuffer = FloatBuffer(16)
+
+    open val key: Int =
+        kotlin.run {
+            var result = layout.hashCode()
+            result = 31 * result + transparent.hashCode()
+            result = 31 * result + doubleSided.hashCode()
+            result = 31 * result + alphaCutoff.hashCode()
+            result = 31 * result + castShadows.hashCode()
+            result = 31 * result + depthWrite.hashCode()
+            result = 31 * result + depthCompareFunction.hashCode()
+            result
+        }
 
     /**
      * The [GPUBuffer] that holds the camera view-projection matrix data.
@@ -142,11 +156,21 @@ open class UnlitShader(
         )
     }
 
+    override fun setBindGroups(
+        encoder: RenderPassEncoder,
+        bindGroups: List<BindGroup>,
+        dynamicOffsets: List<Long>,
+    ) {
+        val firstBindGroupIndex = 1
+        var i = firstBindGroupIndex
+        bindGroups.forEach { bindGroup -> encoder.setBindGroup(i++, bindGroup) }
+    }
+
     /**
      * Updates either the cameras view-projection matrix, or the model transform matrix, or both.
      *
      * ```
-     * data[VIEW_PROJECTION] = camrea.viewProj
+     * data[VIEW_PROJECTION] = camera.viewProj
      * data[MODEL] = mesh.globalTransform
      * update(data)
      * ```

@@ -2,101 +2,57 @@ package com.littlekt.graphics.g3d.material
 
 import com.littlekt.graphics.Color
 import com.littlekt.graphics.Texture
-import com.littlekt.graphics.VertexAttribute
-import com.littlekt.graphics.g3d.util.ModelShaderUtils
-import com.littlekt.graphics.shader.Shader
-import com.littlekt.graphics.webgpu.*
+import com.littlekt.graphics.webgpu.CompareFunction
+import com.littlekt.graphics.webgpu.TextureFormat
 
 /**
  * @author Colton Daily
  * @date 11/29/2024
  */
 open class UnlitMaterial(
-    val device: Device,
-    layout: List<VertexAttribute>,
+    val baseColorTexture: Texture,
     val baseColorFactor: Color = Color.WHITE,
-    val baseColorTexture: Texture? = null,
     val transparent: Boolean = false,
     val doubleSided: Boolean = false,
     val alphaCutoff: Float = 0f,
     val castShadows: Boolean = true,
-    vertexEntryPoint: String = "vs_main",
-    fragmentEntryPoint: String = "fs_main",
-    vertexSrc: String = ModelShaderUtils.createVertexSource(layout, vertexEntryPoint),
-    fragmentSrc: String = ModelShaderUtils.Unlit.createFragmentSource(layout, fragmentEntryPoint),
-    bindGroupLayout: List<BindGroupLayoutDescriptor> =
-        listOf(
-            BindGroupLayoutDescriptor(
-                listOf(
-                    // camera
-                    BindGroupLayoutEntry(0, ShaderStage.VERTEX, BufferBindingLayout()),
-                    // model
-                    BindGroupLayoutEntry(1, ShaderStage.VERTEX, BufferBindingLayout()),
-                )
-            ),
-            BindGroupLayoutDescriptor(
-                listOf(
-                    // material uniform
-                    BindGroupLayoutEntry(0, ShaderStage.FRAGMENT, BufferBindingLayout()),
-                    // baseColorTexture
-                    BindGroupLayoutEntry(1, ShaderStage.FRAGMENT, TextureBindingLayout()),
-                    // baseColorSampler
-                    BindGroupLayoutEntry(2, ShaderStage.FRAGMENT, SamplerBindingLayout()),
-                )
-            ),
-        ),
-) :
-    Material(
-        Shader(
-            device = device,
-            src = "$vertexSrc\n$fragmentSrc",
-            layout = bindGroupLayout,
-            vertexEntryPoint = vertexEntryPoint,
-            fragmentEntryPoint = fragmentEntryPoint,
-        )
-    ) {
-    protected lateinit var paramBuffer: GPUBuffer
+    val depthWrite: Boolean = true,
+    val depthCompareFunction: CompareFunction = CompareFunction.LESS,
+    val textureFormat: TextureFormat = TextureFormat.RGBA8_UNORM,
+    val depthFormat: TextureFormat = TextureFormat.DEPTH24_PLUS_STENCIL8,
+) : Material() {
 
-    override fun upload(device: Device) {
-        val paramBuffer =
-            device.createGPUFloatBuffer(
-                "param buffer",
-                floatArrayOf(
-                    baseColorFactor.r,
-                    baseColorFactor.g,
-                    baseColorFactor.b,
-                    baseColorFactor.a,
-                    alphaCutoff,
-                    // padding
-                    0f,
-                    0f,
-                    0f,
-                ),
-                BufferUsage.UNIFORM or BufferUsage.COPY_DST,
-            )
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other == null || this::class != other::class) return false
 
-        val bgLayoutEntries =
-            mutableListOf(BindGroupLayoutEntry(0, ShaderStage.FRAGMENT, BufferBindingLayout()))
-        val bgEntries = mutableListOf(BindGroupEntry(0, BufferBinding(paramBuffer)))
+        other as UnlitMaterial
 
-        baseColorTexture?.let { baseColorTexture ->
-            bgLayoutEntries += BindGroupLayoutEntry(1, ShaderStage.FRAGMENT, SamplerBindingLayout())
-            bgLayoutEntries += BindGroupLayoutEntry(2, ShaderStage.FRAGMENT, TextureBindingLayout())
-            bgEntries += BindGroupEntry(1, baseColorTexture.sampler)
-            bgEntries += BindGroupEntry(2, baseColorTexture.view)
-        }
+        if (baseColorTexture != other.baseColorTexture) return false
+        if (baseColorFactor != other.baseColorFactor) return false
+        if (transparent != other.transparent) return false
+        if (doubleSided != other.doubleSided) return false
+        if (alphaCutoff != other.alphaCutoff) return false
+        if (castShadows != other.castShadows) return false
+        if (depthWrite != other.depthWrite) return false
+        if (depthCompareFunction != other.depthCompareFunction) return false
+        if (textureFormat != other.textureFormat) return false
+        if (depthFormat != other.depthFormat) return false
 
-        val bindGroupLayout =
-            device.createBindGroupLayout(BindGroupLayoutDescriptor(bgLayoutEntries))
-        val bindGroup = device.createBindGroup(BindGroupDescriptor(bindGroupLayout, bgEntries))
-
-        this.paramBuffer = paramBuffer
-        //    this.bindGroupLayout = bindGroupLayout
-        //    this.bindGroup = bindGroup
+        return true
     }
 
-    override fun release() {
-        paramBuffer.release()
-        super.release()
+    override fun hashCode(): Int {
+        var result = baseColorTexture.hashCode()
+        result = 31 * result + baseColorFactor.hashCode()
+        result = 31 * result + transparent.hashCode()
+        result = 31 * result + doubleSided.hashCode()
+        result = 31 * result + alphaCutoff.hashCode()
+        result = 31 * result + castShadows.hashCode()
+        result = 31 * result + depthWrite.hashCode()
+        result = 31 * result + depthCompareFunction.hashCode()
+        result = 31 * result + textureFormat.hashCode()
+        result = 31 * result + depthFormat.hashCode()
+        return result
     }
 }
