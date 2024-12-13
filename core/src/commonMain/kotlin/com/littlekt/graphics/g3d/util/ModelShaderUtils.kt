@@ -5,6 +5,7 @@ import com.littlekt.graphics.VertexAttrUsage
 import com.littlekt.graphics.VertexAttribute
 import com.littlekt.graphics.g3d.Model
 import com.littlekt.graphics.g3d.Node3D
+import com.littlekt.graphics.g3d.material.PBRMaterial
 import com.littlekt.graphics.g3d.material.UnlitMaterial
 import com.littlekt.graphics.g3d.util.ModelShaderUtils.Unlit
 
@@ -252,6 +253,34 @@ object ModelShaderUtils {
                 return vec4(linear_to_sRGB(base_color.rgb), base_color.a);
             };
             """
+                .trimIndent()
+    }
+
+    /** Shader utilities for creating structs and fragment sources for a [PBRMaterial] */
+    object PBR {
+
+        fun createMaterialStruct(group: Int) =
+            """
+            struct Material {
+                baseColorFactor : vec4f>,
+                emissiveFactor : vec3f,
+                occlusionStrength : f32,
+                metallicRoughnessFactor : vec2f,
+                alphaCutoff : f32,
+            };
+            @group(${group}) @binding(0) var<uniform> material : Material;
+        
+            @group(${group}) @binding(1) var baseColorTexture : texture_2d<f32>;
+            @group(${group}) @binding(2) var baseColorSampler : sampler;
+            @group(${group}) @binding(3) var normalTexture : texture_2d<f32>;
+            @group(${group}) @binding(4) var normalSampler : sampler;
+            @group(${group}) @binding(5) var metallicRoughnessTexture : texture_2d<f32>;
+            @group(${group}) @binding(6) var metallicRoughnessSampler : sampler;
+            @group(${group}) @binding(7) var occlusionTexture : texture_2d<f32>;
+            @group(${group}) @binding(8) var occlusionSampler : sampler;
+            @group(${group}) @binding(9) var emissiveTexture : texture_2d<f32>;
+            @group(${group}) @binding(10) var emissiveSampler : sampler;
+        """
                 .trimIndent()
     }
 }

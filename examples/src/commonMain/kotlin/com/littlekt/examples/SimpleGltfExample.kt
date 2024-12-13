@@ -54,18 +54,18 @@ class SimpleGltfExample(context: Context) : ContextListener(context) {
                     .apply {
                         scale(20f)
                         translate(-30f, 0f, 0f)
-                    }
-                //                resourcesVfs["models/Fox.glb"]
-                //                    .readGltf()
-                //                    .toModel(config = GltfModelUnlitConfig())
-                //                    .apply { translate(30f, 0f, 0f) },
-                //                resourcesVfs["models/flighthelmet/FlightHelmet.gltf"]
-                //                    .readGltf()
-                //                    .toModel(config = GltfModelUnlitConfig())
-                //                    .apply {
-                //                        scale(200f)
-                //                        translate(90f, 0f, 0f)
-                //                    },
+                    },
+                resourcesVfs["models/Fox.glb"]
+                    .readGltf()
+                    .toModel(config = GltfModelUnlitConfig())
+                    .apply { translate(30f, 0f, 0f) },
+                resourcesVfs["models/flighthelmet/FlightHelmet.gltf"]
+                    .readGltf()
+                    .toModel(config = GltfModelUnlitConfig())
+                    .apply {
+                        scale(200f)
+                        translate(90f, 0f, 0f)
+                    },
             )
         val modelBatch =
             ModelBatch(device).apply {
