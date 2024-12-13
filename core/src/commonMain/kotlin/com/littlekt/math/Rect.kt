@@ -19,7 +19,7 @@ open class Rect(
     /** The width of the rect. */
     var width: Float = 0f,
     /** The height of the rect. */
-    var height: Float = 0f
+    var height: Float = 0f,
 ) {
 
     /** The right-most x-coordinate. This is the same as doing `x + width`. */
@@ -44,27 +44,18 @@ open class Rect(
     }
 
     /** @return true if this [Rect] intersects with the target [rect]. */
-    fun intersects(rect: Rect) = intersects(left = rect.x, rect.y2, rect.x2, rect.y)
+    fun intersects(rect: Rect) = intersects(left = rect.x, rect.y, rect.x2, rect.y2)
 
     /**
      * @param left the left-most coordinates
-     * @param top the top-most coordinates
-     * @param right the right=most coordinates
      * @param bottom the bottom-most coordinates
+     * @param right the right=most coordinates
+     * @param top the top-most coordinates
      * @return true if this [Rect] intersects the given rectangle at the specified corner
      *   coordinates.
      */
-    fun intersects(left: Float, top: Float, right: Float, bottom: Float): Boolean {
-        if (x >= right || left >= x2) {
-            return false
-        }
-
-        if (y >= bottom || top >= y2) {
-            return false
-        }
-
-        return true
-    }
+    fun intersects(left: Float, bottom: Float, right: Float, top: Float): Boolean =
+        !(x >= right || x2 <= left || y >= top || y2 <= bottom)
 
     override fun toString(): String {
         return "Rect(x=$x, y=$y, width=$width, height=$height, x2=$x2, y2=$y2)"
@@ -158,7 +149,7 @@ class RectBuilder {
         x2: Float,
         y2: Float,
         x: Float,
-        y: Float
+        y: Float,
     ) {
         val p0 = x0 to y0
         val p1 = x1 to y1
