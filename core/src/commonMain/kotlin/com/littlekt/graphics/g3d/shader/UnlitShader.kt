@@ -4,7 +4,7 @@ import com.littlekt.file.FloatBuffer
 import com.littlekt.graphics.Color
 import com.littlekt.graphics.Texture
 import com.littlekt.graphics.VertexAttribute
-import com.littlekt.graphics.g3d.util.ModelShaderUtils
+import com.littlekt.graphics.g3d.util.shader.buildCommonShader
 import com.littlekt.graphics.shader.Shader
 import com.littlekt.graphics.webgpu.*
 import com.littlekt.math.Mat4
@@ -26,8 +26,23 @@ open class UnlitShader(
     val depthCompareFunction: CompareFunction = CompareFunction.LESS,
     vertexEntryPoint: String = "vs_main",
     fragmentEntryPoint: String = "fs_main",
-    vertexSrc: String = ModelShaderUtils.createVertexSource(layout, vertexEntryPoint),
-    fragmentSrc: String = ModelShaderUtils.Unlit.createFragmentSource(layout, fragmentEntryPoint),
+    vertexSrc: String = buildCommonShader {
+        vertex {
+            vertexInput(layout)
+            vertexOutput(layout)
+            camera(0, 0)
+            model(1, 0)
+            main(layout, vertexEntryPoint)
+        }
+    },
+    fragmentSrc: String = buildCommonShader {
+        fragment {
+            unlit {
+                material(2)
+                main()
+            }
+        }
+    },
     bindGroupLayout: List<BindGroupLayoutDescriptor> =
         listOf(
             BindGroupLayoutDescriptor(
