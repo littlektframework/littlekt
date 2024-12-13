@@ -1,8 +1,8 @@
 package com.littlekt.graphics.g3d
 
-import com.littlekt.graphics.webgpu.Device
 import com.littlekt.math.*
 import com.littlekt.math.geom.Angle
+import kotlin.time.Duration
 
 /**
  * @author Colton Daily
@@ -426,8 +426,8 @@ open class Node3D {
         return this
     }
 
-    open fun update(device: Device) {
-        children.forEach { it.update(device) }
+    open fun update(dt: Duration) {
+        children.forEach { it.update(dt) }
     }
 
     open fun updateTransform() {

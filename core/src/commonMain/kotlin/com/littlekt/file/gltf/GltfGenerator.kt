@@ -203,7 +203,7 @@ private class GltfModelGenerator(val gltfFile: GltfData) {
                 //     mesh.morphWeights = FloatArray(prim.targets.sumOf { it.size })
             }
 
-            model.meshes[name] = mesh
+            model.meshes[name] = meshNode
         }
     }
 

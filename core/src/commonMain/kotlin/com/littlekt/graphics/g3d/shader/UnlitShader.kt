@@ -149,21 +149,11 @@ open class UnlitShader(
                     listOf(
                         BindGroupEntry(0, materialUniformBufferBinding),
                         BindGroupEntry(1, baseColorTexture.view),
-                        BindGroupEntry(1, baseColorTexture.sampler),
+                        BindGroupEntry(2, baseColorTexture.sampler),
                     ),
                 )
             )
         )
-    }
-
-    override fun setBindGroups(
-        encoder: RenderPassEncoder,
-        bindGroups: List<BindGroup>,
-        dynamicOffsets: List<Long>,
-    ) {
-        val firstBindGroupIndex = 1
-        var i = firstBindGroupIndex
-        bindGroups.forEach { bindGroup -> encoder.setBindGroup(i++, bindGroup) }
     }
 
     /**

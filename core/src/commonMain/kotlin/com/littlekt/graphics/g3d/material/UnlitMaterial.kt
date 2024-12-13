@@ -3,7 +3,6 @@ package com.littlekt.graphics.g3d.material
 import com.littlekt.graphics.Color
 import com.littlekt.graphics.Texture
 import com.littlekt.graphics.webgpu.CompareFunction
-import com.littlekt.graphics.webgpu.TextureFormat
 
 /**
  * @author Colton Daily
@@ -18,8 +17,6 @@ open class UnlitMaterial(
     val castShadows: Boolean = true,
     val depthWrite: Boolean = true,
     val depthCompareFunction: CompareFunction = CompareFunction.LESS,
-    val textureFormat: TextureFormat = TextureFormat.RGBA8_UNORM,
-    val depthFormat: TextureFormat = TextureFormat.DEPTH24_PLUS_STENCIL8,
 ) : Material() {
 
     override fun equals(other: Any?): Boolean {
@@ -36,8 +33,6 @@ open class UnlitMaterial(
         if (castShadows != other.castShadows) return false
         if (depthWrite != other.depthWrite) return false
         if (depthCompareFunction != other.depthCompareFunction) return false
-        if (textureFormat != other.textureFormat) return false
-        if (depthFormat != other.depthFormat) return false
 
         return true
     }
@@ -51,8 +46,6 @@ open class UnlitMaterial(
         result = 31 * result + castShadows.hashCode()
         result = 31 * result + depthWrite.hashCode()
         result = 31 * result + depthCompareFunction.hashCode()
-        result = 31 * result + textureFormat.hashCode()
-        result = 31 * result + depthFormat.hashCode()
         return result
     }
 }

@@ -99,17 +99,16 @@ object ModelShaderUtils {
         struct VertexOutput {
             @builtin(position) position: vec4f,
             @location(0) world_pos: vec3f,
-            @location(1) view: vec3f, // vector from vertex to camera
-            @location(2) normal: vec3f,
-            @location(3) uv: vec2f,
-            @location(4) uv2: vec2f,
-            @location(5) color: vec4f,
-            @location(6) normal: vec3f,
+            @location(1) normal: vec3f,
+            @location(2) uv: vec2f,
+            @location(3) uv2: vec2f,
+            @location(4) color: vec4f,
+            @location(5) normal: vec3f,
             ${
                 if (attributes.any { it.usage == VertexAttrUsage.TANGENT }) {
                 """
-                    @location(7) tangent: vec3f,
-                    @location(8) bitangent: vec3f,
+                    @location(6) tangent: vec3f,
+                    @location(7) bitangent: vec3f,
                 """.trimIndent()
                 } else ""
             }
@@ -209,7 +208,6 @@ object ModelShaderUtils {
             }
             let model_pos = model_matrix * input.position;
             output.world_pos = model_pos.xyz;
-            output.view = camera.position - model_pos.xyz;
             output.position = camera.view_proj * model_pos;
             return output;
         }
@@ -241,8 +239,9 @@ object ModelShaderUtils {
         fun createFragmentSource(layout: List<VertexAttribute>, entryPoint: String = "fs_Main") =
             // language=wgsl
             """
-            ${createVertexOutputStruct(layout)}
-            ${createMaterialStruct(0)}
+            ${createLinearToSRGBFunction()}
+      
+            ${createMaterialStruct(2)}
             @fragment
             fn $entryPoint(input : VertexOutput) -> @location(0) vec4<f32> {
                 let base_color_map = textureSample(base_color_texture, base_color_sampler, input.uv);

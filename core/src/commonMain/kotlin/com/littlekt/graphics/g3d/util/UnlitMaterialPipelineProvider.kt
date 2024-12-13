@@ -16,6 +16,8 @@ class UnlitMaterialPipelineProvider : BaseMaterialPipelineProvider<UnlitMaterial
         layout: VertexBufferLayout,
         topology: PrimitiveTopology,
         material: UnlitMaterial,
+        colorFormat: TextureFormat,
+        depthFormat: TextureFormat,
     ): MaterialPipeline {
         val shader =
             UnlitShader(
@@ -48,7 +50,7 @@ class UnlitMaterialPipelineProvider : BaseMaterialPipelineProvider<UnlitMaterial
                             entryPoint = shader.fragmentEntryPoint,
                             target =
                                 ColorTargetState(
-                                    format = material.textureFormat,
+                                    format = colorFormat,
                                     blendState =
                                         if (material.transparent) BlendState.Alpha
                                         else BlendState.Opaque,
@@ -62,7 +64,7 @@ class UnlitMaterialPipelineProvider : BaseMaterialPipelineProvider<UnlitMaterial
                         ),
                     depthStencil =
                         DepthStencilState(
-                            material.depthFormat,
+                            depthFormat,
                             material.depthWrite,
                             material.depthCompareFunction,
                         ),

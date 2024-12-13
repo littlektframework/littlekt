@@ -3,10 +3,7 @@ package com.littlekt.graphics.g3d.util
 import com.littlekt.graphics.VertexBufferLayout
 import com.littlekt.graphics.g3d.MeshNode
 import com.littlekt.graphics.g3d.material.Material
-import com.littlekt.graphics.webgpu.Device
-import com.littlekt.graphics.webgpu.IndexFormat
-import com.littlekt.graphics.webgpu.PrimitiveTopology
-import com.littlekt.graphics.webgpu.VertexStepMode
+import com.littlekt.graphics.webgpu.*
 
 /**
  * @author Colton Daily
@@ -16,7 +13,12 @@ abstract class BaseMaterialPipelineProvider<T : Material> : MaterialPipelineProv
     private val pipelines = mutableMapOf<RenderInfo, MaterialPipeline>()
     private var renderInfo = RenderInfo()
 
-    override fun getMaterialPipeline(device: Device, meshNode: MeshNode): MaterialPipeline? {
+    override fun getMaterialPipeline(
+        device: Device,
+        meshNode: MeshNode,
+        colorFormat: TextureFormat,
+        depthFormat: TextureFormat,
+    ): MaterialPipeline? {
         @Suppress("UNCHECKED_CAST") val material = meshNode.material as? T
         if (material != null) {
             renderInfo.apply {
@@ -35,6 +37,8 @@ abstract class BaseMaterialPipelineProvider<T : Material> : MaterialPipelineProv
                         meshNode.mesh.geometry.layout,
                         meshNode.topology,
                         material,
+                        colorFormat,
+                        depthFormat,
                     )
 
                 pipelines[renderInfo.copy()] = pipeline
@@ -49,6 +53,8 @@ abstract class BaseMaterialPipelineProvider<T : Material> : MaterialPipelineProv
         layout: VertexBufferLayout,
         topology: PrimitiveTopology,
         material: T,
+        colorFormat: TextureFormat,
+        depthFormat: TextureFormat,
     ): MaterialPipeline
 
     private data class RenderInfo(
@@ -56,12 +62,16 @@ abstract class BaseMaterialPipelineProvider<T : Material> : MaterialPipelineProv
         var layout: VertexBufferLayout = VertexBufferLayout(0, VertexStepMode.VERTEX, emptyList()),
         var topology: PrimitiveTopology = PrimitiveTopology.TRIANGLE_LIST,
         var indexFormat: IndexFormat? = null,
+        var colorFormat: TextureFormat = TextureFormat.RGBA8_UNORM,
+        var depthFormat: TextureFormat = TextureFormat.DEPTH24_PLUS_STENCIL8,
     ) {
         fun reset() {
             material = object : Material() {}
             layout = VertexBufferLayout(0, VertexStepMode.VERTEX, emptyList())
             topology = PrimitiveTopology.TRIANGLE_LIST
             indexFormat = null
+            colorFormat = TextureFormat.RGBA8_UNORM
+            depthFormat = TextureFormat.DEPTH24_PLUS_STENCIL8
         }
     }
 }

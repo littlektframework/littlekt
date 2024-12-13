@@ -1,6 +1,6 @@
 package com.littlekt.file.gltf
 
-import com.littlekt.graphics.g3d.PBRMaterial
+import com.littlekt.graphics.g3d.material.PBRMaterial
 import com.littlekt.graphics.g3d.material.UnlitMaterial
 
 /**
@@ -17,3 +17,7 @@ data class GltfModelConfig(val pbr: Boolean, val castShadows: Boolean)
 /** Creates a [GltfModelConfig], specific for PBR usage. */
 fun GltfModelPbrConfig(castShadows: Boolean = true) =
     GltfModelConfig(pbr = true, castShadows = castShadows)
+
+/** Creates a [GltfModelConfig], specific for unlit usage. */
+fun GltfModelUnlitConfig(castShadows: Boolean = true) =
+    GltfModelConfig(pbr = false, castShadows = castShadows)

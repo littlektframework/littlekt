@@ -2,7 +2,6 @@ package com.littlekt.graphics.g3d.material
 
 import com.littlekt.graphics.Color
 import com.littlekt.graphics.Texture
-import com.littlekt.graphics.webgpu.TextureFormat
 import com.littlekt.math.Vec3f
 
 /**
@@ -24,8 +23,6 @@ open class PBRMaterial(
     doubleSided: Boolean = false,
     alphaCutoff: Float = 0f,
     castShadows: Boolean = true,
-    textureFormat: TextureFormat = TextureFormat.RGBA8_UNORM,
-    depthFormat: TextureFormat = TextureFormat.DEPTH24_PLUS_STENCIL8,
 ) :
     UnlitMaterial(
         baseColorTexture = baseColorTexture,
@@ -34,8 +31,6 @@ open class PBRMaterial(
         doubleSided = doubleSided,
         alphaCutoff = alphaCutoff,
         castShadows = castShadows,
-        textureFormat = textureFormat,
-        depthFormat = depthFormat,
     ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

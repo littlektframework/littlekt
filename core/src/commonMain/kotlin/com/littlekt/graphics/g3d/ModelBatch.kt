@@ -1,13 +1,13 @@
 package com.littlekt.graphics.g3d
 
-import com.littlekt.graphics.IndexedMesh
+import com.littlekt.graphics.g3d.shader.UnlitShader
 import com.littlekt.graphics.g3d.util.MaterialPipeline
 import com.littlekt.graphics.g3d.util.MaterialPipelineProvider
 import com.littlekt.graphics.g3d.util.MaterialPipelineSorter
-import com.littlekt.graphics.util.IndexedMeshGeometry
 import com.littlekt.graphics.webgpu.Device
 import com.littlekt.graphics.webgpu.IndexFormat
 import com.littlekt.graphics.webgpu.RenderPassEncoder
+import com.littlekt.graphics.webgpu.TextureFormat
 import com.littlekt.math.Mat4
 
 /**
@@ -23,6 +23,8 @@ class ModelBatch(val device: Device) {
             override fun sort(pipelines: MutableList<MaterialPipeline>) {}
         }
     private val dataMap = mutableMapOf<String, Any>()
+    var colorFormat: TextureFormat = TextureFormat.RGBA8_UNORM
+    var depthFormat: TextureFormat = TextureFormat.DEPTH24_PLUS_STENCIL8
 
     fun addPipelineProvider(provider: MaterialPipelineProvider) {
         pipelineProviders += provider
@@ -32,11 +34,16 @@ class ModelBatch(val device: Device) {
         pipelineProviders -= provider
     }
 
+    fun render(model: Model) {
+        model.meshes.values.forEach { render(it) }
+    }
+
     fun render(meshNode: MeshNode) {
         run getPipeline@{
             var pipelineFound = false
             pipelineProviders.forEach { pipelineProvider ->
-                val pipeline = pipelineProvider.getMaterialPipeline(device, meshNode)
+                val pipeline =
+                    pipelineProvider.getMaterialPipeline(device, meshNode, colorFormat, depthFormat)
                 if (pipeline != null) {
                     pipelineFound = true
                     if (!pipelines.contains(pipeline)) {
@@ -50,7 +57,7 @@ class ModelBatch(val device: Device) {
         }
     }
 
-    fun flush(renderPassEncoder: RenderPassEncoder, viewProjection: Mat4?) {
+    fun flush(renderPassEncoder: RenderPassEncoder, viewProjection: Mat4) {
         sorter.sort(pipelines)
 
         pipelines.forEach { pipeline ->
@@ -59,21 +66,23 @@ class ModelBatch(val device: Device) {
                 renderPassEncoder.setPipeline(pipeline.renderPipeline)
                 val shader = pipeline.shader
                 dataMap.clear()
-                shader.setBindGroups(renderPassEncoder, pipeline.bindGroups)
+                dataMap[UnlitShader.VIEW_PROJECTION] = viewProjection
                 meshNodes.forEach { meshNode ->
+                    dataMap[UnlitShader.MODEL] = meshNode.globalTransform
+                    shader.update(dataMap)
+                    shader.setBindGroups(renderPassEncoder, pipeline.bindGroups)
                     val mesh = meshNode.mesh
-                    val indexedMesh = mesh as? IndexedMesh
+                    val indexedMesh = meshNode.indexedMesh
                     indexedMesh?.let {
                         renderPassEncoder.setIndexBuffer(
-                            mesh.ibo,
+                            indexedMesh.ibo,
                             indexFormat = meshNode.stripIndexFormat ?: IndexFormat.UINT16,
                         )
                     }
                     renderPassEncoder.setVertexBuffer(0, mesh.vbo)
 
                     if (indexedMesh != null) {
-                        val geometry = indexedMesh.geometry as IndexedMeshGeometry
-                        renderPassEncoder.drawIndexed(geometry.numIndices, 1)
+                        renderPassEncoder.drawIndexed(indexedMesh.geometry.numIndices, 1)
                     } else {
                         renderPassEncoder.draw(mesh.geometry.numVertices, 1)
                     }
