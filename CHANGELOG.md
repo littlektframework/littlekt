@@ -2,7 +2,19 @@
 
 ## 0.11.0 (SNAPSHOT)
 
+- BREAKING: Update minimum JDK from 21 to 22. `--enable-preview` is no longer needed.
 - Update `wgpu` from `0.19.4.1` to `22.1.0.5`.
+- BREAKING: `rect.interescts(left, top, right, bottom)` has been reorder to a more natural way:
+  `rect.intersects(left, bottom, right, top)`
+- Fix `rect.intersects(rect2)` to pass in correct coordinates.
+- Fix indices & vertices being overwritten, when they shouldn't be, when ensuring buffer size inside `Mesh` and
+  `IndexedMesh`.
+- Fix `JsByteSequenceStream` from attempting to flip the passed in `Buffer` in order to read. It now assumes the buffer
+  is in a ready-to-ready state.
+- Add new stats to `EngineStats`:
+    - `setPipeline` calls per frame
+    - `setBindGroup` calls per frame
+    - `set*Buffer` calls per frame
 
 ## 0.10.2
 

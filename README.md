@@ -44,7 +44,7 @@ kotlin {
 }
 
 val littleKtVersion = "0.10.2" // get the latest release at the top
-val kotlinCoroutinesVersion = "1.9.1" // or whatever version you are using
+val kotlinCoroutinesVersion = "1.9.0" // or whatever version you are using
 
 sourceSets {
     val commonMain by getting {
@@ -79,8 +79,8 @@ kotlin {
     }
 }
 
-val littleKtVersion = "0.11.0.a9529eb-SNAPSHOT" // or whichever hash you are using
-val kotlinCoroutinesVersion = "1.9.1" // or whatever version you are using
+val littleKtVersion = "0.11.0.131d453-SNAPSHOT" // or whichever hash you are using
+val kotlinCoroutinesVersion = "1.9.0" // or whatever version you are using
 
 sourceSets {
     val commonMain by getting {
