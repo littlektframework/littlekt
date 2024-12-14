@@ -15,6 +15,7 @@
     - `setPipeline` calls per frame
     - `setBindGroup` calls per frame
     - `set*Buffer` calls per frame
+- Fix `IndexedMeshGeometry.clearIndices` not resetting the total tracked indices back to 0.
 
 ## 0.10.2
 
