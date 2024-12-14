@@ -2,12 +2,15 @@ package com.littlekt.examples
 
 import com.littlekt.Context
 import com.littlekt.ContextListener
+import com.littlekt.file.ByteBuffer
 import com.littlekt.file.gltf.GltfModelUnlitConfig
 import com.littlekt.file.gltf.toModel
 import com.littlekt.file.vfs.readGltf
-import com.littlekt.graphics.Color
-import com.littlekt.graphics.PerspectiveCamera
+import com.littlekt.graphics.*
+import com.littlekt.graphics.g3d.MeshNode
+import com.littlekt.graphics.g3d.Model
 import com.littlekt.graphics.g3d.ModelBatch
+import com.littlekt.graphics.g3d.material.UnlitMaterial
 import com.littlekt.graphics.g3d.util.UnlitMaterialPipelineProvider
 import com.littlekt.graphics.webgpu.*
 import com.littlekt.math.geom.degrees
@@ -46,8 +49,14 @@ class SimpleGltfExample(context: Context) : ContextListener(context) {
                 )
             )
         var depthFrame = depthTexture.createView()
+        val whiteTexture =
+            PixmapTexture(
+                device,
+                preferredFormat,
+                Pixmap(1, 1, ByteBuffer(byteArrayOf(1, 1, 1, 1))),
+            )
         val models =
-            listOf(
+            listOf<Model>(
                 resourcesVfs["models/Duck.glb"]
                     .readGltf()
                     .toModel(config = GltfModelUnlitConfig())
@@ -67,6 +76,19 @@ class SimpleGltfExample(context: Context) : ContextListener(context) {
                         translate(90f, 0f, 0f)
                     },
             )
+
+        val grid =
+            MeshNode(
+                    fullIndexedMesh().generate {
+                        grid {
+                            sizeX = 1000f
+                            sizeY = 1000f
+                        }
+                    },
+                    UnlitMaterial(whiteTexture),
+                )
+                .apply { translate(0f, -30f, 0f) }
+
         val modelBatch =
             ModelBatch(device).apply {
                 addPipelineProvider(UnlitMaterialPipelineProvider())
@@ -166,6 +188,7 @@ class SimpleGltfExample(context: Context) : ContextListener(context) {
                 )
 
             models.forEach { model -> modelBatch.render(model) }
+            modelBatch.render(grid)
             modelBatch.flush(renderPassEncoder, camera.viewProjection)
             renderPassEncoder.end()
             renderPassEncoder.release()

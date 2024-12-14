@@ -1,6 +1,7 @@
 package com.littlekt.graphics.util
 
 import com.littlekt.graphics.Color
+import com.littlekt.graphics.VertexAttrUsage
 import com.littlekt.math.*
 import com.littlekt.math.geom.Angle
 
@@ -12,8 +13,9 @@ import com.littlekt.math.geom.Angle
  *
  * @param geometry the list to build the geometry to.
  */
-class CommonIndexedMeshBuilder(val geometry: CommonIndexedMeshGeometry, val hasNormals: Boolean) {
+class CommonIndexedMeshBuilder(val geometry: CommonIndexedMeshGeometry) {
 
+    val hasNormals = geometry.layout.attributes.any { it.usage == VertexAttrUsage.NORMAL }
     val transform = Mat4Stack()
     var isInvertFaceOrientation = false
 
@@ -87,7 +89,7 @@ class CommonIndexedMeshBuilder(val geometry: CommonIndexedMeshGeometry, val hasN
 
     fun scale(x: Float, y: Float, z: Float) = transform.scale(x, y, z)
 
-    inline fun cube(block: CubeProps.() -> Unit) {
+    inline fun cube(block: CubeProps.() -> Unit = {}) {
         val props = CubeProps()
         props.block()
         cube(props)
@@ -104,37 +106,37 @@ class CommonIndexedMeshBuilder(val geometry: CommonIndexedMeshGeometry, val hasN
                 vertex(
                     tmpPos.set(props.origin.x, props.origin.y, props.origin.z + props.size.z),
                     Vec3f.Z_AXIS,
-                    Vec2f(0f, 1f)
+                    Vec2f(0f, 1f),
                 )
             val i1 =
                 vertex(
                     tmpPos.set(
                         props.origin.x + props.size.x,
                         props.origin.y,
-                        props.origin.z + props.size.z
+                        props.origin.z + props.size.z,
                     ),
                     Vec3f.Z_AXIS,
-                    Vec2f(1f, 1f)
+                    Vec2f(1f, 1f),
                 )
             val i2 =
                 vertex(
                     tmpPos.set(
                         props.origin.x + props.size.x,
                         props.origin.y + props.size.y,
-                        props.origin.z + props.size.z
+                        props.origin.z + props.size.z,
                     ),
                     Vec3f.Z_AXIS,
-                    Vec2f(1f, 0f)
+                    Vec2f(1f, 0f),
                 )
             val i3 =
                 vertex(
                     tmpPos.set(
                         props.origin.x,
                         props.origin.y + props.size.y,
-                        props.origin.z + props.size.z
+                        props.origin.z + props.size.z,
                     ),
                     Vec3f.Z_AXIS,
-                    Vec2f(0f, 0f)
+                    Vec2f(0f, 0f),
                 )
             addTriIndices(i0, i1, i2)
             addTriIndices(i0, i2, i3)
@@ -146,37 +148,37 @@ class CommonIndexedMeshBuilder(val geometry: CommonIndexedMeshGeometry, val hasN
                 vertex(
                     tmpPos.set(props.origin.x + props.size.x, props.origin.y, props.origin.z),
                     Vec3f.X_AXIS,
-                    Vec2f(1f, 1f)
+                    Vec2f(1f, 1f),
                 )
             val i1 =
                 vertex(
                     tmpPos.set(
                         props.origin.x + props.size.x,
                         props.origin.y + props.size.y,
-                        props.origin.z
+                        props.origin.z,
                     ),
                     Vec3f.X_AXIS,
-                    Vec2f(1f, 0f)
+                    Vec2f(1f, 0f),
                 )
             val i2 =
                 vertex(
                     tmpPos.set(
                         props.origin.x + props.size.x,
                         props.origin.y + props.size.y,
-                        props.origin.z + props.size.z
+                        props.origin.z + props.size.z,
                     ),
                     Vec3f.X_AXIS,
-                    Vec2f(0f, 0f)
+                    Vec2f(0f, 0f),
                 )
             val i3 =
                 vertex(
                     tmpPos.set(
                         props.origin.x + props.size.x,
                         props.origin.y,
-                        props.origin.z + props.size.z
+                        props.origin.z + props.size.z,
                     ),
                     Vec3f.X_AXIS,
-                    Vec2f(0f, 1f)
+                    Vec2f(0f, 1f),
                 )
             addTriIndices(i0, i1, i2)
             addTriIndices(i0, i2, i3)
@@ -188,29 +190,29 @@ class CommonIndexedMeshBuilder(val geometry: CommonIndexedMeshGeometry, val hasN
                 vertex(
                     tmpPos.set(props.origin.x, props.origin.y + props.size.y, props.origin.z),
                     Vec3f.NEG_Z_AXIS,
-                    Vec2f(1f, 0f)
+                    Vec2f(1f, 0f),
                 )
             val i1 =
                 vertex(
                     tmpPos.set(
                         props.origin.x + props.size.x,
                         props.origin.y + props.size.y,
-                        props.origin.z
+                        props.origin.z,
                     ),
                     Vec3f.NEG_Z_AXIS,
-                    Vec2f(0f, 0f)
+                    Vec2f(0f, 0f),
                 )
             val i2 =
                 vertex(
                     tmpPos.set(props.origin.x + props.size.x, props.origin.y, props.origin.z),
                     Vec3f.NEG_Z_AXIS,
-                    Vec2f(0f, 1f)
+                    Vec2f(0f, 1f),
                 )
             val i3 =
                 vertex(
                     tmpPos.set(props.origin.x, props.origin.y, props.origin.z),
                     Vec3f.NEG_Z_AXIS,
-                    Vec2f(1f, 1f)
+                    Vec2f(1f, 1f),
                 )
             addTriIndices(i0, i1, i2)
             addTriIndices(i0, i2, i3)
@@ -222,29 +224,29 @@ class CommonIndexedMeshBuilder(val geometry: CommonIndexedMeshGeometry, val hasN
                 vertex(
                     tmpPos.set(props.origin.x, props.origin.y, props.origin.z + props.size.z),
                     Vec3f.NEG_X_AXIS,
-                    Vec2f(1f, 1f)
+                    Vec2f(1f, 1f),
                 )
             val i1 =
                 vertex(
                     tmpPos.set(
                         props.origin.x,
                         props.origin.y + props.size.y,
-                        props.origin.z + props.size.z
+                        props.origin.z + props.size.z,
                     ),
                     Vec3f.NEG_X_AXIS,
-                    Vec2f(1f, 0f)
+                    Vec2f(1f, 0f),
                 )
             val i2 =
                 vertex(
                     tmpPos.set(props.origin.x, props.origin.y + props.size.y, props.origin.z),
                     Vec3f.NEG_X_AXIS,
-                    Vec2f(0f, 0f)
+                    Vec2f(0f, 0f),
                 )
             val i3 =
                 vertex(
                     tmpPos.set(props.origin.x, props.origin.y, props.origin.z),
                     Vec3f.NEG_X_AXIS,
-                    Vec2f(0f, 1f)
+                    Vec2f(0f, 1f),
                 )
             addTriIndices(i0, i1, i2)
             addTriIndices(i0, i2, i3)
@@ -257,36 +259,36 @@ class CommonIndexedMeshBuilder(val geometry: CommonIndexedMeshGeometry, val hasN
                     tmpPos.set(
                         props.origin.x,
                         props.origin.y + props.size.y,
-                        props.origin.z + props.size.z
+                        props.origin.z + props.size.z,
                     ),
                     Vec3f.Y_AXIS,
-                    Vec2f(0f, 1f)
+                    Vec2f(0f, 1f),
                 )
             val i1 =
                 vertex(
                     tmpPos.set(
                         props.origin.x + props.size.x,
                         props.origin.y + props.size.y,
-                        props.origin.z + props.size.z
+                        props.origin.z + props.size.z,
                     ),
                     Vec3f.Y_AXIS,
-                    Vec2f(1f, 1f)
+                    Vec2f(1f, 1f),
                 )
             val i2 =
                 vertex(
                     tmpPos.set(
                         props.origin.x + props.size.x,
                         props.origin.y + props.size.y,
-                        props.origin.z
+                        props.origin.z,
                     ),
                     Vec3f.Y_AXIS,
-                    Vec2f(1f, 0f)
+                    Vec2f(1f, 0f),
                 )
             val i3 =
                 vertex(
                     tmpPos.set(props.origin.x, props.origin.y + props.size.y, props.origin.z),
                     Vec3f.Y_AXIS,
-                    Vec2f(0f, 0f)
+                    Vec2f(0f, 0f),
                 )
             addTriIndices(i0, i1, i2)
             addTriIndices(i0, i2, i3)
@@ -298,29 +300,29 @@ class CommonIndexedMeshBuilder(val geometry: CommonIndexedMeshGeometry, val hasN
                 vertex(
                     tmpPos.set(props.origin.x, props.origin.y, props.origin.z),
                     Vec3f.NEG_Y_AXIS,
-                    Vec2f(0f, 1f)
+                    Vec2f(0f, 1f),
                 )
             val i1 =
                 vertex(
                     tmpPos.set(props.origin.x + props.size.x, props.origin.y, props.origin.z),
                     Vec3f.NEG_Y_AXIS,
-                    Vec2f(1f, 1f)
+                    Vec2f(1f, 1f),
                 )
             val i2 =
                 vertex(
                     tmpPos.set(
                         props.origin.x + props.size.x,
                         props.origin.y,
-                        props.origin.z + props.size.z
+                        props.origin.z + props.size.z,
                     ),
                     Vec3f.NEG_Y_AXIS,
-                    Vec2f(1f, 0f)
+                    Vec2f(1f, 0f),
                 )
             val i3 =
                 vertex(
                     tmpPos.set(props.origin.x, props.origin.y, props.origin.z + props.size.z),
                     Vec3f.NEG_Y_AXIS,
-                    Vec2f(0f, 0f)
+                    Vec2f(0f, 0f),
                 )
             addTriIndices(i0, i1, i2)
             addTriIndices(i0, i2, i3)
@@ -328,7 +330,7 @@ class CommonIndexedMeshBuilder(val geometry: CommonIndexedMeshGeometry, val hasN
     }
 
     /** Generates a grid geometry. */
-    inline fun grid(block: GridProps.() -> Unit) {
+    inline fun grid(block: GridProps.() -> Unit = {}) {
         val props = GridProps()
         props.block()
         grid(props)
@@ -359,7 +361,7 @@ class CommonIndexedMeshBuilder(val geometry: CommonIndexedMeshGeometry, val hasN
                     texCoords.set(
                         x / props.stepsX.toFloat() * props.texCoordScale.x + props.texCoordOffset.x,
                         (1f - y / props.stepsY.toFloat()) * props.texCoordScale.y +
-                            props.texCoordOffset.y
+                            props.texCoordOffset.y,
                     )
                 }
 

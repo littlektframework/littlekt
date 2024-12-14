@@ -23,14 +23,17 @@ class CommonIndexedMeshGeometry(layout: VertexBufferLayout, size: Int = INITIAL_
             layout.attributes.sumOf { it.format.components },
             vertices,
             layout.attributes,
-            0
+            0,
         )
 
     /**
      * Mark this geometry as a batch update. This does nothing on its own. Use [isBatchUpdate] to
      * handle.
      */
-    inline fun batchUpdate(rebuildBounds: Boolean = false, block: MeshGeometry.() -> Unit) {
+    inline fun batchUpdate(
+        rebuildBounds: Boolean = false,
+        block: CommonIndexedMeshGeometry.() -> Unit,
+    ) {
         this.batchUpdate(block)
         if (rebuildBounds) {
             rebuildBounds()
