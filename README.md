@@ -2,9 +2,9 @@
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://github.com/littlektframework/littlekt/blob/master/LICENSE)
 [![build](https://github.com/littlektframework/littlekt/actions/workflows/build.yml/badge.svg?branch=master)](https://github.com/littlektframework/littlekt/actions/workflows/build.yml)
-[![Download](https://img.shields.io/maven-central/v/com.littlekt/core/0.10.2)](https://search.maven.org/artifact/com.littlekt/core/0.10.2/pom)
+[![Download](https://img.shields.io/maven-central/v/com.littlekt/core/0.11.0)](https://search.maven.org/artifact/com.littlekt/core/0.11.0/pom)
 
-Requires JDK 21+ in order to use due to the usage of the new Java FFM API.
+Requires JDK 22+ in order to use due to the usage of the new Java FFM API.
 
 **Currently, in development.**
 
@@ -37,13 +37,11 @@ repositories {
 
 kotlin {
     jvm {
-        compilations.all {
-            kotlinOptions.jvmTarget = "21" // littlekt targets jvm 21 so we must target at least 21
-        }
+        compilerOptions { jvmTarget = JvmTarget.JVM_22 }
     }
 }
 
-val littleKtVersion = "0.10.2" // get the latest release at the top
+val littleKtVersion = "0.11.0" // get the latest release at the top
 val kotlinCoroutinesVersion = "1.9.0" // or whatever version you are using
 
 sourceSets {
@@ -72,11 +70,7 @@ repositories {
 }
 
 kotlin {
-    jvm {
-        compilations.all {
-            kotlinOptions.jvmTarget = "22" // littlekt snapshot targets jvm 22 
-        }
-    }
+    compilerOptions { jvmTarget = JvmTarget.JVM_22 }
 }
 
 val littleKtVersion = "0.11.0.131d453-SNAPSHOT" // or whichever hash you are using
@@ -97,7 +91,7 @@ sourceSets {
 
 | Platform      |                                     Support                                      | Implementation                                                                                                                                      |     Expected By |
 |---------------|:--------------------------------------------------------------------------------:|-----------------------------------------------------------------------------------------------------------------------------------------------------|----------------:|
-| Desktop (JVM) |                                        ✅                                         | [wgpu-native](https://github.com/gfx-rs/wgpu-native) via [FFM](https://docs.oracle.com/en/java/javase/21/core/foreign-function-and-memory-api.html) | Current version |
+| Desktop (JVM) |                                        ✅                                         | [wgpu-native](https://github.com/gfx-rs/wgpu-native) via [FFM](https://docs.oracle.com/en/java/javase/22/core/foreign-function-and-memory-api.html) | Current version |
 | Web (JS)      |                                        ✅                                         | [webgpu](https://www.w3.org/TR/webgpu/)                                                                                                             | Current version |
 | Android       | [In Progress](https://github.com/littlektframework/littlekt/tree/webgpu-android) | Planned: [wgpu-native](https://github.com/gfx-rs/wgpu-native) via JNI                                                                               |            v1.0 |
 | iOS / Native  |                                     Planned                                      | Planned: [wgpu-native](https://github.com/gfx-rs/wgpu-native)                                                                                       |            v1.0 |

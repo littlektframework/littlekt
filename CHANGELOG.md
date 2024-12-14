@@ -1,6 +1,8 @@
 # Changelog
 
-## 0.11.0 (SNAPSHOT)
+## 0.11.1 (SNAPSHOT)
+
+## 0.11.0
 
 - BREAKING: Update minimum JDK from 21 to 22. `--enable-preview` is no longer needed.
 - Update `wgpu` from `0.19.4.1` to `22.1.0.5`.
