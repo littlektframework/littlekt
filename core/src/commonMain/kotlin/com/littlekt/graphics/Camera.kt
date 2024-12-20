@@ -192,11 +192,11 @@ abstract class Camera {
 
     /** Determines if the given center point and [radius] are within the camera frustum. */
     fun sphereInFrustum(cx: Float, cy: Float, radius: Float): Boolean =
-        sphereInFrustum(cx, cy, 1f, radius)
+        sphereInFrustum(cx, cy, 0f, radius)
 
     /** Determines if the given point and size are within the camera frustum. */
     fun boundsInFrustum(px: Float, py: Float, width: Float, height: Float): Boolean =
-        boundsInFrustum(px, py, 1f, width, height, 0f)
+        boundsInFrustum(px, py, 0f, width, height, 0f)
 
     /** Determines if the given center point and [radius] are within the camera frustum. */
     abstract fun sphereInFrustum(cx: Float, cy: Float, cz: Float, radius: Float): Boolean
@@ -208,7 +208,7 @@ abstract class Camera {
         pz: Float,
         width: Float,
         height: Float,
-        length: Float
+        length: Float,
     ): Boolean
 
     fun project(world: Vec2f, result: MutableVec2f): Boolean {
@@ -246,7 +246,7 @@ abstract class Camera {
             viewport.x.toFloat(),
             viewport.y.toFloat(),
             viewport.width.toFloat(),
-            viewport.height.toFloat()
+            viewport.height.toFloat(),
         )
 
     /**
@@ -276,7 +276,7 @@ abstract class Camera {
         context: Context,
         world: Vec2f,
         viewport: Viewport,
-        result: MutableVec2f
+        result: MutableVec2f,
     ): Boolean =
         worldToScreen(
             context,
@@ -285,7 +285,7 @@ abstract class Camera {
             viewport.y.toFloat(),
             viewport.width.toFloat(),
             viewport.height.toFloat(),
-            result
+            result,
         )
 
     /**
@@ -308,7 +308,7 @@ abstract class Camera {
             viewport.y.toFloat(),
             viewport.width.toFloat(),
             viewport.height.toFloat(),
-            result
+            result,
         )
 
     /**
@@ -333,7 +333,7 @@ abstract class Camera {
             viewportY,
             viewportWidth,
             viewportHeight,
-            result
+            result,
         )
         return result
     }
@@ -360,7 +360,7 @@ abstract class Camera {
             viewportY,
             viewportWidth,
             viewportHeight,
-            result
+            result,
         )
 
     /**
@@ -396,7 +396,7 @@ abstract class Camera {
         context: Context,
         world: Vec3f,
         viewport: Viewport,
-        result: MutableVec3f
+        result: MutableVec3f,
     ): Boolean =
         worldToScreen(
             context,
@@ -405,7 +405,7 @@ abstract class Camera {
             viewport.y.toFloat(),
             viewport.width.toFloat(),
             viewport.height.toFloat(),
-            result
+            result,
         )
 
     /**
@@ -449,7 +449,7 @@ abstract class Camera {
             viewportY,
             viewportWidth,
             viewportHeight,
-            result
+            result,
         )
         return result
     }
@@ -477,7 +477,7 @@ abstract class Camera {
             viewportY,
             viewportWidth,
             viewportHeight,
-            result
+            result,
         )
 
     /**
@@ -534,7 +534,7 @@ abstract class Camera {
             viewport.x.toFloat(),
             viewport.y.toFloat(),
             viewport.width.toFloat(),
-            viewport.height.toFloat()
+            viewport.height.toFloat(),
         )
 
     /**
@@ -559,7 +559,7 @@ abstract class Camera {
             viewportY,
             viewportWidth,
             viewportHeight,
-            result
+            result,
         )
         return result
     }
@@ -587,7 +587,7 @@ abstract class Camera {
             viewportY,
             viewportWidth,
             viewportHeight,
-            result
+            result,
         )
 
     /**
@@ -601,7 +601,7 @@ abstract class Camera {
         x: Float,
         y: Float,
         viewport: Viewport,
-        result: MutableVec2f
+        result: MutableVec2f,
     ): Boolean = screenToWorld(context, tempVec2.set(x, y), viewport, result)
 
     /**
@@ -614,7 +614,7 @@ abstract class Camera {
         context: Context,
         screen: MutableVec2f,
         viewport: Viewport,
-        result: MutableVec2f
+        result: MutableVec2f,
     ): Boolean =
         screenToWorld(
             context,
@@ -623,7 +623,7 @@ abstract class Camera {
             viewport.y.toFloat(),
             viewport.width.toFloat(),
             viewport.height.toFloat(),
-            result
+            result,
         )
 
     /**
@@ -656,18 +656,14 @@ abstract class Camera {
      *
      * @return a newly create [MutableVec3f] containing the calculated world coordinates.
      */
-    fun screenToWorld(
-        context: Context,
-        screen: Vec3f,
-        viewport: Viewport,
-    ): MutableVec3f =
+    fun screenToWorld(context: Context, screen: Vec3f, viewport: Viewport): MutableVec3f =
         screenToWorld(
             context,
             screen,
             viewport.x.toFloat(),
             viewport.y.toFloat(),
             viewport.width.toFloat(),
-            viewport.height.toFloat()
+            viewport.height.toFloat(),
         )
 
     /**
@@ -711,7 +707,7 @@ abstract class Camera {
             viewportY,
             viewportWidth,
             viewportHeight,
-            result
+            result,
         )
         return result
     }
@@ -740,7 +736,7 @@ abstract class Camera {
             viewportY,
             viewportWidth,
             viewportHeight,
-            result
+            result,
         )
 
     /**
@@ -762,7 +758,7 @@ abstract class Camera {
             viewport.y.toFloat(),
             viewport.width.toFloat(),
             viewport.height.toFloat(),
-            result
+            result,
         )
 
     /**
@@ -787,7 +783,7 @@ abstract class Camera {
             2f * x / viewportWidth - 1f,
             2f * y / viewportHeight - 1f,
             2f * screen.z - 1f,
-            1f
+            1f,
         )
         invViewProjection.transform(tempVec4)
         val s = 1f / tempVec4.w
@@ -819,7 +815,7 @@ abstract class Camera {
                 viewportY,
                 viewportWidth,
                 viewportHeight,
-                pickRay.origin
+                pickRay.origin,
             )
         valid =
             valid &&
@@ -830,7 +826,7 @@ abstract class Camera {
                     viewportY,
                     viewportWidth,
                     viewportHeight,
-                    pickRay.direction
+                    pickRay.direction,
                 )
 
         if (valid) {
