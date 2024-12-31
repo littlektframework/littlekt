@@ -188,7 +188,7 @@ open class Node3D {
         }
 
     /** The rotation of the [Node3D] in global space as a Quaternion. */
-    var globalRotation: Vec4f
+    var globalRotation: Quaternion
         get() {
             updateTransform()
             return _globalRotation
@@ -202,7 +202,7 @@ open class Node3D {
      * the [Node3D] has no parent or if the parent node is NOT a [Node3D], then it is the same a
      * [globalRotation]
      */
-    var rotation: Vec4f
+    var rotation: Quaternion
         get() {
             updateTransform()
             return _localRotation
@@ -341,7 +341,7 @@ open class Node3D {
 
     private val _globalPosition = MutableVec3f()
     private val _globalScale = MutableVec3f(1f, 1f, 1f)
-    private val _globalRotation = MutableVec4f(0f, 0f, 0f, 1f)
+    private val _globalRotation = MutableQuaternion()
 
     private var _globalPositionDirty = false
     private var _globalToLocalDirty = false
@@ -349,7 +349,7 @@ open class Node3D {
 
     private val _localPosition = MutableVec3f()
     private val _localScale = MutableVec3f(1f, 1f, 1f)
-    private val _localRotation = MutableVec4f(0f, 0f, 0f, 1f)
+    private val _localRotation = MutableQuaternion()
 
     private var _rotationMatrix = Mat4()
     private var _translationMatrix = Mat4()
@@ -518,7 +518,7 @@ open class Node3D {
      * @param quaternion the new quaternion
      * @return the current [Node3D]
      */
-    fun globalRotation(quaternion: Vec4f): Node3D {
+    fun globalRotation(quaternion: Quaternion): Node3D {
         if (_globalRotation == quaternion) {
             return this
         }
@@ -541,7 +541,7 @@ open class Node3D {
      * @param quaternion the rotation quaternion
      * @return the current [Node3D]
      */
-    fun rotation(quaternion: Vec4f): Node3D {
+    fun rotation(quaternion: Quaternion): Node3D {
         if (_localRotation == quaternion) {
             return this
         }
@@ -683,14 +683,14 @@ open class Node3D {
     fun rotate(x: Angle = Angle.ZERO, y: Angle = Angle.ZERO, z: Angle = Angle.ZERO): Node3D {
         if (x != Angle.ZERO || y != Angle.ZERO || z != Angle.ZERO) {
             tempQuat.setEuler(x, y, z)
-            _localRotation.quatMul(tempQuat)
+            _localRotation.mul(tempQuat)
             dirty()
         }
         return this
     }
 
-    fun rotate(quaternion: Vec4f): Node3D {
-        _localRotation.quatMul(quaternion)
+    fun rotate(quaternion: Quaternion): Node3D {
+        _localRotation.mul(quaternion)
         dirty()
         return this
     }
@@ -705,7 +705,7 @@ open class Node3D {
     fun globalRotate(x: Angle = Angle.ZERO, y: Angle = Angle.ZERO, z: Angle = Angle.ZERO): Node3D {
         if (x != Angle.ZERO || y != Angle.ZERO || z != Angle.ZERO) {
             tempQuat.setEuler(x, y, z)
-            _globalRotation.quatMul(tempQuat)
+            _globalRotation.mul(tempQuat)
             parent?.let { _localRotation.set(it.globalRotation).add(_globalRotation) }
                 ?: run { _localRotation.set(_globalRotation) }
             dirty()
@@ -799,6 +799,6 @@ open class Node3D {
     }
 
     companion object {
-        private val tempQuat = MutableVec4f(0f, 0f, 0f, 1f)
+        private val tempQuat = MutableQuaternion()
     }
 }

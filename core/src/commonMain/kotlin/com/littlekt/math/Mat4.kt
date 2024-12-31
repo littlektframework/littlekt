@@ -293,7 +293,7 @@ open class Mat4 {
             quaternion.w,
             scale.x,
             scale.y,
-            scale.z
+            scale.z,
         )
 
     /**
@@ -789,7 +789,7 @@ open class Mat4 {
         bottom: Float,
         top: Float,
         near: Float,
-        far: Float
+        far: Float,
     ): Mat4 {
         if (left == right) {
             throw IllegalArgumentException("left == right")
@@ -883,7 +883,7 @@ open class Mat4 {
         tz: Float,
         sx: Float,
         sy: Float,
-        sz: Float
+        sz: Float,
     ): Mat4 {
         setToIdentity()
         m03 = tx
@@ -902,7 +902,7 @@ open class Mat4 {
             translation.z,
             scale.x,
             scale.y,
-            scale.z
+            scale.z,
         )
 
     fun setToRotation(axis: Vec3f, angle: Angle): Mat4 =
@@ -978,7 +978,7 @@ open class Mat4 {
         return this
     }
 
-    fun setToRotation(quaternion: Vec4f): Mat4 {
+    fun setToRotation(quaternion: Quaternion): Mat4 {
         val r = quaternion.w
         val i = quaternion.x
         val j = quaternion.y
@@ -1281,7 +1281,7 @@ open class Mat4 {
         return result
     }
 
-    fun getRotation(result: MutableVec4f): MutableVec4f {
+    fun getRotation(result: MutableQuaternion): MutableQuaternion {
         val trace = this[0, 0] + this[1, 1] + this[2, 2]
 
         if (trace > 0f) {

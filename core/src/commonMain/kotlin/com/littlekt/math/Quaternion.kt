@@ -265,7 +265,7 @@ open class Quaternion(open val x: Float, open val y: Float, open val z: Float, o
      * @param vec the vector to use in transforming
      * @param result the output of the transformation
      */
-    fun transform(vec: Vec3f, result: MutableQuaternion): MutableQuaternion {
+    fun transform(vec: Vec3f, result: MutableVec3f): MutableVec3f {
         temp2.set(this)
         temp2.conjugate()
         temp2.mulLeft(temp1.set(vec.x, vec.y, vec.z, 0f).mulLeft(this))
@@ -285,6 +285,14 @@ open class Quaternion(open val x: Float, open val y: Float, open val z: Float, o
     operator fun minus(other: Quaternion) = subtract(other, MutableQuaternion())
 
     operator fun minus(factor: Float) = scale(factor)
+
+    operator fun component1(): Float = x
+
+    operator fun component2(): Float = y
+
+    operator fun component3(): Float = z
+
+    operator fun component4(): Float = w
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -309,7 +317,7 @@ open class Quaternion(open val x: Float, open val y: Float, open val z: Float, o
     }
 
     companion object {
-        val IDENTITY = Quaternion(0f, 0f, 1f, 1f)
+        val IDENTITY = Quaternion(0f, 0f, 0f, 1f)
         private val temp1 = MutableQuaternion(0f, 0f, 0f, 0f)
         private val temp2 = MutableQuaternion(0f, 0f, 0f, 0f)
 
@@ -353,6 +361,8 @@ open class MutableQuaternion(
     fun invert(): MutableQuaternion = invert(this)
 
     fun norm(): MutableQuaternion = norm(this)
+
+    fun identity(): MutableQuaternion = set(IDENTITY)
 
     fun scale(factor: Float): MutableQuaternion = scale(factor, this)
 
@@ -417,5 +427,15 @@ open class MutableQuaternion(
         z -= other.z
         w -= other.w
         return this
+    }
+
+    operator fun set(i: Int, value: Float) {
+        when (i) {
+            0 -> x = value
+            1 -> y = value
+            2 -> z = value
+            3 -> w = value
+            else -> error("$i is out of bounds for Quarternion. Only values: `0,1,2,3` are valid!")
+        }
     }
 }

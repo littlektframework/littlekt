@@ -13,8 +13,8 @@ import com.littlekt.graphics.webgpu.VertexFormat
 import com.littlekt.graphics.webgpu.VertexStepMode
 import com.littlekt.log.Logger
 import com.littlekt.math.Mat4
+import com.littlekt.math.Quaternion
 import com.littlekt.math.Vec3f
-import com.littlekt.math.Vec4f
 
 /**
  * Converts a [GltfData] to a [Model] ready for rendering. This will load underlying buffers and
@@ -99,7 +99,7 @@ private class GltfModelGenerator(val gltfFile: GltfData) {
                 node.translate(translation[0], translation[1], translation[2])
             }
             if (rotation.isNotEmpty()) {
-                node.rotate(Vec4f(rotation[0], rotation[1], rotation[2], rotation[3]))
+                node.rotate(Quaternion(rotation[0], rotation[1], rotation[2], rotation[3]))
             }
             if (scale.isNotEmpty()) {
                 node.scaling(scale[0], scale[1], scale[2])
