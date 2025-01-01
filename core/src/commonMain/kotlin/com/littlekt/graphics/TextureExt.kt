@@ -25,7 +25,7 @@ fun Texture.sliceWithBorder(
     sliceWidth: Int,
     sliceHeight: Int,
     border: Int = 1,
-    mipmaps: Boolean = false
+    mipmaps: Boolean = false,
 ): List<TextureSlice> {
     return if (this is PixmapTexture) {
         pixmap.sliceWithBorderToTexture(
@@ -34,7 +34,7 @@ fun Texture.sliceWithBorder(
             sliceWidth,
             sliceHeight,
             border,
-            mipmaps
+            mipmaps,
         )
     } else {
         error("Unsupported Texture type!")
@@ -56,7 +56,7 @@ fun Texture.addBorderToSlices(
     sliceWidth: Int,
     sliceHeight: Int,
     border: Int = 1,
-    mipmaps: Boolean = false
+    mipmaps: Boolean = false,
 ): Texture {
     return if (this is PixmapTexture) {
         pixmap.addBorderToSlicesToTexture(
@@ -65,7 +65,7 @@ fun Texture.addBorderToSlices(
             sliceWidth,
             sliceHeight,
             border,
-            mipmaps
+            mipmaps,
         )
     } else {
         error("Unsupported Texture type!")

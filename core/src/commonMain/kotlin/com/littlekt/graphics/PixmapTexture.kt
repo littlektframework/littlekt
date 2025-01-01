@@ -12,8 +12,16 @@ import com.littlekt.graphics.webgpu.*
  * @author Colton Daily
  * @date 5/5/2024
  */
-class PixmapTexture(val device: Device, preferredFormat: TextureFormat, val pixmap: Pixmap) :
-    Texture {
+class PixmapTexture(
+    val device: Device,
+    preferredFormat: TextureFormat,
+    val pixmap: Pixmap,
+    mips: Int = Texture.calculateNumMips(pixmap.width, pixmap.height),
+) : Texture {
+    init {
+        check(mips >= 1) { "Mips must be >= 1!" }
+    }
+
     /**
      * The [Extent3D] size of the texture. Uses [Pixmap.width], [Pixmap.height] and a depth of `1`.
      */
@@ -24,11 +32,11 @@ class PixmapTexture(val device: Device, preferredFormat: TextureFormat, val pixm
     override var textureDescriptor: TextureDescriptor =
         TextureDescriptor(
             size,
-            1,
+            mips,
             1,
             TextureDimension.D2,
             preferredFormat,
-            TextureUsage.TEXTURE or TextureUsage.COPY_DST,
+            TextureUsage.TEXTURE or TextureUsage.COPY_DST or TextureUsage.RENDER_ATTACHMENT,
         )
         set(value) {
             field = value
@@ -74,6 +82,9 @@ class PixmapTexture(val device: Device, preferredFormat: TextureFormat, val pixm
 
     init {
         writeDataToBuffer()
+        if (mips > 1) {
+            generateMipMaps(device)
+        }
     }
 
     override fun writeDataToBuffer() {

@@ -877,9 +877,9 @@ actual class WebGPUTexture(val segment: MemorySegment, val size: Long) : Releasa
     private val info = TextureResourceInfo(this, size)
 
     actual fun createView(desc: TextureViewDescriptor?): TextureView {
-        val descSeg =
-            if (desc != null) {
-                Arena.ofConfined().use { scope ->
+        return if (desc != null) {
+            Arena.ofConfined().use { scope ->
+                val desc =
                     WGPUTextureViewDescriptor.allocate(scope).also {
                         WGPUTextureViewDescriptor.label(
                             it,
@@ -893,11 +893,11 @@ actual class WebGPUTexture(val segment: MemorySegment, val size: Long) : Releasa
                         WGPUTextureViewDescriptor.baseArrayLayer(it, desc.baseArrayLayer)
                         WGPUTextureViewDescriptor.arrayLayerCount(it, desc.arrayLayerCount)
                     }
-                }
-            } else {
-                WGPU_NULL
+                TextureView(wgpuTextureCreateView(segment, desc))
             }
-        return TextureView(wgpuTextureCreateView(segment, descSeg))
+        } else {
+            TextureView(wgpuTextureCreateView(segment, WGPU_NULL))
+        }
     }
 
     actual override fun release() {

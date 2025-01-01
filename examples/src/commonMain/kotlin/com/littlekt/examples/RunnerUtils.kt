@@ -27,4 +27,5 @@ val availableExamples =
         "-assetProvider" to Pair("Asset Provider", ::AssetProviderExample),
         "-spriteBatchMultiPass" to Pair("SpriteBatch Multi Pass", ::SpriteBatchMultiPassExample),
         "-simpleGltf" to Pair("Simple GLtf", ::SimpleGltfExample),
+        "-mipMaps" to Pair("Mip Maps", ::MipMapsExample),
     )
