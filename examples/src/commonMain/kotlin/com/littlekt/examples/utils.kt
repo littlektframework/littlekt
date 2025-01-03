@@ -8,9 +8,13 @@ import com.littlekt.graphics.webgpu.TextureStatus
 import com.littlekt.input.InputProcessor
 import com.littlekt.input.Key
 import com.littlekt.input.Pointer
+import com.littlekt.math.MutableQuaternion
 import com.littlekt.math.MutableVec3f
+import com.littlekt.math.Vec3f
 import com.littlekt.math.geom.degrees
+import com.littlekt.math.geom.radians
 import com.littlekt.util.milliseconds
+import kotlin.math.asin
 
 fun SurfaceTexture.isValid(context: Context, onConfigure: () -> SurfaceConfiguration): Boolean {
     val surfaceTexture = this
@@ -94,6 +98,8 @@ fun Context.addFlyController(camera: Camera, speed: Float) {
         }
     }
 
+    val quat = MutableQuaternion()
+
     onUpdate { dt ->
         if (!locked) return@onUpdate
 
@@ -110,9 +116,14 @@ fun Context.addFlyController(camera: Camera, speed: Float) {
         val dx = -input.deltaX * 0.5f
         val dy = -input.deltaY * 0.5f
 
-        camera.direction.rotate(dx.degrees, camera.up)
-        temp.set(camera.right).norm()
-        camera.direction.rotate(dy.degrees, temp)
+        val currentPitch = asin(camera.direction.y).radians
+        val newPitch = (currentPitch + dy.degrees).coerceIn((-89).degrees, 89.degrees)
+        val dp = newPitch - currentPitch
+
+        quat.identity()
+        quat.rotate(dx.degrees, Vec3f.UP)
+        quat.rotate(dp, camera.right)
+        camera.rotate(quat)
 
         if (input.isKeyPressed(Key.W)) {
             camera.position += forward

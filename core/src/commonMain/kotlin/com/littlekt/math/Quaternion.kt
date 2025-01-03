@@ -1,13 +1,9 @@
 package com.littlekt.math
 
-import com.littlekt.math.geom.Angle
-import com.littlekt.math.geom.cosine
-import com.littlekt.math.geom.radians
-import com.littlekt.math.geom.sine
-import kotlin.math.PI
-import kotlin.math.asin
-import kotlin.math.atan2
-import kotlin.math.sqrt
+import com.littlekt.math.geom.*
+import com.littlekt.math.geom.cos
+import com.littlekt.math.geom.sin
+import kotlin.math.*
 
 /**
  * @author Colton Daily
@@ -372,6 +368,27 @@ open class MutableQuaternion(
     fun lookAt(forward: Vec3f, up: Vec3f): MutableQuaternion = lookAt(forward, up, this)
 
     fun mix(other: Quaternion, weight: Float): MutableQuaternion = mix(other, weight, this)
+
+    fun rotate(angle: Angle, axis: Vec3f): MutableQuaternion {
+        var s = axis.sqrLength()
+        if (!isFuzzyEqual(s, 1f)) {
+            s = 1f / sqrt(s)
+        }
+
+        val rad2 = angle.radians * 0.5f
+        val factor = sin(rad2)
+        val qx = axis.x * factor * s
+        val qy = axis.y * factor * s
+        val qz = axis.z * factor * s
+        val qw = cos(rad2)
+
+        val tx = w * qx + x * qw + y * qz - z * qy
+        val ty = w * qy - x * qz + y * qw + z * qx
+        val tz = w * qz + x * qy - y * qx + z * qw
+        val tw = w * qw - x * qx - y * qy - z * qz
+        set(tx, ty, tz, tw)
+        return norm()
+    }
 
     fun set(x: Float, y: Float, z: Float, w: Float): MutableQuaternion {
         this.x = x
