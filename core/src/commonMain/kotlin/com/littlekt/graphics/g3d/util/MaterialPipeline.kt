@@ -15,4 +15,8 @@ data class MaterialPipeline(
     val layout: VertexBufferLayout,
     val renderPipeline: RenderPipeline,
     val bindGroups: List<BindGroup>,
-)
+) : Comparable<MaterialPipeline> {
+    override fun compareTo(other: MaterialPipeline): Int {
+        return renderOrder.order - other.renderOrder.order
+    }
+}

@@ -7,10 +7,7 @@ import com.littlekt.graphics.g3d.material.PBRMaterial
 import com.littlekt.graphics.g3d.material.UnlitMaterial
 import com.littlekt.graphics.util.CommonIndexedMeshGeometry
 import com.littlekt.graphics.util.IndexedMeshGeometry
-import com.littlekt.graphics.webgpu.Device
-import com.littlekt.graphics.webgpu.TextureFormat
-import com.littlekt.graphics.webgpu.VertexFormat
-import com.littlekt.graphics.webgpu.VertexStepMode
+import com.littlekt.graphics.webgpu.*
 import com.littlekt.log.Logger
 import com.littlekt.math.Mat4
 import com.littlekt.math.Quaternion
@@ -179,6 +176,8 @@ private class GltfModelGenerator(val gltfFile: GltfData) {
                                     device,
                                     preferredFormat,
                                 ) ?: EmptyTexture(device, preferredFormat, 0, 0),
+                            transparent = gltfMaterial.alphaMode != GltfAlphaMode.Opaque,
+                            doubleSided = gltfMaterial.doubleSided,
                         )
                     }
                 } ?: UnlitMaterial(EmptyTexture(device, preferredFormat, 0, 0))

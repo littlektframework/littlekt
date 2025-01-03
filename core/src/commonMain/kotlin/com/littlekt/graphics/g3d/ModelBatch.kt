@@ -20,7 +20,9 @@ class ModelBatch(val device: Device) {
     private val meshesByPipeline = mutableMapOf<MaterialPipeline, MutableList<MeshNode>>()
     private val sorter =
         object : MaterialPipelineSorter {
-            override fun sort(pipelines: MutableList<MaterialPipeline>) {}
+            override fun sort(pipelines: MutableList<MaterialPipeline>) {
+                pipelines.sort()
+            }
         }
     private val dataMap = mutableMapOf<String, Any>()
     var colorFormat: TextureFormat = TextureFormat.RGBA8_UNORM
