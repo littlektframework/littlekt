@@ -28,7 +28,7 @@ class SimpleGltfExample(context: Context) : ContextListener(context) {
         addStatsHandler()
         addCloseOnShiftEsc()
         val device = graphics.device
-        val camera = PerspectiveCamera()
+        val camera = PerspectiveCamera(graphics.width, graphics.height)
         camera.translate(0f, 25f, 150f)
 
         val surfaceCapabilities = graphics.surfaceCapabilities
@@ -124,10 +124,12 @@ class SimpleGltfExample(context: Context) : ContextListener(context) {
                     )
                 )
             depthFrame = depthTexture.createView()
+            camera.virtualWidth = width.toFloat()
+            camera.virtualHeight = height.toFloat()
+            camera.update()
         }
 
-        addWASDMovement(camera, 0.5f)
-        addZoom(camera, 0.01f)
+        addFlyController(camera, 0.5f)
         onUpdate { dt ->
             models.forEach { model ->
                 model.rotate(y = 0.1.degrees * dt.milliseconds)
