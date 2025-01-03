@@ -58,7 +58,7 @@ class TextureMeshAndCameraExample(context: Context) : ContextListener(context) {
 
     override suspend fun Context.start() {
         addStatsHandler()
-        addCloseOnEsc()
+        addCloseOnShiftEsc()
         val device = graphics.device
         val texture = resourcesVfs["logo.png"].readTexture()
         val imgWidth = texture.width.toFloat() * 0.5f

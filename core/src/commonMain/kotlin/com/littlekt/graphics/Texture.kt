@@ -245,6 +245,7 @@ interface Texture : Releasable {
 
         fun nextId() = lastId++
 
+        /** @return the number of mips to generate based on the given sizes. */
         fun calculateNumMips(vararg sizes: Int): Int {
             val maxSize = sizes.maxOrNull() ?: return 1
             return 1 + log2(maxSize.toDouble()).toInt()

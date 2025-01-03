@@ -7,7 +7,7 @@ import com.littlekt.math.Vec3f
 open class OrthographicCamera(virtualWidth: Float = 0f, virtualHeight: Float = 0f) : Camera() {
     constructor(
         virtualWidth: Int,
-        virtualHeight: Int
+        virtualHeight: Int,
     ) : this(virtualWidth.toFloat(), virtualHeight.toFloat())
 
     override val direction: MutableVec3f = MutableVec3f(Vec3f.NEG_Z_AXIS)
@@ -51,12 +51,12 @@ open class OrthographicCamera(virtualWidth: Float = 0f, virtualHeight: Float = 0
         pz: Float,
         width: Float,
         height: Float,
-        length: Float
+        length: Float,
     ): Boolean {
         tempCenter.set(px, py, pz)
         tempCenter.subtract(position)
 
-        val x = tempCenter.dot(rightDir)
+        val x = tempCenter.dot(right)
         val halfWidth = virtualWidth * 0.5f + width
         if (x > halfWidth || x < -halfWidth) {
             // bounds is either left or right of frustum
@@ -82,7 +82,7 @@ open class OrthographicCamera(virtualWidth: Float = 0f, virtualHeight: Float = 0
         tempCenter.set(cx, cy, cz)
         tempCenter.subtract(position)
 
-        val x = tempCenter.dot(rightDir)
+        val x = tempCenter.dot(right)
         val halfWidth = virtualWidth * 0.5f + radius
         if (x > halfWidth || x < -halfWidth) {
             // sphere is either left or right of frustum

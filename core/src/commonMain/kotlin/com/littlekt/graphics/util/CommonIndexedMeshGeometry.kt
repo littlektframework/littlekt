@@ -1,6 +1,7 @@
 package com.littlekt.graphics.util
 
 import com.littlekt.graphics.VertexBufferLayout
+import com.littlekt.graphics.calculateComponents
 import com.littlekt.math.spatial.BoundingBox
 
 /**
@@ -19,12 +20,7 @@ class CommonIndexedMeshGeometry(layout: VertexBufferLayout, size: Int = INITIAL_
 
     /** The current vertex view of the geometry. */
     val view =
-        CommonVertexView(
-            layout.attributes.sumOf { it.format.components },
-            vertices,
-            layout.attributes,
-            0,
-        )
+        CommonVertexView(layout.attributes.calculateComponents(), vertices, layout.attributes, 0)
 
     /**
      * Mark this geometry as a batch update. This does nothing on its own. Use [isBatchUpdate] to
@@ -65,7 +61,12 @@ class CommonIndexedMeshGeometry(layout: VertexBufferLayout, size: Int = INITIAL_
         if (i < 0 || i >= vertices.capacity / vertexSize) {
             throw IllegalStateException("Vertex index out of bounds: $i")
         }
-        return CommonVertexView(layout.arrayStride.toInt(), vertices, layout.attributes, i)
+        return CommonVertexView(
+            layout.attributes.calculateComponents(),
+            vertices,
+            layout.attributes,
+            i,
+        )
     }
 
     /** Iterate through the vertex view by index. */

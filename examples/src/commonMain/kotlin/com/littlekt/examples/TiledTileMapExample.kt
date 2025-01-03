@@ -20,7 +20,7 @@ class TiledTileMapExample(context: Context) : ContextListener(context) {
 
     override suspend fun Context.start() {
         addStatsHandler()
-        addCloseOnEsc()
+        addCloseOnShiftEsc()
         val device = graphics.device
 
         val map = resourcesVfs["tiled/ortho-tiled-world.tmj"].readTiledMap()

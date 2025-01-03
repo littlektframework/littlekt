@@ -78,7 +78,7 @@ open class PerspectiveCamera(virtualWidth: Float = 0f, virtualHeight: Float = 0f
             return false
         }
 
-        val x = tempCenter.dot(rightDir)
+        val x = tempCenter.dot(right)
         d = radius * sphereFacX
         z *= aspectRatio
         if (x > z + d || x < -z - d) {

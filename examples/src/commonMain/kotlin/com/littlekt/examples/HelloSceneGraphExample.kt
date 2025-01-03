@@ -28,7 +28,7 @@ class HelloSceneGraphExample(context: Context) : ContextListener(context) {
 
     override suspend fun Context.start() {
         addStatsHandler()
-        addCloseOnEsc()
+        addCloseOnShiftEsc()
         val icon = resourcesVfs["icon_16x16.png"].readTexture()
         val device = graphics.device
 
@@ -39,7 +39,7 @@ class HelloSceneGraphExample(context: Context) : ContextListener(context) {
             TextureUsage.RENDER_ATTACHMENT,
             preferredFormat,
             PresentMode.FIFO,
-            surfaceCapabilities.alphaModes[0]
+            surfaceCapabilities.alphaModes[0],
         )
 
         val graph =
@@ -94,7 +94,7 @@ class HelloSceneGraphExample(context: Context) : ContextListener(context) {
                                         globalY,
                                         scaleX = 2f,
                                         scaleY = 2f,
-                                        rotation = rotation
+                                        rotation = rotation,
                                     )
                                 }
                             }
@@ -132,7 +132,7 @@ class HelloSceneGraphExample(context: Context) : ContextListener(context) {
                 TextureUsage.RENDER_ATTACHMENT,
                 preferredFormat,
                 PresentMode.FIFO,
-                surfaceCapabilities.alphaModes[0]
+                surfaceCapabilities.alphaModes[0],
             )
         }
 
@@ -169,10 +169,10 @@ class HelloSceneGraphExample(context: Context) : ContextListener(context) {
                             storeOp = StoreOp.STORE,
                             clearColor =
                                 if (preferredFormat.srgb) Color.DARK_GRAY.toLinear()
-                                else Color.DARK_GRAY
+                                else Color.DARK_GRAY,
                         )
                     ),
-                    label = "Init render pass"
+                    label = "Init render pass",
                 )
             graph.update(dt)
             graph.render(commandEncoder, renderPassDescriptor)

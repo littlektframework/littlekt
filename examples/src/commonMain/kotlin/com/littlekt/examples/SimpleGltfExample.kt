@@ -26,7 +26,7 @@ class SimpleGltfExample(context: Context) : ContextListener(context) {
 
     override suspend fun Context.start() {
         addStatsHandler()
-        addCloseOnEsc()
+        addCloseOnShiftEsc()
         val device = graphics.device
         val camera = PerspectiveCamera()
         camera.translate(0f, 25f, 150f)

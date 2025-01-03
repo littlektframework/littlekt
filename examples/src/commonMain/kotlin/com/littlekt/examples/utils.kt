@@ -7,6 +7,9 @@ import com.littlekt.graphics.webgpu.SurfaceTexture
 import com.littlekt.graphics.webgpu.TextureStatus
 import com.littlekt.input.InputProcessor
 import com.littlekt.input.Key
+import com.littlekt.input.Pointer
+import com.littlekt.math.MutableVec3f
+import com.littlekt.math.geom.degrees
 import com.littlekt.util.milliseconds
 
 fun SurfaceTexture.isValid(context: Context, onConfigure: () -> SurfaceConfiguration): Boolean {
@@ -41,9 +44,9 @@ fun Context.addStatsHandler() {
     }
 }
 
-fun Context.addCloseOnEsc() {
+fun Context.addCloseOnShiftEsc() {
     onPostUpdate {
-        if (input.isKeyJustPressed(Key.ESCAPE)) {
+        if (input.isKeyPressed(Key.SHIFT_LEFT) && input.isKeyJustPressed(Key.ESCAPE)) {
             close()
         }
     }
@@ -67,6 +70,67 @@ fun Context.addWASDMovement(camera: Camera, speed: Float) {
         }
         if (input.isKeyPressed(Key.A)) {
             camera.position.x -= ultimateSpeed * dt.milliseconds
+        }
+    }
+}
+
+fun Context.addFlyController(camera: Camera, speed: Float) {
+    val temp = MutableVec3f()
+    val forward = MutableVec3f()
+    val right = MutableVec3f()
+    val up = MutableVec3f()
+
+    var locked = false
+
+    onUpdate {
+        if (!locked && input.isJustTouched(Pointer.POINTER1)) {
+            input.lockCursor()
+            locked = true
+        }
+
+        if (locked && input.isKeyJustPressed(Key.ESCAPE)) {
+            input.releaseCursor()
+            locked = false
+        }
+    }
+
+    onUpdate { dt ->
+        if (!locked) return@onUpdate
+
+        val sprint = input.isKeyPressed(Key.SHIFT_LEFT) || input.isKeyPressed(Key.SHIFT_RIGHT)
+        val slow = input.isKeyPressed(Key.CTRL_LEFT) || input.isKeyPressed(Key.CTRL_RIGHT)
+        var ultimateSpeed = speed
+        if (sprint) ultimateSpeed *= 3f
+        if (slow) ultimateSpeed *= 0.25f
+
+        forward.set(camera.direction).norm().scale(ultimateSpeed * dt.milliseconds)
+        right.set(camera.right).norm().scale(ultimateSpeed * dt.milliseconds)
+        up.set(camera.up).norm().scale(ultimateSpeed * dt.milliseconds)
+
+        val dx = -input.deltaX * 0.5f
+        val dy = -input.deltaY * 0.5f
+
+        camera.direction.rotate(dx.degrees, camera.up)
+        temp.set(camera.right).norm()
+        camera.direction.rotate(dy.degrees, temp)
+
+        if (input.isKeyPressed(Key.W)) {
+            camera.position += forward
+        }
+        if (input.isKeyPressed(Key.S)) {
+            camera.position -= forward
+        }
+        if (input.isKeyPressed(Key.D)) {
+            camera.position += right
+        }
+        if (input.isKeyPressed(Key.A)) {
+            camera.position -= right
+        }
+        if (input.isKeyPressed(Key.Q)) {
+            camera.position -= up
+        }
+        if (input.isKeyPressed(Key.E)) {
+            camera.position += up
         }
     }
 }

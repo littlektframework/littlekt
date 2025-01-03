@@ -322,6 +322,14 @@ class LwjglInput(private val context: LwjglContext) : Input {
         glfwSetCursorPos(context.windowHandle, fx.toDouble(), fy.toDouble())
     }
 
+    override fun lockCursor() {
+        glfwSetInputMode(context.windowHandle, GLFW_CURSOR, GLFW_CURSOR_DISABLED)
+    }
+
+    override fun releaseCursor() {
+        glfwSetInputMode(context.windowHandle, GLFW_CURSOR, GLFW_CURSOR_NORMAL)
+    }
+
     override fun addInputProcessor(processor: InputProcessor) {
         _inputProcessors += processor
     }

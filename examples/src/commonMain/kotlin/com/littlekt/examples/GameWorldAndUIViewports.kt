@@ -20,7 +20,7 @@ class GameWorldAndUIViewports(context: Context) : ContextListener(context) {
 
     override suspend fun Context.start() {
         addStatsHandler()
-        addCloseOnEsc()
+        addCloseOnShiftEsc()
         val device = graphics.device
         val mapLoader = resourcesVfs["ldtk/world-1.5.3.ldtk"].readLDtkMapLoader()
         // we are only loading the first level
@@ -34,7 +34,7 @@ class GameWorldAndUIViewports(context: Context) : ContextListener(context) {
             TextureUsage.RENDER_ATTACHMENT,
             preferredFormat,
             PresentMode.FIFO,
-            surfaceCapabilities.alphaModes[0]
+            surfaceCapabilities.alphaModes[0],
         )
 
         val batch = SpriteBatch(device, graphics, preferredFormat, size = 400)
@@ -63,7 +63,7 @@ class GameWorldAndUIViewports(context: Context) : ContextListener(context) {
                 TextureUsage.RENDER_ATTACHMENT,
                 preferredFormat,
                 PresentMode.FIFO,
-                surfaceCapabilities.alphaModes[0]
+                surfaceCapabilities.alphaModes[0],
             )
         }
 
@@ -101,7 +101,7 @@ class GameWorldAndUIViewports(context: Context) : ContextListener(context) {
                                     view = frame,
                                     loadOp = LoadOp.CLEAR,
                                     storeOp = StoreOp.STORE,
-                                    clearColor = bgColor
+                                    clearColor = bgColor,
                                 )
                             )
                         )
@@ -119,10 +119,10 @@ class GameWorldAndUIViewports(context: Context) : ContextListener(context) {
                         RenderPassColorAttachmentDescriptor(
                             view = frame,
                             loadOp = LoadOp.LOAD,
-                            storeOp = StoreOp.STORE
+                            storeOp = StoreOp.STORE,
                         )
                     ),
-                    label = "Init render pass"
+                    label = "Init render pass",
                 )
 
             graph.update(dt)

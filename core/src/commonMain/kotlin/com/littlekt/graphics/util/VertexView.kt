@@ -24,7 +24,7 @@ open class VertexView(
     var vertices: FloatBuffer,
     val attributes: List<VertexAttribute>,
     index: Int,
-) : MutableVec3f() {
+) {
 
     /** The current vertex index that is being viewed. */
     var index = index

@@ -9,6 +9,10 @@ import com.littlekt.graphics.webgpu.*
  * @param device the device for underlying GPU buffers creation
  * @param preferredFormat the preferred [TextureFormat]
  * @param pixmap the underlying texture data
+ * @param mips number of mip map levels to generate. Set this value to `1` to not generate any
+ *   additional levels. See [Texture.calculateNumMips] to calculate levels based on size. Must
+ *   be >= 1.
+ * @param samplerDescriptor optional [SamplerDescriptor] to pass in when building initial texture.
  * @author Colton Daily
  * @date 5/5/2024
  */
@@ -17,6 +21,7 @@ class PixmapTexture(
     preferredFormat: TextureFormat,
     val pixmap: Pixmap,
     mips: Int = Texture.calculateNumMips(pixmap.width, pixmap.height),
+    samplerDescriptor: SamplerDescriptor = SamplerDescriptor(),
 ) : Texture {
     init {
         check(mips >= 1) { "Mips must be >= 1!" }
@@ -70,14 +75,14 @@ class PixmapTexture(
             id = nextId()
         }
 
-    override var samplerDescriptor: SamplerDescriptor = SamplerDescriptor()
+    override var samplerDescriptor: SamplerDescriptor = samplerDescriptor
         set(value) {
             field = value
             sampler.release()
             sampler = device.createSampler(value)
         }
 
-    override var sampler: Sampler = device.createSampler(samplerDescriptor)
+    override var sampler: Sampler = device.createSampler(this.samplerDescriptor)
         private set
 
     init {

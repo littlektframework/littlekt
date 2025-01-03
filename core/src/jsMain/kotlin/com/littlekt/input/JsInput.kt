@@ -49,7 +49,7 @@ class JsInput(val canvas: HTMLCanvasElement) : Input {
             Key.ARROW_UP,
             Key.ARROW_DOWN,
             Key.ARROW_LEFT,
-            Key.ARROW_RIGHT
+            Key.ARROW_RIGHT,
         )
 
     init {
@@ -70,7 +70,7 @@ class JsInput(val canvas: HTMLCanvasElement) : Input {
                 val ge = e.unsafeCast<JsGamepadEvent>()
                 gamepads[ge.gamepad.index].connected = true
                 _connectedGamepads += gamepads[ge.gamepad.index]
-            }
+            },
         )
         window.addEventListener(
             "gamepaddisconnected",
@@ -78,7 +78,7 @@ class JsInput(val canvas: HTMLCanvasElement) : Input {
                 val ge = e.unsafeCast<JsGamepadEvent>()
                 gamepads[ge.gamepad.index].connected = false
                 _connectedGamepads -= gamepads[ge.gamepad.index]
-            }
+            },
         )
         checkForGamepads()
     }
@@ -152,7 +152,6 @@ class JsInput(val canvas: HTMLCanvasElement) : Input {
                 touchIdentifiers[pointerIndex] = -1
                 inputCache.onTouchUp(x, y, pointerIndex.getPointer)
             }
-
         }
     }
 
@@ -371,7 +370,15 @@ class JsInput(val canvas: HTMLCanvasElement) : Input {
     }
 
     override fun setCursorPosition(x: Int, y: Int) {
-        TODO("Not yet implemented")
+        // no-op
+    }
+
+    override fun lockCursor() {
+        js("canvas.requestPointerLocker()")
+    }
+
+    override fun releaseCursor() {
+        js("document.exitPointerLock()")
     }
 
     override fun addInputProcessor(processor: InputProcessor) {

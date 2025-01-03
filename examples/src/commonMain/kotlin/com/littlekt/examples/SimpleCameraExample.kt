@@ -18,7 +18,7 @@ class SimpleCameraExample(context: Context) : ContextListener(context) {
 
     override suspend fun Context.start() {
         addStatsHandler()
-        addCloseOnEsc()
+        addCloseOnShiftEsc()
         val device = graphics.device
         val logoTexture = resourcesVfs["logo.png"].readTexture()
 

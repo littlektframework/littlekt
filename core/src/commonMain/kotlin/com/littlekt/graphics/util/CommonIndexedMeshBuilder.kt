@@ -68,6 +68,7 @@ class CommonIndexedMeshBuilder(val geometry: CommonIndexedMeshGeometry) {
 
     fun clear() {
         geometry.clearVertices()
+        geometry.clearIndices()
         identity()
     }
 

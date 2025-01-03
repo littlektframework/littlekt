@@ -10,11 +10,19 @@ import com.littlekt.graphics.webgpu.*
  *
  * @param device the device for underlying GPU buffers creation
  * @param preferredFormat the preferred [TextureFormat]
+ * @param width size of the textures width
+ * @param height size of the textures height
+ * @param samplerDescriptor optional [SamplerDescriptor] to use when loading initial texture.
  * @author Colton Daily
  * @date 5/5/2024
  */
-class EmptyTexture(val device: Device, preferredFormat: TextureFormat, width: Int, height: Int) :
-    Texture {
+class EmptyTexture(
+    val device: Device,
+    preferredFormat: TextureFormat,
+    width: Int,
+    height: Int,
+    samplerDescriptor: SamplerDescriptor = SamplerDescriptor(),
+) : Texture {
     /**
      * The [Extent3D] size of the texture. Uses the initial width & height from the constructor and
      * a depth of `1`.
@@ -33,7 +41,7 @@ class EmptyTexture(val device: Device, preferredFormat: TextureFormat, width: In
             1,
             TextureDimension.D2,
             preferredFormat,
-            TextureUsage.TEXTURE or TextureUsage.RENDER_ATTACHMENT
+            TextureUsage.TEXTURE or TextureUsage.RENDER_ATTACHMENT,
         )
         set(value) {
             field = value
@@ -68,14 +76,14 @@ class EmptyTexture(val device: Device, preferredFormat: TextureFormat, width: In
             id = nextId()
         }
 
-    override var samplerDescriptor: SamplerDescriptor = SamplerDescriptor()
+    override var samplerDescriptor: SamplerDescriptor = samplerDescriptor
         set(value) {
             field = value
             sampler.release()
             sampler = device.createSampler(value)
         }
 
-    override var sampler: Sampler = device.createSampler(samplerDescriptor)
+    override var sampler: Sampler = device.createSampler(this.samplerDescriptor)
         private set
 
     override fun writeDataToBuffer() {

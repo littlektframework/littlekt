@@ -9,7 +9,6 @@ import com.littlekt.file.ByteBufferImpl
 import com.littlekt.graphics.Pixmap
 import com.littlekt.graphics.PixmapTexture
 import com.littlekt.graphics.Texture
-import com.littlekt.graphics.webgpu.TextureFormat
 import kotlinx.browser.document
 import kotlinx.coroutines.CompletableDeferred
 import org.w3c.dom.*
@@ -19,9 +18,15 @@ import org.w3c.dom.*
  *
  * @return the loaded texture
  */
-actual suspend fun VfsFile.readTexture(preferredFormat: TextureFormat): Texture {
+actual suspend fun VfsFile.readTexture(options: TextureOptions): Texture {
     val pixmap = readPixmap()
-    return PixmapTexture(vfs.context.graphics.device, preferredFormat, pixmap)
+    return PixmapTexture(
+        vfs.context.graphics.device,
+        options.format,
+        pixmap,
+        if (options.generateMipMaps) Texture.calculateNumMips(pixmap.width, pixmap.height) else 1,
+        options.samplerDescriptor,
+    )
 }
 
 /** Reads Base64 encoded ByteArray for embedded images. */

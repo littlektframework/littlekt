@@ -2,10 +2,16 @@ package com.littlekt.examples
 
 import com.littlekt.Context
 import com.littlekt.ContextListener
+import com.littlekt.file.vfs.TextureOptions
 import com.littlekt.file.vfs.readTexture
 import com.littlekt.graphics.Color
 import com.littlekt.graphics.PerspectiveCamera
-import com.littlekt.graphics.g2d.SpriteBatch
+import com.littlekt.graphics.fullIndexedMesh
+import com.littlekt.graphics.g3d.MeshNode
+import com.littlekt.graphics.g3d.ModelBatch
+import com.littlekt.graphics.g3d.material.UnlitMaterial
+import com.littlekt.graphics.g3d.util.UnlitMaterialPipelineProvider
+import com.littlekt.graphics.generate
 import com.littlekt.graphics.webgpu.*
 
 /**
@@ -18,12 +24,38 @@ class MipMapsExample(context: Context) : ContextListener(context) {
 
     override suspend fun Context.start() {
         addStatsHandler()
-        addCloseOnEsc()
+        addCloseOnShiftEsc()
         val device = graphics.device
-        val logoTexture = resourcesVfs["coins.jpg"].readTexture()
 
         val surfaceCapabilities = graphics.surfaceCapabilities
         val preferredFormat = graphics.preferredFormat
+
+        val checkered =
+            resourcesVfs["checkered.png"].readTexture(
+                options =
+                    TextureOptions(
+                        format = preferredFormat,
+                        samplerDescriptor =
+                            SamplerDescriptor(
+                                addressModeU = AddressMode.REPEAT,
+                                addressModeV = AddressMode.REPEAT,
+                            ),
+                    )
+            )
+
+        val depthFormat = TextureFormat.DEPTH24_PLUS_STENCIL8
+        var depthTexture =
+            device.createTexture(
+                TextureDescriptor(
+                    Extent3D(graphics.width, graphics.height, 1),
+                    1,
+                    1,
+                    TextureDimension.D2,
+                    depthFormat,
+                    TextureUsage.RENDER_ATTACHMENT,
+                )
+            )
+        var depthFrame = depthTexture.createView()
 
         graphics.configureSurface(
             TextureUsage.RENDER_ATTACHMENT,
@@ -32,7 +64,25 @@ class MipMapsExample(context: Context) : ContextListener(context) {
             surfaceCapabilities.alphaModes[0],
         )
 
-        val batch = SpriteBatch(device, graphics, preferredFormat)
+        val grid =
+            MeshNode(
+                    fullIndexedMesh().generate {
+                        vertexModFun = { texCoords.set(position.x / 10f, position.z / 10f) }
+                        grid {
+                            sizeX = 1000f
+                            sizeY = 1000f
+                            stepsX = 10
+                            stepsY = 10
+                        }
+                    },
+                    UnlitMaterial(baseColorTexture = checkered, castShadows = false),
+                )
+                .apply { translate(0f, -30f, 0f) }
+        val modelBatch =
+            ModelBatch(device).apply {
+                addPipelineProvider(UnlitMaterialPipelineProvider())
+                colorFormat = preferredFormat
+            }
         val camera = PerspectiveCamera()
 
         onResize { width, height ->
@@ -42,9 +92,23 @@ class MipMapsExample(context: Context) : ContextListener(context) {
                 PresentMode.FIFO,
                 surfaceCapabilities.alphaModes[0],
             )
+            depthFrame.release()
+            depthTexture.release()
+            depthTexture =
+                device.createTexture(
+                    TextureDescriptor(
+                        Extent3D(width, height, 1),
+                        1,
+                        1,
+                        TextureDimension.D2,
+                        depthFormat,
+                        TextureUsage.RENDER_ATTACHMENT,
+                    )
+                )
+            depthFrame = depthTexture.createView()
         }
 
-        addWASDMovement(camera, 0.5f)
+        addFlyController(camera, 0.1f)
         onUpdate {
             val surfaceTexture = graphics.surface.getCurrentTexture()
             when (val status = surfaceTexture.status) {
@@ -82,14 +146,22 @@ class MipMapsExample(context: Context) : ContextListener(context) {
                                         if (preferredFormat.srgb) Color.DARK_GRAY.toLinear()
                                         else Color.DARK_GRAY,
                                 )
-                            )
+                            ),
+                            depthStencilAttachment =
+                                RenderPassDepthStencilAttachmentDescriptor(
+                                    view = depthFrame,
+                                    depthClearValue = 1f,
+                                    depthLoadOp = LoadOp.CLEAR,
+                                    depthStoreOp = StoreOp.STORE,
+                                    stencilClearValue = 0,
+                                    stencilLoadOp = LoadOp.CLEAR,
+                                    stencilStoreOp = StoreOp.STORE,
+                                ),
                         )
                 )
             camera.update()
-            batch.begin()
-            batch.draw(logoTexture, 0f, 0f)
-            batch.flush(renderPassEncoder, camera.viewProjection)
-            batch.end()
+            modelBatch.render(grid)
+            modelBatch.flush(renderPassEncoder, camera.viewProjection)
             renderPassEncoder.end()
             renderPassEncoder.release()
 
@@ -104,9 +176,6 @@ class MipMapsExample(context: Context) : ContextListener(context) {
             swapChainTexture.release()
         }
 
-        onRelease {
-            batch.release()
-            logoTexture.release()
-        }
+        onRelease { checkered.release() }
     }
 }
