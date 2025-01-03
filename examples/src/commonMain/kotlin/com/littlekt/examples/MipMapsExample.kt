@@ -83,7 +83,7 @@ class MipMapsExample(context: Context) : ContextListener(context) {
                 addPipelineProvider(UnlitMaterialPipelineProvider())
                 colorFormat = preferredFormat
             }
-        val camera = PerspectiveCamera()
+        val camera = PerspectiveCamera(graphics.width, graphics.height)
 
         onResize { width, height ->
             graphics.configureSurface(
@@ -106,6 +106,9 @@ class MipMapsExample(context: Context) : ContextListener(context) {
                     )
                 )
             depthFrame = depthTexture.createView()
+            camera.virtualWidth = width.toFloat()
+            camera.virtualHeight = height.toFloat()
+            camera.update()
         }
 
         addFlyController(camera, 0.1f)
