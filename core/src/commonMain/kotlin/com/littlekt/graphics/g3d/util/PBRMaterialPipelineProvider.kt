@@ -2,7 +2,7 @@ package com.littlekt.graphics.g3d.util
 
 import com.littlekt.graphics.VertexBufferLayout
 import com.littlekt.graphics.g3d.material.PBRMaterial
-import com.littlekt.graphics.g3d.shader.UnlitShader
+import com.littlekt.graphics.g3d.shader.PBRShader
 import com.littlekt.graphics.webgpu.*
 
 /**
@@ -20,11 +20,19 @@ class PBRMaterialPipelineProvider : BaseMaterialPipelineProvider<PBRMaterial>() 
         depthFormat: TextureFormat,
     ): MaterialPipeline {
         val shader =
-            UnlitShader(
+            PBRShader(
                 device = device,
                 layout = layout.attributes,
                 baseColorTexture = material.baseColorTexture,
                 baseColorFactor = material.baseColorFactor,
+                metallicFactor = material.metallicFactor,
+                roughnessFactor = material.roughnessFactor,
+                metallicRoughnessTexture = material.metallicRoughnessTexture,
+                normalTexture = material.normalTexture,
+                emissiveFactor = material.emissiveFactor,
+                emissiveTexture = material.emissiveTexture,
+                occlusionTexture = material.occlusionTexture,
+                occlusionStrength = material.occlusionStrength,
                 transparent = material.transparent,
                 doubleSided = material.doubleSided,
                 alphaCutoff = material.alphaCutoff,

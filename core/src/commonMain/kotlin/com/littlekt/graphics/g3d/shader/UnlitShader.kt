@@ -8,6 +8,7 @@ import com.littlekt.graphics.g3d.util.shader.buildCommonShader
 import com.littlekt.graphics.shader.Shader
 import com.littlekt.graphics.webgpu.*
 import com.littlekt.math.Mat4
+import com.littlekt.resources.Textures
 
 /**
  * @author Colton Daily
@@ -16,7 +17,7 @@ import com.littlekt.math.Mat4
 open class UnlitShader(
     device: Device,
     layout: List<VertexAttribute>,
-    val baseColorTexture: Texture,
+    val baseColorTexture: Texture = Textures.textureWhite,
     val baseColorFactor: Color = Color.WHITE,
     val transparent: Boolean = false,
     val doubleSided: Boolean = false,
@@ -111,7 +112,7 @@ open class UnlitShader(
             BufferUsage.UNIFORM or BufferUsage.COPY_DST,
         )
 
-    protected val materialUniformBuffer =
+    protected open val materialUniformBuffer =
         device.createGPUFloatBuffer(
             "material buffer",
             floatArrayOf(
@@ -137,8 +138,9 @@ open class UnlitShader(
         BufferBinding(modelUniformBuffer, size = Float.SIZE_BYTES * 16L)
 
     /** The [BufferBinding] for [modelUniformBufferBinding]. */
-    protected val materialUniformBufferBinding =
+    protected val materialUniformBufferBinding by lazy {
         BufferBinding(materialUniformBuffer, size = Float.SIZE_BYTES * 8L)
+    }
 
     override fun MutableList<BindGroup>.createBindGroupsInternal(data: Map<String, Any>) {
         add(
