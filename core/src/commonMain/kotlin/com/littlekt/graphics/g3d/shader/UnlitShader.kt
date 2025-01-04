@@ -4,7 +4,7 @@ import com.littlekt.file.FloatBuffer
 import com.littlekt.graphics.Color
 import com.littlekt.graphics.Texture
 import com.littlekt.graphics.VertexAttribute
-import com.littlekt.graphics.g3d.util.shader.buildCommonShader
+import com.littlekt.graphics.g3d.util.shader.*
 import com.littlekt.graphics.shader.Shader
 import com.littlekt.graphics.webgpu.*
 import com.littlekt.math.Mat4
@@ -38,7 +38,8 @@ open class UnlitShader(
     },
     fragmentSrc: String = buildCommonShader {
         fragment {
-            unlit {
+            pbr {
+                light(0, 1)
                 material(2)
                 main()
             }

@@ -9,7 +9,7 @@ class UnlitMaterialBuilder : SubFragmentShaderBuilder() {
         parts +=
             """
         struct Material {
-            base_color_factor : vec4<f32>,
+            base_color_factor : vec4f,
             alpha_cutoff : f32,
         };
         @group($group) @binding(0) var<uniform> material : Material;
@@ -19,34 +19,8 @@ class UnlitMaterialBuilder : SubFragmentShaderBuilder() {
     """
     }
 
-    private fun createLinearToSRGBFunction(
-        useApproximateSrgb: Boolean = true,
-        gamma: Float = 2.2f,
-    ) {
-        parts +=
-            """
-        fn linear_to_sRGB(linear : vec3f) -> vec3f {
-            ${
-                if(useApproximateSrgb) {
-                    """
-                        let INV_GAMMA = 1.0 / $gamma;
-                        return pow(linear, vec3(INV_GAMMA));
-                    """.trimIndent()
-                } else {
-                    """
-                    if (all(linear <= vec3(0.0031308))) {
-                        return linear * 12.92;
-                    }
-                    return (pow(abs(linear), vec3(1.0/2.4)) * 1.055) - vec3(0.055);
-                    """.trimIndent()
-                }
-            }
-        }
-    """
-    }
-
     override fun main(entryPoint: String) {
-        createLinearToSRGBFunction()
+        colorConversionFunctions()
         parts +=
             """
             @fragment

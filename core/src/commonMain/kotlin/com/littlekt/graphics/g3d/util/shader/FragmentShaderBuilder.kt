@@ -19,12 +19,6 @@ open class FragmentShaderBuilder {
         parts += builder.build()
     }
 
-    fun diffuse(block: DiffuseMaterialBuilder.() -> Unit) {
-        val builder = DiffuseMaterialBuilder()
-        builder.block()
-        parts += builder.build()
-    }
-
     fun build(): String {
         return parts.joinToString("\n")
     }

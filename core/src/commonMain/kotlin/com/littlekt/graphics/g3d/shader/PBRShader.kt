@@ -3,7 +3,7 @@ package com.littlekt.graphics.g3d.shader
 import com.littlekt.graphics.Color
 import com.littlekt.graphics.Texture
 import com.littlekt.graphics.VertexAttribute
-import com.littlekt.graphics.g3d.util.shader.buildCommonShader
+import com.littlekt.graphics.g3d.util.shader.*
 import com.littlekt.graphics.webgpu.*
 import com.littlekt.math.Vec3f
 import com.littlekt.resources.Textures
@@ -128,10 +128,10 @@ open class PBRShader(
                 metallicFactor,
                 roughnessFactor,
                 occlusionStrength,
-                alphaCutoff,
                 emissiveFactor.x,
                 emissiveFactor.y,
                 emissiveFactor.z,
+                alphaCutoff,
                 // padding
                 0f,
             ),
