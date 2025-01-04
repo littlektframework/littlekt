@@ -38,8 +38,7 @@ open class UnlitShader(
     },
     fragmentSrc: String = buildCommonShader {
         fragment {
-            pbr {
-                light(0, 1)
+            unlit {
                 material(2)
                 main()
             }

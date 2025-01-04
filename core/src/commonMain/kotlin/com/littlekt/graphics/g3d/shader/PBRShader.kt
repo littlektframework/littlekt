@@ -44,7 +44,8 @@ open class PBRShader(
     },
     fragmentSrc: String = buildCommonShader {
         fragment {
-            unlit {
+            pbr {
+                light(0, 1)
                 material(2)
                 main()
             }
