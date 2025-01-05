@@ -13,6 +13,7 @@ class UnlitMaterialPipelineProvider : BaseMaterialPipelineProvider<UnlitMaterial
 
     override fun createMaterialPipeline(
         device: Device,
+        cameraBuffers: CameraBuffers,
         layout: VertexBufferLayout,
         topology: PrimitiveTopology,
         material: UnlitMaterial,
@@ -22,6 +23,7 @@ class UnlitMaterialPipelineProvider : BaseMaterialPipelineProvider<UnlitMaterial
         val shader =
             UnlitShader(
                 device = device,
+                cameraBuffers = cameraBuffers,
                 layout = layout.attributes,
                 baseColorTexture = material.baseColorTexture,
                 baseColorFactor = material.baseColorFactor,

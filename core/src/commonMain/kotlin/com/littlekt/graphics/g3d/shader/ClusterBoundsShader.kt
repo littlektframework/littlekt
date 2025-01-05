@@ -1,13 +1,13 @@
 package com.littlekt.graphics.g3d.shader
 
-import com.littlekt.graphics.g3d.util.CameraBuffers
+import com.littlekt.graphics.g3d.util.CameraLightBuffers
 import com.littlekt.graphics.g3d.util.shader.buildCommonShader
-import com.littlekt.graphics.g3d.util.shader.camera
+import com.littlekt.graphics.g3d.util.shader.cameraWithLights
 import com.littlekt.graphics.shader.Shader
 import com.littlekt.graphics.webgpu.*
 
 /**
- * @param cameraBuffers a [CameraBuffers] instance that is generally shared with a
+ * @param cameraBuffers a [CameraLightBuffers] instance that is generally shared with a
  *   [ClusterLightsShader]. Calling [release] on this shader will NOT release the instance and
  *   should be called when ready to dispose of it.
  * @author Colton Daily
@@ -15,12 +15,12 @@ import com.littlekt.graphics.webgpu.*
  */
 class ClusterBoundsShader(
     device: Device,
-    val cameraBuffers: CameraBuffers,
+    val cameraBuffers: CameraLightBuffers,
     computeEntryPoint: String = "cmp_main",
     computeSrc: String = buildCommonShader {
         compute {
             clusteredBounds {
-                camera(0, 0)
+                cameraWithLights(0, 0)
                 cluster(1, 0, MemoryAccessMode.READ_WRITE)
                 main(computeEntryPoint)
             }

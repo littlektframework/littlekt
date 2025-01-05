@@ -88,11 +88,36 @@ fun SubShaderBuilder.vertexOutput(attributes: List<VertexAttribute>) {
             .trimIndent()
 }
 
+/** Adds a Camera struct that only requires a 4x4 float matrix for the combined viewProjection. */
 fun SubShaderBuilder.camera(group: Int, binding: Int) {
     parts +=
         """
         struct Camera {
             view_proj: mat4x4f,
+        };
+        @group($group) @binding($binding)
+        var<uniform> camera: Camera;
+        """
+            .trimIndent()
+}
+
+/**
+ * Adds a Camera struct that requires separated camera data such as the projection, inverse
+ * projection, view, position, time, output size, near, and far. Expected to be used with PBR &
+ * clustered shading.
+ */
+fun SubShaderBuilder.cameraWithLights(group: Int, binding: Int) {
+    parts +=
+        """
+        struct Camera {
+            proj: mat4x4f,
+            inv_proj: mat4x4f,
+            view: mat4x4f,
+            position: vec3f,
+            time: f32,
+            output_size: vec2f,
+            z_near: f32,
+            z_far: f32,
         };
         @group($group) @binding($binding)
         var<uniform> camera: Camera;

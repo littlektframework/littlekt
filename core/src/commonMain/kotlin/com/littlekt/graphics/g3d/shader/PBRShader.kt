@@ -3,6 +3,7 @@ package com.littlekt.graphics.g3d.shader
 import com.littlekt.graphics.Color
 import com.littlekt.graphics.Texture
 import com.littlekt.graphics.VertexAttribute
+import com.littlekt.graphics.g3d.util.CameraLightBuffers
 import com.littlekt.graphics.g3d.util.shader.*
 import com.littlekt.graphics.webgpu.*
 import com.littlekt.math.Vec3f
@@ -15,6 +16,7 @@ import com.littlekt.resources.Textures
 open class PBRShader(
     device: Device,
     layout: List<VertexAttribute>,
+    cameraBuffers: CameraLightBuffers,
     baseColorTexture: Texture = Textures.textureWhite,
     baseColorFactor: Color = Color.WHITE,
     val metallicFactor: Float = 1f,
@@ -37,7 +39,7 @@ open class PBRShader(
         vertex {
             vertexInput(layout)
             vertexOutput(layout)
-            camera(0, 0)
+            cameraWithLights(0, 0)
             model(1, 0)
             main(layout, vertexEntryPoint)
         }
@@ -97,6 +99,7 @@ open class PBRShader(
     UnlitShader(
         device,
         layout,
+        cameraBuffers,
         baseColorTexture,
         baseColorFactor,
         transparent,
@@ -145,7 +148,7 @@ open class PBRShader(
             device.createBindGroup(
                 BindGroupDescriptor(
                     layouts[0],
-                    listOf(BindGroupEntry(0, cameraUniformBufferBinding)),
+                    listOf(BindGroupEntry(0, cameraBuffers.cameraUniformBufferBinding)),
                 )
             )
         )
@@ -177,10 +180,5 @@ open class PBRShader(
                 )
             )
         )
-    }
-
-    companion object {
-        const val VIEW_PROJECTION = "viewProjection"
-        const val MODEL = "model"
     }
 }

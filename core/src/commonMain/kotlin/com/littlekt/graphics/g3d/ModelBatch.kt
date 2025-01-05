@@ -1,6 +1,8 @@
 package com.littlekt.graphics.g3d
 
+import com.littlekt.graphics.Camera
 import com.littlekt.graphics.g3d.shader.UnlitShader
+import com.littlekt.graphics.g3d.util.CameraBuffers
 import com.littlekt.graphics.g3d.util.MaterialPipeline
 import com.littlekt.graphics.g3d.util.MaterialPipelineProvider
 import com.littlekt.graphics.g3d.util.MaterialPipelineSorter
@@ -8,7 +10,6 @@ import com.littlekt.graphics.webgpu.Device
 import com.littlekt.graphics.webgpu.IndexFormat
 import com.littlekt.graphics.webgpu.RenderPassEncoder
 import com.littlekt.graphics.webgpu.TextureFormat
-import com.littlekt.math.Mat4
 
 /**
  * @author Colton Daily
@@ -36,16 +37,22 @@ class ModelBatch(val device: Device) {
         pipelineProviders -= provider
     }
 
-    fun render(model: Model) {
-        model.meshes.values.forEach { render(it) }
+    fun render(model: Model, cameraBuffers: CameraBuffers) {
+        model.meshes.values.forEach { render(it, cameraBuffers) }
     }
 
-    fun render(meshNode: MeshNode) {
+    fun render(meshNode: MeshNode, cameraBuffers: CameraBuffers) {
         run getPipeline@{
             var pipelineFound = false
             pipelineProviders.forEach { pipelineProvider ->
                 val pipeline =
-                    pipelineProvider.getMaterialPipeline(device, meshNode, colorFormat, depthFormat)
+                    pipelineProvider.getMaterialPipeline(
+                        device,
+                        cameraBuffers,
+                        meshNode,
+                        colorFormat,
+                        depthFormat,
+                    )
                 if (pipeline != null) {
                     pipelineFound = true
                     if (!pipelines.contains(pipeline)) {
@@ -59,8 +66,10 @@ class ModelBatch(val device: Device) {
         }
     }
 
-    fun flush(renderPassEncoder: RenderPassEncoder, viewProjection: Mat4) {
+    fun flush(renderPassEncoder: RenderPassEncoder, camera: Camera, cameraBuffers: CameraBuffers) {
         sorter.sort(pipelines)
+
+        cameraBuffers.updateCameraUniform(camera)
 
         pipelines.forEach { pipeline ->
             val meshNodes = meshesByPipeline[pipeline]
@@ -68,7 +77,6 @@ class ModelBatch(val device: Device) {
                 renderPassEncoder.setPipeline(pipeline.renderPipeline)
                 val shader = pipeline.shader
                 dataMap.clear()
-                dataMap[UnlitShader.VIEW_PROJECTION] = viewProjection
                 meshNodes.forEach { meshNode ->
                     dataMap[UnlitShader.MODEL] = meshNode.globalTransform
                     shader.update(dataMap)

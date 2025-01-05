@@ -15,6 +15,7 @@ abstract class BaseMaterialPipelineProvider<T : Material> : MaterialPipelineProv
 
     override fun getMaterialPipeline(
         device: Device,
+        cameraBuffers: CameraBuffers,
         meshNode: MeshNode,
         colorFormat: TextureFormat,
         depthFormat: TextureFormat,
@@ -34,6 +35,7 @@ abstract class BaseMaterialPipelineProvider<T : Material> : MaterialPipelineProv
                 val pipeline =
                     createMaterialPipeline(
                         device,
+                        cameraBuffers,
                         meshNode.mesh.geometry.layout,
                         meshNode.topology,
                         material,
@@ -50,6 +52,7 @@ abstract class BaseMaterialPipelineProvider<T : Material> : MaterialPipelineProv
 
     abstract fun createMaterialPipeline(
         device: Device,
+        cameraBuffers: CameraBuffers,
         layout: VertexBufferLayout,
         topology: PrimitiveTopology,
         material: T,

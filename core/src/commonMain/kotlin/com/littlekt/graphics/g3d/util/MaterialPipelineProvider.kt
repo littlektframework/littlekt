@@ -11,6 +11,7 @@ import com.littlekt.graphics.webgpu.TextureFormat
 interface MaterialPipelineProvider {
     fun getMaterialPipeline(
         device: Device,
+        cameraBuffers: CameraBuffers,
         meshNode: MeshNode,
         colorFormat: TextureFormat,
         depthFormat: TextureFormat,

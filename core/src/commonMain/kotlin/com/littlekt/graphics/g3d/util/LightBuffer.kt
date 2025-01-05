@@ -38,8 +38,11 @@ class LightBuffer(val device: Device, maxLightCount: Int) : Releasable {
         BufferBinding(buffer, size = lightBufferByteSize * Float.SIZE_BYTES.toLong())
 
     companion object {
+        /** Size in total floats (NOT BYTE SIZE). */
         const val AMBIENT_LIGHT_SIZE = 4
+        /** Size in total floats (NOT BYTE SIZE). */
         const val DIRECTIONAL_LIGHT_SIZE = 8
+        /** Size in total floats (NOT BYTE SIZE). */
         const val POINT_LIGHT_SIZE = 8
     }
 

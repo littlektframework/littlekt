@@ -13,6 +13,7 @@ class PBRMaterialPipelineProvider : BaseMaterialPipelineProvider<PBRMaterial>() 
 
     override fun createMaterialPipeline(
         device: Device,
+        cameraBuffers: CameraBuffers,
         layout: VertexBufferLayout,
         topology: PrimitiveTopology,
         material: PBRMaterial,
@@ -22,6 +23,11 @@ class PBRMaterialPipelineProvider : BaseMaterialPipelineProvider<PBRMaterial>() 
         val shader =
             PBRShader(
                 device = device,
+                cameraBuffers =
+                    cameraBuffers as? CameraLightBuffers
+                        ?: error(
+                            "A PBRShader requires a `CameraLightBuffers` type. Instead it received a ${cameraBuffers::class.simpleName}"
+                        ),
                 layout = layout.attributes,
                 baseColorTexture = material.baseColorTexture,
                 baseColorFactor = material.baseColorFactor,

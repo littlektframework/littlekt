@@ -4,6 +4,7 @@ import com.littlekt.file.FloatBuffer
 import com.littlekt.graphics.Color
 import com.littlekt.graphics.Texture
 import com.littlekt.graphics.VertexAttribute
+import com.littlekt.graphics.g3d.util.CameraBuffers
 import com.littlekt.graphics.g3d.util.shader.*
 import com.littlekt.graphics.shader.Shader
 import com.littlekt.graphics.webgpu.*
@@ -17,6 +18,7 @@ import com.littlekt.resources.Textures
 open class UnlitShader(
     device: Device,
     layout: List<VertexAttribute>,
+    val cameraBuffers: CameraBuffers,
     val baseColorTexture: Texture = Textures.textureWhite,
     val baseColorFactor: Color = Color.WHITE,
     val transparent: Boolean = false,
@@ -92,18 +94,6 @@ open class UnlitShader(
             result
         }
 
-    /**
-     * The [GPUBuffer] that holds the camera view-projection matrix data.
-     *
-     * @see updateCameraUniform
-     */
-    protected val cameraUniformBuffer =
-        device.createGPUFloatBuffer(
-            "camera.viewProj",
-            camFloatBuffer.toArray(),
-            BufferUsage.UNIFORM or BufferUsage.COPY_DST,
-        )
-
     /** The [GPUBuffer] that holds the model transform matrix data. */
     protected val modelUniformBuffer =
         device.createGPUFloatBuffer(
@@ -129,10 +119,6 @@ open class UnlitShader(
             BufferUsage.UNIFORM or BufferUsage.COPY_DST,
         )
 
-    /** The [BufferBinding] for [cameraUniformBufferBinding]. */
-    protected val cameraUniformBufferBinding =
-        BufferBinding(cameraUniformBuffer, size = Float.SIZE_BYTES * 16L)
-
     /** The [BufferBinding] for [modelUniformBufferBinding]. */
     protected val modelUniformBufferBinding =
         BufferBinding(modelUniformBuffer, size = Float.SIZE_BYTES * 16L)
@@ -147,7 +133,7 @@ open class UnlitShader(
             device.createBindGroup(
                 BindGroupDescriptor(
                     layouts[0],
-                    listOf(BindGroupEntry(0, cameraUniformBufferBinding)),
+                    listOf(BindGroupEntry(0, cameraBuffers.cameraUniformBufferBinding)),
                 )
             )
         )
@@ -186,20 +172,8 @@ open class UnlitShader(
      * @see [MODEL]
      */
     override fun update(data: Map<String, Any>) {
-        (data[VIEW_PROJECTION] as? Mat4)?.let { viewProjectionMatrix ->
-            updateCameraUniform(viewProjectionMatrix)
-        }
-
         (data[MODEL] as? Mat4)?.let { modelMatrix -> updateModelUniform(modelMatrix) }
     }
-
-    /**
-     * Update this [cameraUniformBuffer] with the given view-projection matrix.
-     *
-     * @param viewProjection the matrix to update the camera
-     */
-    fun updateCameraUniform(viewProjection: Mat4) =
-        device.queue.writeBuffer(cameraUniformBuffer, viewProjection.toBuffer(camFloatBuffer))
 
     /**
      * Update this [modelUniformBufferBinding] with the given transform matrix.
@@ -211,13 +185,11 @@ open class UnlitShader(
 
     override fun release() {
         super.release()
-        cameraUniformBuffer.release()
         modelUniformBuffer.release()
         materialUniformBuffer.release()
     }
 
     companion object {
-        const val VIEW_PROJECTION = "viewProjection"
         const val MODEL = "model"
     }
 }
