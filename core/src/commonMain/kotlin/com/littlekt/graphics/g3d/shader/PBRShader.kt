@@ -47,6 +47,7 @@ open class PBRShader(
             pbr {
                 light(0, 1)
                 material(2)
+                surfaceInfo(layout)
                 main()
             }
         }

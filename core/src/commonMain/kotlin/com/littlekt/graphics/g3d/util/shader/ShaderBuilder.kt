@@ -7,6 +7,7 @@ package com.littlekt.graphics.g3d.util.shader
 class ShaderBuilder {
     private var vertexShader: String? = null
     private var fragmentShader: String? = null
+    private var computeShader: String? = null
 
     fun vertex(block: VertexShaderBuilder.() -> Unit) {
         val builder = VertexShaderBuilder()
@@ -20,6 +21,12 @@ class ShaderBuilder {
         fragmentShader = builder.build()
     }
 
+    fun compute(block: ComputeShaderBuilder.() -> Unit) {
+        val builder = ComputeShaderBuilder()
+        builder.block()
+        computeShader = builder.build()
+    }
+
     fun build(): String {
         return buildString {
             vertexShader?.let {
@@ -30,6 +37,12 @@ class ShaderBuilder {
             fragmentShader?.let {
                 append("// Fragment Shader\n")
                 append(it)
+                append("\n")
+            }
+            computeShader?.let {
+                append("// Compute Shader\n")
+                append(it)
+                append("\n")
             }
         }
     }

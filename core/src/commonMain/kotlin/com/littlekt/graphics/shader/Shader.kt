@@ -12,8 +12,17 @@ import com.littlekt.util.datastructure.fastForEach
  * @param src the WGSL shader source code
  * @param layout a list of [BindGroupLayoutDescriptor] in order to create [BindGroupLayout]s for the
  *   [PipelineLayout]. The order should match the index of the [BindGroupLayout].
- * @param vertexEntryPoint the entry point for the Vertex shader. Defaults to `vs_main`.
- * @param fragmentEntryPoint the entry point for the Fragment shader. Defaults to `fs_main`
+ * @param vertexEntryPoint the entry point for the Vertex shader. Defaults to `vs_main`. This should
+ *   match the main vertex function in [src]. Pass this parameter along to [VertexState.entryPoint],
+ *   if a vertex function is supplied; otherwise this value may be safely ignored.
+ * @param fragmentEntryPoint the entry point for the Fragment shader. Defaults to `fs_main`. This
+ *   should match the main fragment function in [src]. Pass this parameter along to
+ *   [FragmentState.entryPoint], if a fragment function is supplied; otherwise this value may be
+ *   safely ignored.
+ * @param computeEntryPoint the entry point for a compute shader. Defaults to `cmp_main`. This
+ *   should match the main compute function in [src], Pass this parameter along to
+ *   [ProgrammableStage.entryPoint], if a compute function is supplied; otherwise this value may be
+ *   safely ignored.
  * @author Colton Daily
  * @date 4/14/2024
  */
@@ -23,6 +32,7 @@ open class Shader(
     layout: List<BindGroupLayoutDescriptor>,
     val vertexEntryPoint: String = "vs_main",
     val fragmentEntryPoint: String = "fs_main",
+    val computeEntryPoint: String = "cmp_main",
 ) : Releasable {
     /** The id of this shader. */
     val id: Int = lastId++

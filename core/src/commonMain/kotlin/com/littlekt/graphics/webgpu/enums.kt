@@ -597,6 +597,26 @@ enum class FilterMode {
     LINEAR,
 }
 
+/**
+ * A memory access is an operation that acts on memory locations. A read access observes the
+ * contents of memory locations. A write access sets the contents of memory locations. A single
+ * operation can read, write, or both read and write.
+ */
+enum class MemoryAccessMode(val value: String) {
+    /** Supports read accesses, but not writes. */
+    READ("read"),
+
+    /** Supports write accesses, but not reads. */
+    WRITE("write"),
+
+    /** Supports both read and write accesses. */
+    READ_WRITE("read_write");
+
+    override fun toString(): String {
+        return value
+    }
+}
+
 /** Comparison function used for depth and stencil operations. */
 enum class CompareFunction {
     /** Function never passes. */
