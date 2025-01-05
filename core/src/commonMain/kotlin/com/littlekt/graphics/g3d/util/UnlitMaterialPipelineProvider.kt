@@ -1,6 +1,7 @@
 package com.littlekt.graphics.g3d.util
 
 import com.littlekt.graphics.VertexBufferLayout
+import com.littlekt.graphics.g3d.Environment
 import com.littlekt.graphics.g3d.material.UnlitMaterial
 import com.littlekt.graphics.g3d.shader.UnlitShader
 import com.littlekt.graphics.webgpu.*
@@ -13,7 +14,7 @@ class UnlitMaterialPipelineProvider : BaseMaterialPipelineProvider<UnlitMaterial
 
     override fun createMaterialPipeline(
         device: Device,
-        cameraBuffers: CameraBuffers,
+        environment: Environment,
         layout: VertexBufferLayout,
         topology: PrimitiveTopology,
         material: UnlitMaterial,
@@ -23,7 +24,6 @@ class UnlitMaterialPipelineProvider : BaseMaterialPipelineProvider<UnlitMaterial
         val shader =
             UnlitShader(
                 device = device,
-                cameraBuffers = cameraBuffers,
                 layout = layout.attributes,
                 baseColorTexture = material.baseColorTexture,
                 baseColorFactor = material.baseColorFactor,
@@ -34,7 +34,7 @@ class UnlitMaterialPipelineProvider : BaseMaterialPipelineProvider<UnlitMaterial
                 depthWrite = material.depthWrite,
                 depthCompareFunction = material.depthCompareFunction,
             )
-        val bindGroups = shader.createBindGroups()
+        val bindGroups = listOf(environment.buffers.bindGroup) + shader.createBindGroups()
 
         val renderPipeline =
             device.createRenderPipeline(
@@ -81,6 +81,7 @@ class UnlitMaterialPipelineProvider : BaseMaterialPipelineProvider<UnlitMaterial
 
         return MaterialPipeline(
             shader = shader,
+            environment = environment,
             renderOrder =
                 if (material.transparent) RenderOrder.TRANSPARENT else RenderOrder.DEFAULT,
             layout = layout,

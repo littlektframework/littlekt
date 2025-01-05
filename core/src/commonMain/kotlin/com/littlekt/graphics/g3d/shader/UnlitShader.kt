@@ -4,7 +4,6 @@ import com.littlekt.file.FloatBuffer
 import com.littlekt.graphics.Color
 import com.littlekt.graphics.Texture
 import com.littlekt.graphics.VertexAttribute
-import com.littlekt.graphics.g3d.util.CameraBuffers
 import com.littlekt.graphics.g3d.util.shader.*
 import com.littlekt.graphics.shader.Shader
 import com.littlekt.graphics.webgpu.*
@@ -18,7 +17,6 @@ import com.littlekt.resources.Textures
 open class UnlitShader(
     device: Device,
     layout: List<VertexAttribute>,
-    val cameraBuffers: CameraBuffers,
     val baseColorTexture: Texture = Textures.textureWhite,
     val baseColorFactor: Color = Color.WHITE,
     val transparent: Boolean = false,
@@ -79,7 +77,6 @@ open class UnlitShader(
         vertexEntryPoint = vertexEntryPoint,
         fragmentEntryPoint = fragmentEntryPoint,
     ) {
-    private val camFloatBuffer = FloatBuffer(16)
     private val modelFloatBuffer = FloatBuffer(16)
 
     open val key: Int =
@@ -129,14 +126,7 @@ open class UnlitShader(
     }
 
     override fun MutableList<BindGroup>.createBindGroupsInternal(data: Map<String, Any>) {
-        add(
-            device.createBindGroup(
-                BindGroupDescriptor(
-                    layouts[0],
-                    listOf(BindGroupEntry(0, cameraBuffers.cameraUniformBufferBinding)),
-                )
-            )
-        )
+        // we are assuming the camera bind group will be set externally
         add(
             device.createBindGroup(
                 BindGroupDescriptor(
@@ -168,7 +158,6 @@ open class UnlitShader(
      * update(data)
      * ```
      *
-     * @see [VIEW_PROJECTION]
      * @see [MODEL]
      */
     override fun update(data: Map<String, Any>) {

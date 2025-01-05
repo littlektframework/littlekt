@@ -1,5 +1,6 @@
 package com.littlekt.graphics.g3d.util
 
+import com.littlekt.graphics.g3d.Environment
 import com.littlekt.graphics.g3d.MeshNode
 import com.littlekt.graphics.webgpu.Device
 import com.littlekt.graphics.webgpu.TextureFormat
@@ -11,7 +12,7 @@ import com.littlekt.graphics.webgpu.TextureFormat
 interface MaterialPipelineProvider {
     fun getMaterialPipeline(
         device: Device,
-        cameraBuffers: CameraBuffers,
+        environment: Environment,
         meshNode: MeshNode,
         colorFormat: TextureFormat,
         depthFormat: TextureFormat,

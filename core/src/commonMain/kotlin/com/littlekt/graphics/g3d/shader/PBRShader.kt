@@ -3,7 +3,6 @@ package com.littlekt.graphics.g3d.shader
 import com.littlekt.graphics.Color
 import com.littlekt.graphics.Texture
 import com.littlekt.graphics.VertexAttribute
-import com.littlekt.graphics.g3d.util.CameraLightBuffers
 import com.littlekt.graphics.g3d.util.shader.*
 import com.littlekt.graphics.webgpu.*
 import com.littlekt.math.Vec3f
@@ -16,7 +15,6 @@ import com.littlekt.resources.Textures
 open class PBRShader(
     device: Device,
     layout: List<VertexAttribute>,
-    cameraBuffers: CameraLightBuffers,
     baseColorTexture: Texture = Textures.textureWhite,
     baseColorFactor: Color = Color.WHITE,
     val metallicFactor: Float = 1f,
@@ -99,7 +97,6 @@ open class PBRShader(
     UnlitShader(
         device,
         layout,
-        cameraBuffers,
         baseColorTexture,
         baseColorFactor,
         transparent,
@@ -144,14 +141,7 @@ open class PBRShader(
         )
 
     override fun MutableList<BindGroup>.createBindGroupsInternal(data: Map<String, Any>) {
-        add(
-            device.createBindGroup(
-                BindGroupDescriptor(
-                    layouts[0],
-                    listOf(BindGroupEntry(0, cameraBuffers.cameraUniformBufferBinding)),
-                )
-            )
-        )
+        // we are assuming the camera bind group will be set externally
         add(
             device.createBindGroup(
                 BindGroupDescriptor(

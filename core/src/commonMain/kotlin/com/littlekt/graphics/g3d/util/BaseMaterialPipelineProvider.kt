@@ -1,6 +1,7 @@
 package com.littlekt.graphics.g3d.util
 
 import com.littlekt.graphics.VertexBufferLayout
+import com.littlekt.graphics.g3d.Environment
 import com.littlekt.graphics.g3d.MeshNode
 import com.littlekt.graphics.g3d.material.Material
 import com.littlekt.graphics.webgpu.*
@@ -15,7 +16,7 @@ abstract class BaseMaterialPipelineProvider<T : Material> : MaterialPipelineProv
 
     override fun getMaterialPipeline(
         device: Device,
-        cameraBuffers: CameraBuffers,
+        environment: Environment,
         meshNode: MeshNode,
         colorFormat: TextureFormat,
         depthFormat: TextureFormat,
@@ -24,6 +25,7 @@ abstract class BaseMaterialPipelineProvider<T : Material> : MaterialPipelineProv
         if (material != null) {
             renderInfo.apply {
                 reset()
+                this.environment = environment
                 this.material = material
                 layout = meshNode.mesh.geometry.layout
                 topology = meshNode.topology
@@ -35,7 +37,7 @@ abstract class BaseMaterialPipelineProvider<T : Material> : MaterialPipelineProv
                 val pipeline =
                     createMaterialPipeline(
                         device,
-                        cameraBuffers,
+                        environment,
                         meshNode.mesh.geometry.layout,
                         meshNode.topology,
                         material,
@@ -52,7 +54,7 @@ abstract class BaseMaterialPipelineProvider<T : Material> : MaterialPipelineProv
 
     abstract fun createMaterialPipeline(
         device: Device,
-        cameraBuffers: CameraBuffers,
+        environment: Environment,
         layout: VertexBufferLayout,
         topology: PrimitiveTopology,
         material: T,
@@ -67,6 +69,7 @@ abstract class BaseMaterialPipelineProvider<T : Material> : MaterialPipelineProv
         var indexFormat: IndexFormat? = null,
         var colorFormat: TextureFormat = TextureFormat.RGBA8_UNORM,
         var depthFormat: TextureFormat = TextureFormat.DEPTH24_PLUS_STENCIL8,
+        var environment: Environment? = null,
     ) {
         fun reset() {
             material = object : Material() {}
@@ -75,6 +78,7 @@ abstract class BaseMaterialPipelineProvider<T : Material> : MaterialPipelineProv
             indexFormat = null
             colorFormat = TextureFormat.RGBA8_UNORM
             depthFormat = TextureFormat.DEPTH24_PLUS_STENCIL8
+            environment = null
         }
     }
 }

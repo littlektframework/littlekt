@@ -9,8 +9,8 @@ import com.littlekt.graphics.PerspectiveCamera
 import com.littlekt.graphics.fullIndexedMesh
 import com.littlekt.graphics.g3d.MeshNode
 import com.littlekt.graphics.g3d.ModelBatch
+import com.littlekt.graphics.g3d.UnlitEnvironment
 import com.littlekt.graphics.g3d.material.UnlitMaterial
-import com.littlekt.graphics.g3d.util.CameraSimpleBuffers
 import com.littlekt.graphics.g3d.util.UnlitMaterialPipelineProvider
 import com.littlekt.graphics.generate
 import com.littlekt.graphics.webgpu.*
@@ -85,7 +85,7 @@ class MipMapsExample(context: Context) : ContextListener(context) {
                 colorFormat = preferredFormat
             }
         val camera = PerspectiveCamera(graphics.width, graphics.height)
-        val cameraBuffers = CameraSimpleBuffers(device)
+        val environment = UnlitEnvironment(device)
 
         onResize { width, height ->
             graphics.configureSurface(
@@ -165,8 +165,8 @@ class MipMapsExample(context: Context) : ContextListener(context) {
                         )
                 )
             camera.update()
-            modelBatch.render(grid, cameraBuffers)
-            modelBatch.flush(renderPassEncoder, camera, cameraBuffers)
+            modelBatch.render(grid, environment)
+            modelBatch.flush(renderPassEncoder, camera)
             renderPassEncoder.end()
             renderPassEncoder.release()
 

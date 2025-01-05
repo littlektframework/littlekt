@@ -2,10 +2,7 @@ package com.littlekt.graphics.g3d.util
 
 import com.littlekt.file.FloatBuffer
 import com.littlekt.graphics.Camera
-import com.littlekt.graphics.webgpu.BufferBinding
-import com.littlekt.graphics.webgpu.BufferUsage
-import com.littlekt.graphics.webgpu.Device
-import com.littlekt.graphics.webgpu.GPUBuffer
+import com.littlekt.graphics.webgpu.*
 
 /**
  * @author Colton Daily
@@ -29,6 +26,22 @@ class CameraSimpleBuffers(val device: Device) : CameraBuffers {
     /** The [BufferBinding] for [cameraUniformBufferBinding]. */
     override val cameraUniformBufferBinding =
         BufferBinding(cameraUniformBuffer, size = Float.SIZE_BYTES * BUFFER_SIZE.toLong())
+
+    /** The camera uniform bind group. */
+    override val bindGroup =
+        device.createBindGroup(
+            BindGroupDescriptor(
+                device.createBindGroupLayout(
+                    BindGroupLayoutDescriptor(
+                        listOf(
+                            // camera
+                            BindGroupLayoutEntry(0, ShaderStage.VERTEX, BufferBindingLayout())
+                        )
+                    )
+                ),
+                listOf(BindGroupEntry(0, cameraUniformBufferBinding)),
+            )
+        )
 
     override fun updateCameraUniform(camera: Camera) =
         device.queue.writeBuffer(

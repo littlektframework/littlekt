@@ -2,7 +2,6 @@ package com.littlekt.graphics.g3d
 
 import com.littlekt.graphics.Camera
 import com.littlekt.graphics.g3d.shader.UnlitShader
-import com.littlekt.graphics.g3d.util.CameraBuffers
 import com.littlekt.graphics.g3d.util.MaterialPipeline
 import com.littlekt.graphics.g3d.util.MaterialPipelineProvider
 import com.littlekt.graphics.g3d.util.MaterialPipelineSorter
@@ -19,6 +18,7 @@ class ModelBatch(val device: Device) {
     private val pipelineProviders = mutableSetOf<MaterialPipelineProvider>()
     private val pipelines = mutableListOf<MaterialPipeline>()
     private val meshesByPipeline = mutableMapOf<MaterialPipeline, MutableList<MeshNode>>()
+    private val environmentsUpdated = mutableListOf<Int>()
     private val sorter =
         object : MaterialPipelineSorter {
             override fun sort(pipelines: MutableList<MaterialPipeline>) {
@@ -37,18 +37,18 @@ class ModelBatch(val device: Device) {
         pipelineProviders -= provider
     }
 
-    fun render(model: Model, cameraBuffers: CameraBuffers) {
-        model.meshes.values.forEach { render(it, cameraBuffers) }
+    fun render(model: Model, environment: Environment) {
+        model.meshes.values.forEach { render(it, environment) }
     }
 
-    fun render(meshNode: MeshNode, cameraBuffers: CameraBuffers) {
+    fun render(meshNode: MeshNode, environment: Environment) {
         run getPipeline@{
             var pipelineFound = false
             pipelineProviders.forEach { pipelineProvider ->
                 val pipeline =
                     pipelineProvider.getMaterialPipeline(
                         device,
-                        cameraBuffers,
+                        environment,
                         meshNode,
                         colorFormat,
                         depthFormat,
@@ -58,6 +58,7 @@ class ModelBatch(val device: Device) {
                     if (!pipelines.contains(pipeline)) {
                         pipelines += pipeline
                     }
+                    // todo - pool lists?
                     meshesByPipeline.getOrPut(pipeline) { mutableListOf() }.apply { add(meshNode) }
                     return@getPipeline
                 }
@@ -66,17 +67,24 @@ class ModelBatch(val device: Device) {
         }
     }
 
-    fun flush(renderPassEncoder: RenderPassEncoder, camera: Camera, cameraBuffers: CameraBuffers) {
+    fun flush(renderPassEncoder: RenderPassEncoder, camera: Camera) {
         sorter.sort(pipelines)
 
-        cameraBuffers.updateCameraUniform(camera)
-
         pipelines.forEach { pipeline ->
+            // we only need to update the camera buffers in each environment once. So if we are
+            // sharing environment,
+            // just update the first instance of it.
+            if (!environmentsUpdated.contains(pipeline.environment.id)) {
+                pipeline.environment.updateCameraBuffers(camera)
+                environmentsUpdated += pipeline.environment.id
+            }
             val meshNodes = meshesByPipeline[pipeline]
             if (!meshNodes.isNullOrEmpty()) {
                 renderPassEncoder.setPipeline(pipeline.renderPipeline)
                 val shader = pipeline.shader
                 dataMap.clear()
+                // TODO need a way to cache bind groups so we aren't setting the same ones over and
+                // over
                 meshNodes.forEach { meshNode ->
                     dataMap[UnlitShader.MODEL] = meshNode.globalTransform
                     shader.update(dataMap)
@@ -102,5 +110,6 @@ class ModelBatch(val device: Device) {
 
         pipelines.clear()
         meshesByPipeline.clear()
+        environmentsUpdated.clear()
     }
 }

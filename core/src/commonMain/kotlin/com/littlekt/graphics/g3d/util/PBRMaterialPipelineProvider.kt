@@ -1,6 +1,7 @@
 package com.littlekt.graphics.g3d.util
 
 import com.littlekt.graphics.VertexBufferLayout
+import com.littlekt.graphics.g3d.Environment
 import com.littlekt.graphics.g3d.material.PBRMaterial
 import com.littlekt.graphics.g3d.shader.PBRShader
 import com.littlekt.graphics.webgpu.*
@@ -13,7 +14,7 @@ class PBRMaterialPipelineProvider : BaseMaterialPipelineProvider<PBRMaterial>() 
 
     override fun createMaterialPipeline(
         device: Device,
-        cameraBuffers: CameraBuffers,
+        environment: Environment,
         layout: VertexBufferLayout,
         topology: PrimitiveTopology,
         material: PBRMaterial,
@@ -23,11 +24,6 @@ class PBRMaterialPipelineProvider : BaseMaterialPipelineProvider<PBRMaterial>() 
         val shader =
             PBRShader(
                 device = device,
-                cameraBuffers =
-                    cameraBuffers as? CameraLightBuffers
-                        ?: error(
-                            "A PBRShader requires a `CameraLightBuffers` type. Instead it received a ${cameraBuffers::class.simpleName}"
-                        ),
                 layout = layout.attributes,
                 baseColorTexture = material.baseColorTexture,
                 baseColorFactor = material.baseColorFactor,
@@ -46,7 +42,7 @@ class PBRMaterialPipelineProvider : BaseMaterialPipelineProvider<PBRMaterial>() 
                 depthWrite = material.depthWrite,
                 depthCompareFunction = material.depthCompareFunction,
             )
-        val bindGroups = shader.createBindGroups()
+        val bindGroups = listOf(environment.buffers.bindGroup) + shader.createBindGroups()
 
         val renderPipeline =
             device.createRenderPipeline(
@@ -93,6 +89,7 @@ class PBRMaterialPipelineProvider : BaseMaterialPipelineProvider<PBRMaterial>() 
 
         return MaterialPipeline(
             shader = shader,
+            environment = environment,
             renderOrder =
                 if (material.transparent) RenderOrder.TRANSPARENT else RenderOrder.DEFAULT,
             layout = layout,

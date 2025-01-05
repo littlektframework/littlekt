@@ -9,8 +9,8 @@ import com.littlekt.file.vfs.readGltf
 import com.littlekt.graphics.*
 import com.littlekt.graphics.g3d.MeshNode
 import com.littlekt.graphics.g3d.ModelBatch
+import com.littlekt.graphics.g3d.UnlitEnvironment
 import com.littlekt.graphics.g3d.material.UnlitMaterial
-import com.littlekt.graphics.g3d.util.CameraSimpleBuffers
 import com.littlekt.graphics.g3d.util.UnlitMaterialPipelineProvider
 import com.littlekt.graphics.webgpu.*
 import com.littlekt.math.geom.degrees
@@ -30,7 +30,7 @@ class SimpleGltfExample(context: Context) : ContextListener(context) {
         val device = graphics.device
         val camera = PerspectiveCamera(graphics.width, graphics.height)
         camera.translate(0f, 25f, 150f)
-        val cameraBuffers = CameraSimpleBuffers(device)
+        val environment = UnlitEnvironment(device)
 
         val surfaceCapabilities = graphics.surfaceCapabilities
         val preferredFormat = graphics.preferredFormat
@@ -190,9 +190,9 @@ class SimpleGltfExample(context: Context) : ContextListener(context) {
                         )
                 )
 
-            models.forEach { model -> modelBatch.render(model, cameraBuffers) }
-            modelBatch.render(grid, cameraBuffers)
-            modelBatch.flush(renderPassEncoder, camera, cameraBuffers)
+            models.forEach { model -> modelBatch.render(model, environment) }
+            modelBatch.render(grid, environment)
+            modelBatch.flush(renderPassEncoder, camera)
             renderPassEncoder.end()
             renderPassEncoder.release()
 
