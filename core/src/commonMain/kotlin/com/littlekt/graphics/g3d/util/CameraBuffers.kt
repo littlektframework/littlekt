@@ -12,7 +12,11 @@ import com.littlekt.math.Mat4
  * @author Colton Daily
  * @date 1/5/2025
  */
-class CameraBuffers(val device: Device) : Releasable {
+class CameraBuffers(
+    val device: Device,
+    val lightBuffer: LightBuffer,
+    val clusterBuffers: ClusterBuffers = ClusterBuffers(device),
+) : Releasable {
     private val camFloatBuffer = FloatBuffer(16)
 
     /**

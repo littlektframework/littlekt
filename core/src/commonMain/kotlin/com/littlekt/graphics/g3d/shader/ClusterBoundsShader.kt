@@ -1,7 +1,6 @@
 package com.littlekt.graphics.g3d.shader
 
 import com.littlekt.graphics.g3d.util.CameraBuffers
-import com.littlekt.graphics.g3d.util.ClusterBuffers
 import com.littlekt.graphics.g3d.util.shader.buildCommonShader
 import com.littlekt.graphics.g3d.util.shader.camera
 import com.littlekt.graphics.shader.Shader
@@ -11,16 +10,12 @@ import com.littlekt.graphics.webgpu.*
  * @param cameraBuffers a [CameraBuffers] instance that is generally shared with a
  *   [ClusterLightsShader]. Calling [release] on this shader will NOT release the instance and
  *   should be called when ready to dispose of it.
- * @param clusterBuffers a [ClusterBuffers] instance that is generally shared with a
- *   [ClusterLightsShader]. Calling [release] on this shader will NOT release the instance and
- *   should be called when ready to dispose of it.
  * @author Colton Daily
  * @date 1/5/2025
  */
 class ClusterBoundsShader(
     device: Device,
     val cameraBuffers: CameraBuffers,
-    val clusterBuffers: ClusterBuffers,
     computeEntryPoint: String = "cmp_main",
     computeSrc: String = buildCommonShader {
         compute {
@@ -72,7 +67,12 @@ class ClusterBoundsShader(
             device.createBindGroup(
                 BindGroupDescriptor(
                     layouts[0],
-                    listOf(BindGroupEntry(0, clusterBuffers.clusterBoundsStorageBufferBinding)),
+                    listOf(
+                        BindGroupEntry(
+                            0,
+                            cameraBuffers.clusterBuffers.clusterBoundsStorageBufferBinding,
+                        )
+                    ),
                 )
             )
         )
