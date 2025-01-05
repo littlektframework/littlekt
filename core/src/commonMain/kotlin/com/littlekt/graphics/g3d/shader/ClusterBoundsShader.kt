@@ -67,6 +67,15 @@ class ClusterBoundsShader(
                 )
             )
         )
+
+        add(
+            device.createBindGroup(
+                BindGroupDescriptor(
+                    layouts[0],
+                    listOf(BindGroupEntry(0, clusterBuffers.clusterBoundsStorageBufferBinding)),
+                )
+            )
+        )
     }
 
     override fun release() {

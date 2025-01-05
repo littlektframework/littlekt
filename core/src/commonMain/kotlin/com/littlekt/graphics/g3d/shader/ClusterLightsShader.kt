@@ -47,19 +47,19 @@ class ClusterLightsShader(
                     BindGroupLayoutEntry(0, ShaderStage.COMPUTE, BufferBindingLayout()),
                     // cluster bounds
                     BindGroupLayoutEntry(
-                        0,
+                        1,
                         ShaderStage.COMPUTE,
                         BufferBindingLayout(type = BufferBindingType.READ_ONLY_STORAGE),
                     ),
                     // cluster lights
                     BindGroupLayoutEntry(
-                        0,
+                        2,
                         ShaderStage.COMPUTE,
                         BufferBindingLayout(type = BufferBindingType.STORAGE),
                     ),
                     // lights
                     BindGroupLayoutEntry(
-                        0,
+                        3,
                         ShaderStage.COMPUTE,
                         BufferBindingLayout(type = BufferBindingType.READ_ONLY_STORAGE),
                     ),
