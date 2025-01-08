@@ -3,7 +3,6 @@ package com.littlekt.graphics.g3d.util
 import com.littlekt.graphics.VertexBufferLayout
 import com.littlekt.graphics.g3d.Environment
 import com.littlekt.graphics.shader.Shader
-import com.littlekt.graphics.webgpu.BindGroup
 import com.littlekt.graphics.webgpu.RenderPipeline
 
 /**
@@ -16,7 +15,6 @@ data class MaterialPipeline(
     val renderOrder: RenderOrder,
     val layout: VertexBufferLayout,
     val renderPipeline: RenderPipeline,
-    val bindGroups: List<BindGroup>,
 ) : Comparable<MaterialPipeline> {
     override fun compareTo(other: MaterialPipeline): Int {
         return renderOrder.order - other.renderOrder.order

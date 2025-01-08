@@ -1,24 +1,25 @@
 package com.littlekt.graphics.g3d
 
+import com.littlekt.Releasable
 import com.littlekt.graphics.Camera
-import com.littlekt.graphics.g3d.shader.UnlitShader
 import com.littlekt.graphics.g3d.util.MaterialPipeline
 import com.littlekt.graphics.g3d.util.MaterialPipelineProvider
 import com.littlekt.graphics.g3d.util.MaterialPipelineSorter
-import com.littlekt.graphics.webgpu.Device
-import com.littlekt.graphics.webgpu.IndexFormat
-import com.littlekt.graphics.webgpu.RenderPassEncoder
-import com.littlekt.graphics.webgpu.TextureFormat
+import com.littlekt.graphics.webgpu.*
+import com.littlekt.log.Logger
 
 /**
  * @author Colton Daily
  * @date 12/7/2024
  */
-class ModelBatch(val device: Device) {
+class ModelBatch(val device: Device, size: Int = 128) : Releasable {
     private val pipelineProviders = mutableSetOf<MaterialPipelineProvider>()
     private val pipelines = mutableListOf<MaterialPipeline>()
-    private val meshesByPipeline = mutableMapOf<MaterialPipeline, MutableList<MeshNode>>()
-    private val environmentsUpdated = mutableListOf<Int>()
+    private val instancesByPipeline = mutableMapOf<MaterialPipeline, MutableList<VisualInstance>>()
+
+    /** By material id */
+    private val bindGroupsByMaterial = mutableMapOf<Int, List<BindGroup>>()
+    private val updatedEnvironments = mutableSetOf<Int>()
     private val sorter =
         object : MaterialPipelineSorter {
             override fun sort(pipelines: MutableList<MaterialPipeline>) {
@@ -41,15 +42,18 @@ class ModelBatch(val device: Device) {
         model.meshes.values.forEach { render(it, environment) }
     }
 
-    fun render(meshNode: MeshNode, environment: Environment) {
+    fun render(instance: VisualInstance, environment: Environment) {
         run getPipeline@{
             var pipelineFound = false
             pipelineProviders.forEach { pipelineProvider ->
                 val pipeline =
                     pipelineProvider.getMaterialPipeline(
                         device,
+                        instance.material,
                         environment,
-                        meshNode,
+                        instance.mesh.geometry.layout,
+                        instance.topology,
+                        instance.stripIndexFormat,
                         colorFormat,
                         depthFormat,
                     )
@@ -59,7 +63,14 @@ class ModelBatch(val device: Device) {
                         pipelines += pipeline
                     }
                     // todo - pool lists?
-                    meshesByPipeline.getOrPut(pipeline) { mutableListOf() }.apply { add(meshNode) }
+                    instancesByPipeline
+                        .getOrPut(pipeline) { mutableListOf() }
+                        .apply { add(instance) }
+
+                    bindGroupsByMaterial.getOrPut(instance.material.id) {
+                        listOf(environment.buffers.bindGroup) +
+                            instance.material.createBindGroups(pipeline.shader.layouts)
+                    }
                     return@getPipeline
                 }
             }
@@ -72,29 +83,32 @@ class ModelBatch(val device: Device) {
 
         pipelines.forEach { pipeline ->
             // we only need to update the camera buffers in each environment once. So if we are
-            // sharing environment,
-            // just update the first instance of it.
-            if (!environmentsUpdated.contains(pipeline.environment.id)) {
+            // sharing environment, just update the first instance of it.
+            if (updatedEnvironments.add(pipeline.environment.id)) {
                 pipeline.environment.updateCameraBuffers(camera)
-                environmentsUpdated += pipeline.environment.id
             }
-            val meshNodes = meshesByPipeline[pipeline]
-            if (!meshNodes.isNullOrEmpty()) {
-                renderPassEncoder.setPipeline(pipeline.renderPipeline)
+            val visualInstances = instancesByPipeline[pipeline]
+            if (!visualInstances.isNullOrEmpty()) {
                 val shader = pipeline.shader
+                renderPassEncoder.setPipeline(pipeline.renderPipeline)
                 dataMap.clear()
                 // TODO need a way to cache bind groups so we aren't setting the same ones over and
                 // over
-                meshNodes.forEach { meshNode ->
-                    dataMap[UnlitShader.MODEL] = meshNode.globalTransform
-                    shader.update(dataMap)
-                    shader.setBindGroups(renderPassEncoder, pipeline.bindGroups)
-                    val mesh = meshNode.mesh
-                    val indexedMesh = meshNode.indexedMesh
+                visualInstances.forEach { visualInstance ->
+                    val bindGroups =
+                        bindGroupsByMaterial[visualInstance.material.id]
+                            ?: error(
+                                "Material (${visualInstance.material.id}) bind groups could not be found!"
+                            )
+                    shader.setBindGroups(renderPassEncoder, bindGroups)
+                    visualInstance.material.update(visualInstance.globalTransform)
+                    val mesh = visualInstance.mesh
+                    val indexedMesh = visualInstance.indexedMesh
+
                     indexedMesh?.let {
                         renderPassEncoder.setIndexBuffer(
                             indexedMesh.ibo,
-                            indexFormat = meshNode.stripIndexFormat ?: IndexFormat.UINT16,
+                            indexFormat = visualInstance.stripIndexFormat ?: IndexFormat.UINT16,
                         )
                     }
                     renderPassEncoder.setVertexBuffer(0, mesh.vbo)
@@ -109,7 +123,16 @@ class ModelBatch(val device: Device) {
         }
 
         pipelines.clear()
-        meshesByPipeline.clear()
-        environmentsUpdated.clear()
+        instancesByPipeline.clear()
+        updatedEnvironments.clear()
+    }
+
+    override fun release() {
+        pipelineProviders.forEach { it.release() }
+        bindGroupsByMaterial.values.forEach { bindGroups -> bindGroups.forEach { it.release() } }
+    }
+
+    companion object {
+        private val logger = Logger<ModelBatch>()
     }
 }

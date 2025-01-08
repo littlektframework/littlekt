@@ -7,9 +7,9 @@ import com.littlekt.file.vfs.readTexture
 import com.littlekt.graphics.Color
 import com.littlekt.graphics.PerspectiveCamera
 import com.littlekt.graphics.fullIndexedMesh
-import com.littlekt.graphics.g3d.MeshNode
 import com.littlekt.graphics.g3d.ModelBatch
 import com.littlekt.graphics.g3d.UnlitEnvironment
+import com.littlekt.graphics.g3d.VisualInstance
 import com.littlekt.graphics.g3d.material.UnlitMaterial
 import com.littlekt.graphics.g3d.util.UnlitMaterialPipelineProvider
 import com.littlekt.graphics.generate
@@ -65,20 +65,23 @@ class MipMapsExample(context: Context) : ContextListener(context) {
             surfaceCapabilities.alphaModes[0],
         )
 
-        val grid =
-            MeshNode(
-                    fullIndexedMesh().generate {
-                        vertexModFun = { texCoords.set(position.x / 10f, position.z / 10f) }
-                        grid {
-                            sizeX = 1000f
-                            sizeY = 1000f
-                            stepsX = 10
-                            stepsY = 10
-                        }
-                    },
-                    UnlitMaterial(baseColorTexture = checkered, castShadows = false),
+        val grid = run {
+            val mesh =
+                fullIndexedMesh().generate {
+                    vertexModFun = { texCoords.set(position.x / 10f, position.z / 10f) }
+                    grid {
+                        sizeX = 1000f
+                        sizeY = 1000f
+                        stepsX = 10
+                        stepsY = 10
+                    }
+                }
+            VisualInstance(
+                    mesh,
+                    UnlitMaterial(device, baseColorTexture = checkered, castShadows = false),
                 )
                 .apply { translate(0f, -30f, 0f) }
+        }
         val modelBatch =
             ModelBatch(device).apply {
                 addPipelineProvider(UnlitMaterialPipelineProvider())

@@ -76,13 +76,13 @@ fun SubShaderBuilder.vertexOutput(attributes: List<VertexAttribute>) {
             @location(4) color: vec4f,
             @location(5) normal: vec3f,
             ${
-            if (attributes.any { it.usage == VertexAttrUsage.TANGENT }) {
-                """
-                    @location(6) tangent: vec3f,
-                    @location(7) bitangent: vec3f,
-                """.trimIndent()
-            } else ""
-        }
+                if (attributes.any { it.usage == VertexAttrUsage.TANGENT }) {
+                    """
+                        @location(6) tangent: vec3f,
+                        @location(7) bitangent: vec3f,
+                    """.trimIndent()
+                } else ""
+            }
         };
     """
             .trimIndent()
@@ -174,7 +174,7 @@ fun SubShaderBuilder.skin(group: Int) {
 fun SubShaderBuilder.getSkinMatrix() {
     parts +=
         """
-          fn getSkinMatrix(input : VertexInput) -> mmat4x4f {
+          fn get_skin_matrix(input : VertexInput) -> mat4x4f {
             let joint0 = joint.matrices[input.joints.x] * inverse_blend.matrices[input.joints.x];
             let joint1 = joint.matrices[input.joints.y] * inverse_blend.matrices[input.joints.y];
             let joint2 = joint.matrices[input.joints.z] * inverse_blend.matrices[input.joints.z];

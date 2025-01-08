@@ -1,37 +1,129 @@
 package com.littlekt.graphics.g3d.material
 
+import com.littlekt.file.FloatBuffer
 import com.littlekt.graphics.Color
 import com.littlekt.graphics.Texture
+import com.littlekt.graphics.webgpu.*
+import com.littlekt.math.Mat4
 import com.littlekt.math.Vec3f
+import com.littlekt.resources.Textures
 
 /**
  * @author Colton Daily
  * @date 12/8/2024
  */
-open class PBRMaterial(
+class PBRMaterial(
+    val device: Device,
     val metallicFactor: Float = 1f,
     val roughnessFactor: Float = 1f,
-    val metallicRoughnessTexture: Texture? = null,
-    val normalTexture: Texture? = null,
+    metallicRoughnessTexture: Texture? = null,
+    normalTexture: Texture? = null,
     val emissiveFactor: Vec3f = Vec3f(0f),
-    val emissiveTexture: Texture? = null,
-    val occlusionTexture: Texture? = null,
+    emissiveTexture: Texture? = null,
+    occlusionTexture: Texture? = null,
     val occlusionStrength: Float = 1f,
-    baseColorTexture: Texture,
-    baseColorFactor: Color = Color.WHITE,
-    transparent: Boolean = false,
-    doubleSided: Boolean = false,
-    alphaCutoff: Float = 0f,
-    castShadows: Boolean = true,
-) :
-    UnlitMaterial(
-        baseColorTexture = baseColorTexture,
-        baseColorFactor = baseColorFactor,
-        transparent = transparent,
-        doubleSided = doubleSided,
-        alphaCutoff = alphaCutoff,
-        castShadows = castShadows,
-    ) {
+    override val baseColorTexture: Texture,
+    override val baseColorFactor: Color = Color.WHITE,
+    override val transparent: Boolean = false,
+    override val doubleSided: Boolean = false,
+    override val alphaCutoff: Float = 0f,
+    override val castShadows: Boolean = true,
+    override val depthWrite: Boolean = true,
+    override val depthCompareFunction: CompareFunction = CompareFunction.LESS,
+) : Material() {
+    private val isFullyRough: Boolean = roughnessFactor == 1f && metallicRoughnessTexture == null
+
+    val metallicRoughnessTexture: Texture = metallicRoughnessTexture ?: Textures.textureWhite
+    val normalTexture: Texture = normalTexture ?: Textures.textureWhite
+    val emissiveTexture: Texture = emissiveTexture ?: Textures.textureWhite
+    val occlusionTexture: Texture = occlusionTexture ?: Textures.textureWhite
+
+    private val modelFloatBuffer = FloatBuffer(16)
+    private val materialFloatBuffer = FloatBuffer(8)
+
+    /** The [GPUBuffer] that holds the model transform matrix data. */
+    private val modelUniformBuffer =
+        device.createGPUFloatBuffer(
+            "model.transform",
+            modelFloatBuffer.toArray(),
+            BufferUsage.UNIFORM or BufferUsage.COPY_DST,
+        )
+
+    private val materialUniformBuffer =
+        device.createGPUFloatBuffer(
+            "material buffer",
+            materialFloatBuffer.toArray(),
+            BufferUsage.UNIFORM or BufferUsage.COPY_DST,
+        )
+
+    /** The [BufferBinding] for [modelUniformBufferBinding]. */
+    private val modelUniformBufferBinding =
+        BufferBinding(modelUniformBuffer, size = Float.SIZE_BYTES * 16L)
+
+    /** The [BufferBinding] for [modelUniformBufferBinding]. */
+    private val materialUniformBufferBinding by lazy {
+        BufferBinding(materialUniformBuffer, size = Float.SIZE_BYTES * 8L)
+    }
+
+    override val key: Int = 31 * super.key + isFullyRough.hashCode()
+
+    override fun createBindGroups(layouts: List<BindGroupLayout>): List<BindGroup> {
+        val bindGroups = mutableListOf<BindGroup>()
+        bindGroups +=
+            device.createBindGroup(
+                BindGroupDescriptor(
+                    layouts[1],
+                    listOf(BindGroupEntry(0, modelUniformBufferBinding)),
+                )
+            )
+
+        bindGroups +=
+            device.createBindGroup(
+                BindGroupDescriptor(
+                    layouts[2],
+                    listOf(
+                        BindGroupEntry(0, materialUniformBufferBinding),
+                        BindGroupEntry(1, baseColorTexture.view),
+                        BindGroupEntry(2, baseColorTexture.sampler),
+                        BindGroupEntry(3, normalTexture.view),
+                        BindGroupEntry(4, normalTexture.sampler),
+                        BindGroupEntry(5, metallicRoughnessTexture.view),
+                        BindGroupEntry(6, metallicRoughnessTexture.sampler),
+                        BindGroupEntry(7, occlusionTexture.view),
+                        BindGroupEntry(8, occlusionTexture.sampler),
+                        BindGroupEntry(9, emissiveTexture.view),
+                        BindGroupEntry(10, emissiveTexture.sampler),
+                    ),
+                )
+            )
+        return bindGroups.toList()
+    }
+
+    override fun update(transform: Mat4) {
+        materialFloatBuffer.apply {
+            set(0, baseColorFactor.r)
+            set(1, baseColorFactor.g)
+            set(2, baseColorFactor.b)
+            set(3, baseColorFactor.a)
+            set(4, metallicFactor)
+            set(5, roughnessFactor)
+            set(6, occlusionStrength)
+            set(7, emissiveFactor.x)
+            set(8, emissiveFactor.y)
+            set(9, emissiveFactor.z)
+            set(10, alphaCutoff)
+            // padding but reset it anyway
+            set(11, 0f)
+        }
+        device.queue.writeBuffer(materialUniformBuffer, materialFloatBuffer)
+        device.queue.writeBuffer(modelUniformBuffer, transform.toBuffer(modelFloatBuffer))
+    }
+
+    override fun release() {
+        modelUniformBuffer.release()
+        materialUniformBuffer.release()
+    }
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other == null || this::class != other::class) return false
@@ -55,89 +147,12 @@ open class PBRMaterial(
         var result = super.hashCode()
         result = 31 * result + metallicFactor.hashCode()
         result = 31 * result + roughnessFactor.hashCode()
-        result = 31 * result + (metallicRoughnessTexture?.hashCode() ?: 0)
-        result = 31 * result + (normalTexture?.hashCode() ?: 0)
+        result = 31 * result + (metallicRoughnessTexture.hashCode() ?: 0)
+        result = 31 * result + (normalTexture.hashCode() ?: 0)
         result = 31 * result + emissiveFactor.hashCode()
-        result = 31 * result + (emissiveTexture?.hashCode() ?: 0)
-        result = 31 * result + (occlusionTexture?.hashCode() ?: 0)
+        result = 31 * result + (emissiveTexture.hashCode() ?: 0)
+        result = 31 * result + (occlusionTexture.hashCode() ?: 0)
         result = 31 * result + occlusionStrength.hashCode()
         return result
     }
-    //    override fun upload(device: Device) {
-    //        val paramBuffer =
-    //            device.createGPUFloatBuffer(
-    //                "param buffer",
-    //                floatArrayOf(
-    //                    baseColorFactor.r,
-    //                    baseColorFactor.g,
-    //                    baseColorFactor.b,
-    //                    baseColorFactor.a,
-    //                    metallicFactor,
-    //                    roughnessFactor,
-    //                    occlusionStrength,
-    //                    alphaCutoff,
-    //                    emissiveFactor.x,
-    //                    emissiveFactor.y,
-    //                    emissiveFactor.z,
-    //                    // padding
-    //                    0f,
-    //                ),
-    //                BufferUsage.UNIFORM or BufferUsage.COPY_DST,
-    //            )
-    //
-    //        val bgLayoutEntries =
-    //            mutableListOf(BindGroupLayoutEntry(0, ShaderStage.FRAGMENT,
-    // BufferBindingLayout()))
-    //        val bgEntries = mutableListOf(BindGroupEntry(0, BufferBinding(paramBuffer)))
-    //
-    //        baseColorTexture?.let { baseColorTexture ->
-    //            bgLayoutEntries += BindGroupLayoutEntry(1, ShaderStage.FRAGMENT,
-    // SamplerBindingLayout())
-    //            bgLayoutEntries += BindGroupLayoutEntry(2, ShaderStage.FRAGMENT,
-    // TextureBindingLayout())
-    //            bgEntries += BindGroupEntry(1, baseColorTexture.sampler)
-    //            bgEntries += BindGroupEntry(2, baseColorTexture.view)
-    //        }
-    //        normalTexture?.let { normalTexture ->
-    //            bgLayoutEntries += BindGroupLayoutEntry(2, ShaderStage.FRAGMENT,
-    // SamplerBindingLayout())
-    //            bgLayoutEntries += BindGroupLayoutEntry(3, ShaderStage.FRAGMENT,
-    // TextureBindingLayout())
-    //            bgEntries += BindGroupEntry(2, normalTexture.sampler)
-    //            bgEntries += BindGroupEntry(3, normalTexture.view)
-    //        }
-    //        metallicRoughnessTexture?.let { metallicRoughnessTexture ->
-    //            bgLayoutEntries += BindGroupLayoutEntry(4, ShaderStage.FRAGMENT,
-    // SamplerBindingLayout())
-    //            bgLayoutEntries += BindGroupLayoutEntry(5, ShaderStage.FRAGMENT,
-    // TextureBindingLayout())
-    //            bgEntries += BindGroupEntry(4, metallicRoughnessTexture.sampler)
-    //            bgEntries += BindGroupEntry(5, metallicRoughnessTexture.view)
-    //        }
-    //        emissiveTexture?.let { emissiveTexture ->
-    //            bgLayoutEntries += BindGroupLayoutEntry(6, ShaderStage.FRAGMENT,
-    // SamplerBindingLayout())
-    //            bgLayoutEntries += BindGroupLayoutEntry(7, ShaderStage.FRAGMENT,
-    // TextureBindingLayout())
-    //            bgEntries += BindGroupEntry(6, emissiveTexture.sampler)
-    //            bgEntries += BindGroupEntry(7, emissiveTexture.view)
-    //        }
-    //        occlusionTexture?.let { occlusionTexture ->
-    //            bgLayoutEntries += BindGroupLayoutEntry(8, ShaderStage.FRAGMENT,
-    // SamplerBindingLayout())
-    //            bgLayoutEntries += BindGroupLayoutEntry(9, ShaderStage.FRAGMENT,
-    // TextureBindingLayout())
-    //            bgEntries += BindGroupEntry(8, occlusionTexture.sampler)
-    //            bgEntries += BindGroupEntry(9, occlusionTexture.view)
-    //        }
-    //
-    //        val bindGroupLayout =
-    //            device.createBindGroupLayout(BindGroupLayoutDescriptor(bgLayoutEntries))
-    //        val bindGroup = device.createBindGroup(BindGroupDescriptor(bindGroupLayout,
-    // bgEntries))
-    //
-    //        this.paramBuffer = paramBuffer
-    //        // this.bindGroupLayout = bindGroupLayout
-    //        // this.bindGroup = bindGroup
-    //    }
 }

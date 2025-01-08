@@ -21,20 +21,7 @@ class UnlitMaterialPipelineProvider : BaseMaterialPipelineProvider<UnlitMaterial
         colorFormat: TextureFormat,
         depthFormat: TextureFormat,
     ): MaterialPipeline {
-        val shader =
-            UnlitShader(
-                device = device,
-                layout = layout.attributes,
-                baseColorTexture = material.baseColorTexture,
-                baseColorFactor = material.baseColorFactor,
-                transparent = material.transparent,
-                doubleSided = material.doubleSided,
-                alphaCutoff = material.alphaCutoff,
-                castShadows = material.castShadows,
-                depthWrite = material.depthWrite,
-                depthCompareFunction = material.depthCompareFunction,
-            )
-        val bindGroups = listOf(environment.buffers.bindGroup) + shader.createBindGroups()
+        val shader = UnlitShader(device, layout.attributes)
 
         val renderPipeline =
             device.createRenderPipeline(
@@ -86,7 +73,6 @@ class UnlitMaterialPipelineProvider : BaseMaterialPipelineProvider<UnlitMaterial
                 if (material.transparent) RenderOrder.TRANSPARENT else RenderOrder.DEFAULT,
             layout = layout,
             renderPipeline = renderPipeline,
-            bindGroups = bindGroups,
         )
     }
 }

@@ -12,6 +12,7 @@ import com.littlekt.log.Logger
 import com.littlekt.math.Mat4
 import com.littlekt.math.Quaternion
 import com.littlekt.math.Vec3f
+import com.littlekt.resources.Textures
 
 /**
  * Converts a [GltfData] to a [Model] ready for rendering. This will load underlying buffers and
@@ -126,6 +127,7 @@ private class GltfModelGenerator(val gltfFile: GltfData) {
                     val baseColorFactor = gltfMaterial.pbrMetallicRoughness.baseColorFactor
                     if (config.pbr) {
                         PBRMaterial(
+                            device = device,
                             metallicFactor = gltfMaterial.pbrMetallicRoughness.metallicFactor,
                             roughnessFactor = gltfMaterial.pbrMetallicRoughness.roughnessFactor,
                             metallicRoughnessTexture =
@@ -164,6 +166,7 @@ private class GltfModelGenerator(val gltfFile: GltfData) {
                         )
                     } else {
                         UnlitMaterial(
+                            device = device,
                             baseColorFactor =
                                 Color(
                                     baseColorFactor[0],
@@ -180,19 +183,19 @@ private class GltfModelGenerator(val gltfFile: GltfData) {
                             doubleSided = gltfMaterial.doubleSided,
                         )
                     }
-                } ?: UnlitMaterial(EmptyTexture(device, preferredFormat, 0, 0))
+                } ?: UnlitMaterial(device = device, Textures.textureWhite)
             val indexFormat =
                 if (prim.indices >= 0)
                     gltfFile.accessors[prim.indices].componentType.toIndexFormat()
                 else null
-            val meshNode = MeshNode(mesh, material, prim.mode.toTopology(), indexFormat)
-            node += meshNode
+            val visualInstance = VisualInstance(mesh, material, prim.mode.toTopology(), indexFormat)
+            node += visualInstance
             // apply skin
             if (skin >= 0) {
                 //  mesh.skin = model.skins[skin]
                 val skeletonRoot = gltfFile.skins[skin].skeleton
                 if (skeletonRoot > 0) {
-                    //     node -= meshNode
+                    //     node -= visualInstance
                     //    modelNodes[gltfFile.nodes[skeletonRoot]]!! += mesh
                 }
             }
@@ -202,7 +205,7 @@ private class GltfModelGenerator(val gltfFile: GltfData) {
                 //     mesh.morphWeights = FloatArray(prim.targets.sumOf { it.size })
             }
 
-            model.meshes[name] = meshNode
+            model.meshes[name] = visualInstance
         }
     }
 

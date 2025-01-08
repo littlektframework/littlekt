@@ -281,6 +281,7 @@ data class GltfImage(
 enum class GltfMIMEType(val value: String) {
     @SerialName("image/jpeg") ImageJPEG("image/jpeg"),
     @SerialName("image/png") ImagePNG("image/png"),
+    @SerialName("image/ktx2") ImageKTX2("image/ktx2"),
 }
 
 @Serializable

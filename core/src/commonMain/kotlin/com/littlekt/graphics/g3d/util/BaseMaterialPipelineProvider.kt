@@ -2,7 +2,6 @@ package com.littlekt.graphics.g3d.util
 
 import com.littlekt.graphics.VertexBufferLayout
 import com.littlekt.graphics.g3d.Environment
-import com.littlekt.graphics.g3d.MeshNode
 import com.littlekt.graphics.g3d.material.Material
 import com.littlekt.graphics.webgpu.*
 
@@ -16,40 +15,40 @@ abstract class BaseMaterialPipelineProvider<T : Material> : MaterialPipelineProv
 
     override fun getMaterialPipeline(
         device: Device,
+        material: Material,
         environment: Environment,
-        meshNode: MeshNode,
+        layout: VertexBufferLayout,
+        topology: PrimitiveTopology,
+        stripIndexFormat: IndexFormat?,
         colorFormat: TextureFormat,
         depthFormat: TextureFormat,
     ): MaterialPipeline? {
-        @Suppress("UNCHECKED_CAST") val material = meshNode.material as? T
-        if (material != null) {
-            renderInfo.apply {
-                reset()
-                this.environment = environment
-                this.material = material
-                layout = meshNode.mesh.geometry.layout
-                topology = meshNode.topology
-                indexFormat = meshNode.stripIndexFormat
-            }
-            if (pipelines.contains(renderInfo)) {
-                return pipelines[renderInfo]
-            } else {
-                val pipeline =
-                    createMaterialPipeline(
-                        device,
-                        environment,
-                        meshNode.mesh.geometry.layout,
-                        meshNode.topology,
-                        material,
-                        colorFormat,
-                        depthFormat,
-                    )
-
-                pipelines[renderInfo.copy()] = pipeline
-                return pipeline
-            }
+        @Suppress("UNCHECKED_CAST", "NAME_SHADOWING") val material = material as? T ?: return null
+        renderInfo.apply {
+            reset()
+            this.environment = environment
+            this.material = material
+            this.layout = layout
+            this.topology = topology
+            this.indexFormat = stripIndexFormat
         }
-        return null
+        if (pipelines.contains(renderInfo)) {
+            return pipelines[renderInfo]
+        } else {
+            val pipeline =
+                createMaterialPipeline(
+                    device,
+                    environment,
+                    layout,
+                    topology,
+                    material,
+                    colorFormat,
+                    depthFormat,
+                )
+
+            pipelines[renderInfo.copy()] = pipeline
+            return pipeline
+        }
     }
 
     abstract fun createMaterialPipeline(
@@ -62,8 +61,15 @@ abstract class BaseMaterialPipelineProvider<T : Material> : MaterialPipelineProv
         depthFormat: TextureFormat,
     ): MaterialPipeline
 
+    override fun release() {
+        pipelines.values.forEach { pipeline ->
+            pipeline.renderPipeline.release()
+            pipeline.shader.release()
+        }
+    }
+
     private data class RenderInfo(
-        var material: Material = object : Material() {},
+        var material: Material? = null,
         var layout: VertexBufferLayout = VertexBufferLayout(0, VertexStepMode.VERTEX, emptyList()),
         var topology: PrimitiveTopology = PrimitiveTopology.TRIANGLE_LIST,
         var indexFormat: IndexFormat? = null,
@@ -72,7 +78,7 @@ abstract class BaseMaterialPipelineProvider<T : Material> : MaterialPipelineProv
         var environment: Environment? = null,
     ) {
         fun reset() {
-            material = object : Material() {}
+            material = null
             layout = VertexBufferLayout(0, VertexStepMode.VERTEX, emptyList())
             topology = PrimitiveTopology.TRIANGLE_LIST
             indexFormat = null

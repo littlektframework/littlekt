@@ -2,18 +2,21 @@ package com.littlekt.examples
 
 import com.littlekt.Context
 import com.littlekt.ContextListener
-import com.littlekt.file.ByteBuffer
 import com.littlekt.file.gltf.GltfModelUnlitConfig
 import com.littlekt.file.gltf.toModel
 import com.littlekt.file.vfs.readGltf
-import com.littlekt.graphics.*
-import com.littlekt.graphics.g3d.MeshNode
+import com.littlekt.graphics.Color
+import com.littlekt.graphics.PerspectiveCamera
+import com.littlekt.graphics.fullIndexedMesh
 import com.littlekt.graphics.g3d.ModelBatch
 import com.littlekt.graphics.g3d.UnlitEnvironment
+import com.littlekt.graphics.g3d.VisualInstance
 import com.littlekt.graphics.g3d.material.UnlitMaterial
 import com.littlekt.graphics.g3d.util.UnlitMaterialPipelineProvider
+import com.littlekt.graphics.generate
 import com.littlekt.graphics.webgpu.*
 import com.littlekt.math.geom.degrees
+import com.littlekt.resources.Textures
 import com.littlekt.util.milliseconds
 
 /**
@@ -50,12 +53,6 @@ class SimpleGltfExample(context: Context) : ContextListener(context) {
                 )
             )
         var depthFrame = depthTexture.createView()
-        val whiteTexture =
-            PixmapTexture(
-                device,
-                preferredFormat,
-                Pixmap(1, 1, ByteBuffer(byteArrayOf(1, 1, 1, 1))),
-            )
         val models =
             listOf(
                 resourcesVfs["models/Duck.glb"]
@@ -79,14 +76,14 @@ class SimpleGltfExample(context: Context) : ContextListener(context) {
             )
 
         val grid =
-            MeshNode(
+            VisualInstance(
                     fullIndexedMesh().generate {
                         grid {
                             sizeX = 1000f
                             sizeY = 1000f
                         }
                     },
-                    UnlitMaterial(whiteTexture),
+                    UnlitMaterial(device, Textures.textureWhite, baseColorFactor = Color.GRAY),
                 )
                 .apply { translate(0f, -30f, 0f) }
 

@@ -1,30 +1,17 @@
 package com.littlekt.graphics.g3d.shader
 
-import com.littlekt.file.FloatBuffer
-import com.littlekt.graphics.Color
-import com.littlekt.graphics.Texture
 import com.littlekt.graphics.VertexAttribute
 import com.littlekt.graphics.g3d.util.shader.*
 import com.littlekt.graphics.shader.Shader
 import com.littlekt.graphics.webgpu.*
-import com.littlekt.math.Mat4
-import com.littlekt.resources.Textures
 
 /**
  * @author Colton Daily
  * @date 12/10/2024
  */
-open class UnlitShader(
+class UnlitShader(
     device: Device,
     layout: List<VertexAttribute>,
-    val baseColorTexture: Texture = Textures.textureWhite,
-    val baseColorFactor: Color = Color.WHITE,
-    val transparent: Boolean = false,
-    val doubleSided: Boolean = false,
-    val alphaCutoff: Float = 0f,
-    val castShadows: Boolean = true,
-    val depthWrite: Boolean = true,
-    val depthCompareFunction: CompareFunction = CompareFunction.LESS,
     vertexEntryPoint: String = "vs_main",
     fragmentEntryPoint: String = "fs_main",
     vertexSrc: String = buildCommonShader {
@@ -33,7 +20,7 @@ open class UnlitShader(
             vertexOutput(layout)
             camera(0, 0)
             model(1, 0)
-            main(layout, vertexEntryPoint)
+            main(layout, entryPoint = vertexEntryPoint)
         }
     },
     fragmentSrc: String = buildCommonShader {
@@ -55,7 +42,11 @@ open class UnlitShader(
             BindGroupLayoutDescriptor(
                 listOf(
                     // model
-                    BindGroupLayoutEntry(0, ShaderStage.VERTEX, BufferBindingLayout())
+                    BindGroupLayoutEntry(
+                        0,
+                        ShaderStage.VERTEX,
+                        BufferBindingLayout(BufferBindingType.UNIFORM),
+                    )
                 )
             ),
             BindGroupLayoutDescriptor(
@@ -76,109 +67,4 @@ open class UnlitShader(
         layout = bindGroupLayout,
         vertexEntryPoint = vertexEntryPoint,
         fragmentEntryPoint = fragmentEntryPoint,
-    ) {
-    private val modelFloatBuffer = FloatBuffer(16)
-
-    open val key: Int =
-        kotlin.run {
-            var result = layout.hashCode()
-            result = 31 * result + transparent.hashCode()
-            result = 31 * result + doubleSided.hashCode()
-            result = 31 * result + alphaCutoff.hashCode()
-            result = 31 * result + castShadows.hashCode()
-            result = 31 * result + depthWrite.hashCode()
-            result = 31 * result + depthCompareFunction.hashCode()
-            result
-        }
-
-    /** The [GPUBuffer] that holds the model transform matrix data. */
-    protected val modelUniformBuffer =
-        device.createGPUFloatBuffer(
-            "model.transform",
-            modelFloatBuffer.toArray(),
-            BufferUsage.UNIFORM or BufferUsage.COPY_DST,
-        )
-
-    protected open val materialUniformBuffer =
-        device.createGPUFloatBuffer(
-            "material buffer",
-            floatArrayOf(
-                baseColorFactor.r,
-                baseColorFactor.g,
-                baseColorFactor.b,
-                baseColorFactor.a,
-                alphaCutoff,
-                // padding
-                0f,
-                0f,
-                0f,
-            ),
-            BufferUsage.UNIFORM or BufferUsage.COPY_DST,
-        )
-
-    /** The [BufferBinding] for [modelUniformBufferBinding]. */
-    protected val modelUniformBufferBinding =
-        BufferBinding(modelUniformBuffer, size = Float.SIZE_BYTES * 16L)
-
-    /** The [BufferBinding] for [modelUniformBufferBinding]. */
-    protected val materialUniformBufferBinding by lazy {
-        BufferBinding(materialUniformBuffer, size = Float.SIZE_BYTES * 8L)
-    }
-
-    override fun MutableList<BindGroup>.createBindGroupsInternal(data: Map<String, Any>) {
-        // we are assuming the camera bind group will be set externally
-        add(
-            device.createBindGroup(
-                BindGroupDescriptor(
-                    layouts[1],
-                    listOf(BindGroupEntry(0, modelUniformBufferBinding)),
-                )
-            )
-        )
-        add(
-            device.createBindGroup(
-                BindGroupDescriptor(
-                    layouts[2],
-                    listOf(
-                        BindGroupEntry(0, materialUniformBufferBinding),
-                        BindGroupEntry(1, baseColorTexture.view),
-                        BindGroupEntry(2, baseColorTexture.sampler),
-                    ),
-                )
-            )
-        )
-    }
-
-    /**
-     * Updates either the cameras view-projection matrix, or the model transform matrix, or both.
-     *
-     * ```
-     * data[VIEW_PROJECTION] = camera.viewProj
-     * data[MODEL] = mesh.globalTransform
-     * update(data)
-     * ```
-     *
-     * @see [MODEL]
-     */
-    override fun update(data: Map<String, Any>) {
-        (data[MODEL] as? Mat4)?.let { modelMatrix -> updateModelUniform(modelMatrix) }
-    }
-
-    /**
-     * Update this [modelUniformBufferBinding] with the given transform matrix.
-     *
-     * @param transform the matrix to update the model transform
-     */
-    fun updateModelUniform(transform: Mat4) =
-        device.queue.writeBuffer(modelUniformBuffer, transform.toBuffer(modelFloatBuffer))
-
-    override fun release() {
-        super.release()
-        modelUniformBuffer.release()
-        materialUniformBuffer.release()
-    }
-
-    companion object {
-        const val MODEL = "model"
-    }
-}
+    )

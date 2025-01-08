@@ -1,36 +1,17 @@
 package com.littlekt.graphics.g3d.shader
 
-import com.littlekt.graphics.Color
-import com.littlekt.graphics.Texture
 import com.littlekt.graphics.VertexAttribute
 import com.littlekt.graphics.g3d.util.shader.*
+import com.littlekt.graphics.shader.Shader
 import com.littlekt.graphics.webgpu.*
-import com.littlekt.math.Vec3f
-import com.littlekt.resources.Textures
 
 /**
  * @author Colton Daily
  * @date 12/31/2024
  */
-open class PBRShader(
+class PBRShader(
     device: Device,
     layout: List<VertexAttribute>,
-    baseColorTexture: Texture = Textures.textureWhite,
-    baseColorFactor: Color = Color.WHITE,
-    val metallicFactor: Float = 1f,
-    val roughnessFactor: Float = 1f,
-    metallicRoughnessTexture: Texture? = null,
-    normalTexture: Texture? = null,
-    val emissiveFactor: Vec3f = Vec3f(0f),
-    emissiveTexture: Texture? = null,
-    occlusionTexture: Texture? = null,
-    val occlusionStrength: Float = 1f,
-    transparent: Boolean = false,
-    doubleSided: Boolean = false,
-    alphaCutoff: Float = 0f,
-    castShadows: Boolean = true,
-    depthWrite: Boolean = true,
-    depthCompareFunction: CompareFunction = CompareFunction.LESS,
     vertexEntryPoint: String = "vs_main",
     fragmentEntryPoint: String = "fs_main",
     vertexSrc: String = buildCommonShader {
@@ -39,7 +20,8 @@ open class PBRShader(
             vertexOutput(layout)
             cameraWithLights(0, 0)
             model(1, 0)
-            main(layout, vertexEntryPoint)
+            skin(2)
+            main(layout, entryPoint = vertexEntryPoint)
         }
     },
     fragmentSrc: String = buildCommonShader {
@@ -70,7 +52,7 @@ open class PBRShader(
                 listOf(
                     // material uniform
                     BindGroupLayoutEntry(0, ShaderStage.FRAGMENT, BufferBindingLayout()),
-                    // baseColorTexture
+                    // baseColorTexturere
                     BindGroupLayoutEntry(1, ShaderStage.FRAGMENT, TextureBindingLayout()),
                     // baseColorSampler
                     BindGroupLayoutEntry(2, ShaderStage.FRAGMENT, SamplerBindingLayout()),
@@ -94,81 +76,10 @@ open class PBRShader(
             ),
         ),
 ) :
-    UnlitShader(
-        device,
-        layout,
-        baseColorTexture,
-        baseColorFactor,
-        transparent,
-        doubleSided,
-        alphaCutoff,
-        castShadows,
-        depthWrite,
-        depthCompareFunction,
-        vertexEntryPoint,
-        fragmentEntryPoint,
-        vertexSrc,
-        fragmentSrc,
-        bindGroupLayout,
-    ) {
-    private val isFullyRough: Boolean = roughnessFactor == 1f && metallicRoughnessTexture == null
-    val metallicRoughnessTexture: Texture = metallicRoughnessTexture ?: Textures.textureWhite
-    val normalTexture: Texture = normalTexture ?: Textures.textureWhite
-    val emissiveTexture: Texture = emissiveTexture ?: Textures.textureWhite
-    val occlusionTexture: Texture = occlusionTexture ?: Textures.textureWhite
-
-    override val key: Int = 31 * super.key + isFullyRough.hashCode()
-
-    override val materialUniformBuffer: GPUBuffer =
-        device.createGPUFloatBuffer(
-            "material buffer",
-            floatArrayOf(
-                baseColorFactor.r,
-                baseColorFactor.g,
-                baseColorFactor.b,
-                baseColorFactor.a,
-                metallicFactor,
-                roughnessFactor,
-                occlusionStrength,
-                emissiveFactor.x,
-                emissiveFactor.y,
-                emissiveFactor.z,
-                alphaCutoff,
-                // padding
-                0f,
-            ),
-            BufferUsage.UNIFORM or BufferUsage.COPY_DST,
-        )
-
-    override fun MutableList<BindGroup>.createBindGroupsInternal(data: Map<String, Any>) {
-        // we are assuming the camera bind group will be set externally
-        add(
-            device.createBindGroup(
-                BindGroupDescriptor(
-                    layouts[1],
-                    listOf(BindGroupEntry(0, modelUniformBufferBinding)),
-                )
-            )
-        )
-        add(
-            device.createBindGroup(
-                BindGroupDescriptor(
-                    layouts[2],
-                    listOf(
-                        BindGroupEntry(0, materialUniformBufferBinding),
-                        BindGroupEntry(1, baseColorTexture.view),
-                        BindGroupEntry(2, baseColorTexture.sampler),
-                        BindGroupEntry(3, normalTexture.view),
-                        BindGroupEntry(4, normalTexture.sampler),
-                        BindGroupEntry(5, metallicRoughnessTexture.view),
-                        BindGroupEntry(6, metallicRoughnessTexture.sampler),
-                        BindGroupEntry(7, occlusionTexture.view),
-                        BindGroupEntry(8, occlusionTexture.sampler),
-                        BindGroupEntry(9, emissiveTexture.view),
-                        BindGroupEntry(10, emissiveTexture.sampler),
-                    ),
-                )
-            )
-        )
-    }
-}
+    Shader(
+        device = device,
+        src = "$vertexSrc\n$fragmentSrc",
+        layout = bindGroupLayout,
+        vertexEntryPoint = vertexEntryPoint,
+        fragmentEntryPoint = fragmentEntryPoint,
+    )

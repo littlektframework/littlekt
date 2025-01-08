@@ -21,28 +21,7 @@ class PBRMaterialPipelineProvider : BaseMaterialPipelineProvider<PBRMaterial>() 
         colorFormat: TextureFormat,
         depthFormat: TextureFormat,
     ): MaterialPipeline {
-        val shader =
-            PBRShader(
-                device = device,
-                layout = layout.attributes,
-                baseColorTexture = material.baseColorTexture,
-                baseColorFactor = material.baseColorFactor,
-                metallicFactor = material.metallicFactor,
-                roughnessFactor = material.roughnessFactor,
-                metallicRoughnessTexture = material.metallicRoughnessTexture,
-                normalTexture = material.normalTexture,
-                emissiveFactor = material.emissiveFactor,
-                emissiveTexture = material.emissiveTexture,
-                occlusionTexture = material.occlusionTexture,
-                occlusionStrength = material.occlusionStrength,
-                transparent = material.transparent,
-                doubleSided = material.doubleSided,
-                alphaCutoff = material.alphaCutoff,
-                castShadows = material.castShadows,
-                depthWrite = material.depthWrite,
-                depthCompareFunction = material.depthCompareFunction,
-            )
-        val bindGroups = listOf(environment.buffers.bindGroup) + shader.createBindGroups()
+        val shader = PBRShader(device, layout.attributes)
 
         val renderPipeline =
             device.createRenderPipeline(
@@ -94,7 +73,6 @@ class PBRMaterialPipelineProvider : BaseMaterialPipelineProvider<PBRMaterial>() 
                 if (material.transparent) RenderOrder.TRANSPARENT else RenderOrder.DEFAULT,
             layout = layout,
             renderPipeline = renderPipeline,
-            bindGroups = bindGroups,
         )
     }
 }
