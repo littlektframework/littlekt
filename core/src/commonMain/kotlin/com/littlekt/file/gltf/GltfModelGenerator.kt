@@ -14,7 +14,6 @@ import com.littlekt.math.Quaternion
 import com.littlekt.math.Vec3f
 import com.littlekt.resources.Textures
 import kotlinx.coroutines.joinAll
-import kotlinx.coroutines.launch
 
 /**
  * Converts a [GltfData] to a [Model] ready for rendering. This will load underlying buffers and
