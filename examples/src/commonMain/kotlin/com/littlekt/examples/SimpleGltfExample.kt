@@ -4,7 +4,9 @@ import com.littlekt.Context
 import com.littlekt.ContextListener
 import com.littlekt.file.gltf.GltfModelUnlitConfig
 import com.littlekt.file.gltf.toModel
+import com.littlekt.file.vfs.TextureOptions
 import com.littlekt.file.vfs.readGltf
+import com.littlekt.file.vfs.readTexture
 import com.littlekt.graphics.Color
 import com.littlekt.graphics.PerspectiveCamera
 import com.littlekt.graphics.fullIndexedMesh
@@ -16,7 +18,6 @@ import com.littlekt.graphics.g3d.util.UnlitMaterialPipelineProvider
 import com.littlekt.graphics.generate
 import com.littlekt.graphics.webgpu.*
 import com.littlekt.math.geom.degrees
-import com.littlekt.resources.Textures
 import com.littlekt.util.milliseconds
 
 /**
@@ -75,17 +76,34 @@ class SimpleGltfExample(context: Context) : ContextListener(context) {
                     },
             )
 
-        val grid =
+        val checkered =
+            resourcesVfs["checkered.png"].readTexture(
+                options =
+                    TextureOptions(
+                        format = preferredFormat,
+                        samplerDescriptor =
+                            SamplerDescriptor(
+                                addressModeU = AddressMode.REPEAT,
+                                addressModeV = AddressMode.REPEAT,
+                            ),
+                    )
+            )
+
+        val grid = run {
+            val mesh =
+                fullIndexedMesh().generate {
+                    vertexModFun = { uv.set(position.x / 10f, position.z / 10f) }
+                    grid {
+                        sizeX = 1000f
+                        sizeY = 1000f
+                    }
+                }
             VisualInstance(
-                    fullIndexedMesh().generate {
-                        grid {
-                            sizeX = 1000f
-                            sizeY = 1000f
-                        }
-                    },
-                    UnlitMaterial(device, Textures.textureWhite, baseColorFactor = Color.GRAY),
+                    mesh,
+                    UnlitMaterial(device, baseColorTexture = checkered, castShadows = false),
                 )
                 .apply { translate(0f, -30f, 0f) }
+        }
 
         val modelBatch =
             ModelBatch(device).apply {
