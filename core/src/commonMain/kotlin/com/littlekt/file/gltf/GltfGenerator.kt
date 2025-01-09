@@ -13,6 +13,8 @@ import com.littlekt.math.Mat4
 import com.littlekt.math.Quaternion
 import com.littlekt.math.Vec3f
 import com.littlekt.resources.Textures
+import kotlinx.coroutines.joinAll
+import kotlinx.coroutines.launch
 
 /**
  * Converts a [GltfData] to a [Model] ready for rendering. This will load underlying buffers and
@@ -48,9 +50,13 @@ private class GltfModelGenerator(val gltfFile: GltfData) {
         scene.nodeRefs.forEach { node -> model += node.toNode(model) }
 
         createSkins(model)
-        modelNodes.forEach { (gltfNode, node) ->
-            gltfNode.createMeshes(config, device, preferredFormat, model, node)
-        }
+        modelNodes
+            .map { (gltfNode, node) ->
+                root.vfs.launch {
+                    gltfNode.createMeshes(config, device, preferredFormat, model, node)
+                }
+            }
+            .joinAll()
         return model
     }
 

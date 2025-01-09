@@ -47,9 +47,8 @@ abstract class Vfs(val context: Context, val logger: Logger, val baseDir: String
      * Launches a new coroutine using this vfs coroutine context. Use this to load assets
      * asynchronously.
      */
-    fun launch(block: suspend Vfs.() -> Unit) {
+    fun launch(block: suspend Vfs.() -> Unit) =
         (this as CoroutineScope).launch { block.invoke(this@Vfs) }
-    }
 
     abstract suspend fun readBytes(assetPath: String): ByteBuffer
 
