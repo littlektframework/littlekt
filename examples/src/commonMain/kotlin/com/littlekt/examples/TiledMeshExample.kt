@@ -79,22 +79,22 @@ class TiledMeshExample(context: Context) : ContextListener(context) {
                         Vec4f(Random.nextFloat(), Random.nextFloat(), Random.nextFloat(), 1f)
                     addVertex { // top left
                         position.set(x * tileSize, (y + 1) * tileSize, 0f)
-                        texCoords.set(u0, v0)
+                        uv.set(u0, v0)
                         color.set(quadColor)
                     }
                     addVertex { // top right
                         position.set((x + 1) * tileSize, (y + 1) * tileSize, 0f)
-                        texCoords.set(u1, v0)
+                        uv.set(u1, v0)
                         color.set(quadColor)
                     }
                     addVertex { // bottom right
                         position.set((x + 1) * tileSize, y * tileSize, 0f)
-                        texCoords.set(u1, v1)
+                        uv.set(u1, v1)
                         color.set(quadColor)
                     }
                     addVertex { // bottom left
                         position.set(x * tileSize, y * tileSize, 0f)
-                        texCoords.set(u0, v1)
+                        uv.set(u0, v1)
                         color.set(quadColor)
                     }
                     totalQuads++

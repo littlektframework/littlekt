@@ -299,7 +299,7 @@ private class GltfModelGenerator(val gltfFile: GltfData) {
             geometry.addVertex {
                 positionAccessor.next(position)
                 normalAccessor?.next(normal)
-                texCoordAccessor?.next(texCoords)
+                texCoordAccessor?.next(uv)
                 //                colorAccessor?.next()?.let { col -> color.set(col) }
                 //                jointAccessor?.next(joints)
                 //                weightAccessor?.next(weights)

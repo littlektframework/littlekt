@@ -68,12 +68,10 @@ class MipMapsExample(context: Context) : ContextListener(context) {
         val grid = run {
             val mesh =
                 fullIndexedMesh().generate {
-                    vertexModFun = { texCoords.set(position.x / 10f, position.z / 10f) }
+                    vertexModFun = { uv.set(position.x / 10f, position.z / 10f) }
                     grid {
                         sizeX = 1000f
                         sizeY = 1000f
-                        stepsX = 10
-                        stepsY = 10
                     }
                 }
             VisualInstance(

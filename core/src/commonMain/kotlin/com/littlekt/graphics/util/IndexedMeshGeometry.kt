@@ -111,6 +111,7 @@ open class IndexedMeshGeometry(layout: VertexBufferLayout, size: Int = INITIAL_S
     fun clearIndices() {
         numIndices = 0
         indices.clear()
+        indicesType = IndicesType.UNKNOWN
         indicesDirty = true
     }
 

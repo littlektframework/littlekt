@@ -158,13 +158,13 @@ interface Texture : Releasable {
                 listOf(VertexAttribute(VertexFormat.FLOAT32x2, 0, 0, VertexAttrUsage.TEX_COORDS)),
                 6,
             ) {
-                addVertex { texCoords.set(0f, 0f) }
-                addVertex { texCoords.set(1f, 0f) }
-                addVertex { texCoords.set(0f, 1f) }
+                addVertex { uv.set(0f, 0f) }
+                addVertex { uv.set(1f, 0f) }
+                addVertex { uv.set(0f, 1f) }
 
-                addVertex { texCoords.set(0f, 1f) }
-                addVertex { texCoords.set(1f, 0f) }
-                addVertex { texCoords.set(1f, 1f) }
+                addVertex { uv.set(0f, 1f) }
+                addVertex { uv.set(1f, 0f) }
+                addVertex { uv.set(1f, 1f) }
             }
         while (width > 1 || height > 1) {
             width = max(1, width / 2)

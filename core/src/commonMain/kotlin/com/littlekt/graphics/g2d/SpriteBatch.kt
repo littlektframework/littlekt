@@ -41,7 +41,7 @@ class SpriteBatch(
     initHeight: Int,
     val format: TextureFormat,
     private val size: Int = 1000,
-    private val cameraDynamicSize: Int = 50
+    private val cameraDynamicSize: Int = 50,
 ) : Batch {
 
     constructor(
@@ -49,7 +49,7 @@ class SpriteBatch(
         graphics: Graphics,
         format: TextureFormat,
         size: Int = 1000,
-        cameraDynamicSize: Int = 50
+        cameraDynamicSize: Int = 50,
     ) : this(device, graphics.width, graphics.height, format, size, cameraDynamicSize)
 
     /**
@@ -74,7 +74,7 @@ class SpriteBatch(
                 bottom = -initHeight * 0.5f,
                 top = initHeight * 0.5f,
                 near = 0f,
-                far = 1f
+                far = 1f,
             )
         set(value) {
             field = value
@@ -239,29 +239,29 @@ class SpriteBatch(
                 position.x = tlX
                 position.y = tlY
                 this.color.set(color)
-                texCoords.x = if (slice.rotated) u1 else u0
-                texCoords.y = v0
+                uv.x = if (slice.rotated) u1 else u0
+                uv.y = v0
             }
             addVertex { // top right
                 position.x = trX
                 position.y = trY
                 this.color.set(color)
-                texCoords.x = u1
-                texCoords.y = if (slice.rotated) v1 else v0
+                uv.x = u1
+                uv.y = if (slice.rotated) v1 else v0
             }
             addVertex { // bottom right
                 position.x = brX
                 position.y = brY
                 this.color.set(color)
-                texCoords.x = if (slice.rotated) u0 else u1
-                texCoords.y = v1
+                uv.x = if (slice.rotated) u0 else u1
+                uv.y = v1
             }
             addVertex { // bottom left
                 position.x = blX
                 position.y = blY
                 this.color.set(color)
-                texCoords.x = u0
-                texCoords.y = if (slice.rotated) v0 else v1
+                uv.x = u0
+                uv.y = if (slice.rotated) v0 else v1
             }
         }
 
@@ -376,29 +376,29 @@ class SpriteBatch(
                 position.x = tlX
                 position.y = tlY
                 this.color.set(color)
-                texCoords.x = if (slice.rotated) u1 else u0
-                texCoords.y = v0
+                uv.x = if (slice.rotated) u1 else u0
+                uv.y = v0
             }
             addVertex { // top right
                 position.x = trX
                 position.y = trY
                 this.color.set(color)
-                texCoords.x = u1
-                texCoords.y = if (slice.rotated) v1 else v0
+                uv.x = u1
+                uv.y = if (slice.rotated) v1 else v0
             }
             addVertex { // bottom right
                 position.x = brR
                 position.y = byR
                 this.color.set(color)
-                texCoords.x = if (slice.rotated) u0 else u1
-                texCoords.y = v1
+                uv.x = if (slice.rotated) u0 else u1
+                uv.y = v1
             }
             addVertex { // bottom left
                 position.x = blX
                 position.y = blY
                 this.color.set(color)
-                texCoords.x = u0
-                texCoords.y = if (slice.rotated) v0 else v1
+                uv.x = u0
+                uv.y = if (slice.rotated) v0 else v1
             }
         }
 
@@ -518,29 +518,29 @@ class SpriteBatch(
                 position.x = tlX
                 position.y = tlY
                 this.color.set(color)
-                texCoords.x = u0
-                texCoords.y = v0
+                uv.x = u0
+                uv.y = v0
             }
             addVertex { // top right
                 position.x = trX
                 position.y = trY
                 this.color.set(color)
-                texCoords.x = u1
-                texCoords.y = v0
+                uv.x = u1
+                uv.y = v0
             }
             addVertex { // bottom right
                 position.x = brX
                 position.y = brY
                 this.color.set(color)
-                texCoords.x = u1
-                texCoords.y = v1
+                uv.x = u1
+                uv.y = v1
             }
             addVertex { // bottom left
                 position.x = blX
                 position.y = blY
                 this.color.set(color)
-                texCoords.x = u0
-                texCoords.y = v1
+                uv.x = u0
+                uv.y = v1
             }
         }
 
@@ -704,7 +704,7 @@ class SpriteBatch(
                     texture = texture,
                     renderInfo = RenderInfo(lastShader, lastBlendState),
                     combinedMatrix = matPool.alloc().set(lastCombinedMatrix),
-                    offset = spriteIdx
+                    offset = spriteIdx,
                 )
         } else {
             drawCalls +=
@@ -712,7 +712,7 @@ class SpriteBatch(
                     texture = texture,
                     renderInfo = RenderInfo(lastShader, lastBlendState),
                     combinedMatrix = matPool.alloc().set(lastCombinedMatrix),
-                    offset = spriteIdx
+                    offset = spriteIdx,
                 )
         }
     }
@@ -725,7 +725,7 @@ class SpriteBatch(
                 VertexState(
                     module = shader.shaderModule,
                     entryPoint = shader.vertexEntryPoint,
-                    mesh.geometry.layout.gpuVertexBufferLayout
+                    mesh.geometry.layout.gpuVertexBufferLayout,
                 ),
             fragment =
                 FragmentState(
@@ -735,13 +735,13 @@ class SpriteBatch(
                         ColorTargetState(
                             format = format,
                             blendState = blendState,
-                            writeMask = ColorWriteMask.ALL
-                        )
+                            writeMask = ColorWriteMask.ALL,
+                        ),
                 ),
             primitive = PrimitiveState(topology = PrimitiveTopology.TRIANGLE_LIST),
             depthStencil = null,
             multisample =
-                MultisampleState(count = 1, mask = 0xFFFFFFF, alphaToCoverageEnabled = false)
+                MultisampleState(count = 1, mask = 0xFFFFFFF, alphaToCoverageEnabled = false),
         )
     }
 

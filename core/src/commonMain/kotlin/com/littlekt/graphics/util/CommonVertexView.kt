@@ -43,7 +43,7 @@ class CommonVertexView(
             ?: ColorWrapView(Vec4fView(-1)).also { logger.trace { "color view was not found." } }
 
     /** The uv texture coords attribute vector view. */
-    val texCoords: MutableVec2f =
+    val uv: MutableVec2f =
         attributes.firstOrNull { it.usage == VertexAttrUsage.TEX_COORDS }?.let(::getVec2fAttribute)
             ?: Vec2fView(-1).also { logger.trace { "texCoords view was not found." } }
 

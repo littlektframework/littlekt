@@ -41,7 +41,7 @@ class CommonIndexedMeshBuilder(val geometry: CommonIndexedMeshGeometry) {
     fun vertex(pos: Vec3f, nrm: Vec3f, uv: Vec2f = Vec2f.ZERO) = vertex {
         position.set(pos)
         normal.set(nrm)
-        texCoords.set(uv)
+        this.uv.set(uv)
     }
 
     fun addTriIndices(i0: Int, i1: Int, i2: Int) {
@@ -339,10 +339,11 @@ class CommonIndexedMeshBuilder(val geometry: CommonIndexedMeshGeometry) {
 
     /** Generates a grid geometry. */
     fun grid(props: GridProps) {
+        clear()
         val gridNormal = MutableVec3f()
 
-        val bx = -props.sizeX / 2
-        val by = -props.sizeY / 2
+        val bx = -props.sizeX * 0.5f
+        val by = -props.sizeY * 0.5f
         val sx = props.sizeX / props.stepsX
         val sy = props.sizeY / props.stepsY
         val nx = props.stepsX + 1
@@ -359,21 +360,20 @@ class CommonIndexedMeshBuilder(val geometry: CommonIndexedMeshGeometry) {
                     position.x += props.xDir.x * px + props.yDir.x * py + gridNormal.x * h
                     position.y += props.xDir.y * px + props.yDir.y * py + gridNormal.y * h
                     position.z += props.xDir.z * px + props.yDir.z * py + gridNormal.z * h
-                    texCoords.set(
-                        x / props.stepsX.toFloat() * props.texCoordScale.x + props.texCoordOffset.x,
-                        (1f - y / props.stepsY.toFloat()) * props.texCoordScale.y +
-                            props.texCoordOffset.y,
+                    uv.set(
+                        x / props.stepsX.toFloat() * props.uvScale.x + props.uvOffset.x,
+                        (1f - y / props.stepsY.toFloat()) * props.uvScale.y + props.uvOffset.y,
                     )
                 }
 
                 if (x > 0 && y > 0) {
-                    if (x % 2 == y % 2) {
-                        addTriIndices(idx - nx - 1, idx, idx - 1)
-                        addTriIndices(idx - nx, idx, idx - nx - 1)
-                    } else {
-                        addTriIndices(idx - nx, idx, idx - 1)
-                        addTriIndices(idx - nx, idx - 1, idx - nx - 1)
-                    }
+                    val topLeft = idx - nx - 1
+                    val topRight = idx - nx
+                    val bottomLeft = idx - 1
+                    val bottomRight = idx
+
+                    addTriIndices(topLeft, bottomRight, bottomLeft)
+                    addTriIndices(topLeft, topRight, bottomRight)
                 }
             }
         }
@@ -476,8 +476,8 @@ class CommonIndexedMeshBuilder(val geometry: CommonIndexedMeshGeometry) {
         val center = MutableVec3f()
         val xDir = MutableVec3f(Vec3f.X_AXIS)
         val yDir = MutableVec3f(Vec3f.NEG_Z_AXIS)
-        val texCoordOffset = MutableVec2f(0f, 0f)
-        val texCoordScale = MutableVec2f(1f, 1f)
+        val uvOffset = MutableVec2f(0f, 0f)
+        val uvScale = MutableVec2f(1f, 1f)
         var sizeX = 10f
         var sizeY = 10f
         var stepsX = 10
