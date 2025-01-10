@@ -2,12 +2,18 @@ package com.littlekt.file.gltf
 
 import com.littlekt.file.vfs.VfsFile
 import com.littlekt.graphics.*
-import com.littlekt.graphics.g3d.*
+import com.littlekt.graphics.g3d.Model
+import com.littlekt.graphics.g3d.Node3D
+import com.littlekt.graphics.g3d.Skin
+import com.littlekt.graphics.g3d.VisualInstance
 import com.littlekt.graphics.g3d.material.PBRMaterial
 import com.littlekt.graphics.g3d.material.UnlitMaterial
 import com.littlekt.graphics.util.CommonIndexedMeshGeometry
 import com.littlekt.graphics.util.IndexedMeshGeometry
-import com.littlekt.graphics.webgpu.*
+import com.littlekt.graphics.webgpu.Device
+import com.littlekt.graphics.webgpu.TextureFormat
+import com.littlekt.graphics.webgpu.VertexFormat
+import com.littlekt.graphics.webgpu.VertexStepMode
 import com.littlekt.log.Logger
 import com.littlekt.math.Mat4
 import com.littlekt.math.Quaternion
@@ -242,36 +248,37 @@ private class GltfModelGenerator(val gltfFile: GltfData) {
             VertexAttribute(VertexFormat.FLOAT32x3, offset, 1, VertexAttrUsage.NORMAL)
         offset += VertexFormat.FLOAT32x3.bytes
 
-        //        if (colorGltfAccessor != null) {
-        //            vertexAttributes +=
-        //                VertexAttribute(VertexFormat.FLOAT32x4, offset, 2, VertexAttrUsage.COLOR)
-        //            offset += 4L * Float.SIZE_BYTES
-        //        }
-        //        if (cfg.setVertexAttribsFromMaterial) {
-        //            attribs += Attribute.EMISSIVE_COLOR
-        //            attribs += Attribute.METAL_ROUGH
-        //        }
+        if (colorGltfAccessor != null) {
+            vertexAttributes +=
+                VertexAttribute(VertexFormat.FLOAT32x4, offset, 2, VertexAttrUsage.COLOR)
+            offset += VertexFormat.FLOAT32x4.bytes
+        }
+
         if (texCoordGltfAccessor != null) {
             vertexAttributes +=
-                VertexAttribute(VertexFormat.FLOAT32x2, offset, 2, VertexAttrUsage.TEX_COORDS)
+                VertexAttribute(VertexFormat.FLOAT32x2, offset, 2, VertexAttrUsage.UV)
             offset += VertexFormat.FLOAT32x2.bytes
         }
-        //        if (tangentAcc != null) {
-        //            attribs += Attribute.TANGENTS
-        //        } else if (materialRef?.normalTexture != null) {
-        //            attribs += Attribute.TANGENTS
-        //            generateTangents = true
-        //        }
-        //        if (jointGltfAccessor != null) {
-        //            vertexAttributes +=
-        //                VertexAttribute(VertexFormat.SINT32x4, offset, 4, VertexAttrUsage.JOINT)
-        //            offset += 4L * Int.SIZE_BYTES
-        //        }
-        //        if (weightGltfAccessor != null) {
-        //            vertexAttributes +=
-        //                VertexAttribute(VertexFormat.FLOAT32x4, offset, 5, VertexAttrUsage.WEIGHT)
-        //            offset += 4L * Float.SIZE_BYTES
-        //        }
+        if (tangentGltfAccessor != null) {
+            vertexAttributes +=
+                VertexAttribute(VertexFormat.FLOAT32x4, offset, 3, VertexAttrUsage.TANGENT)
+            offset += VertexFormat.FLOAT32x4.bytes
+        } else if (materialRef?.normalTexture != null) {
+            vertexAttributes +=
+                VertexAttribute(VertexFormat.FLOAT32x4, offset, 3, VertexAttrUsage.TANGENT)
+            offset += VertexFormat.FLOAT32x4.bytes
+            generateTangents = true
+        }
+        if (jointGltfAccessor != null) {
+            vertexAttributes +=
+                VertexAttribute(VertexFormat.SINT32x4, offset, 4, VertexAttrUsage.JOINT)
+            offset += VertexFormat.SINT32x4.bytes
+        }
+        if (weightGltfAccessor != null) {
+            vertexAttributes +=
+                VertexAttribute(VertexFormat.FLOAT32x4, offset, 5, VertexAttrUsage.WEIGHT)
+            offset += VertexFormat.FLOAT32x4.bytes
+        }
 
         //        val morphAccessors = makeMorphTargetAccessors(gltfAccessors)
         //        attribs += morphAccessors.keys
@@ -300,14 +307,15 @@ private class GltfModelGenerator(val gltfFile: GltfData) {
                     )
             )
 
-        repeat(positionGltfAccessor.count) { i ->
+        repeat(positionGltfAccessor.count) {
             geometry.addVertex {
                 positionAccessor.next(position)
                 normalAccessor?.next(normal)
+                tangentAccessor?.next(tangent)
                 texCoordAccessor?.next(uv)
-                //                colorAccessor?.next()?.let { col -> color.set(col) }
-                //                jointAccessor?.next(joints)
-                //                weightAccessor?.next(weights)
+                colorAccessor?.next()?.let { col -> color.set(col) }
+                jointAccessor?.next(joints)
+                weightAccessor?.next(weights)
             }
         }
         if (indexGltfAccessor != null) {
@@ -315,6 +323,10 @@ private class GltfModelGenerator(val gltfFile: GltfData) {
             repeat(indexGltfAccessor.count) { geometry.addIndex(indexAccessor.next()) }
         } else {
             repeat(positionGltfAccessor.count) { i -> geometry.addIndex(i) }
+        }
+
+        if (generateTangents) {
+            geometry.generateTangents()
         }
 
         return geometry

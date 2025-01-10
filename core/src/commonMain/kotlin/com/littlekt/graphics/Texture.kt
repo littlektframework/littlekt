@@ -155,7 +155,7 @@ interface Texture : Releasable {
         val mesh =
             mesh(
                 device,
-                listOf(VertexAttribute(VertexFormat.FLOAT32x2, 0, 0, VertexAttrUsage.TEX_COORDS)),
+                listOf(VertexAttribute(VertexFormat.FLOAT32x2, 0, 0, VertexAttrUsage.UV)),
                 6,
             ) {
                 addVertex { uv.set(0f, 0f) }

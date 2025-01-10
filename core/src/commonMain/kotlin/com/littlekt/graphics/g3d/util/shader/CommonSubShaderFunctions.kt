@@ -38,15 +38,13 @@ fun SubShaderBuilder.vertexInput(attributes: List<VertexAttribute>) {
                 VertexAttrUsage.COLOR -> "@location(${attribute.shaderLocation}) color: vec4f,"
                 VertexAttrUsage.NORMAL -> "@location(${attribute.shaderLocation}) normal: vec3f,"
                 VertexAttrUsage.TANGENT -> "@location(${attribute.shaderLocation}) tangent: vec4f,"
-                VertexAttrUsage.TEX_COORDS -> {
+                VertexAttrUsage.UV -> {
                     if (attribute.index == 0) "@location(${attribute.shaderLocation}) uv: vec2f,"
                     else "@location(${attribute.shaderLocation}) uv2: vec2f,"
                 }
 
-                VertexAttrUsage.JOINT -> "@location(${attribute.shaderLocation}) joints: vec4u,"
+                VertexAttrUsage.JOINT -> "@location(${attribute.shaderLocation}) joints: vec4i,"
                 VertexAttrUsage.WEIGHT -> "@location(${attribute.shaderLocation}) weight: vec4f,"
-                VertexAttrUsage.BINORMAL ->
-                    "@location(${attribute.shaderLocation}) binormal: vec3f,"
                 else -> {
                     error(
                         "Unknown attribute usage type: ${attribute.usage}. If using custom attributes, then you must create your own input struct!"

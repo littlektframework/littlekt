@@ -22,9 +22,9 @@ inline fun mesh(
             VertexBufferLayout(
                 attributes.calculateStride().toLong(),
                 VertexStepMode.VERTEX,
-                attributes
+                attributes,
             ),
-            size
+            size,
         )
     geometry.generate()
     return Mesh(device, geometry)
@@ -38,7 +38,7 @@ inline fun mesh(
 fun colorMesh(
     device: Device,
     size: Int = 1000,
-    generate: CommonMeshGeometry.() -> Unit
+    generate: CommonMeshGeometry.() -> Unit,
 ): Mesh<CommonMeshGeometry> {
     return mesh(
         device,
@@ -48,24 +48,24 @@ fun colorMesh(
                 VertexFormat.FLOAT32x4,
                 VertexFormat.FLOAT32x3.bytes.toLong(),
                 1,
-                VertexAttrUsage.COLOR
-            )
+                VertexAttrUsage.COLOR,
+            ),
         ),
         size,
-        generate
+        generate,
     )
 }
 
 /**
- * Creates a mesh with [VertexAttrUsage.POSITION], [VertexAttrUsage.COLOR], and
- * [VertexAttrUsage.TEX_COORDS] attributes.
+ * Creates a mesh with [VertexAttrUsage.POSITION], [VertexAttrUsage.COLOR], and [VertexAttrUsage.UV]
+ * attributes.
  *
  * @see textureIndexedMesh
  */
 fun textureMesh(
     device: Device,
     size: Int = 1000,
-    generate: CommonMeshGeometry.() -> Unit = {}
+    generate: CommonMeshGeometry.() -> Unit = {},
 ): Mesh<CommonMeshGeometry> {
     return mesh(
         device,
@@ -75,17 +75,17 @@ fun textureMesh(
                 VertexFormat.FLOAT32x4,
                 VertexFormat.FLOAT32x3.bytes.toLong(),
                 1,
-                VertexAttrUsage.COLOR
+                VertexAttrUsage.COLOR,
             ),
             VertexAttribute(
                 VertexFormat.FLOAT32x2,
                 VertexFormat.FLOAT32x4.bytes.toLong() + VertexFormat.FLOAT32x3.bytes.toLong(),
                 2,
-                VertexAttrUsage.TEX_COORDS
-            )
+                VertexAttrUsage.UV,
+            ),
         ),
         size,
-        generate
+        generate,
     )
 }
 
@@ -97,13 +97,13 @@ fun textureMesh(
 fun positionMesh(
     device: Device,
     size: Int = 1000,
-    generate: CommonMeshGeometry.() -> Unit = {}
+    generate: CommonMeshGeometry.() -> Unit = {},
 ): Mesh<CommonMeshGeometry> {
     return mesh(
         device,
         listOf(VertexAttribute(VertexFormat.FLOAT32x3, 0, 0, VertexAttrUsage.POSITION)),
         size,
-        generate
+        generate,
     )
 }
 
@@ -127,20 +127,20 @@ fun <T : ContextListener> T.mesh(
  */
 fun <T : ContextListener> T.colorMesh(
     size: Int = 1000,
-    generate: CommonMeshGeometry.() -> Unit = {}
+    generate: CommonMeshGeometry.() -> Unit = {},
 ): Mesh<CommonMeshGeometry> {
     return colorMesh(context.graphics.device, size, generate)
 }
 
 /**
- * Creates a mesh with [VertexAttrUsage.POSITION], [VertexAttrUsage.COLOR], and
- * [VertexAttrUsage.TEX_COORDS] attributes.
+ * Creates a mesh with [VertexAttrUsage.POSITION], [VertexAttrUsage.COLOR], and [VertexAttrUsage.UV]
+ * attributes.
  *
  * @see textureIndexedMesh
  */
 fun <T : ContextListener> T.textureMesh(
     size: Int = 1000,
-    generate: CommonMeshGeometry.() -> Unit = {}
+    generate: CommonMeshGeometry.() -> Unit = {},
 ): Mesh<CommonMeshGeometry> {
     return textureMesh(context.graphics.device, size, generate)
 }

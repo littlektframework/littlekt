@@ -56,14 +56,14 @@ open class VertexShaderBuilder : SubShaderBuilder() {
                 }
             }
             ${
-                if (layout.any { it.usage == VertexAttrUsage.TEX_COORDS && it.index == 0}) {
+                if (layout.any { it.usage == VertexAttrUsage.UV && it.index == 0}) {
                     """
                             output.uv = input.uv;
                         """.trimIndent()
                 } else ""
             }
             ${
-                if (layout.any { it.usage == VertexAttrUsage.TEX_COORDS && it.index == 1 }) {
+                if (layout.any { it.usage == VertexAttrUsage.UV && it.index == 1 }) {
                     """
                             output.uv2 = input.uv2;
                         """.trimIndent()

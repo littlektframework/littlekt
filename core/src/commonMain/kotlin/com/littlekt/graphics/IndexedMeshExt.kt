@@ -55,7 +55,7 @@ fun colorIndexedMesh(
 
 /**
  * Creates a new indexed mesh with [VertexAttrUsage.POSITION], [VertexAttrUsage.COLOR], and
- * [VertexAttrUsage.TEX_COORDS] attributes.
+ * [VertexAttrUsage.UV] attributes.
  */
 fun textureIndexedMesh(
     device: Device,
@@ -76,7 +76,7 @@ fun textureIndexedMesh(
                 VertexFormat.FLOAT32x2,
                 VertexFormat.FLOAT32x4.bytes.toLong() + VertexFormat.FLOAT32x3.bytes.toLong(),
                 2,
-                VertexAttrUsage.TEX_COORDS,
+                VertexAttrUsage.UV,
             ),
         ),
         size,
@@ -100,7 +100,7 @@ fun positionIndexedMesh(
 
 /**
  * Creates a new indexed mesh with [VertexAttrUsage.POSITION], [VertexAttrUsage.COLOR],
- * [VertexAttrUsage.NORMAL], and [VertexAttrUsage.TEX_COORDS] attributes.
+ * [VertexAttrUsage.NORMAL], and [VertexAttrUsage.UV] attributes.
  */
 fun fullIndexedMesh(
     device: Device,
@@ -120,7 +120,7 @@ fun fullIndexedMesh(
             VertexAttribute(VertexFormat.FLOAT32x3, offset, 2, VertexAttrUsage.NORMAL).also {
                 offset += VertexFormat.FLOAT32x3.bytes
             },
-            VertexAttribute(VertexFormat.FLOAT32x2, offset, 3, VertexAttrUsage.TEX_COORDS),
+            VertexAttribute(VertexFormat.FLOAT32x2, offset, 3, VertexAttrUsage.UV),
         ),
         size,
         generate,
@@ -149,7 +149,7 @@ fun <T : ContextListener> T.colorIndexedMesh(
 
 /**
  * Creates a new indexed mesh with [VertexAttrUsage.POSITION], [VertexAttrUsage.COLOR], and
- * [VertexAttrUsage.TEX_COORDS] attributes.
+ * [VertexAttrUsage.UV] attributes.
  */
 fun <T : ContextListener> T.textureIndexedMesh(
     size: Int = 1000,
@@ -160,7 +160,7 @@ fun <T : ContextListener> T.textureIndexedMesh(
 
 /**
  * Creates a new indexed mesh with [VertexAttrUsage.POSITION], [VertexAttrUsage.COLOR],
- * [VertexAttrUsage.NORMAL], and [VertexAttrUsage.TEX_COORDS] attributes.
+ * [VertexAttrUsage.NORMAL], and [VertexAttrUsage.UV] attributes.
  */
 fun <T : ContextListener> T.fullIndexedMesh(
     size: Int = 1000,

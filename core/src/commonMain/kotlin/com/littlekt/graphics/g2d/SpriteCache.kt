@@ -42,16 +42,16 @@ class SpriteCache(val device: Device, val format: TextureFormat, size: Int = 100
                     format = VertexFormat.FLOAT32x3,
                     offset = 0,
                     shaderLocation = 0,
-                    usage = VertexAttrUsage.POSITION
+                    usage = VertexAttrUsage.POSITION,
                 ),
                 VertexAttribute(
                     format = VertexFormat.FLOAT32x2,
                     offset = VertexFormat.FLOAT32x3.bytes.toLong(),
                     shaderLocation = 1,
-                    usage = VertexAttrUsage.TEX_COORDS
-                )
+                    usage = VertexAttrUsage.UV,
+                ),
             ),
-            40
+            40,
         ) {
             indicesAsQuad()
             // normalize coordinates
@@ -92,7 +92,7 @@ class SpriteCache(val device: Device, val format: TextureFormat, size: Int = 100
         device.createGPUFloatBuffer(
             "sprite buffer",
             staticData.toArray(),
-            BufferUsage.STORAGE or BufferUsage.COPY_DST
+            BufferUsage.STORAGE or BufferUsage.COPY_DST,
         )
     private val spriteIndices = mutableMapOf<SpriteId, Int>()
     private val spriteView = SpriteView()
@@ -134,7 +134,7 @@ class SpriteCache(val device: Device, val format: TextureFormat, size: Int = 100
             index = spriteCount,
             textureIdx = textureIdx,
             rotated = slice.rotated,
-            view = spriteView
+            view = spriteView,
         )
         spriteCount++
 
@@ -234,7 +234,7 @@ class SpriteCache(val device: Device, val format: TextureFormat, size: Int = 100
             encoder.drawIndexed(
                 indexCount = 6,
                 instanceCount = drawCall.instances,
-                firstInstance = instanceIdx
+                firstInstance = instanceIdx,
             )
             instanceIdx += drawCall.instances
         }
@@ -287,7 +287,7 @@ class SpriteCache(val device: Device, val format: TextureFormat, size: Int = 100
             index = id,
             textureIdx = textureIdx,
             rotated = rotation,
-            view = spriteView
+            view = spriteView,
         )
 
         if (!staticDirty) {
@@ -369,18 +369,18 @@ class SpriteCache(val device: Device, val format: TextureFormat, size: Int = 100
         staticData.put(
             staticData.toArray(
                 (removeIdx + 1) * STATIC_COMPONENTS_PER_SPRITE,
-                spriteCount * STATIC_COMPONENTS_PER_SPRITE
+                spriteCount * STATIC_COMPONENTS_PER_SPRITE,
             ),
-            dstOffset = staticOffset
+            dstOffset = staticOffset,
         )
 
         val dynamicOffset = removeIdx * DYNAMIC_COMPONENTS_PER_SPRITE
         dynamicData.put(
             dynamicData.toArray(
                 (removeIdx + 1) * DYNAMIC_COMPONENTS_PER_SPRITE,
-                spriteCount * DYNAMIC_COMPONENTS_PER_SPRITE
+                spriteCount * DYNAMIC_COMPONENTS_PER_SPRITE,
             ),
-            dstOffset = dynamicOffset
+            dstOffset = dynamicOffset,
         )
 
         spriteIndices.remove(id)
@@ -440,7 +440,7 @@ class SpriteCache(val device: Device, val format: TextureFormat, size: Int = 100
             staticData[staticOffset + 8],
             staticData[staticOffset + 9],
             staticData[staticOffset + 10],
-            staticData[staticOffset + 11]
+            staticData[staticOffset + 11],
         )
 
         val dynamicOffset = index * DYNAMIC_COMPONENTS_PER_SPRITE
@@ -448,13 +448,13 @@ class SpriteCache(val device: Device, val format: TextureFormat, size: Int = 100
             dynamicData[dynamicOffset],
             dynamicData[dynamicOffset + 1],
             dynamicData[dynamicOffset + 2],
-            dynamicData[dynamicOffset + 3]
+            dynamicData[dynamicOffset + 3],
         )
     }
 
     private fun createRenderPipelineDescriptor(
         shader: Shader,
-        blendState: BlendState
+        blendState: BlendState,
     ): RenderPipelineDescriptor {
         return RenderPipelineDescriptor(
             layout = shader.pipelineLayout,
@@ -462,7 +462,7 @@ class SpriteCache(val device: Device, val format: TextureFormat, size: Int = 100
                 VertexState(
                     module = shader.shaderModule,
                     entryPoint = shader.vertexEntryPoint,
-                    buffer = mesh.geometry.layout.gpuVertexBufferLayout
+                    buffer = mesh.geometry.layout.gpuVertexBufferLayout,
                 ),
             fragment =
                 FragmentState(
@@ -472,13 +472,13 @@ class SpriteCache(val device: Device, val format: TextureFormat, size: Int = 100
                         ColorTargetState(
                             format = format,
                             blendState = blendState,
-                            writeMask = ColorWriteMask.ALL
-                        )
+                            writeMask = ColorWriteMask.ALL,
+                        ),
                 ),
             primitive = PrimitiveState(topology = PrimitiveTopology.TRIANGLE_LIST),
             depthStencil = null,
             multisample =
-                MultisampleState(count = 1, mask = 0xFFFFFFF, alphaToCoverageEnabled = false)
+                MultisampleState(count = 1, mask = 0xFFFFFFF, alphaToCoverageEnabled = false),
         )
     }
 

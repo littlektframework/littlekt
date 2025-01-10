@@ -32,7 +32,7 @@ class CommonVertexView(
         attributes.firstOrNull { it.usage == VertexAttrUsage.POSITION }?.let(::getVec3fAttribute)
             ?: Vec3fView(-1).also { logger.trace { "position view was not found." } }
 
-    /** The normals attribute vector view. */
+    /** The normal attribute vector view. */
     val normal: MutableVec3f =
         attributes.firstOrNull { it.usage == VertexAttrUsage.NORMAL }?.let(::getVec3fAttribute)
             ?: Vec3fView(-1).also { logger.trace { "normal view was not found." } }
@@ -44,7 +44,7 @@ class CommonVertexView(
 
     /** The uv texture coords attribute vector view. */
     val uv: MutableVec2f =
-        attributes.firstOrNull { it.usage == VertexAttrUsage.TEX_COORDS }?.let(::getVec2fAttribute)
+        attributes.firstOrNull { it.usage == VertexAttrUsage.UV }?.let(::getVec2fAttribute)
             ?: Vec2fView(-1).also { logger.trace { "texCoords view was not found." } }
 
     /** The joints attribute vector view. */
@@ -56,6 +56,11 @@ class CommonVertexView(
     val weights: MutableVec4f =
         attributes.firstOrNull { it.usage == VertexAttrUsage.WEIGHT }?.let(::getVec4fAttribute)
             ?: Vec4fView(-1).also { logger.trace { "weights view was not found." } }
+
+    /** The tangent attribute vector view. */
+    val tangent: MutableVec4f =
+        attributes.firstOrNull { it.usage == VertexAttrUsage.TANGENT }?.let(::getVec4fAttribute)
+            ?: Vec4fView(-1).also { logger.trace { "tangent view was not found." } }
 
     /**
      * Resets all view values to zero except for [color] which is set to all ones: `(1f, 1f, 1f,
