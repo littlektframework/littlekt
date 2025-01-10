@@ -2,16 +2,17 @@ package com.littlekt.graphics.g3d
 
 import com.littlekt.graphics.Camera
 import com.littlekt.graphics.g3d.util.CameraBuffers
+import kotlin.time.Duration
 import kotlinx.atomicfu.atomic
 
 /**
  * @author Colton Daily
  * @date 1/5/2025
  */
-open class Environment(val buffers: CameraBuffers) {
+open class Environment(open val buffers: CameraBuffers) {
     val id = nextId()
 
-    fun updateCameraBuffers(camera: Camera) = buffers.updateCameraUniform(camera)
+    open fun update(camera: Camera, dt: Duration) = buffers.update(camera, dt)
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

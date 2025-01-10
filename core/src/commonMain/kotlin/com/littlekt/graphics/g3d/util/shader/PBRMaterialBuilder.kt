@@ -68,7 +68,7 @@ class PBRMaterialBuilder : SubFragmentShaderBuilder() {
             // Need to do all the texture samples before any conditional discard statements.
             let base_color_map = textureSample(base_color_texture, base_color_sampler, input.uv);
             let metallic_roughness_map = textureSample(metallic_roughness_texture, metallic_roughness_sampler, input.uv);
-            let occlusion_map = textureSample(occlusion_texture, occlusionSampler, input.uv);
+            let occlusion_map = textureSample(occlusion_texture, occlusion_sampler, input.uv);
             let emissive_map = textureSample(emissive_texture, emissive_sampler, input.uv);
         
             surface.base_color = input.color * material.base_color_factor * base_color_map;
@@ -78,11 +78,11 @@ class PBRMaterialBuilder : SubFragmentShaderBuilder() {
             }
         
             surface.albedo = surface.base_color.rgb;
-            if (input.instanceColor.a == 0.0) {
-              surface.albedo = surface.albedo + input.instanceColor.rgb;
-            } else {
-              surface.albedo = surface.albedo * input.instanceColor.rgb;
-            }
+//            if (input.instanceColor.a == 0.0) {
+//              surface.albedo = surface.albedo + input.instanceColor.rgb;
+//            } else {
+//              surface.albedo = surface.albedo * input.instanceColor.rgb;
+//            }
         
             surface.metallic = material.metallic_roughness_factor.x * metallic_roughness_map.b;
             surface.roughness = material.metallic_roughness_factor.y * metallic_roughness_map.g;
@@ -221,21 +221,21 @@ class PBRMaterialBuilder : SubFragmentShaderBuilder() {
                 var Lo = vec3(0.0, 0.0, 0.0);
             
                 // Process the directional light if one is present
-                if (globalLights.dirIntensity > 0.0) {
+                if (global_lights.dir_intensity > 0.0) {
                   var light : PunctualLight;
                   light.lightType = LightType_Directional;
-                  light.pointToLight = globalLights.dirDirection;
-                  light.color = globalLights.dirColor;
-                  light.intensity = globalLights.dirIntensity;
+                  light.pointToLight = global_lights.dir_direction;
+                  light.color = global_lights.dir_color;
+                  light.intensity = global_lights.dir_intensity;
             
-                  ${if(shadowsEnabled) "let lightVis = dirLightVisibility(input.worldPos);" else "let lightVis = 1.0;"}
+                  ${if(shadowsEnabled) "let lightVis = dirLightVisibility(input.world_pos);" else "let lightVis = 1.0;"}
             
                   // calculate per-light radiance and add to outgoing radiance Lo
                   Lo = Lo + lightRadiance(light, surface) * lightVis;
                 }
             
                 // Process each other light in the scene.
-                let clusterIndex = getClusterIndex(input.position);
+                let clusterIndex = get_cluster_index(input.position);
                 let lightOffset  = clusterLights.lights[clusterIndex].offset;
                 let lightCount   = clusterLights.lights[clusterIndex].count;
             
@@ -244,23 +244,25 @@ class PBRMaterialBuilder : SubFragmentShaderBuilder() {
             
                   var light : PunctualLight;
                   light.lightType = LightType_Point;
-                  light.pointToLight = globalLights.lights[i].position.xyz - input.worldPos;
-                  light.range = globalLights.lights[i].range;
-                  light.color = globalLights.lights[i].color;
-                  light.intensity = globalLights.lights[i].intensity;
+                  light.pointToLight = global_lights.lights[i].position.xyz - input.world_pos;
+                  light.range = global_lights.lights[i].range;
+                  light.color = global_lights.lights[i].color;
+                  light.intensity = global_lights.lights[i].intensity;
             
-                  ${if(shadowsEnabled) "let lightVis = pointLightVisibility(i, input.worldPos, light.pointToLight);" else "let lightVis = 1.0;"}
+                  ${if(shadowsEnabled) "let lightVis = pointLightVisibility(i, input.world_pos, light.pointToLight);" else "let lightVis = 1.0;"}
             
                   // calculate per-light radiance and add to outgoing radiance Lo
                   Lo = Lo + lightRadiance(light, surface) * lightVis;
                 }
             
-                let ambient = globalLights.ambient * surface.albedo * surface.ao;
-                let color = linearTosRGB(Lo + ambient + surface.emissive);
+                let ambient = global_lights.ambient * surface.albedo * surface.ao;
+                let color = linear_to_sRGB(Lo + ambient + surface.emissive);
             
                 var out : FragmentOutput;
-                out.color = vec4(color, surface.baseColor.a);
-                ${if(bloomEnabled) "out.emissive = vec4(surface.emissive, surface.baseColor.a);" else ""}
+                out.color = vec4(color, surface.base_color.a);
+                ${if(bloomEnabled) "out.emissive = vec4(surface.emissive, surface.base_color.a);" else ""}
+                
+                return out;
             };
         """
     }

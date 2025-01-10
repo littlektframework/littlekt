@@ -14,26 +14,32 @@ class PBRShader(
     layout: List<VertexAttribute>,
     vertexEntryPoint: String = "vs_main",
     fragmentEntryPoint: String = "fs_main",
-    vertexSrc: String = buildCommonShader {
-        vertex {
-            vertexInput(layout)
-            vertexOutput(layout)
-            cameraWithLights(0, 0)
-            model(1, 0)
-            skin(2)
-            main(layout, entryPoint = vertexEntryPoint)
-        }
-    },
-    fragmentSrc: String = buildCommonShader {
-        fragment {
-            pbr {
-                light(0, 1)
-                material(2)
-                surfaceInfo(layout)
-                main()
+    vertexSrc: String =
+        buildCommonShader {
+                vertex {
+                    vertexInput(layout)
+                    vertexOutput(layout)
+                    cameraWithLights(0, 0)
+                    model(1, 0)
+                    skin(2)
+                    main(layout, cameraViewProjCombined = false, entryPoint = vertexEntryPoint)
+                }
             }
-        }
-    },
+            .also { println(it) },
+    fragmentSrc: String =
+        buildCommonShader {
+                fragment {
+                    pbr {
+                        light(0, 1)
+                        clusterLights(0, 2)
+                        material(2)
+                        tileFunctions()
+                        surfaceInfo(layout)
+                        main()
+                    }
+                }
+            }
+            .also { println(it) },
     bindGroupLayout: List<BindGroupLayoutDescriptor> =
         listOf(
             BindGroupLayoutDescriptor(

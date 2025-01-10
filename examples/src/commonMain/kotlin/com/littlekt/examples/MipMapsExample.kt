@@ -115,7 +115,7 @@ class MipMapsExample(context: Context) : ContextListener(context) {
         }
 
         addFlyController(camera, 0.1f)
-        onUpdate {
+        onUpdate { dt ->
             val surfaceTexture = graphics.surface.getCurrentTexture()
             when (val status = surfaceTexture.status) {
                 TextureStatus.SUCCESS -> {
@@ -167,7 +167,7 @@ class MipMapsExample(context: Context) : ContextListener(context) {
                 )
             camera.update()
             modelBatch.render(grid, environment)
-            modelBatch.flush(renderPassEncoder, camera)
+            modelBatch.flush(renderPassEncoder, camera, dt)
             renderPassEncoder.end()
             renderPassEncoder.release()
 

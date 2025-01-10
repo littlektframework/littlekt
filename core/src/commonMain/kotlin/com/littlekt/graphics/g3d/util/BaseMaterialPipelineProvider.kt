@@ -4,12 +4,14 @@ import com.littlekt.graphics.VertexBufferLayout
 import com.littlekt.graphics.g3d.Environment
 import com.littlekt.graphics.g3d.material.Material
 import com.littlekt.graphics.webgpu.*
+import kotlin.reflect.KClass
 
 /**
  * @author Colton Daily
  * @date 12/8/2024
  */
 abstract class BaseMaterialPipelineProvider<T : Material> : MaterialPipelineProvider {
+    abstract val type: KClass<T>
     private val pipelines = mutableMapOf<RenderInfo, MaterialPipeline>()
     private var renderInfo = RenderInfo()
 
@@ -23,7 +25,6 @@ abstract class BaseMaterialPipelineProvider<T : Material> : MaterialPipelineProv
         colorFormat: TextureFormat,
         depthFormat: TextureFormat,
     ): MaterialPipeline? {
-        @Suppress("UNCHECKED_CAST", "NAME_SHADOWING") val material = material as? T ?: return null
         renderInfo.apply {
             reset()
             this.environment = environment
@@ -35,13 +36,14 @@ abstract class BaseMaterialPipelineProvider<T : Material> : MaterialPipelineProv
         if (pipelines.contains(renderInfo)) {
             return pipelines[renderInfo]
         } else {
+            @Suppress("UNCHECKED_CAST")
             val pipeline =
                 createMaterialPipeline(
                     device,
                     environment,
                     layout,
                     topology,
-                    material,
+                    material as T,
                     colorFormat,
                     depthFormat,
                 )

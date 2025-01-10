@@ -3,6 +3,8 @@ package com.littlekt.graphics.g3d.util
 import com.littlekt.file.FloatBuffer
 import com.littlekt.graphics.Camera
 import com.littlekt.graphics.webgpu.*
+import com.littlekt.util.seconds
+import kotlin.time.Duration
 
 /**
  * @author Colton Daily
@@ -47,12 +49,18 @@ class CameraLightBuffers(
             )
         )
 
-    // todo update to use all required camera fields (near, far, etc)
-    override fun updateCameraUniform(camera: Camera) =
-        device.queue.writeBuffer(
-            cameraUniformBuffer,
-            camera.viewProjection.toBuffer(camFloatBuffer),
-        )
+    override fun update(camera: Camera, dt: Duration) {
+        camFloatBuffer.put(camera.projection.data, 0)
+        camFloatBuffer.put(camera.invProj.data, 16 * Float.SIZE_BYTES)
+        camFloatBuffer.put(camera.view.data, 32 * Float.SIZE_BYTES)
+        camFloatBuffer.put(camera.position.fields, 48 * Float.SIZE_BYTES)
+        camFloatBuffer[51 * Float.SIZE_BYTES] = dt.seconds
+        camFloatBuffer[52 * Float.SIZE_BYTES] = camera.virtualWidth
+        camFloatBuffer[53 * Float.SIZE_BYTES] = camera.virtualHeight
+        camFloatBuffer[54 * Float.SIZE_BYTES] = camera.near
+        camFloatBuffer[55 * Float.SIZE_BYTES] = camera.far
+        device.queue.writeBuffer(cameraUniformBuffer, camFloatBuffer)
+    }
 
     override fun release() {
         cameraUniformBuffer.release()

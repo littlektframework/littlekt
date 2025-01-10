@@ -4,6 +4,7 @@ import com.littlekt.Releasable
 import com.littlekt.graphics.Camera
 import com.littlekt.graphics.webgpu.BindGroup
 import com.littlekt.graphics.webgpu.BufferBinding
+import kotlin.time.Duration
 
 /**
  * @author Colton Daily
@@ -14,5 +15,5 @@ interface CameraBuffers : Releasable {
 
     val bindGroup: BindGroup
 
-    fun updateCameraUniform(camera: Camera)
+    fun update(camera: Camera, dt: Duration)
 }

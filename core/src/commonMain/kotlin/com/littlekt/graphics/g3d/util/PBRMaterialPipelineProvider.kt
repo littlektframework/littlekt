@@ -5,12 +5,14 @@ import com.littlekt.graphics.g3d.Environment
 import com.littlekt.graphics.g3d.material.PBRMaterial
 import com.littlekt.graphics.g3d.shader.PBRShader
 import com.littlekt.graphics.webgpu.*
+import kotlin.reflect.KClass
 
 /**
  * @author Colton Daily
  * @date 12/12/2024
  */
 class PBRMaterialPipelineProvider : BaseMaterialPipelineProvider<PBRMaterial>() {
+    override val type: KClass<PBRMaterial> = PBRMaterial::class
 
     override fun createMaterialPipeline(
         device: Device,

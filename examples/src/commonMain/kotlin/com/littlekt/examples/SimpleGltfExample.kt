@@ -2,7 +2,7 @@ package com.littlekt.examples
 
 import com.littlekt.Context
 import com.littlekt.ContextListener
-import com.littlekt.file.gltf.GltfModelUnlitConfig
+import com.littlekt.file.gltf.GltfModelPbrConfig
 import com.littlekt.file.gltf.toModel
 import com.littlekt.file.vfs.TextureOptions
 import com.littlekt.file.vfs.readGltf
@@ -11,9 +11,11 @@ import com.littlekt.graphics.Color
 import com.littlekt.graphics.PerspectiveCamera
 import com.littlekt.graphics.fullIndexedMesh
 import com.littlekt.graphics.g3d.ModelBatch
+import com.littlekt.graphics.g3d.PBREnvironment
 import com.littlekt.graphics.g3d.UnlitEnvironment
 import com.littlekt.graphics.g3d.VisualInstance
 import com.littlekt.graphics.g3d.material.UnlitMaterial
+import com.littlekt.graphics.g3d.util.PBRMaterialPipelineProvider
 import com.littlekt.graphics.g3d.util.UnlitMaterialPipelineProvider
 import com.littlekt.graphics.generate
 import com.littlekt.graphics.webgpu.*
@@ -35,6 +37,7 @@ class SimpleGltfExample(context: Context) : ContextListener(context) {
         val camera = PerspectiveCamera(graphics.width, graphics.height)
         camera.translate(0f, 25f, 150f)
         val environment = UnlitEnvironment(device)
+        val pbrEnvironment = PBREnvironment(device)
 
         val surfaceCapabilities = graphics.surfaceCapabilities
         val preferredFormat = graphics.preferredFormat
@@ -56,24 +59,24 @@ class SimpleGltfExample(context: Context) : ContextListener(context) {
         var depthFrame = depthTexture.createView()
         val models =
             listOf(
-                resourcesVfs["models/Duck.glb"]
-                    .readGltf()
-                    .toModel(config = GltfModelUnlitConfig())
-                    .apply {
-                        scale(20f)
-                        translate(-30f, 0f, 0f)
-                    },
-                resourcesVfs["models/Fox.glb"]
-                    .readGltf()
-                    .toModel(config = GltfModelUnlitConfig())
-                    .apply { translate(30f, 0f, 0f) },
+                //                resourcesVfs["models/Duck.glb"]
+                //                    .readGltf()
+                //                    .toModel(config = GltfModelUnlitConfig())
+                //                    .apply {
+                //                        scale(20f)
+                //                        translate(-30f, 0f, 0f)
+                //                    },
+                //                resourcesVfs["models/Fox.glb"]
+                //                    .readGltf()
+                //                    .toModel(config = GltfModelUnlitConfig())
+                //                    .apply { translate(30f, 0f, 0f) },
                 resourcesVfs["models/flighthelmet/FlightHelmet.gltf"]
                     .readGltf()
-                    .toModel(config = GltfModelUnlitConfig())
+                    .toModel(config = GltfModelPbrConfig())
                     .apply {
                         scale(200f)
                         translate(90f, 0f, 0f)
-                    },
+                    }
             )
 
         val checkered =
@@ -108,6 +111,7 @@ class SimpleGltfExample(context: Context) : ContextListener(context) {
         val modelBatch =
             ModelBatch(device).apply {
                 addPipelineProvider(UnlitMaterialPipelineProvider())
+                addPipelineProvider(PBRMaterialPipelineProvider())
                 colorFormat = preferredFormat
                 this.depthFormat = depthFormat
             }
@@ -152,7 +156,7 @@ class SimpleGltfExample(context: Context) : ContextListener(context) {
                 model.update(dt)
             }
         }
-        onUpdate {
+        onUpdate { dt ->
             val surfaceTexture = graphics.surface.getCurrentTexture()
             when (val status = surfaceTexture.status) {
                 TextureStatus.SUCCESS -> {
@@ -205,9 +209,9 @@ class SimpleGltfExample(context: Context) : ContextListener(context) {
                         )
                 )
 
-            models.forEach { model -> modelBatch.render(model, environment) }
+            models.forEach { model -> modelBatch.render(model, pbrEnvironment) }
             modelBatch.render(grid, environment)
-            modelBatch.flush(renderPassEncoder, camera)
+            modelBatch.flush(renderPassEncoder, camera, dt)
             renderPassEncoder.end()
             renderPassEncoder.release()
 

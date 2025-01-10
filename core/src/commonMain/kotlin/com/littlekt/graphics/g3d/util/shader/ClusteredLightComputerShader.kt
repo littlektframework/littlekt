@@ -7,13 +7,13 @@ import com.littlekt.graphics.webgpu.MemoryAccessMode
  * @date 1/5/2025
  */
 class ClusteredLightComputerShader(
-    tileCountX: Int = DEFAULT_TILE_COUNT_X,
-    tileCountY: Int = DEFAULT_TILE_COUNT_Y,
-    tileCountZ: Int = DEFAULT_TILE_COUNT_Z,
+    tileCountX: Int = CommonSubShaderFunctions.DEFAULT_TILE_COUNT_X,
+    tileCountY: Int = CommonSubShaderFunctions.DEFAULT_TILE_COUNT_Y,
+    tileCountZ: Int = CommonSubShaderFunctions.DEFAULT_TILE_COUNT_Z,
     workGroupSizeX: Int = DEFAULT_WORK_GROUP_SIZE_X,
     workGroupSizeY: Int = DEFAULT_WORK_GROUP_SIZE_Y,
     workGroupSizeZ: Int = DEFAULT_WORK_GROUP_SIZE_Z,
-    maxLightsPerCluster: Int = DEFAULT_MAX_LIGHTS_PER_CLUSTER,
+    maxLightsPerCluster: Int = CommonSubShaderFunctions.DEFAULT_MAX_LIGHTS_PER_CLUSTER,
 ) :
     ClusteredComputeShaderBuilder(
         tileCountX,
@@ -51,21 +51,21 @@ class ClusteredLightComputerShader(
                }
 
                @compute @workgroup_size(${workGroupSizeX}, ${workGroupSizeY}, ${workGroupSizeZ})
-               fn computeMain(@builtin(global_invocation_id) global_id : vec3<u32>) {
+               fn $entryPoint(@builtin(global_invocation_id) global_id : vec3<u32>) {
                  let tileIndex = global_id.x +
-                                 global_id.y * tileCount.x +
-                                 global_id.z * tileCount.x * tileCount.y;
+                                 global_id.y * tile_count.x +
+                                 global_id.z * tile_count.x * tile_count.y;
 
                  // TODO: Look into improving threading using local invocation groups?
                  var clusterLightCount = 0u;
                  var cluserLightIndices : array<u32, ${maxLightsPerCluster}>;
-                 for (var i = 0u; i < globalLights.lightCount; i = i + 1u) {
-                   let range = globalLights.lights[i].range;
+                 for (var i = 0u; i < global_lights.light_count; i = i + 1u) {
+                   let range = global_lights.lights[i].range;
                    // Lights without an explicit range affect every cluster, but this is a poor way to handle that.
                    var lightInCluster : bool = range <= 0.0;
 
                    if (!lightInCluster) {
-                     let lightViewPos = camera.view * vec4(globalLights.lights[i].position, 1.0);
+                     let lightViewPos = camera.view * vec4(global_lights.lights[i].position, 1.0);
                      let sqDist = sqDistPointAABB(lightViewPos.xyz, clusters.bounds[tileIndex].minAABB, clusters.bounds[tileIndex].maxAABB);
                      lightInCluster = sqDist <= (range * range);
                    }

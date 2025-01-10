@@ -11,6 +11,7 @@ open class VertexShaderBuilder : SubShaderBuilder() {
 
     fun main(
         layout: List<VertexAttribute>,
+        cameraViewProjCombined: Boolean = true,
         skinned: Boolean = false,
         skinGroup: Int = 2,
         entryPoint: String = "vs_main",
@@ -19,6 +20,8 @@ open class VertexShaderBuilder : SubShaderBuilder() {
             skin(skinGroup)
             getSkinMatrix()
         }
+        val cameraViewProj =
+            if (cameraViewProjCombined) "camera.view_proj" else "camera.view * camera.proj"
         parts +=
             """
         @vertex
@@ -71,7 +74,7 @@ open class VertexShaderBuilder : SubShaderBuilder() {
             }
             let model_pos = model_matrix * input.position;
             output.world_pos = model_pos.xyz;
-            output.position = camera.view_proj * model_pos;
+            output.position = $cameraViewProj * model_pos;
             return output;
         }
     """

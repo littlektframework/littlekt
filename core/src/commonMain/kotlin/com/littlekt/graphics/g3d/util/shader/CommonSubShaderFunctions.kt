@@ -2,6 +2,7 @@ package com.littlekt.graphics.g3d.util.shader
 
 import com.littlekt.graphics.VertexAttrUsage
 import com.littlekt.graphics.VertexAttribute
+import com.littlekt.graphics.webgpu.MemoryAccessMode
 
 fun SubShaderBuilder.colorConversionFunctions(
     useApproximateSrgb: Boolean = true,
@@ -68,7 +69,7 @@ fun SubShaderBuilder.vertexOutput(attributes: List<VertexAttribute>) {
         struct VertexOutput {
             @builtin(position) position: vec4f,
             @location(0) world_pos: vec3f,
-            @location(1) normal: vec3f,
+            @location(1) view: vec3f,
             @location(2) uv: vec2f,
             @location(3) uv2: vec2f,
             @location(4) color: vec4f,
@@ -109,7 +110,7 @@ fun SubShaderBuilder.cameraWithLights(group: Int, binding: Int) {
         """
         struct Camera {
             proj: mat4x4f,
-            inv_proj: mat4x4f,
+            inverse_projection: mat4x4f,
             view: mat4x4f,
             position: vec3f,
             time: f32,
@@ -186,4 +187,101 @@ fun SubShaderBuilder.getSkinMatrix() {
           }
     """
             .trimIndent()
+}
+
+fun SubShaderBuilder.tileFunctions(
+    tileCountX: Int = CommonSubShaderFunctions.DEFAULT_TILE_COUNT_X,
+    tileCountY: Int = CommonSubShaderFunctions.DEFAULT_TILE_COUNT_Y,
+    tileCountZ: Int = CommonSubShaderFunctions.DEFAULT_TILE_COUNT_Z,
+) {
+    parts +=
+        """
+            const tile_count = vec3(${tileCountX}u, ${tileCountY}u, ${tileCountZ}u);
+
+            fn linear_depth(depth_sample : f32) -> f32 {
+              return camera.z_far * camera.z_near / fma(depth_sample, camera.z_near - camera.z_far, camera.z_far);
+            }
+            
+            fn get_tile(frag_coord : vec4<f32>) -> vec3<u32> {
+              // TODO: scale and bias calculation can be moved outside the shader to save cycles.
+              let sliceScale = f32(tile_count.z) / log2(camera.z_far / camera.z_near);
+              let sliceBias = -(f32(tile_count.z) * log2(camera.z_near) / log2(camera.z_far / camera.z_near));
+              let zTile = u32(max(log2(linear_depth(frag_coord.z)) * sliceScale + sliceBias, 0.0));
+            
+              return vec3(u32(frag_coord.x / (camera.output_size.x / f32(tile_count.x))),
+                          u32(frag_coord.y / (camera.output_size.y / f32(tile_count.y))),
+                          zTile);
+            }
+            
+            fn get_cluster_index(frag_coord : vec4<f32>) -> u32 {
+              let tile = get_tile(frag_coord);
+              return tile.x +
+                     tile.y * tile_count.x +
+                     tile.z * tile_count.x * tile_count.y;
+            }
+        """
+            .trimIndent()
+}
+
+/** Adds the `ClusterBounds` and `Clusters` structs with the storage buffer for `Clusters`. */
+fun SubShaderBuilder.cluster(
+    group: Int,
+    binding: Int,
+    tileCountX: Int = CommonSubShaderFunctions.DEFAULT_TILE_COUNT_X,
+    tileCountY: Int = CommonSubShaderFunctions.DEFAULT_TILE_COUNT_Y,
+    tileCountZ: Int = CommonSubShaderFunctions.DEFAULT_TILE_COUNT_Z,
+    access: MemoryAccessMode = MemoryAccessMode.READ,
+) {
+    val totalTiles = tileCountX * tileCountY * tileCountZ
+    parts +=
+        """
+              struct ClusterBounds {
+                minAABB : vec3<f32>,
+                maxAABB : vec3<f32>,
+              };
+              struct Clusters {
+                bounds : array<ClusterBounds, ${totalTiles}>
+              };
+              @group(${group}) @binding(${binding}) 
+              var<storage, ${access.value}> clusters : Clusters;
+        """
+            .trimIndent()
+}
+
+/**
+ * Adds the `Clusterlights` and `ClusterlightGroup` structs with the `ClusterlightGroup` storage
+ * buffer.
+ */
+fun SubShaderBuilder.clusterLights(
+    group: Int,
+    binding: Int,
+    tileCountX: Int = CommonSubShaderFunctions.DEFAULT_TILE_COUNT_X,
+    tileCountY: Int = CommonSubShaderFunctions.DEFAULT_TILE_COUNT_Y,
+    tileCountZ: Int = CommonSubShaderFunctions.DEFAULT_TILE_COUNT_Z,
+    maxLightsPerCluster: Int = CommonSubShaderFunctions.DEFAULT_MAX_LIGHTS_PER_CLUSTER,
+    access: MemoryAccessMode = MemoryAccessMode.READ,
+) {
+    val totalTiles = tileCountX * tileCountY * tileCountZ
+    parts +=
+        """
+              struct ClusterLights {
+                offset : u32,
+                count : u32,
+              };
+              struct ClusterLightGroup {
+                offset : ${if(access == MemoryAccessMode.READ) "u32" else "atomic<u32>"},
+                lights : array<ClusterLights, ${totalTiles}>,
+                indices : array<u32, ${maxLightsPerCluster}>,
+              };
+              @group(${group}) @binding(${binding}) 
+              var<storage, ${access.value}> clusterLights : ClusterLightGroup;
+        """
+            .trimIndent()
+}
+
+object CommonSubShaderFunctions {
+    const val DEFAULT_TILE_COUNT_X = 32
+    const val DEFAULT_TILE_COUNT_Y = 18
+    const val DEFAULT_TILE_COUNT_Z = 48
+    const val DEFAULT_MAX_LIGHTS_PER_CLUSTER = 256
 }

@@ -2,12 +2,10 @@ package com.littlekt.graphics.g3d.util
 
 import com.littlekt.Releasable
 import com.littlekt.file.IntBuffer
-import com.littlekt.graphics.g3d.util.shader.ClusteredComputeShaderBuilder.Companion.DEFAULT_TILE_COUNT_X
-import com.littlekt.graphics.g3d.util.shader.ClusteredComputeShaderBuilder.Companion.DEFAULT_TILE_COUNT_Y
-import com.littlekt.graphics.g3d.util.shader.ClusteredComputeShaderBuilder.Companion.DEFAULT_TILE_COUNT_Z
 import com.littlekt.graphics.g3d.util.shader.ClusteredComputeShaderBuilder.Companion.DEFAULT_WORK_GROUP_SIZE_X
 import com.littlekt.graphics.g3d.util.shader.ClusteredComputeShaderBuilder.Companion.DEFAULT_WORK_GROUP_SIZE_Y
 import com.littlekt.graphics.g3d.util.shader.ClusteredComputeShaderBuilder.Companion.DEFAULT_WORK_GROUP_SIZE_Z
+import com.littlekt.graphics.g3d.util.shader.CommonSubShaderFunctions
 import com.littlekt.graphics.webgpu.*
 import kotlin.math.ceil
 
@@ -17,9 +15,9 @@ import kotlin.math.ceil
  */
 class ClusterBuffers(
     val device: Device,
-    tileCountX: Int = DEFAULT_TILE_COUNT_X,
-    tileCountY: Int = DEFAULT_TILE_COUNT_Y,
-    tileCountZ: Int = DEFAULT_TILE_COUNT_Z,
+    tileCountX: Int = CommonSubShaderFunctions.DEFAULT_TILE_COUNT_X,
+    tileCountY: Int = CommonSubShaderFunctions.DEFAULT_TILE_COUNT_Y,
+    tileCountZ: Int = CommonSubShaderFunctions.DEFAULT_TILE_COUNT_Z,
     workGroupSizeX: Int = DEFAULT_WORK_GROUP_SIZE_X,
     workGroupSizeY: Int = DEFAULT_WORK_GROUP_SIZE_Y,
     workGroupSizeZ: Int = DEFAULT_WORK_GROUP_SIZE_Z,
@@ -28,12 +26,9 @@ class ClusterBuffers(
     private val maxClusteredLights = totalTiles * 64
     /** Cluster x, y, z, size * 32 bytes per cluster. */
     private val clusterBoundsSize = totalTiles * 32
-    val dispatchSize =
-        intArrayOf(
-            ceil((tileCountX / workGroupSizeX).toDouble()).toInt(),
-            ceil(tileCountY / workGroupSizeY.toDouble()).toInt(),
-            ceil(tileCountZ / workGroupSizeZ.toDouble()).toInt(),
-        )
+    val workGroupSizeX = ceil((tileCountX / workGroupSizeX).toDouble()).toInt()
+    val workGroupSizeY = ceil(tileCountY / workGroupSizeY.toDouble()).toInt()
+    val workGroupSizeZ = ceil(tileCountZ / workGroupSizeZ.toDouble()).toInt()
     private val clusterLightsSize = 4 + (8 * totalTiles) + (4 * maxClusteredLights)
 
     protected val emptyData = IntBuffer(1)

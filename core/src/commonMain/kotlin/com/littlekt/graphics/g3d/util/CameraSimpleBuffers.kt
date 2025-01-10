@@ -3,6 +3,7 @@ package com.littlekt.graphics.g3d.util
 import com.littlekt.file.FloatBuffer
 import com.littlekt.graphics.Camera
 import com.littlekt.graphics.webgpu.*
+import kotlin.time.Duration
 
 /**
  * @author Colton Daily
@@ -43,7 +44,7 @@ class CameraSimpleBuffers(val device: Device) : CameraBuffers {
             )
         )
 
-    override fun updateCameraUniform(camera: Camera) =
+    override fun update(camera: Camera, dt: Duration) =
         device.queue.writeBuffer(
             cameraUniformBuffer,
             camera.viewProjection.toBuffer(camFloatBuffer),

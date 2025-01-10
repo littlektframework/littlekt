@@ -1,9 +1,7 @@
 package com.littlekt.graphics.g3d.shader
 
 import com.littlekt.graphics.g3d.util.CameraLightBuffers
-import com.littlekt.graphics.g3d.util.shader.buildCommonShader
-import com.littlekt.graphics.g3d.util.shader.cameraWithLights
-import com.littlekt.graphics.g3d.util.shader.light
+import com.littlekt.graphics.g3d.util.shader.*
 import com.littlekt.graphics.shader.Shader
 import com.littlekt.graphics.webgpu.*
 
@@ -16,14 +14,13 @@ import com.littlekt.graphics.webgpu.*
  */
 class ClusterLightsShader(
     device: Device,
-    val cameraBuffers: CameraLightBuffers,
     computeEntryPoint: String = "cmp_main",
     computeSrc: String = buildCommonShader {
         compute {
             clusteredLight {
                 cameraWithLights(0, 0)
-                cluster(0, 1, MemoryAccessMode.READ)
-                clusterLights(0, 2, MemoryAccessMode.READ_WRITE)
+                cluster(0, 1, access = MemoryAccessMode.READ)
+                clusterLights(0, 2, access = MemoryAccessMode.READ_WRITE)
                 light(0, 3)
                 tileFunctions()
                 main(computeEntryPoint)
@@ -63,31 +60,4 @@ class ClusterLightsShader(
         src = computeSrc,
         layout = bindGroupLayout,
         computeEntryPoint = computeEntryPoint,
-    ) {
-
-    override fun MutableList<BindGroup>.createBindGroupsInternal(data: Map<String, Any>) {
-        add(
-            device.createBindGroup(
-                BindGroupDescriptor(
-                    layouts[0],
-                    listOf(
-                        BindGroupEntry(0, cameraBuffers.cameraUniformBufferBinding),
-                        BindGroupEntry(
-                            1,
-                            cameraBuffers.clusterBuffers.clusterBoundsStorageBufferBinding,
-                        ),
-                        BindGroupEntry(
-                            2,
-                            cameraBuffers.clusterBuffers.clusterLightsStorageBufferBinding,
-                        ),
-                        BindGroupEntry(3, cameraBuffers.lightBuffer.bufferBinding),
-                    ),
-                )
-            )
-        )
-    }
-
-    override fun release() {
-        super.release()
-    }
-}
+    )

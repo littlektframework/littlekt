@@ -5,12 +5,14 @@ import com.littlekt.graphics.g3d.Environment
 import com.littlekt.graphics.g3d.material.UnlitMaterial
 import com.littlekt.graphics.g3d.shader.UnlitShader
 import com.littlekt.graphics.webgpu.*
+import kotlin.reflect.KClass
 
 /**
  * @author Colton Daily
  * @date 12/12/2024
  */
 class UnlitMaterialPipelineProvider : BaseMaterialPipelineProvider<UnlitMaterial>() {
+    override val type: KClass<UnlitMaterial> = UnlitMaterial::class
 
     override fun createMaterialPipeline(
         device: Device,

@@ -2,18 +2,23 @@ package com.littlekt.graphics.g3d
 
 import com.littlekt.Releasable
 import com.littlekt.graphics.Camera
+import com.littlekt.graphics.g3d.material.Material
+import com.littlekt.graphics.g3d.util.BaseMaterialPipelineProvider
 import com.littlekt.graphics.g3d.util.MaterialPipeline
 import com.littlekt.graphics.g3d.util.MaterialPipelineProvider
 import com.littlekt.graphics.g3d.util.MaterialPipelineSorter
 import com.littlekt.graphics.webgpu.*
 import com.littlekt.log.Logger
+import kotlin.reflect.KClass
+import kotlin.time.Duration
 
 /**
  * @author Colton Daily
  * @date 12/7/2024
  */
 class ModelBatch(val device: Device, size: Int = 128) : Releasable {
-    private val pipelineProviders = mutableSetOf<MaterialPipelineProvider>()
+    private val pipelineProviders: MutableMap<KClass<out Material>, MaterialPipelineProvider> =
+        mutableMapOf()
     private val pipelines = mutableListOf<MaterialPipeline>()
     private val instancesByPipeline = mutableMapOf<MaterialPipeline, MutableList<VisualInstance>>()
 
@@ -30,62 +35,64 @@ class ModelBatch(val device: Device, size: Int = 128) : Releasable {
     var colorFormat: TextureFormat = TextureFormat.RGBA8_UNORM
     var depthFormat: TextureFormat = TextureFormat.DEPTH24_PLUS_STENCIL8
 
-    fun addPipelineProvider(provider: MaterialPipelineProvider) {
-        pipelineProviders += provider
+    inline fun <reified T : Material> addPipelineProvider(provider: MaterialPipelineProvider) =
+        addPipelineProvider(T::class, provider)
+
+    fun <T : Material> addPipelineProvider(type: KClass<T>, provider: MaterialPipelineProvider) {
+        !pipelineProviders.containsKey(type) ||
+            error("MaterialProvider already registered to type: $type")
+        pipelineProviders[type] = provider
     }
 
-    fun removePipelineProvider(provider: MaterialPipelineProvider) {
-        pipelineProviders -= provider
-    }
+    inline fun <reified T : Material> removePipelineProvider(): T? =
+        removePipelineProvider(T::class)
+
+    @Suppress("UNCHECKED_CAST")
+    fun <T : Material> removePipelineProvider(type: KClass<T>): T? =
+        pipelineProviders.remove(type) as T?
+
+    fun addPipelineProvider(provider: BaseMaterialPipelineProvider<*>) =
+        addPipelineProvider(provider.type, provider)
+
+    fun removePipelineProvider(provider: BaseMaterialPipelineProvider<*>) =
+        removePipelineProvider(provider.type)
 
     fun render(model: Model, environment: Environment) {
         model.meshes.values.forEach { render(it, environment) }
     }
 
     fun render(instance: VisualInstance, environment: Environment) {
-        run getPipeline@{
-            var pipelineFound = false
-            pipelineProviders.forEach { pipelineProvider ->
-                val pipeline =
-                    pipelineProvider.getMaterialPipeline(
-                        device,
-                        instance.material,
-                        environment,
-                        instance.mesh.geometry.layout,
-                        instance.topology,
-                        instance.stripIndexFormat,
-                        colorFormat,
-                        depthFormat,
-                    )
-                if (pipeline != null) {
-                    pipelineFound = true
-                    if (!pipelines.contains(pipeline)) {
-                        pipelines += pipeline
-                    }
-                    // todo - pool lists?
-                    instancesByPipeline
-                        .getOrPut(pipeline) { mutableListOf() }
-                        .apply { add(instance) }
+        val pipeline =
+            pipelineProviders[instance.material::class]?.getMaterialPipeline(
+                device,
+                instance.material,
+                environment,
+                instance.mesh.geometry.layout,
+                instance.topology,
+                instance.stripIndexFormat,
+                colorFormat,
+                depthFormat,
+            ) ?: error("Unable to find pipeline for given instance!")
+        if (!pipelines.contains(pipeline)) {
+            pipelines += pipeline
+        }
+        // todo - pool lists?
+        instancesByPipeline.getOrPut(pipeline) { mutableListOf() }.apply { add(instance) }
 
-                    bindGroupsByMaterial.getOrPut(instance.material.id) {
-                        listOf(environment.buffers.bindGroup) +
-                            instance.material.createBindGroups(pipeline.shader.layouts)
-                    }
-                    return@getPipeline
-                }
-            }
-            if (!pipelineFound) error("Unable to find pipeline for given meshNode!")
+        bindGroupsByMaterial.getOrPut(instance.material.id) {
+            listOf(environment.buffers.bindGroup) +
+                instance.material.createBindGroups(pipeline.shader.layouts)
         }
     }
 
-    fun flush(renderPassEncoder: RenderPassEncoder, camera: Camera) {
+    fun flush(renderPassEncoder: RenderPassEncoder, camera: Camera, dt: Duration) {
         sorter.sort(pipelines)
 
         pipelines.forEach { pipeline ->
             // we only need to update the camera buffers in each environment once. So if we are
             // sharing environment, just update the first instance of it.
             if (updatedEnvironments.add(pipeline.environment.id)) {
-                pipeline.environment.updateCameraBuffers(camera)
+                pipeline.environment.update(camera, dt)
             }
             val visualInstances = instancesByPipeline[pipeline]
             if (!visualInstances.isNullOrEmpty()) {
@@ -128,7 +135,7 @@ class ModelBatch(val device: Device, size: Int = 128) : Releasable {
     }
 
     override fun release() {
-        pipelineProviders.forEach { it.release() }
+        pipelineProviders.values.forEach { it.release() }
         bindGroupsByMaterial.values.forEach { bindGroups -> bindGroups.forEach { it.release() } }
     }
 

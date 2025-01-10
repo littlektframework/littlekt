@@ -3,6 +3,7 @@ package com.littlekt.graphics.g3d.shader
 import com.littlekt.graphics.g3d.util.CameraLightBuffers
 import com.littlekt.graphics.g3d.util.shader.buildCommonShader
 import com.littlekt.graphics.g3d.util.shader.cameraWithLights
+import com.littlekt.graphics.g3d.util.shader.cluster
 import com.littlekt.graphics.shader.Shader
 import com.littlekt.graphics.webgpu.*
 
@@ -15,13 +16,12 @@ import com.littlekt.graphics.webgpu.*
  */
 class ClusterBoundsShader(
     device: Device,
-    val cameraBuffers: CameraLightBuffers,
     computeEntryPoint: String = "cmp_main",
     computeSrc: String = buildCommonShader {
         compute {
             clusteredBounds {
                 cameraWithLights(0, 0)
-                cluster(1, 0, MemoryAccessMode.READ_WRITE)
+                cluster(1, 0, access = MemoryAccessMode.READ_WRITE)
                 main(computeEntryPoint)
             }
         }
@@ -51,34 +51,4 @@ class ClusterBoundsShader(
         src = computeSrc,
         layout = bindGroupLayout,
         computeEntryPoint = computeEntryPoint,
-    ) {
-
-    override fun MutableList<BindGroup>.createBindGroupsInternal(data: Map<String, Any>) {
-        add(
-            device.createBindGroup(
-                BindGroupDescriptor(
-                    layouts[0],
-                    listOf(BindGroupEntry(0, cameraBuffers.cameraUniformBufferBinding)),
-                )
-            )
-        )
-
-        add(
-            device.createBindGroup(
-                BindGroupDescriptor(
-                    layouts[0],
-                    listOf(
-                        BindGroupEntry(
-                            0,
-                            cameraBuffers.clusterBuffers.clusterBoundsStorageBufferBinding,
-                        )
-                    ),
-                )
-            )
-        )
-    }
-
-    override fun release() {
-        super.release()
-    }
-}
+    )
