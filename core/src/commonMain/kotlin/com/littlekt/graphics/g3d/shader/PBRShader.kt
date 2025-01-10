@@ -14,38 +14,50 @@ class PBRShader(
     layout: List<VertexAttribute>,
     vertexEntryPoint: String = "vs_main",
     fragmentEntryPoint: String = "fs_main",
-    vertexSrc: String =
-        buildCommonShader {
-                vertex {
-                    vertexInput(layout)
-                    vertexOutput(layout)
-                    cameraWithLights(0, 0)
-                    model(1, 0)
-                    skin(2)
-                    main(layout, cameraViewProjCombined = false, entryPoint = vertexEntryPoint)
-                }
+    vertexSrc: String = buildCommonShader {
+        vertex {
+            vertexInput(layout)
+            vertexOutput(layout)
+            cameraWithLights(0, 0)
+            model(1, 0)
+            skin(2)
+            main(layout, cameraViewProjCombined = false, entryPoint = vertexEntryPoint)
+        }
+    },
+    fragmentSrc: String = buildCommonShader {
+        fragment {
+            pbr {
+                light(0, 1)
+                clusterLights(0, 2)
+                material(2)
+                tileFunctions()
+                surfaceInfo(layout)
+                main()
             }
-            .also { println(it) },
-    fragmentSrc: String =
-        buildCommonShader {
-                fragment {
-                    pbr {
-                        light(0, 1)
-                        clusterLights(0, 2)
-                        material(2)
-                        tileFunctions()
-                        surfaceInfo(layout)
-                        main()
-                    }
-                }
-            }
-            .also { println(it) },
+        }
+    },
     bindGroupLayout: List<BindGroupLayoutDescriptor> =
         listOf(
             BindGroupLayoutDescriptor(
                 listOf(
                     // camera
-                    BindGroupLayoutEntry(0, ShaderStage.VERTEX, BufferBindingLayout())
+                    BindGroupLayoutEntry(
+                        0,
+                        ShaderStage.VERTEX or ShaderStage.FRAGMENT,
+                        BufferBindingLayout(),
+                    ),
+                    // light
+                    BindGroupLayoutEntry(
+                        1,
+                        ShaderStage.FRAGMENT,
+                        BufferBindingLayout(type = BufferBindingType.READ_ONLY_STORAGE),
+                    ),
+                    // cluster lights
+                    BindGroupLayoutEntry(
+                        2,
+                        ShaderStage.FRAGMENT or ShaderStage.COMPUTE,
+                        BufferBindingLayout(type = BufferBindingType.READ_ONLY_STORAGE),
+                    ),
                 )
             ),
             BindGroupLayoutDescriptor(

@@ -18,9 +18,9 @@ class CameraLightBuffers(
     private val camFloatBuffer = FloatBuffer(BUFFER_SIZE) // 56 floats required
 
     /**
-     * The [GPUBuffer] that holds the camera view-projection matrix data.
+     * The [GPUBuffer] that holds the camera data.
      *
-     * @see updateCameraUniform
+     * @see update
      */
     val cameraUniformBuffer =
         device.createGPUFloatBuffer(
@@ -41,11 +41,27 @@ class CameraLightBuffers(
                     BindGroupLayoutDescriptor(
                         listOf(
                             // camera
-                            BindGroupLayoutEntry(0, ShaderStage.VERTEX, BufferBindingLayout())
+                            BindGroupLayoutEntry(0, ShaderStage.VERTEX, BufferBindingLayout()),
+                            // light
+                            BindGroupLayoutEntry(
+                                1,
+                                ShaderStage.FRAGMENT,
+                                BufferBindingLayout(type = BufferBindingType.READ_ONLY_STORAGE),
+                            ),
+                            // cluster lights
+                            BindGroupLayoutEntry(
+                                2,
+                                ShaderStage.FRAGMENT or ShaderStage.COMPUTE,
+                                BufferBindingLayout(type = BufferBindingType.READ_ONLY_STORAGE),
+                            ),
                         )
                     )
                 ),
-                listOf(BindGroupEntry(0, cameraUniformBufferBinding)),
+                listOf(
+                    BindGroupEntry(0, cameraUniformBufferBinding),
+                    BindGroupEntry(1, lightBuffer.bufferBinding),
+                    BindGroupEntry(2, clusterBuffers.clusterLightsStorageBufferBinding),
+                ),
             )
         )
 

@@ -53,17 +53,17 @@ class PBRMaterialBuilder : SubFragmentShaderBuilder() {
             var surface : SurfaceInfo;
             surface.v = normalize(input.view);
         
-        ${
-            if (attributes.any { it.usage == VertexAttrUsage.TANGENT }) {
-                """
-                let tbn = mat3x3 (input.tangent, input.bitangent, input.normal);
-                let N = textureSample (normal_texture, normal_sampler, input.uv).rgb;
-                surface.normal = normalize(tbn * (2.0 * N - vec3(1.0)));
-                """
-            } else {
-                "surface.normal = normalize(input.normal);"
+            ${
+                if (attributes.any { it.usage == VertexAttrUsage.TANGENT }) {
+                    """
+                    let tbn = mat3x3 (input.tangent, input.bitangent, input.normal);
+                    let N = textureSample (normal_texture, normal_sampler, input.uv).rgb;
+                    surface.normal = normalize(tbn * (2.0 * N - vec3(1.0)));
+                    """
+                } else {
+                    "surface.normal = normalize(input.normal);"
+                }
             }
-        }
         
             // Need to do all the texture samples before any conditional discard statements.
             let base_color_map = textureSample(base_color_texture, base_color_sampler, input.uv);
