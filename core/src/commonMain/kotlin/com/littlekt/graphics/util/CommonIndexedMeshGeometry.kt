@@ -105,8 +105,10 @@ class CommonIndexedMeshGeometry(layout: VertexBufferLayout, size: Int = INITIAL_
     /**
      * Calculate the tangent vector if [layout] contains an attribute with the usage of
      * [VertexAttrUsage.TANGENT].
+     *
+     * @param handedness defaults to right-handed
      */
-    fun generateTangents(sign: Float = 1f) {
+    fun generateTangents(handedness: Float = 1f) {
         if (!layout.attributes.any { it.usage == VertexAttrUsage.TANGENT }) {
             logger.warn {
                 "Attempting to generate tangents on geometry that doesn't contain a tangent Attribute!"
@@ -157,7 +159,7 @@ class CommonIndexedMeshGeometry(layout: VertexBufferLayout, size: Int = INITIAL_
 
             if (v1.tangent.sqrLength() != 0f) {
                 v1.tangent.norm()
-                v1.tangent.w = sign
+                v1.tangent.w = handedness
             } else {
                 v1.tangent.set(Vec3f.X_AXIS)
             }
