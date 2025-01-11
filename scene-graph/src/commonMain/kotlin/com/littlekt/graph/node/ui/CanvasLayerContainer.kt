@@ -115,7 +115,7 @@ open class CanvasLayerContainer : Container() {
             fbos.forEach {
                 it.resizeFbo(
                     (width / shrink.toFloat()).toInt(),
-                    (height / shrink.toFloat()).toInt()
+                    (height / shrink.toFloat()).toInt(),
                 )
             }
             dirty = false
@@ -123,9 +123,11 @@ open class CanvasLayerContainer : Container() {
         fbos.forEach { fbo ->
             val target = fbo.target
             batch.draw(
-                target,
-                globalX - margin / shrink + offsetX,
-                globalY - margin / shrink + offsetY,
+                texture = target,
+                x = globalX - margin / shrink + offsetX - originX,
+                y = globalY - margin / shrink + offsetY - originY,
+                originX = originX,
+                originY = originY,
                 width =
                     if (stretch) width + margin * 2 / shrink
                     else target.width.toFloat() + margin * 2 / shrink,
@@ -134,7 +136,7 @@ open class CanvasLayerContainer : Container() {
                     else target.height.toFloat() + margin * 2 / shrink,
                 scaleX = globalScaleX,
                 scaleY = globalScaleY,
-                rotation = globalRotation
+                rotation = globalRotation,
             )
         }
     }
@@ -178,7 +180,7 @@ open class CanvasLayerContainer : Container() {
                 if (it is CanvasLayer) {
                     temp.scale(
                         1f / (width / it.virtualWidth) * shrink,
-                        1f / (height / it.virtualHeight) * shrink
+                        1f / (height / it.virtualHeight) * shrink,
                     )
                     it.propagateHit(temp.x, temp.y)
                 } else {
@@ -207,7 +209,7 @@ open class CanvasLayerContainer : Container() {
             if (it is CanvasLayer) {
                 temp.scale(
                     1f / (width / it.virtualWidth) * shrink,
-                    1f / (height / it.virtualHeight) * shrink
+                    1f / (height / it.virtualHeight) * shrink,
                 )
                 event.canvasX = temp.x
                 event.canvasY = temp.y
@@ -239,7 +241,7 @@ open class CanvasLayerContainer : Container() {
             if (it is CanvasLayer) {
                 temp.scale(
                     1f / (width / it.virtualWidth) * shrink,
-                    1f / (height / it.virtualHeight) * shrink
+                    1f / (height / it.virtualHeight) * shrink,
                 )
                 event.canvasX = temp.x
                 event.canvasY = temp.y

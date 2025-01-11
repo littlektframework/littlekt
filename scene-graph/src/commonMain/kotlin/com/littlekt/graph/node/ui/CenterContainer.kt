@@ -50,8 +50,8 @@ open class CenterContainer : Container() {
     override fun onSortChildren() {
         nodes.forEach {
             if (it is Control && it.enabled && !it.isDestroyed) {
-                val newX = floor((width - it.combinedMinWidth) * 0.5f)
-                val newY = floor((height - it.combinedMinHeight) * 0.5f)
+                val newX = floor((width - it.combinedMinWidth) * 0.5f) - originX
+                val newY = floor((height - it.combinedMinHeight) * 0.5f) - originY
                 fitChild(it, newX, newY, it.combinedMinWidth, it.combinedMinHeight)
             }
         }

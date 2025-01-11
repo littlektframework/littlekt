@@ -101,15 +101,17 @@ open class NinePatchRect : Control() {
 
     override fun render(batch: Batch, camera: Camera, shapeRenderer: ShapeRenderer) {
         ninePatch.draw(
-            batch,
-            globalX,
-            globalY,
-            width,
-            height,
+            batch = batch,
+            x = globalX - originX,
+            y = globalY - originY,
+            originX = originX,
+            originY = originY,
+            width = width,
+            height = height,
             color = color,
             scaleX = globalScaleX,
             scaleY = globalScaleY,
-            rotation = globalRotation
+            rotation = globalRotation,
         )
     }
 }

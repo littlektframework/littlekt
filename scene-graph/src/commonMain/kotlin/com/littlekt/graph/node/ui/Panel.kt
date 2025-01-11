@@ -59,13 +59,25 @@ open class Panel : Control() {
 
     override fun render(batch: Batch, camera: Camera, shapeRenderer: ShapeRenderer) {
         panel.let {
-            it.draw(batch, globalX, globalY, width, height, scaleX, scaleY, rotation, it.tint)
+            it.draw(
+                batch = batch,
+                x = globalX - originX,
+                y = globalY - originY,
+                originX = originX,
+                originY = originY,
+                width = width,
+                height = height,
+                scaleX = globalScaleX,
+                scaleY = globalScaleY,
+                rotation = globalRotation,
+                color = it.tint,
+            )
         }
     }
 
     enum class Mode {
         BACKGROUND,
-        FOREGROUND
+        FOREGROUND,
     }
 
     class ThemeVars {

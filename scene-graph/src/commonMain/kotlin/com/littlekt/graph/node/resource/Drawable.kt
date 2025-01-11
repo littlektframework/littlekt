@@ -36,11 +36,13 @@ interface Drawable {
         batch: Batch,
         x: Float,
         y: Float,
+        originX: Float,
+        originY: Float,
         width: Float,
         height: Float,
         scaleX: Float = 1f,
         scaleY: Float = 1f,
         rotation: Angle = Angle.ZERO,
-        color: Color = tint
+        color: Color = tint,
     )
 }

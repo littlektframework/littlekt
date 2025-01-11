@@ -61,7 +61,19 @@ open class PanelContainer : Container() {
 
     override fun render(batch: Batch, camera: Camera, shapeRenderer: ShapeRenderer) {
         panel.let {
-            it.draw(batch, globalX, globalY, width, height, scaleX, scaleY, rotation, it.tint)
+            it.draw(
+                batch = batch,
+                x = globalX - originX,
+                y = globalY - originY,
+                originX = originX,
+                originY = originY,
+                width = width,
+                height = height,
+                scaleX = scaleX,
+                scaleY = scaleY,
+                rotation = rotation,
+                color = it.tint,
+            )
         }
     }
 
@@ -99,7 +111,7 @@ open class PanelContainer : Container() {
 
         nodes.forEach {
             if (it is Control && it.enabled && !it.isDestroyed) {
-                fitChild(it, panel.marginLeft, panel.marginBottom, w, h)
+                fitChild(it, panel.marginLeft - originX, panel.marginBottom - originY, w, h)
             }
         }
     }

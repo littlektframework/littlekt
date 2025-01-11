@@ -185,11 +185,13 @@ open class TextureProgress : Range() {
 
         if (useNinePatch) {
             backgroundNine?.draw(
-                batch,
-                globalX,
-                globalY,
-                width,
-                height,
+                batch = batch,
+                x = globalX - originX,
+                y = globalY - originY,
+                originX = originX,
+                originY = originY,
+                width = width,
+                height = height,
                 scaleX = globalScaleX,
                 scaleY = globalScaleY,
                 rotation = globalRotation,
@@ -200,25 +202,29 @@ open class TextureProgress : Range() {
                 when (fillMode) {
                     FillMode.LEFT_TO_RIGHT -> {
                         progressNine?.draw(
-                            batch,
-                            globalX,
-                            globalY,
-                            width,
-                            height,
+                            batch = batch,
+                            x = globalX - originX,
+                            y = globalY - originY,
+                            originX = originX,
+                            originY = originY,
+                            width = width,
+                            height = height,
                             scaleX = globalScaleX,
                             scaleY = globalScaleY,
                             rotation = globalRotation,
                             color = progressBarColor,
-                            srcWidth = width - width * (1f - ratio)
+                            srcWidth = width - width * (1f - ratio),
                         )
                     }
                     FillMode.RIGHT_TO_LEFT -> {
                         progressNine?.draw(
-                            batch,
-                            globalX,
-                            globalY,
-                            width,
-                            height,
+                            batch = batch,
+                            x = globalX - originX,
+                            y = globalY - originY,
+                            originX = originX,
+                            originY = originY,
+                            width = width,
+                            height = height,
                             scaleX = globalScaleX,
                             scaleY = globalScaleY,
                             rotation = globalRotation,
@@ -228,25 +234,29 @@ open class TextureProgress : Range() {
                     }
                     FillMode.TOP_TO_BOTTOM -> {
                         progressNine?.draw(
-                            batch,
-                            globalX,
-                            globalY,
-                            width,
-                            height,
+                            batch = batch,
+                            x = globalX - originX,
+                            y = globalY - originY,
+                            originX = originX,
+                            originY = originY,
+                            width = width,
+                            height = height,
                             scaleX = globalScaleX,
                             scaleY = globalScaleY,
                             rotation = globalRotation,
                             color = progressBarColor,
-                            srcHeight = height - height * (1f - ratio)
+                            srcHeight = height - height * (1f - ratio),
                         )
                     }
                     FillMode.BOTTOM_TO_TOP -> {
                         progressNine?.draw(
                             batch,
-                            globalX,
-                            globalY,
-                            width,
-                            height,
+                            x = globalX - originX,
+                            y = globalY - originY,
+                            originX = originX,
+                            originY = originY,
+                            width = width,
+                            height = height,
                             scaleX = globalScaleX,
                             scaleY = globalScaleY,
                             rotation = globalRotation,
@@ -257,27 +267,31 @@ open class TextureProgress : Range() {
                 }
 
                 foregroundNine?.draw(
-                    batch,
-                    globalX,
-                    globalY,
-                    width,
-                    height,
+                    batch = batch,
+                    x = globalX - originX,
+                    y = globalY - originY,
+                    originX = originX,
+                    originY = originY,
+                    width = width,
+                    height = height,
                     scaleX = globalScaleX,
                     scaleY = globalScaleY,
                     rotation = globalRotation,
-                    color = foregroundColor
+                    color = foregroundColor,
                 )
             }
         } else {
             background?.let {
                 batch.draw(
-                    it,
-                    globalX,
-                    globalY,
+                    slice = it,
+                    x = globalX - originX,
+                    y = globalY - originY,
+                    originX = originX,
+                    originY = originY,
                     scaleX = globalScaleX,
                     scaleY = globalScaleY,
                     rotation = globalRotation,
-                    color = backgroundColor
+                    color = backgroundColor,
                 )
             }
             progressBar?.let {
@@ -291,11 +305,11 @@ open class TextureProgress : Range() {
                 when (fillMode) {
                     FillMode.LEFT_TO_RIGHT -> {
                         batch.draw(
-                            it,
-                            globalX,
-                            globalY,
-                            0f,
-                            0f,
+                            slice = it,
+                            x = globalX - originX,
+                            y = globalY - originY,
+                            originX = originX,
+                            originY = originY,
                             width = min(widthRatio, sliceWidth).toFloat(),
                             height = sliceHeight.toFloat(),
                             scaleX = globalScaleX,
@@ -305,16 +319,16 @@ open class TextureProgress : Range() {
                             srcY = sliceY,
                             srcWidth = min(widthRatio, sliceWidth),
                             srcHeight = sliceHeight,
-                            color = progressBarColor
+                            color = progressBarColor,
                         )
                     }
                     FillMode.RIGHT_TO_LEFT -> {
                         batch.draw(
-                            it,
-                            globalX + sliceWidth - widthRatio,
-                            globalY,
-                            0f,
-                            0f,
+                            slice = it,
+                            x = globalX + sliceWidth - widthRatio - originX,
+                            y = globalY - originY,
+                            originX = originX,
+                            originY = originY,
                             width = min(widthRatio, sliceWidth).toFloat(),
                             height = sliceHeight.toFloat(),
                             scaleX = globalScaleX,
@@ -324,16 +338,16 @@ open class TextureProgress : Range() {
                             srcY = sliceY,
                             srcWidth = min(widthRatio, sliceWidth),
                             srcHeight = sliceHeight,
-                            color = progressBarColor
+                            color = progressBarColor,
                         )
                     }
                     FillMode.TOP_TO_BOTTOM -> {
                         batch.draw(
-                            it,
-                            globalX,
-                            globalY,
-                            0f,
-                            0f,
+                            slice = it,
+                            x = globalX - originX,
+                            y = globalY - originY,
+                            originX = originX,
+                            originY = originY,
                             width = sliceWidth.toFloat(),
                             height = min(heightRatio, sliceHeight).toFloat(),
                             scaleX = globalScaleX,
@@ -343,16 +357,16 @@ open class TextureProgress : Range() {
                             srcY = sliceY,
                             srcWidth = sliceWidth,
                             srcHeight = min(heightRatio, sliceHeight),
-                            color = progressBarColor
+                            color = progressBarColor,
                         )
                     }
                     FillMode.BOTTOM_TO_TOP -> {
                         batch.draw(
-                            it,
-                            globalX,
-                            globalY + sliceHeight - heightRatio,
-                            0f,
-                            0f,
+                            slice = it,
+                            x = globalX - originX,
+                            y = globalY + sliceHeight - heightRatio - originY,
+                            originX = originX,
+                            originY = originY,
                             width = sliceWidth.toFloat(),
                             height = min(heightRatio, sliceHeight).toFloat(),
                             scaleX = globalScaleX,
@@ -362,20 +376,22 @@ open class TextureProgress : Range() {
                             srcY = sliceY + sliceHeight - heightRatio,
                             srcWidth = sliceWidth,
                             srcHeight = min(heightRatio, sliceHeight),
-                            color = progressBarColor
+                            color = progressBarColor,
                         )
                     }
                 }
             }
             foreground?.let {
                 batch.draw(
-                    it,
-                    globalX,
-                    globalY,
+                    slice = it,
+                    x = globalX - originX,
+                    y = globalY - originY,
+                    originX = originX,
+                    originY = originY,
                     scaleX = globalScaleX,
                     scaleY = globalScaleY,
                     rotation = globalRotation,
-                    color = foregroundColor
+                    color = foregroundColor,
                 )
             }
         }
@@ -447,6 +463,6 @@ open class TextureProgress : Range() {
         TOP_TO_BOTTOM,
 
         /** Progress fills from bottom to top. */
-        BOTTOM_TO_TOP
+        BOTTOM_TO_TOP,
     }
 }

@@ -27,13 +27,27 @@ class NinePatchDrawable(val ninePatch: NinePatch) : Drawable {
         batch: Batch,
         x: Float,
         y: Float,
+        originX: Float,
+        originY: Float,
         width: Float,
         height: Float,
         scaleX: Float,
         scaleY: Float,
         rotation: Angle,
-        color: Color
+        color: Color,
     ) {
-        ninePatch.draw(batch, x, y, width, height, 0f, 0f, scaleX, scaleY, rotation, color)
+        ninePatch.draw(
+            batch = batch,
+            x = x,
+            y = y,
+            originX = originX,
+            originY = originY,
+            width = width,
+            height = height,
+            scaleX = scaleX,
+            scaleY = scaleY,
+            rotation = rotation,
+            color = color,
+        )
     }
 }

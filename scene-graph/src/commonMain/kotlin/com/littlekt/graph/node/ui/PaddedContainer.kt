@@ -122,7 +122,13 @@ open class PaddedContainer : Container() {
             if (it is Control && it.enabled && it.visible && !it.isDestroyed) {
                 val w = width - paddingLeft - paddingRight
                 val h = height - paddingTop - paddingBottom
-                fitChild(it, paddingLeft.toFloat(), paddingBottom.toFloat(), w, h)
+                fitChild(
+                    it,
+                    paddingLeft.toFloat() - originX,
+                    paddingBottom.toFloat() - originY,
+                    w,
+                    h,
+                )
                 it.computeMargins()
             }
         }
