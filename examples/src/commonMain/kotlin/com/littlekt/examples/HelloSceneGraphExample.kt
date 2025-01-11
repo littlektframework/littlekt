@@ -44,15 +44,21 @@ class HelloSceneGraphExample(context: Context) : ContextListener(context) {
                     //                        onUpdate { rotation += 1.degrees }
                     //                    }
 
-                    progressBar {
-                        //  pivotX = 0.5f
-                        //  pivotY = 0.5f
+                    panelContainer {
+                        pivotX = 0.5f
+                        pivotY = 0.5f
                         minWidth = 100f
                         minHeight = 100f
                         anchorLeft = 0.5f
                         anchorBottom = 0.5f
-                        value = 50f
                         onUpdate { rotation += 1.degrees }
+                        paddedContainer {
+                            padding(20)
+                            minWidth = 100f
+                            minHeight = 100f
+
+                            button { text = "Test" }
+                        }
                     }
 
                     //                    canvasLayerContainer {

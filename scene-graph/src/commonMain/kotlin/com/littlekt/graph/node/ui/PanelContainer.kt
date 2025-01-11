@@ -111,7 +111,7 @@ open class PanelContainer : Container() {
 
         nodes.forEach {
             if (it is Control && it.enabled && !it.isDestroyed) {
-                fitChild(it, panel.marginLeft, panel.marginBottom, w, h)
+                fitChild(it, panel.marginLeft - originX, panel.marginBottom - originY, w, h)
             }
         }
     }
