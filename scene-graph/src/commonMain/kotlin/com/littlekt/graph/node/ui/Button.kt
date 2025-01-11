@@ -202,29 +202,33 @@ open class Button : BaseButton() {
         }
 
         drawable.draw(
-            batch,
-            globalX,
-            globalY,
+            batch = batch,
+            x = globalX - originX,
+            y = globalY - originY,
+            originX = originX,
+            originY = originY,
             width = width,
             height = height,
             scaleX = globalScaleX,
             scaleY = globalScaleY,
-            rotation = rotation,
-            color = drawable.tint
+            rotation = globalRotation,
+            color = drawable.tint,
         )
 
         if (hasFocus) {
             val focusDrawable = getThemeDrawable(themeVars.focus)
             focusDrawable.draw(
-                batch,
-                globalX,
-                globalY,
+                batch = batch,
+                x = globalX - originX,
+                y = globalY - originY,
+                originX = originX,
+                originY = originY,
                 width = width,
                 height = height,
                 scaleX = globalScaleX,
                 scaleY = globalScaleY,
-                rotation = rotation,
-                color = focusDrawable.tint
+                rotation = globalRotation,
+                color = focusDrawable.tint,
             )
         }
         cache.let {
@@ -271,7 +275,7 @@ open class Button : BaseButton() {
             scaleY = fontScaleY,
             horizontalAlign,
             wrap,
-            ellipsis
+            ellipsis,
         )
         val textWidth: Float = max(layout.width, width)
         val textHeight: Float = if (wrap || text.contains("\n")) layout.height else font.capHeight
@@ -303,6 +307,8 @@ open class Button : BaseButton() {
             }
         }
         ty = ty.roundToInt().toFloat()
+        tx -= originX
+        ty -= originY
 
         layout.setText(
             font,
@@ -313,7 +319,7 @@ open class Button : BaseButton() {
             scaleY = fontScaleY,
             horizontalAlign,
             wrap,
-            ellipsis
+            ellipsis,
         )
         cache.setText(layout, tx, ty, fontScaleX, fontScaleY)
     }

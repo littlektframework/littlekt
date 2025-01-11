@@ -211,7 +211,7 @@ open class Label : Control() {
                 scaleY = fontScaleY,
                 align = horizontalAlign,
                 wrap = wrap,
-                truncate = ellipsis
+                truncate = ellipsis,
             )
             textWidth = layout.width
             textHeight = layout.height
@@ -255,9 +255,9 @@ open class Label : Control() {
             scaleY = fontScaleY,
             horizontalAlign,
             wrap,
-            ellipsis
+            ellipsis,
         )
-        cache.setText(layout, tx, ty, fontScaleX, fontScaleY)
+        cache.setText(layout, tx - originX, ty - originY, fontScaleX, fontScaleY)
         _internalMinWidth = layout.width
         _internalMinHeight = layout.height
     }

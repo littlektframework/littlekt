@@ -97,7 +97,7 @@ abstract class BoxContainer : Container() {
                         MinSizeCache(
                             minSize = minSize,
                             willStretch = willStretch,
-                            finalSize = minSize
+                            finalSize = minSize,
                         )
                 }
                 childrenCount++
@@ -229,7 +229,7 @@ abstract class BoxContainer : Container() {
                         tHeight = height
                     }
 
-                    fitChild(child, tx, ty, tWidth, tHeight)
+                    fitChild(child, tx - originX, ty - originY, tWidth, tHeight)
                     ofs = to
                     idx++
                 }
@@ -240,6 +240,6 @@ abstract class BoxContainer : Container() {
     private data class MinSizeCache(
         var minSize: Int = 0,
         var willStretch: Boolean = false,
-        var finalSize: Int = 0
+        var finalSize: Int = 0,
     )
 }

@@ -257,14 +257,16 @@ abstract class ScrollBar(val orientation: Orientation = Orientation.VERTICAL) : 
             }
 
         decrement.draw(
-            batch,
-            globalPosition.x,
-            globalPosition.y,
-            decrement.minWidth,
-            decrement.minHeight,
-            globalScaleX,
-            globalScaleY,
-            globalRotation
+            batch = batch,
+            x = globalX - originX,
+            y = globalY - originY,
+            originX = originX,
+            originY = originY,
+            width = decrement.minWidth,
+            height = decrement.minHeight,
+            scaleX = globalScaleX,
+            scaleY = globalScaleY,
+            rotation = globalRotation,
         )
 
         var offsetX = globalPosition.x
@@ -284,14 +286,16 @@ abstract class ScrollBar(val orientation: Orientation = Orientation.VERTICAL) : 
         }
 
         bg.draw(
-            batch,
-            offsetX,
-            offsetY,
-            areaWidth,
-            areaHeight,
-            globalScaleX,
-            globalScaleY,
-            globalRotation
+            batch = batch,
+            x = offsetX - originX,
+            y = offsetY - originY,
+            originX = originX,
+            originY = originY,
+            width = areaWidth,
+            height = areaHeight,
+            scaleX = globalScaleX,
+            scaleY = globalScaleY,
+            rotation = globalRotation,
         )
 
         if (orientation == Orientation.HORIZONTAL) {
@@ -301,14 +305,16 @@ abstract class ScrollBar(val orientation: Orientation = Orientation.VERTICAL) : 
         }
 
         increment.draw(
-            batch,
-            offsetX,
-            offsetY,
-            increment.minWidth,
-            increment.minHeight,
-            globalScaleX,
-            globalScaleY,
-            globalRotation
+            batch = batch,
+            x = offsetX - originX,
+            y = offsetY - originY,
+            originX = originX,
+            originY = originY,
+            width = increment.minWidth,
+            height = increment.minHeight,
+            scaleX = globalScaleX,
+            scaleY = globalScaleY,
+            rotation = globalRotation,
         )
 
         val grabberWidth: Float
@@ -326,14 +332,16 @@ abstract class ScrollBar(val orientation: Orientation = Orientation.VERTICAL) : 
         }
 
         grabber.draw(
-            batch,
-            grabberX,
-            grabberY,
-            grabberWidth,
-            grabberHeight,
-            globalScaleX,
-            globalScaleY,
-            globalRotation
+            batch = batch,
+            x = grabberX - originX,
+            y = grabberY - originY,
+            originX = originX,
+            originY = originY,
+            width = grabberWidth,
+            height = grabberHeight,
+            scaleX = globalScaleX,
+            scaleY = globalScaleY,
+            rotation = globalRotation,
         )
     }
 
@@ -401,7 +409,7 @@ abstract class ScrollBar(val orientation: Orientation = Orientation.VERTICAL) : 
         NONE,
         DECREMENT,
         RANGE,
-        INCREMENT
+        INCREMENT,
     }
 
     class ThemeVars {

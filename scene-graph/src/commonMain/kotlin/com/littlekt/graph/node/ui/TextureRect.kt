@@ -175,18 +175,20 @@ open class TextureRect : Control() {
                                 it,
                                 x = globalX + totalW,
                                 y = globalY + totalH,
+                                originX = originX,
+                                originY = originY,
                                 scaleX = globalScaleX,
                                 scaleY = globalScaleY,
                                 rotation = globalRotation,
-                                color = color
+                                color = color,
                             )
                         } else {
                             batch.draw(
-                                it.texture,
-                                globalX + totalW,
-                                globalY + totalH,
-                                0f,
-                                0f,
+                                texture = it.texture,
+                                x = globalX + totalW,
+                                y = globalY + totalH,
+                                originX = originX,
+                                originY = originY,
                                 width = min(width - totalW, sliceWidth),
                                 height = min(height - totalH, sliceHeight),
                                 scaleX = globalScaleX,
@@ -198,7 +200,7 @@ open class TextureRect : Control() {
                                 srcHeight = min(height - totalH, sliceHeight).toInt(),
                                 flipX = flipX,
                                 flipY = flipY,
-                                color = color
+                                color = color,
                             )
                         }
                         totalW += sliceWidth
@@ -207,11 +209,11 @@ open class TextureRect : Control() {
                 }
             } else {
                 batch.draw(
-                    it.texture,
-                    globalX + offsetX,
-                    globalY + offsetY,
-                    0f,
-                    0f,
+                    texture = it.texture,
+                    x = globalX + offsetX,
+                    y = globalY + offsetY,
+                    originX = originX,
+                    originY = originY,
                     width = newWidth,
                     height = newHeight,
                     scaleX = globalScaleX,
@@ -223,7 +225,7 @@ open class TextureRect : Control() {
                     srcHeight = sliceHeight.toInt(),
                     flipX = flipX,
                     flipY = flipY,
-                    color = color
+                    color = color,
                 )
             }
         }

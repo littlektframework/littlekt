@@ -13,7 +13,6 @@ import com.littlekt.graphics.HAlign
 import com.littlekt.graphics.VAlign
 import com.littlekt.graphics.webgpu.*
 import com.littlekt.input.Key
-import com.littlekt.math.geom.Angle
 import com.littlekt.math.geom.degrees
 import com.littlekt.math.geom.radians
 import com.littlekt.util.viewport.ExtendViewport
@@ -56,7 +55,7 @@ class HelloSceneGraphExample(context: Context) : ContextListener(context) {
                                 minHeight = 100f
                                 column {
                                     repeat(10) {
-                                        label { text = "hi: this is rreally lognadsfda ad$it" }
+                                        label { text = "hi: this is rreallylognadsfda ad$it" }
                                     }
                                 }
                             }
@@ -76,25 +75,37 @@ class HelloSceneGraphExample(context: Context) : ContextListener(context) {
                                         globalY += 1f
                                     }
                                 }
-                                onRender += { batch, camera, shapeRenderer ->
-                                    batch.draw(icon, globalX, globalY, rotation = globalRotation)
+                                onRender += { batch, _, _ ->
+                                    val originX = icon.width * pivotX
+                                    val originY = icon.height * pivotY
+                                    batch.draw(
+                                        texture = icon,
+                                        x = globalX - originX,
+                                        y = globalY - originY,
+                                        originX = originX,
+                                        originY = originY,
+                                        rotation = globalRotation,
+                                    )
                                 }
                                 camera2d { active = true }
                             }
 
-                            var rotation = Angle.ZERO
                             node2d {
                                 x = 100f
                                 y = 20f
-                                onRender += { batch, camera, shapeRenderer ->
+                                onRender += { batch, _, _ ->
                                     rotation += 0.01.radians
+                                    val originX = icon.width * pivotX
+                                    val originY = icon.height * pivotY
                                     batch.draw(
-                                        icon,
-                                        globalX,
-                                        globalY,
+                                        texture = icon,
+                                        x = globalX - originX,
+                                        y = globalY - originY,
+                                        originX = originX,
+                                        originY = originY,
                                         scaleX = 2f,
                                         scaleY = 2f,
-                                        rotation = rotation,
+                                        rotation = globalRotation,
                                     )
                                 }
                             }

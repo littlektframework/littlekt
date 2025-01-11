@@ -3,7 +3,10 @@ package com.littlekt.graph.node
 import com.littlekt.graph.SceneGraph
 import com.littlekt.graph.node.render.Material
 import com.littlekt.graph.node.resource.InputEvent
-import com.littlekt.graph.util.*
+import com.littlekt.graph.util.Signal
+import com.littlekt.graph.util.TripleSignal
+import com.littlekt.graph.util.signal
+import com.littlekt.graph.util.signal3v
 import com.littlekt.graphics.Camera
 import com.littlekt.graphics.g2d.Batch
 import com.littlekt.graphics.g2d.shape.ShapeRenderer
@@ -24,6 +27,7 @@ abstract class CanvasItem : Node() {
         const val SCALE_DIRTY = 2
         const val ROTATION_DIRTY = 3
         const val CLEAN = 0
+        const val PIVOT_DIRTY = 5
 
         private val tempVec = MutableVec2f()
     }
@@ -370,6 +374,28 @@ abstract class CanvasItem : Node() {
                 _globalToLocalDirty = false
             }
             return _globalToLocalTransform
+        }
+
+    /** A point between 0f to 1f. */
+    var pivotX: Float = 0f
+        set(value) {
+            if (value == field) return
+            require(value in 0f..1f) { "Value must be between 0f and 1f!" }
+            field = value
+            if (insideTree) {
+                dirty(PIVOT_DIRTY)
+            }
+        }
+
+    /** A point between 0f to 1f. */
+    var pivotY: Float = 0f
+        set(value) {
+            if (value == field) return
+            require(value in 0f..1f) { "Value must be between 0f and 1f!" }
+            field = value
+            if (insideTree) {
+                dirty(PIVOT_DIRTY)
+            }
         }
 
     override val membersAndPropertiesString: String

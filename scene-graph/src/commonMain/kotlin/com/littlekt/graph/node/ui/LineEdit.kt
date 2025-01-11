@@ -81,7 +81,7 @@ open class LineEdit : Control() {
     private var lastTap: Duration = Duration.ZERO
     private var taps = 0
     private var pressed = false
-    private var displayTest: String = ""
+    private var displayText: String = ""
 
     /** `true` if the text is allowed to be edited. */
     var editable: Boolean = true
@@ -272,7 +272,6 @@ open class LineEdit : Control() {
                             _caretPosition--
                         }
                     }
-                    println("handle left arrow")
                     event.handle()
                 }
                 Key.ARROW_RIGHT -> {
@@ -395,86 +394,93 @@ open class LineEdit : Control() {
 
         val bgDrawable = if (editable) bg else bgDisabled
         bgDrawable.draw(
-            batch,
-            globalX,
-            globalY,
+            batch = batch,
+            x = globalX - originX,
+            y = globalY - originY,
+            originX = originX,
+            originY = originY,
             width = width,
             height = height,
             scaleX = globalScaleX,
             scaleY = globalScaleY,
-            rotation = rotation
+            rotation = globalRotation,
         )
 
-        if (displayTest.isNotEmpty()) {
+        if (displayText.isNotEmpty()) {
             calculateVisibility()
         }
 
         if (hasFocus && hasSelection) {
             selection.draw(
-                batch,
-                globalX + textOffset + selectionX + fontOffset + bg.marginLeft,
-                globalY + font.metrics.ascent,
+                batch = batch,
+                x = globalX + textOffset + selectionX + fontOffset + bg.marginLeft,
+                y = globalY + font.metrics.ascent,
+                originX = originX,
+                originY = originY,
                 width = selectionWidth,
                 height = font.capHeight,
                 scaleX = globalScaleX,
                 scaleY = globalScaleY,
-                rotation = rotation,
+                rotation = globalRotation,
             )
         }
 
-        if (displayTest.isNotEmpty()) {
+        if (displayText.isNotEmpty()) {
             val color = if (editable) fontColor else fontColorDisabled
             cache.setText(
-                displayTest.substring(visibleStart, visibleEnd),
-                globalX + bg.marginLeft + textOffset,
-                globalY,
-                scaleX,
-                scaleY,
-                rotation,
-                color
+                text = displayText.substring(visibleStart, visibleEnd),
+                x = globalX + bg.marginLeft + textOffset - originX,
+                y = globalY - originY,
+                scaleX = globalScaleX,
+                scaleY = globalScaleY,
+                rotation = globalRotation,
+                color = color,
             )
             cache.draw(batch)
-        } else {
-            if ((!hasFocus || !editable) && placeholderText.isNotEmpty()) {
-                cache.setText(
-                    placeholderText,
-                    globalX + bg.marginLeft,
-                    globalY,
-                    scaleX,
-                    scaleY,
-                    rotation,
-                    fontColorPlaceholder,
-                    availableWidth,
-                    truncate = "..."
-                )
-                cache.draw(batch)
-            }
+        } else if ((!hasFocus || !editable) && placeholderText.isNotEmpty()) {
+            cache.setText(
+                text = placeholderText,
+                x = globalX + bg.marginLeft - originX,
+                y = globalY - originY,
+                scaleX = globalScaleX,
+                scaleY = globalScaleY,
+                rotation = globalRotation,
+                color = fontColorPlaceholder,
+                targetWidth = availableWidth,
+                truncate = "...",
+            )
+            cache.draw(batch)
         }
 
         if (hasFocus) {
             if (editable) {
                 caret.draw(
-                    batch,
-                    globalX + bg.marginLeft + textOffset + glyphPositions[_caretPosition] -
-                        glyphPositions[visibleStart] + fontOffset,
-                    globalY + font.metrics.ascent,
+                    batch = batch,
+                    x =
+                        globalX + bg.marginLeft + textOffset + glyphPositions[_caretPosition] -
+                            glyphPositions[visibleStart] + fontOffset,
+                    y = globalY + font.metrics.ascent,
+                    originX = originX,
+                    originY = originY,
                     width = caret.minWidth,
                     height = font.capHeight,
                     scaleX = globalScaleX,
                     scaleY = globalScaleY,
-                    rotation = rotation,
+                    rotation = globalRotation,
                 )
             }
 
             focusDrawable.draw(
-                batch,
-                globalX,
-                globalY,
+                batch = batch,
+                x = globalX - originX,
+                y = globalY - originY,
+                originX = originX,
+                originY = originY,
                 width = width,
                 height = height,
                 scaleX = globalScaleX,
                 scaleY = globalScaleY,
-                rotation = rotation
+                rotation = globalRotation,
             )
         }
     }
@@ -547,13 +553,13 @@ open class LineEdit : Control() {
     }
 
     private fun updateText() {
-        displayTest = text
+        displayText = text
         if (secret) {
             secretBuffer.clear()
             repeat(text.length) { secretBuffer.append(secretCharacter) }
-            displayTest = secretBuffer.toString()
+            displayText = secretBuffer.toString()
         }
-        layout.setText(font, displayTest.replace('\r', ' ').replace('\n', ' '))
+        layout.setText(font, displayText.replace('\r', ' ').replace('\n', ' '))
         glyphPositions.clear()
         var x = 0f
         fontOffset = 0f
@@ -571,7 +577,7 @@ open class LineEdit : Control() {
         visibleStart = min(visibleStart, glyphPositions.size - 1)
         visibleEnd = visibleEnd.clamp(visibleStart, glyphPositions.size - 1)
 
-        selectionStart = min(selectionStart, displayTest.length)
+        selectionStart = min(selectionStart, displayText.length)
     }
 
     private fun calculateVisibility() {
@@ -621,7 +627,7 @@ open class LineEdit : Control() {
             val maxX =
                 min(
                     glyphPositions[maxIdx] - glyphPositions[visibleStart],
-                    availableWidth - textOffset
+                    availableWidth - textOffset,
                 )
             selectionX = minX
             selectionWidth = maxX - minX

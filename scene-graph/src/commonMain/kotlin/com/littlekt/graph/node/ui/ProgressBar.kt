@@ -86,10 +86,32 @@ open class ProgressBar : Range() {
     private val layout = GlyphLayout()
 
     override fun render(batch: Batch, camera: Camera, shapeRenderer: ShapeRenderer) {
-        bg.draw(batch, globalX, globalY, width, height)
+        bg.draw(
+            batch = batch,
+            x = globalX - originX,
+            y = globalY - originY,
+            originX = originX,
+            originY = originY,
+            width = width,
+            height = height,
+            scaleX = globalScaleX,
+            scaleY = globalScaleY,
+            rotation = globalRotation,
+        )
         val progress = ratio * (width - fg.minWidth)
         if (progress > 0) {
-            fg.draw(batch, globalX, globalY, progress + fg.minWidth, height)
+            fg.draw(
+                batch = batch,
+                x = globalX - originX,
+                y = globalY - originY,
+                originX = originX,
+                originY = originY,
+                width = progress + fg.minWidth,
+                height = height,
+                scaleX = globalScaleX,
+                scaleY = globalScaleY,
+                rotation = globalRotation,
+            )
         }
 
         if (percentVisible) {
