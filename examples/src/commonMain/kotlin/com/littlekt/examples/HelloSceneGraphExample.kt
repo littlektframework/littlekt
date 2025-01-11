@@ -3,19 +3,11 @@ package com.littlekt.examples
 import com.littlekt.Context
 import com.littlekt.ContextListener
 import com.littlekt.file.vfs.readTexture
-import com.littlekt.graph.node.canvasLayer
-import com.littlekt.graph.node.node2d.camera2d
-import com.littlekt.graph.node.node2d.node2d
 import com.littlekt.graph.node.ui.*
 import com.littlekt.graph.sceneGraph
 import com.littlekt.graphics.Color
-import com.littlekt.graphics.HAlign
-import com.littlekt.graphics.VAlign
 import com.littlekt.graphics.webgpu.*
-import com.littlekt.input.Key
-import com.littlekt.math.geom.Angle
 import com.littlekt.math.geom.degrees
-import com.littlekt.math.geom.radians
 import com.littlekt.util.viewport.ExtendViewport
 
 /**
@@ -39,89 +31,112 @@ class HelloSceneGraphExample(context: Context) : ContextListener(context) {
             TextureUsage.RENDER_ATTACHMENT,
             preferredFormat,
             PresentMode.FIFO,
-            surfaceCapabilities.alphaModes[0]
+            surfaceCapabilities.alphaModes[0],
         )
 
         val graph =
             sceneGraph(this, ExtendViewport(960, 540)) {
-                    canvasLayerContainer {
-                        stretch = true
-                        shrink = 2
-                        anchorRight = 1f
-                        anchorTop = 1f
+                    //                    panelContainer {
+                    //                        pivotX = 0.5f
+                    //                        pivotY = 0.5f
+                    //                        width = 150f
+                    //                        height = 100f
+                    //                        onUpdate { rotation += 1.degrees }
+                    //                    }
 
-                        canvasLayer {
-                            scrollContainer {
-                                minWidth = 100f
-                                minHeight = 100f
-                                column {
-                                    repeat(10) {
-                                        label { text = "hi: this is rreally lognadsfda ad$it" }
-                                    }
-                                }
-                            }
-                            node2d {
-                                rotation = 45.degrees
-                                onReady += { println("$name: $canvas") }
-                                onUpdate += {
-                                    if (input.isKeyPressed(Key.D)) {
-                                        globalX += 1f
-                                    } else if (input.isKeyPressed(Key.A)) {
-                                        globalX -= 1f
-                                    }
-
-                                    if (input.isKeyPressed(Key.S)) {
-                                        globalY -= 1f
-                                    } else if (input.isKeyPressed(Key.W)) {
-                                        globalY += 1f
-                                    }
-                                }
-                                onRender += { batch, camera, shapeRenderer ->
-                                    batch.draw(icon, globalX, globalY, rotation = globalRotation)
-                                }
-                                camera2d { active = true }
-                            }
-
-                            var rotation = Angle.ZERO
-                            node2d {
-                                x = 100f
-                                y = 20f
-                                onRender += { batch, camera, shapeRenderer ->
-                                    rotation += 0.01.radians
-                                    batch.draw(
-                                        icon,
-                                        globalX,
-                                        globalY,
-                                        scaleX = 2f,
-                                        scaleY = 2f,
-                                        rotation = rotation
-                                    )
-                                }
-                            }
-                        }
+                    progressBar {
+                        //  pivotX = 0.5f
+                        //  pivotY = 0.5f
+                        minWidth = 100f
+                        minHeight = 100f
+                        anchorLeft = 0.5f
+                        anchorBottom = 0.5f
+                        value = 50f
+                        onUpdate { rotation += 1.degrees }
                     }
-                    centerContainer {
-                        anchorRight = 1f
-                        anchorTop = 1f
-                        button {
-                            x = 200f
-                            y = 300f
-                            text = "center button"
-                            horizontalAlign = HAlign.CENTER
-                            verticalAlign = VAlign.CENTER
 
-                            onReady += { println("$name:${canvas!!::class.simpleName} - $canvas") }
-                        }
-                    }
-                    button {
-                        x = 200f
-                        y = 300f
-                        text = "outsied button"
-                        horizontalAlign = HAlign.CENTER
-                        verticalAlign = VAlign.CENTER
-
-                        onReady += { println("$name:${canvas!!::class.simpleName} - $canvas") }
-                    }
+                    //                    canvasLayerContainer {
+                    //                        stretch = true
+                    //                        shrink = 2
+                    //                        anchorRight = 1f
+                    //                        anchorTop = 1f
+                    //
+                    //                        canvasLayer {
+                    //                            scrollContainer {
+                    //                                minWidth = 100f
+                    //                                minHeight = 100f
+                    //                                column {
+                    //                                    repeat(10) {
+                    //                                        label { text = "hi: this is rreally
+                    // lognadsfda ad$it" }
+                    //                                    }
+                    //                                }
+                    //                            }
+                    //                            node2d {
+                    //                                rotation = 45.degrees
+                    //                                onReady += { println("$name: $canvas") }
+                    //                                onUpdate += {
+                    //                                    if (input.isKeyPressed(Key.D)) {
+                    //                                        globalX += 1f
+                    //                                    } else if (input.isKeyPressed(Key.A)) {
+                    //                                        globalX -= 1f
+                    //                                    }
+                    //
+                    //                                    if (input.isKeyPressed(Key.S)) {
+                    //                                        globalY -= 1f
+                    //                                    } else if (input.isKeyPressed(Key.W)) {
+                    //                                        globalY += 1f
+                    //                                    }
+                    //                                }
+                    //                                onRender += { batch, camera, shapeRenderer ->
+                    //                                    batch.draw(icon, globalX, globalY,
+                    // rotation = globalRotation)
+                    //                                }
+                    //                                camera2d { active = true }
+                    //                            }
+                    //
+                    //                            var rotation = Angle.ZERO
+                    //                            node2d {
+                    //                                x = 100f
+                    //                                y = 20f
+                    //                                onRender += { batch, camera, shapeRenderer ->
+                    //                                    rotation += 0.01.radians
+                    //                                    batch.draw(
+                    //                                        icon,
+                    //                                        globalX,
+                    //                                        globalY,
+                    //                                        scaleX = 2f,
+                    //                                        scaleY = 2f,
+                    //                                        rotation = rotation
+                    //                                    )
+                    //                                }
+                    //                            }
+                    //                        }
+                    //                    }
+                    //                    centerContainer {
+                    //                        anchorRight = 1f
+                    //                        anchorTop = 1f
+                    //                        button {
+                    //                            x = 200f
+                    //                            y = 300f
+                    //                            text = "center button"
+                    //                            horizontalAlign = HAlign.CENTER
+                    //                            verticalAlign = VAlign.CENTER
+                    //
+                    //                            onReady += {
+                    // println("$name:${canvas!!::class.simpleName} - $canvas") }
+                    //                        }
+                    //                    }
+                    //                    button {
+                    //                        x = 200f
+                    //                        y = 300f
+                    //                        text = "outsied button"
+                    //                        horizontalAlign = HAlign.CENTER
+                    //                        verticalAlign = VAlign.CENTER
+                    //
+                    //                        onReady += {
+                    // println("$name:${canvas!!::class.simpleName} - $canvas") }
+                    //                    }
                 }
                 .also { it.initialize() }
 
@@ -132,7 +147,7 @@ class HelloSceneGraphExample(context: Context) : ContextListener(context) {
                 TextureUsage.RENDER_ATTACHMENT,
                 preferredFormat,
                 PresentMode.FIFO,
-                surfaceCapabilities.alphaModes[0]
+                surfaceCapabilities.alphaModes[0],
             )
         }
 
@@ -169,10 +184,10 @@ class HelloSceneGraphExample(context: Context) : ContextListener(context) {
                             storeOp = StoreOp.STORE,
                             clearColor =
                                 if (preferredFormat.srgb) Color.DARK_GRAY.toLinear()
-                                else Color.DARK_GRAY
+                                else Color.DARK_GRAY,
                         )
                     ),
-                    label = "Init render pass"
+                    label = "Init render pass",
                 )
             graph.update(dt)
             graph.render(commandEncoder, renderPassDescriptor)

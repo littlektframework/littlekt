@@ -1,8 +1,10 @@
 package com.littlekt.graph.node.resource
 
-import com.littlekt.graphics.*
+import com.littlekt.graphics.Color
+import com.littlekt.graphics.Texture
 import com.littlekt.graphics.g2d.Batch
 import com.littlekt.graphics.g2d.TextureSlice
+import com.littlekt.graphics.slice
 import com.littlekt.math.geom.Angle
 
 /**
@@ -29,23 +31,27 @@ class TextureSliceDrawable(val slice: TextureSlice) : Drawable {
         batch: Batch,
         x: Float,
         y: Float,
+        originX: Float,
+        originY: Float,
         width: Float,
         height: Float,
         scaleX: Float,
         scaleY: Float,
         rotation: Angle,
-        color: Color
+        color: Color,
     ) {
         batch.draw(
-            slice,
-            x,
-            y,
+            slice = slice,
+            x = x,
+            y = y,
+            originX = originX,
+            originY = originY,
             width = width,
             height = height,
             scaleX = scaleX,
             scaleY = scaleY,
             rotation = rotation,
-            color = color
+            color = color,
         )
     }
 }

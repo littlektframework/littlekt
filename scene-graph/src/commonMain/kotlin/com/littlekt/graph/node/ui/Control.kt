@@ -256,6 +256,14 @@ open class Control : CanvasItem() {
             onSizeChanged()
         }
 
+    /** The offset to render on the x-axes. Use this when drawing. */
+    protected val originX: Float
+        get() = _width * pivotX
+
+    /** The offset to render on the y-axes. Use this when drawing. */
+    protected val originY: Float
+        get() = _height * pivotY
+
     private var _width = 0f
     private var _height = 0f
 
@@ -452,64 +460,58 @@ open class Control : CanvasItem() {
         super.debugRender(batch, camera, shapeRenderer)
         if (globalRotation.normalized.radians.isFuzzyZero()) {
             shapeRenderer.rectangle(
-                position = globalPosition,
+                x = globalX - originX,
+                y = globalY - originY,
                 width = width,
                 height = height,
                 rotation = globalRotation,
                 thickness = 1f,
-                color = debugColor
+                color = debugColor,
             )
         } else {
-            val p1x = 0f
-            val p1y = 0f
-            val p2x = 0f
-            val p2y = height
-            val p3x = width
-            val p3y = height
+            val p1x = -originX
+            val p1y = -originY
+            val p2x = -originX
+            val p2y = height - originY
+            val p3x = width - originX
+            val p3y = height - originY
+            val p4x = width - originX
+            val p4y = -originY
 
-            var x1: Float
-            var y1: Float
-            var x2: Float
-            var y2: Float
-            var x3: Float
-            var y3: Float
+            val cos = globalRotation.cosine
+            val sin = globalRotation.sine
 
-            val cos = rotation.cosine
-            val sin = rotation.sine
+            val rx1 = p1x * cos - p1y * sin
+            val ry1 = p1x * sin + p1y * cos
+            val rx2 = p2x * cos - p2y * sin
+            val ry2 = p2x * sin + p2y * cos
+            val rx3 = p3x * cos - p3y * sin
+            val ry3 = p3x * sin + p3y * cos
+            val rx4 = p4x * cos - p4y * sin
+            val ry4 = p4x * sin + p4y * cos
 
-            x1 = cos * p1x - sin * p1y
-            y1 = sin * p1x + cos * p1y
+            val gx1 = rx1 + globalPosition.x + originX
+            val gy1 = ry1 + globalPosition.y + originY
+            val gx2 = rx2 + globalPosition.x + originX
+            val gy2 = ry2 + globalPosition.y + originY
+            val gx3 = rx3 + globalPosition.x + originX
+            val gy3 = ry3 + globalPosition.y + originY
+            val gx4 = rx4 + globalPosition.x + originX
+            val gy4 = ry4 + globalPosition.y + originY
 
-            x2 = cos * p2x - sin * p2y
-            y2 = sin * p2x + cos * p2y
+            val minX = minOf(gx1, gx2, gx3, gx4)
+            val minY = minOf(gy1, gy2, gy3, gy4)
+            val maxX = maxOf(gx1, gx2, gx3, gx4)
+            val maxY = maxOf(gy1, gy2, gy3, gy4)
 
-            x3 = cos * p3x - sin * p3y
-            y3 = sin * p3x + cos * p3y
-
-            var x4: Float = x1 + (x3 - x2)
-            var y4: Float = y3 - (y2 - y1)
-
-            x1 += globalPosition.x
-            y1 += globalPosition.y
-            x2 += globalPosition.x
-            y2 += globalPosition.y
-            x3 += globalPosition.x
-            y3 += globalPosition.y
-            x4 += globalPosition.x
-            y4 += globalPosition.y
-
-            val minX = minOf(x1, x2, x3, x4)
-            val minY = minOf(y1, y2, y3, y4)
-            val maxX = maxOf(x1, x2, x3, x4)
-            val maxY = maxOf(y1, y2, y3, y4)
             shapeRenderer.rectangle(
-                x = minX,
-                y = minY,
+                x = minX - originX,
+                y = minY - originY,
                 width = maxX - minX,
                 height = maxY - minY,
                 rotation = Angle.ZERO,
                 thickness = 1f,
-                color = debugColor
+                color = debugColor,
             )
         }
     }
@@ -713,8 +715,8 @@ open class Control : CanvasItem() {
         if (mouseFilter == MouseFilter.IGNORE) return null
 
         toLocal(hx, hy, tempVec2f)
-        val x = tempVec2f.x
-        val y = tempVec2f.y
+        val x = tempVec2f.x + originX
+        val y = tempVec2f.y + originY
 
         return if (x >= 0f && x < width && y >= 0f && y < height) this else null
     }
@@ -776,7 +778,7 @@ open class Control : CanvasItem() {
 
     private fun computeAnchorMarginLayout(
         layout: AnchorLayout,
-        triggerSizeChanged: Boolean = true
+        triggerSizeChanged: Boolean = true,
     ) {
         computeAnchorLayout(layout, triggerSizeChanged = triggerSizeChanged)
         computeMarginLayout(layout)
@@ -880,9 +882,7 @@ open class Control : CanvasItem() {
         }
     }
 
-    private fun computeMarginLayout(
-        layout: AnchorLayout,
-    ) {
+    private fun computeMarginLayout(layout: AnchorLayout) {
         val parentRect = getParentAnchorableRect()
 
         // LEFT
@@ -1501,10 +1501,7 @@ open class Control : CanvasItem() {
      *   with the specified [name] and [type]. If [type] is omitted the class name of the current
      *   control is used as the type.
      */
-    fun getThemeFont(
-        name: String,
-        type: String = this::class.simpleName ?: "",
-    ): BitmapFont {
+    fun getThemeFont(name: String, type: String = this::class.simpleName ?: ""): BitmapFont {
         fontOverrides[name]?.let {
             return it
         }
@@ -1702,7 +1699,7 @@ open class Control : CanvasItem() {
         FULL,
 
         /** Anchors will need to be set manually. */
-        NONE
+        NONE,
     }
 
     enum class FocusMode {
@@ -1713,7 +1710,7 @@ open class Control : CanvasItem() {
         CLICK,
 
         /** The node can grab focus on mouse click or using the arrows and tab keys on keyboard. */
-        ALL
+        ALL,
     }
 
     enum class MouseFilter {
@@ -1729,13 +1726,13 @@ open class Control : CanvasItem() {
         /**
          * Ignores input events on the current [Control] but still allows events to its children.
          */
-        IGNORE
+        IGNORE,
     }
 
     enum class GrowDirection {
         BEGIN,
         END,
-        BOTH
+        BOTH,
     }
 
     /**
@@ -1881,7 +1878,7 @@ open class Control : CanvasItem() {
         LEFT,
         BOTTOM,
         RIGHT,
-        TOP
+        TOP,
     }
 
     companion object {

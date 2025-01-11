@@ -59,6 +59,8 @@ object EmptyDrawable : Drawable {
         batch: Batch,
         x: Float,
         y: Float,
+        originX: Float,
+        originY: Float,
         width: Float,
         height: Float,
         scaleX: Float,

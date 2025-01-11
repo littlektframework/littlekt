@@ -314,22 +314,24 @@ class ScrollContainer : Container(), GestureProcessor {
         val canvas = canvas ?: return
 
         panel.draw(
-            batch,
-            globalX,
-            globalY,
-            width,
-            height,
-            globalScaleX,
-            globalScaleY,
-            globalRotation
+            batch = batch,
+            x = globalX - originX,
+            y = globalY - originY,
+            originX = originX,
+            originY = originY,
+            width = width,
+            height = height,
+            scaleX = globalScaleX,
+            scaleY = globalScaleY,
+            rotation = globalRotation,
         )
 
-        tempVec2.set(globalX, globalY)
+        tempVec2.set(globalX - originX, globalY - originY)
         tempVec2.mul(batch.transformMatrix)
         canvas.canvasToScreenCoordinates(tempVec2)
         val scissorX = tempVec2.x
         val scissorY = tempVec2.y
-        tempVec2.set(globalX + width, globalY + height)
+        tempVec2.set(globalX + width - originX, globalY + height - originY)
         tempVec2.mul(batch.transformMatrix)
         canvas.canvasToScreenCoordinates(tempVec2)
         val scissorWidth = tempVec2.x - scissorX
@@ -339,7 +341,7 @@ class ScrollContainer : Container(), GestureProcessor {
             scissorX.toInt(),
             scissorY.toInt(),
             scissorWidth.toInt(),
-            scissorHeight.toInt()
+            scissorHeight.toInt(),
         )
     }
 
@@ -414,7 +416,7 @@ class ScrollContainer : Container(), GestureProcessor {
             ty += panel.marginBottom - th
             tx = tx.floor()
             ty = ty.floor()
-            fitChild(it, tx, ty, tw, th)
+            fitChild(it, tx - originX, ty - originY, tw, th)
         }
     }
 
@@ -424,22 +426,22 @@ class ScrollContainer : Container(), GestureProcessor {
 
     private fun updateScrollbarPosition() {
         hScrollBar.anchorLeft = 0f
-        hScrollBar.marginLeft = 0f
+        hScrollBar.marginLeft = -originX
         hScrollBar.anchorRight = 1f
-        hScrollBar.marginRight = 0f
+        hScrollBar.marginRight = -originX
         hScrollBar.anchorBottom = 0f
-        hScrollBar.marginBottom = 0f
+        hScrollBar.marginBottom = -originY
         hScrollBar.anchorTop = 0f
-        hScrollBar.marginTop = 0f
+        hScrollBar.marginTop = -originY
 
         vScrollBar.anchorLeft = 1f
-        vScrollBar.marginLeft = -vScrollBar.width
+        vScrollBar.marginLeft = -vScrollBar.width - originX
         vScrollBar.anchorRight = 1f
-        vScrollBar.marginRight = 0f
+        vScrollBar.marginRight = -originX
         vScrollBar.anchorBottom = 0f
-        vScrollBar.marginBottom = 0f
+        vScrollBar.marginBottom = -originY
         vScrollBar.anchorTop = 1f
-        vScrollBar.marginTop = 0f
+        vScrollBar.marginTop = -originY
     }
 
     /** The type of scrolling. */
@@ -457,7 +459,7 @@ class ScrollContainer : Container(), GestureProcessor {
         ALWAYS,
 
         /** Scroll is disabled and the scrollbar is hidden. */
-        NEVER
+        NEVER,
     }
 
     class ThemeVars {
