@@ -123,9 +123,11 @@ open class CanvasLayerContainer : Container() {
         fbos.forEach { fbo ->
             val target = fbo.target
             batch.draw(
-                target,
-                globalX - margin / shrink + offsetX,
-                globalY - margin / shrink + offsetY,
+                texture = target,
+                x = globalX - margin / shrink + offsetX - originX,
+                y = globalY - margin / shrink + offsetY - originY,
+                originX = originX,
+                originY = originY,
                 width =
                     if (stretch) width + margin * 2 / shrink
                     else target.width.toFloat() + margin * 2 / shrink,
