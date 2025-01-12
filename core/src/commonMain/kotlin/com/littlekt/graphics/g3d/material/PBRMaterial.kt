@@ -105,12 +105,14 @@ class PBRMaterial(
             set(4, metallicFactor)
             set(5, roughnessFactor)
             set(6, occlusionStrength)
-            set(7, emissiveFactor.x)
-            set(8, emissiveFactor.y)
-            set(9, emissiveFactor.z)
-            set(10, alphaCutoff)
+
             // padding but reset it anyway
-            set(11, 0f)
+            set(7, 0f)
+
+            set(8, emissiveFactor.x)
+            set(9, emissiveFactor.y)
+            set(10, emissiveFactor.z)
+            set(11, alphaCutoff)
         }
         device.queue.writeBuffer(materialUniformBuffer, materialFloatBuffer)
         device.queue.writeBuffer(modelUniformBuffer, transform.toBuffer(modelFloatBuffer))

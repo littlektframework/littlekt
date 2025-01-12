@@ -270,7 +270,7 @@ class PBRMaterialBuilder : SubFragmentShaderBuilder() {
     override fun main(entryPoint: String) =
         main(
             entryPoint = entryPoint,
-            fullyRough = true,
+            fullyRough = false,
             bloomEnabled = false,
             shadowsEnabled = false,
         )
