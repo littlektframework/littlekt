@@ -117,7 +117,7 @@ class PBRMaterialBuilder : SubFragmentShaderBuilder() {
             };
 
             fn FresnelSchlick(cosTheta : f32, F0 : vec3f) -> vec3f {
-              return F0 + (vec3(1.0) - F0) * pow(1.0 - cosTheta, 5.0);
+              return F0 + (vec3(1.0) - F0) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0);
             }
 
             fn DistributionGGX(N : vec3f, H : vec3f, roughness : f32) -> f32 {
@@ -221,18 +221,18 @@ class PBRMaterialBuilder : SubFragmentShaderBuilder() {
                 var Lo = vec3(0.0, 0.0, 0.0);
             
                 // Process the directional light if one is present
-                if (global_lights.dir_intensity > 0.0) {
+              //  if (global_lights.dir_intensity > 0.0) {
                   var light : PunctualLight;
                   light.lightType = LightType_Directional;
-                  light.pointToLight = global_lights.dir_direction;
-                  light.color = global_lights.dir_color;
-                  light.intensity = global_lights.dir_intensity;
+                  light.pointToLight = vec3(0.3, 3.0, 0.5); //global_lights.dir_direction;
+                  light.color = vec3(0.8, 0.8, 0.8); //global_lights.dir_color;
+                  light.intensity = 1.0; //global_lights.dir_intensity;
             
                   ${if(shadowsEnabled) "let lightVis = dirLightVisibility(input.world_pos);" else "let lightVis = 1.0;"}
             
                   // calculate per-light radiance and add to outgoing radiance Lo
                   Lo = Lo + lightRadiance(light, surface) * lightVis;
-                }
+              //  }
             
                 // Process each other light in the scene.
                 let clusterIndex = get_cluster_index(input.position);
@@ -255,7 +255,7 @@ class PBRMaterialBuilder : SubFragmentShaderBuilder() {
                   Lo = Lo + lightRadiance(light, surface) * lightVis;
                 }
             
-                let ambient = global_lights.ambient * surface.albedo * surface.ao;
+                let ambient = vec3(0.1, 0.1, 0.1) * surface.albedo * surface.ao;// global_lights.ambient * surface.albedo * surface.ao;
                 let color = linear_to_sRGB(Lo + ambient + surface.emissive);
             
                 var out : FragmentOutput;

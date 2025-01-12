@@ -34,7 +34,7 @@ class PBRMaterial(
     private val isFullyRough: Boolean = roughnessFactor == 1f && metallicRoughnessTexture == null
 
     val metallicRoughnessTexture: Texture = metallicRoughnessTexture ?: Textures.textureWhite
-    val normalTexture: Texture = normalTexture ?: Textures.textureWhite
+    val normalTexture: Texture = normalTexture ?: Textures.textureNormal
     val emissiveTexture: Texture = emissiveTexture ?: Textures.textureWhite
     val occlusionTexture: Texture = occlusionTexture ?: Textures.textureWhite
 
