@@ -3,6 +3,7 @@ package com.littlekt.graphics.g3d.util
 import com.littlekt.Releasable
 import com.littlekt.graphics.Camera
 import com.littlekt.graphics.webgpu.BindGroup
+import com.littlekt.graphics.webgpu.BindGroupLayout
 import com.littlekt.graphics.webgpu.BufferBinding
 import kotlin.time.Duration
 
@@ -12,6 +13,8 @@ import kotlin.time.Duration
  */
 interface CameraBuffers : Releasable {
     val cameraUniformBufferBinding: BufferBinding
+
+    val bindGroupLayout: BindGroupLayout
 
     val bindGroup: BindGroup
 

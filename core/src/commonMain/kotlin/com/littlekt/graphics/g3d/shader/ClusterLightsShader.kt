@@ -51,7 +51,8 @@ class ClusterLightsShader(
                         ShaderStage.COMPUTE,
                         BufferBindingLayout(type = BufferBindingType.READ_ONLY_STORAGE),
                     ),
-                )
+                ),
+                label = "Cluster Lights BindGroupLayout",
             )
         ),
 ) :

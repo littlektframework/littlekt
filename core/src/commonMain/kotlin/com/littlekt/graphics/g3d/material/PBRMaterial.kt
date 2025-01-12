@@ -39,7 +39,7 @@ class PBRMaterial(
     val occlusionTexture: Texture = occlusionTexture ?: Textures.textureWhite
 
     private val modelFloatBuffer = FloatBuffer(16)
-    private val materialFloatBuffer = FloatBuffer(8)
+    private val materialFloatBuffer = FloatBuffer(12)
 
     /** The [GPUBuffer] that holds the model transform matrix data. */
     private val modelUniformBuffer =
@@ -57,13 +57,10 @@ class PBRMaterial(
         )
 
     /** The [BufferBinding] for [modelUniformBufferBinding]. */
-    private val modelUniformBufferBinding =
-        BufferBinding(modelUniformBuffer, size = Float.SIZE_BYTES * 16L)
+    private val modelUniformBufferBinding = BufferBinding(modelUniformBuffer)
 
     /** The [BufferBinding] for [modelUniformBufferBinding]. */
-    private val materialUniformBufferBinding by lazy {
-        BufferBinding(materialUniformBuffer, size = Float.SIZE_BYTES * 8L)
-    }
+    private val materialUniformBufferBinding by lazy { BufferBinding(materialUniformBuffer) }
 
     override val key: Int = 31 * super.key + isFullyRough.hashCode()
 

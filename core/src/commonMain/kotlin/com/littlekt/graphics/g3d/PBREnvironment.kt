@@ -4,10 +4,7 @@ import com.littlekt.graphics.Camera
 import com.littlekt.graphics.g3d.shader.ClusterBoundsShader
 import com.littlekt.graphics.g3d.shader.ClusterLightsShader
 import com.littlekt.graphics.g3d.util.CameraLightBuffers
-import com.littlekt.graphics.webgpu.BindGroupDescriptor
-import com.littlekt.graphics.webgpu.BindGroupEntry
-import com.littlekt.graphics.webgpu.ComputePipelineDescriptor
-import com.littlekt.graphics.webgpu.ProgrammableStage
+import com.littlekt.graphics.webgpu.*
 import com.littlekt.math.MutableVec2f
 import kotlin.time.Duration
 
@@ -23,17 +20,21 @@ class PBREnvironment(override val buffers: CameraLightBuffers) : Environment(buf
 
     private val device = buffers.device
     private val boundsShader = ClusterBoundsShader(device)
-    private val boundBindGroup =
+    private val boundsBindGroup =
         device.createBindGroup(
             BindGroupDescriptor(
-                boundsShader.layouts[1],
+                boundsShader.layouts[0],
                 listOf(BindGroupEntry(0, buffers.clusterBuffers.clusterBoundsStorageBufferBinding)),
             )
         )
     private val boundsPipeline =
         device.createComputePipeline(
             ComputePipelineDescriptor(
-                boundsShader.pipelineLayout,
+                device.createPipelineLayout(
+                    PipelineLayoutDescriptor(
+                        listOf(buffers.bindGroupLayout, boundsShader.layouts[0])
+                    )
+                ),
                 ProgrammableStage(boundsShader.shaderModule, boundsShader.computeEntryPoint),
             )
         )
@@ -59,6 +60,7 @@ class PBREnvironment(override val buffers: CameraLightBuffers) : Environment(buf
         )
 
     override fun update(camera: Camera, dt: Duration) {
+        super.update(camera, dt)
         updateClusterBounds(camera)
         updateClusterLights()
     }
@@ -81,7 +83,7 @@ class PBREnvironment(override val buffers: CameraLightBuffers) : Environment(buf
         val computePassEncoder = commandEncoder.beginComputePass("Cluster Bounds Compute Pass")
         computePassEncoder.setPipeline(boundsPipeline)
         computePassEncoder.setBindGroup(0, buffers.bindGroup)
-        computePassEncoder.setBindGroup(1, boundBindGroup)
+        computePassEncoder.setBindGroup(1, boundsBindGroup)
         computePassEncoder.dispatchWorkgroups(
             buffers.clusterBuffers.workGroupSizeX,
             buffers.clusterBuffers.workGroupSizeY,

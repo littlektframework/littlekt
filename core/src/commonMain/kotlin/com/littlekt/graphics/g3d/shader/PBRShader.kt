@@ -43,13 +43,13 @@ class PBRShader(
                     // camera
                     BindGroupLayoutEntry(
                         0,
-                        ShaderStage.VERTEX or ShaderStage.FRAGMENT,
+                        ShaderStage.VERTEX or ShaderStage.FRAGMENT or ShaderStage.COMPUTE,
                         BufferBindingLayout(),
                     ),
                     // light
                     BindGroupLayoutEntry(
                         1,
-                        ShaderStage.FRAGMENT,
+                        ShaderStage.VERTEX or ShaderStage.FRAGMENT or ShaderStage.COMPUTE,
                         BufferBindingLayout(type = BufferBindingType.READ_ONLY_STORAGE),
                     ),
                     // cluster lights

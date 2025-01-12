@@ -21,7 +21,7 @@ open class VertexShaderBuilder : SubShaderBuilder() {
             getSkinMatrix()
         }
         val cameraViewProj =
-            if (cameraViewProjCombined) "camera.view_proj" else "camera.view * camera.proj"
+            if (cameraViewProjCombined) "camera.view_proj" else "camera.proj * camera.view"
         parts +=
             """
         @vertex

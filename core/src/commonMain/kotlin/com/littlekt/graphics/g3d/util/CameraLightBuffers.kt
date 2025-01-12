@@ -33,48 +33,56 @@ class CameraLightBuffers(
     override val cameraUniformBufferBinding =
         BufferBinding(cameraUniformBuffer, size = Float.SIZE_BYTES * BUFFER_SIZE.toLong())
 
+    override val bindGroupLayout: BindGroupLayout =
+        device.createBindGroupLayout(
+            BindGroupLayoutDescriptor(
+                listOf(
+                    // camera
+                    BindGroupLayoutEntry(
+                        0,
+                        ShaderStage.VERTEX or ShaderStage.FRAGMENT or ShaderStage.COMPUTE,
+                        BufferBindingLayout(),
+                    ),
+                    // light
+                    BindGroupLayoutEntry(
+                        1,
+                        ShaderStage.VERTEX or ShaderStage.FRAGMENT or ShaderStage.COMPUTE,
+                        BufferBindingLayout(type = BufferBindingType.READ_ONLY_STORAGE),
+                    ),
+                    // cluster lights
+                    BindGroupLayoutEntry(
+                        2,
+                        ShaderStage.FRAGMENT or ShaderStage.COMPUTE,
+                        BufferBindingLayout(type = BufferBindingType.READ_ONLY_STORAGE),
+                    ),
+                )
+            )
+        )
+
     /** The camera uniform bind group. */
     override val bindGroup =
         device.createBindGroup(
             BindGroupDescriptor(
-                device.createBindGroupLayout(
-                    BindGroupLayoutDescriptor(
-                        listOf(
-                            // camera
-                            BindGroupLayoutEntry(0, ShaderStage.VERTEX, BufferBindingLayout()),
-                            // light
-                            BindGroupLayoutEntry(
-                                1,
-                                ShaderStage.FRAGMENT,
-                                BufferBindingLayout(type = BufferBindingType.READ_ONLY_STORAGE),
-                            ),
-                            // cluster lights
-                            BindGroupLayoutEntry(
-                                2,
-                                ShaderStage.FRAGMENT or ShaderStage.COMPUTE,
-                                BufferBindingLayout(type = BufferBindingType.READ_ONLY_STORAGE),
-                            ),
-                        )
-                    )
-                ),
+                bindGroupLayout,
                 listOf(
                     BindGroupEntry(0, cameraUniformBufferBinding),
                     BindGroupEntry(1, lightBuffer.bufferBinding),
                     BindGroupEntry(2, clusterBuffers.clusterLightsStorageBufferBinding),
                 ),
+                label = "CameraLightBuffers Bind Group",
             )
         )
 
     override fun update(camera: Camera, dt: Duration) {
-        camFloatBuffer.put(camera.projection.data, 0)
-        camFloatBuffer.put(camera.invProj.data, 16 * Float.SIZE_BYTES)
-        camFloatBuffer.put(camera.view.data, 32 * Float.SIZE_BYTES)
-        camFloatBuffer.put(camera.position.fields, 48 * Float.SIZE_BYTES)
-        camFloatBuffer[51 * Float.SIZE_BYTES] = dt.seconds
-        camFloatBuffer[52 * Float.SIZE_BYTES] = camera.virtualWidth
-        camFloatBuffer[53 * Float.SIZE_BYTES] = camera.virtualHeight
-        camFloatBuffer[54 * Float.SIZE_BYTES] = camera.near
-        camFloatBuffer[55 * Float.SIZE_BYTES] = camera.far
+        camFloatBuffer.put(camera.viewProjection.data, dstOffset = 0)
+        camFloatBuffer.put(camera.invProj.data, dstOffset = 16)
+        camFloatBuffer.put(camera.view.data, dstOffset = 32)
+        camFloatBuffer.put(camera.position.fields, dstOffset = 48)
+        camFloatBuffer.put(dt.seconds)
+        camFloatBuffer.put(camera.virtualWidth)
+        camFloatBuffer.put(camera.virtualHeight)
+        camFloatBuffer.put(camera.near)
+        camFloatBuffer.put(camera.far)
         device.queue.writeBuffer(cameraUniformBuffer, camFloatBuffer)
     }
 

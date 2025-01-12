@@ -210,8 +210,8 @@ class PBRMaterialBuilder : SubFragmentShaderBuilder() {
         parts +=
             """
             struct FragmentOutput {
-                @location(0) color : vec4<f32>,
-                ${if (bloomEnabled) "@location(1) emissive : vec4<f32>," else ""}
+                @location(0) color : vec4f,
+                ${if (bloomEnabled) "@location(1) emissive : vec4f," else ""}
             };
             @fragment
             fn $entryPoint(input : VertexOutput) -> FragmentOutput {

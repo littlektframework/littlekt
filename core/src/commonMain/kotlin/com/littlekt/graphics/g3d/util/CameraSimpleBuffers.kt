@@ -28,18 +28,21 @@ class CameraSimpleBuffers(val device: Device) : CameraBuffers {
     override val cameraUniformBufferBinding =
         BufferBinding(cameraUniformBuffer, size = Float.SIZE_BYTES * BUFFER_SIZE.toLong())
 
+    override val bindGroupLayout: BindGroupLayout =
+        device.createBindGroupLayout(
+            BindGroupLayoutDescriptor(
+                listOf(
+                    // camera
+                    BindGroupLayoutEntry(0, ShaderStage.VERTEX, BufferBindingLayout())
+                )
+            )
+        )
+
     /** The camera uniform bind group. */
     override val bindGroup =
         device.createBindGroup(
             BindGroupDescriptor(
-                device.createBindGroupLayout(
-                    BindGroupLayoutDescriptor(
-                        listOf(
-                            // camera
-                            BindGroupLayoutEntry(0, ShaderStage.VERTEX, BufferBindingLayout())
-                        )
-                    )
-                ),
+                bindGroupLayout,
                 listOf(BindGroupEntry(0, cameraUniformBufferBinding)),
             )
         )

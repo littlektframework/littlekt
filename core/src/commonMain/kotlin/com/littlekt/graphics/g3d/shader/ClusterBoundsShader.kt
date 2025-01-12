@@ -30,20 +30,15 @@ class ClusterBoundsShader(
         listOf(
             BindGroupLayoutDescriptor(
                 listOf(
-                    // camera
-                    BindGroupLayoutEntry(0, ShaderStage.COMPUTE, BufferBindingLayout())
-                )
-            ),
-            BindGroupLayoutDescriptor(
-                listOf(
                     // cluster bounds
                     BindGroupLayoutEntry(
                         0,
                         ShaderStage.COMPUTE,
                         BufferBindingLayout(type = BufferBindingType.STORAGE),
                     )
-                )
-            ),
+                ),
+                label = "Cluster Bounds Storage BindGroupLayout",
+            )
         ),
 ) :
     Shader(
