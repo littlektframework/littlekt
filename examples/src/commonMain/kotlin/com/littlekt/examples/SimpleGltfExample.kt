@@ -3,6 +3,7 @@ package com.littlekt.examples
 import com.littlekt.Context
 import com.littlekt.ContextListener
 import com.littlekt.file.gltf.GltfModelPbrConfig
+import com.littlekt.file.gltf.GltfModelUnlitConfig
 import com.littlekt.file.gltf.toModel
 import com.littlekt.file.vfs.TextureOptions
 import com.littlekt.file.vfs.readGltf
@@ -57,19 +58,23 @@ class SimpleGltfExample(context: Context) : ContextListener(context) {
                 )
             )
         var depthFrame = depthTexture.createView()
-        val models =
+        val unlitModels =
             listOf(
-                //                resourcesVfs["models/Duck.glb"]
-                //                    .readGltf()
-                //                    .toModel(config = GltfModelUnlitConfig())
-                //                    .apply {
-                //                        scale(20f)
-                //                        translate(-30f, 0f, 0f)
-                //                    },
-                //                resourcesVfs["models/Fox.glb"]
-                //                    .readGltf()
-                //                    .toModel(config = GltfModelUnlitConfig())
-                //                    .apply { translate(30f, 0f, 0f) },
+                resourcesVfs["models/Duck.glb"]
+                    .readGltf()
+                    .toModel(config = GltfModelUnlitConfig())
+                    .apply {
+                        scale(20f)
+                        translate(-30f, 0f, 0f)
+                    },
+                resourcesVfs["models/Fox.glb"]
+                    .readGltf()
+                    .toModel(config = GltfModelUnlitConfig())
+                    .apply { translate(30f, 0f, 0f) },
+            )
+
+        val pbrModels =
+            listOf(
                 resourcesVfs["models/flighthelmet/FlightHelmet.gltf"]
                     .readGltf()
                     .toModel(config = GltfModelPbrConfig())
@@ -151,7 +156,12 @@ class SimpleGltfExample(context: Context) : ContextListener(context) {
 
         addFlyController(camera, 0.5f)
         onUpdate { dt ->
-            models.forEach { model ->
+            unlitModels.forEach { model ->
+                model.rotate(y = 0.1.degrees * dt.milliseconds)
+                model.update(dt)
+            }
+
+            pbrModels.forEach { model ->
                 model.rotate(y = 0.1.degrees * dt.milliseconds)
                 model.update(dt)
             }
@@ -209,7 +219,8 @@ class SimpleGltfExample(context: Context) : ContextListener(context) {
                         )
                 )
 
-            models.forEach { model -> modelBatch.render(model, pbrEnvironment) }
+            unlitModels.forEach { model -> modelBatch.render(model, environment) }
+            pbrModels.forEach { model -> modelBatch.render(model, pbrEnvironment) }
             modelBatch.render(grid, environment)
             modelBatch.flush(renderPassEncoder, camera, dt)
             renderPassEncoder.end()
