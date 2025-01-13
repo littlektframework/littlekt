@@ -43,9 +43,29 @@ open class Shader(
     /** The list of [BindGroupLayout]s described by the layout */
     val layouts = layout.map { device.createBindGroupLayout(it) }
 
-    /** The [PipelineLayout] created by using [layouts]. */
-    val pipelineLayout: PipelineLayout =
-        device.createPipelineLayout(PipelineLayoutDescriptor(layouts))
+    /**
+     * The [PipelineLayout] created by using [layouts]. If additional [BindGroupLayout] needs to be
+     * passed in to the layout then use [getOrCreatePipelineLayout] before accessing this field.
+     */
+    val pipelineLayout: PipelineLayout
+        get() = getOrCreatePipelineLayout()
+
+    private var pipelineLayoutOrNull: PipelineLayout? = null
+
+    /**
+     * @param build an optional builder function to allow passing in additional [BindGroupLayout] to
+     *   the [PipelineLayout] if the shader requires it. The [build] will pass in the [layouts] of
+     *   the Shader as the parameter and requires a list of [BindGroupLayout] to proceed.
+     * @return an existing [PipelineLayout] or creates a new one if it doesn't exist.
+     */
+    fun getOrCreatePipelineLayout(
+        build: ((List<BindGroupLayout>) -> List<BindGroupLayout>) = { it }
+    ): PipelineLayout {
+        return pipelineLayoutOrNull
+            ?: device.createPipelineLayout(PipelineLayoutDescriptor(build(layouts))).also {
+                pipelineLayoutOrNull = it
+            }
+    }
 
     private val bindGroups: MutableList<BindGroup> = mutableListOf()
 
@@ -66,6 +86,8 @@ open class Shader(
         bindGroups += newBindGroups
         return newBindGroups.toList()
     }
+
+    fun createBindGroups(bindings: List<IntoBindingResource>) {}
 
     /**
      * Do any buffer updates here.

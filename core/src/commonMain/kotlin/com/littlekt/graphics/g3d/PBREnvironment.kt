@@ -4,7 +4,10 @@ import com.littlekt.graphics.Camera
 import com.littlekt.graphics.g3d.shader.ClusterBoundsShader
 import com.littlekt.graphics.g3d.shader.ClusterLightsShader
 import com.littlekt.graphics.g3d.util.CameraLightBuffers
-import com.littlekt.graphics.webgpu.*
+import com.littlekt.graphics.webgpu.BindGroupDescriptor
+import com.littlekt.graphics.webgpu.BindGroupEntry
+import com.littlekt.graphics.webgpu.ComputePipelineDescriptor
+import com.littlekt.graphics.webgpu.ProgrammableStage
 import com.littlekt.math.MutableVec2f
 import kotlin.time.Duration
 
@@ -30,11 +33,7 @@ class PBREnvironment(override val buffers: CameraLightBuffers) : Environment(buf
     private val boundsPipeline =
         device.createComputePipeline(
             ComputePipelineDescriptor(
-                device.createPipelineLayout(
-                    PipelineLayoutDescriptor(
-                        listOf(buffers.bindGroupLayout, boundsShader.layouts[0])
-                    )
-                ),
+                boundsShader.getOrCreatePipelineLayout { listOf(buffers.bindGroupLayout) + it },
                 ProgrammableStage(boundsShader.shaderModule, boundsShader.computeEntryPoint),
             )
         )

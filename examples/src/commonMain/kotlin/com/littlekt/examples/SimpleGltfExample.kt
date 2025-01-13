@@ -15,7 +15,7 @@ import com.littlekt.graphics.g3d.ModelBatch
 import com.littlekt.graphics.g3d.PBREnvironment
 import com.littlekt.graphics.g3d.UnlitEnvironment
 import com.littlekt.graphics.g3d.VisualInstance
-import com.littlekt.graphics.g3d.material.UnlitMaterial
+import com.littlekt.graphics.g3d.material.PBRMaterial
 import com.littlekt.graphics.g3d.util.PBRMaterialPipelineProvider
 import com.littlekt.graphics.g3d.util.UnlitMaterialPipelineProvider
 import com.littlekt.graphics.generate
@@ -97,6 +97,19 @@ class SimpleGltfExample(context: Context) : ContextListener(context) {
                     )
             )
 
+        val checkeredNormal =
+            resourcesVfs["checkered_normal.png"].readTexture(
+                options =
+                    TextureOptions(
+                        format = preferredFormat,
+                        samplerDescriptor =
+                            SamplerDescriptor(
+                                addressModeU = AddressMode.REPEAT,
+                                addressModeV = AddressMode.REPEAT,
+                            ),
+                    )
+            )
+
         val grid = run {
             val mesh =
                 fullIndexedMesh().generate {
@@ -108,7 +121,12 @@ class SimpleGltfExample(context: Context) : ContextListener(context) {
                 }
             VisualInstance(
                     mesh,
-                    UnlitMaterial(device, baseColorTexture = checkered, castShadows = false),
+                    PBRMaterial(
+                        device,
+                        baseColorTexture = checkered,
+                        normalTexture = checkeredNormal,
+                        castShadows = false,
+                    ),
                 )
                 .apply { translate(0f, -30f, 0f) }
         }
@@ -221,7 +239,7 @@ class SimpleGltfExample(context: Context) : ContextListener(context) {
 
             unlitModels.forEach { model -> modelBatch.render(model, environment) }
             pbrModels.forEach { model -> modelBatch.render(model, pbrEnvironment) }
-            modelBatch.render(grid, environment)
+            modelBatch.render(grid, pbrEnvironment)
             modelBatch.flush(renderPassEncoder, camera, dt)
             renderPassEncoder.end()
             renderPassEncoder.release()

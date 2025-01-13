@@ -224,7 +224,7 @@ class PBRMaterialBuilder : SubFragmentShaderBuilder() {
               //  if (global_lights.dir_intensity > 0.0) {
                   var light : PunctualLight;
                   light.lightType = LightType_Directional;
-                  light.pointToLight = vec3(0.3, 3.0, 0.5); //global_lights.dir_direction;
+                  light.pointToLight = vec3(0.0, 1.0, 0.0); //global_lights.dir_direction;
                   light.color = vec3(0.8, 0.8, 0.8); //global_lights.dir_color;
                   light.intensity = 1.0; //global_lights.dir_intensity;
             
@@ -255,7 +255,7 @@ class PBRMaterialBuilder : SubFragmentShaderBuilder() {
                   Lo = Lo + lightRadiance(light, surface) * lightVis;
                 }
             
-                let ambient = vec3(0.1, 0.1, 0.1) * surface.albedo * surface.ao;// global_lights.ambient * surface.albedo * surface.ao;
+                let ambient = vec3(0.5, 0.5, 0.5) * surface.albedo * surface.ao;// global_lights.ambient * surface.albedo * surface.ao;
                 let color = linear_to_sRGB(Lo + ambient + surface.emissive);
             
                 var out : FragmentOutput;
