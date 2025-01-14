@@ -22,7 +22,6 @@ import com.littlekt.math.isFuzzyZero
 import com.littlekt.util.LazyMat4
 import com.littlekt.util.datastructure.fastForEach
 import com.littlekt.util.datastructure.pool
-import kotlin.time.Duration
 
 /**
  * Draws batched quads using indices.
@@ -129,7 +128,7 @@ class SpriteBatch(
     private var invTexHeight = 0f
 
     private val lastDynamicMeshOffsets: MutableList<Long> = MutableList(1) { 0L }
-    private val shaderDynamicOffsets = mutableMapOf<Shader, Long>()
+    private var lastDynamicOffsetIndex = -1L
 
     init {
         check(size > 0) { "A batch must be greater than zero sprites!" }
@@ -574,7 +573,6 @@ class SpriteBatch(
         var lastShader: Shader? = null
         drawCalls.fastForEach { drawCall ->
             val shader = drawCall.renderInfo.shader
-            var lastDynamicOffsetIndex = shaderDynamicOffsets.getOrPut(shader) { -1L }
             val renderPipeline =
                 renderPipelineByBlendState.getOrPut(drawCall.renderInfo) {
                     device.createRenderPipeline(createRenderPipelineDescriptor(drawCall.renderInfo))
@@ -591,7 +589,7 @@ class SpriteBatch(
                             "SpriteBatch requires ${shader::class.simpleName} to create a bindgroup for BindingUsage.TEXTURE but it failed to do so."
                         )
                 }
-            if (lastCombinedMatrixSet != drawCall.combinedMatrix || lastShader != shader) {
+            if (lastCombinedMatrixSet != drawCall.combinedMatrix) {
                 if (lastDynamicOffsetIndex < cameraBuffers.cameraDynamicSize - 1) {
                     lastDynamicOffsetIndex++
                 } else {
@@ -599,19 +597,20 @@ class SpriteBatch(
                         "SpriteBatch wants to update the SpriteShader.CAMERA_UNIFORM_DYNAMIC_OFFSET but is unable to due to SpriteBatch.cameraDynamicSize being too small! If you are setting the Batch.viewProjection multiple times per render pass then increase this value!"
                     }
                 }
-                shaderDynamicOffsets[shader] = lastDynamicOffsetIndex
-                cameraBuffers.update(drawCall.combinedMatrix, Duration.ZERO, lastDynamicOffsetIndex)
+                cameraBuffers.update(
+                    drawCall.combinedMatrix,
+                    dynamicOffset = lastDynamicOffsetIndex,
+                )
             }
             if (lastPipelineSet != renderPipeline) {
                 renderPassEncoder.setPipeline(renderPipeline)
                 lastPipelineSet = renderPipeline
             }
-            if (
-                lastBindGroupSet != textureBindGroup ||
-                    lastShader != shader ||
-                    lastCombinedMatrixSet != drawCall.combinedMatrix
-            ) {
+            if (lastBindGroupSet != textureBindGroup) {
                 lastBindGroupSet = textureBindGroup
+                shader.setBindGroup(renderPassEncoder, textureBindGroup, BindingUsage.TEXTURE)
+            }
+            if (lastShader != shader || lastCombinedMatrixSet != drawCall.combinedMatrix) {
                 lastDynamicMeshOffsets[0] =
                     lastDynamicOffsetIndex * device.limits.minUniformBufferOffsetAlignment
                 shader.setBindGroup(
@@ -620,7 +619,6 @@ class SpriteBatch(
                     BindingUsage.CAMERA,
                     lastDynamicMeshOffsets,
                 )
-                shader.setBindGroup(renderPassEncoder, textureBindGroup, BindingUsage.TEXTURE)
                 shader.setBindGroups(renderPassEncoder)
                 lastShader = shader
                 lastCombinedMatrixSet = drawCall.combinedMatrix
@@ -639,7 +637,7 @@ class SpriteBatch(
     override fun end() {
         check(drawing) { "SpriteBatch.begin must be called before draw." }
         lastMeshIdx = 0
-        shaderDynamicOffsets.clear()
+        lastDynamicOffsetIndex = -1L
         meshes.forEach { it.clearVertices() }
         spriteIndices.keys.forEach { spriteIndices[it] = 0 }
         drawing = false
