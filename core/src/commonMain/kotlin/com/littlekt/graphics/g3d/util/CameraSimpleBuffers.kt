@@ -2,6 +2,7 @@ package com.littlekt.graphics.g3d.util
 
 import com.littlekt.file.FloatBuffer
 import com.littlekt.graphics.Camera
+import com.littlekt.graphics.util.CameraBuffersViaCamera
 import com.littlekt.graphics.webgpu.*
 import kotlin.time.Duration
 
@@ -9,7 +10,7 @@ import kotlin.time.Duration
  * @author Colton Daily
  * @date 1/5/2025
  */
-class CameraSimpleBuffers(val device: Device) : CameraBuffers {
+class CameraSimpleBuffers(val device: Device) : CameraBuffersViaCamera {
     private val camFloatBuffer = FloatBuffer(BUFFER_SIZE)
 
     /**
@@ -23,6 +24,7 @@ class CameraSimpleBuffers(val device: Device) : CameraBuffers {
             camFloatBuffer.toArray(),
             BufferUsage.UNIFORM or BufferUsage.COPY_DST,
         )
+    override val cameraDynamicSize: Int = 1
 
     /** The [BufferBinding] for [cameraUniformBufferBinding]. */
     override val cameraUniformBufferBinding =
@@ -47,13 +49,14 @@ class CameraSimpleBuffers(val device: Device) : CameraBuffers {
             )
         )
 
-    override fun update(camera: Camera, dt: Duration) =
+    override fun update(camera: Camera, dt: Duration, dynamicOffset: Long) =
         device.queue.writeBuffer(
             cameraUniformBuffer,
             camera.viewProjection.toBuffer(camFloatBuffer),
         )
 
     override fun release() {
+        super.release()
         cameraUniformBuffer.release()
     }
 

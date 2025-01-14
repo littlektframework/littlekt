@@ -4,8 +4,10 @@ import com.littlekt.EngineStats
 import com.littlekt.Releasable
 import com.littlekt.file.FloatBuffer
 import com.littlekt.graphics.*
+import com.littlekt.graphics.g2d.util.CameraSpriteBuffers
 import com.littlekt.graphics.shader.Shader
-import com.littlekt.graphics.shader.SpriteShader
+import com.littlekt.graphics.util.BindingUsage
+import com.littlekt.graphics.util.CameraBuffersViaMatrix
 import com.littlekt.graphics.webgpu.*
 import com.littlekt.log.Logger
 import com.littlekt.math.Mat4
@@ -28,7 +30,14 @@ import kotlinx.atomicfu.getAndUpdate
  * @author Colton Daily
  * @date 4/23/2024
  */
-class SpriteCache(val device: Device, val format: TextureFormat, size: Int = 1000) : Releasable {
+class SpriteCache(
+    val device: Device,
+    val format: TextureFormat,
+    size: Int = 1000,
+    cameraBuffers: CameraBuffersViaMatrix? = null,
+) : Releasable {
+    private val ownCameraBuffers = cameraBuffers == null
+    private val cameraBuffers: CameraBuffersViaMatrix = cameraBuffers ?: CameraSpriteBuffers(device)
 
     /** Holds the sprites: `position (2) + scale (2) + size (2) + rotation (1) + color (4)`. */
     private var staticData = FloatBuffer(size * STATIC_COMPONENTS_PER_SPRITE)
@@ -79,7 +88,7 @@ class SpriteCache(val device: Device, val format: TextureFormat, size: Int = 100
     private val shader: SpriteCacheShader =
         SpriteCacheShader(device, staticData.capacity, dynamicData.capacity)
 
-    private val bindGroupsByTexture: MutableMap<Int, List<BindGroup>> = mutableMapOf()
+    private val bindGroupByTextureId: MutableMap<Int, BindGroup> = mutableMapOf()
     private val drawCalls: MutableList<DrawCall> = mutableListOf()
 
     private var blendState = BlendState.NonPreMultiplied
@@ -194,7 +203,7 @@ class SpriteCache(val device: Device, val format: TextureFormat, size: Int = 100
                 }
             }
             if (clearBindGroups) {
-                bindGroupsByTexture.clear()
+                bindGroupByTextureId.clear()
                 logger.debug { "Cleared bind groups due to a storage buffer being recreated." }
             }
             staticDirty = false
@@ -204,30 +213,34 @@ class SpriteCache(val device: Device, val format: TextureFormat, size: Int = 100
         encoder.setVertexBuffer(0, mesh.vbo)
         var lastPipelineSet: RenderPipeline? = null
         var lastCombinedMatrixSet: Mat4? = null
-        var lastBindGroupsSet: List<BindGroup>? = null
+        var lastBindGroupsSet: BindGroup? = null
         var instanceIdx = 0
         drawCalls.fastForEach { drawCall ->
             // ensure shader bind groups are created
             val texture = drawCall.texture
-            val bindGroups =
-                bindGroupsByTexture.getOrPut(texture.id) {
-                    dataMap.clear()
-                    dataMap[SpriteShader.TEXTURE] = texture
-                    shader.createBindGroups(dataMap)
+            val textureBindGroup =
+                bindGroupByTextureId.getOrPut(texture.id) {
+                    shader.createBindGroup(
+                        BindingUsage.TEXTURE,
+                        drawCall.texture.view,
+                        drawCall.texture.sampler,
+                    )
+                        ?: error(
+                            "SpriteCache requires ${shader::class.simpleName} to create a bindgroup for BindingUsage.TEXTURE but it failed to do so."
+                        )
                 }
             if (viewProjection != null && lastCombinedMatrixSet != viewProjection) {
                 lastCombinedMatrixSet = viewProjection
-                dataMap.clear()
-                dataMap[SpriteShader.VIEW_PROJECTION] = viewProjection
-                shader.update(dataMap)
+                cameraBuffers.update(viewProjection)
             }
             if (lastPipelineSet != renderPipeline) {
                 encoder.setPipeline(renderPipeline)
                 lastPipelineSet = renderPipeline
             }
-            if (lastBindGroupsSet != bindGroups) {
-                lastBindGroupsSet = bindGroups
-                shader.setBindGroups(encoder, bindGroups, lastDynamicMeshOffsets)
+            if (lastBindGroupsSet != textureBindGroup) {
+                lastBindGroupsSet = textureBindGroup
+                shader.setBindGroup(encoder, cameraBuffers.bindGroup, BindingUsage.CAMERA)
+                shader.setBindGroup(encoder, textureBindGroup, BindingUsage.TEXTURE)
             }
             EngineStats.extra(QUAD_STATS_NAME, 1)
             EngineStats.extra(INSTANCES_STATS_NAME, drawCall.instances)
@@ -496,6 +509,9 @@ class SpriteCache(val device: Device, val format: TextureFormat, size: Int = 100
         spriteBuffer.release()
         staticData.clear()
         spriteIndices.clear()
+        if (ownCameraBuffers) {
+            cameraBuffers.release()
+        }
     }
 
     private fun FloatBuffer.shiftDataDown(startIdx: Int, endIdx: Int, dstOffset: Int) {

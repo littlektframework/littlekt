@@ -96,7 +96,6 @@ class ModelBatch(val device: Device, size: Int = 128) : Releasable {
             }
             val visualInstances = instancesByPipeline[pipeline]
             if (!visualInstances.isNullOrEmpty()) {
-                val shader = pipeline.shader
                 renderPassEncoder.setPipeline(pipeline.renderPipeline)
                 dataMap.clear()
                 // TODO need a way to cache bind groups so we aren't setting the same ones over and
@@ -107,7 +106,9 @@ class ModelBatch(val device: Device, size: Int = 128) : Releasable {
                             ?: error(
                                 "Material (${visualInstance.material.id}) bind groups could not be found!"
                             )
-                    shader.setBindGroups(renderPassEncoder, bindGroups)
+                    bindGroups.forEachIndexed { index, bindGroup ->
+                        renderPassEncoder.setBindGroup(index, bindGroup)
+                    }
                     visualInstance.material.update(visualInstance.globalTransform)
                     val mesh = visualInstance.mesh
                     val indexedMesh = visualInstance.indexedMesh

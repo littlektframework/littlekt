@@ -46,9 +46,4 @@ class ClusterBoundsShader(
         src = computeSrc,
         layout = bindGroupLayout,
         computeEntryPoint = computeEntryPoint,
-    ) {
-
-    override fun MutableList<BindGroup>.createBindGroupsInternal(data: Map<String, Any>) {
-        TODO("Not yet implemented")
-    }
-}
+    ) {}

@@ -1,23 +1,20 @@
 package com.littlekt.graphics.g2d
 
-import com.littlekt.graphics.Texture
-import com.littlekt.graphics.shader.SpriteShader
+import com.littlekt.graphics.shader.Shader
+import com.littlekt.graphics.util.BindingUsage
 import com.littlekt.graphics.webgpu.*
 import com.littlekt.util.align
 
 /**
- * The default [SpriteShader] that is used [SpriteBatch].
+ * The default [Shader] that is used in [SpriteBatch].
  *
  * @param device the current [Device]
- * @param cameraDynamicSize the size in which the underlying [cameraUniformBuffer] should be
- *   multiplied by to handle dynamic camera uniform values.
  * @author Colton Daily
  * @date 4/15/2024
  */
-class SpriteBatchShader(device: Device, cameraDynamicSize: Int = 50) :
-    SpriteShader(
+class SpriteBatchShader(device: Device) :
+    Shader(
         device,
-        // language=wgsl
         src =
             """
         struct CameraUniform {
@@ -69,49 +66,54 @@ class SpriteBatchShader(device: Device, cameraDynamicSize: Int = 50) :
                                 minBindingSize =
                                     (Float.SIZE_BYTES * 16)
                                         .align(device.limits.minUniformBufferOffsetAlignment)
-                                        .toLong()
-                            )
+                                        .toLong(),
+                            ),
                         )
-                    )
+                    ),
+                    label = "SpriteBatchShader viewProj BindGroupLayoutDescriptor",
                 ),
                 BindGroupLayoutDescriptor(
                     listOf(
                         BindGroupLayoutEntry(0, ShaderStage.FRAGMENT, TextureBindingLayout()),
-                        BindGroupLayoutEntry(1, ShaderStage.FRAGMENT, SamplerBindingLayout())
-                    )
-                )
+                        BindGroupLayoutEntry(1, ShaderStage.FRAGMENT, SamplerBindingLayout()),
+                    ),
+                    label = "SpriteBatchShader texture&sampler BindGroupLayoutDescriptor",
+                ),
             ),
-        cameraDynamicSize = cameraDynamicSize
     ) {
-
-    override fun MutableList<BindGroup>.createBindGroupsWithTexture(
-        texture: Texture,
-        data: Map<String, Any>
+    override fun setBindGroup(
+        renderPassEncoder: RenderPassEncoder,
+        bindGroup: BindGroup,
+        bindingUsage: BindingUsage,
+        dynamicOffsets: List<Long>,
     ) {
-        add(
-            device.createBindGroup(
-                BindGroupDescriptor(
-                    layouts[0],
-                    listOf(BindGroupEntry(0, cameraUniformBufferBinding))
-                )
-            )
-        )
-        add(
-            device.createBindGroup(
-                BindGroupDescriptor(
-                    layouts[1],
-                    listOf(BindGroupEntry(0, texture.view), BindGroupEntry(1, texture.sampler))
-                )
-            )
-        )
+        when (bindingUsage) {
+            BindingUsage.CAMERA -> renderPassEncoder.setBindGroup(0, bindGroup, dynamicOffsets)
+            BindingUsage.TEXTURE -> renderPassEncoder.setBindGroup(1, bindGroup)
+        }
     }
 
-    override fun setBindGroups(
-        encoder: RenderPassEncoder,
-        bindGroups: List<BindGroup>,
-        dynamicOffsets: List<Long>
-    ) {
-        encoder.setBindGroup(0, bindGroups[0], dynamicOffsets)
-        encoder.setBindGroup(1, bindGroups[1])
+    override fun createBindGroup(usage: BindingUsage, vararg args: Any): BindGroup? {
+        return when (usage) {
+            BindingUsage.TEXTURE -> {
+                val view =
+                    args[0] as? TextureView
+                        ?: error(
+                            "SpriteBatchShader requires view, sampler for BindingUsage.TEXTURE"
+                        )
+                val sampler =
+                    args[1] as? Sampler
+                        ?: error(
+                            "SpriteBatchShader requires view, sampler for BindingUsage.TEXTURE"
+                        )
+                device.createBindGroup(
+                    BindGroupDescriptor(
+                        layouts[1],
+                        listOf(BindGroupEntry(0, view), BindGroupEntry(1, sampler)),
+                    )
+                )
+            }
+            else -> null
+        }
     }
 }

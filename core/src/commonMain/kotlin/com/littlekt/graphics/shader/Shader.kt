@@ -1,6 +1,7 @@
 package com.littlekt.graphics.shader
 
 import com.littlekt.Releasable
+import com.littlekt.graphics.util.BindingUsage
 import com.littlekt.graphics.webgpu.*
 import com.littlekt.util.datastructure.fastForEach
 
@@ -40,8 +41,16 @@ open class Shader(
     /** The [ShaderModule]/ */
     val shaderModule = device.createShaderModule(src)
 
-    /** The list of [BindGroupLayout]s described by the layout */
-    val layouts = layout.map { device.createBindGroupLayout(it) }
+    /**
+     * The list of [BindGroupLayout]s described by the layout plus any optional BindGroupLayouts
+     * passed in via [getOrCreatePipelineLayout]
+     */
+    var layouts: List<BindGroupLayout> = emptyList()
+        private set
+
+    /** The list of [BindGroupLayout]s described by the layout for this specific Shader. */
+    private val shaderLayouts: List<BindGroupLayout> =
+        layout.map { device.createBindGroupLayout(it) }
 
     /**
      * The [PipelineLayout] created by using [layouts]. If additional [BindGroupLayout] needs to be
@@ -50,7 +59,7 @@ open class Shader(
     val pipelineLayout: PipelineLayout
         get() = getOrCreatePipelineLayout()
 
-    private var pipelineLayoutOrNull: PipelineLayout? = null
+    private var _pipelineLayout: PipelineLayout? = null
 
     /**
      * @param build an optional builder function to allow passing in additional [BindGroupLayout] to
@@ -61,82 +70,43 @@ open class Shader(
     fun getOrCreatePipelineLayout(
         build: ((List<BindGroupLayout>) -> List<BindGroupLayout>) = { it }
     ): PipelineLayout {
-        return pipelineLayoutOrNull
-            ?: device.createPipelineLayout(PipelineLayoutDescriptor(build(layouts))).also {
-                pipelineLayoutOrNull = it
+        return _pipelineLayout
+            ?: run {
+                layouts = build(shaderLayouts)
+                device
+                    .createPipelineLayout(
+                        PipelineLayoutDescriptor(
+                            layouts,
+                            label = "${this::class.simpleName}($id) PipeLineLayout",
+                        )
+                    )
+                    .also { _pipelineLayout = it }
             }
     }
 
-    private val bindGroups: MutableList<BindGroup> = mutableListOf()
-
-    /**
-     * Create a new list of bind groups that must be tracked and passed into [setBindGroups]. This
-     * list must be tracked due to the fact of being able to swap out bind groups for each shader
-     * based on dynamic data, such as, textures. It is best to call this once and cache the result
-     * based on the data it needs.
-     *
-     * @param data a data map that can include any data that is needed in order to create bind
-     *   groups, using a string as a key.
-     * @return a list of [BindGroup]s for the shader that. This [Shader] is responsible for
-     *   releasing the newly created [BindGroup] by calling [release].
-     */
-    fun createBindGroups(data: Map<String, Any> = emptyMap()): List<BindGroup> {
-        val newBindGroups = mutableListOf<BindGroup>()
-        newBindGroups.createBindGroupsInternal(data)
-        bindGroups += newBindGroups
-        return newBindGroups.toList()
-    }
-
-    fun createBindGroups(bindings: List<IntoBindingResource>) {}
-
-    /**
-     * Do any buffer updates here.
-     *
-     * @param data a data map that can include any data that is needed in order to update bindings ,
-     *   using a string as a key.
-     */
-    open fun update(data: Map<String, Any>) = Unit
-
-    /**
-     * Add the newly created bind groups to the given list.
-     *
-     * ```
-     * fun MutableList<BindGroup>.createBindGroupsInternal(data: Map<String, Any>): List<BindGroup> {
-     *     val texture = data["texture"] as Texture
-     *     add(device.createBindGroup(createTextureDescriptor(texture))
-     *     add(device.createBindGroup(anotherDescriptor)
-     * }
-     * ```
-     *
-     * @param data the data needed in order to create the bind groups.
-     */
-    protected open fun MutableList<BindGroup>.createBindGroupsInternal(data: Map<String, Any>) =
-        Unit
-
-    /**
-     * Set the [BindGroup]s to the correct binding index on the given [RenderPassEncoder]. By
-     * default, this will set the bind groups in list order omitting the use of [dynamicOffsets].
-     * Override this to set own bind group order / functionality.
-     *
-     * @param encoder the [RenderPassEncoder] to encode draw commands with
-     * @param bindGroups the list of bind groups to bind. This assumes the bind list of bind groups
-     *   were created with [createBindGroups] and are in the correct order.
-     * @param dynamicOffsets the list of offsets, for any dynamic bind groups, if applicable
-     */
-    open fun setBindGroups(
-        encoder: RenderPassEncoder,
-        bindGroups: List<BindGroup>,
+    /** External [BindGroup] that is passed in and should be set to the correct binding. */
+    open fun setBindGroup(
+        renderPassEncoder: RenderPassEncoder,
+        bindGroup: BindGroup,
+        bindingUsage: BindingUsage,
         dynamicOffsets: List<Long> = emptyList(),
-    ) {
-        bindGroups.forEachIndexed { index, bindGroup -> encoder.setBindGroup(index, bindGroup) }
-    }
+    ) = Unit
+
+    /** Set any internal bind groups here. */
+    open fun setBindGroups(renderPassEncoder: RenderPassEncoder) = Unit
+
+    /**
+     * Create the applicable [BindGroup] based off of the [BindingUsage], if required.
+     *
+     * @param args requires arguments needed to create bind group. Ensure the order of arguments is
+     *   correct before creating bind group.
+     */
+    open fun createBindGroup(usage: BindingUsage, vararg args: Any): BindGroup? = null
 
     override fun release() {
         shaderModule.release()
-        layouts.fastForEach { it.release() }
-        pipelineLayout.release()
-        bindGroups.forEach { it.release() }
-        bindGroups.clear()
+        shaderLayouts.fastForEach { it.release() }
+        _pipelineLayout?.release()
     }
 
     override fun equals(other: Any?): Boolean {
