@@ -4,6 +4,7 @@ import com.littlekt.graphics.VertexBufferLayout
 import com.littlekt.graphics.g3d.Environment
 import com.littlekt.graphics.g3d.material.PBRMaterial
 import com.littlekt.graphics.g3d.shader.PBRShader
+import com.littlekt.graphics.util.BindingUsage
 import com.littlekt.graphics.webgpu.*
 import kotlin.reflect.KClass
 
@@ -28,7 +29,11 @@ class PBRMaterialPipelineProvider : BaseMaterialPipelineProvider<PBRMaterial>() 
         val renderPipeline =
             device.createRenderPipeline(
                 RenderPipelineDescriptor(
-                    layout = shader.pipelineLayout,
+                    layout =
+                        shader.getOrCreatePipelineLayout {
+                            if (it == BindingUsage.CAMERA) environment.buffers.bindGroupLayout
+                            else error("Unsupported $it in UnlitMaterialPipelineProvider")
+                        },
                     vertex =
                         VertexState(
                             module = shader.shaderModule,

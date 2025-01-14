@@ -99,10 +99,11 @@ open class Shader(
                         usageToBindGroupLayout[usage]
                             ?: error("$this: Unable to get BindGroupLayout for $usage")
                 }
+                _layouts = _layouts.toList().sortedBy { it.first }.toMap().toMutableMap()
                 device
                     .createPipelineLayout(
                         PipelineLayoutDescriptor(
-                            _layouts.toList().sortedBy { it.first }.map { it.second },
+                            _layouts.map { it.value },
                             label = "$this PipeLineLayout",
                         )
                     )

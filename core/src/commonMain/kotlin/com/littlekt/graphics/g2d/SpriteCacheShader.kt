@@ -310,7 +310,7 @@ class SpriteCacheShader(device: Device, staticSize: Int, dynamicSize: Int) :
     }
 
     companion object {
-        val SPRITE_STORAGE = BindingUsage(10)
+        val SPRITE_STORAGE = BindingUsage("SpriteCache Sprite Storage")
         private val logger = Logger<SpriteCacheShader>()
     }
 }

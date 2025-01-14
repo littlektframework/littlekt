@@ -10,13 +10,13 @@ import kotlin.jvm.JvmInline
  * @date 1/14/2025
  */
 @JvmInline
-value class BindingUsage(val usage: Int) {
+value class BindingUsage(val usage: String) {
     companion object {
-        val CAMERA = BindingUsage(5000)
-        val TEXTURE = BindingUsage(5001)
-        val MODEL = BindingUsage(5002)
-        val MATERIAL = BindingUsage(5003)
-        val CLUSTER_BOUNDS = BindingUsage(5010)
-        val CLUSTER_LIGHTS = BindingUsage(5011)
+        val CAMERA = BindingUsage("Camera")
+        val TEXTURE = BindingUsage("Texture")
+        val MODEL = BindingUsage("Model")
+        val MATERIAL = BindingUsage("Material")
+        val CLUSTER_BOUNDS = BindingUsage("Cluster Bounds")
+        val CLUSTER_LIGHTS = BindingUsage("Cluster Lights")
     }
 }

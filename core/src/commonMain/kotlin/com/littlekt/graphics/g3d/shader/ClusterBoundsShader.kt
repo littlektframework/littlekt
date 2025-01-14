@@ -23,10 +23,11 @@ class ClusterBoundsShader(
             }
         }
     },
-    bindGroupLayoutUsageLayout: List<BindingUsage> = listOf(BindingUsage.CAMERA, CLUSTER_BOUNDS),
+    bindGroupLayoutUsageLayout: List<BindingUsage> =
+        listOf(BindingUsage.CAMERA, BindingUsage.CLUSTER_BOUNDS),
     bindGroupLayout: Map<BindingUsage, BindGroupLayoutDescriptor> =
         mapOf(
-            CLUSTER_BOUNDS to
+            BindingUsage.CLUSTER_BOUNDS to
                 BindGroupLayoutDescriptor(
                     listOf(
                         // cluster bounds
@@ -46,9 +47,4 @@ class ClusterBoundsShader(
         bindGroupLayoutUsageLayout = bindGroupLayoutUsageLayout,
         layout = bindGroupLayout,
         computeEntryPoint = computeEntryPoint,
-    ) {
-
-    companion object {
-        val CLUSTER_BOUNDS = BindingUsage(5010)
-    }
-}
+    )
