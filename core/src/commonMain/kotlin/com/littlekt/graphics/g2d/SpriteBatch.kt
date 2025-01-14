@@ -621,6 +621,7 @@ class SpriteBatch(
                     lastDynamicMeshOffsets,
                 )
                 shader.setBindGroup(renderPassEncoder, textureBindGroup, BindingUsage.TEXTURE)
+                shader.setBindGroups(renderPassEncoder)
                 lastShader = shader
                 lastCombinedMatrixSet = drawCall.combinedMatrix
             }
