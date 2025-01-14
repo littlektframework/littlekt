@@ -3,7 +3,6 @@ package com.littlekt.graphics.g2d
 import com.littlekt.graphics.shader.Shader
 import com.littlekt.graphics.util.BindingUsage
 import com.littlekt.graphics.webgpu.*
-import com.littlekt.util.align
 
 /**
  * The default [Shader] that is used in [SpriteBatch].
@@ -54,46 +53,24 @@ class SpriteBatchShader(device: Device) :
         }
         """
                 .trimIndent(),
+        bindGroupLayoutUsageLayout = listOf(BindingUsage.CAMERA, BindingUsage.TEXTURE),
         layout =
-            listOf(
-                BindGroupLayoutDescriptor(
-                    listOf(
-                        BindGroupLayoutEntry(
-                            0,
-                            ShaderStage.VERTEX,
-                            BufferBindingLayout(
-                                hasDynamicOffset = true,
-                                minBindingSize =
-                                    (Float.SIZE_BYTES * 16)
-                                        .align(device.limits.minUniformBufferOffsetAlignment)
-                                        .toLong(),
-                            ),
-                        )
-                    ),
-                    label = "SpriteBatchShader viewProj BindGroupLayoutDescriptor",
-                ),
-                BindGroupLayoutDescriptor(
-                    listOf(
-                        BindGroupLayoutEntry(0, ShaderStage.FRAGMENT, TextureBindingLayout()),
-                        BindGroupLayoutEntry(1, ShaderStage.FRAGMENT, SamplerBindingLayout()),
-                    ),
-                    label = "SpriteBatchShader texture&sampler BindGroupLayoutDescriptor",
-                ),
+            mapOf(
+                BindingUsage.TEXTURE to
+                    BindGroupLayoutDescriptor(
+                        listOf(
+                            BindGroupLayoutEntry(0, ShaderStage.FRAGMENT, TextureBindingLayout()),
+                            BindGroupLayoutEntry(1, ShaderStage.FRAGMENT, SamplerBindingLayout()),
+                        ),
+                        label = "SpriteBatchShader texture BindGroupLayoutDescriptor",
+                    )
             ),
     ) {
-    override fun setBindGroup(
-        renderPassEncoder: RenderPassEncoder,
-        bindGroup: BindGroup,
-        bindingUsage: BindingUsage,
-        dynamicOffsets: List<Long>,
-    ) {
-        when (bindingUsage) {
-            BindingUsage.CAMERA -> renderPassEncoder.setBindGroup(0, bindGroup, dynamicOffsets)
-            BindingUsage.TEXTURE -> renderPassEncoder.setBindGroup(1, bindGroup)
-        }
-    }
 
-    override fun createBindGroup(usage: BindingUsage, vararg args: Any): BindGroup? {
+    override fun createBindGroup(
+        usage: BindingUsage,
+        vararg args: IntoBindingResource,
+    ): BindGroup? {
         return when (usage) {
             BindingUsage.TEXTURE -> {
                 val view =
@@ -108,7 +85,7 @@ class SpriteBatchShader(device: Device) :
                         )
                 device.createBindGroup(
                     BindGroupDescriptor(
-                        layouts[1],
+                        getBindGroupLayoutByUsage(BindingUsage.TEXTURE),
                         listOf(BindGroupEntry(0, view), BindGroupEntry(1, sampler)),
                     )
                 )

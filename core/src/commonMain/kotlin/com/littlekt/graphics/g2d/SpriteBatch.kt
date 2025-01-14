@@ -727,7 +727,11 @@ class SpriteBatch(
     private fun createRenderPipelineDescriptor(renderInfo: RenderInfo): RenderPipelineDescriptor {
         val (shader, blendState) = renderInfo
         return RenderPipelineDescriptor(
-            layout = shader.pipelineLayout,
+            layout =
+                shader.getOrCreatePipelineLayout { bindingUsage ->
+                    if (bindingUsage == BindingUsage.CAMERA) cameraBuffers.bindGroupLayout
+                    else error("Unsupported $bindingUsage in SpriteBatch")
+                },
             vertex =
                 VertexState(
                     module = shader.shaderModule,

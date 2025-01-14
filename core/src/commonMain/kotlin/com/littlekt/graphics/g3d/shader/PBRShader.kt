@@ -3,6 +3,7 @@ package com.littlekt.graphics.g3d.shader
 import com.littlekt.graphics.VertexAttribute
 import com.littlekt.graphics.g3d.util.shader.*
 import com.littlekt.graphics.shader.Shader
+import com.littlekt.graphics.util.BindingUsage
 import com.littlekt.graphics.webgpu.*
 
 /**
@@ -36,67 +37,50 @@ class PBRShader(
             }
         }
     },
-    bindGroupLayout: List<BindGroupLayoutDescriptor> =
-        listOf(
-            BindGroupLayoutDescriptor(
-                listOf(
-                    // camera
-                    BindGroupLayoutEntry(
-                        0,
-                        ShaderStage.VERTEX or ShaderStage.FRAGMENT or ShaderStage.COMPUTE,
-                        BufferBindingLayout(),
-                    ),
-                    // light
-                    BindGroupLayoutEntry(
-                        1,
-                        ShaderStage.VERTEX or ShaderStage.FRAGMENT or ShaderStage.COMPUTE,
-                        BufferBindingLayout(type = BufferBindingType.READ_ONLY_STORAGE),
-                    ),
-                    // cluster lights
-                    BindGroupLayoutEntry(
-                        2,
-                        ShaderStage.FRAGMENT or ShaderStage.COMPUTE,
-                        BufferBindingLayout(type = BufferBindingType.READ_ONLY_STORAGE),
-                    ),
-                )
-            ),
-            BindGroupLayoutDescriptor(
-                listOf(
-                    // model
-                    BindGroupLayoutEntry(0, ShaderStage.VERTEX, BufferBindingLayout())
-                )
-            ),
-            BindGroupLayoutDescriptor(
-                listOf(
-                    // material uniform
-                    BindGroupLayoutEntry(0, ShaderStage.FRAGMENT, BufferBindingLayout()),
-                    // baseColorTexturere
-                    BindGroupLayoutEntry(1, ShaderStage.FRAGMENT, TextureBindingLayout()),
-                    // baseColorSampler
-                    BindGroupLayoutEntry(2, ShaderStage.FRAGMENT, SamplerBindingLayout()),
-                    // normal texture
-                    BindGroupLayoutEntry(3, ShaderStage.FRAGMENT, TextureBindingLayout()),
-                    // normal sampler
-                    BindGroupLayoutEntry(4, ShaderStage.FRAGMENT, SamplerBindingLayout()),
-                    // metallic roughness texture
-                    BindGroupLayoutEntry(5, ShaderStage.FRAGMENT, TextureBindingLayout()),
-                    // metallic roughness sampler
-                    BindGroupLayoutEntry(6, ShaderStage.FRAGMENT, SamplerBindingLayout()),
-                    // occlusion texture
-                    BindGroupLayoutEntry(7, ShaderStage.FRAGMENT, TextureBindingLayout()),
-                    // occlusion sampler
-                    BindGroupLayoutEntry(8, ShaderStage.FRAGMENT, SamplerBindingLayout()),
-                    // emissive texture
-                    BindGroupLayoutEntry(9, ShaderStage.FRAGMENT, TextureBindingLayout()),
-                    // emissive sampler
-                    BindGroupLayoutEntry(10, ShaderStage.FRAGMENT, SamplerBindingLayout()),
-                )
-            ),
+    bindGroupLayoutUsageLayout: List<BindingUsage> =
+        listOf(BindingUsage.CAMERA, BindingUsage.MODEL, BindingUsage.MATERIAL),
+    bindGroupLayout: Map<BindingUsage, BindGroupLayoutDescriptor> =
+        mapOf(
+            BindingUsage.MODEL to
+                BindGroupLayoutDescriptor(
+                    listOf(
+                        // model
+                        BindGroupLayoutEntry(0, ShaderStage.VERTEX, BufferBindingLayout())
+                    )
+                ),
+            BindingUsage.MATERIAL to
+                BindGroupLayoutDescriptor(
+                    listOf(
+                        // material uniform
+                        BindGroupLayoutEntry(0, ShaderStage.FRAGMENT, BufferBindingLayout()),
+                        // baseColorTexturere
+                        BindGroupLayoutEntry(1, ShaderStage.FRAGMENT, TextureBindingLayout()),
+                        // baseColorSampler
+                        BindGroupLayoutEntry(2, ShaderStage.FRAGMENT, SamplerBindingLayout()),
+                        // normal texture
+                        BindGroupLayoutEntry(3, ShaderStage.FRAGMENT, TextureBindingLayout()),
+                        // normal sampler
+                        BindGroupLayoutEntry(4, ShaderStage.FRAGMENT, SamplerBindingLayout()),
+                        // metallic roughness texture
+                        BindGroupLayoutEntry(5, ShaderStage.FRAGMENT, TextureBindingLayout()),
+                        // metallic roughness sampler
+                        BindGroupLayoutEntry(6, ShaderStage.FRAGMENT, SamplerBindingLayout()),
+                        // occlusion texture
+                        BindGroupLayoutEntry(7, ShaderStage.FRAGMENT, TextureBindingLayout()),
+                        // occlusion sampler
+                        BindGroupLayoutEntry(8, ShaderStage.FRAGMENT, SamplerBindingLayout()),
+                        // emissive texture
+                        BindGroupLayoutEntry(9, ShaderStage.FRAGMENT, TextureBindingLayout()),
+                        // emissive sampler
+                        BindGroupLayoutEntry(10, ShaderStage.FRAGMENT, SamplerBindingLayout()),
+                    )
+                ),
         ),
 ) :
     Shader(
         device = device,
         src = "$vertexSrc\n$fragmentSrc",
+        bindGroupLayoutUsageLayout = bindGroupLayoutUsageLayout,
         layout = bindGroupLayout,
         vertexEntryPoint = vertexEntryPoint,
         fragmentEntryPoint = fragmentEntryPoint,

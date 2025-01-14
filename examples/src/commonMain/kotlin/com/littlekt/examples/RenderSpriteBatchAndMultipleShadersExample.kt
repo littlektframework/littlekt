@@ -59,23 +59,32 @@ class RenderSpriteBatchAndMultipleShadersExample(context: Context) : ContextList
             return textureSample(my_texture, my_sampler, in.uv) * vec4<f32>(1, 0, 0, 1);
         }
         """,
+            bindGroupLayoutUsageLayout = listOf(BindingUsage.CAMERA, BindingUsage.TEXTURE),
             layout =
-                listOf(
-                    BindGroupLayoutDescriptor(
-                        listOf(BindGroupLayoutEntry(0, ShaderStage.VERTEX, BufferBindingLayout())),
-                        label = "ColorShader viewProj BindGroupLayout",
-                    ),
-                    BindGroupLayoutDescriptor(
-                        listOf(
-                            BindGroupLayoutEntry(0, ShaderStage.FRAGMENT, TextureBindingLayout()),
-                            BindGroupLayoutEntry(1, ShaderStage.FRAGMENT, SamplerBindingLayout()),
-                        ),
-                        label = "ColorShader texture BindGroupLayout",
-                    ),
+                mapOf(
+                    BindingUsage.TEXTURE to
+                        BindGroupLayoutDescriptor(
+                            listOf(
+                                BindGroupLayoutEntry(
+                                    0,
+                                    ShaderStage.FRAGMENT,
+                                    TextureBindingLayout(),
+                                ),
+                                BindGroupLayoutEntry(
+                                    1,
+                                    ShaderStage.FRAGMENT,
+                                    SamplerBindingLayout(),
+                                ),
+                            ),
+                            label = "ColorShader texture BindGroupLayoutDescriptor",
+                        )
                 ),
         ) {
 
-        override fun createBindGroup(usage: BindingUsage, vararg args: Any): BindGroup? {
+        override fun createBindGroup(
+            usage: BindingUsage,
+            vararg args: IntoBindingResource,
+        ): BindGroup? {
             return when (usage) {
                 BindingUsage.TEXTURE -> {
                     val view =
@@ -86,7 +95,7 @@ class RenderSpriteBatchAndMultipleShadersExample(context: Context) : ContextList
                             ?: error("ColorShader requires view, sampler for BindingUsage.TEXTURE")
                     device.createBindGroup(
                         BindGroupDescriptor(
-                            layouts[1],
+                            getBindGroupLayoutByUsage(BindingUsage.TEXTURE),
                             listOf(BindGroupEntry(0, view), BindGroupEntry(1, sampler)),
                         )
                     )

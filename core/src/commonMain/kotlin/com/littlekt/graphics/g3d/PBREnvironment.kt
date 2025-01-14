@@ -4,10 +4,8 @@ import com.littlekt.graphics.Camera
 import com.littlekt.graphics.g3d.shader.ClusterBoundsShader
 import com.littlekt.graphics.g3d.shader.ClusterLightsShader
 import com.littlekt.graphics.g3d.util.CameraLightBuffers
-import com.littlekt.graphics.webgpu.BindGroupDescriptor
-import com.littlekt.graphics.webgpu.BindGroupEntry
-import com.littlekt.graphics.webgpu.ComputePipelineDescriptor
-import com.littlekt.graphics.webgpu.ProgrammableStage
+import com.littlekt.graphics.util.BindingUsage
+import com.littlekt.graphics.webgpu.*
 import com.littlekt.math.MutableVec2f
 import kotlin.time.Duration
 
@@ -23,38 +21,69 @@ class PBREnvironment(override val buffers: CameraLightBuffers) : Environment(buf
 
     private val device = buffers.device
     private val boundsShader = ClusterBoundsShader(device)
-    private val boundsBindGroup =
-        device.createBindGroup(
-            BindGroupDescriptor(
-                boundsShader.layouts[0],
-                listOf(BindGroupEntry(0, buffers.clusterBuffers.clusterBoundsStorageBufferBinding)),
-            )
-        )
+
     private val boundsPipeline =
         device.createComputePipeline(
             ComputePipelineDescriptor(
-                boundsShader.getOrCreatePipelineLayout { listOf(buffers.bindGroupLayout) + it },
+                boundsShader.getOrCreatePipelineLayout { bindingUsage ->
+                    if (bindingUsage == BindingUsage.CAMERA) buffers.bindGroupLayout
+                    else error("Unsupported $bindingUsage in PBREnvironment")
+                },
                 ProgrammableStage(boundsShader.shaderModule, boundsShader.computeEntryPoint),
             )
         )
+    private val boundsBindGroup =
+        boundsShader.createBindGroup(
+            BindingUsage.CLUSTER_BOUNDS,
+            buffers.clusterBuffers.clusterBoundsStorageBufferBinding,
+        ) ?: error("Unable to create ClusterBounds BindGroup")
+
     private val lightsShader = ClusterLightsShader(device)
+    private val lightsPipeline =
+        device.createComputePipeline(
+            ComputePipelineDescriptor(
+                lightsShader.getOrCreatePipelineLayout {
+                    device.createBindGroupLayout(
+                        BindGroupLayoutDescriptor(
+                            listOf(
+                                // camera
+                                BindGroupLayoutEntry(0, ShaderStage.COMPUTE, BufferBindingLayout()),
+                                // cluster bounds
+                                BindGroupLayoutEntry(
+                                    1,
+                                    ShaderStage.COMPUTE,
+                                    BufferBindingLayout(type = BufferBindingType.READ_ONLY_STORAGE),
+                                ),
+                                // cluster lights
+                                BindGroupLayoutEntry(
+                                    2,
+                                    ShaderStage.COMPUTE,
+                                    BufferBindingLayout(type = BufferBindingType.STORAGE),
+                                ),
+                                // lights
+                                BindGroupLayoutEntry(
+                                    3,
+                                    ShaderStage.COMPUTE,
+                                    BufferBindingLayout(type = BufferBindingType.READ_ONLY_STORAGE),
+                                ),
+                            ),
+                            label = "Cluster Lights BindGroupLayout",
+                        )
+                    )
+                },
+                ProgrammableStage(lightsShader.shaderModule, lightsShader.computeEntryPoint),
+            )
+        )
     private val lightsBindGroup =
         device.createBindGroup(
             BindGroupDescriptor(
-                lightsShader.layouts[0],
+                lightsShader.getBindGroupLayoutByUsage(BindingUsage.CLUSTER_LIGHTS),
                 listOf(
                     BindGroupEntry(0, buffers.cameraUniformBufferBinding),
                     BindGroupEntry(1, buffers.clusterBuffers.clusterBoundsStorageBufferBinding),
                     BindGroupEntry(2, buffers.clusterBuffers.clusterLightsStorageBufferBinding),
                     BindGroupEntry(3, buffers.lightBuffer.bufferBinding),
                 ),
-            )
-        )
-    private val lightsPipeline =
-        device.createComputePipeline(
-            ComputePipelineDescriptor(
-                lightsShader.pipelineLayout,
-                ProgrammableStage(lightsShader.shaderModule, lightsShader.computeEntryPoint),
             )
         )
 

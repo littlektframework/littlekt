@@ -81,7 +81,7 @@ class ModelBatch(val device: Device, size: Int = 128) : Releasable {
 
         bindGroupsByMaterial.getOrPut(instance.material.id) {
             listOf(environment.buffers.bindGroup) +
-                instance.material.createBindGroups(pipeline.shader.layouts)
+                instance.material.createBindGroups(pipeline.shader.layouts.map { it.value })
         }
     }
 

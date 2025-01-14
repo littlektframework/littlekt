@@ -111,7 +111,6 @@ class SpriteCache(
     private val dirty: Boolean
         get() = staticDirty || dynamicDirty
 
-    private val dataMap: MutableMap<String, Any> = mutableMapOf()
     private val lastDynamicMeshOffsets: List<Long> = listOf(0L)
 
     /**
@@ -226,7 +225,7 @@ class SpriteCache(
                         drawCall.texture.sampler,
                     )
                         ?: error(
-                            "SpriteCache requires ${shader::class.simpleName} to create a bindgroup for BindingUsage.TEXTURE but it failed to do so."
+                            "SpriteCache requires $shader to create a BindGroup for BindingUsage.TEXTURE but it failed to do so."
                         )
                 }
             if (viewProjection != null && lastCombinedMatrixSet != viewProjection) {
@@ -239,8 +238,14 @@ class SpriteCache(
             }
             if (lastBindGroupsSet != textureBindGroup) {
                 lastBindGroupsSet = textureBindGroup
-                shader.setBindGroup(encoder, cameraBuffers.bindGroup, BindingUsage.CAMERA)
+                shader.setBindGroup(
+                    encoder,
+                    cameraBuffers.bindGroup,
+                    BindingUsage.CAMERA,
+                    lastDynamicMeshOffsets,
+                )
                 shader.setBindGroup(encoder, textureBindGroup, BindingUsage.TEXTURE)
+                shader.setBindGroups(encoder)
             }
             EngineStats.extra(QUAD_STATS_NAME, 1)
             EngineStats.extra(INSTANCES_STATS_NAME, drawCall.instances)
@@ -470,7 +475,11 @@ class SpriteCache(
         blendState: BlendState,
     ): RenderPipelineDescriptor {
         return RenderPipelineDescriptor(
-            layout = shader.pipelineLayout,
+            layout =
+                shader.getOrCreatePipelineLayout { bindingUsage ->
+                    if (bindingUsage == BindingUsage.CAMERA) cameraBuffers.bindGroupLayout
+                    else error("Unsupported $bindingUsage in SpriteCache")
+                },
             vertex =
                 VertexState(
                     module = shader.shaderModule,

@@ -3,6 +3,7 @@ package com.littlekt.graphics.g3d.shader
 import com.littlekt.graphics.VertexAttribute
 import com.littlekt.graphics.g3d.util.shader.*
 import com.littlekt.graphics.shader.Shader
+import com.littlekt.graphics.util.BindingUsage
 import com.littlekt.graphics.webgpu.*
 
 /**
@@ -31,39 +32,38 @@ class UnlitShader(
             }
         }
     },
-    bindGroupLayout: List<BindGroupLayoutDescriptor> =
-        listOf(
-            BindGroupLayoutDescriptor(
-                listOf(
-                    // camera
-                    BindGroupLayoutEntry(0, ShaderStage.VERTEX, BufferBindingLayout())
-                )
-            ),
-            BindGroupLayoutDescriptor(
-                listOf(
-                    // model
-                    BindGroupLayoutEntry(
-                        0,
-                        ShaderStage.VERTEX,
-                        BufferBindingLayout(BufferBindingType.UNIFORM),
+    bindGroupLayoutUsageLayout: List<BindingUsage> =
+        listOf(BindingUsage.CAMERA, BindingUsage.MODEL, BindingUsage.MATERIAL),
+    bindGroupLayout: Map<BindingUsage, BindGroupLayoutDescriptor> =
+        mapOf(
+            BindingUsage.MODEL to
+                BindGroupLayoutDescriptor(
+                    listOf(
+                        // model
+                        BindGroupLayoutEntry(
+                            0,
+                            ShaderStage.VERTEX,
+                            BufferBindingLayout(BufferBindingType.UNIFORM),
+                        )
                     )
-                )
-            ),
-            BindGroupLayoutDescriptor(
-                listOf(
-                    // material uniform
-                    BindGroupLayoutEntry(0, ShaderStage.FRAGMENT, BufferBindingLayout()),
-                    // baseColorTexture
-                    BindGroupLayoutEntry(1, ShaderStage.FRAGMENT, TextureBindingLayout()),
-                    // baseColorSampler
-                    BindGroupLayoutEntry(2, ShaderStage.FRAGMENT, SamplerBindingLayout()),
-                )
-            ),
+                ),
+            BindingUsage.MATERIAL to
+                BindGroupLayoutDescriptor(
+                    listOf(
+                        // material uniform
+                        BindGroupLayoutEntry(0, ShaderStage.FRAGMENT, BufferBindingLayout()),
+                        // baseColorTexture
+                        BindGroupLayoutEntry(1, ShaderStage.FRAGMENT, TextureBindingLayout()),
+                        // baseColorSampler
+                        BindGroupLayoutEntry(2, ShaderStage.FRAGMENT, SamplerBindingLayout()),
+                    )
+                ),
         ),
 ) :
     Shader(
         device = device,
         src = "$vertexSrc\n$fragmentSrc",
+        bindGroupLayoutUsageLayout = bindGroupLayoutUsageLayout,
         layout = bindGroupLayout,
         vertexEntryPoint = vertexEntryPoint,
         fragmentEntryPoint = fragmentEntryPoint,

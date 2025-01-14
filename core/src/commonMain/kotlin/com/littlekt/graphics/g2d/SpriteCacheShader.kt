@@ -8,7 +8,7 @@ import com.littlekt.log.Logger
 import kotlin.math.min
 
 /**
- * The default [SpriteShader] that is used in [SpriteCache].
+ * The default [Shader] that is used in [SpriteCache].
  *
  * @param device the current device
  * @param staticSize the initial size of the static sprite storage buffer in floats
@@ -140,41 +140,33 @@ class SpriteCacheShader(device: Device, staticSize: Int, dynamicSize: Int) :
         }
         """
                 .trimIndent(),
+        bindGroupLayoutUsageLayout =
+            listOf(BindingUsage.CAMERA, SPRITE_STORAGE, BindingUsage.TEXTURE),
         layout =
-            listOf(
-                BindGroupLayoutDescriptor(
-                    listOf(
-                        BindGroupLayoutEntry(
-                            0,
-                            ShaderStage.VERTEX,
-                            BufferBindingLayout(
-                                type = BufferBindingType.UNIFORM,
-                                hasDynamicOffset = true,
-                                minBindingSize = Float.SIZE_BYTES * 16L,
+            mapOf(
+                SPRITE_STORAGE to
+                    BindGroupLayoutDescriptor(
+                        listOf(
+                            BindGroupLayoutEntry(
+                                0,
+                                ShaderStage.VERTEX,
+                                BufferBindingLayout(type = BufferBindingType.READ_ONLY_STORAGE),
+                            ),
+                            BindGroupLayoutEntry(
+                                1,
+                                ShaderStage.VERTEX,
+                                BufferBindingLayout(type = BufferBindingType.READ_ONLY_STORAGE),
                             ),
                         )
-                    )
-                ),
-                BindGroupLayoutDescriptor(
-                    listOf(
-                        BindGroupLayoutEntry(
-                            1,
-                            ShaderStage.VERTEX,
-                            BufferBindingLayout(type = BufferBindingType.READ_ONLY_STORAGE),
+                    ),
+                BindingUsage.TEXTURE to
+                    BindGroupLayoutDescriptor(
+                        listOf(
+                            BindGroupLayoutEntry(0, ShaderStage.FRAGMENT, TextureBindingLayout()),
+                            BindGroupLayoutEntry(1, ShaderStage.FRAGMENT, SamplerBindingLayout()),
                         ),
-                        BindGroupLayoutEntry(
-                            2,
-                            ShaderStage.VERTEX,
-                            BufferBindingLayout(type = BufferBindingType.READ_ONLY_STORAGE),
-                        ),
-                    )
-                ),
-                BindGroupLayoutDescriptor(
-                    listOf(
-                        BindGroupLayoutEntry(0, ShaderStage.FRAGMENT, TextureBindingLayout()),
-                        BindGroupLayoutEntry(1, ShaderStage.FRAGMENT, SamplerBindingLayout()),
-                    )
-                ),
+                        label = "SpriteCache texture BindGroupLayoutDescriptor",
+                    ),
             ),
     ) {
 
@@ -206,13 +198,13 @@ class SpriteCacheShader(device: Device, staticSize: Int, dynamicSize: Int) :
 
     private var dynamicSpriteStorageBufferBinding = BufferBinding(spriteDynamicStorage)
 
-    private val storageBindGroup =
+    private var storageBindGroup =
         device.createBindGroup(
             BindGroupDescriptor(
-                layouts[1],
+                getBindGroupLayoutByUsage(SPRITE_STORAGE),
                 listOf(
-                    BindGroupEntry(1, staticSpriteStorageBufferBinding),
-                    BindGroupEntry(2, dynamicSpriteStorageBufferBinding),
+                    BindGroupEntry(0, staticSpriteStorageBufferBinding),
+                    BindGroupEntry(1, dynamicSpriteStorageBufferBinding),
                 ),
             )
         )
@@ -253,6 +245,17 @@ class SpriteCacheShader(device: Device, staticSize: Int, dynamicSize: Int) :
                     BufferUsage.STORAGE or BufferUsage.COPY_DST,
                 )
             staticSpriteStorageBufferBinding = BufferBinding(spriteStaticStorage)
+            storageBindGroup.release()
+            storageBindGroup =
+                device.createBindGroup(
+                    BindGroupDescriptor(
+                        getBindGroupLayoutByUsage(SPRITE_STORAGE),
+                        listOf(
+                            BindGroupEntry(0, staticSpriteStorageBufferBinding),
+                            BindGroupEntry(1, dynamicSpriteStorageBufferBinding),
+                        ),
+                    )
+                )
             return true
         } else {
             device.queue.writeBuffer(
@@ -284,6 +287,17 @@ class SpriteCacheShader(device: Device, staticSize: Int, dynamicSize: Int) :
                     BufferUsage.STORAGE or BufferUsage.COPY_DST,
                 )
             dynamicSpriteStorageBufferBinding = BufferBinding(spriteDynamicStorage)
+            storageBindGroup.release()
+            storageBindGroup =
+                device.createBindGroup(
+                    BindGroupDescriptor(
+                        getBindGroupLayoutByUsage(SPRITE_STORAGE),
+                        listOf(
+                            BindGroupEntry(0, staticSpriteStorageBufferBinding),
+                            BindGroupEntry(1, dynamicSpriteStorageBufferBinding),
+                        ),
+                    )
+                )
             return true
         } else {
             device.queue.writeBuffer(
@@ -296,6 +310,7 @@ class SpriteCacheShader(device: Device, staticSize: Int, dynamicSize: Int) :
     }
 
     companion object {
+        val SPRITE_STORAGE = BindingUsage(10)
         private val logger = Logger<SpriteCacheShader>()
     }
 }

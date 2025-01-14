@@ -32,7 +32,7 @@ class ComputeBoidsExample(context: Context) : ContextListener(context) {
             surfaceCapabilities.alphaModes[0],
         )
 
-        val spriteShader = Shader(device, SPRITE_WGSL_SRC, emptyList())
+        val spriteShader = Shader(device, SPRITE_WGSL_SRC, emptyList(), emptyMap())
         val renderPipeline =
             device.createRenderPipeline(
                 desc =
