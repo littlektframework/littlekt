@@ -455,4 +455,6 @@ open class MutableQuaternion(
             else -> error("$i is out of bounds for Quarternion. Only values: `0,1,2,3` are valid!")
         }
     }
+
+    override fun toString(): String = "($x, $y, $z, $w)"
 }

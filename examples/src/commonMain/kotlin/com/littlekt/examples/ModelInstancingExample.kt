@@ -2,26 +2,20 @@ package com.littlekt.examples
 
 import com.littlekt.Context
 import com.littlekt.ContextListener
-import com.littlekt.file.gltf.GltfModelPbrConfig
+import com.littlekt.async.KtScope
 import com.littlekt.file.gltf.GltfModelUnlitConfig
 import com.littlekt.file.gltf.toModel
-import com.littlekt.file.vfs.TextureOptions
 import com.littlekt.file.vfs.readGltf
-import com.littlekt.file.vfs.readTexture
 import com.littlekt.graphics.Color
 import com.littlekt.graphics.PerspectiveCamera
-import com.littlekt.graphics.fullIndexedMesh
-import com.littlekt.graphics.g3d.MeshNode
 import com.littlekt.graphics.g3d.ModelBatch
-import com.littlekt.graphics.g3d.PBREnvironment
 import com.littlekt.graphics.g3d.UnlitEnvironment
-import com.littlekt.graphics.g3d.material.PBRMaterial
 import com.littlekt.graphics.g3d.util.PBRMaterialPipelineProvider
 import com.littlekt.graphics.g3d.util.UnlitMaterialPipelineProvider
-import com.littlekt.graphics.generate
 import com.littlekt.graphics.webgpu.*
 import com.littlekt.math.geom.degrees
 import com.littlekt.util.seconds
+import kotlinx.coroutines.launch
 
 /**
  * An example using a simple Orthographic camera to move around a texture.
@@ -29,16 +23,15 @@ import com.littlekt.util.seconds
  * @author Colton Daily
  * @date 4/13/2024
  */
-class SimpleGltfExample(context: Context) : ContextListener(context) {
+class ModelInstancingExample(context: Context) : ContextListener(context) {
 
     override suspend fun Context.start() {
         addStatsHandler()
         addCloseOnShiftEsc()
         val device = graphics.device
         val camera = PerspectiveCamera(graphics.width, graphics.height)
-        camera.translate(0f, 25f, 150f)
+        camera.translate(900f, 900f, 1500f)
         val environment = UnlitEnvironment(device)
-        val pbrEnvironment = PBREnvironment(device)
 
         val surfaceCapabilities = graphics.surfaceCapabilities
         val preferredFormat = graphics.preferredFormat
@@ -58,77 +51,25 @@ class SimpleGltfExample(context: Context) : ContextListener(context) {
                 )
             )
         var depthFrame = depthTexture.createView()
-        val unlitModels =
-            listOf(
-                resourcesVfs["models/Duck.glb"]
-                    .readGltf()
-                    .toModel(config = GltfModelUnlitConfig())
-                    .apply {
-                        scale(20f)
-                        translate(-30f, 0f, 0f)
-                    },
-                resourcesVfs["models/Fox.glb"]
-                    .readGltf()
-                    .toModel(config = GltfModelUnlitConfig())
-                    .apply { translate(30f, 0f, 0f) },
-            )
+        val duckModel =
+            resourcesVfs["models/Duck.glb"]
+                .readGltf()
+                .toModel(config = GltfModelUnlitConfig())
+                .apply { scale(20f) }
 
-        val pbrModels =
-            listOf(
-                resourcesVfs["models/flighthelmet/FlightHelmet.gltf"]
-                    .readGltf()
-                    .toModel(config = GltfModelPbrConfig())
-                    .apply {
-                        scale(200f)
-                        translate(90f, 0f, 0f)
-                    }
-            )
-
-        val checkered =
-            resourcesVfs["checkered.png"].readTexture(
-                options =
-                    TextureOptions(
-                        format = preferredFormat,
-                        samplerDescriptor =
-                            SamplerDescriptor(
-                                addressModeU = AddressMode.REPEAT,
-                                addressModeV = AddressMode.REPEAT,
-                            ),
-                    )
-            )
-
-        val checkeredNormal =
-            resourcesVfs["checkered_normal.png"].readTexture(
-                options =
-                    TextureOptions(
-                        format = preferredFormat,
-                        samplerDescriptor =
-                            SamplerDescriptor(
-                                addressModeU = AddressMode.REPEAT,
-                                addressModeV = AddressMode.REPEAT,
-                            ),
-                    )
-            )
-
-        val grid = run {
-            val mesh =
-                fullIndexedMesh().generate {
-                    vertexModFun = { uv.set(position.x / 100f, position.z / 100f) }
-                    grid {
-                        sizeX = 1000f
-                        sizeY = 1000f
+        KtScope.launch {
+            repeat(30) { y ->
+                repeat(30) { x ->
+                    duckModel.createModelInstance().apply {
+                        rotate(
+                            (0..360).random().degrees,
+                            (0..360).random().degrees,
+                            (0..360).random().degrees,
+                        )
+                        translate(x * 60f, y * 60f, 0f)
                     }
                 }
-            MeshNode(
-                    mesh,
-                    PBRMaterial(
-                        device,
-                        baseColorTexture = checkered,
-                        normalTexture = checkeredNormal,
-                        castShadows = false,
-                    ),
-                )
-                .apply { translate(0f, -30f, 0f) }
+            }
         }
 
         val modelBatch =
@@ -174,14 +115,13 @@ class SimpleGltfExample(context: Context) : ContextListener(context) {
 
         addFlyController(camera, 0.5f)
         onUpdate { dt ->
-            unlitModels.forEach { model ->
-                model.rotate(y = 10.degrees * dt.seconds)
-                model.update(dt)
-            }
-
-            pbrModels.forEach { model ->
-                model.rotate(y = 10.degrees * dt.seconds)
-                model.update(dt)
+            duckModel.rotate(y = 0.1.degrees * dt.seconds)
+            duckModel.instances.forEach { instance ->
+                instance.rotate(
+                    x = 10f.degrees * dt.seconds,
+                    y = 10f.degrees * dt.seconds,
+                    z = 10f.degrees * dt.seconds,
+                )
             }
         }
         onUpdate { dt ->
@@ -237,9 +177,7 @@ class SimpleGltfExample(context: Context) : ContextListener(context) {
                         )
                 )
 
-            unlitModels.forEach { model -> modelBatch.render(model, environment) }
-            pbrModels.forEach { model -> modelBatch.render(model, pbrEnvironment) }
-            modelBatch.render(grid, pbrEnvironment)
+            modelBatch.render(duckModel, environment)
             modelBatch.flush(renderPassEncoder, camera, dt)
             renderPassEncoder.end()
             renderPassEncoder.release()

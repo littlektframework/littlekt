@@ -28,4 +28,5 @@ val availableExamples =
         "-spriteBatchMultiPass" to Pair("SpriteBatch Multi Pass", ::SpriteBatchMultiPassExample),
         "-simpleGltf" to Pair("Simple GLtf", ::SimpleGltfExample),
         "-mipMaps" to Pair("Mip Maps", ::MipMapsExample),
+        "-modelInstancing" to Pair("Model Instancing", ::ModelInstancingExample),
     )

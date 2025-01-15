@@ -70,7 +70,7 @@ open class MeshNode(
     }
 
     fun instanceDirty(instance: VisualInstance) {
-        if (!dirtyInstances.contains(instance)) return
+        if (dirtyInstances.contains(instance)) return
         instancesDirty = true
         dirtyInstances += instance
     }
@@ -159,7 +159,7 @@ open class MeshNode(
         val staticEndIdx = instanceCount * TRANSFORM_COMPONENTS_PER_INSTANCE
         if (instanceData.capacity <= staticEndIdx) {
             logger.debug {
-                "Static Data buffer has run out of room. Increasing size by a factor of 2."
+                "Instance Data buffer has run out of room. Increasing size by a factor of 2 to a size of ${instanceData.capacity * 2}"
             }
             val newData = FloatBuffer(instanceData.capacity * 2)
             newData.put(instanceData)
