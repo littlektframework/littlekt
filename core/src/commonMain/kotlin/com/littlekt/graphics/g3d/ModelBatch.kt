@@ -119,6 +119,8 @@ class ModelBatch(val device: Device, size: Int = 128) : Releasable {
                             BindingUsage.MATERIAL,
                         )
                     }
+                    meshNode.material.update()
+                    meshNode.writeInstanceDataToBuffer()
                     pipeline.shader.setBindGroup(
                         renderPassEncoder,
                         meshNode.instanceBuffers.getOrCreateBindGroup(
@@ -126,8 +128,6 @@ class ModelBatch(val device: Device, size: Int = 128) : Releasable {
                         ),
                         BindingUsage.MODEL,
                     )
-                    meshNode.material.update()
-                    meshNode.writeInstanceDataToBuffer()
                     val mesh = meshNode.mesh
                     val indexedMesh = meshNode.indexedMesh
 
