@@ -20,7 +20,7 @@ class UnlitShader(
             vertexInput(layout)
             vertexOutput(layout)
             camera(0, 0)
-            model(1, 0)
+            models(1, 0)
             main(layout, entryPoint = vertexEntryPoint)
         }
     },
@@ -43,7 +43,7 @@ class UnlitShader(
                         BindGroupLayoutEntry(
                             0,
                             ShaderStage.VERTEX,
-                            BufferBindingLayout(BufferBindingType.UNIFORM),
+                            BufferBindingLayout(BufferBindingType.READ_ONLY_STORAGE),
                         )
                     )
                 ),

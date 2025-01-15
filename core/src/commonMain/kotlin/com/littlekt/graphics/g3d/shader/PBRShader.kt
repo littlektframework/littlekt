@@ -20,7 +20,7 @@ class PBRShader(
             vertexInput(layout)
             vertexOutput(layout)
             cameraWithLights(0, 0)
-            model(1, 0)
+            models(1, 0)
             skin(2)
             main(layout, cameraViewProjCombined = false, entryPoint = vertexEntryPoint)
         }
@@ -45,7 +45,11 @@ class PBRShader(
                 BindGroupLayoutDescriptor(
                     listOf(
                         // model
-                        BindGroupLayoutEntry(0, ShaderStage.VERTEX, BufferBindingLayout())
+                        BindGroupLayoutEntry(
+                            0,
+                            ShaderStage.VERTEX,
+                            BufferBindingLayout(BufferBindingType.READ_ONLY_STORAGE),
+                        )
                     )
                 ),
             BindingUsage.MATERIAL to

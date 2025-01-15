@@ -7,6 +7,7 @@ import com.littlekt.graphics.g3d.util.BaseMaterialPipelineProvider
 import com.littlekt.graphics.g3d.util.MaterialPipeline
 import com.littlekt.graphics.g3d.util.MaterialPipelineProvider
 import com.littlekt.graphics.g3d.util.MaterialPipelineSorter
+import com.littlekt.graphics.util.BindingUsage
 import com.littlekt.graphics.webgpu.*
 import com.littlekt.log.Logger
 import kotlin.reflect.KClass
@@ -20,10 +21,10 @@ class ModelBatch(val device: Device, size: Int = 128) : Releasable {
     private val pipelineProviders: MutableMap<KClass<out Material>, MaterialPipelineProvider> =
         mutableMapOf()
     private val pipelines = mutableListOf<MaterialPipeline>()
-    private val instancesByPipeline = mutableMapOf<MaterialPipeline, MutableList<VisualInstance>>()
+    private val meshNodesByPipeline = mutableMapOf<MaterialPipeline, MutableList<MeshNode>>()
 
     /** By material id */
-    private val bindGroupsByMaterial = mutableMapOf<Int, List<BindGroup>>()
+    private val bindGroupByMaterialId = mutableMapOf<Int, BindGroup>()
     private val updatedEnvironments = mutableSetOf<Int>()
     private val sorter =
         object : MaterialPipelineSorter {
@@ -31,7 +32,6 @@ class ModelBatch(val device: Device, size: Int = 128) : Releasable {
                 pipelines.sort()
             }
         }
-    private val dataMap = mutableMapOf<String, Any>()
     var colorFormat: TextureFormat = TextureFormat.RGBA8_UNORM
     var depthFormat: TextureFormat = TextureFormat.DEPTH24_PLUS_STENCIL8
 
@@ -61,7 +61,7 @@ class ModelBatch(val device: Device, size: Int = 128) : Releasable {
         model.meshes.values.forEach { render(it, environment) }
     }
 
-    fun render(instance: VisualInstance, environment: Environment) {
+    fun render(instance: MeshNode, environment: Environment) {
         val pipeline =
             pipelineProviders[instance.material::class]?.getMaterialPipeline(
                 device,
@@ -77,67 +77,88 @@ class ModelBatch(val device: Device, size: Int = 128) : Releasable {
             pipelines += pipeline
         }
         // todo - pool lists?
-        instancesByPipeline.getOrPut(pipeline) { mutableListOf() }.apply { add(instance) }
+        meshNodesByPipeline.getOrPut(pipeline) { mutableListOf() }.apply { add(instance) }
 
-        bindGroupsByMaterial.getOrPut(instance.material.id) {
-            listOf(environment.buffers.bindGroup) +
-                instance.material.createBindGroups(pipeline.shader.layouts.map { it.value })
+        bindGroupByMaterialId.getOrPut(instance.material.id) {
+            instance.material.createBindGroup(pipeline.shader)
         }
     }
 
     fun flush(renderPassEncoder: RenderPassEncoder, camera: Camera, dt: Duration) {
         sorter.sort(pipelines)
-
+        var lastEnvironmentSet: Environment? = null
+        var lastMaterialSet: Material? = null
         pipelines.forEach { pipeline ->
             // we only need to update the camera buffers in each environment once. So if we are
             // sharing environment, just update the first instance of it.
             if (updatedEnvironments.add(pipeline.environment.id)) {
                 pipeline.environment.update(camera, dt)
             }
-            val visualInstances = instancesByPipeline[pipeline]
-            if (!visualInstances.isNullOrEmpty()) {
+            if (lastEnvironmentSet != pipeline.environment) {
+                lastEnvironmentSet = pipeline.environment
+                pipeline.shader.setBindGroup(
+                    renderPassEncoder,
+                    pipeline.environment.buffers.bindGroup,
+                    BindingUsage.CAMERA,
+                )
+            }
+            val meshNodes = meshNodesByPipeline[pipeline]
+            if (!meshNodes.isNullOrEmpty()) {
                 renderPassEncoder.setPipeline(pipeline.renderPipeline)
-                dataMap.clear()
-                // TODO need a way to cache bind groups so we aren't setting the same ones over and
-                // over
-                visualInstances.forEach { visualInstance ->
-                    val bindGroups =
-                        bindGroupsByMaterial[visualInstance.material.id]
+                meshNodes.forEach { meshNode ->
+                    val materialBindGroup =
+                        bindGroupByMaterialId[meshNode.material.id]
                             ?: error(
-                                "Material (${visualInstance.material.id}) bind groups could not be found!"
+                                "Material (${meshNode.material.id}) bind groups could not be found!"
                             )
-                    bindGroups.forEachIndexed { index, bindGroup ->
-                        renderPassEncoder.setBindGroup(index, bindGroup)
+                    if (lastMaterialSet != meshNode.material) {
+                        lastMaterialSet = meshNode.material
+                        pipeline.shader.setBindGroup(
+                            renderPassEncoder,
+                            materialBindGroup,
+                            BindingUsage.MATERIAL,
+                        )
                     }
-                    visualInstance.material.update(visualInstance.globalTransform)
-                    val mesh = visualInstance.mesh
-                    val indexedMesh = visualInstance.indexedMesh
+                    pipeline.shader.setBindGroup(
+                        renderPassEncoder,
+                        meshNode.instanceBuffers.getOrCreateBindGroup(
+                            pipeline.shader.getBindGroupLayoutByUsage(BindingUsage.MODEL)
+                        ),
+                        BindingUsage.MODEL,
+                    )
+                    meshNode.material.update()
+                    meshNode.writeInstanceDataToBuffer()
+                    val mesh = meshNode.mesh
+                    val indexedMesh = meshNode.indexedMesh
 
                     indexedMesh?.let {
                         renderPassEncoder.setIndexBuffer(
                             indexedMesh.ibo,
-                            indexFormat = visualInstance.stripIndexFormat ?: IndexFormat.UINT16,
+                            indexFormat = meshNode.stripIndexFormat ?: IndexFormat.UINT16,
                         )
                     }
                     renderPassEncoder.setVertexBuffer(0, mesh.vbo)
 
                     if (indexedMesh != null) {
-                        renderPassEncoder.drawIndexed(indexedMesh.geometry.numIndices, 1)
+                        renderPassEncoder.drawIndexed(
+                            indexedMesh.geometry.numIndices,
+                            meshNode.instanceCount,
+                        )
                     } else {
-                        renderPassEncoder.draw(mesh.geometry.numVertices, 1)
+                        renderPassEncoder.draw(mesh.geometry.numVertices, meshNode.instanceCount)
                     }
                 }
             }
         }
 
         pipelines.clear()
-        instancesByPipeline.clear()
+        meshNodesByPipeline.clear()
         updatedEnvironments.clear()
     }
 
     override fun release() {
         pipelineProviders.values.forEach { it.release() }
-        bindGroupsByMaterial.values.forEach { bindGroups -> bindGroups.forEach { it.release() } }
+        bindGroupByMaterialId.values.forEach { it.release() }
     }
 
     companion object {

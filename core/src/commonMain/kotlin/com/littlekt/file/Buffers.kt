@@ -71,7 +71,7 @@ interface ShortBuffer : Buffer {
         data: ShortArray,
         dstOffset: Int,
         srcOffset: Int = 0,
-        len: Int = data.size - srcOffset
+        len: Int = data.size - srcOffset,
     ): ShortBuffer
 
     fun put(data: ShortBuffer): ShortBuffer
@@ -108,7 +108,7 @@ interface IntBuffer : Buffer {
         data: IntArray,
         dstOffset: Int,
         srcOffset: Int = 0,
-        len: Int = data.size - srcOffset
+        len: Int = data.size - srcOffset,
     ): IntBuffer
 
     fun put(data: IntBuffer): IntBuffer
@@ -144,10 +144,17 @@ interface FloatBuffer : Buffer {
         data: FloatArray,
         dstOffset: Int,
         srcOffset: Int = 0,
-        len: Int = data.size - srcOffset
+        len: Int = data.size - srcOffset,
     ): FloatBuffer
 
     fun put(data: FloatBuffer): FloatBuffer
+
+    fun put(
+        data: FloatBuffer,
+        dstOffset: Int,
+        srcOffset: Int = 0,
+        len: Int = data.limit - srcOffset,
+    ): FloatBuffer
 
     fun toArray(offset: Int = 0, len: Int = capacity - offset) =
         FloatArray(len) { get(it + offset) }
@@ -208,7 +215,7 @@ interface ByteBuffer : Buffer {
         data: ByteArray,
         dstOffset: Int,
         srcOffset: Int = 0,
-        len: Int = data.size - srcOffset
+        len: Int = data.size - srcOffset,
     ) = putUByte(data, dstOffset, srcOffset, len)
 
     fun putByte(data: ByteBuffer) = putUByte(data)
@@ -259,7 +266,7 @@ interface ByteBuffer : Buffer {
         data: ByteArray,
         dstOffset: Int,
         srcOffset: Int = 0,
-        len: Int = data.size - srcOffset
+        len: Int = data.size - srcOffset,
     ): ByteBuffer
 
     fun putUByte(data: ByteBuffer): ByteBuffer
@@ -325,9 +332,7 @@ interface ByteBuffer : Buffer {
     }
 }
 
-/**
- * Assumes the underlying [ByteArray] is in little endian order.
- */
+/** Assumes the underlying [ByteArray] is in little endian order. */
 fun ByteArray.put(value: Int, offset: Int): ByteArray {
     this[offset + 3] = (value shr 24).toByte()
     this[offset + 2] = (value shr 16).toByte()
@@ -336,9 +341,7 @@ fun ByteArray.put(value: Int, offset: Int): ByteArray {
     return this
 }
 
-/**
- * Assumes the underlying [ByteArray] is in little endian order.
- */
+/** Assumes the underlying [ByteArray] is in little endian order. */
 fun ByteArray.put(value: Float, offset: Int): ByteArray {
     val bits = value.toRawBits()
     this[offset + 3] = (bits shr 24).toByte()
@@ -348,18 +351,14 @@ fun ByteArray.put(value: Float, offset: Int): ByteArray {
     return this
 }
 
-/**
- * Assumes the underlying [ByteArray] is in little endian order.
- */
+/** Assumes the underlying [ByteArray] is in little endian order. */
 fun ByteArray.put(value: Short, offset: Int): ByteArray {
     this[offset + 1] = (value.toInt() shr 8).toByte()
     this[offset + 0] = value.toByte()
     return this
 }
 
-/**
- * Converts the [FloatArray] to a little endian ordered [ByteArray].
- */
+/** Converts the [FloatArray] to a little endian ordered [ByteArray]. */
 fun FloatArray.toByteArray(offset: Int = 0, size: Int = this.size): ByteArray {
     val floatArray = this
     val bytes = ByteArray(size * 4)
@@ -372,9 +371,7 @@ fun FloatArray.toByteArray(offset: Int = 0, size: Int = this.size): ByteArray {
     return bytes
 }
 
-/**
- * Converts the [ByteArray] to a little endian [FloatArray].
- */
+/** Converts the [ByteArray] to a little endian [FloatArray]. */
 fun ByteArray.toFloatArray(): FloatArray {
     val byteArray = this
     val floats = FloatArray(byteArray.size / 4)
@@ -383,9 +380,9 @@ fun ByteArray.toFloatArray(): FloatArray {
         val byteI = i * 4
         val bits =
             (byteArray[byteI].toInt() and 0xFF) or
-                    ((byteArray[byteI + 1].toInt() and 0xFF) shl 8) or
-                    ((byteArray[byteI + 2].toInt() and 0xFF) shl 16) or
-                    ((byteArray[byteI + 3].toInt() and 0xFF) shl 24)
+                ((byteArray[byteI + 1].toInt() and 0xFF) shl 8) or
+                ((byteArray[byteI + 2].toInt() and 0xFF) shl 16) or
+                ((byteArray[byteI + 3].toInt() and 0xFF) shl 24)
 
         floats[i] = Float.fromBits(bits)
     }
@@ -393,9 +390,7 @@ fun ByteArray.toFloatArray(): FloatArray {
     return floats
 }
 
-/**
- * Converts the [ByteArray] to a little endian [IntArray].
- */
+/** Converts the [ByteArray] to a little endian [IntArray]. */
 fun ByteArray.toIntArray(): IntArray {
     val byteArray = this
     val ints = IntArray(byteArray.size / 4)
@@ -404,17 +399,15 @@ fun ByteArray.toIntArray(): IntArray {
         val byteI = i * 4
         ints[i] =
             byteArray[byteI].toInt() or
-                    (byteArray[byteI + 1].toInt() shl 8) or
-                    (byteArray[byteI + 2].toInt() shl 16) or
-                    (byteArray[byteI + 3].toInt() shl 24)
+                (byteArray[byteI + 1].toInt() shl 8) or
+                (byteArray[byteI + 2].toInt() shl 16) or
+                (byteArray[byteI + 3].toInt() shl 24)
     }
 
     return ints
 }
 
-/**
- * Converts the [IntArray] to a little endian ordered [ByteArray].
- */
+/** Converts the [IntArray] to a little endian ordered [ByteArray]. */
 fun IntArray.toByteArray(): ByteArray {
     val intArray = this
     val bytes = ByteArray(intArray.size * 4)
@@ -426,9 +419,7 @@ fun IntArray.toByteArray(): ByteArray {
     return bytes
 }
 
-/**
- * Converts the [ShortArray] to a little endian ordered [ByteArray].
- */
+/** Converts the [ShortArray] to a little endian ordered [ByteArray]. */
 fun ShortArray.toByteArray(): ByteArray {
     val shortArray = this
     val bytes = ByteArray(shortArray.size * 2)

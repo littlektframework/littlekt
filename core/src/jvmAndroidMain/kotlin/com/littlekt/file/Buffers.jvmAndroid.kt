@@ -9,7 +9,7 @@ import java.nio.ByteOrder
 internal abstract class GenericBuffer<T : ValueLayout>(
     final override val capacity: Int,
     val segment: MemorySegment,
-    val layout: T
+    val layout: T,
 ) : Buffer {
 
     override var dirty: Boolean = false
@@ -46,7 +46,7 @@ internal class ShortBufferImpl(capacity: Int) :
     GenericBuffer<ValueLayout.OfShort>(
         capacity,
         Arena.ofAuto().allocate(capacity * Short.SIZE_BYTES.toLong()),
-        ValueLayout.JAVA_SHORT
+        ValueLayout.JAVA_SHORT,
     ) {
     override var dirty: Boolean = false
 
@@ -99,7 +99,7 @@ internal class IntBufferImpl(capacity: Int) :
     GenericBuffer<ValueLayout.OfInt>(
         capacity,
         Arena.ofAuto().allocate(capacity * Int.SIZE_BYTES.toLong()),
-        ValueLayout.JAVA_INT
+        ValueLayout.JAVA_INT,
     ) {
     override var dirty: Boolean = false
 
@@ -152,7 +152,7 @@ internal class FloatBufferImpl(capacity: Int) :
     GenericBuffer<ValueLayout.OfFloat>(
         capacity,
         Arena.ofAuto().allocate(capacity * Float.SIZE_BYTES.toLong()),
-        ValueLayout.JAVA_FLOAT
+        ValueLayout.JAVA_FLOAT,
     ) {
 
     override var dirty: Boolean = false
@@ -197,6 +197,15 @@ internal class FloatBufferImpl(capacity: Int) :
         }
         return this
     }
+
+    override fun put(data: FloatBuffer, dstOffset: Int, srcOffset: Int, len: Int): FloatBuffer {
+        position = dstOffset
+        for (i in srcOffset until srcOffset + len) {
+            dirty = true
+            segment.set(position++, data[i])
+        }
+        return this
+    }
 }
 
 /** ByteBuffer implementation. */
@@ -215,7 +224,7 @@ internal class ByteBufferImpl(
 
     constructor(
         data: ByteArray,
-        isBigEndian: Boolean
+        isBigEndian: Boolean,
     ) : this(
         data.size,
         if (isBigEndian) ValueLayout.JAVA_BYTE.withOrder(ByteOrder.nativeOrder())
@@ -225,7 +234,7 @@ internal class ByteBufferImpl(
         if (isBigEndian) ValueLayout.JAVA_INT.withOrder(ByteOrder.nativeOrder())
         else ValueLayout.JAVA_INT,
         if (isBigEndian) ValueLayout.JAVA_FLOAT.withOrder(ByteOrder.nativeOrder())
-        else ValueLayout.JAVA_FLOAT
+        else ValueLayout.JAVA_FLOAT,
     ) {
         putByte(data)
     }

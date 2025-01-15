@@ -4,7 +4,7 @@ import org.khronos.webgl.*
 
 internal abstract class GenericBuffer<out B : ArrayBufferView>(
     final override val capacity: Int,
-    create: () -> B
+    create: () -> B,
 ) : Buffer {
     override var dirty: Boolean = false
     val buffer = create()
@@ -168,6 +168,15 @@ internal class FloatBufferImpl(array: Float32Array) :
     override fun put(data: FloatBuffer): FloatBuffer {
         for (i in data.position until data.limit) {
             put(data[i])
+        }
+        return this
+    }
+
+    override fun put(data: FloatBuffer, dstOffset: Int, srcOffset: Int, len: Int): FloatBuffer {
+        position = dstOffset
+        for (i in srcOffset until srcOffset + len) {
+            dirty = true
+            buffer[position++] = data[i]
         }
         return this
     }

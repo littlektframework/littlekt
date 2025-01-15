@@ -6,6 +6,6 @@ package com.littlekt.graphics.g3d
  */
 open class Model : Node3D() {
     val nodes = mutableMapOf<String, Node3D>()
-    val meshes = mutableMapOf<String, VisualInstance>()
+    val meshes = mutableMapOf<String, MeshNode>()
     val skins = mutableListOf<Skin>()
 }

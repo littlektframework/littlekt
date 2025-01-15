@@ -182,28 +182,15 @@ class SpriteCache(
                 mesh.update()
                 mesh.clearVertices()
             }
-            var clearBindGroups = false
             if (dynamicDirty) {
                 drawCalls.clear()
                 ensureDrawCalls()
                 dynamicData.limit = spriteCount * DYNAMIC_COMPONENTS_PER_SPRITE
-                shader.updateSpriteDynamicStorage(dynamicData).let {
-                    if (it) {
-                        clearBindGroups = true
-                    }
-                }
+                shader.updateSpriteDynamicStorage(dynamicData)
             }
             if (staticDirty) {
                 staticData.limit = spriteCount * STATIC_COMPONENTS_PER_SPRITE
-                shader.updateSpriteStaticStorage(staticData).let {
-                    if (it) {
-                        clearBindGroups = true
-                    }
-                }
-            }
-            if (clearBindGroups) {
-                bindGroupByTextureId.clear()
-                logger.debug { "Cleared bind groups due to a storage buffer being recreated." }
+                shader.updateSpriteStaticStorage(staticData)
             }
             staticDirty = false
             dynamicDirty = false
@@ -385,20 +372,18 @@ class SpriteCache(
         // shift up all the data in the buffer from removeIdx to spriteCount-1
         val staticOffset = removeIdx * STATIC_COMPONENTS_PER_SPRITE
         staticData.put(
-            staticData.toArray(
-                (removeIdx + 1) * STATIC_COMPONENTS_PER_SPRITE,
-                spriteCount * STATIC_COMPONENTS_PER_SPRITE,
-            ),
+            staticData,
             dstOffset = staticOffset,
+            srcOffset = (removeIdx + 1) * STATIC_COMPONENTS_PER_SPRITE,
+            len = spriteCount * STATIC_COMPONENTS_PER_SPRITE,
         )
 
         val dynamicOffset = removeIdx * DYNAMIC_COMPONENTS_PER_SPRITE
         dynamicData.put(
-            dynamicData.toArray(
-                (removeIdx + 1) * DYNAMIC_COMPONENTS_PER_SPRITE,
-                spriteCount * DYNAMIC_COMPONENTS_PER_SPRITE,
-            ),
+            dynamicData,
             dstOffset = dynamicOffset,
+            srcOffset = (removeIdx + 1) * DYNAMIC_COMPONENTS_PER_SPRITE,
+            len = spriteCount * DYNAMIC_COMPONENTS_PER_SPRITE,
         )
 
         spriteIndices.remove(id)
@@ -692,4 +677,4 @@ class SpriteCache(
 }
 
 /** An identifier used to track sprites in a [SpriteCache] */
-typealias SpriteId = Int
+private typealias SpriteId = Int

@@ -2,10 +2,10 @@ package com.littlekt.file.gltf
 
 import com.littlekt.file.vfs.VfsFile
 import com.littlekt.graphics.*
+import com.littlekt.graphics.g3d.MeshNode
 import com.littlekt.graphics.g3d.Model
 import com.littlekt.graphics.g3d.Node3D
 import com.littlekt.graphics.g3d.Skin
-import com.littlekt.graphics.g3d.VisualInstance
 import com.littlekt.graphics.g3d.material.PBRMaterial
 import com.littlekt.graphics.g3d.material.UnlitMaterial
 import com.littlekt.graphics.util.CommonIndexedMeshGeometry
@@ -199,8 +199,8 @@ private class GltfModelGenerator(val gltfFile: GltfData) {
                 if (prim.indices >= 0)
                     gltfFile.accessors[prim.indices].componentType.toIndexFormat()
                 else null
-            val visualInstance = VisualInstance(mesh, material, prim.mode.toTopology(), indexFormat)
-            node += visualInstance
+            val meshNode = MeshNode(mesh, material, prim.mode.toTopology(), indexFormat)
+            node += meshNode
             // apply skin
             if (skin >= 0) {
                 //  mesh.skin = model.skins[skin]
@@ -216,7 +216,7 @@ private class GltfModelGenerator(val gltfFile: GltfData) {
                 //     mesh.morphWeights = FloatArray(prim.targets.sumOf { it.size })
             }
 
-            model.meshes[name] = visualInstance
+            model.meshes[name] = meshNode
         }
     }
 

@@ -7,9 +7,9 @@ import com.littlekt.file.vfs.readTexture
 import com.littlekt.graphics.Color
 import com.littlekt.graphics.PerspectiveCamera
 import com.littlekt.graphics.fullIndexedMesh
+import com.littlekt.graphics.g3d.MeshNode
 import com.littlekt.graphics.g3d.ModelBatch
 import com.littlekt.graphics.g3d.UnlitEnvironment
-import com.littlekt.graphics.g3d.VisualInstance
 import com.littlekt.graphics.g3d.material.UnlitMaterial
 import com.littlekt.graphics.g3d.util.UnlitMaterialPipelineProvider
 import com.littlekt.graphics.generate
@@ -74,10 +74,7 @@ class MipMapsExample(context: Context) : ContextListener(context) {
                         sizeY = 1000f
                     }
                 }
-            VisualInstance(
-                    mesh,
-                    UnlitMaterial(device, baseColorTexture = checkered, castShadows = false),
-                )
+            MeshNode(mesh, UnlitMaterial(device, baseColorTexture = checkered, castShadows = false))
                 .apply { translate(0f, -30f, 0f) }
         }
         val modelBatch =

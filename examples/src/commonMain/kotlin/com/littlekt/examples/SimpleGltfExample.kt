@@ -11,10 +11,10 @@ import com.littlekt.file.vfs.readTexture
 import com.littlekt.graphics.Color
 import com.littlekt.graphics.PerspectiveCamera
 import com.littlekt.graphics.fullIndexedMesh
+import com.littlekt.graphics.g3d.MeshNode
 import com.littlekt.graphics.g3d.ModelBatch
 import com.littlekt.graphics.g3d.PBREnvironment
 import com.littlekt.graphics.g3d.UnlitEnvironment
-import com.littlekt.graphics.g3d.VisualInstance
 import com.littlekt.graphics.g3d.material.PBRMaterial
 import com.littlekt.graphics.g3d.util.PBRMaterialPipelineProvider
 import com.littlekt.graphics.g3d.util.UnlitMaterialPipelineProvider
@@ -113,13 +113,13 @@ class SimpleGltfExample(context: Context) : ContextListener(context) {
         val grid = run {
             val mesh =
                 fullIndexedMesh().generate {
-                    vertexModFun = { uv.set(position.x / 10f, position.z / 10f) }
+                    vertexModFun = { uv.set(position.x / 100f, position.z / 100f) }
                     grid {
                         sizeX = 1000f
                         sizeY = 1000f
                     }
                 }
-            VisualInstance(
+            MeshNode(
                     mesh,
                     PBRMaterial(
                         device,

@@ -3,10 +3,9 @@ package com.littlekt.graphics.g3d.material
 import com.littlekt.Releasable
 import com.littlekt.graphics.Color
 import com.littlekt.graphics.Texture
+import com.littlekt.graphics.shader.Shader
 import com.littlekt.graphics.webgpu.BindGroup
-import com.littlekt.graphics.webgpu.BindGroupLayout
 import com.littlekt.graphics.webgpu.CompareFunction
-import com.littlekt.math.Mat4
 import kotlinx.atomicfu.atomic
 
 /**
@@ -36,9 +35,9 @@ abstract class Material : Releasable {
             result
         }
 
-    abstract fun createBindGroups(layouts: List<BindGroupLayout>): List<BindGroup>
+    abstract fun createBindGroup(shader: Shader): BindGroup
 
-    abstract fun update(transform: Mat4)
+    abstract fun update()
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

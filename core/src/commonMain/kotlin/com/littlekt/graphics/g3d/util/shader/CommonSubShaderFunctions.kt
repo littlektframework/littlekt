@@ -57,6 +57,7 @@ fun SubShaderBuilder.vertexInput(attributes: List<VertexAttribute>) {
     parts +=
         """
             struct VertexInput {
+                @builtin(instance_index) instance_index: u32,
                 ${inputs.joinToString("\n")}
             };
         """
@@ -124,14 +125,14 @@ fun SubShaderBuilder.cameraWithLights(group: Int, binding: Int) {
             .trimIndent()
 }
 
-fun SubShaderBuilder.model(group: Int, binding: Int) {
+fun SubShaderBuilder.models(group: Int, binding: Int) {
     parts +=
         """
         struct Model {
             transform: mat4x4f,
         };
         @group($group) @binding($binding)
-        var<uniform> model: Model;
+        var <storage, read> models: array<Model>;
         """
 }
 

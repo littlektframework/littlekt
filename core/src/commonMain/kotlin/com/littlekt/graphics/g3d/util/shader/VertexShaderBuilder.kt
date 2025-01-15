@@ -27,7 +27,7 @@ open class VertexShaderBuilder : SubShaderBuilder() {
         @vertex
         fn $entryPoint(input: VertexInput) -> VertexOutput {
             var output: VertexOutput;
-            let model_matrix = ${if (skinned) "get_skin_matrix(input);" else "model.transform;"}
+            let model_matrix = ${if (skinned) "get_skin_matrix(input);" else "models[input.instance_index].transform;"}
             ${
                 if (layout.any { it.usage == VertexAttrUsage.NORMAL }) {
                     """

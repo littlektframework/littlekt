@@ -3,8 +3,9 @@ package com.littlekt.graphics.g3d.material
 import com.littlekt.file.FloatBuffer
 import com.littlekt.graphics.Color
 import com.littlekt.graphics.Texture
+import com.littlekt.graphics.shader.Shader
+import com.littlekt.graphics.util.BindingUsage
 import com.littlekt.graphics.webgpu.*
-import com.littlekt.math.Mat4
 import com.littlekt.math.Vec3f
 import com.littlekt.resources.Textures
 
@@ -38,16 +39,7 @@ class PBRMaterial(
     val emissiveTexture: Texture = emissiveTexture ?: Textures.textureWhite
     val occlusionTexture: Texture = occlusionTexture ?: Textures.textureWhite
 
-    private val modelFloatBuffer = FloatBuffer(16)
     private val materialFloatBuffer = FloatBuffer(12)
-
-    /** The [GPUBuffer] that holds the model transform matrix data. */
-    private val modelUniformBuffer =
-        device.createGPUFloatBuffer(
-            "model.transform",
-            modelFloatBuffer.toArray(),
-            BufferUsage.UNIFORM or BufferUsage.COPY_DST,
-        )
 
     private val materialUniformBuffer =
         device.createGPUFloatBuffer(
@@ -57,46 +49,32 @@ class PBRMaterial(
         )
 
     /** The [BufferBinding] for [modelUniformBufferBinding]. */
-    private val modelUniformBufferBinding = BufferBinding(modelUniformBuffer)
-
-    /** The [BufferBinding] for [modelUniformBufferBinding]. */
     private val materialUniformBufferBinding by lazy { BufferBinding(materialUniformBuffer) }
 
     override val key: Int = 31 * super.key + isFullyRough.hashCode()
 
-    override fun createBindGroups(layouts: List<BindGroupLayout>): List<BindGroup> {
-        val bindGroups = mutableListOf<BindGroup>()
-        bindGroups +=
-            device.createBindGroup(
-                BindGroupDescriptor(
-                    layouts[1],
-                    listOf(BindGroupEntry(0, modelUniformBufferBinding)),
-                )
+    override fun createBindGroup(shader: Shader): BindGroup {
+        return device.createBindGroup(
+            BindGroupDescriptor(
+                shader.getBindGroupLayoutByUsage(BindingUsage.MATERIAL),
+                listOf(
+                    BindGroupEntry(0, materialUniformBufferBinding),
+                    BindGroupEntry(1, baseColorTexture.view),
+                    BindGroupEntry(2, baseColorTexture.sampler),
+                    BindGroupEntry(3, normalTexture.view),
+                    BindGroupEntry(4, normalTexture.sampler),
+                    BindGroupEntry(5, metallicRoughnessTexture.view),
+                    BindGroupEntry(6, metallicRoughnessTexture.sampler),
+                    BindGroupEntry(7, occlusionTexture.view),
+                    BindGroupEntry(8, occlusionTexture.sampler),
+                    BindGroupEntry(9, emissiveTexture.view),
+                    BindGroupEntry(10, emissiveTexture.sampler),
+                ),
             )
-
-        bindGroups +=
-            device.createBindGroup(
-                BindGroupDescriptor(
-                    layouts[2],
-                    listOf(
-                        BindGroupEntry(0, materialUniformBufferBinding),
-                        BindGroupEntry(1, baseColorTexture.view),
-                        BindGroupEntry(2, baseColorTexture.sampler),
-                        BindGroupEntry(3, normalTexture.view),
-                        BindGroupEntry(4, normalTexture.sampler),
-                        BindGroupEntry(5, metallicRoughnessTexture.view),
-                        BindGroupEntry(6, metallicRoughnessTexture.sampler),
-                        BindGroupEntry(7, occlusionTexture.view),
-                        BindGroupEntry(8, occlusionTexture.sampler),
-                        BindGroupEntry(9, emissiveTexture.view),
-                        BindGroupEntry(10, emissiveTexture.sampler),
-                    ),
-                )
-            )
-        return bindGroups.toList()
+        )
     }
 
-    override fun update(transform: Mat4) {
+    override fun update() {
         materialFloatBuffer.apply {
             set(0, baseColorFactor.r)
             set(1, baseColorFactor.g)
@@ -115,11 +93,9 @@ class PBRMaterial(
             set(11, alphaCutoff)
         }
         device.queue.writeBuffer(materialUniformBuffer, materialFloatBuffer)
-        device.queue.writeBuffer(modelUniformBuffer, transform.toBuffer(modelFloatBuffer))
     }
 
     override fun release() {
-        modelUniformBuffer.release()
         materialUniformBuffer.release()
     }
 

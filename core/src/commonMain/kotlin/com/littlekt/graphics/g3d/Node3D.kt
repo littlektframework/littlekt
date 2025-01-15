@@ -355,9 +355,7 @@ open class Node3D {
     private var _translationMatrix = Mat4()
     private var _scaleMatrix = Mat4()
 
-    private val tmpTransformVec = MutableVec3f()
-
-    fun dirty() {
+    protected open fun dirty() {
         dirty = true
         children.forEach { it.propagateDirty() }
     }
