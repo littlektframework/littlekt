@@ -29,4 +29,5 @@ val availableExamples =
         "-simpleGltf" to Pair("Simple GLtf", ::SimpleGltfExample),
         "-mipMaps" to Pair("Mip Maps", ::MipMapsExample),
         "-modelInstancing" to Pair("Model Instancing", ::ModelInstancingExample),
+        "-pbr" to Pair("Model Instancing", ::PBRExample),
     )

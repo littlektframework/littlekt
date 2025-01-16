@@ -34,12 +34,14 @@ class InstanceBuffers(val device: Device, instanceDataSize: Int) : Releasable {
         return bindGroup
             ?: run {
                 bindGroupLayout = layout
-                return device.createBindGroup(
-                    BindGroupDescriptor(
-                        layout,
-                        listOf(BindGroupEntry(0, staticStorageBufferBinding)),
+                return device
+                    .createBindGroup(
+                        BindGroupDescriptor(
+                            layout,
+                            listOf(BindGroupEntry(0, staticStorageBufferBinding)),
+                        )
                     )
-                )
+                    .also { bindGroup = it }
             }
     }
 
