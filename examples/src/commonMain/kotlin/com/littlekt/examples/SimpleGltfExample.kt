@@ -11,15 +11,16 @@ import com.littlekt.file.vfs.readTexture
 import com.littlekt.graphics.Color
 import com.littlekt.graphics.PerspectiveCamera
 import com.littlekt.graphics.fullIndexedMesh
-import com.littlekt.graphics.g3d.MeshNode
-import com.littlekt.graphics.g3d.ModelBatch
-import com.littlekt.graphics.g3d.PBREnvironment
-import com.littlekt.graphics.g3d.UnlitEnvironment
+import com.littlekt.graphics.g3d.*
+import com.littlekt.graphics.g3d.light.AmbientLight
+import com.littlekt.graphics.g3d.light.DirectionalLight
+import com.littlekt.graphics.g3d.light.PointLight
 import com.littlekt.graphics.g3d.material.PBRMaterial
 import com.littlekt.graphics.g3d.util.PBRMaterialPipelineProvider
 import com.littlekt.graphics.g3d.util.UnlitMaterialPipelineProvider
 import com.littlekt.graphics.generate
 import com.littlekt.graphics.webgpu.*
+import com.littlekt.math.Vec3f
 import com.littlekt.math.geom.degrees
 import com.littlekt.util.seconds
 
@@ -38,7 +39,16 @@ class SimpleGltfExample(context: Context) : ContextListener(context) {
         val camera = PerspectiveCamera(graphics.width, graphics.height)
         camera.translate(0f, 25f, 150f)
         val environment = UnlitEnvironment(device)
-        val pbrEnvironment = PBREnvironment(device)
+        val pbrEnvironment =
+            PBREnvironment(device).apply {
+                setDirectionalLight(
+                    DirectionalLight(color = Color(0.2f, 0.2f, 0.2f), intensity = 0.1f)
+                )
+                setAmbientLight(AmbientLight(color = Color(0.002f, 0.002f, 0.002f)))
+
+                addPointLight(PointLight(Vec3f(0f, 50f, 0f), color = Color.GREEN, range = 4f))
+                addPointLight(PointLight(Vec3f(0f, 50f, 0f), color = Color.GREEN, range = 4f))
+            }
 
         val surfaceCapabilities = graphics.surfaceCapabilities
         val preferredFormat = graphics.preferredFormat

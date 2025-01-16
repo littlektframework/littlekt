@@ -77,9 +77,9 @@ class CameraLightBuffers(
 
     override fun update(camera: Camera, dt: Duration, dynamicOffset: Long) {
         camFloatBuffer.put(camera.projection.data, dstOffset = 0)
-        camFloatBuffer.put(camera.invProj.data, dstOffset = 16)
-        camFloatBuffer.put(camera.view.data, dstOffset = 32)
-        camFloatBuffer.put(camera.position.fields, dstOffset = 48)
+        camFloatBuffer.put(camera.invProj.data)
+        camFloatBuffer.put(camera.view.data)
+        camFloatBuffer.put(camera.position.fields)
         camFloatBuffer.put(dt.seconds)
         camFloatBuffer.put(camera.virtualWidth)
         camFloatBuffer.put(camera.virtualHeight)

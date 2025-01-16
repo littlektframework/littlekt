@@ -78,11 +78,6 @@ class PBRMaterialBuilder : SubFragmentShaderBuilder() {
             }
         
             surface.albedo = surface.base_color.rgb;
-//            if (input.instanceColor.a == 0.0) {
-//              surface.albedo = surface.albedo + input.instanceColor.rgb;
-//            } else {
-//              surface.albedo = surface.albedo * input.instanceColor.rgb;
-//            }
         
             surface.metallic = material.metallic_roughness_factor.x * metallic_roughness_map.b;
             surface.roughness = material.metallic_roughness_factor.y * metallic_roughness_map.g;
@@ -117,7 +112,7 @@ class PBRMaterialBuilder : SubFragmentShaderBuilder() {
             };
 
             fn FresnelSchlick(cosTheta : f32, F0 : vec3f) -> vec3f {
-              return F0 + (vec3(1.0) - F0) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0);
+                return F0 + (vec3(1.0) - F0) * pow(1.0 - cosTheta, 5.0);
             }
 
             fn DistributionGGX(N : vec3f, H : vec3f, roughness : f32) -> f32 {

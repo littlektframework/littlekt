@@ -387,6 +387,8 @@ private const val UPDATE_SPRITES_WGSL_SRC =
     @binding(1) @group(0) var<storage, read> particlesA : Particles;
     @binding(2) @group(0) var<storage, read_write> particlesB : Particles;
     
+    const big_array = array<u32, 65535>();
+    
     // https://github.com/austinEng/Project6-Vulkan-Flocking/blob/master/data/shaders/computeparticles/particle.comp
     @compute @workgroup_size(64)
     fn main(@builtin(global_invocation_id) GlobalInvocationID : vec3u) {

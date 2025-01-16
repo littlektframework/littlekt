@@ -3,7 +3,10 @@ package com.littlekt.graphics.g3d.util
 import com.littlekt.Releasable
 import com.littlekt.file.FloatBuffer
 import com.littlekt.graphics.Color
-import com.littlekt.graphics.webgpu.*
+import com.littlekt.graphics.webgpu.BufferBinding
+import com.littlekt.graphics.webgpu.BufferUsage
+import com.littlekt.graphics.webgpu.Device
+import com.littlekt.graphics.webgpu.GPUBuffer
 import com.littlekt.math.Vec3f
 
 /**
@@ -14,50 +17,21 @@ class LightBuffer(val device: Device, val maxLightCount: Int) : Releasable {
     /** Size of light buffer in number of components / floats. */
     private val lightBufferSize =
         AMBIENT_LIGHT_SIZE + DIRECTIONAL_LIGHT_SIZE + (POINT_LIGHT_SIZE * maxLightCount)
-    private val lightBufferByteSize = lightBufferSize * Float.SIZE_BYTES
     private val lightsBuffer = FloatBuffer(lightBufferSize)
 
     /** The [GPUBuffer] that holds the light data */
-    val buffer = run {
-        val buffer =
-            device.createBuffer(
-                BufferDescriptor(
-                    "light",
-                    lightBufferByteSize.toLong(),
-                    BufferUsage.STORAGE or BufferUsage.COPY_DST,
-                    true,
-                )
-            )
-        buffer.getMappedRange().putFloat(lightsBuffer)
-        buffer.unmap()
-
-        buffer
-    }
+    val buffer =
+        device.createGPUFloatBuffer(
+            "light",
+            lightsBuffer.toArray(),
+            BufferUsage.STORAGE or BufferUsage.COPY_DST,
+        )
 
     /** The [BufferBinding] for [buffer]. */
-    val bufferBinding = BufferBinding(buffer, size = lightBufferByteSize.toLong())
+    val bufferBinding = BufferBinding(buffer)
 
     fun update() {
         device.queue.writeBuffer(buffer, lightsBuffer)
-    }
-
-    private fun printPointLights() {
-        println("--------------------------")
-        val pointLights = lightsBuffer[11].toInt()
-        println("total point lights: $pointLights")
-        repeat(pointLights) { i ->
-            val idx = i + 1
-            val offset = POINT_LIGHT_OFFSET * idx
-            println("Point light $idx:")
-            println(
-                "position: (${lightsBuffer[offset]}, ${lightsBuffer[offset + 1]}, ${lightsBuffer[offset + 2]})"
-            )
-            println("range: (${lightsBuffer[offset + 3]})")
-            println(
-                "color: (${lightsBuffer[offset + 4]}, ${lightsBuffer[offset + 5]}, ${lightsBuffer[offset + 6]})"
-            )
-            println("intensity: (${lightsBuffer[offset + 7]})")
-        }
     }
 
     fun ambient(color: Color) {
@@ -84,12 +58,11 @@ class LightBuffer(val device: Device, val maxLightCount: Int) : Releasable {
     }
 
     fun pointLight(index: Int, position: Vec3f, color: Color, intensity: Float, range: Float) {
-        require(intensity >= 1) { "Point Light index must be >= 1" }
         if (index >= maxLightCount) {
             return
         }
         if (intensity > 0) {
-            val offset = POINT_LIGHT_OFFSET * index
+            val offset = (POINT_LIGHT_OFFSET * index) + POINT_LIGHT_OFFSET
             lightsBuffer[offset] = position.x
             lightsBuffer[offset + 1] = position.y
             lightsBuffer[offset + 2] = position.z

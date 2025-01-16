@@ -271,7 +271,7 @@ fun SubShaderBuilder.clusterLights(
               struct ClusterLightGroup {
                 offset : ${if(access == MemoryAccessMode.READ) "u32" else "atomic<u32>"},
                 lights : array<ClusterLights, ${totalTiles}>,
-                indices : array<u32, ${totalTiles * 64}>,
+                indices : array<u32>,
               };
               @group(${group}) @binding(${binding}) 
               var<storage, ${access.value}> clusterLights : ClusterLightGroup;

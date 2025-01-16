@@ -176,7 +176,7 @@ class PBREnvironment(override val buffers: CameraLightBuffers) : Environment(buf
 
         pointLights.forEachIndexed { index, light ->
             buffers.lightBuffer.pointLight(
-                index = index + 1,
+                index = index,
                 position = light.position,
                 color = light.color,
                 intensity = light.intensity,
