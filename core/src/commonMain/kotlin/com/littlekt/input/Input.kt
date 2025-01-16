@@ -358,6 +358,14 @@ interface Input {
     val axisRightX: Float
     val axisRightY: Float
 
+    /**
+     * `true` if cursor is locked, usually via [cursorLocked]; `false` otherwise.
+     *
+     * @see [lockCursor]
+     * @see [releaseCursor]
+     */
+    val cursorLocked: Boolean
+
     fun getX(pointer: Pointer): Int
 
     fun getY(pointer: Pointer): Int

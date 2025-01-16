@@ -232,6 +232,11 @@ class LwjglInput(private val context: LwjglContext) : Input {
     override val axisRightY: Float
         get() = getGamepadJoystickYDistance(GameStick.RIGHT)
 
+    override val cursorLocked: Boolean
+        get() = _cursorLocked
+
+    private var _cursorLocked: Boolean = false
+
     override fun getX(pointer: Pointer): Int {
         return if (pointer == Pointer.POINTER1) x else 0
     }
@@ -324,10 +329,12 @@ class LwjglInput(private val context: LwjglContext) : Input {
 
     override fun lockCursor() {
         glfwSetInputMode(context.windowHandle, GLFW_CURSOR, GLFW_CURSOR_DISABLED)
+        _cursorLocked = true
     }
 
     override fun releaseCursor() {
         glfwSetInputMode(context.windowHandle, GLFW_CURSOR, GLFW_CURSOR_NORMAL)
+        _cursorLocked = false
     }
 
     override fun addInputProcessor(processor: InputProcessor) {

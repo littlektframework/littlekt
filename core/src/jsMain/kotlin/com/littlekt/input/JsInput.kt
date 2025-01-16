@@ -52,6 +52,9 @@ class JsInput(val canvas: HTMLCanvasElement) : Input {
             Key.ARROW_RIGHT,
         )
 
+    override val cursorLocked: Boolean
+        get() = document.asDynamic().pointerLockElement != null
+
     init {
         document.addEventListener("keydown", ::keyDown, false)
         document.addEventListener("keyup", ::keyUp, false)
@@ -157,33 +160,56 @@ class JsInput(val canvas: HTMLCanvasElement) : Input {
 
     private fun mouseDown(event: Event) {
         event as MouseEvent
-        val rect = canvas.getBoundingClientRect()
-        val x = event.clientX.toFloat() - rect.left.toFloat()
-        val y = event.clientY.toFloat() - rect.top.toFloat()
-        inputCache.onTouchDown(x, y, event.button.getPointer)
+        if (cursorLocked) {
+            _deltaX = 0f
+            _deltaY = 0f
+            mouseX += event.asDynamic().movementX as Float
+            mouseY += event.asDynamic().movementY as Float
+            inputCache.onTouchDown(mouseX, mouseY, event.button.getPointer)
+        } else {
+            val rect = canvas.getBoundingClientRect()
+            val x = event.clientX.toFloat() - rect.left.toFloat()
+            val y = event.clientY.toFloat() - rect.top.toFloat()
+            inputCache.onTouchDown(x, y, event.button.getPointer)
+        }
         touchedPointers += event.button.getPointer
     }
 
     private fun mouseUp(event: Event) {
         event as MouseEvent
-        val rect = canvas.getBoundingClientRect()
-        val x = event.clientX.toFloat() - rect.left.toFloat()
-        val y = event.clientY.toFloat() - rect.top.toFloat()
-        inputCache.onTouchUp(x, y, event.button.getPointer)
+        if (cursorLocked) {
+            _deltaX = event.asDynamic().movementX as Float
+            _deltaY = event.asDynamic().movementY as Float
+            mouseX += _deltaX
+            mouseY += _deltaY
+            inputCache.onTouchUp(mouseX, mouseY, event.button.getPointer)
+        } else {
+            val rect = canvas.getBoundingClientRect()
+            val x = event.clientX.toFloat() - rect.left.toFloat()
+            val y = event.clientY.toFloat() - rect.top.toFloat()
+            inputCache.onTouchUp(x, y, event.button.getPointer)
+        }
         touchedPointers -= event.button.getPointer
     }
 
     private fun mouseMove(event: Event) {
         event as MouseEvent
-        val rect = canvas.getBoundingClientRect()
-        val x = event.clientX.toFloat() - rect.left.toFloat()
-        val y = event.clientY.toFloat() - rect.top.toFloat()
-        _deltaX = x - logicalMouseX
-        _deltaY = y - logicalMouseY
-        mouseX = x
-        mouseY = y
-        logicalMouseX = mouseX
-        logicalMouseY = mouseY
+        if (cursorLocked) {
+            _deltaX = event.asDynamic().movementX as Float
+            _deltaY = event.asDynamic().movementY as Float
+            mouseX += _deltaX
+            mouseY += _deltaY
+        } else {
+            val rect = canvas.getBoundingClientRect()
+            val x = event.clientX.toFloat() - rect.left.toFloat()
+            val y = event.clientY.toFloat() - rect.top.toFloat()
+            _deltaX = x - logicalMouseX
+            _deltaY = y - logicalMouseY
+            mouseX = x
+            mouseY = y
+            logicalMouseX = mouseX
+            logicalMouseY = mouseY
+        }
 
         inputCache.onMove(mouseX, mouseY, touchedPointers.lastOrNull() ?: Pointer.POINTER1)
     }
@@ -374,7 +400,7 @@ class JsInput(val canvas: HTMLCanvasElement) : Input {
     }
 
     override fun lockCursor() {
-        js("canvas.requestPointerLocker()")
+        js("canvas.requestPointerLock()")
     }
 
     override fun releaseCursor() {
