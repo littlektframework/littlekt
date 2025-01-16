@@ -9,9 +9,14 @@ import com.littlekt.graphics.Color
 import com.littlekt.graphics.PerspectiveCamera
 import com.littlekt.graphics.g3d.ModelBatch
 import com.littlekt.graphics.g3d.PBREnvironment
+import com.littlekt.graphics.g3d.light.AmbientLight
+import com.littlekt.graphics.g3d.light.DirectionalLight
+import com.littlekt.graphics.g3d.light.PointLight
 import com.littlekt.graphics.g3d.util.PBRMaterialPipelineProvider
 import com.littlekt.graphics.g3d.util.UnlitMaterialPipelineProvider
 import com.littlekt.graphics.webgpu.*
+import com.littlekt.input.Key
+import com.littlekt.math.Vec3f
 
 /**
  * An example using a simple Orthographic camera to move around a texture.
@@ -28,6 +33,12 @@ class PBRExample(context: Context) : ContextListener(context) {
         val camera = PerspectiveCamera(graphics.width, graphics.height)
         camera.translate(0f, 25f, 150f)
         val environment = PBREnvironment(device)
+        environment.setDirectionalLight(
+            DirectionalLight(color = Color(0.2f, 0.2f, 0.2f), intensity = 0.1f)
+        )
+        environment.setAmbientLight(AmbientLight(color = Color(0.002f, 0.002f, 0.002f)))
+        environment.addPointLight(PointLight(Vec3f(0f, 0f, 0f), color = Color.RED, range = 5f))
+        //   environment.addPointLight(PointLight(Vec3f(8.95f, 5f, 30.5f), range = 4f))
 
         val surfaceCapabilities = graphics.surfaceCapabilities
         val preferredFormat = graphics.preferredFormat
@@ -92,6 +103,12 @@ class PBRExample(context: Context) : ContextListener(context) {
         }
 
         addFlyController(camera, 0.5f)
+
+        onUpdate {
+            if (input.isKeyJustPressed(Key.T)) {
+                println(camera.position)
+            }
+        }
 
         onUpdate { dt ->
             val surfaceTexture = graphics.surface.getCurrentTexture()

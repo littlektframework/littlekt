@@ -33,10 +33,7 @@ class ClusteredLightComputerShader(
             """
                fn sqDistPointAABB(p : vec3<f32>, minAABB : vec3<f32>, maxAABB : vec3<f32>) -> f32 {
                  var sqDist = 0.0;
-                 // const minAABB = clusters.bounds[tileIndex].minAABB;
-                 // const maxAABB = clusters.bounds[tileIndex].maxAABB;
 
-                 // Wait, does this actually work? Just porting code, but it seems suspect?
                  for(var i : i32 = 0; i < 3; i = i + 1) {
                    let v = p[i];
                    if(v < minAABB[i]){
@@ -58,7 +55,7 @@ class ClusteredLightComputerShader(
 
                  // TODO: Look into improving threading using local invocation groups?
                  var clusterLightCount = 0u;
-                 var cluserLightIndices : array<u32, ${maxLightsPerCluster}>;
+                 var clusterLightIndices : array<u32, ${maxLightsPerCluster}>;
                  for (var i = 0u; i < global_lights.light_count; i = i + 1u) {
                    let range = global_lights.lights[i].range;
                    // Lights without an explicit range affect every cluster, but this is a poor way to handle that.
@@ -72,7 +69,7 @@ class ClusteredLightComputerShader(
 
                    if (lightInCluster) {
                      // Light affects this cluster. Add it to the list.
-                     cluserLightIndices[clusterLightCount] = i;
+                     clusterLightIndices[clusterLightCount] = i;
                      clusterLightCount = clusterLightCount + 1u;
                    }
 
@@ -90,7 +87,7 @@ class ClusteredLightComputerShader(
                  }
 
                  for(var i = 0u; i < clusterLightCount; i = i + 1u) {
-                   clusterLights.indices[offset + i] = cluserLightIndices[i];
+                   clusterLights.indices[offset + i] = clusterLightIndices[i];
                  }
                  clusterLights.lights[tileIndex].offset = offset;
                  clusterLights.lights[tileIndex].count = clusterLightCount;

@@ -6,8 +6,8 @@ import com.littlekt.graphics.g3d.util.LightBuffer
 import com.littlekt.graphics.webgpu.Device
 
 /** @return a new [PBREnvironment] that uses an underlying [CameraLightBuffers]. */
-fun PBREnvironment(device: Device): Environment =
-    PBREnvironment(CameraLightBuffers(device, LightBuffer(device, 10)))
+fun PBREnvironment(device: Device, maxLightCount: Int = 1024): PBREnvironment =
+    PBREnvironment(CameraLightBuffers(device, LightBuffer(device, maxLightCount)))
 
 /** @return a new [Environment] that uses an underlying [CameraSimpleBuffers]. */
 fun UnlitEnvironment(device: Device): Environment = Environment(CameraSimpleBuffers(device))

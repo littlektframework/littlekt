@@ -17,7 +17,7 @@ class ClusterLightsShader(
     computeSrc: String = buildCommonShader {
         compute {
             clusteredLight {
-                cameraWithLights(0, 0)
+                cameraComplex(0, 0)
                 cluster(0, 1, access = MemoryAccessMode.READ)
                 clusterLights(0, 2, access = MemoryAccessMode.READ_WRITE)
                 light(0, 3)

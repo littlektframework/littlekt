@@ -1,7 +1,7 @@
 package com.littlekt.graphics.g3d.shader
 
 import com.littlekt.graphics.g3d.util.shader.buildCommonShader
-import com.littlekt.graphics.g3d.util.shader.cameraWithLights
+import com.littlekt.graphics.g3d.util.shader.cameraComplex
 import com.littlekt.graphics.g3d.util.shader.cluster
 import com.littlekt.graphics.shader.Shader
 import com.littlekt.graphics.util.BindingUsage
@@ -17,7 +17,7 @@ class ClusterBoundsShader(
     computeSrc: String = buildCommonShader {
         compute {
             clusteredBounds {
-                cameraWithLights(0, 0)
+                cameraComplex(0, 0)
                 cluster(1, 0, access = MemoryAccessMode.READ_WRITE)
                 main(computeEntryPoint)
             }

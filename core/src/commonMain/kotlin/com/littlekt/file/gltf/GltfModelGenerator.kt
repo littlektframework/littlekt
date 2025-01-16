@@ -256,27 +256,27 @@ private class GltfModelGenerator(val gltfFile: GltfData) {
 
         if (texCoordGltfAccessor != null) {
             vertexAttributes +=
-                VertexAttribute(VertexFormat.FLOAT32x2, offset, 2, VertexAttrUsage.UV)
+                VertexAttribute(VertexFormat.FLOAT32x2, offset, 3, VertexAttrUsage.UV)
             offset += VertexFormat.FLOAT32x2.bytes
         }
         if (tangentGltfAccessor != null) {
             vertexAttributes +=
-                VertexAttribute(VertexFormat.FLOAT32x4, offset, 3, VertexAttrUsage.TANGENT)
+                VertexAttribute(VertexFormat.FLOAT32x4, offset, 4, VertexAttrUsage.TANGENT)
             offset += VertexFormat.FLOAT32x4.bytes
         } else if (materialRef?.normalTexture != null) {
             vertexAttributes +=
-                VertexAttribute(VertexFormat.FLOAT32x4, offset, 3, VertexAttrUsage.TANGENT)
+                VertexAttribute(VertexFormat.FLOAT32x4, offset, 4, VertexAttrUsage.TANGENT)
             offset += VertexFormat.FLOAT32x4.bytes
             generateTangents = true
         }
         if (jointGltfAccessor != null) {
             vertexAttributes +=
-                VertexAttribute(VertexFormat.SINT32x4, offset, 4, VertexAttrUsage.JOINT)
+                VertexAttribute(VertexFormat.SINT32x4, offset, 5, VertexAttrUsage.JOINT)
             offset += VertexFormat.SINT32x4.bytes
         }
         if (weightGltfAccessor != null) {
             vertexAttributes +=
-                VertexAttribute(VertexFormat.FLOAT32x4, offset, 5, VertexAttrUsage.WEIGHT)
+                VertexAttribute(VertexFormat.FLOAT32x4, offset, 6, VertexAttrUsage.WEIGHT)
             offset += VertexFormat.FLOAT32x4.bytes
         }
 

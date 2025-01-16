@@ -106,7 +106,7 @@ fun SubShaderBuilder.camera(group: Int, binding: Int) {
  * projection, view, position, time, output size, near, and far. Expected to be used with PBR &
  * clustered shading.
  */
-fun SubShaderBuilder.cameraWithLights(group: Int, binding: Int) {
+fun SubShaderBuilder.cameraComplex(group: Int, binding: Int) {
     parts +=
         """
         struct Camera {

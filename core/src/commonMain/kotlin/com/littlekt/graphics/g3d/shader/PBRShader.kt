@@ -19,7 +19,7 @@ class PBRShader(
         vertex {
             vertexInput(layout)
             vertexOutput(layout)
-            cameraWithLights(0, 0)
+            cameraComplex(0, 0)
             models(1, 0)
             skin(2)
             main(layout, cameraViewProjCombined = false, entryPoint = vertexEntryPoint)

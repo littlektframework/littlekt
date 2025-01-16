@@ -1,6 +1,9 @@
 package com.littlekt.graphics.g3d
 
 import com.littlekt.graphics.Camera
+import com.littlekt.graphics.g3d.light.AmbientLight
+import com.littlekt.graphics.g3d.light.DirectionalLight
+import com.littlekt.graphics.g3d.light.PointLight
 import com.littlekt.graphics.g3d.shader.ClusterBoundsShader
 import com.littlekt.graphics.g3d.shader.ClusterLightsShader
 import com.littlekt.graphics.g3d.util.CameraLightBuffers
@@ -14,6 +17,9 @@ import kotlin.time.Duration
  * @date 1/10/2025
  */
 class PBREnvironment(override val buffers: CameraLightBuffers) : Environment(buffers) {
+    private var directionalLight = DirectionalLight()
+    private var ambientLight = AmbientLight()
+    private val pointLights = mutableListOf<PointLight>()
 
     private val outputSize = MutableVec2f()
     private var far = 0f
@@ -89,6 +95,7 @@ class PBREnvironment(override val buffers: CameraLightBuffers) : Environment(buf
 
     override fun update(camera: Camera, dt: Duration) {
         super.update(camera, dt)
+        updateLights()
         updateClusterBounds(camera)
         updateClusterLights()
     }
@@ -143,5 +150,52 @@ class PBREnvironment(override val buffers: CameraLightBuffers) : Environment(buf
         device.queue.submit(commandEncoder.finish())
 
         commandEncoder.release()
+    }
+
+    private fun updateLights() {
+        updateAmbientLight()
+        updateDirectionLight()
+        updatePointLights()
+        buffers.lightBuffer.update()
+    }
+
+    private fun updateAmbientLight() {
+        buffers.lightBuffer.ambient(ambientLight.color)
+    }
+
+    private fun updateDirectionLight() {
+        buffers.lightBuffer.dirDirection(directionalLight.direction)
+        buffers.lightBuffer.dirIntensity(directionalLight.intensity)
+        buffers.lightBuffer.dirColor(directionalLight.color)
+    }
+
+    private fun updatePointLights() {
+        buffers.lightBuffer.resetLightCount()
+
+        pointLights.forEachIndexed { index, light ->
+            buffers.lightBuffer.pointLight(
+                index = index + 1,
+                position = light.position,
+                color = light.color,
+                intensity = light.intensity,
+                range = light.range,
+            )
+        }
+    }
+
+    fun setDirectionalLight(light: DirectionalLight) {
+        directionalLight = light
+    }
+
+    fun setAmbientLight(light: AmbientLight) {
+        ambientLight = light
+    }
+
+    fun addPointLight(pointLight: PointLight) {
+        pointLights += pointLight
+    }
+
+    fun removePointLight(pointLight: PointLight) {
+        pointLights -= pointLight
     }
 }
