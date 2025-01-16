@@ -130,7 +130,7 @@ interface Texture : Releasable {
                         VertexState(
                             module = shader,
                             entryPoint = "vs_main",
-                            WebGPUVertexBufferLayout(3, VertexStepMode.VERTEX, emptyList()),
+                            WebGPUVertexBufferLayout(4, VertexStepMode.VERTEX, emptyList()),
                         ),
                     fragment =
                         FragmentState(
