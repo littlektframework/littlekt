@@ -84,24 +84,20 @@ fun Context.addFlyController(camera: Camera, speed: Float) {
     val right = MutableVec3f()
     val up = MutableVec3f()
 
-    var locked = false
-
     onUpdate {
-        if (!locked && input.isJustTouched(Pointer.POINTER1)) {
+        if (!input.cursorLocked && input.isJustTouched(Pointer.POINTER1)) {
             input.lockCursor()
-            locked = true
         }
 
-        if (locked && input.isKeyJustPressed(Key.ESCAPE)) {
+        if (input.cursorLocked && input.isKeyJustPressed(Key.ESCAPE)) {
             input.releaseCursor()
-            locked = false
         }
     }
 
     val quat = MutableQuaternion()
 
     onUpdate { dt ->
-        if (!locked) return@onUpdate
+        if (!input.cursorLocked) return@onUpdate
 
         val sprint = input.isKeyPressed(Key.SHIFT_LEFT) || input.isKeyPressed(Key.SHIFT_RIGHT)
         val slow = input.isKeyPressed(Key.CTRL_LEFT) || input.isKeyPressed(Key.CTRL_RIGHT)

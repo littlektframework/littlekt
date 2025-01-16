@@ -6,7 +6,7 @@ import com.littlekt.graphics.webgpu.MemoryAccessMode
  * @author Colton Daily
  * @date 1/5/2025
  */
-class ClusteredBoundsComputerShader(
+class ClusteredBoundsComputeShaderBuilder(
     tileCountX: Int = CommonSubShaderFunctions.DEFAULT_TILE_COUNT_X,
     tileCountY: Int = CommonSubShaderFunctions.DEFAULT_TILE_COUNT_Y,
     tileCountZ: Int = CommonSubShaderFunctions.DEFAULT_TILE_COUNT_Z,

@@ -5,6 +5,10 @@ import com.littlekt.ContextListener
 import com.littlekt.file.gltf.GltfModelPbrConfig
 import com.littlekt.file.gltf.toModel
 import com.littlekt.file.vfs.readGltf
+import com.littlekt.graph.node.ui.Control
+import com.littlekt.graph.node.ui.column
+import com.littlekt.graph.node.ui.label
+import com.littlekt.graph.sceneGraph
 import com.littlekt.graphics.Color
 import com.littlekt.graphics.PerspectiveCamera
 import com.littlekt.graphics.g3d.ModelBatch
@@ -37,11 +41,47 @@ class PBRExample(context: Context) : ContextListener(context) {
             DirectionalLight(color = Color(0.2f, 0.2f, 0.2f), intensity = 0.1f)
         )
         environment.setAmbientLight(AmbientLight(color = Color(0.002f, 0.002f, 0.002f)))
-        environment.addPointLight(PointLight(Vec3f(0f, 0f, 0f), color = Color.RED, range = 5f))
+        environment.addPointLight(
+            PointLight(Vec3f(1145f, 240f, 410f), color = Color.RED, range = 5f)
+        )
+        environment.addPointLight(
+            PointLight(Vec3f(-1180f, 240f, 420f), color = Color.GREEN, range = 4f)
+        )
         //   environment.addPointLight(PointLight(Vec3f(8.95f, 5f, 30.5f), range = 4f))
 
         val surfaceCapabilities = graphics.surfaceCapabilities
         val preferredFormat = graphics.preferredFormat
+        val graph =
+            sceneGraph(this) {
+                    column {
+                        anchor(Control.AnchorLayout.TOP_LEFT)
+                        marginLeft = 10f
+                        var fps = -1
+                        var lowest = -1
+                        var ticksToWaitBeforeTracking = 100
+
+                        onUpdate {
+                            if (ticksToWaitBeforeTracking > 0) {
+                                ticksToWaitBeforeTracking--
+                                return@onUpdate
+                            }
+                            fps = stats.fps.toInt()
+                            if (lowest < 0 && fps > 0) {
+                                lowest = fps
+                            }
+
+                            if (fps < lowest) {
+                                lowest = fps
+                            }
+                            if (input.isKeyJustPressed(Key.R)) {
+                                lowest = -1
+                            }
+                        }
+                        label { onUpdate { text = "FPS: $fps" } }
+                        label { onUpdate { text = "Lowest: $lowest" } }
+                    }
+                }
+                .also { it.initialize() }
 
         val queue = device.queue
 
@@ -100,6 +140,8 @@ class PBRExample(context: Context) : ContextListener(context) {
             camera.virtualWidth = width.toFloat()
             camera.virtualHeight = height.toFloat()
             camera.update()
+
+            graph.resize(width, height)
         }
 
         addFlyController(camera, 0.5f)
@@ -167,6 +209,21 @@ class PBRExample(context: Context) : ContextListener(context) {
             modelBatch.flush(renderPassEncoder, camera, dt)
             renderPassEncoder.end()
             renderPassEncoder.release()
+
+            graph.update(dt)
+            graph.render(
+                commandEncoder,
+                RenderPassDescriptor(
+                    listOf(
+                        RenderPassColorAttachmentDescriptor(
+                            view = frame,
+                            loadOp = LoadOp.LOAD,
+                            storeOp = StoreOp.STORE,
+                        )
+                    ),
+                    label = "ui render pass",
+                ),
+            )
 
             val commandBuffer = commandEncoder.finish()
 

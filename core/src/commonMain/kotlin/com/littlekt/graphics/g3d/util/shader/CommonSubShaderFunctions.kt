@@ -259,7 +259,6 @@ fun SubShaderBuilder.clusterLights(
     tileCountX: Int = CommonSubShaderFunctions.DEFAULT_TILE_COUNT_X,
     tileCountY: Int = CommonSubShaderFunctions.DEFAULT_TILE_COUNT_Y,
     tileCountZ: Int = CommonSubShaderFunctions.DEFAULT_TILE_COUNT_Z,
-    maxLightsPerCluster: Int = CommonSubShaderFunctions.DEFAULT_MAX_LIGHTS_PER_CLUSTER,
     access: MemoryAccessMode = MemoryAccessMode.READ,
 ) {
     val totalTiles = tileCountX * tileCountY * tileCountZ
@@ -272,7 +271,7 @@ fun SubShaderBuilder.clusterLights(
               struct ClusterLightGroup {
                 offset : ${if(access == MemoryAccessMode.READ) "u32" else "atomic<u32>"},
                 lights : array<ClusterLights, ${totalTiles}>,
-                indices : array<u32, ${maxLightsPerCluster}>,
+                indices : array<u32, ${totalTiles * 64}>,
               };
               @group(${group}) @binding(${binding}) 
               var<storage, ${access.value}> clusterLights : ClusterLightGroup;

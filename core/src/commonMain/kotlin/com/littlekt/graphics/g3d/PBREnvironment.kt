@@ -36,6 +36,7 @@ class PBREnvironment(override val buffers: CameraLightBuffers) : Environment(buf
                     else error("Unsupported $bindingUsage in PBREnvironment")
                 },
                 ProgrammableStage(boundsShader.shaderModule, boundsShader.computeEntryPoint),
+                label = "Computer Cluster Bounds Compute Pipeline",
             )
         )
     private val boundsBindGroup =
@@ -78,6 +79,7 @@ class PBREnvironment(override val buffers: CameraLightBuffers) : Environment(buf
                     )
                 },
                 ProgrammableStage(lightsShader.shaderModule, lightsShader.computeEntryPoint),
+                label = "Compute Cluster Lights Compute Pipeline",
             )
         )
     private val lightsBindGroup =

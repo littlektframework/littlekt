@@ -58,10 +58,10 @@ class ClusterBuffers(
             )
         )
 
-    /** The [BufferBinding] for [clusterBoundsStorageBuffer]. */
+    /** The [BufferBinding] for [clusterLightsStorageBuffer]. */
     val clusterLightsStorageBufferBinding = BufferBinding(clusterLightsStorageBuffer)
 
-    /** Resets the [clusterBoundsStorageBuffer] offset back to zero. */
+    /** Resets the [clusterLightsStorageBuffer] offset back to zero. */
     fun resetClusterLightsOffsetToZero() =
         device.queue.writeBuffer(clusterLightsStorageBuffer, emptyData)
 

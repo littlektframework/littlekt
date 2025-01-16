@@ -14,8 +14,8 @@ open class ComputeShaderBuilder {
      * [ClusteredComputeShaderBuilder.clusterLights] with [MemoryAccessMode.READ_WRITE], [light],
      * and [ClusteredComputeShaderBuilder.tileFunctions].
      */
-    fun clusteredLight(block: ClusteredLightComputerShader.() -> Unit) {
-        val builder = ClusteredLightComputerShader()
+    fun clusteredLight(block: ClusteredLightComputeShaderBuilder.() -> Unit) {
+        val builder = ClusteredLightComputeShaderBuilder()
         builder.block()
         parts += builder.build()
     }
@@ -24,8 +24,8 @@ open class ComputeShaderBuilder {
      * Requires [ClusteredComputeShaderBuilder.cluster] with [MemoryAccessMode.READ_WRITE] and
      * [camera].
      */
-    fun clusteredBounds(block: ClusteredBoundsComputerShader.() -> Unit) {
-        val builder = ClusteredBoundsComputerShader()
+    fun clusteredBounds(block: ClusteredBoundsComputeShaderBuilder.() -> Unit) {
+        val builder = ClusteredBoundsComputeShaderBuilder()
         builder.block()
         parts += builder.build()
     }

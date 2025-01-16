@@ -41,6 +41,25 @@ class LightBuffer(val device: Device, val maxLightCount: Int) : Releasable {
         device.queue.writeBuffer(buffer, lightsBuffer)
     }
 
+    private fun printPointLights() {
+        println("--------------------------")
+        val pointLights = lightsBuffer[11].toInt()
+        println("total point lights: $pointLights")
+        repeat(pointLights) { i ->
+            val idx = i + 1
+            val offset = POINT_LIGHT_OFFSET * idx
+            println("Point light $idx:")
+            println(
+                "position: (${lightsBuffer[offset]}, ${lightsBuffer[offset + 1]}, ${lightsBuffer[offset + 2]})"
+            )
+            println("range: (${lightsBuffer[offset + 3]})")
+            println(
+                "color: (${lightsBuffer[offset + 4]}, ${lightsBuffer[offset + 5]}, ${lightsBuffer[offset + 6]})"
+            )
+            println("intensity: (${lightsBuffer[offset + 7]})")
+        }
+    }
+
     fun ambient(color: Color) {
         lightsBuffer[0] = color.r
         lightsBuffer[1] = color.g
