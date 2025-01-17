@@ -1,12 +1,11 @@
 package com.littlekt.examples
 
+import com.littlekt.AssetProvider
 import com.littlekt.Context
 import com.littlekt.ContextListener
-import com.littlekt.file.gltf.GltfModelPbrConfig
+import com.littlekt.GltfModelAssetParameter
 import com.littlekt.file.gltf.GltfModelUnlitConfig
-import com.littlekt.file.gltf.toModel
 import com.littlekt.file.vfs.TextureOptions
-import com.littlekt.file.vfs.readGltf
 import com.littlekt.file.vfs.readTexture
 import com.littlekt.graphics.Color
 import com.littlekt.graphics.PerspectiveCamera
@@ -37,6 +36,36 @@ class SimpleGltfExample(context: Context) : ContextListener(context) {
         addCloseOnShiftEsc()
         val device = graphics.device
         val camera = PerspectiveCamera(graphics.width, graphics.height)
+        val assetProvider = AssetProvider(this)
+        val unlitModels = mutableListOf<Scene>()
+        val pbrModels = mutableListOf<Scene>()
+        assetProvider.load<Scene>(
+            resourcesVfs["models/Duck.glb"],
+            parameters = GltfModelAssetParameter(GltfModelUnlitConfig()),
+        ) {
+            unlitModels +=
+                it.apply {
+                    scale(20f)
+                    translate(-30f, 0f, 0f)
+                }
+        }
+        assetProvider.load<Scene>(
+            resourcesVfs["models/Fox.glb"],
+            parameters = GltfModelAssetParameter(GltfModelUnlitConfig()),
+        ) {
+            unlitModels += it.apply { translate(30f, 0f, 0f) }
+        }
+
+        assetProvider.load<Scene>(resourcesVfs["models/flighthelmet/FlightHelmet.gltf"]) {
+            pbrModels +=
+                it.apply {
+                    scale(200f)
+                    translate(90f, 0f, 0f)
+                }
+        }
+
+        onUpdate { assetProvider.update() }
+
         camera.translate(0f, 25f, 150f)
         val environment = UnlitEnvironment(device)
         val pbrEnvironment =
@@ -68,31 +97,6 @@ class SimpleGltfExample(context: Context) : ContextListener(context) {
                 )
             )
         var depthFrame = depthTexture.createView()
-        val unlitModels =
-            listOf(
-                resourcesVfs["models/Duck.glb"]
-                    .readGltf()
-                    .toModel(config = GltfModelUnlitConfig())
-                    .apply {
-                        scale(20f)
-                        translate(-30f, 0f, 0f)
-                    },
-                resourcesVfs["models/Fox.glb"]
-                    .readGltf()
-                    .toModel(config = GltfModelUnlitConfig())
-                    .apply { translate(30f, 0f, 0f) },
-            )
-
-        val pbrModels =
-            listOf(
-                resourcesVfs["models/flighthelmet/FlightHelmet.gltf"]
-                    .readGltf()
-                    .toModel(config = GltfModelPbrConfig())
-                    .apply {
-                        scale(200f)
-                        translate(90f, 0f, 0f)
-                    }
-            )
 
         val checkered =
             resourcesVfs["checkered.png"].readTexture(

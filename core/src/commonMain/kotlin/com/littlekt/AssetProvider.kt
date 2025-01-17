@@ -4,6 +4,8 @@ import com.littlekt.async.KtScope
 import com.littlekt.audio.AudioClip
 import com.littlekt.audio.AudioStream
 import com.littlekt.file.UnsupportedFileTypeException
+import com.littlekt.file.gltf.GltfData
+import com.littlekt.file.gltf.GltfModelConfig
 import com.littlekt.file.ldtk.LDtkMapLoader
 import com.littlekt.file.vfs.*
 import com.littlekt.graphics.Pixmap
@@ -14,6 +16,7 @@ import com.littlekt.graphics.g2d.font.BitmapFont
 import com.littlekt.graphics.g2d.font.CharacterSets
 import com.littlekt.graphics.g2d.font.TtfFont
 import com.littlekt.graphics.g2d.tilemap.tiled.TiledMap
+import com.littlekt.graphics.g3d.Scene
 import com.littlekt.util.datastructure.fastForEach
 import com.littlekt.util.internal.lock
 import kotlin.contracts.ExperimentalContracts
@@ -84,14 +87,16 @@ open class AssetProvider(val context: Context) {
      * @see LDtkGameAssetParameter
      * @see TextureGameAssetParameter
      * @see TtfFileAssetParameter
+     * @see GltfModelAssetParameter
      */
     fun <T : Any> load(
         file: VfsFile,
         clazz: KClass<T>,
         parameters: GameAssetParameters = EmptyGameAssetParameter(),
+        onLoad: (T) -> Unit = {},
     ): GameAsset<T> {
         val sceneAsset = checkOrCreateNewSceneAsset(file, clazz)
-        file.vfs.launch { loadVfsFile(sceneAsset, file, clazz, parameters) }
+        file.vfs.launch { loadVfsFile(sceneAsset, file, clazz, parameters, onLoad) }
         return sceneAsset
     }
 
@@ -105,14 +110,16 @@ open class AssetProvider(val context: Context) {
      * @see LDtkGameAssetParameter
      * @see TextureGameAssetParameter
      * @see TtfFileAssetParameter
+     * @see GltfModelAssetParameter
      */
     suspend fun <T : Any> loadSuspending(
         file: VfsFile,
         clazz: KClass<T>,
         parameters: GameAssetParameters = EmptyGameAssetParameter(),
+        onLoad: (T) -> Unit = {},
     ): GameAsset<T> {
         val sceneAsset = checkOrCreateNewSceneAsset(file, clazz)
-        loadVfsFile(sceneAsset, file, clazz, parameters)
+        loadVfsFile(sceneAsset, file, clazz, parameters, onLoad)
         return sceneAsset
     }
 
@@ -143,10 +150,12 @@ open class AssetProvider(val context: Context) {
         file: VfsFile,
         clazz: KClass<T>,
         parameters: GameAssetParameters = EmptyGameAssetParameter(),
+        onLoad: (T) -> Unit = {},
     ) {
         val loader = loaders[clazz] ?: throw UnsupportedFileTypeException(file.path)
         val result = loader.invoke(file, parameters) as T
         sceneAsset.load(result)
+        onLoad(result)
         lock(lock) {
             _assets.getOrPut(clazz) { mutableMapOf() }.let { it[file] = sceneAsset }
             filesBeingChecked -= file
@@ -169,7 +178,8 @@ open class AssetProvider(val context: Context) {
     inline fun <reified T : Any> load(
         file: VfsFile,
         parameters: GameAssetParameters = EmptyGameAssetParameter(),
-    ) = load(file, T::class, parameters)
+        noinline onLoad: (T) -> Unit = {},
+    ) = load(file, T::class, parameters, onLoad)
 
     /**
      * Loads an asset in a suspending function.
@@ -207,9 +217,7 @@ open class AssetProvider(val context: Context) {
         assets[clazz]?.get(vfsFile)?.content as T
 
     /** @return the cached content of the specified [file]. */
-    inline fun <reified T : Any> get(
-        file: VfsFile,
-    ) = get(T::class, file)
+    inline fun <reified T : Any> get(file: VfsFile) = get(T::class, file)
 
     companion object {
         /** Creates a map of the default asset loaders. */
@@ -251,7 +259,16 @@ open class AssetProvider(val context: Context) {
                             file.readLDtkMapLoader()
                         }
                     },
-                TiledMap::class to { file, _ -> file.readTiledMap() }
+                TiledMap::class to { file, _ -> file.readTiledMap() },
+                GltfData::class to { file, _ -> file.readGltf() },
+                Scene::class to
+                    { file, params ->
+                        if (params is GltfModelAssetParameter) {
+                            file.readGltfModel(params.config)
+                        } else {
+                            file.readGltfModel()
+                        }
+                    },
             )
     }
 }
@@ -321,10 +338,8 @@ class EmptyGameAssetParameter : GameAssetParameters
 class TextureGameAssetParameter : GameAssetParameters
 
 /** Parameters related to loading a [LDtkMapLoader]. */
-class LDtkGameAssetParameter(
-    val atlas: TextureAtlas? = null,
-    val tilesetBorderThickness: Int = 2,
-) : GameAssetParameters
+class LDtkGameAssetParameter(val atlas: TextureAtlas? = null, val tilesetBorderThickness: Int = 2) :
+    GameAssetParameters
 
 /**
  * Parameters related to loading a [TtfFont].
@@ -332,15 +347,19 @@ class LDtkGameAssetParameter(
  * @param chars chars to load a glyph for.
  * @see CharacterSets
  */
-class TtfFileAssetParameter(
-    val chars: String = CharacterSets.LATIN_ALL,
-) : GameAssetParameters
+class TtfFileAssetParameter(val chars: String = CharacterSets.LATIN_ALL) : GameAssetParameters
 
 /**
  * Parameters related to loading a [BitmapFont].
  *
  * @param preloadedTextures
  */
-class BitmapFontAssetParameter(
-    val preloadedTextures: List<TextureSlice> = listOf(),
-) : GameAssetParameters
+class BitmapFontAssetParameter(val preloadedTextures: List<TextureSlice> = listOf()) :
+    GameAssetParameters
+
+/**
+ * Parameters related to loading a [GltfData] file and converting to a [Scene].
+ *
+ * @param config configuration for creating a renderable model.
+ */
+class GltfModelAssetParameter(val config: GltfModelConfig) : GameAssetParameters
