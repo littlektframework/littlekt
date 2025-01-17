@@ -98,7 +98,10 @@ class PBRExample(context: Context) : ContextListener(context) {
             )
         var depthFrame = depthTexture.createView()
         val sponza =
-            resourcesVfs["models/sponza.glb"].readGltf().toModel(config = GltfModelPbrConfig())
+            resourcesVfs["models/sponza-optimized.glb"]
+                .readGltf()
+                .toModel(config = GltfModelPbrConfig())
+                .apply { scale(20f) }
 
         val modelBatch =
             ModelBatch(device).apply {

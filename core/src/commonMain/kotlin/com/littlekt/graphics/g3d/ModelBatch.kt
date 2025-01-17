@@ -1,5 +1,6 @@
 package com.littlekt.graphics.g3d
 
+import com.littlekt.EngineStats
 import com.littlekt.Releasable
 import com.littlekt.graphics.Camera
 import com.littlekt.graphics.g3d.material.Material
@@ -10,6 +11,7 @@ import com.littlekt.graphics.g3d.util.MaterialPipelineSorter
 import com.littlekt.graphics.util.BindingUsage
 import com.littlekt.graphics.webgpu.*
 import com.littlekt.log.Logger
+import kotlin.math.max
 import kotlin.reflect.KClass
 import kotlin.time.Duration
 
@@ -21,7 +23,7 @@ class ModelBatch(val device: Device, size: Int = 128) : Releasable {
     private val pipelineProviders: MutableMap<KClass<out Material>, MaterialPipelineProvider> =
         mutableMapOf()
     private val pipelines = mutableListOf<MaterialPipeline>()
-    private val meshNodesByPipeline = mutableMapOf<MaterialPipeline, MutableList<MeshNode>>()
+    private val primitivesByPipeline = mutableMapOf<MaterialPipeline, MutableList<MeshPrimitive>>()
 
     /** By material id */
     private val bindGroupByMaterialId = mutableMapOf<Int, BindGroup>()
@@ -57,19 +59,23 @@ class ModelBatch(val device: Device, size: Int = 128) : Releasable {
     fun removePipelineProvider(provider: BaseMaterialPipelineProvider<*>) =
         removePipelineProvider(provider.type)
 
-    fun render(model: Model, environment: Environment) {
-        model.meshes.values.forEach { render(it, environment) }
+    fun render(scene: Scene, environment: Environment) {
+        scene.modelInstances.forEach { render(it, environment) }
     }
 
-    fun render(instance: MeshNode, environment: Environment) {
+    fun render(model: ModelInstance, environment: Environment) {
+        model.instanceOf.primitives.forEach { render(it, environment) }
+    }
+
+    fun render(meshPrimitive: MeshPrimitive, environment: Environment) {
         val pipeline =
-            pipelineProviders[instance.material::class]?.getMaterialPipeline(
+            pipelineProviders[meshPrimitive.material::class]?.getMaterialPipeline(
                 device,
-                instance.material,
+                meshPrimitive.material,
                 environment,
-                instance.mesh.geometry.layout,
-                instance.topology,
-                instance.stripIndexFormat,
+                meshPrimitive.mesh.geometry.layout,
+                meshPrimitive.topology,
+                meshPrimitive.stripIndexFormat,
                 colorFormat,
                 depthFormat,
             ) ?: error("Unable to find pipeline for given instance!")
@@ -77,17 +83,17 @@ class ModelBatch(val device: Device, size: Int = 128) : Releasable {
             pipelines += pipeline
         }
         // todo - pool lists?
-        meshNodesByPipeline.getOrPut(pipeline) { mutableListOf() }.apply { add(instance) }
+        primitivesByPipeline.getOrPut(pipeline) { mutableListOf() }.apply { add(meshPrimitive) }
 
-        bindGroupByMaterialId.getOrPut(instance.material.id) {
-            instance.material.createBindGroup(pipeline.shader)
+        bindGroupByMaterialId.getOrPut(meshPrimitive.material.id) {
+            meshPrimitive.material.createBindGroup(pipeline.shader)
         }
     }
 
     fun flush(renderPassEncoder: RenderPassEncoder, camera: Camera, dt: Duration) {
         sorter.sort(pipelines)
         var lastEnvironmentSet: Environment? = null
-        var lastMaterialSet: Material? = null
+        var lastMaterialSet: Int? = null
         pipelines.forEach { pipeline ->
             // we only need to update the camera buffers in each environment once. So if we are
             // sharing environment, just update the first instance of it.
@@ -102,24 +108,24 @@ class ModelBatch(val device: Device, size: Int = 128) : Releasable {
                     BindingUsage.CAMERA,
                 )
             }
-            val meshNodes = meshNodesByPipeline[pipeline]
-            if (!meshNodes.isNullOrEmpty()) {
+            val primitive = primitivesByPipeline[pipeline]
+            if (!primitive.isNullOrEmpty()) {
                 renderPassEncoder.setPipeline(pipeline.renderPipeline)
-                meshNodes.forEach { meshNode ->
+                primitive.forEach { meshNode ->
                     val materialBindGroup =
                         bindGroupByMaterialId[meshNode.material.id]
                             ?: error(
                                 "Material (${meshNode.material.id}) bind groups could not be found!"
                             )
-                    if (lastMaterialSet != meshNode.material) {
-                        lastMaterialSet = meshNode.material
+                    if (lastMaterialSet != meshNode.material.id) {
+                        lastMaterialSet = meshNode.material.id
                         pipeline.shader.setBindGroup(
                             renderPassEncoder,
                             materialBindGroup,
                             BindingUsage.MATERIAL,
                         )
+                        meshNode.material.update()
                     }
-                    meshNode.material.update()
                     meshNode.writeInstanceDataToBuffer()
                     pipeline.shader.setBindGroup(
                         renderPassEncoder,
@@ -140,11 +146,15 @@ class ModelBatch(val device: Device, size: Int = 128) : Releasable {
                     renderPassEncoder.setVertexBuffer(0, mesh.vbo)
 
                     if (indexedMesh != null) {
+                        EngineStats.extra(INSTANCED_STAT_NAME, max(0, meshNode.instanceCount - 1))
+                        EngineStats.extra(DRAW_CALLS_STAT_NAME, 1)
                         renderPassEncoder.drawIndexed(
                             indexedMesh.geometry.numIndices,
                             meshNode.instanceCount,
                         )
                     } else {
+                        EngineStats.extra(INSTANCED_STAT_NAME, max(0, meshNode.instanceCount - 1))
+                        EngineStats.extra(DRAW_CALLS_STAT_NAME, 1)
                         renderPassEncoder.draw(mesh.geometry.numVertices, meshNode.instanceCount)
                     }
                 }
@@ -152,7 +162,7 @@ class ModelBatch(val device: Device, size: Int = 128) : Releasable {
         }
 
         pipelines.clear()
-        meshNodesByPipeline.clear()
+        primitivesByPipeline.clear()
         updatedEnvironments.clear()
     }
 
@@ -163,5 +173,7 @@ class ModelBatch(val device: Device, size: Int = 128) : Releasable {
 
     companion object {
         private val logger = Logger<ModelBatch>()
+        private const val INSTANCED_STAT_NAME = "ModelBatch instanced count"
+        private const val DRAW_CALLS_STAT_NAME = "ModelBatch Draw calls"
     }
 }

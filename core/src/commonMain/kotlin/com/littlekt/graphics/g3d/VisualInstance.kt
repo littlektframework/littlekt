@@ -6,18 +6,24 @@ package com.littlekt.graphics.g3d
  */
 open class VisualInstance : Node3D() {
 
-    var instanceOf: MeshNode? = null
+    /** Don't set this */
+    var instanceOf: MeshPrimitive? = null
 
     override fun dirty() {
         super.dirty()
         instanceOf?.instanceDirty(this)
     }
 
-    fun addTo(meshNode: MeshNode) {
-        meshNode.addInstance(this)
+    fun addTo(meshPrimitive: MeshPrimitive) {
+        meshPrimitive.addInstance(this)
     }
 
     fun remove() {
         instanceOf?.removeInstance(this)
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        remove()
     }
 }

@@ -9,6 +9,7 @@ import com.littlekt.file.vfs.readGltf
 import com.littlekt.graphics.Color
 import com.littlekt.graphics.PerspectiveCamera
 import com.littlekt.graphics.g3d.ModelBatch
+import com.littlekt.graphics.g3d.Scene
 import com.littlekt.graphics.g3d.UnlitEnvironment
 import com.littlekt.graphics.g3d.util.PBRMaterialPipelineProvider
 import com.littlekt.graphics.g3d.util.UnlitMaterialPipelineProvider
@@ -52,22 +53,21 @@ class ModelInstancingExample(context: Context) : ContextListener(context) {
             )
         var depthFrame = depthTexture.createView()
         val duckModel =
-            resourcesVfs["models/Duck.glb"]
-                .readGltf()
-                .toModel(config = GltfModelUnlitConfig())
-                .apply { scale(20f) }
+            resourcesVfs["models/Duck.glb"].readGltf().toModel(config = GltfModelUnlitConfig())
+        val duckModelInstances = mutableListOf<Scene>()
 
         KtScope.launch {
             repeat(30) { y ->
                 repeat(30) { x ->
-                    duckModel.createModelInstance().apply {
-                        rotate(
-                            (0..360).random().degrees,
-                            (0..360).random().degrees,
-                            (0..360).random().degrees,
-                        )
-                        translate(x * 60f, y * 60f, 0f)
-                    }
+                    duckModelInstances +=
+                        duckModel.createInstance().apply {
+                            rotate(
+                                (0..360).random().degrees,
+                                (0..360).random().degrees,
+                                (0..360).random().degrees,
+                            )
+                            translate(x * 200f, y * 200f, 0f)
+                        }
                 }
             }
         }
@@ -116,7 +116,7 @@ class ModelInstancingExample(context: Context) : ContextListener(context) {
         addFlyController(camera, 0.5f)
         onUpdate { dt ->
             duckModel.rotate(y = 0.1.degrees * dt.seconds)
-            duckModel.instances.forEach { instance ->
+            duckModelInstances.forEach { instance ->
                 instance.rotate(
                     x = 10f.degrees * dt.seconds,
                     y = 10f.degrees * dt.seconds,

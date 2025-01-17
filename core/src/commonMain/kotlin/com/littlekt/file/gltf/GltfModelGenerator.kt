@@ -2,10 +2,8 @@ package com.littlekt.file.gltf
 
 import com.littlekt.file.vfs.VfsFile
 import com.littlekt.graphics.*
-import com.littlekt.graphics.g3d.MeshNode
-import com.littlekt.graphics.g3d.Model
-import com.littlekt.graphics.g3d.Node3D
-import com.littlekt.graphics.g3d.Skin
+import com.littlekt.graphics.g3d.*
+import com.littlekt.graphics.g3d.material.Material
 import com.littlekt.graphics.g3d.material.PBRMaterial
 import com.littlekt.graphics.g3d.material.UnlitMaterial
 import com.littlekt.graphics.util.CommonIndexedMeshGeometry
@@ -19,7 +17,7 @@ import com.littlekt.math.Mat4
 import com.littlekt.math.Quaternion
 import com.littlekt.math.Vec3f
 import com.littlekt.resources.Textures
-import kotlinx.coroutines.joinAll
+import com.littlekt.util.align
 
 /**
  * Converts a [GltfData] to a [Model] ready for rendering. This will load underlying buffers and
@@ -34,38 +32,41 @@ suspend fun GltfData.toModel(
     preferredFormat: TextureFormat =
         if (root.vfs.context.graphics.preferredFormat.srgb) TextureFormat.RGBA8_UNORM_SRGB
         else TextureFormat.RGBA8_UNORM,
-): Model {
+): Scene {
     return GltfModelGenerator(this)
         .toModel(config, root.vfs.context.graphics.device, preferredFormat, scenes[scene])
 }
 
 private class GltfModelGenerator(val gltfFile: GltfData) {
     val root: VfsFile = gltfFile.root
-    val modelNodes = mutableMapOf<GltfNode, Node3D>()
+    val nodeCache = mutableMapOf<GltfNode, Node3D>()
+    // gltf material index to set of meshes using it
     val meshesByMaterial = mutableMapOf<Int, MutableSet<Mesh<*>>>()
+    // gltf material index to material
+    val materialCache = mutableMapOf<Int, Material>()
     val meshMaterials = mutableMapOf<Mesh<*>, GltfMaterial?>()
+    // gltf mesh index to model
+    val modelCache = mutableMapOf<Int, Model>()
 
     suspend fun toModel(
         config: GltfModelConfig,
         device: Device,
         preferredFormat: TextureFormat,
-        scene: GltfScene,
-    ): Model {
-        val model = Model().apply { name = scene.name ?: "model_scene" }
-        scene.nodeRefs.forEach { node -> model += node.toNode(model) }
+        gltfScene: GltfScene,
+    ): Scene {
+        val scene = Scene().apply { name = gltfScene.name ?: "glTF scene" }
 
-        createSkins(model)
-        modelNodes
-            .map { (gltfNode, node) ->
-                root.vfs.launch {
-                    gltfNode.createMeshes(config, device, preferredFormat, model, node)
-                }
-            }
-            .joinAll()
-        return model
+        gltfScene.nodeRefs.map { node ->
+            scene += node.toNode(config, device, preferredFormat, scene, scene)
+        }
+        // createSkins(scene)
+        // applySkins(scene)
+
+        // mergeMeshesByMaterial()
+        return scene
     }
 
-    private fun createSkins(model: Model) {
+    private fun createSkins(scene: Scene) {
         gltfFile.skins.forEach { skin ->
             val modelSkin = Skin()
             val invBinMats = skin.inverseBindMatrixAccessorRef?.let { GltfMat4Accessor(it) }
@@ -73,7 +74,7 @@ private class GltfModelGenerator(val gltfFile: GltfData) {
                 // first create skin nodes for specified nodes / transform groups
                 val skinNodes = mutableMapOf<GltfNode, Skin.SkinNode>()
                 skin.jointRefs.forEach { joint ->
-                    val jointNode = modelNodes[joint]!!
+                    val jointNode = nodeCache[joint]!!
                     val invBindMat = invBinMats.next()
                     val skinNode = Skin.SkinNode(jointNode, invBindMat)
                     modelSkin.nodes += skinNode
@@ -90,16 +91,45 @@ private class GltfModelGenerator(val gltfFile: GltfData) {
                         }
                     }
                 }
-                model.skins += modelSkin
+                scene.skins += modelSkin
             }
         }
     }
 
-    fun GltfNode.toNode(model: Model): Node3D {
-        val nodeName = name ?: "node_${model.nodes.size}"
-        val node = Node3D().apply { name = nodeName }
-        modelNodes[this] = node
-        model.nodes[nodeName] = node
+    private fun applySkin(scene: Scene) {
+        //        scene.modelInstances.forEach {
+        //            // apply skin
+        //            if (skin >= 0) {
+        //                modelSkin = scene.skins[skin]
+        //                val skeletonRoot = gltfFile.skins[skin].skeleton
+        //                if (skeletonRoot > 0) {
+        //                    //     node -= visualInstance
+        //                    //    modelNodes[gltfFile.nodes[skeletonRoot]]!! += mesh
+        //                }
+        //            }
+        //        }
+    }
+
+    suspend fun GltfNode.toNode(
+        config: GltfModelConfig,
+        device: Device,
+        preferredFormat: TextureFormat,
+        parent: Node3D,
+        scene: Scene,
+    ): Node3D {
+        val nodeName = name ?: "node_${parent.childCount}"
+        val meshRef = meshRef
+        val model =
+            if (meshRef != null) {
+                modelCache.getOrPut(mesh) { createModel(config, device, preferredFormat, meshRef) }
+            } else {
+                null
+            }
+        val node =
+            (if (model != null) ModelInstance(model).also { scene.modelInstances += it }
+                else Node3D())
+                .apply { name = nodeName }
+        nodeCache[this] = node
 
         if (matrix.isNotEmpty()) {
             node.globalTransform = Mat4().set(matrix.map { it })
@@ -115,109 +145,108 @@ private class GltfModelGenerator(val gltfFile: GltfData) {
             }
         }
 
-        childRefs.forEach { node += it.toNode(model) }
+        childRefs.forEach { node += it.toNode(config, device, preferredFormat, node, scene) }
         return node
     }
 
-    suspend fun GltfNode.createMeshes(
+    suspend fun createModel(
         config: GltfModelConfig,
         device: Device,
         preferredFormat: TextureFormat,
-        model: Model,
-        node: Node3D,
-    ) {
-        meshRef?.primitives?.forEachIndexed { index, prim ->
-            val name = "${meshRef?.name ?: "${node.name}.mesh"}_$index"
-            val geometry = prim.toGeometry(gltfFile.accessors)
-            val mesh = IndexedMesh(device, geometry)
+        meshRef: GltfMesh,
+    ): Model {
+        val primitives =
+            meshRef.primitives.mapIndexed { index, prim ->
+                val geometry = prim.toGeometry(gltfFile.accessors)
+                val mesh = IndexedMesh(device, geometry)
 
-            meshesByMaterial.getOrPut(prim.material) { mutableSetOf() } += mesh
-            meshMaterials[mesh] = prim.materialRef
-            val material =
-                prim.materialRef?.let { gltfMaterial ->
-                    val baseColorFactor = gltfMaterial.pbrMetallicRoughness.baseColorFactor
-                    if (config.pbr) {
-                        PBRMaterial(
-                            device = device,
-                            metallicFactor = gltfMaterial.pbrMetallicRoughness.metallicFactor,
-                            roughnessFactor = gltfMaterial.pbrMetallicRoughness.roughnessFactor,
-                            metallicRoughnessTexture =
-                                gltfMaterial.pbrMetallicRoughness.metallicRoughnessTexture
-                                    ?.loadTexture(device, preferredFormat),
-                            normalTexture =
-                                gltfMaterial.normalTexture?.loadTexture(device, preferredFormat),
-                            emissiveFactor =
-                                if (gltfMaterial.emissiveFactor.isNotEmpty()) {
-                                    Vec3f(
-                                        gltfMaterial.emissiveFactor[0],
-                                        gltfMaterial.emissiveFactor[1],
-                                        gltfMaterial.emissiveFactor[2],
-                                    )
-                                } else {
-                                    Vec3f(0f)
-                                },
-                            emissiveTexture =
-                                gltfMaterial.emissiveTexture.loadTexture(device, preferredFormat),
-                            baseColorFactor =
-                                Color(
-                                    baseColorFactor[0],
-                                    baseColorFactor[1],
-                                    baseColorFactor[2],
-                                    baseColorFactor[3],
-                                ),
-                            baseColorTexture =
-                                gltfMaterial.pbrMetallicRoughness.baseColorTexture?.loadTexture(
-                                    device,
-                                    preferredFormat,
-                                ) ?: EmptyTexture(device, preferredFormat, 0, 0),
-                            transparent = gltfMaterial.alphaMode == GltfAlphaMode.Blend,
-                            doubleSided = gltfMaterial.doubleSided,
-                            alphaCutoff = gltfMaterial.alphaCutoff,
-                            castShadows = config.castShadows,
-                        )
-                    } else {
-                        UnlitMaterial(
-                            device = device,
-                            baseColorFactor =
-                                Color(
-                                    baseColorFactor[0],
-                                    baseColorFactor[1],
-                                    baseColorFactor[2],
-                                    baseColorFactor[3],
-                                ),
-                            baseColorTexture =
-                                gltfMaterial.pbrMetallicRoughness.baseColorTexture?.loadTexture(
-                                    device,
-                                    preferredFormat,
-                                ) ?: EmptyTexture(device, preferredFormat, 0, 0),
-                            transparent = gltfMaterial.alphaMode != GltfAlphaMode.Opaque,
-                            doubleSided = gltfMaterial.doubleSided,
-                        )
+                meshesByMaterial.getOrPut(prim.material) { mutableSetOf() } += mesh
+                meshMaterials[mesh] = prim.materialRef
+                val material =
+                    materialCache.getOrPut(prim.material) {
+                        prim.materialRef?.let { gltfMaterial ->
+                            val baseColorFactor = gltfMaterial.pbrMetallicRoughness.baseColorFactor
+                            if (config.pbr) {
+                                PBRMaterial(
+                                    device = device,
+                                    metallicFactor =
+                                        gltfMaterial.pbrMetallicRoughness.metallicFactor,
+                                    roughnessFactor =
+                                        gltfMaterial.pbrMetallicRoughness.roughnessFactor,
+                                    metallicRoughnessTexture =
+                                        gltfMaterial.pbrMetallicRoughness.metallicRoughnessTexture
+                                            ?.loadTexture(device, preferredFormat),
+                                    normalTexture =
+                                        gltfMaterial.normalTexture?.loadTexture(
+                                            device,
+                                            preferredFormat,
+                                        ),
+                                    emissiveFactor =
+                                        if (gltfMaterial.emissiveFactor.isNotEmpty()) {
+                                            Vec3f(
+                                                gltfMaterial.emissiveFactor[0],
+                                                gltfMaterial.emissiveFactor[1],
+                                                gltfMaterial.emissiveFactor[2],
+                                            )
+                                        } else {
+                                            Vec3f(0f)
+                                        },
+                                    emissiveTexture =
+                                        gltfMaterial.emissiveTexture.loadTexture(
+                                            device,
+                                            preferredFormat,
+                                        ),
+                                    baseColorFactor =
+                                        Color(
+                                            baseColorFactor[0],
+                                            baseColorFactor[1],
+                                            baseColorFactor[2],
+                                            baseColorFactor[3],
+                                        ),
+                                    baseColorTexture =
+                                        gltfMaterial.pbrMetallicRoughness.baseColorTexture
+                                            ?.loadTexture(device, preferredFormat)
+                                            ?: EmptyTexture(device, preferredFormat, 0, 0),
+                                    transparent = gltfMaterial.alphaMode == GltfAlphaMode.Blend,
+                                    doubleSided = gltfMaterial.doubleSided,
+                                    alphaCutoff = gltfMaterial.alphaCutoff,
+                                    castShadows = config.castShadows,
+                                )
+                            } else {
+                                UnlitMaterial(
+                                    device = device,
+                                    baseColorFactor =
+                                        Color(
+                                            baseColorFactor[0],
+                                            baseColorFactor[1],
+                                            baseColorFactor[2],
+                                            baseColorFactor[3],
+                                        ),
+                                    baseColorTexture =
+                                        gltfMaterial.pbrMetallicRoughness.baseColorTexture
+                                            ?.loadTexture(device, preferredFormat)
+                                            ?: EmptyTexture(device, preferredFormat, 0, 0),
+                                    transparent = gltfMaterial.alphaMode != GltfAlphaMode.Opaque,
+                                    doubleSided = gltfMaterial.doubleSided,
+                                )
+                            }
+                        } ?: UnlitMaterial(device = device, Textures.textureWhite)
                     }
-                } ?: UnlitMaterial(device = device, Textures.textureWhite)
-            val indexFormat =
-                if (prim.indices >= 0)
-                    gltfFile.accessors[prim.indices].componentType.toIndexFormat()
-                else null
-            val meshNode = MeshNode(mesh, material, prim.mode.toTopology(), indexFormat)
-            node += meshNode
-            // apply skin
-            if (skin >= 0) {
-                //  mesh.skin = model.skins[skin]
-                val skeletonRoot = gltfFile.skins[skin].skeleton
-                if (skeletonRoot > 0) {
-                    //     node -= visualInstance
-                    //    modelNodes[gltfFile.nodes[skeletonRoot]]!! += mesh
+                val indexFormat =
+                    if (prim.indices >= 0)
+                        gltfFile.accessors[prim.indices].componentType.toIndexFormat()
+                    else null
+                val meshPrimitive =
+                    MeshPrimitive(mesh, material, prim.mode.toTopology(), indexFormat)
+
+                // apply morph weights
+                if (prim.targets.isNotEmpty()) {
+                    //     mesh.morphWeights = FloatArray(prim.targets.sumOf { it.size })
                 }
-            }
 
-            // apply morph weights
-            if (prim.targets.isNotEmpty()) {
-                //     mesh.morphWeights = FloatArray(prim.targets.sumOf { it.size })
+                meshPrimitive
             }
-
-            model.meshes[name] = meshNode
-        }
+        return Model(primitives)
     }
 
     private fun GltfPrimitive.toGeometry(gltfAccessors: List<GltfAccessor>): IndexedMeshGeometry {
@@ -304,7 +333,8 @@ private class GltfModelGenerator(val gltfFile: GltfData) {
                         arrayStride = vertexAttributes.calculateStride().toLong(),
                         stepMode = VertexStepMode.VERTEX,
                         attributes = vertexAttributes,
-                    )
+                    ),
+                size = indexGltfAccessor?.count?.align(4) ?: positionGltfAccessor.count.align(4),
             )
 
         repeat(positionGltfAccessor.count) {

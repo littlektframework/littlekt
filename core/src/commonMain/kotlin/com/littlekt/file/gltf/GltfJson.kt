@@ -574,19 +574,23 @@ data class GltfTexture(val sampler: Int = -1, val source: Int = 0, val name: Str
                     imageRef.bufferViewRef?.getData()?.toArray()?.readPixmap()
                         ?: error("Unable to read GltfTexture data!")
                 }
+
+            val minFilters = samplerRef.minFilter.toFilterMode()
+            val magFilters = samplerRef.magFilter.toFilterMode()
             texture =
-                PixmapTexture(device, preferredFormat, pixmap).apply {
-                    val minFilters = samplerRef.minFilter.toFilterMode()
-                    val magFilters = samplerRef.magFilter.toFilterMode()
+                PixmapTexture(
+                    device,
+                    preferredFormat,
+                    pixmap,
                     samplerDescriptor =
-                        samplerDescriptor.copy(
+                        SamplerDescriptor(
                             addressModeU = samplerRef.wrapS.toAddressMode(),
                             addressModeV = samplerRef.wrapT.toAddressMode(),
                             minFilter = minFilters.first,
                             magFilter = magFilters.first,
                             mipmapFilter = minFilters.second,
-                        )
-                }
+                        ),
+                )
         }
         return texture ?: error("Unable to convert the GltfTexture to a Texture!")
     }

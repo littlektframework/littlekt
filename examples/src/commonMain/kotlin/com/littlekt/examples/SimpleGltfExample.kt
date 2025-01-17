@@ -129,14 +129,20 @@ class SimpleGltfExample(context: Context) : ContextListener(context) {
                         sizeY = 1000f
                     }
                 }
-            MeshNode(
-                    mesh,
-                    PBRMaterial(
-                        device,
-                        baseColorTexture = checkered,
-                        normalTexture = checkeredNormal,
-                        castShadows = false,
-                    ),
+            ModelInstance(
+                    Model(
+                        listOf(
+                            MeshPrimitive(
+                                mesh,
+                                PBRMaterial(
+                                    device,
+                                    baseColorTexture = checkered,
+                                    normalTexture = checkeredNormal,
+                                    castShadows = false,
+                                ),
+                            )
+                        )
+                    )
                 )
                 .apply { translate(0f, -30f, 0f) }
         }

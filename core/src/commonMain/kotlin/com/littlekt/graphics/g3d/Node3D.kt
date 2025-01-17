@@ -30,6 +30,10 @@ open class Node3D {
     val children: List<Node3D>
         get() = _children
 
+    /** If destroy was called, this will be true until the next time node's are processed. */
+    val isDestroyed
+        get() = _isDestroyed
+
     /**
      * Global transform. Don't call `globalTransform.set` directly, the data won't be marked dirty.
      * Set the globalTransform directly with `globalTransform = myMat4`.
@@ -354,6 +358,8 @@ open class Node3D {
     private var _rotationMatrix = Mat4()
     private var _translationMatrix = Mat4()
     private var _scaleMatrix = Mat4()
+
+    private var _isDestroyed = false
 
     protected open fun dirty() {
         dirty = true
@@ -766,6 +772,17 @@ open class Node3D {
         dirty()
         return this
     }
+
+    fun destroy() {
+        _isDestroyed = true
+        while (children.isNotEmpty()) {
+            children[0].destroy()
+        }
+        onDestroy()
+    }
+
+    /** Called when [destroy] is invoked and all of its children have been destroyed. */
+    open fun onDestroy() = Unit
 
     /** @return a tree string for all the child nodes under this [Node3D]. */
     fun treeString(): String {

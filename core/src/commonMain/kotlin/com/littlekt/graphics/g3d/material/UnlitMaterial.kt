@@ -51,6 +51,7 @@ open class UnlitMaterial(
     }
 
     override fun update() {
+        // TODO update only if dirty
         materialFloatBuffer.apply {
             set(0, baseColorFactor.r)
             set(1, baseColorFactor.g)
