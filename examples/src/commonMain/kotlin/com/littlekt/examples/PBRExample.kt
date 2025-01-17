@@ -43,10 +43,10 @@ class PBRExample(context: Context) : ContextListener(context) {
         environment.setAmbientLight(AmbientLight(color = Color(0.002f, 0.002f, 0.002f)))
 
         environment.addPointLight(
-            PointLight(Vec3f(-1180f, 240f, 420f), color = Color.GREEN, range = 1f)
+            PointLight(Vec3f(-1180f, 240f, 420f), color = Color.GREEN, range = 4f)
         )
 
-        environment.addPointLight(PointLight(Vec3f(8.95f, 5f, 30.5f), range = 1f))
+        environment.addPointLight(PointLight(Vec3f(8.95f, 5f, 30.5f), range = 4f))
 
         val surfaceCapabilities = graphics.surfaceCapabilities
         val preferredFormat = graphics.preferredFormat

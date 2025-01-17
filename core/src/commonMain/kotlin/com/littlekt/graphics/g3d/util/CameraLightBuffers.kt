@@ -32,8 +32,7 @@ class CameraLightBuffers(
     override val cameraDynamicSize: Int = 1
 
     /** The [BufferBinding] for [cameraUniformBufferBinding]. */
-    override val cameraUniformBufferBinding =
-        BufferBinding(cameraUniformBuffer, size = Float.SIZE_BYTES * BUFFER_SIZE.toLong())
+    override val cameraUniformBufferBinding = BufferBinding(cameraUniformBuffer)
 
     override val bindGroupLayout: BindGroupLayout =
         device.createBindGroupLayout(
