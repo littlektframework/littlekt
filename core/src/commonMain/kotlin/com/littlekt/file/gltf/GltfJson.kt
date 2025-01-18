@@ -6,6 +6,8 @@ import com.littlekt.file.vfs.readPixmap
 import com.littlekt.graphics.PixmapTexture
 import com.littlekt.graphics.Texture
 import com.littlekt.graphics.webgpu.*
+import kotlinx.atomicfu.locks.reentrantLock
+import kotlinx.atomicfu.locks.withLock
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
@@ -564,33 +566,37 @@ data class GltfTexture(val sampler: Int = -1, val source: Int = 0, val name: Str
 
     @Transient private var texture: Texture? = null
 
-    suspend fun toTexture(root: VfsFile, device: Device, preferredFormat: TextureFormat): Texture {
-        if (texture == null) {
-            val uri = imageRef.uri
-            val pixmap =
-                if (uri != null) {
-                    VfsFile(root.vfs, "${root.parent.path}/$uri").readPixmap()
-                } else {
-                    imageRef.bufferViewRef?.getData()?.toArray()?.readPixmap()
-                        ?: error("Unable to read GltfTexture data!")
-                }
+    @Transient private val lock = reentrantLock()
 
-            val minFilters = samplerRef.minFilter.toFilterMode()
-            val magFilters = samplerRef.magFilter.toFilterMode()
-            texture =
-                PixmapTexture(
-                    device,
-                    preferredFormat,
-                    pixmap,
-                    samplerDescriptor =
-                        SamplerDescriptor(
-                            addressModeU = samplerRef.wrapS.toAddressMode(),
-                            addressModeV = samplerRef.wrapT.toAddressMode(),
-                            minFilter = minFilters.first,
-                            magFilter = magFilters.first,
-                            mipmapFilter = minFilters.second,
-                        ),
-                )
+    suspend fun toTexture(root: VfsFile, device: Device, preferredFormat: TextureFormat): Texture {
+        lock.withLock {
+            if (texture == null) {
+                val uri = imageRef.uri
+                val pixmap =
+                    if (uri != null) {
+                        VfsFile(root.vfs, "${root.parent.path}/$uri").readPixmap()
+                    } else {
+                        imageRef.bufferViewRef?.getData()?.toArray()?.readPixmap()
+                            ?: error("Unable to read GltfTexture data!")
+                    }
+
+                val minFilters = samplerRef.minFilter.toFilterMode()
+                val magFilters = samplerRef.magFilter.toFilterMode()
+                texture =
+                    PixmapTexture(
+                        device,
+                        preferredFormat,
+                        pixmap,
+                        samplerDescriptor =
+                            SamplerDescriptor(
+                                addressModeU = samplerRef.wrapS.toAddressMode(),
+                                addressModeV = samplerRef.wrapT.toAddressMode(),
+                                minFilter = minFilters.first,
+                                magFilter = magFilters.first,
+                                mipmapFilter = minFilters.second,
+                            ),
+                    )
+            }
         }
         return texture ?: error("Unable to convert the GltfTexture to a Texture!")
     }

@@ -95,6 +95,7 @@ open class AssetProvider(val context: Context) {
         parameters: GameAssetParameters = EmptyGameAssetParameter(),
         onLoad: (T) -> Unit = {},
     ): GameAsset<T> {
+        contract { callsInPlace(onLoad, InvocationKind.EXACTLY_ONCE) }
         val sceneAsset = checkOrCreateNewSceneAsset(file, clazz)
         file.vfs.launch { loadVfsFile(sceneAsset, file, clazz, parameters, onLoad) }
         return sceneAsset
@@ -152,6 +153,7 @@ open class AssetProvider(val context: Context) {
         parameters: GameAssetParameters = EmptyGameAssetParameter(),
         onLoad: (T) -> Unit = {},
     ) {
+        contract { callsInPlace(onLoad, InvocationKind.EXACTLY_ONCE) }
         val loader = loaders[clazz] ?: throw UnsupportedFileTypeException(file.path)
         val result = loader.invoke(file, parameters) as T
         sceneAsset.load(result)
