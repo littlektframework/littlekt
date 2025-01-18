@@ -37,7 +37,7 @@ class SimpleGltfExample(context: Context) : ContextListener(context) {
         addCloseOnShiftEsc()
         val device = graphics.device
         val camera = PerspectiveCamera(graphics.width, graphics.height)
-        camera.translate(0f, 25f, 150f)
+        camera.translate(0f, 1f, 5f)
         val environment = UnlitEnvironment(device)
         val pbrEnvironment =
             PBREnvironment(device).apply {
@@ -46,7 +46,8 @@ class SimpleGltfExample(context: Context) : ContextListener(context) {
                 )
                 setAmbientLight(AmbientLight(color = Color(0.002f, 0.002f, 0.002f)))
 
-                addPointLight(PointLight(Vec3f(0f, 250f, 0f), color = Color.GREEN))
+                addPointLight(PointLight(Vec3f(0f, 0.5f, 0f), color = Color.GREEN))
+                addPointLight(PointLight(Vec3f(0f, 0.5f, 1f), color = Color.RED))
             }
 
         val surfaceCapabilities = graphics.surfaceCapabilities
@@ -83,28 +84,13 @@ class SimpleGltfExample(context: Context) : ContextListener(context) {
             resourcesVfs["models/Duck.glb"],
             parameters = GltfModelAssetParameter(GltfModelUnlitConfig()),
         ) {
-            modelBatch.preparePipeline(it, environment)
-            unlitModels +=
-                it.apply {
-                    scale(20f)
-                    translate(-30f, 0f, 0f)
-                }
-        }
-        assetProvider.load<Scene>(
-            resourcesVfs["models/Fox.glb"],
-            parameters = GltfModelAssetParameter(GltfModelUnlitConfig()),
-        ) {
-            modelBatch.preparePipeline(it, environment)
-            unlitModels += it.apply { translate(30f, 0f, 0f) }
+            //    modelBatch.preparePipeline(it, environment)
+            unlitModels += it.apply { translate(-1f, 0f, 0f) }
         }
 
         assetProvider.load<Scene>(resourcesVfs["models/flighthelmet/FlightHelmet.gltf"]) {
-            modelBatch.preparePipeline(it, pbrEnvironment)
-            pbrModels +=
-                it.apply {
-                    scale(200f)
-                    translate(90f, 0f, 0f)
-                }
+            //     modelBatch.preparePipeline(it, pbrEnvironment)
+            pbrModels += it.apply { translate(1f, 0f, 0f) }
         }
 
         onUpdate { assetProvider.update() }
@@ -138,28 +124,27 @@ class SimpleGltfExample(context: Context) : ContextListener(context) {
         val grid = run {
             val mesh =
                 fullIndexedMesh().generate {
-                    vertexModFun = { uv.set(position.x / 100f, position.z / 100f) }
+                    vertexModFun = { uv.set(position.x, position.z) }
                     grid {
-                        sizeX = 1000f
-                        sizeY = 1000f
+                        sizeX = 50f
+                        sizeY = 50f
                     }
                 }
             ModelInstance(
-                    Model(
-                        listOf(
-                            MeshPrimitive(
-                                mesh,
-                                PBRMaterial(
-                                    device,
-                                    baseColorTexture = checkered,
-                                    normalTexture = checkeredNormal,
-                                    castShadows = false,
-                                ),
-                            )
+                Model(
+                    listOf(
+                        MeshPrimitive(
+                            mesh,
+                            PBRMaterial(
+                                device,
+                                baseColorTexture = checkered,
+                                normalTexture = checkeredNormal,
+                                castShadows = false,
+                            ),
                         )
                     )
                 )
-                .apply { translate(0f, -30f, 0f) }
+            )
         }
 
         graphics.configureSurface(
@@ -195,7 +180,7 @@ class SimpleGltfExample(context: Context) : ContextListener(context) {
             camera.update()
         }
 
-        addFlyController(camera, 0.5f)
+        addFlyController(camera, 0.0015f)
         onUpdate { dt ->
             unlitModels.fastForEach { model ->
                 model.rotate(y = 10.degrees * dt.seconds)

@@ -16,9 +16,8 @@ class PointLight(
 ) : Light {
 
     val range: Float =
-        if (range != null && range >= 0) range
-        else
-            run {
+        range
+            ?: run {
                 val radius = 0.05f
                 val illuminationThreshold = 0.001f
                 radius * (sqrt(intensity / illuminationThreshold) - 1)

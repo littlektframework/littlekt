@@ -183,7 +183,7 @@ class PBRMaterialBuilder : SubFragmentShaderBuilder() {
               let NdotL = max(dot(surface.normal, L), 0.0);
 
               let numerator = NDF * G * F;
-              let denominator = max(4.0 * max(dot(surface.normal, surface.v), 0.0) * NdotL, 0.001);
+              let denominator = max(4.0 * max(dot(surface.normal, surface.v), 0.0) * NdotL, 0.0001);
               let specular = numerator / vec3(denominator);
 
               // add to outgoing radiance Lo
@@ -254,7 +254,7 @@ class PBRMaterialBuilder : SubFragmentShaderBuilder() {
                 let color = linear_to_sRGB(Lo + ambient + surface.emissive);
             
                 var out : FragmentOutput;
-                out.color = vec4(color, surface.base_color.a);
+                out.color = vec4(color, surface.base_color.a); // vec4(surface.normal * 0.5 + 0.5, 1.0);
                 ${if(bloomEnabled) "out.emissive = vec4(surface.emissive, surface.base_color.a);" else ""}
                 
                 return out;

@@ -1,7 +1,5 @@
 package com.littlekt.file.gltf
 
-import com.littlekt.async.KtScope
-import com.littlekt.async.newSingleThreadAsyncContext
 import com.littlekt.file.vfs.VfsFile
 import com.littlekt.graphics.*
 import com.littlekt.graphics.g3d.*
@@ -21,8 +19,6 @@ import com.littlekt.math.Vec3f
 import com.littlekt.resources.Textures
 import com.littlekt.util.align
 import com.littlekt.util.datastructure.threadSafeMutableMapOf
-import kotlinx.coroutines.joinAll
-import kotlinx.coroutines.launch
 
 /**
  * Converts a [GltfData] to a [Model] ready for rendering. This will load underlying buffers and
@@ -60,14 +56,6 @@ private class GltfModelGenerator(val gltfFile: GltfData) {
         gltfScene: GltfScene,
     ): Scene {
         val scene = Scene().apply { name = gltfScene.name ?: "glTF scene" }
-        val meshes = findModels(gltfScene)
-        meshes
-            .map {
-                KtScope.launch(newSingleThreadAsyncContext()) {
-                    createModel(config, device, preferredFormat, gltfFile.meshes[it])
-                }
-            }
-            .joinAll()
         gltfScene.nodeRefs.map { node ->
             scene += node.toNode(config, device, preferredFormat, scene, scene)
         }
@@ -76,28 +64,6 @@ private class GltfModelGenerator(val gltfFile: GltfData) {
 
         // mergeMeshesByMaterial()
         return scene
-    }
-
-    private fun findModels(scene: GltfScene): Set<Int> {
-        val meshes = mutableSetOf<Int>()
-        scene.nodeRefs.forEach { child ->
-            val meshRef = child.meshRef
-            if (child.mesh > 0 && meshRef != null) {
-                meshes += child.mesh
-            }
-            findModels(child, meshes)
-        }
-        return meshes
-    }
-
-    private fun findModels(node: GltfNode, meshes: MutableSet<Int>) {
-        node.childRefs.forEach { child ->
-            val meshRef = child.meshRef
-            if (child.mesh > 0 && meshRef != null) {
-                meshes += child.mesh
-            }
-            findModels(child, meshes)
-        }
     }
 
     private fun createSkins(scene: Scene) {

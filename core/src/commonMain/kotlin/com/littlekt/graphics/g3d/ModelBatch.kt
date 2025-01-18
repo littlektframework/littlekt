@@ -12,8 +12,6 @@ import com.littlekt.graphics.util.BindingUsage
 import com.littlekt.graphics.webgpu.*
 import com.littlekt.log.Logger
 import com.littlekt.util.datastructure.fastForEach
-import com.littlekt.util.datastructure.threadSafeMutableListOf
-import com.littlekt.util.datastructure.threadSafeMutableMapOf
 import kotlin.math.max
 import kotlin.reflect.KClass
 import kotlin.time.Duration
@@ -25,14 +23,12 @@ import kotlin.time.Duration
  * @date 12/7/2024
  */
 class ModelBatch(val device: Device) : Releasable {
-    private val pipelineProviders =
-        threadSafeMutableMapOf<KClass<out Material>, MaterialPipelineProvider>()
-    private val pipelines = threadSafeMutableListOf<MaterialPipeline>()
-    private val primitivesByPipeline =
-        threadSafeMutableMapOf<MaterialPipeline, MutableList<MeshPrimitive>>()
+    private val pipelineProviders = mutableMapOf<KClass<out Material>, MaterialPipelineProvider>()
+    private val pipelines = mutableListOf<MaterialPipeline>()
+    private val primitivesByPipeline = mutableMapOf<MaterialPipeline, MutableList<MeshPrimitive>>()
 
     /** By material id */
-    private val bindGroupByMaterialId = threadSafeMutableMapOf<Int, BindGroup>()
+    private val bindGroupByMaterialId = mutableMapOf<Int, BindGroup>()
     private val updatedEnvironments = mutableSetOf<Int>()
     private val sorter =
         object : MaterialPipelineSorter {

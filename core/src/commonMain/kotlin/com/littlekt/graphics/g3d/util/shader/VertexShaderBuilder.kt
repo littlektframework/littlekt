@@ -72,7 +72,7 @@ open class VertexShaderBuilder : SubShaderBuilder() {
                         """.trimIndent()
                 } else ""
             }
-            let model_pos = model_matrix * input.position;
+            let model_pos = model_matrix * vec4(input.position, 1.0);
             output.world_pos = model_pos.xyz;
             ${ if(!cameraViewProjCombined) "output.view = camera.position - model_pos.xyz;" else ""}
             output.position = $cameraViewProj * model_pos;

@@ -35,18 +35,14 @@ class PBRExample(context: Context) : ContextListener(context) {
         addCloseOnShiftEsc()
         val device = graphics.device
         val camera = PerspectiveCamera(graphics.width, graphics.height)
-        camera.translate(0f, 25f, 150f)
+        camera.translate(0f, 1f, 0f)
         val environment = PBREnvironment(device)
         environment.setDirectionalLight(
             DirectionalLight(color = Color(0.2f, 0.2f, 0.2f), intensity = 0.1f)
         )
         environment.setAmbientLight(AmbientLight(color = Color(0.002f, 0.002f, 0.002f)))
-
-        environment.addPointLight(
-            PointLight(Vec3f(-1180f, 240f, 420f), color = Color.GREEN, range = 4f)
-        )
-
-        environment.addPointLight(PointLight(Vec3f(8.95f, 5f, 30.5f), range = 4f))
+        environment.addPointLight(PointLight(Vec3f(0f, 2.5f, 0f), color = Color.GREEN, range = 4f))
+        environment.addPointLight(PointLight(Vec3f(8.95f, 2f, 3.15f), range = 4f))
 
         val surfaceCapabilities = graphics.surfaceCapabilities
         val preferredFormat = graphics.preferredFormat
@@ -101,7 +97,6 @@ class PBRExample(context: Context) : ContextListener(context) {
             resourcesVfs["models/sponza-optimized.glb"]
                 .readGltf()
                 .toModel(config = GltfModelPbrConfig())
-                .apply { scale(20f) }
 
         val modelBatch =
             ModelBatch(device).apply {
@@ -146,7 +141,7 @@ class PBRExample(context: Context) : ContextListener(context) {
             graph.resize(width, height)
         }
 
-        addFlyController(camera, 0.5f)
+        addFlyController(camera)
 
         onUpdate {
             if (input.isKeyJustPressed(Key.T)) {

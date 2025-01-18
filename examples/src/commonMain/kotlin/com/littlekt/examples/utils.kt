@@ -78,8 +78,7 @@ fun Context.addWASDMovement(camera: Camera, speed: Float) {
     }
 }
 
-fun Context.addFlyController(camera: Camera, speed: Float) {
-    val temp = MutableVec3f()
+fun Context.addFlyController(camera: Camera, speed: Float = 0.0015f) {
     val forward = MutableVec3f()
     val right = MutableVec3f()
     val up = MutableVec3f()

@@ -35,7 +35,7 @@ fun SubShaderBuilder.vertexInput(attributes: List<VertexAttribute>) {
         attributes.map { attribute ->
             when (attribute.usage) {
                 VertexAttrUsage.POSITION ->
-                    "@location(${attribute.shaderLocation}) position: vec4f,"
+                    "@location(${attribute.shaderLocation}) position: vec3f,"
                 VertexAttrUsage.COLOR -> "@location(${attribute.shaderLocation}) color: vec4f,"
                 VertexAttrUsage.NORMAL -> "@location(${attribute.shaderLocation}) normal: vec3f,"
                 VertexAttrUsage.TANGENT -> "@location(${attribute.shaderLocation}) tangent: vec4f,"
@@ -200,21 +200,20 @@ fun SubShaderBuilder.tileFunctions(
             const tile_count = vec3(${tileCountX}u, ${tileCountY}u, ${tileCountZ}u);
 
             fn linear_depth(depth_sample : f32) -> f32 {
-              return camera.z_far * camera.z_near / fma(depth_sample, camera.z_near - camera.z_far, camera.z_far);
+              let depth_range = 2.0 * depth_sample - 1.0;
+              let linear = 2.0 * camera.z_far * camera.z_near / (camera.z_far + camera.z_near - depth_range * (camera.z_far - camera.z_near));
+              return linear;
             }
             
-            fn get_tile(frag_coord : vec4<f32>) -> vec3<u32> {
-              // TODO: scale and bias calculation can be moved outside the shader to save cycles.
-              let sliceScale = f32(tile_count.z) / log2(camera.z_far / camera.z_near);
-              let sliceBias = -(f32(tile_count.z) * log2(camera.z_near) / log2(camera.z_far / camera.z_near));
-              let zTile = u32(max(log2(linear_depth(frag_coord.z)) * sliceScale + sliceBias, 0.0));
-            
-              return vec3(u32(frag_coord.x / (camera.output_size.x / f32(tile_count.x))),
-                          u32(frag_coord.y / (camera.output_size.y / f32(tile_count.y))),
+            fn get_tile(frag_coord : vec4f) -> vec3u {
+              let zTile = u32((log2(abs(frag_coord.z) / camera.z_near) * f32(tile_count.z)) / log2(camera.z_far / camera.z_near));
+              let tileSize = camera.output_size / vec2(f32(tile_count.x), f32(tile_count.y));
+              return vec3(u32(frag_coord.x / tileSize.x),
+                          u32(frag_coord.y / tileSize.y),
                           zTile);
             }
             
-            fn get_cluster_index(frag_coord : vec4<f32>) -> u32 {
+            fn get_cluster_index(frag_coord : vec4f) -> u32 {
               let tile = get_tile(frag_coord);
               return tile.x +
                      tile.y * tile_count.x +

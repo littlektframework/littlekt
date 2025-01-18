@@ -6,8 +6,6 @@ import com.littlekt.file.vfs.readPixmap
 import com.littlekt.graphics.PixmapTexture
 import com.littlekt.graphics.Texture
 import com.littlekt.graphics.webgpu.*
-import kotlinx.atomicfu.locks.reentrantLock
-import kotlinx.atomicfu.locks.withLock
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
@@ -566,10 +564,7 @@ data class GltfTexture(val sampler: Int = -1, val source: Int = 0, val name: Str
 
     @Transient private var texture: Texture? = null
 
-    @Transient private val lock = reentrantLock()
-
     suspend fun toTexture(root: VfsFile, device: Device, preferredFormat: TextureFormat): Texture {
-        lock.withLock {
             if (texture == null) {
                 val uri = imageRef.uri
                 val pixmap =
@@ -597,7 +592,6 @@ data class GltfTexture(val sampler: Int = -1, val source: Int = 0, val name: Str
                             ),
                     )
             }
-        }
         return texture ?: error("Unable to convert the GltfTexture to a Texture!")
     }
 }

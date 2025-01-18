@@ -28,19 +28,21 @@ class ClusteredBoundsComputeShaderBuilder(
     override fun main(entryPoint: String) {
         parts +=
             """
-              fn lineIntersectionToZPlane(a : vec3<f32>, b : vec3<f32>, zDistance : f32) -> vec3<f32> {
-                let normal = vec3(0.0, 0.0, 1.0);
-                let ab =  b - a;
-                let t = (zDistance - dot(normal, a)) / dot(normal, ab);
-                return a + t * ab;
+              fn lineIntersectionToZPlane(a : vec3f, b : vec3f, zDistance : f32) -> vec3f {
+                let normal = vec3(0.0, 0.0, 1.0); // plane normal
+                let direction =  b - a;
+                // intersection length for line and plane
+                let t = (zDistance - dot(normal, a)) / dot(normal, direction);
+                // xyz position of point along the line
+                return a + t * direction;
               }
     
-              fn clipToView(clip : vec4<f32>) -> vec4<f32> {
+              fn clipToView(clip : vec4f) -> vec4f {
                 let view = camera.inverse_projection * clip;
-                return view / vec4(view.w, view.w, view.w, view.w);
+                return view / view.w;
               }
     
-              fn screen2View(screen : vec4<f32>) -> vec4<f32> {
+              fn screenToView(screen : vec4f) -> vec4f {
                 let texCoord = screen.xy / camera.output_size.xy;
                 let clip = vec4(vec2(texCoord.x, 1.0 - texCoord.y) * 2.0 - vec2(1.0, 1.0), screen.z, screen.w);
                 return clipToView(clip);
@@ -61,8 +63,8 @@ class ClusteredBoundsComputeShaderBuilder(
                 let maxPoint_sS = vec4(vec2(f32(global_id.x+1u), f32(global_id.y+1u)) * tileSize, 0.0, 1.0);
                 let minPoint_sS = vec4(vec2(f32(global_id.x), f32(global_id.y)) * tileSize, 0.0, 1.0);
     
-                let maxPoint_vS = screen2View(maxPoint_sS).xyz;
-                let minPoint_vS = screen2View(minPoint_sS).xyz;
+                let maxPoint_vS = screenToView(maxPoint_sS).xyz;
+                let minPoint_vS = screenToView(minPoint_sS).xyz;
     
                 let tileNear: f32 = -camera.z_near * pow(camera.z_far/ camera.z_near, f32(global_id.z)/f32(tileCount.z));
                 let tileFar: f32 = -camera.z_near * pow(camera.z_far/ camera.z_near, f32(global_id.z+1u)/f32(tileCount.z));

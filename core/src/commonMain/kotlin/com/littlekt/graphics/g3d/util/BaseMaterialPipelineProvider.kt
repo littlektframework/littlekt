@@ -5,9 +5,7 @@ import com.littlekt.graphics.g3d.Environment
 import com.littlekt.graphics.g3d.material.Material
 import com.littlekt.graphics.webgpu.*
 import com.littlekt.util.datastructure.pool
-import com.littlekt.util.datastructure.threadSafeMutableMapOf
 import kotlin.reflect.KClass
-import kotlinx.atomicfu.locks.reentrantLock
 
 /**
  * @author Colton Daily
@@ -15,8 +13,7 @@ import kotlinx.atomicfu.locks.reentrantLock
  */
 abstract class BaseMaterialPipelineProvider<T : Material> : MaterialPipelineProvider {
     abstract val type: KClass<T>
-    private val pipelines = threadSafeMutableMapOf<RenderInfo, MaterialPipeline>()
-    private val lock = reentrantLock()
+    private val pipelines = mutableMapOf<RenderInfo, MaterialPipeline>()
     private var renderInfos = pool(reset = { it.reset() }, preallocate = 1) { RenderInfo() }
 
     override fun getMaterialPipeline(
