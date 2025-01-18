@@ -11,7 +11,7 @@ import com.littlekt.graphics.webgpu.RenderPipeline
  */
 data class MaterialPipeline(
     val shader: Shader,
-    val environment: Environment,
+    var environment: Environment,
     val renderOrder: RenderOrder,
     val layout: VertexBufferLayout,
     val renderPipeline: RenderPipeline,

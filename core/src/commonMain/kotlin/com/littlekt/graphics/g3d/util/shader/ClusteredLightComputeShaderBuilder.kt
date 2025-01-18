@@ -53,7 +53,6 @@ class ClusteredLightComputeShaderBuilder(
                                  global_id.y * tile_count.x +
                                  global_id.z * tile_count.x * tile_count.y;
 
-                 clusterLights.lights[tileIndex].count = 0u;
                  // TODO: Look into improving threading using local invocation groups?
                  var clusterLightCount = 0u;
                  var clusterLightIndices : array<u32, ${maxLightsPerCluster}>;

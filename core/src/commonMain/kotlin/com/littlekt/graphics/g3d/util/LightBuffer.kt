@@ -67,8 +67,8 @@ class LightBuffer(val device: Device, val maxLightCount: Int) : Releasable {
         }
         if (intensity > 0) {
             val offset =
-                (POINT_LIGHT_OFFSET * index * Float.SIZE_BYTES) +
-                    POINT_LIGHT_OFFSET * Float.SIZE_BYTES
+                POINT_LIGHT_OFFSET * Float.SIZE_BYTES +
+                    (index * POINT_LIGHT_SIZE * Float.SIZE_BYTES)
             lightsBuffer.position = offset
             lightsBuffer.putFloat(position.x)
             lightsBuffer.putFloat(position.y)

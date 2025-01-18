@@ -48,6 +48,7 @@ class SimpleGltfExample(context: Context) : ContextListener(context) {
 
                 addPointLight(PointLight(Vec3f(0f, 0.5f, 0f), color = Color.GREEN))
                 addPointLight(PointLight(Vec3f(0f, 0.5f, 1f), color = Color.RED))
+                addPointLight(PointLight(Vec3f(0f, 0.5f, -1f), color = Color.BLUE))
             }
 
         val surfaceCapabilities = graphics.surfaceCapabilities
