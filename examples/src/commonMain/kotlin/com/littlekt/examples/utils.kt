@@ -1,7 +1,15 @@
 package com.littlekt.examples
 
 import com.littlekt.Context
+import com.littlekt.async.KtScope
+import com.littlekt.async.newSingleThreadAsyncContext
+import com.littlekt.file.gltf.GltfModelConfig
+import com.littlekt.file.vfs.VfsFile
+import com.littlekt.file.vfs.readGltfModel
 import com.littlekt.graphics.Camera
+import com.littlekt.graphics.g3d.Environment
+import com.littlekt.graphics.g3d.ModelBatch
+import com.littlekt.graphics.g3d.Scene
 import com.littlekt.graphics.webgpu.SurfaceConfiguration
 import com.littlekt.graphics.webgpu.SurfaceTexture
 import com.littlekt.graphics.webgpu.TextureStatus
@@ -13,8 +21,13 @@ import com.littlekt.math.MutableVec3f
 import com.littlekt.math.Vec3f
 import com.littlekt.math.geom.degrees
 import com.littlekt.math.geom.radians
+import com.littlekt.util.datastructure.fastForEach
 import com.littlekt.util.milliseconds
 import kotlin.math.asin
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 fun SurfaceTexture.isValid(context: Context, onConfigure: () -> SurfaceConfiguration): Boolean {
     val surfaceTexture = this
@@ -53,6 +66,42 @@ fun Context.addCloseOnShiftEsc() {
         if (input.isKeyPressed(Key.SHIFT_LEFT) && input.isKeyJustPressed(Key.ESCAPE)) {
             close()
         }
+    }
+}
+
+data class GltfModel(
+    val file: VfsFile,
+    val config: GltfModelConfig,
+    val environment: Environment,
+    val scale: Float,
+    val translate: Vec3f,
+) {
+    var scene: Scene? = null
+}
+
+fun ModelBatch.renderGltfModels(models: List<GltfModel>) {
+    models.fastForEach { model -> model.scene?.let { render(it, model.environment) } }
+}
+
+fun Context.loadGltfModels(models: List<GltfModel>, modelBatch: ModelBatch? = null) {
+    KtScope.launch {
+        models
+            .map { gltfModel ->
+                KtScope.async {
+                    val scene =
+                        withContext(newSingleThreadAsyncContext()) {
+                            val scene =
+                                gltfModel.file.readGltfModel(gltfModel.config).apply {
+                                    scale(gltfModel.scale)
+                                    translate(gltfModel.translate)
+                                }
+                            modelBatch?.preparePipeline(scene, gltfModel.environment)
+                            scene
+                        }
+                    gltfModel.scene = scene
+                }
+            }
+            .awaitAll()
     }
 }
 

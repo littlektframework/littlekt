@@ -34,12 +34,17 @@ abstract class LocalVfs(context: Context, logger: Logger, baseDir: String) :
     override val coroutineContext: CoroutineContext = job
 
     private val awaitedAssetsChannel = Channel<AwaitedAsset>()
+        get() {
+            controller
+            return field
+        }
+
     private val assetRefChannel = Channel<AssetRef>(Channel.UNLIMITED)
     private val loadedAssetChannel = Channel<LoadedAsset>()
 
-    init {
-        repeat(NUM_LOAD_WORKERS) { loadWorker(assetRefChannel, loadedAssetChannel) }
+    private val controller by lazy {
         launch {
+            repeat(NUM_LOAD_WORKERS) { loadWorker(assetRefChannel, loadedAssetChannel) }
             val requested = mutableMapOf<AssetRef, MutableList<AwaitedAsset>>()
             while (true) {
                 select<Unit> {

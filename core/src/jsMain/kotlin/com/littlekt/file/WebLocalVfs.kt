@@ -2,12 +2,10 @@ package com.littlekt.file
 
 import com.littlekt.Context
 import com.littlekt.log.Logger
-import kotlinx.coroutines.CompletableDeferred
-import org.khronos.webgl.ArrayBuffer
+import kotlin.js.Promise
+import kotlinx.coroutines.await
 import org.khronos.webgl.Uint8Array
-import org.w3c.xhr.ARRAYBUFFER
-import org.w3c.xhr.XMLHttpRequest
-import org.w3c.xhr.XMLHttpRequestResponseType
+import org.w3c.fetch.Response
 
 /**
  * @author Colton Daily
@@ -28,20 +26,20 @@ class WebLocalVfs(context: Context, logger: Logger, assetsBaseDir: String) :
     }
 
     private suspend fun loadRaw(url: String): ByteBuffer? {
-        val data = CompletableDeferred<ByteBuffer?>(job)
-        val req = XMLHttpRequest()
-        req.responseType = XMLHttpRequestResponseType.ARRAYBUFFER
-        req.onload = {
-            val array = Uint8Array(req.response as ArrayBuffer)
-            data.complete(ByteBufferImpl(array))
-        }
-        req.onerror = {
-            data.complete(null)
-            logger.error { "Failed loading resource $url: $it" }
-        }
-        req.open("GET", url)
-        req.send()
+        val data = fetchData(url).map { ByteBufferImpl(Uint8Array(it.arrayBuffer().await())) }
+        return data.getOrNull()
+    }
 
-        return data.await()
+    private suspend fun fetchData(url: String): Result<Response> {
+        val response = fetch(url).await()
+        return if (response.ok) {
+            Result.success(response)
+        } else {
+            val error = "Failed loading resource: $url: ${response.status} ${response.statusText}"
+            logger.error { error }
+            Result.failure(IllegalStateException(error))
+        }
     }
 }
+
+external fun fetch(resource: String): Promise<Response>

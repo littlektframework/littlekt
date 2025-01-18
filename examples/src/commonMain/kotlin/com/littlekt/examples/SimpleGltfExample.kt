@@ -1,9 +1,8 @@
 package com.littlekt.examples
 
-import com.littlekt.AssetProvider
 import com.littlekt.Context
 import com.littlekt.ContextListener
-import com.littlekt.GltfModelAssetParameter
+import com.littlekt.file.gltf.GltfModelPbrConfig
 import com.littlekt.file.gltf.GltfModelUnlitConfig
 import com.littlekt.file.vfs.TextureOptions
 import com.littlekt.file.vfs.readTexture
@@ -42,13 +41,17 @@ class SimpleGltfExample(context: Context) : ContextListener(context) {
         val pbrEnvironment =
             PBREnvironment(device).apply {
                 setDirectionalLight(
-                    DirectionalLight(color = Color(0.2f, 0.2f, 0.2f), intensity = 0.1f)
+                    DirectionalLight(
+                        color = Color(0.2f, 0.2f, 0.2f),
+                        direction = Vec3f(0.3f, 0.5f, 0.8f),
+                        intensity = 0.1f,
+                    )
                 )
                 setAmbientLight(AmbientLight(color = Color(0.002f, 0.002f, 0.002f)))
 
-                addPointLight(PointLight(Vec3f(0f, 0.5f, 0f), color = Color.GREEN))
-                addPointLight(PointLight(Vec3f(0f, 0.5f, 1f), color = Color.RED))
-                addPointLight(PointLight(Vec3f(0f, 0.5f, -1f), color = Color.BLUE))
+                addPointLight(PointLight(Vec3f(0f, 1f, 0f), color = Color.GREEN, range = 2f))
+                addPointLight(PointLight(Vec3f(0f, 1f, 1f), color = Color.RED, range = 2f))
+                addPointLight(PointLight(Vec3f(0f, 1f, -1f), color = Color.BLUE, range = 2f))
             }
 
         val surfaceCapabilities = graphics.surfaceCapabilities
@@ -77,24 +80,25 @@ class SimpleGltfExample(context: Context) : ContextListener(context) {
                 this.depthFormat = depthFormat
             }
 
-        val assetProvider = AssetProvider(this)
-        val unlitModels = mutableListOf<Scene>()
-        val pbrModels = mutableListOf<Scene>()
+        val models =
+            listOf(
+                GltfModel(
+                    resourcesVfs["models/Duck.glb"],
+                    GltfModelUnlitConfig(),
+                    environment,
+                    1f,
+                    Vec3f(-1f, 0f, 0f),
+                ),
+                GltfModel(
+                    resourcesVfs["models/flighthelmet/FlightHelmet.gltf"],
+                    GltfModelPbrConfig(),
+                    pbrEnvironment,
+                    4f,
+                    Vec3f(1f, 0f, 0f),
+                ),
+            )
 
-        assetProvider.load<Scene>(
-            resourcesVfs["models/Duck.glb"],
-            parameters = GltfModelAssetParameter(GltfModelUnlitConfig()),
-        ) {
-            //    modelBatch.preparePipeline(it, environment)
-            unlitModels += it.apply { translate(-1f, 0f, 0f) }
-        }
-
-        assetProvider.load<Scene>(resourcesVfs["models/flighthelmet/FlightHelmet.gltf"]) {
-            //     modelBatch.preparePipeline(it, pbrEnvironment)
-            pbrModels += it.apply { translate(1f, 0f, 0f) }
-        }
-
-        onUpdate { assetProvider.update() }
+        loadGltfModels(models, modelBatch)
 
         val checkered =
             resourcesVfs["checkered.png"].readTexture(
@@ -183,14 +187,11 @@ class SimpleGltfExample(context: Context) : ContextListener(context) {
 
         addFlyController(camera, 0.0015f)
         onUpdate { dt ->
-            unlitModels.fastForEach { model ->
-                model.rotate(y = 10.degrees * dt.seconds)
-                model.update(dt)
-            }
-
-            pbrModels.fastForEach { model ->
-                model.rotate(y = 10.degrees * dt.seconds)
-                model.update(dt)
+            models.fastForEach { model ->
+                model.scene?.let {
+                    it.rotate(y = 10.degrees * dt.seconds)
+                    it.update(dt)
+                }
             }
         }
         onUpdate { dt ->
@@ -246,8 +247,7 @@ class SimpleGltfExample(context: Context) : ContextListener(context) {
                         )
                 )
 
-            unlitModels.fastForEach { model -> modelBatch.render(model, environment) }
-            pbrModels.fastForEach { model -> modelBatch.render(model, pbrEnvironment) }
+            modelBatch.renderGltfModels(models)
             modelBatch.render(grid, pbrEnvironment)
             modelBatch.flush(renderPassEncoder, camera, dt)
             renderPassEncoder.end()

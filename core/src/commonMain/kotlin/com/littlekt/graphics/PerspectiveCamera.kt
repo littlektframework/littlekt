@@ -30,8 +30,8 @@ open class PerspectiveCamera(virtualWidth: Float = 0f, virtualHeight: Float = 0f
     init {
         this.virtualWidth = virtualWidth
         this.virtualHeight = virtualHeight
-        near = 0.1f
-        far = 100f
+        near = 0.01f
+        far = 1000f
         fov = 60f
     }
 

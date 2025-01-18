@@ -3,8 +3,6 @@ package com.littlekt.examples
 import com.littlekt.Context
 import com.littlekt.ContextListener
 import com.littlekt.file.gltf.GltfModelPbrConfig
-import com.littlekt.file.gltf.toModel
-import com.littlekt.file.vfs.readGltf
 import com.littlekt.graph.node.ui.Control
 import com.littlekt.graph.node.ui.column
 import com.littlekt.graph.node.ui.label
@@ -93,10 +91,16 @@ class PBRExample(context: Context) : ContextListener(context) {
                 )
             )
         var depthFrame = depthTexture.createView()
-        val sponza =
-            resourcesVfs["models/sponza-optimized.glb"]
-                .readGltf()
-                .toModel(config = GltfModelPbrConfig())
+        val models =
+            listOf(
+                GltfModel(
+                    resourcesVfs["models/sponza-optimized.glb"],
+                    GltfModelPbrConfig(),
+                    environment,
+                    1f,
+                    Vec3f.ZERO,
+                )
+            )
 
         val modelBatch =
             ModelBatch(device).apply {
@@ -105,6 +109,8 @@ class PBRExample(context: Context) : ContextListener(context) {
                 colorFormat = preferredFormat
                 this.depthFormat = depthFormat
             }
+
+        loadGltfModels(models, modelBatch)
 
         graphics.configureSurface(
             TextureUsage.RENDER_ATTACHMENT,
@@ -202,7 +208,7 @@ class PBRExample(context: Context) : ContextListener(context) {
                         )
                 )
 
-            modelBatch.render(sponza, environment)
+            modelBatch.renderGltfModels(models)
             modelBatch.flush(renderPassEncoder, camera, dt)
             renderPassEncoder.end()
             renderPassEncoder.release()
