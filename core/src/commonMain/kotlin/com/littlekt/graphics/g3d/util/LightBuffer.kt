@@ -40,10 +40,6 @@ class LightBuffer(val device: Device, val maxLightCount: Int) : Releasable {
         lightsBuffer.putFloat(color.g)
         lightsBuffer.putFloat(color.b)
         lightsBuffer.putFloat(0f) // padding
-        //        lightsBuffer[0] = color.r
-        //        lightsBuffer[1] = color.g
-        //        lightsBuffer[2] = color.b
-        //        lightsBuffer[3] = 0f // padding
     }
 
     fun dirColor(color: Color) {
@@ -51,15 +47,11 @@ class LightBuffer(val device: Device, val maxLightCount: Int) : Releasable {
         lightsBuffer.putFloat(color.r)
         lightsBuffer.putFloat(color.g)
         lightsBuffer.putFloat(color.b)
-        // lightsBuffer[4] = color.r
-        // lightsBuffer[5] = color.g
-        // lightsBuffer[6] = color.b
     }
 
     fun dirIntensity(intensity: Float) {
         lightsBuffer.position = 7 * Float.SIZE_BYTES
         lightsBuffer.putFloat(intensity)
-        // lightsBuffer[7] = intensity
     }
 
     fun dirDirection(direction: Vec3f) {
@@ -67,9 +59,6 @@ class LightBuffer(val device: Device, val maxLightCount: Int) : Releasable {
         lightsBuffer.putFloat(direction.x)
         lightsBuffer.putFloat(direction.y)
         lightsBuffer.putFloat(direction.z)
-        //        lightsBuffer[8] = direction.x
-        //        lightsBuffer[9] = direction.y
-        //        lightsBuffer[10] = direction.z
     }
 
     fun pointLight(index: Int, position: Vec3f, color: Color, intensity: Float, range: Float) {
@@ -87,14 +76,6 @@ class LightBuffer(val device: Device, val maxLightCount: Int) : Releasable {
             lightsBuffer.putFloat(color.g)
             lightsBuffer.putFloat(color.b)
             lightsBuffer.putFloat(intensity)
-            // lightsBuffer[offset] = position.x
-            // lightsBuffer[offset + 1] = position.y
-            // lightsBuffer[offset + 2] = position.z
-            // lightsBuffer[offset + 3] = range
-            // lightsBuffer[offset + 4] = color.r
-            // lightsBuffer[offset + 5] = color.g
-            // lightsBuffer[offset + 6] = color.b
-            // lightsBuffer[offset + 7] = intensity
             incrementLightCount()
         }
     }
@@ -109,7 +90,6 @@ class LightBuffer(val device: Device, val maxLightCount: Int) : Releasable {
     fun resetLightCount() {
         lightsBuffer.position = 11 * Float.SIZE_BYTES
         lightsBuffer.putInt(0)
-        // lightsBuffer[11] = 0f
     }
 
     companion object {

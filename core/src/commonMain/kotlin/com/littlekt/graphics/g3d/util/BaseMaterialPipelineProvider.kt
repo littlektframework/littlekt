@@ -4,7 +4,10 @@ import com.littlekt.graphics.VertexBufferLayout
 import com.littlekt.graphics.g3d.Environment
 import com.littlekt.graphics.g3d.material.Material
 import com.littlekt.graphics.webgpu.*
+import com.littlekt.util.datastructure.pool
+import com.littlekt.util.datastructure.threadSafeMutableMapOf
 import kotlin.reflect.KClass
+import kotlinx.atomicfu.locks.reentrantLock
 
 /**
  * @author Colton Daily
@@ -12,8 +15,9 @@ import kotlin.reflect.KClass
  */
 abstract class BaseMaterialPipelineProvider<T : Material> : MaterialPipelineProvider {
     abstract val type: KClass<T>
-    private val pipelines = mutableMapOf<RenderInfo, MaterialPipeline>()
-    private var renderInfo = RenderInfo()
+    private val pipelines = threadSafeMutableMapOf<RenderInfo, MaterialPipeline>()
+    private val lock = reentrantLock()
+    private var renderInfos = pool(reset = { it.reset() }, preallocate = 1) { RenderInfo() }
 
     override fun getMaterialPipeline(
         device: Device,
@@ -25,16 +29,16 @@ abstract class BaseMaterialPipelineProvider<T : Material> : MaterialPipelineProv
         colorFormat: TextureFormat,
         depthFormat: TextureFormat,
     ): MaterialPipeline? {
-        renderInfo.apply {
-            reset()
-            this.environment = environment
-            this.material = material
-            this.layout = layout
-            this.topology = topology
-            this.indexFormat = stripIndexFormat
-        }
+        val renderInfo =
+            renderInfos.alloc().apply {
+                this.environment = environment
+                this.material = material
+                this.layout = layout
+                this.topology = topology
+                this.indexFormat = stripIndexFormat
+            }
         if (pipelines.contains(renderInfo)) {
-            return pipelines[renderInfo]
+            return pipelines[renderInfo]?.also { renderInfos.free(renderInfo) }
         } else {
             @Suppress("UNCHECKED_CAST")
             val pipeline =
@@ -48,7 +52,7 @@ abstract class BaseMaterialPipelineProvider<T : Material> : MaterialPipelineProv
                     depthFormat,
                 )
 
-            pipelines[renderInfo.copy()] = pipeline
+            pipelines[renderInfo] = pipeline
             return pipeline
         }
     }

@@ -21,6 +21,7 @@ import com.littlekt.graphics.generate
 import com.littlekt.graphics.webgpu.*
 import com.littlekt.math.Vec3f
 import com.littlekt.math.geom.degrees
+import com.littlekt.util.datastructure.fastForEach
 import com.littlekt.util.seconds
 
 /**
@@ -36,36 +37,6 @@ class SimpleGltfExample(context: Context) : ContextListener(context) {
         addCloseOnShiftEsc()
         val device = graphics.device
         val camera = PerspectiveCamera(graphics.width, graphics.height)
-        val assetProvider = AssetProvider(this)
-        val unlitModels = mutableListOf<Scene>()
-        val pbrModels = mutableListOf<Scene>()
-        assetProvider.load<Scene>(
-            resourcesVfs["models/Duck.glb"],
-            parameters = GltfModelAssetParameter(GltfModelUnlitConfig()),
-        ) {
-            unlitModels +=
-                it.apply {
-                    scale(20f)
-                    translate(-30f, 0f, 0f)
-                }
-        }
-        assetProvider.load<Scene>(
-            resourcesVfs["models/Fox.glb"],
-            parameters = GltfModelAssetParameter(GltfModelUnlitConfig()),
-        ) {
-            unlitModels += it.apply { translate(30f, 0f, 0f) }
-        }
-
-        assetProvider.load<Scene>(resourcesVfs["models/flighthelmet/FlightHelmet.gltf"]) {
-            pbrModels +=
-                it.apply {
-                    scale(200f)
-                    translate(90f, 0f, 0f)
-                }
-        }
-
-        onUpdate { assetProvider.update() }
-
         camera.translate(0f, 25f, 150f)
         val environment = UnlitEnvironment(device)
         val pbrEnvironment =
@@ -75,7 +46,6 @@ class SimpleGltfExample(context: Context) : ContextListener(context) {
                 )
                 setAmbientLight(AmbientLight(color = Color(0.002f, 0.002f, 0.002f)))
 
-                addPointLight(PointLight(Vec3f(0f, 250f, 0f), color = Color.GREEN))
                 addPointLight(PointLight(Vec3f(0f, 250f, 0f), color = Color.GREEN))
             }
 
@@ -97,6 +67,47 @@ class SimpleGltfExample(context: Context) : ContextListener(context) {
                 )
             )
         var depthFrame = depthTexture.createView()
+        val modelBatch =
+            ModelBatch(device).apply {
+                addPipelineProvider(UnlitMaterialPipelineProvider())
+                addPipelineProvider(PBRMaterialPipelineProvider())
+                colorFormat = preferredFormat
+                this.depthFormat = depthFormat
+            }
+
+        val assetProvider = AssetProvider(this)
+        val unlitModels = mutableListOf<Scene>()
+        val pbrModels = mutableListOf<Scene>()
+
+        assetProvider.load<Scene>(
+            resourcesVfs["models/Duck.glb"],
+            parameters = GltfModelAssetParameter(GltfModelUnlitConfig()),
+        ) {
+            modelBatch.preparePipeline(it, environment)
+            unlitModels +=
+                it.apply {
+                    scale(20f)
+                    translate(-30f, 0f, 0f)
+                }
+        }
+        assetProvider.load<Scene>(
+            resourcesVfs["models/Fox.glb"],
+            parameters = GltfModelAssetParameter(GltfModelUnlitConfig()),
+        ) {
+            modelBatch.preparePipeline(it, environment)
+            unlitModels += it.apply { translate(30f, 0f, 0f) }
+        }
+
+        assetProvider.load<Scene>(resourcesVfs["models/flighthelmet/FlightHelmet.gltf"]) {
+            modelBatch.preparePipeline(it, pbrEnvironment)
+            pbrModels +=
+                it.apply {
+                    scale(200f)
+                    translate(90f, 0f, 0f)
+                }
+        }
+
+        onUpdate { assetProvider.update() }
 
         val checkered =
             resourcesVfs["checkered.png"].readTexture(
@@ -151,14 +162,6 @@ class SimpleGltfExample(context: Context) : ContextListener(context) {
                 .apply { translate(0f, -30f, 0f) }
         }
 
-        val modelBatch =
-            ModelBatch(device).apply {
-                addPipelineProvider(UnlitMaterialPipelineProvider())
-                addPipelineProvider(PBRMaterialPipelineProvider())
-                colorFormat = preferredFormat
-                this.depthFormat = depthFormat
-            }
-
         graphics.configureSurface(
             TextureUsage.RENDER_ATTACHMENT,
             preferredFormat,
@@ -194,12 +197,12 @@ class SimpleGltfExample(context: Context) : ContextListener(context) {
 
         addFlyController(camera, 0.5f)
         onUpdate { dt ->
-            unlitModels.forEach { model ->
+            unlitModels.fastForEach { model ->
                 model.rotate(y = 10.degrees * dt.seconds)
                 model.update(dt)
             }
 
-            pbrModels.forEach { model ->
+            pbrModels.fastForEach { model ->
                 model.rotate(y = 10.degrees * dt.seconds)
                 model.update(dt)
             }
@@ -257,8 +260,8 @@ class SimpleGltfExample(context: Context) : ContextListener(context) {
                         )
                 )
 
-            unlitModels.forEach { model -> modelBatch.render(model, environment) }
-            pbrModels.forEach { model -> modelBatch.render(model, pbrEnvironment) }
+            unlitModels.fastForEach { model -> modelBatch.render(model, environment) }
+            pbrModels.fastForEach { model -> modelBatch.render(model, pbrEnvironment) }
             modelBatch.render(grid, pbrEnvironment)
             modelBatch.flush(renderPassEncoder, camera, dt)
             renderPassEncoder.end()

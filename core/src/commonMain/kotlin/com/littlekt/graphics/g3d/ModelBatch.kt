@@ -11,22 +11,28 @@ import com.littlekt.graphics.g3d.util.MaterialPipelineSorter
 import com.littlekt.graphics.util.BindingUsage
 import com.littlekt.graphics.webgpu.*
 import com.littlekt.log.Logger
+import com.littlekt.util.datastructure.fastForEach
+import com.littlekt.util.datastructure.threadSafeMutableListOf
+import com.littlekt.util.datastructure.threadSafeMutableMapOf
 import kotlin.math.max
 import kotlin.reflect.KClass
 import kotlin.time.Duration
 
 /**
+ * A rendering helper class to handle pipeline caching and bind group caching for drawing 3D meshes.
+ *
  * @author Colton Daily
  * @date 12/7/2024
  */
-class ModelBatch(val device: Device, size: Int = 128) : Releasable {
-    private val pipelineProviders: MutableMap<KClass<out Material>, MaterialPipelineProvider> =
-        mutableMapOf()
-    private val pipelines = mutableListOf<MaterialPipeline>()
-    private val primitivesByPipeline = mutableMapOf<MaterialPipeline, MutableList<MeshPrimitive>>()
+class ModelBatch(val device: Device) : Releasable {
+    private val pipelineProviders =
+        threadSafeMutableMapOf<KClass<out Material>, MaterialPipelineProvider>()
+    private val pipelines = threadSafeMutableListOf<MaterialPipeline>()
+    private val primitivesByPipeline =
+        threadSafeMutableMapOf<MaterialPipeline, MutableList<MeshPrimitive>>()
 
     /** By material id */
-    private val bindGroupByMaterialId = mutableMapOf<Int, BindGroup>()
+    private val bindGroupByMaterialId = threadSafeMutableMapOf<Int, BindGroup>()
     private val updatedEnvironments = mutableSetOf<Int>()
     private val sorter =
         object : MaterialPipelineSorter {
@@ -34,39 +40,103 @@ class ModelBatch(val device: Device, size: Int = 128) : Releasable {
                 pipelines.sort()
             }
         }
+
+    /** The [TextureFormat] of the color attachment. This is used in pipeline caching. */
     var colorFormat: TextureFormat = TextureFormat.RGBA8_UNORM
+
+    /** The [TextureFormat] of the depth attachment. This is used in pipeline caching. */
     var depthFormat: TextureFormat = TextureFormat.DEPTH24_PLUS_STENCIL8
 
+    /** Add a new [MaterialPipelineProvider]. */
     inline fun <reified T : Material> addPipelineProvider(provider: MaterialPipelineProvider) =
         addPipelineProvider(T::class, provider)
 
+    /** Add a new [MaterialPipelineProvider]. */
     fun <T : Material> addPipelineProvider(type: KClass<T>, provider: MaterialPipelineProvider) {
         !pipelineProviders.containsKey(type) ||
             error("MaterialProvider already registered to type: $type")
         pipelineProviders[type] = provider
     }
 
+    /** Removes a [MaterialPipelineProvider] of the given type. */
     inline fun <reified T : Material> removePipelineProvider(): T? =
         removePipelineProvider(T::class)
 
+    /** Removes a [MaterialPipelineProvider] of the given type. */
     @Suppress("UNCHECKED_CAST")
     fun <T : Material> removePipelineProvider(type: KClass<T>): T? =
         pipelineProviders.remove(type) as T?
 
+    /** Add a new [BaseMaterialPipelineProvider]. */
     fun addPipelineProvider(provider: BaseMaterialPipelineProvider<*>) =
         addPipelineProvider(provider.type, provider)
 
+    /** Remove a [BaseMaterialPipelineProvider]. */
     fun removePipelineProvider(provider: BaseMaterialPipelineProvider<*>) =
         removePipelineProvider(provider.type)
 
+    /**
+     * Prepare a [Scene] for rendering by creating the pipeline and material bind groups.for the
+     * specified [Environment]. This is useful if a large scene needs loading and generated on a
+     * separate thread to prevent frames from dropping.
+     *
+     * **Note:** This does nothing if the given scene has the pipeline prepared either via
+     * [preparePipeline] or [render].
+     */
+    fun preparePipeline(scene: Scene, environment: Environment) {
+        scene.modelInstances.fastForEach { preparePipeline(it, environment) }
+    }
+
+    /**
+     * Prepare a [ModelInstance] for rendering by creating the pipeline and material bind groups for
+     * the specified [Environment]. This is useful if a large model instance needs loading and
+     * generated on a separate thread to prevent frames from dropping.
+     *
+     * **Note:** This does nothing if the given model instance has the pipeline prepared either via
+     * [preparePipeline] or [render].
+     */
+    fun preparePipeline(model: ModelInstance, environment: Environment) {
+        model.instanceOf.primitives.fastForEach { preparePipeline(it, environment) }
+    }
+
+    /**
+     * Prepare a [MeshPrimitive] for rendering by creating the pipeline and material bind groups for
+     * the specified [Environment].This is useful if a large mesh primitive needs loading and
+     * generated on a separate thread to prevent frames from dropping.
+     *
+     * **Note:** This does nothing if the given mesh primitive has the pipeline prepared either via
+     * [preparePipeline] or [render].
+     */
+    fun preparePipeline(meshPrimitive: MeshPrimitive, environment: Environment) {
+        val pipeline =
+            pipelineProviders[meshPrimitive.material::class]?.getMaterialPipeline(
+                device,
+                meshPrimitive.material,
+                environment,
+                meshPrimitive.mesh.geometry.layout,
+                meshPrimitive.topology,
+                meshPrimitive.stripIndexFormat,
+                colorFormat,
+                depthFormat,
+            ) ?: error("Unable to find pipeline for given instance!")
+        bindGroupByMaterialId.getOrPut(meshPrimitive.material.id) {
+            meshPrimitive.material.createBindGroup(pipeline.shader)
+        }
+    }
+
+    /** Adds a [Scene] to be drawn on the next [flush] using the specified [Environment].. */
     fun render(scene: Scene, environment: Environment) {
-        scene.modelInstances.forEach { render(it, environment) }
+        scene.modelInstances.fastForEach { render(it, environment) }
     }
 
+    /**
+     * Adds a [ModelInstance] to be drawn on the next [flush] using the specified [Environment]..
+     */
     fun render(model: ModelInstance, environment: Environment) {
-        model.instanceOf.primitives.forEach { render(it, environment) }
+        model.instanceOf.primitives.fastForEach { render(it, environment) }
     }
 
+    /** Adds a [MeshPrimitive] to be drawn on the next [flush] using the specified [Environment]. */
     fun render(meshPrimitive: MeshPrimitive, environment: Environment) {
         val pipeline =
             pipelineProviders[meshPrimitive.material::class]?.getMaterialPipeline(
@@ -94,7 +164,7 @@ class ModelBatch(val device: Device, size: Int = 128) : Releasable {
         sorter.sort(pipelines)
         var lastEnvironmentSet: Environment? = null
         var lastMaterialSet: Int? = null
-        pipelines.forEach { pipeline ->
+        pipelines.fastForEach { pipeline ->
             // we only need to update the camera buffers in each environment once. So if we are
             // sharing environment, just update the first instance of it.
             if (updatedEnvironments.add(pipeline.environment.id)) {
@@ -108,54 +178,54 @@ class ModelBatch(val device: Device, size: Int = 128) : Releasable {
                     BindingUsage.CAMERA,
                 )
             }
-            val primitive = primitivesByPipeline[pipeline]
-            if (!primitive.isNullOrEmpty()) {
+            val primitives = primitivesByPipeline[pipeline]
+            if (!primitives.isNullOrEmpty()) {
                 renderPassEncoder.setPipeline(pipeline.renderPipeline)
-                primitive.forEach { meshNode ->
+                primitives.fastForEach { primitive ->
                     val materialBindGroup =
-                        bindGroupByMaterialId[meshNode.material.id]
+                        bindGroupByMaterialId[primitive.material.id]
                             ?: error(
-                                "Material (${meshNode.material.id}) bind groups could not be found!"
+                                "Material (${primitive.material.id}) bind groups could not be found!"
                             )
-                    if (lastMaterialSet != meshNode.material.id) {
-                        lastMaterialSet = meshNode.material.id
+                    if (lastMaterialSet != primitive.material.id) {
+                        lastMaterialSet = primitive.material.id
                         pipeline.shader.setBindGroup(
                             renderPassEncoder,
                             materialBindGroup,
                             BindingUsage.MATERIAL,
                         )
-                        meshNode.material.update()
+                        primitive.material.update()
                     }
-                    meshNode.writeInstanceDataToBuffer()
+                    primitive.writeInstanceDataToBuffer()
                     pipeline.shader.setBindGroup(
                         renderPassEncoder,
-                        meshNode.instanceBuffers.getOrCreateBindGroup(
+                        primitive.instanceBuffers.getOrCreateBindGroup(
                             pipeline.shader.getBindGroupLayoutByUsage(BindingUsage.MODEL)
                         ),
                         BindingUsage.MODEL,
                     )
-                    val mesh = meshNode.mesh
-                    val indexedMesh = meshNode.indexedMesh
+                    val mesh = primitive.mesh
+                    val indexedMesh = primitive.indexedMesh
 
                     indexedMesh?.let {
                         renderPassEncoder.setIndexBuffer(
                             indexedMesh.ibo,
-                            indexFormat = meshNode.stripIndexFormat ?: IndexFormat.UINT16,
+                            indexFormat = primitive.stripIndexFormat ?: IndexFormat.UINT16,
                         )
                     }
                     renderPassEncoder.setVertexBuffer(0, mesh.vbo)
 
                     if (indexedMesh != null) {
-                        EngineStats.extra(INSTANCED_STAT_NAME, max(0, meshNode.instanceCount - 1))
+                        EngineStats.extra(INSTANCED_STAT_NAME, max(0, primitive.instanceCount - 1))
                         EngineStats.extra(DRAW_CALLS_STAT_NAME, 1)
                         renderPassEncoder.drawIndexed(
                             indexedMesh.geometry.numIndices,
-                            meshNode.instanceCount,
+                            primitive.instanceCount,
                         )
                     } else {
-                        EngineStats.extra(INSTANCED_STAT_NAME, max(0, meshNode.instanceCount - 1))
+                        EngineStats.extra(INSTANCED_STAT_NAME, max(0, primitive.instanceCount - 1))
                         EngineStats.extra(DRAW_CALLS_STAT_NAME, 1)
-                        renderPassEncoder.draw(mesh.geometry.numVertices, meshNode.instanceCount)
+                        renderPassEncoder.draw(mesh.geometry.numVertices, primitive.instanceCount)
                     }
                 }
             }

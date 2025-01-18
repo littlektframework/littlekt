@@ -79,13 +79,6 @@ open class MeshPrimitive(
         if (instancesDirty) {
             dirtyInstances.forEach { dirtyInstance -> updateInstance(dirtyInstance) }
             dirtyInstances.clear()
-            // ensure we set this MeshNode transform as first instance
-            //            instanceData.put(
-            //                globalTransform.data,
-            //                dstOffset = 0,
-            //                srcOffset = 0,
-            //                len = TRANSFORM_COMPONENTS_PER_INSTANCE,
-            //            )
             instanceBuffers.updateStaticStorage(instanceData)
             instancesDirty = false
         }

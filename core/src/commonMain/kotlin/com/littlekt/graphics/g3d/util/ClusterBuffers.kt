@@ -1,7 +1,7 @@
 package com.littlekt.graphics.g3d.util
 
 import com.littlekt.Releasable
-import com.littlekt.file.IntBuffer
+import com.littlekt.file.ByteBuffer
 import com.littlekt.graphics.g3d.util.shader.ClusteredComputeShaderBuilder.Companion.DEFAULT_WORK_GROUP_SIZE_X
 import com.littlekt.graphics.g3d.util.shader.ClusteredComputeShaderBuilder.Companion.DEFAULT_WORK_GROUP_SIZE_Y
 import com.littlekt.graphics.g3d.util.shader.ClusteredComputeShaderBuilder.Companion.DEFAULT_WORK_GROUP_SIZE_Z
@@ -31,10 +31,10 @@ class ClusterBuffers(
     val workGroupSizeZ = ceil(tileCountZ / workGroupSizeZ.toDouble()).toInt()
     private val clusterLightsSize = 4 + (8 * totalTiles) + (4 * maxClusteredLights)
 
-    protected val emptyData = IntBuffer(1)
+    private val emptyData = ByteBuffer(4).apply { putInt(0) }
 
     /** The [GPUBuffer] that holds the cluster bounds storage data */
-    val clusterBoundsStorageBuffer =
+    private val clusterBoundsStorageBuffer =
         device.createBuffer(
             BufferDescriptor(
                 "cluster bounds",
@@ -48,7 +48,7 @@ class ClusterBuffers(
     val clusterBoundsStorageBufferBinding = BufferBinding(clusterBoundsStorageBuffer)
 
     /** The [GPUBuffer] that holds the cluster bounds storage data */
-    val clusterLightsStorageBuffer =
+    private val clusterLightsStorageBuffer =
         device.createBuffer(
             BufferDescriptor(
                 "cluster lights",
@@ -62,8 +62,9 @@ class ClusterBuffers(
     val clusterLightsStorageBufferBinding = BufferBinding(clusterLightsStorageBuffer)
 
     /** Resets the [clusterLightsStorageBuffer] offset back to zero. */
-    fun resetClusterLightsOffsetToZero() =
+    fun resetClusterLightsOffsetToZero() {
         device.queue.writeBuffer(clusterLightsStorageBuffer, emptyData)
+    }
 
     override fun release() {
         clusterBoundsStorageBuffer.release()
