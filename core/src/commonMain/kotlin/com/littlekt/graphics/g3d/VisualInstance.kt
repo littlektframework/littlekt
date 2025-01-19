@@ -1,5 +1,6 @@
 package com.littlekt.graphics.g3d
 
+import com.littlekt.graphics.Color
 import com.littlekt.util.datastructure.fastForEach
 
 /**
@@ -7,6 +8,11 @@ import com.littlekt.util.datastructure.fastForEach
  * @date 1/15/2025
  */
 open class VisualInstance : Node3D() {
+    var color: Color = Color.WHITE
+        set(value) {
+            field = value
+            dirty()
+        }
 
     /** Don't set this */
     var instanceOf: MeshPrimitive? = null

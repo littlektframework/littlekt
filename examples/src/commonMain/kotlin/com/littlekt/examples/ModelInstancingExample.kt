@@ -15,6 +15,7 @@ import com.littlekt.graphics.g3d.util.UnlitMaterialPipelineProvider
 import com.littlekt.graphics.webgpu.*
 import com.littlekt.math.Vec3f
 import com.littlekt.math.geom.degrees
+import com.littlekt.math.random
 import com.littlekt.util.seconds
 import kotlinx.coroutines.launch
 
@@ -70,6 +71,13 @@ class ModelInstancingExample(context: Context) : ContextListener(context) {
                                     (0..360).random().degrees,
                                 )
                                 translate(x * 3f, y * 3f, z * 3f)
+                                setColor(
+                                    Color(
+                                        (0.1f..1f).random(),
+                                        (0.1f..1f).random(),
+                                        (0.1f..1f).random(),
+                                    )
+                                )
                             }
                     }
                 }

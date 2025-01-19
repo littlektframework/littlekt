@@ -74,6 +74,7 @@ open class VertexShaderBuilder : SubShaderBuilder() {
             }
             let model_pos = model_matrix * vec4(input.position, 1.0);
             output.world_pos = model_pos.xyz;
+            output.instance_color = models[input.instance_index].color;
             ${ if(!cameraViewProjCombined) "output.view = camera.position - model_pos.xyz;" else ""}
             output.position = $cameraViewProj * model_pos;
             return output;

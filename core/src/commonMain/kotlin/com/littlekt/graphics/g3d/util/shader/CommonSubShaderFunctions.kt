@@ -74,12 +74,13 @@ fun SubShaderBuilder.vertexOutput(attributes: List<VertexAttribute>) {
             @location(2) uv: vec2f,
             @location(3) uv2: vec2f,
             @location(4) color: vec4f,
-            @location(5) normal: vec3f,
+            @location(5) instance_color: vec4f,
+            @location(6) normal: vec3f,
             ${
                 if (attributes.any { it.usage == VertexAttrUsage.TANGENT }) {
                     """
-                        @location(6) tangent: vec3f,
-                        @location(7) bitangent: vec3f,
+                        @location(7) tangent: vec3f,
+                        @location(8) bitangent: vec3f,
                     """.trimIndent()
                 } else ""
             }
@@ -130,6 +131,7 @@ fun SubShaderBuilder.models(group: Int, binding: Int) {
         """
         struct Model {
             transform: mat4x4f,
+            color: vec4f,
         };
         @group($group) @binding($binding)
         var <storage, read> models: array<Model>;

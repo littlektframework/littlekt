@@ -1,5 +1,6 @@
 package com.littlekt.graphics.g3d
 
+import com.littlekt.graphics.Color
 import com.littlekt.util.datastructure.fastForEach
 
 /**
@@ -9,6 +10,10 @@ import com.littlekt.util.datastructure.fastForEach
 open class Scene : Node3D() {
     var modelInstances = mutableListOf<ModelInstance>()
     var skins = mutableListOf<Skin>()
+
+    fun setColor(color: Color) {
+        modelInstances.forEach { it.setColor(color) }
+    }
 
     /** Creates a new [Scene], along with any children [ModelInstance]. */
     override fun copy(): Scene {

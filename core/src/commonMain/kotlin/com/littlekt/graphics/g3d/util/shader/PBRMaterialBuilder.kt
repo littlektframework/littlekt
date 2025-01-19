@@ -77,7 +77,7 @@ class PBRMaterialBuilder : SubFragmentShaderBuilder() {
               discard;
             }
         
-            surface.albedo = surface.base_color.rgb;
+            surface.albedo = surface.base_color.rgb * input.instance_color.rgb;
         
             surface.metallic = material.metallic_roughness_factor.x * metallic_roughness_map.b;
             surface.roughness = material.metallic_roughness_factor.y * metallic_roughness_map.g;

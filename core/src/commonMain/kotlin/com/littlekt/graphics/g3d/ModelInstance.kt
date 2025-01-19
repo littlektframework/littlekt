@@ -1,5 +1,6 @@
 package com.littlekt.graphics.g3d
 
+import com.littlekt.graphics.Color
 import com.littlekt.util.datastructure.fastForEach
 
 /**
@@ -10,6 +11,10 @@ open class ModelInstance(val instanceOf: Model) : Node3D() {
 
     fun createVisualInstances() {
         instanceOf.primitives.forEach { prim -> addChild(VisualInstance().apply { addTo(prim) }) }
+    }
+
+    fun setColor(color: Color) {
+        filterChildrenByType(VisualInstance::class).forEach { it.color = color }
     }
 
     /** Create a new [ModelInstance] and any children [VisualInstance]. */

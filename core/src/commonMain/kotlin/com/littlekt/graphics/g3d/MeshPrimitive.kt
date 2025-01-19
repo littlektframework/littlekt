@@ -2,6 +2,7 @@ package com.littlekt.graphics.g3d
 
 import com.littlekt.Releasable
 import com.littlekt.file.FloatBuffer
+import com.littlekt.graphics.Color
 import com.littlekt.graphics.IndexedMesh
 import com.littlekt.graphics.Mesh
 import com.littlekt.graphics.g3d.material.Material
@@ -84,6 +85,12 @@ open class MeshPrimitive(
         }
     }
 
+    fun setInstanceColor(instance: VisualInstance, color: Color) {
+        if (!instances.contains(instance)) {
+            return
+        }
+    }
+
     fun addInstance(instance: VisualInstance) {
         if (instances.contains(instance)) {
             return
@@ -132,10 +139,9 @@ open class MeshPrimitive(
             return
         }
 
-        instanceData.put(
-            instance.globalTransform.data,
-            dstOffset = idx * TRANSFORM_COMPONENTS_PER_INSTANCE,
-        )
+        instanceData.position = idx * TRANSFORM_COMPONENTS_PER_INSTANCE
+        instanceData.put(instance.globalTransform.data)
+        instanceData.put(instance.color.fields)
     }
 
     fun clearInstances() {
@@ -209,7 +215,7 @@ open class MeshPrimitive(
     }
 
     companion object {
-        private const val TRANSFORM_COMPONENTS_PER_INSTANCE = 16
+        private const val TRANSFORM_COMPONENTS_PER_INSTANCE = 20
         private val logger: Logger = Logger<MeshPrimitive>()
     }
 }

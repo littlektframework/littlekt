@@ -29,7 +29,7 @@ class UnlitMaterialBuilder : SubFragmentShaderBuilder() {
                 if (base_color_map.a < material.alpha_cutoff) {
                   discard;
                 }
-                let base_color = input.color * material.base_color_factor * base_color_map;
+                let base_color = input.color * material.base_color_factor * base_color_map * input.instance_color;
                 return vec4(linear_to_sRGB(base_color.rgb), base_color.a);
             };
         """
