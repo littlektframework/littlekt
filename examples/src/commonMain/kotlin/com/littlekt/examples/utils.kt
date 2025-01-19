@@ -1,7 +1,7 @@
 package com.littlekt.examples
 
 import com.littlekt.Context
-import com.littlekt.async.KtScope
+import com.littlekt.async.VfsScope
 import com.littlekt.async.newSingleThreadAsyncContext
 import com.littlekt.file.gltf.GltfModelConfig
 import com.littlekt.file.vfs.VfsFile
@@ -84,10 +84,10 @@ fun ModelBatch.renderGltfModels(models: List<GltfModel>) {
 }
 
 fun Context.loadGltfModels(models: List<GltfModel>, modelBatch: ModelBatch? = null) {
-    KtScope.launch {
+    VfsScope.launch {
         models
             .map { gltfModel ->
-                KtScope.async {
+                VfsScope.async {
                     val scene =
                         withContext(newSingleThreadAsyncContext()) {
                             val scene =

@@ -6,6 +6,7 @@ import com.littlekt.file.vfs.readPixmap
 import com.littlekt.graphics.PixmapTexture
 import com.littlekt.graphics.Texture
 import com.littlekt.graphics.webgpu.*
+import kotlin.time.measureTimedValue
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
@@ -567,12 +568,14 @@ data class GltfTexture(val sampler: Int = -1, val source: Int = 0, val name: Str
     suspend fun toTexture(root: VfsFile, device: Device, preferredFormat: TextureFormat): Texture {
         if (texture == null) {
             val uri = imageRef.uri
-            val pixmap =
-                if (uri != null) {
-                    VfsFile(root.vfs, "${root.parent.path}/$uri").readPixmap()
-                } else {
-                    imageRef.bufferViewRef?.getData()?.toArray()?.readPixmap()
-                        ?: error("Unable to read GltfTexture data!")
+            val (pixmap, time) =
+                measureTimedValue {
+                    if (uri != null) {
+                        VfsFile(root.vfs, "${root.parent.path}/$uri").readPixmap()
+                    } else {
+                        imageRef.bufferViewRef?.getData()?.toArray()?.readPixmap()
+                            ?: error("Unable to read GltfTexture data!")
+                    }
                 }
 
             val minFilters = samplerRef.minFilter.toFilterMode()
@@ -591,6 +594,7 @@ data class GltfTexture(val sampler: Int = -1, val source: Int = 0, val name: Str
                             mipmapFilter = minFilters.second,
                         ),
                 )
+            println("Loaded texture in $time")
         }
         return texture ?: error("Unable to convert the GltfTexture to a Texture!")
     }

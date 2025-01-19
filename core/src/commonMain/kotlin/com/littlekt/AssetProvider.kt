@@ -1,6 +1,7 @@
 package com.littlekt
 
 import com.littlekt.async.KtScope
+import com.littlekt.async.VfsScope
 import com.littlekt.audio.AudioClip
 import com.littlekt.audio.AudioStream
 import com.littlekt.file.UnsupportedFileTypeException
@@ -97,7 +98,7 @@ open class AssetProvider(val context: Context) {
     ): GameAsset<T> {
         contract { callsInPlace(onLoad, InvocationKind.EXACTLY_ONCE) }
         val sceneAsset = checkOrCreateNewSceneAsset(file, clazz)
-        file.vfs.launch { loadVfsFile(sceneAsset, file, clazz, parameters, onLoad) }
+        VfsScope.launch { loadVfsFile(sceneAsset, file, clazz, parameters, onLoad) }
         return sceneAsset
     }
 

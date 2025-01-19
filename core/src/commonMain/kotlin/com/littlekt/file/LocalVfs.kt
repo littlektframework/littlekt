@@ -1,16 +1,17 @@
 package com.littlekt.file
 
 import com.littlekt.Context
+import com.littlekt.async.VfsScope
 import com.littlekt.file.vfs.normalize
 import com.littlekt.file.vfs.pathInfo
 import com.littlekt.log.Logger
 import com.littlekt.util.toString
-import kotlin.coroutines.CoroutineContext
+import kotlin.time.measureTimedValue
 import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.channels.SendChannel
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.selects.select
 import kotlinx.serialization.json.Json
 
@@ -29,10 +30,6 @@ abstract class LocalVfs(context: Context, logger: Logger, baseDir: String) :
         allowSpecialFloatingPointValues = true
     }
 
-    protected val job = Job()
-
-    override val coroutineContext: CoroutineContext = job
-
     private val awaitedAssetsChannel = Channel<AwaitedAsset>()
         get() {
             controller
@@ -43,7 +40,7 @@ abstract class LocalVfs(context: Context, logger: Logger, baseDir: String) :
     private val loadedAssetChannel = Channel<LoadedAsset>()
 
     private val controller by lazy {
-        launch {
+        VfsScope.launch {
             repeat(NUM_LOAD_WORKERS) { loadWorker(assetRefChannel, loadedAssetChannel) }
             val requested = mutableMapOf<AssetRef, MutableList<AwaitedAsset>>()
             while (true) {
@@ -71,11 +68,12 @@ abstract class LocalVfs(context: Context, logger: Logger, baseDir: String) :
     private fun loadWorker(
         assetRefs: ReceiveChannel<AssetRef>,
         loadedAssets: SendChannel<LoadedAsset>,
-    ) = launch {
-        for (ref in assetRefs) {
-            loadedAssets.send(readBytes(ref))
+    ) =
+        VfsScope.launch {
+            for (ref in assetRefs) {
+                loadedAssets.send(readBytes(ref))
+            }
         }
-    }
 
     private suspend fun readBytes(ref: AssetRef): LoadedAsset {
         return when (ref) {
@@ -110,10 +108,10 @@ abstract class LocalVfs(context: Context, logger: Logger, baseDir: String) :
             }
         val awaitedAsset = AwaitedAsset(ref)
         awaitedAssetsChannel.send(awaitedAsset)
-        val loaded = awaitedAsset.awaiting.await() as LoadedRawAsset
+        val (loaded, time) = measureTimedValue { awaitedAsset.awaiting.await() as LoadedRawAsset }
         loaded.data?.let {
             logger.info {
-                "Loaded ${assetPathToName(assetPath)} (${(it.capacity / 1024.0 / 1024.0).toString(2)} mb)"
+                "Loaded ${assetPathToName(assetPath)} (${(it.capacity / 1024.0 / 1024.0).toString(2)} mb, $time)"
             }
         }
         return loaded.data ?: throw FileNotFoundException(assetPath)
@@ -155,7 +153,7 @@ abstract class LocalVfs(context: Context, logger: Logger, baseDir: String) :
 
     protected inner class AwaitedAsset(
         val ref: AssetRef,
-        val awaiting: CompletableDeferred<LoadedAsset> = CompletableDeferred(job),
+        val awaiting: CompletableDeferred<LoadedAsset> = CompletableDeferred(VfsScope.job),
     )
 
     companion object {
