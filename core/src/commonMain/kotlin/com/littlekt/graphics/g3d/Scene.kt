@@ -1,5 +1,7 @@
 package com.littlekt.graphics.g3d
 
+import com.littlekt.util.datastructure.fastForEach
+
 /**
  * @author Colton Daily
  * @date 1/17/2025
@@ -8,12 +10,16 @@ open class Scene : Node3D() {
     var modelInstances = mutableListOf<ModelInstance>()
     var skins = mutableListOf<Skin>()
 
-    fun createInstance(): Scene {
-        val newInstance = Scene()
-        val newModelInstances = modelInstances.map { it.createInstance() }
-        newInstance.modelInstances += newModelInstances
-        newModelInstances.forEach { newInstance += it }
-        newInstance.skins = skins.toMutableList()
-        return newInstance
+    /** Creates a new [Scene], along with any children [ModelInstance]. */
+    override fun copy(): Scene {
+        val copy =
+            Scene().also {
+                it.name = name
+                it.globalTransform = globalTransform
+            }
+        children.fastForEach { child -> copy.addChild(child.copy()) }
+        copy.modelInstances += copy.filterChildrenByType(ModelInstance::class)
+        copy.skins = skins.toMutableList()
+        return copy
     }
 }

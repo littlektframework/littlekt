@@ -126,13 +126,17 @@ private class GltfModelGenerator(val gltfFile: GltfData) {
                 null
             }
         val node =
-            (if (model != null) ModelInstance(model).also { scene.modelInstances += it }
+            (if (model != null)
+                    ModelInstance(model).also {
+                        it.createVisualInstances()
+                        scene.modelInstances += it
+                    }
                 else Node3D())
                 .apply { name = nodeName }
         nodeCache[this] = node
 
         if (matrix.isNotEmpty()) {
-            node.globalTransform = Mat4().set(matrix.map { it })
+            node.globalTransform = Mat4().set(matrix)
         } else {
             if (translation.isNotEmpty()) {
                 node.translate(translation[0], translation[1], translation[2])

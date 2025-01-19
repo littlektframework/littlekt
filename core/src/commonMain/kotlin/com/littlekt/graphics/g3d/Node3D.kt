@@ -2,6 +2,8 @@ package com.littlekt.graphics.g3d
 
 import com.littlekt.math.*
 import com.littlekt.math.geom.Angle
+import com.littlekt.util.datastructure.fastForEach
+import kotlin.reflect.KClass
 import kotlin.time.Duration
 
 /**
@@ -811,6 +813,38 @@ open class Node3D {
                 }
             }
         }
+    }
+
+    fun set(node: Node3D) {
+        globalTransform = node.globalTransform
+    }
+
+    open fun copy(): Node3D {
+        val copy =
+            Node3D().also {
+                it.name = name
+                it.globalTransform = globalTransform
+            }
+        children.fastForEach { child -> copy.addChild(child.copy()) }
+        return copy
+    }
+
+    fun <T : Node3D> filterChildrenByType(type: KClass<T>): List<T> {
+        val result = mutableListOf<T>()
+        children.forEach { result.addAll(it.filterByType(type)) }
+        return result
+    }
+
+    fun <T : Node3D> Node3D.filterByType(type: KClass<T>): List<T> {
+        val result = mutableListOf<T>()
+
+        if (type.isInstance(this)) {
+            @Suppress("UNCHECKED_CAST") result.add(this as T)
+        }
+
+        children.fastForEach { result.addAll(it.filterByType(type)) }
+
+        return result
     }
 
     companion object {

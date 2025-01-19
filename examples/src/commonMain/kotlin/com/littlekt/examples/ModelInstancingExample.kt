@@ -4,8 +4,7 @@ import com.littlekt.Context
 import com.littlekt.ContextListener
 import com.littlekt.async.KtScope
 import com.littlekt.file.gltf.GltfModelUnlitConfig
-import com.littlekt.file.gltf.toModel
-import com.littlekt.file.vfs.readGltf
+import com.littlekt.file.vfs.readGltfModel
 import com.littlekt.graphics.Color
 import com.littlekt.graphics.PerspectiveCamera
 import com.littlekt.graphics.g3d.ModelBatch
@@ -14,6 +13,7 @@ import com.littlekt.graphics.g3d.UnlitEnvironment
 import com.littlekt.graphics.g3d.util.PBRMaterialPipelineProvider
 import com.littlekt.graphics.g3d.util.UnlitMaterialPipelineProvider
 import com.littlekt.graphics.webgpu.*
+import com.littlekt.math.Vec3f
 import com.littlekt.math.geom.degrees
 import com.littlekt.util.seconds
 import kotlinx.coroutines.launch
@@ -31,7 +31,9 @@ class ModelInstancingExample(context: Context) : ContextListener(context) {
         addCloseOnShiftEsc()
         val device = graphics.device
         val camera = PerspectiveCamera(graphics.width, graphics.height)
-        camera.translate(900f, 900f, 1500f)
+        camera.translate(45f, 69f, 60f)
+        camera.rotate((-45).degrees, Vec3f.X_AXIS)
+        camera.rotate((30).degrees, Vec3f.Y_AXIS)
         val environment = UnlitEnvironment(device)
 
         val surfaceCapabilities = graphics.surfaceCapabilities
@@ -53,21 +55,23 @@ class ModelInstancingExample(context: Context) : ContextListener(context) {
             )
         var depthFrame = depthTexture.createView()
         val duckModel =
-            resourcesVfs["models/Duck.glb"].readGltf().toModel(config = GltfModelUnlitConfig())
+            resourcesVfs["models/Duck.glb"].readGltfModel(config = GltfModelUnlitConfig())
         val duckModelInstances = mutableListOf<Scene>()
 
         KtScope.launch {
-            repeat(30) { y ->
-                repeat(30) { x ->
-                    duckModelInstances +=
-                        duckModel.createInstance().apply {
-                            rotate(
-                                (0..360).random().degrees,
-                                (0..360).random().degrees,
-                                (0..360).random().degrees,
-                            )
-                            translate(x * 200f, y * 200f, 0f)
-                        }
+            repeat(15) { y ->
+                repeat(15) { x ->
+                    repeat(15) { z ->
+                        duckModelInstances +=
+                            duckModel.copy().apply {
+                                rotate(
+                                    (0..360).random().degrees,
+                                    (0..360).random().degrees,
+                                    (0..360).random().degrees,
+                                )
+                                translate(x * 3f, y * 3f, z * 3f)
+                            }
+                    }
                 }
             }
         }
@@ -113,7 +117,7 @@ class ModelInstancingExample(context: Context) : ContextListener(context) {
             camera.update()
         }
 
-        addFlyController(camera, 0.5f)
+        addFlyController(camera)
         onUpdate { dt ->
             duckModel.rotate(y = 0.1.degrees * dt.seconds)
             duckModelInstances.forEach { instance ->

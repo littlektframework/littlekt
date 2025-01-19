@@ -565,33 +565,33 @@ data class GltfTexture(val sampler: Int = -1, val source: Int = 0, val name: Str
     @Transient private var texture: Texture? = null
 
     suspend fun toTexture(root: VfsFile, device: Device, preferredFormat: TextureFormat): Texture {
-            if (texture == null) {
-                val uri = imageRef.uri
-                val pixmap =
-                    if (uri != null) {
-                        VfsFile(root.vfs, "${root.parent.path}/$uri").readPixmap()
-                    } else {
-                        imageRef.bufferViewRef?.getData()?.toArray()?.readPixmap()
-                            ?: error("Unable to read GltfTexture data!")
-                    }
+        if (texture == null) {
+            val uri = imageRef.uri
+            val pixmap =
+                if (uri != null) {
+                    VfsFile(root.vfs, "${root.parent.path}/$uri").readPixmap()
+                } else {
+                    imageRef.bufferViewRef?.getData()?.toArray()?.readPixmap()
+                        ?: error("Unable to read GltfTexture data!")
+                }
 
-                val minFilters = samplerRef.minFilter.toFilterMode()
-                val magFilters = samplerRef.magFilter.toFilterMode()
-                texture =
-                    PixmapTexture(
-                        device,
-                        preferredFormat,
-                        pixmap,
-                        samplerDescriptor =
-                            SamplerDescriptor(
-                                addressModeU = samplerRef.wrapS.toAddressMode(),
-                                addressModeV = samplerRef.wrapT.toAddressMode(),
-                                minFilter = minFilters.first,
-                                magFilter = magFilters.first,
-                                mipmapFilter = minFilters.second,
-                            ),
-                    )
-            }
+            val minFilters = samplerRef.minFilter.toFilterMode()
+            val magFilters = samplerRef.magFilter.toFilterMode()
+            texture =
+                PixmapTexture(
+                    device,
+                    preferredFormat,
+                    pixmap,
+                    samplerDescriptor =
+                        SamplerDescriptor(
+                            addressModeU = samplerRef.wrapS.toAddressMode(),
+                            addressModeV = samplerRef.wrapT.toAddressMode(),
+                            minFilter = minFilters.first,
+                            magFilter = magFilters.first,
+                            mipmapFilter = minFilters.second,
+                        ),
+                )
+        }
         return texture ?: error("Unable to convert the GltfTexture to a Texture!")
     }
 }
