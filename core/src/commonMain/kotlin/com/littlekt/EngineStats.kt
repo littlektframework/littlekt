@@ -2,7 +2,7 @@ package com.littlekt
 
 import com.littlekt.resources.BufferResourceInfo
 import com.littlekt.resources.TextureResourceInfo
-import com.littlekt.util.datastructure.threadSafeMutableMapOf
+import com.littlekt.util.datastructure.internal.threadSafeMutableMapOf
 import com.littlekt.util.toString
 import kotlinx.atomicfu.atomic
 import kotlinx.atomicfu.update

@@ -18,7 +18,7 @@ import com.littlekt.math.Quaternion
 import com.littlekt.math.Vec3f
 import com.littlekt.resources.Textures
 import com.littlekt.util.align
-import com.littlekt.util.datastructure.threadSafeMutableMapOf
+import com.littlekt.util.datastructure.internal.threadSafeMutableMapOf
 
 /**
  * Converts a [GltfData] to a [Model] ready for rendering. This will load underlying buffers and

@@ -235,6 +235,7 @@ interface Texture : Releasable {
         val buffer = commandEncoder.finish()
         device.queue.submit(buffer)
         commandEncoder.release()
+        mesh.release()
         views.forEach { it.release() }
         sampler.release()
         shader.release()

@@ -1,4 +1,4 @@
-package com.littlekt.util.datastructure
+package com.littlekt.util.datastructure.internal
 
 import kotlinx.atomicfu.locks.reentrantLock
 import kotlinx.atomicfu.locks.withLock
@@ -9,7 +9,7 @@ import kotlinx.atomicfu.locks.withLock
  * @author Colton Daily
  * @date 1/17/2025
  */
-class ThreadSafeMutableList<T>(private val delegate: MutableList<T> = mutableListOf()) :
+internal class ThreadSafeMutableList<T>(private val delegate: MutableList<T> = mutableListOf()) :
     MutableList<T> by delegate {
     private val lock = reentrantLock()
 
@@ -96,7 +96,8 @@ class ThreadSafeMutableList<T>(private val delegate: MutableList<T> = mutableLis
     }
 }
 
-inline fun <T> threadSafeMutableListOf(): ThreadSafeMutableList<T> = ThreadSafeMutableList()
+internal inline fun <T> threadSafeMutableListOf(): ThreadSafeMutableList<T> =
+    ThreadSafeMutableList()
 
-inline fun <T> threadSafeMutableListOf(vararg elements: T): ThreadSafeMutableList<T> =
+internal inline fun <T> threadSafeMutableListOf(vararg elements: T): ThreadSafeMutableList<T> =
     ThreadSafeMutableList(mutableListOf(*elements))

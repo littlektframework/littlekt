@@ -1,4 +1,4 @@
-package com.littlekt.util.datastructure
+package com.littlekt.util.datastructure.internal
 
 import kotlinx.atomicfu.locks.reentrantLock
 import kotlinx.atomicfu.locks.withLock
@@ -9,7 +9,7 @@ import kotlinx.atomicfu.locks.withLock
  * @author Colton Daily
  * @date 1/17/2025
  */
-class ThreadSafeMutableMap<K, V>(private val delegate: MutableMap<K, V> = mutableMapOf()) :
+internal class ThreadSafeMutableMap<K, V>(private val delegate: MutableMap<K, V> = mutableMapOf()) :
     MutableMap<K, V> {
     private val lock = reentrantLock()
 
@@ -58,7 +58,9 @@ class ThreadSafeMutableMap<K, V>(private val delegate: MutableMap<K, V> = mutabl
     }
 }
 
-inline fun <K, V> threadSafeMutableMapOf(): ThreadSafeMutableMap<K, V> = ThreadSafeMutableMap()
+internal inline fun <K, V> threadSafeMutableMapOf(): ThreadSafeMutableMap<K, V> =
+    ThreadSafeMutableMap()
 
-inline fun <K, V> threadSafeMutableMapOf(vararg pairs: Pair<K, V>): ThreadSafeMutableMap<K, V> =
-    ThreadSafeMutableMap(mutableMapOf(*pairs))
+internal inline fun <K, V> threadSafeMutableMapOf(
+    vararg pairs: Pair<K, V>
+): ThreadSafeMutableMap<K, V> = ThreadSafeMutableMap(mutableMapOf(*pairs))
