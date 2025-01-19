@@ -5,11 +5,12 @@ import com.littlekt.math.geom.Angle
 import com.littlekt.math.geom.cosine
 import com.littlekt.math.geom.radians
 import com.littlekt.math.geom.sine
-import com.littlekt.util.internal.lock
 import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.math.sqrt
+import kotlinx.atomicfu.locks.SynchronizedObject
+import kotlinx.atomicfu.locks.synchronized
 
 /**
  * A 3x3 column major matrix.
@@ -141,7 +142,7 @@ open class Mat3 {
     }
 
     fun rotate(ax: Float, ay: Float, az: Float, degrees: Float): Mat3 {
-        return lock(tmpMatLock) {
+        return synchronized(tmpMatLock) {
             tmpMatA.setToRotation(ax, ay, az, degrees)
             set(mul(tmpMatA, tmpMatB))
         }
@@ -150,7 +151,7 @@ open class Mat3 {
     fun rotate(axis: Vec3f, degrees: Float) = rotate(axis.x, axis.y, axis.z, degrees)
 
     fun rotate(eulerX: Float, eulerY: Float, eulerZ: Float): Mat3 {
-        return lock(tmpMatLock) {
+        return synchronized(tmpMatLock) {
             tmpMatA.setFromEulerAngles(eulerX, eulerY, eulerZ)
             set(mul(tmpMatA, tmpMatB))
         }
@@ -201,7 +202,7 @@ open class Mat3 {
     }
 
     fun invert(): Boolean {
-        return lock(tmpMatLock) { invert(tmpMatA).also { if (it) set(tmpMatA) } }
+        return synchronized(tmpMatLock) { invert(tmpMatA).also { if (it) set(tmpMatA) } }
     }
 
     fun invert(result: Mat3): Boolean {
@@ -268,7 +269,7 @@ open class Mat3 {
      * @return this matrix
      */
     fun mul(other: Mat3): Mat3 {
-        return lock(tmpMatLock) {
+        return synchronized(tmpMatLock) {
             mul(other, tmpMatA)
             set(tmpMatA)
         }
@@ -312,7 +313,7 @@ open class Mat3 {
      * @return this matrix
      */
     fun mulLeft(other: Mat3): Mat3 {
-        return lock(tmpMatLock) {
+        return synchronized(tmpMatLock) {
             mulLeft(other, tmpMatA)
             set(tmpMatA)
         }
@@ -557,7 +558,7 @@ open class Mat3 {
     }
 
     companion object {
-        private val tmpMatLock = Any()
+        private val tmpMatLock = SynchronizedObject()
         private val tmpMatA = Mat3()
         private val tmpMatB = Mat3()
         private val tempVec2f = MutableVec2f()

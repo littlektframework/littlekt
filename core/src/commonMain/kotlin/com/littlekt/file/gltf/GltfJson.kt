@@ -3,10 +3,9 @@ package com.littlekt.file.gltf
 import com.littlekt.file.ByteBuffer
 import com.littlekt.file.vfs.VfsFile
 import com.littlekt.file.vfs.readPixmap
-import com.littlekt.graphics.PixmapTexture
+import com.littlekt.graphics.LazyPixmapTexture
 import com.littlekt.graphics.Texture
 import com.littlekt.graphics.webgpu.*
-import kotlin.time.measureTimedValue
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
@@ -315,7 +314,7 @@ data class GltfTextureInfo(
     val scale: Float = 1f,
     val extensions: List<GltfTextureExtensions>? = null,
 ) {
-    suspend fun getTexture(
+    fun getTexture(
         gltfData: GltfData,
         root: VfsFile,
         device: Device,
@@ -565,36 +564,34 @@ data class GltfTexture(val sampler: Int = -1, val source: Int = 0, val name: Str
 
     @Transient private var texture: Texture? = null
 
-    suspend fun toTexture(root: VfsFile, device: Device, preferredFormat: TextureFormat): Texture {
+    fun toTexture(root: VfsFile, device: Device, preferredFormat: TextureFormat): Texture {
         if (texture == null) {
             val uri = imageRef.uri
-            val (pixmap, time) =
-                measureTimedValue {
-                    if (uri != null) {
-                        VfsFile(root.vfs, "${root.parent.path}/$uri").readPixmap()
-                    } else {
-                        imageRef.bufferViewRef?.getData()?.toArray()?.readPixmap()
-                            ?: error("Unable to read GltfTexture data!")
-                    }
-                }
 
             val minFilters = samplerRef.minFilter.toFilterMode()
             val magFilters = samplerRef.magFilter.toFilterMode()
             texture =
-                PixmapTexture(
-                    device,
-                    preferredFormat,
-                    pixmap,
-                    samplerDescriptor =
-                        SamplerDescriptor(
-                            addressModeU = samplerRef.wrapS.toAddressMode(),
-                            addressModeV = samplerRef.wrapT.toAddressMode(),
-                            minFilter = minFilters.first,
-                            magFilter = magFilters.first,
-                            mipmapFilter = minFilters.second,
-                        ),
-                )
-            println("Loaded texture in $time")
+                LazyPixmapTexture(
+                        device,
+                        samplerDescriptor =
+                            SamplerDescriptor(
+                                addressModeU = samplerRef.wrapS.toAddressMode(),
+                                addressModeV = samplerRef.wrapT.toAddressMode(),
+                                minFilter = minFilters.first,
+                                magFilter = magFilters.first,
+                                mipmapFilter = minFilters.second,
+                            ),
+                    )
+                    .apply {
+                        load(preferredFormat) {
+                            if (uri != null) {
+                                VfsFile(root.vfs, "${root.parent.path}/$uri").readPixmap()
+                            } else {
+                                imageRef.bufferViewRef?.getData()?.toArray()?.readPixmap()
+                                    ?: error("Unable to read GltfTexture data!")
+                            }
+                        }
+                    }
         }
         return texture ?: error("Unable to convert the GltfTexture to a Texture!")
     }

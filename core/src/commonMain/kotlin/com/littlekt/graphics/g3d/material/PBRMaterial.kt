@@ -3,6 +3,7 @@ package com.littlekt.graphics.g3d.material
 import com.littlekt.file.FloatBuffer
 import com.littlekt.graphics.Color
 import com.littlekt.graphics.Texture
+import com.littlekt.graphics.TextureState
 import com.littlekt.graphics.shader.Shader
 import com.littlekt.graphics.util.BindingUsage
 import com.littlekt.graphics.webgpu.*
@@ -39,6 +40,14 @@ class PBRMaterial(
     val emissiveTexture: Texture = emissiveTexture ?: Textures.textureWhite
     val occlusionTexture: Texture = occlusionTexture ?: Textures.textureWhite
 
+    override val ready: Boolean
+        get() =
+            super.ready &&
+                metallicRoughnessTexture.state == TextureState.LOADED &&
+                emissiveTexture.state == TextureState.LOADED &&
+                occlusionTexture.state == TextureState.LOADED &&
+                normalTexture.state == TextureState.LOADED
+
     private val materialFloatBuffer = FloatBuffer(12)
 
     private val materialUniformBuffer =
@@ -48,7 +57,7 @@ class PBRMaterial(
             BufferUsage.UNIFORM or BufferUsage.COPY_DST,
         )
 
-    /** The [BufferBinding] for [modelUniformBufferBinding]. */
+    /** The [BufferBinding] for [materialUniformBuffer]. */
     private val materialUniformBufferBinding by lazy { BufferBinding(materialUniformBuffer) }
 
     override val key: Int = 31 * super.key + isFullyRough.hashCode()
@@ -123,11 +132,11 @@ class PBRMaterial(
         var result = super.hashCode()
         result = 31 * result + metallicFactor.hashCode()
         result = 31 * result + roughnessFactor.hashCode()
-        result = 31 * result + (metallicRoughnessTexture.hashCode() ?: 0)
-        result = 31 * result + (normalTexture.hashCode() ?: 0)
+        result = 31 * result + metallicRoughnessTexture.hashCode()
+        result = 31 * result + normalTexture.hashCode()
         result = 31 * result + emissiveFactor.hashCode()
-        result = 31 * result + (emissiveTexture.hashCode() ?: 0)
-        result = 31 * result + (occlusionTexture.hashCode() ?: 0)
+        result = 31 * result + emissiveTexture.hashCode()
+        result = 31 * result + occlusionTexture.hashCode()
         result = 31 * result + occlusionStrength.hashCode()
         return result
     }

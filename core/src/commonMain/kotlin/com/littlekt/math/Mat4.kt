@@ -2,8 +2,9 @@ package com.littlekt.math
 
 import com.littlekt.file.FloatBuffer
 import com.littlekt.math.geom.Angle
-import com.littlekt.util.internal.lock
 import kotlin.math.*
+import kotlinx.atomicfu.locks.SynchronizedObject
+import kotlinx.atomicfu.locks.synchronized
 
 /**
  * A 4x4 column major matrix.
@@ -412,7 +413,7 @@ open class Mat4 {
     }
 
     fun rotate(ax: Float, ay: Float, az: Float, angle: Angle): Mat4 {
-        return lock(tmpMatLock) {
+        return synchronized(tmpMatLock) {
             tmpMatA.setToRotation(ax, ay, az, angle)
             set(mul(tmpMatA, tmpMatB))
         }
@@ -421,14 +422,14 @@ open class Mat4 {
     fun rotate(axis: Vec3f, angle: Angle) = rotate(axis.x, axis.y, axis.z, angle)
 
     fun rotate(eulerX: Angle, eulerY: Angle, eulerZ: Angle): Mat4 {
-        return lock(tmpMatLock) {
+        return synchronized(tmpMatLock) {
             tmpMatA.setFromEulerAngles(eulerX, eulerY, eulerZ)
             set(mul(tmpMatA, tmpMatB))
         }
     }
 
     fun rotate(ax: Float, ay: Float, az: Float, angle: Angle, result: Mat4): Mat4 {
-        return lock(tmpMatLock) {
+        return synchronized(tmpMatLock) {
             tmpMatA.setToRotation(ax, ay, az, angle)
             mul(tmpMatA, result)
         }
@@ -444,14 +445,14 @@ open class Mat4 {
     }
 
     fun rotate(rotationMat: Mat3) {
-        return lock(tmpMatLock) {
+        return synchronized(tmpMatLock) {
             tmpMatA.setToIdentity().set(rotationMat)
             set(mul(tmpMatA, tmpMatB))
         }
     }
 
     fun rotate(quaternion: Vec4f) {
-        return lock(tmpMatLock) {
+        return synchronized(tmpMatLock) {
             tmpMatA.setToIdentity().set(quaternion)
             set(mul(tmpMatA, tmpMatB))
         }
@@ -469,7 +470,7 @@ open class Mat4 {
      * @return this matrix
      */
     fun mul(other: Mat4): Mat4 {
-        return lock(tmpMatLock) {
+        return synchronized(tmpMatLock) {
             mul(other, tmpMatA)
             set(tmpMatA)
         }
@@ -513,7 +514,7 @@ open class Mat4 {
      * @return this matrix
      */
     fun mulLeft(other: Mat4): Mat4 {
-        return lock(tmpMatLock) {
+        return synchronized(tmpMatLock) {
             mulLeft(other, tmpMatA)
             set(tmpMatA)
         }
@@ -545,7 +546,7 @@ open class Mat4 {
     }
 
     fun transpose(): Mat4 {
-        return lock(tmpMatLock) { set(transpose(tmpMatA)) }
+        return synchronized(tmpMatLock) { set(transpose(tmpMatA)) }
     }
 
     fun transpose(result: Mat4): Mat4 {
@@ -625,7 +626,7 @@ open class Mat4 {
      * @throws RuntimeException if the matrix is singular (not invertible)
      */
     fun invert(eps: Float = 0f): Mat4 {
-        return lock(tmpMatLock) { invert(tmpMatA, eps).also { set(tmpMatA) } }
+        return synchronized(tmpMatLock) { invert(tmpMatA, eps).also { set(tmpMatA) } }
     }
 
     /**
@@ -1358,7 +1359,7 @@ open class Mat4 {
     }
 
     companion object {
-        private val tmpMatLock = Any()
+        private val tmpMatLock = SynchronizedObject()
         private val tmpMatA = Mat4()
         private val tmpMatB = Mat4()
         private val l_vez = MutableVec3f()

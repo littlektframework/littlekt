@@ -2,7 +2,10 @@ package com.littlekt
 
 import com.littlekt.resources.BufferResourceInfo
 import com.littlekt.resources.TextureResourceInfo
+import com.littlekt.util.datastructure.threadSafeMutableMapOf
 import com.littlekt.util.toString
+import kotlinx.atomicfu.atomic
+import kotlinx.atomicfu.update
 
 /**
  * Graphic related engine stats.
@@ -12,45 +15,45 @@ import com.littlekt.util.toString
  */
 object EngineStats {
 
-    private val _bufferAllocations = mutableMapOf<Long, BufferResourceInfo>()
+    private val _bufferAllocations = threadSafeMutableMapOf<Long, BufferResourceInfo>()
     /** Each buffer and it's size */
     val bufferAllocations: Map<Long, BufferResourceInfo>
         get() = _bufferAllocations
 
-    private val _textureAllocations = mutableMapOf<Long, TextureResourceInfo>()
+    private val _textureAllocations = threadSafeMutableMapOf<Long, TextureResourceInfo>()
     /** Each Texture and it's size */
     val textureAllocations: Map<Long, TextureResourceInfo>
         get() = _textureAllocations
 
     /** The total size of all buffers */
-    var totalBufferSize = 0L
+    var totalBufferSize = atomic(0L)
         private set
 
     /** The total size of all textures */
-    var totalTextureSize = 0L
+    var totalTextureSize = atomic(0L)
         private set
 
     /** The total triangles rendered. */
-    var triangles = 0
+    var triangles = atomic(0)
         internal set
 
     /** The total draw calls invoked. */
-    var drawCalls = 0
+    var drawCalls = atomic(0)
         internal set
 
     /** There total number of `setPipeline` calls. */
-    var setPipelineCalls = 0
+    var setPipelineCalls = atomic(0)
         internal set
 
     /** There total number of `setBindGroup` calls. */
-    var setBindGroupCalls = 0
+    var setBindGroupCalls = atomic(0)
         internal set
 
     /** There total number of `setBuffer` calls. */
-    var setBufferCalls = 0
+    var setBufferCalls = atomic(0)
         internal set
 
-    private val extras = mutableMapOf<String, Int>()
+    private val extras = threadSafeMutableMapOf<String, Int>()
 
     /** Inform the engine stats that a new buffer has been allocated and the size of the buffer. */
     fun bufferAllocated(info: BufferResourceInfo) {
@@ -90,11 +93,11 @@ object EngineStats {
 
     /** Reset all counts to 0. */
     fun resetPerFrameCounts() {
-        drawCalls = 0
-        triangles = 0
-        setPipelineCalls = 0
-        setBindGroupCalls = 0
-        setBufferCalls = 0
+        drawCalls.update { 0 }
+        triangles.update { 0 }
+        setPipelineCalls.update { 0 }
+        setBindGroupCalls.update { 0 }
+        setBufferCalls.update { 0 }
         extras.clear()
     }
 
@@ -112,10 +115,10 @@ object EngineStats {
             appendLine("setBuffer calls: $setBufferCalls")
             appendLine("~Triangles: $triangles")
             appendLine(
-                "Buffers: ${bufferAllocations.size} with memory usage of ${(totalBufferSize.toDouble() / (1024.0 * 1024.0)).toString(1)}M"
+                "Buffers: ${bufferAllocations.size} with memory usage of ${(totalBufferSize.value.toDouble() / (1024.0 * 1024.0)).toString(1)}M"
             )
             appendLine(
-                "Textures: ${textureAllocations.size} with memory usage of ${(totalTextureSize.toDouble() / (1024.0 * 1024.0)).toString(1)}M"
+                "Textures: ${textureAllocations.size} with memory usage of ${(totalTextureSize.value.toDouble() / (1024.0 * 1024.0)).toString(1)}M"
             )
             if (extras.isNotEmpty()) {
                 append(

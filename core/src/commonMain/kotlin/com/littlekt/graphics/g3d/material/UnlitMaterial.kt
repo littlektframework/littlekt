@@ -32,7 +32,7 @@ open class UnlitMaterial(
             BufferUsage.UNIFORM or BufferUsage.COPY_DST,
         )
 
-    /** The [BufferBinding] for [modelUniformBufferBinding]. */
+    /** The [BufferBinding] for [materialUniformBuffer]. */
     private val materialUniformBufferBinding by lazy {
         BufferBinding(materialUniformBuffer, size = Float.SIZE_BYTES * 8L)
     }

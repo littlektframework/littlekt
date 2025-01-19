@@ -136,20 +136,21 @@ class SimpleGltfExample(context: Context) : ContextListener(context) {
                     }
                 }
             ModelInstance(
-                Model(
-                    listOf(
-                        MeshPrimitive(
-                            mesh,
-                            PBRMaterial(
-                                device,
-                                baseColorTexture = checkered,
-                                normalTexture = checkeredNormal,
-                                castShadows = false,
-                            ),
+                    Model(
+                        listOf(
+                            MeshPrimitive(
+                                mesh,
+                                PBRMaterial(
+                                    device,
+                                    baseColorTexture = checkered,
+                                    normalTexture = checkeredNormal,
+                                    castShadows = false,
+                                ),
+                            )
                         )
                     )
                 )
-            )
+                .apply { createVisualInstances() }
         }
 
         graphics.configureSurface(
@@ -219,7 +220,7 @@ class SimpleGltfExample(context: Context) : ContextListener(context) {
             val swapChainTexture = checkNotNull(surfaceTexture.texture)
             val frame = swapChainTexture.createView()
 
-            val commandEncoder = device.createCommandEncoder()
+            val commandEncoder = device.createCommandEncoder("Main Command Enconder")
             val renderPassEncoder =
                 commandEncoder.beginRenderPass(
                     desc =
@@ -244,6 +245,7 @@ class SimpleGltfExample(context: Context) : ContextListener(context) {
                                     stencilLoadOp = LoadOp.CLEAR,
                                     stencilStoreOp = StoreOp.STORE,
                                 ),
+                            label = "Main Render Pass",
                         )
                 )
 

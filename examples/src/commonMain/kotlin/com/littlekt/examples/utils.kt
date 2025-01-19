@@ -2,7 +2,6 @@ package com.littlekt.examples
 
 import com.littlekt.Context
 import com.littlekt.async.VfsScope
-import com.littlekt.async.newSingleThreadAsyncContext
 import com.littlekt.file.gltf.GltfModelConfig
 import com.littlekt.file.vfs.VfsFile
 import com.littlekt.file.vfs.readGltfModel
@@ -27,7 +26,6 @@ import kotlin.math.asin
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 fun SurfaceTexture.isValid(context: Context, onConfigure: () -> SurfaceConfiguration): Boolean {
     val surfaceTexture = this
@@ -89,15 +87,11 @@ fun Context.loadGltfModels(models: List<GltfModel>, modelBatch: ModelBatch? = nu
             .map { gltfModel ->
                 VfsScope.async {
                     val scene =
-                        withContext(newSingleThreadAsyncContext()) {
-                            val scene =
-                                gltfModel.file.readGltfModel(gltfModel.config).apply {
-                                    scale(gltfModel.scale)
-                                    translate(gltfModel.translate)
-                                }
-                            modelBatch?.preparePipeline(scene, gltfModel.environment)
-                            scene
+                        gltfModel.file.readGltfModel(gltfModel.config).apply {
+                            scale(gltfModel.scale)
+                            translate(gltfModel.translate)
                         }
+                    //    modelBatch?.preparePipeline(scene, gltfModel.environment)
                     gltfModel.scene = scene
                 }
             }

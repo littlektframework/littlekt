@@ -19,13 +19,14 @@ import com.littlekt.graphics.g2d.font.TtfFont
 import com.littlekt.graphics.g2d.tilemap.tiled.TiledMap
 import com.littlekt.graphics.g3d.Scene
 import com.littlekt.util.datastructure.fastForEach
-import com.littlekt.util.internal.lock
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
 import kotlinx.atomicfu.atomic
+import kotlinx.atomicfu.locks.SynchronizedObject
+import kotlinx.atomicfu.locks.synchronized
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
@@ -39,7 +40,7 @@ open class AssetProvider(val context: Context) {
     private var totalAssetsFinished = atomic(0)
     private val filesBeingChecked = mutableListOf<VfsFile>()
     private val _assets = mutableMapOf<KClass<*>, MutableMap<VfsFile, GameAsset<*>>>()
-    private val lock = Any()
+    private val lock = SynchronizedObject()
 
     /** The percentage of the total assets finished loading, using a value between `0f` and `1f`. */
     val percentage: Float
@@ -159,7 +160,7 @@ open class AssetProvider(val context: Context) {
         val result = loader.invoke(file, parameters) as T
         sceneAsset.load(result)
         onLoad(result)
-        lock(lock) {
+        synchronized(lock) {
             _assets.getOrPut(clazz) { mutableMapOf() }.let { it[file] = sceneAsset }
             filesBeingChecked -= file
         }

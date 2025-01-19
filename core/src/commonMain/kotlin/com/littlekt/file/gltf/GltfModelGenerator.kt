@@ -28,7 +28,7 @@ import com.littlekt.util.datastructure.threadSafeMutableMapOf
  *   [GltfModelPbrConfig].
  * @param preferredFormat the preferred [TextureFormat] to be used when loading the model texture.
  */
-suspend fun GltfData.toModel(
+fun GltfData.toModel(
     config: GltfModelConfig = GltfModelPbrConfig(),
     preferredFormat: TextureFormat =
         if (root.vfs.context.graphics.preferredFormat.srgb) TextureFormat.RGBA8_UNORM_SRGB
@@ -49,7 +49,7 @@ private class GltfModelGenerator(val gltfFile: GltfData) {
     // gltf mesh index to model
     val modelCache = threadSafeMutableMapOf<Int, Model>()
 
-    suspend fun toModel(
+    fun toModel(
         config: GltfModelConfig,
         device: Device,
         preferredFormat: TextureFormat,
@@ -110,7 +110,7 @@ private class GltfModelGenerator(val gltfFile: GltfData) {
         //        }
     }
 
-    suspend fun GltfNode.toNode(
+    fun GltfNode.toNode(
         config: GltfModelConfig,
         device: Device,
         preferredFormat: TextureFormat,
@@ -153,7 +153,7 @@ private class GltfModelGenerator(val gltfFile: GltfData) {
         return node
     }
 
-    suspend fun createModel(
+    fun createModel(
         config: GltfModelConfig,
         device: Device,
         preferredFormat: TextureFormat,
@@ -366,7 +366,7 @@ private class GltfModelGenerator(val gltfFile: GltfData) {
         return geometry
     }
 
-    private suspend fun GltfTextureInfo?.loadTexture(
+    private fun GltfTextureInfo?.loadTexture(
         device: Device,
         preferredFormat: TextureFormat,
     ): Texture? = this?.getTexture(gltfFile, root, device, preferredFormat)

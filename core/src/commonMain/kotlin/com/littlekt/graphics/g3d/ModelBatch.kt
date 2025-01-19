@@ -115,8 +115,10 @@ class ModelBatch(val device: Device) : Releasable {
                 colorFormat,
                 depthFormat,
             ) ?: error("Unable to find pipeline for given instance!")
-        bindGroupByMaterialId.getOrPut(meshPrimitive.material.id) {
-            meshPrimitive.material.createBindGroup(pipeline.shader)
+        if (meshPrimitive.material.ready) {
+            bindGroupByMaterialId.getOrPut(meshPrimitive.material.id) {
+                meshPrimitive.material.createBindGroup(pipeline.shader)
+            }
         }
     }
 
@@ -145,14 +147,16 @@ class ModelBatch(val device: Device) : Releasable {
                 colorFormat,
                 depthFormat,
             ) ?: error("Unable to find pipeline for given instance!")
-        if (!pipelines.contains(pipeline)) {
-            pipelines += pipeline
-        }
-        // todo - pool lists?
-        primitivesByPipeline.getOrPut(pipeline) { mutableListOf() }.apply { add(meshPrimitive) }
+        if (meshPrimitive.material.ready) {
+            if (!pipelines.contains(pipeline)) {
+                pipelines += pipeline
+            }
+            // todo - pool lists?
+            primitivesByPipeline.getOrPut(pipeline) { mutableListOf() }.apply { add(meshPrimitive) }
 
-        bindGroupByMaterialId.getOrPut(meshPrimitive.material.id) {
-            meshPrimitive.material.createBindGroup(pipeline.shader)
+            bindGroupByMaterialId.getOrPut(meshPrimitive.material.id) {
+                meshPrimitive.material.createBindGroup(pipeline.shader)
+            }
         }
     }
 

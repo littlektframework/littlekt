@@ -16,6 +16,13 @@ import kotlinx.atomicfu.atomic
 interface Texture : Releasable {
 
     /**
+     * The current [TextureState] of this Texture. This should normally be [TextureState.LOADED]
+     * unless using an asynchronous texture loading.
+     */
+    val state: TextureState
+        get() = TextureState.LOADED
+
+    /**
      * The [Extent3D] size of the texture. Usually, the width & height of the image with a depth of
      * `1`.
      */
@@ -231,6 +238,9 @@ interface Texture : Releasable {
         views.forEach { it.release() }
         sampler.release()
         shader.release()
+        bindGroupLayout.release()
+        pipelineLayout.release()
+        renderPipeline.release()
     }
 
     override fun release() {

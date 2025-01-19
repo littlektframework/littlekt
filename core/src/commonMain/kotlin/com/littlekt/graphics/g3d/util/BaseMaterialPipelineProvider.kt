@@ -29,7 +29,7 @@ abstract class BaseMaterialPipelineProvider<T : Material> : MaterialPipelineProv
         val renderInfo =
             renderInfos.alloc().apply {
                 this.environment = environment
-                this.material = material
+                this.materialKey = material.key
                 this.layout = layout
                 this.topology = topology
                 this.indexFormat = stripIndexFormat
@@ -72,7 +72,7 @@ abstract class BaseMaterialPipelineProvider<T : Material> : MaterialPipelineProv
     }
 
     private data class RenderInfo(
-        var material: Material? = null,
+        var materialKey: Int = -1,
         var layout: VertexBufferLayout = VertexBufferLayout(0, VertexStepMode.VERTEX, emptyList()),
         var topology: PrimitiveTopology = PrimitiveTopology.TRIANGLE_LIST,
         var indexFormat: IndexFormat? = null,
@@ -81,7 +81,7 @@ abstract class BaseMaterialPipelineProvider<T : Material> : MaterialPipelineProv
         var environment: Environment? = null,
     ) {
         fun reset() {
-            material = null
+            materialKey = -1
             layout = VertexBufferLayout(0, VertexStepMode.VERTEX, emptyList())
             topology = PrimitiveTopology.TRIANGLE_LIST
             indexFormat = null

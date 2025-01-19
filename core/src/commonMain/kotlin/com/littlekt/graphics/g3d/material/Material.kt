@@ -3,6 +3,7 @@ package com.littlekt.graphics.g3d.material
 import com.littlekt.Releasable
 import com.littlekt.graphics.Color
 import com.littlekt.graphics.Texture
+import com.littlekt.graphics.TextureState
 import com.littlekt.graphics.shader.Shader
 import com.littlekt.graphics.webgpu.BindGroup
 import com.littlekt.graphics.webgpu.CompareFunction
@@ -23,6 +24,13 @@ abstract class Material : Releasable {
     abstract val castShadows: Boolean
     abstract val depthWrite: Boolean
     abstract val depthCompareFunction: CompareFunction
+
+    /**
+     * If `true` then the material is ready for rendering. This defaults to the [baseColorTexture]
+     * being loaded.
+     */
+    open val ready: Boolean
+        get() = baseColorTexture.state == TextureState.LOADED
 
     open val key: Int
         get() = run {

@@ -1,6 +1,7 @@
 package com.littlekt.file
 
 import com.littlekt.Context
+import com.littlekt.async.VfsScope
 import com.littlekt.log.Logger
 import kotlinx.coroutines.CompletableDeferred
 import org.khronos.webgl.ArrayBuffer
@@ -27,7 +28,7 @@ class WebUrlVfs(context: Context, logger: Logger) : UrlVfs(context, logger) {
     }
 
     private suspend fun loadRaw(url: String): ByteBuffer? {
-        val data = CompletableDeferred<ByteBuffer?>(job)
+        val data = CompletableDeferred<ByteBuffer?>(VfsScope.job)
         val req = XMLHttpRequest()
         req.responseType = XMLHttpRequestResponseType.ARRAYBUFFER
         req.onload = {
