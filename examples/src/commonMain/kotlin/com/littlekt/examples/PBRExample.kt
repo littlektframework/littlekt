@@ -156,6 +156,16 @@ class PBRExample(context: Context) : ContextListener(context) {
         }
 
         onUpdate { dt ->
+            if (
+                models.any { it.scene == null } ||
+                    models.any {
+                        it.scene?.modelInstances?.any {
+                            it.instanceOf.primitives.any { !it.material.ready }
+                        } == true
+                    }
+            ) {
+                return@onUpdate
+            }
             val surfaceTexture = graphics.surface.getCurrentTexture()
             when (val status = surfaceTexture.status) {
                 TextureStatus.SUCCESS -> {

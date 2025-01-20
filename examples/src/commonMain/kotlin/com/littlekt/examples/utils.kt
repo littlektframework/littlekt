@@ -91,7 +91,7 @@ fun Context.loadGltfModels(models: List<GltfModel>, modelBatch: ModelBatch? = nu
                             scale(gltfModel.scale)
                             translate(gltfModel.translate)
                         }
-                    //    modelBatch?.preparePipeline(scene, gltfModel.environment)
+                    //  modelBatch?.preparePipeline(scene, gltfModel.environment)
                     gltfModel.scene = scene
                 }
             }
