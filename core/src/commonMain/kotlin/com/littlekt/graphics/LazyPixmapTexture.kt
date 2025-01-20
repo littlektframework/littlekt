@@ -49,7 +49,8 @@ class LazyPixmapTexture(
                 )
 
             // we need to submit texture and generate mips on the rendering thread otherwise wgpu
-            // will fail when submitting the queue on separate thread
+            // will fail when submitting the queue on separate thread which seems to be a bug
+            // in wgpu. No way around it for now.
             KtScope.launch {
                 device.queue.writeTexture(
                     pixmap.pixels.toArray(),
