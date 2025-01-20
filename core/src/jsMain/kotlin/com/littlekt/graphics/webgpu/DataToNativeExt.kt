@@ -480,3 +480,7 @@ fun BufferCopyView.toNative(): GPUImageCopyBuffer = GPUImageCopyBuffer {
     rowsPerImage = it.layout.rowsPerImage
     buffer = it.buffer.delegate
 }
+
+fun GPUImageCopyExternalImage(
+    init: GPUImageCopyExternalImage.() -> Unit = {}
+): GPUImageCopyExternalImage = jsObject(init).unsafeCast<GPUImageCopyExternalImage>()

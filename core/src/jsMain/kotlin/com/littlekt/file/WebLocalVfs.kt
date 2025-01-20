@@ -2,7 +2,6 @@ package com.littlekt.file
 
 import com.littlekt.Context
 import com.littlekt.log.Logger
-import kotlin.js.Promise
 import kotlinx.coroutines.await
 import org.khronos.webgl.Uint8Array
 import org.w3c.fetch.Response
@@ -41,5 +40,3 @@ class WebLocalVfs(context: Context, logger: Logger, assetsBaseDir: String) :
         }
     }
 }
-
-external fun fetch(resource: String): Promise<Response>

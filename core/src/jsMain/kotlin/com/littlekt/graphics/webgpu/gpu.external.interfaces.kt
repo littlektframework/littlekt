@@ -1,5 +1,7 @@
 package com.littlekt.graphics.webgpu
 
+import org.w3c.dom.ImageBitmap
+
 external interface GPUObjectBase {
     var label: String?
 }
@@ -318,6 +320,10 @@ external interface GPUImageCopyTexture {
     var mipLevel: Int
     var origin: GPUOrigin3D
     var texture: GPUTexture
+}
+
+external interface GPUImageCopyExternalImage {
+    var source: ImageBitmap
 }
 
 external interface GPUOrigin3D {

@@ -6,12 +6,16 @@ import com.littlekt.audio.WebAudioClip
 import com.littlekt.audio.WebAudioStream
 import com.littlekt.file.Base64.encodeToBase64
 import com.littlekt.file.ByteBufferImpl
+import com.littlekt.file.createImageBitmap
+import com.littlekt.file.fetch
 import com.littlekt.graphics.Pixmap
-import com.littlekt.graphics.PixmapTexture
 import com.littlekt.graphics.Texture
+import com.littlekt.graphics.g2d.ImageBitmapTexture
 import kotlinx.browser.document
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.await
 import org.w3c.dom.*
+import org.w3c.fetch.Response
 
 /**
  * Loads an image from the path as a [Texture].
@@ -19,14 +23,28 @@ import org.w3c.dom.*
  * @return the loaded texture
  */
 actual suspend fun VfsFile.readTexture(options: TextureOptions): Texture {
-    val pixmap = readPixmap()
-    return PixmapTexture(
+    val response = fetchData(path).getOrThrow()
+    val blob = response.blob().await()
+    val bitmap =
+        createImageBitmap(blob, ImageBitmapOptions(premultiplyAlpha = PremultiplyAlpha.NONE))
+            .await()
+    return ImageBitmapTexture(
         vfs.context.graphics.device,
         options.format,
-        pixmap,
-        if (options.generateMipMaps) Texture.calculateNumMips(pixmap.width, pixmap.height) else 1,
+        bitmap,
+        if (options.generateMipMaps) Texture.calculateNumMips(bitmap.width, bitmap.height) else 1,
         options.samplerDescriptor,
     )
+}
+
+private suspend fun fetchData(url: String): Result<Response> {
+    val response = fetch(url).await()
+    return if (response.ok) {
+        Result.success(response)
+    } else {
+        val error = "Failed loading resource: $url: ${response.status} ${response.statusText}"
+        Result.failure(IllegalStateException(error))
+    }
 }
 
 /** Reads Base64 encoded ByteArray for embedded images. */

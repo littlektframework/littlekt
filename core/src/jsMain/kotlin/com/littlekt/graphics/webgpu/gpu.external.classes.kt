@@ -73,14 +73,20 @@ external class GPUQueue {
         offset: Long,
         data: ArrayBufferView,
         dataOffset: Long,
-        size: Long
+        size: Long,
     )
 
     fun writeTexture(
         destination: GPUImageCopyTexture,
         data: ArrayBufferView,
         dataLayout: GPUImageDataLayout,
-        size: GPUExtent3D
+        size: GPUExtent3D,
+    )
+
+    fun copyExternalImageToTexture(
+        source: GPUImageCopyExternalImage,
+        destination: GPUImageCopyTexture,
+        copySize: GPUExtent3D,
     )
 }
 
@@ -133,7 +139,7 @@ external class GPUCommandEncoder {
     fun copyBufferToTexture(
         source: GPUImageCopyBuffer,
         destination: GPUImageCopyTexture,
-        copySize: GPUExtent3D
+        copySize: GPUExtent3D,
     )
 
     fun beginComputePass(descriptor: GPUObjectBase): GPUComputePassEncoder
@@ -143,13 +149,13 @@ external class GPUCommandEncoder {
         sourceOffset: Int,
         destination: GPUBufferJs,
         destinationOffset: Int,
-        size: Long
+        size: Long,
     )
 
     fun copyTextureToBuffer(
         source: GPUImageCopyTexture,
         destination: GPUImageCopyBuffer,
-        copySize: GPUExtent3D
+        copySize: GPUExtent3D,
     )
 }
 
@@ -167,7 +173,7 @@ external class GPURenderPassEncoder {
         instanceCount: Int,
         firstVertex: Int,
         baseVertex: Int,
-        firstInstance: Int
+        firstInstance: Int,
     )
 
     fun setIndexBuffer(buffer: GPUBufferJs, format: String?, offset: Long, size: Long)
@@ -175,7 +181,7 @@ external class GPURenderPassEncoder {
     fun setBindGroup(
         index: Int,
         bindGroup: GPUBindGroup,
-        dynamicOffsets: LongArray = definedExternally
+        dynamicOffsets: LongArray = definedExternally,
     )
 
     fun setViewport(x: Int, y: Int, width: Int, height: Int, minDepth: Float, maxDepth: Float)

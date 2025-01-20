@@ -7,6 +7,7 @@ import com.littlekt.resources.TextureResourceInfo
 import kotlinx.coroutines.await
 import org.khronos.webgl.ArrayBuffer
 import org.khronos.webgl.Uint8Array
+import org.w3c.dom.ImageBitmap
 
 actual class Device(val delegate: GPUDevice) : Releasable {
     actual val queue: Queue by lazy { Queue(delegate.queue) }
@@ -107,7 +108,7 @@ actual class Device(val delegate: GPUDevice) : Releasable {
     actual fun createGPUShortBuffer(
         label: String,
         data: ShortArray,
-        usage: BufferUsage
+        usage: BufferUsage,
     ): GPUBuffer {
         val buffer =
             createBuffer(
@@ -122,7 +123,7 @@ actual class Device(val delegate: GPUDevice) : Releasable {
     actual fun createGPUFloatBuffer(
         label: String,
         data: FloatArray,
-        usage: BufferUsage
+        usage: BufferUsage,
     ): GPUBuffer {
         val buffer =
             createBuffer(
@@ -225,7 +226,7 @@ actual class Queue(val delegate: GPUQueue) : Releasable {
         destination: TextureCopyView,
         layout: TextureDataLayout,
         copySize: Extent3D,
-        size: Long
+        size: Long,
     ) {
         data as GenericBuffer<*>
         delegate.writeTexture(
@@ -241,7 +242,7 @@ actual class Queue(val delegate: GPUQueue) : Releasable {
         destination: TextureCopyView,
         layout: TextureDataLayout,
         copySize: Extent3D,
-        size: Long
+        size: Long,
     ) {
         val arrayBuffer = Uint8Array(ArrayBuffer(data.size)).apply { set(data.toTypedArray()) }
 
@@ -249,7 +250,7 @@ actual class Queue(val delegate: GPUQueue) : Releasable {
             destination.toNative(),
             arrayBuffer,
             layout.toNative(),
-            copySize.toNative()
+            copySize.toNative(),
         )
     }
 
@@ -258,7 +259,7 @@ actual class Queue(val delegate: GPUQueue) : Releasable {
         data: ShortBuffer,
         offset: Long,
         dataOffset: Long,
-        size: Long
+        size: Long,
     ) {
         data as GenericBuffer<*>
         delegate.writeBuffer(buffer.delegate, offset, data.buffer, dataOffset, size)
@@ -269,7 +270,7 @@ actual class Queue(val delegate: GPUQueue) : Releasable {
         data: FloatBuffer,
         offset: Long,
         dataOffset: Long,
-        size: Long
+        size: Long,
     ) {
         data as GenericBuffer<*>
         delegate.writeBuffer(buffer.delegate, offset, data.buffer, dataOffset, size)
@@ -280,7 +281,7 @@ actual class Queue(val delegate: GPUQueue) : Releasable {
         data: IntBuffer,
         offset: Long,
         dataOffset: Long,
-        size: Long
+        size: Long,
     ) {
         data as GenericBuffer<*>
         delegate.writeBuffer(buffer.delegate, offset, data.buffer, dataOffset, size)
@@ -291,10 +292,22 @@ actual class Queue(val delegate: GPUQueue) : Releasable {
         data: ByteBuffer,
         offset: Long,
         dataOffset: Long,
-        size: Long
+        size: Long,
     ) {
         data as GenericBuffer<*>
         delegate.writeBuffer(buffer.delegate, offset, data.buffer, dataOffset, size)
+    }
+
+    fun copyExternalImageToTexture(
+        data: ImageBitmap,
+        destination: TextureCopyView,
+        copySize: Extent3D,
+    ) {
+        delegate.copyExternalImageToTexture(
+            GPUImageCopyExternalImage { source = data },
+            destination.toNative(),
+            copySize.toNative(),
+        )
     }
 
     actual override fun release() {}
@@ -399,3 +412,16 @@ actual class Sampler(val delegate: GPUSampler) : IntoBindingResource, Releasable
         return delegate
     }
 }
+
+/**
+ * View of a texture which can be used to copy to/from a buffer/texture.
+ *
+ * @param texture the texture to be copied to/from.
+ * @param mipLevel the target mip level of the texture.
+ * @param origin the base texel of the texture in the select [mipLevel].
+ */
+data class ExternalTextureCopyView(
+    val texture: WebGPUTexture,
+    val mipLevel: Int = 0,
+    val origin: Origin3D = Origin3D(0, 0, 0),
+)
