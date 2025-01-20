@@ -1,26 +1,26 @@
-package com.littlekt.graphics
+package com.littlekt.graphics.g2d
 
-import com.littlekt.async.KtScope
 import com.littlekt.async.VfsScope
+import com.littlekt.graphics.LazyTexture
+import com.littlekt.graphics.Pixmap
+import com.littlekt.graphics.Texture
 import com.littlekt.graphics.Texture.Companion.nextId
+import com.littlekt.graphics.TextureState
 import com.littlekt.graphics.webgpu.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import org.w3c.dom.ImageBitmap
 
 /**
- * A [Texture] that uses a [Pixmap] as the underlying data but lazily. It needs to be called with
- * [load] to initialize asynchronously.
- *
- * @param device the device for underlying GPU buffers creation
- * @param samplerDescriptor optional [SamplerDescriptor] to pass in when building initial texture.
  * @author Colton Daily
- * @date 5/5/2024
+ * @date 1/20/2025
  */
-class LazyPixmapTexture(
+class LazyImageBitmapTexture(
     val device: Device,
     samplerDescriptor: SamplerDescriptor = SamplerDescriptor(),
 ) : LazyTexture {
-    private var pixmap: Pixmap = Pixmap(1, 1)
+    private lateinit var bitmap: ImageBitmap
+
     override var state: TextureState = TextureState.UNLOADED
         private set
 
@@ -35,12 +35,12 @@ class LazyPixmapTexture(
         VfsScope.launch {
             check(state == TextureState.UNLOADED) { "This texture has already been loaded!" }
             state = TextureState.LOADING
-            pixmap =
-                dataLoader().data as? Pixmap
-                    ?: error("LazyPixmapTexture requires type Pixmap as ImageData type!")
-            val mips = Texture.calculateNumMips(pixmap.width, pixmap.height)
+            bitmap =
+                dataLoader().data as? ImageBitmap
+                    ?: error("LazyImageBitmapTexture requires an ImageData of type ImageBitmap!")
+            val mips = Texture.calculateNumMips(bitmap.width, bitmap.height)
 
-            size = Extent3D(pixmap.width, pixmap.height, 1)
+            size = Extent3D(bitmap.width, bitmap.height, 1)
             // strange flow but setting the texture descriptor will recreate all the underlying
             // webgpu textures & views and then automatically write the data to the buffer
             textureDescriptor =
@@ -53,19 +53,10 @@ class LazyPixmapTexture(
                     TextureUsage.TEXTURE or TextureUsage.COPY_DST or TextureUsage.RENDER_ATTACHMENT,
                 )
 
-            // we need to submit texture and generate mips on the rendering thread otherwise wgpu
-            // will fail when submitting the queue on separate thread which seems to be a bug
-            // in wgpu. No way around it for now.
-            KtScope.launch {
-                device.queue.writeTexture(
-                    pixmap.pixels.toArray(),
-                    TextureCopyView(gpuTexture),
-                    TextureDataLayout(textureDescriptor.format.bytes * pixmap.width, pixmap.height),
-                    size,
-                )
-            }
+            device.queue.copyExternalImageToTexture(bitmap, TextureCopyView(gpuTexture), size)
+
             if (mips > 1) {
-                KtScope.launch { generateMipMaps(device) }
+                generateMipMaps(device)
             }
 
             state = TextureState.LOADED
@@ -138,12 +129,7 @@ class LazyPixmapTexture(
 
     override fun writeDataToBuffer() {
         if (state != TextureState.LOADED) return
-        device.queue.writeTexture(
-            pixmap.pixels.toArray(),
-            TextureCopyView(gpuTexture),
-            TextureDataLayout(textureDescriptor.format.bytes * pixmap.width, pixmap.height),
-            size,
-        )
+        device.queue.copyExternalImageToTexture(bitmap, TextureCopyView(gpuTexture), size)
     }
 
     override fun equals(other: Any?): Boolean {

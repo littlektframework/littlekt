@@ -2,8 +2,8 @@ package com.littlekt.file.gltf
 
 import com.littlekt.file.ByteBuffer
 import com.littlekt.file.vfs.VfsFile
-import com.littlekt.file.vfs.readPixmap
-import com.littlekt.graphics.LazyPixmapTexture
+import com.littlekt.file.vfs.readImageData
+import com.littlekt.graphics.LazyTexture
 import com.littlekt.graphics.Texture
 import com.littlekt.graphics.webgpu.*
 import kotlinx.serialization.SerialName
@@ -570,28 +570,29 @@ data class GltfTexture(val sampler: Int = -1, val source: Int = 0, val name: Str
 
             val minFilters = samplerRef.minFilter.toFilterMode()
             val magFilters = samplerRef.magFilter.toFilterMode()
+            val samplerDescriptor =
+                SamplerDescriptor(
+                    addressModeU = samplerRef.wrapS.toAddressMode(),
+                    addressModeV = samplerRef.wrapT.toAddressMode(),
+                    minFilter = minFilters.first,
+                    magFilter = magFilters.first,
+                    mipmapFilter = minFilters.second,
+                )
+
             texture =
-                LazyPixmapTexture(
-                        device,
-                        samplerDescriptor =
-                            SamplerDescriptor(
-                                addressModeU = samplerRef.wrapS.toAddressMode(),
-                                addressModeV = samplerRef.wrapT.toAddressMode(),
-                                minFilter = minFilters.first,
-                                magFilter = magFilters.first,
-                                mipmapFilter = minFilters.second,
-                            ),
-                    )
-                    .apply {
-                        load(preferredFormat) {
-                            if (uri != null) {
-                                VfsFile(root.vfs, "${root.parent.path}/$uri").readPixmap()
-                            } else {
-                                imageRef.bufferViewRef?.getData()?.toArray()?.readPixmap()
-                                    ?: error("Unable to read GltfTexture data!")
-                            }
+                LazyTexture(device, samplerDescriptor).also {
+                    it.load(preferredFormat) {
+                        if (uri != null) {
+                            VfsFile(root.vfs, "${root.parent.path}/$uri").readImageData()
+                        } else {
+                            imageRef.bufferViewRef
+                                ?.getData()
+                                ?.toArray()
+                                ?.readImageData(imageRef.mimeType?.value)
+                                ?: error("Unable to read GltfTexture data!")
                         }
                     }
+                }
         }
         return texture ?: error("Unable to convert the GltfTexture to a Texture!")
     }

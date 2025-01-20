@@ -14,6 +14,7 @@ import com.littlekt.file.ldtk.LDtkMapData
 import com.littlekt.file.ldtk.LDtkMapLoader
 import com.littlekt.file.tiled.TiledMapData
 import com.littlekt.file.tiled.TiledMapLoader
+import com.littlekt.graphics.LazyTexture
 import com.littlekt.graphics.Pixmap
 import com.littlekt.graphics.Texture
 import com.littlekt.graphics.g2d.TextureAtlas
@@ -301,12 +302,18 @@ suspend fun VfsFile.readTiledMap(
 /** Reads Base64 encoded ByteArray for embedded images. */
 internal expect suspend fun ByteArray.readPixmap(): Pixmap
 
+internal expect suspend fun ByteArray.readImageData(
+    mimeType: String? = null
+): LazyTexture.ImageData<*>
+
 /**
  * Loads an image from the path as a [Pixmap].
  *
  * @return the loaded texture
  */
 expect suspend fun VfsFile.readPixmap(): Pixmap
+
+expect suspend fun VfsFile.readImageData(): LazyTexture.ImageData<*>
 
 /**
  * Loads an image from the path as a [Texture].
