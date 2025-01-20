@@ -1,7 +1,7 @@
 package com.littlekt.graphics
 
+import com.littlekt.async.KtScope
 import com.littlekt.async.VfsScope
-import com.littlekt.async.onRenderingThread
 import com.littlekt.graphics.Texture.Companion.nextId
 import com.littlekt.graphics.webgpu.*
 import kotlinx.coroutines.CoroutineScope
@@ -49,18 +49,19 @@ class LazyPixmapTexture(
                 )
 
             // we need to submit texture and generate mips on the rendering thread otherwise wgpu
-            // will fail when submitting the queue  on separate thread
-            onRenderingThread {
+            // will fail when submitting the queue on separate thread
+            KtScope.launch {
                 device.queue.writeTexture(
                     pixmap.pixels.toArray(),
                     TextureCopyView(gpuTexture),
                     TextureDataLayout(textureDescriptor.format.bytes * pixmap.width, pixmap.height),
                     size,
                 )
-                if (mips > 1) {
-                    generateMipMaps(device)
-                }
             }
+            if (mips > 1) {
+                KtScope.launch { generateMipMaps(device) }
+            }
+
             state = TextureState.LOADED
         }
 

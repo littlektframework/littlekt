@@ -181,6 +181,8 @@ fun Context.addFlyController(camera: Camera, speed: Float = 0.0015f) {
         if (input.isKeyPressed(Key.E)) {
             camera.position += up
         }
+
+        camera.update()
     }
 }
 
