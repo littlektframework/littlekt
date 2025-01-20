@@ -78,7 +78,10 @@ class MipMapGenerator(private val device: Device) : Releasable {
 
     private val renderPipelines = threadSafeMutableMapOf<TextureFormat, RenderPipeline>()
 
-    /** Generate the mips of the current [texture]. */
+    /**
+     * Generate the mips of the current [texture] and submit to the queue. Ensure that this is done
+     * on the rendering thread otherwise we may run into deadlock issues with WGPU.
+     */
     fun generateMips(texture: Texture) {
         val renderPipeline =
             renderPipelines.getOrPut(texture.textureDescriptor.format) {
