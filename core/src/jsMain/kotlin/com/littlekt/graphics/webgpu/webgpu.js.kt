@@ -153,6 +153,8 @@ actual class Device(val delegate: GPUDevice) : Releasable {
     }
 
     actual override fun release() {}
+
+    actual fun poll(): Boolean = true
 }
 
 actual class Adapter(val delegate: GPUAdapter) : Releasable {

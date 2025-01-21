@@ -92,6 +92,18 @@ expect class Device : Releasable {
      */
     fun createGPUByteBuffer(label: String, data: ByteArray, usage: BufferUsage): GPUBuffer
 
+    /**
+     * Check for resource cleanups and mapping callbacks.
+     *
+     * @return `true` if the queue is empty, or `false` if there are more queue submissions still in
+     *   flight. (Note that, unless access to the Queue is coordinated somehow, this information
+     *   could be out of date by the time the caller receives it. Queues can be shared between
+     *   threads, so other threads could submit new work at any time.)
+     *
+     * When running on WebGPU, this is a no-op. Devices are automatically polled.
+     */
+    fun poll(): Boolean
+
     override fun release()
 }
 

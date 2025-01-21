@@ -484,6 +484,21 @@ actual class Device(val segment: MemorySegment) : Releasable {
     override fun toString(): String {
         return "Device"
     }
+
+    /**
+     * Check for resource cleanups and mapping callbacks. Will block.
+     *
+     * @return `true` if the queue is empty, or `false` if there are more queue submissions still in
+     *   flight. (Note that, unless access to the Queue is coordinated somehow, this information
+     *   could be out of date by the time the caller receives it. Queues can be shared between
+     *   threads, so other threads could submit new work at any time.)
+     *
+     * When running on WebGPU, this is a no-op. Devices are automatically polled.
+     */
+    actual fun poll(): Boolean {
+        val result = wgpuDevicePoll(segment, true.toInt(), WGPU_NULL)
+        return result == 1
+    }
 }
 
 actual class Adapter(var segment: MemorySegment) : Releasable {
