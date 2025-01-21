@@ -27,6 +27,7 @@ class ClusteredBoundsComputeShaderBuilder(
     /** Requires [cluster] with [MemoryAccessMode.READ_WRITE] and [camera]. */
     override fun main(entryPoint: String) {
         parts +=
+            // language=wgsl
             """
               fn lineIntersectionToZPlane(a : vec3f, b : vec3f, zDistance : f32) -> vec3f {
                 let normal = vec3(0.0, 0.0, 1.0); // plane normal
@@ -44,7 +45,7 @@ class ClusteredBoundsComputeShaderBuilder(
     
               fn screenToView(screen : vec4f) -> vec4f {
                 let texCoord = screen.xy / camera.output_size.xy;
-                let clip = vec4(vec2(texCoord.x, 1.0 - texCoord.y) * 2.0 - vec2(1.0, 1.0), screen.z, screen.w);
+                let clip = vec4(vec2(texCoord.x, 1.0 - texCoord.y) * 2.0 - 1.0, screen.z, screen.w);
                 return clipToView(clip);
               }
     
@@ -60,14 +61,14 @@ class ClusteredBoundsComputeShaderBuilder(
                 let tileSize = vec2(camera.output_size.x / f32(tileCount.x),
                                     camera.output_size.y / f32(tileCount.y));
     
-                let maxPoint_sS = vec4(vec2(f32(global_id.x+1u), f32(global_id.y+1u)) * tileSize, 0.0, 1.0);
+                let maxPoint_sS = vec4(vec2(f32(global_id.x + 1u), f32(global_id.y + 1u)) * tileSize, 0.0, 1.0);
                 let minPoint_sS = vec4(vec2(f32(global_id.x), f32(global_id.y)) * tileSize, 0.0, 1.0);
     
                 let maxPoint_vS = screenToView(maxPoint_sS).xyz;
                 let minPoint_vS = screenToView(minPoint_sS).xyz;
     
-                let tileNear: f32 = -camera.z_near * pow(camera.z_far/ camera.z_near, f32(global_id.z)/f32(tileCount.z));
-                let tileFar: f32 = -camera.z_near * pow(camera.z_far/ camera.z_near, f32(global_id.z+1u)/f32(tileCount.z));
+                let tileNear: f32 = -camera.z_near * pow(camera.z_far / camera.z_near, f32(global_id.z) / f32(tileCount.z));
+                let tileFar: f32 = -camera.z_near * pow(camera.z_far / camera.z_near, f32(global_id.z + 1u) / f32(tileCount.z));
     
                 let minPointNear = lineIntersectionToZPlane(eyePos, minPoint_vS, tileNear);
                 let minPointFar = lineIntersectionToZPlane(eyePos, minPoint_vS, tileFar);

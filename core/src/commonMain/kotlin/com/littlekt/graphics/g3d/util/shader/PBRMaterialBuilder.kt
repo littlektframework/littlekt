@@ -11,6 +11,7 @@ import kotlin.math.PI
 class PBRMaterialBuilder : SubFragmentShaderBuilder() {
     override fun material(group: Int) {
         parts +=
+            // language=wgsl
             """
         struct Material {
             base_color_factor : vec4f,
@@ -36,6 +37,7 @@ class PBRMaterialBuilder : SubFragmentShaderBuilder() {
 
     fun surfaceInfo(attributes: List<VertexAttribute>) {
         parts +=
+            // language=wgsl
             """
           struct SurfaceInfo {
             base_color : vec4f,
@@ -56,9 +58,9 @@ class PBRMaterialBuilder : SubFragmentShaderBuilder() {
             ${
                 if (attributes.any { it.usage == VertexAttrUsage.TANGENT }) {
                     """
-                    let tbn = mat3x3 (input.tangent, input.bitangent, input.normal);
-                    let N = textureSample (normal_texture, normal_sampler, input.uv).rgb;
-                    surface.normal = normalize(tbn * (2.0 * N - vec3(1.0)));
+                    let tbn = mat3x3(input.tangent, input.bitangent, input.normal);
+                    let N = textureSample(normal_texture, normal_sampler, input.uv).rgb;
+                    surface.normal = normalize(tbn * (2.0 * N - 1.0));
                     """
                 } else {
                     "surface.normal = normalize(input.normal);"
@@ -96,6 +98,8 @@ class PBRMaterialBuilder : SubFragmentShaderBuilder() {
 
     fun pbrFunctions(fullyRough: Boolean) {
         parts +=
+
+            // language=wgsl
             """
             const PI = $PI;
 
@@ -203,6 +207,7 @@ class PBRMaterialBuilder : SubFragmentShaderBuilder() {
         pbrFunctions(fullyRough)
         colorConversionFunctions()
         parts +=
+            // language=wgsl
             """
             struct FragmentOutput {
                 @location(0) color : vec4f,

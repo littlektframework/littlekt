@@ -23,6 +23,7 @@ open class VertexShaderBuilder : SubShaderBuilder() {
         val cameraViewProj =
             if (cameraViewProjCombined) "camera.view_proj" else "camera.proj * camera.view"
         parts +=
+            // language=wgsl
             """
         @vertex
         fn $entryPoint(input: VertexInput) -> VertexOutput {
