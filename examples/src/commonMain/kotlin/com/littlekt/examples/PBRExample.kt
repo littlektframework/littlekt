@@ -94,7 +94,7 @@ class PBRExample(context: Context) : ContextListener(context) {
         val models =
             listOf(
                 GltfModel(
-                    resourcesVfs["models/sponza-optimized.glb"],
+                    resourcesVfs["models/sponza.glb"],
                     GltfModelPbrConfig(),
                     environment,
                     1f,
