@@ -12,7 +12,6 @@ import com.littlekt.graphics.g2d.font.BitmapFont
 import com.littlekt.graphics.g2d.font.FontMetrics
 import com.littlekt.graphics.g2d.font.Kerning
 import com.littlekt.graphics.slice
-import com.littlekt.graphics.webgpu.TextureFormat
 import com.littlekt.math.MutableVec4i
 import com.littlekt.util.MutableTextureAtlas
 import com.littlekt.util.internal.SingletonBase
@@ -45,14 +44,11 @@ internal class InternalResources private constructor(private val context: Contex
     lateinit var transparent: TextureSlice
 
     suspend fun load() {
-        val textureFormat =
-            if (context.graphics.preferredFormat.srgb) TextureFormat.RGBA8_UNORM_SRGB
-            else TextureFormat.RGBA8_UNORM
+        val textureFormat = context.graphics.preferredFormat
         val device = context.graphics.device
-        val page =
-            context.vfsUrl.json.decodeFromString<AtlasPage>(
-                defaultTilesJson.decodeFromBase64().decodeToString()
-            )
+        val page = context.vfsUrl.json.decodeFromString<AtlasPage>(
+            defaultTilesJson.decodeFromBase64().decodeToString()
+        )
         val info = AtlasInfo(page.meta, listOf(page))
         val tilesTexture =
             PixmapTexture(device, textureFormat, defaultTilesBmp.decodeFromBase64().readPixmap())
@@ -147,11 +143,13 @@ internal class InternalResources private constructor(private val context: Contex
                         )
                     }
                 }
+
                 line.startsWith("common ") -> {
                     lineHeight = map["lineHeight"]?.toFloatOrNull() ?: 16f
                     base = map["base"]?.toFloatOrNull()
                     pages = map["pages"]?.toIntOrNull() ?: 1
                 }
+
                 line.startsWith("char ") -> {
                     val page = map["page"]?.toIntOrNull() ?: 0
                     val texture = textures[page] ?: textures.values.first()
@@ -172,13 +170,13 @@ internal class InternalResources private constructor(private val context: Contex
                             fontSize = fontSize,
                             id = id,
                             slice =
-                                TextureSlice(
-                                    texture,
-                                    map["x"]?.toIntOrNull() ?: 0,
-                                    map["y"]?.toIntOrNull() ?: 0,
-                                    width,
-                                    height
-                                ),
+                            TextureSlice(
+                                texture,
+                                map["x"]?.toIntOrNull() ?: 0,
+                                map["y"]?.toIntOrNull() ?: 0,
+                                width,
+                                height
+                            ),
                             xoffset = map["xoffset"]?.toIntOrNull() ?: 0,
                             yoffset = -(height + (map["yoffset"]?.toIntOrNull() ?: 0)),
                             width = width,
@@ -187,6 +185,7 @@ internal class InternalResources private constructor(private val context: Contex
                             page = page
                         )
                 }
+
                 line.startsWith("kerning ") -> {
                     kernings +=
                         Kerning(

@@ -2,22 +2,22 @@ package com.littlekt.examples
 
 import com.littlekt.Context
 import com.littlekt.graphics.Camera
-import com.littlekt.graphics.webgpu.SurfaceConfiguration
-import com.littlekt.graphics.webgpu.SurfaceTexture
-import com.littlekt.graphics.webgpu.TextureStatus
 import com.littlekt.input.Key
 import com.littlekt.util.milliseconds
+import io.ygdrasil.webgpu.SurfaceTexture
+import io.ygdrasil.webgpu.SurfaceConfiguration
+import io.ygdrasil.webgpu.SurfaceTextureStatus
 
 fun SurfaceTexture.isValid(context: Context, onConfigure: () -> SurfaceConfiguration): Boolean {
     val surfaceTexture = this
     when (val status = surfaceTexture.status) {
-        TextureStatus.SUCCESS -> {
+        SurfaceTextureStatus.success -> {
             // all good, could check for `surfaceTexture.suboptimal` here.
         }
-        TextureStatus.TIMEOUT,
-        TextureStatus.OUTDATED,
-        TextureStatus.LOST -> {
-            surfaceTexture.texture?.release()
+        SurfaceTextureStatus.timeout,
+        SurfaceTextureStatus.outdated,
+        SurfaceTextureStatus.lost -> {
+            surfaceTexture.texture.close()
             context.graphics.surface.configure(onConfigure())
             context.logger.info { "getCurrentTexture status=$status" }
             return false

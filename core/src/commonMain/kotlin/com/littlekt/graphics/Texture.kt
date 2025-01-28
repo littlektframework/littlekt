@@ -1,7 +1,13 @@
 package com.littlekt.graphics
 
 import com.littlekt.Releasable
-import com.littlekt.graphics.webgpu.*
+import io.ygdrasil.webgpu.Sampler
+import io.ygdrasil.webgpu.SamplerDescriptor
+import io.ygdrasil.webgpu.Size3D
+import io.ygdrasil.webgpu.TextureDescriptor
+import io.ygdrasil.webgpu.TextureView
+import io.ygdrasil.webgpu.TextureViewDescriptor
+import io.ygdrasil.webgpu.Texture as WebGPUTexture
 import kotlinx.atomicfu.atomic
 
 /**
@@ -17,15 +23,15 @@ interface Texture : Releasable {
      * The [Extent3D] size of the texture. Usually, the width & height of the image with a depth of
      * `1`.
      */
-    val size: Extent3D
+    val size: Size3D
 
     /** The width of the texture. */
     val width: Int
-        get() = size.width
+        get() = size.width.toInt()
 
     /** The height of the texture. */
     val height: Int
-        get() = size.height
+        get() = size.height.toInt()
 
     /** The id of the texture. */
     val id: Int
@@ -61,10 +67,10 @@ interface Texture : Releasable {
     fun writeDataToBuffer()
 
     override fun release() {
-        view.release()
-        sampler.release()
+        view.close()
+        sampler.close()
         // destroy after any update/postUpdate calls to ensure we aren't in the middle of a pass!
-        gpuTexture.release()
+        gpuTexture.close()
     }
 
     companion object {

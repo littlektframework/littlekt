@@ -4,8 +4,6 @@ import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
 
 plugins { alias(libs.plugins.kotlin.multiplatform) }
 
-repositories { maven(url = "https://maven.pkg.jetbrains.space/public/p/kotlinx-html/maven") }
-
 kotlin {
     tasks.withType<JavaExec> { jvmArgs("--enable-native-access=ALL-UNNAMED") }
     jvm {
@@ -41,7 +39,11 @@ kotlin {
                 }
                 if (Os.isFamily(Os.FAMILY_MAC)) {
                     register<JavaExec>("jvmRun") {
-                        jvmArgs("-XstartOnFirstThread")
+                        jvmArgs(
+                            "-XstartOnFirstThread",
+                            "--add-opens=java.base/java.lang=ALL-UNNAMED",
+                            "--enable-native-access=ALL-UNNAMED"
+                        )
                         mainClass.set(mainClassName)
                         kotlin {
                             val mainCompile = targets["jvm"].compilations["main"]

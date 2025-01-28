@@ -1,3 +1,4 @@
+import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.plugin.KotlinJsCompilerType
 import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
@@ -32,6 +33,7 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
+                api(libs.wgpu4k)
                 implementation(libs.kotlinx.atomicfu)
                 implementation(libs.kotlinx.coroutines.core)
                 implementation(libs.kotlinx.serialization.json)
@@ -47,10 +49,12 @@ kotlin {
         //noinspection UseTomlInstead
         val jvmMain by getting {
             dependencies {
-                implementation(project(":wgpu-ffm"))
-                implementation(project(":wgpu-natives"))
 
                 implementation(libs.mp3.decoder)
+
+                // Helper to create surface
+                implementation(libs.rococoa)
+                implementation(libs.jnaPlatform)
 
                 implementation(libs.lwjgl.core)
                 implementation(libs.lwjgl.glfw)
@@ -84,16 +88,18 @@ kotlin {
 
         all {
             languageSettings.apply {
-                progressiveMode = true
                 optIn("kotlin.contracts.ExperimentalContracts")
                 optIn("kotlin.time.ExperimentalTime")
             }
         }
 
-        targets.configureEach {
-            compilations.configureEach {
-                compilerOptions.configure { freeCompilerArgs.add("-Xexpect-actual-classes") }
-            }
-        }
+    }
+
+    @OptIn(ExperimentalKotlinGradlePluginApi::class)
+    compilerOptions {
+        // Fix warning, then turn this on
+        allWarningsAsErrors = false
+        progressiveMode = true
+        freeCompilerArgs.add("-Xexpect-actual-classes")
     }
 }

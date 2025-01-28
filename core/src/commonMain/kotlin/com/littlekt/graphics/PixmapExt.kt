@@ -1,9 +1,9 @@
 package com.littlekt.graphics
 
 import com.littlekt.graphics.g2d.TextureSlice
-import com.littlekt.graphics.webgpu.Device
-import com.littlekt.graphics.webgpu.TextureFormat
 import com.littlekt.math.nextPowerOfTwo
+import io.ygdrasil.webgpu.Device
+import io.ygdrasil.webgpu.TextureFormat
 import kotlin.math.ceil
 import kotlin.math.sqrt
 

@@ -5,8 +5,13 @@ import com.littlekt.ContextListener
 import com.littlekt.file.vfs.readTiledMap
 import com.littlekt.graphics.Color
 import com.littlekt.graphics.g2d.SpriteCache
-import com.littlekt.graphics.webgpu.*
 import com.littlekt.util.viewport.ExtendViewport
+import io.ygdrasil.webgpu.LoadOp
+import io.ygdrasil.webgpu.PresentMode
+import io.ygdrasil.webgpu.RenderPassDescriptor
+import io.ygdrasil.webgpu.StoreOp
+import io.ygdrasil.webgpu.SurfaceTextureStatus
+import io.ygdrasil.webgpu.TextureUsage
 
 /**
  * Load and render a Tiled map using a [SpriteCache].
@@ -22,32 +27,28 @@ class TiledTileMapCacheExample(context: Context) : ContextListener(context) {
         val device = graphics.device
 
         val map = resourcesVfs["tiled/ortho-tiled-world.tmj"].readTiledMap()
-        val surfaceCapabilities = graphics.surfaceCapabilities
         val preferredFormat = graphics.preferredFormat
 
         graphics.configureSurface(
-            TextureUsage.RENDER_ATTACHMENT,
+            setOf(TextureUsage.RenderAttachment),
             preferredFormat,
-            PresentMode.FIFO,
-            surfaceCapabilities.alphaModes[0],
+            PresentMode.fifo,
+            graphics.surface.supportedAlphaMode.first()
         )
 
         val cache = SpriteCache(device, preferredFormat)
         map.addToCache(cache, 0f, 0f, 1 / 8f)
         val viewport = ExtendViewport(30, 16)
         val camera = viewport.camera
-        var bgColor = map.backgroundColor ?: Color.DARK_GRAY
-        if (preferredFormat.srgb) {
-            bgColor = bgColor.toLinear()
-        }
+        val bgColor = map.backgroundColor ?: Color.DARK_GRAY
 
         onResize { width, height ->
             viewport.update(width, height)
             graphics.configureSurface(
-                TextureUsage.RENDER_ATTACHMENT,
+                setOf(TextureUsage.RenderAttachment),
                 preferredFormat,
-                PresentMode.FIFO,
-                surfaceCapabilities.alphaModes[0],
+                PresentMode.fifo,
+                graphics.surface.supportedAlphaMode.first()
             )
         }
 
@@ -55,13 +56,13 @@ class TiledTileMapCacheExample(context: Context) : ContextListener(context) {
         onUpdate {
             val surfaceTexture = graphics.surface.getCurrentTexture()
             when (val status = surfaceTexture.status) {
-                TextureStatus.SUCCESS -> {
+                SurfaceTextureStatus.success -> {
                     // all good, could check for `surfaceTexture.suboptimal` here.
                 }
-                TextureStatus.TIMEOUT,
-                TextureStatus.OUTDATED,
-                TextureStatus.LOST -> {
-                    surfaceTexture.texture?.release()
+                SurfaceTextureStatus.timeout,
+                SurfaceTextureStatus.outdated,
+                SurfaceTextureStatus.lost -> {
+                    surfaceTexture.texture.close()
                     logger.info { "getCurrentTexture status=$status" }
                     return@onUpdate
                 }
@@ -78,14 +79,13 @@ class TiledTileMapCacheExample(context: Context) : ContextListener(context) {
             val commandEncoder = device.createCommandEncoder()
             val renderPassEncoder =
                 commandEncoder.beginRenderPass(
-                    desc =
                         RenderPassDescriptor(
                             listOf(
-                                RenderPassColorAttachmentDescriptor(
+                                RenderPassDescriptor.ColorAttachment(
                                     view = frame,
-                                    loadOp = LoadOp.CLEAR,
-                                    storeOp = StoreOp.STORE,
-                                    clearColor = bgColor,
+                                    loadOp = LoadOp.clear,
+                                    storeOp = StoreOp.store,
+                                    clearValue = bgColor.toWebGPUColor()
                                 )
                             )
                         )
@@ -98,13 +98,13 @@ class TiledTileMapCacheExample(context: Context) : ContextListener(context) {
 
             val commandBuffer = commandEncoder.finish()
 
-            device.queue.submit(commandBuffer)
+            device.queue.submit(listOf(commandBuffer))
             graphics.surface.present()
 
-            commandBuffer.release()
-            commandEncoder.release()
-            frame.release()
-            swapChainTexture.release()
+            commandBuffer.close()
+            commandEncoder.close()
+            frame.close()
+            swapChainTexture.close()
         }
 
         onRelease {

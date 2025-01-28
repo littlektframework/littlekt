@@ -4,10 +4,31 @@ import com.littlekt.Context
 import com.littlekt.ContextListener
 import com.littlekt.file.FloatBuffer
 import com.littlekt.file.vfs.readTexture
+import com.littlekt.graphics.BlendStates
 import com.littlekt.graphics.Color
 import com.littlekt.graphics.OrthographicCamera
+import com.littlekt.graphics.createGPUFloatBuffer
 import com.littlekt.graphics.textureIndexedMesh
-import com.littlekt.graphics.webgpu.*
+import io.ygdrasil.webgpu.BindGroupDescriptor
+import io.ygdrasil.webgpu.BindGroupDescriptor.*
+import io.ygdrasil.webgpu.BindGroupLayoutDescriptor
+import io.ygdrasil.webgpu.BindGroupLayoutDescriptor.Entry
+import io.ygdrasil.webgpu.BindGroupLayoutDescriptor.Entry.*
+import io.ygdrasil.webgpu.BufferUsage
+import io.ygdrasil.webgpu.ColorWriteMask
+import io.ygdrasil.webgpu.IndexFormat
+import io.ygdrasil.webgpu.LoadOp
+import io.ygdrasil.webgpu.PipelineLayoutDescriptor
+import io.ygdrasil.webgpu.PresentMode
+import io.ygdrasil.webgpu.PrimitiveTopology
+import io.ygdrasil.webgpu.RenderPassDescriptor
+import io.ygdrasil.webgpu.RenderPipelineDescriptor
+import io.ygdrasil.webgpu.RenderPipelineDescriptor.*
+import io.ygdrasil.webgpu.ShaderModuleDescriptor
+import io.ygdrasil.webgpu.ShaderStage
+import io.ygdrasil.webgpu.StoreOp
+import io.ygdrasil.webgpu.SurfaceTextureStatus
+import io.ygdrasil.webgpu.TextureUsage
 
 /**
  * An example showing drawing a texture with a [textureIndexedMesh] and using an
@@ -93,11 +114,10 @@ class TextureMeshAndCameraExample(context: Context) : ContextListener(context) {
             device.createGPUFloatBuffer(
                 "camera uniform buffer",
                 cameraFloatBuffer.toArray(),
-                BufferUsage.UNIFORM or BufferUsage.COPY_DST,
+                setOf(BufferUsage.Uniform, BufferUsage.CopyDst)
             )
 
-        val shader = device.createShaderModule(textureShader)
-        val surfaceCapabilities = graphics.surfaceCapabilities
+        val shader = device.createShaderModule(ShaderModuleDescriptor(textureShader))
         val preferredFormat = graphics.preferredFormat
 
         val queue = device.queue
@@ -105,7 +125,7 @@ class TextureMeshAndCameraExample(context: Context) : ContextListener(context) {
         val vertexGroupLayout =
             device.createBindGroupLayout(
                 BindGroupLayoutDescriptor(
-                    listOf(BindGroupLayoutEntry(0, ShaderStage.VERTEX, BufferBindingLayout()))
+                    listOf(Entry(0, setOf(ShaderStage.Vertex), BufferBindingLayout()))
                 )
             )
         val vertexBindGroup =
@@ -119,17 +139,18 @@ class TextureMeshAndCameraExample(context: Context) : ContextListener(context) {
             device.createBindGroupLayout(
                 BindGroupLayoutDescriptor(
                     listOf(
-                        BindGroupLayoutEntry(0, ShaderStage.FRAGMENT, TextureBindingLayout()),
-                        BindGroupLayoutEntry(1, ShaderStage.FRAGMENT, SamplerBindingLayout()),
+                        Entry(0, setOf(ShaderStage.Fragment), TextureBindingLayout()),
+                        Entry(1, setOf(ShaderStage.Fragment), SamplerBindingLayout())
                     )
                 )
             )
         val fragmentBindGroup =
             device.createBindGroup(
-                desc =
                     BindGroupDescriptor(
                         fragmentGroupLayout,
-                        listOf(BindGroupEntry(0, texture.view), BindGroupEntry(1, texture.sampler)),
+                        listOf(
+                            BindGroupEntry(0, TextureViewBinding(texture.view)),
+                            BindGroupEntry(1, SamplerBinding(texture.sampler)))
                     )
             )
         val pipelineLayout =
@@ -139,43 +160,43 @@ class TextureMeshAndCameraExample(context: Context) : ContextListener(context) {
         val renderPipelineDesc =
             RenderPipelineDescriptor(
                 layout = pipelineLayout,
-                vertex =
-                    VertexState(
-                        module = shader,
-                        entryPoint = "vs_main",
-                        mesh.geometry.layout.gpuVertexBufferLayout,
-                    ),
+                vertex = VertexState(
+                    module = shader,
+                    entryPoint = "vs_main",
+                    buffers = listOf(mesh.geometry.layout.gpuVertexBufferLayout)
+                ),
                 fragment =
-                    FragmentState(
-                        module = shader,
-                        entryPoint = "fs_main",
-                        target =
-                            ColorTargetState(
-                                format = preferredFormat,
-                                blendState = BlendState.NonPreMultiplied,
-                                writeMask = ColorWriteMask.ALL,
-                            ),
-                    ),
-                primitive = PrimitiveState(topology = PrimitiveTopology.TRIANGLE_LIST),
+                FragmentState(
+                    module = shader,
+                    entryPoint = "fs_main",
+                    targets =
+                    listOf(
+                        FragmentState.ColorTargetState(
+                            format = preferredFormat,
+                            blend = BlendStates.NonPreMultiplied,
+                            writeMask = ColorWriteMask.All
+                        )
+                    )
+                ),
+                primitive = PrimitiveState(topology = PrimitiveTopology.TriangleList),
                 depthStencil = null,
-                multisample =
-                    MultisampleState(count = 1, mask = 0xFFFFFFF, alphaToCoverageEnabled = false),
+                multisample = MultisampleState(count = 1, mask = 0xFFFFFFFu, alphaToCoverageEnabled = false)
             )
         val renderPipeline = device.createRenderPipeline(renderPipelineDesc)
         graphics.configureSurface(
-            TextureUsage.RENDER_ATTACHMENT,
+            setOf(TextureUsage.RenderAttachment),
             preferredFormat,
-            PresentMode.FIFO,
-            surfaceCapabilities.alphaModes[0],
+            PresentMode.fifo,
+            graphics.surface.supportedAlphaMode.first()
         )
 
         onResize { width, height ->
             camera.ortho(width, height)
             graphics.configureSurface(
-                TextureUsage.RENDER_ATTACHMENT,
+                setOf(TextureUsage.RenderAttachment),
                 preferredFormat,
-                PresentMode.FIFO,
-                surfaceCapabilities.alphaModes[0],
+                PresentMode.fifo,
+                graphics.surface.supportedAlphaMode.first()
             )
         }
 
@@ -183,13 +204,13 @@ class TextureMeshAndCameraExample(context: Context) : ContextListener(context) {
         onUpdate {
             val surfaceTexture = graphics.surface.getCurrentTexture()
             when (val status = surfaceTexture.status) {
-                TextureStatus.SUCCESS -> {
+                SurfaceTextureStatus.success -> {
                     // all good, could check for `surfaceTexture.suboptimal` here.
                 }
-                TextureStatus.TIMEOUT,
-                TextureStatus.OUTDATED,
-                TextureStatus.LOST -> {
-                    surfaceTexture.texture?.release()
+                SurfaceTextureStatus.timeout,
+                SurfaceTextureStatus.outdated,
+                SurfaceTextureStatus.lost -> {
+                    surfaceTexture.texture.close()
                     logger.info { "getCurrentTexture status=$status" }
                     return@onUpdate
                 }
@@ -202,7 +223,7 @@ class TextureMeshAndCameraExample(context: Context) : ContextListener(context) {
             }
             camera.update()
             camera.viewProjection.toBuffer(cameraFloatBuffer)
-            device.queue.writeBuffer(cameraUniformBuffer, cameraFloatBuffer)
+            device.queue.writeBuffer(cameraUniformBuffer, 0L, cameraFloatBuffer.toArray())
 
             val swapChainTexture = checkNotNull(surfaceTexture.texture)
             val frame = swapChainTexture.createView()
@@ -210,16 +231,13 @@ class TextureMeshAndCameraExample(context: Context) : ContextListener(context) {
             val commandEncoder = device.createCommandEncoder()
             val renderPassEncoder =
                 commandEncoder.beginRenderPass(
-                    desc =
                         RenderPassDescriptor(
                             listOf(
-                                RenderPassColorAttachmentDescriptor(
+                                RenderPassDescriptor.ColorAttachment(
                                     view = frame,
-                                    loadOp = LoadOp.CLEAR,
-                                    storeOp = StoreOp.STORE,
-                                    clearColor =
-                                        if (preferredFormat.srgb) Color.DARK_GRAY.toLinear()
-                                        else Color.DARK_GRAY,
+                                    loadOp = LoadOp.clear,
+                                    storeOp = StoreOp.store,
+                                    clearValue = Color.DARK_GRAY.toWebGPUColor()
                                 )
                             )
                         )
@@ -228,31 +246,31 @@ class TextureMeshAndCameraExample(context: Context) : ContextListener(context) {
             renderPassEncoder.setBindGroup(0, vertexBindGroup)
             renderPassEncoder.setBindGroup(1, fragmentBindGroup)
             renderPassEncoder.setVertexBuffer(0, mesh.vbo)
-            renderPassEncoder.setIndexBuffer(mesh.ibo, IndexFormat.UINT16)
+            renderPassEncoder.setIndexBuffer(mesh.ibo, IndexFormat.Uint16)
             renderPassEncoder.drawIndexed(6, 1)
             renderPassEncoder.end()
             renderPassEncoder.release()
 
             val commandBuffer = commandEncoder.finish()
 
-            queue.submit(commandBuffer)
+            queue.submit(listOf(commandBuffer))
             graphics.surface.present()
 
-            commandBuffer.release()
-            commandEncoder.release()
-            frame.release()
-            swapChainTexture.release()
+            commandBuffer.close()
+            commandEncoder.close()
+            frame.close()
+            swapChainTexture.close()
         }
 
         onRelease {
-            renderPipeline.release()
-            pipelineLayout.release()
-            fragmentBindGroup.release()
-            fragmentGroupLayout.release()
+            renderPipeline.close()
+            pipelineLayout.close()
+            fragmentBindGroup.close()
+            fragmentGroupLayout.close()
             texture.release()
             mesh.release()
             texture.release()
-            shader.release()
+            shader.close()
         }
     }
 }

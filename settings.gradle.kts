@@ -11,18 +11,16 @@ plugins { id("org.gradle.toolchains.foojay-resolver-convention") version "0.8.0"
 
 dependencyResolutionManagement {
     repositories {
+        //mavenLocal()
         google()
         mavenCentral()
+        maven(url = "https://maven.pkg.jetbrains.space/public/p/kotlinx-html/maven")
     }
 }
 
 rootProject.name = "littlekt"
 
 include(":core")
-
-include("wgpu-natives")
-
-include("wgpu-ffm")
 
 include("examples")
 

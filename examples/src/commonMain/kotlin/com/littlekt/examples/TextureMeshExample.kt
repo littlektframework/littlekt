@@ -3,9 +3,36 @@ package com.littlekt.examples
 import com.littlekt.Context
 import com.littlekt.ContextListener
 import com.littlekt.file.vfs.readPixmap
+import com.littlekt.graphics.BlendStates
 import com.littlekt.graphics.Color
 import com.littlekt.graphics.textureIndexedMesh
-import com.littlekt.graphics.webgpu.*
+import io.ygdrasil.webgpu.BindGroupDescriptor
+import io.ygdrasil.webgpu.BindGroupDescriptor.*
+import io.ygdrasil.webgpu.BindGroupLayoutDescriptor
+import io.ygdrasil.webgpu.BindGroupLayoutDescriptor.Entry
+import io.ygdrasil.webgpu.BindGroupLayoutDescriptor.Entry.SamplerBindingLayout
+import io.ygdrasil.webgpu.BindGroupLayoutDescriptor.Entry.TextureBindingLayout
+import io.ygdrasil.webgpu.ColorWriteMask
+import io.ygdrasil.webgpu.ImageCopyTexture
+import io.ygdrasil.webgpu.IndexFormat
+import io.ygdrasil.webgpu.LoadOp
+import io.ygdrasil.webgpu.PipelineLayoutDescriptor
+import io.ygdrasil.webgpu.PresentMode
+import io.ygdrasil.webgpu.PrimitiveTopology
+import io.ygdrasil.webgpu.RenderPassDescriptor
+import io.ygdrasil.webgpu.RenderPipelineDescriptor
+import io.ygdrasil.webgpu.RenderPipelineDescriptor.*
+import io.ygdrasil.webgpu.RenderPipelineDescriptor.FragmentState.ColorTargetState
+import io.ygdrasil.webgpu.SamplerDescriptor
+import io.ygdrasil.webgpu.ShaderModuleDescriptor
+import io.ygdrasil.webgpu.ShaderStage
+import io.ygdrasil.webgpu.Size3D
+import io.ygdrasil.webgpu.StoreOp
+import io.ygdrasil.webgpu.SurfaceTextureStatus
+import io.ygdrasil.webgpu.TextureDataLayout
+import io.ygdrasil.webgpu.TextureDescriptor
+import io.ygdrasil.webgpu.TextureFormat
+import io.ygdrasil.webgpu.TextureUsage
 
 /**
  * An example showing drawing a texture with a [textureIndexedMesh].
@@ -73,28 +100,23 @@ class TextureMeshExample(context: Context) : ContextListener(context) {
                 }
             }
         mesh.update()
-        val shader = device.createShaderModule(textureShader)
-        val surfaceCapabilities = graphics.surfaceCapabilities
+        val shader = device.createShaderModule(ShaderModuleDescriptor(textureShader))
         val preferredFormat = graphics.preferredFormat
         val texture =
             device.createTexture(
                 TextureDescriptor(
-                    Extent3D(image.width, image.height, 1),
-                    1,
-                    1,
-                    TextureDimension.D2,
-                    if (preferredFormat.srgb) TextureFormat.RGBA8_UNORM_SRGB
-                    else TextureFormat.RGBA8_UNORM,
-                    TextureUsage.COPY_DST or TextureUsage.TEXTURE,
+                    Size3D(image.width, image.height),
+                    TextureFormat.rgba8unorm,
+                    setOf(TextureUsage.CopyDst, TextureUsage.TextureBinding)
                 )
             )
 
         val queue = device.queue
         queue.writeTexture(
             data = image.pixels.toArray(),
-            destination = TextureCopyView(texture),
-            layout = TextureDataLayout(image.width * 4, image.height),
-            copySize = Extent3D(image.width, image.height, 1),
+            destination = ImageCopyTexture(texture),
+            dataLayout = TextureDataLayout(0L, image.width * 4, image.height),
+            size = Size3D(image.width, image.height, 1)
         )
 
         val sampler = device.createSampler(SamplerDescriptor())
@@ -103,68 +125,72 @@ class TextureMeshExample(context: Context) : ContextListener(context) {
             device.createBindGroupLayout(
                 BindGroupLayoutDescriptor(
                     listOf(
-                        BindGroupLayoutEntry(0, ShaderStage.FRAGMENT, TextureBindingLayout()),
-                        BindGroupLayoutEntry(1, ShaderStage.FRAGMENT, SamplerBindingLayout()),
+                        Entry(0, setOf(ShaderStage.Fragment), TextureBindingLayout()),
+                        Entry(1, setOf(ShaderStage.Fragment), SamplerBindingLayout())
                     )
                 )
             )
         val bindGroup =
             device.createBindGroup(
-                desc =
                     BindGroupDescriptor(
                         bindGroupLayout,
-                        listOf(BindGroupEntry(0, textureView), BindGroupEntry(1, sampler)),
+                        listOf(
+                            BindGroupEntry(0, TextureViewBinding(textureView)),
+                            BindGroupEntry(1, SamplerBinding(sampler))
+                        )
                     )
             )
-        val pipelineLayout = device.createPipelineLayout(PipelineLayoutDescriptor(bindGroupLayout))
+        val pipelineLayout = device.createPipelineLayout(PipelineLayoutDescriptor(listOf(bindGroupLayout)))
         val renderPipelineDesc =
             RenderPipelineDescriptor(
                 layout = pipelineLayout,
                 vertex =
-                    VertexState(
-                        module = shader,
-                        entryPoint = "vs_main",
-                        mesh.geometry.layout.gpuVertexBufferLayout,
-                    ),
+                VertexState(
+                    module = shader,
+                    entryPoint = "vs_main",
+                    buffers = listOf(mesh.geometry.layout.gpuVertexBufferLayout)
+                ),
                 fragment =
-                    FragmentState(
-                        module = shader,
-                        entryPoint = "fs_main",
-                        target =
-                            ColorTargetState(
-                                format = preferredFormat,
-                                blendState = BlendState.NonPreMultiplied,
-                                writeMask = ColorWriteMask.ALL,
-                            ),
-                    ),
-                primitive = PrimitiveState(topology = PrimitiveTopology.TRIANGLE_LIST),
+                FragmentState(
+                    module = shader,
+                    entryPoint = "fs_main",
+                    targets =
+                    listOf(
+                        ColorTargetState(
+                            format = preferredFormat,
+                            blend = BlendStates.NonPreMultiplied,
+                            writeMask = ColorWriteMask.All
+                        )
+                    )
+                ),
+                primitive = PrimitiveState(topology = PrimitiveTopology.TriangleList),
                 depthStencil = null,
                 multisample =
-                    MultisampleState(count = 1, mask = 0xFFFFFFF, alphaToCoverageEnabled = false),
+                MultisampleState(count = 1, mask = 0xFFFFFFFu, alphaToCoverageEnabled = false)
             )
         val renderPipeline = device.createRenderPipeline(renderPipelineDesc)
         graphics.configureSurface(
-            TextureUsage.RENDER_ATTACHMENT,
+            setOf(TextureUsage.RenderAttachment),
             preferredFormat,
-            PresentMode.FIFO,
-            surfaceCapabilities.alphaModes[0],
+            PresentMode.fifo,
+            graphics.surface.supportedAlphaMode.first()
         )
 
         onUpdate {
             val surfaceTexture = graphics.surface.getCurrentTexture()
             when (val status = surfaceTexture.status) {
-                TextureStatus.SUCCESS -> {
+                SurfaceTextureStatus.success -> {
                     // all good, could check for `surfaceTexture.suboptimal` here.
                 }
-                TextureStatus.TIMEOUT,
-                TextureStatus.OUTDATED,
-                TextureStatus.LOST -> {
-                    surfaceTexture.texture?.release()
+                SurfaceTextureStatus.timeout,
+                SurfaceTextureStatus.outdated,
+                SurfaceTextureStatus.lost -> {
+                    surfaceTexture.texture.close()
                     graphics.configureSurface(
-                        TextureUsage.RENDER_ATTACHMENT,
+                        setOf(TextureUsage.RenderAttachment),
                         preferredFormat,
-                        PresentMode.FIFO,
-                        surfaceCapabilities.alphaModes[0],
+                        PresentMode.fifo,
+                        graphics.surface.supportedAlphaMode.first()
                     )
                     logger.info { "getCurrentTexture status=$status" }
                     return@onUpdate
@@ -182,16 +208,13 @@ class TextureMeshExample(context: Context) : ContextListener(context) {
             val commandEncoder = device.createCommandEncoder()
             val renderPassEncoder =
                 commandEncoder.beginRenderPass(
-                    desc =
                         RenderPassDescriptor(
                             listOf(
-                                RenderPassColorAttachmentDescriptor(
+                                RenderPassDescriptor.ColorAttachment(
                                     view = frame,
-                                    loadOp = LoadOp.CLEAR,
-                                    storeOp = StoreOp.STORE,
-                                    clearColor =
-                                        if (preferredFormat.srgb) Color.DARK_GRAY.toLinear()
-                                        else Color.DARK_GRAY,
+                                    loadOp = LoadOp.clear,
+                                    storeOp = StoreOp.store,
+                                    clearValue = Color.DARK_GRAY.toWebGPUColor()
                                 )
                             )
                         )
@@ -199,33 +222,33 @@ class TextureMeshExample(context: Context) : ContextListener(context) {
             renderPassEncoder.setPipeline(renderPipeline)
             renderPassEncoder.setBindGroup(0, bindGroup)
             renderPassEncoder.setVertexBuffer(0, mesh.vbo)
-            renderPassEncoder.setIndexBuffer(mesh.ibo, IndexFormat.UINT16)
+            renderPassEncoder.setIndexBuffer(mesh.ibo, IndexFormat.Uint16)
             renderPassEncoder.drawIndexed(6, 1)
             renderPassEncoder.end()
             renderPassEncoder.release()
 
             val commandBuffer = commandEncoder.finish()
 
-            queue.submit(commandBuffer)
+            queue.submit(listOf(commandBuffer))
             graphics.surface.present()
 
-            commandBuffer.release()
-            commandEncoder.release()
-            frame.release()
-            swapChainTexture.release()
+            commandBuffer.close()
+            commandEncoder.close()
+            frame.close()
+            swapChainTexture.close()
         }
 
         onRelease {
-            renderPipeline.release()
-            pipelineLayout.release()
-            bindGroup.release()
-            bindGroupLayout.release()
-            sampler.release()
-            textureView.release()
-            texture.release()
+            renderPipeline.close()
+            pipelineLayout.close()
+            bindGroup.close()
+            bindGroupLayout.close()
+            sampler.close()
+            textureView.close()
+            texture.close()
             mesh.release()
-            texture.release()
-            shader.release()
+            texture.close()
+            shader.close()
         }
     }
 }

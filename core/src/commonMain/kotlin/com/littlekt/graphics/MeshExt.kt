@@ -2,26 +2,27 @@ package com.littlekt.graphics
 
 import com.littlekt.ContextListener
 import com.littlekt.graphics.util.CommonMeshGeometry
-import com.littlekt.graphics.webgpu.Device
-import com.littlekt.graphics.webgpu.VertexFormat
-import com.littlekt.graphics.webgpu.VertexStepMode
+import io.ygdrasil.webgpu.Device
+import io.ygdrasil.webgpu.VertexFormat
+import io.ygdrasil.webgpu.VertexStepMode
+import io.ygdrasil.webgpu.sizeInBytes
 
 /**
- * Creates a new mesh using the list of [VertexAttribute].
+ * Creates a new mesh using the list of [VertexAttributeView].
  *
  * @see indexedMesh
  */
 inline fun mesh(
     device: Device,
-    attributes: List<VertexAttribute>,
+    attributes: List<VertexAttributeView>,
     size: Int = 1000,
     generate: CommonMeshGeometry.() -> Unit = {},
 ): Mesh<CommonMeshGeometry> {
     val geometry =
         CommonMeshGeometry(
-            VertexBufferLayout(
+            VertexBufferLayoutView(
                 attributes.calculateStride().toLong(),
-                VertexStepMode.VERTEX,
+                VertexStepMode.Vertex,
                 attributes
             ),
             size
@@ -43,10 +44,10 @@ fun colorMesh(
     return mesh(
         device,
         listOf(
-            VertexAttribute(VertexFormat.FLOAT32x3, 0, 0, VertexAttrUsage.POSITION),
-            VertexAttribute(
-                VertexFormat.FLOAT32x4,
-                VertexFormat.FLOAT32x3.bytes.toLong(),
+            VertexAttributeView(VertexFormat.Float32x3, 0, 0, VertexAttrUsage.POSITION),
+            VertexAttributeView(
+                VertexFormat.Float32x4,
+                VertexFormat.Float32x3.sizeInBytes().toLong(),
                 1,
                 VertexAttrUsage.COLOR
             )
@@ -70,16 +71,16 @@ fun textureMesh(
     return mesh(
         device,
         listOf(
-            VertexAttribute(VertexFormat.FLOAT32x3, 0, 0, VertexAttrUsage.POSITION),
-            VertexAttribute(
-                VertexFormat.FLOAT32x4,
-                VertexFormat.FLOAT32x3.bytes.toLong(),
+            VertexAttributeView(VertexFormat.Float32x3, 0, 0, VertexAttrUsage.POSITION),
+            VertexAttributeView(
+                VertexFormat.Float32x4,
+                VertexFormat.Float32x3.sizeInBytes().toLong(),
                 1,
                 VertexAttrUsage.COLOR
             ),
-            VertexAttribute(
-                VertexFormat.FLOAT32x2,
-                VertexFormat.FLOAT32x4.bytes.toLong() + VertexFormat.FLOAT32x3.bytes.toLong(),
+            VertexAttributeView(
+                VertexFormat.Float32x2,
+                VertexFormat.Float32x4.sizeInBytes().toLong() + VertexFormat.Float32x3.sizeInBytes().toLong(),
                 2,
                 VertexAttrUsage.TEX_COORDS
             )
@@ -101,19 +102,19 @@ fun positionMesh(
 ): Mesh<CommonMeshGeometry> {
     return mesh(
         device,
-        listOf(VertexAttribute(VertexFormat.FLOAT32x3, 0, 0, VertexAttrUsage.POSITION)),
+        listOf(VertexAttributeView(VertexFormat.Float32x3, 0, 0, VertexAttrUsage.POSITION)),
         size,
         generate
     )
 }
 
 /**
- * Creates a new mesh using the list of [VertexAttribute].
+ * Creates a new mesh using the list of [VertexAttributeView].
  *
  * @see indexedMesh
  */
 fun <T : ContextListener> T.mesh(
-    attributes: List<VertexAttribute>,
+    attributes: List<VertexAttributeView>,
     size: Int = 1000,
     generate: CommonMeshGeometry.() -> Unit = {},
 ): Mesh<CommonMeshGeometry> {

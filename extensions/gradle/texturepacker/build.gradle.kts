@@ -13,8 +13,6 @@ version = littleKtVersion
 
 java { withSourcesJar() }
 
-repositories { gradlePluginPortal() }
-
 dependencies {
     implementation(kotlin("gradle-plugin"))
     implementation(project(":extensions:tools")) {

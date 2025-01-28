@@ -3,10 +3,15 @@ package com.littlekt.graphics.g2d
 import com.littlekt.EngineStats
 import com.littlekt.Releasable
 import com.littlekt.file.FloatBuffer
-import com.littlekt.graphics.*
+import com.littlekt.graphics.BlendStates
+import com.littlekt.graphics.MutableColor
+import com.littlekt.graphics.Texture
+import com.littlekt.graphics.VertexAttrUsage
+import com.littlekt.graphics.VertexAttributeView
+import com.littlekt.graphics.createGPUFloatBuffer
+import com.littlekt.graphics.indexedMesh
 import com.littlekt.graphics.shader.Shader
 import com.littlekt.graphics.shader.SpriteShader
-import com.littlekt.graphics.webgpu.*
 import com.littlekt.log.Logger
 import com.littlekt.math.Mat4
 import com.littlekt.math.MutableVec2f
@@ -14,6 +19,21 @@ import com.littlekt.math.MutableVec4f
 import com.littlekt.math.geom.Angle
 import com.littlekt.math.geom.radians
 import com.littlekt.util.datastructure.fastForEach
+import io.ygdrasil.webgpu.BindGroup
+import io.ygdrasil.webgpu.BufferUsage
+import io.ygdrasil.webgpu.ColorWriteMask
+import io.ygdrasil.webgpu.Device
+import io.ygdrasil.webgpu.IndexFormat
+import io.ygdrasil.webgpu.PrimitiveTopology
+import io.ygdrasil.webgpu.RenderPassEncoder
+import io.ygdrasil.webgpu.RenderPipeline
+import io.ygdrasil.webgpu.RenderPipelineDescriptor
+import io.ygdrasil.webgpu.RenderPipelineDescriptor.FragmentState
+import io.ygdrasil.webgpu.RenderPipelineDescriptor.FragmentState.ColorTargetState.BlendState
+import io.ygdrasil.webgpu.RenderPipelineDescriptor.VertexState
+import io.ygdrasil.webgpu.TextureFormat
+import io.ygdrasil.webgpu.VertexFormat
+import io.ygdrasil.webgpu.sizeInBytes
 import kotlinx.atomicfu.atomic
 import kotlinx.atomicfu.getAndUpdate
 
@@ -38,15 +58,15 @@ class SpriteCache(val device: Device, val format: TextureFormat, size: Int = 100
         indexedMesh(
             device,
             listOf(
-                VertexAttribute(
-                    format = VertexFormat.FLOAT32x3,
+                VertexAttributeView(
+                    format = VertexFormat.Float32x3,
                     offset = 0,
                     shaderLocation = 0,
                     usage = VertexAttrUsage.POSITION
                 ),
-                VertexAttribute(
-                    format = VertexFormat.FLOAT32x2,
-                    offset = VertexFormat.FLOAT32x3.bytes.toLong(),
+                VertexAttributeView(
+                    format = VertexFormat.Float32x2,
+                    offset = VertexFormat.Float32x3.sizeInBytes().toLong(),
                     shaderLocation = 1,
                     usage = VertexAttrUsage.TEX_COORDS
                 )
@@ -82,7 +102,8 @@ class SpriteCache(val device: Device, val format: TextureFormat, size: Int = 100
     private val bindGroupsByTexture: MutableMap<Int, List<BindGroup>> = mutableMapOf()
     private val drawCalls: MutableList<DrawCall> = mutableListOf()
 
-    private var blendState = BlendState.NonPreMultiplied
+    private var blendState =
+        BlendStates.NonPreMultiplied
     private val renderPipeline =
         device.createRenderPipeline(createRenderPipelineDescriptor(shader, blendState))
 
@@ -92,7 +113,7 @@ class SpriteCache(val device: Device, val format: TextureFormat, size: Int = 100
         device.createGPUFloatBuffer(
             "sprite buffer",
             staticData.toArray(),
-            BufferUsage.STORAGE or BufferUsage.COPY_DST
+            setOf(BufferUsage.Storage, BufferUsage.CopyDst)
         )
     private val spriteIndices = mutableMapOf<SpriteId, Int>()
     private val spriteView = SpriteView()
@@ -200,8 +221,8 @@ class SpriteCache(val device: Device, val format: TextureFormat, size: Int = 100
             staticDirty = false
             dynamicDirty = false
         }
-        encoder.setIndexBuffer(mesh.ibo, IndexFormat.UINT16)
-        encoder.setVertexBuffer(0, mesh.vbo)
+        encoder.setIndexBuffer(mesh.ibo, IndexFormat.Uint16)
+        encoder.setVertexBuffer(0u, mesh.vbo)
         var lastPipelineSet: RenderPipeline? = null
         var lastCombinedMatrixSet: Mat4? = null
         var lastBindGroupsSet: List<BindGroup>? = null
@@ -232,9 +253,9 @@ class SpriteCache(val device: Device, val format: TextureFormat, size: Int = 100
             EngineStats.extra(QUAD_STATS_NAME, 1)
             EngineStats.extra(INSTANCES_STATS_NAME, drawCall.instances)
             encoder.drawIndexed(
-                indexCount = 6,
-                instanceCount = drawCall.instances,
-                firstInstance = instanceIdx
+                indexCount = 6u,
+                instanceCount = drawCall.instances.toUInt(),
+                firstInstance = instanceIdx.toUInt()
             )
             instanceIdx += drawCall.instances
         }
@@ -459,26 +480,26 @@ class SpriteCache(val device: Device, val format: TextureFormat, size: Int = 100
         return RenderPipelineDescriptor(
             layout = shader.pipelineLayout,
             vertex =
-                VertexState(
-                    module = shader.shaderModule,
-                    entryPoint = shader.vertexEntryPoint,
-                    buffer = mesh.geometry.layout.gpuVertexBufferLayout
-                ),
+            VertexState(
+                module = shader.shaderModule,
+                entryPoint = shader.vertexEntryPoint,
+                buffers = listOf(mesh.geometry.layout.gpuVertexBufferLayout)
+            ),
             fragment =
-                FragmentState(
-                    module = shader.shaderModule,
-                    entryPoint = shader.fragmentEntryPoint,
-                    target =
-                        ColorTargetState(
-                            format = format,
-                            blendState = blendState,
-                            writeMask = ColorWriteMask.ALL
-                        )
-                ),
-            primitive = PrimitiveState(topology = PrimitiveTopology.TRIANGLE_LIST),
+            FragmentState(
+                module = shader.shaderModule,
+                entryPoint = shader.fragmentEntryPoint,
+                targets = listOf(
+                    FragmentState.ColorTargetState(
+                        format = format,
+                        blend = blendState,
+                        writeMask = ColorWriteMask.All
+                    ))
+            ),
+            primitive = RenderPipelineDescriptor.PrimitiveState(topology = PrimitiveTopology.TriangleList),
             depthStencil = null,
             multisample =
-                MultisampleState(count = 1, mask = 0xFFFFFFF, alphaToCoverageEnabled = false)
+            RenderPipelineDescriptor.MultisampleState(count = 1u, mask = 0xFFFFFFFu, alphaToCoverageEnabled = false)
         )
     }
 
@@ -493,7 +514,7 @@ class SpriteCache(val device: Device, val format: TextureFormat, size: Int = 100
     }
 
     override fun release() {
-        spriteBuffer.release()
+        spriteBuffer.close()
         staticData.clear()
         spriteIndices.clear()
     }
