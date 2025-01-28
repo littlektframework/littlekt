@@ -39,7 +39,7 @@ class AssetProviderExample(context: Context) : ContextListener(context) {
         val preferredFormat = graphics.preferredFormat
 
         graphics.configureSurface(
-            setOf(TextureUsage.renderAttachment),
+            setOf(TextureUsage.renderattachment),
             preferredFormat,
             PresentMode.fifo,
             graphics.surface.supportedAlphaMode.first()
@@ -52,7 +52,7 @@ class AssetProviderExample(context: Context) : ContextListener(context) {
         onResize { width, height ->
             viewport.update(width, height)
             graphics.configureSurface(
-                setOf(TextureUsage.renderAttachment),
+                setOf(TextureUsage.renderattachment),
                 preferredFormat,
                 PresentMode.fifo,
                 graphics.surface.supportedAlphaMode.first()

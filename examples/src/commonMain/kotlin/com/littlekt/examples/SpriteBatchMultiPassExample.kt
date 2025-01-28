@@ -37,7 +37,7 @@ class SpriteBatchMultiPassExample(context: Context) : ContextListener(context) {
         val preferredFormat = graphics.preferredFormat
 
         graphics.configureSurface(
-            setOf(TextureUsage.renderAttachment),
+            setOf(TextureUsage.renderattachment),
             preferredFormat,
             PresentMode.fifo,
             graphics.surface.supportedAlphaMode.first()
@@ -53,7 +53,7 @@ class SpriteBatchMultiPassExample(context: Context) : ContextListener(context) {
             viewport.update(width, height)
             uiViewport.update(width, height)
             graphics.configureSurface(
-                setOf(TextureUsage.renderAttachment),
+                setOf(TextureUsage.renderattachment),
                 preferredFormat,
                 PresentMode.fifo,
                 graphics.surface.supportedAlphaMode.first()

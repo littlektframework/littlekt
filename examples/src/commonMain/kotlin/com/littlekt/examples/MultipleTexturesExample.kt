@@ -30,7 +30,7 @@ class MultipleTexturesExample(context: Context) : ContextListener(context) {
         val preferredFormat = graphics.preferredFormat
 
         graphics.configureSurface(
-            setOf(TextureUsage.renderAttachment),
+            setOf(TextureUsage.renderattachment),
             preferredFormat,
             PresentMode.fifo,
             graphics.surface.supportedAlphaMode.first()
@@ -45,7 +45,7 @@ class MultipleTexturesExample(context: Context) : ContextListener(context) {
             camera.ortho(width, height)
             camera.position.x = 0f
             graphics.configureSurface(
-                setOf(TextureUsage.renderAttachment),
+                setOf(TextureUsage.renderattachment),
                 preferredFormat,
                 PresentMode.fifo,
                 graphics.surface.supportedAlphaMode.first()

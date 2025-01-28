@@ -34,6 +34,7 @@ import com.sun.jna.Pointer
 import com.sun.jna.platform.win32.Kernel32
 import darwin.CAMetalLayer
 import darwin.NSWindow
+import io.ygdrasil.wgpu.CanvasConfiguration
 
 /**
  * @author Colton Daily
@@ -77,11 +78,10 @@ class LwjglGraphics(private val context: LwjglContext) : Graphics, Releasable {
     override fun configureSurface(
         usage: Set<TextureUsage>,
         format: TextureFormat,
-        presentMode: PresentMode,
         alphaMode: CompositeAlphaMode
     ) {
         surface.configure(
-            SurfaceConfiguration(device, format, usage,  alphaMode = alphaMode, presentMode = presentMode) //width, height
+            CanvasConfiguration(device, format, usage,  alphaMode = alphaMode) //width, height
         )
     }
 

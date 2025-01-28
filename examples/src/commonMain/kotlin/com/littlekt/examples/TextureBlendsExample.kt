@@ -30,7 +30,7 @@ class TextureBlendsExample(context: Context) : ContextListener(context) {
         val preferredFormat = graphics.preferredFormat
 
         graphics.configureSurface(
-            setOf(TextureUsage.renderAttachment),
+            setOf(TextureUsage.renderattachment),
             preferredFormat,
             PresentMode.fifo,
             graphics.surface.supportedAlphaMode.first()
@@ -49,7 +49,7 @@ class TextureBlendsExample(context: Context) : ContextListener(context) {
                     far = 1f,
                 )
             graphics.configureSurface(
-                setOf(TextureUsage.renderAttachment),
+                setOf(TextureUsage.renderattachment),
                 preferredFormat,
                 PresentMode.fifo,
                 graphics.surface.supportedAlphaMode.first()

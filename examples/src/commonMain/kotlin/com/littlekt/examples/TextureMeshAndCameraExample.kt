@@ -184,7 +184,7 @@ class TextureMeshAndCameraExample(context: Context) : ContextListener(context) {
             )
         val renderPipeline = device.createRenderPipeline(renderPipelineDesc)
         graphics.configureSurface(
-            setOf(TextureUsage.renderAttachment),
+            setOf(TextureUsage.renderattachment),
             preferredFormat,
             PresentMode.fifo,
             graphics.surface.supportedAlphaMode.first()
@@ -193,7 +193,7 @@ class TextureMeshAndCameraExample(context: Context) : ContextListener(context) {
         onResize { width, height ->
             camera.ortho(width, height)
             graphics.configureSurface(
-                setOf(TextureUsage.renderAttachment),
+                setOf(TextureUsage.renderattachment),
                 preferredFormat,
                 PresentMode.fifo,
                 graphics.surface.supportedAlphaMode.first()

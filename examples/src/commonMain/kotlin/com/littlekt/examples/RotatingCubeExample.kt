@@ -457,7 +457,7 @@ class RotatingCubeExample(context: Context) : ContextListener(context) {
         val device = graphics.device
         val preferredFormat = graphics.preferredFormat
         graphics.configureSurface(
-            setOf(TextureUsage.renderAttachment),
+            setOf(TextureUsage.renderattachment),
             preferredFormat,
             PresentMode.fifo,
             CompositeAlphaMode.opaque
@@ -563,7 +563,7 @@ class RotatingCubeExample(context: Context) : ContextListener(context) {
                 TextureDescriptor(
                     Size3D(graphics.width, graphics.height),
                     TextureFormat.depth24plus,
-                    setOf(TextureUsage.renderAttachment)
+                    setOf(TextureUsage.renderattachment)
                 )
             )
         var depthTextureView = depthTexture.createView()
@@ -580,14 +580,14 @@ class RotatingCubeExample(context: Context) : ContextListener(context) {
                             TextureDescriptor(
                                 Size3D(graphics.width, graphics.height),
                                 TextureFormat.depth24plus,
-                                setOf(TextureUsage.renderAttachment),
+                                setOf(TextureUsage.renderattachment),
                             )
                         )
                     depthTextureView = depthTexture.createView()
                     SurfaceConfiguration(
                         device,
                         preferredFormat,
-                        setOf(TextureUsage.renderAttachment),
+                        setOf(TextureUsage.renderattachment),
                         alphaMode = CompositeAlphaMode.opaque
                     )
                 }

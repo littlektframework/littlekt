@@ -199,7 +199,7 @@ class TextureViaCommandEncoderExample(context: Context) : ContextListener(contex
             )
         val renderPipeline = device.createRenderPipeline(renderPipelineDesc)
         graphics.configureSurface(
-            setOf(TextureUsage.renderAttachment),
+            setOf(TextureUsage.renderattachment),
             preferredFormat,
             PresentMode.fifo,
             graphics.surface.supportedAlphaMode.first()
@@ -216,7 +216,7 @@ class TextureViaCommandEncoderExample(context: Context) : ContextListener(contex
                 SurfaceTextureStatus.lost -> {
                     surfaceTexture.texture.close()
                     graphics.configureSurface(
-                        setOf(TextureUsage.renderAttachment),
+                        setOf(TextureUsage.renderattachment),
                         preferredFormat,
                         PresentMode.fifo,
                         graphics.surface.supportedAlphaMode.first()

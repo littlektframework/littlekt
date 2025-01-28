@@ -36,7 +36,7 @@ class GameWorldAndUIViewports(context: Context) : ContextListener(context) {
         val preferredFormat = graphics.preferredFormat
 
         graphics.configureSurface(
-            setOf(TextureUsage.renderAttachment),
+            setOf(TextureUsage.renderattachment),
             preferredFormat,
             PresentMode.fifo,
             graphics.surface.supportedAlphaMode.first()
@@ -63,7 +63,7 @@ class GameWorldAndUIViewports(context: Context) : ContextListener(context) {
             graph.resize(width, height)
             worldViewport.update(width, height)
             graphics.configureSurface(
-                setOf(TextureUsage.renderAttachment),
+                setOf(TextureUsage.renderattachment),
                 preferredFormat,
                 PresentMode.fifo,
                 graphics.surface.supportedAlphaMode.first()

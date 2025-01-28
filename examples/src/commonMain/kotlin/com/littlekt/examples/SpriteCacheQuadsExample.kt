@@ -45,7 +45,7 @@ class SpriteCacheQuadsExample(context: Context) : ContextListener(context) {
             }
         }
         graphics.configureSurface(
-            setOf(TextureUsage.renderAttachment),
+            setOf(TextureUsage.renderattachment),
             preferredFormat,
             PresentMode.fifo,
             graphics.surface.supportedAlphaMode.first()
@@ -54,7 +54,7 @@ class SpriteCacheQuadsExample(context: Context) : ContextListener(context) {
         onResize { width, height ->
             camera.ortho(width, height)
             graphics.configureSurface(
-                setOf(TextureUsage.renderAttachment),
+                setOf(TextureUsage.renderattachment),
                 preferredFormat,
                 PresentMode.fifo,
                 graphics.surface.supportedAlphaMode.first()

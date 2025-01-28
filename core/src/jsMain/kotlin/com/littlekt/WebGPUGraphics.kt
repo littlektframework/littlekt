@@ -3,6 +3,7 @@ package com.littlekt
 import com.littlekt.graphics.Cursor
 import com.littlekt.graphics.SystemCursor
 import io.ygdrasil.wgpu.Adapter
+import io.ygdrasil.wgpu.CanvasConfiguration
 import io.ygdrasil.wgpu.Device
 import io.ygdrasil.wgpu.Surface
 import io.ygdrasil.wgpu.requestAdapter
@@ -62,11 +63,10 @@ class WebGPUGraphics(val canvas: HTMLCanvasElement) : Graphics {
     override fun configureSurface(
         usages: Set<TextureUsage>,
         format: TextureFormat,
-        presentMode: PresentMode,
         alphaMode: CompositeAlphaMode
     ) {
         surface.configure(
-            SurfaceConfiguration(device, format,usages, alphaMode = alphaMode)
+            CanvasConfiguration(device, format,usages, alphaMode = alphaMode)
         )
     }
 

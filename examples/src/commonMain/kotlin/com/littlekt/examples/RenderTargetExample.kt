@@ -32,7 +32,7 @@ class RenderTargetExample(context: Context) : ContextListener(context) {
         val target = EmptyTexture(device, preferredFormat, 256, 256)
 
         graphics.configureSurface(
-            setOf(TextureUsage.renderAttachment),
+            setOf(TextureUsage.renderattachment),
             preferredFormat,
             PresentMode.fifo,
             graphics.surface.supportedAlphaMode.first()
@@ -41,7 +41,7 @@ class RenderTargetExample(context: Context) : ContextListener(context) {
         val batch = SpriteBatch(device, graphics, preferredFormat)
         onResize { _, _ ->
             graphics.configureSurface(
-                setOf(TextureUsage.renderAttachment),
+                setOf(TextureUsage.renderattachment),
                 preferredFormat,
                 PresentMode.fifo,
                 graphics.surface.supportedAlphaMode.first()

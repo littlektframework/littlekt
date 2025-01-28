@@ -138,7 +138,7 @@ class RenderSpriteBatchAndMultipleShadersExample(context: Context) : ContextList
         val coloredShader = ColorShader(device)
 
         graphics.configureSurface(
-            setOf(TextureUsage.renderAttachment),
+            setOf(TextureUsage.renderattachment),
             preferredFormat,
             PresentMode.fifo,
             graphics.surface.supportedAlphaMode.first()
@@ -157,7 +157,7 @@ class RenderSpriteBatchAndMultipleShadersExample(context: Context) : ContextList
                     far = 1f,
                 )
             graphics.configureSurface(
-                setOf(TextureUsage.renderAttachment),
+                setOf(TextureUsage.renderattachment),
                 preferredFormat,
                 PresentMode.fifo,
                 graphics.surface.supportedAlphaMode.first()
