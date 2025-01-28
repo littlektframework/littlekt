@@ -1,19 +1,19 @@
 package com.littlekt.graphics
 
 import com.littlekt.graphics.Texture.Companion.nextId
-import io.ygdrasil.wgpu.Texture as WebGPUTexture
-import io.ygdrasil.wgpu.Device
-import io.ygdrasil.wgpu.ImageCopyTexture
-import io.ygdrasil.wgpu.Sampler
-import io.ygdrasil.wgpu.SamplerDescriptor
-import io.ygdrasil.wgpu.Size3D
-import io.ygdrasil.wgpu.TextureDataLayout
-import io.ygdrasil.wgpu.TextureDescriptor
-import io.ygdrasil.wgpu.TextureDimension
-import io.ygdrasil.wgpu.TextureFormat
-import io.ygdrasil.wgpu.TextureUsage
-import io.ygdrasil.wgpu.TextureView
-import io.ygdrasil.wgpu.TextureViewDescriptor
+import io.ygdrasil.webgpu.Texture as WebGPUTexture
+import io.ygdrasil.webgpu.Device
+import io.ygdrasil.webgpu.ImageCopyTexture
+import io.ygdrasil.webgpu.Sampler
+import io.ygdrasil.webgpu.SamplerDescriptor
+import io.ygdrasil.webgpu.Size3D
+import io.ygdrasil.webgpu.TextureDataLayout
+import io.ygdrasil.webgpu.TextureDescriptor
+import io.ygdrasil.webgpu.TextureDimension
+import io.ygdrasil.webgpu.TextureFormat
+import io.ygdrasil.webgpu.TextureUsage
+import io.ygdrasil.webgpu.TextureView
+import io.ygdrasil.webgpu.TextureViewDescriptor
 
 /**
  * A [Texture] that uses a [Pixmap] as the underlying data.
@@ -29,7 +29,7 @@ class PixmapTexture(val device: Device, preferredFormat: TextureFormat, val pixm
     /**
      * The [Extent3D] size of the texture. Uses [Pixmap.width], [Pixmap.height] and a depth of `1`.
      */
-    override val size: Size3D = Size3D(pixmap.width, pixmap.height, 1)
+    override val size: Size3D = Size3D(pixmap.width.toUInt(), pixmap.height.toUInt())
     override var id: Int = nextId()
         private set
 
@@ -37,7 +37,7 @@ class PixmapTexture(val device: Device, preferredFormat: TextureFormat, val pixm
         TextureDescriptor(
             size,
             preferredFormat,
-            setOf(TextureUsage.textureBinding, TextureUsage.copyDst)
+            setOf(TextureUsage.TextureBinding, TextureUsage.CopyDst)
         )
         set(value) {
             field = value
@@ -89,7 +89,7 @@ class PixmapTexture(val device: Device, preferredFormat: TextureFormat, val pixm
         device.queue.writeTexture(
             ImageCopyTexture(gpuTexture),
             pixmap.pixels.toArray(),
-            TextureDataLayout(0L, 4 * pixmap.width, pixmap.height),
+            TextureDataLayout(0uL, 4u * pixmap.width.toUInt(), pixmap.height.toUInt()),
             size
         )
     }

@@ -1,13 +1,13 @@
 package com.littlekt.graphics
 
 import com.littlekt.Releasable
-import io.ygdrasil.wgpu.Sampler
-import io.ygdrasil.wgpu.SamplerDescriptor
-import io.ygdrasil.wgpu.Size3D
-import io.ygdrasil.wgpu.TextureDescriptor
-import io.ygdrasil.wgpu.TextureView
-import io.ygdrasil.wgpu.TextureViewDescriptor
-import io.ygdrasil.wgpu.Texture as WebGPUTexture
+import io.ygdrasil.webgpu.Sampler
+import io.ygdrasil.webgpu.SamplerDescriptor
+import io.ygdrasil.webgpu.Size3D
+import io.ygdrasil.webgpu.TextureDescriptor
+import io.ygdrasil.webgpu.TextureView
+import io.ygdrasil.webgpu.TextureViewDescriptor
+import io.ygdrasil.webgpu.Texture as WebGPUTexture
 import kotlinx.atomicfu.atomic
 
 /**
@@ -27,11 +27,11 @@ interface Texture : Releasable {
 
     /** The width of the texture. */
     val width: Int
-        get() = size.width
+        get() = size.width.toInt()
 
     /** The height of the texture. */
     val height: Int
-        get() = size.height
+        get() = size.height.toInt()
 
     /** The id of the texture. */
     val id: Int

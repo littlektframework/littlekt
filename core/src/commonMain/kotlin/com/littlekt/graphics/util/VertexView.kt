@@ -4,7 +4,8 @@ import com.littlekt.file.FloatBuffer
 import com.littlekt.graphics.MutableColor
 import com.littlekt.graphics.VertexAttributeView
 import com.littlekt.math.*
-import io.ygdrasil.wgpu.VertexFormat
+import io.ygdrasil.webgpu.VertexFormat
+import io.ygdrasil.webgpu.components
 
 private val VertexFormat.isInt: Boolean
     get() = name.lowercase().contains("int")
@@ -47,7 +48,7 @@ open class VertexView(
 
     init {
         attributes.forEach { attribute ->
-            when (attribute.format.components) {
+            when (attribute.format.components()) {
                 1 -> {
                     if (attribute.format.isInt) {
                         _attributesViews[attribute.key] = IntView(attribute.offset.toInt() / 4)

@@ -12,7 +12,7 @@ import com.littlekt.graphics.g2d.TextureSlice
 import com.littlekt.util.packer.BinRect
 import com.littlekt.util.packer.MaxRectsPacker
 import com.littlekt.util.packer.PackingOptions
-import io.ygdrasil.wgpu.TextureFormat
+import io.ygdrasil.webgpu.TextureFormat
 
 /**
  * Allows building of a [TextureAtlas] by combining existing textures, texture slices, and texture

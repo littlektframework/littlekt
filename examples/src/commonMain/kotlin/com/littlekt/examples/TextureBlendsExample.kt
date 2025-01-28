@@ -6,12 +6,12 @@ import com.littlekt.file.vfs.readTexture
 import com.littlekt.graphics.BlendStates
 import com.littlekt.graphics.Color
 import com.littlekt.graphics.g2d.SpriteBatch
-import io.ygdrasil.wgpu.LoadOp
-import io.ygdrasil.wgpu.PresentMode
-import io.ygdrasil.wgpu.RenderPassDescriptor
-import io.ygdrasil.wgpu.StoreOp
-import io.ygdrasil.wgpu.SurfaceTextureStatus
-import io.ygdrasil.wgpu.TextureUsage
+import io.ygdrasil.webgpu.LoadOp
+import io.ygdrasil.webgpu.PresentMode
+import io.ygdrasil.webgpu.RenderPassDescriptor
+import io.ygdrasil.webgpu.StoreOp
+import io.ygdrasil.webgpu.SurfaceTextureStatus
+import io.ygdrasil.webgpu.TextureUsage
 
 /**
  * An example showing drawing textures with different blending.
@@ -30,7 +30,7 @@ class TextureBlendsExample(context: Context) : ContextListener(context) {
         val preferredFormat = graphics.preferredFormat
 
         graphics.configureSurface(
-            setOf(TextureUsage.renderattachment),
+            setOf(TextureUsage.RenderAttachment),
             preferredFormat,
             PresentMode.fifo,
             graphics.surface.supportedAlphaMode.first()
@@ -49,7 +49,7 @@ class TextureBlendsExample(context: Context) : ContextListener(context) {
                     far = 1f,
                 )
             graphics.configureSurface(
-                setOf(TextureUsage.renderattachment),
+                setOf(TextureUsage.RenderAttachment),
                 preferredFormat,
                 PresentMode.fifo,
                 graphics.surface.supportedAlphaMode.first()

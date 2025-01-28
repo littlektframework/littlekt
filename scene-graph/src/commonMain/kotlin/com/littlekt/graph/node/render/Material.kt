@@ -3,7 +3,7 @@ package com.littlekt.graph.node.render
 import com.littlekt.Releasable
 import com.littlekt.graphics.BlendStates
 import com.littlekt.graphics.shader.Shader
-import io.ygdrasil.wgpu.RenderPipelineDescriptor
+import io.ygdrasil.webgpu.RenderPipelineDescriptor
 
 /**
  * @author Colton Daily

@@ -9,8 +9,8 @@ import com.littlekt.log.Logger
 import com.littlekt.resources.internal.InternalResources
 import com.littlekt.util.datastructure.fastForEach
 import com.littlekt.util.internal.jsObject
-import io.ygdrasil.wgpu.internal.js.GPURequestAdapterOptions
-import io.ygdrasil.wgpu.requestAdapter
+import io.ygdrasil.webgpu.internal.js.GPURequestAdapterOptions
+import io.ygdrasil.webgpu.requestAdapter
 import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.browser.document
 import kotlinx.browser.window

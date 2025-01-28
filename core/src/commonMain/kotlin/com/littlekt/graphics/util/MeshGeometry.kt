@@ -3,6 +3,7 @@ package com.littlekt.graphics.util
 import com.littlekt.file.FloatBuffer
 import com.littlekt.graphics.VertexBufferLayoutView
 import com.littlekt.log.Logger
+import io.ygdrasil.webgpu.components
 import kotlin.jvm.JvmStatic
 import kotlin.math.max
 import kotlin.math.min
@@ -19,7 +20,7 @@ import kotlin.math.round
  */
 open class MeshGeometry(val layout: VertexBufferLayoutView, size: Int = INITIAL_SIZE) {
     /** The number of components in each vertex. */
-    val vertexSize = layout.attributes.sumOf { it.format.components }
+    val vertexSize = layout.attributes.sumOf { it.format.components() }
 
     /** The vertices buffer. */
     var vertices = FloatBuffer(size * vertexSize)

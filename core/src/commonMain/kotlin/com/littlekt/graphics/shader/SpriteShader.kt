@@ -2,14 +2,14 @@ package com.littlekt.graphics.shader
 
 import com.littlekt.file.FloatBuffer
 import com.littlekt.graphics.Texture
-import io.ygdrasil.wgpu.Device
+import io.ygdrasil.webgpu.Device
 import com.littlekt.math.Mat4
 import com.littlekt.util.align
-import io.ygdrasil.wgpu.BindGroup
-import io.ygdrasil.wgpu.BindGroupDescriptor.BufferBinding
-import io.ygdrasil.wgpu.BindGroupLayoutDescriptor
-import io.ygdrasil.wgpu.BufferDescriptor
-import io.ygdrasil.wgpu.BufferUsage
+import io.ygdrasil.webgpu.BindGroup
+import io.ygdrasil.webgpu.BindGroupDescriptor.BufferBinding
+import io.ygdrasil.webgpu.BindGroupLayoutDescriptor
+import io.ygdrasil.webgpu.BufferDescriptor
+import io.ygdrasil.webgpu.BufferUsage
 
 /**
  * A base shader class to handle creating a camera uniform [GPUBuffer] and expecting a texture to
@@ -44,9 +44,9 @@ abstract class SpriteShader(
                 BufferDescriptor(
                     label = "viewProj",
                     size = (Float.SIZE_BYTES * 16)
-                        .align(device.limits.minUniformBufferOffsetAlignment)
-                        .toLong() * cameraDynamicSize,
-                    usage = setOf(BufferUsage.uniform, BufferUsage.copydst),
+                        .align(device.limits.minUniformBufferOffsetAlignment.toInt())
+                        .toULong() * cameraDynamicSize.toUInt(),
+                    usage = setOf(BufferUsage.Uniform, BufferUsage.CopyDst),
                     mappedAtCreation = true
                 )
             )
@@ -62,8 +62,8 @@ abstract class SpriteShader(
             buffer = cameraUniformBuffer,
             size =
             (Float.SIZE_BYTES * 16)
-                .align(device.limits.minUniformBufferOffsetAlignment)
-                .toLong(),
+                .align(device.limits.minUniformBufferOffsetAlignment.toInt())
+                .toULong(),
         )
 
     /** @see [createBindGroupsWithTexture] to override. */
@@ -118,7 +118,7 @@ abstract class SpriteShader(
     fun updateCameraUniform(viewProjection: Mat4, dynamicOffset: Long = 0) =
         device.queue.writeBuffer(
             cameraUniformBuffer,
-            dynamicOffset * device.limits.minUniformBufferOffsetAlignment.toLong(),
+            (dynamicOffset * device.limits.minUniformBufferOffsetAlignment.toLong()).toULong(),
             viewProjection.toBuffer(camFloatBuffer).toArray()
         )
 

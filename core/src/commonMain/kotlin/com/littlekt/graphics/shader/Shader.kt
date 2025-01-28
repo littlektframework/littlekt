@@ -2,7 +2,7 @@ package com.littlekt.graphics.shader
 
 import com.littlekt.Releasable
 import com.littlekt.util.datastructure.fastForEach
-import io.ygdrasil.wgpu.*
+import io.ygdrasil.webgpu.*
 
 /**
  * A base shader class to handle creating and customizing the required bind groups without the need

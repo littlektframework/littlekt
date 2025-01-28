@@ -6,13 +6,13 @@ import com.littlekt.file.vfs.readTexture
 import com.littlekt.graphics.Color
 import com.littlekt.graphics.EmptyTexture
 import com.littlekt.graphics.g2d.SpriteBatch
-import io.ygdrasil.wgpu.CommandEncoderDescriptor
-import io.ygdrasil.wgpu.LoadOp
-import io.ygdrasil.wgpu.PresentMode
-import io.ygdrasil.wgpu.RenderPassDescriptor
-import io.ygdrasil.wgpu.StoreOp
-import io.ygdrasil.wgpu.SurfaceTextureStatus
-import io.ygdrasil.wgpu.TextureUsage
+import io.ygdrasil.webgpu.CommandEncoderDescriptor
+import io.ygdrasil.webgpu.LoadOp
+import io.ygdrasil.webgpu.PresentMode
+import io.ygdrasil.webgpu.RenderPassDescriptor
+import io.ygdrasil.webgpu.StoreOp
+import io.ygdrasil.webgpu.SurfaceTextureStatus
+import io.ygdrasil.webgpu.TextureUsage
 
 /**
  * An example of rendering to a texture.
@@ -32,7 +32,7 @@ class RenderTargetExample(context: Context) : ContextListener(context) {
         val target = EmptyTexture(device, preferredFormat, 256, 256)
 
         graphics.configureSurface(
-            setOf(TextureUsage.renderattachment),
+            setOf(TextureUsage.RenderAttachment),
             preferredFormat,
             PresentMode.fifo,
             graphics.surface.supportedAlphaMode.first()
@@ -41,7 +41,7 @@ class RenderTargetExample(context: Context) : ContextListener(context) {
         val batch = SpriteBatch(device, graphics, preferredFormat)
         onResize { _, _ ->
             graphics.configureSurface(
-                setOf(TextureUsage.renderattachment),
+                setOf(TextureUsage.RenderAttachment),
                 preferredFormat,
                 PresentMode.fifo,
                 graphics.surface.supportedAlphaMode.first()

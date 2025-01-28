@@ -2,10 +2,10 @@ package com.littlekt.graphics
 
 import com.littlekt.Releasable
 import com.littlekt.graphics.util.MeshGeometry
-import io.ygdrasil.wgpu.Device
+import io.ygdrasil.webgpu.Device
 import com.littlekt.log.Logger
-import io.ygdrasil.wgpu.Buffer
-import io.ygdrasil.wgpu.BufferUsage
+import io.ygdrasil.webgpu.Buffer
+import io.ygdrasil.webgpu.BufferUsage
 import kotlin.jvm.JvmStatic
 import kotlin.math.min
 
@@ -26,7 +26,7 @@ open class Mesh<T : MeshGeometry>(val device: Device, val geometry: T) : Releasa
         device.createGPUFloatBuffer(
             "vbo",
             geometry.vertices.toArray(),
-            setOf(BufferUsage.vertex, BufferUsage.copydst)
+            setOf(BufferUsage.Vertex, BufferUsage.CopyDst)
         )
         protected set
 
@@ -38,7 +38,7 @@ open class Mesh<T : MeshGeometry>(val device: Device, val geometry: T) : Releasa
     open fun update() {
         if (geometry.dirty) {
             if (geometry.verticesDirty) {
-                if (vbo.size < geometry.vertices.capacity * Float.SIZE_BYTES) {
+                if (vbo.size < (geometry.vertices.capacity * Float.SIZE_BYTES).toULong()) {
                     logger.trace {
                         "Destroying and creating VBO from size: ${vbo.size} to  size: ${geometry.vertices.capacity}"
                     }
@@ -47,17 +47,17 @@ open class Mesh<T : MeshGeometry>(val device: Device, val geometry: T) : Releasa
                         device.createGPUFloatBuffer(
                             "vbo",
                             geometry.vertices.toArray(),
-                            setOf(BufferUsage.vertex, BufferUsage.copydst)
+                            setOf(BufferUsage.Vertex, BufferUsage.CopyDst)
                         )
                 } else {
                     val size =
                         min(
                             vbo.size,
-                            geometry.numVertices *
-                                geometry.layout.attributes.calculateComponents().toLong()
+                            geometry.numVertices.toULong() *
+                                geometry.layout.attributes.calculateComponents().toULong()
                         )
                     logger.trace { "Writing VBO to queue of size: $size" }
-                    device.queue.writeBuffer(vbo, 0L, geometry.vertices.toArray(), size = size)
+                    device.queue.writeBuffer(vbo, 0uL, geometry.vertices.toArray(), size = size)
                 }
             }
         }

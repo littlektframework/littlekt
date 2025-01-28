@@ -9,26 +9,26 @@ import com.littlekt.graphics.Color
 import com.littlekt.graphics.OrthographicCamera
 import com.littlekt.graphics.createGPUFloatBuffer
 import com.littlekt.graphics.textureIndexedMesh
-import io.ygdrasil.wgpu.BindGroupDescriptor
-import io.ygdrasil.wgpu.BindGroupDescriptor.*
-import io.ygdrasil.wgpu.BindGroupLayoutDescriptor
-import io.ygdrasil.wgpu.BindGroupLayoutDescriptor.Entry
-import io.ygdrasil.wgpu.BindGroupLayoutDescriptor.Entry.*
-import io.ygdrasil.wgpu.BufferUsage
-import io.ygdrasil.wgpu.ColorWriteMask
-import io.ygdrasil.wgpu.IndexFormat
-import io.ygdrasil.wgpu.LoadOp
-import io.ygdrasil.wgpu.PipelineLayoutDescriptor
-import io.ygdrasil.wgpu.PresentMode
-import io.ygdrasil.wgpu.PrimitiveTopology
-import io.ygdrasil.wgpu.RenderPassDescriptor
-import io.ygdrasil.wgpu.RenderPipelineDescriptor
-import io.ygdrasil.wgpu.RenderPipelineDescriptor.*
-import io.ygdrasil.wgpu.ShaderModuleDescriptor
-import io.ygdrasil.wgpu.ShaderStage
-import io.ygdrasil.wgpu.StoreOp
-import io.ygdrasil.wgpu.SurfaceTextureStatus
-import io.ygdrasil.wgpu.TextureUsage
+import io.ygdrasil.webgpu.BindGroupDescriptor
+import io.ygdrasil.webgpu.BindGroupDescriptor.*
+import io.ygdrasil.webgpu.BindGroupLayoutDescriptor
+import io.ygdrasil.webgpu.BindGroupLayoutDescriptor.Entry
+import io.ygdrasil.webgpu.BindGroupLayoutDescriptor.Entry.*
+import io.ygdrasil.webgpu.BufferUsage
+import io.ygdrasil.webgpu.ColorWriteMask
+import io.ygdrasil.webgpu.IndexFormat
+import io.ygdrasil.webgpu.LoadOp
+import io.ygdrasil.webgpu.PipelineLayoutDescriptor
+import io.ygdrasil.webgpu.PresentMode
+import io.ygdrasil.webgpu.PrimitiveTopology
+import io.ygdrasil.webgpu.RenderPassDescriptor
+import io.ygdrasil.webgpu.RenderPipelineDescriptor
+import io.ygdrasil.webgpu.RenderPipelineDescriptor.*
+import io.ygdrasil.webgpu.ShaderModuleDescriptor
+import io.ygdrasil.webgpu.ShaderStage
+import io.ygdrasil.webgpu.StoreOp
+import io.ygdrasil.webgpu.SurfaceTextureStatus
+import io.ygdrasil.webgpu.TextureUsage
 
 /**
  * An example showing drawing a texture with a [textureIndexedMesh] and using an
@@ -114,7 +114,7 @@ class TextureMeshAndCameraExample(context: Context) : ContextListener(context) {
             device.createGPUFloatBuffer(
                 "camera uniform buffer",
                 cameraFloatBuffer.toArray(),
-                setOf(BufferUsage.uniform, BufferUsage.copydst)
+                setOf(BufferUsage.Uniform, BufferUsage.CopyDst)
             )
 
         val shader = device.createShaderModule(ShaderModuleDescriptor(textureShader))
@@ -125,7 +125,7 @@ class TextureMeshAndCameraExample(context: Context) : ContextListener(context) {
         val vertexGroupLayout =
             device.createBindGroupLayout(
                 BindGroupLayoutDescriptor(
-                    listOf(Entry(0, setOf(ShaderStage.vertex), BufferBindingLayout()))
+                    listOf(Entry(0, setOf(ShaderStage.Vertex), BufferBindingLayout()))
                 )
             )
         val vertexBindGroup =
@@ -139,8 +139,8 @@ class TextureMeshAndCameraExample(context: Context) : ContextListener(context) {
             device.createBindGroupLayout(
                 BindGroupLayoutDescriptor(
                     listOf(
-                        Entry(0, setOf(ShaderStage.fragment), TextureBindingLayout()),
-                        Entry(1, setOf(ShaderStage.fragment), SamplerBindingLayout())
+                        Entry(0, setOf(ShaderStage.Fragment), TextureBindingLayout()),
+                        Entry(1, setOf(ShaderStage.Fragment), SamplerBindingLayout())
                     )
                 )
             )
@@ -174,17 +174,17 @@ class TextureMeshAndCameraExample(context: Context) : ContextListener(context) {
                         FragmentState.ColorTargetState(
                             format = preferredFormat,
                             blend = BlendStates.NonPreMultiplied,
-                            writeMask = ColorWriteMask.all
+                            writeMask = ColorWriteMask.All
                         )
                     )
                 ),
-                primitive = PrimitiveState(topology = PrimitiveTopology.triangleList),
+                primitive = PrimitiveState(topology = PrimitiveTopology.TriangleList),
                 depthStencil = null,
                 multisample = MultisampleState(count = 1, mask = 0xFFFFFFFu, alphaToCoverageEnabled = false)
             )
         val renderPipeline = device.createRenderPipeline(renderPipelineDesc)
         graphics.configureSurface(
-            setOf(TextureUsage.renderattachment),
+            setOf(TextureUsage.RenderAttachment),
             preferredFormat,
             PresentMode.fifo,
             graphics.surface.supportedAlphaMode.first()
@@ -193,7 +193,7 @@ class TextureMeshAndCameraExample(context: Context) : ContextListener(context) {
         onResize { width, height ->
             camera.ortho(width, height)
             graphics.configureSurface(
-                setOf(TextureUsage.renderattachment),
+                setOf(TextureUsage.RenderAttachment),
                 preferredFormat,
                 PresentMode.fifo,
                 graphics.surface.supportedAlphaMode.first()
@@ -246,7 +246,7 @@ class TextureMeshAndCameraExample(context: Context) : ContextListener(context) {
             renderPassEncoder.setBindGroup(0, vertexBindGroup)
             renderPassEncoder.setBindGroup(1, fragmentBindGroup)
             renderPassEncoder.setVertexBuffer(0, mesh.vbo)
-            renderPassEncoder.setIndexBuffer(mesh.ibo, IndexFormat.uint16)
+            renderPassEncoder.setIndexBuffer(mesh.ibo, IndexFormat.Uint16)
             renderPassEncoder.drawIndexed(6, 1)
             renderPassEncoder.end()
             renderPassEncoder.release()

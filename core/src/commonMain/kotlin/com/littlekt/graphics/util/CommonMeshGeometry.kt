@@ -2,6 +2,7 @@ package com.littlekt.graphics.util
 
 import com.littlekt.graphics.VertexBufferLayoutView
 import com.littlekt.math.spatial.BoundingBox
+import io.ygdrasil.webgpu.components
 
 /**
  * A [MeshGeometry] that calculates the [BoundingBox] of the geometry as well as using
@@ -20,7 +21,7 @@ class CommonMeshGeometry(layout: VertexBufferLayoutView, size: Int = INITIAL_SIZ
     /** The current vertex view of the geometry. */
     val view =
         CommonVertexView(
-            layout.attributes.sumOf { it.format.components },
+            layout.attributes.sumOf { it.format.components() },
             vertices,
             layout.attributes,
             0

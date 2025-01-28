@@ -18,7 +18,7 @@ import com.littlekt.graphics.g2d.tilemap.ldtk.LDtkWorld
 import com.littlekt.graphics.g2d.tilemap.tiled.TiledMap
 import com.littlekt.math.MutableVec4i
 import com.littlekt.util.internal.unquote
-import io.ygdrasil.wgpu.TextureFormat
+import io.ygdrasil.webgpu.TextureFormat
 import kotlin.math.max
 
 /**

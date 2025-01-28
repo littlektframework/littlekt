@@ -20,10 +20,10 @@ import com.littlekt.math.isFuzzyZero
 import com.littlekt.util.LazyMat4
 import com.littlekt.util.datastructure.fastForEach
 import com.littlekt.util.datastructure.pool
-import io.ygdrasil.wgpu.*
-import io.ygdrasil.wgpu.RenderPipelineDescriptor.*
-import io.ygdrasil.wgpu.RenderPipelineDescriptor.FragmentState.ColorTargetState
-import io.ygdrasil.wgpu.RenderPipelineDescriptor.FragmentState.ColorTargetState.BlendState
+import io.ygdrasil.webgpu.*
+import io.ygdrasil.webgpu.RenderPipelineDescriptor.*
+import io.ygdrasil.webgpu.RenderPipelineDescriptor.FragmentState.ColorTargetState
+import io.ygdrasil.webgpu.RenderPipelineDescriptor.FragmentState.ColorTargetState.BlendState
 
 /**
  * Draws batched quads using indices.
@@ -570,8 +570,8 @@ class SpriteBatch(
         if (spriteIdx == 0) return
 
         mesh.update()
-        renderPassEncoder.setIndexBuffer(mesh.ibo, IndexFormat.uint16)
-        renderPassEncoder.setVertexBuffer(0, mesh.vbo)
+        renderPassEncoder.setIndexBuffer(mesh.ibo, IndexFormat.Uint16)
+        renderPassEncoder.setVertexBuffer(0u, mesh.vbo)
         var lastPipelineSet: RenderPipeline? = null
         var lastCombinedMatrixSet: Mat4? = null
         var lastBindGroupsSet: List<BindGroup>? = null
@@ -615,14 +615,14 @@ class SpriteBatch(
             ) {
                 lastBindGroupsSet = bindGroups
                 lastDynamicMeshOffsets[0] =
-                    lastDynamicOffsetIndex * device.limits.minUniformBufferOffsetAlignment
+                    lastDynamicOffsetIndex * device.limits.minUniformBufferOffsetAlignment.toLong()
                 shader.setBindGroups(renderPassEncoder, bindGroups, lastDynamicMeshOffsets)
                 lastShader = shader
                 lastCombinedMatrixSet = drawCall.combinedMatrix
             }
             val indexCount = drawCall.instances * 6
             EngineStats.extra(QUAD_STATS_NAME, drawCall.instances)
-            renderPassEncoder.drawIndexed(indexCount, 1, firstIndex = drawCall.offset * 6)
+            renderPassEncoder.drawIndexed(indexCount.toUInt(), 1u, firstIndex = drawCall.offset.toUInt() * 6u)
 
             matPool.free(drawCall.combinedMatrix)
         }
@@ -739,14 +739,14 @@ class SpriteBatch(
                     ColorTargetState(
                         format = format,
                         blend = blendState,
-                        writeMask = ColorWriteMask.all
+                        writeMask = ColorWriteMask.All
                     )
                 )
             ),
-            primitive = PrimitiveState(topology = PrimitiveTopology.triangleList),
+            primitive = PrimitiveState(topology = PrimitiveTopology.TriangleList),
             depthStencil = null,
             multisample =
-            MultisampleState(count = 1, mask = 0xFFFFFFFu, alphaToCoverageEnabled = false)
+            MultisampleState(count = 1u, mask = 0xFFFFFFFu, alphaToCoverageEnabled = false)
         )
     }
 

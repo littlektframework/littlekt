@@ -6,12 +6,12 @@ import com.littlekt.graphics.Color
 import com.littlekt.graphics.OrthographicCamera
 import com.littlekt.graphics.g2d.SpriteCache
 import com.littlekt.resources.Textures
-import io.ygdrasil.wgpu.LoadOp
-import io.ygdrasil.wgpu.PresentMode
-import io.ygdrasil.wgpu.RenderPassDescriptor
-import io.ygdrasil.wgpu.StoreOp
-import io.ygdrasil.wgpu.SurfaceTextureStatus
-import io.ygdrasil.wgpu.TextureUsage
+import io.ygdrasil.webgpu.LoadOp
+import io.ygdrasil.webgpu.PresentMode
+import io.ygdrasil.webgpu.RenderPassDescriptor
+import io.ygdrasil.webgpu.StoreOp
+import io.ygdrasil.webgpu.SurfaceTextureStatus
+import io.ygdrasil.webgpu.TextureUsage
 import kotlin.random.Random
 
 /**
@@ -45,7 +45,7 @@ class SpriteCacheQuadsExample(context: Context) : ContextListener(context) {
             }
         }
         graphics.configureSurface(
-            setOf(TextureUsage.renderattachment),
+            setOf(TextureUsage.RenderAttachment),
             preferredFormat,
             PresentMode.fifo,
             graphics.surface.supportedAlphaMode.first()
@@ -54,7 +54,7 @@ class SpriteCacheQuadsExample(context: Context) : ContextListener(context) {
         onResize { width, height ->
             camera.ortho(width, height)
             graphics.configureSurface(
-                setOf(TextureUsage.renderattachment),
+                setOf(TextureUsage.RenderAttachment),
                 preferredFormat,
                 PresentMode.fifo,
                 graphics.surface.supportedAlphaMode.first()

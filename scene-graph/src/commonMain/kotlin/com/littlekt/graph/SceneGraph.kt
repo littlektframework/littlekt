@@ -22,8 +22,8 @@ import com.littlekt.util.milliseconds
 import com.littlekt.util.seconds
 import com.littlekt.util.viewport.ScreenViewport
 import com.littlekt.util.viewport.Viewport
-import io.ygdrasil.wgpu.CommandEncoder
-import io.ygdrasil.wgpu.RenderPassDescriptor
+import io.ygdrasil.webgpu.CommandEncoder
+import io.ygdrasil.webgpu.RenderPassDescriptor
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract

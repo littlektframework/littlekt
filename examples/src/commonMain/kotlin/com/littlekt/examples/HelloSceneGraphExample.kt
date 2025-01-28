@@ -15,13 +15,13 @@ import com.littlekt.input.Key
 import com.littlekt.math.geom.degrees
 import com.littlekt.math.geom.radians
 import com.littlekt.util.viewport.ExtendViewport
-import io.ygdrasil.wgpu.CommandEncoderDescriptor
-import io.ygdrasil.wgpu.LoadOp
-import io.ygdrasil.wgpu.PresentMode
-import io.ygdrasil.wgpu.RenderPassDescriptor
-import io.ygdrasil.wgpu.StoreOp
-import io.ygdrasil.wgpu.SurfaceTextureStatus
-import io.ygdrasil.wgpu.TextureUsage
+import io.ygdrasil.webgpu.CommandEncoderDescriptor
+import io.ygdrasil.webgpu.LoadOp
+import io.ygdrasil.webgpu.PresentMode
+import io.ygdrasil.webgpu.RenderPassDescriptor
+import io.ygdrasil.webgpu.StoreOp
+import io.ygdrasil.webgpu.SurfaceTextureStatus
+import io.ygdrasil.webgpu.TextureUsage
 
 /**
  * An example using a [sceneGraph]
@@ -40,7 +40,7 @@ class HelloSceneGraphExample(context: Context) : ContextListener(context) {
         val preferredFormat = graphics.preferredFormat
 
         graphics.configureSurface(
-            setOf(TextureUsage.renderattachment),
+            setOf(TextureUsage.RenderAttachment),
             preferredFormat,
             PresentMode.fifo,
             graphics.surface.supportedAlphaMode.first()
@@ -145,7 +145,7 @@ class HelloSceneGraphExample(context: Context) : ContextListener(context) {
         onResize { width, height ->
             graph.resize(width, height)
             graphics.configureSurface(
-                setOf(TextureUsage.renderattachment),
+                setOf(TextureUsage.RenderAttachment),
                 preferredFormat,
                 PresentMode.fifo,
                 graphics.surface.supportedAlphaMode.first()

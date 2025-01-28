@@ -7,7 +7,7 @@ import com.littlekt.math.geom.Angle
 import com.littlekt.math.geom.cosine
 import com.littlekt.math.geom.sine
 import com.littlekt.util.datastructure.FloatArrayList
-import io.ygdrasil.wgpu.FilterMode
+import io.ygdrasil.webgpu.FilterMode
 import kotlin.math.max
 import kotlin.math.min
 
@@ -439,8 +439,8 @@ class NinePatch(
         // filtering is used for the texture. This nudges the texture coordinate to the center
         // of the texel where the neighboring pixel has 0% contribution in linear blending mode.
         if (
-            slice.texture.samplerDescriptor.magFilter == FilterMode.linear ||
-                slice.texture.samplerDescriptor.minFilter == FilterMode.linear
+            slice.texture.samplerDescriptor.magFilter == FilterMode.Linear ||
+                slice.texture.samplerDescriptor.minFilter == FilterMode.Linear
         ) {
             if (stretchW) {
                 val halfTexelWidth = 0.5f * 1f / slice.texture.width

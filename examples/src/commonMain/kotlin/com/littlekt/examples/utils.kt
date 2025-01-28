@@ -4,9 +4,9 @@ import com.littlekt.Context
 import com.littlekt.graphics.Camera
 import com.littlekt.input.Key
 import com.littlekt.util.milliseconds
-import io.ygdrasil.wgpu.SurfaceTexture
-import io.ygdrasil.wgpu.SurfaceConfiguration
-import io.ygdrasil.wgpu.SurfaceTextureStatus
+import io.ygdrasil.webgpu.SurfaceTexture
+import io.ygdrasil.webgpu.SurfaceConfiguration
+import io.ygdrasil.webgpu.SurfaceTextureStatus
 
 fun SurfaceTexture.isValid(context: Context, onConfigure: () -> SurfaceConfiguration): Boolean {
     val surfaceTexture = this

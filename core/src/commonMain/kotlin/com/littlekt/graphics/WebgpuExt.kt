@@ -1,20 +1,20 @@
 package com.littlekt.graphics
 
-import io.ygdrasil.wgpu.BlendFactor
-import io.ygdrasil.wgpu.BlendOperation
-import io.ygdrasil.wgpu.Buffer
-import io.ygdrasil.wgpu.BufferDescriptor
-import io.ygdrasil.wgpu.BufferUsage
-import io.ygdrasil.wgpu.Device
-import io.ygdrasil.wgpu.RenderPipelineDescriptor.FragmentState.ColorTargetState.BlendState
-import io.ygdrasil.wgpu.RenderPipelineDescriptor.FragmentState.ColorTargetState.BlendState.BlendComponent
+import io.ygdrasil.webgpu.BlendFactor
+import io.ygdrasil.webgpu.BlendOperation
+import io.ygdrasil.webgpu.Buffer
+import io.ygdrasil.webgpu.BufferDescriptor
+import io.ygdrasil.webgpu.BufferUsage
+import io.ygdrasil.webgpu.Device
+import io.ygdrasil.webgpu.RenderPipelineDescriptor.FragmentState.ColorTargetState.BlendState
+import io.ygdrasil.webgpu.RenderPipelineDescriptor.FragmentState.ColorTargetState.BlendState.BlendComponent
 
 
 fun Device.createGPUShortBuffer(label: String, data: ShortArray, usages: Set<BufferUsage>): Buffer {
     val buffer = createBuffer(
         BufferDescriptor(
             label = label,
-            size = data.size.toLong() * Short.SIZE_BYTES,
+            size = (data.size * Short.SIZE_BYTES).toULong(),
             usage = usages,
             mappedAtCreation = true
         )
@@ -30,7 +30,7 @@ fun Device.createGPUFloatBuffer(label: String, data: FloatArray, usages: Set<Buf
     val buffer = createBuffer(
         BufferDescriptor(
             label = label,
-            size = data.size.toLong() * Float.SIZE_BYTES,
+            size = (data.size * Float.SIZE_BYTES).toULong(),
             usage = usages,
             mappedAtCreation = true
         )
@@ -45,7 +45,7 @@ fun Device.createGPUByteBuffer(label: String, data: ByteArray, usages: Set<Buffe
     val buffer = createBuffer(
         BufferDescriptor(
             label = label,
-            size = data.size.toLong() * Byte.SIZE_BYTES,
+            size = (data.size * Byte.SIZE_BYTES).toULong(),
             usage = usages,
             mappedAtCreation = true
         )
@@ -60,8 +60,8 @@ object BlendStates {
     /** Standard alpha blending. */
     val Alpha: BlendState
         get() = BlendState(
-            color = BlendComponent(dstFactor = BlendFactor.oneminussrcalpha),
-            alpha = BlendComponent(dstFactor = BlendFactor.oneminussrcalpha)
+            color = BlendComponent(dstFactor = BlendFactor.OneMinusSrcAlpha),
+            alpha = BlendComponent(dstFactor = BlendFactor.OneMinusSrcAlpha)
         )
 
     /** Fully oqaque, no alpha, blending. */
@@ -74,37 +74,37 @@ object BlendStates {
         get() = BlendState(
             color =
             BlendComponent(
-                srcFactor = BlendFactor.srcalpha,
-                dstFactor = BlendFactor.oneminussrcalpha
+                srcFactor = BlendFactor.SrcAlpha,
+                dstFactor = BlendFactor.OneMinusSrcAlpha
             ),
             alpha =
             BlendComponent(
-                srcFactor = BlendFactor.srcalpha,
-                dstFactor = BlendFactor.oneminussrcalpha
+                srcFactor = BlendFactor.SrcAlpha,
+                dstFactor = BlendFactor.OneMinusSrcAlpha
             )
         )
 
     val Add: BlendState
         get() = BlendState(
             color =
-            BlendComponent(srcFactor = BlendFactor.srcalpha, dstFactor = BlendFactor.one),
+            BlendComponent(srcFactor = BlendFactor.SrcAlpha, dstFactor = BlendFactor.One),
             alpha =
-            BlendComponent(srcFactor = BlendFactor.srcalpha, dstFactor = BlendFactor.one)
+            BlendComponent(srcFactor = BlendFactor.SrcAlpha, dstFactor = BlendFactor.One)
         )
 
     val Subtract: BlendState
         get() = BlendState(
             color =
             BlendComponent(
-                srcFactor = BlendFactor.srcalpha,
-                dstFactor = BlendFactor.one,
-                operation = BlendOperation.reversesubtract
+                srcFactor = BlendFactor.SrcAlpha,
+                dstFactor = BlendFactor.One,
+                operation = BlendOperation.ReverseSubtract
             ),
             alpha =
             BlendComponent(
-                srcFactor = BlendFactor.srcalpha,
-                dstFactor = BlendFactor.one,
-                operation = BlendOperation.reversesubtract
+                srcFactor = BlendFactor.SrcAlpha,
+                dstFactor = BlendFactor.One,
+                operation = BlendOperation.ReverseSubtract
             ),
         )
 
@@ -112,9 +112,9 @@ object BlendStates {
         get() = BlendState(
             color =
             BlendComponent(
-                srcFactor = BlendFactor.oneminusdst,
-                dstFactor = BlendFactor.oneminussrc,
-                operation = BlendOperation.add
+                srcFactor = BlendFactor.OneMinusDst,
+                dstFactor = BlendFactor.OneMinusSrc,
+                operation = BlendOperation.Add
             ),
         )
 
@@ -122,15 +122,15 @@ object BlendStates {
         get() = BlendState(
             color =
             BlendComponent(
-                srcFactor = BlendFactor.dst,
-                dstFactor = BlendFactor.zero,
-                operation = BlendOperation.add
+                srcFactor = BlendFactor.Dst,
+                dstFactor = BlendFactor.Zero,
+                operation = BlendOperation.Add
             ),
             alpha =
             BlendComponent(
-                srcFactor = BlendFactor.dstalpha,
-                dstFactor = BlendFactor.zero,
-                operation = BlendOperation.add
+                srcFactor = BlendFactor.DstAlpha,
+                dstFactor = BlendFactor.Zero,
+                operation = BlendOperation.Add
             )
         )
 
@@ -138,15 +138,15 @@ object BlendStates {
         get() = BlendState(
             color =
             BlendComponent(
-                srcFactor = BlendFactor.one,
-                dstFactor = BlendFactor.one,
-                operation = BlendOperation.max
+                srcFactor = BlendFactor.One,
+                dstFactor = BlendFactor.One,
+                operation = BlendOperation.Max
             ),
             alpha =
             BlendComponent(
-                srcFactor = BlendFactor.one,
-                dstFactor = BlendFactor.one,
-                operation = BlendOperation.max
+                srcFactor = BlendFactor.One,
+                dstFactor = BlendFactor.One,
+                operation = BlendOperation.Max
             ),
         )
 
@@ -154,15 +154,15 @@ object BlendStates {
         get() = BlendState(
             color =
             BlendComponent(
-                srcFactor = BlendFactor.one,
-                dstFactor = BlendFactor.one,
-                operation = BlendOperation.min
+                srcFactor = BlendFactor.One,
+                dstFactor = BlendFactor.One,
+                operation = BlendOperation.Min
             ),
             alpha =
             BlendComponent(
-                srcFactor = BlendFactor.one,
-                dstFactor = BlendFactor.one,
-                operation = BlendOperation.min
+                srcFactor = BlendFactor.One,
+                dstFactor = BlendFactor.One,
+                operation = BlendOperation.Min
             ),
         )
 
@@ -170,9 +170,9 @@ object BlendStates {
         get() = BlendState(
             color =
             BlendComponent(
-                srcFactor = BlendFactor.oneminusdst,
-                dstFactor = BlendFactor.one,
-                operation = BlendOperation.add
+                srcFactor = BlendFactor.OneMinusDst,
+                dstFactor = BlendFactor.One,
+                operation = BlendOperation.Add
             )
         )
 
@@ -180,9 +180,9 @@ object BlendStates {
         get() = BlendState(
             color =
             BlendComponent(
-                srcFactor = BlendFactor.one,
-                dstFactor = BlendFactor.one,
-                operation = BlendOperation.add
+                srcFactor = BlendFactor.One,
+                dstFactor = BlendFactor.One,
+                operation = BlendOperation.Add
             )
         )
 
@@ -190,9 +190,9 @@ object BlendStates {
         get() = BlendState(
             color =
             BlendComponent(
-                srcFactor = BlendFactor.one,
-                dstFactor = BlendFactor.one,
-                operation = BlendOperation.reversesubtract
+                srcFactor = BlendFactor.One,
+                dstFactor = BlendFactor.One,
+                operation = BlendOperation.ReverseSubtract
             )
         )
 

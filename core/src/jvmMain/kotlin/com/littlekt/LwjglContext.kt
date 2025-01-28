@@ -13,9 +13,9 @@ import com.littlekt.log.Logger
 import com.littlekt.resources.internal.InternalResources
 import com.littlekt.util.datastructure.fastForEach
 import com.littlekt.util.now
-import io.ygdrasil.wgpu.internal.jvm.panama.WGPULogCallback
-import io.ygdrasil.wgpu.internal.jvm.panama.wgpu_h
-import io.ygdrasil.wgpu.internal.jvm.panama.wgpu_h.*
+import io.ygdrasil.webgpu.internal.jvm.panama.WGPULogCallback
+import io.ygdrasil.webgpu.internal.jvm.panama.wgpu_h
+import io.ygdrasil.webgpu.internal.jvm.panama.wgpu_h.*
 import java.lang.foreign.Arena
 import java.nio.ByteBuffer
 import java.nio.IntBuffer

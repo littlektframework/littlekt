@@ -7,22 +7,22 @@ import com.littlekt.graphics.Color
 import com.littlekt.graphics.Texture
 import com.littlekt.graphics.g2d.SpriteBatch
 import com.littlekt.graphics.shader.SpriteShader
-import io.ygdrasil.wgpu.BindGroup
-import io.ygdrasil.wgpu.BindGroupDescriptor
-import io.ygdrasil.wgpu.BindGroupDescriptor.*
-import io.ygdrasil.wgpu.BindGroupLayoutDescriptor
-import io.ygdrasil.wgpu.BindGroupLayoutDescriptor.Entry
-import io.ygdrasil.wgpu.BindGroupLayoutDescriptor.Entry.SamplerBindingLayout
-import io.ygdrasil.wgpu.BindGroupLayoutDescriptor.Entry.TextureBindingLayout
-import io.ygdrasil.wgpu.Device
-import io.ygdrasil.wgpu.LoadOp
-import io.ygdrasil.wgpu.PresentMode
-import io.ygdrasil.wgpu.RenderPassDescriptor
-import io.ygdrasil.wgpu.RenderPassEncoder
-import io.ygdrasil.wgpu.ShaderStage
-import io.ygdrasil.wgpu.StoreOp
-import io.ygdrasil.wgpu.SurfaceTextureStatus
-import io.ygdrasil.wgpu.TextureUsage
+import io.ygdrasil.webgpu.BindGroup
+import io.ygdrasil.webgpu.BindGroupDescriptor
+import io.ygdrasil.webgpu.BindGroupDescriptor.*
+import io.ygdrasil.webgpu.BindGroupLayoutDescriptor
+import io.ygdrasil.webgpu.BindGroupLayoutDescriptor.Entry
+import io.ygdrasil.webgpu.BindGroupLayoutDescriptor.Entry.SamplerBindingLayout
+import io.ygdrasil.webgpu.BindGroupLayoutDescriptor.Entry.TextureBindingLayout
+import io.ygdrasil.webgpu.Device
+import io.ygdrasil.webgpu.LoadOp
+import io.ygdrasil.webgpu.PresentMode
+import io.ygdrasil.webgpu.RenderPassDescriptor
+import io.ygdrasil.webgpu.RenderPassEncoder
+import io.ygdrasil.webgpu.ShaderStage
+import io.ygdrasil.webgpu.StoreOp
+import io.ygdrasil.webgpu.SurfaceTextureStatus
+import io.ygdrasil.webgpu.TextureUsage
 
 /**
  * An example showing a [SpriteBatch] drawing multiple textures and using different shaders to
@@ -77,14 +77,14 @@ class RenderSpriteBatchAndMultipleShadersExample(context: Context) : ContextList
             layout =
                 listOf(
                     BindGroupLayoutDescriptor(
-                        listOf(Entry(0, setOf(ShaderStage.vertex), Entry.BufferBindingLayout()))
+                        listOf(Entry(0, setOf(ShaderStage.Vertex), Entry.BufferBindingLayout()))
                     ),
                     BindGroupLayoutDescriptor(
                         listOf(
-                            Entry(0, setOf(ShaderStage.fragment),
+                            Entry(0, setOf(ShaderStage.Fragment),
                                 TextureBindingLayout()
                             ),
-                            Entry(1, setOf(ShaderStage.fragment),
+                            Entry(1, setOf(ShaderStage.Fragment),
                                 SamplerBindingLayout()
                             )
                         )
@@ -138,7 +138,7 @@ class RenderSpriteBatchAndMultipleShadersExample(context: Context) : ContextList
         val coloredShader = ColorShader(device)
 
         graphics.configureSurface(
-            setOf(TextureUsage.renderattachment),
+            setOf(TextureUsage.RenderAttachment),
             preferredFormat,
             PresentMode.fifo,
             graphics.surface.supportedAlphaMode.first()
@@ -157,7 +157,7 @@ class RenderSpriteBatchAndMultipleShadersExample(context: Context) : ContextList
                     far = 1f,
                 )
             graphics.configureSurface(
-                setOf(TextureUsage.renderattachment),
+                setOf(TextureUsage.RenderAttachment),
                 preferredFormat,
                 PresentMode.fifo,
                 graphics.surface.supportedAlphaMode.first()

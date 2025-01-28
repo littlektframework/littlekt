@@ -3,9 +3,10 @@ package com.littlekt.graphics
 import com.littlekt.ContextListener
 import com.littlekt.graphics.util.CommonIndexedMeshBuilder
 import com.littlekt.graphics.util.CommonIndexedMeshGeometry
-import io.ygdrasil.wgpu.Device
-import io.ygdrasil.wgpu.VertexFormat
-import io.ygdrasil.wgpu.VertexStepMode
+import io.ygdrasil.webgpu.Device
+import io.ygdrasil.webgpu.VertexFormat
+import io.ygdrasil.webgpu.VertexStepMode
+import io.ygdrasil.webgpu.sizeInBytes
 
 /** Creates a new indexed mesh using the list of [VertexAttributeView]. */
 inline fun indexedMesh(
@@ -18,7 +19,7 @@ inline fun indexedMesh(
         CommonIndexedMeshGeometry(
             VertexBufferLayoutView(
                 attributes.calculateStride().toLong(),
-                VertexStepMode.vertex,
+                VertexStepMode.Vertex,
                 attributes
             ),
             size
@@ -40,10 +41,10 @@ fun colorIndexedMesh(
     return indexedMesh(
         device,
         listOf(
-            VertexAttributeView(VertexFormat.float32x3, 0, 0, VertexAttrUsage.POSITION),
+            VertexAttributeView(VertexFormat.Float32x3, 0, 0, VertexAttrUsage.POSITION),
             VertexAttributeView(
-                VertexFormat.float32x4,
-                VertexFormat.float32x3.sizeInByte.toLong(),
+                VertexFormat.Float32x4,
+                VertexFormat.Float32x3.sizeInBytes().toLong(),
                 1,
                 VertexAttrUsage.COLOR
             )
@@ -65,16 +66,16 @@ fun textureIndexedMesh(
     return indexedMesh(
         device,
         listOf(
-            VertexAttributeView(VertexFormat.float32x3, 0, 0, VertexAttrUsage.POSITION),
+            VertexAttributeView(VertexFormat.Float32x3, 0, 0, VertexAttrUsage.POSITION),
             VertexAttributeView(
-                VertexFormat.float32x4,
-                VertexFormat.float32x3.sizeInByte.toLong(),
+                VertexFormat.Float32x4,
+                VertexFormat.Float32x3.sizeInBytes().toLong(),
                 1,
                 VertexAttrUsage.COLOR
             ),
             VertexAttributeView(
-                VertexFormat.float32x2,
-                VertexFormat.float32x4.sizeInByte.toLong() + VertexFormat.float32x3.sizeInByte.toLong(),
+                VertexFormat.Float32x2,
+                VertexFormat.Float32x4.sizeInBytes().toLong() + VertexFormat.Float32x3.sizeInBytes().toLong(),
                 2,
                 VertexAttrUsage.TEX_COORDS
             )
@@ -92,7 +93,7 @@ fun positionIndexedMesh(
 ): IndexedMesh<CommonIndexedMeshGeometry> {
     return indexedMesh(
         device,
-        listOf(VertexAttributeView(VertexFormat.float32x3, 0, 0, VertexAttrUsage.POSITION)),
+        listOf(VertexAttributeView(VertexFormat.Float32x3, 0, 0, VertexAttrUsage.POSITION)),
         size,
         generate
     )

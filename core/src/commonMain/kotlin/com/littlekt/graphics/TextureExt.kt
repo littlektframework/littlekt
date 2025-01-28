@@ -1,7 +1,7 @@
 package com.littlekt.graphics
 
 import com.littlekt.graphics.g2d.TextureSlice
-import io.ygdrasil.wgpu.Device
+import io.ygdrasil.webgpu.Device
 
 /** Creates a new [TextureSlice] that encompasses the entire [Texture]. */
 fun Texture.slice(): TextureSlice = TextureSlice(this)

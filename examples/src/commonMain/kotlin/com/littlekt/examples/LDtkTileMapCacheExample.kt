@@ -5,12 +5,12 @@ import com.littlekt.ContextListener
 import com.littlekt.file.vfs.readLDtkMapLoader
 import com.littlekt.graphics.g2d.SpriteCache
 import com.littlekt.util.viewport.ExtendViewport
-import io.ygdrasil.wgpu.LoadOp
-import io.ygdrasil.wgpu.PresentMode
-import io.ygdrasil.wgpu.RenderPassDescriptor
-import io.ygdrasil.wgpu.StoreOp
-import io.ygdrasil.wgpu.SurfaceTextureStatus
-import io.ygdrasil.wgpu.TextureUsage
+import io.ygdrasil.webgpu.LoadOp
+import io.ygdrasil.webgpu.PresentMode
+import io.ygdrasil.webgpu.RenderPassDescriptor
+import io.ygdrasil.webgpu.StoreOp
+import io.ygdrasil.webgpu.SurfaceTextureStatus
+import io.ygdrasil.webgpu.TextureUsage
 
 /**
  * Load and render an entire world of LDtk.
@@ -30,7 +30,7 @@ class LDtkTileMapCacheExample(context: Context) : ContextListener(context) {
         val preferredFormat = graphics.preferredFormat
 
         graphics.configureSurface(
-            setOf(TextureUsage.renderattachment),
+            setOf(TextureUsage.RenderAttachment),
             preferredFormat,
             PresentMode.fifo,
             graphics.surface.supportedAlphaMode.first()
@@ -45,7 +45,7 @@ class LDtkTileMapCacheExample(context: Context) : ContextListener(context) {
         onResize { width, height ->
             viewport.update(width, height)
             graphics.configureSurface(
-                setOf(TextureUsage.renderattachment),
+                setOf(TextureUsage.RenderAttachment),
                 preferredFormat,
                 PresentMode.fifo,
                 graphics.surface.supportedAlphaMode.first()
@@ -64,7 +64,7 @@ class LDtkTileMapCacheExample(context: Context) : ContextListener(context) {
                 SurfaceTextureStatus.lost -> {
                     surfaceTexture.texture.close()
                     graphics.configureSurface(
-                        setOf(TextureUsage.renderattachment),
+                        setOf(TextureUsage.RenderAttachment),
                         preferredFormat,
                         PresentMode.fifo,
                         graphics.surface.supportedAlphaMode.first()

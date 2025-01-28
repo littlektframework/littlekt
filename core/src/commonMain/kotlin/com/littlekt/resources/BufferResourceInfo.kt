@@ -1,7 +1,7 @@
 package com.littlekt.resources
 
 import com.littlekt.EngineStats
-import io.ygdrasil.wgpu.Buffer
+import io.ygdrasil.webgpu.Buffer
 
 /**
  * @author Colton Daily

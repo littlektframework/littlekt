@@ -9,37 +9,37 @@ import com.littlekt.graphics.BlendStates
 import com.littlekt.graphics.Color
 import com.littlekt.graphics.createGPUFloatBuffer
 import com.littlekt.graphics.createGPUShortBuffer
-import io.ygdrasil.wgpu.BindGroupDescriptor
-import io.ygdrasil.wgpu.BindGroupDescriptor.SamplerBinding
-import io.ygdrasil.wgpu.BindGroupDescriptor.TextureViewBinding
-import io.ygdrasil.wgpu.BindGroupLayoutDescriptor
-import io.ygdrasil.wgpu.BindGroupLayoutDescriptor.Entry.SamplerBindingLayout
-import io.ygdrasil.wgpu.BindGroupLayoutDescriptor.Entry.TextureBindingLayout
-import io.ygdrasil.wgpu.BufferUsage
-import io.ygdrasil.wgpu.ColorWriteMask
-import io.ygdrasil.wgpu.ImageCopyTexture
-import io.ygdrasil.wgpu.IndexFormat
-import io.ygdrasil.wgpu.LoadOp
-import io.ygdrasil.wgpu.PipelineLayoutDescriptor
-import io.ygdrasil.wgpu.PresentMode
-import io.ygdrasil.wgpu.PrimitiveTopology
-import io.ygdrasil.wgpu.RenderPassDescriptor
-import io.ygdrasil.wgpu.RenderPipelineDescriptor
-import io.ygdrasil.wgpu.RenderPipelineDescriptor.FragmentState
-import io.ygdrasil.wgpu.RenderPipelineDescriptor.VertexState.VertexBufferLayout
-import io.ygdrasil.wgpu.RenderPipelineDescriptor.VertexState.VertexBufferLayout.VertexAttribute
-import io.ygdrasil.wgpu.SamplerDescriptor
-import io.ygdrasil.wgpu.ShaderModuleDescriptor
-import io.ygdrasil.wgpu.ShaderStage
-import io.ygdrasil.wgpu.Size3D
-import io.ygdrasil.wgpu.StoreOp
-import io.ygdrasil.wgpu.SurfaceTextureStatus
-import io.ygdrasil.wgpu.TextureDataLayout
-import io.ygdrasil.wgpu.TextureDescriptor
-import io.ygdrasil.wgpu.TextureFormat
-import io.ygdrasil.wgpu.TextureUsage
-import io.ygdrasil.wgpu.VertexFormat
-import io.ygdrasil.wgpu.VertexStepMode
+import io.ygdrasil.webgpu.BindGroupDescriptor
+import io.ygdrasil.webgpu.BindGroupDescriptor.SamplerBinding
+import io.ygdrasil.webgpu.BindGroupDescriptor.TextureViewBinding
+import io.ygdrasil.webgpu.BindGroupLayoutDescriptor
+import io.ygdrasil.webgpu.BindGroupLayoutDescriptor.Entry.SamplerBindingLayout
+import io.ygdrasil.webgpu.BindGroupLayoutDescriptor.Entry.TextureBindingLayout
+import io.ygdrasil.webgpu.BufferUsage
+import io.ygdrasil.webgpu.ColorWriteMask
+import io.ygdrasil.webgpu.ImageCopyTexture
+import io.ygdrasil.webgpu.IndexFormat
+import io.ygdrasil.webgpu.LoadOp
+import io.ygdrasil.webgpu.PipelineLayoutDescriptor
+import io.ygdrasil.webgpu.PresentMode
+import io.ygdrasil.webgpu.PrimitiveTopology
+import io.ygdrasil.webgpu.RenderPassDescriptor
+import io.ygdrasil.webgpu.RenderPipelineDescriptor
+import io.ygdrasil.webgpu.RenderPipelineDescriptor.FragmentState
+import io.ygdrasil.webgpu.RenderPipelineDescriptor.VertexState.VertexBufferLayout
+import io.ygdrasil.webgpu.RenderPipelineDescriptor.VertexState.VertexBufferLayout.VertexAttribute
+import io.ygdrasil.webgpu.SamplerDescriptor
+import io.ygdrasil.webgpu.ShaderModuleDescriptor
+import io.ygdrasil.webgpu.ShaderStage
+import io.ygdrasil.webgpu.Size3D
+import io.ygdrasil.webgpu.StoreOp
+import io.ygdrasil.webgpu.SurfaceTextureStatus
+import io.ygdrasil.webgpu.TextureDataLayout
+import io.ygdrasil.webgpu.TextureDescriptor
+import io.ygdrasil.webgpu.TextureFormat
+import io.ygdrasil.webgpu.TextureUsage
+import io.ygdrasil.webgpu.VertexFormat
+import io.ygdrasil.webgpu.VertexStepMode
 
 /**
  * An example showing drawing a texture with pure WebGPU.
@@ -107,8 +107,8 @@ class TextureExample(context: Context) : ContextListener(context) {
         val indices = ShortBuffer(shortArrayOf(0, 1, 2, 0, 2, 3))
         val image = resourcesVfs["logo.png"].readPixmap()
         val device = graphics.device
-        val vbo = device.createGPUFloatBuffer("vbo", vertices.toArray(), setOf(BufferUsage.vertex))
-        val ibo = device.createGPUShortBuffer("ibo", indices.toArray(), setOf(BufferUsage.index))
+        val vbo = device.createGPUFloatBuffer("vbo", vertices.toArray(), setOf(BufferUsage.Vertex))
+        val ibo = device.createGPUShortBuffer("ibo", indices.toArray(), setOf(BufferUsage.Index))
         val shader = device.createShaderModule(ShaderModuleDescriptor(textureShader))
         val preferredFormat = graphics.preferredFormat
         val texture =
@@ -116,7 +116,7 @@ class TextureExample(context: Context) : ContextListener(context) {
                 TextureDescriptor(
                     Size3D(image.width, image.height),
                     TextureFormat.rgba8unorm,
-                    setOf(TextureUsage.copyDst, TextureUsage.textureBinding)
+                    setOf(TextureUsage.CopyDst, TextureUsage.TextureBinding)
                 )
             )
 
@@ -135,10 +135,10 @@ class TextureExample(context: Context) : ContextListener(context) {
                 BindGroupLayoutDescriptor(
                     listOf(
                         BindGroupLayoutDescriptor.Entry(
-                            0, setOf(ShaderStage.fragment), TextureBindingLayout()
+                            0, setOf(ShaderStage.Fragment), TextureBindingLayout()
                         ),
                         BindGroupLayoutDescriptor.Entry(
-                            1, setOf(ShaderStage.fragment),
+                            1, setOf(ShaderStage.Fragment),
                             SamplerBindingLayout()
                         )
                     )
@@ -166,14 +166,14 @@ class TextureExample(context: Context) : ContextListener(context) {
                         VertexBufferLayout(
                             4L * Float.SIZE_BYTES,
                             listOf(
-                                VertexAttribute(VertexFormat.float32x2, 0, 0),
+                                VertexAttribute(VertexFormat.Float32x2, 0, 0),
                                 VertexAttribute(
-                                    VertexFormat.float32x2,
+                                    VertexFormat.Float32x2,
                                     2L * Float.SIZE_BYTES,
                                     1
                                 )
                             ),
-                            VertexStepMode.vertex,
+                            VertexStepMode.Vertex,
                         )
                     )
                 ),
@@ -185,18 +185,18 @@ class TextureExample(context: Context) : ContextListener(context) {
                         FragmentState.ColorTargetState(
                             format = preferredFormat,
                             blend = BlendStates.NonPreMultiplied,
-                            writeMask = ColorWriteMask.all
+                            writeMask = ColorWriteMask.All
                         )
                     )
                 ),
-                primitive = RenderPipelineDescriptor.PrimitiveState(topology = PrimitiveTopology.triangleList),
+                primitive = RenderPipelineDescriptor.PrimitiveState(topology = PrimitiveTopology.TriangleList),
                 depthStencil = null,
                 multisample =
                 RenderPipelineDescriptor.MultisampleState(count = 1, mask = 0xFFFFFFFu, alphaToCoverageEnabled = false)
             )
         val renderPipeline = device.createRenderPipeline(renderPipelineDesc)
         graphics.configureSurface(
-            setOf(TextureUsage.renderattachment),
+            setOf(TextureUsage.RenderAttachment),
             preferredFormat,
             PresentMode.fifo,
             graphics.surface.supportedAlphaMode.first()
@@ -214,7 +214,7 @@ class TextureExample(context: Context) : ContextListener(context) {
                 SurfaceTextureStatus.lost -> {
                     surfaceTexture.texture.close()
                     graphics.configureSurface(
-                        setOf(TextureUsage.renderattachment),
+                        setOf(TextureUsage.RenderAttachment),
                         preferredFormat,
                         PresentMode.fifo,
                         graphics.surface.supportedAlphaMode.first()
@@ -250,7 +250,7 @@ class TextureExample(context: Context) : ContextListener(context) {
             renderPassEncoder.setPipeline(renderPipeline)
             renderPassEncoder.setBindGroup(0, bindGroup)
             renderPassEncoder.setVertexBuffer(0, vbo)
-            renderPassEncoder.setIndexBuffer(ibo, IndexFormat.uint16)
+            renderPassEncoder.setIndexBuffer(ibo, IndexFormat.Uint16)
             renderPassEncoder.drawIndexed(indices.capacity, 1)
             renderPassEncoder.end()
             renderPassEncoder.release()

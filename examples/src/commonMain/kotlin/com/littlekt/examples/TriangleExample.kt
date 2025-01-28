@@ -4,17 +4,17 @@ import com.littlekt.Context
 import com.littlekt.ContextListener
 import com.littlekt.graphics.BlendStates
 import com.littlekt.graphics.Color
-import io.ygdrasil.wgpu.ColorWriteMask
-import io.ygdrasil.wgpu.LoadOp
-import io.ygdrasil.wgpu.PipelineLayoutDescriptor
-import io.ygdrasil.wgpu.PresentMode
-import io.ygdrasil.wgpu.PrimitiveTopology
-import io.ygdrasil.wgpu.RenderPassDescriptor
-import io.ygdrasil.wgpu.RenderPipelineDescriptor
-import io.ygdrasil.wgpu.ShaderModuleDescriptor
-import io.ygdrasil.wgpu.StoreOp
-import io.ygdrasil.wgpu.SurfaceTextureStatus
-import io.ygdrasil.wgpu.TextureUsage
+import io.ygdrasil.webgpu.ColorWriteMask
+import io.ygdrasil.webgpu.LoadOp
+import io.ygdrasil.webgpu.PipelineLayoutDescriptor
+import io.ygdrasil.webgpu.PresentMode
+import io.ygdrasil.webgpu.PrimitiveTopology
+import io.ygdrasil.webgpu.RenderPassDescriptor
+import io.ygdrasil.webgpu.RenderPipelineDescriptor
+import io.ygdrasil.webgpu.ShaderModuleDescriptor
+import io.ygdrasil.webgpu.StoreOp
+import io.ygdrasil.webgpu.SurfaceTextureStatus
+import io.ygdrasil.webgpu.TextureUsage
 
 /**
  * An example rendering a simple triangle in pure WebGPU.
@@ -59,18 +59,18 @@ class TriangleExample(context: Context) : ContextListener(context) {
                         RenderPipelineDescriptor.FragmentState.ColorTargetState(
                             format = preferredFormat,
                             blend = BlendStates.Opaque,
-                            writeMask = ColorWriteMask.all
+                            writeMask = ColorWriteMask.All
                         )
                     )
                 ),
-                primitive = RenderPipelineDescriptor.PrimitiveState(topology = PrimitiveTopology.triangleList),
+                primitive = RenderPipelineDescriptor.PrimitiveState(topology = PrimitiveTopology.TriangleList),
                 depthStencil = null,
                 multisample =
                 RenderPipelineDescriptor.MultisampleState(count = 1, mask = 0xFFFFFFFu, alphaToCoverageEnabled = false)
             )
         val renderPipeline = device.createRenderPipeline(renderPipelineDesc)
         graphics.configureSurface(
-            setOf(TextureUsage.renderattachment),
+            setOf(TextureUsage.RenderAttachment),
             preferredFormat,
             PresentMode.fifo,
             graphics.surface.supportedAlphaMode.first()
@@ -87,7 +87,7 @@ class TriangleExample(context: Context) : ContextListener(context) {
                 SurfaceTextureStatus.lost -> {
                     surfaceTexture.texture.close()
                     graphics.configureSurface(
-                        setOf(TextureUsage.renderattachment),
+                        setOf(TextureUsage.RenderAttachment),
                         preferredFormat,
                         PresentMode.fifo,
                         graphics.surface.supportedAlphaMode.first()

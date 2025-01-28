@@ -1,18 +1,14 @@
 package com.littlekt
 
 import com.littlekt.graphics.Cursor
+import com.littlekt.graphics.Surface
 import com.littlekt.graphics.SystemCursor
-import io.ygdrasil.wgpu.Adapter
-import io.ygdrasil.wgpu.CanvasConfiguration
-import io.ygdrasil.wgpu.Device
-import io.ygdrasil.wgpu.Surface
-import io.ygdrasil.wgpu.requestAdapter
-import io.ygdrasil.wgpu.TextureFormat
-import io.ygdrasil.wgpu.TextureUsage
-import io.ygdrasil.wgpu.CompositeAlphaMode
-import io.ygdrasil.wgpu.PresentMode
-import io.ygdrasil.wgpu.SurfaceConfiguration
-import io.ygdrasil.wgpu.getSurface
+import io.ygdrasil.webgpu.Adapter
+import io.ygdrasil.webgpu.Device
+import io.ygdrasil.webgpu.requestAdapter
+import io.ygdrasil.webgpu.TextureFormat
+import io.ygdrasil.webgpu.TextureUsage
+import io.ygdrasil.webgpu.CompositeAlphaMode
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
 import org.w3c.dom.Element

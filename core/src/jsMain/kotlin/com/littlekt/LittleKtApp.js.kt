@@ -1,6 +1,6 @@
 package com.littlekt
 
-import io.ygdrasil.wgpu.PowerPreference
+import io.ygdrasil.webgpu.PowerPreference
 
 /** Properties related to creating a [LittleKtApp] */
 actual class LittleKtProps {
@@ -10,7 +10,7 @@ actual class LittleKtProps {
     var title: String = "LitteKt"
     var resourcesDir: String = "./"
     var applicationDir: String = "./"
-    var powerPreference = PowerPreference.highPerformance
+    var powerPreference = PowerPreference.HighPerformance
 }
 
 /**
@@ -42,6 +42,6 @@ class JsConfiguration(
     val canvasId: String = "canvas",
     val resourcesPath: String = "./",
     val applicationPath: String = "./",
-    val powerPreference: PowerPreference = PowerPreference.highPerformance
+    val powerPreference: PowerPreference = PowerPreference.HighPerformance
 ) : ContextConfiguration()
 

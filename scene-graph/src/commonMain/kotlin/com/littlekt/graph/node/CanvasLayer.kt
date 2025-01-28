@@ -18,10 +18,10 @@ import com.littlekt.math.MutableVec2f
 import com.littlekt.math.MutableVec3f
 import com.littlekt.util.viewport.ScreenViewport
 import com.littlekt.util.viewport.Viewport
-import io.ygdrasil.wgpu.LoadOp
-import io.ygdrasil.wgpu.RenderPassDescriptor
-import io.ygdrasil.wgpu.RenderPassEncoder
-import io.ygdrasil.wgpu.StoreOp
+import io.ygdrasil.webgpu.LoadOp
+import io.ygdrasil.webgpu.RenderPassDescriptor
+import io.ygdrasil.webgpu.RenderPassEncoder
+import io.ygdrasil.webgpu.StoreOp
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract

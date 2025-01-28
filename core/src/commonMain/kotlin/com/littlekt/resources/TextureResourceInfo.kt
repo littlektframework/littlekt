@@ -1,7 +1,7 @@
 package com.littlekt.resources
 
 import com.littlekt.EngineStats
-import io.ygdrasil.wgpu.Texture
+import io.ygdrasil.webgpu.Texture
 
 /**
  * @author Colton Daily

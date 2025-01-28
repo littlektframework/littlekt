@@ -1,23 +1,23 @@
 package com.littlekt.graphics
 
 import com.littlekt.graphics.Texture.Companion.nextId
-import io.ygdrasil.wgpu.Device
-import io.ygdrasil.wgpu.Sampler
-import io.ygdrasil.wgpu.SamplerDescriptor
-import io.ygdrasil.wgpu.Size3D
-import io.ygdrasil.wgpu.TextureDescriptor
-import io.ygdrasil.wgpu.TextureDimension
-import io.ygdrasil.wgpu.TextureFormat
-import io.ygdrasil.wgpu.TextureUsage
-import io.ygdrasil.wgpu.TextureView
-import io.ygdrasil.wgpu.TextureViewDescriptor
+import io.ygdrasil.webgpu.Device
+import io.ygdrasil.webgpu.Sampler
+import io.ygdrasil.webgpu.SamplerDescriptor
+import io.ygdrasil.webgpu.Size3D
+import io.ygdrasil.webgpu.TextureDescriptor
+import io.ygdrasil.webgpu.TextureDimension
+import io.ygdrasil.webgpu.TextureFormat
+import io.ygdrasil.webgpu.TextureUsage
+import io.ygdrasil.webgpu.TextureView
+import io.ygdrasil.webgpu.TextureViewDescriptor
 
-import io.ygdrasil.wgpu.Texture as WebGPUTexture
+import io.ygdrasil.webgpu.Texture as WebGPUTexture
 
 /**
  * A [Texture] that doesn't contain any underlying raw image data, but instead, is intended to be
  * used in a render pass as an output. By default, the [textureDescriptor] uses
- * `TextureUsage.textureBinding or TextureUsage.renderattachment` as usage.
+ * `TextureUsage.TextureBinding or TextureUsage.RenderAttachment` as usage.
  *
  * @param device the device for underlying GPU buffers creation
  * @param preferredFormat the preferred [TextureFormat]
@@ -30,7 +30,7 @@ class EmptyTexture(val device: Device, preferredFormat: TextureFormat, width: In
      * The [Extent3D] size of the texture. Uses the initial width & height from the constructor and
      * a depth of `1`.
      */
-    override var size: Size3D = Size3D(width, height, 1)
+    override var size: Size3D = Size3D(width.toUInt(), height.toUInt())
         private set
 
     override var id: Int = nextId()
@@ -41,7 +41,7 @@ class EmptyTexture(val device: Device, preferredFormat: TextureFormat, width: In
         TextureDescriptor(
             size,
             preferredFormat,
-            setOf(TextureUsage.texturebinding, TextureUsage.renderattachment)
+            setOf(TextureUsage.TextureBinding, TextureUsage.RenderAttachment)
         )
         set(value) {
             field = value
@@ -97,7 +97,7 @@ class EmptyTexture(val device: Device, preferredFormat: TextureFormat, width: In
      * creating a whole new one.
      */
     fun resize(width: Int, height: Int) {
-        size = Size3D(width, height, 1)
+        size = Size3D(width.toUInt(), height.toUInt())
         textureDescriptor = textureDescriptor.copy(size = size)
     }
 

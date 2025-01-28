@@ -3,23 +3,15 @@ package com.littlekt
 import com.littlekt.graphics.Cursor
 import com.littlekt.graphics.HdpiMode
 import com.littlekt.graphics.SystemCursor
-import com.littlekt.log.Logger
-import io.ygdrasil.wgpu.Adapter
-import io.ygdrasil.wgpu.CompositeAlphaMode
-import io.ygdrasil.wgpu.Device
-import io.ygdrasil.wgpu.PowerPreference
-import io.ygdrasil.wgpu.PresentMode
-import io.ygdrasil.wgpu.Surface
-import io.ygdrasil.wgpu.SurfaceConfiguration
-import io.ygdrasil.wgpu.TextureFormat
-import io.ygdrasil.wgpu.TextureUsage
-import io.ygdrasil.wgpu.WGPU
-import io.ygdrasil.wgpu.WGPU.Companion
-import java.lang.foreign.Arena
+import io.ygdrasil.webgpu.Adapter
+import io.ygdrasil.webgpu.CompositeAlphaMode
+import io.ygdrasil.webgpu.Device
+import io.ygdrasil.webgpu.PowerPreference
+import io.ygdrasil.webgpu.Surface
+import io.ygdrasil.webgpu.TextureFormat
+import io.ygdrasil.webgpu.TextureUsage
+import io.ygdrasil.webgpu.WGPU
 import java.lang.foreign.MemorySegment
-import kotlinx.atomicfu.atomic
-import kotlinx.atomicfu.update
-import kotlinx.coroutines.runBlocking
 import org.lwjgl.glfw.*
 import org.lwjgl.glfw.GLFWNativeCocoa.glfwGetCocoaWindow
 import org.lwjgl.glfw.GLFWNativeWin32.glfwGetWin32Window
@@ -27,14 +19,13 @@ import org.lwjgl.glfw.GLFWNativeX11.glfwGetX11Display
 import org.lwjgl.glfw.GLFWNativeX11.glfwGetX11Window
 import org.lwjgl.system.JNI.*
 import org.lwjgl.system.macosx.ObjCRuntime.*
-import java.awt.AlphaComposite
 import org.rococoa.ID
 import org.rococoa.Rococoa
 import com.sun.jna.Pointer
 import com.sun.jna.platform.win32.Kernel32
 import darwin.CAMetalLayer
 import darwin.NSWindow
-import io.ygdrasil.wgpu.CanvasConfiguration
+import io.ygdrasil.webgpu.NativeSurface
 
 /**
  * @author Colton Daily
@@ -125,10 +116,10 @@ class LwjglGraphics(private val context: LwjglContext) : Graphics, Releasable {
     }
 
     internal fun configureSurfaceToWindow(windowHandle: Long) {
-        surface = instance.getSurface(windowHandle, { width to height })
+        surface = instance.getSurface(windowHandle)
     }
 
-    private fun WGPU.getSurface(window: Long, sizeProvider: () -> Pair<Int, Int>): Surface = when (Platform.os) {
+    private fun WGPU.getSurface(window: Long): NativeSurface = when (Platform.os) {
         Os.Linux -> {
             val display = glfwGetX11Display().let { MemorySegment.ofAddress(it) }
             val x11_window = glfwGetX11Window(window)
@@ -145,10 +136,9 @@ class LwjglGraphics(private val context: LwjglContext) : Graphics, Releasable {
             nswindow.contentView()?.setWantsLayer(true)
             val layer = CAMetalLayer.layer()
             nswindow.contentView()?.setLayer(layer.id().toLong().toPointer())
-            getSurfaceFromMetalLayer(MemorySegment.ofAddress(layer.id().toLong()))
+            getSurfaceFromMetalLayer(MemorySegment.ofAddress(layer.id().toLong())) ?: error("fail to get surface on Mac")
         }
-    }.also { if( it == MemorySegment.NULL) error("fail to get surface") }
-        .let { Surface(it, sizeProvider) }
+    }
 
     override fun release() {  }
 }

@@ -9,33 +9,33 @@ import com.littlekt.graphics.createGPUFloatBuffer
 import com.littlekt.math.Mat4
 import com.littlekt.math.geom.radians
 import com.littlekt.util.now
-import io.ygdrasil.wgpu.BindGroupDescriptor
-import io.ygdrasil.wgpu.BindGroupLayoutDescriptor
-import io.ygdrasil.wgpu.BufferUsage
-import io.ygdrasil.wgpu.ColorWriteMask
-import io.ygdrasil.wgpu.CompareFunction
-import io.ygdrasil.wgpu.CompositeAlphaMode
-import io.ygdrasil.wgpu.CullMode
-import io.ygdrasil.wgpu.LoadOp
-import io.ygdrasil.wgpu.PipelineLayoutDescriptor
-import io.ygdrasil.wgpu.PresentMode
-import io.ygdrasil.wgpu.PrimitiveTopology
-import io.ygdrasil.wgpu.RenderPassDescriptor
-import io.ygdrasil.wgpu.RenderPipelineDescriptor
-import io.ygdrasil.wgpu.RenderPipelineDescriptor.*
-import io.ygdrasil.wgpu.RenderPipelineDescriptor.VertexState.VertexBufferLayout
-import io.ygdrasil.wgpu.RenderPipelineDescriptor.VertexState.VertexBufferLayout.VertexAttribute
-import io.ygdrasil.wgpu.ShaderModuleDescriptor
-import io.ygdrasil.wgpu.ShaderStage
-import io.ygdrasil.wgpu.Size3D
-import io.ygdrasil.wgpu.StoreOp
-import io.ygdrasil.wgpu.SurfaceConfiguration
-import io.ygdrasil.wgpu.TextureDescriptor
-import io.ygdrasil.wgpu.TextureDimension
-import io.ygdrasil.wgpu.TextureFormat
-import io.ygdrasil.wgpu.TextureUsage
-import io.ygdrasil.wgpu.VertexFormat
-import io.ygdrasil.wgpu.VertexStepMode
+import io.ygdrasil.webgpu.BindGroupDescriptor
+import io.ygdrasil.webgpu.BindGroupLayoutDescriptor
+import io.ygdrasil.webgpu.BufferUsage
+import io.ygdrasil.webgpu.ColorWriteMask
+import io.ygdrasil.webgpu.CompareFunction
+import io.ygdrasil.webgpu.CompositeAlphaMode
+import io.ygdrasil.webgpu.CullMode
+import io.ygdrasil.webgpu.LoadOp
+import io.ygdrasil.webgpu.PipelineLayoutDescriptor
+import io.ygdrasil.webgpu.PresentMode
+import io.ygdrasil.webgpu.PrimitiveTopology
+import io.ygdrasil.webgpu.RenderPassDescriptor
+import io.ygdrasil.webgpu.RenderPipelineDescriptor
+import io.ygdrasil.webgpu.RenderPipelineDescriptor.*
+import io.ygdrasil.webgpu.RenderPipelineDescriptor.VertexState.VertexBufferLayout
+import io.ygdrasil.webgpu.RenderPipelineDescriptor.VertexState.VertexBufferLayout.VertexAttribute
+import io.ygdrasil.webgpu.ShaderModuleDescriptor
+import io.ygdrasil.webgpu.ShaderStage
+import io.ygdrasil.webgpu.Size3D
+import io.ygdrasil.webgpu.StoreOp
+import io.ygdrasil.webgpu.SurfaceConfiguration
+import io.ygdrasil.webgpu.TextureDescriptor
+import io.ygdrasil.webgpu.TextureDimension
+import io.ygdrasil.webgpu.TextureFormat
+import io.ygdrasil.webgpu.TextureUsage
+import io.ygdrasil.webgpu.VertexFormat
+import io.ygdrasil.webgpu.VertexStepMode
 import kotlin.math.cos
 import kotlin.math.sin
 
@@ -457,7 +457,7 @@ class RotatingCubeExample(context: Context) : ContextListener(context) {
         val device = graphics.device
         val preferredFormat = graphics.preferredFormat
         graphics.configureSurface(
-            setOf(TextureUsage.renderattachment),
+            setOf(TextureUsage.RenderAttachment),
             preferredFormat,
             PresentMode.fifo,
             CompositeAlphaMode.opaque
@@ -477,12 +477,12 @@ class RotatingCubeExample(context: Context) : ContextListener(context) {
         }
 
         val vertexBuffer =
-            device.createGPUFloatBuffer("cube vbo", cubeVertexArray, setOf(BufferUsage.vertex))
+            device.createGPUFloatBuffer("cube vbo", cubeVertexArray, setOf(BufferUsage.Vertex))
         val matrixBuffer =
             device.createGPUFloatBuffer(
                 "mvp buffer",
                 modelViewProjMatrix.data,
-                setOf(BufferUsage.uniform, BufferUsage.copydst)
+                setOf(BufferUsage.Uniform, BufferUsage.CopyDst)
             )
 
         val shader = device.createShaderModule(ShaderModuleDescriptor(shaderSrc))
@@ -491,7 +491,7 @@ class RotatingCubeExample(context: Context) : ContextListener(context) {
                 BindGroupLayoutDescriptor(
                     listOf(
                         BindGroupLayoutDescriptor.Entry(
-                            0, setOf(ShaderStage.vertex),
+                            0, setOf(ShaderStage.Vertex),
                             BindGroupLayoutDescriptor.Entry.BufferBindingLayout()
                         )
                     )
@@ -518,16 +518,16 @@ class RotatingCubeExample(context: Context) : ContextListener(context) {
                         buffers = listOf(
                         VertexBufferLayout(
                             arrayStride = cubeVertexSize,
-                            stepMode = VertexStepMode.vertex,
+                            stepMode = VertexStepMode.Vertex,
                             attributes =
                             listOf(
                                 VertexAttribute(
-                                    VertexFormat.float32x4,
+                                    VertexFormat.Float32x4,
                                     cubePositionOffset,
                                     0
                                 ),
                                 VertexAttribute(
-                                    VertexFormat.float32x2,
+                                    VertexFormat.Float32x2,
                                     cubeUVOffset,
                                     1
                                 )
@@ -541,14 +541,14 @@ class RotatingCubeExample(context: Context) : ContextListener(context) {
                         targets = listOf(
                             FragmentState.ColorTargetState(
                                 preferredFormat,
-                                ColorWriteMask.all,
+                                ColorWriteMask.All,
                                 BlendStates.Opaque,
                             )
                         )
 
                     ),
                     primitive =
-                    PrimitiveState(PrimitiveTopology.triangleList, cullMode = CullMode.back),
+                    PrimitiveState(PrimitiveTopology.TriangleList, cullMode = CullMode.back),
                     depthStencil =
                     DepthStencilState(
                         format = TextureFormat.depth24plus,
@@ -563,7 +563,7 @@ class RotatingCubeExample(context: Context) : ContextListener(context) {
                 TextureDescriptor(
                     Size3D(graphics.width, graphics.height),
                     TextureFormat.depth24plus,
-                    setOf(TextureUsage.renderattachment)
+                    setOf(TextureUsage.RenderAttachment)
                 )
             )
         var depthTextureView = depthTexture.createView()
@@ -580,14 +580,14 @@ class RotatingCubeExample(context: Context) : ContextListener(context) {
                             TextureDescriptor(
                                 Size3D(graphics.width, graphics.height),
                                 TextureFormat.depth24plus,
-                                setOf(TextureUsage.renderattachment),
+                                setOf(TextureUsage.RenderAttachment),
                             )
                         )
                     depthTextureView = depthTexture.createView()
                     SurfaceConfiguration(
                         device,
                         preferredFormat,
-                        setOf(TextureUsage.renderattachment),
+                        setOf(TextureUsage.RenderAttachment),
                         alphaMode = CompositeAlphaMode.opaque
                     )
                 }

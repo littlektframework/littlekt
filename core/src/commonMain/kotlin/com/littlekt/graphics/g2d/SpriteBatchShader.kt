@@ -3,15 +3,15 @@ package com.littlekt.graphics.g2d
 import com.littlekt.graphics.Texture
 import com.littlekt.graphics.shader.SpriteShader
 import com.littlekt.util.align
-import io.ygdrasil.wgpu.BindGroup
-import io.ygdrasil.wgpu.BindGroupDescriptor
-import io.ygdrasil.wgpu.BindGroupDescriptor.*
-import io.ygdrasil.wgpu.BindGroupLayoutDescriptor
-import io.ygdrasil.wgpu.BindGroupLayoutDescriptor.Entry
-import io.ygdrasil.wgpu.BindGroupLayoutDescriptor.Entry.*
-import io.ygdrasil.wgpu.Device
-import io.ygdrasil.wgpu.RenderPassEncoder
-import io.ygdrasil.wgpu.ShaderStage
+import io.ygdrasil.webgpu.BindGroup
+import io.ygdrasil.webgpu.BindGroupDescriptor
+import io.ygdrasil.webgpu.BindGroupDescriptor.*
+import io.ygdrasil.webgpu.BindGroupLayoutDescriptor
+import io.ygdrasil.webgpu.BindGroupLayoutDescriptor.Entry
+import io.ygdrasil.webgpu.BindGroupLayoutDescriptor.Entry.*
+import io.ygdrasil.webgpu.Device
+import io.ygdrasil.webgpu.RenderPassEncoder
+import io.ygdrasil.webgpu.ShaderStage
 
 /**
  * The default [SpriteShader] that is used [SpriteBatch].
@@ -70,14 +70,14 @@ class SpriteBatchShader(device: Device, cameraDynamicSize: Int = 50) :
             BindGroupLayoutDescriptor(
                 listOf(
                     Entry(
-                        0,
-                        setOf(ShaderStage.vertex),
+                        0u,
+                        setOf(ShaderStage.Vertex),
                         BufferBindingLayout(
                             hasDynamicOffset = true,
                             minBindingSize =
                             (Float.SIZE_BYTES * 16)
-                                .align(device.limits.minUniformBufferOffsetAlignment)
-                                .toLong()
+                                .align(device.limits.minUniformBufferOffsetAlignment.toInt())
+                                .toULong()
                         )
                     )
                 )
@@ -85,11 +85,11 @@ class SpriteBatchShader(device: Device, cameraDynamicSize: Int = 50) :
             BindGroupLayoutDescriptor(
                 listOf(
                     Entry(
-                        0, setOf(ShaderStage.fragment),
+                        0u, setOf(ShaderStage.Fragment),
                         TextureBindingLayout()
                     ),
                     Entry(
-                        1, setOf(ShaderStage.fragment),
+                        1u, setOf(ShaderStage.Fragment),
                         SamplerBindingLayout()
                     )
                 )
@@ -106,7 +106,7 @@ class SpriteBatchShader(device: Device, cameraDynamicSize: Int = 50) :
             device.createBindGroup(
                 BindGroupDescriptor(
                     layouts[0],
-                    listOf(BindGroupEntry(0, cameraUniformBufferBinding))
+                    listOf(BindGroupEntry(0u, cameraUniformBufferBinding))
                 )
             )
         )
@@ -115,8 +115,8 @@ class SpriteBatchShader(device: Device, cameraDynamicSize: Int = 50) :
                 BindGroupDescriptor(
                     layouts[1],
                     listOf(
-                        BindGroupEntry(0, TextureViewBinding(texture.view)),
-                        BindGroupEntry(1, SamplerBinding(texture.sampler))
+                        BindGroupEntry(0u, TextureViewBinding(texture.view)),
+                        BindGroupEntry(1u, SamplerBinding(texture.sampler))
                     )
                 )
             )
@@ -128,7 +128,7 @@ class SpriteBatchShader(device: Device, cameraDynamicSize: Int = 50) :
         bindGroups: List<BindGroup>,
         dynamicOffsets: List<Long>
     ) {
-        encoder.setBindGroup(0, bindGroups[0], dynamicOffsets.map { it.toInt() })
-        encoder.setBindGroup(1, bindGroups[1])
+        encoder.setBindGroup(0u, bindGroups[0], dynamicOffsets.map { it.toUInt() })
+        encoder.setBindGroup(1u, bindGroups[1])
     }
 }
