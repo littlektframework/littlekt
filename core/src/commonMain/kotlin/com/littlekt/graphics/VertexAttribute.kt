@@ -13,6 +13,7 @@ import com.littlekt.graphics.webgpu.WebGPUVertexAttribute
  * @param usage the usage of the attribute. Used in certain situations where certain logic requires
  *   checking if an attribute exists in order to provide support. (E.g [CommonVertexView.position]
  *   for [VertexAttrUsage.POSITION]).
+ * @param index optional index specifier (i.e. multiple texcoords)
  * @author Colton Daily
  * @date 4/10/2024
  */
@@ -20,10 +21,11 @@ data class VertexAttribute(
     val format: VertexFormat,
     val offset: Long,
     val shaderLocation: Int,
-    val usage: VertexAttrUsage
+    val usage: VertexAttrUsage,
+    val index: Int = 0,
 ) {
     private val usageIndex = usage.usage.countTrailingZeroBits()
     val gpuVertexAttribute = WebGPUVertexAttribute(format, offset, shaderLocation)
 
-    val key: Int = (usageIndex shl 8) + (shaderLocation and 0xFF)
+    val key: Int = (usageIndex shl 8) + (index and 0xFF)
 }

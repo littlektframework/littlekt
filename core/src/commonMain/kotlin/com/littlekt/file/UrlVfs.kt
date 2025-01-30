@@ -1,14 +1,14 @@
 package com.littlekt.file
 
 import com.littlekt.Context
+import com.littlekt.async.VfsScope
 import com.littlekt.log.Logger
 import com.littlekt.util.toString
-import kotlin.coroutines.CoroutineContext
 import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.channels.SendChannel
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.selects.select
 import kotlinx.serialization.json.Json
 
@@ -23,19 +23,21 @@ abstract class UrlVfs(context: Context, logger: Logger) : Vfs(context, logger, "
     override val json = Json {
         ignoreUnknownKeys = true
         isLenient = true
+        allowSpecialFloatingPointValues = true
     }
 
-    protected val job = Job()
-
-    override val coroutineContext: CoroutineContext = job
-
     private val awaitedAssetsChannel = Channel<AwaitedAsset>()
+        get() {
+            controller
+            return field
+        }
+
     private val assetRefChannel = Channel<AssetRef>(Channel.UNLIMITED)
     private val loadedAssetChannel = Channel<LoadedAsset>()
 
-    init {
-        repeat(NUM_LOAD_WORKERS) { loadWorker(assetRefChannel, loadedAssetChannel) }
-        launch {
+    private val controller by lazy {
+        VfsScope.launch {
+            repeat(NUM_LOAD_WORKERS) { loadWorker(assetRefChannel, loadedAssetChannel) }
             val requested = mutableMapOf<AssetRef, MutableList<AwaitedAsset>>()
             while (true) {
                 select<Unit> {
@@ -61,12 +63,13 @@ abstract class UrlVfs(context: Context, logger: Logger) : Vfs(context, logger, "
 
     private fun loadWorker(
         assetRefs: ReceiveChannel<AssetRef>,
-        loadedAssets: SendChannel<LoadedAsset>
-    ) = launch {
-        for (ref in assetRefs) {
-            loadedAssets.send(readBytes(ref))
+        loadedAssets: SendChannel<LoadedAsset>,
+    ) =
+        VfsScope.launch {
+            for (ref in assetRefs) {
+                loadedAssets.send(readBytes(ref))
+            }
         }
-    }
 
     private suspend fun readBytes(ref: AssetRef): LoadedAsset {
         return when (ref) {
@@ -130,7 +133,7 @@ abstract class UrlVfs(context: Context, logger: Logger) : Vfs(context, logger, "
 
     protected inner class AwaitedAsset(
         val ref: AssetRef,
-        val awaiting: CompletableDeferred<LoadedAsset> = CompletableDeferred(job)
+        val awaiting: CompletableDeferred<LoadedAsset> = CompletableDeferred(VfsScope.job),
     )
 
     companion object {

@@ -9,11 +9,24 @@ import com.littlekt.graphics.webgpu.*
  * @param device the device for underlying GPU buffers creation
  * @param preferredFormat the preferred [TextureFormat]
  * @param pixmap the underlying texture data
+ * @param mips number of mip map levels to generate. Set this value to `1` to not generate any
+ *   additional levels. See [Texture.calculateNumMips] to calculate levels based on size. Must
+ *   be >= 1.
+ * @param samplerDescriptor optional [SamplerDescriptor] to pass in when building initial texture.
  * @author Colton Daily
  * @date 5/5/2024
  */
-class PixmapTexture(val device: Device, preferredFormat: TextureFormat, val pixmap: Pixmap) :
-    Texture {
+class PixmapTexture(
+    val device: Device,
+    preferredFormat: TextureFormat,
+    val pixmap: Pixmap,
+    mips: Int = Texture.calculateNumMips(pixmap.width, pixmap.height),
+    samplerDescriptor: SamplerDescriptor = SamplerDescriptor(),
+) : Texture {
+    init {
+        check(mips >= 1) { "Mips must be >= 1!" }
+    }
+
     /**
      * The [Extent3D] size of the texture. Uses [Pixmap.width], [Pixmap.height] and a depth of `1`.
      */
@@ -24,11 +37,11 @@ class PixmapTexture(val device: Device, preferredFormat: TextureFormat, val pixm
     override var textureDescriptor: TextureDescriptor =
         TextureDescriptor(
             size,
-            1,
+            mips,
             1,
             TextureDimension.D2,
             preferredFormat,
-            TextureUsage.TEXTURE or TextureUsage.COPY_DST
+            TextureUsage.TEXTURE or TextureUsage.COPY_DST or TextureUsage.RENDER_ATTACHMENT,
         )
         set(value) {
             field = value
@@ -62,26 +75,29 @@ class PixmapTexture(val device: Device, preferredFormat: TextureFormat, val pixm
             id = nextId()
         }
 
-    override var samplerDescriptor: SamplerDescriptor = SamplerDescriptor()
+    override var samplerDescriptor: SamplerDescriptor = samplerDescriptor
         set(value) {
             field = value
             sampler.release()
             sampler = device.createSampler(value)
         }
 
-    override var sampler: Sampler = device.createSampler(samplerDescriptor)
+    override var sampler: Sampler = device.createSampler(this.samplerDescriptor)
         private set
 
     init {
         writeDataToBuffer()
+        if (mips > 1) {
+            generateMipMaps(device)
+        }
     }
 
     override fun writeDataToBuffer() {
         device.queue.writeTexture(
             pixmap.pixels.toArray(),
             TextureCopyView(gpuTexture),
-            TextureDataLayout(4 * pixmap.width, pixmap.height),
-            size
+            TextureDataLayout(textureDescriptor.format.bytes * pixmap.width, pixmap.height),
+            size,
         )
     }
 

@@ -58,7 +58,7 @@ class TextureMeshAndCameraExample(context: Context) : ContextListener(context) {
 
     override suspend fun Context.start() {
         addStatsHandler()
-        addCloseOnEsc()
+        addCloseOnShiftEsc()
         val device = graphics.device
         val texture = resourcesVfs["logo.png"].readTexture()
         val imgWidth = texture.width.toFloat() * 0.5f
@@ -68,19 +68,19 @@ class TextureMeshAndCameraExample(context: Context) : ContextListener(context) {
                 indicesAsQuad()
                 addVertex { // top left
                     position.set(0f, imgHeight, 0f)
-                    texCoords.set(0f, 0f)
+                    uv.set(0f, 0f)
                 }
                 addVertex { // top right
                     position.set(imgWidth, imgHeight, 0f)
-                    texCoords.set(1f, 0f)
+                    uv.set(1f, 0f)
                 }
                 addVertex { // bottom right
                     position.set(imgWidth, 0f, 0f)
-                    texCoords.set(1f, 1f)
+                    uv.set(1f, 1f)
                 }
                 addVertex { // bottom left
                     position.set(0f, 0f, 0f)
-                    texCoords.set(0f, 1f)
+                    uv.set(0f, 1f)
                 }
             }
         mesh.update()

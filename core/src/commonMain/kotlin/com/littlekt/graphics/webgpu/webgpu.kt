@@ -44,7 +44,7 @@ expect class Device : Releasable {
     fun createPipelineLayout(desc: PipelineLayoutDescriptor): PipelineLayout
 
     /**
-     * @param debug label for a [CommandEncoder].
+     * @param label debug label for a [CommandEncoder].
      * @return a newly created, empty [CommandEncoder].
      */
     fun createCommandEncoder(label: String? = null): CommandEncoder
@@ -65,32 +65,72 @@ expect class Device : Releasable {
     fun createTexture(desc: TextureDescriptor): WebGPUTexture
 
     /**
-     * This uses [createBuffer] internally, maps it at creation, and unmaps it immediately.
+     * This uses [createBuffer] internally, maps it at creation, writes the data, and unmaps it immediately.
      *
      * @return a newly created [GPUBuffer] using an [ShortArray].
      */
     fun createGPUShortBuffer(label: String, data: ShortArray, usage: BufferUsage): GPUBuffer
 
     /**
-     * This uses [createBuffer] internally, maps it at creation, and unmaps it immediately.
+     * This uses [createBuffer] internally, maps it at creation, writes the data, and unmaps it immediately.
+     *
+     * @return a newly created [GPUBuffer] using an [ShortBuffer].
+     */
+    fun createGPUShortBuffer(label: String, data: ShortBuffer, usage: BufferUsage): GPUBuffer
+
+    /**
+     * This uses [createBuffer] internally, maps it at creation, writes the data, and unmaps it immediately.
      *
      * @return a newly created [GPUBuffer] using a [FloatArray].
      */
     fun createGPUFloatBuffer(label: String, data: FloatArray, usage: BufferUsage): GPUBuffer
 
     /**
-     * This uses [createBuffer] internally, maps it at creation, and unmaps it immediately.
+     * This uses [createBuffer] internally, maps it at creation, writes the data, and unmaps it immediately.
+     *
+     * @return a newly created [GPUBuffer] using a [FloatBuffer].
+     */
+    fun createGPUFloatBuffer(label: String, data: FloatBuffer, usage: BufferUsage): GPUBuffer
+
+    /**
+     * This uses [createBuffer] internally, maps it at creation, writes the data, and unmaps it immediately.
      *
      * @return a newly created [GPUBuffer] using an [IntArray].
      */
     fun createGPUIntBuffer(label: String, data: IntArray, usage: BufferUsage): GPUBuffer
 
     /**
-     * This uses [createBuffer] internally, maps it at creation, and unmaps it immediately.
+     * This uses [createBuffer] internally, maps it at creation, writes the data, and unmaps it immediately.
+     *
+     * @return a newly created [GPUBuffer] using an [IntBuffer].
+     */
+    fun createGPUIntBuffer(label: String, data: IntBuffer, usage: BufferUsage): GPUBuffer
+
+    /**
+     * This uses [createBuffer] internally, maps it at creation, writes the data, and unmaps it immediately.
      *
      * @return a newly created [GPUBuffer] using a [ByteArray].
      */
     fun createGPUByteBuffer(label: String, data: ByteArray, usage: BufferUsage): GPUBuffer
+
+    /**
+     * This uses [createBuffer] internally, maps it at creation, writes the data, and unmaps it immediately.
+     *
+     * @return a newly created [GPUBuffer] using a [ByteBuffer].
+     */
+    fun createGPUByteBuffer(label: String, data: ByteBuffer, usage: BufferUsage): GPUBuffer
+
+    /**
+     * Check for resource cleanups and mapping callbacks.
+     *
+     * @return `true` if the queue is empty, or `false` if there are more queue submissions still in
+     *   flight. (Note that, unless access to the Queue is coordinated somehow, this information
+     *   could be out of date by the time the caller receives it. Queues can be shared between
+     *   threads, so other threads could submit new work at any time.)
+     *
+     * When running on WebGPU, this is a no-op. Devices are automatically polled.
+     */
+    fun poll(): Boolean
 
     override fun release()
 }
@@ -128,7 +168,7 @@ expect class Adapter : Releasable {
 data class DeviceDescriptor(
     val label: String? = null,
     val requiredFeatures: List<Feature>? = null,
-    val requiredLimits: RequiredLimits? = null
+    val requiredLimits: RequiredLimits? = null,
 )
 
 /**
@@ -520,7 +560,7 @@ expect class Queue : Releasable {
         data: ShortBuffer,
         offset: Long = 0,
         dataOffset: Long = 0,
-        size: Long = data.capacity.toLong()
+        size: Long = data.capacity.toLong(),
     )
 
     /**
@@ -538,7 +578,7 @@ expect class Queue : Releasable {
         data: FloatBuffer,
         offset: Long = 0,
         dataOffset: Long = 0,
-        size: Long = data.capacity.toLong()
+        size: Long = data.capacity.toLong(),
     )
 
     /**
@@ -556,7 +596,7 @@ expect class Queue : Releasable {
         data: IntBuffer,
         offset: Long = 0,
         dataOffset: Long = 0,
-        size: Long = data.capacity.toLong()
+        size: Long = data.capacity.toLong(),
     )
 
     /**
@@ -574,7 +614,7 @@ expect class Queue : Releasable {
         data: ByteBuffer,
         offset: Long = 0,
         dataOffset: Long = 0,
-        size: Long = data.capacity.toLong()
+        size: Long = data.capacity.toLong(),
     )
 
     /**
@@ -600,7 +640,7 @@ expect class Queue : Releasable {
         destination: TextureCopyView,
         layout: TextureDataLayout,
         copySize: Extent3D,
-        size: Long = data.capacity.toLong()
+        size: Long = data.capacity.toLong(),
     )
 
     /**
@@ -626,7 +666,7 @@ expect class Queue : Releasable {
         destination: TextureCopyView,
         layout: TextureDataLayout,
         copySize: Extent3D,
-        size: Long = data.size.toLong()
+        size: Long = data.size.toLong(),
     )
 
     override fun release()
@@ -761,10 +801,10 @@ data class TextureViewDescriptor(
     val dimension: TextureViewDimension,
     val aspect: TextureAspect = TextureAspect.ALL,
     val baseMipLevel: Int = 0,
-    val mipLevelCount: Int = 0,
+    val mipLevelCount: Int = 1,
     val baseArrayLayer: Int = 0,
-    val arrayLayerCount: Int = 0,
-    val label: String? = null
+    val arrayLayerCount: Int = 1,
+    val label: String? = null,
 )
 
 /**
@@ -788,7 +828,7 @@ data class TextureDescriptor(
     val dimension: TextureDimension,
     val format: TextureFormat,
     val usage: TextureUsage,
-    val label: String? = null
+    val label: String? = null,
 )
 
 /** A texture that can be rendered to. Result of a successful call to [Surface.getCurrentTexture] */
@@ -836,7 +876,7 @@ data class BufferDescriptor(
     val label: String,
     val size: Long,
     val usage: BufferUsage,
-    val mappedAtCreation: Boolean
+    val mappedAtCreation: Boolean,
 )
 
 /**
@@ -908,7 +948,7 @@ data class SamplerDescriptor(
     val lodMinClamp: Float = 0f,
     val lodMaxClamp: Float = 100000000f,
     val maxAnisotropy: Short = 1,
-    val label: String? = null
+    val label: String? = null,
 )
 
 /**

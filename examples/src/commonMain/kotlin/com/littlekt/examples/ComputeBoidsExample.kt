@@ -19,7 +19,7 @@ class ComputeBoidsExample(context: Context) : ContextListener(context) {
 
     override suspend fun Context.start() {
         addStatsHandler()
-        addCloseOnEsc()
+        addCloseOnShiftEsc()
         val device = graphics.device
 
         val surfaceCapabilities = graphics.surfaceCapabilities
@@ -29,10 +29,10 @@ class ComputeBoidsExample(context: Context) : ContextListener(context) {
             TextureUsage.RENDER_ATTACHMENT,
             preferredFormat,
             PresentMode.FIFO,
-            surfaceCapabilities.alphaModes[0]
+            surfaceCapabilities.alphaModes[0],
         )
 
-        val spriteShader = Shader(device, SPRITE_WGSL_SRC, emptyList())
+        val spriteShader = Shader(device, SPRITE_WGSL_SRC, emptyList(), emptyMap())
         val renderPipeline =
             device.createRenderPipeline(
                 desc =
@@ -53,7 +53,7 @@ class ComputeBoidsExample(context: Context) : ContextListener(context) {
                                                             format = VertexFormat.FLOAT32x2,
                                                             offset = 0L,
                                                             shaderLocation = 0,
-                                                            usage = VertexAttrUsage.POSITION
+                                                            usage = VertexAttrUsage.POSITION,
                                                         ),
                                                         VertexAttribute(
                                                             format = VertexFormat.FLOAT32x2,
@@ -61,9 +61,9 @@ class ComputeBoidsExample(context: Context) : ContextListener(context) {
                                                                 VertexFormat.FLOAT32x2.bytes
                                                                     .toLong(),
                                                             shaderLocation = 1,
-                                                            usage = VertexAttrUsage.GENERIC
+                                                            usage = VertexAttrUsage.GENERIC,
                                                         ),
-                                                    )
+                                                    ),
                                             )
                                             .gpuVertexBufferLayout,
                                         VertexBufferLayout(
@@ -75,12 +75,12 @@ class ComputeBoidsExample(context: Context) : ContextListener(context) {
                                                             format = VertexFormat.FLOAT32x2,
                                                             offset = 0,
                                                             shaderLocation = 2,
-                                                            usage = VertexAttrUsage.GENERIC
-                                                        ),
-                                                    )
+                                                            usage = VertexAttrUsage.GENERIC,
+                                                        )
+                                                    ),
                                             )
-                                            .gpuVertexBufferLayout
-                                    )
+                                            .gpuVertexBufferLayout,
+                                    ),
                             ),
                         fragment =
                             FragmentState(
@@ -90,9 +90,9 @@ class ComputeBoidsExample(context: Context) : ContextListener(context) {
                                     ColorTargetState(
                                         format = preferredFormat,
                                         blendState = BlendState.NonPreMultiplied,
-                                        writeMask = ColorWriteMask.ALL
-                                    )
-                            )
+                                        writeMask = ColorWriteMask.ALL,
+                                    ),
+                            ),
                     )
             )
         val computeBindGroupLayoutDesc =
@@ -102,15 +102,15 @@ class ComputeBoidsExample(context: Context) : ContextListener(context) {
                     BindGroupLayoutEntry(
                         1,
                         ShaderStage.COMPUTE,
-                        BufferBindingLayout(BufferBindingType.READ_ONLY_STORAGE)
+                        BufferBindingLayout(BufferBindingType.READ_ONLY_STORAGE),
                     ),
                     BindGroupLayoutEntry(
                         2,
                         ShaderStage.COMPUTE,
-                        BufferBindingLayout(BufferBindingType.STORAGE)
-                    )
+                        BufferBindingLayout(BufferBindingType.STORAGE),
+                    ),
                 ),
-                "compute bind group"
+                "compute bind group",
             )
         val computeBindGroupLayout =
             device.createBindGroupLayout(
@@ -120,15 +120,15 @@ class ComputeBoidsExample(context: Context) : ContextListener(context) {
                         BindGroupLayoutEntry(
                             1,
                             ShaderStage.COMPUTE,
-                            BufferBindingLayout(BufferBindingType.READ_ONLY_STORAGE)
+                            BufferBindingLayout(BufferBindingType.READ_ONLY_STORAGE),
                         ),
                         BindGroupLayoutEntry(
                             2,
                             ShaderStage.COMPUTE,
-                            BufferBindingLayout(BufferBindingType.STORAGE)
-                        )
+                            BufferBindingLayout(BufferBindingType.STORAGE),
+                        ),
                     ),
-                    "compute bind group"
+                    "compute bind group",
                 )
             )
         val computePipelineLayout =
@@ -143,8 +143,8 @@ class ComputeBoidsExample(context: Context) : ContextListener(context) {
                         compute =
                             ProgrammableStage(
                                 module = device.createShaderModule(UPDATE_SPRITES_WGSL_SRC),
-                                entryPoint = "main"
-                            )
+                                entryPoint = "main",
+                            ),
                     )
             )
 
@@ -153,7 +153,7 @@ class ComputeBoidsExample(context: Context) : ContextListener(context) {
             device.createGPUFloatBuffer(
                 "sprite vertex buffer",
                 vertexBufferData,
-                BufferUsage.VERTEX
+                BufferUsage.VERTEX,
             )
         val simParams =
             SimParams(
@@ -163,7 +163,7 @@ class ComputeBoidsExample(context: Context) : ContextListener(context) {
                 rule3Distance = 0.025f,
                 rule1Scale = 0.02f,
                 rule2Scale = 0.05f,
-                rule3Scale = 0.005f
+                rule3Scale = 0.005f,
             )
 
         val simParamBufferSize = 7L * Float.SIZE_BYTES
@@ -173,7 +173,7 @@ class ComputeBoidsExample(context: Context) : ContextListener(context) {
                     "sim param buffer",
                     simParamBufferSize,
                     BufferUsage.UNIFORM or BufferUsage.COPY_DST,
-                    false
+                    false,
                 )
             )
         val simParamBufferData = FloatBuffer(7)
@@ -185,7 +185,7 @@ class ComputeBoidsExample(context: Context) : ContextListener(context) {
                 simParams.rule3Distance,
                 simParams.rule1Scale,
                 simParams.rule2Scale,
-                simParams.rule3Scale
+                simParams.rule3Scale,
             )
         )
         device.queue.writeBuffer(simParamBuffer, simParamBufferData)
@@ -204,7 +204,7 @@ class ComputeBoidsExample(context: Context) : ContextListener(context) {
                 device.createGPUFloatBuffer(
                     "particle buffer $it",
                     initialParticleData,
-                    BufferUsage.VERTEX or BufferUsage.STORAGE
+                    BufferUsage.VERTEX or BufferUsage.STORAGE,
                 )
             }
 
@@ -217,17 +217,17 @@ class ComputeBoidsExample(context: Context) : ContextListener(context) {
                             BindGroupEntry(0, BufferBinding(simParamBuffer)),
                             BindGroupEntry(
                                 1,
-                                BufferBinding(particleBuffers[i], 0, initialParticleData.size * 4L)
+                                BufferBinding(particleBuffers[i], 0, initialParticleData.size * 4L),
                             ),
                             BindGroupEntry(
                                 2,
                                 BufferBinding(
                                     particleBuffers[(i + 1) % 2],
                                     0,
-                                    initialParticleData.size * 4L
-                                )
+                                    initialParticleData.size * 4L,
+                                ),
                             ),
-                        )
+                        ),
                     )
                 )
             }
@@ -237,7 +237,7 @@ class ComputeBoidsExample(context: Context) : ContextListener(context) {
                 TextureUsage.RENDER_ATTACHMENT,
                 preferredFormat,
                 PresentMode.FIFO,
-                surfaceCapabilities.alphaModes[0]
+                surfaceCapabilities.alphaModes[0],
             )
         }
 
@@ -275,10 +275,10 @@ class ComputeBoidsExample(context: Context) : ContextListener(context) {
                             storeOp = StoreOp.STORE,
                             clearColor =
                                 if (preferredFormat.srgb) Color.DARK_GRAY.toLinear()
-                                else Color.DARK_GRAY
+                                else Color.DARK_GRAY,
                         )
                     ),
-                    label = "Init render pass"
+                    label = "Init render pass",
                 )
 
             run computePass@{
@@ -323,7 +323,7 @@ class ComputeBoidsExample(context: Context) : ContextListener(context) {
         var rule3Distance: Float,
         var rule1Scale: Float,
         var rule2Scale: Float,
-        var rule3Scale: Float
+        var rule3Scale: Float,
     )
 }
 
@@ -386,6 +386,7 @@ private const val UPDATE_SPRITES_WGSL_SRC =
     @binding(0) @group(0) var<uniform> params : SimParams;
     @binding(1) @group(0) var<storage, read> particlesA : Particles;
     @binding(2) @group(0) var<storage, read_write> particlesB : Particles;
+
     
     // https://github.com/austinEng/Project6-Vulkan-Flocking/blob/master/data/shaders/computeparticles/particle.comp
     @compute @workgroup_size(64)

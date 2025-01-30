@@ -154,7 +154,7 @@ enum class Key {
 
 enum class GameStick(val index: Int) {
     LEFT(0),
-    RIGHT(1)
+    RIGHT(1),
 }
 
 enum class GameAxis(val index: Int) {
@@ -319,7 +319,7 @@ open class StandardGamepadMapping : GamepadMapping() {
             GameButton.DOWN,
             GameButton.LEFT,
             GameButton.RIGHT,
-            GameButton.SYSTEM
+            GameButton.SYSTEM,
         )
 
     override val axisListOrder: List<GameAxis> =
@@ -357,6 +357,14 @@ interface Input {
     val axisLeftY: Float
     val axisRightX: Float
     val axisRightY: Float
+
+    /**
+     * `true` if cursor is locked, usually via [cursorLocked]; `false` otherwise.
+     *
+     * @see [lockCursor]
+     * @see [releaseCursor]
+     */
+    val cursorLocked: Boolean
 
     fun getX(pointer: Pointer): Int
 
@@ -433,6 +441,12 @@ interface Input {
     fun getGamepadJoystickYDistance(stick: GameStick, gamepad: Int = 0): Float
 
     fun setCursorPosition(x: Int, y: Int)
+
+    /** Locks the cursor so it stays in the center of the screen and hides it. */
+    fun lockCursor()
+
+    /** Release any caught cursors. */
+    fun releaseCursor()
 
     /** Add a [InputProcessor] to receive input callbacks. */
     fun addInputProcessor(processor: InputProcessor)

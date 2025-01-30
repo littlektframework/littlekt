@@ -37,13 +37,13 @@ abstract class Camera {
     /**
      * The right direction.
      *
-     * @see [rightMut]
+     * @see [rightMutable]
      */
-    val rightDir: Vec3f
-        get() = rightMut
+    val right: Vec3f
+        get() = rightMutable
 
-    /** A mutable version of [rightDir]. */
-    protected val rightMut = MutableVec3f()
+    /** A mutable version of [right]. */
+    protected val rightMutable = MutableVec3f()
 
     /** The project matrix. */
     val projection = Mat4()
@@ -109,7 +109,7 @@ abstract class Camera {
 
     /** Updates the view matrix. */
     protected open fun updateViewMatrix() {
-        direction.cross(up, rightMut).norm()
+        direction.cross(up, rightMutable).norm()
         view.setToLookAt(position, tempVec3.set(position).add(direction), up)
         lazyInvView.isDirty = true
     }
@@ -149,7 +149,7 @@ abstract class Camera {
     }
 
     /** Rotates the [direction] and [up] vectors by the given [quaternion]. */
-    fun rotate(quaternion: Vec4f) {
+    fun rotate(quaternion: Quaternion) {
         quaternion.transform(direction, direction)
         quaternion.transform(up, up)
     }
@@ -838,7 +838,7 @@ abstract class Camera {
     }
 
     override fun toString(): String {
-        return "Camera(id=$id, position=$position, direction=$direction, up=$up, rightDir=$rightDir, projection=$projection, view=$view, invProj=$invProj, invView=$invView, viewProjection=$viewProjection, invViewProjection=$invViewProjection, near=$near, far=$far, fov=$fov, zoom=$zoom)"
+        return "Camera(id=$id, position=$position, direction=$direction, up=$up, rightDir=$right, projection=$projection, view=$view, invProj=$invProj, invView=$invView, viewProjection=$viewProjection, invViewProjection=$invViewProjection, near=$near, far=$far, fov=$fov, zoom=$zoom)"
     }
 
     companion object {

@@ -4,9 +4,9 @@ import com.littlekt.Context
 import com.littlekt.ContextListener
 import com.littlekt.file.vfs.readTexture
 import com.littlekt.graphics.Color
-import com.littlekt.graphics.Texture
 import com.littlekt.graphics.g2d.SpriteBatch
-import com.littlekt.graphics.shader.SpriteShader
+import com.littlekt.graphics.shader.Shader
+import com.littlekt.graphics.util.BindingUsage
 import com.littlekt.graphics.webgpu.*
 
 /**
@@ -19,7 +19,7 @@ import com.littlekt.graphics.webgpu.*
 class RenderSpriteBatchAndMultipleShadersExample(context: Context) : ContextListener(context) {
 
     private class ColorShader(device: Device) :
-        SpriteShader(
+        Shader(
             device,
             src =
                 """
@@ -59,52 +59,63 @@ class RenderSpriteBatchAndMultipleShadersExample(context: Context) : ContextList
             return textureSample(my_texture, my_sampler, in.uv) * vec4<f32>(1, 0, 0, 1);
         }
         """,
+            bindGroupLayoutUsageLayout = listOf(BindingUsage.CAMERA, BindingUsage.TEXTURE),
             layout =
-                listOf(
-                    BindGroupLayoutDescriptor(
-                        listOf(BindGroupLayoutEntry(0, ShaderStage.VERTEX, BufferBindingLayout()))
-                    ),
-                    BindGroupLayoutDescriptor(
-                        listOf(
-                            BindGroupLayoutEntry(0, ShaderStage.FRAGMENT, TextureBindingLayout()),
-                            BindGroupLayoutEntry(1, ShaderStage.FRAGMENT, SamplerBindingLayout()),
+                mapOf(
+                    BindingUsage.TEXTURE to
+                        BindGroupLayoutDescriptor(
+                            listOf(
+                                BindGroupLayoutEntry(
+                                    0,
+                                    ShaderStage.FRAGMENT,
+                                    TextureBindingLayout(),
+                                ),
+                                BindGroupLayoutEntry(
+                                    1,
+                                    ShaderStage.FRAGMENT,
+                                    SamplerBindingLayout(),
+                                ),
+                            ),
+                            label = "ColorShader texture BindGroupLayoutDescriptor",
                         )
-                    ),
                 ),
         ) {
-        override fun MutableList<BindGroup>.createBindGroupsWithTexture(
-            texture: Texture,
-            data: Map<String, Any>,
-        ) {
-            add(
-                device.createBindGroup(
-                    BindGroupDescriptor(
-                        layouts[0],
-                        listOf(BindGroupEntry(0, cameraUniformBufferBinding)),
+
+        override fun createBindGroup(
+            usage: BindingUsage,
+            vararg args: IntoBindingResource,
+        ): BindGroup? {
+            return when (usage) {
+                BindingUsage.TEXTURE -> {
+                    val view =
+                        args[0] as? TextureView
+                            ?: error("ColorShader requires view, sampler for BindingUsage.TEXTURE")
+                    val sampler =
+                        args[1] as? Sampler
+                            ?: error("ColorShader requires view, sampler for BindingUsage.TEXTURE")
+                    device.createBindGroup(
+                        BindGroupDescriptor(
+                            getBindGroupLayoutByUsage(BindingUsage.TEXTURE),
+                            listOf(BindGroupEntry(0, view), BindGroupEntry(1, sampler)),
+                        )
                     )
-                )
-            )
-            add(
-                device.createBindGroup(
-                    BindGroupDescriptor(
-                        layouts[1],
-                        listOf(BindGroupEntry(0, texture.view), BindGroupEntry(1, texture.sampler)),
-                    )
-                )
-            )
+                }
+                else -> null
+            }
         }
 
-        override fun setBindGroups(
-            encoder: RenderPassEncoder,
-            bindGroups: List<BindGroup>,
+        override fun setBindGroup(
+            renderPassEncoder: RenderPassEncoder,
+            bindGroup: BindGroup,
+            bindingUsage: BindingUsage,
             dynamicOffsets: List<Long>,
         ) {
-            encoder.setBindGroup(0, bindGroups[0])
-            encoder.setBindGroup(1, bindGroups[1])
+            when (bindingUsage) {
+                BindingUsage.CAMERA -> renderPassEncoder.setBindGroup(0, bindGroup, dynamicOffsets)
+                BindingUsage.TEXTURE -> renderPassEncoder.setBindGroup(1, bindGroup)
+            }
         }
     }
-
-    // language=wgsl
 
     override suspend fun Context.start() {
         addStatsHandler()

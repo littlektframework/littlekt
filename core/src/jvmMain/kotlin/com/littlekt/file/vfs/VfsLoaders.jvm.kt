@@ -10,7 +10,6 @@ import com.littlekt.file.JvmByteSequenceStream
 import com.littlekt.graphics.Pixmap
 import com.littlekt.graphics.PixmapTexture
 import com.littlekt.graphics.Texture
-import com.littlekt.graphics.webgpu.TextureFormat
 import com.littlekt.log.Logger
 import fr.delthas.javamp3.Sound
 import java.io.ByteArrayInputStream
@@ -24,7 +23,7 @@ import org.lwjgl.system.MemoryUtil
 private val logger = Logger("VfsLoaders")
 
 /** Reads Base64 encoded ByteArray for embedded images. */
-internal actual suspend fun ByteArray.readPixmap(): Pixmap = readPixmap(this)
+internal actual suspend fun ByteArray.readPixmap(): Pixmap = readPixmapInternal(this)
 
 /**
  * Loads an image from the path as a [Pixmap].
@@ -33,16 +32,18 @@ internal actual suspend fun ByteArray.readPixmap(): Pixmap = readPixmap(this)
  */
 actual suspend fun VfsFile.readPixmap(): Pixmap {
     val bytes = readBytes()
-    return readPixmap(bytes)
+    return readPixmapInternal(bytes)
 }
 
-private fun readPixmap(bytes: ByteArray): Pixmap {
+private fun readPixmapInternal(bytes: ByteArray): Pixmap {
     return MemoryStack.stackPush().use { stack ->
         val w: IntBuffer = stack.mallocInt(1)
         val h: IntBuffer = stack.mallocInt(1)
         val comp: IntBuffer = stack.mallocInt(1)
         val channels: IntBuffer = stack.mallocInt(1)
         val desiredChannels = 4
+        // unfortunately we need to do an array copy since we don't have an underlying direct
+        // buffer so we can't use ByteBuffer.wrap(bytes) :(
         val raw = ByteBuffer.allocateDirect(bytes.size).put(bytes).flip()
         if (!stbi_info_from_memory(raw, w, h, comp)) {
             logger.trace { "Failed to read image: ${stbi_failure_reason()}" }
@@ -52,15 +53,21 @@ private fun readPixmap(bytes: ByteArray): Pixmap {
         val rawResult = stbi_load_from_memory(raw, w, h, channels, desiredChannels)
         checkNotNull(rawResult) { "Failed to load image: ${stbi_failure_reason()}" }
 
-        val managedResult = ByteBufferImpl(rawResult.capacity()).apply { putByte(rawResult) }
+        val result = ByteBufferImpl(rawResult.capacity()).apply { putByte(rawResult) }
         MemoryUtil.memFree(rawResult)
-        Pixmap(w[0], h[0], managedResult)
+        Pixmap(w[0], h[0], result)
     }
 }
 
-actual suspend fun VfsFile.readTexture(preferredFormat: TextureFormat): Texture {
+actual suspend fun VfsFile.readTexture(options: TextureOptions): Texture {
     val pixmap = readPixmap()
-    return PixmapTexture(vfs.context.graphics.device, preferredFormat, pixmap)
+    return PixmapTexture(
+        vfs.context.graphics.device,
+        options.format,
+        pixmap,
+        if (options.generateMipMaps) Texture.calculateNumMips(pixmap.width, pixmap.height) else 1,
+        options.samplerDescriptor,
+    )
 }
 
 /**
@@ -104,15 +111,14 @@ actual suspend fun VfsFile.readAudioStream(): AudioStream {
 
 private suspend fun VfsFile.createAudioStreamMp3(): OpenALAudioStream {
     vfs.context as LwjglContext
-    var decoder = runCatching { Sound((readStream() as JvmByteSequenceStream).stream) }.getOrThrow()
+    var decoder = run { Sound((readStream() as JvmByteSequenceStream).stream) }
     val channels = if (decoder.isStereo) 2 else 1
     val read: (ByteArray) -> Int = { decoder.read(it) }
     val reset: suspend () -> Unit = {
-        runCatching {
-                decoder.close()
-                decoder = Sound((readStream() as JvmByteSequenceStream).stream)
-            }
-            .getOrThrow()
+        run {
+            decoder.close()
+            decoder = Sound((readStream() as JvmByteSequenceStream).stream)
+        }
     }
 
     return OpenALAudioStream(

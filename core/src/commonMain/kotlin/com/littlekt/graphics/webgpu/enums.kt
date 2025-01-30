@@ -33,7 +33,15 @@ enum class PrimitiveTopology {
      *
      * Vertices `0 1 2 3 4 5` create four triangles `0 1 2`, `2 1 3`, `2 3 4`, and `4 3 5`.
      */
-    TRIANGLE_STRIP,
+    TRIANGLE_STRIP;
+
+    /** Determines if this [PrimitiveTopology] is considered a "strip" topology. */
+    fun isStripTopology(): Boolean =
+        when (this) {
+            LINE_STRIP,
+            TRIANGLE_STRIP -> true
+            else -> false
+        }
 }
 
 /** Vertex winding order which classifies the "front" face of a triangle. */
@@ -587,6 +595,26 @@ enum class AddressMode {
 enum class FilterMode {
     NEAREST,
     LINEAR,
+}
+
+/**
+ * A memory access is an operation that acts on memory locations. A read access observes the
+ * contents of memory locations. A write access sets the contents of memory locations. A single
+ * operation can read, write, or both read and write.
+ */
+enum class MemoryAccessMode(val value: String) {
+    /** Supports read accesses, but not writes. */
+    READ("read"),
+
+    /** Supports write accesses, but not reads. */
+    WRITE("write"),
+
+    /** Supports both read and write accesses. */
+    READ_WRITE("read_write");
+
+    override fun toString(): String {
+        return value
+    }
 }
 
 /** Comparison function used for depth and stencil operations. */

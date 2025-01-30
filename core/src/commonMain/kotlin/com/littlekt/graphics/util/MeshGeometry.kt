@@ -42,10 +42,10 @@ open class MeshGeometry(val layout: VertexBufferLayout, size: Int = INITIAL_SIZE
      * Mark this geometry as a batch update. This does nothing on its own. Use [isBatchUpdate] to
      * handle.
      */
-    inline fun batchUpdate(block: MeshGeometry.() -> Unit) {
+    inline fun <T : MeshGeometry> batchUpdate(block: T.() -> Unit) {
         val wasBatchUpdate = isBatchUpdate
         isBatchUpdate = true
-        block.invoke(this)
+        @Suppress("UNCHECKED_CAST") block.invoke(this as T)
         verticesDirty = true
         isBatchUpdate = wasBatchUpdate
     }

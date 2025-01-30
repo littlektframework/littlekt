@@ -2,13 +2,19 @@ package com.littlekt.file.vfs
 
 import com.littlekt.audio.AudioClip
 import com.littlekt.audio.AudioStream
+import com.littlekt.file.ByteBuffer
 import com.littlekt.file.UnsupportedFileTypeException
 import com.littlekt.file.atlas.AtlasInfo
 import com.littlekt.file.atlas.AtlasPage
+import com.littlekt.file.gltf.GltfData
+import com.littlekt.file.gltf.GltfModelConfig
+import com.littlekt.file.gltf.GltfModelPbrConfig
+import com.littlekt.file.gltf.toModel
 import com.littlekt.file.ldtk.LDtkMapData
 import com.littlekt.file.ldtk.LDtkMapLoader
 import com.littlekt.file.tiled.TiledMapData
 import com.littlekt.file.tiled.TiledMapLoader
+import com.littlekt.graphics.LazyTexture
 import com.littlekt.graphics.Pixmap
 import com.littlekt.graphics.Texture
 import com.littlekt.graphics.g2d.TextureAtlas
@@ -16,6 +22,9 @@ import com.littlekt.graphics.g2d.TextureSlice
 import com.littlekt.graphics.g2d.font.*
 import com.littlekt.graphics.g2d.tilemap.ldtk.LDtkWorld
 import com.littlekt.graphics.g2d.tilemap.tiled.TiledMap
+import com.littlekt.graphics.g3d.Model
+import com.littlekt.graphics.g3d.Scene
+import com.littlekt.graphics.webgpu.SamplerDescriptor
 import com.littlekt.graphics.webgpu.TextureFormat
 import com.littlekt.math.MutableVec4i
 import com.littlekt.util.internal.unquote
@@ -67,9 +76,7 @@ suspend fun VfsFile.readTtfFont(chars: String = CharacterSets.LATIN_ALL): TtfFon
  *   atlas. Each slice in the list is considered a page in the bitmap font. Disposing a [BitmapFont]
  *   that uses preloaded textures will not dispose of the textures.
  */
-suspend fun VfsFile.readBitmapFont(
-    preloadedTextures: List<TextureSlice> = listOf(),
-): BitmapFont {
+suspend fun VfsFile.readBitmapFont(preloadedTextures: List<TextureSlice> = listOf()): BitmapFont {
     val data = readString()
     val textures = mutableMapOf<Int, Texture>()
     var pages = 0
@@ -84,7 +91,7 @@ suspend fun VfsFile.readBitmapFont(
             this,
             textures,
             preloadedTextures,
-            preloadedTextures.isEmpty()
+            preloadedTextures.isEmpty(),
         )
     } else {
         TODO("Unsupported font type.")
@@ -134,7 +141,7 @@ private suspend fun readBitmapFontTxt(
             'W',
             'X',
             'Y',
-            'Z'
+            'Z',
         )
     var capHeightFound = false
     var capHeight = 1
@@ -195,7 +202,7 @@ private suspend fun readBitmapFontTxt(
                                 map["x"]?.toIntOrNull() ?: 0,
                                 map["y"]?.toIntOrNull() ?: 0,
                                 width,
-                                height
+                                height,
                             )
                         }
                         preloadedTextures.isNotEmpty() -> {
@@ -204,7 +211,7 @@ private suspend fun readBitmapFontTxt(
                                 map["x"]?.toIntOrNull() ?: 0,
                                 map["y"]?.toIntOrNull() ?: 0,
                                 width,
-                                height
+                                height,
                             )
                         }
                         else -> {
@@ -223,7 +230,7 @@ private suspend fun readBitmapFontTxt(
                         xadvance = map["xadvance"]?.toIntOrNull() ?: 0,
                         width = width,
                         height = height,
-                        page = page
+                        page = page,
                     )
             }
             line.startsWith("kerning ") -> {
@@ -231,7 +238,7 @@ private suspend fun readBitmapFontTxt(
                     Kerning(
                         first = map["first"]?.toIntOrNull() ?: 0,
                         second = map["second"]?.toIntOrNull() ?: 0,
-                        amount = map["amount"]?.toIntOrNull() ?: 0
+                        amount = map["amount"]?.toIntOrNull() ?: 0,
                     )
             }
         }
@@ -248,7 +255,7 @@ private suspend fun readBitmapFontTxt(
         textures = textures.values.toList(),
         glyphs = glyphs.associateBy { it.id },
         kernings = kernings.associateBy { Kerning.buildKey(it.first, it.second) },
-        pages = pages
+        pages = pages,
     )
 }
 
@@ -266,7 +273,7 @@ private suspend fun readBitmapFontTxt(
  */
 suspend fun VfsFile.readLDtkMapLoader(
     atlas: TextureAtlas? = null,
-    tilesetBorder: Int = 2
+    tilesetBorder: Int = 2,
 ): LDtkMapLoader {
     val mapData = decodeFromString<LDtkMapData>()
     return LDtkMapLoader(this, mapData, atlas, tilesetBorder)
@@ -295,6 +302,10 @@ suspend fun VfsFile.readTiledMap(
 /** Reads Base64 encoded ByteArray for embedded images. */
 internal expect suspend fun ByteArray.readPixmap(): Pixmap
 
+internal expect suspend fun ByteArray.readImageData(
+    mimeType: String? = null
+): LazyTexture.ImageData<*>
+
 /**
  * Loads an image from the path as a [Pixmap].
  *
@@ -302,15 +313,30 @@ internal expect suspend fun ByteArray.readPixmap(): Pixmap
  */
 expect suspend fun VfsFile.readPixmap(): Pixmap
 
+expect suspend fun VfsFile.readImageData(): LazyTexture.ImageData<*>
+
 /**
  * Loads an image from the path as a [Texture].
  *
+ * @param preferredFormat preferred [TextureFormat] of the texture.
+ * @return the loaded texture
+ */
+suspend fun VfsFile.readTexture(preferredFormat: TextureFormat): Texture =
+    readTexture(TextureOptions(preferredFormat))
+
+/**
+ * Loads an image from the path as a [Texture].
+ *
+ * @param options additional [TextureOptions] such as generating mips or passing along a
+ *   [SamplerDescriptor].
  * @return the loaded texture
  */
 expect suspend fun VfsFile.readTexture(
-    preferredFormat: TextureFormat =
-        if (vfs.context.graphics.preferredFormat.srgb) TextureFormat.RGBA8_UNORM_SRGB
-        else TextureFormat.RGBA8_UNORM
+    options: TextureOptions =
+        TextureOptions(
+            if (vfs.context.graphics.preferredFormat.srgb) TextureFormat.RGBA8_UNORM_SRGB
+            else TextureFormat.RGBA8_UNORM
+        )
 ): Texture
 
 /**
@@ -326,3 +352,103 @@ expect suspend fun VfsFile.readAudioClip(): AudioClip
  * @return a new [AudioStream]
  */
 expect suspend fun VfsFile.readAudioStream(): AudioStream
+
+/**
+ * Reads a `.glb` or `.gltf` into a `GltfData` object. This object on its own doesn't do anything.
+ * It will need to be combined with the `.toModel()` extension or the meshes, skins, and animation
+ * will need created on their own.
+ */
+suspend fun VfsFile.readGltf(): GltfData {
+    val gltfData =
+        when {
+            isGltf() -> loadGltf()
+            isBinaryGltf() -> loadBinaryGltf()
+            else -> throw IllegalArgumentException("Unknown glTF type: $path")
+        }
+    gltfData.buffers
+        .filter { it.uri != null }
+        .forEach {
+            val uri = it.uri!!
+            val bufferPath =
+                if (uri.startsWith("data:", true)) VfsFile(vfs, uri)
+                else VfsFile(vfs, "${parent.path}/$uri")
+            it.data = bufferPath.read()
+        }
+
+    return gltfData
+}
+
+/**
+ * Reads a `.glb` or `.gltf` into a `GltfData` object and then converts it to a [Model].
+ *
+ * @param config the configuration to use when generating the [Model]. Defaults to
+ *   [GltfModelPbrConfig].
+ * @param preferredFormat the preferred [TextureFormat] to be used when loading the model texture.
+ */
+suspend fun VfsFile.readGltfModel(
+    config: GltfModelConfig = GltfModelPbrConfig(),
+    preferredFormat: TextureFormat =
+        if (vfs.context.graphics.preferredFormat.srgb) TextureFormat.RGBA8_UNORM_SRGB
+        else TextureFormat.RGBA8_UNORM,
+): Scene {
+    val gltfData = readGltf()
+    return gltfData.toModel(config, preferredFormat)
+}
+
+private fun VfsFile.isGltf() = path.endsWith(".gltf", true) || path.endsWith(".gltf.gz", true)
+
+private fun VfsFile.isBinaryGltf() = path.endsWith(".glb", true) || path.endsWith(".glb.gz", true)
+
+private suspend fun VfsFile.loadGltf(): GltfData {
+    if (path.endsWith(".gz", true)) {
+        TODO("Implement gzip inflation")
+    }
+    return decodeFromString<GltfData>().also { it.root = this }
+}
+
+private suspend fun VfsFile.loadBinaryGltf(): GltfData {
+    val magicNumber = 0x46546C67
+    val chunkJson = 0x4E4F534A
+    val chunkBin = 0x004E4942
+
+    val data = readStream()
+    val magic = data.readUInt()
+    if (magic != magicNumber) {
+        error("Unexpected glTF magic number: '$magic'. Expected magic should be '$magicNumber'.")
+    }
+    val version = data.readUInt()
+
+    if (version != 2) {
+        error("Unsupported glTF version found: '$version'. Only glTF 2.0 is supported.")
+    }
+
+    data.readUInt()
+
+    var chunkLength = data.readUInt()
+    var chunkType = data.readUInt()
+    if (chunkType != chunkJson) {
+        error(
+            "Unexpected chunk type for chunk 0: '$chunkType'. Expected chunk type to be $chunkJson / 'JSON'"
+        )
+    }
+
+    val gltfData = vfs.json.decodeFromString<GltfData>(data.readChunk(chunkLength).decodeToString())
+
+    var chunk = 1
+    while (data.hasRemaining()) {
+        chunkLength = data.readUInt()
+        chunkType = data.readUInt()
+        if (chunkType == chunkBin) {
+            gltfData.buffers[chunk - 1].data = ByteBuffer(data.readChunk(chunkLength))
+        } else {
+            vfs.logger.warn {
+                "Unexpected chunk type for chunk $chunk: '$chunkType'. Expected chunk type to be $chunkBin / 'BIN'"
+            }
+            data.skip(chunkLength)
+        }
+        chunk++
+    }
+
+    gltfData.root = this
+    return gltfData
+}

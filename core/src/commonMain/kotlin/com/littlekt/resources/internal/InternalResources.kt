@@ -2,10 +2,13 @@ package com.littlekt.resources.internal
 
 import com.littlekt.Context
 import com.littlekt.file.Base64.decodeFromBase64
+import com.littlekt.file.ByteBuffer
 import com.littlekt.file.atlas.AtlasInfo
 import com.littlekt.file.atlas.AtlasPage
 import com.littlekt.file.vfs.readPixmap
+import com.littlekt.graphics.Pixmap
 import com.littlekt.graphics.PixmapTexture
+import com.littlekt.graphics.Texture
 import com.littlekt.graphics.g2d.TextureAtlas
 import com.littlekt.graphics.g2d.TextureSlice
 import com.littlekt.graphics.g2d.font.BitmapFont
@@ -39,6 +42,32 @@ internal class InternalResources private constructor(private val context: Contex
         }
     }
 
+    val textureWhite: Texture by lazy {
+        val textureFormat =
+            if (context.graphics.preferredFormat.srgb) TextureFormat.RGBA8_UNORM_SRGB
+            else TextureFormat.RGBA8_UNORM
+        val device = context.graphics.device
+        PixmapTexture(
+            device,
+            textureFormat,
+            Pixmap(
+                1,
+                1,
+                ByteBuffer(byteArrayOf(255.toByte(), 255.toByte(), 255.toByte(), 255.toByte())),
+            ),
+        )
+    }
+    val textureNormal: Texture by lazy {
+        val textureFormat =
+            if (context.graphics.preferredFormat.srgb) TextureFormat.RGBA8_UNORM_SRGB
+            else TextureFormat.RGBA8_UNORM
+        val device = context.graphics.device
+        PixmapTexture(
+            device,
+            textureFormat,
+            Pixmap(1, 1, ByteBuffer(byteArrayOf(127, 127, 255.toByte(), 0))),
+        )
+    }
     lateinit var atlas: TextureAtlas
     lateinit var defaultFont: BitmapFont
     lateinit var white: TextureSlice
@@ -74,7 +103,7 @@ internal class InternalResources private constructor(private val context: Contex
         defaultFont =
             readBitmapFontTxt(
                 defaultFontTxt.decodeFromBase64().decodeToString(),
-                mutableMapOf(0 to atlas["defaultFont"].slice)
+                mutableMapOf(0 to atlas["defaultFont"].slice),
             )
         white = atlas.getByPrefix("pixel_white").slice
         transparent = atlas.getByPrefix("pixel_transparent").slice
@@ -82,7 +111,7 @@ internal class InternalResources private constructor(private val context: Contex
 
     private fun readBitmapFontTxt(
         data: String,
-        textures: MutableMap<Int, TextureSlice>
+        textures: MutableMap<Int, TextureSlice>,
     ): BitmapFont {
         val kernings = mutableListOf<Kerning>()
         val glyphs = mutableListOf<BitmapFont.Glyph>()
@@ -120,7 +149,7 @@ internal class InternalResources private constructor(private val context: Contex
                 'W',
                 'X',
                 'Y',
-                'Z'
+                'Z',
             )
         var capHeightFound = false
         var capHeight = 1
@@ -177,14 +206,14 @@ internal class InternalResources private constructor(private val context: Contex
                                     map["x"]?.toIntOrNull() ?: 0,
                                     map["y"]?.toIntOrNull() ?: 0,
                                     width,
-                                    height
+                                    height,
                                 ),
                             xoffset = map["xoffset"]?.toIntOrNull() ?: 0,
                             yoffset = -(height + (map["yoffset"]?.toIntOrNull() ?: 0)),
                             width = width,
                             height = height,
                             xadvance = map["xadvance"]?.toIntOrNull() ?: 0,
-                            page = page
+                            page = page,
                         )
                 }
                 line.startsWith("kerning ") -> {
@@ -192,7 +221,7 @@ internal class InternalResources private constructor(private val context: Contex
                         Kerning(
                             first = map["first"]?.toIntOrNull() ?: 0,
                             second = map["second"]?.toIntOrNull() ?: 0,
-                            amount = map["amount"]?.toIntOrNull() ?: 0
+                            amount = map["amount"]?.toIntOrNull() ?: 0,
                         )
                 }
             }
@@ -209,7 +238,7 @@ internal class InternalResources private constructor(private val context: Contex
             textures = listOf(textures.values.first().texture),
             glyphs = glyphs.associateBy { it.id },
             kernings = kernings.associateBy { Kerning.buildKey(it.first, it.second) },
-            pages = pages
+            pages = pages,
         )
     }
 }

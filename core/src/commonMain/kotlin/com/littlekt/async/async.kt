@@ -1,10 +1,8 @@
 package com.littlekt.async
 
 import com.littlekt.Context
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import kotlin.coroutines.CoroutineContext
+import kotlinx.coroutines.*
 
 /**
  * The main **LittleKt** coroutine scope. Executes tasks on the main rendering thread. See
@@ -21,6 +19,13 @@ object KtScope : CoroutineScope {
     internal fun initiate() {
         MainDispatcher.createInstance(Unit)
     }
+}
+
+/** Coroutine scope used by vfs to load files. */
+object VfsScope : CoroutineScope {
+    internal val job = Job()
+
+    override val coroutineContext: CoroutineContext = job
 }
 
 /**

@@ -63,7 +63,7 @@ class TiledMeshExample(context: Context) : ContextListener(context) {
 
     override suspend fun Context.start() {
         addStatsHandler()
-        addCloseOnEsc()
+        addCloseOnShiftEsc()
         val device = graphics.device
         val tileSize = 16f
         var totalQuads = 0
@@ -79,22 +79,22 @@ class TiledMeshExample(context: Context) : ContextListener(context) {
                         Vec4f(Random.nextFloat(), Random.nextFloat(), Random.nextFloat(), 1f)
                     addVertex { // top left
                         position.set(x * tileSize, (y + 1) * tileSize, 0f)
-                        texCoords.set(u0, v0)
+                        uv.set(u0, v0)
                         color.set(quadColor)
                     }
                     addVertex { // top right
                         position.set((x + 1) * tileSize, (y + 1) * tileSize, 0f)
-                        texCoords.set(u1, v0)
+                        uv.set(u1, v0)
                         color.set(quadColor)
                     }
                     addVertex { // bottom right
                         position.set((x + 1) * tileSize, y * tileSize, 0f)
-                        texCoords.set(u1, v1)
+                        uv.set(u1, v1)
                         color.set(quadColor)
                     }
                     addVertex { // bottom left
                         position.set(x * tileSize, y * tileSize, 0f)
-                        texCoords.set(u0, v1)
+                        uv.set(u0, v1)
                         color.set(quadColor)
                     }
                     totalQuads++
@@ -110,7 +110,7 @@ class TiledMeshExample(context: Context) : ContextListener(context) {
         val cameraUniformBuffer =
             device.createGPUFloatBuffer(
                 "camera uniform buffer",
-                cameraFloatBuffer.toArray(),
+                cameraFloatBuffer,
                 BufferUsage.UNIFORM or BufferUsage.COPY_DST,
             )
 

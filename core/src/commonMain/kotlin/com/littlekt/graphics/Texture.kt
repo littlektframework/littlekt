@@ -2,6 +2,7 @@ package com.littlekt.graphics
 
 import com.littlekt.Releasable
 import com.littlekt.graphics.webgpu.*
+import kotlin.math.log2
 import kotlinx.atomicfu.atomic
 
 /**
@@ -12,6 +13,13 @@ import kotlinx.atomicfu.atomic
  * @date 4/9/2024
  */
 interface Texture : Releasable {
+
+    /**
+     * The current [TextureState] of this Texture. This should normally be [TextureState.LOADED]
+     * unless using an asynchronous texture loading.
+     */
+    val state: TextureState
+        get() = TextureState.LOADED
 
     /**
      * The [Extent3D] size of the texture. Usually, the width & height of the image with a depth of
@@ -60,6 +68,15 @@ interface Texture : Releasable {
     /** Write this [Texture] to the GPU buffer. */
     fun writeDataToBuffer()
 
+    /**
+     * Generate mipmaps for this texture. This is usually called in the `init` of a texture but may
+     * be need to be manually called for custom [Texture] types.
+     */
+    fun generateMipMaps(device: Device) {
+        val generator = device.getOrCreateMipMapGenerator()
+        generator.generateMips(this)
+    }
+
     override fun release() {
         view.release()
         sampler.release()
@@ -71,5 +88,11 @@ interface Texture : Releasable {
         private var lastId by atomic(0)
 
         fun nextId() = lastId++
+
+        /** @return the number of mips to generate based on the given sizes. */
+        fun calculateNumMips(vararg sizes: Int): Int {
+            val maxSize = sizes.maxOrNull() ?: return 1
+            return 1 + log2(maxSize.toDouble()).toInt()
+        }
     }
 }

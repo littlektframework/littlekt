@@ -4,8 +4,10 @@ import com.littlekt.EngineStats
 import com.littlekt.Releasable
 import com.littlekt.file.FloatBuffer
 import com.littlekt.graphics.*
+import com.littlekt.graphics.g2d.util.CameraSpriteBuffers
 import com.littlekt.graphics.shader.Shader
-import com.littlekt.graphics.shader.SpriteShader
+import com.littlekt.graphics.util.BindingUsage
+import com.littlekt.graphics.util.CameraBuffersViaMatrix
 import com.littlekt.graphics.webgpu.*
 import com.littlekt.log.Logger
 import com.littlekt.math.Mat4
@@ -28,7 +30,14 @@ import kotlinx.atomicfu.getAndUpdate
  * @author Colton Daily
  * @date 4/23/2024
  */
-class SpriteCache(val device: Device, val format: TextureFormat, size: Int = 1000) : Releasable {
+class SpriteCache(
+    val device: Device,
+    val format: TextureFormat,
+    size: Int = 1000,
+    cameraBuffers: CameraBuffersViaMatrix? = null,
+) : Releasable {
+    private val ownCameraBuffers = cameraBuffers == null
+    private val cameraBuffers: CameraBuffersViaMatrix = cameraBuffers ?: CameraSpriteBuffers(device)
 
     /** Holds the sprites: `position (2) + scale (2) + size (2) + rotation (1) + color (4)`. */
     private var staticData = FloatBuffer(size * STATIC_COMPONENTS_PER_SPRITE)
@@ -42,16 +51,16 @@ class SpriteCache(val device: Device, val format: TextureFormat, size: Int = 100
                     format = VertexFormat.FLOAT32x3,
                     offset = 0,
                     shaderLocation = 0,
-                    usage = VertexAttrUsage.POSITION
+                    usage = VertexAttrUsage.POSITION,
                 ),
                 VertexAttribute(
                     format = VertexFormat.FLOAT32x2,
                     offset = VertexFormat.FLOAT32x3.bytes.toLong(),
                     shaderLocation = 1,
-                    usage = VertexAttrUsage.TEX_COORDS
-                )
+                    usage = VertexAttrUsage.UV,
+                ),
             ),
-            40
+            40,
         ) {
             indicesAsQuad()
             // normalize coordinates
@@ -79,7 +88,7 @@ class SpriteCache(val device: Device, val format: TextureFormat, size: Int = 100
     private val shader: SpriteCacheShader =
         SpriteCacheShader(device, staticData.capacity, dynamicData.capacity)
 
-    private val bindGroupsByTexture: MutableMap<Int, List<BindGroup>> = mutableMapOf()
+    private val bindGroupByTextureId: MutableMap<Int, BindGroup> = mutableMapOf()
     private val drawCalls: MutableList<DrawCall> = mutableListOf()
 
     private var blendState = BlendState.NonPreMultiplied
@@ -91,8 +100,8 @@ class SpriteCache(val device: Device, val format: TextureFormat, size: Int = 100
     private val spriteBuffer =
         device.createGPUFloatBuffer(
             "sprite buffer",
-            staticData.toArray(),
-            BufferUsage.STORAGE or BufferUsage.COPY_DST
+            staticData,
+            BufferUsage.STORAGE or BufferUsage.COPY_DST,
         )
     private val spriteIndices = mutableMapOf<SpriteId, Int>()
     private val spriteView = SpriteView()
@@ -102,7 +111,6 @@ class SpriteCache(val device: Device, val format: TextureFormat, size: Int = 100
     private val dirty: Boolean
         get() = staticDirty || dynamicDirty
 
-    private val dataMap: MutableMap<String, Any> = mutableMapOf()
     private val lastDynamicMeshOffsets: List<Long> = listOf(0L)
 
     /**
@@ -134,7 +142,7 @@ class SpriteCache(val device: Device, val format: TextureFormat, size: Int = 100
             index = spriteCount,
             textureIdx = textureIdx,
             rotated = slice.rotated,
-            view = spriteView
+            view = spriteView,
         )
         spriteCount++
 
@@ -174,28 +182,15 @@ class SpriteCache(val device: Device, val format: TextureFormat, size: Int = 100
                 mesh.update()
                 mesh.clearVertices()
             }
-            var clearBindGroups = false
             if (dynamicDirty) {
                 drawCalls.clear()
                 ensureDrawCalls()
                 dynamicData.limit = spriteCount * DYNAMIC_COMPONENTS_PER_SPRITE
-                shader.updateSpriteDynamicStorage(dynamicData).let {
-                    if (it) {
-                        clearBindGroups = true
-                    }
-                }
+                shader.updateSpriteDynamicStorage(dynamicData)
             }
             if (staticDirty) {
                 staticData.limit = spriteCount * STATIC_COMPONENTS_PER_SPRITE
-                shader.updateSpriteStaticStorage(staticData).let {
-                    if (it) {
-                        clearBindGroups = true
-                    }
-                }
-            }
-            if (clearBindGroups) {
-                bindGroupsByTexture.clear()
-                logger.debug { "Cleared bind groups due to a storage buffer being recreated." }
+                shader.updateSpriteStaticStorage(staticData)
             }
             staticDirty = false
             dynamicDirty = false
@@ -204,37 +199,47 @@ class SpriteCache(val device: Device, val format: TextureFormat, size: Int = 100
         encoder.setVertexBuffer(0, mesh.vbo)
         var lastPipelineSet: RenderPipeline? = null
         var lastCombinedMatrixSet: Mat4? = null
-        var lastBindGroupsSet: List<BindGroup>? = null
+        var lastBindGroupsSet: BindGroup? = null
         var instanceIdx = 0
         drawCalls.fastForEach { drawCall ->
             // ensure shader bind groups are created
             val texture = drawCall.texture
-            val bindGroups =
-                bindGroupsByTexture.getOrPut(texture.id) {
-                    dataMap.clear()
-                    dataMap[SpriteShader.TEXTURE] = texture
-                    shader.createBindGroups(dataMap)
+            val textureBindGroup =
+                bindGroupByTextureId.getOrPut(texture.id) {
+                    shader.createBindGroup(
+                        BindingUsage.TEXTURE,
+                        drawCall.texture.view,
+                        drawCall.texture.sampler,
+                    )
+                        ?: error(
+                            "SpriteCache requires $shader to create a BindGroup for BindingUsage.TEXTURE but it failed to do so."
+                        )
                 }
             if (viewProjection != null && lastCombinedMatrixSet != viewProjection) {
                 lastCombinedMatrixSet = viewProjection
-                dataMap.clear()
-                dataMap[SpriteShader.VIEW_PROJECTION] = viewProjection
-                shader.update(dataMap)
+                cameraBuffers.update(viewProjection)
             }
             if (lastPipelineSet != renderPipeline) {
                 encoder.setPipeline(renderPipeline)
                 lastPipelineSet = renderPipeline
             }
-            if (lastBindGroupsSet != bindGroups) {
-                lastBindGroupsSet = bindGroups
-                shader.setBindGroups(encoder, bindGroups, lastDynamicMeshOffsets)
+            if (lastBindGroupsSet != textureBindGroup) {
+                lastBindGroupsSet = textureBindGroup
+                shader.setBindGroup(
+                    encoder,
+                    cameraBuffers.bindGroup,
+                    BindingUsage.CAMERA,
+                    lastDynamicMeshOffsets,
+                )
+                shader.setBindGroup(encoder, textureBindGroup, BindingUsage.TEXTURE)
+                shader.setBindGroups(encoder)
             }
             EngineStats.extra(QUAD_STATS_NAME, 1)
             EngineStats.extra(INSTANCES_STATS_NAME, drawCall.instances)
             encoder.drawIndexed(
                 indexCount = 6,
                 instanceCount = drawCall.instances,
-                firstInstance = instanceIdx
+                firstInstance = instanceIdx,
             )
             instanceIdx += drawCall.instances
         }
@@ -287,7 +292,7 @@ class SpriteCache(val device: Device, val format: TextureFormat, size: Int = 100
             index = id,
             textureIdx = textureIdx,
             rotated = rotation,
-            view = spriteView
+            view = spriteView,
         )
 
         if (!staticDirty) {
@@ -367,20 +372,18 @@ class SpriteCache(val device: Device, val format: TextureFormat, size: Int = 100
         // shift up all the data in the buffer from removeIdx to spriteCount-1
         val staticOffset = removeIdx * STATIC_COMPONENTS_PER_SPRITE
         staticData.put(
-            staticData.toArray(
-                (removeIdx + 1) * STATIC_COMPONENTS_PER_SPRITE,
-                spriteCount * STATIC_COMPONENTS_PER_SPRITE
-            ),
-            dstOffset = staticOffset
+            staticData,
+            dstOffset = staticOffset,
+            srcOffset = (removeIdx + 1) * STATIC_COMPONENTS_PER_SPRITE,
+            len = spriteCount * STATIC_COMPONENTS_PER_SPRITE,
         )
 
         val dynamicOffset = removeIdx * DYNAMIC_COMPONENTS_PER_SPRITE
         dynamicData.put(
-            dynamicData.toArray(
-                (removeIdx + 1) * DYNAMIC_COMPONENTS_PER_SPRITE,
-                spriteCount * DYNAMIC_COMPONENTS_PER_SPRITE
-            ),
-            dstOffset = dynamicOffset
+            dynamicData,
+            dstOffset = dynamicOffset,
+            srcOffset = (removeIdx + 1) * DYNAMIC_COMPONENTS_PER_SPRITE,
+            len = spriteCount * DYNAMIC_COMPONENTS_PER_SPRITE,
         )
 
         spriteIndices.remove(id)
@@ -440,7 +443,7 @@ class SpriteCache(val device: Device, val format: TextureFormat, size: Int = 100
             staticData[staticOffset + 8],
             staticData[staticOffset + 9],
             staticData[staticOffset + 10],
-            staticData[staticOffset + 11]
+            staticData[staticOffset + 11],
         )
 
         val dynamicOffset = index * DYNAMIC_COMPONENTS_PER_SPRITE
@@ -448,21 +451,25 @@ class SpriteCache(val device: Device, val format: TextureFormat, size: Int = 100
             dynamicData[dynamicOffset],
             dynamicData[dynamicOffset + 1],
             dynamicData[dynamicOffset + 2],
-            dynamicData[dynamicOffset + 3]
+            dynamicData[dynamicOffset + 3],
         )
     }
 
     private fun createRenderPipelineDescriptor(
         shader: Shader,
-        blendState: BlendState
+        blendState: BlendState,
     ): RenderPipelineDescriptor {
         return RenderPipelineDescriptor(
-            layout = shader.pipelineLayout,
+            layout =
+                shader.getOrCreatePipelineLayout { bindingUsage ->
+                    if (bindingUsage == BindingUsage.CAMERA) cameraBuffers.bindGroupLayout
+                    else error("Unsupported $bindingUsage in SpriteCache")
+                },
             vertex =
                 VertexState(
                     module = shader.shaderModule,
                     entryPoint = shader.vertexEntryPoint,
-                    buffer = mesh.geometry.layout.gpuVertexBufferLayout
+                    buffer = mesh.geometry.layout.gpuVertexBufferLayout,
                 ),
             fragment =
                 FragmentState(
@@ -472,13 +479,13 @@ class SpriteCache(val device: Device, val format: TextureFormat, size: Int = 100
                         ColorTargetState(
                             format = format,
                             blendState = blendState,
-                            writeMask = ColorWriteMask.ALL
-                        )
+                            writeMask = ColorWriteMask.ALL,
+                        ),
                 ),
             primitive = PrimitiveState(topology = PrimitiveTopology.TRIANGLE_LIST),
             depthStencil = null,
             multisample =
-                MultisampleState(count = 1, mask = 0xFFFFFFF, alphaToCoverageEnabled = false)
+                MultisampleState(count = 1, mask = 0xFFFFFFF, alphaToCoverageEnabled = false),
         )
     }
 
@@ -496,6 +503,9 @@ class SpriteCache(val device: Device, val format: TextureFormat, size: Int = 100
         spriteBuffer.release()
         staticData.clear()
         spriteIndices.clear()
+        if (ownCameraBuffers) {
+            cameraBuffers.release()
+        }
     }
 
     private fun FloatBuffer.shiftDataDown(startIdx: Int, endIdx: Int, dstOffset: Int) {
@@ -667,4 +677,4 @@ class SpriteCache(val device: Device, val format: TextureFormat, size: Int = 100
 }
 
 /** An identifier used to track sprites in a [SpriteCache] */
-typealias SpriteId = Int
+private typealias SpriteId = Int

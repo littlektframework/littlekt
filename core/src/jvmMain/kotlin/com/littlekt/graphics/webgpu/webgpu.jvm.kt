@@ -7,12 +7,12 @@ import com.littlekt.resources.BufferResourceInfo
 import com.littlekt.resources.TextureResourceInfo
 import com.littlekt.wgpu.*
 import com.littlekt.wgpu.WGPU.*
+import kotlinx.atomicfu.atomic
+import kotlinx.atomicfu.update
 import java.lang.foreign.Arena
 import java.lang.foreign.MemorySegment
 import java.lang.foreign.SegmentAllocator
 import java.lang.foreign.ValueLayout
-import kotlinx.atomicfu.atomic
-import kotlinx.atomicfu.update
 
 actual class Device(val segment: MemorySegment) : Releasable {
 
@@ -445,6 +445,21 @@ actual class Device(val segment: MemorySegment) : Releasable {
         return buffer
     }
 
+    actual fun createGPUShortBuffer(
+        label: String,
+        data: ShortBuffer,
+        usage: BufferUsage,
+    ): GPUBuffer {
+        val buffer =
+            createBuffer(
+                BufferDescriptor(label, data.capacity.toLong() * Short.SIZE_BYTES, usage, true)
+            )
+        buffer.getMappedRange().putShort(data)
+        buffer.unmap()
+
+        return buffer
+    }
+
     actual fun createGPUFloatBuffer(
         label: String,
         data: FloatArray,
@@ -453,6 +468,21 @@ actual class Device(val segment: MemorySegment) : Releasable {
         val buffer =
             createBuffer(
                 BufferDescriptor(label, data.size.toLong() * Float.SIZE_BYTES, usage, true)
+            )
+        buffer.getMappedRange().putFloat(data)
+        buffer.unmap()
+
+        return buffer
+    }
+
+    actual fun createGPUFloatBuffer(
+        label: String,
+        data: FloatBuffer,
+        usage: BufferUsage,
+    ): GPUBuffer {
+        val buffer =
+            createBuffer(
+                BufferDescriptor(label, data.capacity.toLong() * Float.SIZE_BYTES, usage, true)
             )
         buffer.getMappedRange().putFloat(data)
         buffer.unmap()
@@ -469,6 +499,15 @@ actual class Device(val segment: MemorySegment) : Releasable {
         return buffer
     }
 
+    actual fun createGPUIntBuffer(label: String, data: IntBuffer, usage: BufferUsage): GPUBuffer {
+        val buffer =
+            createBuffer(BufferDescriptor(label, data.capacity.toLong() * Int.SIZE_BYTES, usage, true))
+        buffer.getMappedRange().putInt(data)
+        buffer.unmap()
+
+        return buffer
+    }
+
     actual fun createGPUByteBuffer(label: String, data: ByteArray, usage: BufferUsage): GPUBuffer {
         val buffer = createBuffer(BufferDescriptor(label, data.size.toLong(), usage, true))
         buffer.getMappedRange().putByte(data)
@@ -477,12 +516,36 @@ actual class Device(val segment: MemorySegment) : Releasable {
         return buffer
     }
 
+    actual fun createGPUByteBuffer(label: String, data: ByteBuffer, usage: BufferUsage): GPUBuffer {
+        val buffer = createBuffer(BufferDescriptor(label, data.capacity.toLong(), usage, true))
+        buffer.getMappedRange().putByte(data)
+        buffer.unmap()
+
+        return buffer
+    }
+
+
     actual override fun release() {
         wgpuDeviceRelease(segment)
     }
 
     override fun toString(): String {
         return "Device"
+    }
+
+    /**
+     * Check for resource cleanups and mapping callbacks. Will block.
+     *
+     * @return `true` if the queue is empty, or `false` if there are more queue submissions still in
+     *   flight. (Note that, unless access to the Queue is coordinated somehow, this information
+     *   could be out of date by the time the caller receives it. Queues can be shared between
+     *   threads, so other threads could submit new work at any time.)
+     *
+     * When running on WebGPU, this is a no-op. Devices are automatically polled.
+     */
+    actual fun poll(): Boolean {
+        val result = wgpuDevicePoll(segment, true.toInt(), WGPU_NULL)
+        return result == 1
     }
 }
 
@@ -877,9 +940,9 @@ actual class WebGPUTexture(val segment: MemorySegment, val size: Long) : Releasa
     private val info = TextureResourceInfo(this, size)
 
     actual fun createView(desc: TextureViewDescriptor?): TextureView {
-        val descSeg =
-            if (desc != null) {
-                Arena.ofConfined().use { scope ->
+        return if (desc != null) {
+            Arena.ofConfined().use { scope ->
+                val desc =
                     WGPUTextureViewDescriptor.allocate(scope).also {
                         WGPUTextureViewDescriptor.label(
                             it,
@@ -893,11 +956,11 @@ actual class WebGPUTexture(val segment: MemorySegment, val size: Long) : Releasa
                         WGPUTextureViewDescriptor.baseArrayLayer(it, desc.baseArrayLayer)
                         WGPUTextureViewDescriptor.arrayLayerCount(it, desc.arrayLayerCount)
                     }
-                }
-            } else {
-                WGPU_NULL
+                TextureView(wgpuTextureCreateView(segment, desc))
             }
-        return TextureView(wgpuTextureCreateView(segment, descSeg))
+        } else {
+            TextureView(wgpuTextureCreateView(segment, WGPU_NULL))
+        }
     }
 
     actual override fun release() {

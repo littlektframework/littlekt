@@ -18,7 +18,7 @@ class RenderTargetExample(context: Context) : ContextListener(context) {
 
     override suspend fun Context.start() {
         addStatsHandler()
-        addCloseOnEsc()
+        addCloseOnShiftEsc()
         val icon = resourcesVfs["icon_16x16.png"].readTexture()
         val device = graphics.device
 

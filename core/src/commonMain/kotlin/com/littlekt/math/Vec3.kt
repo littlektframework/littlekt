@@ -89,7 +89,7 @@ open class Vec3f internal constructor(x: Float, y: Float, z: Float, size: Int) :
         axisX: Float,
         axisY: Float,
         axisZ: Float,
-        result: MutableVec3f
+        result: MutableVec3f,
     ): MutableVec3f = result.set(this).rotate(angle, axisX, axisY, axisZ)
 
     fun rotate(angle: Angle, axis: Vec3f, result: MutableVec3f): MutableVec3f =
@@ -145,8 +145,11 @@ open class Vec3f internal constructor(x: Float, y: Float, z: Float, size: Int) :
         val ZERO = Vec3f(0f)
         val ONES = Vec3f(1f)
         val X_AXIS = Vec3f(1f, 0f, 0f)
+        val RIGHT = X_AXIS
         val Y_AXIS = Vec3f(0f, 1f, 0f)
+        val UP = Y_AXIS
         val Z_AXIS = Vec3f(0f, 0f, 1f)
+        val FORWARD = Z_AXIS
         val NEG_X_AXIS = Vec3f(-1f, 0f, 0f)
         val NEG_Y_AXIS = Vec3f(0f, -1f, 0f)
         val NEG_Z_AXIS = Vec3f(0f, 0f, -1f)

@@ -9,11 +9,12 @@ import kotlin.jvm.JvmInline
  * @see POSITION
  * @see COLOR
  * @see NORMAL
- * @see TEX_COORDS
+ * @see UV
+ * @see TEX_COORDS2
  * @see GENERIC
  * @see WEIGHT
  * @see TANGENT
- * @see BINORMAL
+ * @see BITANGENT
  * @see JOINT
  * @author Colton Daily
  * @date 4/10/2024
@@ -31,7 +32,7 @@ value class VertexAttrUsage(val usage: Int) {
         val NORMAL = VertexAttrUsage(4)
 
         /** Used for UV coords. */
-        val TEX_COORDS = VertexAttrUsage(8)
+        val UV = VertexAttrUsage(8)
 
         /** A catch-all generic attribute. */
         val GENERIC = VertexAttrUsage(16)
@@ -42,8 +43,8 @@ value class VertexAttrUsage(val usage: Int) {
         /** Used for tangents. */
         val TANGENT = VertexAttrUsage(64)
 
-        /** Used for binormals. */
-        val BINORMAL = VertexAttrUsage(128)
+        /** Used for bitangents. */
+        val BITANGENT = VertexAttrUsage(128)
 
         /** Used for joints. */
         val JOINT = VertexAttrUsage(256)

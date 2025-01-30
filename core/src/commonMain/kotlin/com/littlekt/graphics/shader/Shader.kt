@@ -1,6 +1,7 @@
 package com.littlekt.graphics.shader
 
 import com.littlekt.Releasable
+import com.littlekt.graphics.util.BindingUsage
 import com.littlekt.graphics.webgpu.*
 import com.littlekt.util.datastructure.fastForEach
 
@@ -10,19 +11,40 @@ import com.littlekt.util.datastructure.fastForEach
  *
  * @param device the current [Device]
  * @param src the WGSL shader source code
+ * @param bindGroupLayoutUsageLayout a list of [BindingUsage] that determines the order and each type of bind group layout.
+ * For example, if we had a list of camera and texture binding usgaes, then we'd expect two bind group layouts, one for camera,
+ * and the second for texture. This allows setting existing bind groups from elsewhere but ensuring the layout of the shader.
  * @param layout a list of [BindGroupLayoutDescriptor] in order to create [BindGroupLayout]s for the
- *   [PipelineLayout]. The order should match the index of the [BindGroupLayout].
- * @param vertexEntryPoint the entry point for the Vertex shader. Defaults to `vs_main`.
- * @param fragmentEntryPoint the entry point for the Fragment shader. Defaults to `fs_main`
+ *   [PipelineLayout]. The order should match the index of the [bindGroupLayoutUsageLayout]. This can be an empty map
+ *   if bind groups will be passed in at a later time.
+ * @param bindGroupUsageToGroupIndex a mapping of [BindingUsage] to Bind group layout index. By default,
+ * it uses [bindGroupLayoutUsageLayout] and its corresponding index but this may be overridden, if required.
+ * @param vertexEntryPoint the entry point for the Vertex shader. Defaults to `vs_main`. This should
+ *   match the main vertex function in [src]. Pass this parameter along to [VertexState.entryPoint],
+ *   if a vertex function is supplied; otherwise this value may be safely ignored.
+ * @param fragmentEntryPoint the entry point for the Fragment shader. Defaults to `fs_main`. This
+ *   should match the main fragment function in [src]. Pass this parameter along to
+ *   [FragmentState.entryPoint], if a fragment function is supplied; otherwise this value may be
+ *   safely ignored.
+ * @param computeEntryPoint the entry point for a compute shader. Defaults to `cmp_main`. This
+ *   should match the main compute function in [src], Pass this parameter along to
+ *   [ProgrammableStage.entryPoint], if a compute function is supplied; otherwise this value may be
+ *   safely ignored.
  * @author Colton Daily
  * @date 4/14/2024
  */
 open class Shader(
     val device: Device,
     val src: String,
-    layout: List<BindGroupLayoutDescriptor>,
+    val bindGroupLayoutUsageLayout: List<BindingUsage>,
+    layout: Map<BindingUsage, BindGroupLayoutDescriptor>,
+    val bindGroupUsageToGroupIndex: Map<BindingUsage, Int> =
+        bindGroupLayoutUsageLayout
+            .mapIndexed { index, bindingUsage -> bindingUsage to index }
+            .toMap(),
     val vertexEntryPoint: String = "vs_main",
-    val fragmentEntryPoint: String = "fs_main"
+    val fragmentEntryPoint: String = "fs_main",
+    val computeEntryPoint: String = "cmp_main",
 ) : Releasable {
     /** The id of this shader. */
     val id: Int = lastId++
@@ -30,77 +52,139 @@ open class Shader(
     /** The [ShaderModule]/ */
     val shaderModule = device.createShaderModule(src)
 
-    /** The list of [BindGroupLayout]s described by the layout */
-    val layouts = layout.map { device.createBindGroupLayout(it) }
+    /**
+     * The list of [BindGroupLayout]s described by the layout plus any optional BindGroupLayouts
+     * passed in via [getOrCreatePipelineLayout]
+     */
+    val layouts: Map<Int, BindGroupLayout>
+        get() = _layouts
 
-    /** The [PipelineLayout] created by using [layouts]. */
-    val pipelineLayout: PipelineLayout =
-        device.createPipelineLayout(PipelineLayoutDescriptor(layouts))
+    private var _layouts: MutableMap<Int, BindGroupLayout> = mutableMapOf()
 
-    private val bindGroups: MutableList<BindGroup> = mutableListOf()
+    private val usageToBindGroupLayout: MutableMap<BindingUsage, BindGroupLayout> = mutableMapOf()
+
+    /** The list of [BindGroupLayout]s described by the layout for this specific Shader. */
+    private val shaderLayouts: List<BindGroupLayout> =
+        bindGroupLayoutUsageLayout.mapIndexedNotNull { index, usage ->
+            val descriptor = layout[usage]
+            if (descriptor != null) {
+                val bindGroupLayout = device.createBindGroupLayout(descriptor)
+                usageToBindGroupLayout[usage] = bindGroupLayout
+                _layouts[index] = bindGroupLayout
+                bindGroupLayout
+            } else {
+                null
+            }
+        }
 
     /**
-     * Create a new list of bind groups that must be tracked and passed into [setBindGroups]. This
-     * list must be tracked due to the fact of being able to swap out bind groups for each shader
-     * based on dynamic data, such as, textures. It is best to call this once and cache the result
-     * based on the data it needs.
-     *
-     * @param data a data map that can include any data that is needed in order to create bind
-     *   groups, using a string as a key.
-     * @return a list of [BindGroup]s for the shader that. This [Shader] is responsible for
-     *   releasing the newly created [BindGroup] by calling [release].
+     * The [PipelineLayout] created by using [layouts]. If additional [BindGroupLayout] needs to be
+     * passed in to the layout then use [getOrCreatePipelineLayout] before accessing this field.
      */
-    fun createBindGroups(data: Map<String, Any> = emptyMap()): List<BindGroup> {
-        val newBindGroups = mutableListOf<BindGroup>()
-        newBindGroups.createBindGroupsInternal(data)
-        bindGroups += newBindGroups
-        return newBindGroups.toList()
+    val pipelineLayout: PipelineLayout
+        get() = getOrCreatePipelineLayout()
+
+    private var _pipelineLayout: PipelineLayout? = null
+
+    /**
+     * @param provideBindGroupLayout an optional builder function to allow passing in additional [BindGroupLayout] to
+     *   the [PipelineLayout] if the shader requires it. The [provideBindGroupLayout] will pass in the [BindingUsage] of
+     *   the Shader as the parameter and requires a [BindGroupLayout] to proceed.
+     * @return an existing [PipelineLayout] or creates a new one if it doesn't exist.
+     */
+    fun getOrCreatePipelineLayout(
+        provideBindGroupLayout: ((BindingUsage) -> BindGroupLayout)? = null
+    ): PipelineLayout {
+        return _pipelineLayout
+            ?: run {
+                bindGroupLayoutUsageLayout.forEachIndexed { index, usage ->
+                    if (!usageToBindGroupLayout.contains(usage) && provideBindGroupLayout != null) {
+                        usageToBindGroupLayout[usage] = provideBindGroupLayout(usage)
+                    }
+                    _layouts[index] =
+                        usageToBindGroupLayout[usage]
+                            ?: error("$this: Unable to get BindGroupLayout for $usage")
+                }
+                _layouts = _layouts.toList().sortedBy { it.first }.toMap().toMutableMap()
+                device
+                    .createPipelineLayout(
+                        PipelineLayoutDescriptor(
+                            _layouts.map { it.value },
+                            label = "$this PipeLineLayout",
+                        )
+                    )
+                    .also { _pipelineLayout = it }
+            }
     }
 
     /**
-     * Do any buffer updates here.
-     *
-     * @param data a data map that can include any data that is needed in order to update bindings ,
-     *   using a string as a key.
+     * External [BindGroup] that is passed in and should be set to the correct binding. By default,
+     * sets in the order of [bindGroupUsageToGroupIndex] and ignores [dynamicOffsets].
      */
-    open fun update(data: Map<String, Any>) = Unit
+    open fun setBindGroup(
+        renderPassEncoder: RenderPassEncoder,
+        bindGroup: BindGroup,
+        bindingUsage: BindingUsage,
+        dynamicOffsets: List<Long> = emptyList(),
+    ) {
+        val index = getBindGroupLayoutIndex(bindingUsage)
+        renderPassEncoder.setBindGroup(index, bindGroup, dynamicOffsets.ifEmpty { emptyList() })
+    }
 
     /**
-     * Add the newly created bind groups to the given list.
-     *
-     * ```
-     * fun MutableList<BindGroup>.createBindGroupsInternal(data: Map<String, Any>): List<BindGroup> {
-     *     val texture = data["texture"] as Texture
-     *     add(device.createBindGroup(createTextureDescriptor(texture))
-     *     add(device.createBindGroup(anotherDescriptor)
-     * }
-     * ```
-     *
-     * @param data the data needed in order to create the bind groups.
+     * @return the index for the given [usage] within the bind group layout.
+     * @throws IllegalStateException if usage not found.
+     * @see [getBindGroupLayoutIndexOrNull]
      */
-    protected open fun MutableList<BindGroup>.createBindGroupsInternal(data: Map<String, Any>) =
-        Unit
+    fun getBindGroupLayoutIndex(usage: BindingUsage): Int =
+        getBindGroupLayoutIndexOrNull(usage) ?: error("Unable to find the group index for $usage.")
 
     /**
-     * Set the [BindGroup]s to the correct binding index on the given [RenderPassEncoder].
-     *
-     * @param encoder the [RenderPassEncoder] to encode draw commands with
-     * @param bindGroups the list of bind groups to bind. This assumes the bind list of bind groups
-     *   were created with [createBindGroups] and are in the correct order.
-     * @param dynamicOffsets the list of offsets, for any dynamic bind groups, if applicable
+     * @return the index for the given [usage] within the bind group layout; `null` if not found.
      */
-    open fun setBindGroups(
-        encoder: RenderPassEncoder,
-        bindGroups: List<BindGroup>,
-        dynamicOffsets: List<Long> = emptyList()
-    ) = Unit
+    fun getBindGroupLayoutIndexOrNull(usage: BindingUsage): Int? = bindGroupUsageToGroupIndex[usage]
+
+    /**
+     * @return get the bind group layout by [usage].
+     * @throws IllegalStateException if not found
+     * @see [getBindGroupLayoutByUsageOrNull]
+     */
+    fun getBindGroupLayoutByUsage(usage: BindingUsage) =
+        getBindGroupLayoutByUsageOrNull(usage)
+            ?: error("BindGroupLayout does exist for usage: $usage.")
+
+    /**
+     * @return get the bind group layout by [usage]; `null` if not found.
+     */
+    fun getBindGroupLayoutByUsageOrNull(usage: BindingUsage): BindGroupLayout? {
+        val index = bindGroupUsageToGroupIndex[usage] ?: return null
+        return layouts[index]
+    }
+
+    /** Set any internal bind groups here. */
+    open fun setBindGroups(renderPassEncoder: RenderPassEncoder) = Unit
+
+    /**
+     * Create the applicable [BindGroup] based off of the [BindingUsage], if required.
+     *
+     * @param args requires arguments needed to create bind group. Ensure the order of arguments is
+     *   correct before creating bind group.
+     */
+    open fun createBindGroup(usage: BindingUsage, vararg args: IntoBindingResource): BindGroup? {
+        val index = bindGroupUsageToGroupIndex[usage] ?: return null
+        val layout = layouts[index] ?: return null
+        return device.createBindGroup(
+            BindGroupDescriptor(
+                layout,
+                args.mapIndexed { argsIndex, resource -> BindGroupEntry(argsIndex, resource) },
+            )
+        )
+    }
 
     override fun release() {
         shaderModule.release()
-        layouts.fastForEach { it.release() }
-        pipelineLayout.release()
-        bindGroups.forEach { it.release() }
-        bindGroups.clear()
+        shaderLayouts.fastForEach { it.release() }
+        _pipelineLayout?.release()
     }
 
     override fun equals(other: Any?): Boolean {

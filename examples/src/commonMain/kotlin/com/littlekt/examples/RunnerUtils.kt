@@ -25,5 +25,9 @@ val availableExamples =
         "-computeBoids" to Pair("Compute Boids", ::ComputeBoidsExample),
         "-worldAndUiViewports" to Pair("Game World and UI Viewports", ::GameWorldAndUIViewports),
         "-assetProvider" to Pair("Asset Provider", ::AssetProviderExample),
-        "-spriteBatchMultiPass" to Pair("SpriteBatch Multi Pass", ::SpriteBatchMultiPassExample)
+        "-spriteBatchMultiPass" to Pair("SpriteBatch Multi Pass", ::SpriteBatchMultiPassExample),
+        "-simpleGltf" to Pair("Simple GLtf", ::SimpleGltfExample),
+        "-mipMaps" to Pair("Mip Maps", ::MipMapsExample),
+        "-modelInstancing" to Pair("Model Instancing", ::ModelInstancingExample),
+        "-pbr" to Pair("PBR", ::PBRExample),
     )

@@ -57,19 +57,19 @@ class TextureMeshExample(context: Context) : ContextListener(context) {
                 indicesAsQuad()
                 addVertex {
                     position.set(-0.5f, -0.5f, 0f)
-                    texCoords.set(0f, 1f)
+                    uv.set(0f, 1f)
                 }
                 addVertex {
                     position.set(-0.5f, 0.5f, 0f)
-                    texCoords.set(0f, 0f)
+                    uv.set(0f, 0f)
                 }
                 addVertex {
                     position.set(0.5f, 0.5f, 0f)
-                    texCoords.set(1f, 0f)
+                    uv.set(1f, 0f)
                 }
                 addVertex {
                     position.set(0.5f, -0.5f, 0f)
-                    texCoords.set(1f, 1f)
+                    uv.set(1f, 1f)
                 }
             }
         mesh.update()

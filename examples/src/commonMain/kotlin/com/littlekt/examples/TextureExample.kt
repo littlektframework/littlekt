@@ -74,8 +74,8 @@ class TextureExample(context: Context) : ContextListener(context) {
         val indices = ShortBuffer(shortArrayOf(0, 1, 2, 0, 2, 3))
         val image = resourcesVfs["logo.png"].readPixmap()
         val device = graphics.device
-        val vbo = device.createGPUFloatBuffer("vbo", vertices.toArray(), BufferUsage.VERTEX)
-        val ibo = device.createGPUShortBuffer("ibo", indices.toArray(), BufferUsage.INDEX)
+        val vbo = device.createGPUFloatBuffer("vbo", vertices, BufferUsage.VERTEX)
+        val ibo = device.createGPUShortBuffer("ibo", indices, BufferUsage.INDEX)
         val shader = device.createShaderModule(textureShader)
         val surfaceCapabilities = graphics.surfaceCapabilities
         val preferredFormat = graphics.preferredFormat

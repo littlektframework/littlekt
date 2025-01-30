@@ -5,7 +5,7 @@ import kotlin.math.min
 
 @JvmInline value class PathInfo(val fullPath: String)
 
-fun PathInfo.relativePathTo(relative: PathInfo): String? {
+fun PathInfo.relativePathTo(relative: PathInfo): String {
     val thisParts = this.parts().toMutableList()
     val relativeParts = relative.parts().toMutableList()
     val maxNumParts = min(thisParts.size, relativeParts.size)

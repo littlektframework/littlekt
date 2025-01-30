@@ -63,11 +63,11 @@ actual class RenderPassEncoder(
 
     actual fun setPipeline(pipeline: RenderPipeline) {
         delegate.setPipeline(pipeline.delegate)
-        EngineStats.setPipelineCalls++
+        EngineStats.setPipelineCalls += 1
     }
 
     actual fun draw(vertexCount: Int, instanceCount: Int, firstVertex: Int, firstInstance: Int) {
-        EngineStats.drawCalls++
+        EngineStats.drawCalls += 1
         EngineStats.triangles += (vertexCount / 3) * instanceCount
         delegate.draw(vertexCount, instanceCount, firstVertex, firstInstance)
     }
@@ -78,7 +78,7 @@ actual class RenderPassEncoder(
 
     actual fun setVertexBuffer(slot: Int, buffer: GPUBuffer, offset: Long, size: Long) {
         delegate.setVertexBuffer(slot.toLong(), buffer.delegate, offset, size)
-        EngineStats.setBufferCalls++
+        EngineStats.setBufferCalls += 1
     }
 
     actual fun drawIndexed(
@@ -88,7 +88,7 @@ actual class RenderPassEncoder(
         baseVertex: Int,
         firstInstance: Int,
     ) {
-        EngineStats.drawCalls++
+        EngineStats.drawCalls += 1
         EngineStats.triangles += (indexCount / 3) * instanceCount
         delegate.drawIndexed(indexCount, instanceCount, firstIndex, baseVertex, firstInstance)
     }
@@ -100,12 +100,12 @@ actual class RenderPassEncoder(
         size: Long,
     ) {
         delegate.setIndexBuffer(buffer.delegate, indexFormat.nativeVal, offset, size)
-        EngineStats.setBufferCalls++
+        EngineStats.setBufferCalls += 1
     }
 
     actual fun setBindGroup(index: Int, bindGroup: BindGroup, dynamicOffsets: List<Long>) {
         delegate.setBindGroup(index, bindGroup.delegate, dynamicOffsets.toLongArray())
-        EngineStats.setBindGroupCalls++
+        EngineStats.setBindGroupCalls += 1
     }
 
     actual fun setViewport(
@@ -137,12 +137,12 @@ actual class ComputePipeline(val delegate: GPUComputePipeline) : Releasable {
 actual class ComputePassEncoder(val delegate: GPUComputePassEncoder) : Releasable {
     actual fun setPipeline(pipeline: ComputePipeline) {
         delegate.setPipeline(pipeline.delegate)
-        EngineStats.setPipelineCalls++
+        EngineStats.setPipelineCalls += 1
     }
 
     actual fun setBindGroup(index: Int, bindGroup: BindGroup) {
         delegate.setBindGroup(index, bindGroup.delegate)
-        EngineStats.setBindGroupCalls++
+        EngineStats.setBindGroupCalls += 1
     }
 
     actual fun dispatchWorkgroups(

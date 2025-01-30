@@ -12,7 +12,7 @@ import kotlin.math.atan
 open class PerspectiveCamera(virtualWidth: Float = 0f, virtualHeight: Float = 0f) : Camera() {
     constructor(
         virtualWidth: Int,
-        virtualHeight: Int
+        virtualHeight: Int,
     ) : this(virtualWidth.toFloat(), virtualHeight.toFloat())
 
     override val direction: MutableVec3f = MutableVec3f(Vec3f.NEG_Z_AXIS)
@@ -24,14 +24,27 @@ open class PerspectiveCamera(virtualWidth: Float = 0f, virtualHeight: Float = 0f
     private var sphereFacY = 1f
     private var tangX = 1f
     private var tangY = 1f
-
     private val tempCenter = MutableVec3f()
+    private val tempMin = MutableVec3f()
+    private val tempMax = MutableVec3f()
+    private val frustum = Frustum()
 
     init {
         this.virtualWidth = virtualWidth
         this.virtualHeight = virtualHeight
-        near = 0.1f
+        near = 0.01f
+        far = 1000f
         fov = 60f
+    }
+
+    override fun update() {
+        super.update()
+        updateFrustum()
+    }
+
+    /** Updates the [frustum] planes. */
+    open fun updateFrustum() {
+        frustum.updateFrustum(position, direction, up, right, fov, aspectRatio, near, far)
     }
 
     override fun updateProjectionMatrix() {
@@ -53,38 +66,15 @@ open class PerspectiveCamera(virtualWidth: Float = 0f, virtualHeight: Float = 0f
         pz: Float,
         width: Float,
         height: Float,
-        length: Float
+        length: Float,
     ): Boolean {
-        // TODO
-        return true
+        tempMin.set(px, py, pz)
+        tempMax.set(px + width, py + height, pz + length)
+        return frustum.isBoundsInside(tempMin, tempMax)
     }
 
     override fun sphereInFrustum(cx: Float, cy: Float, cz: Float, radius: Float): Boolean {
         tempCenter.set(cx, cy, cz)
-        tempCenter.subtract(position)
-
-        var z = tempCenter.dot(direction)
-        if (z > far + radius || z < near - radius) {
-            // sphere is either front or behind of frustum
-            return false
-        }
-
-        val y = tempCenter.dot(up)
-        var d = radius * sphereFacY
-        z *= tangY
-        if (y > z + d || y < -z - d) {
-            // sphere is either above or below of frustum
-            return false
-        }
-
-        val x = tempCenter.dot(rightDir)
-        d = radius * sphereFacX
-        z *= aspectRatio
-        if (x > z + d || x < -z - d) {
-            // sphere is either left or right of frustum
-            return false
-        }
-
-        return true
+        return frustum.isSphereInside(tempCenter, radius)
     }
 }

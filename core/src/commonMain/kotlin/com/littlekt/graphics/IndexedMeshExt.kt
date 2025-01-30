@@ -19,9 +19,9 @@ inline fun indexedMesh(
             VertexBufferLayout(
                 attributes.calculateStride().toLong(),
                 VertexStepMode.VERTEX,
-                attributes
+                attributes,
             ),
-            size
+            size,
         )
     geometry.indicesAsTri()
     geometry.generate()
@@ -35,7 +35,7 @@ inline fun indexedMesh(
 fun colorIndexedMesh(
     device: Device,
     size: Int = 1000,
-    generate: CommonIndexedMeshGeometry.() -> Unit = {}
+    generate: CommonIndexedMeshGeometry.() -> Unit = {},
 ): IndexedMesh<CommonIndexedMeshGeometry> {
     return indexedMesh(
         device,
@@ -45,22 +45,22 @@ fun colorIndexedMesh(
                 VertexFormat.FLOAT32x4,
                 VertexFormat.FLOAT32x3.bytes.toLong(),
                 1,
-                VertexAttrUsage.COLOR
-            )
+                VertexAttrUsage.COLOR,
+            ),
         ),
         size,
-        generate
+        generate,
     )
 }
 
 /**
  * Creates a new indexed mesh with [VertexAttrUsage.POSITION], [VertexAttrUsage.COLOR], and
- * [VertexAttrUsage.TEX_COORDS] attributes.
+ * [VertexAttrUsage.UV] attributes.
  */
 fun textureIndexedMesh(
     device: Device,
     size: Int = 1000,
-    generate: CommonIndexedMeshGeometry.() -> Unit = {}
+    generate: CommonIndexedMeshGeometry.() -> Unit = {},
 ): IndexedMesh<CommonIndexedMeshGeometry> {
     return indexedMesh(
         device,
@@ -70,17 +70,17 @@ fun textureIndexedMesh(
                 VertexFormat.FLOAT32x4,
                 VertexFormat.FLOAT32x3.bytes.toLong(),
                 1,
-                VertexAttrUsage.COLOR
+                VertexAttrUsage.COLOR,
             ),
             VertexAttribute(
                 VertexFormat.FLOAT32x2,
                 VertexFormat.FLOAT32x4.bytes.toLong() + VertexFormat.FLOAT32x3.bytes.toLong(),
                 2,
-                VertexAttrUsage.TEX_COORDS
-            )
+                VertexAttrUsage.UV,
+            ),
         ),
         size,
-        generate
+        generate,
     )
 }
 
@@ -88,13 +88,42 @@ fun textureIndexedMesh(
 fun positionIndexedMesh(
     device: Device,
     size: Int = 1000,
-    generate: CommonIndexedMeshGeometry.() -> Unit = {}
+    generate: CommonIndexedMeshGeometry.() -> Unit = {},
 ): IndexedMesh<CommonIndexedMeshGeometry> {
     return indexedMesh(
         device,
         listOf(VertexAttribute(VertexFormat.FLOAT32x3, 0, 0, VertexAttrUsage.POSITION)),
         size,
-        generate
+        generate,
+    )
+}
+
+/**
+ * Creates a new indexed mesh with [VertexAttrUsage.POSITION], [VertexAttrUsage.COLOR],
+ * [VertexAttrUsage.NORMAL], and [VertexAttrUsage.UV] attributes.
+ */
+fun fullIndexedMesh(
+    device: Device,
+    size: Int = 1000,
+    generate: CommonIndexedMeshGeometry.() -> Unit = {},
+): IndexedMesh<CommonIndexedMeshGeometry> {
+    var offset = 0L
+    return indexedMesh(
+        device,
+        listOf(
+            VertexAttribute(VertexFormat.FLOAT32x3, 0, 0, VertexAttrUsage.POSITION).also {
+                offset += VertexFormat.FLOAT32x3.bytes
+            },
+            VertexAttribute(VertexFormat.FLOAT32x4, offset, 1, VertexAttrUsage.COLOR).also {
+                offset += VertexFormat.FLOAT32x4.bytes
+            },
+            VertexAttribute(VertexFormat.FLOAT32x3, offset, 2, VertexAttrUsage.NORMAL).also {
+                offset += VertexFormat.FLOAT32x3.bytes
+            },
+            VertexAttribute(VertexFormat.FLOAT32x2, offset, 3, VertexAttrUsage.UV),
+        ),
+        size,
+        generate,
     )
 }
 
@@ -113,28 +142,42 @@ fun <T : ContextListener> T.indexedMesh(
  */
 fun <T : ContextListener> T.colorIndexedMesh(
     size: Int = 1000,
-    generate: CommonIndexedMeshGeometry.() -> Unit = {}
+    generate: CommonIndexedMeshGeometry.() -> Unit = {},
 ): IndexedMesh<CommonIndexedMeshGeometry> {
     return colorIndexedMesh(context.graphics.device, size, generate)
 }
 
 /**
  * Creates a new indexed mesh with [VertexAttrUsage.POSITION], [VertexAttrUsage.COLOR], and
- * [VertexAttrUsage.TEX_COORDS] attributes.
+ * [VertexAttrUsage.UV] attributes.
  */
 fun <T : ContextListener> T.textureIndexedMesh(
     size: Int = 1000,
-    generate: CommonIndexedMeshGeometry.() -> Unit = {}
+    generate: CommonIndexedMeshGeometry.() -> Unit = {},
 ): IndexedMesh<CommonIndexedMeshGeometry> {
     return textureIndexedMesh(context.graphics.device, size, generate)
+}
+
+/**
+ * Creates a new indexed mesh with [VertexAttrUsage.POSITION], [VertexAttrUsage.COLOR],
+ * [VertexAttrUsage.NORMAL], and [VertexAttrUsage.UV] attributes.
+ */
+fun <T : ContextListener> T.fullIndexedMesh(
+    size: Int = 1000,
+    generate: CommonIndexedMeshGeometry.() -> Unit = {},
+): IndexedMesh<CommonIndexedMeshGeometry> {
+    return fullIndexedMesh(context.graphics.device, size, generate)
 }
 
 /** Update the current [IndexedMesh] geometry in a batch update. */
 fun IndexedMesh<CommonIndexedMeshGeometry>.generate(
     generator: CommonIndexedMeshBuilder.() -> Unit
-) {
+): IndexedMesh<CommonIndexedMeshGeometry> {
     geometry.batchUpdate {
+        clearIndices()
         clearVertices()
-        CommonIndexedMeshBuilder(geometry, false).generator()
+        CommonIndexedMeshBuilder(geometry).generator()
     }
+    update()
+    return this
 }
