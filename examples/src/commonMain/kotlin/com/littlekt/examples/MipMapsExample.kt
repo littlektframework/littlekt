@@ -23,7 +23,7 @@ class MipMapsExample(context: Context) : ContextListener(context) {
 
     override suspend fun Context.start() {
         addStatsHandler()
-        addCloseOnShiftEsc()
+        this.addCloseOnEsc()
         val device = graphics.device
 
         val surfaceCapabilities = graphics.surfaceCapabilities

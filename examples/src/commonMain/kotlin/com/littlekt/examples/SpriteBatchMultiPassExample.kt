@@ -20,7 +20,7 @@ import com.littlekt.util.viewport.ExtendViewport
 class SpriteBatchMultiPassExample(context: Context) : ContextListener(context) {
     override suspend fun Context.start() {
         addStatsHandler()
-        addCloseOnShiftEsc()
+        this.addCloseOnEsc()
         val assets = AssetProvider(this)
 
         val pixelFont: BitmapFont by assets.load(resourcesVfs["m5x7_32.fnt"])

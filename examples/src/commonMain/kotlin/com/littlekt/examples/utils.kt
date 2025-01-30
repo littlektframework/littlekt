@@ -22,10 +22,10 @@ import com.littlekt.math.geom.degrees
 import com.littlekt.math.geom.radians
 import com.littlekt.util.datastructure.fastForEach
 import com.littlekt.util.milliseconds
-import kotlin.math.asin
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.launch
+import kotlin.math.asin
 
 fun SurfaceTexture.isValid(context: Context, onConfigure: () -> SurfaceConfiguration): Boolean {
     val surfaceTexture = this
@@ -59,9 +59,9 @@ fun Context.addStatsHandler() {
     }
 }
 
-fun Context.addCloseOnShiftEsc() {
+fun Context.addCloseOnEsc() {
     onPostUpdate {
-        if (input.isKeyPressed(Key.SHIFT_LEFT) && input.isKeyJustPressed(Key.ESCAPE)) {
+        if (!input.cursorLocked && input.isKeyJustPressed(Key.ESCAPE)) {
             close()
         }
     }
@@ -126,7 +126,7 @@ fun Context.addFlyController(camera: Camera, speed: Float = 0.0015f) {
     val right = MutableVec3f()
     val up = MutableVec3f()
 
-    onUpdate {
+    onPostUpdate {
         if (!input.cursorLocked && input.isJustTouched(Pointer.POINTER1)) {
             input.lockCursor()
         }

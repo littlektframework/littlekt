@@ -63,7 +63,7 @@ class TiledMeshExample(context: Context) : ContextListener(context) {
 
     override suspend fun Context.start() {
         addStatsHandler()
-        addCloseOnShiftEsc()
+        this.addCloseOnEsc()
         val device = graphics.device
         val tileSize = 16f
         var totalQuads = 0

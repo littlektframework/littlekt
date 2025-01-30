@@ -18,7 +18,7 @@ import com.littlekt.util.viewport.ExtendViewport
 class FontExample(context: Context) : ContextListener(context) {
     override suspend fun Context.start() {
         addStatsHandler()
-        addCloseOnShiftEsc()
+        this.addCloseOnEsc()
         val pixelFont = resourcesVfs["m5x7_32.fnt"].readBitmapFont()
         val arialFont = resourcesVfs["arial_32.fnt"].readBitmapFont()
         val device = graphics.device

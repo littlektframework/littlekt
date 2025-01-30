@@ -19,7 +19,7 @@ class SpriteCacheQuadsExample(context: Context) : ContextListener(context) {
 
     override suspend fun Context.start() {
         addStatsHandler()
-        addCloseOnShiftEsc()
+        this.addCloseOnEsc()
         val device = graphics.device
         val queue = device.queue
         val surfaceCapabilities = graphics.surfaceCapabilities

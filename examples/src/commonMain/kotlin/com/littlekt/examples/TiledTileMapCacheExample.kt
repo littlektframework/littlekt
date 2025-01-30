@@ -18,7 +18,7 @@ class TiledTileMapCacheExample(context: Context) : ContextListener(context) {
 
     override suspend fun Context.start() {
         addStatsHandler()
-        addCloseOnShiftEsc()
+        this.addCloseOnEsc()
         val device = graphics.device
 
         val map = resourcesVfs["tiled/ortho-tiled-world.tmj"].readTiledMap()

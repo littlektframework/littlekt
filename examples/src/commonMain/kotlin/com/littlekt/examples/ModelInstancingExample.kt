@@ -29,7 +29,7 @@ class ModelInstancingExample(context: Context) : ContextListener(context) {
 
     override suspend fun Context.start() {
         addStatsHandler()
-        addCloseOnShiftEsc()
+        this.addCloseOnEsc()
         val device = graphics.device
         val camera = PerspectiveCamera(graphics.width, graphics.height)
         camera.translate(45f, 69f, 60f)
