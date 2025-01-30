@@ -59,6 +59,7 @@ class IndexedMesh<T : IndexedMeshGeometry>(device: Device, geometry: T) :
                     logger.trace { "Writing VBO to queue of size: $size" }
                     device.queue.writeBuffer(vbo, geometry.vertices, size = size)
                 }
+                geometry.verticesDirty = false
             }
             if (geometry.indicesDirty) {
                 if (ibo.size < geometry.indices.capacity * Short.SIZE_BYTES) {

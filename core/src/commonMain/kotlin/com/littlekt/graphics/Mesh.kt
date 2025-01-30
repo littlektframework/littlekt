@@ -60,6 +60,7 @@ open class Mesh<T : MeshGeometry>(val device: Device, val geometry: T) : Releasa
                     logger.trace { "Writing VBO to queue of size: $size" }
                     device.queue.writeBuffer(vbo, geometry.vertices, size = size)
                 }
+                geometry.verticesDirty = false
             }
         }
     }

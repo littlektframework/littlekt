@@ -119,6 +119,7 @@ data class Frustum(private val planes: List<Plane> = emptyList()) {
     }
 
     private fun updatePlanes() {
+        if(planes.isEmpty()) return
         // Near plane
         planes[0]
             .normal
