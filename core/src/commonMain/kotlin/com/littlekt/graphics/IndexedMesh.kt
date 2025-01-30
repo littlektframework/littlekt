@@ -43,7 +43,7 @@ class IndexedMesh<T : IndexedMeshGeometry>(device: Device, geometry: T) :
                     vbo =
                         device.createGPUFloatBuffer(
                             "vbo",
-                            geometry.vertices.toArray(),
+                            geometry.vertices,
                             BufferUsage.VERTEX or BufferUsage.COPY_DST
                         )
                     // need to remake ibo because indices won't correspond correctly to the new

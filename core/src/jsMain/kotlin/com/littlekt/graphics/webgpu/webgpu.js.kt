@@ -120,6 +120,21 @@ actual class Device(val delegate: GPUDevice) : Releasable {
         return buffer
     }
 
+    actual fun createGPUShortBuffer(
+        label: String,
+        data: ShortBuffer,
+        usage: BufferUsage,
+    ): GPUBuffer {
+        val buffer =
+            createBuffer(
+                BufferDescriptor(label, data.capacity.toLong() * Short.SIZE_BYTES, usage, true)
+            )
+        buffer.getMappedRange(0, buffer.size).putShort(data)
+        buffer.unmap()
+
+        return buffer
+    }
+
     actual fun createGPUFloatBuffer(
         label: String,
         data: FloatArray,
@@ -128,6 +143,21 @@ actual class Device(val delegate: GPUDevice) : Releasable {
         val buffer =
             createBuffer(
                 BufferDescriptor(label, data.size.toLong() * Float.SIZE_BYTES, usage, true)
+            )
+        buffer.getMappedRange(0, buffer.size).putFloat(data)
+        buffer.unmap()
+
+        return buffer
+    }
+
+    actual fun createGPUFloatBuffer(
+        label: String,
+        data: FloatBuffer,
+        usage: BufferUsage,
+    ): GPUBuffer {
+        val buffer =
+            createBuffer(
+                BufferDescriptor(label, data.capacity.toLong() * Float.SIZE_BYTES, usage, true)
             )
         buffer.getMappedRange(0, buffer.size).putFloat(data)
         buffer.unmap()
@@ -144,8 +174,25 @@ actual class Device(val delegate: GPUDevice) : Releasable {
         return buffer
     }
 
+    actual fun createGPUIntBuffer(label: String, data: IntBuffer, usage: BufferUsage): GPUBuffer {
+        val buffer =
+            createBuffer(BufferDescriptor(label, data.capacity.toLong() * Int.SIZE_BYTES, usage, true))
+        buffer.getMappedRange(0, buffer.size).putInt(data)
+        buffer.unmap()
+
+        return buffer
+    }
+
     actual fun createGPUByteBuffer(label: String, data: ByteArray, usage: BufferUsage): GPUBuffer {
         val buffer = createBuffer(BufferDescriptor(label, data.size.toLong(), usage, true))
+        buffer.getMappedRange(0, buffer.size).putByte(data)
+        buffer.unmap()
+
+        return buffer
+    }
+
+    actual fun createGPUByteBuffer(label: String, data: ByteBuffer, usage: BufferUsage): GPUBuffer {
+        val buffer = createBuffer(BufferDescriptor(label, data.capacity.toLong(), usage, true))
         buffer.getMappedRange(0, buffer.size).putByte(data)
         buffer.unmap()
 

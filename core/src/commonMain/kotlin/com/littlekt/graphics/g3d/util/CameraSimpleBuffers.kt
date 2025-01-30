@@ -21,7 +21,7 @@ class CameraSimpleBuffers(val device: Device) : CameraBuffersViaCamera {
     val cameraUniformBuffer =
         device.createGPUFloatBuffer(
             "camera",
-            camFloatBuffer.toArray(),
+            camFloatBuffer,
             BufferUsage.UNIFORM or BufferUsage.COPY_DST,
         )
     override val cameraDynamicSize: Int = 1

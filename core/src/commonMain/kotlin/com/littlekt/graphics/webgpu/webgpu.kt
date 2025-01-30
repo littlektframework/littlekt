@@ -44,7 +44,7 @@ expect class Device : Releasable {
     fun createPipelineLayout(desc: PipelineLayoutDescriptor): PipelineLayout
 
     /**
-     * @param debug label for a [CommandEncoder].
+     * @param label debug label for a [CommandEncoder].
      * @return a newly created, empty [CommandEncoder].
      */
     fun createCommandEncoder(label: String? = null): CommandEncoder
@@ -65,32 +65,60 @@ expect class Device : Releasable {
     fun createTexture(desc: TextureDescriptor): WebGPUTexture
 
     /**
-     * This uses [createBuffer] internally, maps it at creation, and unmaps it immediately.
+     * This uses [createBuffer] internally, maps it at creation, writes the data, and unmaps it immediately.
      *
      * @return a newly created [GPUBuffer] using an [ShortArray].
      */
     fun createGPUShortBuffer(label: String, data: ShortArray, usage: BufferUsage): GPUBuffer
 
     /**
-     * This uses [createBuffer] internally, maps it at creation, and unmaps it immediately.
+     * This uses [createBuffer] internally, maps it at creation, writes the data, and unmaps it immediately.
+     *
+     * @return a newly created [GPUBuffer] using an [ShortBuffer].
+     */
+    fun createGPUShortBuffer(label: String, data: ShortBuffer, usage: BufferUsage): GPUBuffer
+
+    /**
+     * This uses [createBuffer] internally, maps it at creation, writes the data, and unmaps it immediately.
      *
      * @return a newly created [GPUBuffer] using a [FloatArray].
      */
     fun createGPUFloatBuffer(label: String, data: FloatArray, usage: BufferUsage): GPUBuffer
 
     /**
-     * This uses [createBuffer] internally, maps it at creation, and unmaps it immediately.
+     * This uses [createBuffer] internally, maps it at creation, writes the data, and unmaps it immediately.
+     *
+     * @return a newly created [GPUBuffer] using a [FloatBuffer].
+     */
+    fun createGPUFloatBuffer(label: String, data: FloatBuffer, usage: BufferUsage): GPUBuffer
+
+    /**
+     * This uses [createBuffer] internally, maps it at creation, writes the data, and unmaps it immediately.
      *
      * @return a newly created [GPUBuffer] using an [IntArray].
      */
     fun createGPUIntBuffer(label: String, data: IntArray, usage: BufferUsage): GPUBuffer
 
     /**
-     * This uses [createBuffer] internally, maps it at creation, and unmaps it immediately.
+     * This uses [createBuffer] internally, maps it at creation, writes the data, and unmaps it immediately.
+     *
+     * @return a newly created [GPUBuffer] using an [IntBuffer].
+     */
+    fun createGPUIntBuffer(label: String, data: IntBuffer, usage: BufferUsage): GPUBuffer
+
+    /**
+     * This uses [createBuffer] internally, maps it at creation, writes the data, and unmaps it immediately.
      *
      * @return a newly created [GPUBuffer] using a [ByteArray].
      */
     fun createGPUByteBuffer(label: String, data: ByteArray, usage: BufferUsage): GPUBuffer
+
+    /**
+     * This uses [createBuffer] internally, maps it at creation, writes the data, and unmaps it immediately.
+     *
+     * @return a newly created [GPUBuffer] using a [ByteBuffer].
+     */
+    fun createGPUByteBuffer(label: String, data: ByteBuffer, usage: BufferUsage): GPUBuffer
 
     /**
      * Check for resource cleanups and mapping callbacks.

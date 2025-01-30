@@ -241,7 +241,7 @@ class SpriteCacheShader(device: Device, staticSize: Int, dynamicSize: Int) :
             spriteStaticStorage =
                 device.createGPUFloatBuffer(
                     "static sprite storage buffer",
-                    data.toArray(),
+                    data,
                     BufferUsage.STORAGE or BufferUsage.COPY_DST,
                 )
             staticSpriteStorageBufferBinding = BufferBinding(spriteStaticStorage)
@@ -283,7 +283,7 @@ class SpriteCacheShader(device: Device, staticSize: Int, dynamicSize: Int) :
             spriteDynamicStorage =
                 device.createGPUFloatBuffer(
                     "dynamic sprite storage buffer",
-                    data.toArray(),
+                    data,
                     BufferUsage.STORAGE or BufferUsage.COPY_DST,
                 )
             dynamicSpriteStorageBufferBinding = BufferBinding(spriteDynamicStorage)

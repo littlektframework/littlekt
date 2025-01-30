@@ -61,7 +61,7 @@ class InstanceBuffers(val device: Device, instanceDataSize: Int) : Releasable {
             staticStorage =
                 device.createGPUFloatBuffer(
                     "static instance storage buffer",
-                    data.toArray(),
+                    data,
                     BufferUsage.STORAGE or BufferUsage.COPY_DST,
                 )
             staticStorageBufferBinding = BufferBinding(staticStorage)

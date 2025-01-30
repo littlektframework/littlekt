@@ -100,7 +100,7 @@ class SpriteCache(
     private val spriteBuffer =
         device.createGPUFloatBuffer(
             "sprite buffer",
-            staticData.toArray(),
+            staticData,
             BufferUsage.STORAGE or BufferUsage.COPY_DST,
         )
     private val spriteIndices = mutableMapOf<SpriteId, Int>()

@@ -25,7 +25,7 @@ open class Mesh<T : MeshGeometry>(val device: Device, val geometry: T) : Releasa
     var vbo: GPUBuffer =
         device.createGPUFloatBuffer(
             "vbo",
-            geometry.vertices.toArray(),
+            geometry.vertices,
             BufferUsage.VERTEX or BufferUsage.COPY_DST
         )
         protected set
@@ -47,7 +47,7 @@ open class Mesh<T : MeshGeometry>(val device: Device, val geometry: T) : Releasa
                     vbo =
                         device.createGPUFloatBuffer(
                             "vbo",
-                            geometry.vertices.toArray(),
+                            geometry.vertices,
                             BufferUsage.VERTEX or BufferUsage.COPY_DST
                         )
                 } else {

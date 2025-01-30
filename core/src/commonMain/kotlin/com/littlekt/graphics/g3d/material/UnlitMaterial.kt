@@ -28,7 +28,7 @@ open class UnlitMaterial(
     private val materialUniformBuffer =
         device.createGPUFloatBuffer(
             "material buffer",
-            materialFloatBuffer.toArray(),
+            materialFloatBuffer,
             BufferUsage.UNIFORM or BufferUsage.COPY_DST,
         )
 

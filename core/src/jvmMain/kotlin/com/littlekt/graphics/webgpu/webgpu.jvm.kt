@@ -7,12 +7,12 @@ import com.littlekt.resources.BufferResourceInfo
 import com.littlekt.resources.TextureResourceInfo
 import com.littlekt.wgpu.*
 import com.littlekt.wgpu.WGPU.*
+import kotlinx.atomicfu.atomic
+import kotlinx.atomicfu.update
 import java.lang.foreign.Arena
 import java.lang.foreign.MemorySegment
 import java.lang.foreign.SegmentAllocator
 import java.lang.foreign.ValueLayout
-import kotlinx.atomicfu.atomic
-import kotlinx.atomicfu.update
 
 actual class Device(val segment: MemorySegment) : Releasable {
 
@@ -445,6 +445,21 @@ actual class Device(val segment: MemorySegment) : Releasable {
         return buffer
     }
 
+    actual fun createGPUShortBuffer(
+        label: String,
+        data: ShortBuffer,
+        usage: BufferUsage,
+    ): GPUBuffer {
+        val buffer =
+            createBuffer(
+                BufferDescriptor(label, data.capacity.toLong() * Short.SIZE_BYTES, usage, true)
+            )
+        buffer.getMappedRange().putShort(data)
+        buffer.unmap()
+
+        return buffer
+    }
+
     actual fun createGPUFloatBuffer(
         label: String,
         data: FloatArray,
@@ -453,6 +468,21 @@ actual class Device(val segment: MemorySegment) : Releasable {
         val buffer =
             createBuffer(
                 BufferDescriptor(label, data.size.toLong() * Float.SIZE_BYTES, usage, true)
+            )
+        buffer.getMappedRange().putFloat(data)
+        buffer.unmap()
+
+        return buffer
+    }
+
+    actual fun createGPUFloatBuffer(
+        label: String,
+        data: FloatBuffer,
+        usage: BufferUsage,
+    ): GPUBuffer {
+        val buffer =
+            createBuffer(
+                BufferDescriptor(label, data.capacity.toLong() * Float.SIZE_BYTES, usage, true)
             )
         buffer.getMappedRange().putFloat(data)
         buffer.unmap()
@@ -469,6 +499,15 @@ actual class Device(val segment: MemorySegment) : Releasable {
         return buffer
     }
 
+    actual fun createGPUIntBuffer(label: String, data: IntBuffer, usage: BufferUsage): GPUBuffer {
+        val buffer =
+            createBuffer(BufferDescriptor(label, data.capacity.toLong() * Int.SIZE_BYTES, usage, true))
+        buffer.getMappedRange().putInt(data)
+        buffer.unmap()
+
+        return buffer
+    }
+
     actual fun createGPUByteBuffer(label: String, data: ByteArray, usage: BufferUsage): GPUBuffer {
         val buffer = createBuffer(BufferDescriptor(label, data.size.toLong(), usage, true))
         buffer.getMappedRange().putByte(data)
@@ -476,6 +515,15 @@ actual class Device(val segment: MemorySegment) : Releasable {
 
         return buffer
     }
+
+    actual fun createGPUByteBuffer(label: String, data: ByteBuffer, usage: BufferUsage): GPUBuffer {
+        val buffer = createBuffer(BufferDescriptor(label, data.capacity.toLong(), usage, true))
+        buffer.getMappedRange().putByte(data)
+        buffer.unmap()
+
+        return buffer
+    }
+
 
     actual override fun release() {
         wgpuDeviceRelease(segment)

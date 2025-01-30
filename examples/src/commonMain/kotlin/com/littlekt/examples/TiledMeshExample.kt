@@ -110,7 +110,7 @@ class TiledMeshExample(context: Context) : ContextListener(context) {
         val cameraUniformBuffer =
             device.createGPUFloatBuffer(
                 "camera uniform buffer",
-                cameraFloatBuffer.toArray(),
+                cameraFloatBuffer,
                 BufferUsage.UNIFORM or BufferUsage.COPY_DST,
             )
 
