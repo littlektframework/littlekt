@@ -29,31 +29,27 @@ class MipMapsExample(context: Context) : ContextListener(context) {
         val surfaceCapabilities = graphics.surfaceCapabilities
         val preferredFormat = graphics.preferredFormat
 
-        val checkered =
-            resourcesVfs["checkered.png"].readTexture(
-                options =
-                    TextureOptions(
-                        format = preferredFormat,
-                        samplerDescriptor =
-                            SamplerDescriptor(
-                                addressModeU = AddressMode.REPEAT,
-                                addressModeV = AddressMode.REPEAT,
-                            ),
-                    )
+        val checkered = resourcesVfs["checkered.png"].readTexture(
+            options = TextureOptions(
+                format = preferredFormat,
+                samplerDescriptor = SamplerDescriptor(
+                    addressModeU = AddressMode.REPEAT,
+                    addressModeV = AddressMode.REPEAT,
+                ),
             )
+        )
 
         val depthFormat = TextureFormat.DEPTH24_PLUS_STENCIL8
-        var depthTexture =
-            device.createTexture(
-                TextureDescriptor(
-                    Extent3D(graphics.width, graphics.height, 1),
-                    1,
-                    1,
-                    TextureDimension.D2,
-                    depthFormat,
-                    TextureUsage.RENDER_ATTACHMENT,
-                )
+        var depthTexture = device.createTexture(
+            TextureDescriptor(
+                Extent3D(graphics.width, graphics.height, 1),
+                1,
+                1,
+                TextureDimension.D2,
+                depthFormat,
+                TextureUsage.RENDER_ATTACHMENT,
             )
+        )
         var depthFrame = depthTexture.createView()
 
         graphics.configureSurface(
@@ -64,30 +60,30 @@ class MipMapsExample(context: Context) : ContextListener(context) {
         )
 
         val grid = run {
-            val mesh =
-                fullIndexedMesh().generate {
-                    vertexModFun = { uv.set(position.x / 10f, position.z / 10f) }
-                    grid {
-                        sizeX = 1000f
-                        sizeY = 1000f
-                    }
+            val mesh = fullIndexedMesh().generate {
+                vertexModFun = { uv.set(position.x / 10f, position.z / 10f) }
+                grid {
+                    sizeX = 1000f
+                    sizeY = 1000f
                 }
-            val model =
-                Model(
-                    listOf(
-                        MeshPrimitive(
-                            mesh,
-                            UnlitMaterial(device, baseColorTexture = checkered, castShadows = false),
-                        )
+            }
+            val model = Model(
+                listOf(
+                    MeshPrimitive(
+                        mesh,
+                        UnlitMaterial(device, baseColorTexture = checkered, castShadows = false),
                     )
                 )
-            ModelInstance(model).apply { translate(0f, -30f, 0f) }
-        }
-        val modelBatch =
-            ModelBatch(device).apply {
-                addPipelineProvider(UnlitMaterialPipelineProvider())
-                colorFormat = preferredFormat
+            )
+            ModelInstance(model).apply {
+                createVisualInstances()
+                translate(0f, -60f, 0f)
             }
+        }
+        val modelBatch = ModelBatch(device).apply {
+            addPipelineProvider(UnlitMaterialPipelineProvider())
+            colorFormat = preferredFormat
+        }
         val camera = PerspectiveCamera(graphics.width, graphics.height)
         val environment = UnlitEnvironment(device)
 
@@ -100,17 +96,16 @@ class MipMapsExample(context: Context) : ContextListener(context) {
             )
             depthFrame.release()
             depthTexture.release()
-            depthTexture =
-                device.createTexture(
-                    TextureDescriptor(
-                        Extent3D(width, height, 1),
-                        1,
-                        1,
-                        TextureDimension.D2,
-                        depthFormat,
-                        TextureUsage.RENDER_ATTACHMENT,
-                    )
+            depthTexture = device.createTexture(
+                TextureDescriptor(
+                    Extent3D(width, height, 1),
+                    1,
+                    1,
+                    TextureDimension.D2,
+                    depthFormat,
+                    TextureUsage.RENDER_ATTACHMENT,
                 )
+            )
             depthFrame = depthTexture.createView()
             camera.virtualWidth = width.toFloat()
             camera.virtualHeight = height.toFloat()
@@ -124,13 +119,13 @@ class MipMapsExample(context: Context) : ContextListener(context) {
                 TextureStatus.SUCCESS -> {
                     // all good, could check for `surfaceTexture.suboptimal` here.
                 }
-                TextureStatus.TIMEOUT,
-                TextureStatus.OUTDATED,
-                TextureStatus.LOST -> {
+
+                TextureStatus.TIMEOUT, TextureStatus.OUTDATED, TextureStatus.LOST -> {
                     surfaceTexture.texture?.release()
                     logger.info { "getCurrentTexture status=$status" }
                     return@onUpdate
                 }
+
                 else -> {
                     // fatal
                     logger.fatal { "getCurrentTexture status=$status" }
@@ -142,32 +137,28 @@ class MipMapsExample(context: Context) : ContextListener(context) {
             val frame = swapChainTexture.createView()
 
             val commandEncoder = device.createCommandEncoder()
-            val renderPassEncoder =
-                commandEncoder.beginRenderPass(
-                    desc =
-                        RenderPassDescriptor(
-                            listOf(
-                                RenderPassColorAttachmentDescriptor(
-                                    view = frame,
-                                    loadOp = LoadOp.CLEAR,
-                                    storeOp = StoreOp.STORE,
-                                    clearColor =
-                                        if (preferredFormat.srgb) Color.DARK_GRAY.toLinear()
-                                        else Color.DARK_GRAY,
-                                )
-                            ),
-                            depthStencilAttachment =
-                                RenderPassDepthStencilAttachmentDescriptor(
-                                    view = depthFrame,
-                                    depthClearValue = 1f,
-                                    depthLoadOp = LoadOp.CLEAR,
-                                    depthStoreOp = StoreOp.STORE,
-                                    stencilClearValue = 0,
-                                    stencilLoadOp = LoadOp.CLEAR,
-                                    stencilStoreOp = StoreOp.STORE,
-                                ),
+            val renderPassEncoder = commandEncoder.beginRenderPass(
+                desc = RenderPassDescriptor(
+                    listOf(
+                        RenderPassColorAttachmentDescriptor(
+                            view = frame,
+                            loadOp = LoadOp.CLEAR,
+                            storeOp = StoreOp.STORE,
+                            clearColor = if (preferredFormat.srgb) Color.DARK_GRAY.toLinear()
+                            else Color.DARK_GRAY,
                         )
+                    ),
+                    depthStencilAttachment = RenderPassDepthStencilAttachmentDescriptor(
+                        view = depthFrame,
+                        depthClearValue = 1f,
+                        depthLoadOp = LoadOp.CLEAR,
+                        depthStoreOp = StoreOp.STORE,
+                        stencilClearValue = 0,
+                        stencilLoadOp = LoadOp.CLEAR,
+                        stencilStoreOp = StoreOp.STORE,
+                    ),
                 )
+            )
             camera.update()
             modelBatch.render(grid, environment)
             modelBatch.flush(renderPassEncoder, camera, dt)
