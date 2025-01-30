@@ -81,9 +81,9 @@ open class Shader(
     private var _pipelineLayout: PipelineLayout? = null
 
     /**
-     * @param build an optional builder function to allow passing in additional [BindGroupLayout] to
-     *   the [PipelineLayout] if the shader requires it. The [build] will pass in the [layouts] of
-     *   the Shader as the parameter and requires a list of [BindGroupLayout] to proceed.
+     * @param provideBindGroupLayout an optional builder function to allow passing in additional [BindGroupLayout] to
+     *   the [PipelineLayout] if the shader requires it. The [provideBindGroupLayout] will pass in the [BindingUsage] of
+     *   the Shader as the parameter and requires a [BindGroupLayout] to proceed.
      * @return an existing [PipelineLayout] or creates a new one if it doesn't exist.
      */
     fun getOrCreatePipelineLayout(
