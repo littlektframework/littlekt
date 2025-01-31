@@ -3,8 +3,8 @@ package com.littlekt.file
 import java.lang.foreign.Arena
 import java.lang.foreign.MemorySegment
 import java.lang.foreign.ValueLayout
-import java.nio.ByteBuffer as NioByteBuffer
 import java.nio.ByteOrder
+import java.nio.ByteBuffer as NioByteBuffer
 
 internal abstract class GenericBuffer<T : ValueLayout>(
     final override val capacity: Int,
@@ -321,6 +321,13 @@ internal class ByteBufferImpl(
         return this
     }
 
+    override fun putUByte(offset: Int, value: UByte): ByteBuffer {
+        dirty = true
+        segment.set(offset, value.toByte())
+        position = offset + 1
+        return this
+    }
+
     override fun putUByte(data: ByteArray, srcOffset: Int, len: Int): ByteBuffer {
         for (i in srcOffset until srcOffset + len) {
             dirty = true
@@ -368,6 +375,14 @@ internal class ByteBufferImpl(
         this[position + 1] = (value.toInt() shr 8).toByte()
         this[position + 0] = value.toByte()
         position += 2
+        return this
+    }
+
+    override fun putUShort(offset: Int, value: UShort): ByteBuffer {
+        dirty = true
+        this[offset + 1] = (value.toInt() shr 8).toByte()
+        this[offset + 0] = value.toByte()
+        position = offset + 2
         return this
     }
 
@@ -420,7 +435,7 @@ internal class ByteBufferImpl(
         this[offset + 2] = (value shr 16).toByte()
         this[offset + 1] = (value shr 8).toByte()
         this[offset + 0] = value.toByte()
-        position += 4
+        position = offset + 4
         return this
     }
 
@@ -468,6 +483,17 @@ internal class ByteBufferImpl(
         return this
     }
 
+    override fun putFloat(offset: Int, value: Float): ByteBuffer {
+        dirty = true
+        val bits = value.toRawBits()
+        this[offset + 3] = (bits shr 24).toByte()
+        this[offset + 2] = (bits shr 16).toByte()
+        this[offset + 1] = (bits shr 8).toByte()
+        this[offset + 0] = bits.toByte()
+        position = offset + 4
+        return this
+    }
+
     override fun putFloat(data: FloatArray, offset: Int, len: Int): ByteBuffer {
         for (i in 0 until len) {
             dirty = true
@@ -476,9 +502,9 @@ internal class ByteBufferImpl(
         return this
     }
 
-    override fun putFloat(data: FloatArray, offset: Int, dstOffset: Int, len: Int): ByteBuffer {
+    override fun putFloat(data: FloatArray, srcOffset: Int, dstOffset: Int, len: Int): ByteBuffer {
         position = dstOffset
-        return putFloat(data, offset, len)
+        return putFloat(data, srcOffset, len)
     }
 
     override fun putFloat(data: FloatBuffer): ByteBuffer {

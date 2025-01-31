@@ -21,10 +21,17 @@ class IndexedMesh<T : IndexedMeshGeometry>(device: Device, geometry: T) :
     var ibo =
         device.createGPUShortBuffer(
             "ibo",
-            geometry.indices.toArray(),
+            geometry.indices,
             BufferUsage.INDEX or BufferUsage.COPY_DST
         )
         private set
+
+    init {
+        val size = min(ibo.size / Short.SIZE_BYTES, geometry.indices.limit.toLong())
+        logger.trace { "Writing IBO to queue of size: $size" }
+        device.queue.writeBuffer(ibo, geometry.indices, size = size)
+        geometry.indicesDirty = false
+    }
 
     /**
      * Update the vertex and index buffers, if the underlying geometry has changed. If the
@@ -34,14 +41,14 @@ class IndexedMesh<T : IndexedMeshGeometry>(device: Device, geometry: T) :
     override fun update() {
         if (geometry.dirty) {
             if (geometry.verticesDirty) {
-                if (vbo.size < geometry.vertices.capacity * Float.SIZE_BYTES) {
+                if (vbo.size < geometry.vertices.capacity) {
                     logger.trace {
                         "Destroying and creating VBO from size: ${vbo.size} to  size: ${geometry.vertices.capacity}"
                     }
                     vbo.destroy()
                     vbo.release()
                     vbo =
-                        device.createGPUFloatBuffer(
+                        device.createGPUByteBuffer(
                             "vbo",
                             geometry.vertices,
                             BufferUsage.VERTEX or BufferUsage.COPY_DST
@@ -52,9 +59,9 @@ class IndexedMesh<T : IndexedMeshGeometry>(device: Device, geometry: T) :
                 } else {
                     val size =
                         min(
-                            vbo.size / Float.SIZE_BYTES,
+                            vbo.size,
                             geometry.numVertices *
-                                geometry.layout.attributes.calculateComponents().toLong()
+                                    geometry.vertexStride.toLong()
                         )
                     logger.trace { "Writing VBO to queue of size: $size" }
                     device.queue.writeBuffer(vbo, geometry.vertices, size = size)
@@ -89,7 +96,7 @@ class IndexedMesh<T : IndexedMeshGeometry>(device: Device, geometry: T) :
         ibo =
             device.createGPUShortBuffer(
                 "ibo",
-                geometry.indices.toArray(),
+                geometry.indices,
                 BufferUsage.INDEX or BufferUsage.COPY_DST
             )
     }

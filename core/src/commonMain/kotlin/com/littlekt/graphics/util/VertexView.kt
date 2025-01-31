@@ -1,6 +1,6 @@
 package com.littlekt.graphics.util
 
-import com.littlekt.file.FloatBuffer
+import com.littlekt.file.ByteBuffer
 import com.littlekt.graphics.MutableColor
 import com.littlekt.graphics.VertexAttribute
 import com.littlekt.graphics.webgpu.WebGPUVertexAttribute
@@ -14,14 +14,14 @@ import com.littlekt.math.*
  * [kool](https://github.com/fabmax/kool/blob/main/kool-core/src/commonMain/kotlin/de/fabmax/kool/scene/geometry/VertexView.kt)
  * implementation.
  *
- * @param vertexSize the size of the vertex
+ * @param vertexStride the byte stride of the vertex
  * @param vertices the raw vertices
  * @param attributes the attributes of the vertex
  * @param index the initial vertex index to view
  */
 open class VertexView(
-    val vertexSize: Int,
-    var vertices: FloatBuffer,
+    val vertexStride: Int,
+    var vertices: ByteBuffer,
     val attributes: List<VertexAttribute>,
     index: Int,
 ) {
@@ -30,7 +30,7 @@ open class VertexView(
     var index = index
         set(value) {
             field = value
-            offset = value * vertexSize
+            offset = value * vertexStride
         }
 
     private val _attributesViews = mutableMapOf<Int, Any>()
@@ -39,40 +39,43 @@ open class VertexView(
     val attributeViews: Map<Int, Any>
         get() = _attributesViews
 
-    private var offset = index * vertexSize
+    private var offset = index * vertexStride
 
     init {
         attributes.forEach { attribute ->
             when (attribute.format.components) {
                 1 -> {
                     if (attribute.format.isInt) {
-                        _attributesViews[attribute.key] = IntView(attribute.offset.toInt() / 4)
+                        _attributesViews[attribute.key] = IntView(attribute.offset.toInt())
                     } else {
-                        _attributesViews[attribute.key] = FloatView(attribute.offset.toInt() / 4)
+                        _attributesViews[attribute.key] = FloatView(attribute.offset.toInt())
                     }
                 }
+
                 4 -> {
                     if (attribute.format.isInt) {
-                        _attributesViews[attribute.key] = Vec4iView(attribute.offset.toInt() / 4)
+                        _attributesViews[attribute.key] = Vec4iView(attribute.offset.toInt())
                     } else {
-                        _attributesViews[attribute.key] = Vec4fView(attribute.offset.toInt() / 4)
+                        _attributesViews[attribute.key] = Vec4fView(attribute.offset.toInt())
                     }
                 }
+
                 3 -> {
                     if (attribute.format.isInt) {
-
-                        _attributesViews[attribute.key] = Vec3iView(attribute.offset.toInt() / 4)
+                        _attributesViews[attribute.key] = Vec3iView(attribute.offset.toInt())
                     } else {
-                        _attributesViews[attribute.key] = Vec3fView(attribute.offset.toInt() / 4)
+                        _attributesViews[attribute.key] = Vec3fView(attribute.offset.toInt())
                     }
                 }
+
                 2 -> {
                     if (attribute.format.isInt) {
-                        _attributesViews[attribute.key] = Vec2iView(attribute.offset.toInt() / 4)
+                        _attributesViews[attribute.key] = Vec2iView(attribute.offset.toInt())
                     } else {
-                        _attributesViews[attribute.key] = Vec2fView(attribute.offset.toInt() / 4)
+                        _attributesViews[attribute.key] = Vec2fView(attribute.offset.toInt())
                     }
                 }
+
                 else ->
                     throw IllegalArgumentException(
                         "${attribute.format} is not a valid vertex attribute."
@@ -151,11 +154,11 @@ open class VertexView(
                 if (attribOffset < 0) {
                     0f
                 } else {
-                    vertices[offset + attribOffset]
+                    vertices.getFloat(offset + attribOffset)
                 }
             set(value) {
                 if (attribOffset >= 0) {
-                    vertices[offset + attribOffset] = value
+                    vertices.putFloat(offset + attribOffset, value)
                 }
             }
     }
@@ -167,11 +170,11 @@ open class VertexView(
                 if (attribOffset < 0) {
                     0
                 } else {
-                    vertices[offset + attribOffset].toInt()
+                    vertices.getInt(offset + attribOffset)
                 }
             set(value) {
                 if (attribOffset >= 0) {
-                    vertices[offset + attribOffset] = value.toFloat()
+                    vertices.putInt(offset + attribOffset, value)
                 }
             }
     }
@@ -180,7 +183,7 @@ open class VertexView(
     inner class Vec2fView(private val attribOffset: Int) : MutableVec2f() {
         override operator fun get(i: Int): Float {
             return if (attribOffset >= 0 && i in 0..1) {
-                vertices[offset + attribOffset + i]
+                vertices.getFloat(offset + attribOffset + i * Float.SIZE_BYTES)
             } else {
                 0f
             }
@@ -188,7 +191,7 @@ open class VertexView(
 
         override operator fun set(i: Int, v: Float) {
             if (attribOffset >= 0 && i in 0..1) {
-                vertices[offset + attribOffset + i] = v
+                vertices.putFloat(offset + attribOffset + i * Float.SIZE_BYTES, v)
             }
         }
     }
@@ -197,7 +200,7 @@ open class VertexView(
     inner class Vec2iView(private val attribOffset: Int) : MutableVec2i() {
         override operator fun get(i: Int): Int {
             return if (attribOffset >= 0 && i in 0..1) {
-                vertices[offset + attribOffset + i].toInt()
+                vertices.getInt(offset + attribOffset + i * Int.SIZE_BYTES)
             } else {
                 0
             }
@@ -205,7 +208,7 @@ open class VertexView(
 
         override operator fun set(i: Int, v: Int) {
             if (attribOffset >= 0 && i in 0..1) {
-                vertices[offset + attribOffset + i] = v.toFloat()
+                vertices.putInt(offset + attribOffset + i * Int.SIZE_BYTES, v)
             }
         }
     }
@@ -214,7 +217,7 @@ open class VertexView(
     inner class Vec3fView(private val attribOffset: Int) : MutableVec3f() {
         override operator fun get(i: Int): Float {
             return if (attribOffset >= 0 && i in 0..2) {
-                vertices[offset + attribOffset + i]
+                vertices.getFloat(offset + attribOffset + i * Float.SIZE_BYTES)
             } else {
                 0f
             }
@@ -222,7 +225,7 @@ open class VertexView(
 
         override operator fun set(i: Int, v: Float) {
             if (attribOffset >= 0 && i in 0..2) {
-                vertices[offset + attribOffset + i] = v
+                vertices.putFloat(offset + attribOffset + i * Float.SIZE_BYTES, v)
             }
         }
     }
@@ -231,7 +234,7 @@ open class VertexView(
     inner class Vec3iView(private val attribOffset: Int) : MutableVec3i() {
         override operator fun get(i: Int): Int {
             return if (attribOffset >= 0 && i in 0..2) {
-                vertices[offset + attribOffset + i].toInt()
+                vertices.getInt(offset + attribOffset + i * Int.SIZE_BYTES)
             } else {
                 0
             }
@@ -239,7 +242,7 @@ open class VertexView(
 
         override operator fun set(i: Int, v: Int) {
             if (attribOffset >= 0 && i in 0..2) {
-                vertices[offset + attribOffset + i] = v.toFloat()
+                vertices.putInt(offset + attribOffset + i * Int.SIZE_BYTES, v)
             }
         }
     }
@@ -248,7 +251,7 @@ open class VertexView(
     inner class Vec4fView(private val attribOffset: Int) : MutableVec4f() {
         override operator fun get(i: Int): Float {
             return if (attribOffset >= 0 && i in 0..3) {
-                vertices[offset + attribOffset + i]
+                vertices.getFloat(offset + attribOffset + i * Float.SIZE_BYTES)
             } else {
                 0f
             }
@@ -256,7 +259,7 @@ open class VertexView(
 
         override operator fun set(i: Int, v: Float) {
             if (attribOffset >= 0 && i in 0..3) {
-                vertices[offset + attribOffset + i] = v
+                vertices.putFloat(offset + attribOffset + i * Float.SIZE_BYTES, v)
             }
         }
     }
@@ -265,7 +268,7 @@ open class VertexView(
     inner class Vec4iView(private val attribOffset: Int) : MutableVec4i() {
         override operator fun get(i: Int): Int {
             return if (attribOffset >= 0 && i in 0..3) {
-                vertices[offset + attribOffset + i].toInt()
+                vertices.getInt(offset + attribOffset + i * Int.SIZE_BYTES)
             } else {
                 0
             }
@@ -273,7 +276,7 @@ open class VertexView(
 
         override operator fun set(i: Int, v: Int) {
             if (attribOffset >= 0 && i in 0..3) {
-                vertices[offset + attribOffset + i] = v.toFloat()
+                vertices.putInt(offset + attribOffset + i * Int.SIZE_BYTES, v)
             }
         }
     }

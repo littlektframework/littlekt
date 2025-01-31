@@ -289,6 +289,13 @@ internal class ByteBufferImpl(buffer: ArrayBuffer) :
         return this
     }
 
+    override fun putUByte(offset: Int, value: UByte): ByteBuffer {
+        dirty = true
+        buffer.setUint8(offset, value.toByte())
+        position = offset + 1
+        return this
+    }
+
     override fun putUByte(data: ByteArray, srcOffset: Int, len: Int): ByteBuffer {
         for (i in srcOffset until srcOffset + len) {
             dirty = true
@@ -325,6 +332,13 @@ internal class ByteBufferImpl(buffer: ArrayBuffer) :
         dirty = true
         buffer.setUint16(position, value.toShort(), true)
         position += 2
+        return this
+    }
+
+    override fun putUShort(offset: Int, value: UShort): ByteBuffer {
+        dirty = true
+        buffer.setUint16(offset, value.toShort(), true)
+        position = offset + 2
         return this
     }
 
@@ -414,6 +428,13 @@ internal class ByteBufferImpl(buffer: ArrayBuffer) :
         return this
     }
 
+    override fun putFloat(offset: Int, value: Float): ByteBuffer {
+        dirty = true
+        buffer.setFloat32(offset, value, true)
+        position = offset + 4
+        return this
+    }
+
     override fun putFloat(data: FloatArray, offset: Int, len: Int): ByteBuffer {
         for (i in 0 until len) {
             dirty = true
@@ -422,9 +443,9 @@ internal class ByteBufferImpl(buffer: ArrayBuffer) :
         return this
     }
 
-    override fun putFloat(data: FloatArray, offset: Int, dstOffset: Int, len: Int): ByteBuffer {
+    override fun putFloat(data: FloatArray, srcOffset: Int, dstOffset: Int, len: Int): ByteBuffer {
         position = dstOffset
-        return putFloat(data, offset, len)
+        return putFloat(data, srcOffset, len)
     }
 
     override fun putFloat(data: FloatBuffer): ByteBuffer {

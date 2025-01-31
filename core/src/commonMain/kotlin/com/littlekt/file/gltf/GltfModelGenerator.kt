@@ -41,11 +41,14 @@ fun GltfData.toModel(
 private class GltfModelGenerator(val gltfFile: GltfData) {
     val root: VfsFile = gltfFile.root
     val nodeCache = threadSafeMutableMapOf<GltfNode, Node3D>()
+
     // gltf material index to set of meshes using it
     val meshesByMaterial = threadSafeMutableMapOf<Int, MutableSet<Mesh<*>>>()
+
     // gltf material index to material
     val materialCache = threadSafeMutableMapOf<Int, Material>()
     val meshMaterials = threadSafeMutableMapOf<Mesh<*>, GltfMaterial?>()
+
     // gltf mesh index to model
     val modelCache = threadSafeMutableMapOf<Int, Model>()
 
@@ -127,11 +130,11 @@ private class GltfModelGenerator(val gltfFile: GltfData) {
             }
         val node =
             (if (model != null)
-                    ModelInstance(model).also {
-                        it.createVisualInstances()
-                        scene.modelInstances += it
-                    }
-                else Node3D())
+                ModelInstance(model).also {
+                    it.createVisualInstances()
+                    scene.modelInstances += it
+                }
+            else Node3D())
                 .apply { name = nodeName }
         nodeCache[this] = node
 

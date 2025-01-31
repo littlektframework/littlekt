@@ -1,5 +1,6 @@
 package com.littlekt.graphics.util
 
+import com.littlekt.file.ByteBuffer
 import com.littlekt.file.FloatBuffer
 import com.littlekt.graphics.MutableColor
 import com.littlekt.graphics.VertexAttrUsage
@@ -14,7 +15,7 @@ import com.littlekt.math.MutableVec4i
  * A [VertexView] that contains common attributes such as position, normals, color, texture coords,
  * etc.
  *
- * @param vertexSize the size of the vertex
+ * @param vertexStride the byte stride of the vertex
  * @param vertices the raw vertices
  * @param attributes the attributes of the vertex
  * @param index the initial vertex index to view
@@ -22,11 +23,11 @@ import com.littlekt.math.MutableVec4i
  * @date 4/10/2024
  */
 class CommonVertexView(
-    vertexSize: Int,
-    vertices: FloatBuffer,
+    vertexStride: Int,
+    vertices: ByteBuffer,
     attributes: List<VertexAttribute>,
     index: Int,
-) : VertexView(vertexSize, vertices, attributes, index) {
+) : VertexView(vertexStride, vertices, attributes, index) {
     /** The position attribute vector view */
     val position: MutableVec3f =
         attributes.firstOrNull { it.usage == VertexAttrUsage.POSITION }?.let(::getVec3fAttribute)

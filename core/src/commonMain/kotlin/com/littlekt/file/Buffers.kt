@@ -206,6 +206,8 @@ interface ByteBuffer : Buffer {
 
     fun putByte(value: Byte) = putUByte(value.toUByte())
 
+    fun putByte(offset: Int, value: Byte): ByteBuffer = putUByte(offset, value.toUByte())
+
     fun putByte(data: ByteArray) = putUByte(data)
 
     fun putByte(data: ByteArray, srcOffset: Int = 0, len: Int = data.size - srcOffset) =
@@ -225,6 +227,8 @@ interface ByteBuffer : Buffer {
     fun getShort(offset: Int): Short
 
     fun putShort(value: Short) = putUShort(value.toUShort())
+
+    fun putShort(offset: Int, value: Short) = putUShort(offset, value.toUShort())
 
     fun putShort(data: ShortArray) = putUShort(data)
 
@@ -260,6 +264,8 @@ interface ByteBuffer : Buffer {
 
     fun putUByte(value: UByte): ByteBuffer
 
+    fun putUByte(offset: Int, value: UByte): ByteBuffer
+
     fun putUByte(data: ByteArray, srcOffset: Int = 0, len: Int = data.size - srcOffset): ByteBuffer
 
     fun putUByte(
@@ -276,6 +282,8 @@ interface ByteBuffer : Buffer {
     fun getUShort(offset: Int): UShort
 
     fun putUShort(value: UShort): ByteBuffer
+
+    fun putUShort(offset: Int, value: UShort): ByteBuffer
 
     fun putUShort(data: ShortArray): ByteBuffer = putUShort(data, 0, data.size)
 
@@ -307,11 +315,13 @@ interface ByteBuffer : Buffer {
 
     fun putFloat(value: Float): ByteBuffer
 
+    fun putFloat(offset: Int, value: Float): ByteBuffer
+
     fun putFloat(data: FloatArray): ByteBuffer = putFloat(data, 0, data.size)
 
     fun putFloat(data: FloatArray, offset: Int, len: Int): ByteBuffer
 
-    fun putFloat(data: FloatArray, offset: Int, dstOffset: Int, len: Int): ByteBuffer
+    fun putFloat(data: FloatArray, srcOffset: Int, dstOffset: Int, len: Int): ByteBuffer
 
     fun putFloat(data: FloatBuffer): ByteBuffer
 
@@ -380,9 +390,9 @@ fun ByteArray.toFloatArray(): FloatArray {
         val byteI = i * 4
         val bits =
             (byteArray[byteI].toInt() and 0xFF) or
-                ((byteArray[byteI + 1].toInt() and 0xFF) shl 8) or
-                ((byteArray[byteI + 2].toInt() and 0xFF) shl 16) or
-                ((byteArray[byteI + 3].toInt() and 0xFF) shl 24)
+                    ((byteArray[byteI + 1].toInt() and 0xFF) shl 8) or
+                    ((byteArray[byteI + 2].toInt() and 0xFF) shl 16) or
+                    ((byteArray[byteI + 3].toInt() and 0xFF) shl 24)
 
         floats[i] = Float.fromBits(bits)
     }
@@ -399,9 +409,9 @@ fun ByteArray.toIntArray(): IntArray {
         val byteI = i * 4
         ints[i] =
             byteArray[byteI].toInt() or
-                (byteArray[byteI + 1].toInt() shl 8) or
-                (byteArray[byteI + 2].toInt() shl 16) or
-                (byteArray[byteI + 3].toInt() shl 24)
+                    (byteArray[byteI + 1].toInt() shl 8) or
+                    (byteArray[byteI + 2].toInt() shl 16) or
+                    (byteArray[byteI + 3].toInt() shl 24)
     }
 
     return ints

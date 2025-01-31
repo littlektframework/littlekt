@@ -12,7 +12,7 @@ fun SubShaderBuilder.colorConversionFunctions(
         """
         fn linear_to_sRGB(linear : vec3f) -> vec3f {
             ${
-            if(useApproximateSrgb) {
+            if (useApproximateSrgb) {
                 """
                         let INV_GAMMA = 1.0 / $gamma;
                         return pow(linear, vec3(INV_GAMMA));
@@ -36,6 +36,7 @@ fun SubShaderBuilder.vertexInput(attributes: List<VertexAttribute>) {
             when (attribute.usage) {
                 VertexAttrUsage.POSITION ->
                     "@location(${attribute.shaderLocation}) position: vec3f,"
+
                 VertexAttrUsage.COLOR -> "@location(${attribute.shaderLocation}) color: vec4f,"
                 VertexAttrUsage.NORMAL -> "@location(${attribute.shaderLocation}) normal: vec3f,"
                 VertexAttrUsage.TANGENT -> "@location(${attribute.shaderLocation}) tangent: vec4f,"
@@ -44,7 +45,7 @@ fun SubShaderBuilder.vertexInput(attributes: List<VertexAttribute>) {
                     else "@location(${attribute.shaderLocation}) uv2: vec2f,"
                 }
 
-                VertexAttrUsage.JOINT -> "@location(${attribute.shaderLocation}) joints: vec4i,"
+                VertexAttrUsage.JOINT -> "@location(${attribute.shaderLocation}) joints: vec4u,"
                 VertexAttrUsage.WEIGHT -> "@location(${attribute.shaderLocation}) weight: vec4f,"
                 else -> {
                     error(
@@ -77,13 +78,13 @@ fun SubShaderBuilder.vertexOutput(attributes: List<VertexAttribute>) {
             @location(5) instance_color: vec4f,
             @location(6) normal: vec3f,
             ${
-                if (attributes.any { it.usage == VertexAttrUsage.TANGENT }) {
-                    """
+            if (attributes.any { it.usage == VertexAttrUsage.TANGENT }) {
+                """
                         @location(7) tangent: vec3f,
                         @location(8) bitangent: vec3f,
                     """.trimIndent()
-                } else ""
-            }
+            } else ""
+        }
         };
     """
             .trimIndent()
@@ -270,7 +271,7 @@ fun SubShaderBuilder.clusterLights(
                 count : u32,
               };
               struct ClusterLightGroup {
-                offset : ${if(access == MemoryAccessMode.READ) "u32" else "atomic<u32>"},
+                offset : ${if (access == MemoryAccessMode.READ) "u32" else "atomic<u32>"},
                 lights : array<ClusterLights, ${totalTiles}>,
                 indices : array<u32>,
               };

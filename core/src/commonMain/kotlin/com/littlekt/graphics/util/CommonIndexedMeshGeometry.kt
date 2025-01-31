@@ -3,6 +3,7 @@ package com.littlekt.graphics.util
 import com.littlekt.graphics.VertexAttrUsage
 import com.littlekt.graphics.VertexBufferLayout
 import com.littlekt.graphics.calculateComponents
+import com.littlekt.graphics.calculateStride
 import com.littlekt.math.MutableVec3f
 import com.littlekt.math.Vec3f
 import com.littlekt.math.Vec4f
@@ -25,7 +26,7 @@ class CommonIndexedMeshGeometry(layout: VertexBufferLayout, size: Int = INITIAL_
 
     /** The current vertex view of the geometry. */
     val view =
-        CommonVertexView(layout.attributes.calculateComponents(), vertices, layout.attributes, 0)
+        CommonVertexView(layout.attributes.calculateStride(), vertices, layout.attributes, 0)
 
     /**
      * Mark this geometry as a batch update. This does nothing on its own. Use [isBatchUpdate] to
@@ -172,11 +173,11 @@ class CommonIndexedMeshGeometry(layout: VertexBufferLayout, size: Int = INITIAL_
      * @param i the vertex index
      */
     operator fun get(i: Int): CommonVertexView {
-        if (i < 0 || i >= vertices.capacity / vertexSize) {
+        if (i < 0 || i >= vertices.capacity / vertexStride) {
             throw IllegalStateException("Vertex index out of bounds: $i")
         }
         return CommonVertexView(
-            layout.attributes.calculateComponents(),
+            vertexStride,
             vertices,
             layout.attributes,
             i,
