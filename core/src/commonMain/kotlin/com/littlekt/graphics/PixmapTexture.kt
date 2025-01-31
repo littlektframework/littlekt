@@ -94,7 +94,7 @@ class PixmapTexture(
 
     override fun writeDataToBuffer() {
         device.queue.writeTexture(
-            pixmap.pixels.toArray(),
+            pixmap.pixels,
             TextureCopyView(gpuTexture),
             TextureDataLayout(textureDescriptor.format.bytes * pixmap.width, pixmap.height),
             size,

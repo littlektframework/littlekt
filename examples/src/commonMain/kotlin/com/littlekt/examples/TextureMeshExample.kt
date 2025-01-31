@@ -91,7 +91,7 @@ class TextureMeshExample(context: Context) : ContextListener(context) {
 
         val queue = device.queue
         queue.writeTexture(
-            data = image.pixels.toArray(),
+            data = image.pixels,
             destination = TextureCopyView(texture),
             layout = TextureDataLayout(image.width * 4, image.height),
             copySize = Extent3D(image.width, image.height, 1),
@@ -156,6 +156,7 @@ class TextureMeshExample(context: Context) : ContextListener(context) {
                 TextureStatus.SUCCESS -> {
                     // all good, could check for `surfaceTexture.suboptimal` here.
                 }
+
                 TextureStatus.TIMEOUT,
                 TextureStatus.OUTDATED,
                 TextureStatus.LOST -> {
@@ -169,6 +170,7 @@ class TextureMeshExample(context: Context) : ContextListener(context) {
                     logger.info { "getCurrentTexture status=$status" }
                     return@onUpdate
                 }
+
                 else -> {
                     // fatal
                     logger.fatal { "getCurrentTexture status=$status" }

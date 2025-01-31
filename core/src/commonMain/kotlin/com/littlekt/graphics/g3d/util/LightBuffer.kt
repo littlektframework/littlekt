@@ -23,7 +23,7 @@ class LightBuffer(val device: Device, val maxLightCount: Int) : Releasable {
     val buffer =
         device.createGPUByteBuffer(
             "light",
-            lightsBuffer.toArray(),
+            lightsBuffer,
             BufferUsage.STORAGE or BufferUsage.COPY_DST,
         )
 
@@ -68,7 +68,7 @@ class LightBuffer(val device: Device, val maxLightCount: Int) : Releasable {
         if (intensity > 0) {
             val offset =
                 POINT_LIGHT_OFFSET * Float.SIZE_BYTES +
-                    (index * POINT_LIGHT_SIZE * Float.SIZE_BYTES)
+                        (index * POINT_LIGHT_SIZE * Float.SIZE_BYTES)
             lightsBuffer.position = offset
             lightsBuffer.putFloat(position.x)
             lightsBuffer.putFloat(position.y)
@@ -97,8 +97,10 @@ class LightBuffer(val device: Device, val maxLightCount: Int) : Releasable {
     companion object {
         /** Size in total floats (NOT BYTE SIZE). */
         const val AMBIENT_LIGHT_SIZE = 4
+
         /** Size in total floats (NOT BYTE SIZE). */
         const val DIRECTIONAL_LIGHT_SIZE = 8
+
         /** Size in total floats (NOT BYTE SIZE). */
         const val POINT_LIGHT_SIZE = 8
 

@@ -58,7 +58,7 @@ class LazyPixmapTexture(
             // in wgpu. No way around it for now.
             KtScope.launch {
                 device.queue.writeTexture(
-                    pixmap.pixels.toArray(),
+                    pixmap.pixels,
                     TextureCopyView(gpuTexture),
                     TextureDataLayout(textureDescriptor.format.bytes * pixmap.width, pixmap.height),
                     size,
@@ -139,7 +139,7 @@ class LazyPixmapTexture(
     override fun writeDataToBuffer() {
         if (state != TextureState.LOADED) return
         device.queue.writeTexture(
-            pixmap.pixels.toArray(),
+            pixmap.pixels,
             TextureCopyView(gpuTexture),
             TextureDataLayout(textureDescriptor.format.bytes * pixmap.width, pixmap.height),
             size,
