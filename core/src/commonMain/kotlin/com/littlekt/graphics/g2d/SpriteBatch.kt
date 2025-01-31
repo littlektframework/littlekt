@@ -54,6 +54,7 @@ class SpriteBatch(
 
     private val ownCameraBuffers = cameraBuffers == null
     private val cameraBuffers: CameraBuffersViaMatrix = cameraBuffers ?: CameraSpriteBuffers(device)
+
     /**
      * The transform matrix that can be used to multiply against the [viewProjection] matrix. This
      * should be set directly instead of manipulating the underlying matrix.
@@ -108,9 +109,9 @@ class SpriteBatch(
     private val renderPipelineByBlendState: MutableMap<RenderInfo, RenderPipeline> =
         mutableMapOf(
             RenderInfo(shader, blendState) to
-                device.createRenderPipeline(
-                    createRenderPipelineDescriptor(RenderInfo(shader, blendState))
-                )
+                    device.createRenderPipeline(
+                        createRenderPipelineDescriptor(RenderInfo(shader, blendState))
+                    )
         )
 
     private val spriteIndices = mutableMapOf(lastMeshIdx to 0)
@@ -551,7 +552,7 @@ class SpriteBatch(
         check(drawing) { "SpriteBatch.begin must be called before draw." }
         ensureDrawCall(texture)
 
-        val stride = mesh.geometry.layout.arrayStride.toInt()
+        val stride = mesh.geometry.vertexStride
 
         mesh.geometry.add(spriteVertices, offset, spriteIdx * stride, count)
         val total = count / stride

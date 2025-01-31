@@ -20,7 +20,7 @@ class CommonMeshGeometry(layout: VertexBufferLayout, size: Int = INITIAL_SIZE) :
     /** The current vertex view of the geometry. */
     val view =
         CommonVertexView(
-            layout.attributes.sumOf { it.format.components },
+            vertexStride,
             vertices,
             layout.attributes,
             0
@@ -59,10 +59,10 @@ class CommonMeshGeometry(layout: VertexBufferLayout, size: Int = INITIAL_SIZE) :
      * @param i the vertex index
      */
     operator fun get(i: Int): CommonVertexView {
-        if (i < 0 || i >= vertices.capacity / vertexSize) {
+        if (i < 0 || i >= vertices.capacity / vertexStride) {
             throw IllegalStateException("Vertex index out of bounds: $i")
         }
-        return CommonVertexView(layout.arrayStride.toInt(), vertices, layout.attributes, i)
+        return CommonVertexView(vertexStride, vertices, layout.attributes, i)
     }
 
     /** Iterate through the vertex view by index. */

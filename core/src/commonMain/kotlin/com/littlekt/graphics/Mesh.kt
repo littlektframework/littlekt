@@ -23,12 +23,24 @@ open class Mesh<T : MeshGeometry>(val device: Device, val geometry: T) : Releasa
 
     /** The GPU Vertex buffer for this mesh. */
     var vbo: GPUBuffer =
-        device.createGPUFloatBuffer(
+        device.createGPUByteBuffer(
             "vbo",
             geometry.vertices,
             BufferUsage.VERTEX or BufferUsage.COPY_DST
         )
         protected set
+
+    init {
+        val size =
+            min(
+                vbo.size,
+                geometry.numVertices *
+                        geometry.vertexStride.toLong()
+            )
+        logger.trace { "Writing VBO to queue of size: $size" }
+        device.queue.writeBuffer(vbo, geometry.vertices, size = size)
+        geometry.verticesDirty = false
+    }
 
     /**
      * Update the vertex buffer, if the underlying geometry has changed. If the underlying geometry
@@ -38,14 +50,14 @@ open class Mesh<T : MeshGeometry>(val device: Device, val geometry: T) : Releasa
     open fun update() {
         if (geometry.dirty) {
             if (geometry.verticesDirty) {
-                if (vbo.size < geometry.vertices.capacity * Float.SIZE_BYTES) {
+                if (vbo.size < geometry.vertices.capacity) {
                     logger.trace {
                         "Destroying and creating VBO from size: ${vbo.size} to  size: ${geometry.vertices.capacity}"
                     }
                     vbo.destroy()
                     vbo.release()
                     vbo =
-                        device.createGPUFloatBuffer(
+                        device.createGPUByteBuffer(
                             "vbo",
                             geometry.vertices,
                             BufferUsage.VERTEX or BufferUsage.COPY_DST
@@ -54,8 +66,7 @@ open class Mesh<T : MeshGeometry>(val device: Device, val geometry: T) : Releasa
                     val size =
                         min(
                             vbo.size,
-                            geometry.numVertices *
-                                geometry.layout.attributes.calculateComponents().toLong()
+                            geometry.numVertices * geometry.vertexStride.toLong()
                         )
                     logger.trace { "Writing VBO to queue of size: $size" }
                     device.queue.writeBuffer(vbo, geometry.vertices, size = size)
@@ -76,6 +87,7 @@ open class Mesh<T : MeshGeometry>(val device: Device, val geometry: T) : Releasa
     }
 
     companion object {
-        @JvmStatic protected val logger = Logger<Mesh<*>>()
+        @JvmStatic
+        protected val logger = Logger<Mesh<*>>()
     }
 }

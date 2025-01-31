@@ -1,7 +1,10 @@
 package com.littlekt.graphics.util
 
+import com.littlekt.file.ByteBuffer
 import com.littlekt.file.FloatBuffer
 import com.littlekt.graphics.VertexBufferLayout
+import com.littlekt.graphics.calculateComponents
+import com.littlekt.graphics.calculateStride
 import com.littlekt.log.Logger
 import kotlin.jvm.JvmStatic
 import kotlin.math.max
@@ -19,10 +22,13 @@ import kotlin.math.round
  */
 open class MeshGeometry(val layout: VertexBufferLayout, size: Int = INITIAL_SIZE) {
     /** The number of components in each vertex. */
-    val vertexSize = layout.attributes.sumOf { it.format.components }
+    val vertexSize = layout.attributes.calculateComponents()
+
+    /** The size of a vertex stride, in bytes. */
+    val vertexStride = layout.attributes.calculateStride()
 
     /** The vertices buffer. */
-    var vertices = FloatBuffer(size * vertexSize)
+    var vertices = ByteBuffer(size * vertexStride)
         private set
 
     /** The number of vertices added to the [vertices] buffer. */
@@ -72,12 +78,20 @@ open class MeshGeometry(val layout: VertexBufferLayout, size: Int = INITIAL_SIZE
         count: Int = newVertices.size - srcOffset,
     ) {
         ensureVertices(count / vertexSize)
-        vertices.put(data = newVertices, dstOffset = dstOffset, srcOffset = srcOffset, len = count)
-        if (vertices.position < dstOffset + count) {
-            vertices.position = dstOffset + count
+        vertices.putFloat(
+            data = newVertices,
+            dstOffset = dstOffset * Float.SIZE_BYTES,
+            srcOffset = srcOffset,
+            len = count
+        )
+        if (vertices.position < dstOffset + count * Float.SIZE_BYTES) {
+            vertices.position = dstOffset + count * Float.SIZE_BYTES
         }
         numVertices =
-            min(numVertices + (dstOffset + count) / vertexSize, vertices.position / vertexSize)
+            min(
+                numVertices + (dstOffset + (count * Float.SIZE_BYTES)) / vertexStride,
+                vertices.position / vertexStride
+            )
         verticesDirty = true
     }
 
@@ -87,7 +101,7 @@ open class MeshGeometry(val layout: VertexBufferLayout, size: Int = INITIAL_SIZE
      */
     fun skip(totalVertices: Int) {
         ensureVertices(totalVertices)
-        vertices.position += totalVertices * vertexSize
+        vertices.position += totalVertices * vertexStride
         numVertices += totalVertices
     }
 
@@ -104,11 +118,11 @@ open class MeshGeometry(val layout: VertexBufferLayout, size: Int = INITIAL_SIZE
      * @return true, if buffer increased; false otherwise.
      */
     open fun ensureVertices(required: Int = 1): Boolean {
-        if (vertices.capacity - numVertices * vertexSize < vertexSize * required) {
+        if (vertices.capacity - numVertices * vertexStride < vertexStride * required) {
             increaseVertices(
                 max(
                     round(vertices.capacity * GROW_FACTOR).toInt(),
-                    (numVertices + required) * vertexSize,
+                    (numVertices + required) * vertexStride,
                 )
             )
             return true
@@ -119,9 +133,9 @@ open class MeshGeometry(val layout: VertexBufferLayout, size: Int = INITIAL_SIZE
     private fun increaseVertices(newSize: Int) {
         logger.debug { "Increasing vertices buffer size to $newSize" }
         val oldPos = vertices.position
-        val newData = FloatBuffer(newSize)
+        val newData = ByteBuffer(newSize)
         vertices.position = 0
-        newData.put(vertices)
+        newData.putByte(vertices)
         vertices = newData
         vertices.position = oldPos
     }
@@ -129,6 +143,8 @@ open class MeshGeometry(val layout: VertexBufferLayout, size: Int = INITIAL_SIZE
     companion object {
         private const val INITIAL_SIZE = 1000
         private const val GROW_FACTOR = 2f
-        @JvmStatic protected val logger = Logger<MeshGeometry>()
+
+        @JvmStatic
+        protected val logger = Logger<MeshGeometry>()
     }
 }
