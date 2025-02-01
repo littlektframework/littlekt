@@ -32,6 +32,11 @@ abstract class Material : Releasable {
     open val ready: Boolean
         get() = baseColorTexture.state == TextureState.LOADED
 
+    /**
+     * They material render state key, used for pipeline caching. This should only add things
+     * related to rendering, such as transparency, shadows, alpha cutoff, culling, etc. Do not add
+     * textures and such otherwise it won't cache.
+     */
     open val key: Int
         get() = run {
             var result = transparent.hashCode()

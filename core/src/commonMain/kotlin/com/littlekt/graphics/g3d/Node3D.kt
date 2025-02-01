@@ -46,7 +46,7 @@ open class Node3D {
             return _globalTransform
         }
         set(value) {
-            _globalTransform = value
+            _globalTransform.set(value)
             _globalTransform.getTranslation(_globalPosition)
             updateGlobalPosition()
             _globalTransform.getRotation(_globalRotation)
@@ -83,7 +83,7 @@ open class Node3D {
             return _transform
         }
         set(value) {
-            _transform = value
+            _transform.set(value)
             _transform.getTranslation(_localPosition)
             _transform.getRotation(_localRotation)
             _transform.getScale(_localScale)
