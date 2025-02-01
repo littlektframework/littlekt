@@ -2,7 +2,7 @@ package com.littlekt.examples
 
 import com.littlekt.Context
 import com.littlekt.async.VfsScope
-import com.littlekt.file.gltf.GltfModelConfig
+import com.littlekt.file.gltf.GltfLoaderConfig
 import com.littlekt.file.vfs.VfsFile
 import com.littlekt.file.vfs.readGltfModel
 import com.littlekt.graphics.Camera
@@ -22,10 +22,10 @@ import com.littlekt.math.geom.degrees
 import com.littlekt.math.geom.radians
 import com.littlekt.util.datastructure.fastForEach
 import com.littlekt.util.milliseconds
+import kotlin.math.asin
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.launch
-import kotlin.math.asin
 
 fun SurfaceTexture.isValid(context: Context, onConfigure: () -> SurfaceConfiguration): Boolean {
     val surfaceTexture = this
@@ -69,7 +69,7 @@ fun Context.addCloseOnEsc() {
 
 data class GltfModel(
     val file: VfsFile,
-    val config: GltfModelConfig,
+    val config: GltfLoaderConfig,
     val environment: Environment,
     val scale: Float,
     val translate: Vec3f,
