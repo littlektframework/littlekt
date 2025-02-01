@@ -638,137 +638,58 @@ open class Mat4 {
      * @throws RuntimeException if the matrix is singular (not invertible)
      */
     fun invert(result: Mat4, eps: Float = 0f): Mat4 {
-        // Invert a 4 x 4 matrix using Cramer's Rule
+        val a00 = this[0]
+        val a01 = this[1]
+        val a02 = this[2]
+        val a03 = this[3]
+        val a10 = this[4]
+        val a11 = this[5]
+        val a12 = this[6]
+        val a13 = this[7]
+        val a20 = this[8]
+        val a21 = this[9]
+        val a22 = this[10]
+        val a23 = this[11]
+        val a30 = this[12]
+        val a31 = this[13]
+        val a32 = this[14]
+        val a33 = this[15]
+        val b00 = a00 * a11 - a01 * a10
+        val b01 = a00 * a12 - a02 * a10
+        val b02 = a00 * a13 - a03 * a10
+        val b03 = a01 * a12 - a02 * a11
+        val b04 = a01 * a13 - a03 * a11
+        val b05 = a02 * a13 - a03 * a12
+        val b06 = a20 * a31 - a21 * a30
+        val b07 = a20 * a32 - a22 * a30
+        val b08 = a20 * a33 - a23 * a30
+        val b09 = a21 * a32 - a22 * a31
+        val b10 = a21 * a33 - a23 * a31
+        val b11 = a22 * a33 - a23 * a32
 
-        // transpose matrix
-        val src0 = data[0]
-        val src4 = data[1]
-        val src8 = data[2]
-        val src12 = data[3]
-
-        val src1 = data[4]
-        val src5 = data[5]
-        val src9 = data[6]
-        val src13 = data[7]
-
-        val src2 = data[8]
-        val src6 = data[9]
-        val src10 = data[10]
-        val src14 = data[11]
-
-        val src3 = data[12]
-        val src7 = data[13]
-        val src11 = data[14]
-        val src15 = data[15]
-
-        // calculate pairs for first 8 elements (cofactors)
-        val atmp0 = src10 * src15
-        val atmp1 = src11 * src14
-        val atmp2 = src9 * src15
-        val atmp3 = src11 * src13
-        val atmp4 = src9 * src14
-        val atmp5 = src10 * src13
-        val atmp6 = src8 * src15
-        val atmp7 = src11 * src12
-        val atmp8 = src8 * src14
-        val atmp9 = src10 * src12
-        val atmp10 = src8 * src13
-        val atmp11 = src9 * src12
-
-        // calculate first 8 elements (cofactors)
-        val dst0 =
-            atmp0 * src5 + atmp3 * src6 + atmp4 * src7 -
-                (atmp1 * src5 + atmp2 * src6 + atmp5 * src7)
-        val dst1 =
-            atmp1 * src4 + atmp6 * src6 + atmp9 * src7 -
-                (atmp0 * src4 + atmp7 * src6 + atmp8 * src7)
-        val dst2 =
-            atmp2 * src4 + atmp7 * src5 + atmp10 * src7 -
-                (atmp3 * src4 + atmp6 * src5 + atmp11 * src7)
-        val dst3 =
-            atmp5 * src4 + atmp8 * src5 + atmp11 * src6 -
-                (atmp4 * src4 + atmp9 * src5 + atmp10 * src6)
-        val dst4 =
-            atmp1 * src1 + atmp2 * src2 + atmp5 * src3 -
-                (atmp0 * src1 + atmp3 * src2 + atmp4 * src3)
-        val dst5 =
-            atmp0 * src0 + atmp7 * src2 + atmp8 * src3 -
-                (atmp1 * src0 + atmp6 * src2 + atmp9 * src3)
-        val dst6 =
-            atmp3 * src0 + atmp6 * src1 + atmp11 * src3 -
-                (atmp2 * src0 + atmp7 * src1 + atmp10 * src3)
-        val dst7 =
-            atmp4 * src0 + atmp9 * src1 + atmp10 * src2 -
-                (atmp5 * src0 + atmp8 * src1 + atmp11 * src2)
-
-        // calculate pairs for second 8 elements (cofactors)
-        val btmp0 = src2 * src7
-        val btmp1 = src3 * src6
-        val btmp2 = src1 * src7
-        val btmp3 = src3 * src5
-        val btmp4 = src1 * src6
-        val btmp5 = src2 * src5
-        val btmp6 = src0 * src7
-        val btmp7 = src3 * src4
-        val btmp8 = src0 * src6
-        val btmp9 = src2 * src4
-        val btmp10 = src0 * src5
-        val btmp11 = src1 * src4
-
-        // calculate second 8 elements (cofactors)
-        val dst8 =
-            btmp0 * src13 + btmp3 * src14 + btmp4 * src15 -
-                (btmp1 * src13 + btmp2 * src14 + btmp5 * src15)
-        val dst9 =
-            btmp1 * src12 + btmp6 * src14 + btmp9 * src15 -
-                (btmp0 * src12 + btmp7 * src14 + btmp8 * src15)
-        val dst10 =
-            btmp2 * src12 + btmp7 * src13 + btmp10 * src15 -
-                (btmp3 * src12 + btmp6 * src13 + btmp11 * src15)
-        val dst11 =
-            btmp5 * src12 + btmp8 * src13 + btmp11 * src14 -
-                (btmp4 * src12 + btmp9 * src13 + btmp10 * src14)
-        val dst12 =
-            btmp2 * src10 + btmp5 * src11 + btmp1 * src9 -
-                (btmp4 * src11 + btmp0 * src9 + btmp3 * src10)
-        val dst13 =
-            btmp8 * src11 + btmp0 * src8 + btmp7 * src10 -
-                (btmp6 * src10 + btmp9 * src11 + btmp1 * src8)
-        val dst14 =
-            btmp6 * src9 + btmp11 * src11 + btmp3 * src8 -
-                (btmp10 * src11 + btmp2 * src8 + btmp7 * src9)
-        val dst15 =
-            btmp10 * src10 + btmp4 * src8 + btmp9 * src9 -
-                (btmp8 * src9 + btmp11 * src10 + btmp5 * src8)
-
-        // calculate determinant
-        val det = src0 * dst0 + src1 * dst1 + src2 * dst2 + src3 * dst3
+        var det = b00 * b11 - b01 * b10 + b02 * b09 + b03 * b08 - b04 * b07 + b05 * b06
 
         if (det.isFuzzyZero(eps)) {
             throw RuntimeException("Un-invertible matrix")
         }
 
-        // calculate matrix inverse
-        val invdet = 1f / det
-        result.data[0] = dst0 * invdet
-        result.data[1] = dst1 * invdet
-        result.data[2] = dst2 * invdet
-        result.data[3] = dst3 * invdet
-
-        result.data[4] = dst4 * invdet
-        result.data[5] = dst5 * invdet
-        result.data[6] = dst6 * invdet
-        result.data[7] = dst7 * invdet
-
-        result.data[8] = dst8 * invdet
-        result.data[9] = dst9 * invdet
-        result.data[10] = dst10 * invdet
-        result.data[11] = dst11 * invdet
-
-        result.data[12] = dst12 * invdet
-        result.data[13] = dst13 * invdet
-        result.data[14] = dst14 * invdet
-        result.data[15] = dst15 * invdet
+        det = 1f / det
+        result[0] = (a11 * b11 - a12 * b10 + a13 * b09) * det
+        result[1] = (a02 * b10 - a01 * b11 - a03 * b09) * det
+        result[2] = (a31 * b05 - a32 * b04 + a33 * b03) * det
+        result[3] = (a22 * b04 - a21 * b05 - a23 * b03) * det
+        result[4] = (a12 * b08 - a10 * b11 - a13 * b07) * det
+        result[5] = (a00 * b11 - a02 * b08 + a03 * b07) * det
+        result[6] = (a32 * b02 - a30 * b05 - a33 * b01) * det
+        result[7] = (a20 * b05 - a22 * b02 + a23 * b01) * det
+        result[8] = (a10 * b10 - a11 * b08 + a13 * b06) * det
+        result[9] = (a01 * b08 - a00 * b10 - a03 * b06) * det
+        result[10] = (a30 * b04 - a31 * b02 + a33 * b00) * det
+        result[11] = (a21 * b02 - a20 * b04 - a23 * b00) * det
+        result[12] = (a11 * b07 - a10 * b09 - a12 * b06) * det
+        result[13] = (a00 * b09 - a01 * b07 + a02 * b06) * det
+        result[14] = (a31 * b01 - a30 * b03 - a32 * b00) * det
+        result[15] = (a20 * b03 - a21 * b01 + a22 * b00) * det
 
         return this
     }
@@ -834,15 +755,15 @@ open class Mat4 {
     /**
      * Sets the matrix to a perspective projection
      *
-     * @param fovy the field of value of the height in degrees
+     * @param fovy the field of value of the height
      * @param aspect the "width over height" aspect ratio
      * @param near the near plane
      * @param far the far plane
      * @return this matrix
      */
-    fun setToPerspective(fovy: Float, aspect: Float, near: Float, far: Float): Mat4 {
-        val f = 1f / tan(fovy * (PI / 360.0)).toFloat()
-        val rangeReciprocal = 1f / (near - far)
+    fun setToPerspective(fovy: Angle, aspect: Float, near: Float, far: Float): Mat4 {
+        val f = 1f / tan(fovy.radians * 0.5f)
+        val nf = 1f / (near - far)
 
         data[0] = f / aspect
         data[1] = 0f
@@ -856,12 +777,12 @@ open class Mat4 {
 
         data[8] = 0f
         data[9] = 0f
-        data[10] = (far + near) * rangeReciprocal
+        data[10] = far * nf
         data[11] = -1f
 
         data[12] = 0f
         data[13] = 0f
-        data[14] = 2f * far * near * rangeReciprocal
+        data[14] = far * near * nf
         data[15] = 0f
 
         return this

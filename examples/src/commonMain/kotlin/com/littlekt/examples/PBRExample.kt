@@ -33,7 +33,7 @@ class PBRExample(context: Context) : ContextListener(context) {
         this.addCloseOnEsc()
         val device = graphics.device
         val camera = PerspectiveCamera(graphics.width, graphics.height)
-        camera.translate(0f, 1f, 0f)
+        camera.translate(0f, 1.5f, 0f)
         val environment = PBREnvironment(device)
         environment.setDirectionalLight(
             DirectionalLight(color = Color(0.2f, 0.2f, 0.2f), intensity = 0.1f)

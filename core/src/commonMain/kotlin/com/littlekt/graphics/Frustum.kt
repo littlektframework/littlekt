@@ -2,7 +2,7 @@ package com.littlekt.graphics
 
 import com.littlekt.math.MutableVec3f
 import com.littlekt.math.Vec3f
-import com.littlekt.math.geom.degrees
+import com.littlekt.math.geom.Angle
 import com.littlekt.math.geom.tan
 
 /**
@@ -36,12 +36,12 @@ data class Frustum(private val planes: List<Plane> = emptyList()) {
         forward: Vec3f,
         up: Vec3f,
         right: Vec3f,
-        fov: Float,
+        fov: Angle,
         aspectRatio: Float,
         near: Float,
         far: Float,
     ) {
-        val tanFov = tan((fov / 2).degrees)
+        val tanFov = tan((fov / 2))
         val nearHeight = near * tanFov
         val nearWidth = nearHeight * aspectRatio
         val farHeight = far * tanFov
@@ -119,7 +119,7 @@ data class Frustum(private val planes: List<Plane> = emptyList()) {
     }
 
     private fun updatePlanes() {
-        if(planes.isEmpty()) return
+        if (planes.isEmpty()) return
         // Near plane
         planes[0]
             .normal

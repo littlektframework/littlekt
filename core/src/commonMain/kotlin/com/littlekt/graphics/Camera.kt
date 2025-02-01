@@ -3,6 +3,7 @@ package com.littlekt.graphics
 import com.littlekt.Context
 import com.littlekt.math.*
 import com.littlekt.math.geom.Angle
+import com.littlekt.math.geom.degrees
 import com.littlekt.math.geom.normalized
 import com.littlekt.util.LazyMat4
 import com.littlekt.util.viewport.Viewport
@@ -82,12 +83,12 @@ abstract class Camera {
     var far = 100f
 
     /** The current field of view. */
-    var fov = 67f
+    var fov = 67.degrees
 
     /** The virtual width of this camera. */
     var virtualWidth: Float = 0f
 
-    /** The virtual height of this camrea. */
+    /** The virtual height of this camera. */
     var virtualHeight: Float = 0f
 
     /** The current zoom value. */

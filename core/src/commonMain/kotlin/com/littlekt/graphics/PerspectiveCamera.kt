@@ -2,11 +2,7 @@ package com.littlekt.graphics
 
 import com.littlekt.math.MutableVec3f
 import com.littlekt.math.Vec3f
-import com.littlekt.math.geom.cosine
 import com.littlekt.math.geom.degrees
-import com.littlekt.math.geom.radians
-import com.littlekt.math.geom.tangent
-import kotlin.math.atan
 
 /** A [Camera] that uses perspective for the [projection] matrix. */
 open class PerspectiveCamera(virtualWidth: Float = 0f, virtualHeight: Float = 0f) : Camera() {
@@ -17,13 +13,7 @@ open class PerspectiveCamera(virtualWidth: Float = 0f, virtualHeight: Float = 0f
 
     override val direction: MutableVec3f = MutableVec3f(Vec3f.NEG_Z_AXIS)
     override val up: MutableVec3f = MutableVec3f(Vec3f.Y_AXIS)
-    var fovX = 0f
-        private set
 
-    private var sphereFacX = 1f
-    private var sphereFacY = 1f
-    private var tangX = 1f
-    private var tangY = 1f
     private val tempCenter = MutableVec3f()
     private val tempMin = MutableVec3f()
     private val tempMax = MutableVec3f()
@@ -34,7 +24,7 @@ open class PerspectiveCamera(virtualWidth: Float = 0f, virtualHeight: Float = 0f
         this.virtualHeight = virtualHeight
         near = 0.01f
         far = 1000f
-        fov = 60f
+        fov = 60.degrees
     }
 
     override fun update() {
@@ -49,15 +39,6 @@ open class PerspectiveCamera(virtualWidth: Float = 0f, virtualHeight: Float = 0f
 
     override fun updateProjectionMatrix() {
         projection.setToPerspective(fov, aspectRatio, near, far)
-
-        val angY = fov.degrees / 2f
-        sphereFacX = 1f / angY.cosine
-        tangY = angY.tangent
-
-        val angX = atan(tangY * aspectRatio).radians
-        sphereFacX = 1f / angX.cosine
-        tangX = angX.tangent
-        fovX = (angX * 2).degrees
     }
 
     override fun boundsInFrustum(

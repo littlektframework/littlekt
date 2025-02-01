@@ -6,6 +6,7 @@ import com.littlekt.file.FloatBuffer
 import com.littlekt.graphics.Color
 import com.littlekt.graphics.webgpu.*
 import com.littlekt.math.Mat4
+import com.littlekt.math.geom.degrees
 import com.littlekt.math.geom.radians
 import com.littlekt.util.now
 import kotlin.math.cos
@@ -437,7 +438,8 @@ class RotatingCubeExample(context: Context) : ContextListener(context) {
         )
 
         val projMatrix =
-            Mat4().setToPerspective(45f, graphics.width / graphics.height.toFloat(), 1f, 100f)
+            Mat4()
+                .setToPerspective(45.degrees, graphics.width / graphics.height.toFloat(), 1f, 100f)
         val viewMatrix = Mat4()
         val modelViewProjMatrix = Mat4()
         fun updateMvp() {
