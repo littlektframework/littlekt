@@ -58,8 +58,8 @@ class PBRMaterialBuilder : SubFragmentShaderBuilder() {
             ${
                 if (attributes.any { it.usage == VertexAttrUsage.TANGENT }) {
                     """
-                    let tbn = mat3x3(input.tangent, input.bitangent, input.normal);
                     let N = textureSample(normal_texture, normal_sampler, input.uv).rgb;
+                    let tbn = mat3x3(input.tangent, input.bitangent, input.normal);
                     surface.normal = normalize(tbn * (2.0 * N - 1.0));
                     """
                 } else {

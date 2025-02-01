@@ -303,6 +303,18 @@ enum class TextureFormat(val bytes: Int, val srgb: Boolean = false) {
      */
     DEPTH24_PLUS_STENCIL8(4);
 
+    /**
+     * @return same texture format but as the non-sRGB equivalent, if [srgb] is `true`. For example
+     *   [RGBA8_UNORM_SRGB] should return [RGBA8_UNORM]. If [srgb] is `false`, it'll just return
+     *   itself.
+     */
+    fun toNonSRGB() =
+        when (this) {
+            RGBA8_UNORM_SRGB -> RGBA8_UNORM
+            BGRA8_UNORM_SRGB -> BGRA8_UNORM_SRGB
+            else -> this
+        }
+
     companion object
 }
 

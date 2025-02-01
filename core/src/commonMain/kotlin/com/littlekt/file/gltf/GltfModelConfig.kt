@@ -93,7 +93,11 @@ class PBRMaterialStrategy : GltfModelMaterialStrategy() {
                     gltfFile,
                 ),
             normalTexture =
-                gltfMaterial.normalTexture?.loadTexture(device, preferredFormat, gltfFile),
+                gltfMaterial.normalTexture?.loadTexture(
+                    device,
+                    preferredFormat.toNonSRGB(),
+                    gltfFile,
+                ),
             emissiveFactor =
                 if (gltfMaterial.emissiveFactor.isNotEmpty()) {
                     Vec3f(
