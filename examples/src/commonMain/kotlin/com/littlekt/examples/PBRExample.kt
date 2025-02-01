@@ -2,7 +2,7 @@ package com.littlekt.examples
 
 import com.littlekt.Context
 import com.littlekt.ContextListener
-import com.littlekt.file.gltf.GltfModelPbrConfig
+import com.littlekt.file.gltf.GltfLoaderPbrConfig
 import com.littlekt.graph.node.ui.Control
 import com.littlekt.graph.node.ui.column
 import com.littlekt.graph.node.ui.label
@@ -19,6 +19,7 @@ import com.littlekt.graphics.g3d.util.UnlitMaterialPipelineProvider
 import com.littlekt.graphics.webgpu.*
 import com.littlekt.input.Key
 import com.littlekt.math.Vec3f
+import com.littlekt.math.random
 
 /**
  * An example using a simple Orthographic camera to move around a texture.
@@ -40,7 +41,32 @@ class PBRExample(context: Context) : ContextListener(context) {
         )
         environment.setAmbientLight(AmbientLight(color = Color(0.002f, 0.002f, 0.002f)))
         environment.addPointLight(PointLight(Vec3f(0f, 2.5f, 0f), color = Color.GREEN, range = 4f))
-        environment.addPointLight(PointLight(Vec3f(8.95f, 2f, 3.15f), range = 4f))
+        environment.addPointLight(
+            PointLight(Vec3f(8.95f, 2f, 3.15f), range = 4f, color = Color.RED)
+        )
+        environment.addPointLight(
+            PointLight(Vec3f(-9.45f, 2f, -3.59f), range = 4f, color = Color.BLUE)
+        )
+        environment.addPointLight(
+            PointLight(Vec3f(-9.45f, 2f, 3.15f), range = 4f, color = Color.GREEN)
+        )
+        environment.addPointLight(
+            PointLight(Vec3f(8.95f, 2f, -3.59f), range = 4f, color = Color.YELLOW)
+        )
+
+        repeat(1024) {
+            environment.addPointLight(
+                PointLight(
+                    Vec3f(
+                        (-9.45f..8.95f).random(),
+                        (0.5f..7.2f).random(),
+                        (-3.59f..3.15f).random(),
+                    ),
+                    range = 2f,
+                    color = Color((0f..1f).random(), (0f..1f).random(), (0f..1f).random(), 1f),
+                )
+            )
+        }
 
         val surfaceCapabilities = graphics.surfaceCapabilities
         val preferredFormat = graphics.preferredFormat
@@ -95,7 +121,7 @@ class PBRExample(context: Context) : ContextListener(context) {
             listOf(
                 GltfModel(
                     resourcesVfs["models/sponza.glb"],
-                    GltfModelPbrConfig(),
+                    GltfLoaderPbrConfig(),
                     environment,
                     1f,
                     Vec3f.ZERO,

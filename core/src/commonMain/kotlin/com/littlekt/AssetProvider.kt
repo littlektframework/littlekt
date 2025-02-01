@@ -6,7 +6,7 @@ import com.littlekt.audio.AudioClip
 import com.littlekt.audio.AudioStream
 import com.littlekt.file.UnsupportedFileTypeException
 import com.littlekt.file.gltf.GltfData
-import com.littlekt.file.gltf.GltfModelConfig
+import com.littlekt.file.gltf.GltfLoaderConfig
 import com.littlekt.file.ldtk.LDtkMapLoader
 import com.littlekt.file.vfs.*
 import com.littlekt.graphics.Pixmap
@@ -366,4 +366,4 @@ class BitmapFontAssetParameter(val preloadedTextures: List<TextureSlice> = listO
  *
  * @param config configuration for creating a renderable model.
  */
-class GltfModelAssetParameter(val config: GltfModelConfig) : GameAssetParameters
+class GltfModelAssetParameter(val config: GltfLoaderConfig) : GameAssetParameters

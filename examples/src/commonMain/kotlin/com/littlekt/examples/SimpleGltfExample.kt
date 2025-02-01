@@ -2,8 +2,8 @@ package com.littlekt.examples
 
 import com.littlekt.Context
 import com.littlekt.ContextListener
-import com.littlekt.file.gltf.GltfModelPbrConfig
-import com.littlekt.file.gltf.GltfModelUnlitConfig
+import com.littlekt.file.gltf.GltfLoaderPbrConfig
+import com.littlekt.file.gltf.GltfLoaderUnlitConfig
 import com.littlekt.file.vfs.TextureOptions
 import com.littlekt.file.vfs.readTexture
 import com.littlekt.graphics.Color
@@ -84,14 +84,14 @@ class SimpleGltfExample(context: Context) : ContextListener(context) {
             listOf(
                 GltfModel(
                     resourcesVfs["models/Duck.glb"],
-                    GltfModelUnlitConfig(),
+                    GltfLoaderUnlitConfig(),
                     environment,
                     1f,
                     Vec3f(-1f, 0f, 0f),
                 ),
                 GltfModel(
                     resourcesVfs["models/flighthelmet/FlightHelmet.gltf"],
-                    GltfModelPbrConfig(),
+                    GltfLoaderPbrConfig(),
                     pbrEnvironment,
                     4f,
                     Vec3f(1f, 0f, 0f),

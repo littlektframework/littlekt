@@ -6,10 +6,7 @@ import com.littlekt.file.ByteBuffer
 import com.littlekt.file.UnsupportedFileTypeException
 import com.littlekt.file.atlas.AtlasInfo
 import com.littlekt.file.atlas.AtlasPage
-import com.littlekt.file.gltf.GltfData
-import com.littlekt.file.gltf.GltfModelConfig
-import com.littlekt.file.gltf.GltfModelPbrConfig
-import com.littlekt.file.gltf.toModel
+import com.littlekt.file.gltf.*
 import com.littlekt.file.ldtk.LDtkMapData
 import com.littlekt.file.ldtk.LDtkMapLoader
 import com.littlekt.file.tiled.TiledMapData
@@ -382,11 +379,11 @@ suspend fun VfsFile.readGltf(): GltfData {
  * Reads a `.glb` or `.gltf` into a `GltfData` object and then converts it to a [Model].
  *
  * @param config the configuration to use when generating the [Model]. Defaults to
- *   [GltfModelPbrConfig].
+ *   [GltfLoaderPbrConfig].
  * @param preferredFormat the preferred [TextureFormat] to be used when loading the model texture.
  */
 suspend fun VfsFile.readGltfModel(
-    config: GltfModelConfig = GltfModelPbrConfig(),
+    config: GltfLoaderConfig = GltfLoaderPbrConfig(),
     preferredFormat: TextureFormat =
         if (vfs.context.graphics.preferredFormat.srgb) TextureFormat.RGBA8_UNORM_SRGB
         else TextureFormat.RGBA8_UNORM,
