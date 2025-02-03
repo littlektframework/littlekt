@@ -2,7 +2,6 @@ package com.littlekt.graphics.g3d
 
 import com.littlekt.Releasable
 import com.littlekt.file.FloatBuffer
-import com.littlekt.graphics.Color
 import com.littlekt.graphics.IndexedMesh
 import com.littlekt.graphics.Mesh
 import com.littlekt.graphics.g3d.material.Material
@@ -12,6 +11,9 @@ import com.littlekt.graphics.webgpu.PrimitiveTopology
 import com.littlekt.log.Logger
 
 /**
+ * A mesh primitive holds an instance of a [Mesh] and a [Material] with some rasterizing info such
+ * as topology and the index format. This class also handles instancing of the [Mesh].
+ *
  * @param instanceSize pre-allocate this number of instances in the instance data storage buffer.
  *   Defaults to `0`.
  * @author Colton Daily
@@ -42,6 +44,7 @@ open class MeshPrimitive(
     val instanceCount: Int
         get() = instances.size
 
+    /** The */
     val instanceBuffers: InstanceBuffers =
         InstanceBuffers(mesh.device, (instanceSize + 1) * TRANSFORM_COMPONENTS_PER_INSTANCE)
 
@@ -70,12 +73,17 @@ open class MeshPrimitive(
     //     instancesDirty = true
     // }
 
+    /**
+     * Marks the designated [VisualInstance] as dirty. A dirty instance will write the transform
+     * data to the buffer at update time.
+     */
     fun instanceDirty(instance: VisualInstance) {
         if (dirtyInstances.contains(instance)) return
         instancesDirty = true
         dirtyInstances += instance
     }
 
+    /** Write instance data to the underlying GPU buffer, if any instance data is dirty. */
     fun writeInstanceDataToBuffer() {
         if (instancesDirty) {
             dirtyInstances.forEach { dirtyInstance -> updateInstance(dirtyInstance) }
@@ -85,12 +93,11 @@ open class MeshPrimitive(
         }
     }
 
-    fun setInstanceColor(instance: VisualInstance, color: Color) {
-        if (!instances.contains(instance)) {
-            return
-        }
-    }
-
+    /**
+     * Adds the designated [VisualInstance] as an instance. The instance is assigned an internal ID
+     * and is tracked. If a [VisualInstance] changes, on must mark it dirty with [instanceDirty]. By
+     * default, a [VisualInstance] will mark itself dirty via the [Node3D.dirty] function.
+     */
     fun addInstance(instance: VisualInstance) {
         if (instances.contains(instance)) {
             return
@@ -104,6 +111,7 @@ open class MeshPrimitive(
         instancesDirty = true
     }
 
+    /** Removes the designated [VisualInstance] as an instance. */
     fun removeInstance(instance: VisualInstance) {
         if (instance.instanceOf == this) {
             val id = instancesToId[instance]
@@ -126,6 +134,10 @@ open class MeshPrimitive(
         }
     }
 
+    /**
+     * Update the CPU transfer storage buffer for the following [instance], as long as it has been
+     * adeed via [addInstance], to prepare it for writing to the GPU buffer.
+     */
     fun updateInstance(instance: VisualInstance) {
         val id = instancesToId[instance]
         if (id == null) {
@@ -144,6 +156,10 @@ open class MeshPrimitive(
         instanceData.put(instance.color.fields)
     }
 
+    /**
+     * Clears all instance data. Doing this will break any existing [VisualInstance] tied to this
+     * primitive. Either destroy the node and recreate it or add it back via [addInstance].
+     */
     fun clearInstances() {
         instanceData.clear()
         instancesDirty = true

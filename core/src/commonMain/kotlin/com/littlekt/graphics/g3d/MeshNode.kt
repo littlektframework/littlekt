@@ -3,6 +3,9 @@ package com.littlekt.graphics.g3d
 import com.littlekt.util.datastructure.fastForEach
 
 /**
+ * A MeshNode is a [Node3D] that used a list of [MeshPrimitive] for rendering, and an optional
+ * [Skin].
+ *
  * @author Colton Daily
  * @date 11/24/2024
  */
@@ -26,6 +29,12 @@ private constructor(
         children.fastForEach { it.forEachMeshPrimitive(action) }
     }
 
+    /**
+     * Copying a [MeshNode] will reuse the underlying [primitives] list. In other words, this will
+     * create an instance of the underlying geometry. You only need to pass in the original
+     * [MeshNode] into a ModelBatch render function otherwise, you'll get duplicate draw calls. Just
+     * the fact of copying this node will update the [MeshPrimitive] instance data.
+     */
     override fun copy(): Node3D {
         val copy =
             MeshNode(primitives, skin?.copy(), false).also {
