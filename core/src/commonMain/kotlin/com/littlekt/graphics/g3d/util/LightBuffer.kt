@@ -10,8 +10,12 @@ import com.littlekt.graphics.webgpu.GPUBuffer
 import com.littlekt.math.Vec3f
 
 /**
- * @author Colton Daily
- * @date 1/5/2025
+ * A class for managing GPU light data in a buffer, supporting different types of lights such as
+ * ambient, directional, and point lights. The data is stored as a structured collection of floats
+ * and can be updated and sent to the GPU.
+ *
+ * @property device The device used for creating GPU buffers and managing the queue.
+ * @property maxLightCount The maximum number of point lights this buffer can store.
  */
 class LightBuffer(val device: Device, val maxLightCount: Int) : Releasable {
     /** Size of light buffer in number of components / floats. */
@@ -68,7 +72,7 @@ class LightBuffer(val device: Device, val maxLightCount: Int) : Releasable {
         if (intensity > 0) {
             val offset =
                 POINT_LIGHT_OFFSET * Float.SIZE_BYTES +
-                        (index * POINT_LIGHT_SIZE * Float.SIZE_BYTES)
+                    (index * POINT_LIGHT_SIZE * Float.SIZE_BYTES)
             lightsBuffer.position = offset
             lightsBuffer.putFloat(position.x)
             lightsBuffer.putFloat(position.y)
