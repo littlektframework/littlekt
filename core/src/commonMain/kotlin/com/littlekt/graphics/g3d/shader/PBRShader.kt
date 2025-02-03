@@ -13,6 +13,7 @@ import com.littlekt.graphics.webgpu.*
 class PBRShader(
     device: Device,
     layout: List<VertexAttribute>,
+    skinned: Boolean,
     vertexEntryPoint: String = "vs_main",
     fragmentEntryPoint: String = "fs_main",
     vertexSrc: String = buildCommonShader {
@@ -21,8 +22,13 @@ class PBRShader(
             vertexOutput(layout)
             cameraComplex(0, 0)
             models(1, 0)
-            skin(2)
-            main(layout, cameraViewProjCombined = false, entryPoint = vertexEntryPoint)
+            main(
+                layout,
+                cameraViewProjCombined = false,
+                skinned = skinned,
+                skinGroup = 3,
+                entryPoint = vertexEntryPoint,
+            )
         }
     },
     fragmentSrc: String = buildCommonShader {
@@ -37,49 +43,76 @@ class PBRShader(
             }
         }
     },
-    bindGroupLayoutUsageLayout: List<BindingUsage> =
-        listOf(BindingUsage.CAMERA, BindingUsage.MODEL, BindingUsage.MATERIAL),
-    bindGroupLayout: Map<BindingUsage, BindGroupLayoutDescriptor> =
-        mapOf(
-            BindingUsage.MODEL to
+    bindGroupLayoutUsageLayout: List<BindingUsage> = run {
+        val usages = mutableListOf(BindingUsage.CAMERA, BindingUsage.MODEL, BindingUsage.MATERIAL)
+        if (skinned) {
+            usages += BindingUsage.SKIN
+        }
+        usages
+    },
+    bindGroupLayout: Map<BindingUsage, BindGroupLayoutDescriptor> = run {
+        val layouts =
+            mutableMapOf(
+                BindingUsage.MODEL to
+                    BindGroupLayoutDescriptor(
+                        listOf(
+                            // model
+                            BindGroupLayoutEntry(
+                                0,
+                                ShaderStage.VERTEX,
+                                BufferBindingLayout(BufferBindingType.READ_ONLY_STORAGE),
+                            )
+                        )
+                    ),
+                BindingUsage.MATERIAL to
+                    BindGroupLayoutDescriptor(
+                        listOf(
+                            // material uniform
+                            BindGroupLayoutEntry(0, ShaderStage.FRAGMENT, BufferBindingLayout()),
+                            // baseColorTexture
+                            BindGroupLayoutEntry(1, ShaderStage.FRAGMENT, TextureBindingLayout()),
+                            // baseColorSampler
+                            BindGroupLayoutEntry(2, ShaderStage.FRAGMENT, SamplerBindingLayout()),
+                            // normal texture
+                            BindGroupLayoutEntry(3, ShaderStage.FRAGMENT, TextureBindingLayout()),
+                            // normal sampler
+                            BindGroupLayoutEntry(4, ShaderStage.FRAGMENT, SamplerBindingLayout()),
+                            // metallic roughness texture
+                            BindGroupLayoutEntry(5, ShaderStage.FRAGMENT, TextureBindingLayout()),
+                            // metallic roughness sampler
+                            BindGroupLayoutEntry(6, ShaderStage.FRAGMENT, SamplerBindingLayout()),
+                            // occlusion texture
+                            BindGroupLayoutEntry(7, ShaderStage.FRAGMENT, TextureBindingLayout()),
+                            // occlusion sampler
+                            BindGroupLayoutEntry(8, ShaderStage.FRAGMENT, SamplerBindingLayout()),
+                            // emissive texture
+                            BindGroupLayoutEntry(9, ShaderStage.FRAGMENT, TextureBindingLayout()),
+                            // emissive sampler
+                            BindGroupLayoutEntry(10, ShaderStage.FRAGMENT, SamplerBindingLayout()),
+                        )
+                    ),
+            )
+        if (skinned) {
+            layouts[BindingUsage.SKIN] =
                 BindGroupLayoutDescriptor(
                     listOf(
-                        // model
+                        // joint transforms
                         BindGroupLayoutEntry(
                             0,
                             ShaderStage.VERTEX,
                             BufferBindingLayout(BufferBindingType.READ_ONLY_STORAGE),
-                        )
+                        ),
+                        // inverse blend matrices
+                        BindGroupLayoutEntry(
+                            1,
+                            ShaderStage.VERTEX,
+                            BufferBindingLayout(BufferBindingType.READ_ONLY_STORAGE),
+                        ),
                     )
-                ),
-            BindingUsage.MATERIAL to
-                BindGroupLayoutDescriptor(
-                    listOf(
-                        // material uniform
-                        BindGroupLayoutEntry(0, ShaderStage.FRAGMENT, BufferBindingLayout()),
-                        // baseColorTexturere
-                        BindGroupLayoutEntry(1, ShaderStage.FRAGMENT, TextureBindingLayout()),
-                        // baseColorSampler
-                        BindGroupLayoutEntry(2, ShaderStage.FRAGMENT, SamplerBindingLayout()),
-                        // normal texture
-                        BindGroupLayoutEntry(3, ShaderStage.FRAGMENT, TextureBindingLayout()),
-                        // normal sampler
-                        BindGroupLayoutEntry(4, ShaderStage.FRAGMENT, SamplerBindingLayout()),
-                        // metallic roughness texture
-                        BindGroupLayoutEntry(5, ShaderStage.FRAGMENT, TextureBindingLayout()),
-                        // metallic roughness sampler
-                        BindGroupLayoutEntry(6, ShaderStage.FRAGMENT, SamplerBindingLayout()),
-                        // occlusion texture
-                        BindGroupLayoutEntry(7, ShaderStage.FRAGMENT, TextureBindingLayout()),
-                        // occlusion sampler
-                        BindGroupLayoutEntry(8, ShaderStage.FRAGMENT, SamplerBindingLayout()),
-                        // emissive texture
-                        BindGroupLayoutEntry(9, ShaderStage.FRAGMENT, TextureBindingLayout()),
-                        // emissive sampler
-                        BindGroupLayoutEntry(10, ShaderStage.FRAGMENT, SamplerBindingLayout()),
-                    )
-                ),
-        ),
+                )
+        }
+        layouts
+    },
 ) :
     Shader(
         device = device,

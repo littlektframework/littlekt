@@ -5,6 +5,7 @@ import com.littlekt.file.FloatBuffer
 import com.littlekt.graphics.IndexedMesh
 import com.littlekt.graphics.Mesh
 import com.littlekt.graphics.g3d.material.Material
+import com.littlekt.graphics.g3d.skin.Skin
 import com.littlekt.graphics.g3d.util.InstanceBuffers
 import com.littlekt.graphics.webgpu.IndexFormat
 import com.littlekt.graphics.webgpu.PrimitiveTopology
@@ -24,6 +25,8 @@ open class MeshPrimitive(
     var material: Material,
     val topology: PrimitiveTopology = PrimitiveTopology.TRIANGLE_LIST,
     val stripIndexFormat: IndexFormat? = null,
+    var skin: Skin? = null,
+    var morphWeights: FloatArray? = null,
     instanceSize: Int = 0,
 ) : Releasable {
 

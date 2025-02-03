@@ -487,9 +487,13 @@ open class Node3D {
     }
 
     /** Update the node and any of its children. */
-    open fun update(dt: Duration) {
+    fun update(dt: Duration) {
+        onUpdate(dt)
         children.fastForEach { it.update(dt) }
     }
+
+    /** Override to add own update logic without worrying about not updating children. */
+    protected open fun onUpdate(dt: Duration) = Unit
 
     /**
      * Update the nodes transforms, if dirty. This will also invoke the parents [updateTransform]

@@ -15,10 +15,11 @@ import com.littlekt.resources.Textures
  * A configuration class that is used when generating a GLtf model.
  *
  * @param castShadows if `true`, then designate the model to cast shadows.
+ * @param skinned if `true`, will use skinning on the model.
  * @author Colton Daily
  * @date 12/8/2024
  */
-data class GltfModelConfig(val castShadows: Boolean)
+data class GltfModelConfig(val castShadows: Boolean = true, val skinned: Boolean = false)
 
 /**
  * @param modelConfig the basic model config
@@ -34,13 +35,13 @@ data class GltfLoaderConfig(
 
 /** A strategy for creating a [Material] for when a glTF primitive does not have a glTF material. */
 abstract class GltfModelFallbackMaterialStrategy {
-    abstract fun createMaterial(device: Device): Material
+    abstract fun createMaterial(config: GltfModelConfig, device: Device): Material
 }
 
 /** Creates an [UnlitMaterial] that defaults to a white texture. */
 class UnlitMaterialFallbackStrategy : GltfModelFallbackMaterialStrategy() {
-    override fun createMaterial(device: Device): Material =
-        UnlitMaterial(device, Textures.textureWhite)
+    override fun createMaterial(config: GltfModelConfig, device: Device): Material =
+        UnlitMaterial(device, Textures.textureWhite, skinned = config.skinned)
 }
 
 /** A strategy for creating a [Material] for a Gltf primitive. */
@@ -127,6 +128,7 @@ class PBRMaterialStrategy : GltfModelMaterialStrategy() {
             doubleSided = gltfMaterial.doubleSided,
             alphaCutoff = gltfMaterial.alphaCutoff,
             castShadows = config.castShadows,
+            skinned = config.skinned,
         )
     }
 }
@@ -157,14 +159,17 @@ class UnlitMaterialStrategy : GltfModelMaterialStrategy() {
                 ) ?: EmptyTexture(device, preferredFormat, 0, 0),
             transparent = gltfMaterial.alphaMode != GltfAlphaMode.Opaque,
             doubleSided = gltfMaterial.doubleSided,
+            skinned = config.skinned,
         )
     }
 }
 
 /** Creates a [GltfLoaderConfig], specific for PBR usage. */
-fun GltfLoaderPbrConfig(modelConfig: GltfModelConfig = GltfModelConfig(castShadows = true)) =
-    GltfLoaderConfig(modelConfig, PBRMaterialStrategy(), UnlitMaterialFallbackStrategy())
+fun GltfLoaderPbrConfig(
+    modelConfig: GltfModelConfig = GltfModelConfig(castShadows = true, skinned = false)
+) = GltfLoaderConfig(modelConfig, PBRMaterialStrategy(), UnlitMaterialFallbackStrategy())
 
 /** Creates a [GltfLoaderConfig], specific for unlit usage. */
-fun GltfLoaderUnlitConfig(modelConfig: GltfModelConfig = GltfModelConfig(castShadows = true)) =
-    GltfLoaderConfig(modelConfig, UnlitMaterialStrategy(), UnlitMaterialFallbackStrategy())
+fun GltfLoaderUnlitConfig(
+    modelConfig: GltfModelConfig = GltfModelConfig(castShadows = true, skinned = false)
+) = GltfLoaderConfig(modelConfig, UnlitMaterialStrategy(), UnlitMaterialFallbackStrategy())

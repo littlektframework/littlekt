@@ -1,8 +1,9 @@
 package com.littlekt.math
 
-import com.littlekt.math.geom.*
-import com.littlekt.math.geom.cos
-import com.littlekt.math.geom.sin
+import com.littlekt.math.geom.Angle
+import com.littlekt.math.geom.cosine
+import com.littlekt.math.geom.radians
+import com.littlekt.math.geom.sine
 import kotlin.math.*
 
 /**
@@ -10,6 +11,8 @@ import kotlin.math.*
  * @date 12/31/2024
  */
 open class Quaternion(open val x: Float, open val y: Float, open val z: Float, open val w: Float) {
+
+    constructor(other: Vec4f) : this(other.x, other.y, other.z, other.w)
 
     constructor(other: Quaternion) : this(other.x, other.y, other.z, other.w)
 

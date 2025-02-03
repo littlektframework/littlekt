@@ -10,7 +10,6 @@ import kotlin.jvm.JvmInline
  * @see COLOR
  * @see NORMAL
  * @see UV
- * @see TEX_COORDS2
  * @see GENERIC
  * @see WEIGHT
  * @see TANGENT

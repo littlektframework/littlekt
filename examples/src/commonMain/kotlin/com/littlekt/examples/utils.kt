@@ -73,6 +73,7 @@ data class GltfModel(
     val environment: Environment,
     val scale: Float,
     val translate: Vec3f,
+    val animIdx: Int = -1,
 ) {
     var scene: Node3D? = null
 }
@@ -90,6 +91,7 @@ fun Context.loadGltfModels(models: List<GltfModel>, modelBatch: ModelBatch? = nu
                         gltfModel.file.readGltfModel(gltfModel.config).apply {
                             scale(gltfModel.scale)
                             translate(gltfModel.translate)
+                            enableAnimation(gltfModel.animIdx)
                         }
                     modelBatch?.preparePipeline(scene, gltfModel.environment)
                     gltfModel.scene = scene

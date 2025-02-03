@@ -20,7 +20,7 @@ import com.littlekt.graphics.g2d.font.*
 import com.littlekt.graphics.g2d.tilemap.ldtk.LDtkWorld
 import com.littlekt.graphics.g2d.tilemap.tiled.TiledMap
 import com.littlekt.graphics.g3d.MeshNode
-import com.littlekt.graphics.g3d.Node3D
+import com.littlekt.graphics.g3d.Model
 import com.littlekt.graphics.webgpu.SamplerDescriptor
 import com.littlekt.graphics.webgpu.TextureFormat
 import com.littlekt.math.MutableVec4i
@@ -387,7 +387,7 @@ suspend fun VfsFile.readGltfModel(
     preferredFormat: TextureFormat =
         if (vfs.context.graphics.preferredFormat.srgb) TextureFormat.RGBA8_UNORM_SRGB
         else TextureFormat.RGBA8_UNORM,
-): Node3D {
+): Model {
     val gltfData = readGltf()
     return gltfData.toModel(config, preferredFormat)
 }

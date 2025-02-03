@@ -4,6 +4,7 @@ import com.littlekt.Context
 import com.littlekt.ContextListener
 import com.littlekt.file.gltf.GltfLoaderPbrConfig
 import com.littlekt.file.gltf.GltfLoaderUnlitConfig
+import com.littlekt.file.gltf.GltfModelConfig
 import com.littlekt.file.vfs.TextureOptions
 import com.littlekt.file.vfs.readTexture
 import com.littlekt.graphics.Color
@@ -88,6 +89,14 @@ class SimpleGltfExample(context: Context) : ContextListener(context) {
                     environment,
                     1f,
                     Vec3f(-1f, 0f, 0f),
+                ),
+                GltfModel(
+                    resourcesVfs["models/Fox.glb"],
+                    GltfLoaderUnlitConfig(GltfModelConfig(skinned = true)),
+                    environment,
+                    0.3f,
+                    Vec3f(-3f, 0f, 0f),
+                    //     animIdx = 1,
                 ),
                 GltfModel(
                     resourcesVfs["models/flighthelmet/FlightHelmet.gltf"],

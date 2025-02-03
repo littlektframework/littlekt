@@ -32,6 +32,7 @@ class PBRMaterial(
     override val castShadows: Boolean = true,
     override val depthWrite: Boolean = true,
     override val depthCompareFunction: CompareFunction = CompareFunction.LESS,
+    override val skinned: Boolean = false,
 ) : Material() {
     private val isFullyRough: Boolean = roughnessFactor == 1f && metallicRoughnessTexture == null
 

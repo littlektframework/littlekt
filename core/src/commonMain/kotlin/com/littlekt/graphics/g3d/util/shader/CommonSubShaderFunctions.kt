@@ -45,8 +45,8 @@ fun SubShaderBuilder.vertexInput(attributes: List<VertexAttribute>) {
                     else "@location(${attribute.shaderLocation}) uv2: vec2f,"
                 }
 
-                VertexAttrUsage.JOINT -> "@location(${attribute.shaderLocation}) joints: vec4u,"
-                VertexAttrUsage.WEIGHT -> "@location(${attribute.shaderLocation}) weight: vec4f,"
+                VertexAttrUsage.JOINT -> "@location(${attribute.shaderLocation}) joints: vec4i,"
+                VertexAttrUsage.WEIGHT -> "@location(${attribute.shaderLocation}) weights: vec4f,"
                 else -> {
                     error(
                         "Unknown attribute usage type: ${attribute.usage}. If using custom attributes, then you must create your own input struct!"

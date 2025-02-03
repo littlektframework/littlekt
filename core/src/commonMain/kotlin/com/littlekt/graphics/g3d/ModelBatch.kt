@@ -29,8 +29,8 @@ class ModelBatch(val device: Device) : Releasable {
     private val primitivesByPipeline = mutableMapOf<MaterialPipeline, MutableList<MeshPrimitive>>()
     private val listPool = pool(reset = { it.clear() }) { mutableListOf<MeshPrimitive>() }
 
-    /** By material id */
     private val bindGroupByMaterialId = mutableMapOf<Int, BindGroup>()
+    private val bindGroupBySkinId = mutableMapOf<Int, BindGroup>()
     private val updatedEnvironments = mutableSetOf<Int>()
     private val sorter =
         object : MaterialPipelineSorter {
@@ -143,6 +143,10 @@ class ModelBatch(val device: Device) : Releasable {
                 meshPrimitive.material.createBindGroup(pipeline.shader)
             }
         }
+        val skin = meshPrimitive.skin
+        if (meshPrimitive.material.skinned && skin != null) {
+            bindGroupBySkinId.getOrPut(skin.id) { skin.createBindGroup(pipeline.shader) }
+        }
     }
 
     fun flush(renderPassEncoder: RenderPassEncoder, camera: Camera, dt: Duration) {
@@ -172,6 +176,18 @@ class ModelBatch(val device: Device) : Releasable {
                             ?: error(
                                 "Material (${primitive.material.id}) bind groups could not be found!"
                             )
+
+                    if (primitive.material.skinned) {
+                        val skinBindGroup =
+                            primitive.skin?.let { bindGroupBySkinId[it.id] }
+                                ?: error("Skin bind groups could not be found!")
+                        pipeline.shader.setBindGroup(
+                            renderPassEncoder,
+                            skinBindGroup,
+                            BindingUsage.SKIN,
+                        )
+                        primitive.skin?.writeToBuffer()
+                    }
                     if (lastMaterialSet != primitive.material.id) {
                         lastMaterialSet = primitive.material.id
                         pipeline.shader.setBindGroup(
