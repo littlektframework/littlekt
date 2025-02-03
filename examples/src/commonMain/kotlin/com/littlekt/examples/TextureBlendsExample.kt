@@ -7,7 +7,6 @@ import com.littlekt.graphics.BlendStates
 import com.littlekt.graphics.Color
 import com.littlekt.graphics.g2d.SpriteBatch
 import io.ygdrasil.webgpu.LoadOp
-import io.ygdrasil.webgpu.PresentMode
 import io.ygdrasil.webgpu.RenderPassDescriptor
 import io.ygdrasil.webgpu.StoreOp
 import io.ygdrasil.webgpu.SurfaceTextureStatus
@@ -32,7 +31,6 @@ class TextureBlendsExample(context: Context) : ContextListener(context) {
         graphics.configureSurface(
             setOf(TextureUsage.RenderAttachment),
             preferredFormat,
-            PresentMode.fifo,
             graphics.surface.supportedAlphaMode.first()
         )
 
@@ -51,7 +49,6 @@ class TextureBlendsExample(context: Context) : ContextListener(context) {
             graphics.configureSurface(
                 setOf(TextureUsage.RenderAttachment),
                 preferredFormat,
-                PresentMode.fifo,
                 graphics.surface.supportedAlphaMode.first()
             )
         }
@@ -86,8 +83,8 @@ class TextureBlendsExample(context: Context) : ContextListener(context) {
                             listOf(
                                 RenderPassDescriptor.ColorAttachment(
                                     view = frame,
-                                    loadOp = LoadOp.clear,
-                                    storeOp = StoreOp.store,
+                                    loadOp = LoadOp.Clear,
+                                    storeOp = StoreOp.Store,
                                     clearValue = Color.DARK_GRAY.toWebGPUColor()
                                 )
                             )
@@ -115,7 +112,6 @@ class TextureBlendsExample(context: Context) : ContextListener(context) {
             batch.flush(renderPassEncoder)
             batch.end()
             renderPassEncoder.end()
-            renderPassEncoder.release()
 
             val commandBuffer = commandEncoder.finish()
 

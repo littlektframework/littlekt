@@ -6,7 +6,12 @@ import com.littlekt.file.vfs.readTexture
 import com.littlekt.graph.node.canvasLayer
 import com.littlekt.graph.node.node2d.camera2d
 import com.littlekt.graph.node.node2d.node2d
-import com.littlekt.graph.node.ui.*
+import com.littlekt.graph.node.ui.button
+import com.littlekt.graph.node.ui.canvasLayerContainer
+import com.littlekt.graph.node.ui.centerContainer
+import com.littlekt.graph.node.ui.column
+import com.littlekt.graph.node.ui.label
+import com.littlekt.graph.node.ui.scrollContainer
 import com.littlekt.graph.sceneGraph
 import com.littlekt.graphics.Color
 import com.littlekt.graphics.HAlign
@@ -17,7 +22,6 @@ import com.littlekt.math.geom.radians
 import com.littlekt.util.viewport.ExtendViewport
 import io.ygdrasil.webgpu.CommandEncoderDescriptor
 import io.ygdrasil.webgpu.LoadOp
-import io.ygdrasil.webgpu.PresentMode
 import io.ygdrasil.webgpu.RenderPassDescriptor
 import io.ygdrasil.webgpu.StoreOp
 import io.ygdrasil.webgpu.SurfaceTextureStatus
@@ -42,7 +46,6 @@ class HelloSceneGraphExample(context: Context) : ContextListener(context) {
         graphics.configureSurface(
             setOf(TextureUsage.RenderAttachment),
             preferredFormat,
-            PresentMode.fifo,
             graphics.surface.supportedAlphaMode.first()
         )
 
@@ -147,7 +150,6 @@ class HelloSceneGraphExample(context: Context) : ContextListener(context) {
             graphics.configureSurface(
                 setOf(TextureUsage.RenderAttachment),
                 preferredFormat,
-                PresentMode.fifo,
                 graphics.surface.supportedAlphaMode.first()
             )
         }
@@ -181,8 +183,8 @@ class HelloSceneGraphExample(context: Context) : ContextListener(context) {
                     listOf(
                         RenderPassDescriptor.ColorAttachment(
                             view = frame,
-                            loadOp = LoadOp.clear,
-                            storeOp = StoreOp.store,
+                            loadOp = LoadOp.Clear,
+                            storeOp = StoreOp.Store,
                             clearValue = Color.DARK_GRAY.toWebGPUColor()
                         )
                     ),

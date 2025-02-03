@@ -3,12 +3,14 @@ package com.littlekt
 import com.littlekt.graphics.Cursor
 import com.littlekt.graphics.Surface
 import com.littlekt.graphics.SystemCursor
+import com.littlekt.graphics.getSurface
 import io.ygdrasil.webgpu.Adapter
+import io.ygdrasil.webgpu.CompositeAlphaMode
 import io.ygdrasil.webgpu.Device
-import io.ygdrasil.webgpu.requestAdapter
+import io.ygdrasil.webgpu.SurfaceConfiguration
 import io.ygdrasil.webgpu.TextureFormat
 import io.ygdrasil.webgpu.TextureUsage
-import io.ygdrasil.webgpu.CompositeAlphaMode
+import io.ygdrasil.webgpu.requestAdapter
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
 import org.w3c.dom.Element
@@ -62,7 +64,7 @@ class WebGPUGraphics(val canvas: HTMLCanvasElement) : Graphics {
         alphaMode: CompositeAlphaMode
     ) {
         surface.configure(
-            CanvasConfiguration(device, format,usages, alphaMode = alphaMode)
+            SurfaceConfiguration(device, format,usages, alphaMode = alphaMode)
         )
     }
 

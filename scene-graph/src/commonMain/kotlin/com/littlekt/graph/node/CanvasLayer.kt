@@ -271,8 +271,8 @@ open class CanvasLayer : Node() {
                     listOf(
                         RenderPassDescriptor.ColorAttachment(
                             view = fbo.view,
-                            loadOp = LoadOp.clear,
-                            storeOp = StoreOp.store,
+                            loadOp = LoadOp.Clear,
+                            storeOp = StoreOp.Store,
                             clearValue = clearColor.toWebGPUColor()
                         )
                     ),
@@ -449,7 +449,7 @@ open class CanvasLayer : Node() {
         val y2 = y + height
         if (x2 <= 0 || x > this.width || y2 <= 0 || y > this.height) {
             // outside of bounds completely, so lets just set the scissor to nothing
-            renderPass.setScissorRect(0, 0, 0, 0)
+            renderPass.setScissorRect(0u, 0u, 0u, 0u)
             return
         }
         val scissorX = if (x < 0) 0 else x
@@ -457,7 +457,7 @@ open class CanvasLayer : Node() {
         val scissorWidth = if (x2 < this.width) x2 - scissorX else this.width - scissorX
         val scissorHeight = if (y2 < this.height) y2 - scissorY else this.height - scissorY
 
-        renderPass.setScissorRect(scissorX, scissorY, scissorWidth, scissorHeight)
+        renderPass.setScissorRect(scissorX.toUInt(), scissorY.toUInt(), scissorWidth.toUInt(), scissorHeight.toUInt())
     }
 
     /**
@@ -466,19 +466,19 @@ open class CanvasLayer : Node() {
      * previous render pass. This assumes multiple render passes in a single command pass. Hence,
      * the default descriptor will automatically default the previous render passes
      * [RenderPassDescriptor] while also setting the color attachments
-     * [RenderPassDescriptor.ColorAttachment.loadOp] to [LoadOp.load]. You are responsible for
+     * [RenderPassDescriptor.ColorAttachment.loadOp] to [LoadOp.Load]. You are responsible for
      * calling [popAndEndRenderPass] with this new render pass, as this a helper method to create
      * one.
      *
      * @param label a label for the render pass
-     * @param descriptor the default descriptor assumes the color attachments to use [LoadOp.load].
+     * @param descriptor the default descriptor assumes the color attachments to use [LoadOp.Load].
      * @return the newly created [RenderPassEncoder].
      */
     fun pushRenderPass(
         label: String? = null,
         descriptor: RenderPassDescriptor = run {
             val initDesc = renderPassDescriptor
-            val colorAttachments = initDesc.colorAttachments.map { it.copy(loadOp = LoadOp.load) }
+            val colorAttachments = initDesc.colorAttachments.map { it.copy(loadOp = LoadOp.Load) }
             initDesc.copy(colorAttachments = colorAttachments, label = label)
         }
     ) {

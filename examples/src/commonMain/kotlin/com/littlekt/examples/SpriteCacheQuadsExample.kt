@@ -7,7 +7,6 @@ import com.littlekt.graphics.OrthographicCamera
 import com.littlekt.graphics.g2d.SpriteCache
 import com.littlekt.resources.Textures
 import io.ygdrasil.webgpu.LoadOp
-import io.ygdrasil.webgpu.PresentMode
 import io.ygdrasil.webgpu.RenderPassDescriptor
 import io.ygdrasil.webgpu.StoreOp
 import io.ygdrasil.webgpu.SurfaceTextureStatus
@@ -47,7 +46,6 @@ class SpriteCacheQuadsExample(context: Context) : ContextListener(context) {
         graphics.configureSurface(
             setOf(TextureUsage.RenderAttachment),
             preferredFormat,
-            PresentMode.fifo,
             graphics.surface.supportedAlphaMode.first()
         )
 
@@ -56,7 +54,6 @@ class SpriteCacheQuadsExample(context: Context) : ContextListener(context) {
             graphics.configureSurface(
                 setOf(TextureUsage.RenderAttachment),
                 preferredFormat,
-                PresentMode.fifo,
                 graphics.surface.supportedAlphaMode.first()
             )
         }
@@ -94,8 +91,8 @@ class SpriteCacheQuadsExample(context: Context) : ContextListener(context) {
                             listOf(
                                 RenderPassDescriptor.ColorAttachment(
                                     view = frame,
-                                    loadOp = LoadOp.clear,
-                                    storeOp = StoreOp.store,
+                                    loadOp = LoadOp.Clear,
+                                    storeOp = StoreOp.Store,
                                     clearValue = Color.DARK_GRAY.toWebGPUColor()
                                 )
                             )
@@ -103,7 +100,6 @@ class SpriteCacheQuadsExample(context: Context) : ContextListener(context) {
                 )
             cache.render(renderPassEncoder, camera.viewProjection)
             renderPassEncoder.end()
-            renderPassEncoder.release()
 
             val commandBuffer = commandEncoder.finish()
 

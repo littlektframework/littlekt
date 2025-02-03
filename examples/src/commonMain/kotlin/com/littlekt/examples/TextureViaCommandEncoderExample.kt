@@ -20,7 +20,6 @@ import io.ygdrasil.webgpu.ImageCopyTexture
 import io.ygdrasil.webgpu.IndexFormat
 import io.ygdrasil.webgpu.LoadOp
 import io.ygdrasil.webgpu.PipelineLayoutDescriptor
-import io.ygdrasil.webgpu.PresentMode
 import io.ygdrasil.webgpu.PrimitiveTopology
 import io.ygdrasil.webgpu.RenderPassDescriptor
 import io.ygdrasil.webgpu.RenderPipelineDescriptor
@@ -34,9 +33,7 @@ import io.ygdrasil.webgpu.ShaderStage
 import io.ygdrasil.webgpu.Size3D
 import io.ygdrasil.webgpu.StoreOp
 import io.ygdrasil.webgpu.SurfaceTextureStatus
-import io.ygdrasil.webgpu.TextureDataLayout
 import io.ygdrasil.webgpu.TextureDescriptor
-import io.ygdrasil.webgpu.TextureDimension
 import io.ygdrasil.webgpu.TextureFormat
 import io.ygdrasil.webgpu.TextureUsage
 import io.ygdrasil.webgpu.VertexFormat
@@ -115,8 +112,8 @@ class TextureViaCommandEncoderExample(context: Context) : ContextListener(contex
         val texture =
             device.createTexture(
                 TextureDescriptor(
-                    Size3D(image.width, image.height),
-                    TextureFormat.rgba8unormsrgb,
+                    Size3D(image.width.toUInt(), image.height.toUInt()),
+                    TextureFormat.RGBA8UnormSrgb,
                     setOf(TextureUsage.CopyDst, TextureUsage.TextureBinding)
                 )
             )
@@ -124,12 +121,12 @@ class TextureViaCommandEncoderExample(context: Context) : ContextListener(contex
         val queue = device.queue
         run {
             val textureBuffer =
-                device.createGPUByteBuffer("tex temp", image.pixels.toArray(), setOf(BufferUsage.copysrc))
+                device.createGPUByteBuffer("tex temp", image.pixels.toArray(), setOf(BufferUsage.CopySrc))
             val commandEncoder = device.createCommandEncoder()
             commandEncoder.copyBufferToTexture(
-                ImageCopyBuffer(textureBuffer, 0L, image.width * 4, image.height),
+                ImageCopyBuffer(textureBuffer, 0uL, image.width.toUInt() * 4u, image.height.toUInt()),
                 ImageCopyTexture(texture),
-                Size3D(image.width, image.height)
+                Size3D(image.width.toUInt(), image.height.toUInt())
             )
             queue.submit(listOf(commandEncoder.finish()))
             textureBuffer.close()
@@ -141,8 +138,8 @@ class TextureViaCommandEncoderExample(context: Context) : ContextListener(contex
             device.createBindGroupLayout(
                 BindGroupLayoutDescriptor(
                     listOf(
-                        Entry(0, setOf(ShaderStage.Fragment), TextureBindingLayout()),
-                        Entry(1, setOf(ShaderStage.Fragment), SamplerBindingLayout())
+                        Entry(0u, setOf(ShaderStage.Fragment), TextureBindingLayout()),
+                        Entry(1u, setOf(ShaderStage.Fragment), SamplerBindingLayout())
                     )
                 )
             )
@@ -151,8 +148,8 @@ class TextureViaCommandEncoderExample(context: Context) : ContextListener(contex
                     BindGroupDescriptor(
                         bindGroupLayout,
                         listOf(
-                            BindGroupEntry(0, TextureViewBinding(textureView)),
-                            BindGroupEntry(1, SamplerBinding(sampler))
+                            BindGroupEntry(0u, TextureViewBinding(textureView)),
+                            BindGroupEntry(1u, SamplerBinding(sampler))
                         )
                     )
             )
@@ -166,13 +163,13 @@ class TextureViaCommandEncoderExample(context: Context) : ContextListener(contex
                     entryPoint = "vs_main",
                     buffers = listOf(
                         VertexBufferLayout(
-                            4L * Float.SIZE_BYTES,
+                            4uL * Float.SIZE_BYTES.toULong(),
                             listOf(
-                                VertexAttribute(VertexFormat.Float32x2, 0, 0),
+                                VertexAttribute(VertexFormat.Float32x2, 0u, 0u),
                                 VertexAttribute(
                                     VertexFormat.Float32x2,
-                                    2L * Float.SIZE_BYTES,
-                                    1
+                                    2uL * Float.SIZE_BYTES.toULong(),
+                                    1u
                                 )
                             ),
                             VertexStepMode.Vertex,
@@ -195,13 +192,12 @@ class TextureViaCommandEncoderExample(context: Context) : ContextListener(contex
                 primitive = PrimitiveState(topology = PrimitiveTopology.TriangleList),
                 depthStencil = null,
                 multisample =
-                    MultisampleState(count = 1, mask = 0xFFFFFFFu, alphaToCoverageEnabled = false)
+                    MultisampleState(count = 1u, mask = 0xFFFFFFFu, alphaToCoverageEnabled = false)
             )
         val renderPipeline = device.createRenderPipeline(renderPipelineDesc)
         graphics.configureSurface(
             setOf(TextureUsage.RenderAttachment),
             preferredFormat,
-            PresentMode.fifo,
             graphics.surface.supportedAlphaMode.first()
         )
 
@@ -218,7 +214,6 @@ class TextureViaCommandEncoderExample(context: Context) : ContextListener(contex
                     graphics.configureSurface(
                         setOf(TextureUsage.RenderAttachment),
                         preferredFormat,
-                        PresentMode.fifo,
                         graphics.surface.supportedAlphaMode.first()
                     )
                     logger.info { "getCurrentTexture status=$status" }
@@ -241,20 +236,19 @@ class TextureViaCommandEncoderExample(context: Context) : ContextListener(contex
                             listOf(
                                 RenderPassDescriptor.ColorAttachment(
                                     view = frame,
-                                    loadOp = LoadOp.clear,
-                                    storeOp = StoreOp.store,
+                                    loadOp = LoadOp.Clear,
+                                    storeOp = StoreOp.Store,
                                     clearValue = Color.CLEAR.toWebGPUColor()
                                 )
                             )
                         )
                 )
             renderPassEncoder.setPipeline(renderPipeline)
-            renderPassEncoder.setBindGroup(0, bindGroup)
-            renderPassEncoder.setVertexBuffer(0, vbo)
+            renderPassEncoder.setBindGroup(0u, bindGroup)
+            renderPassEncoder.setVertexBuffer(0u, vbo)
             renderPassEncoder.setIndexBuffer(ibo, IndexFormat.Uint16)
-            renderPassEncoder.drawIndexed(indices.size, 1)
+            renderPassEncoder.drawIndexed(indices.size.toUInt(), 1u)
             renderPassEncoder.end()
-            renderPassEncoder.release()
 
             val commandBuffer = commandEncoder.finish()
 

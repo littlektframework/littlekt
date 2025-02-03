@@ -7,7 +7,6 @@ import com.littlekt.graphics.Color
 import io.ygdrasil.webgpu.ColorWriteMask
 import io.ygdrasil.webgpu.LoadOp
 import io.ygdrasil.webgpu.PipelineLayoutDescriptor
-import io.ygdrasil.webgpu.PresentMode
 import io.ygdrasil.webgpu.PrimitiveTopology
 import io.ygdrasil.webgpu.RenderPassDescriptor
 import io.ygdrasil.webgpu.RenderPipelineDescriptor
@@ -66,13 +65,12 @@ class TriangleExample(context: Context) : ContextListener(context) {
                 primitive = RenderPipelineDescriptor.PrimitiveState(topology = PrimitiveTopology.TriangleList),
                 depthStencil = null,
                 multisample =
-                RenderPipelineDescriptor.MultisampleState(count = 1, mask = 0xFFFFFFFu, alphaToCoverageEnabled = false)
+                RenderPipelineDescriptor.MultisampleState(count = 1u, mask = 0xFFFFFFFu, alphaToCoverageEnabled = false)
             )
         val renderPipeline = device.createRenderPipeline(renderPipelineDesc)
         graphics.configureSurface(
             setOf(TextureUsage.RenderAttachment),
             preferredFormat,
-            PresentMode.fifo,
             graphics.surface.supportedAlphaMode.first()
         )
 
@@ -89,7 +87,6 @@ class TriangleExample(context: Context) : ContextListener(context) {
                     graphics.configureSurface(
                         setOf(TextureUsage.RenderAttachment),
                         preferredFormat,
-                        PresentMode.fifo,
                         graphics.surface.supportedAlphaMode.first()
                     )
                     logger.info { "getCurrentTexture status=$status" }
@@ -111,17 +108,16 @@ class TriangleExample(context: Context) : ContextListener(context) {
                             listOf(
                                 RenderPassDescriptor.ColorAttachment(
                                     view = frame,
-                                    loadOp = LoadOp.clear,
-                                    storeOp = StoreOp.store,
+                                    loadOp = LoadOp.Clear,
+                                    storeOp = StoreOp.Store,
                                     clearValue = Color.CLEAR.toWebGPUColor()
                                 )
                             )
                         )
                 )
             renderPassEncoder.setPipeline(renderPipeline)
-            renderPassEncoder.draw(3, 1, 0, 0)
+            renderPassEncoder.draw(3u, 1u, 0u, 0u)
             renderPassEncoder.end()
-            renderPassEncoder.release()
 
             val commandBuffer = commandEncoder.finish()
 

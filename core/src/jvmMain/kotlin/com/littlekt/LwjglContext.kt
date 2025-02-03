@@ -4,8 +4,13 @@ import com.littlekt.async.KtScope
 import com.littlekt.async.MainDispatcher
 import com.littlekt.async.mainThread
 import com.littlekt.audio.OpenALAudioContext
-import com.littlekt.file.*
 import com.littlekt.file.Base64.decodeFromBase64
+import com.littlekt.file.JvmApplicationVfs
+import com.littlekt.file.JvmKeyValueStorage
+import com.littlekt.file.JvmResourcesVfs
+import com.littlekt.file.JvmUrlVfs
+import com.littlekt.file.KeyValueStorage
+import com.littlekt.file.Vfs
 import com.littlekt.file.vfs.VfsFile
 import com.littlekt.file.vfs.readPixmap
 import com.littlekt.input.LwjglInput
@@ -13,14 +18,15 @@ import com.littlekt.log.Logger
 import com.littlekt.resources.internal.InternalResources
 import com.littlekt.util.datastructure.fastForEach
 import com.littlekt.util.now
-import io.ygdrasil.webgpu.internal.jvm.panama.WGPULogCallback
-import io.ygdrasil.webgpu.internal.jvm.panama.wgpu_h
-import io.ygdrasil.webgpu.internal.jvm.panama.wgpu_h.*
-import java.lang.foreign.Arena
-import java.nio.ByteBuffer
-import java.nio.IntBuffer
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.milliseconds
+import ffi.globalMemory
+import io.ygdrasil.wgpu.WGPULogCallback
+import io.ygdrasil.wgpu.WGPULogLevel_Debug
+import io.ygdrasil.wgpu.WGPULogLevel_Error
+import io.ygdrasil.wgpu.WGPULogLevel_Info
+import io.ygdrasil.wgpu.WGPULogLevel_Trace
+import io.ygdrasil.wgpu.WGPULogLevel_Warn
+import io.ygdrasil.wgpu.wgpuSetLogCallback
+import io.ygdrasil.wgpu.wgpuSetLogLevel
 import kotlinx.coroutines.runBlocking
 import org.lwjgl.glfw.Callbacks
 import org.lwjgl.glfw.GLFW
@@ -28,7 +34,11 @@ import org.lwjgl.glfw.GLFWErrorCallback
 import org.lwjgl.glfw.GLFWImage
 import org.lwjgl.system.MemoryStack
 import org.lwjgl.system.MemoryUtil
-import java.lang.foreign.MemorySegment
+import java.lang.foreign.Arena
+import java.nio.ByteBuffer
+import java.nio.IntBuffer
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
 
 /**
  * @author Colton Daily
@@ -210,22 +220,22 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context() {
 
     private fun initLogging() {
         val callback =
-            WGPULogCallback.Function { level, message, _ ->
-                val messageJvm = message.getString(0)
+            WGPULogCallback.allocate(globalMemory) { level, cMessage, userdata ->
+                val message = cMessage?.toKString() ?: "empty message"
                 val logLevel =
                     when (level) {
-                        WGPULogLevel_Error() -> Logger.Level.ERROR
-                        WGPULogLevel_Warn() -> Logger.Level.WARN
-                        WGPULogLevel_Info() -> Logger.Level.INFO
-                        WGPULogLevel_Debug() -> Logger.Level.DEBUG
-                        WGPULogLevel_Trace() -> Logger.Level.TRACE
+                        WGPULogLevel_Error -> Logger.Level.ERROR
+                        WGPULogLevel_Warn -> Logger.Level.WARN
+                        WGPULogLevel_Info -> Logger.Level.INFO
+                        WGPULogLevel_Debug -> Logger.Level.DEBUG
+                        WGPULogLevel_Trace -> Logger.Level.TRACE
                         else -> Logger.Level.NONE
                     }
-                wgpuLogger.log(logLevel) { messageJvm }
+                wgpuLogger.log(logLevel) { message }
             }
 
-        wgpuSetLogCallback(WGPULogCallback.allocate(callback, scope), NULL())
-        wgpuSetLogLevel(WGPULogLevel_Trace())
+        wgpuSetLogLevel(WGPULogLevel_Trace)
+        wgpuSetLogCallback(callback, globalMemory.bufferOfAddress(callback.handler).handler)
 
     }
 

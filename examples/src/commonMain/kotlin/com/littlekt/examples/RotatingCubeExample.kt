@@ -18,11 +18,14 @@ import io.ygdrasil.webgpu.CompositeAlphaMode
 import io.ygdrasil.webgpu.CullMode
 import io.ygdrasil.webgpu.LoadOp
 import io.ygdrasil.webgpu.PipelineLayoutDescriptor
-import io.ygdrasil.webgpu.PresentMode
 import io.ygdrasil.webgpu.PrimitiveTopology
 import io.ygdrasil.webgpu.RenderPassDescriptor
 import io.ygdrasil.webgpu.RenderPipelineDescriptor
-import io.ygdrasil.webgpu.RenderPipelineDescriptor.*
+import io.ygdrasil.webgpu.RenderPipelineDescriptor.DepthStencilState
+import io.ygdrasil.webgpu.RenderPipelineDescriptor.FragmentState
+import io.ygdrasil.webgpu.RenderPipelineDescriptor.MultisampleState
+import io.ygdrasil.webgpu.RenderPipelineDescriptor.PrimitiveState
+import io.ygdrasil.webgpu.RenderPipelineDescriptor.VertexState
 import io.ygdrasil.webgpu.RenderPipelineDescriptor.VertexState.VertexBufferLayout
 import io.ygdrasil.webgpu.RenderPipelineDescriptor.VertexState.VertexBufferLayout.VertexAttribute
 import io.ygdrasil.webgpu.ShaderModuleDescriptor
@@ -31,7 +34,6 @@ import io.ygdrasil.webgpu.Size3D
 import io.ygdrasil.webgpu.StoreOp
 import io.ygdrasil.webgpu.SurfaceConfiguration
 import io.ygdrasil.webgpu.TextureDescriptor
-import io.ygdrasil.webgpu.TextureDimension
 import io.ygdrasil.webgpu.TextureFormat
 import io.ygdrasil.webgpu.TextureUsage
 import io.ygdrasil.webgpu.VertexFormat
@@ -82,10 +84,10 @@ class RotatingCubeExample(context: Context) : ContextListener(context) {
     """
             .trimIndent()
 
-    private val cubeVertexSize = 4 * 10L // byte size of one cube vertex
-    private val cubePositionOffset = 0L
-    private val cubeUVOffset = 4 * 8L
-    private val cubeVertexCount = 36
+    private val cubeVertexSize = 4u * 10uL // byte size of one cube vertex
+    private val cubePositionOffset = 0uL
+    private val cubeUVOffset = 4u * 8uL
+    private val cubeVertexCount = 36u
 
     private val cubeVertexArray =
         floatArrayOf(
@@ -459,8 +461,7 @@ class RotatingCubeExample(context: Context) : ContextListener(context) {
         graphics.configureSurface(
             setOf(TextureUsage.RenderAttachment),
             preferredFormat,
-            PresentMode.fifo,
-            CompositeAlphaMode.opaque
+            CompositeAlphaMode.Opaque
         )
 
         val projMatrix =
@@ -491,7 +492,7 @@ class RotatingCubeExample(context: Context) : ContextListener(context) {
                 BindGroupLayoutDescriptor(
                     listOf(
                         BindGroupLayoutDescriptor.Entry(
-                            0, setOf(ShaderStage.Vertex),
+                            0u, setOf(ShaderStage.Vertex),
                             BindGroupLayoutDescriptor.Entry.BufferBindingLayout()
                         )
                     )
@@ -501,7 +502,7 @@ class RotatingCubeExample(context: Context) : ContextListener(context) {
             device.createBindGroup(
                 BindGroupDescriptor(
                     bindGroupLayout, listOf(BindGroupDescriptor.BindGroupEntry(
-                        0,
+                        0u,
                         BindGroupDescriptor.BufferBinding(matrixBuffer)
                     ))
                 )
@@ -524,12 +525,12 @@ class RotatingCubeExample(context: Context) : ContextListener(context) {
                                 VertexAttribute(
                                     VertexFormat.Float32x4,
                                     cubePositionOffset,
-                                    0
+                                    0u
                                 ),
                                 VertexAttribute(
                                     VertexFormat.Float32x2,
                                     cubeUVOffset,
-                                    1
+                                    1u
                                 )
                             )
                         )
@@ -548,21 +549,21 @@ class RotatingCubeExample(context: Context) : ContextListener(context) {
 
                     ),
                     primitive =
-                    PrimitiveState(PrimitiveTopology.TriangleList, cullMode = CullMode.back),
+                    PrimitiveState(PrimitiveTopology.TriangleList, cullMode = CullMode.Back),
                     depthStencil =
                     DepthStencilState(
-                        format = TextureFormat.depth24plus,
+                        format = TextureFormat.Depth24Plus,
                         true,
-                        CompareFunction.less
+                        CompareFunction.Less
                     ),
-                    multisample = MultisampleState(1, 268435455u, false)
+                    multisample = MultisampleState(1u, 268435455u, false)
                 )
             )
         var depthTexture =
             device.createTexture(
                 TextureDescriptor(
-                    Size3D(graphics.width, graphics.height),
-                    TextureFormat.depth24plus,
+                    Size3D(graphics.width.toUInt(), graphics.height.toUInt()),
+                    TextureFormat.Depth24Plus,
                     setOf(TextureUsage.RenderAttachment)
                 )
             )
@@ -578,8 +579,8 @@ class RotatingCubeExample(context: Context) : ContextListener(context) {
                     depthTexture =
                         device.createTexture(
                             TextureDescriptor(
-                                Size3D(graphics.width, graphics.height),
-                                TextureFormat.depth24plus,
+                                Size3D(graphics.width.toUInt(), graphics.height.toUInt()),
+                                TextureFormat.Depth24Plus,
                                 setOf(TextureUsage.RenderAttachment),
                             )
                         )
@@ -588,12 +589,12 @@ class RotatingCubeExample(context: Context) : ContextListener(context) {
                         device,
                         preferredFormat,
                         setOf(TextureUsage.RenderAttachment),
-                        alphaMode = CompositeAlphaMode.opaque
+                        alphaMode = CompositeAlphaMode.Opaque
                     )
                 }
             if (!valid) return@onUpdate
             updateMvp()
-            queue.writeBuffer(matrixBuffer, 0L, modelViewProjMatrix.toBuffer(matBuffer).toArray())
+            queue.writeBuffer(matrixBuffer, 0uL, modelViewProjMatrix.toBuffer(matBuffer).toArray())
             val swapChainTexture = checkNotNull(surfaceTexture.texture)
             val frame = swapChainTexture.createView()
 
@@ -604,25 +605,24 @@ class RotatingCubeExample(context: Context) : ContextListener(context) {
                         listOf(
                             RenderPassDescriptor.ColorAttachment(
                                 view = frame,
-                                loadOp = LoadOp.clear,
-                                storeOp = StoreOp.store,
+                                loadOp = LoadOp.Clear,
+                                storeOp = StoreOp.Store,
                                 clearValue = Color.BLACK.toWebGPUColor()
                             )
                         ),
                         depthStencilAttachment = RenderPassDescriptor.DepthStencilAttachment(
                             depthTextureView,
                             depthClearValue = 1f,
-                            depthLoadOp = LoadOp.clear,
-                            depthStoreOp = StoreOp.store
+                            depthLoadOp = LoadOp.Clear,
+                            depthStoreOp = StoreOp.Store
                         )
                     )
                 )
             renderPassEncoder.setPipeline(renderPipeline)
-            renderPassEncoder.setBindGroup(0, bindGroup)
-            renderPassEncoder.setVertexBuffer(0, vertexBuffer)
-            renderPassEncoder.draw(cubeVertexCount, 1)
+            renderPassEncoder.setBindGroup(0u, bindGroup)
+            renderPassEncoder.setVertexBuffer(0u, vertexBuffer)
+            renderPassEncoder.draw(cubeVertexCount, 1u)
             renderPassEncoder.end()
-            renderPassEncoder.release()
 
             val commandBuffer = commandEncoder.finish()
 

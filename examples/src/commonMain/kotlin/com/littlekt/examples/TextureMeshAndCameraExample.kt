@@ -10,20 +10,27 @@ import com.littlekt.graphics.OrthographicCamera
 import com.littlekt.graphics.createGPUFloatBuffer
 import com.littlekt.graphics.textureIndexedMesh
 import io.ygdrasil.webgpu.BindGroupDescriptor
-import io.ygdrasil.webgpu.BindGroupDescriptor.*
+import io.ygdrasil.webgpu.BindGroupDescriptor.BindGroupEntry
+import io.ygdrasil.webgpu.BindGroupDescriptor.BufferBinding
+import io.ygdrasil.webgpu.BindGroupDescriptor.SamplerBinding
+import io.ygdrasil.webgpu.BindGroupDescriptor.TextureViewBinding
 import io.ygdrasil.webgpu.BindGroupLayoutDescriptor
 import io.ygdrasil.webgpu.BindGroupLayoutDescriptor.Entry
-import io.ygdrasil.webgpu.BindGroupLayoutDescriptor.Entry.*
+import io.ygdrasil.webgpu.BindGroupLayoutDescriptor.Entry.BufferBindingLayout
+import io.ygdrasil.webgpu.BindGroupLayoutDescriptor.Entry.SamplerBindingLayout
+import io.ygdrasil.webgpu.BindGroupLayoutDescriptor.Entry.TextureBindingLayout
 import io.ygdrasil.webgpu.BufferUsage
 import io.ygdrasil.webgpu.ColorWriteMask
 import io.ygdrasil.webgpu.IndexFormat
 import io.ygdrasil.webgpu.LoadOp
 import io.ygdrasil.webgpu.PipelineLayoutDescriptor
-import io.ygdrasil.webgpu.PresentMode
 import io.ygdrasil.webgpu.PrimitiveTopology
 import io.ygdrasil.webgpu.RenderPassDescriptor
 import io.ygdrasil.webgpu.RenderPipelineDescriptor
-import io.ygdrasil.webgpu.RenderPipelineDescriptor.*
+import io.ygdrasil.webgpu.RenderPipelineDescriptor.FragmentState
+import io.ygdrasil.webgpu.RenderPipelineDescriptor.MultisampleState
+import io.ygdrasil.webgpu.RenderPipelineDescriptor.PrimitiveState
+import io.ygdrasil.webgpu.RenderPipelineDescriptor.VertexState
 import io.ygdrasil.webgpu.ShaderModuleDescriptor
 import io.ygdrasil.webgpu.ShaderStage
 import io.ygdrasil.webgpu.StoreOp
@@ -125,22 +132,22 @@ class TextureMeshAndCameraExample(context: Context) : ContextListener(context) {
         val vertexGroupLayout =
             device.createBindGroupLayout(
                 BindGroupLayoutDescriptor(
-                    listOf(Entry(0, setOf(ShaderStage.Vertex), BufferBindingLayout()))
+                    listOf(Entry(0u, setOf(ShaderStage.Vertex), BufferBindingLayout()))
                 )
             )
         val vertexBindGroup =
             device.createBindGroup(
                 BindGroupDescriptor(
                     vertexGroupLayout,
-                    listOf(BindGroupEntry(0, BufferBinding(cameraUniformBuffer))),
+                    listOf(BindGroupEntry(0u, BufferBinding(cameraUniformBuffer))),
                 )
             )
         val fragmentGroupLayout =
             device.createBindGroupLayout(
                 BindGroupLayoutDescriptor(
                     listOf(
-                        Entry(0, setOf(ShaderStage.Fragment), TextureBindingLayout()),
-                        Entry(1, setOf(ShaderStage.Fragment), SamplerBindingLayout())
+                        Entry(0u, setOf(ShaderStage.Fragment), TextureBindingLayout()),
+                        Entry(1u, setOf(ShaderStage.Fragment), SamplerBindingLayout())
                     )
                 )
             )
@@ -149,8 +156,8 @@ class TextureMeshAndCameraExample(context: Context) : ContextListener(context) {
                     BindGroupDescriptor(
                         fragmentGroupLayout,
                         listOf(
-                            BindGroupEntry(0, TextureViewBinding(texture.view)),
-                            BindGroupEntry(1, SamplerBinding(texture.sampler)))
+                            BindGroupEntry(0u, TextureViewBinding(texture.view)),
+                            BindGroupEntry(1u, SamplerBinding(texture.sampler)))
                     )
             )
         val pipelineLayout =
@@ -180,13 +187,12 @@ class TextureMeshAndCameraExample(context: Context) : ContextListener(context) {
                 ),
                 primitive = PrimitiveState(topology = PrimitiveTopology.TriangleList),
                 depthStencil = null,
-                multisample = MultisampleState(count = 1, mask = 0xFFFFFFFu, alphaToCoverageEnabled = false)
+                multisample = MultisampleState(count = 1u, mask = 0xFFFFFFFu, alphaToCoverageEnabled = false)
             )
         val renderPipeline = device.createRenderPipeline(renderPipelineDesc)
         graphics.configureSurface(
             setOf(TextureUsage.RenderAttachment),
             preferredFormat,
-            PresentMode.fifo,
             graphics.surface.supportedAlphaMode.first()
         )
 
@@ -195,7 +201,6 @@ class TextureMeshAndCameraExample(context: Context) : ContextListener(context) {
             graphics.configureSurface(
                 setOf(TextureUsage.RenderAttachment),
                 preferredFormat,
-                PresentMode.fifo,
                 graphics.surface.supportedAlphaMode.first()
             )
         }
@@ -223,7 +228,7 @@ class TextureMeshAndCameraExample(context: Context) : ContextListener(context) {
             }
             camera.update()
             camera.viewProjection.toBuffer(cameraFloatBuffer)
-            device.queue.writeBuffer(cameraUniformBuffer, 0L, cameraFloatBuffer.toArray())
+            device.queue.writeBuffer(cameraUniformBuffer, 0uL, cameraFloatBuffer.toArray())
 
             val swapChainTexture = checkNotNull(surfaceTexture.texture)
             val frame = swapChainTexture.createView()
@@ -235,21 +240,20 @@ class TextureMeshAndCameraExample(context: Context) : ContextListener(context) {
                             listOf(
                                 RenderPassDescriptor.ColorAttachment(
                                     view = frame,
-                                    loadOp = LoadOp.clear,
-                                    storeOp = StoreOp.store,
+                                    loadOp = LoadOp.Clear,
+                                    storeOp = StoreOp.Store,
                                     clearValue = Color.DARK_GRAY.toWebGPUColor()
                                 )
                             )
                         )
                 )
             renderPassEncoder.setPipeline(renderPipeline)
-            renderPassEncoder.setBindGroup(0, vertexBindGroup)
-            renderPassEncoder.setBindGroup(1, fragmentBindGroup)
-            renderPassEncoder.setVertexBuffer(0, mesh.vbo)
+            renderPassEncoder.setBindGroup(0u, vertexBindGroup)
+            renderPassEncoder.setBindGroup(1u, fragmentBindGroup)
+            renderPassEncoder.setVertexBuffer(0u, mesh.vbo)
             renderPassEncoder.setIndexBuffer(mesh.ibo, IndexFormat.Uint16)
-            renderPassEncoder.drawIndexed(6, 1)
+            renderPassEncoder.drawIndexed(6u, 1u)
             renderPassEncoder.end()
-            renderPassEncoder.release()
 
             val commandBuffer = commandEncoder.finish()
 

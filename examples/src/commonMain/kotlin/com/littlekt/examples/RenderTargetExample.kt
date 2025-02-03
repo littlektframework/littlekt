@@ -8,7 +8,6 @@ import com.littlekt.graphics.EmptyTexture
 import com.littlekt.graphics.g2d.SpriteBatch
 import io.ygdrasil.webgpu.CommandEncoderDescriptor
 import io.ygdrasil.webgpu.LoadOp
-import io.ygdrasil.webgpu.PresentMode
 import io.ygdrasil.webgpu.RenderPassDescriptor
 import io.ygdrasil.webgpu.StoreOp
 import io.ygdrasil.webgpu.SurfaceTextureStatus
@@ -34,7 +33,6 @@ class RenderTargetExample(context: Context) : ContextListener(context) {
         graphics.configureSurface(
             setOf(TextureUsage.RenderAttachment),
             preferredFormat,
-            PresentMode.fifo,
             graphics.surface.supportedAlphaMode.first()
         )
 
@@ -43,7 +41,6 @@ class RenderTargetExample(context: Context) : ContextListener(context) {
             graphics.configureSurface(
                 setOf(TextureUsage.RenderAttachment),
                 preferredFormat,
-                PresentMode.fifo,
                 graphics.surface.supportedAlphaMode.first()
             )
         }
@@ -78,8 +75,8 @@ class RenderTargetExample(context: Context) : ContextListener(context) {
                         listOf(
                             RenderPassDescriptor.ColorAttachment(
                                 view = target.view,
-                                loadOp = LoadOp.clear,
-                                storeOp = StoreOp.store,
+                                loadOp = LoadOp.Clear,
+                                storeOp = StoreOp.Store,
                                 clearValue = Color.YELLOW.toWebGPUColor()
                             )
                         ),
@@ -91,7 +88,6 @@ class RenderTargetExample(context: Context) : ContextListener(context) {
             batch.draw(icon, 0f, 0f)
             batch.flush(renderTargetRenderPass)
             renderTargetRenderPass.end()
-            renderTargetRenderPass.release()
 
             val surfaceRenderPass =
                 commandEncoder.beginRenderPass(
@@ -99,8 +95,8 @@ class RenderTargetExample(context: Context) : ContextListener(context) {
                         listOf(
                             RenderPassDescriptor.ColorAttachment(
                                 view = frame,
-                                loadOp = LoadOp.clear,
-                                storeOp = StoreOp.store,
+                                loadOp = LoadOp.Clear,
+                                storeOp = StoreOp.Store,
                                 clearValue = Color.DARK_GRAY.toWebGPUColor()
                             )
                         ),
@@ -117,7 +113,6 @@ class RenderTargetExample(context: Context) : ContextListener(context) {
             batch.flush(surfaceRenderPass)
             batch.end()
             surfaceRenderPass.end()
-            surfaceRenderPass.release()
 
             val commandBuffer = commandEncoder.finish()
 

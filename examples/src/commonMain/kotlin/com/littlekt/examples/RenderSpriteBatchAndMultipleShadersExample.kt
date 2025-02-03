@@ -9,14 +9,15 @@ import com.littlekt.graphics.g2d.SpriteBatch
 import com.littlekt.graphics.shader.SpriteShader
 import io.ygdrasil.webgpu.BindGroup
 import io.ygdrasil.webgpu.BindGroupDescriptor
-import io.ygdrasil.webgpu.BindGroupDescriptor.*
+import io.ygdrasil.webgpu.BindGroupDescriptor.BindGroupEntry
+import io.ygdrasil.webgpu.BindGroupDescriptor.SamplerBinding
+import io.ygdrasil.webgpu.BindGroupDescriptor.TextureViewBinding
 import io.ygdrasil.webgpu.BindGroupLayoutDescriptor
 import io.ygdrasil.webgpu.BindGroupLayoutDescriptor.Entry
 import io.ygdrasil.webgpu.BindGroupLayoutDescriptor.Entry.SamplerBindingLayout
 import io.ygdrasil.webgpu.BindGroupLayoutDescriptor.Entry.TextureBindingLayout
 import io.ygdrasil.webgpu.Device
 import io.ygdrasil.webgpu.LoadOp
-import io.ygdrasil.webgpu.PresentMode
 import io.ygdrasil.webgpu.RenderPassDescriptor
 import io.ygdrasil.webgpu.RenderPassEncoder
 import io.ygdrasil.webgpu.ShaderStage
@@ -77,14 +78,14 @@ class RenderSpriteBatchAndMultipleShadersExample(context: Context) : ContextList
             layout =
                 listOf(
                     BindGroupLayoutDescriptor(
-                        listOf(Entry(0, setOf(ShaderStage.Vertex), Entry.BufferBindingLayout()))
+                        listOf(Entry(0u, setOf(ShaderStage.Vertex), Entry.BufferBindingLayout()))
                     ),
                     BindGroupLayoutDescriptor(
                         listOf(
-                            Entry(0, setOf(ShaderStage.Fragment),
+                            Entry(0u, setOf(ShaderStage.Fragment),
                                 TextureBindingLayout()
                             ),
-                            Entry(1, setOf(ShaderStage.Fragment),
+                            Entry(1u, setOf(ShaderStage.Fragment),
                                 SamplerBindingLayout()
                             )
                         )
@@ -99,7 +100,7 @@ class RenderSpriteBatchAndMultipleShadersExample(context: Context) : ContextList
                 device.createBindGroup(
                     BindGroupDescriptor(
                         layouts[0],
-                        listOf(BindGroupEntry(0, cameraUniformBufferBinding)),
+                        listOf(BindGroupEntry(0u, cameraUniformBufferBinding)),
                     )
                 )
             )
@@ -108,8 +109,8 @@ class RenderSpriteBatchAndMultipleShadersExample(context: Context) : ContextList
                     BindGroupDescriptor(
                         layouts[1],
                         listOf(
-                            BindGroupEntry(0, TextureViewBinding(texture.view)),
-                            BindGroupEntry(1, SamplerBinding(texture.sampler))
+                            BindGroupEntry(0u, TextureViewBinding(texture.view)),
+                            BindGroupEntry(1u, SamplerBinding(texture.sampler))
                         )
                     )
                 )
@@ -121,8 +122,8 @@ class RenderSpriteBatchAndMultipleShadersExample(context: Context) : ContextList
             bindGroups: List<BindGroup>,
             dynamicOffsets: List<Long>,
         ) {
-            encoder.setBindGroup(0, bindGroups[0])
-            encoder.setBindGroup(1, bindGroups[1])
+            encoder.setBindGroup(0u, bindGroups[0])
+            encoder.setBindGroup(1u, bindGroups[1])
         }
     }
 
@@ -140,7 +141,6 @@ class RenderSpriteBatchAndMultipleShadersExample(context: Context) : ContextList
         graphics.configureSurface(
             setOf(TextureUsage.RenderAttachment),
             preferredFormat,
-            PresentMode.fifo,
             graphics.surface.supportedAlphaMode.first()
         )
 
@@ -159,7 +159,6 @@ class RenderSpriteBatchAndMultipleShadersExample(context: Context) : ContextList
             graphics.configureSurface(
                 setOf(TextureUsage.RenderAttachment),
                 preferredFormat,
-                PresentMode.fifo,
                 graphics.surface.supportedAlphaMode.first()
             )
         }
@@ -193,8 +192,8 @@ class RenderSpriteBatchAndMultipleShadersExample(context: Context) : ContextList
                             listOf(
                                 RenderPassDescriptor.ColorAttachment(
                                     view = frame,
-                                    loadOp = LoadOp.clear,
-                                    storeOp = StoreOp.store,
+                                    loadOp = LoadOp.Clear,
+                                    storeOp = StoreOp.Store,
                                     clearValue = Color.DARK_GRAY.toLinear().toWebGPUColor()
                                 )
                             )
@@ -209,7 +208,6 @@ class RenderSpriteBatchAndMultipleShadersExample(context: Context) : ContextList
             batch.flush(renderPassEncoder)
             batch.end()
             renderPassEncoder.end()
-            renderPassEncoder.release()
 
             val commandBuffer = commandEncoder.finish()
 

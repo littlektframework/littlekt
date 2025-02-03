@@ -6,7 +6,6 @@ import com.littlekt.file.vfs.readLDtkMapLoader
 import com.littlekt.graphics.g2d.SpriteCache
 import com.littlekt.util.viewport.ExtendViewport
 import io.ygdrasil.webgpu.LoadOp
-import io.ygdrasil.webgpu.PresentMode
 import io.ygdrasil.webgpu.RenderPassDescriptor
 import io.ygdrasil.webgpu.StoreOp
 import io.ygdrasil.webgpu.SurfaceTextureStatus
@@ -32,7 +31,6 @@ class LDtkTileMapCacheExample(context: Context) : ContextListener(context) {
         graphics.configureSurface(
             setOf(TextureUsage.RenderAttachment),
             preferredFormat,
-            PresentMode.fifo,
             graphics.surface.supportedAlphaMode.first()
         )
 
@@ -47,7 +45,6 @@ class LDtkTileMapCacheExample(context: Context) : ContextListener(context) {
             graphics.configureSurface(
                 setOf(TextureUsage.RenderAttachment),
                 preferredFormat,
-                PresentMode.fifo,
                 graphics.surface.supportedAlphaMode.first()
             )
         }
@@ -66,7 +63,6 @@ class LDtkTileMapCacheExample(context: Context) : ContextListener(context) {
                     graphics.configureSurface(
                         setOf(TextureUsage.RenderAttachment),
                         preferredFormat,
-                        PresentMode.fifo,
                         graphics.surface.supportedAlphaMode.first()
                     )
                     logger.info { "getCurrentTexture status=$status" }
@@ -89,8 +85,8 @@ class LDtkTileMapCacheExample(context: Context) : ContextListener(context) {
                             listOf(
                                 RenderPassDescriptor.ColorAttachment(
                                     view = frame,
-                                    loadOp = LoadOp.clear,
-                                    storeOp = StoreOp.store,
+                                    loadOp = LoadOp.Clear,
+                                    storeOp = StoreOp.Store,
                                     clearValue = bgColor.toWebGPUColor()
                                 )
                             )
@@ -101,7 +97,6 @@ class LDtkTileMapCacheExample(context: Context) : ContextListener(context) {
 
             cache.render(renderPassEncoder, camera.viewProjection)
             renderPassEncoder.end()
-            renderPassEncoder.release()
 
             val commandBuffer = commandEncoder.finish()
 

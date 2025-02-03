@@ -21,7 +21,6 @@ import io.ygdrasil.webgpu.ImageCopyTexture
 import io.ygdrasil.webgpu.IndexFormat
 import io.ygdrasil.webgpu.LoadOp
 import io.ygdrasil.webgpu.PipelineLayoutDescriptor
-import io.ygdrasil.webgpu.PresentMode
 import io.ygdrasil.webgpu.PrimitiveTopology
 import io.ygdrasil.webgpu.RenderPassDescriptor
 import io.ygdrasil.webgpu.RenderPipelineDescriptor
@@ -114,8 +113,8 @@ class TextureExample(context: Context) : ContextListener(context) {
         val texture =
             device.createTexture(
                 TextureDescriptor(
-                    Size3D(image.width, image.height),
-                    TextureFormat.rgba8unorm,
+                    Size3D(image.width.toUInt(), image.height.toUInt()),
+                    TextureFormat.RGBA8Unorm,
                     setOf(TextureUsage.CopyDst, TextureUsage.TextureBinding)
                 )
             )
@@ -124,8 +123,8 @@ class TextureExample(context: Context) : ContextListener(context) {
         queue.writeTexture(
             data = image.pixels.toArray(),
             destination = ImageCopyTexture(texture),
-            dataLayout = TextureDataLayout(0L, image.width * 4, image.height),
-            size = Size3D(image.width, image.height)
+            dataLayout = TextureDataLayout(0uL, image.width.toUInt() * 4u, image.height.toUInt()),
+            size = Size3D(image.width.toUInt(), image.height.toUInt())
         )
 
         val sampler = device.createSampler(SamplerDescriptor())
@@ -135,10 +134,10 @@ class TextureExample(context: Context) : ContextListener(context) {
                 BindGroupLayoutDescriptor(
                     listOf(
                         BindGroupLayoutDescriptor.Entry(
-                            0, setOf(ShaderStage.Fragment), TextureBindingLayout()
+                            0u, setOf(ShaderStage.Fragment), TextureBindingLayout()
                         ),
                         BindGroupLayoutDescriptor.Entry(
-                            1, setOf(ShaderStage.Fragment),
+                            1u, setOf(ShaderStage.Fragment),
                             SamplerBindingLayout()
                         )
                     )
@@ -149,8 +148,8 @@ class TextureExample(context: Context) : ContextListener(context) {
                 BindGroupDescriptor(
                     bindGroupLayout,
                     listOf(
-                        BindGroupDescriptor.BindGroupEntry(0, TextureViewBinding(textureView)),
-                        BindGroupDescriptor.BindGroupEntry(1, SamplerBinding(sampler))
+                        BindGroupDescriptor.BindGroupEntry(0u, TextureViewBinding(textureView)),
+                        BindGroupDescriptor.BindGroupEntry(1u, SamplerBinding(sampler))
                     )
                 )
             )
@@ -164,13 +163,13 @@ class TextureExample(context: Context) : ContextListener(context) {
                     entryPoint = "vs_main",
                     buffers = listOf(
                         VertexBufferLayout(
-                            4L * Float.SIZE_BYTES,
+                            4uL * Float.SIZE_BYTES.toULong(),
                             listOf(
-                                VertexAttribute(VertexFormat.Float32x2, 0, 0),
+                                VertexAttribute(VertexFormat.Float32x2, 0u, 0u),
                                 VertexAttribute(
                                     VertexFormat.Float32x2,
-                                    2L * Float.SIZE_BYTES,
-                                    1
+                                    2uL * Float.SIZE_BYTES.toULong(),
+                                    1u
                                 )
                             ),
                             VertexStepMode.Vertex,
@@ -192,13 +191,12 @@ class TextureExample(context: Context) : ContextListener(context) {
                 primitive = RenderPipelineDescriptor.PrimitiveState(topology = PrimitiveTopology.TriangleList),
                 depthStencil = null,
                 multisample =
-                RenderPipelineDescriptor.MultisampleState(count = 1, mask = 0xFFFFFFFu, alphaToCoverageEnabled = false)
+                RenderPipelineDescriptor.MultisampleState(count = 1u, mask = 0xFFFFFFFu, alphaToCoverageEnabled = false)
             )
         val renderPipeline = device.createRenderPipeline(renderPipelineDesc)
         graphics.configureSurface(
             setOf(TextureUsage.RenderAttachment),
             preferredFormat,
-            PresentMode.fifo,
             graphics.surface.supportedAlphaMode.first()
         )
 
@@ -216,7 +214,6 @@ class TextureExample(context: Context) : ContextListener(context) {
                     graphics.configureSurface(
                         setOf(TextureUsage.RenderAttachment),
                         preferredFormat,
-                        PresentMode.fifo,
                         graphics.surface.supportedAlphaMode.first()
                     )
                     logger.info { "getCurrentTexture status=$status" }
@@ -240,20 +237,19 @@ class TextureExample(context: Context) : ContextListener(context) {
                         listOf(
                             RenderPassDescriptor.ColorAttachment(
                                 view = frame,
-                                loadOp = LoadOp.clear,
-                                storeOp = StoreOp.store,
+                                loadOp = LoadOp.Clear,
+                                storeOp = StoreOp.Store,
                                 clearValue = Color.DARK_GRAY.toWebGPUColor()
                             )
                         )
                     )
                 )
             renderPassEncoder.setPipeline(renderPipeline)
-            renderPassEncoder.setBindGroup(0, bindGroup)
-            renderPassEncoder.setVertexBuffer(0, vbo)
+            renderPassEncoder.setBindGroup(0u, bindGroup)
+            renderPassEncoder.setVertexBuffer(0u, vbo)
             renderPassEncoder.setIndexBuffer(ibo, IndexFormat.Uint16)
-            renderPassEncoder.drawIndexed(indices.capacity, 1)
+            renderPassEncoder.drawIndexed(indices.capacity.toUInt(), 1u)
             renderPassEncoder.end()
-            renderPassEncoder.release()
 
             val commandBuffer = commandEncoder.finish()
 

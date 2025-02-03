@@ -20,7 +20,6 @@ import io.ygdrasil.webgpu.ComputePipelineDescriptor
 import io.ygdrasil.webgpu.ComputePipelineDescriptor.ProgrammableStage
 import io.ygdrasil.webgpu.LoadOp
 import io.ygdrasil.webgpu.PipelineLayoutDescriptor
-import io.ygdrasil.webgpu.PresentMode
 import io.ygdrasil.webgpu.RenderPassDescriptor
 import io.ygdrasil.webgpu.RenderPipelineDescriptor
 import io.ygdrasil.webgpu.RenderPipelineDescriptor.VertexState
@@ -31,6 +30,7 @@ import io.ygdrasil.webgpu.SurfaceTextureStatus
 import io.ygdrasil.webgpu.TextureUsage
 import io.ygdrasil.webgpu.VertexFormat
 import io.ygdrasil.webgpu.VertexStepMode
+import io.ygdrasil.webgpu.sizeInBytes
 import kotlin.math.ceil
 import kotlin.random.Random
 
@@ -52,7 +52,6 @@ class ComputeBoidsExample(context: Context) : ContextListener(context) {
         graphics.configureSurface(
             setOf(TextureUsage.RenderAttachment),
             preferredFormat,
-            PresentMode.fifo,
             graphics.surface.supportedAlphaMode.first()
         )
 
@@ -69,7 +68,7 @@ class ComputeBoidsExample(context: Context) : ContextListener(context) {
                             listOf(
                                 VertexBufferLayoutView(
                                     arrayStride = 4 * 4,
-                                    stepMode = VertexStepMode.instance,
+                                    stepMode = VertexStepMode.Instance,
                                     attributes =
                                     listOf(
                                         VertexAttributeView(
@@ -81,7 +80,7 @@ class ComputeBoidsExample(context: Context) : ContextListener(context) {
                                         VertexAttributeView(
                                             format = VertexFormat.Float32x2,
                                             offset =
-                                            VertexFormat.Float32x2.sizeInByte
+                                            VertexFormat.Float32x2.sizeInBytes()
                                                 .toLong(),
                                             shaderLocation = 1,
                                             usage = VertexAttrUsage.GENERIC
@@ -122,18 +121,18 @@ class ComputeBoidsExample(context: Context) : ContextListener(context) {
         val computeBindGroupLayoutDesc =
             BindGroupLayoutDescriptor(
                 listOf(
-                    Entry(0, setOf(ShaderStage.compute),
+                    Entry(0u, setOf(ShaderStage.Compute),
                         BufferBindingLayout()
                     ),
                     Entry(
-                        1,
-                        setOf(ShaderStage.compute),
+                        1u,
+                        setOf(ShaderStage.Compute),
                         BufferBindingLayout(BufferBindingType.ReadOnlyStorage)
                     ),
                     Entry(
-                        2,
-                        setOf(ShaderStage.compute),
-                        BufferBindingLayout(BufferBindingType.storage)
+                        2u,
+                        setOf(ShaderStage.Compute),
+                        BufferBindingLayout(BufferBindingType.Storage)
                     )
                 ),
                 "compute bind group"
@@ -142,16 +141,16 @@ class ComputeBoidsExample(context: Context) : ContextListener(context) {
             device.createBindGroupLayout(
                 BindGroupLayoutDescriptor(
                     listOf(
-                        Entry(0, setOf(ShaderStage.compute), BufferBindingLayout()),
+                        Entry(0u, setOf(ShaderStage.Compute), BufferBindingLayout()),
                         Entry(
-                            1,
-                            setOf(ShaderStage.compute),
+                            1u,
+                            setOf(ShaderStage.Compute),
                             BufferBindingLayout(BufferBindingType.ReadOnlyStorage)
                         ),
                         Entry(
-                            2,
-                            setOf(ShaderStage.compute),
-                            BufferBindingLayout(BufferBindingType.storage)
+                            2u,
+                            setOf(ShaderStage.Compute),
+                            BufferBindingLayout(BufferBindingType.Storage)
                         )
                     ),
                     "compute bind group"
@@ -196,7 +195,7 @@ class ComputeBoidsExample(context: Context) : ContextListener(context) {
             device.createBuffer(
                 BufferDescriptor(
                     label = "sim param buffer",
-                    size = simParamBufferSize,
+                    size = simParamBufferSize.toULong(),
                     usage = setOf(BufferUsage.Uniform, BufferUsage.CopyDst),
                     mappedAtCreation = false
                 )
@@ -213,7 +212,7 @@ class ComputeBoidsExample(context: Context) : ContextListener(context) {
                 simParams.rule3Scale
             )
         )
-        device.queue.writeBuffer(simParamBuffer, 0L, simParamBufferData.toArray())
+        device.queue.writeBuffer(simParamBuffer, 0uL, simParamBufferData.toArray())
 
         val numParticles = 1500
         val initialParticleData = FloatArray(numParticles * 4)
@@ -239,17 +238,17 @@ class ComputeBoidsExample(context: Context) : ContextListener(context) {
                     BindGroupDescriptor(
                         computeBindGroupLayout,
                         listOf(
-                            BindGroupEntry(0, BufferBinding(simParamBuffer)),
+                            BindGroupEntry(0u, BufferBinding(simParamBuffer)),
                             BindGroupEntry(
-                                1,
-                                BufferBinding(particleBuffers[i], 0, initialParticleData.size * 4L)
+                                1u,
+                                BufferBinding(particleBuffers[i], 0u, initialParticleData.size.toULong() * 4uL)
                             ),
                             BindGroupEntry(
-                                2,
+                                2u,
                                 BufferBinding(
                                     particleBuffers[(i + 1) % 2],
-                                    0,
-                                    initialParticleData.size * 4L
+                                    0u,
+                                    initialParticleData.size.toULong() * 4uL
                                 )
                             ),
                         )
@@ -261,7 +260,6 @@ class ComputeBoidsExample(context: Context) : ContextListener(context) {
             graphics.configureSurface(
                 setOf(TextureUsage.RenderAttachment),
                 preferredFormat,
-                PresentMode.fifo,
                 graphics.surface.supportedAlphaMode.first()
             )
         }
@@ -296,8 +294,8 @@ class ComputeBoidsExample(context: Context) : ContextListener(context) {
                     listOf(
                         RenderPassDescriptor.ColorAttachment(
                             view = frame,
-                            loadOp = LoadOp.clear,
-                            storeOp = StoreOp.store,
+                            loadOp = LoadOp.Clear,
+                            storeOp = StoreOp.Store,
                             clearValue = Color.DARK_GRAY.toWebGPUColor()
                         )
                     ),
@@ -307,8 +305,8 @@ class ComputeBoidsExample(context: Context) : ContextListener(context) {
             run computePass@{
                 val passEncoder = commandEncoder.beginComputePass()
                 passEncoder.setPipeline(computePipeline)
-                passEncoder.setBindGroup(0, particleBindGroups[fidx % 2])
-                passEncoder.dispatchWorkgroups(ceil(numParticles / 64f).toInt())
+                passEncoder.setBindGroup(0u, particleBindGroups[fidx % 2])
+                passEncoder.dispatchWorkgroups(ceil(numParticles / 64f).toUInt())
                 passEncoder.end()
                 passEncoder.close()
             }
@@ -316,9 +314,9 @@ class ComputeBoidsExample(context: Context) : ContextListener(context) {
             run renderPass@{
                 val passEncoder = commandEncoder.beginRenderPass(renderPassDescriptor)
                 passEncoder.setPipeline(renderPipeline)
-                passEncoder.setVertexBuffer(0, particleBuffers[(fidx + 1) % 2])
-                passEncoder.setVertexBuffer(1, spriteVertexBuffer)
-                passEncoder.draw(3, numParticles, 0, 0)
+                passEncoder.setVertexBuffer(0u, particleBuffers[(fidx + 1) % 2])
+                passEncoder.setVertexBuffer(1u, spriteVertexBuffer)
+                passEncoder.draw(3u, numParticles.toUInt(), 0u, 0u)
                 passEncoder.end()
             }
 
