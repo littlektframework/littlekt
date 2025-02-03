@@ -8,7 +8,7 @@ import com.littlekt.file.vfs.readGltfModel
 import com.littlekt.graphics.Camera
 import com.littlekt.graphics.g3d.Environment
 import com.littlekt.graphics.g3d.ModelBatch
-import com.littlekt.graphics.g3d.Scene
+import com.littlekt.graphics.g3d.Node3D
 import com.littlekt.graphics.webgpu.SurfaceConfiguration
 import com.littlekt.graphics.webgpu.SurfaceTexture
 import com.littlekt.graphics.webgpu.TextureStatus
@@ -74,7 +74,7 @@ data class GltfModel(
     val scale: Float,
     val translate: Vec3f,
 ) {
-    var scene: Scene? = null
+    var scene: Node3D? = null
 }
 
 fun ModelBatch.renderGltfModels(models: List<GltfModel>) {

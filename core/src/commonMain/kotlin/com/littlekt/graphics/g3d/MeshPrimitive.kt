@@ -19,7 +19,7 @@ import com.littlekt.log.Logger
  */
 open class MeshPrimitive(
     val mesh: Mesh<*>,
-    val material: Material,
+    var material: Material,
     val topology: PrimitiveTopology = PrimitiveTopology.TRIANGLE_LIST,
     val stripIndexFormat: IndexFormat? = null,
     instanceSize: Int = 0,

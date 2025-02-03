@@ -1,8 +1,10 @@
 package com.littlekt.graphics.g3d
 
+import com.littlekt.graphics.Color
 import com.littlekt.math.*
 import com.littlekt.math.geom.Angle
 import com.littlekt.util.datastructure.fastForEach
+import com.littlekt.util.datastructure.fastForEachWithIndex
 import kotlin.reflect.KClass
 import kotlin.time.Duration
 
@@ -32,13 +34,14 @@ open class Node3D {
     val children: List<Node3D>
         get() = _children
 
-    /** If destroy was called, this will be true until the next time node's are processed. */
+    /** If destroy was called, this will be true until the next time nodes are processed. */
     val isDestroyed
         get() = _isDestroyed
 
     /**
      * Global transform. Don't call `globalTransform.set` directly, the data won't be marked dirty.
-     * Set the globalTransform directly with `globalTransform = myMat4`.
+     * Set the globalTransform directly with `globalTransform = myMat4`. This will copy the mat
+     * values into the existing matrix.
      */
     var globalTransform: Mat4
         get() {
@@ -365,11 +368,23 @@ open class Node3D {
 
     protected open fun dirty() {
         dirty = true
-        children.forEach { it.propagateDirty() }
+        children.fastForEach { it.propagateDirty() }
     }
 
     private fun Node3D.propagateDirty() {
         dirty()
+    }
+
+    open fun forEachMeshPrimitive(action: (MeshPrimitive) -> Unit) {
+        children.fastForEach { it.forEachMeshPrimitive(action) }
+    }
+
+    open fun color(color: Color) {
+        children.fastForEach { it.propagateSetColor(color) }
+    }
+
+    private fun Node3D.propagateSetColor(color: Color) {
+        color(color)
     }
 
     /**
@@ -414,7 +429,7 @@ open class Node3D {
      * @param children the children to add
      */
     fun addChildren(vararg children: Node3D): Node3D {
-        children.forEach { addChild(it) }
+        children.fastForEach { addChild(it) }
         return this
     }
 
@@ -433,7 +448,7 @@ open class Node3D {
     }
 
     open fun update(dt: Duration) {
-        children.forEach { it.update(dt) }
+        children.fastForEach { it.update(dt) }
     }
 
     open fun updateTransform() {
@@ -805,7 +820,7 @@ open class Node3D {
                 append(" (${this@Node3D::class.simpleName})")
             }
             appendLine()
-            children.forEachIndexed { index, node ->
+            children.fastForEachWithIndex { index, node ->
                 if (index < children.size - 1) {
                     node.internalToTreeString(builder, "$childrenPrefix├── ", "$childrenPrefix│   ")
                 } else {
@@ -831,7 +846,7 @@ open class Node3D {
 
     fun <T : Node3D> filterChildrenByType(type: KClass<T>): List<T> {
         val result = mutableListOf<T>()
-        children.forEach { result.addAll(it.filterByType(type)) }
+        children.fastForEach { result.addAll(it.filterByType(type)) }
         return result
     }
 

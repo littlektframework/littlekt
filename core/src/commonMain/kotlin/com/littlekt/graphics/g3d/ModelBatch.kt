@@ -12,6 +12,7 @@ import com.littlekt.graphics.util.BindingUsage
 import com.littlekt.graphics.webgpu.*
 import com.littlekt.log.Logger
 import com.littlekt.util.datastructure.fastForEach
+import com.littlekt.util.datastructure.pool
 import kotlin.math.max
 import kotlin.reflect.KClass
 import kotlin.time.Duration
@@ -26,6 +27,7 @@ class ModelBatch(val device: Device) : Releasable {
     private val pipelineProviders = mutableMapOf<KClass<out Material>, MaterialPipelineProvider>()
     private val pipelines = mutableListOf<MaterialPipeline>()
     private val primitivesByPipeline = mutableMapOf<MaterialPipeline, MutableList<MeshPrimitive>>()
+    private val listPool = pool(reset = { it.clear() }) { mutableListOf<MeshPrimitive>() }
 
     /** By material id */
     private val bindGroupByMaterialId = mutableMapOf<Int, BindGroup>()
@@ -79,20 +81,8 @@ class ModelBatch(val device: Device) : Releasable {
      * **Note:** This does nothing if the given scene has the pipeline prepared either via
      * [preparePipeline] or [render].
      */
-    fun preparePipeline(scene: Scene, environment: Environment) {
-        scene.modelInstances.fastForEach { preparePipeline(it, environment) }
-    }
-
-    /**
-     * Prepare a [ModelInstance] for rendering by creating the pipeline and material bind groups for
-     * the specified [Environment]. This is useful if a large model instance needs loading and
-     * generated on a separate thread to prevent frames from dropping.
-     *
-     * **Note:** This does nothing if the given model instance has the pipeline prepared either via
-     * [preparePipeline] or [render].
-     */
-    fun preparePipeline(model: ModelInstance, environment: Environment) {
-        model.instanceOf.primitives.fastForEach { preparePipeline(it, environment) }
+    fun preparePipeline(scene: Node3D, environment: Environment) {
+        scene.forEachMeshPrimitive { preparePipeline(it, environment) }
     }
 
     /**
@@ -122,16 +112,9 @@ class ModelBatch(val device: Device) : Releasable {
         }
     }
 
-    /** Adds a [Scene] to be drawn on the next [flush] using the specified [Environment].. */
-    fun render(scene: Scene, environment: Environment) {
-        scene.modelInstances.fastForEach { render(it, environment) }
-    }
-
-    /**
-     * Adds a [ModelInstance] to be drawn on the next [flush] using the specified [Environment]..
-     */
-    fun render(model: ModelInstance, environment: Environment) {
-        model.instanceOf.primitives.fastForEach { render(it, environment) }
+    /** Adds a [Node3D] to be drawn on the next [flush] using the specified [Environment].. */
+    fun render(scene: Node3D, environment: Environment) {
+        scene.forEachMeshPrimitive { render(it, environment) }
     }
 
     /** Adds a [MeshPrimitive] to be drawn on the next [flush] using the specified [Environment]. */
@@ -152,7 +135,9 @@ class ModelBatch(val device: Device) : Releasable {
                 pipelines += pipeline
             }
             // todo - pool lists?
-            primitivesByPipeline.getOrPut(pipeline) { mutableListOf() }.apply { add(meshPrimitive) }
+            primitivesByPipeline
+                .getOrPut(pipeline) { listPool.alloc() }
+                .apply { add(meshPrimitive) }
 
             bindGroupByMaterialId.getOrPut(meshPrimitive.material.id) {
                 meshPrimitive.material.createBindGroup(pipeline.shader)
@@ -232,6 +217,10 @@ class ModelBatch(val device: Device) : Releasable {
         }
 
         pipelines.clear()
+        primitivesByPipeline.values.forEach {
+            it.clear()
+            listPool.free(it)
+        }
         primitivesByPipeline.clear()
         updatedEnvironments.clear()
     }

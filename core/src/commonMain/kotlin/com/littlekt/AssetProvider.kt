@@ -17,7 +17,7 @@ import com.littlekt.graphics.g2d.font.BitmapFont
 import com.littlekt.graphics.g2d.font.CharacterSets
 import com.littlekt.graphics.g2d.font.TtfFont
 import com.littlekt.graphics.g2d.tilemap.tiled.TiledMap
-import com.littlekt.graphics.g3d.Scene
+import com.littlekt.graphics.g3d.Node3D
 import com.littlekt.util.datastructure.fastForEach
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
@@ -265,7 +265,7 @@ open class AssetProvider(val context: Context) {
                     },
                 TiledMap::class to { file, _ -> file.readTiledMap() },
                 GltfData::class to { file, _ -> file.readGltf() },
-                Scene::class to
+                Node3D::class to
                     { file, params ->
                         if (params is GltfModelAssetParameter) {
                             file.readGltfModel(params.config)

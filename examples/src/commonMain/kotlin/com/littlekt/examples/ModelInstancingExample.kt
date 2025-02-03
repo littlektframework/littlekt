@@ -8,7 +8,7 @@ import com.littlekt.file.vfs.readGltfModel
 import com.littlekt.graphics.Color
 import com.littlekt.graphics.PerspectiveCamera
 import com.littlekt.graphics.g3d.ModelBatch
-import com.littlekt.graphics.g3d.Scene
+import com.littlekt.graphics.g3d.Node3D
 import com.littlekt.graphics.g3d.UnlitEnvironment
 import com.littlekt.graphics.g3d.util.PBRMaterialPipelineProvider
 import com.littlekt.graphics.g3d.util.UnlitMaterialPipelineProvider
@@ -57,7 +57,7 @@ class ModelInstancingExample(context: Context) : ContextListener(context) {
         var depthFrame = depthTexture.createView()
         val duckModel =
             resourcesVfs["models/Duck.glb"].readGltfModel(config = GltfLoaderUnlitConfig())
-        val duckModelInstances = mutableListOf<Scene>()
+        val duckModelInstances = mutableListOf<Node3D>()
 
         KtScope.launch {
             repeat(15) { y ->
@@ -71,7 +71,7 @@ class ModelInstancingExample(context: Context) : ContextListener(context) {
                                     (0..360).random().degrees,
                                 )
                                 translate(x * 3f, y * 3f, z * 3f)
-                                setColor(
+                                color(
                                     Color(
                                         (0.1f..1f).random(),
                                         (0.1f..1f).random(),

@@ -21,6 +21,11 @@ class Skin {
         nodes.filter { !it.hasParent }.forEach { it.printHierarchy("") }
     }
 
+    fun copy(): Skin {
+        // TODO
+        return Skin()
+    }
+
     class SkinNode(val joint: Node3D, val inverseBindMatrix: Mat4) {
         val jointTransform = Mat4()
 

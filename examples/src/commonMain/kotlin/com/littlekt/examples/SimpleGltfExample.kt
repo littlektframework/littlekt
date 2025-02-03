@@ -135,22 +135,19 @@ class SimpleGltfExample(context: Context) : ContextListener(context) {
                         sizeY = 50f
                     }
                 }
-            ModelInstance(
-                    Model(
-                        listOf(
-                            MeshPrimitive(
-                                mesh,
-                                PBRMaterial(
-                                    device,
-                                    baseColorTexture = checkered,
-                                    normalTexture = checkeredNormal,
-                                    castShadows = false,
-                                ),
-                            )
-                        )
+            MeshNode(
+                listOf(
+                    MeshPrimitive(
+                        mesh,
+                        PBRMaterial(
+                            device,
+                            baseColorTexture = checkered,
+                            normalTexture = checkeredNormal,
+                            castShadows = false,
+                        ),
                     )
                 )
-                .apply { createVisualInstances() }
+            )
         }
 
         graphics.configureSurface(

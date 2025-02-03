@@ -17,10 +17,10 @@ import com.littlekt.util.align
 import com.littlekt.util.datastructure.internal.threadSafeMutableMapOf
 
 /**
- * Converts a [GltfData] to a [Model] ready for rendering. This will load underlying buffers and
+ * Converts a [GltfData] to a [MeshNode] ready for rendering. This will load underlying buffers and
  * textures.
  *
- * @param config the configuration to use when generating the [Model]. Defaults to
+ * @param config the configuration to use when generating the [MeshNode]. Defaults to
  *   [GltfLoaderPbrConfig].
  * @param preferredFormat the preferred [TextureFormat] to be used when loading the model texture.
  */
@@ -29,7 +29,7 @@ fun GltfData.toModel(
     preferredFormat: TextureFormat =
         if (root.vfs.context.graphics.preferredFormat.srgb) TextureFormat.RGBA8_UNORM_SRGB
         else TextureFormat.RGBA8_UNORM,
-): Scene {
+): Node3D {
     return GltfModelGenerator(this)
         .toModel(config, root.vfs.context.graphics.device, preferredFormat, scenes[scene])
 }
@@ -46,15 +46,15 @@ private class GltfModelGenerator(val gltfFile: GltfData) {
     val meshMaterials = threadSafeMutableMapOf<Mesh<*>, GltfMaterial?>()
 
     // gltf mesh index to model
-    val modelCache = threadSafeMutableMapOf<Int, Model>()
+    val modelCache = threadSafeMutableMapOf<Int, List<MeshPrimitive>>()
 
     fun toModel(
         config: GltfLoaderConfig,
         device: Device,
         preferredFormat: TextureFormat,
         gltfScene: GltfScene,
-    ): Scene {
-        val scene = Scene().apply { name = gltfScene.name ?: "glTF scene" }
+    ): Node3D {
+        val scene = Node3D().apply { name = gltfScene.name ?: "glTF scene" }
         gltfScene.nodeRefs.map { node ->
             scene += node.toNode(config, device, preferredFormat, scene, scene)
         }
@@ -65,7 +65,7 @@ private class GltfModelGenerator(val gltfFile: GltfData) {
         return scene
     }
 
-    private fun createSkins(scene: Scene) {
+    private fun createSkins(scene: Node3D) {
         gltfFile.skins.forEach { skin ->
             val modelSkin = Skin()
             val invBinMats = skin.inverseBindMatrixAccessorRef?.let { GltfMat4Accessor(it) }
@@ -90,12 +90,12 @@ private class GltfModelGenerator(val gltfFile: GltfData) {
                         }
                     }
                 }
-                scene.skins += modelSkin
+                // scene.skins += modelSkin
             }
         }
     }
 
-    private fun applySkin(scene: Scene) {
+    private fun applySkin(scene: Node3D) {
         //        scene.modelInstances.forEach {
         //            // apply skin
         //            if (skin >= 0) {
@@ -114,7 +114,7 @@ private class GltfModelGenerator(val gltfFile: GltfData) {
         device: Device,
         preferredFormat: TextureFormat,
         parent: Node3D,
-        scene: Scene,
+        scene: Node3D,
     ): Node3D {
         val nodeName = name ?: "node_${parent.childCount}"
         val meshRef = meshRef
@@ -125,13 +125,7 @@ private class GltfModelGenerator(val gltfFile: GltfData) {
                 null
             }
         val node =
-            (if (model != null)
-                    ModelInstance(model).also {
-                        it.createVisualInstances()
-                        scene.modelInstances += it
-                    }
-                else Node3D())
-                .apply { name = nodeName }
+            (if (model != null) MeshNode(model, null) else Node3D()).apply { name = nodeName }
         nodeCache[this] = node
 
         if (matrix.isNotEmpty()) {
@@ -157,7 +151,7 @@ private class GltfModelGenerator(val gltfFile: GltfData) {
         device: Device,
         preferredFormat: TextureFormat,
         meshRef: GltfMesh,
-    ): Model {
+    ): List<MeshPrimitive> {
         val primitives =
             meshRef.primitives.mapIndexed { index, prim ->
                 val geometry = prim.toGeometry(gltfFile.accessors)
@@ -191,7 +185,7 @@ private class GltfModelGenerator(val gltfFile: GltfData) {
 
                 meshPrimitive
             }
-        return Model(primitives)
+        return primitives
     }
 
     private fun GltfPrimitive.toGeometry(gltfAccessors: List<GltfAccessor>): IndexedMeshGeometry {
