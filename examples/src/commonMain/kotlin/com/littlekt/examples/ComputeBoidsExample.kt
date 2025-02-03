@@ -35,7 +35,7 @@ import kotlin.math.ceil
 import kotlin.random.Random
 
 /**
- * An example using a [ComputePassEncoder]
+ * An example using a [io.ygdrasil.webgpu.ComputePassEncoder]
  *
  * @author Colton Daily
  * @date 5/14/2024

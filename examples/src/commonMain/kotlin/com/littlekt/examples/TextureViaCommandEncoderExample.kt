@@ -40,7 +40,7 @@ import io.ygdrasil.webgpu.VertexFormat
 import io.ygdrasil.webgpu.VertexStepMode
 
 /**
- * An example rendering a texture using a [CommandEncoder] in pure WebGPU.
+ * An example rendering a texture using a [io.ygdrasil.webgpu.CommandEncoder] in pure WebGPU.
  *
  * @author Colton Daily
  * @date 4/5/2024

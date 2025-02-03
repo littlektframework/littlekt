@@ -492,7 +492,7 @@ open class CanvasLayer : Node() {
 
     /**
      * Removes the last [RenderPassEncoder] that was last added with [pushRenderPassToCanvas] and
-     * ends and releases it via [RenderPassEncoder.end] and [RenderPassEncoder.release]. If any
+     * ends and releases it via [RenderPassEncoder.end]. If any
      * render passes are left in the list, [renderPass] will be set to it.
      */
     fun popAndEndRenderPass() {
