@@ -320,7 +320,7 @@ private class GltfModelGenerator(val gltfFile: GltfData) {
             }
         }
 
-        return Skin(device, nodes).also { it.printHierarchy() }
+        return Skin(device, nodes)
     }
 
     private fun applySkins() {
