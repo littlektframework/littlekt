@@ -5,6 +5,7 @@ import com.littlekt.graphics.Color
 import com.littlekt.math.*
 import com.littlekt.math.geom.Angle
 import com.littlekt.math.spatial.BoundingBox
+import com.littlekt.math.spatial.BoundingSphere
 import com.littlekt.util.datastructure.fastForEach
 import com.littlekt.util.datastructure.fastForEachWithIndex
 import kotlin.reflect.KClass
@@ -396,13 +397,8 @@ open class Node3D {
     /** Local axis-aligned bounding box. */
     val bounds: BoundingBox = BoundingBox()
 
-    private val _globalCenter: MutableVec3f = MutableVec3f()
-
-    val globalCenter: Vec3f
-        get() = _globalCenter
-
-    var globalRadius: Float = 0f
-        protected set
+    /** Global bounding sphere. */
+    val globalBoundsSphere: BoundingSphere = BoundingSphere()
 
     private val tmpTransformVec = MutableVec3f()
     private val parentBoundsCache = BoundingBox()
@@ -447,7 +443,8 @@ open class Node3D {
     /** Iterate over any [MeshPrimitive] descendants */
     open fun forEachMeshPrimitive(camera: Camera, action: (MeshPrimitive) -> Unit) {
         if (frustumCulled) {
-            val inFrustum = camera.sphereInFrustum(globalCenter, globalRadius)
+            val inFrustum =
+                camera.sphereInFrustum(globalBoundsSphere.center, globalBoundsSphere.radius)
             if (inFrustum) {
                 children.fastForEach { it.forEachMeshPrimitive(camera, action) }
             }
@@ -536,8 +533,10 @@ open class Node3D {
             }
             addToBoundingBox(bounds)
         }
-        toGlobal(_globalCenter.set(bounds.center))
-        globalRadius = toGlobal(tmpTransformVec.set(bounds.size), 0f).length() * 0.5f
+        globalBoundsSphere.update(
+            toGlobal(tempVec3f.set(bounds.center)),
+            toGlobal(tmpTransformVec.set(bounds.size), 0f).length() * 0.5f,
+        )
     }
 
     /** Override to add own update logic without worrying about not updating children. */
@@ -1001,5 +1000,6 @@ open class Node3D {
 
     companion object {
         private val tempQuat = MutableQuaternion()
+        private val tempVec3f = MutableVec3f()
     }
 }

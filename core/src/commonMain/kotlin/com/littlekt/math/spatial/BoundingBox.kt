@@ -8,7 +8,13 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sqrt
 
-/** Source from [kool] engine. */
+/**
+ * Represents an axis-aligned 3D bounding box. This class provides various operations for
+ * manipulating and querying the bounding box, such as updating its bounds, checking intersections,
+ * and transforming it spatially.
+ *
+ * @author based off implementation of the Kool engine.
+ */
 open class BoundingBox() {
 
     private val mutMin = MutableVec3f()
@@ -16,14 +22,58 @@ open class BoundingBox() {
     private val mutSize = MutableVec3f()
     private val mutCenter = MutableVec3f()
 
+    /**
+     * Indicates whether the `BoundingBox` is currently considered empty. A bounding box is empty
+     * when it has not been initialized or when it has been cleared.
+     *
+     * This property is automatically managed by operations that modify the bounds of the
+     * `BoundingBox`. It cannot be set externally.
+     */
     var isEmpty = true
         private set
 
+    /**
+     * Represents the minimum coordinate vector of the bounding box.
+     *
+     * This vector defines the smallest bounds of the bounding box in 3D space. It is automatically
+     * updated whenever the bounding box is modified, such as by adding points, expanding, or
+     * merging with other bounding boxes.
+     */
     val min: Vec3f = mutMin
+
+    /** Represents the maximum corner of the bounding box as a 3D vector. This defines the fur */
     val max: Vec3f = mutMax
+
+    /**
+     * Represents the size of the `BoundingBox` as a 3D vector, calculated as the difference between
+     * its maximum and minimum bounds. The `size` provides the dimensions of the bounding box along
+     * each axis (X, Y, Z).
+     *
+     * The size is automatically updated whenever the bounds of the bounding box are modified. If
+     * the bounding box is empty, the size will be represented as a vector with all components set
+     * to zero.
+     */
     val size: Vec3f = mutSize
+
+    /**
+     * Represents the center point of the bounding box.
+     *
+     * This property is calculated based on the midpoint between the `min` and `max` values of the
+     * bounding box, providing a reference to its geometric center in 3D space. Updates to the
+     * bounding box's bounds automatically adjust the `center` value.
+     *
+     * The `center` can be used for operations like positioning, transformations, or collision
+     * detection relative to the center of the bounding box.
+     */
     val center: Vec3f = mutCenter
 
+    /**
+     * Indicates whether the bounding box is currently in batch update mode.
+     *
+     * When the value is `true`, updates to the bounding box do not trigger immediate recalculation
+     * of size and center. Setting this value to `false` after batch updates automatically triggers
+     * a recalculation of these properties.
+     */
     var isBatchUpdate = false
         set(value) {
             field = value
@@ -72,6 +122,15 @@ open class BoundingBox() {
         }
     }
 
+    /**
+     * Provides a mechanism to perform multiple updates to the bounding box as a single batch
+     * operation. Temporarily sets the `isBatchUpdate` property to `true` during the execution of
+     * the provided block, allowing batch updates to be performed without triggering redundant
+     * computations or updates. Once the block has been executed, the previous value of
+     * `isBatchUpdate` is restored.
+     *
+     * @param block The block of operations to perform on this `BoundingBox` in a batch update mode.
+     */
     inline fun batchUpdate(block: BoundingBox.() -> Unit) {
         val wasBatchUpdate = isBatchUpdate
         isBatchUpdate = true
@@ -79,12 +138,22 @@ open class BoundingBox() {
         isBatchUpdate = wasBatchUpdate
     }
 
+    /**
+     * Checks if the current `BoundingBox` is approximately equal to another `BoundingBox` instance.
+     * This uses fuzzy comparison for the minimum and maximum components of each bounding box. It
+     * also ensures that the `isEmpty` state of both bounding boxes matches.
+     *
+     * @param other The `BoundingBox` instance to compare with the current bounding box.
+     * @return `true` if the bounding boxes are approximately equal in terms of their components and
+     *   state; `false` otherwise.
+     */
     fun isFuzzyEqual(other: BoundingBox): Boolean {
         return isEmpty == other.isEmpty &&
             min.isFuzzyEqual(other.min) &&
             max.isFuzzyEqual(other.max)
     }
 
+    /** Clears the bounding box by setting [min] and [max] to zeros. */
     fun clear(): BoundingBox {
         isEmpty = true
         mutMin.set(Vec3f.ZERO)
@@ -93,17 +162,20 @@ open class BoundingBox() {
         return this
     }
 
+    /** Add a point to the bounding box. */
     fun add(point: Vec3f): BoundingBox {
         addPoint(point)
         updateSizeAndCenter()
         return this
     }
 
+    /** Add a list of points to the bounding box. */
     fun add(points: List<Vec3f>): BoundingBox {
         add(points, points.indices)
         return this
     }
 
+    /** Add a point to the bounding box. */
     fun add(points: List<Vec3f>, range: IntRange): BoundingBox {
         for (i in range) {
             addPoint(points[i])
@@ -112,6 +184,7 @@ open class BoundingBox() {
         return this
     }
 
+    /** Add another bounding box to the current bounding box. */
     fun add(aabb: BoundingBox): BoundingBox {
         if (!aabb.isEmpty) {
             addPoint(aabb.min)
@@ -121,6 +194,7 @@ open class BoundingBox() {
         return this
     }
 
+    /** Expand the bounding box by [e] as a factor. */
     fun expand(e: Vec3f): BoundingBox {
         if (isEmpty) {
             throw IllegalStateException("Empty BoundingBox cannot be expanded")
@@ -131,6 +205,16 @@ open class BoundingBox() {
         return this
     }
 
+    /**
+     * Expands the bounding box based on the signed components of the given vector. Positive
+     * components of the vector expand the maximum bounds, while negative components shrink the
+     * minimum bounds.
+     *
+     * @param e The vector representing the signed expansion values for each axis.
+     * @return The expanded BoundingBox instance.
+     * @throws IllegalStateException If the BoundingBox is empty and the expansion cannot be
+     *   performed.
+     */
     fun signedExpand(e: Vec3f): BoundingBox {
         if (isEmpty) {
             throw IllegalStateException("Empty BoundingBox cannot be expanded")
@@ -142,6 +226,7 @@ open class BoundingBox() {
         return this
     }
 
+    /** Set this bounding box to the values of [other]. */
     fun set(other: BoundingBox): BoundingBox {
         mutMin.set(other.min)
         mutMax.set(other.max)
@@ -151,6 +236,7 @@ open class BoundingBox() {
         return this
     }
 
+    /** Set the [min] and [max] points of the bounding box. */
     fun set(min: Vec3f, max: Vec3f): BoundingBox {
         isEmpty = false
         mutMin.set(min)
@@ -159,13 +245,14 @@ open class BoundingBox() {
         return this
     }
 
+    /** Set the [min] and [max] points of the bounding box. */
     fun set(
         minX: Float,
         minY: Float,
         minZ: Float,
         maxX: Float,
         maxY: Float,
-        maxZ: Float
+        maxZ: Float,
     ): BoundingBox {
         isEmpty = false
         mutMin.set(minX, minY, minZ)
@@ -174,9 +261,11 @@ open class BoundingBox() {
         return this
     }
 
-    fun move(offset: Vec3f) = move(offset.x, offset.y, offset.z)
+    /** Translate the bounding box current position by the given [offset]. */
+    fun translate(offset: Vec3f) = translate(offset.x, offset.y, offset.z)
 
-    fun move(x: Float, y: Float, z: Float): BoundingBox {
+    /** Translate the bounding box current position by the given offset values */
+    fun translate(x: Float, y: Float, z: Float): BoundingBox {
         if (isEmpty) {
             throw IllegalStateException("Empty BoundingBox cannot be moved")
         }
@@ -192,6 +281,15 @@ open class BoundingBox() {
         return this
     }
 
+    /**
+     * Merges the bounds of two bounding boxes ([aabb1] and [aabb2]) into the current bounding box.
+     * The current bounding box is updated to encompass the minimum and maximum bounds of the two
+     * input bounding boxes.
+     *
+     * @param aabb1 The first bounding box to merge.
+     * @param aabb2 The second bounding box to merge.
+     * @return The updated bounding box encompassing the merged bounds of [aabb1] and [aabb2].
+     */
     fun setMerged(aabb1: BoundingBox, aabb2: BoundingBox): BoundingBox {
         // manual if is faster than min() and max()
         mutMin.x = min(aabb1.min.x, aabb2.min.x)
@@ -207,6 +305,12 @@ open class BoundingBox() {
         return this
     }
 
+    /**
+     * Checks whether the given 3D point is contained within the bounds defined by this object.
+     *
+     * @param point The 3D point to check, represented as a [Vec3f].
+     * @return `true` if the point lies within the bounds; `false` otherwise.
+     */
     operator fun contains(point: Vec3f): Boolean {
         return point.x >= min.x &&
             point.x <= max.x &&
@@ -216,6 +320,7 @@ open class BoundingBox() {
             point.z <= max.z
     }
 
+    /** Checks if the given point defined by its coordinates (x, */
     fun contains(x: Float, y: Float, z: Float): Boolean {
         return x >= min.x && x <= max.x && y >= min.y && y <= max.y && z >= min.z && z <= max.z
     }
@@ -224,6 +329,13 @@ open class BoundingBox() {
         return aabb.min in this && aabb.max in this
     }
 
+    /**
+     * Checks if this bounding box intersects with the given axis-aligned bounding box (AABB).
+     *
+     * @param aabb The bounding box to test for intersection with.
+     * @return `true` if this bounding box intersects with the given bounding box; `false`
+     *   otherwise.
+     */
     fun isIntersecting(aabb: BoundingBox): Boolean {
         return min.x <= aabb.max.x &&
             max.x >= aabb.min.x &&
@@ -233,6 +345,14 @@ open class BoundingBox() {
             max.z >= aabb.min.z
     }
 
+    /**
+     * Clamps the given point to lie within the bounds of this bounding box. Adjusts the `x`, `y`,
+     * and `z` components of the input point such that they remain within the minimum and maximum
+     * bounds defined by the bounding box.
+     *
+     * @param point The mutable 3D vector [MutableVec3f] to be clamped. Its coordinates will be
+     *   modified to remain within the bounding box's bounds.
+     */
     fun clampToBounds(point: MutableVec3f) {
         point.x = point.x.clamp(min.x, max.x)
         point.y = point.y.clamp(min.y, max.y)

@@ -33,7 +33,8 @@ private constructor(val primitives: List<MeshPrimitive>, addInstanceOnInit: Bool
 
     override fun forEachMeshPrimitive(camera: Camera, action: (MeshPrimitive) -> Unit) {
         if (frustumCulled) {
-            val inFrustum = camera.sphereInFrustum(globalCenter, globalRadius)
+            val inFrustum =
+                camera.sphereInFrustum(globalBoundsSphere.center, globalBoundsSphere.radius)
             if (inFrustum) {
                 primitives.forEach { action(it) }
                 children.fastForEach { it.forEachMeshPrimitive(camera, action) }
