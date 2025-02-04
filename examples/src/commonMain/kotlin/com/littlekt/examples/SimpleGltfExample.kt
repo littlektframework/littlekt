@@ -255,7 +255,7 @@ class SimpleGltfExample(context: Context) : ContextListener(context) {
                         )
                 )
 
-            modelBatch.renderGltfModels(models)
+            modelBatch.renderGltfModels(models, camera)
             modelBatch.render(grid, pbrEnvironment)
             modelBatch.flush(renderPassEncoder, camera, dt)
             renderPassEncoder.end()

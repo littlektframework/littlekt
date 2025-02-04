@@ -1,8 +1,10 @@
 package com.littlekt.graphics.g3d
 
+import com.littlekt.graphics.Camera
 import com.littlekt.graphics.Color
 import com.littlekt.math.*
 import com.littlekt.math.geom.Angle
+import com.littlekt.math.spatial.BoundingBox
 import com.littlekt.util.datastructure.fastForEach
 import com.littlekt.util.datastructure.fastForEachWithIndex
 import kotlin.reflect.KClass
@@ -51,6 +53,8 @@ open class Node3D {
 
     protected var _parent: Node3D? = null
 
+    open var frustumCulled: Boolean = false
+
     /** The current child count for this [Node3D]. Alias for [children.size]. */
     val childCount: Int
         get() = children.size
@@ -87,6 +91,13 @@ open class Node3D {
         }
 
     private var _globalTransform = Mat4()
+
+    /** The global transform matrix. */
+    val localToGlobalTransform: Mat4
+        get() {
+            updateTransform()
+            return _globalTransform
+        }
 
     /** A matrix to convert global (world) space to local space. */
     val globalToLocalTransform: Mat4
@@ -382,6 +393,22 @@ open class Node3D {
             return _globalInverseTransform
         }
 
+    /** Local axis-aligned bounding box. */
+    val bounds: BoundingBox = BoundingBox()
+
+    private val _globalCenter: MutableVec3f = MutableVec3f()
+
+    val globalCenter: Vec3f
+        get() = _globalCenter
+
+    var globalRadius: Float = 0f
+        protected set
+
+    private val tmpTransformVec = MutableVec3f()
+    private val parentBoundsCache = BoundingBox()
+    private val cachedBoundsMin = MutableVec3f()
+    private val cachedBoundsMax = MutableVec3f()
+
     private var dirty = false
 
     private val _globalPosition = MutableVec3f()
@@ -415,6 +442,18 @@ open class Node3D {
     /** Iterate over any [MeshPrimitive] descendants */
     open fun forEachMeshPrimitive(action: (MeshPrimitive) -> Unit) {
         children.fastForEach { it.forEachMeshPrimitive(action) }
+    }
+
+    /** Iterate over any [MeshPrimitive] descendants */
+    open fun forEachMeshPrimitive(camera: Camera, action: (MeshPrimitive) -> Unit) {
+        if (frustumCulled) {
+            val inFrustum = camera.sphereInFrustum(globalCenter, globalRadius)
+            if (inFrustum) {
+                children.fastForEach { it.forEachMeshPrimitive(camera, action) }
+            }
+        } else {
+            children.fastForEach { it.forEachMeshPrimitive(camera, action) }
+        }
     }
 
     /** Set the color for this node and any descendants. */
@@ -489,11 +528,50 @@ open class Node3D {
     /** Update the node and any of its children. */
     fun update(dt: Duration) {
         onUpdate(dt)
-        children.fastForEach { it.update(dt) }
+        bounds.batchUpdate {
+            clear()
+            children.fastForEach {
+                it.update(dt)
+                addToBounds(it.bounds)
+            }
+            addToBoundingBox(bounds)
+        }
+        toGlobal(_globalCenter.set(bounds.center))
+        globalRadius = toGlobal(tmpTransformVec.set(bounds.size), 0f).length() * 0.5f
     }
 
     /** Override to add own update logic without worrying about not updating children. */
     protected open fun onUpdate(dt: Duration) = Unit
+
+    private fun addToBounds(parentBounds: BoundingBox) {
+        if (!bounds.isEmpty) {
+            if (dirty || cachedBoundsMin != bounds.min || cachedBoundsMax != bounds.max) {
+                cachedBoundsMin.set(bounds.min)
+                cachedBoundsMax.set(bounds.max)
+
+                parentBoundsCache.batchUpdate {
+                    val minX = bounds.min.x
+                    val minY = bounds.min.y
+                    val minZ = bounds.min.z
+                    val maxX = bounds.max.x
+                    val maxY = bounds.max.y
+                    val maxZ = bounds.max.z
+                    clear()
+                    add(transform.transform(tmpTransformVec.set(minX, minY, minZ)))
+                    add(transform.transform(tmpTransformVec.set(minX, minY, maxZ)))
+                    add(transform.transform(tmpTransformVec.set(minX, maxY, minZ)))
+                    add(transform.transform(tmpTransformVec.set(minX, maxY, maxZ)))
+                    add(transform.transform(tmpTransformVec.set(maxX, minY, minZ)))
+                    add(transform.transform(tmpTransformVec.set(maxX, minY, maxZ)))
+                    add(transform.transform(tmpTransformVec.set(maxX, maxY, minZ)))
+                    add(transform.transform(tmpTransformVec.set(maxX, maxY, maxZ)))
+                }
+            }
+            parentBounds.add(parentBoundsCache)
+        }
+    }
+
+    protected open fun addToBoundingBox(bounds: BoundingBox) = Unit
 
     /**
      * Update the nodes transforms, if dirty. This will also invoke the parents [updateTransform]
@@ -688,7 +766,7 @@ open class Node3D {
 
     /** Transforms [vec] in-place from local to global coordinates. */
     fun toGlobal(vec: MutableVec3f, w: Float = 1f): MutableVec3f {
-        _globalTransform.transform(vec, w)
+        localToGlobalTransform.transform(vec, w)
         return vec
     }
 

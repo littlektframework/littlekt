@@ -2,16 +2,14 @@ package com.littlekt.graphics.util
 
 import com.littlekt.graphics.VertexAttrUsage
 import com.littlekt.graphics.VertexBufferLayout
-import com.littlekt.graphics.calculateComponents
 import com.littlekt.graphics.calculateStride
 import com.littlekt.math.MutableVec3f
 import com.littlekt.math.Vec3f
 import com.littlekt.math.Vec4f
-import com.littlekt.math.spatial.BoundingBox
 import kotlin.math.sqrt
 
 /**
- * A [IndexedMeshGeometry] that calculates the [BoundingBox] of the geometry as well as using
+ * A [IndexedMeshGeometry] that calculates the [bounds] BoundingBox of the geometry as well as using
  * [CommonVertexView] when adding a vertex.
  *
  * @param layout a [VertexBufferLayout] describing the vertex buffer.
@@ -21,12 +19,9 @@ import kotlin.math.sqrt
  */
 class CommonIndexedMeshGeometry(layout: VertexBufferLayout, size: Int = INITIAL_SIZE) :
     IndexedMeshGeometry(layout, size) {
-    /** Bounds of the mesh. */
-    val bounds = BoundingBox()
 
     /** The current vertex view of the geometry. */
-    val view =
-        CommonVertexView(layout.attributes.calculateStride(), vertices, layout.attributes, 0)
+    val view = CommonVertexView(layout.attributes.calculateStride(), vertices, layout.attributes, 0)
 
     /**
      * Mark this geometry as a batch update. This does nothing on its own. Use [isBatchUpdate] to
@@ -176,12 +171,7 @@ class CommonIndexedMeshGeometry(layout: VertexBufferLayout, size: Int = INITIAL_
         if (i < 0 || i >= vertices.capacity / vertexStride) {
             throw IllegalStateException("Vertex index out of bounds: $i")
         }
-        return CommonVertexView(
-            vertexStride,
-            vertices,
-            layout.attributes,
-            i,
-        )
+        return CommonVertexView(vertexStride, vertices, layout.attributes, i)
     }
 
     /** Iterate through the vertex view by index. */

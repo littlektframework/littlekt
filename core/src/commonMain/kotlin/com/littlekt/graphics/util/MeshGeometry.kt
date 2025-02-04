@@ -1,11 +1,11 @@
 package com.littlekt.graphics.util
 
 import com.littlekt.file.ByteBuffer
-import com.littlekt.file.FloatBuffer
 import com.littlekt.graphics.VertexBufferLayout
 import com.littlekt.graphics.calculateComponents
 import com.littlekt.graphics.calculateStride
 import com.littlekt.log.Logger
+import com.littlekt.math.spatial.BoundingBox
 import kotlin.jvm.JvmStatic
 import kotlin.math.max
 import kotlin.math.min
@@ -43,6 +43,9 @@ open class MeshGeometry(val layout: VertexBufferLayout, size: Int = INITIAL_SIZE
 
     /** `true` if this is mid-batch update. */
     var isBatchUpdate = false
+
+    /** Bounds of the mesh. This must be calculated yourself or by a subclass. */
+    val bounds = BoundingBox()
 
     /**
      * Mark this geometry as a batch update. This does nothing on its own. Use [isBatchUpdate] to
@@ -82,7 +85,7 @@ open class MeshGeometry(val layout: VertexBufferLayout, size: Int = INITIAL_SIZE
             data = newVertices,
             dstOffset = dstOffset * Float.SIZE_BYTES,
             srcOffset = srcOffset,
-            len = count
+            len = count,
         )
         if (vertices.position < dstOffset + count * Float.SIZE_BYTES) {
             vertices.position = dstOffset + count * Float.SIZE_BYTES
@@ -90,7 +93,7 @@ open class MeshGeometry(val layout: VertexBufferLayout, size: Int = INITIAL_SIZE
         numVertices =
             min(
                 numVertices + (dstOffset + (count * Float.SIZE_BYTES)) / vertexStride,
-                vertices.position / vertexStride
+                vertices.position / vertexStride,
             )
         verticesDirty = true
     }
@@ -144,7 +147,6 @@ open class MeshGeometry(val layout: VertexBufferLayout, size: Int = INITIAL_SIZE
         private const val INITIAL_SIZE = 1000
         private const val GROW_FACTOR = 2f
 
-        @JvmStatic
-        protected val logger = Logger<MeshGeometry>()
+        @JvmStatic protected val logger = Logger<MeshGeometry>()
     }
 }

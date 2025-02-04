@@ -1,6 +1,8 @@
 package com.littlekt.graphics.g3d
 
+import com.littlekt.graphics.Camera
 import com.littlekt.graphics.g3d.skin.Skin
+import com.littlekt.math.spatial.BoundingBox
 import com.littlekt.util.datastructure.fastForEach
 
 /**
@@ -16,6 +18,8 @@ private constructor(val primitives: List<MeshPrimitive>, addInstanceOnInit: Bool
 
     constructor(primitives: List<MeshPrimitive>) : this(primitives, true)
 
+    override var frustumCulled: Boolean = true
+
     init {
         if (addInstanceOnInit) {
             primitives.forEach { prim -> addChild(VisualInstance().apply { addTo(prim) }) }
@@ -25,6 +29,22 @@ private constructor(val primitives: List<MeshPrimitive>, addInstanceOnInit: Bool
     override fun forEachMeshPrimitive(action: (MeshPrimitive) -> Unit) {
         primitives.forEach { action(it) }
         children.fastForEach { it.forEachMeshPrimitive(action) }
+    }
+
+    override fun forEachMeshPrimitive(camera: Camera, action: (MeshPrimitive) -> Unit) {
+        if (frustumCulled) {
+            val inFrustum = camera.sphereInFrustum(globalCenter, globalRadius)
+            if (inFrustum) {
+                primitives.forEach { action(it) }
+                children.fastForEach { it.forEachMeshPrimitive(camera, action) }
+            }
+        } else {
+            children.fastForEach { it.forEachMeshPrimitive(camera, action) }
+        }
+    }
+
+    override fun addToBoundingBox(bounds: BoundingBox) {
+        primitives.forEach { bounds.add(it.mesh.geometry.bounds) }
     }
 
     /**

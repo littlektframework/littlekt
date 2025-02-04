@@ -34,7 +34,7 @@ open class PerspectiveCamera(virtualWidth: Float = 0f, virtualHeight: Float = 0f
 
     /** Updates the [frustum] planes. */
     open fun updateFrustum() {
-        frustum.updateFrustum(position, direction, up, right, fov, aspectRatio, near, far)
+        frustum.updateFrustum(viewProjection)
     }
 
     override fun updateProjectionMatrix() {
@@ -55,7 +55,6 @@ open class PerspectiveCamera(virtualWidth: Float = 0f, virtualHeight: Float = 0f
     }
 
     override fun sphereInFrustum(cx: Float, cy: Float, cz: Float, radius: Float): Boolean {
-        tempCenter.set(cx, cy, cz)
-        return frustum.isSphereInside(tempCenter, radius)
+        return frustum.isSphereInside(tempCenter.set(cx, cy, cz), radius)
     }
 }

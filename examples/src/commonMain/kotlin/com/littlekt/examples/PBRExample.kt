@@ -234,7 +234,7 @@ class PBRExample(context: Context) : ContextListener(context) {
                         )
                 )
 
-            modelBatch.renderGltfModels(models)
+            modelBatch.renderGltfModels(models, camera)
             modelBatch.flush(renderPassEncoder, camera, dt)
             renderPassEncoder.end()
             renderPassEncoder.release()

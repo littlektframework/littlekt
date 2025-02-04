@@ -118,6 +118,10 @@ class ModelBatch(val device: Device) : Releasable {
         node.forEachMeshPrimitive { render(it, environment) }
     }
 
+    fun render(node: Node3D, camera: Camera, environment: Environment) {
+        node.forEachMeshPrimitive(camera) { render(it, environment) }
+    }
+
     /** Adds a [MeshPrimitive] to be drawn on the next [flush] using the specified [Environment]. */
     fun render(meshPrimitive: MeshPrimitive, environment: Environment) {
         val pipeline =

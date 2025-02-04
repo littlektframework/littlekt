@@ -78,8 +78,8 @@ data class GltfModel(
     var scene: Node3D? = null
 }
 
-fun ModelBatch.renderGltfModels(models: List<GltfModel>) {
-    models.fastForEach { model -> model.scene?.let { render(it, model.environment) } }
+fun ModelBatch.renderGltfModels(models: List<GltfModel>, camera: Camera) {
+    models.fastForEach { model -> model.scene?.let { render(it, camera, model.environment) } }
 }
 
 fun loadGltfModels(models: List<GltfModel>, modelBatch: ModelBatch? = null) {
