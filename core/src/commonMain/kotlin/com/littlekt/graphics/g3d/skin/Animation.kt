@@ -25,7 +25,7 @@ class Animation(val name: String?) {
     private val animationNodes = mutableListOf<AnimationNode>()
 
     fun prepareAnimation() {
-        duration = channels.map { it.lastKeyTime }.maxOrNull() ?: 0f
+        duration = channels.maxOfOrNull { it.lastKeyTime } ?: 0f
         channels.forEach { it.duration = duration }
         animationNodes += channels.map { it.animationNode }.distinct()
     }
@@ -122,9 +122,17 @@ class AnimatedTransformGroup(val target: Node3D) : AnimationNode {
     override val name: String
         get() = target.name
 
-    private val initTranslation = MutableVec3f()
-    private val initRotation = MutableQuaternion()
-    private val initScale = MutableVec3f(1f, 1f, 1f)
+    private val _initTranslation = MutableVec3f()
+    val initTranslation: Vec3f
+        get() = _initTranslation
+
+    private val _initRotation = MutableQuaternion()
+    val initRotation: Quaternion
+        get() = _initRotation
+
+    private val _initScale = MutableVec3f(1f, 1f, 1f)
+    val initScale: Vec3f
+        get() = _initScale
 
     private val animTranslation = MutableVec3f()
     private val animRotation = MutableQuaternion()
@@ -137,15 +145,15 @@ class AnimatedTransformGroup(val target: Node3D) : AnimationNode {
     private val weightedTransformMat = Mat4()
 
     init {
-        target.transform.getTranslation(initTranslation)
-        target.transform.getRotation(initRotation)
-        target.transform.getScale(initScale)
+        target.transform.getTranslation(_initTranslation)
+        target.transform.getRotation(_initRotation)
+        target.transform.getScale(_initScale)
     }
 
     override fun initTransform() {
-        animTranslation.set(initTranslation)
-        animRotation.set(initRotation)
-        animScale.set(initScale)
+        animTranslation.set(_initTranslation)
+        animRotation.set(_initRotation)
+        animScale.set(_initScale)
     }
 
     override fun applyTransform() {

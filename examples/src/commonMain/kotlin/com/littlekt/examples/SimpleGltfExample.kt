@@ -96,7 +96,7 @@ class SimpleGltfExample(context: Context) : ContextListener(context) {
                     environment,
                     0.01f,
                     Vec3f(-3f, 0f, 0f),
-                    //     animIdx = 1,
+                    animIdx = 1,
                 ),
                 GltfModel(
                     resourcesVfs["models/flighthelmet/FlightHelmet.gltf"],

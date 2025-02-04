@@ -464,9 +464,9 @@ private class GltfModelGenerator(val gltfFile: GltfData) {
             val t = inTime.next()
             val rotKey =
                 if (interpolation == AnimationKey.Interpolation.CUBICSPLINE) {
-                    val startTan = outRotation.next()
-                    val point = outRotation.next()
-                    val endTan = outRotation.next()
+                    val startTan = outRotation.next().toQuaternion()
+                    val point = outRotation.next().toQuaternion()
+                    val endTan = outRotation.next().toQuaternion()
                     CubicRotationKey(t, Quaternion(point), startTan, endTan)
                 } else {
                     RotationKey(t, Quaternion(outRotation.next()))

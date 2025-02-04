@@ -79,78 +79,24 @@ open class Quaternion(open val x: Float, open val y: Float, open val z: Float, o
         return dx * dx + dy * dy + dz * dz + dw * dw
     }
 
-    fun conjugate(result: MutableQuaternion = MutableQuaternion()): MutableQuaternion {
-        result.x = -x
-        result.y = -y
-        result.z = -z
-        return result
-    }
+    fun conjugate(result: MutableQuaternion = MutableQuaternion()): MutableQuaternion =
+        result.set(this).conjugate()
 
-    fun invert(result: MutableQuaternion = MutableQuaternion()): MutableQuaternion {
-        val scale = 1f / (x * x + y * y + z * z + w * w)
-        result.x = -x * scale
-        result.y = -y * scale
-        result.z = -z * scale
-        result.w *= scale
-        return result
-    }
+    fun invert(result: MutableQuaternion = MutableQuaternion()): MutableQuaternion =
+        result.set(this).invert()
 
     fun norm(result: MutableQuaternion = MutableQuaternion()): MutableQuaternion =
-        scale(1f / length(), result)
+        result.set(this).norm()
 
-    fun scale(factor: Float, result: MutableQuaternion = MutableQuaternion()): MutableQuaternion {
-        result.x *= factor
-        result.y *= factor
-        result.z *= factor
-        result.w *= factor
-        return result
-    }
+    fun scale(factor: Float, result: MutableQuaternion = MutableQuaternion()): MutableQuaternion =
+        result.set(this).scale(factor)
 
     fun setEuler(
         pitch: Angle,
         yaw: Angle,
         roll: Angle,
         result: MutableQuaternion = MutableQuaternion(),
-    ): MutableQuaternion {
-        val hr = roll * 0.5f
-        val shr = hr.sine
-        val chr = hr.cosine
-
-        val hp = pitch * 0.5f
-        val shp = hp.sine
-        val chp = hp.cosine
-
-        val hy = yaw * 0.5f
-        val shy = hy.sine
-        val chy = hy.cosine
-
-        val chy_shp = chy * shp
-        val shy_chp = shy * chp
-        val chy_chp = chy * chp
-        val shy_shp = shy * shp
-
-        result.x =
-            (chy_shp * chr) +
-                (shy_chp *
-                    shr) // cos(yaw/2) * sin(pitch/2) * cos(roll/2) + sin(yaw/2) * cos(pitch/2) *
-        // sin(roll/2)
-        result.y =
-            (shy_chp * chr) -
-                (chy_shp *
-                    shr) // sin(yaw/2) * cos(pitch/2) * cos(roll/2) - cos(yaw/2) * sin(pitch/2) *
-        // sin(roll/2)
-        result.z =
-            (chy_chp * shr) -
-                (shy_shp *
-                    chr) // cos(yaw/2) * cos(pitch/2) * sin(roll/2) - sin(yaw/2) * sin(pitch/2) *
-        // cos(roll/2)
-        result.w =
-            (chy_chp * chr) +
-                (shy_shp *
-                    shr) // cos(yaw/2) * cos(pitch/2) * cos(roll/2) + sin(yaw/2) * sin(pitch/2) *
-        // sin(roll/2)
-        return result
-    }
+    ): MutableQuaternion = result.set(this).setEuler(pitch, yaw, roll)
 
     fun subtract(other: Quaternion, result: MutableQuaternion): MutableQuaternion =
         result.set(this).subtract(other)
@@ -164,14 +110,8 @@ open class Quaternion(open val x: Float, open val y: Float, open val z: Float, o
      * @param other the quaternion to multiply with
      * @return [result]
      */
-    fun mul(other: Quaternion, result: MutableQuaternion): MutableQuaternion {
-        val px = w * other.x + x * other.w + y * other.z - z * other.y
-        val py = w * other.y + y * other.w + z * other.x - x * other.z
-        val pz = w * other.z + z * other.w + x * other.y - y * other.x
-        val pw = w * other.w - x * other.x - y * other.y - z * other.z
-        result.set(px, py, pz, pw)
-        return result
-    }
+    fun mul(other: Quaternion, result: MutableQuaternion): MutableQuaternion =
+        result.set(this).mul(other)
 
     /**
      * Multiplies this vector as a quaternion with another in the form of `other * this`.
@@ -179,84 +119,18 @@ open class Quaternion(open val x: Float, open val y: Float, open val z: Float, o
      * @param other the quaternion to multiply with
      * @return [result]
      */
-    fun mulLeft(other: Quaternion, result: MutableQuaternion): MutableQuaternion {
-        val px = other.w * x + other.x * w + other.y * z - other.z * y
-        val py = other.w * y + other.y * w + other.z * x - other.x * z
-        val pz = other.w * z + other.z * w + other.x * y - other.y * x
-        val pw = other.w * w - other.x * x - other.y * y - other.z * z
-        result.set(px, py, pz, pw)
-        return result
-    }
+    fun mulLeft(other: Quaternion, result: MutableQuaternion): MutableQuaternion =
+        result.set(this).mulLeft(other)
 
     fun distance(other: Quaternion): Float = sqrt(sqrDistance(other))
 
     fun dot(other: Quaternion): Float = x * other.x + y * other.y + z * other.z + w * other.w
 
-    fun lookAt(forward: Vec3f, up: Vec3f, result: MutableQuaternion): MutableQuaternion {
-        tempVec3A.set(forward).norm() // forward normalized
-        tempVec3B.set(up).cross(tempVec3A).norm() // right normalized
-        tempVec3C.set(tempVec3A).cross(tempVec3B) // new up
+    fun lookAt(forward: Vec3f, up: Vec3f, result: MutableQuaternion): MutableQuaternion =
+        result.set(this).lookAt(forward, up)
 
-        val m00 = tempVec3B.x
-        val m01 = tempVec3B.y
-        val m02 = tempVec3B.z
-
-        val m10 = tempVec3C.x
-        val m11 = tempVec3C.y
-        val m12 = tempVec3C.z
-
-        val m20 = tempVec3A.x
-        val m21 = tempVec3A.y
-        val m22 = tempVec3A.z
-
-        val num8 = (m00 + m11) + m22
-        temp1.set(0f, 0f, 0f, 1f)
-        if (num8 > 0f) {
-            var num = sqrt(num8 + 1f)
-            temp1.w = num * 0.5f
-            num = 0.5f / num
-            temp1.x = (m12 - m21) * num
-            temp1.y = (m20 - m02) * num
-            temp1.z = (m01 - m10) * num
-            return result.set(temp1)
-        }
-
-        if ((m00 >= m11) && (m00 >= m22)) {
-            val num7 = sqrt(((1f + m00) - m11) - m22)
-            val num4 = 0.5f / num7
-            temp1.x = 0.5f * num7
-            temp1.y = (m01 + m10) * num4
-            temp1.z = (m02 + m20) * num4
-            temp1.w = (m12 - m21) * num4
-            return result.set(temp1)
-        }
-
-        if (m11 > m22) {
-            val num6 = sqrt(((1f + m11) - m00) - m22)
-            val num3 = 0.5f / num6
-            temp1.x = (m10 + m01) * num3
-            temp1.y = 0.5f * num6
-            temp1.z = (m21 + m12) * num3
-            temp1.w = (m20 - m02) * num3
-            return result.set(temp1)
-        }
-
-        val num5 = sqrt(((1f + m22) - m00) - m11)
-        val num2 = 0.5f / num5
-        temp1.x = (m20 + m02) * num2
-        temp1.y = (m21 + m12) * num2
-        temp1.z = 0.5f * num5
-        temp1.w = (m01 - m10) * num2
-        return result.set(temp1)
-    }
-
-    fun mix(other: Quaternion, weight: Float, result: MutableQuaternion): MutableQuaternion {
-        result.x = other.x * weight + x * (1f - weight)
-        result.y = other.y * weight + y * (1f - weight)
-        result.z = other.z * weight + z * (1f - weight)
-        result.w = other.w * weight + w * (1f - weight)
-        return result
-    }
+    fun mix(other: Quaternion, weight: Float, result: MutableQuaternion): MutableQuaternion =
+        result.set(this).mix(other, weight)
 
     /**
      * Transforms the given vector using this quaternion and outputs the [result].
@@ -315,14 +189,12 @@ open class Quaternion(open val x: Float, open val y: Float, open val z: Float, o
         return result
     }
 
+    override fun toString(): String = "($x, $y, $z, $w)"
+
     companion object {
         val IDENTITY = Quaternion(0f, 0f, 0f, 1f)
         private val temp1 = MutableQuaternion(0f, 0f, 0f, 0f)
         private val temp2 = MutableQuaternion(0f, 0f, 0f, 0f)
-
-        private val tempVec3A = MutableVec3f()
-        private val tempVec3B = MutableVec3f()
-        private val tempVec3C = MutableVec3f()
     }
 }
 
@@ -346,31 +218,163 @@ open class MutableQuaternion(
      *
      * @param other the quaternion to multiply with
      */
-    fun mul(other: Quaternion): MutableQuaternion = mul(other, this)
+    fun mul(other: Quaternion): MutableQuaternion {
+        val px = w * other.x + x * other.w + y * other.z - z * other.y
+        val py = w * other.y + y * other.w + z * other.x - x * other.z
+        val pz = w * other.z + z * other.w + x * other.y - y * other.x
+        val pw = w * other.w - x * other.x - y * other.y - z * other.z
+        set(px, py, pz, pw)
+        return this
+    }
 
     /**
      * Multiplies this vector as a quaternion with another in the form of `other * this`.
      *
      * @param other the quaternion to multiply with
      */
-    fun mulLeft(other: Quaternion): MutableQuaternion = mulLeft(other, this)
+    fun mulLeft(other: Quaternion): MutableQuaternion {
+        val px = other.w * x + other.x * w + other.y * z - other.z * y
+        val py = other.w * y + other.y * w + other.z * x - other.x * z
+        val pz = other.w * z + other.z * w + other.x * y - other.y * x
+        val pw = other.w * w - other.x * x - other.y * y - other.z * z
+        set(px, py, pz, pw)
+        return this
+    }
 
-    fun conjugate(): MutableQuaternion = conjugate(this)
+    fun conjugate(): MutableQuaternion {
+        x = -x
+        y = -y
+        z = -z
+        return this
+    }
 
-    fun invert(): MutableQuaternion = invert(this)
+    fun invert(): MutableQuaternion {
+        val scale = 1f / (x * x + y * y + z * z + w * w)
+        x = -x * scale
+        y = -y * scale
+        z = -z * scale
+        w *= scale
+        return this
+    }
 
-    fun norm(): MutableQuaternion = norm(this)
+    fun norm(): MutableQuaternion = scale(1f / length())
 
     fun identity(): MutableQuaternion = set(IDENTITY)
 
-    fun scale(factor: Float): MutableQuaternion = scale(factor, this)
+    fun scale(factor: Float): MutableQuaternion {
+        x *= factor
+        y *= factor
+        z *= factor
+        w *= factor
+        return this
+    }
 
-    fun setEuler(pitch: Angle, yaw: Angle, roll: Angle): MutableQuaternion =
-        setEuler(pitch, yaw, roll, this)
+    fun setEuler(pitch: Angle, yaw: Angle, roll: Angle): MutableQuaternion {
+        val hr = roll * 0.5f
+        val shr = hr.sine
+        val chr = hr.cosine
 
-    fun lookAt(forward: Vec3f, up: Vec3f): MutableQuaternion = lookAt(forward, up, this)
+        val hp = pitch * 0.5f
+        val shp = hp.sine
+        val chp = hp.cosine
 
-    fun mix(other: Quaternion, weight: Float): MutableQuaternion = mix(other, weight, this)
+        val hy = yaw * 0.5f
+        val shy = hy.sine
+        val chy = hy.cosine
+
+        val chy_shp = chy * shp
+        val shy_chp = shy * chp
+        val chy_chp = chy * chp
+        val shy_shp = shy * shp
+
+        x =
+            (chy_shp * chr) +
+                (shy_chp *
+                    shr) // cos(yaw/2) * sin(pitch/2) * cos(roll/2) + sin(yaw/2) * cos(pitch/2) *
+        // sin(roll/2)
+        y =
+            (shy_chp * chr) -
+                (chy_shp *
+                    shr) // sin(yaw/2) * cos(pitch/2) * cos(roll/2) - cos(yaw/2) * sin(pitch/2) *
+        // sin(roll/2)
+        z =
+            (chy_chp * shr) -
+                (shy_shp *
+                    chr) // cos(yaw/2) * cos(pitch/2) * sin(roll/2) - sin(yaw/2) * sin(pitch/2) *
+        // cos(roll/2)
+        w =
+            (chy_chp * chr) +
+                (shy_shp *
+                    shr) // cos(yaw/2) * cos(pitch/2) * cos(roll/2) + sin(yaw/2) * sin(pitch/2) *
+        // sin(roll/2)
+        return this
+    }
+
+    fun lookAt(forward: Vec3f, up: Vec3f): MutableQuaternion {
+        tempVec3A.set(forward).norm() // forward normalized
+        tempVec3B.set(up).cross(tempVec3A).norm() // right normalized
+        tempVec3C.set(tempVec3A).cross(tempVec3B) // new up
+
+        val m00 = tempVec3B.x
+        val m01 = tempVec3B.y
+        val m02 = tempVec3B.z
+
+        val m10 = tempVec3C.x
+        val m11 = tempVec3C.y
+        val m12 = tempVec3C.z
+
+        val m20 = tempVec3A.x
+        val m21 = tempVec3A.y
+        val m22 = tempVec3A.z
+
+        val num8 = (m00 + m11) + m22
+        temp1.set(0f, 0f, 0f, 1f)
+        if (num8 > 0f) {
+            var num = sqrt(num8 + 1f)
+            temp1.w = num * 0.5f
+            num = 0.5f / num
+            temp1.x = (m12 - m21) * num
+            temp1.y = (m20 - m02) * num
+            temp1.z = (m01 - m10) * num
+            return set(temp1)
+        }
+
+        if ((m00 >= m11) && (m00 >= m22)) {
+            val num7 = sqrt(((1f + m00) - m11) - m22)
+            val num4 = 0.5f / num7
+            temp1.x = 0.5f * num7
+            temp1.y = (m01 + m10) * num4
+            temp1.z = (m02 + m20) * num4
+            temp1.w = (m12 - m21) * num4
+            return set(temp1)
+        }
+
+        if (m11 > m22) {
+            val num6 = sqrt(((1f + m11) - m00) - m22)
+            val num3 = 0.5f / num6
+            temp1.x = (m10 + m01) * num3
+            temp1.y = 0.5f * num6
+            temp1.z = (m21 + m12) * num3
+            temp1.w = (m20 - m02) * num3
+            return set(temp1)
+        }
+
+        val num5 = sqrt(((1f + m22) - m00) - m11)
+        val num2 = 0.5f / num5
+        temp1.x = (m20 + m02) * num2
+        temp1.y = (m21 + m12) * num2
+        temp1.z = 0.5f * num5
+        temp1.w = (m01 - m10) * num2
+        return set(temp1)
+    }
+
+    fun mix(other: Quaternion, weight: Float): MutableQuaternion {
+        x = other.x * weight + x * (1f - weight)
+        y = other.y * weight + y * (1f - weight)
+        z = other.z * weight + z * (1f - weight)
+        w = other.w * weight + w * (1f - weight)
+        return this
+    }
 
     fun rotate(angle: Angle, axis: Vec3f): MutableQuaternion {
         var s = axis.sqrLength()
@@ -460,4 +464,12 @@ open class MutableQuaternion(
     }
 
     override fun toString(): String = "($x, $y, $z, $w)"
+
+    companion object {
+        private val temp1 = MutableQuaternion(0f, 0f, 0f, 0f)
+
+        private val tempVec3A = MutableVec3f()
+        private val tempVec3B = MutableVec3f()
+        private val tempVec3C = MutableVec3f()
+    }
 }

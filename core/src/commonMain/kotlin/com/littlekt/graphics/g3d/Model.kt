@@ -17,6 +17,7 @@ open class Model : Node3D() {
     }
 
     fun enableAnimation(animationIdx: Int) {
+        animations.getOrNull(animationIdx)?.printChannels()
         animations.fastForEachWithIndex { i, anim ->
             anim.weight = if (i == animationIdx) 1f else 0f
         }

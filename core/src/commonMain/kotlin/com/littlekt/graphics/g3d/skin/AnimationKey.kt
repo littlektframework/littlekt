@@ -99,8 +99,12 @@ open class RotationKey(time: Float, val rotation: Quaternion) : AnimationKey<Rot
     }
 }
 
-class CubicRotationKey(time: Float, rotation: Quaternion, val startTan: Vec4f, val endTan: Vec4f) :
-    RotationKey(time, rotation) {
+class CubicRotationKey(
+    time: Float,
+    rotation: Quaternion,
+    val startTan: Quaternion,
+    val endTan: Quaternion,
+) : RotationKey(time, rotation) {
     private val p0 = MutableQuaternion()
     private val p1 = MutableQuaternion()
     private val m0 = MutableQuaternion()

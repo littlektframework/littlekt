@@ -82,7 +82,7 @@ fun ModelBatch.renderGltfModels(models: List<GltfModel>) {
     models.fastForEach { model -> model.scene?.let { render(it, model.environment) } }
 }
 
-fun Context.loadGltfModels(models: List<GltfModel>, modelBatch: ModelBatch? = null) {
+fun loadGltfModels(models: List<GltfModel>, modelBatch: ModelBatch? = null) {
     VfsScope.launch {
         models
             .map { gltfModel ->
