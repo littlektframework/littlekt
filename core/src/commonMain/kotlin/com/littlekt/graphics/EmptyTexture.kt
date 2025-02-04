@@ -1,7 +1,7 @@
 package com.littlekt.graphics
 
-import com.littlekt.graphics.Texture.Companion.nextId
 import com.littlekt.graphics.webgpu.*
+import com.littlekt.util.UniqueId
 
 /**
  * A [Texture] that doesn't contain any underlying raw image data, but instead, is intended to be
@@ -30,7 +30,7 @@ class EmptyTexture(
     override var size: Extent3D = Extent3D(width, height, 1)
         private set
 
-    override var id: Int = nextId()
+    override var id: Int = UniqueId.next<Texture>()
         private set
 
     /** The current [WebGPUTexture]. Changing the value of this field WILL change [id]. */
@@ -73,7 +73,7 @@ class EmptyTexture(
 
             // we need to change the id due to the texture changing, mainly because it is used for
             // caching in other classes
-            id = nextId()
+            id = UniqueId.next<Texture>()
         }
 
     override var samplerDescriptor: SamplerDescriptor = samplerDescriptor

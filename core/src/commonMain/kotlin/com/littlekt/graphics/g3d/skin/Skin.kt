@@ -7,15 +7,15 @@ import com.littlekt.graphics.shader.Shader
 import com.littlekt.graphics.util.BindingUsage
 import com.littlekt.graphics.webgpu.*
 import com.littlekt.math.Mat4
+import com.littlekt.util.UniqueId
 import com.littlekt.util.datastructure.fastForEach
-import kotlinx.atomicfu.atomic
 
 /**
  * @author Colton Daily
  * @date 11/24/2024
  */
 class Skin(val device: Device, val nodes: List<SkinNode>) : Releasable {
-    var id: Int = nextId()
+    var id: Int = UniqueId.next<Skin>()
         private set
 
     private val jointsStagingBuffer = FloatBuffer(nodes.size * 16)
@@ -88,11 +88,5 @@ class Skin(val device: Device, val nodes: List<SkinNode>) : Releasable {
             println("$indent${joint.name}")
             children.forEach { it.printHierarchy("$indent    ") }
         }
-    }
-
-    companion object {
-        private var lastId by atomic(0)
-
-        fun nextId() = lastId++
     }
 }

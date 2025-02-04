@@ -7,14 +7,14 @@ import com.littlekt.graphics.TextureState
 import com.littlekt.graphics.shader.Shader
 import com.littlekt.graphics.webgpu.BindGroup
 import com.littlekt.graphics.webgpu.CompareFunction
-import kotlinx.atomicfu.atomic
+import com.littlekt.util.UniqueId
 
 /**
  * @author Colton Daily
  * @date 12/8/2024
  */
 abstract class Material : Releasable {
-    val id: Int = nextId()
+    val id: Int = UniqueId.next<Material>()
 
     abstract val baseColorTexture: Texture
     abstract val baseColorFactor: Color
@@ -65,11 +65,5 @@ abstract class Material : Releasable {
 
     override fun hashCode(): Int {
         return key
-    }
-
-    companion object {
-        private var lastId by atomic(0)
-
-        fun nextId() = lastId++
     }
 }

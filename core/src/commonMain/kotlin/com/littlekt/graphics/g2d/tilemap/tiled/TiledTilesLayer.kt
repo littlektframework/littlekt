@@ -3,7 +3,6 @@ package com.littlekt.graphics.g2d.tilemap.tiled
 import com.littlekt.graphics.Color
 import com.littlekt.graphics.g2d.Batch
 import com.littlekt.graphics.g2d.SpriteCache
-import com.littlekt.graphics.g2d.SpriteId
 import com.littlekt.graphics.g2d.TextureSlice
 import com.littlekt.graphics.g2d.shape.ShapeRenderer
 import com.littlekt.graphics.g2d.tilemap.tiled.internal.TileData
@@ -55,12 +54,12 @@ class TiledTilesLayer(
         tileHeight,
         tintColor,
         opacity,
-        properties
+        properties,
     ) {
     private val lastFrameTimes by lazy { mutableMapOf<Int, Duration>() }
     private val lastFrameIndex by lazy { mutableMapOf<Int, Int>() }
     private val flipData = TileData()
-    private val cacheAnimatedTilesIds = mutableMapOf<SpriteId, Int>()
+    private val cacheAnimatedTilesIds = mutableMapOf<Int, Int>()
 
     private val screenPos = MutableVec3f()
     private val topLeft = MutableVec2f()
@@ -69,8 +68,7 @@ class TiledTilesLayer(
     private val bottomLeft = MutableVec2f()
 
     /** Returns [TileData.id] of a tile with coordinates of [x], [y]. */
-    fun getTileId(x: Int, y: Int): Int =
-        tileData[getCoordId(x, y)].bitsToTileId()
+    fun getTileId(x: Int, y: Int): Int = tileData[getCoordId(x, y)].bitsToTileId()
 
     override fun render(
         batch: Batch,
@@ -79,7 +77,7 @@ class TiledTilesLayer(
         y: Float,
         scale: Float,
         displayObjects: Boolean,
-        shapeRenderer: ShapeRenderer?
+        shapeRenderer: ShapeRenderer?,
     ) {
         if (!visible) return
 
@@ -380,7 +378,7 @@ class TiledTilesLayer(
         viewBounds: Rect,
         x: Float,
         y: Float,
-        scale: Float
+        scale: Float,
     ) {
         val tileWidth = tileWidth * scale
         val tileHeight = tileHeight * scale
@@ -411,7 +409,7 @@ class TiledTilesLayer(
                             rotation = tileData.rotation,
                             flipX = tileData.flipX,
                             flipY = tileData.flipY,
-                            color = tintColor ?: Color.WHITE
+                            color = tintColor ?: Color.WHITE,
                         )
                     }
                 }
@@ -424,7 +422,7 @@ class TiledTilesLayer(
         viewBounds: Rect,
         x: Float,
         y: Float,
-        scale: Float
+        scale: Float,
     ) {
         val tileWidth = tileWidth * scale
         val tileHeight = tileHeight * scale
@@ -464,7 +462,7 @@ class TiledTilesLayer(
                                 tx,
                                 ty,
                                 tx + it.width.toFloat(),
-                                ty + it.height.toFloat()
+                                ty + it.height.toFloat(),
                             )
                         ) {
                             batch.draw(
@@ -478,7 +476,7 @@ class TiledTilesLayer(
                                 rotation = tileData.rotation,
                                 flipX = tileData.flipX,
                                 flipY = tileData.flipY,
-                                color = tintColor ?: Color.WHITE
+                                color = tintColor ?: Color.WHITE,
                             )
                         }
                     }
@@ -492,7 +490,7 @@ class TiledTilesLayer(
         viewBounds: Rect,
         x: Float,
         y: Float,
-        scale: Float
+        scale: Float,
     ) {
         val tileWidth = tileWidth * scale
         val tileHeight = tileHeight * scale
@@ -529,7 +527,7 @@ class TiledTilesLayer(
                             rotation = tileData.rotation,
                             flipX = tileData.flipX,
                             flipY = tileData.flipY,
-                            color = tintColor ?: Color.WHITE
+                            color = tintColor ?: Color.WHITE,
                         )
                     }
                 }
@@ -551,7 +549,7 @@ class TiledTilesLayer(
                             rotation = tileData.rotation,
                             flipX = tileData.flipX,
                             flipY = tileData.flipY,
-                            color = tintColor ?: Color.WHITE
+                            color = tintColor ?: Color.WHITE,
                         )
                     }
                 }
@@ -564,7 +562,7 @@ class TiledTilesLayer(
         viewBounds: Rect,
         x: Float,
         y: Float,
-        scale: Float
+        scale: Float,
     ) {
         val tileWidth = tileWidth * scale
         val tileHeight = tileHeight * scale
@@ -599,7 +597,7 @@ class TiledTilesLayer(
                             rotation = tileData.rotation,
                             flipX = tileData.flipX,
                             flipY = tileData.flipY,
-                            color = tintColor ?: Color.WHITE
+                            color = tintColor ?: Color.WHITE,
                         )
                     }
                 }

@@ -2,8 +2,8 @@ package com.littlekt.graphics
 
 import com.littlekt.async.KtScope
 import com.littlekt.async.VfsScope
-import com.littlekt.graphics.Texture.Companion.nextId
 import com.littlekt.graphics.webgpu.*
+import com.littlekt.util.UniqueId
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
@@ -78,7 +78,7 @@ class LazyPixmapTexture(
     override var size: Extent3D = Extent3D(1, 1, 1)
         private set
 
-    override var id: Int = nextId()
+    override var id: Int = UniqueId.next<Texture>()
         private set
 
     override var textureDescriptor: TextureDescriptor =
@@ -123,7 +123,7 @@ class LazyPixmapTexture(
             field = value
             // we need to change the id due to the texture changing, mainly because it is used for
             // caching in other classes
-            id = nextId()
+            id = UniqueId.next<Texture>()
         }
 
     override var samplerDescriptor: SamplerDescriptor = samplerDescriptor

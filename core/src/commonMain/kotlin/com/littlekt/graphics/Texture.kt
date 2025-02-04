@@ -3,7 +3,6 @@ package com.littlekt.graphics
 import com.littlekt.Releasable
 import com.littlekt.graphics.webgpu.*
 import kotlin.math.log2
-import kotlinx.atomicfu.atomic
 
 /**
  * Creates a [WebGPUTexture] and writes it to the [Device.queue]. Creates a [TextureView] and
@@ -35,7 +34,10 @@ interface Texture : Releasable {
     val height: Int
         get() = size.height
 
-    /** The id of the texture. */
+    /**
+     * The id of the texture. This should be unique. Use `UniqueId.next<Texture>()` and not the
+     * subclass to generate the id.
+     */
     val id: Int
 
     /**
@@ -85,10 +87,6 @@ interface Texture : Releasable {
     }
 
     companion object {
-        private var lastId by atomic(0)
-
-        fun nextId() = lastId++
-
         /** @return the number of mips to generate based on the given sizes. */
         fun calculateNumMips(vararg sizes: Int): Int {
             val maxSize = sizes.maxOrNull() ?: return 1

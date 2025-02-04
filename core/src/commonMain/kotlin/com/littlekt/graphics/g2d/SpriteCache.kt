@@ -15,9 +15,8 @@ import com.littlekt.math.MutableVec2f
 import com.littlekt.math.MutableVec4f
 import com.littlekt.math.geom.Angle
 import com.littlekt.math.geom.radians
+import com.littlekt.util.UniqueId
 import com.littlekt.util.datastructure.fastForEach
-import kotlinx.atomicfu.atomic
-import kotlinx.atomicfu.getAndUpdate
 
 /**
  * Stores Sprite data in a cache that must be updated and managed from an outside source. Sprites
@@ -135,7 +134,7 @@ class SpriteCache(
         spriteView.uvs.set(slice.u, slice.v, slice.u1, slice.v1)
         spriteView.action()
 
-        val id = nextId()
+        val id = UniqueId.next<SpriteCache>()
         insertId(id, spriteCount)
 
         copySpriteViewToData(
@@ -525,9 +524,6 @@ class SpriteCache(
 
         /** uvs(min & max) (4) + texture/uvRotation(1) + padding (3) */
         private const val DYNAMIC_COMPONENTS_PER_SPRITE = 8
-        private var lastId = atomic(0)
-
-        private fun nextId() = lastId.getAndUpdate { it + 1 }
 
         private val logger = Logger<SpriteCache>()
     }

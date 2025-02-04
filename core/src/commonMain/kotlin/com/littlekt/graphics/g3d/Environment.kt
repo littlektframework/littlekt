@@ -2,15 +2,15 @@ package com.littlekt.graphics.g3d
 
 import com.littlekt.graphics.Camera
 import com.littlekt.graphics.util.CameraBuffersViaCamera
+import com.littlekt.util.UniqueId
 import kotlin.time.Duration
-import kotlinx.atomicfu.atomic
 
 /**
  * @author Colton Daily
  * @date 1/5/2025
  */
 open class Environment(open val buffers: CameraBuffersViaCamera) {
-    val id = nextId()
+    val id = UniqueId.next<Environment>()
 
     open fun update(camera: Camera, dt: Duration) = buffers.update(camera, dt)
 
@@ -25,11 +25,5 @@ open class Environment(open val buffers: CameraBuffersViaCamera) {
 
     override fun hashCode(): Int {
         return id
-    }
-
-    companion object {
-        private var lastId by atomic(0)
-
-        fun nextId() = lastId++
     }
 }

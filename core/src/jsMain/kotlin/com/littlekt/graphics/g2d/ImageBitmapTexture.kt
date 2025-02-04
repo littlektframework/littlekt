@@ -2,8 +2,8 @@ package com.littlekt.graphics.g2d
 
 import com.littlekt.graphics.Pixmap
 import com.littlekt.graphics.Texture
-import com.littlekt.graphics.Texture.Companion.nextId
 import com.littlekt.graphics.webgpu.*
+import com.littlekt.util.UniqueId
 import org.w3c.dom.ImageBitmap
 
 /**
@@ -25,7 +25,7 @@ class ImageBitmapTexture(
      * The [Extent3D] size of the texture. Uses [Pixmap.width], [Pixmap.height] and a depth of `1`.
      */
     override val size: Extent3D = Extent3D(data.width, data.height, 1)
-    override var id: Int = nextId()
+    override var id: Int = UniqueId.next<Texture>()
         private set
 
     override var textureDescriptor: TextureDescriptor =
@@ -66,7 +66,7 @@ class ImageBitmapTexture(
             field = value
             // we need to change the id due to the texture changing, mainly because it is used for
             // caching in other classes
-            id = nextId()
+            id = UniqueId.next<Texture>()
         }
 
     override var samplerDescriptor: SamplerDescriptor = samplerDescriptor

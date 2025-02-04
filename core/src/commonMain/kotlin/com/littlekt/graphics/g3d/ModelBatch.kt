@@ -8,6 +8,7 @@ import com.littlekt.graphics.g3d.util.BaseMaterialPipelineProvider
 import com.littlekt.graphics.g3d.util.MaterialPipeline
 import com.littlekt.graphics.g3d.util.MaterialPipelineProvider
 import com.littlekt.graphics.g3d.util.MaterialPipelineSorter
+import com.littlekt.graphics.mesh
 import com.littlekt.graphics.util.BindingUsage
 import com.littlekt.graphics.webgpu.*
 import com.littlekt.log.Logger
@@ -74,15 +75,15 @@ class ModelBatch(val device: Device) : Releasable {
         removePipelineProvider(provider.type)
 
     /**
-     * Prepare a [Scene] for rendering by creating the pipeline and material bind groups.for the
+     * Prepare a [Node3D] for rendering by creating the pipeline and material bind groups for the
      * specified [Environment]. This is useful if a large scene needs loading and generated on a
      * separate thread to prevent frames from dropping.
      *
      * **Note:** This does nothing if the given scene has the pipeline prepared either via
      * [preparePipeline] or [render].
      */
-    fun preparePipeline(scene: Node3D, environment: Environment) {
-        scene.forEachMeshPrimitive { preparePipeline(it, environment) }
+    fun preparePipeline(node: Node3D, environment: Environment) {
+        node.forEachMeshPrimitive { preparePipeline(it, environment) }
     }
 
     /**
@@ -113,8 +114,8 @@ class ModelBatch(val device: Device) : Releasable {
     }
 
     /** Adds a [Node3D] to be drawn on the next [flush] using the specified [Environment].. */
-    fun render(scene: Node3D, environment: Environment) {
-        scene.forEachMeshPrimitive { render(it, environment) }
+    fun render(node: Node3D, environment: Environment) {
+        node.forEachMeshPrimitive { render(it, environment) }
     }
 
     /** Adds a [MeshPrimitive] to be drawn on the next [flush] using the specified [Environment]. */
