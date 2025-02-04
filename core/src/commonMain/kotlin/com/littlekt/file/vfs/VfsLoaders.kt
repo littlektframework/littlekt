@@ -19,8 +19,8 @@ import com.littlekt.graphics.g2d.TextureSlice
 import com.littlekt.graphics.g2d.font.*
 import com.littlekt.graphics.g2d.tilemap.ldtk.LDtkWorld
 import com.littlekt.graphics.g2d.tilemap.tiled.TiledMap
+import com.littlekt.graphics.g3d.MeshNode
 import com.littlekt.graphics.g3d.Model
-import com.littlekt.graphics.g3d.Scene
 import com.littlekt.graphics.webgpu.SamplerDescriptor
 import com.littlekt.graphics.webgpu.TextureFormat
 import com.littlekt.math.MutableVec4i
@@ -376,9 +376,9 @@ suspend fun VfsFile.readGltf(): GltfData {
 }
 
 /**
- * Reads a `.glb` or `.gltf` into a `GltfData` object and then converts it to a [Model].
+ * Reads a `.glb` or `.gltf` into a `GltfData` object and then converts it to a [MeshNode].
  *
- * @param config the configuration to use when generating the [Model]. Defaults to
+ * @param config the configuration to use when generating the [MeshNode]. Defaults to
  *   [GltfLoaderPbrConfig].
  * @param preferredFormat the preferred [TextureFormat] to be used when loading the model texture.
  */
@@ -387,7 +387,7 @@ suspend fun VfsFile.readGltfModel(
     preferredFormat: TextureFormat =
         if (vfs.context.graphics.preferredFormat.srgb) TextureFormat.RGBA8_UNORM_SRGB
         else TextureFormat.RGBA8_UNORM,
-): Scene {
+): Model {
     val gltfData = readGltf()
     return gltfData.toModel(config, preferredFormat)
 }

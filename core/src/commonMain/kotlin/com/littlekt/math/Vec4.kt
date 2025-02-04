@@ -76,6 +76,10 @@ open class Vec4f internal constructor(x: Float, y: Float, z: Float, w: Float, si
 
     fun toMutableVec4(result: MutableVec4f): MutableVec4f = result.set(x, y, z, w)
 
+    fun toQuaternion(): Quaternion = Quaternion(x, y, z, w)
+
+    fun toMutableQuaternion(): MutableQuaternion = MutableQuaternion(x, y, z, w)
+
     override fun toString(): String = "($x, $y, $z, $w)"
 
     /**

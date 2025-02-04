@@ -8,7 +8,7 @@ import com.littlekt.file.vfs.readGltfModel
 import com.littlekt.graphics.Camera
 import com.littlekt.graphics.g3d.Environment
 import com.littlekt.graphics.g3d.ModelBatch
-import com.littlekt.graphics.g3d.Scene
+import com.littlekt.graphics.g3d.Node3D
 import com.littlekt.graphics.webgpu.SurfaceConfiguration
 import com.littlekt.graphics.webgpu.SurfaceTexture
 import com.littlekt.graphics.webgpu.TextureStatus
@@ -73,15 +73,16 @@ data class GltfModel(
     val environment: Environment,
     val scale: Float,
     val translate: Vec3f,
+    val animIdx: Int = -1,
 ) {
-    var scene: Scene? = null
+    var scene: Node3D? = null
 }
 
 fun ModelBatch.renderGltfModels(models: List<GltfModel>) {
     models.fastForEach { model -> model.scene?.let { render(it, model.environment) } }
 }
 
-fun Context.loadGltfModels(models: List<GltfModel>, modelBatch: ModelBatch? = null) {
+fun loadGltfModels(models: List<GltfModel>, modelBatch: ModelBatch? = null) {
     VfsScope.launch {
         models
             .map { gltfModel ->
@@ -90,6 +91,7 @@ fun Context.loadGltfModels(models: List<GltfModel>, modelBatch: ModelBatch? = nu
                         gltfModel.file.readGltfModel(gltfModel.config).apply {
                             scale(gltfModel.scale)
                             translate(gltfModel.translate)
+                            enableAnimation(gltfModel.animIdx)
                         }
                     modelBatch?.preparePipeline(scene, gltfModel.environment)
                     gltfModel.scene = scene

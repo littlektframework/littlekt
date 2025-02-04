@@ -30,6 +30,11 @@ open class VisualInstance : Node3D() {
         instanceOf?.removeInstance(this)
     }
 
+    override fun color(color: Color) {
+        this.color = color
+        super.color(color)
+    }
+
     override fun copy(): Node3D {
         val copy =
             VisualInstance().also {

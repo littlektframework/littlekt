@@ -24,6 +24,7 @@ abstract class Material : Releasable {
     abstract val castShadows: Boolean
     abstract val depthWrite: Boolean
     abstract val depthCompareFunction: CompareFunction
+    abstract val skinned: Boolean
 
     /**
      * If `true` then the material is ready for rendering. This defaults to the [baseColorTexture]
@@ -45,6 +46,7 @@ abstract class Material : Releasable {
             result = 31 * result + castShadows.hashCode()
             result = 31 * result + depthWrite.hashCode()
             result = 31 * result + depthCompareFunction.hashCode()
+            result = 31 * result + skinned.hashCode()
             result
         }
 

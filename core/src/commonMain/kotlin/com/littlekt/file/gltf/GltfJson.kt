@@ -167,23 +167,23 @@ enum class GltfAccessorType(val value: String, val numComponents: Int) {
 
 @Serializable
 data class GltfAnimation(
-    val channels: List<GltfChannel>,
+    val channels: List<GltfAnimationChannel>,
     val samplers: List<GltfAnimationSampler>,
     val name: String? = null,
 )
 
 @Serializable
-data class GltfChannel(val sampler: Int, val target: GltfTarget) {
+data class GltfAnimationChannel(val sampler: Int, val target: GltfAnimationTarget) {
     @Transient lateinit var samplerRef: GltfAnimationSampler
 }
 
 @Serializable
-data class GltfTarget(val node: Int = -1, val path: GltfPath) {
+data class GltfAnimationTarget(val node: Int = -1, val path: GltfAnimationPath) {
     @Transient var nodeRef: GltfNode? = null
 }
 
 @Serializable
-enum class GltfPath(val value: String) {
+enum class GltfAnimationPath(val value: String) {
     @SerialName("rotation") Rotation("rotation"),
     @SerialName("scale") Scale("scale"),
     @SerialName("translation") Translation("translation"),

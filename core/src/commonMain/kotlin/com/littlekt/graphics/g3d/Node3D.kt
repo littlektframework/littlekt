@@ -1,16 +1,45 @@
 package com.littlekt.graphics.g3d
 
+import com.littlekt.graphics.Color
 import com.littlekt.math.*
 import com.littlekt.math.geom.Angle
 import com.littlekt.util.datastructure.fastForEach
+import com.littlekt.util.datastructure.fastForEachWithIndex
 import kotlin.reflect.KClass
 import kotlin.time.Duration
 
 /**
+ * Represents a 3D node in a hierarchical scene graph.
+ *
+ * A `Node3D` stores and manages transformations such as position, rotation, and scale in 3D space.
+ * It supports a parent-child hierarchy, allowing transformations to propagate through the scene
+ * graph.
+ *
+ * ## Features:
+ * - Maintains both local and global transformations.
+ * - Supports hierarchical transformations via parent-child relationships.
+ * - Provides conversion between global and local coordinate spaces.
+ * - Automatically updates transformations when modified.
+ *
+ * ## Properties:
+ * - `transform`: The local transformation matrix of the node.
+ * - `globalTransform`: The transformation matrix in world space.
+ * - `globalToLocalTransform`: Converts world-space coordinates to local space.
+ *
+ * ## Usage Example:
+ * ```
+ * val parentNode = Node3D()
+ * val childNode = Node3D()
+ * parentNode.addChild(childNode)
+ * childNode.translate(1f, 0f, 0f) // Move 1 unit on the X-axis relative to the parent
+ * println(childNode.globalTransform) // Prints world-space transform
+ * ```
+ *
  * @author Colton Daily
  * @date 11/24/2024
  */
 open class Node3D {
+    /** The name of the node. */
     var name: String = this::class.simpleName ?: "Node3D"
 
     /** The parent [Node3D], if any. */
@@ -32,13 +61,14 @@ open class Node3D {
     val children: List<Node3D>
         get() = _children
 
-    /** If destroy was called, this will be true until the next time node's are processed. */
+    /** If destroy was called, this will be true until the next time nodes are processed. */
     val isDestroyed
         get() = _isDestroyed
 
     /**
      * Global transform. Don't call `globalTransform.set` directly, the data won't be marked dirty.
-     * Set the globalTransform directly with `globalTransform = myMat4`.
+     * Set the globalTransform directly with `globalTransform = myMat4`. This will copy the mat
+     * values into the existing matrix.
      */
     var globalTransform: Mat4
         get() {
@@ -58,6 +88,7 @@ open class Node3D {
 
     private var _globalTransform = Mat4()
 
+    /** A matrix to convert global (world) space to local space. */
     val globalToLocalTransform: Mat4
         get() {
             if (_globalToLocalDirty) {
@@ -112,6 +143,7 @@ open class Node3D {
             globalPosition(value)
         }
 
+    /** Global x-position. */
     var globalX: Float
         get() {
             return globalPosition.x
@@ -122,6 +154,7 @@ open class Node3D {
             updateGlobalPosition()
         }
 
+    /** Global y-position. */
     var globalY: Float
         get() {
             return globalPosition.y
@@ -132,6 +165,7 @@ open class Node3D {
             updateGlobalPosition()
         }
 
+    /** Global z-position. */
     var globalZ: Float
         get() {
             return globalPosition.z
@@ -157,6 +191,7 @@ open class Node3D {
             position(value)
         }
 
+    /** Local x-position. */
     var x: Float
         get() {
             return position.x
@@ -169,6 +204,7 @@ open class Node3D {
             dirty()
         }
 
+    /** Local y-position. */
     var y: Float
         get() {
             return position.y
@@ -181,6 +217,7 @@ open class Node3D {
             dirty()
         }
 
+    /** Local z-position. */
     var z: Float
         get() {
             return position.z
@@ -333,6 +370,8 @@ open class Node3D {
         }
 
     private val _globalInverseTransform = Mat4()
+
+    /** The inverse matrix of [globalTransform]. */
     val globalInverseTransform: Mat4
         get() {
             updateTransform()
@@ -363,13 +402,28 @@ open class Node3D {
 
     private var _isDestroyed = false
 
+    /** Marks the node and its children as dirty. */
     protected open fun dirty() {
         dirty = true
-        children.forEach { it.propagateDirty() }
+        children.fastForEach { it.propagateDirty() }
     }
 
     private fun Node3D.propagateDirty() {
         dirty()
+    }
+
+    /** Iterate over any [MeshPrimitive] descendants */
+    open fun forEachMeshPrimitive(action: (MeshPrimitive) -> Unit) {
+        children.fastForEach { it.forEachMeshPrimitive(action) }
+    }
+
+    /** Set the color for this node and any descendants. */
+    open fun color(color: Color) {
+        children.fastForEach { it.propagateSetColor(color) }
+    }
+
+    private fun Node3D.propagateSetColor(color: Color) {
+        color(color)
     }
 
     /**
@@ -414,7 +468,7 @@ open class Node3D {
      * @param children the children to add
      */
     fun addChildren(vararg children: Node3D): Node3D {
-        children.forEach { addChild(it) }
+        children.fastForEach { addChild(it) }
         return this
     }
 
@@ -432,10 +486,19 @@ open class Node3D {
         return this
     }
 
-    open fun update(dt: Duration) {
-        children.forEach { it.update(dt) }
+    /** Update the node and any of its children. */
+    fun update(dt: Duration) {
+        onUpdate(dt)
+        children.fastForEach { it.update(dt) }
     }
 
+    /** Override to add own update logic without worrying about not updating children. */
+    protected open fun onUpdate(dt: Duration) = Unit
+
+    /**
+     * Update the nodes transforms, if dirty. This will also invoke the parents [updateTransform]
+     * call, moving up the tree.
+     */
     open fun updateTransform() {
         if (!dirty) return
 
@@ -767,6 +830,7 @@ open class Node3D {
         return this
     }
 
+    /** Set local transform to the identity matrix. */
     fun setIdentity(): Node3D {
         _localPosition.set(0f, 0f, 0f)
         _localScale.set(1f, 1f, 1f)
@@ -775,6 +839,10 @@ open class Node3D {
         return this
     }
 
+    /**
+     * Destroy this node and all of its children. Once destroyed, this node should no longer be
+     * used.
+     */
     fun destroy() {
         _isDestroyed = true
         while (children.isNotEmpty()) {
@@ -805,7 +873,7 @@ open class Node3D {
                 append(" (${this@Node3D::class.simpleName})")
             }
             appendLine()
-            children.forEachIndexed { index, node ->
+            children.fastForEachWithIndex { index, node ->
                 if (index < children.size - 1) {
                     node.internalToTreeString(builder, "$childrenPrefix├── ", "$childrenPrefix│   ")
                 } else {
@@ -819,6 +887,10 @@ open class Node3D {
         globalTransform = node.globalTransform
     }
 
+    /**
+     * Create a new instance of this node, copying over the name and [globalTransform], along with a
+     * copy of each of its children.
+     */
     open fun copy(): Node3D {
         val copy =
             Node3D().also {
@@ -829,12 +901,14 @@ open class Node3D {
         return copy
     }
 
-    fun <T : Node3D> filterChildrenByType(type: KClass<T>): List<T> {
+    /** Filter all descendants, into a flatten list, by type. Excludes the current node. */
+    fun <T : Node3D> filterDescendantsByType(type: KClass<T>): List<T> {
         val result = mutableListOf<T>()
-        children.forEach { result.addAll(it.filterByType(type)) }
+        children.fastForEach { result.addAll(it.filterByType(type)) }
         return result
     }
 
+    /** Filter all descendants, into a flatten list, by type. Includes the current node. */
     fun <T : Node3D> Node3D.filterByType(type: KClass<T>): List<T> {
         val result = mutableListOf<T>()
 

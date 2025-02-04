@@ -24,7 +24,7 @@ class PBRMaterialPipelineProvider : BaseMaterialPipelineProvider<PBRMaterial>() 
         colorFormat: TextureFormat,
         depthFormat: TextureFormat,
     ): MaterialPipeline {
-        val shader = PBRShader(device, layout.attributes)
+        val shader = PBRShader(device, layout.attributes, material.skinned)
 
         val renderPipeline =
             device.createRenderPipeline(

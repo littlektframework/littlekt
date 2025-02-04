@@ -1,9 +1,12 @@
 package com.littlekt.file.gltf
 
-import com.littlekt.file.vfs.VfsFile
 import com.littlekt.graphics.*
-import com.littlekt.graphics.g3d.*
+import com.littlekt.graphics.g3d.MeshNode
+import com.littlekt.graphics.g3d.MeshPrimitive
+import com.littlekt.graphics.g3d.Model
+import com.littlekt.graphics.g3d.Node3D
 import com.littlekt.graphics.g3d.material.Material
+import com.littlekt.graphics.g3d.skin.*
 import com.littlekt.graphics.util.CommonIndexedMeshGeometry
 import com.littlekt.graphics.util.IndexedMeshGeometry
 import com.littlekt.graphics.webgpu.Device
@@ -14,13 +17,15 @@ import com.littlekt.log.Logger
 import com.littlekt.math.Mat4
 import com.littlekt.math.Quaternion
 import com.littlekt.util.align
+import com.littlekt.util.datastructure.internal.threadSafeMutableListOf
 import com.littlekt.util.datastructure.internal.threadSafeMutableMapOf
+import kotlin.math.min
 
 /**
- * Converts a [GltfData] to a [Model] ready for rendering. This will load underlying buffers and
+ * Converts a [GltfData] to a [MeshNode] ready for rendering. This will load underlying buffers and
  * textures.
  *
- * @param config the configuration to use when generating the [Model]. Defaults to
+ * @param config the configuration to use when generating the [MeshNode]. Defaults to
  *   [GltfLoaderPbrConfig].
  * @param preferredFormat the preferred [TextureFormat] to be used when loading the model texture.
  */
@@ -29,13 +34,15 @@ fun GltfData.toModel(
     preferredFormat: TextureFormat =
         if (root.vfs.context.graphics.preferredFormat.srgb) TextureFormat.RGBA8_UNORM_SRGB
         else TextureFormat.RGBA8_UNORM,
-): Scene {
+    scene: Int = this.scene,
+): Model {
     return GltfModelGenerator(this)
         .toModel(config, root.vfs.context.graphics.device, preferredFormat, scenes[scene])
 }
 
 private class GltfModelGenerator(val gltfFile: GltfData) {
-    val root: VfsFile = gltfFile.root
+    val modelAnimations = threadSafeMutableListOf<Animation>()
+
     val nodeCache = threadSafeMutableMapOf<GltfNode, Node3D>()
 
     // gltf material index to set of meshes using it
@@ -45,68 +52,39 @@ private class GltfModelGenerator(val gltfFile: GltfData) {
     val materialCache = threadSafeMutableMapOf<Int, Material>()
     val meshMaterials = threadSafeMutableMapOf<Mesh<*>, GltfMaterial?>()
 
-    // gltf mesh index to model
-    val modelCache = threadSafeMutableMapOf<Int, Model>()
+    // gltf mesh index to primitives
+    val meshPrimitivesCache = threadSafeMutableMapOf<Int, List<MeshPrimitive>>()
+
+    // gltf skin index to Skin
+    val skinCache = threadSafeMutableMapOf<Int, Skin>()
+
+    // gltf node index that needs to be the parent of the given node3d. This is for skinning when
+    // the skeleton root index is not 0.
+    val nodesToReparent = threadSafeMutableListOf<Pair<Int, Node3D>>()
 
     fun toModel(
         config: GltfLoaderConfig,
         device: Device,
         preferredFormat: TextureFormat,
         gltfScene: GltfScene,
-    ): Scene {
-        val scene = Scene().apply { name = gltfScene.name ?: "glTF scene" }
+    ): Model {
+        val scene = Model().apply { name = gltfScene.name ?: "glTF scene" }
         gltfScene.nodeRefs.map { node ->
             scene += node.toNode(config, device, preferredFormat, scene, scene)
         }
-        // createSkins(scene)
-        // applySkins(scene)
-
-        // mergeMeshesByMaterial()
-        return scene
-    }
-
-    private fun createSkins(scene: Scene) {
-        gltfFile.skins.forEach { skin ->
-            val modelSkin = Skin()
-            val invBinMats = skin.inverseBindMatrixAccessorRef?.let { GltfMat4Accessor(it) }
-            if (invBinMats != null) {
-                // first create skin nodes for specified nodes / transform groups
-                val skinNodes = mutableMapOf<GltfNode, Skin.SkinNode>()
-                skin.jointRefs.forEach { joint ->
-                    val jointNode = nodeCache[joint]!!
-                    val invBindMat = invBinMats.next()
-                    val skinNode = Skin.SkinNode(jointNode, invBindMat)
-                    modelSkin.nodes += skinNode
-                    skinNodes[joint] = skinNode
-                }
-
-                // second create skin nodes hierarchy
-                skin.jointRefs.forEach { joint ->
-                    val skinNode = skinNodes[joint]
-                    if (skinNode != null) {
-                        joint.childRefs.forEach { child ->
-                            val childNode = skinNodes[child]
-                            childNode?.let { skinNode.addChild(it) }
-                        }
-                    }
-                }
-                scene.skins += modelSkin
+        applySkins()
+        createMorphAnimations()
+        createAnimations()
+        modelAnimations
+            .filter { it.channels.isNotEmpty() }
+            .forEach { modelAnim ->
+                modelAnim.prepareAnimation()
+                scene.animations += modelAnim
             }
-        }
-    }
+        scene.animations.forEach { it.prepareAnimation() }
+        scene.disableAllAnimations()
 
-    private fun applySkin(scene: Scene) {
-        //        scene.modelInstances.forEach {
-        //            // apply skin
-        //            if (skin >= 0) {
-        //                modelSkin = scene.skins[skin]
-        //                val skeletonRoot = gltfFile.skins[skin].skeleton
-        //                if (skeletonRoot > 0) {
-        //                    //     node -= visualInstance
-        //                    //    modelNodes[gltfFile.nodes[skeletonRoot]]!! += mesh
-        //                }
-        //            }
-        //        }
+        return scene
     }
 
     fun GltfNode.toNode(
@@ -114,24 +92,34 @@ private class GltfModelGenerator(val gltfFile: GltfData) {
         device: Device,
         preferredFormat: TextureFormat,
         parent: Node3D,
-        scene: Scene,
+        scene: Node3D,
     ): Node3D {
         val nodeName = name ?: "node_${parent.childCount}"
         val meshRef = meshRef
-        val model =
-            if (meshRef != null) {
-                modelCache.getOrPut(mesh) { createModel(config, device, preferredFormat, meshRef) }
+        val skinRef = skinRef
+        val skin =
+            if (skinRef != null) {
+                skinCache.getOrPut(skin) { createSkin(device, skinRef) }
             } else {
                 null
             }
-        val node =
-            (if (model != null)
-                    ModelInstance(model).also {
-                        it.createVisualInstances()
-                        scene.modelInstances += it
-                    }
-                else Node3D())
-                .apply { name = nodeName }
+        val model =
+            if (meshRef != null) {
+                meshPrimitivesCache.getOrPut(mesh) {
+                    createMeshPrimitives(config, device, preferredFormat, meshRef, skin)
+                }
+            } else {
+                null
+            }
+        val node = (if (model != null) MeshNode(model) else Node3D()).apply { name = nodeName }
+
+        if (skinRef != null && skinRef.skeleton > 0) {
+            // skeleton root node isn't the base. So we must mark this node to be moved to the
+            // skeleton node index
+            // after we finish.
+            nodesToReparent += skinRef.skeleton to node
+        }
+
         nodeCache[this] = node
 
         if (matrix.isNotEmpty()) {
@@ -152,12 +140,13 @@ private class GltfModelGenerator(val gltfFile: GltfData) {
         return node
     }
 
-    fun createModel(
+    fun createMeshPrimitives(
         config: GltfLoaderConfig,
         device: Device,
         preferredFormat: TextureFormat,
         meshRef: GltfMesh,
-    ): Model {
+        skin: Skin?,
+    ): List<MeshPrimitive> {
         val primitives =
             meshRef.primitives.mapIndexed { index, prim ->
                 val geometry = prim.toGeometry(gltfFile.accessors)
@@ -175,23 +164,28 @@ private class GltfModelGenerator(val gltfFile: GltfData) {
                                 gltfMaterial,
                                 gltfFile,
                             )
-                        } ?: config.fallbackMaterialStrategy.createMaterial(device)
+                        }
+                            ?: config.fallbackMaterialStrategy.createMaterial(
+                                config.modelConfig,
+                                device,
+                            )
                     }
                 val indexFormat =
                     if (prim.indices >= 0)
                         gltfFile.accessors[prim.indices].componentType.toIndexFormat()
                     else null
+                val morphWeights =
+                    if (prim.targets.isNotEmpty()) {
+                        FloatArray(prim.targets.sumOf { it.size })
+                    } else {
+                        null
+                    }
                 val meshPrimitive =
-                    MeshPrimitive(mesh, material, prim.mode.toTopology(), indexFormat)
-
-                // apply morph weights
-                if (prim.targets.isNotEmpty()) {
-                    //     mesh.morphWeights = FloatArray(prim.targets.sumOf { it.size })
-                }
+                    MeshPrimitive(mesh, material, prim.mode.toTopology(), indexFormat, skin)
 
                 meshPrimitive
             }
-        return Model(primitives)
+        return primitives
     }
 
     private fun GltfPrimitive.toGeometry(gltfAccessors: List<GltfAccessor>): IndexedMeshGeometry {
@@ -254,9 +248,6 @@ private class GltfModelGenerator(val gltfFile: GltfData) {
             offset += VertexFormat.FLOAT32x4.bytes
         }
 
-        //        val morphAccessors = makeMorphTargetAccessors(gltfAccessors)
-        //        attribs += morphAccessors.keys
-
         val positionAccessor = GltfVec3fAccessor(positionGltfAccessor)
         val normalAccessor =
             if (normalGltfAccessor != null) GltfVec3fAccessor(normalGltfAccessor) else null
@@ -307,10 +298,345 @@ private class GltfModelGenerator(val gltfFile: GltfData) {
         return geometry
     }
 
-    private fun GltfTextureInfo?.loadTexture(
-        device: Device,
-        preferredFormat: TextureFormat,
-    ): Texture? = this?.getTexture(gltfFile, root, device, preferredFormat)
+    private fun createSkin(device: Device, skin: GltfSkin): Skin {
+        val nodes = mutableListOf<Skin.SkinNode>()
+        val invBinMats = skin.inverseBindMatrixAccessorRef?.let { GltfMat4Accessor(it) }
+        val skinNodes = mutableMapOf<GltfNode, Skin.SkinNode>()
+        skin.jointRefs.forEach { joint ->
+            val jointNode = nodeCache[joint]!!
+            val invBindMat = invBinMats?.next() ?: Mat4()
+            val skinNode = Skin.SkinNode(jointNode, invBindMat)
+            nodes += skinNode
+            skinNodes[joint] = skinNode
+        }
+
+        skin.jointRefs.forEach { joint ->
+            val skinNode = skinNodes[joint]
+            if (skinNode != null) {
+                joint.childRefs.forEach { child ->
+                    val childNode = skinNodes[child]
+                    childNode?.let { skinNode.addChild(it) }
+                }
+            }
+        }
+
+        return Skin(device, nodes).also { it.printHierarchy() }
+    }
+
+    private fun applySkins() {
+        nodesToReparent.forEach { (gltfNodeIdx, node) ->
+            node.parent =
+                nodeCache[gltfFile.nodes[gltfNodeIdx]]
+                    ?: error(
+                        "Unable to find the correct glTF skeleton root node ($gltfNodeIdx) to reparent mesh to."
+                    )
+        }
+    }
+
+    private fun createAnimations() {
+        gltfFile.animations.forEach { anim ->
+            val modelAnim = Animation(anim.name)
+            modelAnimations += modelAnim
+
+            val animNodes = mutableMapOf<Node3D, AnimationNode>()
+            anim.channels.forEach { channel ->
+                val gltfNode = nodeCache[channel.target.nodeRef]
+                if (gltfNode != null) {
+                    val animationNode =
+                        animNodes.getOrPut(gltfNode) { AnimatedTransformGroup(gltfNode) }
+                    when (channel.target.path) {
+                        GltfAnimationPath.Translation ->
+                            createTranslationAnimation(channel, animationNode, modelAnim)
+
+                        GltfAnimationPath.Rotation ->
+                            createRotationAnimation(channel, animationNode, modelAnim)
+
+                        GltfAnimationPath.Scale ->
+                            createScaleAnimation(channel, animationNode, modelAnim)
+
+                        GltfAnimationPath.Weights -> {
+                            // TODO
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private fun createTranslationAnimation(
+        channel: GltfAnimationChannel,
+        animationNode: AnimationNode,
+        modelAnim: Animation,
+    ) {
+        val inputAccessor = channel.samplerRef.inputAccessorRef
+        val outputAccessor = channel.samplerRef.outputAccessorRef
+
+        if (
+            inputAccessor.type != GltfAccessorType.Scalar ||
+                inputAccessor.componentType != GltfComponentType.Float
+        ) {
+            logger.warn {
+                "Unsupported translation animation input accessor: type = ${inputAccessor.type}, component type = ${inputAccessor.componentType}."
+            }
+            return
+        }
+
+        if (
+            outputAccessor.type != GltfAccessorType.Vec3 ||
+                outputAccessor.componentType != GltfComponentType.Float
+        ) {
+            logger.warn {
+                "Unsupported translation animation output accessor: type = ${outputAccessor.type}, component type = ${outputAccessor.componentType}."
+            }
+            return
+        }
+
+        val transChannel =
+            TranslationAnimationChannel("${modelAnim.name}_translation", animationNode)
+        val interpolation =
+            when (channel.samplerRef.interpolation) {
+                GltfInterpolation.Step -> AnimationKey.Interpolation.STEP
+                GltfInterpolation.CubicSpline -> AnimationKey.Interpolation.CUBICSPLINE
+                else -> AnimationKey.Interpolation.LINEAR
+            }
+
+        modelAnim.channels += transChannel
+
+        val inTime = GltfFloatAccessor(inputAccessor)
+        val outTranslation = GltfVec3fAccessor(outputAccessor)
+        for (i in 0 until min(inputAccessor.count, outputAccessor.count)) {
+            val t = inTime.next()
+            val transKey =
+                if (interpolation == AnimationKey.Interpolation.CUBICSPLINE) {
+                    val startTan = outTranslation.next()
+                    val point = outTranslation.next()
+                    val endTan = outTranslation.next()
+                    CubicTranslationKey(t, point, startTan, endTan)
+                } else {
+                    TranslationKey(t, outTranslation.next())
+                }
+            transKey.interpolation = interpolation
+            transChannel.keys[t] = transKey
+        }
+    }
+
+    private fun createRotationAnimation(
+        channel: GltfAnimationChannel,
+        animationNode: AnimationNode,
+        modelAnim: Animation,
+    ) {
+        val inputAccessor = channel.samplerRef.inputAccessorRef
+        val outputAccessor = channel.samplerRef.outputAccessorRef
+
+        if (
+            inputAccessor.type != GltfAccessorType.Scalar ||
+                inputAccessor.componentType != GltfComponentType.Float
+        ) {
+            logger.warn {
+                "Unsupported rotation animation input accessor: type = ${inputAccessor.type}, component type = ${inputAccessor.componentType}."
+            }
+            return
+        }
+
+        if (
+            outputAccessor.type != GltfAccessorType.Vec4 ||
+                outputAccessor.componentType != GltfComponentType.Float
+        ) {
+            logger.warn {
+                "Unsupported rotation animation output accessor: type = ${outputAccessor.type}, component type = ${outputAccessor.componentType}."
+            }
+            return
+        }
+
+        val rotChannel = RotationAnimationChannel("${modelAnim.name}_rotation", animationNode)
+        val interpolation =
+            when (channel.samplerRef.interpolation) {
+                GltfInterpolation.Step -> AnimationKey.Interpolation.STEP
+                GltfInterpolation.CubicSpline -> AnimationKey.Interpolation.CUBICSPLINE
+                else -> AnimationKey.Interpolation.LINEAR
+            }
+
+        modelAnim.channels += rotChannel
+
+        val inTime = GltfFloatAccessor(inputAccessor)
+        val outRotation = GltfVec4fAccessor(outputAccessor)
+        for (i in 0 until min(inputAccessor.count, outputAccessor.count)) {
+            val t = inTime.next()
+            val rotKey =
+                if (interpolation == AnimationKey.Interpolation.CUBICSPLINE) {
+                    val startTan = outRotation.next().toQuaternion()
+                    val point = outRotation.next().toQuaternion()
+                    val endTan = outRotation.next().toQuaternion()
+                    CubicRotationKey(t, Quaternion(point), startTan, endTan)
+                } else {
+                    RotationKey(t, Quaternion(outRotation.next()))
+                }
+            rotKey.interpolation = interpolation
+            rotChannel.keys[t] = rotKey
+        }
+    }
+
+    private fun createScaleAnimation(
+        channel: GltfAnimationChannel,
+        animationNode: AnimationNode,
+        modelAnim: Animation,
+    ) {
+        val inputAccessor = channel.samplerRef.inputAccessorRef
+        val outputAccessor = channel.samplerRef.outputAccessorRef
+
+        if (
+            inputAccessor.type != GltfAccessorType.Scalar ||
+                inputAccessor.componentType != GltfComponentType.Float
+        ) {
+            logger.warn {
+                "Unsupported scale animation input accessor: type = ${inputAccessor.type}, component type = ${inputAccessor.componentType}."
+            }
+            return
+        }
+
+        if (
+            outputAccessor.type != GltfAccessorType.Vec3 ||
+                outputAccessor.componentType != GltfComponentType.Float
+        ) {
+            logger.warn {
+                "Unsupported scale animation output accessor: type = ${outputAccessor.type}, component type = ${outputAccessor.componentType}."
+            }
+            return
+        }
+
+        val scaleChannel = ScaleAnimationChannel("${modelAnim.name}_scale", animationNode)
+        val interpolation =
+            when (channel.samplerRef.interpolation) {
+                GltfInterpolation.Step -> AnimationKey.Interpolation.STEP
+                GltfInterpolation.CubicSpline -> AnimationKey.Interpolation.CUBICSPLINE
+                else -> AnimationKey.Interpolation.LINEAR
+            }
+
+        modelAnim.channels += scaleChannel
+
+        val inTime = GltfFloatAccessor(inputAccessor)
+        val outScale = GltfVec3fAccessor(outputAccessor)
+        for (i in 0 until min(inputAccessor.count, outputAccessor.count)) {
+            val t = inTime.next()
+            val scaleKey =
+                if (interpolation == AnimationKey.Interpolation.CUBICSPLINE) {
+                    val startTan = outScale.next()
+                    val point = outScale.next()
+                    val endTan = outScale.next()
+                    CubicScaleKey(t, point, startTan, endTan)
+                } else {
+                    ScaleKey(t, outScale.next())
+                }
+            scaleKey.interpolation = interpolation
+            scaleChannel.keys[t] = scaleKey
+        }
+    }
+
+    private fun createMorphAnimations() {
+        gltfFile.animations.forEachIndexed { i, anim ->
+            anim.channels.forEach { channel ->
+                if (channel.target.path == GltfAnimationPath.Weights) {
+                    val modelAnim = modelAnimations[i]
+                    val mesh = channel.target.nodeRef?.meshRef
+                    val node = nodeCache[channel.target.nodeRef]
+                    node?.children?.filterIsInstance<MeshPrimitive>()?.forEach {
+                        createWeightAnimation(mesh!!, channel, MorphAnimatedMesh(it), modelAnim)
+                    }
+                }
+            }
+        }
+    }
+
+    private fun createWeightAnimation(
+        mesh: GltfMesh,
+        channel: GltfAnimationChannel,
+        morphAnimatedMesh: MorphAnimatedMesh,
+        modelAnim: Animation,
+    ) {
+        val inputAccessor = channel.samplerRef.inputAccessorRef
+        val outputAccessor = channel.samplerRef.outputAccessorRef
+
+        if (
+            inputAccessor.type != GltfAccessorType.Scalar ||
+                inputAccessor.componentType != GltfComponentType.Float
+        ) {
+            logger.warn {
+                "Unsupported weight animation input accessor: type = ${inputAccessor.type}, component type = ${inputAccessor.componentType}."
+            }
+            return
+        }
+
+        if (
+            outputAccessor.type != GltfAccessorType.Scalar ||
+                outputAccessor.componentType != GltfComponentType.Float
+        ) {
+            logger.warn {
+                "Unsupported weight animation output accessor: type = ${outputAccessor.type}, component type = ${outputAccessor.componentType}."
+            }
+            return
+        }
+
+        val weightChannel = WeightAnimationChannel("${modelAnim.name}_weight", morphAnimatedMesh)
+        val interpolation =
+            when (channel.samplerRef.interpolation) {
+                GltfInterpolation.Step -> AnimationKey.Interpolation.STEP
+                GltfInterpolation.CubicSpline -> AnimationKey.Interpolation.CUBICSPLINE
+                else -> AnimationKey.Interpolation.LINEAR
+            }
+        modelAnim.channels += weightChannel
+
+        val morphTargets = mesh.primitives[0].targets
+        val attributesSize = mesh.primitives[0].targets.sumOf { it.size }
+        val inTime = GltfFloatAccessor(inputAccessor)
+        val outWeight = GltfFloatAccessor(outputAccessor)
+        for (i in 0 until min(inputAccessor.count, outputAccessor.count)) {
+            val t = inTime.next()
+            val weightKey =
+                if (interpolation == AnimationKey.Interpolation.CUBICSPLINE) {
+                    val startTan = FloatArray(attributesSize)
+                    val point = FloatArray(attributesSize)
+                    val endTan = FloatArray(attributesSize)
+
+                    var attribIndex = 0
+                    for (m in morphTargets.indices) {
+                        val w = outWeight.next()
+                        for (j in 0 until morphTargets[m].size) {
+                            startTan[attribIndex++] = w
+                        }
+                    }
+
+                    attribIndex = 0
+                    for (m in morphTargets.indices) {
+                        val w = outWeight.next()
+                        for (j in 0 until morphTargets[m].size) {
+                            point[attribIndex++] = w
+                        }
+                    }
+
+                    attribIndex = 0
+                    for (m in morphTargets.indices) {
+                        val w = outWeight.next()
+                        for (j in 0 until morphTargets[m].size) {
+                            endTan[attribIndex++] = w
+                        }
+                    }
+
+                    CubicWeightKey(t, point, startTan, endTan)
+                } else {
+                    val weights = FloatArray(attributesSize)
+                    var attribIndex = 0
+                    for (m in morphTargets.indices) {
+                        val w = outWeight.next()
+                        for (j in 0 until morphTargets[m].size) {
+                            weights[attribIndex++] = w
+                        }
+                    }
+                    WeightKey(t, weights)
+                }
+            weightKey.interpolation = interpolation
+            weightChannel.keys[t] = weightKey
+        }
+    }
 
     companion object {
         private val logger = Logger<GltfModelGenerator>()

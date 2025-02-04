@@ -24,7 +24,7 @@ class UnlitMaterialPipelineProvider : BaseMaterialPipelineProvider<UnlitMaterial
         colorFormat: TextureFormat,
         depthFormat: TextureFormat,
     ): MaterialPipeline {
-        val shader = UnlitShader(device, layout.attributes)
+        val shader = UnlitShader(device, layout.attributes, material.skinned)
 
         val renderPipeline =
             device.createRenderPipeline(

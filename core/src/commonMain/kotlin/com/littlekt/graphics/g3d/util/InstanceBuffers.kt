@@ -7,6 +7,8 @@ import com.littlekt.log.Logger
 import kotlin.math.min
 
 /**
+ * A buffers helper class for handling instancing data.
+ *
  * @param instanceDataSize the size of the instance data as number of components (NOT BYTES)
  * @author Colton Daily
  * @date 1/15/2025
@@ -30,6 +32,10 @@ class InstanceBuffers(val device: Device, instanceDataSize: Int) : Releasable {
     private var bindGroup: BindGroup? = null
     private var bindGroupLayout: BindGroupLayout? = null
 
+    /**
+     * @return an existing bind group, created previously, if not then creates the bind group for
+     *   the instance.
+     */
     fun getOrCreateBindGroup(layout: BindGroupLayout): BindGroup {
         return bindGroup
             ?: run {
