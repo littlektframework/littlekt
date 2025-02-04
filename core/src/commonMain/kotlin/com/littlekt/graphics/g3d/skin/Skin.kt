@@ -52,7 +52,7 @@ class Skin(val device: Device, val nodes: List<SkinNode>) : Releasable {
 
     fun writeToBuffer() {
         nodes.fastForEach { node ->
-            jointsStagingBuffer.put(node.jointTransform.data)
+            jointsStagingBuffer.put(node.joint.globalTransform.data)
             inverseBindingStagingBuffer.put(node.inverseBindMatrix.data)
         }
         device.queue.writeBuffer(jointBuffer, jointsStagingBuffer)
@@ -61,16 +61,8 @@ class Skin(val device: Device, val nodes: List<SkinNode>) : Releasable {
         inverseBindingStagingBuffer.flip()
     }
 
-    fun updateJointTransforms() {
-        nodes.fastForEach { node ->
-            if (!node.hasParent) {
-                node.updateJointTransform()
-            }
-        }
-    }
-
     fun printHierarchy() {
-        nodes.filter { !it.hasParent }.forEach { it.printHierarchy("") }
+        nodes.forEach { it.printHierarchy("") }
     }
 
     fun copy(): Skin {
@@ -84,35 +76,12 @@ class Skin(val device: Device, val nodes: List<SkinNode>) : Releasable {
     }
 
     class SkinNode(val joint: Node3D, val inverseBindMatrix: Mat4) {
-        val jointTransform = Mat4()
-
-        private val tmpMat4f = Mat4()
         private var parent: SkinNode? = null
         private val children = mutableListOf<SkinNode>()
-
-        val hasParent: Boolean
-            get() = parent != null
 
         fun addChild(node: SkinNode) {
             node.parent = this
             children += node
-        }
-
-        fun updateJointTransform() {
-            jointTransform.set(joint.globalTransform)
-            for (i in children.indices) {
-                children[i].updateJointTransform(jointTransform)
-            }
-            jointTransform.mul(inverseBindMatrix)
-        }
-
-        private fun updateJointTransform(parentTransform: Mat4) {
-            tmpMat4f.set(joint.globalTransform)
-            jointTransform.set(parentTransform).mul(tmpMat4f)
-            for (i in children.indices) {
-                children[i].updateJointTransform(jointTransform)
-            }
-            jointTransform.mul(inverseBindMatrix)
         }
 
         fun printHierarchy(indent: String) {

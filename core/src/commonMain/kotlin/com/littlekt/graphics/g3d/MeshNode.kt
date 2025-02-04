@@ -2,7 +2,6 @@ package com.littlekt.graphics.g3d
 
 import com.littlekt.graphics.g3d.skin.Skin
 import com.littlekt.util.datastructure.fastForEach
-import kotlin.time.Duration
 
 /**
  * A MeshNode is a [Node3D] that used a list of [MeshPrimitive] for rendering, and an optional
@@ -26,11 +25,6 @@ private constructor(val primitives: List<MeshPrimitive>, addInstanceOnInit: Bool
     override fun forEachMeshPrimitive(action: (MeshPrimitive) -> Unit) {
         primitives.forEach { action(it) }
         children.fastForEach { it.forEachMeshPrimitive(action) }
-    }
-
-    override fun onUpdate(dt: Duration) {
-        super.onUpdate(dt)
-        primitives.forEach { it.skin?.updateJointTransforms() }
     }
 
     /**

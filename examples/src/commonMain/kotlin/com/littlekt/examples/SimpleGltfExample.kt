@@ -94,7 +94,7 @@ class SimpleGltfExample(context: Context) : ContextListener(context) {
                     resourcesVfs["models/Fox.glb"],
                     GltfLoaderUnlitConfig(GltfModelConfig(skinned = true)),
                     environment,
-                    0.3f,
+                    0.01f,
                     Vec3f(-3f, 0f, 0f),
                     //     animIdx = 1,
                 ),

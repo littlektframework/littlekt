@@ -301,27 +301,26 @@ private class GltfModelGenerator(val gltfFile: GltfData) {
     private fun createSkin(device: Device, skin: GltfSkin): Skin {
         val nodes = mutableListOf<Skin.SkinNode>()
         val invBinMats = skin.inverseBindMatrixAccessorRef?.let { GltfMat4Accessor(it) }
-        if (invBinMats != null) {
-            val skinNodes = mutableMapOf<GltfNode, Skin.SkinNode>()
-            skin.jointRefs.forEach { joint ->
-                val jointNode = nodeCache[joint]!!
-                val invBindMat = invBinMats.next()
-                val skinNode = Skin.SkinNode(jointNode, invBindMat)
-                nodes += skinNode
-                skinNodes[joint] = skinNode
-            }
+        val skinNodes = mutableMapOf<GltfNode, Skin.SkinNode>()
+        skin.jointRefs.forEach { joint ->
+            val jointNode = nodeCache[joint]!!
+            val invBindMat = invBinMats?.next() ?: Mat4()
+            val skinNode = Skin.SkinNode(jointNode, invBindMat)
+            nodes += skinNode
+            skinNodes[joint] = skinNode
+        }
 
-            skin.jointRefs.forEach { joint ->
-                val skinNode = skinNodes[joint]
-                if (skinNode != null) {
-                    joint.childRefs.forEach { child ->
-                        val childNode = skinNodes[child]
-                        childNode?.let { skinNode.addChild(it) }
-                    }
+        skin.jointRefs.forEach { joint ->
+            val skinNode = skinNodes[joint]
+            if (skinNode != null) {
+                joint.childRefs.forEach { child ->
+                    val childNode = skinNodes[child]
+                    childNode?.let { skinNode.addChild(it) }
                 }
             }
         }
-        return Skin(device, nodes)
+
+        return Skin(device, nodes).also { it.printHierarchy() }
     }
 
     private fun applySkins() {
