@@ -10,6 +10,7 @@ import com.littlekt.graphics.g3d.util.InstanceBuffers
 import com.littlekt.graphics.webgpu.IndexFormat
 import com.littlekt.graphics.webgpu.PrimitiveTopology
 import com.littlekt.log.Logger
+import com.littlekt.util.datastructure.fastForEach
 
 /**
  * A mesh primitive holds an instance of a [Mesh] and a [Material] with some rasterizing info such
@@ -41,11 +42,18 @@ open class MeshPrimitive(
         get() = instances.size > 1
 
     /**
-     * The size of all instances. If this is `0` then it is not drawing. A size `> 1` will be marked
-     * as instanced.
+     * The amount of all instances allocated in the staging buffer. If this is `0` then it is not
+     * drawing. A size `> 1` will be marked as instanced.
      */
     val instanceCount: Int
         get() = instances.size
+
+    /**
+     * The amount of instances that are visible in the frustum. This does not necessarily match
+     * [instanceCount] and can be `0`.
+     */
+    val visibleInstanceCount: Int
+        get() = visibleInstances.size
 
     /** The */
     val instanceBuffers: InstanceBuffers =
@@ -54,8 +62,11 @@ open class MeshPrimitive(
     private val instances = mutableListOf<MeshPrimitiveInstance>()
     private var instancesDirty = true
     private var instanceData = FloatBuffer((instanceSize + 1) * TRANSFORM_COMPONENTS_PER_INSTANCE)
+    private var visibleInstanceData =
+        FloatBuffer((instanceSize + 1) * TRANSFORM_COMPONENTS_PER_INSTANCE)
     private val instanceIndices = mutableMapOf<InstanceId, Int>()
     private val instancesToId = mutableMapOf<MeshPrimitiveInstance, InstanceId>()
+    private val visibleInstances = mutableListOf<MeshPrimitiveInstance>()
     private val dirtyInstances = mutableListOf<MeshPrimitiveInstance>()
     private var lastInstanceId: InstanceId = 0
     private val nextInstanceId: InstanceId
@@ -89,11 +100,16 @@ open class MeshPrimitive(
     /** Write instance data to the underlying GPU buffer, if any instance data is dirty. */
     fun writeInstanceDataToBuffer() {
         if (instancesDirty) {
-            dirtyInstances.forEach { dirtyInstance -> updateInstance(dirtyInstance) }
+            dirtyInstances.fastForEach { dirtyInstance -> updateInstance(dirtyInstance) }
             dirtyInstances.clear()
-            instanceBuffers.updateStaticStorage(instanceData)
             instancesDirty = false
         }
+        visibleInstances.fastForEach { instance ->
+            visibleInstanceData.put(instance.globalTransform.data)
+            visibleInstanceData.put(instance.color.fields)
+        }
+        visibleInstanceData.flip()
+        instanceBuffers.updateStaticStorage(visibleInstanceData)
     }
 
     /**
@@ -166,6 +182,17 @@ open class MeshPrimitive(
         instanceData.put(instance.color.fields)
     }
 
+    /** Marks the [MeshPrimitiveInstance] as visible to be rendered in a model batch. */
+    fun markInstanceVisible(instance: MeshPrimitiveInstance) {
+        if (visibleInstances.contains(instance)) return
+        visibleInstances += instance
+    }
+
+    /** Removes all visible [MeshPrimitiveInstance]. */
+    fun resetVisibility() {
+        visibleInstances.clear()
+    }
+
     /**
      * Clears all instance data. Doing this will break any existing [MeshPrimitiveInstance] tied to
      * this primitive. Either destroy the node and recreate it or add it back via [addInstance].
@@ -177,6 +204,8 @@ open class MeshPrimitive(
         instancesToId.clear()
         instances.clear()
         dirtyInstances.clear()
+        visibleInstances.clear()
+        visibleInstanceData.clear()
     }
 
     private fun insertId(id: InstanceId, insertIdx: Int) {
@@ -189,6 +218,7 @@ open class MeshPrimitive(
             newData.put(instanceData)
             instanceData = newData
             instanceData.position = 0
+            visibleInstanceData = FloatBuffer(instanceData.capacity * 2)
         }
 
         var shouldShift = false

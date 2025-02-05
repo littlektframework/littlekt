@@ -128,12 +128,14 @@ class ModelInstancingExample(context: Context) : ContextListener(context) {
         addFlyController(camera)
         onUpdate { dt ->
             duckModel.rotate(y = 0.1.degrees * dt.seconds)
+            duckModel.update(dt)
             duckModelInstances.forEach { instance ->
                 instance.rotate(
                     x = 10f.degrees * dt.seconds,
                     y = 10f.degrees * dt.seconds,
                     z = 10f.degrees * dt.seconds,
                 )
+                instance.update(dt)
             }
         }
         onUpdate { dt ->
@@ -189,7 +191,8 @@ class ModelInstancingExample(context: Context) : ContextListener(context) {
                         )
                 )
 
-            modelBatch.render(duckModel, environment)
+            modelBatch.render(duckModel, camera, environment)
+            duckModelInstances.forEach { modelBatch.render(it, camera, environment) }
             modelBatch.flush(renderPassEncoder, camera, dt)
             renderPassEncoder.end()
             renderPassEncoder.release()

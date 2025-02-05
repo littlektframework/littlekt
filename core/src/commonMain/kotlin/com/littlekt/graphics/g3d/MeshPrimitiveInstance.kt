@@ -45,6 +45,7 @@ open class MeshPrimitiveInstance : Node3D() {
     }
 
     override fun forEachMeshPrimitive(action: (MeshPrimitive) -> Unit) {
+        instanceOf?.markInstanceVisible(this)
         instanceOf?.let(action)
         children.fastForEach { it.forEachMeshPrimitive(action) }
     }
@@ -52,21 +53,27 @@ open class MeshPrimitiveInstance : Node3D() {
     override fun forEachMeshPrimitive(camera: Camera, action: (MeshPrimitive) -> Unit) {
         if (frustumCulled) {
             val instanceOf = instanceOf
-            if (instanceOf != null && !instanceOf.isInstanced) {
+            if (instanceOf != null) {
                 val inFrustum =
                     camera.sphereInFrustum(globalBoundsSphere.center, globalBoundsSphere.radius)
                 if (inFrustum) {
+                    instanceOf.markInstanceVisible(this)
                     action(instanceOf)
                 }
-            } else if (instanceOf != null) {
-                action(instanceOf)
             }
         } else {
+            instanceOf?.markInstanceVisible(this)
             instanceOf?.let(action)
         }
         children.fastForEach { it.forEachMeshPrimitive(camera, action) }
     }
 
+    /**
+     * Copying a [MeshPrimitiveInstance] will reuse the underlying primitive, if applicable. In
+     * other words, this will create an instance of the underlying geometry. Just the fact of
+     * copying this node will update the [MeshPrimitive] instance data. This node will still need to
+     * have [update] called and passed into the renderer to handle any frustum related updates.
+     */
     override fun copy(): Node3D {
         val copy =
             MeshPrimitiveInstance().also {
