@@ -13,23 +13,33 @@ import org.khronos.webgl.get
  * @date 12/2/2024
  */
 actual class CompressionGZIP : Compression {
-    actual override suspend fun compress(input: ByteBuffer): ByteBuffer =
-        ByteBuffer(compress(input.toArray()))
+    actual override suspend fun compress(input: ByteBuffer): ByteBuffer {
+        input as ByteBufferImpl
+        val buffer = input.buffer.buffer
+        val compressionStream = CompressionStream("gzip")
+        val writer = compressionStream.writable.getWriter()
+        writer.write(buffer)
+        writer.close()
+        val reader = compressionStream.readable.getReader()
+        var output = Uint8Array(0)
+        while (true) {
+            val chunk = reader.read().await()
+            if (chunk.done) break
+            val temp = Uint8Array(output.length + chunk.value.length)
+            temp.set(output)
+            temp.set(chunk.value, output.length)
+            output = temp
+        }
+        return ByteBufferImpl(output)
+    }
 
     actual override suspend fun compress(input: ByteArray): ByteArray {
-        val uint8Array = Uint8Array(input.toTypedArray())
-        val readableStream =
-            ReadableStream(
-                object : UnderlyingSource {
-                    override var start: (controller: ReadableStreamController) -> Unit =
-                        { controller ->
-                            controller.enqueue(uint8Array)
-                            controller.close()
-                        }
-                }
-            )
-        val compressedStream = readableStream.pipeThrough(CompressionStream("gzip"))
-        val reader = compressedStream.getReader()
+        val buffer = Uint8Array(input.toTypedArray())
+        val compressionStream = CompressionStream("gzip")
+        val writer = compressionStream.writable.getWriter()
+        writer.write(buffer)
+        writer.close()
+        val reader = compressionStream.readable.getReader()
         var output = Uint8Array(0)
         while (true) {
             val chunk = reader.read().await()
