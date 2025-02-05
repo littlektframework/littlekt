@@ -14,8 +14,9 @@ class OpenALAudioStream(
     private val context: OpenALAudioContext,
     private val read: (ByteArray) -> Int,
     private val reset: suspend () -> Unit,
+    private val close: () -> Unit,
     val channels: Int,
-    val sampleRate: Int
+    val sampleRate: Int,
 ) : AudioStream {
     private val NO_DEVICE
         get() = context.NO_DEVICE
@@ -144,6 +145,7 @@ class OpenALAudioStream(
         }
         buffers?.let { alDeleteBuffers(it) } ?: return@withDevice
         buffers = null
+        close()
     }
 
     suspend fun update() = withDevice {
