@@ -25,9 +25,9 @@ private constructor(private val primitives: List<MeshPrimitive>, addInstanceOnIn
 
     /**
      * Copying a [MeshNode] will reuse the underlying [primitives] list. In other words, this will
-     * create an instance of the underlying geometry. You only need to pass in the original
-     * [MeshNode] into a ModelBatch render function otherwise, you'll get duplicate draw calls. Just
-     * the fact of copying this node will update the [MeshPrimitive] instance data.
+     * create an instance of the underlying geometry. Just the fact of copying this node will update
+     * the [MeshPrimitive] instance data. This node will still need to have [update] called and
+     * passed into the renderer to handle any frustum related updates.
      */
     override fun copy(): Node3D {
         val copy =

@@ -8,7 +8,6 @@ import com.littlekt.graphics.g3d.util.BaseMaterialPipelineProvider
 import com.littlekt.graphics.g3d.util.MaterialPipeline
 import com.littlekt.graphics.g3d.util.MaterialPipelineProvider
 import com.littlekt.graphics.g3d.util.MaterialPipelineSorter
-import com.littlekt.graphics.mesh
 import com.littlekt.graphics.util.BindingUsage
 import com.littlekt.graphics.webgpu.*
 import com.littlekt.log.Logger
@@ -175,7 +174,8 @@ class ModelBatch(val device: Device) : Releasable {
             val primitives = primitivesByPipeline[pipeline]
             if (!primitives.isNullOrEmpty()) {
                 renderPassEncoder.setPipeline(pipeline.renderPipeline)
-                primitives.fastForEach { primitive ->
+                primitives.fastForEach primitives@{ primitive ->
+                    if (primitive.visibleInstanceCount <= 0) return@primitives
                     val materialBindGroup =
                         bindGroupByMaterialId[primitive.material.id]
                             ?: error(
@@ -222,17 +222,27 @@ class ModelBatch(val device: Device) : Releasable {
                     renderPassEncoder.setVertexBuffer(0, mesh.vbo)
 
                     if (indexedMesh != null) {
-                        EngineStats.extra(INSTANCED_STAT_NAME, max(0, primitive.instanceCount - 1))
+                        EngineStats.extra(
+                            INSTANCED_STAT_NAME,
+                            max(0, primitive.visibleInstanceCount - 1),
+                        )
                         EngineStats.extra(DRAW_CALLS_STAT_NAME, 1)
                         renderPassEncoder.drawIndexed(
                             indexedMesh.geometry.numIndices,
-                            primitive.instanceCount,
+                            primitive.visibleInstanceCount,
                         )
                     } else {
-                        EngineStats.extra(INSTANCED_STAT_NAME, max(0, primitive.instanceCount - 1))
+                        EngineStats.extra(
+                            INSTANCED_STAT_NAME,
+                            max(0, primitive.visibleInstanceCount - 1),
+                        )
                         EngineStats.extra(DRAW_CALLS_STAT_NAME, 1)
-                        renderPassEncoder.draw(mesh.geometry.numVertices, primitive.instanceCount)
+                        renderPassEncoder.draw(
+                            mesh.geometry.numVertices,
+                            primitive.visibleInstanceCount,
+                        )
                     }
+                    primitive.resetVisibility()
                 }
             }
         }

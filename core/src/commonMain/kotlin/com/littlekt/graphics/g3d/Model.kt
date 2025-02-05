@@ -6,6 +6,9 @@ import com.littlekt.util.datastructure.fastForEachWithIndex
 import kotlin.time.Duration
 
 /**
+ * A node that is usually a parent of one or many [MeshNode]. This class handles animations for any
+ * skinned meshes.
+ *
  * @author Colton Daily
  * @date 2/3/2025
  */
