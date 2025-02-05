@@ -6,11 +6,13 @@ import com.littlekt.file.ByteBuffer
 import com.littlekt.file.UnsupportedFileTypeException
 import com.littlekt.file.atlas.AtlasInfo
 import com.littlekt.file.atlas.AtlasPage
+import com.littlekt.file.compression.CompressionGZIP
 import com.littlekt.file.gltf.*
 import com.littlekt.file.ldtk.LDtkMapData
 import com.littlekt.file.ldtk.LDtkMapLoader
 import com.littlekt.file.tiled.TiledMapData
 import com.littlekt.file.tiled.TiledMapLoader
+import com.littlekt.file.toStream
 import com.littlekt.graphics.LazyTexture
 import com.littlekt.graphics.Pixmap
 import com.littlekt.graphics.Texture
@@ -25,7 +27,9 @@ import com.littlekt.graphics.webgpu.SamplerDescriptor
 import com.littlekt.graphics.webgpu.TextureFormat
 import com.littlekt.math.MutableVec4i
 import com.littlekt.util.internal.unquote
+import com.littlekt.util.toString
 import kotlin.math.max
+import kotlin.time.measureTimedValue
 
 /**
  * Loads a [TextureAtlas] from the given path. Currently, supports only JSON atlas files.
@@ -397,18 +401,40 @@ private fun VfsFile.isGltf() = path.endsWith(".gltf", true) || path.endsWith(".g
 private fun VfsFile.isBinaryGltf() = path.endsWith(".glb", true) || path.endsWith(".glb.gz", true)
 
 private suspend fun VfsFile.loadGltf(): GltfData {
-    if (path.endsWith(".gz", true)) {
-        TODO("Implement gzip inflation")
-    }
-    return decodeFromString<GltfData>().also { it.root = this }
+    val data =
+        if (path.endsWith(".gz", true)) {
+                vfs.logger.info { "Decompressing $path" }
+                val compressionGZIP = CompressionGZIP()
+                val buffer = read()
+                val result = measureTimedValue { compressionGZIP.decompress(buffer) }
+                vfs.logger.info {
+                    "Decompressed $path (${(buffer.capacity / 1024.0 / 1024.0).toString(2)} mb, ${result.duration})"
+                }
+                result.value
+            } else {
+                read()
+            }
+            .toArray()
+    return vfs.json.decodeFromString<GltfData>(data.decodeToString()).also { it.root = this }
 }
 
 private suspend fun VfsFile.loadBinaryGltf(): GltfData {
+    val data =
+        if (path.endsWith(".gz", true)) {
+            val compressionGZIP = CompressionGZIP()
+            val buffer = read()
+            val result = measureTimedValue { compressionGZIP.decompress(buffer).toStream() }
+            vfs.logger.info {
+                "Decompressed $path (${(buffer.capacity / 1024.0 / 1024.0).toString(2)} mb, ${result.duration})"
+            }
+            result.value
+        } else {
+            readStream()
+        }
     val magicNumber = 0x46546C67
     val chunkJson = 0x4E4F534A
     val chunkBin = 0x004E4942
 
-    val data = readStream()
     val magic = data.readUInt()
     if (magic != magicNumber) {
         error("Unexpected glTF magic number: '$magic'. Expected magic should be '$magicNumber'.")
@@ -445,6 +471,8 @@ private suspend fun VfsFile.loadBinaryGltf(): GltfData {
         }
         chunk++
     }
+
+    data.close()
 
     gltfData.root = this
     return gltfData

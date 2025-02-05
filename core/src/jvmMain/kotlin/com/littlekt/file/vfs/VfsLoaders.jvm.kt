@@ -121,10 +121,13 @@ private suspend fun VfsFile.createAudioStreamMp3(): OpenALAudioStream {
         }
     }
 
+    val close: () -> Unit = { decoder.close() }
+
     return OpenALAudioStream(
         vfs.context.audioContext,
         read,
         reset,
+        close,
         channels,
         decoder.samplingFrequency,
     )
@@ -146,10 +149,13 @@ private suspend fun VfsFile.createAudioStreamWav(): OpenALAudioStream {
         }
     }
 
+    val close: () -> Unit = { clip.close() }
+
     return OpenALAudioStream(
         vfs.context.audioContext,
         read,
         reset,
+        close,
         clip.format.channels,
         clip.format.sampleRate.toInt(),
     )

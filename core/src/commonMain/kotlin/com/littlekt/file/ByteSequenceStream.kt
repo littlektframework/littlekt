@@ -6,7 +6,7 @@ package com.littlekt.file
  * @author Colton Daily
  * @date 1/12/2022
  */
-interface ByteSequenceStream : Sequence<Byte> {
+interface ByteSequenceStream : Sequence<Byte>, AutoCloseable {
     /**
      * Reads the next chunk of the specified [size] or until it reaches the end of the
      * [ByteSequenceStream].
@@ -78,6 +78,5 @@ interface ByteSequenceStream : Sequence<Byte> {
     fun reset()
 
     /** Closes the stream and prevents it from being read again. */
-    fun close()
+    override fun close()
 }
-

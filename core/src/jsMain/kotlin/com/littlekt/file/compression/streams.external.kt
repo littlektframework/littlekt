@@ -3,8 +3,7 @@ package com.littlekt.file.compression
 import kotlin.js.Promise
 import org.khronos.webgl.Uint8Array
 
-external class ReadableStream(underlyingSource: UnderlyingSource = definedExternally) :
-    TransformStream {
+external class ReadableStream(underlyingSource: UnderlyingSource = definedExternally) {
     val locked: Boolean
 
     fun cancel(): Promise<*>
@@ -26,7 +25,7 @@ external interface UnderlyingSource {
     var start: (controller: ReadableStreamController) -> Unit
 }
 
-external class WritableStream : TransformStream {
+external class WritableStream {
     val locked: Boolean
 
     fun abort(): Promise<*>
@@ -64,11 +63,17 @@ external class WriteStreamWriter() {
     fun write(chunk: dynamic): Promise<*>
 }
 
-open external class TransformStream {
+external interface TransformStream {
     val readable: ReadableStream
-    val writeable: WritableStream
+    val writable: WritableStream
 }
 
-external class CompressionStream(format: String) : TransformStream
+external class CompressionStream(format: String) : TransformStream {
+    override val readable: ReadableStream
+    override val writable: WritableStream
+}
 
-external class DecompressionStream(format: String) : TransformStream
+external class DecompressionStream(format: String) : TransformStream {
+    override val readable: ReadableStream
+    override val writable: WritableStream
+}
