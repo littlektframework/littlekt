@@ -1,8 +1,6 @@
 package com.littlekt.graphics.g3d
 
-import com.littlekt.graphics.Camera
 import com.littlekt.graphics.g3d.skin.Skin
-import com.littlekt.math.spatial.BoundingBox
 import com.littlekt.util.datastructure.fastForEach
 
 /**
@@ -14,38 +12,15 @@ import com.littlekt.util.datastructure.fastForEach
  * @date 11/24/2024
  */
 open class MeshNode
-private constructor(val primitives: List<MeshPrimitive>, addInstanceOnInit: Boolean) : Node3D() {
+private constructor(private val primitives: List<MeshPrimitive>, addInstanceOnInit: Boolean) :
+    Node3D() {
 
     constructor(primitives: List<MeshPrimitive>) : this(primitives, true)
 
-    override var frustumCulled: Boolean = true
-
     init {
         if (addInstanceOnInit) {
-            primitives.forEach { prim -> addChild(VisualInstance().apply { addTo(prim) }) }
+            primitives.forEach { prim -> addChild(MeshPrimitiveInstance().apply { addTo(prim) }) }
         }
-    }
-
-    override fun forEachMeshPrimitive(action: (MeshPrimitive) -> Unit) {
-        primitives.forEach { action(it) }
-        children.fastForEach { it.forEachMeshPrimitive(action) }
-    }
-
-    override fun forEachMeshPrimitive(camera: Camera, action: (MeshPrimitive) -> Unit) {
-        if (frustumCulled) {
-            val inFrustum =
-                camera.sphereInFrustum(globalBoundsSphere.center, globalBoundsSphere.radius)
-            if (inFrustum) {
-                primitives.forEach { action(it) }
-                children.fastForEach { it.forEachMeshPrimitive(camera, action) }
-            }
-        } else {
-            children.fastForEach { it.forEachMeshPrimitive(camera, action) }
-        }
-    }
-
-    override fun addToBoundingBox(bounds: BoundingBox) {
-        primitives.forEach { bounds.add(it.mesh.geometry.bounds) }
     }
 
     /**
@@ -58,6 +33,7 @@ private constructor(val primitives: List<MeshPrimitive>, addInstanceOnInit: Bool
         val copy =
             MeshNode(primitives, false).also {
                 it.name = name
+                it.frustumCulled = frustumCulled
                 it.globalTransform = globalTransform
             }
         children.fastForEach { child -> copy.addChild(child.copy()) }

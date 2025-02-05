@@ -51,12 +51,12 @@ open class MeshPrimitive(
     val instanceBuffers: InstanceBuffers =
         InstanceBuffers(mesh.device, (instanceSize + 1) * TRANSFORM_COMPONENTS_PER_INSTANCE)
 
-    private val instances = mutableListOf<VisualInstance>()
+    private val instances = mutableListOf<MeshPrimitiveInstance>()
     private var instancesDirty = true
     private var instanceData = FloatBuffer((instanceSize + 1) * TRANSFORM_COMPONENTS_PER_INSTANCE)
     private val instanceIndices = mutableMapOf<InstanceId, Int>()
-    private val instancesToId = mutableMapOf<VisualInstance, InstanceId>()
-    private val dirtyInstances = mutableListOf<VisualInstance>()
+    private val instancesToId = mutableMapOf<MeshPrimitiveInstance, InstanceId>()
+    private val dirtyInstances = mutableListOf<MeshPrimitiveInstance>()
     private var lastInstanceId: InstanceId = 0
     private val nextInstanceId: InstanceId
         get() = lastInstanceId++
@@ -77,10 +77,10 @@ open class MeshPrimitive(
     // }
 
     /**
-     * Marks the designated [VisualInstance] as dirty. A dirty instance will write the transform
-     * data to the buffer at update time.
+     * Marks the designated [MeshPrimitiveInstance] as dirty. A dirty instance will write the
+     * transform data to the buffer at update time.
      */
-    fun instanceDirty(instance: VisualInstance) {
+    fun instanceDirty(instance: MeshPrimitiveInstance) {
         if (dirtyInstances.contains(instance)) return
         instancesDirty = true
         dirtyInstances += instance
@@ -97,11 +97,18 @@ open class MeshPrimitive(
     }
 
     /**
-     * Adds the designated [VisualInstance] as an instance. The instance is assigned an internal ID
-     * and is tracked. If a [VisualInstance] changes, on must mark it dirty with [instanceDirty]. By
-     * default, a [VisualInstance] will mark itself dirty via the [Node3D.dirty] function.
+     * Adds the designated [MeshPrimitiveInstance] as an instance. The instance is assigned an
+     * internal ID and is tracked. If a [MeshPrimitiveInstance] changes, on must mark it dirty with
+     * [instanceDirty]. By default, a [MeshPrimitiveInstance] will mark itself dirty via the
+     * [Node3D.dirty] function.
      */
-    fun addInstance(instance: VisualInstance) {
+    fun addInstance(instance: MeshPrimitiveInstance) {
+        if (instance.instanceOf != null) {
+            logger.warn {
+                "MeshPrimitiveInstance is already an instance of another MeshPrimitive. Remove old instance before adding new one."
+            }
+            return
+        }
         if (instances.contains(instance)) {
             return
         }
@@ -114,8 +121,8 @@ open class MeshPrimitive(
         instancesDirty = true
     }
 
-    /** Removes the designated [VisualInstance] as an instance. */
-    fun removeInstance(instance: VisualInstance) {
+    /** Removes the designated [MeshPrimitiveInstance] as an instance. */
+    fun removeInstance(instance: MeshPrimitiveInstance) {
         if (instance.instanceOf == this) {
             val id = instancesToId[instance]
             if (id == null) {
@@ -141,7 +148,7 @@ open class MeshPrimitive(
      * Update the CPU transfer storage buffer for the following [instance], as long as it has been
      * adeed via [addInstance], to prepare it for writing to the GPU buffer.
      */
-    fun updateInstance(instance: VisualInstance) {
+    fun updateInstance(instance: MeshPrimitiveInstance) {
         val id = instancesToId[instance]
         if (id == null) {
             logger.warn { "Instance does not exist to be updated!" }
@@ -160,8 +167,8 @@ open class MeshPrimitive(
     }
 
     /**
-     * Clears all instance data. Doing this will break any existing [VisualInstance] tied to this
-     * primitive. Either destroy the node and recreate it or add it back via [addInstance].
+     * Clears all instance data. Doing this will break any existing [MeshPrimitiveInstance] tied to
+     * this primitive. Either destroy the node and recreate it or add it back via [addInstance].
      */
     fun clearInstances() {
         instanceData.clear()
@@ -214,7 +221,7 @@ open class MeshPrimitive(
         instanceData.put(
             instanceData,
             dstOffset = staticOffset,
-            srcOffset = (removeIdx + 1) * TRANSFORM_COMPONENTS_PER_INSTANCE,
+            srcOffset = removeIdx * TRANSFORM_COMPONENTS_PER_INSTANCE,
             len = instanceCount * TRANSFORM_COMPONENTS_PER_INSTANCE,
         )
 

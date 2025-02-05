@@ -435,12 +435,12 @@ open class Node3D {
         dirty()
     }
 
-    /** Iterate over any [MeshPrimitive] descendants */
+    /** Iterate over any [MeshPrimitive] descendants. Does not use frustum culling. */
     open fun forEachMeshPrimitive(action: (MeshPrimitive) -> Unit) {
         children.fastForEach { it.forEachMeshPrimitive(action) }
     }
 
-    /** Iterate over any [MeshPrimitive] descendants */
+    /** Iterate over any [MeshPrimitive] descendants using a [Camera] for frustum culling. */
     open fun forEachMeshPrimitive(camera: Camera, action: (MeshPrimitive) -> Unit) {
         if (frustumCulled) {
             val inFrustum =
@@ -972,6 +972,7 @@ open class Node3D {
         val copy =
             Node3D().also {
                 it.name = name
+                it.frustumCulled = frustumCulled
                 it.globalTransform = globalTransform
             }
         children.fastForEach { child -> copy.addChild(child.copy()) }
