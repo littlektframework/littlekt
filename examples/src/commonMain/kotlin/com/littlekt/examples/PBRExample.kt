@@ -181,6 +181,8 @@ class PBRExample(context: Context) : ContextListener(context) {
             }
         }
 
+        onUpdate { dt -> models.forEach { model -> model.scene?.update(dt) } }
+
         onUpdate { dt ->
             val surfaceTexture = graphics.surface.getCurrentTexture()
             when (val status = surfaceTexture.status) {

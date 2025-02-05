@@ -11,6 +11,7 @@ import com.littlekt.graphics.webgpu.IndexFormat
 import com.littlekt.graphics.webgpu.PrimitiveTopology
 import com.littlekt.log.Logger
 import com.littlekt.util.datastructure.fastForEach
+import com.littlekt.util.datastructure.fastForEachWithIndex
 
 /**
  * A mesh primitive holds an instance of a [Mesh] and a [Material] with some rasterizing info such
@@ -82,11 +83,6 @@ open class MeshPrimitive(
         }
     }
 
-    // override fun dirty() {
-    //     super.dirty()
-    //     instancesDirty = true
-    // }
-
     /**
      * Marks the designated [MeshPrimitiveInstance] as dirty. A dirty instance will write the
      * transform data to the buffer at update time.
@@ -104,9 +100,29 @@ open class MeshPrimitive(
             dirtyInstances.clear()
             instancesDirty = false
         }
-        visibleInstances.fastForEach { instance ->
-            visibleInstanceData.put(instance.globalTransform.data)
-            visibleInstanceData.put(instance.color.fields)
+        visibleInstances.fastForEachWithIndex { index, instance ->
+            val id =
+                instancesToId[instance]
+                    ?: run {
+                        logger.warn {
+                            "Instance marked as visible could not be found in instance data. Ensure it has been added via addInstance()."
+                        }
+                        return@fastForEachWithIndex
+                    }
+            val instanceDataIdx =
+                instanceIndices[id]
+                    ?: run {
+                        logger.warn {
+                            "Instance $id index could not be found in instance data. Ensure it has been added via addInstance()."
+                        }
+                        return@fastForEachWithIndex
+                    }
+            visibleInstanceData.put(
+                instanceData,
+                dstOffset = index * TRANSFORM_COMPONENTS_PER_INSTANCE,
+                srcOffset = instanceDataIdx * TRANSFORM_COMPONENTS_PER_INSTANCE,
+                len = TRANSFORM_COMPONENTS_PER_INSTANCE,
+            )
         }
         visibleInstanceData.flip()
         instanceBuffers.updateStaticStorage(visibleInstanceData)
@@ -184,6 +200,12 @@ open class MeshPrimitive(
 
     /** Marks the [MeshPrimitiveInstance] as visible to be rendered in a model batch. */
     fun markInstanceVisible(instance: MeshPrimitiveInstance) {
+        if (!instances.contains(instance)) {
+            logger.warn {
+                "Attempting to mark an instance as visible when it hasn't been added yet! Ignoring..."
+            }
+            return
+        }
         if (visibleInstances.contains(instance)) return
         visibleInstances += instance
     }
