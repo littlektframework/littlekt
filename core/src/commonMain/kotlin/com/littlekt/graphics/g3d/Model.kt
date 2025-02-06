@@ -1,5 +1,6 @@
 package com.littlekt.graphics.g3d
 
+import com.littlekt.graphics.g3d.material.Material
 import com.littlekt.graphics.g3d.skin.Animation
 import com.littlekt.util.datastructure.fastForEach
 import com.littlekt.util.datastructure.fastForEachWithIndex
@@ -14,6 +15,11 @@ import kotlin.time.Duration
  */
 open class Model : Node3D() {
     val animations = mutableListOf<Animation>()
+
+    /** Set's material for each [MeshPrimitive] child. */
+    fun setMaterial(material: Material) {
+        forEachMeshPrimitive { it.material = material }
+    }
 
     fun disableAllAnimations() {
         enableAnimation(-1)

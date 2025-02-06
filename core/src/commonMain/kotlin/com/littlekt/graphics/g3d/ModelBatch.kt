@@ -106,7 +106,7 @@ class ModelBatch(val device: Device) : Releasable {
                 depthFormat,
             ) ?: error("Unable to find pipeline for given instance!")
         if (meshPrimitive.material.ready) {
-            bindGroupByMaterialId.getOrPut(meshPrimitive.material.id) {
+            bindGroupByMaterialId.getOrPutNotNull(meshPrimitive.material.id) {
                 meshPrimitive.material.createBindGroup(pipeline.shader)
             }
         }
@@ -138,12 +138,11 @@ class ModelBatch(val device: Device) : Releasable {
             if (!pipelines.contains(pipeline)) {
                 pipelines += pipeline
             }
-            // todo - pool lists?
             primitivesByPipeline
                 .getOrPut(pipeline) { listPool.alloc() }
                 .apply { add(meshPrimitive) }
 
-            bindGroupByMaterialId.getOrPut(meshPrimitive.material.id) {
+            bindGroupByMaterialId.getOrPutNotNull(meshPrimitive.material.id) {
                 meshPrimitive.material.createBindGroup(pipeline.shader)
             }
         }
@@ -176,11 +175,7 @@ class ModelBatch(val device: Device) : Releasable {
                 renderPassEncoder.setPipeline(pipeline.renderPipeline)
                 primitives.fastForEach primitives@{ primitive ->
                     if (primitive.visibleInstanceCount <= 0) return@primitives
-                    val materialBindGroup =
-                        bindGroupByMaterialId[primitive.material.id]
-                            ?: error(
-                                "Material (${primitive.material.id}) bind groups could not be found!"
-                            )
+                    val materialBindGroup = bindGroupByMaterialId[primitive.material.id]
 
                     if (primitive.material.skinned) {
                         val skinBindGroup =
@@ -195,11 +190,13 @@ class ModelBatch(val device: Device) : Releasable {
                     }
                     if (lastMaterialSet != primitive.material.id) {
                         lastMaterialSet = primitive.material.id
-                        pipeline.shader.setBindGroup(
-                            renderPassEncoder,
-                            materialBindGroup,
-                            BindingUsage.MATERIAL,
-                        )
+                        materialBindGroup?.let {
+                            pipeline.shader.setBindGroup(
+                                renderPassEncoder,
+                                it,
+                                BindingUsage.MATERIAL,
+                            )
+                        }
                         primitive.material.update()
                     }
                     primitive.writeInstanceDataToBuffer()
@@ -259,6 +256,16 @@ class ModelBatch(val device: Device) : Releasable {
     override fun release() {
         pipelineProviders.values.forEach { it.release() }
         bindGroupByMaterialId.values.forEach { it.release() }
+    }
+
+    private inline fun <K, V> MutableMap<K, V>.getOrPutNotNull(key: K, defaultValue: () -> V?): V? {
+        val value = get(key)
+        return if (value == null) {
+            val answer = defaultValue()
+            answer?.let { put(key, answer) }
+        } else {
+            value
+        }
     }
 
     companion object {
