@@ -14,10 +14,7 @@ import com.littlekt.graphics.g3d.*
 import com.littlekt.graphics.g3d.light.AmbientLight
 import com.littlekt.graphics.g3d.light.DirectionalLight
 import com.littlekt.graphics.g3d.light.PointLight
-import com.littlekt.graphics.g3d.material.DepthSliceMaterial
 import com.littlekt.graphics.g3d.material.PBRMaterial
-import com.littlekt.graphics.g3d.util.CameraComplexBuffers
-import com.littlekt.graphics.g3d.util.DepthSliceMaterialPipelineProvider
 import com.littlekt.graphics.g3d.util.PBRMaterialPipelineProvider
 import com.littlekt.graphics.g3d.util.UnlitMaterialPipelineProvider
 import com.littlekt.graphics.generate
@@ -41,7 +38,6 @@ class SimpleGltfExample(context: Context) : ContextListener(context) {
         val device = graphics.device
         val camera = PerspectiveCamera(graphics.width, graphics.height)
         camera.translate(0f, 1f, 5f)
-        val simpleEnv = Environment(CameraComplexBuffers(device))
         val environment = UnlitEnvironment(device)
         val pbrEnvironment =
             PBREnvironment(device).apply {
@@ -81,7 +77,6 @@ class SimpleGltfExample(context: Context) : ContextListener(context) {
             ModelBatch(device).apply {
                 addPipelineProvider(UnlitMaterialPipelineProvider())
                 addPipelineProvider(PBRMaterialPipelineProvider())
-                addPipelineProvider(DepthSliceMaterialPipelineProvider())
                 colorFormat = preferredFormat
                 this.depthFormat = depthFormat
             }
@@ -163,7 +158,6 @@ class SimpleGltfExample(context: Context) : ContextListener(context) {
                 )
             )
         }
-        val depthSliceMaterial = DepthSliceMaterial(device)
 
         graphics.configureSurface(
             TextureUsage.RENDER_ATTACHMENT,
@@ -202,7 +196,6 @@ class SimpleGltfExample(context: Context) : ContextListener(context) {
         onUpdate { dt ->
             models.fastForEach { model ->
                 model.scene?.let {
-                    it.setMaterial(depthSliceMaterial)
                     it.rotate(y = 10.degrees * dt.seconds)
                     it.update(dt)
                 }
