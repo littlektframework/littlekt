@@ -1,4 +1,4 @@
-package com.littlekt.graphics.shader
+package com.littlekt.graphics.shader.builder
 
 /**
  * @author Colton Daily
@@ -8,10 +8,11 @@ open class FragmentShaderBlockBuilder(base: ShaderBlock? = null) : ShaderBlockBu
     fun main(
         input: ShaderStruct,
         output: ShaderStruct,
-        name: String = "main",
+        entry: String = "main",
+        inputVar: String = "input",
         block: ShaderBlockBuilder.() -> String,
     ) {
         body =
-            "@fragment fn $name(${input.name.toSnakeCase()}: ${input.name}) -> ${output.name} {\n${block()}\n}"
+            "%fragment_start%\n@fragment fn $entry($inputVar: ${input.name}) -> ${output.name} {\n${block()}\n}\n%fragment_end%"
     }
 }

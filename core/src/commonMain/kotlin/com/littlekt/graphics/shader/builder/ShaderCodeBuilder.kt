@@ -1,16 +1,15 @@
-package com.littlekt.graphics.shader
+package com.littlekt.graphics.shader.builder
 
 /**
  * @author Colton Daily
  * @date 2/6/2025
  */
 open class ShaderCodeBuilder(base: ShaderCode? = null) {
-    private val includes =
-        mutableListOf<ShaderStruct>().apply { base?.includes?.let { addAll(it) } }
+    private val includes = mutableListOf<ShaderBlock>().apply { base?.includes?.let { addAll(it) } }
     private val blocks = mutableListOf<ShaderBlock>().apply { base?.let { addAll(it.blocks) } }
 
-    fun include(struct: ShaderStruct) {
-        includes.add(struct)
+    fun include(block: ShaderBlock) {
+        includes.add(block)
     }
 
     fun vertex(base: ShaderBlock? = null, block: VertexShaderBlockBuilder.() -> Unit) {

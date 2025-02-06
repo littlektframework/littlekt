@@ -1,4 +1,4 @@
-package com.littlekt.graphics.shader
+package com.littlekt.graphics.shader.builder
 
 fun shader(shader: ShaderCode? = null, block: ShaderCodeBuilder.() -> Unit): ShaderCode {
     val builder = ShaderCodeBuilder(shader)

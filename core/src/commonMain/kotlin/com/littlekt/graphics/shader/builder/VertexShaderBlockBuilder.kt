@@ -1,4 +1,4 @@
-package com.littlekt.graphics.shader
+package com.littlekt.graphics.shader.builder
 
 /**
  * @author Colton Daily
@@ -8,10 +8,11 @@ open class VertexShaderBlockBuilder(base: ShaderBlock? = null) : ShaderBlockBuil
     fun main(
         input: ShaderStruct,
         output: ShaderStruct,
-        name: String = "main",
+        entry: String = "main",
+        inputVar: String = "input",
         block: ShaderBlockBuilder.() -> String,
     ) {
         body =
-            "@vertex fn $name(${input.name.toSnakeCase()}: ${input.name}) -> ${output.name} {\n${block()}\n}"
+            "%vertex_start%\n@vertex fn $entry($inputVar: ${input.name}) -> ${output.name} {\n${block()}\n}\n%vertex_end%"
     }
 }
