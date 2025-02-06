@@ -209,11 +209,13 @@ fun SubShaderBuilder.tileFunctions(
             }
             
             fn get_tile(frag_coord : vec4f) -> vec3u {
-              let zTile = u32((log2(abs(frag_coord.z) / camera.z_near) * f32(tile_count.z)) / log2(camera.z_far / camera.z_near));
-              let tileSize = camera.output_size / vec2(f32(tile_count.x), f32(tile_count.y));
-              return vec3(u32(frag_coord.x / tileSize.x),
-                          u32(frag_coord.y / tileSize.y),
-                          zTile);
+              let sliceScale = f32(tile_count.z) / log2(camera.z_far / camera.z_near);
+              let sliceBias = -(f32(tile_count.z) * log2(camera.z_near) / log2(camera.z_far / camera.z_near));
+              let zTile = u32(max(log2(linear_depth(frag_coord.z)) * sliceScale + sliceBias, 0.0));
+            
+              return vec3<u32>(u32(frag_coord.x / (camera.output_size.x / f32(tile_count.x))),
+                               u32(frag_coord.y / (camera.output_size.y / f32(tile_count.y))),
+                               zTile);
             }
             
             fn get_cluster_index(frag_coord : vec4f) -> u32 {

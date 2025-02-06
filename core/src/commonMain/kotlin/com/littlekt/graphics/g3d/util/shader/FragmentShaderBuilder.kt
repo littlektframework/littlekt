@@ -19,6 +19,11 @@ open class FragmentShaderBuilder {
         parts += builder.build()
     }
 
+    fun <T : SubFragmentShaderBuilder> from(builder: T, block: T.() -> Unit) {
+        builder.block()
+        parts += builder.build()
+    }
+
     fun build(): String {
         return parts.joinToString("\n")
     }

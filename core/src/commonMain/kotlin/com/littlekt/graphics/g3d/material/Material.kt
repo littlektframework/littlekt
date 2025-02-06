@@ -50,7 +50,7 @@ abstract class Material : Releasable {
             result
         }
 
-    abstract fun createBindGroup(shader: Shader): BindGroup
+    abstract fun createBindGroup(shader: Shader): BindGroup?
 
     abstract fun update()
 
