@@ -5,6 +5,8 @@ package com.littlekt.graphics.shader.builder
  * @date 2/6/2025
  */
 open class VertexShaderBlockBuilder(base: ShaderBlock? = null) : ShaderBlockBuilder(base) {
+    override var type = ShaderBlockType.VERTEX
+
     fun main(
         input: ShaderStruct,
         output: ShaderStruct,

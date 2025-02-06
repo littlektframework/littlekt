@@ -5,6 +5,8 @@ package com.littlekt.graphics.shader.builder
  * @date 2/6/2025
  */
 open class ShaderCodeBuilder(base: ShaderCode? = null) {
+    private val vertexBase = base?.blocks?.firstOrNull { it.type == ShaderBlockType.VERTEX }
+    private val fragmentBase = base?.blocks?.firstOrNull { it.type == ShaderBlockType.FRAGMENT }
     private val includes = mutableListOf<ShaderBlock>().apply { base?.includes?.let { addAll(it) } }
     private val blocks = mutableListOf<ShaderBlock>().apply { base?.let { addAll(it.blocks) } }
 
@@ -13,15 +15,33 @@ open class ShaderCodeBuilder(base: ShaderCode? = null) {
     }
 
     fun vertex(base: ShaderBlock? = null, block: VertexShaderBlockBuilder.() -> Unit) {
-        val builder = VertexShaderBlockBuilder(base)
+        if (base != null && base.type != ShaderBlockType.VERTEX) {
+            error("Vertex base must be a vertex block!")
+        }
+        val builder = VertexShaderBlockBuilder(base ?: vertexBase)
         builder.block()
-        blocks.add(builder.build())
+        val vertexIdx = blocks.indexOfFirst { it.type == ShaderBlockType.VERTEX }
+        if (vertexIdx != -1) {
+            blocks.removeAt(vertexIdx)
+            blocks.add(vertexIdx, builder.build())
+        } else {
+            blocks.add(builder.build())
+        }
     }
 
     fun fragment(base: ShaderBlock? = null, block: FragmentShaderBlockBuilder.() -> Unit) {
-        val builder = FragmentShaderBlockBuilder(base)
+        if (base != null && base.type != ShaderBlockType.FRAGMENT) {
+            error("Fragment base must be a fragment block!")
+        }
+        val builder = FragmentShaderBlockBuilder(base ?: fragmentBase)
         builder.block()
-        blocks.add(builder.build())
+        val fragmentIdx = blocks.indexOfFirst { it.type == ShaderBlockType.FRAGMENT }
+        if (fragmentIdx != -1) {
+            blocks.removeAt(fragmentIdx)
+            blocks.add(fragmentIdx, builder.build())
+        } else {
+            blocks.add(builder.build())
+        }
     }
 
     fun build(): ShaderCode {

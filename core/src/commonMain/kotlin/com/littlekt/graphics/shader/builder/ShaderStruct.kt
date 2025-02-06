@@ -12,4 +12,5 @@ package com.littlekt.graphics.shader.builder
  * @author Colton Daily
  * @date 2/6/2025
  */
-class ShaderStruct(val name: String, body: String) : ShaderBlock(emptyList(), emptyList(), body) {}
+class ShaderStruct(val name: String, body: String) :
+    ShaderBlock(ShaderBlockType.STRUCT, emptyList(), emptyList(), body) {}

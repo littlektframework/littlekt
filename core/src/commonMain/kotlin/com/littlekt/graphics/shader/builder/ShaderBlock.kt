@@ -5,6 +5,7 @@ package com.littlekt.graphics.shader.builder
  * @date 2/6/2025
  */
 open class ShaderBlock(
+    val type: ShaderBlockType,
     val includes: List<ShaderBlock>,
     val rules: List<ShaderBlockInsertRule>,
     val body: String,
