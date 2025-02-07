@@ -9,4 +9,5 @@ enum class ShaderBlockType {
     BLOCK,
     FRAGMENT,
     VERTEX,
+    COMPUTE,
 }

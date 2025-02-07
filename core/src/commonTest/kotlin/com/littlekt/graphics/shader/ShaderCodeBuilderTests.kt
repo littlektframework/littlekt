@@ -74,6 +74,29 @@ class ShaderCodeBuilderTests {
         }
     }
 
+    private val dataStruct =
+        shaderStruct("View") {
+            """
+            @group(0) @binding(0) var<storage, read_write> data: array<f32>;
+        """
+                .trimIndent()
+        }
+
+    private val defaultComputeShader = shader {
+        include(dataStruct)
+        compute {
+            main(1) {
+                """
+            let i = id.x
+            %update_data%
+            data[i] = data[i] * 2.0;
+            %output%
+        """
+                    .trimIndent()
+            }
+        }
+    }
+
     private val expectedDefaultVertexShaderSrc =
         """
         @vertex fn main(input: InputStruct) -> OutputStruct {
@@ -91,6 +114,17 @@ class ShaderCodeBuilderTests {
         var output: FragmentOutput;
         output.color = vec4f(1.0, 1.0, 1.0, 1.0);
         return output;
+        }
+    """
+            .trimIndent()
+
+    private val expectedComputeShaderSrc =
+        """
+        @group(0) @binding(0) var<storage, read_write> data: array<f32>;
+
+        @compute @workgroup_size(1, 1, 1) fn main(@builtin(global_invocation_id) global_id : vec3u) {
+        let i = id.x
+        data[i] = data[i] * 2.0;
         }
     """
             .trimIndent()
@@ -212,5 +246,62 @@ class ShaderCodeBuilderTests {
     fun extendExistingFragmentShaderButDoNothing() {
         val shader = shader(defaultFragmentShader) { fragment {} }
         assertEquals(expectedDefaultFragmentShaderSrc, shader.src)
+    }
+
+    @Test
+    fun buildComputeShader() {
+        val shader = shader {
+            include(dataStruct)
+            compute {
+                main(1) {
+                    """
+            let i = id.x
+            %update_data%
+            data[i] = data[i] * 2.0;
+            %output%
+        """
+                        .trimIndent()
+                }
+            }
+        }
+
+        assertEquals(expectedComputeShaderSrc, shader.src)
+    }
+
+    @Test
+    fun extendExistingComputeShader() {
+        val shader =
+            shader(defaultComputeShader) {
+                compute {
+                    before("output") {
+                        body {
+                            """
+                                data[i] = data[i] - 1.0;
+                            """
+                                .trimIndent()
+                        }
+                    }
+                }
+            }
+
+        val expected =
+            """
+            @group(0) @binding(0) var<storage, read_write> data: array<f32>;
+
+            @compute @workgroup_size(1, 1, 1) fn main(@builtin(global_invocation_id) global_id : vec3u) {
+            let i = id.x
+            data[i] = data[i] * 2.0;
+            data[i] = data[i] - 1.0;
+            
+            }
+        """
+                .trimIndent()
+        assertEquals(expected, shader.src)
+    }
+
+    @Test
+    fun extendExistingComputeShaderButDoNothing() {
+        val shader = shader(defaultComputeShader) { compute {} }
+        assertEquals(expectedComputeShaderSrc, shader.src)
     }
 }

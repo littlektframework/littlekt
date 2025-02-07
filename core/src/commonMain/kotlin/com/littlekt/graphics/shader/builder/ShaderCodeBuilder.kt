@@ -7,6 +7,7 @@ package com.littlekt.graphics.shader.builder
 open class ShaderCodeBuilder(base: ShaderCode? = null) {
     private val vertexBase = base?.blocks?.firstOrNull { it.type == ShaderBlockType.VERTEX }
     private val fragmentBase = base?.blocks?.firstOrNull { it.type == ShaderBlockType.FRAGMENT }
+    private val computeBase = base?.blocks?.firstOrNull { it.type == ShaderBlockType.COMPUTE }
     private val includes = mutableListOf<ShaderBlock>().apply { base?.includes?.let { addAll(it) } }
     private val blocks = mutableListOf<ShaderBlock>().apply { base?.let { addAll(it.blocks) } }
 
@@ -39,6 +40,21 @@ open class ShaderCodeBuilder(base: ShaderCode? = null) {
         if (fragmentIdx != -1) {
             blocks.removeAt(fragmentIdx)
             blocks.add(fragmentIdx, builder.build())
+        } else {
+            blocks.add(builder.build())
+        }
+    }
+
+    fun compute(base: ShaderBlock? = null, block: ComputeShaderBlockBuilder.() -> Unit) {
+        if (base != null && base.type != ShaderBlockType.COMPUTE) {
+            error("Compute base must be a compute block!")
+        }
+        val builder = ComputeShaderBlockBuilder(base ?: computeBase)
+        builder.block()
+        val computeIdx = blocks.indexOfFirst { it.type == ShaderBlockType.COMPUTE }
+        if (computeIdx != -1) {
+            blocks.removeAt(computeIdx)
+            blocks.add(computeIdx, builder.build())
         } else {
             blocks.add(builder.build())
         }
