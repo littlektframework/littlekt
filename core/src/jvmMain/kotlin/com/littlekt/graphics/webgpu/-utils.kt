@@ -53,7 +53,7 @@ internal fun Boolean.toInt() = if (this) 1 else 0
 internal fun <T> MemorySegment.mapFromIntUntilNull(transform: (Int) -> T): List<T & Any> {
     val results = mutableListOf<T>()
 
-    for (i in 0..byteSize() step Int.SIZE_BYTES.toLong()) {
+    for (i in 0 until byteSize() step ValueLayout.JAVA_INT.byteAlignment()) {
         val result = transform(this[ValueLayout.JAVA_INT, i])
         if (result != null) {
             results += result
