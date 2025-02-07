@@ -380,4 +380,52 @@ class ShaderCodeBuilderTests {
         val shader = shader(defaultVertexShader) { include(common) }
         assertEquals("$expectedCommonSrc\n${defaultVertexShader.src}", shader.src)
     }
+
+    @Test
+    fun includeCustomBlockAtShaderBuild() {
+        val shader = shader {
+            include {
+                body {
+                    """
+                        struct Test {
+                           i: u32,
+                        };
+                    """
+                        .trimIndent()
+                }
+            }
+
+            vertex {
+                main(input = inputVertexStruct, output = vertexOutputStruct) {
+                    """
+                            var output: OutputStruct;
+                            var test: Test;
+                            test.i = input.position.x;
+                            
+                            output.position = vec4f(input.position, test.i);
+                            return output;
+                        """
+                        .trimIndent()
+                }
+            }
+        }
+
+        val expected =
+            """
+            struct Test {
+               i: u32,
+            };
+
+            @vertex fn main(input: InputStruct) -> OutputStruct {
+            var output: OutputStruct;
+            var test: Test;
+            test.i = input.position.x;
+
+            output.position = vec4f(input.position, test.i);
+            return output;
+            }
+        """
+                .trimIndent()
+        assertEquals(expected, shader.src)
+    }
 }

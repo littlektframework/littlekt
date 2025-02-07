@@ -23,4 +23,8 @@ class ShaderCode(val includes: List<ShaderBlock>, val blocks: List<ShaderBlock>)
             .joinToString("\n") { it }
             .trim()
     }
+
+    override fun toString(): String {
+        return src
+    }
 }

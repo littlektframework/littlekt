@@ -15,6 +15,12 @@ open class ShaderCodeBuilder(base: ShaderCode? = null) {
         includes.add(block)
     }
 
+    fun include(block: ShaderBlockBuilder.() -> Unit) {
+        val builder = ShaderBlockBuilder()
+        builder.block()
+        include(builder.build())
+    }
+
     fun vertex(base: ShaderBlock? = null, block: VertexShaderBlockBuilder.() -> Unit) {
         if (base != null && base.type != ShaderBlockType.VERTEX) {
             error("Vertex base must be a vertex block!")
