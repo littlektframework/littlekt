@@ -4,6 +4,7 @@ import com.littlekt.graphics.shader.builder.shader
 import com.littlekt.graphics.shader.builder.shaderStruct
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNull
 
 /**
  * @author Colton Daily
@@ -128,6 +129,27 @@ class ShaderCodeBuilderTests {
         }
     """
             .trimIndent()
+
+    @Test
+    fun testVertexShaderOnlyHasVertexEntryPoint() {
+        assertEquals("main", defaultVertexShader.vertexEntryPoint)
+        assertNull(defaultVertexShader.fragmentEntryPoint)
+        assertNull(defaultVertexShader.computeEntryPoint)
+    }
+
+    @Test
+    fun testFragmentShaderOnlyHasFragmentEntryPoint() {
+        assertEquals("main", defaultFragmentShader.fragmentEntryPoint)
+        assertNull(defaultFragmentShader.vertexEntryPoint)
+        assertNull(defaultFragmentShader.computeEntryPoint)
+    }
+
+    @Test
+    fun testComputeShaderOnlyHasComputeEntryPoint() {
+        assertEquals("main", defaultComputeShader.computeEntryPoint)
+        assertNull(defaultComputeShader.fragmentEntryPoint)
+        assertNull(defaultComputeShader.vertexEntryPoint)
+    }
 
     @Test
     fun buildVertexShaderWithStructs() {
