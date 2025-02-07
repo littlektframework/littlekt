@@ -7,12 +7,12 @@ import com.littlekt.resources.BufferResourceInfo
 import com.littlekt.resources.TextureResourceInfo
 import com.littlekt.wgpu.*
 import com.littlekt.wgpu.WGPU.*
-import kotlinx.atomicfu.atomic
-import kotlinx.atomicfu.update
 import java.lang.foreign.Arena
 import java.lang.foreign.MemorySegment
 import java.lang.foreign.SegmentAllocator
 import java.lang.foreign.ValueLayout
+import kotlinx.atomicfu.atomic
+import kotlinx.atomicfu.update
 
 actual class Device(val segment: MemorySegment) : Releasable {
 
@@ -501,7 +501,9 @@ actual class Device(val segment: MemorySegment) : Releasable {
 
     actual fun createGPUIntBuffer(label: String, data: IntBuffer, usage: BufferUsage): GPUBuffer {
         val buffer =
-            createBuffer(BufferDescriptor(label, data.capacity.toLong() * Int.SIZE_BYTES, usage, true))
+            createBuffer(
+                BufferDescriptor(label, data.capacity.toLong() * Int.SIZE_BYTES, usage, true)
+            )
         buffer.getMappedRange().putInt(data)
         buffer.unmap()
 
@@ -523,7 +525,6 @@ actual class Device(val segment: MemorySegment) : Releasable {
 
         return buffer
     }
-
 
     actual override fun release() {
         wgpuDeviceRelease(segment)
@@ -914,14 +915,29 @@ actual class Surface(val segment: MemorySegment) : Releasable {
         return Arena.ofConfined().use { scope ->
             val surfaceCapabilities = WGPUSurfaceCapabilities.allocate(scope)
             wgpuSurfaceGetCapabilities(segment, adapter.segment, surfaceCapabilities)
-            val formats =
-                WGPUSurfaceCapabilities.formats(surfaceCapabilities)
-                    .mapFromIntUntilNull { TextureFormat.from(it) }
-                    .distinct()
-            val alphaModes =
-                WGPUSurfaceCapabilities.alphaModes(surfaceCapabilities)
-                    .mapFromIntUntilNull { AlphaMode.from(it) }
-                    .distinct()
+            val formatCount = WGPUSurfaceCapabilities.formatCount(surfaceCapabilities)
+            val formatsArray = IntArray(formatCount.toInt()) { -1 }
+            val formatPtr = MemorySegment.ofArray(formatsArray)
+            MemorySegment.copy(
+                WGPUSurfaceCapabilities.formats(surfaceCapabilities),
+                0,
+                formatPtr,
+                0L,
+                formatCount * Int.SIZE_BYTES,
+            )
+            val formats = formatsArray.map { TextureFormat.from(it) }.filterNotNull().distinct()
+
+            val alphaModesCount = WGPUSurfaceCapabilities.alphaModeCount(surfaceCapabilities)
+            val alphaModesArray = IntArray(alphaModesCount.toInt()) { -1 }
+            val alphaModePtr = MemorySegment.ofArray(alphaModesArray)
+            MemorySegment.copy(
+                WGPUSurfaceCapabilities.alphaModes(surfaceCapabilities),
+                0,
+                alphaModePtr,
+                0L,
+                alphaModesCount * Int.SIZE_BYTES,
+            )
+            val alphaModes = alphaModesArray.map { AlphaMode.from(it) }.filterNotNull().distinct()
             SurfaceCapabilities(surfaceCapabilities, formats, alphaModes)
         }
     }
