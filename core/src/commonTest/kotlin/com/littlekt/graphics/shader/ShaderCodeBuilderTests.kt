@@ -1,6 +1,7 @@
 package com.littlekt.graphics.shader
 
 import com.littlekt.graphics.shader.builder.shader
+import com.littlekt.graphics.shader.builder.shaderBlock
 import com.littlekt.graphics.shader.builder.shaderStruct
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -32,6 +33,53 @@ class ShaderCodeBuilderTests {
             """
                 .trimIndent()
         }
+
+    private val commonStructOne =
+        shaderStruct("CommonStructOne") {
+            """
+            struct CommonStructOne {
+                i: u32,
+            }
+        """
+                .trimIndent()
+        }
+
+    private val commonStructTwo =
+        shaderStruct("CommonStructTwo") {
+            """
+            struct CommonStructTwo {
+                other: vec3f,
+            }
+        """
+                .trimIndent()
+        }
+
+    private val commonStructs = shaderBlock {
+        include(commonStructOne)
+        include(commonStructTwo)
+    }
+
+    private val common = shaderBlock {
+        include(commonStructs)
+        body {
+            """
+                fn test(): CommonStructTwo {
+                    var commonStruct: CommonStructTwo;
+                    commonStruct.i = 3u;
+                    return commonStruct;
+                }
+                
+                fun another() {
+                   // do work
+                   var commonStruct: CommonStructOne;
+                   commonStruct.other = vec3(1.0, 0.0, 0.0);
+                }
+            """
+                .trimIndent()
+        }
+    }
+
+    private val expectedCommonSrc = common.src
 
     private val defaultVertexShader = shader {
         vertex {
@@ -325,5 +373,11 @@ class ShaderCodeBuilderTests {
     fun extendExistingComputeShaderButDoNothing() {
         val shader = shader(defaultComputeShader) { compute {} }
         assertEquals(expectedComputeShaderSrc, shader.src)
+    }
+
+    @Test
+    fun extendShaderAndAddBeforeTopLevel() {
+        val shader = shader(defaultVertexShader) { include(common) }
+        assertEquals("$expectedCommonSrc\n${defaultVertexShader.src}", shader.src)
     }
 }
