@@ -18,10 +18,46 @@ class ShaderCode(val includes: List<ShaderBlock>, val blocks: List<ShaderBlock>)
                 includes.forEach { appendLine(it.src) }
                 blocks.forEach { appendLine(it.src) }
             }
-            .split("\n")
-            .filterNot { markerRegex.matches(it) }
-            .joinToString("\n") { it }
+            .lines()
+            .filterNot { markerRegex.matches(it.trim()) }
+            .joinToString("\n") { it.trim() }
             .trim()
+            .format()
+    }
+
+    private fun String.format(): String {
+        val indentSize = 4
+        var indentLevel = 0
+        val formattedCode = StringBuilder()
+        var lastLineWasBlank = false
+        val code = this
+
+        code.lines().forEach { line ->
+            val trimmedLine = line.trim()
+
+            if (trimmedLine.isEmpty()) {
+                if (!lastLineWasBlank) {
+                    formattedCode.appendLine()
+                    lastLineWasBlank = true
+                }
+                return@forEach
+            }
+
+            lastLineWasBlank = false
+
+            if (trimmedLine.startsWith("}")) {
+                indentLevel = maxOf(0, indentLevel - 1)
+            }
+
+            formattedCode.append(" ".repeat(indentLevel * indentSize))
+            formattedCode.appendLine(trimmedLine)
+
+            if (trimmedLine.endsWith("{")) {
+                indentLevel++
+            }
+        }
+
+        return formattedCode.toString()
     }
 
     override fun toString(): String {

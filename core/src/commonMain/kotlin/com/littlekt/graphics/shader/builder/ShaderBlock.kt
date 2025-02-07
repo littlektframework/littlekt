@@ -17,7 +17,8 @@ open class ShaderBlock(
                     includes.forEach { appendLine(it.src) }
                     appendLine(body)
                 }
-                .split("\n")
+                .lines()
+                .map { it.trim() }
                 .toMutableList()
 
         rules.forEach { rule ->
@@ -25,7 +26,7 @@ open class ShaderBlock(
             when (rule.type) {
                 ShaderBlockInsertType.BEFORE -> {
                     for (i in lines.indices) {
-                        if (lines[i].contains(marker)) {
+                        if (lines[i].trim() == marker) {
                             lines[i] = lines[i].replace(marker, "${rule.block.src}\n${marker}")
                             break
                         }
@@ -33,13 +34,13 @@ open class ShaderBlock(
                 }
                 ShaderBlockInsertType.AFTER -> {
                     for (i in lines.indices) {
-                        if (lines[i].contains(marker)) {
+                        if (lines[i].trim() == marker) {
                             var nextMarkerIndex = -1
                             var nextMarker: String? = null
                             for (j in i until lines.size) {
-                                if (markerRegex.matches(lines[j])) {
+                                if (markerRegex.matches(lines[j].trim())) {
                                     nextMarkerIndex = j
-                                    nextMarker = lines[j]
+                                    nextMarker = lines[j].trim()
                                     break
                                 }
                             }
@@ -62,6 +63,6 @@ open class ShaderBlock(
                 }
             }
         }
-        lines.joinToString("\n")
+        lines.joinToString("\n") { it.trim() }
     }
 }

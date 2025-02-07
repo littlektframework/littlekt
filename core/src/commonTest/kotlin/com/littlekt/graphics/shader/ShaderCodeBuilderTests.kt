@@ -156,6 +156,7 @@ class ShaderCodeBuilderTests {
         }
     """
             .trimIndent()
+            .format()
 
     private val expectedDefaultFragmentShaderSrc =
         """
@@ -166,6 +167,7 @@ class ShaderCodeBuilderTests {
         }
     """
             .trimIndent()
+            .format()
 
     private val expectedComputeShaderSrc =
         """
@@ -177,6 +179,42 @@ class ShaderCodeBuilderTests {
         }
     """
             .trimIndent()
+            .format()
+
+    private fun String.format(): String {
+        val indentSize = 4
+        var indentLevel = 0
+        val formattedCode = StringBuilder()
+        var lastLineWasBlank = false
+        val code = this
+
+        code.lines().forEach { line ->
+            val trimmedLine = line.trim()
+
+            if (trimmedLine.isEmpty()) {
+                if (!lastLineWasBlank) {
+                    formattedCode.appendLine()
+                    lastLineWasBlank = true
+                }
+                return@forEach
+            }
+
+            lastLineWasBlank = false
+
+            if (trimmedLine.startsWith("}")) {
+                indentLevel = maxOf(0, indentLevel - 1)
+            }
+
+            formattedCode.append(" ".repeat(indentLevel * indentSize))
+            formattedCode.appendLine(trimmedLine)
+
+            if (trimmedLine.endsWith("{")) {
+                indentLevel++
+            }
+        }
+
+        return formattedCode.toString()
+    }
 
     @Test
     fun testVertexShaderOnlyHasVertexEntryPoint() {
@@ -251,6 +289,7 @@ class ShaderCodeBuilderTests {
             }
         """
                 .trimIndent()
+                .format()
         assertEquals(expected, shader.src)
     }
 
@@ -309,6 +348,7 @@ class ShaderCodeBuilderTests {
             }
         """
                 .trimIndent()
+                .format()
         assertEquals(expected, shader.src)
     }
 
@@ -366,6 +406,7 @@ class ShaderCodeBuilderTests {
             }
         """
                 .trimIndent()
+                .format()
         assertEquals(expected, shader.src)
     }
 
@@ -378,7 +419,7 @@ class ShaderCodeBuilderTests {
     @Test
     fun extendShaderAndAddBeforeTopLevel() {
         val shader = shader(defaultVertexShader) { include(common) }
-        assertEquals("$expectedCommonSrc\n${defaultVertexShader.src}", shader.src)
+        assertEquals("$expectedCommonSrc\n${defaultVertexShader.src}".format(), "$shader\n")
     }
 
     @Test
@@ -426,6 +467,7 @@ class ShaderCodeBuilderTests {
             }
         """
                 .trimIndent()
+                .format()
         assertEquals(expected, shader.src)
     }
 }
