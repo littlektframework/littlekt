@@ -19,5 +19,6 @@ value class BindingUsage(val usage: String) {
         val SKIN = BindingUsage("Skin")
         val CLUSTER_BOUNDS = BindingUsage("Cluster Bounds")
         val CLUSTER_LIGHTS = BindingUsage("Cluster Lights")
+        val LIGHT = BindingUsage("Light")
     }
 }

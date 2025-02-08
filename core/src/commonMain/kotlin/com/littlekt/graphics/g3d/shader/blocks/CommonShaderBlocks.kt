@@ -1,39 +1,34 @@
 package com.littlekt.graphics.g3d.shader.blocks
 
 import com.littlekt.graphics.shader.builder.ShaderBlock
+import com.littlekt.graphics.shader.builder.shaderBindGroup
 import com.littlekt.graphics.shader.builder.shaderBlock
-import com.littlekt.graphics.shader.builder.shaderStruct
-import com.littlekt.graphics.webgpu.MemoryAccessMode
+import com.littlekt.graphics.util.BindingUsage
+import com.littlekt.graphics.webgpu.*
 
 object CommonShaderBlocks {
-    fun Material(group: Int) =
-        shaderStruct("Material") {
-            """
-        struct Material {
-            base_color_factor : vec4f,
-            metallic_roughness_factor: vec2f,
-            occlusion_strength: f32,
-            emissive_factor: vec3f,
-            alpha_cutoff : f32,
-        };
-        @group($group) @binding(0) var<uniform> material : Material;
-        
-        @group(${group}) @binding(1) var base_color_texture : texture_2d<f32>;
-        @group(${group}) @binding(2) var base_color_sampler : sampler;
-        @group(${group}) @binding(3) var normal_texture : texture_2d<f32>;
-        @group(${group}) @binding(4) var normal_sampler : sampler;
-        @group(${group}) @binding(5) var metallic_roughness_texture : texture_2d<f32>;
-        @group(${group}) @binding(6) var metallic_roughness_sampler : sampler;
-        @group(${group}) @binding(7) var occlusion_texture : texture_2d<f32>;
-        @group(${group}) @binding(8) var occlusion_sampler : sampler;
-        @group(${group}) @binding(9) var emissive_texture : texture_2d<f32>;
-        @group(${group}) @binding(10) var emissive_sampler : sampler;
-        """
-                .trimIndent()
-        }
-
     fun Joints(group: Int) =
-        shaderStruct("Skin") {
+        shaderBindGroup(
+            group = group,
+            bindingUsage = BindingUsage.SKIN,
+            descriptor =
+                BindGroupLayoutDescriptor(
+                    listOf(
+                        // joint transforms
+                        BindGroupLayoutEntry(
+                            0,
+                            ShaderStage.VERTEX,
+                            BufferBindingLayout(BufferBindingType.READ_ONLY_STORAGE),
+                        ),
+                        // inverse blend matrices
+                        BindGroupLayoutEntry(
+                            1,
+                            ShaderStage.VERTEX,
+                            BufferBindingLayout(BufferBindingType.READ_ONLY_STORAGE),
+                        ),
+                    )
+                ),
+        ) {
             """
         struct Joints {
           matrices : array<mat4x4f>
@@ -70,7 +65,21 @@ object CommonShaderBlocks {
     }
 
     fun Camera(group: Int, binding: Int) =
-        shaderStruct("Camera") {
+        shaderBindGroup(
+            group = group,
+            bindingUsage = BindingUsage.CAMERA,
+            descriptor =
+                BindGroupLayoutDescriptor(
+                    listOf(
+                        // camera
+                        BindGroupLayoutEntry(
+                            binding,
+                            ShaderStage.VERTEX or ShaderStage.FRAGMENT or ShaderStage.COMPUTE,
+                            BufferBindingLayout(),
+                        )
+                    )
+                ),
+        ) {
             """
         struct Camera {
             proj: mat4x4f,
@@ -89,7 +98,21 @@ object CommonShaderBlocks {
         }
 
     fun Model(group: Int, binding: Int) =
-        shaderStruct("Model") {
+        shaderBindGroup(
+            group,
+            BindingUsage.MODEL,
+            descriptor =
+                BindGroupLayoutDescriptor(
+                    listOf(
+                        // model
+                        BindGroupLayoutEntry(
+                            binding,
+                            ShaderStage.VERTEX,
+                            BufferBindingLayout(BufferBindingType.READ_ONLY_STORAGE),
+                        )
+                    )
+                ),
+        ) {
             """
         struct Model {
             transform: mat4x4f,
@@ -101,8 +124,21 @@ object CommonShaderBlocks {
                 .trimIndent()
         }
 
-    fun Lights(group: Int, binding: Int) = shaderBlock {
-        """
+    fun Lights(group: Int, binding: Int) =
+        shaderBindGroup(
+            group,
+            BindingUsage.LIGHT,
+            BindGroupLayoutDescriptor(
+                listOf(
+                    BindGroupLayoutEntry(
+                        binding,
+                        ShaderStage.VERTEX or ShaderStage.FRAGMENT or ShaderStage.COMPUTE,
+                        BufferBindingLayout(type = BufferBindingType.READ_ONLY_STORAGE),
+                    )
+                )
+            ),
+        ) {
+            """
         struct Light {
           position : vec3f,
           range : f32,
@@ -121,8 +157,8 @@ object CommonShaderBlocks {
         @group($group) @binding($binding)
         var<storage, read> global_lights : GlobalLights;
         """
-            .trimIndent()
-    }
+                .trimIndent()
+        }
 
     fun TileFunctions(
         tileCountX: Int = CommonSubShaderFunctions.DEFAULT_TILE_COUNT_X,

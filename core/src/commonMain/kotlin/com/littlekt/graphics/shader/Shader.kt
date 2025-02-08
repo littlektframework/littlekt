@@ -11,14 +11,16 @@ import com.littlekt.util.datastructure.fastForEach
  *
  * @param device the current [Device]
  * @param src the WGSL shader source code
- * @param bindGroupLayoutUsageLayout a list of [BindingUsage] that determines the order and each type of bind group layout.
- * For example, if we had a list of camera and texture binding usgaes, then we'd expect two bind group layouts, one for camera,
- * and the second for texture. This allows setting existing bind groups from elsewhere but ensuring the layout of the shader.
+ * @param bindGroupLayoutUsageLayout a list of [BindingUsage] that determines the order and each
+ *   type of bind group layout. For example, if we had a list of camera and texture binding usgaes,
+ *   then we'd expect two bind group layouts, one for camera, and the second for texture. This
+ *   allows setting existing bind groups from elsewhere but ensuring the layout of the shader.
  * @param layout a list of [BindGroupLayoutDescriptor] in order to create [BindGroupLayout]s for the
- *   [PipelineLayout]. The order should match the index of the [bindGroupLayoutUsageLayout]. This can be an empty map
- *   if bind groups will be passed in at a later time.
- * @param bindGroupUsageToGroupIndex a mapping of [BindingUsage] to Bind group layout index. By default,
- * it uses [bindGroupLayoutUsageLayout] and its corresponding index but this may be overridden, if required.
+ *   [PipelineLayout]. The order should match the index of the [bindGroupLayoutUsageLayout]. This
+ *   can be an empty map if bind groups will be passed in at a later time.
+ * @param bindGroupUsageToGroupIndex a mapping of [BindingUsage] to Bind group layout index. By
+ *   default, it uses [bindGroupLayoutUsageLayout] and its corresponding index but this may be
+ *   overridden, if required.
  * @param vertexEntryPoint the entry point for the Vertex shader. Defaults to `vs_main`. This should
  *   match the main vertex function in [src]. Pass this parameter along to [VertexState.entryPoint],
  *   if a vertex function is supplied; otherwise this value may be safely ignored.
@@ -87,9 +89,10 @@ open class Shader(
     private var _pipelineLayout: PipelineLayout? = null
 
     /**
-     * @param provideBindGroupLayout an optional builder function to allow passing in additional [BindGroupLayout] to
-     *   the [PipelineLayout] if the shader requires it. The [provideBindGroupLayout] will pass in the [BindingUsage] of
-     *   the Shader as the parameter and requires a [BindGroupLayout] to proceed.
+     * @param provideBindGroupLayout an optional builder function to allow passing in additional
+     *   [BindGroupLayout] to the [PipelineLayout] if the shader requires it. The
+     *   [provideBindGroupLayout] will pass in the [BindingUsage] of the Shader as the parameter and
+     *   requires a [BindGroupLayout] to proceed.
      * @return an existing [PipelineLayout] or creates a new one if it doesn't exist.
      */
     fun getOrCreatePipelineLayout(
@@ -153,9 +156,7 @@ open class Shader(
         getBindGroupLayoutByUsageOrNull(usage)
             ?: error("BindGroupLayout does exist for usage: $usage.")
 
-    /**
-     * @return get the bind group layout by [usage]; `null` if not found.
-     */
+    /** @return get the bind group layout by [usage]; `null` if not found. */
     fun getBindGroupLayoutByUsageOrNull(usage: BindingUsage): BindGroupLayout? {
         val index = bindGroupUsageToGroupIndex[usage] ?: return null
         return layouts[index]

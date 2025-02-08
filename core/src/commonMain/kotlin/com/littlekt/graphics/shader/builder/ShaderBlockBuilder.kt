@@ -44,6 +44,6 @@ open class ShaderBlockBuilder(base: ShaderBlock? = null) {
         rules.add(ShaderBlockInsertRule(type, marker, block))
 
     open fun build(): ShaderBlock {
-        return ShaderBlock(type, includes, rules, body)
+        return ShaderBlock(type = type, includes = includes, rules = rules, body = body)
     }
 }

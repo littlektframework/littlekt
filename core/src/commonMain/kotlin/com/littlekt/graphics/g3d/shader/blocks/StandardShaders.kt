@@ -2,7 +2,6 @@ package com.littlekt.graphics.g3d.shader.blocks
 
 import com.littlekt.graphics.VertexAttrUsage
 import com.littlekt.graphics.VertexAttribute
-import com.littlekt.graphics.VertexAttributeList
 import com.littlekt.graphics.shader.builder.shader
 import com.littlekt.graphics.shader.builder.shaderBlock
 import com.littlekt.graphics.shader.builder.shaderStruct
@@ -144,7 +143,7 @@ object Standard {
         }
     }
 
-    fun VertexShader(layout: VertexAttributeList) = shader {
+    fun VertexShader(layout: List<VertexAttribute>) = shader {
         val input = VertexInputStruct(layout)
         val output = VertexOutputStruct(layout)
         include(input)
@@ -193,7 +192,86 @@ object Standard {
         }
     }
 
+    object Unlit {
+        fun Material(group: Int) =
+            shaderStruct("Material") {
+                """
+            struct Material {
+                base_color_factor : vec4f,
+                alpha_cutoff : f32,
+            };
+            @group($group) @binding(0) var<uniform> material : Material;
+            
+            @group($group) @binding(1) var base_color_texture : texture_2d<f32>;
+            @group($group) @binding(2) var base_color_sampler : sampler;
+            """
+                    .trimIndent()
+            }
+
+        fun FragmentOutput() =
+            shaderStruct("FragmentOutput") {
+                """
+            struct FragmentOutput {
+                @location(0) color : vec4f,
+            };
+            """
+                    .trimIndent()
+            }
+
+        fun FragmentShader(layout: List<VertexAttribute>) = shader {
+            val input = VertexInputStruct(layout)
+            val output = FragmentOutput()
+            include(input)
+            include(output)
+            include(CommonShaderBlocks.ColorConversionFunctions())
+            fragment {
+                main(input, output) {
+                    """
+                    var output: FragmentOutput;
+                    %base_color%    
+                    let base_color_map = textureSample(base_color_texture, base_color_sampler, input.uv);
+                    %alpha_cutoff%
+                    if (base_color_map.a < material.alpha_cutoff) {
+                      discard;
+                    }
+                    let base_color = input.color * material.base_color_factor * base_color_map * input.instance_color;
+                    %color%
+                    output.color = vec4(linear_to_sRGB(base_color.rgb), base_color.a);
+                    %output%
+                    return output;
+                """
+                        .trimIndent()
+                }
+            }
+        }
+    }
+
     object PBR {
+        fun Material(group: Int) =
+            shaderStruct("Material") {
+                """
+        struct Material {
+            base_color_factor : vec4f,
+            metallic_roughness_factor: vec2f,
+            occlusion_strength: f32,
+            emissive_factor: vec3f,
+            alpha_cutoff : f32,
+        };
+        @group($group) @binding(0) var<uniform> material : Material;
+        
+        @group(${group}) @binding(1) var base_color_texture : texture_2d<f32>;
+        @group(${group}) @binding(2) var base_color_sampler : sampler;
+        @group(${group}) @binding(3) var normal_texture : texture_2d<f32>;
+        @group(${group}) @binding(4) var normal_sampler : sampler;
+        @group(${group}) @binding(5) var metallic_roughness_texture : texture_2d<f32>;
+        @group(${group}) @binding(6) var metallic_roughness_sampler : sampler;
+        @group(${group}) @binding(7) var occlusion_texture : texture_2d<f32>;
+        @group(${group}) @binding(8) var occlusion_sampler : sampler;
+        @group(${group}) @binding(9) var emissive_texture : texture_2d<f32>;
+        @group(${group}) @binding(10) var emissive_sampler : sampler;
+        """
+                    .trimIndent()
+            }
 
         fun SurfaceInfo(attributes: List<VertexAttribute>) = shaderBlock {
             body {
@@ -278,7 +356,7 @@ object Standard {
             include(output)
             include(CommonShaderBlocks.Lights(0, 1))
             include(CommonShaderBlocks.ClusterLights(0, 2))
-            include(CommonShaderBlocks.Material(1))
+            include(Material(1))
             include(CommonShaderBlocks.TileFunctions())
             include(SurfaceInfo(layout))
             fragment {

@@ -1,11 +1,21 @@
 package com.littlekt.graphics.shader.builder
 
+import com.littlekt.graphics.util.BindingUsage
+import com.littlekt.graphics.webgpu.BindGroupLayoutDescriptor
+
 /**
  * @author Colton Daily
  * @date 2/6/2025
  */
 class ShaderCode(val includes: List<ShaderBlock>, val blocks: List<ShaderBlock>) {
     private val mainBlocks = blocks.filterIsInstance<MainShaderBlock>()
+    private val shaderBindGroups =
+        includes.filterIsInstance<ShaderBlockBindGroup>() +
+            blocks.filterIsInstance<ShaderBlockBindGroup>()
+    val bindGroupLayoutUsageLayout: List<BindingUsage> = shaderBindGroups.map { it.bindingUsage }
+    val bindGroupUsageToGroupIndex: Map<BindingUsage, Int> =
+        shaderBindGroups.associate { it.bindingUsage to it.group }
+    val layout: Map<BindingUsage, BindGroupLayoutDescriptor> = mapOf()
     val vertexEntryPoint = mainBlocks.firstOrNull { it.type == ShaderBlockType.VERTEX }?.entryPoint
     val fragmentEntryPoint =
         mainBlocks.firstOrNull { it.type == ShaderBlockType.FRAGMENT }?.entryPoint
