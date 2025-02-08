@@ -8,6 +8,7 @@ import com.littlekt.graphics.shader.builder.shaderBlock
 import com.littlekt.graphics.shader.builder.shaderStruct
 import com.littlekt.graphics.util.BindingUsage
 import com.littlekt.graphics.webgpu.*
+import kotlin.math.PI
 
 object Standard {
     fun VertexInputStruct(attributes: List<VertexAttribute>) =
@@ -366,6 +367,107 @@ object Standard {
             }
         }
 
+        fun Lighting(fullyRough: Boolean = false) = shaderBlock {
+            body {
+                """
+                    const PI = $PI;
+
+                    const LightType_Point = 0u;
+                    const LightType_Spot = 1u;
+                    const LightType_Directional = 2u;
+        
+                    struct PunctualLight {
+                      lightType : u32,
+                      pointToLight : vec3f,
+                      range : f32,
+                      color : vec3f,
+                      intensity : f32,
+                    };
+        
+                    fn FresnelSchlick(cosTheta : f32, F0 : vec3f) -> vec3f {
+                        return F0 + (vec3(1.0) - F0) * pow(1.0 - cosTheta, 5.0);
+                    }
+        
+                    fn DistributionGGX(N : vec3f, H : vec3f, roughness : f32) -> f32 {
+                      let a      = roughness*roughness;
+                      let a2     = a*a;
+                      let NdotH  = max(dot(N, H), 0.0);
+                      let NdotH2 = NdotH*NdotH;
+        
+                      let num    = a2;
+                      let denom  = (NdotH2 * (a2 - 1.0) + 1.0);
+        
+                      return num / (PI * denom * denom);
+                    }
+        
+                    fn GeometrySchlickGGX(NdotV : f32, roughness : f32) -> f32 {
+                      let r = (roughness + 1.0);
+                      let k = (r*r) / 8.0;
+        
+                      let num   = NdotV;
+                      let denom = NdotV * (1.0 - k) + k;
+        
+                      return num / denom;
+                    }
+        
+                    fn GeometrySmith(N : vec3f, V : vec3f, L : vec3f, roughness : f32) -> f32 {
+                      let NdotV = max(dot(N, V), 0.0);
+                      let NdotL = max(dot(N, L), 0.0);
+                      let ggx2  = GeometrySchlickGGX(NdotV, roughness);
+                      let ggx1  = GeometrySchlickGGX(NdotL, roughness);
+        
+                      return ggx1 * ggx2;
+                    }
+        
+                    fn lightAttenuation(light : PunctualLight) -> f32 {
+                      if (light.lightType == LightType_Directional) {
+                        return 1.0;
+                      }
+        
+                      let distance = length(light.pointToLight);
+                      if (light.range <= 0.0) {
+                          // Negative range means no cutoff
+                          return 1.0 / pow(distance, 2.0);
+                      }
+                      return clamp(1.0 - pow(distance / light.range, 4.0), 0.0, 1.0) / pow(distance, 2.0);
+                    }
+        
+                    fn lightRadiance(light : PunctualLight, surface : SurfaceInfo) -> vec3f {
+                      let L = normalize(light.pointToLight);
+                      let H = normalize(surface.v + L);
+        
+                    // cook-torrance brdf
+                    ${
+                        if (fullyRough) {
+                            """
+                            let NDF = 1.0 / PI;
+                            let G = 1.0;
+                        """.trimIndent()
+                        } else {
+                            """
+                            let NDF = DistributionGGX(surface.normal, H, surface.roughness);
+                            let G = GeometrySmith(surface.normal, surface.v, L, surface.roughness);
+                        """.trimIndent()
+                        }
+                    }
+                    let F = FresnelSchlick(max(dot(H, surface.v), 0.0), surface.f0);
+        
+                    let kD = (vec3(1.0) - F) * (1.0 - surface.metallic);
+                    let NdotL = max(dot(surface.normal, L), 0.0);
+        
+                    let numerator = NDF * G * F;
+                    let denominator = max(4.0 * max(dot(surface.normal, surface.v), 0.0) * NdotL, 0.0001);
+                    let specular = numerator / vec3(denominator);
+        
+                    // add to outgoing radiance Lo
+                    let radiance = light.color * light.intensity * lightAttenuation(light);
+                    return (kD * surface.albedo / vec3(PI) + specular) * radiance * NdotL;
+                }
+                """
+                    .trimIndent()
+            }
+        }
+
         fun FragmentOutput(bloomEnabled: Boolean = false) =
             shaderStruct("FragmentOutput") {
                 """
@@ -381,6 +483,7 @@ object Standard {
             layout: List<VertexAttribute>,
             bloomEnabled: Boolean = false,
             shadowsEnabled: Boolean = false,
+            fullyRough: Boolean = false,
         ) = shader {
             val input = VertexOutputStruct(layout)
             val output = FragmentOutput(bloomEnabled)
@@ -391,7 +494,9 @@ object Standard {
             include(CommonShaderBlocks.ClusterLights(0, 2))
             include(Material(1))
             include(CommonShaderBlocks.TileFunctions())
+            include(Lighting(fullyRough))
             include(SurfaceInfo(layout))
+
             fragment {
                 main(input, output) {
                     """
