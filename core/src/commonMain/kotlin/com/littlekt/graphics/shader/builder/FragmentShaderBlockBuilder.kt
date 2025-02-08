@@ -8,14 +8,14 @@ open class FragmentShaderBlockBuilder(base: ShaderBlock? = null) : MainShaderBlo
     override var type = ShaderBlockType.FRAGMENT
 
     fun main(
-        input: ShaderStruct,
-        output: ShaderStruct,
+        input: ShaderBlock,
+        output: ShaderBlock,
         entry: String = "main",
         inputVar: String = "input",
         block: ShaderBlockBuilder.() -> String,
     ) {
         this.entry = entry
         body =
-            "%fragment_start%\n@fragment fn $entry($inputVar: ${input.name}) -> ${output.name} {\n${block()}\n}\n%fragment_end%"
+            "%fragment_start%\n@fragment fn $entry($inputVar: ${input}) -> ${output} {\n${block()}\n}\n%fragment_end%"
     }
 }

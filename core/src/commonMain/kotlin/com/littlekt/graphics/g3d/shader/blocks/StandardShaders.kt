@@ -5,14 +5,14 @@ import com.littlekt.graphics.VertexAttribute
 import com.littlekt.graphics.shader.builder.shader
 import com.littlekt.graphics.shader.builder.shaderBindGroup
 import com.littlekt.graphics.shader.builder.shaderBlock
-import com.littlekt.graphics.shader.builder.shaderStruct
+import com.littlekt.graphics.shader.builder.shaderStructOld
 import com.littlekt.graphics.util.BindingUsage
 import com.littlekt.graphics.webgpu.*
 import kotlin.math.PI
 
 object Standard {
     fun VertexInputStruct(attributes: List<VertexAttribute>) =
-        shaderStruct("VertexInput") {
+        shaderStructOld("VertexInput") {
             val inputs =
                 attributes.map { attribute ->
                     when (attribute.usage) {
@@ -56,7 +56,7 @@ object Standard {
         }
 
     fun VertexOutputStruct(attributes: List<VertexAttribute>) =
-        shaderStruct("VertexOutput") {
+        shaderStructOld("VertexOutput") {
             """
         struct VertexOutput {
             @builtin(position) position: vec4f,
@@ -198,7 +198,7 @@ object Standard {
 
     object Unlit {
         fun Material(group: Int) =
-            shaderStruct("Material") {
+            shaderStructOld("Material") {
                 """
             struct Material {
                 base_color_factor : vec4f,
@@ -213,7 +213,7 @@ object Standard {
             }
 
         fun FragmentOutput() =
-            shaderStruct("FragmentOutput") {
+            shaderStructOld("FragmentOutput") {
                 """
             struct FragmentOutput {
                 @location(0) color : vec4f,
@@ -469,7 +469,7 @@ object Standard {
         }
 
         fun FragmentOutput(bloomEnabled: Boolean = false) =
-            shaderStruct("FragmentOutput") {
+            shaderStructOld("FragmentOutput") {
                 """
             struct FragmentOutput {
                 @location(0) color : vec4f,

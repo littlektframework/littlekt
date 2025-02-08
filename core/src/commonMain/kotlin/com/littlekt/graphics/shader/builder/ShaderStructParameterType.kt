@@ -1,10 +1,32 @@
 package com.littlekt.graphics.shader.builder
 
+import kotlin.js.JsName
+
 /**
  * @author Colton Daily
  * @date 2/8/2025
  */
 sealed class ShaderStructParameterType {
+    @JsName("SizeFunction")
+    fun size(): Int =
+        when (this) {
+            is WgslType -> size
+            is Struct -> struct.size
+            is Array -> align(type.size(), type.alignment()) * length
+        }
+
+    @JsName("AlignmentFunction")
+    fun alignment(): Int =
+        when (this) {
+            is WgslType -> alignment
+            is Struct -> struct.alignment
+            is Array -> type.alignment()
+        }
+
+    private fun align(value: Int, alignment: Int): Int {
+        return (value + alignment - 1) / alignment * alignment
+    }
+
     data class Struct(val struct: ShaderStruct) : ShaderStructParameterType()
 
     sealed class WgslType(val elements: Int, val size: Int, val alignment: Int, val type: String) :

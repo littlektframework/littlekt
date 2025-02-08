@@ -8,14 +8,14 @@ open class VertexShaderBlockBuilder(base: ShaderBlock? = null) : MainShaderBlock
     override var type = ShaderBlockType.VERTEX
 
     fun main(
-        input: ShaderStruct,
-        output: ShaderStruct,
+        input: ShaderBlock,
+        output: ShaderBlock,
         entry: String = "main",
         inputVar: String = "input",
         block: ShaderBlockBuilder.() -> String,
     ) {
         this.entry = entry
         body =
-            "%vertex_start%\n@vertex fn $entry($inputVar: ${input.name}) -> ${output.name} {\n${block()}\n}\n%vertex_end%"
+            "%vertex_start%\n@vertex fn $entry($inputVar: ${input}) -> ${output} {\n${block()}\n}\n%vertex_end%"
     }
 }

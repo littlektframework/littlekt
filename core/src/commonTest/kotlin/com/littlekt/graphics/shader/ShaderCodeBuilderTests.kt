@@ -1,9 +1,6 @@
 package com.littlekt.graphics.shader
 
-import com.littlekt.graphics.shader.builder.shader
-import com.littlekt.graphics.shader.builder.shaderBindGroup
-import com.littlekt.graphics.shader.builder.shaderBlock
-import com.littlekt.graphics.shader.builder.shaderStruct
+import com.littlekt.graphics.shader.builder.*
 import com.littlekt.graphics.util.BindingUsage
 import com.littlekt.graphics.webgpu.*
 import kotlin.test.Test
@@ -89,7 +86,7 @@ class ShaderCodeBuilderTests {
         }
 
     private val inputVertexStruct =
-        shaderStruct("InputStruct") {
+        shaderStructOld("InputStruct") {
             """
                 struct InputStruct {
                     position: vec3f,
@@ -99,7 +96,7 @@ class ShaderCodeBuilderTests {
                 .trimIndent()
         }
     private val vertexOutputStruct =
-        shaderStruct("OutputStruct") {
+        shaderStructOld("OutputStruct") {
             """
                 struct OutputStruct {
                     @location(0) uv: vec2<f32>,
@@ -110,7 +107,7 @@ class ShaderCodeBuilderTests {
         }
 
     private val commonStructOne =
-        shaderStruct("CommonStructOne") {
+        shaderStructOld("CommonStructOne") {
             """
             struct CommonStructOne {
                 i: u32,
@@ -120,7 +117,7 @@ class ShaderCodeBuilderTests {
         }
 
     private val commonStructTwo =
-        shaderStruct("CommonStructTwo") {
+        shaderStructOld("CommonStructTwo") {
             """
             struct CommonStructTwo {
                 other: vec3f,
@@ -174,7 +171,7 @@ class ShaderCodeBuilderTests {
     }
 
     private val fragmentOutputStruct =
-        shaderStruct("FragmentOutput") {
+        shaderStructOld("FragmentOutput") {
             """
             struct FragmentOutput {
                 @location(0) color: vec4f,
@@ -199,7 +196,7 @@ class ShaderCodeBuilderTests {
     }
 
     private val dataStruct =
-        shaderStruct("View") {
+        shaderStructOld("View") {
             """
             @group(0) @binding(0) var<storage, read_write> data: array<f32>;
         """
@@ -576,5 +573,33 @@ class ShaderCodeBuilderTests {
         assertEquals(0, shader.bindGroupUsageToGroupIndex[combinedUsage])
         assertEquals(combinedUsage, shader.bindGroupLayoutUsageLayout[0])
         assertEquals(4, shader.layout[combinedUsage]?.entries?.size)
+    }
+
+    @Test
+    fun shaderStructsAndOffsets() {
+        val ex4a =
+            shaderStruct("Ex4a") { mapOf("velocity" to ShaderStructParameterType.WgslType.vec3f) }
+        val ex4 =
+            shaderStruct("Ex4") {
+                mapOf(
+                    "orientation" to ShaderStructParameterType.WgslType.vec3f,
+                    "size" to ShaderStructParameterType.WgslType.f32,
+                    "direction" to
+                        ShaderStructParameterType.Array(
+                            ShaderStructParameterType.WgslType.vec3f,
+                            1,
+                        ),
+                    "scale" to ShaderStructParameterType.WgslType.f32,
+                    "info" to ShaderStructParameterType.Struct(ex4a),
+                    "friction" to ShaderStructParameterType.WgslType.f32,
+                )
+            }
+
+        assertEquals(ex4.layout["orientation"]?.offset, 0)
+        assertEquals(ex4.layout["size"]?.offset, 12)
+        assertEquals(ex4.layout["direction"]?.offset, 16)
+        assertEquals(ex4.layout["scale"]?.offset, 32)
+        assertEquals(ex4.layout["info"]?.offset, 48)
+        assertEquals(ex4.layout["friction"]?.offset, 64)
     }
 }

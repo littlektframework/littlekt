@@ -24,9 +24,9 @@ fun shaderBindGroup(
     return ShaderBlockBindGroup(group, bindingUsage, descriptor, body())
 }
 
-fun shaderStruct(
-    name: String,
-    body: () -> List<Pair<String, ShaderStructParameterType>>,
-): ShaderStruct {
-    return ShaderStruct(name, body().toMap())
+fun shaderStructOld(name: String, body: () -> String) =
+    ShaderBlock(ShaderBlockType.STRUCT, emptyList(), emptyList(), body())
+
+fun shaderStruct(name: String, body: () -> Map<String, ShaderStructParameterType>): ShaderStruct {
+    return ShaderStruct(name, body())
 }
