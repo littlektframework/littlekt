@@ -1,17 +1,89 @@
 package com.littlekt.graphics.shader
 
 import com.littlekt.graphics.shader.builder.shader
+import com.littlekt.graphics.shader.builder.shaderBindGroup
 import com.littlekt.graphics.shader.builder.shaderBlock
 import com.littlekt.graphics.shader.builder.shaderStruct
+import com.littlekt.graphics.util.BindingUsage
+import com.littlekt.graphics.webgpu.*
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 /**
  * @author Colton Daily
  * @date 2/6/2025
  */
 class ShaderCodeBuilderTests {
+
+    private val bindGroup1 =
+        shaderBindGroup(
+            5,
+            BindingUsage.CAMERA,
+            BindGroupLayoutDescriptor(
+                listOf(
+                    BindGroupLayoutEntry(
+                        0,
+                        ShaderStage.VERTEX,
+                        BufferBindingLayout(BufferBindingType.READ_ONLY_STORAGE),
+                    )
+                )
+            ),
+        ) {
+            """
+                struct BindGroup1 {
+                    pos: vec4f,
+                }
+                
+                @group(0) @binding(0)
+                var <storage, read> bg1: BindGroup1;
+            """
+                .trimIndent()
+        }
+
+    private val bindGroup2 =
+        shaderBindGroup(
+            1,
+            BindingUsage.MATERIAL,
+            BindGroupLayoutDescriptor(
+                listOf(
+                    BindGroupLayoutEntry(
+                        0,
+                        ShaderStage.VERTEX,
+                        BufferBindingLayout(BufferBindingType.READ_ONLY_STORAGE),
+                    ),
+                    BindGroupLayoutEntry(
+                        1,
+                        ShaderStage.VERTEX,
+                        BufferBindingLayout(BufferBindingType.UNIFORM),
+                    ),
+                    BindGroupLayoutEntry(
+                        2,
+                        ShaderStage.VERTEX,
+                        BufferBindingLayout(BufferBindingType.STORAGE),
+                    ),
+                )
+            ),
+        ) {
+            """
+                struct BindGroup2 {
+                    pos: vec4f,
+                }
+                
+                struct BindGroup3 {
+                    pos: vec4f,
+                }
+                
+                @group(1) @binding(0)
+                var <storage, read> bg1: BindGroup1;
+                @group(1) @binding(1)
+                var <uniform> bg2: BindGroup2;
+                @group(1) @binding(2)
+                var <storage, read_write> bg3: BindGroup3;
+            """
+                .trimIndent()
+        }
 
     private val inputVertexStruct =
         shaderStruct("InputStruct") {
@@ -469,5 +541,21 @@ class ShaderCodeBuilderTests {
                 .trimIndent()
                 .format()
         assertEquals(expected, shader.src)
+    }
+
+    @Test
+    fun bindGroups() {
+        val shader =
+            shader(defaultVertexShader) {
+                include(inputVertexStruct)
+                include(vertexOutputStruct)
+                include(bindGroup1)
+                include(bindGroup2)
+            }
+
+        assertTrue { shader.bindGroupUsageToGroupIndex[BindingUsage.MATERIAL] == 1 }
+        assertTrue { shader.bindGroupUsageToGroupIndex[BindingUsage.CAMERA] == 5 }
+        assertTrue { shader.bindGroupLayoutUsageLayout[0] == BindingUsage.MATERIAL }
+        assertTrue { shader.bindGroupLayoutUsageLayout[1] == BindingUsage.CAMERA }
     }
 }
