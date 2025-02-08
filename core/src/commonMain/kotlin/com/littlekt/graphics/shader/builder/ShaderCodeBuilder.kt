@@ -8,6 +8,8 @@ open class ShaderCodeBuilder(base: ShaderCode? = null) {
     private val vertexBase = base?.blocks?.firstOrNull { it.type == ShaderBlockType.VERTEX }
     private val fragmentBase = base?.blocks?.firstOrNull { it.type == ShaderBlockType.FRAGMENT }
     private val computeBase = base?.blocks?.firstOrNull { it.type == ShaderBlockType.COMPUTE }
+    private val structs = mutableSetOf<ShaderStruct>()
+    private val bindingGroups = mutableSetOf<ShaderBindGroup>()
     private val includes = mutableListOf<ShaderBlock>().apply { base?.includes?.let { addAll(it) } }
     private val blocks = mutableListOf<ShaderBlock>().apply { base?.let { addAll(it.blocks) } }
 
