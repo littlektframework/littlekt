@@ -9,7 +9,6 @@ import com.littlekt.graphics.webgpu.*
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
-import kotlin.test.assertTrue
 
 /**
  * @author Colton Daily
@@ -17,14 +16,16 @@ import kotlin.test.assertTrue
  */
 class ShaderCodeBuilderTests {
 
-    private val bindGroup1 =
+    private val bindGroupBindingUsage = BindingUsage("Bind Group")
+
+    private fun bindGroup1(group: Int, binding: Int) =
         shaderBindGroup(
-            5,
-            BindingUsage.CAMERA,
+            group,
+            bindGroupBindingUsage,
             BindGroupLayoutDescriptor(
                 listOf(
                     BindGroupLayoutEntry(
-                        0,
+                        binding,
                         ShaderStage.VERTEX,
                         BufferBindingLayout(BufferBindingType.READ_ONLY_STORAGE),
                     )
@@ -36,30 +37,32 @@ class ShaderCodeBuilderTests {
                     pos: vec4f,
                 }
                 
-                @group(0) @binding(0)
+                @group($group) @binding($binding)
                 var <storage, read> bg1: BindGroup1;
             """
                 .trimIndent()
         }
 
-    private val bindGroup2 =
+    private val bindGroup2BindingUsage = BindingUsage("Bind Group 2")
+
+    private fun bindGroup2(group: Int, binding: Int) =
         shaderBindGroup(
-            1,
-            BindingUsage.MATERIAL,
+            group,
+            bindGroup2BindingUsage,
             BindGroupLayoutDescriptor(
                 listOf(
                     BindGroupLayoutEntry(
-                        0,
+                        binding,
                         ShaderStage.VERTEX,
                         BufferBindingLayout(BufferBindingType.READ_ONLY_STORAGE),
                     ),
                     BindGroupLayoutEntry(
-                        1,
+                        binding + 1,
                         ShaderStage.VERTEX,
                         BufferBindingLayout(BufferBindingType.UNIFORM),
                     ),
                     BindGroupLayoutEntry(
-                        2,
+                        binding + 2,
                         ShaderStage.VERTEX,
                         BufferBindingLayout(BufferBindingType.STORAGE),
                     ),
@@ -75,11 +78,11 @@ class ShaderCodeBuilderTests {
                     pos: vec4f,
                 }
                 
-                @group(1) @binding(0)
+                @group($group) @binding($binding)
                 var <storage, read> bg1: BindGroup1;
-                @group(1) @binding(1)
+                @group($group) @binding(${binding + 1})
                 var <uniform> bg2: BindGroup2;
-                @group(1) @binding(2)
+                @group($group) @binding(${binding + 2})
                 var <storage, read_write> bg3: BindGroup3;
             """
                 .trimIndent()
@@ -549,13 +552,29 @@ class ShaderCodeBuilderTests {
             shader(defaultVertexShader) {
                 include(inputVertexStruct)
                 include(vertexOutputStruct)
-                include(bindGroup1)
-                include(bindGroup2)
+                include(bindGroup1(5, 0))
+                include(bindGroup2(0, 0))
             }
 
-        assertTrue { shader.bindGroupUsageToGroupIndex[BindingUsage.MATERIAL] == 1 }
-        assertTrue { shader.bindGroupUsageToGroupIndex[BindingUsage.CAMERA] == 5 }
-        assertTrue { shader.bindGroupLayoutUsageLayout[0] == BindingUsage.MATERIAL }
-        assertTrue { shader.bindGroupLayoutUsageLayout[1] == BindingUsage.CAMERA }
+        assertEquals(0, shader.bindGroupUsageToGroupIndex[bindGroup2BindingUsage])
+        assertEquals(5, shader.bindGroupUsageToGroupIndex[bindGroupBindingUsage])
+        assertEquals(bindGroup2BindingUsage, shader.bindGroupLayoutUsageLayout[0])
+        assertEquals(bindGroupBindingUsage, shader.bindGroupLayoutUsageLayout[1])
+    }
+
+    @Test
+    fun bindGroupsCombine() {
+        val shader =
+            shader(defaultVertexShader) {
+                include(inputVertexStruct)
+                include(vertexOutputStruct)
+                include(bindGroup1(0, 0))
+                include(bindGroup2(0, 1))
+            }
+
+        val combinedUsage = bindGroupBindingUsage or bindGroup2BindingUsage
+        assertEquals(0, shader.bindGroupUsageToGroupIndex[combinedUsage])
+        assertEquals(combinedUsage, shader.bindGroupLayoutUsageLayout[0])
+        assertEquals(4, shader.layout[combinedUsage]?.entries?.size)
     }
 }

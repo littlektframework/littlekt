@@ -232,9 +232,26 @@ object CommonShaderBlocks {
         access: MemoryAccessMode = MemoryAccessMode.READ,
     ): ShaderBlock {
         val totalTiles = tileCountX * tileCountY * tileCountZ
-        return shaderBlock {
-            body {
-                """
+        return shaderBindGroup(
+            group,
+            BindingUsage.CLUSTER_LIGHTS,
+            BindGroupLayoutDescriptor(
+                listOf(
+                    // cluster lights
+                    BindGroupLayoutEntry(
+                        binding,
+                        ShaderStage.COMPUTE,
+                        BufferBindingLayout(
+                            type =
+                                if (access == MemoryAccessMode.READ)
+                                    BufferBindingType.READ_ONLY_STORAGE
+                                else BufferBindingType.STORAGE
+                        ),
+                    )
+                )
+            ),
+        ) {
+            """
               struct ClusterLights {
                 offset : u32,
                 count : u32,
@@ -247,8 +264,7 @@ object CommonShaderBlocks {
               @group(${group}) @binding(${binding}) 
               var<storage, ${access.value}> clusterLights : ClusterLightGroup;
                """
-                    .trimIndent()
-            }
+                .trimIndent()
         }
     }
 

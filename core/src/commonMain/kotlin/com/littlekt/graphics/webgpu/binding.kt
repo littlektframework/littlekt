@@ -26,12 +26,12 @@ data class BindGroupEntry(val binding: Int, val resource: IntoBindingResource)
 data class BindGroupDescriptor(
     val layout: BindGroupLayout,
     val entries: List<BindGroupEntry>,
-    val label: String? = null
+    val label: String? = null,
 ) {
     constructor(
         layout: BindGroupLayout,
         entry: BindGroupEntry,
-        label: String? = null
+        label: String? = null,
     ) : this(layout, listOf(entry), label)
 }
 
@@ -116,10 +116,10 @@ expect class SamplerBindingLayout(type: SamplerBindingType = SamplerBindingType.
  * @param visibility which shader stages can see this binding.
  * @param bindingLayout the binding layout to be used in the [BindGroupLayout].
  */
-expect class BindGroupLayoutEntry(
-    binding: Int,
-    visibility: ShaderStage,
-    bindingLayout: BindingLayout
+data class BindGroupLayoutEntry(
+    val binding: Int,
+    val visibility: ShaderStage,
+    val bindingLayout: BindingLayout,
 )
 
 /**
@@ -130,7 +130,7 @@ expect class BindGroupLayoutEntry(
  */
 data class BindGroupLayoutDescriptor(
     val entries: List<BindGroupLayoutEntry>,
-    val label: String? = null
+    val label: String? = null,
 ) {
     constructor(entry: BindGroupLayoutEntry) : this(listOf(entry))
 }
@@ -170,7 +170,7 @@ expect class PipelineLayout : Releasable {
  */
 expect class PipelineLayoutDescriptor(
     bindGroupLayouts: List<BindGroupLayout> = emptyList(),
-    label: String? = null
+    label: String? = null,
 ) {
     constructor(bindGroupLayout: BindGroupLayout, label: String? = null)
 }

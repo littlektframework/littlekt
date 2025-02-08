@@ -28,7 +28,7 @@ actual abstract class BindingLayout actual constructor() {
         bufferBinding: MemorySegment,
         samplerBinding: MemorySegment,
         textureBinding: MemorySegment,
-        storageTextureBinding: MemorySegment
+        storageTextureBinding: MemorySegment,
     )
 }
 
@@ -46,14 +46,14 @@ actual class BufferBindingLayout
 actual constructor(
     val type: BufferBindingType,
     val hasDynamicOffset: Boolean,
-    val minBindingSize: Long
+    val minBindingSize: Long,
 ) : BindingLayout() {
 
     override fun intoNative(
         bufferBinding: MemorySegment,
         samplerBinding: MemorySegment,
         textureBinding: MemorySegment,
-        storageTextureBinding: MemorySegment
+        storageTextureBinding: MemorySegment,
     ) {
         WGPUBufferBindingLayout.type(bufferBinding, type.nativeVal)
         WGPUBufferBindingLayout.hasDynamicOffset(bufferBinding, hasDynamicOffset.toInt())
@@ -65,14 +65,14 @@ actual class TextureBindingLayout
 actual constructor(
     val sampleType: TextureSampleType,
     val viewDimension: TextureViewDimension,
-    val multisampled: Boolean
+    val multisampled: Boolean,
 ) : BindingLayout() {
 
     override fun intoNative(
         bufferBinding: MemorySegment,
         samplerBinding: MemorySegment,
         textureBinding: MemorySegment,
-        storageTextureBinding: MemorySegment
+        storageTextureBinding: MemorySegment,
     ) {
         WGPUTextureBindingLayout.sampleType(textureBinding, sampleType.nativeVal)
         WGPUTextureBindingLayout.viewDimension(textureBinding, viewDimension.nativeVal)
@@ -86,14 +86,11 @@ actual class SamplerBindingLayout actual constructor(val type: SamplerBindingTyp
         bufferBinding: MemorySegment,
         samplerBinding: MemorySegment,
         textureBinding: MemorySegment,
-        storageTextureBinding: MemorySegment
+        storageTextureBinding: MemorySegment,
     ) {
         WGPUSamplerBindingLayout.type(samplerBinding, type.nativeVal)
     }
 }
-
-actual class BindGroupLayoutEntry
-actual constructor(val binding: Int, val visibility: ShaderStage, val bindingLayout: BindingLayout)
 
 actual class BindGroupLayout internal constructor(val segment: MemorySegment) : Releasable {
 
@@ -123,11 +120,11 @@ actual class PipelineLayoutDescriptor
 internal constructor(val segments: MemorySegmentList, val label: String?) {
     actual constructor(
         bindGroupLayouts: List<BindGroupLayout>,
-        label: String?
+        label: String?,
     ) : this(MemorySegmentList(bindGroupLayouts.map { it.segment }), label)
 
     actual constructor(
         bindGroupLayout: BindGroupLayout,
-        label: String?
+        label: String?,
     ) : this(listOf(bindGroupLayout))
 }

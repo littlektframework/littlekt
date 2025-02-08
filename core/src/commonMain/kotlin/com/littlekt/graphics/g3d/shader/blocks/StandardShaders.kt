@@ -3,8 +3,11 @@ package com.littlekt.graphics.g3d.shader.blocks
 import com.littlekt.graphics.VertexAttrUsage
 import com.littlekt.graphics.VertexAttribute
 import com.littlekt.graphics.shader.builder.shader
+import com.littlekt.graphics.shader.builder.shaderBindGroup
 import com.littlekt.graphics.shader.builder.shaderBlock
 import com.littlekt.graphics.shader.builder.shaderStruct
+import com.littlekt.graphics.util.BindingUsage
+import com.littlekt.graphics.webgpu.*
 
 object Standard {
     fun VertexInputStruct(attributes: List<VertexAttribute>) =
@@ -148,7 +151,7 @@ object Standard {
         val output = VertexOutputStruct(layout)
         include(input)
         include(output)
-        include(CommonShaderBlocks.Camera(0, 1))
+        include(CommonShaderBlocks.Camera(0, 0))
         include(CommonShaderBlocks.Model(1, 0))
 
         vertex {
@@ -172,7 +175,7 @@ object Standard {
         val output = VertexOutputStruct(layout)
         include(input)
         include(output)
-        include(CommonShaderBlocks.Camera(0, 1))
+        include(CommonShaderBlocks.Camera(0, 0))
         include(CommonShaderBlocks.Model(1, 0))
         include(CommonShaderBlocks.Skin(2))
 
@@ -248,7 +251,36 @@ object Standard {
 
     object PBR {
         fun Material(group: Int) =
-            shaderStruct("Material") {
+            shaderBindGroup(
+                group,
+                BindingUsage.MATERIAL,
+                BindGroupLayoutDescriptor(
+                    listOf(
+                        // material uniform
+                        BindGroupLayoutEntry(0, ShaderStage.FRAGMENT, BufferBindingLayout()),
+                        // baseColorTexture
+                        BindGroupLayoutEntry(1, ShaderStage.FRAGMENT, TextureBindingLayout()),
+                        // baseColorSampler
+                        BindGroupLayoutEntry(2, ShaderStage.FRAGMENT, SamplerBindingLayout()),
+                        // normal texture
+                        BindGroupLayoutEntry(3, ShaderStage.FRAGMENT, TextureBindingLayout()),
+                        // normal sampler
+                        BindGroupLayoutEntry(4, ShaderStage.FRAGMENT, SamplerBindingLayout()),
+                        // metallic roughness texture
+                        BindGroupLayoutEntry(5, ShaderStage.FRAGMENT, TextureBindingLayout()),
+                        // metallic roughness sampler
+                        BindGroupLayoutEntry(6, ShaderStage.FRAGMENT, SamplerBindingLayout()),
+                        // occlusion texture
+                        BindGroupLayoutEntry(7, ShaderStage.FRAGMENT, TextureBindingLayout()),
+                        // occlusion sampler
+                        BindGroupLayoutEntry(8, ShaderStage.FRAGMENT, SamplerBindingLayout()),
+                        // emissive texture
+                        BindGroupLayoutEntry(9, ShaderStage.FRAGMENT, TextureBindingLayout()),
+                        // emissive sampler
+                        BindGroupLayoutEntry(10, ShaderStage.FRAGMENT, SamplerBindingLayout()),
+                    )
+                ),
+            ) {
                 """
         struct Material {
             base_color_factor : vec4f,
@@ -354,6 +386,7 @@ object Standard {
             val output = FragmentOutput(bloomEnabled)
             include(input)
             include(output)
+            include(CommonShaderBlocks.Camera(0, 0))
             include(CommonShaderBlocks.Lights(0, 1))
             include(CommonShaderBlocks.ClusterLights(0, 2))
             include(Material(1))

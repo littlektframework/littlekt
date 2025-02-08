@@ -8,11 +8,30 @@ import com.littlekt.graphics.webgpu.BindGroupLayoutDescriptor
  * @date 2/6/2025
  */
 class ShaderCode(val includes: List<ShaderBlock>, val blocks: List<ShaderBlock>) {
+    private data class BindGroupInfo(
+        val bindingUsage: BindingUsage,
+        val group: Int,
+        val descriptor: BindGroupLayoutDescriptor,
+    )
+
     private val mainBlocks = blocks.filterIsInstance<MainShaderBlock>()
     private val shaderBindGroups =
         (includes.filterIsInstance<ShaderBlockBindGroup>() +
                 blocks.filterIsInstance<ShaderBlockBindGroup>())
             .sortedBy { it.group }
+            .groupBy { it.group }
+            .map { (group, groupItems) ->
+                val combinedUsage =
+                    groupItems.fold(setOf<String>()) { acc, item -> acc + item.bindingUsage.usage }
+                val combinedEntries =
+                    groupItems
+                        .flatMap { it.descriptor.entries }
+                        .distinctBy { it.binding }
+                        .sortedBy { it.binding }
+                val newDescriptor = BindGroupLayoutDescriptor(combinedEntries)
+
+                BindGroupInfo(BindingUsage(combinedUsage), group, newDescriptor)
+            }
     val bindGroupLayoutUsageLayout: List<BindingUsage> = shaderBindGroups.map { it.bindingUsage }
     val bindGroupUsageToGroupIndex: Map<BindingUsage, Int> =
         shaderBindGroups.associate { it.bindingUsage to it.group }
