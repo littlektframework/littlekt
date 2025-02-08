@@ -1,6 +1,7 @@
 package com.littlekt.graphics.shader
 
 import com.littlekt.Releasable
+import com.littlekt.graphics.shader.builder.ShaderCode
 import com.littlekt.graphics.util.BindingUsage
 import com.littlekt.graphics.webgpu.*
 import com.littlekt.util.datastructure.fastForEach
@@ -48,6 +49,21 @@ open class Shader(
     val fragmentEntryPoint: String = "fs_main",
     val computeEntryPoint: String = "cmp_main",
 ) : Releasable {
+
+    constructor(
+        device: Device,
+        code: ShaderCode,
+    ) : this(
+        device,
+        code.src,
+        code.bindGroupLayoutUsageLayout,
+        code.layout,
+        code.bindGroupUsageToGroupIndex,
+        code.vertexEntryPoint ?: "",
+        code.fragmentEntryPoint ?: "",
+        code.computeEntryPoint ?: "",
+    )
+
     /** The id of this shader. */
     val id: Int = lastId++
 

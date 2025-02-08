@@ -7,7 +7,7 @@ import com.littlekt.graphics.util.BindingUsage
 import com.littlekt.graphics.webgpu.*
 
 object CommonShaderBlocks {
-    fun Joints(group: Int) =
+    fun Joints(group: Int, binding: Int) =
         shaderBindGroup(
             group = group,
             bindingUsage = BindingUsage.SKIN,
@@ -16,13 +16,13 @@ object CommonShaderBlocks {
                     listOf(
                         // joint transforms
                         BindGroupLayoutEntry(
-                            0,
+                            binding,
                             ShaderStage.VERTEX,
                             BufferBindingLayout(BufferBindingType.READ_ONLY_STORAGE),
                         ),
                         // inverse blend matrices
                         BindGroupLayoutEntry(
-                            1,
+                            binding + 1,
                             ShaderStage.VERTEX,
                             BufferBindingLayout(BufferBindingType.READ_ONLY_STORAGE),
                         ),
@@ -33,8 +33,8 @@ object CommonShaderBlocks {
         struct Joints {
           matrices : array<mat4x4f>
         };
-        @group(${group}) @binding(0) var<storage, read> joint : Joints;
-        @group(${group}) @binding(1) var<storage, read> inverse_blend : Joints;
+        @group(${group}) @binding($binding) var<storage, read> joint : Joints;
+        @group(${group}) @binding(${binding + 1}) var<storage, read> inverse_blend : Joints;
     """
                 .trimIndent()
         }
@@ -59,8 +59,8 @@ object CommonShaderBlocks {
         }
     }
 
-    fun Skin(group: Int) = shaderBlock {
-        include(Joints(group))
+    fun Skin(group: Int, binding: Int) = shaderBlock {
+        include(Joints(group, binding))
         SkinFunctions()
     }
 
@@ -205,9 +205,25 @@ object CommonShaderBlocks {
         access: MemoryAccessMode = MemoryAccessMode.READ,
     ): ShaderBlock {
         val totalTiles = tileCountX * tileCountY * tileCountZ
-        return shaderBlock {
-            body {
-                """
+        return shaderBindGroup(
+            group,
+            BindingUsage.CLUSTER_BOUNDS,
+            BindGroupLayoutDescriptor(
+                listOf(
+                    BindGroupLayoutEntry(
+                        binding,
+                        ShaderStage.COMPUTE,
+                        BufferBindingLayout(
+                            type =
+                                if (access == MemoryAccessMode.READ)
+                                    BufferBindingType.READ_ONLY_STORAGE
+                                else BufferBindingType.STORAGE
+                        ),
+                    )
+                )
+            ),
+        ) {
+            """
               struct ClusterBounds {
                 minAABB : vec3<f32>,
                 maxAABB : vec3<f32>,
@@ -218,8 +234,7 @@ object CommonShaderBlocks {
               @group(${group}) @binding(${binding}) 
               var<storage, ${access.value}> clusters : Clusters;
             """
-                    .trimIndent()
-            }
+                .trimIndent()
         }
     }
 

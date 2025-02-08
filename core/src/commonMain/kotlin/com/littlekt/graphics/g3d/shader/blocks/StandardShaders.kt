@@ -177,7 +177,7 @@ object Standard {
         include(output)
         include(CommonShaderBlocks.Camera(0, 0))
         include(CommonShaderBlocks.Model(1, 0))
-        include(CommonShaderBlocks.Skin(2))
+        include(CommonShaderBlocks.Skin(2, 0))
 
         vertex {
             main(input = input, output = output) {
