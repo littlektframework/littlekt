@@ -2,6 +2,7 @@ package com.littlekt.graphics.shader.builder
 
 import com.littlekt.graphics.util.BindingUsage
 import com.littlekt.graphics.webgpu.BindGroupLayoutDescriptor
+import com.littlekt.graphics.webgpu.ShaderStage
 
 /**
  * @author Colton Daily
@@ -16,36 +17,25 @@ class ShaderCode(
     val fragment: FragmentShaderBlock?,
     val compute: ComputeShaderBlock?,
 ) : ShaderSrc() {
-    private data class BindGroupInfo(
-        val bindingUsage: BindingUsage,
-        val group: Int,
-        val descriptor: BindGroupLayoutDescriptor,
-    )
 
-    private val shaderBindGroups = emptyList<BindGroupInfo>()
-    //        (includes.filterIsInstance<ShaderBlockBindGroup>() +
-    //                blocks.filterIsInstance<ShaderBlockBindGroup>())
-    //            .sortedBy { it.group }
-    //            .groupBy { it.group }
-    //            .map { (group, groupItems) ->
-    //                val combinedUsage =
-    //                    groupItems.fold(setOf<String>()) { acc, item -> acc +
-    // item.bindingUsage.usage }
-    //                val combinedEntries =
-    //                    groupItems
-    //                        .flatMap { it.descriptor.entries }
-    //                        .distinctBy { it.binding }
-    //                        .sortedBy { it.binding }
-    //                val newDescriptor = BindGroupLayoutDescriptor(combinedEntries)
-    //
-    //                BindGroupInfo(BindingUsage(combinedUsage), group, newDescriptor)
-    //            }
-    val bindGroupLayoutUsageLayout: List<BindingUsage> =
-        emptyList() // shaderBindGroups.map { it.bindingUsage }
-    val bindGroupUsageToGroupIndex: Map<BindingUsage, Int> = emptyMap()
-    // shaderBindGroups.associate { it.bindingUsage to it.group }
-    val layout: Map<BindingUsage, BindGroupLayoutDescriptor> = emptyMap()
-    //  shaderBindGroups.associate { it.bindingUsage to it.descriptor }
+    val visibility: ShaderStage = run {
+        var visibility: ShaderStage? = null
+        if (vertex != null) visibility = ShaderStage.VERTEX
+        if (fragment != null)
+            visibility = visibility?.let { it or ShaderStage.FRAGMENT } ?: ShaderStage.FRAGMENT
+        if (compute != null)
+            visibility = visibility?.let { it or ShaderStage.COMPUTE } ?: ShaderStage.COMPUTE
+        visibility ?: error("Shader must have at least one shader stage!")
+    }
+    private val bindGroupsToDescriptors: Map<ShaderBindGroup, BindGroupLayoutDescriptor> =
+        bindingGroups.associateWith { it.generateBindGroupLayoutDescriptor(visibility) }
+
+    val bindGroupLayoutUsageLayout: List<BindingUsage> = bindingGroups.map { it.usage }
+    val bindGroupUsageToGroupIndex: Map<BindingUsage, Int> =
+        bindingGroups.associate { it.usage to it.group }
+    val layout: Map<BindingUsage, BindGroupLayoutDescriptor> =
+        bindGroupsToDescriptors.map { it.key.usage to it.value }.toMap()
+
     val vertexEntryPoint = vertex?.entryPoint
     val fragmentEntryPoint = fragment?.entryPoint
     val computeEntryPoint = compute?.entryPoint

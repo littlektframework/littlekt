@@ -6,6 +6,7 @@ import com.littlekt.graphics.shader.builder.shader
 import com.littlekt.graphics.shader.builder.shaderStruct
 import com.littlekt.graphics.util.BindingUsage
 import com.littlekt.graphics.webgpu.MemoryAccessMode
+import com.littlekt.graphics.webgpu.ShaderStage
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -78,6 +79,7 @@ class ShaderCodeBuilderTests {
                     .trimIndent()
             )
         assertEquals(expected.src, shader.src)
+        assertEquals(shader.visibility, ShaderStage.VERTEX)
     }
 
     @Test
@@ -152,6 +154,7 @@ class ShaderCodeBuilderTests {
             )
 
         assertEquals(expected.src, extendedShader.src)
+        assertEquals(extendedShader.visibility, ShaderStage.VERTEX)
     }
 
     @Test
@@ -259,6 +262,7 @@ class ShaderCodeBuilderTests {
             )
 
         assertEquals(expected.src, extendedShader.src)
+        assertEquals(extendedShader.visibility, ShaderStage.VERTEX or ShaderStage.FRAGMENT)
     }
 
     @Test
@@ -572,6 +576,7 @@ class ShaderCodeBuilderTests {
             )
 
         assertEquals(expected.src, vertexShader.src)
+        assertEquals(vertexShader.visibility, ShaderStage.VERTEX)
     }
 
     @Test
@@ -607,14 +612,16 @@ class ShaderCodeBuilderTests {
             shaderStruct("Data") {
                 mapOf("transform" to ShaderStructParameterType.WgslType.mat4x4f)
             }
+        val viewBindingUsage = BindingUsage("View")
+        val dataBindingUsage = BindingUsage("Data")
         val vertexShader = shader {
             include(inputStruct)
             include(outputStruct)
             include(viewStruct)
-            bindGroup(0, BindingUsage("View")) {
+            bindGroup(0, viewBindingUsage) {
                 bind(0, "view", viewStruct, ShaderBindingType.Uniform)
             }
-            bindGroup(1, BindingUsage("Data")) {
+            bindGroup(1, dataBindingUsage) {
                 bind(0, "data", dataStruct, ShaderBindingType.Storage(MemoryAccessMode.READ))
             }
             vertex {
@@ -665,6 +672,11 @@ class ShaderCodeBuilderTests {
             )
 
         assertEquals(expected.src, vertexShader.src)
+        assertEquals(vertexShader.visibility, ShaderStage.VERTEX)
+        assertEquals(vertexShader.bindGroupUsageToGroupIndex[viewBindingUsage], 0)
+        assertEquals(vertexShader.bindGroupUsageToGroupIndex[dataBindingUsage], 1)
+        assertEquals(vertexShader.layout[viewBindingUsage]?.entries?.size, 1)
+        assertEquals(vertexShader.layout[dataBindingUsage]?.entries?.size, 1)
     }
 
     @Test
@@ -694,10 +706,11 @@ class ShaderCodeBuilderTests {
                 mapOf("color" to ShaderStructParameterType.WgslType.vec4f)
             }
 
+        val materialBindingUsage = BindingUsage("Material")
         val fragmentShader = shader {
             include(vertexOutputStruct)
             include(fragmentOutputStruct)
-            bindGroup(0, BindingUsage("Material")) {
+            bindGroup(0, materialBindingUsage) {
                 bindTexture2d(0, "my_texture")
                 bindSampler(1, "my_sampler")
             }
@@ -741,5 +754,8 @@ class ShaderCodeBuilderTests {
             )
 
         assertEquals(expected.src, fragmentShader.src)
+        assertEquals(fragmentShader.visibility, ShaderStage.FRAGMENT)
+        assertEquals(fragmentShader.bindGroupUsageToGroupIndex[materialBindingUsage], 0)
+        assertEquals(fragmentShader.layout[materialBindingUsage]?.entries?.size, 2)
     }
 }
