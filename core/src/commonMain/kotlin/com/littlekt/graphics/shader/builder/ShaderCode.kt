@@ -22,7 +22,6 @@ class ShaderCode(
         val descriptor: BindGroupLayoutDescriptor,
     )
 
-    private val mainBlocks = blocks.filterIsInstance<MainShaderBlock>()
     private val shaderBindGroups = emptyList<BindGroupInfo>()
     //        (includes.filterIsInstance<ShaderBlockBindGroup>() +
     //                blocks.filterIsInstance<ShaderBlockBindGroup>())
@@ -56,7 +55,7 @@ class ShaderCode(
         var lines =
             buildString {
                     structs.forEach { appendLine(it.src) }
-                    bindingGroups.forEach { append(it.src) }
+                    bindingGroups.forEach { appendLine(it.src) }
                     blocks.forEach { appendLine(it) }
                     vertex?.let { appendLine(it.body) }
                     fragment?.let { appendLine(it.body) }
