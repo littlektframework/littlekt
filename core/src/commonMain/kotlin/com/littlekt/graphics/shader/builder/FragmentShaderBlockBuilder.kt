@@ -10,7 +10,7 @@ open class FragmentShaderBlockBuilder(base: FragmentShaderBlock? = null) :
     fun main(
         input: ShaderStruct,
         output: ShaderStruct,
-        entry: String = "main",
+        entry: String = "fs_main",
         inputVar: String = "input",
         block: ShaderBlockBuilder.() -> String,
     ) {

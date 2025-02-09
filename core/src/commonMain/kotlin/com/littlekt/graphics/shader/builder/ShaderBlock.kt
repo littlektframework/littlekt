@@ -70,4 +70,34 @@ open class ShaderBlock(
         lines.removeAll { markerRegex.matches(it.trim()) }
         lines.joinToString("\n") { it.trim() }.format().trimIndent()
     }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other == null || this::class != other::class) return false
+
+        other as ShaderBlock
+
+        if (structs != other.structs) return false
+        if (bindingGroups != other.bindingGroups) return false
+        if (blocks != other.blocks) return false
+        if (rules != other.rules) return false
+        if (body != other.body) return false
+        if (src != other.src) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = structs.hashCode()
+        result = 31 * result + bindingGroups.hashCode()
+        result = 31 * result + blocks.hashCode()
+        result = 31 * result + rules.hashCode()
+        result = 31 * result + body.hashCode()
+        result = 31 * result + src.hashCode()
+        return result
+    }
+
+    override fun toString(): String {
+        return "ShaderBlock(structs=$structs, bindingGroups=$bindingGroups, blocks=$blocks, rules=$rules, body='$body')"
+    }
 }

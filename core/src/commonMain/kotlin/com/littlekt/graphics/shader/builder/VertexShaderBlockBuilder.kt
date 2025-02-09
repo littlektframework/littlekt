@@ -10,7 +10,7 @@ open class VertexShaderBlockBuilder(base: VertexShaderBlock? = null) :
     fun main(
         input: ShaderStruct,
         output: ShaderStruct,
-        entry: String = "main",
+        entry: String = "vs_main",
         inputVar: String = "input",
         block: ShaderBlockBuilder.() -> String,
     ) {

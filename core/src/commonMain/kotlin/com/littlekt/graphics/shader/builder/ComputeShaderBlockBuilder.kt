@@ -11,7 +11,7 @@ open class ComputeShaderBlockBuilder(base: ComputeShaderBlock? = null) :
         workGroupSizeX: Int,
         workGroupSizeY: Int = workGroupSizeX,
         workGroupSizeZ: Int = workGroupSizeY,
-        entry: String = "main",
+        entry: String = "cmp_main",
         block: ShaderBlockBuilder.() -> String,
     ) {
         this.entry = entry

@@ -66,7 +66,7 @@ class ShaderCodeBuilderTests {
                 @location(0) color: vec4f
             };
 
-            @vertex fn main(input: VertexInput) -> VertexOutput {
+            @vertex fn vs_main(input: VertexInput) -> VertexOutput {
                 var output: VertexOutput;
                 output.position = vec4(input.position, 1.0);
                 output.color = input.color;
@@ -140,7 +140,7 @@ class ShaderCodeBuilderTests {
                 index: f32
             };
 
-            @vertex fn main(input: VertexInput) -> VertexOutput {
+            @vertex fn vs_main(input: VertexInput) -> VertexOutput {
                 var output: VertexOutput;
                 output.position = vec4(input.position, 1.0);
                 output.color = input.color;
@@ -243,13 +243,13 @@ class ShaderCodeBuilderTests {
                 color: vec4f
             };
             
-            @vertex fn main(input: VertexInput) -> VertexOutput {
+            @vertex fn vs_main(input: VertexInput) -> VertexOutput {
                 var output: VertexOutput;
                 output.position = vec4(input.position, 1.0);
                 output.color = input.color;
                 return output;
             }
-            @fragment fn main(input: VertexOutput) -> FragmentOutput {
+            @fragment fn fs_main(input: VertexOutput) -> FragmentOutput {
                 var output: FragmentOutput;
                 output.color = input.color;
                 return output;
@@ -326,7 +326,7 @@ class ShaderCodeBuilderTests {
                 @location(0) color: vec4f
             };
 
-            @vertex fn main(input: VertexInput) -> VertexOutput {
+            @vertex fn vs_main(input: VertexInput) -> VertexOutput {
                 var output: VertexOutput;
                 output.position = vec4(input.position, 1.0);
                 output.color = input.color;
@@ -404,7 +404,7 @@ class ShaderCodeBuilderTests {
                 @location(0) color: vec4f
             };
 
-            @vertex fn main(input: VertexInput) -> VertexOutput {
+            @vertex fn vs_main(input: VertexInput) -> VertexOutput {
                 var output: VertexOutput;
                 output.position = vec4(input.position, 1.0);
                 output.color = input.color;
@@ -562,7 +562,7 @@ class ShaderCodeBuilderTests {
 
             @group(0) @binding(0) var<uniform> view: View;
 
-            @vertex fn main(input: VertexInput) -> VertexOutput {
+            @vertex fn vs_main(input: VertexInput) -> VertexOutput {
                 var output: VertexOutput;
                 output.position = vec4(input.position, 1.0);
                 output.color = input.color;
@@ -658,7 +658,7 @@ class ShaderCodeBuilderTests {
 
             @group(1) @binding(0) var<storage, read> data: Data;
 
-            @vertex fn main(input: VertexInput) -> VertexOutput {
+            @vertex fn vs_main(input: VertexInput) -> VertexOutput {
                 var output: VertexOutput;
                 output.position = vec4(input.position, 1.0);
                 output.color = input.color;
@@ -747,7 +747,7 @@ class ShaderCodeBuilderTests {
 
             @group(0) @binding(0) var<uniform> view: array<View>;
 
-            @vertex fn main(input: VertexInput) -> VertexOutput {
+            @vertex fn vs_main(input: VertexInput) -> VertexOutput {
                 var output: VertexOutput;
                 output.position = vec4(input.position, 1.0);
                 output.color = input.color;
@@ -832,7 +832,7 @@ class ShaderCodeBuilderTests {
 
             @group(0) @binding(0) var<uniform> view: array<View, 2>;
 
-            @vertex fn main(input: VertexInput) -> VertexOutput {
+            @vertex fn vs_main(input: VertexInput) -> VertexOutput {
                 var output: VertexOutput;
                 output.position = vec4(input.position, 1.0);
                 output.color = input.color;
@@ -911,7 +911,7 @@ class ShaderCodeBuilderTests {
                 @group(0) @binding(0) var my_texture: texture_2d<f32>;
                 @group(0) @binding(1) var my_sampler: sampler;
                 
-                @fragment fn main(input: VertexOutput) -> FragmentOutput {
+                @fragment fn fs_main(input: VertexOutput) -> FragmentOutput {
                     var output: FragmentOutput;
                     output.color = textureSample(my_texture, my_sampler, input.uv) * input.color
                     return output;
@@ -1001,7 +1001,7 @@ class ShaderCodeBuilderTests {
 
             @group(0) @binding(0) var<uniform> view: View;
 
-            @vertex fn main(input: VertexInput) -> VertexOutput {
+            @vertex fn vs_main(input: VertexInput) -> VertexOutput {
                 var output: VertexOutput;
                 output.position = vec4(input.position, 1.0);
                 output.color = input.color;
@@ -1090,7 +1090,7 @@ class ShaderCodeBuilderTests {
 
             @group(0) @binding(0) var<uniform> view: View;
 
-            @vertex fn main(input: VertexInput) -> VertexOutput {
+            @vertex fn vs_main(input: VertexInput) -> VertexOutput {
                 var output: VertexOutput;
                 output.position = vec4(input.position, 1.0);
                 output.color = input.color;
@@ -1208,7 +1208,7 @@ class ShaderCodeBuilderTests {
                 return s;
             }
 
-            @vertex fn main(input: VertexInput) -> VertexOutput {
+            @vertex fn vs_main(input: VertexInput) -> VertexOutput {
                 var output: VertexOutput;
                 output.position = vec4(input.position, 1.0);
                 output.color = input.color;

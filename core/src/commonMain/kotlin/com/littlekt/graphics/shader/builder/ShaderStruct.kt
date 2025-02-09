@@ -4,7 +4,7 @@ package com.littlekt.graphics.shader.builder
  * @author Colton Daily
  * @date 2/6/2025
  */
-class ShaderStruct(val name: String, parameters: Map<String, ShaderStructParameterType>) :
+open class ShaderStruct(val name: String, parameters: Map<String, ShaderStructParameterType>) :
     ShaderSrc() {
     val layout: Map<String, ShaderStructEntry>
     val size: Int
@@ -64,5 +64,18 @@ class ShaderStruct(val name: String, parameters: Map<String, ShaderStructParamet
 
     override fun toString(): String {
         return "ShaderStruct(name='$name', layout=$layout, size=$size, alignment=$alignment)"
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other == null || this::class != other::class) return false
+
+        other as ShaderStruct
+
+        return name == other.name
+    }
+
+    override fun hashCode(): Int {
+        return name.hashCode()
     }
 }

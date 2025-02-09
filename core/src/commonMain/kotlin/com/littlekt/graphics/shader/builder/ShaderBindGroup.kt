@@ -19,4 +19,17 @@ data class ShaderBindGroup(
     fun generateBindGroupLayoutDescriptor(visibility: ShaderStage): BindGroupLayoutDescriptor {
         return BindGroupLayoutDescriptor(bindings.map { it.generateBindingLayoutEntry(visibility) })
     }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other == null || this::class != other::class) return false
+
+        other as ShaderBindGroup
+
+        return usage == other.usage
+    }
+
+    override fun hashCode(): Int {
+        return usage.hashCode()
+    }
 }

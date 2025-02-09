@@ -44,4 +44,24 @@ data class ShaderBinding(
             ShaderBindingType.Uniform -> BufferBindingLayout(BufferBindingType.UNIFORM)
         }
     }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other == null || this::class != other::class) return false
+
+        other as ShaderBinding
+
+        if (varName != other.varName) return false
+        if (paramType != other.paramType) return false
+        if (bindingType != other.bindingType) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = varName.hashCode()
+        result = 31 * result + paramType.hashCode()
+        result = 31 * result + bindingType.hashCode()
+        return result
+    }
 }

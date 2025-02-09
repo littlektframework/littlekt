@@ -126,18 +126,21 @@ open class ShaderCodeBuilder(base: ShaderCode? = null) {
             vertexBuilder?.build()?.also {
                 structs.addAll(it.structs)
                 rules.addAll(it.rules)
+                blocks.addAll(it.blocks)
                 bindingGroups.addAll(it.bindingGroups)
             }
         val fragmentInter =
             fragmentBuilder?.build()?.also {
                 structs.addAll(it.structs)
                 rules.addAll(it.rules)
+                blocks.addAll(it.blocks)
                 bindingGroups.addAll(it.bindingGroups)
             }
         val computeInter =
             computeBuilder?.build()?.also {
                 structs.addAll(it.structs)
                 rules.addAll(it.rules)
+                blocks.addAll(it.blocks)
                 bindingGroups.addAll(it.bindingGroups)
             }
 
