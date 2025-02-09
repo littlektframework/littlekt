@@ -5,20 +5,37 @@ package com.littlekt.graphics.shader.builder
  * @date 2/6/2025
  */
 open class ShaderCodeBuilder(base: ShaderCode? = null) {
-    private var vertexBase = base?.vertex
-    private var fragmentBase = base?.fragment
-    private var computeBase = base?.compute
+    private val vertexBase = base?.vertex
+    private val fragmentBase = base?.fragment
+    private val computeBase = base?.compute
+    private var vertex: VertexShaderBlock? = null
+    private var fragment: FragmentShaderBlock? = null
+    private var compute: ComputeShaderBlock? = null
+    private var vertexBuilder: VertexShaderBlockBuilder? = null
+    private var fragmentBuilder: FragmentShaderBlockBuilder? = null
+    private var computeBuilder: ComputeShaderBlockBuilder? = null
+
     private val structs = mutableSetOf<ShaderStruct>().apply { base?.structs?.let { addAll(it) } }
     private val bindingGroups =
         mutableSetOf<ShaderBindGroup>().apply { base?.bindingGroups?.let { addAll(it) } }
     private val blocks = mutableListOf<String>().apply { base?.let { addAll(it.blocks) } }
-    private val rules = mutableListOf<ShaderBlockInsertRule>()
+    private val rules =
+        mutableListOf<ShaderBlockInsertRule>().apply { base?.let { addAll(it.rules) } }
 
     fun include(struct: ShaderStruct) {
         structs.add(struct)
     }
 
     fun include(block: ShaderBlock) {
+        check(block !is VertexShaderBlock) {
+            "You may not include a VertexShaderBlock! Use 'vertex(vertexBlock) {}' instead!"
+        }
+        check(block !is FragmentShaderBlock) {
+            "You may not include a FragmentShaderBlock! Use 'fragment(fragmentBlock) {}' instead!"
+        }
+        check(block !is ComputeShaderBlock) {
+            "You may not include a ComputeShaderBlock! Use 'compute(computeBlock) {}' instead!"
+        }
         structs.addAll(block.structs)
         bindingGroups.addAll(block.bindingGroups)
         rules.addAll(block.rules)
@@ -31,33 +48,103 @@ open class ShaderCodeBuilder(base: ShaderCode? = null) {
         include(builder.build())
     }
 
-    fun vertex(base: VertexShaderBlock? = null, block: VertexShaderBlockBuilder.() -> Unit) {
+    fun vertex(base: VertexShaderBlock? = null, block: VertexShaderBlockBuilder.() -> Unit = {}) {
         val builder = VertexShaderBlockBuilder(base ?: vertexBase)
         builder.block()
-        vertexBase = builder.build()
+        vertexBuilder = builder
     }
 
-    fun fragment(base: FragmentShaderBlock? = null, block: FragmentShaderBlockBuilder.() -> Unit) {
+    fun fragment(
+        base: FragmentShaderBlock? = null,
+        block: FragmentShaderBlockBuilder.() -> Unit = {},
+    ) {
         val builder = FragmentShaderBlockBuilder(base ?: fragmentBase)
         builder.block()
-        fragmentBase = builder.build()
+        fragmentBuilder = builder
     }
 
-    fun compute(base: ComputeShaderBlock? = null, block: ComputeShaderBlockBuilder.() -> Unit) {
+    fun compute(
+        base: ComputeShaderBlock? = null,
+        block: ComputeShaderBlockBuilder.() -> Unit = {},
+    ) {
         val builder = ComputeShaderBlockBuilder(base ?: computeBase)
         builder.block()
-        computeBase = builder.build()
+        computeBuilder = builder
     }
 
     fun build(): ShaderCode {
-        return ShaderCode(
-            structs,
-            bindingGroups,
-            blocks,
-            rules,
-            vertexBase,
-            fragmentBase,
-            computeBase,
-        )
+        ensureMainBlockBuilders()
+        buildMainShaderBlocks()
+        return ShaderCode(structs, bindingGroups, blocks, rules, vertex, fragment, compute)
+    }
+
+    /** Ensure we have builders if we have any base. */
+    private fun ensureMainBlockBuilders() {
+        vertexBuilder = vertexBuilder ?: vertexBase?.let { VertexShaderBlockBuilder(it) }
+        fragmentBuilder = fragmentBuilder ?: fragmentBase?.let { FragmentShaderBlockBuilder(it) }
+        computeBuilder = computeBuilder ?: computeBase?.let { ComputeShaderBlockBuilder(it) }
+    }
+
+    private fun buildMainShaderBlocks() {
+        // build the intermediate main shader blocks to collect all the structs
+        val vertexInter =
+            vertexBuilder?.build()?.also {
+                structs.addAll(it.structs)
+                rules.addAll(it.rules)
+                bindingGroups.addAll(it.bindingGroups)
+            }
+        val fragmentInter =
+            fragmentBuilder?.build()?.also {
+                structs.addAll(it.structs)
+                rules.addAll(it.rules)
+                bindingGroups.addAll(it.bindingGroups)
+            }
+        val computeInter =
+            computeBuilder?.build()?.also {
+                structs.addAll(it.structs)
+                rules.addAll(it.rules)
+                bindingGroups.addAll(it.bindingGroups)
+            }
+
+        // rebuild them and add all the structs the shader has included into them as since we can
+        // extend them, and it's nicer to not have to include everything by hand if it's been
+        // declared
+        // at the top level
+
+        vertex =
+            vertexInter?.let {
+                VertexShaderBlock(
+                    it.entryPoint,
+                    structs,
+                    bindingGroups,
+                    it.blocks,
+                    it.rules,
+                    it.body,
+                )
+            }
+
+        fragment =
+            fragmentInter?.let {
+                FragmentShaderBlock(
+                    it.entryPoint,
+                    structs,
+                    bindingGroups,
+                    it.blocks,
+                    it.rules,
+                    it.body,
+                )
+            }
+
+        compute =
+            computeInter?.let {
+                ComputeShaderBlock(
+                    it.entryPoint,
+                    structs,
+                    bindingGroups,
+                    it.blocks,
+                    it.rules,
+                    it.body,
+                )
+            }
     }
 }

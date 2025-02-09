@@ -19,7 +19,8 @@ open class FragmentShaderBlockBuilder(base: FragmentShaderBlock? = null) :
             "%fragment_start%\n@fragment fn $entry($inputVar: ${input.name}) -> ${output.name} {\n${block()}\n}\n%fragment_end%"
     }
 
-    override fun build(): FragmentShaderBlock {
+    override fun build(extraStructs: Set<ShaderStruct>): FragmentShaderBlock {
+        structs.addAll(extraStructs)
         return FragmentShaderBlock(entry, structs, bindingGroups, blocks, rules, body)
     }
 }

@@ -9,10 +9,24 @@ open class ShaderBlockBuilder(base: ShaderBlock? = null) {
     protected val bindingGroups =
         mutableSetOf<ShaderBindGroup>().apply { base?.bindingGroups?.let { addAll(it) } }
     protected val blocks = mutableListOf<String>().apply { base?.let { addAll(it.blocks) } }
-    protected val rules = mutableListOf<ShaderBlockInsertRule>()
-    protected var body = ""
+    protected val rules =
+        mutableListOf<ShaderBlockInsertRule>().apply { base?.let { addAll(it.rules) } }
+    protected var body = base?.body ?: ""
+
+    fun include(struct: ShaderStruct) {
+        structs.add(struct)
+    }
 
     fun include(block: ShaderBlock) {
+        check(block !is VertexShaderBlock) {
+            "You may not include a VertexShaderBlock! Use 'vertex(vertexBlock) {}' instead!"
+        }
+        check(block !is FragmentShaderBlock) {
+            "You may not include a FragmentShaderBlock! Use 'fragment(fragmentBlock) {}' instead!"
+        }
+        check(block !is ComputeShaderBlock) {
+            "You may not include a ComputeShaderBlock! Use 'compute(computeBlock) {}' instead!"
+        }
         structs.addAll(block.structs)
         bindingGroups.addAll(block.bindingGroups)
         rules.addAll(block.rules)

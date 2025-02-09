@@ -19,7 +19,8 @@ open class VertexShaderBlockBuilder(base: VertexShaderBlock? = null) :
             "%vertex_start%\n@vertex fn $entry($inputVar: ${input.name}) -> ${output.name} {\n${block()}\n}\n%vertex_end%"
     }
 
-    override fun build(): VertexShaderBlock {
+    override fun build(extraStructs: Set<ShaderStruct>): VertexShaderBlock {
+        structs.addAll(extraStructs)
         return VertexShaderBlock(entry, structs, bindingGroups, blocks, rules, body)
     }
 }

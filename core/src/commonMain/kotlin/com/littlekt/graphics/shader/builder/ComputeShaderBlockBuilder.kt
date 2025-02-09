@@ -19,7 +19,8 @@ open class ComputeShaderBlockBuilder(base: ComputeShaderBlock? = null) :
             "%compute_start%\n@compute @workgroup_size(${workGroupSizeX}, ${workGroupSizeY}, ${workGroupSizeZ}) fn $entry(@builtin(global_invocation_id) global_id : vec3u) {\n${block()}\n}\n%compute_end%"
     }
 
-    override fun build(): ComputeShaderBlock {
+    override fun build(extraStructs: Set<ShaderStruct>): ComputeShaderBlock {
+        structs.addAll(extraStructs)
         return ComputeShaderBlock(entry, structs, bindingGroups, blocks, rules, body)
     }
 }

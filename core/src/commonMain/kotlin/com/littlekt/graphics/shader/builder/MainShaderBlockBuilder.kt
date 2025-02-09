@@ -8,5 +8,7 @@ abstract class MainShaderBlockBuilder<T : MainShaderBlock>(base: T? = null) :
     ShaderBlockBuilder(base) {
     protected var entry: String = "main"
 
-    override fun build(): T = error("Implement build!")
+    abstract fun build(extraStructs: Set<ShaderStruct>): T
+
+    override fun build(): T = build(emptySet())
 }

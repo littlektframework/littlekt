@@ -152,6 +152,113 @@ class ShaderCodeBuilderTests {
     }
 
     @Test
+    fun testExtendFromVertexAndFragmentShaders() {
+        val vertexInputStruct =
+            shaderStruct("VertexInput") {
+                mapOf(
+                    "position" to ShaderStructParameterType.WgslType.vec3f,
+                    "color" to ShaderStructParameterType.WgslType.vec4f,
+                )
+            }
+        val vertexOutputStruct =
+            shaderStruct("VertexOutput") {
+                mapOf(
+                    "position" to
+                        ShaderStructParameterType.BuiltIn.Position(
+                            ShaderStructParameterType.WgslType.vec4f
+                        ),
+                    "color" to
+                        ShaderStructParameterType.Location(
+                            0,
+                            ShaderStructParameterType.WgslType.vec4f,
+                        ),
+                )
+            }
+
+        val vertexShader = shader {
+            include(vertexInputStruct)
+            include(vertexOutputStruct)
+            vertex {
+                main(input = vertexInputStruct, output = vertexOutputStruct) {
+                    """
+                        var output: VertexOutput;
+                        output.position = vec4(input.position, 1.0);
+                        output.color = input.color;
+                        return output;
+                    """
+                        .trimIndent()
+                }
+            }
+        }
+
+        val fragmentOutputStruct =
+            shaderStruct("FragmentOutput") {
+                mapOf("color" to ShaderStructParameterType.WgslType.vec4f)
+            }
+
+        val fragmentShader = shader {
+            include(vertexOutputStruct)
+            include(fragmentOutputStruct)
+            fragment {
+                main(input = vertexOutputStruct, output = fragmentOutputStruct) {
+                    """
+                        var output: FragmentOutput;
+                        output.color = input.color;
+                        return output;
+                    """
+                        .trimIndent()
+                }
+            }
+        }
+
+        val extraStruct =
+            shaderStruct("Info") { mapOf("index" to ShaderStructParameterType.WgslType.f32) }
+        val extendedShader = shader {
+            include(extraStruct)
+            vertex(vertexShader.vertex)
+            fragment(fragmentShader.fragment)
+        }
+
+        val expected =
+            ShaderTestSrc(
+                """
+            struct Info {
+                index: f32
+            };
+            
+            struct VertexInput {
+                position: vec3f,
+                color: vec4f
+            };
+            
+            struct VertexOutput {
+                @builtin(position) position: vec4f,
+                @location(0) color: vec4f
+            };
+            
+            struct FragmentOutput {
+                color: vec4f
+            };
+            
+            @vertex fn main(input: VertexInput) -> VertexOutput {
+                var output: VertexOutput;
+                output.position = vec4(input.position, 1.0);
+                output.color = input.color;
+                return output;
+            }
+            @fragment fn main(input: VertexOutput) -> FragmentOutput {
+                var output: FragmentOutput;
+                output.color = input.color;
+                return output;
+            }
+        """
+                    .trimIndent()
+            )
+
+        assertEquals(expected.src, extendedShader.src)
+    }
+
+    @Test
     fun testSimpleStructOffsets() {
         val ex1 =
             shaderStruct("Ex1") {
