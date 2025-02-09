@@ -2,7 +2,7 @@ package com.littlekt.graphics.g3d.shader.blocks
 
 import com.littlekt.graphics.shader.builder.*
 import com.littlekt.graphics.util.BindingUsage
-import com.littlekt.graphics.webgpu.*
+import com.littlekt.graphics.webgpu.MemoryAccessMode
 
 object CommonShaderBlocks {
     val JointsStruct =
@@ -258,10 +258,10 @@ object CommonShaderBlocks {
                 """.trimIndent()
                 } else {
                     """
-                if (all(linear <= vec3(0.0031308))) {
-                    return linear * 12.92;
-                }
-                return (pow(abs(linear), vec3(1.0/2.4)) * 1.055) - vec3(0.055);
+                    if (all(linear <= vec3(0.0031308))) {
+                        return linear * 12.92;
+                    }
+                    return (pow(abs(linear), vec3(1.0/2.4)) * 1.055) - vec3(0.055);
                 """.trimIndent()
                 }
             }
