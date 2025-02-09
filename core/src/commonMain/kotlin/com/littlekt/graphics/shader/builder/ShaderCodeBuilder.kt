@@ -5,16 +5,20 @@ package com.littlekt.graphics.shader.builder
  * @date 2/6/2025
  */
 open class ShaderCodeBuilder(base: ShaderCode? = null) {
-    private val vertexBase = base?.blocks?.firstOrNull { it.type == ShaderBlockType.VERTEX }
-    private val fragmentBase = base?.blocks?.firstOrNull { it.type == ShaderBlockType.FRAGMENT }
-    private val computeBase = base?.blocks?.firstOrNull { it.type == ShaderBlockType.COMPUTE }
-    private val structs = mutableSetOf<ShaderStruct>()
-    private val bindingGroups = mutableSetOf<ShaderBindGroup>()
-    private val includes = mutableListOf<ShaderBlock>().apply { base?.includes?.let { addAll(it) } }
-    private val blocks = mutableListOf<ShaderBlock>().apply { base?.let { addAll(it.blocks) } }
+    private var vertexBase = base?.vertex
+    private var fragmentBase = base?.fragment
+    private var computeBase = base?.compute
+    private val structs = mutableSetOf<ShaderStruct>().apply { base?.structs?.let { addAll(it) } }
+    private val bindingGroups =
+        mutableSetOf<ShaderBindGroup>().apply { base?.bindingGroups?.let { addAll(it) } }
+    private val blocks = mutableListOf<String>().apply { base?.let { addAll(it.blocks) } }
+    private val rules = mutableListOf<ShaderBlockInsertRule>()
 
     fun include(block: ShaderBlock) {
-        includes.add(block)
+        structs.addAll(block.structs)
+        bindingGroups.addAll(block.bindingGroups)
+        rules.addAll(block.rules)
+        blocks.add(block.body)
     }
 
     fun include(block: ShaderBlockBuilder.() -> Unit) {
@@ -23,52 +27,36 @@ open class ShaderCodeBuilder(base: ShaderCode? = null) {
         include(builder.build())
     }
 
-    fun vertex(base: ShaderBlock? = null, block: VertexShaderBlockBuilder.() -> Unit) {
-        if (base != null && base.type != ShaderBlockType.VERTEX) {
-            error("Vertex base must be a vertex block!")
-        }
+    fun vertex(base: VertexShaderBlock? = null, block: VertexShaderBlockBuilder.() -> Unit) {
         val builder = VertexShaderBlockBuilder(base ?: vertexBase)
         builder.block()
-        val vertexIdx = blocks.indexOfFirst { it.type == ShaderBlockType.VERTEX }
-        if (vertexIdx != -1) {
-            blocks.removeAt(vertexIdx)
-            blocks.add(vertexIdx, builder.build())
-        } else {
-            blocks.add(builder.build())
-        }
+        vertexBase = builder.build()
     }
 
-    fun fragment(base: ShaderBlock? = null, block: FragmentShaderBlockBuilder.() -> Unit) {
-        if (base != null && base.type != ShaderBlockType.FRAGMENT) {
-            error("Fragment base must be a fragment block!")
-        }
+    fun fragment(base: FragmentShaderBlock? = null, block: FragmentShaderBlockBuilder.() -> Unit) {
         val builder = FragmentShaderBlockBuilder(base ?: fragmentBase)
         builder.block()
-        val fragmentIdx = blocks.indexOfFirst { it.type == ShaderBlockType.FRAGMENT }
-        if (fragmentIdx != -1) {
-            blocks.removeAt(fragmentIdx)
-            blocks.add(fragmentIdx, builder.build())
-        } else {
-            blocks.add(builder.build())
-        }
+        fragmentBase = builder.build()
     }
 
-    fun compute(base: ShaderBlock? = null, block: ComputeShaderBlockBuilder.() -> Unit) {
-        if (base != null && base.type != ShaderBlockType.COMPUTE) {
-            error("Compute base must be a compute block!")
-        }
+    fun compute(base: ComputeShaderBlock? = null, block: ComputeShaderBlockBuilder.() -> Unit) {
         val builder = ComputeShaderBlockBuilder(base ?: computeBase)
         builder.block()
-        val computeIdx = blocks.indexOfFirst { it.type == ShaderBlockType.COMPUTE }
-        if (computeIdx != -1) {
-            blocks.removeAt(computeIdx)
-            blocks.add(computeIdx, builder.build())
-        } else {
-            blocks.add(builder.build())
-        }
+        computeBase = builder.build()
     }
 
     fun build(): ShaderCode {
-        return ShaderCode(includes, blocks)
+        vertexBase?.let { include(it) }
+        fragmentBase?.let { include(it) }
+        computeBase?.let { include(it) }
+        return ShaderCode(
+            structs,
+            bindingGroups,
+            blocks,
+            rules,
+            vertexBase,
+            fragmentBase,
+            computeBase,
+        )
     }
 }

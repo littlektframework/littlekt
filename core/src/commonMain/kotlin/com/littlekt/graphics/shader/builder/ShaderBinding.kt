@@ -8,5 +8,5 @@ data class ShaderBinding(
     val group: Int,
     val binding: Int,
     val varName: String,
-    val type: ShaderStructParameterType,
+    val bindingType: ShaderBindingParameterType,
 )

@@ -6,13 +6,15 @@ import kotlin.js.JsName
  * @author Colton Daily
  * @date 2/8/2025
  */
-sealed class ShaderStructParameterType {
+sealed class ShaderStructParameterType(val name: String) {
     @JsName("SizeFunction")
     fun size(): Int =
         when (this) {
             is WgslType -> size
             is Struct -> struct.size
             is Array -> align(type.size(), type.alignment()) * length
+            is BuiltIn -> type.size()
+            is Location -> type.size()
         }
 
     @JsName("AlignmentFunction")
@@ -21,16 +23,18 @@ sealed class ShaderStructParameterType {
             is WgslType -> alignment
             is Struct -> struct.alignment
             is Array -> type.alignment()
+            is BuiltIn -> type.alignment()
+            is Location -> type.alignment()
         }
 
     private fun align(value: Int, alignment: Int): Int {
         return (value + alignment - 1) / alignment * alignment
     }
 
-    data class Struct(val struct: ShaderStruct) : ShaderStructParameterType()
+    data class Struct(val struct: ShaderStruct) : ShaderStructParameterType(struct.name)
 
-    sealed class WgslType(val elements: Int, val size: Int, val alignment: Int, val type: String) :
-        ShaderStructParameterType() {
+    sealed class WgslType(val elements: Int, val size: Int, val alignment: Int, name: String) :
+        ShaderStructParameterType(name) {
         data object bool : WgslType(0, 0, 1, "bool")
 
         data object i32 : WgslType(1, 4, 4, "i32")
@@ -109,6 +113,18 @@ sealed class ShaderStructParameterType {
         }
     }
 
+    data class Location(val index: Int, val type: ShaderStructParameterType) :
+        ShaderStructParameterType(type.name)
+
+    sealed class BuiltIn(val prefix: String, val type: WgslType) :
+        ShaderStructParameterType(type.name) {
+        class Position(type: WgslType) : BuiltIn("position", type)
+
+        class VertexIndex(type: WgslType) : BuiltIn("vertex_index", type)
+
+        class InstanceIndex(type: WgslType) : BuiltIn("instance_index", type)
+    }
+
     data class Array(val type: ShaderStructParameterType, val length: Int) :
-        ShaderStructParameterType()
+        ShaderStructParameterType("array<${type.name}, $length>")
 }

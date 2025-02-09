@@ -4,7 +4,8 @@ package com.littlekt.graphics.shader.builder
  * @author Colton Daily
  * @date 2/6/2025
  */
-class ShaderStruct(val name: String, parameters: Map<String, ShaderStructParameterType>) {
+class ShaderStruct(val name: String, parameters: Map<String, ShaderStructParameterType>) :
+    ShaderSrc() {
     val layout: Map<String, ShaderStructEntry>
     val size: Int
     val alignment: Int
@@ -29,6 +30,32 @@ class ShaderStruct(val name: String, parameters: Map<String, ShaderStructParamet
 
         alignment = maxAlignment
         size = align(currentOffset, alignment)
+    }
+
+    override val src by lazy {
+        """
+            struct $name {
+                ${layout.map { (name, type) ->
+                    val prefix =
+                        when (type.type) {
+                            is ShaderStructParameterType.Location -> {
+                                "@location(${type.type.index}) "
+                            }
+
+                            is ShaderStructParameterType.BuiltIn -> {
+                                "@builtin(${type.type.prefix}) "
+                            }
+
+                            else -> {
+                                ""
+                            }
+                        }
+                    "$prefix$name: ${type.type.name}"
+                }.joinToString(",\n")}
+            };
+        """
+            .trimIndent()
+            .format()
     }
 
     private fun align(offset: Int, alignment: Int): Int {

@@ -10,4 +10,6 @@ data class ShaderBindGroup(
     val group: Int,
     val usage: BindingUsage,
     val bindings: List<ShaderBinding>,
-)
+) {
+    val src by lazy { bindings.forEach {} }
+}

@@ -155,20 +155,20 @@ object Standard {
         include(CommonShaderBlocks.Camera(0, 0))
         include(CommonShaderBlocks.Model(1, 0))
 
-        vertex {
-            main(input = input, output = output) {
-                before("vertex_layout_block", vertexLayoutBlock(layout))
-                """
-                var output: VertexOutput;
-                %model%
-                let model_matrix = models[input.instance_index].transform;
-                %vertex_layout_block%
-                %output%
-                return output; 
-                """
-                    .trimIndent()
-            }
-        }
+        //        vertex {
+        //            main(input = input, output = output) {
+        //                before("vertex_layout_block", vertexLayoutBlock(layout))
+        //                """
+        //                var output: VertexOutput;
+        //                %model%
+        //                let model_matrix = models[input.instance_index].transform;
+        //                %vertex_layout_block%
+        //                %output%
+        //                return output;
+        //                """
+        //                    .trimIndent()
+        //            }
+        //        }
     }
 
     fun SkinnedVertexShader(layout: List<VertexAttribute>) = shader {
@@ -180,20 +180,20 @@ object Standard {
         include(CommonShaderBlocks.Model(1, 0))
         include(CommonShaderBlocks.Skin(2, 0))
 
-        vertex {
-            main(input = input, output = output) {
-                before("vertex_layout_block", vertexLayoutBlock(layout))
-                """
-                var output: VertexOutput;
-                %model%
-                let model_matrix = get_skin_matrix(input);
-                %vertex_layout_block%
-                %output%
-                return output; 
-                """
-                    .trimIndent()
-            }
-        }
+        //        vertex {
+        //            main(input = input, output = output) {
+        //                before("vertex_layout_block", vertexLayoutBlock(layout))
+        //                """
+        //                var output: VertexOutput;
+        //                %model%
+        //                let model_matrix = get_skin_matrix(input);
+        //                %vertex_layout_block%
+        //                %output%
+        //                return output;
+        //                """
+        //                    .trimIndent()
+        //            }
+        //        }
     }
 
     object Unlit {
@@ -229,23 +229,26 @@ object Standard {
             include(output)
             include(CommonShaderBlocks.ColorConversionFunctions())
             fragment {
-                main(input, output) {
-                    """
-                    var output: FragmentOutput;
-                    %base_color%    
-                    let base_color_map = textureSample(base_color_texture, base_color_sampler, input.uv);
-                    %alpha_cutoff%
-                    if (base_color_map.a < material.alpha_cutoff) {
-                      discard;
-                    }
-                    let base_color = input.color * material.base_color_factor * base_color_map * input.instance_color;
-                    %color%
-                    output.color = vec4(linear_to_sRGB(base_color.rgb), base_color.a);
-                    %output%
-                    return output;
-                """
-                        .trimIndent()
-                }
+                //                main(input, output) {
+                //                    """
+                //                    var output: FragmentOutput;
+                //                    %base_color%
+                //                    let base_color_map = textureSample(base_color_texture,
+                // base_color_sampler, input.uv);
+                //                    %alpha_cutoff%
+                //                    if (base_color_map.a < material.alpha_cutoff) {
+                //                      discard;
+                //                    }
+                //                    let base_color = input.color * material.base_color_factor *
+                // base_color_map * input.instance_color;
+                //                    %color%
+                //                    output.color = vec4(linear_to_sRGB(base_color.rgb),
+                // base_color.a);
+                //                    %output%
+                //                    return output;
+                //                """
+                //                        .trimIndent()
+                //                }
             }
         }
     }
@@ -498,64 +501,74 @@ object Standard {
             include(SurfaceInfo(layout))
 
             fragment {
-                main(input, output) {
-                    """
-                    %surface%
-                    let surface = GetSurfaceInfo(input);
-                
-                    // reflectance equation
-                    var Lo = vec3(0.0, 0.0, 0.0);
-                
-                    %global_lights%
-                    // Process the directional light if one is present
-                    if (global_lights.dir_intensity > 0.0) {
-                      var light : PunctualLight;
-                      light.lightType = LightType_Directional;
-                      light.pointToLight = global_lights.dir_direction;
-                      light.color = global_lights.dir_color;
-                      light.intensity = global_lights.dir_intensity;
-                
-                      ${if (shadowsEnabled) "let lightVis = dirLightVisibility(input.world_pos);" else "let lightVis = 1.0;"}
-                
-                      // calculate per-light radiance and add to outgoing radiance Lo
-                      Lo = Lo + lightRadiance(light, surface) * lightVis;
-                    }
-                
-                    // Process each other light in the scene.
-                    let clusterIndex = get_cluster_index(input.position);
-                    let lightOffset  = clusterLights.lights[clusterIndex].offset;
-                    let lightCount   = clusterLights.lights[clusterIndex].count;
-                
-                    %point_lights%
-                    for (var lightIndex = 0u; lightIndex < lightCount; lightIndex = lightIndex + 1u) {
-                      let i = clusterLights.indices[lightOffset + lightIndex];
-                
-                      var light : PunctualLight;
-                      light.lightType = LightType_Point;
-                      light.pointToLight = global_lights.lights[i].position.xyz - input.world_pos;
-                      light.range = global_lights.lights[i].range;
-                      light.color = global_lights.lights[i].color;
-                      light.intensity = global_lights.lights[i].intensity;
-                
-                      ${if (shadowsEnabled) "let lightVis = pointLightVisibility(i, input.world_pos, light.pointToLight);" else "let lightVis = 1.0;"}
-                
-                      // calculate per-light radiance and add to outgoing radiance Lo
-                      Lo = Lo + lightRadiance(light, surface) * lightVis;
-                    }
-                
-                    %ambient%
-                    let ambient = global_lights.ambient * surface.albedo * surface.ao;
-                    %color%
-                    let color = linear_to_sRGB(Lo + ambient + surface.emissive);
-                
-                    var out : FragmentOutput;
-                    out.color = vec4(color, surface.base_color.a); // vec4(surface.normal * 0.5 + 0.5, 1.0);
-                    ${if (bloomEnabled) "out.emissive = vec4(surface.emissive, surface.base_color.a);" else ""}
-                    %output%
-                    return out;
-                    """
-                        .trimIndent()
-                }
+                //                main(input, output) {
+                //                    """
+                //                    %surface%
+                //                    let surface = GetSurfaceInfo(input);
+                //
+                //                    // reflectance equation
+                //                    var Lo = vec3(0.0, 0.0, 0.0);
+                //
+                //                    %global_lights%
+                //                    // Process the directional light if one is present
+                //                    if (global_lights.dir_intensity > 0.0) {
+                //                      var light : PunctualLight;
+                //                      light.lightType = LightType_Directional;
+                //                      light.pointToLight = global_lights.dir_direction;
+                //                      light.color = global_lights.dir_color;
+                //                      light.intensity = global_lights.dir_intensity;
+                //
+                //                      ${if (shadowsEnabled) "let lightVis =
+                // dirLightVisibility(input.world_pos);" else "let lightVis = 1.0;"}
+                //
+                //                      // calculate per-light radiance and add to outgoing radiance
+                // Lo
+                //                      Lo = Lo + lightRadiance(light, surface) * lightVis;
+                //                    }
+                //
+                //                    // Process each other light in the scene.
+                //                    let clusterIndex = get_cluster_index(input.position);
+                //                    let lightOffset  = clusterLights.lights[clusterIndex].offset;
+                //                    let lightCount   = clusterLights.lights[clusterIndex].count;
+                //
+                //                    %point_lights%
+                //                    for (var lightIndex = 0u; lightIndex < lightCount; lightIndex
+                // = lightIndex + 1u) {
+                //                      let i = clusterLights.indices[lightOffset + lightIndex];
+                //
+                //                      var light : PunctualLight;
+                //                      light.lightType = LightType_Point;
+                //                      light.pointToLight = global_lights.lights[i].position.xyz -
+                // input.world_pos;
+                //                      light.range = global_lights.lights[i].range;
+                //                      light.color = global_lights.lights[i].color;
+                //                      light.intensity = global_lights.lights[i].intensity;
+                //
+                //                      ${if (shadowsEnabled) "let lightVis =
+                // pointLightVisibility(i, input.world_pos, light.pointToLight);" else "let lightVis
+                // = 1.0;"}
+                //
+                //                      // calculate per-light radiance and add to outgoing radiance
+                // Lo
+                //                      Lo = Lo + lightRadiance(light, surface) * lightVis;
+                //                    }
+                //
+                //                    %ambient%
+                //                    let ambient = global_lights.ambient * surface.albedo *
+                // surface.ao;
+                //                    %color%
+                //                    let color = linear_to_sRGB(Lo + ambient + surface.emissive);
+                //
+                //                    var out : FragmentOutput;
+                //                    out.color = vec4(color, surface.base_color.a); //
+                // vec4(surface.normal * 0.5 + 0.5, 1.0);
+                //                    ${if (bloomEnabled) "out.emissive = vec4(surface.emissive,
+                // surface.base_color.a);" else ""}
+                //                    %output%
+                //                    return out;
+                //                    """
+                //                        .trimIndent()
+                //                }
             }
         }
     }

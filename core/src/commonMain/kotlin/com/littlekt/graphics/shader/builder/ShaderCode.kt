@@ -7,7 +7,15 @@ import com.littlekt.graphics.webgpu.BindGroupLayoutDescriptor
  * @author Colton Daily
  * @date 2/6/2025
  */
-class ShaderCode(val includes: List<ShaderBlock>, val blocks: List<ShaderBlock>) {
+class ShaderCode(
+    val structs: Set<ShaderStruct>,
+    val bindingGroups: Set<ShaderBindGroup>,
+    val blocks: List<String>,
+    val rules: List<ShaderBlockInsertRule>,
+    val vertex: VertexShaderBlock?,
+    val fragment: FragmentShaderBlock?,
+    val compute: ComputeShaderBlock?,
+) : ShaderSrc() {
     private data class BindGroupInfo(
         val bindingUsage: BindingUsage,
         val group: Int,
@@ -15,80 +23,89 @@ class ShaderCode(val includes: List<ShaderBlock>, val blocks: List<ShaderBlock>)
     )
 
     private val mainBlocks = blocks.filterIsInstance<MainShaderBlock>()
-    private val shaderBindGroups =
-        (includes.filterIsInstance<ShaderBlockBindGroup>() +
-                blocks.filterIsInstance<ShaderBlockBindGroup>())
-            .sortedBy { it.group }
-            .groupBy { it.group }
-            .map { (group, groupItems) ->
-                val combinedUsage =
-                    groupItems.fold(setOf<String>()) { acc, item -> acc + item.bindingUsage.usage }
-                val combinedEntries =
-                    groupItems
-                        .flatMap { it.descriptor.entries }
-                        .distinctBy { it.binding }
-                        .sortedBy { it.binding }
-                val newDescriptor = BindGroupLayoutDescriptor(combinedEntries)
+    private val shaderBindGroups = emptyList<BindGroupInfo>()
+    //        (includes.filterIsInstance<ShaderBlockBindGroup>() +
+    //                blocks.filterIsInstance<ShaderBlockBindGroup>())
+    //            .sortedBy { it.group }
+    //            .groupBy { it.group }
+    //            .map { (group, groupItems) ->
+    //                val combinedUsage =
+    //                    groupItems.fold(setOf<String>()) { acc, item -> acc +
+    // item.bindingUsage.usage }
+    //                val combinedEntries =
+    //                    groupItems
+    //                        .flatMap { it.descriptor.entries }
+    //                        .distinctBy { it.binding }
+    //                        .sortedBy { it.binding }
+    //                val newDescriptor = BindGroupLayoutDescriptor(combinedEntries)
+    //
+    //                BindGroupInfo(BindingUsage(combinedUsage), group, newDescriptor)
+    //            }
+    val bindGroupLayoutUsageLayout: List<BindingUsage> =
+        emptyList() // shaderBindGroups.map { it.bindingUsage }
+    val bindGroupUsageToGroupIndex: Map<BindingUsage, Int> = emptyMap()
+    // shaderBindGroups.associate { it.bindingUsage to it.group }
+    val layout: Map<BindingUsage, BindGroupLayoutDescriptor> = emptyMap()
+    //  shaderBindGroups.associate { it.bindingUsage to it.descriptor }
+    val vertexEntryPoint = vertex?.entryPoint
+    val fragmentEntryPoint = fragment?.entryPoint
+    val computeEntryPoint = compute?.entryPoint
 
-                BindGroupInfo(BindingUsage(combinedUsage), group, newDescriptor)
-            }
-    val bindGroupLayoutUsageLayout: List<BindingUsage> = shaderBindGroups.map { it.bindingUsage }
-    val bindGroupUsageToGroupIndex: Map<BindingUsage, Int> =
-        shaderBindGroups.associate { it.bindingUsage to it.group }
-    val layout: Map<BindingUsage, BindGroupLayoutDescriptor> =
-        shaderBindGroups.associate { it.bindingUsage to it.descriptor }
-    val vertexEntryPoint = mainBlocks.firstOrNull { it.type == ShaderBlockType.VERTEX }?.entryPoint
-    val fragmentEntryPoint =
-        mainBlocks.firstOrNull { it.type == ShaderBlockType.FRAGMENT }?.entryPoint
-    val computeEntryPoint =
-        mainBlocks.firstOrNull { it.type == ShaderBlockType.COMPUTE }?.entryPoint
-
-    val src by lazy {
+    override val src: String by lazy {
         val markerRegex = "%\\w+%".toRegex()
-        buildString {
-                includes.forEach { appendLine(it.src) }
-                blocks.forEach { appendLine(it.src) }
-            }
-            .lines()
-            .filterNot { markerRegex.matches(it.trim()) }
-            .joinToString("\n") { it.trim() }
-            .trim()
-            .format()
-    }
-
-    private fun String.format(): String {
-        val indentSize = 4
-        var indentLevel = 0
-        val formattedCode = StringBuilder()
-        var lastLineWasBlank = false
-        val code = this
-
-        code.lines().forEach { line ->
-            val trimmedLine = line.trim()
-
-            if (trimmedLine.isEmpty()) {
-                if (!lastLineWasBlank) {
-                    formattedCode.appendLine()
-                    lastLineWasBlank = true
+        val lines =
+            buildString {
+                    structs.forEach { appendLine(it.src) }
+                    bindingGroups.forEach { append(it.src) }
+                    blocks.forEach { appendLine(it) }
                 }
-                return@forEach
-            }
+                .lines()
+                .map { it.trim() }
+                .toMutableList()
 
-            lastLineWasBlank = false
+        rules.forEach { rule ->
+            val marker = "%${rule.marker}%"
+            when (rule.type) {
+                ShaderBlockInsertType.BEFORE -> {
+                    for (i in lines.indices) {
+                        if (lines[i].trim() == marker) {
+                            lines[i] = lines[i].replace(marker, "${rule.block.src}\n${marker}")
+                            break
+                        }
+                    }
+                }
+                ShaderBlockInsertType.AFTER -> {
+                    for (i in lines.indices) {
+                        if (lines[i].trim() == marker) {
+                            var nextMarkerIndex = -1
+                            var nextMarker: String? = null
+                            for (j in i until lines.size) {
+                                if (markerRegex.matches(lines[j].trim())) {
+                                    nextMarkerIndex = j
+                                    nextMarker = lines[j].trim()
+                                    break
+                                }
+                            }
 
-            if (trimmedLine.startsWith("}")) {
-                indentLevel = maxOf(0, indentLevel - 1)
-            }
-
-            formattedCode.append(" ".repeat(indentLevel * indentSize))
-            formattedCode.appendLine(trimmedLine)
-
-            if (trimmedLine.endsWith("{")) {
-                indentLevel++
+                            if (nextMarkerIndex != -1 && nextMarker != null) {
+                                // if there's another marker, insert the body before it
+                                lines[nextMarkerIndex] =
+                                    lines[nextMarkerIndex].replace(
+                                        nextMarker,
+                                        "${rule.block.src}\n${nextMarker}",
+                                    )
+                            } else {
+                                // if no next marker, append the body to the end of the body
+                                lines[lines.indices.last] =
+                                    "${lines[lines.indices.last]}\n${rule.block.src}"
+                            }
+                            break
+                        }
+                    }
+                }
             }
         }
-
-        return formattedCode.toString()
+        lines.joinToString("\n") { it.trim() }.format()
     }
 
     override fun toString(): String {

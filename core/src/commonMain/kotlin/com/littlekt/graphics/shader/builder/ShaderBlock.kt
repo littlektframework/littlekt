@@ -5,16 +5,19 @@ package com.littlekt.graphics.shader.builder
  * @date 2/6/2025
  */
 open class ShaderBlock(
-    val type: ShaderBlockType,
-    val includes: List<ShaderBlock>,
+    val structs: Set<ShaderStruct>,
+    val bindingGroups: Set<ShaderBindGroup>,
+    val blocks: List<String>,
     val rules: List<ShaderBlockInsertRule>,
     val body: String,
-) {
-    val src: String by lazy {
+) : ShaderSrc() {
+    override val src: String by lazy {
         val markerRegex = "%\\w+%".toRegex()
         val lines =
             buildString {
-                    includes.forEach { appendLine(it.src) }
+                    structs.forEach { appendLine(it.src) }
+                    bindingGroups.forEach { append(it.src) }
+                    blocks.forEach { appendLine(it) }
                     appendLine(body)
                 }
                 .lines()

@@ -12,4 +12,4 @@ open class ShaderBlockBindGroup(
     val bindingUsage: BindingUsage,
     val descriptor: BindGroupLayoutDescriptor,
     body: String,
-) : ShaderBlock(ShaderBlockType.BLOCK, emptyList(), emptyList(), body)
+) : ShaderBlock(emptySet(), emptySet(), emptyList(), emptyList(), body)

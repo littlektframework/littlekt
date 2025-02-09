@@ -5,15 +5,18 @@ package com.littlekt.graphics.shader.builder
  * @date 2/6/2025
  */
 open class ShaderBlockBuilder(base: ShaderBlock? = null) {
-    protected val includes =
-        mutableListOf<ShaderBlock>().apply { base?.includes?.let { addAll(it) } }
-    protected val rules =
-        mutableListOf<ShaderBlockInsertRule>().apply { base?.rules?.let { addAll(it) } }
-    protected open var type: ShaderBlockType = base?.type ?: ShaderBlockType.BLOCK
-    protected var body: String = base?.body ?: ""
+    protected val structs = mutableSetOf<ShaderStruct>().apply { base?.structs?.let { addAll(it) } }
+    protected val bindingGroups =
+        mutableSetOf<ShaderBindGroup>().apply { base?.bindingGroups?.let { addAll(it) } }
+    protected val blocks = mutableListOf<String>().apply { base?.let { addAll(it.blocks) } }
+    protected val rules = mutableListOf<ShaderBlockInsertRule>()
+    protected var body = ""
 
     fun include(block: ShaderBlock) {
-        includes.add(block)
+        structs.addAll(block.structs)
+        bindingGroups.addAll(block.bindingGroups)
+        rules.addAll(block.rules)
+        blocks.add(block.body)
     }
 
     fun body(block: () -> String) {
@@ -44,6 +47,6 @@ open class ShaderBlockBuilder(base: ShaderBlock? = null) {
         rules.add(ShaderBlockInsertRule(type, marker, block))
 
     open fun build(): ShaderBlock {
-        return ShaderBlock(type = type, includes = includes, rules = rules, body = body)
+        return ShaderBlock(structs, bindingGroups, blocks, rules, body)
     }
 }
