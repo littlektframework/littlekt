@@ -66,6 +66,6 @@ open class ShaderBlock(
                 }
             }
         }
-        lines.joinToString("\n") { it.trim() }
+        lines.joinToString("\n") { it.trim() }.format().trimIndent()
     }
 }

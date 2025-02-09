@@ -53,7 +53,7 @@ class ShaderCode(
 
     override val src: String by lazy {
         val markerRegex = "%\\w+%".toRegex()
-        val lines =
+        var lines =
             buildString {
                     structs.forEach { appendLine(it.src) }
                     bindingGroups.forEach { append(it.src) }
@@ -72,7 +72,7 @@ class ShaderCode(
                 ShaderBlockInsertType.BEFORE -> {
                     for (i in lines.indices) {
                         if (lines[i].trim() == marker) {
-                            lines[i] = lines[i].replace(marker, "${rule.block.src}\n${marker}")
+                            lines[i] = lines[i].replace(marker, "${rule.block.body}\n${marker}")
                             break
                         }
                     }
@@ -95,12 +95,12 @@ class ShaderCode(
                                 lines[nextMarkerIndex] =
                                     lines[nextMarkerIndex].replace(
                                         nextMarker,
-                                        "${rule.block.src}\n${nextMarker}",
+                                        "${rule.block.body}\n${nextMarker}",
                                     )
                             } else {
                                 // if no next marker, append the body to the end of the body
                                 lines[lines.indices.last] =
-                                    "${lines[lines.indices.last]}\n${rule.block.src}"
+                                    "${lines[lines.indices.last]}\n${rule.block.body}"
                             }
                             break
                         }
@@ -108,6 +108,7 @@ class ShaderCode(
                 }
             }
         }
+        lines = lines.joinToString("\n") { it.trim() }.also { println(it) }.lines().toMutableList()
         lines.removeAll { markerRegex.matches(it.trim()) }
         lines.joinToString("\n") { it.trim() }.format().trimIndent()
     }
