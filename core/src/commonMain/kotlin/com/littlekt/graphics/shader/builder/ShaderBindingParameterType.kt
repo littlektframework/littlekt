@@ -15,5 +15,9 @@ sealed class ShaderBindingParameterType(val name: String) {
     }
 
     data class Array(val type: ShaderBindingParameterType, val length: Int) :
-        ShaderBindingParameterType("array<${type.name}, $length>")
+        ShaderBindingParameterType(
+            if (length > 0) "array<${type.name}, $length>" else "array<${type.name}>"
+        ) {
+        constructor(type: ShaderBindingParameterType) : this(type, -1)
+    }
 }

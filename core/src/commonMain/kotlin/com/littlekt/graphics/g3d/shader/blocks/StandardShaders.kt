@@ -2,41 +2,72 @@ package com.littlekt.graphics.g3d.shader.blocks
 
 import com.littlekt.graphics.VertexAttrUsage
 import com.littlekt.graphics.VertexAttribute
-import com.littlekt.graphics.shader.builder.shader
-import com.littlekt.graphics.shader.builder.shaderBindGroup
-import com.littlekt.graphics.shader.builder.shaderBlock
-import com.littlekt.graphics.shader.builder.shaderStructOld
+import com.littlekt.graphics.shader.builder.*
 import com.littlekt.graphics.util.BindingUsage
-import com.littlekt.graphics.webgpu.*
 import kotlin.math.PI
 
 object Standard {
-    fun VertexInputStruct(attributes: List<VertexAttribute>) =
-        shaderStructOld("VertexInput") {
-            val inputs =
-                attributes.map { attribute ->
+    fun VertexInputStruct(attributes: List<VertexAttribute>): ShaderStruct {
+        val inputs: MutableMap<String, ShaderStructParameterType> =
+            attributes
+                .associate { attribute ->
                     when (attribute.usage) {
                         VertexAttrUsage.POSITION ->
-                            "@location(${attribute.shaderLocation}) position: vec3f,"
+                            "position" to
+                                ShaderStructParameterType.Location(
+                                    attribute.shaderLocation,
+                                    ShaderStructParameterType.WgslType.vec3f,
+                                )
 
                         VertexAttrUsage.COLOR ->
-                            "@location(${attribute.shaderLocation}) color: vec4f,"
+                            "color" to
+                                ShaderStructParameterType.Location(
+                                    attribute.shaderLocation,
+                                    ShaderStructParameterType.WgslType.vec4f,
+                                )
+
                         VertexAttrUsage.NORMAL ->
-                            "@location(${attribute.shaderLocation}) normal: vec3f,"
+                            "normal" to
+                                ShaderStructParameterType.Location(
+                                    attribute.shaderLocation,
+                                    ShaderStructParameterType.WgslType.vec3f,
+                                )
 
                         VertexAttrUsage.TANGENT ->
-                            "@location(${attribute.shaderLocation}) tangent: vec4f,"
+                            "tangent" to
+                                ShaderStructParameterType.Location(
+                                    attribute.shaderLocation,
+                                    ShaderStructParameterType.WgslType.vec4f,
+                                )
 
                         VertexAttrUsage.UV -> {
                             if (attribute.index == 0)
-                                "@location(${attribute.shaderLocation}) uv: vec2f,"
-                            else "@location(${attribute.shaderLocation}) uv2: vec2f,"
+                                "uv" to
+                                    ShaderStructParameterType.Location(
+                                        attribute.shaderLocation,
+                                        ShaderStructParameterType.WgslType.vec2f,
+                                    )
+                            else
+                                "uv2" to
+                                    ShaderStructParameterType.Location(
+                                        attribute.shaderLocation,
+                                        ShaderStructParameterType.WgslType.vec2f,
+                                    )
                         }
 
                         VertexAttrUsage.JOINT ->
-                            "@location(${attribute.shaderLocation}) joints: vec4i,"
+                            "joints" to
+                                ShaderStructParameterType.Location(
+                                    attribute.shaderLocation,
+                                    ShaderStructParameterType.WgslType.vec4i,
+                                )
+
                         VertexAttrUsage.WEIGHT ->
-                            "@location(${attribute.shaderLocation}) weights: vec4f,"
+                            "weights" to
+                                ShaderStructParameterType.Location(
+                                    attribute.shaderLocation,
+                                    ShaderStructParameterType.WgslType.vec4f,
+                                )
 
                         else -> {
                             error(
@@ -45,40 +76,46 @@ object Standard {
                         }
                     }
                 }
+                .toMutableMap()
 
-            """
-            struct VertexInput {
-                @builtin(instance_index) instance_index: u32,
-                ${inputs.joinToString("\n")}
-            };
-        """
-                .trimIndent()
+        inputs["instance_index"] =
+            ShaderStructParameterType.BuiltIn.InstanceIndex(ShaderStructParameterType.WgslType.u32)
+
+        return shaderStruct("VertexInput") { inputs }
+    }
+
+    fun VertexOutputStruct(attributes: List<VertexAttribute>): ShaderStruct {
+        val input =
+            mutableMapOf(
+                "position" to
+                    ShaderStructParameterType.BuiltIn.Position(
+                        ShaderStructParameterType.WgslType.vec4f
+                    ),
+                "world_pos" to
+                    ShaderStructParameterType.Location(0, ShaderStructParameterType.WgslType.vec3f),
+                "view" to
+                    ShaderStructParameterType.Location(1, ShaderStructParameterType.WgslType.vec3f),
+                "uv" to
+                    ShaderStructParameterType.Location(2, ShaderStructParameterType.WgslType.vec2f),
+                "uv2" to
+                    ShaderStructParameterType.Location(3, ShaderStructParameterType.WgslType.vec2f),
+                "color" to
+                    ShaderStructParameterType.Location(4, ShaderStructParameterType.WgslType.vec4f),
+                "instance_color" to
+                    ShaderStructParameterType.Location(5, ShaderStructParameterType.WgslType.vec4f),
+                "normal" to
+                    ShaderStructParameterType.Location(6, ShaderStructParameterType.WgslType.vec3f),
+            )
+
+        if (attributes.any { it.usage == VertexAttrUsage.TANGENT }) {
+            input["tangent"] =
+                ShaderStructParameterType.Location(7, ShaderStructParameterType.WgslType.vec3f)
+            input["bitangent"] =
+                ShaderStructParameterType.Location(8, ShaderStructParameterType.WgslType.vec3f)
         }
 
-    fun VertexOutputStruct(attributes: List<VertexAttribute>) =
-        shaderStructOld("VertexOutput") {
-            """
-        struct VertexOutput {
-            @builtin(position) position: vec4f,
-            @location(0) world_pos: vec3f,
-            @location(1) view: vec3f,
-            @location(2) uv: vec2f,
-            @location(3) uv2: vec2f,
-            @location(4) color: vec4f,
-            @location(5) instance_color: vec4f,
-            @location(6) normal: vec3f,
-            ${
-                if (attributes.any { it.usage == VertexAttrUsage.TANGENT }) {
-                    """
-                        @location(7) tangent: vec3f,
-                        @location(8) bitangent: vec3f,
-                    """.trimIndent()
-                } else ""
-            }
-        };
-    """
-                .trimIndent()
-        }
+        return shaderStruct("VertexOutput") { input }
+    }
 
     private fun vertexLayoutBlock(layout: List<VertexAttribute>) = shaderBlock {
         body {
@@ -197,34 +234,37 @@ object Standard {
     }
 
     object Unlit {
-        fun Material(group: Int) =
-            shaderStructOld("Material") {
-                """
-            struct Material {
-                base_color_factor : vec4f,
-                alpha_cutoff : f32,
-            };
-            @group($group) @binding(0) var<uniform> material : Material;
-            
-            @group($group) @binding(1) var base_color_texture : texture_2d<f32>;
-            @group($group) @binding(2) var base_color_sampler : sampler;
-            """
-                    .trimIndent()
+        val MaterialStruct =
+            shaderStruct("Material") {
+                mapOf(
+                    "base_color_factor" to ShaderStructParameterType.WgslType.vec4f,
+                    "alpha_cutoff" to ShaderStructParameterType.WgslType.f32,
+                )
             }
 
-        fun FragmentOutput() =
-            shaderStructOld("FragmentOutput") {
-                """
-            struct FragmentOutput {
-                @location(0) color : vec4f,
-            };
-            """
-                    .trimIndent()
+        fun Material(group: Int) = shaderBlock {
+            include(MaterialStruct)
+            bindGroup(group, BindingUsage.MATERIAL) {
+                bind(0, "material", MaterialStruct, ShaderBindingType.Uniform)
+                bindTexture2d(1, "base_color_texture")
+                bindSampler(2, "base_color_sampler")
+            }
+        }
+
+        val FragmentOutputStruct =
+            shaderStruct("FragmentOutput") {
+                mapOf(
+                    "color" to
+                        ShaderStructParameterType.Location(
+                            0,
+                            ShaderStructParameterType.WgslType.vec4f,
+                        )
+                )
             }
 
         fun FragmentShader(layout: List<VertexAttribute>) = shader {
             val input = VertexInputStruct(layout)
-            val output = FragmentOutput()
+            val output = FragmentOutputStruct
             include(input)
             include(output)
             include(CommonShaderBlocks.ColorConversionFunctions())
@@ -254,76 +294,54 @@ object Standard {
     }
 
     object PBR {
-        fun Material(group: Int) =
-            shaderBindGroup(
-                group,
-                BindingUsage.MATERIAL,
-                BindGroupLayoutDescriptor(
-                    listOf(
-                        // material uniform
-                        BindGroupLayoutEntry(0, ShaderStage.FRAGMENT, BufferBindingLayout()),
-                        // baseColorTexture
-                        BindGroupLayoutEntry(1, ShaderStage.FRAGMENT, TextureBindingLayout()),
-                        // baseColorSampler
-                        BindGroupLayoutEntry(2, ShaderStage.FRAGMENT, SamplerBindingLayout()),
-                        // normal texture
-                        BindGroupLayoutEntry(3, ShaderStage.FRAGMENT, TextureBindingLayout()),
-                        // normal sampler
-                        BindGroupLayoutEntry(4, ShaderStage.FRAGMENT, SamplerBindingLayout()),
-                        // metallic roughness texture
-                        BindGroupLayoutEntry(5, ShaderStage.FRAGMENT, TextureBindingLayout()),
-                        // metallic roughness sampler
-                        BindGroupLayoutEntry(6, ShaderStage.FRAGMENT, SamplerBindingLayout()),
-                        // occlusion texture
-                        BindGroupLayoutEntry(7, ShaderStage.FRAGMENT, TextureBindingLayout()),
-                        // occlusion sampler
-                        BindGroupLayoutEntry(8, ShaderStage.FRAGMENT, SamplerBindingLayout()),
-                        // emissive texture
-                        BindGroupLayoutEntry(9, ShaderStage.FRAGMENT, TextureBindingLayout()),
-                        // emissive sampler
-                        BindGroupLayoutEntry(10, ShaderStage.FRAGMENT, SamplerBindingLayout()),
-                    )
-                ),
-            ) {
-                """
-        struct Material {
-            base_color_factor : vec4f,
-            metallic_roughness_factor: vec2f,
-            occlusion_strength: f32,
-            emissive_factor: vec3f,
-            alpha_cutoff : f32,
-        };
-        @group($group) @binding(0) var<uniform> material : Material;
-        
-        @group(${group}) @binding(1) var base_color_texture : texture_2d<f32>;
-        @group(${group}) @binding(2) var base_color_sampler : sampler;
-        @group(${group}) @binding(3) var normal_texture : texture_2d<f32>;
-        @group(${group}) @binding(4) var normal_sampler : sampler;
-        @group(${group}) @binding(5) var metallic_roughness_texture : texture_2d<f32>;
-        @group(${group}) @binding(6) var metallic_roughness_sampler : sampler;
-        @group(${group}) @binding(7) var occlusion_texture : texture_2d<f32>;
-        @group(${group}) @binding(8) var occlusion_sampler : sampler;
-        @group(${group}) @binding(9) var emissive_texture : texture_2d<f32>;
-        @group(${group}) @binding(10) var emissive_sampler : sampler;
-        """
-                    .trimIndent()
+
+        val MaterialStruct =
+            shaderStruct("Material") {
+                mapOf(
+                    "base_color_factor" to ShaderStructParameterType.WgslType.vec4f,
+                    "metallic_roughness_factor" to ShaderStructParameterType.WgslType.vec2f,
+                    "occlusion_strength" to ShaderStructParameterType.WgslType.f32,
+                    "emissive_factor" to ShaderStructParameterType.WgslType.vec3f,
+                    "alpha_cutoff" to ShaderStructParameterType.WgslType.f32,
+                )
+            }
+
+        fun Material(group: Int) = shaderBlock {
+            include(MaterialStruct)
+            bindGroup(group, BindingUsage.MATERIAL) {
+                bind(0, "material", MaterialStruct, ShaderBindingType.Uniform)
+                bindTexture2d(1, "base_color_texture")
+                bindSampler(2, "base_color_sampler")
+                bindTexture2d(3, "normal_texture")
+                bindSampler(4, "normal_sampler")
+                bindTexture2d(5, "metallic_roughness_texture")
+                bindSampler(6, "metallic_roughness_sampler")
+                bindTexture2d(7, "occlusion_texture")
+                bindSampler(8, "occlusion_sampler")
+                bindTexture2d(9, "emissive_texture")
+                bindSampler(10, "emissive_sampler")
+            }
+        }
+
+        val SurfaceInfoStruct =
+            shaderStruct("SurfaceInfo") {
+                mapOf(
+                    "base_color" to ShaderStructParameterType.WgslType.vec4f,
+                    "albedo" to ShaderStructParameterType.WgslType.vec3f,
+                    "metallic" to ShaderStructParameterType.WgslType.f32,
+                    "roughness" to ShaderStructParameterType.WgslType.f32,
+                    "normal" to ShaderStructParameterType.WgslType.vec3f,
+                    "f0" to ShaderStructParameterType.WgslType.vec3f,
+                    "ao" to ShaderStructParameterType.WgslType.f32,
+                    "emissive" to ShaderStructParameterType.WgslType.vec3f,
+                    "v" to ShaderStructParameterType.WgslType.vec3f,
+                )
             }
 
         fun SurfaceInfo(attributes: List<VertexAttribute>) = shaderBlock {
+            include(SurfaceInfoStruct)
             body {
                 """
-          struct SurfaceInfo {
-            base_color : vec4f,
-            albedo : vec3f,
-            metallic : f32,
-            roughness : f32,
-            normal : vec3f,
-            f0 : vec3f,
-            ao : f32,
-            emissive : vec3f,
-            v : vec3f,
-          };
-        
           fn GetSurfaceInfo(input : VertexOutput) -> SurfaceInfo {
             var surface : SurfaceInfo;
             surface.v = normalize(input.view);
@@ -471,15 +489,24 @@ object Standard {
             }
         }
 
-        fun FragmentOutput(bloomEnabled: Boolean = false) =
-            shaderStructOld("FragmentOutput") {
-                """
-            struct FragmentOutput {
-                @location(0) color : vec4f,
-                ${if (bloomEnabled) "@location(1) emissive : vec4f," else ""}
-            };
-            """
-                    .trimIndent()
+        fun FragmentOutputStruct(bloomEnabled: Boolean = false) =
+            shaderStruct("FragmentOutput") {
+                mutableMapOf(
+                        "color" to
+                            ShaderStructParameterType.Location(
+                                0,
+                                ShaderStructParameterType.WgslType.vec4f,
+                            )
+                    )
+                    .also {
+                        if (bloomEnabled) {
+                            it["emissive"] =
+                                ShaderStructParameterType.Location(
+                                    1,
+                                    ShaderStructParameterType.WgslType.vec4f,
+                                )
+                        }
+                    }
             }
 
         fun FragmentShader(
@@ -489,7 +516,7 @@ object Standard {
             fullyRough: Boolean = false,
         ) = shader {
             val input = VertexOutputStruct(layout)
-            val output = FragmentOutput(bloomEnabled)
+            val output = FragmentOutputStruct(bloomEnabled)
             include(input)
             include(output)
             include(CommonShaderBlocks.Camera(0, 0))

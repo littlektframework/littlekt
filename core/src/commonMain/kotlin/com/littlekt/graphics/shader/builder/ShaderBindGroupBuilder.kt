@@ -55,6 +55,19 @@ open class ShaderBindGroupBuilder(val group: Int, val usage: BindingUsage) {
             bindingType,
         )
 
+    fun bindArray(
+        bindingIdx: Int,
+        varName: String,
+        struct: ShaderStruct,
+        bindingType: ShaderBindingType,
+    ) =
+        bind(
+            bindingIdx,
+            varName,
+            ShaderBindingParameterType.Array(ShaderBindingParameterType.Struct(struct)),
+            bindingType,
+        )
+
     fun build(): ShaderBindGroup {
         return ShaderBindGroup(group, usage, bindings)
     }

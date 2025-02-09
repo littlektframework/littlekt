@@ -12,7 +12,7 @@ sealed class ShaderStructParameterType(val name: String) {
         when (this) {
             is WgslType -> size
             is Struct -> struct.size
-            is Array -> align(type.size(), type.alignment()) * length
+            is array -> align(type.size(), type.alignment()) * length
             is BuiltIn -> type.size()
             is Location -> type.size()
         }
@@ -22,7 +22,7 @@ sealed class ShaderStructParameterType(val name: String) {
         when (this) {
             is WgslType -> alignment
             is Struct -> struct.alignment
-            is Array -> type.alignment()
+            is array -> type.alignment()
             is BuiltIn -> type.alignment()
             is Location -> type.alignment()
         }
@@ -125,6 +125,14 @@ sealed class ShaderStructParameterType(val name: String) {
         class InstanceIndex(type: WgslType) : BuiltIn("instance_index", type)
     }
 
-    data class Array(val type: ShaderStructParameterType, val length: Int) :
-        ShaderStructParameterType("array<${type.name}, $length>")
+    data class array(val type: ShaderStructParameterType, val length: Int) :
+        ShaderStructParameterType(
+            if (length > 0) "array<${type.name}, $length>" else "array<${type.name}>"
+        ) {
+        constructor(type: ShaderStructParameterType) : this(type, -1)
+
+        constructor(struct: ShaderStruct) : this(Struct(struct))
+
+        constructor(struct: ShaderStruct, length: Int) : this(Struct(struct), length)
+    }
 }

@@ -458,7 +458,7 @@ class ShaderCodeBuilderTests {
                 mapOf(
                     "transform" to ShaderStructParameterType.WgslType.mat3x3f,
                     "directions" to
-                        ShaderStructParameterType.Array(ShaderStructParameterType.WgslType.vec3f, 4),
+                        ShaderStructParameterType.array(ShaderStructParameterType.WgslType.vec3f, 4),
                 )
             }
 
@@ -476,7 +476,7 @@ class ShaderCodeBuilderTests {
                     "orientation" to ShaderStructParameterType.WgslType.vec3f,
                     "size" to ShaderStructParameterType.WgslType.f32,
                     "direction" to
-                        ShaderStructParameterType.Array(
+                        ShaderStructParameterType.array(
                             ShaderStructParameterType.WgslType.vec3f,
                             1,
                         ),

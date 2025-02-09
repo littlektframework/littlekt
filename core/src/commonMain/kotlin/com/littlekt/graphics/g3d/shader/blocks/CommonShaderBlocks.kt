@@ -1,43 +1,30 @@
 package com.littlekt.graphics.g3d.shader.blocks
 
-import com.littlekt.graphics.shader.builder.ShaderBlock
-import com.littlekt.graphics.shader.builder.shaderBindGroup
-import com.littlekt.graphics.shader.builder.shaderBlock
+import com.littlekt.graphics.shader.builder.*
 import com.littlekt.graphics.util.BindingUsage
 import com.littlekt.graphics.webgpu.*
 
 object CommonShaderBlocks {
-    fun Joints(group: Int, binding: Int) =
-        shaderBindGroup(
-            group = group,
-            bindingUsage = BindingUsage.SKIN,
-            descriptor =
-                BindGroupLayoutDescriptor(
-                    listOf(
-                        // joint transforms
-                        BindGroupLayoutEntry(
-                            binding,
-                            ShaderStage.VERTEX,
-                            BufferBindingLayout(BufferBindingType.READ_ONLY_STORAGE),
-                        ),
-                        // inverse blend matrices
-                        BindGroupLayoutEntry(
-                            binding + 1,
-                            ShaderStage.VERTEX,
-                            BufferBindingLayout(BufferBindingType.READ_ONLY_STORAGE),
-                        ),
-                    )
-                ),
-        ) {
-            """
-        struct Joints {
-          matrices : array<mat4x4f>
-        };
-        @group(${group}) @binding($binding) var<storage, read> joint : Joints;
-        @group(${group}) @binding(${binding + 1}) var<storage, read> inverse_blend : Joints;
-    """
-                .trimIndent()
+    val JointsStruct =
+        shaderStruct("Joints") {
+            mapOf(
+                "matrices" to
+                    ShaderStructParameterType.array(ShaderStructParameterType.WgslType.mat4x4f)
+            )
         }
+
+    fun Joints(group: Int, binding: Int) = shaderBlock {
+        include(JointsStruct)
+        bindGroup(group, BindingUsage.SKIN) {
+            bind(binding, "joint", JointsStruct, ShaderBindingType.Storage(MemoryAccessMode.READ))
+            bind(
+                binding + 1,
+                "inverse_blend",
+                JointsStruct,
+                ShaderBindingType.Storage(MemoryAccessMode.READ),
+            )
+        }
+    }
 
     fun SkinFunctions() = shaderBlock {
         body {
@@ -64,101 +51,81 @@ object CommonShaderBlocks {
         SkinFunctions()
     }
 
-    fun Camera(group: Int, binding: Int) =
-        shaderBindGroup(
-            group = group,
-            bindingUsage = BindingUsage.CAMERA,
-            descriptor =
-                BindGroupLayoutDescriptor(
-                    listOf(
-                        // camera
-                        BindGroupLayoutEntry(
-                            binding,
-                            ShaderStage.VERTEX or ShaderStage.FRAGMENT or ShaderStage.COMPUTE,
-                            BufferBindingLayout(),
-                        )
-                    )
-                ),
-        ) {
-            """
-        struct Camera {
-            proj: mat4x4f,
-            inverse_projection: mat4x4f,
-            view: mat4x4f,
-            position: vec3f,
-            time: f32,
-            output_size: vec2f,
-            z_near: f32,
-            z_far: f32,
-        };
-        @group($group) @binding($binding)
-        var<uniform> camera: Camera;
-    """
-                .trimIndent()
+    val CameraStruct =
+        shaderStruct("Camera") {
+            mapOf(
+                "proj" to ShaderStructParameterType.WgslType.mat4x4f,
+                "inverse_projection" to ShaderStructParameterType.WgslType.mat4x4f,
+                "view" to ShaderStructParameterType.WgslType.mat4x4f,
+                "position" to ShaderStructParameterType.WgslType.vec3f,
+                "time" to ShaderStructParameterType.WgslType.f32,
+                "output_size" to ShaderStructParameterType.WgslType.vec2f,
+                "z_near" to ShaderStructParameterType.WgslType.f32,
+                "z_far" to ShaderStructParameterType.WgslType.f32,
+            )
         }
 
-    fun Model(group: Int, binding: Int) =
-        shaderBindGroup(
-            group,
-            BindingUsage.MODEL,
-            descriptor =
-                BindGroupLayoutDescriptor(
-                    listOf(
-                        // model
-                        BindGroupLayoutEntry(
-                            binding,
-                            ShaderStage.VERTEX,
-                            BufferBindingLayout(BufferBindingType.READ_ONLY_STORAGE),
-                        )
-                    )
-                ),
-        ) {
-            """
-        struct Model {
-            transform: mat4x4f,
-            color: vec4f,
-        };
-        @group($group) @binding($binding)
-        var <storage, read> models: array<Model>;
-    """
-                .trimIndent()
+    fun Camera(group: Int, binding: Int) = shaderBlock {
+        include(CameraStruct)
+        bindGroup(group, BindingUsage.CAMERA) {
+            bind(binding, "camera", CameraStruct, ShaderBindingType.Uniform)
+        }
+    }
+
+    val ModelStruct =
+        shaderStruct("Model") {
+            mapOf(
+                "transform" to ShaderStructParameterType.WgslType.mat4x4f,
+                "color" to ShaderStructParameterType.WgslType.vec4f,
+            )
         }
 
-    fun Lights(group: Int, binding: Int) =
-        shaderBindGroup(
-            group,
-            BindingUsage.LIGHT,
-            BindGroupLayoutDescriptor(
-                listOf(
-                    BindGroupLayoutEntry(
-                        binding,
-                        ShaderStage.VERTEX or ShaderStage.FRAGMENT or ShaderStage.COMPUTE,
-                        BufferBindingLayout(type = BufferBindingType.READ_ONLY_STORAGE),
-                    )
-                )
-            ),
-        ) {
-            """
-        struct Light {
-          position : vec3f,
-          range : f32,
-          color : vec3f,
-          intensity : f32,
-        };
-    
-        struct GlobalLights {
-          ambient : vec3f,
-          dir_color : vec3f,
-          dir_intensity : f32,
-          dir_direction : vec3f,
-          light_count : u32,
-          lights : array<Light>,
-        };
-        @group($group) @binding($binding)
-        var<storage, read> global_lights : GlobalLights;
-        """
-                .trimIndent()
+    fun Model(group: Int, binding: Int) = shaderBlock {
+        include(ModelStruct)
+        bindGroup(group, BindingUsage.MODEL) {
+            bindArray(
+                binding,
+                "models",
+                ModelStruct,
+                ShaderBindingType.Storage(MemoryAccessMode.READ),
+            )
         }
+    }
+
+    val LightStruct =
+        shaderStruct("Light") {
+            mapOf(
+                "position" to ShaderStructParameterType.WgslType.vec3f,
+                "range" to ShaderStructParameterType.WgslType.f32,
+                "color" to ShaderStructParameterType.WgslType.vec3f,
+                "intensity" to ShaderStructParameterType.WgslType.f32,
+            )
+        }
+
+    val GlobalLightsStruct =
+        shaderStruct("GlobalLights") {
+            mapOf(
+                "ambient" to ShaderStructParameterType.WgslType.vec3f,
+                "dir_color" to ShaderStructParameterType.WgslType.vec3f,
+                "dir_intensity" to ShaderStructParameterType.WgslType.f32,
+                "dir_direction" to ShaderStructParameterType.WgslType.vec3f,
+                "light_count" to ShaderStructParameterType.WgslType.u32,
+                "lights" to ShaderStructParameterType.array(LightStruct),
+            )
+        }
+
+    fun Lights(group: Int, binding: Int) = shaderBlock {
+        include(LightStruct)
+        include(GlobalLightsStruct)
+        bindGroup(group, BindingUsage.LIGHT) {
+            bind(
+                binding,
+                "global_lights",
+                GlobalLightsStruct,
+                ShaderBindingType.Storage(MemoryAccessMode.READ),
+            )
+        }
+    }
 
     fun TileFunctions(
         tileCountX: Int = CommonSubShaderFunctions.DEFAULT_TILE_COUNT_X,
@@ -196,6 +163,40 @@ object CommonShaderBlocks {
         }
     }
 
+    val ClusterBoundsStruct =
+        shaderStruct("ClusterBounds") {
+            mapOf(
+                "minAABB" to ShaderStructParameterType.WgslType.vec3f,
+                "maxAABB" to ShaderStructParameterType.WgslType.vec3f,
+            )
+        }
+
+    fun ClustersStruct(boundsArrayLength: Int) =
+        shaderStruct("Clusters") {
+            mapOf(
+                "bounds" to ShaderStructParameterType.array(ClusterBoundsStruct, boundsArrayLength)
+            )
+        }
+
+    val ClusterLightsStruct =
+        shaderStruct("ClusterLights") {
+            mapOf(
+                "offset" to ShaderStructParameterType.WgslType.u32,
+                "count" to ShaderStructParameterType.WgslType.u32,
+            )
+        }
+
+    fun ClusterLightGroupStruct(lightsArrayLength: Int, atomicOffset: Boolean) =
+        shaderStruct("ClusterLightGroup") {
+            mapOf(
+                "offset" to
+                    if (atomicOffset) ShaderStructParameterType.WgslType.atomic.u32
+                    else ShaderStructParameterType.WgslType.u32,
+                "lights" to ShaderStructParameterType.array(LightStruct, lightsArrayLength),
+                "indices" to ShaderStructParameterType.array(ShaderStructParameterType.WgslType.u32),
+            )
+        }
+
     fun ClusterBounds(
         group: Int,
         binding: Int,
@@ -205,36 +206,17 @@ object CommonShaderBlocks {
         access: MemoryAccessMode = MemoryAccessMode.READ,
     ): ShaderBlock {
         val totalTiles = tileCountX * tileCountY * tileCountZ
-        return shaderBindGroup(
-            group,
-            BindingUsage.CLUSTER_BOUNDS,
-            BindGroupLayoutDescriptor(
-                listOf(
-                    BindGroupLayoutEntry(
-                        binding,
-                        ShaderStage.COMPUTE,
-                        BufferBindingLayout(
-                            type =
-                                if (access == MemoryAccessMode.READ)
-                                    BufferBindingType.READ_ONLY_STORAGE
-                                else BufferBindingType.STORAGE
-                        ),
-                    )
+        return shaderBlock {
+            include(ClusterBoundsStruct)
+            include(ClustersStruct(totalTiles))
+            bindGroup(group, BindingUsage.CLUSTER_BOUNDS) {
+                bind(
+                    binding,
+                    "clusters",
+                    ClustersStruct(totalTiles),
+                    ShaderBindingType.Storage(access),
                 )
-            ),
-        ) {
-            """
-              struct ClusterBounds {
-                minAABB : vec3<f32>,
-                maxAABB : vec3<f32>,
-              };
-              struct Clusters {
-                bounds : array<ClusterBounds, ${totalTiles}>
-              };
-              @group(${group}) @binding(${binding}) 
-              var<storage, ${access.value}> clusters : Clusters;
-            """
-                .trimIndent()
+            }
         }
     }
 
@@ -247,39 +229,19 @@ object CommonShaderBlocks {
         access: MemoryAccessMode = MemoryAccessMode.READ,
     ): ShaderBlock {
         val totalTiles = tileCountX * tileCountY * tileCountZ
-        return shaderBindGroup(
-            group,
-            BindingUsage.CLUSTER_LIGHTS,
-            BindGroupLayoutDescriptor(
-                listOf(
-                    // cluster lights
-                    BindGroupLayoutEntry(
-                        binding,
-                        ShaderStage.COMPUTE,
-                        BufferBindingLayout(
-                            type =
-                                if (access == MemoryAccessMode.READ)
-                                    BufferBindingType.READ_ONLY_STORAGE
-                                else BufferBindingType.STORAGE
-                        ),
-                    )
+        val clusterLightGroupStruct =
+            ClusterLightGroupStruct(totalTiles, access != MemoryAccessMode.READ)
+        return shaderBlock {
+            include(ClusterLightsStruct)
+            include(clusterLightGroupStruct)
+            bindGroup(group, BindingUsage.CLUSTER_LIGHTS) {
+                bind(
+                    binding,
+                    "clusterLights",
+                    clusterLightGroupStruct,
+                    ShaderBindingType.Storage(access),
                 )
-            ),
-        ) {
-            """
-              struct ClusterLights {
-                offset : u32,
-                count : u32,
-              };
-              struct ClusterLightGroup {
-                offset : ${if (access == MemoryAccessMode.READ) "u32" else "atomic<u32>"},
-                lights : array<ClusterLights, ${totalTiles}>,
-                indices : array<u32>,
-              };
-              @group(${group}) @binding(${binding}) 
-              var<storage, ${access.value}> clusterLights : ClusterLightGroup;
-               """
-                .trimIndent()
+            }
         }
     }
 

@@ -1,5 +1,7 @@
 package com.littlekt.graphics.shader.builder
 
+import com.littlekt.graphics.util.BindingUsage
+
 /**
  * @author Colton Daily
  * @date 2/6/2025
@@ -12,6 +14,16 @@ open class ShaderBlockBuilder(base: ShaderBlock? = null) {
     protected val rules =
         mutableListOf<ShaderBlockInsertRule>().apply { base?.let { addAll(it.rules) } }
     protected var body = base?.body ?: ""
+
+    fun bindGroup(bindGroup: ShaderBindGroup) {
+        bindingGroups.add(bindGroup)
+    }
+
+    fun bindGroup(group: Int, usage: BindingUsage, block: ShaderBindGroupBuilder.() -> Unit) {
+        val builder = ShaderBindGroupBuilder(group, usage)
+        builder.block()
+        bindingGroups.add(builder.build())
+    }
 
     fun include(struct: ShaderStruct) {
         structs.add(struct)
