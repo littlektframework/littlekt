@@ -666,4 +666,80 @@ class ShaderCodeBuilderTests {
 
         assertEquals(expected.src, vertexShader.src)
     }
+
+    @Test
+    fun testTexture2dAndSamplerBindings() {
+        val vertexOutputStruct =
+            shaderStruct("VertexOutput") {
+                mapOf(
+                    "position" to
+                        ShaderStructParameterType.BuiltIn.Position(
+                            ShaderStructParameterType.WgslType.vec4f
+                        ),
+                    "color" to
+                        ShaderStructParameterType.Location(
+                            0,
+                            ShaderStructParameterType.WgslType.vec4f,
+                        ),
+                    "uv" to
+                        ShaderStructParameterType.Location(
+                            1,
+                            ShaderStructParameterType.WgslType.vec2f,
+                        ),
+                )
+            }
+
+        val fragmentOutputStruct =
+            shaderStruct("FragmentOutput") {
+                mapOf("color" to ShaderStructParameterType.WgslType.vec4f)
+            }
+
+        val fragmentShader = shader {
+            include(vertexOutputStruct)
+            include(fragmentOutputStruct)
+            bindGroup(0, BindingUsage("Material")) {
+                bindTexture2d(0, "my_texture")
+                bindSampler(1, "my_sampler")
+            }
+            fragment {
+                main(input = vertexOutputStruct, output = fragmentOutputStruct) {
+                    """
+                        var output: FragmentOutput;
+                        %color%
+                        output.color = textureSample(my_texture, my_sampler, input.uv) * input.color
+                        %output%
+                        return output;
+                    """
+                        .trimIndent()
+                }
+            }
+        }
+
+        val expected =
+            ShaderTestSrc(
+                """
+                struct VertexOutput {
+                    @builtin(position) position: vec4f,
+                    @location(0) color: vec4f,
+                    @location(1) uv: vec2f
+                };
+                
+                struct FragmentOutput {
+                    color: vec4f
+                };
+                
+                @group(0) @binding(0) var my_texture: texture_2d<f32>;
+                @group(0) @binding(1) var my_sampler: sampler;
+                
+                @fragment fn main(input: VertexOutput) -> FragmentOutput {
+                    var output: FragmentOutput;
+                    output.color = textureSample(my_texture, my_sampler, input.uv) * input.color
+                    return output;
+                }
+        """
+                    .trimIndent()
+            )
+
+        assertEquals(expected.src, fragmentShader.src)
+    }
 }
