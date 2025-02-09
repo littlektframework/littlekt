@@ -82,7 +82,7 @@ class ShaderCode(
                         if (lines[i].trim() == marker) {
                             var nextMarkerIndex = -1
                             var nextMarker: String? = null
-                            for (j in i until lines.size) {
+                            for (j in i + 1 until lines.size) {
                                 if (markerRegex.matches(lines[j].trim())) {
                                     nextMarkerIndex = j
                                     nextMarker = lines[j].trim()
@@ -108,7 +108,7 @@ class ShaderCode(
                 }
             }
         }
-        lines = lines.joinToString("\n") { it.trim() }.also { println(it) }.lines().toMutableList()
+        lines = lines.joinToString("\n") { it.trim() }.lines().toMutableList()
         lines.removeAll { markerRegex.matches(it.trim()) }
         lines.joinToString("\n") { it.trim() }.format().trimIndent()
     }

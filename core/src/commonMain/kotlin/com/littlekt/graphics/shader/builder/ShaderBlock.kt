@@ -13,7 +13,7 @@ open class ShaderBlock(
 ) : ShaderSrc() {
     override val src: String by lazy {
         val markerRegex = "%\\w+%".toRegex()
-        val lines =
+        var lines =
             buildString {
                     structs.forEach { appendLine(it.src) }
                     bindingGroups.forEach { append(it.src) }
@@ -30,7 +30,7 @@ open class ShaderBlock(
                 ShaderBlockInsertType.BEFORE -> {
                     for (i in lines.indices) {
                         if (lines[i].trim() == marker) {
-                            lines[i] = lines[i].replace(marker, "${rule.block.src}\n${marker}")
+                            lines[i] = lines[i].replace(marker, "${rule.block.body}\n${marker}")
                             break
                         }
                     }
@@ -40,7 +40,7 @@ open class ShaderBlock(
                         if (lines[i].trim() == marker) {
                             var nextMarkerIndex = -1
                             var nextMarker: String? = null
-                            for (j in i until lines.size) {
+                            for (j in i + 1 until lines.size) {
                                 if (markerRegex.matches(lines[j].trim())) {
                                     nextMarkerIndex = j
                                     nextMarker = lines[j].trim()
@@ -53,12 +53,12 @@ open class ShaderBlock(
                                 lines[nextMarkerIndex] =
                                     lines[nextMarkerIndex].replace(
                                         nextMarker,
-                                        "${rule.block.src}\n${nextMarker}",
+                                        "${rule.block.body}\n${nextMarker}",
                                     )
                             } else {
                                 // if no next marker, append the body to the end of the body
                                 lines[lines.indices.last] =
-                                    "${lines[lines.indices.last]}\n${rule.block.src}"
+                                    "${lines[lines.indices.last]}\n${rule.block.body}"
                             }
                             break
                         }
@@ -66,6 +66,8 @@ open class ShaderBlock(
                 }
             }
         }
+        lines = lines.joinToString("\n") { it.trim() }.lines().toMutableList()
+        lines.removeAll { markerRegex.matches(it.trim()) }
         lines.joinToString("\n") { it.trim() }.format().trimIndent()
     }
 }
