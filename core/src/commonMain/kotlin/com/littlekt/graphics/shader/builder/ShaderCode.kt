@@ -58,6 +58,9 @@ class ShaderCode(
                     structs.forEach { appendLine(it.src) }
                     bindingGroups.forEach { append(it.src) }
                     blocks.forEach { appendLine(it) }
+                    vertex?.let { appendLine(it.body) }
+                    fragment?.let { appendLine(it.body) }
+                    compute?.let { appendLine(it.body) }
                 }
                 .lines()
                 .map { it.trim() }

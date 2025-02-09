@@ -78,6 +78,80 @@ class ShaderCodeBuilderTests {
     }
 
     @Test
+    fun testExtendShader() {
+        val inputStruct =
+            shaderStruct("VertexInput") {
+                mapOf(
+                    "position" to ShaderStructParameterType.WgslType.vec3f,
+                    "color" to ShaderStructParameterType.WgslType.vec4f,
+                )
+            }
+        val outputStruct =
+            shaderStruct("VertexOutput") {
+                mapOf(
+                    "position" to
+                        ShaderStructParameterType.BuiltIn.Position(
+                            ShaderStructParameterType.WgslType.vec4f
+                        ),
+                    "color" to
+                        ShaderStructParameterType.Location(
+                            0,
+                            ShaderStructParameterType.WgslType.vec4f,
+                        ),
+                )
+            }
+
+        val vertexShader = shader {
+            include(inputStruct)
+            include(outputStruct)
+            vertex {
+                main(input = inputStruct, output = outputStruct) {
+                    """
+                        var output: VertexOutput;
+                        output.position = vec4(input.position, 1.0);
+                        output.color = input.color;
+                        return output;
+                    """
+                        .trimIndent()
+                }
+            }
+        }
+
+        val extraStruct =
+            shaderStruct("Info") { mapOf("index" to ShaderStructParameterType.WgslType.f32) }
+        val extendedShader = shader(vertexShader) { include(extraStruct) }
+
+        val expected =
+            ShaderTestSrc(
+                """
+            struct VertexInput {
+                position: vec3f,
+                color: vec4f
+            };
+
+            struct VertexOutput {
+                @builtin(position) position: vec4f,
+                @location(0) color: vec4f
+            };
+
+            struct Info {
+                index: f32
+            };
+
+            @vertex fn main(input: VertexInput) -> VertexOutput {
+                var output: VertexOutput;
+                output.position = vec4(input.position, 1.0);
+                output.color = input.color;
+                return output;
+            }
+        """
+                    .trimIndent()
+            )
+
+        assertEquals(expected.src, extendedShader.src)
+    }
+
+    @Test
     fun testSimpleStructOffsets() {
         val ex1 =
             shaderStruct("Ex1") {

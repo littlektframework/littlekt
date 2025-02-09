@@ -50,9 +50,6 @@ open class ShaderCodeBuilder(base: ShaderCode? = null) {
     }
 
     fun build(): ShaderCode {
-        vertexBase?.let { include(it) }
-        fragmentBase?.let { include(it) }
-        computeBase?.let { include(it) }
         return ShaderCode(
             structs,
             bindingGroups,
