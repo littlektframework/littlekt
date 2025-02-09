@@ -5,6 +5,7 @@ import com.littlekt.graphics.shader.builder.ShaderStructParameterType
 import com.littlekt.graphics.shader.builder.shader
 import com.littlekt.graphics.shader.builder.shaderStruct
 import com.littlekt.graphics.util.BindingUsage
+import com.littlekt.graphics.webgpu.MemoryAccessMode
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -559,6 +560,99 @@ class ShaderCodeBuilderTests {
             };
 
             @group(0) @binding(0) var<uniform> view: View;
+
+            @vertex fn main(input: VertexInput) -> VertexOutput {
+                var output: VertexOutput;
+                output.position = vec4(input.position, 1.0);
+                output.color = input.color;
+                return output;
+            }
+        """
+                    .trimIndent()
+            )
+
+        assertEquals(expected.src, vertexShader.src)
+    }
+
+    @Test
+    fun testMultipleBindGroups() {
+        val inputStruct =
+            shaderStruct("VertexInput") {
+                mapOf(
+                    "position" to ShaderStructParameterType.WgslType.vec3f,
+                    "color" to ShaderStructParameterType.WgslType.vec4f,
+                )
+            }
+        val outputStruct =
+            shaderStruct("VertexOutput") {
+                mapOf(
+                    "position" to
+                        ShaderStructParameterType.BuiltIn.Position(
+                            ShaderStructParameterType.WgslType.vec4f
+                        ),
+                    "color" to
+                        ShaderStructParameterType.Location(
+                            0,
+                            ShaderStructParameterType.WgslType.vec4f,
+                        ),
+                )
+            }
+
+        val viewStruct =
+            shaderStruct("View") {
+                mapOf("view_proj" to ShaderStructParameterType.WgslType.mat4x4f)
+            }
+
+        val dataStruct =
+            shaderStruct("Data") {
+                mapOf("transform" to ShaderStructParameterType.WgslType.mat4x4f)
+            }
+        val vertexShader = shader {
+            include(inputStruct)
+            include(outputStruct)
+            include(viewStruct)
+            bindGroup(0, BindingUsage("View")) {
+                bind(0, "view", viewStruct, ShaderBindingType.Uniform)
+            }
+            bindGroup(1, BindingUsage("Data")) {
+                bind(0, "data", dataStruct, ShaderBindingType.Storage(MemoryAccessMode.READ))
+            }
+            vertex {
+                main(input = inputStruct, output = outputStruct) {
+                    """
+                        var output: VertexOutput;
+                        %position%
+                        output.position = vec4(input.position, 1.0);
+                        %color%
+                        output.color = input.color;
+                        %output%
+                        return output;
+                    """
+                        .trimIndent()
+                }
+            }
+        }
+
+        val expected =
+            ShaderTestSrc(
+                """
+            struct VertexInput {
+                position: vec3f,
+                color: vec4f
+            };
+
+            struct VertexOutput {
+                @builtin(position) position: vec4f,
+                @location(0) color: vec4f
+            };
+            
+            struct View {
+                view_proj: mat4x4f
+            };
+
+            @group(0) @binding(0) var<uniform> view: View;
+
+            @group(1) @binding(0) var<storage, read> data: Data;
 
             @vertex fn main(input: VertexInput) -> VertexOutput {
                 var output: VertexOutput;
