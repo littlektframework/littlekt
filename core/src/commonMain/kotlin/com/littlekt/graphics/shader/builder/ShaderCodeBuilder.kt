@@ -14,6 +14,10 @@ open class ShaderCodeBuilder(base: ShaderCode? = null) {
     private val blocks = mutableListOf<String>().apply { base?.let { addAll(it.blocks) } }
     private val rules = mutableListOf<ShaderBlockInsertRule>()
 
+    fun include(struct: ShaderStruct) {
+        structs.add(struct)
+    }
+
     fun include(block: ShaderBlock) {
         structs.addAll(block.structs)
         bindingGroups.addAll(block.bindingGroups)

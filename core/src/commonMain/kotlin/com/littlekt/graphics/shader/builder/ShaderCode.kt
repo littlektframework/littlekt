@@ -105,7 +105,8 @@ class ShaderCode(
                 }
             }
         }
-        lines.joinToString("\n") { it.trim() }.format()
+        lines.removeAll { markerRegex.matches(it.trim()) }
+        lines.joinToString("\n") { it.trim() }.format().trimIndent()
     }
 
     override fun toString(): String {

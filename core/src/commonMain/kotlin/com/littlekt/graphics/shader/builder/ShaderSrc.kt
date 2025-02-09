@@ -17,7 +17,7 @@ abstract class ShaderSrc {
         code.lines().forEach { line ->
             val trimmedLine = line.trim()
 
-            if (trimmedLine.isEmpty()) {
+            if (trimmedLine.isBlank()) {
                 if (!lastLineWasBlank) {
                     formattedCode.appendLine()
                     lastLineWasBlank = true

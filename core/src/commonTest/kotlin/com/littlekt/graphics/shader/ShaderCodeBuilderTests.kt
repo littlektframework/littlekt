@@ -1,6 +1,7 @@
 package com.littlekt.graphics.shader
 
 import com.littlekt.graphics.shader.builder.ShaderStructParameterType
+import com.littlekt.graphics.shader.builder.shader
 import com.littlekt.graphics.shader.builder.shaderStruct
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -35,8 +36,45 @@ class ShaderCodeBuilderTests {
                 )
             }
 
-        println(inputStruct.src)
-        println(outputStruct.src)
+        val shader = shader {
+            include(inputStruct)
+            include(outputStruct)
+            vertex {
+                main(input = inputStruct, output = outputStruct) {
+                    """
+                        var output: VertexOutput;
+                        output.position = vec4(input.position, 1.0);
+                        output.color = input.color;
+                        return output;
+                    """
+                        .trimIndent()
+                }
+            }
+        }
+
+        val expected =
+            ShaderTestSrc(
+                """
+            struct VertexInput {
+                position: vec3f,
+                color: vec4f
+            };
+
+            struct VertexOutput {
+                @builtin(position) position: vec4f,
+                @location(0) color: vec4f
+            };
+
+            @vertex fn main(input: VertexInput) -> VertexOutput {
+                var output: VertexOutput;
+                output.position = vec4(input.position, 1.0);
+                output.color = input.color;
+                return output;
+            }
+        """
+                    .trimIndent()
+            )
+        assertEquals(expected.src, shader.src)
     }
 
     @Test
