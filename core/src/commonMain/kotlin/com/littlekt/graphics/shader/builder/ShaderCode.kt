@@ -41,12 +41,12 @@ class ShaderCode(
     val computeEntryPoint = compute?.entryPoint
 
     override val src: String by lazy {
-        val markerRegex = "%\\w+%".toRegex()
         var lines =
             buildString {
                     structs.forEach { appendLine(it.src) }
                     bindingGroups.forEach { appendLine(it.src) }
                     blocks.forEach { appendLine(it) }
+                    appendLine() // padding
                     vertex?.let { appendLine(it.body) }
                     fragment?.let { appendLine(it.body) }
                     compute?.let { appendLine(it.body) }

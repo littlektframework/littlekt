@@ -5,6 +5,8 @@ package com.littlekt.graphics.shader.builder
  * @date 2/8/2025
  */
 abstract class ShaderSrc {
+    val markerRegex = "%[^%\n]+%".toRegex()
+
     abstract val src: String
 
     protected fun String.format(): String {

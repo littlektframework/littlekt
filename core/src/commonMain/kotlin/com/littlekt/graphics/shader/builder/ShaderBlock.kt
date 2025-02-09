@@ -12,12 +12,12 @@ open class ShaderBlock(
     val body: String,
 ) : ShaderSrc() {
     override val src: String by lazy {
-        val markerRegex = "%\\w+%".toRegex()
         var lines =
             buildString {
                     structs.forEach { appendLine(it.src) }
                     bindingGroups.forEach { appendLine(it.src) }
                     blocks.forEach { appendLine(it) }
+                    appendLine() // padding
                     appendLine(body)
                 }
                 .lines()

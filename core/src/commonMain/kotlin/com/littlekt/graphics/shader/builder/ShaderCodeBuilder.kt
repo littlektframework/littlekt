@@ -84,6 +84,29 @@ open class ShaderCodeBuilder(base: ShaderCode? = null) {
         computeBuilder = builder
     }
 
+    fun before(marker: String, block: ShaderBlock) {
+        insert(ShaderBlockInsertType.BEFORE, marker, block)
+    }
+
+    fun before(marker: String, block: ShaderBlockBuilder.() -> Unit) {
+        val builder = ShaderBlockBuilder()
+        builder.block()
+        insert(ShaderBlockInsertType.BEFORE, marker, builder.build())
+    }
+
+    fun after(marker: String, block: ShaderBlock) {
+        insert(ShaderBlockInsertType.AFTER, marker, block)
+    }
+
+    fun after(marker: String, block: ShaderBlockBuilder.() -> Unit) {
+        val builder = ShaderBlockBuilder()
+        builder.block()
+        insert(ShaderBlockInsertType.AFTER, marker, builder.build())
+    }
+
+    private fun insert(type: ShaderBlockInsertType, marker: String, block: ShaderBlock) =
+        rules.add(ShaderBlockInsertRule(type, marker, block))
+
     fun build(): ShaderCode {
         ensureMainBlockBuilders()
         buildMainShaderBlocks()
