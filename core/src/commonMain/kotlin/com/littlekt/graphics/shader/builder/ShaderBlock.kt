@@ -16,7 +16,7 @@ open class ShaderBlock(
         var lines =
             buildString {
                     structs.forEach { appendLine(it.src) }
-                    bindingGroups.forEach { append(it.src) }
+                    bindingGroups.forEach { appendLine(it.src) }
                     blocks.forEach { appendLine(it) }
                     appendLine(body)
                 }
