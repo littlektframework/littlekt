@@ -5,12 +5,14 @@ package com.littlekt.graphics.shader.builder
  * @date 2/6/2025
  */
 open class FragmentShaderBlockBuilder(base: FragmentShaderBlock? = null) :
-    MainShaderBlockBuilder<FragmentShaderBlock>(base) {
+    MainShaderBlockBuilder<FragmentShaderBlock>(FragmentShaderBlock.BLOCK_NAME, base) {
+
+    override var entry: String = "fs_main"
 
     fun main(
         input: ShaderStruct,
         output: ShaderStruct,
-        entry: String = "fs_main",
+        entry: String = this.entry,
         inputVar: String = "input",
         block: ShaderBlockBuilder.() -> String,
     ) {

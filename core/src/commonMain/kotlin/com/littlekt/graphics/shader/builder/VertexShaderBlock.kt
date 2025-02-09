@@ -8,7 +8,11 @@ open class VertexShaderBlock(
     entryPoint: String,
     structs: Set<ShaderStruct>,
     bindingGroups: Set<ShaderBindGroup>,
-    blocks: List<String>,
+    blocks: Set<ShaderBlock>,
     rules: List<ShaderBlockInsertRule>,
     body: String,
-) : MainShaderBlock(entryPoint, structs, bindingGroups, blocks, rules, body)
+) : MainShaderBlock(entryPoint, BLOCK_NAME, structs, bindingGroups, blocks, rules, body) {
+    companion object {
+        const val BLOCK_NAME = "VERTEX"
+    }
+}

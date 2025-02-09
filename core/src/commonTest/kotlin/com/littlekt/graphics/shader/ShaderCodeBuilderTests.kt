@@ -291,7 +291,7 @@ class ShaderCodeBuilderTests {
             include(outputStruct)
             vertex {
                 main(input = inputStruct, output = outputStruct) {
-                    before("output") {
+                    before("output", "change_red") {
                         body {
                             """
                                 output.color.r *= 0.5;
@@ -369,7 +369,7 @@ class ShaderCodeBuilderTests {
             include(outputStruct)
             vertex {
                 main(input = inputStruct, output = outputStruct) {
-                    after("color") {
+                    after("color", "change_red") {
                         body {
                             """
                                 output.color.r *= 0.5;
@@ -955,11 +955,12 @@ class ShaderCodeBuilderTests {
             shaderStruct("View") {
                 mapOf("view_proj" to ShaderStructParameterType.WgslType.mat4x4f)
             }
-        val vertexStructs = shaderBlock {
-            include(inputStruct)
-            include(outputStruct)
-            include(viewStruct)
-        }
+        val vertexStructs =
+            shaderBlock("vertex structs") {
+                include(inputStruct)
+                include(outputStruct)
+                include(viewStruct)
+            }
 
         val vertexShader = shader {
             include(vertexStructs)
@@ -1044,14 +1045,15 @@ class ShaderCodeBuilderTests {
             shaderStruct("View") {
                 mapOf("view_proj" to ShaderStructParameterType.WgslType.mat4x4f)
             }
-        val vertexInfo = shaderBlock {
-            include(inputStruct)
-            include(outputStruct)
-            include(viewStruct)
-            bindGroup(0, BindingUsage("View")) {
-                bind(0, "view", viewStruct, ShaderBindingType.Uniform)
+        val vertexInfo =
+            shaderBlock("vertex info") {
+                include(inputStruct)
+                include(outputStruct)
+                include(viewStruct)
+                bindGroup(0, BindingUsage("View")) {
+                    bind(0, "view", viewStruct, ShaderBindingType.Uniform)
+                }
             }
-        }
 
         val vertexShader = shader {
             include(vertexInfo)
@@ -1133,16 +1135,17 @@ class ShaderCodeBuilderTests {
             shaderStruct("View") {
                 mapOf("view_proj" to ShaderStructParameterType.WgslType.mat4x4f)
             }
-        val vertexInfo = shaderBlock {
-            include(inputStruct)
-            include(outputStruct)
-            include(viewStruct)
-            bindGroup(0, BindingUsage("View")) {
-                bind(0, "view", viewStruct, ShaderBindingType.Uniform)
-            }
+        val vertexInfo =
+            shaderBlock("vertex info") {
+                include(inputStruct)
+                include(outputStruct)
+                include(viewStruct)
+                bindGroup(0, BindingUsage("View")) {
+                    bind(0, "view", viewStruct, ShaderBindingType.Uniform)
+                }
 
-            body {
-                """
+                body {
+                    """
                     fn test(): f32 {
                         %test_marker%
                         var s = 1.0;
@@ -1152,13 +1155,13 @@ class ShaderCodeBuilderTests {
                         return s;
                     }
                 """
-                    .trimIndent()
+                        .trimIndent()
+                }
             }
-        }
 
         val vertexShader = shader {
             include(vertexInfo)
-            before("test_output") {
+            before("test_output", "undo_s") {
                 body {
                     """
                     s /= 4.0;

@@ -10,8 +10,8 @@ import com.littlekt.graphics.webgpu.ShaderStage
  */
 open class ShaderCode(
     val structs: Set<ShaderStruct>,
-    val bindingGroups: Set<ShaderBindGroup>,
-    val blocks: List<String>,
+    initBindingGroups: Set<ShaderBindGroup>,
+    val blocks: Set<ShaderBlock>,
     val rules: List<ShaderBlockInsertRule>,
     val vertex: VertexShaderBlock?,
     val fragment: FragmentShaderBlock?,
@@ -27,6 +27,22 @@ open class ShaderCode(
             visibility = visibility?.let { it or ShaderStage.COMPUTE } ?: ShaderStage.COMPUTE
         visibility ?: error("Shader must have at least one shader stage!")
     }
+    val bindingGroups: Set<ShaderBindGroup> =
+        initBindingGroups
+            .sortedBy { it.group }
+            .groupBy { it.group }
+            .map { (group, groupItems) ->
+                val combinedUsage =
+                    groupItems.fold(setOf<String>()) { acc, item -> acc + item.usage.usage }
+                val combinedEntries =
+                    groupItems
+                        .flatMap { it.bindings }
+                        .distinctBy { it.binding }
+                        .sortedBy { it.binding }
+                ShaderBindGroup(group, BindingUsage(combinedUsage), combinedEntries)
+            }
+            .toSet()
+
     private val bindGroupsToDescriptors: Map<ShaderBindGroup, BindGroupLayoutDescriptor> =
         bindingGroups.associateWith { it.generateBindGroupLayoutDescriptor(visibility) }
 
@@ -45,7 +61,7 @@ open class ShaderCode(
             buildString {
                     structs.forEach { appendLine(it.src) }
                     bindingGroups.forEach { appendLine(it.src) }
-                    blocks.forEach { appendLine(it) }
+                    blocks.forEach { appendLine(it.body) }
                     appendLine() // padding
                     vertex?.let { appendLine(it.body) }
                     fragment?.let { appendLine(it.body) }

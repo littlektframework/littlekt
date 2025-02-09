@@ -6,11 +6,11 @@ import com.littlekt.graphics.util.BindingUsage
  * @author Colton Daily
  * @date 2/6/2025
  */
-open class ShaderBlockBuilder(base: ShaderBlock? = null) {
+open class ShaderBlockBuilder(private val name: String, base: ShaderBlock? = null) {
     protected val structs = mutableSetOf<ShaderStruct>().apply { base?.structs?.let { addAll(it) } }
     protected val bindingGroups =
         mutableSetOf<ShaderBindGroup>().apply { base?.bindingGroups?.let { addAll(it) } }
-    protected val blocks = mutableListOf<String>().apply { base?.let { addAll(it.blocks) } }
+    protected val blocks = mutableSetOf<ShaderBlock>().apply { base?.let { addAll(it.blocks) } }
     protected val rules =
         mutableListOf<ShaderBlockInsertRule>().apply { base?.let { addAll(it.rules) } }
     protected var body = base?.body ?: ""
@@ -42,7 +42,8 @@ open class ShaderBlockBuilder(base: ShaderBlock? = null) {
         structs.addAll(block.structs)
         bindingGroups.addAll(block.bindingGroups)
         rules.addAll(block.rules)
-        blocks.add(block.body)
+        blocks.addAll(block.blocks)
+        blocks.add(block)
     }
 
     fun body(block: () -> String) {
@@ -53,8 +54,8 @@ open class ShaderBlockBuilder(base: ShaderBlock? = null) {
         insert(ShaderBlockInsertType.BEFORE, marker, block)
     }
 
-    fun before(marker: String, block: ShaderBlockBuilder.() -> Unit) {
-        val builder = ShaderBlockBuilder()
+    fun before(marker: String, name: String, block: ShaderBlockBuilder.() -> Unit) {
+        val builder = ShaderBlockBuilder(name)
         builder.block()
         insert(ShaderBlockInsertType.BEFORE, marker, builder.build())
     }
@@ -63,8 +64,8 @@ open class ShaderBlockBuilder(base: ShaderBlock? = null) {
         insert(ShaderBlockInsertType.AFTER, marker, block)
     }
 
-    fun after(marker: String, block: ShaderBlockBuilder.() -> Unit) {
-        val builder = ShaderBlockBuilder()
+    fun after(marker: String, name: String, block: ShaderBlockBuilder.() -> Unit) {
+        val builder = ShaderBlockBuilder(name)
         builder.block()
         insert(ShaderBlockInsertType.AFTER, marker, builder.build())
     }
@@ -73,6 +74,6 @@ open class ShaderBlockBuilder(base: ShaderBlock? = null) {
         rules.add(ShaderBlockInsertRule(type, marker, block))
 
     open fun build(): ShaderBlock {
-        return ShaderBlock(structs, bindingGroups, blocks, rules, body)
+        return ShaderBlock(name, structs, bindingGroups, blocks, rules, body)
     }
 }

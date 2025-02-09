@@ -5,9 +5,10 @@ package com.littlekt.graphics.shader.builder
  * @date 2/6/2025
  */
 open class ShaderBlock(
+    val name: String,
     val structs: Set<ShaderStruct>,
     val bindingGroups: Set<ShaderBindGroup>,
-    val blocks: List<String>,
+    val blocks: Set<ShaderBlock>,
     val rules: List<ShaderBlockInsertRule>,
     val body: String,
 ) : ShaderSrc() {
@@ -16,7 +17,7 @@ open class ShaderBlock(
             buildString {
                     structs.forEach { appendLine(it.src) }
                     bindingGroups.forEach { appendLine(it.src) }
-                    blocks.forEach { appendLine(it) }
+                    blocks.forEach { appendLine(it.body) }
                     appendLine() // padding
                     appendLine(body)
                 }
@@ -77,24 +78,11 @@ open class ShaderBlock(
 
         other as ShaderBlock
 
-        if (structs != other.structs) return false
-        if (bindingGroups != other.bindingGroups) return false
-        if (blocks != other.blocks) return false
-        if (rules != other.rules) return false
-        if (body != other.body) return false
-        if (src != other.src) return false
-
-        return true
+        return name == other.name
     }
 
     override fun hashCode(): Int {
-        var result = structs.hashCode()
-        result = 31 * result + bindingGroups.hashCode()
-        result = 31 * result + blocks.hashCode()
-        result = 31 * result + rules.hashCode()
-        result = 31 * result + body.hashCode()
-        result = 31 * result + src.hashCode()
-        return result
+        return name.hashCode()
     }
 
     override fun toString(): String {

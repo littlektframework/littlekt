@@ -5,13 +5,14 @@ package com.littlekt.graphics.shader.builder
  * @date 2/6/2025
  */
 open class ComputeShaderBlockBuilder(base: ComputeShaderBlock? = null) :
-    MainShaderBlockBuilder<ComputeShaderBlock>(base) {
+    MainShaderBlockBuilder<ComputeShaderBlock>(ComputeShaderBlock.BLOCK_NAME, base) {
+    override var entry: String = "cmp_main"
 
     fun main(
         workGroupSizeX: Int,
         workGroupSizeY: Int = workGroupSizeX,
         workGroupSizeZ: Int = workGroupSizeY,
-        entry: String = "cmp_main",
+        entry: String = this.entry,
         block: ShaderBlockBuilder.() -> String,
     ) {
         this.entry = entry

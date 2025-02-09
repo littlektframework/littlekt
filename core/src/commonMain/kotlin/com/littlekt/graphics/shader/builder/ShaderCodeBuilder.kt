@@ -20,7 +20,7 @@ open class ShaderCodeBuilder(base: ShaderCode? = null) {
     private val structs = mutableSetOf<ShaderStruct>().apply { base?.structs?.let { addAll(it) } }
     private val bindingGroups =
         mutableSetOf<ShaderBindGroup>().apply { base?.bindingGroups?.let { addAll(it) } }
-    private val blocks = mutableListOf<String>().apply { base?.let { addAll(it.blocks) } }
+    private val blocks = mutableSetOf<ShaderBlock>().apply { base?.let { addAll(it.blocks) } }
     private val rules =
         mutableListOf<ShaderBlockInsertRule>().apply { base?.let { addAll(it.rules) } }
 
@@ -51,11 +51,12 @@ open class ShaderCodeBuilder(base: ShaderCode? = null) {
         structs.addAll(block.structs)
         bindingGroups.addAll(block.bindingGroups)
         rules.addAll(block.rules)
-        blocks.add(block.body)
+        blocks.addAll(block.blocks)
+        blocks.add(block)
     }
 
-    fun include(block: ShaderBlockBuilder.() -> Unit) {
-        val builder = ShaderBlockBuilder()
+    fun include(name: String, block: ShaderBlockBuilder.() -> Unit) {
+        val builder = ShaderBlockBuilder(name)
         builder.block()
         include(builder.build())
     }
@@ -88,8 +89,8 @@ open class ShaderCodeBuilder(base: ShaderCode? = null) {
         insert(ShaderBlockInsertType.BEFORE, marker, block)
     }
 
-    fun before(marker: String, block: ShaderBlockBuilder.() -> Unit) {
-        val builder = ShaderBlockBuilder()
+    fun before(marker: String, name: String, block: ShaderBlockBuilder.() -> Unit) {
+        val builder = ShaderBlockBuilder(name)
         builder.block()
         insert(ShaderBlockInsertType.BEFORE, marker, builder.build())
     }
@@ -98,8 +99,8 @@ open class ShaderCodeBuilder(base: ShaderCode? = null) {
         insert(ShaderBlockInsertType.AFTER, marker, block)
     }
 
-    fun after(marker: String, block: ShaderBlockBuilder.() -> Unit) {
-        val builder = ShaderBlockBuilder()
+    fun after(marker: String, name: String, block: ShaderBlockBuilder.() -> Unit) {
+        val builder = ShaderBlockBuilder(name)
         builder.block()
         insert(ShaderBlockInsertType.AFTER, marker, builder.build())
     }
@@ -151,14 +152,7 @@ open class ShaderCodeBuilder(base: ShaderCode? = null) {
 
         vertex =
             vertexInter?.let {
-                VertexShaderBlock(
-                    it.entryPoint,
-                    structs,
-                    bindingGroups,
-                    it.blocks,
-                    it.rules,
-                    it.body,
-                )
+                VertexShaderBlock(it.entryPoint, structs, bindingGroups, blocks, it.rules, it.body)
             }
 
         fragment =
@@ -167,7 +161,7 @@ open class ShaderCodeBuilder(base: ShaderCode? = null) {
                     it.entryPoint,
                     structs,
                     bindingGroups,
-                    it.blocks,
+                    blocks,
                     it.rules,
                     it.body,
                 )

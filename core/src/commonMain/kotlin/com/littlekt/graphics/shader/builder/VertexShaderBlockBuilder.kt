@@ -5,12 +5,14 @@ package com.littlekt.graphics.shader.builder
  * @date 2/6/2025
  */
 open class VertexShaderBlockBuilder(base: VertexShaderBlock? = null) :
-    MainShaderBlockBuilder<VertexShaderBlock>(base) {
+    MainShaderBlockBuilder<VertexShaderBlock>(VertexShaderBlock.BLOCK_NAME, base) {
+
+    override var entry: String = "vs_main"
 
     fun main(
         input: ShaderStruct,
         output: ShaderStruct,
-        entry: String = "vs_main",
+        entry: String = this.entry,
         inputVar: String = "input",
         block: ShaderBlockBuilder.() -> String,
     ) {

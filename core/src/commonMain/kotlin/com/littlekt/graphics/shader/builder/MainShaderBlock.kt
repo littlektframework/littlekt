@@ -6,9 +6,10 @@ package com.littlekt.graphics.shader.builder
  */
 abstract class MainShaderBlock(
     val entryPoint: String,
+    name: String,
     structs: Set<ShaderStruct>,
     bindingGroups: Set<ShaderBindGroup>,
-    blocks: List<String>,
+    blocks: Set<ShaderBlock>,
     rules: List<ShaderBlockInsertRule>,
     body: String,
-) : ShaderBlock(structs, bindingGroups, blocks, rules, body)
+) : ShaderBlock(name, structs, bindingGroups, blocks, rules, body)

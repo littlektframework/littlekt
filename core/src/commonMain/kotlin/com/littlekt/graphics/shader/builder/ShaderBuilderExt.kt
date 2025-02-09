@@ -6,8 +6,12 @@ fun shader(shader: ShaderCode? = null, block: ShaderCodeBuilder.() -> Unit): Sha
     return builder.build()
 }
 
-fun shaderBlock(base: ShaderBlock? = null, block: ShaderBlockBuilder.() -> Unit): ShaderBlock {
-    val builder = ShaderBlockBuilder(base)
+fun shaderBlock(
+    name: String,
+    base: ShaderBlock? = null,
+    block: ShaderBlockBuilder.() -> Unit,
+): ShaderBlock {
+    val builder = ShaderBlockBuilder(name, base)
     builder.block()
     return builder.build()
 }
