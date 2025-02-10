@@ -459,11 +459,7 @@ class SpriteCache(
         blendState: BlendState,
     ): RenderPipelineDescriptor {
         return RenderPipelineDescriptor(
-            layout =
-                shader.getOrCreatePipelineLayout { bindingUsage ->
-                    if (bindingUsage == BindingUsage.CAMERA) cameraBuffers.bindGroupLayout
-                    else error("Unsupported $bindingUsage in SpriteCache")
-                },
+            layout = shader.getOrCreatePipelineLayout(),
             vertex =
                 VertexState(
                     module = shader.shaderModule,

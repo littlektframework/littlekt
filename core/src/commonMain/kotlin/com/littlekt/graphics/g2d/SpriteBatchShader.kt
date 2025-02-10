@@ -3,6 +3,7 @@ package com.littlekt.graphics.g2d
 import com.littlekt.graphics.shader.Shader
 import com.littlekt.graphics.util.BindingUsage
 import com.littlekt.graphics.webgpu.*
+import com.littlekt.util.align
 
 /**
  * The default [Shader] that is used in [SpriteBatch].
@@ -56,6 +57,23 @@ class SpriteBatchShader(device: Device) :
         bindGroupLayoutUsageLayout = listOf(BindingUsage.CAMERA, BindingUsage.TEXTURE),
         layout =
             mapOf(
+                BindingUsage.CAMERA to
+                    BindGroupLayoutDescriptor(
+                        listOf(
+                            BindGroupLayoutEntry(
+                                0,
+                                ShaderStage.VERTEX,
+                                BufferBindingLayout(
+                                    hasDynamicOffset = true,
+                                    minBindingSize =
+                                        (Float.SIZE_BYTES * 16)
+                                            .align(device.limits.minUniformBufferOffsetAlignment)
+                                            .toLong(),
+                                ),
+                            )
+                        ),
+                        label = "SpriteBatch Camera BindGroupLayoutDescriptor",
+                    ),
                 BindingUsage.TEXTURE to
                     BindGroupLayoutDescriptor(
                         listOf(
@@ -63,34 +81,6 @@ class SpriteBatchShader(device: Device) :
                             BindGroupLayoutEntry(1, ShaderStage.FRAGMENT, SamplerBindingLayout()),
                         ),
                         label = "SpriteBatchShader texture BindGroupLayoutDescriptor",
-                    )
+                    ),
             ),
-    ) {
-
-    override fun createBindGroup(
-        usage: BindingUsage,
-        vararg args: IntoBindingResource,
-    ): BindGroup? {
-        return when (usage) {
-            BindingUsage.TEXTURE -> {
-                val view =
-                    args[0] as? TextureView
-                        ?: error(
-                            "SpriteBatchShader requires view, sampler for BindingUsage.TEXTURE"
-                        )
-                val sampler =
-                    args[1] as? Sampler
-                        ?: error(
-                            "SpriteBatchShader requires view, sampler for BindingUsage.TEXTURE"
-                        )
-                device.createBindGroup(
-                    BindGroupDescriptor(
-                        getBindGroupLayoutByUsage(BindingUsage.TEXTURE),
-                        listOf(BindGroupEntry(0, view), BindGroupEntry(1, sampler)),
-                    )
-                )
-            }
-            else -> null
-        }
-    }
-}
+    )

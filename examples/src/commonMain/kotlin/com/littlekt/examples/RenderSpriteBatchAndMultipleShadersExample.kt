@@ -8,6 +8,7 @@ import com.littlekt.graphics.g2d.SpriteBatch
 import com.littlekt.graphics.shader.Shader
 import com.littlekt.graphics.util.BindingUsage
 import com.littlekt.graphics.webgpu.*
+import com.littlekt.util.align
 
 /**
  * An example showing a [SpriteBatch] drawing multiple textures and using different shaders to
@@ -62,6 +63,25 @@ class RenderSpriteBatchAndMultipleShadersExample(context: Context) : ContextList
             bindGroupLayoutUsageLayout = listOf(BindingUsage.CAMERA, BindingUsage.TEXTURE),
             layout =
                 mapOf(
+                    BindingUsage.CAMERA to
+                        BindGroupLayoutDescriptor(
+                            listOf(
+                                BindGroupLayoutEntry(
+                                    0,
+                                    ShaderStage.VERTEX,
+                                    BufferBindingLayout(
+                                        hasDynamicOffset = true,
+                                        minBindingSize =
+                                            (Float.SIZE_BYTES * 16)
+                                                .align(
+                                                    device.limits.minUniformBufferOffsetAlignment
+                                                )
+                                                .toLong(),
+                                    ),
+                                )
+                            ),
+                            label = "ColorShader Camera BindGroupLayoutDescriptor",
+                        ),
                     BindingUsage.TEXTURE to
                         BindGroupLayoutDescriptor(
                             listOf(
@@ -77,45 +97,9 @@ class RenderSpriteBatchAndMultipleShadersExample(context: Context) : ContextList
                                 ),
                             ),
                             label = "ColorShader texture BindGroupLayoutDescriptor",
-                        )
+                        ),
                 ),
-        ) {
-
-        override fun createBindGroup(
-            usage: BindingUsage,
-            vararg args: IntoBindingResource,
-        ): BindGroup? {
-            return when (usage) {
-                BindingUsage.TEXTURE -> {
-                    val view =
-                        args[0] as? TextureView
-                            ?: error("ColorShader requires view, sampler for BindingUsage.TEXTURE")
-                    val sampler =
-                        args[1] as? Sampler
-                            ?: error("ColorShader requires view, sampler for BindingUsage.TEXTURE")
-                    device.createBindGroup(
-                        BindGroupDescriptor(
-                            getBindGroupLayoutByUsage(BindingUsage.TEXTURE),
-                            listOf(BindGroupEntry(0, view), BindGroupEntry(1, sampler)),
-                        )
-                    )
-                }
-                else -> null
-            }
-        }
-
-        override fun setBindGroup(
-            renderPassEncoder: RenderPassEncoder,
-            bindGroup: BindGroup,
-            bindingUsage: BindingUsage,
-            dynamicOffsets: List<Long>,
-        ) {
-            when (bindingUsage) {
-                BindingUsage.CAMERA -> renderPassEncoder.setBindGroup(0, bindGroup, dynamicOffsets)
-                BindingUsage.TEXTURE -> renderPassEncoder.setBindGroup(1, bindGroup)
-            }
-        }
-    }
+        )
 
     override suspend fun Context.start() {
         addStatsHandler()
