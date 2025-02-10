@@ -13,22 +13,29 @@ object CommonShaderBlocks {
             )
         }
 
-    fun Joints(group: Int, binding: Int) = shaderBlock {
-        include(JointsStruct)
-        bindGroup(group, BindingUsage.SKIN) {
-            bind(binding, "joint", JointsStruct, ShaderBindingType.Storage(MemoryAccessMode.READ))
-            bind(
-                binding + 1,
-                "inverse_blend",
-                JointsStruct,
-                ShaderBindingType.Storage(MemoryAccessMode.READ),
-            )
+    fun Joints(group: Int, binding: Int) =
+        shaderBlock("Joints") {
+            include(JointsStruct)
+            bindGroup(group, BindingUsage.SKIN) {
+                bind(
+                    binding,
+                    "joint",
+                    JointsStruct,
+                    ShaderBindingType.Storage(MemoryAccessMode.READ),
+                )
+                bind(
+                    binding + 1,
+                    "inverse_blend",
+                    JointsStruct,
+                    ShaderBindingType.Storage(MemoryAccessMode.READ),
+                )
+            }
         }
-    }
 
-    fun SkinFunctions() = shaderBlock {
-        body {
-            """
+    fun SkinFunctions() =
+        shaderBlock("SkinFunctions") {
+            body {
+                """
               fn get_skin_matrix(input : VertexInput) -> mat4x4f {
                 let joint0 = joint.matrices[input.joints.x] * inverse_blend.matrices[input.joints.x];
                 let joint1 = joint.matrices[input.joints.y] * inverse_blend.matrices[input.joints.y];
@@ -42,14 +49,15 @@ object CommonShaderBlocks {
                 return skin_matrix;
               }
             """
-                .trimIndent()
+                    .trimIndent()
+            }
         }
-    }
 
-    fun Skin(group: Int, binding: Int) = shaderBlock {
-        include(Joints(group, binding))
-        SkinFunctions()
-    }
+    fun Skin(group: Int, binding: Int) =
+        shaderBlock("Skin") {
+            include(Joints(group, binding))
+            include(SkinFunctions())
+        }
 
     val CameraStruct =
         shaderStruct("Camera") {
@@ -65,12 +73,13 @@ object CommonShaderBlocks {
             )
         }
 
-    fun Camera(group: Int, binding: Int) = shaderBlock {
-        include(CameraStruct)
-        bindGroup(group, BindingUsage.CAMERA) {
-            bind(binding, "camera", CameraStruct, ShaderBindingType.Uniform)
+    fun Camera(group: Int, binding: Int) =
+        shaderBlock("Camera") {
+            include(CameraStruct)
+            bindGroup(group, BindingUsage.CAMERA) {
+                bind(binding, "camera", CameraStruct, ShaderBindingType.Uniform)
+            }
         }
-    }
 
     val ModelStruct =
         shaderStruct("Model") {
@@ -80,17 +89,18 @@ object CommonShaderBlocks {
             )
         }
 
-    fun Model(group: Int, binding: Int) = shaderBlock {
-        include(ModelStruct)
-        bindGroup(group, BindingUsage.MODEL) {
-            bindArray(
-                binding,
-                "models",
-                ModelStruct,
-                ShaderBindingType.Storage(MemoryAccessMode.READ),
-            )
+    fun Model(group: Int, binding: Int) =
+        shaderBlock("Model") {
+            include(ModelStruct)
+            bindGroup(group, BindingUsage.MODEL) {
+                bindArray(
+                    binding,
+                    "models",
+                    ModelStruct,
+                    ShaderBindingType.Storage(MemoryAccessMode.READ),
+                )
+            }
         }
-    }
 
     val LightStruct =
         shaderStruct("Light") {
@@ -114,26 +124,28 @@ object CommonShaderBlocks {
             )
         }
 
-    fun Lights(group: Int, binding: Int) = shaderBlock {
-        include(LightStruct)
-        include(GlobalLightsStruct)
-        bindGroup(group, BindingUsage.LIGHT) {
-            bind(
-                binding,
-                "global_lights",
-                GlobalLightsStruct,
-                ShaderBindingType.Storage(MemoryAccessMode.READ),
-            )
+    fun Lights(group: Int, binding: Int) =
+        shaderBlock("Lights") {
+            include(LightStruct)
+            include(GlobalLightsStruct)
+            bindGroup(group, BindingUsage.LIGHT) {
+                bind(
+                    binding,
+                    "global_lights",
+                    GlobalLightsStruct,
+                    ShaderBindingType.Storage(MemoryAccessMode.READ),
+                )
+            }
         }
-    }
 
     fun TileFunctions(
         tileCountX: Int = CommonSubShaderFunctions.DEFAULT_TILE_COUNT_X,
         tileCountY: Int = CommonSubShaderFunctions.DEFAULT_TILE_COUNT_Y,
         tileCountZ: Int = CommonSubShaderFunctions.DEFAULT_TILE_COUNT_Z,
-    ) = shaderBlock {
-        body {
-            """
+    ) =
+        shaderBlock("TileFunctions") {
+            body {
+                """
             const tile_count = vec3(${tileCountX}u, ${tileCountY}u, ${tileCountZ}u);
 
             fn linear_depth(depth_sample : f32) -> f32 {
@@ -159,9 +171,9 @@ object CommonShaderBlocks {
                      tile.z * tile_count.x * tile_count.y;
             }
         """
-                .trimIndent()
+                    .trimIndent()
+            }
         }
-    }
 
     val ClusterBoundsStruct =
         shaderStruct("ClusterBounds") {
@@ -192,7 +204,7 @@ object CommonShaderBlocks {
                 "offset" to
                     if (atomicOffset) ShaderStructParameterType.WgslType.atomic.u32
                     else ShaderStructParameterType.WgslType.u32,
-                "lights" to ShaderStructParameterType.array(LightStruct, lightsArrayLength),
+                "lights" to ShaderStructParameterType.array(ClusterLightsStruct, lightsArrayLength),
                 "indices" to ShaderStructParameterType.array(ShaderStructParameterType.WgslType.u32),
             )
         }
@@ -206,7 +218,7 @@ object CommonShaderBlocks {
         access: MemoryAccessMode = MemoryAccessMode.READ,
     ): ShaderBlock {
         val totalTiles = tileCountX * tileCountY * tileCountZ
-        return shaderBlock {
+        return shaderBlock("ClusterBounds") {
             include(ClusterBoundsStruct)
             include(ClustersStruct(totalTiles))
             bindGroup(group, BindingUsage.CLUSTER_BOUNDS) {
@@ -231,7 +243,7 @@ object CommonShaderBlocks {
         val totalTiles = tileCountX * tileCountY * tileCountZ
         val clusterLightGroupStruct =
             ClusterLightGroupStruct(totalTiles, access != MemoryAccessMode.READ)
-        return shaderBlock {
+        return shaderBlock("ClusterLights") {
             include(ClusterLightsStruct)
             include(clusterLightGroupStruct)
             bindGroup(group, BindingUsage.CLUSTER_LIGHTS) {
@@ -246,7 +258,7 @@ object CommonShaderBlocks {
     }
 
     fun ColorConversionFunctions(useApproximateSrgb: Boolean = true, gamma: Float = 2.2f) =
-        shaderBlock {
+        shaderBlock("ColorConversionFunctions") {
             body {
                 """
         fn linear_to_sRGB(linear : vec3f) -> vec3f {
@@ -275,6 +287,5 @@ object CommonShaderBlocks {
         const val DEFAULT_TILE_COUNT_X = 32
         const val DEFAULT_TILE_COUNT_Y = 18
         const val DEFAULT_TILE_COUNT_Z = 48
-        const val DEFAULT_MAX_LIGHTS_PER_CLUSTER = 256
     }
 }

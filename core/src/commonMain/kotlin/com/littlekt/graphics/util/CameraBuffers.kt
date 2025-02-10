@@ -1,8 +1,8 @@
 package com.littlekt.graphics.util
 
 import com.littlekt.Releasable
+import com.littlekt.graphics.shader.Shader
 import com.littlekt.graphics.webgpu.BindGroup
-import com.littlekt.graphics.webgpu.BindGroupLayout
 import com.littlekt.graphics.webgpu.BufferBinding
 
 /**
@@ -17,12 +17,11 @@ interface CameraBuffers : Releasable {
     val cameraDynamicSize: Int
     val cameraUniformBufferBinding: BufferBinding
 
-    val bindGroupLayout: BindGroupLayout
+    val bindingUsage: BindingUsage
 
-    val bindGroup: BindGroup
-
-    override fun release() {
-        bindGroup.release()
-        bindGroupLayout.release()
-    }
+    /**
+     * Grabs the cached version of [bindingUsage] bind group based on the shader bind group layout
+     * or creates one if needed.
+     */
+    fun getOrCreateBindGroup(shader: Shader): BindGroup
 }

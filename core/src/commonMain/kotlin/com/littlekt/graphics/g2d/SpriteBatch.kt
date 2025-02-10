@@ -109,9 +109,9 @@ class SpriteBatch(
     private val renderPipelineByBlendState: MutableMap<RenderInfo, RenderPipeline> =
         mutableMapOf(
             RenderInfo(shader, blendState) to
-                    device.createRenderPipeline(
-                        createRenderPipelineDescriptor(RenderInfo(shader, blendState))
-                    )
+                device.createRenderPipeline(
+                    createRenderPipelineDescriptor(RenderInfo(shader, blendState))
+                )
         )
 
     private val spriteIndices = mutableMapOf(lastMeshIdx to 0)
@@ -616,7 +616,7 @@ class SpriteBatch(
                     lastDynamicOffsetIndex * device.limits.minUniformBufferOffsetAlignment
                 shader.setBindGroup(
                     renderPassEncoder,
-                    cameraBuffers.bindGroup,
+                    cameraBuffers.getOrCreateBindGroup(shader),
                     BindingUsage.CAMERA,
                     lastDynamicMeshOffsets,
                 )

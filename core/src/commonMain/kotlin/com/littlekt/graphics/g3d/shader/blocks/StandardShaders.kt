@@ -2,8 +2,22 @@ package com.littlekt.graphics.g3d.shader.blocks
 
 import com.littlekt.graphics.VertexAttrUsage
 import com.littlekt.graphics.VertexAttribute
+import com.littlekt.graphics.g3d.shader.blocks.CommonShaderBlocks.Camera
+import com.littlekt.graphics.g3d.shader.blocks.CommonShaderBlocks.CameraStruct
+import com.littlekt.graphics.g3d.shader.blocks.CommonShaderBlocks.ClusterBounds
+import com.littlekt.graphics.g3d.shader.blocks.CommonShaderBlocks.ClusterBoundsStruct
+import com.littlekt.graphics.g3d.shader.blocks.CommonShaderBlocks.ClusterLightGroupStruct
+import com.littlekt.graphics.g3d.shader.blocks.CommonShaderBlocks.ClusterLights
+import com.littlekt.graphics.g3d.shader.blocks.CommonShaderBlocks.ClusterLightsStruct
+import com.littlekt.graphics.g3d.shader.blocks.CommonShaderBlocks.ClustersStruct
+import com.littlekt.graphics.g3d.shader.blocks.CommonShaderBlocks.CommonSubShaderFunctions
+import com.littlekt.graphics.g3d.shader.blocks.CommonShaderBlocks.GlobalLightsStruct
+import com.littlekt.graphics.g3d.shader.blocks.CommonShaderBlocks.LightStruct
+import com.littlekt.graphics.g3d.shader.blocks.CommonShaderBlocks.Lights
+import com.littlekt.graphics.g3d.shader.blocks.CommonShaderBlocks.TileFunctions
 import com.littlekt.graphics.shader.builder.*
 import com.littlekt.graphics.util.BindingUsage
+import com.littlekt.graphics.webgpu.MemoryAccessMode
 import kotlin.math.PI
 
 object Standard {
@@ -117,9 +131,10 @@ object Standard {
         return shaderStruct("VertexOutput") { input }
     }
 
-    private fun vertexLayoutBlock(layout: List<VertexAttribute>) = shaderBlock {
-        body {
-            """
+    private fun vertexLayoutBlock(layout: List<VertexAttribute>) =
+        shaderBlock("vertex_layout_block") {
+            body {
+                """
         %normal%
         ${
                 if (layout.any { it.usage == VertexAttrUsage.NORMAL }) {
@@ -180,16 +195,16 @@ object Standard {
         %position%
         output.position = camera.proj * camera.view * model_pos;
         """
-                .trimIndent()
+                    .trimIndent()
+            }
         }
-    }
 
     fun VertexShader(layout: List<VertexAttribute>) = shader {
         val input = VertexInputStruct(layout)
         val output = VertexOutputStruct(layout)
         include(input)
         include(output)
-        include(CommonShaderBlocks.Camera(0, 0))
+        include(Camera(0, 0))
         include(CommonShaderBlocks.Model(1, 0))
 
         vertex {
@@ -213,9 +228,9 @@ object Standard {
         val output = VertexOutputStruct(layout)
         include(input)
         include(output)
-        include(CommonShaderBlocks.Camera(0, 0))
+        include(Camera(0, 0))
         include(CommonShaderBlocks.Model(1, 0))
-        include(CommonShaderBlocks.Skin(2, 0))
+        include(CommonShaderBlocks.Skin(3, 0))
 
         vertex {
             main(input = input, output = output) {
@@ -242,14 +257,15 @@ object Standard {
                 )
             }
 
-        fun Material(group: Int) = shaderBlock {
-            include(MaterialStruct)
-            bindGroup(group, BindingUsage.MATERIAL) {
-                bind(0, "material", MaterialStruct, ShaderBindingType.Uniform)
-                bindTexture2d(1, "base_color_texture")
-                bindSampler(2, "base_color_sampler")
+        fun Material(group: Int) =
+            shaderBlock("Material") {
+                include(MaterialStruct)
+                bindGroup(group, BindingUsage.MATERIAL) {
+                    bind(0, "material", MaterialStruct, ShaderBindingType.Uniform)
+                    bindTexture2d(1, "base_color_texture")
+                    bindSampler(2, "base_color_sampler")
+                }
             }
-        }
 
         val FragmentOutputStruct =
             shaderStruct("FragmentOutput") {
@@ -263,7 +279,7 @@ object Standard {
             }
 
         fun FragmentShader(layout: List<VertexAttribute>) = shader {
-            val input = VertexInputStruct(layout)
+            val input = VertexOutputStruct(layout)
             val output = FragmentOutputStruct
             include(input)
             include(output)
@@ -305,22 +321,23 @@ object Standard {
                 )
             }
 
-        fun Material(group: Int) = shaderBlock {
-            include(MaterialStruct)
-            bindGroup(group, BindingUsage.MATERIAL) {
-                bind(0, "material", MaterialStruct, ShaderBindingType.Uniform)
-                bindTexture2d(1, "base_color_texture")
-                bindSampler(2, "base_color_sampler")
-                bindTexture2d(3, "normal_texture")
-                bindSampler(4, "normal_sampler")
-                bindTexture2d(5, "metallic_roughness_texture")
-                bindSampler(6, "metallic_roughness_sampler")
-                bindTexture2d(7, "occlusion_texture")
-                bindSampler(8, "occlusion_sampler")
-                bindTexture2d(9, "emissive_texture")
-                bindSampler(10, "emissive_sampler")
+        fun Material(group: Int) =
+            shaderBlock("Material") {
+                include(MaterialStruct)
+                bindGroup(group, BindingUsage.MATERIAL) {
+                    bind(0, "material", MaterialStruct, ShaderBindingType.Uniform)
+                    bindTexture2d(1, "base_color_texture")
+                    bindSampler(2, "base_color_sampler")
+                    bindTexture2d(3, "normal_texture")
+                    bindSampler(4, "normal_sampler")
+                    bindTexture2d(5, "metallic_roughness_texture")
+                    bindSampler(6, "metallic_roughness_sampler")
+                    bindTexture2d(7, "occlusion_texture")
+                    bindSampler(8, "occlusion_sampler")
+                    bindTexture2d(9, "emissive_texture")
+                    bindSampler(10, "emissive_sampler")
+                }
             }
-        }
 
         val SurfaceInfoStruct =
             shaderStruct("SurfaceInfo") {
@@ -337,10 +354,11 @@ object Standard {
                 )
             }
 
-        fun SurfaceInfo(attributes: List<VertexAttribute>) = shaderBlock {
-            include(SurfaceInfoStruct)
-            body {
-                """
+        fun SurfaceInfo(attributes: List<VertexAttribute>) =
+            shaderBlock("SurfaceInfo") {
+                include(SurfaceInfoStruct)
+                body {
+                    """
           fn GetSurfaceInfo(input : VertexOutput) -> SurfaceInfo {
             var surface : SurfaceInfo;
             surface.v = normalize(input.view);
@@ -383,13 +401,14 @@ object Standard {
             return surface;
           }
         """
-                    .trimIndent()
+                        .trimIndent()
+                }
             }
-        }
 
-        fun Lighting(fullyRough: Boolean = false) = shaderBlock {
-            body {
-                """
+        fun Lighting(fullyRough: Boolean = false) =
+            shaderBlock("Lighting") {
+                body {
+                    """
                     const PI = $PI;
 
                     const LightType_Point = 0u;
@@ -484,9 +503,9 @@ object Standard {
                     return (kD * surface.albedo / vec3(PI) + specular) * radiance * NdotL;
                 }
                 """
-                    .trimIndent()
+                        .trimIndent()
+                }
             }
-        }
 
         fun FragmentOutputStruct(bloomEnabled: Boolean = false) =
             shaderStruct("FragmentOutput") {
@@ -518,13 +537,14 @@ object Standard {
             val output = FragmentOutputStruct(bloomEnabled)
             include(input)
             include(output)
-            include(CommonShaderBlocks.Camera(0, 0))
-            include(CommonShaderBlocks.Lights(0, 1))
-            include(CommonShaderBlocks.ClusterLights(0, 2))
+            include(Camera(0, 0))
+            include(Lights(0, 1))
+            include(ClusterLights(0, 2))
             include(Material(2))
-            include(CommonShaderBlocks.TileFunctions())
+            include(TileFunctions())
             include(Lighting(fullyRough))
             include(SurfaceInfo(layout))
+            include(CommonShaderBlocks.ColorConversionFunctions())
 
             fragment {
                 main(input, output) {
@@ -587,5 +607,199 @@ object Standard {
                 }
             }
         }
+    }
+
+    object Cluster {
+
+        fun ClusterBoundsComputeShader(
+            workGroupSizeX: Int = DEFAULT_WORK_GROUP_SIZE_X,
+            workGroupSizeY: Int = DEFAULT_WORK_GROUP_SIZE_Y,
+            workGroupSizeZ: Int = DEFAULT_WORK_GROUP_SIZE_Z,
+            tileCountX: Int = CommonSubShaderFunctions.DEFAULT_TILE_COUNT_X,
+            tileCountY: Int = CommonSubShaderFunctions.DEFAULT_TILE_COUNT_Y,
+            tileCountZ: Int = CommonSubShaderFunctions.DEFAULT_TILE_COUNT_Z,
+        ) = shader {
+            include(Camera(0, 0))
+            include(
+                ClusterBounds(
+                    1,
+                    0,
+                    tileCountX,
+                    tileCountY,
+                    tileCountZ,
+                    access = MemoryAccessMode.READ_WRITE,
+                )
+            )
+            compute {
+                include("cluster bounds functions and consts") {
+                    body {
+                        """
+                          fn lineIntersectionToZPlane(a : vec3f, b : vec3f, zDistance : f32) -> vec3f {
+                            let normal = vec3(0.0, 0.0, 1.0); // plane normal
+                            let direction =  b - a;
+                            // intersection length for line and plane
+                            let t = (zDistance - dot(normal, a)) / dot(normal, direction);
+                            // xyz position of point along the line
+                            return a + t * direction;
+                          }
+                
+                          fn clipToView(clip : vec4f) -> vec4f {
+                            let view = camera.inverse_projection * clip;
+                            return view / view.w;
+                          }
+                
+                          fn screenToView(screen : vec4f) -> vec4f {
+                            let texCoord = screen.xy / camera.output_size.xy;
+                            let clip = vec4(vec2(texCoord.x, 1.0 - texCoord.y) * 2.0 - 1.0, screen.z, screen.w);
+                            return clipToView(clip);
+                          }
+                
+                          const tileCount = vec3(${tileCountX}u, ${tileCountY}u, ${tileCountZ}u);
+                          const eyePos = vec3(0.0);
+                        """
+                            .trimIndent()
+                    }
+                }
+                main(workGroupSizeX, workGroupSizeY, workGroupSizeZ) {
+                    """
+                        let tileIndex: u32 = global_id.x +
+                                              global_id.y * tileCount.x +
+                                              global_id.z * tileCount.x * tileCount.y;
+            
+                        let tileSize = vec2(camera.output_size.x / f32(tileCount.x),
+                                            camera.output_size.y / f32(tileCount.y));
+            
+                        let maxPoint_sS = vec4(vec2(f32(global_id.x + 1u), f32(global_id.y + 1u)) * tileSize, 0.0, 1.0);
+                        let minPoint_sS = vec4(vec2(f32(global_id.x), f32(global_id.y)) * tileSize, 0.0, 1.0);
+            
+                        let maxPoint_vS = screenToView(maxPoint_sS).xyz;
+                        let minPoint_vS = screenToView(minPoint_sS).xyz;
+            
+                        let tileNear: f32 = -camera.z_near * pow(camera.z_far / camera.z_near, f32(global_id.z) / f32(tileCount.z));
+                        let tileFar: f32 = -camera.z_near * pow(camera.z_far / camera.z_near, f32(global_id.z + 1u) / f32(tileCount.z));
+            
+                        let minPointNear = lineIntersectionToZPlane(eyePos, minPoint_vS, tileNear);
+                        let minPointFar = lineIntersectionToZPlane(eyePos, minPoint_vS, tileFar);
+                        let maxPointNear = lineIntersectionToZPlane(eyePos, maxPoint_vS, tileNear);
+                        let maxPointFar = lineIntersectionToZPlane(eyePos, maxPoint_vS, tileFar);
+            
+                        clusters.bounds[tileIndex].minAABB = min(min(minPointNear, minPointFar),min(maxPointNear, maxPointFar));
+                        clusters.bounds[tileIndex].maxAABB = max(max(minPointNear, minPointFar),max(maxPointNear, maxPointFar));
+                    """
+                        .trimIndent()
+                }
+            }
+        }
+
+        fun ClusterLightsComputeShader(
+            workGroupSizeX: Int = DEFAULT_WORK_GROUP_SIZE_X,
+            workGroupSizeY: Int = DEFAULT_WORK_GROUP_SIZE_Y,
+            workGroupSizeZ: Int = DEFAULT_WORK_GROUP_SIZE_Z,
+            tileCountX: Int = CommonSubShaderFunctions.DEFAULT_TILE_COUNT_X,
+            tileCountY: Int = CommonSubShaderFunctions.DEFAULT_TILE_COUNT_Y,
+            tileCountZ: Int = CommonSubShaderFunctions.DEFAULT_TILE_COUNT_Z,
+            maxLightsPerCluster: Int = DEFAULT_MAX_LIGHTS_PER_CLUSTER,
+        ) = shader {
+            val totalTiles = tileCountX * tileCountY * tileCountZ
+            val maxClusteredLights = totalTiles * 64
+            val clusterLightGroupStruct = ClusterLightGroupStruct(totalTiles, true)
+            include(CameraStruct)
+            include(ClusterBoundsStruct)
+            include(ClustersStruct(totalTiles))
+            include(ClusterLightsStruct)
+            include(clusterLightGroupStruct)
+            include(LightStruct)
+            include(GlobalLightsStruct)
+            bindGroup(0, BindingUsage.CLUSTER_LIGHTS) {
+                bind(0, "camera", CameraStruct, ShaderBindingType.Uniform)
+                bind(
+                    1,
+                    "clusters",
+                    ClustersStruct(totalTiles),
+                    ShaderBindingType.Storage(MemoryAccessMode.READ),
+                )
+                bind(
+                    2,
+                    "clusterLights",
+                    clusterLightGroupStruct,
+                    ShaderBindingType.Storage(MemoryAccessMode.READ_WRITE),
+                )
+                bind(
+                    3,
+                    "global_lights",
+                    GlobalLightsStruct,
+                    ShaderBindingType.Storage(MemoryAccessMode.READ),
+                )
+            }
+            include(TileFunctions())
+            include("Cluster Lights Functions") {
+                body {
+                    """
+                     fn sqDistPointAABB(p : vec3f, minAABB : vec3f, maxAABB : vec3f) -> f32 {
+                         let closest_point = clamp(p, minAABB, maxAABB);
+                         var dist_sq = dot(closest_point - p, closest_point - p);
+                         
+                         return dist_sq;
+                     }
+                    """
+                        .trimIndent()
+                }
+            }
+            compute {
+                main(workGroupSizeX, workGroupSizeY, workGroupSizeZ) {
+                    """
+                     let tileIndex = global_id.x +
+                                     global_id.y * tile_count.x +
+                                     global_id.z * tile_count.x * tile_count.y;
+                    
+                     // TODO: Look into improving threading using local invocation groups?
+                     var clusterLightCount = 0u;
+                     var clusterLightIndices : array<u32, ${maxLightsPerCluster}>;
+                     for (var i = 0u; i < global_lights.light_count; i = i + 1u) {
+                       let range = global_lights.lights[i].range;
+                       // Lights without an explicit range affect every cluster, but this is a poor way to handle that.
+                       var lightInCluster : bool = range <= 0.0;
+                    
+                       if (!lightInCluster) {
+                         // sphere aabb test
+                         let lightViewPos = camera.view * vec4(global_lights.lights[i].position, 1.0);
+                         let sqDist = sqDistPointAABB(lightViewPos.xyz, clusters.bounds[tileIndex].minAABB, clusters.bounds[tileIndex].maxAABB);
+                         lightInCluster = sqDist <= (range * range);
+                       }
+                    
+                       if (lightInCluster) {
+                         // Light affects this cluster. Add it to the list.
+                         clusterLightIndices[clusterLightCount] = i;
+                         clusterLightCount = clusterLightCount + 1u;
+                       }
+                    
+                       if (clusterLightCount == ${maxLightsPerCluster}u) {
+                         break;
+                       }
+                     }
+                    
+                     // TODO: Stick a barrier here and track cluster lights with an offset into a global light list
+                     let lightCount = clusterLightCount;
+                     var offset = atomicAdd(&clusterLights.offset, lightCount);
+                    
+                     if (offset >= ${maxClusteredLights}u) {
+                         return;
+                     }
+                    
+                     for(var i = 0u; i < clusterLightCount; i = i + 1u) {
+                       clusterLights.indices[offset + i] = clusterLightIndices[i];
+                     }
+                     clusterLights.lights[tileIndex].offset = offset;
+                     clusterLights.lights[tileIndex].count = clusterLightCount;
+                """
+                        .trimIndent()
+                }
+            }
+        }
+
+        const val DEFAULT_WORK_GROUP_SIZE_X = 4
+        const val DEFAULT_WORK_GROUP_SIZE_Y = 2
+        const val DEFAULT_WORK_GROUP_SIZE_Z = 4
+        const val DEFAULT_MAX_LIGHTS_PER_CLUSTER = 256
     }
 }

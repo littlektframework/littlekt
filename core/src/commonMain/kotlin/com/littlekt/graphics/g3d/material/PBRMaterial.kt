@@ -34,7 +34,7 @@ class PBRMaterial(
     override val depthCompareFunction: CompareFunction = CompareFunction.LESS,
     override val skinned: Boolean = false,
 ) : Material() {
-    private val isFullyRough: Boolean = roughnessFactor == 1f && metallicRoughnessTexture == null
+    val isFullyRough: Boolean = roughnessFactor == 1f && metallicRoughnessTexture == null
 
     val metallicRoughnessTexture: Texture = metallicRoughnessTexture ?: Textures.textureWhite
     val normalTexture: Texture = normalTexture ?: Textures.textureNormal

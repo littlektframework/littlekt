@@ -3,8 +3,9 @@ package com.littlekt.graphics.g3d.util
 import com.littlekt.graphics.VertexBufferLayout
 import com.littlekt.graphics.g3d.Environment
 import com.littlekt.graphics.g3d.material.UnlitMaterial
-import com.littlekt.graphics.g3d.shader.UnlitShader
-import com.littlekt.graphics.util.BindingUsage
+import com.littlekt.graphics.g3d.shader.blocks.Standard
+import com.littlekt.graphics.shader.Shader
+import com.littlekt.graphics.shader.builder.shader
 import com.littlekt.graphics.webgpu.*
 import kotlin.reflect.KClass
 
@@ -24,16 +25,20 @@ class UnlitMaterialPipelineProvider : BaseMaterialPipelineProvider<UnlitMaterial
         colorFormat: TextureFormat,
         depthFormat: TextureFormat,
     ): MaterialPipeline {
-        val shader = UnlitShader(device, layout.attributes, material.skinned)
+        val vertexShaderCode =
+            if (material.skinned) Standard.SkinnedVertexShader(layout.attributes)
+            else Standard.VertexShader(layout.attributes)
+        val fragmentShaderCode = Standard.Unlit.FragmentShader(layout.attributes)
+        val shaderCode = shader {
+            vertex(vertexShaderCode.vertex)
+            fragment(fragmentShaderCode.fragment)
+        }
+        val shader = Shader(device, shaderCode)
 
         val renderPipeline =
             device.createRenderPipeline(
                 RenderPipelineDescriptor(
-                    layout =
-                        shader.getOrCreatePipelineLayout {
-                            if (it == BindingUsage.CAMERA) environment.buffers.bindGroupLayout
-                            else error("Unsupported $it in UnlitMaterialPipelineProvider")
-                        },
+                    layout = shader.getOrCreatePipelineLayout(),
                     vertex =
                         VertexState(
                             module = shader.shaderModule,

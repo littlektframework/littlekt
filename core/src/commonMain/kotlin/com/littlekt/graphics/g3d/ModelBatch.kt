@@ -166,8 +166,8 @@ class ModelBatch(val device: Device) : Releasable {
                 lastEnvironmentSet = pipeline.environment
                 pipeline.shader.setBindGroup(
                     renderPassEncoder,
-                    pipeline.environment.buffers.bindGroup,
-                    BindingUsage.CAMERA,
+                    pipeline.environment.buffers.getOrCreateBindGroup(pipeline.shader),
+                    pipeline.environment.buffers.bindingUsage,
                 )
             }
             val primitives = primitivesByPipeline[pipeline]

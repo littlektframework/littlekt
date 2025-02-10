@@ -4,7 +4,6 @@ import com.littlekt.graphics.VertexBufferLayout
 import com.littlekt.graphics.g3d.Environment
 import com.littlekt.graphics.g3d.material.DepthSliceMaterial
 import com.littlekt.graphics.g3d.shader.DepthSliceShader
-import com.littlekt.graphics.util.BindingUsage
 import com.littlekt.graphics.webgpu.*
 import kotlin.reflect.KClass
 
@@ -29,11 +28,7 @@ class DepthSliceMaterialPipelineProvider : BaseMaterialPipelineProvider<DepthSli
         val renderPipeline =
             device.createRenderPipeline(
                 RenderPipelineDescriptor(
-                    layout =
-                        shader.getOrCreatePipelineLayout {
-                            if (it == BindingUsage.CAMERA) environment.buffers.bindGroupLayout
-                            else error("Unsupported $it in DepthSliceMaterialPipelineProvider")
-                        },
+                    layout = shader.getOrCreatePipelineLayout(),
                     vertex =
                         VertexState(
                             module = shader.shaderModule,

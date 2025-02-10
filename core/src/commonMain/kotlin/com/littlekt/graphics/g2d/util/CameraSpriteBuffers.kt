@@ -1,6 +1,8 @@
 package com.littlekt.graphics.g2d.util
 
 import com.littlekt.file.FloatBuffer
+import com.littlekt.graphics.shader.Shader
+import com.littlekt.graphics.util.BindingUsage
 import com.littlekt.graphics.util.CameraBuffersViaMatrix
 import com.littlekt.graphics.webgpu.*
 import com.littlekt.math.Mat4
@@ -47,7 +49,7 @@ class CameraSpriteBuffers(val device: Device, override val cameraDynamicSize: In
                     .align(device.limits.minUniformBufferOffsetAlignment)
                     .toLong(),
         )
-    override val bindGroupLayout: BindGroupLayout =
+    private val bindGroupLayout: BindGroupLayout =
         device.createBindGroupLayout(
             BindGroupLayoutDescriptor(
                 listOf(
@@ -66,7 +68,7 @@ class CameraSpriteBuffers(val device: Device, override val cameraDynamicSize: In
                 label = "CameraSpriteBuffers viewProj BindGroupLayout",
             )
         )
-    override val bindGroup: BindGroup =
+    private val bindGroup: BindGroup =
         device.createBindGroup(
             BindGroupDescriptor(
                 bindGroupLayout,
@@ -74,6 +76,11 @@ class CameraSpriteBuffers(val device: Device, override val cameraDynamicSize: In
                 label = "CameraSpriteBuffers viewProj BindGroup",
             )
         )
+    override val bindingUsage: BindingUsage = BindingUsage.CAMERA
+
+    override fun getOrCreateBindGroup(shader: Shader): BindGroup {
+        return bindGroup
+    }
 
     override fun update(viewProj: Mat4, dt: Duration, dynamicOffset: Long) {
         device.queue.writeBuffer(
@@ -84,7 +91,8 @@ class CameraSpriteBuffers(val device: Device, override val cameraDynamicSize: In
     }
 
     override fun release() {
-        super.release()
+        bindGroupLayout.release()
+        bindGroup.release()
         cameraUniformBuffer.release()
     }
 }

@@ -1,9 +1,11 @@
 package com.littlekt.graphics.shader
 
+import com.littlekt.graphics.g3d.shader.blocks.Standard
 import com.littlekt.graphics.shader.builder.*
 import com.littlekt.graphics.util.BindingUsage
 import com.littlekt.graphics.webgpu.MemoryAccessMode
 import com.littlekt.graphics.webgpu.ShaderStage
+import com.littlekt.mesh.layout.testVertexAttributes
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -1223,5 +1225,14 @@ class ShaderCodeBuilderTests {
 
         assertEquals(expected.src, vertexShader.src)
         assertEquals(vertexShader.visibility, ShaderStage.VERTEX)
+    }
+
+    @Test
+    fun test() {
+        val shader = shader {
+            vertex(Standard.SkinnedVertexShader(testVertexAttributes).vertex)
+            fragment(Standard.Unlit.FragmentShader(testVertexAttributes).fragment)
+        }
+        println(shader.src)
     }
 }
