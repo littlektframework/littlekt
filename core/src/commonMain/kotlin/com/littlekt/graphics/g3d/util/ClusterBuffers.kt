@@ -2,10 +2,10 @@ package com.littlekt.graphics.g3d.util
 
 import com.littlekt.Releasable
 import com.littlekt.file.ByteBuffer
-import com.littlekt.graphics.g3d.util.shader.ClusteredComputeShaderBuilder.Companion.DEFAULT_WORK_GROUP_SIZE_X
-import com.littlekt.graphics.g3d.util.shader.ClusteredComputeShaderBuilder.Companion.DEFAULT_WORK_GROUP_SIZE_Y
-import com.littlekt.graphics.g3d.util.shader.ClusteredComputeShaderBuilder.Companion.DEFAULT_WORK_GROUP_SIZE_Z
-import com.littlekt.graphics.g3d.util.shader.CommonSubShaderFunctions
+import com.littlekt.graphics.g3d.shader.blocks.CommonShaderBlocks
+import com.littlekt.graphics.g3d.shader.blocks.Standard.Cluster.DEFAULT_WORK_GROUP_SIZE_X
+import com.littlekt.graphics.g3d.shader.blocks.Standard.Cluster.DEFAULT_WORK_GROUP_SIZE_Y
+import com.littlekt.graphics.g3d.shader.blocks.Standard.Cluster.DEFAULT_WORK_GROUP_SIZE_Z
 import com.littlekt.graphics.webgpu.*
 import kotlin.math.ceil
 
@@ -15,9 +15,9 @@ import kotlin.math.ceil
  */
 class ClusterBuffers(
     val device: Device,
-    tileCountX: Int = CommonSubShaderFunctions.DEFAULT_TILE_COUNT_X,
-    tileCountY: Int = CommonSubShaderFunctions.DEFAULT_TILE_COUNT_Y,
-    tileCountZ: Int = CommonSubShaderFunctions.DEFAULT_TILE_COUNT_Z,
+    tileCountX: Int = CommonShaderBlocks.CommonSubShaderFunctions.DEFAULT_TILE_COUNT_X,
+    tileCountY: Int = CommonShaderBlocks.CommonSubShaderFunctions.DEFAULT_TILE_COUNT_Y,
+    tileCountZ: Int = CommonShaderBlocks.CommonSubShaderFunctions.DEFAULT_TILE_COUNT_Z,
     workGroupSizeX: Int = DEFAULT_WORK_GROUP_SIZE_X,
     workGroupSizeY: Int = DEFAULT_WORK_GROUP_SIZE_Y,
     workGroupSizeZ: Int = DEFAULT_WORK_GROUP_SIZE_Z,
