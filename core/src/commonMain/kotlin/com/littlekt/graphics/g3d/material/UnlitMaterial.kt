@@ -38,17 +38,20 @@ open class UnlitMaterial(
         BufferBinding(materialUniformBuffer, size = Float.SIZE_BYTES * 8L)
     }
 
-    override fun createBindGroup(shader: Shader): BindGroup {
-        return device.createBindGroup(
-            BindGroupDescriptor(
-                shader.getBindGroupLayoutByUsage(BindingUsage.MATERIAL),
-                listOf(
-                    BindGroupEntry(0, materialUniformBufferBinding),
-                    BindGroupEntry(1, baseColorTexture.view),
-                    BindGroupEntry(2, baseColorTexture.sampler),
-                ),
+    override fun createBindGroup(shader: Shader): BindGroup? {
+        val bindGroupLayout = shader.getBindGroupLayoutByUsageOrNull(BindingUsage.MATERIAL)
+        return bindGroupLayout?.let {
+            device.createBindGroup(
+                BindGroupDescriptor(
+                    bindGroupLayout,
+                    listOf(
+                        BindGroupEntry(0, materialUniformBufferBinding),
+                        BindGroupEntry(1, baseColorTexture.view),
+                        BindGroupEntry(2, baseColorTexture.sampler),
+                    ),
+                )
             )
-        )
+        }
     }
 
     override fun update() {

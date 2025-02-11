@@ -9,17 +9,27 @@ import com.littlekt.graph.node.ui.label
 import com.littlekt.graph.sceneGraph
 import com.littlekt.graphics.Color
 import com.littlekt.graphics.PerspectiveCamera
+import com.littlekt.graphics.VertexBufferLayout
+import com.littlekt.graphics.g3d.Environment
 import com.littlekt.graphics.g3d.ModelBatch
 import com.littlekt.graphics.g3d.PBREnvironment
+import com.littlekt.graphics.g3d.UnlitEnvironment
 import com.littlekt.graphics.g3d.light.AmbientLight
 import com.littlekt.graphics.g3d.light.DirectionalLight
 import com.littlekt.graphics.g3d.light.PointLight
-import com.littlekt.graphics.g3d.util.PBRMaterialPipelineProvider
-import com.littlekt.graphics.g3d.util.UnlitMaterialPipelineProvider
+import com.littlekt.graphics.g3d.material.UnlitMaterial
+import com.littlekt.graphics.g3d.shader.blocks.CommonShaderBlocks
+import com.littlekt.graphics.g3d.shader.blocks.Standard
+import com.littlekt.graphics.g3d.util.*
+import com.littlekt.graphics.shader.Shader
+import com.littlekt.graphics.shader.builder.shader
 import com.littlekt.graphics.webgpu.*
 import com.littlekt.input.Key
 import com.littlekt.math.Vec3f
 import com.littlekt.math.random
+import com.littlekt.resources.Textures
+import com.littlekt.util.datastructure.fastForEach
+import kotlin.reflect.KClass
 
 /**
  * An example using a simple Orthographic camera to move around a texture.
@@ -29,33 +39,157 @@ import com.littlekt.math.random
  */
 class PBRExample(context: Context) : ContextListener(context) {
 
+    private class DepthSliceMaterialProvider : BaseMaterialPipelineProvider<DepthSliceMaterial>() {
+        override val type: KClass<DepthSliceMaterial> = DepthSliceMaterial::class
+
+        override fun createMaterialPipeline(
+            device: Device,
+            environment: Environment,
+            layout: VertexBufferLayout,
+            topology: PrimitiveTopology,
+            material: DepthSliceMaterial,
+            colorFormat: TextureFormat,
+            depthFormat: TextureFormat,
+        ): MaterialPipeline {
+            val vertexShaderCode =
+                if (material.skinned) Standard.SkinnedVertexShader(layout.attributes)
+                else Standard.VertexShader(layout.attributes)
+            val fragmentShaderCode = shader {
+                val inputStruct = Standard.VertexOutputStruct(layout.attributes)
+                include(inputStruct)
+                include(Standard.Unlit.FragmentOutputStruct)
+                include(CommonShaderBlocks.TileFunctions())
+                fragment {
+                    include("color_set") {
+                        body {
+                            """
+                            var<private> color_set : array<vec3f, 9> = array<vec3f, 9>(
+                              vec3f(1.0, 0.0, 0.0),
+                              vec3f(1.0, 0.5, 0.0),
+                              vec3f(0.5, 1.0, 0.0),
+                              vec3f(0.0, 1.0, 0.0),
+                              vec3f(0.0, 1.0, 0.5),
+                              vec3f(0.0, 0.5, 1.0),
+                              vec3f(0.0, 0.0, 1.0),
+                              vec3f(0.5, 0.0, 1.0),
+                              vec3f(1.0, 0.0, 0.5)
+                            );
+                        """
+                                .trimIndent()
+                        }
+                    }
+                    main(input = inputStruct, Standard.Unlit.FragmentOutputStruct) {
+                        """
+                            var out: FragmentOutput;
+                            var tile : vec3u = get_tile(input.position);
+                            out.color = vec4f(color_set[tile.z % 9u], 1.0);
+                            return out;
+                        """
+                            .trimIndent()
+                    }
+                }
+            }
+
+            val shaderCode = shader {
+                vertex(vertexShaderCode.vertex)
+                fragment(fragmentShaderCode.fragment)
+            }
+            val shader = Shader(device, shaderCode)
+
+            val renderPipeline =
+                device.createRenderPipeline(
+                    RenderPipelineDescriptor(
+                        layout = shader.getOrCreatePipelineLayout(),
+                        vertex =
+                            VertexState(
+                                module = shader.shaderModule,
+                                entryPoint = shader.vertexEntryPoint,
+                                layout.gpuVertexBufferLayout,
+                            ),
+                        fragment =
+                            FragmentState(
+                                module = shader.shaderModule,
+                                entryPoint = shader.fragmentEntryPoint,
+                                target =
+                                    ColorTargetState(
+                                        format = colorFormat,
+                                        blendState =
+                                            if (material.transparent) BlendState.Alpha
+                                            else BlendState.Opaque,
+                                        writeMask = ColorWriteMask.ALL,
+                                    ),
+                            ),
+                        primitive =
+                            PrimitiveState(
+                                topology = topology,
+                                cullMode =
+                                    if (material.doubleSided) CullMode.NONE else CullMode.BACK,
+                            ),
+                        depthStencil =
+                            DepthStencilState(
+                                depthFormat,
+                                material.depthWrite,
+                                material.depthCompareFunction,
+                            ),
+                        multisample =
+                            MultisampleState(
+                                count = 1,
+                                mask = 0xFFFFFFF,
+                                alphaToCoverageEnabled = false,
+                            ),
+                    )
+                )
+
+            return MaterialPipeline(
+                shader = shader,
+                environment = environment,
+                renderOrder =
+                    if (material.transparent) RenderOrder.TRANSPARENT else RenderOrder.DEFAULT,
+                layout = layout,
+                renderPipeline = renderPipeline,
+            )
+        }
+    }
+
+    private class DepthSliceMaterial(device: Device) : UnlitMaterial(device, Textures.textureWhite)
+
+    private enum class RenderView {
+        NORMAL,
+        DEPTH_SLICE,
+    }
+
     override suspend fun Context.start() {
+
         addStatsHandler()
         this.addCloseOnEsc()
         val device = graphics.device
         val camera = PerspectiveCamera(graphics.width, graphics.height)
         camera.translate(0f, 1.5f, 0f)
-        val environment = PBREnvironment(device)
-        environment.setDirectionalLight(
+        val depthSliceMaterial = DepthSliceMaterial(device)
+        val pbrEnvironment = PBREnvironment(device)
+        val simpleEnvironment = UnlitEnvironment(device)
+        pbrEnvironment.setDirectionalLight(
             DirectionalLight(color = Color(0.2f, 0.2f, 0.2f), intensity = 0.1f)
         )
-        environment.setAmbientLight(AmbientLight(color = Color(0.002f, 0.002f, 0.002f)))
-        environment.addPointLight(PointLight(Vec3f(0f, 2.5f, 0f), color = Color.GREEN, range = 4f))
-        environment.addPointLight(
+        pbrEnvironment.setAmbientLight(AmbientLight(color = Color(0.002f, 0.002f, 0.002f)))
+        pbrEnvironment.addPointLight(
+            PointLight(Vec3f(0f, 2.5f, 0f), color = Color.GREEN, range = 4f)
+        )
+        pbrEnvironment.addPointLight(
             PointLight(Vec3f(8.95f, 2f, 3.15f), range = 4f, color = Color.RED)
         )
-        environment.addPointLight(
+        pbrEnvironment.addPointLight(
             PointLight(Vec3f(-9.45f, 2f, -3.59f), range = 4f, color = Color.BLUE)
         )
-        environment.addPointLight(
+        pbrEnvironment.addPointLight(
             PointLight(Vec3f(-9.45f, 2f, 3.15f), range = 4f, color = Color.GREEN)
         )
-        environment.addPointLight(
+        pbrEnvironment.addPointLight(
             PointLight(Vec3f(8.95f, 2f, -3.59f), range = 4f, color = Color.YELLOW)
         )
 
         repeat(1024) {
-            environment.addPointLight(
+            pbrEnvironment.addPointLight(
                 PointLight(
                     Vec3f(
                         (-9.45f..8.95f).random(),
@@ -122,7 +256,7 @@ class PBRExample(context: Context) : ContextListener(context) {
                 GltfModel(
                     resourcesVfs["models/sponza.glb"],
                     GltfLoaderPbrConfig(),
-                    environment,
+                    pbrEnvironment,
                     1f,
                     Vec3f.ZERO,
                 )
@@ -132,6 +266,7 @@ class PBRExample(context: Context) : ContextListener(context) {
             ModelBatch(device).apply {
                 addPipelineProvider(UnlitMaterialPipelineProvider())
                 addPipelineProvider(PBRMaterialPipelineProvider())
+                addPipelineProvider(DepthSliceMaterialProvider())
                 colorFormat = preferredFormat
                 this.depthFormat = depthFormat
             }
@@ -172,12 +307,20 @@ class PBRExample(context: Context) : ContextListener(context) {
 
             graph.resize(width, height)
         }
+        var renderView = RenderView.NORMAL
 
         addFlyController(camera)
 
         onUpdate {
             if (input.isKeyJustPressed(Key.T)) {
                 println(camera.position)
+            }
+            if (input.isKeyJustPressed(Key.NUM1) && renderView != RenderView.NORMAL) {
+                renderView = RenderView.NORMAL
+            }
+
+            if (input.isKeyJustPressed(Key.NUM2) && renderView != RenderView.DEPTH_SLICE) {
+                renderView = RenderView.DEPTH_SLICE
             }
         }
 
@@ -236,7 +379,16 @@ class PBRExample(context: Context) : ContextListener(context) {
                         )
                 )
 
-            modelBatch.renderGltfModels(models, camera)
+            when (renderView) {
+                RenderView.NORMAL -> modelBatch.renderGltfModels(models, camera)
+                RenderView.DEPTH_SLICE ->
+                    models.fastForEach { model ->
+                        model.scene?.let {
+                            modelBatch.render(it, camera, depthSliceMaterial, simpleEnvironment)
+                        }
+                    }
+            }
+
             modelBatch.flush(renderPassEncoder, camera, dt)
             renderPassEncoder.end()
             renderPassEncoder.release()

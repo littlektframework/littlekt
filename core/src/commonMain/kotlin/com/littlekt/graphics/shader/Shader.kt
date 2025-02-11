@@ -146,8 +146,10 @@ open class Shader(
         bindingUsage: BindingUsage,
         dynamicOffsets: List<Long> = emptyList(),
     ) {
-        val index = getBindGroupLayoutIndex(bindingUsage)
-        renderPassEncoder.setBindGroup(index, bindGroup, dynamicOffsets.ifEmpty { emptyList() })
+        val index = getBindGroupLayoutIndexOrNull(bindingUsage)
+        index?.let {
+            renderPassEncoder.setBindGroup(index, bindGroup, dynamicOffsets.ifEmpty { emptyList() })
+        }
     }
 
     /**
