@@ -481,11 +481,6 @@ data class Limits(
     /** The maximum allowed arrayStride when creating a GPURenderPipeline. */
     val maxVertexBufferArrayStride: Int,
     /**
-     * The maximum allowed number of components of input or output variables for inter-stage
-     * communication (like vertex outputs or fragment inputs).
-     */
-    val maxInterStageShaderComponents: Int,
-    /**
      * The maximum allowed number of input or output variables for inter-stage communication (like
      * vertex outputs or fragment inputs).
      */

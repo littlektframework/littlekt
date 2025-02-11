@@ -87,9 +87,9 @@ class JvmConfiguration(
     val powerPreference: PowerPreference = PowerPreference.HIGH_POWER
 ) : ContextConfiguration()
 
-val PowerPreference.nativeVal: Int
+val PowerPreference.nativeVal: UInt
     get() =
         when (this) {
-            PowerPreference.LOW_POWER -> 1
-            PowerPreference.HIGH_POWER -> 2
+            PowerPreference.LOW_POWER -> 1u
+            PowerPreference.HIGH_POWER -> 2u
         }

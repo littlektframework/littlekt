@@ -1,18 +1,23 @@
 package com.littlekt.graphics.webgpu
 
 import com.littlekt.Releasable
-import com.littlekt.wgpu.WGPU.*
-import com.littlekt.wgpu.WGPUBindGroupEntry
-import com.littlekt.wgpu.WGPUBufferBindingLayout
-import com.littlekt.wgpu.WGPUSamplerBindingLayout
-import com.littlekt.wgpu.WGPUTextureBindingLayout
+import io.ygdrasil.wgpu.WGPUBindGroup
+import io.ygdrasil.wgpu.WGPUBindGroupEntry
+import io.ygdrasil.wgpu.WGPUBindGroupLayout
+import io.ygdrasil.wgpu.WGPUBufferBindingLayout
+import io.ygdrasil.wgpu.WGPUPipelineLayout
+import io.ygdrasil.wgpu.WGPUSamplerBindingLayout
+import io.ygdrasil.wgpu.WGPUTextureBindingLayout
+import io.ygdrasil.wgpu.wgpuBindGroupLayoutRelease
+import io.ygdrasil.wgpu.wgpuBindGroupRelease
+import io.ygdrasil.wgpu.wgpuPipelineLayoutRelease
 import java.lang.foreign.MemorySegment
 
 actual interface IntoBindingResource {
-    fun intoBindingResource(entry: MemorySegment)
+    fun intoBindingResource(entry: WGPUBindGroupEntry)
 }
 
-actual class BindGroup(val segment: MemorySegment) : Releasable {
+actual class BindGroup(val segment: WGPUBindGroup) : Releasable {
 
     actual override fun release() {
         wgpuBindGroupRelease(segment)
@@ -25,20 +30,20 @@ actual class BindGroup(val segment: MemorySegment) : Releasable {
 
 actual abstract class BindingLayout actual constructor() {
     abstract fun intoNative(
-        bufferBinding: MemorySegment,
-        samplerBinding: MemorySegment,
-        textureBinding: MemorySegment,
-        storageTextureBinding: MemorySegment,
+        bufferBinding: WGPUBufferBindingLayout,
+        samplerBinding: WGPUSamplerBindingLayout,
+        textureBinding: WGPUTextureBindingLayout,
+        storageTextureBinding: MemorySegment
     )
 }
 
 actual class BufferBinding
 actual constructor(val buffer: GPUBuffer, val offset: Long, val size: Long) : IntoBindingResource {
 
-    override fun intoBindingResource(entry: MemorySegment) {
-        WGPUBindGroupEntry.buffer(entry, buffer.segment)
-        WGPUBindGroupEntry.offset(entry, offset)
-        WGPUBindGroupEntry.size(entry, size)
+    override fun intoBindingResource(entry: WGPUBindGroupEntry) {
+        entry.buffer = buffer.segment
+        entry.offset = offset.toULong()
+        entry.size = size.toULong()
     }
 }
 
@@ -50,14 +55,14 @@ actual constructor(
 ) : BindingLayout() {
 
     override fun intoNative(
-        bufferBinding: MemorySegment,
-        samplerBinding: MemorySegment,
-        textureBinding: MemorySegment,
-        storageTextureBinding: MemorySegment,
+        bufferBinding: WGPUBufferBindingLayout,
+        samplerBinding: WGPUSamplerBindingLayout,
+        textureBinding: WGPUTextureBindingLayout,
+        storageTextureBinding: MemorySegment
     ) {
-        WGPUBufferBindingLayout.type(bufferBinding, type.nativeVal)
-        WGPUBufferBindingLayout.hasDynamicOffset(bufferBinding, hasDynamicOffset.toInt())
-        WGPUBufferBindingLayout.minBindingSize(bufferBinding, minBindingSize)
+        bufferBinding.type = type.nativeVal
+        bufferBinding.hasDynamicOffset = hasDynamicOffset
+        bufferBinding.minBindingSize = minBindingSize.toULong()
     }
 }
 
@@ -69,30 +74,30 @@ actual constructor(
 ) : BindingLayout() {
 
     override fun intoNative(
-        bufferBinding: MemorySegment,
-        samplerBinding: MemorySegment,
-        textureBinding: MemorySegment,
-        storageTextureBinding: MemorySegment,
+        bufferBinding: WGPUBufferBindingLayout,
+        samplerBinding: WGPUSamplerBindingLayout,
+        textureBinding: WGPUTextureBindingLayout,
+        storageTextureBinding: MemorySegment
     ) {
-        WGPUTextureBindingLayout.sampleType(textureBinding, sampleType.nativeVal)
-        WGPUTextureBindingLayout.viewDimension(textureBinding, viewDimension.nativeVal)
-        WGPUTextureBindingLayout.multisampled(textureBinding, multisampled.toInt())
+        textureBinding.sampleType = sampleType.nativeVal
+        textureBinding.viewDimension = viewDimension.nativeVal
+        textureBinding.multisampled = multisampled
     }
 }
 
 actual class SamplerBindingLayout actual constructor(val type: SamplerBindingType) :
     BindingLayout() {
     override fun intoNative(
-        bufferBinding: MemorySegment,
-        samplerBinding: MemorySegment,
-        textureBinding: MemorySegment,
-        storageTextureBinding: MemorySegment,
+        bufferBinding: WGPUBufferBindingLayout,
+        samplerBinding: WGPUSamplerBindingLayout,
+        textureBinding: WGPUTextureBindingLayout,
+        storageTextureBinding: MemorySegment
     ) {
-        WGPUSamplerBindingLayout.type(samplerBinding, type.nativeVal)
+        samplerBinding.type = type.nativeVal
     }
 }
 
-actual class BindGroupLayout internal constructor(val segment: MemorySegment) : Releasable {
+actual class BindGroupLayout internal constructor(val segment: WGPUBindGroupLayout) : Releasable {
 
     actual override fun release() {
         wgpuBindGroupLayoutRelease(segment)
@@ -103,7 +108,7 @@ actual class BindGroupLayout internal constructor(val segment: MemorySegment) : 
     }
 }
 
-actual class PipelineLayout(val segment: MemorySegment) : Releasable {
+actual class PipelineLayout(val segment: WGPUPipelineLayout) : Releasable {
 
     actual override fun release() {
         wgpuPipelineLayoutRelease(segment)
@@ -117,11 +122,11 @@ actual class PipelineLayout(val segment: MemorySegment) : Releasable {
 class MemorySegmentList(segments: List<MemorySegment>) : List<MemorySegment> by segments
 
 actual class PipelineLayoutDescriptor
-internal constructor(val segments: MemorySegmentList, val label: String?) {
+internal constructor(val segments: List<WGPUBindGroupLayout>, val label: String?) {
     actual constructor(
         bindGroupLayouts: List<BindGroupLayout>,
-        label: String?,
-    ) : this(MemorySegmentList(bindGroupLayouts.map { it.segment }), label)
+        label: String?
+    ) : this(bindGroupLayouts.map { it.segment }, label)
 
     actual constructor(
         bindGroupLayout: BindGroupLayout,

@@ -50,7 +50,6 @@ actual class Device(val delegate: GPUDevice) : Releasable {
             maxBufferSize = jsLimits.maxBufferSize,
             maxVertexAttributes = jsLimits.maxVertexAttributes,
             maxVertexBufferArrayStride = jsLimits.maxVertexBufferArrayStride,
-            maxInterStageShaderComponents = jsLimits.maxInterStageShaderComponents,
             maxInterStageShaderVariables = jsLimits.maxInterStageShaderVariables,
             maxColorAttachments = jsLimits.maxColorAttachments,
             maxColorAttachmentBytesPerSample = jsLimits.maxColorAttachmentBytesPerSample,
