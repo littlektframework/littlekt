@@ -31,21 +31,18 @@ actual class BufferBindingLayout
 actual constructor(
     val type: BufferBindingType,
     val hasDynamicOffset: Boolean,
-    val minBindingSize: Long
+    val minBindingSize: Long,
 ) : BindingLayout()
 
 actual class TextureBindingLayout
 actual constructor(
     val sampleType: TextureSampleType,
     val viewDimension: TextureViewDimension,
-    val multisampled: Boolean
+    val multisampled: Boolean,
 ) : BindingLayout()
 
 actual class SamplerBindingLayout actual constructor(val type: SamplerBindingType) :
     BindingLayout()
-
-actual class BindGroupLayoutEntry
-actual constructor(val binding: Int, val visibility: ShaderStage, val bindingLayout: BindingLayout)
 
 actual class BindGroupLayout(val delegate: GPUBindGroupLayout) : Releasable {
     actual override fun release() {}
@@ -59,7 +56,7 @@ actual class PipelineLayoutDescriptor
 actual constructor(bindGroupLayouts: List<BindGroupLayout>, val label: String?) {
     actual constructor(
         bindGroupLayout: BindGroupLayout,
-        label: String?
+        label: String?,
     ) : this(listOf(bindGroupLayout), label)
 
     val delegates = bindGroupLayouts.map { it.delegate }.toTypedArray()

@@ -2,6 +2,10 @@ package com.littlekt.examples
 
 import com.littlekt.Context
 import com.littlekt.ContextListener
+import com.littlekt.examples.debug.DepthMaterial
+import com.littlekt.examples.debug.DepthMaterialPipelineProvider
+import com.littlekt.examples.debug.DepthSliceMaterial
+import com.littlekt.examples.debug.DepthSliceMaterialPipelineProvider
 import com.littlekt.file.gltf.GltfLoaderPbrConfig
 import com.littlekt.graph.node.ui.Control
 import com.littlekt.graph.node.ui.column
@@ -11,15 +15,16 @@ import com.littlekt.graphics.Color
 import com.littlekt.graphics.PerspectiveCamera
 import com.littlekt.graphics.g3d.ModelBatch
 import com.littlekt.graphics.g3d.PBREnvironment
+import com.littlekt.graphics.g3d.UnlitEnvironment
 import com.littlekt.graphics.g3d.light.AmbientLight
 import com.littlekt.graphics.g3d.light.DirectionalLight
 import com.littlekt.graphics.g3d.light.PointLight
-import com.littlekt.graphics.g3d.util.PBRMaterialPipelineProvider
-import com.littlekt.graphics.g3d.util.UnlitMaterialPipelineProvider
+import com.littlekt.graphics.g3d.util.*
 import com.littlekt.graphics.webgpu.*
 import com.littlekt.input.Key
 import com.littlekt.math.Vec3f
 import com.littlekt.math.random
+import com.littlekt.util.datastructure.fastForEach
 
 /**
  * An example using a simple Orthographic camera to move around a texture.
@@ -29,33 +34,45 @@ import com.littlekt.math.random
  */
 class PBRExample(context: Context) : ContextListener(context) {
 
+    private enum class RenderView {
+        NORMAL,
+        DEPTH,
+        DEPTH_SLICE,
+    }
+
     override suspend fun Context.start() {
+
         addStatsHandler()
         this.addCloseOnEsc()
         val device = graphics.device
         val camera = PerspectiveCamera(graphics.width, graphics.height)
         camera.translate(0f, 1.5f, 0f)
-        val environment = PBREnvironment(device)
-        environment.setDirectionalLight(
+        val depthSliceMaterial = DepthSliceMaterial(device)
+        val depthMaterial = DepthMaterial(device)
+        val pbrEnvironment = PBREnvironment(device)
+        val simpleEnvironment = UnlitEnvironment(device)
+        pbrEnvironment.setDirectionalLight(
             DirectionalLight(color = Color(0.2f, 0.2f, 0.2f), intensity = 0.1f)
         )
-        environment.setAmbientLight(AmbientLight(color = Color(0.002f, 0.002f, 0.002f)))
-        environment.addPointLight(PointLight(Vec3f(0f, 2.5f, 0f), color = Color.GREEN, range = 4f))
-        environment.addPointLight(
+        pbrEnvironment.setAmbientLight(AmbientLight(color = Color(0.002f, 0.002f, 0.002f)))
+        pbrEnvironment.addPointLight(
+            PointLight(Vec3f(0f, 2.5f, 0f), color = Color.GREEN, range = 4f)
+        )
+        pbrEnvironment.addPointLight(
             PointLight(Vec3f(8.95f, 2f, 3.15f), range = 4f, color = Color.RED)
         )
-        environment.addPointLight(
+        pbrEnvironment.addPointLight(
             PointLight(Vec3f(-9.45f, 2f, -3.59f), range = 4f, color = Color.BLUE)
         )
-        environment.addPointLight(
+        pbrEnvironment.addPointLight(
             PointLight(Vec3f(-9.45f, 2f, 3.15f), range = 4f, color = Color.GREEN)
         )
-        environment.addPointLight(
+        pbrEnvironment.addPointLight(
             PointLight(Vec3f(8.95f, 2f, -3.59f), range = 4f, color = Color.YELLOW)
         )
 
         repeat(1024) {
-            environment.addPointLight(
+            pbrEnvironment.addPointLight(
                 PointLight(
                     Vec3f(
                         (-9.45f..8.95f).random(),
@@ -122,7 +139,7 @@ class PBRExample(context: Context) : ContextListener(context) {
                 GltfModel(
                     resourcesVfs["models/sponza.glb"],
                     GltfLoaderPbrConfig(),
-                    environment,
+                    pbrEnvironment,
                     1f,
                     Vec3f.ZERO,
                 )
@@ -132,6 +149,8 @@ class PBRExample(context: Context) : ContextListener(context) {
             ModelBatch(device).apply {
                 addPipelineProvider(UnlitMaterialPipelineProvider())
                 addPipelineProvider(PBRMaterialPipelineProvider())
+                addPipelineProvider(DepthSliceMaterialPipelineProvider())
+                addPipelineProvider(DepthMaterialPipelineProvider())
                 colorFormat = preferredFormat
                 this.depthFormat = depthFormat
             }
@@ -172,12 +191,24 @@ class PBRExample(context: Context) : ContextListener(context) {
 
             graph.resize(width, height)
         }
+        var renderView = RenderView.NORMAL
 
         addFlyController(camera)
 
         onUpdate {
             if (input.isKeyJustPressed(Key.T)) {
                 println(camera.position)
+            }
+            if (input.isKeyJustPressed(Key.NUM1) && renderView != RenderView.NORMAL) {
+                renderView = RenderView.NORMAL
+            }
+
+            if (input.isKeyJustPressed(Key.NUM2) && renderView != RenderView.DEPTH_SLICE) {
+                renderView = RenderView.DEPTH_SLICE
+            }
+
+            if (input.isKeyJustPressed(Key.NUM3) && renderView != RenderView.DEPTH) {
+                renderView = RenderView.DEPTH
             }
         }
 
@@ -236,7 +267,22 @@ class PBRExample(context: Context) : ContextListener(context) {
                         )
                 )
 
-            modelBatch.renderGltfModels(models, camera)
+            when (renderView) {
+                RenderView.NORMAL -> modelBatch.renderGltfModels(models, camera)
+                RenderView.DEPTH ->
+                    models.fastForEach { model ->
+                        model.scene?.let {
+                            modelBatch.render(it, camera, depthMaterial, simpleEnvironment)
+                        }
+                    }
+                RenderView.DEPTH_SLICE ->
+                    models.fastForEach { model ->
+                        model.scene?.let {
+                            modelBatch.render(it, camera, depthSliceMaterial, simpleEnvironment)
+                        }
+                    }
+            }
+
             modelBatch.flush(renderPassEncoder, camera, dt)
             renderPassEncoder.end()
             renderPassEncoder.release()

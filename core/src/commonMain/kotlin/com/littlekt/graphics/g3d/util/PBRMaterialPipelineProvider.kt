@@ -3,8 +3,9 @@ package com.littlekt.graphics.g3d.util
 import com.littlekt.graphics.VertexBufferLayout
 import com.littlekt.graphics.g3d.Environment
 import com.littlekt.graphics.g3d.material.PBRMaterial
-import com.littlekt.graphics.g3d.shader.PBRShader
-import com.littlekt.graphics.util.BindingUsage
+import com.littlekt.graphics.g3d.shader.blocks.Standard
+import com.littlekt.graphics.shader.Shader
+import com.littlekt.graphics.shader.builder.shader
 import com.littlekt.graphics.webgpu.*
 import kotlin.reflect.KClass
 
@@ -24,16 +25,26 @@ class PBRMaterialPipelineProvider : BaseMaterialPipelineProvider<PBRMaterial>() 
         colorFormat: TextureFormat,
         depthFormat: TextureFormat,
     ): MaterialPipeline {
-        val shader = PBRShader(device, layout.attributes, material.skinned)
+        val vertexShaderCode =
+            if (material.skinned) Standard.SkinnedVertexShader(layout.attributes)
+            else Standard.VertexShader(layout.attributes)
+        val pbrFragmentShaderCode =
+            Standard.PBR.FragmentShader(
+                layout.attributes,
+                false, // TODO handle bloom
+                false, // todo we don't have shadows yet: material.castShadows,
+                material.isFullyRough,
+            )
+        val shaderCode = shader {
+            vertex(vertexShaderCode.vertex)
+            fragment(pbrFragmentShaderCode.fragment)
+        }
+        val shader = Shader(device, shaderCode)
 
         val renderPipeline =
             device.createRenderPipeline(
                 RenderPipelineDescriptor(
-                    layout =
-                        shader.getOrCreatePipelineLayout {
-                            if (it == BindingUsage.CAMERA) environment.buffers.bindGroupLayout
-                            else error("Unsupported $it in UnlitMaterialPipelineProvider")
-                        },
+                    layout = shader.getOrCreatePipelineLayout(),
                     vertex =
                         VertexState(
                             module = shader.shaderModule,

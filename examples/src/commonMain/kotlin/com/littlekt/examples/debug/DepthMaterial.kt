@@ -1,39 +1,66 @@
-package com.littlekt.graphics.g3d.util
+package com.littlekt.examples.debug
 
 import com.littlekt.graphics.VertexBufferLayout
 import com.littlekt.graphics.g3d.Environment
-import com.littlekt.graphics.g3d.material.DepthSliceMaterial
-import com.littlekt.graphics.g3d.shader.DepthSliceShader
-import com.littlekt.graphics.util.BindingUsage
+import com.littlekt.graphics.g3d.material.UnlitMaterial
+import com.littlekt.graphics.g3d.shader.blocks.Standard
+import com.littlekt.graphics.g3d.util.BaseMaterialPipelineProvider
+import com.littlekt.graphics.g3d.util.MaterialPipeline
+import com.littlekt.graphics.g3d.util.RenderOrder
+import com.littlekt.graphics.shader.Shader
+import com.littlekt.graphics.shader.builder.shader
 import com.littlekt.graphics.webgpu.*
+import com.littlekt.resources.Textures
 import kotlin.reflect.KClass
 
 /**
  * @author Colton Daily
- * @date 2/5/2025
+ * @date 2/11/2025
  */
-class DepthSliceMaterialPipelineProvider : BaseMaterialPipelineProvider<DepthSliceMaterial>() {
-    override val type: KClass<DepthSliceMaterial> = DepthSliceMaterial::class
+class DepthMaterialPipelineProvider : BaseMaterialPipelineProvider<DepthMaterial>() {
+    override val type: KClass<DepthMaterial> = DepthMaterial::class
 
     override fun createMaterialPipeline(
         device: Device,
         environment: Environment,
         layout: VertexBufferLayout,
         topology: PrimitiveTopology,
-        material: DepthSliceMaterial,
+        material: DepthMaterial,
         colorFormat: TextureFormat,
         depthFormat: TextureFormat,
     ): MaterialPipeline {
-        val shader = DepthSliceShader(device, layout.attributes, material.skinned)
+        val vertexShaderCode =
+            if (material.skinned) Standard.SkinnedVertexShader(layout.attributes)
+            else Standard.VertexShader(layout.attributes)
+        val fragmentShaderCode = shader {
+            val inputStruct = Standard.VertexOutputStruct(layout.attributes)
+            include(inputStruct)
+            include(Standard.Unlit.FragmentOutputStruct)
+            fragment {
+                main(input = inputStruct, Standard.Unlit.FragmentOutputStruct) {
+                    """
+                        var out: FragmentOutput;
+                        let depth: f32 = input.position.z / input.position.w;
+
+                        let gray: f32 = clamp(depth, 0.0, 1.0);
+                        out.color = vec4f(gray, gray, gray, 1.0);
+                        return out;
+                    """
+                        .trimIndent()
+                }
+            }
+        }
+
+        val shaderCode = shader {
+            vertex(vertexShaderCode.vertex)
+            fragment(fragmentShaderCode.fragment)
+        }
+        val shader = Shader(device, shaderCode)
 
         val renderPipeline =
             device.createRenderPipeline(
                 RenderPipelineDescriptor(
-                    layout =
-                        shader.getOrCreatePipelineLayout {
-                            if (it == BindingUsage.CAMERA) environment.buffers.bindGroupLayout
-                            else error("Unsupported $it in DepthSliceMaterialPipelineProvider")
-                        },
+                    layout = shader.getOrCreatePipelineLayout(),
                     vertex =
                         VertexState(
                             module = shader.shaderModule,
@@ -83,3 +110,5 @@ class DepthSliceMaterialPipelineProvider : BaseMaterialPipelineProvider<DepthSli
         )
     }
 }
+
+class DepthMaterial(device: Device) : UnlitMaterial(device, Textures.textureWhite)

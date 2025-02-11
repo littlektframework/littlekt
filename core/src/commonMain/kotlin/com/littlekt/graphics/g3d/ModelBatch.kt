@@ -117,8 +117,28 @@ class ModelBatch(val device: Device) : Releasable {
         node.forEachMeshPrimitive { render(it, environment) }
     }
 
+    /**
+     * Adds a [Node3D] to be drawn on the next [flush] using the specified [Environment] with the
+     * given material override.
+     */
+    fun render(node: Node3D, material: Material, environment: Environment) {
+        node.forEachMeshPrimitive { render(it, material, environment) }
+    }
+
+    /**
+     * Render any mesh primitives with the given node using the given [Camera] to attempt any
+     * frustum culling.
+     */
     fun render(node: Node3D, camera: Camera, environment: Environment) {
         node.forEachMeshPrimitive(camera) { render(it, environment) }
+    }
+
+    /**
+     * Render any mesh primitives with the given node using the given [Camera] to attempt any
+     * frustum culling with an material override.
+     */
+    fun render(node: Node3D, camera: Camera, material: Material, environment: Environment) {
+        node.forEachMeshPrimitive(camera) { render(it, material, environment) }
     }
 
     /** Adds a [MeshPrimitive] to be drawn on the next [flush] using the specified [Environment]. */
@@ -152,6 +172,37 @@ class ModelBatch(val device: Device) : Releasable {
         }
     }
 
+    /** Render a [MeshPrimitive] by overriding the attached material with the given material. */
+    fun render(meshPrimitive: MeshPrimitive, material: Material, environment: Environment) {
+        val pipeline =
+            pipelineProviders[material::class]?.getMaterialPipeline(
+                device,
+                material,
+                environment,
+                meshPrimitive.mesh.geometry.layout,
+                meshPrimitive.topology,
+                meshPrimitive.stripIndexFormat,
+                colorFormat,
+                depthFormat,
+            ) ?: error("Unable to find pipeline for given instance!")
+        if (material.ready) {
+            if (!pipelines.contains(pipeline)) {
+                pipelines += pipeline
+            }
+            primitivesByPipeline
+                .getOrPut(pipeline) { listPool.alloc() }
+                .apply { add(meshPrimitive) }
+
+            bindGroupByMaterialId.getOrPutNotNull(material.id) {
+                material.createBindGroup(pipeline.shader)
+            }
+        }
+        val skin = meshPrimitive.skin
+        if (material.skinned && skin != null) {
+            bindGroupBySkinId.getOrPut(skin.id) { skin.createBindGroup(pipeline.shader) }
+        }
+    }
+
     fun flush(renderPassEncoder: RenderPassEncoder, camera: Camera, dt: Duration) {
         sorter.sort(pipelines)
         var lastEnvironmentSet: Environment? = null
@@ -166,8 +217,8 @@ class ModelBatch(val device: Device) : Releasable {
                 lastEnvironmentSet = pipeline.environment
                 pipeline.shader.setBindGroup(
                     renderPassEncoder,
-                    pipeline.environment.buffers.bindGroup,
-                    BindingUsage.CAMERA,
+                    pipeline.environment.buffers.getOrCreateBindGroup(pipeline.shader),
+                    pipeline.environment.buffers.bindingUsage,
                 )
             }
             val primitives = primitivesByPipeline[pipeline]

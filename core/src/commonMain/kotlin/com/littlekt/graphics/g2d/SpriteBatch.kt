@@ -109,9 +109,9 @@ class SpriteBatch(
     private val renderPipelineByBlendState: MutableMap<RenderInfo, RenderPipeline> =
         mutableMapOf(
             RenderInfo(shader, blendState) to
-                    device.createRenderPipeline(
-                        createRenderPipelineDescriptor(RenderInfo(shader, blendState))
-                    )
+                device.createRenderPipeline(
+                    createRenderPipelineDescriptor(RenderInfo(shader, blendState))
+                )
         )
 
     private val spriteIndices = mutableMapOf(lastMeshIdx to 0)
@@ -616,7 +616,7 @@ class SpriteBatch(
                     lastDynamicOffsetIndex * device.limits.minUniformBufferOffsetAlignment
                 shader.setBindGroup(
                     renderPassEncoder,
-                    cameraBuffers.bindGroup,
+                    cameraBuffers.getOrCreateBindGroup(shader),
                     BindingUsage.CAMERA,
                     lastDynamicMeshOffsets,
                 )
@@ -727,11 +727,7 @@ class SpriteBatch(
     private fun createRenderPipelineDescriptor(renderInfo: RenderInfo): RenderPipelineDescriptor {
         val (shader, blendState) = renderInfo
         return RenderPipelineDescriptor(
-            layout =
-                shader.getOrCreatePipelineLayout { bindingUsage ->
-                    if (bindingUsage == BindingUsage.CAMERA) cameraBuffers.bindGroupLayout
-                    else error("Unsupported $bindingUsage in SpriteBatch")
-                },
+            layout = shader.getOrCreatePipelineLayout(),
             vertex =
                 VertexState(
                     module = shader.shaderModule,

@@ -5,6 +5,7 @@ import com.littlekt.graphics.shader.Shader
 import com.littlekt.graphics.util.BindingUsage
 import com.littlekt.graphics.webgpu.*
 import com.littlekt.log.Logger
+import com.littlekt.util.align
 import kotlin.math.min
 
 /**
@@ -144,6 +145,23 @@ class SpriteCacheShader(device: Device, staticSize: Int, dynamicSize: Int) :
             listOf(BindingUsage.CAMERA, SPRITE_STORAGE, BindingUsage.TEXTURE),
         layout =
             mapOf(
+                BindingUsage.CAMERA to
+                    BindGroupLayoutDescriptor(
+                        listOf(
+                            BindGroupLayoutEntry(
+                                0,
+                                ShaderStage.VERTEX,
+                                BufferBindingLayout(
+                                    hasDynamicOffset = true,
+                                    minBindingSize =
+                                        (Float.SIZE_BYTES * 16)
+                                            .align(device.limits.minUniformBufferOffsetAlignment)
+                                            .toLong(),
+                                ),
+                            )
+                        ),
+                        label = "SpriteCache Camera BindGroupLayoutDescriptor",
+                    ),
                 SPRITE_STORAGE to
                     BindGroupLayoutDescriptor(
                         listOf(

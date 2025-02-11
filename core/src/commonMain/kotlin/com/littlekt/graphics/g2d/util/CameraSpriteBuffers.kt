@@ -1,6 +1,8 @@
 package com.littlekt.graphics.g2d.util
 
 import com.littlekt.file.FloatBuffer
+import com.littlekt.graphics.shader.Shader
+import com.littlekt.graphics.util.BindingUsage
 import com.littlekt.graphics.util.CameraBuffersViaMatrix
 import com.littlekt.graphics.webgpu.*
 import com.littlekt.math.Mat4
@@ -20,7 +22,7 @@ class CameraSpriteBuffers(val device: Device, override val cameraDynamicSize: In
     }
 
     /** The [GPUBuffer] that holds the matrix data. */
-    val cameraUniformBuffer = run {
+    private val cameraUniformBuffer = run {
         val buffer =
             device.createBuffer(
                 BufferDescriptor(
@@ -47,33 +49,17 @@ class CameraSpriteBuffers(val device: Device, override val cameraDynamicSize: In
                     .align(device.limits.minUniformBufferOffsetAlignment)
                     .toLong(),
         )
-    override val bindGroupLayout: BindGroupLayout =
-        device.createBindGroupLayout(
-            BindGroupLayoutDescriptor(
-                listOf(
-                    BindGroupLayoutEntry(
-                        0,
-                        ShaderStage.VERTEX,
-                        BufferBindingLayout(
-                            hasDynamicOffset = true,
-                            minBindingSize =
-                                (Float.SIZE_BYTES * 16)
-                                    .align(device.limits.minUniformBufferOffsetAlignment)
-                                    .toLong(),
-                        ),
-                    )
-                ),
-                label = "CameraSpriteBuffers viewProj BindGroupLayout",
-            )
-        )
-    override val bindGroup: BindGroup =
-        device.createBindGroup(
-            BindGroupDescriptor(
-                bindGroupLayout,
-                listOf(BindGroupEntry(0, cameraUniformBufferBinding)),
-                label = "CameraSpriteBuffers viewProj BindGroup",
-            )
-        )
+
+    private var bindGroups = mutableMapOf<Int, BindGroup>()
+    override val bindingUsage: BindingUsage = BindingUsage.CAMERA
+
+    override fun getOrCreateBindGroup(shader: Shader): BindGroup {
+        return bindGroups[shader.id]
+            ?: shader.createBindGroup(bindingUsage, cameraUniformBufferBinding)?.also {
+                bindGroups[shader.id] = it
+            }
+            ?: error("Unable to create bind group for shader: ${shader.id}")
+    }
 
     override fun update(viewProj: Mat4, dt: Duration, dynamicOffset: Long) {
         device.queue.writeBuffer(
@@ -84,7 +70,7 @@ class CameraSpriteBuffers(val device: Device, override val cameraDynamicSize: In
     }
 
     override fun release() {
-        super.release()
+        bindGroups.values.forEach { it.release() }
         cameraUniformBuffer.release()
     }
 }
