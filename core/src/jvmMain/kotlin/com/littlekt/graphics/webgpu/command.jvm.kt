@@ -2,14 +2,42 @@ package com.littlekt.graphics.webgpu
 
 import com.littlekt.EngineStats
 import com.littlekt.Releasable
-import com.littlekt.wgpu.*
-import com.littlekt.wgpu.WGPU.*
+import ffi.MemoryAllocator
+import io.ygdrasil.wgpu.WGPUCommandBuffer
+import io.ygdrasil.wgpu.WGPUCommandEncoder
+import io.ygdrasil.wgpu.WGPUComputePassEncoder
+import io.ygdrasil.wgpu.WGPUComputePipeline
+import io.ygdrasil.wgpu.WGPUOrigin3D
+import io.ygdrasil.wgpu.WGPURenderPassEncoder
+import io.ygdrasil.wgpu.WGPURenderPipeline
+import io.ygdrasil.wgpu.WGPUTexelCopyTextureInfo
+import io.ygdrasil.wgpu.wgpuCommandBufferRelease
+import io.ygdrasil.wgpu.wgpuCommandEncoderCopyBufferToTexture
+import io.ygdrasil.wgpu.wgpuCommandEncoderFinish
+import io.ygdrasil.wgpu.wgpuCommandEncoderRelease
+import io.ygdrasil.wgpu.wgpuComputePassEncoderDispatchWorkgroups
+import io.ygdrasil.wgpu.wgpuComputePassEncoderEnd
+import io.ygdrasil.wgpu.wgpuComputePassEncoderRelease
+import io.ygdrasil.wgpu.wgpuComputePassEncoderSetBindGroup
+import io.ygdrasil.wgpu.wgpuComputePassEncoderSetPipeline
+import io.ygdrasil.wgpu.wgpuComputePipelineRelease
+import io.ygdrasil.wgpu.wgpuRenderPassEncoderDraw
+import io.ygdrasil.wgpu.wgpuRenderPassEncoderDrawIndexed
+import io.ygdrasil.wgpu.wgpuRenderPassEncoderEnd
+import io.ygdrasil.wgpu.wgpuRenderPassEncoderRelease
+import io.ygdrasil.wgpu.wgpuRenderPassEncoderSetBindGroup
+import io.ygdrasil.wgpu.wgpuRenderPassEncoderSetIndexBuffer
+import io.ygdrasil.wgpu.wgpuRenderPassEncoderSetPipeline
+import io.ygdrasil.wgpu.wgpuRenderPassEncoderSetScissorRect
+import io.ygdrasil.wgpu.wgpuRenderPassEncoderSetVertexBuffer
+import io.ygdrasil.wgpu.wgpuRenderPassEncoderSetViewport
+import io.ygdrasil.wgpu.wgpuRenderPipelineRelease
 import java.lang.foreign.Arena
 import java.lang.foreign.MemorySegment
 import java.lang.foreign.SegmentAllocator
 import java.lang.foreign.ValueLayout
 
-actual class RenderPipeline(val segment: MemorySegment) : Releasable {
+actual class RenderPipeline(val segment: WGPURenderPipeline) : Releasable {
 
     actual override fun release() {
         wgpuRenderPipelineRelease(segment)
@@ -20,23 +48,14 @@ actual class RenderPipeline(val segment: MemorySegment) : Releasable {
     }
 }
 
-actual class CommandBuffer(val segment: MemorySegment) : Releasable {
+actual class CommandBuffer(val segment: WGPUCommandBuffer) : Releasable {
     actual override fun release() {
         wgpuCommandBufferRelease(segment)
     }
 }
 
-fun TextureCopyView.toNative(scope: SegmentAllocator): MemorySegment {
-    val native = WGPUImageCopyTexture.allocate(scope)
-    val nativeOrigin = WGPUImageCopyTexture.origin(native)
-
-    WGPUImageCopyTexture.texture(native, texture.segment)
-    WGPUImageCopyTexture.mipLevel(native, mipLevel)
-    WGPUOrigin3D.x(nativeOrigin, origin.x)
-    WGPUOrigin3D.y(nativeOrigin, origin.y)
-    WGPUOrigin3D.z(nativeOrigin, origin.z)
-
-    return native
+fun TextureCopyView.toNative(scope: MemoryAllocator): WGPUTexelCopyTextureInfo {
+    return scope.map(this)
 }
 
 fun TextureDataLayout.toNative(scope: SegmentAllocator): MemorySegment {
@@ -61,7 +80,7 @@ fun BufferCopyView.toNative(scope: SegmentAllocator): MemorySegment {
     return native
 }
 
-actual class CommandEncoder(val segment: MemorySegment) : Releasable {
+actual class CommandEncoder(val segment: WGPUCommandEncoder) : Releasable {
 
     actual fun beginRenderPass(desc: RenderPassDescriptor): RenderPassEncoder {
         return Arena.ofConfined().use { scope ->
@@ -177,7 +196,7 @@ actual class CommandEncoder(val segment: MemorySegment) : Releasable {
     }
 
     actual fun finish(): CommandBuffer {
-        return CommandBuffer(wgpuCommandEncoderFinish(segment, NULL()))
+        return CommandBuffer(wgpuCommandEncoderFinish(segment, null) ?: error("Failed to finish command encoder."))
     }
 
     actual fun copyBufferToTexture(
@@ -229,7 +248,7 @@ actual class CommandEncoder(val segment: MemorySegment) : Releasable {
     }
 }
 
-actual class RenderPassEncoder(val segment: MemorySegment, actual val label: String? = null) :
+actual class RenderPassEncoder(val segment: WGPURenderPassEncoder, actual val label: String? = null) :
     Releasable {
 
     actual fun setPipeline(pipeline: RenderPipeline) {
@@ -240,7 +259,7 @@ actual class RenderPassEncoder(val segment: MemorySegment, actual val label: Str
     actual fun draw(vertexCount: Int, instanceCount: Int, firstVertex: Int, firstInstance: Int) {
         EngineStats.drawCalls += 1
         EngineStats.triangles += (vertexCount / 3) * instanceCount
-        wgpuRenderPassEncoderDraw(segment, vertexCount, instanceCount, firstVertex, firstInstance)
+        wgpuRenderPassEncoderDraw(segment, vertexCount.toUInt(), instanceCount.toUInt(), firstVertex.toUInt(), firstInstance.toUInt())
     }
 
     actual fun end() {
@@ -248,7 +267,7 @@ actual class RenderPassEncoder(val segment: MemorySegment, actual val label: Str
     }
 
     actual fun setVertexBuffer(slot: Int, buffer: GPUBuffer, offset: Long, size: Long) {
-        wgpuRenderPassEncoderSetVertexBuffer(segment, slot, buffer.segment, offset, size)
+        wgpuRenderPassEncoderSetVertexBuffer(segment, slot.toUInt(), buffer.segment, offset.toULong(), size.toULong())
         EngineStats.setBufferCalls += 1
     }
 
@@ -338,7 +357,7 @@ actual class RenderPassEncoder(val segment: MemorySegment, actual val label: Str
     }
 }
 
-actual class ComputePipeline(val segment: MemorySegment) : Releasable {
+actual class ComputePipeline(val segment: WGPUComputePipeline) : Releasable {
     actual override fun release() {
         wgpuComputePipelineRelease(segment)
     }
@@ -348,7 +367,7 @@ actual class ComputePipeline(val segment: MemorySegment) : Releasable {
     }
 }
 
-actual class ComputePassEncoder(val segment: MemorySegment) : Releasable {
+actual class ComputePassEncoder(val segment: WGPUComputePassEncoder) : Releasable {
     actual fun setPipeline(pipeline: ComputePipeline) {
         wgpuComputePassEncoderSetPipeline(segment, pipeline.segment)
         EngineStats.setPipelineCalls += 1
@@ -379,4 +398,18 @@ actual class ComputePassEncoder(val segment: MemorySegment) : Releasable {
     actual override fun release() {
         wgpuComputePassEncoderRelease(segment)
     }
+}
+
+internal fun MemoryAllocator.map(input: TextureCopyView) =
+    WGPUTexelCopyTextureInfo.allocate(this).also { output ->
+        output.texture = input.texture.segment
+        output.mipLevel = input.mipLevel.toUInt()
+        map(input.origin, output.origin)
+    }
+
+
+internal fun map(input: Origin3D, output: WGPUOrigin3D) {
+    output.x = input.x.toUInt()
+    output.y = input.y.toUInt()
+    output.z = input.z.toUInt()
 }
