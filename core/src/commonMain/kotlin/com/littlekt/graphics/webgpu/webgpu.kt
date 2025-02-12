@@ -167,7 +167,7 @@ expect class Adapter : Releasable {
  */
 data class DeviceDescriptor(
     val label: String? = null,
-    val requiredFeatures: List<Feature>? = null,
+    val requiredFeatures: List<Feature> = listOf(),
     val requiredLimits: RequiredLimits? = null,
 )
 

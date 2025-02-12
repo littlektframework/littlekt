@@ -2,16 +2,11 @@ package com.littlekt.graphics.webgpu
 
 import com.littlekt.Releasable
 import io.ygdrasil.wgpu.WGPUBindGroup
-import io.ygdrasil.wgpu.WGPUBindGroupEntry
 import io.ygdrasil.wgpu.WGPUBindGroupLayout
-import io.ygdrasil.wgpu.WGPUBufferBindingLayout
 import io.ygdrasil.wgpu.WGPUPipelineLayout
-import io.ygdrasil.wgpu.WGPUSamplerBindingLayout
-import io.ygdrasil.wgpu.WGPUTextureBindingLayout
 import io.ygdrasil.wgpu.wgpuBindGroupLayoutRelease
 import io.ygdrasil.wgpu.wgpuBindGroupRelease
 import io.ygdrasil.wgpu.wgpuPipelineLayoutRelease
-import java.lang.foreign.MemorySegment
 
 actual interface IntoBindingResource
 
@@ -70,14 +65,17 @@ actual class PipelineLayout(val segment: WGPUPipelineLayout) : Releasable {
     }
 }
 
-class MemorySegmentList(segments: List<MemorySegment>) : List<MemorySegment> by segments
+actual class PipelineLayoutDescriptor {
+    val segments: List<WGPUBindGroupLayout>
+    val label: String?
 
-actual class PipelineLayoutDescriptor
-internal constructor(val segments: List<WGPUBindGroupLayout>, val label: String?) {
     actual constructor(
         bindGroupLayouts: List<BindGroupLayout>,
         label: String?
-    ) : this(bindGroupLayouts.map { it.segment }, label)
+    ) {
+        segments = bindGroupLayouts.map { it.segment }
+        this.label = label
+    }
 
     actual constructor(
         bindGroupLayout: BindGroupLayout,
