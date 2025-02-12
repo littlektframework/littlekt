@@ -82,7 +82,6 @@ open class Mesh<T : MeshGeometry>(val device: Device, val geometry: T) : Releasa
     }
 
     override fun release() {
-        vbo.destroy()
         vbo.release()
     }
 

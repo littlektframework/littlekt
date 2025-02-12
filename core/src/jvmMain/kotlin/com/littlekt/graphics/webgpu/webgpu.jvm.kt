@@ -759,7 +759,7 @@ actual class GPUBuffer(val segment: WGPUBuffer, actual val size: Long) : Releasa
     }
 
     actual override fun release() {
-        wgpuBufferRelease(segment)
+        destroy()
     }
 
     actual fun destroy() {
