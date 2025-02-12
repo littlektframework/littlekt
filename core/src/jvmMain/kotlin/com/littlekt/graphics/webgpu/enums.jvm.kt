@@ -1,6 +1,5 @@
 package com.littlekt.graphics.webgpu
 
-import com.littlekt.wgpu.WGPU.*
 import io.ygdrasil.wgpu.WGPUPrimitiveTopology_LineList
 import io.ygdrasil.wgpu.WGPUPrimitiveTopology_LineStrip
 import io.ygdrasil.wgpu.WGPUPrimitiveTopology_PointList
