@@ -4,16 +4,12 @@ import ffi.CString
 import ffi.MemoryAllocator
 import ffi.MemoryBuffer
 import ffi.NativeAddress
-import java.lang.foreign.Arena
-import java.lang.foreign.MemorySegment
 import java.lang.foreign.ValueLayout
-import java.nio.ByteOrder
 import java.nio.ByteBuffer as NioByteBuffer
 
 internal abstract class GenericBuffer<T : ValueLayout>(
     final override val capacity: Int,
-    val segment: MemoryBuffer,
-    val layout: T,
+    val segment: MemoryBuffer
 ) : Buffer {
 
     override var dirty: Boolean = false
@@ -49,8 +45,7 @@ internal class ShortBufferImpl(capacity: Int) :
     ShortBuffer,
     GenericBuffer<ValueLayout.OfShort>(
         capacity,
-        MemoryAllocator().allocateBuffer((capacity * Short.SIZE_BYTES).toULong()),
-        ValueLayout.JAVA_SHORT,
+        MemoryAllocator().allocateBuffer((capacity * Short.SIZE_BYTES).toULong())
     ) {
     override var dirty: Boolean = false
 
@@ -98,8 +93,7 @@ internal class IntBufferImpl(capacity: Int) :
     IntBuffer,
     GenericBuffer<ValueLayout.OfInt>(
         capacity,
-        MemoryAllocator().allocateBuffer((capacity * Int.SIZE_BYTES).toULong()),
-        ValueLayout.JAVA_INT,
+        MemoryAllocator().allocateBuffer((capacity * Int.SIZE_BYTES).toULong())
     ) {
     override var dirty: Boolean = false
 
@@ -147,8 +141,7 @@ internal class FloatBufferImpl(capacity: Int) :
     FloatBuffer,
     GenericBuffer<ValueLayout.OfFloat>(
         capacity,
-        MemoryAllocator().allocateBuffer((capacity * Float.SIZE_BYTES).toULong()),
-        ValueLayout.JAVA_FLOAT,
+        MemoryAllocator().allocateBuffer((capacity * Float.SIZE_BYTES).toULong())
     ) {
 
     override var dirty: Boolean = false
@@ -156,8 +149,6 @@ internal class FloatBufferImpl(capacity: Int) :
     constructor(data: FloatArray) : this(data.size) {
         put(data)
     }
-
-    private fun MemorySegment.set(i: Int, value: Float) = setAtIndex(layout, i.toLong(), value)
 
     override fun get(i: Int): Float {
         return segment.readFloat(i.toULong())
@@ -204,14 +195,10 @@ internal class FloatBufferImpl(capacity: Int) :
 /** ByteBuffer implementation. */
 internal class ByteBufferImpl(
     capacity: Int,
-    layout: ValueLayout.OfByte = ValueLayout.JAVA_BYTE,
-    val shortLayout: ValueLayout.OfShort = ValueLayout.JAVA_SHORT,
-    val intLayout: ValueLayout.OfInt = ValueLayout.JAVA_INT,
-    val floatLayout: ValueLayout.OfFloat = ValueLayout.JAVA_FLOAT,
     segment: MemoryBuffer = MemoryAllocator().allocateBuffer(capacity.toULong()),
-) : ByteBuffer, GenericBuffer<ValueLayout.OfByte>(capacity, segment, layout) {
+) : ByteBuffer, GenericBuffer<ValueLayout.OfByte>(capacity, segment) {
 
-    constructor(data: ByteArray) : this(data.size, ValueLayout.JAVA_BYTE) {
+    constructor(data: ByteArray) : this(data.size) {
         putByte(data)
     }
 
@@ -220,27 +207,9 @@ internal class ByteBufferImpl(
         isBigEndian: Boolean,
     ) : this(
         data.size,
-        if (isBigEndian) ValueLayout.JAVA_BYTE.withOrder(ByteOrder.nativeOrder())
-        else ValueLayout.JAVA_BYTE,
-        if (isBigEndian) ValueLayout.JAVA_SHORT.withOrder(ByteOrder.nativeOrder())
-        else ValueLayout.JAVA_SHORT,
-        if (isBigEndian) ValueLayout.JAVA_INT.withOrder(ByteOrder.nativeOrder())
-        else ValueLayout.JAVA_INT,
-        if (isBigEndian) ValueLayout.JAVA_FLOAT.withOrder(ByteOrder.nativeOrder())
-        else ValueLayout.JAVA_FLOAT,
     ) {
         putByte(data)
     }
-
-    private fun MemorySegment.set(i: Int, value: Byte) = set(layout, i.toLong(), value)
-
-    private fun MemorySegment.set(offset: Int, value: Int) = set(intLayout, offset.toLong(), value)
-
-    private fun MemorySegment.set(offset: Int, value: Float) =
-        set(floatLayout, offset.toLong(), value)
-
-    private fun MemorySegment.set(offset: Int, value: Short) =
-        set(shortLayout, offset.toLong(), value)
 
     override fun get(i: Int): Byte {
         return segment.readByte(i.toULong())

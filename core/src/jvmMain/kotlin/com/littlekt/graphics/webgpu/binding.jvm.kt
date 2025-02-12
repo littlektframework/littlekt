@@ -13,9 +13,7 @@ import io.ygdrasil.wgpu.wgpuBindGroupRelease
 import io.ygdrasil.wgpu.wgpuPipelineLayoutRelease
 import java.lang.foreign.MemorySegment
 
-actual interface IntoBindingResource {
-    fun intoBindingResource(entry: WGPUBindGroupEntry)
-}
+actual interface IntoBindingResource
 
 actual class BindGroup(val segment: WGPUBindGroup) : Releasable {
 
@@ -28,74 +26,27 @@ actual class BindGroup(val segment: WGPUBindGroup) : Releasable {
     }
 }
 
-actual abstract class BindingLayout actual constructor() {
-    abstract fun intoNative(
-        bufferBinding: WGPUBufferBindingLayout,
-        samplerBinding: WGPUSamplerBindingLayout,
-        textureBinding: WGPUTextureBindingLayout,
-        storageTextureBinding: MemorySegment
-    )
-}
+actual abstract class BindingLayout
 
 actual class BufferBinding
-actual constructor(val buffer: GPUBuffer, val offset: Long, val size: Long) : IntoBindingResource {
-
-    override fun intoBindingResource(entry: WGPUBindGroupEntry) {
-        entry.buffer = buffer.segment
-        entry.offset = offset.toULong()
-        entry.size = size.toULong()
-    }
-}
+actual constructor(val buffer: GPUBuffer, val offset: Long, val size: Long) : IntoBindingResource
 
 actual class BufferBindingLayout
 actual constructor(
     val type: BufferBindingType,
     val hasDynamicOffset: Boolean,
-    val minBindingSize: Long,
-) : BindingLayout() {
-
-    override fun intoNative(
-        bufferBinding: WGPUBufferBindingLayout,
-        samplerBinding: WGPUSamplerBindingLayout,
-        textureBinding: WGPUTextureBindingLayout,
-        storageTextureBinding: MemorySegment
-    ) {
-        bufferBinding.type = type.nativeVal
-        bufferBinding.hasDynamicOffset = hasDynamicOffset
-        bufferBinding.minBindingSize = minBindingSize.toULong()
-    }
-}
+    val minBindingSize: Long
+) : BindingLayout()
 
 actual class TextureBindingLayout
 actual constructor(
     val sampleType: TextureSampleType,
     val viewDimension: TextureViewDimension,
-    val multisampled: Boolean,
-) : BindingLayout() {
-
-    override fun intoNative(
-        bufferBinding: WGPUBufferBindingLayout,
-        samplerBinding: WGPUSamplerBindingLayout,
-        textureBinding: WGPUTextureBindingLayout,
-        storageTextureBinding: MemorySegment
-    ) {
-        textureBinding.sampleType = sampleType.nativeVal
-        textureBinding.viewDimension = viewDimension.nativeVal
-        textureBinding.multisampled = multisampled
-    }
-}
+    val multisampled: Boolean
+) : BindingLayout()
 
 actual class SamplerBindingLayout actual constructor(val type: SamplerBindingType) :
-    BindingLayout() {
-    override fun intoNative(
-        bufferBinding: WGPUBufferBindingLayout,
-        samplerBinding: WGPUSamplerBindingLayout,
-        textureBinding: WGPUTextureBindingLayout,
-        storageTextureBinding: MemorySegment
-    ) {
-        samplerBinding.type = type.nativeVal
-    }
-}
+    BindingLayout()
 
 actual class BindGroupLayout internal constructor(val segment: WGPUBindGroupLayout) : Releasable {
 
