@@ -13,7 +13,6 @@ import com.littlekt.graphics.webgpu.SurfaceCapabilities
 import com.littlekt.graphics.webgpu.SurfaceConfiguration
 import com.littlekt.graphics.webgpu.TextureFormat
 import com.littlekt.graphics.webgpu.TextureUsage
-import com.littlekt.graphics.webgpu.WGPU_NULL
 import com.littlekt.log.Logger
 import com.sun.jna.Pointer
 import com.sun.jna.platform.win32.Kernel32
