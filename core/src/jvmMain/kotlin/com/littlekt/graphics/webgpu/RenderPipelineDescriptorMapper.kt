@@ -1,7 +1,5 @@
 package com.littlekt.graphics.webgpu
 
-import com.littlekt.graphics.VertexAttribute
-import com.littlekt.graphics.VertexBufferLayout
 import ffi.MemoryAllocator
 import io.ygdrasil.wgpu.WGPUBlendComponent
 import io.ygdrasil.wgpu.WGPUBlendState
@@ -47,7 +45,6 @@ fun map(
     input: BlendComponent,
     output: WGPUBlendComponent
 ) {
-    println("blend component $output")
     output.operation = input.operation.nativeVal
     output.srcFactor = input.srcFactor.nativeVal
     output.dstFactor = input.dstFactor.nativeVal
@@ -56,7 +53,6 @@ fun map(
 private fun MemoryAllocator.map(input: FragmentState): WGPUFragmentState =
     WGPUFragmentState.allocate(this)
         .also { fragmentState ->
-            println("fragment $fragmentState")
             fragmentState.module = input.module.segment
             map(input.entryPoint, fragmentState.entryPoint)
             if (input.targets.isNotEmpty()) {
@@ -108,7 +104,6 @@ private fun map(input: PrimitiveState, output: WGPUPrimitiveState) {
 }
 
 private fun MemoryAllocator.map(input: VertexState, output: WGPUVertexState) {
-    println("vertex $output")
     output.module = input.module.segment
     map(input.entryPoint, output.entryPoint)
     // TODO learn how to map this
@@ -127,7 +122,6 @@ private fun map(
     input: WebGPUVertexAttribute,
     output: WGPUVertexAttribute
 ) {
-    println("attribute $output")
     output.format = input.format.nativeVal
     output.offset = input.offset.toULong()
     output.shaderLocation = input.shaderLocation.toUInt()
@@ -137,7 +131,6 @@ private fun MemoryAllocator.map(
     input: WebGPUVertexBufferLayout,
     output: WGPUVertexBufferLayout
 ) {
-    println("buffer $output")
     output.arrayStride = input.arrayStride.toULong()
     if (input.attributes.isNotEmpty()) {
         output.attributes = WGPUVertexAttribute.allocateArray(this, input.attributes.size.toUInt(), { index, value ->

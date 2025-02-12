@@ -9,7 +9,6 @@ import io.ygdrasil.wgpu.WGPURenderPassDescriptor
 
 internal fun MemoryAllocator.map(input: RenderPassDescriptor): WGPURenderPassDescriptor =
     WGPURenderPassDescriptor.allocate(this).also { output ->
-        println("render pass descriptor $output")
         if (input.label != null) map(input.label, output.label)
 
         if (input.colorAttachments.isNotEmpty()) {
@@ -30,7 +29,6 @@ internal fun MemoryAllocator.map(input: RenderPassDescriptor): WGPURenderPassDes
     }
 
 internal fun map(input: RenderPassColorAttachmentDescriptor, output: WGPURenderPassColorAttachment) {
-    println("color attachment $output")
     output.view = input.view.segment
     output.loadOp = input.loadOp.nativeVal
     output.storeOp = input.storeOp.nativeVal
