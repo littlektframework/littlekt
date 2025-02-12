@@ -63,7 +63,7 @@ internal class ShortBufferImpl(capacity: Int) :
     }
 
     override fun put(data: ShortArray, srcOffset: Int, len: Int): ShortBuffer {
-        segment.writeShorts(data, srcOffset.toULong(), len.toULong())
+        segment.writeShorts(data, srcOffset.toULong(), 0uL, len.toULong())
         return this
     }
 
@@ -112,7 +112,7 @@ internal class IntBufferImpl(capacity: Int) :
 
     override fun put(data: IntArray, srcOffset: Int, len: Int): IntBuffer {
         dirty = true
-        segment.writeInts(data, srcOffset.toULong(), len.toULong())
+        segment.writeInts(data, srcOffset.toULong(), 0uL, len.toULong())
         return this
     }
 
