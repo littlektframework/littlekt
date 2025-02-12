@@ -160,7 +160,7 @@ internal class FloatBufferImpl(capacity: Int) :
     }
 
     override fun put(data: FloatArray, srcOffset: Int, len: Int): FloatBuffer {
-        segment.writeFloats(data, srcOffset.toULong(), len.toULong())
+        segment.writeFloats(data, srcOffset.toULong(), position.toULong(), len.toULong())
         position += len
         return this
     }
@@ -186,7 +186,7 @@ internal class FloatBufferImpl(capacity: Int) :
 
     override fun put(data: FloatBuffer, dstOffset: Int, srcOffset: Int, len: Int): FloatBuffer {
         position = dstOffset
-        segment.writeFloats(data.toArray(), srcOffset.toULong(), len.toULong())
+        segment.writeFloats(data.toArray(), srcOffset.toULong(), position.toULong(), len.toULong())
         position += len
         return this
     }
