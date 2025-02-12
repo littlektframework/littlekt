@@ -243,7 +243,6 @@ actual class Adapter(val delegate: GPUAdapter) : Releasable {
             maxBufferSize = jsLimits.maxBufferSize,
             maxVertexAttributes = jsLimits.maxVertexAttributes,
             maxVertexBufferArrayStride = jsLimits.maxVertexBufferArrayStride,
-            maxInterStageShaderComponents = jsLimits.maxInterStageShaderComponents,
             maxInterStageShaderVariables = jsLimits.maxInterStageShaderVariables,
             maxColorAttachments = jsLimits.maxColorAttachments,
             maxColorAttachmentBytesPerSample = jsLimits.maxColorAttachmentBytesPerSample,

@@ -2,14 +2,19 @@ package com.littlekt.graphics.webgpu
 
 import com.littlekt.EngineStats
 import com.littlekt.Releasable
+import ffi.ArrayHolder
 import ffi.MemoryAllocator
+import ffi.memoryScope
 import io.ygdrasil.wgpu.WGPUCommandBuffer
 import io.ygdrasil.wgpu.WGPUCommandEncoder
+import io.ygdrasil.wgpu.WGPUComputePassDescriptor
 import io.ygdrasil.wgpu.WGPUComputePassEncoder
 import io.ygdrasil.wgpu.WGPUComputePipeline
+import io.ygdrasil.wgpu.WGPUComputePipelineDescriptor
 import io.ygdrasil.wgpu.WGPUOrigin3D
 import io.ygdrasil.wgpu.WGPURenderPassEncoder
 import io.ygdrasil.wgpu.WGPURenderPipeline
+import io.ygdrasil.wgpu.WGPUTexelCopyBufferLayout
 import io.ygdrasil.wgpu.WGPUTexelCopyTextureInfo
 import io.ygdrasil.wgpu.wgpuCommandBufferRelease
 import io.ygdrasil.wgpu.wgpuCommandEncoderCopyBufferToTexture
@@ -32,6 +37,10 @@ import io.ygdrasil.wgpu.wgpuRenderPassEncoderSetScissorRect
 import io.ygdrasil.wgpu.wgpuRenderPassEncoderSetVertexBuffer
 import io.ygdrasil.wgpu.wgpuRenderPassEncoderSetViewport
 import io.ygdrasil.wgpu.wgpuRenderPipelineRelease
+import io.ygdrasil.wgpu.WGPUTexelCopyBufferInfo
+import io.ygdrasil.wgpu.wgpuCommandEncoderBeginRenderPass
+import io.ygdrasil.wgpu.wgpuCommandEncoderCopyBufferToBuffer
+import io.ygdrasil.wgpu.wgpuCommandEncoderBeginComputePass
 import java.lang.foreign.Arena
 import java.lang.foreign.MemorySegment
 import java.lang.foreign.SegmentAllocator
@@ -58,140 +67,39 @@ fun TextureCopyView.toNative(scope: MemoryAllocator): WGPUTexelCopyTextureInfo {
     return scope.map(this)
 }
 
-fun TextureDataLayout.toNative(scope: SegmentAllocator): MemorySegment {
-    val native = WGPUTextureDataLayout.allocate(scope)
-
-    WGPUTextureDataLayout.bytesPerRow(native, bytesPerRow)
-    WGPUTextureDataLayout.rowsPerImage(native, rowsPerImage)
-    WGPUTextureDataLayout.offset(native, offset)
-
-    return native
+fun TextureDataLayout.toNative(scope: MemoryAllocator): WGPUTexelCopyBufferLayout {
+    return WGPUTexelCopyBufferLayout.allocate(scope).also { dataLayout ->
+        dataLayout.offset = offset.toULong()
+        dataLayout.bytesPerRow = bytesPerRow.toUInt()
+        dataLayout.rowsPerImage = rowsPerImage.toUInt()
+    }
 }
 
-fun BufferCopyView.toNative(scope: SegmentAllocator): MemorySegment {
-    val native = WGPUImageCopyBuffer.allocate(scope)
-    val layoutNative = WGPUImageCopyBuffer.layout(native)
-
-    WGPUImageCopyBuffer.buffer(native, buffer.segment)
-    WGPUTextureDataLayout.bytesPerRow(layoutNative, layout.bytesPerRow)
-    WGPUTextureDataLayout.rowsPerImage(layoutNative, layout.rowsPerImage)
-    WGPUTextureDataLayout.offset(layoutNative, layout.offset)
-
-    return native
+fun BufferCopyView.toNative(scope: MemoryAllocator): WGPUTexelCopyBufferInfo {
+    return scope.map(this)
 }
+
+internal fun MemoryAllocator.map(input: BufferCopyView) = WGPUTexelCopyBufferInfo.allocate(this).also { output ->
+    output.buffer = input.buffer.segment
+    map(input.layout, output.layout)
+}
+
+private fun map(input: TextureDataLayout, output: WGPUTexelCopyBufferLayout) {
+    output.offset = input.offset.toULong()
+    output.bytesPerRow = input.bytesPerRow.toUInt()
+    output.rowsPerImage = input.rowsPerImage.toUInt()
+}
+
+
 
 actual class CommandEncoder(val segment: WGPUCommandEncoder) : Releasable {
 
     actual fun beginRenderPass(desc: RenderPassDescriptor): RenderPassEncoder {
-        return Arena.ofConfined().use { scope ->
-            WGPURenderPassDescriptor.allocate(scope).let { renderPassDesc ->
-                WGPURenderPassDescriptor.label(
-                    renderPassDesc,
-                    desc.label?.toNativeString(scope) ?: WGPU_NULL,
-                )
-                WGPURenderPassDescriptor.colorAttachmentCount(
-                    renderPassDesc,
-                    desc.colorAttachments.size.toLong(),
-                )
-                WGPURenderPassDescriptor.colorAttachments(
-                    renderPassDesc,
-                    desc.colorAttachments.mapToNativeEntries(
-                        scope,
-                        WGPURenderPassColorAttachment.sizeof(),
-                        WGPURenderPassColorAttachment::allocateArray,
-                    ) { colorAttachment, nativeColorAttachment ->
-                        WGPURenderPassColorAttachment.view(
-                            nativeColorAttachment,
-                            colorAttachment.view.segment,
-                        )
-                        WGPURenderPassColorAttachment.loadOp(
-                            nativeColorAttachment,
-                            colorAttachment.loadOp.nativeVal,
-                        )
-                        WGPURenderPassColorAttachment.storeOp(
-                            nativeColorAttachment,
-                            colorAttachment.storeOp.nativeVal,
-                        )
-                        colorAttachment.clearColor?.let { clearColor ->
-                            WGPUColor.allocate(scope)
-                                .also {
-                                    WGPUColor.r(it, clearColor.r.toDouble())
-                                    WGPUColor.g(it, clearColor.g.toDouble())
-                                    WGPUColor.b(it, clearColor.b.toDouble())
-                                    WGPUColor.a(it, clearColor.a.toDouble())
-                                }
-                                .let {
-                                    WGPURenderPassColorAttachment.clearValue(
-                                        nativeColorAttachment,
-                                        it,
-                                    )
-                                }
-                        }
-                    },
-                )
-
-                desc.depthStencilAttachment?.let { depthStencilAttachment ->
-                    val nativeDepthStencilAttachment =
-                        WGPURenderPassDepthStencilAttachment.allocate(scope)
-
-                    WGPURenderPassDepthStencilAttachment.view(
-                        nativeDepthStencilAttachment,
-                        depthStencilAttachment.view.segment,
-                    )
-                    WGPURenderPassDepthStencilAttachment.depthClearValue(
-                        nativeDepthStencilAttachment,
-                        depthStencilAttachment.depthClearValue,
-                    )
-                    depthStencilAttachment.depthLoadOp?.nativeVal?.let {
-                        WGPURenderPassDepthStencilAttachment.depthLoadOp(
-                            nativeDepthStencilAttachment,
-                            it,
-                        )
-                    }
-
-                    depthStencilAttachment.depthStoreOp?.nativeVal?.let {
-                        WGPURenderPassDepthStencilAttachment.depthStoreOp(
-                            nativeDepthStencilAttachment,
-                            it,
-                        )
-                    }
-                    WGPURenderPassDepthStencilAttachment.depthReadOnly(
-                        nativeDepthStencilAttachment,
-                        depthStencilAttachment.depthReadOnly.toInt(),
-                    )
-                    WGPURenderPassDepthStencilAttachment.stencilClearValue(
-                        nativeDepthStencilAttachment,
-                        depthStencilAttachment.stencilClearValue,
-                    )
-
-                    depthStencilAttachment.stencilLoadOp?.nativeVal?.let {
-                        WGPURenderPassDepthStencilAttachment.stencilLoadOp(
-                            nativeDepthStencilAttachment,
-                            it,
-                        )
-                    }
-
-                    depthStencilAttachment.stencilStoreOp?.nativeVal?.let {
-                        WGPURenderPassDepthStencilAttachment.stencilStoreOp(
-                            nativeDepthStencilAttachment,
-                            it,
-                        )
-                    }
-                    WGPURenderPassDepthStencilAttachment.depthReadOnly(
-                        nativeDepthStencilAttachment,
-                        depthStencilAttachment.stencilReadOnly.toInt(),
-                    )
-
-                    WGPURenderPassDescriptor.depthStencilAttachment(
-                        renderPassDesc,
-                        nativeDepthStencilAttachment,
-                    )
-                }
-                RenderPassEncoder(
-                    wgpuCommandEncoderBeginRenderPass(segment, renderPassDesc),
-                    desc.label,
-                )
-            }
+        return memoryScope { scope ->
+            RenderPassEncoder(
+                wgpuCommandEncoderBeginRenderPass(segment, scope.map(desc)) ?: error("Failed to begin render pass."),
+                desc.label,
+            )
         }
     }
 
@@ -204,7 +112,7 @@ actual class CommandEncoder(val segment: WGPUCommandEncoder) : Releasable {
         destination: TextureCopyView,
         copySize: Extent3D,
     ) {
-        Arena.ofConfined().use { scope ->
+        memoryScope { scope ->
             wgpuCommandEncoderCopyBufferToTexture(
                 segment,
                 source.toNative(scope),
@@ -215,10 +123,10 @@ actual class CommandEncoder(val segment: WGPUCommandEncoder) : Releasable {
     }
 
     actual fun beginComputePass(label: String?): ComputePassEncoder {
-        return Arena.ofConfined().use { scope ->
-            val desc = WGPUComputePipelineDescriptor.allocate(scope)
-            WGPUComputePipelineDescriptor.label(desc, label?.toNativeString(scope) ?: WGPU_NULL)
-            ComputePassEncoder(wgpuCommandEncoderBeginComputePass(segment, desc))
+        return memoryScope { scope ->
+            val desc = WGPUComputePassDescriptor.allocate(scope)
+            if(label != null) scope.map(label, desc.label)
+            ComputePassEncoder(wgpuCommandEncoderBeginComputePass(segment, desc) ?: error("Failed to begin compute pass."))
         }
     }
 
@@ -232,10 +140,10 @@ actual class CommandEncoder(val segment: WGPUCommandEncoder) : Releasable {
         wgpuCommandEncoderCopyBufferToBuffer(
             segment,
             source.segment,
-            sourceOffset.toLong(),
+            sourceOffset.toULong(),
             destination.segment,
-            destinationOffset.toLong(),
-            size,
+            destinationOffset.toULong(),
+            size.toULong(),
         )
     }
 
@@ -282,11 +190,11 @@ actual class RenderPassEncoder(val segment: WGPURenderPassEncoder, actual val la
         EngineStats.triangles += (indexCount / 3) * instanceCount
         wgpuRenderPassEncoderDrawIndexed(
             segment,
-            indexCount,
-            instanceCount,
-            firstIndex,
+            indexCount.toUInt(),
+            instanceCount.toUInt(),
+            firstIndex.toUInt(),
             baseVertex,
-            firstInstance,
+            firstInstance.toUInt(),
         )
     }
 
@@ -300,27 +208,30 @@ actual class RenderPassEncoder(val segment: WGPURenderPassEncoder, actual val la
             segment,
             buffer.segment,
             indexFormat.nativeVal,
-            offset,
-            size,
+            offset.toULong(),
+            size.toULong(),
         )
         EngineStats.setBufferCalls += 1
     }
 
     actual fun setBindGroup(index: Int, bindGroup: BindGroup, dynamicOffsets: List<Long>) {
         if (dynamicOffsets.isNotEmpty()) {
-            Arena.ofConfined().use { scope ->
-                val offsets =
-                    scope.allocateFrom(ValueLayout.JAVA_LONG, *dynamicOffsets.toLongArray())
+            memoryScope { scope ->
+                val dynamicOffsets = dynamicOffsets.map { it.toInt()}
+                    .toIntArray()
+                val offsets = scope.allocateBuffer((dynamicOffsets.size * Long.SIZE_BYTES).toULong())
+                    .also { buffer -> buffer.writeInts(dynamicOffsets) }
+                    .let { ArrayHolder<UInt>(it.handler) }
                 wgpuRenderPassEncoderSetBindGroup(
                     segment,
-                    index,
+                    index.toUInt(),
                     bindGroup.segment,
-                    dynamicOffsets.size.toLong(),
+                    dynamicOffsets.size.toULong(),
                     offsets,
                 )
             }
         } else {
-            wgpuRenderPassEncoderSetBindGroup(segment, index, bindGroup.segment, 0, WGPU_NULL)
+            wgpuRenderPassEncoderSetBindGroup(segment, index.toUInt(), bindGroup.segment, 0u, null)
         }
         EngineStats.setBindGroupCalls += 1
     }
@@ -349,7 +260,7 @@ actual class RenderPassEncoder(val segment: WGPURenderPassEncoder, actual val la
     }
 
     actual fun setScissorRect(x: Int, y: Int, width: Int, height: Int) {
-        wgpuRenderPassEncoderSetScissorRect(segment, x, y, width, height)
+        wgpuRenderPassEncoderSetScissorRect(segment, x.toUInt(), y.toUInt(), width.toUInt(), height.toUInt())
     }
 
     override fun toString(): String {
@@ -374,7 +285,7 @@ actual class ComputePassEncoder(val segment: WGPUComputePassEncoder) : Releasabl
     }
 
     actual fun setBindGroup(index: Int, bindGroup: BindGroup) {
-        wgpuComputePassEncoderSetBindGroup(segment, index, bindGroup.segment, 0, WGPU_NULL)
+        wgpuComputePassEncoderSetBindGroup(segment, index.toUInt(), bindGroup.segment, 0u, null)
         EngineStats.setBindGroupCalls += 1
     }
 
@@ -385,9 +296,9 @@ actual class ComputePassEncoder(val segment: WGPUComputePassEncoder) : Releasabl
     ) {
         wgpuComputePassEncoderDispatchWorkgroups(
             segment,
-            workgroupCountX,
-            workgroupCountY,
-            workgroupCountZ,
+            workgroupCountX.toUInt(),
+            workgroupCountY.toUInt(),
+            workgroupCountZ.toUInt(),
         )
     }
 
