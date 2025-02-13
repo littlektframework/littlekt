@@ -1,9 +1,9 @@
 package com.littlekt.file
 
 import ffi.CString
-import ffi.MemoryAllocator
 import ffi.MemoryBuffer
 import ffi.NativeAddress
+import java.lang.foreign.Arena
 import java.lang.foreign.ValueLayout
 import java.nio.ByteBuffer as NioByteBuffer
 
@@ -45,7 +45,7 @@ internal class ShortBufferImpl(capacity: Int) :
     ShortBuffer,
     GenericBuffer<ValueLayout.OfShort>(
         capacity,
-        MemoryAllocator().allocateBuffer((capacity * Short.SIZE_BYTES).toULong())
+        allocateBuffer((capacity * Short.SIZE_BYTES).toULong())
     ) {
     override var dirty: Boolean = false
 
@@ -54,12 +54,12 @@ internal class ShortBufferImpl(capacity: Int) :
     }
 
     override fun get(i: Int): Short {
-        return segment.readShort(i.toULong())
+        return segment.readShort((i * Short.SIZE_BYTES).toULong())
     }
 
     override fun set(i: Int, value: Short) {
         dirty = true
-        segment.writeShort(value, i.toULong())
+        segment.writeShort(value, (i * Short.SIZE_BYTES).toULong())
     }
 
     override fun put(data: ShortArray, srcOffset: Int, len: Int): ShortBuffer {
@@ -75,7 +75,7 @@ internal class ShortBufferImpl(capacity: Int) :
 
     override fun put(value: Short): ShortBuffer {
         dirty = true
-        segment.writeShort(value, position.toULong())
+        segment.writeShort(value, (position * Short.SIZE_BYTES).toULong())
         position++
         return this
     }
@@ -93,7 +93,7 @@ internal class IntBufferImpl(capacity: Int) :
     IntBuffer,
     GenericBuffer<ValueLayout.OfInt>(
         capacity,
-        MemoryAllocator().allocateBuffer((capacity * Int.SIZE_BYTES).toULong())
+        allocateBuffer((capacity * Int.SIZE_BYTES).toULong())
     ) {
     override var dirty: Boolean = false
 
@@ -102,12 +102,12 @@ internal class IntBufferImpl(capacity: Int) :
     }
 
     override fun get(i: Int): Int {
-        return segment.readInt(i.toULong())
+        return segment.readInt((i * Int.SIZE_BYTES).toULong())
     }
 
     override fun set(i: Int, value: Int) {
         dirty = true
-        segment.writeInt(value, i.toULong())
+        segment.writeInt(value, (i * Int.SIZE_BYTES).toULong())
     }
 
     override fun put(data: IntArray, srcOffset: Int, len: Int): IntBuffer {
@@ -123,7 +123,7 @@ internal class IntBufferImpl(capacity: Int) :
 
     override fun put(value: Int): IntBuffer {
         dirty = true
-        segment.writeInt(value, position.toULong())
+        segment.writeInt(value, (position * Int.SIZE_BYTES).toULong())
         position++
         return this
     }
@@ -141,7 +141,7 @@ internal class FloatBufferImpl(capacity: Int) :
     FloatBuffer,
     GenericBuffer<ValueLayout.OfFloat>(
         capacity,
-        MemoryAllocator().allocateBuffer((capacity * Float.SIZE_BYTES).toULong())
+        allocateBuffer((capacity * Float.SIZE_BYTES).toULong())
     ) {
 
     override var dirty: Boolean = false
@@ -151,12 +151,12 @@ internal class FloatBufferImpl(capacity: Int) :
     }
 
     override fun get(i: Int): Float {
-        return segment.readFloat(i.toULong())
+        return segment.readFloat((i * Float.SIZE_BYTES).toULong())
     }
 
     override fun set(i: Int, value: Float) {
         dirty = true
-        segment.writeFloat(value, i.toULong())
+        segment.writeFloat(value, (i * Float.SIZE_BYTES).toULong())
     }
 
     override fun put(data: FloatArray, srcOffset: Int, len: Int): FloatBuffer {
@@ -172,7 +172,7 @@ internal class FloatBufferImpl(capacity: Int) :
 
     override fun put(value: Float): FloatBuffer {
         dirty = true
-        segment.writeFloat(value, position.toULong())
+        segment.writeFloat(value, (position * Float.SIZE_BYTES).toULong())
         position++
         return this
     }
@@ -195,7 +195,7 @@ internal class FloatBufferImpl(capacity: Int) :
 /** ByteBuffer implementation. */
 internal class ByteBufferImpl(
     capacity: Int,
-    segment: MemoryBuffer = MemoryAllocator().allocateBuffer(capacity.toULong()),
+    segment: MemoryBuffer = allocateBuffer(capacity.toULong()),
 ) : ByteBuffer, GenericBuffer<ValueLayout.OfByte>(capacity, segment) {
 
     constructor(data: ByteArray) : this(data.size) {
@@ -518,3 +518,8 @@ actual fun ByteBuffer(array: ByteArray): ByteBuffer = ByteBufferImpl(array)
 
 actual fun ByteBuffer(array: ByteArray, isBigEndian: Boolean): ByteBuffer =
     ByteBufferImpl(array, isBigEndian)
+
+private fun allocateBuffer(size: ULong): MemoryBuffer = Arena.ofAuto()
+    .allocate(size.toLong())
+    .let(::NativeAddress)
+    .let { MemoryBuffer(it, size) }
