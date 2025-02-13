@@ -841,9 +841,6 @@ expect class WebGPUTexture : Releasable {
     fun createView(desc: TextureViewDescriptor? = null): TextureView
 
     override fun release()
-
-    /** Destroy the associated native resources as soon as possible. */
-    fun destroy()
 }
 
 /**
@@ -913,8 +910,6 @@ expect class GPUBuffer : Releasable {
 
     override fun release()
 
-    /** Destroy the associated native resources as soon as possible. */
-    fun destroy()
 }
 
 /**
