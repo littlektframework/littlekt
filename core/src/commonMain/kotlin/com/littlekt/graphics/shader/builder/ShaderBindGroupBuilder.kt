@@ -25,11 +25,35 @@ open class ShaderBindGroupBuilder(val group: Int, val usage: BindingUsage) {
         bindingType: ShaderBindingType,
     ) = bind(bindingIdx, varName, ShaderBindingParameterType.Struct(struct), bindingType)
 
-    fun bindTexture2d(bindingIdx: Int, varName: String) =
+    fun bindTexture2d_f32(bindingIdx: Int, varName: String) =
         bind(
             bindingIdx,
             varName,
             ShaderBindingParameterType.WgslType.texture_f32,
+            ShaderBindingType.Plain,
+        )
+
+    fun bindTexture2d_i32(bindingIdx: Int, varName: String) =
+        bind(
+            bindingIdx,
+            varName,
+            ShaderBindingParameterType.WgslType.texture_i32,
+            ShaderBindingType.Plain,
+        )
+
+    fun bindTexture2d_u32(bindingIdx: Int, varName: String) =
+        bind(
+            bindingIdx,
+            varName,
+            ShaderBindingParameterType.WgslType.texture_u32,
+            ShaderBindingType.Plain,
+        )
+
+    fun bindTextureDepth2d(bindingIdx: Int, varName: String) =
+        bind(
+            bindingIdx,
+            varName,
+            ShaderBindingParameterType.WgslType.texture_depth_2d,
             ShaderBindingType.Plain,
         )
 
@@ -38,6 +62,14 @@ open class ShaderBindGroupBuilder(val group: Int, val usage: BindingUsage) {
             bindingIdx,
             varName,
             ShaderBindingParameterType.WgslType.sampler,
+            ShaderBindingType.Plain,
+        )
+
+    fun bindSamplerComparison(bindingIdx: Int, varName: String) =
+        bind(
+            bindingIdx,
+            varName,
+            ShaderBindingParameterType.WgslType.sampler_comparison,
             ShaderBindingType.Plain,
         )
 

@@ -11,7 +11,15 @@ sealed class ShaderBindingParameterType(val name: String) {
     sealed class WgslType(name: String) : ShaderBindingParameterType(name) {
         data object texture_f32 : WgslType("texture_2d<f32>")
 
+        data object texture_i32 : WgslType("texture_2d<i32>")
+
+        data object texture_u32 : WgslType("texture_2d<u32>")
+
+        data object texture_depth_2d : WgslType("texture_depth_2d")
+
         data object sampler : WgslType("sampler")
+
+        data object sampler_comparison : WgslType("sampler_comparison")
     }
 
     data class Array(val type: ShaderBindingParameterType, val length: Int) :

@@ -878,7 +878,7 @@ class ShaderCodeBuilderTests {
             include(vertexOutputStruct)
             include(fragmentOutputStruct)
             bindGroup(0, materialBindingUsage) {
-                bindTexture2d(0, "my_texture")
+                bindTexture2d_f32(0, "my_texture")
                 bindSampler(1, "my_sampler")
             }
             fragment {

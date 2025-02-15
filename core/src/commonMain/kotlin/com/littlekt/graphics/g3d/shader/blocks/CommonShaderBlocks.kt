@@ -283,6 +283,130 @@ object CommonShaderBlocks {
             }
         }
 
+    val LightShadowTableStruct =
+        shaderStruct("LightShadowTable") {
+            mapOf(
+                "light" to ShaderStructParameterType.array(ShaderStructParameterType.WgslType.vec2i)
+            )
+        }
+
+    val ShadowPropertiesStruct =
+        shaderStruct("ShadowProperties") {
+            mapOf(
+                "viewport" to ShaderStructParameterType.WgslType.vec4f,
+                "view_proj" to ShaderStructParameterType.WgslType.mat4x4f,
+            )
+        }
+
+    val LightShadowsStruct =
+        shaderStruct("LightShadows") {
+            mapOf("properties" to ShaderStructParameterType.array(ShadowPropertiesStruct))
+        }
+
+    val CascadeInfoStruct =
+        shaderStruct("CascadeInfo") {
+            mapOf(
+                "index" to ShaderStructParameterType.WgslType.i32,
+                "viewport" to ShaderStructParameterType.WgslType.vec4f,
+                "shadow_pos" to ShaderStructParameterType.WgslType.vec3f,
+            )
+        }
+
+    fun ShadowFunctions() =
+        shaderBlock("ShadowFunctions") {
+            body {
+                """
+                  const shadow_sample_width = 0.0;
+                  var<private> shadow_sample_offsets : array<vec2f, 1> = array<vec2f, 1>(
+                    vec2(0.0, 0.0)
+                  );
+                  const shadow_sample_count = 1u;
+                  
+                    fn selectCascade(lightIndex : u32, worldPos : vec3f) -> CascadeInfo {
+                      var cascade : CascadeInfo;
+                      cascade.index = -1;
+
+                      let shadowLookup = lightShadowTable.light[0u];
+                      let shadowIndex = shadowLookup.x;
+                      if (shadowIndex == -1) {
+                        return cascade; // Not a shadow casting light
+                      }
+
+                      let texel_size = 1.0 / vec2f(textureDimensions(shadow_texture, 0));
+
+                      let cascadeCount = max(1, shadowLookup.y);
+
+                      for (var i = 0; i < cascadeCount; i = i + 1) {
+                        cascade.viewport = shadow.properties[shadowIndex + i].viewport;
+                        let lightPos = shadow.properties[shadowIndex + i].viewProj * vec4(worldPos, 1.0);
+
+                        // Put into texture coordinates
+                        cascade.shadow_pos = vec3(
+                          ((lightPos.xy / lightPos.w)) * vec2(0.5, -0.5) + vec2(0.5, 0.5),
+                          lightPos.z / lightPos.w);
+
+                        // If the shadow falls outside the range covered by this cascade, skip it and try the next one up.
+                        if (all(cascade.shadow_pos > vec3(texel_size * shadow_sample_width, 0.0)) &&
+                            all(cascade.shadow_pos < vec3(vec2(1.0) - (texel_size * shadow_sample_width), 1.0))) {
+                          cascade.index = i;
+                          return cascade;
+                        }
+                      }
+
+                      // None of the cascades fit.
+                      return cascade;
+                    }
+                  
+                  fn dirLightVisibility(worldPos : vec3f) -> f32 {
+                    let cascade = selectCascade(0u, worldPos);
+
+                    let viewport_pos = vec2(cascade.viewport.xy + cascade.shadow_pos.xy * cascade.viewport.zw);
+
+                    let texel_size = 1.0 / vec2f(textureDimensions(shadow_texture, 0));
+                    let clamp_rect = vec4(cascade.viewport.xy - texel_size, (cascade.viewport.xy + cascade.viewport.zw) + texel_size);
+
+                    // Percentage Closer Filtering
+                    var visibility = 0.0;
+                    for (var i = 0u; i < shadow_sample_count; i = i + 1u) {
+                      visibility = visibility + textureSampleCompareLevel(
+                        shadow_texture, shadow_sampler,
+                        clamp(viewport_pos + shadow_sample_offsets[i] * texel_size, clamp_rect.xy, clamp_rect.zw),
+                        cascade.shadow_pos.z);
+                    }
+
+                    return visibility / f32(shadow_sample_count);
+                  }
+            """
+                    .trimIndent()
+            }
+        }
+
+    fun Shadows(group: Int, binding: Int) =
+        shaderBlock("Shadows") {
+            include(LightShadowTableStruct)
+            include(ShadowPropertiesStruct)
+            include(LightShadowsStruct)
+            include(CascadeInfoStruct)
+
+            bindGroup(group, BindingUsage.SHADOW) {
+                bindSampler(binding, "sampler")
+                bindTextureDepth2d(binding + 1, "shadow_texture")
+                bindSamplerComparison(binding + 2, "shadow_sampler")
+                bind(
+                    binding + 3,
+                    "light_shadow_table",
+                    LightShadowTableStruct,
+                    ShaderBindingType.Storage(MemoryAccessMode.READ),
+                )
+                bind(
+                    binding + 4,
+                    "shadow",
+                    LightShadowsStruct,
+                    ShaderBindingType.Storage(MemoryAccessMode.READ),
+                )
+            }
+        }
+
     object CommonSubShaderFunctions {
         const val DEFAULT_TILE_COUNT_X = 32
         const val DEFAULT_TILE_COUNT_Y = 18

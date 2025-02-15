@@ -262,7 +262,7 @@ object Standard {
                 include(MaterialStruct)
                 bindGroup(group, BindingUsage.MATERIAL) {
                     bind(0, "material", MaterialStruct, ShaderBindingType.Uniform)
-                    bindTexture2d(1, "base_color_texture")
+                    bindTexture2d_f32(1, "base_color_texture")
                     bindSampler(2, "base_color_sampler")
                 }
             }
@@ -326,15 +326,15 @@ object Standard {
                 include(MaterialStruct)
                 bindGroup(group, BindingUsage.MATERIAL) {
                     bind(0, "material", MaterialStruct, ShaderBindingType.Uniform)
-                    bindTexture2d(1, "base_color_texture")
+                    bindTexture2d_f32(1, "base_color_texture")
                     bindSampler(2, "base_color_sampler")
-                    bindTexture2d(3, "normal_texture")
+                    bindTexture2d_f32(3, "normal_texture")
                     bindSampler(4, "normal_sampler")
-                    bindTexture2d(5, "metallic_roughness_texture")
+                    bindTexture2d_f32(5, "metallic_roughness_texture")
                     bindSampler(6, "metallic_roughness_sampler")
-                    bindTexture2d(7, "occlusion_texture")
+                    bindTexture2d_f32(7, "occlusion_texture")
                     bindSampler(8, "occlusion_sampler")
-                    bindTexture2d(9, "emissive_texture")
+                    bindTexture2d_f32(9, "emissive_texture")
                     bindSampler(10, "emissive_sampler")
                 }
             }
