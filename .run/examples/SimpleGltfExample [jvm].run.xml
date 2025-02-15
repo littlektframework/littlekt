@@ -1,6 +1,6 @@
 <component name="ProjectRunConfigurationManager">
-    <configuration default="false" name="PBRExample [jvm]" type="GradleRunConfiguration" factoryName="Gradle"
-                   folderName="Others">
+    <configuration default="false" name="SimpleGltfExample [jvm]" type="GradleRunConfiguration" factoryName="Gradle"
+                   folderName="Examples">
         <ExternalSystemSettings>
             <option name="executionName"/>
             <option name="externalProjectPath" value="$PROJECT_DIR$/examples"/>
@@ -12,7 +12,7 @@
             <option name="taskNames">
                 <list>
                     <option value="jvmRun"/>
-                    <option value="--args=&quot;-pbr&quot;"/>
+                    <option value="--args=&quot;-simpleGltf&quot;"/>
                 </list>
             </option>
             <option name="vmOptions"/>
