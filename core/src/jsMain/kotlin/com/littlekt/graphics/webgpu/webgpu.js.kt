@@ -50,7 +50,6 @@ actual class Device(val delegate: GPUDevice) : Releasable {
             maxBufferSize = jsLimits.maxBufferSize,
             maxVertexAttributes = jsLimits.maxVertexAttributes,
             maxVertexBufferArrayStride = jsLimits.maxVertexBufferArrayStride,
-            maxInterStageShaderComponents = jsLimits.maxInterStageShaderComponents,
             maxInterStageShaderVariables = jsLimits.maxInterStageShaderVariables,
             maxColorAttachments = jsLimits.maxColorAttachments,
             maxColorAttachmentBytesPerSample = jsLimits.maxColorAttachmentBytesPerSample,
@@ -244,7 +243,6 @@ actual class Adapter(val delegate: GPUAdapter) : Releasable {
             maxBufferSize = jsLimits.maxBufferSize,
             maxVertexAttributes = jsLimits.maxVertexAttributes,
             maxVertexBufferArrayStride = jsLimits.maxVertexBufferArrayStride,
-            maxInterStageShaderComponents = jsLimits.maxInterStageShaderComponents,
             maxInterStageShaderVariables = jsLimits.maxInterStageShaderVariables,
             maxColorAttachments = jsLimits.maxColorAttachments,
             maxColorAttachmentBytesPerSample = jsLimits.maxColorAttachmentBytesPerSample,
@@ -413,13 +411,10 @@ actual class WebGPUTexture(val delegate: GPUTexture, size: Long) : Releasable {
     }
 
     actual override fun release() {
-        destroy()
-    }
-
-    actual fun destroy() {
         delegate.destroy()
         info.delete()
     }
+
 }
 
 actual class TextureView(val delegate: GPUTextureView) : IntoBindingResource {
@@ -445,13 +440,10 @@ actual class GPUBuffer(val delegate: GPUBufferJs, actual val size: Long) : Relea
     }
 
     actual override fun release() {
-        destroy()
-    }
-
-    actual fun destroy() {
         delegate.destroy()
         info.delete()
     }
+
 }
 
 actual class Sampler(val delegate: GPUSampler) : IntoBindingResource, Releasable {
