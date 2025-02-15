@@ -411,13 +411,10 @@ actual class WebGPUTexture(val delegate: GPUTexture, size: Long) : Releasable {
     }
 
     actual override fun release() {
-        destroy()
-    }
-
-    actual fun destroy() {
         delegate.destroy()
         info.delete()
     }
+
 }
 
 actual class TextureView(val delegate: GPUTextureView) : IntoBindingResource {
@@ -443,13 +440,10 @@ actual class GPUBuffer(val delegate: GPUBufferJs, actual val size: Long) : Relea
     }
 
     actual override fun release() {
-        destroy()
-    }
-
-    actual fun destroy() {
         delegate.destroy()
         info.delete()
     }
+
 }
 
 actual class Sampler(val delegate: GPUSampler) : IntoBindingResource, Releasable {
