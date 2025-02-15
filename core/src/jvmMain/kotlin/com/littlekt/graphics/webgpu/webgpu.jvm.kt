@@ -475,7 +475,7 @@ actual class Queue(val segment: WGPUQueue) : Releasable {
             wgpuQueueWriteTexture(
                 segment,
                 destination.toNative(scope),
-                data.segment.handler,
+                data.segment.let(::NativeAddress),
                 size.toULong(),
                 layout.toNative(scope),
                 copySize.toNative(scope),
@@ -502,8 +502,8 @@ actual class Queue(val segment: WGPUQueue) : Releasable {
     }
 
     private fun dataBuffer(dataOffset: Long, data: GenericBuffer<*>) =
-        if (dataOffset > 0) data.segment.handler.handler.asSlice(dataOffset)
-            .let(::NativeAddress) else data.segment.handler
+        if (dataOffset > 0) data.segment.asSlice(dataOffset)
+            .let(::NativeAddress) else data.segment.let(::NativeAddress)
 
     actual fun writeBuffer(
         buffer: GPUBuffer,
@@ -744,7 +744,7 @@ actual class GPUBuffer(val segment: WGPUBuffer, actual val size: Long) : Releasa
     actual fun getMappedRange(offset: Long, size: Long): ByteBuffer {
         val mappedRange = (wgpuBufferGetMappedRange(segment, offset.toULong(), size.toULong()) ?: error("Failed to get mapped range"))
             .let { MemoryBuffer(it, size.toULong()) }
-        return ByteBufferImpl(size.toInt(), mappedRange.handler.let { MemoryBuffer(it, size.toULong())})
+        return ByteBufferImpl(size.toInt(), segment = mappedRange.handler.handler)
     }
 
     actual fun getMappedRange(): ByteBuffer = getMappedRange(0, size)
