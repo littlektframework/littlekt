@@ -14,8 +14,19 @@ open class ShaderBindGroupBuilder(val group: Int, val usage: BindingUsage) {
         varName: String,
         paramType: ShaderBindingParameterType,
         bindingType: ShaderBindingType,
+        hasDynamicOffset: Boolean = false,
+        minBindingSize: Long = 0,
     ) {
-        bindings += ShaderBinding(group, bindingIdx, varName, paramType, bindingType)
+        bindings +=
+            ShaderBinding(
+                group,
+                bindingIdx,
+                varName,
+                paramType,
+                bindingType,
+                hasDynamicOffset,
+                minBindingSize,
+            )
     }
 
     fun bind(
@@ -23,7 +34,17 @@ open class ShaderBindGroupBuilder(val group: Int, val usage: BindingUsage) {
         varName: String,
         struct: ShaderStruct,
         bindingType: ShaderBindingType,
-    ) = bind(bindingIdx, varName, ShaderBindingParameterType.Struct(struct), bindingType)
+        hasDynamicOffset: Boolean = false,
+        minBindingSize: Long = 0,
+    ) =
+        bind(
+            bindingIdx,
+            varName,
+            ShaderBindingParameterType.Struct(struct),
+            bindingType,
+            hasDynamicOffset,
+            minBindingSize,
+        )
 
     fun bindTexture2d(bindingIdx: Int, varName: String) =
         bind(
@@ -47,12 +68,16 @@ open class ShaderBindGroupBuilder(val group: Int, val usage: BindingUsage) {
         struct: ShaderStruct,
         length: Int,
         bindingType: ShaderBindingType,
+        hasDynamicOffset: Boolean = false,
+        minBindingSize: Long = 0,
     ) =
         bind(
             bindingIdx,
             varName,
             ShaderBindingParameterType.Array(ShaderBindingParameterType.Struct(struct), length),
             bindingType,
+            hasDynamicOffset,
+            minBindingSize,
         )
 
     fun bindArray(
@@ -60,12 +85,16 @@ open class ShaderBindGroupBuilder(val group: Int, val usage: BindingUsage) {
         varName: String,
         struct: ShaderStruct,
         bindingType: ShaderBindingType,
+        hasDynamicOffset: Boolean = false,
+        minBindingSize: Long = 0,
     ) =
         bind(
             bindingIdx,
             varName,
             ShaderBindingParameterType.Array(ShaderBindingParameterType.Struct(struct)),
             bindingType,
+            hasDynamicOffset,
+            minBindingSize,
         )
 
     fun build(): ShaderBindGroup {

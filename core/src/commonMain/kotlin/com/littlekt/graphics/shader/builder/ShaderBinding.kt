@@ -12,6 +12,8 @@ data class ShaderBinding(
     val varName: String,
     val paramType: ShaderBindingParameterType,
     val bindingType: ShaderBindingType,
+    val hasDynamicOffset: Boolean,
+    val minBindingSize: Long,
 ) : ShaderSrc() {
 
     override val src: String by lazy {
@@ -19,11 +21,17 @@ data class ShaderBinding(
     }
 
     fun generateBindingLayoutEntry(visibility: ShaderStage): BindGroupLayoutEntry {
-        return BindGroupLayoutEntry(binding, visibility, bindingType.toBindingLayout(paramType))
+        return BindGroupLayoutEntry(
+            binding,
+            visibility,
+            bindingType.toBindingLayout(paramType, hasDynamicOffset, minBindingSize),
+        )
     }
 
     private fun ShaderBindingType.toBindingLayout(
-        paramType: ShaderBindingParameterType
+        paramType: ShaderBindingParameterType,
+        hasDynamicOffset: Boolean,
+        minBindingSize: Long,
     ): BindingLayout {
         return when (this) {
             ShaderBindingType.Plain ->
@@ -35,13 +43,23 @@ data class ShaderBinding(
             is ShaderBindingType.Storage -> {
                 when (access) {
                     MemoryAccessMode.READ ->
-                        BufferBindingLayout(BufferBindingType.READ_ONLY_STORAGE)
+                        BufferBindingLayout(
+                            BufferBindingType.READ_ONLY_STORAGE,
+                            hasDynamicOffset,
+                            minBindingSize,
+                        )
                     MemoryAccessMode.WRITE ->
                         error("Binding cannot use write access! Use READ_WRITE instead.")
-                    MemoryAccessMode.READ_WRITE -> BufferBindingLayout(BufferBindingType.STORAGE)
+                    MemoryAccessMode.READ_WRITE ->
+                        BufferBindingLayout(
+                            BufferBindingType.STORAGE,
+                            hasDynamicOffset,
+                            minBindingSize,
+                        )
                 }
             }
-            ShaderBindingType.Uniform -> BufferBindingLayout(BufferBindingType.UNIFORM)
+            ShaderBindingType.Uniform ->
+                BufferBindingLayout(BufferBindingType.UNIFORM, hasDynamicOffset, minBindingSize)
         }
     }
 
