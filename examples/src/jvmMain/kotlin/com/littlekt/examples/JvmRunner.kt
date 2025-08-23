@@ -4,6 +4,7 @@ import com.littlekt.Context
 import com.littlekt.ContextListener
 import com.littlekt.createLittleKtApp
 import com.littlekt.log.Logger
+import kotlinx.coroutines.runBlocking
 
 /**
  * @author Colton Daily
@@ -28,8 +29,8 @@ fun main(args: Array<String>) {
     createApp("$title Example", example)
 }
 
-private fun createApp(title: String, start: (Context) -> ContextListener) =
-    createLittleKtApp {
+private fun createApp(title: String, start: (Context) -> ContextListener) = runBlocking {
+        createLittleKtApp {
             width = 960
             height = 540
             this.title = title
@@ -37,3 +38,4 @@ private fun createApp(title: String, start: (Context) -> ContextListener) =
             enableWGPULogging = false
         }
         .start(start)
+}

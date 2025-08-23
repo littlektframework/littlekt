@@ -39,7 +39,7 @@ actual class LittleKtProps {
  * @author Colton Daily
  * @date 11/17/2021
  */
-actual fun createLittleKtApp(action: LittleKtProps.() -> Unit): LittleKtApp {
+actual suspend fun createLittleKtApp(action: LittleKtProps.() -> Unit): LittleKtApp {
     val props = LittleKtProps().apply(action)
     System.setProperty("jextract.trace.downcalls", props.traceWgpu.toString())
     loadNativesFromClasspath()

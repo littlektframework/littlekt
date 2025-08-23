@@ -1,3 +1,6 @@
+@file:OptIn(ExperimentalWasmDsl::class)
+
+import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.plugin.KotlinJsCompilerType
 import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
@@ -17,6 +20,16 @@ kotlin {
         }
 
         this.attributes.attribute(KotlinPlatformType.attribute, KotlinPlatformType.js)
+
+        compilerOptions { sourceMap = true }
+    }
+    wasmJs {
+        browser {
+            binaries.executable()
+            testTask { useKarma { useChromeHeadless() } }
+        }
+
+        this.attributes.attribute(KotlinPlatformType.attribute, KotlinPlatformType.wasm)
 
         compilerOptions { sourceMap = true }
     }

@@ -1,97 +1,19 @@
 package com.littlekt.file.compression
 
-import com.littlekt.file.ByteBuffer
-import com.littlekt.file.ByteBufferImpl
-import kotlinx.coroutines.await
+import org.khronos.webgl.Float32Array
+import org.khronos.webgl.Uint16Array
+import org.khronos.webgl.Uint32Array
 import org.khronos.webgl.Uint8Array
 import org.khronos.webgl.get
+import org.khronos.webgl.toFloat32Array
+import org.khronos.webgl.toUIntArray
+import org.khronos.webgl.toUShortArray
+import org.khronos.webgl.toUint16Array
+import org.khronos.webgl.toUint32Array
+import org.khronos.webgl.toUint8Array
 
-/**
- * JS gzip implementation using the new Streams API
- *
- * @author Colton Daily
- * @date 12/2/2024
- */
-actual class CompressionGZIP : Compression {
-    actual override suspend fun compress(input: ByteBuffer): ByteBuffer {
-        input as ByteBufferImpl
-        val buffer = input.buffer.buffer
-        val compressionStream = CompressionStream("gzip")
-        val writer = compressionStream.writable.getWriter()
-        writer.write(buffer)
-        writer.close()
-        val reader = compressionStream.readable.getReader()
-        var output = Uint8Array(0)
-        while (true) {
-            val chunk = reader.read().await()
-            if (chunk.done) break
-            val temp = Uint8Array(output.length + chunk.value.length)
-            temp.set(output)
-            temp.set(chunk.value, output.length)
-            output = temp
-        }
-        return ByteBufferImpl(output)
-    }
-
-    actual override suspend fun compress(input: ByteArray): ByteArray {
-        val buffer = Uint8Array(input.toTypedArray())
-        val compressionStream = CompressionStream("gzip")
-        val writer = compressionStream.writable.getWriter()
-        writer.write(buffer)
-        writer.close()
-        val reader = compressionStream.readable.getReader()
-        var output = Uint8Array(0)
-        while (true) {
-            val chunk = reader.read().await()
-            if (chunk.done) break
-            val temp = Uint8Array(output.length + chunk.value.length)
-            temp.set(output)
-            temp.set(chunk.value, output.length)
-            output = temp
-        }
-        return ByteArray(output.length) { output[it] }
-    }
-
-    actual override suspend fun decompress(input: ByteBuffer): ByteBuffer {
-        input as ByteBufferImpl
-        val buffer = input.buffer.buffer
-        val decompressedStream = DecompressionStream("gzip")
-        val writer = decompressedStream.writable.getWriter()
-        writer.write(buffer)
-        writer.close()
-        val reader = decompressedStream.readable.getReader()
-        var output = Uint8Array(0)
-        while (true) {
-            val chunk = reader.read().await()
-            if (chunk.done) break
-            val temp = Uint8Array(output.length + chunk.value.length)
-            temp.set(output)
-            temp.set(chunk.value, output.length)
-            output = temp
-        }
-        return ByteBufferImpl(output)
-    }
-
-    actual override suspend fun decompress(input: ByteArray): ByteArray {
-        val buffer = Uint8Array(input.toTypedArray()).buffer
-        val decompressedStream = DecompressionStream("gzip")
-        val writer = decompressedStream.writable.getWriter()
-        writer.write(buffer)
-        writer.close()
-        val reader = decompressedStream.readable.getReader()
-        var output = Uint8Array(0)
-        while (true) {
-            val chunk = reader.read().await()
-            if (chunk.done) break
-            val temp = Uint8Array(output.length + chunk.value.length)
-            temp.set(output)
-            temp.set(chunk.value, output.length)
-            output = temp
-        }
-        return ByteArray(output.length) { output[it] }
-    }
-
-    actual companion object {
-        actual operator fun invoke(): CompressionGZIP = CompressionGZIP()
-    }
-}
+actual fun toUint8Array(input: ByteArray): Uint8Array = input.toUByteArray().toUint8Array()
+actual fun nativeByteArray(output: Uint8Array): ByteArray = ByteArray(output.length) { output[it] }
+actual fun toUint16Array(input: ShortArray): Uint16Array = input.toUShortArray().toUint16Array()
+actual fun toUint32Array(input: IntArray): Uint32Array = input.toUIntArray().toUint32Array()
+actual fun toFloat32Array(input: FloatArray): Float32Array = input.toFloat32Array() 

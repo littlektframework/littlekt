@@ -669,4 +669,4 @@ class SpriteCache(
 }
 
 /** An identifier used to track sprites in a [SpriteCache] */
-private typealias SpriteId = Int
+internal typealias SpriteId = Int
