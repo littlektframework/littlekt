@@ -1,0 +1,30 @@
+<body style="margin:0;overflow:hidden;">
+<div style="text-align:center;position:relative;display:block;width:100%;height:100vh;">
+    <p id="error-message" style="font-size:24px;display:none;margin:16px auto;max-width:900px;line-height:1.4;">
+        Your browser does not currently support WebGPU. You must use Chrome Canary, Edge Canary, or Firefox Nightly and
+        enable WebGPU (See https://github.com/gpuweb/gpuweb/wiki/Implementation-Status for more details)
+    </p>
+
+    <div style="position:relative;display:block;width:100%;height:100vh;">
+        <div id="jetpack-compose"
+             style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:auto;z-index:10;">
+        </div>
+
+        <canvas id="webgpu" style="width:100vw;height:100vh;display:block;border:none;margin:0;padding:0;"></canvas>
+    </div>
+    <script type="text/javascript" src="https://mrdoob.github.io/stats.js/build/stats.min.js" onload="if (navigator.gpu) {
+        var stats = new Stats();
+        document.body.appendChild(stats.dom);
+          stats.dom.style.position = 'fixed';
+          stats.dom.style.right = '0';
+          stats.dom.style.left = 'auto';
+          stats.dom.style.top = '0';
+        requestAnimationFrame(function loop() {
+        stats.update();
+        requestAnimationFrame(loop)
+        });
+    }">
+    </script>
+    <script type="text/javascript" src="examples.js"></script>
+</div>
+</body>

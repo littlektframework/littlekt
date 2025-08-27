@@ -2,10 +2,13 @@ package com.littlekt.examples
 
 import com.littlekt.Context
 import com.littlekt.ContextListener
+import com.littlekt.async.KtScope
 import com.littlekt.createLittleKtApp
 import com.littlekt.log.Logger
 import kotlinx.browser.document
 import kotlinx.browser.window
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import kotlinx.html.UL
 import kotlinx.html.a
 import kotlinx.html.dom.append
@@ -33,7 +36,9 @@ fun main() {
     val (title, example) = exampleInfo
 
     Logger.setLevels(Logger.Level.DEBUG)
-    createApp("$title Example", example)
+    GlobalScope.launch {
+        createApp("$title Example", example)
+    }
 }
 
 private fun setStatus(message: String) {
@@ -44,7 +49,7 @@ private fun UL.addExample(key: String, title: String) {
     li { a(href = "index.html?example=$key") { +title } }
 }
 
-private fun createApp(title: String, start: (Context) -> ContextListener) =
+private suspend fun createApp(title: String, start: (Context) -> ContextListener) =
     createLittleKtApp {
             width = 960
             height = 540

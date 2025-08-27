@@ -1,8 +1,15 @@
+@file:OptIn(ExperimentalWasmDsl::class)
+
 import org.apache.tools.ant.taskdefs.condition.Os
+import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
 
-plugins { alias(libs.plugins.kotlin.multiplatform) }
+plugins {
+    alias(libs.plugins.kotlin.multiplatform)
+    alias(libs.plugins.compose.multiplatform)
+    alias(libs.plugins.compose.compiler)
+}
 
 repositories { maven(url = "https://maven.pkg.jetbrains.space/public/p/kotlinx-html/maven") }
 
@@ -79,15 +86,40 @@ kotlin {
         compilerOptions { sourceMap = true }
     }
 
+    wasmJs {
+        binaries.executable()
+        browser {
+            testTask { useKarma { useChromeHeadless() } }
+            commonWebpackConfig {
+                devServer =
+                    (devServer
+                            ?: org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpackConfig
+                                .DevServer())
+                        .copy(open = mapOf("app" to mapOf("name" to "chrome")))
+            }
+        }
+
+        this.attributes.attribute(KotlinPlatformType.attribute, KotlinPlatformType.wasm)
+
+        compilerOptions { sourceMap = true }
+    }
+
     sourceSets {
         val commonMain by getting {
             dependencies {
                 implementation(libs.kotlinx.coroutines.core)
                 implementation(project(":core"))
                 implementation(project(":scene-graph"))
+                implementation(compose.runtime)
+                implementation(compose.foundation)
+                implementation(compose.material3)
+                implementation(compose.ui)
+                implementation(compose.components.resources)
+                implementation(compose.components.uiToolingPreview)
             }
         }
 
         val jsMain by getting { dependencies { implementation(libs.kotlinx.html.js) } }
+        val wasmJsMain by getting { dependencies { implementation(libs.kotlinx.browser) } }
     }
 }

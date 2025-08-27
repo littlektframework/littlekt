@@ -23,7 +23,7 @@ kotlin {
 
         this.attributes.attribute(KotlinPlatformType.attribute, KotlinPlatformType.js)
 
-        compilations.all { kotlinOptions.sourceMap = true }
+        compilerOptions { sourceMap = true }
     }
 
     sourceSets {

@@ -1,4 +1,9 @@
+@file:OptIn(ExperimentalWasmDsl::class, ExperimentalKotlinGradlePluginApi::class)
+
+import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
+import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.plugin.KotlinHierarchyTemplate
 import org.jetbrains.kotlin.gradle.plugin.KotlinJsCompilerType
 import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
 
@@ -9,6 +14,9 @@ plugins {
 }
 
 kotlin {
+    sourceSets.all {
+        languageSettings.optIn("kotlin.js.ExperimentalWasmJsInterop")
+    }
     applyDefaultHierarchyTemplate()
     tasks.withType<Test> {
         var env = project.properties["env"] as? String
@@ -26,7 +34,30 @@ kotlin {
 
         this.attributes.attribute(KotlinPlatformType.attribute, KotlinPlatformType.js)
 
-        compilations.all { kotlinOptions.sourceMap = true }
+        compilerOptions { sourceMap = true }
+    }
+
+    wasmJs {
+        browser {
+            binaries.executable()
+            testTask { useKarma { useChromeHeadless() } }
+        }
+
+        this.attributes.attribute(KotlinPlatformType.attribute, KotlinPlatformType.wasm)
+
+        compilerOptions {
+            sourceMap = true
+            freeCompilerArgs.add("-Xwasm-attach-js-exception")
+        }
+    }
+
+    applyHierarchyTemplate(KotlinHierarchyTemplate.default) {
+        common {
+            group("web") {
+                withJs()
+                withWasmJs()
+            }
+        }
     }
 
     sourceSets {
@@ -77,6 +108,14 @@ kotlin {
         val jvmTest by getting
         val jsMain by getting
         val jsTest by getting
+
+        val webMain by getting {
+            dependencies { implementation(libs.kotlinx.browser) }
+        }
+        val webTest by getting
+
+        val wasmJsMain by getting
+        val wasmJsTest by getting
 
         val jvmAndroidMain = maybeCreate("jvmAndroidMain")
 

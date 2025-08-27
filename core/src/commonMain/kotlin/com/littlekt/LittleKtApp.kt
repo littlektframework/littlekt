@@ -28,4 +28,4 @@ expect class LittleKtProps
  * Creates a new [LittleKtApp] containing [LittleKtProps] as the [ContextConfiguration] for building
  * a [Context].
  */
-expect fun createLittleKtApp(action: LittleKtProps.() -> Unit = {}): LittleKtApp
+expect suspend fun createLittleKtApp(action: LittleKtProps.() -> Unit = {}): LittleKtApp
