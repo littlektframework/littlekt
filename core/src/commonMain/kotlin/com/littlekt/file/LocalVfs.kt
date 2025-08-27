@@ -11,6 +11,7 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.channels.SendChannel
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.selects.select
 import kotlinx.serialization.json.Json
@@ -43,7 +44,7 @@ abstract class LocalVfs(context: Context, logger: Logger, baseDir: String) :
         VfsScope.launch {
             repeat(NUM_LOAD_WORKERS) { loadWorker(assetRefChannel, loadedAssetChannel) }
             val requested = mutableMapOf<AssetRef, MutableList<AwaitedAsset>>()
-            while (true) {
+            while (isActive) {
                 select<Unit> {
                     awaitedAssetsChannel.onReceive { awaited ->
                         val awaiting = requested[awaited.ref]

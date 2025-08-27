@@ -1,6 +1,7 @@
 package com.littlekt.file
 
 import com.littlekt.log.Logger
+import com.littlekt.util.nativeGet
 import kotlinx.browser.localStorage
 import kotlinx.browser.window
 import org.khronos.webgl.Uint8Array
@@ -145,13 +146,3 @@ class WebKeyValueStorage(private val logger: Logger) : KeyValueStorage {
         return bytes
     }
 }
-
-expect fun  <T> nativeGet(array :Array<T>, index: Int): T
-expect fun <T> nativeSet(array: Array<T>, index: Int, element: T)
-expect fun nativeSet(array: IntArray, index: Int, element: Int)
-expect fun nativeSet(array: ByteArray, index: Int, element: Byte)
-expect fun nativeIndexOf(array: IntArray, element: Int): Int
-expect fun nativeGet(array :ShortArray, index: Int): Short
-expect fun nativeGet(array : IntArray, index: Int): Int
-expect fun nativeGet(array : FloatArray, index: Int): Float
-expect fun nativeGet(array : ByteArray, index: Int): Byte

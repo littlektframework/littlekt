@@ -3,10 +3,12 @@ package com.littlekt.file.compression
 import com.littlekt.async.await
 import com.littlekt.file.ByteBuffer
 import com.littlekt.file.ByteBufferImpl
+import kotlinx.coroutines.isActive
 import org.khronos.webgl.Float32Array
 import org.khronos.webgl.Uint16Array
 import org.khronos.webgl.Uint32Array
 import org.khronos.webgl.Uint8Array
+import kotlin.coroutines.coroutineContext
 
 /**
  * JS gzip implementation using the new Streams API
@@ -88,7 +90,7 @@ actual class CompressionGZIP : Compression {
         writer.close()
         val reader = decompressedStream.readable.getReader()
         var output = Uint8Array(0)
-        while (true) {
+        while (coroutineContext.isActive) {
             val chunk = reader.read().await<ReadableChunk>()
             if (chunk.done) break
             val temp = Uint8Array(output.length + chunk.value.length)

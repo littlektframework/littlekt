@@ -107,7 +107,6 @@ class WebAudioClip(val assetPath: String) : AudioClip {
         init {
             audioElement.onended = {
                 clipState = ClipState.STOPPED
-                true
             }
         }
 

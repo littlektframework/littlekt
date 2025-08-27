@@ -4,6 +4,7 @@ import com.littlekt.file.compression.toFloat32Array
 import com.littlekt.file.compression.toUint16Array
 import com.littlekt.file.compression.toUint32Array
 import com.littlekt.file.compression.toUint8Array
+import com.littlekt.util.nativeGet
 import org.khronos.webgl.*
 
 internal abstract class GenericBuffer<out B : ArrayBufferView>(

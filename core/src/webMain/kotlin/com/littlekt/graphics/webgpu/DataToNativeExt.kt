@@ -1,5 +1,6 @@
 package com.littlekt.graphics.webgpu
 
+import com.littlekt.util.nativeGetOrNull
 import kotlin.js.toJsArray
 import kotlin.js.toJsString
 
@@ -315,7 +316,15 @@ external interface GPUColorDict {
     var b: Double
     var a: Double
 }
-expect fun rgbaToColorDict(values: FloatArray): GPUColorDict
+
+fun rgbaToColorDict(values: FloatArray): GPUColorDict {
+    return GPUColorDict().apply {
+        r = nativeGetOrNull(values,0)?.toDouble() ?: 0.0
+        g = nativeGetOrNull(values,1)?.toDouble() ?: 0.0
+        b = nativeGetOrNull(values,2)?.toDouble() ?: 0.0
+        a = nativeGetOrNull(values,3)?.toDouble() ?: 1.0
+    }
+}
 
 fun RenderPassColorAttachmentDescriptor.toNative(): GPURenderPassColorAttachment =
     GPURenderPassColorAttachment().apply {

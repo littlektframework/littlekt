@@ -1,9 +1,9 @@
 package com.littlekt.input
 
-import com.littlekt.file.nativeGet
-import com.littlekt.file.nativeIndexOf
-import com.littlekt.file.nativeSet
 import com.littlekt.math.geom.Point
+import com.littlekt.util.nativeGet
+import com.littlekt.util.nativeIndexOf
+import com.littlekt.util.nativeSet
 import kotlinx.browser.document
 import kotlinx.browser.window
 import org.w3c.dom.Document

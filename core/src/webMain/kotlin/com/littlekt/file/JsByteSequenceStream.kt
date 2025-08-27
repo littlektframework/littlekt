@@ -1,7 +1,7 @@
 package com.littlekt.file
 
 /**
- * @param buffer assumed [com.littlekt.file.vfs.ByteBuffer] where the position is set to be read from until the limit.
+ * @param buffer assumed [ByteBuffer] where the position is set to be read from until the limit.
  * @author Colton Daily
  * @date 1/12/2022
  */
