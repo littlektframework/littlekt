@@ -9,8 +9,8 @@ import com.littlekt.file.IntBuffer
 import com.littlekt.file.IntBufferImpl
 import com.littlekt.file.ShortBuffer
 import com.littlekt.file.ShortBufferImpl
-import com.littlekt.math.add
-import ffi.MemoryBuffer
+import com.sun.jna.Pointer
+import java.lang.foreign.MemorySegment
 import ffi.NativeAddress
 import ffi.memoryScope
 import io.ygdrasil.wgpu.WGPUBuffer
@@ -22,9 +22,11 @@ import io.ygdrasil.wgpu.wgpuQueueWriteTexture
 internal actual fun nativeMappedRange(
     segment: WGPUBuffer, offset: Long, size: Long
 ): ByteBuffer {
-    val mappedRange = (wgpuBufferGetMappedRange(segment, offset.toULong(), size.toULong())
-        ?: error("Failed to get mapped range")).let { MemoryBuffer(it, size.toULong()) }
-    return ByteBufferImpl(size.toInt(), segment = mappedRange.handler.handler)
+    val ptr: NativeAddress =
+        wgpuBufferGetMappedRange(segment, offset.toULong(), size.toULong()) ?: error("Failed to get mapped range")
+    
+    val seg = MemorySegment(ptr, size)
+    return ByteBufferImpl(size.toInt(), segment = seg)
 }
 
 actual fun Queue.nativeWriteTexture(
@@ -35,7 +37,7 @@ actual fun Queue.nativeWriteTexture(
         wgpuQueueWriteTexture(
             segment,
             destination.toNative(scope),
-            data.segment.let(::NativeAddress),
+            data.segment.toPointer(),
             size.toULong(),
             layout.toNative(scope),
             copySize.toNative(scope),
@@ -43,9 +45,10 @@ actual fun Queue.nativeWriteTexture(
     }
 }
 
+private fun MemorySegment.toPointer() = this.pointer
 
-private fun dataBuffer(dataOffset: Long, data: GenericBuffer<*>) =
-    if (dataOffset > 0) data.segment.asSlice(dataOffset).let(::NativeAddress) else data.segment.let(::NativeAddress)
+private fun dataBuffer(dataOffset: Long, data: GenericBuffer<*>): NativeAddress =
+    if (dataOffset > 0) data.segment.asSlice(dataOffset).pointer else data.segment.pointer
 
 actual fun Queue.nativeWriteIntBuffer(
     buffer: GPUBuffer, offset: Long, dataOffset: Long, data: IntBuffer, size: Long
@@ -100,6 +103,6 @@ actual fun Queue.nativeWriteShortBuffer(
     )
 }
 
-actual fun getNativeWebGPUTextureByteSize(texture: WGPUTexture): Long{
-    return texture.handler.handler.byteSize()
+actual fun getNativeWebGPUTextureByteSize(texture: WGPUTexture): Long {
+    return 0L // same as webMain impl
 }

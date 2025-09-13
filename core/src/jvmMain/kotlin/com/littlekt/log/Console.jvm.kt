@@ -18,7 +18,7 @@ actual object Console : BaseConsole() {
         val color = kind.color
         if (color != null) appendFgColor(color)
         synchronized(dateFormat) { append("[${dateFormat.format(System.currentTimeMillis())}] - ") }
-        append("[Thread: ${Thread.currentThread().threadId()}] - ")
+        append("[Thread: ${Thread.currentThread().id}] - ")
         msg.joinTo(this, ": ")
         if (color != null) appendReset()
     }
