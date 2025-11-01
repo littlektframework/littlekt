@@ -330,7 +330,7 @@ open class AnimationPlayer<KeyFrameType> {
     ) {
         removeState(anim)
         states.add(AnimationState(anim, priority, loop, reason))
-        states.sortByDescending { priority }
+        states.sortByDescending { it.priority }
     }
 
     /** Remove the specified animation from current list of states. */
