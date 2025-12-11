@@ -812,6 +812,7 @@ expect class RenderPassEncoder : Releasable {
  * @param clearColor the color to clear the view
  * @param resolveTarget the view that will receive the resolved output if multisampling is used. If
  *   set, it is always written to, regardless of how [loadOp] or [storeOp] is configured.
+ * @param depthSlice index of a 3D view. It must not be provided if the view is not 3D.
  */
 data class RenderPassColorAttachmentDescriptor(
     val view: TextureView,
@@ -819,6 +820,7 @@ data class RenderPassColorAttachmentDescriptor(
     val storeOp: StoreOp,
     val clearColor: Color? = null,
     val resolveTarget: TextureView? = null,
+    val depthSlice: Int? = null
 )
 
 /**

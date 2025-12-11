@@ -32,8 +32,7 @@ internal fun map(input: RenderPassColorAttachmentDescriptor, output: WGPURenderP
     output.view = input.view.segment
     output.loadOp = input.loadOp.nativeVal
     output.storeOp = input.storeOp.nativeVal
-    // TODO find how to map this
-    //if (input.depthSlice != null) WGPURenderPassColorAttachment.depthSlice = input.depthSlice)
+    if (input.depthSlice != null) output.depthSlice = input.depthSlice.toUInt()
     if (input.resolveTarget != null) output.resolveTarget = input.resolveTarget.segment
     if (input.clearColor != null) map(input.clearColor, output.clearValue)
 }

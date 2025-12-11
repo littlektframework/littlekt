@@ -12,7 +12,7 @@ plugins {
 
 kotlin {
     tasks.withType<JavaExec> { jvmArgs("--enable-native-access=ALL-UNNAMED") }
-    jvm { compilerOptions { jvmTarget = JvmTarget.JVM_22 } }
+    jvm { compilerOptions { jvmTarget = JvmTarget.JVM_24 } }
     js(KotlinJsCompilerType.IR) {
         browser {
             binaries.executable()
