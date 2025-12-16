@@ -4,7 +4,7 @@
 [![build](https://github.com/littlektframework/littlekt/actions/workflows/build.yml/badge.svg?branch=master)](https://github.com/littlektframework/littlekt/actions/workflows/build.yml)
 [![Download](https://img.shields.io/maven-central/v/com.littlekt/core/0.11.0)](https://search.maven.org/artifact/com.littlekt/core/0.11.0/pom)
 
-Requires JDK 22+ in order to use due to the usage of the new Java FFM API.
+Requires JDK 24+ in order to use due to the usage of the new Java FFM API.
 
 **Currently, in development.**
 
@@ -37,7 +37,7 @@ repositories {
 
 kotlin {
     jvm {
-        compilerOptions { jvmTarget = JvmTarget.JVM_22 }
+        compilerOptions { jvmTarget = JvmTarget.JVM_24 }
     }
 }
 
@@ -70,7 +70,7 @@ repositories {
 }
 
 kotlin {
-    compilerOptions { jvmTarget = JvmTarget.JVM_22 }
+    compilerOptions { jvmTarget = JvmTarget.JVM_24 }
 }
 
 val littleKtVersion = "0.11.0.131d453-SNAPSHOT" // or whichever hash you are using

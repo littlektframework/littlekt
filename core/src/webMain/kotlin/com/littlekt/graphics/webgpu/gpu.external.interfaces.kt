@@ -351,7 +351,6 @@ external interface GPURenderPassDescriptor : GPUObjectBase {
 expect fun GPURenderPassColorAttachment(): GPURenderPassColorAttachment
 external interface GPURenderPassColorAttachment : JsAny {
     var view: GPUTextureView
-    var depthSlice: Int
     var resolveTarget: GPUTextureView?
     var clearValue: GPUColorDict?
     var loadOp: String
