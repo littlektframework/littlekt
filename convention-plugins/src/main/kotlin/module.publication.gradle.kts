@@ -34,7 +34,6 @@ fun getExtraString(name: String) = ext[name]?.toString()
 
 val littleKtVersion: String by project
 
-@Suppress("UnstableApiUsage")
 val hash: String by lazy {
     providers
         .exec { commandLine("git", "rev-parse", "--verify", "--short=7", "HEAD") }

@@ -49,14 +49,14 @@ tasks {
     val publishAllPublications = false
 
     val publishJvmPublicationToMavenLocal by
-        creating(Task::class) {
-            dependsOn(
-                when {
-                    publishAllPublications -> "publishToMavenLocal"
-                    else -> "publishPluginMavenPublicationToMavenLocal"
-                }
-            )
-        }
+    registering(Task::class) {
+        dependsOn(
+            when {
+                publishAllPublications -> "publishToMavenLocal"
+                else -> "publishPluginMavenPublicationToMavenLocal"
+            }
+        )
+    }
 
     afterEvaluate {
         val publishTaskOrNull =
@@ -69,9 +69,9 @@ tasks {
 
         if (publishTaskOrNull != null) {
             val publishJvmPublicationToMavenRepository by
-                creating(Task::class) { dependsOn(publishTaskOrNull) }
+            registering(Task::class) { -> dependsOn(publishTaskOrNull) }
         }
     }
 
-    val jvmTest by creating(Task::class) { dependsOn("test") }
+    val jvmTest by registering(Task::class) { -> dependsOn("test") }
 }
