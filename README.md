@@ -66,7 +66,7 @@ E.g `0.2.1.080b1ad-SNAPSHOT`.
 
 ```kotlin
 repositories {
-    maven(url = "https://s01.oss.sonatype.org/content/repositories/snapshots/")
+    maven(url = "https://central.sonatype.com/repository/maven-snapshots/")
 }
 
 kotlin {
