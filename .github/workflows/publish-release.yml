@@ -29,10 +29,6 @@ jobs:
         run: ./gradlew core:publishAllPublicationsToSonatypeRepository
       - name: Publish scene-graph release to Sonatype repository
         run: ./gradlew scene-graph:publishAllPublicationsToSonatypeRepository
-      - name: Publish wgpu-ffm release to Sonatype repository
-        run: ./gradlew wgpu-ffm:publishAllPublicationsToSonatypeRepository
-      - name: Publish wgpu-natives release to Sonatype repository
-        run: ./gradlew wgpu-natives:publishAllPublicationsToSonatypeRepository
       - name: Publish tools release to Sonatype repository
         run: ./gradlew extensions:tools:publishAllPublicationsToSonatypeRepository
       - name: Publish texture packer gradle plugins release to Sonatype repository
