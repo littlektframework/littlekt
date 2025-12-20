@@ -1,6 +1,5 @@
 package com.littlekt.graphics.webgpu
 
-import ffi.ArrayHolder
 import ffi.MemoryAllocator
 import io.ygdrasil.wgpu.WGPUExtent3D
 import io.ygdrasil.wgpu.WGPUTextureDescriptor

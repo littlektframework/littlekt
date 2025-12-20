@@ -9,12 +9,16 @@ plugins {
     alias(libs.plugins.kotlin.multiplatform)
     alias(libs.plugins.compose.multiplatform)
     alias(libs.plugins.compose.compiler)
+    alias(libs.plugins.android.application)
 }
 
 repositories { maven(url = "https://maven.pkg.jetbrains.space/public/p/kotlinx-html/maven") }
 
 kotlin {
     tasks.withType<JavaExec> { jvmArgs("--enable-native-access=ALL-UNNAMED") }
+    androidTarget {
+        compilerOptions { jvmTarget = JvmTarget.JVM_24 }
+    }
     jvm {
         compilerOptions { jvmTarget = JvmTarget.JVM_24 }
         compilations {
@@ -114,12 +118,44 @@ kotlin {
                 implementation(compose.foundation)
                 implementation(compose.material3)
                 implementation(compose.ui)
-                implementation(compose.components.resources)
                 implementation(compose.components.uiToolingPreview)
+            }
+        }
+
+        val androidMain by getting {
+            dependencies {
+                implementation(libs.androidx.activity.compose)
             }
         }
 
         val jsMain by getting { dependencies { implementation(libs.kotlinx.html.js) } }
         val wasmJsMain by getting { dependencies { implementation(libs.kotlinx.browser) } }
+    }
+}
+
+android {
+    namespace = "com.littlekt.examples"
+    compileSdk = libs.versions.android.compile.sdk.get().toInt()
+    defaultConfig {
+        applicationId = "com.littlekt.examples"
+        minSdk = libs.versions.android.min.sdk.get().toInt()
+        targetSdk = libs.versions.android.compile.sdk.get().toInt()
+        versionCode = 1
+        versionName = "1.0"
+    }
+    buildFeatures {
+        compose = true
+    }
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_24
+        targetCompatibility = JavaVersion.VERSION_24
+    }
+    sourceSets {
+        named("main") {
+            assets.srcDirs(
+                "src/androidMain/assets",
+                "src/commonMain/resources"
+            )
+        }
     }
 }

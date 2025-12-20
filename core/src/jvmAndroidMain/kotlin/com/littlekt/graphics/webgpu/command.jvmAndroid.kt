@@ -10,7 +10,6 @@ import io.ygdrasil.wgpu.WGPUCommandEncoder
 import io.ygdrasil.wgpu.WGPUComputePassDescriptor
 import io.ygdrasil.wgpu.WGPUComputePassEncoder
 import io.ygdrasil.wgpu.WGPUComputePipeline
-import io.ygdrasil.wgpu.WGPUComputePipelineDescriptor
 import io.ygdrasil.wgpu.WGPUOrigin3D
 import io.ygdrasil.wgpu.WGPURenderPassEncoder
 import io.ygdrasil.wgpu.WGPURenderPipeline
@@ -41,10 +40,6 @@ import io.ygdrasil.wgpu.WGPUTexelCopyBufferInfo
 import io.ygdrasil.wgpu.wgpuCommandEncoderBeginRenderPass
 import io.ygdrasil.wgpu.wgpuCommandEncoderCopyBufferToBuffer
 import io.ygdrasil.wgpu.wgpuCommandEncoderBeginComputePass
-import java.lang.foreign.Arena
-import java.lang.foreign.MemorySegment
-import java.lang.foreign.SegmentAllocator
-import java.lang.foreign.ValueLayout
 
 actual class RenderPipeline(val segment: WGPURenderPipeline) : Releasable {
 

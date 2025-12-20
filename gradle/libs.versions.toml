@@ -9,15 +9,21 @@ lwjgl = "3.3.6"
 mp3-decoder = "1.0.1"
 jna = "5.18.1"
 wgpu4k-native = "v27.0.4"
+wgpu4k = "0.1.1"
 rococoa = "0.0.1"
 compose-multiplatform = "1.8.2"
 kotlinx-browser="0.5.0"
+agp = '8.13.2'
+android-compile-sdk = "35"
+android-min-sdk = "28"
+android-native-helper = "0.0.1"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
 kotlinx-atomicfu = { module = "org.jetbrains.kotlinx:atomicfu", version.ref = "kotlinx-atomicfu" }
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinx-coroutines" }
 kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinx-coroutines" }
+kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "kotlinx-coroutines" }
 kotlinx-html-js = { module = "org.jetbrains.kotlinx:kotlinx-html-js", version.ref = "kotlinxHtmlVersion" }
 kotlinx-browser = { module = "org.jetbrains.kotlinx:kotlinx-browser", version.ref = "kotlinx-browser" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx-serialization" }
@@ -27,8 +33,14 @@ lwjgl-openal = { module = "org.lwjgl:lwjgl-openal", version.ref = "lwjgl" }
 lwjgl-stb = { module = "org.lwjgl:lwjgl-stb", version.ref = "lwjgl" }
 mp3-decoder = { module = "fr.delthas:javamp3", version.ref = "mp3-decoder" }
 wgpu4k-native = { module = "io.ygdrasil:wgpu4k-native", version.ref = "wgpu4k-native" }
+wgpu4k = { module = "io.ygdrasil:wgpu4k", version.ref = "wgpu4k" }
+wgpu4k-toolkit = { module = "io.ygdrasil:wgpu4k-toolkit", version.ref = "wgpu4k" }
 jna-platform = { module = "net.java.dev.jna:jna-platform", version.ref = "jna" }
 rococoa = { module = "io.ygdrasil:rococoa", version.ref = "rococoa" }
+androidx-activity-compose = { module = "androidx.activity:activity-compose", version = "1.9.3" }
+android-exoplayer = { module = "androidx.media3:media3-exoplayer", version = "1.8.0" }
+android-native-helper = { module = "io.ygdrasil:android-native-helper", version.ref = "android-native-helper" }
+okhttp = { module = "com.squareup.okhttp3:okhttp", version = "5.1.0" }
 
 [plugins]
 download = { id = "de.undercouch.download", version.ref = "download-gradle" }
@@ -37,3 +49,5 @@ kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 compose-multiplatform = { id = "org.jetbrains.compose", version.ref = "compose-multiplatform" }
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+android-application = { id = "com.android.application", version.ref = "agp" }
+android-library = { id = "com.android.library", version.ref = "agp" }
