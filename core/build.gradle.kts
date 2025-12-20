@@ -163,7 +163,7 @@ android {
     compileSdk = libs.versions.android.compile.sdk.get().toInt()
     defaultConfig { minSdk = libs.versions.android.min.sdk.get().toInt() }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_22
-        targetCompatibility = JavaVersion.VERSION_22
+        sourceCompatibility = JavaVersion.VERSION_24
+        targetCompatibility = JavaVersion.VERSION_24
     }
 }
