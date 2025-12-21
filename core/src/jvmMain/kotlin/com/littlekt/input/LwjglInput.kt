@@ -62,15 +62,11 @@ class LwjglInput(private val context: LwjglContext) : Input {
             inputCache.onScroll(-xoffset.toFloat(), yoffset.toFloat())
         }
 
-        var logicalMouseY = 0f
-        var logicalMouseX = 0f
         glfwSetCursorPosCallback(windowHandle) { _, xpos, ypos ->
-            _deltaX = xpos.toFloat() - logicalMouseX
-            _deltaY = ypos.toFloat() - logicalMouseY
+            _deltaX = xpos.toFloat() - mouseX
+            _deltaY = ypos.toFloat() - mouseY
             mouseX = xpos.toFloat()
             mouseY = ypos.toFloat()
-            logicalMouseX = mouseX
-            logicalMouseY = mouseY
 
             val configuration = context.configuration
             if (configuration.hdpiMode == HdpiMode.PIXELS) {

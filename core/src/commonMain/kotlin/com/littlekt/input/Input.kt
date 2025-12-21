@@ -385,7 +385,7 @@ interface Input {
     fun getPressure(pointer: Pointer): Float
 
     /**
-     * Determines if the key is was just pressed within the past frame.
+     * Determines if the key was just pressed within the past frame.
      *
      * @return `true` if the [Key] was just pressed; `false` otherwise.
      */

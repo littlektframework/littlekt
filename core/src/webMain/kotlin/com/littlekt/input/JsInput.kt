@@ -16,6 +16,7 @@ import kotlin.js.JsArray
 import kotlin.js.JsName
 import kotlin.js.JsNumber
 import kotlin.js.unsafeCast
+import kotlin.math.round
 
 /**
  * @author Colton Daily
@@ -27,7 +28,7 @@ class JsInput(val canvas: HTMLCanvasElement) : Input {
     private var mouseY = 0f
     private var _deltaX = 0f
     private var _deltaY = 0f
-    private val touchedPointers = mutableListOf<Pointer>()
+    private val touchedPointers = mutableSetOf<Pointer>()
 
     /** Holds the references to active touch identifiers indexed by assigned pointer number. */
     private val touchIdentifiers = createTouchIdentifiers()
@@ -173,15 +174,11 @@ class JsInput(val canvas: HTMLCanvasElement) : Input {
         if (cursorLocked) {
             mouseX += event.movementX.toFloat()
             mouseY += event.movementY.toFloat()
-            inputCache.onTouchDown(mouseX, mouseY, event.button.getPointer)
         } else {
-            val rect = canvas.getBoundingClientRect()
-            val x = event.clientX.toFloat() - rect.left.toFloat()
-            val y = event.clientY.toFloat() - rect.top.toFloat()
-            mouseX = x
-            mouseY = y
-            inputCache.onTouchDown(x, y, event.button.getPointer)
+            mouseX = canvasRelativeX(event)
+            mouseY = canvasRelativeY(event)
         }
+        inputCache.onTouchDown(mouseX, mouseY, event.button.getPointer)
         touchedPointers += event.button.getPointer
     }
 
@@ -192,17 +189,13 @@ class JsInput(val canvas: HTMLCanvasElement) : Input {
             _deltaY = event.movementY.toFloat()
             mouseX += event.movementX.toFloat()
             mouseY += event.movementY.toFloat()
-            inputCache.onTouchUp(mouseX, mouseY, event.button.getPointer)
         } else {
-            val rect = canvas.getBoundingClientRect()
-            val x = event.clientX.toFloat() - rect.left.toFloat()
-            val y = event.clientY.toFloat() - rect.top.toFloat()
-            _deltaX = x - mouseX
-            _deltaY = y - mouseY
-            mouseX = x
-            mouseY = y
-            inputCache.onTouchUp(x, y, event.button.getPointer)
+            _deltaX = canvasRelativeX(event) - mouseX
+            _deltaY = canvasRelativeY(event) - mouseY
+            mouseX = canvasRelativeX(event)
+            mouseY = canvasRelativeY(event)
         }
+        inputCache.onTouchUp(mouseX, mouseY, event.button.getPointer)
         touchedPointers -= event.button.getPointer
     }
 
@@ -214,13 +207,10 @@ class JsInput(val canvas: HTMLCanvasElement) : Input {
             mouseX += event.movementX.toFloat()
             mouseY += event.movementY.toFloat()
         } else {
-            val rect = canvas.getBoundingClientRect()
-            val x = event.clientX.toFloat() - rect.left.toFloat()
-            val y = event.clientY.toFloat() - rect.top.toFloat()
-            _deltaX = x - mouseX
-            _deltaY = y - mouseY
-            mouseX = x
-            mouseY = y
+            _deltaX = canvasRelativeX(event) - mouseX
+            _deltaY = canvasRelativeY(event) - mouseY
+            mouseX = canvasRelativeX(event)
+            mouseY = canvasRelativeY(event)
         }
 
         inputCache.onMove(mouseX, mouseY, touchedPointers.lastOrNull() ?: Pointer.POINTER1)
@@ -233,8 +223,9 @@ class JsInput(val canvas: HTMLCanvasElement) : Input {
     }
 
     fun update() {
-        if (connectedGamepads.isEmpty()) return
-        nativeUpdateGamepads(gamepads, inputCache)
+        if (connectedGamepads.isNotEmpty()) {
+            nativeUpdateGamepads(gamepads, inputCache)
+        }
         inputCache.processEvents(inputProcessors)
     }
 
@@ -379,6 +370,18 @@ class JsInput(val canvas: HTMLCanvasElement) : Input {
     override fun showSoftKeyboard() = Unit
 
     override fun hideSoftKeyboard() = Unit
+
+    private fun canvasRelativeX(e: ExtendedMouseEvent): Float {
+        val ratio = canvas.width.toFloat() / canvas.clientWidth
+        val rect = canvas.getBoundingClientRect()
+        return round(ratio * (e.clientX - rect.left.toFloat()))
+    }
+
+    private fun canvasRelativeY(e: ExtendedMouseEvent): Float {
+        val ratio = canvas.height.toFloat() / canvas.clientHeight
+        val rect = canvas.getBoundingClientRect()
+        return round(ratio * (e.clientY - rect.top.toFloat()))
+    }
 }
 
 expect fun createGamepads(): Array<GamepadInfo>
@@ -437,11 +440,4 @@ private external interface ExtendedMouseEvent : UnionElementOrMouseEvent, JsAny 
     val movementX: Double
     val movementY: Double
     fun getModifierState(keyArg: String): Boolean
-
-    companion object {
-        val NONE: Short
-        val CAPTURING_PHASE: Short
-        val AT_TARGET: Short
-        val BUBBLING_PHASE: Short
-    }
 }
