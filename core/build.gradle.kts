@@ -25,7 +25,7 @@ kotlin {
         }
         systemProperty("env", env ?: "dev")
     }
-    jvm { compilerOptions { jvmTarget = JvmTarget.JVM_24 } }
+    jvm { compilerOptions { jvmTarget = JvmTarget.JVM_25 } }
     js(KotlinJsCompilerType.IR) {
         browser {
             binaries.executable()

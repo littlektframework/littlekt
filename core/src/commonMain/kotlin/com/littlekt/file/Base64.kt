@@ -422,9 +422,9 @@ object Base64 {
                     "Input byte[] should at least have 2 bytes for base64 bytes"
                 )
             }
-            if (src[sl - 1].toChar() == '=') {
+            if (src[sl - 1].toInt().toChar() == '=') {
                 paddings++
-                if (src[sl - 2].toChar() == '=') paddings++
+                if (src[sl - 2].toInt().toChar() == '=') paddings++
             }
             if (paddings == 0 && len and 0x3 != 0) paddings = 4 - (len and 0x3)
             return 3 * ((len + 3) / 4) - paddings
@@ -464,7 +464,7 @@ object Base64 {
                         // xx=   shiftto==6&&sp==sl missing last =
                         // xx=y  shiftto==6 last is not =
                         require(
-                            !(shiftto == 6 && (sp == sl || src[sp++].toChar() != '=') ||
+                            !(shiftto == 6 && (sp == sl || src[sp++].toInt().toChar() != '=') ||
                                 shiftto == 18)
                         ) {
                             "Input byte array has wrong 4-byte ending unit"

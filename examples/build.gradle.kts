@@ -16,7 +16,7 @@ repositories { maven(url = "https://maven.pkg.jetbrains.space/public/p/kotlinx-h
 kotlin {
     tasks.withType<JavaExec> { jvmArgs("--enable-native-access=ALL-UNNAMED") }
     jvm {
-        compilerOptions { jvmTarget = JvmTarget.JVM_24 }
+        compilerOptions { jvmTarget = JvmTarget.JVM_25 }
         compilations {
             val main by getting
             val mainClassName = "com.littlekt.examples.JvmRunnerKt"
