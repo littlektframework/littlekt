@@ -6,19 +6,17 @@ import com.littlekt.util.nativeIndexOf
 import com.littlekt.util.nativeSet
 import kotlinx.browser.document
 import kotlinx.browser.window
-import org.w3c.dom.Document
-import org.w3c.dom.Element
-import org.w3c.dom.HTMLCanvasElement
-import org.w3c.dom.TouchEvent
+import org.w3c.dom.*
 import org.w3c.dom.events.Event
+import org.w3c.dom.events.EventTarget
 import org.w3c.dom.events.KeyboardEvent
-import org.w3c.dom.events.MouseEvent
 import org.w3c.dom.events.WheelEvent
 import kotlin.js.JsAny
 import kotlin.js.JsArray
 import kotlin.js.JsName
 import kotlin.js.JsNumber
 import kotlin.js.unsafeCast
+import kotlin.math.round
 
 /**
  * @author Colton Daily
@@ -28,11 +26,9 @@ class JsInput(val canvas: HTMLCanvasElement) : Input {
     private val inputCache = InputCache()
     private var mouseX = 0f
     private var mouseY = 0f
-    private var logicalMouseX = 0f
-    private var logicalMouseY = 0f
     private var _deltaX = 0f
     private var _deltaY = 0f
-    private val touchedPointers = mutableListOf<Pointer>()
+    private val touchedPointers = mutableSetOf<Pointer>()
 
     /** Holds the references to active touch identifiers indexed by assigned pointer number. */
     private val touchIdentifiers = createTouchIdentifiers()
@@ -83,16 +79,16 @@ class JsInput(val canvas: HTMLCanvasElement) : Input {
             "gamepadconnected",
             { e ->
                 val ge = e.unsafeCast<JsGamepadEvent>()
-                nativeGet(gamepads,ge.gamepad.index).connected = true
-                _connectedGamepads += nativeGet(gamepads,ge.gamepad.index)
+                nativeGet(gamepads, ge.gamepad.index).connected = true
+                _connectedGamepads += nativeGet(gamepads, ge.gamepad.index)
             },
         )
         window.addEventListener(
             "gamepaddisconnected",
             { e ->
                 val ge = e.unsafeCast<JsGamepadEvent>()
-                nativeGet(gamepads,ge.gamepad.index).connected = false
-                _connectedGamepads -= nativeGet(gamepads,ge.gamepad.index)
+                nativeGet(gamepads, ge.gamepad.index).connected = false
+                _connectedGamepads -= nativeGet(gamepads, ge.gamepad.index)
             },
         )
         nativeCheckForGamepads(gamepads)
@@ -129,9 +125,9 @@ class JsInput(val canvas: HTMLCanvasElement) : Input {
             val rect = canvas.getBoundingClientRect()
             val x = touchEvent.clientX.toFloat() - rect.left.toFloat()
             val y = touchEvent.clientY.toFloat() - rect.top.toFloat()
-            val pointerIndex = nativeIndexOf(touchIdentifiers,-1)
+            val pointerIndex = nativeIndexOf(touchIdentifiers, -1)
             if (pointerIndex >= 0) {
-                nativeSet(touchIdentifiers,pointerIndex, touchEvent.identifier)
+                nativeSet(touchIdentifiers, pointerIndex, touchEvent.identifier)
                 inputCache.onTouchDown(x, y, pointerIndex.getPointer)
             }
         }
@@ -146,7 +142,7 @@ class JsInput(val canvas: HTMLCanvasElement) : Input {
             val rect = canvas.getBoundingClientRect()
             val x = touchEvent.clientX.toFloat() - rect.left.toFloat()
             val y = touchEvent.clientY.toFloat() - rect.top.toFloat()
-            val pointerIndex = nativeIndexOf(touchIdentifiers,touchEvent.identifier)
+            val pointerIndex = nativeIndexOf(touchIdentifiers, touchEvent.identifier)
             if (pointerIndex >= 0) {
                 inputCache.onMove(x, y, pointerIndex.getPointer)
             }
@@ -162,83 +158,59 @@ class JsInput(val canvas: HTMLCanvasElement) : Input {
             val rect = canvas.getBoundingClientRect()
             val x = touchEvent.clientX.toFloat() - rect.left.toFloat()
             val y = touchEvent.clientY.toFloat() - rect.top.toFloat()
-            val pointerIndex = nativeIndexOf(touchIdentifiers,touchEvent.identifier)
+            val pointerIndex = nativeIndexOf(touchIdentifiers, touchEvent.identifier)
             if (pointerIndex >= 0) {
-                nativeSet(touchIdentifiers,pointerIndex, -1)
+                nativeSet(touchIdentifiers, pointerIndex, -1)
                 inputCache.onTouchUp(x, y, pointerIndex.getPointer)
             }
         }
     }
 
-    private var lastX: Double = 0.0
-    private var lastY: Double = 0.0
+
     private fun mouseDown(event: Event) {
-        event as MouseEvent
+        event as ExtendedMouseEvent
+        _deltaX = 0f
+        _deltaY = 0f
         if (cursorLocked) {
-            _deltaX = 0f
-            _deltaY = 0f
-            val deltaX = event.clientX.toDouble() - lastX
-            val deltaY = event.clientY.toDouble() - lastY
-            lastX = event.clientX.toDouble()
-            lastY = event.clientY.toDouble()
-            mouseX += deltaX.toFloat()
-            mouseY += deltaY.toFloat()
-            inputCache.onTouchDown(mouseX, mouseY, event.button.getPointer)
+            mouseX += event.movementX.toFloat()
+            mouseY += event.movementY.toFloat()
         } else {
-            val rect = canvas.getBoundingClientRect()
-            val x = event.clientX.toFloat() - rect.left.toFloat()
-            val y = event.clientY.toFloat() - rect.top.toFloat()
-            lastX = event.clientX.toDouble()
-            lastY = event.clientY.toDouble()
-            inputCache.onTouchDown(x, y, event.button.getPointer)
+            mouseX = canvasRelativeX(event)
+            mouseY = canvasRelativeY(event)
         }
+        inputCache.onTouchDown(mouseX, mouseY, event.button.getPointer)
         touchedPointers += event.button.getPointer
     }
 
     private fun mouseUp(event: Event) {
-        event as MouseEvent
+        event as ExtendedMouseEvent
         if (cursorLocked) {
-            val deltaX = event.clientX.toDouble() - lastX
-            val deltaY = event.clientY.toDouble() - lastY
-            lastX = event.clientX.toDouble()
-            lastY = event.clientY.toDouble()
-            _deltaX = deltaX.toFloat()
-            _deltaY = deltaY.toFloat()
-            mouseX += _deltaX
-            mouseY += _deltaY
-            inputCache.onTouchUp(mouseX, mouseY, event.button.getPointer)
+            _deltaX = event.movementX.toFloat()
+            _deltaY = event.movementY.toFloat()
+            mouseX += event.movementX.toFloat()
+            mouseY += event.movementY.toFloat()
         } else {
-            val rect = canvas.getBoundingClientRect()
-            val x = event.clientX.toFloat() - rect.left.toFloat()
-            val y = event.clientY.toFloat() - rect.top.toFloat()
-            lastX = event.clientX.toDouble()
-            lastY = event.clientY.toDouble()
-            inputCache.onTouchUp(x, y, event.button.getPointer)
+            _deltaX = canvasRelativeX(event) - mouseX
+            _deltaY = canvasRelativeY(event) - mouseY
+            mouseX = canvasRelativeX(event)
+            mouseY = canvasRelativeY(event)
         }
+        inputCache.onTouchUp(mouseX, mouseY, event.button.getPointer)
         touchedPointers -= event.button.getPointer
     }
 
     private fun mouseMove(event: Event) {
-        event as MouseEvent
+        event as ExtendedMouseEvent
         if (cursorLocked) {
-            val deltaX = event.clientX.toDouble() - lastX
-            val deltaY = event.clientY.toDouble() - lastY
-            lastX = event.clientX.toDouble()
-            lastY = event.clientY.toDouble()
-            _deltaX = deltaX.toFloat()
-            _deltaY = deltaY.toFloat()
-            mouseX += _deltaX
-            mouseY += _deltaY
+            _deltaX = event.movementX.toFloat()
+            _deltaY = event.movementY.toFloat()
+            mouseX += event.movementX.toFloat()
+            mouseY += event.movementY.toFloat()
         } else {
-            val rect = canvas.getBoundingClientRect()
-            val x = event.clientX.toFloat() - rect.left.toFloat()
-            val y = event.clientY.toFloat() - rect.top.toFloat()
-            _deltaX = x - logicalMouseX
-            _deltaY = y - logicalMouseY
-            mouseX = x
-            mouseY = y
-            logicalMouseX = x
-            logicalMouseY = y
+            _deltaX = canvasRelativeX(event) - mouseX
+            _deltaY = canvasRelativeY(event) - mouseY
+            mouseX = canvasRelativeX(event)
+            mouseY = canvasRelativeY(event)
         }
 
         inputCache.onMove(mouseX, mouseY, touchedPointers.lastOrNull() ?: Pointer.POINTER1)
@@ -251,8 +223,9 @@ class JsInput(val canvas: HTMLCanvasElement) : Input {
     }
 
     fun update() {
-        if (connectedGamepads.isEmpty()) return
-        nativeUpdateGamepads(gamepads, inputCache)
+        if (connectedGamepads.isNotEmpty()) {
+            nativeUpdateGamepads(gamepads, inputCache)
+        }
         inputCache.processEvents(inputProcessors)
     }
 
@@ -359,19 +332,19 @@ class JsInput(val canvas: HTMLCanvasElement) : Input {
     }
 
     override fun getGamepadButtonPressure(button: GameButton, gamepad: Int): Float {
-        return if (connectedGamepads.isNotEmpty()) nativeGet(gamepads,gamepad)[button] else 0f
+        return if (connectedGamepads.isNotEmpty()) nativeGet(gamepads, gamepad)[button] else 0f
     }
 
     override fun getGamepadJoystickDistance(stick: GameStick, gamepad: Int): Point {
-        return if (connectedGamepads.isNotEmpty()) nativeGet(gamepads,gamepad)[stick] else Point.ZERO
+        return if (connectedGamepads.isNotEmpty()) nativeGet(gamepads, gamepad)[stick] else Point.ZERO
     }
 
     override fun getGamepadJoystickXDistance(stick: GameStick, gamepad: Int): Float {
-        return if (connectedGamepads.isNotEmpty()) nativeGet(gamepads,gamepad).getX(stick) else 0f
+        return if (connectedGamepads.isNotEmpty()) nativeGet(gamepads, gamepad).getX(stick) else 0f
     }
 
     override fun getGamepadJoystickYDistance(stick: GameStick, gamepad: Int): Float {
-        return if (connectedGamepads.isNotEmpty()) nativeGet(gamepads,gamepad).getY(stick) else 0f
+        return if (connectedGamepads.isNotEmpty()) nativeGet(gamepads, gamepad).getY(stick) else 0f
     }
 
     override fun setCursorPosition(x: Int, y: Int) {
@@ -397,6 +370,18 @@ class JsInput(val canvas: HTMLCanvasElement) : Input {
     override fun showSoftKeyboard() = Unit
 
     override fun hideSoftKeyboard() = Unit
+
+    private fun canvasRelativeX(e: ExtendedMouseEvent): Float {
+        val ratio = canvas.width.toFloat() / canvas.clientWidth
+        val rect = canvas.getBoundingClientRect()
+        return round(ratio * (e.clientX - rect.left.toFloat()))
+    }
+
+    private fun canvasRelativeY(e: ExtendedMouseEvent): Float {
+        val ratio = canvas.height.toFloat() / canvas.clientHeight
+        val rect = canvas.getBoundingClientRect()
+        return round(ratio * (e.clientY - rect.top.toFloat()))
+    }
 }
 
 expect fun createGamepads(): Array<GamepadInfo>
@@ -431,4 +416,28 @@ external interface JsGamePad {
 @JsName("GamepadEvent")
 private external interface JsGamepadEvent : JsAny {
     val gamepad: JsGamePad
+}
+
+private external interface ExtendedMouseEvent : UnionElementOrMouseEvent, JsAny {
+    val screenX: Int
+    val screenY: Int
+    val clientX: Int
+    val clientY: Int
+    val ctrlKey: Boolean
+    val shiftKey: Boolean
+    val altKey: Boolean
+    val metaKey: Boolean
+    val button: Short
+    val buttons: Short
+    val relatedTarget: EventTarget?
+    val region: String?
+    val pageX: Double
+    val pageY: Double
+    val x: Double
+    val y: Double
+    val offsetX: Double
+    val offsetY: Double
+    val movementX: Double
+    val movementY: Double
+    fun getModifierState(keyArg: String): Boolean
 }
