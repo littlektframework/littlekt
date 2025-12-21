@@ -54,7 +54,7 @@ class OpenALAudioClip(
     override fun play(volume: Float, loop: Boolean) = withDevice {
         val sourceId = context.obtainSource()
 
-        if (sourceId == -1) return
+        if (sourceId == -1) return@withDevice
 
         alSourcei(sourceId, AL_BUFFER, bufferID)
         alSourcei(sourceId, AL_LOOPING, if (loop) AL_TRUE else AL_FALSE)
@@ -69,7 +69,7 @@ class OpenALAudioClip(
     override fun pause() = withDevice { context.pauseSourceViaBufferID(bufferID) }
 
     override fun release() = withDevice {
-        if (bufferID == -1) return
+        if (bufferID == -1) return@withDevice
 
         context.disposeSourceViaBufferID(bufferID)
         bufferID = -1

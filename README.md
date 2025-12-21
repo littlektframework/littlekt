@@ -3,8 +3,9 @@
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://github.com/littlektframework/littlekt/blob/master/LICENSE)
 [![build](https://github.com/littlektframework/littlekt/actions/workflows/build.yml/badge.svg?branch=master)](https://github.com/littlektframework/littlekt/actions/workflows/build.yml)
 [![Download](https://img.shields.io/maven-central/v/com.littlekt/core/0.11.0)](https://search.maven.org/artifact/com.littlekt/core/0.11.0/pom)
+[![Kotlin](https://img.shields.io/badge/kotlin-2.3.0-blue.svg?logo=kotlin)](http://kotlinlang.org)
 
-Requires JDK 24+ in order to use due to the usage of the new Java FFM API.
+Requires JDK 22+ in order to use due to the usage of the new Java FFM API.
 
 **Currently, in development.**
 
@@ -37,7 +38,7 @@ repositories {
 
 kotlin {
     jvm {
-        compilerOptions { jvmTarget = JvmTarget.JVM_24 }
+        compilerOptions { jvmTarget = JvmTarget.JVM_25 }
     }
 }
 
@@ -70,7 +71,7 @@ repositories {
 }
 
 kotlin {
-    compilerOptions { jvmTarget = JvmTarget.JVM_24 }
+    compilerOptions { jvmTarget = JvmTarget.JVM_25 }
 }
 
 val littleKtVersion = "0.11.0.131d453-SNAPSHOT" // or whichever hash you are using
