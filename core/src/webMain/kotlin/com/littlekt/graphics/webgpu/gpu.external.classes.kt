@@ -1,13 +1,13 @@
 package com.littlekt.graphics.webgpu
 
 import com.littlekt.input.JsGamePad
-import kotlin.js.Promise
 import org.khronos.webgl.ArrayBuffer
 import org.khronos.webgl.ArrayBufferView
 import org.w3c.dom.RenderingContext
 import kotlin.js.JsAny
 import kotlin.js.JsArray
 import kotlin.js.JsNumber
+import kotlin.js.Promise
 import kotlin.js.definedExternally
 
 external val navigator: Navigator
@@ -15,8 +15,9 @@ external val navigator: Navigator
 external class Navigator {
     val gpu: GPU
 
-    val getGamepads: (() -> JsArray<JsGamePad>)?
+    fun getGamepads(): JsArray<JsGamePad>
 }
+
 external class GPU {
     /**
      * @return A string indicating a canvas texture format. The value can be `rgba8unorm` or
