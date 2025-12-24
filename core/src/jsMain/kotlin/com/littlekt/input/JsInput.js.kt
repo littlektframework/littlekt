@@ -1,5 +1,6 @@
 package com.littlekt.input
 
+import com.littlekt.graphics.webgpu.navigator
 import com.littlekt.log.Console
 import com.littlekt.util.datastructure.fastForEach
 import org.w3c.dom.HTMLCanvasElement
@@ -13,16 +14,15 @@ actual fun nativeLockCursor(canvas: HTMLCanvasElement) {
 actual fun nativeReleaseCursor(canvas: HTMLCanvasElement) {
     js("canvas.exitPointerLock()")
 }
-private external val navigator: dynamic
 
 actual fun nativeCheckForGamepads(gamepads: Array<GamepadInfo>) {
     try {
         if (navigator.getGamepads != null) {
-            val jsGamepads = navigator.getGamepads().unsafeCast<JsArray<JsGamePad?>>()
+            val jsGamepads = navigator.getGamepads()
             gamepads.fastForEach { it.connected = false }
 
             for (gamepadId in 0 until jsGamepads.length) {
-                val controller = jsGamepads[gamepadId] ?: continue
+                val controller = jsGamepads[gamepadId]
                 val gamepad = gamepads.getOrNull(gamepadId) ?: continue
                 gamepad.apply {
                     this.connected = controller.connected
@@ -38,10 +38,10 @@ actual fun nativeCheckForGamepads(gamepads: Array<GamepadInfo>) {
 actual fun nativeUpdateGamepads(gamepads: Array<GamepadInfo>, inputCache: InputCache) {
     try {
         if (navigator.getGamepads != null) {
-            val jsGamepads = navigator.getGamepads().unsafeCast<JsArray<JsGamePad?>>()
+            val jsGamepads = navigator.getGamepads()
 
             for (gamepadId in 0 until jsGamepads.length) {
-                val controller = jsGamepads[gamepadId] ?: continue
+                val controller = jsGamepads[gamepadId]
                 val gamepad = gamepads.getOrNull(gamepadId) ?: continue
                 gamepad.apply {
                     for (n in 0 until controller.buttons.length) {

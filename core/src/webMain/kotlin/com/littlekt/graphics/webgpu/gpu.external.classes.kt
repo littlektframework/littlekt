@@ -1,5 +1,6 @@
 package com.littlekt.graphics.webgpu
 
+import com.littlekt.input.JsGamePad
 import kotlin.js.Promise
 import org.khronos.webgl.ArrayBuffer
 import org.khronos.webgl.ArrayBufferView
@@ -13,6 +14,8 @@ external val navigator: Navigator
 
 external class Navigator {
     val gpu: GPU
+
+    val getGamepads: (() -> JsArray<JsGamePad>)?
 }
 external class GPU {
     /**

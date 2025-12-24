@@ -13,7 +13,7 @@ val availableExamples =
         "-multipleTextures" to Pair("Multiple Textures", ::MultipleTexturesExample),
         "-textureBlends" to Pair("Texture Blends", ::TextureBlendsExample),
         "-spriteBatchMultiShader" to
-            Pair("SpriteBatch Multi Shader", ::RenderSpriteBatchAndMultipleShadersExample),
+                Pair("SpriteBatch Multi Shader", ::RenderSpriteBatchAndMultipleShadersExample),
         "-simpleCamera" to Pair("Simple Camera", ::SimpleCameraExample),
         "-ldtk" to Pair("LDtk", ::LDtkTileMapExample),
         "-ldtkCache" to Pair("LDtk Cache", ::LDtkTileMapCacheExample),
@@ -30,4 +30,5 @@ val availableExamples =
         "-mipMaps" to Pair("Mip Maps", ::MipMapsExample),
         "-modelInstancing" to Pair("Model Instancing", ::ModelInstancingExample),
         "-pbr" to Pair("PBR", ::PBRExample),
+        "-input" to Pair("Input", ::InputExample)
     )

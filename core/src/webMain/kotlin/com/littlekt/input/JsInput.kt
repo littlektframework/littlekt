@@ -403,7 +403,7 @@ external interface JsGamepadButton : JsAny {
     val pressed: Boolean
 }
 
-external interface JsGamePad {
+external interface JsGamePad: JsAny {
     val axes: JsArray<JsNumber>
     val buttons: JsArray<JsGamepadButton>
     val connected: Boolean

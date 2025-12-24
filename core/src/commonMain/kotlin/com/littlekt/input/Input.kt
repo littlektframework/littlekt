@@ -455,6 +455,8 @@ interface Input {
      * Creates and adds a new [InputProcessor] to receive input callbacks using a
      * [InputProcessBuilder].
      *
+     * This already calls [addInputProcessor] internally. There is no need to add it again.
+     *
      * @return the newly created [InputProcessor]
      */
     fun inputProcessor(setup: InputProcessBuilder.() -> Unit): InputProcessor {
