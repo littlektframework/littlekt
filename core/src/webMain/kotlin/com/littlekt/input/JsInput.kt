@@ -77,20 +77,18 @@ class JsInput(val canvas: HTMLCanvasElement) : Input {
 
         window.addEventListener(
             "gamepadconnected",
-            { e ->
-                val ge = e.unsafeCast<JsGamepadEvent>()
-                nativeGet(gamepads, ge.gamepad.index).connected = true
-                _connectedGamepads += nativeGet(gamepads, ge.gamepad.index)
-            },
-        )
+        ) { e ->
+            val ge = e.unsafeCast<JsGamepadEvent>()
+            nativeGet(gamepads, ge.gamepad.index).connected = true
+            _connectedGamepads += nativeGet(gamepads, ge.gamepad.index)
+        }
         window.addEventListener(
             "gamepaddisconnected",
-            { e ->
-                val ge = e.unsafeCast<JsGamepadEvent>()
-                nativeGet(gamepads, ge.gamepad.index).connected = false
-                _connectedGamepads -= nativeGet(gamepads, ge.gamepad.index)
-            },
-        )
+        ) { e ->
+            val ge = e.unsafeCast<JsGamepadEvent>()
+            nativeGet(gamepads, ge.gamepad.index).connected = false
+            _connectedGamepads -= nativeGet(gamepads, ge.gamepad.index)
+        }
         nativeCheckForGamepads(gamepads)
     }
 
@@ -403,7 +401,7 @@ external interface JsGamepadButton : JsAny {
     val pressed: Boolean
 }
 
-external interface JsGamePad {
+external interface JsGamePad: JsAny {
     val axes: JsArray<JsNumber>
     val buttons: JsArray<JsGamepadButton>
     val connected: Boolean
