@@ -37,77 +37,77 @@ fun main() {
     val exampleInfo = availableExamples[chosenKey] ?: availableExamples[firstKey]!!
     val (title, example) = exampleInfo
 
-//    ComposeViewport(document.getElementById(HTML_JETPACK_COMPOSE_ELEMENT_ID)!!) {
-//        var drawerOpen by remember { mutableStateOf(false) }
-//
-//        Box(Modifier.fillMaxSize().drawBehind {
-//            drawRect(
-//                color = Color.Transparent,
-//                blendMode = BlendMode.Clear
-//            )
-//        }) {
-//            Row(
-//                modifier = Modifier
-//                    .fillMaxWidth()
-//                    .clickable { drawerOpen = !drawerOpen }
-//                    .padding(12.dp)
-//                    .background(Color(0x33000000), RoundedCornerShape(12.dp))
-//                    .padding(horizontal = 12.dp, vertical = 8.dp),
-//                verticalAlignment = Alignment.CenterVertically
-//            ) {
-//                Text(
-//                    text = "LittleKt WebGPU Example ${availableExamples.keys.indexOf(chosenKey) + 1}/${availableExamples.keys.size} · $title",
-//                    color = Color.White,
-//                    fontSize = 18.sp,
-//                    fontWeight = FontWeight.SemiBold
-//                )
-//            }
-//
-//            if (drawerOpen) {
-//                Column(
-//                    modifier = Modifier
-//                        .width(300.dp)
-//                        .fillMaxHeight()
-//                        .background(Color(0xCC1E1542))
-//                        .padding(top = 16.dp, start = 12.dp, end = 12.dp, bottom = 24.dp)
-//                        .verticalScroll(rememberScrollState()),
-//                    horizontalAlignment = Alignment.Start
-//                ) {
-//                    Text(
-//                        "Examples",
-//                        color = Color.White,
-//                        fontSize = 20.sp,
-//                        fontWeight = FontWeight.Bold,
-//                        modifier = Modifier.padding(8.dp)
-//                    )
-//
-//                    Spacer(Modifier.height(8.dp))
-//
-//                    availableExamples.forEach { (key, pair) ->
-//                        val (itemTitle, _) = pair
-//                        val selected = key == chosenKey
-//                        Box(
-//                            modifier = Modifier
-//                                .fillMaxWidth()
-//                                .padding(vertical = 4.dp)
-//                                .background(
-//                                    if (selected) Color(0x3311FFAA) else Color.Transparent,
-//                                    RoundedCornerShape(8.dp)
-//                                )
-//                                .clickable {
-//                                    // Save and reload the page
-//                                    window.localStorage.setItem("selectedExampleKey", key)
-//                                    window.location.reload()
-//                                }
-//                                .padding(horizontal = 12.dp, vertical = 10.dp)
-//                        ) {
-//                            Text(itemTitle, color = Color.White, fontSize = 16.sp)
-//                        }
-//                    }
-//                }
-//            }
-//        }
-//    }
+    ComposeViewport(document.getElementById(HTML_JETPACK_COMPOSE_ELEMENT_ID)!!) {
+        var drawerOpen by remember { mutableStateOf(false) }
+
+        Box(Modifier.fillMaxSize().drawBehind {
+            drawRect(
+                color = Color.Transparent,
+                blendMode = BlendMode.Clear
+            )
+        }) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { drawerOpen = !drawerOpen }
+                    .padding(12.dp)
+                    .background(Color(0x33000000), RoundedCornerShape(12.dp))
+                    .padding(horizontal = 12.dp, vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "LittleKt WebGPU Example ${availableExamples.keys.indexOf(chosenKey) + 1}/${availableExamples.keys.size} · $title",
+                    color = Color.White,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.SemiBold
+                )
+            }
+
+            if (drawerOpen) {
+                Column(
+                    modifier = Modifier
+                        .width(300.dp)
+                        .fillMaxHeight()
+                        .background(Color(0xCC1E1542))
+                        .padding(top = 16.dp, start = 12.dp, end = 12.dp, bottom = 24.dp)
+                        .verticalScroll(rememberScrollState()),
+                    horizontalAlignment = Alignment.Start
+                ) {
+                    Text(
+                        "Examples",
+                        color = Color.White,
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(8.dp)
+                    )
+
+                    Spacer(Modifier.height(8.dp))
+
+                    availableExamples.forEach { (key, pair) ->
+                        val (itemTitle, _) = pair
+                        val selected = key == chosenKey
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 4.dp)
+                                .background(
+                                    if (selected) Color(0x3311FFAA) else Color.Transparent,
+                                    RoundedCornerShape(8.dp)
+                                )
+                                .clickable {
+                                    // Save and reload the page
+                                    window.localStorage.setItem("selectedExampleKey", key)
+                                    window.location.reload()
+                                }
+                                .padding(horizontal = 12.dp, vertical = 10.dp)
+                        ) {
+                            Text(itemTitle, color = Color.White, fontSize = 16.sp)
+                        }
+                    }
+                }
+            }
+        }
+    }
 
     val canvas = document.getElementById(HTML_WEBGPU_ELEMENT_ID) as HTMLCanvasElement
     val startWidth = window.innerWidth
