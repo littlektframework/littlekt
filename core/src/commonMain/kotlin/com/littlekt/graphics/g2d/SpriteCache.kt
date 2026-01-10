@@ -227,7 +227,7 @@ class SpriteCache(
                 shader.setBindGroup(
                     encoder,
                     cameraBuffers.getOrCreateBindGroup(shader),
-                    BindingUsage.CAMERA,
+                    cameraBuffers.bindingUsage,
                     lastDynamicMeshOffsets,
                 )
                 shader.setBindGroup(encoder, textureBindGroup, BindingUsage.TEXTURE)
