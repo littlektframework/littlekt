@@ -617,7 +617,7 @@ class SpriteBatch(
                 shader.setBindGroup(
                     renderPassEncoder,
                     cameraBuffers.getOrCreateBindGroup(shader),
-                    BindingUsage.CAMERA,
+                    cameraBuffers.bindingUsage,
                     lastDynamicMeshOffsets,
                 )
                 shader.setBindGroups(renderPassEncoder)
