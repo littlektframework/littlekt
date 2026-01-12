@@ -230,7 +230,7 @@ open class AssetProvider(val context: Context) {
                 Texture::class to
                     { file, param ->
                         if (param is TextureGameAssetParameter) {
-                            file.readTexture()
+                            file.readTexture(param.textureOptions)
                         } else {
                             file.readTexture()
                         }
@@ -339,7 +339,7 @@ interface GameAssetParameters
 class EmptyGameAssetParameter : GameAssetParameters
 
 /** Parameters related to loading a [Texture]. */
-class TextureGameAssetParameter : GameAssetParameters
+class TextureGameAssetParameter(val textureOptions: TextureOptions) : GameAssetParameters
 
 /** Parameters related to loading a [LDtkMapLoader]. */
 class LDtkGameAssetParameter(val atlas: TextureAtlas? = null, val tilesetBorderThickness: Int = 2) :
