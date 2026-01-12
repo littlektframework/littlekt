@@ -7,7 +7,10 @@ import com.littlekt.file.UnsupportedFileTypeException
 import com.littlekt.file.atlas.AtlasInfo
 import com.littlekt.file.atlas.AtlasPage
 import com.littlekt.file.compression.CompressionGZIP
-import com.littlekt.file.gltf.*
+import com.littlekt.file.gltf.GltfData
+import com.littlekt.file.gltf.GltfLoaderConfig
+import com.littlekt.file.gltf.GltfLoaderPbrConfig
+import com.littlekt.file.gltf.toModel
 import com.littlekt.file.ldtk.LDtkMapData
 import com.littlekt.file.ldtk.LDtkMapLoader
 import com.littlekt.file.tiled.TiledMapData
@@ -48,6 +51,7 @@ suspend fun VfsFile.readAtlas(): TextureAtlas {
                 }
                 AtlasInfo(page.meta, pages)
             }
+
             data.startsWith('\n') -> TODO("Implement text atlas format")
             data.startsWith("\r\n") -> TODO("Implement text atlas format")
             else ->
@@ -169,6 +173,7 @@ private suspend fun readBitmapFontTxt(
                     )
                 }
             }
+
             line.startsWith("page") -> {
                 val id = map["id"]?.toInt() ?: 0
                 val file = map["file"]?.unquote() ?: error("Page without file")
@@ -176,11 +181,13 @@ private suspend fun readBitmapFontTxt(
                     textures[id] = fontFile.parent[file].readTexture()
                 }
             }
+
             line.startsWith("common ") -> {
                 lineHeight = map["lineHeight"]?.toFloatOrNull() ?: 16f
                 base = map["base"]?.toFloatOrNull()
                 pages = map["pages"]?.toIntOrNull() ?: 1
             }
+
             line.startsWith("char ") -> {
                 val page = map["page"]?.toIntOrNull() ?: 0
                 val id = map["id"]?.toIntOrNull() ?: 0
@@ -206,6 +213,7 @@ private suspend fun readBitmapFontTxt(
                                 height,
                             )
                         }
+
                         preloadedTextures.isNotEmpty() -> {
                             TextureSlice(
                                 preloadedTextures[page],
@@ -215,6 +223,7 @@ private suspend fun readBitmapFontTxt(
                                 height,
                             )
                         }
+
                         else -> {
                             throw IllegalStateException(
                                 "Unable to load any textures for ${fontFile.baseName}. If they are preloaded, make sure to pass that in 'readBitmapFont()'."
@@ -234,6 +243,7 @@ private suspend fun readBitmapFontTxt(
                         page = page,
                     )
             }
+
             line.startsWith("kerning ") -> {
                 kernings +=
                     Kerning(
@@ -334,10 +344,7 @@ suspend fun VfsFile.readTexture(preferredFormat: TextureFormat): Texture =
  */
 expect suspend fun VfsFile.readTexture(
     options: TextureOptions =
-        TextureOptions(
-            if (vfs.context.graphics.preferredFormat.srgb) TextureFormat.RGBA8_UNORM_SRGB
-            else TextureFormat.RGBA8_UNORM
-        )
+        TextureOptions(vfs.context.graphics.textureFormat)
 ): Texture
 
 /**
@@ -388,9 +395,7 @@ suspend fun VfsFile.readGltf(): GltfData {
  */
 suspend fun VfsFile.readGltfModel(
     config: GltfLoaderConfig = GltfLoaderPbrConfig(),
-    preferredFormat: TextureFormat =
-        if (vfs.context.graphics.preferredFormat.srgb) TextureFormat.RGBA8_UNORM_SRGB
-        else TextureFormat.RGBA8_UNORM,
+    preferredFormat: TextureFormat = vfs.context.graphics.textureFormat
 ): Model {
     val gltfData = readGltf()
     return gltfData.toModel(config, preferredFormat)
@@ -403,17 +408,17 @@ private fun VfsFile.isBinaryGltf() = path.endsWith(".glb", true) || path.endsWit
 private suspend fun VfsFile.loadGltf(): GltfData {
     val data =
         if (path.endsWith(".gz", true)) {
-                vfs.logger.info { "Decompressing $path" }
-                val compressionGZIP = CompressionGZIP()
-                val buffer = read()
-                val result = measureTimedValue { compressionGZIP.decompress(buffer) }
-                vfs.logger.info {
-                    "Decompressed $path (${(buffer.capacity / 1024.0 / 1024.0).toString(2)} mb, ${result.duration})"
-                }
-                result.value
-            } else {
-                read()
+            vfs.logger.info { "Decompressing $path" }
+            val compressionGZIP = CompressionGZIP()
+            val buffer = read()
+            val result = measureTimedValue { compressionGZIP.decompress(buffer) }
+            vfs.logger.info {
+                "Decompressed $path (${(buffer.capacity / 1024.0 / 1024.0).toString(2)} mb, ${result.duration})"
             }
+            result.value
+        } else {
+            read()
+        }
             .toArray()
     return vfs.json.decodeFromString<GltfData>(data.decodeToString()).also { it.root = this }
 }

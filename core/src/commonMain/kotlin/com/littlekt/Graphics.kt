@@ -33,8 +33,18 @@ interface Graphics {
     /** @return the underlying [Device] */
     val device: Device
 
-    /** @return the preferred [TextureFormat] of the underlying [surface]. */
+    /** @return the preferred presentation [TextureFormat] of the underlying [surface].
+     * @see [textureFormat]
+     **/
     val preferredFormat: TextureFormat
+
+    /**
+     * @return the [TextureFormat] to be used when creating or loading a [Texture][com.littlekt.graphics.Texture]. This
+     * will either return [TextureFormat.RGBA8_UNORM_SRGB] or [TextureFormat.RGBA8_UNORM] depending on [preferredFormat]
+     * sRGB value.
+     */
+    val textureFormat: TextureFormat
+        get() = if (preferredFormat.srgb) TextureFormat.RGBA8_UNORM_SRGB else TextureFormat.RGBA8_UNORM
 
     /** @return the capability of the underlying [surface] */
     val surfaceCapabilities: SurfaceCapabilities

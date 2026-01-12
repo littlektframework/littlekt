@@ -86,8 +86,7 @@ class TextureExample(context: Context) : ContextListener(context) {
                     1,
                     1,
                     TextureDimension.D2,
-                    if (preferredFormat.srgb) TextureFormat.RGBA8_UNORM_SRGB
-                    else TextureFormat.RGBA8_UNORM,
+                    graphics.textureFormat,
                     TextureUsage.COPY_DST or TextureUsage.TEXTURE,
                 )
             )
@@ -163,6 +162,15 @@ class TextureExample(context: Context) : ContextListener(context) {
             PresentMode.FIFO,
             surfaceCapabilities.alphaModes[0],
         )
+
+        onResize { _, _ ->
+            graphics.configureSurface(
+                TextureUsage.RENDER_ATTACHMENT,
+                preferredFormat,
+                PresentMode.FIFO,
+                surfaceCapabilities.alphaModes[0],
+            )
+        }
 
         onUpdate {
             val surfaceTexture = graphics.surface.getCurrentTexture()

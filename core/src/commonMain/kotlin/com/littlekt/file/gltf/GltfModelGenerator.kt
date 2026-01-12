@@ -31,9 +31,7 @@ import kotlin.math.min
  */
 fun GltfData.toModel(
     config: GltfLoaderConfig = GltfLoaderPbrConfig(),
-    preferredFormat: TextureFormat =
-        if (root.vfs.context.graphics.preferredFormat.srgb) TextureFormat.RGBA8_UNORM_SRGB
-        else TextureFormat.RGBA8_UNORM,
+    preferredFormat: TextureFormat = root.vfs.context.graphics.textureFormat,
     scene: Int = this.scene,
 ): Model {
     return GltfModelGenerator(this)

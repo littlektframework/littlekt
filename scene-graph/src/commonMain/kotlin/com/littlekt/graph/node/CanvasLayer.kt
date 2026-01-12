@@ -211,7 +211,7 @@ open class CanvasLayer : Node() {
     private var lastHeight = height
 
     private val fbo: EmptyTexture by lazy {
-        EmptyTexture(context.graphics.device, context.graphics.preferredFormat, 1, 1)
+        EmptyTexture(context.graphics.device, context.graphics.textureFormat, 1, 1)
     }
 
     private val tempVec = MutableVec2f()

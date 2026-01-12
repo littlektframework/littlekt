@@ -65,10 +65,8 @@ class MutableTextureAtlas(val context: Context, options: PackingOptions = Packin
     }
 
     fun toImmutable(
-        format: TextureFormat =
-            if (context.graphics.preferredFormat.srgb) TextureFormat.RGBA8_UNORM_SRGB
-            else TextureFormat.RGBA8_UNORM,
-        useMiMaps: Boolean = true
+        format: TextureFormat = context.graphics.textureFormat,
+        useMipMaps: Boolean = true
     ): TextureAtlas {
         packer.add(entries)
         val pages = mutableListOf<AtlasPage>()

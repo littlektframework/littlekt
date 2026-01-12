@@ -43,9 +43,7 @@ internal class InternalResources private constructor(private val context: Contex
     }
 
     val textureWhite: Texture by lazy {
-        val textureFormat =
-            if (context.graphics.preferredFormat.srgb) TextureFormat.RGBA8_UNORM_SRGB
-            else TextureFormat.RGBA8_UNORM
+        val textureFormat = context.graphics.textureFormat
         val device = context.graphics.device
         PixmapTexture(
             device,
@@ -58,9 +56,7 @@ internal class InternalResources private constructor(private val context: Contex
         )
     }
     val textureNormal: Texture by lazy {
-        val textureFormat =
-            if (context.graphics.preferredFormat.srgb) TextureFormat.RGBA8_UNORM_SRGB
-            else TextureFormat.RGBA8_UNORM
+        val textureFormat = context.graphics.textureFormat.toNonSRGB()
         val device = context.graphics.device
         PixmapTexture(
             device,
@@ -74,9 +70,7 @@ internal class InternalResources private constructor(private val context: Contex
     lateinit var transparent: TextureSlice
 
     suspend fun load() {
-        val textureFormat =
-            if (context.graphics.preferredFormat.srgb) TextureFormat.RGBA8_UNORM_SRGB
-            else TextureFormat.RGBA8_UNORM
+        val textureFormat = context.graphics.textureFormat
         val device = context.graphics.device
         val page =
             context.vfsUrl.json.decodeFromString<AtlasPage>(
@@ -176,11 +170,13 @@ internal class InternalResources private constructor(private val context: Contex
                         )
                     }
                 }
+
                 line.startsWith("common ") -> {
                     lineHeight = map["lineHeight"]?.toFloatOrNull() ?: 16f
                     base = map["base"]?.toFloatOrNull()
                     pages = map["pages"]?.toIntOrNull() ?: 1
                 }
+
                 line.startsWith("char ") -> {
                     val page = map["page"]?.toIntOrNull() ?: 0
                     val texture = textures[page] ?: textures.values.first()
@@ -216,6 +212,7 @@ internal class InternalResources private constructor(private val context: Contex
                             page = page,
                         )
                 }
+
                 line.startsWith("kerning ") -> {
                     kernings +=
                         Kerning(

@@ -666,10 +666,7 @@ internal class LDtkLevelLoader(
                         .readPixmap()
                         .sliceWithBorderToTexture(
                             device = vfs.vfs.context.graphics.device,
-                            preferredFormat =
-                                if (vfs.vfs.context.graphics.preferredFormat.srgb)
-                                    TextureFormat.RGBA8_UNORM_SRGB
-                                else TextureFormat.RGBA8_UNORM,
+                            preferredFormat = vfs.vfs.context.graphics.textureFormat,
                             sliceWidth = tilesetDef.tileGridSize,
                             sliceHeight = tilesetDef.tileGridSize,
                             border = sliceBorder
