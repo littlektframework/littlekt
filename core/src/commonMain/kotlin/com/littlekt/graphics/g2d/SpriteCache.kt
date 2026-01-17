@@ -33,7 +33,7 @@ class SpriteCache(
     val device: Device,
     val format: TextureFormat,
     size: Int = 1000,
-    val shader: SpriteCacheShader = SpriteCacheShader(
+    val shader: Shader = SpriteCacheShader(
         device,
         size * STATIC_COMPONENTS_PER_SPRITE,
         size * DYNAMIC_COMPONENTS_PER_SPRITE
