@@ -54,6 +54,9 @@ class Particle(var slice: TextureSlice) {
             color.a = value
         }
 
+    /** The target alpha to fade to */
+    var targetFadeAlpha: Float = 0f
+
     /** @return `true` if visible for rendering */
     var visible: Boolean = true
 
@@ -107,6 +110,9 @@ class Particle(var slice: TextureSlice) {
 
     /** The speed to fade out the particle after [remainingLife] is 0 */
     var fadeOutSpeed: Float = 0.1f
+
+    /** The speed to fade in the particle before [remaingLife] is count down. */
+    var fadeInSpeed: Float = 0f
 
     /** Total particle life */
     var life: Duration = 1.seconds

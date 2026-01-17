@@ -47,29 +47,29 @@ class ParticleSimulator(maxParticles: Int) {
      */
     fun alloc(slice: TextureSlice, x: Float, y: Float): Particle {
         return if (numAlloc < particles.size - 1) {
-                val particle =
-                    reset(particles[numAlloc], slice).also {
-                        it.x = x
-                        it.y = y
-                    }
-                numAlloc++
-                particle
-            } else {
-                var best: Particle? = null
-                particles.fastForEach {
-                    val b = best
-                    if (b == null || it.timeStamp < b.timeStamp) {
-                        best = it
-                    }
-                }
-                best?.onKill?.invoke()
-                best?.let {
-                    reset(it, slice)
+            val particle =
+                reset(particles[numAlloc], slice).also {
                     it.x = x
                     it.y = y
                 }
-                best!!
+            numAlloc++
+            particle
+        } else {
+            var best: Particle? = null
+            particles.fastForEach {
+                val b = best
+                if (b == null || it.timeStamp < b.timeStamp) {
+                    best = it
+                }
             }
+            best?.onKill?.invoke()
+            best?.let {
+                reset(it, slice)
+                it.x = x
+                it.y = y
+            }
+            best!!
+        }
             .also { totalAlive = min(totalAlive + 1, numAlloc + 1) }
     }
 
@@ -189,10 +189,17 @@ class ParticleSimulator(maxParticles: Int) {
                 color.set(colorR, colorG, colorB, colorA)
             }
 
-            // life
-            remainingLife -= dt
-            if (remainingLife <= 0.milliseconds) {
-                alpha -= (fadeOutSpeed * tmod)
+            if (fadeInSpeed > 0f && targetFadeAlpha > alpha) {
+                alpha += min((fadeInSpeed * tmod), targetFadeAlpha)
+                if (alpha == targetFadeAlpha) {
+                    fadeInSpeed = 0f
+                    targetFadeAlpha = 0f
+                }
+            } else {
+                remainingLife -= dt
+                if (remainingLife <= 0.milliseconds) {
+                    alpha -= (fadeOutSpeed * tmod)
+                }
             }
 
             if (remainingLife <= 0.milliseconds && alpha <= 0) {
@@ -201,6 +208,7 @@ class ParticleSimulator(maxParticles: Int) {
             } else {
                 onUpdate?.invoke(particle)
             }
+
         }
     }
 
