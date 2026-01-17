@@ -34,7 +34,7 @@ class LDtkTileMapCacheExample(context: Context) : ContextListener(context) {
 
         val cache = SpriteCache(device, preferredFormat)
         world.addToCache(cache, scale = 1 / 8f)
-        val viewport = ExtendViewport(30, 16)
+        val viewport = ExtendViewport(60, 32)
         val camera = viewport.camera
         val bgColor =
             if (preferredFormat.srgb) world.defaultLevelBackgroundColor.toLinear()

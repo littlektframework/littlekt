@@ -37,7 +37,7 @@ class LDtkTileMapExample(context: Context) : ContextListener(context) {
         )
 
         val batch = SpriteBatch(device, graphics, preferredFormat, size = 400)
-        val viewport = ExtendViewport(270, 135)
+        val viewport = ExtendViewport(480, 270)
         val camera = viewport.camera
         val bgColor =
             if (preferredFormat.srgb) world.defaultLevelBackgroundColor.toLinear()

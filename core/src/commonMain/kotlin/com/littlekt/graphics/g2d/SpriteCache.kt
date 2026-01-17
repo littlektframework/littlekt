@@ -33,6 +33,11 @@ class SpriteCache(
     val device: Device,
     val format: TextureFormat,
     size: Int = 1000,
+    val shader: SpriteCacheShader = SpriteCacheShader(
+        device,
+        size * STATIC_COMPONENTS_PER_SPRITE,
+        size * DYNAMIC_COMPONENTS_PER_SPRITE
+    ),
     cameraBuffers: CameraBuffersViaMatrix? = null,
 ) : Releasable {
     private val ownCameraBuffers = cameraBuffers == null
@@ -84,8 +89,11 @@ class SpriteCache(
                 position.y = minY
             }
         }
-    private val shader: SpriteCacheShader =
-        SpriteCacheShader(device, staticData.capacity, dynamicData.capacity)
+
+    private val spriteCacheData: SpriteCacheDataBuffers =
+        SpriteCacheDataBuffers(device, staticData.capacity, dynamicData.capacity)
+
+    private val spriteCacheBufferBindings = SpriteCacheDataBufferBindings(spriteCacheData)
 
     private val bindGroupByTextureId: MutableMap<Int, BindGroup> = mutableMapOf()
     private val drawCalls: MutableList<DrawCall> = mutableListOf()
@@ -185,11 +193,14 @@ class SpriteCache(
                 drawCalls.clear()
                 ensureDrawCalls()
                 dynamicData.limit = spriteCount * DYNAMIC_COMPONENTS_PER_SPRITE
-                shader.updateSpriteDynamicStorage(dynamicData)
+                spriteCacheData.updateSpriteDynamicStorage(dynamicData)
             }
             if (staticDirty) {
                 staticData.limit = spriteCount * STATIC_COMPONENTS_PER_SPRITE
-                shader.updateSpriteStaticStorage(staticData)
+                spriteCacheData.updateSpriteStaticStorage(staticData)
+            }
+            if (dynamicDirty || staticDirty) {
+                spriteCacheBufferBindings.releaseBindGroup(shader)
             }
             staticDirty = false
             dynamicDirty = false
@@ -231,6 +242,11 @@ class SpriteCache(
                     lastDynamicMeshOffsets,
                 )
                 shader.setBindGroup(encoder, textureBindGroup, BindingUsage.TEXTURE)
+                shader.setBindGroup(
+                    encoder,
+                    spriteCacheBufferBindings.getOrCreateBindGroup(shader),
+                    spriteCacheBufferBindings.bindingUsage
+                )
                 shader.setBindGroups(encoder)
             }
             EngineStats.extra(QUAD_STATS_NAME, 1)
@@ -501,6 +517,7 @@ class SpriteCache(
         if (ownCameraBuffers) {
             cameraBuffers.release()
         }
+        spriteCacheData.release()
     }
 
     private fun FloatBuffer.shiftDataDown(startIdx: Int, endIdx: Int, dstOffset: Int) {
