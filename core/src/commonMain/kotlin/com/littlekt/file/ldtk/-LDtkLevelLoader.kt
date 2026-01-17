@@ -345,12 +345,7 @@ internal class LDtkLevelLoader(
                                 }
                                 "Color" -> {
                                     fields[field.identifier] =
-                                        LDtkValueField(
-                                            Color.fromHex(
-                                                field.value?.content?.toInt()?.toString(16)
-                                                    ?: "#000000"
-                                            )
-                                        )
+                                        LDtkValueField(Color.fromHex(field.value?.content ?: "#000000"))
                                 }
                                 "Point" -> {
                                     fields[field.identifier] =
