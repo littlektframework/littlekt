@@ -1,6 +1,64 @@
 # Changelog
 
-## 0.11.1 (SNAPSHOT)
+## 0.12.0 (SNAPSHOT)
+
+### Breaking
+
+- BREAKING: `Mat4.setToOrthographic` now maps depth to WebGPU's `[0, 1]` range and correctly sets the y
+  translation. Anything drawn with an orthographic projection must now be in front of the camera, between
+  `-near` and `-far` in view space. 2D content at `z = 0` is unaffected.
+    - Migration: if you relied on positive `z` values being visible with an ortho camera, move them to negative `z`
+      or adjust `near` / `far`.
+- BREAKING: `TextureFormat.toNonSRGB()` now returns `BGRA8_UNORM` for `BGRA8_UNORM_SRGB` (it returned itself before).
+- BREAKING: The `PBR` and `Unlit` standard shaders now only apply `linear_to_sRGB` when the color target isn't an
+  sRGB format. Scenes rendered to an sRGB surface were being gamma corrected twice and will now look darker / correct.
+    - Migration: if you bumped up light intensities or colors to compensate, lower them back down.
+    - `Standard.PBR.FragmentShader` & `Standard.Unlit.FragmentShader` have a new `gammaCorrect` param for custom
+      providers.
+- BREAKING: glTF base color & emissive textures are always loaded as sRGB, metallic roughness & occlusion as linear.
+  The occlusion texture and its strength are now loaded (they were ignored before) and `alphaCutoff` is only applied
+  for `MASK` alpha mode.
+- BREAKING: `MeshPrimitive.instanceBuffers` & `MeshPrimitive.writeInstanceDataToBuffer()` have been removed. Instance
+  data is now stored in a single buffer owned by `ModelBatch` and drawn with `firstInstance`.
+    - Migration: use `MeshPrimitive.writeVisibleInstanceData(dst, dstOffset)` to copy visible instance data. Custom
+      shaders must index instance data with `instance_index` (e.g. `models[input.instance_index]`) as it now includes
+      the `firstInstance` offset.
+- BREAKING: `InstanceBuffers` API has changed. `updateStaticStorage` is replaced with `ensureCapacity`, `write` &
+  `releasePending`.
+- BREAKING: `MeshPrimitive.removeInstance` now swaps the last instance into the removed slot, so instance order is not
+  preserved. `MeshPrimitive.clearInstances` now detaches each instance so it may be re-added via `addInstance`.
+- BREAKING: `Environment.update(camera, dt)` has been removed and replaced with `Environment.beginView(camera, dt)`.
+  Each different camera rendered within a frame now gets its own view (camera buffers & cluster buffers for
+  `PBREnvironment`).
+    - Migration: custom `Environment` subclasses should override `updateView` instead of `update`. When constructing an
+      `Environment` directly, pass a `viewBuffersFactory` if more than one camera will be rendered per frame.
+      `UnlitEnvironment()` & `PBREnvironment()` handle this already.
+- BREAKING: `Environment` is now `Releasable`. Call `release()` when done with it.
+- BREAKING: `ModelBatch` per frame state (instance buffer offset, material uniforms, skin joints) is reset based on the
+  new `EngineStats.frame`, which is incremented by the engine each frame.
+    - Migration: if running your own loop outside of a `Context`, call `EngineStats.resetPerFrameCounts()` once per frame.
+- BREAKING: `Material.update()` is now only called once per frame by `ModelBatch`, per material.
+    - Migration: if a material's uniform values need to change between passes within the same frame, use a separate
+      material instance.
+- BREAKING: `Skin` inverse bind matrices are now only uploaded once when created. `Skin.writeToBuffer()` only uploads
+  the joint transforms.
+
+### Changes
+
+- `ModelBatch.flush()` may now be called multiple times per frame with different cameras & render passes (shadows,
+  split screen, etc.) without overwriting each others data.
+- Fix `ModelBatch` binding the primitive's own material bind group instead of the override material's.
+- Fix `ModelBatch.preparePipeline()` not being safe to call from a separate thread.
+- Fix material pipeline caching ignoring the color & depth formats.
+- Fix `MeshPrimitive.removeInstance` not shifting instance data.
+- Fix `PBREnvironment` cluster bounds not being recomputed when the camera projection changes (e.g. fov).
+- Fix `PBREnvironment` leaking compute command buffers every frame.
+- Fix `ClusterBuffers` work group count rounding down for non-divisible tile counts.
+- Add `TextureFormat.toSRGB()`.
+- Add `EngineStats.frame`.
+- Add `IntMap`, an int keyed map that doesn't box its keys.
+- Performance: remove per frame allocations & hashing from `ModelBatch` (cached bind group indices, pipeline lookups,
+  no boxed map keys, O(1) instance bookkeeping) and use bulk memory copies in the JVM `FloatBuffer`.
 
 ## 0.11.0
 
