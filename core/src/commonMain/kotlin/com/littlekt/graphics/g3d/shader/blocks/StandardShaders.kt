@@ -480,7 +480,7 @@ object Standard {
                         if (fullyRough) {
                             """
                             let NDF = 1.0 / PI;
-                            let G = 1.0;
+                            let G = GeometrySmith(surface.normal, surface.v, L, 1.0);
                         """.trimIndent()
                         } else {
                             """

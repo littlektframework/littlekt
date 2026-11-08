@@ -54,6 +54,7 @@
 - Fix `PBREnvironment` cluster bounds not being recomputed when the camera projection changes (e.g. fov).
 - Fix `PBREnvironment` leaking compute command buffers every frame.
 - Fix `ClusterBuffers` work group count rounding down for non-divisible tile counts.
+- Fix fully rough PBR materials producing bright single pixel specular highlights on silhouette edges.
 - Add `TextureFormat.toSRGB()`.
 - Add `EngineStats.frame`.
 - Add `IntMap`, an int keyed map that doesn't box its keys.
