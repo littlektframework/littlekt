@@ -1,14 +1,17 @@
 package com.littlekt.examples.input
 
-import com.littlekt.examples.*
 import com.littlekt.Context
 import com.littlekt.ContextListener
+import com.littlekt.configureSurfaceOnResize
+import com.littlekt.examples.*
 import com.littlekt.graphics.Color
 import com.littlekt.graphics.HAlign
 import com.littlekt.graphics.g2d.SpriteBatch
 import com.littlekt.graphics.g2d.use
 import com.littlekt.graphics.webgpu.*
+import com.littlekt.renderFrame
 import com.littlekt.resources.Fonts
+import com.littlekt.surfaceColor
 import com.littlekt.util.viewport.ExtendViewport
 
 /**
@@ -47,7 +50,7 @@ class InputExample(context: Context) : ContextListener(context) {
             renderFrame { frame, commandEncoder ->
                 val renderPass =
                     commandEncoder.beginRenderPass(
-                        RenderPassDescriptor(listOf(colorAttachment(frame, clearColor)))
+                        RenderPassDescriptor(colorAttachment(frame, clearColor))
                     )
                 camera.update()
 

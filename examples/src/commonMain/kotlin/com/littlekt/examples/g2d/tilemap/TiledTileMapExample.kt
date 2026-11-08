@@ -1,8 +1,9 @@
 package com.littlekt.examples.g2d.tilemap
 
-import com.littlekt.examples.*
 import com.littlekt.Context
 import com.littlekt.ContextListener
+import com.littlekt.configureSurfaceOnResize
+import com.littlekt.examples.*
 import com.littlekt.file.vfs.readTiledMap
 import com.littlekt.graphics.Color
 import com.littlekt.graphics.g2d.SpriteBatch
@@ -11,6 +12,8 @@ import com.littlekt.graphics.g2d.shape.ShapeRenderer
 import com.littlekt.graphics.g2d.use
 import com.littlekt.graphics.webgpu.*
 import com.littlekt.input.Key
+import com.littlekt.renderFrame
+import com.littlekt.surfaceColor
 import com.littlekt.util.viewport.ExtendViewport
 
 /**
@@ -47,7 +50,7 @@ class TiledTileMapExample(context: Context) : ContextListener(context) {
             renderFrame { frame, commandEncoder ->
                 val renderPass =
                     commandEncoder.beginRenderPass(
-                        RenderPassDescriptor(listOf(colorAttachment(frame, bgColor)))
+                        RenderPassDescriptor(colorAttachment(frame, bgColor))
                     )
                 camera.update()
 

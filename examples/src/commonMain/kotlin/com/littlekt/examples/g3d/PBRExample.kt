@@ -1,8 +1,9 @@
 package com.littlekt.examples.g3d
 
-import com.littlekt.examples.*
 import com.littlekt.Context
 import com.littlekt.ContextListener
+import com.littlekt.configureSurfaceOnResize
+import com.littlekt.examples.*
 import com.littlekt.examples.g3d.debug.DepthMaterial
 import com.littlekt.examples.g3d.debug.DepthMaterialPipelineProvider
 import com.littlekt.examples.g3d.debug.DepthSliceMaterial
@@ -32,6 +33,8 @@ import com.littlekt.math.MutableVec3f
 import com.littlekt.math.Vec3f
 import com.littlekt.math.geom.degrees
 import com.littlekt.math.random
+import com.littlekt.renderFrame
+import com.littlekt.renderTarget
 import com.littlekt.util.datastructure.fastForEach
 import com.littlekt.util.toString
 
@@ -229,7 +232,7 @@ class PBRExample(context: Context) : ContextListener(context) {
                 val renderPassEncoder =
                     commandEncoder.beginRenderPass(
                         RenderPassDescriptor(
-                            listOf(colorAttachment(hdrTarget.view, clearColor)),
+                            colorAttachment(hdrTarget.view, clearColor),
                             depthStencilAttachment = depthTarget.depthAttachment(),
                         )
                     )
@@ -257,7 +260,7 @@ class PBRExample(context: Context) : ContextListener(context) {
                 val tonemapPassEncoder =
                     commandEncoder.beginRenderPass(
                         RenderPassDescriptor(
-                            listOf(colorAttachment(frame)),
+                            colorAttachment(frame),
                             label = "tonemap render pass",
                         )
                     )
@@ -268,12 +271,13 @@ class PBRExample(context: Context) : ContextListener(context) {
                 graph.update(dt)
                 graph.render(
                     commandEncoder,
-                    RenderPassDescriptor(listOf(colorAttachment(frame)), label = "ui render pass"),
+                    RenderPassDescriptor(colorAttachment(frame), label = "ui render pass"),
                 )
             }
         }
 
         onRelease {
+            models.fastForEach { it.scene?.release() }
             graph.release()
             modelBatch.release()
             shadowBatch.release()

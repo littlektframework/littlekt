@@ -1,13 +1,16 @@
 package com.littlekt.examples.g2d
 
-import com.littlekt.examples.*
 import com.littlekt.Context
 import com.littlekt.ContextListener
+import com.littlekt.configureSurfaceOnResize
+import com.littlekt.examples.*
 import com.littlekt.file.vfs.readTexture
 import com.littlekt.graphics.Color
 import com.littlekt.graphics.EmptyTexture
 import com.littlekt.graphics.g2d.SpriteBatch
 import com.littlekt.graphics.webgpu.*
+import com.littlekt.renderFrame
+import com.littlekt.surfaceColor
 
 /**
  * An example of rendering to a texture and then drawing that texture to the surface.
@@ -33,7 +36,7 @@ class RenderTargetExample(context: Context) : ContextListener(context) {
                 val renderTargetRenderPass =
                     commandEncoder.beginRenderPass(
                         RenderPassDescriptor(
-                            listOf(colorAttachment(target.view, targetClearColor)),
+                            colorAttachment(target.view, targetClearColor),
                             label = "Render target render pass",
                         )
                     )
@@ -47,7 +50,7 @@ class RenderTargetExample(context: Context) : ContextListener(context) {
                 val surfaceRenderPass =
                     commandEncoder.beginRenderPass(
                         RenderPassDescriptor(
-                            listOf(colorAttachment(frame, clearColor)),
+                            colorAttachment(frame, clearColor),
                             label = "Surface render pass",
                         )
                     )

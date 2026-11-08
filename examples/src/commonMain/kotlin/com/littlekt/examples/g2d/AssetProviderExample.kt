@@ -1,9 +1,10 @@
 package com.littlekt.examples.g2d
 
-import com.littlekt.examples.*
 import com.littlekt.AssetProvider
 import com.littlekt.Context
 import com.littlekt.ContextListener
+import com.littlekt.configureSurfaceOnResize
+import com.littlekt.examples.*
 import com.littlekt.file.ldtk.LDtkMapLoader
 import com.littlekt.graphics.Color
 import com.littlekt.graphics.HAlign
@@ -12,7 +13,9 @@ import com.littlekt.graphics.g2d.font.BitmapFont
 import com.littlekt.graphics.g2d.tilemap.ldtk.LDtkWorld
 import com.littlekt.graphics.g2d.use
 import com.littlekt.graphics.webgpu.*
+import com.littlekt.renderFrame
 import com.littlekt.resources.Fonts
+import com.littlekt.surfaceColor
 import com.littlekt.util.viewport.ExtendViewport
 
 /**
@@ -52,7 +55,7 @@ class AssetProviderExample(context: Context) : ContextListener(context) {
             renderFrame { frame, commandEncoder ->
                 val renderPass =
                     commandEncoder.beginRenderPass(
-                        RenderPassDescriptor(listOf(colorAttachment(frame, clearColor)))
+                        RenderPassDescriptor(colorAttachment(frame, clearColor))
                     )
                 camera.update()
 

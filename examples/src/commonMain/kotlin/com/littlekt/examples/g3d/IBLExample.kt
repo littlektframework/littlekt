@@ -1,8 +1,9 @@
 package com.littlekt.examples.g3d
 
-import com.littlekt.examples.*
 import com.littlekt.Context
 import com.littlekt.ContextListener
+import com.littlekt.configureSurfaceOnResize
+import com.littlekt.examples.*
 import com.littlekt.file.gltf.GltfLoaderPbrConfig
 import com.littlekt.file.vfs.readGltfModel
 import com.littlekt.file.vfs.readHdrImage
@@ -26,6 +27,8 @@ import com.littlekt.graphics.webgpu.*
 import com.littlekt.input.Key
 import com.littlekt.math.Vec3f
 import com.littlekt.math.geom.degrees
+import com.littlekt.renderFrame
+import com.littlekt.renderTarget
 import com.littlekt.resources.Textures
 import com.littlekt.util.datastructure.fastForEach
 
@@ -90,13 +93,14 @@ class IBLExample(context: Context) : ContextListener(context) {
                     }
             }
         }
-        nodes +=
+        val helmet =
             resourcesVfs["models/flighthelmet/FlightHelmet.gltf"]
                 .readGltfModel(config = GltfLoaderPbrConfig())
                 .apply {
                     scale(4f)
                     translate(0f, -0.5f, 2f)
                 }
+        nodes += helmet
 
         val modelBatch =
             ModelBatch(device).apply {
@@ -129,7 +133,7 @@ class IBLExample(context: Context) : ContextListener(context) {
                 val scenePass =
                     commandEncoder.beginRenderPass(
                         RenderPassDescriptor(
-                            listOf(colorAttachment(hdrTarget.view, Color.BLACK)),
+                            colorAttachment(hdrTarget.view, Color.BLACK),
                             depthStencilAttachment = depthTarget.depthAttachment(),
                             label = "Scene Render Pass",
                         )
@@ -143,7 +147,7 @@ class IBLExample(context: Context) : ContextListener(context) {
                 val tonemapPass =
                     commandEncoder.beginRenderPass(
                         RenderPassDescriptor(
-                            listOf(colorAttachment(frame)),
+                            colorAttachment(frame),
                             label = "Tonemap Render Pass",
                         )
                     )
@@ -154,6 +158,7 @@ class IBLExample(context: Context) : ContextListener(context) {
         }
 
         onRelease {
+            helmet.release()
             modelBatch.release()
             environment.release()
             skybox.release()

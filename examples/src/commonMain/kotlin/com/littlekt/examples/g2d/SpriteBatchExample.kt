@@ -2,19 +2,18 @@ package com.littlekt.examples.g2d
 
 import com.littlekt.Context
 import com.littlekt.ContextListener
+import com.littlekt.configureSurfaceOnResize
 import com.littlekt.examples.addCloseOnEsc
 import com.littlekt.examples.addStatsHandler
 import com.littlekt.examples.addWASDMovement
-import com.littlekt.examples.colorAttachment
-import com.littlekt.examples.configureSurfaceOnResize
-import com.littlekt.examples.renderFrame
-import com.littlekt.examples.surfaceColor
 import com.littlekt.file.vfs.readTexture
 import com.littlekt.graphics.Color
 import com.littlekt.graphics.g2d.SpriteBatch
 import com.littlekt.graphics.shader.Shader
 import com.littlekt.graphics.util.BindingUsage
 import com.littlekt.graphics.webgpu.*
+import com.littlekt.renderFrame
+import com.littlekt.surfaceColor
 import com.littlekt.util.align
 import com.littlekt.util.viewport.ExtendViewport
 
@@ -122,7 +121,7 @@ class SpriteBatchExample(context: Context) : ContextListener(context) {
             renderFrame { frame, commandEncoder ->
                 val renderPass =
                     commandEncoder.beginRenderPass(
-                        RenderPassDescriptor(listOf(colorAttachment(frame, clearColor)))
+                        RenderPassDescriptor(colorAttachment(frame, clearColor))
                     )
                 camera.update()
                 val column = viewport.virtualWidth / 3f

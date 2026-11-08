@@ -1,13 +1,16 @@
 package com.littlekt.examples.webgpu
 
-import com.littlekt.examples.*
 import com.littlekt.Context
 import com.littlekt.ContextListener
+import com.littlekt.configureSurfaceOnResize
+import com.littlekt.examples.*
 import com.littlekt.file.FloatBuffer
 import com.littlekt.file.ShortBuffer
 import com.littlekt.file.vfs.readPixmap
 import com.littlekt.graphics.Color
 import com.littlekt.graphics.webgpu.*
+import com.littlekt.renderFrame
+import com.littlekt.surfaceColor
 
 /**
  * An example showing drawing a texture with pure WebGPU.
@@ -161,7 +164,7 @@ class TextureExample(context: Context) : ContextListener(context) {
             renderFrame { frame, commandEncoder ->
                 val renderPassEncoder =
                     commandEncoder.beginRenderPass(
-                        RenderPassDescriptor(listOf(colorAttachment(frame, clearColor)))
+                        RenderPassDescriptor(colorAttachment(frame, clearColor))
                     )
                 renderPassEncoder.setPipeline(renderPipeline)
                 renderPassEncoder.setBindGroup(0, bindGroup)

@@ -1,10 +1,12 @@
 package com.littlekt.examples.webgpu
 
-import com.littlekt.examples.*
 import com.littlekt.Context
 import com.littlekt.ContextListener
+import com.littlekt.configureSurfaceOnResize
+import com.littlekt.examples.*
 import com.littlekt.graphics.Color
 import com.littlekt.graphics.webgpu.*
+import com.littlekt.renderFrame
 
 /**
  * An example rendering a simple triangle in pure WebGPU.
@@ -62,7 +64,7 @@ class TriangleExample(context: Context) : ContextListener(context) {
             renderFrame { frame, commandEncoder ->
                 val renderPassEncoder =
                     commandEncoder.beginRenderPass(
-                        RenderPassDescriptor(listOf(colorAttachment(frame, Color.CLEAR)))
+                        RenderPassDescriptor(colorAttachment(frame, Color.CLEAR))
                     )
                 renderPassEncoder.setPipeline(renderPipeline)
                 renderPassEncoder.draw(3, 1, 0, 0)

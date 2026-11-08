@@ -5,14 +5,16 @@ import com.littlekt.util.UniqueId
 
 /**
  * A [Texture] that doesn't contain any underlying raw image data, but instead, is intended to be
- * used in a render pass as an output. By default, the [textureDescriptor] uses
- * `TextureUsage.TEXTURE or TextureUsage.RENDER_ATTACHMENT` as usage.
+ * used in a render pass as an output, such as a color, depth, multisampled, or HDR target. Use
+ * [com.littlekt.renderTarget] to create one the size of the window that resizes & releases with it.
  *
  * @param device the device for underlying GPU buffers creation
  * @param preferredFormat the preferred [TextureFormat]
  * @param width size of the textures width
  * @param height size of the textures height
  * @param samplerDescriptor optional [SamplerDescriptor] to use when loading initial texture.
+ * @param sampleCount the number of samples per pixel for multisampling.
+ * @param usage the [TextureUsage] of the texture.
  * @author Colton Daily
  * @date 5/5/2024
  */
@@ -22,6 +24,8 @@ class EmptyTexture(
     width: Int,
     height: Int,
     samplerDescriptor: SamplerDescriptor = SamplerDescriptor(),
+    sampleCount: Int = 1,
+    usage: TextureUsage = TextureUsage.TEXTURE or TextureUsage.RENDER_ATTACHMENT,
 ) : Texture {
     /**
      * The [Extent3D] size of the texture. Uses the initial width & height from the constructor and
@@ -35,14 +39,7 @@ class EmptyTexture(
 
     /** The current [WebGPUTexture]. Changing the value of this field WILL change [id]. */
     override var textureDescriptor: TextureDescriptor =
-        TextureDescriptor(
-            size,
-            1,
-            1,
-            TextureDimension.D2,
-            preferredFormat,
-            TextureUsage.TEXTURE or TextureUsage.RENDER_ATTACHMENT,
-        )
+        TextureDescriptor(size, sampleCount = sampleCount, format = preferredFormat, usage = usage)
         set(value) {
             field = value
             val textureToDestroy = gpuTexture
@@ -76,6 +73,10 @@ class EmptyTexture(
             id = UniqueId.next<Texture>()
         }
 
+    /** The [TextureFormat] of this texture. */
+    val format: TextureFormat
+        get() = textureDescriptor.format
+
     override var samplerDescriptor: SamplerDescriptor = samplerDescriptor
         set(value) {
             field = value
@@ -94,11 +95,22 @@ class EmptyTexture(
      * Resizes this texture by copying the [TextureDescriptor] and updating the [size] component, as
      * well as updating [size] field itself. This will update [gpuTexture] & [view]. This will
      * change this texture's [id]. This is essentially the same as destroying this texture and
-     * creating a whole new one.
+     * creating a whole new one. Does nothing if the size is the same.
      */
     fun resize(width: Int, height: Int) {
+        if (size.width == width && size.height == height) return
         size = Extent3D(width, height, 1)
         textureDescriptor = textureDescriptor.copy(size = size)
+    }
+
+    /** @return a depth attachment of this texture that clears the depth to `1`. */
+    fun depthAttachment(): RenderPassDepthStencilAttachmentDescriptor {
+        val stencil = textureDescriptor.format == TextureFormat.DEPTH24_PLUS_STENCIL8
+        return RenderPassDepthStencilAttachmentDescriptor(
+            view = view,
+            stencilLoadOp = if (stencil) LoadOp.CLEAR else null,
+            stencilStoreOp = if (stencil) StoreOp.STORE else null,
+        )
     }
 
     override fun equals(other: Any?): Boolean {

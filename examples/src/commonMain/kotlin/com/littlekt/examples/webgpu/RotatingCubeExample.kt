@@ -1,14 +1,17 @@
 package com.littlekt.examples.webgpu
 
-import com.littlekt.examples.*
 import com.littlekt.Context
 import com.littlekt.ContextListener
+import com.littlekt.configureSurfaceOnResize
+import com.littlekt.examples.*
 import com.littlekt.file.FloatBuffer
 import com.littlekt.graphics.Color
 import com.littlekt.graphics.webgpu.*
 import com.littlekt.math.Mat4
 import com.littlekt.math.geom.degrees
 import com.littlekt.math.geom.radians
+import com.littlekt.renderFrame
+import com.littlekt.renderTarget
 import com.littlekt.util.now
 import kotlin.math.cos
 import kotlin.math.sin
@@ -527,7 +530,7 @@ class RotatingCubeExample(context: Context) : ContextListener(context) {
                 val renderPassEncoder =
                     commandEncoder.beginRenderPass(
                         RenderPassDescriptor(
-                            listOf(colorAttachment(frame, Color.BLACK)),
+                            colorAttachment(frame, Color.BLACK),
                             depthStencilAttachment = depthTarget.depthAttachment(),
                         )
                     )

@@ -564,6 +564,10 @@ data class GltfTexture(val sampler: Int = -1, val source: Int = 0, val name: Str
 
     @Transient private var texture: Texture? = null
 
+    /** The [Texture] created by [toTexture], if it was called. */
+    internal val loadedTexture: Texture?
+        get() = texture
+
     fun toTexture(root: VfsFile, device: Device, preferredFormat: TextureFormat): Texture {
         if (texture == null) {
             val uri = imageRef.uri

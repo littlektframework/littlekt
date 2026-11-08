@@ -1,8 +1,9 @@
 package com.littlekt.examples.g3d
 
-import com.littlekt.examples.*
 import com.littlekt.Context
 import com.littlekt.ContextListener
+import com.littlekt.configureSurfaceOnResize
+import com.littlekt.examples.*
 import com.littlekt.file.vfs.TextureOptions
 import com.littlekt.file.vfs.readTexture
 import com.littlekt.graphics.Color
@@ -21,7 +22,10 @@ import com.littlekt.graphics.generate
 import com.littlekt.graphics.webgpu.*
 import com.littlekt.math.MutableVec3f
 import com.littlekt.math.Vec3f
+import com.littlekt.renderFrame
+import com.littlekt.renderTarget
 import com.littlekt.resources.Textures
+import com.littlekt.surfaceColor
 import com.littlekt.util.datastructure.fastForEach
 import com.littlekt.util.seconds
 import kotlin.math.cos
@@ -158,7 +162,7 @@ class TransparencyExample(context: Context) : ContextListener(context) {
                 val renderPass =
                     commandEncoder.beginRenderPass(
                         RenderPassDescriptor(
-                            listOf(colorAttachment(frame, clearColor)),
+                            colorAttachment(frame, clearColor),
                             depthStencilAttachment = depthTarget.depthAttachment(),
                             label = "Transparency Render Pass",
                         )

@@ -441,8 +441,8 @@ data class FragmentState(
  */
 data class ColorTargetState(
     val format: TextureFormat,
-    val blendState: BlendState?,
-    val writeMask: ColorWriteMask,
+    val blendState: BlendState? = null,
+    val writeMask: ColorWriteMask = ColorWriteMask.ALL,
 )
 
 /**
@@ -852,9 +852,9 @@ data class RenderPassColorAttachmentDescriptor(
  */
 data class RenderPassDepthStencilAttachmentDescriptor(
     val view: TextureView,
-    val depthClearValue: Float,
-    val depthLoadOp: LoadOp?,
-    val depthStoreOp: StoreOp?,
+    val depthClearValue: Float = 1f,
+    val depthLoadOp: LoadOp? = LoadOp.CLEAR,
+    val depthStoreOp: StoreOp? = StoreOp.STORE,
     val depthReadOnly: Boolean = false,
     val stencilClearValue: Int = 0,
     val stencilLoadOp: LoadOp? = null,
@@ -875,7 +875,32 @@ data class RenderPassDescriptor(
     val colorAttachments: List<RenderPassColorAttachmentDescriptor>,
     val depthStencilAttachment: RenderPassDepthStencilAttachmentDescriptor? = null,
     val label: String? = null,
-)
+) {
+    constructor(
+        colorAttachment: RenderPassColorAttachmentDescriptor,
+        depthStencilAttachment: RenderPassDepthStencilAttachmentDescriptor? = null,
+        label: String? = null,
+    ) : this(listOf(colorAttachment), depthStencilAttachment, label)
+}
+
+/**
+ * @return a [RenderPassColorAttachmentDescriptor] that clears to [clearColor], or loads the existing
+ *   contents if `null`. The result is stored, unless it's resolved to a [resolveTarget], in which
+ *   case the multisampled [view] is discarded.
+ */
+fun colorAttachment(
+    view: TextureView,
+    clearColor: Color? = null,
+    resolveTarget: TextureView? = null,
+    storeOp: StoreOp = if (resolveTarget != null) StoreOp.DISCARD else StoreOp.STORE,
+) =
+    RenderPassColorAttachmentDescriptor(
+        view = view,
+        loadOp = if (clearColor != null) LoadOp.CLEAR else LoadOp.LOAD,
+        storeOp = storeOp,
+        clearColor = clearColor,
+        resolveTarget = resolveTarget,
+    )
 
 /**
  * Describes a compute pipeline. For use with [Device.createComputePipeline].

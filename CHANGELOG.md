@@ -41,6 +41,12 @@
 
 ### Changes
 
+- Add `Context.renderFrame`, `Context.configureSurfaceOnResize` & `Graphics.surfaceColor`.
+- Add `sampleCount`, `usage`, `format` & `depthAttachment()` to `EmptyTexture` and `Context.renderTarget` for window
+  sized depth, MSAA & HDR targets. `EmptyTexture.resize` does nothing when the size is the same.
+- Add `colorAttachment` & a single color attachment `RenderPassDescriptor` constructor.
+- Add defaults to `TextureDescriptor`, `ColorTargetState`, `BufferDescriptor` & `RenderPassDepthStencilAttachmentDescriptor`.
+- Add `Model.release()` to free the meshes, materials, skins & textures of a loaded glTF model.
 - Add cascaded directional shadows with `DirectionalShadowMap` & `ShadowMaterialPipelineProvider`.
 - Add `DirectionalShadowMap.cascadeBlend` to blend between shadow cascades.
 - Add HDR rendering & tonemapping with `Tonemapper`.

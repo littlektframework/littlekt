@@ -1,14 +1,17 @@
 package com.littlekt.examples.ui
 
-import com.littlekt.examples.*
 import com.littlekt.Context
 import com.littlekt.ContextListener
+import com.littlekt.configureSurfaceOnResize
+import com.littlekt.examples.*
 import com.littlekt.file.vfs.readLDtkMapLoader
 import com.littlekt.graph.node.ui.centerContainer
 import com.littlekt.graph.node.ui.label
 import com.littlekt.graph.sceneGraph
 import com.littlekt.graphics.g2d.SpriteBatch
 import com.littlekt.graphics.webgpu.*
+import com.littlekt.renderFrame
+import com.littlekt.surfaceColor
 import com.littlekt.util.viewport.ExtendViewport
 
 /**
@@ -54,7 +57,7 @@ class GameWorldAndUiViewportsExample(context: Context) : ContextListener(context
                 val worldRenderPass =
                     commandEncoder.beginRenderPass(
                         RenderPassDescriptor(
-                            listOf(colorAttachment(frame, bgColor)),
+                            colorAttachment(frame, bgColor),
                             label = "World render pass",
                         )
                     )
@@ -68,7 +71,7 @@ class GameWorldAndUiViewportsExample(context: Context) : ContextListener(context
                 graph.update(dt)
                 graph.render(
                     commandEncoder,
-                    RenderPassDescriptor(listOf(colorAttachment(frame)), label = "UI render pass"),
+                    RenderPassDescriptor(colorAttachment(frame), label = "UI render pass"),
                 )
                 batch.end()
             }

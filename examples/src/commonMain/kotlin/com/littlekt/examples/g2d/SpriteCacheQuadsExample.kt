@@ -1,13 +1,16 @@
 package com.littlekt.examples.g2d
 
-import com.littlekt.examples.*
 import com.littlekt.Context
 import com.littlekt.ContextListener
+import com.littlekt.configureSurfaceOnResize
+import com.littlekt.examples.*
 import com.littlekt.graphics.Color
 import com.littlekt.graphics.OrthographicCamera
 import com.littlekt.graphics.g2d.SpriteCache
 import com.littlekt.graphics.webgpu.*
+import com.littlekt.renderFrame
 import com.littlekt.resources.Textures
+import com.littlekt.surfaceColor
 import kotlin.random.Random
 
 /**
@@ -49,7 +52,7 @@ class SpriteCacheQuadsExample(context: Context) : ContextListener(context) {
                 camera.update()
                 val renderPass =
                     commandEncoder.beginRenderPass(
-                        RenderPassDescriptor(listOf(colorAttachment(frame, clearColor)))
+                        RenderPassDescriptor(colorAttachment(frame, clearColor))
                     )
                 cache.render(renderPass, camera.viewProjection)
                 renderPass.end()

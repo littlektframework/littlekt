@@ -1,8 +1,9 @@
 package com.littlekt.examples.ui
 
-import com.littlekt.examples.*
 import com.littlekt.Context
 import com.littlekt.ContextListener
+import com.littlekt.configureSurfaceOnResize
+import com.littlekt.examples.*
 import com.littlekt.file.vfs.readTexture
 import com.littlekt.graph.node.canvasLayer
 import com.littlekt.graph.node.node2d.camera2d
@@ -16,6 +17,8 @@ import com.littlekt.graphics.webgpu.*
 import com.littlekt.input.Key
 import com.littlekt.math.geom.degrees
 import com.littlekt.math.geom.radians
+import com.littlekt.renderFrame
+import com.littlekt.surfaceColor
 import com.littlekt.util.viewport.ExtendViewport
 
 /**
@@ -134,7 +137,7 @@ class HelloSceneGraphExample(context: Context) : ContextListener(context) {
                 graph.render(
                     commandEncoder,
                     RenderPassDescriptor(
-                        listOf(colorAttachment(frame, clearColor)),
+                        colorAttachment(frame, clearColor),
                         label = "Scene graph render pass",
                     ),
                 )

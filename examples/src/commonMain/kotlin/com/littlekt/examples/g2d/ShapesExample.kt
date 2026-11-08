@@ -2,12 +2,9 @@ package com.littlekt.examples.g2d
 
 import com.littlekt.Context
 import com.littlekt.ContextListener
+import com.littlekt.configureSurfaceOnResize
 import com.littlekt.examples.addCloseOnEsc
 import com.littlekt.examples.addStatsHandler
-import com.littlekt.examples.colorAttachment
-import com.littlekt.examples.configureSurfaceOnResize
-import com.littlekt.examples.renderFrame
-import com.littlekt.examples.surfaceColor
 import com.littlekt.file.vfs.readTexture
 import com.littlekt.graphics.Color
 import com.littlekt.graphics.g2d.NinePatch
@@ -15,10 +12,13 @@ import com.littlekt.graphics.g2d.SpriteBatch
 import com.littlekt.graphics.g2d.shape.ShapeRenderer
 import com.littlekt.graphics.g2d.use
 import com.littlekt.graphics.webgpu.RenderPassDescriptor
+import com.littlekt.graphics.webgpu.colorAttachment
 import com.littlekt.math.PI2_F
 import com.littlekt.math.PI_F
 import com.littlekt.math.geom.degrees
 import com.littlekt.math.geom.radians
+import com.littlekt.renderFrame
+import com.littlekt.surfaceColor
 import com.littlekt.util.seconds
 import com.littlekt.util.viewport.ExtendViewport
 import kotlin.math.cos
@@ -85,7 +85,7 @@ class ShapesExample(context: Context) : ContextListener(context) {
             renderFrame { frame, commandEncoder ->
                 val renderPass =
                     commandEncoder.beginRenderPass(
-                        RenderPassDescriptor(listOf(colorAttachment(frame, clearColor)))
+                        RenderPassDescriptor(colorAttachment(frame, clearColor))
                     )
                 camera.update()
                 batch.use(renderPass, camera.viewProjection) {

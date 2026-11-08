@@ -1,8 +1,9 @@
 package com.littlekt.examples.g3d
 
-import com.littlekt.examples.*
 import com.littlekt.Context
 import com.littlekt.ContextListener
+import com.littlekt.configureSurfaceOnResize
+import com.littlekt.examples.*
 import com.littlekt.file.vfs.TextureOptions
 import com.littlekt.file.vfs.readTexture
 import com.littlekt.graph.node.ui.Control
@@ -29,6 +30,8 @@ import com.littlekt.graphics.webgpu.*
 import com.littlekt.input.Key
 import com.littlekt.math.Vec3f
 import com.littlekt.math.geom.degrees
+import com.littlekt.renderFrame
+import com.littlekt.renderTarget
 import com.littlekt.resources.Textures
 import com.littlekt.util.datastructure.fastForEach
 import com.littlekt.util.toString
@@ -183,7 +186,7 @@ class BloomExample(context: Context) : ContextListener(context) {
                 val scenePass =
                     commandEncoder.beginRenderPass(
                         RenderPassDescriptor(
-                            listOf(colorAttachment(hdrTarget.view, Color.BLACK)),
+                            colorAttachment(hdrTarget.view, Color.BLACK),
                             depthStencilAttachment = depthTarget.depthAttachment(),
                             label = "Scene Render Pass",
                         )
@@ -200,7 +203,7 @@ class BloomExample(context: Context) : ContextListener(context) {
                 val tonemapPass =
                     commandEncoder.beginRenderPass(
                         RenderPassDescriptor(
-                            listOf(colorAttachment(frame)),
+                            colorAttachment(frame),
                             label = "Tonemap Render Pass",
                         )
                     )
@@ -211,7 +214,7 @@ class BloomExample(context: Context) : ContextListener(context) {
                 graph.update(dt)
                 graph.render(
                     commandEncoder,
-                    RenderPassDescriptor(listOf(colorAttachment(frame)), label = "UI Render Pass"),
+                    RenderPassDescriptor(colorAttachment(frame), label = "UI Render Pass"),
                 )
             }
         }

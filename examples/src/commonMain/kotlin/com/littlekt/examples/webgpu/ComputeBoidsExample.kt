@@ -1,12 +1,15 @@
 package com.littlekt.examples.webgpu
 
-import com.littlekt.examples.*
 import com.littlekt.Context
 import com.littlekt.ContextListener
+import com.littlekt.configureSurfaceOnResize
+import com.littlekt.examples.*
 import com.littlekt.file.FloatBuffer
 import com.littlekt.graphics.*
 import com.littlekt.graphics.shader.Shader
 import com.littlekt.graphics.webgpu.*
+import com.littlekt.renderFrame
+import com.littlekt.surfaceColor
 import kotlin.math.ceil
 import kotlin.random.Random
 
@@ -226,7 +229,7 @@ class ComputeBoidsExample(context: Context) : ContextListener(context) {
                     val passEncoder =
                         commandEncoder.beginRenderPass(
                             RenderPassDescriptor(
-                                listOf(colorAttachment(frame, clearColor)),
+                                colorAttachment(frame, clearColor),
                                 label = "boids render pass",
                             )
                         )

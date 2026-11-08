@@ -2,12 +2,9 @@ package com.littlekt.examples.g2d
 
 import com.littlekt.Context
 import com.littlekt.ContextListener
+import com.littlekt.configureSurfaceOnResize
 import com.littlekt.examples.addCloseOnEsc
 import com.littlekt.examples.addStatsHandler
-import com.littlekt.examples.colorAttachment
-import com.littlekt.examples.configureSurfaceOnResize
-import com.littlekt.examples.renderFrame
-import com.littlekt.examples.surfaceColor
 import com.littlekt.file.vfs.readAtlas
 import com.littlekt.graphics.Color
 import com.littlekt.graphics.g2d.Animation
@@ -18,7 +15,10 @@ import com.littlekt.graphics.g2d.TextureSlice
 import com.littlekt.graphics.g2d.getAnimation
 import com.littlekt.graphics.g2d.use
 import com.littlekt.graphics.webgpu.RenderPassDescriptor
+import com.littlekt.graphics.webgpu.colorAttachment
 import com.littlekt.input.Key
+import com.littlekt.renderFrame
+import com.littlekt.surfaceColor
 import com.littlekt.util.datastructure.fastForEach
 import com.littlekt.util.viewport.ExtendViewport
 import kotlin.time.Duration.Companion.milliseconds
@@ -93,7 +93,7 @@ class AnimationExample(context: Context) : ContextListener(context) {
             renderFrame { frame, commandEncoder ->
                 val renderPass =
                     commandEncoder.beginRenderPass(
-                        RenderPassDescriptor(listOf(colorAttachment(frame, clearColor)))
+                        RenderPassDescriptor(colorAttachment(frame, clearColor))
                     )
                 camera.update()
                 batch.use(renderPass, camera.viewProjection) {

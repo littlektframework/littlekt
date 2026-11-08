@@ -82,6 +82,15 @@ private class GltfModelGenerator(val gltfFile: GltfData) {
         scene.animations.forEach { it.prepareAnimation() }
         scene.disableAllAnimations()
 
+        meshesByMaterial.values.forEach { meshes -> meshes.forEach { scene.own(it) } }
+        materialCache.values.forEach { material ->
+            scene.own(material)
+            val baseColorTexture = material.baseColorTexture
+            if (baseColorTexture is EmptyTexture) scene.own(baseColorTexture)
+        }
+        skinCache.values.forEach { scene.own(it) }
+        gltfFile.textures.forEach { texture -> texture.loadedTexture?.let { scene.own(it) } }
+
         return scene
     }
 

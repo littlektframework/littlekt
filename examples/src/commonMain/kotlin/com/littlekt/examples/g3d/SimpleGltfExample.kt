@@ -1,8 +1,9 @@
 package com.littlekt.examples.g3d
 
-import com.littlekt.examples.*
 import com.littlekt.Context
 import com.littlekt.ContextListener
+import com.littlekt.configureSurfaceOnResize
+import com.littlekt.examples.*
 import com.littlekt.file.gltf.GltfLoaderPbrConfig
 import com.littlekt.file.gltf.GltfLoaderUnlitConfig
 import com.littlekt.file.gltf.GltfModelConfig
@@ -22,6 +23,9 @@ import com.littlekt.graphics.generate
 import com.littlekt.graphics.webgpu.*
 import com.littlekt.math.Vec3f
 import com.littlekt.math.geom.degrees
+import com.littlekt.renderFrame
+import com.littlekt.renderTarget
+import com.littlekt.surfaceColor
 import com.littlekt.util.datastructure.fastForEach
 import com.littlekt.util.seconds
 
@@ -162,7 +166,7 @@ class SimpleGltfExample(context: Context) : ContextListener(context) {
                 val renderPassEncoder =
                     commandEncoder.beginRenderPass(
                         RenderPassDescriptor(
-                            listOf(colorAttachment(frame, clearColor)),
+                            colorAttachment(frame, clearColor),
                             depthStencilAttachment = depthTarget.depthAttachment(),
                             label = "Main Render Pass",
                         )
@@ -177,6 +181,7 @@ class SimpleGltfExample(context: Context) : ContextListener(context) {
         }
 
         onRelease {
+            models.fastForEach { it.scene?.release() }
             modelBatch.release()
             environment.release()
             pbrEnvironment.release()

@@ -1,9 +1,10 @@
 package com.littlekt.examples.g3d
 
-import com.littlekt.examples.*
 import com.littlekt.Context
 import com.littlekt.ContextListener
 import com.littlekt.async.KtScope
+import com.littlekt.configureSurfaceOnResize
+import com.littlekt.examples.*
 import com.littlekt.file.gltf.GltfLoaderUnlitConfig
 import com.littlekt.file.vfs.readGltfModel
 import com.littlekt.graphics.Color
@@ -16,6 +17,9 @@ import com.littlekt.graphics.webgpu.*
 import com.littlekt.math.Vec3f
 import com.littlekt.math.geom.degrees
 import com.littlekt.math.random
+import com.littlekt.renderFrame
+import com.littlekt.renderTarget
+import com.littlekt.surfaceColor
 import com.littlekt.util.datastructure.fastForEach
 import com.littlekt.util.seconds
 import kotlinx.coroutines.launch
@@ -103,7 +107,7 @@ class ModelInstancingExample(context: Context) : ContextListener(context) {
                 val renderPassEncoder =
                     commandEncoder.beginRenderPass(
                         RenderPassDescriptor(
-                            listOf(colorAttachment(frame, clearColor)),
+                            colorAttachment(frame, clearColor),
                             depthStencilAttachment = depthTarget.depthAttachment(),
                         )
                     )
@@ -117,6 +121,7 @@ class ModelInstancingExample(context: Context) : ContextListener(context) {
         }
 
         onRelease {
+            duckModel.release()
             modelBatch.release()
             environment.release()
         }

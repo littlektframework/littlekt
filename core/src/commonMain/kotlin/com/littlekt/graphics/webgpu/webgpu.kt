@@ -822,9 +822,9 @@ data class TextureViewDescriptor(
  */
 data class TextureDescriptor(
     val size: Extent3D,
-    val mipLevelCount: Int,
-    val sampleCount: Int,
-    val dimension: TextureDimension,
+    val mipLevelCount: Int = 1,
+    val sampleCount: Int = 1,
+    val dimension: TextureDimension = TextureDimension.D2,
     val format: TextureFormat,
     val usage: TextureUsage,
     val label: String? = null,
@@ -872,7 +872,7 @@ data class BufferDescriptor(
     val label: String,
     val size: Long,
     val usage: BufferUsage,
-    val mappedAtCreation: Boolean,
+    val mappedAtCreation: Boolean = false,
 )
 
 /**

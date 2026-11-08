@@ -1,8 +1,9 @@
 package com.littlekt.examples.g3d
 
-import com.littlekt.examples.*
 import com.littlekt.Context
 import com.littlekt.ContextListener
+import com.littlekt.configureSurfaceOnResize
+import com.littlekt.examples.*
 import com.littlekt.file.gltf.GltfLoaderPbrConfig
 import com.littlekt.file.vfs.TextureOptions
 import com.littlekt.file.vfs.readGltfModel
@@ -29,6 +30,9 @@ import com.littlekt.graphics.webgpu.*
 import com.littlekt.math.MutableVec3f
 import com.littlekt.math.Vec3f
 import com.littlekt.math.geom.degrees
+import com.littlekt.renderFrame
+import com.littlekt.renderTarget
+import com.littlekt.surfaceColor
 import com.littlekt.util.datastructure.fastForEach
 import com.littlekt.util.datastructure.fastForEachWithIndex
 import com.littlekt.util.seconds
@@ -155,9 +159,9 @@ class MultiPassExample(context: Context) : ContextListener(context) {
 
         val minimap = EmptyTexture(device, preferredFormat, MINIMAP_SIZE, MINIMAP_SIZE)
         val minimapMsaaTarget =
-            RenderTarget(device, preferredFormat, MINIMAP_SIZE, MINIMAP_SIZE, SAMPLE_COUNT)
+            EmptyTexture(device, preferredFormat, MINIMAP_SIZE, MINIMAP_SIZE, sampleCount = SAMPLE_COUNT)
         val minimapDepthTarget =
-            RenderTarget(device, depthFormat, MINIMAP_SIZE, MINIMAP_SIZE, SAMPLE_COUNT)
+            EmptyTexture(device, depthFormat, MINIMAP_SIZE, MINIMAP_SIZE, sampleCount = SAMPLE_COUNT)
         val msaaTarget = renderTarget(preferredFormat, SAMPLE_COUNT)
         val depthTarget = renderTarget(depthFormat, SAMPLE_COUNT)
         val clearColor = graphics.surfaceColor(Color.DARK_GRAY)
@@ -236,7 +240,7 @@ class MultiPassExample(context: Context) : ContextListener(context) {
                 val uiPass =
                     commandEncoder.beginRenderPass(
                         RenderPassDescriptor(
-                            listOf(colorAttachment(frame)),
+                            colorAttachment(frame),
                             label = "UI Render Pass",
                         )
                     )
@@ -254,6 +258,7 @@ class MultiPassExample(context: Context) : ContextListener(context) {
         }
 
         onRelease {
+            duck.release()
             modelBatch.release()
             spriteBatch.release()
             environment.release()
