@@ -574,6 +574,47 @@ object Standard {
                 }
             }
 
+        val IBLStruct =
+            shaderStruct("IBL") {
+                mapOf(
+                    "intensity" to ShaderStructParameterType.WgslType.f32,
+                    "max_lod" to ShaderStructParameterType.WgslType.f32,
+                    "padding" to ShaderStructParameterType.WgslType.vec2f,
+                )
+            }
+
+        fun IBL(group: Int, binding: Int) =
+            shaderBlock("IBL") {
+                include(IBLStruct)
+                bindGroup(group, BindingUsage.IBL) {
+                    bindTextureCube(binding, "ibl_irradiance")
+                    bindTextureCube(binding + 1, "ibl_prefiltered")
+                    bindTexture2d(binding + 2, "ibl_brdf")
+                    bindSampler(binding + 3, "ibl_sampler")
+                    bind(binding + 4, "ibl", IBLStruct, ShaderBindingType.Uniform)
+                }
+                body {
+                    """
+                    fn FresnelSchlickRoughness(cosTheta : f32, F0 : vec3f, roughness : f32) -> vec3f {
+                      return F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0);
+                    }
+
+                    fn iblAmbient(surface : SurfaceInfo) -> vec3f {
+                      let n_dot_v = max(dot(surface.normal, surface.v), 0.0001);
+                      let r = reflect(-surface.v, surface.normal);
+                      let F = FresnelSchlickRoughness(n_dot_v, surface.f0, surface.roughness);
+                      let kD = (vec3(1.0) - F) * (1.0 - surface.metallic);
+                      let irradiance = textureSampleLevel(ibl_irradiance, ibl_sampler, surface.normal, 0.0).rgb;
+                      let prefiltered = textureSampleLevel(ibl_prefiltered, ibl_sampler, r, surface.roughness * ibl.max_lod).rgb;
+                      let brdf = textureSampleLevel(ibl_brdf, ibl_sampler, vec2(n_dot_v, surface.roughness), 0.0).rg;
+                      let specular = prefiltered * (F * brdf.x + brdf.y);
+                      return (kD * irradiance * surface.albedo + specular) * surface.ao * ibl.intensity;
+                    }
+                    """
+                        .trimIndent()
+                }
+            }
+
         fun FragmentOutputStruct(bloomEnabled: Boolean = false) =
             shaderStruct("FragmentOutput") {
                 mutableMapOf(
@@ -600,6 +641,7 @@ object Standard {
             shadowsEnabled: Boolean = false,
             fullyRough: Boolean = false,
             gammaCorrect: Boolean = true,
+            iblEnabled: Boolean = false,
         ) = shader {
             val input = VertexOutputStruct(layout)
             val output = FragmentOutputStruct(bloomEnabled)
@@ -615,6 +657,9 @@ object Standard {
             }
             include(Lighting(fullyRough))
             include(SurfaceInfo(layout))
+            if (iblEnabled) {
+                include(IBL(0, if (shadowsEnabled) 6 else 3))
+            }
             include(CommonShaderBlocks.ColorConversionFunctions())
 
             fragment {
@@ -664,7 +709,7 @@ object Standard {
                         }
     
                         %ambient%
-                        let ambient = global_lights.ambient * surface.albedo * surface.ao;
+                        let ambient = global_lights.ambient * surface.albedo * surface.ao${if (iblEnabled) " + iblAmbient(surface)" else ""};
                         %color%
                         let color = ${if (gammaCorrect) "linear_to_sRGB(Lo + ambient + surface.emissive)" else "Lo + ambient + surface.emissive"};
     

@@ -37,6 +37,8 @@ data class ShaderBinding(
             ShaderBindingType.Plain ->
                 when (paramType) {
                     is ShaderBindingParameterType.WgslType.texture_f32 -> TextureBindingLayout()
+                    is ShaderBindingParameterType.WgslType.texture_cube_f32 ->
+                        TextureBindingLayout(viewDimension = TextureViewDimension.CUBE)
                     is ShaderBindingParameterType.WgslType.sampler -> SamplerBindingLayout()
                     is ShaderBindingParameterType.WgslType.texture_depth_2d ->
                         TextureBindingLayout(sampleType = TextureSampleType.DEPTH)

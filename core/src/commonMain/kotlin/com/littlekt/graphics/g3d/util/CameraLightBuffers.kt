@@ -2,6 +2,7 @@ package com.littlekt.graphics.g3d.util
 
 import com.littlekt.file.FloatBuffer
 import com.littlekt.graphics.Camera
+import com.littlekt.graphics.g3d.ibl.EnvironmentMap
 import com.littlekt.graphics.g3d.shadow.DirectionalShadowMap
 import com.littlekt.graphics.shader.Shader
 import com.littlekt.graphics.util.BindingUsage
@@ -19,6 +20,7 @@ class CameraLightBuffers(
     val lightBuffer: LightBuffer,
     val clusterBuffers: ClusterBuffers = ClusterBuffers(device),
     val shadowMap: DirectionalShadowMap? = null,
+    val environmentMap: EnvironmentMap? = null,
 ) : CameraBuffersViaCamera {
     private val camFloatBuffer = FloatBuffer(BUFFER_SIZE) // 56 floats required
 
@@ -41,15 +43,12 @@ class CameraLightBuffers(
     /** The camera uniform bind group. */
     private var bindGroups = mutableMapOf<Int, BindGroup>()
 
-    override val bindingUsage: BindingUsage =
-        if (shadowMap != null) {
-            BindingUsage.CAMERA or
-                BindingUsage.LIGHT or
-                BindingUsage.CLUSTER_LIGHTS or
-                BindingUsage.SHADOW
-        } else {
-            BindingUsage.CAMERA or BindingUsage.LIGHT or BindingUsage.CLUSTER_LIGHTS
-        }
+    override val bindingUsage: BindingUsage = run {
+        var usage = BindingUsage.CAMERA or BindingUsage.LIGHT or BindingUsage.CLUSTER_LIGHTS
+        if (shadowMap != null) usage = usage or BindingUsage.SHADOW
+        if (environmentMap != null) usage = usage or BindingUsage.IBL
+        usage
+    }
 
     override fun getOrCreateBindGroup(shader: Shader): BindGroup {
         return bindGroups[shader.id]
@@ -58,25 +57,25 @@ class CameraLightBuffers(
     }
 
     private fun createBindGroup(shader: Shader): BindGroup? {
-        val shadowMap = shadowMap
-        return if (shadowMap != null) {
-            shader.createBindGroup(
-                bindingUsage,
-                cameraUniformBufferBinding,
-                lightBuffer.bufferBinding,
-                clusterBuffers.clusterLightsStorageBufferBinding,
-                shadowMap.view,
-                shadowMap.sampler,
-                shadowMap.uniformBufferBinding,
-            )
-        } else {
-            shader.createBindGroup(
-                bindingUsage,
+        val resources =
+            mutableListOf<IntoBindingResource>(
                 cameraUniformBufferBinding,
                 lightBuffer.bufferBinding,
                 clusterBuffers.clusterLightsStorageBufferBinding,
             )
+        shadowMap?.let {
+            resources += it.view
+            resources += it.sampler
+            resources += it.uniformBufferBinding
         }
+        environmentMap?.let {
+            resources += it.irradianceView
+            resources += it.prefilteredView
+            resources += it.brdfView
+            resources += it.sampler
+            resources += it.uniformBufferBinding
+        }
+        return shader.createBindGroup(bindingUsage, *resources.toTypedArray())
     }
 
     override fun update(camera: Camera, dt: Duration, dynamicOffset: Long) {

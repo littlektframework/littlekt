@@ -1,5 +1,6 @@
 package com.littlekt.graphics.g3d
 
+import com.littlekt.graphics.g3d.ibl.EnvironmentMap
 import com.littlekt.graphics.g3d.shadow.DirectionalShadowMap
 import com.littlekt.graphics.g3d.util.CameraComplexBuffers
 import com.littlekt.graphics.g3d.util.CameraLightBuffers
@@ -11,9 +12,15 @@ fun PBREnvironment(
     device: Device,
     maxLightCount: Int = 1024,
     shadowMap: DirectionalShadowMap? = null,
+    environmentMap: EnvironmentMap? = null,
 ): PBREnvironment =
     PBREnvironment(
-        CameraLightBuffers(device, LightBuffer(device, maxLightCount), shadowMap = shadowMap)
+        CameraLightBuffers(
+            device,
+            LightBuffer(device, maxLightCount),
+            shadowMap = shadowMap,
+            environmentMap = environmentMap,
+        )
     )
 
 /** @return a new [Environment] that uses an underlying [CameraComplexBuffers]. */

@@ -5,6 +5,8 @@ import com.littlekt.audio.AudioStream
 import com.littlekt.file.ByteBuffer
 import com.littlekt.file.UnsupportedFileTypeException
 import com.littlekt.file.atlas.AtlasInfo
+import com.littlekt.file.hdr.HdrImage
+import com.littlekt.file.hdr.decodeRadianceHdr
 import com.littlekt.file.atlas.AtlasPage
 import com.littlekt.file.compression.CompressionGZIP
 import com.littlekt.file.gltf.GltfData
@@ -33,6 +35,9 @@ import com.littlekt.util.internal.unquote
 import com.littlekt.util.toString
 import kotlin.math.max
 import kotlin.time.measureTimedValue
+
+/** Loads a Radiance `.hdr` file into an [HdrImage]. */
+suspend fun VfsFile.readHdrImage(): HdrImage = decodeRadianceHdr(readBytes())
 
 /**
  * Loads a [TextureAtlas] from the given path. Currently, supports only JSON atlas files.

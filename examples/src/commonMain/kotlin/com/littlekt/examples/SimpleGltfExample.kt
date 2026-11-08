@@ -43,12 +43,12 @@ class SimpleGltfExample(context: Context) : ContextListener(context) {
             PBREnvironment(device).apply {
                 setDirectionalLight(
                     DirectionalLight(
-                        color = Color(0.2f, 0.2f, 0.2f),
+                        color = Color.WHITE,
                         direction = Vec3f(0.3f, 0.5f, 0.8f),
-                        intensity = 0.1f,
+                        intensity = 0.6f,
                     )
                 )
-                setAmbientLight(AmbientLight(color = Color(0.002f, 0.002f, 0.002f)))
+                setAmbientLight(AmbientLight(color = Color(0.02f, 0.02f, 0.02f)))
 
                 addPointLight(PointLight(Vec3f(0f, 1f, 0f), color = Color.GREEN, range = 2f))
                 addPointLight(PointLight(Vec3f(0f, 1f, 1f), color = Color.RED, range = 2f))
@@ -126,7 +126,7 @@ class SimpleGltfExample(context: Context) : ContextListener(context) {
             resourcesVfs["checkered_normal.png"].readTexture(
                 options =
                     TextureOptions(
-                        format = preferredFormat,
+                        format = preferredFormat.toNonSRGB(),
                         samplerDescriptor =
                             SamplerDescriptor(
                                 addressModeU = AddressMode.REPEAT,

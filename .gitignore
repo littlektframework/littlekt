@@ -8,6 +8,7 @@ captures
 .cxx
 local.properties
 xcuserdata
+.notes
 
 kotlin-js-store/
 .httpCache

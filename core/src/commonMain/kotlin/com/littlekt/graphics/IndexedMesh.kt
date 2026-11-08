@@ -52,6 +52,11 @@ class IndexedMesh<T : IndexedMeshGeometry>(device: Device, geometry: T) :
                             geometry.vertices,
                             BufferUsage.VERTEX or BufferUsage.COPY_DST
                         )
+                    device.queue.writeBuffer(
+                        vbo,
+                        geometry.vertices,
+                        size = min(vbo.size, geometry.numVertices * geometry.vertexStride.toLong()),
+                    )
                     // need to remake ibo because indices won't correspond correctly to the new
                     // vertices
                     destroyAndRecreateIbo()
@@ -97,6 +102,11 @@ class IndexedMesh<T : IndexedMeshGeometry>(device: Device, geometry: T) :
                 geometry.indices,
                 BufferUsage.INDEX or BufferUsage.COPY_DST
             )
+        device.queue.writeBuffer(
+            ibo,
+            geometry.indices,
+            size = min(ibo.size / Short.SIZE_BYTES, geometry.indices.limit.toLong()),
+        )
     }
 
     override fun release() {

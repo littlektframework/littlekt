@@ -54,6 +54,14 @@ open class ShaderBindGroupBuilder(val group: Int, val usage: BindingUsage) {
             ShaderBindingType.Plain,
         )
 
+    fun bindTextureCube(bindingIdx: Int, varName: String) =
+        bind(
+            bindingIdx,
+            varName,
+            ShaderBindingParameterType.WgslType.texture_cube_f32,
+            ShaderBindingType.Plain,
+        )
+
     fun bindSampler(bindingIdx: Int, varName: String) =
         bind(
             bindingIdx,

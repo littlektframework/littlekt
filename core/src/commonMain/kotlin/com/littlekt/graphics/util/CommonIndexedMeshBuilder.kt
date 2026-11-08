@@ -4,6 +4,8 @@ import com.littlekt.graphics.Color
 import com.littlekt.graphics.VertexAttrUsage
 import com.littlekt.math.*
 import com.littlekt.math.geom.Angle
+import kotlin.math.cos
+import kotlin.math.sin
 
 /**
  * A helper class to build common geometry within a [CommonIndexedMeshGeometry].
@@ -403,6 +405,46 @@ class CommonIndexedMeshBuilder(val geometry: CommonIndexedMeshGeometry) {
         }
     }
 
+    /** Generates a UV sphere geometry from rings & sectors. */
+    inline fun uvSphere(block: SphereProps.() -> Unit = {}) {
+        val props = SphereProps()
+        props.block()
+        uvSphere(props)
+    }
+
+    /** Generates a UV sphere geometry from rings & sectors. */
+    fun uvSphere(props: SphereProps) {
+        val first = geometry.numVertices
+        for (ring in 0..props.rings) {
+            val v = ring / props.rings.toFloat()
+            val sinTheta = sin(v * PI_F)
+            val cosTheta = cos(v * PI_F)
+            for (sector in 0..props.sectors) {
+                val u = sector / props.sectors.toFloat()
+                val x = cos(u * 2f * PI_F) * sinTheta
+                val z = sin(u * 2f * PI_F) * sinTheta
+                vertex {
+                    position.set(
+                        props.center.x + x * props.radius,
+                        props.center.y + cosTheta * props.radius,
+                        props.center.z + z * props.radius,
+                    )
+                    normal.set(x, cosTheta, z)
+                    uv.set(u, v)
+                }
+            }
+        }
+        val stride = props.sectors + 1
+        for (ring in 0 until props.rings) {
+            for (sector in 0 until props.sectors) {
+                val i0 = first + ring * stride + sector
+                val i1 = i0 + stride
+                if (ring != 0) addTriIndices(i0, i0 + 1, i1 + 1)
+                if (ring != props.rings - 1) addTriIndices(i0, i1 + 1, i1)
+            }
+        }
+    }
+
     class CubeProps {
         val origin = MutableVec3f()
         val size = MutableVec3f(1f, 1f, 1f)
@@ -470,6 +512,13 @@ class CommonIndexedMeshBuilder(val geometry: CommonIndexedMeshGeometry) {
                 bottomColor = Color.GREEN
             }
         }
+    }
+
+    class SphereProps {
+        val center = MutableVec3f()
+        var radius = 1f
+        var rings = 16
+        var sectors = 32
     }
 
     class GridProps {

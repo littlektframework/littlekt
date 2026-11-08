@@ -61,6 +61,11 @@ open class Mesh<T : MeshGeometry>(val device: Device, val geometry: T) : Releasa
                             geometry.vertices,
                             BufferUsage.VERTEX or BufferUsage.COPY_DST
                         )
+                    device.queue.writeBuffer(
+                        vbo,
+                        geometry.vertices,
+                        size = min(vbo.size, geometry.numVertices * geometry.vertexStride.toLong()),
+                    )
                 } else {
                     val size =
                         min(

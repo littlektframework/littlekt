@@ -35,11 +35,14 @@
 
 - Add cascaded directional shadows with `DirectionalShadowMap` & `ShadowMaterialPipelineProvider`.
 - Add HDR rendering & tonemapping with `Tonemapper`.
+- Add image based lighting & skyboxes with `EnvironmentMap` & `Skybox`.
+- Add `VfsFile.readHdrImage()` & `decodeRadianceHdr` for loading Radiance `.hdr` files.
+- Add `CommonIndexedMeshBuilder.uvSphere`.
 - Add back to front sorting of transparent instances in `ModelBatch`.
 - Add MSAA with `ModelBatch.sampleCount`.
 - Add support for multiple `ModelBatch.flush()` calls per frame with different cameras & render passes.
 - Add `ModelBatch.defaultPipelineProvider`.
-- Add depth texture & comparison sampler bindings to the shader builder.
+- Add depth texture, cube texture & comparison sampler bindings to the shader builder.
 - Add `ShaderCodeBuilder.visibility`.
 - Add fragment `main` overload with no output.
 - Add `skinGroup` param to `Standard.SkinnedVertexShader`.
@@ -49,7 +52,8 @@
 - Add `EngineStats.frame`.
 - Add `IntMap`.
 - Add `MaterialPipeline.transparent`.
-- Add `ShadowsExample`, `MultiPassExample` & `TransparencyExample`.
+- Add `ShadowsExample`, `MultiPassExample`, `TransparencyExample` & `IBLExample`.
+- Fix `Mesh` & `IndexedMesh` GPU buffers being empty after the geometry grows past its initial size.
 - Fix `ModelBatch` binding the primitive's material bind group instead of the override material's.
 - Fix `ModelBatch.preparePipeline()` not being thread safe.
 - Fix material pipeline caching ignoring the color & depth formats.
