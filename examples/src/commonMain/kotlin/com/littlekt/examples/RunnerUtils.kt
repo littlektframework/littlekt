@@ -31,5 +31,6 @@ val availableExamples =
         "-modelInstancing" to Pair("Model Instancing", ::ModelInstancingExample),
         "-pbr" to Pair("PBR", ::PBRExample),
         "-multiPass" to Pair("Multi Pass", ::MultiPassExample),
+        "-shadows" to Pair("Shadows", ::ShadowsExample),
         "-input" to Pair("Input", ::InputExample)
     )

@@ -2,6 +2,7 @@ package com.littlekt.graphics.g3d.util
 
 import com.littlekt.graphics.VertexBufferLayout
 import com.littlekt.graphics.g3d.Environment
+import com.littlekt.graphics.g3d.PBREnvironment
 import com.littlekt.graphics.g3d.material.PBRMaterial
 import com.littlekt.graphics.g3d.shader.blocks.Standard
 import com.littlekt.graphics.shader.Shader
@@ -33,7 +34,7 @@ class PBRMaterialPipelineProvider : BaseMaterialPipelineProvider<PBRMaterial>() 
             Standard.PBR.FragmentShader(
                 layout.attributes,
                 false, // TODO handle bloom
-                false, // todo we don't have shadows yet: material.castShadows,
+                (environment as? PBREnvironment)?.shadowMap != null,
                 material.isFullyRough,
                 gammaCorrect = !colorFormat.srgb,
             )

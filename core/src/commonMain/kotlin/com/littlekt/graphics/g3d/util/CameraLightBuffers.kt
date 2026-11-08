@@ -2,6 +2,7 @@ package com.littlekt.graphics.g3d.util
 
 import com.littlekt.file.FloatBuffer
 import com.littlekt.graphics.Camera
+import com.littlekt.graphics.g3d.shadow.DirectionalShadowMap
 import com.littlekt.graphics.shader.Shader
 import com.littlekt.graphics.util.BindingUsage
 import com.littlekt.graphics.util.CameraBuffersViaCamera
@@ -17,6 +18,7 @@ class CameraLightBuffers(
     val device: Device,
     val lightBuffer: LightBuffer,
     val clusterBuffers: ClusterBuffers = ClusterBuffers(device),
+    val shadowMap: DirectionalShadowMap? = null,
 ) : CameraBuffersViaCamera {
     private val camFloatBuffer = FloatBuffer(BUFFER_SIZE) // 56 floats required
 
@@ -40,19 +42,41 @@ class CameraLightBuffers(
     private var bindGroups = mutableMapOf<Int, BindGroup>()
 
     override val bindingUsage: BindingUsage =
-        BindingUsage.CAMERA or BindingUsage.LIGHT or BindingUsage.CLUSTER_LIGHTS
+        if (shadowMap != null) {
+            BindingUsage.CAMERA or
+                BindingUsage.LIGHT or
+                BindingUsage.CLUSTER_LIGHTS or
+                BindingUsage.SHADOW
+        } else {
+            BindingUsage.CAMERA or BindingUsage.LIGHT or BindingUsage.CLUSTER_LIGHTS
+        }
 
     override fun getOrCreateBindGroup(shader: Shader): BindGroup {
         return bindGroups[shader.id]
-            ?: shader
-                .createBindGroup(
-                    bindingUsage,
-                    cameraUniformBufferBinding,
-                    lightBuffer.bufferBinding,
-                    clusterBuffers.clusterLightsStorageBufferBinding,
-                )
-                ?.also { bindGroups[shader.id] = it }
+            ?: createBindGroup(shader)?.also { bindGroups[shader.id] = it }
             ?: error("Unable to create bind group for shader: ${shader.id}!")
+    }
+
+    private fun createBindGroup(shader: Shader): BindGroup? {
+        val shadowMap = shadowMap
+        return if (shadowMap != null) {
+            shader.createBindGroup(
+                bindingUsage,
+                cameraUniformBufferBinding,
+                lightBuffer.bufferBinding,
+                clusterBuffers.clusterLightsStorageBufferBinding,
+                shadowMap.view,
+                shadowMap.sampler,
+                shadowMap.uniformBufferBinding,
+            )
+        } else {
+            shader.createBindGroup(
+                bindingUsage,
+                cameraUniformBufferBinding,
+                lightBuffer.bufferBinding,
+                clusterBuffers.clusterLightsStorageBufferBinding,
+            )
+        }
     }
 
     override fun update(camera: Camera, dt: Duration, dynamicOffset: Long) {

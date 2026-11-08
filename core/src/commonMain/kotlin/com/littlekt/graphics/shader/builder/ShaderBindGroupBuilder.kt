@@ -62,6 +62,22 @@ open class ShaderBindGroupBuilder(val group: Int, val usage: BindingUsage) {
             ShaderBindingType.Plain,
         )
 
+    fun bindTextureDepth2d(bindingIdx: Int, varName: String) =
+        bind(
+            bindingIdx,
+            varName,
+            ShaderBindingParameterType.WgslType.texture_depth_2d,
+            ShaderBindingType.Plain,
+        )
+
+    fun bindSamplerComparison(bindingIdx: Int, varName: String) =
+        bind(
+            bindingIdx,
+            varName,
+            ShaderBindingParameterType.WgslType.sampler_comparison,
+            ShaderBindingType.Plain,
+        )
+
     fun bindArray(
         bindingIdx: Int,
         varName: String,

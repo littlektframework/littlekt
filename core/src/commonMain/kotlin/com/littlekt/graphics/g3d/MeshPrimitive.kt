@@ -61,12 +61,8 @@ open class MeshPrimitive(
     internal var drawnFlush = -1L
     internal var drawnPipeline: MaterialPipeline? = null
 
-    internal var cachedPipeline: MaterialPipeline? = null
-    internal var cachedPipelineMaterial: Material? = null
-    internal var cachedPipelineEnvironment: Environment? = null
-    internal var cachedPipelineMaterialKey = 0
-    internal var cachedPipelineBatch: ModelBatch? = null
-    internal var cachedPipelineVersion = -1
+    internal val pipelineCache = Array(PIPELINE_CACHE_SIZE) { PipelineCacheEntry() }
+    internal var pipelineCacheNext = 0
 
     private val instances = mutableListOf<MeshPrimitiveInstance>()
     private var instanceData = FloatBuffer((instanceSize + 1) * TRANSFORM_COMPONENTS_PER_INSTANCE)
@@ -234,9 +230,19 @@ open class MeshPrimitive(
 
     companion object {
         private const val TRANSFORM_COMPONENTS_PER_INSTANCE = 20
+        private const val PIPELINE_CACHE_SIZE = 4
 
         /** The number of floats each instance uses. */
         const val INSTANCE_DATA_SIZE = TRANSFORM_COMPONENTS_PER_INSTANCE
         private val logger: Logger = Logger<MeshPrimitive>()
     }
+}
+
+internal class PipelineCacheEntry {
+    var pipeline: MaterialPipeline? = null
+    var material: Material? = null
+    var environment: Environment? = null
+    var batch: ModelBatch? = null
+    var version = -1
+    var materialKey = 0
 }

@@ -47,8 +47,21 @@
     - Migration: add the `sampleCount: Int` param to any custom providers and pass it to
       `MultisampleState(count = sampleCount)` when creating the render pipeline.
 
+- BREAKING: `ModelBatch` now skips a primitive when its `MaterialPipelineProvider` returns `null` instead of throwing.
+  It still throws when no provider is found for the material type.
+
 ### Changes
 
+- Add directional light shadows:
+    - `DirectionalShadowMap` renders shadow casters from the light into a depth texture. Pass it to
+      `PBREnvironment(device, shadowMap = shadowMap)` and call `shadowMap.update(lightDirection)` each frame.
+    - `ShadowMaterialPipelineProvider` creates depth only pipelines for shadow casters (static & skinned) and skips
+      materials with `castShadows = false`.
+    - The PBR shader samples the shadow map with 3x3 PCF, a depth bias & a normal offset.
+    - See `ShadowsExample`.
+- Add `ModelBatch.defaultPipelineProvider`, used for any `Material` type without its own provider.
+- Add `bindTextureDepth2d` & `bindSamplerComparison` to the shader builder and `BindingUsage.SHADOW`.
+- Add `skinGroup` param to `Standard.SkinnedVertexShader`.
 - `ModelBatch.flush()` may now be called multiple times per frame with different cameras & render passes (shadows,
   split screen, etc.) without overwriting each others data.
 - Fix `ModelBatch` binding the primitive's own material bind group instead of the override material's.

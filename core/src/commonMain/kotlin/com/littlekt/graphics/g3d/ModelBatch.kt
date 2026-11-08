@@ -90,6 +90,17 @@ class ModelBatch(val device: Device) : Releasable {
             pipelineVersion++
         }
 
+    /**
+     * The [MaterialPipelineProvider] used for any [Material] type that doesn't have its own provider
+     * added via [addPipelineProvider].
+     */
+    var defaultPipelineProvider: MaterialPipelineProvider? = null
+        set(value) {
+            if (field === value) return
+            field = value
+            pipelineVersion++
+        }
+
     /** Add a new [MaterialPipelineProvider]. */
     inline fun <reified T : Material> addPipelineProvider(provider: MaterialPipelineProvider) =
         addPipelineProvider(T::class, provider)
@@ -141,8 +152,8 @@ class ModelBatch(val device: Device) : Releasable {
      */
     fun preparePipeline(meshPrimitive: MeshPrimitive, environment: Environment) {
         val material = meshPrimitive.material
-        val pipeline = lookupPipeline(meshPrimitive, material, environment)
-        if (!material.ready) return
+        val pipeline = lookupPipeline(meshPrimitive, material, environment) ?: return
+        if (!material.ready || pipeline.materialGroupIndex < 0) return
         val shouldCreate = synchronized(lock) { preparedMaterialIds.add(material.id) }
         if (!shouldCreate) return
         val bindGroup = material.createBindGroup(pipeline.shader) ?: return
@@ -340,6 +351,7 @@ class ModelBatch(val device: Device) : Releasable {
     override fun release() {
         addPendingBindGroups()
         pipelineProviders.values.forEach { it.release() }
+        defaultPipelineProvider?.release()
         bindGroupByMaterialId.forEachValue { it.release() }
         bindGroupByMaterialId.clear()
         bindGroupBySkinId.forEachValue { it.release() }
@@ -351,12 +363,14 @@ class ModelBatch(val device: Device) : Releasable {
         if (hasPendingBindGroups.value) {
             addPendingBindGroups()
         }
-        val pipeline = getPipeline(primitive, material, environment)
+        val pipeline = getPipeline(primitive, material, environment) ?: return
         if (!material.ready) return
-        getOrCreateMaterialBindGroup(material, pipeline)
+        if (pipeline.materialGroupIndex >= 0) {
+            getOrCreateMaterialBindGroup(material, pipeline)
+        }
 
         val skin = primitive.skin
-        if (material.skinned && skin != null) {
+        if (material.skinned && skin != null && pipeline.skinGroupIndex >= 0) {
             bindGroupBySkinId.getOrPut(skin.id) { skin.createBindGroup(pipeline.shader) }
         }
 
@@ -377,25 +391,30 @@ class ModelBatch(val device: Device) : Releasable {
         primitive: MeshPrimitive,
         material: Material,
         environment: Environment,
-    ): MaterialPipeline {
-        val cached = primitive.cachedPipeline
-        if (
-            cached != null &&
-                primitive.cachedPipelineMaterial === material &&
-                primitive.cachedPipelineEnvironment === environment &&
-                primitive.cachedPipelineBatch === this &&
-                primitive.cachedPipelineVersion == pipelineVersion &&
-                primitive.cachedPipelineMaterialKey == material.key
-        ) {
-            return cached
+    ): MaterialPipeline? {
+        val cache = primitive.pipelineCache
+        val materialKey = material.key
+        for (i in cache.indices) {
+            val entry = cache[i]
+            if (
+                entry.batch === this &&
+                    entry.material === material &&
+                    entry.environment === environment &&
+                    entry.version == pipelineVersion &&
+                    entry.materialKey == materialKey
+            ) {
+                return entry.pipeline
+            }
         }
         val pipeline = lookupPipeline(primitive, material, environment)
-        primitive.cachedPipeline = pipeline
-        primitive.cachedPipelineMaterial = material
-        primitive.cachedPipelineEnvironment = environment
-        primitive.cachedPipelineBatch = this
-        primitive.cachedPipelineVersion = pipelineVersion
-        primitive.cachedPipelineMaterialKey = material.key
+        val entry = cache[primitive.pipelineCacheNext]
+        primitive.pipelineCacheNext = (primitive.pipelineCacheNext + 1) % cache.size
+        entry.pipeline = pipeline
+        entry.material = material
+        entry.environment = environment
+        entry.batch = this
+        entry.version = pipelineVersion
+        entry.materialKey = materialKey
         return pipeline
     }
 
@@ -403,9 +422,13 @@ class ModelBatch(val device: Device) : Releasable {
         primitive: MeshPrimitive,
         material: Material,
         environment: Environment,
-    ): MaterialPipeline =
+    ): MaterialPipeline? =
         synchronized(lock) {
-            pipelineProviders[material::class]?.getMaterialPipeline(
+            val provider =
+                pipelineProviders[material::class]
+                    ?: defaultPipelineProvider
+                    ?: error("No MaterialPipelineProvider found for ${material::class}!")
+            provider.getMaterialPipeline(
                 device,
                 material,
                 environment,
@@ -416,7 +439,7 @@ class ModelBatch(val device: Device) : Releasable {
                 depthFormat,
                 sampleCount,
             )
-        } ?: error("Unable to find pipeline for given instance!")
+        }
 
     private fun addPendingBindGroups() {
         synchronized(lock) {

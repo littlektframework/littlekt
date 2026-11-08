@@ -38,6 +38,10 @@ data class ShaderBinding(
                 when (paramType) {
                     is ShaderBindingParameterType.WgslType.texture_f32 -> TextureBindingLayout()
                     is ShaderBindingParameterType.WgslType.sampler -> SamplerBindingLayout()
+                    is ShaderBindingParameterType.WgslType.texture_depth_2d ->
+                        TextureBindingLayout(sampleType = TextureSampleType.DEPTH)
+                    is ShaderBindingParameterType.WgslType.sampler_comparison ->
+                        SamplerBindingLayout(SamplerBindingType.COMPARISON)
                     else -> error("Unable to determine binding layout for ${paramType.name}")
                 }
             is ShaderBindingType.Storage -> {

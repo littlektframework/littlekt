@@ -223,14 +223,14 @@ object Standard {
         }
     }
 
-    fun SkinnedVertexShader(layout: List<VertexAttribute>) = shader {
+    fun SkinnedVertexShader(layout: List<VertexAttribute>, skinGroup: Int = 3) = shader {
         val input = VertexInputStruct(layout)
         val output = VertexOutputStruct(layout)
         include(input)
         include(output)
         include(Camera(0, 0))
         include(CommonShaderBlocks.Model(1, 0))
-        include(CommonShaderBlocks.Skin(3, 0))
+        include(CommonShaderBlocks.Skin(skinGroup, 0))
 
         vertex {
             main(input = input, output = output) {
@@ -507,6 +507,51 @@ object Standard {
                 }
             }
 
+        val ShadowStruct =
+            shaderStruct("Shadow") {
+                mapOf(
+                    "view_proj" to ShaderStructParameterType.WgslType.mat4x4f,
+                    "params" to ShaderStructParameterType.WgslType.vec4f,
+                )
+            }
+
+        fun Shadows(group: Int, binding: Int) =
+            shaderBlock("Shadows") {
+                include(ShadowStruct)
+                bindGroup(group, BindingUsage.SHADOW) {
+                    bindTextureDepth2d(binding, "shadow_texture")
+                    bindSamplerComparison(binding + 1, "shadow_sampler")
+                    bind(binding + 2, "shadow", ShadowStruct, ShaderBindingType.Uniform)
+                }
+                body {
+                    """
+                    fn dirLightVisibility(world_pos : vec3f, normal : vec3f) -> f32 {
+                      let light_pos = shadow.view_proj * vec4(world_pos + normal * shadow.params.y, 1.0);
+                      let ndc = light_pos.xyz / light_pos.w;
+                      let uv = ndc.xy * vec2(0.5, -0.5) + vec2(0.5);
+                      if (any(uv < vec2(0.0)) || any(uv > vec2(1.0)) || ndc.z > 1.0) {
+                        return 1.0;
+                      }
+                      let depth = ndc.z - shadow.params.x;
+                      let texel = 1.0 / vec2f(textureDimensions(shadow_texture));
+                      var visibility = 0.0;
+                      for (var y = -1; y <= 1; y++) {
+                        for (var x = -1; x <= 1; x++) {
+                          visibility += textureSampleCompareLevel(
+                            shadow_texture,
+                            shadow_sampler,
+                            uv + vec2(f32(x), f32(y)) * texel,
+                            depth,
+                          );
+                        }
+                      }
+                      return visibility / 9.0;
+                    }
+                    """
+                        .trimIndent()
+                }
+            }
+
         fun FragmentOutputStruct(bloomEnabled: Boolean = false) =
             shaderStruct("FragmentOutput") {
                 mutableMapOf(
@@ -543,6 +588,9 @@ object Standard {
             include(ClusterLights(0, 2))
             include(Material(2))
             include(TileFunctions())
+            if (shadowsEnabled) {
+                include(Shadows(0, 3))
+            }
             include(Lighting(fullyRough))
             include(SurfaceInfo(layout))
             include(CommonShaderBlocks.ColorConversionFunctions())
@@ -565,7 +613,7 @@ object Standard {
                           light.color = global_lights.dir_color;
                           light.intensity = global_lights.dir_intensity;
     
-                          ${if (shadowsEnabled) "let lightVis = dirLightVisibility(input.world_pos);" else "let lightVis = 1.0;"}
+                          ${if (shadowsEnabled) "let lightVis = dirLightVisibility(input.world_pos, surface.normal);" else "let lightVis = 1.0;"}
     
                           // calculate per-light radiance and add to outgoing radiance Lo
                           Lo = Lo + lightRadiance(light, surface) * lightVis;
@@ -587,7 +635,7 @@ object Standard {
                           light.color = global_lights.lights[i].color;
                           light.intensity = global_lights.lights[i].intensity;
     
-                          ${if (shadowsEnabled) "let lightVis = pointLightVisibility(i, input.world_pos, light.pointToLight);" else "let lightVis = 1.0;"}
+                          let lightVis = 1.0;
     
                           // calculate per-light radiance and add to outgoing radiance Lo
                           Lo = Lo + lightRadiance(light, surface) * lightVis;

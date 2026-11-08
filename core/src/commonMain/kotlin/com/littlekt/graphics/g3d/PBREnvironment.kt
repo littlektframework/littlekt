@@ -5,6 +5,7 @@ import com.littlekt.graphics.g3d.light.AmbientLight
 import com.littlekt.graphics.g3d.light.DirectionalLight
 import com.littlekt.graphics.g3d.light.PointLight
 import com.littlekt.graphics.g3d.shader.blocks.Standard
+import com.littlekt.graphics.g3d.shadow.DirectionalShadowMap
 import com.littlekt.graphics.g3d.util.CameraLightBuffers
 import com.littlekt.graphics.shader.Shader
 import com.littlekt.graphics.util.BindingUsage
@@ -47,8 +48,12 @@ class PBREnvironment(override val buffers: CameraLightBuffers) : Environment(buf
 
     private val clusterViews = mutableListOf<ClusterView>()
 
+    /** The [DirectionalShadowMap] used for the directional light, if any. */
+    val shadowMap: DirectionalShadowMap?
+        get() = buffers.shadowMap
+
     override fun createViewBuffers(): CameraBuffersViaCamera =
-        CameraLightBuffers(device, buffers.lightBuffer)
+        CameraLightBuffers(device, buffers.lightBuffer, shadowMap = buffers.shadowMap)
 
     override fun updateView(
         index: Int,
