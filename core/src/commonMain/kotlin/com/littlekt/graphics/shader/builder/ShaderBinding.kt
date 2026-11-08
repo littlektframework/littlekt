@@ -40,6 +40,11 @@ data class ShaderBinding(
                     is ShaderBindingParameterType.WgslType.sampler -> SamplerBindingLayout()
                     is ShaderBindingParameterType.WgslType.texture_depth_2d ->
                         TextureBindingLayout(sampleType = TextureSampleType.DEPTH)
+                    is ShaderBindingParameterType.WgslType.texture_depth_2d_array ->
+                        TextureBindingLayout(
+                            sampleType = TextureSampleType.DEPTH,
+                            viewDimension = TextureViewDimension.D2_ARRAY,
+                        )
                     is ShaderBindingParameterType.WgslType.sampler_comparison ->
                         SamplerBindingLayout(SamplerBindingType.COMPARISON)
                     else -> error("Unable to determine binding layout for ${paramType.name}")

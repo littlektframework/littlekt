@@ -236,6 +236,23 @@ abstract class Camera {
         viewProjection.transform(result.set(world.x, world.y, world.z, 1f))
 
     /**
+     * Converts the given normalized device coordinates into world coordinates. This is the inverse
+     * of [project]. The [ndc] depth is in WebGPU's `[0, 1]` range, where `0` is the near plane.
+     *
+     * @param result the output result vector of the calculation.
+     * @return `true` if able to unproject; `false` otherwise.
+     */
+    fun unproject(ndc: Vec3f, result: MutableVec3f): Boolean {
+        tempVec4.set(ndc.x, ndc.y, ndc.z, 1f)
+        invViewProjection.transform(tempVec4)
+        if (tempVec4.w.isFuzzyZero()) {
+            return false
+        }
+        result.set(tempVec4.x, tempVec4.y, tempVec4.z).scale(1f / tempVec4.w)
+        return true
+    }
+
+    /**
      * Convert the given [world] coordinates to screen coordinates.
      *
      * @return a newly created [MutableVec2f] that contains the converted screen coordinates.
@@ -500,7 +517,6 @@ abstract class Camera {
         }
         result.x = (1 + result.x) * 0.5f * viewportWidth + viewportX
         result.y = (1 + result.y) * 0.5f * viewportHeight + viewportY
-        result.z = (1 + result.z) * 0.5f
 
         return true
     }
@@ -779,17 +795,12 @@ abstract class Camera {
     ): Boolean {
         val x = screen.x - viewportX
         val y = (context.graphics.height - screen.y) - viewportY
+        val z = screen.z
 
-        tempVec4.set(
-            2f * x / viewportWidth - 1f,
-            2f * y / viewportHeight - 1f,
-            2f * screen.z - 1f,
-            1f,
+        return unproject(
+            tempVec3.set(2f * x / viewportWidth - 1f, 2f * y / viewportHeight - 1f, z),
+            result,
         )
-        invViewProjection.transform(tempVec4)
-        val s = 1f / tempVec4.w
-        result.set(tempVec4.x * s, tempVec4.y * s, tempVec4.z * s)
-        return true
     }
 
     /**

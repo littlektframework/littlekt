@@ -1,13 +1,17 @@
 package com.littlekt.graphics.g3d.shadow
 
+import com.littlekt.graphics.VertexAttrUsage
 import com.littlekt.graphics.VertexBufferLayout
 import com.littlekt.graphics.g3d.Environment
 import com.littlekt.graphics.g3d.material.Material
+import com.littlekt.graphics.g3d.material.PBRMaterial
+import com.littlekt.graphics.g3d.material.UnlitMaterial
 import com.littlekt.graphics.g3d.shader.blocks.Standard
 import com.littlekt.graphics.g3d.util.BaseMaterialPipelineProvider
 import com.littlekt.graphics.g3d.util.MaterialPipeline
 import com.littlekt.graphics.g3d.util.RenderOrder
 import com.littlekt.graphics.shader.Shader
+import com.littlekt.graphics.shader.builder.ShaderBlock
 import com.littlekt.graphics.shader.builder.shader
 import com.littlekt.graphics.webgpu.*
 import kotlin.reflect.KClass
@@ -64,10 +68,38 @@ class ShadowMaterialPipelineProvider(
         depthFormat: TextureFormat,
         sampleCount: Int,
     ): MaterialPipeline {
+        val materialBlock =
+            if (
+                material.alphaCutoff > 0f &&
+                    layout.attributes.any { it.usage == VertexAttrUsage.UV && it.index == 0 }
+            ) {
+                alphaTestMaterialBlock(material)
+            } else {
+                null
+            }
         val vertexShaderCode =
-            if (material.skinned) Standard.SkinnedVertexShader(layout.attributes, skinGroup = 2)
-            else Standard.VertexShader(layout.attributes)
-        val shader = Shader(device, shader { vertex(vertexShaderCode.vertex) })
+            if (material.skinned) {
+                Standard.SkinnedVertexShader(
+                    layout.attributes,
+                    skinGroup = if (materialBlock != null) 3 else 2,
+                )
+            } else {
+                Standard.VertexShader(layout.attributes)
+            }
+        val shaderCode =
+            if (materialBlock != null) {
+                val fragmentShaderCode = alphaTestFragmentShader(layout, materialBlock)
+                shader {
+                    vertex(vertexShaderCode.vertex)
+                    fragment(fragmentShaderCode.fragment)
+                }
+            } else {
+                shader {
+                    visibility = ShaderStage.VERTEX or ShaderStage.FRAGMENT
+                    vertex(vertexShaderCode.vertex)
+                }
+            }
+        val shader = Shader(device, shaderCode)
 
         val renderPipeline =
             device.createRenderPipeline(
@@ -79,7 +111,16 @@ class ShadowMaterialPipelineProvider(
                             entryPoint = shader.vertexEntryPoint,
                             layout.gpuVertexBufferLayout,
                         ),
-                    fragment = null,
+                    fragment =
+                        if (materialBlock != null) {
+                            FragmentState(
+                                module = shader.shaderModule,
+                                entryPoint = shader.fragmentEntryPoint,
+                                targets = emptyList(),
+                            )
+                        } else {
+                            null
+                        },
                     primitive =
                         PrimitiveState(
                             topology = topology,
@@ -110,4 +151,35 @@ class ShadowMaterialPipelineProvider(
             renderPipeline = renderPipeline,
         )
     }
+
+    /**
+     * @return the material [ShaderBlock] bound at group `2` used to alpha test the base color of the
+     *   given [material]; `null` if the material type isn't supported, in which case it is rendered
+     *   as opaque. The block must declare `material.base_color_factor`, `material.alpha_cutoff`,
+     *   `base_color_texture` & `base_color_sampler`.
+     */
+    protected open fun alphaTestMaterialBlock(material: Material): ShaderBlock? =
+        when (material) {
+            is PBRMaterial -> Standard.PBR.Material(2)
+            is UnlitMaterial -> Standard.Unlit.Material(2)
+            else -> null
+        }
+
+    private fun alphaTestFragmentShader(layout: VertexBufferLayout, materialBlock: ShaderBlock) =
+        shader {
+            val input = Standard.VertexOutputStruct(layout.attributes)
+            include(input)
+            include(materialBlock)
+            fragment {
+                main(input) {
+                    """
+                    let base_color = textureSample(base_color_texture, base_color_sampler, input.uv);
+                    if (base_color.a * material.base_color_factor.a * input.color.a < material.alpha_cutoff) {
+                      discard;
+                    }
+                    """
+                        .trimIndent()
+                }
+            }
+        }
 }

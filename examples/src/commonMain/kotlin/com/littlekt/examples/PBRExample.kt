@@ -14,15 +14,20 @@ import com.littlekt.graph.sceneGraph
 import com.littlekt.graphics.Color
 import com.littlekt.graphics.PerspectiveCamera
 import com.littlekt.graphics.g3d.ModelBatch
+import com.littlekt.graphics.g3d.Node3D
 import com.littlekt.graphics.g3d.PBREnvironment
 import com.littlekt.graphics.g3d.UnlitEnvironment
 import com.littlekt.graphics.g3d.light.AmbientLight
 import com.littlekt.graphics.g3d.light.DirectionalLight
 import com.littlekt.graphics.g3d.light.PointLight
+import com.littlekt.graphics.g3d.shadow.DirectionalShadowMap
+import com.littlekt.graphics.g3d.shadow.ShadowMaterialPipelineProvider
 import com.littlekt.graphics.g3d.util.*
 import com.littlekt.graphics.webgpu.*
 import com.littlekt.input.Key
+import com.littlekt.math.MutableVec3f
 import com.littlekt.math.Vec3f
+import com.littlekt.math.geom.degrees
 import com.littlekt.math.random
 import com.littlekt.util.datastructure.fastForEach
 
@@ -47,12 +52,26 @@ class PBRExample(context: Context) : ContextListener(context) {
         val device = graphics.device
         val camera = PerspectiveCamera(graphics.width, graphics.height)
         camera.translate(0f, 1.5f, 0f)
+        camera.rotate((-10).degrees, Vec3f.X_AXIS)
+        camera.rotate((-90).degrees, Vec3f.Y_AXIS)
         val depthSliceMaterial = DepthSliceMaterial(device)
         val depthMaterial = DepthMaterial(device)
-        val pbrEnvironment = PBREnvironment(device)
+        val shadowMap = DirectionalShadowMap(device, cascadeCount = 4).apply { shadowDistance = 90f }
+        val sunDirection = MutableVec3f(0.25f, 1f, 0.15f).norm()
+        val pbrEnvironment = PBREnvironment(device, shadowMap = shadowMap)
+        val shadowBatch =
+            ModelBatch(device).apply {
+                defaultPipelineProvider = ShadowMaterialPipelineProvider()
+                this.depthFormat = shadowMap.format
+            }
+        val shadowCasters = mutableListOf<Node3D>()
         val simpleEnvironment = UnlitEnvironment(device)
         pbrEnvironment.setDirectionalLight(
-            DirectionalLight(color = Color(0.2f, 0.2f, 0.2f), intensity = 0.1f)
+            DirectionalLight(
+                color = Color(1f, 0.95f, 0.85f),
+                direction = sunDirection,
+                intensity = 4f,
+            )
         )
         pbrEnvironment.setAmbientLight(AmbientLight(color = Color(0.002f, 0.002f, 0.002f)))
         pbrEnvironment.addPointLight(
@@ -240,6 +259,11 @@ class PBRExample(context: Context) : ContextListener(context) {
             val frame = swapChainTexture.createView()
 
             val commandEncoder = device.createCommandEncoder()
+
+            shadowCasters.clear()
+            models.fastForEach { model -> model.scene?.let { shadowCasters += it } }
+            shadowMap.update(sunDirection, camera)
+            shadowMap.render(commandEncoder, shadowBatch, shadowCasters, dt)
             val renderPassEncoder =
                 commandEncoder.beginRenderPass(
                     desc =
@@ -313,6 +337,10 @@ class PBRExample(context: Context) : ContextListener(context) {
             swapChainTexture.release()
         }
 
-        onRelease { depthTexture.release() }
+        onRelease {
+            depthTexture.release()
+            shadowBatch.release()
+            shadowMap.release()
+        }
     }
 }

@@ -34,7 +34,7 @@ import kotlin.math.cos
 import kotlin.math.sin
 
 /**
- * An example of a directional light casting shadows. The scene is rendered into a
+ * An example of a directional light casting shadows. The scene is rendered into each cascade of a
  * [DirectionalShadowMap] first using a [ShadowMaterialPipelineProvider] and then rendered normally
  * with a [PBREnvironment] that samples the shadow map.
  *
@@ -55,7 +55,7 @@ class ShadowsExample(context: Context) : ContextListener(context) {
         camera.translate(0f, 6f, 18f)
         camera.rotate((-20).degrees, Vec3f.X_AXIS)
 
-        val shadowMap = DirectionalShadowMap(device).apply { radius = 16f }
+        val shadowMap = DirectionalShadowMap(device, cascadeCount = 3).apply { shadowDistance = 40f }
         val lightDirection = MutableVec3f(0.5f, 0.8f, 0.3f).norm()
         val environment =
             PBREnvironment(device, shadowMap = shadowMap).apply {
@@ -214,7 +214,7 @@ class ShadowsExample(context: Context) : ContextListener(context) {
                 }
             }
             camera.update()
-            shadowMap.update(lightDirection)
+            shadowMap.update(lightDirection, camera)
 
             val swapChainTexture = checkNotNull(surfaceTexture.texture)
             val frame = swapChainTexture.createView()
@@ -223,12 +223,8 @@ class ShadowsExample(context: Context) : ContextListener(context) {
 
             val commandEncoder = device.createCommandEncoder("Shadows Command Encoder")
 
-            // pass 1: render the shadow casters from the light into the shadow map
-            val shadowPass = shadowMap.beginRenderPass(commandEncoder)
-            models.fastForEach { shadowBatch.render(it, shadowMap.camera, shadowMap.environment) }
-            shadowBatch.flush(shadowPass, shadowMap.camera, dt)
-            shadowPass.end()
-            shadowPass.release()
+            // pass 1: render the shadow casters from the light into each shadow map cascade
+            shadowMap.render(commandEncoder, shadowBatch, models, dt)
 
             // pass 2: render the scene, sampling the shadow map
             val mainPass =

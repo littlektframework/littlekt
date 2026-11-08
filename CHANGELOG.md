@@ -9,6 +9,10 @@
   `-near` and `-far` in view space. 2D content at `z = 0` is unaffected.
     - Migration: if you relied on positive `z` values being visible with an ortho camera, move them to negative `z`
       or adjust `near` / `far`.
+- BREAKING: `Camera.worldToScreen` & `Camera.screenToWorld` (3D versions) now map the screen `z` directly to WebGPU's
+  `[0, 1]` depth range instead of OpenGL's `[-1, 1]`. A screen `z` of `0` is the near plane and `1` is the far plane.
+  This also fixes the origin of `Camera.computePickRay` to be on the near plane.
+    - Migration: if you passed or read a screen `z` of `0.5` for the near plane, use `0` instead.
 - BREAKING: `TextureFormat.toNonSRGB()` now returns `BGRA8_UNORM` for `BGRA8_UNORM_SRGB` (it returned itself before).
 - BREAKING: The `PBR` and `Unlit` standard shaders now only apply `linear_to_sRGB` when the color target isn't an
   sRGB format. Scenes rendered to an sRGB surface were being gamma corrected twice and will now look darker / correct.
@@ -52,15 +56,23 @@
 
 ### Changes
 
-- Add directional light shadows:
-    - `DirectionalShadowMap` renders shadow casters from the light into a depth texture. Pass it to
-      `PBREnvironment(device, shadowMap = shadowMap)` and call `shadowMap.update(lightDirection)` each frame.
+- Add cascaded directional light shadows:
+    - `DirectionalShadowMap` splits the camera frustum, up to `shadowDistance`, into 1-4 cascades and renders the
+      shadow casters from the light into a layer of a depth texture array per cascade. Pass it to
+      `PBREnvironment(device, shadowMap = shadowMap)` and each frame call `shadowMap.update(lightDirection, camera)`
+      & `shadowMap.render(commandEncoder, shadowBatch, nodes, dt)`.
     - `ShadowMaterialPipelineProvider` creates depth only pipelines for shadow casters (static & skinned) and skips
-      materials with `castShadows = false`.
-    - The PBR shader samples the shadow map with 3x3 PCF, a depth bias & a normal offset.
-    - See `ShadowsExample`.
+      materials with `castShadows = false`. Materials with an `alphaCutoff` are alpha tested so cut outs, like
+      foliage, cast the correct shape.
+    - The PBR shader picks the cascade by view depth, samples it with 3x3 PCF, a depth bias & a normal offset, and
+      fades the shadows out at the shadow distance.
+    - See `ShadowsExample` & `PBRExample`.
 - Add `ModelBatch.defaultPipelineProvider`, used for any `Material` type without its own provider.
-- Add `bindTextureDepth2d` & `bindSamplerComparison` to the shader builder and `BindingUsage.SHADOW`.
+- Add `bindTextureDepth2d`, `bindTextureDepth2dArray` & `bindSamplerComparison` to the shader builder and
+  `BindingUsage.SHADOW`.
+- Add `ShaderCodeBuilder.visibility` to override the bind group layout visibility of a shader, e.g. to keep a vertex
+  only shader's bind groups compatible with vertex & fragment shaders.
+- Add a fragment `main` overload with no output for depth only fragment shaders.
 - Add `skinGroup` param to `Standard.SkinnedVertexShader`.
 - `ModelBatch.flush()` may now be called multiple times per frame with different cameras & render passes (shadows,
   split screen, etc.) without overwriting each others data.
@@ -74,6 +86,8 @@
 - Fix fully rough PBR materials producing bright single pixel specular highlights on silhouette edges.
 - Add `ModelBatch.sampleCount` for MSAA. Must be `1` or `4` and match the sample count of the render pass attachments.
 - Add `MultiPassExample` showing multiple cameras & render passes in one frame with MSAA.
+- Add `Camera.unproject(ndc, result)`, the inverse of `Camera.project`.
+- Add `Vec3f.lerp(other, alpha, result)` & `MutableVec3f.lerp(target, alpha)` as aliases of `Vec3f.mix`.
 - Add `TextureFormat.toSRGB()`.
 - Add `EngineStats.frame`.
 - Add `IntMap`, an int keyed map that doesn't box its keys.

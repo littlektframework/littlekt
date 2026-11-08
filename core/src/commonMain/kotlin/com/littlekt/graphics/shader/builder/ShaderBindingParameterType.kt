@@ -15,6 +15,8 @@ sealed class ShaderBindingParameterType(val name: String) {
 
         data object texture_depth_2d : WgslType("texture_depth_2d")
 
+        data object texture_depth_2d_array : WgslType("texture_depth_2d_array")
+
         data object sampler_comparison : WgslType("sampler_comparison")
     }
 

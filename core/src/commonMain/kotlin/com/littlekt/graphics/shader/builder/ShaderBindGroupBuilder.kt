@@ -70,6 +70,14 @@ open class ShaderBindGroupBuilder(val group: Int, val usage: BindingUsage) {
             ShaderBindingType.Plain,
         )
 
+    fun bindTextureDepth2dArray(bindingIdx: Int, varName: String) =
+        bind(
+            bindingIdx,
+            varName,
+            ShaderBindingParameterType.WgslType.texture_depth_2d_array,
+            ShaderBindingType.Plain,
+        )
+
     fun bindSamplerComparison(bindingIdx: Int, varName: String) =
         bind(
             bindingIdx,

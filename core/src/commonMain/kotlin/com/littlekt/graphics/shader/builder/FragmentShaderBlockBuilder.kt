@@ -21,6 +21,18 @@ open class FragmentShaderBlockBuilder(base: FragmentShaderBlock? = null) :
             "%fragment_start%\n@fragment fn $entry($inputVar: ${input.name}) -> ${output.name} {\n${block()}\n}\n%fragment_end%"
     }
 
+    /** Creates a fragment entry point that has no output, such as for depth only rendering. */
+    fun main(
+        input: ShaderStruct,
+        entry: String = this.entry,
+        inputVar: String = "input",
+        block: ShaderBlockBuilder.() -> String,
+    ) {
+        this.entry = entry
+        body =
+            "%fragment_start%\n@fragment fn $entry($inputVar: ${input.name}) {\n${block()}\n}\n%fragment_end%"
+    }
+
     override fun build(extraStructs: Set<ShaderStruct>): FragmentShaderBlock {
         structs.addAll(extraStructs)
         return FragmentShaderBlock(entry, structs, bindingGroups, blocks, rules, body)

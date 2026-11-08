@@ -510,8 +510,14 @@ object Standard {
         val ShadowStruct =
             shaderStruct("Shadow") {
                 mapOf(
-                    "view_proj" to ShaderStructParameterType.WgslType.mat4x4f,
+                    "view_proj" to
+                        ShaderStructParameterType.array(
+                            ShaderStructParameterType.WgslType.mat4x4f,
+                            4,
+                        ),
+                    "splits" to ShaderStructParameterType.WgslType.vec4f,
                     "params" to ShaderStructParameterType.WgslType.vec4f,
+                    "normal_offsets" to ShaderStructParameterType.WgslType.vec4f,
                 )
             }
 
@@ -519,14 +525,27 @@ object Standard {
             shaderBlock("Shadows") {
                 include(ShadowStruct)
                 bindGroup(group, BindingUsage.SHADOW) {
-                    bindTextureDepth2d(binding, "shadow_texture")
+                    bindTextureDepth2dArray(binding, "shadow_texture")
                     bindSamplerComparison(binding + 1, "shadow_sampler")
                     bind(binding + 2, "shadow", ShadowStruct, ShaderBindingType.Uniform)
                 }
                 body {
                     """
                     fn dirLightVisibility(world_pos : vec3f, normal : vec3f) -> f32 {
-                      let light_pos = shadow.view_proj * vec4(world_pos + normal * shadow.params.y, 1.0);
+                      let view_depth = -(camera.view * vec4(world_pos, 1.0)).z;
+                      let cascade_count = i32(shadow.params.y);
+                      var cascade = -1;
+                      for (var i = 0; i < cascade_count; i++) {
+                        if (view_depth < shadow.splits[i]) {
+                          cascade = i;
+                          break;
+                        }
+                      }
+                      if (cascade < 0) {
+                        return 1.0;
+                      }
+                      let offset_pos = world_pos + normal * shadow.normal_offsets[cascade];
+                      let light_pos = shadow.view_proj[cascade] * vec4(offset_pos, 1.0);
                       let ndc = light_pos.xyz / light_pos.w;
                       let uv = ndc.xy * vec2(0.5, -0.5) + vec2(0.5);
                       if (any(uv < vec2(0.0)) || any(uv > vec2(1.0)) || ndc.z > 1.0) {
@@ -541,11 +560,14 @@ object Standard {
                             shadow_texture,
                             shadow_sampler,
                             uv + vec2(f32(x), f32(y)) * texel,
+                            cascade,
                             depth,
                           );
                         }
                       }
-                      return visibility / 9.0;
+                      let max_distance = shadow.splits[cascade_count - 1];
+                      let fade = smoothstep(max_distance * 0.9, max_distance, view_depth);
+                      return mix(visibility / 9.0, 1.0, fade);
                     }
                     """
                         .trimIndent()

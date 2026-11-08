@@ -47,6 +47,10 @@ open class Vec3f internal constructor(x: Float, y: Float, z: Float, size: Int) :
             isFuzzyEqual(y, other.y, eps) &&
             isFuzzyEqual(z, other.z, eps)
 
+    /** Alias of [mix]. */
+    fun lerp(other: Vec3f, alpha: Float, result: MutableVec3f): MutableVec3f =
+        mix(other, alpha, result)
+
     fun mix(other: Vec3f, weight: Float, result: MutableVec3f): MutableVec3f {
         result.x = other.x * weight + x * (1f - weight)
         result.y = other.y * weight + y * (1f - weight)
@@ -224,6 +228,9 @@ open class MutableVec3f(x: Float, y: Float, z: Float) : Vec3f(x, y, z) {
             set(ZERO)
         }
     }
+
+    /** Alias of [mix] that stores the result in this vector. */
+    fun lerp(target: Vec3f, alpha: Float): MutableVec3f = mix(target, alpha, this)
 
     fun cross(other: Vec3f): MutableVec3f = cross(other, this)
 

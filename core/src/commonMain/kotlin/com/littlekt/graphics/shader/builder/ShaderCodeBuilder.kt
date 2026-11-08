@@ -1,6 +1,7 @@
 package com.littlekt.graphics.shader.builder
 
 import com.littlekt.graphics.util.BindingUsage
+import com.littlekt.graphics.webgpu.ShaderStage
 
 /**
  * @author Colton Daily
@@ -16,6 +17,12 @@ open class ShaderCodeBuilder(base: ShaderCode? = null) {
     private var vertexBuilder: VertexShaderBlockBuilder? = null
     private var fragmentBuilder: FragmentShaderBlockBuilder? = null
     private var computeBuilder: ComputeShaderBlockBuilder? = null
+
+    /**
+     * Overrides the [ShaderStage] visibility of the generated bind group layouts. Useful for a
+     * vertex only shader whose bind groups need to be compatible with a vertex & fragment shader.
+     */
+    var visibility: ShaderStage? = null
 
     private val structs = mutableSetOf<ShaderStruct>().apply { base?.structs?.let { addAll(it) } }
     private val bindingGroups =
@@ -111,7 +118,16 @@ open class ShaderCodeBuilder(base: ShaderCode? = null) {
     fun build(): ShaderCode {
         ensureMainBlockBuilders()
         buildMainShaderBlocks()
-        return ShaderCode(structs, bindingGroups, blocks, rules, vertex, fragment, compute)
+        return ShaderCode(
+            structs,
+            bindingGroups,
+            blocks,
+            rules,
+            vertex,
+            fragment,
+            compute,
+            visibility,
+        )
     }
 
     /** Ensure we have builders if we have any base. */

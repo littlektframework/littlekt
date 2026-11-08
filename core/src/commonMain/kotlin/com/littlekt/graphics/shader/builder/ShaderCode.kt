@@ -16,9 +16,14 @@ open class ShaderCode(
     val vertex: VertexShaderBlock?,
     val fragment: FragmentShaderBlock?,
     val compute: ComputeShaderBlock?,
+    visibilityOverride: ShaderStage? = null,
 ) : ShaderSrc() {
 
-    val visibility: ShaderStage = run {
+    /**
+     * The [ShaderStage] visibility of every bind group layout entry. Defaults to the stages this
+     * shader has, unless overridden.
+     */
+    val visibility: ShaderStage = visibilityOverride ?: run {
         var visibility: ShaderStage? = null
         if (vertex != null) visibility = ShaderStage.VERTEX
         if (fragment != null)
