@@ -496,13 +496,13 @@ actual class Queue(val segment: WGPUQueue) : Releasable {
             segment,
             buffer.segment,
             offset.toULong(),
-            dataBuffer(dataOffset, data),
+            dataBuffer(dataOffset, data, Short.SIZE_BYTES),
             (size * Short.SIZE_BYTES).toULong(),
         )
     }
 
-    private fun dataBuffer(dataOffset: Long, data: GenericBuffer<*>) =
-        if (dataOffset > 0) data.segment.asSlice(dataOffset)
+    private fun dataBuffer(dataOffset: Long, data: GenericBuffer<*>, elementSize: Int) =
+        if (dataOffset > 0) data.segment.asSlice(dataOffset * elementSize)
             .let(::NativeAddress) else data.segment.let(::NativeAddress)
 
     actual fun writeBuffer(
@@ -517,7 +517,7 @@ actual class Queue(val segment: WGPUQueue) : Releasable {
             segment,
             buffer.segment,
             offset.toULong(),
-            dataBuffer(dataOffset, data),
+            dataBuffer(dataOffset, data, Int.SIZE_BYTES),
             (size * Int.SIZE_BYTES).toULong(),
         )
     }
@@ -534,7 +534,7 @@ actual class Queue(val segment: WGPUQueue) : Releasable {
             segment,
             buffer.segment,
             offset.toULong(),
-            dataBuffer(dataOffset, data),
+            dataBuffer(dataOffset, data, Float.SIZE_BYTES),
             (size * Float.SIZE_BYTES).toULong(),
         )
     }
@@ -551,7 +551,7 @@ actual class Queue(val segment: WGPUQueue) : Releasable {
             segment,
             buffer.segment,
             offset.toULong(),
-            dataBuffer(dataOffset, data),
+            dataBuffer(dataOffset, data, 1),
             size.toULong(),
         )
     }

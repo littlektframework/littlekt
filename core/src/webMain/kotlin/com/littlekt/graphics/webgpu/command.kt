@@ -105,6 +105,11 @@ actual class RenderPassEncoder(
         EngineStats.setBufferCalls += 1
     }
 
+    actual fun setBindGroup(index: Int, bindGroup: BindGroup, dynamicOffset: Int) {
+        delegate.setBindGroup(index, bindGroup.delegate, listOf(dynamicOffset.toDouble().toJsNumber()).toJsArray())
+        EngineStats.setBindGroupCalls += 1
+    }
+
     actual fun setBindGroup(index: Int, bindGroup: BindGroup, dynamicOffsets: List<Long>) {
         delegate.setBindGroup(index, bindGroup.delegate, dynamicOffsets.map { it.toDouble().toJsNumber() }.toJsArray())
         EngineStats.setBindGroupCalls += 1

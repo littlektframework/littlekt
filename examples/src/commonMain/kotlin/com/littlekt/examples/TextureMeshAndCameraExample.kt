@@ -251,7 +251,6 @@ class TextureMeshAndCameraExample(context: Context) : ContextListener(context) {
             fragmentGroupLayout.release()
             texture.release()
             mesh.release()
-            texture.release()
             shader.release()
         }
     }

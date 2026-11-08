@@ -247,7 +247,6 @@ class TextureExample(context: Context) : ContextListener(context) {
             texture.release()
             ibo.release()
             vbo.release()
-            texture.release()
             shader.release()
         }
     }

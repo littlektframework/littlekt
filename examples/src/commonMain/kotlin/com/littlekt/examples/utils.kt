@@ -189,14 +189,12 @@ fun Context.addFlyController(camera: Camera, speed: Float = 0.0015f) {
 }
 
 fun Context.addZoom(camera: Camera, speed: Float) {
-    onUpdate { dt ->
-        input.addInputProcessor(
-            object : InputProcessor {
-                override fun scrolled(amountX: Float, amountY: Float): Boolean {
-                    camera.translate(0f, 0f, -amountY * speed * dt.milliseconds)
-                    return true
-                }
+    input.addInputProcessor(
+        object : InputProcessor {
+            override fun scrolled(amountX: Float, amountY: Float): Boolean {
+                camera.translate(0f, 0f, -amountY * speed)
+                return true
             }
-        )
-    }
+        }
+    )
 }

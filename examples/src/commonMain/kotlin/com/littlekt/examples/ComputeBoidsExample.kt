@@ -313,7 +313,17 @@ class ComputeBoidsExample(context: Context) : ContextListener(context) {
             swapChainTexture.release()
         }
 
-        onRelease {}
+        onRelease {
+            particleBindGroups.forEach { it.release() }
+            particleBuffers.forEach { it.release() }
+            simParamBuffer.release()
+            spriteVertexBuffer.release()
+            computePipeline.release()
+            computePipelineLayout.release()
+            computeBindGroupLayout.release()
+            renderPipeline.release()
+            spriteShader.release()
+        }
     }
 
     private data class SimParams(

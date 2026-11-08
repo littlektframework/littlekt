@@ -4,6 +4,7 @@ import com.littlekt.EngineStats
 import com.littlekt.Releasable
 import ffi.ArrayHolder
 import ffi.MemoryAllocator
+import ffi.globalMemory
 import ffi.memoryScope
 import io.ygdrasil.wgpu.WGPUCommandBuffer
 import io.ygdrasil.wgpu.WGPUCommandEncoder
@@ -214,8 +215,33 @@ actual class RenderPassEncoder(val segment: WGPURenderPassEncoder, actual val la
         EngineStats.setBufferCalls += 1
     }
 
+    actual fun setBindGroup(index: Int, bindGroup: BindGroup, dynamicOffset: Int) {
+        val offsets = dynamicOffsetBuffers.get()
+        offsets.buffer.writeInt(dynamicOffset, 0u)
+        wgpuRenderPassEncoderSetBindGroup(
+            segment,
+            index.toUInt(),
+            bindGroup.segment,
+            1u,
+            offsets.holder,
+        )
+        EngineStats.setBindGroupCalls += 1
+    }
+
     actual fun setBindGroup(index: Int, bindGroup: BindGroup, dynamicOffsets: List<Long>) {
-        if (dynamicOffsets.isNotEmpty()) {
+        if (dynamicOffsets.isNotEmpty() && dynamicOffsets.size <= MAX_DYNAMIC_OFFSETS) {
+            val offsets = dynamicOffsetBuffers.get()
+            for (i in dynamicOffsets.indices) {
+                offsets.buffer.writeInt(dynamicOffsets[i].toInt(), (i * Int.SIZE_BYTES).toULong())
+            }
+            wgpuRenderPassEncoderSetBindGroup(
+                segment,
+                index.toUInt(),
+                bindGroup.segment,
+                dynamicOffsets.size.toULong(),
+                offsets.holder,
+            )
+        } else if (dynamicOffsets.isNotEmpty()) {
             memoryScope { scope ->
                 val dynamicOffsets = dynamicOffsets.map { it.toInt()}
                     .toIntArray()
@@ -265,6 +291,16 @@ actual class RenderPassEncoder(val segment: WGPURenderPassEncoder, actual val la
 
     override fun toString(): String {
         return "RenderPassEncoder(label=$label)"
+    }
+
+    private class DynamicOffsets {
+        val buffer = globalMemory.allocateBuffer((MAX_DYNAMIC_OFFSETS * Int.SIZE_BYTES).toULong())
+        val holder = ArrayHolder<UInt>(buffer.handler)
+    }
+
+    private companion object {
+        const val MAX_DYNAMIC_OFFSETS = 16
+        val dynamicOffsetBuffers: ThreadLocal<DynamicOffsets> = ThreadLocal.withInitial { DynamicOffsets() }
     }
 }
 

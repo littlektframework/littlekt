@@ -88,6 +88,7 @@ class TriangleExample(context: Context) : ContextListener(context) {
                     // fatal
                     logger.fatal { "getCurrentTexture status=$status" }
                     close()
+                    return@onUpdate
                 }
             }
             val texture = checkNotNull(surfaceTexture.texture)

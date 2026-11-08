@@ -508,20 +508,20 @@ open class Node : Comparable<Node> {
 
     fun propagatePreUpdate() {
         preUpdate(dt)
-        onPreUpdate.emit(dt)
+        if (!onPreUpdate.isEmpty) onPreUpdate.emit(dt)
         nodes.preUpdate()
     }
 
     fun propagateUpdate() {
         update(dt)
-        onUpdate.emit(dt)
+        if (!onUpdate.isEmpty) onUpdate.emit(dt)
         nodes.updateLists()
         nodes.update()
     }
 
     fun propagatePostUpdate() {
         postUpdate(dt)
-        onPostUpdate.emit(dt)
+        if (!onPostUpdate.isEmpty) onPostUpdate.emit(dt)
         nodes.postUpdate()
     }
 
@@ -535,7 +535,7 @@ open class Node : Comparable<Node> {
         if (!enabled || isDestroyed) return
         nodes.forEach { it.propagateResize(width, height, center) }
         resize(width, height)
-        onResize.emit(width, height)
+        if (!onResize.isEmpty) onResize.emit(width, height)
     }
 
     open fun propagateInternalDebugRender(
@@ -852,7 +852,12 @@ open class Node : Comparable<Node> {
         onDestroy()
         onDestroy.emit()
         parent = null
+        onPreUpdate.clear()
         onUpdate.clear()
+        onPostUpdate.clear()
+        onFixedUpdate.clear()
+        onInput.clear()
+        onUnhandledInput.clear()
         onReady.clear()
         onDestroy.clear()
         onResize.clear()
@@ -1042,17 +1047,10 @@ open class Node : Comparable<Node> {
 
         other as Node
 
-        if (name != other.name) return false
-        if (id != other.id) return false
-
-        return true
+        return id == other.id
     }
 
-    override fun hashCode(): Int {
-        var result = name.hashCode()
-        result = 31 * result + id
-        return result
-    }
+    override fun hashCode(): Int = id
 
     protected fun MutableList<() -> Unit>.emit() {
         fastForEach { it.invoke() }

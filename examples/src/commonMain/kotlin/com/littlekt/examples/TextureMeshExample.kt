@@ -234,7 +234,6 @@ class TextureMeshExample(context: Context) : ContextListener(context) {
             textureView.release()
             texture.release()
             mesh.release()
-            texture.release()
             shader.release()
         }
     }

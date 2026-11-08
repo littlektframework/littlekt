@@ -7,6 +7,7 @@ import com.littlekt.graph.node.annotation.SceneGraphDslMarker
 import com.littlekt.graph.node.render.Material
 import com.littlekt.graph.node.resource.InputEvent
 import com.littlekt.graph.node.ui.Control
+import com.littlekt.graphics.Camera
 import com.littlekt.graphics.OrthographicCamera
 import com.littlekt.graphics.g2d.Batch
 import com.littlekt.graphics.g2d.SpriteBatch
@@ -350,7 +351,7 @@ open class SceneGraph<InputType>(
 
         this.commandEncoder = commandEncoder
         sceneCanvas.canvasRenderPassDescriptor = renderPassDescriptor
-        sceneCanvas.render(batch, shapeRenderer) { node, _, _, _, _ -> checkNodeMaterial(node) }
+        sceneCanvas.render(batch, shapeRenderer, checkNodeMaterialCallback)
         flush()
 
         if (debugInfoDirty) {
@@ -358,6 +359,11 @@ open class SceneGraph<InputType>(
             debugInfoDirty = false
         }
     }
+
+    private val checkNodeMaterialCallback: (Node, Batch, Camera, Camera, ShapeRenderer) -> Unit =
+        { node, _, _, _, _ ->
+            checkNodeMaterial(node)
+        }
 
     private fun checkNodeMaterial(node: Node) {
         if (node !is CanvasItem) return

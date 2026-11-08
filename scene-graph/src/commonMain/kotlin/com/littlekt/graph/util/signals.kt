@@ -1,6 +1,68 @@
 package com.littlekt.graph.util
 
-import com.littlekt.util.datastructure.fastForEach
+/**
+ * Tracks the slots connected to a signal. Connected objects are matched by identity and every
+ * slot is stored in a list so emitting doesn't allocate.
+ */
+internal class SignalSlots<S> {
+    private val keys = mutableListOf<Any>()
+    internal val keyedSlots = mutableListOf<S>()
+    internal val slots = mutableListOf<S>()
+
+    val isEmpty: Boolean
+        get() = keys.isEmpty() && slots.isEmpty()
+
+    fun connect(node: Any, slot: S) {
+        val index = indexOf(node)
+        if (index >= 0) {
+            keyedSlots[index] = slot
+        } else {
+            keys += node
+            keyedSlots += slot
+        }
+    }
+
+    fun disconnect(node: Any) {
+        val index = indexOf(node)
+        if (index < 0) return
+        keys.removeAt(index)
+        keyedSlots.removeAt(index)
+    }
+
+    fun add(slot: S) {
+        slots += slot
+    }
+
+    fun remove(slot: S) {
+        slots -= slot
+    }
+
+    inline fun forEach(action: (S) -> Unit) {
+        var i = 0
+        while (i < keyedSlots.size) {
+            action(keyedSlots[i])
+            i++
+        }
+        i = 0
+        while (i < slots.size) {
+            action(slots[i])
+            i++
+        }
+    }
+
+    fun clear() {
+        keys.clear()
+        keyedSlots.clear()
+        slots.clear()
+    }
+
+    private fun indexOf(node: Any): Int {
+        for (i in keys.indices) {
+            if (keys[i] === node) return i
+        }
+        return -1
+    }
+}
 
 /**
  * An event class that emits a callback to any connections it has gained.
@@ -9,38 +71,33 @@ import com.littlekt.util.datastructure.fastForEach
  * @date 1/2/2022
  */
 open class Signal {
-    private val connectedNodes = mutableMapOf<Any, () -> Unit>()
-    private val connections = mutableListOf<() -> Unit>()
+    private val slots = SignalSlots<() -> Unit>()
+
+    /** `true` if nothing is connected to this signal. */
+    val isEmpty: Boolean
+        get() = slots.isEmpty
 
     /** Connect an object to this signal. */
-    fun connect(node: Any, slot: () -> Unit) {
-        connectedNodes[node] = slot
-    }
+    fun connect(node: Any, slot: () -> Unit) = slots.connect(node, slot)
 
     /** Disconnect an object from this signal. */
-    fun disconnect(node: Any) {
-        connectedNodes.remove(node)
-    }
+    fun disconnect(node: Any) = slots.disconnect(node)
 
     /** Emit this signal to all connections and connected nodes. */
     fun emit() {
-        connectedNodes.forEach { (_, slot) -> slot() }
-        connections.fastForEach { it() }
+        if (slots.isEmpty) return
+        slots.forEach { it() }
     }
 
-    operator fun plusAssign(slot: () -> Unit) {
-        connections += slot
-    }
+    /** Adds the [slot] as a connection. Same as [plusAssign]. */
+    operator fun invoke(slot: () -> Unit) = slots.add(slot)
 
-    operator fun minusAssign(slot: () -> Unit) {
-        connections -= slot
-    }
+    operator fun plusAssign(slot: () -> Unit) = slots.add(slot)
+
+    operator fun minusAssign(slot: () -> Unit) = slots.remove(slot)
 
     /** Clear all connections and connected nodes. */
-    fun clear() {
-        connectedNodes.clear()
-        connections.clear()
-    }
+    fun clear() = slots.clear()
 }
 
 /**
@@ -50,38 +107,33 @@ open class Signal {
  * @date 1/2/2022
  */
 class SingleSignal<T> {
-    private val connectedNodes = mutableMapOf<Any, (T) -> Unit>()
-    private val connections = mutableListOf<(T) -> Unit>()
+    private val slots = SignalSlots<(T) -> Unit>()
+
+    /** `true` if nothing is connected to this signal. */
+    val isEmpty: Boolean
+        get() = slots.isEmpty
 
     /** Connect an object to this signal. */
-    fun connect(node: Any, slot: (T) -> Unit) {
-        connectedNodes[node] = slot
-    }
+    fun connect(node: Any, slot: (T) -> Unit) = slots.connect(node, slot)
 
     /** Disconnect an object from this signal. */
-    fun disconnect(node: Any) {
-        connectedNodes.remove(node)
-    }
+    fun disconnect(node: Any) = slots.disconnect(node)
 
     /** Emit this signal to all connections and connected nodes. */
     fun emit(value: T) {
-        connectedNodes.forEach { (_, slot) -> slot(value) }
-        connections.fastForEach { it(value) }
+        if (slots.isEmpty) return
+        slots.forEach { it(value) }
     }
 
-    operator fun plusAssign(slot: (T) -> Unit) {
-        connections += slot
-    }
+    /** Adds the [slot] as a connection. Same as [plusAssign]. */
+    operator fun invoke(slot: (T) -> Unit) = slots.add(slot)
 
-    operator fun minusAssign(slot: (T) -> Unit) {
-        connections -= slot
-    }
+    operator fun plusAssign(slot: (T) -> Unit) = slots.add(slot)
+
+    operator fun minusAssign(slot: (T) -> Unit) = slots.remove(slot)
 
     /** Clear all connections and connected nodes. */
-    fun clear() {
-        connectedNodes.clear()
-        connections.clear()
-    }
+    fun clear() = slots.clear()
 }
 
 /**
@@ -91,38 +143,33 @@ class SingleSignal<T> {
  * @date 1/2/2022
  */
 class DoubleSignal<A, B> {
-    private val connectedNodes = mutableMapOf<Any, (A, B) -> Unit>()
-    private val connections = mutableListOf<(A, B) -> Unit>()
+    private val slots = SignalSlots<(A, B) -> Unit>()
+
+    /** `true` if nothing is connected to this signal. */
+    val isEmpty: Boolean
+        get() = slots.isEmpty
 
     /** Connect an object to this signal. */
-    fun connect(node: Any, slot: (A, B) -> Unit) {
-        connectedNodes[node] = slot
-    }
+    fun connect(node: Any, slot: (A, B) -> Unit) = slots.connect(node, slot)
 
     /** Disconnect an object from this signal. */
-    fun disconnect(node: Any) {
-        connectedNodes.remove(node)
-    }
+    fun disconnect(node: Any) = slots.disconnect(node)
 
     /** Emit this signal to all connections and connected nodes. */
     fun emit(value1: A, value2: B) {
-        connectedNodes.forEach { (_, slot) -> slot(value1, value2) }
-        connections.fastForEach { it(value1, value2) }
+        if (slots.isEmpty) return
+        slots.forEach { it(value1, value2) }
     }
 
-    operator fun plusAssign(slot: (A, B) -> Unit) {
-        connections += slot
-    }
+    /** Adds the [slot] as a connection. Same as [plusAssign]. */
+    operator fun invoke(slot: (A, B) -> Unit) = slots.add(slot)
 
-    operator fun minusAssign(slot: (A, B) -> Unit) {
-        connections -= slot
-    }
+    operator fun plusAssign(slot: (A, B) -> Unit) = slots.add(slot)
+
+    operator fun minusAssign(slot: (A, B) -> Unit) = slots.remove(slot)
 
     /** Clear all connections and connected nodes. */
-    fun clear() {
-        connectedNodes.clear()
-        connections.clear()
-    }
+    fun clear() = slots.clear()
 }
 
 /**
@@ -132,38 +179,33 @@ class DoubleSignal<A, B> {
  * @date 1/2/2022
  */
 class TripleSignal<A, B, C> {
-    private val connectedNodes = mutableMapOf<Any, (A, B, C) -> Unit>()
-    private val connections = mutableListOf<(A, B, C) -> Unit>()
+    private val slots = SignalSlots<(A, B, C) -> Unit>()
+
+    /** `true` if nothing is connected to this signal. */
+    val isEmpty: Boolean
+        get() = slots.isEmpty
 
     /** Connect an object to this signal. */
-    fun connect(node: Any, slot: (A, B, C) -> Unit) {
-        connectedNodes[node] = slot
-    }
+    fun connect(node: Any, slot: (A, B, C) -> Unit) = slots.connect(node, slot)
 
     /** Disconnect an object from this signal. */
-    fun disconnect(node: Any) {
-        connectedNodes.remove(node)
-    }
+    fun disconnect(node: Any) = slots.disconnect(node)
 
     /** Emit this signal to all connections and connected nodes. */
     fun emit(value1: A, value2: B, value3: C) {
-        connectedNodes.forEach { (_, slot) -> slot(value1, value2, value3) }
-        connections.fastForEach { it(value1, value2, value3) }
+        if (slots.isEmpty) return
+        slots.forEach { it(value1, value2, value3) }
     }
 
-    operator fun plusAssign(slot: (A, B, C) -> Unit) {
-        connections += slot
-    }
+    /** Adds the [slot] as a connection. Same as [plusAssign]. */
+    operator fun invoke(slot: (A, B, C) -> Unit) = slots.add(slot)
 
-    operator fun minusAssign(slot: (A, B, C) -> Unit) {
-        connections -= slot
-    }
+    operator fun plusAssign(slot: (A, B, C) -> Unit) = slots.add(slot)
+
+    operator fun minusAssign(slot: (A, B, C) -> Unit) = slots.remove(slot)
 
     /** Clear all connections and connected nodes. */
-    fun clear() {
-        connectedNodes.clear()
-        connections.clear()
-    }
+    fun clear() = slots.clear()
 }
 
 /**
@@ -173,38 +215,33 @@ class TripleSignal<A, B, C> {
  * @date 1/2/2022
  */
 class QuadrupleSignal<A, B, C, D> {
-    private val connectedNodes = mutableMapOf<Any, (A, B, C, D) -> Unit>()
-    private val connections = mutableListOf<(A, B, C, D) -> Unit>()
+    private val slots = SignalSlots<(A, B, C, D) -> Unit>()
+
+    /** `true` if nothing is connected to this signal. */
+    val isEmpty: Boolean
+        get() = slots.isEmpty
 
     /** Connect an object to this signal. */
-    fun connect(node: Any, slot: (A, B, C, D) -> Unit) {
-        connectedNodes[node] = slot
-    }
+    fun connect(node: Any, slot: (A, B, C, D) -> Unit) = slots.connect(node, slot)
 
     /** Disconnect an object from this signal. */
-    fun disconnect(node: Any) {
-        connectedNodes.remove(node)
-    }
+    fun disconnect(node: Any) = slots.disconnect(node)
 
     /** Emit this signal to all connections and connected nodes. */
     fun emit(value1: A, value2: B, value3: C, value4: D) {
-        connectedNodes.forEach { (_, slot) -> slot(value1, value2, value3, value4) }
-        connections.fastForEach { it(value1, value2, value3, value4) }
+        if (slots.isEmpty) return
+        slots.forEach { it(value1, value2, value3, value4) }
     }
 
-    operator fun plusAssign(slot: (A, B, C, D) -> Unit) {
-        connections += slot
-    }
+    /** Adds the [slot] as a connection. Same as [plusAssign]. */
+    operator fun invoke(slot: (A, B, C, D) -> Unit) = slots.add(slot)
 
-    operator fun minusAssign(slot: (A, B, C, D) -> Unit) {
-        connections -= slot
-    }
+    operator fun plusAssign(slot: (A, B, C, D) -> Unit) = slots.add(slot)
+
+    operator fun minusAssign(slot: (A, B, C, D) -> Unit) = slots.remove(slot)
 
     /** Clear all connections and connected nodes. */
-    fun clear() {
-        connectedNodes.clear()
-        connections.clear()
-    }
+    fun clear() = slots.clear()
 }
 
 /** Create a new [Signal]. */

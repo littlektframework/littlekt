@@ -767,6 +767,12 @@ expect class RenderPassEncoder : Releasable {
     fun setBindGroup(index: Int, bindGroup: BindGroup, dynamicOffsets: List<Long> = emptyList())
 
     /**
+     * Sets the active bind group for a given bind group index with a single dynamic offset. Same
+     * as [setBindGroup] with a list of dynamic offsets, without allocating.
+     */
+    fun setBindGroup(index: Int, bindGroup: BindGroup, dynamicOffset: Int)
+
+    /**
      * Sets the viewport used during the rasterization stage to linear map from normalized device
      * coordinates to viewport coordinates.
      *

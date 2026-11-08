@@ -378,6 +378,8 @@ open class Control : CanvasItem() {
     var debugColor = Color.GREEN
 
     /** The theme of this node and all its [Control] children use. */
+    private val defaultThemeType: String = this::class.simpleName ?: ""
+
     var theme: Theme? = null
         set(value) {
             if (field == value) return
@@ -1417,7 +1419,7 @@ open class Control : CanvasItem() {
     }
 
     /** Checks if the control has a theme [Drawable]. */
-    fun hasThemeDrawable(name: String, type: String = this::class.simpleName ?: ""): Boolean {
+    fun hasThemeDrawable(name: String, type: String = defaultThemeType): Boolean {
         drawableOverrides[name]?.let {
             return true
         }
@@ -1443,12 +1445,15 @@ open class Control : CanvasItem() {
      *   the specified [name] and [type]. If [type] is omitted the class name of the current control
      *   is used as the type.
      */
-    fun getThemeDrawable(name: String, type: String = this::class.simpleName ?: ""): Drawable {
+    fun getThemeDrawable(name: String, type: String = defaultThemeType): Drawable {
         drawableOverrides[name]?.let {
             return it
         }
-        drawableCache[name]?.let {
-            return it
+        val cacheable = type == defaultThemeType
+        if (cacheable) {
+            drawableCache[name]?.let {
+                return it
+            }
         }
         var themeOwner: Control? = this
         while (themeOwner != null) {
@@ -1463,7 +1468,7 @@ open class Control : CanvasItem() {
                 }
         }
         val drawable = Theme.defaultTheme.drawables[type]?.get(name) ?: Theme.FALLBACK_DRAWABLE
-        drawableCache[name] = drawable
+        if (cacheable) drawableCache[name] = drawable
         return drawable
     }
 
@@ -1472,12 +1477,15 @@ open class Control : CanvasItem() {
      *   specified [name] and [type]. If [type] is omitted the class name of the current control is
      *   used as the type.
      */
-    fun getThemeColor(name: String, type: String = this::class.simpleName ?: ""): Color {
+    fun getThemeColor(name: String, type: String = defaultThemeType): Color {
         colorOverrides[name]?.let {
             return it
         }
-        colorCache[name]?.let {
-            return it
+        val cacheable = type == defaultThemeType
+        if (cacheable) {
+            colorCache[name]?.let {
+                return it
+            }
         }
         var themeOwner: Control? = this
         while (themeOwner != null) {
@@ -1492,7 +1500,7 @@ open class Control : CanvasItem() {
                 }
         }
         val color = Theme.defaultTheme.colors[type]?.get(name) ?: Color.WHITE
-        colorCache[name] = color
+        if (cacheable) colorCache[name] = color
         return color
     }
 
@@ -1501,12 +1509,15 @@ open class Control : CanvasItem() {
      *   with the specified [name] and [type]. If [type] is omitted the class name of the current
      *   control is used as the type.
      */
-    fun getThemeFont(name: String, type: String = this::class.simpleName ?: ""): BitmapFont {
+    fun getThemeFont(name: String, type: String = defaultThemeType): BitmapFont {
         fontOverrides[name]?.let {
             return it
         }
-        fontCache[name]?.let {
-            return it
+        val cacheable = type == defaultThemeType
+        if (cacheable) {
+            fontCache[name]?.let {
+                return it
+            }
         }
         var themeOwner: Control? = this
         while (themeOwner != null) {
@@ -1524,7 +1535,7 @@ open class Control : CanvasItem() {
             Theme.defaultTheme.fonts[type]?.get(name)
                 ?: Theme.defaultTheme.defaultFont
                 ?: Theme.FALLBACK_FONT
-        fontCache[name] = font
+        if (cacheable) fontCache[name] = font
         return font
     }
 
@@ -1533,12 +1544,15 @@ open class Control : CanvasItem() {
      *   specified [name] and [type]. If [type] is omitted the class name of the current control is
      *   used as the type.
      */
-    fun getThemeConstant(name: String, type: String = this::class.simpleName ?: ""): Int {
+    fun getThemeConstant(name: String, type: String = defaultThemeType): Int {
         constantOverrides[name]?.let {
             return it
         }
-        constantCache[name]?.let {
-            return it
+        val cacheable = type == defaultThemeType
+        if (cacheable) {
+            constantCache[name]?.let {
+                return it
+            }
         }
 
         var themeOwner: Control? = this
@@ -1554,7 +1568,7 @@ open class Control : CanvasItem() {
                 }
         }
         val constant = Theme.defaultTheme.constants[type]?.get(name) ?: 0
-        constantCache[name] = constant
+        if (cacheable) constantCache[name] = constant
         return constant
     }
 
@@ -1615,7 +1629,7 @@ open class Control : CanvasItem() {
         constantCache.clear()
         fontCache.clear()
         drawableCache.clear()
-        colorOverrides.clear()
+        colorCache.clear()
         _onThemeValueChanged()
         return this
     }

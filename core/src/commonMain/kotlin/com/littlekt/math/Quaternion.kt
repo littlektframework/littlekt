@@ -157,7 +157,7 @@ open class Quaternion(open val x: Float, open val y: Float, open val z: Float, o
 
     operator fun minus(other: Quaternion) = subtract(other, MutableQuaternion())
 
-    operator fun minus(factor: Float) = scale(factor)
+    operator fun times(factor: Float) = scale(factor, MutableQuaternion())
 
     operator fun component1(): Float = x
 

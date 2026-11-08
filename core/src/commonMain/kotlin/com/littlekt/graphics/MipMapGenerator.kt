@@ -89,11 +89,7 @@ class MipMapGenerator(private val device: Device) : Releasable {
                     RenderPipelineDescriptor(
                         pipelineLayout,
                         vertex =
-                            VertexState(
-                                module = shader,
-                                entryPoint = "vs_main",
-                                WebGPUVertexBufferLayout(4, VertexStepMode.VERTEX, emptyList()),
-                            ),
+                            VertexState(module = shader, entryPoint = "vs_main"),
                         fragment =
                             FragmentState(
                                 module = shader,
@@ -101,7 +97,7 @@ class MipMapGenerator(private val device: Device) : Releasable {
                                 target =
                                     ColorTargetState(
                                         format = texture.textureDescriptor.format,
-                                        blendState = BlendState.NonPreMultiplied,
+                                        blendState = null,
                                         writeMask = ColorWriteMask.ALL,
                                     ),
                             ),
@@ -115,20 +111,7 @@ class MipMapGenerator(private val device: Device) : Releasable {
         var height = texture.size.height
         var baseMipLevel = 0
         val views = mutableListOf<TextureView>()
-        val mesh =
-            mesh(
-                device,
-                listOf(VertexAttribute(VertexFormat.FLOAT32x2, 0, 0, VertexAttrUsage.UV)),
-                6,
-            ) {
-                addVertex { uv.set(0f, 0f) }
-                addVertex { uv.set(1f, 0f) }
-                addVertex { uv.set(0f, 1f) }
-
-                addVertex { uv.set(0f, 1f) }
-                addVertex { uv.set(1f, 0f) }
-                addVertex { uv.set(1f, 1f) }
-            }
+        val bindGroups = mutableListOf<BindGroup>()
         while (width > 1 || height > 1) {
             width = max(1, width / 2)
             height = max(1, height / 2)
@@ -157,6 +140,7 @@ class MipMapGenerator(private val device: Device) : Releasable {
                             ),
                     )
                 )
+                    .also { bindGroups += it }
             baseMipLevel++
             val renderPassDescriptor =
                 RenderPassDescriptor(
@@ -183,7 +167,6 @@ class MipMapGenerator(private val device: Device) : Releasable {
             val renderPassEncoder = commandEncoder.beginRenderPass(renderPassDescriptor)
             renderPassEncoder.setPipeline(renderPipeline)
             renderPassEncoder.setBindGroup(0, bindGroup)
-            renderPassEncoder.setVertexBuffer(0, mesh.vbo)
             renderPassEncoder.draw(6, 1)
             renderPassEncoder.end()
             renderPassEncoder.release()
@@ -191,7 +174,7 @@ class MipMapGenerator(private val device: Device) : Releasable {
         val buffer = commandEncoder.finish()
         device.queue.submit(buffer)
         commandEncoder.release()
-        mesh.release()
+        bindGroups.forEach { it.release() }
         views.forEach { it.release() }
     }
 

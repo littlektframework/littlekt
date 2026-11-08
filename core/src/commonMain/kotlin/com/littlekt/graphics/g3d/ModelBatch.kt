@@ -121,13 +121,12 @@ class ModelBatch(val device: Device) : Releasable {
     }
 
     /** Removes a [MaterialPipelineProvider] of the given type. */
-    inline fun <reified T : Material> removePipelineProvider(): T? =
+    inline fun <reified T : Material> removePipelineProvider(): MaterialPipelineProvider? =
         removePipelineProvider(T::class)
 
     /** Removes a [MaterialPipelineProvider] of the given type. */
-    @Suppress("UNCHECKED_CAST")
-    fun <T : Material> removePipelineProvider(type: KClass<T>): T? =
-        (pipelineProviders.remove(type) as T?).also { pipelineVersion++ }
+    fun <T : Material> removePipelineProvider(type: KClass<T>): MaterialPipelineProvider? =
+        pipelineProviders.remove(type).also { pipelineVersion++ }
 
     /** Add a new [BaseMaterialPipelineProvider]. */
     fun addPipelineProvider(provider: BaseMaterialPipelineProvider<*>) =

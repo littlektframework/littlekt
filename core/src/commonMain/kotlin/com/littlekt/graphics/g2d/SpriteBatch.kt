@@ -128,7 +128,6 @@ class SpriteBatch(
     private var invTexWidth = 0f
     private var invTexHeight = 0f
 
-    private val lastDynamicMeshOffsets: MutableList<Long> = MutableList(1) { 0L }
     private var lastDynamicOffsetIndex = -1L
 
     init {
@@ -612,13 +611,11 @@ class SpriteBatch(
                 shader.setBindGroup(renderPassEncoder, textureBindGroup, BindingUsage.TEXTURE)
             }
             if (lastShader != shader || lastCombinedMatrixSet != drawCall.combinedMatrix) {
-                lastDynamicMeshOffsets[0] =
-                    lastDynamicOffsetIndex * device.limits.minUniformBufferOffsetAlignment
                 shader.setBindGroup(
                     renderPassEncoder,
                     cameraBuffers.getOrCreateBindGroup(shader),
                     cameraBuffers.bindingUsage,
-                    lastDynamicMeshOffsets,
+                    lastDynamicOffsetIndex.toInt() * device.limits.minUniformBufferOffsetAlignment,
                 )
                 shader.setBindGroups(renderPassEncoder)
                 lastShader = shader

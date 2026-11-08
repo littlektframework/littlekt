@@ -147,9 +147,21 @@ open class Shader(
         dynamicOffsets: List<Long> = emptyList(),
     ) {
         val index = getBindGroupLayoutIndexOrNull(bindingUsage)
-        index?.let {
-            renderPassEncoder.setBindGroup(index, bindGroup, dynamicOffsets.ifEmpty { emptyList() })
-        }
+        index?.let { renderPassEncoder.setBindGroup(index, bindGroup, dynamicOffsets) }
+    }
+
+    /**
+     * External [BindGroup] that is passed in and should be set to the correct binding, with a
+     * single dynamic offset.
+     */
+    open fun setBindGroup(
+        renderPassEncoder: RenderPassEncoder,
+        bindGroup: BindGroup,
+        bindingUsage: BindingUsage,
+        dynamicOffset: Int,
+    ) {
+        val index = getBindGroupLayoutIndexOrNull(bindingUsage)
+        index?.let { renderPassEncoder.setBindGroup(index, bindGroup, dynamicOffset) }
     }
 
     /**

@@ -197,7 +197,8 @@ class NodeList {
             if (type.isInstance(it)) {
                 return it as T
             }
-            return it.nodes.findFirstNodeOfType(type)
+            val found = it.nodes.findFirstNodeOfType(type)
+            if (found != null) return found
         }
         return null
     }

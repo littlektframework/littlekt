@@ -73,7 +73,6 @@ class Skybox(
                 false,
             )
         )
-    private val dynamicOffsets = List(MAX_VIEWS_PER_FRAME) { listOf(it * alignment.toLong()) }
 
     private val shader =
         device.createShaderModule(
@@ -196,7 +195,7 @@ class Skybox(
         device.queue.writeBuffer(uniformBuffer, uniformData, offset = index * alignment.toLong())
 
         renderPassEncoder.setPipeline(getPipeline())
-        renderPassEncoder.setBindGroup(0, bindGroup, dynamicOffsets[index])
+        renderPassEncoder.setBindGroup(0, bindGroup, index * alignment)
         renderPassEncoder.draw(3, 1)
     }
 

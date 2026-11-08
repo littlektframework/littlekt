@@ -155,6 +155,11 @@ open class CanvasLayer : Node() {
      */
     var canvasRenderPassDescriptor: RenderPassDescriptor? = null
 
+    private val loadDescriptors = mutableListOf<LoadDescriptor>()
+    private var passLabelCanvas: CanvasLayer? = null
+    private var passLabelName: String? = null
+    private var passLabel: String = ""
+
     /**
      * if `true`, then the underlying render target will be resized automatically based on [resize].
      * If set to `false`, then this will not resize at all.
@@ -416,7 +421,7 @@ open class CanvasLayer : Node() {
         batch.viewProjection = prevProjection
         batch.shader =
             prevShader ?: error("Unable to set Batch.shader back to its previous shader!")
-        canvas?.let { pushRenderPassToCanvas("${canvas?.name} pass") }
+        canvas?.let { pushRenderPassToCanvas(canvasPassLabel(it)) }
         if (renderPasses.isNotEmpty()) {
             logger.warn {
                 "This CanvasLayer($name) flushed with '${renderPasses.size}' pending render passes. Ensure any pushed render passes are popped!"
@@ -473,13 +478,47 @@ open class CanvasLayer : Node() {
      * @param descriptor the default descriptor assumes the color attachments to use [LoadOp.LOAD].
      * @return the newly created [RenderPassEncoder].
      */
+    private fun loadDescriptor(label: String?): RenderPassDescriptor {
+        val source = renderPassDescriptor
+        for (i in loadDescriptors.indices) {
+            val cached = loadDescriptors[i]
+            if (cached.label == label) {
+                if (cached.source !== source) {
+                    cached.source = source
+                    cached.descriptor = toLoadDescriptor(source, label)
+                }
+                return cached.descriptor
+            }
+        }
+        return toLoadDescriptor(source, label).also {
+            loadDescriptors += LoadDescriptor(label, source, it)
+        }
+    }
+
+    private fun toLoadDescriptor(source: RenderPassDescriptor, label: String?) =
+        source.copy(
+            colorAttachments = source.colorAttachments.map { it.copy(loadOp = LoadOp.LOAD) },
+            label = label,
+        )
+
+    private fun canvasPassLabel(canvas: CanvasLayer): String {
+        if (passLabelCanvas !== canvas || passLabelName != canvas.name) {
+            passLabelCanvas = canvas
+            passLabelName = canvas.name
+            passLabel = "${canvas.name} pass"
+        }
+        return passLabel
+    }
+
+    private class LoadDescriptor(
+        val label: String?,
+        var source: RenderPassDescriptor,
+        var descriptor: RenderPassDescriptor,
+    )
+
     fun pushRenderPass(
         label: String? = null,
-        descriptor: RenderPassDescriptor = run {
-            val initDesc = renderPassDescriptor
-            val colorAttachments = initDesc.colorAttachments.map { it.copy(loadOp = LoadOp.LOAD) }
-            initDesc.copy(colorAttachments = colorAttachments, label = label)
-        }
+        descriptor: RenderPassDescriptor = loadDescriptor(label),
     ) {
         val scene = scene ?: error("CanvasLayer is not part of a scene!")
         val result =

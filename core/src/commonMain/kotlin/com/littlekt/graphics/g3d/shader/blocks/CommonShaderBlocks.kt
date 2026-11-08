@@ -270,10 +270,9 @@ object CommonShaderBlocks {
                 """.trimIndent()
                 } else {
                     """
-                    if (all(linear <= vec3(0.0031308))) {
-                        return linear * 12.92;
-                    }
-                    return (pow(abs(linear), vec3(1.0/2.4)) * 1.055) - vec3(0.055);
+                    let low = linear * 12.92;
+                    let high = (pow(abs(linear), vec3(1.0/2.4)) * 1.055) - vec3(0.055);
+                    return select(high, low, linear <= vec3(0.0031308));
                 """.trimIndent()
                 }
             }

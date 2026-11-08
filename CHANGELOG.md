@@ -30,6 +30,14 @@
     - Migration: `MultisampleState(count = sampleCount)`
 - BREAKING: `ModelBatch` skips a primitive when its provider returns `null` instead of throwing.
 - BREAKING: Unlit glTF `MASK` materials are now alpha tested instead of blended.
+- BREAKING: Scene graph signals can be invoked, so `onUpdate { }` inside a node's builder now connects to the node's
+  signal instead of `Context.onUpdate`.
+    - Migration: use `context.onUpdate { }` where a global update was intended.
+- BREAKING: Replace `Quaternion.minus(Float)`, which scaled, with `Quaternion.times(Float)`.
+    - Migration: `quat - 2f` -> `quat * 2f`
+- BREAKING: `ModelBatch.removePipelineProvider()` returns the removed `MaterialPipelineProvider?`.
+- BREAKING: JVM `Queue.writeBuffer` `dataOffset` is now in elements, matching web.
+- BREAKING: `Node.equals` & `Node.hashCode` only use the node `id`.
 
 ### Changes
 
@@ -51,10 +59,20 @@
 - Add `Camera.unproject(ndc, result)`.
 - Add `Vec3f.lerp` & `MutableVec3f.lerp` as aliases of `mix`.
 - Add `TextureFormat.hdr` & `TextureFormat.toSRGB()`.
+- Add `RenderPassEncoder.setBindGroup(index, bindGroup, dynamicOffset)` & `Shader.setBindGroup(..., dynamicOffset)`.
+- Add `invoke` & `isEmpty` to scene graph signals.
 - Add `EngineStats.frame`.
 - Add `IntMap`.
 - Add `MaterialPipeline.transparent`.
 - Add `ShadowsExample`, `MultiPassExample`, `TransparencyExample`, `IBLExample` & `BloomExample`.
+- Fix `NodeList.findFirstNodeOfType` only searching the first child.
+- Fix `Control.clearThemeCache` clearing color overrides instead of the color cache.
+- Fix `Control` theme caches mixing up values of different theme types.
+- Fix `Node.destroy` not clearing the pre/post/fixed update & input signals.
+- Fix signals failing to disconnect a node that was renamed.
+- Fix `CanvasLayerContainer` min size never shrinking, `shrink` validation & input scaling with multiple layers.
+- Fix `MipMapGenerator` leaking bind groups & darkening transparent mip edges.
+- Fix the exact sRGB shader conversion switching curves for the whole color instead of per channel.
 - Fix `CanvasLayer` render target using a different format than the scene graph batch, crashing on render.
 - Fix `Mesh` & `IndexedMesh` GPU buffers being empty after the geometry grows past its initial size.
 - Fix `ModelBatch` binding the primitive's material bind group instead of the override material's.
@@ -67,6 +85,8 @@
 - Fix fully rough PBR materials producing single pixel specular highlights on edges.
 - Fix `Vec3f.cross` returning the wrong result when `result` is the same vector, e.g. `MutableVec3f.cross` & `Camera.lookAt`.
 - Performance: remove per frame allocations from `ModelBatch` & use bulk copies in the JVM `FloatBuffer`.
+- Performance: remove per frame allocations from scene graph signals, theme lookups & canvas layer render passes.
+- Performance: remove per frame allocations from `SpriteBatch` & `Skybox` dynamic offsets.
 
 ## 0.11.0
 

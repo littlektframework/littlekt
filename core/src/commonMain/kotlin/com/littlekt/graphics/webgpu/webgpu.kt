@@ -548,6 +548,7 @@ expect class Queue : Releasable {
      *
      * This method fails if [data] overruns the size of [buffer] starting at [offset].
      *
+     * @param dataOffset the offset, in elements, of the data to start writing from
      * @param size the number of elements
      */
     fun writeBuffer(
@@ -566,6 +567,7 @@ expect class Queue : Releasable {
      *
      * This method fails if [data] overruns the size of [buffer] starting at [offset].
      *
+     * @param dataOffset the offset, in elements, of the data to start writing from
      * @param size the number of elements
      */
     fun writeBuffer(
@@ -584,6 +586,7 @@ expect class Queue : Releasable {
      *
      * This method fails if [data] overruns the size of [buffer] starting at [offset].
      *
+     * @param dataOffset the offset, in elements, of the data to start writing from
      * @param size the number of elements
      */
     fun writeBuffer(
@@ -602,6 +605,7 @@ expect class Queue : Releasable {
      *
      * This method fails if [data] overruns the size of [buffer] starting at [offset].
      *
+     * @param dataOffset the offset, in elements, of the data to start writing from
      * @param size the number of elements
      */
     fun writeBuffer(

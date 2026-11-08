@@ -239,7 +239,6 @@ class TextureViaCommandEncoderExample(context: Context) : ContextListener(contex
             texture.release()
             ibo.release()
             vbo.release()
-            texture.release()
             shader.release()
         }
     }

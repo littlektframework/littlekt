@@ -13,6 +13,7 @@ import com.littlekt.math.MutableVec2f
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
+import com.littlekt.util.datastructure.fastForEach
 import kotlin.math.max
 
 /**
@@ -48,6 +49,8 @@ inline fun SceneGraph<*>.canvasLayerContainer(
 open class CanvasLayerContainer : Container() {
 
     private val temp = MutableVec2f()
+    private var baseX = 0f
+    private var baseY = 0f
     private var dirty = true
 
     /** An x-offset of the CanvasLayer's x-position, when rendering. */
@@ -80,7 +83,7 @@ open class CanvasLayerContainer : Container() {
     var shrink: Int = 1
         set(value) {
             if (field == value) return
-            check(shrink >= 1) { "Shrink must be >= 1" }
+            check(value >= 1) { "Shrink must be >= 1" }
             field = value
             if (!stretch) return
             dirty = true
@@ -112,7 +115,7 @@ open class CanvasLayerContainer : Container() {
     override fun render(batch: Batch, camera: Camera, shapeRenderer: ShapeRenderer) {
         super.render(batch, camera, shapeRenderer)
         if (dirty) {
-            fbos.forEach {
+            fbos.fastForEach {
                 it.resizeFbo(
                     (width / shrink.toFloat()).toInt(),
                     (height / shrink.toFloat()).toInt(),
@@ -120,7 +123,7 @@ open class CanvasLayerContainer : Container() {
             }
             dirty = false
         }
-        fbos.forEach { fbo ->
+        fbos.fastForEach { fbo ->
             val target = fbo.target
             batch.draw(
                 texture = target,
@@ -146,7 +149,9 @@ open class CanvasLayerContainer : Container() {
             _internalMinWidth = 0f
             _internalMinHeight = 0f
         } else {
-            fbos.forEach {
+            _internalMinWidth = 0f
+            _internalMinHeight = 0f
+            fbos.fastForEach {
                 _internalMinWidth = max(_internalMinWidth, it.width.toFloat())
                 _internalMinHeight = max(_internalMinHeight, it.height.toFloat())
             }
@@ -170,18 +175,11 @@ open class CanvasLayerContainer : Container() {
     }
 
     override fun propagateHit(hx: Float, hy: Float): Control? {
-        temp.set(hx, hy)
-        if (stretch) {
-            temp.scale(1f / shrink.toFloat())
-        }
-        temp.scale(1f / globalScaleX, 1f / globalScaleY)
+        baseCoords(hx, hy)
         nodes.forEachReversed {
             val target =
                 if (it is CanvasLayer) {
-                    temp.scale(
-                        1f / (width / it.virtualWidth) * shrink,
-                        1f / (height / it.virtualHeight) * shrink,
-                    )
+                    toCanvasCoords(it)
                     it.propagateHit(temp.x, temp.y)
                 } else {
                     it.propagateHit(hx, hy)
@@ -197,20 +195,13 @@ open class CanvasLayerContainer : Container() {
     override fun propagateInput(event: InputEvent<*>): Boolean {
         scene ?: return false
         if (!enabled || isDestroyed) return false
-        temp.set(event.sceneX, event.sceneY)
-        if (stretch) {
-            temp.scale(1f / shrink.toFloat())
-        }
-        temp.scale(1f / globalScaleX, 1f / globalScaleY)
+        baseCoords(event.sceneX, event.sceneY)
         val prevCanvasX = event.canvasX
         val prevCanvasY = event.canvasY
         nodes.forEachReversed {
             // we set canvas coords every iteration just in case a child CanvasLayer changes it
             if (it is CanvasLayer) {
-                temp.scale(
-                    1f / (width / it.virtualWidth) * shrink,
-                    1f / (height / it.virtualHeight) * shrink,
-                )
+                toCanvasCoords(it)
                 event.canvasX = temp.x
                 event.canvasY = temp.y
             } else {
@@ -229,20 +220,13 @@ open class CanvasLayerContainer : Container() {
     override fun propagateUnhandledInput(event: InputEvent<*>): Boolean {
         scene ?: return false
         if (!enabled || isDestroyed) return false
-        temp.set(event.sceneX, event.sceneY)
-        if (stretch) {
-            temp.scale(1f / shrink.toFloat())
-        }
-        temp.scale(1f / globalScaleX, 1f / globalScaleY)
+        baseCoords(event.sceneX, event.sceneY)
         val prevCanvasX = event.canvasX
         val prevCanvasY = event.canvasY
         nodes.forEachReversed {
             // we set canvas coords every iteration just in case a child CanvasLayer changes it
             if (it is CanvasLayer) {
-                temp.scale(
-                    1f / (width / it.virtualWidth) * shrink,
-                    1f / (height / it.virtualHeight) * shrink,
-                )
+                toCanvasCoords(it)
                 event.canvasX = temp.x
                 event.canvasY = temp.y
             } else {
@@ -256,6 +240,19 @@ open class CanvasLayerContainer : Container() {
         }
         callUnhandledInput(event)
         return event.handled
+    }
+
+    private fun baseCoords(x: Float, y: Float) {
+        val shrinkScale = if (stretch) 1f / shrink.toFloat() else 1f
+        baseX = x * shrinkScale / globalScaleX
+        baseY = y * shrinkScale / globalScaleY
+    }
+
+    private fun toCanvasCoords(canvas: CanvasLayer) {
+        temp.set(
+            baseX / (width / canvas.virtualWidth) * shrink,
+            baseY / (height / canvas.virtualHeight) * shrink,
+        )
     }
 
     companion object {
