@@ -18,15 +18,17 @@ fun main(args: Array<String>) {
 
     val arg = args.firstOrNull()
 
-    val exampleInfo = if (arg == null) availableExamples["-triangle"]!! else availableExamples[arg]
-    if (exampleInfo == null) {
+    val example = availableExamples[arg ?: "-triangle"]
+    if (example == null) {
         println("Unknown example: $arg")
         println("Available examples:")
-        println(availableExamples.keys.joinToString("\n"))
+        availableExamples.values.groupBy { it.category }.forEach { (category, examples) ->
+            println(category)
+            examples.forEach { println("  ${it.key} - ${it.title}") }
+        }
         return
     }
-    val (title, example) = exampleInfo
-    createApp("$title Example", example)
+    createApp("${example.title} Example", example.create)
 }
 
 private fun createApp(title: String, start: (Context) -> ContextListener) = runBlocking {

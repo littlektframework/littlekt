@@ -9,9 +9,6 @@ import com.littlekt.graphics.Camera
 import com.littlekt.graphics.g3d.Environment
 import com.littlekt.graphics.g3d.Model
 import com.littlekt.graphics.g3d.ModelBatch
-import com.littlekt.graphics.webgpu.SurfaceConfiguration
-import com.littlekt.graphics.webgpu.SurfaceTexture
-import com.littlekt.graphics.webgpu.TextureStatus
 import com.littlekt.input.InputProcessor
 import com.littlekt.input.Key
 import com.littlekt.input.Pointer
@@ -26,30 +23,6 @@ import kotlin.math.asin
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.launch
-
-fun SurfaceTexture.isValid(context: Context, onConfigure: () -> SurfaceConfiguration): Boolean {
-    val surfaceTexture = this
-    when (val status = surfaceTexture.status) {
-        TextureStatus.SUCCESS -> {
-            // all good, could check for `surfaceTexture.suboptimal` here.
-        }
-        TextureStatus.TIMEOUT,
-        TextureStatus.OUTDATED,
-        TextureStatus.LOST -> {
-            surfaceTexture.texture?.release()
-            context.graphics.surface.configure(onConfigure())
-            context.logger.info { "getCurrentTexture status=$status" }
-            return false
-        }
-        else -> {
-            // fatal
-            context.logger.fatal { "getCurrentTexture status=$status" }
-            context.close()
-            return false
-        }
-    }
-    return true
-}
 
 fun Context.addStatsHandler() {
     onPostUpdate {

@@ -65,6 +65,10 @@
 - Add `IntMap`.
 - Add `MaterialPipeline.transparent`.
 - Add `ShadowsExample`, `MultiPassExample`, `TransparencyExample`, `IBLExample` & `BloomExample`.
+- Add `AnimationExample`, `ParticlesExample`, `ShapesExample` & `SpriteBatchExample`.
+- Rework examples into `webgpu`, `g2d`, `ui`, `g3d` & `input` packages and remove outdated examples.
+- Fix `ParticleSimulator` updating & drawing an unallocated particle and never using its last particle.
+- Fix `ParticleSimulator` keeping the anchor, delay & fade in values of reused particles.
 - Fix `NodeList.findFirstNodeOfType` only searching the first child.
 - Fix `Control.clearThemeCache` clearing color overrides instead of the color cache.
 - Fix `Control` theme caches mixing up values of different theme types.

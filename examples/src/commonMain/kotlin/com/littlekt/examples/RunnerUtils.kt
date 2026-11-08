@@ -1,39 +1,104 @@
 package com.littlekt.examples
 
-val availableExamples =
-    mapOf(
-        "-triangle" to Pair("Triangle", ::TriangleExample),
-        "-texture" to Pair("Texture", ::TextureExample),
-        "-textureMesh" to Pair("Texture Mesh", ::TextureMeshExample),
-        "-textureMeshAndCamera" to Pair("Texture Mesh And Camera", ::TextureMeshAndCameraExample),
-        "-textureViaCommand" to Pair("Texture Via Command", ::TextureViaCommandEncoderExample),
-        "-tiledMesh" to Pair("Tiled Mesh", ::TiledMeshExample),
-        "-spriteCacheQuads" to Pair("Sprite Cache Quads", ::SpriteCacheQuadsExample),
-        "-rotatingCube" to Pair("Rotating Cube", ::RotatingCubeExample),
-        "-multipleTextures" to Pair("Multiple Textures", ::MultipleTexturesExample),
-        "-textureBlends" to Pair("Texture Blends", ::TextureBlendsExample),
-        "-spriteBatchMultiShader" to
-                Pair("SpriteBatch Multi Shader", ::RenderSpriteBatchAndMultipleShadersExample),
-        "-simpleCamera" to Pair("Simple Camera", ::SimpleCameraExample),
-        "-ldtk" to Pair("LDtk", ::LDtkTileMapExample),
-        "-ldtkCache" to Pair("LDtk Cache", ::LDtkTileMapCacheExample),
-        "-tiled" to Pair("Tiled", ::TiledTileMapExample),
-        "-tiledCache" to Pair("Tiled Cache", ::TiledTileMapCacheExample),
-        "-font" to Pair("Font", ::FontExample),
-        "-helloSceneGraph" to Pair("Hello Scene Graph", ::HelloSceneGraphExample),
-        "-renderTarget" to Pair("Render Target", ::RenderTargetExample),
-        "-computeBoids" to Pair("Compute Boids", ::ComputeBoidsExample),
-        "-worldAndUiViewports" to Pair("Game World and UI Viewports", ::GameWorldAndUIViewports),
-        "-assetProvider" to Pair("Asset Provider", ::AssetProviderExample),
-        "-spriteBatchMultiPass" to Pair("SpriteBatch Multi Pass", ::SpriteBatchMultiPassExample),
-        "-simpleGltf" to Pair("Simple GLtf", ::SimpleGltfExample),
-        "-mipMaps" to Pair("Mip Maps", ::MipMapsExample),
-        "-modelInstancing" to Pair("Model Instancing", ::ModelInstancingExample),
-        "-pbr" to Pair("PBR", ::PBRExample),
-        "-multiPass" to Pair("Multi Pass", ::MultiPassExample),
-        "-shadows" to Pair("Shadows", ::ShadowsExample),
-        "-transparency" to Pair("Transparency", ::TransparencyExample),
-        "-ibl" to Pair("IBL", ::IBLExample),
-        "-bloom" to Pair("Bloom", ::BloomExample),
-        "-input" to Pair("Input", ::InputExample)
-    )
+import com.littlekt.Context
+import com.littlekt.ContextListener
+import com.littlekt.examples.g2d.AnimationExample
+import com.littlekt.examples.g2d.AssetProviderExample
+import com.littlekt.examples.g2d.FontExample
+import com.littlekt.examples.g2d.ParticlesExample
+import com.littlekt.examples.g2d.RenderTargetExample
+import com.littlekt.examples.g2d.ShapesExample
+import com.littlekt.examples.g2d.SpriteBatchExample
+import com.littlekt.examples.g2d.SpriteCacheQuadsExample
+import com.littlekt.examples.g2d.tilemap.LDtkTileMapExample
+import com.littlekt.examples.g2d.tilemap.TiledTileMapExample
+import com.littlekt.examples.g3d.BloomExample
+import com.littlekt.examples.g3d.IBLExample
+import com.littlekt.examples.g3d.ModelInstancingExample
+import com.littlekt.examples.g3d.MultiPassExample
+import com.littlekt.examples.g3d.PBRExample
+import com.littlekt.examples.g3d.ShadowsExample
+import com.littlekt.examples.g3d.SimpleGltfExample
+import com.littlekt.examples.g3d.TransparencyExample
+import com.littlekt.examples.input.InputExample
+import com.littlekt.examples.ui.GameWorldAndUiViewportsExample
+import com.littlekt.examples.ui.HelloSceneGraphExample
+import com.littlekt.examples.webgpu.ComputeBoidsExample
+import com.littlekt.examples.webgpu.RotatingCubeExample
+import com.littlekt.examples.webgpu.TextureExample
+import com.littlekt.examples.webgpu.TriangleExample
+
+/**
+ * An example that can be ran by its [key], e.g. `-triangle`.
+ *
+ * @author Colton Daily
+ * @date 11/8/2026
+ */
+class Example(
+    val key: String,
+    val category: String,
+    val title: String,
+    val create: (Context) -> ContextListener,
+)
+
+private class ExamplesBuilder {
+    val examples = mutableListOf<Example>()
+
+    fun category(name: String, block: CategoryBuilder.() -> Unit) {
+        CategoryBuilder(name).block()
+    }
+
+    inner class CategoryBuilder(private val category: String) {
+        fun example(key: String, title: String, create: (Context) -> ContextListener) {
+            examples += Example(key, category, title, create)
+        }
+    }
+}
+
+private fun examples(block: ExamplesBuilder.() -> Unit): Map<String, Example> =
+    ExamplesBuilder().apply(block).examples.associateBy { it.key }
+
+/** Every example by its key, in the order they are listed. */
+val availableExamples: Map<String, Example> = examples {
+    category("WebGPU") {
+        example("-triangle", "Triangle", ::TriangleExample)
+        example("-texture", "Texture", ::TextureExample)
+        example("-rotatingCube", "Rotating Cube", ::RotatingCubeExample)
+        example("-computeBoids", "Compute Boids", ::ComputeBoidsExample)
+    }
+    category("2D") {
+        example("-spriteBatch", "SpriteBatch", ::SpriteBatchExample)
+        example("-spriteCacheQuads", "Sprite Cache Quads", ::SpriteCacheQuadsExample)
+        example("-animation", "Animation", ::AnimationExample)
+        example("-particles", "Particles", ::ParticlesExample)
+        example("-shapes", "Shapes", ::ShapesExample)
+        example("-font", "Font", ::FontExample)
+        example("-renderTarget", "Render Target", ::RenderTargetExample)
+        example("-assetProvider", "Asset Provider", ::AssetProviderExample)
+    }
+    category("Tilemaps") {
+        example("-ldtk", "LDtk", ::LDtkTileMapExample)
+        example("-tiled", "Tiled", ::TiledTileMapExample)
+    }
+    category("UI") {
+        example("-helloSceneGraph", "Hello Scene Graph", ::HelloSceneGraphExample)
+        example(
+            "-worldAndUiViewports",
+            "Game World and UI Viewports",
+            ::GameWorldAndUiViewportsExample,
+        )
+    }
+    category("3D") {
+        example("-simpleGltf", "Simple glTF", ::SimpleGltfExample)
+        example("-modelInstancing", "Model Instancing", ::ModelInstancingExample)
+        example("-pbr", "PBR", ::PBRExample)
+        example("-shadows", "Shadows", ::ShadowsExample)
+        example("-transparency", "Transparency", ::TransparencyExample)
+        example("-ibl", "IBL", ::IBLExample)
+        example("-bloom", "Bloom", ::BloomExample)
+        example("-multiPass", "Multi Pass", ::MultiPassExample)
+    }
+    category("Input") {
+        example("-input", "Input", ::InputExample)
+    }
+}

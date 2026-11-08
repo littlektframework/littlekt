@@ -2,7 +2,6 @@ package com.littlekt.examples
 
 import com.littlekt.Context
 import com.littlekt.ContextListener
-import com.littlekt.async.KtScope
 import com.littlekt.createLittleKtApp
 import com.littlekt.log.Logger
 import kotlinx.browser.document
@@ -22,22 +21,21 @@ import org.w3c.dom.url.URL
  */
 fun main() {
     document.getElementById("examples-list")?.append {
-        ul { availableExamples.forEach { addExample(it.key, it.value.first) } }
+        ul { availableExamples.values.forEach { addExample(it.key, "${it.category}: ${it.title}") } }
     }
 
     val params = URL(window.location.href).searchParams
 
     val arg = params.get("example")
-    val exampleInfo = if (arg == null) availableExamples["-triangle"]!! else availableExamples[arg]
-    if (exampleInfo == null) {
+    val example = availableExamples[arg ?: "-triangle"]
+    if (example == null) {
         setStatus("Unknown example: $arg! Select an example from the list below.")
         return
     }
-    val (title, example) = exampleInfo
 
     Logger.setLevels(Logger.Level.DEBUG)
     GlobalScope.launch {
-        createApp("$title Example", example)
+        createApp("${example.title} Example", example.create)
     }
 }
 

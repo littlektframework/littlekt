@@ -34,8 +34,8 @@ const val HTML_WEBGPU_ELEMENT_ID = "webgpu"
 fun main() {
     val firstKey = availableExamples.keys.first()
     val chosenKey = window.localStorage.getItem("selectedExampleKey") ?: firstKey
-    val exampleInfo = availableExamples[chosenKey] ?: availableExamples[firstKey]!!
-    val (title, example) = exampleInfo
+    val example = availableExamples[chosenKey] ?: availableExamples[firstKey]!!
+    val title = example.title
 
     ComposeViewport(document.getElementById(HTML_JETPACK_COMPOSE_ELEMENT_ID)!!) {
         var drawerOpen by remember { mutableStateOf(false) }
@@ -83,8 +83,19 @@ fun main() {
 
                     Spacer(Modifier.height(8.dp))
 
-                    availableExamples.forEach { (key, pair) ->
-                        val (itemTitle, _) = pair
+                    var lastCategory: String? = null
+                    availableExamples.forEach { (key, item) ->
+                        if (item.category != lastCategory) {
+                            lastCategory = item.category
+                            Text(
+                                item.category,
+                                color = Color(0xAAFFFFFF),
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                modifier = Modifier.padding(start = 8.dp, top = 12.dp, bottom = 2.dp)
+                            )
+                        }
+                        val itemTitle = item.title
                         val selected = key == chosenKey
                         Box(
                             modifier = Modifier
@@ -121,7 +132,7 @@ fun main() {
                 height = startHeight
                 this.title = "$title Example"
                 canvasId = HTML_WEBGPU_ELEMENT_ID
-            }.start(example)
+            }.start(example.create)
         }.onFailure {
             it.printStackTrace()
         }

@@ -46,7 +46,7 @@ class ParticleSimulator(maxParticles: Int) {
      * @param y initial y-position of the particle
      */
     fun alloc(slice: TextureSlice, x: Float, y: Float): Particle {
-        return if (numAlloc < particles.size - 1) {
+        return if (numAlloc < particles.size) {
             val particle =
                 reset(particles[numAlloc], slice).also {
                     it.x = x
@@ -70,7 +70,7 @@ class ParticleSimulator(maxParticles: Int) {
             }
             best!!
         }
-            .also { totalAlive = min(totalAlive + 1, numAlloc + 1) }
+            .also { totalAlive = min(totalAlive + 1, numAlloc) }
     }
 
     private fun init(particle: Particle): Particle {
@@ -106,6 +106,11 @@ class ParticleSimulator(maxParticles: Int) {
             gravityX = 0f
             gravityY = 0f
             fadeOutSpeed = 0.1f
+            fadeInSpeed = 0f
+            targetFadeAlpha = 0f
+            anchorX = 0f
+            anchorY = 0f
+            delay = Duration.ZERO
             life = 1.seconds
 
             colorRdelta = 0f
@@ -225,7 +230,7 @@ class ParticleSimulator(maxParticles: Int) {
             } else {
                 optionalTmod
             }
-        for (i in 0..numAlloc) {
+        for (i in 0 until numAlloc) {
             val particle = particles[i]
             advance(particle, dt, tmod)
         }
@@ -234,7 +239,7 @@ class ParticleSimulator(maxParticles: Int) {
 
 /** Draw the list of [ParticleSimulator.particles] with the given [Batch]. */
 fun ParticleSimulator.draw(batch: Batch) {
-    for (i in 0..numAlloc) {
+    for (i in 0 until numAlloc) {
         particles[i].draw(batch)
     }
 }
