@@ -2,23 +2,29 @@ package com.littlekt.graphics.g3d
 
 import com.littlekt.EngineStats
 import com.littlekt.Releasable
+import com.littlekt.file.FloatBuffer
 import com.littlekt.graphics.Camera
 import com.littlekt.graphics.g3d.material.Material
 import com.littlekt.graphics.g3d.util.BaseMaterialPipelineProvider
+import com.littlekt.graphics.g3d.util.InstanceBuffers
 import com.littlekt.graphics.g3d.util.MaterialPipeline
 import com.littlekt.graphics.g3d.util.MaterialPipelineProvider
 import com.littlekt.graphics.g3d.util.MaterialPipelineSorter
-import com.littlekt.graphics.util.BindingUsage
+import com.littlekt.graphics.util.CameraBuffersViaCamera
 import com.littlekt.graphics.webgpu.*
-import com.littlekt.log.Logger
+import com.littlekt.util.datastructure.IntMap
 import com.littlekt.util.datastructure.fastForEach
-import com.littlekt.util.datastructure.pool
+import kotlinx.atomicfu.atomic
+import kotlinx.atomicfu.locks.SynchronizedObject
+import kotlinx.atomicfu.locks.synchronized
 import kotlin.math.max
 import kotlin.reflect.KClass
 import kotlin.time.Duration
 
 /**
  * A rendering helper class to handle pipeline caching and bind group caching for drawing 3D meshes.
+ * A [ModelBatch] may be flushed multiple times within a single frame, such as for multiple passes
+ * or cameras.
  *
  * @author Colton Daily
  * @date 12/7/2024
@@ -26,12 +32,9 @@ import kotlin.time.Duration
 class ModelBatch(val device: Device) : Releasable {
     private val pipelineProviders = mutableMapOf<KClass<out Material>, MaterialPipelineProvider>()
     private val pipelines = mutableListOf<MaterialPipeline>()
-    private val primitivesByPipeline = mutableMapOf<MaterialPipeline, MutableList<MeshPrimitive>>()
-    private val listPool = pool(reset = { it.clear() }) { mutableListOf<MeshPrimitive>() }
 
-    private val bindGroupByMaterialId = mutableMapOf<Int, BindGroup>()
-    private val bindGroupBySkinId = mutableMapOf<Int, BindGroup>()
-    private val updatedEnvironments = mutableSetOf<Int>()
+    private val bindGroupByMaterialId = IntMap<BindGroup>()
+    private val bindGroupBySkinId = IntMap<BindGroup>()
     private val sorter =
         object : MaterialPipelineSorter {
             override fun sort(pipelines: MutableList<MaterialPipeline>) {
@@ -39,11 +42,41 @@ class ModelBatch(val device: Device) : Releasable {
             }
         }
 
+    private val instanceBuffers =
+        InstanceBuffers(device, INITIAL_INSTANCES * MeshPrimitive.INSTANCE_DATA_SIZE)
+    private var instanceStaging = FloatBuffer(INITIAL_INSTANCES * MeshPrimitive.INSTANCE_DATA_SIZE)
+    private var instanceOffset = 0
+    private var lastFrame = -1L
+    private var flushId = nextFlushId()
+    private var pipelineVersion = 0
+
+    private var renderEnvironment: Environment? = null
+    private var renderMaterial: Material? = null
+    private val renderAction: (MeshPrimitive) -> Unit = {
+        queue(it, renderMaterial ?: it.material, renderEnvironment ?: error("No environment set!"))
+    }
+
+    private val lock = SynchronizedObject()
+    private val hasPendingBindGroups = atomic(false)
+    private val preparedMaterialIds = mutableSetOf<Int>()
+    private val pendingMaterialIds = mutableListOf<Int>()
+    private val pendingMaterialBindGroups = mutableListOf<BindGroup>()
+
     /** The [TextureFormat] of the color attachment. This is used in pipeline caching. */
     var colorFormat: TextureFormat = TextureFormat.RGBA8_UNORM
+        set(value) {
+            if (field == value) return
+            field = value
+            pipelineVersion++
+        }
 
     /** The [TextureFormat] of the depth attachment. This is used in pipeline caching. */
     var depthFormat: TextureFormat = TextureFormat.DEPTH24_PLUS_STENCIL8
+        set(value) {
+            if (field == value) return
+            field = value
+            pipelineVersion++
+        }
 
     /** Add a new [MaterialPipelineProvider]. */
     inline fun <reified T : Material> addPipelineProvider(provider: MaterialPipelineProvider) =
@@ -54,6 +87,7 @@ class ModelBatch(val device: Device) : Releasable {
         !pipelineProviders.containsKey(type) ||
             error("MaterialProvider already registered to type: $type")
         pipelineProviders[type] = provider
+        pipelineVersion++
     }
 
     /** Removes a [MaterialPipelineProvider] of the given type. */
@@ -63,7 +97,7 @@ class ModelBatch(val device: Device) : Releasable {
     /** Removes a [MaterialPipelineProvider] of the given type. */
     @Suppress("UNCHECKED_CAST")
     fun <T : Material> removePipelineProvider(type: KClass<T>): T? =
-        pipelineProviders.remove(type) as T?
+        (pipelineProviders.remove(type) as T?).also { pipelineVersion++ }
 
     /** Add a new [BaseMaterialPipelineProvider]. */
     fun addPipelineProvider(provider: BaseMaterialPipelineProvider<*>) =
@@ -94,27 +128,25 @@ class ModelBatch(val device: Device) : Releasable {
      * [preparePipeline] or [render].
      */
     fun preparePipeline(meshPrimitive: MeshPrimitive, environment: Environment) {
-        val pipeline =
-            pipelineProviders[meshPrimitive.material::class]?.getMaterialPipeline(
-                device,
-                meshPrimitive.material,
-                environment,
-                meshPrimitive.mesh.geometry.layout,
-                meshPrimitive.topology,
-                meshPrimitive.stripIndexFormat,
-                colorFormat,
-                depthFormat,
-            ) ?: error("Unable to find pipeline for given instance!")
-        if (meshPrimitive.material.ready) {
-            bindGroupByMaterialId.getOrPutNotNull(meshPrimitive.material.id) {
-                meshPrimitive.material.createBindGroup(pipeline.shader)
-            }
+        val material = meshPrimitive.material
+        val pipeline = lookupPipeline(meshPrimitive, material, environment)
+        if (!material.ready) return
+        val shouldCreate = synchronized(lock) { preparedMaterialIds.add(material.id) }
+        if (!shouldCreate) return
+        val bindGroup = material.createBindGroup(pipeline.shader) ?: return
+        synchronized(lock) {
+            pendingMaterialIds += material.id
+            pendingMaterialBindGroups += bindGroup
+            hasPendingBindGroups.value = true
         }
     }
 
     /** Adds a [Node3D] to be drawn on the next [flush] using the specified [Environment].. */
     fun render(node: Node3D, environment: Environment) {
-        node.forEachMeshPrimitive { render(it, environment) }
+        renderEnvironment = environment
+        renderMaterial = null
+        node.forEachMeshPrimitive(renderAction)
+        renderEnvironment = null
     }
 
     /**
@@ -122,7 +154,11 @@ class ModelBatch(val device: Device) : Releasable {
      * given material override.
      */
     fun render(node: Node3D, material: Material, environment: Environment) {
-        node.forEachMeshPrimitive { render(it, material, environment) }
+        renderEnvironment = environment
+        renderMaterial = material
+        node.forEachMeshPrimitive(renderAction)
+        renderEnvironment = null
+        renderMaterial = null
     }
 
     /**
@@ -130,7 +166,10 @@ class ModelBatch(val device: Device) : Releasable {
      * frustum culling.
      */
     fun render(node: Node3D, camera: Camera, environment: Environment) {
-        node.forEachMeshPrimitive(camera) { render(it, environment) }
+        renderEnvironment = environment
+        renderMaterial = null
+        node.forEachMeshPrimitive(camera, renderAction)
+        renderEnvironment = null
     }
 
     /**
@@ -138,190 +177,276 @@ class ModelBatch(val device: Device) : Releasable {
      * frustum culling with an material override.
      */
     fun render(node: Node3D, camera: Camera, material: Material, environment: Environment) {
-        node.forEachMeshPrimitive(camera) { render(it, material, environment) }
+        renderEnvironment = environment
+        renderMaterial = material
+        node.forEachMeshPrimitive(camera, renderAction)
+        renderEnvironment = null
+        renderMaterial = null
     }
 
     /** Adds a [MeshPrimitive] to be drawn on the next [flush] using the specified [Environment]. */
-    fun render(meshPrimitive: MeshPrimitive, environment: Environment) {
-        val pipeline =
-            pipelineProviders[meshPrimitive.material::class]?.getMaterialPipeline(
-                device,
-                meshPrimitive.material,
-                environment,
-                meshPrimitive.mesh.geometry.layout,
-                meshPrimitive.topology,
-                meshPrimitive.stripIndexFormat,
-                colorFormat,
-                depthFormat,
-            ) ?: error("Unable to find pipeline for given instance!")
-        if (meshPrimitive.material.ready) {
-            if (!pipelines.contains(pipeline)) {
-                pipelines += pipeline
-            }
-            primitivesByPipeline
-                .getOrPut(pipeline) { listPool.alloc() }
-                .apply { add(meshPrimitive) }
-
-            bindGroupByMaterialId.getOrPutNotNull(meshPrimitive.material.id) {
-                meshPrimitive.material.createBindGroup(pipeline.shader)
-            }
-        }
-        val skin = meshPrimitive.skin
-        if (meshPrimitive.material.skinned && skin != null) {
-            bindGroupBySkinId.getOrPut(skin.id) { skin.createBindGroup(pipeline.shader) }
-        }
-    }
+    fun render(meshPrimitive: MeshPrimitive, environment: Environment) =
+        queue(meshPrimitive, meshPrimitive.material, environment)
 
     /** Render a [MeshPrimitive] by overriding the attached material with the given material. */
-    fun render(meshPrimitive: MeshPrimitive, material: Material, environment: Environment) {
-        val pipeline =
-            pipelineProviders[material::class]?.getMaterialPipeline(
-                device,
-                material,
-                environment,
-                meshPrimitive.mesh.geometry.layout,
-                meshPrimitive.topology,
-                meshPrimitive.stripIndexFormat,
-                colorFormat,
-                depthFormat,
-            ) ?: error("Unable to find pipeline for given instance!")
-        if (material.ready) {
-            if (!pipelines.contains(pipeline)) {
-                pipelines += pipeline
-            }
-            primitivesByPipeline
-                .getOrPut(pipeline) { listPool.alloc() }
-                .apply { add(meshPrimitive) }
+    fun render(meshPrimitive: MeshPrimitive, material: Material, environment: Environment) =
+        queue(meshPrimitive, material, environment)
 
-            bindGroupByMaterialId.getOrPutNotNull(material.id) {
-                material.createBindGroup(pipeline.shader)
-            }
-        }
-        val skin = meshPrimitive.skin
-        if (material.skinned && skin != null) {
-            bindGroupBySkinId.getOrPut(skin.id) { skin.createBindGroup(pipeline.shader) }
-        }
-    }
-
+    /**
+     * Draws everything added since the last flush using the [camera]. This may be called multiple
+     * times per frame, with different cameras and render passes.
+     */
     fun flush(renderPassEncoder: RenderPassEncoder, camera: Camera, dt: Duration) {
+        val frame = EngineStats.frame.value
+        if (frame != lastFrame) {
+            lastFrame = frame
+            instanceOffset = 0
+            instanceBuffers.releasePending()
+        }
+        if (pipelines.isEmpty()) {
+            flushId = nextFlushId()
+            return
+        }
         sorter.sort(pipelines)
-        var lastEnvironmentSet: Environment? = null
-        var lastMaterialSet: Int? = null
+
+        var totalInstances = 0
         pipelines.fastForEach { pipeline ->
-            // we only need to update the camera buffers in each environment once. So if we are
-            // sharing environment, just update the first instance of it.
-            if (updatedEnvironments.add(pipeline.environment.id)) {
-                pipeline.environment.update(camera, dt)
-            }
-            if (lastEnvironmentSet != pipeline.environment) {
-                lastEnvironmentSet = pipeline.environment
-                pipeline.shader.setBindGroup(
-                    renderPassEncoder,
-                    pipeline.environment.buffers.getOrCreateBindGroup(pipeline.shader),
-                    pipeline.environment.buffers.bindingUsage,
+            pipeline.queue.fastForEach { totalInstances += it.visibleInstanceCount }
+        }
+        val instanceSize = MeshPrimitive.INSTANCE_DATA_SIZE
+        instanceBuffers.ensureCapacity((instanceOffset + totalInstances) * instanceSize)
+        if (instanceStaging.capacity < totalInstances * instanceSize) {
+            instanceStaging =
+                FloatBuffer(max(totalInstances * instanceSize, instanceStaging.capacity * 2))
+        }
+
+        var written = 0
+        var drawCalls = 0
+        var instanced = 0
+        pipelines.fastForEach { pipeline ->
+            val view = getEnvironmentView(pipeline.environment, camera, dt)
+            renderPassEncoder.setPipeline(pipeline.renderPipeline)
+
+            val environmentGroupIndex = pipeline.environmentGroupIndex()
+            if (environmentGroupIndex >= 0) {
+                renderPassEncoder.setBindGroup(
+                    environmentGroupIndex,
+                    pipeline.environmentBindGroup(view),
                 )
             }
-            val primitives = primitivesByPipeline[pipeline]
-            if (!primitives.isNullOrEmpty()) {
-                renderPassEncoder.setPipeline(pipeline.renderPipeline)
-                primitives.fastForEach primitives@{ primitive ->
-                    if (primitive.visibleInstanceCount <= 0) return@primitives
-                    val materialBindGroup = bindGroupByMaterialId[primitive.material.id]
+            val modelLayout = pipeline.modelLayout
+            if (pipeline.modelGroupIndex >= 0 && modelLayout != null) {
+                renderPassEncoder.setBindGroup(
+                    pipeline.modelGroupIndex,
+                    instanceBuffers.getOrCreateBindGroup(modelLayout),
+                )
+            }
 
-                    if (primitive.material.skinned) {
-                        val skinBindGroup =
-                            primitive.skin?.let { bindGroupBySkinId[it.id] }
-                                ?: error("Skin bind groups could not be found!")
-                        pipeline.shader.setBindGroup(
-                            renderPassEncoder,
-                            skinBindGroup,
-                            BindingUsage.SKIN,
-                        )
-                        primitive.skin?.writeToBuffer()
-                    }
-                    if (lastMaterialSet != primitive.material.id) {
-                        lastMaterialSet = primitive.material.id
-                        materialBindGroup?.let {
-                            pipeline.shader.setBindGroup(
-                                renderPassEncoder,
-                                it,
-                                BindingUsage.MATERIAL,
-                            )
+            var lastMaterialId = -1
+            val queue = pipeline.queue
+            val materials = pipeline.queueMaterials
+            for (i in 0 until queue.size) {
+                val primitive = queue[i]
+                if (primitive.drawnFlush == flushId && primitive.drawnPipeline === pipeline) {
+                    continue
+                }
+                primitive.drawnFlush = flushId
+                primitive.drawnPipeline = pipeline
+
+                val count = primitive.writeVisibleInstanceData(instanceStaging, written * instanceSize)
+                if (count <= 0) continue
+
+                val material = materials[i]
+                if (lastMaterialId != material.id) {
+                    lastMaterialId = material.id
+                    if (pipeline.materialGroupIndex >= 0) {
+                        bindGroupByMaterialId[material.id]?.let {
+                            renderPassEncoder.setBindGroup(pipeline.materialGroupIndex, it)
                         }
-                        primitive.material.update()
                     }
-                    primitive.writeInstanceDataToBuffer()
-                    pipeline.shader.setBindGroup(
-                        renderPassEncoder,
-                        primitive.instanceBuffers.getOrCreateBindGroup(
-                            pipeline.shader.getBindGroupLayoutByUsage(BindingUsage.MODEL)
-                        ),
-                        BindingUsage.MODEL,
+                    if (material.lastUpdateFrame != frame) {
+                        material.lastUpdateFrame = frame
+                        material.update()
+                    }
+                }
+
+                val skin = primitive.skin
+                if (material.skinned && skin != null && pipeline.skinGroupIndex >= 0) {
+                    val skinBindGroup =
+                        bindGroupBySkinId[skin.id] ?: error("Skin bind groups could not be found!")
+                    renderPassEncoder.setBindGroup(pipeline.skinGroupIndex, skinBindGroup)
+                    if (skin.lastUploadFrame != frame) {
+                        skin.lastUploadFrame = frame
+                        skin.writeToBuffer()
+                    }
+                }
+
+                val firstInstance = instanceOffset + written
+                written += count
+                drawCalls++
+                instanced += count - 1
+
+                renderPassEncoder.setVertexBuffer(0, primitive.mesh.vbo)
+                val indexedMesh = primitive.indexedMesh
+                if (indexedMesh != null) {
+                    renderPassEncoder.setIndexBuffer(
+                        indexedMesh.ibo,
+                        indexFormat = primitive.stripIndexFormat ?: IndexFormat.UINT16,
                     )
-                    val mesh = primitive.mesh
-                    val indexedMesh = primitive.indexedMesh
-
-                    indexedMesh?.let {
-                        renderPassEncoder.setIndexBuffer(
-                            indexedMesh.ibo,
-                            indexFormat = primitive.stripIndexFormat ?: IndexFormat.UINT16,
-                        )
-                    }
-                    renderPassEncoder.setVertexBuffer(0, mesh.vbo)
-
-                    if (indexedMesh != null) {
-                        EngineStats.extra(
-                            INSTANCED_STAT_NAME,
-                            max(0, primitive.visibleInstanceCount - 1),
-                        )
-                        EngineStats.extra(DRAW_CALLS_STAT_NAME, 1)
-                        renderPassEncoder.drawIndexed(
-                            indexedMesh.geometry.numIndices,
-                            primitive.visibleInstanceCount,
-                        )
-                    } else {
-                        EngineStats.extra(
-                            INSTANCED_STAT_NAME,
-                            max(0, primitive.visibleInstanceCount - 1),
-                        )
-                        EngineStats.extra(DRAW_CALLS_STAT_NAME, 1)
-                        renderPassEncoder.draw(
-                            mesh.geometry.numVertices,
-                            primitive.visibleInstanceCount,
-                        )
-                    }
-                    primitive.resetVisibility()
+                    renderPassEncoder.drawIndexed(
+                        indexedMesh.geometry.numIndices,
+                        count,
+                        firstInstance = firstInstance,
+                    )
+                } else {
+                    renderPassEncoder.draw(
+                        primitive.mesh.geometry.numVertices,
+                        count,
+                        firstInstance = firstInstance,
+                    )
                 }
             }
         }
 
-        pipelines.clear()
-        primitivesByPipeline.values.forEach {
-            it.clear()
-            listPool.free(it)
+        instanceBuffers.write(instanceStaging, instanceOffset * instanceSize, written * instanceSize)
+        instanceOffset += written
+
+        if (drawCalls > 0) {
+            EngineStats.extra(DRAW_CALLS_STAT_NAME, drawCalls)
+            EngineStats.extra(INSTANCED_STAT_NAME, instanced)
         }
-        primitivesByPipeline.clear()
-        updatedEnvironments.clear()
+
+        pipelines.fastForEach { pipeline ->
+            pipeline.queue.fastForEach { it.resetVisibility() }
+            pipeline.queue.clear()
+            pipeline.queueMaterials.clear()
+        }
+        pipelines.clear()
+        flushId = nextFlushId()
     }
 
     override fun release() {
+        addPendingBindGroups()
         pipelineProviders.values.forEach { it.release() }
-        bindGroupByMaterialId.values.forEach { it.release() }
+        bindGroupByMaterialId.forEachValue { it.release() }
+        bindGroupByMaterialId.clear()
+        bindGroupBySkinId.forEachValue { it.release() }
+        bindGroupBySkinId.clear()
+        instanceBuffers.release()
     }
 
-    private inline fun <K, V> MutableMap<K, V>.getOrPutNotNull(key: K, defaultValue: () -> V?): V? {
-        val value = get(key)
-        return if (value == null) {
-            val answer = defaultValue()
-            answer?.let { put(key, answer) }
-        } else {
-            value
+    private fun queue(primitive: MeshPrimitive, material: Material, environment: Environment) {
+        if (hasPendingBindGroups.value) {
+            addPendingBindGroups()
+        }
+        val pipeline = getPipeline(primitive, material, environment)
+        if (!material.ready) return
+        getOrCreateMaterialBindGroup(material, pipeline)
+
+        val skin = primitive.skin
+        if (material.skinned && skin != null) {
+            bindGroupBySkinId.getOrPut(skin.id) { skin.createBindGroup(pipeline.shader) }
+        }
+
+        if (pipeline.queuedFlush != flushId) {
+            pipeline.queuedFlush = flushId
+            pipeline.queue.clear()
+            pipeline.queueMaterials.clear()
+            pipelines += pipeline
+        }
+        if (primitive.queuedFlush == flushId && primitive.queuedPipeline === pipeline) return
+        primitive.queuedFlush = flushId
+        primitive.queuedPipeline = pipeline
+        pipeline.queue += primitive
+        pipeline.queueMaterials += material
+    }
+
+    private fun getPipeline(
+        primitive: MeshPrimitive,
+        material: Material,
+        environment: Environment,
+    ): MaterialPipeline {
+        val cached = primitive.cachedPipeline
+        if (
+            cached != null &&
+                primitive.cachedPipelineMaterial === material &&
+                primitive.cachedPipelineEnvironment === environment &&
+                primitive.cachedPipelineBatch === this &&
+                primitive.cachedPipelineVersion == pipelineVersion &&
+                primitive.cachedPipelineMaterialKey == material.key
+        ) {
+            return cached
+        }
+        val pipeline = lookupPipeline(primitive, material, environment)
+        primitive.cachedPipeline = pipeline
+        primitive.cachedPipelineMaterial = material
+        primitive.cachedPipelineEnvironment = environment
+        primitive.cachedPipelineBatch = this
+        primitive.cachedPipelineVersion = pipelineVersion
+        primitive.cachedPipelineMaterialKey = material.key
+        return pipeline
+    }
+
+    private fun lookupPipeline(
+        primitive: MeshPrimitive,
+        material: Material,
+        environment: Environment,
+    ): MaterialPipeline =
+        synchronized(lock) {
+            pipelineProviders[material::class]?.getMaterialPipeline(
+                device,
+                material,
+                environment,
+                primitive.mesh.geometry.layout,
+                primitive.topology,
+                primitive.stripIndexFormat,
+                colorFormat,
+                depthFormat,
+            )
+        } ?: error("Unable to find pipeline for given instance!")
+
+    private fun addPendingBindGroups() {
+        synchronized(lock) {
+            for (i in 0 until pendingMaterialIds.size) {
+                val id = pendingMaterialIds[i]
+                val bindGroup = pendingMaterialBindGroups[i]
+                if (bindGroupByMaterialId[id] == null) {
+                    bindGroupByMaterialId[id] = bindGroup
+                } else {
+                    bindGroup.release()
+                }
+            }
+            pendingMaterialIds.clear()
+            pendingMaterialBindGroups.clear()
+            hasPendingBindGroups.value = false
+        }
+    }
+
+    private fun getOrCreateMaterialBindGroup(material: Material, pipeline: MaterialPipeline) {
+        if (bindGroupByMaterialId[material.id] != null) return
+        material.createBindGroup(pipeline.shader)?.let { bindGroupByMaterialId[material.id] = it }
+    }
+
+    private fun getEnvironmentView(
+        environment: Environment,
+        camera: Camera,
+        dt: Duration,
+    ): CameraBuffersViaCamera {
+        val view = environment.flushView
+        if (environment.flushId == flushId && view != null) return view
+        return environment.beginView(camera, dt).also {
+            environment.flushId = flushId
+            environment.flushView = it
         }
     }
 
     companion object {
-        private val logger = Logger<ModelBatch>()
         private const val INSTANCED_STAT_NAME = "ModelBatch instanced count"
         private const val DRAW_CALLS_STAT_NAME = "ModelBatch Draw calls"
+        private const val INITIAL_INSTANCES = 256
+
+        private var lastFlushId = 0L
+
+        private fun nextFlushId(): Long = ++lastFlushId
     }
 }

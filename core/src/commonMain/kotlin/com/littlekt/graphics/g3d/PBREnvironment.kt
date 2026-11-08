@@ -8,8 +8,10 @@ import com.littlekt.graphics.g3d.shader.blocks.Standard
 import com.littlekt.graphics.g3d.util.CameraLightBuffers
 import com.littlekt.graphics.shader.Shader
 import com.littlekt.graphics.util.BindingUsage
+import com.littlekt.graphics.util.CameraBuffersViaCamera
 import com.littlekt.graphics.webgpu.*
-import com.littlekt.math.MutableVec2f
+import com.littlekt.util.datastructure.fastForEach
+import com.littlekt.util.datastructure.fastForEachWithIndex
 import kotlin.time.Duration
 
 /**
@@ -20,10 +22,6 @@ class PBREnvironment(override val buffers: CameraLightBuffers) : Environment(buf
     private var directionalLight = DirectionalLight()
     private var ambientLight = AmbientLight()
     private val pointLights = mutableListOf<PointLight>()
-
-    private val outputSize = MutableVec2f()
-    private var far = 0f
-    private var near = 0f
 
     private val device = buffers.device
     private val boundsShader = Shader(device, Standard.Cluster.ClusterBoundsComputeShader())
@@ -36,14 +34,6 @@ class PBREnvironment(override val buffers: CameraLightBuffers) : Environment(buf
                 label = "Computer Cluster Bounds Compute Pipeline",
             )
         )
-    private val boundsCameraBindGroup =
-        boundsShader.createBindGroup(BindingUsage.CAMERA, buffers.cameraUniformBufferBinding)
-            ?: error("Unable to create ClusterBounds Camera BindGroup")
-    private val boundsStorageBindGroup =
-        boundsShader.createBindGroup(
-            BindingUsage.CLUSTER_BOUNDS,
-            buffers.clusterBuffers.clusterBoundsStorageBufferBinding,
-        ) ?: error("Unable to create ClusterBounds Storage BindGroup")
 
     private val lightsShader = Shader(device, Standard.Cluster.ClusterLightsComputeShader())
     private val lightsPipeline =
@@ -54,76 +44,28 @@ class PBREnvironment(override val buffers: CameraLightBuffers) : Environment(buf
                 label = "Compute Cluster Lights Compute Pipeline",
             )
         )
-    private val lightsBindGroup =
-        device.createBindGroup(
-            BindGroupDescriptor(
-                lightsShader.getBindGroupLayoutByUsage(BindingUsage.CLUSTER_LIGHTS),
-                listOf(
-                    BindGroupEntry(0, buffers.cameraUniformBufferBinding),
-                    BindGroupEntry(1, buffers.clusterBuffers.clusterBoundsStorageBufferBinding),
-                    BindGroupEntry(2, buffers.clusterBuffers.clusterLightsStorageBufferBinding),
-                    BindGroupEntry(3, buffers.lightBuffer.bufferBinding),
-                ),
-            )
-        )
 
-    override fun update(camera: Camera, dt: Duration) {
-        super.update(camera, dt)
-        updateLights()
-        updateClusterBounds(camera)
-        updateClusterLights()
-    }
+    private val clusterViews = mutableListOf<ClusterView>()
 
-    private fun updateClusterBounds(camera: Camera) {
-        if (
-            outputSize.x == camera.virtualWidth &&
-                outputSize.y == camera.virtualHeight &&
-                near == camera.near &&
-                far == camera.far
-        ) {
-            return
+    override fun createViewBuffers(): CameraBuffersViaCamera =
+        CameraLightBuffers(device, buffers.lightBuffer)
+
+    override fun updateView(
+        index: Int,
+        view: CameraBuffersViaCamera,
+        camera: Camera,
+        dt: Duration,
+    ) {
+        super.updateView(index, view, camera, dt)
+        if (index == 0) {
+            updateLights()
         }
-
-        outputSize.set(camera.virtualWidth, camera.virtualHeight)
-        near = camera.near
-        far = camera.far
-
-        val commandEncoder = device.createCommandEncoder("Cluster Bounds Command Encoder")
-        val computePassEncoder = commandEncoder.beginComputePass("Cluster Bounds Compute Pass")
-        computePassEncoder.setPipeline(boundsPipeline)
-        computePassEncoder.setBindGroup(0, boundsCameraBindGroup)
-        computePassEncoder.setBindGroup(1, boundsStorageBindGroup)
-        computePassEncoder.dispatchWorkgroups(
-            buffers.clusterBuffers.workGroupSizeX,
-            buffers.clusterBuffers.workGroupSizeY,
-            buffers.clusterBuffers.workGroupSizeZ,
-        )
-        computePassEncoder.end()
-        computePassEncoder.release()
-
-        device.queue.submit(commandEncoder.finish())
-
-        commandEncoder.release()
-    }
-
-    private fun updateClusterLights() {
-        buffers.clusterBuffers.resetClusterLightsOffsetToZero()
-        val commandEncoder = device.createCommandEncoder("Cluster Lights Command Encoder")
-
-        val computePassEncoder = commandEncoder.beginComputePass("Cluster Lights Compute Pass")
-        computePassEncoder.setPipeline(lightsPipeline)
-        computePassEncoder.setBindGroup(0, lightsBindGroup)
-        computePassEncoder.dispatchWorkgroups(
-            buffers.clusterBuffers.workGroupSizeX,
-            buffers.clusterBuffers.workGroupSizeY,
-            buffers.clusterBuffers.workGroupSizeZ,
-        )
-        computePassEncoder.end()
-        computePassEncoder.release()
-
-        device.queue.submit(commandEncoder.finish())
-
-        commandEncoder.release()
+        while (clusterViews.size <= index) {
+            clusterViews += ClusterView(getView(clusterViews.size) as CameraLightBuffers)
+        }
+        val clusterView = clusterViews[index]
+        clusterView.updateClusterBounds(camera)
+        clusterView.updateClusterLights()
     }
 
     private fun updateLights() {
@@ -146,7 +88,7 @@ class PBREnvironment(override val buffers: CameraLightBuffers) : Environment(buf
     private fun updatePointLights() {
         buffers.lightBuffer.resetLightCount()
 
-        pointLights.forEachIndexed { index, light ->
+        pointLights.fastForEachWithIndex { index, light ->
             buffers.lightBuffer.pointLight(
                 index = index,
                 position = light.position,
@@ -171,5 +113,114 @@ class PBREnvironment(override val buffers: CameraLightBuffers) : Environment(buf
 
     fun removePointLight(pointLight: PointLight) {
         pointLights -= pointLight
+    }
+
+    override fun release() {
+        clusterViews.fastForEach { it.release() }
+        clusterViews.clear()
+        for (i in 0 until totalViews) {
+            (getView(i) as CameraLightBuffers).clusterBuffers.release()
+        }
+        buffers.lightBuffer.release()
+        super.release()
+        boundsPipeline.release()
+        lightsPipeline.release()
+        boundsShader.release()
+        lightsShader.release()
+    }
+
+    private inner class ClusterView(private val viewBuffers: CameraLightBuffers) {
+        private var width = 0f
+        private var height = 0f
+        private val projection = FloatArray(16)
+
+        private val boundsCameraBindGroup =
+            boundsShader.createBindGroup(
+                BindingUsage.CAMERA,
+                viewBuffers.cameraUniformBufferBinding,
+            ) ?: error("Unable to create ClusterBounds Camera BindGroup")
+        private val boundsStorageBindGroup =
+            boundsShader.createBindGroup(
+                BindingUsage.CLUSTER_BOUNDS,
+                viewBuffers.clusterBuffers.clusterBoundsStorageBufferBinding,
+            ) ?: error("Unable to create ClusterBounds Storage BindGroup")
+
+        private val lightsBindGroup =
+            device.createBindGroup(
+                BindGroupDescriptor(
+                    lightsShader.getBindGroupLayoutByUsage(BindingUsage.CLUSTER_LIGHTS),
+                    listOf(
+                        BindGroupEntry(0, viewBuffers.cameraUniformBufferBinding),
+                        BindGroupEntry(
+                            1,
+                            viewBuffers.clusterBuffers.clusterBoundsStorageBufferBinding,
+                        ),
+                        BindGroupEntry(
+                            2,
+                            viewBuffers.clusterBuffers.clusterLightsStorageBufferBinding,
+                        ),
+                        BindGroupEntry(3, viewBuffers.lightBuffer.bufferBinding),
+                    ),
+                )
+            )
+
+        fun updateClusterBounds(camera: Camera) {
+            if (
+                width == camera.virtualWidth &&
+                    height == camera.virtualHeight &&
+                    projection.contentEquals(camera.projection.data)
+            ) {
+                return
+            }
+
+            width = camera.virtualWidth
+            height = camera.virtualHeight
+            camera.projection.data.copyInto(projection)
+
+            val commandEncoder = device.createCommandEncoder("Cluster Bounds Command Encoder")
+            val computePassEncoder = commandEncoder.beginComputePass("Cluster Bounds Compute Pass")
+            computePassEncoder.setPipeline(boundsPipeline)
+            computePassEncoder.setBindGroup(0, boundsCameraBindGroup)
+            computePassEncoder.setBindGroup(1, boundsStorageBindGroup)
+            computePassEncoder.dispatchWorkgroups(
+                viewBuffers.clusterBuffers.workGroupSizeX,
+                viewBuffers.clusterBuffers.workGroupSizeY,
+                viewBuffers.clusterBuffers.workGroupSizeZ,
+            )
+            computePassEncoder.end()
+            computePassEncoder.release()
+
+            val commandBuffer = commandEncoder.finish()
+            device.queue.submit(commandBuffer)
+            commandBuffer.release()
+            commandEncoder.release()
+        }
+
+        fun updateClusterLights() {
+            viewBuffers.clusterBuffers.resetClusterLightsOffsetToZero()
+            val commandEncoder = device.createCommandEncoder("Cluster Lights Command Encoder")
+
+            val computePassEncoder = commandEncoder.beginComputePass("Cluster Lights Compute Pass")
+            computePassEncoder.setPipeline(lightsPipeline)
+            computePassEncoder.setBindGroup(0, lightsBindGroup)
+            computePassEncoder.dispatchWorkgroups(
+                viewBuffers.clusterBuffers.workGroupSizeX,
+                viewBuffers.clusterBuffers.workGroupSizeY,
+                viewBuffers.clusterBuffers.workGroupSizeZ,
+            )
+            computePassEncoder.end()
+            computePassEncoder.release()
+
+            val commandBuffer = commandEncoder.finish()
+            device.queue.submit(commandBuffer)
+            commandBuffer.release()
+            commandEncoder.release()
+        }
+
+        fun release() {
+            boundsCameraBindGroup.release()
+            boundsStorageBindGroup.release()
+            lightsBindGroup.release()
+        }
     }
 }

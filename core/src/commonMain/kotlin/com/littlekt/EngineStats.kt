@@ -53,6 +53,10 @@ object EngineStats {
     var setBufferCalls = atomic(0)
         internal set
 
+    /** The current frame. This is incremented every time [resetPerFrameCounts] is called. */
+    var frame = atomic(0L)
+        private set
+
     private val extras = threadSafeMutableMapOf<String, Int>()
 
     /** Inform the engine stats that a new buffer has been allocated and the size of the buffer. */
@@ -93,6 +97,7 @@ object EngineStats {
 
     /** Reset all counts to 0. */
     fun resetPerFrameCounts() {
+        frame.incrementAndGet()
         drawCalls.update { 0 }
         triangles.update { 0 }
         setPipelineCalls.update { 0 }

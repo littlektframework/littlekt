@@ -173,10 +173,17 @@ internal class FloatBufferImpl(capacity: Int) :
     }
 
     override fun put(data: FloatArray, srcOffset: Int, len: Int): FloatBuffer {
-        for (i in srcOffset until srcOffset + len) {
-            dirty = true
-            segment.set(position++, data[i])
-        }
+        if (len <= 0) return this
+        dirty = true
+        MemorySegment.copy(
+            data,
+            srcOffset,
+            segment,
+            layout,
+            position.toLong() * Float.SIZE_BYTES,
+            len,
+        )
+        position += len
         return this
     }
 
@@ -200,9 +207,23 @@ internal class FloatBufferImpl(capacity: Int) :
 
     override fun put(data: FloatBuffer, dstOffset: Int, srcOffset: Int, len: Int): FloatBuffer {
         position = dstOffset
-        for (i in srcOffset until srcOffset + len) {
-            dirty = true
-            segment.set(position++, data[i])
+        if (len <= 0) return this
+        dirty = true
+        if (data is FloatBufferImpl) {
+            MemorySegment.copy(
+                data.segment,
+                layout,
+                srcOffset.toLong() * Float.SIZE_BYTES,
+                segment,
+                layout,
+                dstOffset.toLong() * Float.SIZE_BYTES,
+                len.toLong(),
+            )
+            position += len
+        } else {
+            for (i in srcOffset until srcOffset + len) {
+                segment.set(position++, data[i])
+            }
         }
         return this
     }

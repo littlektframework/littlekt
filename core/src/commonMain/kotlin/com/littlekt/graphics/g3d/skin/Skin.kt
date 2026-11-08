@@ -9,6 +9,7 @@ import com.littlekt.graphics.webgpu.*
 import com.littlekt.math.Mat4
 import com.littlekt.util.UniqueId
 import com.littlekt.util.datastructure.fastForEach
+import com.littlekt.util.datastructure.fastForEachWithIndex
 
 /**
  * @author Colton Daily
@@ -38,6 +39,15 @@ class Skin(val device: Device, val nodes: List<SkinNode>) : Releasable {
         )
     private val inverseBindingBufferBinding = BufferBinding(inverseBindingBuffer)
 
+    internal var lastUploadFrame = -1L
+
+    init {
+        nodes.fastForEachWithIndex { index, node ->
+            inverseBindingStagingBuffer.put(node.inverseBindMatrix.data, dstOffset = index * 16)
+        }
+        device.queue.writeBuffer(inverseBindingBuffer, inverseBindingStagingBuffer)
+    }
+
     fun createBindGroup(shader: Shader): BindGroup {
         return device.createBindGroup(
             BindGroupDescriptor(
@@ -51,14 +61,10 @@ class Skin(val device: Device, val nodes: List<SkinNode>) : Releasable {
     }
 
     fun writeToBuffer() {
-        nodes.fastForEach { node ->
-            jointsStagingBuffer.put(node.joint.globalTransform.data)
-            inverseBindingStagingBuffer.put(node.inverseBindMatrix.data)
+        nodes.fastForEachWithIndex { index, node ->
+            jointsStagingBuffer.put(node.joint.globalTransform.data, dstOffset = index * 16)
         }
         device.queue.writeBuffer(jointBuffer, jointsStagingBuffer)
-        device.queue.writeBuffer(inverseBindingBuffer, inverseBindingStagingBuffer)
-        jointsStagingBuffer.flip()
-        inverseBindingStagingBuffer.flip()
     }
 
     fun printHierarchy() {

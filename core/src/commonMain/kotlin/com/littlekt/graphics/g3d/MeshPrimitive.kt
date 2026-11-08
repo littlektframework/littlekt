@@ -6,7 +6,7 @@ import com.littlekt.graphics.IndexedMesh
 import com.littlekt.graphics.Mesh
 import com.littlekt.graphics.g3d.material.Material
 import com.littlekt.graphics.g3d.skin.Skin
-import com.littlekt.graphics.g3d.util.InstanceBuffers
+import com.littlekt.graphics.g3d.util.MaterialPipeline
 import com.littlekt.graphics.webgpu.IndexFormat
 import com.littlekt.graphics.webgpu.PrimitiveTopology
 import com.littlekt.log.Logger
@@ -17,8 +17,8 @@ import com.littlekt.util.datastructure.fastForEachWithIndex
  * A mesh primitive holds an instance of a [Mesh] and a [Material] with some rasterizing info such
  * as topology and the index format. This class also handles instancing of the [Mesh].
  *
- * @param instanceSize pre-allocate this number of instances in the instance data storage buffer.
- *   Defaults to `0`.
+ * @param instanceSize pre-allocate this number of instances in the instance data buffer. Defaults
+ *   to `0`.
  * @author Colton Daily
  * @date 11/25/2024
  */
@@ -56,22 +56,22 @@ open class MeshPrimitive(
     val visibleInstanceCount: Int
         get() = visibleInstances.size
 
-    /** The */
-    val instanceBuffers: InstanceBuffers =
-        InstanceBuffers(mesh.device, (instanceSize + 1) * TRANSFORM_COMPONENTS_PER_INSTANCE)
+    internal var queuedFlush = -1L
+    internal var queuedPipeline: MaterialPipeline? = null
+    internal var drawnFlush = -1L
+    internal var drawnPipeline: MaterialPipeline? = null
+
+    internal var cachedPipeline: MaterialPipeline? = null
+    internal var cachedPipelineMaterial: Material? = null
+    internal var cachedPipelineEnvironment: Environment? = null
+    internal var cachedPipelineMaterialKey = 0
+    internal var cachedPipelineBatch: ModelBatch? = null
+    internal var cachedPipelineVersion = -1
 
     private val instances = mutableListOf<MeshPrimitiveInstance>()
-    private var instancesDirty = true
     private var instanceData = FloatBuffer((instanceSize + 1) * TRANSFORM_COMPONENTS_PER_INSTANCE)
-    private var visibleInstanceData =
-        FloatBuffer((instanceSize + 1) * TRANSFORM_COMPONENTS_PER_INSTANCE)
-    private val instanceIndices = mutableMapOf<InstanceId, Int>()
-    private val instancesToId = mutableMapOf<MeshPrimitiveInstance, InstanceId>()
     private val visibleInstances = mutableListOf<MeshPrimitiveInstance>()
     private val dirtyInstances = mutableListOf<MeshPrimitiveInstance>()
-    private var lastInstanceId: InstanceId = 0
-    private val nextInstanceId: InstanceId
-        get() = lastInstanceId++
 
     init {
         if (
@@ -88,214 +88,155 @@ open class MeshPrimitive(
      * transform data to the buffer at update time.
      */
     fun instanceDirty(instance: MeshPrimitiveInstance) {
-        if (dirtyInstances.contains(instance)) return
-        instancesDirty = true
+        if (instance.dirtyQueued || instance.instanceOf !== this) return
+        instance.dirtyQueued = true
         dirtyInstances += instance
     }
 
-    /** Write instance data to the underlying GPU buffer, if any instance data is dirty. */
-    fun writeInstanceDataToBuffer() {
-        if (instancesDirty) {
-            dirtyInstances.fastForEach { dirtyInstance -> updateInstance(dirtyInstance) }
+    /**
+     * Writes the data of each visible instance into [dst] starting at [dstOffset]. Any dirty
+     * instances are updated beforehand.
+     *
+     * @return the number of instances written.
+     */
+    fun writeVisibleInstanceData(dst: FloatBuffer, dstOffset: Int): Int {
+        if (dirtyInstances.isNotEmpty()) {
+            dirtyInstances.fastForEach { dirtyInstance ->
+                dirtyInstance.dirtyQueued = false
+                updateInstance(dirtyInstance)
+            }
             dirtyInstances.clear()
-            instancesDirty = false
         }
         visibleInstances.fastForEachWithIndex { index, instance ->
-            val id =
-                instancesToId[instance]
-                    ?: run {
-                        logger.warn {
-                            "Instance marked as visible could not be found in instance data. Ensure it has been added via addInstance()."
-                        }
-                        return@fastForEachWithIndex
-                    }
-            val instanceDataIdx =
-                instanceIndices[id]
-                    ?: run {
-                        logger.warn {
-                            "Instance $id index could not be found in instance data. Ensure it has been added via addInstance()."
-                        }
-                        return@fastForEachWithIndex
-                    }
-            visibleInstanceData.put(
+            dst.put(
                 instanceData,
-                dstOffset = index * TRANSFORM_COMPONENTS_PER_INSTANCE,
-                srcOffset = instanceDataIdx * TRANSFORM_COMPONENTS_PER_INSTANCE,
+                dstOffset = dstOffset + index * TRANSFORM_COMPONENTS_PER_INSTANCE,
+                srcOffset = instance.instanceIndex * TRANSFORM_COMPONENTS_PER_INSTANCE,
                 len = TRANSFORM_COMPONENTS_PER_INSTANCE,
             )
         }
-        visibleInstanceData.flip()
-        instanceBuffers.updateStaticStorage(visibleInstanceData)
+        return visibleInstances.size
     }
 
     /**
      * Adds the designated [MeshPrimitiveInstance] as an instance. The instance is assigned an
-     * internal ID and is tracked. If a [MeshPrimitiveInstance] changes, on must mark it dirty with
-     * [instanceDirty]. By default, a [MeshPrimitiveInstance] will mark itself dirty via the
+     * internal index and is tracked. If a [MeshPrimitiveInstance] changes, on must mark it dirty
+     * with [instanceDirty]. By default, a [MeshPrimitiveInstance] will mark itself dirty via the
      * [Node3D.dirty] function.
      */
     fun addInstance(instance: MeshPrimitiveInstance) {
+        if (instance.instanceOf === this) return
         if (instance.instanceOf != null) {
             logger.warn {
                 "MeshPrimitiveInstance is already an instance of another MeshPrimitive. Remove old instance before adding new one."
             }
             return
         }
-        if (instances.contains(instance)) {
-            return
+        val requiredSize = (instances.size + 1) * TRANSFORM_COMPONENTS_PER_INSTANCE
+        if (instanceData.capacity < requiredSize) {
+            val newData = FloatBuffer(maxOf(instanceData.capacity * 2, requiredSize))
+            newData.put(
+                instanceData,
+                dstOffset = 0,
+                srcOffset = 0,
+                len = instances.size * TRANSFORM_COMPONENTS_PER_INSTANCE,
+            )
+            instanceData = newData
         }
-        val id = nextInstanceId
-        insertId(id, instanceCount)
-        instancesToId[instance] = id
-        instances += instance
-        dirtyInstances += instance
+        instance.instanceIndex = instances.size
         instance.instanceOf = this
-        instancesDirty = true
+        instances += instance
+        instanceDirty(instance)
     }
 
     /** Removes the designated [MeshPrimitiveInstance] as an instance. */
     fun removeInstance(instance: MeshPrimitiveInstance) {
-        if (instance.instanceOf == this) {
-            val id = instancesToId[instance]
-            if (id == null) {
-                logger.warn { "Instance does not exist or has already been removed!" }
-                return
-            }
-
-            val removeIdx = instanceIndices[id]
-            if (removeIdx == null) {
-                logger.warn { "Instance does not exist or has already been removed!" }
-                return
-            }
-            removeId(id, removeIdx)
-            instances -= instance
-            dirtyInstances -= instance
-            instancesToId.remove(instance)
-            instance.instanceOf = null
-            instancesDirty = true
+        if (instance.instanceOf !== this) return
+        val removeIdx = instance.instanceIndex
+        val lastIdx = instances.lastIndex
+        if (removeIdx != lastIdx) {
+            val last = instances[lastIdx]
+            instances[removeIdx] = last
+            last.instanceIndex = removeIdx
+            instanceData.put(
+                instanceData,
+                dstOffset = removeIdx * TRANSFORM_COMPONENTS_PER_INSTANCE,
+                srcOffset = lastIdx * TRANSFORM_COMPONENTS_PER_INSTANCE,
+                len = TRANSFORM_COMPONENTS_PER_INSTANCE,
+            )
         }
+        instances.removeAt(lastIdx)
+        if (instance.dirtyQueued) {
+            dirtyInstances -= instance
+        }
+        if (instance.visible) {
+            visibleInstances -= instance
+        }
+        instance.reset()
     }
 
     /**
      * Update the CPU transfer storage buffer for the following [instance], as long as it has been
-     * adeed via [addInstance], to prepare it for writing to the GPU buffer.
+     * added via [addInstance], to prepare it for writing to the GPU buffer.
      */
     fun updateInstance(instance: MeshPrimitiveInstance) {
-        val id = instancesToId[instance]
-        if (id == null) {
+        if (instance.instanceOf !== this) {
             logger.warn { "Instance does not exist to be updated!" }
             return
         }
 
-        val idx = instanceIndices[id]
-        if (idx == null) {
-            logger.warn { "Instance does not exist to be updated!" }
-            return
-        }
-
-        instanceData.position = idx * TRANSFORM_COMPONENTS_PER_INSTANCE
+        instanceData.position = instance.instanceIndex * TRANSFORM_COMPONENTS_PER_INSTANCE
         instanceData.put(instance.globalTransform.data)
         instanceData.put(instance.color.fields)
     }
 
     /** Marks the [MeshPrimitiveInstance] as visible to be rendered in a model batch. */
     fun markInstanceVisible(instance: MeshPrimitiveInstance) {
-        if (!instances.contains(instance)) {
+        if (instance.instanceOf !== this) {
             logger.warn {
                 "Attempting to mark an instance as visible when it hasn't been added yet! Ignoring..."
             }
             return
         }
-        if (visibleInstances.contains(instance)) return
+        if (instance.visible) return
+        instance.visible = true
         visibleInstances += instance
     }
 
     /** Removes all visible [MeshPrimitiveInstance]. */
     fun resetVisibility() {
+        visibleInstances.fastForEach { it.visible = false }
         visibleInstances.clear()
     }
 
     /**
-     * Clears all instance data. Doing this will break any existing [MeshPrimitiveInstance] tied to
-     * this primitive. Either destroy the node and recreate it or add it back via [addInstance].
+     * Clears all instance data. Any existing [MeshPrimitiveInstance] tied to this primitive will
+     * need to be added back via [addInstance].
      */
     fun clearInstances() {
+        instances.fastForEach { it.reset() }
         instanceData.clear()
-        instancesDirty = true
-        instanceIndices.clear()
-        instancesToId.clear()
         instances.clear()
         dirtyInstances.clear()
         visibleInstances.clear()
-        visibleInstanceData.clear()
     }
 
-    private fun insertId(id: InstanceId, insertIdx: Int) {
-        val staticEndIdx = instanceCount * TRANSFORM_COMPONENTS_PER_INSTANCE
-        if (instanceData.capacity <= staticEndIdx) {
-            logger.debug {
-                "Instance Data buffer has run out of room. Increasing size by a factor of 2 to a size of ${instanceData.capacity * 2}"
-            }
-            val newData = FloatBuffer(instanceData.capacity * 2)
-            newData.put(instanceData)
-            instanceData = newData
-            instanceData.position = 0
-            visibleInstanceData = FloatBuffer(instanceData.capacity * 2)
-        }
-
-        var shouldShift = false
-        instanceIndices.forEach { (instanceId, idx) ->
-            if (idx >= insertIdx) {
-                shouldShift = true
-                instanceIndices[instanceId] = idx + 1
-            }
-        }
-        // shift data down from insertIdx to instanceCount-1
-        if (shouldShift) {
-            val staticOffset = (insertIdx + 1) * TRANSFORM_COMPONENTS_PER_INSTANCE
-            val staticStartIdx = insertIdx * TRANSFORM_COMPONENTS_PER_INSTANCE
-            instanceData.shiftDataDown(staticStartIdx, staticEndIdx, staticOffset)
-        }
-
-        instanceIndices[id] = insertIdx
-    }
-
-    private fun removeId(id: InstanceId, removeIdx: Int) {
-        // shift up the instances after remove location by 1
-        instanceIndices.forEach { (spriteId, idx) ->
-            if (idx >= removeIdx) {
-                instanceIndices[spriteId] = idx - 1
-            }
-        }
-
-        // shift up all the data in the buffer from removeIdx to spriteCount-1
-        val staticOffset = removeIdx * TRANSFORM_COMPONENTS_PER_INSTANCE
-        instanceData.put(
-            instanceData,
-            dstOffset = staticOffset,
-            srcOffset = removeIdx * TRANSFORM_COMPONENTS_PER_INSTANCE,
-            len = instanceCount * TRANSFORM_COMPONENTS_PER_INSTANCE,
-        )
-
-        instanceIndices.remove(id)
-    }
-
-    private fun FloatBuffer.shiftDataDown(startIdx: Int, endIdx: Int, dstOffset: Int) {
-        if (endIdx == 0) return
-        var idx = endIdx - 1
-        for (i in endIdx - 1 downTo startIdx) {
-            this[dstOffset + idx--] = this[i]
-        }
+    private fun MeshPrimitiveInstance.reset() {
+        instanceOf = null
+        instanceIndex = -1
+        dirtyQueued = false
+        visible = false
     }
 
     override fun release() {
-        instanceBuffers.release()
+        clearInstances()
     }
 
     companion object {
         private const val TRANSFORM_COMPONENTS_PER_INSTANCE = 20
+
+        /** The number of floats each instance uses. */
+        const val INSTANCE_DATA_SIZE = TRANSFORM_COMPONENTS_PER_INSTANCE
         private val logger: Logger = Logger<MeshPrimitive>()
     }
 }
-
-private typealias InstanceId = Int

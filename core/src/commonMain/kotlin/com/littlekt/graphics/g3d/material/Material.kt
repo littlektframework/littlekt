@@ -16,6 +16,8 @@ import com.littlekt.util.UniqueId
 abstract class Material : Releasable {
     val id: Int = UniqueId.next<Material>()
 
+    internal var lastUpdateFrame = -1L
+
     abstract val baseColorTexture: Texture
     abstract val baseColorFactor: Color
     abstract val transparent: Boolean

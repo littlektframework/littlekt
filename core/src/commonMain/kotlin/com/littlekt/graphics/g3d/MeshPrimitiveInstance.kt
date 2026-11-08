@@ -21,6 +21,10 @@ open class MeshPrimitiveInstance : Node3D() {
     /** Don't set this */
     var instanceOf: MeshPrimitive? = null
 
+    internal var instanceIndex = -1
+    internal var dirtyQueued = false
+    internal var visible = false
+
     override fun dirty() {
         super.dirty()
         instanceOf?.instanceDirty(this)
