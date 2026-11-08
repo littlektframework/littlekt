@@ -30,5 +30,6 @@ val availableExamples =
         "-mipMaps" to Pair("Mip Maps", ::MipMapsExample),
         "-modelInstancing" to Pair("Model Instancing", ::ModelInstancingExample),
         "-pbr" to Pair("PBR", ::PBRExample),
+        "-multiPass" to Pair("Multi Pass", ::MultiPassExample),
         "-input" to Pair("Input", ::InputExample)
     )
