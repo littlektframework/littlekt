@@ -128,7 +128,7 @@ inline fun castThickRay(
             }
         } else {
             for (x in x0 until (x1 + 1)) {
-                if (!rayCanPass(y, x)) {
+                if (!rayCanPass(x, y)) {
                     return false
                 }
 

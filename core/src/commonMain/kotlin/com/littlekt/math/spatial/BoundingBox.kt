@@ -498,7 +498,7 @@ open class BoundingBox() {
             dist += comp * comp
             comp = ray.direction.z * tmin
             dist += comp * comp
-            return dist / ray.direction.sqrLength()
+            return dist
         } else {
             // no intersection: box is behind ray
             return Float.MAX_VALUE

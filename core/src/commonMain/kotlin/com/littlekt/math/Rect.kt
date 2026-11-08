@@ -169,31 +169,31 @@ class RectBuilder {
                 val t = -c / b
                 if (0f < t && t < 1f) {
                     if (i == 0) includeX(derive(p0[i], p1[i], p2[i], p3[i], t))
-                    if (i == 2) includeY(derive(p0[i], p1[i], p2[i], p3[i], t))
+                    if (i == 1) includeY(derive(p0[i], p1[i], p2[i], p3[i], t))
                 }
                 continue
             }
 
-            val b2ac = (b.toFloat().pow(2) - 4 * c * a).toInt()
+            val b2ac = b * b - 4 * c * a
             if (b2ac < 0) continue
-            val t1 = (-b + sqrt(b2ac.toFloat())) / (2 * a)
+            val t1 = (-b + sqrt(b2ac)) / (2 * a)
             if (0f < t1 && t1 < 1f) {
                 if (i == 0) includeX(derive(p0[i], p1[i], p2[i], p3[i], t1))
-                if (i == 2) includeY(derive(p0[i], p1[i], p2[i], p3[i], t1))
+                if (i == 1) includeY(derive(p0[i], p1[i], p2[i], p3[i], t1))
             }
-            val t2 = (-b - sqrt(b2ac.toFloat())) / (2 * a)
+            val t2 = (-b - sqrt(b2ac)) / (2 * a)
             if (0f < t2 && t2 < 1f) {
                 if (i == 0) includeX(derive(p0[i], p1[i], p2[i], p3[i], t2))
-                if (i == 2) includeY(derive(p0[i], p1[i], p2[i], p3[i], t2))
+                if (i == 1) includeY(derive(p0[i], p1[i], p2[i], p3[i], t2))
             }
         }
     }
 
     fun addQuad(x0: Float, y0: Float, x1: Float, y1: Float, x: Float, y: Float) {
-        val cp1x = x0 + 2 / 3 * (x1 - x0)
-        val cp1y = y0 + 2 / 3 * (y1 - y0)
-        val cp2x = cp1x + 1 / 3 * (x - x0)
-        val cp2y = cp1y + 1 / 3 * (y - y0)
+        val cp1x = x0 + 2f / 3f * (x1 - x0)
+        val cp1y = y0 + 2f / 3f * (y1 - y0)
+        val cp2x = cp1x + 1f / 3f * (x - x0)
+        val cp2y = cp1y + 1f / 3f * (y - y0)
         addBezier(x0, y0, cp1x, cp1y, cp2x, cp2y, x, y)
     }
 

@@ -186,6 +186,7 @@ open class Mat3 {
     }
 
     fun transpose(result: Mat3): Mat3 {
+        if (result === this) return transpose()
         result[0] = this[0]
         result[1] = this[3]
         result[2] = this[6]
@@ -206,6 +207,7 @@ open class Mat3 {
     }
 
     fun invert(result: Mat3): Boolean {
+        if (result === this) return invert()
         var det = 0f
         for (i in 0..2) {
             det +=
@@ -214,7 +216,7 @@ open class Mat3 {
                         this[3 + (i + 2) % 3] * this[6 + (i + 1) % 3]))
         }
 
-        return if (det > 0f) {
+        return if (det != 0f) {
             det = 1f / det
             for (j in 0..2) {
                 for (i in 0..2) {
@@ -289,6 +291,9 @@ open class Mat3 {
      * @return the [result] matrix
      */
     fun mul(other: Mat3, result: Mat3): Mat3 {
+        if (result === this || result === other) {
+            return synchronized(tmpMatLock) { result.set(mul(other, tmpMatC)) }
+        }
         for (i in 0..2) {
             for (j in 0..2) {
                 var x = 0f
@@ -332,6 +337,9 @@ open class Mat3 {
      * @return the [result] matrix
      */
     fun mulLeft(other: Mat3, result: Mat3): Mat3 {
+        if (result === this || result === other) {
+            return synchronized(tmpMatLock) { result.set(mulLeft(other, tmpMatC)) }
+        }
         for (i in 0..2) {
             for (j in 0..2) {
                 var x = 0f
@@ -358,6 +366,7 @@ open class Mat3 {
         for (i in 0..2) {
             result.data[i] = data[i] * sx
             result.data[3 + i] = data[3 + i] * sy
+            result.data[6 + i] = data[6 + i]
         }
         return result
     }
@@ -561,6 +570,7 @@ open class Mat3 {
         private val tmpMatLock = SynchronizedObject()
         private val tmpMatA = Mat3()
         private val tmpMatB = Mat3()
+        private val tmpMatC = Mat3()
         private val tempVec2f = MutableVec2f()
     }
 }

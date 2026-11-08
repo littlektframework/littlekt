@@ -25,7 +25,8 @@ open class Vec3f internal constructor(x: Float, y: Float, z: Float, size: Int) :
         fields[2] = z
     }
 
-    fun add(other: Vec3f, result: MutableVec3f): MutableVec3f = result.set(this).add(other)
+    fun add(other: Vec3f, result: MutableVec3f): MutableVec3f =
+        result.set(x + other.x, y + other.y, z + other.z)
 
     fun cross(other: Vec3f, result: MutableVec3f): MutableVec3f {
         val rx = y * other.z - z * other.y
@@ -61,7 +62,8 @@ open class Vec3f internal constructor(x: Float, y: Float, z: Float, size: Int) :
         return result
     }
 
-    fun mul(other: Vec3f, result: MutableVec3f): MutableVec3f = result.set(this).mul(other)
+    fun mul(other: Vec3f, result: MutableVec3f): MutableVec3f =
+        result.set(x * other.x, y * other.y, z * other.z)
 
     fun norm(result: MutableVec3f): MutableVec3f = result.set(this).norm()
 
@@ -114,7 +116,7 @@ open class Vec3f internal constructor(x: Float, y: Float, z: Float, size: Int) :
     override fun sqrLength(): Float = x * x + y * y + z * z
 
     fun subtract(other: Vec3f, result: MutableVec3f): MutableVec3f =
-        result.set(this).subtract(other)
+        result.set(x - other.x, y - other.y, z - other.z)
 
     operator fun times(other: Vec3f): Float = dot(other)
 

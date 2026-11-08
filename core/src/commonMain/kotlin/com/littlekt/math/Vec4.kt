@@ -26,7 +26,8 @@ open class Vec4f internal constructor(x: Float, y: Float, z: Float, w: Float, si
         fields[3] = w
     }
 
-    fun add(other: Vec4f, result: MutableVec4f): MutableVec4f = result.set(this).add(other)
+    fun add(other: Vec4f, result: MutableVec4f): MutableVec4f =
+        result.set(x + other.x, y + other.y, z + other.z, w + other.w)
 
     fun distance(other: Vec4f): Float = sqrt(sqrDistance(other))
 
@@ -42,7 +43,8 @@ open class Vec4f internal constructor(x: Float, y: Float, z: Float, w: Float, si
             isFuzzyEqual(z, other.z, eps) &&
             isFuzzyEqual(w, other.w, eps)
 
-    fun mul(other: Vec4f, result: MutableVec4f): MutableVec4f = result.set(this).mul(other)
+    fun mul(other: Vec4f, result: MutableVec4f): MutableVec4f =
+        result.set(x * other.x, y * other.y, z * other.z, w * other.w)
 
     fun norm(result: MutableVec4f): MutableVec4f = result.set(this).norm()
 
@@ -52,14 +54,14 @@ open class Vec4f internal constructor(x: Float, y: Float, z: Float, w: Float, si
         val dx = x - other.x
         val dy = y - other.y
         val dz = z - other.z
-        val dw = z - other.w
+        val dw = w - other.w
         return dx * dx + dy * dy + dz * dz + dw * dw
     }
 
     override fun sqrLength(): Float = x * x + y * y + z * z + w * w
 
     fun subtract(other: Vec4f, result: MutableVec4f): MutableVec4f =
-        result.set(this).subtract(other)
+        result.set(x - other.x, y - other.y, z - other.z, w - other.w)
 
     fun getXyz(result: MutableVec3f): MutableVec3f {
         result.x = x
@@ -172,7 +174,10 @@ open class MutableVec4f(x: Float, y: Float, z: Float, w: Float) : Vec4f(x, y, z,
         return this
     }
 
-    fun norm(): MutableVec4f = scale(1f / length())
+    fun norm(): MutableVec4f {
+        val l = length()
+        return if (l != 0f) scale(1f / l) else this
+    }
 
     fun scale(factor: Float): MutableVec4f {
         x *= factor

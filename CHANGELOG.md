@@ -38,6 +38,8 @@
 - BREAKING: `ModelBatch.removePipelineProvider()` returns the removed `MaterialPipelineProvider?`.
 - BREAKING: JVM `Queue.writeBuffer` `dataOffset` is now in elements, matching web.
 - BREAKING: `Node.equals` & `Node.hashCode` only use the node `id`.
+- BREAKING: `Quaternion.isFuzzyEqual` takes a `Quaternion` and checks all four components instead of a `Vec2f`.
+- BREAKING: `BoundingBox.hitDistanceSqr` returns the squared distance to the hit for any ray direction length.
 
 ### Changes
 
@@ -73,6 +75,17 @@
 - Add `ShadowsExample`, `MultiPassExample`, `TransparencyExample`, `IBLExample` & `BloomExample`.
 - Add `AnimationExample`, `ParticlesExample`, `ShapesExample` & `SpriteBatchExample`.
 - Rework examples into `webgpu`, `g2d`, `ui`, `g3d` & `input` packages and remove outdated examples.
+- Fix `Vec2f`, `Vec3f`, `Vec4f`, `Quaternion`, `Mat3` & `Mat4` operations returning wrong results when `result` is the
+  same object as `this` or `other`.
+- Fix `Mat4.set` with translation, rotation & scale dropping the y translation.
+- Fix `Mat4.rotate(Mat3)` treating the rotation as a 2D transform.
+- Fix `Mat3.invert` failing for negative determinants & `Mat3.scale(..., result)` dropping the translation.
+- Fix `Vec4f.sqrDistance` & `Quaternion.sqrDistance` using `z` instead of `w`.
+- Fix `MutableVec4f.norm()` returning `NaN` for a zero vector.
+- Fix `Quaternion.pitch` returning `NaN` near the poles & `Quaternion` euler getters at the poles.
+- Fix `Rect` bezier & quad bounds missing the curve extremes.
+- Fix `BresenhamUtils.castThickRay` checking the wrong cell.
+- Fix `Color.fromHex` reading the alpha of `#RGBA` from blue & `Color.toHexString` not zero padding.
 - Fix `ParticleSimulator` updating & drawing an unallocated particle and never using its last particle.
 - Fix `ParticleSimulator` keeping the anchor, delay & fade in values of reused particles.
 - Fix `NodeList.findFirstNodeOfType` only searching the first child.

@@ -32,7 +32,8 @@ open class Vec2f internal constructor(x: Float, y: Float, size: Int) {
         fields[1] = y
     }
 
-    fun add(other: Vec2f, result: MutableVec2f): MutableVec2f = result.set(this).add(other)
+    fun add(other: Vec2f, result: MutableVec2f): MutableVec2f =
+        result.set(x + other.x, y + other.y)
 
     fun distance(other: Vec2f): Float = sqrt(sqrDistance(other))
 
@@ -59,7 +60,8 @@ open class Vec2f internal constructor(x: Float, y: Float, size: Int) {
         return result
     }
 
-    fun mul(other: Vec2f, result: MutableVec2f): MutableVec2f = result.set(this).mul(other)
+    fun mul(other: Vec2f, result: MutableVec2f): MutableVec2f =
+        result.set(x * other.x, y * other.y)
 
     fun norm(result: MutableVec2f): MutableVec2f = result.set(this).norm()
 
@@ -76,7 +78,7 @@ open class Vec2f internal constructor(x: Float, y: Float, size: Int) {
     open fun sqrLength(): Float = x * x + y * y
 
     fun subtract(other: Vec2f, result: MutableVec2f): MutableVec2f =
-        result.set(this).subtract(other)
+        result.set(x - other.x, y - other.y)
 
     fun angleTo(other: Vec2f): Angle {
         return atan2(other.x * y - other.y * x, x * other.x + y * other.y).radians

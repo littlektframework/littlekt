@@ -96,7 +96,10 @@ open class Color(r: Float, g: Float, b: Float, a: Float = 1f) : Vec4f(r, g, b, a
         val ig = (g * 255).roundToInt().clamp(0, 255)
         val ib = (b * 255).roundToInt().clamp(0, 255)
         val ia = (a * 255).roundToInt().clamp(0, 255)
-        return ir.toString(16) + ig.toString(16) + ib.toString(16) + ia.toString(16)
+        return ir.toString(16).padStart(2, '0') +
+            ig.toString(16).padStart(2, '0') +
+            ib.toString(16).padStart(2, '0') +
+            ia.toString(16).padStart(2, '0')
     }
 
     /** @return a new [MutableColor] using the color values of this color. */
@@ -172,7 +175,7 @@ open class Color(r: Float, g: Float, b: Float, a: Float = 1f) : Vec4f(r, g, b, a
                     val r4 = str.substring(0, 1).toInt(16)
                     val g4 = str.substring(1, 2).toInt(16)
                     val b4 = str.substring(2, 3).toInt(16)
-                    val a4 = str.substring(2, 3).toInt(16)
+                    val a4 = str.substring(3, 4).toInt(16)
                     r = (r4 or (r4 shl 4)) / 255f
                     g = (g4 or (g4 shl 4)) / 255f
                     b = (b4 or (b4 shl 4)) / 255f

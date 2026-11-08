@@ -335,7 +335,7 @@ open class Mat4 {
         m10 = sx * (2 * s * (qx * qy + qz * qw))
         m11 = sy * (1 - 2 * s * (qx * qx + qz * qz))
         m12 = sz * (2 * s * (qy * qz - qx * qw))
-        m12 = ty
+        m13 = ty
 
         m20 = sx * (2 * s * (qx * qz - qy * qw))
         m21 = sy * (2 * s * (qy * qz + qx * qw))
@@ -446,7 +446,12 @@ open class Mat4 {
 
     fun rotate(rotationMat: Mat3) {
         return synchronized(tmpMatLock) {
-            tmpMatA.setToIdentity().set(rotationMat)
+            tmpMatA.setToIdentity()
+            for (row in 0..2) {
+                for (col in 0..2) {
+                    tmpMatA[row, col] = rotationMat[row, col]
+                }
+            }
             set(mul(tmpMatA, tmpMatB))
         }
     }
@@ -490,6 +495,9 @@ open class Mat4 {
      * @return the [result] matrix
      */
     fun mul(other: Mat4, result: Mat4): Mat4 {
+        if (result === this || result === other) {
+            return synchronized(tmpMatLock) { result.set(mul(other, tmpMatC)) }
+        }
         for (i in 0..3) {
             for (j in 0..3) {
                 var x = 0f
@@ -533,6 +541,9 @@ open class Mat4 {
      * @return the [result] matrix
      */
     fun mulLeft(other: Mat4, result: Mat4): Mat4 {
+        if (result === this || result === other) {
+            return synchronized(tmpMatLock) { result.set(mulLeft(other, tmpMatC)) }
+        }
         for (i in 0..3) {
             for (j in 0..3) {
                 var x = 0f
@@ -550,6 +561,7 @@ open class Mat4 {
     }
 
     fun transpose(result: Mat4): Mat4 {
+        if (result === this) return transpose()
         for (i in 0..3) {
             val mBase = i * 4
             result.data[i] = data[mBase]
@@ -1283,6 +1295,7 @@ open class Mat4 {
         private val tmpMatLock = SynchronizedObject()
         private val tmpMatA = Mat4()
         private val tmpMatB = Mat4()
+        private val tmpMatC = Mat4()
         private val l_vez = MutableVec3f()
         private val l_vex = MutableVec3f()
         private val l_vey = MutableVec3f()

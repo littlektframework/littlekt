@@ -24,7 +24,7 @@ open class Quaternion(open val x: Float, open val y: Float, open val z: Float, o
      */
     val gimbalPole: Int
         get() {
-            val t = y * x + z * w
+            val t = w * x - y * z
             return if (t > 0.499f) 1 else if (t < -0.499f) -1 else 0
         }
 
@@ -35,7 +35,7 @@ open class Quaternion(open val x: Float, open val y: Float, open val z: Float, o
             return if (pole == 0) {
                 atan2(2f * (w * z + y * x), 1f - 2f * (x * x + z * z)).radians
             } else {
-                (pole * 2f * atan2(y, w)).radians
+                (-pole * 2f * atan2(y, w)).radians
             }
         }
 
@@ -44,7 +44,7 @@ open class Quaternion(open val x: Float, open val y: Float, open val z: Float, o
         get() {
             val pole = gimbalPole
             return if (pole == 0) {
-                asin((2f * (w * x - z * y).clamp(-1f, 1f))).radians
+                asin((2f * (w * x - z * y)).clamp(-1f, 1f)).radians
             } else {
                 (pole * PI * 0.5f).radians
             }
@@ -64,8 +64,11 @@ open class Quaternion(open val x: Float, open val y: Float, open val z: Float, o
      * Checks vector components for equality using [com.littlekt.math.isFuzzyEqual], that is all
      * components must have a difference less or equal [eps].
      */
-    fun isFuzzyEqual(other: Vec2f, eps: Float = FUZZY_EQ_F): Boolean =
-        isFuzzyEqual(x, other.x, eps) && isFuzzyEqual(y, other.y, eps)
+    fun isFuzzyEqual(other: Quaternion, eps: Float = FUZZY_EQ_F): Boolean =
+        isFuzzyEqual(x, other.x, eps) &&
+            isFuzzyEqual(y, other.y, eps) &&
+            isFuzzyEqual(z, other.z, eps) &&
+            isFuzzyEqual(w, other.w, eps)
 
     fun length(): Float = sqrt(sqrLength())
 
@@ -75,7 +78,7 @@ open class Quaternion(open val x: Float, open val y: Float, open val z: Float, o
         val dx = x - other.x
         val dy = y - other.y
         val dz = z - other.z
-        val dw = z - other.w
+        val dw = w - other.w
         return dx * dx + dy * dy + dz * dz + dw * dw
     }
 
@@ -99,10 +102,10 @@ open class Quaternion(open val x: Float, open val y: Float, open val z: Float, o
     ): MutableQuaternion = result.set(this).setEuler(pitch, yaw, roll)
 
     fun subtract(other: Quaternion, result: MutableQuaternion): MutableQuaternion =
-        result.set(this).subtract(other)
+        result.set(x - other.x, y - other.y, z - other.z, w - other.w)
 
     fun add(other: Quaternion, result: MutableQuaternion): MutableQuaternion =
-        result.set(this).add(other)
+        result.set(x + other.x, y + other.y, z + other.z, w + other.w)
 
     /**
      * Multiplies this vector as a quaternion with another in the form of `this * other`.
@@ -111,7 +114,7 @@ open class Quaternion(open val x: Float, open val y: Float, open val z: Float, o
      * @return [result]
      */
     fun mul(other: Quaternion, result: MutableQuaternion): MutableQuaternion =
-        result.set(this).mul(other)
+        if (result === other) result.mulLeft(this) else result.set(this).mul(other)
 
     /**
      * Multiplies this vector as a quaternion with another in the form of `other * this`.
@@ -120,7 +123,7 @@ open class Quaternion(open val x: Float, open val y: Float, open val z: Float, o
      * @return [result]
      */
     fun mulLeft(other: Quaternion, result: MutableQuaternion): MutableQuaternion =
-        result.set(this).mulLeft(other)
+        if (result === other) result.mul(this) else result.set(this).mulLeft(other)
 
     fun distance(other: Quaternion): Float = sqrt(sqrDistance(other))
 
@@ -130,7 +133,7 @@ open class Quaternion(open val x: Float, open val y: Float, open val z: Float, o
         result.set(this).lookAt(forward, up)
 
     fun mix(other: Quaternion, weight: Float, result: MutableQuaternion): MutableQuaternion =
-        result.set(this).mix(other, weight)
+        if (result === other) result.mix(this, 1f - weight) else result.set(this).mix(other, weight)
 
     /**
      * Transforms the given vector using this quaternion and outputs the [result].
