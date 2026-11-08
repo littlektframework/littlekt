@@ -531,19 +531,7 @@ object Standard {
                 }
                 body {
                     """
-                    fn dirLightVisibility(world_pos : vec3f, normal : vec3f) -> f32 {
-                      let view_depth = -(camera.view * vec4(world_pos, 1.0)).z;
-                      let cascade_count = i32(shadow.params.y);
-                      var cascade = -1;
-                      for (var i = 0; i < cascade_count; i++) {
-                        if (view_depth < shadow.splits[i]) {
-                          cascade = i;
-                          break;
-                        }
-                      }
-                      if (cascade < 0) {
-                        return 1.0;
-                      }
+                    fn cascadeVisibility(world_pos : vec3f, normal : vec3f, cascade : i32) -> f32 {
                       let offset_pos = world_pos + normal * shadow.normal_offsets[cascade];
                       let light_pos = shadow.view_proj[cascade] * vec4(offset_pos, 1.0);
                       let ndc = light_pos.xyz / light_pos.w;
@@ -565,9 +553,33 @@ object Standard {
                           );
                         }
                       }
+                      return visibility / 9.0;
+                    }
+
+                    fn dirLightVisibility(world_pos : vec3f, normal : vec3f) -> f32 {
+                      let view_depth = -(camera.view * vec4(world_pos, 1.0)).z;
+                      let cascade_count = i32(shadow.params.y);
+                      var cascade = -1;
+                      for (var i = 0; i < cascade_count; i++) {
+                        if (view_depth < shadow.splits[i]) {
+                          cascade = i;
+                          break;
+                        }
+                      }
+                      if (cascade < 0) {
+                        return 1.0;
+                      }
+                      var visibility = cascadeVisibility(world_pos, normal, cascade);
+                      let cascade_end = shadow.splits[cascade];
+                      let cascade_start = select(0.0, shadow.splits[max(cascade - 1, 0)], cascade > 0);
+                      let blend_start = cascade_end - (cascade_end - cascade_start) * shadow.params.z;
+                      if (cascade + 1 < cascade_count && view_depth > blend_start) {
+                        let next = cascadeVisibility(world_pos, normal, cascade + 1);
+                        visibility = mix(visibility, next, smoothstep(blend_start, cascade_end, view_depth));
+                      }
                       let max_distance = shadow.splits[cascade_count - 1];
                       let fade = smoothstep(max_distance * 0.9, max_distance, view_depth);
-                      return mix(visibility / 9.0, 1.0, fade);
+                      return mix(visibility, 1.0, fade);
                     }
                     """
                         .trimIndent()

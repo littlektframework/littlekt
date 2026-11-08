@@ -34,6 +34,7 @@
 ### Changes
 
 - Add cascaded directional shadows with `DirectionalShadowMap` & `ShadowMaterialPipelineProvider`.
+- Add `DirectionalShadowMap.cascadeBlend` to blend between shadow cascades.
 - Add HDR rendering & tonemapping with `Tonemapper`.
 - Add image based lighting & skyboxes with `EnvironmentMap` & `Skybox`.
 - Add `VfsFile.readHdrImage()` & `decodeRadianceHdr` for loading Radiance `.hdr` files.

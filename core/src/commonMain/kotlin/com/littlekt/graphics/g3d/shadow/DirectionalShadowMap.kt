@@ -74,6 +74,12 @@ class DirectionalShadowMap(
     /** Offsets the sampled position along the surface normal, in texels, to reduce acne. */
     var normalOffset: Float = 1.5f
 
+    /**
+     * The fraction, from `0` to `1`, at the far end of each cascade that blends into the next
+     * cascade to hide the seam between them. `0` disables blending.
+     */
+    var cascadeBlend: Float = 0.1f
+
     private val texture =
         device.createTexture(
             TextureDescriptor(
@@ -201,7 +207,7 @@ class DirectionalShadowMap(
         }
         uniformData.put(depthBias)
         uniformData.put(cascadeCount.toFloat())
-        uniformData.put(0f)
+        uniformData.put(cascadeBlend.coerceIn(0f, 1f))
         uniformData.put(0f)
         for (i in 0 until MAX_CASCADES) {
             val texelSize = if (i < cascadeCount) cameras[i].virtualWidth / size else 0f
