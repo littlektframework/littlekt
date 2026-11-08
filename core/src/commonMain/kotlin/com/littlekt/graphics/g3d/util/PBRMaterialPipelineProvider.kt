@@ -36,7 +36,7 @@ class PBRMaterialPipelineProvider : BaseMaterialPipelineProvider<PBRMaterial>() 
                 false, // TODO handle bloom
                 (environment as? PBREnvironment)?.shadowMap != null,
                 material.isFullyRough,
-                gammaCorrect = !colorFormat.srgb,
+                gammaCorrect = !colorFormat.srgb && !colorFormat.hdr,
             )
         val shaderCode = shader {
             vertex(vertexShaderCode.vertex)

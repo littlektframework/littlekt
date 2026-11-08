@@ -4,95 +4,58 @@
 
 ### Breaking
 
-- BREAKING: `Mat4.setToOrthographic` now maps depth to WebGPU's `[0, 1]` range and correctly sets the y
-  translation. Anything drawn with an orthographic projection must now be in front of the camera, between
-  `-near` and `-far` in view space. 2D content at `z = 0` is unaffected.
-    - Migration: if you relied on positive `z` values being visible with an ortho camera, move them to negative `z`
-      or adjust `near` / `far`.
-- BREAKING: `Camera.worldToScreen` & `Camera.screenToWorld` (3D versions) now map the screen `z` directly to WebGPU's
-  `[0, 1]` depth range instead of OpenGL's `[-1, 1]`. A screen `z` of `0` is the near plane and `1` is the far plane.
-  This also fixes the origin of `Camera.computePickRay` to be on the near plane.
-    - Migration: if you passed or read a screen `z` of `0.5` for the near plane, use `0` instead.
-- BREAKING: `TextureFormat.toNonSRGB()` now returns `BGRA8_UNORM` for `BGRA8_UNORM_SRGB` (it returned itself before).
-- BREAKING: The `PBR` and `Unlit` standard shaders now only apply `linear_to_sRGB` when the color target isn't an
-  sRGB format. Scenes rendered to an sRGB surface were being gamma corrected twice and will now look darker / correct.
-    - Migration: if you bumped up light intensities or colors to compensate, lower them back down.
-    - `Standard.PBR.FragmentShader` & `Standard.Unlit.FragmentShader` have a new `gammaCorrect` param for custom
-      providers.
-- BREAKING: glTF base color & emissive textures are always loaded as sRGB, metallic roughness & occlusion as linear.
-  The occlusion texture and its strength are now loaded (they were ignored before) and `alphaCutoff` is only applied
-  for `MASK` alpha mode.
-- BREAKING: `MeshPrimitive.instanceBuffers` & `MeshPrimitive.writeInstanceDataToBuffer()` have been removed. Instance
-  data is now stored in a single buffer owned by `ModelBatch` and drawn with `firstInstance`.
-    - Migration: use `MeshPrimitive.writeVisibleInstanceData(dst, dstOffset)` to copy visible instance data. Custom
-      shaders must index instance data with `instance_index` (e.g. `models[input.instance_index]`) as it now includes
-      the `firstInstance` offset.
-- BREAKING: `InstanceBuffers` API has changed. `updateStaticStorage` is replaced with `ensureCapacity`, `write` &
-  `releasePending`.
-- BREAKING: `MeshPrimitive.removeInstance` now swaps the last instance into the removed slot, so instance order is not
-  preserved. `MeshPrimitive.clearInstances` now detaches each instance so it may be re-added via `addInstance`.
-- BREAKING: `Environment.update(camera, dt)` has been removed and replaced with `Environment.beginView(camera, dt)`.
-  Each different camera rendered within a frame now gets its own view (camera buffers & cluster buffers for
-  `PBREnvironment`).
-    - Migration: custom `Environment` subclasses should override `updateView` instead of `update`. When constructing an
-      `Environment` directly, pass a `viewBuffersFactory` if more than one camera will be rendered per frame.
-      `UnlitEnvironment()` & `PBREnvironment()` handle this already.
-- BREAKING: `Environment` is now `Releasable`. Call `release()` when done with it.
-- BREAKING: `ModelBatch` per frame state (instance buffer offset, material uniforms, skin joints) is reset based on the
-  new `EngineStats.frame`, which is incremented by the engine each frame.
-    - Migration: if running your own loop outside of a `Context`, call `EngineStats.resetPerFrameCounts()` once per frame.
-- BREAKING: `Material.update()` is now only called once per frame by `ModelBatch`, per material.
-    - Migration: if a material's uniform values need to change between passes within the same frame, use a separate
-      material instance.
-- BREAKING: `Skin` inverse bind matrices are now only uploaded once when created. `Skin.writeToBuffer()` only uploads
-  the joint transforms.
+- BREAKING: `Mat4.setToOrthographic` now maps depth to `[0, 1]` and fixes the y translation.
+    - Migration: ortho content must be between `-near` & `-far` in view space. Move positive `z` to negative `z`.
+- BREAKING: 3D `Camera.worldToScreen` & `Camera.screenToWorld` now use a screen `z` of `[0, 1]` instead of `[-1, 1]`.
+    - Migration: use `z = 0f` for the near plane instead of `0.5f`.
+- BREAKING: `TextureFormat.toNonSRGB()` now returns `BGRA8_UNORM` for `BGRA8_UNORM_SRGB`.
+- BREAKING: `PBR` & `Unlit` shaders no longer gamma correct sRGB or float color targets.
+    - Migration: lower any light intensities / colors that were bumped up to compensate.
+- BREAKING: glTF base color & emissive textures load as sRGB, the rest as linear. `alphaCutoff` is only used for `MASK`.
+- BREAKING: Remove `MeshPrimitive.instanceBuffers` & `MeshPrimitive.writeInstanceDataToBuffer()`.
+    - Migration: `primitive.writeVisibleInstanceData(dst, dstOffset)`. Custom shaders use `models[input.instance_index]`.
+- BREAKING: Replace `InstanceBuffers.updateStaticStorage` with `ensureCapacity`, `write` & `releasePending`.
+- BREAKING: `MeshPrimitive.removeInstance` no longer preserves instance order.
+- BREAKING: Replace `Environment.update(camera, dt)` with `Environment.beginView(camera, dt)`.
+    - Migration: override `updateView` instead of `update`.
+- BREAKING: `Environment` is now `Releasable`.
+    - Migration: `environment.release()`
+- BREAKING: `ModelBatch` per frame state now resets on `EngineStats.frame`.
+    - Migration: call `EngineStats.resetPerFrameCounts()` each frame when not using a `Context`.
+- BREAKING: `Material.update()` is only called once per frame.
+    - Migration: use separate material instances for different values in the same frame.
+- BREAKING: `Skin.writeToBuffer()` only uploads the joint transforms.
 - BREAKING: `MaterialPipelineProvider.getMaterialPipeline()` & `BaseMaterialPipelineProvider.createMaterialPipeline()`
-  now take a `sampleCount` param for multisampling.
-    - Migration: add the `sampleCount: Int` param to any custom providers and pass it to
-      `MultisampleState(count = sampleCount)` when creating the render pipeline.
-
-- BREAKING: `ModelBatch` now skips a primitive when its `MaterialPipelineProvider` returns `null` instead of throwing.
-  It still throws when no provider is found for the material type.
+  take a `sampleCount`.
+    - Migration: `MultisampleState(count = sampleCount)`
+- BREAKING: `ModelBatch` skips a primitive when its provider returns `null` instead of throwing.
 
 ### Changes
 
-- Add cascaded directional light shadows:
-    - `DirectionalShadowMap` splits the camera frustum, up to `shadowDistance`, into 1-4 cascades and renders the
-      shadow casters from the light into a layer of a depth texture array per cascade. Pass it to
-      `PBREnvironment(device, shadowMap = shadowMap)` and each frame call `shadowMap.update(lightDirection, camera)`
-      & `shadowMap.render(commandEncoder, shadowBatch, nodes, dt)`.
-    - `ShadowMaterialPipelineProvider` creates depth only pipelines for shadow casters (static & skinned) and skips
-      materials with `castShadows = false`. Materials with an `alphaCutoff` are alpha tested so cut outs, like
-      foliage, cast the correct shape.
-    - The PBR shader picks the cascade by view depth, samples it with 3x3 PCF, a depth bias & a normal offset, and
-      fades the shadows out at the shadow distance.
-    - See `ShadowsExample` & `PBRExample`.
-- Add `ModelBatch.defaultPipelineProvider`, used for any `Material` type without its own provider.
-- Add `bindTextureDepth2d`, `bindTextureDepth2dArray` & `bindSamplerComparison` to the shader builder and
-  `BindingUsage.SHADOW`.
-- Add `ShaderCodeBuilder.visibility` to override the bind group layout visibility of a shader, e.g. to keep a vertex
-  only shader's bind groups compatible with vertex & fragment shaders.
-- Add a fragment `main` overload with no output for depth only fragment shaders.
+- Add cascaded directional shadows with `DirectionalShadowMap` & `ShadowMaterialPipelineProvider`.
+- Add HDR rendering & tonemapping with `Tonemapper`.
+- Add MSAA with `ModelBatch.sampleCount`.
+- Add support for multiple `ModelBatch.flush()` calls per frame with different cameras & render passes.
+- Add `ModelBatch.defaultPipelineProvider`.
+- Add depth texture & comparison sampler bindings to the shader builder.
+- Add `ShaderCodeBuilder.visibility`.
+- Add fragment `main` overload with no output.
 - Add `skinGroup` param to `Standard.SkinnedVertexShader`.
-- `ModelBatch.flush()` may now be called multiple times per frame with different cameras & render passes (shadows,
-  split screen, etc.) without overwriting each others data.
-- Fix `ModelBatch` binding the primitive's own material bind group instead of the override material's.
-- Fix `ModelBatch.preparePipeline()` not being safe to call from a separate thread.
+- Add `Camera.unproject(ndc, result)`.
+- Add `Vec3f.lerp` & `MutableVec3f.lerp` as aliases of `mix`.
+- Add `TextureFormat.hdr` & `TextureFormat.toSRGB()`.
+- Add `EngineStats.frame`.
+- Add `IntMap`.
+- Add `ShadowsExample` & `MultiPassExample`.
+- Fix `ModelBatch` binding the primitive's material bind group instead of the override material's.
+- Fix `ModelBatch.preparePipeline()` not being thread safe.
 - Fix material pipeline caching ignoring the color & depth formats.
 - Fix `MeshPrimitive.removeInstance` not shifting instance data.
-- Fix `PBREnvironment` cluster bounds not being recomputed when the camera projection changes (e.g. fov).
-- Fix `PBREnvironment` leaking compute command buffers every frame.
-- Fix `ClusterBuffers` work group count rounding down for non-divisible tile counts.
-- Fix fully rough PBR materials producing bright single pixel specular highlights on silhouette edges.
-- Add `ModelBatch.sampleCount` for MSAA. Must be `1` or `4` and match the sample count of the render pass attachments.
-- Add `MultiPassExample` showing multiple cameras & render passes in one frame with MSAA.
-- Add `Camera.unproject(ndc, result)`, the inverse of `Camera.project`.
-- Add `Vec3f.lerp(other, alpha, result)` & `MutableVec3f.lerp(target, alpha)` as aliases of `Vec3f.mix`.
-- Add `TextureFormat.toSRGB()`.
-- Add `EngineStats.frame`.
-- Add `IntMap`, an int keyed map that doesn't box its keys.
-- Performance: remove per frame allocations & hashing from `ModelBatch` (cached bind group indices, pipeline lookups,
-  no boxed map keys, O(1) instance bookkeeping) and use bulk memory copies in the JVM `FloatBuffer`.
+- Fix `PBREnvironment` cluster bounds not updating when the projection changes.
+- Fix `PBREnvironment` leaking compute command buffers.
+- Fix `ClusterBuffers` work group count rounding down.
+- Fix fully rough PBR materials producing single pixel specular highlights on edges.
+- Performance: remove per frame allocations from `ModelBatch` & use bulk copies in the JVM `FloatBuffer`.
 
 ## 0.11.0
 

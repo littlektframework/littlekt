@@ -304,6 +304,23 @@ enum class TextureFormat(val bytes: Int, val srgb: Boolean = false) {
     DEPTH24_PLUS_STENCIL8(4);
 
     /**
+     * If this is a floating point color format. Colors written to it are stored as is, in linear,
+     * and are not clamped to `[0, 1]`. Useful for HDR rendering.
+     */
+    val hdr: Boolean
+        get() =
+            when (this) {
+                R16_FLOAT,
+                R32_FLOAT,
+                RG16_FLOAT,
+                RG11B10_FLOAT,
+                RG32_FLOAT,
+                RGBA16_FLOAT,
+                RGBA32_FLOAT -> true
+                else -> false
+            }
+
+    /**
      * @return same texture format but as the non-sRGB equivalent, if [srgb] is `true`. For example
      *   [RGBA8_UNORM_SRGB] should return [RGBA8_UNORM]. If [srgb] is `false`, it'll just return
      *   itself.

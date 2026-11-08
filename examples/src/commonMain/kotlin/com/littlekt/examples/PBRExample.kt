@@ -13,6 +13,8 @@ import com.littlekt.graph.node.ui.label
 import com.littlekt.graph.sceneGraph
 import com.littlekt.graphics.Color
 import com.littlekt.graphics.PerspectiveCamera
+import com.littlekt.graphics.TonemapMode
+import com.littlekt.graphics.Tonemapper
 import com.littlekt.graphics.g3d.ModelBatch
 import com.littlekt.graphics.g3d.Node3D
 import com.littlekt.graphics.g3d.PBREnvironment
@@ -30,6 +32,7 @@ import com.littlekt.math.Vec3f
 import com.littlekt.math.geom.degrees
 import com.littlekt.math.random
 import com.littlekt.util.datastructure.fastForEach
+import com.littlekt.util.toString
 
 /**
  * An example using a simple Orthographic camera to move around a texture.
@@ -106,6 +109,21 @@ class PBRExample(context: Context) : ContextListener(context) {
 
         val surfaceCapabilities = graphics.surfaceCapabilities
         val preferredFormat = graphics.preferredFormat
+        val tonemapper = Tonemapper(device, preferredFormat)
+        val hdrFormat = TextureFormat.RGBA16_FLOAT
+        val clearColor = Color.DARK_GRAY.toLinear()
+        var hdrTexture =
+            device.createTexture(
+                TextureDescriptor(
+                    Extent3D(graphics.width, graphics.height, 1),
+                    1,
+                    1,
+                    TextureDimension.D2,
+                    hdrFormat,
+                    TextureUsage.RENDER_ATTACHMENT or TextureUsage.TEXTURE,
+                )
+            )
+        var hdrFrame = hdrTexture.createView()
         val graph =
             sceneGraph(this) {
                     column {
@@ -134,6 +152,12 @@ class PBRExample(context: Context) : ContextListener(context) {
                         }
                         label { onUpdate { text = "FPS: $fps" } }
                         label { onUpdate { text = "Lowest: $lowest" } }
+                        label { onUpdate { text = "Tonemap (M): ${tonemapper.mode}" } }
+                        label {
+                            onUpdate {
+                                text = "Exposure (PgUp/PgDn): ${tonemapper.exposure.toString(2)}"
+                            }
+                        }
                     }
                 }
                 .also { it.initialize() }
@@ -170,7 +194,7 @@ class PBRExample(context: Context) : ContextListener(context) {
                 addPipelineProvider(PBRMaterialPipelineProvider())
                 addPipelineProvider(DepthSliceMaterialPipelineProvider())
                 addPipelineProvider(DepthMaterialPipelineProvider())
-                colorFormat = preferredFormat
+                colorFormat = hdrFormat
                 this.depthFormat = depthFormat
             }
 
@@ -204,6 +228,20 @@ class PBRExample(context: Context) : ContextListener(context) {
                     )
                 )
             depthFrame = depthTexture.createView()
+            hdrFrame.release()
+            hdrTexture.release()
+            hdrTexture =
+                device.createTexture(
+                    TextureDescriptor(
+                        Extent3D(width, height, 1),
+                        1,
+                        1,
+                        TextureDimension.D2,
+                        hdrFormat,
+                        TextureUsage.RENDER_ATTACHMENT or TextureUsage.TEXTURE,
+                    )
+                )
+            hdrFrame = hdrTexture.createView()
             camera.virtualWidth = width.toFloat()
             camera.virtualHeight = height.toFloat()
             camera.update()
@@ -228,6 +266,17 @@ class PBRExample(context: Context) : ContextListener(context) {
 
             if (input.isKeyJustPressed(Key.NUM3) && renderView != RenderView.DEPTH) {
                 renderView = RenderView.DEPTH
+            }
+
+            if (input.isKeyJustPressed(Key.M)) {
+                val modes = TonemapMode.entries
+                tonemapper.mode = modes[(tonemapper.mode.ordinal + 1) % modes.size]
+            }
+            if (input.isKeyJustPressed(Key.PAGE_UP)) {
+                tonemapper.exposure *= 1.25f
+            }
+            if (input.isKeyJustPressed(Key.PAGE_DOWN)) {
+                tonemapper.exposure /= 1.25f
             }
         }
 
@@ -270,12 +319,10 @@ class PBRExample(context: Context) : ContextListener(context) {
                         RenderPassDescriptor(
                             listOf(
                                 RenderPassColorAttachmentDescriptor(
-                                    view = frame,
+                                    view = hdrFrame,
                                     loadOp = LoadOp.CLEAR,
                                     storeOp = StoreOp.STORE,
-                                    clearColor =
-                                        if (preferredFormat.srgb) Color.DARK_GRAY.toLinear()
-                                        else Color.DARK_GRAY,
+                                    clearColor = clearColor,
                                 )
                             ),
                             depthStencilAttachment =
@@ -311,6 +358,23 @@ class PBRExample(context: Context) : ContextListener(context) {
             renderPassEncoder.end()
             renderPassEncoder.release()
 
+            val tonemapPassEncoder =
+                commandEncoder.beginRenderPass(
+                    RenderPassDescriptor(
+                        listOf(
+                            RenderPassColorAttachmentDescriptor(
+                                view = frame,
+                                loadOp = LoadOp.CLEAR,
+                                storeOp = StoreOp.STORE,
+                            )
+                        ),
+                        label = "tonemap render pass",
+                    )
+                )
+            tonemapper.render(tonemapPassEncoder, hdrFrame)
+            tonemapPassEncoder.end()
+            tonemapPassEncoder.release()
+
             graph.update(dt)
             graph.render(
                 commandEncoder,
@@ -338,6 +402,9 @@ class PBRExample(context: Context) : ContextListener(context) {
         }
 
         onRelease {
+            hdrFrame.release()
+            hdrTexture.release()
+            tonemapper.release()
             depthTexture.release()
             shadowBatch.release()
             shadowMap.release()
