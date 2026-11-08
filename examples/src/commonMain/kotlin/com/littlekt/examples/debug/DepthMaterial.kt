@@ -28,6 +28,7 @@ class DepthMaterialPipelineProvider : BaseMaterialPipelineProvider<DepthMaterial
         material: DepthMaterial,
         colorFormat: TextureFormat,
         depthFormat: TextureFormat,
+        sampleCount: Int,
     ): MaterialPipeline {
         val vertexShaderCode =
             if (material.skinned) Standard.SkinnedVertexShader(layout.attributes)
@@ -93,7 +94,7 @@ class DepthMaterialPipelineProvider : BaseMaterialPipelineProvider<DepthMaterial
                         ),
                     multisample =
                         MultisampleState(
-                            count = 1,
+                            count = sampleCount,
                             mask = 0xFFFFFFF,
                             alphaToCoverageEnabled = false,
                         ),

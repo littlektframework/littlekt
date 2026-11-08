@@ -24,6 +24,7 @@ class PBRMaterialPipelineProvider : BaseMaterialPipelineProvider<PBRMaterial>() 
         material: PBRMaterial,
         colorFormat: TextureFormat,
         depthFormat: TextureFormat,
+        sampleCount: Int,
     ): MaterialPipeline {
         val vertexShaderCode =
             if (material.skinned) Standard.SkinnedVertexShader(layout.attributes)
@@ -78,7 +79,7 @@ class PBRMaterialPipelineProvider : BaseMaterialPipelineProvider<PBRMaterial>() 
                         ),
                     multisample =
                         MultisampleState(
-                            count = 1,
+                            count = sampleCount,
                             mask = 0xFFFFFFF,
                             alphaToCoverageEnabled = false,
                         ),

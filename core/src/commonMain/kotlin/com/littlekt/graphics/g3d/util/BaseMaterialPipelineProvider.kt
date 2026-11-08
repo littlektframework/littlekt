@@ -25,6 +25,7 @@ abstract class BaseMaterialPipelineProvider<T : Material> : MaterialPipelineProv
         stripIndexFormat: IndexFormat?,
         colorFormat: TextureFormat,
         depthFormat: TextureFormat,
+        sampleCount: Int,
     ): MaterialPipeline? {
         val renderInfo =
             renderInfos.alloc().apply {
@@ -35,6 +36,7 @@ abstract class BaseMaterialPipelineProvider<T : Material> : MaterialPipelineProv
                 this.indexFormat = stripIndexFormat
                 this.colorFormat = colorFormat
                 this.depthFormat = depthFormat
+                this.sampleCount = sampleCount
             }
         if (pipelines.contains(renderInfo)) {
             return pipelines[renderInfo]?.also { renderInfos.free(renderInfo) }
@@ -49,6 +51,7 @@ abstract class BaseMaterialPipelineProvider<T : Material> : MaterialPipelineProv
                     material as T,
                     colorFormat,
                     depthFormat,
+                    sampleCount,
                 )
 
             pipelines[renderInfo] = pipeline
@@ -64,6 +67,7 @@ abstract class BaseMaterialPipelineProvider<T : Material> : MaterialPipelineProv
         material: T,
         colorFormat: TextureFormat,
         depthFormat: TextureFormat,
+        sampleCount: Int,
     ): MaterialPipeline
 
     override fun release() {
@@ -80,6 +84,7 @@ abstract class BaseMaterialPipelineProvider<T : Material> : MaterialPipelineProv
         var indexFormat: IndexFormat? = null,
         var colorFormat: TextureFormat = TextureFormat.RGBA8_UNORM,
         var depthFormat: TextureFormat = TextureFormat.DEPTH24_PLUS_STENCIL8,
+        var sampleCount: Int = 1,
         var environment: Environment? = null,
     ) {
         fun reset() {
@@ -89,6 +94,7 @@ abstract class BaseMaterialPipelineProvider<T : Material> : MaterialPipelineProv
             indexFormat = null
             colorFormat = TextureFormat.RGBA8_UNORM
             depthFormat = TextureFormat.DEPTH24_PLUS_STENCIL8
+            sampleCount = 1
             environment = null
         }
     }

@@ -42,6 +42,10 @@
       material instance.
 - BREAKING: `Skin` inverse bind matrices are now only uploaded once when created. `Skin.writeToBuffer()` only uploads
   the joint transforms.
+- BREAKING: `MaterialPipelineProvider.getMaterialPipeline()` & `BaseMaterialPipelineProvider.createMaterialPipeline()`
+  now take a `sampleCount` param for multisampling.
+    - Migration: add the `sampleCount: Int` param to any custom providers and pass it to
+      `MultisampleState(count = sampleCount)` when creating the render pipeline.
 
 ### Changes
 
@@ -55,6 +59,8 @@
 - Fix `PBREnvironment` leaking compute command buffers every frame.
 - Fix `ClusterBuffers` work group count rounding down for non-divisible tile counts.
 - Fix fully rough PBR materials producing bright single pixel specular highlights on silhouette edges.
+- Add `ModelBatch.sampleCount` for MSAA. Must be `1` or `4` and match the sample count of the render pass attachments.
+- Add `MultiPassExample` showing multiple cameras & render passes in one frame with MSAA.
 - Add `TextureFormat.toSRGB()`.
 - Add `EngineStats.frame`.
 - Add `IntMap`, an int keyed map that doesn't box its keys.

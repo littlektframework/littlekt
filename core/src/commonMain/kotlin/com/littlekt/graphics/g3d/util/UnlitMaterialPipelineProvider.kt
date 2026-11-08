@@ -24,6 +24,7 @@ class UnlitMaterialPipelineProvider : BaseMaterialPipelineProvider<UnlitMaterial
         material: UnlitMaterial,
         colorFormat: TextureFormat,
         depthFormat: TextureFormat,
+        sampleCount: Int,
     ): MaterialPipeline {
         val vertexShaderCode =
             if (material.skinned) Standard.SkinnedVertexShader(layout.attributes)
@@ -72,7 +73,7 @@ class UnlitMaterialPipelineProvider : BaseMaterialPipelineProvider<UnlitMaterial
                         ),
                     multisample =
                         MultisampleState(
-                            count = 1,
+                            count = sampleCount,
                             mask = 0xFFFFFFF,
                             alphaToCoverageEnabled = false,
                         ),

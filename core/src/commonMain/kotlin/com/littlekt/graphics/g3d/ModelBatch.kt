@@ -78,6 +78,18 @@ class ModelBatch(val device: Device) : Releasable {
             pipelineVersion++
         }
 
+    /**
+     * The number of samples per pixel of the color & depth attachments for multisampling. This is
+     * used in pipeline caching. Must be either `1` or `4`.
+     */
+    var sampleCount: Int = 1
+        set(value) {
+            require(value == 1 || value == 4) { "ModelBatch.sampleCount must be either 1 or 4!" }
+            if (field == value) return
+            field = value
+            pipelineVersion++
+        }
+
     /** Add a new [MaterialPipelineProvider]. */
     inline fun <reified T : Material> addPipelineProvider(provider: MaterialPipelineProvider) =
         addPipelineProvider(T::class, provider)
@@ -402,6 +414,7 @@ class ModelBatch(val device: Device) : Releasable {
                 primitive.stripIndexFormat,
                 colorFormat,
                 depthFormat,
+                sampleCount,
             )
         } ?: error("Unable to find pipeline for given instance!")
 

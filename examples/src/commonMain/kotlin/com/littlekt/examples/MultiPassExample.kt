@@ -38,7 +38,7 @@ import kotlin.math.sin
 /**
  * An example of rendering the same scene with multiple cameras and render passes in a single frame.
  * The scene is rendered from a top down camera into a texture, then from the main camera, and then
- * the top down render is drawn on top as a minimap.
+ * the top down render is drawn on top as a minimap. Both 3D passes use 4x MSAA.
  *
  * @author Colton Daily
  * @date 11/8/2026
@@ -152,14 +152,20 @@ class MultiPassExample(context: Context) : ContextListener(context) {
                 addPipelineProvider(PBRMaterialPipelineProvider())
                 colorFormat = preferredFormat
                 this.depthFormat = depthFormat
+                sampleCount = SAMPLE_COUNT
             }
         val spriteBatch = SpriteBatch(device, graphics, preferredFormat)
 
         val minimap = EmptyTexture(device, preferredFormat, MINIMAP_SIZE, MINIMAP_SIZE)
-        val minimapDepthTexture = createDepthTexture(device, MINIMAP_SIZE, MINIMAP_SIZE, depthFormat)
+        val minimapMsaaTexture =
+            createAttachment(device, MINIMAP_SIZE, MINIMAP_SIZE, preferredFormat)
+        val minimapMsaaFrame = minimapMsaaTexture.createView()
+        val minimapDepthTexture = createAttachment(device, MINIMAP_SIZE, MINIMAP_SIZE, depthFormat)
         val minimapDepthFrame = minimapDepthTexture.createView()
 
-        var depthTexture = createDepthTexture(device, graphics.width, graphics.height, depthFormat)
+        var msaaTexture = createAttachment(device, graphics.width, graphics.height, preferredFormat)
+        var msaaFrame = msaaTexture.createView()
+        var depthTexture = createAttachment(device, graphics.width, graphics.height, depthFormat)
         var depthFrame = depthTexture.createView()
 
         graphics.configureSurface(
@@ -176,9 +182,13 @@ class MultiPassExample(context: Context) : ContextListener(context) {
                 PresentMode.FIFO,
                 surfaceCapabilities.alphaModes[0],
             )
+            msaaFrame.release()
+            msaaTexture.release()
+            msaaTexture = createAttachment(device, width, height, preferredFormat)
+            msaaFrame = msaaTexture.createView()
             depthFrame.release()
             depthTexture.release()
-            depthTexture = createDepthTexture(device, width, height, depthFormat)
+            depthTexture = createAttachment(device, width, height, depthFormat)
             depthFrame = depthTexture.createView()
             camera.virtualWidth = width.toFloat()
             camera.virtualHeight = height.toFloat()
@@ -237,10 +247,11 @@ class MultiPassExample(context: Context) : ContextListener(context) {
                     RenderPassDescriptor(
                         listOf(
                             RenderPassColorAttachmentDescriptor(
-                                view = minimap.view,
+                                view = minimapMsaaFrame,
                                 loadOp = LoadOp.CLEAR,
-                                storeOp = StoreOp.STORE,
+                                storeOp = StoreOp.DISCARD,
                                 clearColor = clearColor,
+                                resolveTarget = minimap.view,
                             )
                         ),
                         depthStencilAttachment = depthAttachment(minimapDepthFrame),
@@ -259,10 +270,11 @@ class MultiPassExample(context: Context) : ContextListener(context) {
                     RenderPassDescriptor(
                         listOf(
                             RenderPassColorAttachmentDescriptor(
-                                view = frame,
+                                view = msaaFrame,
                                 loadOp = LoadOp.CLEAR,
-                                storeOp = StoreOp.STORE,
+                                storeOp = StoreOp.DISCARD,
                                 clearColor = clearColor,
+                                resolveTarget = frame,
                             )
                         ),
                         depthStencilAttachment = depthAttachment(depthFrame),
@@ -316,19 +328,23 @@ class MultiPassExample(context: Context) : ContextListener(context) {
             spriteBatch.release()
             environment.release()
             minimap.release()
+            minimapMsaaFrame.release()
+            minimapMsaaTexture.release()
             minimapDepthFrame.release()
             minimapDepthTexture.release()
+            msaaFrame.release()
+            msaaTexture.release()
             depthFrame.release()
             depthTexture.release()
         }
     }
 
-    private fun createDepthTexture(device: Device, width: Int, height: Int, format: TextureFormat) =
+    private fun createAttachment(device: Device, width: Int, height: Int, format: TextureFormat) =
         device.createTexture(
             TextureDescriptor(
                 Extent3D(width, height, 1),
                 1,
-                1,
+                SAMPLE_COUNT,
                 TextureDimension.D2,
                 format,
                 TextureUsage.RENDER_ATTACHMENT,
@@ -350,5 +366,6 @@ class MultiPassExample(context: Context) : ContextListener(context) {
         private const val MINIMAP_SIZE = 256
         private const val MINIMAP_PADDING = 10f
         private const val LIGHT_COUNT = 4
+        private const val SAMPLE_COUNT = 4
     }
 }

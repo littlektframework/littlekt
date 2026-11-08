@@ -23,5 +23,6 @@ interface MaterialPipelineProvider : Releasable {
         stripIndexFormat: IndexFormat?,
         colorFormat: TextureFormat,
         depthFormat: TextureFormat,
+        sampleCount: Int,
     ): MaterialPipeline?
 }
