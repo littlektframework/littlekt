@@ -165,7 +165,9 @@ class UnlitMaterialStrategy : GltfModelMaterialStrategy() {
                     preferredFormat.toSRGB(),
                     gltfFile,
                 ) ?: EmptyTexture(device, preferredFormat.toSRGB(), 0, 0),
-            transparent = gltfMaterial.alphaMode != GltfAlphaMode.Opaque,
+            transparent = gltfMaterial.alphaMode == GltfAlphaMode.Blend,
+            alphaCutoff =
+                if (gltfMaterial.alphaMode == GltfAlphaMode.Mask) gltfMaterial.alphaCutoff else 0f,
             doubleSided = gltfMaterial.doubleSided,
             skinned = config.skinned,
         )

@@ -32,5 +32,6 @@ val availableExamples =
         "-pbr" to Pair("PBR", ::PBRExample),
         "-multiPass" to Pair("Multi Pass", ::MultiPassExample),
         "-shadows" to Pair("Shadows", ::ShadowsExample),
+        "-transparency" to Pair("Transparency", ::TransparencyExample),
         "-input" to Pair("Input", ::InputExample)
     )

@@ -28,9 +28,12 @@ open class Vec3f internal constructor(x: Float, y: Float, z: Float, size: Int) :
     fun add(other: Vec3f, result: MutableVec3f): MutableVec3f = result.set(this).add(other)
 
     fun cross(other: Vec3f, result: MutableVec3f): MutableVec3f {
-        result.x = y * other.z - z * other.y
-        result.y = z * other.x - x * other.z
-        result.z = x * other.y - y * other.x
+        val rx = y * other.z - z * other.y
+        val ry = z * other.x - x * other.z
+        val rz = x * other.y - y * other.x
+        result.x = rx
+        result.y = ry
+        result.z = rz
         return result
     }
 

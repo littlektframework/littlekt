@@ -23,6 +23,9 @@ import com.littlekt.graphics.webgpu.RenderPipeline
  *   to the shader.
  * @property renderPipeline Refers to the rendering pipeline which establishes the state and
  *   settings for rendering, including shaders and pipeline configurations.
+ * @property transparent if `true`, every visible instance using this pipeline is sorted back to
+ *   front, together with other transparent pipelines, before drawing. Defaults to `true` when
+ *   [renderOrder] is [RenderOrder.TRANSPARENT].
  */
 data class MaterialPipeline(
     val shader: Shader,
@@ -30,6 +33,7 @@ data class MaterialPipeline(
     val renderOrder: RenderOrder,
     val layout: VertexBufferLayout,
     val renderPipeline: RenderPipeline,
+    val transparent: Boolean = renderOrder == RenderOrder.TRANSPARENT,
 ) : Comparable<MaterialPipeline> {
     internal val modelGroupIndex = shader.getBindGroupLayoutIndexOrNull(BindingUsage.MODEL) ?: -1
     internal val materialGroupIndex =

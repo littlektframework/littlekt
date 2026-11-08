@@ -56,6 +56,13 @@ class ModelBatch(val device: Device) : Releasable {
         queue(it, renderMaterial ?: it.material, renderEnvironment ?: error("No environment set!"))
     }
 
+    private val transparentDraws = mutableListOf<TransparentDraw>()
+    private var boundPipeline: MaterialPipeline? = null
+    private var boundMaterialId = -1
+    private var written = 0
+    private var drawCalls = 0
+    private var instanced = 0
+
     private val lock = SynchronizedObject()
     private val hasPendingBindGroups = atomic(false)
     private val preparedMaterialIds = mutableSetOf<Int>()
@@ -243,33 +250,25 @@ class ModelBatch(val device: Device) : Releasable {
                 FloatBuffer(max(totalInstances * instanceSize, instanceStaging.capacity * 2))
         }
 
-        var written = 0
-        var drawCalls = 0
-        var instanced = 0
-        pipelines.fastForEach { pipeline ->
-            val view = getEnvironmentView(pipeline.environment, camera, dt)
-            renderPassEncoder.setPipeline(pipeline.renderPipeline)
-
-            val environmentGroupIndex = pipeline.environmentGroupIndex()
-            if (environmentGroupIndex >= 0) {
-                renderPassEncoder.setBindGroup(
-                    environmentGroupIndex,
-                    pipeline.environmentBindGroup(view),
-                )
+        written = 0
+        drawCalls = 0
+        instanced = 0
+        boundPipeline = null
+        var i = 0
+        while (i < pipelines.size) {
+            val pipeline = pipelines[i]
+            if (pipeline.transparent) {
+                var end = i + 1
+                while (end < pipelines.size && pipelines[end].transparent) end++
+                drawTransparent(renderPassEncoder, i, end, camera, dt, frame)
+                i = end
+                continue
             }
-            val modelLayout = pipeline.modelLayout
-            if (pipeline.modelGroupIndex >= 0 && modelLayout != null) {
-                renderPassEncoder.setBindGroup(
-                    pipeline.modelGroupIndex,
-                    instanceBuffers.getOrCreateBindGroup(modelLayout),
-                )
-            }
-
-            var lastMaterialId = -1
+            bindPipeline(renderPassEncoder, pipeline, camera, dt)
             val queue = pipeline.queue
             val materials = pipeline.queueMaterials
-            for (i in 0 until queue.size) {
-                val primitive = queue[i]
+            for (q in 0 until queue.size) {
+                val primitive = queue[q]
                 if (primitive.drawnFlush == flushId && primitive.drawnPipeline === pipeline) {
                     continue
                 }
@@ -278,61 +277,14 @@ class ModelBatch(val device: Device) : Releasable {
 
                 val count = primitive.writeVisibleInstanceData(instanceStaging, written * instanceSize)
                 if (count <= 0) continue
-
-                val material = materials[i]
-                if (lastMaterialId != material.id) {
-                    lastMaterialId = material.id
-                    if (pipeline.materialGroupIndex >= 0) {
-                        bindGroupByMaterialId[material.id]?.let {
-                            renderPassEncoder.setBindGroup(pipeline.materialGroupIndex, it)
-                        }
-                    }
-                    if (material.lastUpdateFrame != frame) {
-                        material.lastUpdateFrame = frame
-                        material.update()
-                    }
-                }
-
-                val skin = primitive.skin
-                if (material.skinned && skin != null && pipeline.skinGroupIndex >= 0) {
-                    val skinBindGroup =
-                        bindGroupBySkinId[skin.id] ?: error("Skin bind groups could not be found!")
-                    renderPassEncoder.setBindGroup(pipeline.skinGroupIndex, skinBindGroup)
-                    if (skin.lastUploadFrame != frame) {
-                        skin.lastUploadFrame = frame
-                        skin.writeToBuffer()
-                    }
-                }
-
-                val firstInstance = instanceOffset + written
-                written += count
-                drawCalls++
-                instanced += count - 1
-
-                renderPassEncoder.setVertexBuffer(0, primitive.mesh.vbo)
-                val indexedMesh = primitive.indexedMesh
-                if (indexedMesh != null) {
-                    renderPassEncoder.setIndexBuffer(
-                        indexedMesh.ibo,
-                        indexFormat = primitive.stripIndexFormat ?: IndexFormat.UINT16,
-                    )
-                    renderPassEncoder.drawIndexed(
-                        indexedMesh.geometry.numIndices,
-                        count,
-                        firstInstance = firstInstance,
-                    )
-                } else {
-                    renderPassEncoder.draw(
-                        primitive.mesh.geometry.numVertices,
-                        count,
-                        firstInstance = firstInstance,
-                    )
-                }
+                drawPrimitive(renderPassEncoder, pipeline, primitive, materials[q], count, frame)
             }
+            i++
         }
 
         instanceBuffers.write(instanceStaging, instanceOffset * instanceSize, written * instanceSize)
         instanceOffset += written
+        boundPipeline = null
 
         if (drawCalls > 0) {
             EngineStats.extra(DRAW_CALLS_STAT_NAME, drawCalls)
@@ -346,6 +298,194 @@ class ModelBatch(val device: Device) : Releasable {
         }
         pipelines.clear()
         flushId = nextFlushId()
+    }
+
+    private fun drawTransparent(
+        renderPassEncoder: RenderPassEncoder,
+        start: Int,
+        end: Int,
+        camera: Camera,
+        dt: Duration,
+        frame: Long,
+    ) {
+        var count = 0
+        val cameraPosition = camera.position
+        for (p in start until end) {
+            val pipeline = pipelines[p]
+            val queue = pipeline.queue
+            val materials = pipeline.queueMaterials
+            for (q in 0 until queue.size) {
+                val primitive = queue[q]
+                if (primitive.drawnFlush == flushId && primitive.drawnPipeline === pipeline) {
+                    continue
+                }
+                primitive.drawnFlush = flushId
+                primitive.drawnPipeline = pipeline
+                primitive.updateDirtyInstances()
+                val material = materials[q]
+                for (v in 0 until primitive.visibleInstanceCount) {
+                    if (count == transparentDraws.size) transparentDraws += TransparentDraw()
+                    val instance = primitive.visibleInstance(v)
+                    val draw = transparentDraws[count++]
+                    draw.pipeline = pipeline
+                    draw.primitive = primitive
+                    draw.material = material
+                    draw.instance = instance
+                    draw.distance = cameraPosition.sqrDistance(instance.globalBoundsSphere.center)
+                }
+            }
+        }
+        sortBackToFront(transparentDraws, 0, count - 1)
+
+        val instanceSize = MeshPrimitive.INSTANCE_DATA_SIZE
+        var k = 0
+        while (k < count) {
+            val draw = transparentDraws[k]
+            val pipeline = draw.pipeline!!
+            val primitive = draw.primitive!!
+            val material = draw.material!!
+            var runEnd = k
+            while (
+                runEnd < count &&
+                    transparentDraws[runEnd].primitive === primitive &&
+                    transparentDraws[runEnd].pipeline === pipeline &&
+                    transparentDraws[runEnd].material === material
+            ) {
+                val runDraw = transparentDraws[runEnd]
+                primitive.writeInstanceData(
+                    runDraw.instance!!,
+                    instanceStaging,
+                    (written + runEnd - k) * instanceSize,
+                )
+                runDraw.clear()
+                runEnd++
+            }
+            if (boundPipeline !== pipeline) bindPipeline(renderPassEncoder, pipeline, camera, dt)
+            drawPrimitive(renderPassEncoder, pipeline, primitive, material, runEnd - k, frame)
+            k = runEnd
+        }
+    }
+
+    private fun bindPipeline(
+        renderPassEncoder: RenderPassEncoder,
+        pipeline: MaterialPipeline,
+        camera: Camera,
+        dt: Duration,
+    ) {
+        boundPipeline = pipeline
+        boundMaterialId = -1
+        val view = getEnvironmentView(pipeline.environment, camera, dt)
+        renderPassEncoder.setPipeline(pipeline.renderPipeline)
+
+        val environmentGroupIndex = pipeline.environmentGroupIndex()
+        if (environmentGroupIndex >= 0) {
+            renderPassEncoder.setBindGroup(environmentGroupIndex, pipeline.environmentBindGroup(view))
+        }
+        val modelLayout = pipeline.modelLayout
+        if (pipeline.modelGroupIndex >= 0 && modelLayout != null) {
+            renderPassEncoder.setBindGroup(
+                pipeline.modelGroupIndex,
+                instanceBuffers.getOrCreateBindGroup(modelLayout),
+            )
+        }
+    }
+
+    private fun drawPrimitive(
+        renderPassEncoder: RenderPassEncoder,
+        pipeline: MaterialPipeline,
+        primitive: MeshPrimitive,
+        material: Material,
+        count: Int,
+        frame: Long,
+    ) {
+        if (boundMaterialId != material.id) {
+            boundMaterialId = material.id
+            if (pipeline.materialGroupIndex >= 0) {
+                bindGroupByMaterialId[material.id]?.let {
+                    renderPassEncoder.setBindGroup(pipeline.materialGroupIndex, it)
+                }
+            }
+            if (material.lastUpdateFrame != frame) {
+                material.lastUpdateFrame = frame
+                material.update()
+            }
+        }
+
+        val skin = primitive.skin
+        if (material.skinned && skin != null && pipeline.skinGroupIndex >= 0) {
+            val skinBindGroup =
+                bindGroupBySkinId[skin.id] ?: error("Skin bind groups could not be found!")
+            renderPassEncoder.setBindGroup(pipeline.skinGroupIndex, skinBindGroup)
+            if (skin.lastUploadFrame != frame) {
+                skin.lastUploadFrame = frame
+                skin.writeToBuffer()
+            }
+        }
+
+        val firstInstance = instanceOffset + written
+        written += count
+        drawCalls++
+        instanced += count - 1
+
+        renderPassEncoder.setVertexBuffer(0, primitive.mesh.vbo)
+        val indexedMesh = primitive.indexedMesh
+        if (indexedMesh != null) {
+            renderPassEncoder.setIndexBuffer(
+                indexedMesh.ibo,
+                indexFormat = primitive.stripIndexFormat ?: IndexFormat.UINT16,
+            )
+            renderPassEncoder.drawIndexed(
+                indexedMesh.geometry.numIndices,
+                count,
+                firstInstance = firstInstance,
+            )
+        } else {
+            renderPassEncoder.draw(
+                primitive.mesh.geometry.numVertices,
+                count,
+                firstInstance = firstInstance,
+            )
+        }
+    }
+
+    private fun sortBackToFront(draws: MutableList<TransparentDraw>, low: Int, high: Int) {
+        var lo = low
+        var hi = high
+        while (lo < hi) {
+            if (hi - lo < 16) {
+                for (a in lo + 1..hi) {
+                    val draw = draws[a]
+                    var b = a - 1
+                    while (b >= lo && draws[b].distance < draw.distance) {
+                        draws[b + 1] = draws[b]
+                        b--
+                    }
+                    draws[b + 1] = draw
+                }
+                return
+            }
+            val pivot = draws[(lo + hi) ushr 1].distance
+            var left = lo
+            var right = hi
+            while (left <= right) {
+                while (draws[left].distance > pivot) left++
+                while (draws[right].distance < pivot) right--
+                if (left <= right) {
+                    val tmp = draws[left]
+                    draws[left] = draws[right]
+                    draws[right] = tmp
+                    left++
+                    right--
+                }
+            }
+            if (right - lo < hi - left) {
+                sortBackToFront(draws, lo, right)
+                lo = left
+            } else {
+                sortBackToFront(draws, left, hi)
+                hi = right
+            }
+        }
     }
 
     override fun release() {
@@ -484,5 +624,20 @@ class ModelBatch(val device: Device) : Releasable {
         private var lastFlushId = 0L
 
         private fun nextFlushId(): Long = ++lastFlushId
+    }
+}
+
+private class TransparentDraw {
+    var pipeline: MaterialPipeline? = null
+    var primitive: MeshPrimitive? = null
+    var material: Material? = null
+    var instance: MeshPrimitiveInstance? = null
+    var distance = 0f
+
+    fun clear() {
+        pipeline = null
+        primitive = null
+        material = null
+        instance = null
     }
 }

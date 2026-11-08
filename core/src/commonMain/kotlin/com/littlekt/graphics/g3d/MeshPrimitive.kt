@@ -96,13 +96,7 @@ open class MeshPrimitive(
      * @return the number of instances written.
      */
     fun writeVisibleInstanceData(dst: FloatBuffer, dstOffset: Int): Int {
-        if (dirtyInstances.isNotEmpty()) {
-            dirtyInstances.fastForEach { dirtyInstance ->
-                dirtyInstance.dirtyQueued = false
-                updateInstance(dirtyInstance)
-            }
-            dirtyInstances.clear()
-        }
+        updateDirtyInstances()
         visibleInstances.fastForEachWithIndex { index, instance ->
             dst.put(
                 instanceData,
@@ -112,6 +106,26 @@ open class MeshPrimitive(
             )
         }
         return visibleInstances.size
+    }
+
+    internal fun updateDirtyInstances() {
+        if (dirtyInstances.isEmpty()) return
+        dirtyInstances.fastForEach { dirtyInstance ->
+            dirtyInstance.dirtyQueued = false
+            updateInstance(dirtyInstance)
+        }
+        dirtyInstances.clear()
+    }
+
+    internal fun visibleInstance(index: Int): MeshPrimitiveInstance = visibleInstances[index]
+
+    internal fun writeInstanceData(instance: MeshPrimitiveInstance, dst: FloatBuffer, dstOffset: Int) {
+        dst.put(
+            instanceData,
+            dstOffset = dstOffset,
+            srcOffset = instance.instanceIndex * TRANSFORM_COMPONENTS_PER_INSTANCE,
+            len = TRANSFORM_COMPONENTS_PER_INSTANCE,
+        )
     }
 
     /**

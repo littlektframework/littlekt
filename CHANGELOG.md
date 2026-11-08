@@ -29,11 +29,13 @@
   take a `sampleCount`.
     - Migration: `MultisampleState(count = sampleCount)`
 - BREAKING: `ModelBatch` skips a primitive when its provider returns `null` instead of throwing.
+- BREAKING: Unlit glTF `MASK` materials are now alpha tested instead of blended.
 
 ### Changes
 
 - Add cascaded directional shadows with `DirectionalShadowMap` & `ShadowMaterialPipelineProvider`.
 - Add HDR rendering & tonemapping with `Tonemapper`.
+- Add back to front sorting of transparent instances in `ModelBatch`.
 - Add MSAA with `ModelBatch.sampleCount`.
 - Add support for multiple `ModelBatch.flush()` calls per frame with different cameras & render passes.
 - Add `ModelBatch.defaultPipelineProvider`.
@@ -46,7 +48,8 @@
 - Add `TextureFormat.hdr` & `TextureFormat.toSRGB()`.
 - Add `EngineStats.frame`.
 - Add `IntMap`.
-- Add `ShadowsExample` & `MultiPassExample`.
+- Add `MaterialPipeline.transparent`.
+- Add `ShadowsExample`, `MultiPassExample` & `TransparencyExample`.
 - Fix `ModelBatch` binding the primitive's material bind group instead of the override material's.
 - Fix `ModelBatch.preparePipeline()` not being thread safe.
 - Fix material pipeline caching ignoring the color & depth formats.
@@ -55,6 +58,7 @@
 - Fix `PBREnvironment` leaking compute command buffers.
 - Fix `ClusterBuffers` work group count rounding down.
 - Fix fully rough PBR materials producing single pixel specular highlights on edges.
+- Fix `Vec3f.cross` returning the wrong result when `result` is the same vector, e.g. `MutableVec3f.cross` & `Camera.lookAt`.
 - Performance: remove per frame allocations from `ModelBatch` & use bulk copies in the JVM `FloatBuffer`.
 
 ## 0.11.0
