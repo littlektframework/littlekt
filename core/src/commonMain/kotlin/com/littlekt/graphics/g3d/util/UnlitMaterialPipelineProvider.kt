@@ -28,7 +28,8 @@ class UnlitMaterialPipelineProvider : BaseMaterialPipelineProvider<UnlitMaterial
         val vertexShaderCode =
             if (material.skinned) Standard.SkinnedVertexShader(layout.attributes)
             else Standard.VertexShader(layout.attributes)
-        val fragmentShaderCode = Standard.Unlit.FragmentShader(layout.attributes)
+        val fragmentShaderCode =
+            Standard.Unlit.FragmentShader(layout.attributes, gammaCorrect = !colorFormat.srgb)
         val shaderCode = shader {
             vertex(vertexShaderCode.vertex)
             fragment(fragmentShaderCode.fragment)

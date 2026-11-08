@@ -34,6 +34,7 @@ class PBRMaterialPipelineProvider : BaseMaterialPipelineProvider<PBRMaterial>() 
                 false, // TODO handle bloom
                 false, // todo we don't have shadows yet: material.castShadows,
                 material.isFullyRough,
+                gammaCorrect = !colorFormat.srgb,
             )
         val shaderCode = shader {
             vertex(vertexShaderCode.vertex)

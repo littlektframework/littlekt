@@ -33,6 +33,8 @@ abstract class BaseMaterialPipelineProvider<T : Material> : MaterialPipelineProv
                 this.layout = layout
                 this.topology = topology
                 this.indexFormat = stripIndexFormat
+                this.colorFormat = colorFormat
+                this.depthFormat = depthFormat
             }
         if (pipelines.contains(renderInfo)) {
             return pipelines[renderInfo]?.also { renderInfos.free(renderInfo) }

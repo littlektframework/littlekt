@@ -26,7 +26,7 @@ class ClusterBuffers(
     private val maxClusteredLights = totalTiles * 64
     /** Cluster x, y, z, size * 32 bytes per cluster. */
     private val clusterBoundsSize = totalTiles * 32
-    val workGroupSizeX = ceil((tileCountX / workGroupSizeX).toDouble()).toInt()
+    val workGroupSizeX = ceil(tileCountX / workGroupSizeX.toDouble()).toInt()
     val workGroupSizeY = ceil(tileCountY / workGroupSizeY.toDouble()).toInt()
     val workGroupSizeZ = ceil(tileCountZ / workGroupSizeZ.toDouble()).toInt()
     private val clusterLightsSize = 4 + (8 * totalTiles) + (4 * maxClusteredLights)

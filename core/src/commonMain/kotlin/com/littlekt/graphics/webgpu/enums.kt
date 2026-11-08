@@ -311,7 +311,19 @@ enum class TextureFormat(val bytes: Int, val srgb: Boolean = false) {
     fun toNonSRGB() =
         when (this) {
             RGBA8_UNORM_SRGB -> RGBA8_UNORM
-            BGRA8_UNORM_SRGB -> BGRA8_UNORM_SRGB
+            BGRA8_UNORM_SRGB -> BGRA8_UNORM
+            else -> this
+        }
+
+    /**
+     * @return same texture format but as the sRGB equivalent, if [srgb] is `false`. For example
+     *   [RGBA8_UNORM] should return [RGBA8_UNORM_SRGB]. If [srgb] is `true`, it'll just return
+     *   itself.
+     */
+    fun toSRGB() =
+        when (this) {
+            RGBA8_UNORM -> RGBA8_UNORM_SRGB
+            BGRA8_UNORM -> BGRA8_UNORM_SRGB
             else -> this
         }
 

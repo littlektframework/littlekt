@@ -728,10 +728,10 @@ open class Mat4 {
         val depth = 1f / (far - near)
         val x = 2f * width
         val y = 2f * height
-        val z = -2f * depth
+        val z = -depth
         val tx = -(right + left) * width
         val ty = -(top + bottom) * height
-        val tz = (far + near) * depth
+        val tz = -near * depth
         m00 = x
         m10 = 0f
         m20 = 0f
@@ -745,7 +745,7 @@ open class Mat4 {
         m22 = z
         m32 = 0f
         m03 = tx
-        m13 - ty
+        m13 = ty
         m23 = tz
         m33 = 1f
 

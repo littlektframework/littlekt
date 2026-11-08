@@ -278,7 +278,7 @@ object Standard {
                 )
             }
 
-        fun FragmentShader(layout: List<VertexAttribute>) = shader {
+        fun FragmentShader(layout: List<VertexAttribute>, gammaCorrect: Boolean = true) = shader {
             val input = VertexOutputStruct(layout)
             val output = FragmentOutputStruct
             include(input)
@@ -298,7 +298,7 @@ object Standard {
                         }
                         let base_color = input.color * material.base_color_factor * base_color_map * input.instance_color;
                         %color%
-                        output.color = vec4(linear_to_sRGB(base_color.rgb), base_color.a);
+                        output.color = vec4(${if (gammaCorrect) "linear_to_sRGB(base_color.rgb)" else "base_color.rgb"}, base_color.a);
                         %output%
                         return output;
                     """
@@ -532,6 +532,7 @@ object Standard {
             bloomEnabled: Boolean = false,
             shadowsEnabled: Boolean = false,
             fullyRough: Boolean = false,
+            gammaCorrect: Boolean = true,
         ) = shader {
             val input = VertexOutputStruct(layout)
             val output = FragmentOutputStruct(bloomEnabled)
@@ -595,7 +596,7 @@ object Standard {
                         %ambient%
                         let ambient = global_lights.ambient * surface.albedo * surface.ao;
                         %color%
-                        let color = linear_to_sRGB(Lo + ambient + surface.emissive);
+                        let color = ${if (gammaCorrect) "linear_to_sRGB(Lo + ambient + surface.emissive)" else "Lo + ambient + surface.emissive"};
     
                         var out : FragmentOutput;
                         out.color = vec4(color, surface.base_color.a); // vec4(surface.normal * 0.5 + 0.5, 1.0);

@@ -90,9 +90,16 @@ class PBRMaterialStrategy : GltfModelMaterialStrategy() {
             metallicRoughnessTexture =
                 gltfMaterial.pbrMetallicRoughness.metallicRoughnessTexture?.loadTexture(
                     device,
-                    preferredFormat,
+                    preferredFormat.toNonSRGB(),
                     gltfFile,
                 ),
+            occlusionTexture =
+                gltfMaterial.occlusionTexture?.loadTexture(
+                    device,
+                    preferredFormat.toNonSRGB(),
+                    gltfFile,
+                ),
+            occlusionStrength = gltfMaterial.occlusionTexture?.strength ?: 1f,
             normalTexture =
                 gltfMaterial.normalTexture?.loadTexture(
                     device,
@@ -110,7 +117,7 @@ class PBRMaterialStrategy : GltfModelMaterialStrategy() {
                     Vec3f(0f)
                 },
             emissiveTexture =
-                gltfMaterial.emissiveTexture.loadTexture(device, preferredFormat, gltfFile),
+                gltfMaterial.emissiveTexture.loadTexture(device, preferredFormat.toSRGB(), gltfFile),
             baseColorFactor =
                 Color(
                     baseColorFactor[0],
@@ -121,12 +128,13 @@ class PBRMaterialStrategy : GltfModelMaterialStrategy() {
             baseColorTexture =
                 gltfMaterial.pbrMetallicRoughness.baseColorTexture?.loadTexture(
                     device,
-                    preferredFormat,
+                    preferredFormat.toSRGB(),
                     gltfFile,
-                ) ?: EmptyTexture(device, preferredFormat, 0, 0),
+                ) ?: EmptyTexture(device, preferredFormat.toSRGB(), 0, 0),
             transparent = gltfMaterial.alphaMode == GltfAlphaMode.Blend,
             doubleSided = gltfMaterial.doubleSided,
-            alphaCutoff = gltfMaterial.alphaCutoff,
+            alphaCutoff =
+                if (gltfMaterial.alphaMode == GltfAlphaMode.Mask) gltfMaterial.alphaCutoff else 0f,
             castShadows = config.castShadows,
             skinned = config.skinned,
         )
@@ -154,9 +162,9 @@ class UnlitMaterialStrategy : GltfModelMaterialStrategy() {
             baseColorTexture =
                 gltfMaterial.pbrMetallicRoughness.baseColorTexture?.loadTexture(
                     device,
-                    preferredFormat,
+                    preferredFormat.toSRGB(),
                     gltfFile,
-                ) ?: EmptyTexture(device, preferredFormat, 0, 0),
+                ) ?: EmptyTexture(device, preferredFormat.toSRGB(), 0, 0),
             transparent = gltfMaterial.alphaMode != GltfAlphaMode.Opaque,
             doubleSided = gltfMaterial.doubleSided,
             skinned = config.skinned,
