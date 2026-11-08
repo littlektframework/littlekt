@@ -34,5 +34,6 @@ val availableExamples =
         "-shadows" to Pair("Shadows", ::ShadowsExample),
         "-transparency" to Pair("Transparency", ::TransparencyExample),
         "-ibl" to Pair("IBL", ::IBLExample),
+        "-bloom" to Pair("Bloom", ::BloomExample),
         "-input" to Pair("Input", ::InputExample)
     )

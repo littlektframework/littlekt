@@ -36,6 +36,7 @@
 - Add cascaded directional shadows with `DirectionalShadowMap` & `ShadowMaterialPipelineProvider`.
 - Add `DirectionalShadowMap.cascadeBlend` to blend between shadow cascades.
 - Add HDR rendering & tonemapping with `Tonemapper`.
+- Add `Bloom` for glowing bright & emissive colors in HDR.
 - Add image based lighting & skyboxes with `EnvironmentMap` & `Skybox`.
 - Add `VfsFile.readHdrImage()` & `decodeRadianceHdr` for loading Radiance `.hdr` files.
 - Add `CommonIndexedMeshBuilder.uvSphere`.
@@ -53,7 +54,8 @@
 - Add `EngineStats.frame`.
 - Add `IntMap`.
 - Add `MaterialPipeline.transparent`.
-- Add `ShadowsExample`, `MultiPassExample`, `TransparencyExample` & `IBLExample`.
+- Add `ShadowsExample`, `MultiPassExample`, `TransparencyExample`, `IBLExample` & `BloomExample`.
+- Fix `CanvasLayer` render target using a different format than the scene graph batch, crashing on render.
 - Fix `Mesh` & `IndexedMesh` GPU buffers being empty after the geometry grows past its initial size.
 - Fix `ModelBatch` binding the primitive's material bind group instead of the override material's.
 - Fix `ModelBatch.preparePipeline()` not being thread safe.
