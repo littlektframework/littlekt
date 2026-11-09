@@ -40,6 +40,8 @@
 - BREAKING: `Node.equals` & `Node.hashCode` only use the node `id`.
 - BREAKING: `Quaternion.isFuzzyEqual` takes a `Quaternion` and checks all four components instead of a `Vec2f`.
 - BREAKING: `BoundingBox.hitDistanceSqr` returns the squared distance to the hit for any ray direction length.
+- BREAKING: `Label` min height is now its line count times the font line height, like Godot, instead of an extra line.
+    - Migration: set `minHeight` on labels that relied on the old taller size.
 
 ### Changes
 
@@ -74,6 +76,7 @@
 - Add `MaterialPipeline.transparent`.
 - Add `ShadowsExample`, `MultiPassExample`, `TransparencyExample`, `IBLExample` & `BloomExample`.
 - Add `AnimationExample`, `ParticlesExample`, `ShapesExample` & `SpriteBatchExample`.
+- Add `SceneGraphPlaygroundExample` showing every built-in scene graph UI control.
 - Rework examples into `webgpu`, `g2d`, `ui`, `g3d` & `input` packages and remove outdated examples.
 - Fix `Vec2f`, `Vec3f`, `Vec4f`, `Quaternion`, `Mat3` & `Mat4` operations returning wrong results when `result` is the
   same object as `this` or `other`.
@@ -105,6 +108,8 @@
 - Fix `CanvasItem` global position, rotation & scale setters using stale values & reparenting keeping the old transform.
 - Fix `CanvasItem.copyFrom` not marking the transform dirty.
 - Fix `BoxContainer` spacing hidden children, `PaddedContainer` padding not resetting to 0 & `Range.ratio`.
+- Fix `Label` vertical alignment so text centers correctly & wrapped bottom aligned lines stay inside the label.
+- Fix `LineEdit` not masking text when `secret` or `secretCharacter` is set after `text`.
 - Fix `ParticleSimulator` updating & drawing an unallocated particle and never using its last particle.
 - Fix `ParticleSimulator` keeping the anchor, delay & fade in values of reused particles.
 - Fix `NodeList.findFirstNodeOfType` only searching the first child.

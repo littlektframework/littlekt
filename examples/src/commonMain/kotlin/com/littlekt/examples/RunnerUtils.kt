@@ -23,6 +23,7 @@ import com.littlekt.examples.g3d.TransparencyExample
 import com.littlekt.examples.input.InputExample
 import com.littlekt.examples.ui.GameWorldAndUiViewportsExample
 import com.littlekt.examples.ui.HelloSceneGraphExample
+import com.littlekt.examples.ui.SceneGraphPlaygroundExample
 import com.littlekt.examples.webgpu.ComputeBoidsExample
 import com.littlekt.examples.webgpu.RotatingCubeExample
 import com.littlekt.examples.webgpu.TextureExample
@@ -82,6 +83,7 @@ val availableExamples: Map<String, Example> = examples {
     }
     category("UI") {
         example("-helloSceneGraph", "Hello Scene Graph", ::HelloSceneGraphExample)
+        example("-sceneGraphPlayground", "Scene Graph Playground", ::SceneGraphPlaygroundExample)
         example(
             "-worldAndUiViewports",
             "Game World and UI Viewports",

@@ -99,9 +99,19 @@ open class LineEdit : Control() {
 
     /** The [Char] to use for masking [text]. */
     var secretCharacter: Char = '*'
+        set(value) {
+            if (field == value) return
+            field = value
+            updateText()
+        }
 
     /** Mark this field a secret and masks the [text] with [secretCharacter]. */
     var secret: Boolean = false
+        set(value) {
+            if (field == value) return
+            field = value
+            updateText()
+        }
 
     /** The current position of the caret. */
     var caretPosition: Int

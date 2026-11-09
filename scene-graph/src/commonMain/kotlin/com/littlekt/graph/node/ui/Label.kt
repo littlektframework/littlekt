@@ -187,9 +187,6 @@ open class Label : Control() {
 
         layout()
 
-        _internalMinWidth = layout.width
-        _internalMinHeight = layout.height
-
         minSizeInvalid = false
     }
 
@@ -197,9 +194,7 @@ open class Label : Control() {
         val text = if (uppercase) text.uppercase() else text
 
         var tx = 0f
-        var ty = 0f
         val textWidth: Float
-        val textHeight: Float
 
         if (wrap || text.contains("\n")) {
             layout.setText(
@@ -214,7 +209,6 @@ open class Label : Control() {
                 truncate = ellipsis,
             )
             textWidth = layout.width
-            textHeight = layout.height
 
             if (horizontalAlign != HAlign.LEFT) {
                 tx +=
@@ -226,25 +220,7 @@ open class Label : Control() {
             }
         } else {
             textWidth = width
-            textHeight = font.capHeight
         }
-
-        when (verticalAlign) {
-            VAlign.TOP -> {
-                ty += height
-                ty -= textHeight
-                ty -= font.metrics.ascent
-            }
-            VAlign.BOTTOM -> {
-                ty += font.metrics.descent
-            }
-            else -> {
-                ty += height * 0.5f
-                ty -= textHeight * 0.5f
-                ty += font.metrics.descent * 0.5f
-            }
-        }
-        ty = ty.roundToInt().toFloat()
 
         layout.setText(
             font,
@@ -257,9 +233,21 @@ open class Label : Control() {
             wrap,
             ellipsis,
         )
+
+        val lineHeight = font.metrics.lineHeight * fontScaleY
+        val textTop = lineHeight
+        val textBottom = (if (layout.runs.isEmpty()) lineHeight else layout.runs.last().y) - lineHeight
+
+        val ty =
+            when (verticalAlign) {
+                VAlign.TOP -> height - textTop
+                VAlign.BOTTOM -> -textBottom
+                else -> (height - textTop - textBottom) * 0.5f
+            }.roundToInt().toFloat()
+
         cache.setText(layout, tx - originX, ty - originY, fontScaleX, fontScaleY)
         _internalMinWidth = layout.width
-        _internalMinHeight = layout.height
+        _internalMinHeight = textTop - textBottom
     }
 
     class ThemeVars {
