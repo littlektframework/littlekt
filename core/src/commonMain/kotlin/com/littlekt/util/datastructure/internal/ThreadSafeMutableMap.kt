@@ -42,12 +42,12 @@ internal class ThreadSafeMutableMap<K, V>(private val delegate: MutableMap<K, V>
         get() = lock.withLock { delegate.entries.map { it.toMutableEntry() }.toMutableSet() }
 
     private fun <K, V> Map.Entry<K, V>.toMutableEntry(): MutableMap.MutableEntry<K, V> {
+        val key = key
+        val value = value
         return object : MutableMap.MutableEntry<K, V> {
-            override val key: K
-                get() = this@toMutableEntry.key
+            override val key: K = key
 
-            override val value: V
-                get() = this@toMutableEntry.value
+            override val value: V = value
 
             override fun setValue(newValue: V): V {
                 throw UnsupportedOperationException(

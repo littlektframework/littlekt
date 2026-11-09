@@ -5,6 +5,7 @@ import com.littlekt.async.MainDispatcher
 import com.littlekt.input.FakeInput
 import com.littlekt.input.InputProcessor
 import com.littlekt.input.Pointer
+import com.littlekt.input.str
 import kotlin.math.abs
 import kotlin.test.BeforeTest
 import kotlin.test.Test
@@ -40,17 +41,19 @@ class GestureControllerTests {
                 longPressDuration = longPressDuration,
                 maxFlingDuration = maxFlingDuration,
             ) {
-                onTouchDown { x, y, p -> events += "touchDown $x $y $p" }
-                onTap { x, y, count, p -> events += "tap $x $y $count $p" }
+                onTouchDown { x, y, p -> events += "touchDown ${x.str()} ${y.str()} $p" }
+                onTap { x, y, count, p -> events += "tap ${x.str()} ${y.str()} $count $p" }
                 onLongPressHandle { x, y ->
-                    events += "longPress $x $y"
+                    events += "longPress ${x.str()} ${y.str()}"
                     longPressHandled
                 }
-                onFling { vx, vy, p -> events += "fling $vx $vy $p" }
-                onPan { x, y, dx, dy -> events += "pan $x $y $dx $dy" }
-                onPanStop { x, y, p -> events += "panStop $x $y $p" }
-                onZoom { initial, distance -> events += "zoom $initial $distance" }
-                onPinch { i1, i2, p1, p2 -> events += "pinch $i1 $i2 $p1 $p2" }
+                onFling { vx, vy, p -> events += "fling ${vx.str()} ${vy.str()} $p" }
+                onPan { x, y, dx, dy -> events += "pan ${x.str()} ${y.str()} ${dx.str()} ${dy.str()}" }
+                onPanStop { x, y, p -> events += "panStop ${x.str()} ${y.str()} $p" }
+                onZoom { initial, distance -> events += "zoom ${initial.str()} ${distance.str()}" }
+                onPinch { i1, i2, p1, p2 ->
+                    events += "pinch ${i1.str()} ${i2.str()} ${p1.str()} ${p2.str()}"
+                }
                 onPinchStop { events += "pinchStop" }
             }
             .also { input.addInputProcessor(it) }

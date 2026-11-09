@@ -121,15 +121,15 @@ class InputTests {
                     onKeyUp { calls += "keyUp $it" }
                     onKeyRepeat { calls += "repeat $it" }
                     onCharTyped { calls += "char $it" }
-                    onTouchDown { x, y, p -> calls += "down $x $y $p" }
-                    onTouchUp { x, y, p -> calls += "up $x $y $p" }
-                    onTouchDragged { x, y, p -> calls += "drag $x $y $p" }
-                    onMouseMoved { x, y -> calls += "move $x $y" }
-                    onScrolled { x, y -> calls += "scroll $x $y" }
-                    onGamepadButtonPressed { b, p, g -> calls += "pressed $b $p $g" }
+                    onTouchDown { x, y, p -> calls += "down ${x.str()} ${y.str()} $p" }
+                    onTouchUp { x, y, p -> calls += "up ${x.str()} ${y.str()} $p" }
+                    onTouchDragged { x, y, p -> calls += "drag ${x.str()} ${y.str()} $p" }
+                    onMouseMoved { x, y -> calls += "move ${x.str()} ${y.str()}" }
+                    onScrolled { x, y -> calls += "scroll ${x.str()} ${y.str()}" }
+                    onGamepadButtonPressed { b, p, g -> calls += "pressed $b ${p.str()} $g" }
                     onGamepadButtonReleased { b, g -> calls += "released $b $g" }
-                    onGamepadJoystickMoved { s, x, y, g -> calls += "stick $s $x $y $g" }
-                    onGamepadTriggerChanged { b, p, g -> calls += "trigger $b $p $g" }
+                    onGamepadJoystickMoved { s, x, y, g -> calls += "stick $s ${x.str()} ${y.str()} $g" }
+                    onGamepadTriggerChanged { b, p, g -> calls += "trigger $b ${p.str()} $g" }
                 }
                 .build()
         assertFalse(processor.keyUp(Key.A))

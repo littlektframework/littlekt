@@ -247,7 +247,7 @@ internal class ByteBufferImpl(buffer: ArrayBuffer, private val littleEndian: Boo
 
     override fun getByteArray(startOffset: Int, endOffset: Int): ByteArray {
         check(endOffset >= startOffset) { "endOffset must be >= the startOffset!" }
-        val bytes = byteArrayOf(endOffset, startOffset)
+        val bytes = ByteArray(endOffset - startOffset)
         for (i in startOffset until endOffset) {
             nativeSet(bytes,i - startOffset, buffer.getInt8(i))
         }
@@ -278,15 +278,15 @@ internal class ByteBufferImpl(buffer: ArrayBuffer, private val littleEndian: Boo
     }
 
     override val readUByte: Byte
-        get() = buffer.getUint8(position++)
+        get() = buffer.getInt8(position++)
 
     override fun getUByte(offset: Int): UByte {
-        return buffer.getUint8(offset).toUByte()
+        return buffer.getInt8(offset).toUByte()
     }
 
     override fun getUByteArray(startOffset: Int, endOffset: Int): ByteArray {
-        check(endOffset >= endOffset) { "endOffset must be >= the startOffset!" }
-        val bytes = byteArrayOf(endOffset, startOffset)
+        check(endOffset >= startOffset) { "endOffset must be >= the startOffset!" }
+        val bytes = ByteArray(endOffset - startOffset)
         for (i in startOffset until endOffset) {
             nativeSet(bytes,i - startOffset, buffer.getInt8(i))
         }
@@ -330,13 +330,13 @@ internal class ByteBufferImpl(buffer: ArrayBuffer, private val littleEndian: Boo
 
     override val readUShort: Short
         get() {
-            val result = buffer.getUint16(position, littleEndian)
+            val result = buffer.getInt16(position, littleEndian)
             position += 2
             return result
         }
 
     override fun getUShort(offset: Int): UShort {
-        return buffer.getUint16(offset, littleEndian).toUShort()
+        return buffer.getInt16(offset, littleEndian).toUShort()
     }
 
     override fun putUShort(value: UShort): ByteBuffer {
@@ -356,7 +356,7 @@ internal class ByteBufferImpl(buffer: ArrayBuffer, private val littleEndian: Boo
     override fun putUShort(data: ShortArray, offset: Int, len: Int): ByteBuffer {
         for (i in offset until offset + len) {
             dirty = true
-            putShort(nativeGet(data, offset + i))
+            putShort(nativeGet(data, i))
         }
         return this
     }
@@ -376,13 +376,13 @@ internal class ByteBufferImpl(buffer: ArrayBuffer, private val littleEndian: Boo
 
     override val readUInt: Int
         get() {
-            val result = buffer.getUint32(position, littleEndian)
+            val result = buffer.getInt32(position, littleEndian)
             position += 4
             return result
         }
 
     override fun getUInt(offset: Int): UInt {
-        return buffer.getUint32(offset, littleEndian).toUInt()
+        return buffer.getInt32(offset, littleEndian).toUInt()
     }
 
     override fun putUInt(value: UInt): ByteBuffer {
@@ -395,14 +395,14 @@ internal class ByteBufferImpl(buffer: ArrayBuffer, private val littleEndian: Boo
     override fun putUInt(offset: Int, value: UInt): ByteBuffer {
         dirty = true
         buffer.setUint32(offset, value.toInt(), littleEndian)
-        position += 4
+        position = offset + 4
         return this
     }
 
     override fun putUInt(data: IntArray, offset: Int, len: Int): ByteBuffer {
         for (i in offset until offset + len) {
             dirty = true
-            putInt(nativeGet(data, offset + i))
+            putInt(nativeGet(data, i))
         }
         return this
     }
@@ -415,7 +415,7 @@ internal class ByteBufferImpl(buffer: ArrayBuffer, private val littleEndian: Boo
     override fun putUInt(data: IntBuffer): ByteBuffer {
         for (i in data.position until data.limit) {
             dirty = true
-            buffer.setUint32(position, data[i])
+            buffer.setUint32(position, data[i], littleEndian)
             position += 4
         }
         return this
@@ -479,13 +479,11 @@ internal class ByteBufferImpl(buffer: ArrayBuffer, private val littleEndian: Boo
         var v = 0
         for (i in 0 until offSize) {
             v = v shl 8
-            v += buffer.getUint8(offset + i)
+            v += buffer.getInt8(offset + i).toInt() and 0xFF
         }
         return v
     }
 }
-
-expect fun byteArrayOf(endOffset: Int, startOffset: Int): ByteArray
 
 actual fun ShortBuffer(capacity: Int): ShortBuffer {
     return ShortBufferImpl(capacity)

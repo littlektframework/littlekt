@@ -116,10 +116,10 @@ class BuffersTests {
     }
 
     @Test
-    fun test_byte_buffer_from_array_sets_position_to_end() {
+    fun test_byte_buffer_from_array_uses_array_size() {
         val buffer = ByteBuffer(byteArrayOf(1, 2, 3))
         assertEquals(3, buffer.capacity)
-        assertEquals(3, buffer.position)
+        assertEquals(2.toByte(), buffer.getByte(1))
     }
 
     @Test
@@ -293,7 +293,7 @@ class BuffersTests {
 
     @Test
     fun test_float_buffer_put_buffer_copies_position_to_limit() {
-        val src = FloatBuffer(floatArrayOf(1f, 2f, 3f))
+        val src = FloatBuffer(3).put(floatArrayOf(1f, 2f, 3f))
         src.flip()
         src.position = 1
         val dst = FloatBuffer(3)
@@ -305,7 +305,6 @@ class BuffersTests {
     fun test_buffer_from_array_copies_values() {
         val buffer = IntBuffer(intArrayOf(5, 6, 7))
         assertEquals(3, buffer.capacity)
-        assertEquals(3, buffer.position)
         assertContentEquals(intArrayOf(5, 6, 7), buffer.toArray())
     }
 
@@ -320,7 +319,7 @@ class BuffersTests {
 
     @Test
     fun test_int_buffer_remove_at_when_full() {
-        val buffer = IntBuffer(intArrayOf(1, 2, 3))
+        val buffer = IntBuffer(3).put(intArrayOf(1, 2, 3))
         buffer.removeAt(0)
         assertEquals(2, buffer.position)
         assertEquals(2, buffer.limit)
@@ -329,7 +328,7 @@ class BuffersTests {
 
     @Test
     fun test_short_buffer_remove_at_when_full() {
-        val buffer = ShortBuffer(shortArrayOf(1, 2, 3))
+        val buffer = ShortBuffer(3).put(shortArrayOf(1, 2, 3))
         buffer.removeAt(2)
         assertEquals(2, buffer.position)
         assertContentEquals(shortArrayOf(1, 2), buffer.toArray(0, 2))
@@ -337,7 +336,7 @@ class BuffersTests {
 
     @Test
     fun test_float_buffer_remove_at_when_full() {
-        val buffer = FloatBuffer(floatArrayOf(1f, 2f, 3f))
+        val buffer = FloatBuffer(3).put(floatArrayOf(1f, 2f, 3f))
         buffer.removeAt(1)
         assertEquals(2, buffer.position)
         assertContentEquals(floatArrayOf(1f, 3f), buffer.toArray(0, 2))

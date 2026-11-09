@@ -21,10 +21,10 @@ class ColorTests {
     @Test
     fun test_constructor_channels() {
         val color = Color(0.1f, 0.2f, 0.3f, 0.4f)
-        assertEquals(0.1f, color.r)
-        assertEquals(0.2f, color.g)
-        assertEquals(0.3f, color.b)
-        assertEquals(0.4f, color.a)
+        assertEquals(0.1f, color.r, 1e-6f)
+        assertEquals(0.2f, color.g, 1e-6f)
+        assertEquals(0.3f, color.b, 1e-6f)
+        assertEquals(0.4f, color.a, 1e-6f)
         assertEquals(color.x, color.r)
         assertEquals(color.w, color.a)
     }

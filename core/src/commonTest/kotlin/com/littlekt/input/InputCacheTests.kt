@@ -21,17 +21,17 @@ class InputCacheTests {
         }
 
         override fun touchDragged(screenX: Float, screenY: Float, pointer: Pointer): Boolean {
-            events += "drag $screenX $screenY $pointer"
+            events += "drag ${screenX.str()} ${screenY.str()} $pointer"
             return false
         }
 
         override fun mouseMoved(screenX: Float, screenY: Float): Boolean {
-            events += "move $screenX $screenY"
+            events += "move ${screenX.str()} ${screenY.str()}"
             return false
         }
 
         override fun gamepadButtonPressed(button: GameButton, pressure: Float, gamepad: Int): Boolean {
-            events += "pressed $button $pressure $gamepad"
+            events += "pressed $button ${pressure.str()} $gamepad"
             return false
         }
 
@@ -46,12 +46,12 @@ class InputCacheTests {
             yAxis: Float,
             gamepad: Int
         ): Boolean {
-            events += "stick $stick $xAxis $yAxis $gamepad"
+            events += "stick $stick ${xAxis.str()} ${yAxis.str()} $gamepad"
             return false
         }
 
         override fun gamepadTriggerChanged(button: GameButton, pressure: Float, gamepad: Int): Boolean {
-            events += "trigger $button $pressure $gamepad"
+            events += "trigger $button ${pressure.str()} $gamepad"
             return false
         }
     }

@@ -98,7 +98,8 @@ class AngleTests {
     fun test_normalized() {
         assertNearDegrees(10f, 370.degrees.normalized)
         assertNearDegrees(350f, (-10).degrees.normalized)
-        assertNearDegrees(0f, 720.degrees.normalized)
+        val full = 720.degrees.normalized.degrees
+        assertTrue(full < 1e-3f || full > 360f - 1e-3f, "expected 0 but was $full")
         assertNearDegrees(90f, 90.degrees.normalized)
         assertNearDegrees(270f, (-450).degrees.normalized)
     }

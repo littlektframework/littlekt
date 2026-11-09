@@ -93,6 +93,10 @@
 - Fix JVM `ByteBuffer` unaligned short, int & float reads throwing.
 - Fix `ShortBuffer.put` with a source offset, `getUByteArray` validation, `getOffset` sign & `removeAt` on full buffers.
 - Fix `ByteArray.toIntArray` sign extending bytes, breaking Tiled base64 tile data with flip flags.
+- Fix web `ByteBuffer` unsigned reads, `getByteArray`, `putUInt` position & byte order and array offsets in `putUShort` & `putUInt`.
+- Remove the web `byteArrayOf(endOffset, startOffset)` that shadowed the standard `byteArrayOf` for two values.
+- Fix web gzip decompression hanging on Node.
+- Fix array lists with `shouldGrow = false` not throwing when full on web.
 - Fix Tiled text objects failing to decode when fields are left at their defaults.
 - Fix glTF textures without a sampler crashing, `extensionsRequired` never being read & material extensions failing to decode.
 - Fix `GltfAttribute.COLOR_1` to `COLOR_4` values.

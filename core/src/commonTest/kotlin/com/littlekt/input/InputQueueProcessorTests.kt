@@ -26,29 +26,29 @@ class InputQueueProcessorTests {
         override fun charTyped(character: Char) = record("char $character")
 
         override fun touchDown(screenX: Float, screenY: Float, pointer: Pointer) =
-            record("touchDown $screenX $screenY $pointer")
+            record("touchDown ${screenX.str()} ${screenY.str()} $pointer")
 
         override fun touchUp(screenX: Float, screenY: Float, pointer: Pointer) =
-            record("touchUp $screenX $screenY $pointer")
+            record("touchUp ${screenX.str()} ${screenY.str()} $pointer")
 
         override fun touchDragged(screenX: Float, screenY: Float, pointer: Pointer) =
-            record("dragged $screenX $screenY $pointer")
+            record("dragged ${screenX.str()} ${screenY.str()} $pointer")
 
-        override fun mouseMoved(screenX: Float, screenY: Float) = record("moved $screenX $screenY")
+        override fun mouseMoved(screenX: Float, screenY: Float) = record("moved ${screenX.str()} ${screenY.str()}")
 
-        override fun scrolled(amountX: Float, amountY: Float) = record("scrolled $amountX $amountY")
+        override fun scrolled(amountX: Float, amountY: Float) = record("scrolled ${amountX.str()} ${amountY.str()}")
 
         override fun gamepadButtonPressed(button: GameButton, pressure: Float, gamepad: Int) =
-            record("pressed $button $pressure $gamepad")
+            record("pressed $button ${pressure.str()} $gamepad")
 
         override fun gamepadButtonReleased(button: GameButton, gamepad: Int) =
             record("released $button $gamepad")
 
         override fun gamepadJoystickMoved(stick: GameStick, xAxis: Float, yAxis: Float, gamepad: Int) =
-            record("stick $stick $xAxis $yAxis $gamepad")
+            record("stick $stick ${xAxis.str()} ${yAxis.str()} $gamepad")
 
         override fun gamepadTriggerChanged(button: GameButton, pressure: Float, gamepad: Int) =
-            record("trigger $button $pressure $gamepad")
+            record("trigger $button ${pressure.str()} $gamepad")
     }
 
     @Test

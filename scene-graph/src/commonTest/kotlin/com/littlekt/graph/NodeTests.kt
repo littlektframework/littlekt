@@ -65,7 +65,7 @@ class NodeTests {
         val node = Node()
         val hash = node.hashCode()
         node.name = "renamed"
-        assertSame(hash, node.hashCode())
+        assertEquals(hash, node.hashCode())
         assertNotEquals(Node(), node)
     }
 

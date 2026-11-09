@@ -1,5 +1,6 @@
 package com.littlekt.input
 
+import com.littlekt.math.Vec2f
 import com.littlekt.math.geom.Point
 
 internal class FakeInput(val cache: InputCache = InputCache(), gamepadCount: Int = 2) : Input {
@@ -113,3 +114,7 @@ internal class FakeInput(val cache: InputCache = InputCache(), gamepadCount: Int
         info.rawAxes[info.mapping.axisToIndex.getValue(axis)] = value
     }
 }
+
+internal fun Float.str(): String = if (this % 1f == 0f) "${toInt()}.0" else toString()
+
+internal fun Vec2f.str(): String = "(${x.str()}, ${y.str()})"

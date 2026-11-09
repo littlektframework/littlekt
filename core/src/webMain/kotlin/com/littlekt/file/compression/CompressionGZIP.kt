@@ -24,7 +24,7 @@ expect fun toFloat32Array(input: FloatArray): Float32Array
 actual class CompressionGZIP : Compression {
     actual override suspend fun compress(input: ByteBuffer): ByteBuffer {
         input as ByteBufferImpl
-        val buffer = input.buffer.buffer
+        val buffer = Uint8Array(input.buffer.buffer)
         val compressionStream = CompressionStream("gzip")
         val writer = compressionStream.writable.getWriter()
         writer.write(buffer)
@@ -63,7 +63,7 @@ actual class CompressionGZIP : Compression {
 
     actual override suspend fun decompress(input: ByteBuffer): ByteBuffer {
         input as ByteBufferImpl
-        val buffer = input.buffer.buffer
+        val buffer = Uint8Array(input.buffer.buffer)
         val decompressedStream = DecompressionStream("gzip")
         val writer = decompressedStream.writable.getWriter()
         writer.write(buffer)
@@ -83,7 +83,7 @@ actual class CompressionGZIP : Compression {
 
     @OptIn(ExperimentalUnsignedTypes::class)
     actual override suspend fun decompress(input: ByteArray): ByteArray {
-        val buffer = toUint8Array(input).buffer
+        val buffer = toUint8Array(input)
         val decompressedStream = DecompressionStream("gzip")
         val writer = decompressedStream.writable.getWriter()
         writer.write(buffer)

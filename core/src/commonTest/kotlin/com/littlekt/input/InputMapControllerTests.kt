@@ -44,7 +44,7 @@ class InputMapControllerTests {
         }
 
         override fun onActionChange(inputType: Signal, pressure: Float): Boolean {
-            events += "change $inputType $pressure"
+            events += "change $inputType ${pressure.str()}"
             return handles
         }
     }
@@ -317,10 +317,10 @@ class InputMapControllerTests {
         controller.mode = InputMode.GAMEPAD
         input.setAxis(GameAxis.LX, 0.2f)
         assertEquals(0f, controller.strength(Signal.RIGHT))
-        assertEquals(0.2f, controller.strength(Signal.RIGHT, deadZone = 0.1f))
+        assertEquals(0.2f, controller.strength(Signal.RIGHT, deadZone = 0.1f), 1e-6f)
         input.setAxis(GameAxis.LX, -0.6f)
-        assertEquals(-0.6f, controller.strength(Signal.RIGHT))
-        assertEquals(0.6f, controller.dist(Signal.RIGHT))
+        assertEquals(-0.6f, controller.strength(Signal.RIGHT), 1e-6f)
+        assertEquals(0.6f, controller.dist(Signal.RIGHT), 1e-6f)
     }
 
     @Test
@@ -329,7 +329,7 @@ class InputMapControllerTests {
         val controller = controller(input)
         controller.mode = InputMode.GAMEPAD
         input.setAxis(GameAxis.LY, -0.8f)
-        assertEquals(0.8f, controller.strength(Signal.UP))
+        assertEquals(0.8f, controller.strength(Signal.UP), 1e-6f)
     }
 
     @Test

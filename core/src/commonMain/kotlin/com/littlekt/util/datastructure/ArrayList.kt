@@ -32,7 +32,12 @@ class ShortArrayList(capacity: Int = 7, var shouldGrow: Boolean = true) : Collec
     }
 
     fun ensure(count: Int) {
-        if (!shouldGrow) return
+        if (!shouldGrow) {
+            if (length + count > data.size) {
+                throw IndexOutOfBoundsException("List is full: ${data.size}")
+            }
+            return
+        }
         if (length + count > data.size) {
             data = data.copyOf(max(length + count, data.size * 3))
         }
@@ -262,7 +267,12 @@ class IntArrayList(capacity: Int = 7, var shouldGrow: Boolean = true) : Collecti
     }
 
     fun ensure(count: Int) {
-        if (!shouldGrow) return
+        if (!shouldGrow) {
+            if (length + count > data.size) {
+                throw IndexOutOfBoundsException("List is full: ${data.size}")
+            }
+            return
+        }
         if (length + count > data.size) {
             data = data.copyOf(max(length + count, data.size * 3))
         }
@@ -491,7 +501,12 @@ class DoubleArrayList(capacity: Int = 7, var shouldGrow: Boolean = true) : Colle
     }
 
     private fun ensure(count: Int) {
-        if (!shouldGrow) return
+        if (!shouldGrow) {
+            if (length + count > data.size) {
+                throw IndexOutOfBoundsException("List is full: ${data.size}")
+            }
+            return
+        }
         if (length + count > data.size) {
             data = data.copyOf(max(length + count, data.size * 3)) as DoubleArray
         }
@@ -717,7 +732,12 @@ class FloatArrayList(capacity: Int = 7, var shouldGrow: Boolean = true) : Collec
     }
 
     private fun ensure(count: Int) {
-        if (!shouldGrow) return
+        if (!shouldGrow) {
+            if (length + count > data.size) {
+                throw IndexOutOfBoundsException("List is full: ${data.size}")
+            }
+            return
+        }
         if (length + count > data.size) {
             data = data.copyOf(max(length + count, data.size * 3))
         }
