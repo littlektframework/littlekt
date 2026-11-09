@@ -189,7 +189,9 @@ class InputMapController<InputSignal>(
      */
     fun down(type: InputSignal): Boolean {
         return if (mode == InputMode.GAMEPAD) {
-            getGamepadButtonEvent(type) { input.isGamepadButtonPressed(it) }
+            getGamepadButtonEvent(type) { button, gamepad ->
+                input.isGamepadButtonPressed(button, gamepad)
+            }
         } else {
             return getKeyEvent(type, singleKey = { key -> input.isKeyPressed(key) }) {
                 modifiers,
@@ -225,7 +227,9 @@ class InputMapController<InputSignal>(
      */
     fun pressed(type: InputSignal): Boolean {
         return if (mode == InputMode.GAMEPAD) {
-            getGamepadButtonEvent(type) { input.isGamepadButtonJustPressed(it) }
+            getGamepadButtonEvent(type) { button, gamepad ->
+                input.isGamepadButtonJustPressed(button, gamepad)
+            }
         } else {
             return getKeyEvent(type, singleKey = { key -> input.isKeyJustPressed(key) }) {
                 modifiers,
@@ -267,7 +271,9 @@ class InputMapController<InputSignal>(
      */
     fun released(type: InputSignal): Boolean {
         return if (mode == InputMode.GAMEPAD) {
-            getGamepadButtonEvent(type) { input.isGamepadButtonJustReleased(it) }
+            getGamepadButtonEvent(type) { button, gamepad ->
+                input.isGamepadButtonJustReleased(button, gamepad)
+            }
         } else {
             return getKeyEvent(type, singleKey = { key -> input.isKeyJustReleased(key) }) {
                 modifiers,
@@ -282,8 +288,8 @@ class InputMapController<InputSignal>(
                         } else if (input.isKeyPressed(it)) {
                             modHandled = true
                         }
-                        if (!modHandled) return@getKeyEvent false
                     }
+                    if (!modHandled) return@getKeyEvent false
                 }
                 // if we get here then all the modifiers are met
                 keys.fastForEach {
@@ -333,8 +339,8 @@ class InputMapController<InputSignal>(
     }
 
     override fun keyDown(key: Key): Boolean {
-        if (processors.isEmpty()) return false
         mode = InputMode.KEYBOARD
+        if (processors.isEmpty()) return false
 
         if (anyModifierPressed) {
             keyModifiersToType[key]?.forEach outside@{ binding ->
@@ -433,12 +439,12 @@ class InputMapController<InputSignal>(
 
     private inline fun getGamepadButtonEvent(
         type: InputSignal,
-        predicate: (button: GameButton) -> Boolean,
+        predicate: (button: GameButton, gamepad: Int) -> Boolean,
     ): Boolean {
         if (input.connectedGamepads.isNotEmpty()) {
-            input.gamepads.fastForEach {
+            input.gamepads.fastForEach { gamepad ->
                 buttonBindings[type]?.fastForEach {
-                    if (predicate(it)) {
+                    if (predicate(it, gamepad.index)) {
                         return true
                     }
                 }
@@ -542,7 +548,7 @@ class InputMapController<InputSignal>(
     ): Boolean {
         if (anyModifierPressed) {
             keyBindingsWithModifiers[type]?.let outside@{ binding ->
-                return modifierKey(binding.modifiers, binding.keys)
+                if (modifierKey(binding.modifiers, binding.keys)) return true
             }
         }
 
@@ -571,11 +577,12 @@ class InputMapController<InputSignal>(
         return if (mode == InputMode.KEYBOARD) {
             strength(positive, deadZone) - strength(negative, deadZone)
         } else {
-            val predicate = { strength: Float, isAxis: Boolean ->
+            getButtonAxisStrength(positive, true) { strength, isAxis ->
                 (isAxis && abs(strength) >= deadZone) || !isAxis && strength != 0f
-            }
-            getButtonAxisStrength(positive, true, predicate) -
-                getButtonAxisStrength(negative, false, predicate)
+            } -
+                getButtonAxisStrength(negative, false) { strength, isAxis ->
+                    (isAxis && abs(strength) >= deadZone) || !isAxis && strength != 0f
+                }
         }
     }
 

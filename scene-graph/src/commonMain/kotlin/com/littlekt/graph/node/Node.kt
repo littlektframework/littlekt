@@ -639,9 +639,12 @@ open class Node : Comparable<Node> {
      * @param child the child to add
      */
     fun addChild(child: Node): Node {
+        if (child._parent === this) return this
+        child._parent?.removeChild(child)
         nodes.add(child)
         child.pos = childCount
         child._parent = this
+        child.onParentChanged()
 
         child.scene = scene
         onChildAdded(child)
@@ -657,9 +660,12 @@ open class Node : Comparable<Node> {
      * @param index the index of the child to be added at
      */
     fun addChildAt(child: Node, index: Int): Node {
+        if (child._parent === this) return moveChild(child, index)
+        child._parent?.removeChild(child)
         nodes.addAt(child, index)
         nodes.forEachIndexed { idx, node -> node.pos = idx + 1 }
         child._parent = this
+        child.onParentChanged()
 
         child.scene = scene
         onChildAdded(child)
@@ -703,6 +709,7 @@ open class Node : Comparable<Node> {
         if (child.parent != this) return this
 
         child._parent = null
+        child.onParentChanged()
         nodes.remove(child)
 
         child.scene = null
@@ -869,6 +876,8 @@ open class Node : Comparable<Node> {
         onEnabled.clear()
         onDisabled.clear()
     }
+
+    internal open fun onParentChanged() = Unit
 
     /** Called when [destroy] is invoked and all of its children have been destroyed. */
     open fun onDestroy() = Unit

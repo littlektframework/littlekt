@@ -80,7 +80,7 @@ interface ShortBuffer : Buffer {
         ShortArray(len) { get(it + offset) }
 
     override fun removeAt(index: Int) {
-        for (i in index until position) {
+        for (i in index until position - 1) {
             this[i] = this[i + 1]
         }
         super.removeAt(index)
@@ -116,7 +116,7 @@ interface IntBuffer : Buffer {
     fun toArray(offset: Int = 0, len: Int = capacity - offset) = IntArray(len) { get(it + offset) }
 
     override fun removeAt(index: Int) {
-        for (i in index until position) {
+        for (i in index until position - 1) {
             this[i] = this[i + 1]
         }
         super.removeAt(index)
@@ -160,7 +160,7 @@ interface FloatBuffer : Buffer {
         FloatArray(len) { get(it + offset) }
 
     override fun removeAt(index: Int) {
-        for (i in index until position) {
+        for (i in index until position - 1) {
             this[i] = this[i + 1]
         }
         super.removeAt(index)
@@ -408,10 +408,10 @@ fun ByteArray.toIntArray(): IntArray {
     for (i in ints.indices) {
         val byteI = i * 4
         ints[i] =
-            byteArray[byteI].toInt() or
-                    (byteArray[byteI + 1].toInt() shl 8) or
-                    (byteArray[byteI + 2].toInt() shl 16) or
-                    (byteArray[byteI + 3].toInt() shl 24)
+            (byteArray[byteI].toInt() and 0xFF) or
+                    ((byteArray[byteI + 1].toInt() and 0xFF) shl 8) or
+                    ((byteArray[byteI + 2].toInt() and 0xFF) shl 16) or
+                    ((byteArray[byteI + 3].toInt() and 0xFF) shl 24)
     }
 
     return ints

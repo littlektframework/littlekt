@@ -167,18 +167,24 @@ class InputCache {
 
     fun onGamepadButtonDown(button: GameButton, pressure: Float, gamepad: GamepadInfo) {
         queueManager.gamepadButtonDown(button, pressure, gamepad, epochMillis())
-        totalGamepadButtonsPressed++
-        anyGamepadButtonsJustPressed = true
-        gamepadButtonsLastState.getOrPut(gamepad.index) { mutableMapOf() }[button] = pressure
-        gamepadButtonsJustPressed.getOrPut(gamepad.index) { mutableMapOf() }[button] = true
+        val lastState = gamepadButtonsLastState.getOrPut(gamepad.index) { mutableMapOf() }
+        if ((lastState[button] ?: 0f) == 0f) {
+            totalGamepadButtonsPressed++
+            anyGamepadButtonsJustPressed = true
+            gamepadButtonsJustPressed.getOrPut(gamepad.index) { mutableMapOf() }[button] = true
+        }
+        lastState[button] = pressure
     }
 
     fun onGamepadButtonUp(button: GameButton, gamepad: GamepadInfo) {
         queueManager.gamepadButtonUp(button, gamepad, epochMillis())
-        totalGamepadButtonsPressed--
-        anyGamepadButtonsJustReleased = true
-        gamepadButtonsLastState.getOrPut(gamepad.index) { mutableMapOf() }[button] = 0f
-        gamepadButtonsJustReleased.getOrPut(gamepad.index) { mutableMapOf() }[button] = true
+        val lastState = gamepadButtonsLastState.getOrPut(gamepad.index) { mutableMapOf() }
+        if ((lastState[button] ?: 0f) != 0f) {
+            totalGamepadButtonsPressed--
+            anyGamepadButtonsJustReleased = true
+            gamepadButtonsJustReleased.getOrPut(gamepad.index) { mutableMapOf() }[button] = true
+        }
+        lastState[button] = 0f
     }
 
     fun onGamepadJoystickMoved(stick: GameStick, x: Float, y: Float, gamepad: GamepadInfo) {

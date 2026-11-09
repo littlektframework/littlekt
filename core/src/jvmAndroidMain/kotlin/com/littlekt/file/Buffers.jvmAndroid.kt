@@ -66,7 +66,7 @@ internal class ShortBufferImpl(capacity: Int) :
     }
 
     override fun put(data: ShortArray, srcOffset: Int, len: Int): ShortBuffer {
-        for (i in srcOffset until len) {
+        for (i in srcOffset until srcOffset + len) {
             dirty = true
             segment.set(position++, data[i])
         }
@@ -233,9 +233,9 @@ internal class FloatBufferImpl(capacity: Int) :
 internal class ByteBufferImpl(
     capacity: Int,
     layout: ValueLayout.OfByte = ValueLayout.JAVA_BYTE,
-    val shortLayout: ValueLayout.OfShort = ValueLayout.JAVA_SHORT,
-    val intLayout: ValueLayout.OfInt = ValueLayout.JAVA_INT,
-    val floatLayout: ValueLayout.OfFloat = ValueLayout.JAVA_FLOAT,
+    val shortLayout: ValueLayout.OfShort = ValueLayout.JAVA_SHORT_UNALIGNED,
+    val intLayout: ValueLayout.OfInt = ValueLayout.JAVA_INT_UNALIGNED,
+    val floatLayout: ValueLayout.OfFloat = ValueLayout.JAVA_FLOAT_UNALIGNED,
     segment: MemorySegment = Arena.ofAuto().allocate(capacity.toLong()),
 ) : ByteBuffer, GenericBuffer<ValueLayout.OfByte>(capacity, segment, layout) {
 
@@ -248,14 +248,13 @@ internal class ByteBufferImpl(
         isBigEndian: Boolean,
     ) : this(
         data.size,
-        if (isBigEndian) ValueLayout.JAVA_BYTE.withOrder(ByteOrder.nativeOrder())
-        else ValueLayout.JAVA_BYTE,
-        if (isBigEndian) ValueLayout.JAVA_SHORT.withOrder(ByteOrder.nativeOrder())
-        else ValueLayout.JAVA_SHORT,
-        if (isBigEndian) ValueLayout.JAVA_INT.withOrder(ByteOrder.nativeOrder())
-        else ValueLayout.JAVA_INT,
-        if (isBigEndian) ValueLayout.JAVA_FLOAT.withOrder(ByteOrder.nativeOrder())
-        else ValueLayout.JAVA_FLOAT,
+        ValueLayout.JAVA_BYTE,
+        if (isBigEndian) ValueLayout.JAVA_SHORT_UNALIGNED.withOrder(ByteOrder.BIG_ENDIAN)
+        else ValueLayout.JAVA_SHORT_UNALIGNED,
+        if (isBigEndian) ValueLayout.JAVA_INT_UNALIGNED.withOrder(ByteOrder.BIG_ENDIAN)
+        else ValueLayout.JAVA_INT_UNALIGNED,
+        if (isBigEndian) ValueLayout.JAVA_FLOAT_UNALIGNED.withOrder(ByteOrder.BIG_ENDIAN)
+        else ValueLayout.JAVA_FLOAT_UNALIGNED,
     ) {
         putByte(data)
     }
@@ -327,7 +326,7 @@ internal class ByteBufferImpl(
     }
 
     override fun getUByteArray(startOffset: Int, endOffset: Int): ByteArray {
-        check(endOffset >= endOffset) { "endOffset must be >= the startOffset!" }
+        check(endOffset >= startOffset) { "endOffset must be >= the startOffset!" }
         val bytes = ByteArray(endOffset - startOffset)
         for (i in startOffset until endOffset) {
             bytes[i - startOffset] = segment.get(layout, i.toLong())
@@ -548,7 +547,7 @@ internal class ByteBufferImpl(
         var v = 0
         for (i in 0 until offSize) {
             v = v shl 8
-            v += segment.get(layout, (offset + i).toLong())
+            v += segment.get(layout, (offset + i).toLong()).toInt() and 0xFF
         }
         return v
     }

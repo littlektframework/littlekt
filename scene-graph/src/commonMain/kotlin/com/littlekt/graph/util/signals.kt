@@ -40,13 +40,17 @@ internal class SignalSlots<S> {
     inline fun forEach(action: (S) -> Unit) {
         var i = 0
         while (i < keyedSlots.size) {
-            action(keyedSlots[i])
-            i++
+            val size = keyedSlots.size
+            val slot = keyedSlots[i]
+            action(slot)
+            if (keyedSlots.size >= size || i >= keyedSlots.size || keyedSlots[i] === slot) i++
         }
         i = 0
         while (i < slots.size) {
-            action(slots[i])
-            i++
+            val size = slots.size
+            val slot = slots[i]
+            action(slot)
+            if (slots.size >= size || i >= slots.size || slots[i] === slot) i++
         }
     }
 

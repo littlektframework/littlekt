@@ -40,4 +40,64 @@ class IntMapTests {
         assertEquals(0, map.size)
         assertNull(map[1])
     }
+
+    @Test
+    fun test_zero_initial_capacity_grows() {
+        val map = IntMap<String>(0)
+        repeat(10) { map[it] = "v$it" }
+        assertEquals(10, map.size)
+        repeat(10) { assertEquals("v$it", map[it]) }
+    }
+
+    @Test
+    fun test_extreme_keys() {
+        val map = IntMap<String>()
+        map[Int.MIN_VALUE] = "min"
+        map[Int.MAX_VALUE] = "max"
+        assertEquals("min", map[Int.MIN_VALUE])
+        assertEquals("max", map[Int.MAX_VALUE])
+        assertEquals(2, map.size)
+    }
+
+    @Test
+    fun test_colliding_keys() {
+        val map = IntMap<Int>(4)
+        val keys = IntArray(64) { it shl 16 }
+        keys.forEach { map[it] = it }
+        keys.forEach { assertEquals(it, map[it]) }
+        assertNull(map[1])
+    }
+
+    @Test
+    fun test_for_each_value_after_resize() {
+        val map = IntMap<Int>(2)
+        repeat(50) { map[it] = it }
+        var sum = 0
+        map.forEachValue { sum += it }
+        assertEquals((0 until 50).sum(), sum)
+    }
+
+    @Test
+    fun test_clear_and_reuse() {
+        val map = IntMap<String>()
+        repeat(20) { map[it] = "a$it" }
+        map.clear()
+        var count = 0
+        map.forEachValue { count++ }
+        assertEquals(0, count)
+        map[3] = "b"
+        assertEquals(1, map.size)
+        assertEquals("b", map[3])
+        assertNull(map[4])
+    }
+
+    @Test
+    fun test_get_or_put_invokes_default_once() {
+        val map = IntMap<String>()
+        var calls = 0
+        map.getOrPut(7) { calls++; "x" }
+        map.getOrPut(7) { calls++; "y" }
+        assertEquals(1, calls)
+        assertEquals("x", map[7])
+    }
 }

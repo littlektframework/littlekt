@@ -101,7 +101,7 @@ class GestureController(
                     longPressJob =
                         KtScope.launch {
                             delay(longPressDuration)
-                            processor.longPress(screenX, screenY)
+                            longPressFired = processor.longPress(screenX, screenY)
                         }
                 }
             }
@@ -199,7 +199,7 @@ class GestureController(
         }
 
         val time = input.currentEventTime
-        if (time - touchDownTime <= maxFlingDuration.seconds) {
+        if (time - touchDownTime <= maxFlingDuration.milliseconds) {
             tracker.update(screenX, screenY, time)
             handled =
                 processor.fling(tracker.velocityX * 1000f, tracker.velocityY * 1000f, pointer) ||
@@ -279,14 +279,14 @@ class GestureController(
             val samples = min(sampleSize, numSamples)
             var sum = 0f
             repeat(samples) { sum += values[it] }
-            return sum / numSamples
+            return if (samples == 0) 0f else sum / samples
         }
 
         private fun getAverage(values: LongArray, numSamples: Int): Long {
             val samples = min(sampleSize, numSamples)
             var sum = 0L
             repeat(samples) { sum += values[it] }
-            return sum / numSamples
+            return if (samples == 0) 0L else sum / samples
         }
     }
 }

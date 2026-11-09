@@ -246,10 +246,16 @@ open class AnimationPlayer<KeyFrameType> {
      * animation is stopped with [stop].
      */
     fun start() {
-        currentAnimation?.let {
-            animationRequested = true
-            currentFrameIdx = 0
-            lastFrameTime = Duration.ZERO
+        currentAnimationInstance?.let { animInstance ->
+            animInstance.anim?.let {
+                setAnimInfo(
+                    it,
+                    animInstance.plays,
+                    animInstance.speed,
+                    animInstance.duration,
+                    animInstance.type
+                )
+            }
         }
     }
 
@@ -275,6 +281,7 @@ open class AnimationPlayer<KeyFrameType> {
     private fun nextFrame(frameTime: Duration) {
         lastFrameTime += frameTime
         if (lastFrameTime + frameTime >= frameDisplayTime) {
+            val instance = currentAnimationInstance
             when (animationType) {
                 AnimationType.STANDARD -> {
                     if (numOfFramesRequested > 0) {
@@ -289,7 +296,7 @@ open class AnimationPlayer<KeyFrameType> {
                 }
             }
 
-            if (animationRequested) {
+            if (animationRequested && instance === currentAnimationInstance) {
                 totalFramesPlayed++
                 currentFrameIdx++
                 frameDisplayTime = currentAnimation?.getFrameTime(currentFrameIdx) ?: Duration.ZERO
@@ -306,6 +313,7 @@ open class AnimationPlayer<KeyFrameType> {
         type: AnimationType = AnimationType.STANDARD,
     ) {
         currentFrameIdx = 0
+        lastFrameTime = Duration.ZERO
         frameDisplayTime = animation.getFrameTime(currentFrameIdx) * speed.toDouble()
         animationType = type
         animationRequested = true

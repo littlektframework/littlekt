@@ -189,7 +189,7 @@ internal class FloatBufferImpl(array: Float32Array) :
 }
 
 /** ByteBuffer buffer implementation */
-internal class ByteBufferImpl(buffer: ArrayBuffer) :
+internal class ByteBufferImpl(buffer: ArrayBuffer, private val littleEndian: Boolean = true) :
     ByteBuffer, GenericBuffer<DataView>(buffer.byteLength, { DataView(buffer) }) {
     override var dirty: Boolean = false
 
@@ -200,6 +200,11 @@ internal class ByteBufferImpl(buffer: ArrayBuffer) :
     constructor(array: Uint8ClampedArray) : this(array.buffer)
 
     constructor(array: ByteArray) : this(toUint8Array(array))
+
+    constructor(
+        array: ByteArray,
+        isBigEndian: Boolean,
+    ) : this(toUint8Array(array).buffer, !isBigEndian)
 
     override fun get(i: Int): Byte {
         return buffer.getInt8(i)
@@ -212,17 +217,17 @@ internal class ByteBufferImpl(buffer: ArrayBuffer) :
 
     override fun set(i: Int, value: Short) {
         dirty = true
-        buffer.setInt16(i, value, true)
+        buffer.setInt16(i, value, littleEndian)
     }
 
     override fun set(i: Int, value: Int) {
         dirty = true
-        buffer.setInt32(i, value, true)
+        buffer.setInt32(i, value, littleEndian)
     }
 
     override fun set(i: Int, value: Float) {
         dirty = true
-        buffer.setFloat32(i, value, true)
+        buffer.setFloat32(i, value, littleEndian)
     }
 
     override val readByte: Byte
@@ -252,24 +257,24 @@ internal class ByteBufferImpl(buffer: ArrayBuffer) :
 
     override val readShort: Short
         get() {
-            val result = buffer.getInt16(position, true)
+            val result = buffer.getInt16(position, littleEndian)
             position += 2
             return result
         }
 
     override fun getShort(offset: Int): Short {
-        return buffer.getInt16(offset, true)
+        return buffer.getInt16(offset, littleEndian)
     }
 
     override val readInt: Int
         get() {
-            val result = buffer.getInt32(position, true)
+            val result = buffer.getInt32(position, littleEndian)
             position += 4
             return result
         }
 
     override fun getInt(offset: Int): Int {
-        return buffer.getInt32(offset, true)
+        return buffer.getInt32(offset, littleEndian)
     }
 
     override val readUByte: Byte
@@ -325,25 +330,25 @@ internal class ByteBufferImpl(buffer: ArrayBuffer) :
 
     override val readUShort: Short
         get() {
-            val result = buffer.getUint16(position, true)
+            val result = buffer.getUint16(position, littleEndian)
             position += 2
             return result
         }
 
     override fun getUShort(offset: Int): UShort {
-        return buffer.getUint16(offset, true).toUShort()
+        return buffer.getUint16(offset, littleEndian).toUShort()
     }
 
     override fun putUShort(value: UShort): ByteBuffer {
         dirty = true
-        buffer.setUint16(position, value.toShort(), true)
+        buffer.setUint16(position, value.toShort(), littleEndian)
         position += 2
         return this
     }
 
     override fun putUShort(offset: Int, value: UShort): ByteBuffer {
         dirty = true
-        buffer.setUint16(offset, value.toShort(), true)
+        buffer.setUint16(offset, value.toShort(), littleEndian)
         position = offset + 2
         return this
     }
@@ -371,25 +376,25 @@ internal class ByteBufferImpl(buffer: ArrayBuffer) :
 
     override val readUInt: Int
         get() {
-            val result = buffer.getUint32(position, true)
+            val result = buffer.getUint32(position, littleEndian)
             position += 4
             return result
         }
 
     override fun getUInt(offset: Int): UInt {
-        return buffer.getUint32(offset, true).toUInt()
+        return buffer.getUint32(offset, littleEndian).toUInt()
     }
 
     override fun putUInt(value: UInt): ByteBuffer {
         dirty = true
-        buffer.setUint32(position, value.toInt(), true)
+        buffer.setUint32(position, value.toInt(), littleEndian)
         position += 4
         return this
     }
 
     override fun putUInt(offset: Int, value: UInt): ByteBuffer {
         dirty = true
-        buffer.setUint32(offset, value.toInt(), true)
+        buffer.setUint32(offset, value.toInt(), littleEndian)
         position += 4
         return this
     }
@@ -418,25 +423,25 @@ internal class ByteBufferImpl(buffer: ArrayBuffer) :
 
     override val readFloat: Float
         get() {
-            val result = buffer.getFloat32(position, true)
+            val result = buffer.getFloat32(position, littleEndian)
             position += 4
             return result
         }
 
     override fun getFloat(offset: Int): Float {
-        return buffer.getFloat32(offset, true)
+        return buffer.getFloat32(offset, littleEndian)
     }
 
     override fun putFloat(value: Float): ByteBuffer {
         dirty = true
-        buffer.setFloat32(position, value, true)
+        buffer.setFloat32(position, value, littleEndian)
         position += 4
         return this
     }
 
     override fun putFloat(offset: Int, value: Float): ByteBuffer {
         dirty = true
-        buffer.setFloat32(offset, value, true)
+        buffer.setFloat32(offset, value, littleEndian)
         position = offset + 4
         return this
     }
@@ -514,4 +519,5 @@ actual fun ByteBuffer(array: ByteArray): ByteBuffer {
     return ByteBufferImpl(array)
 }
 
-actual fun ByteBuffer(array: ByteArray, isBigEndian: Boolean): ByteBuffer = ByteBuffer(array)
+actual fun ByteBuffer(array: ByteArray, isBigEndian: Boolean): ByteBuffer =
+    ByteBufferImpl(array, isBigEndian)

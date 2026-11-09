@@ -240,7 +240,7 @@ open class TreeMap<K : Any, V : Any> : MutableMap<K, V> {
 
     override val values: MutableCollection<V>
         get() {
-            val values = mutableSetOf<V>()
+            val values = mutableListOf<V>()
             if (!isEmpty()) {
                 var e = firstEntry() as MapEntry?
                 while (e != null) {

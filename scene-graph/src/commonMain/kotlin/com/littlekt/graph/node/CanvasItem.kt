@@ -160,11 +160,7 @@ abstract class CanvasItem : Node() {
             return globalPosition.x
         }
         set(value) {
-            if (value == _globalPosition.x) {
-                return
-            }
-            _globalPosition.x = value
-            updateGlobalPosition()
+            globalPosition(value, globalPosition.y)
         }
 
     var globalY: Float
@@ -172,11 +168,7 @@ abstract class CanvasItem : Node() {
             return globalPosition.y
         }
         set(value) {
-            if (value == _globalPosition.y) {
-                return
-            }
-            _globalPosition.y = value
-            updateGlobalPosition()
+            globalPosition(globalPosition.x, value)
         }
 
     /**
@@ -272,11 +264,10 @@ abstract class CanvasItem : Node() {
      */
     var globalScaleX: Float
         get() {
-            return _globalScale.x
+            return globalScale.x
         }
         set(value) {
-            _globalScale.x = value
-            updateScale()
+            globalScale(value, globalScale.y)
         }
 
     /**
@@ -286,11 +277,10 @@ abstract class CanvasItem : Node() {
      */
     var globalScaleY: Float
         get() {
-            return _globalScale.y
+            return globalScale.y
         }
         set(value) {
-            _globalScale.y = value
-            updateScale()
+            globalScale(globalScale.x, value)
         }
 
     /**
@@ -439,6 +429,10 @@ abstract class CanvasItem : Node() {
         dirty(POSITION_DIRTY)
 
         return this
+    }
+
+    override fun onParentChanged() {
+        dirty(POSITION_DIRTY)
     }
 
     /**
@@ -634,7 +628,7 @@ abstract class CanvasItem : Node() {
      * @return the current [CanvasItem]
      */
     fun globalPosition(value: Vec2f): CanvasItem {
-        if (value == _globalPosition) {
+        if (value == globalPosition) {
             return this
         }
         _globalPosition.set(value)
@@ -650,7 +644,8 @@ abstract class CanvasItem : Node() {
      * @return the current [CanvasItem]
      */
     fun globalPosition(x: Float, y: Float): CanvasItem {
-        if (_globalPosition.x == x && _globalPosition.y == y) {
+        val current = globalPosition
+        if (current.x == x && current.y == y) {
             return this
         }
         _globalPosition.set(x, y)
@@ -725,11 +720,11 @@ abstract class CanvasItem : Node() {
      * @return the current [CanvasItem]
      */
     fun globalRotation(angle: Angle): CanvasItem {
-        if (_globalRotation == angle) {
+        if (globalRotation == angle) {
             return this
         }
         _globalRotation = angle
-        (parent as? CanvasItem)?.let { rotation = it.globalRotation + angle }
+        (parent as? CanvasItem)?.let { rotation = angle - it.globalRotation }
             ?: run { rotation = angle }
 
         return this
@@ -766,7 +761,7 @@ abstract class CanvasItem : Node() {
      * @return the current [CanvasItem]
      */
     fun globalScale(value: Vec2f): CanvasItem {
-        if (_globalScale == value) {
+        if (globalScale == value) {
             return this
         }
         _globalScale.set(value)
@@ -782,7 +777,8 @@ abstract class CanvasItem : Node() {
      * @return the current [CanvasItem]
      */
     fun globalScale(x: Float, y: Float): CanvasItem {
-        if (_globalScale.x == x && _globalScale.y == y) {
+        val current = globalScale
+        if (current.x == x && current.y == y) {
             return this
         }
         _globalScale.set(x, y)
@@ -794,7 +790,7 @@ abstract class CanvasItem : Node() {
         _localScale.set(_globalScale)
         val canvasItem = parent as? CanvasItem
         if (canvasItem != null) {
-            _localScale /= canvasItem._globalScale
+            _localScale /= canvasItem.globalScale
         }
         updateLocalScale()
     }
@@ -887,12 +883,6 @@ abstract class CanvasItem : Node() {
                 }
 
                 _localTransform.set(_translationMatrix).mul(_rotationMatrix).mul(_scaleMatrix)
-                if (parent !is CanvasItem) {
-                    _globalTransform.set(_localTransform)
-                    _globalRotation = _localRotation
-                    _globalScale.set(_localScale)
-                    _globalInverseDirty = true
-                }
                 _localDirty = false
             }
 
@@ -901,8 +891,13 @@ abstract class CanvasItem : Node() {
 
                 _globalRotation = _localRotation + it._globalRotation
                 _globalScale.set(it._globalScale).scale(_localScale)
-                _globalInverseDirty = true
             }
+                ?: run {
+                    _globalTransform.set(_localTransform)
+                    _globalRotation = _localRotation
+                    _globalScale.set(_localScale)
+                }
+            _globalInverseDirty = true
 
             _globalToLocalDirty = true
             _globalPositionDirty = true
@@ -1024,6 +1019,10 @@ abstract class CanvasItem : Node() {
         _globalScale = node.globalScale.toMutableVec2()
         _localScale = node.scale.toMutableVec2()
 
+        _localDirty = true
+        _localPositionDirty = true
+        _localRotationDirty = true
+        _localScaleDirty = true
         dirty(POSITION_DIRTY)
         dirty(ROTATION_DIRTY)
         dirty(SCALE_DIRTY)

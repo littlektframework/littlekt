@@ -9,6 +9,11 @@ import com.littlekt.graphics.webgpu.*
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
+import kotlinx.serialization.builtins.ListSerializer
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonTransformingSerializer
 
 @Serializable
 data class GltfData(
@@ -26,7 +31,7 @@ data class GltfData(
     val scenes: List<GltfScene> = emptyList(),
     val skins: List<GltfSkin> = emptyList(),
     val textures: List<GltfTexture> = emptyList(),
-    val extensionRequired: List<String> = emptyList(),
+    @SerialName("extensionsRequired") val extensionRequired: List<String> = emptyList(),
     val extensionsUsed: List<String> = emptyList(),
     val cameras: List<GltfCamera> = emptyList(),
 ) {
@@ -87,7 +92,7 @@ data class GltfData(
         }
         textures.forEach {
             it.imageRef = images[it.source]
-            it.samplerRef = samplers[it.sampler]
+            it.samplerRef = if (it.sampler >= 0) samplers[it.sampler] else GltfSampler()
         }
     }
 }
@@ -296,6 +301,7 @@ data class GltfMaterial(
     val doubleSided: Boolean = false,
     val emissiveFactor: List<Float> = emptyList(),
     val emissiveTexture: GltfTextureInfo? = null,
+    @Serializable(with = GltfMaterialExtensionsSerializer::class)
     val extensions: List<GltfMaterialExtensions>? = null,
 )
 
@@ -312,6 +318,7 @@ data class GltfTextureInfo(
     val texCoord: Int = 0,
     val strength: Float = 1f,
     val scale: Float = 1f,
+    @Serializable(with = GltfTextureExtensionsSerializer::class)
     val extensions: List<GltfTextureExtensions>? = null,
 ) {
     fun getTexture(
@@ -430,10 +437,10 @@ enum class GltfAttribute(val value: String) {
     @SerialName("TEXCOORD_3") TexCoord3("TEXCOORD_3"),
     @SerialName("TEXCOORD_4") TexCoord4("TEXCOORD_4"),
     @SerialName("COLOR_0") Color0("COLOR_0"),
-    @SerialName("COLOR_1") Color1("COLOR_0"),
-    @SerialName("COLOR_2") Color2("COLOR_0"),
-    @SerialName("COLOR_3") Color3("COLOR_0"),
-    @SerialName("COLOR_4") Color4("COLOR_0"),
+    @SerialName("COLOR_1") Color1("COLOR_1"),
+    @SerialName("COLOR_2") Color2("COLOR_2"),
+    @SerialName("COLOR_3") Color3("COLOR_3"),
+    @SerialName("COLOR_4") Color4("COLOR_4"),
     @SerialName("JOINTS_0") Joints0("JOINTS_0"),
     @SerialName("WEIGHTS_0") Weights0("WEIGHTS_0"),
 }
@@ -600,4 +607,23 @@ data class GltfTexture(val sampler: Int = -1, val source: Int = 0, val name: Str
         }
         return texture ?: error("Unable to convert the GltfTexture to a Texture!")
     }
+}
+
+private fun JsonElement.wrapObjectInArray(): JsonElement =
+    if (this is JsonObject) JsonArray(listOf(this)) else this
+
+private object GltfMaterialExtensionsSerializer :
+    JsonTransformingSerializer<List<GltfMaterialExtensions>>(
+        ListSerializer(GltfMaterialExtensions.serializer())
+    ) {
+    override fun transformDeserialize(element: JsonElement): JsonElement =
+        element.wrapObjectInArray()
+}
+
+private object GltfTextureExtensionsSerializer :
+    JsonTransformingSerializer<List<GltfTextureExtensions>>(
+        ListSerializer(GltfTextureExtensions.serializer())
+    ) {
+    override fun transformDeserialize(element: JsonElement): JsonElement =
+        element.wrapObjectInArray()
 }

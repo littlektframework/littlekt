@@ -117,17 +117,17 @@ internal data class TiledObjectData(
 @Serializable
 internal data class TiledTextData(
     val text: String,
-    val wrap: Boolean,
-    val bold: Boolean,
-    val italic: Boolean,
-    val underline: Boolean,
-    val strikeout: Boolean,
-    val kerning: Boolean,
-    val color: String,
-    val halign: String,
-    val valign: String,
-    val pixelsize: Int,
-    val fontfamily: String
+    val wrap: Boolean = false,
+    val bold: Boolean = false,
+    val italic: Boolean = false,
+    val underline: Boolean = false,
+    val strikeout: Boolean = false,
+    val kerning: Boolean = true,
+    val color: String = "#000000",
+    val halign: String = "left",
+    val valign: String = "top",
+    val pixelsize: Int = 16,
+    val fontfamily: String = "sans-serif"
 )
 
 @Serializable

@@ -99,8 +99,8 @@ abstract class BoxContainer : Container() {
                             willStretch = willStretch,
                             finalSize = minSize,
                         )
+                    childrenCount++
                 }
-                childrenCount++
             }
         }
 

@@ -142,8 +142,18 @@ class NodeList {
         nodes.fastForEachReverse { action(it) }
     }
 
+    private inline fun forEachRemovable(action: (Node) -> Unit) {
+        var i = 0
+        while (i < nodes.size) {
+            val size = nodes.size
+            val node = nodes[i]
+            action(node)
+            if (nodes.size >= size || i >= nodes.size || nodes[i] === node) i++
+        }
+    }
+
     internal fun preUpdate() {
-        nodes.fastForEach {
+        forEachRemovable {
             if (it.canUpdate) {
                 it.propagatePreUpdate()
             }
@@ -152,7 +162,7 @@ class NodeList {
 
     /** Should only be called once a frame. */
     internal fun update() {
-        nodes.fastForEach {
+        forEachRemovable {
             if (it.canUpdate) {
                 it.propagateUpdate()
             }
@@ -161,7 +171,7 @@ class NodeList {
     }
 
     internal fun postUpdate() {
-        nodes.fastForEach {
+        forEachRemovable {
             if (it.canUpdate) {
                 it.propagatePostUpdate()
             }
@@ -169,7 +179,7 @@ class NodeList {
     }
 
     internal fun fixedUpdate() {
-        nodes.fastForEach {
+        forEachRemovable {
             if (it.canUpdate) {
                 it.propagateFixedUpdate()
             }

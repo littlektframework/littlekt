@@ -19,7 +19,7 @@ class ShortArrayList(capacity: Int = 7, var shouldGrow: Boolean = true) : Collec
     override var size: Int
         get() = length
         set(value) {
-            ensure(value)
+            ensure(value - length)
             this.length = value
         }
 
@@ -112,11 +112,7 @@ class ShortArrayList(capacity: Int = 7, var shouldGrow: Boolean = true) : Collec
     operator fun get(index: Int): Short = data[index]
 
     fun getOrNull(index: Int): Short? =
-        try {
-            data[index]
-        } catch (e: IndexOutOfBoundsException) {
-            null
-        }
+        if (index in 0 until length) data[index] else null
 
     /** Gets an item of the list without boxing */
     fun getAt(index: Int): Short = data[index]
@@ -208,7 +204,7 @@ class ShortArrayList(capacity: Int = 7, var shouldGrow: Boolean = true) : Collec
     fun listIterator(index: Int): ListIterator<Short> = data.take(length).listIterator(index)
 
     fun subList(fromIndex: Int, toIndex: Int): List<Short> =
-        data.asList().subList(fromIndex, toIndex)
+        data.asList().subList(0, length).subList(fromIndex, toIndex)
 
     // Data
     override fun hashCode(): Int = data.contentHashCode(0, size)
@@ -253,7 +249,7 @@ class IntArrayList(capacity: Int = 7, var shouldGrow: Boolean = true) : Collecti
     override var size: Int
         get() = length
         set(value) {
-            ensure(value)
+            ensure(value - length)
             this.length = value
         }
 
@@ -346,11 +342,7 @@ class IntArrayList(capacity: Int = 7, var shouldGrow: Boolean = true) : Collecti
     operator fun get(index: Int): Int = data[index]
 
     fun getOrNull(index: Int): Int? =
-        try {
-            data[index]
-        } catch (e: IndexOutOfBoundsException) {
-            null
-        }
+        if (index in 0 until length) data[index] else null
 
     /** Gets an item of the list without boxing */
     fun getAt(index: Int): Int = data[index]
@@ -441,7 +433,7 @@ class IntArrayList(capacity: Int = 7, var shouldGrow: Boolean = true) : Collecti
 
     fun listIterator(index: Int): ListIterator<Int> = data.take(length).listIterator(index)
 
-    fun subList(fromIndex: Int, toIndex: Int): List<Int> = data.asList().subList(fromIndex, toIndex)
+    fun subList(fromIndex: Int, toIndex: Int): List<Int> = data.asList().subList(0, length).subList(fromIndex, toIndex)
 
     // Data
     override fun hashCode(): Int = data.contentHashCode(0, size)
@@ -486,7 +478,7 @@ class DoubleArrayList(capacity: Int = 7, var shouldGrow: Boolean = true) : Colle
     override var size: Int
         get() = length
         set(value) {
-            ensure(value)
+            ensure(value - length)
             this.length = value
         }
 
@@ -579,11 +571,7 @@ class DoubleArrayList(capacity: Int = 7, var shouldGrow: Boolean = true) : Colle
     operator fun get(index: Int): Double = data[index]
 
     fun getOrNull(index: Int): Double? =
-        try {
-            data[index]
-        } catch (e: IndexOutOfBoundsException) {
-            null
-        }
+        if (index in 0 until length) data[index] else null
 
     /** Gets an item of the list without boxing */
     fun getAt(index: Int): Double = data[index]
@@ -673,7 +661,7 @@ class DoubleArrayList(capacity: Int = 7, var shouldGrow: Boolean = true) : Colle
     fun listIterator(index: Int): ListIterator<Double> = data.take(length).listIterator(index)
 
     fun subList(fromIndex: Int, toIndex: Int): List<Double> =
-        data.asList().subList(fromIndex, toIndex)
+        data.asList().subList(0, length).subList(fromIndex, toIndex)
 
     // Data
     override fun hashCode(): Int = data.contentHashCode(0, size)
@@ -716,7 +704,7 @@ class FloatArrayList(capacity: Int = 7, var shouldGrow: Boolean = true) : Collec
     override var size: Int
         get() = length
         set(value) {
-            ensure(value)
+            ensure(value - length)
             this.length = value
         }
 
@@ -769,11 +757,7 @@ class FloatArrayList(capacity: Int = 7, var shouldGrow: Boolean = true) : Collec
     operator fun get(index: Int): Float = data[index]
 
     fun getOrNull(index: Int): Float? =
-        try {
-            data[index]
-        } catch (e: IndexOutOfBoundsException) {
-            null
-        }
+        if (index in 0 until length) data[index] else null
 
     /** Gets an item of the list without boxing */
     fun getAt(index: Int): Float = data[index]
@@ -863,7 +847,7 @@ class FloatArrayList(capacity: Int = 7, var shouldGrow: Boolean = true) : Collec
     fun listIterator(index: Int): ListIterator<Float> = data.take(length).listIterator(index)
 
     fun subList(fromIndex: Int, toIndex: Int): List<Float> =
-        data.asList().subList(fromIndex, toIndex)
+        data.asList().subList(0, length).subList(fromIndex, toIndex)
 
     // Data
     override fun hashCode(): Int = data.contentHashCode(0, size)

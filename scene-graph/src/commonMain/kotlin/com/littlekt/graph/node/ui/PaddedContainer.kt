@@ -50,34 +50,34 @@ open class PaddedContainer : Container() {
         val themeVars = ThemeVars()
     }
 
-    var paddingLeft: Int = 0
+    var paddingLeft: Int
         get() = getThemeConstant(themeVars.paddingLeft)
         set(value) {
-            if (value == field) return
+            if (constantOverrides[themeVars.paddingLeft] == value) return
             constantOverrides[themeVars.paddingLeft] = value
             onMinimumSizeChanged()
         }
 
-    var paddingRight: Int = 0
+    var paddingRight: Int
         get() = getThemeConstant(themeVars.paddingRight)
         set(value) {
-            if (value == field) return
+            if (constantOverrides[themeVars.paddingRight] == value) return
             constantOverrides[themeVars.paddingRight] = value
             onMinimumSizeChanged()
         }
 
-    var paddingTop: Int = 0
+    var paddingTop: Int
         get() = getThemeConstant(themeVars.paddingTop)
         set(value) {
-            if (value == field) return
+            if (constantOverrides[themeVars.paddingTop] == value) return
             constantOverrides[themeVars.paddingTop] = value
             onMinimumSizeChanged()
         }
 
-    var paddingBottom: Int = 0
+    var paddingBottom: Int
         get() = getThemeConstant(themeVars.paddingBottom)
         set(value) {
-            if (value == field) return
+            if (constantOverrides[themeVars.paddingBottom] == value) return
             constantOverrides[themeVars.paddingBottom] = value
             onMinimumSizeChanged()
         }

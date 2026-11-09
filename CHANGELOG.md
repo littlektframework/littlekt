@@ -86,6 +86,25 @@
 - Fix `Rect` bezier & quad bounds missing the curve extremes.
 - Fix `BresenhamUtils.castThickRay` checking the wrong cell.
 - Fix `Color.fromHex` reading the alpha of `#RGBA` from blue & `Color.toHexString` not zero padding.
+- Fix `TtfFont` parsing with the wrong byte order: big endian `ByteBuffer` reads now work on JVM & web.
+- Fix JVM `ByteBuffer` unaligned short, int & float reads throwing.
+- Fix `ShortBuffer.put` with a source offset, `getUByteArray` validation, `getOffset` sign & `removeAt` on full buffers.
+- Fix `ByteArray.toIntArray` sign extending bytes, breaking Tiled base64 tile data with flip flags.
+- Fix Tiled text objects failing to decode when fields are left at their defaults.
+- Fix glTF textures without a sampler crashing, `extensionsRequired` never being read & material extensions failing to decode.
+- Fix `GltfAttribute.COLOR_1` to `COLOR_4` values.
+- Fix array lists over allocating on bulk adds, `getOrNull` returning stale data & `subList` reading past the size.
+- Fix `TreeMap.values` dropping duplicate values & `truncate(0)` throwing.
+- Fix `Animation.getFrame(time)` throwing past the duration & `getFrameTime` using the wrong index.
+- Fix `AnimationPlayer` skipping the first frame of queued animations, not resetting the frame timer & restarting play once early.
+- Fix `InputCache` analog gamepad buttons staying pressed after release.
+- Fix `InputMapController` mode switching without processors, right modifier releases, gamepads past the first & modifier fall through.
+- Fix `GestureController` long press not cancelling taps, `maxFlingDuration` blocking flings & velocity averaging.
+- Fix `Node.addChild` not removing the child from its previous parent & adding to the same parent corrupting the index.
+- Fix nodes & signal slots that remove themselves during update or emit skipping the next sibling.
+- Fix `CanvasItem` global position, rotation & scale setters using stale values & reparenting keeping the old transform.
+- Fix `CanvasItem.copyFrom` not marking the transform dirty.
+- Fix `BoxContainer` spacing hidden children, `PaddedContainer` padding not resetting to 0 & `Range.ratio`.
 - Fix `ParticleSimulator` updating & drawing an unallocated particle and never using its last particle.
 - Fix `ParticleSimulator` keeping the anchor, delay & fade in values of reused particles.
 - Fix `NodeList.findFirstNodeOfType` only searching the first child.

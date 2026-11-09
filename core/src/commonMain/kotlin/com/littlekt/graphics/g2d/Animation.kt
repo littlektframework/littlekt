@@ -47,7 +47,7 @@ class Animation<KeyFrameType>(
     fun getFrame(time: Duration): KeyFrameType {
         var counter = time
         var index = 0
-        while (counter > frameTimes[index] && index < frameIndices.size) {
+        while (index < frameIndices.size - 1 && counter > frameTimes[index]) {
             counter -= frameTimes[index]
             index++
         }
@@ -64,7 +64,7 @@ class Animation<KeyFrameType>(
      * @param index the index of the frame.
      * @return the frame time of the frame.
      */
-    fun getFrameTime(index: Int): Duration = frameTimes[frameIndices[index umod frameIndices.size] umod frameTimes.size]
+    fun getFrameTime(index: Int): Duration = frameTimes[index umod frameTimes.size]
 
     /**
      * @param index the index of the key frame
@@ -114,7 +114,7 @@ class AnimationBuilder<T>(private val frames: List<T>) {
      * @param frameTime time to display each frame
      */
     fun frames(
-        indices: IntRange = 0..frames.size,
+        indices: IntRange = frames.indices,
         repeats: Int = 0,
         frameTime: Duration = 100.milliseconds
     ) {

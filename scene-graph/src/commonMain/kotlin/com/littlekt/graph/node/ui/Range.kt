@@ -81,7 +81,7 @@ abstract class Range : Control() {
             // avoid division by zero
             if (max ife min) return 1f
             val result = value.clamp(min, max)
-            return ((result - min) / max - min).clamp(0f, 1f)
+            return ((result - min) / (max - min)).clamp(0f, 1f)
         }
         set(value) {
             var v: Float
