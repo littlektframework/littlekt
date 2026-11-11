@@ -16,25 +16,35 @@ import kotlin.contracts.contract
 import kotlin.math.ceil
 import kotlin.math.min
 
-/** Adds a [TextureProgress] to the current [Node] as a child and then triggers the [callback] */
+/**
+ * Adds a [TextureProgress] to the current [Node] as a child and then triggers the [callback].
+ *
+ * @param modifier the [Modifier] to apply
+ * @param callback the block to configure the node
+ */
 @OptIn(ExperimentalContracts::class)
 inline fun Node.textureProgress(
-    callback: @SceneGraphDslMarker TextureProgress.() -> Unit = {}
+    modifier: Modifier = Modifier,
+    callback: @SceneGraphDslMarker TextureProgress.() -> Unit = {},
 ): TextureProgress {
     contract { callsInPlace(callback, InvocationKind.EXACTLY_ONCE) }
-    return TextureProgress().also(callback).addTo(this)
+    return TextureProgress().addTo(this, modifier, callback)
 }
 
 /**
  * Adds a [TextureProgress] to the current [SceneGraph.root] as a child and then triggers the
  * [callback]
+ *
+ * @param modifier the [Modifier] to apply
+ * @param callback the block to configure the node
  */
 @OptIn(ExperimentalContracts::class)
 inline fun SceneGraph<*>.textureProgress(
-    callback: @SceneGraphDslMarker TextureProgress.() -> Unit = {}
+    modifier: Modifier = Modifier,
+    callback: @SceneGraphDslMarker TextureProgress.() -> Unit = {},
 ): TextureProgress {
     contract { callsInPlace(callback, InvocationKind.EXACTLY_ONCE) }
-    return root.textureProgress(callback)
+    return root.textureProgress(modifier = modifier, callback = callback)
 }
 
 /**

@@ -22,24 +22,34 @@ import kotlin.contracts.contract
 import kotlin.math.max
 import kotlin.math.roundToInt
 
-/** Adds a [ProgressBar] to the current [Node] as a child and then triggers the [callback] */
+/**
+ * Adds a [ProgressBar] to the current [Node] as a child and then triggers the [callback].
+ *
+ * @param modifier the [Modifier] to apply
+ * @param callback the block to configure the node
+ */
 @OptIn(ExperimentalContracts::class)
 inline fun Node.progressBar(
-    callback: @SceneGraphDslMarker ProgressBar.() -> Unit = {}
+    modifier: Modifier = Modifier,
+    callback: @SceneGraphDslMarker ProgressBar.() -> Unit = {},
 ): ProgressBar {
     contract { callsInPlace(callback, InvocationKind.EXACTLY_ONCE) }
-    return ProgressBar().also(callback).addTo(this)
+    return ProgressBar().addTo(this, modifier, callback)
 }
 
 /**
  * Adds a [ProgressBar] to the current [SceneGraph.root] as a child and then triggers the [callback]
+ *
+ * @param modifier the [Modifier] to apply
+ * @param callback the block to configure the node
  */
 @OptIn(ExperimentalContracts::class)
 inline fun SceneGraph<*>.progressBar(
-    callback: @SceneGraphDslMarker ProgressBar.() -> Unit = {}
+    modifier: Modifier = Modifier,
+    callback: @SceneGraphDslMarker ProgressBar.() -> Unit = {},
 ): ProgressBar {
     contract { callsInPlace(callback, InvocationKind.EXACTLY_ONCE) }
-    return root.progressBar(callback)
+    return root.progressBar(modifier = modifier, callback = callback)
 }
 
 /**

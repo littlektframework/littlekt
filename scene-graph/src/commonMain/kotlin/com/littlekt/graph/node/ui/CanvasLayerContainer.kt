@@ -18,25 +18,33 @@ import kotlin.math.max
 
 /**
  * Adds a [CanvasLayerContainer] to the current [Node] as a child and then triggers the [callback]
+ *
+ * @param modifier the [Modifier] to apply
+ * @param callback the block to configure the node
  */
 @OptIn(ExperimentalContracts::class)
 inline fun Node.canvasLayerContainer(
-    callback: @SceneGraphDslMarker CanvasLayerContainer.() -> Unit = {}
+    modifier: Modifier = Modifier,
+    callback: @SceneGraphDslMarker CanvasLayerContainer.() -> Unit = {},
 ): CanvasLayerContainer {
     contract { callsInPlace(callback, InvocationKind.EXACTLY_ONCE) }
-    return CanvasLayerContainer().also(callback).addTo(this)
+    return CanvasLayerContainer().addTo(this, modifier, callback)
 }
 
 /**
  * Adds a [CanvasLayerContainer] to the current [SceneGraph.root] as a child and then triggers the
  * [callback]
+ *
+ * @param modifier the [Modifier] to apply
+ * @param callback the block to configure the node
  */
 @OptIn(ExperimentalContracts::class)
 inline fun SceneGraph<*>.canvasLayerContainer(
-    callback: @SceneGraphDslMarker CanvasLayerContainer.() -> Unit = {}
+    modifier: Modifier = Modifier,
+    callback: @SceneGraphDslMarker CanvasLayerContainer.() -> Unit = {},
 ): CanvasLayerContainer {
     contract { callsInPlace(callback, InvocationKind.EXACTLY_ONCE) }
-    return root.canvasLayerContainer(callback)
+    return root.canvasLayerContainer(modifier = modifier, callback = callback)
 }
 
 /**

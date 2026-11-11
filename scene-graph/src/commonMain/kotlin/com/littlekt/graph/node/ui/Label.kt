@@ -19,18 +19,44 @@ import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
 import kotlin.math.roundToInt
 
-/** Adds a [Label] to the current [Node] as a child and then triggers the [callback] */
+@PublishedApi
+internal fun createLabel(text: String?): Label =
+    Label().also {
+        if (text != null) it.text = text
+    }
+
+/**
+ * Adds a [Label] to the current [Node] as a child and then triggers the [callback].
+ *
+ * @param text the text of the label
+ * @param modifier the [Modifier] to apply
+ * @param callback the block to configure the node
+ */
 @OptIn(ExperimentalContracts::class)
-inline fun Node.label(callback: @SceneGraphDslMarker Label.() -> Unit = {}): Label {
+inline fun Node.label(
+    text: String? = null,
+    modifier: Modifier = Modifier,
+    callback: @SceneGraphDslMarker Label.() -> Unit = {},
+): Label {
     contract { callsInPlace(callback, InvocationKind.EXACTLY_ONCE) }
-    return Label().also(callback).addTo(this)
+    return createLabel(text).addTo(this, modifier, callback)
 }
 
-/** Adds a [Label] to the current [SceneGraph.root] as a child and then triggers the [callback] */
+/**
+ * Adds a [Label] to the current [SceneGraph.root] as a child and then triggers the [callback].
+ *
+ * @param text the text of the label
+ * @param modifier the [Modifier] to apply
+ * @param callback the block to configure the node
+ */
 @OptIn(ExperimentalContracts::class)
-inline fun SceneGraph<*>.label(callback: @SceneGraphDslMarker Label.() -> Unit = {}): Label {
+inline fun SceneGraph<*>.label(
+    text: String? = null,
+    modifier: Modifier = Modifier,
+    callback: @SceneGraphDslMarker Label.() -> Unit = {},
+): Label {
     contract { callsInPlace(callback, InvocationKind.EXACTLY_ONCE) }
-    return root.label(callback)
+    return root.label(text, modifier = modifier, callback = callback)
 }
 
 /**

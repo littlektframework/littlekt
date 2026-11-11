@@ -21,18 +21,44 @@ import kotlin.contracts.contract
 import kotlin.math.max
 import kotlin.math.roundToInt
 
-/** Adds a [Button] to the current [Node] as a child and then triggers the [callback] */
+@PublishedApi
+internal fun createButton(text: String?): Button =
+    Button().also {
+        if (text != null) it.text = text
+    }
+
+/**
+ * Adds a [Button] to the current [Node] as a child and then triggers the [callback].
+ *
+ * @param text the text of the button
+ * @param modifier the [Modifier] to apply
+ * @param callback the block to configure the node
+ */
 @OptIn(ExperimentalContracts::class)
-inline fun Node.button(callback: @SceneGraphDslMarker Button.() -> Unit = {}): Button {
+inline fun Node.button(
+    text: String? = null,
+    modifier: Modifier = Modifier,
+    callback: @SceneGraphDslMarker Button.() -> Unit = {},
+): Button {
     contract { callsInPlace(callback, InvocationKind.EXACTLY_ONCE) }
-    return Button().also(callback).addTo(this)
+    return createButton(text).addTo(this, modifier, callback)
 }
 
-/** Adds a [Button] to the current [SceneGraph.root] as a child and then triggers the [callback] */
+/**
+ * Adds a [Button] to the current [SceneGraph.root] as a child and then triggers the [callback].
+ *
+ * @param text the text of the button
+ * @param modifier the [Modifier] to apply
+ * @param callback the block to configure the node
+ */
 @OptIn(ExperimentalContracts::class)
-inline fun SceneGraph<*>.button(callback: @SceneGraphDslMarker Button.() -> Unit = {}): Button {
+inline fun SceneGraph<*>.button(
+    text: String? = null,
+    modifier: Modifier = Modifier,
+    callback: @SceneGraphDslMarker Button.() -> Unit = {},
+): Button {
     contract { callsInPlace(callback, InvocationKind.EXACTLY_ONCE) }
-    return root.button(callback)
+    return root.button(text, modifier = modifier, callback = callback)
 }
 
 /**

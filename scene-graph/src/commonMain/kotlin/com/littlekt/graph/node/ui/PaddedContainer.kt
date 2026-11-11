@@ -9,25 +9,76 @@ import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
 
-/** Adds a [PaddedContainer] to the current [Node] as a child and then triggers the [callback] */
+@PublishedApi
+internal fun createPaddedContainer(padding: Int?): PaddedContainer =
+    PaddedContainer().also {
+        if (padding != null) it.padding(padding)
+    }
+
+/**
+ * Adds a [PaddedContainer] to the current [Node] as a child and then triggers the [callback].
+ *
+ * @param padding the padding of every side
+ * @param modifier the [Modifier] to apply
+ * @param callback the block to configure the node
+ */
 @OptIn(ExperimentalContracts::class)
 inline fun Node.paddedContainer(
-    callback: @SceneGraphDslMarker PaddedContainer.() -> Unit = {}
+    padding: Int? = null,
+    modifier: Modifier = Modifier,
+    callback: @SceneGraphDslMarker PaddedContainer.() -> Unit = {},
 ): PaddedContainer {
     contract { callsInPlace(callback, InvocationKind.EXACTLY_ONCE) }
-    return PaddedContainer().also(callback).addTo(this)
+    return createPaddedContainer(padding).addTo(this, modifier, callback)
+}
+
+/**
+ * Adds a [PaddedContainer] with [value] padding on every side to the current [Node] as a child
+ * and then triggers the [callback].
+ */
+@OptIn(ExperimentalContracts::class)
+inline fun Node.padded(
+    value: Int,
+    modifier: Modifier = Modifier,
+    callback: @SceneGraphDslMarker PaddedContainer.() -> Unit = {},
+): PaddedContainer {
+    contract { callsInPlace(callback, InvocationKind.EXACTLY_ONCE) }
+    return paddedContainer(value, modifier, callback)
+}
+
+/**
+ * Adds a [PaddedContainer] with [horizontal] & [vertical] padding to the current [Node] as a
+ * child and then triggers the [callback].
+ */
+@OptIn(ExperimentalContracts::class)
+inline fun Node.padded(
+    horizontal: Int,
+    vertical: Int,
+    modifier: Modifier = Modifier,
+    callback: @SceneGraphDslMarker PaddedContainer.() -> Unit = {},
+): PaddedContainer {
+    contract { callsInPlace(callback, InvocationKind.EXACTLY_ONCE) }
+    return PaddedContainer()
+        .also { it.padding(horizontal, vertical) }
+        .addTo(this, modifier, callback)
 }
 
 /**
  * Adds a [PaddedContainer] to the current [SceneGraph.root] as a child and then triggers the
  * [callback]
+ *
+ * @param padding the padding of every side
+ * @param modifier the [Modifier] to apply
+ * @param callback the block to configure the node
  */
 @OptIn(ExperimentalContracts::class)
 inline fun SceneGraph<*>.paddedContainer(
-    callback: @SceneGraphDslMarker PaddedContainer.() -> Unit = {}
+    padding: Int? = null,
+    modifier: Modifier = Modifier,
+    callback: @SceneGraphDslMarker PaddedContainer.() -> Unit = {},
 ): PaddedContainer {
     contract { callsInPlace(callback, InvocationKind.EXACTLY_ONCE) }
-    return root.paddedContainer(callback)
+    return root.paddedContainer(padding, modifier = modifier, callback = callback)
 }
 
 /**
@@ -82,11 +133,19 @@ open class PaddedContainer : Container() {
             onMinimumSizeChanged()
         }
 
-    fun padding(value: Int) {
-        constantOverrides[themeVars.paddingRight] = value
-        constantOverrides[themeVars.paddingTop] = value
-        constantOverrides[themeVars.paddingBottom] = value
-        constantOverrides[themeVars.paddingLeft] = value
+    /** Sets the padding of every side to [value]. */
+    fun padding(value: Int) = padding(value, value, value, value)
+
+    /** Sets the left & right padding to [horizontal] and the top & bottom padding to [vertical]. */
+    fun padding(horizontal: Int, vertical: Int) =
+        padding(horizontal, vertical, horizontal, vertical)
+
+    /** Sets the padding of each side. */
+    fun padding(left: Int, top: Int, right: Int, bottom: Int) {
+        constantOverrides[themeVars.paddingLeft] = left
+        constantOverrides[themeVars.paddingTop] = top
+        constantOverrides[themeVars.paddingRight] = right
+        constantOverrides[themeVars.paddingBottom] = bottom
         onMinimumSizeChanged()
     }
 

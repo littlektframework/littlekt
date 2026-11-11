@@ -15,13 +15,17 @@ import kotlin.math.floor
  * @param callback the callback that is invoked with a [CenterContainer] context in order to
  *   initialize any values
  * @return the newly created [CenterContainer]
+ *
+ * @param modifier the [Modifier] to apply
+ * @param callback the block to configure the node
  */
 @OptIn(ExperimentalContracts::class)
 inline fun Node.centerContainer(
-    callback: @SceneGraphDslMarker CenterContainer.() -> Unit = {}
+    modifier: Modifier = Modifier,
+    callback: @SceneGraphDslMarker CenterContainer.() -> Unit = {},
 ): CenterContainer {
     contract { callsInPlace(callback, InvocationKind.EXACTLY_ONCE) }
-    return CenterContainer().also(callback).addTo(this)
+    return CenterContainer().addTo(this, modifier, callback)
 }
 
 /**
@@ -31,13 +35,17 @@ inline fun Node.centerContainer(
  * @param callback the callback that is invoked with a [CenterContainer] context in order to
  *   initialize any values
  * @return the newly created [CenterContainer]
+ *
+ * @param modifier the [Modifier] to apply
+ * @param callback the block to configure the node
  */
 @OptIn(ExperimentalContracts::class)
 inline fun SceneGraph<*>.centerContainer(
-    callback: @SceneGraphDslMarker CenterContainer.() -> Unit = {}
+    modifier: Modifier = Modifier,
+    callback: @SceneGraphDslMarker CenterContainer.() -> Unit = {},
 ): CenterContainer {
     contract { callsInPlace(callback, InvocationKind.EXACTLY_ONCE) }
-    return root.centerContainer(callback)
+    return root.centerContainer(modifier = modifier, callback = callback)
 }
 
 /**

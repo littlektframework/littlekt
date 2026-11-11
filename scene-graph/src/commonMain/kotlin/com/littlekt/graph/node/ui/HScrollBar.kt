@@ -9,22 +9,34 @@ import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
 
-/** Adds a [HScrollBar] to the current [Node] as a child and then triggers the [callback] */
+/**
+ * Adds a [HScrollBar] to the current [Node] as a child and then triggers the [callback].
+ *
+ * @param modifier the [Modifier] to apply
+ * @param callback the block to configure the node
+ */
 @OptIn(ExperimentalContracts::class)
-inline fun Node.hScrollBar(callback: @SceneGraphDslMarker HScrollBar.() -> Unit = {}): HScrollBar {
+inline fun Node.hScrollBar(
+    modifier: Modifier = Modifier,
+    callback: @SceneGraphDslMarker HScrollBar.() -> Unit = {},
+): HScrollBar {
     contract { callsInPlace(callback, InvocationKind.EXACTLY_ONCE) }
-    return HScrollBar().also(callback).addTo(this)
+    return HScrollBar().addTo(this, modifier, callback)
 }
 
 /**
  * Adds a [HScrollBar] to the current [SceneGraph.root] as a child and then triggers the [callback]
+ *
+ * @param modifier the [Modifier] to apply
+ * @param callback the block to configure the node
  */
 @OptIn(ExperimentalContracts::class)
 inline fun SceneGraph<*>.hScrollBar(
-    callback: @SceneGraphDslMarker HScrollBar.() -> Unit = {}
+    modifier: Modifier = Modifier,
+    callback: @SceneGraphDslMarker HScrollBar.() -> Unit = {},
 ): HScrollBar {
     contract { callsInPlace(callback, InvocationKind.EXACTLY_ONCE) }
-    return root.hScrollBar(callback)
+    return root.hScrollBar(modifier = modifier, callback = callback)
 }
 
 /**

@@ -14,25 +14,35 @@ import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
 
-/** Adds a [NinePatchRect] to the current [Node] as a child and then triggers the [callback] */
+/**
+ * Adds a [NinePatchRect] to the current [Node] as a child and then triggers the [callback].
+ *
+ * @param modifier the [Modifier] to apply
+ * @param callback the block to configure the node
+ */
 @OptIn(ExperimentalContracts::class)
 inline fun Node.ninePatchRect(
-    callback: @SceneGraphDslMarker NinePatchRect.() -> Unit = {}
+    modifier: Modifier = Modifier,
+    callback: @SceneGraphDslMarker NinePatchRect.() -> Unit = {},
 ): NinePatchRect {
     contract { callsInPlace(callback, InvocationKind.EXACTLY_ONCE) }
-    return NinePatchRect().also(callback).addTo(this)
+    return NinePatchRect().addTo(this, modifier, callback)
 }
 
 /**
  * Adds a [NinePatchRect] to the current [SceneGraph.root] as a child and then triggers the
  * [callback]
+ *
+ * @param modifier the [Modifier] to apply
+ * @param callback the block to configure the node
  */
 @OptIn(ExperimentalContracts::class)
 inline fun SceneGraph<*>.ninePatchRect(
-    callback: @SceneGraphDslMarker NinePatchRect.() -> Unit = {}
+    modifier: Modifier = Modifier,
+    callback: @SceneGraphDslMarker NinePatchRect.() -> Unit = {},
 ): NinePatchRect {
     contract { callsInPlace(callback, InvocationKind.EXACTLY_ONCE) }
-    return root.ninePatchRect(callback)
+    return root.ninePatchRect(modifier = modifier, callback = callback)
 }
 
 /**

@@ -18,11 +18,17 @@ import kotlin.contracts.contract
  * @param callback the callback that is invoked with a [Panel] context in order to initialize any
  *   values
  * @return the newly created [Panel]
+ *
+ * @param modifier the [Modifier] to apply
+ * @param callback the block to configure the node
  */
 @OptIn(ExperimentalContracts::class)
-inline fun Node.panel(callback: @SceneGraphDslMarker Panel.() -> Unit = {}): Panel {
+inline fun Node.panel(
+    modifier: Modifier = Modifier,
+    callback: @SceneGraphDslMarker Panel.() -> Unit = {},
+): Panel {
     contract { callsInPlace(callback, InvocationKind.EXACTLY_ONCE) }
-    return Panel().also(callback).addTo(this)
+    return Panel().addTo(this, modifier, callback)
 }
 
 /**
@@ -31,11 +37,17 @@ inline fun Node.panel(callback: @SceneGraphDslMarker Panel.() -> Unit = {}): Pan
  * @param callback the callback that is invoked with a [Panel] context in order to initialize any
  *   values
  * @return the newly created [Panel]
+ *
+ * @param modifier the [Modifier] to apply
+ * @param callback the block to configure the node
  */
 @OptIn(ExperimentalContracts::class)
-inline fun SceneGraph<*>.panel(callback: @SceneGraphDslMarker Panel.() -> Unit = {}): Panel {
+inline fun SceneGraph<*>.panel(
+    modifier: Modifier = Modifier,
+    callback: @SceneGraphDslMarker Panel.() -> Unit = {},
+): Panel {
     contract { callsInPlace(callback, InvocationKind.EXACTLY_ONCE) }
-    return root.panel(callback)
+    return root.panel(modifier = modifier, callback = callback)
 }
 
 /**

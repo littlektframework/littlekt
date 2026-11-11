@@ -20,11 +20,17 @@ import kotlin.time.Duration
  * @param callback the callback that is invoked with a [Container] context in order to initialize
  *   any values
  * @return the newly created [Container]
+ *
+ * @param modifier the [Modifier] to apply
+ * @param callback the block to configure the node
  */
 @OptIn(ExperimentalContracts::class)
-inline fun Node.container(callback: @SceneGraphDslMarker Container.() -> Unit = {}): Container {
+inline fun Node.container(
+    modifier: Modifier = Modifier,
+    callback: @SceneGraphDslMarker Container.() -> Unit = {},
+): Container {
     contract { callsInPlace(callback, InvocationKind.EXACTLY_ONCE) }
-    return Container().also(callback).addTo(this)
+    return Container().addTo(this, modifier, callback)
 }
 
 /**
@@ -33,13 +39,17 @@ inline fun Node.container(callback: @SceneGraphDslMarker Container.() -> Unit = 
  * @param callback the callback that is invoked with a [Container] context in order to initialize
  *   any values
  * @return the newly created [Container]
+ *
+ * @param modifier the [Modifier] to apply
+ * @param callback the block to configure the node
  */
 @OptIn(ExperimentalContracts::class)
 inline fun SceneGraph<*>.container(
-    callback: @SceneGraphDslMarker Container.() -> Unit = {}
+    modifier: Modifier = Modifier,
+    callback: @SceneGraphDslMarker Container.() -> Unit = {},
 ): Container {
     contract { callsInPlace(callback, InvocationKind.EXACTLY_ONCE) }
-    return root.container(callback)
+    return root.container(modifier = modifier, callback = callback)
 }
 
 /**

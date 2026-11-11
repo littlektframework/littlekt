@@ -27,22 +27,49 @@ import kotlin.math.min
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 
-/** Adds a [LineEdit] to the current [Node] as a child and then triggers the [callback] */
+@PublishedApi
+internal fun createLineEdit(text: String?, placeholder: String?): LineEdit =
+    LineEdit().also {
+        if (text != null) it.text = text
+        if (placeholder != null) it.placeholderText = placeholder
+    }
+
+/**
+ * Adds a [LineEdit] to the current [Node] as a child and then triggers the [callback].
+ *
+ * @param text the text of the line edit
+ * @param placeholder the placeholder text shown when empty
+ * @param modifier the [Modifier] to apply
+ * @param callback the block to configure the node
+ */
 @OptIn(ExperimentalContracts::class)
-inline fun Node.lineEdit(callback: @SceneGraphDslMarker LineEdit.() -> Unit = {}): LineEdit {
+inline fun Node.lineEdit(
+    text: String? = null,
+    placeholder: String? = null,
+    modifier: Modifier = Modifier,
+    callback: @SceneGraphDslMarker LineEdit.() -> Unit = {},
+): LineEdit {
     contract { callsInPlace(callback, InvocationKind.EXACTLY_ONCE) }
-    return LineEdit().also(callback).addTo(this)
+    return createLineEdit(text, placeholder).addTo(this, modifier, callback)
 }
 
 /**
  * Adds a [LineEdit] to the current [SceneGraph.root] as a child and then triggers the [callback]
+ *
+ * @param text the text of the line edit
+ * @param placeholder the placeholder text shown when empty
+ * @param modifier the [Modifier] to apply
+ * @param callback the block to configure the node
  */
 @OptIn(ExperimentalContracts::class)
 inline fun SceneGraph<*>.lineEdit(
-    callback: @SceneGraphDslMarker LineEdit.() -> Unit = {}
+    text: String? = null,
+    placeholder: String? = null,
+    modifier: Modifier = Modifier,
+    callback: @SceneGraphDslMarker LineEdit.() -> Unit = {},
 ): LineEdit {
     contract { callsInPlace(callback, InvocationKind.EXACTLY_ONCE) }
-    return root.lineEdit(callback)
+    return root.lineEdit(text, placeholder, modifier = modifier, callback = callback)
 }
 
 /**

@@ -20,13 +20,17 @@ import kotlin.math.min
  * @param callback the callback that is invoked with a [TextureRect] context in order to initialize
  *   any values
  * @return the newly created [TextureRect]
+ *
+ * @param modifier the [Modifier] to apply
+ * @param callback the block to configure the node
  */
 @OptIn(ExperimentalContracts::class)
 inline fun Node.textureRect(
-    callback: @SceneGraphDslMarker TextureRect.() -> Unit = {}
+    modifier: Modifier = Modifier,
+    callback: @SceneGraphDslMarker TextureRect.() -> Unit = {},
 ): TextureRect {
     contract { callsInPlace(callback, InvocationKind.EXACTLY_ONCE) }
-    return TextureRect().also(callback).addTo(this)
+    return TextureRect().addTo(this, modifier, callback)
 }
 
 /**
@@ -35,13 +39,17 @@ inline fun Node.textureRect(
  * @param callback the callback that is invoked with a [TextureRect] context in order to initialize
  *   any values
  * @return the newly created [TextureRect]
+ *
+ * @param modifier the [Modifier] to apply
+ * @param callback the block to configure the node
  */
 @OptIn(ExperimentalContracts::class)
 inline fun SceneGraph<*>.textureRect(
-    callback: @SceneGraphDslMarker TextureRect.() -> Unit = {}
+    modifier: Modifier = Modifier,
+    callback: @SceneGraphDslMarker TextureRect.() -> Unit = {},
 ): TextureRect {
     contract { callsInPlace(callback, InvocationKind.EXACTLY_ONCE) }
-    return root.textureRect(callback)
+    return root.textureRect(modifier = modifier, callback = callback)
 }
 
 /**

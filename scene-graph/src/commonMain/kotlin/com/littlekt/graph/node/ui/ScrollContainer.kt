@@ -29,25 +29,35 @@ import kotlin.math.sign
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
-/** Adds a [ScrollContainer] to the current [Node] as a child and then triggers the [callback] */
+/**
+ * Adds a [ScrollContainer] to the current [Node] as a child and then triggers the [callback].
+ *
+ * @param modifier the [Modifier] to apply
+ * @param callback the block to configure the node
+ */
 @OptIn(ExperimentalContracts::class)
 inline fun Node.scrollContainer(
-    callback: @SceneGraphDslMarker ScrollContainer.() -> Unit = {}
+    modifier: Modifier = Modifier,
+    callback: @SceneGraphDslMarker ScrollContainer.() -> Unit = {},
 ): ScrollContainer {
     contract { callsInPlace(callback, InvocationKind.EXACTLY_ONCE) }
-    return ScrollContainer().also(callback).addTo(this)
+    return ScrollContainer().addTo(this, modifier, callback)
 }
 
 /**
  * Adds a [ScrollContainer] to the current [SceneGraph.root] as a child and then triggers the
  * [callback]
+ *
+ * @param modifier the [Modifier] to apply
+ * @param callback the block to configure the node
  */
 @OptIn(ExperimentalContracts::class)
 inline fun SceneGraph<*>.scrollContainer(
-    callback: @SceneGraphDslMarker ScrollContainer.() -> Unit = {}
+    modifier: Modifier = Modifier,
+    callback: @SceneGraphDslMarker ScrollContainer.() -> Unit = {},
 ): ScrollContainer {
     contract { callsInPlace(callback, InvocationKind.EXACTLY_ONCE) }
-    return root.scrollContainer(callback)
+    return root.scrollContainer(modifier = modifier, callback = callback)
 }
 
 /**

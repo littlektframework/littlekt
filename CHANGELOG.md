@@ -123,6 +123,11 @@
 - Add `Textures.roundedRect` & `Textures.roundedRectCorner`.
 - Add `Button.fontColorDisabled` & `Control.hasThemeColor`.
 - Add `Fonts.defaultNoOutline`, used by the default theme.
+- Add scene graph `Modifier`s, like Jetpack Compose, with a `modifier` parameter on every control builder.
+- Add layout shortcuts: `fillParent`, `centerInParent`, `anchors`, `expand`, `expandWidth`, `expandHeight`, `shrinkBegin`,
+  `shrinkCenter`, `shrinkEnd` & `minSize`.
+- Add a `margin` to `Control.anchor` & `PaddedContainer.padding(horizontal, vertical)` & `padding(left, top, right, bottom)`.
+- Add `spacer()` & `padded()` builders and `text`, `placeholder`, `separation`, `align` & `padding` builder parameters.
 - Fix toggle buttons never turning off & toggling on events other than the release.
 - Fix `FontCache.tint` corrupting glyph vertices & ignoring changes to a reused color.
 - Fix controls keeping theme values cached before being added to a themed parent.

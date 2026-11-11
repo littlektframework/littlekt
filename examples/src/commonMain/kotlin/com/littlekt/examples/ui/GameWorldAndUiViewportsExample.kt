@@ -5,8 +5,7 @@ import com.littlekt.ContextListener
 import com.littlekt.configureSurfaceOnResize
 import com.littlekt.examples.*
 import com.littlekt.file.vfs.readLDtkMapLoader
-import com.littlekt.graph.node.ui.centerContainer
-import com.littlekt.graph.node.ui.label
+import com.littlekt.graph.node.ui.*
 import com.littlekt.graph.sceneGraph
 import com.littlekt.graphics.g2d.SpriteBatch
 import com.littlekt.graphics.webgpu.*
@@ -37,11 +36,7 @@ class GameWorldAndUiViewportsExample(context: Context) : ContextListener(context
         val bgColor = graphics.surfaceColor(world.defaultLevelBackgroundColor)
         val graph =
             sceneGraph(this, viewport = ExtendViewport(960, 540), batch = batch) {
-                    centerContainer {
-                        anchorRight = 1f
-                        anchorTop = 1f
-                        label { text = "This is my UI!" }
-                    }
+                    centerContainer(Modifier.fillParent()) { label("This is my UI!") }
                 }
                 .also { it.initialize() }
 

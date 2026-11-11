@@ -9,22 +9,34 @@ import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
 
-/** Adds a [VScrollBar] to the current [Node] as a child and then triggers the [callback] */
+/**
+ * Adds a [VScrollBar] to the current [Node] as a child and then triggers the [callback].
+ *
+ * @param modifier the [Modifier] to apply
+ * @param callback the block to configure the node
+ */
 @OptIn(ExperimentalContracts::class)
-inline fun Node.vScrollBar(callback: @SceneGraphDslMarker VScrollBar.() -> Unit = {}): VScrollBar {
+inline fun Node.vScrollBar(
+    modifier: Modifier = Modifier,
+    callback: @SceneGraphDslMarker VScrollBar.() -> Unit = {},
+): VScrollBar {
     contract { callsInPlace(callback, InvocationKind.EXACTLY_ONCE) }
-    return VScrollBar().also(callback).addTo(this)
+    return VScrollBar().addTo(this, modifier, callback)
 }
 
 /**
  * Adds a [VScrollBar] to the current [SceneGraph.root] as a child and then triggers the [callback]
+ *
+ * @param modifier the [Modifier] to apply
+ * @param callback the block to configure the node
  */
 @OptIn(ExperimentalContracts::class)
 inline fun SceneGraph<*>.vScrollBar(
-    callback: @SceneGraphDslMarker VScrollBar.() -> Unit = {}
+    modifier: Modifier = Modifier,
+    callback: @SceneGraphDslMarker VScrollBar.() -> Unit = {},
 ): VScrollBar {
     contract { callsInPlace(callback, InvocationKind.EXACTLY_ONCE) }
-    return root.vScrollBar(callback)
+    return root.vScrollBar(modifier = modifier, callback = callback)
 }
 
 /**

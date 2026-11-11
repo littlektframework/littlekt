@@ -11,8 +11,6 @@ import com.littlekt.graph.node.node2d.node2d
 import com.littlekt.graph.node.ui.*
 import com.littlekt.graph.sceneGraph
 import com.littlekt.graphics.Color
-import com.littlekt.graphics.HAlign
-import com.littlekt.graphics.VAlign
 import com.littlekt.graphics.webgpu.*
 import com.littlekt.input.Key
 import com.littlekt.math.geom.degrees
@@ -38,20 +36,14 @@ class HelloSceneGraphExample(context: Context) : ContextListener(context) {
 
         val graph =
             sceneGraph(this, ExtendViewport(960, 540)) {
-                    canvasLayerContainer {
+                    canvasLayerContainer(Modifier.fillParent()) {
                         stretch = true
                         shrink = 2
-                        anchorRight = 1f
-                        anchorTop = 1f
 
                         canvasLayer {
-                            scrollContainer {
-                                minWidth = 100f
-                                minHeight = 100f
+                            scrollContainer(Modifier.minSize(100f, 100f)) {
                                 column {
-                                    repeat(10) {
-                                        label { text = "Label $it: this text is too long to fit" }
-                                    }
+                                    repeat(10) { label("Label $it: this text is too long to fit") }
                                 }
                             }
                             node2d {
@@ -105,23 +97,10 @@ class HelloSceneGraphExample(context: Context) : ContextListener(context) {
                             }
                         }
                     }
-                    centerContainer {
-                        anchorRight = 1f
-                        anchorTop = 1f
-                        button {
-                            x = 200f
-                            y = 300f
-                            text = "center button"
-                            horizontalAlign = HAlign.CENTER
-                            verticalAlign = VAlign.CENTER
-                        }
-                    }
-                    button {
+                    centerContainer(Modifier.fillParent()) { button("center button") }
+                    button("outside button") {
                         x = 200f
                         y = 300f
-                        text = "outside button"
-                        horizontalAlign = HAlign.CENTER
-                        verticalAlign = VAlign.CENTER
                     }
                 }
                 .also { it.initialize() }

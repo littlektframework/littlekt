@@ -16,6 +16,8 @@ import com.littlekt.graph.node.ui.*
 import com.littlekt.graph.sceneGraph
 import com.littlekt.graphics.Color
 import com.littlekt.graphics.HAlign
+import com.littlekt.graphics.Texture
+import com.littlekt.graphics.g2d.TextureSlice
 import com.littlekt.graphics.slice
 import com.littlekt.graphics.webgpu.RenderPassDescriptor
 import com.littlekt.graphics.webgpu.colorAttachment
@@ -27,12 +29,15 @@ import com.littlekt.util.viewport.ExtendViewport
 
 /**
  * An example showing every built-in scene graph UI control: buttons, labels, text input, ranges,
- * scrolling, textures, panels, containers and a canvas layer with 2D nodes.
+ * scrolling, textures, panels, containers and a canvas layer with 2D nodes. Built with the layout
+ * shortcuts and [Modifier]s.
  *
  * @author Colton Daily
  * @date 11/8/2026
  */
 class SceneGraphPlaygroundExample(context: Context) : ContextListener(context) {
+
+    private lateinit var status: Label
 
     override suspend fun Context.start() {
         addStatsHandler()
@@ -41,7 +46,6 @@ class SceneGraphPlaygroundExample(context: Context) : ContextListener(context) {
         val icon = resourcesVfs["icon_16x16.png"].readTexture()
         val ninePatch = resourcesVfs["bg_9.png"].readTexture()
         val bigIcon = resourcesVfs["icon_32x32.png"].readTexture()
-        val iconSlice = icon.slice()
         val srgb = graphics.preferredFormat.srgb
         val darkTheme = createDefaultTheme(palette = ThemePalette.DARK, srgb = srgb)
         val lightTheme = createDefaultTheme(palette = ThemePalette.LIGHT, srgb = srgb)
@@ -49,232 +53,30 @@ class SceneGraphPlaygroundExample(context: Context) : ContextListener(context) {
 
         val graph =
             sceneGraph(this, ExtendViewport(960, 540)) {
-                    paddedContainer {
+                    column(separation = 10, modifier = Modifier.fillParent(10f).theme(darkTheme)) {
                         val themed = this
-                        theme = darkTheme
-                        anchor(Control.AnchorLayout.FULL)
-                        paddingLeft = 10
-                        paddingRight = 10
-                        paddingTop = 10
-                        paddingBottom = 10
-
-                        column {
-                            separation = 10
-
-                            lateinit var status: Label
-                            row {
-                                separation = 20
-                                label { text = "Scene Graph Playground" }
-                                status = label {
-                                    text = "Interact with something!"
-                                    horizontalSizing = Control.SizeFlag.FILL or Control.SizeFlag.EXPAND
-                                    horizontalAlign = HAlign.RIGHT
-                                }
-                                button {
-                                    text = "Light theme"
-                                    toggleMode = true
-                                    onToggled += { light ->
-                                        val palette = if (light) ThemePalette.LIGHT else ThemePalette.DARK
-                                        themed.theme = if (light) lightTheme else darkTheme
-                                        clearColor = graphics.surfaceColor(palette.background)
-                                    }
+                        row(separation = 20) {
+                            label("Scene Graph Playground")
+                            spacer()
+                            status = label("Interact with something!")
+                            button("Light theme") {
+                                toggleMode = true
+                                onToggled += { light ->
+                                    val palette = if (light) ThemePalette.LIGHT else ThemePalette.DARK
+                                    themed.theme = if (light) lightTheme else darkTheme
+                                    clearColor = graphics.surfaceColor(palette.background)
                                 }
                             }
-
-                            row {
-                                separation = 10
-                                verticalSizing = Control.SizeFlag.FILL or Control.SizeFlag.EXPAND
-
-                                section("Buttons") {
-                                    var clicks = 0
-                                    button {
-                                        text = "Click me"
-                                        onPressed += {
-                                            clicks++
-                                            status.text = "Clicked $clicks times"
-                                        }
-                                    }
-                                    button {
-                                        text = "Toggle"
-                                        toggleMode = true
-                                        onToggled += { status.text = "Toggled: $it" }
-                                    }
-                                    button {
-                                        text = "Disabled"
-                                        disabled = true
-                                    }
-                                    label { text = "Button group" }
-                                    val group = ButtonGroup()
-                                    repeat(3) {
-                                        button {
-                                            text = "Option ${it + 1}"
-                                            toggleMode = true
-                                            pressed = it == 0
-                                            setButtonGroup(group)
-                                            onPressed += { status.text = "Selected $text" }
-                                        }
-                                    }
-                                }
-
-                                section("Text") {
-                                    label {
-                                        text = "Left"
-                                        horizontalAlign = HAlign.LEFT
-                                    }
-                                    label {
-                                        text = "Center"
-                                        horizontalAlign = HAlign.CENTER
-                                    }
-                                    label {
-                                        text = "Right"
-                                        horizontalAlign = HAlign.RIGHT
-                                    }
-                                    label {
-                                        text = "uppercase label"
-                                        uppercase = true
-                                    }
-                                    label {
-                                        text = "This label is too long so it ends with an ellipsis"
-                                        ellipsis = "..."
-                                        horizontalSizing = Control.SizeFlag.FILL
-                                        minWidth = 1f
-                                    }
-                                    label {
-                                        text = "This label wraps its text onto more lines"
-                                        wrap = true
-                                        horizontalSizing = Control.SizeFlag.FILL
-                                        minWidth = 1f
-                                    }
-                                    lineEdit {
-                                        placeholderText = "Type here..."
-                                        minWidth = 150f
-                                    }
-                                    lineEdit {
-                                        text = "password"
-                                        secret = true
-                                        minWidth = 150f
-                                    }
-                                    lineEdit {
-                                        text = "Read only"
-                                        editable = false
-                                        minWidth = 150f
-                                    }
-                                }
-
-                                section("Ranges") {
-                                    progressBar {
-                                        onUpdate += { dt -> value = (value + dt.seconds * 20f) % max }
-                                    }
-                                    label { text = "Scroll bar" }
-                                    val slider = progressBar { value = 50f }
-                                    hScrollBar {
-                                        page = 10f
-                                        max = 110f
-                                        value = 50f
-                                        onValueChanged += { slider.value = it }
-                                    }
-                                    label { text = "Texture progress" }
-                                    textureProgress {
-                                        background = bigIcon.slice()
-                                        progressBar = bigIcon.slice()
-                                        backgroundColor = Color.DARK_GRAY
-                                        fillMode = TextureProgress.FillMode.BOTTOM_TO_TOP
-                                        onUpdate += { dt -> value = (value + dt.seconds * 30f) % max }
-                                    }
-                                    row {
-                                        verticalSizing = Control.SizeFlag.FILL or Control.SizeFlag.EXPAND
-                                        scrollContainer {
-                                            horizontalSizing = Control.SizeFlag.FILL or Control.SizeFlag.EXPAND
-                                            column {
-                                                repeat(20) { label { text = "Scroll item $it" } }
-                                            }
-                                        }
-                                        vScrollBar {
-                                            page = 20f
-                                            max = 120f
-                                            onValueChanged += { status.text = "Vertical: ${it.toInt()}" }
-                                        }
-                                    }
-                                }
-
-                                section("Textures") {
-                                    row {
-                                        separation = 5
-                                        textureRect {
-                                            slice = iconSlice
-                                            stretchMode = TextureRect.StretchMode.KEEP_CENTERED
-                                            minWidth = 32f
-                                            minHeight = 32f
-                                        }
-                                        textureRect {
-                                            slice = iconSlice
-                                            stretchMode = TextureRect.StretchMode.SCALE
-                                            minWidth = 32f
-                                            minHeight = 32f
-                                        }
-                                        textureRect {
-                                            slice = iconSlice
-                                            stretchMode = TextureRect.StretchMode.TILE
-                                            minWidth = 48f
-                                            minHeight = 32f
-                                        }
-                                        textureRect {
-                                            slice = iconSlice
-                                            stretchMode = TextureRect.StretchMode.KEEP_CENTERED
-                                            flipX = true
-                                            flipY = true
-                                            minWidth = 32f
-                                            minHeight = 32f
-                                        }
-                                    }
-                                    label { text = "Nine patch" }
-                                    ninePatchRect {
-                                        texture = ninePatch.slice()
-                                        left = 2
-                                        right = 2
-                                        top = 2
-                                        bottom = 4
-                                        color = Color.LIGHT_BLUE
-                                        minHeight = 30f
-                                    }
-                                    label { text = "Center container" }
-                                    panel {
-                                        minHeight = 40f
-                                        centerContainer {
-                                            anchor(Control.AnchorLayout.FULL)
-                                            label { text = "Centered" }
-                                        }
-                                    }
-                                    label { text = "Canvas layer" }
-                                    canvasLayerContainer {
-                                        stretch = true
-                                        verticalSizing = Control.SizeFlag.FILL or Control.SizeFlag.EXPAND
-                                        canvasLayer {
-                                            node2d { camera2d { active = true } }
-                                            node2d {
-                                                onUpdate += { dt -> rotation += (dt.seconds * 2f).radians }
-                                                onRender += { batch, _, _ ->
-                                                    batch.draw(
-                                                        icon,
-                                                        globalX - 16f,
-                                                        globalY - 16f,
-                                                        originX = 16f,
-                                                        originY = 16f,
-                                                        width = 32f,
-                                                        height = 32f,
-                                                        rotation = globalRotation,
-                                                    )
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
+                        }
+                        row(separation = 10, modifier = Modifier.expandHeight()) {
+                            buttons()
+                            text()
+                            ranges(bigIcon)
+                            textures(icon, icon.slice(), ninePatch.slice())
                         }
                     }
                 }
                 .also { it.initialize() }
-
 
         onResize { width, height -> graph.resize(width, height) }
 
@@ -296,20 +98,142 @@ class SceneGraphPlaygroundExample(context: Context) : ContextListener(context) {
         }
     }
 
-    private inline fun Node.section(title: String, content: VBoxContainer.() -> Unit) {
-        panelContainer {
-            horizontalSizing = Control.SizeFlag.FILL or Control.SizeFlag.EXPAND
-            paddedContainer {
-                paddingLeft = 8
-                paddingRight = 8
-                paddingTop = 8
-                paddingBottom = 8
-                column {
-                    separation = 6
-                    label { text = title }
-                    content()
-                }
+    private fun Node.buttons() = section("Buttons") {
+        var clicks = 0
+        button("Click me") {
+            onPressed += {
+                clicks++
+                status.text = "Clicked $clicks times"
+            }
+        }
+        button("Toggle") {
+            toggleMode = true
+            onToggled += { status.text = "Toggled: $it" }
+        }
+        button("Disabled") { disabled = true }
+        label("Button group")
+        val group = ButtonGroup()
+        repeat(3) {
+            button("Option ${it + 1}") {
+                toggleMode = true
+                pressed = it == 0
+                setButtonGroup(group)
+                onPressed += { status.text = "Selected $text" }
             }
         }
     }
+
+    private fun Node.text() = section("Text") {
+        label("Left")
+        label("Center") { horizontalAlign = HAlign.CENTER }
+        label("Right") { horizontalAlign = HAlign.RIGHT }
+        label("uppercase label") { uppercase = true }
+        label("This label is too long so it ends with an ellipsis", fitWidth) { ellipsis = "..." }
+        label("This label wraps its text onto more lines", fitWidth) { wrap = true }
+        lineEdit(placeholder = "Type here...", modifier = field)
+        lineEdit("password", modifier = field) { secret = true }
+        lineEdit("Read only", modifier = field) { editable = false }
+    }
+
+    private fun Node.ranges(bigIcon: Texture) = section("Ranges") {
+        progressBar { onUpdate += { dt -> value = (value + dt.seconds * 20f) % max } }
+        label("Scroll bar")
+        val slider = progressBar { value = 50f }
+        hScrollBar {
+            page = 10f
+            max = 110f
+            value = 50f
+            onValueChanged += { slider.value = it }
+        }
+        label("Texture progress")
+        textureProgress {
+            background = bigIcon.slice()
+            progressBar = bigIcon.slice()
+            backgroundColor = Color.DARK_GRAY
+            fillMode = TextureProgress.FillMode.BOTTOM_TO_TOP
+            onUpdate += { dt -> value = (value + dt.seconds * 30f) % max }
+        }
+        row(modifier = Modifier.expandHeight()) {
+            scrollContainer(Modifier.expandWidth()) {
+                column { repeat(20) { label("Scroll item $it") } }
+            }
+            vScrollBar {
+                page = 20f
+                max = 120f
+                onValueChanged += { status.text = "Vertical: ${it.toInt()}" }
+            }
+        }
+    }
+
+    private fun Node.textures(icon: Texture, iconSlice: TextureSlice, ninePatch: TextureSlice) =
+        section("Textures") {
+            val iconSize = Modifier.minSize(32f, 32f)
+            row(separation = 5) {
+                textureRect(iconSize) {
+                    slice = iconSlice
+                    stretchMode = TextureRect.StretchMode.KEEP_CENTERED
+                }
+                textureRect(iconSize) {
+                    slice = iconSlice
+                    stretchMode = TextureRect.StretchMode.SCALE
+                }
+                textureRect(Modifier.minSize(48f, 32f)) {
+                    slice = iconSlice
+                    stretchMode = TextureRect.StretchMode.TILE
+                }
+                textureRect(iconSize) {
+                    slice = iconSlice
+                    stretchMode = TextureRect.StretchMode.KEEP_CENTERED
+                    flipX = true
+                    flipY = true
+                }
+            }
+            label("Nine patch")
+            ninePatchRect(Modifier.minSize(0f, 30f).tint(Color.LIGHT_BLUE)) {
+                texture = ninePatch
+                left = 2
+                right = 2
+                top = 2
+                bottom = 4
+            }
+            label("Center container")
+            panel(Modifier.minSize(0f, 40f)) {
+                centerContainer(Modifier.fillParent()) { label("Centered") }
+            }
+            label("Canvas layer")
+            canvasLayerContainer(Modifier.expandHeight()) {
+                stretch = true
+                canvasLayer {
+                    node2d { camera2d { active = true } }
+                    node2d {
+                        onUpdate += { dt -> rotation += (dt.seconds * 2f).radians }
+                        onRender += { batch, _, _ ->
+                            batch.draw(
+                                icon,
+                                globalX - 16f,
+                                globalY - 16f,
+                                originX = 16f,
+                                originY = 16f,
+                                width = 32f,
+                                height = 32f,
+                                rotation = globalRotation,
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
+    private fun Node.section(title: String, content: VBoxContainer.() -> Unit) {
+        column(separation = 6, modifier = Modifier.expandWidth().card()) {
+            label(title)
+            content()
+        }
+    }
+
+    private fun Modifier.card() = panel().padding(8)
+
+    private val fitWidth = Modifier.minSize(1f, 0f)
+
+    private val field = Modifier.minSize(150f, 0f)
 }

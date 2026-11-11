@@ -33,11 +33,17 @@ import kotlin.math.max
  * @param callback the callback that is invoked with a [Control] context in order to initialize any
  *   values
  * @return the newly created [Control]
+ *
+ * @param modifier the [Modifier] to apply
+ * @param callback the block to configure the node
  */
 @OptIn(ExperimentalContracts::class)
-inline fun Node.control(callback: @SceneGraphDslMarker Control.() -> Unit = {}): Control {
+inline fun Node.control(
+    modifier: Modifier = Modifier,
+    callback: @SceneGraphDslMarker Control.() -> Unit = {},
+): Control {
     contract { callsInPlace(callback, InvocationKind.EXACTLY_ONCE) }
-    return Control().also(callback).addTo(this)
+    return Control().addTo(this, modifier, callback)
 }
 
 /**
@@ -46,11 +52,17 @@ inline fun Node.control(callback: @SceneGraphDslMarker Control.() -> Unit = {}):
  * @param callback the callback that is invoked with a [Control] context in order to initialize any
  *   values
  * @return the newly created [Control]
+ *
+ * @param modifier the [Modifier] to apply
+ * @param callback the block to configure the node
  */
 @OptIn(ExperimentalContracts::class)
-inline fun SceneGraph<*>.control(callback: @SceneGraphDslMarker Control.() -> Unit = {}): Control {
+inline fun SceneGraph<*>.control(
+    modifier: Modifier = Modifier,
+    callback: @SceneGraphDslMarker Control.() -> Unit = {},
+): Control {
     contract { callsInPlace(callback, InvocationKind.EXACTLY_ONCE) }
-    return root.control(callback)
+    return root.control(modifier = modifier, callback = callback)
 }
 
 /**
@@ -83,6 +95,7 @@ open class Control : CanvasItem() {
     @JsName("onFocusLostSignal") val onFocusLost: Signal = Signal()
 
     private var lastAnchorLayout: AnchorLayout = NONE
+    private var anchorMargin = 0f
 
     private var _anchorLeft = 0f
     private var _anchorRight = 0f
@@ -703,9 +716,11 @@ open class Control : CanvasItem() {
      * Anchor this node using an [AnchorLayout] preset.
      *
      * @param layout the anchor layout preset
+     * @param margin the distance to keep from the anchored edges of the parent
      */
-    fun anchor(layout: AnchorLayout) {
+    fun anchor(layout: AnchorLayout, margin: Float = 0f) {
         lastAnchorLayout = layout
+        anchorMargin = margin
         computeAnchorMarginLayout(layout)
         if (insideTree) {
             onSizeChanged()
@@ -1001,7 +1016,21 @@ open class Control : CanvasItem() {
                 FULL -> parentRect.height * (0f - _anchorBottom) + parentRect.y
                 else -> _marginBottom
             }
+
+        if (layout != NONE && anchorMargin != 0f) {
+            _marginLeft += inset(_anchorLeft)
+            _marginRight += inset(_anchorRight)
+            _marginTop += inset(_anchorTop)
+            _marginBottom += inset(_anchorBottom)
+        }
     }
+
+    private fun inset(anchor: Float): Float =
+        when {
+            anchor < 0.5f -> anchorMargin
+            anchor > 0.5f -> -anchorMargin
+            else -> 0f
+        }
 
     fun setAnchor(
         side: Side,

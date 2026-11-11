@@ -4,49 +4,95 @@ import com.littlekt.graph.SceneGraph
 import com.littlekt.graph.node.Node
 import com.littlekt.graph.node.addTo
 import com.littlekt.graph.node.annotation.SceneGraphDslMarker
+import com.littlekt.graph.node.resource.AlignMode
 import com.littlekt.graph.node.resource.Theme
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
 
-/** Adds a [HBoxContainer] to the current [Node] as a child and then triggers the [callback] */
+@PublishedApi
+internal fun createHBoxContainer(separation: Int?, align: AlignMode?): HBoxContainer =
+    HBoxContainer().also {
+        if (separation != null) it.separation = separation
+        if (align != null) it.align = align
+    }
+
+/**
+ * Adds a [HBoxContainer] to the current [Node] as a child and then triggers the [callback].
+ *
+ * @param separation the space between children
+ * @param align the alignment of the children
+ * @param modifier the [Modifier] to apply
+ * @param callback the block to configure the node
+ */
 @OptIn(ExperimentalContracts::class)
 inline fun Node.hBoxContainer(
-    callback: @SceneGraphDslMarker HBoxContainer.() -> Unit = {}
+    separation: Int? = null,
+    align: AlignMode? = null,
+    modifier: Modifier = Modifier,
+    callback: @SceneGraphDslMarker HBoxContainer.() -> Unit = {},
 ): HBoxContainer {
     contract { callsInPlace(callback, InvocationKind.EXACTLY_ONCE) }
-    return HBoxContainer().also(callback).addTo(this)
+    return createHBoxContainer(separation, align).addTo(this, modifier, callback)
 }
 
 /**
  * Adds a [HBoxContainer] to the current [SceneGraph.root] as a child and then triggers the
  * [callback]
+ *
+ * @param separation the space between children
+ * @param align the alignment of the children
+ * @param modifier the [Modifier] to apply
+ * @param callback the block to configure the node
  */
 @OptIn(ExperimentalContracts::class)
 inline fun SceneGraph<*>.hBoxContainer(
-    callback: @SceneGraphDslMarker HBoxContainer.() -> Unit = {}
+    separation: Int? = null,
+    align: AlignMode? = null,
+    modifier: Modifier = Modifier,
+    callback: @SceneGraphDslMarker HBoxContainer.() -> Unit = {},
 ): HBoxContainer {
     contract { callsInPlace(callback, InvocationKind.EXACTLY_ONCE) }
-    return root.hBoxContainer(callback)
+    return root.hBoxContainer(separation, align, modifier = modifier, callback = callback)
 }
 
-/** Adds a [HBoxContainer] to the current [Node] as a child and then triggers the [callback] */
+/**
+ * Adds a [HBoxContainer] to the current [Node] as a child and then triggers the [callback].
+ *
+ * @param separation the space between children
+ * @param align the alignment of the children
+ * @param modifier the [Modifier] to apply
+ * @param callback the block to configure the node
+ */
 @OptIn(ExperimentalContracts::class)
-inline fun Node.row(callback: @SceneGraphDslMarker HBoxContainer.() -> Unit = {}): HBoxContainer {
+inline fun Node.row(
+    separation: Int? = null,
+    align: AlignMode? = null,
+    modifier: Modifier = Modifier,
+    callback: @SceneGraphDslMarker HBoxContainer.() -> Unit = {},
+): HBoxContainer {
     contract { callsInPlace(callback, InvocationKind.EXACTLY_ONCE) }
-    return HBoxContainer().also(callback).addTo(this)
+    return createHBoxContainer(separation, align).addTo(this, modifier, callback)
 }
 
 /**
  * Adds a [HBoxContainer] to the current [SceneGraph.root] as a child and then triggers the
  * [callback]
+ *
+ * @param separation the space between children
+ * @param align the alignment of the children
+ * @param modifier the [Modifier] to apply
+ * @param callback the block to configure the node
  */
 @OptIn(ExperimentalContracts::class)
 inline fun SceneGraph<*>.row(
-    callback: @SceneGraphDslMarker HBoxContainer.() -> Unit = {}
+    separation: Int? = null,
+    align: AlignMode? = null,
+    modifier: Modifier = Modifier,
+    callback: @SceneGraphDslMarker HBoxContainer.() -> Unit = {},
 ): HBoxContainer {
     contract { callsInPlace(callback, InvocationKind.EXACTLY_ONCE) }
-    return root.row(callback)
+    return root.row(separation, align, modifier = modifier, callback = callback)
 }
 
 /**

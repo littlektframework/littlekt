@@ -4,24 +4,40 @@ import com.littlekt.graph.SceneGraph
 import com.littlekt.graph.node.Node
 import com.littlekt.graph.node.addTo
 import com.littlekt.graph.node.annotation.SceneGraphDslMarker
+import com.littlekt.graph.node.resource.AlignMode
 import com.littlekt.graph.node.resource.Theme
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
 
+@PublishedApi
+internal fun createVBoxContainer(separation: Int?, align: AlignMode?): VBoxContainer =
+    VBoxContainer().also {
+        if (separation != null) it.separation = separation
+        if (align != null) it.align = align
+    }
+
 /**
  * Adds a [VBoxContainer] to the current [Node] as a child and then triggers the [callback]
  *
  * @param callback the callback that is invoked with a [VBoxContainer] context in order to
  *   initialize any values
  * @return the newly created [VBoxContainer]
+ *
+ * @param separation the space between children
+ * @param align the alignment of the children
+ * @param modifier the [Modifier] to apply
+ * @param callback the block to configure the node
  */
 @OptIn(ExperimentalContracts::class)
 inline fun Node.vBoxContainer(
-    callback: @SceneGraphDslMarker VBoxContainer.() -> Unit = {}
+    separation: Int? = null,
+    align: AlignMode? = null,
+    modifier: Modifier = Modifier,
+    callback: @SceneGraphDslMarker VBoxContainer.() -> Unit = {},
 ): VBoxContainer {
     contract { callsInPlace(callback, InvocationKind.EXACTLY_ONCE) }
-    return VBoxContainer().also(callback).addTo(this)
+    return createVBoxContainer(separation, align).addTo(this, modifier, callback)
 }
 
 /**
@@ -31,13 +47,21 @@ inline fun Node.vBoxContainer(
  * @param callback the callback that is invoked with a [VBoxContainer] context in order to
  *   initialize any values
  * @return the newly created [VBoxContainer]
+ *
+ * @param separation the space between children
+ * @param align the alignment of the children
+ * @param modifier the [Modifier] to apply
+ * @param callback the block to configure the node
  */
 @OptIn(ExperimentalContracts::class)
 inline fun SceneGraph<*>.vBoxContainer(
-    callback: @SceneGraphDslMarker VBoxContainer.() -> Unit = {}
+    separation: Int? = null,
+    align: AlignMode? = null,
+    modifier: Modifier = Modifier,
+    callback: @SceneGraphDslMarker VBoxContainer.() -> Unit = {},
 ): VBoxContainer {
     contract { callsInPlace(callback, InvocationKind.EXACTLY_ONCE) }
-    return root.vBoxContainer(callback)
+    return root.vBoxContainer(separation, align, modifier = modifier, callback = callback)
 }
 
 /**
@@ -46,13 +70,21 @@ inline fun SceneGraph<*>.vBoxContainer(
  * @param callback the callback that is invoked with a [VBoxContainer] context in order to
  *   initialize any values
  * @return the newly created [VBoxContainer]
+ *
+ * @param separation the space between children
+ * @param align the alignment of the children
+ * @param modifier the [Modifier] to apply
+ * @param callback the block to configure the node
  */
 @OptIn(ExperimentalContracts::class)
 inline fun Node.column(
-    callback: @SceneGraphDslMarker VBoxContainer.() -> Unit = {}
+    separation: Int? = null,
+    align: AlignMode? = null,
+    modifier: Modifier = Modifier,
+    callback: @SceneGraphDslMarker VBoxContainer.() -> Unit = {},
 ): VBoxContainer {
     contract { callsInPlace(callback, InvocationKind.EXACTLY_ONCE) }
-    return VBoxContainer().also(callback).addTo(this)
+    return createVBoxContainer(separation, align).addTo(this, modifier, callback)
 }
 
 /**
@@ -62,13 +94,21 @@ inline fun Node.column(
  * @param callback the callback that is invoked with a [VBoxContainer] context in order to
  *   initialize any values
  * @return the newly created [VBoxContainer]
+ *
+ * @param separation the space between children
+ * @param align the alignment of the children
+ * @param modifier the [Modifier] to apply
+ * @param callback the block to configure the node
  */
 @OptIn(ExperimentalContracts::class)
 inline fun SceneGraph<*>.column(
-    callback: @SceneGraphDslMarker VBoxContainer.() -> Unit = {}
+    separation: Int? = null,
+    align: AlignMode? = null,
+    modifier: Modifier = Modifier,
+    callback: @SceneGraphDslMarker VBoxContainer.() -> Unit = {},
 ): VBoxContainer {
     contract { callsInPlace(callback, InvocationKind.EXACTLY_ONCE) }
-    return root.column(callback)
+    return root.column(separation, align, modifier = modifier, callback = callback)
 }
 
 /**
