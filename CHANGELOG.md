@@ -120,11 +120,15 @@
 - Add `FlatDrawable` for rounded rectangles with borders that need no art.
 - Add `ThemePalette` with `DARK` & `LIGHT` palettes and `palette`, `cornerRadius` & `srgb` to `createDefaultTheme`.
 - Add a `theme { }` builder for creating themes.
+- Add typed theme scopes for built-in controls, e.g. `theme { button { normal = ...; fontColor = ... } }`.
 - Add `Textures.roundedRect` & `Textures.roundedRectCorner`.
 - Add `Button.fontColorDisabled` & `Control.hasThemeColor`.
 - Add `Fonts.defaultNoOutline`, used by the default theme.
 - Add scene graph `Modifier`s, like Jetpack Compose, with a `modifier` parameter on every control builder.
 - Add `RowScope` & `ColumnScope` modifiers `weight`, `align`, `fillHeight` & `fillWidth` for row & column children.
+- Add a `buttonGroup { }` builder and `ButtonGroup.buttons`, `selected` & `onSelected`.
+- Add `StackContainer` & `stack { }` that layers children without a background.
+- Add `StackScope` modifiers `align`, `fillWidth` & `fillHeight` for stack, panel container & padded container children.
 - Add layout shortcuts: `fillParent`, `centerInParent`, `anchors`, `expand`, `expandWidth`, `expandHeight`, `shrinkBegin`,
   `shrinkCenter`, `shrinkEnd` & `minSize`.
 - Add a `margin` to `Control.anchor` & `PaddedContainer.padding(horizontal, vertical)` & `padding(left, top, right, bottom)`.

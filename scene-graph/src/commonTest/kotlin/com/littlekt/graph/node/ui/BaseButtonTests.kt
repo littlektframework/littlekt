@@ -67,4 +67,25 @@ class BaseButtonTests {
         button.uiInput(InputEvent<Any>().apply { type = InputEvent.Type.TOUCH_UP })
         assertTrue(button.pressed)
     }
+
+    @Test
+    fun test_button_group_selected_and_on_selected() {
+        val group = ButtonGroup()
+        val selected = mutableListOf<BaseButton>()
+        group.onSelected += { selected += it }
+        val a = TestButton().apply {
+            toggleMode = true
+            setButtonGroup(group)
+        }
+        val b = TestButton().apply {
+            toggleMode = true
+            setButtonGroup(group)
+        }
+        assertEquals(setOf<BaseButton>(a, b), group.buttons)
+        b.click()
+        assertEquals(b, group.selected)
+        a.pressed = true
+        assertEquals(a, group.selected)
+        assertEquals(listOf<BaseButton>(b, a), selected)
+    }
 }

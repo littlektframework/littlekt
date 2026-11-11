@@ -153,67 +153,47 @@ fun createDefaultTheme(
     val disabledBorder = p.border.withAlpha(0.45f)
     val theme = theme {
         this.defaultFont = defaultFont ?: Fonts.defaultNoOutline
-        type<Button> {
-            drawables[Button.themeVars.normal] = FlatDrawable(p.control, p.border, 1, r)
-            drawables[Button.themeVars.hover] = FlatDrawable(p.controlHover, p.border, 1, r)
-            drawables[Button.themeVars.pressed] = FlatDrawable(p.controlPressed, p.accent, 1, r)
-            drawables[Button.themeVars.hoverPressed] =
-                FlatDrawable(p.controlHover, p.accent, 1, r)
-            drawables[Button.themeVars.disabled] =
-                FlatDrawable(disabledControl, disabledBorder, 1, r)
-            drawables[Button.themeVars.focus] = FlatDrawable(Color.CLEAR, p.accent, 2, r)
-            colors[Button.themeVars.fontColor] = p.text
-            colors[Button.themeVars.fontColorDisabled] = p.textMuted
+        button {
+            normal = FlatDrawable(p.control, p.border, 1, r)
+            hover = FlatDrawable(p.controlHover, p.border, 1, r)
+            pressed = FlatDrawable(p.controlPressed, p.accent, 1, r)
+            hoverPressed = FlatDrawable(p.controlHover, p.accent, 1, r)
+            disabled = FlatDrawable(disabledControl, disabledBorder, 1, r)
+            focus = FlatDrawable(Color.CLEAR, p.accent, 2, r)
+            fontColor = p.text
+            fontColorDisabled = p.textMuted
         }
-        type<Label> { colors[Label.themeVars.fontColor] = p.text }
-        type<Panel> {
-            drawables[Panel.themeVars.panel] = FlatDrawable(p.surface, p.border, 1, r + 2, 8f)
-            drawables[Panel.themeVars.panelForeground] =
-                FlatDrawable(p.surface, p.border, 1, r + 2, 8f)
+        label { fontColor = p.text }
+        panel {
+            panel = FlatDrawable(p.surface, p.border, 1, r + 2, 8f)
+            panelForeground = FlatDrawable(p.surface, p.border, 1, r + 2, 8f)
         }
-        type<ProgressBar> {
-            drawables[ProgressBar.themeVars.bg] = FlatDrawable(p.field, p.border, 1, r)
-            drawables[ProgressBar.themeVars.fg] = FlatDrawable(p.accent, cornerRadius = r)
-            colors[ProgressBar.themeVars.fontColor] = p.text
+        progressBar {
+            bg = FlatDrawable(p.field, p.border, 1, r)
+            fg = FlatDrawable(p.accent, cornerRadius = r)
+            fontColor = p.text
         }
-        type<LineEdit> {
-            drawables[LineEdit.themeVars.bg] =
-                FlatDrawable(p.field, p.border, 1, r).apply {
-                    marginLeft = 8f
-                    marginRight = 8f
-                    minWidth = 50f
-                    minHeight = 28f
-                }
-            drawables[LineEdit.themeVars.disabled] =
-                FlatDrawable(p.field.withAlpha(0.45f), disabledBorder, 1, r).apply {
-                    marginLeft = 8f
-                    marginRight = 8f
-                    minWidth = 50f
-                    minHeight = 28f
-                }
-            drawables[LineEdit.themeVars.focus] = FlatDrawable(Color.CLEAR, p.accent, 2, r)
-            drawables[LineEdit.themeVars.caret] = FlatDrawable(p.text).apply { minWidth = 1f }
-            drawables[LineEdit.themeVars.selection] = FlatDrawable(p.accent.withAlpha(0.4f))
-            colors[LineEdit.themeVars.fontColor] = p.text
-            colors[LineEdit.themeVars.fontColorPlaceholder] = p.textMuted
-            colors[LineEdit.themeVars.fontColorDisabled] = p.textMuted
+        lineEdit {
+            bg = inputField(p.field, p.border, r)
+            disabled = inputField(p.field.withAlpha(0.45f), disabledBorder, r)
+            focus = FlatDrawable(Color.CLEAR, p.accent, 2, r)
+            caret = FlatDrawable(p.text).apply { minWidth = 1f }
+            selection = FlatDrawable(p.accent.withAlpha(0.4f))
+            fontColor = p.text
+            fontColorPlaceholder = p.textMuted
+            fontColorDisabled = p.textMuted
         }
-        type<ScrollContainer> { drawables[ScrollContainer.themeVars.panel] = emptyDrawable() }
-        val track = FlatDrawable(p.control, cornerRadius = 3, margin = 0f)
-        val grabber = FlatDrawable(p.textMuted.withAlpha(0.6f), cornerRadius = 3, margin = 0f)
-        val grabberHover = FlatDrawable(p.textMuted, cornerRadius = 3, margin = 0f)
-        val grabberPressed = FlatDrawable(p.accent, cornerRadius = 3, margin = 0f)
-        listOf("VScrollBar", "HScrollBar").forEach {
-            type(it) {
-                drawables[ScrollBar.themeVars.scroll] = track
-                drawables[ScrollBar.themeVars.scrollFocused] = track
-                drawables[ScrollBar.themeVars.grabber] = grabber
-                drawables[ScrollBar.themeVars.grabberHighlight] = grabberHover
-                drawables[ScrollBar.themeVars.grabberPressed] = grabberPressed
-            }
+        scrollContainer { panel = emptyDrawable() }
+        scrollBars {
+            val track = FlatDrawable(p.control, cornerRadius = 3, margin = 0f)
+            scroll = track
+            scrollFocused = track
+            grabber = FlatDrawable(p.textMuted.withAlpha(0.6f), cornerRadius = 3, margin = 0f)
+            grabberHighlight = FlatDrawable(p.textMuted, cornerRadius = 3, margin = 0f)
+            grabberPressed = FlatDrawable(p.accent, cornerRadius = 3, margin = 0f)
         }
-        type<VBoxContainer> { constants[BoxContainer.themeVars.separation] = 6 }
-        type<HBoxContainer> { constants[BoxContainer.themeVars.separation] = 6 }
+        column { separation = 6 }
+        row { separation = 6 }
     }
 
     return Theme(
@@ -224,3 +204,11 @@ fun createDefaultTheme(
         defaultFont = theme.defaultFont,
     )
 }
+
+private fun inputField(color: Color, border: Color, radius: Int) =
+    FlatDrawable(color, border, 1, radius).apply {
+        marginLeft = 8f
+        marginRight = 8f
+        minWidth = 50f
+        minHeight = 28f
+    }

@@ -16,6 +16,7 @@ import com.littlekt.graph.sceneGraph
 import com.littlekt.graphics.Color
 import com.littlekt.graphics.HAlign
 import com.littlekt.graphics.Texture
+import com.littlekt.graphics.VAlign
 import com.littlekt.graphics.g2d.TextureSlice
 import com.littlekt.graphics.slice
 import com.littlekt.graphics.webgpu.RenderPassDescriptor
@@ -28,8 +29,8 @@ import com.littlekt.util.viewport.ExtendViewport
 
 /**
  * An example showing every built-in scene graph UI control: buttons, labels, text input, ranges,
- * scrolling, textures, panels, containers and a canvas layer with 2D nodes. Built with the layout
- * shortcuts and [Modifier]s.
+ * scrolling, textures, panels, stacks, containers and a canvas layer with 2D nodes. Built with the
+ * layout shortcuts and [Modifier]s.
  *
  * @author Colton Daily
  * @date 11/8/2026
@@ -112,14 +113,8 @@ class SceneGraphPlaygroundExample(context: Context) : ContextListener(context) {
         button("Disabled") { disabled = true }
         button("Aligned right", modifier = Modifier.align(HAlign.RIGHT))
         label("Button group")
-        val group = ButtonGroup()
-        repeat(3) {
-            button("Option ${it + 1}") {
-                toggleMode = true
-                pressed = it == 0
-                setButtonGroup(group)
-                onPressed += { status.text = "Selected $text" }
-            }
+        buttonGroup(onSelected = { status.text = "Selected ${(it as Button).text}" }) {
+            repeat(3) { button("Option ${it + 1}") { pressed = it == 0 } }
         }
     }
 
@@ -192,13 +187,20 @@ class SceneGraphPlaygroundExample(context: Context) : ContextListener(context) {
                     flipY = true
                 }
             }
-            label("Nine patch")
-            ninePatchRect(Modifier.minSize(0f, 30f).tint(Color.LIGHT_BLUE)) {
-                texture = ninePatch
-                left = 2
-                right = 2
-                top = 2
-                bottom = 4
+            label("Nine patch stack")
+            stack(Modifier.minSize(0f, 56f)) {
+                ninePatchRect(Modifier.tint(Color.DARK_BLUE)) {
+                    texture = ninePatch
+                    left = 2
+                    right = 2
+                    top = 2
+                    bottom = 4
+                }
+                label("Top left", modifier = Modifier.align(HAlign.LEFT, VAlign.TOP).padding(4))
+                label(
+                    "Bottom right",
+                    modifier = Modifier.align(HAlign.RIGHT, VAlign.BOTTOM).padding(4),
+                )
             }
             label("Center container")
             panel(Modifier.minSize(0f, 40f)) {

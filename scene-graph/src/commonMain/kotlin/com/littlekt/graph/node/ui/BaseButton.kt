@@ -186,23 +186,24 @@ abstract class BaseButton : Control() {
 
     /** Assigns the [BaseButton] to the [ButtonGroup] and removes itself from its previous. */
     fun setButtonGroup(group: ButtonGroup) {
-        buttonGroup.buttons -= this
+        buttonGroup.members -= this
         buttonGroup = group
-        buttonGroup.buttons += this
+        buttonGroup.members += this
     }
 
     private fun unpressGroup() {
-        if (buttonGroup.buttons.isEmpty()) return
+        if (buttonGroup.members.isEmpty()) return
         if (toggleMode) {
             status.pressed = true
         }
 
-        buttonGroup.buttons.forEach {
+        buttonGroup.members.forEach {
             if (it == this) {
                 return@forEach
             }
             it.pressed = false
         }
+        buttonGroup.onSelected.emit(this)
     }
 
     private fun _pressed() {
@@ -247,8 +248,4 @@ abstract class BaseButton : Control() {
         var pressingInside = false
         var disabled = false
     }
-}
-
-class ButtonGroup {
-    internal val buttons = mutableSetOf<BaseButton>()
 }

@@ -1,6 +1,7 @@
 package com.littlekt.graph.node.resource
 
-import com.littlekt.graph.node.ui.Control
+import com.littlekt.graph.node.annotation.ThemeDslMarker
+import com.littlekt.graph.node.ui.*
 import com.littlekt.graphics.Color
 import com.littlekt.graphics.g2d.font.BitmapFont
 
@@ -9,11 +10,12 @@ import com.littlekt.graphics.g2d.font.BitmapFont
  *
  * ```
  * val myTheme = theme {
- *     type<Button> {
- *         drawables[Button.themeVars.normal] = FlatDrawable(Color.DARK_GRAY, cornerRadius = 4)
- *         colors[Button.themeVars.fontColor] = Color.WHITE
+ *     button {
+ *         normal = FlatDrawable(Color.DARK_GRAY, cornerRadius = 4)
+ *         fontColor = Color.WHITE
  *     }
- *     type<VBoxContainer> { constants[BoxContainer.themeVars.separation] = 8 }
+ *     column { separation = 8 }
+ *     type("MyControl") { colors["outline"] = Color.RED }
  * }
  * ```
  *
@@ -29,6 +31,7 @@ inline fun theme(base: Theme? = null, block: ThemeBuilder.() -> Unit): Theme =
  * @author Colton Daily
  * @date 11/11/2026
  */
+@ThemeDslMarker
 class ThemeBuilder(base: Theme? = null) {
     private val types = mutableMapOf<String, ThemeTypeBuilder>()
 
@@ -50,8 +53,63 @@ class ThemeBuilder(base: Theme? = null) {
 
     /** Sets the theme values of the [Control] type [T]. */
     inline fun <reified T : Control> type(noinline block: ThemeTypeBuilder.() -> Unit) {
-        type(T::class.simpleName ?: error("Theme types need a class name."), block)
+        values<T>().apply(block)
     }
+
+    /** Sets the theme values of [Button]s. */
+    fun button(block: ButtonThemeScope.() -> Unit) = ButtonThemeScope(values<Button>()).block()
+
+    /** Sets the theme values of [Label]s. */
+    fun label(block: LabelThemeScope.() -> Unit) = LabelThemeScope(values<Label>()).block()
+
+    /** Sets the theme values of [LineEdit]s. */
+    fun lineEdit(block: LineEditThemeScope.() -> Unit) =
+        LineEditThemeScope(values<LineEdit>()).block()
+
+    /** Sets the theme values of [Panel]s. */
+    fun panel(block: PanelThemeScope.() -> Unit) = PanelThemeScope(values<Panel>()).block()
+
+    /** Sets the theme values of [PanelContainer]s. */
+    fun panelContainer(block: PanelContainerThemeScope.() -> Unit) =
+        PanelContainerThemeScope(values<PanelContainer>()).block()
+
+    /** Sets the theme values of [ProgressBar]s. */
+    fun progressBar(block: ProgressBarThemeScope.() -> Unit) =
+        ProgressBarThemeScope(values<ProgressBar>()).block()
+
+    /** Sets the theme values of [ScrollContainer]s. */
+    fun scrollContainer(block: ScrollContainerThemeScope.() -> Unit) =
+        ScrollContainerThemeScope(values<ScrollContainer>()).block()
+
+    /** Sets the theme values of [VScrollBar]s. */
+    fun vScrollBar(block: ScrollBarThemeScope.() -> Unit) =
+        ScrollBarThemeScope(values<VScrollBar>()).block()
+
+    /** Sets the theme values of [HScrollBar]s. */
+    fun hScrollBar(block: ScrollBarThemeScope.() -> Unit) =
+        ScrollBarThemeScope(values<HScrollBar>()).block()
+
+    /** Sets the theme values of both [VScrollBar]s & [HScrollBar]s. */
+    fun scrollBars(block: ScrollBarThemeScope.() -> Unit) {
+        vScrollBar(block)
+        hScrollBar(block)
+    }
+
+    /** Sets the theme values of [VBoxContainer]s. */
+    fun column(block: BoxContainerThemeScope.() -> Unit) =
+        BoxContainerThemeScope(values<VBoxContainer>()).block()
+
+    /** Sets the theme values of [HBoxContainer]s. */
+    fun row(block: BoxContainerThemeScope.() -> Unit) =
+        BoxContainerThemeScope(values<HBoxContainer>()).block()
+
+    /** Sets the theme values of [PaddedContainer]s. */
+    fun paddedContainer(block: PaddedContainerThemeScope.() -> Unit) =
+        PaddedContainerThemeScope(values<PaddedContainer>()).block()
+
+    @PublishedApi
+    internal inline fun <reified T : Control> values(): ThemeTypeBuilder =
+        type(T::class.simpleName ?: error("Theme types need a class name."))
 
     /** @return the built [Theme] */
     fun build(): Theme =
@@ -82,6 +140,7 @@ class ThemeBuilder(base: Theme? = null) {
  * @author Colton Daily
  * @date 11/11/2026
  */
+@ThemeDslMarker
 class ThemeTypeBuilder {
     /** The drawables of this type. */
     val drawables: MutableMap<String, Drawable> = mutableMapOf()

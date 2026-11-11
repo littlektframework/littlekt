@@ -116,6 +116,81 @@ class ContainerScopeTests {
         assertEquals(70f, right.x)
     }
 
+    private class TestStack : StackContainer() {
+        fun layout() = onSortChildren()
+    }
+
+    private fun stack(block: TestStack.() -> Unit) =
+        TestStack().apply {
+            size(100f, 100f)
+            block()
+            layout()
+        }
+
+    @Test
+    fun test_stack_children_fill_by_default() {
+        lateinit var a: Control
+        lateinit var b: Control
+        stack {
+            a = control(modifier = Modifier.minSize(10f, 10f))
+            b = control()
+        }
+        assertEquals(100f, a.width)
+        assertEquals(100f, a.height)
+        assertEquals(100f, b.width)
+        assertEquals(100f, b.height)
+    }
+
+    @Test
+    fun test_stack_align_places_child_on_both_axes() {
+        lateinit var topLeft: Control
+        lateinit var center: Control
+        lateinit var bottomRight: Control
+        stack {
+            val size = Modifier.minSize(20f, 10f)
+            topLeft = control(modifier = Modifier.align(HAlign.LEFT, VAlign.TOP).then(size))
+            center = control(modifier = Modifier.align(HAlign.CENTER, VAlign.CENTER).then(size))
+            bottomRight = control(modifier = Modifier.align(HAlign.RIGHT, VAlign.BOTTOM).then(size))
+        }
+        assertEquals(20f, topLeft.width)
+        assertEquals(10f, topLeft.height)
+        assertEquals(0f, topLeft.x)
+        assertEquals(90f, topLeft.y)
+        assertEquals(40f, center.x)
+        assertEquals(45f, center.y)
+        assertEquals(80f, bottomRight.x)
+        assertEquals(0f, bottomRight.y)
+    }
+
+    @Test
+    fun test_stack_align_one_axis_fills_the_other() {
+        lateinit var a: Control
+        stack { a = control(modifier = Modifier.align(HAlign.RIGHT).minSize(20f, 10f)) }
+        assertEquals(80f, a.x)
+        assertEquals(20f, a.width)
+        assertEquals(100f, a.height)
+    }
+
+    @Test
+    fun test_stack_min_size_is_largest_child() {
+        val stack = stack {
+            control(modifier = Modifier.minSize(30f, 10f))
+            control(modifier = Modifier.minSize(10f, 40f))
+        }
+        assertEquals(30f, stack.combinedMinWidth)
+        assertEquals(40f, stack.combinedMinHeight)
+    }
+
+    @Test
+    fun test_panel_container_has_stack_scope() {
+        lateinit var a: Control
+        PanelContainer().apply {
+            a = control(modifier = Modifier.align(HAlign.CENTER, VAlign.TOP))
+        }
+        assertEquals(Control.SizeFlag.SHRINK_CENTER, a.horizontalSizing)
+        assertEquals(Control.SizeFlag.SHRINK_END, a.verticalSizing)
+    }
+
     @Test
     fun test_nested_column_uses_its_own_scope() {
         lateinit var label: Control

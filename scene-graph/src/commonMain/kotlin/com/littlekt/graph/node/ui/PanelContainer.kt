@@ -56,7 +56,7 @@ inline fun SceneGraph<*>.panelContainer(
  * @author Colton Daily
  * @date 1/21/2022
  */
-open class PanelContainer : Container() {
+open class PanelContainer : Container(), StackScope {
 
     var panel: Drawable
         get() =

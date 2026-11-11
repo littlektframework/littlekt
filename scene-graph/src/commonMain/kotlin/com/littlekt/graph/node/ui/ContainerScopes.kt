@@ -36,21 +36,63 @@ interface RowScope {
 
     /** Keeps the child at its minimum height and aligns it vertically in the row. */
     fun Modifier.align(alignment: VAlign): Modifier =
-        then(
-            Modifier.Element {
-                it.verticalSizing =
-                    when (alignment) {
-                        VAlign.TOP -> SizeFlag.SHRINK_END
-                        VAlign.CENTER -> SizeFlag.SHRINK_CENTER
-                        VAlign.BOTTOM -> SizeFlag.SHRINK_BEGIN
-                    }
-            }
-        )
+        then(Modifier.Element { it.verticalSizing = alignment.toSizeFlag() })
 
     /** Stretches the child to the full height of the row. This is the default. */
     fun Modifier.fillHeight(): Modifier =
         then(Modifier.Element { it.verticalSizing = SizeFlag.FILL })
 }
+
+/**
+ * The [Modifier]s only available to the children of a stack, such as a [StackContainer],
+ * [PanelContainer] or [PaddedContainer]. Children fill the stack by default.
+ *
+ * ```
+ * stack {
+ *     textureRect { slice = background }
+ *     label("Paused", modifier = Modifier.align(HAlign.CENTER, VAlign.CENTER))
+ *     button("Resume", modifier = Modifier.align(HAlign.RIGHT, VAlign.BOTTOM))
+ * }
+ * ```
+ *
+ * @author Colton Daily
+ * @date 11/11/2026
+ */
+interface StackScope {
+    /** Keeps the child at its minimum size and aligns it on both axes in the stack. */
+    fun Modifier.align(horizontal: HAlign, vertical: VAlign): Modifier =
+        align(horizontal).align(vertical)
+
+    /** Keeps the child at its minimum width and aligns it horizontally in the stack. */
+    fun Modifier.align(alignment: HAlign): Modifier =
+        then(Modifier.Element { it.horizontalSizing = alignment.toSizeFlag() })
+
+    /** Keeps the child at its minimum height and aligns it vertically in the stack. */
+    fun Modifier.align(alignment: VAlign): Modifier =
+        then(Modifier.Element { it.verticalSizing = alignment.toSizeFlag() })
+
+    /** Stretches the child to the full width of the stack. This is the default. */
+    fun Modifier.fillWidth(): Modifier =
+        then(Modifier.Element { it.horizontalSizing = SizeFlag.FILL })
+
+    /** Stretches the child to the full height of the stack. This is the default. */
+    fun Modifier.fillHeight(): Modifier =
+        then(Modifier.Element { it.verticalSizing = SizeFlag.FILL })
+}
+
+private fun HAlign.toSizeFlag(): SizeFlag =
+    when (this) {
+        HAlign.LEFT -> SizeFlag.SHRINK_BEGIN
+        HAlign.CENTER -> SizeFlag.SHRINK_CENTER
+        HAlign.RIGHT -> SizeFlag.SHRINK_END
+    }
+
+private fun VAlign.toSizeFlag(): SizeFlag =
+    when (this) {
+        VAlign.TOP -> SizeFlag.SHRINK_END
+        VAlign.CENTER -> SizeFlag.SHRINK_CENTER
+        VAlign.BOTTOM -> SizeFlag.SHRINK_BEGIN
+    }
 
 /**
  * The [Modifier]s only available to the children of a column, such as a [VBoxContainer].
@@ -84,16 +126,7 @@ interface ColumnScope {
 
     /** Keeps the child at its minimum width and aligns it horizontally in the column. */
     fun Modifier.align(alignment: HAlign): Modifier =
-        then(
-            Modifier.Element {
-                it.horizontalSizing =
-                    when (alignment) {
-                        HAlign.LEFT -> SizeFlag.SHRINK_BEGIN
-                        HAlign.CENTER -> SizeFlag.SHRINK_CENTER
-                        HAlign.RIGHT -> SizeFlag.SHRINK_END
-                    }
-            }
-        )
+        then(Modifier.Element { it.horizontalSizing = alignment.toSizeFlag() })
 
     /** Stretches the child to the full width of the column. This is the default. */
     fun Modifier.fillWidth(): Modifier =

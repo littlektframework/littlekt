@@ -87,7 +87,7 @@ inline fun SceneGraph<*>.paddedContainer(
  * @author Colton Daily
  * @date 1/2/2022
  */
-open class PaddedContainer : Container() {
+open class PaddedContainer : Container(), StackScope {
 
     class ThemeVars {
         val paddingLeft = "paddingLeft"

@@ -114,4 +114,33 @@ class ThemeTests {
         assertEquals(ThemePalette.DARK.surface.a, linear.surface.a)
         assertNotEquals(ThemePalette.DARK, linear)
     }
+
+    @Test
+    fun test_typed_scopes_set_theme_values() {
+        val drawable = TestDrawable()
+        val built = theme {
+            button {
+                normal = drawable
+                fontColor = Color.RED
+            }
+            scrollBars { grabber = drawable }
+            column { separation = 8 }
+            paddedContainer { padding(4, 2) }
+        }
+        assertSame(drawable, built.drawables["Button"]?.get(Button.themeVars.normal))
+        assertEquals(Color.RED, built.colors["Button"]?.get(Button.themeVars.fontColor))
+        assertSame(drawable, built.drawables["VScrollBar"]?.get(ScrollBar.themeVars.grabber))
+        assertSame(drawable, built.drawables["HScrollBar"]?.get(ScrollBar.themeVars.grabber))
+        assertEquals(8, built.constants["VBoxContainer"]?.get(BoxContainer.themeVars.separation))
+        val padded = built.constants["PaddedContainer"]
+        assertEquals(4, padded?.get(PaddedContainer.themeVars.paddingLeft))
+        assertEquals(2, padded?.get(PaddedContainer.themeVars.paddingTop))
+    }
+
+    @Test
+    fun test_typed_scope_null_unsets_value() {
+        val base = theme { label { fontColor = Color.RED } }
+        val built = theme(base) { label { fontColor = null } }
+        assertNull(built.colors["Label"])
+    }
 }
