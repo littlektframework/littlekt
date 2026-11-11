@@ -45,6 +45,7 @@ open class Button : BaseButton() {
 
     private var cache: BitmapFontCache = BitmapFontCache(font)
     private val layout = GlyphLayout()
+    private var textHeight = 0f
 
     private var _fontScale = MutableVec2f(1f)
 
@@ -253,7 +254,7 @@ open class Button : BaseButton() {
 
         val drawable = getThemeDrawable(themeVars.normal)
         _internalMinWidth = max(layout.width, drawable.minWidth) + padding * 2f
-        _internalMinHeight = max(layout.height, drawable.minHeight) + padding * 2f
+        _internalMinHeight = max(textHeight, drawable.minHeight) + padding * 2f
 
         minSizeInvalid = false
     }
@@ -262,7 +263,6 @@ open class Button : BaseButton() {
         val text = if (uppercase) text.uppercase() else text
 
         var tx = padding
-        var ty = 0f
 
         val background = getThemeDrawable(themeVars.normal)
 
@@ -278,7 +278,6 @@ open class Button : BaseButton() {
             ellipsis,
         )
         val textWidth: Float = max(layout.width, width)
-        val textHeight: Float = if (wrap || text.contains("\n")) layout.height else font.capHeight
 
         if (horizontalAlign != HAlign.LEFT) {
             tx +=
@@ -288,27 +287,6 @@ open class Button : BaseButton() {
                     (width - textWidth) * 0.5f
                 }
         }
-
-        when (verticalAlign) {
-            VAlign.TOP -> {
-                ty -= padding
-                ty += height
-                ty -= textHeight
-                ty -= font.metrics.ascent
-            }
-            VAlign.BOTTOM -> {
-                ty += padding
-                ty += font.metrics.descent
-            }
-            else -> {
-                ty += height * 0.5f
-                ty -= textHeight * 0.5f
-                ty += font.metrics.descent * 0.5f
-            }
-        }
-        ty = ty.roundToInt().toFloat()
-        tx -= originX
-        ty -= originY
 
         layout.setText(
             font,
@@ -321,7 +299,21 @@ open class Button : BaseButton() {
             wrap,
             ellipsis,
         )
-        cache.setText(layout, tx, ty, fontScaleX, fontScaleY)
+
+        val lineHeight = font.metrics.lineHeight * fontScaleY
+        val textTop = lineHeight
+        val lastLineY = if (layout.runs.isEmpty()) lineHeight else layout.runs.last().y
+        val textBottom = lastLineY - lineHeight
+        textHeight = textTop - textBottom
+
+        val ty =
+            when (verticalAlign) {
+                VAlign.TOP -> height - padding - textTop
+                VAlign.BOTTOM -> padding - textBottom
+                else -> (height - textTop - textBottom) * 0.5f
+            }.roundToInt().toFloat()
+
+        cache.setText(layout, tx - originX, ty - originY, fontScaleX, fontScaleY)
     }
 
     class ThemeVars {

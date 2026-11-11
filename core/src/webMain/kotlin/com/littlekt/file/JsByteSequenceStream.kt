@@ -12,7 +12,7 @@ class JsByteSequenceStream(val buffer: ByteBuffer) : ByteSequenceStream {
     override fun iterator(): Iterator<Byte> {
         check(!closed) { "Stream already closed!" }
 
-        val buffer = ByteBuffer(buffer.toArray())
+        val buffer = ByteBuffer(buffer.toArray()).also { it.flip() }
         return object : ByteIterator() {
             override fun hasNext(): Boolean {
                 return buffer.remaining > 0

@@ -20,7 +20,7 @@ class IndexedByteSequenceStream(val buffer: ByteBuffer, val step: Int = 0) : Byt
     override fun iterator(): Iterator<Byte> {
         check(!closed) { "Stream already closed!" }
 
-        val buffer = ByteBuffer(buffer.toArray())
+        val buffer = ByteBuffer(buffer.toArray()).also { it.flip() }
         return object : ByteIterator() {
             override fun hasNext(): Boolean {
                 return buffer.remaining > 0
@@ -87,7 +87,7 @@ class IndexedByteSequenceStream(val buffer: ByteBuffer, val step: Int = 0) : Byt
     }
 
     override fun hasRemaining(): Boolean {
-        return buffer.remaining > 0
+        return step + index < buffer.capacity
     }
 
     override fun skip(amount: Int) {

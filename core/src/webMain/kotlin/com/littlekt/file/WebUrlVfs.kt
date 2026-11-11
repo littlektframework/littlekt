@@ -17,7 +17,7 @@ import org.w3c.xhr.XMLHttpRequestResponseType
 class WebUrlVfs(context: Context, logger: Logger) : UrlVfs(context, logger) {
 
     override suspend fun loadRawAsset(rawRef: RawAssetRef) =
-        LoadedRawAsset(rawRef, loadRaw(rawRef.url))
+        LoadedRawAsset(rawRef, loadRaw(rawRef.url)?.apply { position = capacity })
 
     override suspend fun loadSequenceStreamAsset(
         sequenceRef: SequenceAssetRef

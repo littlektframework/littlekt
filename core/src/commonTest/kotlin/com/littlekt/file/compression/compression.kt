@@ -61,4 +61,11 @@ class CompressionGZIPTests {
         assertEquals(data.size, decompressed.capacity)
         assertContentEquals(data, decompressed.toArray())
     }
+
+    @Test
+    fun test_gzip_decompress_byte_buffer_position_at_end() = runTest {
+        val data = ByteArray(64) { it.toByte() }
+        val decompressed = compression.decompress(compression.compress(ByteBuffer(data)))
+        assertEquals(decompressed.capacity, decompressed.position)
+    }
 }

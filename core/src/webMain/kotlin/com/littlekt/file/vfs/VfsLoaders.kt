@@ -88,7 +88,7 @@ private suspend fun readPixmap(path: String): Pixmap {
     val w = loadedImg.width.toDouble()
     val h = loadedImg.height.toDouble()
     canvasCtx.drawImage(img, 0.0, 0.0, w, h, 0.0, 0.0, w, h)
-    val pixels = ByteBufferImpl(canvasCtx.getImageData(0.0, 0.0, w, h).data)
+    val pixels = ByteBufferImpl(canvasCtx.getImageData(0.0, 0.0, w, h).data).apply { filled() }
 
     return Pixmap(loadedImg.width, loadedImg.height, pixels)
 }

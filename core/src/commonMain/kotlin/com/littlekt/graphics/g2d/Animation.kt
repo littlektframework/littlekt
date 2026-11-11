@@ -37,8 +37,20 @@ class Animation<KeyFrameType>(
         get() = frames[0]
 
     /** The total duration of this animation */
-    val duration =
-        if (frameTimes.isEmpty()) Duration.ZERO else frameTimes.reduce { acc, ft -> acc + ft }
+    var duration: Duration = Duration.ZERO
+        private set
+
+    init {
+        updateDuration()
+    }
+
+    internal fun updateDuration() {
+        var total = Duration.ZERO
+        for (i in frameTimes.indices) {
+            total += frameTimes[i]
+        }
+        duration = total
+    }
 
     /**
      * @param time the elapsed time of the animation.

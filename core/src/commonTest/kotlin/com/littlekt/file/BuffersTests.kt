@@ -363,4 +363,130 @@ class BuffersTests {
         assertEquals(1.5f, stream.readFloat())
         assertFalse(stream.hasRemaining())
     }
+
+    @Test
+    fun test_to_stream_iterates_all_bytes() {
+        val stream = ByteBuffer(byteArrayOf(1, 2, 3)).toStream()
+        assertContentEquals(listOf<Byte>(1, 2, 3), stream.iterator().asSequence().toList())
+    }
+
+    @Test
+    fun test_int_buffer_negative_values_round_trip() {
+        val buffer = IntBuffer(3)
+        buffer.put(-1).put(Int.MIN_VALUE)
+        buffer[2] = -42
+        assertEquals(-1, buffer[0])
+        assertEquals(Int.MIN_VALUE, buffer[1])
+        assertEquals(-42, buffer[2])
+    }
+
+    @Test
+    fun test_int_buffer_from_array_keeps_negative_values() {
+        val buffer = IntBuffer(intArrayOf(-1, Int.MIN_VALUE, Int.MAX_VALUE))
+        assertContentEquals(intArrayOf(-1, Int.MIN_VALUE, Int.MAX_VALUE), buffer.toArray())
+    }
+
+    @Test
+    fun test_short_buffer_negative_values_round_trip() {
+        val buffer = ShortBuffer(3)
+        buffer.put(-1).put(Short.MIN_VALUE)
+        buffer[2] = -42
+        assertEquals((-1).toShort(), buffer[0])
+        assertEquals(Short.MIN_VALUE, buffer[1])
+        assertEquals((-42).toShort(), buffer[2])
+    }
+
+    @Test
+    fun test_short_buffer_from_array_keeps_negative_values() {
+        val buffer = ShortBuffer(shortArrayOf(-1, Short.MIN_VALUE, Short.MAX_VALUE))
+        assertContentEquals(shortArrayOf(-1, Short.MIN_VALUE, Short.MAX_VALUE), buffer.toArray())
+    }
+
+    @Test
+    fun test_byte_buffer_from_array_position_at_end() {
+        val buffer = ByteBuffer(byteArrayOf(1, 2, 3))
+        assertEquals(3, buffer.position)
+        assertEquals(3, buffer.limit)
+    }
+
+    @Test
+    fun test_byte_buffer_big_endian_from_array_position_at_end() {
+        val buffer = ByteBuffer(byteArrayOf(1, 2, 3), isBigEndian = true)
+        assertEquals(3, buffer.position)
+        assertEquals(3, buffer.limit)
+    }
+
+    @Test
+    fun test_float_buffer_from_array_position_at_end() {
+        val buffer = FloatBuffer(floatArrayOf(1f, 2f))
+        assertEquals(2, buffer.position)
+        assertEquals(2, buffer.limit)
+    }
+
+    @Test
+    fun test_int_buffer_from_array_position_at_end() {
+        val buffer = IntBuffer(intArrayOf(1, 2))
+        assertEquals(2, buffer.position)
+        assertEquals(2, buffer.limit)
+    }
+
+    @Test
+    fun test_short_buffer_from_array_position_at_end() {
+        val buffer = ShortBuffer(shortArrayOf(1, 2))
+        assertEquals(2, buffer.position)
+        assertEquals(2, buffer.limit)
+    }
+
+    @Test
+    fun test_byte_buffer_from_array_flip_reads_from_start() {
+        val buffer = ByteBuffer(byteArrayOf(4, 3, 2, 1, 9))
+        buffer.flip()
+        assertEquals(5, buffer.limit)
+        assertEquals(0x01020304, buffer.readInt)
+        assertEquals(9.toByte(), buffer.readByte)
+    }
+
+    @Test
+    fun test_big_endian_byte_buffer_from_array_flip_limit_is_size() {
+        val buffer = ByteBuffer(byteArrayOf(1, 2, 3), isBigEndian = true)
+        buffer.flip()
+        assertEquals(0, buffer.position)
+        assertEquals(3, buffer.limit)
+    }
+
+    @Test
+    fun test_float_buffer_from_array_flip_limit_is_size() {
+        val buffer = FloatBuffer(floatArrayOf(1f, 2f, 3f))
+        buffer.flip()
+        assertEquals(0, buffer.position)
+        assertEquals(3, buffer.limit)
+    }
+
+    @Test
+    fun test_int_buffer_from_array_flip_limit_is_size() {
+        val buffer = IntBuffer(intArrayOf(1, 2, 3))
+        buffer.flip()
+        assertEquals(0, buffer.position)
+        assertEquals(3, buffer.limit)
+    }
+
+    @Test
+    fun test_short_buffer_from_array_flip_limit_is_size() {
+        val buffer = ShortBuffer(shortArrayOf(1, 2, 3))
+        buffer.flip()
+        assertEquals(0, buffer.position)
+        assertEquals(3, buffer.limit)
+    }
+
+    @Test
+    fun test_use_whole_reads_capacity_and_restores_position_and_limit() {
+        val buffer = FloatBuffer(4).put(floatArrayOf(1f, 2f, 3f))
+        buffer.flip()
+        buffer.position = 1
+        val copy = FloatBuffer(4)
+        buffer.useWhole { copy.put(it) }
+        assertContentEquals(floatArrayOf(1f, 2f, 3f, 0f), copy.toArray())
+        assertEquals(1, buffer.position)
+        assertEquals(3, buffer.limit)
+    }
 }

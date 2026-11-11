@@ -50,6 +50,19 @@ interface Buffer {
     }
 }
 
+internal inline fun <T : Buffer, R> T.useWhole(block: (T) -> R): R {
+    val position = position
+    val limit = limit
+    this.limit = capacity
+    this.position = 0
+    try {
+        return block(this)
+    } finally {
+        this.limit = limit
+        this.position = position
+    }
+}
+
 /** A [Short] buffer. */
 interface ShortBuffer : Buffer {
     /** The capacity of this buffer in shorts. */
@@ -448,6 +461,8 @@ fun ShortArray.toByteArray(): ByteArray {
 expect fun ShortBuffer(capacity: Int): ShortBuffer
 
 /**
+ * The [Buffer.position] is set to the end of the data, so call [Buffer.flip] before relative reads.
+ *
  * @return a new [ShortBuffer] using the given short [array] as the data and its size as the
  *   capacity.
  */
@@ -460,6 +475,8 @@ expect fun ShortBuffer(array: ShortArray): ShortBuffer
 expect fun IntBuffer(capacity: Int): IntBuffer
 
 /**
+ * The [Buffer.position] is set to the end of the data, so call [Buffer.flip] before relative reads.
+ *
  * @return a new [IntBuffer] using the given int [array] as the data and its size as the capacity.
  */
 expect fun IntBuffer(array: IntArray): IntBuffer
@@ -471,6 +488,8 @@ expect fun IntBuffer(array: IntArray): IntBuffer
 expect fun FloatBuffer(capacity: Int): FloatBuffer
 
 /**
+ * The [Buffer.position] is set to the end of the data, so call [Buffer.flip] before relative reads.
+ *
  * @return a new [FloatBuffer] using the given float [array] as the data and its size as the
  *   capacity.
  */
@@ -483,11 +502,15 @@ expect fun FloatBuffer(array: FloatArray): FloatBuffer
 expect fun ByteBuffer(capacity: Int): ByteBuffer
 
 /**
+ * The [Buffer.position] is set to the end of the data, so call [Buffer.flip] before relative reads.
+ *
  * @return a new [ByteBuffer] using the given byte [array] as the data and its size as the capacity.
  */
 expect fun ByteBuffer(array: ByteArray): ByteBuffer
 
 /**
+ * The [Buffer.position] is set to the end of the data, so call [Buffer.flip] before relative reads.
+ *
  * @return a new [ByteBuffer] using the given byte [array] as the data and its size as the capacity.
  */
 expect fun ByteBuffer(array: ByteArray, isBigEndian: Boolean): ByteBuffer

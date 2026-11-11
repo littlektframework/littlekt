@@ -127,7 +127,7 @@ actual class Device(val delegate: GPUDevice) : Releasable {
             createBuffer(
                 BufferDescriptor(label, data.capacity.toLong() * Short.SIZE_BYTES, usage, true)
             )
-        buffer.getMappedRange(0, buffer.size).putShort(data)
+        data.useWhole { buffer.getMappedRange(0, buffer.size).putShort(it) }
         buffer.unmap()
 
         return buffer
@@ -157,7 +157,7 @@ actual class Device(val delegate: GPUDevice) : Releasable {
             createBuffer(
                 BufferDescriptor(label, data.capacity.toLong() * Float.SIZE_BYTES, usage, true)
             )
-        buffer.getMappedRange(0, buffer.size).putFloat(data)
+        data.useWhole { buffer.getMappedRange(0, buffer.size).putFloat(it) }
         buffer.unmap()
 
         return buffer
@@ -175,7 +175,7 @@ actual class Device(val delegate: GPUDevice) : Releasable {
     actual fun createGPUIntBuffer(label: String, data: IntBuffer, usage: BufferUsage): GPUBuffer {
         val buffer =
             createBuffer(BufferDescriptor(label, data.capacity.toLong() * Int.SIZE_BYTES, usage, true))
-        buffer.getMappedRange(0, buffer.size).putInt(data)
+        data.useWhole { buffer.getMappedRange(0, buffer.size).putInt(it) }
         buffer.unmap()
 
         return buffer
@@ -191,7 +191,7 @@ actual class Device(val delegate: GPUDevice) : Releasable {
 
     actual fun createGPUByteBuffer(label: String, data: ByteBuffer, usage: BufferUsage): GPUBuffer {
         val buffer = createBuffer(BufferDescriptor(label, data.capacity.toLong(), usage, true))
-        buffer.getMappedRange(0, buffer.size).putByte(data)
+        data.useWhole { buffer.getMappedRange(0, buffer.size).putByte(it) }
         buffer.unmap()
 
         return buffer

@@ -20,6 +20,7 @@ import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
 import kotlin.math.max
+import kotlin.math.roundToInt
 
 /** Adds a [ProgressBar] to the current [Node] as a child and then triggers the [callback] */
 @OptIn(ExperimentalContracts::class)
@@ -118,7 +119,8 @@ open class ProgressBar : Range() {
             if (previousValue != value) {
                 val text = (ratio * 100.0).toString(1) + "%"
                 layout.setText(font, text, fontColor)
-                cache.setText(layout, 0f, height / 2f - font.capHeight)
+                val ty = ((height - font.metrics.lineHeight) * 0.5f).roundToInt().toFloat()
+                cache.setText(layout, 0f, ty)
                 previousValue = value
             }
 
@@ -144,8 +146,7 @@ open class ProgressBar : Range() {
         var minWidth = max(bg.minWidth, fg.minWidth)
 
         if (percentVisible) {
-            minSizeLayout.setText(font, "100%")
-            minHeight = max(minHeight, bg.minHeight + minSizeLayout.height)
+            minHeight = max(minHeight, bg.minHeight + font.metrics.lineHeight)
         } else {
             // needed or else the progress bar will collapse
             minWidth = max(minWidth, 1f)
@@ -170,6 +171,5 @@ open class ProgressBar : Range() {
         val themeVars = ThemeVars()
 
         private val tempColor = MutableColor()
-        private val minSizeLayout = GlyphLayout()
     }
 }

@@ -5,6 +5,8 @@ import com.littlekt.file.ByteBuffer
 import com.littlekt.file.ByteBufferImpl
 import kotlinx.coroutines.isActive
 import org.khronos.webgl.Float32Array
+import org.khronos.webgl.Int16Array
+import org.khronos.webgl.Int32Array
 import org.khronos.webgl.Uint16Array
 import org.khronos.webgl.Uint32Array
 import org.khronos.webgl.Uint8Array
@@ -20,6 +22,8 @@ expect fun toUint8Array(input: ByteArray): Uint8Array
 expect fun toUint16Array(input: ShortArray): Uint16Array
 expect fun toUint32Array(input: IntArray): Uint32Array
 expect fun toFloat32Array(input: FloatArray): Float32Array
+internal expect fun toInt16Array(input: ShortArray): Int16Array
+internal expect fun toInt32Array(input: IntArray): Int32Array
 
 actual class CompressionGZIP : Compression {
     actual override suspend fun compress(input: ByteBuffer): ByteBuffer {
@@ -39,7 +43,7 @@ actual class CompressionGZIP : Compression {
             temp.set(chunk.value, output.length)
             output = temp
         }
-        return ByteBufferImpl(output)
+        return ByteBufferImpl(output).apply { filled() }
     }
 
     actual override suspend fun compress(input: ByteArray): ByteArray {
@@ -78,7 +82,7 @@ actual class CompressionGZIP : Compression {
             temp.set(chunk.value, output.length)
             output = temp
         }
-        return ByteBufferImpl(output)
+        return ByteBufferImpl(output).apply { filled() }
     }
 
     @OptIn(ExperimentalUnsignedTypes::class)

@@ -92,6 +92,37 @@ class IntMapTests {
     }
 
     @Test
+    fun test_remove_missing_returns_null() {
+        val map = IntMap<String>()
+        map[1] = "a"
+        assertNull(map.remove(2))
+        assertEquals(1, map.size)
+    }
+
+    @Test
+    fun test_remove_keeps_colliding_keys() {
+        val map = IntMap<Int>(4)
+        val keys = IntArray(64) { it shl 16 }
+        keys.forEach { map[it] = it }
+        for (i in keys.indices step 2) assertEquals(keys[i], map.remove(keys[i]))
+        assertEquals(32, map.size)
+        keys.forEachIndexed { i, key ->
+            if (i % 2 == 0) assertNull(map[key]) else assertEquals(key, map[key])
+        }
+    }
+
+    @Test
+    fun test_remove_and_reinsert() {
+        val map = IntMap<String>(2)
+        repeat(100) { map[it] = "v$it" }
+        repeat(100) { map.remove(it) }
+        assertEquals(0, map.size)
+        repeat(100) { assertNull(map[it]) }
+        map[5] = "b"
+        assertEquals("b", map[5])
+    }
+
+    @Test
     fun test_get_or_put_invokes_default_once() {
         val map = IntMap<String>()
         var calls = 0

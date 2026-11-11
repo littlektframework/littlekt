@@ -6,7 +6,6 @@ import com.littlekt.graphics.abgr
 import com.littlekt.util.datastructure.FloatArrayList
 import com.littlekt.util.datastructure.Pool
 import com.littlekt.util.truncate
-import kotlin.math.abs
 import kotlin.math.max
 
 /**
@@ -189,7 +188,7 @@ class GlyphLayout {
                 runStart = index
             }
         }
-        height = font.metrics.capHeight * scaleY + abs(y)
+        height = (font.metrics.capHeight + font.metrics.lineHeight) * scaleY - y
 
         calculateWidths(font, scaleX)
         alignRuns(targetWidth, align)

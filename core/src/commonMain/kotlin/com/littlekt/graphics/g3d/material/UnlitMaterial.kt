@@ -71,6 +71,7 @@ open class UnlitMaterial(
     }
 
     override fun release() {
+        super.release()
         materialUniformBuffer.release()
     }
 

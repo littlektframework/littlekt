@@ -256,7 +256,7 @@ actual class Device(val segment: WGPUDevice) : Releasable {
             createBuffer(
                 BufferDescriptor(label, data.capacity.toLong() * Short.SIZE_BYTES, usage, true)
             )
-        buffer.getMappedRange().putShort(data)
+        data.useWhole { buffer.getMappedRange().putShort(it) }
         buffer.unmap()
 
         return buffer
@@ -286,7 +286,7 @@ actual class Device(val segment: WGPUDevice) : Releasable {
             createBuffer(
                 BufferDescriptor(label, data.capacity.toLong() * Float.SIZE_BYTES, usage, true)
             )
-        buffer.getMappedRange().putFloat(data)
+        data.useWhole { buffer.getMappedRange().putFloat(it) }
         buffer.unmap()
 
         return buffer
@@ -306,7 +306,7 @@ actual class Device(val segment: WGPUDevice) : Releasable {
             createBuffer(
                 BufferDescriptor(label, data.capacity.toLong() * Int.SIZE_BYTES, usage, true)
             )
-        buffer.getMappedRange().putInt(data)
+        data.useWhole { buffer.getMappedRange().putInt(it) }
         buffer.unmap()
 
         return buffer
@@ -322,7 +322,7 @@ actual class Device(val segment: WGPUDevice) : Releasable {
 
     actual fun createGPUByteBuffer(label: String, data: ByteBuffer, usage: BufferUsage): GPUBuffer {
         val buffer = createBuffer(BufferDescriptor(label, data.capacity.toLong(), usage, true))
-        buffer.getMappedRange().putByte(data)
+        data.useWhole { buffer.getMappedRange().putByte(it) }
         buffer.unmap()
 
         return buffer

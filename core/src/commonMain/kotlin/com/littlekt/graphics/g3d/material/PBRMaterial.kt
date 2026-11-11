@@ -107,6 +107,7 @@ class PBRMaterial(
     }
 
     override fun release() {
+        super.release()
         materialUniformBuffer.release()
     }
 

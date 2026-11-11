@@ -74,6 +74,7 @@ open class AnimationPlayer<KeyFrameType> {
     private var frameDisplayTime: Duration = 100.milliseconds
     private var animationType = AnimationType.STANDARD
     private var lastFrameTime: Duration = Duration.ZERO
+    private var currentSpeed = 1f
     private var remainingDuration: Duration = Duration.ZERO
         set(value) {
             field = value
@@ -117,6 +118,7 @@ open class AnimationPlayer<KeyFrameType> {
             tempIndices += 0
             tempTimes += frameTime
         }
+        tempAnim.updateDuration()
         play(tempAnim)
     }
 
@@ -138,7 +140,7 @@ open class AnimationPlayer<KeyFrameType> {
                 plays = times
                 type = AnimationType.STANDARD
             }
-        if (!queue) {
+        if (!queue || stack.size == 1) {
             currentAnimationInstance?.let { animInstance ->
                 animInstance.anim?.let {
                     setAnimInfo(
@@ -206,7 +208,6 @@ open class AnimationPlayer<KeyFrameType> {
      * @param queue if `false` will play the animation immediately
      */
     fun play(animation: Animation<KeyFrameType>, duration: Duration, queue: Boolean = false) {
-        setAnimInfo(animation)
         if (!queue && stack.isNotEmpty()) {
             animInstancePool.free(stack)
             stack.clear()
@@ -217,7 +218,7 @@ open class AnimationPlayer<KeyFrameType> {
                 this.duration = duration
                 type = AnimationType.DURATION
             }
-        if (!queue) {
+        if (!queue || stack.size == 1) {
             currentAnimationInstance?.let { animInstance ->
                 animInstance.anim?.let {
                     setAnimInfo(
@@ -278,10 +279,12 @@ open class AnimationPlayer<KeyFrameType> {
         animationRequested = false
     }
 
-    private fun nextFrame(frameTime: Duration) {
-        lastFrameTime += frameTime
-        if (lastFrameTime + frameTime >= frameDisplayTime) {
+    private fun nextFrame(dt: Duration) {
+        lastFrameTime += dt
+        var zeroTimeFrames = 0
+        while (animationRequested && lastFrameTime >= frameDisplayTime) {
             val instance = currentAnimationInstance
+            val consumed = frameDisplayTime
             when (animationType) {
                 AnimationType.STANDARD -> {
                     if (numOfFramesRequested > 0) {
@@ -289,21 +292,31 @@ open class AnimationPlayer<KeyFrameType> {
                     }
                 }
                 AnimationType.DURATION -> {
-                    remainingDuration -= lastFrameTime
+                    remainingDuration -= consumed
                 }
-                AnimationType.LOOPED -> {
-                    // do nothing, let it loop
-                }
+                AnimationType.LOOPED -> Unit
             }
 
-            if (animationRequested && instance === currentAnimationInstance) {
-                totalFramesPlayed++
-                currentFrameIdx++
-                frameDisplayTime = currentAnimation?.getFrameTime(currentFrameIdx) ?: Duration.ZERO
-                lastFrameTime = Duration.ZERO
+            if (!animationRequested || instance !== currentAnimationInstance) return
+
+            lastFrameTime -= consumed
+            totalFramesPlayed++
+            currentFrameIdx++
+            frameDisplayTime = displayTime(currentFrameIdx)
+
+            if (consumed <= Duration.ZERO) {
+                if (++zeroTimeFrames >= totalFrames) {
+                    lastFrameTime = Duration.ZERO
+                    return
+                }
+            } else {
+                zeroTimeFrames = 0
             }
         }
     }
+
+    private fun displayTime(index: Int): Duration =
+        currentAnimation?.getFrameTime(index)?.times(currentSpeed.toDouble()) ?: Duration.ZERO
 
     private fun setAnimInfo(
         animation: Animation<KeyFrameType>,
@@ -314,6 +327,7 @@ open class AnimationPlayer<KeyFrameType> {
     ) {
         currentFrameIdx = 0
         lastFrameTime = Duration.ZERO
+        currentSpeed = speed
         frameDisplayTime = animation.getFrameTime(currentFrameIdx) * speed.toDouble()
         animationType = type
         animationRequested = true

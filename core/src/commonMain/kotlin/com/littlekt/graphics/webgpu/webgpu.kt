@@ -73,6 +73,7 @@ expect class Device : Releasable {
 
     /**
      * This uses [createBuffer] internally, maps it at creation, writes the data, and unmaps it immediately.
+     * The whole [data] buffer is copied, ignoring its position & limit.
      *
      * @return a newly created [GPUBuffer] using an [ShortBuffer].
      */
@@ -87,6 +88,7 @@ expect class Device : Releasable {
 
     /**
      * This uses [createBuffer] internally, maps it at creation, writes the data, and unmaps it immediately.
+     * The whole [data] buffer is copied, ignoring its position & limit.
      *
      * @return a newly created [GPUBuffer] using a [FloatBuffer].
      */
@@ -101,6 +103,7 @@ expect class Device : Releasable {
 
     /**
      * This uses [createBuffer] internally, maps it at creation, writes the data, and unmaps it immediately.
+     * The whole [data] buffer is copied, ignoring its position & limit.
      *
      * @return a newly created [GPUBuffer] using an [IntBuffer].
      */
@@ -115,6 +118,7 @@ expect class Device : Releasable {
 
     /**
      * This uses [createBuffer] internally, maps it at creation, writes the data, and unmaps it immediately.
+     * The whole [data] buffer is copied, ignoring its position & limit.
      *
      * @return a newly created [GPUBuffer] using a [ByteBuffer].
      */

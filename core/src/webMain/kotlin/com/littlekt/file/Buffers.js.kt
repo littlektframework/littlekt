@@ -1,8 +1,8 @@
 package com.littlekt.file
 
 import com.littlekt.file.compression.toFloat32Array
-import com.littlekt.file.compression.toUint16Array
-import com.littlekt.file.compression.toUint32Array
+import com.littlekt.file.compression.toInt16Array
+import com.littlekt.file.compression.toInt32Array
 import com.littlekt.file.compression.toUint8Array
 import com.littlekt.util.nativeGet
 import com.littlekt.util.nativeSet
@@ -40,14 +40,19 @@ internal abstract class GenericBuffer<out B : ArrayBufferView>(
         limit = capacity
         position = 0
     }
+
+    internal fun filled() {
+        position = capacity
+        dirty = true
+    }
 }
 
 /** ShortBuffer buffer implementation */
-internal class ShortBufferImpl(array: Uint16Array) :
-    ShortBuffer, GenericBuffer<Uint16Array>(array.length, { array }) {
+internal class ShortBufferImpl(array: Int16Array) :
+    ShortBuffer, GenericBuffer<Int16Array>(array.length, { array }) {
     override var dirty: Boolean = false
 
-    constructor(capacity: Int) : this(Uint16Array(capacity))
+    constructor(capacity: Int) : this(Int16Array(capacity))
 
     override fun get(i: Int): Short {
         return buffer[i]
@@ -86,11 +91,11 @@ internal class ShortBufferImpl(array: Uint16Array) :
 }
 
 /** IntBuffer buffer implementation */
-internal class IntBufferImpl(array: Uint32Array) :
-    IntBuffer, GenericBuffer<Uint32Array>(array.length, { array }) {
+internal class IntBufferImpl(array: Int32Array) :
+    IntBuffer, GenericBuffer<Int32Array>(array.length, { array }) {
     override var dirty: Boolean = false
 
-    constructor(capacity: Int) : this(Uint32Array(capacity))
+    constructor(capacity: Int) : this(Int32Array(capacity))
 
     override fun get(i: Int): Int {
         return buffer[i]
@@ -199,12 +204,16 @@ internal class ByteBufferImpl(buffer: ArrayBuffer, private val littleEndian: Boo
 
     constructor(array: Uint8ClampedArray) : this(array.buffer)
 
-    constructor(array: ByteArray) : this(toUint8Array(array))
+    constructor(array: ByteArray) : this(toUint8Array(array)) {
+        filled()
+    }
 
     constructor(
         array: ByteArray,
         isBigEndian: Boolean,
-    ) : this(toUint8Array(array).buffer, !isBigEndian)
+    ) : this(toUint8Array(array).buffer, !isBigEndian) {
+        filled()
+    }
 
     override fun get(i: Int): Byte {
         return buffer.getInt8(i)
@@ -490,7 +499,7 @@ actual fun ShortBuffer(capacity: Int): ShortBuffer {
 }
 
 actual fun ShortBuffer(array: ShortArray): ShortBuffer {
-    return ShortBufferImpl(toUint16Array(array))
+    return ShortBufferImpl(toInt16Array(array)).apply { filled() }
 }
 
 actual fun IntBuffer(capacity: Int): IntBuffer {
@@ -498,7 +507,7 @@ actual fun IntBuffer(capacity: Int): IntBuffer {
 }
 
 actual fun IntBuffer(array: IntArray): IntBuffer {
-    return IntBufferImpl(toUint32Array(array))
+    return IntBufferImpl(toInt32Array(array)).apply { filled() }
 }
 
 actual fun FloatBuffer(capacity: Int): FloatBuffer {
@@ -506,7 +515,7 @@ actual fun FloatBuffer(capacity: Int): FloatBuffer {
 }
 
 actual fun FloatBuffer(array: FloatArray): FloatBuffer {
-    return FloatBufferImpl(toFloat32Array(array))
+    return FloatBufferImpl(toFloat32Array(array)).apply { filled() }
 }
 
 actual fun ByteBuffer(capacity: Int): ByteBuffer {

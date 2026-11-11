@@ -1,8 +1,11 @@
 package com.littlekt.file
 
 import kotlin.test.Test
+import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 
 class IndexedByteSequenceStreamTests {
 
@@ -81,5 +84,25 @@ class IndexedByteSequenceStreamTests {
         val stream = IndexedByteSequenceStream(bytes(1))
         stream.close()
         assertFailsWith<IllegalStateException> { stream.close() }
+    }
+
+    @Test
+    fun test_has_remaining_uses_index() {
+        val stream = IndexedByteSequenceStream(bytes(1, 2))
+        assertTrue(stream.hasRemaining())
+        stream.skip(2)
+        assertFalse(stream.hasRemaining())
+    }
+
+    @Test
+    fun test_has_remaining_includes_step() {
+        val stream = IndexedByteSequenceStream(bytes(1, 2), step = 2)
+        assertFalse(stream.hasRemaining())
+    }
+
+    @Test
+    fun test_iterator_reads_all_bytes() {
+        val stream = IndexedByteSequenceStream(bytes(1, 2, 3))
+        assertContentEquals(listOf<Byte>(1, 2, 3), stream.iterator().asSequence().toList())
     }
 }

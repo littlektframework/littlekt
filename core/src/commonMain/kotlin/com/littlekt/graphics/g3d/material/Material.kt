@@ -4,6 +4,7 @@ import com.littlekt.Releasable
 import com.littlekt.graphics.Color
 import com.littlekt.graphics.Texture
 import com.littlekt.graphics.TextureState
+import com.littlekt.graphics.g3d.util.ReleaseNotifier
 import com.littlekt.graphics.shader.Shader
 import com.littlekt.graphics.webgpu.BindGroup
 import com.littlekt.graphics.webgpu.CompareFunction
@@ -17,6 +18,8 @@ abstract class Material : Releasable {
     val id: Int = UniqueId.next<Material>()
 
     internal var lastUpdateFrame = -1L
+
+    internal val releaseNotifier = ReleaseNotifier()
 
     abstract val baseColorTexture: Texture
     abstract val baseColorFactor: Color
@@ -55,6 +58,14 @@ abstract class Material : Releasable {
     abstract fun createBindGroup(shader: Shader): BindGroup?
 
     abstract fun update()
+
+    /**
+     * Releases any resources cached for this material, such as bind groups cached by a
+     * [com.littlekt.graphics.g3d.ModelBatch]. Subclasses must call `super.release()`.
+     */
+    override fun release() {
+        releaseNotifier.notifyReleased(id)
+    }
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

@@ -3,6 +3,7 @@ package com.littlekt.graphics.g3d.skin
 import com.littlekt.Releasable
 import com.littlekt.file.FloatBuffer
 import com.littlekt.graphics.g3d.Node3D
+import com.littlekt.graphics.g3d.util.ReleaseNotifier
 import com.littlekt.graphics.shader.Shader
 import com.littlekt.graphics.util.BindingUsage
 import com.littlekt.graphics.webgpu.*
@@ -41,6 +42,8 @@ class Skin(val device: Device, val nodes: List<SkinNode>) : Releasable {
 
     internal var lastUploadFrame = -1L
 
+    internal val releaseNotifier = ReleaseNotifier()
+
     init {
         nodes.fastForEachWithIndex { index, node ->
             inverseBindingStagingBuffer.put(node.inverseBindMatrix.data, dstOffset = index * 16)
@@ -77,6 +80,7 @@ class Skin(val device: Device, val nodes: List<SkinNode>) : Releasable {
     }
 
     override fun release() {
+        releaseNotifier.notifyReleased(id)
         jointBuffer.release()
         inverseBindingBuffer.release()
     }

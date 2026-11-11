@@ -15,7 +15,7 @@ class WebLocalVfs(context: Context, logger: Logger, assetsBaseDir: String) :
     LocalVfs(context, logger, assetsBaseDir) {
 
     override suspend fun loadRawAsset(rawRef: RawAssetRef) =
-        LoadedRawAsset(rawRef, loadRaw(rawRef.url))
+        LoadedRawAsset(rawRef, loadRaw(rawRef.url)?.apply { position = capacity })
 
     override suspend fun loadSequenceStreamAsset(
         sequenceRef: SequenceAssetRef

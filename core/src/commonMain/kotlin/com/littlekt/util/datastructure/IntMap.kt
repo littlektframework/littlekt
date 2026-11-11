@@ -60,6 +60,34 @@ class IntMap<V : Any>(initialCapacity: Int = 16) {
         }
     }
 
+    /** @return the removed value for [key], if any. */
+    @Suppress("UNCHECKED_CAST")
+    fun remove(key: Int): V? {
+        var index = hash(key) and mask
+        while (true) {
+            values[index] ?: return null
+            if (keys[index] == key) break
+            index = (index + 1) and mask
+        }
+        val removed = values[index] as V
+        var hole = index
+        var next = (hole + 1) and mask
+        while (true) {
+            val value = values[next] ?: break
+            val ideal = hash(keys[next]) and mask
+            if (((next - ideal) and mask) >= ((next - hole) and mask)) {
+                keys[hole] = keys[next]
+                values[hole] = value
+                hole = next
+            }
+            next = (next + 1) and mask
+        }
+        keys[hole] = 0
+        values[hole] = null
+        size--
+        return removed
+    }
+
     /** Removes all entries. */
     fun clear() {
         keys.fill(0)

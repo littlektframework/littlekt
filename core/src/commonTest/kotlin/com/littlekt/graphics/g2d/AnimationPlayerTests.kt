@@ -3,6 +3,7 @@ package com.littlekt.graphics.g2d
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
+import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 
 class AnimationPlayerTests {
@@ -99,7 +100,129 @@ class AnimationPlayerTests {
         player.update(40.milliseconds)
         assertEquals("c", player.currentKeyFrame)
         player.update(40.milliseconds)
+        assertEquals("c", player.currentKeyFrame)
+        player.update(20.milliseconds)
         assertEquals("d", player.currentKeyFrame)
+    }
+
+    @Test
+    fun test_half_frame_dt_needs_two_updates_per_frame() {
+        val player = AnimationPlayer<String>()
+        player.playLooped(animation("a", "b", "c"))
+        player.update(50.milliseconds)
+        assertEquals("a", player.currentKeyFrame)
+        player.update(50.milliseconds)
+        assertEquals("b", player.currentKeyFrame)
+        player.update(50.milliseconds)
+        assertEquals("b", player.currentKeyFrame)
+        player.update(50.milliseconds)
+        assertEquals("c", player.currentKeyFrame)
+        assertEquals(2, player.totalFramesPlayed)
+    }
+
+    @Test
+    fun test_large_dt_advances_multiple_frames_and_carries_leftover() {
+        val player = AnimationPlayer<String>()
+        player.playLooped(animation("a", "b", "c", "d"))
+        player.update(250.milliseconds)
+        assertEquals("c", player.currentKeyFrame)
+        assertEquals(2, player.totalFramesPlayed)
+        player.update(50.milliseconds)
+        assertEquals("d", player.currentKeyFrame)
+        assertEquals(3, player.totalFramesPlayed)
+    }
+
+    @Test
+    fun test_leftover_time_keeps_playback_in_sync() {
+        val player = AnimationPlayer<String>()
+        player.playLooped(animation("a", "b"))
+        repeat(10) { player.update(70.milliseconds) }
+        assertEquals(7, player.totalFramesPlayed)
+        assertEquals("b", player.currentKeyFrame)
+    }
+
+    @Test
+    fun test_zero_duration_frames_are_skipped() {
+        val player = AnimationPlayer<String>()
+        val times = listOf(frameTime, Duration.ZERO, frameTime)
+        player.playLooped(Animation(listOf("a", "b", "c"), listOf(0, 1, 2), times))
+        player.update(frameTime)
+        assertEquals("c", player.currentKeyFrame)
+        assertEquals(2, player.totalFramesPlayed)
+    }
+
+    @Test
+    fun test_all_zero_duration_looped_frames_do_not_hang() {
+        val player = AnimationPlayer<String>()
+        val anim = Animation(listOf("a", "b"), listOf(0, 1), listOf(Duration.ZERO, Duration.ZERO))
+        player.playLooped(anim)
+        player.update(16.milliseconds)
+        assertEquals(anim, player.currentAnimation)
+        assertEquals(2, player.totalFramesPlayed)
+    }
+
+    @Test
+    fun test_all_zero_duration_once_finishes_in_one_update() {
+        val player = AnimationPlayer<String>()
+        player.playOnce(Animation(listOf("a", "b"), listOf(0, 1), listOf(Duration.ZERO, Duration.ZERO)))
+        player.update(16.milliseconds)
+        assertNull(player.currentAnimation)
+    }
+
+    @Test
+    fun test_play_for_duration_with_large_dt() {
+        val player = AnimationPlayer<String>()
+        player.play(animation("a", "b"), 250.milliseconds)
+        player.update(200.milliseconds)
+        assertEquals("a", player.currentKeyFrame)
+        player.update(100.milliseconds)
+        assertNull(player.currentAnimation)
+    }
+
+    @Test
+    fun test_queue_for_duration_leaves_current_animation_running() {
+        val player = AnimationPlayer<String>()
+        val first = animation("a0", "a1", "a2")
+        val second = animation("b0", "b1")
+        player.play(first)
+        player.step()
+        player.play(second, 150.milliseconds, queue = true)
+        assertEquals(first, player.currentAnimation)
+        assertEquals("a1", player.currentKeyFrame)
+        player.step()
+        assertEquals("a2", player.currentKeyFrame)
+        player.step()
+        assertEquals(second, player.currentAnimation)
+        assertEquals("b0", player.currentKeyFrame)
+        player.step(2)
+        assertNull(player.currentAnimation)
+    }
+
+    @Test
+    fun test_queue_on_idle_player_starts_playing() {
+        val player = AnimationPlayer<String>()
+        player.play(animation("a", "b"), queue = true)
+        player.step()
+        assertEquals("b", player.currentKeyFrame)
+    }
+
+    @Test
+    fun test_queue_for_duration_on_idle_player_starts_playing() {
+        val player = AnimationPlayer<String>()
+        player.play(animation("a", "b"), 150.milliseconds, queue = true)
+        player.step()
+        assertEquals("b", player.currentKeyFrame)
+        player.step()
+        assertNull(player.currentAnimation)
+    }
+
+    @Test
+    fun test_play_single_frame_updates_duration() {
+        val player = AnimationPlayer<String>()
+        player.play("x", 50.milliseconds, numFrames = 3)
+        assertEquals(150.milliseconds, player.currentAnimation?.duration)
+        player.play("y", 20.milliseconds, numFrames = 2)
+        assertEquals(40.milliseconds, player.currentAnimation?.duration)
     }
 
     @Test

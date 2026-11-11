@@ -37,7 +37,7 @@ class WebKeyValueStorage(private val logger: Logger) : KeyValueStorage {
     }
 
     override fun load(key: String): ByteBuffer? {
-        return localStorage[key]?.let { ByteBufferImpl(base64ToBin(it)) }
+        return localStorage[key]?.let { ByteBufferImpl(base64ToBin(it)).apply { filled() } }
     }
 
     override fun loadString(key: String): String? {

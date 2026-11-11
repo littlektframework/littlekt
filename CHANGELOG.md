@@ -42,6 +42,14 @@
 - BREAKING: `BoundingBox.hitDistanceSqr` returns the squared distance to the hit for any ray direction length.
 - BREAKING: `Label` min height is now its line count times the font line height, like Godot, instead of an extra line.
     - Migration: set `minHeight` on labels that relied on the old taller size.
+- BREAKING: `GlyphLayout.height` is now the cap height plus a line height per extra line. `Button` & `ProgressBar` min
+  heights use the font line height, like `Label`.
+    - Migration: set `minHeight` on buttons & progress bars that relied on the old taller size.
+- BREAKING: Web buffers built from arrays, vfs reads, key-value loads, gzip output & pixmaps now end with `position` at the
+  end, matching JVM.
+    - Migration: call `flip()` before relative reads such as `readInt`.
+- BREAKING: `createGPU*Buffer` with a `Buffer` copies the whole buffer instead of `position` to `limit`.
+- BREAKING: `AnimationPlayer` frames now play at their real duration instead of up to 2x fast.
 
 ### Changes
 
@@ -97,6 +105,16 @@
 - Remove the web `byteArrayOf(endOffset, startOffset)` that shadowed the standard `byteArrayOf` for two values.
 - Fix web gzip decompression hanging on Node.
 - Fix array lists with `shouldGrow = false` not throwing when full on web.
+- Fix web `IntBuffer` & `ShortBuffer` returning wrong negative values.
+- Fix `IndexedByteSequenceStream.hasRemaining` & `iterator` ignoring data in buffers built from arrays.
+- Fix web `ByteBuffer.toStream()` reading from `position` instead of the whole buffer.
+- Fix `AnimationPlayer` dropping leftover frame time, so a large delta now advances multiple frames.
+- Fix `AnimationPlayer.play(animation, duration, queue = true)` restarting the running animation.
+- Fix queued `AnimationPlayer.play` calls not starting when nothing is playing.
+- Fix `AnimationPlayer` single frame animation `duration` being 0.
+- Fix `ModelBatch` leaking material & skin bind groups after their models are released.
+- Fix the texture example uploading empty vertex & index buffers.
+- Add `IntMap.remove`.
 - Fix Tiled text objects failing to decode when fields are left at their defaults.
 - Fix glTF textures without a sampler crashing, `extensionsRequired` never being read & material extensions failing to decode.
 - Fix `GltfAttribute.COLOR_1` to `COLOR_4` values.

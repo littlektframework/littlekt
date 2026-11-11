@@ -4,8 +4,6 @@ import com.littlekt.Context
 import com.littlekt.ContextListener
 import com.littlekt.configureSurfaceOnResize
 import com.littlekt.examples.*
-import com.littlekt.file.FloatBuffer
-import com.littlekt.file.ShortBuffer
 import com.littlekt.file.vfs.readPixmap
 import com.littlekt.graphics.Color
 import com.littlekt.graphics.webgpu.*
@@ -56,27 +54,25 @@ class TextureExample(context: Context) : ContextListener(context) {
         addStatsHandler()
         configureSurfaceOnResize()
         val vertices =
-            FloatBuffer(
-                floatArrayOf(
-                    -0.5f,
-                    -0.5f,
-                    0f,
-                    1f,
-                    -0.5f,
-                    0.5f,
-                    0f,
-                    0f,
-                    0.5f,
-                    0.5f,
-                    1f,
-                    0f,
-                    0.5f,
-                    -0.5f,
-                    1f,
-                    1f,
-                )
+            floatArrayOf(
+                -0.5f,
+                -0.5f,
+                0f,
+                1f,
+                -0.5f,
+                0.5f,
+                0f,
+                0f,
+                0.5f,
+                0.5f,
+                1f,
+                0f,
+                0.5f,
+                -0.5f,
+                1f,
+                1f,
             )
-        val indices = ShortBuffer(shortArrayOf(0, 1, 2, 0, 2, 3))
+        val indices = shortArrayOf(0, 1, 2, 0, 2, 3)
         val image = resourcesVfs["logo.png"].readPixmap()
         val device = graphics.device
         val vbo = device.createGPUFloatBuffer("vbo", vertices, BufferUsage.VERTEX)
@@ -170,7 +166,7 @@ class TextureExample(context: Context) : ContextListener(context) {
                 renderPassEncoder.setBindGroup(0, bindGroup)
                 renderPassEncoder.setVertexBuffer(0, vbo)
                 renderPassEncoder.setIndexBuffer(ibo, IndexFormat.UINT16)
-                renderPassEncoder.drawIndexed(indices.capacity, 1)
+                renderPassEncoder.drawIndexed(indices.size, 1)
                 renderPassEncoder.end()
                 renderPassEncoder.release()
             }

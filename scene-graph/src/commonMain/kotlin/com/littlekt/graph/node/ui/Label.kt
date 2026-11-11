@@ -236,7 +236,8 @@ open class Label : Control() {
 
         val lineHeight = font.metrics.lineHeight * fontScaleY
         val textTop = lineHeight
-        val textBottom = (if (layout.runs.isEmpty()) lineHeight else layout.runs.last().y) - lineHeight
+        val lastLineY = if (layout.runs.isEmpty()) lineHeight else layout.runs.last().y
+        val textBottom = lastLineY - lineHeight
 
         val ty =
             when (verticalAlign) {

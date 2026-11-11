@@ -6,15 +6,14 @@ import com.littlekt.file.FloatBuffer
 import com.littlekt.graphics.Camera
 import com.littlekt.graphics.g3d.material.Material
 import com.littlekt.graphics.g3d.util.BaseMaterialPipelineProvider
+import com.littlekt.graphics.g3d.util.BindGroupCache
 import com.littlekt.graphics.g3d.util.InstanceBuffers
 import com.littlekt.graphics.g3d.util.MaterialPipeline
 import com.littlekt.graphics.g3d.util.MaterialPipelineProvider
 import com.littlekt.graphics.g3d.util.MaterialPipelineSorter
 import com.littlekt.graphics.util.CameraBuffersViaCamera
 import com.littlekt.graphics.webgpu.*
-import com.littlekt.util.datastructure.IntMap
 import com.littlekt.util.datastructure.fastForEach
-import kotlinx.atomicfu.atomic
 import kotlinx.atomicfu.locks.SynchronizedObject
 import kotlinx.atomicfu.locks.synchronized
 import kotlin.math.max
@@ -24,7 +23,7 @@ import kotlin.time.Duration
 /**
  * A rendering helper class to handle pipeline caching and bind group caching for drawing 3D meshes.
  * A [ModelBatch] may be flushed multiple times within a single frame, such as for multiple passes
- * or cameras.
+ * or cameras. Bind groups cached for a [Material] or skin are released once it is released.
  *
  * @author Colton Daily
  * @date 12/7/2024
@@ -33,8 +32,8 @@ class ModelBatch(val device: Device) : Releasable {
     private val pipelineProviders = mutableMapOf<KClass<out Material>, MaterialPipelineProvider>()
     private val pipelines = mutableListOf<MaterialPipeline>()
 
-    private val bindGroupByMaterialId = IntMap<BindGroup>()
-    private val bindGroupBySkinId = IntMap<BindGroup>()
+    private val materialBindGroups = BindGroupCache<BindGroup>()
+    private val skinBindGroups = BindGroupCache<BindGroup>()
     private val sorter =
         object : MaterialPipelineSorter {
             override fun sort(pipelines: MutableList<MaterialPipeline>) {
@@ -64,10 +63,6 @@ class ModelBatch(val device: Device) : Releasable {
     private var instanced = 0
 
     private val lock = SynchronizedObject()
-    private val hasPendingBindGroups = atomic(false)
-    private val preparedMaterialIds = mutableSetOf<Int>()
-    private val pendingMaterialIds = mutableListOf<Int>()
-    private val pendingMaterialBindGroups = mutableListOf<BindGroup>()
 
     /** The [TextureFormat] of the color attachment. This is used in pipeline caching. */
     var colorFormat: TextureFormat = TextureFormat.RGBA8_UNORM
@@ -160,14 +155,11 @@ class ModelBatch(val device: Device) : Releasable {
         val material = meshPrimitive.material
         val pipeline = lookupPipeline(meshPrimitive, material, environment) ?: return
         if (!material.ready || pipeline.materialGroupIndex < 0) return
-        val shouldCreate = synchronized(lock) { preparedMaterialIds.add(material.id) }
-        if (!shouldCreate) return
+        if (!materialBindGroups.markPrepared(material.id)) return
+        val notifier = material.releaseNotifier
+        val version = notifier.version
         val bindGroup = material.createBindGroup(pipeline.shader) ?: return
-        synchronized(lock) {
-            pendingMaterialIds += material.id
-            pendingMaterialBindGroups += bindGroup
-            hasPendingBindGroups.value = true
-        }
+        materialBindGroups.addPending(material.id, notifier, version, bindGroup)
     }
 
     /** Adds a [Node3D] to be drawn on the next [flush] using the specified [Environment].. */
@@ -297,6 +289,8 @@ class ModelBatch(val device: Device) : Releasable {
         }
         pipelines.clear()
         flushId = nextFlushId()
+        materialBindGroups.sync()
+        skinBindGroups.sync()
     }
 
     private fun drawTransparent(
@@ -400,7 +394,7 @@ class ModelBatch(val device: Device) : Releasable {
         if (boundMaterialId != material.id) {
             boundMaterialId = material.id
             if (pipeline.materialGroupIndex >= 0) {
-                bindGroupByMaterialId[material.id]?.let {
+                materialBindGroups[material.id]?.let {
                     renderPassEncoder.setBindGroup(pipeline.materialGroupIndex, it)
                 }
             }
@@ -413,7 +407,7 @@ class ModelBatch(val device: Device) : Releasable {
         val skin = primitive.skin
         if (material.skinned && skin != null && pipeline.skinGroupIndex >= 0) {
             val skinBindGroup =
-                bindGroupBySkinId[skin.id] ?: error("Skin bind groups could not be found!")
+                skinBindGroups[skin.id] ?: error("Skin bind groups could not be found!")
             renderPassEncoder.setBindGroup(pipeline.skinGroupIndex, skinBindGroup)
             if (skin.lastUploadFrame != frame) {
                 skin.lastUploadFrame = frame
@@ -488,20 +482,16 @@ class ModelBatch(val device: Device) : Releasable {
     }
 
     override fun release() {
-        addPendingBindGroups()
         pipelineProviders.values.forEach { it.release() }
         defaultPipelineProvider?.release()
-        bindGroupByMaterialId.forEachValue { it.release() }
-        bindGroupByMaterialId.clear()
-        bindGroupBySkinId.forEachValue { it.release() }
-        bindGroupBySkinId.clear()
+        materialBindGroups.release()
+        skinBindGroups.release()
         instanceBuffers.release()
     }
 
     private fun queue(primitive: MeshPrimitive, material: Material, environment: Environment) {
-        if (hasPendingBindGroups.value) {
-            addPendingBindGroups()
-        }
+        materialBindGroups.sync()
+        skinBindGroups.sync()
         val pipeline = getPipeline(primitive, material, environment) ?: return
         if (!material.ready) return
         if (pipeline.materialGroupIndex >= 0) {
@@ -509,8 +499,16 @@ class ModelBatch(val device: Device) : Releasable {
         }
 
         val skin = primitive.skin
-        if (material.skinned && skin != null && pipeline.skinGroupIndex >= 0) {
-            bindGroupBySkinId.getOrPut(skin.id) { skin.createBindGroup(pipeline.shader) }
+        if (
+            material.skinned &&
+                skin != null &&
+                pipeline.skinGroupIndex >= 0 &&
+                skinBindGroups[skin.id] == null
+        ) {
+            val notifier = skin.releaseNotifier
+            val version = notifier.version
+            skinBindGroups.put(skin.id, notifier, version, skin.createBindGroup(pipeline.shader))
+                ?: return
         }
 
         if (pipeline.queuedFlush != flushId) {
@@ -580,26 +578,12 @@ class ModelBatch(val device: Device) : Releasable {
             )
         }
 
-    private fun addPendingBindGroups() {
-        synchronized(lock) {
-            for (i in 0 until pendingMaterialIds.size) {
-                val id = pendingMaterialIds[i]
-                val bindGroup = pendingMaterialBindGroups[i]
-                if (bindGroupByMaterialId[id] == null) {
-                    bindGroupByMaterialId[id] = bindGroup
-                } else {
-                    bindGroup.release()
-                }
-            }
-            pendingMaterialIds.clear()
-            pendingMaterialBindGroups.clear()
-            hasPendingBindGroups.value = false
-        }
-    }
-
     private fun getOrCreateMaterialBindGroup(material: Material, pipeline: MaterialPipeline) {
-        if (bindGroupByMaterialId[material.id] != null) return
-        material.createBindGroup(pipeline.shader)?.let { bindGroupByMaterialId[material.id] = it }
+        if (materialBindGroups[material.id] != null) return
+        val notifier = material.releaseNotifier
+        val version = notifier.version
+        val bindGroup = material.createBindGroup(pipeline.shader) ?: return
+        materialBindGroups.put(material.id, notifier, version, bindGroup)
     }
 
     private fun getEnvironmentView(
