@@ -101,7 +101,7 @@ inline fun SceneGraph<*>.row(
  * @author Colton Daily
  * @date 1/2/2022
  */
-open class HBoxContainer : BoxContainer() {
+open class HBoxContainer : BoxContainer(), RowScope {
 
     class ThemeVars {
         val separation = BoxContainer.themeVars.separation

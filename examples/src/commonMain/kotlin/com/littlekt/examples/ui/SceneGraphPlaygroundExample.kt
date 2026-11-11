@@ -6,7 +6,6 @@ import com.littlekt.configureSurfaceOnResize
 import com.littlekt.examples.addCloseOnEsc
 import com.littlekt.examples.addStatsHandler
 import com.littlekt.file.vfs.readTexture
-import com.littlekt.graph.node.Node
 import com.littlekt.graph.node.canvasLayer
 import com.littlekt.graph.node.node2d.camera2d
 import com.littlekt.graph.node.node2d.node2d
@@ -68,7 +67,7 @@ class SceneGraphPlaygroundExample(context: Context) : ContextListener(context) {
                                 }
                             }
                         }
-                        row(separation = 10, modifier = Modifier.expandHeight()) {
+                        row(separation = 10, modifier = Modifier.weight()) {
                             buttons()
                             text()
                             ranges(bigIcon)
@@ -98,7 +97,7 @@ class SceneGraphPlaygroundExample(context: Context) : ContextListener(context) {
         }
     }
 
-    private fun Node.buttons() = section("Buttons") {
+    private fun HBoxContainer.buttons() = section("Buttons") {
         var clicks = 0
         button("Click me") {
             onPressed += {
@@ -111,6 +110,7 @@ class SceneGraphPlaygroundExample(context: Context) : ContextListener(context) {
             onToggled += { status.text = "Toggled: $it" }
         }
         button("Disabled") { disabled = true }
+        button("Aligned right", modifier = Modifier.align(HAlign.RIGHT))
         label("Button group")
         val group = ButtonGroup()
         repeat(3) {
@@ -123,7 +123,7 @@ class SceneGraphPlaygroundExample(context: Context) : ContextListener(context) {
         }
     }
 
-    private fun Node.text() = section("Text") {
+    private fun HBoxContainer.text() = section("Text") {
         label("Left")
         label("Center") { horizontalAlign = HAlign.CENTER }
         label("Right") { horizontalAlign = HAlign.RIGHT }
@@ -135,7 +135,7 @@ class SceneGraphPlaygroundExample(context: Context) : ContextListener(context) {
         lineEdit("Read only", modifier = field) { editable = false }
     }
 
-    private fun Node.ranges(bigIcon: Texture) = section("Ranges") {
+    private fun HBoxContainer.ranges(bigIcon: Texture) = section("Ranges") {
         progressBar { onUpdate += { dt -> value = (value + dt.seconds * 20f) % max } }
         label("Scroll bar")
         val slider = progressBar { value = 50f }
@@ -153,8 +153,8 @@ class SceneGraphPlaygroundExample(context: Context) : ContextListener(context) {
             fillMode = TextureProgress.FillMode.BOTTOM_TO_TOP
             onUpdate += { dt -> value = (value + dt.seconds * 30f) % max }
         }
-        row(modifier = Modifier.expandHeight()) {
-            scrollContainer(Modifier.expandWidth()) {
+        row(modifier = Modifier.weight()) {
+            scrollContainer(Modifier.weight()) {
                 column { repeat(20) { label("Scroll item $it") } }
             }
             vScrollBar {
@@ -165,7 +165,11 @@ class SceneGraphPlaygroundExample(context: Context) : ContextListener(context) {
         }
     }
 
-    private fun Node.textures(icon: Texture, iconSlice: TextureSlice, ninePatch: TextureSlice) =
+    private fun HBoxContainer.textures(
+        icon: Texture,
+        iconSlice: TextureSlice,
+        ninePatch: TextureSlice,
+    ) =
         section("Textures") {
             val iconSize = Modifier.minSize(32f, 32f)
             row(separation = 5) {
@@ -201,7 +205,7 @@ class SceneGraphPlaygroundExample(context: Context) : ContextListener(context) {
                 centerContainer(Modifier.fillParent()) { label("Centered") }
             }
             label("Canvas layer")
-            canvasLayerContainer(Modifier.expandHeight()) {
+            canvasLayerContainer(Modifier.weight()) {
                 stretch = true
                 canvasLayer {
                     node2d { camera2d { active = true } }
@@ -224,8 +228,8 @@ class SceneGraphPlaygroundExample(context: Context) : ContextListener(context) {
             }
         }
 
-    private fun Node.section(title: String, content: VBoxContainer.() -> Unit) {
-        column(separation = 6, modifier = Modifier.expandWidth().card()) {
+    private fun HBoxContainer.section(title: String, content: VBoxContainer.() -> Unit) {
+        column(separation = 6, modifier = Modifier.weight().card()) {
             label(title)
             content()
         }

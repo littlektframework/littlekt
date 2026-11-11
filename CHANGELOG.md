@@ -124,6 +124,7 @@
 - Add `Button.fontColorDisabled` & `Control.hasThemeColor`.
 - Add `Fonts.defaultNoOutline`, used by the default theme.
 - Add scene graph `Modifier`s, like Jetpack Compose, with a `modifier` parameter on every control builder.
+- Add `RowScope` & `ColumnScope` modifiers `weight`, `align`, `fillHeight` & `fillWidth` for row & column children.
 - Add layout shortcuts: `fillParent`, `centerInParent`, `anchors`, `expand`, `expandWidth`, `expandHeight`, `shrinkBegin`,
   `shrinkCenter`, `shrinkEnd` & `minSize`.
 - Add a `margin` to `Control.anchor` & `PaddedContainer.padding(horizontal, vertical)` & `padding(left, top, right, bottom)`.

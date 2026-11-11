@@ -117,7 +117,7 @@ inline fun SceneGraph<*>.column(
  * @author Colton Daily
  * @date 1/2/2022
  */
-open class VBoxContainer : BoxContainer() {
+open class VBoxContainer : BoxContainer(), ColumnScope {
 
     class ThemeVars {
         val separation = BoxContainer.themeVars.separation
