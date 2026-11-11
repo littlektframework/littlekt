@@ -6,6 +6,7 @@ import com.littlekt.graph.node.*
 import com.littlekt.graph.node.annotation.SceneGraphDslMarker
 import com.littlekt.graph.node.render.Material
 import com.littlekt.graph.node.resource.InputEvent
+import com.littlekt.graph.node.resource.Theme
 import com.littlekt.graph.node.ui.Control
 import com.littlekt.graphics.Camera
 import com.littlekt.graphics.OrthographicCamera
@@ -190,6 +191,10 @@ open class SceneGraph<InputType>(
 
     /** The [ShapeRenderer] managed by the scene graph. This uses the [batch] for drawing. */
     val shapeRenderer: ShapeRenderer = ShapeRenderer(this.batch, whitePixel)
+
+    init {
+        Theme.initDefaultTheme(context.graphics.preferredFormat.srgb)
+    }
 
     /**
      * The root [CanvasLayer] that is used for rendering all the children in the graph. Do not add

@@ -115,6 +115,13 @@ open class Button : BaseButton() {
             colorOverrides[themeVars.fontColor] = value
         }
 
+    /** The color of the text when the button is [disabled]. */
+    var fontColorDisabled: Color
+        get() = getThemeColor(themeVars.fontColorDisabled)
+        set(value) {
+            colorOverrides[themeVars.fontColorDisabled] = value
+        }
+
     /** The [BitmapFont] that this label should use to draw with. */
     var font: BitmapFont
         get() = getThemeFont(themeVars.font)
@@ -233,7 +240,12 @@ open class Button : BaseButton() {
             )
         }
         cache.let {
-            tempColor.set(color).mul(fontColor)
+            tempColor
+                .set(color)
+                .mul(
+                    if (disabled && hasThemeColor(themeVars.fontColorDisabled)) fontColorDisabled
+                    else fontColor
+                )
             it.tint(tempColor)
             if (globalRotation != Angle.ZERO || globalScaleX != 1f || globalScaleY != 1f) {
                 applyTransform(batch)
@@ -318,6 +330,7 @@ open class Button : BaseButton() {
 
     class ThemeVars {
         val fontColor = "fontColor"
+        val fontColorDisabled = "fontColorDisabled"
         val font = "font"
         val normal = "normal"
         val pressed = "pressed"

@@ -10,6 +10,8 @@ import com.littlekt.graph.node.Node
 import com.littlekt.graph.node.canvasLayer
 import com.littlekt.graph.node.node2d.camera2d
 import com.littlekt.graph.node.node2d.node2d
+import com.littlekt.graph.node.resource.ThemePalette
+import com.littlekt.graph.node.resource.createDefaultTheme
 import com.littlekt.graph.node.ui.*
 import com.littlekt.graph.sceneGraph
 import com.littlekt.graphics.Color
@@ -40,10 +42,16 @@ class SceneGraphPlaygroundExample(context: Context) : ContextListener(context) {
         val ninePatch = resourcesVfs["bg_9.png"].readTexture()
         val bigIcon = resourcesVfs["icon_32x32.png"].readTexture()
         val iconSlice = icon.slice()
+        val srgb = graphics.preferredFormat.srgb
+        val darkTheme = createDefaultTheme(palette = ThemePalette.DARK, srgb = srgb)
+        val lightTheme = createDefaultTheme(palette = ThemePalette.LIGHT, srgb = srgb)
+        var clearColor = graphics.surfaceColor(ThemePalette.DARK.background)
 
         val graph =
             sceneGraph(this, ExtendViewport(960, 540)) {
                     paddedContainer {
+                        val themed = this
+                        theme = darkTheme
                         anchor(Control.AnchorLayout.FULL)
                         paddingLeft = 10
                         paddingRight = 10
@@ -61,6 +69,15 @@ class SceneGraphPlaygroundExample(context: Context) : ContextListener(context) {
                                     text = "Interact with something!"
                                     horizontalSizing = Control.SizeFlag.FILL or Control.SizeFlag.EXPAND
                                     horizontalAlign = HAlign.RIGHT
+                                }
+                                button {
+                                    text = "Light theme"
+                                    toggleMode = true
+                                    onToggled += { light ->
+                                        val palette = if (light) ThemePalette.LIGHT else ThemePalette.DARK
+                                        themed.theme = if (light) lightTheme else darkTheme
+                                        clearColor = graphics.surfaceColor(palette.background)
+                                    }
                                 }
                             }
 
@@ -258,7 +275,6 @@ class SceneGraphPlaygroundExample(context: Context) : ContextListener(context) {
                 }
                 .also { it.initialize() }
 
-        val clearColor = graphics.surfaceColor(Color.DARK_GRAY)
 
         onResize { width, height -> graph.resize(width, height) }
 

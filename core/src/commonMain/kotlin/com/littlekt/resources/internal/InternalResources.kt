@@ -65,7 +65,9 @@ internal class InternalResources private constructor(private val context: Contex
         )
     }
     lateinit var atlas: TextureAtlas
+    private val roundedRects = mutableMapOf<Int, TextureSlice>()
     lateinit var defaultFont: BitmapFont
+    lateinit var defaultFontNoOutline: BitmapFont
     lateinit var white: TextureSlice
     lateinit var transparent: TextureSlice
 
@@ -80,27 +82,74 @@ internal class InternalResources private constructor(private val context: Contex
         val tilesTexture =
             PixmapTexture(device, textureFormat, defaultTilesBmp.decodeFromBase64().readPixmap())
 
-        val fontTexture =
-            PixmapTexture(device, textureFormat, defaultFontBmp.decodeFromBase64().readPixmap())
+        val fontPixmap = defaultFontBmp.decodeFromBase64().readPixmap()
+        val fontTexture = PixmapTexture(device, textureFormat, fontPixmap)
+        val fontNoOutlineTexture =
+            PixmapTexture(device, textureFormat, removeOutline(fontPixmap), mips = 1)
 
+        val roundedRectTextures = mutableListOf<Texture>()
         atlas =
             MutableTextureAtlas(context)
                 .apply {
                     add(TextureAtlas(mapOf(info.pages[0].meta.image to tilesTexture), info))
                     add(fontTexture.slice(), "defaultFont")
+                    add(fontNoOutlineTexture.slice(), "defaultFontNoOutline")
+                    ROUNDED_RECT_RADII.forEach { radius ->
+                        ROUNDED_RECT_BORDERS.forEach { border ->
+                            val texture =
+                                PixmapTexture(
+                                    device,
+                                    textureFormat,
+                                    roundedRectPixmap(radius, border),
+                                    mips = 1,
+                                )
+                            roundedRectTextures += texture
+                            add(texture.slice(), roundedRectName(radius, border))
+                        }
+                    }
                 }
                 .toImmutable(textureFormat)
 
         tilesTexture.release()
         fontTexture.release()
+        fontNoOutlineTexture.release()
+        roundedRectTextures.forEach { it.release() }
 
-        defaultFont =
-            readBitmapFontTxt(
-                defaultFontTxt.decodeFromBase64().decodeToString(),
-                mutableMapOf(0 to atlas["defaultFont"].slice),
-            )
+        val fontTxt = defaultFontTxt.decodeFromBase64().decodeToString()
+        defaultFont = readBitmapFontTxt(fontTxt, mutableMapOf(0 to atlas["defaultFont"].slice))
+        defaultFontNoOutline =
+            readBitmapFontTxt(fontTxt, mutableMapOf(0 to atlas["defaultFontNoOutline"].slice))
         white = atlas.getByPrefix("pixel_white").slice
         transparent = atlas.getByPrefix("pixel_transparent").slice
+    }
+
+    private fun removeOutline(src: Pixmap): Pixmap {
+        val result = Pixmap(src.width, src.height)
+        for (i in 0 until src.width * src.height * 4 step 4) {
+            val luminance = src.pixels[i].toInt() and 0xFF
+            val alpha = src.pixels[i + 3].toInt() and 0xFF
+            result.pixels[i] = 255.toByte()
+            result.pixels[i + 1] = 255.toByte()
+            result.pixels[i + 2] = 255.toByte()
+            result.pixels[i + 3] = (alpha * luminance / 255).toByte()
+        }
+        return result
+    }
+
+    fun roundedRect(radius: Int, border: Int): TextureSlice {
+        if (radius in ROUNDED_RECT_RADII && border in ROUNDED_RECT_BORDERS) {
+            return atlas[roundedRectName(radius, border)].slice
+        }
+        val key = radius * 1024 + border
+        return roundedRects.getOrPut(key) {
+            PixmapTexture(
+                    context.graphics.device,
+                    context.graphics.textureFormat,
+                    roundedRectPixmap(radius, border),
+                    mips = 1,
+                )
+                .slice()
+        }
     }
 
     private fun readBitmapFontTxt(

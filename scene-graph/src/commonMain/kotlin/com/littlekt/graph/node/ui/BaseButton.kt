@@ -138,10 +138,13 @@ abstract class BaseButton : Control() {
                 val isPressed =
                     event.type == InputEvent.Type.TOUCH_DOWN ||
                         event.type == InputEvent.Type.ACTION_DOWN && event.inputType == uiAccept
+                val isReleased =
+                    event.type == InputEvent.Type.TOUCH_UP ||
+                        event.type == InputEvent.Type.ACTION_UP && event.inputType == uiAccept
                 // TODO check if shortcut input then: isPressed = false
                 if (
                     (isPressed && actionMode == ActionMode.BUTTON_PRESS) ||
-                        (!isPressed && actionMode == ActionMode.BUTTON_RELEASE)
+                        (isReleased && actionMode == ActionMode.BUTTON_RELEASE)
                 ) {
                     if (actionMode == ActionMode.BUTTON_PRESS) {
                         status.pressAttempt = false
@@ -189,6 +192,7 @@ abstract class BaseButton : Control() {
     }
 
     private fun unpressGroup() {
+        if (buttonGroup.buttons.isEmpty()) return
         if (toggleMode) {
             status.pressed = true
         }

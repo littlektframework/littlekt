@@ -50,6 +50,8 @@
     - Migration: call `flip()` before relative reads such as `readInt`.
 - BREAKING: `createGPU*Buffer` with a `Buffer` copies the whole buffer instead of `position` to `limit`.
 - BREAKING: `AnimationPlayer` frames now play at their real duration instead of up to 2x fast.
+- BREAKING: New flat default scene graph theme built from a `ThemePalette`. Colors, drawables & margins changed.
+    - Migration: use `createDefaultTheme(palette = ...)` or set your own `Theme` to change the look.
 
 ### Changes
 
@@ -115,6 +117,18 @@
 - Fix `ModelBatch` leaking material & skin bind groups after their models are released.
 - Fix the texture example uploading empty vertex & index buffers.
 - Add `IntMap.remove`.
+- Add `FlatDrawable` for rounded rectangles with borders that need no art.
+- Add `ThemePalette` with `DARK` & `LIGHT` palettes and `palette`, `cornerRadius` & `srgb` to `createDefaultTheme`.
+- Add a `theme { }` builder for creating themes.
+- Add `Textures.roundedRect` & `Textures.roundedRectCorner`.
+- Add `Button.fontColorDisabled` & `Control.hasThemeColor`.
+- Add `Fonts.defaultNoOutline`, used by the default theme.
+- Fix toggle buttons never turning off & toggling on events other than the release.
+- Fix `FontCache.tint` corrupting glyph vertices & ignoring changes to a reused color.
+- Fix controls keeping theme values cached before being added to a themed parent.
+- Fix `ScrollContainer` crashing when its scroll bars change its min size while being created.
+- Fix creating a `Theme` requiring internal resources to be loaded.
+- Fix the default theme colors looking washed out on sRGB surfaces.
 - Fix Tiled text objects failing to decode when fields are left at their defaults.
 - Fix glTF textures without a sampler crashing, `extensionsRequired` never being read & material extensions failing to decode.
 - Fix `GltfAttribute.COLOR_1` to `COLOR_4` values.

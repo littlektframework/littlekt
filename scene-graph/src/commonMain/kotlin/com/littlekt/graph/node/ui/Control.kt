@@ -614,6 +614,24 @@ open class Control : CanvasItem() {
     /** Open method that is to process and accept inputs on UI elements. */
     open fun uiInput(event: InputEvent<*>) = Unit
 
+    override fun onParentChanged() {
+        super.onParentChanged()
+        invalidateThemeCache()
+    }
+
+    private fun invalidateThemeCache() {
+        drawableCache.clear()
+        fontCache.clear()
+        colorCache.clear()
+        constantCache.clear()
+        minSizeInvalid = true
+        nodes.forEach {
+            if (it is Control) {
+                it.invalidateThemeCache()
+            }
+        }
+    }
+
     private fun _onThemeChanged() {
         drawableCache.clear()
         fontCache.clear()
@@ -1438,6 +1456,17 @@ open class Control : CanvasItem() {
         return Theme.defaultTheme.drawables[type]?.get(name)?.let {
             return true
         } ?: return false
+    }
+
+    /** Checks if the control has a theme [Color]. */
+    fun hasThemeColor(name: String, type: String = defaultThemeType): Boolean {
+        if (colorOverrides.containsKey(name)) return true
+        var themeOwner: Control? = this
+        while (themeOwner != null) {
+            if (themeOwner.theme?.colors?.get(type)?.containsKey(name) == true) return true
+            themeOwner = themeOwner.parent as? Control
+        }
+        return Theme.defaultTheme.colors[type]?.containsKey(name) == true
     }
 
     /**

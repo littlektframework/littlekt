@@ -37,7 +37,7 @@ open class FontCache(val pages: Int = 1) {
     protected var x: Float = 0f
     protected var y: Float = 0f
     protected val pageVertices = Array(pages) { FloatArrayList() }
-    protected var currentTint = Color.WHITE
+    protected val currentTint = MutableColor(Color.WHITE)
 
     /**
      * Draws the text using the specified batch and list of textures. The [textures] list size must
@@ -81,7 +81,7 @@ open class FontCache(val pages: Int = 1) {
      */
     fun tint(tint: Color) {
         if (tint == currentTint) return
-        currentTint = tint
+        currentTint.set(tint)
         tempGlyphCount.fill(0)
         layouts.forEach { layout ->
             val colors = layout.colors
@@ -98,25 +98,16 @@ open class FontCache(val pages: Int = 1) {
                         nextColorGlyphIndex =
                             if (++colorsIndex < colors.size) colors[colorsIndex] else -1
                     }
-                    val offset = tempGlyphCount[it.page] * 36 + 2
+                    val offset = tempGlyphCount[it.page] * 36 + 3
                     tempGlyphCount[it.page]++
                     val vertices = pageVertices[it.page]
-                    vertices[offset] = lastColor.r
-                    vertices[offset + 1] = lastColor.g
-                    vertices[offset + 2] = lastColor.b
-                    vertices[offset + 3] = lastColor.a
-                    vertices[offset + 8] = lastColor.r
-                    vertices[offset + 9] = lastColor.g
-                    vertices[offset + 10] = lastColor.b
-                    vertices[offset + 11] = lastColor.a
-                    vertices[offset + 16] = lastColor.r
-                    vertices[offset + 17] = lastColor.g
-                    vertices[offset + 18] = lastColor.b
-                    vertices[offset + 19] = lastColor.a
-                    vertices[offset + 24] = lastColor.r
-                    vertices[offset + 25] = lastColor.g
-                    vertices[offset + 26] = lastColor.b
-                    vertices[offset + 27] = lastColor.a
+                    for (vertex in 0 until 4) {
+                        val index = offset + vertex * 9
+                        vertices[index] = lastColor.r
+                        vertices[index + 1] = lastColor.g
+                        vertices[index + 2] = lastColor.b
+                        vertices[index + 3] = lastColor.a
+                    }
                 }
             }
         }
@@ -244,7 +235,7 @@ open class FontCache(val pages: Int = 1) {
         layouts.clear()
         x = 0f
         y = 0f
-        currentTint = Color.WHITE
+        currentTint.set(Color.WHITE)
         pageVertices.forEach { it.clear() }
     }
 

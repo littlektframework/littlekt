@@ -1,9 +1,11 @@
 package com.littlekt.resources
 
 import com.littlekt.graphics.Texture
+import com.littlekt.graphics.g2d.NinePatch
 import com.littlekt.graphics.g2d.TextureAtlas
 import com.littlekt.graphics.g2d.TextureSlice
 import com.littlekt.resources.internal.InternalResources
+import com.littlekt.resources.internal.roundedRectCorner as internalRoundedRectCorner
 
 /**
  * An object that contains a bunch of common texture slices that can be used to prevent texture
@@ -38,4 +40,19 @@ object Textures {
      */
     val atlas: TextureAtlas
         get() = InternalResources.INSTANCE.atlas
+
+    /**
+     * A white anti-aliased rounded rect [TextureSlice] meant to be drawn as a [NinePatch] with
+     * [roundedRectCorner] on each side. When [border] is greater than `0`, only the border is
+     * drawn. Common sizes are part of the [atlas]. Other sizes create a standalone texture once.
+     *
+     * @param radius the corner radius in pixels
+     * @param border the border width in pixels or `0` to fill
+     */
+    fun roundedRect(radius: Int, border: Int = 0): TextureSlice =
+        InternalResources.INSTANCE.roundedRect(radius, border)
+
+    /** The size of each side of the [NinePatch] used to draw a [roundedRect]. */
+    fun roundedRectCorner(radius: Int, border: Int = 0): Int =
+        internalRoundedRectCorner(radius, border)
 }

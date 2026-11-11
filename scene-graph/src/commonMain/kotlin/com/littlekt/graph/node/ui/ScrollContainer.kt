@@ -81,12 +81,10 @@ class ScrollContainer : Container(), GestureProcessor {
     /** If `true` scrolling will work by clicking & dragging / flinging the contents. */
     var dragToScroll = true
 
-    private var hScrollBar: HScrollBar = hScrollBar {
-        onValueChanged.connect(this, ::onScrollMoved)
-    }
-    private var vScrollBar: VScrollBar = vScrollBar {
-        onValueChanged.connect(this, ::onScrollMoved)
-    }
+    private val hScrollBar: HScrollBar =
+        HScrollBar().apply { onValueChanged.connect(this, ::onScrollMoved) }
+    private val vScrollBar: VScrollBar =
+        VScrollBar().apply { onValueChanged.connect(this, ::onScrollMoved) }
     private var largestChildWidth = 0f
     private var largestChildHeight = 0f
     private var shiftPressed = false
@@ -99,6 +97,8 @@ class ScrollContainer : Container(), GestureProcessor {
 
     init {
         mouseFilter = MouseFilter.STOP
+        hScrollBar.addTo(this)
+        vScrollBar.addTo(this)
     }
 
     override fun ready() {

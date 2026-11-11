@@ -15,4 +15,12 @@ object Fonts {
      */
     val default: BitmapFont
         get() = InternalResources.INSTANCE.defaultFont
+
+    /**
+     * The [default] font without its black outline. Better suited for UI and light backgrounds.
+     *
+     * Font type: `Barlow Condensed medium 17px`
+     */
+    val defaultNoOutline: BitmapFont
+        get() = InternalResources.INSTANCE.defaultFontNoOutline
 }
