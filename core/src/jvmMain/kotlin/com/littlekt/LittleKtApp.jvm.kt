@@ -33,6 +33,26 @@ actual class LittleKtProps {
     var loadInternalResources: Boolean = true
 
     var powerPreference = PowerPreference.HIGH_POWER
+
+    /** How the window is first shown, on the primary monitor. */
+    var windowMode = StartWindowMode.WINDOWED
+}
+
+/**
+ * How the window is first shown on the primary monitor. Use [Window.setMode] to change it after.
+ *
+ * @author Colton Daily
+ * @date 11/11/2026
+ */
+enum class StartWindowMode {
+    /** A regular decorated window. */
+    WINDOWED,
+
+    /** An undecorated window covering the primary monitor. */
+    BORDERLESS,
+
+    /** Exclusive fullscreen using the current video mode of the primary monitor. */
+    FULLSCREEN,
 }
 
 /**
@@ -58,7 +78,8 @@ actual suspend fun createLittleKtApp(action: LittleKtProps.() -> Unit): LittleKt
                 props.enableWGPULogging,
                 props.preferredBackends,
                 props.loadInternalResources,
-                props.powerPreference
+                props.powerPreference,
+                props.windowMode,
             )
         )
     )
@@ -85,7 +106,8 @@ class JvmConfiguration(
     val enableWGPULogging: Boolean,
     val preferredBackends: Backend,
     override val loadInternalResources: Boolean,
-    val powerPreference: PowerPreference = PowerPreference.HIGH_POWER
+    val powerPreference: PowerPreference = PowerPreference.HIGH_POWER,
+    val windowMode: StartWindowMode = StartWindowMode.WINDOWED,
 ) : ContextConfiguration()
 
 val PowerPreference.nativeVal: UInt

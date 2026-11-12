@@ -748,6 +748,9 @@ expect class SurfaceCapabilities {
      */
     val formats: List<TextureFormat>
 
+    /** List of supported present modes, such as [PresentMode.FIFO] for vsync. */
+    val presentModes: List<PresentMode>
+
     /** List of supported presentation modes to use with the given adapter. */
     val alphaModes: List<AlphaMode>
 }

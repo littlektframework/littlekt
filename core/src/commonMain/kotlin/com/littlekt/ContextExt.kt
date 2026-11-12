@@ -34,6 +34,7 @@ inline fun Context.renderFrame(
     label: String? = null,
     block: (frame: TextureView, commandEncoder: CommandEncoder) -> Unit,
 ) {
+    if (graphics.backBufferWidth <= 0 || graphics.backBufferHeight <= 0) return
     val surfaceTexture = graphics.surface.getCurrentTexture()
     when (val status = surfaceTexture.status) {
         TextureStatus.SUCCESS -> Unit

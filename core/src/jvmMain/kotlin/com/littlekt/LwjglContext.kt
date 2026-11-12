@@ -48,6 +48,7 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context() {
     override val vfsUrl: Vfs = JvmUrlVfs(this, logger)
     override val vfsApplication: Vfs = JvmApplicationVfs(this, logger, ".")
     override val input: LwjglInput = LwjglInput(this)
+    override val window: LwjglWindow = LwjglWindow(this)
     override val resourcesVfs: VfsFile
         get() = vfsResources.root
 
@@ -77,6 +78,10 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context() {
     private val scope = Arena.ofConfined()
 
     private val wgpuLogger = Logger("WGPU")
+
+    private var started = false
+    private var inFrame = false
+    private var resizePending = false
 
     init {
         MemoryStack.stackPush().use { stack ->
@@ -181,9 +186,12 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context() {
             }
         }
 
+        applyStartWindowMode()
+
         // Make the window visible
         GLFW.glfwShowWindow(windowHandle)
         input.attachToWindow(windowHandle)
+        attachWindowCallbacks()
 
         if (configuration.loadInternalResources) {
             InternalResources.createInstance(this@LwjglContext)
@@ -194,20 +202,24 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context() {
 
         GLFW.glfwSetFramebufferSizeCallback(windowHandle) { _, _, _ ->
             updateFramebufferInfo()
-
-            resizeCalls.fastForEach { resize -> resize(graphics.width, graphics.height) }
+            resizePending = true
+        }
+        GLFW.glfwSetWindowRefreshCallback(windowHandle) { _ ->
+            // Windows blocks inside glfwPollEvents while the window is resized. Running frames from
+            // here keeps the window drawing during the resize instead of freezing.
+            if (started && resizePending && !inFrame) runBlocking { frame() }
         }
 
         listener.run { start() }
-        listener.run {
-            updateFramebufferInfo()
-            resizeCalls.fastForEach { resize -> resize(graphics.width, graphics.height) }
-        }
+        updateFramebufferInfo()
+        resizePending = true
+        started = true
 
         while (!windowShouldClose) {
-            calcFrameTimes(now().milliseconds)
-            MainDispatcher.INSTANCE.executePending(available)
-            update(dt)
+            val frameStart = System.nanoTime()
+            frame()
+            GLFW.glfwPollEvents()
+            limitFrameRate(frameStart)
         }
 
         releaseCalls.fastForEach { release -> release() }
@@ -243,6 +255,62 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context() {
         graphics._backBufferHeight = tempBuffer2[0]
     }
 
+    private suspend fun frame() {
+        inFrame = true
+        calcFrameTimes(now().milliseconds)
+        if (resizePending && graphics.backBufferWidth > 0 && graphics.backBufferHeight > 0) {
+            resizePending = false
+            resizeCalls.fastForEach { resize -> resize(graphics.width, graphics.height) }
+        }
+        MainDispatcher.INSTANCE.executePending(available)
+        update(dt)
+        inFrame = false
+    }
+
+    private fun limitFrameRate(frameStart: Long) {
+        val limit = frameRateLimit ?: return
+        val end = frameStart + 1_000_000_000L / limit
+        while (true) {
+            val remaining = end - System.nanoTime()
+            if (remaining <= 0L) break
+            if (remaining > 2_000_000L) Thread.sleep((remaining - 1_000_000L) / 1_000_000L)
+            else Thread.onSpinWait()
+        }
+    }
+
+    private fun applyStartWindowMode() {
+        val primary = window.primaryMonitor ?: return
+        when (configuration.windowMode) {
+            StartWindowMode.WINDOWED -> Unit
+            StartWindowMode.BORDERLESS -> window.setMode(WindowMode.Borderless(primary))
+            StartWindowMode.FULLSCREEN ->
+                window.setMode(WindowMode.Fullscreen(primary, primary.currentMode))
+        }
+    }
+
+    private fun attachWindowCallbacks() {
+        GLFW.glfwSetWindowFocusCallback(windowHandle) { _, focused ->
+            focusChangedCalls.fastForEach { it(focused) }
+        }
+        GLFW.glfwSetWindowIconifyCallback(windowHandle) { _, minimized ->
+            minimizedChangedCalls.fastForEach { it(minimized) }
+        }
+        GLFW.glfwSetWindowContentScaleCallback(windowHandle) { _, scale, _ ->
+            contentScaleChangedCalls.fastForEach { it(scale) }
+        }
+        GLFW.glfwSetWindowCloseCallback(windowHandle) { handle ->
+            if (!allowClose()) GLFW.glfwSetWindowShouldClose(handle, false)
+        }
+        GLFW.glfwSetMonitorCallback { _, _ ->
+            val monitors = window.onMonitorsChanged()
+            monitorsChangedCalls.fastForEach { it(monitors) }
+        }
+    }
+
+    internal fun dispatchWindowModeChanged(mode: WindowMode) {
+        windowModeChangedCalls.fastForEach { it(mode) }
+    }
+
     private suspend fun update(dt: Duration) {
         audioContext.update()
 
@@ -255,7 +323,6 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context() {
         postUpdateCalls.fastForEach { postUpdate -> postUpdate(dt) }
 
         input.reset()
-        GLFW.glfwPollEvents()
 
         invokeAnyRunnable()
     }
@@ -275,6 +342,7 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context() {
         super.destroy()
         // Free the window callbacks and destroy the window
         Callbacks.glfwFreeCallbacks(windowHandle)
+        GLFW.glfwSetMonitorCallback(null)?.free()
         GLFW.glfwDestroyWindow(windowHandle)
 
         graphics.release()

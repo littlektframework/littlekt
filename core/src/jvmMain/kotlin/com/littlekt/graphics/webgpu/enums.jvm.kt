@@ -397,6 +397,9 @@ val AlphaMode.nativeVal: UInt
 fun AlphaMode.Companion.from(nativeVal: UInt): AlphaMode? =
     AlphaMode.entries.firstOrNull { it.nativeVal == nativeVal }
 
+fun PresentMode.Companion.from(nativeVal: UInt): PresentMode? =
+    PresentMode.entries.firstOrNull { it.nativeVal == nativeVal }
+
 val PresentMode.nativeVal: UInt
     get() =
         when (this) {

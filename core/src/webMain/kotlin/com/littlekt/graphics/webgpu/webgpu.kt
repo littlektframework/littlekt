@@ -401,6 +401,8 @@ actual class SurfaceCapabilities {
         listOf(TextureFormat.BGRA8_UNORM, TextureFormat.RGBA8_UNORM, TextureFormat.RGBA16_FLOAT)
 
     actual val alphaModes: List<AlphaMode> = listOf(AlphaMode.OPAQUE, AlphaMode.PREMULTIPLIED)
+
+    actual val presentModes: List<PresentMode> = listOf(PresentMode.FIFO)
 }
 
 actual class SurfaceTexture(actual val texture: WebGPUTexture?) {

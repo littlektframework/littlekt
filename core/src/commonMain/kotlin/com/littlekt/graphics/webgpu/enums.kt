@@ -890,7 +890,9 @@ enum class PresentMode {
      *
      * This is traditionally called “Fast Vsync”
      */
-    MAILBOX,
+    MAILBOX;
+
+    companion object
 }
 
 /** Status of the received surface texture. */

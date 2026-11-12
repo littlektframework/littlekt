@@ -18,6 +18,7 @@ import io.ygdrasil.wgpu.WGPUBuffer
 import io.ygdrasil.wgpu.WGPUBufferDescriptor
 import io.ygdrasil.wgpu.WGPUCommandEncoderDescriptor
 import io.ygdrasil.wgpu.WGPUCompositeAlphaMode
+import io.ygdrasil.wgpu.WGPUPresentMode
 import io.ygdrasil.wgpu.WGPUDevice
 import io.ygdrasil.wgpu.WGPUExtent3D
 import io.ygdrasil.wgpu.WGPULimits
@@ -646,11 +647,24 @@ actual class Surface(val segment: WGPUSurface) : Releasable {
                 supportedFormats = setOf(TextureFormat.RG8_UNORM)
             }
 
+            val presentModes = surfaceCapabilities.presentModes
+            var supportedPresentModes =
+                if (presentModes != null) surfaceCapabilities.toPresentModes(presentModes) else emptySet()
+
+            if (supportedPresentModes.isEmpty()) {
+                logger.warn { "fail to get supported present modes on surface, will inject fifo" }
+                supportedPresentModes = setOf(PresentMode.FIFO)
+            }
+
             if (supportedAlphaMode.isEmpty()) {
                 logger.warn { "fail to get supported alpha mode on surface, will inject inherit alpha mode" }
                 supportedAlphaMode = setOf(AlphaMode.INHERIT)
             }
-            SurfaceCapabilities(supportedFormats.toList(), supportedAlphaMode.toList())
+            SurfaceCapabilities(
+                supportedFormats.toList(),
+                supportedAlphaMode.toList(),
+                supportedPresentModes.toList(),
+            )
         }
     }
 
@@ -670,16 +684,26 @@ actual class Surface(val segment: WGPUSurface) : Releasable {
 
     private fun WGPUSurfaceCapabilities.toAlphaMode(
         alphaModes: ArrayHolder<WGPUCompositeAlphaMode>
-    ) = UIntArray(formatCount.toInt()) { 0u }
+    ) = UIntArray(alphaModeCount.toInt()) { 0u }
         .also {
-            MemoryBuffer(alphaModes.handler, formatCount * Int.SIZE_BYTES.toULong())
+            MemoryBuffer(alphaModes.handler, alphaModeCount * Int.SIZE_BYTES.toULong())
                 .readUInts(it)
         }
-        .map {
-            AlphaMode.from(it)
-                .also { if (it == null) logger.warn { "ignoring undefined alpha mode with value $it" } }
+        .map { value ->
+            AlphaMode.from(value)
+                .also { if (it == null) logger.warn { "ignoring undefined alpha mode with value $value" } }
         }
         .filterNotNull()
+        .toSet()
+
+    private fun WGPUSurfaceCapabilities.toPresentModes(
+        presentModes: ArrayHolder<WGPUPresentMode>
+    ) = UIntArray(presentModeCount.toInt()) { 0u }
+        .also {
+            MemoryBuffer(presentModes.handler, presentModeCount * Int.SIZE_BYTES.toULong())
+                .readUInts(it)
+        }
+        .mapNotNull { value -> PresentMode.from(value) }
         .toSet()
 
 
@@ -780,6 +804,7 @@ fun Extent3D.toNative(scope: MemoryAllocator): WGPUExtent3D {
 actual class SurfaceCapabilities(
     actual val formats: List<TextureFormat>,
     actual val alphaModes: List<AlphaMode>,
+    actual val presentModes: List<PresentMode>,
 )
 
 actual class SurfaceTexture(

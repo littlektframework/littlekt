@@ -16,7 +16,6 @@ import com.littlekt.resources.internal.InternalResources
 import com.littlekt.util.datastructure.fastForEach
 import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.browser.document
-import kotlinx.browser.window
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.w3c.dom.HTMLCanvasElement
@@ -32,6 +31,7 @@ class WebGPUContext(override val configuration: JsConfiguration, gpuAdapter: GPU
     override val stats: AppStats = AppStats()
     override val graphics: WebGPUGraphics = WebGPUGraphics(canvas, gpuAdapter, gpuDevice)
     override val input: JsInput = JsInput(canvas)
+    override val window: WebWindow = WebWindow(canvas)
     override val logger: Logger = Logger(configuration.title)
     override val vfsResources: Vfs = WebLocalVfs(this, logger, configuration.resourcesPath)
     override val vfsUrl: Vfs = WebUrlVfs(this, logger)
@@ -53,6 +53,9 @@ class WebGPUContext(override val configuration: JsConfiguration, gpuAdapter: GPU
 
     private lateinit var listener: ContextListener
     private var closed = false
+    private var lastFrameTime = 0.0
+    private var lastMode: WindowMode = WindowMode.Windowed
+    private var lastContentScale = 1f
 
     init {
         KtScope.initiate()
@@ -78,10 +81,46 @@ class WebGPUContext(override val configuration: JsConfiguration, gpuAdapter: GPU
                 resizeCalls.fastForEach { it.invoke(graphics.width, graphics.height) }
             }
         }
-        window.requestAnimationFrame(::update)
+        attachWindowEvents()
+        kotlinx.browser.window.requestAnimationFrame(::update)
+    }
+
+    private fun attachWindowEvents() {
+        lastContentScale = window.contentScale
+        kotlinx.browser.window.addEventListener("focus", { focusChangedCalls.fastForEach { it(true) } })
+        kotlinx.browser.window.addEventListener("blur", { focusChangedCalls.fastForEach { it(false) } })
+        document.addEventListener(
+            "visibilitychange",
+            {
+                val hidden = !window.minimized
+                window.minimized = hidden
+                minimizedChangedCalls.fastForEach { it(hidden) }
+            },
+        )
+        document.addEventListener(
+            "fullscreenchange",
+            {
+                val mode = window.mode
+                if (mode != lastMode) {
+                    lastMode = mode
+                    windowModeChangedCalls.fastForEach { it(mode) }
+                }
+            },
+        )
     }
 
     private fun update(now: Double) {
+        val limit = frameRateLimit
+        if (limit != null && lastFrameTime > 0.0 && now - lastFrameTime < 1000.0 / limit - 1.0) {
+            kotlinx.browser.window.requestAnimationFrame(::update)
+            return
+        }
+        lastFrameTime = now
+        val scale = window.contentScale
+        if (scale != lastContentScale) {
+            lastContentScale = scale
+            contentScaleChangedCalls.fastForEach { it(scale) }
+        }
         if (canvas.clientWidth != graphics.width || canvas.clientHeight != graphics.height) {
             graphics._width = canvas.clientWidth
             graphics._height = canvas.clientHeight
@@ -109,7 +148,7 @@ class WebGPUContext(override val configuration: JsConfiguration, gpuAdapter: GPU
         if (closed) {
             destroy()
         } else {
-            window.requestAnimationFrame(::update)
+            kotlinx.browser.window.requestAnimationFrame(::update)
         }
     }
 

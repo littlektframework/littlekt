@@ -50,13 +50,21 @@ interface Graphics {
     val surfaceCapabilities: SurfaceCapabilities
 
     /**
+     * The [PresentMode] the surface was last configured with. Configuring without a present mode
+     * keeps this one, so a chosen vsync mode survives resizing.
+     */
+    val presentMode: PresentMode
+
+    /**
      * Configures the underlying [surface], via [Surface.configure], which initializes the surface
-     * for presentation.
+     * for presentation. Does nothing while the back buffer has no size, such as when minimized.
+     *
+     * @param presentMode must be one of [SurfaceCapabilities.presentModes]
      */
     fun configureSurface(
         usage: TextureUsage = TextureUsage.RENDER_ATTACHMENT,
         format: TextureFormat = preferredFormat,
-        presentMode: PresentMode = PresentMode.FIFO,
+        presentMode: PresentMode = this.presentMode,
         alphaMode: AlphaMode = surfaceCapabilities.alphaModes[0]
     )
 

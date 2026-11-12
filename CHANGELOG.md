@@ -62,6 +62,8 @@
 - BREAKING: Skinned meshes now apply each instance's transform, with `Skin` joints relative to `Skin.root`.
     - Migration: `get_skin_matrix(input)` now includes the instance transform and the skin bind group has a single `skin_joints` binding.
 - BREAKING: The `Model` shader struct has a new `skin` field, so `MeshPrimitive.INSTANCE_DATA_SIZE` is now 24.
+- BREAKING: `onResize` now runs once at the start of the next frame instead of for every size change.
+- BREAKING: `Graphics.configureSurface()` now keeps the last present mode instead of resetting to `FIFO`.
 
 ### Changes
 
@@ -153,6 +155,14 @@
 - Add `BakedAnimations` & `BakedAnimationInstance` to draw thousands of animated skinned models in one draw call.
 - Add `Animation.sample(time)` to pose an animation at a time without advancing it.
 - Fix copies of a skinned model all drawing at the original's position.
+- Add `Context.window` to change the window mode, size & position and to list monitors & video modes.
+- Add `onFocusChanged`, `onMinimizedChanged`, `onContentScaleChanged`, `onWindowModeChanged`, `onMonitorsChanged` & `onCloseRequested`.
+- Add `Context.frameRateLimit` to cap the frame rate.
+- Add `SurfaceCapabilities.presentModes` & `Graphics.presentMode`.
+- Add `windowMode` to the JVM app props to start borderless or fullscreen.
+- Fix laggy window resizing on Windows and keep drawing while the window is resized.
+- Fix surface alpha modes being read with the format count, which logged warnings at startup.
+- Fix configuring and rendering to the surface while the window is minimized.
 - Add layout shortcuts: `fillParent`, `centerInParent`, `anchors`, `expand`, `expandWidth`, `expandHeight`, `shrinkBegin`,
   `shrinkCenter`, `shrinkEnd` & `minSize`.
 - Add a `margin` to `Control.anchor` & `PaddedContainer.padding(horizontal, vertical)` & `padding(left, top, right, bottom)`.

@@ -56,12 +56,17 @@ class WebGPUGraphics(val canvas: HTMLCanvasElement, gpuAdapter: GPUAdapter, gpuD
         surface.getCapabilities(adapter)
     }
 
+    override var presentMode: PresentMode = PresentMode.FIFO
+        private set
+
     override fun configureSurface(
         usage: TextureUsage,
         format: TextureFormat,
         presentMode: PresentMode,
-        alphaMode: AlphaMode
+        alphaMode: AlphaMode,
     ) {
+        this.presentMode = presentMode
+        if (backBufferWidth <= 0 || backBufferHeight <= 0) return
         surface.configure(
             SurfaceConfiguration(device, usage, format, presentMode, alphaMode, width, height)
         )
