@@ -1,5 +1,6 @@
 package com.littlekt
 
+import com.littlekt.audio.OpenALAudioContext
 import com.littlekt.graphics.HdpiMode
 import com.littlekt.graphics.webgpu.Backend
 import ffi.LibraryLoader
@@ -41,6 +42,12 @@ actual class LittleKtProps {
 
     /** How the window is first shown, on the primary monitor. */
     var windowMode = StartWindowMode.WINDOWED
+
+    /**
+     * The maximum number of sounds that can play at once. Once all are playing, a new clip takes
+     * the place of the oldest playing clip. Streams keep their place until stopped.
+     */
+    var maxAudioSources = OpenALAudioContext.DEFAULT_MAX_SOURCES
 }
 
 /**
@@ -85,6 +92,7 @@ actual suspend fun createLittleKtApp(action: LittleKtProps.() -> Unit): LittleKt
                 props.loadInternalResources,
                 props.powerPreference,
                 props.windowMode,
+                props.maxAudioSources,
             )
         )
     )
@@ -113,6 +121,7 @@ class JvmConfiguration(
     override val loadInternalResources: Boolean,
     val powerPreference: PowerPreference = PowerPreference.HIGH_POWER,
     val windowMode: StartWindowMode = StartWindowMode.WINDOWED,
+    val maxAudioSources: Int = OpenALAudioContext.DEFAULT_MAX_SOURCES,
 ) : ContextConfiguration()
 
 val PowerPreference.nativeVal: UInt

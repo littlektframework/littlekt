@@ -70,7 +70,7 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context() {
     internal var windowHandle: Long = 0
         private set
 
-    internal val audioContext = OpenALAudioContext()
+    internal val audioContext = OpenALAudioContext(configuration.maxAudioSources)
 
     override val audio: Audio
         get() = audioContext

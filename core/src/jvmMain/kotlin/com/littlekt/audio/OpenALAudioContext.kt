@@ -8,10 +8,14 @@ import java.util.concurrent.atomic.AtomicBoolean
 import org.lwjgl.openal.*
 
 /**
+ * The OpenAL audio output on desktop.
+ *
+ * @param maxSources the maximum number of sounds that can play at once. Sources are created as
+ *   they are needed. Once all are playing, a new clip takes the source of the oldest playing clip.
  * @author Colton Daily
  * @date 12/27/2021
  */
-class OpenALAudioContext : Releasable, Audio {
+class OpenALAudioContext(val maxSources: Int = DEFAULT_MAX_SOURCES) : Releasable, Audio {
     val device =
         try {
             val byteBuffer: ByteBuffer? = null
@@ -23,7 +27,19 @@ class OpenALAudioContext : Releasable, Audio {
     val context: Long =
         try {
             val deviceCaps = ALC.createCapabilities(device)
-            val context = ALC10.alcCreateContext(device, null as IntBuffer?)
+            val attributes =
+                if (maxSources > OPENAL_DEFAULT_SOURCES) {
+                    intArrayOf(
+                        ALC11.ALC_MONO_SOURCES,
+                        maxSources,
+                        ALC11.ALC_STEREO_SOURCES,
+                        maxSources,
+                        0,
+                    )
+                } else {
+                    null
+                }
+            val context = ALC10.alcCreateContext(device, attributes)
             ALC10.alcMakeContextCurrent(context)
             AL.createCapabilities(deviceCaps)
             context
@@ -109,14 +125,14 @@ class OpenALAudioContext : Releasable, Audio {
         return devicesChanged.getAndSet(false)
     }
 
-    private val sources by lazy {
-        val result = mutableListOf<Int>()
-        for (i in 0 until 4) { // total simultaneous sources
-            val sourceID: Int = AL10.alGenSources()
-            if (AL10.alGetError() != AL10.AL_NO_ERROR) break
-            result.add(sourceID)
-        }
-        result
+    private val sources = IntArray(maxSources)
+    private val reserved = BooleanArray(maxSources)
+    private val playOrder = LongArray(maxSources)
+    private var sourceCount = 0
+    private var playCounter = 0L
+
+    init {
+        require(maxSources > 0) { "maxSources must be greater than 0!" }
     }
 
     suspend fun update() {
@@ -124,44 +140,80 @@ class OpenALAudioContext : Releasable, Audio {
         audioStreams.fastForEach { it.update() }
     }
 
-    fun obtainSource(): Int {
-        if (NO_DEVICE) return 0
+    /**
+     * Gets a source to play a sound with, reset to its defaults. An idle source is used first, then
+     * a new one is created up to [maxSources], then the oldest playing clip's source is taken.
+     *
+     * @param reserve `true` to keep the source from being taken until [releaseSource] is called,
+     *   such as for an [AudioStream]
+     * @return the source id or `-1` if every source is reserved
+     */
+    fun obtainSource(reserve: Boolean = false): Int {
+        if (NO_DEVICE) return -1
+        for (i in 0 until sourceCount) {
+            if (reserved[i]) continue
+            val state = AL10.alGetSourcei(sources[i], AL10.AL_SOURCE_STATE)
+            if (state != AL10.AL_PLAYING && state != AL10.AL_PAUSED) return claim(i, reserve)
+        }
+        if (sourceCount < maxSources) {
+            AL10.alGetError()
+            val id = AL10.alGenSources()
+            if (AL10.alGetError() == AL10.AL_NO_ERROR) {
+                sources[sourceCount] = id
+                return claim(sourceCount++, reserve)
+            }
+        }
+        var oldest = -1
+        for (i in 0 until sourceCount) {
+            if (reserved[i]) continue
+            if (oldest == -1 || playOrder[i] < playOrder[oldest]) oldest = i
+        }
+        return if (oldest == -1) -1 else claim(oldest, reserve)
+    }
 
-        return sources
-            .asSequence()
-            .map { it to AL10.alGetSourcei(it, AL10.AL_SOURCE_STATE) }
-            .firstOrNull { (_, state) -> state != AL10.AL_PLAYING && state != AL10.AL_PAUSED }
-            ?.let { (sourceId, _) ->
-                AL10.alSourceStop(sourceId)
-                AL10.alSourcei(sourceId, AL10.AL_BUFFER, 0)
-                AL10.alSourcef(sourceId, AL10.AL_GAIN, 1f)
-                AL10.alSourcef(sourceId, AL10.AL_PITCH, 1f)
-                AL10.alSource3f(sourceId, AL10.AL_POSITION, 0f, 0f, 1f)
-                AL10.alSourcei(sourceId, SOFTDirectChannels.AL_DIRECT_CHANNELS_SOFT, AL10.AL_TRUE)
-                sourceId
-            } ?: -1
+    /** Lets a source reserved with [obtainSource] be used by other sounds again. */
+    fun releaseSource(sourceId: Int) {
+        for (i in 0 until sourceCount) {
+            if (sources[i] == sourceId) {
+                reserved[i] = false
+                return
+            }
+        }
+    }
+
+    private fun claim(index: Int, reserve: Boolean): Int {
+        val sourceId = sources[index]
+        AL10.alSourceStop(sourceId)
+        AL10.alSourcei(sourceId, AL10.AL_BUFFER, 0)
+        AL10.alSourcef(sourceId, AL10.AL_GAIN, 1f)
+        AL10.alSourcef(sourceId, AL10.AL_PITCH, 1f)
+        AL10.alSource3f(sourceId, AL10.AL_POSITION, 0f, 0f, 1f)
+        AL10.alSourcei(sourceId, SOFTDirectChannels.AL_DIRECT_CHANNELS_SOFT, AL10.AL_TRUE)
+        reserved[index] = reserve
+        playOrder[index] = ++playCounter
+        return sourceId
     }
 
     fun resumeSourceViaBufferID(bufferID: Int) {
-        sources.forEach {
-            if (AL10.alGetSourcei(it, AL10.AL_BUFFER) == bufferID) {
-                AL10.alSourcePlay(it)
+        for (i in 0 until sourceCount) {
+            if (AL10.alGetSourcei(sources[i], AL10.AL_BUFFER) == bufferID) {
+                AL10.alSourcePlay(sources[i])
             }
         }
     }
 
     fun stopSourceViaBufferID(bufferID: Int) {
-        sources.forEach {
-            if (AL10.alGetSourcei(it, AL10.AL_BUFFER) == bufferID) {
-                AL10.alSourceStop(it)
+        for (i in 0 until sourceCount) {
+            if (AL10.alGetSourcei(sources[i], AL10.AL_BUFFER) == bufferID) {
+                AL10.alSourceStop(sources[i])
             }
         }
     }
 
     fun pauseSourceViaBufferID(bufferID: Int) {
-        sources.forEach {
-            if (AL10.alGetSourcei(it, AL10.AL_BUFFER) == bufferID) {
-                AL10.alSourcePause(it)
+        for (i in 0 until sourceCount) {
+            if (AL10.alGetSourcei(sources[i], AL10.AL_BUFFER) == bufferID) {
+                AL10.alSourcePause(sources[i])
             }
         }
     }
@@ -169,10 +221,10 @@ class OpenALAudioContext : Releasable, Audio {
     fun disposeSourceViaBufferID(bufferID: Int) {
         if (bufferID == -1) return
 
-        sources.forEach {
-            if (AL10.alGetSourcei(it, AL10.AL_BUFFER) == bufferID) {
-                AL10.alSourceStop(it)
-                AL10.alSourcei(it, AL10.AL_BUFFER, 0)
+        for (i in 0 until sourceCount) {
+            if (AL10.alGetSourcei(sources[i], AL10.AL_BUFFER) == bufferID) {
+                AL10.alSourceStop(sources[i])
+                AL10.alSourcei(sources[i], AL10.AL_BUFFER, 0)
             }
         }
         AL10.alDeleteBuffers(bufferID)
@@ -183,17 +235,25 @@ class OpenALAudioContext : Releasable, Audio {
             SOFTSystemEvents.nalcEventCallbackSOFT(0L, 0L)
             it.free()
         }
-        sources.forEach {
-            if (AL10.alGetSourcei(it, AL10.AL_BUFFER) == it) {
-                AL10.alSourceStop(it)
-                AL10.alSourcei(it, AL10.AL_BUFFER, 0)
+        if (!NO_DEVICE) {
+            for (i in 0 until sourceCount) {
+                AL10.alSourceStop(sources[i])
+                AL10.alSourcei(sources[i], AL10.AL_BUFFER, 0)
+                AL10.alDeleteSources(sources[i])
             }
         }
+        sourceCount = 0
         if (context != -1L) {
             ALC10.alcDestroyContext(context)
         }
         if (device != -1L) {
             ALC10.alcCloseDevice(device)
         }
+    }
+
+    companion object {
+        /** The default maximum number of sounds that can play at once. */
+        const val DEFAULT_MAX_SOURCES = 32
+        private const val OPENAL_DEFAULT_SOURCES = 256
     }
 }

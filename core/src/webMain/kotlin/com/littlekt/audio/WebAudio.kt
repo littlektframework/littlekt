@@ -24,6 +24,16 @@ object WebAudio : Audio {
 
     override fun setOutputDevice(name: String?): Boolean = false
 
+    /**
+     * The maximum number of times each [AudioClip] can play at once. Once reached, the oldest play
+     * of that clip restarts. Set from [com.littlekt.LittleKtProps.maxAudioClipInstances].
+     */
+    var maxInstancesPerClip: Int = DEFAULT_MAX_INSTANCES_PER_CLIP
+        internal set
+
+    /** The default for [maxInstancesPerClip]. */
+    const val DEFAULT_MAX_INSTANCES_PER_CLIP = 8
+
     internal fun addVolumeListener(listener: () -> Unit) {
         listeners += listener
     }

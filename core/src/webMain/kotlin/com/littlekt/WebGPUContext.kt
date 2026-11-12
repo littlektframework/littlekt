@@ -63,6 +63,10 @@ class WebGPUContext(override val configuration: JsConfiguration, gpuAdapter: GPU
 
     init {
         KtScope.initiate()
+        require(configuration.maxAudioClipInstances > 0) {
+            "maxAudioClipInstances must be greater than 0!"
+        }
+        WebAudio.maxInstancesPerClip = configuration.maxAudioClipInstances
     }
 
     override fun start(build: (app: Context) -> ContextListener) {

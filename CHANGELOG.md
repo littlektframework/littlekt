@@ -190,6 +190,10 @@
 - Desktop audio now follows the system default output device when none is selected.
 - Add `TextureBlitter` to draw a texture over a render pass with a chosen filter, such as for render scale.
 - Add `CanvasLayer.resolutionScale`; canvas layers in a `CanvasLayerContainer` now render at the screen's pixel scale.
+- Add `maxAudioSources` (desktop, default 32) & `maxAudioClipInstances` (web, default 8) app props.
+- Desktop audio now creates sources as needed and takes the oldest playing clip's source when full instead of dropping the sound.
+- Fix desktop audio being limited to 4 sounds at once.
+- Fix audio clips being able to take a playing stream's source.
 - `renderTarget()` and `Control.pixelScale` now use the back buffer size, so text is rasterized for high DPI screens.
 - Add layout shortcuts: `fillParent`, `centerInParent`, `anchors`, `expand`, `expandWidth`, `expandHeight`, `shrinkBegin`,
   `shrinkCenter`, `shrinkEnd` & `minSize`.

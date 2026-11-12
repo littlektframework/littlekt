@@ -30,7 +30,7 @@ class WebAudioClip(val assetPath: String) : AudioClip {
                 return clipPool[i]
             }
         }
-        if (clipPool.size < MAX_CLIP_POOL_SIZE) {
+        if (clipPool.size < WebAudio.maxInstancesPerClip) {
             val clip = ClipWrapper()
             clipPool += clip
             return clip
@@ -65,10 +65,6 @@ class WebAudioClip(val assetPath: String) : AudioClip {
         latestClip.stop()
         clipPool.clear()
         WebAudio.removeVolumeListener(volumeListener)
-    }
-
-    companion object {
-        const val MAX_CLIP_POOL_SIZE = 5
     }
 
     private enum class ClipState {

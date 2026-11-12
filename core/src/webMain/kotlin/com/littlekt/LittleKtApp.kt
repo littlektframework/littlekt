@@ -1,6 +1,7 @@
 package com.littlekt
 
 import com.littlekt.async.await
+import com.littlekt.audio.WebAudio
 import com.littlekt.graphics.webgpu.GPUAdapter
 import com.littlekt.graphics.webgpu.GPUDevice
 import com.littlekt.graphics.webgpu.navigator
@@ -15,6 +16,12 @@ actual class LittleKtProps {
     var resourcesDir: String = "./"
     var applicationDir: String = "./"
     var powerPreference = PowerPreference.HIGH_POWER
+
+    /**
+     * The maximum number of times each audio clip can play at once. Once reached, the oldest play
+     * of that clip restarts.
+     */
+    var maxAudioClipInstances = WebAudio.DEFAULT_MAX_INSTANCES_PER_CLIP
 }
 
 /**
@@ -35,7 +42,8 @@ actual suspend fun createLittleKtApp(action: LittleKtProps.() -> Unit): LittleKt
                 canvasId = props.canvasId,
                 resourcesPath = props.resourcesDir,
                 applicationPath = props.applicationDir,
-                powerPreference = props.powerPreference
+                powerPreference = props.powerPreference,
+                maxAudioClipInstances = props.maxAudioClipInstances,
             ),
             gpuAdapter,
             gpuDevice
@@ -52,7 +60,8 @@ class JsConfiguration(
     val canvasId: String = "canvas",
     val resourcesPath: String = "./",
     val applicationPath: String = "./",
-    val powerPreference: PowerPreference = PowerPreference.HIGH_POWER
+    val powerPreference: PowerPreference = PowerPreference.HIGH_POWER,
+    val maxAudioClipInstances: Int = WebAudio.DEFAULT_MAX_INSTANCES_PER_CLIP,
 ) : ContextConfiguration()
 
 val PowerPreference.nativeFlag: String

@@ -65,7 +65,7 @@ class OpenALAudioStream(
                 reset()
                 needsReset = false
             }
-            sourceID = context.obtainSource()
+            sourceID = context.obtainSource(reserve = true)
             if (sourceID == -1) return@withDevice
 
             context.audioStreams += this
@@ -115,6 +115,7 @@ class OpenALAudioStream(
 
         alSourceStop(sourceID)
         alSourcei(sourceID, AL_BUFFER, 0)
+        context.releaseSource(sourceID)
 
         sourceID = -1
         isPlaying = false
@@ -139,6 +140,7 @@ class OpenALAudioStream(
             context.audioStreams -= this
             alSourceStop(sourceID)
             alSourcei(sourceID, AL_BUFFER, 0)
+            context.releaseSource(sourceID)
 
             sourceID = -1
             isPlaying = false
