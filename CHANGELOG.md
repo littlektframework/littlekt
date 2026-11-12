@@ -194,6 +194,7 @@
 - Desktop audio now creates sources as needed and takes the oldest playing clip's source when full instead of dropping the sound.
 - Fix desktop audio being limited to 4 sounds at once.
 - Fix audio clips being able to take a playing stream's source.
+- Fix containers dropping a re-sort requested while sorting, which left wrapped labels at a stale height.
 - `renderTarget()` and `Control.pixelScale` now use the back buffer size, so text is rasterized for high DPI screens.
 - Add layout shortcuts: `fillParent`, `centerInParent`, `anchors`, `expand`, `expandWidth`, `expandHeight`, `shrinkBegin`,
   `shrinkCenter`, `shrinkEnd` & `minSize`.

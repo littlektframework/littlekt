@@ -263,7 +263,7 @@ open class Button : BaseButton() {
                 color = focusDrawable.tint,
             )
         }
-        if (scaledText.font == null || pixelScale != scaledText.pixelScale) layout()
+        if (scaledText.font == null || pixelScale != scaledText.pixelScale) onMinimumSizeChanged()
         scaledText.cache.let {
             tempColor
                 .set(color)

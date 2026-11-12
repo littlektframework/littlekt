@@ -191,7 +191,7 @@ open class Label : Control() {
     }
 
     override fun render(batch: Batch, camera: Camera, shapeRenderer: ShapeRenderer) {
-        if (scaledText.font == null || pixelScale != scaledText.pixelScale) layout()
+        if (scaledText.font == null || pixelScale != scaledText.pixelScale) onMinimumSizeChanged()
         scaledText.cache.let {
             tempColor.set(color).mul(fontColor)
             it.tint(tempColor)

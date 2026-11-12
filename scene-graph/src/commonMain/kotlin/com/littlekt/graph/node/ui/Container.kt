@@ -201,10 +201,10 @@ open class Container : Control() {
     }
 
     private fun sortChildren() {
+        pendingSort = false
         onPresortChildren.emit()
         onSortChildren.emit()
         onSortChildren()
-        pendingSort = false
     }
 
     /** Sort children nodes within the container. */
