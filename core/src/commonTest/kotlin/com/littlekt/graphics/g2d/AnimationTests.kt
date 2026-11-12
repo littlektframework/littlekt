@@ -31,6 +31,11 @@ class AnimationTests {
     }
 
     @Test
+    fun test_empty_frame_time_is_zero() {
+        assertEquals(Duration.ZERO, Animation<String>(emptyList(), emptyList(), emptyList()).getFrameTime(0))
+    }
+
+    @Test
     fun test_get_frame_by_time() {
         val anim = animation(100, 100, 100)
         assertEquals("f0", anim.getFrame(Duration.ZERO))

@@ -461,6 +461,41 @@ class GltfJsonTests {
     }
 
     @Test
+    fun test_sparse_accessor_uses_count_and_byte_offsets() {
+        val gltf =
+            json.decodeFromString<GltfData>(
+                """
+                {
+                  "asset": {"version": "2.0"},
+                  "buffers": [{"byteLength": 32}],
+                  "bufferViews": [
+                    {"buffer": 0, "byteOffset": 0, "byteLength": 16},
+                    {"buffer": 0, "byteOffset": 16, "byteLength": 4},
+                    {"buffer": 0, "byteOffset": 20, "byteLength": 12}
+                  ],
+                  "accessors": [{
+                    "bufferView": 0, "componentType": 5126, "count": 4, "type": "SCALAR",
+                    "sparse": {
+                      "count": 1,
+                      "indices": {"bufferView": 1, "byteOffset": 1, "componentType": 5121},
+                      "values": {"bufferView": 2, "byteOffset": 4}
+                    }
+                  }]
+                }
+                """
+                    .trimIndent()
+            )
+        val bytes = ByteArray(32)
+        floats(1f, 2f, 3f, 4f).copyInto(bytes)
+        bytes[17] = 1
+        bytes[18] = 3
+        floats(99f, 10f, 20f).copyInto(bytes, 20)
+        gltf.buffers[0].data = ByteBuffer(bytes)
+        val accessor = GltfFloatAccessor(gltf.accessors[0])
+        assertEquals(listOf(1f, 10f, 3f, 4f), List(4) { accessor.next() })
+    }
+
+    @Test
     fun test_float_accessor_normalizes_unsigned_byte() {
         val accessor = GltfFloatAccessor(accessor(5121, "SCALAR", 2, byteArrayOf(0xFF.toByte(), 0)))
         assertEquals(1f, accessor.next())

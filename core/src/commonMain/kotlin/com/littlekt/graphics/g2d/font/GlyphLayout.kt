@@ -170,7 +170,7 @@ class GlyphLayout {
 
                                 // start the wrap loop again, another wrap might be necessary
                                 runWidth = newRun.advances.first() + newRun.advances[1]
-                                i = 1
+                                i = 2
                             }
                         }
                     }

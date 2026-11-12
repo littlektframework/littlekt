@@ -129,6 +129,12 @@
 - Add a `buttonGroup { }` builder and `ButtonGroup.buttons`, `selected` & `onSelected`.
 - Add `StackContainer` & `stack { }` that layers children without a background.
 - Add `StackScope` modifiers `align`, `fillWidth` & `fillHeight` for stack, panel container & padded container children.
+- Add `ScrollScope` modifiers `fillViewportWidth`, `fillViewportHeight` & `fillViewport` for scroll container children.
+- Fix `ScrollContainer` expanded children filling under visible scroll bars.
+- Fix `AnimationPlayer` & `Animation.getFrameTime` crashing on animations with no frames.
+- Fix looped `AnimationPlayer` hanging on an infinite delta and looping once per frame on a huge delta.
+- Fix glTF sparse accessors reading past the sparse `count` and ignoring sparse index & value byte offsets.
+- Fix `GlyphLayout` wrapping words that fit on every line after the first.
 - Add layout shortcuts: `fillParent`, `centerInParent`, `anchors`, `expand`, `expandWidth`, `expandHeight`, `shrinkBegin`,
   `shrinkCenter`, `shrinkEnd` & `minSize`.
 - Add a `margin` to `Control.anchor` & `PaddedContainer.padding(horizontal, vertical)` & `padding(left, top, right, bottom)`.

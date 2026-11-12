@@ -122,4 +122,12 @@ class FontCacheTests {
         assertEquals(2, layout.runs.size)
         assertEquals(16f, layout.height)
     }
+
+    @Test
+    fun test_glyph_layout_wraps_words_that_fit_on_their_own_line() {
+        val layout = GlyphLayout()
+        layout.setText(TestFont(), "ab ab ab", Color.WHITE, width = 14f, wrap = true)
+        assertEquals(3, layout.runs.size)
+        layout.runs.forEach { run -> assertEquals("ab", run.glyphs.joinToString("") { it.code.toChar().toString() }) }
+    }
 }

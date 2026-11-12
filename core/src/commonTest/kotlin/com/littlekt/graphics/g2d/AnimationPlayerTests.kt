@@ -4,6 +4,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.milliseconds
 
 class AnimationPlayerTests {
@@ -167,6 +168,38 @@ class AnimationPlayerTests {
         player.playOnce(Animation(listOf("a", "b"), listOf(0, 1), listOf(Duration.ZERO, Duration.ZERO)))
         player.update(16.milliseconds)
         assertNull(player.currentAnimation)
+    }
+
+    @Test
+    fun test_empty_animation_finishes_without_crashing() {
+        val player = AnimationPlayer<String>()
+        val empty = Animation<String>(emptyList(), emptyList(), emptyList())
+        player.playOnce(empty)
+        player.update(frameTime)
+        assertNull(player.currentKeyFrame)
+        player.playLooped(empty)
+        player.update(frameTime)
+        assertNull(player.currentKeyFrame)
+    }
+
+    @Test
+    fun test_looped_huge_dt_skips_whole_cycles() {
+        val player = AnimationPlayer<String>()
+        player.playLooped(animation("a", "b", "c"))
+        player.update(1.hours + frameTime)
+        assertEquals("b", player.currentKeyFrame)
+        assertEquals(36001, player.totalFramesPlayed)
+    }
+
+    @Test
+    fun test_looped_infinite_dt_does_not_hang() {
+        val player = AnimationPlayer<String>()
+        val anim = animation("a", "b")
+        player.playLooped(anim)
+        player.update(Duration.INFINITE)
+        assertEquals(anim, player.currentAnimation)
+        player.step()
+        assertEquals("b", player.currentKeyFrame)
     }
 
     @Test

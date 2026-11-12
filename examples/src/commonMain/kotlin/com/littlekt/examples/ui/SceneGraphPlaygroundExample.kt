@@ -150,7 +150,9 @@ class SceneGraphPlaygroundExample(context: Context) : ContextListener(context) {
         }
         row(modifier = Modifier.weight()) {
             scrollContainer(Modifier.weight()) {
-                column { repeat(20) { label("Scroll item $it") } }
+                column(modifier = Modifier.fillViewportWidth()) {
+                    repeat(20) { label("Scroll item $it") { horizontalAlign = HAlign.CENTER } }
+                }
             }
             vScrollBar {
                 page = 20f

@@ -3,6 +3,7 @@ package com.littlekt.graphics.g2d
 import com.littlekt.util.datastructure.Pool
 import com.littlekt.util.datastructure.fastForEach
 import com.littlekt.util.internal.umod
+import kotlin.math.floor
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -39,13 +40,13 @@ open class AnimationPlayer<KeyFrameType> {
     /** The index of the current frame */
     var currentFrameIdx = 0
         private set(value) {
-            field = value umod totalFrames
+            field = if (totalFrames > 0) value umod totalFrames else 0
             onFrameChange?.invoke(field)
         }
 
     /** The current key frame of [currentAnimation], if available. */
     val currentKeyFrame: KeyFrameType?
-        get() = currentAnimation?.getFrame(currentFrameIdx)
+        get() = currentAnimation?.takeIf { it.totalFrames > 0 }?.getFrame(currentFrameIdx)
 
     /** Invoked when a frame is changed. */
     var onFrameChange: ((Int) -> Unit)? = null
@@ -281,6 +282,7 @@ open class AnimationPlayer<KeyFrameType> {
 
     private fun nextFrame(dt: Duration) {
         lastFrameTime += dt
+        skipWholeCycles()
         var zeroTimeFrames = 0
         while (animationRequested && lastFrameTime >= frameDisplayTime) {
             val instance = currentAnimationInstance
@@ -313,6 +315,22 @@ open class AnimationPlayer<KeyFrameType> {
                 zeroTimeFrames = 0
             }
         }
+    }
+
+    private fun skipWholeCycles() {
+        val endless =
+            animationType == AnimationType.LOOPED ||
+                (animationType == AnimationType.DURATION && remainingDuration.isInfinite())
+        if (!endless) return
+        val cycle = (currentAnimation?.duration ?: return) * currentSpeed.toDouble()
+        if (cycle <= Duration.ZERO || cycle.isInfinite() || lastFrameTime < cycle) return
+        if (lastFrameTime.isInfinite()) {
+            lastFrameTime = Duration.ZERO
+            return
+        }
+        val cycles = floor(lastFrameTime / cycle)
+        lastFrameTime -= cycle * cycles
+        totalFramesPlayed += (cycles * totalFrames).toInt()
     }
 
     private fun displayTime(index: Int): Duration =

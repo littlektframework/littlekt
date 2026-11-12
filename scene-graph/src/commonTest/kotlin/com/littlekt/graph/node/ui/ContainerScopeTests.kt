@@ -192,6 +192,21 @@ class ContainerScopeTests {
     }
 
     @Test
+    fun test_scroll_fill_viewport_sets_expand_fill() {
+        lateinit var wide: Control
+        lateinit var both: Control
+        ScrollContainer().apply {
+            wide = control(modifier = Modifier.fillViewportWidth())
+            both = control(modifier = Modifier.fillViewport())
+        }
+        val expandFill = Control.SizeFlag.FILL or Control.SizeFlag.EXPAND
+        assertEquals(expandFill, wide.horizontalSizing)
+        assertEquals(Control.SizeFlag.FILL, wide.verticalSizing)
+        assertEquals(expandFill, both.horizontalSizing)
+        assertEquals(expandFill, both.verticalSizing)
+    }
+
+    @Test
     fun test_nested_column_uses_its_own_scope() {
         lateinit var label: Control
         row {

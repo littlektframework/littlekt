@@ -80,6 +80,34 @@ interface StackScope {
         then(Modifier.Element { it.verticalSizing = SizeFlag.FILL })
 }
 
+/**
+ * The [Modifier]s only available to the children of a [ScrollContainer]. Children keep their
+ * minimum size by default and scroll when it is larger than the visible area.
+ *
+ * ```
+ * scrollContainer {
+ *     column(modifier = Modifier.fillViewportWidth()) {
+ *         repeat(20) { button("Item $it") }
+ *     }
+ * }
+ * ```
+ *
+ * @author Colton Daily
+ * @date 11/11/2026
+ */
+interface ScrollScope {
+    /** Stretches the child to at least the visible width so only its height scrolls. */
+    fun Modifier.fillViewportWidth(): Modifier =
+        then(Modifier.Element { it.horizontalSizing = SizeFlag.FILL or SizeFlag.EXPAND })
+
+    /** Stretches the child to at least the visible height so only its width scrolls. */
+    fun Modifier.fillViewportHeight(): Modifier =
+        then(Modifier.Element { it.verticalSizing = SizeFlag.FILL or SizeFlag.EXPAND })
+
+    /** Stretches the child to at least the visible area on both axes. */
+    fun Modifier.fillViewport(): Modifier = fillViewportWidth().fillViewportHeight()
+}
+
 private fun HAlign.toSizeFlag(): SizeFlag =
     when (this) {
         HAlign.LEFT -> SizeFlag.SHRINK_BEGIN

@@ -23,6 +23,7 @@ internal abstract class GltfAccessorDataStream(val accessor: GltfAccessor) {
     private val sparseValueStream: IndexedByteSequenceStream?
     private val sparseIndexType: GltfComponentType
     private var nextSparseIndex: Int
+    private var sparseIndicesLeft: Int
 
     var index: Int = 0
         set(value) {
@@ -31,24 +32,28 @@ internal abstract class GltfAccessorDataStream(val accessor: GltfAccessor) {
         }
 
     init {
-        if (accessor.sparse != null) {
+        if (accessor.sparse != null && accessor.sparse.count > 0) {
+            val indices = accessor.sparse.indices
+            val values = accessor.sparse.values
             sparseIndexStream =
                 IndexedByteSequenceStream(
-                    accessor.sparse.indices.bufferViewRef.bufferRef.data,
-                    accessor.sparse.indices.bufferViewRef.byteOffset,
+                    indices.bufferViewRef.bufferRef.data,
+                    indices.bufferViewRef.byteOffset + indices.byteOffset,
                 )
             sparseValueStream =
                 IndexedByteSequenceStream(
-                    accessor.sparse.values.bufferViewRef.bufferRef.data,
-                    accessor.sparse.values.bufferViewRef.byteOffset,
+                    values.bufferViewRef.bufferRef.data,
+                    values.bufferViewRef.byteOffset + values.byteOffset,
                 )
-            sparseIndexType = accessor.sparse.indices.componentType
+            sparseIndexType = indices.componentType
             nextSparseIndex = sparseIndexStream.nextIntComponent(sparseIndexType)
+            sparseIndicesLeft = accessor.sparse.count - 1
         } else {
             sparseIndexStream = null
             sparseValueStream = null
             sparseIndexType = GltfComponentType.Unknown
             nextSparseIndex = -1
+            sparseIndicesLeft = 0
         }
 
         val compByteSize = accessor.componentType.byteSize
@@ -110,8 +115,13 @@ internal abstract class GltfAccessorDataStream(val accessor: GltfAccessor) {
     }
 
     protected fun advance() {
-        if (index == nextSparseIndex && sparseIndexStream?.hasRemaining() == true) {
-            nextSparseIndex = sparseIndexStream.nextIntComponent(sparseIndexType)
+        if (index == nextSparseIndex) {
+            if (sparseIndicesLeft > 0 && sparseIndexStream != null) {
+                nextSparseIndex = sparseIndexStream.nextIntComponent(sparseIndexType)
+                sparseIndicesLeft--
+            } else {
+                nextSparseIndex = -1
+            }
         }
         index++
     }

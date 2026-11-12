@@ -67,7 +67,7 @@ inline fun SceneGraph<*>.scrollContainer(
  * @author Colton Daily
  * @date 10/16/2022
  */
-class ScrollContainer : Container(), GestureProcessor {
+class ScrollContainer : Container(), GestureProcessor, ScrollScope {
 
     /** Triggered when the container scrolling is started */
     val onScroll = signal()
@@ -406,6 +406,11 @@ class ScrollContainer : Container(), GestureProcessor {
         var height = height
         width -= panel.minWidth
         height -= panel.minHeight
+        val viewWidth =
+            if (vScrollBar.visible && vScrollBar.parent == this) width - vScrollBar.width else width
+        val viewHeight =
+            if (hScrollBar.visible && hScrollBar.parent == this) height - hScrollBar.height
+            else height
 
         nodes.forEach {
             if (it !is Control || !it.visible || !it.enabled || it.isDestroyed) return@forEach
@@ -417,10 +422,10 @@ class ScrollContainer : Container(), GestureProcessor {
             var th = it.combinedMinHeight
 
             if (it.horizontalSizing.isFlagSet(SizeFlag.EXPAND)) {
-                tw = max(width, it.combinedMinWidth)
+                tw = max(viewWidth, it.combinedMinWidth)
             }
             if (it.verticalSizing.isFlagSet(SizeFlag.EXPAND)) {
-                th = max(height, it.combinedMinHeight)
+                th = max(viewHeight, it.combinedMinHeight)
             }
             tx += panel.marginLeft
             ty += panel.marginBottom - th

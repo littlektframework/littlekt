@@ -76,7 +76,8 @@ class Animation<KeyFrameType>(
      * @param index the index of the frame.
      * @return the frame time of the frame.
      */
-    fun getFrameTime(index: Int): Duration = frameTimes[index umod frameTimes.size]
+    fun getFrameTime(index: Int): Duration =
+        if (frameTimes.isEmpty()) Duration.ZERO else frameTimes[index umod frameTimes.size]
 
     /**
      * @param index the index of the key frame
