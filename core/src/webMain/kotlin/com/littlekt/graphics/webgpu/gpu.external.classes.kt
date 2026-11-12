@@ -37,11 +37,20 @@ external class GPUCanvasContext : RenderingContext {
 open external class GPUAdapter : JsAny {
     val name: String
 
+    val info: GPUAdapterInfo?
+
     val features: JsGPUSupportedFeatures
 
     val limits: GPUSupportedLimits
 
     fun requestDevice(gpuDeviceDescriptor: GPUDeviceDescriptor?): Promise<GPUDevice>
+}
+
+external interface GPUAdapterInfo : JsAny {
+    val vendor: String?
+    val architecture: String?
+    val device: String?
+    val description: String?
 }
 
 external interface JsGPUSupportedFeatures : JsAny {

@@ -139,10 +139,50 @@ expect class Device : Releasable {
     override fun release()
 }
 
+/**
+ * Information about an [Adapter]. Values the platform doesn't report are empty.
+ *
+ * @property vendor the vendor, such as `nvidia`
+ * @property architecture the architecture, such as `ampere`
+ * @property device the device name, such as `NVIDIA GeForce RTX 3080`
+ * @property description extra details, such as the driver version on desktop or a readable name
+ *   on the web
+ * @property backend the graphics backend, such as `Vulkan`, `D3D12`, `Metal` or `WebGPU`
+ * @property type the kind of adapter
+ * @author Colton Daily
+ * @date 11/12/2026
+ */
+data class AdapterInfo(
+    val vendor: String,
+    val architecture: String,
+    val device: String,
+    val description: String,
+    val backend: String,
+    val type: AdapterType,
+)
+
+/** The kind of an [Adapter]. */
+enum class AdapterType {
+    /** A dedicated GPU. */
+    DISCRETE_GPU,
+
+    /** A GPU built into the CPU. */
+    INTEGRATED_GPU,
+
+    /** A software renderer. */
+    CPU,
+
+    /** The platform doesn't report the type. */
+    UNKNOWN,
+}
+
 /** A handle to a physical graphics and/or compute device. */
 expect class Adapter : Releasable {
     /** The features which can be used to create devices on this adapter. */
     val features: List<Feature>
+
+    /** Information about this adapter, such as its vendor and name. */
+    val info: AdapterInfo
 
     /**
      * The best limits which can be used to create devices on this adapter. Each adapter limit must

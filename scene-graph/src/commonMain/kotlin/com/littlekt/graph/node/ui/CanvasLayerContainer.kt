@@ -122,6 +122,8 @@ open class CanvasLayerContainer : Container() {
 
     override fun render(batch: Batch, camera: Camera, shapeRenderer: ShapeRenderer) {
         super.render(batch, camera, shapeRenderer)
+        val resolutionScale = if (shrink == 1) pixelScale else 1f
+        fbos.fastForEach { it.resolutionScale = resolutionScale }
         if (dirty) {
             fbos.fastForEach {
                 it.resizeFbo(
@@ -132,19 +134,18 @@ open class CanvasLayerContainer : Container() {
             dirty = false
         }
         fbos.fastForEach { fbo ->
-            val target = fbo.target
             batch.draw(
-                texture = target,
+                texture = fbo.target,
                 x = globalX - margin / shrink + offsetX - originX,
                 y = globalY - margin / shrink + offsetY - originY,
                 originX = originX,
                 originY = originY,
                 width =
                     if (stretch) width + margin * 2 / shrink
-                    else target.width.toFloat() + margin * 2 / shrink,
+                    else fbo.width.toFloat() + margin * 2 / shrink,
                 height =
                     if (stretch) height + margin * 2 / shrink
-                    else target.height.toFloat() + margin * 2 / shrink,
+                    else fbo.height.toFloat() + margin * 2 / shrink,
                 scaleX = globalScaleX,
                 scaleY = globalScaleY,
                 rotation = globalRotation,

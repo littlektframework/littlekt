@@ -7,9 +7,12 @@ import com.littlekt.WindowMode
 import com.littlekt.configureSurfaceOnResize
 import com.littlekt.examples.addCloseOnEsc
 import com.littlekt.examples.addStatsHandler
+import com.littlekt.file.vfs.readAudioClip
 import com.littlekt.graph.node.ui.*
 import com.littlekt.graph.sceneGraph
 import com.littlekt.graphics.Color
+import com.littlekt.graphics.EmptyTexture
+import com.littlekt.graphics.TextureBlitter
 import com.littlekt.graphics.webgpu.RenderPassDescriptor
 import com.littlekt.graphics.webgpu.colorAttachment
 import com.littlekt.renderFrame
@@ -37,6 +40,13 @@ class DisplaySettingsExample(context: Context) : ContextListener(context) {
         var confirmClose = false
         val limits = listOf(null, 30, 60, 144)
         var limitIndex = 0
+        val volumes = listOf(1f, 0.5f, 0.1f, 0f)
+        var volumeIndex = 0
+        var renderScale = 1f
+        val sound = resourcesVfs["random.wav"].readAudioClip()
+        val blitter = TextureBlitter(graphics.device, graphics.preferredFormat)
+        val scaledTarget = EmptyTexture(graphics.device, graphics.preferredFormat, 1, 1)
+        val gpu = graphics.adapter.info
         lateinit var info: Label
         lateinit var events: Label
         lateinit var fps: Label
@@ -118,6 +128,30 @@ class DisplaySettingsExample(context: Context) : ContextListener(context) {
                                 onToggled += { confirmClose = it }
                             }
                         }
+                        row(separation = 8) {
+                            button("Play sound") { onPressed += { sound.play() } }
+                            button("Next volume") {
+                                onPressed += {
+                                    volumeIndex = (volumeIndex + 1) % volumes.size
+                                    audio.masterVolume = volumes[volumeIndex]
+                                }
+                            }
+                            button("Next audio device") {
+                                disabled = !audio.canSelectOutputDevice
+                                onPressed += {
+                                    val devices = audio.outputDevices
+                                    if (devices.isNotEmpty()) {
+                                        val next =
+                                            devices[(devices.indexOf(audio.outputDevice) + 1) % devices.size]
+                                        audio.setOutputDevice(next)
+                                    }
+                                }
+                            }
+                            button("Render at 50%") {
+                                toggleMode = true
+                                onToggled += { renderScale = if (it) 0.5f else 1f }
+                            }
+                        }
                         progressBar {
                             onUpdate += { dt -> value = (value + dt.seconds * 50f) % max }
                         }
@@ -132,6 +166,7 @@ class DisplaySettingsExample(context: Context) : ContextListener(context) {
         onContentScaleChanged { log("Content scale changed: $it") }
         onWindowModeChanged { log("Window mode changed: ${it::class.simpleName}") }
         onMonitorsChanged { log("Monitors changed: ${it.size} connected") }
+        onAudioDevicesChanged { log("Audio devices changed: ${it.size} available") }
         onCloseRequested {
             if (confirmClose) {
                 confirmClose = false
@@ -154,17 +189,47 @@ class DisplaySettingsExample(context: Context) : ContextListener(context) {
                     "Monitor ${monitorIndex + 1}/${window.monitors.size}: ${monitor.name} | " +
                     "video mode ${mode.width}x${mode.height}@${mode.refreshRate}\n" +
                     "Present mode ${graphics.presentMode} of ${graphics.surfaceCapabilities.presentModes} | " +
-                    "frame limit ${frameRateLimit ?: "none"}"
+                    "frame limit ${frameRateLimit ?: "none"}\n" +
+                    "GPU: ${gpu.device.ifEmpty { gpu.description }} | ${gpu.backend} | ${gpu.type}\n" +
+                    "Audio: ${audio.outputDevice ?: "default"} | volume ${(audio.masterVolume * 100).toInt()}% | " +
+                    "render scale ${(renderScale * 100).toInt()}%"
             fps.text = "FPS: ${stats.fps.toInt()}"
             renderFrame("display settings") { frame, commandEncoder ->
                 graph.update(dt)
-                graph.render(
-                    commandEncoder,
-                    RenderPassDescriptor(colorAttachment(frame, clearColor), label = "UI pass"),
-                )
+                if (renderScale == 1f) {
+                    graph.render(
+                        commandEncoder,
+                        RenderPassDescriptor(colorAttachment(frame, clearColor), label = "UI pass"),
+                    )
+                } else {
+                    val width = (graphics.backBufferWidth * renderScale).toInt().coerceAtLeast(1)
+                    val height = (graphics.backBufferHeight * renderScale).toInt().coerceAtLeast(1)
+                    if (scaledTarget.width != width || scaledTarget.height != height) {
+                        scaledTarget.resize(width, height)
+                    }
+                    graph.render(
+                        commandEncoder,
+                        RenderPassDescriptor(
+                            colorAttachment(scaledTarget.view, clearColor),
+                            label = "UI pass",
+                        ),
+                    )
+                    val pass =
+                        commandEncoder.beginRenderPass(
+                            RenderPassDescriptor(colorAttachment(frame, clearColor), label = "Blit pass")
+                        )
+                    blitter.blit(pass, scaledTarget.view)
+                    pass.end()
+                    pass.release()
+                }
             }
         }
 
-        onRelease { graph.release() }
+        onRelease {
+            graph.release()
+            blitter.release()
+            scaledTarget.release()
+            sound.release()
+        }
     }
 }

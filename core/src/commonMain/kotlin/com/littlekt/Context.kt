@@ -1,5 +1,6 @@
 package com.littlekt
 
+import com.littlekt.audio.Audio
 import com.littlekt.file.KeyValueStorage
 import com.littlekt.file.Vfs
 import com.littlekt.file.vfs.VfsFile
@@ -49,6 +50,7 @@ abstract class Context {
     protected val windowModeChangedCalls = mutableListOf<(WindowMode) -> Unit>()
     protected val monitorsChangedCalls = mutableListOf<(List<Monitor>) -> Unit>()
     protected val closeRequestedCalls = mutableListOf<() -> Boolean>()
+    protected val audioDevicesChangedCalls = mutableListOf<(List<String>) -> Unit>()
     protected val releaseCalls = mutableListOf<suspend () -> Unit>()
     protected val postRunnableCalls = mutableListOf<() -> Unit>()
 
@@ -67,6 +69,8 @@ abstract class Context {
 
     /** The graphics related properties and instances. */
     abstract val window: Window
+
+    abstract val audio: Audio
 
     /**
      * The maximum number of frames per second, or `null` for no limit. The limit is on top of any
@@ -202,6 +206,13 @@ abstract class Context {
      */
     open fun onCloseRequested(action: () -> Boolean): RemoveContextCallback =
         addCallback(closeRequestedCalls, action, "onCloseRequested")
+
+    /**
+     * Invoked when an audio output device is added or removed, or the default device changes.
+     * Only called where the platform reports device changes.
+     */
+    open fun onAudioDevicesChanged(action: (devices: List<String>) -> Unit): RemoveContextCallback =
+        addCallback(audioDevicesChangedCalls, action, "onAudioDevicesChanged")
 
     /** @return `true` if every [onCloseRequested] callback allows closing. */
     protected fun allowClose(): Boolean {

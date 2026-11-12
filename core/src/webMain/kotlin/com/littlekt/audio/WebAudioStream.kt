@@ -29,13 +29,20 @@ class WebAudioStream(val assetPath: String) : AudioStream {
     override val playing: Boolean
         get() = clipState == StreamState.PLAYING
 
-    override var volume: Float
-        get() = audioElement.volume.toFloat()
+    override var volume: Float = 1f
         set(value) {
-            audioElement.volume = value.toDouble()
+            field = value
+            applyVolume()
         }
 
+    private val volumeListener: () -> Unit = { applyVolume() }
+
+    private fun applyVolume() {
+        audioElement.volume = (volume * WebAudio.masterVolume).toDouble()
+    }
+
     init {
+        WebAudio.addVolumeListener(volumeListener)
         audioElement.onended = {
             clipState = StreamState.STOPPED
         }
@@ -70,6 +77,7 @@ class WebAudioStream(val assetPath: String) : AudioStream {
 
     override fun release() {
         stop()
+        WebAudio.removeVolumeListener(volumeListener)
     }
 
     private enum class StreamState {

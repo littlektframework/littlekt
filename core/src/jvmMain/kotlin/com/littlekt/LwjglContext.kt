@@ -3,6 +3,7 @@ package com.littlekt
 import com.littlekt.async.KtScope
 import com.littlekt.async.MainDispatcher
 import com.littlekt.async.mainThread
+import com.littlekt.audio.Audio
 import com.littlekt.audio.OpenALAudioContext
 import com.littlekt.file.*
 import com.littlekt.graphics.HdpiMode
@@ -70,6 +71,9 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context() {
         private set
 
     internal val audioContext = OpenALAudioContext()
+
+    override val audio: Audio
+        get() = audioContext
 
     private val windowShouldClose: Boolean
         get() = GLFW.glfwWindowShouldClose(windowHandle)
@@ -330,6 +334,10 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context() {
 
     private suspend fun update(dt: Duration) {
         audioContext.update()
+        if (audioContext.pollDevicesChanged()) {
+            val devices = audioContext.outputDevices
+            audioDevicesChangedCalls.fastForEach { it(devices) }
+        }
 
         EngineStats.resetPerFrameCounts()
 

@@ -1,6 +1,8 @@
 package com.littlekt
 
 import com.littlekt.async.KT
+import com.littlekt.audio.Audio
+import com.littlekt.audio.WebAudio
 import com.littlekt.async.KtScope
 import com.littlekt.async.await
 import com.littlekt.file.*
@@ -33,6 +35,7 @@ class WebGPUContext(override val configuration: JsConfiguration, gpuAdapter: GPU
     override val graphics: WebGPUGraphics = WebGPUGraphics(canvas, gpuAdapter, gpuDevice)
     override val input: JsInput = JsInput(canvas)
     override val window: WebWindow = WebWindow(canvas)
+    override val audio: Audio = WebAudio
     override val logger: Logger = Logger(configuration.title)
     override val vfsResources: Vfs = WebLocalVfs(this, logger, configuration.resourcesPath)
     override val vfsUrl: Vfs = WebUrlVfs(this, logger)

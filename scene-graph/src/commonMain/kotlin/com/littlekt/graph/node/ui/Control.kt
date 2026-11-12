@@ -1574,7 +1574,7 @@ open class Control : CanvasItem() {
             if (virtualWidth <= 0f || canvas.width <= 0) return 1f
             val scale = canvas.width / virtualWidth
             val scene = scene ?: return scale
-            if (canvas !== scene.sceneCanvas) return scale
+            if (canvas !== scene.sceneCanvas) return scale * canvas.resolutionScale
             val graphics = scene.context.graphics
             if (graphics.width <= 0) return scale
             return scale * graphics.backBufferWidth / graphics.width

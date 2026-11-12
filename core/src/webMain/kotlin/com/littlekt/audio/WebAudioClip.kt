@@ -16,6 +16,11 @@ class WebAudioClip(val assetPath: String) : AudioClip {
         get() = latestClip.duration.toDouble().seconds
 
     private val clipPool = mutableListOf(ClipWrapper())
+    private val volumeListener: () -> Unit = { clipPool.forEach { it.applyVolume() } }
+
+    init {
+        WebAudio.addVolumeListener(volumeListener)
+    }
     private var latestClip = clipPool.first()
     private var lastPlay = Double.NEGATIVE_INFINITY
 
@@ -59,6 +64,7 @@ class WebAudioClip(val assetPath: String) : AudioClip {
     override fun release() {
         latestClip.stop()
         clipPool.clear()
+        WebAudio.removeVolumeListener(volumeListener)
     }
 
     companion object {
@@ -73,11 +79,15 @@ class WebAudioClip(val assetPath: String) : AudioClip {
     private inner class ClipWrapper {
         val audioElement = Audio(assetPath)
 
-        var volume: Float
-            get() = audioElement.volume.toFloat()
+        var volume: Float = 1f
             set(value) {
-                audioElement.volume = value.toDouble()
+                field = value
+                applyVolume()
             }
+
+        fun applyVolume() {
+            audioElement.volume = (volume * WebAudio.masterVolume).toDouble()
+        }
 
         var currentTime: Float
             get() = audioElement.currentTime.toFloat()

@@ -14,6 +14,19 @@ import ffi.MemoryBuffer
 import ffi.NativeAddress
 import ffi.memoryScope
 import io.ygdrasil.wgpu.WGPUAdapter
+import io.ygdrasil.wgpu.WGPUAdapterInfo
+import io.ygdrasil.wgpu.wgpuAdapterGetInfo
+import io.ygdrasil.wgpu.WGPUStringView
+import io.ygdrasil.wgpu.WGPUBackendType_D3D11
+import io.ygdrasil.wgpu.WGPUBackendType_D3D12
+import io.ygdrasil.wgpu.WGPUBackendType_Metal
+import io.ygdrasil.wgpu.WGPUBackendType_Vulkan
+import io.ygdrasil.wgpu.WGPUBackendType_OpenGL
+import io.ygdrasil.wgpu.WGPUBackendType_OpenGLES
+import io.ygdrasil.wgpu.WGPUBackendType_WebGPU
+import io.ygdrasil.wgpu.WGPUAdapterType_DiscreteGPU
+import io.ygdrasil.wgpu.WGPUAdapterType_IntegratedGPU
+import io.ygdrasil.wgpu.WGPUAdapterType_CPU
 import io.ygdrasil.wgpu.WGPUBuffer
 import io.ygdrasil.wgpu.WGPUBufferDescriptor
 import io.ygdrasil.wgpu.WGPUCommandEncoderDescriptor
@@ -353,6 +366,39 @@ actual class Device(val segment: WGPUDevice) : Releasable {
 }
 
 actual class Adapter(var segment: WGPUAdapter) : Releasable {
+    actual val info: AdapterInfo by lazy {
+        memoryScope { scope ->
+            val info = WGPUAdapterInfo.allocate(scope)
+            wgpuAdapterGetInfo(segment, info)
+            AdapterInfo(
+                vendor = info.vendor.text(),
+                architecture = info.architecture.text(),
+                device = info.device.text(),
+                description = info.description.text(),
+                backend =
+                    when (info.backendType) {
+                        WGPUBackendType_D3D11 -> "D3D11"
+                        WGPUBackendType_D3D12 -> "D3D12"
+                        WGPUBackendType_Metal -> "Metal"
+                        WGPUBackendType_Vulkan -> "Vulkan"
+                        WGPUBackendType_OpenGL -> "OpenGL"
+                        WGPUBackendType_OpenGLES -> "OpenGLES"
+                        WGPUBackendType_WebGPU -> "WebGPU"
+                        else -> ""
+                    },
+                type =
+                    when (info.adapterType) {
+                        WGPUAdapterType_DiscreteGPU -> AdapterType.DISCRETE_GPU
+                        WGPUAdapterType_IntegratedGPU -> AdapterType.INTEGRATED_GPU
+                        WGPUAdapterType_CPU -> AdapterType.CPU
+                        else -> AdapterType.UNKNOWN
+                    },
+            )
+        }
+    }
+
+    private fun WGPUStringView.text(): String = data?.toKString(length) ?: ""
+
     /** The features which can be used to create devices on this adapter. */
     actual val features: List<Feature> by lazy {
         val list = mutableListOf<Feature>()

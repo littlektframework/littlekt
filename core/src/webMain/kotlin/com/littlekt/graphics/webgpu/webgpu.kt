@@ -204,6 +204,18 @@ actual class Device(val delegate: GPUDevice) : Releasable {
 
 actual class Adapter(val delegate: GPUAdapter) : Releasable {
 
+    actual val info: AdapterInfo by lazy {
+        val info = delegate.info
+        AdapterInfo(
+            vendor = info?.vendor ?: "",
+            architecture = info?.architecture ?: "",
+            device = info?.device ?: "",
+            description = info?.description ?: "",
+            backend = "WebGPU",
+            type = AdapterType.UNKNOWN,
+        )
+    }
+
     actual val features: List<Feature> by lazy {
         val results = mutableListOf<Feature>()
         val jsFeatures = delegate.features

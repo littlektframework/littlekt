@@ -22,6 +22,7 @@ import com.littlekt.util.viewport.Viewport
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
+import kotlin.math.ceil
 
 /**
  * Adds a [CanvasLayer] to the current [Node] as a child and then triggers the [callback].
@@ -206,8 +207,20 @@ open class CanvasLayer : Node() {
     var clearColor: Color = Color.CLEAR
 
     /**
+     * The number of [target] pixels per unit of this canvas, such as `2` to render at twice the
+     * resolution on a high DPI screen. The canvas keeps its [width] & [height] in units.
+     */
+    var resolutionScale: Float = 1f
+        set(value) {
+            require(value > 0f) { "resolutionScale must be greater than 0!" }
+            if (field == value) return
+            field = value
+            if (lastWidth > 0 && lastHeight > 0) resizeFbo(lastWidth, lastHeight)
+        }
+
+    /**
      * The output render target of this [CanvasLayer]. This can be used in order to draw the
-     * results.
+     * results. Its size is [width] & [height] times [resolutionScale].
      */
     val target: Texture
         get() = fbo
@@ -265,7 +278,11 @@ open class CanvasLayer : Node() {
         height = newHeight
 
         resize(width, height)
-        fbo.resize(width, height)
+        val maxSize = context.graphics.device.limits.maxTextureDimension2D
+        fbo.resize(
+            ceil(width * resolutionScale).toInt().coerceIn(1, maxSize),
+            ceil(height * resolutionScale).toInt().coerceIn(1, maxSize),
+        )
 
         canvasRenderPassDescriptor =
             RenderPassDescriptor(

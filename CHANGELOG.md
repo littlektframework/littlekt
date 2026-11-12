@@ -185,6 +185,11 @@
 - Fix desktop window sizes being read from freed stack memory, which could corrupt them.
 - Fix `setCursorPosition` using the back buffer width for y in `HdpiMode.PIXELS`.
 - Fix `RasterFont` drawing a missing glyph box for control characters such as new lines.
+- Add `Adapter.info` with the GPU vendor, device, backend & type.
+- Add `Context.audio` with `masterVolume`, output devices, `setOutputDevice` & `onAudioDevicesChanged`.
+- Desktop audio now follows the system default output device when none is selected.
+- Add `TextureBlitter` to draw a texture over a render pass with a chosen filter, such as for render scale.
+- Add `CanvasLayer.resolutionScale`; canvas layers in a `CanvasLayerContainer` now render at the screen's pixel scale.
 - `renderTarget()` and `Control.pixelScale` now use the back buffer size, so text is rasterized for high DPI screens.
 - Add layout shortcuts: `fillParent`, `centerInParent`, `anchors`, `expand`, `expandWidth`, `expandHeight`, `shrinkBegin`,
   `shrinkCenter`, `shrinkEnd` & `minSize`.
