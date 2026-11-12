@@ -4,6 +4,7 @@ import org.lwjgl.glfw.GLFW
 import org.lwjgl.glfw.GLFWVidMode
 import org.lwjgl.system.MemoryStack
 import org.lwjgl.system.MemoryUtil
+import kotlin.math.roundToInt
 
 /**
  * A [Window] backed by a GLFW window.
@@ -93,8 +94,8 @@ class LwjglWindow internal constructor(private val context: LwjglContext) : Wind
             }
             val wx = x
             val wy = y
-            val ww = width
-            val wh = height
+            val ww = windowSize { w, _ -> w }
+            val wh = windowSize { _, h -> h }
             var best: Monitor? = null
             var bestArea = 0
             monitors.forEach { monitor ->
@@ -175,9 +176,10 @@ class LwjglWindow internal constructor(private val context: LwjglContext) : Wind
     }
 
     override fun setSize(width: Int, height: Int) {
-        if (mode == WindowMode.Windowed) GLFW.glfwSetWindowSize(handle, width, height)
-        windowedWidth = width
-        windowedHeight = height
+        val scale = context.windowScale
+        windowedWidth = (width * scale).roundToInt()
+        windowedHeight = (height * scale).roundToInt()
+        if (mode == WindowMode.Windowed) GLFW.glfwSetWindowSize(handle, windowedWidth, windowedHeight)
     }
 
     override fun setPosition(x: Int, y: Int) {
@@ -187,12 +189,13 @@ class LwjglWindow internal constructor(private val context: LwjglContext) : Wind
     }
 
     override fun setSizeLimits(minWidth: Int?, minHeight: Int?, maxWidth: Int?, maxHeight: Int?) {
+        val scale = context.windowScale
         GLFW.glfwSetWindowSizeLimits(
             handle,
-            minWidth ?: GLFW.GLFW_DONT_CARE,
-            minHeight ?: GLFW.GLFW_DONT_CARE,
-            maxWidth ?: GLFW.GLFW_DONT_CARE,
-            maxHeight ?: GLFW.GLFW_DONT_CARE,
+            minWidth?.let { (it * scale).roundToInt() } ?: GLFW.GLFW_DONT_CARE,
+            minHeight?.let { (it * scale).roundToInt() } ?: GLFW.GLFW_DONT_CARE,
+            maxWidth?.let { (it * scale).roundToInt() } ?: GLFW.GLFW_DONT_CARE,
+            maxHeight?.let { (it * scale).roundToInt() } ?: GLFW.GLFW_DONT_CARE,
         )
     }
 
@@ -225,8 +228,10 @@ class LwjglWindow internal constructor(private val context: LwjglContext) : Wind
             windowedX = x
             windowedY = y
         }
-        windowedWidth = width
-        windowedHeight = height
+        windowSize { w, h ->
+            windowedWidth = w
+            windowedHeight = h
+        }
     }
 
     private fun isConnected(monitor: Monitor): Boolean = queryMonitor(monitor.id) != null
@@ -273,6 +278,14 @@ class LwjglWindow internal constructor(private val context: LwjglContext) : Wind
                 currentMode = current,
                 modes = modes,
             )
+        }
+
+    private inline fun <T> windowSize(block: (width: Int, height: Int) -> T): T =
+        MemoryStack.stackPush().use { stack ->
+            val pw = stack.mallocInt(1)
+            val ph = stack.mallocInt(1)
+            GLFW.glfwGetWindowSize(handle, pw, ph)
+            block(pw[0], ph[0])
         }
 
     private inline fun <T> windowPos(block: (x: Int, y: Int) -> T): T =

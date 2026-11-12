@@ -5,6 +5,7 @@ import com.littlekt.async.MainDispatcher
 import com.littlekt.async.mainThread
 import com.littlekt.audio.OpenALAudioContext
 import com.littlekt.file.*
+import com.littlekt.graphics.HdpiMode
 import com.littlekt.file.Base64.decodeFromBase64
 import com.littlekt.file.vfs.VfsFile
 import com.littlekt.file.vfs.readPixmap
@@ -25,14 +26,15 @@ import io.ygdrasil.wgpu.wgpuSetLogLevel
 import java.lang.foreign.Arena
 import java.nio.ByteBuffer
 import java.nio.IntBuffer
+import kotlin.math.roundToInt
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.runBlocking
+import org.lwjgl.BufferUtils
 import org.lwjgl.glfw.Callbacks
 import org.lwjgl.glfw.GLFW
 import org.lwjgl.glfw.GLFWErrorCallback
 import org.lwjgl.glfw.GLFWImage
-import org.lwjgl.system.MemoryStack
 import org.lwjgl.system.MemoryUtil
 
 /**
@@ -72,22 +74,29 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context() {
     private val windowShouldClose: Boolean
         get() = GLFW.glfwWindowShouldClose(windowHandle)
 
-    private val tempBuffer: IntBuffer
-    private val tempBuffer2: IntBuffer
+    private val tempBuffer: IntBuffer = BufferUtils.createIntBuffer(1)
+    private val tempBuffer2: IntBuffer = BufferUtils.createIntBuffer(1)
 
     private val scope = Arena.ofConfined()
 
     private val wgpuLogger = Logger("WGPU")
+
+    /**
+     * `true` when the platform measures windows in pixels, such as Windows & X11, and logical
+     * units are wanted. Window coordinates are then divided by [windowScale].
+     */
+    internal var scalesWindowCoordinates = false
+        private set
+
+    /** The number of window coordinates per logical unit. */
+    internal val windowScale: Float
+        get() = if (scalesWindowCoordinates) window.contentScale.coerceAtLeast(0.01f) else 1f
 
     private var started = false
     private var inFrame = false
     private var resizePending = false
 
     init {
-        MemoryStack.stackPush().use { stack ->
-            tempBuffer = stack.mallocInt(1) // int*
-            tempBuffer2 = stack.mallocInt(1) // int*
-        }
         KtScope.initiate()
         mainThread = Thread.currentThread()
         if (configuration.enableWGPULogging) {
@@ -113,6 +122,11 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context() {
             configuration.resizeable.glfw,
         ) // the window will be resizable
         GLFW.glfwWindowHint(GLFW.GLFW_MAXIMIZED, configuration.maximized.glfw)
+        val platform = GLFW.glfwGetPlatform()
+        scalesWindowCoordinates =
+            configuration.hdpiMode == HdpiMode.LOGICAL &&
+                (platform == GLFW.GLFW_PLATFORM_WIN32 || platform == GLFW.GLFW_PLATFORM_X11)
+        GLFW.glfwWindowHint(GLFW.GLFW_SCALE_TO_MONITOR, scalesWindowCoordinates.glfw)
         GLFW.glfwWindowHint(GLFW.GLFW_CLIENT_API, GLFW.GLFW_NO_API) // prevent opengl
 
         val isMac = System.getProperty("os.name").lowercase().contains("mac")
@@ -246,8 +260,9 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context() {
     private fun updateFramebufferInfo() {
         GLFW.glfwGetWindowSize(windowHandle, tempBuffer, tempBuffer2)
 
-        graphics._logicalWidth = tempBuffer[0]
-        graphics._logicalHeight = tempBuffer2[0]
+        val scale = windowScale
+        graphics._logicalWidth = (tempBuffer[0] / scale).roundToInt()
+        graphics._logicalHeight = (tempBuffer2[0] / scale).roundToInt()
 
         GLFW.glfwGetFramebufferSize(windowHandle, tempBuffer, tempBuffer2)
 
@@ -296,6 +311,8 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context() {
             minimizedChangedCalls.fastForEach { it(minimized) }
         }
         GLFW.glfwSetWindowContentScaleCallback(windowHandle) { _, scale, _ ->
+            updateFramebufferInfo()
+            resizePending = true
             contentScaleChangedCalls.fastForEach { it(scale) }
         }
         GLFW.glfwSetWindowCloseCallback(windowHandle) { handle ->

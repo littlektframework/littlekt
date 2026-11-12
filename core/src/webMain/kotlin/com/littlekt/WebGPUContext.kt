@@ -14,6 +14,7 @@ import com.littlekt.input.JsInput
 import com.littlekt.log.Logger
 import com.littlekt.resources.internal.InternalResources
 import com.littlekt.util.datastructure.fastForEach
+import kotlin.math.roundToInt
 import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.browser.document
 import kotlinx.coroutines.Dispatchers
@@ -62,8 +63,8 @@ class WebGPUContext(override val configuration: JsConfiguration, gpuAdapter: GPU
     }
 
     override fun start(build: (app: Context) -> ContextListener) {
-        graphics._width = canvas.clientWidth
-        graphics._height = canvas.clientHeight
+        pinAutoCanvasSize()
+        syncCanvasSize()
 
         KtScope.launch {
             val adapterOptions = GPURequestAdapterOptions().apply {
@@ -121,11 +122,7 @@ class WebGPUContext(override val configuration: JsConfiguration, gpuAdapter: GPU
             lastContentScale = scale
             contentScaleChangedCalls.fastForEach { it(scale) }
         }
-        if (canvas.clientWidth != graphics.width || canvas.clientHeight != graphics.height) {
-            graphics._width = canvas.clientWidth
-            graphics._height = canvas.clientHeight
-            canvas.width = canvas.clientWidth
-            canvas.height = canvas.clientHeight
+        if (syncCanvasSize()) {
             listener.run {
                 resizeCalls.fastForEach { resize -> resize(graphics.width, graphics.height) }
             }
@@ -150,6 +147,52 @@ class WebGPUContext(override val configuration: JsConfiguration, gpuAdapter: GPU
         } else {
             kotlinx.browser.window.requestAnimationFrame(::update)
         }
+    }
+
+    /**
+     * A canvas without a CSS size is laid out at its buffer size, which would grow every time the
+     * buffer is scaled by the device pixel ratio. Such a canvas keeps its current size in CSS.
+     */
+    private fun pinAutoCanvasSize() {
+        if (canvas.style.width.isNotEmpty() || canvas.style.height.isNotEmpty()) return
+        val width = canvas.clientWidth
+        val height = canvas.clientHeight
+        canvas.width = width + 1
+        val followsBuffer = canvas.clientWidth != width
+        canvas.width = width
+        if (followsBuffer) {
+            canvas.style.width = "${width}px"
+            canvas.style.height = "${height}px"
+        }
+    }
+
+    /**
+     * Sizes the canvas back buffer to its CSS size times the device pixel ratio, so it's drawn at
+     * the screen's full resolution.
+     *
+     * @return `true` if the size changed
+     */
+    private fun syncCanvasSize(): Boolean {
+        val width = canvas.clientWidth
+        val height = canvas.clientHeight
+        val ratio = kotlinx.browser.window.devicePixelRatio
+        val backWidth = (width * ratio).roundToInt()
+        val backHeight = (height * ratio).roundToInt()
+        if (
+            width == graphics.width &&
+                height == graphics.height &&
+                backWidth == graphics.backBufferWidth &&
+                backHeight == graphics.backBufferHeight
+        ) {
+            return false
+        }
+        graphics._width = width
+        graphics._height = height
+        graphics._backBufferWidth = backWidth
+        graphics._backBufferHeight = backHeight
+        canvas.width = backWidth
+        canvas.height = backHeight
+        return true
     }
 
     private fun invokeAnyRunnable() {

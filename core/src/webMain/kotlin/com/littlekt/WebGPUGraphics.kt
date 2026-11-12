@@ -37,11 +37,14 @@ class WebGPUGraphics(val canvas: HTMLCanvasElement, gpuAdapter: GPUAdapter, gpuD
     override val height: Int
         get() = _height
 
+    internal var _backBufferWidth: Int = 0
+    internal var _backBufferHeight: Int = 0
+
     override val backBufferWidth: Int
-        get() = width
+        get() = _backBufferWidth
 
     override val backBufferHeight: Int
-        get() = height
+        get() = _backBufferHeight
 
     override val surface: Surface =
         Surface(navigator.gpu, canvasContext)
@@ -68,7 +71,15 @@ class WebGPUGraphics(val canvas: HTMLCanvasElement, gpuAdapter: GPUAdapter, gpuD
         this.presentMode = presentMode
         if (backBufferWidth <= 0 || backBufferHeight <= 0) return
         surface.configure(
-            SurfaceConfiguration(device, usage, format, presentMode, alphaMode, width, height)
+            SurfaceConfiguration(
+                device,
+                usage,
+                format,
+                presentMode,
+                alphaMode,
+                backBufferWidth,
+                backBufferHeight,
+            )
         )
     }
 

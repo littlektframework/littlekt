@@ -22,6 +22,11 @@ actual class LittleKtProps {
     var windowPosX: Int? = null
     var windowPosY: Int? = null
 
+    /**
+     * The units of the window size, [Graphics.width], [Graphics.height] and mouse coordinates.
+     * With [HdpiMode.LOGICAL] the window is sized by the monitor's content scale on every
+     * platform, so [width] & [height] are the same physical size at 100% or 150%.
+     */
     var hdpiMode: HdpiMode = HdpiMode.LOGICAL
 
     var traceWgpu = false

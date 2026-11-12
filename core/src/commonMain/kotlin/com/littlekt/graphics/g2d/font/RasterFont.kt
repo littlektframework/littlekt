@@ -82,7 +82,7 @@ internal constructor(
 
     override var wrapChars: CharSequence = typeface.wrapChars
 
-    override fun get(code: Int): GlyphMetrics? = glyph(code).metrics
+    override fun get(code: Int): GlyphMetrics? = if (code < SPACE) null else glyph(code).metrics
 
     override fun get(char: Char): GlyphMetrics? = get(char.code)
 
@@ -111,6 +111,7 @@ internal constructor(
     }
 
     private fun kerningPixels(first: Int, second: Int): Int {
+        if (first < SPACE || second < SPACE) return 0
         val left = glyph(first).index
         val right = glyph(second).index
         return round(typeface.kerningByIndex(left, right) * scale).toInt()
@@ -215,5 +216,6 @@ internal constructor(
         const val MIN_PAGE_SIZE = 256
         const val MAX_PAGE_SIZE = 2048
         const val WHITE = 0xFF.toByte()
+        const val SPACE = 32
     }
 }

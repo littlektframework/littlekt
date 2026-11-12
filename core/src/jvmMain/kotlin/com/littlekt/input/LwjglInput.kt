@@ -16,6 +16,8 @@ class LwjglInput(private val context: LwjglContext) : Input {
 
     private val inputCache = InputCache()
 
+    private var rawMouseX = 0f
+    private var rawMouseY = 0f
     private var mouseX = 0f
     private var mouseY = 0f
     private var _deltaX = 0f
@@ -63,10 +65,12 @@ class LwjglInput(private val context: LwjglContext) : Input {
         }
 
         glfwSetCursorPosCallback(windowHandle) { _, xpos, ypos ->
-            _deltaX = xpos.toFloat() - mouseX
-            _deltaY = ypos.toFloat() - mouseY
-            mouseX = xpos.toFloat()
-            mouseY = ypos.toFloat()
+            _deltaX = xpos.toFloat() - rawMouseX
+            _deltaY = ypos.toFloat() - rawMouseY
+            rawMouseX = xpos.toFloat()
+            rawMouseY = ypos.toFloat()
+            mouseX = rawMouseX
+            mouseY = rawMouseY
 
             val configuration = context.configuration
             if (configuration.hdpiMode == HdpiMode.PIXELS) {
@@ -77,6 +81,12 @@ class LwjglInput(private val context: LwjglContext) : Input {
                 _deltaY = deltaY * yScale
                 mouseX *= xScale
                 mouseY *= yScale
+            } else if (context.scalesWindowCoordinates) {
+                val scale = 1f / context.windowScale
+                _deltaX = deltaX * scale
+                _deltaY = deltaY * scale
+                mouseX *= scale
+                mouseY *= scale
             }
 
             inputCache.onMove(mouseX, mouseY, touchedPointers.lastOrNull() ?: Pointer.POINTER1)
@@ -315,9 +325,13 @@ class LwjglInput(private val context: LwjglContext) : Input {
         if (context.configuration.hdpiMode == HdpiMode.PIXELS) {
             val graphics = context.graphics
             val xScale = graphics._logicalWidth / graphics._backBufferWidth.toFloat()
-            val yScale = graphics._logicalHeight / graphics._backBufferWidth.toFloat()
+            val yScale = graphics._logicalHeight / graphics._backBufferHeight.toFloat()
             fx = (x * xScale).toInt()
             fy = (y * yScale).toInt()
+        } else if (context.scalesWindowCoordinates) {
+            val scale = context.windowScale
+            fx = (x * scale).toInt()
+            fy = (y * scale).toInt()
         }
 
         glfwSetCursorPos(context.windowHandle, fx.toDouble(), fy.toDouble())

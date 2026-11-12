@@ -370,14 +370,14 @@ class JsInput(val canvas: HTMLCanvasElement) : Input {
     override fun hideSoftKeyboard() = Unit
 
     private fun canvasRelativeX(e: ExtendedMouseEvent): Float {
-        val ratio = canvas.width.toFloat() / canvas.clientWidth
         val rect = canvas.getBoundingClientRect()
+        val ratio = if (rect.width > 0.0) canvas.clientWidth / rect.width.toFloat() else 1f
         return round(ratio * (e.clientX - rect.left.toFloat()))
     }
 
     private fun canvasRelativeY(e: ExtendedMouseEvent): Float {
-        val ratio = canvas.height.toFloat() / canvas.clientHeight
         val rect = canvas.getBoundingClientRect()
+        val ratio = if (rect.height > 0.0) canvas.clientHeight / rect.height.toFloat() else 1f
         return round(ratio * (e.clientY - rect.top.toFloat()))
     }
 }

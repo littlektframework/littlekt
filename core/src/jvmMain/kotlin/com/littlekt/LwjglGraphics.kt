@@ -112,7 +112,15 @@ class LwjglGraphics(private val context: LwjglContext) : Graphics, Releasable {
         this.presentMode = presentMode
         if (backBufferWidth <= 0 || backBufferHeight <= 0) return
         surface.configure(
-            SurfaceConfiguration(device, usage, format, presentMode, alphaMode, width, height)
+            SurfaceConfiguration(
+                device,
+                usage,
+                format,
+                presentMode,
+                alphaMode,
+                backBufferWidth,
+                backBufferHeight,
+            )
         )
     }
 

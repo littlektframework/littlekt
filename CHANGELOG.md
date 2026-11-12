@@ -177,6 +177,15 @@
 - Fix `TtfFont` metrics missing `lineHeight` and not scaling `capHeight`.
 - Fix a theme's `defaultFont` being ignored unless it was the global default theme.
 - Fix `LineEdit` & `ProgressBar` not updating their text when the theme changes.
+- Fix the desktop surface being configured at the logical size, which blurred everything on macOS & Wayland high DPI screens.
+- Fix the web canvas ignoring `devicePixelRatio`; the back buffer now matches the screen and a canvas without a CSS size keeps its size.
+- Fix web mouse coordinates being scaled to the canvas buffer instead of logical units.
+- `HdpiMode.LOGICAL` now scales the window, sizes & mouse coordinates by the content scale on Windows & X11 like macOS.
+- Fix desktop mouse deltas being wrong when mouse coordinates are scaled.
+- Fix desktop window sizes being read from freed stack memory, which could corrupt them.
+- Fix `setCursorPosition` using the back buffer width for y in `HdpiMode.PIXELS`.
+- Fix `RasterFont` drawing a missing glyph box for control characters such as new lines.
+- `renderTarget()` and `Control.pixelScale` now use the back buffer size, so text is rasterized for high DPI screens.
 - Add layout shortcuts: `fillParent`, `centerInParent`, `anchors`, `expand`, `expandWidth`, `expandHeight`, `shrinkBegin`,
   `shrinkCenter`, `shrinkEnd` & `minSize`.
 - Add a `margin` to `Control.anchor` & `PaddedContainer.padding(horizontal, vertical)` & `padding(left, top, right, bottom)`.

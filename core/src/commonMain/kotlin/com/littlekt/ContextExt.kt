@@ -69,8 +69,8 @@ inline fun Context.renderFrame(
 }
 
 /**
- * @return an [EmptyTexture] the size of the window to render to, that resizes and releases with
- *   this context.
+ * @return an [EmptyTexture] the size of the back buffer to render to, that resizes and releases
+ *   with this context.
  */
 fun Context.renderTarget(
     format: TextureFormat,
@@ -81,12 +81,12 @@ fun Context.renderTarget(
         EmptyTexture(
             graphics.device,
             format,
-            graphics.width,
-            graphics.height,
+            graphics.backBufferWidth,
+            graphics.backBufferHeight,
             sampleCount = sampleCount,
             usage = usage,
         )
-    onResize { width, height -> target.resize(width, height) }
+    onResize { _, _ -> target.resize(graphics.backBufferWidth, graphics.backBufferHeight) }
     onRelease { target.release() }
     return target
 }

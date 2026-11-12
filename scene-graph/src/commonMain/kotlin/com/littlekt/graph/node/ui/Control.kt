@@ -1564,13 +1564,20 @@ open class Control : CanvasItem() {
 
     /**
      * The number of screen pixels per unit of this control's canvas, such as `2` when the canvas
-     * viewport is drawn at twice its virtual size. Text uses this to stay sharp.
+     * viewport is drawn at twice its virtual size or on a 2x high DPI screen. Text uses this to stay
+     * sharp.
      */
     val pixelScale: Float
         get() {
             val canvas = canvas ?: return 1f
             val virtualWidth = canvas.virtualWidth
-            return if (virtualWidth > 0f && canvas.width > 0) canvas.width / virtualWidth else 1f
+            if (virtualWidth <= 0f || canvas.width <= 0) return 1f
+            val scale = canvas.width / virtualWidth
+            val scene = scene ?: return scale
+            if (canvas !== scene.sceneCanvas) return scale
+            val graphics = scene.context.graphics
+            if (graphics.width <= 0) return scale
+            return scale * graphics.backBufferWidth / graphics.width
         }
 
     /**
