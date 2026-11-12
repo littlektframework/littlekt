@@ -3,7 +3,7 @@ package com.littlekt.graph.node.ui
 import com.littlekt.graph.node.resource.Drawable
 import com.littlekt.graph.node.resource.Theme
 import com.littlekt.graphics.Color
-import com.littlekt.graphics.g2d.font.BitmapFont
+import com.littlekt.graphics.g2d.font.TextureFont
 
 /** Anchors the control to fill its parent. See [Control.fillParent]. */
 fun Modifier.fillParent(margin: Float = 0f) = then(Modifier.Element { it.fillParent(margin) })
@@ -95,7 +95,7 @@ fun Modifier.constant(name: String, value: Int) =
     then(Modifier.Element { it.constantOverrides[name] = value })
 
 /** Overrides a theme font of the control. */
-fun Modifier.font(name: String, font: BitmapFont) =
+fun Modifier.font(name: String, font: TextureFont) =
     then(Modifier.Element { it.fontOverrides[name] = font })
 
 /** Sets the [Theme] of the control and its children. */

@@ -10,8 +10,7 @@ import com.littlekt.graphics.Camera
 import com.littlekt.graphics.Color
 import com.littlekt.graphics.MutableColor
 import com.littlekt.graphics.g2d.Batch
-import com.littlekt.graphics.g2d.font.BitmapFont
-import com.littlekt.graphics.g2d.font.BitmapFontCache
+import com.littlekt.graphics.g2d.font.TextureFont
 import com.littlekt.graphics.g2d.font.GlyphLayout
 import com.littlekt.graphics.g2d.shape.ShapeRenderer
 import com.littlekt.math.geom.Angle
@@ -20,7 +19,6 @@ import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
 import kotlin.math.max
-import kotlin.math.roundToInt
 
 /**
  * Adds a [ProgressBar] to the current [Node] as a child and then triggers the [callback].
@@ -64,11 +62,12 @@ open class ProgressBar : Range() {
     var percentVisible: Boolean = true
 
     /** Font used to draw the fill percentage if [percentVisible] is `true`. */
-    var font: BitmapFont
+    var font: TextureFont
         get() = getThemeFont(themeVars.font)
         set(value) {
             fontOverrides[themeVars.font] = value
-            cache = BitmapFontCache(value)
+            previousValue = Float.NaN
+            onMinimumSizeChanged()
         }
 
     /** Color of the text. */
@@ -93,7 +92,7 @@ open class ProgressBar : Range() {
         }
 
     private var previousValue = -1f
-    private var cache: BitmapFontCache = BitmapFontCache(font)
+    private val scaledText = ScaledText()
     private val layout = GlyphLayout()
 
     override fun render(batch: Batch, camera: Camera, shapeRenderer: ShapeRenderer) {
@@ -126,27 +125,38 @@ open class ProgressBar : Range() {
         }
 
         if (percentVisible) {
-            if (previousValue != value) {
+            if (previousValue != value || pixelScale != scaledText.pixelScale) {
                 val text = (ratio * 100.0).toString(1) + "%"
-                layout.setText(font, text, fontColor)
-                val ty = ((height - font.metrics.lineHeight) * 0.5f).roundToInt().toFloat()
-                cache.setText(layout, 0f, ty)
+                val drawFont = scaledText.update(font, pixelScale)
+                val scale = 1f / scaledText.ratio
+                layout.setText(drawFont, text, fontColor, scaleX = scale, scaleY = scale)
+                val ty = scaledText.snap((height - font.metrics.lineHeight) * 0.5f)
+                scaledText.cache.setText(layout, 0f, ty, scale, scale)
                 previousValue = value
             }
 
+            val cache = scaledText.cache
             tempColor.set(color).mul(fontColor)
             cache.tint(tempColor)
 
             if (globalRotation != Angle.ZERO || globalScaleX != 1f || globalScaleY != 1f) {
                 applyTransform(batch)
                 cache.setPosition(0f, 0f)
-                cache.draw(batch)
+                scaledText.draw(batch)
                 resetTransform(batch)
             } else {
-                cache.setPosition(globalX + width / 2f - layout.width / 2f, globalY)
-                cache.draw(batch)
+                cache.setPosition(
+                    scaledText.snap(globalX + width / 2f - layout.width / 2f),
+                    scaledText.snap(globalY),
+                )
+                scaledText.draw(batch)
             }
         }
+    }
+
+    override fun onThemeChanged() {
+        super.onThemeChanged()
+        previousValue = Float.NaN
     }
 
     override fun calculateMinSize() {

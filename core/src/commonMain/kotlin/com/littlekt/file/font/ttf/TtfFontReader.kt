@@ -1,6 +1,7 @@
 package com.littlekt.file.font.ttf
 
 import com.littlekt.file.ByteBuffer
+import com.littlekt.log.Logger
 import com.littlekt.file.font.ttf.table.*
 import com.littlekt.graphics.g2d.font.TtfGlyph
 
@@ -57,6 +58,14 @@ class TtfFontReader {
 
     var yMax: Float = 0f
         private set
+
+    internal val kerning = KerningTable()
+
+    /** @return the glyph index of [char], or `0` for the missing glyph. */
+    fun glyphIndex(char: Char): Int = encoding.charToGlyphIndex(char) ?: 0
+
+    /** @return the kerning between glyph indices [left] and [right] in font units. */
+    fun kerning(left: Int, right: Int): Int = kerning[left, right]
 
     operator fun get(codePoint: Int): TtfGlyph = this[codePoint.toChar()]
 
@@ -240,6 +249,23 @@ class TtfFontReader {
             )
         HmtxParser(hmtxTable.buffer, hmtxTable.offset, numberOfHMetrics, numGlyphs, glyphs).parse()
         addGlyphNames()
+
+        gposTableEntry?.let { entry ->
+            val table = uncompressTable(buffer, entry)
+            try {
+                kerning.parseGpos(table.buffer, table.offset)
+            } catch (e: Exception) {
+                logger.warn { "Unable to read GPOS kerning: ${e.message}" }
+            }
+        }
+        kernTableEntry?.let { entry ->
+            val table = uncompressTable(buffer, entry)
+            try {
+                kerning.parseKern(table.buffer, table.offset)
+            } catch (e: Exception) {
+                logger.warn { "Unable to read kern table: ${e.message}" }
+            }
+        }
     }
 
     private fun parseOpenTypeTableEntries(buffer: ByteBuffer, numTables: Int): List<TableEntry> {
@@ -292,6 +318,10 @@ class TtfFontReader {
 
     override fun toString(): String {
         return "TtfFont(outlinesFormat='$outlinesFormat', tables=$tables, encoding=$encoding, unitsPerEm=$unitsPerEm, ascender=$ascender, descender=$descender, numberOfHMetrics=$numberOfHMetrics, numGlyphs=$numGlyphs, glyphNames=$glyphNames, glyphs=$glyphs)"
+    }
+
+    private companion object {
+        val logger = Logger<TtfFontReader>()
     }
 }
 

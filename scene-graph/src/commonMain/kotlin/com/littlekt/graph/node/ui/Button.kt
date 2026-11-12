@@ -8,8 +8,7 @@ import com.littlekt.graph.node.resource.Drawable
 import com.littlekt.graph.node.resource.Theme
 import com.littlekt.graphics.*
 import com.littlekt.graphics.g2d.Batch
-import com.littlekt.graphics.g2d.font.BitmapFont
-import com.littlekt.graphics.g2d.font.BitmapFontCache
+import com.littlekt.graphics.g2d.font.TextureFont
 import com.littlekt.graphics.g2d.font.GlyphLayout
 import com.littlekt.graphics.g2d.shape.ShapeRenderer
 import com.littlekt.math.MutableVec2f
@@ -19,7 +18,6 @@ import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
 import kotlin.math.max
-import kotlin.math.roundToInt
 
 @PublishedApi
 internal fun createButton(text: String?): Button =
@@ -69,7 +67,7 @@ inline fun SceneGraph<*>.button(
  */
 open class Button : BaseButton() {
 
-    private var cache: BitmapFontCache = BitmapFontCache(font)
+    private val scaledText = ScaledText()
     private val layout = GlyphLayout()
     private var textHeight = 0f
 
@@ -148,12 +146,12 @@ open class Button : BaseButton() {
             colorOverrides[themeVars.fontColorDisabled] = value
         }
 
-    /** The [BitmapFont] that this label should use to draw with. */
-    var font: BitmapFont
+    /** The [TextureFont] that this button should use to draw with. */
+    var font: TextureFont
         get() = getThemeFont(themeVars.font)
         set(value) {
             fontOverrides[themeVars.font] = value
-            cache = BitmapFontCache(value)
+            onMinimumSizeChanged()
         }
 
     /** The vertical alignment of the text. */
@@ -265,7 +263,8 @@ open class Button : BaseButton() {
                 color = focusDrawable.tint,
             )
         }
-        cache.let {
+        if (scaledText.font == null || pixelScale != scaledText.pixelScale) layout()
+        scaledText.cache.let {
             tempColor
                 .set(color)
                 .mul(
@@ -276,11 +275,11 @@ open class Button : BaseButton() {
             if (globalRotation != Angle.ZERO || globalScaleX != 1f || globalScaleY != 1f) {
                 applyTransform(batch)
                 it.setPosition(0f, 0f)
-                it.draw(batch)
+                scaledText.draw(batch)
                 resetTransform(batch)
             } else {
-                it.setPosition(globalX, globalY)
-                it.draw(batch)
+                it.setPosition(scaledText.snap(globalX), scaledText.snap(globalY))
+                scaledText.draw(batch)
             }
         }
     }
@@ -298,6 +297,9 @@ open class Button : BaseButton() {
     }
 
     private fun layout() {
+        val font = scaledText.update(font, pixelScale)
+        val fontScaleX = fontScaleX / scaledText.ratio
+        val fontScaleY = fontScaleY / scaledText.ratio
         val text = if (uppercase) text.uppercase() else text
 
         var tx = padding
@@ -349,9 +351,15 @@ open class Button : BaseButton() {
                 VAlign.TOP -> height - padding - textTop
                 VAlign.BOTTOM -> padding - textBottom
                 else -> (height - textTop - textBottom) * 0.5f
-            }.roundToInt().toFloat()
+            }.let { scaledText.snap(it) }
 
-        cache.setText(layout, tx - originX, ty - originY, fontScaleX, fontScaleY)
+        scaledText.cache.setText(
+            layout,
+            scaledText.snap(tx) - originX,
+            ty - originY,
+            fontScaleX,
+            fontScaleY,
+        )
     }
 
     class ThemeVars {

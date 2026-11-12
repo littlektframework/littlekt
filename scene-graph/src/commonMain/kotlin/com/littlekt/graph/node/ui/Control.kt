@@ -16,7 +16,7 @@ import com.littlekt.graph.util.SingleSignal
 import com.littlekt.graphics.Camera
 import com.littlekt.graphics.Color
 import com.littlekt.graphics.g2d.Batch
-import com.littlekt.graphics.g2d.font.BitmapFont
+import com.littlekt.graphics.g2d.font.TextureFont
 import com.littlekt.graphics.g2d.shape.ShapeRenderer
 import com.littlekt.math.*
 import com.littlekt.math.geom.*
@@ -413,16 +413,16 @@ open class Control : CanvasItem() {
     val drawableCache by lazy { mutableMapOf<String, Drawable>() }
 
     /**
-     * The map of overrides for a theme [BitmapFont]. Local overrides always take precedence when
+     * The map of overrides for a theme [TextureFont]. Local overrides always take precedence when
      * fetching theme items for the control. An override can be removed with [remove].
      */
-    val fontOverrides by lazy { OverrideMap<String, BitmapFont>(::_onThemeValueChanged) }
+    val fontOverrides by lazy { OverrideMap<String, TextureFont>(::_onThemeValueChanged) }
 
     /**
      * A map for storing the result of [getThemeFont] when needed to prevent searching the tree
      * every frame.
      */
-    val fontCache by lazy { mutableMapOf<String, BitmapFont>() }
+    val fontCache by lazy { mutableMapOf<String, TextureFont>() }
 
     /**
      * The map of overrides for a theme [Color]. Local overrides always take precedence when
@@ -1563,11 +1563,22 @@ open class Control : CanvasItem() {
     }
 
     /**
-     * @return a [BitmapFont] from the first matching [Theme] in the tree that has a [BitmapFont]
+     * The number of screen pixels per unit of this control's canvas, such as `2` when the canvas
+     * viewport is drawn at twice its virtual size. Text uses this to stay sharp.
+     */
+    val pixelScale: Float
+        get() {
+            val canvas = canvas ?: return 1f
+            val virtualWidth = canvas.virtualWidth
+            return if (virtualWidth > 0f && canvas.width > 0) canvas.width / virtualWidth else 1f
+        }
+
+    /**
+     * @return a [TextureFont] from the first matching [Theme] in the tree that has a [TextureFont]
      *   with the specified [name] and [type]. If [type] is omitted the class name of the current
      *   control is used as the type.
      */
-    fun getThemeFont(name: String, type: String = defaultThemeType): BitmapFont {
+    fun getThemeFont(name: String, type: String = defaultThemeType): TextureFont {
         fontOverrides[name]?.let {
             return it
         }
@@ -1578,10 +1589,13 @@ open class Control : CanvasItem() {
             }
         }
         var themeOwner: Control? = this
+        var ownerDefaultFont: TextureFont? = null
         while (themeOwner != null) {
-            themeOwner.theme?.fonts?.get(type)?.get(name)?.let {
+            val theme = themeOwner.theme
+            theme?.fonts?.get(type)?.get(name)?.let {
                 return it
             }
+            if (ownerDefaultFont == null) ownerDefaultFont = theme?.defaultFont
             themeOwner =
                 if (themeOwner.parent is Control) {
                     themeOwner.parent as Control
@@ -1590,7 +1604,8 @@ open class Control : CanvasItem() {
                 }
         }
         val font =
-            Theme.defaultTheme.fonts[type]?.get(name)
+            ownerDefaultFont
+                ?: Theme.defaultTheme.fonts[type]?.get(name)
                 ?: Theme.defaultTheme.defaultFont
                 ?: Theme.FALLBACK_FONT
         if (cacheable) fontCache[name] = font

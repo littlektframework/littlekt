@@ -3,7 +3,7 @@ package com.littlekt.graph.node.resource
 import com.littlekt.graph.node.annotation.ThemeDslMarker
 import com.littlekt.graph.node.ui.*
 import com.littlekt.graphics.Color
-import com.littlekt.graphics.g2d.font.BitmapFont
+import com.littlekt.graphics.g2d.font.TextureFont
 
 private fun <T : Any> MutableMap<String, T>.update(name: String, value: T?) {
     if (value == null) remove(name) else this[name] = value
@@ -49,7 +49,7 @@ class ButtonThemeScope(private val values: ThemeTypeBuilder) {
         get() = values.colors[Button.themeVars.fontColorDisabled]
         set(value) = values.colors.update(Button.themeVars.fontColorDisabled, value)
 
-    var font: BitmapFont?
+    var font: TextureFont?
         get() = values.fonts[Button.themeVars.font]
         set(value) = values.fonts.update(Button.themeVars.font, value)
 
@@ -68,7 +68,7 @@ class LabelThemeScope(private val values: ThemeTypeBuilder) {
         get() = values.colors[Label.themeVars.fontColor]
         set(value) = values.colors.update(Label.themeVars.fontColor, value)
 
-    var font: BitmapFont?
+    var font: TextureFont?
         get() = values.fonts[Label.themeVars.font]
         set(value) = values.fonts.update(Label.themeVars.font, value)
 
@@ -119,7 +119,7 @@ class LineEditThemeScope(private val values: ThemeTypeBuilder) {
         get() = values.colors[LineEdit.themeVars.fontColorPlaceholder]
         set(value) = values.colors.update(LineEdit.themeVars.fontColorPlaceholder, value)
 
-    var font: BitmapFont?
+    var font: TextureFont?
         get() = values.fonts[LineEdit.themeVars.font]
         set(value) = values.fonts.update(LineEdit.themeVars.font, value)
 
@@ -180,7 +180,7 @@ class ProgressBarThemeScope(private val values: ThemeTypeBuilder) {
         get() = values.colors[ProgressBar.themeVars.fontColor]
         set(value) = values.colors.update(ProgressBar.themeVars.fontColor, value)
 
-    var font: BitmapFont?
+    var font: TextureFont?
         get() = values.fonts[ProgressBar.themeVars.font]
         set(value) = values.fonts.update(ProgressBar.themeVars.font, value)
 

@@ -10,8 +10,7 @@ import com.littlekt.graph.node.resource.Theme
 import com.littlekt.graphics.Camera
 import com.littlekt.graphics.Color
 import com.littlekt.graphics.g2d.Batch
-import com.littlekt.graphics.g2d.font.BitmapFont
-import com.littlekt.graphics.g2d.font.BitmapFontCache
+import com.littlekt.graphics.g2d.font.TextureFont
 import com.littlekt.graphics.g2d.font.GlyphLayout
 import com.littlekt.graphics.g2d.shape.ShapeRenderer
 import com.littlekt.input.Key
@@ -80,7 +79,7 @@ inline fun SceneGraph<*>.lineEdit(
  */
 open class LineEdit : Control() {
 
-    private var cache: BitmapFontCache = BitmapFontCache(font)
+    private val scaledText = ScaledText()
     private val layout = GlyphLayout()
     private val glyphPositions = FloatArrayList()
 
@@ -149,11 +148,11 @@ open class LineEdit : Control() {
         }
 
     /** The font used to render the text. */
-    var font: BitmapFont
+    var font: TextureFont
         get() = getThemeFont(themeVars.font)
         set(value) {
             fontOverrides[themeVars.font] = value
-            cache = BitmapFontCache(value)
+            updateText()
         }
 
     /** The color of the font used to render the text. */
@@ -428,6 +427,9 @@ open class LineEdit : Control() {
 
     override fun render(batch: Batch, camera: Camera, shapeRenderer: ShapeRenderer) {
         super.render(batch, camera, shapeRenderer)
+        if (scaledText.font == null || pixelScale != scaledText.pixelScale) updateText()
+        val drawFont = scaledText.font ?: font
+        val textScale = 1f / scaledText.ratio
 
         val bgDrawable = if (editable) bg else bgDisabled
         bgDrawable.draw(
@@ -455,7 +457,7 @@ open class LineEdit : Control() {
                 originX = originX,
                 originY = originY,
                 width = selectionWidth,
-                height = font.capHeight,
+                height = font.metrics.capHeight,
                 scaleX = globalScaleX,
                 scaleY = globalScaleY,
                 rotation = globalRotation,
@@ -464,29 +466,31 @@ open class LineEdit : Control() {
 
         if (displayText.isNotEmpty()) {
             val color = if (editable) fontColor else fontColorDisabled
-            cache.setText(
+            scaledText.cache.setText(
+                font = drawFont,
                 text = displayText.substring(visibleStart, visibleEnd),
-                x = globalX + bg.marginLeft + textOffset - originX,
-                y = globalY - originY,
-                scaleX = globalScaleX,
-                scaleY = globalScaleY,
+                x = scaledText.snap(globalX + bg.marginLeft + textOffset) - originX,
+                y = scaledText.snap(globalY) - originY,
+                scaleX = globalScaleX * textScale,
+                scaleY = globalScaleY * textScale,
                 rotation = globalRotation,
                 color = color,
             )
-            cache.draw(batch)
+            scaledText.draw(batch)
         } else if ((!hasFocus || !editable) && placeholderText.isNotEmpty()) {
-            cache.setText(
+            scaledText.cache.setText(
+                font = drawFont,
                 text = placeholderText,
-                x = globalX + bg.marginLeft - originX,
-                y = globalY - originY,
-                scaleX = globalScaleX,
-                scaleY = globalScaleY,
+                x = scaledText.snap(globalX + bg.marginLeft) - originX,
+                y = scaledText.snap(globalY) - originY,
+                scaleX = globalScaleX * textScale,
+                scaleY = globalScaleY * textScale,
                 rotation = globalRotation,
                 color = fontColorPlaceholder,
                 targetWidth = availableWidth,
                 truncate = "...",
             )
-            cache.draw(batch)
+            scaledText.draw(batch)
         }
 
         if (hasFocus) {
@@ -500,7 +504,7 @@ open class LineEdit : Control() {
                     originX = originX,
                     originY = originY,
                     width = caret.minWidth,
-                    height = font.capHeight,
+                    height = font.metrics.capHeight,
                     scaleX = globalScaleX,
                     scaleY = globalScaleY,
                     rotation = globalRotation,
@@ -520,6 +524,11 @@ open class LineEdit : Control() {
                 rotation = globalRotation,
             )
         }
+    }
+
+    override fun onThemeChanged() {
+        super.onThemeChanged()
+        updateText()
     }
 
     override fun calculateMinSize() {
@@ -596,7 +605,14 @@ open class LineEdit : Control() {
             repeat(text.length) { secretBuffer.append(secretCharacter) }
             displayText = secretBuffer.toString()
         }
-        layout.setText(font, displayText.replace('\r', ' ').replace('\n', ' '))
+        val drawFont = scaledText.update(font, pixelScale)
+        val textScale = 1f / scaledText.ratio
+        layout.setText(
+            drawFont,
+            displayText.replace('\r', ' ').replace('\n', ' '),
+            scaleX = textScale,
+            scaleY = textScale,
+        )
         glyphPositions.clear()
         var x = 0f
         fontOffset = 0f

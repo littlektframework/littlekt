@@ -30,11 +30,11 @@ class BitmapFont(
     val base: Float,
     val capHeight: Float,
     val padding: FontMetrics.Padding,
-    val textures: List<Texture>,
+    override val textures: List<Texture>,
     val glyphs: Map<Int, Glyph>,
     val kernings: Map<Int, Kerning>,
     val pages: Int = 1,
-) : Font {
+) : TextureFont {
 
     private val cache = BitmapFontCache(this)
 

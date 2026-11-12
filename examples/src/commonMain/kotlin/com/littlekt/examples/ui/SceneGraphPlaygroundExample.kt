@@ -6,6 +6,7 @@ import com.littlekt.configureSurfaceOnResize
 import com.littlekt.examples.addCloseOnEsc
 import com.littlekt.examples.addStatsHandler
 import com.littlekt.file.vfs.readTexture
+import com.littlekt.file.vfs.readTtfFont
 import com.littlekt.graph.node.canvasLayer
 import com.littlekt.graph.node.node2d.camera2d
 import com.littlekt.graph.node.node2d.node2d
@@ -47,24 +48,44 @@ class SceneGraphPlaygroundExample(context: Context) : ContextListener(context) {
         val ninePatch = resourcesVfs["bg_9.png"].readTexture()
         val bigIcon = resourcesVfs["icon_32x32.png"].readTexture()
         val srgb = graphics.preferredFormat.srgb
-        val darkTheme = createDefaultTheme(palette = ThemePalette.DARK, srgb = srgb)
-        val lightTheme = createDefaultTheme(palette = ThemePalette.LIGHT, srgb = srgb)
+        val ttf = resourcesVfs["LiberationSans-Regular.ttf"].readTtfFont()
+        val ttfFont = ttf.raster(graphics.device, 16f)
+        val themes =
+            listOf(ThemePalette.DARK, ThemePalette.LIGHT).flatMap { palette ->
+                listOf(
+                    createDefaultTheme(palette = palette, srgb = srgb),
+                    createDefaultTheme(palette = palette, srgb = srgb, defaultFont = ttfFont),
+                )
+            }
+        var light = false
+        var useTtf = false
         var clearColor = graphics.surfaceColor(ThemePalette.DARK.background)
 
         val graph =
             sceneGraph(this, ExtendViewport(960, 540)) {
-                    column(separation = 10, modifier = Modifier.fillParent(10f).theme(darkTheme)) {
+                    column(separation = 10, modifier = Modifier.fillParent(10f).theme(themes[0])) {
                         val themed = this
+                        fun applyTheme() {
+                            themed.theme = themes[(if (light) 2 else 0) + if (useTtf) 1 else 0]
+                            val palette = if (light) ThemePalette.LIGHT else ThemePalette.DARK
+                            clearColor = graphics.surfaceColor(palette.background)
+                        }
                         row(separation = 20) {
                             label("Scene Graph Playground")
                             spacer()
                             status = label("Interact with something!")
+                            button("Liberation Sans") {
+                                toggleMode = true
+                                onToggled += {
+                                    useTtf = it
+                                    applyTheme()
+                                }
+                            }
                             button("Light theme") {
                                 toggleMode = true
-                                onToggled += { light ->
-                                    val palette = if (light) ThemePalette.LIGHT else ThemePalette.DARK
-                                    themed.theme = if (light) lightTheme else darkTheme
-                                    clearColor = graphics.surfaceColor(palette.background)
+                                onToggled += {
+                                    light = it
+                                    applyTheme()
                                 }
                             }
                         }
@@ -92,6 +113,7 @@ class SceneGraphPlaygroundExample(context: Context) : ContextListener(context) {
 
         onRelease {
             graph.release()
+            ttf.release()
             icon.release()
             bigIcon.release()
             ninePatch.release()

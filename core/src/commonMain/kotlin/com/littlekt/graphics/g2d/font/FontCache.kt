@@ -26,7 +26,7 @@ import com.littlekt.util.datastructure.Pool
 open class FontCache(val pages: Int = 1) {
     private val temp4 = Mat4() // used for rotating text
     private val layouts = mutableListOf<GlyphLayout>()
-    private val tempGlyphCount = IntArray(pages)
+    private var tempGlyphCount = IntArray(pages)
 
     private val layoutPool = Pool(reset = { it.reset() }) { GlyphLayout() }
     private val pooledLayouts = mutableListOf<GlyphLayout>()
@@ -36,7 +36,7 @@ open class FontCache(val pages: Int = 1) {
 
     protected var x: Float = 0f
     protected var y: Float = 0f
-    protected val pageVertices = Array(pages) { FloatArrayList() }
+    protected val pageVertices = ArrayList<FloatArrayList>(pages).apply { repeat(pages) { add(FloatArrayList()) } }
     protected val currentTint = MutableColor(Color.WHITE)
 
     /**
@@ -47,8 +47,9 @@ open class FontCache(val pages: Int = 1) {
      * @param textures the textures to use for drawing
      */
     fun draw(batch: Batch, textures: List<Texture>) {
-        pageVertices.forEachIndexed { index, vertices ->
-            if (vertices.isNotEmpty()) {
+        for (index in pageVertices.indices) {
+            val vertices = pageVertices[index]
+            if (vertices.isNotEmpty() && index < textures.size) {
                 batch.draw(textures[index], vertices.data, 0, vertices.size)
             }
         }
@@ -66,7 +67,8 @@ open class FontCache(val pages: Int = 1) {
         x += tx
         y += ty
 
-        pageVertices.forEach { vertices ->
+        for (page in pageVertices.indices) {
+            val vertices = pageVertices[page]
             for (i in vertices.indices step 9) {
                 vertices[i] += tx
                 vertices[i + 1] += ty
@@ -82,6 +84,7 @@ open class FontCache(val pages: Int = 1) {
     fun tint(tint: Color) {
         if (tint == currentTint) return
         currentTint.set(tint)
+        if (tempGlyphCount.size < pageVertices.size) tempGlyphCount = IntArray(pageVertices.size)
         tempGlyphCount.fill(0)
         layouts.forEach { layout ->
             val colors = layout.colors
@@ -236,7 +239,7 @@ open class FontCache(val pages: Int = 1) {
         x = 0f
         y = 0f
         currentTint.set(Color.WHITE)
-        pageVertices.forEach { it.clear() }
+        for (page in pageVertices.indices) pageVertices[page].clear()
     }
 
     private fun addToCache(
@@ -326,6 +329,7 @@ open class FontCache(val pages: Int = 1) {
         val u1 = glyph.u1
         val v1 = glyph.v1
 
+        while (pageVertices.size <= glyph.page) pageVertices += FloatArrayList()
         val vertices = pageVertices[glyph.page]
 
         vertices.run { // top left

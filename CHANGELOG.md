@@ -64,6 +64,10 @@
 - BREAKING: The `Model` shader struct has a new `skin` field, so `MeshPrimitive.INSTANCE_DATA_SIZE` is now 24.
 - BREAKING: `onResize` now runs once at the start of the next frame instead of for every size change.
 - BREAKING: `Graphics.configureSurface()` now keeps the last present mode instead of resetting to `FIFO`.
+- BREAKING: Theme fonts and the `font` of `Label`, `Button`, `LineEdit`, `ProgressBar` & `Modifier.font` are now a `TextureFont` instead of a `BitmapFont`.
+    - Migration: a `BitmapFont` is a `TextureFont`, so only declared types need changing.
+- BREAKING: The default scene graph theme now uses the bundled Barlow Condensed TTF (`Fonts.defaultRaster`) instead of the bitmap font.
+    - Migration: pass `defaultFont = Fonts.defaultNoOutline` to `createDefaultTheme` for the old font.
 
 ### Changes
 
@@ -163,6 +167,16 @@
 - Fix laggy window resizing on Windows and keep drawing while the window is resized.
 - Fix surface alpha modes being read with the format count, which logged warnings at startup.
 - Fix configuring and rendering to the surface while the window is minimized.
+- Add `TtfFont.raster(device, pixelSize)` & `RasterFont` to draw TrueType fonts rasterized at exact pixel sizes.
+- Add a per-size `RasterFont` cache to `TtfFont` with `rasterSizeStep`, `maxRasterFonts` & `releaseRasterFonts`.
+- Add `GlyphRasterizer` for anti-aliased glyph outline coverage.
+- Add `Fonts.defaultTtf` & `Fonts.defaultRaster` with the bundled Barlow Condensed TTF (SIL OFL 1.1, see `FONT_LICENSE`).
+- Add `TextureFont`, `TextureFontCache` & `TextureFont.forScale`.
+- Add TrueType kerning from the `kern` & `GPOS` tables.
+- Add `Control.pixelScale`; scene graph text now uses the font for the canvas scale and snaps to pixels.
+- Fix `TtfFont` metrics missing `lineHeight` and not scaling `capHeight`.
+- Fix a theme's `defaultFont` being ignored unless it was the global default theme.
+- Fix `LineEdit` & `ProgressBar` not updating their text when the theme changes.
 - Add layout shortcuts: `fillParent`, `centerInParent`, `anchors`, `expand`, `expandWidth`, `expandHeight`, `shrinkBegin`,
   `shrinkCenter`, `shrinkEnd` & `minSize`.
 - Add a `margin` to `Control.anchor` & `PaddedContainer.padding(horizontal, vertical)` & `padding(left, top, right, bottom)`.

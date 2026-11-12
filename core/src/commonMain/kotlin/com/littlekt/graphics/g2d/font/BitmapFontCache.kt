@@ -11,7 +11,16 @@ import com.littlekt.math.geom.Angle
  * @author Colton Daily
  * @date 1/6/2022
  */
-class BitmapFontCache(val font: BitmapFont) : FontCache(font.pages) {
+class BitmapFontCache(override val font: BitmapFont) : TextureFontCache(font)
+
+/**
+ * A [FontCache] that provides additional render and text methods for a [TextureFont], such as a
+ * [BitmapFont] or [RasterFont].
+ *
+ * @author Colton Daily
+ * @date 11/11/2026
+ */
+open class TextureFontCache(open val font: TextureFont) : FontCache(font.textures.size.coerceAtLeast(1)) {
 
     /**
      * Draws the text using the specified batch.

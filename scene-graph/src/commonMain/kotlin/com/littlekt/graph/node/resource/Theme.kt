@@ -2,7 +2,7 @@ package com.littlekt.graph.node.resource
 
 import com.littlekt.graph.node.ui.*
 import com.littlekt.graphics.Color
-import com.littlekt.graphics.g2d.font.BitmapFont
+import com.littlekt.graphics.g2d.font.TextureFont
 import com.littlekt.graphics.g2d.font.Font
 import com.littlekt.resources.Fonts
 
@@ -33,7 +33,7 @@ class Theme(
      * fonts["Button"][Button.themeVars.font] // or we can use the theme variables on each control
      * ```
      */
-    val fonts: Map<String, Map<String, BitmapFont>> = mapOf(),
+    val fonts: Map<String, Map<String, TextureFont>> = mapOf(),
 
     /**
      * A map of colors mapped by Node type, mapped by variable name and value.
@@ -58,10 +58,10 @@ class Theme(
     val constants: Map<String, Map<String, Int>> = mapOf(),
 
     /**
-     * A [BitmapFont] that is used a default font for any [Control] that needs a font but doesn't
+     * A [TextureFont] that is used a default font for any [Control] that needs a font but doesn't
      * necessarily need explicitly set.
      */
-    val defaultFont: BitmapFont? = null,
+    val defaultFont: TextureFont? = null,
 ) {
 
     companion object {
@@ -75,7 +75,7 @@ class Theme(
          * The last resort [Font] when all else fails when needing a font. Defaults to
          * [Fonts.default].
          */
-        val FALLBACK_FONT: BitmapFont
+        val FALLBACK_FONT: TextureFont
             get() = Fonts.default
 
         private var _theme: Theme? = null
@@ -131,7 +131,8 @@ class Theme(
  * constants["HBoxContainer"][HBoxContainer.themeVars.separation] // or we can use the theme variables on each control
  * ```
  *
- * @param defaultFont A [BitmapFont] that is used a default fo necessarily need explicitly set.
+ * @param defaultFont the font of any [Control] without its own font. Defaults to
+ *   [Fonts.defaultRaster].
  * @param palette the colors of the theme, such as [ThemePalette.DARK] or [ThemePalette.LIGHT]
  * @param cornerRadius the corner radius, in pixels, of buttons, panels & inputs
  * @param srgb `true` when rendering to an sRGB target, which converts the [palette] to linear
@@ -139,10 +140,10 @@ class Theme(
  */
 fun createDefaultTheme(
     extraDrawables: Map<String, Map<String, Drawable>> = mapOf(),
-    extraFonts: Map<String, Map<String, BitmapFont>> = mapOf(),
+    extraFonts: Map<String, Map<String, TextureFont>> = mapOf(),
     extraColors: Map<String, Map<String, Color>> = mapOf(),
     extraConstants: Map<String, Map<String, Int>> = mapOf(),
-    defaultFont: BitmapFont? = null,
+    defaultFont: TextureFont? = null,
     palette: ThemePalette = ThemePalette.DARK,
     cornerRadius: Int = 4,
     srgb: Boolean = false,
@@ -152,7 +153,7 @@ fun createDefaultTheme(
     val disabledControl = p.control.withAlpha(0.45f)
     val disabledBorder = p.border.withAlpha(0.45f)
     val theme = theme {
-        this.defaultFont = defaultFont ?: Fonts.defaultNoOutline
+        this.defaultFont = defaultFont ?: Fonts.defaultRaster
         button {
             normal = FlatDrawable(p.control, p.border, 1, r)
             hover = FlatDrawable(p.controlHover, p.border, 1, r)

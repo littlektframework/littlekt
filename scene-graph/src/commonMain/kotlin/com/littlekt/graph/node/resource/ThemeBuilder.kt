@@ -3,7 +3,7 @@ package com.littlekt.graph.node.resource
 import com.littlekt.graph.node.annotation.ThemeDslMarker
 import com.littlekt.graph.node.ui.*
 import com.littlekt.graphics.Color
-import com.littlekt.graphics.g2d.font.BitmapFont
+import com.littlekt.graphics.g2d.font.TextureFont
 
 /**
  * Builds a new [Theme]. Values of the [base] theme are kept unless they are set in [block].
@@ -36,7 +36,7 @@ class ThemeBuilder(base: Theme? = null) {
     private val types = mutableMapOf<String, ThemeTypeBuilder>()
 
     /** The default font of the theme. */
-    var defaultFont: BitmapFont? = base?.defaultFont
+    var defaultFont: TextureFont? = base?.defaultFont
 
     init {
         if (base != null) {
@@ -146,7 +146,7 @@ class ThemeTypeBuilder {
     val drawables: MutableMap<String, Drawable> = mutableMapOf()
 
     /** The fonts of this type. */
-    val fonts: MutableMap<String, BitmapFont> = mutableMapOf()
+    val fonts: MutableMap<String, TextureFont> = mutableMapOf()
 
     /** The colors of this type. */
     val colors: MutableMap<String, Color> = mutableMapOf()

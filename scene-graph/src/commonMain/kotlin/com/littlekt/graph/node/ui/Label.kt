@@ -7,8 +7,7 @@ import com.littlekt.graph.node.annotation.SceneGraphDslMarker
 import com.littlekt.graph.node.resource.Theme
 import com.littlekt.graphics.*
 import com.littlekt.graphics.g2d.Batch
-import com.littlekt.graphics.g2d.font.BitmapFont
-import com.littlekt.graphics.g2d.font.BitmapFontCache
+import com.littlekt.graphics.g2d.font.TextureFont
 import com.littlekt.graphics.g2d.font.GlyphLayout
 import com.littlekt.graphics.g2d.shape.ShapeRenderer
 import com.littlekt.math.MutableVec2f
@@ -17,7 +16,6 @@ import com.littlekt.math.geom.Angle
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
-import kotlin.math.roundToInt
 
 @PublishedApi
 internal fun createLabel(text: String?): Label =
@@ -60,14 +58,14 @@ inline fun SceneGraph<*>.label(
 }
 
 /**
- * A [Control] that renders text with a specified [BitmapFont].
+ * A [Control] that renders text with a specified [TextureFont].
  *
  * @author Colton Daily
  * @date 1/8/2022
  */
 open class Label : Control() {
 
-    private var cache: BitmapFontCache = BitmapFontCache(font)
+    private val scaledText = ScaledText()
     private val layout = GlyphLayout()
 
     private var _fontScale = MutableVec2f(1f)
@@ -124,12 +122,12 @@ open class Label : Control() {
             colorOverrides[themeVars.fontColor] = value
         }
 
-    /** The [BitmapFont] that this label should use to draw with. */
-    var font: BitmapFont
+    /** The [TextureFont] that this label should use to draw with. */
+    var font: TextureFont
         get() = getThemeFont(themeVars.font)
         set(value) {
             fontOverrides[themeVars.font] = value
-            cache = BitmapFontCache(value)
+            onMinimumSizeChanged()
         }
 
     /** The vertical alignment of the text. */
@@ -193,17 +191,18 @@ open class Label : Control() {
     }
 
     override fun render(batch: Batch, camera: Camera, shapeRenderer: ShapeRenderer) {
-        cache.let {
+        if (scaledText.font == null || pixelScale != scaledText.pixelScale) layout()
+        scaledText.cache.let {
             tempColor.set(color).mul(fontColor)
             it.tint(tempColor)
             if (globalRotation != Angle.ZERO || globalScaleX != 1f || globalScaleY != 1f) {
                 applyTransform(batch)
                 it.setPosition(0f, 0f)
-                it.draw(batch)
+                scaledText.draw(batch)
                 resetTransform(batch)
             } else {
-                it.setPosition(globalX, globalY)
-                it.draw(batch)
+                it.setPosition(scaledText.snap(globalX), scaledText.snap(globalY))
+                scaledText.draw(batch)
             }
         }
     }
@@ -217,6 +216,10 @@ open class Label : Control() {
     }
 
     private fun layout() {
+        val font = scaledText.update(font, pixelScale)
+        val ratio = scaledText.ratio
+        val fontScaleX = fontScaleX / ratio
+        val fontScaleY = fontScaleY / ratio
         val text = if (uppercase) text.uppercase() else text
 
         var tx = 0f
@@ -270,9 +273,15 @@ open class Label : Control() {
                 VAlign.TOP -> height - textTop
                 VAlign.BOTTOM -> -textBottom
                 else -> (height - textTop - textBottom) * 0.5f
-            }.roundToInt().toFloat()
+            }.let { scaledText.snap(it) }
 
-        cache.setText(layout, tx - originX, ty - originY, fontScaleX, fontScaleY)
+        scaledText.cache.setText(
+            layout,
+            scaledText.snap(tx) - originX,
+            ty - originY,
+            fontScaleX,
+            fontScaleY,
+        )
         _internalMinWidth = layout.width
         _internalMinHeight = textTop - textBottom
     }
