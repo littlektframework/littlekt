@@ -32,12 +32,24 @@ class Animation(val name: String?) {
 
     fun apply(dt: Duration, firstWeightedTransform: Boolean = true) {
         progress = (progress + duration + dt.seconds * speed) % duration
+        applyAt(progress, weight, firstWeightedTransform)
+    }
 
+    /**
+     * Poses the animated nodes at [time] seconds with full weight without changing [progress].
+     *
+     * @param time the time in seconds, clamped to `[0, duration]`
+     */
+    fun sample(time: Float) {
+        applyAt(time.coerceIn(0f, duration), 1f, true)
+    }
+
+    private fun applyAt(time: Float, weight: Float, firstWeightedTransform: Boolean) {
         for (i in animationNodes.indices) {
             animationNodes[i].initTransform()
         }
         for (i in channels.indices) {
-            channels[i].apply(progress)
+            channels[i].apply(time)
         }
         if (weight == 1f) {
             for (i in animationNodes.indices) {

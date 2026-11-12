@@ -59,6 +59,9 @@
 - BREAKING: `Vec2f.angleTo` is now positive counterclockwise, e.g. `X_AXIS.angleTo(Y_AXIS)` is 90 degrees.
     - Migration: swap the vectors or negate the result.
 - BREAKING: Vectors of different sizes are no longer equal, and `Quaternion` equals `MutableQuaternion` with the same values.
+- BREAKING: Skinned meshes now apply each instance's transform, with `Skin` joints relative to `Skin.root`.
+    - Migration: `get_skin_matrix(input)` now includes the instance transform and the skin bind group has a single `skin_joints` binding.
+- BREAKING: The `Model` shader struct has a new `skin` field, so `MeshPrimitive.INSTANCE_DATA_SIZE` is now 24.
 
 ### Changes
 
@@ -147,6 +150,9 @@
 - Fix `Node3D.globalRotate` rotating around local axes and `globalTranslate` being lost.
 - Fix `Node3D.addChild` & `removeChild` keeping the child's old global transform.
 - Fix `0.isPowerOfTwo` returning `true`.
+- Add `BakedAnimations` & `BakedAnimationInstance` to draw thousands of animated skinned models in one draw call.
+- Add `Animation.sample(time)` to pose an animation at a time without advancing it.
+- Fix copies of a skinned model all drawing at the original's position.
 - Add layout shortcuts: `fillParent`, `centerInParent`, `anchors`, `expand`, `expandWidth`, `expandHeight`, `shrinkBegin`,
   `shrinkCenter`, `shrinkEnd` & `minSize`.
 - Add a `margin` to `Control.anchor` & `PaddedContainer.padding(horizontal, vertical)` & `padding(left, top, right, bottom)`.

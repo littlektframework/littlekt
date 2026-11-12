@@ -15,6 +15,7 @@ import com.littlekt.examples.g2d.tilemap.TiledTileMapExample
 import com.littlekt.examples.g3d.BloomExample
 import com.littlekt.examples.g3d.IBLExample
 import com.littlekt.examples.g3d.ModelInstancingExample
+import com.littlekt.examples.g3d.SkinnedInstancingExample
 import com.littlekt.examples.g3d.MultiPassExample
 import com.littlekt.examples.g3d.PBRExample
 import com.littlekt.examples.g3d.ShadowsExample
@@ -93,6 +94,7 @@ val availableExamples: Map<String, Example> = examples {
     category("3D") {
         example("-simpleGltf", "Simple glTF", ::SimpleGltfExample)
         example("-modelInstancing", "Model Instancing", ::ModelInstancingExample)
+        example("-skinnedInstancing", "Skinned Instancing", ::SkinnedInstancingExample)
         example("-pbr", "PBR", ::PBRExample)
         example("-shadows", "Shadows", ::ShadowsExample)
         example("-transparency", "Transparency", ::TransparencyExample)

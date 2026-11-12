@@ -5,6 +5,8 @@ import com.littlekt.file.FloatBuffer
 import com.littlekt.graphics.IndexedMesh
 import com.littlekt.graphics.Mesh
 import com.littlekt.graphics.g3d.material.Material
+import com.littlekt.graphics.g3d.skin.BakedAnimations
+import com.littlekt.graphics.g3d.skin.JointPalette
 import com.littlekt.graphics.g3d.skin.Skin
 import com.littlekt.graphics.g3d.util.MaterialPipeline
 import com.littlekt.graphics.webgpu.IndexFormat
@@ -55,6 +57,13 @@ open class MeshPrimitive(
      */
     val visibleInstanceCount: Int
         get() = visibleInstances.size
+
+    /** The [BakedAnimations] this primitive was created by, if any. */
+    var bakedAnimations: BakedAnimations? = null
+        internal set
+
+    internal val jointPalette: JointPalette?
+        get() = bakedAnimations?.palette ?: skin?.palette
 
     internal var queuedFlush = -1L
     internal var queuedPipeline: MaterialPipeline? = null
@@ -198,6 +207,10 @@ open class MeshPrimitive(
         instanceData.position = instance.instanceIndex * TRANSFORM_COMPONENTS_PER_INSTANCE
         instanceData.put(instance.globalTransform.data)
         instanceData.put(instance.color.fields)
+        instanceData.put(instance.skinFrame.toFloat())
+        instanceData.put(instance.skinNextFrame.toFloat())
+        instanceData.put(instance.skinBlend)
+        instanceData.put(0f)
     }
 
     /** Marks the [MeshPrimitiveInstance] as visible to be rendered in a model batch. */
@@ -243,7 +256,7 @@ open class MeshPrimitive(
     }
 
     companion object {
-        private const val TRANSFORM_COMPONENTS_PER_INSTANCE = 20
+        private const val TRANSFORM_COMPONENTS_PER_INSTANCE = 24
         private const val PIPELINE_CACHE_SIZE = 4
 
         /** The number of floats each instance uses. */

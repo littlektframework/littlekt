@@ -25,6 +25,24 @@ open class MeshPrimitiveInstance : Node3D() {
     internal var dirtyQueued = false
     internal var visible = false
 
+    internal var boundsOverride: BoundingBox? = null
+
+    internal var skinFrame = 0
+    internal var skinNextFrame = 0
+    internal var skinBlend = 0f
+
+    /**
+     * Sets which joint matrices of the skin palette this instance is drawn with, blending from
+     * [frame] to [nextFrame] by [blend]. Each frame is the index of its first joint matrix.
+     */
+    internal fun setSkinFrames(frame: Int, nextFrame: Int, blend: Float) {
+        if (skinFrame == frame && skinNextFrame == nextFrame && skinBlend == blend) return
+        skinFrame = frame
+        skinNextFrame = nextFrame
+        skinBlend = blend
+        instanceOf?.instanceDirty(this)
+    }
+
     override fun dirty() {
         super.dirty()
         instanceOf?.instanceDirty(this)
@@ -45,7 +63,9 @@ open class MeshPrimitiveInstance : Node3D() {
 
     override fun addToBoundingBox(bounds: BoundingBox) {
         super.addToBoundingBox(bounds)
-        instanceOf?.let { bounds.add(it.mesh.geometry.bounds) }
+        val override = boundsOverride
+        if (override != null) bounds.add(override)
+        else instanceOf?.let { bounds.add(it.mesh.geometry.bounds) }
     }
 
     override fun forEachMeshPrimitive(action: (MeshPrimitive) -> Unit) {

@@ -3,86 +3,51 @@ package com.littlekt.graphics.g3d.skin
 import com.littlekt.Releasable
 import com.littlekt.file.FloatBuffer
 import com.littlekt.graphics.g3d.Node3D
-import com.littlekt.graphics.g3d.util.ReleaseNotifier
 import com.littlekt.graphics.shader.Shader
-import com.littlekt.graphics.util.BindingUsage
 import com.littlekt.graphics.webgpu.*
 import com.littlekt.math.Mat4
-import com.littlekt.util.UniqueId
-import com.littlekt.util.datastructure.fastForEach
 import com.littlekt.util.datastructure.fastForEachWithIndex
 
 /**
+ * The joints of a skinned mesh. Each frame the joint matrices are written to a palette relative to
+ * [root], and every instance of a skinned [com.littlekt.graphics.g3d.MeshPrimitive] is drawn with
+ * its own transform on top of that pose.
+ *
+ * @param root the node the joint matrices are relative to, usually the mesh node using this skin.
+ *   If `null`, the joints are in world space and instances should have an identity transform.
  * @author Colton Daily
  * @date 11/24/2024
  */
-class Skin(val device: Device, val nodes: List<SkinNode>) : Releasable {
-    var id: Int = UniqueId.next<Skin>()
-        private set
+class Skin(val device: Device, val nodes: List<SkinNode>, var root: Node3D? = null) : Releasable {
+    val id: Int
+        get() = palette.id
 
     private val jointsStagingBuffer = FloatBuffer(nodes.size * 16)
-    private val inverseBindingStagingBuffer = FloatBuffer(nodes.size * 16)
+    private val tempMat = Mat4()
 
-    private val jointBuffer =
-        device.createGPUFloatBuffer(
-            "Skin joints",
-            jointsStagingBuffer,
-            BufferUsage.STORAGE or BufferUsage.COPY_DST,
-        )
+    internal val palette = JointPalette(device, "Skin joints", jointsStagingBuffer)
 
-    private val jointBufferBinding = BufferBinding(jointBuffer)
+    fun createBindGroup(shader: Shader): BindGroup = palette.createBindGroup(shader)
 
-    private val inverseBindingBuffer =
-        device.createGPUFloatBuffer(
-            "Skin inverse binding",
-            inverseBindingStagingBuffer,
-            BufferUsage.STORAGE or BufferUsage.COPY_DST,
-        )
-    private val inverseBindingBufferBinding = BufferBinding(inverseBindingBuffer)
-
-    internal var lastUploadFrame = -1L
-
-    internal val releaseNotifier = ReleaseNotifier()
-
-    init {
-        nodes.fastForEachWithIndex { index, node ->
-            inverseBindingStagingBuffer.put(node.inverseBindMatrix.data, dstOffset = index * 16)
-        }
-        device.queue.writeBuffer(inverseBindingBuffer, inverseBindingStagingBuffer)
-    }
-
-    fun createBindGroup(shader: Shader): BindGroup {
-        return device.createBindGroup(
-            BindGroupDescriptor(
-                shader.getBindGroupLayoutByUsage(BindingUsage.SKIN),
-                listOf(
-                    BindGroupEntry(0, jointBufferBinding),
-                    BindGroupEntry(1, inverseBindingBufferBinding),
-                ),
-            )
-        )
-    }
-
+    /** Writes the current joint matrices, relative to [root], to the GPU. */
     fun writeToBuffer() {
+        val inverseRoot = root?.globalInverseTransform
         nodes.fastForEachWithIndex { index, node ->
-            jointsStagingBuffer.put(node.joint.globalTransform.data, dstOffset = index * 16)
+            if (inverseRoot != null) tempMat.set(inverseRoot) else tempMat.setToIdentity()
+            tempMat.mul(node.joint.globalTransform).mul(node.inverseBindMatrix)
+            jointsStagingBuffer.put(tempMat.data, dstOffset = index * 16)
         }
-        device.queue.writeBuffer(jointBuffer, jointsStagingBuffer)
+        palette.write(jointsStagingBuffer)
     }
 
     fun printHierarchy() {
         nodes.forEach { it.printHierarchy("") }
     }
 
-    fun copy(): Skin {
-        // TODO
-        return Skin(device, nodes)
-    }
+    fun copy(): Skin = Skin(device, nodes, root)
 
     override fun release() {
-        releaseNotifier.notifyReleased(id)
-        jointBuffer.release()
-        inverseBindingBuffer.release()
+        palette.release()
     }
 
     class SkinNode(val joint: Node3D, val inverseBindMatrix: Mat4) {

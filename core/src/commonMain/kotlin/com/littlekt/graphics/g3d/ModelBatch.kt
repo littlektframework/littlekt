@@ -404,14 +404,14 @@ class ModelBatch(val device: Device) : Releasable {
             }
         }
 
-        val skin = primitive.skin
-        if (material.skinned && skin != null && pipeline.skinGroupIndex >= 0) {
+        val palette = primitive.jointPalette
+        if (material.skinned && palette != null && pipeline.skinGroupIndex >= 0) {
             val skinBindGroup =
-                skinBindGroups[skin.id] ?: error("Skin bind groups could not be found!")
+                skinBindGroups[palette.id] ?: error("Skin bind groups could not be found!")
             renderPassEncoder.setBindGroup(pipeline.skinGroupIndex, skinBindGroup)
-            if (skin.lastUploadFrame != frame) {
-                skin.lastUploadFrame = frame
-                skin.writeToBuffer()
+            if (palette.lastUploadFrame != frame) {
+                palette.lastUploadFrame = frame
+                if (primitive.bakedAnimations == null) primitive.skin?.writeToBuffer()
             }
         }
 
@@ -498,16 +498,16 @@ class ModelBatch(val device: Device) : Releasable {
             getOrCreateMaterialBindGroup(material, pipeline)
         }
 
-        val skin = primitive.skin
+        val palette = primitive.jointPalette
         if (
             material.skinned &&
-                skin != null &&
+                palette != null &&
                 pipeline.skinGroupIndex >= 0 &&
-                skinBindGroups[skin.id] == null
+                skinBindGroups[palette.id] == null
         ) {
-            val notifier = skin.releaseNotifier
+            val notifier = palette.releaseNotifier
             val version = notifier.version
-            skinBindGroups.put(skin.id, notifier, version, skin.createBindGroup(pipeline.shader))
+            skinBindGroups.put(palette.id, notifier, version, palette.createBindGroup(pipeline.shader))
                 ?: return
         }
 

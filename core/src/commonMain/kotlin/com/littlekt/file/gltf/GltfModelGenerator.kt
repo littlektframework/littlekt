@@ -119,6 +119,7 @@ private class GltfModelGenerator(val gltfFile: GltfData) {
                 null
             }
         val node = (if (model != null) MeshNode(model) else Node3D()).apply { name = nodeName }
+        if (skin != null && model != null) skin.root = node
 
         if (skinRef != null && skinRef.skeleton > 0) {
             // skeleton root node isn't the base. So we must mark this node to be moved to the

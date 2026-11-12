@@ -19,13 +19,7 @@ object CommonShaderBlocks {
             bindGroup(group, BindingUsage.SKIN) {
                 bind(
                     binding,
-                    "joint",
-                    JointsStruct,
-                    ShaderBindingType.Storage(MemoryAccessMode.READ),
-                )
-                bind(
-                    binding + 1,
-                    "inverse_blend",
+                    "skin_joints",
                     JointsStruct,
                     ShaderBindingType.Storage(MemoryAccessMode.READ),
                 )
@@ -36,17 +30,23 @@ object CommonShaderBlocks {
         shaderBlock("SkinFunctions") {
             body {
                 """
+              fn get_joint_matrix(frames : vec4f, joint : i32) -> mat4x4f {
+                let index = u32(joint);
+                let current = skin_joints.matrices[u32(frames.x) + index];
+                if (frames.z <= 0.0) {
+                  return current;
+                }
+                let next = skin_joints.matrices[u32(frames.y) + index];
+                return current * (1.0 - frames.z) + next * frames.z;
+              }
+
               fn get_skin_matrix(input : VertexInput) -> mat4x4f {
-                let joint0 = joint.matrices[input.joints.x] * inverse_blend.matrices[input.joints.x];
-                let joint1 = joint.matrices[input.joints.y] * inverse_blend.matrices[input.joints.y];
-                let joint2 = joint.matrices[input.joints.z] * inverse_blend.matrices[input.joints.z];
-                let joint3 = joint.matrices[input.joints.w] * inverse_blend.matrices[input.joints.w];
-    
-                let skin_matrix = joint0 * input.weights.x +
-                                 joint1 * input.weights.y +
-                                 joint2 * input.weights.z +
-                                 joint3 * input.weights.w;
-                return skin_matrix;
+                let model = models[input.instance_index];
+                let skin_matrix = get_joint_matrix(model.skin, input.joints.x) * input.weights.x +
+                                  get_joint_matrix(model.skin, input.joints.y) * input.weights.y +
+                                  get_joint_matrix(model.skin, input.joints.z) * input.weights.z +
+                                  get_joint_matrix(model.skin, input.joints.w) * input.weights.w;
+                return model.transform * skin_matrix;
               }
             """
                     .trimIndent()
@@ -86,6 +86,7 @@ object CommonShaderBlocks {
             mapOf(
                 "transform" to ShaderStructParameterType.WgslType.mat4x4f,
                 "color" to ShaderStructParameterType.WgslType.vec4f,
+                "skin" to ShaderStructParameterType.WgslType.vec4f,
             )
         }
 
