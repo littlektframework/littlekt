@@ -452,14 +452,65 @@ class Mat4Tests {
     }
 
     @Test
-    fun test_set_from_euler_angles_order_is_z_y_x() {
+    fun test_set_from_euler_angles_order_is_y_x_z() {
         val expected =
             Mat4()
-                .setToRotation(Vec3f.Z_AXIS, 30.degrees)
-                .mul(Mat4().setToRotation(Vec3f.Y_AXIS, 45.degrees))
+                .setToRotation(Vec3f.Y_AXIS, 45.degrees)
                 .mul(Mat4().setToRotation(Vec3f.X_AXIS, 60.degrees))
+                .mul(Mat4().setToRotation(Vec3f.Z_AXIS, 30.degrees))
         assertNear(expected, Mat4().setFromEulerAngles(60.degrees, 45.degrees, 30.degrees))
         assertNear(expected, Mat4().rotate(60.degrees, 45.degrees, 30.degrees))
+    }
+
+    @Test
+    fun test_set_from_euler_angles_matches_quaternion_set_euler() {
+        val q = MutableQuaternion().setEuler(20.degrees, -70.degrees, 110.degrees)
+        assertNear(
+            Mat4().setToRotation(q),
+            Mat4().setFromEulerAngles(20.degrees, -70.degrees, 110.degrees),
+        )
+    }
+
+    @Test
+    fun test_get_scale_of_non_uniform_scaled_rotation() {
+        val m =
+            Mat4().setToTranslate(1f, 2f, 3f).rotate(Vec3f(1f, 2f, 3f), 40.degrees).scale(2f, 3f, 4f)
+        assertNear(Vec3f(2f, 3f, 4f), m.getScale(MutableVec3f()))
+        assertNear(4f, m.scaleXSqr)
+        assertNear(3f, m.scaleY)
+    }
+
+    @Test
+    fun test_get_rotation_ignores_scale() {
+        val q = MutableQuaternion().rotate(70.degrees, Vec3f(1f, -2f, 0.5f))
+        val m = Mat4().setToTranslate(1f, 2f, 3f).mul(Mat4().setToRotation(q)).scale(2f, 0.5f, 3f)
+        assertNear(1f, abs(q.dot(m.getRotation(MutableQuaternion()))), 1e-4f)
+    }
+
+    @Test
+    fun test_get_rotation_with_negative_scale() {
+        val q = MutableQuaternion().rotate(50.degrees, Vec3f.Y_AXIS)
+        val m = Mat4().setToRotation(q).scale(-2f, 2f, 2f)
+        assertNear(1f, abs(q.dot(m.getRotation(MutableQuaternion()))), 1e-4f)
+    }
+
+    @Test
+    fun test_set_axes_writes_columns() {
+        val x = Vec3f(0f, 1f, 0f)
+        val y = Vec3f(-1f, 0f, 0f)
+        val m = Mat4().set(x, y, Vec3f.Z_AXIS, Vec3f(5f, 6f, 7f))
+        assertNear(x, m.transform(Vec3f.X_AXIS, 0f, MutableVec3f()))
+        assertNear(y, m.transform(Vec3f.Y_AXIS, 0f, MutableVec3f()))
+        assertNear(Vec3f(5f, 7f, 7f), m.transform(Vec3f.X_AXIS, 1f, MutableVec3f()))
+    }
+
+    @Test
+    fun test_set_to_world_faces_forward() {
+        val forward = Vec3f(1f, 0f, 0f)
+        val m = Mat4().setToWorld(Vec3f(1f, 2f, 3f), forward, Vec3f.Y_AXIS)
+        assertNear(forward, m.transform(Vec3f.NEG_Z_AXIS, 0f, MutableVec3f()))
+        assertNear(Vec3f.Y_AXIS, m.transform(Vec3f.Y_AXIS, 0f, MutableVec3f()))
+        assertNear(Vec3f(1f, 2f, 3f), m.getTranslation(MutableVec3f()))
     }
 
     @Test

@@ -126,8 +126,8 @@ class Vec2Tests {
 
     @Test
     fun test_angle_to() {
-        assertNear(-90f, Vec2f.X_AXIS.angleTo(Vec2f.Y_AXIS).degrees, 1e-4f)
-        assertNear(90f, Vec2f.Y_AXIS.angleTo(Vec2f.X_AXIS).degrees, 1e-4f)
+        assertNear(90f, Vec2f.X_AXIS.angleTo(Vec2f.Y_AXIS).degrees, 1e-4f)
+        assertNear(-90f, Vec2f.Y_AXIS.angleTo(Vec2f.X_AXIS).degrees, 1e-4f)
         assertNear(0f, Vec2f(2f, 2f).angleTo(Vec2f(1f, 1f)).degrees, 1e-4f)
     }
 
@@ -155,6 +155,13 @@ class Vec2Tests {
         assertEquals(Vec2f(1f, 2f), MutableVec2f(1f, 2f))
         assertEquals(Vec2f(1f, 2f).hashCode(), MutableVec2f(1f, 2f).hashCode())
         assertNotEquals(Vec2f(1f, 2f), Vec2f(2f, 1f))
+    }
+
+    @Test
+    fun test_equals_is_symmetric_across_sizes() {
+        assertNotEquals<Vec2f>(Vec2f(1f, 2f), Vec3f(1f, 2f, 3f))
+        assertNotEquals<Vec2f>(Vec3f(1f, 2f, 3f), Vec2f(1f, 2f))
+        assertNotEquals<Vec3f>(Vec3f(1f, 2f, 3f), Vec4f(1f, 2f, 3f, 4f))
     }
 
     @Test

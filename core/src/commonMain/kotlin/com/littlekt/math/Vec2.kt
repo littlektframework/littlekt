@@ -80,8 +80,12 @@ open class Vec2f internal constructor(x: Float, y: Float, size: Int) {
     fun subtract(other: Vec2f, result: MutableVec2f): MutableVec2f =
         result.set(x - other.x, y - other.y)
 
+    /**
+     * @return the signed angle from this vector to [other]. Positive is counterclockwise, so the
+     *   x-axis to the y-axis is 90 degrees.
+     */
     fun angleTo(other: Vec2f): Angle {
-        return atan2(other.x * y - other.y * x, x * other.x + y * other.y).radians
+        return atan2(x * other.y - y * other.x, x * other.x + y * other.y).radians
     }
 
     open operator fun get(i: Int): Float = fields[i]
@@ -102,7 +106,7 @@ open class Vec2f internal constructor(x: Float, y: Float, size: Int) {
      */
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        if (other !is Vec2f) return false
+        if (other !is Vec2f || other.fields.size != fields.size) return false
 
         if (x != other.x) return false
         if (y != other.y) return false

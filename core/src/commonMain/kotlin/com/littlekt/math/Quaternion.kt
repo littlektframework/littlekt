@@ -172,9 +172,7 @@ open class Quaternion(open val x: Float, open val y: Float, open val z: Float, o
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        if (other == null || this::class != other::class) return false
-
-        other as Quaternion
+        if (other !is Quaternion) return false
 
         if (x != other.x) return false
         if (y != other.y) return false

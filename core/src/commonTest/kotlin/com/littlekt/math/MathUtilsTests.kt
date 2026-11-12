@@ -268,6 +268,8 @@ class MathUtilsTests {
         assertTrue(64.isPowerOfTwo)
         assertFalse(3.isPowerOfTwo)
         assertFalse(100.isPowerOfTwo)
+        assertFalse(0.isPowerOfTwo)
+        assertFalse((-4).isPowerOfTwo)
     }
 
     @Test

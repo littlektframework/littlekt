@@ -197,12 +197,12 @@ class Mat3Tests {
     }
 
     @Test
-    fun test_set_from_euler_angles_order_is_z_y_x() {
+    fun test_set_from_euler_angles_order_is_y_x_z() {
         val expected =
             Mat3()
-                .setToRotation(0f, 0f, 1f, 30f)
-                .mul(Mat3().setToRotation(0f, 1f, 0f, 45f))
+                .setToRotation(0f, 1f, 0f, 45f)
                 .mul(Mat3().setToRotation(1f, 0f, 0f, 60f))
+                .mul(Mat3().setToRotation(0f, 0f, 1f, 30f))
         assertNear(expected, Mat3().setFromEulerAngles(60f, 45f, 30f))
     }
 
@@ -248,6 +248,12 @@ class Mat3Tests {
     fun test_get_scale_of_uniform_rotated_matrix() {
         val m = Mat3().setToRotation(30.degrees).scale(2f, 2f)
         assertNear(Vec2f(2f, 2f), m.getScale(MutableVec2f()))
+    }
+
+    @Test
+    fun test_get_scale_of_non_uniform_rotated_matrix() {
+        val m = Mat3().setToTranslate(4f, 5f).rotate(Vec3f.Z_AXIS, 30f).scale(2f, 3f)
+        assertNear(Vec2f(2f, 3f), m.getScale(MutableVec2f()))
     }
 
     @Test

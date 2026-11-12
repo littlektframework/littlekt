@@ -6,6 +6,7 @@ import com.littlekt.graphics.g2d.TextureSlice
 import com.littlekt.math.*
 import com.littlekt.math.geom.*
 import com.littlekt.resources.Textures
+import kotlin.math.sqrt
 
 /**
  * Draws lines, shapes, and paths using a [Batch] for optimal performance.
@@ -69,8 +70,8 @@ class ShapeRenderer(val batch: Batch, val slice: TextureSlice = Textures.white) 
         val trans = batch.transformMatrix
         val proj = batch.viewProjection
         mat4.set(proj).mul(trans)
-        val scaleX = mat4.scaleX
-        val worldWidth = 2f / scaleX
+        val clipPerWorldX = sqrt(mat4.m00 * mat4.m00 + mat4.m01 * mat4.m01 + mat4.m02 * mat4.m02)
+        val worldWidth = 2f / clipPerWorldX
         val newPixelSize = worldWidth / width
         pixelSize = newPixelSize
     }

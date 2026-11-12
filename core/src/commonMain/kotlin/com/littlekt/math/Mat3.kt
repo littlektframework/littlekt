@@ -421,33 +421,35 @@ open class Mat3 {
         return this
     }
 
+    /**
+     * Sets this matrix to a rotation matrix from the given euler angles in degrees. The rotations
+     * are applied in `YXZ` order: [eulerZ] first, then [eulerX] and then [eulerY]. This matches
+     * [MutableQuaternion.setEuler].
+     *
+     * @param eulerX the rotation around the x-axis (pitch)
+     * @param eulerY the rotation around the y-axis (yaw)
+     * @param eulerZ the rotation around the z-axis (roll)
+     * @return this matrix
+     */
     fun setFromEulerAngles(eulerX: Float, eulerY: Float, eulerZ: Float): Mat3 {
-        val a = eulerX.toRad()
-        val b = eulerY.toRad()
-        val c = eulerZ.toRad()
+        val cp = cos(eulerX.toRad())
+        val sp = sin(eulerX.toRad())
+        val cy = cos(eulerY.toRad())
+        val sy = sin(eulerY.toRad())
+        val cr = cos(eulerZ.toRad())
+        val sr = sin(eulerZ.toRad())
 
-        val ci = cos(a)
-        val cj = cos(b)
-        val ch = cos(c)
-        val si = sin(a)
-        val sj = sin(b)
-        val sh = sin(c)
-        val cc = ci * ch
-        val cs = ci * sh
-        val sc = si * ch
-        val ss = si * sh
+        data[0] = cy * cr + sy * sp * sr
+        data[1] = cp * sr
+        data[2] = cy * sp * sr - sy * cr
 
-        data[0] = cj * ch
-        data[3] = sj * sc - cs
-        data[6] = sj * cc + ss
+        data[3] = sy * sp * cr - cy * sr
+        data[4] = cp * cr
+        data[5] = sy * sr + cy * sp * cr
 
-        data[1] = cj * sh
-        data[4] = sj * ss + cc
-        data[7] = sj * cs - sc
-
-        data[2] = -sj
-        data[5] = cj * si
-        data[8] = cj * ci
+        data[6] = sy * cp
+        data[7] = -sp
+        data[8] = cy * cp
 
         return this
     }
@@ -504,9 +506,10 @@ open class Mat3 {
         return result
     }
 
+    /** Gets the 2D scale of this matrix, the lengths of the first two columns. */
     fun getScale(result: MutableVec2f): MutableVec2f {
-        result.x = sqrt(m00 * m00 + m01 * m01)
-        result.y = sqrt(m10 * m10 + m11 * m11)
+        result.x = sqrt(m00 * m00 + m10 * m10)
+        result.y = sqrt(m01 * m01 + m11 * m11)
         return result
     }
 

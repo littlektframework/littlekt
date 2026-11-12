@@ -492,8 +492,11 @@ open class Node3D {
      * @param child the child to add
      */
     fun addChild(child: Node3D): Node3D {
+        if (child._parent === this) return this
+        child._parent?.removeChild(child)
         _children.add(child)
         child._parent = this
+        child.propagateDirty()
 
         return this
     }
@@ -518,6 +521,7 @@ open class Node3D {
 
         child._parent = null
         _children.remove(child)
+        child.propagateDirty()
 
         return this
     }
@@ -591,7 +595,7 @@ open class Node3D {
 
         if (parent != null) {
             _globalTransform.set(parent._globalTransform).mul(_transform)
-            _globalRotation.set(parent._globalRotation).add(_localRotation)
+            _globalRotation.set(parent._globalRotation).mul(_localRotation)
             _globalScale.set(parent._globalScale).scale(_localScale.x, _localScale.y, _localScale.z)
         } else {
             _globalTransform.set(_transform)
@@ -674,8 +678,12 @@ open class Node3D {
     }
 
     private fun updateGlobalRotation() {
-        _localRotation.set(_globalRotation)
-        parent?.let { _localRotation.add(it.globalRotation) }
+        val parent = parent
+        if (parent != null) {
+            _localRotation.set(parent.globalRotation).invert().mul(_globalRotation)
+        } else {
+            _localRotation.set(_globalRotation)
+        }
         dirty()
     }
 
@@ -813,8 +821,7 @@ open class Node3D {
      */
     fun globalTranslate(tx: Float, ty: Float, tz: Float): Node3D {
         if (tx != 0f || ty != 0f || tz != 0f) {
-            _globalPosition.add(tx, ty, tz)
-            dirty()
+            globalPosition(tempVec3f.set(globalPosition).add(tx, ty, tz))
         }
         return this
     }
@@ -851,10 +858,9 @@ open class Node3D {
     fun globalRotate(x: Angle = Angle.ZERO, y: Angle = Angle.ZERO, z: Angle = Angle.ZERO): Node3D {
         if (x != Angle.ZERO || y != Angle.ZERO || z != Angle.ZERO) {
             tempQuat.setEuler(x, y, z)
-            _globalRotation.mul(tempQuat)
-            parent?.let { _localRotation.set(it.globalRotation).add(_globalRotation) }
-                ?: run { _localRotation.set(_globalRotation) }
-            dirty()
+            updateTransform()
+            _globalRotation.mulLeft(tempQuat)
+            updateGlobalRotation()
         }
         return this
     }

@@ -52,6 +52,13 @@
 - BREAKING: `AnimationPlayer` frames now play at their real duration instead of up to 2x fast.
 - BREAKING: New flat default scene graph theme built from a `ThemePalette`. Colors, drawables & margins changed.
     - Migration: use `createDefaultTheme(palette = ...)` or set your own `Theme` to change the look.
+- BREAKING: `Mat4.scaleX/Y/Z`, `getScale` & `Mat3.getScale` now measure columns, so rotated non-uniform scale is correct.
+- BREAKING: `Mat4.set(xAxis, yAxis, zAxis, pos)` now writes the axes as columns, so `setToWorld` returns a real world transform.
+- BREAKING: `Mat4.setFromEulerAngles(pitch, yaw, roll)`, `Mat4.rotate(eulerX, eulerY, eulerZ)` & `Mat3.setFromEulerAngles` now use `YXZ` order like `Quaternion.setEuler`.
+    - Migration: for the old order use `rotate(Vec3f.Z_AXIS, z).rotate(Vec3f.Y_AXIS, y).rotate(Vec3f.X_AXIS, x)`.
+- BREAKING: `Vec2f.angleTo` is now positive counterclockwise, e.g. `X_AXIS.angleTo(Y_AXIS)` is 90 degrees.
+    - Migration: swap the vectors or negate the result.
+- BREAKING: Vectors of different sizes are no longer equal, and `Quaternion` equals `MutableQuaternion` with the same values.
 
 ### Changes
 
@@ -135,6 +142,11 @@
 - Fix looped `AnimationPlayer` hanging on an infinite delta and looping once per frame on a huge delta.
 - Fix glTF sparse accessors reading past the sparse `count` and ignoring sparse index & value byte offsets.
 - Fix `GlyphLayout` wrapping words that fit on every line after the first.
+- Fix `Mat4.getRotation(quaternion)` returning a wrong rotation for scaled matrices.
+- Fix `Node3D` global rotation adding quaternions instead of multiplying them.
+- Fix `Node3D.globalRotate` rotating around local axes and `globalTranslate` being lost.
+- Fix `Node3D.addChild` & `removeChild` keeping the child's old global transform.
+- Fix `0.isPowerOfTwo` returning `true`.
 - Add layout shortcuts: `fillParent`, `centerInParent`, `anchors`, `expand`, `expandWidth`, `expandHeight`, `shrinkBegin`,
   `shrinkCenter`, `shrinkEnd` & `minSize`.
 - Add a `margin` to `Control.anchor` & `PaddedContainer.padding(horizontal, vertical)` & `padding(left, top, right, bottom)`.

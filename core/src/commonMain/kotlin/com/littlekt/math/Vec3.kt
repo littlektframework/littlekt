@@ -134,7 +134,7 @@ open class Vec3f internal constructor(x: Float, y: Float, z: Float, size: Int) :
      */
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        if (other !is Vec3f) return false
+        if (other !is Vec3f || other.fields.size != fields.size) return false
 
         if (x != other.x) return false
         if (y != other.y) return false

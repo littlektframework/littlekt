@@ -194,29 +194,29 @@ open class Mat4 {
                 m01 * m10 * m22 -
                 m02 * m11 * m20
 
-    /** @return the squared scale factor on the X axis */
+    /** @return the squared scale factor on the X axis, the squared length of the first column */
     val scaleXSqr
-        get() = m00 * m00 + m01 * m01 + m02 * m02
+        get() = m00 * m00 + m10 * m10 + m20 * m20
 
-    /** @return the squared scale factor on the Y axis */
+    /** @return the squared scale factor on the Y axis, the squared length of the second column */
     val scaleYSqr
-        get() = m10 * m10 + m11 * m11 + m12 * m12
+        get() = m01 * m01 + m11 * m11 + m21 * m21
 
-    /** @return the squared scale factor on the Z axis */
+    /** @return the squared scale factor on the Z axis, the squared length of the third column */
     val scaleZSqr
-        get() = m20 * m20 + m21 * m21 + m22 * m22
+        get() = m02 * m02 + m12 * m12 + m22 * m22
 
     /** @return the scale factor on the X axis (non-negative) */
     val scaleX
-        get() = if (m01.isFuzzyZero() && m02.isFuzzyZero()) abs(m00) else sqrt(scaleXSqr)
+        get() = if (m10.isFuzzyZero() && m20.isFuzzyZero()) abs(m00) else sqrt(scaleXSqr)
 
     /** @return the scale factor on the Y axis (non-negative) */
     val scaleY
-        get() = if (m10.isFuzzyZero() && m12.isFuzzyZero()) abs(m11) else sqrt(scaleYSqr)
+        get() = if (m01.isFuzzyZero() && m21.isFuzzyZero()) abs(m11) else sqrt(scaleYSqr)
 
-    /** @return the scale factor on the X axis (non-negative) */
+    /** @return the scale factor on the Z axis (non-negative) */
     val scaleZ
-        get() = if (m20.isFuzzyZero() && m21.isFuzzyZero()) abs(m22) else sqrt(scaleZSqr)
+        get() = if (m02.isFuzzyZero() && m12.isFuzzyZero()) abs(m22) else sqrt(scaleZSqr)
 
     init {
         setToIdentity()
@@ -350,15 +350,19 @@ open class Mat4 {
         return this
     }
 
+    /**
+     * Sets this matrix to a transform with the given basis axes as its columns and [pos] as its
+     * translation.
+     */
     fun set(xAxis: Vec3f, yAxis: Vec3f, zAxis: Vec3f, pos: Vec3f): Mat4 {
         m00 = xAxis.x
-        m01 = xAxis.y
-        m02 = xAxis.z
-        m10 = yAxis.x
+        m10 = xAxis.y
+        m20 = xAxis.z
+        m01 = yAxis.x
         m11 = yAxis.y
-        m12 = yAxis.z
-        m20 = zAxis.x
-        m21 = zAxis.y
+        m21 = yAxis.z
+        m02 = zAxis.x
+        m12 = zAxis.y
         m22 = zAxis.z
         m03 = pos.x
         m13 = pos.y
@@ -945,47 +949,41 @@ open class Mat4 {
     }
 
     /**
-     * Sets this matrix to a rotation matrix from the given euler angles.
+     * Sets this matrix to a rotation matrix from the given euler angles. The rotations are applied
+     * in `YXZ` order: [roll] first, then [pitch] and then [yaw]. This matches
+     * [MutableQuaternion.setEuler].
      *
-     * @param yaw the yaw
-     * @param pitch the pitch
-     * @param roll the roll
+     * @param pitch the rotation around the x-axis
+     * @param yaw the rotation around the y-axis
+     * @param roll the rotation around the z-axis
      * @return this matrix
      */
-    fun setFromEulerAngles(yaw: Angle, pitch: Angle, roll: Angle): Mat4 {
-        val a = yaw.radians
-        val b = pitch.radians
-        val c = roll.radians
+    fun setFromEulerAngles(pitch: Angle, yaw: Angle, roll: Angle): Mat4 {
+        val cp = cos(pitch.radians)
+        val sp = sin(pitch.radians)
+        val cy = cos(yaw.radians)
+        val sy = sin(yaw.radians)
+        val cr = cos(roll.radians)
+        val sr = sin(roll.radians)
 
-        val ci = cos(a)
-        val cj = cos(b)
-        val ch = cos(c)
-        val si = sin(a)
-        val sj = sin(b)
-        val sh = sin(c)
-        val cc = ci * ch
-        val cs = ci * sh
-        val sc = si * ch
-        val ss = si * sh
-
-        data[0] = cj * ch
-        data[4] = sj * sc - cs
-        data[8] = sj * cc + ss
-        data[12] = 0f
-
-        data[1] = cj * sh
-        data[5] = sj * ss + cc
-        data[9] = sj * cs - sc
-        data[13] = 0f
-
-        data[2] = -sj
-        data[6] = cj * si
-        data[10] = cj * ci
-        data[14] = 0f
-
+        data[0] = cy * cr + sy * sp * sr
+        data[1] = cp * sr
+        data[2] = cy * sp * sr - sy * cr
         data[3] = 0f
+
+        data[4] = sy * sp * cr - cy * sr
+        data[5] = cp * cr
+        data[6] = sy * sr + cy * sp * cr
         data[7] = 0f
+
+        data[8] = sy * cp
+        data[9] = -sp
+        data[10] = cy * cp
         data[11] = 0f
+
+        data[12] = 0f
+        data[13] = 0f
+        data[14] = 0f
         data[15] = 1f
 
         return this
@@ -1215,45 +1213,61 @@ open class Mat4 {
         return result
     }
 
+    /**
+     * Gets the rotation of this matrix as a quaternion. Any scale is removed first, and a negative
+     * determinant is treated as a negative x scale.
+     */
     fun getRotation(result: MutableQuaternion): MutableQuaternion {
-        val trace = this[0, 0] + this[1, 1] + this[2, 2]
+        var sx = sqrt(scaleXSqr)
+        var sy = sqrt(scaleYSqr)
+        var sz = sqrt(scaleZSqr)
+        if (sx == 0f) sx = 1f
+        if (sy == 0f) sy = 1f
+        if (sz == 0f) sz = 1f
+        if (det3() < 0f) sx = -sx
 
+        val r00 = m00 / sx
+        val r10 = m10 / sx
+        val r20 = m20 / sx
+        val r01 = m01 / sy
+        val r11 = m11 / sy
+        val r21 = m21 / sy
+        val r02 = m02 / sz
+        val r12 = m12 / sz
+        val r22 = m22 / sz
+
+        val trace = r00 + r11 + r22
         if (trace > 0f) {
-            var s = sqrt(trace + 1f)
-            result.w = s * 0.5f
-            s = 0.5f / s
-
-            result.x = (this[2, 1] - this[1, 2]) * s
-            result.y = (this[0, 2] - this[2, 0]) * s
-            result.z = (this[1, 0] - this[0, 1]) * s
+            val s = sqrt(trace + 1f) * 2f
+            result.w = 0.25f * s
+            result.x = (r21 - r12) / s
+            result.y = (r02 - r20) / s
+            result.z = (r10 - r01) / s
+        } else if (r00 > r11 && r00 > r22) {
+            val s = sqrt(1f + r00 - r11 - r22) * 2f
+            result.w = (r21 - r12) / s
+            result.x = 0.25f * s
+            result.y = (r01 + r10) / s
+            result.z = (r02 + r20) / s
+        } else if (r11 > r22) {
+            val s = sqrt(1f + r11 - r00 - r22) * 2f
+            result.w = (r02 - r20) / s
+            result.x = (r01 + r10) / s
+            result.y = 0.25f * s
+            result.z = (r12 + r21) / s
         } else {
-            val i =
-                if (this[0, 0] < this[1, 1]) {
-                    if (this[1, 1] < this[2, 2]) {
-                        2
-                    } else {
-                        1
-                    }
-                } else {
-                    if (this[0, 0] < this[2, 2]) {
-                        2
-                    } else {
-                        0
-                    }
-                }
-            val j = (i + 1) % 3
-            val k = (i + 2) % 3
-
-            var s = sqrt(this[i, i] - this[j, j] - this[k, k] + 1f)
-            result[i] = s * 0.5f
-            s = 0.5f / s
-
-            result.w = (this[k, j] - this[j, k]) * s
-            result[j] = (this[j, i] + this[i, j]) * s
-            result[k] = (this[k, i] + this[i, k]) * s
+            val s = sqrt(1f + r22 - r00 - r11) * 2f
+            result.w = (r10 - r01) / s
+            result.x = (r02 + r20) / s
+            result.y = (r12 + r21) / s
+            result.z = 0.25f * s
         }
         return result
     }
+
+    private fun det3(): Float =
+        m00 * (m11 * m22 - m12 * m21) - m01 * (m10 * m22 - m12 * m20) +
+            m02 * (m10 * m21 - m11 * m20)
 
     fun toBuffer(buffer: FloatBuffer): FloatBuffer {
         buffer.put(data, 0, 16)

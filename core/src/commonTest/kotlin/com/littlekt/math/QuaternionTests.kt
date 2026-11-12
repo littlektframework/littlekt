@@ -295,6 +295,8 @@ class QuaternionTests {
     fun test_equals_same_type() {
         assertEquals(Quaternion(1f, 2f, 3f, 4f), Quaternion(1f, 2f, 3f, 4f))
         assertEquals(MutableQuaternion(1f, 2f, 3f, 4f), MutableQuaternion(1f, 2f, 3f, 4f))
+        assertEquals<Quaternion>(Quaternion(1f, 2f, 3f, 4f), MutableQuaternion(1f, 2f, 3f, 4f))
+        assertEquals<Quaternion>(MutableQuaternion(1f, 2f, 3f, 4f), Quaternion(1f, 2f, 3f, 4f))
         assertEquals(
             Quaternion(1f, 2f, 3f, 4f).hashCode(),
             MutableQuaternion(1f, 2f, 3f, 4f).hashCode(),

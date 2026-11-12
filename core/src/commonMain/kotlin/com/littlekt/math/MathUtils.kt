@@ -392,7 +392,7 @@ val Int.prevPowerOfTwo: Int
 
 /** Checks if [this] value is power of two */
 val Int.isPowerOfTwo: Boolean
-    get() = this.nextPowerOfTwo == this
+    get() = this > 0 && (this and (this - 1)) == 0
 
 fun Float.interpolate(l: Float, r: Float): Float = (l + (r - l) * this)
 

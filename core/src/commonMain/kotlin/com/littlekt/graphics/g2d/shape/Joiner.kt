@@ -22,7 +22,7 @@ internal object Joiner {
     ): Angle {
         ab.set(b).subtract(a)
         bc.set(c).subtract(b)
-        val angle = ab.angleTo(bc)
+        val angle = bc.angleTo(ab)
         if (angle.radians.isFuzzyEqual(0f, 0.001f) || angle.radians.isFuzzyEqual(PI2_F, 0.001f)) {
             prepareStraightJoin(b, d, e, halfThickness)
             return angle
@@ -49,7 +49,7 @@ internal object Joiner {
     ): Boolean {
         ab.set(b).subtract(a)
         bc.set(c).subtract(b)
-        val angle = ab.angleTo(bc)
+        val angle = bc.angleTo(ab)
         if (angle.radians.isFuzzyEqual(0f, 0.001f) || angle.radians.isFuzzyEqual(PI2_F, 0.001f)) {
             prepareStraightJoin(b, d, e, halfThickness)
             return true
