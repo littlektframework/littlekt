@@ -2,6 +2,10 @@ package com.littlekt.graphics.g3d
 
 import com.littlekt.graphics.Camera
 import com.littlekt.graphics.Color
+import com.littlekt.graphics.VertexAttrUsage
+import com.littlekt.graphics.util.IndexedMeshGeometry
+import com.littlekt.graphics.webgpu.PrimitiveTopology
+import com.littlekt.math.Ray
 import com.littlekt.math.spatial.BoundingBox
 import com.littlekt.util.datastructure.fastForEach
 
@@ -68,6 +72,45 @@ open class MeshPrimitiveInstance : Node3D() {
         else instanceOf?.let { bounds.add(it.mesh.geometry.bounds) }
     }
 
+    override fun intersectGeometry(ray: Ray): Float {
+        val primitive = instanceOf ?: return Ray.NO_HIT
+        if (primitive.topology != PrimitiveTopology.TRIANGLE_LIST) return Ray.NO_HIT
+        val geometry = primitive.mesh.geometry
+        val position =
+            geometry.layout.attributes.firstOrNull { it.usage == VertexAttrUsage.POSITION }
+                ?: return Ray.NO_HIT
+        val local = localRay.setTransformed(ray, globalInverseTransform)
+        if (local.intersectBox(geometry.bounds) < 0f) return Ray.NO_HIT
+        val vertices = geometry.vertices
+        val stride = geometry.vertexStride
+        val offset = position.offset.toInt()
+        val indexed = (geometry as? IndexedMeshGeometry)?.takeIf { it.numIndices > 0 }
+        val indices = indexed?.indices
+        val count = indexed?.numIndices ?: geometry.numVertices
+        var best = Ray.NO_HIT
+        var i = 0
+        while (i + 2 < count) {
+            val a = (if (indices != null) indices[i].toInt() and 0xFFFF else i) * stride + offset
+            val b = (if (indices != null) indices[i + 1].toInt() and 0xFFFF else i + 1) * stride + offset
+            val c = (if (indices != null) indices[i + 2].toInt() and 0xFFFF else i + 2) * stride + offset
+            val hit =
+                local.intersectTriangle(
+                    vertices.getFloat(a),
+                    vertices.getFloat(a + 4),
+                    vertices.getFloat(a + 8),
+                    vertices.getFloat(b),
+                    vertices.getFloat(b + 4),
+                    vertices.getFloat(b + 8),
+                    vertices.getFloat(c),
+                    vertices.getFloat(c + 4),
+                    vertices.getFloat(c + 8),
+                )
+            if (hit >= 0f && (best < 0f || hit < best)) best = hit
+            i += 3
+        }
+        return best
+    }
+
     override fun forEachMeshPrimitive(action: (MeshPrimitive) -> Unit) {
         instanceOf?.markInstanceVisible(this)
         instanceOf?.let(action)
@@ -113,5 +156,9 @@ open class MeshPrimitiveInstance : Node3D() {
     override fun onDestroy() {
         super.onDestroy()
         remove()
+    }
+
+    private companion object {
+        val localRay = Ray()
     }
 }

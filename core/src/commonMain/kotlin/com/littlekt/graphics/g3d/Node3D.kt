@@ -533,7 +533,7 @@ open class Node3D {
             clear()
             children.fastForEach {
                 it.update(dt)
-                addToBounds(it.bounds)
+                it.addToBounds(this)
             }
             addToBoundingBox(bounds)
         }
@@ -575,6 +575,58 @@ open class Node3D {
     }
 
     protected open fun addToBoundingBox(bounds: BoundingBox) = Unit
+
+    /**
+     * Sets [result] to the world axis-aligned box around [bounds], such as for storing the node in
+     * a [com.littlekt.math.spatial.SpatialHash]. [bounds] are updated in [update].
+     *
+     * @return [result]
+     */
+    fun globalBounds(result: BoundingBox): BoundingBox {
+        result.clear()
+        if (bounds.isEmpty) return result
+        val transform = globalTransform
+        val min = bounds.min
+        val max = bounds.max
+        result.batchUpdate {
+            for (i in 0 until 8) {
+                tempVec3f.set(
+                    if (i and 1 == 0) min.x else max.x,
+                    if (i and 2 == 0) min.y else max.y,
+                    if (i and 4 == 0) min.z else max.z,
+                )
+                add(transform.transform(tempVec3f))
+            }
+        }
+        return result
+    }
+
+    /**
+     * Tests [ray] against this node. [bounds] are tested in the node's space, so rotated nodes are
+     * tested tightly. [bounds] are updated in [update].
+     *
+     * @param ray the ray in world space
+     * @param precise `true` to test the triangles of each [MeshPrimitiveInstance] in this node and
+     *   its children instead of only the bounds. Skinned meshes are tested in their bind pose.
+     * @return the distance along [ray] to the hit, or [Ray.NO_HIT]
+     */
+    fun intersectRay(ray: Ray, precise: Boolean = false): Float {
+        val distance = tempRay.setTransformed(ray, globalInverseTransform).intersectBox(bounds)
+        if (distance < 0f || !precise) return distance
+        var best = intersectGeometry(ray)
+        children.fastForEach {
+            val hit = it.intersectRay(ray, true)
+            if (hit >= 0f && (best < 0f || hit < best)) best = hit
+        }
+        return best
+    }
+
+    /**
+     * Tests [ray] against this node's own geometry, not its children, for [intersectRay].
+     *
+     * @return the distance along [ray] to the hit, or [Ray.NO_HIT]
+     */
+    protected open fun intersectGeometry(ray: Ray): Float = Ray.NO_HIT
 
     /**
      * Update the nodes transforms, if dirty. This will also invoke the parents [updateTransform]
@@ -1008,5 +1060,6 @@ open class Node3D {
     companion object {
         private val tempQuat = MutableQuaternion()
         private val tempVec3f = MutableVec3f()
+        private val tempRay = Ray()
     }
 }

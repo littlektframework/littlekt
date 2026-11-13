@@ -849,6 +849,46 @@ abstract class Camera {
         return valid
     }
 
+    /**
+     * Computes the given [pickRay] from the given screen coordinates within [viewport].
+     *
+     * @return `true` if the given [pickRay] updated and valid.
+     */
+    fun computePickRay(
+        context: Context,
+        pickRay: Ray,
+        screenX: Float,
+        screenY: Float,
+        viewport: Viewport,
+    ): Boolean =
+        computePickRay(
+            context,
+            pickRay,
+            screenX,
+            screenY,
+            viewport.x.toFloat(),
+            viewport.y.toFloat(),
+            viewport.width.toFloat(),
+            viewport.height.toFloat(),
+        )
+
+    /**
+     * Computes the given [pickRay] from the given screen coordinates over the whole window.
+     *
+     * @return `true` if the given [pickRay] updated and valid.
+     */
+    fun computePickRay(context: Context, pickRay: Ray, screenX: Float, screenY: Float): Boolean =
+        computePickRay(
+            context,
+            pickRay,
+            screenX,
+            screenY,
+            0f,
+            0f,
+            context.graphics.width.toFloat(),
+            context.graphics.height.toFloat(),
+        )
+
     override fun toString(): String {
         return "Camera(id=$id, position=$position, direction=$direction, up=$up, rightDir=$right, projection=$projection, view=$view, invProj=$invProj, invView=$invView, viewProjection=$viewProjection, invViewProjection=$invViewProjection, near=$near, far=$far, fov=$fov, zoom=$zoom)"
     }

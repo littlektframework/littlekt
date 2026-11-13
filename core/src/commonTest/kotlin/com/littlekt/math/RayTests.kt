@@ -124,4 +124,56 @@ class RayTests {
         assertNear(Vec3f(0f, 2f, 0f), r.origin)
         assertNear(Vec3f(0f, 1f, 0f), r.direction)
     }
+
+    @Test
+    fun test_intersect_box_hits_front_face() {
+        val r = ray(Vec3f(-5f, 0.5f, 0.5f), Vec3f(1f, 0f, 0f))
+        assertNear(5f, r.intersectBox(0f, 0f, 0f, 1f, 1f, 1f))
+    }
+
+    @Test
+    fun test_intersect_box_inside_and_miss() {
+        assertNear(0f, ray(Vec3f(0.5f, 0.5f, 0.5f), Vec3f(0f, 0f, 1f)).intersectBox(0f, 0f, 0f, 1f, 1f, 1f))
+        assertNear(Ray.NO_HIT, ray(Vec3f(-5f, 2f, 0.5f), Vec3f(1f, 0f, 0f)).intersectBox(0f, 0f, 0f, 1f, 1f, 1f))
+        assertNear(Ray.NO_HIT, ray(Vec3f(5f, 0.5f, 0.5f), Vec3f(1f, 0f, 0f)).intersectBox(0f, 0f, 0f, 1f, 1f, 1f))
+    }
+
+    @Test
+    fun test_intersect_sphere() {
+        val r = ray(Vec3f(0f, 0f, -10f), Vec3f(0f, 0f, 1f))
+        assertNear(8f, r.intersectSphere(Vec3f(0f, 0f, 0f), 2f))
+        assertNear(Ray.NO_HIT, r.intersectSphere(Vec3f(5f, 0f, 0f), 2f))
+        assertNear(Ray.NO_HIT, r.intersectSphere(Vec3f(0f, 0f, -20f), 2f))
+    }
+
+    @Test
+    fun test_intersect_plane_ground() {
+        val r = ray(Vec3f(0f, 10f, 0f), MutableVec3f(0f, -1f, 1f).norm())
+        val t = r.intersectPlane(Vec3f(0f, 1f, 0f), Vec3f(0f, 0f, 0f))
+        val p = r.pointAt(t, MutableVec3f())
+        assertNear(Vec3f(0f, 0f, 10f), p)
+        assertNear(Ray.NO_HIT, r.intersectPlane(Vec3f(0f, 1f, 0f), Vec3f(0f, 20f, 0f)))
+    }
+
+    @Test
+    fun test_intersect_triangle() {
+        val a = Vec3f(0f, 0f, 0f)
+        val b = Vec3f(1f, 0f, 0f)
+        val c = Vec3f(0f, 1f, 0f)
+        val front = ray(Vec3f(0.25f, 0.25f, 5f), Vec3f(0f, 0f, -1f))
+        assertNear(5f, front.intersectTriangle(a, b, c))
+        assertNear(5f, front.intersectTriangle(a, b, c, cullBackFaces = true))
+        val back = ray(Vec3f(0.25f, 0.25f, -5f), Vec3f(0f, 0f, 1f))
+        assertNear(5f, back.intersectTriangle(a, b, c))
+        assertNear(Ray.NO_HIT, back.intersectTriangle(a, b, c, cullBackFaces = true))
+        assertNear(Ray.NO_HIT, ray(Vec3f(0.9f, 0.9f, 5f), Vec3f(0f, 0f, -1f)).intersectTriangle(a, b, c))
+    }
+
+    @Test
+    fun test_set_transformed_keeps_distances() {
+        val world = ray(Vec3f(0f, 0f, -10f), Vec3f(0f, 0f, 1f))
+        val transform = Mat4().translate(0f, 0f, 2f).scale(2f, 2f, 2f)
+        val local = Ray().setTransformed(world, Mat4().set(transform).invert())
+        assertNear(10f, local.intersectBox(-1f, -1f, -1f, 1f, 1f, 1f))
+    }
 }

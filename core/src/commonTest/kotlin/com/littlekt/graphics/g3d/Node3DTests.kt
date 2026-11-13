@@ -1,12 +1,15 @@
 package com.littlekt.graphics.g3d
 
 import com.littlekt.math.Mat4
+import com.littlekt.math.Ray
+import com.littlekt.math.spatial.BoundingBox
 import com.littlekt.math.MutableQuaternion
 import com.littlekt.math.Quaternion
 import com.littlekt.math.Vec3f
 import com.littlekt.math.geom.degrees
 import kotlin.math.abs
 import kotlin.test.Test
+import kotlin.time.Duration
 import kotlin.test.assertTrue
 
 class Node3DTests {
@@ -84,5 +87,45 @@ class Node3DTests {
         assertSameRotation(q, node.rotation)
         assertNear(Vec3f(2f, 3f, 4f), node.scale)
         assertNear(Vec3f(1f, 2f, 3f), node.position)
+    }
+
+    private class BoxNode(private val half: Float = 1f) : Node3D() {
+        override fun addToBoundingBox(bounds: BoundingBox) {
+            bounds.add(Vec3f(-half, -half, -half)).add(Vec3f(half, half, half))
+        }
+    }
+
+    private fun ray(ox: Float, oy: Float, oz: Float, dx: Float, dy: Float, dz: Float) =
+        Ray().apply {
+            origin.set(ox, oy, oz)
+            direction.set(dx, dy, dz).norm()
+        }
+
+    @Test
+    fun test_intersect_ray_uses_transformed_bounds() {
+        val node = BoxNode().position(10f, 0f, 0f).scaling(2f)
+        node.update(Duration.ZERO)
+        val distance = node.intersectRay(ray(0f, 0f, 0f, 1f, 0f, 0f))
+        assertTrue(abs(distance - 8f) < 1e-4f, "was $distance")
+        assertTrue(node.intersectRay(ray(0f, 3f, 0f, 1f, 0f, 0f)) < 0f)
+    }
+
+    @Test
+    fun test_intersect_ray_tests_rotated_bounds_tightly() {
+        val node = BoxNode().rotation(axisAngle(Vec3f.Y_AXIS, 45f))
+        node.update(Duration.ZERO)
+        val outside = ray(-9f, 0f, 11f, 1f, 0f, -1f)
+        assertTrue(node.intersectRay(outside) < 0f)
+        val global = node.globalBounds(BoundingBox())
+        assertTrue(outside.intersectBox(global) >= 0f)
+    }
+
+    @Test
+    fun test_intersect_ray_precise_without_geometry_misses() {
+        val parent = Node3D()
+        parent.addChild(BoxNode())
+        parent.update(Duration.ZERO)
+        assertTrue(parent.intersectRay(ray(-10f, 0f, 0f, 1f, 0f, 0f)) >= 0f)
+        assertTrue(parent.intersectRay(ray(-10f, 0f, 0f, 1f, 0f, 0f), precise = true) < 0f)
     }
 }
