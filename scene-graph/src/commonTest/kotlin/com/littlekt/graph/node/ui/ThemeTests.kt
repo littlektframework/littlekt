@@ -143,4 +143,24 @@ class ThemeTests {
         val built = theme(base) { label { fontColor = null } }
         assertNull(built.colors["Label"])
     }
+
+    @Test
+    fun test_reparent_notifies_theme_changed() {
+        val child = ThemeWatcher()
+        assertEquals(Color.WHITE, child.getThemeColor("fontColor"))
+        val parent = Control().apply { theme = theme { type<ThemeWatcher> { colors["fontColor"] = Color.RED } } }
+        parent.addChild(child)
+        assertTrue(child.changes > 0)
+        assertEquals(Color.RED, child.seen)
+    }
+
+    private class ThemeWatcher : Control() {
+        var changes = 0
+        var seen: Color? = null
+
+        override fun onThemeChanged() {
+            changes++
+            seen = getThemeColor("fontColor")
+        }
+    }
 }

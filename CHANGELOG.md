@@ -182,6 +182,7 @@
 - Fix `TtfFont` metrics missing `lineHeight` and not scaling `capHeight`.
 - Fix a theme's `defaultFont` being ignored unless it was the global default theme.
 - Fix `LineEdit` & `ProgressBar` not updating their text when the theme changes.
+- Fix controls not getting `onThemeChanged` when added to a parent, so `LineEdit` text kept the font from before it was added.
 - Fix the desktop surface being configured at the logical size, which blurred everything on macOS & Wayland high DPI screens.
 - Fix the web canvas ignoring `devicePixelRatio`; the back buffer now matches the screen and a canvas without a CSS size keeps its size.
 - Fix web mouse coordinates being scaled to the canvas buffer instead of logical units.

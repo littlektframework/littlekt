@@ -629,20 +629,7 @@ open class Control : CanvasItem() {
 
     override fun onParentChanged() {
         super.onParentChanged()
-        invalidateThemeCache()
-    }
-
-    private fun invalidateThemeCache() {
-        drawableCache.clear()
-        fontCache.clear()
-        colorCache.clear()
-        constantCache.clear()
-        minSizeInvalid = true
-        nodes.forEach {
-            if (it is Control) {
-                it.invalidateThemeCache()
-            }
-        }
+        _onThemeChanged()
     }
 
     private fun _onThemeChanged() {
