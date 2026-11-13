@@ -306,7 +306,7 @@ expect fun GPUExtent3D(): GPUExtent3D
 external interface GPUExtent3D {
     var width: Int
     var height: Int
-    var depthOrArrayLayer: Int
+    var depthOrArrayLayers: Int
 }
 
 external interface GPUShaderModule : GPUObjectBase {
@@ -314,7 +314,7 @@ external interface GPUShaderModule : GPUObjectBase {
 }
 
 external interface GPUTexture : GPUObjectBase {
-    var depthOrLayers: Int
+    var depthOrArrayLayers: Int
     var dimension: String
     var format: String
     var width: Int

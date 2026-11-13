@@ -20,7 +20,7 @@ actual fun nativeCheckForGamepads(gamepads: Array<GamepadInfo>) {
         val jsGamepads = navigator.getGamepads()
         gamepads.fastForEach { it.connected = false }
         for (gamepadId in 0 until jsGamepads.length) {
-            val controller = jsGamepads[gamepadId]
+            val controller = jsGamepads[gamepadId] ?: continue
             val gamepad = gamepads.getOrNull(gamepadId) ?: continue
             gamepad.apply {
                 this.connected = controller.connected
@@ -36,7 +36,7 @@ actual fun nativeUpdateGamepads(gamepads: Array<GamepadInfo>, inputCache: InputC
     try {
         val jsGamepads = navigator.getGamepads()
         for (gamepadId in 0 until jsGamepads.length) {
-            val controller = jsGamepads[gamepadId]
+            val controller = jsGamepads[gamepadId] ?: continue
             val gamepad = gamepads.getOrNull(gamepadId) ?: continue
             gamepad.apply {
                 for (n in 0 until controller.buttons.length) {

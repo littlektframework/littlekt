@@ -278,7 +278,7 @@ fun Extent3D.toNative(): GPUExtent3D = GPUExtent3D().apply {
     val it = this@toNative
     width = it.width
     height = it.height
-    depthOrArrayLayer = it.depth
+    depthOrArrayLayers = it.depth
 }
 
 fun TextureDataLayout.toNative(): GPUImageDataLayout = GPUImageDataLayout().apply {

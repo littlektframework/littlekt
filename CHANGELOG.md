@@ -256,6 +256,8 @@
 - Fix `ClusterBuffers` work group count rounding down.
 - Fix fully rough PBR materials producing single pixel specular highlights on edges.
 - Fix `Vec3f.cross` returning the wrong result when `result` is the same vector, e.g. `MutableVec3f.cross` & `Camera.lookAt`.
+- Fix web textures ignoring `Extent3D.depth`, breaking array & cube textures like shadow maps & IBL.
+- Fix JS input throwing on empty `navigator.getGamepads()` slots.
 - Performance: remove per frame allocations from `ModelBatch` & use bulk copies in the JVM `FloatBuffer`.
 - Performance: remove per frame allocations from scene graph signals, theme lookups & canvas layer render passes.
 - Performance: remove per frame allocations from `SpriteBatch` & `Skybox` dynamic offsets.
