@@ -43,6 +43,6 @@ internal class ScaledText {
 
     fun draw(batch: Batch) {
         val font = font ?: return
-        cache.draw(batch, font.textures)
+        cache.draw(batch, font)
     }
 }

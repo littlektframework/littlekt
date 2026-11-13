@@ -28,7 +28,7 @@ open class TextureFontCache(open val font: TextureFont) : FontCache(font.texture
      * @param batch the batch to draw with
      */
     fun draw(batch: Batch) {
-        draw(batch, font.textures)
+        draw(batch, font)
     }
 
     /**

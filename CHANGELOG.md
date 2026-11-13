@@ -173,6 +173,11 @@
 - Add `Fonts.defaultTtf` & `Fonts.defaultRaster` with the bundled Barlow Condensed TTF (SIL OFL 1.1, see `FONT_LICENSE`).
 - Add `TextureFont`, `TextureFontCache` & `TextureFont.forScale`.
 - Add TrueType kerning from the `kern` & `GPOS` tables.
+- Add `TtfFont.msdf(device, size)` & `MsdfFont` to draw TrueType fonts from multi-channel signed distance fields at any size, scale or rotation.
+- Add `MsdfStyle` for MSDF font weight, outline & glow, with `MsdfFont.withSize` & `MsdfFont.withStyle` sharing glyphs.
+- Add `MsdfGenerator` to generate MTSDF glyph fields from glyph outlines.
+- Add `TextureFont.shader` & `FontCache.draw(batch, font)` so fonts can draw with their own batch shader.
+- Add an MSDF font example.
 - Add `Control.pixelScale`; scene graph text now uses the font for the canvas scale and snaps to pixels.
 - Fix `TtfFont` metrics missing `lineHeight` and not scaling `capHeight`.
 - Fix a theme's `defaultFont` being ignored unless it was the global default theme.

@@ -1,6 +1,7 @@
 package com.littlekt.graphics.g2d.font
 
 import com.littlekt.graphics.Texture
+import com.littlekt.graphics.shader.Shader
 
 /**
  * A [Font] whose glyphs are drawn from textures, such as a [BitmapFont] or a [RasterFont]. Each
@@ -12,6 +13,10 @@ import com.littlekt.graphics.Texture
 interface TextureFont : Font {
     /** The textures of each page. Pages may be added as glyphs are rasterized. */
     val textures: List<Texture>
+
+    /** The batch shader this font must be drawn with, or `null` for the batch's own shader. */
+    val shader: Shader?
+        get() = null
 
     /**
      * @return this font for drawing at [scale] pixels per unit. A font that can be rasterized

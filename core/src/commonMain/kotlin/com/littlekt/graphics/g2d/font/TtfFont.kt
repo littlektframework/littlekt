@@ -25,6 +25,7 @@ class TtfFont(val chars: CharSequence = CharacterSets.LATIN_ALL) : Font {
     private var _metrics = FontMetrics()
     private lateinit var reader: TtfFontReader
     private val rasterFonts = mutableListOf<RasterFont>()
+    private val msdfAtlases = mutableListOf<MsdfAtlas>()
 
     override val glyphMetrics: Map<Int, GlyphMetrics>
         get() = glyphMetricsCache
@@ -157,6 +158,41 @@ class TtfFont(val chars: CharSequence = CharacterSets.LATIN_ALL) : Font {
         return font
     }
 
+    /**
+     * Gets an [MsdfFont] that draws this font from distance fields, so it stays sharp at any size,
+     * scale or rotation. Glyph fields are generated once per [fieldSize] and [distanceRange] and
+     * shared by every size and style.
+     *
+     * @param size the em size in pixels that the font is laid out at
+     * @param style the look of the glyphs, such as an outline or glow
+     * @param fieldSize the em size in pixels that glyph fields are generated at. Larger keeps
+     *   sharper corners when drawn large, at the cost of texture space.
+     * @param distanceRange the width in field pixels of the distance range. Larger allows wider
+     *   outlines, glows and weights.
+     */
+    fun msdf(
+        device: Device,
+        size: Float = 32f,
+        style: MsdfStyle = MsdfStyle(),
+        fieldSize: Float = 48f,
+        distanceRange: Float = 8f,
+    ): MsdfFont {
+        require(size > 0f) { "size must be greater than 0!" }
+        require(fieldSize > 0f) { "fieldSize must be greater than 0!" }
+        require(distanceRange > 0f) { "distanceRange must be greater than 0!" }
+        val atlas =
+            msdfAtlases.firstOrNull {
+                it.device === device && it.fieldSize == fieldSize && it.distanceRange == distanceRange
+            } ?: MsdfAtlas(this, device, fieldSize, distanceRange).also { msdfAtlases += it }
+        return MsdfFont(atlas, size, style)
+    }
+
+    /** Releases every [MsdfFont] glyph field. */
+    fun releaseMsdfFonts() {
+        msdfAtlases.toList().forEach { it.release() }
+        msdfAtlases.clear()
+    }
+
     /** Releases every cached [RasterFont]. */
     fun releaseRasterFonts() {
         rasterFonts.toList().forEach { it.release() }
@@ -165,6 +201,11 @@ class TtfFont(val chars: CharSequence = CharacterSets.LATIN_ALL) : Font {
 
     override fun release() {
         releaseRasterFonts()
+        releaseMsdfFonts()
+    }
+
+    internal fun onMsdfAtlasReleased(atlas: MsdfAtlas) {
+        msdfAtlases.remove(atlas)
     }
 
     internal fun onRasterFontReleased(font: RasterFont) {

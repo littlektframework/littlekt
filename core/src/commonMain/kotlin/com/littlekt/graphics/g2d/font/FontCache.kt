@@ -40,6 +40,25 @@ open class FontCache(val pages: Int = 1) {
     protected val currentTint = MutableColor(Color.WHITE)
 
     /**
+     * Draws the text using the specified batch with the textures and [TextureFont.shader] of
+     * [font].
+     *
+     * @param batch the batch to draw with
+     * @param font the font the text was laid out with
+     */
+    fun draw(batch: Batch, font: TextureFont) {
+        val shader = font.shader
+        if (shader == null) {
+            draw(batch, font.textures)
+            return
+        }
+        val previous = batch.shader
+        batch.shader = shader
+        draw(batch, font.textures)
+        batch.shader = previous
+    }
+
+    /**
      * Draws the text using the specified batch and list of textures. The [textures] list size must
      * be >= [pages]
      *
