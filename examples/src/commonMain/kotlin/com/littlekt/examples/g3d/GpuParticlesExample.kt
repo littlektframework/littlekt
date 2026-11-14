@@ -14,7 +14,7 @@ import com.littlekt.graphics.g3d.PBREnvironment
 import com.littlekt.graphics.g3d.light.AmbientLight
 import com.littlekt.graphics.g3d.light.DirectionalLight
 import com.littlekt.graphics.g3d.material.PBRMaterial
-import com.littlekt.graphics.g3d.particle.*
+import com.littlekt.graphics.particle.*
 import com.littlekt.graphics.g3d.util.PBRMaterialPipelineProvider
 import com.littlekt.graphics.generate
 import com.littlekt.graphics.webgpu.*

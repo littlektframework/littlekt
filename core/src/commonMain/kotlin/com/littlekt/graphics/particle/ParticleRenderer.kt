@@ -1,4 +1,4 @@
-package com.littlekt.graphics.g3d.particle
+package com.littlekt.graphics.particle
 
 import com.littlekt.EngineStats
 import com.littlekt.Releasable
@@ -17,6 +17,9 @@ import kotlin.math.sqrt
  * Simulates [ParticleEmitter]s with a compute pass and draws them as camera facing quads. Set
  * [colorFormat], [depthFormat] & [sampleCount] to match the render pass, like a
  * [com.littlekt.graphics.g3d.ModelBatch].
+ *
+ * Works in 2D with an orthographic camera and particles on the `z = 0` plane, such as through a
+ * scene graph `GpuParticles2D` node. Set [depthFormat] to `null` when the pass has no depth target.
  *
  * Particles are tested against the depth buffer without writing to it, so draw them after opaque
  * geometry.
@@ -257,10 +260,7 @@ class ParticleRenderer(val device: Device) : Releasable {
         val view = camera.view.data
         setNormalized(16, view[0], view[4], view[8])
         setNormalized(20, view[1], view[5], view[9])
-        cameraData[24] = camera.position.x
-        cameraData[25] = camera.position.y
-        cameraData[26] = camera.position.z
-        cameraData[27] = 1f
+        setNormalized(24, view[2], view[6], view[10])
         device.queue.writeBuffer(cameraBuffer, cameraData, offset = index.toLong() * cameraStride)
     }
 
@@ -436,6 +436,7 @@ struct Params {
     sizes: vec4f,
     colors: array<vec4f, 4>,
     extra: vec4f,
+    plane: vec4f,
 };
 
 struct Particle {
@@ -483,18 +484,41 @@ fn cone_direction(seed: ptr<function, u32>, axis: vec3f, cos_spread: f32) -> vec
     return tangent * (r * cos(angle)) + bitangent * (r * sin(angle)) + axis * z;
 }
 
+fn is_flat() -> bool {
+    return params.plane.x > 0.5;
+}
+
+fn flat_disc(seed: ptr<function, u32>, radius: f32, edge: bool) -> vec3f {
+    let angle = random(seed) * 6.2831853;
+    let r = select(radius * sqrt(random(seed)), radius, edge);
+    return vec3f(cos(angle) * r, sin(angle) * r, 0.0);
+}
+
+fn flat_direction(seed: ptr<function, u32>, axis: vec3f, cos_spread: f32) -> vec3f {
+    let spread = acos(clamp(cos_spread, -1.0, 1.0));
+    let angle = atan2(axis.y, axis.x) + (random(seed) * 2.0 - 1.0) * spread;
+    return vec3f(cos(angle), sin(angle), 0.0);
+}
+
 fn spawn_point(seed: ptr<function, u32>) -> vec3f {
     let shape = params.shape;
     let flag = params.extra.z;
     switch (u32(shape.x)) {
         case 1u: {
+            if (is_flat()) {
+                return flat_disc(seed, shape.y, flag > 0.5);
+            }
             let radius = select(shape.y * pow(random(seed), 1.0 / 3.0), shape.y, flag > 0.5);
             return random_direction(seed) * radius;
         }
         case 2u: {
-            return (vec3f(random(seed), random(seed), random(seed)) * 2.0 - 1.0) * shape.yzw;
+            let point = (vec3f(random(seed), random(seed), random(seed)) * 2.0 - 1.0) * shape.yzw;
+            return select(point, vec3f(point.xy, 0.0), is_flat());
         }
         case 3u: {
+            if (is_flat()) {
+                return flat_disc(seed, shape.y, flag > 0.5);
+            }
             let angle = random(seed) * 6.2831853;
             let radius = select(shape.y * sqrt(random(seed)), shape.y, flag > 0.5);
             return vec3f(cos(angle) * radius, 0.0, sin(angle) * radius);
@@ -526,7 +550,11 @@ fn simulate(@builtin(global_invocation_id) id: vec3u) {
         let t = (f32(relative) + random(&seed)) / f32(count);
         let local_space = params.flags.x > 0.5;
         let local_point = spawn_point(&seed);
-        var direction = cone_direction(&seed, normalize(params.direction.xyz), params.direction.w);
+        let axis = normalize(params.direction.xyz);
+        var direction = cone_direction(&seed, axis, params.direction.w);
+        if (is_flat()) {
+            direction = flat_direction(&seed, axis, params.direction.w);
+        }
         var velocity = direction * random_range(&seed, params.life_speed.zw);
         let radial = random_range(&seed, params.size_radial.zw);
         if (radial != 0.0 && length(local_point) > 0.0001) {
@@ -542,6 +570,10 @@ fn simulate(@builtin(global_invocation_id) id: vec3u) {
                 velocity += (current - params.previous.xyz) / dt * params.extra.w;
             }
         }
+        if (is_flat()) {
+            velocity.z = 0.0;
+            position.z = select(params.transform[3].z, 0.0, local_space);
+        }
         let age = (1.0 - t) * dt;
         p.position = vec4f(position + velocity * age, age);
         p.velocity = vec4f(velocity, random_range(&seed, params.life_speed.xy));
@@ -554,6 +586,9 @@ fn simulate(@builtin(global_invocation_id) id: vec3u) {
     } else if (p.position.w < p.velocity.w) {
         var velocity = p.velocity.xyz + params.gravity.xyz * dt;
         velocity = velocity / (1.0 + params.gravity.w * dt);
+        if (is_flat()) {
+            velocity.z = 0.0;
+        }
         p.position = vec4f(p.position.xyz + velocity * dt, p.position.w + dt);
         p.velocity = vec4f(velocity, p.velocity.w);
         p.misc.y += p.misc.z * dt;
@@ -569,7 +604,7 @@ struct Camera {
     view_proj: mat4x4f,
     right: vec4f,
     up: vec4f,
-    position: vec4f,
+    back: vec4f,
 };
 
 @group(0) @binding(0) var<uniform> camera: Camera;
@@ -641,8 +676,7 @@ fn vs_main(@builtin(vertex_index) vertex: u32, @builtin(instance_index) instance
         case 1u: {
             let speed = length(velocity);
             let axis = select(camera.up.xyz, velocity / speed, speed > 0.0001);
-            let to_camera = normalize(camera.position.xyz - center);
-            var side = cross(axis, to_camera);
+            var side = cross(axis, camera.back.xyz);
             side = select(camera.right.xyz, normalize(side), length(side) > 0.0001);
             offset = side * (corner.x * size) + axis * (corner.y * size * (1.0 + speed * params.extra.y));
         }

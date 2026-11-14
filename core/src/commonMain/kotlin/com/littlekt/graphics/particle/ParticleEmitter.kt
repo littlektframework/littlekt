@@ -1,10 +1,13 @@
-package com.littlekt.graphics.g3d.particle
+package com.littlekt.graphics.particle
 
 import com.littlekt.Releasable
 import com.littlekt.file.FloatBuffer
 import com.littlekt.graphics.g3d.Node3D
 import com.littlekt.graphics.webgpu.*
+import com.littlekt.math.MutableQuaternion
 import com.littlekt.math.MutableVec3f
+import com.littlekt.math.Vec3f
+import com.littlekt.math.geom.Angle
 import com.littlekt.math.geom.degrees
 import com.littlekt.util.seconds
 import kotlin.math.cos
@@ -16,6 +19,9 @@ import kotlin.time.Duration
 /**
  * A [Node3D] that spawns and simulates particles on the GPU with a [ParticleEffect]. Spawning
  * follows the node's global transform, so emitters can be attached to models.
+ *
+ * Works in 2D too, on the `z = 0` plane: use [position] with `x` & `y` and [rotation] with an
+ * [Angle] around the z axis.
  *
  * Each frame, after [update], call [ParticleRenderer.simulate] before the render pass and
  * [ParticleRenderer.render] within it.
@@ -54,6 +60,7 @@ class ParticleEmitter(val renderer: ParticleRenderer, effect: ParticleEffect) :
     internal var textureBindGroup: BindGroup = renderer.createTextureBindGroup(effect.texture)
         private set
 
+    private val rotation2d = MutableQuaternion()
     private val previousPosition = MutableVec3f()
     private val currentPosition = MutableVec3f()
     private var hasPreviousPosition = false
@@ -107,6 +114,18 @@ class ParticleEmitter(val renderer: ParticleRenderer, effect: ParticleEffect) :
 
     init {
         name = "ParticleEmitter"
+    }
+
+    /** Moves the emitter to [x], [y] on the `z = 0` plane, such as for 2D. */
+    fun position(x: Float, y: Float): ParticleEmitter {
+        position(x, y, 0f)
+        return this
+    }
+
+    /** Sets the emitter's rotation to [angle] around the z axis, such as for 2D. */
+    fun rotation(angle: Angle): ParticleEmitter {
+        rotation(rotation2d.identity().rotate(angle, Vec3f.Z_AXIS))
+        return this
     }
 
     /** Spawns [count] particles at the next simulation. */
@@ -225,6 +244,7 @@ class ParticleEmitter(val renderer: ParticleRenderer, effect: ParticleEffect) :
         params[72] = if (pendingClear) 1f else 0f
         params[73] = max(0f, e.stretch)
         params[75] = e.inheritVelocity
+        params[76] = if (e.flat) 1f else 0f
     }
 
     private fun setShape(type: Float, x: Float, y: Float, z: Float, flag: Float) {
@@ -285,7 +305,7 @@ class ParticleEmitter(val renderer: ParticleRenderer, effect: ParticleEffect) :
     }
 
     internal companion object {
-        const val PARAMS_FLOATS = 76
+        const val PARAMS_FLOATS = 80
         const val PARTICLE_BYTES = 48L
     }
 }

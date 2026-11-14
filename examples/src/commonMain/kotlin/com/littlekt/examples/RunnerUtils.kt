@@ -29,6 +29,7 @@ import com.littlekt.examples.input.InputExample
 import com.littlekt.examples.ui.DisplaySettingsExample
 import com.littlekt.examples.ui.GameWorldAndUiViewportsExample
 import com.littlekt.examples.ui.HelloSceneGraphExample
+import com.littlekt.examples.g2d.GpuParticles2DExample
 import com.littlekt.examples.ui.SceneGraphPlaygroundExample
 import com.littlekt.examples.webgpu.ComputeBoidsExample
 import com.littlekt.examples.webgpu.RotatingCubeExample
@@ -78,6 +79,7 @@ val availableExamples: Map<String, Example> = examples {
         example("-spriteCacheQuads", "Sprite Cache Quads", ::SpriteCacheQuadsExample)
         example("-animation", "Animation", ::AnimationExample)
         example("-cpuParticles", "CPU Particles", ::CpuParticlesExample)
+        example("-gpuParticles2d", "GPU Particles 2D", ::GpuParticles2DExample)
         example("-shapes", "Shapes", ::ShapesExample)
         example("-font", "Font", ::FontExample)
         example("-ttfFont", "TrueType Font", ::TtfFontExample)

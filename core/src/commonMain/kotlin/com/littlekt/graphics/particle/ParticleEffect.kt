@@ -1,4 +1,4 @@
-package com.littlekt.graphics.g3d.particle
+package com.littlekt.graphics.particle
 
 import com.littlekt.graphics.Color
 import com.littlekt.graphics.Texture
@@ -49,6 +49,8 @@ import com.littlekt.math.geom.degrees
  * @property localSpace `true` to keep particles relative to the emitter so they move with it,
  *   `false` to leave them in the world where they spawned
  * @property texture the texture of each particle, or `null` for a soft round dot
+ * @property flat `true` to keep particles on the emitter's XY plane, such as for 2D. Directions,
+ *   shapes & gravity ignore `z`, and [EmitterShape.Sphere] & [EmitterShape.Circle] spawn on a disc.
  * @author Colton Daily
  * @date 11/14/2026
  */
@@ -74,6 +76,7 @@ data class ParticleEffect(
     val blend: ParticleBlend = ParticleBlend.ALPHA,
     val localSpace: Boolean = false,
     val texture: Texture? = null,
+    val flat: Boolean = false,
 ) {
     init {
         require(maxParticles > 0) { "maxParticles must be greater than 0!" }

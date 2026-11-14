@@ -1,4 +1,4 @@
-package com.littlekt.graphics.g3d.particle
+package com.littlekt.graphics.particle
 
 import com.littlekt.graphics.Color
 import kotlin.test.Test

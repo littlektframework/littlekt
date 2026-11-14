@@ -8,6 +8,8 @@ import com.littlekt.graph.node.render.Material
 import com.littlekt.graph.node.resource.InputEvent
 import com.littlekt.graph.node.resource.Theme
 import com.littlekt.graph.node.ui.Control
+import com.littlekt.graph.util.SingleSignal
+import com.littlekt.graph.util.signal1v
 import com.littlekt.graphics.Camera
 import com.littlekt.graphics.OrthographicCamera
 import com.littlekt.graphics.g2d.Batch
@@ -192,6 +194,12 @@ open class SceneGraph<InputType>(
     /** The [ShapeRenderer] managed by the scene graph. This uses the [batch] for drawing. */
     val shapeRenderer: ShapeRenderer = ShapeRenderer(this.batch, whitePixel)
 
+    /**
+     * Emitted at the start of [render] with its [CommandEncoder], before any render pass begins,
+     * such as for compute passes.
+     */
+    val onPreRender: SingleSignal<CommandEncoder> = signal1v()
+
     init {
         Theme.initDefaultTheme(context.graphics.preferredFormat.srgb)
     }
@@ -355,6 +363,7 @@ open class SceneGraph<InputType>(
         }
 
         this.commandEncoder = commandEncoder
+        onPreRender.emit(commandEncoder)
         sceneCanvas.canvasRenderPassDescriptor = renderPassDescriptor
         sceneCanvas.render(batch, shapeRenderer, checkNodeMaterialCallback)
         flush()

@@ -104,7 +104,7 @@
 - Add `IntMap`.
 - Add `MaterialPipeline.transparent`.
 - Add `ShadowsExample`, `MultiPassExample`, `TransparencyExample`, `IBLExample` & `BloomExample`.
-- Add `AnimationExample`, `ParticlesExample`, `ShapesExample` & `SpriteBatchExample`.
+- Add `AnimationExample`, `CpuParticlesExample`, `ShapesExample` & `SpriteBatchExample`.
 - Add `SceneGraphPlaygroundExample` showing every built-in scene graph UI control.
 - Rework examples into `webgpu`, `g2d`, `ui`, `g3d` & `input` packages and remove outdated examples.
 - Fix `Vec2f`, `Vec3f`, `Vec4f`, `Quaternion`, `Mat3` & `Mat4` operations returning wrong results when `result` is the
@@ -168,8 +168,11 @@
 - Fix `0.isPowerOfTwo` returning `true`.
 - Add `BakedAnimations` & `BakedAnimationInstance` to draw thousands of animated skinned models in one draw call.
 - Add crossfading between clips to `BakedAnimationInstance` with `play(clip, fade = ...)` & `defaultFade`.
-- Add GPU particles with `ParticleEffect`, `ParticleEmitter` & `ParticleRenderer`, simulated in a compute pass.
-- Add a GPU particles example.
+- Add 2D & 3D GPU particles with `ParticleEffect`, `ParticleEmitter` & `ParticleRenderer`, simulated in a compute pass.
+- Add `ParticleEffect.flat` & `ParticleEmitter` 2D `position` & `rotation` for 2D particles.
+- Add 2D & 3D GPU particles examples.
+- Add the `GpuParticles2D` scene graph node that draws a `ParticleEmitter` in tree order with a user owned `ParticleRenderer`.
+- Add `SceneGraph.onPreRender` for compute work before the graph renders.
 - Add `Animation.sample(time)` to pose an animation at a time without advancing it.
 - Fix copies of a skinned model all drawing at the original's position.
 - Add `Context.window` to change the window mode, size & position and to list monitors & video modes.
@@ -242,8 +245,8 @@
 - Fix `BoxContainer` spacing hidden children, `PaddedContainer` padding not resetting to 0 & `Range.ratio`.
 - Fix `Label` vertical alignment so text centers correctly & wrapped bottom aligned lines stay inside the label.
 - Fix `LineEdit` not masking text when `secret` or `secretCharacter` is set after `text`.
-- Fix `ParticleSimulator` updating & drawing an unallocated particle and never using its last particle.
-- Fix `ParticleSimulator` keeping the anchor, delay & fade in values of reused particles.
+- Fix `CpuParticleSimulator` updating & drawing an unallocated particle and never using its last particle.
+- Fix `CpuParticleSimulator` keeping the anchor, delay & fade in values of reused particles.
 - Fix `NodeList.findFirstNodeOfType` only searching the first child.
 - Fix `Control.clearThemeCache` clearing color overrides instead of the color cache.
 - Fix `Control` theme caches mixing up values of different theme types.
