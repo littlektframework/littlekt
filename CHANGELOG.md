@@ -65,6 +65,8 @@
     - Migration: custom shaders calling `get_joint_matrix` now pass the `Model` instead of `model.skin`.
 - BREAKING: `onResize` now runs once at the start of the next frame instead of for every size change.
 - BREAKING: `Graphics.configureSurface()` now keeps the last present mode instead of resetting to `FIFO`.
+- BREAKING: Rename 2D `Particle` & `ParticleSimulator` to `CpuParticle` & `CpuParticleSimulator`.
+    - Migration: replace `Particle` with `CpuParticle` & `ParticleSimulator` with `CpuParticleSimulator`.
 - BREAKING: Theme fonts and the `font` of `Label`, `Button`, `LineEdit`, `ProgressBar` & `Modifier.font` are now a `TextureFont` instead of a `BitmapFont`.
     - Migration: a `BitmapFont` is a `TextureFont`, so only declared types need changing.
 - BREAKING: The default scene graph theme now uses the bundled Barlow Condensed TTF (`Fonts.defaultRaster`) instead of the bitmap font.

@@ -8,8 +8,8 @@ import com.littlekt.examples.addStatsHandler
 import com.littlekt.file.vfs.readAtlas
 import com.littlekt.graphics.Color
 import com.littlekt.graphics.g2d.Batch
-import com.littlekt.graphics.g2d.Particle
-import com.littlekt.graphics.g2d.ParticleSimulator
+import com.littlekt.graphics.g2d.CpuParticle
+import com.littlekt.graphics.g2d.CpuParticleSimulator
 import com.littlekt.graphics.g2d.SpriteBatch
 import com.littlekt.graphics.g2d.TextureSlice
 import com.littlekt.graphics.g2d.draw
@@ -34,18 +34,18 @@ import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
 /**
- * An example of simulating particles with a [ParticleSimulator]. A campfire burns on its own while
+ * An example of simulating particles with a [CpuParticleSimulator]. A campfire burns on its own while
  * clicking, or holding, the mouse sets off bursts of sparks that bounce off the ground.
  *
  * @author Colton Daily
  * @date 11/8/2026
  */
-class ParticlesExample(context: Context) : ContextListener(context) {
-    private val fire = ParticleSimulator(2048)
-    private val smoke = ParticleSimulator(512)
+class CpuParticlesExample(context: Context) : ContextListener(context) {
+    private val fire = CpuParticleSimulator(2048)
+    private val smoke = CpuParticleSimulator(512)
     private val groundY = 40f
 
-    private val bounce: (Particle) -> Unit = { p ->
+    private val bounce: (CpuParticle) -> Unit = { p ->
         if (p.y < groundY && p.yDelta < 0f) {
             p.y = groundY
             p.yDelta *= -0.45f
@@ -55,7 +55,7 @@ class ParticlesExample(context: Context) : ContextListener(context) {
 
     private fun rand(min: Float, max: Float) = min + Random.nextFloat() * (max - min)
 
-    private fun Particle.setup(scale: Float, lifeSeconds: Float) {
+    private fun CpuParticle.setup(scale: Float, lifeSeconds: Float) {
         anchorX = 0.5f
         anchorY = 0.5f
         scale(scale)

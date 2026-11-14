@@ -15,16 +15,16 @@ import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
 /**
- * Allocates and simulates the CPU-based [Particle].
+ * Allocates and simulates the CPU-based [CpuParticle].
  *
  * @param maxParticles maximum number of particles that are allowed to be allocated.
  * @author Colton Daily
  * @date 12/29/2021
  */
-class ParticleSimulator(maxParticles: Int) {
+class CpuParticleSimulator(maxParticles: Int) {
 
     /** The list of particles currently allocated. */
-    val particles = List(maxParticles) { init(Particle(Textures.white).apply { index = it }) }
+    val particles = List(maxParticles) { init(CpuParticle(Textures.white).apply { index = it }) }
 
     /** The current number of particles allocated. */
     var numAlloc = 0
@@ -33,19 +33,19 @@ class ParticleSimulator(maxParticles: Int) {
     /**
      * The current number of particles currently alive.
      *
-     * @see [Particle.alive]
+     * @see [CpuParticle.alive]
      */
     var totalAlive = 0
         private set
 
     /**
-     * Resets a dead particle from [particles] or allocates a new [Particle] with the given info.
+     * Resets a dead particle from [particles] or allocates a new [CpuParticle] with the given info.
      *
      * @param slice initial [TextureSlice] of the particle
      * @param x initial x-position of the particle
      * @param y initial y-position of the particle
      */
-    fun alloc(slice: TextureSlice, x: Float, y: Float): Particle {
+    fun alloc(slice: TextureSlice, x: Float, y: Float): CpuParticle {
         return if (numAlloc < particles.size) {
             val particle =
                 reset(particles[numAlloc], slice).also {
@@ -55,7 +55,7 @@ class ParticleSimulator(maxParticles: Int) {
             numAlloc++
             particle
         } else {
-            var best: Particle? = null
+            var best: CpuParticle? = null
             particles.fastForEach {
                 val b = best
                 if (b == null || it.timeStamp < b.timeStamp) {
@@ -73,7 +73,7 @@ class ParticleSimulator(maxParticles: Int) {
             .also { totalAlive = min(totalAlive + 1, numAlloc) }
     }
 
-    private fun init(particle: Particle): Particle {
+    private fun init(particle: CpuParticle): CpuParticle {
         with(particle) {
             scale(1f)
             rotation = Angle.ZERO
@@ -128,13 +128,13 @@ class ParticleSimulator(maxParticles: Int) {
         return particle
     }
 
-    private fun reset(particle: Particle, slice: TextureSlice): Particle {
+    private fun reset(particle: CpuParticle, slice: TextureSlice): CpuParticle {
         val result = init(particle)
         result.slice = slice
         return result
     }
 
-    private fun kill(particle: Particle) {
+    private fun kill(particle: CpuParticle) {
         particle.alpha = 0f
         particle.life = Duration.ZERO
         particle.killed = true
@@ -142,7 +142,7 @@ class ParticleSimulator(maxParticles: Int) {
         totalAlive = max(totalAlive - 1, 0)
     }
 
-    private fun advance(particle: Particle, dt: Duration, tmod: Float) {
+    private fun advance(particle: CpuParticle, dt: Duration, tmod: Float) {
         particle.delay -= dt
         if (particle.killed || particle.delay > 0.milliseconds) return
 
@@ -237,8 +237,8 @@ class ParticleSimulator(maxParticles: Int) {
     }
 }
 
-/** Draw the list of [ParticleSimulator.particles] with the given [Batch]. */
-fun ParticleSimulator.draw(batch: Batch) {
+/** Draw the list of [CpuParticleSimulator.particles] with the given [Batch]. */
+fun CpuParticleSimulator.draw(batch: Batch) {
     for (i in 0 until numAlloc) {
         particles[i].draw(batch)
     }

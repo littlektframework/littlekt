@@ -7,7 +7,7 @@ import com.littlekt.examples.g2d.AssetProviderExample
 import com.littlekt.examples.g2d.FontExample
 import com.littlekt.examples.g2d.MsdfFontExample
 import com.littlekt.examples.g2d.TtfFontExample
-import com.littlekt.examples.g2d.ParticlesExample
+import com.littlekt.examples.g2d.CpuParticlesExample
 import com.littlekt.examples.g2d.RenderTargetExample
 import com.littlekt.examples.g2d.ShapesExample
 import com.littlekt.examples.g2d.SpriteBatchExample
@@ -77,7 +77,7 @@ val availableExamples: Map<String, Example> = examples {
         example("-spriteBatch", "SpriteBatch", ::SpriteBatchExample)
         example("-spriteCacheQuads", "Sprite Cache Quads", ::SpriteCacheQuadsExample)
         example("-animation", "Animation", ::AnimationExample)
-        example("-particles", "Particles", ::ParticlesExample)
+        example("-cpuParticles", "CPU Particles", ::CpuParticlesExample)
         example("-shapes", "Shapes", ::ShapesExample)
         example("-font", "Font", ::FontExample)
         example("-ttfFont", "TrueType Font", ::TtfFontExample)

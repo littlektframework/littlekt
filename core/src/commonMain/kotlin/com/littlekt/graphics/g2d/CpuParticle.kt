@@ -12,12 +12,12 @@ import kotlin.time.Duration.Companion.ZERO
 import kotlin.time.Duration.Companion.seconds
 
 /**
- * A CPU-Based particle. Used in conjunction with [ParticleSimulator].
+ * A CPU-Based particle. Used in conjunction with [CpuParticleSimulator].
  *
  * @author Colton Daily
  * @date 12/29/2021
  */
-class Particle(var slice: TextureSlice) {
+class CpuParticle(var slice: TextureSlice) {
     /** The current x-position. */
     var x: Float = 0f
 
@@ -138,7 +138,7 @@ class Particle(var slice: TextureSlice) {
     var onStart: (() -> Unit)? = null
 
     /** Invoked each frame that the particle is alive. */
-    var onUpdate: ((Particle) -> Unit)? = null
+    var onUpdate: ((CpuParticle) -> Unit)? = null
 
     /** Invoked when the particle is killed. */
     var onKill: (() -> Unit)? = null
@@ -305,11 +305,11 @@ class Particle(var slice: TextureSlice) {
     }
 
     override fun toString(): String {
-        return "Particle(index=$index, xDelta=$xDelta, yDelta=$yDelta, scaleDelta=$scaleDelta, scaleDeltaX=$scaleDeltaX, scaleDeltaY=$scaleDeltaY, scaleFriction=$scaleFriction, scaleMultiplier=$scaleMultiplier, scaleXMultiplier=$scaleXMultiplier, scaleYMultiplier=$scaleYMultiplier, rotationDelta=$rotationDelta, rotationFriction=$rotationFriction, frictionX=$frictionX, frictionY=$frictionY, gravityX=$gravityX, gravityY=$gravityY, fadeOutSpeed=$fadeOutSpeed, life=$life, remainingLife=$remainingLife, delay=$delay, killed=$killed, onStart=$onStart, onUpdate=$onUpdate, onKill=$onKill, colorRdelta=$colorRdelta, colorGdelta=$colorGdelta, colorBdelta=$colorBdelta, alphaDelta=$alphaDelta, timeStamp=$timeStamp, data0=$data0, data1=$data1, data2=$data2, data3=$data3. data4=$data4, data5=$data5, data6=$data6, data7=$data7)"
+        return "CpuParticle(index=$index, xDelta=$xDelta, yDelta=$yDelta, scaleDelta=$scaleDelta, scaleDeltaX=$scaleDeltaX, scaleDeltaY=$scaleDeltaY, scaleFriction=$scaleFriction, scaleMultiplier=$scaleMultiplier, scaleXMultiplier=$scaleXMultiplier, scaleYMultiplier=$scaleYMultiplier, rotationDelta=$rotationDelta, rotationFriction=$rotationFriction, frictionX=$frictionX, frictionY=$frictionY, gravityX=$gravityX, gravityY=$gravityY, fadeOutSpeed=$fadeOutSpeed, life=$life, remainingLife=$remainingLife, delay=$delay, killed=$killed, onStart=$onStart, onUpdate=$onUpdate, onKill=$onKill, colorRdelta=$colorRdelta, colorGdelta=$colorGdelta, colorBdelta=$colorBdelta, alphaDelta=$alphaDelta, timeStamp=$timeStamp, data0=$data0, data1=$data1, data2=$data2, data3=$data3. data4=$data4, data5=$data5, data6=$data6, data7=$data7)"
     }
 }
 
-fun Particle.draw(batch: Batch) {
+fun CpuParticle.draw(batch: Batch) {
     if (!visible || !alive) return
 
     batch.draw(

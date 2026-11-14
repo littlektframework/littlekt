@@ -1,5 +1,5 @@
 <component name="ProjectRunConfigurationManager">
-    <configuration default="false" name="ParticlesExample [jvm]" type="GradleRunConfiguration" factoryName="Gradle"
+    <configuration default="false" name="CpuParticlesExample [jvm]" type="GradleRunConfiguration" factoryName="Gradle"
                    folderName="Examples">
         <ExternalSystemSettings>
             <option name="executionName"/>
@@ -12,7 +12,7 @@
             <option name="taskNames">
                 <list>
                     <option value="jvmRun"/>
-                    <option value="--args=&quot;-particles&quot;"/>
+                    <option value="--args=&quot;-cpuParticles&quot;"/>
                 </list>
             </option>
             <option name="vmOptions"/>
