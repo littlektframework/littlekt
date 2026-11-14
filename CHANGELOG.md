@@ -166,6 +166,8 @@
 - Fix `0.isPowerOfTwo` returning `true`.
 - Add `BakedAnimations` & `BakedAnimationInstance` to draw thousands of animated skinned models in one draw call.
 - Add crossfading between clips to `BakedAnimationInstance` with `play(clip, fade = ...)` & `defaultFade`.
+- Add GPU particles with `ParticleEffect`, `ParticleEmitter` & `ParticleRenderer`, simulated in a compute pass.
+- Add a GPU particles example.
 - Add `Animation.sample(time)` to pose an animation at a time without advancing it.
 - Fix copies of a skinned model all drawing at the original's position.
 - Add `Context.window` to change the window mode, size & position and to list monitors & video modes.
