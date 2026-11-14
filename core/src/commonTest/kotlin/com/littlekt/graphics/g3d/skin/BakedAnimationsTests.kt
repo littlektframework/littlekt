@@ -65,7 +65,7 @@ class BakedAnimationsTests {
     }
 
     @Test
-    fun test_instance_data_has_room_for_skin_frames() {
-        assertEquals(24, MeshPrimitive.INSTANCE_DATA_SIZE)
+    fun test_instance_data_has_room_for_skin_and_fade_frames() {
+        assertEquals(28, MeshPrimitive.INSTANCE_DATA_SIZE)
     }
 }

@@ -23,12 +23,14 @@ import com.littlekt.math.random
 import com.littlekt.renderFrame
 import com.littlekt.renderTarget
 import com.littlekt.surfaceColor
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 
 /**
  * An example of drawing a horde of animated, skinned models. The fox's animations are baked once
  * with [BakedAnimations] and every fox is a [BakedAnimationInstance] with its own clip, time and
  * speed, so all of them are drawn in one instanced draw call. Press up & down to add or remove
- * foxes.
+ * foxes, space to switch every fox to its next clip, and F to toggle crossfading between clips.
  *
  * @author Colton Daily
  * @date 11/11/2026
@@ -97,10 +99,22 @@ class SkinnedInstancingExample(context: Context) : ContextListener(context) {
             camera.update()
         }
 
+        var fade = 0.4.seconds
         addFlyController(camera, 0.0015f)
         onUpdate { dt ->
             if (input.isKeyJustPressed(Key.ARROW_UP)) spawn(500)
             if (input.isKeyJustPressed(Key.ARROW_DOWN)) despawn(500)
+            if (input.isKeyJustPressed(Key.F)) {
+                fade = if (fade == Duration.ZERO) 0.4.seconds else Duration.ZERO
+                logger.info { "Crossfade: $fade" }
+            }
+            if (input.isKeyJustPressed(Key.SPACE)) {
+                horde.children.forEach {
+                    val fox = it as BakedAnimationInstance
+                    val next = baked.clips[(fox.clip!!.index + 1) % baked.clips.size]
+                    fox.play(next, fade = fade)
+                }
+            }
             horde.update(dt)
         }
         onUpdate { dt ->

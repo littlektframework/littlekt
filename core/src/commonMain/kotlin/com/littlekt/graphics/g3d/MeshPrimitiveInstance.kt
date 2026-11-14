@@ -34,16 +34,50 @@ open class MeshPrimitiveInstance : Node3D() {
     internal var skinFrame = 0
     internal var skinNextFrame = 0
     internal var skinBlend = 0f
+    internal var fadeFrame = 0
+    internal var fadeNextFrame = 0
+    internal var fadeBlend = 0f
+    internal var fadeWeight = 0f
 
     /**
      * Sets which joint matrices of the skin palette this instance is drawn with, blending from
      * [frame] to [nextFrame] by [blend]. Each frame is the index of its first joint matrix.
      */
     internal fun setSkinFrames(frame: Int, nextFrame: Int, blend: Float) {
-        if (skinFrame == frame && skinNextFrame == nextFrame && skinBlend == blend) return
+        setSkinFrames(frame, nextFrame, blend, 0, 0, 0f, 0f)
+    }
+
+    /**
+     * Sets the joint matrices like [setSkinFrames], then mixes in a second pose from [fadeFrame]
+     * to [fadeNextFrame] by [fadeBlend], weighted by [fadeWeight] from `0` to `1`.
+     */
+    internal fun setSkinFrames(
+        frame: Int,
+        nextFrame: Int,
+        blend: Float,
+        fadeFrame: Int,
+        fadeNextFrame: Int,
+        fadeBlend: Float,
+        fadeWeight: Float,
+    ) {
+        if (
+            skinFrame == frame &&
+                skinNextFrame == nextFrame &&
+                skinBlend == blend &&
+                this.fadeFrame == fadeFrame &&
+                this.fadeNextFrame == fadeNextFrame &&
+                this.fadeBlend == fadeBlend &&
+                this.fadeWeight == fadeWeight
+        ) {
+            return
+        }
         skinFrame = frame
         skinNextFrame = nextFrame
         skinBlend = blend
+        this.fadeFrame = fadeFrame
+        this.fadeNextFrame = fadeNextFrame
+        this.fadeBlend = fadeBlend
+        this.fadeWeight = fadeWeight
         instanceOf?.instanceDirty(this)
     }
 

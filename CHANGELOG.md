@@ -61,7 +61,8 @@
 - BREAKING: Vectors of different sizes are no longer equal, and `Quaternion` equals `MutableQuaternion` with the same values.
 - BREAKING: Skinned meshes now apply each instance's transform, with `Skin` joints relative to `Skin.root`.
     - Migration: `get_skin_matrix(input)` now includes the instance transform and the skin bind group has a single `skin_joints` binding.
-- BREAKING: The `Model` shader struct has a new `skin` field, so `MeshPrimitive.INSTANCE_DATA_SIZE` is now 24.
+- BREAKING: The `Model` shader struct has new `skin` & `skin_fade` fields, so `MeshPrimitive.INSTANCE_DATA_SIZE` is now 28.
+    - Migration: custom shaders calling `get_joint_matrix` now pass the `Model` instead of `model.skin`.
 - BREAKING: `onResize` now runs once at the start of the next frame instead of for every size change.
 - BREAKING: `Graphics.configureSurface()` now keeps the last present mode instead of resetting to `FIFO`.
 - BREAKING: Theme fonts and the `font` of `Label`, `Button`, `LineEdit`, `ProgressBar` & `Modifier.font` are now a `TextureFont` instead of a `BitmapFont`.
@@ -164,6 +165,7 @@
 - Add a picking & spatial hash example.
 - Fix `0.isPowerOfTwo` returning `true`.
 - Add `BakedAnimations` & `BakedAnimationInstance` to draw thousands of animated skinned models in one draw call.
+- Add crossfading between clips to `BakedAnimationInstance` with `play(clip, fade = ...)` & `defaultFade`.
 - Add `Animation.sample(time)` to pose an animation at a time without advancing it.
 - Fix copies of a skinned model all drawing at the original's position.
 - Add `Context.window` to change the window mode, size & position and to list monitors & video modes.

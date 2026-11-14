@@ -210,6 +210,10 @@ open class MeshPrimitive(
         instanceData.put(instance.skinFrame.toFloat())
         instanceData.put(instance.skinNextFrame.toFloat())
         instanceData.put(instance.skinBlend)
+        instanceData.put(instance.fadeWeight)
+        instanceData.put(instance.fadeFrame.toFloat())
+        instanceData.put(instance.fadeNextFrame.toFloat())
+        instanceData.put(instance.fadeBlend)
         instanceData.put(0f)
     }
 
@@ -256,7 +260,7 @@ open class MeshPrimitive(
     }
 
     companion object {
-        private const val TRANSFORM_COMPONENTS_PER_INSTANCE = 24
+        private const val TRANSFORM_COMPONENTS_PER_INSTANCE = 28
         private const val PIPELINE_CACHE_SIZE = 4
 
         /** The number of floats each instance uses. */
