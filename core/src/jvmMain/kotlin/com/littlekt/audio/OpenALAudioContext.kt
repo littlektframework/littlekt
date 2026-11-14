@@ -16,16 +16,20 @@ import org.lwjgl.openal.*
  * @date 12/27/2021
  */
 class OpenALAudioContext(val maxSources: Int = DEFAULT_MAX_SOURCES) : Releasable, Audio {
-    val device =
+    /** The OpenAL device handle, or `0` if no device could be opened. */
+    val device: Long =
         try {
             val byteBuffer: ByteBuffer? = null
             ALC10.alcOpenDevice(byteBuffer)
         } catch (ex: Exception) {
             ex.printStackTrace()
-            -1
+            0L
         }
+
+    /** The OpenAL context handle, or `0` if no context could be created. */
     val context: Long =
-        try {
+        if (device == 0L) 0L
+        else try {
             val deviceCaps = ALC.createCapabilities(device)
             val attributes =
                 if (maxSources > OPENAL_DEFAULT_SOURCES) {
@@ -40,16 +44,19 @@ class OpenALAudioContext(val maxSources: Int = DEFAULT_MAX_SOURCES) : Releasable
                     null
                 }
             val context = ALC10.alcCreateContext(device, attributes)
-            ALC10.alcMakeContextCurrent(context)
-            AL.createCapabilities(deviceCaps)
+            if (context != 0L) {
+                ALC10.alcMakeContextCurrent(context)
+                AL.createCapabilities(deviceCaps)
+            }
             context
         } catch (ex: Exception) {
             ex.printStackTrace()
-            -1
+            0L
         }
 
+    /** `true` if there is no audio device, so nothing plays. */
     val NO_DEVICE
-        get() = context == -1L || device == -1L
+        get() = context == 0L || device == 0L
 
     internal val audioStreams = mutableListOf<OpenALAudioStream>()
 
@@ -243,10 +250,11 @@ class OpenALAudioContext(val maxSources: Int = DEFAULT_MAX_SOURCES) : Releasable
             }
         }
         sourceCount = 0
-        if (context != -1L) {
+        if (context != 0L) {
+            ALC10.alcMakeContextCurrent(0L)
             ALC10.alcDestroyContext(context)
         }
-        if (device != -1L) {
+        if (device != 0L) {
             ALC10.alcCloseDevice(device)
         }
     }

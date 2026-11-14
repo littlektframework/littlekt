@@ -156,6 +156,7 @@
 - Fix `Node3D.globalRotate` rotating around local axes and `globalTranslate` being lost.
 - Fix `Node3D.addChild` & `removeChild` keeping the child's old global transform.
 - Fix `Node3D.bounds` never including its children's bounds.
+- Fix `OpenALAudioContext` crashing on release when there is no audio device.
 - Add `SpatialHash` for 2D & 3D point, area, radius & ray queries.
 - Add `Ray.intersectBox`, `intersectSphere`, `intersectPlane`, `intersectTriangle`, `pointAt` & `setTransformed`.
 - Add `Node3D.intersectRay` with optional triangle tests & `Node3D.globalBounds`.
