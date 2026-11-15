@@ -6,10 +6,13 @@ import com.littlekt.configureSurfaceOnResize
 import com.littlekt.examples.*
 import com.littlekt.file.vfs.readTexture
 import com.littlekt.graphics.Color
+import com.littlekt.graphics.HAlign
 import com.littlekt.graphics.MutableColor
 import com.littlekt.graphics.PerspectiveCamera
 import com.littlekt.graphics.fullIndexedMesh
 import com.littlekt.graphics.g2d.font.MsdfStyle
+import com.littlekt.graphics.g2d.SpriteBatch
+import com.littlekt.graphics.g2d.font.TextureFontCache
 import com.littlekt.graphics.g3d.BillboardBatch
 import com.littlekt.graphics.g3d.BillboardMode
 import com.littlekt.graphics.g3d.MeshNode
@@ -23,6 +26,7 @@ import com.littlekt.graphics.g3d.material.PBRMaterial
 import com.littlekt.graphics.g3d.util.PBRMaterialPipelineProvider
 import com.littlekt.graphics.generate
 import com.littlekt.graphics.webgpu.*
+import com.littlekt.math.Mat4
 import com.littlekt.math.MutableVec3f
 import com.littlekt.math.Vec3f
 import com.littlekt.renderFrame
@@ -118,6 +122,20 @@ class BillboardsExample(context: Context) : ContextListener(context) {
                 addPipelineProvider(PBRMaterialPipelineProvider())
                 colorFormat = preferredFormat
                 depthFormat = depthTarget.format
+            }
+        val sprites =
+            SpriteBatch(device, graphics, preferredFormat).apply { depthFormat = depthTarget.format }
+        val signTransform = Mat4().translate(-4f, 2.5f, -7f).scale(0.02f, 0.02f, 0.02f)
+        val signText =
+            TextureFontCache(font).apply {
+                val metrics = font.metrics
+                setText(
+                    "A SpriteBatch sign in the world",
+                    x = -210f,
+                    y = -metrics.capHeight * 0.5f - (metrics.lineHeight - metrics.baseline),
+                    targetWidth = 420f,
+                    align = HAlign.CENTER,
+                )
             }
         val billboards =
             BillboardBatch(device).apply {
@@ -240,12 +258,20 @@ class BillboardsExample(context: Context) : ContextListener(context) {
                 billboards.flush(renderPass)
                 billboards.end()
 
+                sprites.transformMatrix = signTransform
+                sprites.begin(camera.viewProjection)
+                sprites.draw(Textures.white, -210f, -40f, width = 420f, height = 80f, color = barBack)
+                signText.draw(sprites)
+                sprites.flush(renderPass)
+                sprites.end()
+
                 renderPass.end()
                 renderPass.release()
             }
         }
 
         onRelease {
+            sprites.release()
             billboards.release()
             modelBatch.release()
             environment.release()

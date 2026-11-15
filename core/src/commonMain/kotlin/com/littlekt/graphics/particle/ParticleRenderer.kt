@@ -126,22 +126,15 @@ class ParticleRenderer(val device: Device) : Releasable {
             )
         )
 
-    private val depthLayout =
-        device.createBindGroupLayout(
-            BindGroupLayoutDescriptor(
-                listOf(
-                    BindGroupLayoutEntry(
-                        0,
-                        ShaderStage.FRAGMENT,
-                        TextureBindingLayout(sampleType = TextureSampleType.DEPTH),
-                    )
-                ),
-                "ParticleRenderer depth layout",
-            )
-        )
+    private val depthLayout = createDepthLayout(multisampled = false)
+    private val msaaDepthLayout = createDepthLayout(multisampled = true)
 
     private val computeShader = device.createShaderModule(COMPUTE_WGSL)
     private val renderShader = device.createShaderModule(RENDER_WGSL)
+    private val msaaSoftShader =
+        device.createShaderModule(
+            RENDER_WGSL.replace("texture_depth_2d", "texture_depth_multisampled_2d")
+        )
     private val computePipelineLayout =
         device.createPipelineLayout(
             PipelineLayoutDescriptor(listOf(computeLayout), "ParticleRenderer compute pipeline")
@@ -158,6 +151,13 @@ class ParticleRenderer(val device: Device) : Releasable {
             PipelineLayoutDescriptor(
                 listOf(cameraLayout, emitterLayout, textureLayout, depthLayout),
                 "ParticleRenderer soft render pipeline",
+            )
+        )
+    private val softMsaaPipelineLayout =
+        device.createPipelineLayout(
+            PipelineLayoutDescriptor(
+                listOf(cameraLayout, emitterLayout, textureLayout, msaaDepthLayout),
+                "ParticleRenderer soft msaa render pipeline",
             )
         )
     private var depthBindGroup: BindGroup? = null
@@ -241,12 +241,13 @@ class ParticleRenderer(val device: Device) : Releasable {
         val count = emitter.activeCount
         if (count == 0) return
         val soft = depth != null && emitter.effect.softness > 0f
+        val msaaDepth = soft && depth != null && depth.textureDescriptor.sampleCount > 1
         val offset = cameraOffset(camera, depth?.width ?: 0, depth?.height ?: 0)
-        renderPassEncoder.setPipeline(pipeline(emitter.effect.blend, soft))
+        renderPassEncoder.setPipeline(pipeline(emitter.effect.blend, soft, msaaDepth))
         renderPassEncoder.setBindGroup(0, cameraBindGroup, offset)
         renderPassEncoder.setBindGroup(1, emitter.renderBindGroup)
         renderPassEncoder.setBindGroup(2, emitter.textureBindGroup)
-        if (soft && depth != null) renderPassEncoder.setBindGroup(3, depthBindGroup(depth))
+        if (soft && depth != null) renderPassEncoder.setBindGroup(3, depthBindGroup(depth, msaaDepth))
         renderPassEncoder.draw(6, count)
     }
 
@@ -260,7 +261,7 @@ class ParticleRenderer(val device: Device) : Releasable {
         for (i in emitters.indices) render(renderPassEncoder, camera, emitters[i], depth)
     }
 
-    private fun depthBindGroup(depth: EmptyTexture): BindGroup {
+    private fun depthBindGroup(depth: EmptyTexture, multisampled: Boolean): BindGroup {
         val current = depthBindGroup
         if (current != null && depthBindGroupId == depth.id) return current
         current?.release()
@@ -268,7 +269,7 @@ class ParticleRenderer(val device: Device) : Releasable {
         return device
             .createBindGroup(
                 BindGroupDescriptor(
-                    depthLayout,
+                    if (multisampled) msaaDepthLayout else depthLayout,
                     listOf(BindGroupEntry(0, depth.depthView)),
                     label = "ParticleRenderer depth bind group",
                 )
@@ -347,13 +348,14 @@ class ParticleRenderer(val device: Device) : Releasable {
         cameraData[offset + 3] = 0f
     }
 
-    private fun pipeline(blend: ParticleBlend, soft: Boolean): RenderPipeline {
+    private fun pipeline(blend: ParticleBlend, soft: Boolean, msaaDepth: Boolean): RenderPipeline {
         val depth = depthFormat
         for (i in pipelines.indices) {
             val entry = pipelines[i]
             if (
                 entry.blend == blend &&
                 entry.soft == soft &&
+                entry.msaaDepth == msaaDepth &&
                 entry.colorFormat == colorFormat &&
                 entry.depthFormat == depth &&
                 entry.sampleCount == sampleCount
@@ -364,11 +366,16 @@ class ParticleRenderer(val device: Device) : Releasable {
         val pipeline =
             device.createRenderPipeline(
                 RenderPipelineDescriptor(
-                    layout = if (soft) softPipelineLayout else renderPipelineLayout,
-                    vertex = VertexState(renderShader, "vs_main"),
+                    layout =
+                        when {
+                            msaaDepth -> softMsaaPipelineLayout
+                            soft -> softPipelineLayout
+                            else -> renderPipelineLayout
+                        },
+                    vertex = VertexState(if (msaaDepth) msaaSoftShader else renderShader, "vs_main"),
                     fragment =
                         FragmentState(
-                            renderShader,
+                            if (msaaDepth) msaaSoftShader else renderShader,
                             if (soft) "fs_soft" else "fs_main",
                             listOf(
                                 ColorTargetState(
@@ -392,7 +399,7 @@ class ParticleRenderer(val device: Device) : Releasable {
                     label = "ParticleRenderer $blend pipeline",
                 )
             )
-        pipelines += PipelineEntry(blend, soft, colorFormat, depth, sampleCount, pipeline)
+        pipelines += PipelineEntry(blend, soft, msaaDepth, colorFormat, depth, sampleCount, pipeline)
         return pipeline
     }
 
@@ -474,6 +481,9 @@ class ParticleRenderer(val device: Device) : Releasable {
         computePipelineLayout.release()
         renderPipelineLayout.release()
         softPipelineLayout.release()
+        softMsaaPipelineLayout.release()
+        msaaSoftShader.release()
+        msaaDepthLayout.release()
         depthBindGroup?.release()
         depthLayout.release()
         computeShader.release()
@@ -484,9 +494,27 @@ class ParticleRenderer(val device: Device) : Releasable {
         textureLayout.release()
     }
 
+    private fun createDepthLayout(multisampled: Boolean): BindGroupLayout =
+        device.createBindGroupLayout(
+            BindGroupLayoutDescriptor(
+                listOf(
+                    BindGroupLayoutEntry(
+                        0,
+                        ShaderStage.FRAGMENT,
+                        TextureBindingLayout(
+                            sampleType = TextureSampleType.DEPTH,
+                            multisampled = multisampled,
+                        ),
+                    )
+                ),
+                "ParticleRenderer depth layout",
+            )
+        )
+
     private class PipelineEntry(
         val blend: ParticleBlend,
         val soft: Boolean,
+        val msaaDepth: Boolean,
         val colorFormat: TextureFormat,
         val depthFormat: TextureFormat?,
         val sampleCount: Int,

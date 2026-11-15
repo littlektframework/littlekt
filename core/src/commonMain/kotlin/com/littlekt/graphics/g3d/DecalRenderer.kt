@@ -28,7 +28,8 @@ import kotlin.math.max
  * decals.render(pass, camera, depthTarget, scorchMarks)
  * ```
  *
- * The depth texture needs [TextureUsage.TEXTURE] and a sample count of `1`.
+ * The depth texture needs [TextureUsage.TEXTURE]. A multisampled depth texture is read from its
+ * first sample, and the pipelines match its sample count.
  *
  * @param device the device to create buffers & pipelines with
  * @param initialDecals the number of decals the buffers start with room for. They grow as needed.
@@ -80,19 +81,8 @@ class DecalRenderer(val device: Device, initialDecals: Int = 64) : Releasable {
                 "DecalRenderer frame layout",
             )
         )
-    private val depthLayout =
-        device.createBindGroupLayout(
-            BindGroupLayoutDescriptor(
-                listOf(
-                    BindGroupLayoutEntry(
-                        0,
-                        ShaderStage.FRAGMENT,
-                        TextureBindingLayout(sampleType = TextureSampleType.DEPTH),
-                    )
-                ),
-                "DecalRenderer depth layout",
-            )
-        )
+    private val depthLayout = createDepthLayout(multisampled = false)
+    private val msaaDepthLayout = createDepthLayout(multisampled = true)
     private val textureLayout =
         device.createBindGroupLayout(
             BindGroupLayoutDescriptor(
@@ -103,10 +93,18 @@ class DecalRenderer(val device: Device, initialDecals: Int = 64) : Releasable {
                 "DecalRenderer texture layout",
             )
         )
-    private val shader = device.createShaderModule(WGSL)
+    private val shader = device.createShaderModule(wgsl(multisampled = false))
+    private val msaaShader = device.createShaderModule(wgsl(multisampled = true))
     private val pipelineLayout =
         device.createPipelineLayout(
             PipelineLayoutDescriptor(listOf(frameLayout, depthLayout, textureLayout), "DecalRenderer")
+        )
+    private val msaaPipelineLayout =
+        device.createPipelineLayout(
+            PipelineLayoutDescriptor(
+                listOf(frameLayout, msaaDepthLayout, textureLayout),
+                "DecalRenderer msaa",
+            )
         )
     private val pipelines = mutableListOf<PipelineEntry>()
     private val textureBindGroups = IntMap<BindGroup>()
@@ -170,9 +168,10 @@ class DecalRenderer(val device: Device, initialDecals: Int = 64) : Releasable {
         val view = viewIndex++
         writeCamera(camera, depth, view)
 
-        renderPassEncoder.setPipeline(pipeline())
+        val samples = depth.textureDescriptor.sampleCount
+        renderPassEncoder.setPipeline(pipeline(samples))
         renderPassEncoder.setBindGroup(0, frameBindGroup(), view * cameraStride)
-        renderPassEncoder.setBindGroup(1, depthBindGroup(depth))
+        renderPassEncoder.setBindGroup(1, depthBindGroup(depth, samples > 1))
         var runStart = 0
         while (runStart < decals.size) {
             val texture = decals[runStart].slice.texture
@@ -267,7 +266,7 @@ class DecalRenderer(val device: Device, initialDecals: Int = 64) : Releasable {
             .also { frameBindGroup = it }
     }
 
-    private fun depthBindGroup(depth: EmptyTexture): BindGroup {
+    private fun depthBindGroup(depth: EmptyTexture, multisampled: Boolean): BindGroup {
         val current = depthBindGroup
         if (current != null && depthBindGroupId == depth.id) return current
         current?.release()
@@ -275,7 +274,7 @@ class DecalRenderer(val device: Device, initialDecals: Int = 64) : Releasable {
         return device
             .createBindGroup(
                 BindGroupDescriptor(
-                    depthLayout,
+                    if (multisampled) msaaDepthLayout else depthLayout,
                     listOf(BindGroupEntry(0, depth.depthView)),
                     label = "DecalRenderer depth bind group",
                 )
@@ -295,11 +294,12 @@ class DecalRenderer(val device: Device, initialDecals: Int = 64) : Releasable {
                 )
                 .also { textureBindGroups[texture.id] = it }
 
-    private fun pipeline(): RenderPipeline {
+    private fun pipeline(sampleCount: Int): RenderPipeline {
         for (i in pipelines.indices) {
             val entry = pipelines[i]
             if (
                 entry.blend == blendState &&
+                    entry.sampleCount == sampleCount &&
                     entry.colorFormat == colorFormat &&
                     entry.depthFormat == depthFormat
             ) {
@@ -309,11 +309,11 @@ class DecalRenderer(val device: Device, initialDecals: Int = 64) : Releasable {
         val pipeline =
             device.createRenderPipeline(
                 RenderPipelineDescriptor(
-                    layout = pipelineLayout,
-                    vertex = VertexState(shader, "vs_main"),
+                    layout = if (sampleCount > 1) msaaPipelineLayout else pipelineLayout,
+                    vertex = VertexState(if (sampleCount > 1) msaaShader else shader, "vs_main"),
                     fragment =
                         FragmentState(
-                            shader,
+                            if (sampleCount > 1) msaaShader else shader,
                             "fs_main",
                             listOf(ColorTargetState(colorFormat, blendState)),
                         ),
@@ -324,10 +324,11 @@ class DecalRenderer(val device: Device, initialDecals: Int = 64) : Releasable {
                             depthWriteEnabled = false,
                             depthCompare = CompareFunction.ALWAYS,
                         ),
+                    multisample = MultisampleState(count = sampleCount),
                     label = "DecalRenderer pipeline",
                 )
             )
-        pipelines += PipelineEntry(blendState, colorFormat, depthFormat, pipeline)
+        pipelines += PipelineEntry(blendState, colorFormat, depthFormat, sampleCount, pipeline)
         return pipeline
     }
 
@@ -365,9 +366,12 @@ class DecalRenderer(val device: Device, initialDecals: Int = 64) : Releasable {
         cameraBuffer.release()
         instanceBuffer.release()
         pipelineLayout.release()
+        msaaPipelineLayout.release()
         shader.release()
+        msaaShader.release()
         frameLayout.release()
         depthLayout.release()
+        msaaDepthLayout.release()
         textureLayout.release()
     }
 
@@ -375,13 +379,37 @@ class DecalRenderer(val device: Device, initialDecals: Int = 64) : Releasable {
         val blend: BlendState,
         val colorFormat: TextureFormat,
         val depthFormat: TextureFormat,
+        val sampleCount: Int,
         val pipeline: RenderPipeline,
     )
+
+    private fun createDepthLayout(multisampled: Boolean): BindGroupLayout =
+        device.createBindGroupLayout(
+            BindGroupLayoutDescriptor(
+                listOf(
+                    BindGroupLayoutEntry(
+                        0,
+                        ShaderStage.FRAGMENT,
+                        TextureBindingLayout(
+                            sampleType = TextureSampleType.DEPTH,
+                            multisampled = multisampled,
+                        ),
+                    )
+                ),
+                "DecalRenderer depth layout",
+            )
+        )
 
     private companion object {
         const val CAMERA_FLOATS = 36
         const val INSTANCE_FLOATS = 48
         val logger = Logger<DecalRenderer>()
+
+        fun wgsl(multisampled: Boolean): String =
+            WGSL.replace(
+                    "texture_depth_2d",
+                    if (multisampled) "texture_depth_multisampled_2d" else "texture_depth_2d",
+                )
 
         const val WGSL =
             """

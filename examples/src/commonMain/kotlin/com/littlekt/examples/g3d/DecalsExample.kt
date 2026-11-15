@@ -40,7 +40,8 @@ import kotlin.math.sqrt
 /**
  * An example of [Decal]s and soft particles, both drawn from the depth of the opaque pass. A
  * targeting ring follows a moving unit over ramps & steps, scorch marks and a puddle sit on the
- * ground, and smoke fades where it meets geometry. Press S to toggle soft particles.
+ * ground, and smoke fades where it meets geometry. Press S to toggle soft particles and M to
+ * toggle 4x MSAA.
  *
  * @author Colton Daily
  * @date 11/15/2026
@@ -106,7 +107,11 @@ class DecalsExample(context: Context) : ContextListener(context) {
             )
 
         val ring = ringTexture(device)
-        val depthTarget = renderTarget(TextureFormat.DEPTH24_PLUS_STENCIL8)
+        val singleDepth = renderTarget(TextureFormat.DEPTH24_PLUS_STENCIL8)
+        val msaaDepth = renderTarget(TextureFormat.DEPTH24_PLUS_STENCIL8, sampleCount = 4)
+        val msaaColor = renderTarget(preferredFormat, sampleCount = 4)
+        var msaa = false
+        var depthTarget = singleDepth
         val modelBatch =
             ModelBatch(device).apply {
                 addPipelineProvider(PBRMaterialPipelineProvider())
@@ -181,6 +186,14 @@ class DecalsExample(context: Context) : ContextListener(context) {
             camera.up.set(Vec3f.Y_AXIS)
             camera.lookAt(0f, 0f, 0f)
             camera.update()
+            if (input.isKeyJustPressed(Key.M)) {
+                msaa = !msaa
+                depthTarget = if (msaa) msaaDepth else singleDepth
+                val samples = if (msaa) 4 else 1
+                modelBatch.sampleCount = samples
+                particles.sampleCount = samples
+                logger.info { "MSAA: $msaa" }
+            }
             if (input.isKeyJustPressed(Key.S)) {
                 soft = !soft
                 smoke.effect = smokeEffect.copy(softness = if (soft) 0.6f else 0f)
@@ -200,7 +213,8 @@ class DecalsExample(context: Context) : ContextListener(context) {
                 val opaque =
                     commandEncoder.beginRenderPass(
                         RenderPassDescriptor(
-                            colorAttachment(frame, clearColor),
+                            if (msaa) colorAttachment(msaaColor.view, clearColor, frame, StoreOp.STORE)
+                            else colorAttachment(frame, clearColor),
                             depthStencilAttachment = depthTarget.depthAttachment(),
                             label = "Opaque Pass",
                         )
@@ -214,7 +228,8 @@ class DecalsExample(context: Context) : ContextListener(context) {
                 val overlay =
                     commandEncoder.beginRenderPass(
                         RenderPassDescriptor(
-                            colorAttachment(frame),
+                            if (msaa) colorAttachment(msaaColor.view, resolveTarget = frame)
+                            else colorAttachment(frame),
                             depthStencilAttachment = depthTarget.readOnlyDepthAttachment(),
                             label = "Decal & Particle Pass",
                         )

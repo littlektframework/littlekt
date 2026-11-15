@@ -106,6 +106,25 @@ class SpriteBatch(
     private var blendState = BlendState.NonPreMultiplied
     private var prevBlendState = blendState
 
+    /**
+     * The format of the depth target of the render pass, or `null` if it has none. Set it to draw
+     * within a 3D pass, such as panels, signs & text placed in the world with [transformMatrix].
+     */
+    var depthFormat: TextureFormat? = null
+
+    /** If `true` and [depthFormat] is set, the following draws are hidden behind closer geometry. */
+    var depthTest: Boolean = true
+
+    /** If `true` and [depthFormat] is set, the following draws write their depth. */
+    var depthWrite: Boolean = false
+
+    /** The number of samples of the render pass targets, `1` or `4`. */
+    var sampleCount: Int = 1
+        set(value) {
+            require(value == 1 || value == 4) { "SpriteBatch.sampleCount must be 1 or 4!" }
+            field = value
+        }
+
     private val renderPipelineByBlendState: MutableMap<RenderInfo, RenderPipeline> =
         mutableMapOf(
             RenderInfo(shader, blendState) to
@@ -123,6 +142,10 @@ class SpriteBatch(
 
     private var lastTexture: Texture? = null
     private var lastBlendState: BlendState = blendState
+    private var lastDepthFormat: TextureFormat? = null
+    private var lastDepthTest = true
+    private var lastDepthWrite = false
+    private var lastSampleCount = 1
     private var lastShader: Shader = shader
     private val lastCombinedMatrix: Mat4 = matPool.alloc().set(combinedMatrix.get())
     private var invTexWidth = 0f
@@ -682,9 +705,20 @@ class SpriteBatch(
     }
 
     private fun ensureRenderInfo() {
-        if (blendState != lastBlendState || shader != lastShader) {
+        if (
+            blendState != lastBlendState ||
+                shader != lastShader ||
+                depthFormat != lastDepthFormat ||
+                depthTest != lastDepthTest ||
+                depthWrite != lastDepthWrite ||
+                sampleCount != lastSampleCount
+        ) {
             lastBlendState = blendState
             lastShader = shader
+            lastDepthFormat = depthFormat
+            lastDepthTest = depthTest
+            lastDepthWrite = depthWrite
+            lastSampleCount = sampleCount
 
             createDrawCall()
         }
@@ -706,7 +740,7 @@ class SpriteBatch(
             drawCalls +=
                 DrawCall(
                     texture = texture,
-                    renderInfo = RenderInfo(lastShader, lastBlendState),
+                    renderInfo = currentRenderInfo(),
                     combinedMatrix = matPool.alloc().set(lastCombinedMatrix),
                     offset = spriteIdx,
                 )
@@ -714,15 +748,27 @@ class SpriteBatch(
             drawCalls +=
                 DrawCall(
                     texture = texture,
-                    renderInfo = RenderInfo(lastShader, lastBlendState),
+                    renderInfo = currentRenderInfo(),
                     combinedMatrix = matPool.alloc().set(lastCombinedMatrix),
                     offset = spriteIdx,
                 )
         }
     }
 
+    private fun currentRenderInfo(): RenderInfo =
+        RenderInfo(
+            lastShader,
+            lastBlendState,
+            lastDepthFormat,
+            lastDepthTest,
+            lastDepthWrite,
+            lastSampleCount,
+        )
+
     private fun createRenderPipelineDescriptor(renderInfo: RenderInfo): RenderPipelineDescriptor {
-        val (shader, blendState) = renderInfo
+        val shader = renderInfo.shader
+        val blendState = renderInfo.blendState
+        val depth = renderInfo.depthFormat
         return RenderPipelineDescriptor(
             layout = shader.getOrCreatePipelineLayout(),
             vertex =
@@ -743,9 +789,22 @@ class SpriteBatch(
                         ),
                 ),
             primitive = PrimitiveState(topology = PrimitiveTopology.TRIANGLE_LIST),
-            depthStencil = null,
+            depthStencil =
+                depth?.let {
+                    DepthStencilState(
+                        format = it,
+                        depthWriteEnabled = renderInfo.depthWrite,
+                        depthCompare =
+                            if (renderInfo.depthTest) CompareFunction.LESS_EQUAL
+                            else CompareFunction.ALWAYS,
+                    )
+                },
             multisample =
-                MultisampleState(count = 1, mask = 0xFFFFFFF, alphaToCoverageEnabled = false),
+                MultisampleState(
+                    count = renderInfo.sampleCount,
+                    mask = 0xFFFFFFF,
+                    alphaToCoverageEnabled = false,
+                ),
             label =
                 "SpriteBatch RenderPipeline for shader: ${shader::class.simpleName}(${shader.id})",
         )
@@ -784,7 +843,14 @@ class SpriteBatch(
         private val logger = Logger<SpriteBatch>()
     }
 
-    private data class RenderInfo(val shader: Shader, val blendState: BlendState)
+    private data class RenderInfo(
+        val shader: Shader,
+        val blendState: BlendState,
+        val depthFormat: TextureFormat? = null,
+        val depthTest: Boolean = true,
+        val depthWrite: Boolean = false,
+        val sampleCount: Int = 1,
+    )
 
     private data class TextureRenderInfo(val textureId: Int, val renderInfo: RenderInfo)
 }

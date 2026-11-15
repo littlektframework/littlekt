@@ -178,6 +178,8 @@
 - Add `Decal` & `DecalRenderer` to project textures onto geometry from the depth buffer.
 - Add `ParticleEffect.softness` & a depth texture to `ParticleRenderer.render` for soft particles.
 - Add `EmptyTexture.depthView` & `EmptyTexture.readOnlyDepthAttachment` to sample depth while testing against it.
+- Add multisampled depth support to `DecalRenderer` & soft particles.
+- Add `SpriteBatch.depthFormat`, `depthTest`, `depthWrite` & `sampleCount` to draw within 3D & MSAA passes.
 - Add billboards and decals & soft particles examples.
 - Add `Animation.sample(time)` to pose an animation at a time without advancing it.
 - Fix copies of a skinned model all drawing at the original's position.
