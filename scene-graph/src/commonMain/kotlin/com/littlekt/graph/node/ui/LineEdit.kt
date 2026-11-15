@@ -430,6 +430,9 @@ open class LineEdit : Control() {
         if (scaledText.font == null || pixelScale != scaledText.pixelScale) updateText()
         val drawFont = scaledText.font ?: font
         val textScale = 1f / scaledText.ratio
+        val metrics = font.metrics
+        val capBottom = globalY + (height - metrics.capHeight) * 0.5f
+        val lineBottom = scaledText.snap(capBottom - (metrics.lineHeight - metrics.baseline))
 
         val bgDrawable = if (editable) bg else bgDisabled
         bgDrawable.draw(
@@ -453,11 +456,11 @@ open class LineEdit : Control() {
             selection.draw(
                 batch = batch,
                 x = globalX + textOffset + selectionX + fontOffset + bg.marginLeft,
-                y = globalY + font.metrics.ascent,
+                y = capBottom,
                 originX = originX,
                 originY = originY,
                 width = selectionWidth,
-                height = font.metrics.capHeight,
+                height = metrics.capHeight,
                 scaleX = globalScaleX,
                 scaleY = globalScaleY,
                 rotation = globalRotation,
@@ -470,7 +473,7 @@ open class LineEdit : Control() {
                 font = drawFont,
                 text = displayText.substring(visibleStart, visibleEnd),
                 x = scaledText.snap(globalX + bg.marginLeft + textOffset) - originX,
-                y = scaledText.snap(globalY) - originY,
+                y = lineBottom - originY,
                 scaleX = globalScaleX * textScale,
                 scaleY = globalScaleY * textScale,
                 rotation = globalRotation,
@@ -482,7 +485,7 @@ open class LineEdit : Control() {
                 font = drawFont,
                 text = placeholderText,
                 x = scaledText.snap(globalX + bg.marginLeft) - originX,
-                y = scaledText.snap(globalY) - originY,
+                y = lineBottom - originY,
                 scaleX = globalScaleX * textScale,
                 scaleY = globalScaleY * textScale,
                 rotation = globalRotation,
@@ -500,11 +503,11 @@ open class LineEdit : Control() {
                     x =
                         globalX + bg.marginLeft + textOffset + glyphPositions[_caretPosition] -
                             glyphPositions[visibleStart] + fontOffset,
-                    y = globalY + font.metrics.ascent,
+                    y = capBottom,
                     originX = originX,
                     originY = originY,
                     width = caret.minWidth,
-                    height = font.metrics.capHeight,
+                    height = metrics.capHeight,
                     scaleX = globalScaleX,
                     scaleY = globalScaleY,
                     rotation = globalRotation,

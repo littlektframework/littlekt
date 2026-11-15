@@ -1,5 +1,6 @@
 package com.littlekt.graphics.g3d.util
 
+import com.littlekt.util.datastructure.IntMap
 import com.littlekt.file.FloatBuffer
 import com.littlekt.graphics.Camera
 import com.littlekt.graphics.shader.Shader
@@ -32,7 +33,7 @@ class CameraComplexBuffers(val device: Device) : CameraBuffersViaCamera {
     /** The [BufferBinding] for [cameraUniformBufferBinding]. */
     override val cameraUniformBufferBinding = BufferBinding(cameraUniformBuffer)
 
-    private var bindGroups = mutableMapOf<Int, BindGroup>()
+    private val bindGroups = IntMap<BindGroup>()
     override val bindingUsage: BindingUsage = BindingUsage.CAMERA
 
     override fun getOrCreateBindGroup(shader: Shader): BindGroup {
@@ -57,7 +58,7 @@ class CameraComplexBuffers(val device: Device) : CameraBuffersViaCamera {
     }
 
     override fun release() {
-        bindGroups.values.forEach { it.release() }
+        bindGroups.forEachValue { it.release() }
         cameraUniformBuffer.release()
     }
 

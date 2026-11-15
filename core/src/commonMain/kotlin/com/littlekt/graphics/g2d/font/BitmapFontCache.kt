@@ -2,6 +2,7 @@ package com.littlekt.graphics.g2d.font
 
 import com.littlekt.graphics.Color
 import com.littlekt.graphics.HAlign
+import com.littlekt.graphics.VAlign
 import com.littlekt.graphics.g2d.Batch
 import com.littlekt.math.geom.Angle
 
@@ -46,6 +47,8 @@ open class TextureFontCache(open val font: TextureFont) : FontCache(font.texture
      * @param align the horizontal alignment of the text, see [HAlign]
      * @param wrap if true, the text will be wrapped within the [targetWidth]
      * @param truncate the string to display when the text is too long to fit within [targetWidth]
+     * @param verticalAlign where [y] is on the text's lines: their top, center or bottom. `null`
+     *   puts the bottom of the first line at [y].
      */
     fun setText(
         text: CharSequence,
@@ -59,6 +62,7 @@ open class TextureFontCache(open val font: TextureFont) : FontCache(font.texture
         align: HAlign = HAlign.LEFT,
         wrap: Boolean = false,
         truncate: String? = null,
+        verticalAlign: VAlign? = null,
     ) =
         setText(
             font,
@@ -72,7 +76,8 @@ open class TextureFontCache(open val font: TextureFont) : FontCache(font.texture
             targetWidth,
             align,
             wrap,
-            truncate
+            truncate,
+            verticalAlign,
         )
 
     /**
@@ -89,6 +94,8 @@ open class TextureFontCache(open val font: TextureFont) : FontCache(font.texture
      * @param align the horizontal alignment of the text, see [HAlign]
      * @param wrap if true, the text will be wrapped within the [targetWidth]
      * @param truncate the string to display when the text is too long to fit within [targetWidth]
+     * @param verticalAlign where [y] is on the text's lines: their top, center or bottom. `null`
+     *   puts the bottom of the first line at [y].
      */
     fun addText(
         text: CharSequence,
@@ -102,6 +109,7 @@ open class TextureFontCache(open val font: TextureFont) : FontCache(font.texture
         align: HAlign = HAlign.LEFT,
         wrap: Boolean = false,
         truncate: String? = null,
+        verticalAlign: VAlign? = null,
     ) =
         addText(
             font,
@@ -115,6 +123,7 @@ open class TextureFontCache(open val font: TextureFont) : FontCache(font.texture
             targetWidth,
             align,
             wrap,
-            truncate
+            truncate,
+            verticalAlign,
         )
 }

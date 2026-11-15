@@ -57,7 +57,8 @@ object EngineStats {
     var frame = atomic(0L)
         private set
 
-    private val extras = threadSafeMutableMapOf<String, Int>()
+    private val extras = threadSafeMutableMapOf<String, ExtraCount>()
+    private val extraCounts = ArrayList<ExtraCount>()
 
     /** Inform the engine stats that a new buffer has been allocated and the size of the buffer. */
     fun bufferAllocated(info: BufferResourceInfo) {
@@ -88,11 +89,13 @@ object EngineStats {
      * @param diff the delta to add to the existing, if any, value.
      */
     fun extra(key: String, diff: Int) {
-        if (extras.contains(key)) {
-            extras[key] = extras.getValue(key) + diff
-        } else {
-            extras[key] = diff
-        }
+        val count =
+            extras[key]
+                ?: ExtraCount().also {
+                    extras[key] = it
+                    extraCounts += it
+                }
+        count.value += diff
     }
 
     /** Reset all counts to 0. */
@@ -103,11 +106,13 @@ object EngineStats {
         setPipelineCalls.update { 0 }
         setBindGroupCalls.update { 0 }
         setBufferCalls.update { 0 }
-        extras.clear()
+        for (i in extraCounts.indices) extraCounts[i].value = 0
     }
 
     internal fun clear() {
         resetPerFrameCounts()
+        extras.clear()
+        extraCounts.clear()
         _textureAllocations.clear()
         _bufferAllocations.clear()
     }
@@ -125,9 +130,12 @@ object EngineStats {
             appendLine(
                 "Textures: ${textureAllocations.size} with memory usage of ${(totalTextureSize.value.toDouble() / (1024.0 * 1024.0)).toString(1)}M"
             )
-            if (extras.isNotEmpty()) {
+            val active = extras.filter { it.value.value != 0 }
+            if (active.isNotEmpty()) {
                 append(
-                    extras.map { "${it.key}: ${it.value} [Extra]" }.joinToString(separator = "\n")
+                    active
+                        .map { "${it.key}: ${it.value.value} [Extra]" }
+                        .joinToString(separator = "\n")
                 )
             }
         }
@@ -140,5 +148,9 @@ object EngineStats {
             appendLine(statsString())
             append("***************** END ENGINE STATS *************")
         }
+    }
+
+    private class ExtraCount {
+        var value: Int = 0
     }
 }

@@ -1,5 +1,6 @@
 package com.littlekt.graphics.g2d.util
 
+import com.littlekt.util.datastructure.IntMap
 import com.littlekt.file.FloatBuffer
 import com.littlekt.graphics.shader.Shader
 import com.littlekt.graphics.util.BindingUsage
@@ -50,7 +51,7 @@ class CameraSpriteBuffers(val device: Device, override val cameraDynamicSize: In
                     .toLong(),
         )
 
-    private var bindGroups = mutableMapOf<Int, BindGroup>()
+    private val bindGroups = IntMap<BindGroup>()
     override val bindingUsage: BindingUsage = BindingUsage.CAMERA
 
     override fun getOrCreateBindGroup(shader: Shader): BindGroup {
@@ -70,7 +71,7 @@ class CameraSpriteBuffers(val device: Device, override val cameraDynamicSize: In
     }
 
     override fun release() {
-        bindGroups.values.forEach { it.release() }
+        bindGroups.forEachValue { it.release() }
         cameraUniformBuffer.release()
     }
 }

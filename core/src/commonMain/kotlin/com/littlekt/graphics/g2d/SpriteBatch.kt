@@ -20,8 +20,8 @@ import com.littlekt.math.geom.normalized
 import com.littlekt.math.geom.sine
 import com.littlekt.math.isFuzzyZero
 import com.littlekt.util.LazyMat4
+import com.littlekt.util.datastructure.IntMap
 import com.littlekt.util.datastructure.fastForEach
-import com.littlekt.util.datastructure.pool
 
 /**
  * Draws batched quads using indices.
@@ -89,7 +89,6 @@ class SpriteBatch(
     override var lastMeshIdx: Int = 0
 
     private var combinedMatrix = LazyMat4 { it.set(viewProjection).mul(transformMatrix) }
-    private val matPool = pool(reset = { it.setToIdentity() }) { Mat4() }
 
     private val meshes: MutableList<IndexedMesh<CommonIndexedMeshGeometry>> =
         mutableListOf(textureIndexedMesh(device, size) { indicesAsQuad() })
@@ -100,8 +99,10 @@ class SpriteBatch(
 
     override var shader: Shader = defaultShader
 
-    private val bindGroupsByTextureId: MutableMap<TextureRenderInfo, BindGroup> = mutableMapOf()
-    private val drawCalls: MutableList<DrawCall> = mutableListOf()
+    private val bindGroupsByShader = HashMap<Shader, IntMap<BindGroup>>()
+    private val drawCalls = ArrayList<DrawCall>()
+    private var drawCallCount = 0
+    private val renderInfos = ArrayList<RenderInfo>()
 
     private var blendState = BlendState.NonPreMultiplied
     private var prevBlendState = blendState
@@ -133,12 +134,16 @@ class SpriteBatch(
                 )
         )
 
-    private val spriteIndices = mutableMapOf(lastMeshIdx to 0)
+    private var meshSprites = IntArray(4)
     private var spriteIdx: Int
-        get() = spriteIndices.getOrPut(lastMeshIdx) { 0 }
+        get() = if (lastMeshIdx < meshSprites.size) meshSprites[lastMeshIdx] else 0
         set(value) {
-            spriteIndices[lastMeshIdx] = value
+            if (lastMeshIdx >= meshSprites.size) meshSprites = meshSprites.copyOf(lastMeshIdx * 2 + 1)
+            meshSprites[lastMeshIdx] = value
         }
+
+    private val currentDrawCall: DrawCall
+        get() = drawCalls[drawCallCount - 1]
 
     private var lastTexture: Texture? = null
     private var lastBlendState: BlendState = blendState
@@ -147,7 +152,7 @@ class SpriteBatch(
     private var lastDepthWrite = false
     private var lastSampleCount = 1
     private var lastShader: Shader = shader
-    private val lastCombinedMatrix: Mat4 = matPool.alloc().set(combinedMatrix.get())
+    private val lastCombinedMatrix: Mat4 = Mat4().set(combinedMatrix.get())
     private var invTexWidth = 0f
     private var invTexHeight = 0f
 
@@ -287,7 +292,7 @@ class SpriteBatch(
             }
         }
 
-        drawCalls.last().instances++
+        currentDrawCall.instances++
         spriteIdx++
     }
 
@@ -424,7 +429,7 @@ class SpriteBatch(
             }
         }
 
-        drawCalls.last().instances++
+        currentDrawCall.instances++
         spriteIdx++
     }
 
@@ -566,7 +571,7 @@ class SpriteBatch(
             }
         }
 
-        drawCalls.last().instances++
+        currentDrawCall.instances++
         spriteIdx++
     }
 
@@ -578,7 +583,7 @@ class SpriteBatch(
 
         mesh.geometry.add(spriteVertices, offset, spriteIdx * stride, count)
         val total = count / stride
-        drawCalls.last().instances += total
+        currentDrawCall.instances += total
         spriteIdx += total
     }
 
@@ -594,24 +599,27 @@ class SpriteBatch(
         var lastCombinedMatrixSet: Mat4? = null
         var lastBindGroupSet: BindGroup? = null
         var lastShader: Shader? = null
-        drawCalls.fastForEach { drawCall ->
+        for (i in 0 until drawCallCount) {
+            val drawCall = drawCalls[i]
             val shader = drawCall.renderInfo.shader
             val renderPipeline =
                 renderPipelineByBlendState.getOrPut(drawCall.renderInfo) {
                     device.createRenderPipeline(createRenderPipelineDescriptor(drawCall.renderInfo))
                 }
             // ensure shader bind groups are created
+            val shaderBindGroups =
+                bindGroupsByShader[shader] ?: IntMap<BindGroup>().also { bindGroupsByShader[shader] = it }
             val textureBindGroup =
-                bindGroupsByTextureId.getOrPut(drawCall.textureRenderInfo) {
-                    shader.createBindGroup(
+                shaderBindGroups[drawCall.texture.id]
+                    ?: (shader.createBindGroup(
                         BindingUsage.TEXTURE,
                         drawCall.texture.view,
                         drawCall.texture.sampler,
                     )
                         ?: error(
                             "SpriteBatch requires ${shader::class.simpleName} to create a bindgroup for BindingUsage.TEXTURE but it failed to do so."
-                        )
-                }
+                        ))
+                        .also { shaderBindGroups[drawCall.texture.id] = it }
             if (lastCombinedMatrixSet != drawCall.combinedMatrix) {
                 if (lastDynamicOffsetIndex < cameraBuffers.cameraDynamicSize - 1) {
                     lastDynamicOffsetIndex++
@@ -647,10 +655,8 @@ class SpriteBatch(
             val indexCount = drawCall.instances * 6
             EngineStats.extra(QUAD_STATS_NAME, drawCall.instances)
             renderPassEncoder.drawIndexed(indexCount, 1, firstIndex = drawCall.offset * 6)
-
-            matPool.free(drawCall.combinedMatrix)
         }
-        drawCalls.clear()
+        drawCallCount = 0
         lastTexture = null
         lastMeshIdx++
     }
@@ -659,8 +665,8 @@ class SpriteBatch(
         check(drawing) { "SpriteBatch.begin must be called before draw." }
         lastMeshIdx = 0
         lastDynamicOffsetIndex = -1L
-        meshes.forEach { it.clearVertices() }
-        spriteIndices.keys.forEach { spriteIndices[it] = 0 }
+        for (i in meshes.indices) meshes[i].clearVertices()
+        meshSprites.fill(0)
         drawing = false
     }
 
@@ -733,37 +739,44 @@ class SpriteBatch(
 
     private fun createDrawCall() {
         val texture = lastTexture ?: error("Attempting to create a draw call with no texture!")
-        if (drawCalls.isNotEmpty() && drawCalls.last().instances == 0) {
-            // we created a new draw call, but we haven't drawn yet. So we can just
-            // update the last created draw call and update its info
-            drawCalls.removeLast().also { matPool.free(it.combinedMatrix) }
-            drawCalls +=
-                DrawCall(
-                    texture = texture,
-                    renderInfo = currentRenderInfo(),
-                    combinedMatrix = matPool.alloc().set(lastCombinedMatrix),
-                    offset = spriteIdx,
-                )
-        } else {
-            drawCalls +=
-                DrawCall(
-                    texture = texture,
-                    renderInfo = currentRenderInfo(),
-                    combinedMatrix = matPool.alloc().set(lastCombinedMatrix),
-                    offset = spriteIdx,
-                )
-        }
+        val drawCall =
+            if (drawCallCount > 0 && currentDrawCall.instances == 0) {
+                currentDrawCall
+            } else {
+                if (drawCallCount == drawCalls.size) drawCalls += DrawCall()
+                drawCalls[drawCallCount++]
+            }
+        drawCall.texture = texture
+        drawCall.renderInfo = currentRenderInfo()
+        drawCall.combinedMatrix.set(lastCombinedMatrix)
+        drawCall.offset = spriteIdx
+        drawCall.instances = 0
     }
 
-    private fun currentRenderInfo(): RenderInfo =
-        RenderInfo(
-            lastShader,
-            lastBlendState,
-            lastDepthFormat,
-            lastDepthTest,
-            lastDepthWrite,
-            lastSampleCount,
-        )
+    private fun currentRenderInfo(): RenderInfo {
+        for (i in renderInfos.indices) {
+            val info = renderInfos[i]
+            if (
+                info.shader === lastShader &&
+                    info.blendState == lastBlendState &&
+                    info.depthFormat == lastDepthFormat &&
+                    info.depthTest == lastDepthTest &&
+                    info.depthWrite == lastDepthWrite &&
+                    info.sampleCount == lastSampleCount
+            ) {
+                return info
+            }
+        }
+        return RenderInfo(
+                lastShader,
+                lastBlendState,
+                lastDepthFormat,
+                lastDepthTest,
+                lastDepthWrite,
+                lastSampleCount,
+            )
+            .also { renderInfos += it }
+    }
 
     private fun createRenderPipelineDescriptor(renderInfo: RenderInfo): RenderPipelineDescriptor {
         val shader = renderInfo.shader
@@ -813,29 +826,32 @@ class SpriteBatch(
     private fun addMesh(): IndexedMesh<CommonIndexedMeshGeometry> {
         val mesh = textureIndexedMesh(device, size) { indicesAsQuad() }
         meshes += mesh
+        if (meshes.size > meshSprites.size) meshSprites = meshSprites.copyOf(meshes.size * 2)
         return mesh
     }
 
     override fun release() {
         lastTexture = null
-        mesh.release()
+        meshes.forEach { it.release() }
         defaultShader.release()
         renderPipelineByBlendState.values.forEach { it.release() }
         renderPipelineByBlendState.clear()
+        bindGroupsByShader.values.forEach { groups -> groups.forEachValue { it.release() } }
+        bindGroupsByShader.clear()
         drawCalls.clear()
+        drawCallCount = 0
+        renderInfos.clear()
         if (ownCameraBuffers) {
             cameraBuffers.release()
         }
     }
 
-    private data class DrawCall(
-        val texture: Texture,
-        val renderInfo: RenderInfo,
-        val combinedMatrix: Mat4,
-        val offset: Int = 0,
-    ) {
+    private class DrawCall {
+        lateinit var texture: Texture
+        lateinit var renderInfo: RenderInfo
+        val combinedMatrix = Mat4()
+        var offset: Int = 0
         var instances: Int = 0
-        val textureRenderInfo = TextureRenderInfo(texture.id, renderInfo)
     }
 
     companion object {
@@ -852,5 +868,4 @@ class SpriteBatch(
         val sampleCount: Int = 1,
     )
 
-    private data class TextureRenderInfo(val textureId: Int, val renderInfo: RenderInfo)
 }

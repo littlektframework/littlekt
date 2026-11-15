@@ -161,6 +161,9 @@
 - Fix `Node3D.bounds` never including its children's bounds.
 - Fix `OpenALAudioContext` crashing on release when there is no audio device.
 - Fix `GlyphLayout` not scaling font padding and scaling kerning twice when laid out with a scale.
+- Fix `SpriteBatch` allocating every draw call and every sprite, and boxing in `EngineStats.extra` & camera buffer lookups.
+- Fix `SpriteBatch.release` not releasing every mesh & texture bind group.
+- Fix `LineEdit` text, placeholder & caret not being vertically centered.
 - Add `SpatialHash` for 2D & 3D point, area, radius & ray queries.
 - Add `Ray.intersectBox`, `intersectSphere`, `intersectPlane`, `intersectTriangle`, `pointAt` & `setTransformed`.
 - Add `Node3D.intersectRay` with optional triangle tests & `Node3D.globalBounds`.
@@ -180,6 +183,7 @@
 - Add `EmptyTexture.depthView` & `EmptyTexture.readOnlyDepthAttachment` to sample depth while testing against it.
 - Add multisampled depth support to `DecalRenderer` & soft particles.
 - Add `SpriteBatch.depthFormat`, `depthTest`, `depthWrite` & `sampleCount` to draw within 3D & MSAA passes.
+- Add `verticalAlign` to `FontCache` & `TextureFontCache` `setText` & `addText`.
 - Add billboards and decals & soft particles examples.
 - Add `Animation.sample(time)` to pose an animation at a time without advancing it.
 - Fix copies of a skinned model all drawing at the original's position.

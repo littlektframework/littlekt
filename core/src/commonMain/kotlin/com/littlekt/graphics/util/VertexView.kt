@@ -84,10 +84,12 @@ open class VertexView(
         }
     }
 
+    private val views: Array<Any> = _attributesViews.values.toTypedArray()
+
     /** Resets all views values to zero. */
     open fun resetToZero() {
-        for (key in attributeViews.keys) {
-            when (val attrib = attributeViews[key]) {
+        for (i in views.indices) {
+            when (val attrib = views[i]) {
                 is FloatView -> attrib.value = 0f
                 is IntView -> attrib.value = 0
                 is Vec2fView -> attrib.set(0f, 0f)

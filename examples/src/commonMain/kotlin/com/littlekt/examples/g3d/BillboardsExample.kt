@@ -7,6 +7,7 @@ import com.littlekt.examples.*
 import com.littlekt.file.vfs.readTexture
 import com.littlekt.graphics.Color
 import com.littlekt.graphics.HAlign
+import com.littlekt.graphics.VAlign
 import com.littlekt.graphics.MutableColor
 import com.littlekt.graphics.PerspectiveCamera
 import com.littlekt.graphics.fullIndexedMesh
@@ -128,13 +129,13 @@ class BillboardsExample(context: Context) : ContextListener(context) {
         val signTransform = Mat4().translate(-4f, 2.5f, -7f).scale(0.02f, 0.02f, 0.02f)
         val signText =
             TextureFontCache(font).apply {
-                val metrics = font.metrics
                 setText(
                     "A SpriteBatch sign in the world",
                     x = -210f,
-                    y = -metrics.capHeight * 0.5f - (metrics.lineHeight - metrics.baseline),
+                    y = 0f,
                     targetWidth = 420f,
                     align = HAlign.CENTER,
+                    verticalAlign = VAlign.CENTER,
                 )
             }
         val billboards =

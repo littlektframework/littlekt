@@ -2,6 +2,7 @@ package com.littlekt.graphics.g2d.font
 
 import com.littlekt.graphics.Color
 import com.littlekt.graphics.HAlign
+import com.littlekt.graphics.VAlign
 import com.littlekt.graphics.MutableColor
 import com.littlekt.graphics.Texture
 import com.littlekt.graphics.g2d.Batch
@@ -158,6 +159,8 @@ open class FontCache(val pages: Int = 1) {
      * @param targetWidth the width of the area the text will be drawn, for wrapping or truncation
      * @param align the horizontal alignment of the text, see [HAlign]
      * @param wrap if true, the text will be wrapped within the [targetWidth]
+     * @param verticalAlign where [y] is on the text's lines: their top, center or bottom. `null`
+     *   puts the bottom of the first line at [y].
      */
     fun setText(
         font: Font,
@@ -172,6 +175,7 @@ open class FontCache(val pages: Int = 1) {
         align: HAlign = HAlign.LEFT,
         wrap: Boolean = false,
         truncate: String? = null,
+        verticalAlign: VAlign? = null,
     ) {
         clear()
         addText(
@@ -186,7 +190,8 @@ open class FontCache(val pages: Int = 1) {
             targetWidth,
             align,
             wrap,
-            truncate
+            truncate,
+            verticalAlign,
         )
     }
 
@@ -229,6 +234,8 @@ open class FontCache(val pages: Int = 1) {
      * @param align the horizontal alignment of the text, see [HAlign]
      * @param wrap if true, the text will be wrapped within the [targetWidth]
      * @param truncate the string to display when the text is too long to fit within [targetWidth]
+     * @param verticalAlign where [y] is on the text's lines: their top, center or bottom. `null`
+     *   puts the bottom of the first line at [y].
      */
     fun addText(
         font: Font,
@@ -243,11 +250,24 @@ open class FontCache(val pages: Int = 1) {
         align: HAlign = HAlign.LEFT,
         wrap: Boolean = false,
         truncate: String? = null,
+        verticalAlign: VAlign? = null,
     ) {
         val layout = layoutPool.alloc()
         pooledLayouts += layout
         layout.setText(font, text, color, targetWidth, scaleX, scaleY, align, wrap, truncate)
-        addToCache(layout, x, y, scaleX, scaleY, rotation, color)
+        val alignedY = y + verticalOffset(layout, font.metrics.lineHeight * scaleY, verticalAlign)
+        addToCache(layout, x, alignedY, scaleX, scaleY, rotation, color)
+    }
+
+    private fun verticalOffset(layout: GlyphLayout, lineHeight: Float, verticalAlign: VAlign?): Float {
+        if (verticalAlign == null || layout.runs.isEmpty()) return 0f
+        val top = layout.runs.first().y
+        val bottom = layout.runs.last().y - lineHeight
+        return when (verticalAlign) {
+            VAlign.TOP -> -top
+            VAlign.CENTER -> -(top + bottom) * 0.5f
+            VAlign.BOTTOM -> -bottom
+        }
     }
 
     /** Clears any existing glyphs from the cache. */
