@@ -61,6 +61,8 @@ class ParticleEmitter(val renderer: ParticleRenderer, effect: ParticleEffect) :
         private set
 
     private val rotation2d = MutableQuaternion()
+    private var effectDirty = true
+    private var maxLifetime = effect.lifetime.endInclusive
     private val previousPosition = MutableVec3f()
     private val currentPosition = MutableVec3f()
     private var hasPreviousPosition = false
@@ -77,6 +79,8 @@ class ParticleEmitter(val renderer: ParticleRenderer, effect: ParticleEffect) :
         set(value) {
             val old = field
             field = value
+            effectDirty = true
+            maxLifetime = value.lifetime.endInclusive
             if (value.maxParticles != old.maxParticles) {
                 computeBindGroup.release()
                 renderBindGroup.release()
@@ -102,7 +106,7 @@ class ParticleEmitter(val renderer: ParticleRenderer, effect: ParticleEffect) :
 
     /** `true` while any particle may still be alive. */
     val isActive: Boolean
-        get() = spawned > 0 && timeSinceSpawn < effect.lifetime.endInclusive
+        get() = spawned > 0 && timeSinceSpawn < maxLifetime
 
     /** The number of particle slots that may be alive and are simulated & drawn. */
     val activeCount: Int
@@ -201,6 +205,14 @@ class ParticleEmitter(val renderer: ParticleRenderer, effect: ParticleEffect) :
         params[21] = count.toFloat()
         params[22] = max.toFloat()
         params[23] = Random.nextFloat() * 65536f
+        params[72] = if (pendingClear) 1f else 0f
+        if (effectDirty) {
+            writeEffect(e)
+            effectDirty = false
+        }
+    }
+
+    private fun writeEffect(e: ParticleEffect) {
         params[24] = e.gravity.x
         params[25] = e.gravity.y
         params[26] = e.gravity.z
@@ -241,7 +253,6 @@ class ParticleEmitter(val renderer: ParticleRenderer, effect: ParticleEffect) :
             params[58 + i * 4] = color.b
             params[59 + i * 4] = color.a
         }
-        params[72] = if (pendingClear) 1f else 0f
         params[73] = max(0f, e.stretch)
         params[75] = e.inheritVelocity
         params[76] = if (e.flat) 1f else 0f

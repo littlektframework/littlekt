@@ -175,7 +175,17 @@ open class Shader(
     /**
      * @return the index for the given [usage] within the bind group layout; `null` if not found.
      */
-    fun getBindGroupLayoutIndexOrNull(usage: BindingUsage): Int? = bindGroupUsageToGroupIndex[usage]
+    fun getBindGroupLayoutIndexOrNull(usage: BindingUsage): Int? {
+        val set = usage.usage
+        for (i in indexedUsages.indices) {
+            if (indexedUsages[i] === set) return indexedGroups[i]
+        }
+        return bindGroupUsageToGroupIndex[usage]
+    }
+
+    private val indexedUsages: Array<Set<String>> =
+        bindGroupUsageToGroupIndex.keys.map { it.usage }.toTypedArray()
+    private val indexedGroups: IntArray = bindGroupUsageToGroupIndex.values.toIntArray()
 
     /**
      * @return get the bind group layout by [usage].

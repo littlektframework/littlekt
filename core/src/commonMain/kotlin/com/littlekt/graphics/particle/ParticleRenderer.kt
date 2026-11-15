@@ -180,7 +180,7 @@ class ParticleRenderer(val device: Device) : Releasable {
     private val cameraData = FloatBuffer(CAMERA_FLOATS)
     private val cameraViews = mutableListOf<FloatArray>()
     private val cameraRefs = mutableListOf<Camera?>()
-    private val cameraSizes = mutableListOf<Long>()
+    private var cameraSizes = LongArray(4)
     private var viewFrame = -1L
     private var viewCount = 0
 
@@ -315,7 +315,7 @@ class ParticleRenderer(val device: Device) : Releasable {
         while (cameraViews.size <= index) {
             cameraViews += FloatArray(16)
             cameraRefs += null
-            cameraSizes += 0L
+            if (cameraSizes.size <= index) cameraSizes = cameraSizes.copyOf(index * 2 + 1)
         }
         viewProjection.copyInto(cameraViews[index])
         cameraRefs[index] = camera
@@ -341,7 +341,7 @@ class ParticleRenderer(val device: Device) : Releasable {
     }
 
     private fun setNormalized(offset: Int, x: Float, y: Float, z: Float) {
-        val length = sqrt(x * x + y * y + z * z).takeIf { it > 0f } ?: 1f
+        val length = sqrt(x * x + y * y + z * z).let { if (it > 0f) it else 1f }
         cameraData[offset] = x / length
         cameraData[offset + 1] = y / length
         cameraData[offset + 2] = z / length

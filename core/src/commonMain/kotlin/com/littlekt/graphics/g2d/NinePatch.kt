@@ -1,5 +1,6 @@
 package com.littlekt.graphics.g2d
 
+import com.littlekt.util.forStep
 import com.littlekt.graphics.Color
 import com.littlekt.graphics.Texture
 import com.littlekt.graphics.slice
@@ -147,7 +148,7 @@ class NinePatch(
         val worldOriginX = x + originX
         val worldOriginY = y + originY
         if (rotation != Angle.ZERO) {
-            for (i in 0 until idx step 9) {
+            forStep(0, idx, 9) { i ->
                 val vx = (vertices[i] - worldOriginX) * scaleX
                 val vy = (vertices[i + 1] - worldOriginY) * scaleY
                 val cos = rotation.cosine
@@ -156,7 +157,7 @@ class NinePatch(
                 vertices[i + 1] = sin * vx + cos * vy + worldOriginY
             }
         } else if (scaleX != 1f || scaleY != 1f) {
-            for (i in 0 until idx step 9) {
+            forStep(0, idx, 9) { i ->
                 vertices[i] = (vertices[i] - worldOriginX) * scaleX + worldOriginX
                 vertices[i + 1] = (vertices[i + 1] - worldOriginY) * scaleY + worldOriginY
             }

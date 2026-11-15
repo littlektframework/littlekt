@@ -232,7 +232,7 @@ class DecalRenderer(val device: Device, initialDecals: Int = 64) : Releasable {
         frame = current
         viewIndex = 0
         instanceOffset = 0
-        retired.forEach { it.release() }
+        for (i in retired.indices) retired[i].release()
         retired.clear()
     }
 
@@ -361,7 +361,7 @@ class DecalRenderer(val device: Device, initialDecals: Int = 64) : Releasable {
         textureBindGroups.clear()
         depthBindGroup?.release()
         frameBindGroup?.release()
-        retired.forEach { it.release() }
+        for (i in retired.indices) retired[i].release()
         retired.clear()
         cameraBuffer.release()
         instanceBuffer.release()

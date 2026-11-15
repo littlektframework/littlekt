@@ -1,5 +1,6 @@
 package com.littlekt.graphics.g2d.shape
 
+import com.littlekt.util.forStep
 import com.littlekt.graphics.Color
 import com.littlekt.graphics.g2d.Batch
 import com.littlekt.graphics.g2d.TextureSlice
@@ -248,7 +249,7 @@ internal class BatchManager(private val batch: Batch, private val slice: Texture
     private fun setTextureSliceUV() {
         val u = 0.5f * (slice.u + slice.u1)
         val v = 0.5f * (slice.v + slice.v1)
-        for (i in verts.indices step VERTEX_SIZE) {
+        forStep(0, verts.size, VERTEX_SIZE) { i ->
             verts[i + U1] = u
             verts[i + V1] = v
         }

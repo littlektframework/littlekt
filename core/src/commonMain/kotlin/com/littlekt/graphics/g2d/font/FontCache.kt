@@ -1,5 +1,6 @@
 package com.littlekt.graphics.g2d.font
 
+import com.littlekt.util.forStep
 import com.littlekt.graphics.Color
 import com.littlekt.graphics.HAlign
 import com.littlekt.graphics.VAlign
@@ -89,7 +90,7 @@ open class FontCache(val pages: Int = 1) {
 
         for (page in pageVertices.indices) {
             val vertices = pageVertices[page]
-            for (i in vertices.indices step 9) {
+            forStep(0, vertices.size, 9) { i ->
                 vertices[i] += tx
                 vertices[i + 1] += ty
             }

@@ -27,10 +27,12 @@ class InputQueueProcessor {
             queue.clear()
             return
         }
-        processingQueue.addAll(queue)
+        if (queue.isEmpty()) return
+        for (i in queue.indices) processingQueue += queue[i]
         queue.clear()
 
-        processingQueue.forEach {
+        for (index in processingQueue.indices) {
+            val it = processingQueue[index]
             _currentEventTime = it.queueTime
             when (it.type) {
                 InternalInputEventType.KEY_DOWN -> processors.keyDown(key = it.key)

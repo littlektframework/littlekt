@@ -4,6 +4,7 @@ import com.littlekt.graphics.Color
 import com.littlekt.graphics.HAlign
 import com.littlekt.graphics.abgr
 import com.littlekt.util.datastructure.FloatArrayList
+import com.littlekt.util.datastructure.IntArrayList
 import com.littlekt.util.datastructure.Pool
 import com.littlekt.util.truncate
 import kotlin.math.max
@@ -19,8 +20,13 @@ class GlyphLayout {
     val runs: List<GlyphRun>
         get() = _runs
 
-    private val _colors = mutableListOf<Int>()
-    val colors: List<Int>
+    private val _colors = IntArrayList()
+
+    /**
+     * Pairs of glyph index & ABGR color, where each color applies from its glyph index until the
+     * next pair.
+     */
+    val colors: IntArrayList
         get() = _colors
 
     var width: Float = 0f
@@ -313,10 +319,12 @@ class GlyphLayout {
 
     private fun calculateWidths(font: Font, scaleX: Float) {
         var width = 0f
-        _runs.forEach { run ->
+        for (r in _runs.indices) {
+            val run = _runs[r]
             var runWidth = run.x + run.advances.first()
             var max = 0f
-            run.glyphs.forEachIndexed { index, glyph ->
+            for (index in run.glyphs.indices) {
+                val glyph = run.glyphs[index]
                 max = max(max, runWidth + glyph.calcWidth(font, scaleX))
                 runWidth += run.advances[index + 1]
             }

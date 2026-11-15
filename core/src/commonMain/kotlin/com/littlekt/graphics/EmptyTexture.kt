@@ -139,15 +139,26 @@ class EmptyTexture(
      *   decals & soft particles after the opaque pass.
      */
     fun readOnlyDepthAttachment(): RenderPassDepthStencilAttachmentDescriptor {
+        val cached = readOnlyAttachment
+        if (cached != null && readOnlyAttachmentId == id) return cached
         val stencil = textureDescriptor.format == TextureFormat.DEPTH24_PLUS_STENCIL8
         return RenderPassDepthStencilAttachmentDescriptor(
-            view = view,
-            depthLoadOp = null,
-            depthStoreOp = null,
-            depthReadOnly = true,
-            stencilReadOnly = stencil,
-        )
+                view = view,
+                depthLoadOp = null,
+                depthStoreOp = null,
+                depthReadOnly = true,
+                stencilReadOnly = stencil,
+            )
+            .also {
+                readOnlyAttachment = it
+                readOnlyAttachmentId = id
+            }
     }
+
+    private var readOnlyAttachment: RenderPassDepthStencilAttachmentDescriptor? = null
+    private var readOnlyAttachmentId = -1
+    private var clearAttachment: RenderPassDepthStencilAttachmentDescriptor? = null
+    private var clearAttachmentId = -1
 
     override fun release() {
         _depthView?.release()
@@ -157,12 +168,18 @@ class EmptyTexture(
 
     /** @return a depth attachment of this texture that clears the depth to `1`. */
     fun depthAttachment(): RenderPassDepthStencilAttachmentDescriptor {
+        val cached = clearAttachment
+        if (cached != null && clearAttachmentId == id) return cached
         val stencil = textureDescriptor.format == TextureFormat.DEPTH24_PLUS_STENCIL8
         return RenderPassDepthStencilAttachmentDescriptor(
-            view = view,
-            stencilLoadOp = if (stencil) LoadOp.CLEAR else null,
-            stencilStoreOp = if (stencil) StoreOp.STORE else null,
-        )
+                view = view,
+                stencilLoadOp = if (stencil) LoadOp.CLEAR else null,
+                stencilStoreOp = if (stencil) StoreOp.STORE else null,
+            )
+            .also {
+                clearAttachment = it
+                clearAttachmentId = id
+            }
     }
 
     override fun equals(other: Any?): Boolean {

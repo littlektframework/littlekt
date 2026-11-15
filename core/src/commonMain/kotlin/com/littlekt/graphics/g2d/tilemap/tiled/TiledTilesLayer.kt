@@ -1,5 +1,6 @@
 package com.littlekt.graphics.g2d.tilemap.tiled
 
+import com.littlekt.util.forStep
 import com.littlekt.graphics.Color
 import com.littlekt.graphics.g2d.Batch
 import com.littlekt.graphics.g2d.SpriteCache
@@ -272,7 +273,7 @@ class TiledTilesLayer(
         val minXA = if (staggerIndexEven) 1 else 0
         val minXB = if (staggerIndexEven) 0 else 1
         for (cy in height downTo 0) {
-            for (cx in minXA until width step 2) {
+            forStep(minXA, width, 2) { cx ->
                 val cid = getCoordId(cx, cy)
                 if (cid in tileData.indices) {
                     val tileData = tileData[cid].bitsToTileData(flipData)
@@ -304,7 +305,7 @@ class TiledTilesLayer(
                     }
                 }
             }
-            for (cx in minXB until width step 2) {
+            forStep(minXB, width, 2) { cx ->
                 val cid = getCoordId(cx, cy)
                 if (cid in tileData.indices) {
                     val tileData = tileData[cid].bitsToTileData(flipData)

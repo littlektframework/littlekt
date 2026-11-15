@@ -225,7 +225,7 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context() {
         GLFW.glfwSetWindowRefreshCallback(windowHandle) { _ ->
             // Windows blocks inside glfwPollEvents while the window is resized. Running frames from
             // here keeps the window drawing during the resize instead of freezing.
-            if (started && resizePending && !inFrame) runBlocking { frame() }
+            if (started && resizePending && !inFrame) frame()
         }
 
         listener.run { start() }
@@ -235,6 +235,7 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context() {
 
         while (!windowShouldClose) {
             val frameStart = System.nanoTime()
+            if (audioContext.hasStreams) audioContext.update()
             frame()
             GLFW.glfwPollEvents()
             limitFrameRate(frameStart)
@@ -274,7 +275,7 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context() {
         graphics._backBufferHeight = tempBuffer2[0]
     }
 
-    private suspend fun frame() {
+    private fun frame() {
         inFrame = true
         calcFrameTimes(now().milliseconds)
         if (resizePending && graphics.backBufferWidth > 0 && graphics.backBufferHeight > 0) {
@@ -332,8 +333,7 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context() {
         windowModeChangedCalls.fastForEach { it(mode) }
     }
 
-    private suspend fun update(dt: Duration) {
-        audioContext.update()
+    private fun update(dt: Duration) {
         if (audioContext.pollDevicesChanged()) {
             val devices = audioContext.outputDevices
             audioDevicesChangedCalls.fastForEach { it(devices) }
@@ -344,8 +344,9 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context() {
         input.update()
         stats.update(dt)
 
-        updateCalls.fastForEach { update -> update(dt) }
-        postUpdateCalls.fastForEach { postUpdate -> postUpdate(dt) }
+        val boxedDt: Any = dt
+        updateCalls.fastForEach { update -> update.invokeBoxed(boxedDt) }
+        postUpdateCalls.fastForEach { postUpdate -> postUpdate.invokeBoxed(boxedDt) }
 
         input.reset()
 
@@ -383,4 +384,10 @@ class LwjglContext(override val configuration: JvmConfiguration) : Context() {
 
     private val Boolean.glfw: Int
         get() = if (this) GLFW.GLFW_TRUE else GLFW.GLFW_FALSE
+}
+
+/** Invokes this with an already boxed [Duration], so the same box is shared by every callback. */
+@Suppress("UNCHECKED_CAST")
+private fun ((Duration) -> Unit).invokeBoxed(boxedDt: Any) {
+    (this as (Any) -> Unit).invoke(boxedDt)
 }

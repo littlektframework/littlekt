@@ -151,6 +151,8 @@ class BillboardsExample(context: Context) : ContextListener(context) {
         var trailCount = 0
         val tip = MutableVec3f()
         val barBack = Color(0f, 0f, 0f, 0.6f)
+        val beamStart = Color(1f, 0.3f, 0.2f, 1f)
+        val beamEnd = Color(1f, 0.8f, 0.4f, 1f)
         val barColor = MutableColor()
         val textColor = MutableColor()
         var time = 0f
@@ -238,8 +240,8 @@ class BillboardsExample(context: Context) : ContextListener(context) {
 
                 billboards.blendState = BlendState.Add
                 billboards.beginStrip()
-                billboards.stripPoint(0f, 0.2f, 0f, 0.25f, Color(1f, 0.3f, 0.2f, 1f))
-                billboards.stripPoint(boss.x, boss.y + 1f, boss.z, 0.05f, Color(1f, 0.8f, 0.4f, 1f))
+                billboards.stripPoint(0f, 0.2f, 0f, 0.25f, beamStart)
+                billboards.stripPoint(boss.x, boss.y + 1f, boss.z, 0.05f, beamEnd)
                 billboards.endStrip()
                 billboards.beginStrip()
                 for (i in 0 until trailCount) {

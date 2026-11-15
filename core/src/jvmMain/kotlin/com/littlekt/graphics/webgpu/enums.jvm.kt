@@ -221,8 +221,11 @@ val TextureFormat.nativeVal: UInt
             TextureFormat.DEPTH24_PLUS_STENCIL8 -> WGPUTextureFormat_Depth24PlusStencil8
         }
 
-fun TextureFormat.Companion.from(nativeVal: UInt) =
-    TextureFormat.entries.firstOrNull { it.nativeVal == nativeVal }
+fun TextureFormat.Companion.from(nativeVal: UInt): TextureFormat? {
+    val values = TextureFormat.entries
+    for (i in values.indices) if (values[i].nativeVal == nativeVal) return values[i]
+    return null
+}
 
 val BlendOperation.nativeVal: UInt
     get() =
@@ -394,11 +397,17 @@ val AlphaMode.nativeVal: UInt
             AlphaMode.INHERIT -> WGPUCompositeAlphaMode_Inherit
         }
 
-fun AlphaMode.Companion.from(nativeVal: UInt): AlphaMode? =
-    AlphaMode.entries.firstOrNull { it.nativeVal == nativeVal }
+fun AlphaMode.Companion.from(nativeVal: UInt): AlphaMode? {
+    val values = AlphaMode.entries
+    for (i in values.indices) if (values[i].nativeVal == nativeVal) return values[i]
+    return null
+}
 
-fun PresentMode.Companion.from(nativeVal: UInt): PresentMode? =
-    PresentMode.entries.firstOrNull { it.nativeVal == nativeVal }
+fun PresentMode.Companion.from(nativeVal: UInt): PresentMode? {
+    val values = PresentMode.entries
+    for (i in values.indices) if (values[i].nativeVal == nativeVal) return values[i]
+    return null
+}
 
 val PresentMode.nativeVal: UInt
     get() =
@@ -420,8 +429,11 @@ val TextureStatus.nativeVal: UInt
             TextureStatus.DEVICE_LOST -> WGPUSurfaceGetCurrentTextureStatus_DeviceLost
         }
 
-fun TextureStatus.Companion.from(nativeVal: UInt): TextureStatus? =
-    TextureStatus.entries.firstOrNull { it.nativeVal == nativeVal }
+fun TextureStatus.Companion.from(nativeVal: UInt): TextureStatus? {
+    val values = TextureStatus.entries
+    for (i in values.indices) if (values[i].nativeVal == nativeVal) return values[i]
+    return null
+}
 
 @JvmInline
 value class Backend(val flag: ULong) {

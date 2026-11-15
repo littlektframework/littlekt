@@ -60,6 +60,9 @@ class OpenALAudioContext(val maxSources: Int = DEFAULT_MAX_SOURCES) : Releasable
 
     internal val audioStreams = mutableListOf<OpenALAudioStream>()
 
+    internal val hasStreams: Boolean
+        get() = audioStreams.isNotEmpty()
+
     private val devicesChanged = AtomicBoolean(false)
     private val defaultDeviceChanged = AtomicBoolean(false)
     private var selectedDevice: String? = null

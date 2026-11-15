@@ -374,7 +374,7 @@ class BillboardBatch(val device: Device, initialQuads: Int = 1024) : Releasable 
             var tx = strip[next] - strip[prev]
             var ty = strip[next + 1] - strip[prev + 1]
             var tz = strip[next + 2] - strip[prev + 2]
-            val tl = sqrt(tx * tx + ty * ty + tz * tz).takeIf { it > 0f } ?: 1f
+            val tl = sqrt(tx * tx + ty * ty + tz * tz).let { if (it > 0f) it else 1f }
             tx /= tl
             ty /= tl
             tz /= tl
@@ -718,21 +718,21 @@ class BillboardBatch(val device: Device, initialQuads: Int = 1024) : Releasable 
     }
 
     private fun setRight(x: Float, y: Float, z: Float) {
-        val l = sqrt(x * x + y * y + z * z).takeIf { it > 0f } ?: 1f
+        val l = sqrt(x * x + y * y + z * z).let { if (it > 0f) it else 1f }
         rightX = x / l
         rightY = y / l
         rightZ = z / l
     }
 
     private fun setUp(x: Float, y: Float, z: Float) {
-        val l = sqrt(x * x + y * y + z * z).takeIf { it > 0f } ?: 1f
+        val l = sqrt(x * x + y * y + z * z).let { if (it > 0f) it else 1f }
         upX = x / l
         upY = y / l
         upZ = z / l
     }
 
     private fun setBack(x: Float, y: Float, z: Float) {
-        val l = sqrt(x * x + y * y + z * z).takeIf { it > 0f } ?: 1f
+        val l = sqrt(x * x + y * y + z * z).let { if (it > 0f) it else 1f }
         backX = x / l
         backY = y / l
         backZ = z / l
@@ -749,7 +749,7 @@ class BillboardBatch(val device: Device, initialQuads: Int = 1024) : Releasable 
         gpuVertexOffset = 0
         gpuIndexOffset = 0
         flushIndex = 0
-        retired.forEach { it.release() }
+        for (i in retired.indices) retired[i].release()
         retired.clear()
     }
 
@@ -899,7 +899,7 @@ class BillboardBatch(val device: Device, initialQuads: Int = 1024) : Releasable 
         textureBindGroups.clear()
         styleBindGroups.forEachValue { it.release() }
         styleBindGroups.clear()
-        retired.forEach { it.release() }
+        for (i in retired.indices) retired[i].release()
         retired.clear()
         vertexBuffer.release()
         indexBuffer.release()

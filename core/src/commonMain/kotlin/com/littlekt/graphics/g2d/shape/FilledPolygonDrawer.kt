@@ -1,5 +1,6 @@
 package com.littlekt.graphics.g2d.shape
 
+import com.littlekt.util.forStep
 import com.littlekt.graphics.Color
 import com.littlekt.math.PI2_F
 import com.littlekt.math.geom.*
@@ -179,7 +180,7 @@ internal class FilledPolygonDrawer(batchManager: BatchManager) : Drawer(batchMan
         trianglesCount: Int = triangles.size,
         color: Color = batchManager.color
     ) {
-        for (i in 0 until trianglesCount step 3) {
+        forStep(0, trianglesCount, 3) { i ->
             batchManager.ensureSpaceForTriangle()
             vert1(vertices[2 * triangles[i]], vertices[2 * triangles[i] + 1])
             vert2(vertices[2 * triangles[i + 1]], vertices[2 * triangles[i + 1] + 1])

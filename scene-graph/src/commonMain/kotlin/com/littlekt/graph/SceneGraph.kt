@@ -252,6 +252,10 @@ open class SceneGraph<InputType>(
     var dt: Duration = Duration.ZERO
         private set
 
+    /** [dt] boxed once per update, so nodes can share it with their signals. */
+    internal var boxedDt: Any = Duration.ZERO
+        private set
+
     /**
      * The fixed progression lerp ratio for fixed updates. This is used for rendering nodes that use
      * [Node.fixedUpdate] for movement / physics logic.
@@ -443,6 +447,7 @@ open class SceneGraph<InputType>(
         if (!initialized)
             error("You need to call 'initialize()' once before doing any rendering or updating!")
         this.dt = dt
+        boxedDt = dt
         tmod = dt.seconds * targetFPS
         pointerOverControls.forEachIndexed { index, overLast ->
             if (!pointerTouched[index]) {
@@ -490,9 +495,10 @@ open class SceneGraph<InputType>(
             }
         }
 
-        unhandledInputQueue.forEach {
-            callUnhandledInput(it)
-            inputEventPool.free(it)
+        for (i in unhandledInputQueue.indices) {
+            val event = unhandledInputQueue[i]
+            callUnhandledInput(event)
+            inputEventPool.free(event)
         }
         unhandledInputQueue.clear()
 

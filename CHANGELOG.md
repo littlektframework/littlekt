@@ -67,6 +67,8 @@
 - BREAKING: `Graphics.configureSurface()` now keeps the last present mode instead of resetting to `FIFO`.
 - BREAKING: Rename 2D `Particle` & `ParticleSimulator` to `CpuParticle` & `CpuParticleSimulator`.
     - Migration: replace `Particle` with `CpuParticle` & `ParticleSimulator` with `CpuParticleSimulator`.
+- BREAKING: `GlyphLayout.colors` is now an `IntArrayList` instead of a `List<Int>`.
+    - Migration: read it with `colors[i]` & `colors.size` as before.
 - BREAKING: Theme fonts and the `font` of `Label`, `Button`, `LineEdit`, `ProgressBar` & `Modifier.font` are now a `TextureFont` instead of a `BitmapFont`.
     - Migration: a `BitmapFont` is a `TextureFont`, so only declared types need changing.
 - BREAKING: The default scene graph theme now uses the bundled Barlow Condensed TTF (`Fonts.defaultRaster`) instead of the bitmap font.
@@ -164,6 +166,10 @@
 - Fix `SpriteBatch` allocating every draw call and every sprite, and boxing in `EngineStats.extra` & camera buffer lookups.
 - Fix `SpriteBatch.release` not releasing every mesh & texture bind group.
 - Fix `LineEdit` text, placeholder & caret not being vertically centered.
+- Fix per frame allocations in `VertexView`, `FloatArrayList`, `IntArrayList`, `ShortArrayList` & `DoubleArrayList` iteration, `GlyphLayout`, `ShapeRenderer`, input draining, enum lookups, `Shader` bind group lookups & `Node` update signals.
+- Fix the desktop frame loop allocating a coroutine continuation and boxing the delta time for every update callback each frame.
+- Fix `ParticleEmitter` rewriting its whole effect every frame.
+- Fix `Frustum` checks and `EmptyTexture.depthAttachment` allocating every call.
 - Add `SpatialHash` for 2D & 3D point, area, radius & ray queries.
 - Add `Ray.intersectBox`, `intersectSphere`, `intersectPlane`, `intersectTriangle`, `pointAt` & `setTransformed`.
 - Add `Node3D.intersectRay` with optional triangle tests & `Node3D.globalBounds`.
@@ -184,6 +190,7 @@
 - Add multisampled depth support to `DecalRenderer` & soft particles.
 - Add `SpriteBatch.depthFormat`, `depthTest`, `depthWrite` & `sampleCount` to draw within 3D & MSAA passes.
 - Add `verticalAlign` to `FontCache` & `TextureFontCache` `setText` & `addText`.
+- Add `forStep` to loop over a stepped range without allocating.
 - Add billboards and decals & soft particles examples.
 - Add `Animation.sample(time)` to pose an animation at a time without advancing it.
 - Fix copies of a skinned model all drawing at the original's position.

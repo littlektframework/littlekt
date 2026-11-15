@@ -119,7 +119,8 @@ class Frustum(
      * @return true if the bounding box is inside the frustum, false otherwise.
      */
     fun isBoundsInside(min: Vec3f, max: Vec3f): Boolean {
-        for (plane in planes) {
+        for (p in planes.indices) {
+            val plane = planes[p]
             val positiveVertex =
                 Vec3f(
                     if (plane.normal.x >= 0) max.x else min.x,
@@ -142,7 +143,8 @@ class Frustum(
      * @return true if the sphere is entirely inside the frustum, false otherwise.
      */
     fun isSphereInside(center: Vec3f, radius: Float): Boolean {
-        for (plane in planes) {
+        for (p in planes.indices) {
+            val plane = planes[p]
             val distance = plane.distanceToPoint(center)
             if (distance < -radius) {
                 return false
@@ -158,7 +160,8 @@ class Frustum(
      * @return true if the point is inside the frustum, false otherwise.
      */
     fun isPointInside(point: Vec3f): Boolean {
-        for (plane in planes) {
+        for (p in planes.indices) {
+            val plane = planes[p]
             if (plane.distanceToPoint(point) < 0f) {
                 return false
             }

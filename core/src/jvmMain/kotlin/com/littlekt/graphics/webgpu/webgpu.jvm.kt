@@ -664,7 +664,7 @@ actual class Surface(val segment: WGPUSurface) : Releasable {
         return memoryScope { scope ->
             val surfaceTexture = WGPUSurfaceTexture.allocate(scope)
             wgpuSurfaceGetCurrentTexture(segment, surfaceTexture)
-            val texture = surfaceTexture.texture?.let { WebGPUTexture(it, it.handler.handler.byteSize())  }
+            val texture = surfaceTexture.texture?.let { WebGPUTexture(it, it.handler.handler.byteSize(), tracked = false) }
             val status = surfaceTexture.status.let {
                     TextureStatus.from(it) ?: error("Invalid texture status: $it")
                 }
@@ -766,9 +766,10 @@ actual class Surface(val segment: WGPUSurface) : Releasable {
     }
 }
 
-actual class WebGPUTexture(val segment: WGPUTexture, val size: Long) : Releasable {
+actual class WebGPUTexture(val segment: WGPUTexture, val size: Long, tracked: Boolean = true) :
+    Releasable {
 
-    private val info = TextureResourceInfo(this, size)
+    private val info = if (tracked) TextureResourceInfo(this, size) else null
 
     actual fun createView(desc: TextureViewDescriptor?): TextureView {
         return if (desc != null) {
@@ -795,7 +796,7 @@ actual class WebGPUTexture(val segment: WGPUTexture, val size: Long) : Releasabl
 
     actual override fun release() {
         wgpuTextureRelease(segment)
-        info.delete()
+        info?.delete()
     }
 
 }

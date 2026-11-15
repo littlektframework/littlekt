@@ -124,7 +124,10 @@ open class Node : Comparable<Node> {
 
     /** The current scene delta time. */
     val dt: Duration
-        get() = scene?.dt ?: Duration.ZERO
+        get() {
+            val scene = scene ?: return Duration.ZERO
+            return scene.dt
+        }
 
     /** Node name. useful for doing scene-wide searches for an node */
     var name: String = this::class.simpleName ?: "Node"
@@ -508,20 +511,26 @@ open class Node : Comparable<Node> {
 
     fun propagatePreUpdate() {
         preUpdate(dt)
-        if (!onPreUpdate.isEmpty) onPreUpdate.emit(dt)
+        if (!onPreUpdate.isEmpty) emitDt(onPreUpdate)
         nodes.preUpdate()
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    private fun emitDt(signal: SingleSignal<Duration>) {
+        val scene = scene
+        if (scene == null) signal.emit(dt) else (signal as SingleSignal<Any>).emit(scene.boxedDt)
     }
 
     fun propagateUpdate() {
         update(dt)
-        if (!onUpdate.isEmpty) onUpdate.emit(dt)
+        if (!onUpdate.isEmpty) emitDt(onUpdate)
         nodes.updateLists()
         nodes.update()
     }
 
     fun propagatePostUpdate() {
         postUpdate(dt)
-        if (!onPostUpdate.isEmpty) onPostUpdate.emit(dt)
+        if (!onPostUpdate.isEmpty) emitDt(onPostUpdate)
         nodes.postUpdate()
     }
 

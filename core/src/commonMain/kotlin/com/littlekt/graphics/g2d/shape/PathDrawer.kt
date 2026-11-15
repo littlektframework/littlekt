@@ -1,5 +1,6 @@
 package com.littlekt.graphics.g2d.shape
 
+import com.littlekt.util.forStep
 import com.littlekt.graphics.g2d.shape.Joiner.prepareFlatEndpoint
 import com.littlekt.graphics.g2d.shape.Joiner.preparePointyJoin
 import com.littlekt.graphics.g2d.shape.Joiner.prepareSmoothJoin
@@ -44,7 +45,7 @@ internal class PathDrawer(batchManager: BatchManager, private val lineDrawer: Li
 
         path += userPath[start]
         path += userPath[start + 1]
-        for (i in start + 2 until end step 2) {
+        forStep(start + 2, end, 2) { i ->
             if (
                 !isFuzzyEqual(userPath[i - 2], userPath[i], 0.001f) ||
                     !isFuzzyEqual(userPath[i - 1], userPath[i + 1], 0.001f)
@@ -78,7 +79,7 @@ internal class PathDrawer(batchManager: BatchManager, private val lineDrawer: Li
 
     fun drawPathNoJoin(path: FloatArray, size: Int, thickness: Float, open: Boolean) {
         val n = if (open) size - 2 else size
-        for (i in 0 until n step 2) {
+        forStep(0, n, 2) { i ->
             lineDrawer.line(
                 path[i],
                 path[i + 1],
@@ -111,7 +112,7 @@ internal class PathDrawer(batchManager: BatchManager, private val lineDrawer: Li
         val color = batchManager.color
         batchManager.ensureSpaceForQuad()
 
-        for (i in 2 until size - 2 step 2) {
+        forStep(2, size - 2, 2) { i ->
             a.set(path[i - 2], path[i - 1])
             b.set(path[i], path[i + 1])
             c.set(path[i + 2], path[i + 3])

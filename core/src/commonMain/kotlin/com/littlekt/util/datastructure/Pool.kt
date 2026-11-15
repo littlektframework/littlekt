@@ -91,7 +91,7 @@ class Pool<T> internal constructor() {
     }
 
     fun free(elements: List<T>) {
-        elements.forEach { free(it) }
+        for (i in elements.indices) free(elements[i])
     }
 
     inline operator fun <R> invoke(callback: (T) -> R): R = alloc(callback)

@@ -116,6 +116,18 @@ class ShortArrayList(capacity: Int = 7, var shouldGrow: Boolean = true) : Collec
 
     operator fun get(index: Int): Short = data[index]
 
+    /** @return the first value. */
+    fun first(): Short {
+        if (length == 0) throw NoSuchElementException("List is empty.")
+        return data[0]
+    }
+
+    /** @return the last value. */
+    fun last(): Short {
+        if (length == 0) throw NoSuchElementException("List is empty.")
+        return data[length - 1]
+    }
+
     fun getOrNull(index: Int): Short? =
         if (index in 0 until length) data[index] else null
 
@@ -132,7 +144,17 @@ class ShortArrayList(capacity: Int = 7, var shouldGrow: Boolean = true) : Collec
         data[index] = value
     }
 
-    override fun iterator(): Iterator<Short> = listIterator(0)
+    override fun iterator(): Iterator<Short> =
+        object : Iterator<Short> {
+            private var index = 0
+
+            override fun hasNext(): Boolean = index < length
+
+            override fun next(): Short {
+                if (index >= length) throw NoSuchElementException()
+                return data[index++]
+            }
+        }
 
     override fun contains(element: Short): Boolean {
         for (n in 0 until length) if (this.data[n] == element) return true
@@ -351,6 +373,18 @@ class IntArrayList(capacity: Int = 7, var shouldGrow: Boolean = true) : Collecti
 
     operator fun get(index: Int): Int = data[index]
 
+    /** @return the first value. */
+    fun first(): Int {
+        if (length == 0) throw NoSuchElementException("List is empty.")
+        return data[0]
+    }
+
+    /** @return the last value. */
+    fun last(): Int {
+        if (length == 0) throw NoSuchElementException("List is empty.")
+        return data[length - 1]
+    }
+
     fun getOrNull(index: Int): Int? =
         if (index in 0 until length) data[index] else null
 
@@ -367,7 +401,17 @@ class IntArrayList(capacity: Int = 7, var shouldGrow: Boolean = true) : Collecti
         data[index] = value
     }
 
-    override fun iterator(): Iterator<Int> = listIterator(0)
+    override fun iterator(): Iterator<Int> =
+        object : Iterator<Int> {
+            private var index = 0
+
+            override fun hasNext(): Boolean = index < length
+
+            override fun next(): Int {
+                if (index >= length) throw NoSuchElementException()
+                return data[index++]
+            }
+        }
 
     override fun contains(element: Int): Boolean {
         for (n in 0 until length) if (this.data[n] == element) return true
@@ -585,6 +629,18 @@ class DoubleArrayList(capacity: Int = 7, var shouldGrow: Boolean = true) : Colle
 
     operator fun get(index: Int): Double = data[index]
 
+    /** @return the first value. */
+    fun first(): Double {
+        if (length == 0) throw NoSuchElementException("List is empty.")
+        return data[0]
+    }
+
+    /** @return the last value. */
+    fun last(): Double {
+        if (length == 0) throw NoSuchElementException("List is empty.")
+        return data[length - 1]
+    }
+
     fun getOrNull(index: Int): Double? =
         if (index in 0 until length) data[index] else null
 
@@ -601,7 +657,17 @@ class DoubleArrayList(capacity: Int = 7, var shouldGrow: Boolean = true) : Colle
         data[index] = value
     }
 
-    override fun iterator(): Iterator<Double> = listIterator(0)
+    override fun iterator(): Iterator<Double> =
+        object : Iterator<Double> {
+            private var index = 0
+
+            override fun hasNext(): Boolean = index < length
+
+            override fun next(): Double {
+                if (index >= length) throw NoSuchElementException()
+                return data[index++]
+            }
+        }
 
     override fun contains(element: Double): Boolean {
         for (n in 0 until length) if (this.data[n] == element) return true
@@ -776,6 +842,18 @@ class FloatArrayList(capacity: Int = 7, var shouldGrow: Boolean = true) : Collec
 
     operator fun get(index: Int): Float = data[index]
 
+    /** @return the first value. */
+    fun first(): Float {
+        if (length == 0) throw NoSuchElementException("List is empty.")
+        return data[0]
+    }
+
+    /** @return the last value. */
+    fun last(): Float {
+        if (length == 0) throw NoSuchElementException("List is empty.")
+        return data[length - 1]
+    }
+
     fun getOrNull(index: Int): Float? =
         if (index in 0 until length) data[index] else null
 
@@ -792,7 +870,17 @@ class FloatArrayList(capacity: Int = 7, var shouldGrow: Boolean = true) : Collec
         data[index] = value
     }
 
-    override fun iterator(): Iterator<Float> = listIterator(0)
+    override fun iterator(): Iterator<Float> =
+        object : Iterator<Float> {
+            private var index = 0
+
+            override fun hasNext(): Boolean = index < length
+
+            override fun next(): Float {
+                if (index >= length) throw NoSuchElementException()
+                return data[index++]
+            }
+        }
 
     override fun contains(element: Float): Boolean {
         for (n in 0 until length) if (this.data[n] == element) return true

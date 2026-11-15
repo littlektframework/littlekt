@@ -580,7 +580,8 @@ class ShapeRenderer(val batch: Batch, val slice: TextureSlice = Textures.white) 
             val centerY = y + height / 2f
             val cos = rotation.cosine
             val sin = rotation.sine
-            for (j in 0 until 8 step 2) {
+            var j = 0
+            while (j < 8) {
                 rectangleCorners[j] -= centerX
                 rectangleCorners[j + 1] -= centerY
                 val rotatedX = rectangleCorners[j] * cos - rectangleCorners[j + 1] * sin
@@ -588,6 +589,7 @@ class ShapeRenderer(val batch: Batch, val slice: TextureSlice = Textures.white) 
 
                 rectangleCorners[j] = rotatedX + centerX
                 rectangleCorners[j + 1] = rotatedY + centerY
+                j += 2
             }
         }
         path(rectangleCorners, thickness, joinType, open = false)

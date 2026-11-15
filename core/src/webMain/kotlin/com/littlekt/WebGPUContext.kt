@@ -17,6 +17,7 @@ import com.littlekt.log.Logger
 import com.littlekt.resources.internal.InternalResources
 import com.littlekt.util.datastructure.fastForEach
 import kotlin.math.roundToInt
+import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.browser.document
 import kotlinx.coroutines.Dispatchers
@@ -144,8 +145,9 @@ class WebGPUContext(override val configuration: JsConfiguration, gpuAdapter: GPU
         input.update()
         stats.update(dt)
 
-        updateCalls.fastForEach { update -> update(dt) }
-        postUpdateCalls.fastForEach { postUpdate -> postUpdate(dt) }
+        val boxedDt: Any = dt
+        updateCalls.fastForEach { update -> update.invokeBoxed(boxedDt) }
+        postUpdateCalls.fastForEach { postUpdate -> postUpdate.invokeBoxed(boxedDt) }
 
         input.reset()
 
@@ -216,4 +218,10 @@ class WebGPUContext(override val configuration: JsConfiguration, gpuAdapter: GPU
     override fun destroy() {
         KtScope.launch { releaseCalls.fastForEach { release -> release() } }
     }
+}
+
+/** Invokes this with an already boxed [Duration], so the same box is shared by every callback. */
+@Suppress("UNCHECKED_CAST")
+private fun ((Duration) -> Unit).invokeBoxed(boxedDt: Any) {
+    (this as (Any) -> Unit).invoke(boxedDt)
 }

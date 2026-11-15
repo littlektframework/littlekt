@@ -19,13 +19,13 @@ internal object Joiner {
         d: MutableVec2f,
         e: MutableVec2f,
         halfThickness: Float,
-    ): Angle {
+    ) {
         ab.set(b).subtract(a)
         bc.set(c).subtract(b)
         val angle = bc.angleTo(ab)
         if (angle.radians.isFuzzyEqual(0f, 0.001f) || angle.radians.isFuzzyEqual(PI2_F, 0.001f)) {
             prepareStraightJoin(b, d, e, halfThickness)
-            return angle
+            return
         }
         val len = halfThickness / angle.sine
         ab.setLength(len)
@@ -35,7 +35,6 @@ internal object Joiner {
         val outsidePoint = if (bendsLeft) e else d
         insidePoint.set(b).subtract(ab).add(bc)
         outsidePoint.set(b).add(ab).subtract(bc)
-        return angle
     }
 
     fun prepareSmoothJoin(
