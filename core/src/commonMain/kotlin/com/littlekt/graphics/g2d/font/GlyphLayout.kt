@@ -292,7 +292,7 @@ class GlyphLayout {
                 advances1 += advances2[i]
             }
             advances2.removeAt(1, secondStart)
-            advances2[0] = -glyphs2.first().left * scale - font.metrics.padding.left
+            advances2[0] = (-glyphs2.first().left - font.metrics.padding.left) * scale
             first.advances = advances1
             newRun.advances = advances2
             second = newRun
@@ -403,9 +403,9 @@ class GlyphRun {
 
             // adjust first glyph, so it isn't drawn left of 0
             advances +=
-                if (currGlyph == null) (-glyph.left * scaleX - font.metrics.padding.left)
+                if (currGlyph == null) (-glyph.left - font.metrics.padding.left) * scaleX
                 else
-                    (currGlyph.xAdvance + font.getKerningAmount(scaleX, currGlyph.code, ch.code)) *
+                    (currGlyph.xAdvance + font.getKerningAmount(1f, currGlyph.code, ch.code)) *
                         scaleX
             currGlyph = glyph
         } while (i < end)
@@ -432,4 +432,4 @@ class GlyphRun {
 }
 
 private fun GlyphMetrics.calcWidth(font: Font, scale: Float) =
-    right * scale - font.metrics.padding.right
+    (right - font.metrics.padding.right) * scale

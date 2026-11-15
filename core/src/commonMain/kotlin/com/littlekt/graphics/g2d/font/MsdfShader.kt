@@ -147,7 +147,7 @@ internal constructor(device: Device, style: MsdfStyle, distanceRange: Float, emT
     ) {
 
     private val styleData = FloatBuffer(12)
-    private val styleBuffer =
+    internal val styleBuffer =
         device.createGPUFloatBuffer(
             "MsdfShader style",
             styleData.also { writeStyle(it, style, distanceRange, emToField) },

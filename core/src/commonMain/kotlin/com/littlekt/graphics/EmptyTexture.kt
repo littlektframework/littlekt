@@ -103,6 +103,58 @@ class EmptyTexture(
         textureDescriptor = textureDescriptor.copy(size = size)
     }
 
+    private var _depthView: TextureView? = null
+    private var depthViewId = -1
+
+    /**
+     * A view of only the depth of this depth texture, to sample it in a shader while it is attached
+     * with [readOnlyDepthAttachment]. It follows [resize]. The texture needs [TextureUsage.TEXTURE].
+     */
+    val depthView: TextureView
+        get() {
+            val current = _depthView
+            if (current != null && depthViewId == id) return current
+            current?.release()
+            return gpuTexture
+                .createView(
+                    TextureViewDescriptor(
+                        when (format) {
+                            TextureFormat.DEPTH24_PLUS_STENCIL8 -> TextureFormat.DEPTH24_PLUS
+                            else -> format
+                        },
+                        TextureViewDimension.D2,
+                        aspect = TextureAspect.DEPTH_ONLY,
+                        label = "EmptyTexture depth view",
+                    )
+                )
+                .also {
+                    _depthView = it
+                    depthViewId = id
+                }
+        }
+
+    /**
+     * @return a depth attachment of this texture that keeps its contents and can't be written,
+     *   so the depth can be tested and sampled through [depthView] in the same pass, such as for
+     *   decals & soft particles after the opaque pass.
+     */
+    fun readOnlyDepthAttachment(): RenderPassDepthStencilAttachmentDescriptor {
+        val stencil = textureDescriptor.format == TextureFormat.DEPTH24_PLUS_STENCIL8
+        return RenderPassDepthStencilAttachmentDescriptor(
+            view = view,
+            depthLoadOp = null,
+            depthStoreOp = null,
+            depthReadOnly = true,
+            stencilReadOnly = stencil,
+        )
+    }
+
+    override fun release() {
+        _depthView?.release()
+        _depthView = null
+        super.release()
+    }
+
     /** @return a depth attachment of this texture that clears the depth to `1`. */
     fun depthAttachment(): RenderPassDepthStencilAttachmentDescriptor {
         val stencil = textureDescriptor.format == TextureFormat.DEPTH24_PLUS_STENCIL8

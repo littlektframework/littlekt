@@ -49,6 +49,8 @@ import com.littlekt.math.geom.degrees
  * @property localSpace `true` to keep particles relative to the emitter so they move with it,
  *   `false` to leave them in the world where they spawned
  * @property texture the texture of each particle, or `null` for a soft round dot
+ * @property softness the distance in world units over which particles fade out where they meet
+ *   geometry, or `0` for hard edges. Needs the depth texture passed to [ParticleRenderer.render].
  * @property flat `true` to keep particles on the emitter's XY plane, such as for 2D. Directions,
  *   shapes & gravity ignore `z`, and [EmitterShape.Sphere] & [EmitterShape.Circle] spawn on a disc.
  * @author Colton Daily
@@ -77,6 +79,7 @@ data class ParticleEffect(
     val localSpace: Boolean = false,
     val texture: Texture? = null,
     val flat: Boolean = false,
+    val softness: Float = 0f,
 ) {
     init {
         require(maxParticles > 0) { "maxParticles must be greater than 0!" }

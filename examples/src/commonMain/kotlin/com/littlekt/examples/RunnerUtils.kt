@@ -15,6 +15,8 @@ import com.littlekt.examples.g2d.SpriteCacheQuadsExample
 import com.littlekt.examples.g2d.tilemap.LDtkTileMapExample
 import com.littlekt.examples.g2d.tilemap.TiledTileMapExample
 import com.littlekt.examples.g3d.BloomExample
+import com.littlekt.examples.g3d.DecalsExample
+import com.littlekt.examples.g3d.BillboardsExample
 import com.littlekt.examples.g3d.IBLExample
 import com.littlekt.examples.g3d.ModelInstancingExample
 import com.littlekt.examples.g3d.SkinnedInstancingExample
@@ -109,6 +111,8 @@ val availableExamples: Map<String, Example> = examples {
         example("-shadows", "Shadows", ::ShadowsExample)
         example("-transparency", "Transparency", ::TransparencyExample)
         example("-picking", "Picking & Spatial Hash", ::PickingExample)
+        example("-billboards", "Billboards", ::BillboardsExample)
+        example("-decals", "Decals & Soft Particles", ::DecalsExample)
         example("-gpuParticles", "GPU Particles", ::GpuParticlesExample)
         example("-ibl", "IBL", ::IBLExample)
         example("-bloom", "Bloom", ::BloomExample)

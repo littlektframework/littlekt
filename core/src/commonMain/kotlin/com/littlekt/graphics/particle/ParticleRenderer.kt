@@ -80,7 +80,11 @@ class ParticleRenderer(val device: Device) : Releasable {
         device.createBindGroupLayout(
             BindGroupLayoutDescriptor(
                 listOf(
-                    BindGroupLayoutEntry(0, ShaderStage.VERTEX, BufferBindingLayout()),
+                    BindGroupLayoutEntry(
+                        0,
+                        ShaderStage.VERTEX or ShaderStage.FRAGMENT,
+                        BufferBindingLayout(),
+                    ),
                     BindGroupLayoutEntry(
                         1,
                         ShaderStage.VERTEX,
@@ -100,7 +104,7 @@ class ParticleRenderer(val device: Device) : Releasable {
                 listOf(
                     BindGroupLayoutEntry(
                         0,
-                        ShaderStage.VERTEX,
+                        ShaderStage.VERTEX or ShaderStage.FRAGMENT,
                         BufferBindingLayout(
                             hasDynamicOffset = true,
                             minBindingSize = CAMERA_FLOATS * Float.SIZE_BYTES.toLong(),
@@ -122,6 +126,20 @@ class ParticleRenderer(val device: Device) : Releasable {
             )
         )
 
+    private val depthLayout =
+        device.createBindGroupLayout(
+            BindGroupLayoutDescriptor(
+                listOf(
+                    BindGroupLayoutEntry(
+                        0,
+                        ShaderStage.FRAGMENT,
+                        TextureBindingLayout(sampleType = TextureSampleType.DEPTH),
+                    )
+                ),
+                "ParticleRenderer depth layout",
+            )
+        )
+
     private val computeShader = device.createShaderModule(COMPUTE_WGSL)
     private val renderShader = device.createShaderModule(RENDER_WGSL)
     private val computePipelineLayout =
@@ -135,6 +153,15 @@ class ParticleRenderer(val device: Device) : Releasable {
                 "ParticleRenderer render pipeline",
             )
         )
+    private val softPipelineLayout =
+        device.createPipelineLayout(
+            PipelineLayoutDescriptor(
+                listOf(cameraLayout, emitterLayout, textureLayout, depthLayout),
+                "ParticleRenderer soft render pipeline",
+            )
+        )
+    private var depthBindGroup: BindGroup? = null
+    private var depthBindGroupId = -1
     private val computePipeline =
         device.createComputePipeline(
             ComputePipelineDescriptor(
@@ -153,6 +180,7 @@ class ParticleRenderer(val device: Device) : Releasable {
     private val cameraData = FloatBuffer(CAMERA_FLOATS)
     private val cameraViews = mutableListOf<FloatArray>()
     private val cameraRefs = mutableListOf<Camera?>()
+    private val cameraSizes = mutableListOf<Long>()
     private var viewFrame = -1L
     private var viewCount = 0
 
@@ -197,21 +225,55 @@ class ParticleRenderer(val device: Device) : Releasable {
         }
     }
 
-    /** Draws the particles of [emitter] with [camera] within [renderPassEncoder]. */
-    fun render(renderPassEncoder: RenderPassEncoder, camera: Camera, emitter: ParticleEmitter) {
+    /**
+     * Draws the particles of [emitter] with [camera] within [renderPassEncoder].
+     *
+     * @param depth the depth texture of the opaque geometry, attached to the pass with
+     *   [EmptyTexture.readOnlyDepthAttachment], so particles with a [ParticleEffect.softness] fade
+     *   where they meet it. `null` draws every particle hard.
+     */
+    fun render(
+        renderPassEncoder: RenderPassEncoder,
+        camera: Camera,
+        emitter: ParticleEmitter,
+        depth: EmptyTexture? = null,
+    ) {
         val count = emitter.activeCount
         if (count == 0) return
-        val offset = cameraOffset(camera)
-        renderPassEncoder.setPipeline(pipeline(emitter.effect.blend))
+        val soft = depth != null && emitter.effect.softness > 0f
+        val offset = cameraOffset(camera, depth?.width ?: 0, depth?.height ?: 0)
+        renderPassEncoder.setPipeline(pipeline(emitter.effect.blend, soft))
         renderPassEncoder.setBindGroup(0, cameraBindGroup, offset)
         renderPassEncoder.setBindGroup(1, emitter.renderBindGroup)
         renderPassEncoder.setBindGroup(2, emitter.textureBindGroup)
+        if (soft && depth != null) renderPassEncoder.setBindGroup(3, depthBindGroup(depth))
         renderPassEncoder.draw(6, count)
     }
 
-    /** Draws each of [emitters] with [camera] within [renderPassEncoder]. */
-    fun render(renderPassEncoder: RenderPassEncoder, camera: Camera, emitters: List<ParticleEmitter>) {
-        for (i in emitters.indices) render(renderPassEncoder, camera, emitters[i])
+    /** Draws each of [emitters] with [camera] within [renderPassEncoder]. @see render */
+    fun render(
+        renderPassEncoder: RenderPassEncoder,
+        camera: Camera,
+        emitters: List<ParticleEmitter>,
+        depth: EmptyTexture? = null,
+    ) {
+        for (i in emitters.indices) render(renderPassEncoder, camera, emitters[i], depth)
+    }
+
+    private fun depthBindGroup(depth: EmptyTexture): BindGroup {
+        val current = depthBindGroup
+        if (current != null && depthBindGroupId == depth.id) return current
+        current?.release()
+        depthBindGroupId = depth.id
+        return device
+            .createBindGroup(
+                BindGroupDescriptor(
+                    depthLayout,
+                    listOf(BindGroupEntry(0, depth.depthView)),
+                    label = "ParticleRenderer depth bind group",
+                )
+            )
+            .also { depthBindGroup = it }
     }
 
     internal fun createTextureBindGroup(texture: Texture?): BindGroup {
@@ -225,15 +287,20 @@ class ParticleRenderer(val device: Device) : Releasable {
         )
     }
 
-    private fun cameraOffset(camera: Camera): Int {
+    private fun cameraOffset(camera: Camera, width: Int, height: Int): Int {
         val frame = EngineStats.frame.value
         if (frame != viewFrame) {
             viewFrame = frame
             viewCount = 0
         }
         val viewProjection = camera.viewProjection.data
+        val size = (width.toLong() shl 32) or (height.toLong() and 0xFFFFFFFFL)
         for (i in 0 until viewCount) {
-            if (cameraRefs[i] === camera && cameraViews[i].contentEquals(viewProjection)) {
+            if (
+                cameraRefs[i] === camera &&
+                    cameraSizes[i] == size &&
+                    cameraViews[i].contentEquals(viewProjection)
+            ) {
                 return i * cameraStride
             }
         }
@@ -247,20 +314,28 @@ class ParticleRenderer(val device: Device) : Releasable {
         while (cameraViews.size <= index) {
             cameraViews += FloatArray(16)
             cameraRefs += null
+            cameraSizes += 0L
         }
         viewProjection.copyInto(cameraViews[index])
         cameraRefs[index] = camera
-        writeCamera(camera, index)
+        cameraSizes[index] = size
+        writeCamera(camera, index, width, height)
         return index * cameraStride
     }
 
-    private fun writeCamera(camera: Camera, index: Int) {
+    private fun writeCamera(camera: Camera, index: Int, width: Int, height: Int) {
         val viewProjection = camera.viewProjection.data
         for (i in 0 until 16) cameraData[i] = viewProjection[i]
         val view = camera.view.data
         setNormalized(16, view[0], view[4], view[8])
         setNormalized(20, view[1], view[5], view[9])
         setNormalized(24, view[2], view[6], view[10])
+        val inverseProjection = camera.invProj.data
+        for (i in 0 until 16) cameraData[28 + i] = inverseProjection[i]
+        cameraData[44] = width.toFloat()
+        cameraData[45] = height.toFloat()
+        cameraData[46] = 0f
+        cameraData[47] = 0f
         device.queue.writeBuffer(cameraBuffer, cameraData, offset = index.toLong() * cameraStride)
     }
 
@@ -272,12 +347,13 @@ class ParticleRenderer(val device: Device) : Releasable {
         cameraData[offset + 3] = 0f
     }
 
-    private fun pipeline(blend: ParticleBlend): RenderPipeline {
+    private fun pipeline(blend: ParticleBlend, soft: Boolean): RenderPipeline {
         val depth = depthFormat
         for (i in pipelines.indices) {
             val entry = pipelines[i]
             if (
                 entry.blend == blend &&
+                entry.soft == soft &&
                 entry.colorFormat == colorFormat &&
                 entry.depthFormat == depth &&
                 entry.sampleCount == sampleCount
@@ -288,12 +364,12 @@ class ParticleRenderer(val device: Device) : Releasable {
         val pipeline =
             device.createRenderPipeline(
                 RenderPipelineDescriptor(
-                    layout = renderPipelineLayout,
+                    layout = if (soft) softPipelineLayout else renderPipelineLayout,
                     vertex = VertexState(renderShader, "vs_main"),
                     fragment =
                         FragmentState(
                             renderShader,
-                            "fs_main",
+                            if (soft) "fs_soft" else "fs_main",
                             listOf(
                                 ColorTargetState(
                                     colorFormat,
@@ -316,7 +392,7 @@ class ParticleRenderer(val device: Device) : Releasable {
                     label = "ParticleRenderer $blend pipeline",
                 )
             )
-        pipelines += PipelineEntry(blend, colorFormat, depth, sampleCount, pipeline)
+        pipelines += PipelineEntry(blend, soft, colorFormat, depth, sampleCount, pipeline)
         return pipeline
     }
 
@@ -397,6 +473,9 @@ class ParticleRenderer(val device: Device) : Releasable {
         computePipeline.release()
         computePipelineLayout.release()
         renderPipelineLayout.release()
+        softPipelineLayout.release()
+        depthBindGroup?.release()
+        depthLayout.release()
         computeShader.release()
         renderShader.release()
         computeLayout.release()
@@ -407,6 +486,7 @@ class ParticleRenderer(val device: Device) : Releasable {
 
     private class PipelineEntry(
         val blend: ParticleBlend,
+        val soft: Boolean,
         val colorFormat: TextureFormat,
         val depthFormat: TextureFormat?,
         val sampleCount: Int,
@@ -414,7 +494,7 @@ class ParticleRenderer(val device: Device) : Releasable {
     )
 
     private companion object {
-        const val CAMERA_FLOATS = 28
+        const val CAMERA_FLOATS = 48
         const val WORKGROUP_SIZE = 64
         const val DEFAULT_TEXTURE_SIZE = 64
         const val WHITE = 0xFF.toByte()
@@ -605,6 +685,8 @@ struct Camera {
     right: vec4f,
     up: vec4f,
     back: vec4f,
+    inv_proj: mat4x4f,
+    viewport: vec4f,
 };
 
 @group(0) @binding(0) var<uniform> camera: Camera;
@@ -612,6 +694,7 @@ struct Camera {
 @group(1) @binding(1) var<storage, read> particles: array<Particle>;
 @group(2) @binding(0) var particle_texture: texture_2d<f32>;
 @group(2) @binding(1) var particle_sampler: sampler;
+@group(3) @binding(0) var scene_depth: texture_depth_2d;
 
 struct VertexOutput {
     @builtin(position) position: vec4f,
@@ -696,6 +779,29 @@ fn vs_main(@builtin(vertex_index) vertex: u32, @builtin(instance_index) instance
 @fragment
 fn fs_main(input: VertexOutput) -> @location(0) vec4f {
     let color = textureSample(particle_texture, particle_sampler, input.uv) * input.color;
+    if (color.a <= 0.002) {
+        discard;
+    }
+    return color;
+}
+
+fn view_depth(position: vec2f, depth: f32) -> f32 {
+    let ndc = vec4f(
+        position.x / camera.viewport.x * 2.0 - 1.0,
+        1.0 - position.y / camera.viewport.y * 2.0,
+        depth,
+        1.0
+    );
+    let view = camera.inv_proj * ndc;
+    return view.z / view.w;
+}
+
+@fragment
+fn fs_soft(input: VertexOutput) -> @location(0) vec4f {
+    var color = textureSample(particle_texture, particle_sampler, input.uv) * input.color;
+    let scene = textureLoad(scene_depth, vec2i(input.position.xy), 0);
+    let gap = view_depth(input.position.xy, input.position.z) - view_depth(input.position.xy, scene);
+    color.a *= clamp(gap / params.plane.y, 0.0, 1.0);
     if (color.a <= 0.002) {
         discard;
     }

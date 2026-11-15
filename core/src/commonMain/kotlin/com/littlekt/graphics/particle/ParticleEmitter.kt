@@ -245,6 +245,7 @@ class ParticleEmitter(val renderer: ParticleRenderer, effect: ParticleEffect) :
         params[73] = max(0f, e.stretch)
         params[75] = e.inheritVelocity
         params[76] = if (e.flat) 1f else 0f
+        params[77] = max(0f, e.softness)
     }
 
     private fun setShape(type: Float, x: Float, y: Float, z: Float, flag: Float) {

@@ -160,6 +160,7 @@
 - Fix `Node3D.addChild` & `removeChild` keeping the child's old global transform.
 - Fix `Node3D.bounds` never including its children's bounds.
 - Fix `OpenALAudioContext` crashing on release when there is no audio device.
+- Fix `GlyphLayout` not scaling font padding and scaling kerning twice when laid out with a scale.
 - Add `SpatialHash` for 2D & 3D point, area, radius & ray queries.
 - Add `Ray.intersectBox`, `intersectSphere`, `intersectPlane`, `intersectTriangle`, `pointAt` & `setTransformed`.
 - Add `Node3D.intersectRay` with optional triangle tests & `Node3D.globalBounds`.
@@ -173,6 +174,11 @@
 - Add 2D & 3D GPU particles examples.
 - Add the `GpuParticles2D` scene graph node that draws a `ParticleEmitter` in tree order with a user owned `ParticleRenderer`.
 - Add `SceneGraph.onPreRender` for compute work before the graph renders.
+- Add `BillboardBatch` to draw camera facing quads, raster & MSDF text, and strips in 3D, with `BillboardMode`.
+- Add `Decal` & `DecalRenderer` to project textures onto geometry from the depth buffer.
+- Add `ParticleEffect.softness` & a depth texture to `ParticleRenderer.render` for soft particles.
+- Add `EmptyTexture.depthView` & `EmptyTexture.readOnlyDepthAttachment` to sample depth while testing against it.
+- Add billboards and decals & soft particles examples.
 - Add `Animation.sample(time)` to pose an animation at a time without advancing it.
 - Fix copies of a skinned model all drawing at the original's position.
 - Add `Context.window` to change the window mode, size & position and to list monitors & video modes.
