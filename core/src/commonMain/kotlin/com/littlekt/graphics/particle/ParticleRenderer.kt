@@ -71,6 +71,16 @@ class ParticleRenderer(val device: Device) : Releasable {
                         ShaderStage.COMPUTE,
                         BufferBindingLayout(BufferBindingType.STORAGE),
                     ),
+                    BindGroupLayoutEntry(
+                        2,
+                        ShaderStage.COMPUTE,
+                        BufferBindingLayout(BufferBindingType.STORAGE),
+                    ),
+                    BindGroupLayoutEntry(
+                        3,
+                        ShaderStage.COMPUTE,
+                        BufferBindingLayout(BufferBindingType.STORAGE),
+                    ),
                 ),
                 "ParticleRenderer compute layout",
             )
@@ -90,8 +100,74 @@ class ParticleRenderer(val device: Device) : Releasable {
                         ShaderStage.VERTEX,
                         BufferBindingLayout(BufferBindingType.READ_ONLY_STORAGE),
                     ),
+                    BindGroupLayoutEntry(
+                        2,
+                        ShaderStage.VERTEX,
+                        BufferBindingLayout(BufferBindingType.READ_ONLY_STORAGE),
+                    ),
                 ),
                 "ParticleRenderer emitter layout",
+            )
+        )
+
+    internal val sortLayout =
+        device.createBindGroupLayout(
+            BindGroupLayoutDescriptor(
+                listOf(
+                    BindGroupLayoutEntry(
+                        0,
+                        ShaderStage.COMPUTE,
+                        BufferBindingLayout(BufferBindingType.STORAGE),
+                    ),
+                    BindGroupLayoutEntry(
+                        1,
+                        ShaderStage.COMPUTE,
+                        BufferBindingLayout(BufferBindingType.STORAGE),
+                    ),
+                    BindGroupLayoutEntry(2, ShaderStage.COMPUTE, BufferBindingLayout()),
+                ),
+                "ParticleRenderer sort layout",
+            )
+        )
+
+    internal val eventsLayout =
+        device.createBindGroupLayout(
+            BindGroupLayoutDescriptor(
+                listOf(
+                    BindGroupLayoutEntry(
+                        0,
+                        ShaderStage.COMPUTE,
+                        BufferBindingLayout(BufferBindingType.STORAGE),
+                    ),
+                    BindGroupLayoutEntry(
+                        1,
+                        ShaderStage.COMPUTE,
+                        BufferBindingLayout(BufferBindingType.STORAGE),
+                    ),
+                    BindGroupLayoutEntry(
+                        2,
+                        ShaderStage.COMPUTE,
+                        BufferBindingLayout(BufferBindingType.STORAGE),
+                    ),
+                    BindGroupLayoutEntry(3, ShaderStage.COMPUTE, BufferBindingLayout()),
+                ),
+                "ParticleRenderer events layout",
+            )
+        )
+
+    private val stepStride = 16.align(device.limits.minUniformBufferOffsetAlignment)
+
+    private val stepLayout =
+        device.createBindGroupLayout(
+            BindGroupLayoutDescriptor(
+                listOf(
+                    BindGroupLayoutEntry(
+                        0,
+                        ShaderStage.COMPUTE,
+                        BufferBindingLayout(minBindingSize = 16L),
+                    )
+                ),
+                "ParticleRenderer sort step layout",
             )
         )
 
@@ -130,6 +206,7 @@ class ParticleRenderer(val device: Device) : Releasable {
     private val msaaDepthLayout = createDepthLayout(multisampled = true)
 
     private val computeShader = device.createShaderModule(COMPUTE_WGSL)
+    private val sortShader = device.createShaderModule(SORT_WGSL)
     private val renderShader = device.createShaderModule(RENDER_WGSL)
     private val msaaSoftShader =
         device.createShaderModule(
@@ -162,6 +239,56 @@ class ParticleRenderer(val device: Device) : Releasable {
         )
     private var depthBindGroup: BindGroup? = null
     private var depthBindGroupId = -1
+    private val sortPipelineLayout =
+        device.createPipelineLayout(
+            PipelineLayoutDescriptor(
+                listOf(computeLayout, sortLayout, stepLayout),
+                "ParticleRenderer sort pipeline",
+            )
+        )
+    private val spawnPipelineLayout =
+        device.createPipelineLayout(
+            PipelineLayoutDescriptor(
+                listOf(computeLayout, eventsLayout),
+                "ParticleRenderer spawn pipeline",
+            )
+        )
+    private val sortKeysPipeline =
+        device.createComputePipeline(
+            ComputePipelineDescriptor(
+                sortPipelineLayout,
+                ProgrammableStage(sortShader, "sort_keys"),
+                "ParticleRenderer sort keys",
+            )
+        )
+    private val sortStepPipeline =
+        device.createComputePipeline(
+            ComputePipelineDescriptor(
+                sortPipelineLayout,
+                ProgrammableStage(sortShader, "sort_step"),
+                "ParticleRenderer sort step",
+            )
+        )
+    private val spawnPipeline =
+        device.createComputePipeline(
+            ComputePipelineDescriptor(
+                spawnPipelineLayout,
+                ProgrammableStage(computeShader, "spawn_events"),
+                "ParticleRenderer spawn events",
+            )
+        )
+    private val stepBuffer = createStepBuffer()
+    private val stepBindGroups =
+        Array(MAX_SORT_LOG2 * (MAX_SORT_LOG2 + 1) / 2) { step ->
+            device.createBindGroup(
+                BindGroupDescriptor(
+                    stepLayout,
+                    listOf(BindGroupEntry(0, BufferBinding(stepBuffer, step.toLong() * stepStride, 16L))),
+                    label = "ParticleRenderer sort step bind group",
+                )
+            )
+        }
+    private val singleEmitter = ArrayList<ParticleEmitter>(1)
     private val computePipeline =
         device.createComputePipeline(
             ComputePipelineDescriptor(
@@ -189,40 +316,106 @@ class ParticleRenderer(val device: Device) : Releasable {
         private set
 
     /**
-     * Spawns & moves the particles of [emitter]. Call once per frame after the emitter is updated
-     * and before the render pass that draws it.
+     * Spawns & moves the particles of [emitter], and spawns its [ParticleEmitter.subEmitter]
+     * particles. Call once per frame after the emitter is updated and before the render pass that
+     * draws it.
+     *
+     * @param camera the camera that [ParticleEffect.sorted] emitters are sorted back to front for,
+     *   or `null` to skip sorting
      */
-    fun simulate(commandEncoder: CommandEncoder, emitter: ParticleEmitter) {
-        val slots = emitter.prepare()
-        if (slots == 0) return
-        val pass = commandEncoder.beginComputePass("ParticleRenderer simulate")
-        pass.setPipeline(computePipeline)
-        pass.setBindGroup(0, emitter.computeBindGroup)
-        pass.dispatchWorkgroups(ceil(slots / WORKGROUP_SIZE.toFloat()).toInt())
-        pass.end()
-        pass.release()
+    fun simulate(commandEncoder: CommandEncoder, emitter: ParticleEmitter, camera: Camera? = null) {
+        singleEmitter.clear()
+        singleEmitter += emitter
+        simulate(commandEncoder, singleEmitter, camera)
+        singleEmitter.clear()
     }
 
     /** Simulates each of [emitters] in one compute pass. @see simulate */
-    fun simulate(commandEncoder: CommandEncoder, emitters: List<ParticleEmitter>) {
+    fun simulate(
+        commandEncoder: CommandEncoder,
+        emitters: List<ParticleEmitter>,
+        camera: Camera? = null,
+    ) {
         var pass: ComputePassEncoder? = null
         for (i in emitters.indices) {
             val emitter = emitters[i]
             val slots = emitter.prepare()
-            if (slots == 0) continue
-            val encoder =
-                pass
-                    ?: commandEncoder.beginComputePass("ParticleRenderer simulate").also {
-                        it.setPipeline(computePipeline)
-                        pass = it
-                    }
-            encoder.setBindGroup(0, emitter.computeBindGroup)
-            encoder.dispatchWorkgroups(ceil(slots / WORKGROUP_SIZE.toFloat()).toInt())
+            if (slots > 0) {
+                val encoder =
+                    pass
+                        ?: commandEncoder.beginComputePass("ParticleRenderer simulate").also {
+                            pass = it
+                        }
+                encoder.setPipeline(computePipeline)
+                encoder.setBindGroup(0, emitter.computeBindGroup)
+                encoder.dispatchWorkgroups(groups(slots))
+                val sub = emitter.subEmitter
+                val events = emitter.eventsBindGroup
+                if (sub != null && events != null) {
+                    encoder.setPipeline(spawnPipeline)
+                    encoder.setBindGroup(0, sub.emitter.computeBindGroup)
+                    encoder.setBindGroup(1, events)
+                    encoder.dispatchWorkgroups(groups(emitter.eventSpawnThreads))
+                }
+            }
+            if (camera != null) {
+                val size = emitter.prepareSort(camera)
+                val sortGroup = emitter.sortBindGroup
+                if (size > 1 && sortGroup != null) {
+                    val encoder =
+                        pass
+                            ?: commandEncoder.beginComputePass("ParticleRenderer simulate").also {
+                                pass = it
+                            }
+                    sort(encoder, emitter, sortGroup, size)
+                }
+            }
         }
         pass?.let {
             it.end()
             it.release()
         }
+    }
+
+    private fun sort(encoder: ComputePassEncoder, emitter: ParticleEmitter, group: BindGroup, size: Int) {
+        val workgroups = groups(size)
+        encoder.setPipeline(sortKeysPipeline)
+        encoder.setBindGroup(0, emitter.computeBindGroup)
+        encoder.setBindGroup(1, group)
+        encoder.setBindGroup(2, stepBindGroups[0])
+        encoder.dispatchWorkgroups(workgroups)
+        encoder.setPipeline(sortStepPipeline)
+        var log = 0
+        while ((1 shl log) < size) log++
+        val steps = log * (log + 1) / 2
+        for (step in 0 until steps) {
+            encoder.setBindGroup(2, stepBindGroups[step])
+            encoder.dispatchWorkgroups(workgroups)
+        }
+    }
+
+    private fun groups(threads: Int): Int = (threads + WORKGROUP_SIZE - 1) / WORKGROUP_SIZE
+
+    private fun createStepBuffer(): GPUBuffer {
+        val floatsPerStep = stepStride / Float.SIZE_BYTES
+        val steps = sortSteps(MAX_SORT_LOG2)
+        val total = steps.size / 2
+        val data = FloatBuffer(total * floatsPerStep)
+        for (index in 0 until total) {
+            data[index * floatsPerStep] = steps[index * 2].toFloat()
+            data[index * floatsPerStep + 1] = steps[index * 2 + 1].toFloat()
+        }
+        val buffer =
+            device.createBuffer(
+                BufferDescriptor(
+                    "ParticleRenderer sort steps",
+                    total.toLong() * stepStride,
+                    BufferUsage.UNIFORM or BufferUsage.COPY_DST,
+                    false,
+                )
+            )
+        device.queue.writeBuffer(buffer, data)
+        return buffer
     }
 
     /**
@@ -478,6 +671,17 @@ class ParticleRenderer(val device: Device) : Releasable {
         cameraBuffer.release()
         defaultTexture.release()
         computePipeline.release()
+        sortKeysPipeline.release()
+        sortStepPipeline.release()
+        spawnPipeline.release()
+        sortPipelineLayout.release()
+        spawnPipelineLayout.release()
+        stepBindGroups.forEach { it.release() }
+        stepBuffer.release()
+        sortShader.release()
+        sortLayout.release()
+        eventsLayout.release()
+        stepLayout.release()
         computePipelineLayout.release()
         renderPipelineLayout.release()
         softPipelineLayout.release()
@@ -521,9 +725,30 @@ class ParticleRenderer(val device: Device) : Releasable {
         val pipeline: RenderPipeline,
     )
 
-    private companion object {
+    internal companion object {
         const val CAMERA_FLOATS = 48
         const val WORKGROUP_SIZE = 64
+        const val MAX_SORT_LOG2 = 24
+
+        /**
+         * @return the `k` & `j` pairs of a bitonic sort of up to `2^maxLog2` values. Sorting `2^n`
+         *   values uses the first `n * (n + 1) / 2` pairs.
+         */
+        fun sortSteps(maxLog2: Int): IntArray {
+            val steps = IntArray(maxLog2 * (maxLog2 + 1))
+            var index = 0
+            var k = 2
+            while (k <= 1 shl maxLog2) {
+                var j = k / 2
+                while (j > 0) {
+                    steps[index++] = k
+                    steps[index++] = j
+                    j /= 2
+                }
+                k *= 2
+            }
+            return steps
+        }
         const val DEFAULT_TEXTURE_SIZE = 64
         const val WHITE = 0xFF.toByte()
         val logger = Logger<ParticleRenderer>()
@@ -552,6 +777,11 @@ struct Particle {
     velocity: vec4f,
     misc: vec4f,
 };
+
+struct Event {
+    position: vec4f,
+    velocity: vec4f,
+};
 """
 
         const val COMPUTE_WGSL =
@@ -559,6 +789,12 @@ struct Particle {
                     """
 @group(0) @binding(0) var<uniform> params: Params;
 @group(0) @binding(1) var<storage, read_write> particles: array<Particle>;
+@group(0) @binding(2) var<storage, read_write> events: array<Event>;
+@group(0) @binding(3) var<storage, read_write> event_count: atomic<u32>;
+@group(1) @binding(0) var<storage, read_write> source_events: array<Event>;
+@group(1) @binding(1) var<storage, read_write> source_count: atomic<u32>;
+@group(1) @binding(2) var<storage, read_write> spawn_cursor: atomic<u32>;
+@group(1) @binding(3) var<uniform> spawn_info: vec4f;
 
 fn hash(value: u32) -> u32 {
     var state = value * 747796405u + 2891336453u;
@@ -637,6 +873,58 @@ fn spawn_point(seed: ptr<function, u32>) -> vec3f {
     }
 }
 
+fn launch_velocity(seed: ptr<function, u32>, local_point: vec3f) -> vec3f {
+    let axis = normalize(params.direction.xyz);
+    var direction = cone_direction(seed, axis, params.direction.w);
+    if (is_flat()) {
+        direction = flat_direction(seed, axis, params.direction.w);
+    }
+    var velocity = direction * random_range(seed, params.life_speed.zw);
+    let radial = random_range(seed, params.size_radial.zw);
+    if (radial != 0.0 && length(local_point) > 0.0001) {
+        velocity += normalize(local_point) * radial;
+    }
+    return velocity;
+}
+
+fn make_particle(seed: ptr<function, u32>, position: vec3f, velocity: vec3f, age: f32) -> Particle {
+    var p: Particle;
+    p.position = vec4f(position + velocity * age, age);
+    p.velocity = vec4f(velocity, random_range(seed, params.life_speed.xy));
+    p.misc = vec4f(
+        random_range(seed, params.size_radial.xy),
+        random_range(seed, params.rotation.xy),
+        random_range(seed, params.rotation.zw),
+        random(seed)
+    );
+    return p;
+}
+
+fn world_position(position: vec3f) -> vec3f {
+    if (params.flags.x > 0.5) {
+        return (params.transform * vec4f(position, 1.0)).xyz;
+    }
+    return position;
+}
+
+fn world_velocity(velocity: vec3f) -> vec3f {
+    if (params.flags.x > 0.5) {
+        return (params.transform * vec4f(velocity, 0.0)).xyz;
+    }
+    return velocity;
+}
+
+fn emit_event(position: vec3f, velocity: vec3f) {
+    let max_events = u32(params.plane.w);
+    if (max_events == 0u) {
+        return;
+    }
+    let index = atomicAdd(&event_count, 1u);
+    if (index < max_events) {
+        events[index] = Event(vec4f(world_position(position), 1.0), vec4f(world_velocity(velocity), 0.0));
+    }
+}
+
 @compute @workgroup_size(64)
 fn simulate(@builtin(global_invocation_id) id: vec3u) {
     let capacity = u32(params.spawn.z);
@@ -652,22 +940,14 @@ fn simulate(@builtin(global_invocation_id) id: vec3u) {
     let dt = params.previous.w;
     let start = u32(params.spawn.x);
     let count = u32(params.spawn.y);
+    let trigger = u32(params.plane.z);
     let relative = (index + capacity - start) % capacity;
     if (relative < count) {
         var seed = hash(index ^ hash(u32(params.spawn.w) + relative * 1013u));
         let t = (f32(relative) + random(&seed)) / f32(count);
         let local_space = params.flags.x > 0.5;
         let local_point = spawn_point(&seed);
-        let axis = normalize(params.direction.xyz);
-        var direction = cone_direction(&seed, axis, params.direction.w);
-        if (is_flat()) {
-            direction = flat_direction(&seed, axis, params.direction.w);
-        }
-        var velocity = direction * random_range(&seed, params.life_speed.zw);
-        let radial = random_range(&seed, params.size_radial.zw);
-        if (radial != 0.0 && length(local_point) > 0.0001) {
-            velocity += normalize(local_point) * radial;
-        }
+        var velocity = launch_velocity(&seed, local_point);
         var position = local_point;
         if (!local_space) {
             position = (params.transform * vec4f(local_point, 1.0)).xyz;
@@ -682,15 +962,10 @@ fn simulate(@builtin(global_invocation_id) id: vec3u) {
             velocity.z = 0.0;
             position.z = select(params.transform[3].z, 0.0, local_space);
         }
-        let age = (1.0 - t) * dt;
-        p.position = vec4f(position + velocity * age, age);
-        p.velocity = vec4f(velocity, random_range(&seed, params.life_speed.xy));
-        p.misc = vec4f(
-            random_range(&seed, params.size_radial.xy),
-            random_range(&seed, params.rotation.xy),
-            random_range(&seed, params.rotation.zw),
-            random(&seed)
-        );
+        p = make_particle(&seed, position, velocity, (1.0 - t) * dt);
+        if (trigger == 2u) {
+            emit_event(p.position.xyz, p.velocity.xyz);
+        }
     } else if (p.position.w < p.velocity.w) {
         var velocity = p.velocity.xyz + params.gravity.xyz * dt;
         velocity = velocity / (1.0 + params.gravity.w * dt);
@@ -700,8 +975,102 @@ fn simulate(@builtin(global_invocation_id) id: vec3u) {
         p.position = vec4f(p.position.xyz + velocity * dt, p.position.w + dt);
         p.velocity = vec4f(velocity, p.velocity.w);
         p.misc.y += p.misc.z * dt;
+        if (trigger == 1u && p.position.w >= p.velocity.w) {
+            emit_event(p.position.xyz, p.velocity.xyz);
+        }
     }
     particles[index] = p;
+}
+
+@compute @workgroup_size(64)
+fn spawn_events(@builtin(global_invocation_id) id: vec3u) {
+    let capacity = u32(params.spawn.z);
+    let per_event = u32(spawn_info.x);
+    if (capacity == 0u || per_event == 0u) {
+        return;
+    }
+    let event_index = id.x / per_event;
+    let total = min(atomicLoad(&source_count), u32(spawn_info.y));
+    if (event_index >= total) {
+        return;
+    }
+    let slot = atomicAdd(&spawn_cursor, 1u) % capacity;
+    let event = source_events[event_index];
+    var seed = hash(id.x ^ hash(u32(params.spawn.w) * 7919u + 17u));
+    let local_point = spawn_point(&seed);
+    var velocity = launch_velocity(&seed, local_point) + event.velocity.xyz * params.extra.w;
+    var position = event.position.xyz + local_point;
+    if (is_flat()) {
+        velocity.z = 0.0;
+        position.z = event.position.z;
+    }
+    particles[slot] = make_particle(&seed, position, velocity, 0.0);
+}
+"""
+
+        const val SORT_WGSL =
+            PARAMS_WGSL +
+                """
+struct SortInfo {
+    camera_position: vec4f,
+    camera_forward: vec4f,
+    counts: vec4f,
+};
+
+@group(0) @binding(0) var<uniform> params: Params;
+@group(0) @binding(1) var<storage, read_write> particles: array<Particle>;
+@group(1) @binding(0) var<storage, read_write> keys: array<f32>;
+@group(1) @binding(1) var<storage, read_write> order: array<u32>;
+@group(1) @binding(2) var<uniform> info: SortInfo;
+@group(2) @binding(0) var<uniform> step: vec4f;
+
+@compute @workgroup_size(64)
+fn sort_keys(@builtin(global_invocation_id) id: vec3u) {
+    let i = id.x;
+    let size = u32(info.counts.y);
+    if (i >= size) {
+        return;
+    }
+    order[i] = i;
+    if (i >= u32(info.counts.x)) {
+        keys[i] = -3.0e38;
+        return;
+    }
+    let p = particles[i];
+    if (p.position.w >= p.velocity.w) {
+        keys[i] = -3.0e38;
+        return;
+    }
+    var position = p.position.xyz;
+    if (params.flags.x > 0.5) {
+        position = (params.transform * vec4f(position, 1.0)).xyz;
+    }
+    keys[i] = dot(position - info.camera_position.xyz, info.camera_forward.xyz);
+}
+
+@compute @workgroup_size(64)
+fn sort_step(@builtin(global_invocation_id) id: vec3u) {
+    let i = id.x;
+    let size = u32(info.counts.y);
+    if (i >= size) {
+        return;
+    }
+    let k = u32(step.x);
+    let j = u32(step.y);
+    let l = i ^ j;
+    if (l <= i) {
+        return;
+    }
+    let a = keys[i];
+    let b = keys[l];
+    let descending = (i & k) == 0u;
+    if ((descending && a < b) || (!descending && a > b)) {
+        keys[i] = b;
+        keys[l] = a;
+        let swap = order[i];
+        order[i] = order[l];
+        order[l] = swap;
+    }
 }
 """
 
@@ -720,6 +1089,7 @@ struct Camera {
 @group(0) @binding(0) var<uniform> camera: Camera;
 @group(1) @binding(0) var<uniform> params: Params;
 @group(1) @binding(1) var<storage, read> particles: array<Particle>;
+@group(1) @binding(2) var<storage, read> order: array<u32>;
 @group(2) @binding(0) var particle_texture: texture_2d<f32>;
 @group(2) @binding(1) var particle_sampler: sampler;
 @group(3) @binding(0) var scene_depth: texture_depth_2d;
@@ -759,7 +1129,7 @@ fn color_at(t: f32) -> vec4f {
 @vertex
 fn vs_main(@builtin(vertex_index) vertex: u32, @builtin(instance_index) instance: u32) -> VertexOutput {
     var output: VertexOutput;
-    let p = particles[instance];
+    let p = particles[order[instance]];
     if (p.position.w >= p.velocity.w) {
         output.position = vec4f(0.0, 0.0, 2.0, 1.0);
         output.color = vec4f(0.0);

@@ -2,6 +2,8 @@ package com.littlekt.graphics.particle
 
 import com.littlekt.Releasable
 import com.littlekt.file.FloatBuffer
+import com.littlekt.file.IntBuffer
+import com.littlekt.graphics.Camera
 import com.littlekt.graphics.g3d.Node3D
 import com.littlekt.graphics.webgpu.*
 import com.littlekt.math.MutableQuaternion
@@ -13,6 +15,7 @@ import com.littlekt.util.seconds
 import kotlin.math.cos
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.math.sqrt
 import kotlin.random.Random
 import kotlin.time.Duration
 
@@ -51,6 +54,26 @@ class ParticleEmitter(val renderer: ParticleRenderer, effect: ParticleEffect) :
             )
         )
     private var particleBuffer: GPUBuffer = createParticleBuffer(effect.maxParticles)
+    private var orderSize = sortSize(effect.maxParticles)
+    private var orderBuffer: GPUBuffer = createOrderBuffer(orderSize)
+    private var orderIsIdentity = true
+    private var keyBuffer: GPUBuffer? = null
+    private var sortInfoBuffer: GPUBuffer? = null
+    private val sortInfo = FloatBuffer(SORT_INFO_FLOATS)
+    internal var sortBindGroup: BindGroup? = null
+        private set
+
+    private var eventBuffer: GPUBuffer = createEventBuffer(1)
+    private val counterBuffer = createSmallStorage("ParticleEmitter event count")
+    internal val cursorBuffer = createSmallStorage("ParticleEmitter event cursor")
+    private val zeroCounter = IntBuffer(4)
+    private var spawnInfoBuffer: GPUBuffer? = null
+    private val spawnInfo = FloatBuffer(4)
+    internal var eventsBindGroup: BindGroup? = null
+        private set
+
+    internal var eventDrivenTime = Float.MAX_VALUE
+
     internal var computeBindGroup: BindGroup = createComputeBindGroup()
         private set
 
@@ -85,17 +108,41 @@ class ParticleEmitter(val renderer: ParticleRenderer, effect: ParticleEffect) :
                 computeBindGroup.release()
                 renderBindGroup.release()
                 particleBuffer.release()
+                orderBuffer.release()
+                releaseSort()
                 particleBuffer = createParticleBuffer(value.maxParticles)
+                orderSize = sortSize(value.maxParticles)
+                orderBuffer = createOrderBuffer(orderSize)
+                orderIsIdentity = true
                 computeBindGroup = createComputeBindGroup()
                 renderBindGroup = createRenderBindGroup()
                 cursor = 0
                 spawned = 0
                 timeSinceSpawn = Float.MAX_VALUE
+            } else if (!value.sorted && old.sorted && !orderIsIdentity) {
+                writeIdentityOrder(orderBuffer, orderSize)
+                orderIsIdentity = true
             }
             if (value.texture !== old.texture) {
                 textureBindGroup.release()
                 textureBindGroup = renderer.createTextureBindGroup(value.texture)
             }
+        }
+
+    /**
+     * Spawns particles of another emitter when particles of this one die or are born, or `null`
+     * for none.
+     */
+    var subEmitter: SubEmitter? = null
+        set(value) {
+            if (value != null) {
+                require(value.emitter.renderer === renderer) {
+                    "A SubEmitter must use the same ParticleRenderer as its parent!"
+                }
+                require(value.emitter !== this) { "An emitter can't be its own SubEmitter!" }
+            }
+            field = value
+            rebuildEvents(value)
         }
 
     /** If `true`, particles spawn at [ParticleEffect.rate]. Bursts spawn either way. */
@@ -106,11 +153,19 @@ class ParticleEmitter(val renderer: ParticleRenderer, effect: ParticleEffect) :
 
     /** `true` while any particle may still be alive. */
     val isActive: Boolean
-        get() = spawned > 0 && timeSinceSpawn < maxLifetime
+        get() = (spawned > 0 && timeSinceSpawn < maxLifetime) || eventDriven
 
     /** The number of particle slots that may be alive and are simulated & drawn. */
     val activeCount: Int
-        get() = if (isActive) min(spawned, effect.maxParticles) else 0
+        get() =
+            when {
+                eventDriven -> effect.maxParticles
+                spawned > 0 && timeSinceSpawn < maxLifetime -> min(spawned, effect.maxParticles)
+                else -> 0
+            }
+
+    private val eventDriven: Boolean
+        get() = eventDrivenTime < maxLifetime
 
     /** `true` once released. */
     var isReleased: Boolean = false
@@ -152,6 +207,7 @@ class ParticleEmitter(val renderer: ParticleRenderer, effect: ParticleEffect) :
         super.onUpdate(dt)
         val seconds = dt.seconds * timeScale
         pendingTime += seconds
+        if (eventDrivenTime != Float.MAX_VALUE) eventDrivenTime += seconds
         if (emitting) pendingSpawn += effect.rate * seconds
     }
 
@@ -159,7 +215,7 @@ class ParticleEmitter(val renderer: ParticleRenderer, effect: ParticleEffect) :
     internal fun prepare(): Int {
         if (pendingTime <= 0f && pendingBurst == 0 && !pendingClear) return 0
         val max = effect.maxParticles
-        if (spawned > 0 && !isActive) {
+        if (spawned > 0 && !(timeSinceSpawn < maxLifetime) && !eventDriven) {
             spawned = 0
             cursor = 0
         }
@@ -192,6 +248,11 @@ class ParticleEmitter(val renderer: ParticleRenderer, effect: ParticleEffect) :
         pendingTime = 0f
         pendingClear = false
         device.queue.writeBuffer(paramsBuffer, params)
+        val sub = subEmitter
+        if (sub != null) {
+            device.queue.writeBuffer(counterBuffer, zeroCounter)
+            sub.emitter.eventDrivenTime = 0f
+        }
         return slots
     }
 
@@ -206,6 +267,14 @@ class ParticleEmitter(val renderer: ParticleRenderer, effect: ParticleEffect) :
         params[22] = max.toFloat()
         params[23] = Random.nextFloat() * 65536f
         params[72] = if (pendingClear) 1f else 0f
+        val sub = subEmitter
+        params[78] =
+            when (sub?.trigger) {
+                null -> 0f
+                SubEmitterTrigger.DEATH -> 1f
+                SubEmitterTrigger.BIRTH -> 2f
+            }
+        params[79] = sub?.maxEvents?.toFloat() ?: 0f
         if (effectDirty) {
             writeEffect(e)
             effectDirty = false
@@ -267,6 +336,160 @@ class ParticleEmitter(val renderer: ParticleRenderer, effect: ParticleEffect) :
         params[74] = flag
     }
 
+    /**
+     * Writes the sort parameters for [camera]. @return the number of slots to sort, a power of
+     * two, or `0` to skip sorting
+     */
+    internal fun prepareSort(camera: Camera): Int {
+        val active = activeCount
+        if (!effect.sorted || active < 2) return 0
+        val size = sortSize(active)
+        val keys =
+            keyBuffer
+                ?: device
+                    .createBuffer(
+                        BufferDescriptor(
+                            "ParticleEmitter sort keys",
+                            orderSize * Float.SIZE_BYTES.toLong(),
+                            BufferUsage.STORAGE,
+                            false,
+                        )
+                    )
+                    .also { keyBuffer = it }
+        val info =
+            sortInfoBuffer
+                ?: device
+                    .createBuffer(
+                        BufferDescriptor(
+                            "ParticleEmitter sort info",
+                            SORT_INFO_FLOATS * Float.SIZE_BYTES.toLong(),
+                            BufferUsage.UNIFORM or BufferUsage.COPY_DST,
+                            false,
+                        )
+                    )
+                    .also { sortInfoBuffer = it }
+        if (sortBindGroup == null) {
+            sortBindGroup =
+                device.createBindGroup(
+                    BindGroupDescriptor(
+                        renderer.sortLayout,
+                        listOf(
+                            BindGroupEntry(0, BufferBinding(keys)),
+                            BindGroupEntry(1, BufferBinding(orderBuffer)),
+                            BindGroupEntry(2, BufferBinding(info)),
+                        ),
+                        label = "ParticleEmitter sort bind group",
+                    )
+                )
+        }
+        val view = camera.view.data
+        val fx = -view[2]
+        val fy = -view[6]
+        val fz = -view[10]
+        val length = sqrt(fx * fx + fy * fy + fz * fz).let { if (it > 0f) it else 1f }
+        sortInfo[0] = camera.position.x
+        sortInfo[1] = camera.position.y
+        sortInfo[2] = camera.position.z
+        sortInfo[3] = 0f
+        sortInfo[4] = fx / length
+        sortInfo[5] = fy / length
+        sortInfo[6] = fz / length
+        sortInfo[7] = 0f
+        sortInfo[8] = active.toFloat()
+        sortInfo[9] = size.toFloat()
+        sortInfo[10] = 0f
+        sortInfo[11] = 0f
+        device.queue.writeBuffer(info, sortInfo)
+        orderIsIdentity = false
+        return size
+    }
+
+    /** The threads spawning [subEmitter] particles from this emitter's events. */
+    internal val eventSpawnThreads: Int
+        get() = subEmitter?.let { it.maxEvents * it.count } ?: 0
+
+    private fun rebuildEvents(sub: SubEmitter?) {
+        eventsBindGroup?.release()
+        eventsBindGroup = null
+        val capacity = sub?.maxEvents ?: 1
+        val oldEvents = eventBuffer
+        eventBuffer = createEventBuffer(capacity)
+        computeBindGroup.release()
+        computeBindGroup = createComputeBindGroup()
+        oldEvents.release()
+        if (sub == null) return
+        val info =
+            spawnInfoBuffer
+                ?: device
+                    .createBuffer(
+                        BufferDescriptor(
+                            "ParticleEmitter spawn info",
+                            4L * Float.SIZE_BYTES,
+                            BufferUsage.UNIFORM or BufferUsage.COPY_DST,
+                            false,
+                        )
+                    )
+                    .also { spawnInfoBuffer = it }
+        spawnInfo[0] = sub.count.toFloat()
+        spawnInfo[1] = sub.maxEvents.toFloat()
+        spawnInfo[2] = 0f
+        spawnInfo[3] = 0f
+        device.queue.writeBuffer(info, spawnInfo)
+        eventsBindGroup =
+            device.createBindGroup(
+                BindGroupDescriptor(
+                    renderer.eventsLayout,
+                    listOf(
+                        BindGroupEntry(0, BufferBinding(eventBuffer)),
+                        BindGroupEntry(1, BufferBinding(counterBuffer)),
+                        BindGroupEntry(2, BufferBinding(sub.emitter.cursorBuffer)),
+                        BindGroupEntry(3, BufferBinding(info)),
+                    ),
+                    label = "ParticleEmitter events bind group",
+                )
+            )
+    }
+
+    private fun releaseSort() {
+        sortBindGroup?.release()
+        sortBindGroup = null
+        keyBuffer?.release()
+        keyBuffer = null
+    }
+
+    private fun createOrderBuffer(size: Int): GPUBuffer =
+        device
+            .createBuffer(
+                BufferDescriptor(
+                    "ParticleEmitter order",
+                    size * Int.SIZE_BYTES.toLong(),
+                    BufferUsage.STORAGE or BufferUsage.COPY_DST,
+                    false,
+                )
+            )
+            .also { writeIdentityOrder(it, size) }
+
+    private fun writeIdentityOrder(buffer: GPUBuffer, size: Int) {
+        val identity = IntBuffer(size)
+        for (i in 0 until size) identity[i] = i
+        device.queue.writeBuffer(buffer, identity)
+    }
+
+    private fun createEventBuffer(capacity: Int): GPUBuffer =
+        device.createBuffer(
+            BufferDescriptor(
+                "ParticleEmitter events",
+                capacity * EVENT_BYTES,
+                BufferUsage.STORAGE,
+                false,
+            )
+        )
+
+    private fun createSmallStorage(label: String): GPUBuffer =
+        device.createBuffer(
+            BufferDescriptor(label, 16L, BufferUsage.STORAGE or BufferUsage.COPY_DST, false)
+        )
+
     private fun createParticleBuffer(maxParticles: Int): GPUBuffer =
         device.createBuffer(
             BufferDescriptor(
@@ -284,6 +507,8 @@ class ParticleEmitter(val renderer: ParticleRenderer, effect: ParticleEffect) :
                 listOf(
                     BindGroupEntry(0, BufferBinding(paramsBuffer)),
                     BindGroupEntry(1, BufferBinding(particleBuffer)),
+                    BindGroupEntry(2, BufferBinding(eventBuffer)),
+                    BindGroupEntry(3, BufferBinding(counterBuffer)),
                 ),
                 label = "ParticleEmitter compute bind group",
             )
@@ -296,6 +521,7 @@ class ParticleEmitter(val renderer: ParticleRenderer, effect: ParticleEffect) :
                 listOf(
                     BindGroupEntry(0, BufferBinding(paramsBuffer)),
                     BindGroupEntry(1, BufferBinding(particleBuffer)),
+                    BindGroupEntry(2, BufferBinding(orderBuffer)),
                 ),
                 label = "ParticleEmitter render bind group",
             )
@@ -307,6 +533,14 @@ class ParticleEmitter(val renderer: ParticleRenderer, effect: ParticleEffect) :
         computeBindGroup.release()
         renderBindGroup.release()
         textureBindGroup.release()
+        eventsBindGroup?.release()
+        releaseSort()
+        sortInfoBuffer?.release()
+        spawnInfoBuffer?.release()
+        eventBuffer.release()
+        counterBuffer.release()
+        cursorBuffer.release()
+        orderBuffer.release()
         particleBuffer.release()
         paramsBuffer.release()
     }
@@ -319,5 +553,13 @@ class ParticleEmitter(val renderer: ParticleRenderer, effect: ParticleEffect) :
     internal companion object {
         const val PARAMS_FLOATS = 80
         const val PARTICLE_BYTES = 48L
+        const val EVENT_BYTES = 32L
+        const val SORT_INFO_FLOATS = 12
+
+        fun sortSize(count: Int): Int {
+            var size = 1
+            while (size < count) size = size shl 1
+            return size
+        }
     }
 }

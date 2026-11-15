@@ -49,6 +49,9 @@ import com.littlekt.math.geom.degrees
  * @property localSpace `true` to keep particles relative to the emitter so they move with it,
  *   `false` to leave them in the world where they spawned
  * @property texture the texture of each particle, or `null` for a soft round dot
+ * @property sorted `true` to draw particles back to front, so [ParticleBlend.ALPHA] particles
+ *   overlap correctly. Sorting runs on the GPU when a camera is passed to
+ *   [ParticleRenderer.simulate].
  * @property softness the distance in world units over which particles fade out where they meet
  *   geometry, or `0` for hard edges. Needs the depth texture passed to [ParticleRenderer.render].
  * @property flat `true` to keep particles on the emitter's XY plane, such as for 2D. Directions,
@@ -80,6 +83,7 @@ data class ParticleEffect(
     val texture: Texture? = null,
     val flat: Boolean = false,
     val softness: Float = 0f,
+    val sorted: Boolean = false,
 ) {
     init {
         require(maxParticles > 0) { "maxParticles must be greater than 0!" }
@@ -151,7 +155,10 @@ enum class ParticleAlignment {
  * @date 11/14/2026
  */
 enum class ParticleBlend {
-    /** Standard transparency. Particles aren't sorted, so overlapping colors can mix in any order. */
+    /**
+     * Standard transparency. Set [ParticleEffect.sorted] so overlapping particles draw back to
+     * front.
+     */
     ALPHA,
 
     /** Adds light, such as for fire, sparks & magic. Order doesn't matter. */

@@ -186,6 +186,8 @@
 - Add `BillboardBatch` to draw camera facing quads, raster & MSDF text, and strips in 3D, with `BillboardMode`.
 - Add `Decal` & `DecalRenderer` to project textures onto geometry from the depth buffer.
 - Add `ParticleEffect.softness` & a depth texture to `ParticleRenderer.render` for soft particles.
+- Add `ParticleEffect.sorted` to sort particles back to front on the GPU when a camera is passed to `ParticleRenderer.simulate`.
+- Add `SubEmitter` & `ParticleEmitter.subEmitter` to spawn particles on the GPU when particles die or are born.
 - Add `EmptyTexture.depthView` & `EmptyTexture.readOnlyDepthAttachment` to sample depth while testing against it.
 - Add multisampled depth support to `DecalRenderer` & soft particles.
 - Add `SpriteBatch.depthFormat`, `depthTest`, `depthWrite` & `sampleCount` to draw within 3D & MSAA passes.

@@ -32,7 +32,8 @@ import kotlin.math.sin
 
 /**
  * An example of GPU particles. Each [ParticleEmitter] is simulated with a compute pass and drawn
- * with a [ParticleRenderer]: fire, smoke, a spark fountain, a ground glow with a ring of sparks, a trail that follows a
+ * with a [ParticleRenderer]: fire, sorted smoke, a spark fountain, fireworks that burst with a
+ * [SubEmitter], a ground glow with a ring of sparks, a trail that follows a
  * moving emitter, and explosions. Press space for an explosion.
  *
  * @author Colton Daily
@@ -128,6 +129,7 @@ class GpuParticlesExample(context: Context) : ContextListener(context) {
                                 Color(0.2f, 0.2f, 0.2f, 0f),
                             ),
                         angularVelocity = -30f..30f,
+                        sorted = true,
                     ),
                 )
                 .apply { position(-5f, 1.6f, 0f) }
@@ -220,7 +222,53 @@ class GpuParticlesExample(context: Context) : ContextListener(context) {
                     ),
                 )
                 .apply { position(0f, 2f, -5f) }
-        val emitters = listOf(fire, smoke, fountain, glow, ring, trail, explosion)
+        val sparks =
+            ParticleEmitter(
+                particles,
+                ParticleEffect(
+                    maxParticles = 8192,
+                    rate = 0f,
+                    lifetime = 0.8f..1.6f,
+                    spread = 180.degrees,
+                    speed = 3f..7f,
+                    gravity = Vec3f(0f, -3f, 0f),
+                    drag = 1.2f,
+                    inheritVelocity = 0.3f,
+                    size = 0.08f..0.16f,
+                    colors =
+                        listOf(
+                            Color(1f, 0.9f, 1f, 1f),
+                            Color(0.9f, 0.3f, 1f, 1f),
+                            Color(0.2f, 0.1f, 1f, 0f),
+                        ),
+                    alignment = ParticleAlignment.VELOCITY,
+                    stretch = 0.12f,
+                    blend = ParticleBlend.ADDITIVE,
+                ),
+            )
+        val rockets =
+            ParticleEmitter(
+                    particles,
+                    ParticleEffect(
+                        maxParticles = 64,
+                        rate = 1.5f,
+                        lifetime = 1.1f..1.4f,
+                        shape = EmitterShape.Circle(2f),
+                        spread = 10.degrees,
+                        speed = 9f..11f,
+                        gravity = Vec3f(0f, -6f, 0f),
+                        size = 0.15f..0.2f,
+                        colors = listOf(Color(1f, 1f, 0.8f, 1f), Color(1f, 0.6f, 0.2f, 1f)),
+                        alignment = ParticleAlignment.VELOCITY,
+                        stretch = 0.05f,
+                        blend = ParticleBlend.ADDITIVE,
+                    ),
+                )
+                .apply {
+                    position(5f, 0f, -6f)
+                    subEmitter = SubEmitter(sparks, SubEmitterTrigger.DEATH, count = 200, maxEvents = 16)
+                }
+        val emitters = listOf(fire, smoke, fountain, glow, ring, trail, explosion, rockets, sparks)
 
         val clearColor = graphics.surfaceColor(Color(0.05f, 0.05f, 0.07f, 1f))
 
@@ -249,7 +297,7 @@ class GpuParticlesExample(context: Context) : ContextListener(context) {
 
         onUpdate { dt ->
             renderFrame("Particles Command Encoder") { frame, commandEncoder ->
-                particles.simulate(commandEncoder, emitters)
+                particles.simulate(commandEncoder, emitters, camera)
                 val renderPass =
                     commandEncoder.beginRenderPass(
                         RenderPassDescriptor(
