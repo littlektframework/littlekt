@@ -26,6 +26,7 @@ import com.littlekt.examples.g3d.PickingExample
 import com.littlekt.examples.g3d.PBRExample
 import com.littlekt.examples.g3d.ShadowsExample
 import com.littlekt.examples.g3d.SimpleGltfExample
+import com.littlekt.examples.g3d.SkinnedAnimationExample
 import com.littlekt.examples.g3d.TransparencyExample
 import com.littlekt.examples.input.InputExample
 import com.littlekt.examples.ui.DisplaySettingsExample
@@ -107,6 +108,7 @@ val availableExamples: Map<String, Example> = examples {
         example("-simpleGltf", "Simple glTF", ::SimpleGltfExample)
         example("-modelInstancing", "Model Instancing", ::ModelInstancingExample)
         example("-skinnedInstancing", "Skinned Instancing", ::SkinnedInstancingExample)
+        example("-skinnedAnimation", "Skinned Animation", ::SkinnedAnimationExample)
         example("-pbr", "PBR", ::PBRExample)
         example("-shadows", "Shadows", ::ShadowsExample)
         example("-transparency", "Transparency", ::TransparencyExample)

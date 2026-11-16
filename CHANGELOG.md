@@ -58,6 +58,8 @@
     - Migration: for the old order use `rotate(Vec3f.Z_AXIS, z).rotate(Vec3f.Y_AXIS, y).rotate(Vec3f.X_AXIS, x)`.
 - BREAKING: `Vec2f.angleTo` is now positive counterclockwise, e.g. `X_AXIS.angleTo(Y_AXIS)` is 90 degrees.
     - Migration: swap the vectors or negate the result.
+- BREAKING: `AnimationNode.applyTransformWeighted` is replaced by `resetBlend`, `blendTransform` & `applyBlend`, and `Animation.apply(dt)` no longer takes `firstWeightedTransform`.
+    - Migration: blend clips with `Model.play` or `Model.setAnimationWeight` instead of calling `apply` per clip.
 - BREAKING: Vectors of different sizes are no longer equal, and `Quaternion` equals `MutableQuaternion` with the same values.
 - BREAKING: Skinned meshes now apply each instance's transform, with `Skin` joints relative to `Skin.root`.
     - Migration: `get_skin_matrix(input)` now includes the instance transform and the skin bind group has a single `skin_joints` binding.
@@ -189,6 +191,10 @@
 - Add `ParticleEffect.sorted` to sort particles back to front on the GPU when a camera is passed to `ParticleRenderer.simulate`.
 - Add `SubEmitter` & `ParticleEmitter.subEmitter` to spawn particles on the GPU when particles die or are born.
 - Add dynamic offset `ComputePassEncoder.setBindGroup` overloads.
+- Add `Model.play`, `Model.stop` & `Model.defaultFade` to crossfade skinned model animations.
+- Add `Animation.loop`, `isFinished` & `onFinished` to play animations once.
+- Add `Animation.addEvent` & `Animation.onEvent` to fire events at times in an animation.
+- Fix blending of skinned model animations: rotations are normalized and weights below 1 blend with the rest pose.
 - Add `EmptyTexture.depthView` & `EmptyTexture.readOnlyDepthAttachment` to sample depth while testing against it.
 - Add multisampled depth support to `DecalRenderer` & soft particles.
 - Add `SpriteBatch.depthFormat`, `depthTest`, `depthWrite` & `sampleCount` to draw within 3D & MSAA passes.
