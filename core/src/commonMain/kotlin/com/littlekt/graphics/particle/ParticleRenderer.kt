@@ -164,7 +164,7 @@ class ParticleRenderer(val device: Device) : Releasable {
                     BindGroupLayoutEntry(
                         0,
                         ShaderStage.COMPUTE,
-                        BufferBindingLayout(minBindingSize = 16L),
+                        BufferBindingLayout(hasDynamicOffset = true, minBindingSize = 16L),
                     )
                 ),
                 "ParticleRenderer sort step layout",
@@ -278,16 +278,14 @@ class ParticleRenderer(val device: Device) : Releasable {
             )
         )
     private val stepBuffer = createStepBuffer()
-    private val stepBindGroups =
-        Array(MAX_SORT_LOG2 * (MAX_SORT_LOG2 + 1) / 2) { step ->
-            device.createBindGroup(
-                BindGroupDescriptor(
-                    stepLayout,
-                    listOf(BindGroupEntry(0, BufferBinding(stepBuffer, step.toLong() * stepStride, 16L))),
-                    label = "ParticleRenderer sort step bind group",
-                )
+    private val stepBindGroup =
+        device.createBindGroup(
+            BindGroupDescriptor(
+                stepLayout,
+                listOf(BindGroupEntry(0, BufferBinding(stepBuffer, 0, 16L))),
+                label = "ParticleRenderer sort step bind group",
             )
-        }
+        )
     private val singleEmitter = ArrayList<ParticleEmitter>(1)
     private val computePipeline =
         device.createComputePipeline(
@@ -382,14 +380,14 @@ class ParticleRenderer(val device: Device) : Releasable {
         encoder.setPipeline(sortKeysPipeline)
         encoder.setBindGroup(0, emitter.computeBindGroup)
         encoder.setBindGroup(1, group)
-        encoder.setBindGroup(2, stepBindGroups[0])
+        encoder.setBindGroup(2, stepBindGroup, 0)
         encoder.dispatchWorkgroups(workgroups)
         encoder.setPipeline(sortStepPipeline)
         var log = 0
         while ((1 shl log) < size) log++
         val steps = log * (log + 1) / 2
         for (step in 0 until steps) {
-            encoder.setBindGroup(2, stepBindGroups[step])
+            encoder.setBindGroup(2, stepBindGroup, step * stepStride)
             encoder.dispatchWorkgroups(workgroups)
         }
     }
@@ -676,7 +674,7 @@ class ParticleRenderer(val device: Device) : Releasable {
         spawnPipeline.release()
         sortPipelineLayout.release()
         spawnPipelineLayout.release()
-        stepBindGroups.forEach { it.release() }
+        stepBindGroup.release()
         stepBuffer.release()
         sortShader.release()
         sortLayout.release()

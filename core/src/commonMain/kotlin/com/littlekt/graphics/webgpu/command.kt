@@ -942,6 +942,18 @@ expect class ComputePassEncoder : Releasable {
     fun setBindGroup(index: Int, bindGroup: BindGroup)
 
     /**
+     * Sets the active bind group for a given bind group index with a single dynamic offset, without
+     * allocating.
+     */
+    fun setBindGroup(index: Int, bindGroup: BindGroup, dynamicOffset: Int)
+
+    /**
+     * Sets the active bind group for a given bind group index with a dynamic offset for each
+     * dynamic binding of the bind group, in binding order.
+     */
+    fun setBindGroup(index: Int, bindGroup: BindGroup, dynamicOffsets: List<Long>)
+
+    /**
      * Dispatches the compute work operations.
      *
      * @param workgroupCountX denote number of work groups in x-dimension

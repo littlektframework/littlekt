@@ -216,6 +216,8 @@ external class GPUComputePassEncoder {
 
     fun setBindGroup(index: Int, bindGroup: GPUBindGroup)
 
+    fun setBindGroup(index: Int, bindGroup: GPUBindGroup, dynamicOffsets: JsArray<JsNumber>)
+
     fun dispatchWorkgroups(workgroupCountX: Int, workgroupCountY: Int, workgroupCountZ: Int)
 
     fun end()

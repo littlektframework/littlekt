@@ -293,16 +293,15 @@ actual class RenderPassEncoder(val segment: WGPURenderPassEncoder, actual val la
         return "RenderPassEncoder(label=$label)"
     }
 
-    private class DynamicOffsets {
-        val buffer = globalMemory.allocateBuffer((MAX_DYNAMIC_OFFSETS * Int.SIZE_BYTES).toULong())
-        val holder = ArrayHolder<UInt>(buffer.handler)
-    }
-
-    private companion object {
-        const val MAX_DYNAMIC_OFFSETS = 16
-        val dynamicOffsetBuffers: ThreadLocal<DynamicOffsets> = ThreadLocal.withInitial { DynamicOffsets() }
-    }
 }
+
+private class DynamicOffsets {
+    val buffer = globalMemory.allocateBuffer((MAX_DYNAMIC_OFFSETS * Int.SIZE_BYTES).toULong())
+    val holder = ArrayHolder<UInt>(buffer.handler)
+}
+
+private const val MAX_DYNAMIC_OFFSETS = 16
+private val dynamicOffsetBuffers: ThreadLocal<DynamicOffsets> = ThreadLocal.withInitial { DynamicOffsets() }
 
 actual class ComputePipeline(val segment: WGPUComputePipeline) : Releasable {
     actual override fun release() {
@@ -322,6 +321,35 @@ actual class ComputePassEncoder(val segment: WGPUComputePassEncoder) : Releasabl
 
     actual fun setBindGroup(index: Int, bindGroup: BindGroup) {
         wgpuComputePassEncoderSetBindGroup(segment, index.toUInt(), bindGroup.segment, 0u, null)
+        EngineStats.setBindGroupCalls += 1
+    }
+
+    actual fun setBindGroup(index: Int, bindGroup: BindGroup, dynamicOffset: Int) {
+        val offsets = dynamicOffsetBuffers.get()
+        offsets.buffer.writeInt(dynamicOffset, 0u)
+        wgpuComputePassEncoderSetBindGroup(segment, index.toUInt(), bindGroup.segment, 1u, offsets.holder)
+        EngineStats.setBindGroupCalls += 1
+    }
+
+    actual fun setBindGroup(index: Int, bindGroup: BindGroup, dynamicOffsets: List<Long>) {
+        if (dynamicOffsets.isEmpty()) {
+            setBindGroup(index, bindGroup)
+            return
+        }
+        require(dynamicOffsets.size <= MAX_DYNAMIC_OFFSETS) {
+            "A bind group can have at most $MAX_DYNAMIC_OFFSETS dynamic offsets!"
+        }
+        val offsets = dynamicOffsetBuffers.get()
+        for (i in dynamicOffsets.indices) {
+            offsets.buffer.writeInt(dynamicOffsets[i].toInt(), (i * Int.SIZE_BYTES).toULong())
+        }
+        wgpuComputePassEncoderSetBindGroup(
+            segment,
+            index.toUInt(),
+            bindGroup.segment,
+            dynamicOffsets.size.toULong(),
+            offsets.holder,
+        )
         EngineStats.setBindGroupCalls += 1
     }
 
