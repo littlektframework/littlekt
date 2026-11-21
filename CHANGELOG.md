@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.12.0 (SNAPSHOT)
+## 0.12.0
 
 ### Breaking
 

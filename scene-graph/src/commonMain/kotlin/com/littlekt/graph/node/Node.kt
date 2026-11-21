@@ -822,8 +822,8 @@ open class Node : Comparable<Node> {
     }
 
     /**
-     * Enables/disables the [Node]. When disabled colliders are removed from the Physics system and
-     * will not be called.
+     * Enables/disables the [Node] and its children. A disabled node isn't rendered, resized, or hit
+     * tested and doesn't get input.
      *
      * @param value true to enable this node; false otherwise
      */

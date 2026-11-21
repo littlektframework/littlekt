@@ -2,10 +2,10 @@
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://github.com/littlektframework/littlekt/blob/master/LICENSE)
 [![build](https://github.com/littlektframework/littlekt/actions/workflows/build.yml/badge.svg?branch=master)](https://github.com/littlektframework/littlekt/actions/workflows/build.yml)
-[![Download](https://img.shields.io/maven-central/v/com.littlekt/core/0.11.0)](https://search.maven.org/artifact/com.littlekt/core/0.11.0/pom)
+[![Download](https://img.shields.io/maven-central/v/com.littlekt/core/0.12.0)](https://search.maven.org/artifact/com.littlekt/core/0.12.0/pom)
 [![Kotlin](https://img.shields.io/badge/kotlin-2.3.0-blue.svg?logo=kotlin)](http://kotlinlang.org)
 
-Requires JDK 22+ in order to use due to the usage of the new Java FFM API.
+Requires JDK 25+ in order to use due to the usage of the new Java FFM API.
 
 **Currently, in development.**
 
@@ -40,7 +40,7 @@ kotlin {
     }
 }
 
-val littleKtVersion = "0.11.0" // get the latest release at the top
+val littleKtVersion = "0.12.0" // get the latest release at the top
 val kotlinCoroutinesVersion = "1.9.0" // or whatever version you are using
 
 sourceSets {
@@ -72,7 +72,7 @@ kotlin {
     compilerOptions { jvmTarget = JvmTarget.JVM_25 }
 }
 
-val littleKtVersion = "0.11.0.131d453-SNAPSHOT" // or whichever hash you are using
+val littleKtVersion = "0.12.0.131d453-SNAPSHOT" // or whichever hash you are using
 val kotlinCoroutinesVersion = "1.9.0" // or whatever version you are using
 
 sourceSets {

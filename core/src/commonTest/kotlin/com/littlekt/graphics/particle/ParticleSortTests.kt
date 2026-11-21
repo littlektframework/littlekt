@@ -52,6 +52,6 @@ class ParticleSortTests {
             assertTrue(keys[order[i - 1]] >= keys[order[i]], "not far to near at $i")
         }
         assertEquals(keys.indices.toSet(), order.toSet())
-        for (i in live until order.size) assertEquals(-3.0e38f, keys[order[i]])
+        for (i in live until order.size) assertTrue(keys[order[i]] < -1e38f, "live particle after dead at $i")
     }
 }

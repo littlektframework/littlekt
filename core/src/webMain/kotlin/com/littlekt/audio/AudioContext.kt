@@ -48,7 +48,6 @@ external class AudioParam {
     var value: Double
 }
 
-@JsName("AudioListener")
 external class JsAudioListener {
     fun setPosition(x: Double, y: Double, z: Double)
 

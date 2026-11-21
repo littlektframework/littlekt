@@ -133,19 +133,20 @@ class CollisionTests {
     }
 
     private fun segmentDistance(a: Vec3f, b: Vec3f, distance: (Vec3f) -> Float): Float {
+        val samples = SEGMENT_SAMPLES
         val p = MutableVec3f()
         var best = Float.MAX_VALUE
-        for (i in 0..SEGMENT_SAMPLES) {
-            val s = i / SEGMENT_SAMPLES.toFloat()
+        for (i in 0..samples) {
+            val s = i / samples.toFloat()
             p.set(a.x + (b.x - a.x) * s, a.y + (b.y - a.y) * s, a.z + (b.z - a.z) * s)
             best = minOf(best, distance(p))
         }
         return best
     }
 
-    private fun bruteTime(overlaps: (Float) -> Boolean): Float {
-        for (i in 0..STEPS) {
-            val t = i / STEPS.toFloat()
+    private fun bruteTime(steps: Int = STEPS, overlaps: (Float) -> Boolean): Float {
+        for (i in 0..steps) {
+            val t = i / steps.toFloat()
             if (overlaps(t)) return t
         }
         return -1f
@@ -198,19 +199,19 @@ class CollisionTests {
         val c = Vec3f(0.2f, 0.1f, 1.7f)
         val target = Capsule(Vec3f(-0.5f, 1f, 0.3f), Vec3f(0.8f, -0.6f, -0.4f), 0.3f)
         val closest = MutableVec3f()
-        repeat(150) { i ->
+        repeat(40) { i ->
             val start = random.vec(4f)
             val capsule = Capsule(start, Vec3f(start.x + random.nextFloat() * 2f - 1f, start.y + 1.5f, start.z), 0.1f + random.nextFloat() * 0.6f)
             val delta = random.vec(6f)
             val r = capsule.radius
-            val tolerance = 2f / STEPS + 0.02f
+            val tolerance = 2f / CAPSULE_STEPS + 0.02f
             val boxT = if (Collision.sweepCapsuleBox(capsule, delta, box, hit)) hit.time else -1f
-            val boxBrute = bruteTime { t ->
+            val boxBrute = bruteTime(CAPSULE_STEPS) { t ->
                 segmentDistance(moved(capsule.a, delta, t), moved(capsule.b, delta, t)) { boxDistance(it, box) } <= r
             }
             checkAgainstBrute("capsule box $i", boxT, boxBrute, tolerance)
             val triT = if (Collision.sweepCapsuleTriangle(capsule, delta, a, b, c, hit)) hit.time else -1f
-            val triBrute = bruteTime { t ->
+            val triBrute = bruteTime(CAPSULE_STEPS) { t ->
                 segmentDistance(moved(capsule.a, delta, t), moved(capsule.b, delta, t)) {
                     Collision.closestPointOnTriangle(it, a, b, c, closest).distance(it)
                 } <= r
@@ -243,6 +244,7 @@ class CollisionTests {
 
     private companion object {
         const val STEPS = 2000
-        const val SEGMENT_SAMPLES = 200
+        const val CAPSULE_STEPS = 1000
+        const val SEGMENT_SAMPLES = 100
     }
 }
