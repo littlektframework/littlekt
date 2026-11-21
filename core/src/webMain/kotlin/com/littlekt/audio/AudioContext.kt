@@ -1,28 +1,56 @@
 package com.littlekt.audio
 
-import org.khronos.webgl.ArrayBuffer
+import kotlin.js.JsAny
+import kotlin.js.Promise
+import org.w3c.dom.HTMLMediaElement
 
 /**
  * @author Colton Daily
  * @date 11/22/2021
  */
-external class JsSound
+external class AudioContext {
+    val destination: AudioNode
 
-external class JsSoundDestination
+    val listener: JsAudioListener
 
-external class JsBufferSource {
-    var buffer: JsSound
+    val state: String
 
-    fun connect(destination: JsSoundDestination)
+    fun resume(): Promise<JsAny?>
 
-    fun start(delay: Int)
+    fun createMediaElementSource(element: HTMLMediaElement): AudioNode
+
+    fun createPanner(): PannerNode
+
+    fun createGain(): GainNode
 }
 
-external class AudioContext {
+open external class AudioNode {
+    fun connect(destination: AudioNode): AudioNode
 
-    val destination: JsSoundDestination
+    fun disconnect()
+}
 
-    fun decodeAudioData(bytes: ArrayBuffer, onLoad: (buffer: JsSound) -> Unit)
+external class PannerNode : AudioNode {
+    var panningModel: String
+    var distanceModel: String
+    var refDistance: Double
+    var maxDistance: Double
+    var rolloffFactor: Double
 
-    fun createBufferSource(): JsBufferSource
+    fun setPosition(x: Double, y: Double, z: Double)
+}
+
+external class GainNode : AudioNode {
+    val gain: AudioParam
+}
+
+external class AudioParam {
+    var value: Double
+}
+
+@JsName("AudioListener")
+external class JsAudioListener {
+    fun setPosition(x: Double, y: Double, z: Double)
+
+    fun setOrientation(x: Double, y: Double, z: Double, xUp: Double, yUp: Double, zUp: Double)
 }

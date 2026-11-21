@@ -11,6 +11,9 @@ interface Audio {
     /** Multiplies the volume of every [AudioClip] & [AudioStream], from `0` to `1`. */
     var masterVolume: Float
 
+    /** The listener that sounds played with [AudioClip.playAt] are heard from. */
+    val listener: AudioListener
+
     /** `true` if [setOutputDevice] can switch the output device on this platform. */
     val canSelectOutputDevice: Boolean
 

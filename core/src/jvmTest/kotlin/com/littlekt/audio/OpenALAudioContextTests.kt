@@ -75,4 +75,30 @@ class OpenALAudioContextTests {
         repeat(4) { context.obtainSource(reserve = true).also(::playLooping) }
         assertEquals(-1, context.obtainSource())
     }
+
+    @Test
+    fun test_sound_ids_go_stale_when_a_source_is_taken() {
+        if (context.NO_DEVICE) return
+        val first = context.obtainSource().also(::playLooping)
+        val id = context.soundId(first)
+        assertEquals(first, context.findSource(id, buffer))
+        repeat(3) { context.obtainSource().also(::playLooping) }
+        assertEquals(first, context.obtainSource().also(::playLooping))
+        assertEquals(-1, context.findSource(id, buffer))
+        assertEquals(first, context.findSource(context.soundId(first), buffer))
+    }
+
+    @Test
+    fun test_sources_are_relative_until_spatialized() {
+        if (context.NO_DEVICE) return
+        val source = context.obtainSource()
+        assertEquals(AL10.AL_TRUE, AL10.alGetSourcei(source, AL10.AL_SOURCE_RELATIVE))
+        context.spatialize(source, 1f, 2f, 3f, AudioAttenuation(refDistance = 2f, maxDistance = 9f))
+        assertEquals(AL10.AL_FALSE, AL10.alGetSourcei(source, AL10.AL_SOURCE_RELATIVE))
+        assertEquals(2f, AL10.alGetSourcef(source, AL10.AL_REFERENCE_DISTANCE))
+        assertEquals(9f, AL10.alGetSourcef(source, AL10.AL_MAX_DISTANCE))
+        val reused = context.obtainSource()
+        assertEquals(source, reused)
+        assertEquals(AL10.AL_TRUE, AL10.alGetSourcei(reused, AL10.AL_SOURCE_RELATIVE))
+    }
 }

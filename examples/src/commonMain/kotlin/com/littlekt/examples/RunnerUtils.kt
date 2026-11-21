@@ -27,6 +27,7 @@ import com.littlekt.examples.g3d.PBRExample
 import com.littlekt.examples.g3d.ShadowsExample
 import com.littlekt.examples.g3d.SimpleGltfExample
 import com.littlekt.examples.g3d.SkinnedAnimationExample
+import com.littlekt.examples.g3d.SpatialAudioExample
 import com.littlekt.examples.g3d.TransparencyExample
 import com.littlekt.examples.input.InputExample
 import com.littlekt.examples.ui.DisplaySettingsExample
@@ -116,6 +117,7 @@ val availableExamples: Map<String, Example> = examples {
         example("-billboards", "Billboards", ::BillboardsExample)
         example("-decals", "Decals & Soft Particles", ::DecalsExample)
         example("-gpuParticles", "GPU Particles", ::GpuParticlesExample)
+        example("-spatialAudio", "Spatial Audio", ::SpatialAudioExample)
         example("-ibl", "IBL", ::IBLExample)
         example("-bloom", "Bloom", ::BloomExample)
         example("-multiPass", "Multi Pass", ::MultiPassExample)

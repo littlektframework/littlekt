@@ -15,6 +15,8 @@ import fr.delthas.javamp3.Sound
 import java.io.ByteArrayInputStream
 import java.nio.ByteBuffer
 import java.nio.IntBuffer
+import javax.sound.sampled.AudioFormat
+import javax.sound.sampled.AudioInputStream
 import javax.sound.sampled.AudioSystem
 import org.lwjgl.stb.STBImage.*
 import org.lwjgl.system.MemoryStack
@@ -85,9 +87,9 @@ actual suspend fun VfsFile.readAudioClip(): AudioClip {
             val channels = if (decoder.isStereo) 2 else 1
             Triple(source, channels, decoder.samplingFrequency.toFloat())
         } else {
-            val source = asset.toArray()
-            val clip = run { AudioSystem.getAudioFileFormat(ByteArrayInputStream(asset.toArray())) }
-            Triple(source, clip.format.channels, clip.format.sampleRate)
+            val pcm = run { AudioSystem.getAudioInputStream(ByteArrayInputStream(asset.toArray())).toPcm16() }
+            val source = pcm.use { it.readAllBytes() }
+            Triple(source, pcm.format.channels, pcm.format.sampleRate)
         }
 
     vfs.context as LwjglContext
@@ -136,7 +138,7 @@ private suspend fun VfsFile.createAudioStreamMp3(): OpenALAudioStream {
 private suspend fun VfsFile.createAudioStreamWav(): OpenALAudioStream {
     vfs.context as LwjglContext
     var clip = run {
-        AudioSystem.getAudioInputStream((readStream() as JvmByteSequenceStream).stream)
+        AudioSystem.getAudioInputStream((readStream() as JvmByteSequenceStream).stream).toPcm16()
     }
     val read: (ByteArray) -> Int = {
         val result = clip.read(it)
@@ -145,7 +147,7 @@ private suspend fun VfsFile.createAudioStreamWav(): OpenALAudioStream {
     val reset: suspend () -> Unit = {
         run {
             clip.close()
-            clip = AudioSystem.getAudioInputStream((readStream() as JvmByteSequenceStream).stream)
+            clip = AudioSystem.getAudioInputStream((readStream() as JvmByteSequenceStream).stream).toPcm16()
         }
     }
 
@@ -159,4 +161,26 @@ private suspend fun VfsFile.createAudioStreamWav(): OpenALAudioStream {
         clip.format.channels,
         clip.format.sampleRate.toInt(),
     )
+}
+
+private fun AudioInputStream.toPcm16(): AudioInputStream {
+    val source = format
+    if (
+        source.encoding == AudioFormat.Encoding.PCM_SIGNED &&
+            source.sampleSizeInBits == 16 &&
+            !source.isBigEndian
+    ) {
+        return this
+    }
+    val target =
+        AudioFormat(
+            AudioFormat.Encoding.PCM_SIGNED,
+            source.sampleRate,
+            16,
+            source.channels,
+            source.channels * 2,
+            source.sampleRate,
+            false,
+        )
+    return AudioSystem.getAudioInputStream(target, this)
 }

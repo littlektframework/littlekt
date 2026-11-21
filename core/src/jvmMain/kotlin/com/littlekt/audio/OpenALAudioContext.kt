@@ -81,6 +81,39 @@ class OpenALAudioContext(val maxSources: Int = DEFAULT_MAX_SOURCES) : Releasable
             if (!NO_DEVICE) AL10.alListenerf(AL10.AL_GAIN, field)
         }
 
+    override val listener: AudioListener =
+        object : AudioListener {
+            private val orientation = FloatArray(6)
+
+            override fun setPosition(x: Float, y: Float, z: Float) {
+                if (!NO_DEVICE) AL10.alListener3f(AL10.AL_POSITION, x, y, z)
+            }
+
+            override fun setOrientation(
+                forwardX: Float,
+                forwardY: Float,
+                forwardZ: Float,
+                upX: Float,
+                upY: Float,
+                upZ: Float,
+            ) {
+                if (NO_DEVICE) return
+                orientation[0] = forwardX
+                orientation[1] = forwardY
+                orientation[2] = forwardZ
+                orientation[3] = upX
+                orientation[4] = upY
+                orientation[5] = upZ
+                AL10.alListenerfv(AL10.AL_ORIENTATION, orientation)
+            }
+        }
+
+    private val sourceDistanceModel: Boolean =
+        !NO_DEVICE &&
+            AL10.alIsExtensionPresent("AL_EXT_source_distance_model").also {
+                if (it) AL10.alEnable(EXTSourceDistanceModel.AL_SOURCE_DISTANCE_MODEL)
+            }
+
     override val canSelectOutputDevice: Boolean by lazy {
         !NO_DEVICE && ALC10.alcIsExtensionPresent(device, "ALC_SOFT_reopen_device")
     }
@@ -197,11 +230,59 @@ class OpenALAudioContext(val maxSources: Int = DEFAULT_MAX_SOURCES) : Releasable
         AL10.alSourcei(sourceId, AL10.AL_BUFFER, 0)
         AL10.alSourcef(sourceId, AL10.AL_GAIN, 1f)
         AL10.alSourcef(sourceId, AL10.AL_PITCH, 1f)
-        AL10.alSource3f(sourceId, AL10.AL_POSITION, 0f, 0f, 1f)
+        AL10.alSourcei(sourceId, AL10.AL_SOURCE_RELATIVE, AL10.AL_TRUE)
+        AL10.alSource3f(sourceId, AL10.AL_POSITION, 0f, 0f, 0f)
         AL10.alSourcei(sourceId, SOFTDirectChannels.AL_DIRECT_CHANNELS_SOFT, AL10.AL_TRUE)
         reserved[index] = reserve
         playOrder[index] = ++playCounter
         return sourceId
+    }
+
+    /** @return the id of the current play of [sourceId] from [obtainSource], or `-1` */
+    fun soundId(sourceId: Int): Long {
+        for (i in 0 until sourceCount) {
+            if (sources[i] == sourceId) return playOrder[i]
+        }
+        return -1L
+    }
+
+    /**
+     * @return the source of the play with [soundId] that is still playing [bufferID], or `-1` if
+     *   the source was taken by another sound
+     */
+    fun findSource(soundId: Long, bufferID: Int): Int {
+        if (NO_DEVICE || soundId < 0L) return -1
+        for (i in 0 until sourceCount) {
+            if (playOrder[i] == soundId) {
+                return if (AL10.alGetSourcei(sources[i], AL10.AL_BUFFER) == bufferID) sources[i] else -1
+            }
+        }
+        return -1
+    }
+
+    /**
+     * Positions [sourceId] at [x], [y], [z] in world space, heard from the [listener] with
+     * [attenuation].
+     */
+    fun spatialize(sourceId: Int, x: Float, y: Float, z: Float, attenuation: AudioAttenuation) {
+        if (NO_DEVICE) return
+        AL10.alSourcei(sourceId, SOFTDirectChannels.AL_DIRECT_CHANNELS_SOFT, AL10.AL_FALSE)
+        AL10.alSourcei(sourceId, AL10.AL_SOURCE_RELATIVE, AL10.AL_FALSE)
+        AL10.alSource3f(sourceId, AL10.AL_POSITION, x, y, z)
+        AL10.alSourcef(sourceId, AL10.AL_REFERENCE_DISTANCE, attenuation.refDistance)
+        AL10.alSourcef(sourceId, AL10.AL_MAX_DISTANCE, attenuation.maxDistance)
+        AL10.alSourcef(sourceId, AL10.AL_ROLLOFF_FACTOR, attenuation.rolloff)
+        val model =
+            when (attenuation.distanceModel) {
+                DistanceModel.INVERSE -> AL10.AL_INVERSE_DISTANCE
+                DistanceModel.LINEAR -> AL11.AL_LINEAR_DISTANCE_CLAMPED
+                DistanceModel.EXPONENTIAL -> AL11.AL_EXPONENT_DISTANCE
+            }
+        if (sourceDistanceModel) {
+            AL10.alSourcei(sourceId, AL10.AL_DISTANCE_MODEL, model)
+        } else {
+            AL10.alDistanceModel(model)
+        }
     }
 
     fun resumeSourceViaBufferID(bufferID: Int) {

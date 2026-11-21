@@ -60,6 +60,8 @@
     - Migration: swap the vectors or negate the result.
 - BREAKING: `AnimationNode.applyTransformWeighted` is replaced by `resetBlend`, `blendTransform` & `applyBlend`, and `Animation.apply(dt)` no longer takes `firstWeightedTransform`.
     - Migration: blend clips with `Model.play` or `Model.setAnimationWeight` instead of calling `apply` per clip.
+- BREAKING: `AudioClip.play` returns a sound id `Long`, and `AudioClip` & `Audio` have new members for spatial audio.
+- BREAKING: Desktop clips played with `play` are now relative to the listener, so moving the `AudioListener` doesn't affect them.
 - BREAKING: Vectors of different sizes are no longer equal, and `Quaternion` equals `MutableQuaternion` with the same values.
 - BREAKING: Skinned meshes now apply each instance's transform, with `Skin` joints relative to `Skin.root`.
     - Migration: `get_skin_matrix(input)` now includes the instance transform and the skin bind group has a single `skin_joints` binding.
@@ -195,6 +197,10 @@
 - Add `Animation.loop`, `isFinished` & `onFinished` to play animations once.
 - Add `Animation.addEvent` & `Animation.onEvent` to fire events at times in an animation.
 - Fix blending of skinned model animations: rotations are normalized and weights below 1 blend with the rest pose.
+- Add spatial audio with `AudioClip.playAt`, `Audio.listener` & `AudioAttenuation`.
+- Add `AudioClip.setPosition`, `setVolume`, `stop` & `isPlaying` by sound id.
+- Fix desktop WAV clips playing their header and 8-bit samples as 16-bit audio.
+- `AudioClip.stop()` stops every play of a clip on the web, like desktop.
 - Add `EmptyTexture.depthView` & `EmptyTexture.readOnlyDepthAttachment` to sample depth while testing against it.
 - Add multisampled depth support to `DecalRenderer` & soft particles.
 - Add `SpriteBatch.depthFormat`, `depthTest`, `depthWrite` & `sampleCount` to draw within 3D & MSAA passes.
