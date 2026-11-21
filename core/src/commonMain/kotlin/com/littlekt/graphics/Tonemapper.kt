@@ -1,13 +1,16 @@
 package com.littlekt.graphics
 
-import com.littlekt.Releasable
 import com.littlekt.file.FloatBuffer
+import com.littlekt.graphics.postprocess.PostEffect
 import com.littlekt.graphics.webgpu.*
 
 /**
  * Maps an HDR texture, such as a [TextureFormat.RGBA16_FLOAT] render target, down to a displayable
  * range using a [TonemapMode] and draws it to the current render pass. If the [format] of the
  * target is not sRGB, the result will be gamma corrected in the shader.
+ *
+ * Can also run as a [PostEffect] of a [com.littlekt.graphics.postprocess.PostProcessor], which
+ * sets [format] to the target it draws into.
  *
  * Usage each frame:
  * ```
@@ -20,7 +23,9 @@ import com.littlekt.graphics.webgpu.*
  * @author Colton Daily
  * @date 11/8/2026
  */
-class Tonemapper(val device: Device, format: TextureFormat) : Releasable {
+class Tonemapper(val device: Device, format: TextureFormat) : PostEffect {
+
+    override var enabled: Boolean = true
 
     /**
      * The [TextureFormat] of the render pass target this will be drawn to. Changing this will
@@ -219,6 +224,17 @@ class Tonemapper(val device: Device, format: TextureFormat) : Releasable {
         renderPassEncoder.setPipeline(getPipeline())
         renderPassEncoder.setBindGroup(0, getBindGroup(source))
         renderPassEncoder.draw(3, 1)
+    }
+
+    override fun render(
+        renderPassEncoder: RenderPassEncoder,
+        source: TextureView,
+        format: TextureFormat,
+        width: Int,
+        height: Int,
+    ) {
+        this.format = format
+        render(renderPassEncoder, source)
     }
 
     private fun getPipeline(): RenderPipeline {

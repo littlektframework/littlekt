@@ -201,6 +201,10 @@
 - Add `AudioClip.setPosition`, `setVolume`, `stop` & `isPlaying` by sound id.
 - Fix desktop WAV clips playing their header and 8-bit samples as 16-bit audio.
 - `AudioClip.stop()` stops every play of a clip on the web, like desktop.
+- Add `PostProcessor` to run a chain of fullscreen `PostEffect`s between internal targets & into a render pass.
+- Add `ShaderPostEffect` to write post effects as a WGSL `effect(uv)` function with params.
+- Add `FxaaEffect`, `VignetteEffect`, `ColorAdjustEffect` & `ChromaticAberrationEffect`.
+- `Tonemapper` is now a `PostEffect`.
 - Add `EmptyTexture.depthView` & `EmptyTexture.readOnlyDepthAttachment` to sample depth while testing against it.
 - Add multisampled depth support to `DecalRenderer` & soft particles.
 - Add `SpriteBatch.depthFormat`, `depthTest`, `depthWrite` & `sampleCount` to draw within 3D & MSAA passes.

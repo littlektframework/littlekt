@@ -25,6 +25,7 @@ import com.littlekt.examples.g3d.GpuParticlesExample
 import com.littlekt.examples.g3d.PickingExample
 import com.littlekt.examples.g3d.PBRExample
 import com.littlekt.examples.g3d.ShadowsExample
+import com.littlekt.examples.g3d.PostProcessingExample
 import com.littlekt.examples.g3d.SimpleGltfExample
 import com.littlekt.examples.g3d.SkinnedAnimationExample
 import com.littlekt.examples.g3d.SpatialAudioExample
@@ -120,6 +121,7 @@ val availableExamples: Map<String, Example> = examples {
         example("-spatialAudio", "Spatial Audio", ::SpatialAudioExample)
         example("-ibl", "IBL", ::IBLExample)
         example("-bloom", "Bloom", ::BloomExample)
+        example("-postProcessing", "Post Processing", ::PostProcessingExample)
         example("-multiPass", "Multi Pass", ::MultiPassExample)
     }
     category("Input") {
