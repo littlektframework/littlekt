@@ -119,4 +119,25 @@ class SpatialHashTests {
         assertEquals(listOf("a"), hash.queryRadius(-10f, 3f, -10f, 1f, mutableListOf()))
         assertEquals("b", hash.raycast(ray(-10f, 50f, 10f, 0f, -1f, 0f)))
     }
+
+    @Test
+    fun test_sweepcast_finds_first_touched() {
+        val hash = SpatialHash<String>(2f)
+        hash.box("far", 10f, 0f, 0f)
+        hash.box("near", 4f, 0f, 0f)
+        hash.box("off", 6f, 5f, 0f)
+        val boxes = mapOf(
+            "far" to BoundingBox().set(9.5f, -0.5f, -0.5f, 10.5f, 0.5f, 0.5f),
+            "near" to BoundingBox().set(3.5f, -0.5f, -0.5f, 4.5f, 0.5f, 0.5f),
+            "off" to BoundingBox().set(5.5f, 4.5f, -0.5f, 6.5f, 5.5f, 0.5f),
+        )
+        val center = com.littlekt.math.Vec3f(0f, 0f, 0f)
+        val delta = com.littlekt.math.Vec3f(12f, 0f, 0f)
+        val hit = SweepHit()
+        val bounds = Collision.sweepBounds(center, 0.5f, delta, BoundingBox())
+        val item = hash.sweepcast(bounds, hit) { item, h -> Collision.sweepSphereBox(center, 0.5f, delta, boxes.getValue(item), h) }
+        assertEquals("near", item)
+        assertTrue(abs(hit.time - 3f / 12f) < 1e-4f, "was ${hit.time}")
+        assertNull(hash.sweepcast(bounds, hit) { _, _ -> false })
+    }
 }

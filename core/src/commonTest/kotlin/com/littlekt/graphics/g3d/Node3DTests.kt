@@ -8,7 +8,10 @@ import com.littlekt.math.Quaternion
 import com.littlekt.math.Vec3f
 import com.littlekt.math.geom.degrees
 import kotlin.math.abs
+import com.littlekt.math.spatial.Capsule
+import com.littlekt.math.spatial.SweepHit
 import kotlin.test.Test
+import kotlin.test.assertFalse
 import kotlin.time.Duration
 import kotlin.test.assertTrue
 
@@ -127,5 +130,28 @@ class Node3DTests {
         parent.update(Duration.ZERO)
         assertTrue(parent.intersectRay(ray(-10f, 0f, 0f, 1f, 0f, 0f)) >= 0f)
         assertTrue(parent.intersectRay(ray(-10f, 0f, 0f, 1f, 0f, 0f), precise = true) < 0f)
+    }
+
+    @Test
+    fun test_sweep_sphere_against_bounds() {
+        val node = BoxNode().position(10f, 0f, 0f)
+        node.update(Duration.ZERO)
+        val hit = SweepHit()
+        val half = node.globalBounds(BoundingBox()).size.x * 0.5f
+        assertTrue(node.sweepSphere(Vec3f(0f, 0f, 0f), 1f, Vec3f(20f, 0f, 0f), hit))
+        assertTrue(abs(hit.time - (10f - half - 1f) / 20f) < 1e-4f, "was ${hit.time}")
+        assertTrue(abs(hit.normal.x + 1f) < 1e-4f)
+        assertFalse(node.sweepSphere(Vec3f(0f, 5f, 0f), 1f, Vec3f(20f, 0f, 0f), hit))
+    }
+
+    @Test
+    fun test_overlap_capsule_and_precise_without_geometry() {
+        val parent = Node3D()
+        parent.addChild(BoxNode())
+        parent.update(Duration.ZERO)
+        val capsule = Capsule(Vec3f(-5f, 0f, 0f), Vec3f(5f, 0f, 0f), 0.2f)
+        assertTrue(parent.overlapsCapsule(capsule))
+        assertFalse(parent.overlapsCapsule(capsule, precise = true))
+        assertFalse(parent.sweepCapsule(capsule, Vec3f(0f, 1f, 0f), SweepHit(), precise = true))
     }
 }

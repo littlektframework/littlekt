@@ -205,6 +205,9 @@
 - Add `ShaderPostEffect` to write post effects as a WGSL `effect(uv)` function with params.
 - Add `FxaaEffect`, `VignetteEffect`, `ColorAdjustEffect` & `ChromaticAberrationEffect`.
 - `Tonemapper` is now a `PostEffect`.
+- Add `Collision` overlap tests & sweeps between spheres, `Capsule`s, boxes & triangles, with `SweepHit` results.
+- Add `Node3D.overlapsSphere`, `overlapsCapsule`, `sweepSphere` & `sweepCapsule` against bounds or triangles.
+- Add `SpatialHash.sweepcast` to find the first item a moving shape touches.
 - Add `EmptyTexture.depthView` & `EmptyTexture.readOnlyDepthAttachment` to sample depth while testing against it.
 - Add multisampled depth support to `DecalRenderer` & soft particles.
 - Add `SpriteBatch.depthFormat`, `depthTest`, `depthWrite` & `sampleCount` to draw within 3D & MSAA passes.

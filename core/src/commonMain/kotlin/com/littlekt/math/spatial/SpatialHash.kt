@@ -33,6 +33,7 @@ class SpatialHash<T : Any>(val cellSize: Float, val cellSizeY: Float = cellSize)
     private val invCell = 1f / cellSize
     private val invCellY = 1f / cellSizeY
     private var stamp = 0
+    private val sweepHit = SweepHit()
     private var minCellX = Int.MAX_VALUE
     private var minCellY = Int.MAX_VALUE
     private var minCellZ = Int.MAX_VALUE
@@ -247,6 +248,53 @@ class SpatialHash<T : Any>(val cellSize: Float, val cellSizeY: Float = cellSize)
         return bestItem
     }
 
+    /**
+     * Finds the item a moving shape touches first. Every item whose bounds overlap [bounds], such
+     * as from [Capsule.sweepBounds] or [Collision.sweepBounds], is passed to [test].
+     *
+     * @param bounds the box around the whole motion of the shape
+     * @param hit gets the closest contact
+     * @param test sweeps the shape against an item, filling in the [SweepHit] it gets, and returns
+     *   `true` if they touch
+     * @return the closest item, or `null`
+     */
+    fun sweepcast(bounds: BoundingBox, hit: SweepHit, test: SweepTest<T>): T? {
+        var best = 2f
+        var bestItem: T? = null
+        val current = nextStamp()
+        val minX = bounds.min.x
+        val minY = bounds.min.y
+        val minZ = bounds.min.z
+        val maxX = bounds.max.x
+        val maxY = bounds.max.y
+        val maxZ = bounds.max.z
+        val x0 = max(cellX(minX), minCellX)
+        val y0 = max(cellY(minY), minCellY)
+        val z0 = max(cellX(minZ), minCellZ)
+        val x1 = min(cellX(maxX), maxCellX)
+        val y1 = min(cellY(maxY), maxCellY)
+        val z1 = min(cellX(maxZ), maxCellZ)
+        for (cx in x0..x1) {
+            for (cy in y0..y1) {
+                for (cz in z0..z1) {
+                    val bucket = cells[key(cx, cy, cz)] ?: continue
+                    for (i in 0 until bucket.size) {
+                        val entry = bucket[i]
+                        if (entry.stamp == current) continue
+                        entry.stamp = current
+                        if (!entry.overlaps(minX, minY, minZ, maxX, maxY, maxZ)) continue
+                        if (test.sweep(entry.item, sweepHit) && sweepHit.time < best) {
+                            best = sweepHit.time
+                            bestItem = entry.item
+                            hit.set(sweepHit)
+                        }
+                    }
+                }
+            }
+        }
+        return bestItem
+    }
+
     /** Invokes [action] on each item. */
     inline fun forEach(action: (T) -> Unit) {
         for (item in items) action(item)
@@ -401,6 +449,12 @@ class SpatialHash<T : Any>(val cellSize: Float, val cellSizeY: Float = cellSize)
     private fun key(x: Int, y: Int, z: Int): Int = (x * 73856093) xor (y * 19349663) xor (z * 83492791)
 
     /** Gets the exact distance along a ray to an item. */
+    /** Sweeps a shape against an item for [sweepcast]. */
+    fun interface SweepTest<T> {
+        /** @return `true` if the shape touches [item], with the contact in [hit] */
+        fun sweep(item: T, hit: SweepHit): Boolean
+    }
+
     fun interface RayTest<T> {
         /**
          * @param boxDistance the distance along [ray] to the item's bounds

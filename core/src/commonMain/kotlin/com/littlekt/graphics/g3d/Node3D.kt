@@ -6,6 +6,8 @@ import com.littlekt.math.*
 import com.littlekt.math.geom.Angle
 import com.littlekt.math.spatial.BoundingBox
 import com.littlekt.math.spatial.BoundingSphere
+import com.littlekt.math.spatial.Capsule
+import com.littlekt.math.spatial.SweepHit
 import com.littlekt.util.datastructure.fastForEach
 import com.littlekt.util.datastructure.fastForEachWithIndex
 import kotlin.reflect.KClass
@@ -629,6 +631,83 @@ open class Node3D {
     protected open fun intersectGeometry(ray: Ray): Float = Ray.NO_HIT
 
     /**
+     * Tests if the sphere at [center] overlaps this node. The world box around [bounds] is tested.
+     *
+     * @param precise `true` to test the triangles of each [MeshPrimitiveInstance] in this node and
+     *   its children instead of only the bounds. Skinned meshes are tested in their bind pose.
+     */
+    fun overlapsSphere(center: Vec3f, radius: Float, precise: Boolean = false): Boolean =
+        overlaps(shapeQuery.setSphere(center, radius), precise)
+
+    /**
+     * Tests if [capsule] overlaps this node. The world box around [bounds] is tested.
+     *
+     * @param precise `true` to test the triangles of each [MeshPrimitiveInstance] in this node and
+     *   its children instead of only the bounds. Skinned meshes are tested in their bind pose.
+     */
+    fun overlapsCapsule(capsule: Capsule, precise: Boolean = false): Boolean =
+        overlaps(shapeQuery.setCapsule(capsule), precise)
+
+    /**
+     * Moves the sphere at [center] by [delta] and finds where it first touches this node. The world
+     * box around [bounds] is tested.
+     *
+     * @param precise `true` to test the triangles of each [MeshPrimitiveInstance] in this node and
+     *   its children instead of only the bounds. Skinned meshes are tested in their bind pose.
+     * @return `true` if it touches, with the contact in [hit]
+     */
+    fun sweepSphere(
+        center: Vec3f,
+        radius: Float,
+        delta: Vec3f,
+        hit: SweepHit,
+        precise: Boolean = false,
+    ): Boolean = sweep(shapeQuery.setSphere(center, radius, delta), hit, precise)
+
+    /**
+     * Moves [capsule] by [delta] and finds where it first touches this node. The world box around
+     * [bounds] is tested.
+     *
+     * @param precise `true` to test the triangles of each [MeshPrimitiveInstance] in this node and
+     *   its children instead of only the bounds. Skinned meshes are tested in their bind pose.
+     * @return `true` if it touches, with the contact in [hit]
+     */
+    fun sweepCapsule(capsule: Capsule, delta: Vec3f, hit: SweepHit, precise: Boolean = false): Boolean =
+        sweep(shapeQuery.setCapsule(capsule, delta), hit, precise)
+
+    private fun overlaps(query: ShapeQuery, precise: Boolean): Boolean {
+        val box = globalBounds(tempBox)
+        if (box.isEmpty || !query.overlapsBox(box)) return false
+        if (!precise) return true
+        if (overlapGeometry(query)) return true
+        children.fastForEach { if (it.overlaps(query, true)) return true }
+        return false
+    }
+
+    private fun sweep(query: ShapeQuery, hit: SweepHit, precise: Boolean): Boolean {
+        hit.time = 2f
+        sweepInto(query, hit, precise)
+        return hit.time <= 1f
+    }
+
+    private fun sweepInto(query: ShapeQuery, best: SweepHit, precise: Boolean) {
+        val box = globalBounds(tempBox)
+        if (box.isEmpty || !query.sweepBox(box, tempHit) || tempHit.time >= best.time) return
+        if (!precise) {
+            best.set(tempHit)
+            return
+        }
+        sweepGeometry(query, best)
+        children.fastForEach { it.sweepInto(query, best, true) }
+    }
+
+    /** Tests [query] against this node's own geometry, not its children. */
+    internal open fun overlapGeometry(query: ShapeQuery): Boolean = false
+
+    /** Sweeps [query] against this node's own geometry, keeping the closest hit in [best]. */
+    internal open fun sweepGeometry(query: ShapeQuery, best: SweepHit) = Unit
+
+    /**
      * Update the nodes transforms, if dirty. This will also invoke the parents [updateTransform]
      * call, moving up the tree.
      */
@@ -1061,5 +1140,8 @@ open class Node3D {
         private val tempQuat = MutableQuaternion()
         private val tempVec3f = MutableVec3f()
         private val tempRay = Ray()
+        private val tempBox = BoundingBox()
+        private val tempHit = SweepHit()
+        private val shapeQuery = ShapeQuery()
     }
 }

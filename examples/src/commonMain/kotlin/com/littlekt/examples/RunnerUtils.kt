@@ -25,6 +25,7 @@ import com.littlekt.examples.g3d.GpuParticlesExample
 import com.littlekt.examples.g3d.PickingExample
 import com.littlekt.examples.g3d.PBRExample
 import com.littlekt.examples.g3d.ShadowsExample
+import com.littlekt.examples.g3d.CollisionExample
 import com.littlekt.examples.g3d.PostProcessingExample
 import com.littlekt.examples.g3d.SimpleGltfExample
 import com.littlekt.examples.g3d.SkinnedAnimationExample
@@ -115,6 +116,7 @@ val availableExamples: Map<String, Example> = examples {
         example("-shadows", "Shadows", ::ShadowsExample)
         example("-transparency", "Transparency", ::TransparencyExample)
         example("-picking", "Picking & Spatial Hash", ::PickingExample)
+        example("-collision", "Overlaps & Sweeps", ::CollisionExample)
         example("-billboards", "Billboards", ::BillboardsExample)
         example("-decals", "Decals & Soft Particles", ::DecalsExample)
         example("-gpuParticles", "GPU Particles", ::GpuParticlesExample)
