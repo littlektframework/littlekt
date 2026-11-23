@@ -9,6 +9,8 @@ import com.littlekt.graphics.webgpu.*
  * - `source` & `source_sampler`, the image so far, sampled with linear filtering & clamped edges
  * - `post.resolution` & `post.texel`, the size of `source` & the size of one pixel in uv
  * - `post.params[i]`, [paramCount] floats packed into `vec4f`s and set with [setParam]
+ * - `post_texture_0` up to `post_texture_<textureCount - 1>`, [textureCount] more textures set
+ *   with [setTexture] and sampled with `source_sampler`
  *
  * The result is encoded to sRGB when drawn into a target that isn't sRGB or float.
  *
@@ -25,6 +27,7 @@ import com.littlekt.graphics.webgpu.*
  * @param fragment the WGSL that defines `effect`
  * @param paramCount the number of floats in `post.params`
  * @param label the label of the GPU objects
+ * @param textureCount the number of extra textures the effect samples, such as a lookup table
  * @author Colton Daily
  * @date 11/21/2026
  */
@@ -33,11 +36,15 @@ open class ShaderPostEffect(
     fragment: String,
     val paramCount: Int = 0,
     val label: String = "post effect",
+    val textureCount: Int = 0,
 ) : PostEffect {
 
     init {
         require(paramCount >= 0) { "paramCount must not be negative!" }
+        require(textureCount >= 0) { "textureCount must not be negative!" }
     }
+
+    private val textures = arrayOfNulls<TextureView>(textureCount)
 
     override var enabled: Boolean = true
 
@@ -69,6 +76,7 @@ open class ShaderPostEffect(
             @group(0) @binding(0) var source: texture_2d<f32>;
             @group(0) @binding(1) var source_sampler: sampler;
             @group(0) @binding(2) var<uniform> post: PostUniforms;
+            ${(0 until textureCount).joinToString("\n") { "@group(0) @binding(${it + 3}) var post_texture_$it: texture_2d<f32>;" }}
 
             @vertex
             fn vs_main(@builtin(vertex_index) index: u32) -> VertexOutput {
@@ -107,7 +115,7 @@ open class ShaderPostEffect(
                     BindGroupLayoutEntry(0, ShaderStage.FRAGMENT, TextureBindingLayout()),
                     BindGroupLayoutEntry(1, ShaderStage.FRAGMENT, SamplerBindingLayout()),
                     BindGroupLayoutEntry(2, ShaderStage.FRAGMENT, BufferBindingLayout()),
-                ),
+                ) + List(textureCount) { BindGroupLayoutEntry(it + 3, ShaderStage.FRAGMENT, TextureBindingLayout()) },
                 label = "$label bind group layout",
             )
         )
@@ -136,6 +144,19 @@ open class ShaderPostEffect(
     private val bindGroups = arrayOfNulls<BindGroup>(BIND_GROUP_CACHE)
     private val bindGroupSources = arrayOfNulls<TextureView>(BIND_GROUP_CACHE)
     private var nextBindGroup = 0
+
+    /**
+     * Sets `post_texture_[index]` to [view], used from the next render. Every extra texture must be
+     * set before the effect renders.
+     */
+    fun setTexture(index: Int, view: TextureView) {
+        if (index < 0 || index >= textureCount) {
+            throw IndexOutOfBoundsException("Texture $index is out of range of $textureCount textures!")
+        }
+        if (textures[index] === view) return
+        textures[index] = view
+        clearBindGroups()
+    }
 
     /** @return the param at [index] of `post.params` */
     fun getParam(index: Int): Float {
@@ -221,27 +242,31 @@ open class ShaderPostEffect(
         nextBindGroup = (nextBindGroup + 1) % BIND_GROUP_CACHE
         bindGroups[slot]?.release()
         bindGroupSources[slot] = source
-        return device
-            .createBindGroup(
-                BindGroupDescriptor(
-                    bindGroupLayout,
-                    listOf(
-                        BindGroupEntry(0, source),
-                        BindGroupEntry(1, sampler),
-                        BindGroupEntry(2, uniformBinding),
-                    ),
-                    label = "$label bind group",
-                )
+        val entries =
+            mutableListOf(
+                BindGroupEntry(0, source),
+                BindGroupEntry(1, sampler),
+                BindGroupEntry(2, uniformBinding),
             )
+        for (i in 0 until textureCount) {
+            val view = textures[i] ?: throw IllegalStateException("$label needs post_texture_$i set with setTexture before it renders!")
+            entries += BindGroupEntry(i + 3, view)
+        }
+        return device
+            .createBindGroup(BindGroupDescriptor(bindGroupLayout, entries, label = "$label bind group"))
             .also { bindGroups[slot] = it }
     }
 
-    override fun release() {
+    private fun clearBindGroups() {
         for (i in 0 until BIND_GROUP_CACHE) {
             bindGroups[i]?.release()
             bindGroups[i] = null
             bindGroupSources[i] = null
         }
+    }
+
+    override fun release() {
+        clearBindGroups()
         pipeline?.release()
         pipeline = null
         uniformBuffer.release()

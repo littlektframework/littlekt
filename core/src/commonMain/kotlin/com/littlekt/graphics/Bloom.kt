@@ -97,8 +97,13 @@ class Bloom(
                 return output;
             }
 
+            fn finite(color: vec3f) -> vec3f {
+                let exponent = bitcast<vec3u>(color) & vec3u(0x7f800000u);
+                return select(color, vec3f(0.0), exponent == vec3u(0x7f800000u));
+            }
+
             fn sample(uv: vec2f, offset: vec2f) -> vec3f {
-                return textureSampleLevel(source, source_sampler, uv + offset, 0.0).rgb;
+                return finite(textureSampleLevel(source, source_sampler, uv + offset, 0.0).rgb);
             }
 
             fn luma(color: vec3f) -> f32 {

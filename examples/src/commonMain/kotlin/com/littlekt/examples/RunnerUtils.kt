@@ -22,6 +22,7 @@ import com.littlekt.examples.g3d.ModelInstancingExample
 import com.littlekt.examples.g3d.SkinnedInstancingExample
 import com.littlekt.examples.g3d.MultiPassExample
 import com.littlekt.examples.g3d.GpuParticlesExample
+import com.littlekt.examples.g3d.VfxParticlesExample
 import com.littlekt.examples.g3d.PickingExample
 import com.littlekt.examples.g3d.PBRExample
 import com.littlekt.examples.g3d.ShadowsExample
@@ -120,6 +121,7 @@ val availableExamples: Map<String, Example> = examples {
         example("-billboards", "Billboards", ::BillboardsExample)
         example("-decals", "Decals & Soft Particles", ::DecalsExample)
         example("-gpuParticles", "GPU Particles", ::GpuParticlesExample)
+        example("-vfxParticles", "Spell Effects", ::VfxParticlesExample)
         example("-spatialAudio", "Spatial Audio", ::SpatialAudioExample)
         example("-ibl", "IBL", ::IBLExample)
         example("-bloom", "Bloom", ::BloomExample)

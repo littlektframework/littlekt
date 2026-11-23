@@ -32,4 +32,28 @@ class ParticleEffectTests {
         assertEquals(20f, faster.rate)
         assertEquals(effect.lifetime, faster.lifetime)
     }
+
+    @Test
+    fun test_flipbook_defaults_to_every_frame() {
+        val sheet = Flipbook(columns = 4, rows = 2)
+        assertEquals(8, sheet.frames)
+        assertEquals(0f, sheet.fps)
+        assertEquals(true, sheet.blend)
+    }
+
+    @Test
+    fun test_flipbook_rejects_invalid_values() {
+        assertFailsWith<IllegalArgumentException> { Flipbook(columns = 0, rows = 2) }
+        assertFailsWith<IllegalArgumentException> { Flipbook(columns = 2, rows = 2, frames = 5) }
+        assertFailsWith<IllegalArgumentException> { Flipbook(columns = 2, rows = 2, frames = 0) }
+        assertFailsWith<IllegalArgumentException> { Flipbook(columns = 2, rows = 2, fps = -1f) }
+    }
+
+    @Test
+    fun test_flipbook_and_new_blends_fit_an_effect() {
+        val flames = ParticleEffect(flipbook = Flipbook(4, 4, loop = true), blend = ParticleBlend.ADDITIVE)
+        assertEquals(16, flames.flipbook?.frames)
+        assertEquals(ParticleBlend.DISTORT, ParticleEffect(blend = ParticleBlend.DISTORT).blend)
+        assertEquals(ParticleBlend.OPAQUE, ParticleEffect(blend = ParticleBlend.OPAQUE).blend)
+    }
 }

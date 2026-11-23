@@ -83,6 +83,9 @@ class ParticleEmitter(val renderer: ParticleRenderer, effect: ParticleEffect) :
     internal var textureBindGroup: BindGroup = renderer.createTextureBindGroup(effect.texture)
         private set
 
+    internal var meshBindGroup: BindGroup? = effect.mesh?.let { renderer.createMeshBindGroup(it) }
+        private set
+
     private val rotation2d = MutableQuaternion()
     private var effectDirty = true
     private var maxLifetime = effect.lifetime.endInclusive
@@ -126,6 +129,10 @@ class ParticleEmitter(val renderer: ParticleRenderer, effect: ParticleEffect) :
             if (value.texture !== old.texture) {
                 textureBindGroup.release()
                 textureBindGroup = renderer.createTextureBindGroup(value.texture)
+            }
+            if (value.mesh !== old.mesh) {
+                meshBindGroup?.release()
+                meshBindGroup = value.mesh?.let { renderer.createMeshBindGroup(it) }
             }
         }
 
@@ -326,6 +333,19 @@ class ParticleEmitter(val renderer: ParticleRenderer, effect: ParticleEffect) :
         params[75] = e.inheritVelocity
         params[76] = if (e.flat) 1f else 0f
         params[77] = max(0f, e.softness)
+        val sheet = e.flipbook
+        params[80] = sheet?.columns?.toFloat() ?: 1f
+        params[81] = sheet?.rows?.toFloat() ?: 1f
+        params[82] = sheet?.frames?.toFloat() ?: 1f
+        params[83] = sheet?.fps ?: 0f
+        params[84] = if (sheet?.loop == true) 1f else 0f
+        params[85] = if (sheet?.randomStart == true) 1f else 0f
+        params[86] = if (sheet?.blend == true) 1f else 0f
+        params[87] = 0f
+        params[88] = e.emissive
+        params[89] = e.shininess
+        params[90] = 0f
+        params[91] = 0f
     }
 
     private fun setShape(type: Float, x: Float, y: Float, z: Float, flag: Float) {
@@ -533,6 +553,7 @@ class ParticleEmitter(val renderer: ParticleRenderer, effect: ParticleEffect) :
         computeBindGroup.release()
         renderBindGroup.release()
         textureBindGroup.release()
+        meshBindGroup?.release()
         eventsBindGroup?.release()
         releaseSort()
         sortInfoBuffer?.release()
@@ -551,7 +572,7 @@ class ParticleEmitter(val renderer: ParticleRenderer, effect: ParticleEffect) :
     }
 
     internal companion object {
-        const val PARAMS_FLOATS = 80
+        const val PARAMS_FLOATS = 92
         const val PARTICLE_BYTES = 48L
         const val EVENT_BYTES = 32L
         const val SORT_INFO_FLOATS = 12

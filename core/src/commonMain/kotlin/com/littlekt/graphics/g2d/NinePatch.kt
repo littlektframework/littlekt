@@ -269,7 +269,7 @@ class NinePatch(
                     height = topHeightOffset,
                     color = color,
                     srcX = it.x.toFloat() + min(srcX, it.width.toFloat()),
-                    srcY = it.y.toFloat() + topYOffset,
+                    srcY = it.y.toFloat() + max(it.height.toFloat() - topYOffset - topHeightOffset, 0f),
                     srcWidth = leftWidthOffset,
                     srcHeight = topHeightOffset
                 )
@@ -285,7 +285,7 @@ class NinePatch(
                     height = topHeightOffset,
                     color = color,
                     srcX = it.x.toFloat(),
-                    srcY = it.y.toFloat() + topYOffset,
+                    srcY = it.y.toFloat() + max(it.height.toFloat() - topYOffset - topHeightOffset, 0f),
                     srcWidth = it.width.toFloat(),
                     srcHeight = topHeightOffset,
                     stretchW = patches[TOP_LEFT] != null || patches[TOP_RIGHT] != null,
@@ -302,7 +302,7 @@ class NinePatch(
                     height = topHeightOffset,
                     color = color,
                     srcX = it.x.toFloat() + rightXOffset,
-                    srcY = it.y.toFloat() + topYOffset,
+                    srcY = it.y.toFloat() + max(it.height.toFloat() - topYOffset - topHeightOffset, 0f),
                     srcWidth = rightWidthOffset,
                     srcHeight = topHeightOffset
                 )
@@ -372,7 +372,7 @@ class NinePatch(
                     height = bottomHeightOffset,
                     color = color,
                     srcX = it.x.toFloat() + min(srcX, it.width.toFloat()),
-                    srcY = it.y.toFloat() + min(srcY, it.height.toFloat()),
+                    srcY = it.y.toFloat() + max(it.height.toFloat() - min(srcY, it.height.toFloat()) - bottomHeightOffset, 0f),
                     srcWidth = leftWidthOffset,
                     srcHeight = bottomHeightOffset
                 )
@@ -388,7 +388,7 @@ class NinePatch(
                     height = bottomHeightOffset,
                     color = color,
                     srcX = it.x.toFloat(),
-                    srcY = it.y.toFloat() + min(srcY, it.height.toFloat()),
+                    srcY = it.y.toFloat() + max(it.height.toFloat() - min(srcY, it.height.toFloat()) - bottomHeightOffset, 0f),
                     srcWidth = it.width.toFloat(),
                     srcHeight = bottomHeightOffset,
                     stretchW = patches[BOTTOM_LEFT] != null || patches[BOTTOM_RIGHT] != null,
@@ -405,7 +405,7 @@ class NinePatch(
                     height = bottomHeightOffset,
                     color = color,
                     srcX = it.x.toFloat() + rightXOffset,
-                    srcY = it.y.toFloat() + min(srcY, it.height.toFloat()),
+                    srcY = it.y.toFloat() + max(it.height.toFloat() - min(srcY, it.height.toFloat()) - bottomHeightOffset, 0f),
                     srcWidth = rightWidthOffset,
                     srcHeight = bottomHeightOffset,
                 )
@@ -450,8 +450,8 @@ class NinePatch(
             }
             if (stretchH) {
                 val halfTexelHeight = 0.5f * 1f / slice.texture.height
-                v -= halfTexelHeight
-                v2 += halfTexelHeight
+                v += halfTexelHeight
+                v2 -= halfTexelHeight
             }
         }
 

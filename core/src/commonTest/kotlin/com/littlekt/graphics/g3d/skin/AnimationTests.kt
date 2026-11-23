@@ -174,4 +174,55 @@ class AnimationTests {
         assertFalse(a.isFinished)
         assertNear(0f, a.progress)
     }
+    @Test
+    fun test_copy_animates_mapped_nodes_independently() {
+        val node = Node3D()
+        val copyNode = Node3D()
+        val a = translationClip("a", node, Vec3f(0f, 0f, 0f), Vec3f(10f, 0f, 0f))
+        a.addEvent(0.5f, "step")
+        a.advance(0.25.seconds)
+        val copy = a.copy({ if (it === node) copyNode else it })
+        assertEquals("a", copy.name)
+        assertNear(0.25f, copy.progress)
+        assertEquals(1, copy.events.size)
+        copy.apply(0.25.seconds)
+        assertNear(5f, copyNode.position.x)
+        assertNear(0f, node.position.x)
+        a.sample(1f)
+        assertNear(10f, node.position.x)
+        assertNear(5f, copyNode.position.x)
+    }
+
+    @Test
+    fun test_copy_keeps_rest_pose_of_source() {
+        val node = Node3D().position(4f, 0f, 0f)
+        val anim = translationClip("a", node, Vec3f(4f, 0f, 0f), Vec3f(4f, 0f, 0f))
+        node.position(9f, 0f, 0f)
+        val copyNode = Node3D().position(9f, 0f, 0f)
+        val copy = anim.copy({ copyNode })
+        val model = model(copy)
+        model.setAnimationWeight(0, 0.5f)
+        model.updateAnimations(16.milliseconds)
+        assertNear(4f, copyNode.position.x)
+    }
+
+    @Test
+    fun test_model_copy_plays_its_own_animations() {
+        val model = Model()
+        val bone = Node3D().apply { name = "bone" }
+        model.addChild(bone)
+        model.animations += translationClip("walk", bone, Vec3f(0f, 0f, 0f), Vec3f(10f, 0f, 0f))
+        model.defaultFade = 50.milliseconds
+        val copy = model.copy()
+        val copyBone = copy.children[0]
+        assertEquals("bone", copyBone.name)
+        assertEquals(1, copy.animations.size)
+        assertEquals(50.milliseconds, copy.defaultFade)
+        copy.play("walk", fade = Duration.ZERO)
+        copy.updateAnimations(0.5.seconds)
+        assertNear(5f, copyBone.position.x)
+        assertNear(0f, bone.position.x)
+        assertSame(copy.animations[0], copy.currentAnimation)
+        assertEquals(null, model.currentAnimation)
+    }
 }

@@ -30,8 +30,8 @@ import com.littlekt.util.viewport.ExtendViewport
 
 /**
  * An example showing every built-in scene graph UI control: buttons, labels, text input, ranges,
- * scrolling, textures, panels, stacks, containers and a canvas layer with 2D nodes. Built with the
- * layout shortcuts and [Modifier]s.
+ * scrolling, textures, panels, stacks, tabs, containers and a canvas layer with 2D nodes. Built
+ * with the layout shortcuts and [Modifier]s.
  *
  * @author Colton Daily
  * @date 11/8/2026
@@ -93,7 +93,7 @@ class SceneGraphPlaygroundExample(context: Context) : ContextListener(context) {
                             buttons()
                             text()
                             ranges(bigIcon)
-                            textures(icon, icon.slice(), ninePatch.slice())
+                            textures(icon, icon.slice(), bigIcon.slice(), ninePatch.slice())
                         }
                     }
                 }
@@ -137,6 +137,19 @@ class SceneGraphPlaygroundExample(context: Context) : ContextListener(context) {
         label("Button group")
         buttonGroup(onSelected = { status.text = "Selected ${(it as Button).text}" }) {
             repeat(3) { button("Option ${it + 1}") { pressed = it == 0 } }
+        }
+        label("Tab container")
+        tabContainer(Modifier.weight()) {
+            column(modifier = Modifier.padding(4)) {
+                name = "Stats"
+                label("Strength 10")
+                label("Dexterity 14")
+            }
+            column(modifier = Modifier.padding(4)) {
+                name = "Skills"
+                label("Fireball")
+            }
+            onTabChanged += { status.text = "Tab: ${getTabTitle(it)}" }
         }
     }
 
@@ -187,6 +200,7 @@ class SceneGraphPlaygroundExample(context: Context) : ContextListener(context) {
     private fun HBoxContainer.textures(
         icon: Texture,
         iconSlice: TextureSlice,
+        bigIconSlice: TextureSlice,
         ninePatch: TextureSlice,
     ) =
         section("Textures") {
@@ -209,6 +223,11 @@ class SceneGraphPlaygroundExample(context: Context) : ContextListener(context) {
                     stretchMode = TextureRect.StretchMode.KEEP_CENTERED
                     flipX = true
                     flipY = true
+                }
+                textureRect(Modifier.minSize(16f, 16f).shrinkCenter()) {
+                    slice = bigIconSlice
+                    expandMode = TextureRect.ExpandMode.IGNORE_SIZE
+                    stretchMode = TextureRect.StretchMode.KEEP_ASPECT_CENTERED
                 }
             }
             label("Nine patch stack")

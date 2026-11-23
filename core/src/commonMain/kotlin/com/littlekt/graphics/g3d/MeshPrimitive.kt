@@ -13,7 +13,6 @@ import com.littlekt.graphics.webgpu.IndexFormat
 import com.littlekt.graphics.webgpu.PrimitiveTopology
 import com.littlekt.log.Logger
 import com.littlekt.util.datastructure.fastForEach
-import com.littlekt.util.datastructure.fastForEachWithIndex
 
 /**
  * A mesh primitive holds an instance of a [Mesh] and a [Material] with some rasterizing info such
@@ -51,13 +50,6 @@ open class MeshPrimitive(
     val instanceCount: Int
         get() = instances.size
 
-    /**
-     * The amount of instances that are visible in the frustum. This does not necessarily match
-     * [instanceCount] and can be `0`.
-     */
-    val visibleInstanceCount: Int
-        get() = visibleInstances.size
-
     /** The [BakedAnimations] this primitive was created by, if any. */
     var bakedAnimations: BakedAnimations? = null
         internal set
@@ -66,16 +58,13 @@ open class MeshPrimitive(
         get() = bakedAnimations?.palette ?: skin?.palette
 
     internal var queuedFlush = -1L
-    internal var queuedPipeline: MaterialPipeline? = null
-    internal var drawnFlush = -1L
-    internal var drawnPipeline: MaterialPipeline? = null
+    internal var queuedEntry: QueuedPrimitive? = null
 
     internal val pipelineCache = Array(PIPELINE_CACHE_SIZE) { PipelineCacheEntry() }
     internal var pipelineCacheNext = 0
 
     private val instances = mutableListOf<MeshPrimitiveInstance>()
     private var instanceData = FloatBuffer((instanceSize + 1) * TRANSFORM_COMPONENTS_PER_INSTANCE)
-    private val visibleInstances = mutableListOf<MeshPrimitiveInstance>()
     private val dirtyInstances = mutableListOf<MeshPrimitiveInstance>()
 
     init {
@@ -98,25 +87,6 @@ open class MeshPrimitive(
         dirtyInstances += instance
     }
 
-    /**
-     * Writes the data of each visible instance into [dst] starting at [dstOffset]. Any dirty
-     * instances are updated beforehand.
-     *
-     * @return the number of instances written.
-     */
-    fun writeVisibleInstanceData(dst: FloatBuffer, dstOffset: Int): Int {
-        updateDirtyInstances()
-        visibleInstances.fastForEachWithIndex { index, instance ->
-            dst.put(
-                instanceData,
-                dstOffset = dstOffset + index * TRANSFORM_COMPONENTS_PER_INSTANCE,
-                srcOffset = instance.instanceIndex * TRANSFORM_COMPONENTS_PER_INSTANCE,
-                len = TRANSFORM_COMPONENTS_PER_INSTANCE,
-            )
-        }
-        return visibleInstances.size
-    }
-
     internal fun updateDirtyInstances() {
         if (dirtyInstances.isEmpty()) return
         dirtyInstances.fastForEach { dirtyInstance ->
@@ -126,7 +96,7 @@ open class MeshPrimitive(
         dirtyInstances.clear()
     }
 
-    internal fun visibleInstance(index: Int): MeshPrimitiveInstance = visibleInstances[index]
+    internal fun instance(index: Int): MeshPrimitiveInstance = instances[index]
 
     internal fun writeInstanceData(instance: MeshPrimitiveInstance, dst: FloatBuffer, dstOffset: Int) {
         dst.put(
@@ -188,9 +158,6 @@ open class MeshPrimitive(
         if (instance.dirtyQueued) {
             dirtyInstances -= instance
         }
-        if (instance.visible) {
-            visibleInstances -= instance
-        }
         instance.reset()
     }
 
@@ -217,25 +184,6 @@ open class MeshPrimitive(
         instanceData.put(0f)
     }
 
-    /** Marks the [MeshPrimitiveInstance] as visible to be rendered in a model batch. */
-    fun markInstanceVisible(instance: MeshPrimitiveInstance) {
-        if (instance.instanceOf !== this) {
-            logger.warn {
-                "Attempting to mark an instance as visible when it hasn't been added yet! Ignoring..."
-            }
-            return
-        }
-        if (instance.visible) return
-        instance.visible = true
-        visibleInstances += instance
-    }
-
-    /** Removes all visible [MeshPrimitiveInstance]. */
-    fun resetVisibility() {
-        visibleInstances.fastForEach { it.visible = false }
-        visibleInstances.clear()
-    }
-
     /**
      * Clears all instance data. Any existing [MeshPrimitiveInstance] tied to this primitive will
      * need to be added back via [addInstance].
@@ -245,14 +193,12 @@ open class MeshPrimitive(
         instanceData.clear()
         instances.clear()
         dirtyInstances.clear()
-        visibleInstances.clear()
     }
 
     private fun MeshPrimitiveInstance.reset() {
         instanceOf = null
         instanceIndex = -1
         dirtyQueued = false
-        visible = false
     }
 
     override fun release() {
@@ -266,6 +212,23 @@ open class MeshPrimitive(
         /** The number of floats each instance uses. */
         const val INSTANCE_DATA_SIZE = TRANSFORM_COMPONENTS_PER_INSTANCE
         private val logger: Logger = Logger<MeshPrimitive>()
+    }
+}
+
+internal class QueuedPrimitive {
+    var primitive: MeshPrimitive? = null
+    var material: Material? = null
+    var environment: Environment? = null
+    var allInstances = false
+    var stamp = 0L
+    val instances = mutableListOf<MeshPrimitiveInstance>()
+
+    fun clear() {
+        primitive = null
+        material = null
+        environment = null
+        allInstances = false
+        instances.clear()
     }
 }
 

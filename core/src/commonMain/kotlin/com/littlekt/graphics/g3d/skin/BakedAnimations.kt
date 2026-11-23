@@ -55,7 +55,7 @@ class BakedAnimations(val device: Device, val model: Model, val fps: Float = 30f
         collectSkinnedInstances(model, sourceInstances)
         val sources = sourceInstances.mapNotNull { it.instanceOf }.distinct()
         require(sources.isNotEmpty()) { "BakedAnimations requires a model with skinned meshes!" }
-        val skins = sources.mapNotNull { it.skin }.distinct()
+        val skins = sources.mapNotNull { it.skin }.distinctBy { it.nodes }
 
         val clipList = mutableListOf<Clip>()
         var frames = 0
@@ -78,7 +78,10 @@ class BakedAnimations(val device: Device, val model: Model, val fps: Float = 30f
             skinBase[i] = matrices
             matrices += skin.nodes.size * totalFrames
         }
-        jointBase = IntArray(sources.size) { skinBase[skins.indexOf(sources[it].skin)] }
+        jointBase =
+            IntArray(sources.size) { index ->
+                skinBase[skins.indexOfFirst { it.nodes == sources[index].skin?.nodes }]
+            }
         jointCount = IntArray(sources.size) { sources[it].skin?.nodes?.size ?: 0 }
 
         val data = FloatBuffer(matrices * 16)

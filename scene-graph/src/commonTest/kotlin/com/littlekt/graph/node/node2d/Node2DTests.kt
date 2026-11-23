@@ -258,7 +258,7 @@ class Node2DTests {
     }
 
     @Test
-    fun test_visible_propagates_and_emits() {
+    fun test_visible_hides_tree_and_emits() {
         val parent = Node2D()
         val child = Node2D().addTo(parent)
         var hidden = 0
@@ -266,12 +266,36 @@ class Node2DTests {
         child.onInvisible += { hidden++ }
         child.onVisible += { shown++ }
         parent.visible = false
-        assertFalse(child.visible)
+        assertTrue(child.visible)
+        assertFalse(child.isVisibleInTree)
         parent.visible = false
         parent.visible = true
-        assertTrue(child.visible)
+        assertTrue(child.isVisibleInTree)
         assertEquals(1, hidden)
         assertEquals(1, shown)
+    }
+
+    @Test
+    fun test_showing_parent_keeps_hidden_children_hidden() {
+        val parent = Node2D()
+        val hiddenChild = Node2D().addTo(parent).apply { visible = false }
+        val grandchild = Node2D().addTo(Node().addTo(parent))
+        val hiddenGrandchild = Node2D().addTo(hiddenChild)
+        var events = 0
+        hiddenChild.onVisible += { events++ }
+        hiddenChild.onInvisible += { events++ }
+        hiddenGrandchild.onVisible += { events++ }
+        parent.visible = false
+        assertFalse(grandchild.isVisibleInTree)
+        parent.visible = true
+        assertFalse(hiddenChild.visible)
+        assertFalse(hiddenGrandchild.isVisibleInTree)
+        assertTrue(hiddenGrandchild.visible)
+        assertTrue(grandchild.isVisibleInTree)
+        assertEquals(0, events)
+        hiddenChild.visible = true
+        assertTrue(hiddenGrandchild.isVisibleInTree)
+        assertEquals(2, events)
     }
 
     @Test

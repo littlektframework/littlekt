@@ -16,6 +16,7 @@ import com.littlekt.graphics.webgpu.VertexStepMode
 import com.littlekt.log.Logger
 import com.littlekt.math.Mat4
 import com.littlekt.math.Quaternion
+import com.littlekt.math.Vec3f
 import com.littlekt.util.align
 import com.littlekt.util.datastructure.internal.threadSafeMutableListOf
 import com.littlekt.util.datastructure.internal.threadSafeMutableMapOf
@@ -53,8 +54,10 @@ private class GltfModelGenerator(val gltfFile: GltfData) {
     // gltf mesh index to primitives
     val meshPrimitivesCache = threadSafeMutableMapOf<Int, List<MeshPrimitive>>()
 
-    // gltf skin index to Skin
-    val skinCache = threadSafeMutableMapOf<Int, Skin>()
+    val unsharedMeshes = threadSafeMutableMapOf<Int, Boolean>()
+
+    val skinnedMeshes = threadSafeMutableListOf<SkinnedMesh>()
+    val skins = threadSafeMutableListOf<Skin>()
 
     // gltf node index that needs to be the parent of the given node3d. This is for skinning when
     // the skeleton root index is not 0.
@@ -71,6 +74,7 @@ private class GltfModelGenerator(val gltfFile: GltfData) {
             scene += node.toNode(config, device, preferredFormat, scene, scene)
         }
         applySkins()
+        createSkins(device)
         createMorphAnimations()
         createAnimations()
         modelAnimations
@@ -83,12 +87,8 @@ private class GltfModelGenerator(val gltfFile: GltfData) {
         scene.disableAllAnimations()
 
         meshesByMaterial.values.forEach { meshes -> meshes.forEach { scene.own(it) } }
-        materialCache.values.forEach { material ->
-            scene.own(material)
-            val baseColorTexture = material.baseColorTexture
-            if (baseColorTexture is EmptyTexture) scene.own(baseColorTexture)
-        }
-        skinCache.values.forEach { scene.own(it) }
+        materialCache.values.forEach { scene.own(it) }
+        skins.forEach { scene.own(it) }
         gltfFile.textures.forEach { texture -> texture.loadedTexture?.let { scene.own(it) } }
 
         return scene
@@ -104,22 +104,28 @@ private class GltfModelGenerator(val gltfFile: GltfData) {
         val nodeName = name ?: "node_${parent.childCount}"
         val meshRef = meshRef
         val skinRef = skinRef
-        val skin =
-            if (skinRef != null) {
-                skinCache.getOrPut(skin) { createSkin(device, skinRef) }
-            } else {
-                null
-            }
         val model =
             if (meshRef != null) {
-                meshPrimitivesCache.getOrPut(mesh) {
-                    createMeshPrimitives(config, device, preferredFormat, meshRef, skin)
-                }
+                val shared = meshPrimitivesCache[mesh]
+                val primitives =
+                    when {
+                        shared == null ->
+                            createMeshPrimitives(config, device, preferredFormat, meshRef).also {
+                                meshPrimitivesCache[mesh] = it
+                            }
+                        skinRef != null || unsharedMeshes[mesh] == true ->
+                            shared.map {
+                                MeshPrimitive(it.mesh, it.material, it.topology, it.stripIndexFormat)
+                            }
+                        else -> shared
+                    }
+                if (skinRef != null) unsharedMeshes[mesh] = true
+                primitives
             } else {
                 null
             }
         val node = (if (model != null) MeshNode(model) else Node3D()).apply { name = nodeName }
-        if (skin != null && model != null) skin.root = node
+        if (skinRef != null && model != null) skinnedMeshes += SkinnedMesh(skin, skinRef, node, model)
 
         if (skinRef != null && skinRef.skeleton > 0) {
             // skeleton root node isn't the base. So we must mark this node to be moved to the
@@ -153,7 +159,6 @@ private class GltfModelGenerator(val gltfFile: GltfData) {
         device: Device,
         preferredFormat: TextureFormat,
         meshRef: GltfMesh,
-        skin: Skin?,
     ): List<MeshPrimitive> {
         val primitives =
             meshRef.primitives.mapIndexed { index, prim ->
@@ -189,7 +194,7 @@ private class GltfModelGenerator(val gltfFile: GltfData) {
                         null
                     }
                 val meshPrimitive =
-                    MeshPrimitive(mesh, material, prim.mode.toTopology(), indexFormat, skin)
+                    MeshPrimitive(mesh, material, prim.mode.toTopology(), indexFormat)
 
                 meshPrimitive
             }
@@ -306,12 +311,40 @@ private class GltfModelGenerator(val gltfFile: GltfData) {
         return geometry
     }
 
-    private fun createSkin(device: Device, skin: GltfSkin): Skin {
+    private fun createSkins(device: Device) {
+        val joints = mutableMapOf<Int, List<Skin.SkinNode>>()
+        val groups = skinnedMeshes.groupBy { it.skin }
+        groups.forEach { (index, meshes) ->
+            val nodes = joints.getOrPut(index) { createSkinNodes(meshes[0].gltfSkin) }
+            val parent = meshes[0].node.parent
+            val shareRoot =
+                parent != null && meshes.all { it.node.parent === parent && it.node.isAtRest() }
+            if (shareRoot) {
+                val skin = Skin(device, nodes, parent)
+                skins += skin
+                meshes.forEach { mesh -> mesh.primitives.forEach { it.skin = skin } }
+            } else {
+                meshes.forEach { mesh ->
+                    val skin = Skin(device, nodes, mesh.node)
+                    skins += skin
+                    mesh.primitives.forEach { it.skin = skin }
+                }
+            }
+        }
+    }
+
+    private fun Node3D.isAtRest(): Boolean =
+        position.isFuzzyEqual(Vec3f.ZERO) &&
+            rotation.isFuzzyEqual(Quaternion.IDENTITY) &&
+            scale.isFuzzyEqual(Vec3f.ONES)
+
+    private fun createSkinNodes(skin: GltfSkin): List<Skin.SkinNode> {
         val nodes = mutableListOf<Skin.SkinNode>()
         val invBinMats = skin.inverseBindMatrixAccessorRef?.let { GltfMat4Accessor(it) }
         val skinNodes = mutableMapOf<GltfNode, Skin.SkinNode>()
         skin.jointRefs.forEach { joint ->
-            val jointNode = nodeCache[joint]!!
+            val jointNode =
+                nodeCache[joint] ?: error("Unable to find the glTF joint node '${joint.name}' of a skin.")
             val invBindMat = invBinMats?.next() ?: Mat4()
             val skinNode = Skin.SkinNode(jointNode, invBindMat)
             nodes += skinNode
@@ -328,7 +361,7 @@ private class GltfModelGenerator(val gltfFile: GltfData) {
             }
         }
 
-        return Skin(device, nodes)
+        return nodes
     }
 
     private fun applySkins() {
@@ -645,6 +678,13 @@ private class GltfModelGenerator(val gltfFile: GltfData) {
             weightChannel.keys[t] = weightKey
         }
     }
+
+    class SkinnedMesh(
+        val skin: Int,
+        val gltfSkin: GltfSkin,
+        val node: Node3D,
+        val primitives: List<MeshPrimitive>,
+    )
 
     companion object {
         private val logger = Logger<GltfModelGenerator>()

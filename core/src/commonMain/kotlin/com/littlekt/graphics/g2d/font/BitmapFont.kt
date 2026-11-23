@@ -108,6 +108,8 @@ class BitmapFont(
      * @param targetWidth the width of the area the text will be drawn, for wrapping or truncation
      * @param align the horizontal alignment of the text, see [HAlign]
      * @param wrap if true, the text will be wrapped within the [targetWidth]
+     * @param scaleX the x-scale of the text
+     * @param scaleY the y-scale of the text
      * @see [FontCache.setText]
      * @see [FontCache.draw]
      */
@@ -121,8 +123,10 @@ class BitmapFont(
         targetWidth: Float = 0f,
         align: HAlign = HAlign.LEFT,
         wrap: Boolean = false,
+        scaleX: Float = 1f,
+        scaleY: Float = 1f,
     ) {
-        cache.setText(text, x, y, 1f, 1f, rotation, color, targetWidth, align, wrap)
+        cache.setText(text, x, y, scaleX, scaleY, rotation, color, targetWidth, align, wrap)
         cache.draw(batch)
     }
 

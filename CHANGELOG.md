@@ -2,6 +2,61 @@
 
 ## 0.13.0 (SNAPSHOT)
 
+### Breaking
+
+- BREAKING: `MeshPrimitive.visibleInstanceCount`, `markInstanceVisible`, `resetVisibility` & `writeVisibleInstanceData` are removed, and `forEachMeshPrimitive` no longer marks instances visible.
+    - Migration: render nodes with `ModelBatch.render(node, ...)` and hide them with `Node3D.visible`.
+- BREAKING: `ModelBatch.render(meshPrimitive, ...)` draws every instance of the primitive.
+    - Migration: render the instance nodes instead to draw only some of them.
+- BREAKING: Transparent PBR & Unlit materials use straight alpha blending.
+    - Migration: stop premultiplying `baseColorFactor`.
+- BREAKING: `GltfLoaderPbrConfig` falls back to a `PBRMaterial`.
+    - Migration: `GltfLoaderConfig(modelConfig, PBRMaterialStrategy(), UnlitMaterialFallbackStrategy())` for the old Unlit fallback.
+- BREAKING: `Node3D.destroy()` also removes the node from its parent.
+- BREAKING: glTF skinned meshes get their own `MeshPrimitive`, and `Skin.root` is the shared parent or the mesh node.
+    - Migration: look up skins per mesh node instead of one per glTF skin.
+- BREAKING: `CanvasItem.visible = false` no longer sets its children's `visible` to false.
+    - Migration: read `isVisibleInTree` for the effective visibility.
+- BREAKING: `TextureProgress` draws its textures at the control's size, and `TOP_TO_BOTTOM` & `BOTTOM_TO_TOP` fill the named direction.
+    - Migration: swap the vertical mode if you worked around it.
+
+### Changes
+
+- Add `Node3D.visible` to hide nodes & single mesh primitive instances without detaching them.
+- Add `Model.copy()` with its own skins & independently playable animations.
+- Add `Animation.copy()` & `Skin.copy(root, joint)`.
+- Add `PBRMaterialFallbackStrategy` & use it in `GltfLoaderPbrConfig`.
+- Fix `Node3D.destroy()` never returning for a node with children.
+- Fix `Node3D.copy()` applying the transform of nested children twice.
+- Fix material overrides drawing every instance of an instanced primitive.
+- Fix instances rendered by other nodes or batches being drawn with any node of the same primitive.
+- Fix glTF skins failing to load when a skinned mesh is listed before its joints.
+- Fix meshes sharing a glTF skin breaking when one of them is detached.
+- Fix glTF materials without a base color texture creating a zero sized texture.
+- Fix transparent PBR & Unlit materials blending as premultiplied alpha.
+- Fix right & middle mouse buttons being swapped on JS & Wasm.
+- Fix web textures being fetched & decoded twice.
+- Add `TabContainer` with the `tabContainer {}` builder.
+- Add `CanvasItem.isVisibleInTree` & `Control.outermost`.
+- Add `TextureRect.expandMode` & `TextureProgress.expandMode` to ignore the texture size for the minimum size.
+- Add `scaleX` & `scaleY` to `BitmapFont.draw`.
+- Add `uiInputSignals` & `focusNavigation` to `sceneGraph(context)`, plus `SceneGraph.focusNavigation` & `SceneGraph.UiInputSignals.Default`.
+- Fix showing a node bringing back its hidden children.
+- Fix anchoring a control wrapped by `Modifier.padding()` or `background()` leaving the wrapper at the top left.
+- Fix `Node.context` throwing for nodes in a scene graph before `initialize()`.
+- Fix focus neighbors picking hidden controls & hidden `CanvasLayerContainer`s taking hits.
+- Fix `TextureProgress` vertical fill modes filling the wrong way and sliding instead of cropping.
+- Fix `TextureProgress` nine patch swapping its top & bottom rows & skipping the foreground without a progress texture.
+- Fix `NinePatch` sampling the wrong rows when cropped vertically & bleeding on vertical stretch.
+- Fix `TextureRect` `KEEP_ASPECT_COVERED` ignoring the slice position.
+- Fix `InputEvent.localY` docs: `0` is the bottom edge.
+- Add `Flipbook` to play particle textures as a grid of frames.
+- Add mesh particles with `ParticleEffect.mesh`, `ParticleMesh` shapes & `ParticleRenderer.light`.
+- Add `ParticleBlend.OPAQUE` & `ParticleBlend.DISTORT`.
+- Add `DistortionEffect` for heat haze & shockwaves.
+- Add extra textures to `ShaderPostEffect` with `textureCount` & `setTexture`.
+- Fix `Bloom` spreading NaN & infinite pixels into a black square.
+
 ## 0.12.0
 
 ### Breaking

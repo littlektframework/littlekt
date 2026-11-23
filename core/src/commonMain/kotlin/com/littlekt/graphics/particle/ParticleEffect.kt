@@ -56,6 +56,13 @@ import com.littlekt.math.geom.degrees
  *   geometry, or `0` for hard edges. Needs the depth texture passed to [ParticleRenderer.render].
  * @property flat `true` to keep particles on the emitter's XY plane, such as for 2D. Directions,
  *   shapes & gravity ignore `z`, and [EmitterShape.Sphere] & [EmitterShape.Circle] spawn on a disc.
+ * @property flipbook plays [texture] as a grid of frames over each particle's life, such as for
+ *   flames & smoke, or `null` to use the whole texture
+ * @property mesh draws each particle as a lit 3D [ParticleMesh], such as for shards & rocks, or
+ *   `null` for flat quads. Lit by [ParticleRenderer.light].
+ * @property emissive how much of a [mesh] particle's color glows no matter the light, from `0` to
+ *   `1`, such as for molten rock
+ * @property shininess the size of the highlight on [mesh] particles. Higher is smaller & sharper.
  * @author Colton Daily
  * @date 11/14/2026
  */
@@ -84,8 +91,13 @@ data class ParticleEffect(
     val flat: Boolean = false,
     val softness: Float = 0f,
     val sorted: Boolean = false,
+    val flipbook: Flipbook? = null,
+    val mesh: ParticleMesh? = null,
+    val emissive: Float = 0f,
+    val shininess: Float = 24f,
 ) {
     init {
+        require(mesh == null || blend != ParticleBlend.DISTORT) { "mesh particles can't use ParticleBlend.DISTORT!" }
         require(maxParticles > 0) { "maxParticles must be greater than 0!" }
         require(rate >= 0f) { "rate can't be negative!" }
         require(lifetime.start > 0f) { "lifetime must be greater than 0!" }
@@ -96,6 +108,40 @@ data class ParticleEffect(
     companion object {
         /** The most [sizes] & [colors] keys. */
         const val MAX_KEYS = 4
+    }
+}
+
+/**
+ * A grid of frames in a particle texture, read left to right & top to bottom. With an [fps] of `0`
+ * the frames play once over each particle's life.
+ *
+ * ```
+ * val flames = ParticleEffect(texture = flameSheet, flipbook = Flipbook(columns = 4, rows = 4))
+ * ```
+ *
+ * @property columns the number of frames across the texture
+ * @property rows the number of frames down the texture
+ * @property frames the number of frames used, up to `columns * rows`
+ * @property fps the frames played per second, or `0` to play them over each particle's life
+ * @property loop `true` to start over after the last frame instead of holding it
+ * @property randomStart `true` to start each particle on a random frame
+ * @property blend `true` to fade between frames for smoother motion
+ * @author Colton Daily
+ * @date 11/23/2026
+ */
+data class Flipbook(
+    val columns: Int,
+    val rows: Int,
+    val frames: Int = columns * rows,
+    val fps: Float = 0f,
+    val loop: Boolean = false,
+    val randomStart: Boolean = false,
+    val blend: Boolean = true,
+) {
+    init {
+        require(columns > 0 && rows > 0) { "columns & rows must be greater than 0!" }
+        require(frames in 1..columns * rows) { "frames must be from 1 to columns * rows!" }
+        require(fps >= 0f) { "fps can't be negative!" }
     }
 }
 
@@ -138,13 +184,19 @@ sealed class EmitterShape {
  * @date 11/14/2026
  */
 enum class ParticleAlignment {
-    /** Always faces the camera. */
+    /** Always faces the camera. [ParticleEffect.mesh] particles tumble around a random axis instead. */
     BILLBOARD,
 
-    /** Stretches along its velocity while facing the camera, such as for sparks & rain. */
+    /**
+     * Stretches along its velocity while facing the camera, such as for sparks & rain.
+     * [ParticleEffect.mesh] particles point their `y` axis along it.
+     */
     VELOCITY,
 
-    /** Lies flat on the world XZ plane, such as for ground rings & ripples. */
+    /**
+     * Lies flat on the world XZ plane, such as for ground rings & ripples. [ParticleEffect.mesh]
+     * particles stay upright and turn around the `y` axis.
+     */
     HORIZONTAL,
 }
 
@@ -163,4 +215,17 @@ enum class ParticleBlend {
 
     /** Adds light, such as for fire, sparks & magic. Order doesn't matter. */
     ADDITIVE,
+
+    /**
+     * Solid, writing depth, with texels under half alpha cut out. Best for [ParticleEffect.mesh]
+     * particles such as shards & rocks. Draw them in a pass whose depth can be written.
+     */
+    OPAQUE,
+
+    /**
+     * Bends what is behind the particle, such as for heat haze & shockwaves. The texture is a
+     * distortion map: `rg` is the direction to push, `0.5` being none, and `a` how strongly. Draw
+     * these in a [com.littlekt.graphics.postprocess.DistortionEffect] pass.
+     */
+    DISTORT,
 }

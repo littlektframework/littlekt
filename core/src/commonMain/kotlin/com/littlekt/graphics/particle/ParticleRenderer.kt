@@ -22,7 +22,9 @@ import kotlin.math.sqrt
  * scene graph `GpuParticles2D` node. Set [depthFormat] to `null` when the pass has no depth target.
  *
  * Particles are tested against the depth buffer without writing to it, so draw them after opaque
- * geometry.
+ * geometry. [ParticleBlend.OPAQUE] particles write depth. [ParticleEffect.mesh] particles are drawn
+ * as lit 3D shapes, shaded with [light]. [ParticleBlend.DISTORT] particles are drawn into a
+ * [com.littlekt.graphics.postprocess.DistortionEffect] pass instead of the scene.
  *
  * ```
  * renderFrame { frame, commandEncoder ->
@@ -44,6 +46,12 @@ class ParticleRenderer(val device: Device) : Releasable {
 
     /** The format of the depth target, or `null` if the render pass has none. */
     var depthFormat: TextureFormat? = TextureFormat.DEPTH24_PLUS_STENCIL8
+
+    /** The format of the target [ParticleBlend.DISTORT] particles are drawn to. */
+    var distortionFormat: TextureFormat = TextureFormat.RGBA16_FLOAT
+
+    /** The light [ParticleEffect.mesh] particles are shaded with. */
+    val light: ParticleLight = ParticleLight()
 
     /** The number of samples of the render pass targets, `1` or `4`. */
     var sampleCount: Int = 1
@@ -202,12 +210,47 @@ class ParticleRenderer(val device: Device) : Releasable {
             )
         )
 
+    private val meshLayout =
+        device.createBindGroupLayout(
+            BindGroupLayoutDescriptor(
+                listOf(
+                    BindGroupLayoutEntry(
+                        0,
+                        ShaderStage.VERTEX,
+                        BufferBindingLayout(BufferBindingType.READ_ONLY_STORAGE),
+                    ),
+                    BindGroupLayoutEntry(1, ShaderStage.FRAGMENT, BufferBindingLayout()),
+                ),
+                "ParticleRenderer mesh layout",
+            )
+        )
+
+    private val lightData = FloatBuffer(LIGHT_FLOATS)
+    private val lightBuffer =
+        device.createBuffer(
+            BufferDescriptor(
+                "ParticleRenderer light",
+                LIGHT_FLOATS * Float.SIZE_BYTES.toLong(),
+                BufferUsage.UNIFORM or BufferUsage.COPY_DST,
+                false,
+            )
+        )
+    private var lightFrame = -1L
+
     private val depthLayout = createDepthLayout(multisampled = false)
     private val msaaDepthLayout = createDepthLayout(multisampled = true)
 
     private val computeShader = device.createShaderModule(COMPUTE_WGSL)
     private val sortShader = device.createShaderModule(SORT_WGSL)
     private val renderShader = device.createShaderModule(RENDER_WGSL)
+    private val meshShader = device.createShaderModule(RENDER_MESH_WGSL)
+    private val meshPipelineLayout =
+        device.createPipelineLayout(
+            PipelineLayoutDescriptor(
+                listOf(cameraLayout, emitterLayout, textureLayout, meshLayout),
+                "ParticleRenderer mesh pipeline",
+            )
+        )
     private val msaaSoftShader =
         device.createShaderModule(
             RENDER_WGSL.replace("texture_depth_2d", "texture_depth_multisampled_2d")
@@ -421,7 +464,8 @@ class ParticleRenderer(val device: Device) : Releasable {
      *
      * @param depth the depth texture of the opaque geometry, attached to the pass with
      *   [EmptyTexture.readOnlyDepthAttachment], so particles with a [ParticleEffect.softness] fade
-     *   where they meet it. `null` draws every particle hard.
+     *   where they meet it. `null` draws every particle hard. [ParticleBlend.DISTORT] particles use
+     *   it to hide behind geometry, without it being attached.
      */
     fun render(
         renderPassEncoder: RenderPassEncoder,
@@ -431,10 +475,23 @@ class ParticleRenderer(val device: Device) : Releasable {
     ) {
         val count = emitter.activeCount
         if (count == 0) return
-        val soft = depth != null && emitter.effect.softness > 0f
+        val effect = emitter.effect
+        val mesh = effect.mesh
+        if (mesh != null) {
+            writeLight()
+            val offset = cameraOffset(camera, depth?.width ?: 0, depth?.height ?: 0)
+            renderPassEncoder.setPipeline(pipeline(effect.blend, soft = false, msaaDepth = false, mesh = true))
+            renderPassEncoder.setBindGroup(0, cameraBindGroup, offset)
+            renderPassEncoder.setBindGroup(1, emitter.renderBindGroup)
+            renderPassEncoder.setBindGroup(2, emitter.textureBindGroup)
+            renderPassEncoder.setBindGroup(3, emitter.meshBindGroup!!)
+            renderPassEncoder.draw(mesh.vertexCount, count)
+            return
+        }
+        val soft = depth != null && effect.blend != ParticleBlend.OPAQUE && (effect.softness > 0f || effect.blend == ParticleBlend.DISTORT)
         val msaaDepth = soft && depth != null && depth.textureDescriptor.sampleCount > 1
         val offset = cameraOffset(camera, depth?.width ?: 0, depth?.height ?: 0)
-        renderPassEncoder.setPipeline(pipeline(emitter.effect.blend, soft, msaaDepth))
+        renderPassEncoder.setPipeline(pipeline(effect.blend, soft, msaaDepth, mesh = false))
         renderPassEncoder.setBindGroup(0, cameraBindGroup, offset)
         renderPassEncoder.setBindGroup(1, emitter.renderBindGroup)
         renderPassEncoder.setBindGroup(2, emitter.textureBindGroup)
@@ -466,6 +523,39 @@ class ParticleRenderer(val device: Device) : Releasable {
                 )
             )
             .also { depthBindGroup = it }
+    }
+
+    internal fun createMeshBindGroup(mesh: ParticleMesh): BindGroup =
+        device.createBindGroup(
+            BindGroupDescriptor(
+                meshLayout,
+                listOf(
+                    BindGroupEntry(0, BufferBinding(mesh.buffer)),
+                    BindGroupEntry(1, BufferBinding(lightBuffer)),
+                ),
+                label = "ParticleRenderer mesh bind group",
+            )
+        )
+
+    private fun writeLight() {
+        val frame = EngineStats.frame.value
+        if (frame == lightFrame) return
+        lightFrame = frame
+        val d = light.direction
+        val length = sqrt(d.x * d.x + d.y * d.y + d.z * d.z).let { if (it > 0f) it else 1f }
+        lightData[0] = d.x / length
+        lightData[1] = d.y / length
+        lightData[2] = d.z / length
+        lightData[3] = 0f
+        lightData[4] = light.color.r
+        lightData[5] = light.color.g
+        lightData[6] = light.color.b
+        lightData[7] = 1f
+        lightData[8] = light.ambient.r
+        lightData[9] = light.ambient.g
+        lightData[10] = light.ambient.b
+        lightData[11] = 1f
+        device.queue.writeBuffer(lightBuffer, lightData)
     }
 
     internal fun createTextureBindGroup(texture: Texture?): BindGroup {
@@ -539,41 +629,62 @@ class ParticleRenderer(val device: Device) : Releasable {
         cameraData[offset + 3] = 0f
     }
 
-    private fun pipeline(blend: ParticleBlend, soft: Boolean, msaaDepth: Boolean): RenderPipeline {
-        val depth = depthFormat
+    private fun pipeline(blend: ParticleBlend, soft: Boolean, msaaDepth: Boolean, mesh: Boolean): RenderPipeline {
+        val distort = blend == ParticleBlend.DISTORT
+        val depth = if (distort) null else depthFormat
+        val format = if (distort) distortionFormat else colorFormat
+        val samples = if (distort) 1 else sampleCount
         for (i in pipelines.indices) {
             val entry = pipelines[i]
             if (
                 entry.blend == blend &&
                 entry.soft == soft &&
                 entry.msaaDepth == msaaDepth &&
-                entry.colorFormat == colorFormat &&
+                entry.mesh == mesh &&
+                entry.colorFormat == format &&
                 entry.depthFormat == depth &&
-                entry.sampleCount == sampleCount
+                entry.sampleCount == samples
             ) {
                 return entry.pipeline
             }
         }
+        val shader =
+            when {
+                mesh -> meshShader
+                msaaDepth -> msaaSoftShader
+                else -> renderShader
+            }
+        val fragmentEntry =
+            when {
+                mesh -> if (blend == ParticleBlend.OPAQUE) "fs_mesh_opaque" else "fs_mesh"
+                distort -> if (soft) "fs_distort_soft" else "fs_distort"
+                blend == ParticleBlend.OPAQUE -> "fs_opaque"
+                soft -> "fs_soft"
+                else -> "fs_main"
+            }
         val pipeline =
             device.createRenderPipeline(
                 RenderPipelineDescriptor(
                     layout =
                         when {
+                            mesh -> meshPipelineLayout
                             msaaDepth -> softMsaaPipelineLayout
                             soft -> softPipelineLayout
                             else -> renderPipelineLayout
                         },
-                    vertex = VertexState(if (msaaDepth) msaaSoftShader else renderShader, "vs_main"),
+                    vertex = VertexState(shader, if (mesh) "vs_mesh" else "vs_main"),
                     fragment =
                         FragmentState(
-                            if (msaaDepth) msaaSoftShader else renderShader,
-                            if (soft) "fs_soft" else "fs_main",
+                            shader,
+                            fragmentEntry,
                             listOf(
                                 ColorTargetState(
-                                    colorFormat,
+                                    format,
                                     when (blend) {
                                         ParticleBlend.ALPHA -> BlendState.NonPreMultiplied
                                         ParticleBlend.ADDITIVE -> BlendState.Add
+                                        ParticleBlend.OPAQUE -> null
+                                        ParticleBlend.DISTORT -> BlendState.Add
                                     },
                                 )
                             ),
@@ -582,15 +693,15 @@ class ParticleRenderer(val device: Device) : Releasable {
                         depth?.let {
                             DepthStencilState(
                                 format = it,
-                                depthWriteEnabled = false,
+                                depthWriteEnabled = blend == ParticleBlend.OPAQUE,
                                 depthCompare = CompareFunction.LESS_EQUAL,
                             )
                         },
-                    multisample = MultisampleState(count = sampleCount),
-                    label = "ParticleRenderer $blend pipeline",
+                    multisample = MultisampleState(count = samples),
+                    label = "ParticleRenderer $blend${if (mesh) " mesh" else ""} pipeline",
                 )
             )
-        pipelines += PipelineEntry(blend, soft, msaaDepth, colorFormat, depth, sampleCount, pipeline)
+        pipelines += PipelineEntry(blend, soft, msaaDepth, mesh, format, depth, samples, pipeline)
         return pipeline
     }
 
@@ -690,6 +801,10 @@ class ParticleRenderer(val device: Device) : Releasable {
         depthLayout.release()
         computeShader.release()
         renderShader.release()
+        meshShader.release()
+        meshPipelineLayout.release()
+        meshLayout.release()
+        lightBuffer.release()
         computeLayout.release()
         emitterLayout.release()
         cameraLayout.release()
@@ -717,6 +832,7 @@ class ParticleRenderer(val device: Device) : Releasable {
         val blend: ParticleBlend,
         val soft: Boolean,
         val msaaDepth: Boolean,
+        val mesh: Boolean,
         val colorFormat: TextureFormat,
         val depthFormat: TextureFormat?,
         val sampleCount: Int,
@@ -725,6 +841,7 @@ class ParticleRenderer(val device: Device) : Releasable {
 
     internal companion object {
         const val CAMERA_FLOATS = 48
+        const val LIGHT_FLOATS = 12
         const val WORKGROUP_SIZE = 64
         const val MAX_SORT_LOG2 = 24
 
@@ -768,6 +885,9 @@ struct Params {
     colors: array<vec4f, 4>,
     extra: vec4f,
     plane: vec4f,
+    sheet: vec4f,
+    sheet_flags: vec4f,
+    mesh: vec4f,
 };
 
 struct Particle {
@@ -1072,9 +1192,8 @@ fn sort_step(@builtin(global_invocation_id) id: vec3u) {
 }
 """
 
-        const val RENDER_WGSL =
-            PARAMS_WGSL +
-                    """
+        const val VIEW_WGSL =
+            """
 struct Camera {
     view_proj: mat4x4f,
     right: vec4f,
@@ -1090,13 +1209,6 @@ struct Camera {
 @group(1) @binding(2) var<storage, read> order: array<u32>;
 @group(2) @binding(0) var particle_texture: texture_2d<f32>;
 @group(2) @binding(1) var particle_sampler: sampler;
-@group(3) @binding(0) var scene_depth: texture_depth_2d;
-
-struct VertexOutput {
-    @builtin(position) position: vec4f,
-    @location(0) color: vec4f,
-    @location(1) uv: vec2f,
-};
 
 fn key_index(t: f32, count: f32) -> vec2f {
     let scaled = clamp(t, 0.0, 1.0) * max(count - 1.0, 0.0);
@@ -1124,14 +1236,44 @@ fn color_at(t: f32) -> vec4f {
     return mix(params.colors[u32(key.x)], params.colors[u32(key.x) + 1u], clamp(key.y, 0.0, 1.0));
 }
 
+fn is_dead(p: Particle) -> bool {
+    return p.position.w >= p.velocity.w;
+}
+"""
+
+        const val RENDER_WGSL =
+            PARAMS_WGSL +
+                VIEW_WGSL +
+                    """
+@group(3) @binding(0) var scene_depth: texture_depth_2d;
+
+struct VertexOutput {
+    @builtin(position) position: vec4f,
+    @location(0) color: vec4f,
+    @location(1) uv: vec2f,
+    @location(2) uv2: vec2f,
+    @location(3) frame_blend: f32,
+    @location(4) rotation: vec2f,
+};
+
+fn frame_uv(local: vec2f, frame: f32) -> vec2f {
+    let columns = params.sheet.x;
+    let row = floor(frame / columns);
+    let column = frame - row * columns;
+    return vec2f((column + local.x) / columns, (row + local.y) / params.sheet.y);
+}
+
 @vertex
 fn vs_main(@builtin(vertex_index) vertex: u32, @builtin(instance_index) instance: u32) -> VertexOutput {
     var output: VertexOutput;
     let p = particles[order[instance]];
-    if (p.position.w >= p.velocity.w) {
+    if (is_dead(p)) {
         output.position = vec4f(0.0, 0.0, 2.0, 1.0);
         output.color = vec4f(0.0);
         output.uv = vec2f(0.0);
+        output.uv2 = vec2f(0.0);
+        output.frame_blend = 0.0;
+        output.rotation = vec2f(1.0, 0.0);
         return output;
     }
     var corners = array<vec2f, 6>(
@@ -1154,9 +1296,10 @@ fn vs_main(@builtin(vertex_index) vertex: u32, @builtin(instance_index) instance
     switch (u32(params.flags.y)) {
         case 1u: {
             let speed = length(velocity);
-            let axis = select(camera.up.xyz, velocity / speed, speed > 0.0001);
+            let axis = select(camera.up.xyz, velocity / max(speed, 0.0001), speed > 0.0001);
             var side = cross(axis, camera.back.xyz);
-            side = select(camera.right.xyz, normalize(side), length(side) > 0.0001);
+            let side_length = length(side);
+            side = select(camera.right.xyz, side / max(side_length, 0.0001), side_length > 0.0001);
             offset = side * (corner.x * size) + axis * (corner.y * size * (1.0 + speed * params.extra.y));
         }
         case 2u: {
@@ -1168,17 +1311,39 @@ fn vs_main(@builtin(vertex_index) vertex: u32, @builtin(instance_index) instance
     }
     output.position = camera.view_proj * vec4f(center + offset, 1.0);
     output.color = color_at(t);
-    output.uv = vec2f(corner.x + 0.5, 0.5 - corner.y);
+    output.rotation = vec2f(c, s);
+    let local_uv = vec2f(corner.x + 0.5, 0.5 - corner.y);
+    output.uv = local_uv;
+    output.uv2 = local_uv;
+    output.frame_blend = 0.0;
+    let frames = params.sheet.z;
+    if (frames > 1.5) {
+        var frame = select(t * frames, p.position.w * params.sheet.w, params.sheet.w > 0.0);
+        if (params.sheet_flags.y > 0.5) {
+            frame += floor(p.misc.w * frames);
+        }
+        var first: f32;
+        var second: f32;
+        if (params.sheet_flags.x > 0.5) {
+            frame = frame - floor(frame / frames) * frames;
+            first = floor(frame);
+            second = select(first + 1.0, 0.0, first + 1.0 >= frames);
+        } else {
+            frame = min(frame, frames - 1.0);
+            first = floor(frame);
+            second = min(first + 1.0, frames - 1.0);
+        }
+        output.uv = frame_uv(local_uv, first);
+        output.uv2 = frame_uv(local_uv, second);
+        output.frame_blend = select(0.0, frame - first, params.sheet_flags.z > 0.5);
+    }
     return output;
 }
 
-@fragment
-fn fs_main(input: VertexOutput) -> @location(0) vec4f {
-    let color = textureSample(particle_texture, particle_sampler, input.uv) * input.color;
-    if (color.a <= 0.002) {
-        discard;
-    }
-    return color;
+fn sample_particle(input: VertexOutput) -> vec4f {
+    let a = textureSample(particle_texture, particle_sampler, input.uv);
+    let b = textureSample(particle_texture, particle_sampler, input.uv2);
+    return mix(a, b, input.frame_blend) * input.color;
 }
 
 fn view_depth(position: vec2f, depth: f32) -> f32 {
@@ -1192,16 +1357,191 @@ fn view_depth(position: vec2f, depth: f32) -> f32 {
     return view.z / view.w;
 }
 
+fn soft_fade(position: vec4f, softness: f32) -> f32 {
+    let scene = textureLoad(scene_depth, vec2i(position.xy), 0);
+    let gap = view_depth(position.xy, position.z) - view_depth(position.xy, scene);
+    return clamp(gap / softness, 0.0, 1.0);
+}
+
 @fragment
-fn fs_soft(input: VertexOutput) -> @location(0) vec4f {
-    var color = textureSample(particle_texture, particle_sampler, input.uv) * input.color;
-    let scene = textureLoad(scene_depth, vec2i(input.position.xy), 0);
-    let gap = view_depth(input.position.xy, input.position.z) - view_depth(input.position.xy, scene);
-    color.a *= clamp(gap / params.plane.y, 0.0, 1.0);
+fn fs_main(input: VertexOutput) -> @location(0) vec4f {
+    let color = sample_particle(input);
     if (color.a <= 0.002) {
         discard;
     }
     return color;
+}
+
+@fragment
+fn fs_soft(input: VertexOutput) -> @location(0) vec4f {
+    var color = sample_particle(input);
+    color.a *= soft_fade(input.position, params.plane.y);
+    if (color.a <= 0.002) {
+        discard;
+    }
+    return color;
+}
+
+@fragment
+fn fs_opaque(input: VertexOutput) -> @location(0) vec4f {
+    let color = sample_particle(input);
+    if (color.a < 0.5) {
+        discard;
+    }
+    return vec4f(color.rgb, 1.0);
+}
+
+fn distortion(input: VertexOutput, fade: f32) -> vec4f {
+    let a = textureSample(particle_texture, particle_sampler, input.uv);
+    let b = textureSample(particle_texture, particle_sampler, input.uv2);
+    let map = mix(a, b, input.frame_blend);
+    let push = map.rg * 2.0 - 1.0;
+    let up = vec2f(push.x, -push.y);
+    let turned = vec2f(
+        up.x * input.rotation.x - up.y * input.rotation.y,
+        up.x * input.rotation.y + up.y * input.rotation.x
+    );
+    let amount = map.a * input.color.a * fade;
+    return vec4f(turned.x * amount, -turned.y * amount, 0.0, amount);
+}
+
+@fragment
+fn fs_distort(input: VertexOutput) -> @location(0) vec4f {
+    return distortion(input, 1.0);
+}
+
+@fragment
+fn fs_distort_soft(input: VertexOutput) -> @location(0) vec4f {
+    return distortion(input, soft_fade(input.position, max(params.plane.y, 0.05)));
+}
+"""
+
+        const val RENDER_MESH_WGSL =
+            PARAMS_WGSL +
+                VIEW_WGSL +
+                    """
+struct MeshVertex {
+    position: vec4f,
+    normal: vec4f,
+    uv: vec4f,
+};
+
+struct Light {
+    direction: vec4f,
+    color: vec4f,
+    ambient: vec4f,
+};
+
+@group(3) @binding(0) var<storage, read> vertices: array<MeshVertex>;
+@group(3) @binding(1) var<uniform> light: Light;
+
+struct MeshOutput {
+    @builtin(position) position: vec4f,
+    @location(0) color: vec4f,
+    @location(1) uv: vec2f,
+    @location(2) normal: vec3f,
+};
+
+fn turn(v: vec3f, axis: vec3f, angle: f32) -> vec3f {
+    let c = cos(angle);
+    let s = sin(angle);
+    return v * c + cross(axis, v) * s + axis * dot(axis, v) * (1.0 - c);
+}
+
+@vertex
+fn vs_mesh(@builtin(vertex_index) vertex: u32, @builtin(instance_index) instance: u32) -> MeshOutput {
+    var output: MeshOutput;
+    let p = particles[order[instance]];
+    if (is_dead(p)) {
+        output.position = vec4f(0.0, 0.0, 2.0, 1.0);
+        output.color = vec4f(0.0);
+        output.uv = vec2f(0.0);
+        output.normal = vec3f(0.0, 1.0, 0.0);
+        return output;
+    }
+    let mesh_vertex = vertices[vertex];
+    let t = p.position.w / p.velocity.w;
+    let size = p.misc.x * size_at(t);
+    var center = p.position.xyz;
+    var velocity = p.velocity.xyz;
+    if (params.flags.x > 0.5) {
+        center = (params.transform * vec4f(center, 1.0)).xyz;
+        velocity = (params.transform * vec4f(velocity, 0.0)).xyz;
+    }
+    var local = mesh_vertex.position.xyz * size;
+    var normal = mesh_vertex.normal.xyz;
+    let y_axis = vec3f(0.0, 1.0, 0.0);
+    switch (u32(params.flags.y)) {
+        case 1u: {
+            let speed = length(velocity);
+            let axis = select(y_axis, velocity / max(speed, 0.0001), speed > 0.0001);
+            local.y *= 1.0 + speed * params.extra.y;
+            local = turn(local, y_axis, p.misc.y);
+            normal = turn(normal, y_axis, p.misc.y);
+            let hinge = cross(y_axis, axis);
+            let hinge_length = length(hinge);
+            if (hinge_length > 0.0001) {
+                let angle = atan2(hinge_length, axis.y);
+                local = turn(local, hinge / hinge_length, angle);
+                normal = turn(normal, hinge / hinge_length, angle);
+            } else if (axis.y < 0.0) {
+                local = vec3f(local.x, -local.y, -local.z);
+                normal = vec3f(normal.x, -normal.y, -normal.z);
+            }
+        }
+        case 2u: {
+            local = turn(local, y_axis, p.misc.y);
+            normal = turn(normal, y_axis, p.misc.y);
+        }
+        default: {
+            let z = fract(p.misc.w * 7.31) * 2.0 - 1.0;
+            let around = p.misc.w * 6.2831853;
+            let r = sqrt(max(0.0, 1.0 - z * z));
+            let axis = vec3f(r * cos(around), z, r * sin(around));
+            local = turn(local, axis, p.misc.y);
+            normal = turn(normal, axis, p.misc.y);
+        }
+    }
+    if (params.flags.x > 0.5) {
+        local = (params.transform * vec4f(local, 0.0)).xyz;
+        normal = (params.transform * vec4f(normal, 0.0)).xyz;
+    }
+    output.position = camera.view_proj * vec4f(center + local, 1.0);
+    output.color = color_at(t);
+    output.uv = mesh_vertex.uv.xy;
+    output.normal = normal;
+    return output;
+}
+
+fn shade(input: MeshOutput) -> vec4f {
+    let albedo = textureSample(particle_texture, particle_sampler, input.uv) * input.color;
+    let n = normalize(input.normal);
+    let l = -light.direction.xyz;
+    let v = camera.back.xyz;
+    let diffuse = max(dot(n, l), 0.0);
+    let h = normalize(l + v);
+    let specular = pow(max(dot(n, h), 0.0), max(params.mesh.y, 1.0)) * step(0.0001, diffuse);
+    let rim = pow(1.0 - max(dot(n, v), 0.0), 3.0) * 0.25;
+    let lit = albedo.rgb * (light.ambient.rgb + light.color.rgb * diffuse) + light.color.rgb * specular * 0.5 + albedo.rgb * rim;
+    return vec4f(mix(lit, albedo.rgb, clamp(params.mesh.x, 0.0, 1.0)), albedo.a);
+}
+
+@fragment
+fn fs_mesh(input: MeshOutput) -> @location(0) vec4f {
+    let color = shade(input);
+    if (color.a <= 0.002) {
+        discard;
+    }
+    return color;
+}
+
+@fragment
+fn fs_mesh_opaque(input: MeshOutput) -> @location(0) vec4f {
+    let color = shade(input);
+    if (color.a < 0.5) {
+        discard;
+    }
+    return vec4f(color.rgb, 1.0);
 }
 """
     }

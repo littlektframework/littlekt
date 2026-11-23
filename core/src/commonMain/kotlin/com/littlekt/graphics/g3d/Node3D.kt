@@ -58,6 +58,12 @@ open class Node3D {
 
     open var frustumCulled: Boolean = false
 
+    /**
+     * If `false`, this node and its children aren't rendered, such as by
+     * [com.littlekt.graphics.g3d.ModelBatch], while staying in the tree and still being updated.
+     */
+    var visible: Boolean = true
+
     /** The current child count for this [Node3D]. Alias for [children.size]. */
     val childCount: Int
         get() = children.size
@@ -442,8 +448,12 @@ open class Node3D {
         children.fastForEach { it.forEachMeshPrimitive(action) }
     }
 
-    /** Iterate over any [MeshPrimitive] descendants using a [Camera] for frustum culling. */
+    /**
+     * Iterate over any [MeshPrimitive] descendants using a [Camera] for frustum culling. Nodes that
+     * aren't [visible] are skipped.
+     */
     open fun forEachMeshPrimitive(camera: Camera, action: (MeshPrimitive) -> Unit) {
+        if (!visible) return
         if (frustumCulled) {
             val inFrustum =
                 camera.sphereInFrustum(globalBoundsSphere.center, globalBoundsSphere.radius)
@@ -453,6 +463,25 @@ open class Node3D {
         } else {
             children.fastForEach { it.forEachMeshPrimitive(camera, action) }
         }
+    }
+
+    /**
+     * Iterates each [MeshPrimitiveInstance] that is rendered: [visible], and in the frustum of
+     * [camera] when [frustumCulled] and [camera] isn't `null`.
+     */
+    internal open fun forEachRenderedInstance(
+        camera: Camera?,
+        action: (MeshPrimitiveInstance) -> Unit,
+    ) {
+        if (!visible) return
+        if (
+            camera != null &&
+                frustumCulled &&
+                !camera.sphereInFrustum(globalBoundsSphere.center, globalBoundsSphere.radius)
+        ) {
+            return
+        }
+        children.fastForEach { it.forEachRenderedInstance(camera, action) }
     }
 
     /** Set the color for this node and any descendants. */
@@ -1054,15 +1083,16 @@ open class Node3D {
     }
 
     /**
-     * Destroy this node and all of its children. Once destroyed, this node should no longer be
-     * used.
+     * Destroy this node and all of its children, removing it from its parent. Once destroyed, this
+     * node should no longer be used.
      */
     fun destroy() {
         _isDestroyed = true
-        while (children.isNotEmpty()) {
-            children[0].destroy()
+        while (_children.isNotEmpty()) {
+            _children[_children.lastIndex].destroy()
         }
         onDestroy()
+        _parent?.removeChild(this)
     }
 
     /** Called when [destroy] is invoked and all of its children have been destroyed. */
@@ -1102,18 +1132,28 @@ open class Node3D {
     }
 
     /**
-     * Create a new instance of this node, copying over the name and [globalTransform], along with a
-     * copy of each of its children.
+     * Create a new instance of this node, copying over the name, [visible] and [globalTransform],
+     * along with a copy of each of its children that keeps their local [transform].
      */
     open fun copy(): Node3D {
         val copy =
             Node3D().also {
                 it.name = name
                 it.frustumCulled = frustumCulled
+                it.visible = visible
                 it.globalTransform = globalTransform
             }
-        children.fastForEach { child -> copy.addChild(child.copy()) }
+        copyChildrenTo(copy)
         return copy
+    }
+
+    /** Adds a [copy] of each child to [copy], keeping the local transform of each child. */
+    protected fun copyChildrenTo(copy: Node3D) {
+        children.fastForEach { child ->
+            val childCopy = child.copy()
+            copy.addChild(childCopy)
+            childCopy.position(child.position).rotation(child.rotation).scaling(child.scale)
+        }
     }
 
     /** Filter all descendants, into a flatten list, by type. Excludes the current node. */

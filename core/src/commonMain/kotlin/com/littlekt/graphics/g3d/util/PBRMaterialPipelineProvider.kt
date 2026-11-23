@@ -63,7 +63,7 @@ class PBRMaterialPipelineProvider : BaseMaterialPipelineProvider<PBRMaterial>() 
                                 ColorTargetState(
                                     format = colorFormat,
                                     blendState =
-                                        if (material.transparent) BlendState.Alpha
+                                        if (material.transparent) BlendState.NonPreMultiplied
                                         else BlendState.Opaque,
                                     writeMask = ColorWriteMask.ALL,
                                 ),

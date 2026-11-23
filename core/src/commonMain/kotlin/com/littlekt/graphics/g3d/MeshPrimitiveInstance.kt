@@ -30,7 +30,7 @@ open class MeshPrimitiveInstance : Node3D() {
 
     internal var instanceIndex = -1
     internal var dirtyQueued = false
-    internal var visible = false
+    internal var queuedStamp = 0L
 
     internal var boundsOverride: BoundingBox? = null
 
@@ -193,28 +193,29 @@ open class MeshPrimitiveInstance : Node3D() {
     }
 
     override fun forEachMeshPrimitive(action: (MeshPrimitive) -> Unit) {
-        instanceOf?.markInstanceVisible(this)
         instanceOf?.let(action)
         children.fastForEach { it.forEachMeshPrimitive(action) }
     }
 
     override fun forEachMeshPrimitive(camera: Camera, action: (MeshPrimitive) -> Unit) {
-        if (frustumCulled) {
-            val instanceOf = instanceOf
-            if (instanceOf != null) {
-                val inFrustum =
-                    camera.sphereInFrustum(globalBoundsSphere.center, globalBoundsSphere.radius)
-                if (inFrustum) {
-                    instanceOf.markInstanceVisible(this)
-                    action(instanceOf)
-                }
-            }
-        } else {
-            instanceOf?.markInstanceVisible(this)
-            instanceOf?.let(action)
-        }
+        if (!visible) return
+        val instanceOf = instanceOf
+        if (instanceOf != null && isInFrustum(camera)) action(instanceOf)
         children.fastForEach { it.forEachMeshPrimitive(camera, action) }
     }
+
+    override fun forEachRenderedInstance(
+        camera: Camera?,
+        action: (MeshPrimitiveInstance) -> Unit,
+    ) {
+        if (!visible) return
+        if (instanceOf != null && (camera == null || isInFrustum(camera))) action(this)
+        children.fastForEach { it.forEachRenderedInstance(camera, action) }
+    }
+
+    private fun isInFrustum(camera: Camera): Boolean =
+        !frustumCulled ||
+            camera.sphereInFrustum(globalBoundsSphere.center, globalBoundsSphere.radius)
 
     /**
      * Copying a [MeshPrimitiveInstance] will reuse the underlying primitive, if applicable. In
@@ -227,10 +228,13 @@ open class MeshPrimitiveInstance : Node3D() {
             MeshPrimitiveInstance().also {
                 it.name = name
                 it.frustumCulled = frustumCulled
+                it.visible = visible
+                it.color = color
+                it.boundsOverride = boundsOverride
                 it.globalTransform = globalTransform
                 instanceOf?.let { instance -> it.addTo(instance) }
             }
-        children.fastForEach { child -> copy.addChild(child.copy()) }
+        copyChildrenTo(copy)
         return copy
     }
 

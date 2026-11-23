@@ -232,4 +232,10 @@ internal val Int.getPointer: Pointer
         }
 
 internal val Short.getPointer: Pointer
-    get() = this.toInt().getPointer
+    get() =
+        when (this.toInt()) {
+            0 -> Pointer.MOUSE_LEFT
+            1 -> Pointer.MOUSE_MIDDLE
+            2 -> Pointer.MOUSE_RIGHT
+            else -> Pointer.MOUSE_LEFT
+        }

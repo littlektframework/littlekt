@@ -98,17 +98,40 @@ open class Node : Comparable<Node> {
     private var readyNotified = false
     private var readyFirst = true
 
-    /** The [Context] this node belongs to. Throws an error if context does not exist. */
+    /**
+     * The [Context] of the [SceneGraph] this node belongs to. It is found once the node is in a
+     * [SceneGraph], even before [SceneGraph.initialize]. Throws an error if the node is not in one.
+     *
+     * Inside a scene graph builder lambda, `context` resolves to the node's [context], and a node
+     * isn't added to its parent until its lambda returns. Keep the outer [Context] in a `val` or
+     * use `this@MyClass.context` to read it in a lambda.
+     *
+     * @see contextOrNull
+     */
     val context: Context
         get() =
-            scene?.context
+            contextOrNull
                 ?: error(
-                    "This Node could not get a context. Check to see if it is added to a Scene and if that Scene is the active scene!"
+                    "$name is not in a SceneGraph, so it has no Context. A builder lambda runs before its node is added to the parent, so use the outer Context there, e.g. this@MyClass.context."
                 )
 
-    /** The [Context] this node belongs to, or null, if it doesn't exist. */
+    /** The [Context] of the [SceneGraph] this node belongs to, or `null` if it is not in one. */
     val contextOrNull: Context?
-        get() = scene?.context
+        get() {
+            scene?.let {
+                return it.context
+            }
+            var node: Node? = this
+            while (node != null) {
+                node.owner?.let {
+                    return it.context
+                }
+                node = node.parent
+            }
+            return null
+        }
+
+    internal var owner: SceneGraph<*>? = null
 
     /** The current [RenderPassEncoder] of the [canvas]. */
     val canvasRenderPass: RenderPassEncoder

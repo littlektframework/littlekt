@@ -11,6 +11,8 @@ import kotlin.math.abs
 import com.littlekt.math.spatial.Capsule
 import com.littlekt.math.spatial.SweepHit
 import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertNull
 import kotlin.test.assertFalse
 import kotlin.time.Duration
 import kotlin.test.assertTrue
@@ -153,5 +155,81 @@ class Node3DTests {
         assertTrue(parent.overlapsCapsule(capsule))
         assertFalse(parent.overlapsCapsule(capsule, precise = true))
         assertFalse(parent.sweepCapsule(capsule, Vec3f(0f, 1f, 0f), SweepHit(), precise = true))
+    }
+    @Test
+    fun test_destroy_detaches_children_and_returns() {
+        val root = Node3D()
+        val parent = Node3D()
+        val child = Node3D()
+        val grandChild = Node3D()
+        root.addChild(parent)
+        parent.addChild(child)
+        child.addChild(grandChild)
+        parent.addChild(Node3D())
+        parent.destroy()
+        assertTrue(parent.isDestroyed)
+        assertTrue(child.isDestroyed)
+        assertTrue(grandChild.isDestroyed)
+        assertEquals(0, parent.childCount)
+        assertEquals(0, child.childCount)
+        assertNull(child.parent)
+        assertNull(parent.parent)
+        assertEquals(0, root.childCount)
+    }
+
+    @Test
+    fun test_copy_keeps_local_transform_of_children() {
+        val parent = Node3D().position(1f, 0f, 0f)
+        val child = Node3D().position(2f, 0f, 0f)
+        val grandChild = Node3D().position(0f, 3f, 0f)
+        parent.addChild(child)
+        child.addChild(grandChild)
+        val copy = parent.copy()
+        val childCopy = copy.children[0]
+        val grandChildCopy = childCopy.children[0]
+        assertNear(child.position, childCopy.position)
+        assertNear(child.globalPosition, childCopy.globalPosition)
+        assertNear(grandChild.globalPosition, grandChildCopy.globalPosition)
+    }
+
+    @Test
+    fun test_copy_keeps_visible() {
+        val parent = Node3D()
+        val child = Node3D().apply { visible = false }
+        parent.addChild(child)
+        val copy = parent.copy()
+        assertTrue(copy.visible)
+        assertFalse(copy.children[0].visible)
+    }
+
+    private class RenderProbe : Node3D() {
+        var visits = 0
+
+        override fun forEachRenderedInstance(
+            camera: com.littlekt.graphics.Camera?,
+            action: (MeshPrimitiveInstance) -> Unit,
+        ) {
+            if (!visible) return
+            visits++
+            super.forEachRenderedInstance(camera, action)
+        }
+    }
+
+    @Test
+    fun test_hidden_node_skips_rendering_its_children() {
+        val root = Node3D()
+        val parent = Node3D()
+        val probe = RenderProbe()
+        root.addChild(parent)
+        parent.addChild(probe)
+        root.forEachRenderedInstance(null) {}
+        assertEquals(1, probe.visits)
+        parent.visible = false
+        root.forEachRenderedInstance(null) {}
+        assertEquals(1, probe.visits)
+        assertEquals(parent, probe.parent)
+        parent.visible = true
+        root.forEachRenderedInstance(null) {}
+        assertEquals(2, probe.visits)
     }
 }

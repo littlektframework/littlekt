@@ -97,6 +97,17 @@ open class Control : CanvasItem() {
     private var lastAnchorLayout: AnchorLayout = NONE
     private var anchorMargin = 0f
 
+    /**
+     * The outermost [Control] of the [Modifier.Wrapper]s, such as [Modifier.padding] or
+     * [Modifier.background], around this control. This control if it isn't wrapped. [anchor]
+     * places this [Control].
+     */
+    val outermost: Control
+        get() = modifierWrapper ?: this
+
+    internal var modifierWrapper: Control? = null
+    internal var modifierWrapped: Control? = null
+
     private var _anchorLeft = 0f
     private var _anchorRight = 0f
     private var _anchorBottom = 0f
@@ -629,6 +640,7 @@ open class Control : CanvasItem() {
 
     override fun onParentChanged() {
         super.onParentChanged()
+        modifierWrapper = null
         _onThemeChanged()
     }
 
@@ -700,12 +712,18 @@ open class Control : CanvasItem() {
     }
 
     /**
-     * Anchor this node using an [AnchorLayout] preset.
+     * Anchor this node using an [AnchorLayout] preset. If this control is wrapped by a
+     * [Modifier.Wrapper], the [outermost] wrapper is anchored instead.
      *
      * @param layout the anchor layout preset
      * @param margin the distance to keep from the anchored edges of the parent
      */
     fun anchor(layout: AnchorLayout, margin: Float = 0f) {
+        val wrapper = modifierWrapper
+        if (wrapper != null) {
+            wrapper.anchor(layout, margin)
+            return
+        }
         lastAnchorLayout = layout
         anchorMargin = margin
         computeAnchorMarginLayout(layout)
@@ -766,6 +784,40 @@ open class Control : CanvasItem() {
         position(tx, ty)
         size(tWidth, tHeight)
     }
+
+    internal fun moveAnchorsTo(target: Control) {
+        if (!hasAnchors) return
+        if (!target.hasAnchors) copyAnchorsTo(target)
+        lastAnchorLayout = NONE
+        anchorMargin = 0f
+        _anchorLeft = 0f
+        _anchorRight = 0f
+        _anchorTop = 0f
+        _anchorBottom = 0f
+    }
+
+    private fun copyAnchorsTo(target: Control) {
+        if (lastAnchorLayout != NONE) {
+            target.anchor(lastAnchorLayout, anchorMargin)
+        } else {
+            target._anchorLeft = _anchorLeft
+            target._anchorRight = _anchorRight
+            target._anchorTop = _anchorTop
+            target._anchorBottom = _anchorBottom
+            target._marginLeft = _marginLeft
+            target._marginRight = _marginRight
+            target._marginTop = _marginTop
+            target._marginBottom = _marginBottom
+        }
+    }
+
+    private val hasAnchors: Boolean
+        get() =
+            lastAnchorLayout != NONE ||
+                _anchorLeft != 0f ||
+                _anchorRight != 0f ||
+                _anchorTop != 0f ||
+                _anchorBottom != 0f
 
     private fun getParentAnchorableRect(): Rect {
         if (!insideTree) {
@@ -1128,7 +1180,7 @@ open class Control : CanvasItem() {
         while (true) {
             // if focusNext set manually, attempt to sue it first.
             focusNext?.let {
-                if (it.enabled && it.visible && it.focusMode != FocusMode.NONE) {
+                if (it.enabled && it.isVisibleInTree && it.focusMode != FocusMode.NONE) {
                     return it
                 }
             }
@@ -1184,7 +1236,7 @@ open class Control : CanvasItem() {
         var from: Control = this
         while (true) {
             focusPrev?.let {
-                if (it.enabled && it.visible && it.focusMode != FocusMode.NONE) return it
+                if (it.enabled && it.isVisibleInTree && it.focusMode != FocusMode.NONE) return it
             }
 
             var prevChild: Control? = null
@@ -1238,7 +1290,7 @@ open class Control : CanvasItem() {
         if (count >= MAX_NEIGHBOR_SEARCH_COUNT) return null
 
         side.focusNeighbor?.let {
-            if (it.enabled && it.focusMode != FocusMode.NONE) {
+            if (it.enabled && it.isVisibleInTree && it.focusMode != FocusMode.NONE) {
                 return it
             }
             return it.getFocusNeighbor(side, count + 1)
@@ -1287,8 +1339,9 @@ open class Control : CanvasItem() {
         out: Array<Control?>,
     ) {
         val c = at as? Control
+        if (c != null && (!c.visible || !c.enabled)) return
 
-        if (c != null && c != this && c.focusMode == FocusMode.ALL && c.enabled) {
+        if (c != null && c != this && c.focusMode == FocusMode.ALL) {
             points[0].set(c.globalX, c.globalY)
             points[1].set(c.globalX + c.width, c.globalY)
             points[2].set(c.globalX + c.width, c.globalY + c.height)

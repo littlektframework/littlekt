@@ -64,8 +64,8 @@ class InputEvent<InputSignal> : Event() {
     var localX: Float = 0f
 
     /**
-     * The y-coord of the current node in its local coordinates. (i.e a value of `0` will be the top
-     * edge)
+     * The y-coord of the current node in its local coordinates. The scene graph is y-up, so a value
+     * of `0` will be the bottom edge and the node's height will be the top edge.
      */
     var localY: Float = 0f
 

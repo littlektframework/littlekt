@@ -1,7 +1,6 @@
 package com.littlekt.file.gltf
 
 import com.littlekt.graphics.Color
-import com.littlekt.graphics.EmptyTexture
 import com.littlekt.graphics.Texture
 import com.littlekt.graphics.g3d.material.Material
 import com.littlekt.graphics.g3d.material.PBRMaterial
@@ -42,6 +41,32 @@ abstract class GltfModelFallbackMaterialStrategy {
 class UnlitMaterialFallbackStrategy : GltfModelFallbackMaterialStrategy() {
     override fun createMaterial(config: GltfModelConfig, device: Device): Material =
         UnlitMaterial(device, Textures.textureWhite, skinned = config.skinned)
+}
+
+/**
+ * Creates a [PBRMaterial] that defaults to a white texture.
+ *
+ * @param baseColorFactor the base color of the material
+ * @param metallicFactor the metalness of the material
+ * @param roughnessFactor the roughness of the material
+ * @author Colton Daily
+ * @date 11/23/2026
+ */
+class PBRMaterialFallbackStrategy(
+    val baseColorFactor: Color = Color.WHITE,
+    val metallicFactor: Float = 0f,
+    val roughnessFactor: Float = 1f,
+) : GltfModelFallbackMaterialStrategy() {
+    override fun createMaterial(config: GltfModelConfig, device: Device): Material =
+        PBRMaterial(
+            device = device,
+            metallicFactor = metallicFactor,
+            roughnessFactor = roughnessFactor,
+            baseColorTexture = Textures.textureWhite,
+            baseColorFactor = baseColorFactor,
+            castShadows = config.castShadows,
+            skinned = config.skinned,
+        )
 }
 
 /** A strategy for creating a [Material] for a Gltf primitive. */
@@ -130,7 +155,7 @@ class PBRMaterialStrategy : GltfModelMaterialStrategy() {
                     device,
                     preferredFormat.toSRGB(),
                     gltfFile,
-                ) ?: EmptyTexture(device, preferredFormat.toSRGB(), 0, 0),
+                ) ?: Textures.textureWhite,
             transparent = gltfMaterial.alphaMode == GltfAlphaMode.Blend,
             doubleSided = gltfMaterial.doubleSided,
             alphaCutoff =
@@ -164,7 +189,7 @@ class UnlitMaterialStrategy : GltfModelMaterialStrategy() {
                     device,
                     preferredFormat.toSRGB(),
                     gltfFile,
-                ) ?: EmptyTexture(device, preferredFormat.toSRGB(), 0, 0),
+                ) ?: Textures.textureWhite,
             transparent = gltfMaterial.alphaMode == GltfAlphaMode.Blend,
             alphaCutoff =
                 if (gltfMaterial.alphaMode == GltfAlphaMode.Mask) gltfMaterial.alphaCutoff else 0f,
@@ -177,7 +202,7 @@ class UnlitMaterialStrategy : GltfModelMaterialStrategy() {
 /** Creates a [GltfLoaderConfig], specific for PBR usage. */
 fun GltfLoaderPbrConfig(
     modelConfig: GltfModelConfig = GltfModelConfig(castShadows = true, skinned = false)
-) = GltfLoaderConfig(modelConfig, PBRMaterialStrategy(), UnlitMaterialFallbackStrategy())
+) = GltfLoaderConfig(modelConfig, PBRMaterialStrategy(), PBRMaterialFallbackStrategy())
 
 /** Creates a [GltfLoaderConfig], specific for unlit usage. */
 fun GltfLoaderUnlitConfig(

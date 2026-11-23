@@ -133,6 +133,72 @@ class ModifierTests {
         assertFalse(control.enabled)
     }
 
+    private fun Control.anchorList() = listOf(anchorLeft, anchorTop, anchorRight, anchorBottom)
+
+    @Test
+    fun test_anchor_after_wrapper_places_wrapper() {
+        val control =
+            Node().control(modifier = Modifier.padding(4).anchor(Control.AnchorLayout.TOP_RIGHT))
+        val wrapper = control.parent as Control
+        assertSame(wrapper, control.outermost)
+        assertEquals(listOf(1f, 1f, 1f, 1f), wrapper.anchorList())
+        assertEquals(listOf(0f, 0f, 0f, 0f), control.anchorList())
+    }
+
+    @Test
+    fun test_anchor_in_callback_places_wrapper() {
+        val control =
+            Node().control(modifier = Modifier.background(TestDrawable()).padding(4)) {
+                fillParent()
+            }
+        val wrapper = control.outermost
+        assertIs<PanelContainer>(wrapper)
+        assertEquals(listOf(0f, 1f, 1f, 0f), wrapper.anchorList())
+        assertEquals(listOf(0f, 0f, 0f, 0f), control.anchorList())
+    }
+
+    @Test
+    fun test_anchor_after_build_places_wrapper() {
+        val control = Node().control(modifier = Modifier.padding(4))
+        control.anchor(Control.AnchorLayout.BOTTOM_LEFT)
+        control.anchors(0.5f, 0.5f, 0.5f, 0.5f)
+        assertEquals(listOf(0.5f, 0.5f, 0.5f, 0.5f), control.outermost.anchorList())
+        assertEquals(listOf(0f, 0f, 0f, 0f), control.anchorList())
+    }
+
+    @Test
+    fun test_anchor_before_wrapper_keeps_wrapper_anchor() {
+        val control =
+            Node().control(
+                modifier =
+                    Modifier.anchor(Control.AnchorLayout.TOP_LEFT)
+                        .padding(4)
+                        .anchor(Control.AnchorLayout.BOTTOM_RIGHT)
+            )
+        assertEquals(listOf(0f, 1f, 0f, 1f), control.outermost.anchorList())
+    }
+
+    @Test
+    fun test_anchor_between_wrappers_places_outermost() {
+        val control =
+            Node().control(
+                modifier =
+                    Modifier.background(TestDrawable())
+                        .anchor(Control.AnchorLayout.TOP_RIGHT)
+                        .padding(4)
+            )
+        val padded = control.parent as Control
+        assertEquals(listOf(1f, 1f, 1f, 1f), control.outermost.anchorList())
+        assertEquals(listOf(0f, 0f, 0f, 0f), padded.anchorList())
+    }
+
+    @Test
+    fun test_unwrapped_control_is_its_own_outermost() {
+        val control = Node().control { anchor(Control.AnchorLayout.CENTER) }
+        assertSame(control, control.outermost)
+        assertEquals(listOf(0.5f, 0.5f, 0.5f, 0.5f), control.anchorList())
+    }
+
     @Test
     fun test_spacer_expands_and_ignores_mouse() {
         val spacer = Node().spacer()

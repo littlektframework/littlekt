@@ -13,8 +13,7 @@ import com.littlekt.graphics.g2d.shape.ShapeRenderer
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
-import kotlin.math.ceil
-import kotlin.math.min
+import kotlin.math.roundToInt
 
 /**
  * Adds a [TextureProgress] to the current [Node] as a child and then triggers the [callback].
@@ -115,7 +114,7 @@ open class TextureProgress : Range() {
             backgroundNine =
                 if (useNinePatch) {
                     if (value != null) {
-                        NinePatch(value, left, right, bottom, top)
+                        NinePatch(value, left, right, top, bottom)
                     } else {
                         null
                     }
@@ -141,7 +140,7 @@ open class TextureProgress : Range() {
             progressNine =
                 if (useNinePatch) {
                     if (value != null) {
-                        NinePatch(value, left, right, bottom, top)
+                        NinePatch(value, left, right, top, bottom)
                     } else {
                         null
                     }
@@ -162,7 +161,7 @@ open class TextureProgress : Range() {
             foregroundNine =
                 if (useNinePatch) {
                     if (value != null) {
-                        NinePatch(value, left, right, bottom, top)
+                        NinePatch(value, left, right, top, bottom)
                     } else {
                         null
                     }
@@ -190,14 +189,98 @@ open class TextureProgress : Range() {
      */
     var fillMode: FillMode = FillMode.LEFT_TO_RIGHT
 
+    /**
+     * How the texture sizes affect the minimum size of this [TextureProgress]. Use
+     * [TextureRect.ExpandMode.IGNORE_SIZE] to draw the textures smaller than their pixel size.
+     */
+    var expandMode: TextureRect.ExpandMode = TextureRect.ExpandMode.KEEP_SIZE
+        set(value) {
+            if (field == value) return
+            field = value
+            onMinimumSizeChanged()
+        }
+
     override fun render(batch: Batch, camera: Camera, shapeRenderer: ShapeRenderer) {
         super.render(batch, camera, shapeRenderer)
 
         if (useNinePatch) {
-            backgroundNine?.draw(
+            renderNinePatches(batch)
+        } else {
+            renderSlices(batch)
+        }
+    }
+
+    private fun renderNinePatches(batch: Batch) {
+        val x = globalX - originX
+        val y = globalY - originY
+        backgroundNine?.draw(
+            batch = batch,
+            x = x,
+            y = y,
+            width = width,
+            height = height,
+            originX = originX,
+            originY = originY,
+            scaleX = globalScaleX,
+            scaleY = globalScaleY,
+            rotation = globalRotation,
+            color = backgroundColor,
+        )
+
+        val ratio = ratio
+        if (ratio > 0f) {
+            var srcX = 0f
+            var srcY = 0f
+            var srcWidth = width
+            var srcHeight = height
+            when (fillMode) {
+                FillMode.LEFT_TO_RIGHT -> srcWidth = width * ratio
+                FillMode.RIGHT_TO_LEFT -> srcX = width * (1f - ratio)
+                FillMode.TOP_TO_BOTTOM -> srcY = height * (1f - ratio)
+                FillMode.BOTTOM_TO_TOP -> srcHeight = height * ratio
+            }
+            progressNine?.draw(
                 batch = batch,
-                x = globalX - originX,
-                y = globalY - originY,
+                x = x,
+                y = y,
+                width = width,
+                height = height,
+                originX = originX,
+                originY = originY,
+                scaleX = globalScaleX,
+                scaleY = globalScaleY,
+                rotation = globalRotation,
+                color = progressBarColor,
+                srcX = srcX,
+                srcY = srcY,
+                srcWidth = srcWidth,
+                srcHeight = srcHeight,
+            )
+        }
+
+        foregroundNine?.draw(
+            batch = batch,
+            x = x,
+            y = y,
+            width = width,
+            height = height,
+            originX = originX,
+            originY = originY,
+            scaleX = globalScaleX,
+            scaleY = globalScaleY,
+            rotation = globalRotation,
+            color = foregroundColor,
+        )
+    }
+
+    private fun renderSlices(batch: Batch) {
+        val x = globalX - originX
+        val y = globalY - originY
+        background?.let {
+            batch.draw(
+                slice = it,
+                x = x,
+                y = y,
                 originX = originX,
                 originY = originY,
                 width = width,
@@ -207,210 +290,90 @@ open class TextureProgress : Range() {
                 rotation = globalRotation,
                 color = backgroundColor,
             )
+        }
+        progressBar?.let { drawProgress(batch, it, x, y) }
+        foreground?.let {
+            batch.draw(
+                slice = it,
+                x = x,
+                y = y,
+                originX = originX,
+                originY = originY,
+                width = width,
+                height = height,
+                scaleX = globalScaleX,
+                scaleY = globalScaleY,
+                rotation = globalRotation,
+                color = foregroundColor,
+            )
+        }
+    }
 
-            progressNine?.let {
-                when (fillMode) {
-                    FillMode.LEFT_TO_RIGHT -> {
-                        progressNine?.draw(
-                            batch = batch,
-                            x = globalX - originX,
-                            y = globalY - originY,
-                            originX = originX,
-                            originY = originY,
-                            width = width,
-                            height = height,
-                            scaleX = globalScaleX,
-                            scaleY = globalScaleY,
-                            rotation = globalRotation,
-                            color = progressBarColor,
-                            srcWidth = width - width * (1f - ratio),
-                        )
-                    }
-                    FillMode.RIGHT_TO_LEFT -> {
-                        progressNine?.draw(
-                            batch = batch,
-                            x = globalX - originX,
-                            y = globalY - originY,
-                            originX = originX,
-                            originY = originY,
-                            width = width,
-                            height = height,
-                            scaleX = globalScaleX,
-                            scaleY = globalScaleY,
-                            rotation = globalRotation,
-                            color = progressBarColor,
-                            srcX = width * (1f - ratio),
-                        )
-                    }
-                    FillMode.TOP_TO_BOTTOM -> {
-                        progressNine?.draw(
-                            batch = batch,
-                            x = globalX - originX,
-                            y = globalY - originY,
-                            originX = originX,
-                            originY = originY,
-                            width = width,
-                            height = height,
-                            scaleX = globalScaleX,
-                            scaleY = globalScaleY,
-                            rotation = globalRotation,
-                            color = progressBarColor,
-                            srcHeight = height - height * (1f - ratio),
-                        )
-                    }
-                    FillMode.BOTTOM_TO_TOP -> {
-                        progressNine?.draw(
-                            batch,
-                            x = globalX - originX,
-                            y = globalY - originY,
-                            originX = originX,
-                            originY = originY,
-                            width = width,
-                            height = height,
-                            scaleX = globalScaleX,
-                            scaleY = globalScaleY,
-                            rotation = globalRotation,
-                            color = progressBarColor,
-                            srcY = height * (1f - ratio),
-                        )
-                    }
-                }
+    private fun drawProgress(batch: Batch, slice: TextureSlice, x: Float, y: Float) {
+        val ratio = ratio
+        val sliceWidth = slice.width
+        val sliceHeight = slice.height
+        if (ratio <= 0f || sliceWidth <= 0 || sliceHeight <= 0) return
 
-                foregroundNine?.draw(
-                    batch = batch,
-                    x = globalX - originX,
-                    y = globalY - originY,
-                    originX = originX,
-                    originY = originY,
-                    width = width,
-                    height = height,
-                    scaleX = globalScaleX,
-                    scaleY = globalScaleY,
-                    rotation = globalRotation,
-                    color = foregroundColor,
-                )
-            }
-        } else {
-            background?.let {
-                batch.draw(
-                    slice = it,
-                    x = globalX - originX,
-                    y = globalY - originY,
-                    originX = originX,
-                    originY = originY,
-                    scaleX = globalScaleX,
-                    scaleY = globalScaleY,
-                    rotation = globalRotation,
-                    color = backgroundColor,
-                )
-            }
-            progressBar?.let {
-                val sliceX = it.x
-                val sliceY = it.y
-                val sliceWidth = it.width
-                val sliceHeight = it.height
-                val widthRatio = ceil(sliceWidth * ratio).toInt()
-                val heightRatio = ceil(sliceHeight * ratio).toInt()
+        var srcX = slice.x
+        var srcY = slice.y
+        var srcWidth = sliceWidth
+        var srcHeight = sliceHeight
+        var offsetX = 0f
+        var offsetY = 0f
+        var drawWidth = width
+        var drawHeight = height
 
-                when (fillMode) {
-                    FillMode.LEFT_TO_RIGHT -> {
-                        batch.draw(
-                            slice = it,
-                            x = globalX - originX,
-                            y = globalY - originY,
-                            originX = originX,
-                            originY = originY,
-                            width = min(widthRatio, sliceWidth).toFloat(),
-                            height = sliceHeight.toFloat(),
-                            scaleX = globalScaleX,
-                            scaleY = globalScaleY,
-                            rotation = globalRotation,
-                            srcX = sliceX,
-                            srcY = sliceY,
-                            srcWidth = min(widthRatio, sliceWidth),
-                            srcHeight = sliceHeight,
-                            color = progressBarColor,
-                        )
-                    }
-                    FillMode.RIGHT_TO_LEFT -> {
-                        batch.draw(
-                            slice = it,
-                            x = globalX + sliceWidth - widthRatio - originX,
-                            y = globalY - originY,
-                            originX = originX,
-                            originY = originY,
-                            width = min(widthRatio, sliceWidth).toFloat(),
-                            height = sliceHeight.toFloat(),
-                            scaleX = globalScaleX,
-                            scaleY = globalScaleY,
-                            rotation = globalRotation,
-                            srcX = sliceX + sliceWidth - widthRatio,
-                            srcY = sliceY,
-                            srcWidth = min(widthRatio, sliceWidth),
-                            srcHeight = sliceHeight,
-                            color = progressBarColor,
-                        )
-                    }
-                    FillMode.TOP_TO_BOTTOM -> {
-                        batch.draw(
-                            slice = it,
-                            x = globalX - originX,
-                            y = globalY - originY,
-                            originX = originX,
-                            originY = originY,
-                            width = sliceWidth.toFloat(),
-                            height = min(heightRatio, sliceHeight).toFloat(),
-                            scaleX = globalScaleX,
-                            scaleY = globalScaleY,
-                            rotation = globalRotation,
-                            srcX = sliceX,
-                            srcY = sliceY,
-                            srcWidth = sliceWidth,
-                            srcHeight = min(heightRatio, sliceHeight),
-                            color = progressBarColor,
-                        )
-                    }
-                    FillMode.BOTTOM_TO_TOP -> {
-                        batch.draw(
-                            slice = it,
-                            x = globalX - originX,
-                            y = globalY + sliceHeight - heightRatio - originY,
-                            originX = originX,
-                            originY = originY,
-                            width = sliceWidth.toFloat(),
-                            height = min(heightRatio, sliceHeight).toFloat(),
-                            scaleX = globalScaleX,
-                            scaleY = globalScaleY,
-                            rotation = globalRotation,
-                            srcX = sliceX,
-                            srcY = sliceY + sliceHeight - heightRatio,
-                            srcWidth = sliceWidth,
-                            srcHeight = min(heightRatio, sliceHeight),
-                            color = progressBarColor,
-                        )
-                    }
-                }
+        when (fillMode) {
+            FillMode.LEFT_TO_RIGHT -> {
+                srcWidth = (sliceWidth * ratio).roundToInt()
+                drawWidth = width * srcWidth / sliceWidth
             }
-            foreground?.let {
-                batch.draw(
-                    slice = it,
-                    x = globalX - originX,
-                    y = globalY - originY,
-                    originX = originX,
-                    originY = originY,
-                    scaleX = globalScaleX,
-                    scaleY = globalScaleY,
-                    rotation = globalRotation,
-                    color = foregroundColor,
-                )
+            FillMode.RIGHT_TO_LEFT -> {
+                srcWidth = (sliceWidth * ratio).roundToInt()
+                srcX += sliceWidth - srcWidth
+                drawWidth = width * srcWidth / sliceWidth
+                offsetX = width - drawWidth
+            }
+            FillMode.TOP_TO_BOTTOM -> {
+                srcHeight = (sliceHeight * ratio).roundToInt()
+                drawHeight = height * srcHeight / sliceHeight
+                offsetY = height - drawHeight
+            }
+            FillMode.BOTTOM_TO_TOP -> {
+                srcHeight = (sliceHeight * ratio).roundToInt()
+                srcY += sliceHeight - srcHeight
+                drawHeight = height * srcHeight / sliceHeight
             }
         }
+        if (srcWidth <= 0 || srcHeight <= 0) return
+
+        batch.draw(
+            slice = slice,
+            x = x,
+            y = y,
+            originX = originX - offsetX,
+            originY = originY - offsetY,
+            width = drawWidth,
+            height = drawHeight,
+            scaleX = globalScaleX,
+            scaleY = globalScaleY,
+            rotation = globalRotation,
+            color = progressBarColor,
+            srcX = srcX,
+            srcY = srcY,
+            srcWidth = srcWidth,
+            srcHeight = srcHeight,
+        )
     }
 
     override fun calculateMinSize() {
         if (!minSizeInvalid) return
 
-        if (useNinePatch) {
+        if (expandMode == TextureRect.ExpandMode.IGNORE_SIZE) {
+            _internalMinWidth = 0f
+            _internalMinHeight = 0f
+        } else if (useNinePatch) {
             _internalMinWidth = (left + right).toFloat()
             _internalMinHeight = (top + bottom).toFloat()
         } else {
@@ -437,7 +400,7 @@ open class TextureProgress : Range() {
         if (bg != null) {
             backgroundNine =
                 if (useNinePatch) {
-                    NinePatch(bg, left, right, bottom, top)
+                    NinePatch(bg, left, right, top, bottom)
                 } else {
                     null
                 }
@@ -446,7 +409,7 @@ open class TextureProgress : Range() {
         if (prog != null) {
             progressNine =
                 if (useNinePatch) {
-                    NinePatch(prog, left, right, bottom, top)
+                    NinePatch(prog, left, right, top, bottom)
                 } else {
                     null
                 }
@@ -455,7 +418,7 @@ open class TextureProgress : Range() {
         if (fg != null) {
             foregroundNine =
                 if (useNinePatch) {
-                    NinePatch(fg, left, right, bottom, top)
+                    NinePatch(fg, left, right, top, bottom)
                 } else {
                     null
                 }
@@ -469,10 +432,10 @@ open class TextureProgress : Range() {
         /** Progress fills from right to left. */
         RIGHT_TO_LEFT,
 
-        /** Progress fills from top to bottom. */
+        /** Progress fills from the top edge down. */
         TOP_TO_BOTTOM,
 
-        /** Progress fills from bottom to top. */
+        /** Progress fills from the bottom edge up. */
         BOTTOM_TO_TOP,
     }
 }

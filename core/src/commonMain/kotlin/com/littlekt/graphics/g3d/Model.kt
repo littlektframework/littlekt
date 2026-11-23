@@ -6,6 +6,7 @@ import com.littlekt.graphics.TextureState
 import com.littlekt.graphics.g3d.material.Material
 import com.littlekt.graphics.g3d.skin.Animation
 import com.littlekt.graphics.g3d.skin.MorphBlend
+import com.littlekt.graphics.g3d.skin.Skin
 import com.littlekt.graphics.g3d.skin.TransformBlend
 import com.littlekt.util.datastructure.fastForEach
 import com.littlekt.util.datastructure.fastForEachWithIndex
@@ -18,6 +19,11 @@ import kotlin.time.Duration.Companion.milliseconds
  * A node that is usually a parent of one or many [MeshNode]. This class handles animations for any
  * skinned meshes. A loaded model, such as a glTF model, owns the meshes, materials, skins, and
  * textures it created, which are freed with [release]. Copies of the model share these resources.
+ *
+ * ```
+ * val enemy = foxModel.copy()
+ * enemy.play("Run")
+ * ```
  *
  * @author Colton Daily
  * @date 2/3/2025
@@ -185,6 +191,75 @@ open class Model : Node3D(), Releasable {
         } else {
             animation.fadeRate = abs(target - animation.weight) / fade.seconds
         }
+    }
+
+    /**
+     * Creates a copy of this model that shares its meshes, materials, and textures but has its own
+     * nodes, skins, and [animations], so each copy plays its own clips. Releasing the copy frees
+     * only the skins it created. The shared resources are still freed by [release] of the loaded
+     * model.
+     */
+    override fun copy(): Model {
+        val copy = Model()
+        copy.name = name
+        copy.frustumCulled = frustumCulled
+        copy.visible = visible
+        copy.globalTransform = globalTransform
+        copy.defaultFade = defaultFade
+        copyChildrenTo(copy)
+
+        val nodes = mutableMapOf<Node3D, Node3D>()
+        mapCopiedNodes(this, copy, nodes)
+        val skins = mutableMapOf<Skin, Skin>()
+        val primitives = mutableMapOf<MeshPrimitive, MeshPrimitive>()
+        copy.copySkinnedPrimitives(copy, nodes, skins, primitives)
+
+        animations.fastForEach { animation ->
+            copy.animations +=
+                animation.copy({ nodes[it] ?: it }, { primitives[it] ?: it })
+        }
+        copy.currentAnimation = currentAnimation?.let { copy.animations[animations.indexOf(it)] }
+        return copy
+    }
+
+    private fun mapCopiedNodes(node: Node3D, copy: Node3D, nodes: MutableMap<Node3D, Node3D>) {
+        nodes[node] = copy
+        val count = minOf(node.childCount, copy.childCount)
+        for (i in 0 until count) mapCopiedNodes(node.children[i], copy.children[i], nodes)
+    }
+
+    private fun copySkinnedPrimitives(
+        node: Node3D,
+        nodes: Map<Node3D, Node3D>,
+        skins: MutableMap<Skin, Skin>,
+        primitives: MutableMap<MeshPrimitive, MeshPrimitive>,
+    ) {
+        if (node is MeshPrimitiveInstance) {
+            val source = node.instanceOf
+            val skin = source?.skin
+            if (source != null && skin != null && source.bakedAnimations == null) {
+                val primitive =
+                    primitives.getOrPut(source) {
+                        val copiedSkin =
+                            skins.getOrPut(skin) {
+                                skin.copy(skin.root?.let { nodes[it] ?: it }) { nodes[it] ?: it }
+                                    .also { own(it) }
+                            }
+                        MeshPrimitive(
+                                source.mesh,
+                                source.material,
+                                source.topology,
+                                source.stripIndexFormat,
+                                copiedSkin,
+                                source.morphWeights?.copyOf(),
+                            )
+                            .also { own(it) }
+                    }
+                node.remove()
+                node.addTo(primitive)
+            }
+        }
+        node.children.fastForEach { copySkinnedPrimitives(it, nodes, skins, primitives) }
     }
 
     private fun shareBlends() {

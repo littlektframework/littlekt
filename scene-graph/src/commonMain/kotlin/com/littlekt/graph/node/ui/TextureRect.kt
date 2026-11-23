@@ -69,6 +69,18 @@ open class TextureRect : Control() {
     var stretchMode = StretchMode.KEEP
 
     /**
+     * How the [slice] size affects the minimum size of this [TextureRect]. Use
+     * [ExpandMode.IGNORE_SIZE] with a [stretchMode] such as [StretchMode.KEEP_ASPECT_CENTERED] to
+     * draw a large texture in a small control.
+     */
+    var expandMode = ExpandMode.KEEP_SIZE
+        set(value) {
+            if (field == value) return
+            field = value
+            onMinimumSizeChanged()
+        }
+
+    /**
      * If `true`, then the internal size calculations with use the [TextureSlice.actualWidth] &
      * [TextureSlice.actualHeight] for its sizing instead of the trimmed width & height. This is
      * useful if a TextureSlice requires the empty margin around it.
@@ -166,8 +178,8 @@ open class TextureRect : Control() {
                     texWidth *= scale
                     texHeight *= scale
 
-                    sliceX = ((texWidth - newWidth) / scale).absoluteValue * 0.5f
-                    sliceY = ((texHeight - newHeight) / scale).absoluteValue * 0.5f
+                    sliceX += ((texWidth - newWidth) / scale).absoluteValue * 0.5f
+                    sliceY += ((texHeight - newHeight) / scale).absoluteValue * 0.5f
 
                     sliceWidth = newWidth / scale
                     sliceHeight = newHeight / scale
@@ -242,6 +254,13 @@ open class TextureRect : Control() {
     override fun calculateMinSize() {
         if (!minSizeInvalid) return
 
+        if (expandMode == ExpandMode.IGNORE_SIZE) {
+            _internalMinWidth = 0f
+            _internalMinHeight = 0f
+            minSizeInvalid = false
+            return
+        }
+
         _internalMinWidth =
             if (useOriginalSize) _slice?.actualWidth?.toFloat() ?: 0f
             else _slice?.width?.toFloat() ?: 0f
@@ -259,6 +278,15 @@ open class TextureRect : Control() {
 
         _slice = slice
         onMinimumSizeChanged()
+    }
+
+    /** How the [slice] size affects the minimum size of a [TextureRect]. */
+    enum class ExpandMode {
+        /** The minimum size is the size of the [slice]. */
+        KEEP_SIZE,
+
+        /** The [slice] size is ignored, so only [minWidth] & [minHeight] set the minimum size. */
+        IGNORE_SIZE,
     }
 
     enum class StretchMode {

@@ -26,6 +26,13 @@ import kotlin.contracts.contract
  * Elements are applied in order from the outside in. An [Element] after a [Wrapper] applies to the
  * wrapped control and an [Element] before it applies to the wrapper.
  *
+ * Anchors always place the outermost wrapper, so these both anchor the padded label to the top
+ * right:
+ * ```
+ * label("Score", modifier = Modifier.padding(8).anchor(Control.AnchorLayout.TOP_RIGHT))
+ * label("Score", modifier = Modifier.padding(8)) { anchor(Control.AnchorLayout.TOP_RIGHT) }
+ * ```
+ *
  * @author Colton Daily
  * @date 11/11/2026
  */
@@ -110,7 +117,8 @@ internal fun applyInnerModifiers(control: Control, modifier: Modifier): Int {
 
 /**
  * Applies the elements of [modifier] up to [index], wrapping [control] for each
- * [Modifier.Wrapper], and adds the outermost [Control] to [parent].
+ * [Modifier.Wrapper], moves the anchors of each wrapped [Control] to its wrapper and adds the
+ * outermost [Control] to [parent].
  */
 @PublishedApi
 internal fun addWithOuterModifiers(control: Control, parent: Node, modifier: Modifier, index: Int) {
@@ -120,11 +128,19 @@ internal fun addWithOuterModifiers(control: Control, parent: Node, modifier: Mod
         var i = index
         while (i >= 0) {
             when (val element = elements[i]) {
-                is Modifier.Wrapper -> outer = element.wrap(outer)
+                is Modifier.Wrapper -> {
+                    val wrapped = outer
+                    outer = element.wrap(wrapped)
+                    wrapped.moveAnchorsTo(outer)
+                }
                 is Modifier.Element -> element.apply(outer)
             }
             i--
         }
+    }
+    if (outer !== control) {
+        control.modifierWrapper = outer
+        outer.modifierWrapped = control
     }
     outer.addTo(parent)
 }

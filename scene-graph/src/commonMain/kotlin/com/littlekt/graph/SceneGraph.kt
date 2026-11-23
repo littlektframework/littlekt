@@ -35,9 +35,24 @@ import kotlin.time.Duration.Companion.milliseconds
 /**
  * Create a new scene graph with a [callback] with the [SceneGraph] in context.
  *
+ * ```
+ * sceneGraph(context, focusNavigation = false) {
+ *     button("Play")
+ * }
+ * ```
+ *
  * @param context the current context
  * @param viewport the viewport that the camera of the scene graph will own
  * @param batch an option sprite batch. If omitted, the scene graph will create and manage its own.
+ * @param controller an optional input map controller. If omitted, one is created with the default
+ *   bindings for [uiInputSignals] via [addDefaultUiInput].
+ * @param whitePixel a white 1x1 pixel [TextureSlice] that is used for rendering with
+ *   [ShapeRenderer].
+ * @param uiInputSignals the UI input signals. Leave a signal `null` to unbind it, such as
+ *   `SceneGraph.UiInputSignals.Default.copy(uiFocusNext = null, uiFocusPrev = null)` to free up
+ *   `Key.TAB`.
+ * @param focusNavigation if `false`, the focus & direction signals no longer move the focus. See
+ *   [SceneGraph.focusNavigation].
  * @param callback the callback that is invoked with a [SceneGraph] context in order to initialize
  *   any values and create nodes
  * @return the newly created [SceneGraph]
@@ -49,32 +64,23 @@ inline fun sceneGraph(
     batch: Batch? = null,
     controller: InputMapController<String>? = null,
     whitePixel: TextureSlice = Textures.white,
+    uiInputSignals: SceneGraph.UiInputSignals<String> = SceneGraph.UiInputSignals.Default,
+    focusNavigation: Boolean = true,
     callback: @SceneGraphDslMarker SceneGraph<String>.() -> Unit = {},
 ): SceneGraph<String> {
     contract { callsInPlace(callback, InvocationKind.EXACTLY_ONCE) }
-    val signals =
-        SceneGraph.UiInputSignals(
-            "ui_accept",
-            "ui_select",
-            "ui_cancel",
-            "ui_focus_next",
-            "ui_focus_prev",
-            "ui_left",
-            "ui_right",
-            "ui_up",
-            "ui_down",
-            "ui_home",
-            "ui_end"
-        )
     return SceneGraph(
             context,
             viewport,
             batch,
-            signals,
-            controller ?: createDefaultSceneGraphController(context.input, signals),
+            uiInputSignals,
+            controller ?: createDefaultSceneGraphController(context.input, uiInputSignals),
             whitePixel
         )
-        .also(callback)
+        .also {
+            it.focusNavigation = focusNavigation
+            it.callback()
+        }
 }
 
 /**
@@ -211,6 +217,7 @@ open class SceneGraph<InputType>(
     val sceneCanvas: CanvasLayer by lazy {
         CanvasLayer().apply {
             name = "Scene Viewport"
+            owner = this@SceneGraph
             this.viewport = viewport
             resizeAutomatically = false
         }
@@ -226,6 +233,13 @@ open class SceneGraph<InputType>(
     /** The virtual height of hte [sceneCanvas]. */
     val height: Float
         get() = sceneCanvas.virtualHeight
+
+    /**
+     * If `true`, the [UiInputSignals.uiFocusNext], [UiInputSignals.uiFocusPrev] and direction
+     * signals move the focus between controls when the focused control doesn't handle them. If
+     * `false`, they are passed on as unhandled input instead.
+     */
+    var focusNavigation: Boolean = true
 
     /** The target FPS for [tmod]. */
     var targetFPS = 60
@@ -740,7 +754,7 @@ open class SceneGraph<InputType>(
             uiInput(it, event)
             var handled = event.handled
 
-            if (!handled) {
+            if (!handled && focusNavigation) {
                 var next: Control? = null
                 when (inputType) {
                     uiInputSignals.uiFocusNext -> {
@@ -1157,7 +1171,25 @@ open class SceneGraph<InputType>(
         val uiDown: InputType? = null,
         val uiHome: InputType? = null,
         val uiEnd: InputType? = null,
-    )
+    ) {
+        companion object {
+            /** The default [String] signals of [sceneGraph], such as `ui_accept` & `ui_left`. */
+            val Default: UiInputSignals<String> =
+                UiInputSignals(
+                    "ui_accept",
+                    "ui_select",
+                    "ui_cancel",
+                    "ui_focus_next",
+                    "ui_focus_prev",
+                    "ui_left",
+                    "ui_right",
+                    "ui_up",
+                    "ui_down",
+                    "ui_home",
+                    "ui_end",
+                )
+        }
+    }
 
     private data class TouchFocus(
         var target: Control? = null,

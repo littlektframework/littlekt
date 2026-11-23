@@ -51,8 +51,16 @@ class ModelBatch(val device: Device) : Releasable {
 
     private var renderEnvironment: Environment? = null
     private var renderMaterial: Material? = null
-    private val renderAction: (MeshPrimitive) -> Unit = {
-        queue(it, renderMaterial ?: it.material, renderEnvironment ?: error("No environment set!"))
+    private val renderAction: (MeshPrimitiveInstance) -> Unit = { instance ->
+        val primitive = instance.instanceOf
+        if (primitive != null) {
+            queue(
+                primitive,
+                instance,
+                renderMaterial ?: primitive.material,
+                renderEnvironment ?: error("No environment set!"),
+            )
+        }
     }
 
     private val transparentDraws = mutableListOf<TransparentDraw>()
@@ -162,22 +170,27 @@ class ModelBatch(val device: Device) : Releasable {
         materialBindGroups.addPending(material.id, notifier, version, bindGroup)
     }
 
-    /** Adds a [Node3D] to be drawn on the next [flush] using the specified [Environment].. */
+    /**
+     * Adds a [Node3D] to be drawn on the next [flush] using the specified [Environment]. Only the
+     * [MeshPrimitiveInstance] of this node and its children are drawn, skipping any that aren't
+     * [Node3D.visible].
+     */
     fun render(node: Node3D, environment: Environment) {
         renderEnvironment = environment
         renderMaterial = null
-        node.forEachMeshPrimitive(renderAction)
+        node.forEachRenderedInstance(null, renderAction)
         renderEnvironment = null
     }
 
     /**
      * Adds a [Node3D] to be drawn on the next [flush] using the specified [Environment] with the
-     * given material override.
+     * given material override. Only the [MeshPrimitiveInstance] of this node and its children are
+     * drawn with the override.
      */
     fun render(node: Node3D, material: Material, environment: Environment) {
         renderEnvironment = environment
         renderMaterial = material
-        node.forEachMeshPrimitive(renderAction)
+        node.forEachRenderedInstance(null, renderAction)
         renderEnvironment = null
         renderMaterial = null
     }
@@ -189,7 +202,7 @@ class ModelBatch(val device: Device) : Releasable {
     fun render(node: Node3D, camera: Camera, environment: Environment) {
         renderEnvironment = environment
         renderMaterial = null
-        node.forEachMeshPrimitive(camera, renderAction)
+        node.forEachRenderedInstance(camera, renderAction)
         renderEnvironment = null
     }
 
@@ -200,18 +213,24 @@ class ModelBatch(val device: Device) : Releasable {
     fun render(node: Node3D, camera: Camera, material: Material, environment: Environment) {
         renderEnvironment = environment
         renderMaterial = material
-        node.forEachMeshPrimitive(camera, renderAction)
+        node.forEachRenderedInstance(camera, renderAction)
         renderEnvironment = null
         renderMaterial = null
     }
 
-    /** Adds a [MeshPrimitive] to be drawn on the next [flush] using the specified [Environment]. */
+    /**
+     * Adds every instance of a [MeshPrimitive] to be drawn on the next [flush] using the specified
+     * [Environment].
+     */
     fun render(meshPrimitive: MeshPrimitive, environment: Environment) =
-        queue(meshPrimitive, meshPrimitive.material, environment)
+        queue(meshPrimitive, null, meshPrimitive.material, environment)
 
-    /** Render a [MeshPrimitive] by overriding the attached material with the given material. */
+    /**
+     * Render every instance of a [MeshPrimitive] by overriding the attached material with the given
+     * material.
+     */
     fun render(meshPrimitive: MeshPrimitive, material: Material, environment: Environment) =
-        queue(meshPrimitive, material, environment)
+        queue(meshPrimitive, null, material, environment)
 
     /**
      * Draws everything added since the last flush using the [camera]. This may be called multiple
@@ -232,7 +251,12 @@ class ModelBatch(val device: Device) : Releasable {
 
         var totalInstances = 0
         pipelines.fastForEach { pipeline ->
-            pipeline.queue.fastForEach { totalInstances += it.visibleInstanceCount }
+            for (q in 0 until pipeline.queueSize) {
+                val queued = pipeline.queue[q]
+                totalInstances +=
+                    if (queued.allInstances) queued.primitive?.instanceCount ?: 0
+                    else queued.instances.size
+            }
         }
         val instanceSize = MeshPrimitive.INSTANCE_DATA_SIZE
         instanceBuffers.ensureCapacity((instanceOffset + totalInstances) * instanceSize)
@@ -256,19 +280,22 @@ class ModelBatch(val device: Device) : Releasable {
                 continue
             }
             bindPipeline(renderPassEncoder, pipeline, camera, dt)
-            val queue = pipeline.queue
-            val materials = pipeline.queueMaterials
-            for (q in 0 until queue.size) {
-                val primitive = queue[q]
-                if (primitive.drawnFlush == flushId && primitive.drawnPipeline === pipeline) {
-                    continue
+            for (q in 0 until pipeline.queueSize) {
+                val queued = pipeline.queue[q]
+                val primitive = queued.primitive ?: continue
+                val material = queued.material ?: continue
+                primitive.updateDirtyInstances()
+                var count = 0
+                forEachQueuedInstance(queued, primitive) { instance ->
+                    primitive.writeInstanceData(
+                        instance,
+                        instanceStaging,
+                        (written + count) * instanceSize,
+                    )
+                    count++
                 }
-                primitive.drawnFlush = flushId
-                primitive.drawnPipeline = pipeline
-
-                val count = primitive.writeVisibleInstanceData(instanceStaging, written * instanceSize)
                 if (count <= 0) continue
-                drawPrimitive(renderPassEncoder, pipeline, primitive, materials[q], count, frame)
+                drawPrimitive(renderPassEncoder, pipeline, primitive, material, count, frame)
             }
             i++
         }
@@ -282,11 +309,7 @@ class ModelBatch(val device: Device) : Releasable {
             EngineStats.extra(INSTANCED_STAT_NAME, instanced)
         }
 
-        pipelines.fastForEach { pipeline ->
-            pipeline.queue.fastForEach { it.resetVisibility() }
-            pipeline.queue.clear()
-            pipeline.queueMaterials.clear()
-        }
+        pipelines.fastForEach { it.clearQueue() }
         pipelines.clear()
         flushId = nextFlushId()
         materialBindGroups.sync()
@@ -305,20 +328,13 @@ class ModelBatch(val device: Device) : Releasable {
         val cameraPosition = camera.position
         for (p in start until end) {
             val pipeline = pipelines[p]
-            val queue = pipeline.queue
-            val materials = pipeline.queueMaterials
-            for (q in 0 until queue.size) {
-                val primitive = queue[q]
-                if (primitive.drawnFlush == flushId && primitive.drawnPipeline === pipeline) {
-                    continue
-                }
-                primitive.drawnFlush = flushId
-                primitive.drawnPipeline = pipeline
+            for (q in 0 until pipeline.queueSize) {
+                val queued = pipeline.queue[q]
+                val primitive = queued.primitive ?: continue
+                val material = queued.material ?: continue
                 primitive.updateDirtyInstances()
-                val material = materials[q]
-                for (v in 0 until primitive.visibleInstanceCount) {
+                forEachQueuedInstance(queued, primitive) { instance ->
                     if (count == transparentDraws.size) transparentDraws += TransparentDraw()
-                    val instance = primitive.visibleInstance(v)
                     val draw = transparentDraws[count++]
                     draw.pipeline = pipeline
                     draw.primitive = primitive
@@ -356,6 +372,22 @@ class ModelBatch(val device: Device) : Releasable {
             if (boundPipeline !== pipeline) bindPipeline(renderPassEncoder, pipeline, camera, dt)
             drawPrimitive(renderPassEncoder, pipeline, primitive, material, runEnd - k, frame)
             k = runEnd
+        }
+    }
+
+    private inline fun forEachQueuedInstance(
+        queued: QueuedPrimitive,
+        primitive: MeshPrimitive,
+        action: (MeshPrimitiveInstance) -> Unit,
+    ) {
+        if (queued.allInstances) {
+            for (i in 0 until primitive.instanceCount) action(primitive.instance(i))
+            return
+        }
+        val instances = queued.instances
+        for (i in 0 until instances.size) {
+            val instance = instances[i]
+            if (instance.instanceOf === primitive) action(instance)
         }
     }
 
@@ -489,11 +521,44 @@ class ModelBatch(val device: Device) : Releasable {
         instanceBuffers.release()
     }
 
-    private fun queue(primitive: MeshPrimitive, material: Material, environment: Environment) {
+    private fun queue(
+        primitive: MeshPrimitive,
+        instance: MeshPrimitiveInstance?,
+        material: Material,
+        environment: Environment,
+    ) {
+        val cached = primitive.queuedEntry
+        val queued =
+            if (
+                primitive.queuedFlush == flushId &&
+                    cached != null &&
+                    cached.material === material &&
+                    cached.environment === environment
+            ) {
+                cached
+            } else {
+                queueEntry(primitive, material, environment) ?: return
+            }
+        if (instance == null) {
+            if (!queued.allInstances) {
+                queued.allInstances = true
+                queued.instances.clear()
+            }
+        } else if (!queued.allInstances && instance.queuedStamp != queued.stamp) {
+            instance.queuedStamp = queued.stamp
+            queued.instances += instance
+        }
+    }
+
+    private fun queueEntry(
+        primitive: MeshPrimitive,
+        material: Material,
+        environment: Environment,
+    ): QueuedPrimitive? {
         materialBindGroups.sync()
         skinBindGroups.sync()
-        val pipeline = getPipeline(primitive, material, environment) ?: return
-        if (!material.ready) return
+        val pipeline = getPipeline(primitive, material, environment) ?: return null
+        if (!material.ready) return null
         if (pipeline.materialGroupIndex >= 0) {
             getOrCreateMaterialBindGroup(material, pipeline)
         }
@@ -508,20 +573,31 @@ class ModelBatch(val device: Device) : Releasable {
             val notifier = palette.releaseNotifier
             val version = notifier.version
             skinBindGroups.put(palette.id, notifier, version, palette.createBindGroup(pipeline.shader))
-                ?: return
+                ?: return null
         }
 
         if (pipeline.queuedFlush != flushId) {
             pipeline.queuedFlush = flushId
-            pipeline.queue.clear()
-            pipeline.queueMaterials.clear()
+            pipeline.clearQueue()
             pipelines += pipeline
         }
-        if (primitive.queuedFlush == flushId && primitive.queuedPipeline === pipeline) return
+        if (primitive.queuedFlush == flushId) {
+            for (i in 0 until pipeline.queueSize) {
+                val queued = pipeline.queue[i]
+                if (queued.primitive === primitive && queued.material === material) {
+                    primitive.queuedEntry = queued
+                    return queued
+                }
+            }
+        }
+        val queued = pipeline.nextQueued()
+        queued.primitive = primitive
+        queued.material = material
+        queued.environment = environment
+        queued.stamp = ++lastQueueStamp
         primitive.queuedFlush = flushId
-        primitive.queuedPipeline = pipeline
-        pipeline.queue += primitive
-        pipeline.queueMaterials += material
+        primitive.queuedEntry = queued
+        return queued
     }
 
     private fun getPipeline(
@@ -605,6 +681,7 @@ class ModelBatch(val device: Device) : Releasable {
         private const val INITIAL_INSTANCES = 256
 
         private var lastFlushId = 0L
+        private var lastQueueStamp = 0L
 
         private fun nextFlushId(): Long = ++lastFlushId
     }

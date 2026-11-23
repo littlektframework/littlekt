@@ -2,8 +2,7 @@ package com.littlekt.graphics.g3d.util
 
 import com.littlekt.graphics.VertexBufferLayout
 import com.littlekt.graphics.g3d.Environment
-import com.littlekt.graphics.g3d.MeshPrimitive
-import com.littlekt.graphics.g3d.material.Material
+import com.littlekt.graphics.g3d.QueuedPrimitive
 import com.littlekt.graphics.shader.Shader
 import com.littlekt.graphics.util.BindingUsage
 import com.littlekt.graphics.util.CameraBuffers
@@ -41,9 +40,19 @@ data class MaterialPipeline(
     internal val skinGroupIndex = shader.getBindGroupLayoutIndexOrNull(BindingUsage.SKIN) ?: -1
     internal val modelLayout = shader.getBindGroupLayoutByUsageOrNull(BindingUsage.MODEL)
 
-    internal val queue = mutableListOf<MeshPrimitive>()
-    internal val queueMaterials = mutableListOf<Material>()
+    internal val queue = mutableListOf<QueuedPrimitive>()
+    internal var queueSize = 0
     internal var queuedFlush = -1L
+
+    internal fun nextQueued(): QueuedPrimitive {
+        if (queueSize == queue.size) queue += QueuedPrimitive()
+        return queue[queueSize++]
+    }
+
+    internal fun clearQueue() {
+        for (i in 0 until queueSize) queue[i].clear()
+        queueSize = 0
+    }
 
     private var environmentGroupEnvironment: Environment? = null
     private var environmentGroupIndexCache = -1

@@ -31,7 +31,7 @@ actual suspend fun VfsFile.readTexture(options: TextureOptions): Texture {
     return ImageBitmapTexture(
         vfs.context.graphics.device,
         options.format,
-        readImageBitmap(),
+        bitmap,
         if (options.generateMipMaps) Texture.calculateNumMips(bitmap.width, bitmap.height) else 1,
         options.samplerDescriptor,
     )

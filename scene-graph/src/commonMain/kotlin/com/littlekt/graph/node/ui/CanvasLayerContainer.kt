@@ -184,6 +184,7 @@ open class CanvasLayerContainer : Container() {
     }
 
     override fun propagateHit(hx: Float, hy: Float): Control? {
+        if (!enabled || !visible || isDestroyed) return null
         baseCoords(hx, hy)
         nodes.forEachReversed {
             val target =

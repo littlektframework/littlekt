@@ -225,6 +225,64 @@ class Animation(val name: String?) {
         }
     }
 
+    /**
+     * Creates a copy of this clip that animates the nodes [target] maps each animated node to, such
+     * as the nodes of a copied [com.littlekt.graphics.g3d.Model]. The playback state and [events]
+     * are copied. [onEvent] and [onFinished] aren't.
+     *
+     * @param target maps each animated [Node3D] to the node the copy animates
+     * @param targetPrimitive maps each morphed [MeshPrimitive] to the one the copy morphs
+     * @return the new clip
+     */
+    fun copy(
+        target: (Node3D) -> Node3D,
+        targetPrimitive: (MeshPrimitive) -> MeshPrimitive = { it },
+    ): Animation {
+        val copy = Animation(name)
+        val nodes = mutableMapOf<AnimationNode, AnimationNode>()
+        channels.forEach { channel ->
+            val node =
+                nodes.getOrPut(channel.animationNode) {
+                    channel.animationNode.copyFor(target, targetPrimitive)
+                }
+            copy.channels += channel.copyFor(node)
+        }
+        copy.prepareAnimation()
+        copy._events += _events
+        copy.weight = weight
+        copy.speed = speed
+        copy.progress = progress
+        copy.loop = loop
+        copy.isFinished = isFinished
+        copy.fadeTarget = fadeTarget
+        copy.fadeRate = fadeRate
+        return copy
+    }
+
+    private fun AnimationNode.copyFor(
+        target: (Node3D) -> Node3D,
+        targetPrimitive: (MeshPrimitive) -> MeshPrimitive,
+    ): AnimationNode =
+        when (this) {
+            is AnimatedTransformGroup ->
+                AnimatedTransformGroup(target(this.target)).also { it.setRest(this) }
+            is MorphAnimatedMesh -> MorphAnimatedMesh(targetPrimitive(this.target))
+            else -> error("Unable to copy an animation node of type ${this::class.simpleName}!")
+        }
+
+    private fun AnimationChannel<*>.copyFor(node: AnimationNode): AnimationChannel<*> =
+        when (this) {
+            is TranslationAnimationChannel ->
+                TranslationAnimationChannel(name, node).also { it.keys.putAll(keys) }
+            is RotationAnimationChannel ->
+                RotationAnimationChannel(name, node).also { it.keys.putAll(keys) }
+            is ScaleAnimationChannel ->
+                ScaleAnimationChannel(name, node).also { it.keys.putAll(keys) }
+            is WeightAnimationChannel ->
+                WeightAnimationChannel(name, node).also { it.keys.putAll(keys) }
+            else -> error("Unable to copy an animation channel of type ${this::class.simpleName}!")
+        }
+
     fun printChannels() {
         println("$name channels:")
         channels.forEach { ch ->
@@ -342,6 +400,12 @@ class AnimatedTransformGroup(val target: Node3D) : AnimationNode {
     }
 
     internal var blend = TransformBlend(target, _initTranslation, _initRotation, _initScale)
+
+    internal fun setRest(from: AnimatedTransformGroup) {
+        _initTranslation.set(from.initTranslation)
+        _initRotation.set(from.initRotation)
+        _initScale.set(from.initScale)
+    }
 
     override fun initTransform() {
         animTranslation.set(_initTranslation)

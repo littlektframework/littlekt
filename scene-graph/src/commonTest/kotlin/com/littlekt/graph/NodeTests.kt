@@ -369,7 +369,8 @@ class NodeTests {
         assertEquals(Duration.ZERO, node.dt)
         assertEquals(1f, node.ppu)
         assertEquals(1f, node.fixedProgressionRatio)
-        assertFailsWith<IllegalStateException> { node.context }
+        val error = assertFailsWith<IllegalStateException> { node.context }
+        assertTrue(error.message!!.contains("not in a SceneGraph"))
     }
 
     @Test

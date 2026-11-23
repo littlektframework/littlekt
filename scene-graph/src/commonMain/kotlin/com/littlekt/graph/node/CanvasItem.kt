@@ -127,11 +127,28 @@ abstract class CanvasItem : Node() {
     /**
      * Shows/hides the node if it is renderable. This item will receive no [render] calls and is
      * hidden but will continue to receive [update] calls.
+     *
+     * A hidden node hides its children without changing their own [visible] value, so showing it
+     * again brings back only the children that are [visible] themselves. See [isVisibleInTree].
      */
     var visible: Boolean
         get() = _visible
         set(value) {
             visible(value)
+        }
+
+    /** `true` if this node and every [CanvasItem] above it are [visible]. */
+    val isVisibleInTree: Boolean
+        get() = _visible && isParentVisibleInTree
+
+    private val isParentVisibleInTree: Boolean
+        get() {
+            var node = parent
+            while (node != null) {
+                if (node is CanvasItem && !node._visible) return false
+                node = node.parent
+            }
+            return true
         }
 
     /**
@@ -436,28 +453,43 @@ abstract class CanvasItem : Node() {
     }
 
     /**
-     * Shows/hides the [Node]. When disabled [propagateInternalRender] is no longer called.
+     * Shows/hides the [Node]. When hidden [propagateInternalRender] is no longer called for it or
+     * its children. The children keep their own [visible] value. Emits [onVisible] or [onInvisible]
+     * on this node and on each child whose [isVisibleInTree] changes.
      *
-     * @param value true to enable this node; false otherwise
+     * @param value true to show this node; false otherwise
      */
     fun visible(value: Boolean): Node {
-        if (_visible != value) {
-            _visible = value
-            nodes.forEach {
-                if (it is CanvasItem) {
-                    it.visible(value)
-                }
-            }
-
-            if (_visible) {
-                onVisible()
-                onVisible.emit()
-            } else {
-                onInvisible()
-                onInvisible.emit()
-            }
+        if (_visible == value) return this
+        _visible = value
+        emitVisibility(value)
+        if (isParentVisibleInTree) {
+            propagateTreeVisibility(this, value)
         }
         return this
+    }
+
+    private fun emitVisibility(value: Boolean) {
+        if (value) {
+            onVisible()
+            onVisible.emit()
+        } else {
+            onInvisible()
+            onInvisible.emit()
+        }
+    }
+
+    private fun propagateTreeVisibility(node: Node, value: Boolean) {
+        node.nodes.forEach {
+            if (it is CanvasItem) {
+                if (it._visible) {
+                    it.emitVisibility(value)
+                    propagateTreeVisibility(it, value)
+                }
+            } else {
+                propagateTreeVisibility(it, value)
+            }
+        }
     }
 
     override fun propagateInternalDebugRender(

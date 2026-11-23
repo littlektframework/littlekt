@@ -34,12 +34,13 @@ fun Control.fillParent(margin: Float = 0f) = anchor(AnchorLayout.FULL, margin)
 /** Anchors this [Control] to the center of its parent. */
 fun Control.centerInParent() = anchor(AnchorLayout.CENTER)
 
-/** Sets all four anchors of this [Control]. */
+/** Sets all four anchors of this [Control], or of its [Control.outermost] wrapper. */
 fun Control.anchors(left: Float, top: Float, right: Float, bottom: Float) {
-    anchorLeft = left
-    anchorTop = top
-    anchorRight = right
-    anchorBottom = bottom
+    val target = outermost
+    target.anchorLeft = left
+    target.anchorTop = top
+    target.anchorRight = right
+    target.anchorBottom = bottom
 }
 
 /**

@@ -1,7 +1,6 @@
 package com.littlekt.graphics.g3d
 
 import com.littlekt.graphics.g3d.skin.Skin
-import com.littlekt.util.datastructure.fastForEach
 
 /**
  * A MeshNode is a [Node3D] that used a list of [MeshPrimitive] for rendering, and an optional
@@ -34,9 +33,10 @@ private constructor(private val primitives: List<MeshPrimitive>, addInstanceOnIn
             MeshNode(primitives, false).also {
                 it.name = name
                 it.frustumCulled = frustumCulled
+                it.visible = visible
                 it.globalTransform = globalTransform
             }
-        children.fastForEach { child -> copy.addChild(child.copy()) }
+        copyChildrenTo(copy)
         return copy
     }
 }
