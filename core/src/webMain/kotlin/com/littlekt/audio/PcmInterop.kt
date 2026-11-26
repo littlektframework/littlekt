@@ -4,21 +4,15 @@ import kotlin.js.JsAny
 import org.khronos.webgl.Float32Array
 import org.w3c.dom.MessagePort
 
-internal fun audioContextOptions(sampleRate: Int): AudioContextOptions =
-    js("({ sampleRate: sampleRate, latencyHint: 'interactive' })")
+internal expect fun audioContextOptions(sampleRate: Int): AudioContextOptions
 
-internal fun pcmWorkletOptions(channels: Int): JsAny =
-    js(
-        "({ numberOfInputs: 0, numberOfOutputs: 1, outputChannelCount: [channels], processorOptions: { channels: channels } })"
-    )
+internal expect fun pcmWorkletOptions(channels: Int): JsAny
 
-internal fun scriptUrl(source: String): String =
-    js("URL.createObjectURL(new Blob([source], { type: 'application/javascript' }))")
+internal expect fun scriptUrl(source: String): String
 
-internal fun postPcmBuffer(port: MessagePort, buffer: Float32Array): Unit =
-    js("port.postMessage(buffer, [buffer.buffer])")
+internal expect fun postPcmBuffer(port: MessagePort, buffer: Float32Array)
 
-internal fun postPcmCommand(port: MessagePort, command: Int): Unit = js("port.postMessage(command)")
+internal expect fun postPcmCommand(port: MessagePort, command: Int)
 
 internal const val PCM_PROCESSOR = "littlekt-pcm"
 
