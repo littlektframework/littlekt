@@ -10,6 +10,7 @@ import com.littlekt.file.JvmByteSequenceStream
 import com.littlekt.graphics.Pixmap
 import com.littlekt.graphics.PixmapTexture
 import com.littlekt.graphics.Texture
+import com.littlekt.graphics.webgpu.Device
 import com.littlekt.log.Logger
 import fr.delthas.javamp3.Sound
 import java.io.ByteArrayInputStream
@@ -24,8 +25,33 @@ import org.lwjgl.system.MemoryUtil
 
 private val logger = Logger("VfsLoaders")
 
-/** Reads Base64 encoded ByteArray for embedded images. */
-internal actual suspend fun ByteArray.readPixmap(): Pixmap = readPixmapInternal(this)
+/**
+ * Decodes PNG or JPEG bytes, or any other image format stb_image can decode, into a [Pixmap] of
+ * RGBA pixels.
+ *
+ * @return the decoded pixmap
+ */
+actual suspend fun ByteArray.readPixmap(): Pixmap = readPixmapInternal(this)
+
+/**
+ * Decodes PNG or JPEG bytes, or any other image format stb_image can decode, into a [Texture].
+ *
+ * @param device the device to create the texture with
+ * @param options additional [TextureOptions] such as generating mips or passing along a
+ *   [com.littlekt.graphics.webgpu.SamplerDescriptor].
+ * @return the decoded texture
+ */
+actual suspend fun ByteArray.readTexture(device: Device, options: TextureOptions): Texture =
+    readPixmapInternal(this).toTexture(device, options)
+
+private fun Pixmap.toTexture(device: Device, options: TextureOptions): Texture =
+    PixmapTexture(
+        device,
+        options.format,
+        this,
+        if (options.generateMipMaps) Texture.calculateNumMips(width, height) else 1,
+        options.samplerDescriptor,
+    )
 
 /**
  * Loads an image from the path as a [Pixmap].
@@ -61,16 +87,8 @@ private fun readPixmapInternal(bytes: ByteArray): Pixmap {
     }
 }
 
-actual suspend fun VfsFile.readTexture(options: TextureOptions): Texture {
-    val pixmap = readPixmap()
-    return PixmapTexture(
-        vfs.context.graphics.device,
-        options.format,
-        pixmap,
-        if (options.generateMipMaps) Texture.calculateNumMips(pixmap.width, pixmap.height) else 1,
-        options.samplerDescriptor,
-    )
-}
+actual suspend fun VfsFile.readTexture(options: TextureOptions): Texture =
+    readPixmap().toTexture(vfs.context.graphics.device, options)
 
 /**
  * Loads audio from the path as an [AudioClip].

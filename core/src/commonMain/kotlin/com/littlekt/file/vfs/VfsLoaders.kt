@@ -1,7 +1,9 @@
 package com.littlekt.file.vfs
 
 import com.littlekt.audio.AudioClip
+import com.littlekt.audio.AudioSamples
 import com.littlekt.audio.AudioStream
+import com.littlekt.audio.decodeAudioSamples
 import com.littlekt.file.ByteBuffer
 import com.littlekt.file.UnsupportedFileTypeException
 import com.littlekt.file.atlas.AtlasInfo
@@ -28,6 +30,7 @@ import com.littlekt.graphics.g2d.tilemap.ldtk.LDtkWorld
 import com.littlekt.graphics.g2d.tilemap.tiled.TiledMap
 import com.littlekt.graphics.g3d.MeshNode
 import com.littlekt.graphics.g3d.Model
+import com.littlekt.graphics.webgpu.Device
 import com.littlekt.graphics.webgpu.SamplerDescriptor
 import com.littlekt.graphics.webgpu.TextureFormat
 import com.littlekt.math.MutableVec4i
@@ -315,8 +318,33 @@ suspend fun VfsFile.readTiledMap(
     return loader.loadMap()
 }
 
-/** Reads Base64 encoded ByteArray for embedded images. */
-internal expect suspend fun ByteArray.readPixmap(): Pixmap
+/**
+ * Decodes PNG or JPEG bytes, or any other image format the platform can decode, into a [Pixmap]
+ * of RGBA pixels.
+ *
+ * @return the decoded pixmap
+ */
+expect suspend fun ByteArray.readPixmap(): Pixmap
+
+/**
+ * Decodes PNG or JPEG bytes, or any other image format the platform can decode, into a [Texture].
+ *
+ * @param device the device to create the texture with
+ * @param options additional [TextureOptions] such as generating mips or passing along a
+ *   [SamplerDescriptor].
+ * @return the decoded texture
+ */
+expect suspend fun ByteArray.readTexture(device: Device, options: TextureOptions): Texture
+
+/**
+ * Decodes PNG or JPEG bytes, or any other image format the platform can decode, into a [Texture].
+ *
+ * @param device the device to create the texture with
+ * @param preferredFormat preferred [TextureFormat] of the texture.
+ * @return the decoded texture
+ */
+suspend fun ByteArray.readTexture(device: Device, preferredFormat: TextureFormat): Texture =
+    readTexture(device, TextureOptions(preferredFormat))
 
 internal expect suspend fun ByteArray.readImageData(
     mimeType: String? = null
@@ -365,6 +393,14 @@ expect suspend fun VfsFile.readAudioClip(): AudioClip
  * @return a new [AudioStream]
  */
 expect suspend fun VfsFile.readAudioStream(): AudioStream
+
+/**
+ * Decodes a WAV, OGG Vorbis or MP3 file into [AudioSamples], such as to mix through a
+ * [com.littlekt.audio.PcmOutput].
+ *
+ * @return the decoded samples
+ */
+suspend fun VfsFile.readAudioSamples(): AudioSamples = readBytes().decodeAudioSamples()
 
 /**
  * Reads a `.glb` or `.gltf` into a `GltfData` object. This object on its own doesn't do anything.

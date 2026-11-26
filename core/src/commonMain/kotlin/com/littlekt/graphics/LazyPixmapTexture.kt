@@ -123,6 +123,7 @@ class LazyPixmapTexture(
             field = value
             // we need to change the id due to the texture changing, mainly because it is used for
             // caching in other classes
+            Texture.notifyInvalidated(id)
             id = UniqueId.next<Texture>()
         }
 

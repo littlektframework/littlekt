@@ -44,6 +44,7 @@ class GlyphLayout {
                 it.width = 0f
                 it.color = Color.WHITE
                 it.advances.clear()
+                it.wrapped = false
             },
         ) {
             GlyphRun()
@@ -63,6 +64,12 @@ class GlyphLayout {
      * @param truncate if not null and the width of the glyphs exceed [width], the glyphs are
      *   truncated with the glyphs of the specified truncate string. Truncate should not be used
      *   with text that contains multiple lines. Wrap is ignored if truncate is not null.
+     * @param letterSpacing the extra space, in pixels, added between each glyph of a line. It
+     *   isn't scaled by [scaleX].
+     * @param lineSpacing the extra space, in pixels, added between each line. It isn't scaled by
+     *   [scaleY].
+     * @param justify if `true`, lines ended by a wrap are stretched to the wrap width by widening
+     *   their spaces. The last line of each paragraph keeps [align]. Requires [wrap].
      */
     fun setText(
         font: Font,
@@ -74,6 +81,9 @@ class GlyphLayout {
         align: HAlign = HAlign.LEFT,
         wrap: Boolean = false,
         truncate: String? = null,
+        letterSpacing: Float = 0f,
+        lineSpacing: Float = 0f,
+        justify: Boolean = false,
     ) {
         reset()
 
@@ -86,6 +96,7 @@ class GlyphLayout {
         _colors += 0
         _colors += currentColor
         var lastRun = false
+        val lineAdvance = font.metrics.lineHeight * scaleY + lineSpacing
         var y = font.metrics.lineHeight * scaleY
         var runStart = 0
         var currentRun: GlyphRun? = null
@@ -110,7 +121,7 @@ class GlyphLayout {
                         glyphRunPool.alloc().apply {
                             this.x = 0f
                             this.y = y
-                            getGlyphsFrom(font, text, scaleX, runStart, runEnd, null)
+                            getGlyphsFrom(font, text, scaleX, runStart, runEnd, null, letterSpacing)
                         }
                     glyphCount += run.glyphs.size
 
@@ -151,7 +162,7 @@ class GlyphLayout {
                                 }
 
                                 if (truncate != null) {
-                                    truncate(font, cr, scaleX, width, truncate)
+                                    truncate(font, cr, scaleX, width, truncate, letterSpacing)
                                     return@outer
                                 }
 
@@ -164,13 +175,19 @@ class GlyphLayout {
                                 ) { // wrap al least the glyph that didn't fit
                                     wrapIndex = i - 1
                                 }
+                                val wrappedRun = glyphRun
+                                wrappedRun.wrapped = true
                                 val newRun =
                                     wrap(font, scaleX, glyphRun, wrapIndex)
                                         .also { currentRun = it }
-                                        ?.also { glyphRun = it } ?: return@runEnded
+                                        ?.also { glyphRun = it }
+                                if (newRun == null) {
+                                    wrappedRun.wrapped = false
+                                    return@runEnded
+                                }
 
                                 _runs += newRun
-                                y -= font.metrics.lineHeight * scaleY
+                                y -= lineAdvance
                                 newRun.x = 0f
                                 newRun.y = y
 
@@ -184,12 +201,7 @@ class GlyphLayout {
                 if (newLine) {
                     currentRun = null
 
-                    y -=
-                        if (runEnd == runStart) { // blank line
-                            font.metrics.lineHeight * scaleY
-                        } else {
-                            font.metrics.lineHeight * scaleY
-                        }
+                    y -= lineAdvance
                 }
                 runStart = index
             }
@@ -197,15 +209,50 @@ class GlyphLayout {
         height = (font.metrics.capHeight + font.metrics.lineHeight) * scaleY - y
 
         calculateWidths(font, scaleX)
+        if (justify && wrap && truncate == null && justifyRuns(font, targetWidth)) {
+            calculateWidths(font, scaleX)
+        }
         alignRuns(targetWidth, align)
     }
 
-    private fun truncate(font: Font, run: GlyphRun, scaleX: Float, width: Float, truncate: String) {
+    private fun justifyRuns(font: Font, targetWidth: Float): Boolean {
+        var justified = false
+        for (r in _runs.indices) {
+            val run = _runs[r]
+            if (!run.wrapped) continue
+            val extra = targetWidth - run.x - run.width
+            if (extra <= 0f) continue
+            var start = 0
+            while (start < run.glyphs.size && font.isWhitespace(run.glyphs[start].code.toChar())) {
+                start++
+            }
+            var spaces = 0
+            for (i in start until run.glyphs.size - 1) {
+                if (font.isWhitespace(run.glyphs[i].code.toChar())) spaces++
+            }
+            if (spaces == 0) continue
+            val gap = extra / spaces
+            for (i in start until run.glyphs.size - 1) {
+                if (font.isWhitespace(run.glyphs[i].code.toChar())) run.advances[i + 1] += gap
+            }
+            justified = true
+        }
+        return justified
+    }
+
+    private fun truncate(
+        font: Font,
+        run: GlyphRun,
+        scaleX: Float,
+        width: Float,
+        truncate: String,
+        letterSpacing: Float,
+    ) {
         var targetWidth = width
         val glyphCount = run.glyphs.size
 
         val truncateRun = glyphRunPool.alloc()
-        truncateRun.getGlyphsFrom(font, truncate, scaleX, 0, truncate.length, null)
+        truncateRun.getGlyphsFrom(font, truncate, scaleX, 0, truncate.length, null, letterSpacing)
         var truncateWidth = 0f
         if (truncateRun.advances.isNotEmpty()) {
             truncateRun.setLastGlyphAdvanceToWidth(font, scaleX)
@@ -213,7 +260,7 @@ class GlyphLayout {
                 truncateWidth += truncateRun.advances[i]
             }
         }
-        targetWidth -= truncateWidth
+        targetWidth -= truncateWidth + letterSpacing
 
         var count = 0
         var runWidth = run.x
@@ -228,6 +275,7 @@ class GlyphLayout {
             run.advances.size = count
             run.setLastGlyphAdvanceToWidth(font, scaleX)
             if (truncateRun.advances.isNotEmpty()) {
+                run.advances[run.advances.size - 1] += letterSpacing
                 run.advances.add(truncateRun.advances.data, 1, truncateRun.advances.size - 1)
             }
         } else {
@@ -370,6 +418,10 @@ class GlyphRun {
     var width: Float = 0f
     var color: Color = Color.WHITE
 
+    /** `true` if this line was ended by a wrap rather than a new line or the end of the text. */
+    var wrapped: Boolean = false
+        internal set
+
     fun append(run: GlyphRun) {
         glyphs.addAll(run.glyphs)
         if (advances.isNotEmpty()) {
@@ -383,13 +435,19 @@ class GlyphRun {
         advances.clear()
     }
 
+    /**
+     * Adds the glyphs of [text] from [start] to [end] and their advances.
+     *
+     * @param letterSpacing the extra space, in pixels, added between each glyph
+     */
     fun getGlyphsFrom(
         font: Font,
         text: CharSequence,
         scaleX: Float,
         start: Int,
         end: Int,
-        lastGlyph: GlyphMetrics?
+        lastGlyph: GlyphMetrics?,
+        letterSpacing: Float = 0f,
     ) {
         val max = end - start
         if (max == 0) return
@@ -414,7 +472,7 @@ class GlyphRun {
                 if (currGlyph == null) (-glyph.left - font.metrics.padding.left) * scaleX
                 else
                     (currGlyph.xAdvance + font.getKerningAmount(1f, currGlyph.code, ch.code)) *
-                        scaleX
+                        scaleX + letterSpacing
             currGlyph = glyph
         } while (i < end)
 

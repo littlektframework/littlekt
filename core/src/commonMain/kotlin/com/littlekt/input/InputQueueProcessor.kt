@@ -39,11 +39,14 @@ class InputQueueProcessor {
                 InternalInputEventType.KEY_UP -> processors.keyUp(key = it.key)
                 InternalInputEventType.KEY_REPEAT -> processors.keyRepeat(key = it.key)
                 InternalInputEventType.CHAR_TYPED -> processors.charTyped(character = it.typedChar)
-                InternalInputEventType.TOUCH_DOWN -> processors.touchDown(it.x, it.y, it.pointer)
-                InternalInputEventType.TOUCH_UP -> processors.touchUp(it.x, it.y, it.pointer)
+                InternalInputEventType.TOUCH_DOWN ->
+                    processors.touchDown(it.x, it.y, it.pointer, it.pointerType)
+                InternalInputEventType.TOUCH_UP ->
+                    processors.touchUp(it.x, it.y, it.pointer, it.pointerType)
                 InternalInputEventType.TOUCH_DRAGGED ->
-                    processors.touchDragged(it.x, it.y, it.pointer)
-                InternalInputEventType.MOUSE_MOVED -> processors.mouseMoved(it.x, it.y)
+                    processors.touchDragged(it.x, it.y, it.pointer, it.pointerType)
+                InternalInputEventType.MOUSE_MOVED ->
+                    processors.mouseMoved(it.x, it.y, it.pointerType)
                 InternalInputEventType.SCROLLED -> processors.scrolled(it.x, it.y)
                 InternalInputEventType.GAMEPAD_BUTTON_DOWN ->
                     processors.gamepadButtonPressed(
@@ -115,7 +118,13 @@ class InputQueueProcessor {
             .also { queue.add(it) }
     }
 
-    fun touchDown(screenX: Float, screenY: Float, pointer: Pointer, time: Long) {
+    fun touchDown(
+        screenX: Float,
+        screenY: Float,
+        pointer: Pointer,
+        time: Long,
+        pointerType: PointerType = PointerType.MOUSE,
+    ) {
         eventsPool
             .alloc {
                 it.apply {
@@ -124,12 +133,19 @@ class InputQueueProcessor {
                     y = screenY
                     queueTime = time
                     this.pointer = pointer
+                    this.pointerType = pointerType
                 }
             }
             .also { queue.add(it) }
     }
 
-    fun touchUp(screenX: Float, screenY: Float, pointer: Pointer, time: Long) {
+    fun touchUp(
+        screenX: Float,
+        screenY: Float,
+        pointer: Pointer,
+        time: Long,
+        pointerType: PointerType = PointerType.MOUSE,
+    ) {
         eventsPool
             .alloc {
                 it.apply {
@@ -138,12 +154,19 @@ class InputQueueProcessor {
                     y = screenY
                     queueTime = time
                     this.pointer = pointer
+                    this.pointerType = pointerType
                 }
             }
             .also { queue.add(it) }
     }
 
-    fun touchDragged(screenX: Float, screenY: Float, pointer: Pointer, time: Long) {
+    fun touchDragged(
+        screenX: Float,
+        screenY: Float,
+        pointer: Pointer,
+        time: Long,
+        pointerType: PointerType = PointerType.MOUSE,
+    ) {
         eventsPool
             .alloc {
                 it.apply {
@@ -152,12 +175,18 @@ class InputQueueProcessor {
                     y = screenY
                     queueTime = time
                     this.pointer = pointer
+                    this.pointerType = pointerType
                 }
             }
             .also { queue.add(it) }
     }
 
-    fun mouseMoved(screenX: Float, screenY: Float, time: Long) {
+    fun mouseMoved(
+        screenX: Float,
+        screenY: Float,
+        time: Long,
+        pointerType: PointerType = PointerType.MOUSE,
+    ) {
         eventsPool
             .alloc {
                 it.apply {
@@ -165,6 +194,7 @@ class InputQueueProcessor {
                     x = screenX
                     y = screenY
                     queueTime = time
+                    this.pointerType = pointerType
                 }
             }
             .also { queue.add(it) }
@@ -262,24 +292,35 @@ class InputQueueProcessor {
         fastForEach { if (it.charTyped(character)) return }
     }
 
-    private fun List<InputProcessor>.touchDown(screenX: Float, screenY: Float, pointer: Pointer) {
-        fastForEach { if (it.touchDown(screenX, screenY, pointer)) return }
+    private fun List<InputProcessor>.touchDown(
+        screenX: Float,
+        screenY: Float,
+        pointer: Pointer,
+        type: PointerType,
+    ) {
+        fastForEach { if (it.touchDown(screenX, screenY, pointer, type)) return }
     }
 
-    private fun List<InputProcessor>.touchUp(screenX: Float, screenY: Float, pointer: Pointer) {
-        fastForEach { if (it.touchUp(screenX, screenY, pointer)) return }
+    private fun List<InputProcessor>.touchUp(
+        screenX: Float,
+        screenY: Float,
+        pointer: Pointer,
+        type: PointerType,
+    ) {
+        fastForEach { if (it.touchUp(screenX, screenY, pointer, type)) return }
     }
 
     private fun List<InputProcessor>.touchDragged(
         screenX: Float,
         screenY: Float,
-        pointer: Pointer
+        pointer: Pointer,
+        type: PointerType,
     ) {
-        fastForEach { if (it.touchDragged(screenX, screenY, pointer)) return }
+        fastForEach { if (it.touchDragged(screenX, screenY, pointer, type)) return }
     }
 
-    private fun List<InputProcessor>.mouseMoved(screenX: Float, screenY: Float) {
-        fastForEach { if (it.mouseMoved(screenX, screenY)) return }
+    private fun List<InputProcessor>.mouseMoved(screenX: Float, screenY: Float, type: PointerType) {
+        fastForEach { if (it.mouseMoved(screenX, screenY, type)) return }
     }
 
     private fun List<InputProcessor>.scrolled(amountX: Float, amountY: Float) {

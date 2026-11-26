@@ -271,6 +271,10 @@ class BillboardBatch(val device: Device, initialQuads: Int = 1024) : Releasable 
      * @param size the font size in world units, or pixels if [sizeInPixels]
      * @param originX the origin from the left of the text, from `0` to `1`
      * @param originY the origin from the bottom of the text's capital letters, from `0` to `1`
+     * @param letterSpacing the extra space added between each glyph, in world units, or pixels if
+     *   [sizeInPixels]
+     * @param lineSpacing the extra space added between each line, in world units, or pixels if
+     *   [sizeInPixels]
      * @see draw
      */
     fun drawText(
@@ -285,12 +289,22 @@ class BillboardBatch(val device: Device, initialQuads: Int = 1024) : Releasable 
         originY: Float = 0.5f,
         mode: BillboardMode = BillboardMode.SPHERICAL,
         sizeInPixels: Boolean = false,
+        letterSpacing: Float = 0f,
+        lineSpacing: Float = 0f,
     ) {
         checkDrawing()
         if (text.isEmpty() || font.metrics.size <= 0f) return
         val worldSize = if (sizeInPixels) size * worldPerPixel(x, y, z) else size
         val scale = worldSize / font.metrics.size
-        layout.setText(font, text, scaleX = scale, scaleY = scale)
+        val spacingScale = if (sizeInPixels && size != 0f) worldSize / size else 1f
+        layout.setText(
+            font,
+            text,
+            scaleX = scale,
+            scaleY = scale,
+            letterSpacing = letterSpacing * spacingScale,
+            lineSpacing = lineSpacing * spacingScale,
+        )
         if (layout.runs.isEmpty()) return
         val metrics = font.metrics
         val first = layout.runs.first()

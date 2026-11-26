@@ -82,6 +82,57 @@ interface InputProcessor {
     fun mouseMoved(screenX: Float, screenY: Float): Boolean = false
 
     /**
+     * Invoked when a [Pointer] is initially touched or clicked, with the [PointerType] of the
+     * device. Calls [touchDown] without the type by default.
+     *
+     * @param screenX the x-coordinate of the event based on screen
+     * @param screenY the y-coordinate of the event based on screen
+     * @param pointer the pointer that was pressed/clicked
+     * @param type the kind of device that was pressed
+     * @return true if event is handled; false otherwise
+     */
+    fun touchDown(screenX: Float, screenY: Float, pointer: Pointer, type: PointerType): Boolean =
+        touchDown(screenX, screenY, pointer)
+
+    /**
+     * Invoked when a [Pointer] is released, with the [PointerType] of the device. Calls [touchUp]
+     * without the type by default.
+     *
+     * @param screenX the x-coordinate of the event based on screen
+     * @param screenY the y-coordinate of the event based on screen
+     * @param pointer the pointer that was released
+     * @param type the kind of device that was released
+     * @return true if event is handled; false otherwise
+     */
+    fun touchUp(screenX: Float, screenY: Float, pointer: Pointer, type: PointerType): Boolean =
+        touchUp(screenX, screenY, pointer)
+
+    /**
+     * Invoked when a [Pointer] is pressed/clicked and dragged, with the [PointerType] of the
+     * device. Calls [touchDragged] without the type by default.
+     *
+     * @param screenX the x-coordinate of the event based on screen
+     * @param screenY the y-coordinate of the event based on screen
+     * @param pointer the pointer that was pressed and dragged
+     * @param type the kind of device that was dragged
+     * @return true if event is handled; false otherwise
+     */
+    fun touchDragged(screenX: Float, screenY: Float, pointer: Pointer, type: PointerType): Boolean =
+        touchDragged(screenX, screenY, pointer)
+
+    /**
+     * Invoked when a mouse or a hovering pen is moved, with the [PointerType] of the device. Calls
+     * [mouseMoved] without the type by default.
+     *
+     * @param screenX the x-coordinate of the event based on screen
+     * @param screenY the y-coordinate of the event based on screen
+     * @param type the kind of device that was moved
+     * @return true if event is handled; false otherwise
+     */
+    fun mouseMoved(screenX: Float, screenY: Float, type: PointerType): Boolean =
+        mouseMoved(screenX, screenY)
+
+    /**
      * Invoked when the mouse is scrolled.
      *
      * @param amountX the scroll amount on the x-coordinate

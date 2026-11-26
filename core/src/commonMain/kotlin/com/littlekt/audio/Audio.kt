@@ -30,4 +30,23 @@ interface Audio {
      * @return `false` if switching isn't supported or failed
      */
     fun setOutputDevice(name: String?): Boolean
+
+    /**
+     * Creates a [PcmOutput] that plays the raw samples written by [source]. It starts paused; call
+     * [PcmOutput.play] to start it.
+     *
+     * @param sampleRate the number of frames played per second
+     * @param channels `1` for mono or `2` for stereo
+     * @param bufferFrames the number of frames [source] writes per buffer
+     * @param bufferCount the number of buffers queued for playback, at least `2`. The latency is
+     *   `bufferFrames * bufferCount / sampleRate` seconds.
+     * @param source writes the samples. Called from the audio thread on desktop.
+     */
+    fun createPcmOutput(
+        sampleRate: Int = PcmOutput.DEFAULT_SAMPLE_RATE,
+        channels: Int = 2,
+        bufferFrames: Int = PcmOutput.DEFAULT_BUFFER_FRAMES,
+        bufferCount: Int = PcmOutput.DEFAULT_BUFFER_COUNT,
+        source: PcmSource,
+    ): PcmOutput
 }

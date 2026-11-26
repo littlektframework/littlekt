@@ -162,6 +162,10 @@ open class FontCache(val pages: Int = 1) {
      * @param wrap if true, the text will be wrapped within the [targetWidth]
      * @param verticalAlign where [y] is on the text's lines: their top, center or bottom. `null`
      *   puts the bottom of the first line at [y].
+     * @param letterSpacing the extra space, in pixels, added between each glyph of a line
+     * @param lineSpacing the extra space, in pixels, added between each line
+     * @param justify if `true`, wrapped lines are stretched to [targetWidth] by widening their
+     *   spaces
      */
     fun setText(
         font: Font,
@@ -177,6 +181,9 @@ open class FontCache(val pages: Int = 1) {
         wrap: Boolean = false,
         truncate: String? = null,
         verticalAlign: VAlign? = null,
+        letterSpacing: Float = 0f,
+        lineSpacing: Float = 0f,
+        justify: Boolean = false,
     ) {
         clear()
         addText(
@@ -193,6 +200,9 @@ open class FontCache(val pages: Int = 1) {
             wrap,
             truncate,
             verticalAlign,
+            letterSpacing,
+            lineSpacing,
+            justify,
         )
     }
 
@@ -237,6 +247,10 @@ open class FontCache(val pages: Int = 1) {
      * @param truncate the string to display when the text is too long to fit within [targetWidth]
      * @param verticalAlign where [y] is on the text's lines: their top, center or bottom. `null`
      *   puts the bottom of the first line at [y].
+     * @param letterSpacing the extra space, in pixels, added between each glyph of a line
+     * @param lineSpacing the extra space, in pixels, added between each line
+     * @param justify if `true`, wrapped lines are stretched to [targetWidth] by widening their
+     *   spaces
      */
     fun addText(
         font: Font,
@@ -252,10 +266,26 @@ open class FontCache(val pages: Int = 1) {
         wrap: Boolean = false,
         truncate: String? = null,
         verticalAlign: VAlign? = null,
+        letterSpacing: Float = 0f,
+        lineSpacing: Float = 0f,
+        justify: Boolean = false,
     ) {
         val layout = layoutPool.alloc()
         pooledLayouts += layout
-        layout.setText(font, text, color, targetWidth, scaleX, scaleY, align, wrap, truncate)
+        layout.setText(
+            font,
+            text,
+            color,
+            targetWidth,
+            scaleX,
+            scaleY,
+            align,
+            wrap,
+            truncate,
+            letterSpacing,
+            lineSpacing,
+            justify,
+        )
         val alignedY = y + verticalOffset(layout, font.metrics.lineHeight * scaleY, verticalAlign)
         addToCache(layout, x, alignedY, scaleX, scaleY, rotation, color)
     }

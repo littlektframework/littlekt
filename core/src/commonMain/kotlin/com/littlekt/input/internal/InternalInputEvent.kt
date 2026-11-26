@@ -10,6 +10,7 @@ internal class InternalInputEvent(
     var key: Key = Key.ANY_KEY,
     var typedChar: Char = Char.MIN_VALUE,
     var pointer: Pointer = Pointer.POINTER1,
+    var pointerType: PointerType = PointerType.MOUSE,
     var gamepadButton: GameButton = GameButton.BUTTON0,
     var gamepadButtonPressure: Float = 0f,
     var gamepadStick: GameStick = GameStick.LEFT,
@@ -40,11 +41,12 @@ internal class InternalInputEvent(
         gamepadButtonPressure = 0f
         gamepadButton = GameButton.BUTTON0
         pointer = Pointer.POINTER1
+        pointerType = PointerType.MOUSE
         typedChar = Char.MIN_VALUE
         key = Key.ANY_KEY
     }
 
     override fun toString(): String {
-        return "InternalInputEvent(key=$key, typedChar=$typedChar, pointer=$pointer, gamepadButton=$gamepadButton, gamepadButtonPressure=$gamepadButtonPressure, gamepadStick=$gamepadStick, gamepad=$gamepad, queueTime=$queueTime, x=$x, y=$y, type=$type)"
+        return "InternalInputEvent(key=$key, typedChar=$typedChar, pointer=$pointer, pointerType=$pointerType, gamepadButton=$gamepadButton, gamepadButtonPressure=$gamepadButtonPressure, gamepadStick=$gamepadStick, gamepad=$gamepad, queueTime=$queueTime, x=$x, y=$y, type=$type)"
     }
 }

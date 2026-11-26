@@ -12,6 +12,7 @@ import com.littlekt.graphics.LazyTexture
 import com.littlekt.graphics.Pixmap
 import com.littlekt.graphics.Texture
 import com.littlekt.graphics.g2d.ImageBitmapTexture
+import com.littlekt.graphics.webgpu.Device
 import kotlinx.browser.document
 import kotlinx.coroutines.CompletableDeferred
 import org.w3c.dom.*
@@ -47,11 +48,37 @@ private suspend fun fetchData(url: String): Result<Response> {
     }
 }
 expect fun encodeByteArrayToBase64(array: ByteArray) : String
-/** Reads Base64 encoded ByteArray for embedded images. */
-internal actual suspend fun ByteArray.readPixmap(): Pixmap {
-    val path = "data:image/png;base64,${encodeByteArrayToBase64(this)}"
+/**
+ * Decodes PNG or JPEG bytes, or any other image format the browser can decode, into a [Pixmap] of
+ * RGBA pixels.
+ *
+ * @return the decoded pixmap
+ */
+actual suspend fun ByteArray.readPixmap(): Pixmap {
+    val path = "data:${imageMimeType()};base64,${encodeByteArrayToBase64(this)}"
 
     return readPixmap(path)
+}
+
+/**
+ * Decodes PNG or JPEG bytes, or any other image format the browser can decode, into a [Texture].
+ *
+ * @param device the device to create the texture with
+ * @param options additional [TextureOptions] such as generating mips or passing along a
+ *   [com.littlekt.graphics.webgpu.SamplerDescriptor].
+ * @return the decoded texture
+ */
+actual suspend fun ByteArray.readTexture(device: Device, options: TextureOptions): Texture {
+    val array = arrayOf<JsAny?>(com.littlekt.file.compression.toUint8Array(this))
+    val blob = Blob(toJsArray(array), BlobPropertyBag(imageMimeType()))
+    val bitmap = createImageBitmap(blob).await<ImageBitmap>()
+    return ImageBitmapTexture(
+        device,
+        options.format,
+        bitmap,
+        if (options.generateMipMaps) Texture.calculateNumMips(bitmap.width, bitmap.height) else 1,
+        options.samplerDescriptor,
+    )
 }
 
 /**

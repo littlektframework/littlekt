@@ -2,10 +2,12 @@ package com.littlekt.examples
 
 import com.littlekt.Context
 import com.littlekt.ContextListener
+import com.littlekt.examples.audio.PcmAudioExample
 import com.littlekt.examples.g2d.AnimationExample
 import com.littlekt.examples.g2d.AssetProviderExample
 import com.littlekt.examples.g2d.FontExample
 import com.littlekt.examples.g2d.MsdfFontExample
+import com.littlekt.examples.g2d.TextLayoutExample
 import com.littlekt.examples.g2d.TtfFontExample
 import com.littlekt.examples.g2d.CpuParticlesExample
 import com.littlekt.examples.g2d.RenderTargetExample
@@ -91,6 +93,7 @@ val availableExamples: Map<String, Example> = examples {
         example("-font", "Font", ::FontExample)
         example("-ttfFont", "TrueType Font", ::TtfFontExample)
         example("-msdfFont", "MSDF Font", ::MsdfFontExample)
+        example("-textLayout", "Text Layout & Scissor", ::TextLayoutExample)
         example("-renderTarget", "Render Target", ::RenderTargetExample)
         example("-assetProvider", "Asset Provider", ::AssetProviderExample)
     }
@@ -130,5 +133,8 @@ val availableExamples: Map<String, Example> = examples {
     }
     category("Input") {
         example("-input", "Input", ::InputExample)
+    }
+    category("Audio") {
+        example("-pcmAudio", "PCM Audio", ::PcmAudioExample)
     }
 }

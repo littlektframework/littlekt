@@ -56,6 +56,18 @@
 - Add `DistortionEffect` for heat haze & shockwaves.
 - Add extra textures to `ShaderPostEffect` with `textureCount` & `setTexture`.
 - Fix `Bloom` spreading NaN & infinite pixels into a black square.
+- Add `ByteArray.readPixmap()` & `ByteArray.readTexture()` to decode PNG & JPEG bytes on every target.
+- Add `SpriteBatch.setScissorRect` & `clearScissorRect` to clip draws without flushing.
+- Add `SpriteBatch.bindGroupCacheSize` & release cached bind groups of released or recreated textures.
+- Add `Texture.addInvalidationListener`, `removeInvalidationListener` & `notifyInvalidated`.
+- Add `PointerType`, `Input.getPointerType` & `InputProcessor` pointer events with their type.
+- Add `letterSpacing`, `lineSpacing` & `justify` to `GlyphLayout`, `FontCache`, `BitmapFont.draw` & `Label`.
+- Add `letterSpacing` & `lineSpacing` to `BillboardBatch.drawText`.
+- Make `RenderPassColorAttachmentDescriptor.view` & `resolveTarget` mutable to reuse a descriptor each frame.
+- Reuse the native render pass descriptor on the JVM instead of allocating one per render pass.
+- Add `Audio.createPcmOutput` & `PcmOutput` to stream raw samples written by a `PcmSource`.
+- Add `AudioSamples`, `decodeAudioSamples`, `decodeWav` & `VfsFile.readAudioSamples` to decode WAV, OGG & MP3 to float samples.
+- Add WAV `smpl` loop points & `cue ` markers to `AudioSamples`.
 
 ## 0.12.0
 

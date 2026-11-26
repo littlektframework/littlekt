@@ -170,6 +170,30 @@ open class Label : Control() {
             onMinimumSizeChanged()
         }
 
+    /** The extra space, in pixels, added between each glyph of a line. */
+    var letterSpacing: Float = 0f
+        set(value) {
+            if (value == field) return
+            field = value
+            onMinimumSizeChanged()
+        }
+
+    /** The extra space, in pixels, added between each line. */
+    var lineSpacing: Float = 0f
+        set(value) {
+            if (value == field) return
+            field = value
+            onMinimumSizeChanged()
+        }
+
+    /** `true` to stretch wrapped lines to the width of the label by widening their spaces. */
+    var justify: Boolean = false
+        set(value) {
+            if (value == field) return
+            field = value
+            onMinimumSizeChanged()
+        }
+
     /** Convert the text to all uppercase. */
     var uppercase: Boolean = false
         set(value) {
@@ -236,6 +260,9 @@ open class Label : Control() {
                 align = horizontalAlign,
                 wrap = wrap,
                 truncate = ellipsis,
+                letterSpacing = letterSpacing,
+                lineSpacing = lineSpacing,
+                justify = justify,
             )
             textWidth = layout.width
 
@@ -261,6 +288,9 @@ open class Label : Control() {
             horizontalAlign,
             wrap,
             ellipsis,
+            letterSpacing,
+            lineSpacing,
+            justify,
         )
 
         val lineHeight = font.metrics.lineHeight * fontScaleY

@@ -48,3 +48,21 @@ class MimeType(val mime: String, val exts: List<String>) {
             MimeType_byExtensions[ext.lowercase()] ?: default
     }
 }
+
+/** @return the image mime type of these bytes by their signature, `image/png` if unknown. */
+internal fun ByteArray.imageMimeType(): String =
+    when {
+        startsWith(0xFF, 0xD8, 0xFF) -> "image/jpeg"
+        startsWith(0x47, 0x49, 0x46, 0x38) -> "image/gif"
+        startsWith(0x42, 0x4D) -> "image/bmp"
+        size >= 12 && startsWith(0x52, 0x49, 0x46, 0x46) && this[8] == 0x57.toByte() &&
+            this[9] == 0x45.toByte() && this[10] == 0x42.toByte() && this[11] == 0x50.toByte() ->
+            "image/webp"
+        else -> "image/png"
+    }
+
+private fun ByteArray.startsWith(vararg signature: Int): Boolean {
+    if (size < signature.size) return false
+    for (i in signature.indices) if (this[i] != signature[i].toByte()) return false
+    return true
+}

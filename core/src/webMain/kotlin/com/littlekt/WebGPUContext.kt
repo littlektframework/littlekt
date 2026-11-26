@@ -216,7 +216,10 @@ class WebGPUContext(override val configuration: JsConfiguration, gpuAdapter: GPU
     }
 
     override fun destroy() {
-        KtScope.launch { releaseCalls.fastForEach { release -> release() } }
+        KtScope.launch {
+            releaseCalls.fastForEach { release -> release() }
+            WebAudio.release()
+        }
     }
 }
 

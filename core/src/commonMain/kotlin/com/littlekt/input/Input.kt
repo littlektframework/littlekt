@@ -47,6 +47,18 @@ enum class Pointer(val index: Int) {
     }
 }
 
+/**
+ * The kind of device behind a [Pointer] event.
+ *
+ * @author Colton Daily
+ * @date 11/26/2026
+ */
+enum class PointerType {
+    MOUSE,
+    TOUCH,
+    PEN,
+}
+
 enum class Key {
     ANY_KEY,
     BACKSPACE,
@@ -383,6 +395,12 @@ interface Input {
     fun isTouchJustReleased(pointer: Pointer): Boolean
 
     fun getPressure(pointer: Pointer): Float
+
+    /**
+     * @return the [PointerType] of the last event of [pointer]. Desktop windows only report
+     *   [PointerType.MOUSE].
+     */
+    fun getPointerType(pointer: Pointer): PointerType = PointerType.MOUSE
 
     /**
      * Determines if the key was just pressed within the past frame.

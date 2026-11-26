@@ -812,6 +812,9 @@ expect class RenderPassEncoder : Releasable {
  *
  * For use with a [RenderPassDescriptor].
  *
+ * [view] & [resolveTarget] can be changed, so a descriptor can be kept and reused each frame with
+ * the new surface view instead of creating a new one.
+ *
  * @param view the view to use as an attachment
  * @param loadOp the load operation that will be performed on this color attachment.
  * @param storeOp the store operation that will be performed on this color attachment.
@@ -821,11 +824,11 @@ expect class RenderPassEncoder : Releasable {
  * @param depthSlice index of a 3D view. It must not be provided if the view is not 3D.
  */
 data class RenderPassColorAttachmentDescriptor(
-    val view: TextureView,
+    var view: TextureView,
     val loadOp: LoadOp,
     val storeOp: StoreOp,
     val clearColor: Color? = null,
-    val resolveTarget: TextureView? = null,
+    var resolveTarget: TextureView? = null,
     val depthSlice: Int? = null
 )
 

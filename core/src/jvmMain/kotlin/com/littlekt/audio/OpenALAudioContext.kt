@@ -5,10 +5,12 @@ import com.littlekt.util.datastructure.fastForEach
 import java.nio.ByteBuffer
 import java.nio.IntBuffer
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.locks.LockSupport
 import org.lwjgl.openal.*
 
 /**
- * The OpenAL audio output on desktop.
+ * The OpenAL audio output on desktop. Every [PcmOutput] is refilled on one shared audio thread,
+ * started by the first [createPcmOutput].
  *
  * @param maxSources the maximum number of sounds that can play at once. Sources are created as
  *   they are needed. Once all are playing, a new clip takes the source of the oldest playing clip.
@@ -62,6 +64,14 @@ class OpenALAudioContext(val maxSources: Int = DEFAULT_MAX_SOURCES) : Releasable
 
     internal val hasStreams: Boolean
         get() = audioStreams.isNotEmpty()
+
+    private val pcmOutputs = ArrayList<OpenALPcmOutput>()
+    private var pcmThread: Thread? = null
+    @Volatile private var pcmRunning = false
+
+    internal val supportsFloat32: Boolean by lazy {
+        !NO_DEVICE && AL10.alIsExtensionPresent("AL_EXT_FLOAT32")
+    }
 
     private val devicesChanged = AtomicBoolean(false)
     private val defaultDeviceChanged = AtomicBoolean(false)
@@ -123,6 +133,49 @@ class OpenALAudioContext(val maxSources: Int = DEFAULT_MAX_SOURCES) : Releasable
 
     override val outputDevice: String?
         get() = if (NO_DEVICE) null else ALC10.alcGetString(device, deviceSpecifier)
+
+    override fun createPcmOutput(
+        sampleRate: Int,
+        channels: Int,
+        bufferFrames: Int,
+        bufferCount: Int,
+        source: PcmSource,
+    ): PcmOutput {
+        val output = OpenALPcmOutput(this, sampleRate, channels, bufferFrames, bufferCount, source)
+        synchronized(pcmOutputs) { pcmOutputs += output }
+        if (pcmThread == null && !NO_DEVICE) {
+            pcmRunning = true
+            pcmThread =
+                Thread(::runPcmOutputs, "LittleKt PCM Audio").apply {
+                    isDaemon = true
+                    priority = Thread.MAX_PRIORITY
+                    start()
+                }
+        }
+        return output
+    }
+
+    internal fun removePcmOutput(output: OpenALPcmOutput) {
+        synchronized(pcmOutputs) { pcmOutputs -= output }
+    }
+
+    internal fun wakePcmThread() {
+        pcmThread?.let { LockSupport.unpark(it) }
+    }
+
+    private fun runPcmOutputs() {
+        while (pcmRunning) {
+            var wait = PCM_IDLE_NANOS
+            synchronized(pcmOutputs) {
+                for (i in pcmOutputs.indices) {
+                    val output = pcmOutputs[i]
+                    output.update()
+                    if (output.playing && output.pollNanos < wait) wait = output.pollNanos
+                }
+            }
+            LockSupport.parkNanos(wait)
+        }
+    }
 
     override fun setOutputDevice(name: String?): Boolean {
         if (!canSelectOutputDevice) return false
@@ -322,6 +375,13 @@ class OpenALAudioContext(val maxSources: Int = DEFAULT_MAX_SOURCES) : Releasable
     }
 
     override fun release() {
+        pcmRunning = false
+        pcmThread?.let {
+            LockSupport.unpark(it)
+            it.join(PCM_JOIN_MILLIS)
+        }
+        pcmThread = null
+        while (pcmOutputs.isNotEmpty()) pcmOutputs.last().release()
         eventCallback?.let {
             SOFTSystemEvents.nalcEventCallbackSOFT(0L, 0L)
             it.free()
@@ -347,5 +407,7 @@ class OpenALAudioContext(val maxSources: Int = DEFAULT_MAX_SOURCES) : Releasable
         /** The default maximum number of sounds that can play at once. */
         const val DEFAULT_MAX_SOURCES = 32
         private const val OPENAL_DEFAULT_SOURCES = 256
+        private const val PCM_IDLE_NANOS = 50_000_000L
+        private const val PCM_JOIN_MILLIS = 1000L
     }
 }

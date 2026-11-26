@@ -1,9 +1,16 @@
 package com.littlekt.audio
 
+import com.littlekt.async.KtScope
+import com.littlekt.async.await
+import kotlinx.browser.document
+import kotlinx.coroutines.launch
+import org.w3c.dom.events.Event
+
 /**
  * The [Audio] output on the web. The browser picks the output device, so only [masterVolume] can
  * be changed. Spatial sounds go through a shared Web Audio context created on the first
- * [AudioClip.playAt].
+ * [AudioClip.playAt]. Each [PcmOutput] sample rate gets its own Web Audio context, resumed on the
+ * first click or key press.
  *
  * @author Colton Daily
  * @date 11/12/2026
@@ -55,6 +62,94 @@ object WebAudio : Audio {
     override val outputDevice: String? = null
 
     override fun setOutputDevice(name: String?): Boolean = false
+
+    private class PcmContext(val sampleRate: Int, val context: AudioContext) {
+        var ready = false
+        var useWorklet = false
+        val waiting = mutableListOf<WebPcmOutput>()
+    }
+
+    private val pcmContexts = mutableListOf<PcmContext>()
+    private val pcmOutputs = mutableListOf<WebPcmOutput>()
+    private var processorUrl: String? = null
+    private var listeningForGesture = false
+    private val resumeOnGesture: (Event) -> Unit = {
+        for (i in pcmContexts.indices) {
+            val context = pcmContexts[i].context
+            if (context.state == "suspended") context.resume()
+        }
+    }
+
+    override fun createPcmOutput(
+        sampleRate: Int,
+        channels: Int,
+        bufferFrames: Int,
+        bufferCount: Int,
+        source: PcmSource,
+    ): PcmOutput {
+        val output = WebPcmOutput(sampleRate, channels, bufferFrames, bufferCount, source)
+        pcmOutputs += output
+        val pcm = obtainPcmContext(sampleRate)
+        if (pcm.ready) output.start(pcm.context, pcm.useWorklet) else pcm.waiting += output
+        return output
+    }
+
+    internal fun removePcmOutput(output: WebPcmOutput) {
+        pcmOutputs -= output
+        for (i in pcmContexts.indices) pcmContexts[i].waiting -= output
+    }
+
+    private fun obtainPcmContext(sampleRate: Int): PcmContext {
+        for (i in pcmContexts.indices) {
+            if (pcmContexts[i].sampleRate == sampleRate) return pcmContexts[i]
+        }
+        val pcm = PcmContext(sampleRate, AudioContext(audioContextOptions(sampleRate)))
+        pcmContexts += pcm
+        if (pcm.context.state == "suspended") pcm.context.resume()
+        if (!listeningForGesture) {
+            listeningForGesture = true
+            document.addEventListener("pointerdown", resumeOnGesture)
+            document.addEventListener("keydown", resumeOnGesture)
+            document.addEventListener("touchend", resumeOnGesture)
+        }
+        val worklet = pcm.context.audioWorklet
+        if (worklet == null) {
+            ready(pcm, false)
+        } else {
+            val url = processorUrl ?: scriptUrl(PCM_PROCESSOR_SOURCE).also { processorUrl = it }
+            KtScope.launch {
+                val loaded =
+                    try {
+                        worklet.addModule(url).await<Any?>()
+                        true
+                    } catch (_: Throwable) {
+                        false
+                    }
+                ready(pcm, loaded)
+            }
+        }
+        return pcm
+    }
+
+    private fun ready(pcm: PcmContext, useWorklet: Boolean) {
+        pcm.ready = true
+        pcm.useWorklet = useWorklet
+        for (i in pcm.waiting.indices) pcm.waiting[i].start(pcm.context, useWorklet)
+        pcm.waiting.clear()
+    }
+
+    /** Releases every [PcmOutput] & closes their Web Audio contexts. */
+    internal fun release() {
+        while (pcmOutputs.isNotEmpty()) pcmOutputs.last().release()
+        for (i in pcmContexts.indices) pcmContexts[i].context.close()
+        pcmContexts.clear()
+        if (listeningForGesture) {
+            listeningForGesture = false
+            document.removeEventListener("pointerdown", resumeOnGesture)
+            document.removeEventListener("keydown", resumeOnGesture)
+            document.removeEventListener("touchend", resumeOnGesture)
+        }
+    }
 
     /**
      * The maximum number of times each [AudioClip] can play at once. Once reached, the oldest play

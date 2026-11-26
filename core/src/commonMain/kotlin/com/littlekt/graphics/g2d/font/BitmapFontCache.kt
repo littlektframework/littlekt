@@ -49,6 +49,10 @@ open class TextureFontCache(open val font: TextureFont) : FontCache(font.texture
      * @param truncate the string to display when the text is too long to fit within [targetWidth]
      * @param verticalAlign where [y] is on the text's lines: their top, center or bottom. `null`
      *   puts the bottom of the first line at [y].
+     * @param letterSpacing the extra space, in pixels, added between each glyph of a line
+     * @param lineSpacing the extra space, in pixels, added between each line
+     * @param justify if `true`, wrapped lines are stretched to [targetWidth] by widening their
+     *   spaces
      */
     fun setText(
         text: CharSequence,
@@ -63,6 +67,9 @@ open class TextureFontCache(open val font: TextureFont) : FontCache(font.texture
         wrap: Boolean = false,
         truncate: String? = null,
         verticalAlign: VAlign? = null,
+        letterSpacing: Float = 0f,
+        lineSpacing: Float = 0f,
+        justify: Boolean = false,
     ) =
         setText(
             font,
@@ -78,6 +85,9 @@ open class TextureFontCache(open val font: TextureFont) : FontCache(font.texture
             wrap,
             truncate,
             verticalAlign,
+            letterSpacing,
+            lineSpacing,
+            justify,
         )
 
     /**
@@ -96,6 +106,10 @@ open class TextureFontCache(open val font: TextureFont) : FontCache(font.texture
      * @param truncate the string to display when the text is too long to fit within [targetWidth]
      * @param verticalAlign where [y] is on the text's lines: their top, center or bottom. `null`
      *   puts the bottom of the first line at [y].
+     * @param letterSpacing the extra space, in pixels, added between each glyph of a line
+     * @param lineSpacing the extra space, in pixels, added between each line
+     * @param justify if `true`, wrapped lines are stretched to [targetWidth] by widening their
+     *   spaces
      */
     fun addText(
         text: CharSequence,
@@ -110,6 +124,9 @@ open class TextureFontCache(open val font: TextureFont) : FontCache(font.texture
         wrap: Boolean = false,
         truncate: String? = null,
         verticalAlign: VAlign? = null,
+        letterSpacing: Float = 0f,
+        lineSpacing: Float = 0f,
+        justify: Boolean = false,
     ) =
         addText(
             font,
@@ -125,5 +142,8 @@ open class TextureFontCache(open val font: TextureFont) : FontCache(font.texture
             wrap,
             truncate,
             verticalAlign,
+            letterSpacing,
+            lineSpacing,
+            justify,
         )
 }

@@ -96,12 +96,11 @@ private fun map(input: TextureDataLayout, output: WGPUTexelCopyBufferLayout) {
 actual class CommandEncoder(val segment: WGPUCommandEncoder) : Releasable {
 
     actual fun beginRenderPass(desc: RenderPassDescriptor): RenderPassEncoder {
-        return memoryScope { scope ->
-            RenderPassEncoder(
-                wgpuCommandEncoderBeginRenderPass(segment, scope.map(desc)) ?: error("Failed to begin render pass."),
-                desc.label,
-            )
-        }
+        val native = ReusableRenderPassDescriptor.get().write(desc)
+        return RenderPassEncoder(
+            wgpuCommandEncoderBeginRenderPass(segment, native) ?: error("Failed to begin render pass."),
+            desc.label,
+        )
     }
 
     actual fun finish(): CommandBuffer {

@@ -14,6 +14,7 @@ class InputCache {
     private val pointerCache = Pointer.entries.toTypedArray()
     private val keyCache = Key.entries.toTypedArray()
 
+    private val pointerTypes = Array(pointerCache.size) { PointerType.MOUSE }
     private val pointersTouching = mutableMapOf<Pointer, Boolean>()
     private val pointersJustTouched = mutableMapOf<Pointer, Boolean>()
     private val pointersJustReleased = mutableMapOf<Pointer, Boolean>()
@@ -109,9 +110,13 @@ class InputCache {
         return gamepadButtonsJustReleased.getOrPut(gamepad) { mutableMapOf() }[button] ?: false
     }
 
-    fun onTouchDown(x: Float, y: Float, pointer: Pointer) {
+    /** @return the [PointerType] of the last event of [pointer]. */
+    fun getPointerType(pointer: Pointer): PointerType = pointerTypes[pointer.ordinal]
+
+    fun onTouchDown(x: Float, y: Float, pointer: Pointer, type: PointerType = PointerType.MOUSE) {
         if (pointersTouching[pointer] != true) {
-            queueManager.touchDown(x, y, pointer, epochMillis())
+            pointerTypes[pointer.ordinal] = type
+            queueManager.touchDown(x, y, pointer, epochMillis(), type)
             touches++
             justTouched = true
             pointersTouching[pointer] = true
@@ -119,17 +124,19 @@ class InputCache {
         }
     }
 
-    fun onMove(x: Float, y: Float, pointer: Pointer) {
+    fun onMove(x: Float, y: Float, pointer: Pointer, type: PointerType = PointerType.MOUSE) {
+        pointerTypes[pointer.ordinal] = type
         if (touches > 0) {
-            queueManager.touchDragged(x, y, pointer, epochMillis())
+            queueManager.touchDragged(x, y, pointer, epochMillis(), type)
         } else {
-            queueManager.mouseMoved(x, y, epochMillis())
+            queueManager.mouseMoved(x, y, epochMillis(), type)
         }
     }
 
-    fun onTouchUp(x: Float, y: Float, pointer: Pointer) {
+    fun onTouchUp(x: Float, y: Float, pointer: Pointer, type: PointerType = PointerType.MOUSE) {
         if (pointersTouching[pointer] == true) {
-            queueManager.touchUp(x, y, pointer, epochMillis())
+            pointerTypes[pointer.ordinal] = type
+            queueManager.touchUp(x, y, pointer, epochMillis(), type)
             touches = max(0, touches - 1)
             justTouchReleased = true
             pointersTouching[pointer] = false

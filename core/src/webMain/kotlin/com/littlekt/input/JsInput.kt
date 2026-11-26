@@ -29,6 +29,7 @@ class JsInput(val canvas: HTMLCanvasElement) : Input {
     private var _deltaX = 0f
     private var _deltaY = 0f
     private val touchedPointers = mutableSetOf<Pointer>()
+    private var mousePointerType = PointerType.MOUSE
 
     /** Holds the references to active touch identifiers indexed by assigned pointer number. */
     private val touchIdentifiers = createTouchIdentifiers()
@@ -70,6 +71,9 @@ class JsInput(val canvas: HTMLCanvasElement) : Input {
         canvas.addEventListener("touchstart", ::touchStart, false)
         canvas.addEventListener("touchmove", ::touchMove, false)
         canvas.addEventListener("touchend", ::touchEnd, false)
+        canvas.addEventListener("pointerdown", ::pointerEvent, false)
+        canvas.addEventListener("pointermove", ::pointerEvent, false)
+        canvas.addEventListener("pointerup", ::pointerEvent, false)
         canvas.addEventListener("mousedown", ::mouseDown, false)
         canvas.addEventListener("mouseup", ::mouseUp, false)
         canvas.addEventListener("mousemove", ::mouseMove, false)
@@ -126,7 +130,7 @@ class JsInput(val canvas: HTMLCanvasElement) : Input {
             val pointerIndex = nativeIndexOf(touchIdentifiers, -1)
             if (pointerIndex >= 0) {
                 nativeSet(touchIdentifiers, pointerIndex, touchEvent.identifier)
-                inputCache.onTouchDown(x, y, pointerIndex.getPointer)
+                inputCache.onTouchDown(x, y, pointerIndex.getPointer, PointerType.TOUCH)
             }
         }
     }
@@ -142,7 +146,7 @@ class JsInput(val canvas: HTMLCanvasElement) : Input {
             val y = touchEvent.clientY.toFloat() - rect.top.toFloat()
             val pointerIndex = nativeIndexOf(touchIdentifiers, touchEvent.identifier)
             if (pointerIndex >= 0) {
-                inputCache.onMove(x, y, pointerIndex.getPointer)
+                inputCache.onMove(x, y, pointerIndex.getPointer, PointerType.TOUCH)
             }
         }
     }
@@ -159,11 +163,20 @@ class JsInput(val canvas: HTMLCanvasElement) : Input {
             val pointerIndex = nativeIndexOf(touchIdentifiers, touchEvent.identifier)
             if (pointerIndex >= 0) {
                 nativeSet(touchIdentifiers, pointerIndex, -1)
-                inputCache.onTouchUp(x, y, pointerIndex.getPointer)
+                inputCache.onTouchUp(x, y, pointerIndex.getPointer, PointerType.TOUCH)
             }
         }
     }
 
+
+    private fun pointerEvent(event: Event) {
+        mousePointerType =
+            when (event.unsafeCast<JsPointerEvent>().pointerType) {
+                "touch" -> PointerType.TOUCH
+                "pen" -> PointerType.PEN
+                else -> PointerType.MOUSE
+            }
+    }
 
     private fun mouseDown(event: Event) {
         event as ExtendedMouseEvent
@@ -176,7 +189,7 @@ class JsInput(val canvas: HTMLCanvasElement) : Input {
             mouseX = canvasRelativeX(event)
             mouseY = canvasRelativeY(event)
         }
-        inputCache.onTouchDown(mouseX, mouseY, event.button.getPointer)
+        inputCache.onTouchDown(mouseX, mouseY, event.button.getPointer, mousePointerType)
         touchedPointers += event.button.getPointer
     }
 
@@ -193,7 +206,7 @@ class JsInput(val canvas: HTMLCanvasElement) : Input {
             mouseX = canvasRelativeX(event)
             mouseY = canvasRelativeY(event)
         }
-        inputCache.onTouchUp(mouseX, mouseY, event.button.getPointer)
+        inputCache.onTouchUp(mouseX, mouseY, event.button.getPointer, mousePointerType)
         touchedPointers -= event.button.getPointer
     }
 
@@ -211,7 +224,12 @@ class JsInput(val canvas: HTMLCanvasElement) : Input {
             mouseY = canvasRelativeY(event)
         }
 
-        inputCache.onMove(mouseX, mouseY, touchedPointers.lastOrNull() ?: Pointer.POINTER1)
+        inputCache.onMove(
+            mouseX,
+            mouseY,
+            touchedPointers.lastOrNull() ?: Pointer.POINTER1,
+            mousePointerType,
+        )
     }
 
     private fun scroll(event: Event) {
@@ -300,6 +318,8 @@ class JsInput(val canvas: HTMLCanvasElement) : Input {
     override fun isTouchJustReleased(pointer: Pointer): Boolean {
         return inputCache.isTouchJustReleased(pointer)
     }
+
+    override fun getPointerType(pointer: Pointer): PointerType = inputCache.getPointerType(pointer)
 
     override fun getPressure(pointer: Pointer): Float {
         return if (isJustTouched(pointer)) 1f else 0f
@@ -414,6 +434,10 @@ external interface JsGamePad: JsAny {
 @JsName("GamepadEvent")
 private external interface JsGamepadEvent : JsAny {
     val gamepad: JsGamePad
+}
+
+private external interface JsPointerEvent : JsAny {
+    val pointerType: String
 }
 
 private external interface ExtendedMouseEvent : UnionElementOrMouseEvent, JsAny {

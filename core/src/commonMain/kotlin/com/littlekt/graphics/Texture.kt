@@ -3,6 +3,8 @@ package com.littlekt.graphics
 import com.littlekt.Releasable
 import com.littlekt.graphics.webgpu.*
 import kotlin.math.log2
+import kotlinx.atomicfu.locks.SynchronizedObject
+import kotlinx.atomicfu.locks.synchronized
 
 /**
  * Creates a [WebGPUTexture] and writes it to the [Device.queue]. Creates a [TextureView] and
@@ -80,6 +82,7 @@ interface Texture : Releasable {
     }
 
     override fun release() {
+        notifyInvalidated(id)
         view.release()
         sampler.release()
         // destroy after any update/postUpdate calls to ensure we aren't in the middle of a pass!
@@ -87,10 +90,54 @@ interface Texture : Releasable {
     }
 
     companion object {
+        private val invalidationLock = SynchronizedObject()
+        private var invalidationListeners = emptyArray<TextureInvalidationListener>()
+
         /** @return the number of mips to generate based on the given sizes. */
         fun calculateNumMips(vararg sizes: Int): Int {
             val maxSize = sizes.maxOrNull() ?: return 1
             return 1 + log2(maxSize.toDouble()).toInt()
         }
+
+        /**
+         * Adds a [listener] that is called with the id of any texture that is released or has its
+         * view recreated, so anything cached by that id, such as bind groups, can be evicted.
+         */
+        fun addInvalidationListener(listener: TextureInvalidationListener) {
+            synchronized(invalidationLock) { invalidationListeners += listener }
+        }
+
+        /** Removes a [listener] added with [addInvalidationListener]. */
+        fun removeInvalidationListener(listener: TextureInvalidationListener) {
+            synchronized(invalidationLock) {
+                val listeners = invalidationListeners
+                val index = listeners.indexOf(listener)
+                if (index < 0) return
+                invalidationListeners =
+                    Array(listeners.size - 1) { listeners[if (it < index) it else it + 1] }
+            }
+        }
+
+        /**
+         * Notifies every listener that the texture with [id] is no longer valid. Custom [Texture]
+         * types call this when released or when their view is recreated. It may be called from
+         * any thread.
+         */
+        fun notifyInvalidated(id: Int) {
+            val listeners = synchronized(invalidationLock) { invalidationListeners }
+            for (i in listeners.indices) listeners[i].onTextureInvalidated(id)
+        }
     }
+}
+
+/**
+ * Listens for textures that are released or recreated.
+ *
+ * @see Texture.addInvalidationListener
+ * @author Colton Daily
+ * @date 11/26/2026
+ */
+fun interface TextureInvalidationListener {
+    /** Invoked with the [id] of a texture that is released or has its view recreated. */
+    fun onTextureInvalidated(id: Int)
 }

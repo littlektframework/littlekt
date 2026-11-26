@@ -5,12 +5,14 @@ import com.littlekt.Graphics
 import com.littlekt.graphics.Color
 import com.littlekt.graphics.IndexedMesh
 import com.littlekt.graphics.Texture
+import com.littlekt.graphics.TextureInvalidationListener
 import com.littlekt.graphics.g2d.util.CameraSpriteBuffers
 import com.littlekt.graphics.shader.Shader
 import com.littlekt.graphics.textureIndexedMesh
 import com.littlekt.graphics.util.BindingUsage
 import com.littlekt.graphics.util.CameraBuffersViaMatrix
 import com.littlekt.graphics.util.CommonIndexedMeshGeometry
+import com.littlekt.graphics.util.TextureBindGroupCache
 import com.littlekt.graphics.webgpu.*
 import com.littlekt.log.Logger
 import com.littlekt.math.Mat4
@@ -20,8 +22,9 @@ import com.littlekt.math.geom.normalized
 import com.littlekt.math.geom.sine
 import com.littlekt.math.isFuzzyZero
 import com.littlekt.util.LazyMat4
-import com.littlekt.util.datastructure.IntMap
-import com.littlekt.util.datastructure.fastForEach
+import kotlinx.atomicfu.atomic
+import kotlinx.atomicfu.locks.SynchronizedObject
+import kotlinx.atomicfu.locks.synchronized
 
 /**
  * Draws batched quads using indices.
@@ -99,10 +102,37 @@ class SpriteBatch(
 
     override var shader: Shader = defaultShader
 
-    private val bindGroupsByShader = HashMap<Shader, IntMap<BindGroup>>()
-    private val drawCalls = ArrayList<DrawCall>()
-    private var drawCallCount = 0
+    private val bindGroups =
+        TextureBindGroupCache<BindGroup>(DEFAULT_BIND_GROUP_CACHE_SIZE) { it.release() }
+    private val evictionLock = SynchronizedObject()
+    private var pendingEvictions = IntArray(16)
+    private var pendingEvictionCount = 0
+    private val hasPendingEvictions = atomic(false)
+    private val textureListener = TextureInvalidationListener { id ->
+        synchronized(evictionLock) {
+            if (pendingEvictionCount == pendingEvictions.size) {
+                pendingEvictions = pendingEvictions.copyOf(pendingEvictions.size * 2)
+            }
+            pendingEvictions[pendingEvictionCount++] = id
+            hasPendingEvictions.value = true
+        }
+    }
+    private val drawCalls = SpriteDrawCalls()
     private val renderInfos = ArrayList<RenderInfo>()
+
+    /**
+     * The max number of texture bind groups cached across shaders. The least recently used ones
+     * are released once there are more. Bind groups of released or recreated textures are always
+     * released.
+     */
+    var bindGroupCacheSize: Int
+        get() = bindGroups.maxSize
+        set(value) {
+            bindGroups.maxSize = value
+        }
+
+    private val scissor = ScissorRect()
+    private val lastScissor = ScissorRect()
 
     private var blendState = BlendState.NonPreMultiplied
     private var prevBlendState = blendState
@@ -142,8 +172,8 @@ class SpriteBatch(
             meshSprites[lastMeshIdx] = value
         }
 
-    private val currentDrawCall: DrawCall
-        get() = drawCalls[drawCallCount - 1]
+    private val currentDrawCall: SpriteDrawCall
+        get() = drawCalls.current ?: error("SpriteBatch has no draw call!")
 
     private var lastTexture: Texture? = null
     private var lastBlendState: BlendState = blendState
@@ -160,6 +190,32 @@ class SpriteBatch(
 
     init {
         check(size > 0) { "A batch must be greater than zero sprites!" }
+        Texture.addInvalidationListener(textureListener)
+    }
+
+    /**
+     * Clips the following draws to a scissor rect, in pixels of the render target from its top
+     * left. Changing it doesn't flush: each flush draws every range with its own scissor rect in
+     * the same render pass, without using more camera dynamic offsets.
+     *
+     * The rect must be within the render target. Negative values are clamped to `0`.
+     */
+    fun setScissorRect(x: Int, y: Int, width: Int, height: Int) {
+        scissor.set(
+            if (x < 0) 0 else x,
+            if (y < 0) 0 else y,
+            if (width < 0) 0 else width,
+            if (height < 0) 0 else height,
+        )
+    }
+
+    /**
+     * Stops clipping the following draws with [setScissorRect]. They keep the render pass's
+     * current scissor rect, so once the batch has set one in a render pass, use [setScissorRect]
+     * with the full render target instead to draw unclipped in that pass.
+     */
+    fun clearScissorRect() {
+        scissor.clear()
     }
 
     override fun begin(viewProjection: Mat4?) {
@@ -592,35 +648,32 @@ class SpriteBatch(
         viewProjection?.let { this.viewProjection = it }
         if (spriteIdx == 0) return
 
+        evictInvalidatedTextures()
         mesh.update()
         renderPassEncoder.setIndexBuffer(mesh.ibo, IndexFormat.UINT16)
         renderPassEncoder.setVertexBuffer(0, mesh.vbo)
         var lastPipelineSet: RenderPipeline? = null
-        var lastCombinedMatrixSet: Mat4? = null
         var lastBindGroupSet: BindGroup? = null
         var lastShader: Shader? = null
-        for (i in 0 until drawCallCount) {
+        for (i in 0 until drawCalls.size) {
             val drawCall = drawCalls[i]
-            val shader = drawCall.renderInfo.shader
+            val renderInfo = drawCall.renderInfo as RenderInfo
+            val shader = renderInfo.shader
             val renderPipeline =
-                renderPipelineByBlendState.getOrPut(drawCall.renderInfo) {
-                    device.createRenderPipeline(createRenderPipelineDescriptor(drawCall.renderInfo))
+                renderPipelineByBlendState.getOrPut(renderInfo) {
+                    device.createRenderPipeline(createRenderPipelineDescriptor(renderInfo))
                 }
-            // ensure shader bind groups are created
-            val shaderBindGroups =
-                bindGroupsByShader[shader] ?: IntMap<BindGroup>().also { bindGroupsByShader[shader] = it }
+            val texture = drawCall.texture
+            val view = texture.view
+            val sampler = texture.sampler
             val textureBindGroup =
-                shaderBindGroups[drawCall.texture.id]
-                    ?: (shader.createBindGroup(
-                        BindingUsage.TEXTURE,
-                        drawCall.texture.view,
-                        drawCall.texture.sampler,
-                    )
+                bindGroups[shader.id, texture.id, view, sampler]
+                    ?: (shader.createBindGroup(BindingUsage.TEXTURE, view, sampler)
                         ?: error(
                             "SpriteBatch requires ${shader::class.simpleName} to create a bindgroup for BindingUsage.TEXTURE but it failed to do so."
                         ))
-                        .also { shaderBindGroups[drawCall.texture.id] = it }
-            if (lastCombinedMatrixSet != drawCall.combinedMatrix) {
+                        .also { bindGroups.put(shader.id, texture.id, view, sampler, it) }
+            if (drawCall.matrixChanged) {
                 if (lastDynamicOffsetIndex < cameraBuffers.cameraDynamicSize - 1) {
                     lastDynamicOffsetIndex++
                 } else {
@@ -641,7 +694,7 @@ class SpriteBatch(
                 lastBindGroupSet = textureBindGroup
                 shader.setBindGroup(renderPassEncoder, textureBindGroup, BindingUsage.TEXTURE)
             }
-            if (lastShader != shader || lastCombinedMatrixSet != drawCall.combinedMatrix) {
+            if (lastShader != shader || drawCall.matrixChanged) {
                 shader.setBindGroup(
                     renderPassEncoder,
                     cameraBuffers.getOrCreateBindGroup(shader),
@@ -650,13 +703,16 @@ class SpriteBatch(
                 )
                 shader.setBindGroups(renderPassEncoder)
                 lastShader = shader
-                lastCombinedMatrixSet = drawCall.combinedMatrix
+            }
+            if (drawCall.scissorChanged) {
+                val rect = drawCall.scissor
+                renderPassEncoder.setScissorRect(rect.x, rect.y, rect.width, rect.height)
             }
             val indexCount = drawCall.instances * 6
             EngineStats.extra(QUAD_STATS_NAME, drawCall.instances)
             renderPassEncoder.drawIndexed(indexCount, 1, firstIndex = drawCall.offset * 6)
         }
-        drawCallCount = 0
+        drawCalls.clear()
         lastTexture = null
         lastMeshIdx++
     }
@@ -692,6 +748,7 @@ class SpriteBatch(
         ensureTexture(texture)
         ensureRenderInfo()
         ensureMatrices()
+        ensureScissor()
     }
 
     private fun ensureMesh() {
@@ -737,20 +794,25 @@ class SpriteBatch(
         }
     }
 
+    private fun evictInvalidatedTextures() {
+        if (!hasPendingEvictions.value) return
+        synchronized(evictionLock) {
+            for (i in 0 until pendingEvictionCount) bindGroups.evictTexture(pendingEvictions[i])
+            pendingEvictionCount = 0
+            hasPendingEvictions.value = false
+        }
+    }
+
+    private fun ensureScissor() {
+        if (!scissor.matches(lastScissor)) {
+            lastScissor.set(scissor)
+            createDrawCall()
+        }
+    }
+
     private fun createDrawCall() {
         val texture = lastTexture ?: error("Attempting to create a draw call with no texture!")
-        val drawCall =
-            if (drawCallCount > 0 && currentDrawCall.instances == 0) {
-                currentDrawCall
-            } else {
-                if (drawCallCount == drawCalls.size) drawCalls += DrawCall()
-                drawCalls[drawCallCount++]
-            }
-        drawCall.texture = texture
-        drawCall.renderInfo = currentRenderInfo()
-        drawCall.combinedMatrix.set(lastCombinedMatrix)
-        drawCall.offset = spriteIdx
-        drawCall.instances = 0
+        drawCalls.next(texture, currentRenderInfo(), lastCombinedMatrix, lastScissor, spriteIdx)
     }
 
     private fun currentRenderInfo(): RenderInfo {
@@ -836,25 +898,19 @@ class SpriteBatch(
         defaultShader.release()
         renderPipelineByBlendState.values.forEach { it.release() }
         renderPipelineByBlendState.clear()
-        bindGroupsByShader.values.forEach { groups -> groups.forEachValue { it.release() } }
-        bindGroupsByShader.clear()
-        drawCalls.clear()
-        drawCallCount = 0
+        Texture.removeInvalidationListener(textureListener)
+        bindGroups.clear()
+        drawCalls.release()
         renderInfos.clear()
         if (ownCameraBuffers) {
             cameraBuffers.release()
         }
     }
 
-    private class DrawCall {
-        lateinit var texture: Texture
-        lateinit var renderInfo: RenderInfo
-        val combinedMatrix = Mat4()
-        var offset: Int = 0
-        var instances: Int = 0
-    }
-
     companion object {
+        /** The default [bindGroupCacheSize]. */
+        const val DEFAULT_BIND_GROUP_CACHE_SIZE = 256
+
         private const val QUAD_STATS_NAME = "SpriteBatch Quads"
         private val logger = Logger<SpriteBatch>()
     }

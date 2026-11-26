@@ -110,6 +110,10 @@ class BitmapFont(
      * @param wrap if true, the text will be wrapped within the [targetWidth]
      * @param scaleX the x-scale of the text
      * @param scaleY the y-scale of the text
+     * @param letterSpacing the extra space, in pixels, added between each glyph of a line
+     * @param lineSpacing the extra space, in pixels, added between each line
+     * @param justify if `true`, wrapped lines are stretched to [targetWidth] by widening their
+     *   spaces
      * @see [FontCache.setText]
      * @see [FontCache.draw]
      */
@@ -125,8 +129,25 @@ class BitmapFont(
         wrap: Boolean = false,
         scaleX: Float = 1f,
         scaleY: Float = 1f,
+        letterSpacing: Float = 0f,
+        lineSpacing: Float = 0f,
+        justify: Boolean = false,
     ) {
-        cache.setText(text, x, y, scaleX, scaleY, rotation, color, targetWidth, align, wrap)
+        cache.setText(
+            text,
+            x,
+            y,
+            scaleX,
+            scaleY,
+            rotation,
+            color,
+            targetWidth,
+            align,
+            wrap,
+            letterSpacing = letterSpacing,
+            lineSpacing = lineSpacing,
+            justify = justify,
+        )
         cache.draw(batch)
     }
 
