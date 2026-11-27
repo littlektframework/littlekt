@@ -5,7 +5,7 @@ import com.littlekt.graphics.VertexBufferLayout
 import com.littlekt.graphics.calculateStride
 import com.littlekt.math.MutableVec3f
 import com.littlekt.math.Vec3f
-import com.littlekt.math.Vec4f
+import kotlin.math.abs
 import kotlin.math.sqrt
 
 /**
@@ -100,9 +100,11 @@ class CommonIndexedMeshGeometry(layout: VertexBufferLayout, size: Int = INITIAL_
 
     /**
      * Calculate the tangent vector if [layout] contains an attribute with the usage of
-     * [VertexAttrUsage.TANGENT].
+     * [VertexAttrUsage.TANGENT]. The handedness in `w` is calculated per vertex from the uvs so
+     * mirrored uvs are handled. Triangles without uv variation are skipped & vertices without a
+     * tangent get one perpendicular to their normal.
      *
-     * @param handedness defaults to right-handed
+     * @param handedness `1` keeps the calculated handedness & `-1` flips it
      */
     fun generateTangents(handedness: Float = 1f) {
         if (!layout.attributes.any { it.usage == VertexAttrUsage.TANGENT }) {
@@ -111,7 +113,10 @@ class CommonIndexedMeshGeometry(layout: VertexBufferLayout, size: Int = INITIAL_
             }
             return
         }
-        val tangents = MutableVec3f()
+        val bitangents = FloatArray(numVertices * 3)
+        val tangent = MutableVec3f()
+        val bitangent = MutableVec3f()
+        val normal = MutableVec3f()
         val edge1 = MutableVec3f()
         val edge2 = MutableVec3f()
         val v1 = this[0]
@@ -120,7 +125,7 @@ class CommonIndexedMeshGeometry(layout: VertexBufferLayout, size: Int = INITIAL_
 
         for (i in 0 until numVertices) {
             v1.index = i
-            v1.tangent.set(Vec3f.ZERO)
+            v1.tangent.set(0f, 0f, 0f, 0f)
         }
 
         for (i in 0 until numIndices step 3) {
@@ -136,15 +141,23 @@ class CommonIndexedMeshGeometry(layout: VertexBufferLayout, size: Int = INITIAL_
             val du2 = v3.uv.x - v1.uv.x
             val dv2 = v3.uv.y - v1.uv.y
 
-            val f = 1f / (du1 * dv2 - dv1 * du2)
-            tangents.set(
+            val det = du1 * dv2 - dv1 * du2
+            if (abs(det) < MIN_UV_AREA || det.isNaN()) continue
+            val f = 1f / det
+            tangent.set(
                 f * (dv2 * edge1.x - dv1 * edge2.x),
                 f * (dv2 * edge1.y - dv1 * edge2.y),
                 f * (dv2 * edge1.z - dv1 * edge2.z),
             )
-            v1.tangent += Vec4f(tangents, 0f)
-            v2.tangent += Vec4f(tangents, 0f)
-            v3.tangent += Vec4f(tangents, 0f)
+            bitangent.set(
+                f * (du1 * edge2.x - du2 * edge1.x),
+                f * (du1 * edge2.y - du2 * edge1.y),
+                f * (du1 * edge2.z - du2 * edge1.z),
+            )
+            if (!tangent.isFinite() || !bitangent.isFinite()) continue
+            addTangent(v1, tangent, bitangent, bitangents)
+            addTangent(v2, tangent, bitangent, bitangents)
+            addTangent(v3, tangent, bitangent, bitangents)
         }
 
         for (i in 0 until numVertices) {
@@ -152,15 +165,36 @@ class CommonIndexedMeshGeometry(layout: VertexBufferLayout, size: Int = INITIAL_
             if (v1.normal.sqrLength() == 0f) {
                 v1.normal.set(Vec3f.Y_AXIS)
             }
-
-            if (v1.tangent.sqrLength() != 0f) {
-                v1.tangent.norm()
-                v1.tangent.w = handedness
-            } else {
-                v1.tangent.set(Vec3f.X_AXIS)
+            normal.set(v1.normal).norm()
+            tangent.set(v1.tangent.x, v1.tangent.y, v1.tangent.z)
+            tangent.subtract(edge1.set(normal).scale(normal.dot(tangent)))
+            if (tangent.sqrLength() < MIN_TANGENT_LENGTH) {
+                if (abs(normal.x) < 0.9f) tangent.set(Vec3f.X_AXIS) else tangent.set(Vec3f.Y_AXIS)
+                tangent.subtract(edge1.set(normal).scale(normal.dot(tangent)))
             }
+            tangent.norm()
+            bitangent.set(bitangents[i * 3], bitangents[i * 3 + 1], bitangents[i * 3 + 2])
+            val side = normal.cross(tangent, edge2).dot(bitangent)
+            val w = if (side > 0f) -handedness else handedness
+            v1.tangent.set(tangent, w)
         }
     }
+
+    private fun addTangent(
+        vertex: CommonVertexView,
+        tangent: Vec3f,
+        bitangent: Vec3f,
+        bitangents: FloatArray,
+    ) {
+        val t = vertex.tangent
+        t.set(t.x + tangent.x, t.y + tangent.y, t.z + tangent.z, 0f)
+        val i = vertex.index * 3
+        bitangents[i] += bitangent.x
+        bitangents[i + 1] += bitangent.y
+        bitangents[i + 2] += bitangent.z
+    }
+
+    private fun Vec3f.isFinite(): Boolean = x.isFinite() && y.isFinite() && z.isFinite()
 
     /**
      * Create a new [CommonVertexView] at the specified index.
@@ -184,5 +218,7 @@ class CommonIndexedMeshGeometry(layout: VertexBufferLayout, size: Int = INITIAL_
 
     companion object {
         private const val INITIAL_SIZE = 1000
+        private const val MIN_UV_AREA = 1e-12f
+        private const val MIN_TANGENT_LENGTH = 1e-12f
     }
 }

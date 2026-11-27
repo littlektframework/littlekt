@@ -81,6 +81,7 @@
 - Add depth textures to `ShaderPostEffect` with `depthTextureCount`, `setDepthTexture`, `setCamera` & `post_linear_depth`.
 - Make `PointLight`, `DirectionalLight` & `AmbientLight` fields mutable to change lights each frame.
 - Fix point lights after a light without intensity reading stale light data.
+- Fix `generateTangents` creating NaN tangents for triangles without uv variation & ignoring mirrored uvs.
 
 ## 0.12.0
 
