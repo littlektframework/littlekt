@@ -121,6 +121,7 @@ abstract class BaseButton : Control() {
             status.pressingInside = false
             event.handle()
         }
+        if (status.disabled) return
 
         val uiAccept = scene?.uiInputSignals?.uiAccept
         if (

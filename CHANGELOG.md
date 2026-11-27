@@ -37,6 +37,11 @@
 - Fix right & middle mouse buttons being swapped on JS & Wasm.
 - Fix web textures being fetched & decoded twice.
 - Add `TabContainer` with the `tabContainer {}` builder.
+- Add `CheckBox` with the `checkBox {}` builder.
+- Add `OptionButton` & `PopupList` dropdowns with the `optionButton {}` builder.
+- Add draggable `Window` with the `window {}` builder.
+- Add `checkBox`, `optionButton`, `popupList` & `window` theme scopes.
+- Fix disabled buttons still emitting presses & toggles.
 - Add `CanvasItem.isVisibleInTree` & `Control.outermost`.
 - Add `TextureRect.expandMode` & `TextureProgress.expandMode` to ignore the texture size for the minimum size.
 - Add `scaleX` & `scaleY` to `BitmapFont.draw`.

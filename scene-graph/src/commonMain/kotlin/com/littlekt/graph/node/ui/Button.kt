@@ -189,6 +189,14 @@ open class Button : BaseButton() {
             onMinimumSizeChanged()
         }
 
+    /** Extra space, in pixels, between the left padding and the text. Subclasses reserve room for icons here. */
+    protected open val contentLeft: Float
+        get() = 0f
+
+    /** Extra space, in pixels, between the text and the right padding. */
+    protected open val contentRight: Float
+        get() = 0f
+
     /** Convert the text to all uppercase. */
     var uppercase: Boolean = false
         set(value) {
@@ -290,7 +298,7 @@ open class Button : BaseButton() {
         layout()
 
         val drawable = getThemeDrawable(themeVars.normal)
-        _internalMinWidth = max(layout.width, drawable.minWidth) + padding * 2f
+        _internalMinWidth = max(layout.width + contentLeft + contentRight, drawable.minWidth) + padding * 2f
         _internalMinHeight = max(textHeight, drawable.minHeight) + padding * 2f
 
         minSizeInvalid = false
@@ -302,7 +310,7 @@ open class Button : BaseButton() {
         val fontScaleY = fontScaleY / scaledText.ratio
         val text = if (uppercase) text.uppercase() else text
 
-        var tx = padding
+        var tx = padding + contentLeft
 
         val background = getThemeDrawable(themeVars.normal)
 
@@ -332,7 +340,7 @@ open class Button : BaseButton() {
             font,
             text,
             Color.WHITE,
-            textWidth - padding * 2,
+            textWidth - padding * 2 - contentLeft - contentRight,
             scaleX = fontScaleX,
             scaleY = fontScaleY,
             horizontalAlign,

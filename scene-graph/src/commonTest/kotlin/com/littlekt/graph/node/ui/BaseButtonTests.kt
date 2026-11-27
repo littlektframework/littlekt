@@ -48,6 +48,15 @@ class BaseButtonTests {
     }
 
     @Test
+    fun test_disabled_button_ignores_presses() {
+        val button = TestButton().apply { disabled = true }
+        var presses = 0
+        button.onPressed += { presses++ }
+        button.click()
+        assertEquals(0, presses)
+    }
+
+    @Test
     fun test_normal_button_emits_pressed_on_release() {
         val button = TestButton()
         var presses = 0

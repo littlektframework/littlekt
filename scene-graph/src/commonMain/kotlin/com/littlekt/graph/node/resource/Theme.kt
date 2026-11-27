@@ -164,6 +164,47 @@ fun createDefaultTheme(
             fontColor = p.text
             fontColorDisabled = p.textMuted
         }
+        checkBox {
+            normal = emptyDrawable()
+            hover = FlatDrawable(p.controlHover.withAlpha(0.5f), cornerRadius = r)
+            pressed = emptyDrawable()
+            hoverPressed = FlatDrawable(p.controlHover.withAlpha(0.5f), cornerRadius = r)
+            disabled = emptyDrawable()
+            focus = FlatDrawable(Color.CLEAR, p.accent, 2, r)
+            fontColor = p.text
+            fontColorDisabled = p.textMuted
+            box = FlatDrawable(p.field, p.border, 1, r).apply {
+                minWidth = 18f
+                minHeight = 18f
+            }
+            check = FlatDrawable(p.accent, cornerRadius = (r - 2).coerceAtLeast(0))
+            separation = 8
+            checkInset = 4
+        }
+        optionButton {
+            normal = FlatDrawable(p.control, p.border, 1, r)
+            hover = FlatDrawable(p.controlHover, p.border, 1, r)
+            pressed = FlatDrawable(p.controlPressed, p.accent, 1, r)
+            hoverPressed = FlatDrawable(p.controlHover, p.accent, 1, r)
+            disabled = FlatDrawable(disabledControl, disabledBorder, 1, r)
+            focus = FlatDrawable(Color.CLEAR, p.accent, 2, r)
+            fontColor = p.text
+            fontColorDisabled = p.textMuted
+            separation = 8
+            arrowSize = 10
+        }
+        popupList {
+            panel = FlatDrawable(p.surface, p.border, 1, r, 4f)
+            item = emptyDrawable()
+            itemHover = FlatDrawable(p.controlHover, cornerRadius = r)
+            itemSelected = FlatDrawable(p.controlPressed, cornerRadius = r)
+        }
+        window {
+            panel = FlatDrawable(p.surface, p.border, 1, r + 2, 8f)
+            titleBar = FlatDrawable(p.control, p.border, 1, r + 2)
+            titleHeight = 28
+            fontColor = p.text
+        }
         label { fontColor = p.text }
         panel {
             panel = FlatDrawable(p.surface, p.border, 1, r + 2, 8f)

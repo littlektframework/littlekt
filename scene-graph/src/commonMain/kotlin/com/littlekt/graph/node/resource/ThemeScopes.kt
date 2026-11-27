@@ -16,7 +16,7 @@ private fun <T : Any> MutableMap<String, T>.update(name: String, value: T?) {
  * @date 11/11/2026
  */
 @ThemeDslMarker
-class ButtonThemeScope(private val values: ThemeTypeBuilder) {
+open class ButtonThemeScope(protected val values: ThemeTypeBuilder) {
     var normal: Drawable?
         get() = values.drawables[Button.themeVars.normal]
         set(value) = values.drawables.update(Button.themeVars.normal, value)
@@ -307,4 +307,105 @@ class PaddedContainerThemeScope(private val values: ThemeTypeBuilder) {
         paddingBottom = vertical
     }
 
+}
+
+
+/**
+ * The typed theme values of a [CheckBox], used in a [theme] builder. `null` leaves a value unset.
+ *
+ * @author Colton Daily
+ * @date 11/27/2026
+ */
+@ThemeDslMarker
+class CheckBoxThemeScope(values: ThemeTypeBuilder) : ButtonThemeScope(values) {
+    var box: Drawable?
+        get() = values.drawables[CheckBox.themeVars.box]
+        set(value) = values.drawables.update(CheckBox.themeVars.box, value)
+
+    var check: Drawable?
+        get() = values.drawables[CheckBox.themeVars.check]
+        set(value) = values.drawables.update(CheckBox.themeVars.check, value)
+
+    var separation: Int?
+        get() = values.constants[CheckBox.themeVars.separation]
+        set(value) = values.constants.update(CheckBox.themeVars.separation, value)
+
+    var checkInset: Int?
+        get() = values.constants[CheckBox.themeVars.checkInset]
+        set(value) = values.constants.update(CheckBox.themeVars.checkInset, value)
+}
+
+
+/**
+ * The typed theme values of an [OptionButton], used in a [theme] builder. `null` leaves a value
+ * unset.
+ *
+ * @author Colton Daily
+ * @date 11/27/2026
+ */
+@ThemeDslMarker
+class OptionButtonThemeScope(values: ThemeTypeBuilder) : ButtonThemeScope(values) {
+    var separation: Int?
+        get() = values.constants[OptionButton.themeVars.separation]
+        set(value) = values.constants.update(OptionButton.themeVars.separation, value)
+
+    var arrowSize: Int?
+        get() = values.constants[OptionButton.themeVars.arrowSize]
+        set(value) = values.constants.update(OptionButton.themeVars.arrowSize, value)
+}
+
+
+/**
+ * The typed theme values of a [PopupList], used in a [theme] builder. `null` leaves a value unset.
+ *
+ * @author Colton Daily
+ * @date 11/27/2026
+ */
+@ThemeDslMarker
+class PopupListThemeScope(private val values: ThemeTypeBuilder) {
+    var panel: Drawable?
+        get() = values.drawables[PopupList.themeVars.panel]
+        set(value) = values.drawables.update(PopupList.themeVars.panel, value)
+
+    var item: Drawable?
+        get() = values.drawables[PopupList.themeVars.item]
+        set(value) = values.drawables.update(PopupList.themeVars.item, value)
+
+    var itemHover: Drawable?
+        get() = values.drawables[PopupList.themeVars.itemHover]
+        set(value) = values.drawables.update(PopupList.themeVars.itemHover, value)
+
+    var itemSelected: Drawable?
+        get() = values.drawables[PopupList.themeVars.itemSelected]
+        set(value) = values.drawables.update(PopupList.themeVars.itemSelected, value)
+}
+
+
+/**
+ * The typed theme values of a [Window], used in a [theme] builder. `null` leaves a value unset.
+ *
+ * @author Colton Daily
+ * @date 11/27/2026
+ */
+@ThemeDslMarker
+class WindowThemeScope(private val values: ThemeTypeBuilder) {
+    var panel: Drawable?
+        get() = values.drawables[PanelContainer.themeVars.panel]
+        set(value) = values.drawables.update(PanelContainer.themeVars.panel, value)
+
+    var titleBar: Drawable?
+        get() = values.drawables[Window.themeVars.titleBar]
+        set(value) = values.drawables.update(Window.themeVars.titleBar, value)
+
+    var titleHeight: Int?
+        get() = values.constants[Window.themeVars.titleHeight]
+        set(value) = values.constants.update(Window.themeVars.titleHeight, value)
+
+    var fontColor: Color?
+        get() = values.colors[Window.themeVars.fontColor]
+        set(value) = values.colors.update(Window.themeVars.fontColor, value)
+
+    var font: TextureFont?
+        get() = values.fonts[Window.themeVars.font]
+        set(value) = values.fonts.update(Window.themeVars.font, value)
 }

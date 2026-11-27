@@ -59,6 +59,19 @@ class ThemeBuilder(base: Theme? = null) {
     /** Sets the theme values of [Button]s. */
     fun button(block: ButtonThemeScope.() -> Unit) = ButtonThemeScope(values<Button>()).block()
 
+    /** Sets the theme values of [CheckBox]es. */
+    fun checkBox(block: CheckBoxThemeScope.() -> Unit) = CheckBoxThemeScope(values<CheckBox>()).block()
+
+    /** Sets the theme values of [OptionButton]s. */
+    fun optionButton(block: OptionButtonThemeScope.() -> Unit) =
+        OptionButtonThemeScope(values<OptionButton>()).block()
+
+    /** Sets the theme values of [PopupList]s. */
+    fun popupList(block: PopupListThemeScope.() -> Unit) = PopupListThemeScope(values<PopupList>()).block()
+
+    /** Sets the theme values of [Window]s. */
+    fun window(block: WindowThemeScope.() -> Unit) = WindowThemeScope(values<Window>()).block()
+
     /** Sets the theme values of [Label]s. */
     fun label(block: LabelThemeScope.() -> Unit) = LabelThemeScope(values<Label>()).block()
 
