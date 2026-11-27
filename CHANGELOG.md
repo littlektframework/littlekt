@@ -40,7 +40,8 @@
 - Add `CheckBox` with the `checkBox {}` builder.
 - Add `OptionButton` & `PopupList` dropdowns with the `optionButton {}` builder.
 - Add draggable `Window` with the `window {}` builder.
-- Add `checkBox`, `optionButton`, `popupList` & `window` theme scopes.
+- Add `SpinBox` number field with scrubbing, step arrows & typing, and the `spinBox {}` builder.
+- Add `checkBox`, `optionButton`, `popupList`, `spinBox` & `window` theme scopes.
 - Fix disabled buttons still emitting presses & toggles.
 - Add `CanvasItem.isVisibleInTree` & `Control.outermost`.
 - Add `TextureRect.expandMode` & `TextureProgress.expandMode` to ignore the texture size for the minimum size.

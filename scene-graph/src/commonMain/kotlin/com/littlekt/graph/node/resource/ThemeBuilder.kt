@@ -69,6 +69,9 @@ class ThemeBuilder(base: Theme? = null) {
     /** Sets the theme values of [PopupList]s. */
     fun popupList(block: PopupListThemeScope.() -> Unit) = PopupListThemeScope(values<PopupList>()).block()
 
+    /** Sets the theme values of [SpinBox]es. */
+    fun spinBox(block: SpinBoxThemeScope.() -> Unit) = SpinBoxThemeScope(values<SpinBox>()).block()
+
     /** Sets the theme values of [Window]s. */
     fun window(block: WindowThemeScope.() -> Unit) = WindowThemeScope(values<Window>()).block()
 

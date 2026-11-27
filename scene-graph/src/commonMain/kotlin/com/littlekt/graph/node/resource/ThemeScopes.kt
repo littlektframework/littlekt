@@ -382,6 +382,36 @@ class PopupListThemeScope(private val values: ThemeTypeBuilder) {
 
 
 /**
+ * The typed theme values of a [SpinBox], used in a [theme] builder. `null` leaves a value unset.
+ *
+ * @author Colton Daily
+ * @date 11/27/2026
+ */
+@ThemeDslMarker
+class SpinBoxThemeScope(private val values: ThemeTypeBuilder) {
+    var normal: Drawable?
+        get() = values.drawables[SpinBox.themeVars.normal]
+        set(value) = values.drawables.update(SpinBox.themeVars.normal, value)
+
+    var hover: Drawable?
+        get() = values.drawables[SpinBox.themeVars.hover]
+        set(value) = values.drawables.update(SpinBox.themeVars.hover, value)
+
+    var fontColor: Color?
+        get() = values.colors[SpinBox.themeVars.fontColor]
+        set(value) = values.colors.update(SpinBox.themeVars.fontColor, value)
+
+    var font: TextureFont?
+        get() = values.fonts[SpinBox.themeVars.font]
+        set(value) = values.fonts.update(SpinBox.themeVars.font, value)
+
+    var arrowWidth: Int?
+        get() = values.constants[SpinBox.themeVars.arrowWidth]
+        set(value) = values.constants.update(SpinBox.themeVars.arrowWidth, value)
+}
+
+
+/**
  * The typed theme values of a [Window], used in a [theme] builder. `null` leaves a value unset.
  *
  * @author Colton Daily

@@ -199,6 +199,12 @@ fun createDefaultTheme(
             itemHover = FlatDrawable(p.controlHover, cornerRadius = r)
             itemSelected = FlatDrawable(p.controlPressed, cornerRadius = r)
         }
+        spinBox {
+            normal = inputField(p.field, p.border, r).apply { minWidth = 70f }
+            hover = inputField(p.controlHover, p.border, r).apply { minWidth = 70f }
+            fontColor = p.text
+            arrowWidth = 18
+        }
         window {
             panel = FlatDrawable(p.surface, p.border, 1, r + 2, 8f)
             titleBar = FlatDrawable(p.control, p.border, 1, r + 2)
