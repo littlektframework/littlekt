@@ -228,6 +228,7 @@ class SpotLightsExample(context: Context) : ContextListener(context) {
                 if (model !== fox) model.rotate(y = 10.degrees * dt.seconds)
                 model.update(dt)
             }
+            floor.update(dt)
         }
 
         onUpdate { dt ->
