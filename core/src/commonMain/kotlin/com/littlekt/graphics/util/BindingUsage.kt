@@ -25,6 +25,7 @@ value class BindingUsage(val usage: Set<String>) {
         val MATERIAL = BindingUsage("Material")
         val SKIN = BindingUsage("Skin")
         val SHADOW = BindingUsage("Shadow")
+        val SPOT_SHADOW = BindingUsage("Spot Shadow")
         val IBL = BindingUsage("IBL")
         val CLUSTER_BOUNDS = BindingUsage("Cluster Bounds")
         val CLUSTER_LIGHTS = BindingUsage("Cluster Lights")

@@ -8,19 +8,23 @@ import com.littlekt.graphics.webgpu.BufferUsage
 import com.littlekt.graphics.webgpu.Device
 import com.littlekt.graphics.webgpu.GPUBuffer
 import com.littlekt.math.Vec3f
+import com.littlekt.math.geom.Angle
+import kotlin.math.cos
+import kotlin.math.max
+import kotlin.math.sqrt
 
 /**
  * A class for managing GPU light data in a buffer, supporting different types of lights such as
- * ambient, directional, and point lights. The data is stored as a structured collection of floats
- * and can be updated and sent to the GPU.
+ * ambient, directional, point and spot lights. The data is stored as a structured collection of
+ * floats and can be updated and sent to the GPU.
  *
  * @property device The device used for creating GPU buffers and managing the queue.
- * @property maxLightCount The maximum number of point lights this buffer can store.
+ * @property maxLightCount The maximum number of point & spot lights this buffer can store.
  */
 class LightBuffer(val device: Device, val maxLightCount: Int) : Releasable {
     /** Size of light buffer in number of components / floats. */
     private val lightBufferSize =
-        AMBIENT_LIGHT_SIZE + DIRECTIONAL_LIGHT_SIZE + (POINT_LIGHT_SIZE * maxLightCount)
+        AMBIENT_LIGHT_SIZE + DIRECTIONAL_LIGHT_SIZE + (LIGHT_SIZE * maxLightCount)
     private val lightsBuffer = ByteBuffer(lightBufferSize * Float.SIZE_BYTES)
 
     /** The [GPUBuffer] that holds the light data */
@@ -34,8 +38,15 @@ class LightBuffer(val device: Device, val maxLightCount: Int) : Releasable {
     /** The [BufferBinding] for [buffer]. */
     val bufferBinding = BufferBinding(buffer)
 
+    /** The number of point & spot lights currently in the buffer. */
+    var lightCount: Int = 0
+        private set
+
     fun update() {
-        device.queue.writeBuffer(buffer, lightsBuffer)
+        lightsBuffer.position = LIGHT_COUNT_OFFSET * Float.SIZE_BYTES
+        lightsBuffer.putInt(lightCount)
+        val size = (LIGHT_OFFSET + lightCount * LIGHT_SIZE) * Float.SIZE_BYTES
+        device.queue.writeBuffer(buffer, lightsBuffer, size = size.toLong())
     }
 
     fun ambient(color: Color) {
@@ -65,37 +76,72 @@ class LightBuffer(val device: Device, val maxLightCount: Int) : Releasable {
         lightsBuffer.putFloat(direction.z)
     }
 
-    fun pointLight(index: Int, position: Vec3f, color: Color, intensity: Float, range: Float) {
-        if (index >= maxLightCount) {
-            return
-        }
-        if (intensity > 0) {
-            val offset =
-                POINT_LIGHT_OFFSET * Float.SIZE_BYTES +
-                    (index * POINT_LIGHT_SIZE * Float.SIZE_BYTES)
-            lightsBuffer.position = offset
-            lightsBuffer.putFloat(position.x)
-            lightsBuffer.putFloat(position.y)
-            lightsBuffer.putFloat(position.z)
-            lightsBuffer.putFloat(range)
-            lightsBuffer.putFloat(color.r)
-            lightsBuffer.putFloat(color.g)
-            lightsBuffer.putFloat(color.b)
-            lightsBuffer.putFloat(intensity)
-            incrementLightCount()
-        }
+    /**
+     * Adds a point light to the end of the buffer. Lights without any intensity are skipped.
+     *
+     * @return `true` if the light was added.
+     */
+    fun pointLight(position: Vec3f, color: Color, intensity: Float, range: Float): Boolean {
+        if (!beginLight(position, color, intensity, range)) return false
+        lightsBuffer.putFloat(0f)
+        lightsBuffer.putFloat(0f)
+        lightsBuffer.putFloat(0f)
+        lightsBuffer.putInt(-1)
+        lightsBuffer.putFloat(0f)
+        lightsBuffer.putFloat(1f)
+        lightCount++
+        return true
     }
 
-    private fun incrementLightCount() {
-        lightsBuffer.position = 11 * Float.SIZE_BYTES
-        val currentValue = lightsBuffer.readInt
-        lightsBuffer.position = 11 * Float.SIZE_BYTES
-        lightsBuffer.putInt(currentValue + 1)
+    /**
+     * Adds a spot light to the end of the buffer. Lights without any intensity are skipped.
+     *
+     * @param shadowIndex the layer of the light in the spot shadow map; `-1` if it has none.
+     * @return `true` if the light was added.
+     */
+    fun spotLight(
+        position: Vec3f,
+        direction: Vec3f,
+        color: Color,
+        intensity: Float,
+        range: Float,
+        innerAngle: Angle,
+        outerAngle: Angle,
+        shadowIndex: Int = -1,
+    ): Boolean {
+        if (!beginLight(position, color, intensity, range)) return false
+        val length =
+            sqrt(direction.x * direction.x + direction.y * direction.y + direction.z * direction.z)
+        val invLength = if (length > 0f) 1f / length else 0f
+        val cosOuter = cos(outerAngle.radians)
+        val cosInner = max(cos(innerAngle.radians), cosOuter)
+        val scale = 1f / max(cosInner - cosOuter, 0.001f)
+        lightsBuffer.putFloat(direction.x * invLength)
+        lightsBuffer.putFloat(direction.y * invLength)
+        lightsBuffer.putFloat(direction.z * invLength)
+        lightsBuffer.putInt(shadowIndex)
+        lightsBuffer.putFloat(scale)
+        lightsBuffer.putFloat(-cosOuter * scale)
+        lightCount++
+        return true
+    }
+
+    private fun beginLight(position: Vec3f, color: Color, intensity: Float, range: Float): Boolean {
+        if (lightCount >= maxLightCount || intensity <= 0f) return false
+        lightsBuffer.position = (LIGHT_OFFSET + lightCount * LIGHT_SIZE) * Float.SIZE_BYTES
+        lightsBuffer.putFloat(position.x)
+        lightsBuffer.putFloat(position.y)
+        lightsBuffer.putFloat(position.z)
+        lightsBuffer.putFloat(range)
+        lightsBuffer.putFloat(color.r)
+        lightsBuffer.putFloat(color.g)
+        lightsBuffer.putFloat(color.b)
+        lightsBuffer.putFloat(intensity)
+        return true
     }
 
     fun resetLightCount() {
-        lightsBuffer.position = 11 * Float.SIZE_BYTES
-        lightsBuffer.putInt(0)
+        lightCount = 0
     }
 
     companion object {
@@ -105,10 +151,11 @@ class LightBuffer(val device: Device, val maxLightCount: Int) : Releasable {
         /** Size in total floats (NOT BYTE SIZE). */
         const val DIRECTIONAL_LIGHT_SIZE = 8
 
-        /** Size in total floats (NOT BYTE SIZE). */
-        const val POINT_LIGHT_SIZE = 8
+        /** Size of a point or spot light in total floats (NOT BYTE SIZE). */
+        const val LIGHT_SIZE = 16
 
-        private const val POINT_LIGHT_OFFSET = AMBIENT_LIGHT_SIZE + DIRECTIONAL_LIGHT_SIZE
+        private const val LIGHT_COUNT_OFFSET = 11
+        private const val LIGHT_OFFSET = AMBIENT_LIGHT_SIZE + DIRECTIONAL_LIGHT_SIZE
     }
 
     override fun release() {

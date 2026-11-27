@@ -2,6 +2,7 @@ package com.littlekt.graphics.g3d
 
 import com.littlekt.graphics.g3d.ibl.EnvironmentMap
 import com.littlekt.graphics.g3d.shadow.DirectionalShadowMap
+import com.littlekt.graphics.g3d.shadow.SpotShadowMap
 import com.littlekt.graphics.g3d.util.CameraComplexBuffers
 import com.littlekt.graphics.g3d.util.CameraLightBuffers
 import com.littlekt.graphics.g3d.util.LightBuffer
@@ -13,6 +14,7 @@ fun PBREnvironment(
     maxLightCount: Int = 1024,
     shadowMap: DirectionalShadowMap? = null,
     environmentMap: EnvironmentMap? = null,
+    spotShadowMap: SpotShadowMap? = null,
 ): PBREnvironment =
     PBREnvironment(
         CameraLightBuffers(
@@ -20,6 +22,7 @@ fun PBREnvironment(
             LightBuffer(device, maxLightCount),
             shadowMap = shadowMap,
             environmentMap = environmentMap,
+            spotShadowMap = spotShadowMap,
         )
     )
 

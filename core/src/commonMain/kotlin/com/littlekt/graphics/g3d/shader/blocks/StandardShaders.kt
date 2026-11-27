@@ -471,6 +471,12 @@ object Standard {
                       return clamp(1.0 - pow(distance / light.range, 4.0), 0.0, 1.0) / pow(distance, 2.0);
                     }
         
+                    fn spotAttenuation(direction : vec3f, scale : f32, offset : f32, pointToLight : vec3f) -> f32 {
+                      let cd = dot(direction, normalize(-pointToLight));
+                      let attenuation = clamp(cd * scale + offset, 0.0, 1.0);
+                      return attenuation * attenuation;
+                    }
+        
                     fn lightRadiance(light : PunctualLight, surface : SurfaceInfo) -> vec3f {
                       let L = normalize(light.pointToLight);
                       let H = normalize(surface.v + L);
@@ -586,6 +592,71 @@ object Standard {
                 }
             }
 
+        fun SpotShadowStruct(count: Int) =
+            shaderStruct("SpotShadow") {
+                mapOf(
+                    "view_proj" to
+                        ShaderStructParameterType.array(
+                            ShaderStructParameterType.WgslType.mat4x4f,
+                            count,
+                        ),
+                    "params" to
+                        ShaderStructParameterType.array(
+                            ShaderStructParameterType.WgslType.vec4f,
+                            count,
+                        ),
+                    "settings" to ShaderStructParameterType.WgslType.vec4f,
+                )
+            }
+
+        fun SpotShadows(group: Int, binding: Int, count: Int) =
+            shaderBlock("SpotShadows") {
+                val struct = SpotShadowStruct(count)
+                include(struct)
+                bindGroup(group, BindingUsage.SPOT_SHADOW) {
+                    bindTextureDepth2dArray(binding, "spot_shadow_texture")
+                    bindSamplerComparison(binding + 1, "spot_shadow_sampler")
+                    bind(binding + 2, "spot_shadow", struct, ShaderBindingType.Uniform)
+                }
+                body {
+                    """
+                    fn spotLightVisibility(index : i32, world_pos : vec3f, normal : vec3f, pointToLight : vec3f) -> f32 {
+                      let params = spot_shadow.params[index];
+                      let distance = length(pointToLight);
+                      let L = pointToLight / max(distance, 0.0001);
+                      let offset_pos = world_pos + (normal * params.x + L * params.y) * distance;
+                      let light_pos = spot_shadow.view_proj[index] * vec4(offset_pos, 1.0);
+                      if (light_pos.w <= 0.0) {
+                        return 1.0;
+                      }
+                      let ndc = light_pos.xyz / light_pos.w;
+                      let uv = ndc.xy * vec2(0.5, -0.5) + vec2(0.5);
+                      if (any(uv < vec2(0.0)) || any(uv > vec2(1.0)) || ndc.z > 1.0) {
+                        return 1.0;
+                      }
+                      let texel = 1.0 / vec2f(textureDimensions(spot_shadow_texture));
+                      let radius = i32(spot_shadow.settings.x);
+                      var visibility = 0.0;
+                      var samples = 0.0;
+                      for (var y = -radius; y <= radius; y++) {
+                        for (var x = -radius; x <= radius; x++) {
+                          visibility += textureSampleCompareLevel(
+                            spot_shadow_texture,
+                            spot_shadow_sampler,
+                            uv + vec2(f32(x), f32(y)) * texel,
+                            index,
+                            ndc.z,
+                          );
+                          samples += 1.0;
+                        }
+                      }
+                      return visibility / samples;
+                    }
+                    """
+                        .trimIndent()
+                }
+            }
+
         val IBLStruct =
             shaderStruct("IBL") {
                 mapOf(
@@ -654,6 +725,7 @@ object Standard {
             fullyRough: Boolean = false,
             gammaCorrect: Boolean = true,
             iblEnabled: Boolean = false,
+            spotShadowCount: Int = 0,
         ) = shader {
             val input = VertexOutputStruct(layout)
             val output = FragmentOutputStruct(bloomEnabled)
@@ -669,8 +741,13 @@ object Standard {
             }
             include(Lighting(fullyRough))
             include(SurfaceInfo(layout))
+            val iblBinding = if (shadowsEnabled) 6 else 3
             if (iblEnabled) {
-                include(IBL(0, if (shadowsEnabled) 6 else 3))
+                include(IBL(0, iblBinding))
+            }
+            val spotShadowsEnabled = spotShadowCount > 0
+            if (spotShadowsEnabled) {
+                include(SpotShadows(0, if (iblEnabled) iblBinding + 5 else iblBinding, spotShadowCount))
             }
             include(CommonShaderBlocks.ColorConversionFunctions())
 
@@ -706,15 +783,17 @@ object Standard {
                         %point_lights%
                         for (var lightIndex = 0u; lightIndex < lightCount; lightIndex = lightIndex + 1u) {
                           let i = clusterLights.indices[lightOffset + lightIndex];
+                          let light_data = global_lights.lights[i];
     
                           var light : PunctualLight;
-                          light.lightType = LightType_Point;
-                          light.pointToLight = global_lights.lights[i].position.xyz - input.world_pos;
-                          light.range = global_lights.lights[i].range;
-                          light.color = global_lights.lights[i].color;
-                          light.intensity = global_lights.lights[i].intensity;
+                          light.lightType = select(LightType_Point, LightType_Spot, light_data.spot_scale > 0.0);
+                          light.pointToLight = light_data.position - input.world_pos;
+                          light.range = light_data.range;
+                          light.color = light_data.color;
+                          light.intensity = light_data.intensity;
     
-                          let lightVis = 1.0;
+                          var lightVis = spotAttenuation(light_data.direction, light_data.spot_scale, light_data.spot_offset, light.pointToLight);
+                          ${if (spotShadowsEnabled) "if (light_data.shadow_index >= 0 && lightVis > 0.0) { lightVis = lightVis * spotLightVisibility(light_data.shadow_index, input.world_pos, surface.normal, light.pointToLight); }" else ""}
     
                           // calculate per-light radiance and add to outgoing radiance Lo
                           Lo = Lo + lightRadiance(light, surface) * lightVis;

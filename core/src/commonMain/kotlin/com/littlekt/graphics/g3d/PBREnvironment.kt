@@ -4,16 +4,17 @@ import com.littlekt.graphics.Camera
 import com.littlekt.graphics.g3d.light.AmbientLight
 import com.littlekt.graphics.g3d.light.DirectionalLight
 import com.littlekt.graphics.g3d.light.PointLight
+import com.littlekt.graphics.g3d.light.SpotLight
 import com.littlekt.graphics.g3d.shader.blocks.Standard
 import com.littlekt.graphics.g3d.ibl.EnvironmentMap
 import com.littlekt.graphics.g3d.shadow.DirectionalShadowMap
+import com.littlekt.graphics.g3d.shadow.SpotShadowMap
 import com.littlekt.graphics.g3d.util.CameraLightBuffers
 import com.littlekt.graphics.shader.Shader
 import com.littlekt.graphics.util.BindingUsage
 import com.littlekt.graphics.util.CameraBuffersViaCamera
 import com.littlekt.graphics.webgpu.*
 import com.littlekt.util.datastructure.fastForEach
-import com.littlekt.util.datastructure.fastForEachWithIndex
 import kotlin.time.Duration
 
 /**
@@ -23,7 +24,16 @@ import kotlin.time.Duration
 class PBREnvironment(override val buffers: CameraLightBuffers) : Environment(buffers) {
     private var directionalLight = DirectionalLight()
     private var ambientLight = AmbientLight()
-    private val pointLights = mutableListOf<PointLight>()
+    private val _pointLights = mutableListOf<PointLight>()
+    private val _spotLights = mutableListOf<SpotLight>()
+
+    /** The point lights added with [addPointLight]. */
+    val pointLights: List<PointLight>
+        get() = _pointLights
+
+    /** The spot lights added with [addSpotLight]. */
+    val spotLights: List<SpotLight>
+        get() = _spotLights
 
     private val device = buffers.device
     private val boundsShader = Shader(device, Standard.Cluster.ClusterBoundsComputeShader())
@@ -53,6 +63,10 @@ class PBREnvironment(override val buffers: CameraLightBuffers) : Environment(buf
     val shadowMap: DirectionalShadowMap?
         get() = buffers.shadowMap
 
+    /** The [SpotShadowMap] used for the spot lights that cast shadows, if any. */
+    val spotShadowMap: SpotShadowMap?
+        get() = buffers.spotShadowMap
+
     /** The [EnvironmentMap] used for image based lighting, if any. */
     val environmentMap: EnvironmentMap?
         get() = buffers.environmentMap
@@ -63,6 +77,7 @@ class PBREnvironment(override val buffers: CameraLightBuffers) : Environment(buf
             buffers.lightBuffer,
             shadowMap = buffers.shadowMap,
             environmentMap = buffers.environmentMap,
+            spotShadowMap = buffers.spotShadowMap,
         )
 
     override fun updateView(
@@ -101,15 +116,28 @@ class PBREnvironment(override val buffers: CameraLightBuffers) : Environment(buf
     }
 
     private fun updatePointLights() {
-        buffers.lightBuffer.resetLightCount()
+        val lightBuffer = buffers.lightBuffer
+        lightBuffer.resetLightCount()
 
-        pointLights.fastForEachWithIndex { index, light ->
-            buffers.lightBuffer.pointLight(
-                index = index,
+        _pointLights.fastForEach { light ->
+            lightBuffer.pointLight(
                 position = light.position,
                 color = light.color,
                 intensity = light.intensity,
                 range = light.range,
+            )
+        }
+        val shadows = spotShadowMap
+        _spotLights.fastForEach { light ->
+            lightBuffer.spotLight(
+                position = light.position,
+                direction = light.direction,
+                color = light.color,
+                intensity = light.intensity,
+                range = light.range,
+                innerAngle = light.innerAngle,
+                outerAngle = light.outerAngle,
+                shadowIndex = if (light.castShadows) shadows?.indexOf(light) ?: -1 else -1,
             )
         }
     }
@@ -123,11 +151,19 @@ class PBREnvironment(override val buffers: CameraLightBuffers) : Environment(buf
     }
 
     fun addPointLight(pointLight: PointLight) {
-        pointLights += pointLight
+        _pointLights += pointLight
     }
 
     fun removePointLight(pointLight: PointLight) {
-        pointLights -= pointLight
+        _pointLights -= pointLight
+    }
+
+    fun addSpotLight(spotLight: SpotLight) {
+        _spotLights += spotLight
+    }
+
+    fun removeSpotLight(spotLight: SpotLight) {
+        _spotLights -= spotLight
     }
 
     override fun release() {

@@ -38,6 +38,7 @@ class PBRMaterialPipelineProvider : BaseMaterialPipelineProvider<PBRMaterial>() 
                 material.isFullyRough,
                 gammaCorrect = !colorFormat.srgb && !colorFormat.hdr,
                 iblEnabled = (environment as? PBREnvironment)?.environmentMap != null,
+                spotShadowCount = (environment as? PBREnvironment)?.spotShadowMap?.count ?: 0,
             )
         val shaderCode = shader {
             vertex(vertexShaderCode.vertex)

@@ -4,6 +4,7 @@ import com.littlekt.file.FloatBuffer
 import com.littlekt.graphics.Camera
 import com.littlekt.graphics.g3d.ibl.EnvironmentMap
 import com.littlekt.graphics.g3d.shadow.DirectionalShadowMap
+import com.littlekt.graphics.g3d.shadow.SpotShadowMap
 import com.littlekt.graphics.shader.Shader
 import com.littlekt.graphics.util.BindingUsage
 import com.littlekt.graphics.util.CameraBuffersViaCamera
@@ -21,6 +22,7 @@ class CameraLightBuffers(
     val clusterBuffers: ClusterBuffers = ClusterBuffers(device),
     val shadowMap: DirectionalShadowMap? = null,
     val environmentMap: EnvironmentMap? = null,
+    val spotShadowMap: SpotShadowMap? = null,
 ) : CameraBuffersViaCamera {
     private val camFloatBuffer = FloatBuffer(BUFFER_SIZE) // 56 floats required
 
@@ -47,6 +49,7 @@ class CameraLightBuffers(
         var usage = BindingUsage.CAMERA or BindingUsage.LIGHT or BindingUsage.CLUSTER_LIGHTS
         if (shadowMap != null) usage = usage or BindingUsage.SHADOW
         if (environmentMap != null) usage = usage or BindingUsage.IBL
+        if (spotShadowMap != null) usage = usage or BindingUsage.SPOT_SHADOW
         usage
     }
 
@@ -72,6 +75,11 @@ class CameraLightBuffers(
             resources += it.irradianceView
             resources += it.prefilteredView
             resources += it.brdfView
+            resources += it.sampler
+            resources += it.uniformBufferBinding
+        }
+        spotShadowMap?.let {
+            resources += it.view
             resources += it.sampler
             resources += it.uniformBufferBinding
         }

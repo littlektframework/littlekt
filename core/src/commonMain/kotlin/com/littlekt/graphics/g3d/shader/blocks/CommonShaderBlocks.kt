@@ -121,6 +121,11 @@ object CommonShaderBlocks {
                 "range" to ShaderStructParameterType.WgslType.f32,
                 "color" to ShaderStructParameterType.WgslType.vec3f,
                 "intensity" to ShaderStructParameterType.WgslType.f32,
+                "direction" to ShaderStructParameterType.WgslType.vec3f,
+                "shadow_index" to ShaderStructParameterType.WgslType.i32,
+                "spot_scale" to ShaderStructParameterType.WgslType.f32,
+                "spot_offset" to ShaderStructParameterType.WgslType.f32,
+                "padding" to ShaderStructParameterType.WgslType.vec2f,
             )
         }
 

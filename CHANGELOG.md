@@ -19,6 +19,8 @@
     - Migration: read `isVisibleInTree` for the effective visibility.
 - BREAKING: `TextureProgress` draws its textures at the control's size, and `TOP_TO_BOTTOM` & `BOTTOM_TO_TOP` fill the named direction.
     - Migration: swap the vertical mode if you worked around it.
+- BREAKING: `LightBuffer.pointLight` appends the light instead of taking an index.
+    - Migration: call `resetLightCount()` then `pointLight(position, color, intensity, range)` per light.
 
 ### Changes
 
@@ -74,6 +76,11 @@
 - Add `Audio.createPcmOutput` & `PcmOutput` to stream raw samples written by a `PcmSource`.
 - Add `AudioSamples`, `decodeAudioSamples`, `decodeWav` & `VfsFile.readAudioSamples` to decode WAV, OGG & MP3 to float samples.
 - Add WAV `smpl` loop points & `cue ` markers to `AudioSamples`.
+- Add `SpotLight` with `PBREnvironment.addSpotLight` & smooth inner to outer cone falloff.
+- Add `SpotShadowMap` for shadow casting spot lights with PCF filtering.
+- Add depth textures to `ShaderPostEffect` with `depthTextureCount`, `setDepthTexture`, `setCamera` & `post_linear_depth`.
+- Make `PointLight`, `DirectionalLight` & `AmbientLight` fields mutable to change lights each frame.
+- Fix point lights after a light without intensity reading stale light data.
 
 ## 0.12.0
 

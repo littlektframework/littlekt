@@ -1,6 +1,7 @@
 package com.littlekt.graphics.postprocess
 
 import com.littlekt.file.FloatBuffer
+import com.littlekt.graphics.Camera
 import com.littlekt.graphics.webgpu.*
 
 /**
@@ -11,6 +12,10 @@ import com.littlekt.graphics.webgpu.*
  * - `post.params[i]`, [paramCount] floats packed into `vec4f`s and set with [setParam]
  * - `post_texture_0` up to `post_texture_<textureCount - 1>`, [textureCount] more textures set
  *   with [setTexture] and sampled with `source_sampler`
+ * - `post_depth_0` up to `post_depth_<depthTextureCount - 1>`, [depthTextureCount] depth textures
+ *   set with [setDepthTexture], read with `post_load_depth_<i>(uv)`
+ * - `post_linear_depth(depth)`, the distance from the camera of a depth, using `post.near` &
+ *   `post.far` set with [setCamera] or [setDepthRange]
  *
  * The result is encoded to sRGB when drawn into a target that isn't sRGB or float.
  *
@@ -28,6 +33,10 @@ import com.littlekt.graphics.webgpu.*
  * @param paramCount the number of floats in `post.params`
  * @param label the label of the GPU objects
  * @param textureCount the number of extra textures the effect samples, such as a lookup table
+ * @param depthTextureCount the number of depth textures the effect reads, such as the scene depth
+ *   for fog
+ * @param depthSampleCount the sample count of the depth textures. A multisampled depth texture is
+ *   read from its first sample.
  * @author Colton Daily
  * @date 11/21/2026
  */
@@ -37,19 +46,29 @@ open class ShaderPostEffect(
     val paramCount: Int = 0,
     val label: String = "post effect",
     val textureCount: Int = 0,
+    val depthTextureCount: Int = 0,
+    val depthSampleCount: Int = 1,
 ) : PostEffect {
 
     init {
         require(paramCount >= 0) { "paramCount must not be negative!" }
         require(textureCount >= 0) { "textureCount must not be negative!" }
+        require(depthTextureCount >= 0) { "depthTextureCount must not be negative!" }
+        require(depthSampleCount >= 1) { "depthSampleCount must be at least 1!" }
     }
 
     private val textures = arrayOfNulls<TextureView>(textureCount)
+    private val depthTextures = arrayOfNulls<TextureView>(depthTextureCount)
+    private val depthBinding = 3 + textureCount
 
     override var enabled: Boolean = true
 
     private val paramVectors = maxOf(1, (paramCount + 3) / 4)
-    private val data = FloatBuffer(HEADER_FLOATS + paramVectors * 4)
+    private val data =
+        FloatBuffer(HEADER_FLOATS + paramVectors * 4).apply {
+            this[5] = 0.01f
+            this[6] = 1000f
+        }
     private var dataDirty = true
     private var dataWidth = -1
     private var dataHeight = -1
@@ -62,9 +81,9 @@ open class ShaderPostEffect(
                 resolution: vec2f,
                 texel: vec2f,
                 encode_srgb: f32,
-                padding0: f32,
-                padding1: f32,
-                padding2: f32,
+                near: f32,
+                far: f32,
+                padding: f32,
                 params: array<vec4f, $paramVectors>,
             };
 
@@ -77,6 +96,11 @@ open class ShaderPostEffect(
             @group(0) @binding(1) var source_sampler: sampler;
             @group(0) @binding(2) var<uniform> post: PostUniforms;
             ${(0 until textureCount).joinToString("\n") { "@group(0) @binding(${it + 3}) var post_texture_$it: texture_2d<f32>;" }}
+            ${(0 until depthTextureCount).joinToString("\n") { depthSrc(it) }}
+
+            fn post_linear_depth(depth: f32) -> f32 {
+                return post.near * post.far / (post.far - depth * (post.far - post.near));
+            }
 
             @vertex
             fn vs_main(@builtin(vertex_index) index: u32) -> VertexOutput {
@@ -115,7 +139,20 @@ open class ShaderPostEffect(
                     BindGroupLayoutEntry(0, ShaderStage.FRAGMENT, TextureBindingLayout()),
                     BindGroupLayoutEntry(1, ShaderStage.FRAGMENT, SamplerBindingLayout()),
                     BindGroupLayoutEntry(2, ShaderStage.FRAGMENT, BufferBindingLayout()),
-                ) + List(textureCount) { BindGroupLayoutEntry(it + 3, ShaderStage.FRAGMENT, TextureBindingLayout()) },
+                ) +
+                    List(textureCount) {
+                        BindGroupLayoutEntry(it + 3, ShaderStage.FRAGMENT, TextureBindingLayout())
+                    } +
+                    List(depthTextureCount) {
+                        BindGroupLayoutEntry(
+                            depthBinding + it,
+                            ShaderStage.FRAGMENT,
+                            TextureBindingLayout(
+                                TextureSampleType.DEPTH,
+                                multisampled = depthSampleCount > 1,
+                            ),
+                        )
+                    },
                 label = "$label bind group layout",
             )
         )
@@ -157,6 +194,33 @@ open class ShaderPostEffect(
         textures[index] = view
         clearBindGroups()
     }
+
+    /**
+     * Sets `post_depth_[index]` to [view], used from the next render. The view must only have the
+     * depth aspect, such as [com.littlekt.graphics.EmptyTexture.depthView]. Every depth texture must
+     * be set before the effect renders.
+     */
+    fun setDepthTexture(index: Int, view: TextureView) {
+        if (index < 0 || index >= depthTextureCount) {
+            throw IndexOutOfBoundsException(
+                "Depth texture $index is out of range of $depthTextureCount depth textures!"
+            )
+        }
+        if (depthTextures[index] === view) return
+        depthTextures[index] = view
+        clearBindGroups()
+    }
+
+    /** Sets `post.near` & `post.far` used by `post_linear_depth`, uploaded on the next render. */
+    fun setDepthRange(near: Float, far: Float) {
+        if (data[5] == near && data[6] == far) return
+        data[5] = near
+        data[6] = far
+        dataDirty = true
+    }
+
+    /** Sets `post.near` & `post.far` to the near & far planes of the [camera]. */
+    fun setCamera(camera: Camera) = setDepthRange(camera.near, camera.far)
 
     /** @return the param at [index] of `post.params` */
     fun getParam(index: Int): Float {
@@ -252,6 +316,10 @@ open class ShaderPostEffect(
             val view = textures[i] ?: throw IllegalStateException("$label needs post_texture_$i set with setTexture before it renders!")
             entries += BindGroupEntry(i + 3, view)
         }
+        for (i in 0 until depthTextureCount) {
+            val view = depthTextures[i] ?: throw IllegalStateException("$label needs post_depth_$i set with setDepthTexture before it renders!")
+            entries += BindGroupEntry(depthBinding + i, view)
+        }
         return device
             .createBindGroup(BindGroupDescriptor(bindGroupLayout, entries, label = "$label bind group"))
             .also { bindGroups[slot] = it }
@@ -274,6 +342,20 @@ open class ShaderPostEffect(
         pipelineLayout.release()
         bindGroupLayout.release()
         shader.release()
+    }
+
+    private fun depthSrc(index: Int): String {
+        val type = if (depthSampleCount > 1) "texture_depth_multisampled_2d" else "texture_depth_2d"
+        return """
+            @group(0) @binding(${depthBinding + index}) var post_depth_$index: $type;
+
+            fn post_load_depth_$index(uv: vec2f) -> f32 {
+                let size = vec2i(textureDimensions(post_depth_$index));
+                let coord = clamp(vec2i(uv * vec2f(size)), vec2i(0), size - vec2i(1));
+                return textureLoad(post_depth_$index, coord, 0);
+            }
+        """
+            .trimIndent()
     }
 
     private companion object {
