@@ -28,6 +28,7 @@ import com.littlekt.examples.g3d.VfxParticlesExample
 import com.littlekt.examples.g3d.PickingExample
 import com.littlekt.examples.g3d.PBRExample
 import com.littlekt.examples.g3d.ShadowsExample
+import com.littlekt.examples.g3d.SpotLightsExample
 import com.littlekt.examples.g3d.CollisionExample
 import com.littlekt.examples.g3d.PostProcessingExample
 import com.littlekt.examples.g3d.SimpleGltfExample
@@ -118,6 +119,7 @@ val availableExamples: Map<String, Example> = examples {
         example("-skinnedAnimation", "Skinned Animation", ::SkinnedAnimationExample)
         example("-pbr", "PBR", ::PBRExample)
         example("-shadows", "Shadows", ::ShadowsExample)
+        example("-spotLights", "Spot Lights & Fog", ::SpotLightsExample)
         example("-transparency", "Transparency", ::TransparencyExample)
         example("-picking", "Picking & Spatial Hash", ::PickingExample)
         example("-collision", "Overlaps & Sweeps", ::CollisionExample)
